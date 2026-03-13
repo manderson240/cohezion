@@ -1,0 +1,4110 @@
+[Request interrupted by user for tool use]
+
+---
+
+Implement the following plan:
+
+# Vault Keeper Maintenance Plan
+
+## Context
+
+Routine vault health maintenance cycle invoked via `/vault-keeper`. The vault has 1,072 notes and 11,638 wiki-links. Frontmatter and aspect compliance is clean. The main issues are broken links (137), thin notes (60), and 2 orphan notes.
+
+## Current Health Summary
+
+| Metric | Value | Status |
+|--------|-------|--------|
+| Total notes | 1,072 | OK |
+| Wiki-links | 11,638 | OK (~10.9/note) |
+| Inbox (thalamus) | 0 | Clean |
+| Orphan notes | 2 | Fix |
+| Broken wiki-links | 137 | Triage |
+| Frontmatter issues | 0 | Clean |
+| Missing aspect | 0 | Clean |
+| Tags as string | 0 | Clean |
+| Thin notes (<3KB) | 60 | Expand priority ones |
+| Maps of Content | 10 | Good coverage |
+| Under-connected hubs | 0 | Clean |
+| Active projects | 19 | No P0 items pending |
+
+## Phase 1: TRIAGE — Skip (inbox empty)
+
+## Phase 2: HEAL — Fix Structural Issues
+
+### Task 2.1: Connect 2 orphan notes
+- `cortex/cybernetics.md` — find 2-3 hub notes to add inbound links
+- `prefrontal/2026-03-07-skill-pruning-consolidation-plan.md` — add inbound links from relevant concept/project notes
+
+### Task 2.2: Triage broken wiki-links (137 total)
+Many broken links are template placeholders, git hashes, or code references (e.g., `{artifact}`, `bare-name`, `9403aab`, `271e02938e5f`). Strategy:
+1. Categorize the 137 broken links into: real missing notes, typos, and non-actionable (templates/code/hashes)
+2. Fix typos inline
+3. Create stub notes for real missing concepts referenced 3+ times
+4. Ignore non-actionable links (document count for reporting)
+
+## Phase 3: DENSIFY — Expand Thin Notes
+
+### Task 3.1: Prioritize thin notes by impact
+Focus on the highest-impact thin notes — those in `cortex/` with inbound links, since expanding them benefits the most readers. Top candidates:
+- `cortex/bayesian-inference.md` (2073 bytes)
+- `cortex/hyperdim-viz-portfolio.md` (2302 bytes)
+- `cortex/planetary-systems.md` (2443 bytes)
+- `cortex/habitable-zone.md` (2915 bytes)
+- `cortex/red-supergiant-stars.md` (2979 bytes)
+- `cortex/synthesis-methods.md` (2834 bytes)
+- `cortex/concept-versioning.md` (2779 bytes)
+
+Expand up to 10 notes per run with proper research and cross-linking.
+
+### Task 3.2: Stub laboratory notes
+Several `laboratory/` notes are extremely thin (251-302 bytes) — likely just titles:
+- `laboratory/2026-03-05-remote-claude-code-leverage-architecture.md`
+- `laboratory/2026-03-05-unblocking-pr-33-ci-fixes-for-branch-protection.md`
+- `laboratory/2026-03-05-gc-corruption-root-cause-entire-auto-commits-and-submodule-conflicts.md`
+- `laboratory/2026-03-05-ci-pipeline-debugging-cascading-failures-from-dev-deps-and-permissions.md`
+- `laboratory/2026-03-05-gc-corruption-severity-170-bad-objects-across-all-pack-files-3gb-data-file-in-hi.md`
+
+These are historical experiment logs — expand with context if available, or mark as `status: complete` stubs if the experiments are concluded.
+
+## Phase 4: NAVIGATE — MOC Check
+
+10 MOCs already exist covering major topics. No new MOCs needed this cycle. Quick refresh pass to ensure existing MOCs link to any notes created since their last update.
+
+## Phase 5: REPORT
+
+Generate a vault keeper report with before/after metrics and remaining issues.
+
+## Execution Order
+
+1. Connect 2 orphans (quick fix, ~5 min)
+2. Triage broken links — categorize and fix actionable ones (~20 min)
+3. Expand 5-10 thin cortex notes (~30 min)
+4. Refresh MOC links if needed (~10 min)
+5. Generate report
+
+## Verification
+
+- Re-run orphan check: expect 0
+- Re-run broken link count: expect reduction from 137
+- Re-run thin note count: expect reduction from 60
+- Spot-check expanded notes for proper frontmatter and cross-links
+
+
+If you need specific details from before exiting plan mode (like exact code snippets, error messages, or content you generated), read the full transcript at: /home/mike-anderson/.claude/projects/-home-mike-anderson-vaults-cohezion-vault/ebc47a63-318f-4cd7-896b-a8ef92f2c560.jsonl
+
+---
+
+Base directory for this skill: /home/mike-anderson/vaults/cohezion-vault/.claude/skills/vault-keeper
+
+# Vault Keeper
+
+Autonomous maintenance agent that keeps the Obsidian vault healthy, dense, navigable, and agent-readable. Orchestrates the five specialist skills (vault-health, link, flesh-out, triage, note) in a single prioritized workflow.
+
+**This skill is PROACTIVE.** It does not wait to be invoked — it monitors vault health continuously and acts when issues are detected.
+
+## Usage
+
+```
+/vault-keeper                    # Full maintenance cycle (audit → heal → report)
+/vault-keeper --quick            # Quick health check only (read-only, 30 seconds)
+/vault-keeper --triage           # Process inbox only
+/vault-keeper --densify          # Link + flesh-out cycle only
+/vault-keeper --moc              # Generate/update Maps of Content
+/vault-keeper --context "query"  # Load relevant vault context for a task
+```
+
+---
+
+## Proactive Behavior
+
+The Vault Keeper monitors vault health automatically and acts without waiting for explicit user invocation. This is the **default behavior** — the keeper is always watching.
+
+### Trigger: Session Start
+
+At the **start of every session** in the cohezion-vault:
+
+**Step 1: Load orientation.** Read `VAULT_MANIFEST.md` at the vault root. This tells you:
+- Where every directory is and what it's for
+- Output routing rules (where to put your work)
+- Conventions (frontmatter, linking, naming)
+- Entry points (which MOC to start with)
+
+**Step 2: Run silent health check:**
+
+```bash
+# 1. Check inbox
+inbox_count=$(find thalamus/ -maxdepth 1 -name '*.md' ! -name '_index.md' ! -name '_template.md' 2>/dev/null | wc -l)
+
+# 2. Check for orphans in core dirs (sample — full scan only on explicit run)
+orphan_sample=$(for f in cortex/*.md; do
+  [ -f "$f" ] || continue
+  name="${f##*/}"; name="${name%.md}"
+  [ "$name" = "_template" ] && continue
+  count=$(grep -rl "\[\[.*$name" cortex/ sensory/ prefrontal/ motor/ 2>/dev/null | grep -v "$f" | wc -l)
+  [ "$count" -eq 0 ] && echo "$f"
+done | head -5)
+
+# 3. Count thin notes (quick sample)
+thin_count=$(find cortex/ sensory/ prefrontal/ -name '*.md' ! -name '_template.md' -size -3k 2>/dev/null | wc -l)
+```
+
+**Step 3: Load task-relevant context.** If the user's first message implies a topic:
+- Find the matching MOC (`cortex/MOC-*.md`) and skim it
+- Check `memory/` for past mistakes in that domain
+- Check the relevant directory's `_index.md` for key notes
+
+**Actions based on health check findings:**
+
+| Finding | Action | User Interaction |
+|---------|--------|------------------|
+| Inbox has items | Report to user: "Inbox has N items. Want me to triage them?" | Ask once |
+| Active project P0s | Surface them immediately: list the file and unchecked items | Proactive |
+| Orphans detected | Auto-fix silently if < 5, report if >= 5 | Silent for small counts |
+| Thin notes > 20 | Mention in first response: "N thin notes could use expansion" | Informational |
+| All healthy | Say nothing — don't clutter with "all clear" messages | Silent |
+
+**Step 2b: Scan active projects for P0 work:**
+
+```bash
+# Find active projects with unchecked P0 items
+for f in motor/*.md; do
+  grep -q '^status: active' "$f" 2>/dev/null || continue
+  awk '/^### P0/{p=1} p && /^###/ && !/^### P0/{p=0} p && /^\- \[ \]/{print FILENAME": "}' "$f"
+done
+```
+
+If any P0 items are found, surface them in the first response: "There are P0 tasks due in `<project>`. Want me to start on them?"
+
+### Agent Orientation Files
+
+Every content and workflow directory has a `_index.md` file. Agents can read any directory's `_index.md` to understand:
+- What goes in that directory
+- Naming and frontmatter conventions
+- Key notes to reference
+- Related MOCs for deeper context
+
+**Discovery pattern for any unfamiliar directory:**
+```
+Read <directory>/_index.md → understand purpose → follow routing rules
+```
+
+### Trigger: Hook Alert
+
+The `vault-keeper-check.sh` PostToolUse hook runs after Write/Edit operations on `.md` files. When it detects issues, it prints an alert message. **When you see a vault-keeper alert in hook output, act on it:**
+
+| Alert | Auto-Action |
+|-------|-------------|
+| `VAULT_KEEPER: inbox has N new items` | Offer to triage |
+| `VAULT_KEEPER: new note has no inbound links` | Add 1-3 inbound wiki-links from relevant hub notes immediately |
+| `VAULT_KEEPER: note missing frontmatter` | Add proper frontmatter to the note immediately |
+| `VAULT_KEEPER: note has tags as string` | Convert tags to array immediately |
+
+**Key rule:** For structural fixes (frontmatter, tags, missing links on new notes), fix immediately without asking. These are vault invariants, not preferences.
+
+### Trigger: Bulk Operations
+
+After any operation that creates or modifies 5+ vault notes (e.g., flesh-out runs, research imports, link campaigns):
+
+1. Run a quick orphan check on affected files
+2. Verify all new/modified notes have proper frontmatter
+3. Confirm no broken links were introduced
+4. Report metrics delta (links before → after)
+
+### Trigger: User Context Clues
+
+Proactively invoke vault keeper logic when the user's request implies vault maintenance, even without saying "vault keeper":
+
+| User Says | Vault Keeper Interprets As |
+|-----------|---------------------------|
+| "Clean up the vault" | Full maintenance run |
+| "What's in the inbox?" | Triage mode |
+| "How healthy is the vault?" | Quick audit |
+| "Connect these notes" | Link mode |
+| "This note is thin" | Flesh-out mode |
+| "Make this navigable" | MOC generation |
+| "Update the maps" | MOC refresh |
+
+### Proactive Rules
+
+1. **Never announce proactive work unnecessarily.** If you silently fix 2 orphans, don't write a paragraph about it. A one-liner in your response is enough: "Also connected 2 orphan notes."
+2. **Always fix invariant violations immediately.** Missing frontmatter, string tags, and orphaned new notes are bugs, not preferences.
+3. **Respect context budget.** Proactive checks should cost < 500 tokens. If a full audit is needed, ask the user first.
+4. **Don't repeat checks.** If you already ran a health check this session, don't run another unless new notes were created.
+5. **Batch alerts.** If multiple issues are found, combine them into one report rather than alerting per-issue.
+
+---
+
+## Architecture
+
+The Vault Keeper runs a **prioritized maintenance pipeline**. Each phase gates the next — critical issues are fixed before cosmetic ones.
+
+```
+Phase 1: TRIAGE     → Process inbox (new content enters the graph properly)
+Phase 2: AUDIT      → Health check (identify what's broken)
+Phase 3: HEAL       → Fix issues found by audit (frontmatter, broken links, orphans)
+Phase 4: DENSIFY    → Expand thin notes, add missing connections
+Phase 5: NAVIGATE   → Generate/update Maps of Content for traversability
+Phase 6: REPORT     → Summary with metrics and deltas
+```
+
+---
+
+## Phase 1: TRIAGE — Process Inbox
+
+**Goal:** Zero inbox. New content enters the vault through proper channels.
+
+```bash
+ls thalamus/*.md 2>/dev/null | grep -v '.base$'
+```
+
+If inbox has notes:
+1. Invoke the **triage** skill logic for each note
+2. Classify → research → structure → frontmatter → move → cross-link
+3. Log what was triaged in the report
+
+If inbox is empty, skip to Phase 2.
+
+---
+
+## Phase 2: AUDIT — Health Check
+
+**Goal:** Identify all vault issues in a single pass.
+
+Run these checks (parallel where possible):
+
+### 2.1 Broken Wiki-Links
+```bash
+grep -roh '\[\[[^]]*\]\]' cortex/ sensory/ prefrontal/ cerebellum/ laboratory/ motor/ memory/ 2>/dev/null \
+  | sed 's/\[\[//;s/\]\]//' | sed 's/|.*//' | sed 's/#.*//' | grep -v '^$' | sort -u | while read link; do
+  # Check top-level directory files
+  found=0
+  for d in cortex sensory prefrontal cerebellum laboratory motor memory thalamus hippocampus Agents genome missions retrospectives teleport docs meta benchmarks research dreaming songlines; do
+    [ -f "$d/$link.md" ] && found=1 && break
+  done
+  # Check subdirectories (Obsidian resolves bare names across subdirs)
+  if [ $found -eq 0 ]; then
+    match=$(find cortex/ sensory/ prefrontal/ cerebellum/ laboratory/ motor/ memory/ thalamus/ hippocampus/ Agents/ genome/ missions/ retrospectives/ dreaming/ songlines/ subconscious/ metabolism/ visual-cortex/ benchmarks/ research/ -name "$link.md" -maxdepth 4 2>/dev/null | head -1)
+    [ -n "$match" ] && found=1
+  fi
+  [ $found -eq 0 ] && echo "$link"
+done
+```
+
+### 2.2 Orphan Notes (No Inbound Links)
+```bash
+for dir in cortex sensory prefrontal cerebellum laboratory motor memory; do
+  for f in "$dir"/*.md; do
+    [ -f "$f" ] || continue
+    name="${f##*/}"; name="${name%.md}"
+    [ "$name" = "_template" ] && continue
+    count=$(grep -rl "\[\[.*$name" cortex/ sensory/ prefrontal/ cerebellum/ laboratory/ motor/ Agents/ genome/ hippocampus/ missions/ retrospectives/ memory/ 2>/dev/null | grep -v "$f" | wc -l)
+    [ "$count" -eq 0 ] && echo "ORPHAN: $f"
+  done
+done
+```
+
+### 2.3 Frontmatter Issues
+```bash
+for dir in cortex sensory prefrontal cerebellum laboratory motor memory; do
+  for f in "$dir"/*.md; do
+    [ -f "$f" ] || continue
+    head -1 "$f" | grep -q '^---' || echo "NO_FRONTMATTER: $f"
+  done
+done
+
+# Tags as string instead of array
+grep -rl '^tags:' cortex/ sensory/ prefrontal/ cerebellum/ laboratory/ motor/ memory/ 2>/dev/null | while read f; do
+  grep '^tags:' "$f" | grep -qv '\[' && echo "TAGS_NOT_ARRAY: $f"
+done
+
+# Missing aspect field
+grep -rL '^aspect:' cortex/ sensory/ prefrontal/ cerebellum/ laboratory/ motor/ memory/ 2>/dev/null \
+  | grep -v '_template.md' | while read f; do echo "NO_ASPECT: $f"; done
+```
+
+### 2.4 Thin Notes (Under 3KB)
+```bash
+for dir in cortex sensory prefrontal cerebellum laboratory memory; do
+  for f in "$dir"/*.md; do
+    [ -f "$f" ] || continue
+    b="${f##*/}"; [ "$b" = "_template.md" ] && continue
+    sz=$(wc -c < "$f")
+    [ "$sz" -lt 3000 ] && echo "THIN: $sz $f"
+  done
+done
+```
+
+### 2.5 Under-Connected Hubs (High Inbound, Low Outbound)
+```bash
+for f in cortex/*.md; do
+  b="${f##*/}"; n="${b%.md}"; [ "$n" = "_template" ] && continue
+  outbound=$(grep -oh '\[\[[^]]*\]\]' "$f" 2>/dev/null | wc -l)
+  inbound=$(grep -rl "\[\[.*$n" cortex/ sensory/ prefrontal/ cerebellum/ laboratory/ motor/ memory/ 2>/dev/null | grep -v "$f" | wc -l)
+  if [ "$inbound" -gt 15 ] && [ "$outbound" -lt 5 ]; then
+    echo "UNDER-CONNECTED: $f (in:$inbound, out:$outbound)"
+  fi
+done
+```
+
+### 2.6 Missing Maps of Content
+```bash
+ls cortex/MOC-*.md 2>/dev/null | wc -l
+# Target: at least 5 MOCs covering major topic clusters
+```
+
+Classify issues by severity:
+
+| Severity | Issues |
+|----------|--------|
+| **CRITICAL** | Broken links in core concepts, orphan concepts, missing frontmatter |
+| **HIGH** | Orphan sensory/prefrontal/patterns, tags not arrays, under-connected hubs |
+| **MEDIUM** | Thin notes (<3KB), missing MOCs |
+| **LOW** | Thin lessons, cosmetic link improvements |
+
+---
+
+## Phase 3: HEAL — Fix Issues
+
+**Goal:** Resolve all CRITICAL and HIGH issues automatically.
+
+### 3.1 Fix Frontmatter
+For each `NO_FRONTMATTER` or `TAGS_NOT_ARRAY` issue:
+- Read the file
+- Add/fix frontmatter with proper YAML (tags as arrays, title, date)
+- Preserve all existing content
+
+### 3.2 Fix Orphans
+For each orphan note:
+- Read the file to understand its topic
+- Find 1-3 relevant hub notes
+- Add inbound `[[wiki-links]]` from hub notes to the orphan
+
+### 3.3 Fix Broken Links
+For each broken link:
+- Classify: is it a real missing note, a typo, or a code/template reference?
+- Real missing note with 3+ references → create a stub concept note
+- Typo → fix the link
+- Code/template → ignore (non-actionable)
+
+### 3.4 Fix Under-Connected Hubs
+For each hub with high inbound but low outbound:
+- Read the note
+- Add 5-10 relevant outbound `[[wiki-links]]` to related notes
+
+---
+
+## Phase 4: DENSIFY — Expand and Connect
+
+**Goal:** Increase content depth and graph density.
+
+### 4.1 Flesh Out Thin Notes
+Prioritize by inbound link count (highest-impact first):
+1. Read the thin note
+2. Research the topic (WebSearch for authoritative info)
+3. Expand with: definition, key properties, examples, primary sources
+4. Add outbound `[[wiki-links]]` (3-5 per note)
+5. Add "Relevance to Cohezion" section if missing
+
+**Budget:** Expand up to 15 notes per run (quality over quantity).
+
+### 4.2 Add Missing Cross-Links
+Run the **link** skill logic:
+- Tag-based: notes sharing 2+ tags that don't link to each other
+- Content-based: notes mentioning concepts that exist as vault notes
+- Semantic proximity: notes in the same domain that should cross-reference
+
+**Budget:** Add up to 50 bidirectional link pairs per run.
+
+---
+
+## Phase 5: NAVIGATE — Maps of Content
+
+**Goal:** Make the vault traversable via curated entry points.
+
+### 5.1 Identify Topic Clusters
+
+Group notes by primary tag or domain:
+```bash
+# Find most common tags
+grep -roh "tags: \[.*\]" cortex/ sensory/ prefrontal/ cerebellum/ laboratory/ motor/ memory/ 2>/dev/null \
+  | sed 's/tags: \[//;s/\]//' | tr ',' '\n' | sed 's/^ *//;s/ *$//' | sort | uniq -c | sort -rn | head -20
+```
+
+### 5.2 Generate/Update MOCs
+
+For each major topic cluster (5+ notes), create or update a Map of Content:
+
+```markdown
+---
+title: "MOC — [Topic Name]"
+date: 2026-03-04
+tags: [moc, navigation, [topic-tag]]
+---
+
+# Map of Content — [Topic Name]
+
+## Overview
+[1-2 sentences describing this topic area and its role in the vault]
+
+## Core Concepts
+- [[concept-1]] — [brief annotation from first sentence of note]
+- [[concept-2]] — [annotation]
+
+## Key Decisions
+- [[decision-1]] — [annotation]
+
+## Patterns
+- [[pattern-1]] — [annotation]
+
+## Research Papers
+- [[paper-1]] — [annotation]
+
+## Lessons Learned
+- [[lesson-1]] — [annotation]
+
+## Experiments
+- [[experiment-1]] — [annotation]
+
+## Entry Points
+- Start here: [[most-linked-concept]]
+- Deep dive: [[most-detailed-note]]
+- Recent: [[most-recently-modified]]
+```
+
+**Target MOCs** (minimum set):
+1. `MOC-agentic-ai.md` — Agent architecture, multi-agent systems, orchestration
+2. `MOC-quantum-physics.md` — Quantum mechanics, computing, sensors, entanglement
+3. `MOC-vault-architecture.md` — Knowledge graph, linking, vault health, conventions
+4. `MOC-platform-infrastructure.md` — MCP, SurrealDB, Ollama, CI/CD, runbooks
+5. `MOC-machine-learning.md` — ML, neural nets, training, optimization
+6. `MOC-astrophysics.md` — Space, JWST, dark matter, exoplanets, gravitational waves
+7. `MOC-compound-engineering.md` — Compound methodology, sessions, retrospectives
+8. `MOC-safety-alignment.md` — AI safety, adversarial review, alignment, guardrails
+
+### 5.3 Link MOCs to Each Other
+Each MOC should link to 2-3 related MOCs in a "## Related Maps" section, creating a navigable top-level layer.
+
+---
+
+## Phase 6: REPORT — Summary
+
+Generate a structured report:
+
+```markdown
+## Vault Keeper Report — YYYY-MM-DD
+
+### Metrics
+| Metric | Before | After | Delta |
+|--------|--------|-------|-------|
+| Total notes | X | Y | +Z |
+| Wiki-links | X | Y | +Z |
+| Orphan notes | X | Y | -Z |
+| Broken links | X | Y | -Z |
+| Frontmatter issues | X | Y | -Z |
+| Thin notes (<3KB) | X | Y | -Z |
+| Maps of Content | X | Y | +Z |
+| Inbox items | X | Y | -Z |
+
+### Actions Taken
+- **Triaged:** X inbox notes processed
+- **Healed:** X frontmatter fixes, Y orphans connected, Z broken links resolved
+- **Densified:** X notes expanded, Y new cross-links added
+- **Navigation:** X MOCs created/updated
+
+### Remaining Issues
+| Priority | Issue | Count |
+|----------|-------|-------|
+| MEDIUM | Thin notes | X |
+| LOW | Cosmetic links | Y |
+
+### Recommendations
+1. [Top priority for next run]
+2. [Second priority]
+3. [Third priority]
+```
+
+---
+
+## Quick Mode (`--quick`)
+
+Skip Phases 1, 3, 4, 5. Only run Phase 2 (audit) and Phase 6 (report). Read-only — no modifications.
+
+Useful for: daily check-ins, pre-session health verification, CI/CD integration.
+
+## Context Mode (`--context "query"`)
+
+Load relevant vault knowledge for a specific task:
+
+1. Search vault for notes matching the query (by title, tags, content)
+2. Load the most relevant MOC as a navigation entry point
+3. Return top 5-10 notes with brief summaries
+4. Include any relevant lessons (filtered by topic)
+
+Output format:
+```markdown
+## Vault Context for: "[query]"
+
+### Map of Content
+→ [[MOC-relevant-topic]]
+
+### Most Relevant Notes
+1. [[note-1]] — [first sentence summary]
+2. [[note-2]] — [summary]
+...
+
+### Applicable Lessons
+- [[lesson-XX]] (severity: HIGH) — [title]
+- [[lesson-YY]] (severity: MEDIUM) — [title]
+
+### Related Decisions
+- [[decision-1]] — [status: accepted]
+```
+
+This is the output that context hooks should inject at session startup.
+
+---
+
+## Neural Intelligence (SurrealDB-Aware)
+
+When SurrealDB is available (port 8001), the Vault Keeper gains neural awareness.
+
+### Country Health Monitoring
+
+```bash
+curl -s -u root:root -X POST "http://localhost:8001/sql" \
+  -H "surreal-ns: cohezion" -H "surreal-db: vault" \
+  -H "Content-Type: text/plain" \
+  --data-raw 'SELECT name, health, neuron_count FROM country ORDER BY health ASC LIMIT 5;'
+```
+
+**Dark Country alert:** If a Country's `health < 0.3`, surface it as needing attention.
+Recommend: flesh out notes in that Country, add cross-links, run the Dreaming Engine.
+
+### Resting Note Surfacing
+
+Notes with `activation < 0.2` for 30+ days are resting — candidates for renewal or composting:
+
+```bash
+curl -s -u root:root -X POST "http://localhost:8001/sql" \
+  -H "surreal-ns: cohezion" -H "surreal-db: vault" \
+  -H "Content-Type: text/plain" \
+  --data-raw 'SELECT path, activation, stage FROM neuron WHERE activation < 0.2 ORDER BY activation LIMIT 10;'
+```
+
+Surface resting notes to user: "These notes are cooling — should I review them for renewal or composting?"
+
+### HIHO Fusion Alert
+
+```bash
+curl -s -u root:root -X POST "http://localhost:8001/sql" \
+  -H "surreal-ns: cohezion" -H "surreal-db: vault" \
+  -H "Content-Type: text/plain" \
+  --data-raw 'SELECT country, coherence_score, date FROM hiho_event ORDER BY date DESC LIMIT 5;'
+```
+
+Recent fusion events indicate areas of emergent insight. Surface them: "Cluster X just achieved coherence — see `dreaming/` for today's resonances."
+
+### Dreaming Engine Invocation
+
+Run `python3 scripts/dreaming-engine.py` to:
+- Refresh Country health
+- Find today's cross-domain resonances → `dreaming/YYYY-MM-DD-resonances.md`
+- Update `metabolism/metabolism-dashboard.md`
+- Log HIHO fusion events
+
+Run after any bulk operation that adds 10+ notes.
+
+---
+
+## Scheduling
+
+| Frequency | Mode | Purpose |
+|-----------|------|---------|
+| Every session start | `--context` | Load relevant knowledge |
+| Daily | `--quick` | Health monitoring |
+| Weekly | Full run + Dreaming Engine | Comprehensive maintenance + emergence |
+| After bulk imports | Full run + Dreaming Engine | Integration and linking |
+| After `/flesh-out` or `/link` runs | `--quick` | Verify improvements |
+
+## Agent Deployment Strategy
+
+For full maintenance runs, deploy specialist agents in parallel:
+
+```
+Agent 1: Triage (inbox processing)
+Agent 2: Audit + Heal (health check and fixes)
+Agent 3: Densify (flesh-out thin notes)
+Agent 4: Densify (cross-linking)
+Agent 5: Navigate (MOC generation)
+```
+
+This matches the proven pattern from vault densification sessions — 5 parallel agents with non-overlapping file scopes.
+
+## Integration Points
+
+### Claude Code Hooks
+- **PreToolUse hook**: Run `--context` to load relevant vault knowledge before agent responds
+- **PostToolUse hook**: Save session results back to vault (daily notes, new concepts)
+
+### Cloud Vault MCP (port 8360)
+- Use VaultOps for programmatic search
+- Use ObsidianOps for frontmatter updates
+- Use SurrealDB for graph queries
+
+### Obsidian Graph View
+- MOCs appear as high-connectivity hubs in the graph
+- Color-code by directory type for visual navigation
+
+## Quality Standards
+
+**A healthy vault has:**
+- 0 orphan notes in core directories
+- 0 frontmatter issues
+- 0 actionable broken links
+- < 10% thin notes (<3KB) in any directory
+- At least 5 Maps of Content
+- Average 6+ wiki-links per note
+- Every new note connected within 24 hours of creation
+
+**The Vault Keeper's job is to maintain these invariants continuously.**
+
+---
+
+# /learn - Online Learning System
+
+**Extract reusable knowledge from this session into skills.** Evaluates what was learned, checks for existing skills, and creates new ones when valuable patterns are discovered.
+
+---
+
+## TABLE OF CONTENTS
+
+| Phase       | Description                                            | Steps   |
+| ----------- | ------------------------------------------------------ | ------- |
+| **Phase 0** | Reference: triggers, quality criteria, skill structure | 0.1–0.4 |
+| **Phase 1** | Evaluate: assess if knowledge is worth extracting      | 1.1     |
+| **Phase 2** | Check Existing: search for related skills              | 2.1     |
+| **Phase 3** | Create Skill: write the skill file                     | 3.1–3.2 |
+| **Phase 4** | Quality Gates: final checklist before saving           | 4.1     |
+
+**Quick Step Reference:**
+
+- 0.1 Triggers, 0.2 Quality criteria, 0.3 What NOT to extract, 0.4 Skill structure
+- 1.1 Self-evaluation questions
+- 2.1 Search existing skills
+- 3.1 Choose location, 3.2 Write SKILL.md
+- 4.1 Final checklist
+
+---
+
+## PHASE 0: REFERENCE
+
+### Step 0.1: Triggers
+
+Invoke `/learn` after ANY task involving:
+
+| Trigger                      | Example                                                          |
+| ---------------------------- | ---------------------------------------------------------------- |
+| **Non-obvious debugging**    | Spent 10+ minutes investigating; solution wasn't in docs         |
+| **Misleading errors**        | Error message pointed wrong direction; found real cause          |
+| **Workarounds**              | Found limitation and creative solution                           |
+| **Tool integration**         | Figured out how to use tool/API in undocumented way              |
+| **Trial-and-error**          | Tried multiple approaches before finding what worked             |
+| **Repeatable workflow**      | Multi-step task that will recur; worth standardizing             |
+| **External service queries** | Fetched data from Jira, GitHub, Confluence, or other APIs        |
+| **User-facing automation**   | Built something user will ask for again (reports, status checks) |
+
+### Step 0.2: Quality Criteria
+
+Skills must be:
+
+- **Reusable**: Will help with future tasks (not just this instance)
+- **Non-trivial**: Required discovery, OR is a valuable workflow pattern
+- **Verified**: Solution actually worked, not theoretical
+
+### Step 0.3: What NOT to Extract
+
+- Single-step tasks with no workflow value
+- One-off fixes unlikely to recur
+- Knowledge easily found in official docs
+
+### Step 0.4: Skill Structure
+
+**Location:** `.claude/skills/[skill-name]/SKILL.md`
+
+**Template:**
+
+```markdown
+---
+name: descriptive-kebab-case-name
+description: |
+  [CRITICAL: This determines when the skill triggers. Include:]
+  - What the skill does
+  - Specific trigger conditions (exact error messages, symptoms)
+  - When to use it (contexts, scenarios)
+author: Claude Code
+version: 1.0.0
+---
+
+# Skill Name
+
+## Problem
+
+[Clear description of the problem]
+
+## Context / Trigger Conditions
+
+[When to use - exact error messages, symptoms, scenarios]
+
+## Solution
+
+[Step-by-step solution]
+
+## Verification
+
+[How to verify it worked]
+
+## Example
+
+[Concrete example]
+
+## References
+
+[Links to documentation]
+```
+
+<details>
+<summary>Writing Effective Descriptions</summary>
+
+The description field is CRITICAL for skill discovery:
+
+**Good:**
+
+```yaml
+description: |
+  Fix for "ENOENT: no such file or directory" errors in npm monorepos.
+  Use when: (1) npm run fails with ENOENT, (2) paths work in root but
+  not in packages, (3) symlinked dependencies cause failures.
+```
+
+**Bad:**
+
+```yaml
+description: Helps with npm problems in monorepos.
+```
+
+</details>
+
+**Guidelines:**
+
+- **Concise** - Claude is smart; only add what it doesn't know
+- **Under 500 lines** - Move large docs to `references/`
+- **Examples over explanations** - Show, don't tell
+
+---
+
+## PHASE 1: EVALUATE
+
+### Step 1.1: Self-Evaluation Questions
+
+Ask yourself:
+
+1. "What did I just learn that wasn't obvious before starting?"
+2. "Would future-me benefit from having this documented?"
+3. "Was the solution non-obvious from documentation alone?"
+4. "Is this a multi-step workflow I'd repeat on similar tasks?"
+5. "Did I query an external service the user will ask about again?"
+
+**If NO to all → Skip extraction, nothing to learn.**
+
+**Note:** External service queries (Jira tickets, GitHub PRs, Confluence pages) are almost always worth extracting - users frequently repeat these requests.
+
+---
+
+## PHASE 2: CHECK EXISTING
+
+### Step 2.1: Search for Related Skills
+
+Before creating, search for related skills:
+
+```bash
+ls .claude/skills/ 2>/dev/null
+rg -i "keyword" .claude/skills/ 2>/dev/null
+ls ~/.claude/pilot/skills/ 2>/dev/null
+rg -i "keyword" ~/.claude/pilot/skills/ 2>/dev/null
+```
+
+| Found                | Action                           |
+| -------------------- | -------------------------------- |
+| Nothing related      | Create new skill                 |
+| Same trigger and fix | Update existing (bump version)   |
+| Partial overlap      | Update existing with new variant |
+
+---
+
+## PHASE 3: CREATE SKILL
+
+### Step 3.1: Choose Location
+
+**Project skills**: `.claude/skills/[skill-name]/SKILL.md`
+
+### Step 3.2: Write SKILL.md
+
+Use the template from Step 0.4. Ensure the description field contains specific trigger conditions.
+
+---
+
+## PHASE 4: QUALITY GATES
+
+### Step 4.1: Final Checklist
+
+Before finalizing:
+
+- [ ] Description contains specific trigger conditions
+- [ ] Solution verified to work
+- [ ] Content specific enough to be actionable
+- [ ] Content general enough to be reusable
+- [ ] No sensitive information
+
+---
+
+## EXAMPLE
+
+**Scenario**: Discovered LSP `findReferences` can find dead code by checking if functions have only 1 reference (their definition) or only test references.
+
+**Skill Created**: `.claude/skills/lsp-dead-code-finder/SKILL.md`
+
+```markdown
+---
+name: lsp-dead-code-finder
+description: |
+  Find dead/unused code using LSP findReferences. Use when: (1) user asks
+  to find dead code, (2) cleaning up codebase, (3) refactoring. Key insight:
+  function with only 1 reference (definition) or only test refs is dead code.
+---
+
+# LSP Dead Code Finder
+
+...
+```
+
+---
+
+## REMEMBER
+
+**Continuous improvement.** Every valuable discovery should benefit future sessions.
+Evaluate after significant work. Extract selectively. Create carefully.
+
+---
+
+commit this
+
+---
+
+push it
+
+---
+
+# /learn - Online Learning System
+
+**Extract reusable knowledge from this session into skills.** Evaluates what was learned, checks for existing skills, and creates new ones when valuable patterns are discovered.
+
+---
+
+## TABLE OF CONTENTS
+
+| Phase       | Description                                            | Steps   |
+| ----------- | ------------------------------------------------------ | ------- |
+| **Phase 0** | Reference: triggers, quality criteria, skill structure | 0.1–0.4 |
+| **Phase 1** | Evaluate: assess if knowledge is worth extracting      | 1.1     |
+| **Phase 2** | Check Existing: search for related skills              | 2.1     |
+| **Phase 3** | Create Skill: write the skill file                     | 3.1–3.2 |
+| **Phase 4** | Quality Gates: final checklist before saving           | 4.1     |
+
+**Quick Step Reference:**
+
+- 0.1 Triggers, 0.2 Quality criteria, 0.3 What NOT to extract, 0.4 Skill structure
+- 1.1 Self-evaluation questions
+- 2.1 Search existing skills
+- 3.1 Choose location, 3.2 Write SKILL.md
+- 4.1 Final checklist
+
+---
+
+## PHASE 0: REFERENCE
+
+### Step 0.1: Triggers
+
+Invoke `/learn` after ANY task involving:
+
+| Trigger                      | Example                                                          |
+| ---------------------------- | ---------------------------------------------------------------- |
+| **Non-obvious debugging**    | Spent 10+ minutes investigating; solution wasn't in docs         |
+| **Misleading errors**        | Error message pointed wrong direction; found real cause          |
+| **Workarounds**              | Found limitation and creative solution                           |
+| **Tool integration**         | Figured out how to use tool/API in undocumented way              |
+| **Trial-and-error**          | Tried multiple approaches before finding what worked             |
+| **Repeatable workflow**      | Multi-step task that will recur; worth standardizing             |
+| **External service queries** | Fetched data from Jira, GitHub, Confluence, or other APIs        |
+| **User-facing automation**   | Built something user will ask for again (reports, status checks) |
+
+### Step 0.2: Quality Criteria
+
+Skills must be:
+
+- **Reusable**: Will help with future tasks (not just this instance)
+- **Non-trivial**: Required discovery, OR is a valuable workflow pattern
+- **Verified**: Solution actually worked, not theoretical
+
+### Step 0.3: What NOT to Extract
+
+- Single-step tasks with no workflow value
+- One-off fixes unlikely to recur
+- Knowledge easily found in official docs
+
+### Step 0.4: Skill Structure
+
+**Location:** `.claude/skills/[skill-name]/SKILL.md`
+
+**Template:**
+
+```markdown
+---
+name: descriptive-kebab-case-name
+description: |
+  [CRITICAL: This determines when the skill triggers. Include:]
+  - What the skill does
+  - Specific trigger conditions (exact error messages, symptoms)
+  - When to use it (contexts, scenarios)
+author: Claude Code
+version: 1.0.0
+---
+
+# Skill Name
+
+## Problem
+
+[Clear description of the problem]
+
+## Context / Trigger Conditions
+
+[When to use - exact error messages, symptoms, scenarios]
+
+## Solution
+
+[Step-by-step solution]
+
+## Verification
+
+[How to verify it worked]
+
+## Example
+
+[Concrete example]
+
+## References
+
+[Links to documentation]
+```
+
+<details>
+<summary>Writing Effective Descriptions</summary>
+
+The description field is CRITICAL for skill discovery:
+
+**Good:**
+
+```yaml
+description: |
+  Fix for "ENOENT: no such file or directory" errors in npm monorepos.
+  Use when: (1) npm run fails with ENOENT, (2) paths work in root but
+  not in packages, (3) symlinked dependencies cause failures.
+```
+
+**Bad:**
+
+```yaml
+description: Helps with npm problems in monorepos.
+```
+
+</details>
+
+**Guidelines:**
+
+- **Concise** - Claude is smart; only add what it doesn't know
+- **Under 500 lines** - Move large docs to `references/`
+- **Examples over explanations** - Show, don't tell
+
+---
+
+## PHASE 1: EVALUATE
+
+### Step 1.1: Self-Evaluation Questions
+
+Ask yourself:
+
+1. "What did I just learn that wasn't obvious before starting?"
+2. "Would future-me benefit from having this documented?"
+3. "Was the solution non-obvious from documentation alone?"
+4. "Is this a multi-step workflow I'd repeat on similar tasks?"
+5. "Did I query an external service the user will ask about again?"
+
+**If NO to all → Skip extraction, nothing to learn.**
+
+**Note:** External service queries (Jira tickets, GitHub PRs, Confluence pages) are almost always worth extracting - users frequently repeat these requests.
+
+---
+
+## PHASE 2: CHECK EXISTING
+
+### Step 2.1: Search for Related Skills
+
+Before creating, search for related skills:
+
+```bash
+ls .claude/skills/ 2>/dev/null
+rg -i "keyword" .claude/skills/ 2>/dev/null
+ls ~/.claude/pilot/skills/ 2>/dev/null
+rg -i "keyword" ~/.claude/pilot/skills/ 2>/dev/null
+```
+
+| Found                | Action                           |
+| -------------------- | -------------------------------- |
+| Nothing related      | Create new skill                 |
+| Same trigger and fix | Update existing (bump version)   |
+| Partial overlap      | Update existing with new variant |
+
+---
+
+## PHASE 3: CREATE SKILL
+
+### Step 3.1: Choose Location
+
+**Project skills**: `.claude/skills/[skill-name]/SKILL.md`
+
+### Step 3.2: Write SKILL.md
+
+Use the template from Step 0.4. Ensure the description field contains specific trigger conditions.
+
+---
+
+## PHASE 4: QUALITY GATES
+
+### Step 4.1: Final Checklist
+
+Before finalizing:
+
+- [ ] Description contains specific trigger conditions
+- [ ] Solution verified to work
+- [ ] Content specific enough to be actionable
+- [ ] Content general enough to be reusable
+- [ ] No sensitive information
+
+---
+
+## EXAMPLE
+
+**Scenario**: Discovered LSP `findReferences` can find dead code by checking if functions have only 1 reference (their definition) or only test references.
+
+**Skill Created**: `.claude/skills/lsp-dead-code-finder/SKILL.md`
+
+```markdown
+---
+name: lsp-dead-code-finder
+description: |
+  Find dead/unused code using LSP findReferences. Use when: (1) user asks
+  to find dead code, (2) cleaning up codebase, (3) refactoring. Key insight:
+  function with only 1 reference (definition) or only test refs is dead code.
+---
+
+# LSP Dead Code Finder
+
+...
+```
+
+---
+
+## REMEMBER
+
+**Continuous improvement.** Every valuable discovery should benefit future sessions.
+Evaluate after significant work. Extract selectively. Create carefully.
+
+---
+
+Base directory for this skill: /home/mike-anderson/vaults/cohezion-vault/.claude/skills/vault-keeper
+
+# Vault Keeper
+
+Autonomous maintenance agent that keeps the Obsidian vault healthy, dense, navigable, and agent-readable. Orchestrates the five specialist skills (vault-health, link, flesh-out, triage, note) in a single prioritized workflow.
+
+**This skill is PROACTIVE.** It does not wait to be invoked — it monitors vault health continuously and acts when issues are detected.
+
+## Usage
+
+```
+/vault-keeper                    # Full maintenance cycle (audit → heal → report)
+/vault-keeper --quick            # Quick health check only (read-only, 30 seconds)
+/vault-keeper --triage           # Process inbox only
+/vault-keeper --densify          # Link + flesh-out cycle only
+/vault-keeper --moc              # Generate/update Maps of Content
+/vault-keeper --context "query"  # Load relevant vault context for a task
+```
+
+---
+
+## Proactive Behavior
+
+The Vault Keeper monitors vault health automatically and acts without waiting for explicit user invocation. This is the **default behavior** — the keeper is always watching.
+
+### Trigger: Session Start
+
+At the **start of every session** in the cohezion-vault:
+
+**Step 1: Load orientation.** Read `VAULT_MANIFEST.md` at the vault root. This tells you:
+- Where every directory is and what it's for
+- Output routing rules (where to put your work)
+- Conventions (frontmatter, linking, naming)
+- Entry points (which MOC to start with)
+
+**Step 2: Run silent health check:**
+
+```bash
+# 1. Check inbox
+inbox_count=$(find thalamus/ -maxdepth 1 -name '*.md' ! -name '_index.md' ! -name '_template.md' 2>/dev/null | wc -l)
+
+# 2. Check for orphans in core dirs (sample — full scan only on explicit run)
+orphan_sample=$(for f in cortex/*.md; do
+  [ -f "$f" ] || continue
+  name="${f##*/}"; name="${name%.md}"
+  [ "$name" = "_template" ] && continue
+  count=$(grep -rl "\[\[.*$name" cortex/ sensory/ prefrontal/ motor/ 2>/dev/null | grep -v "$f" | wc -l)
+  [ "$count" -eq 0 ] && echo "$f"
+done | head -5)
+
+# 3. Count thin notes (quick sample)
+thin_count=$(find cortex/ sensory/ prefrontal/ -name '*.md' ! -name '_template.md' -size -3k 2>/dev/null | wc -l)
+```
+
+**Step 3: Load task-relevant context.** If the user's first message implies a topic:
+- Find the matching MOC (`cortex/MOC-*.md`) and skim it
+- Check `memory/` for past mistakes in that domain
+- Check the relevant directory's `_index.md` for key notes
+
+**Actions based on health check findings:**
+
+| Finding | Action | User Interaction |
+|---------|--------|------------------|
+| Inbox has items | Report to user: "Inbox has N items. Want me to triage them?" | Ask once |
+| Active project P0s | Surface them immediately: list the file and unchecked items | Proactive |
+| Orphans detected | Auto-fix silently if < 5, report if >= 5 | Silent for small counts |
+| Thin notes > 20 | Mention in first response: "N thin notes could use expansion" | Informational |
+| All healthy | Say nothing — don't clutter with "all clear" messages | Silent |
+
+**Step 2b: Scan active projects for P0 work:**
+
+```bash
+# Find active projects with unchecked P0 items
+for f in motor/*.md; do
+  grep -q '^status: active' "$f" 2>/dev/null || continue
+  awk '/^### P0/{p=1} p && /^###/ && !/^### P0/{p=0} p && /^\- \[ \]/{print FILENAME": "}' "$f"
+done
+```
+
+If any P0 items are found, surface them in the first response: "There are P0 tasks due in `<project>`. Want me to start on them?"
+
+### Agent Orientation Files
+
+Every content and workflow directory has a `_index.md` file. Agents can read any directory's `_index.md` to understand:
+- What goes in that directory
+- Naming and frontmatter conventions
+- Key notes to reference
+- Related MOCs for deeper context
+
+**Discovery pattern for any unfamiliar directory:**
+```
+Read <directory>/_index.md → understand purpose → follow routing rules
+```
+
+### Trigger: Hook Alert
+
+The `vault-keeper-check.sh` PostToolUse hook runs after Write/Edit operations on `.md` files. When it detects issues, it prints an alert message. **When you see a vault-keeper alert in hook output, act on it:**
+
+| Alert | Auto-Action |
+|-------|-------------|
+| `VAULT_KEEPER: inbox has N new items` | Offer to triage |
+| `VAULT_KEEPER: new note has no inbound links` | Add 1-3 inbound wiki-links from relevant hub notes immediately |
+| `VAULT_KEEPER: note missing frontmatter` | Add proper frontmatter to the note immediately |
+| `VAULT_KEEPER: note has tags as string` | Convert tags to array immediately |
+
+**Key rule:** For structural fixes (frontmatter, tags, missing links on new notes), fix immediately without asking. These are vault invariants, not preferences.
+
+### Trigger: Bulk Operations
+
+After any operation that creates or modifies 5+ vault notes (e.g., flesh-out runs, research imports, link campaigns):
+
+1. Run a quick orphan check on affected files
+2. Verify all new/modified notes have proper frontmatter
+3. Confirm no broken links were introduced
+4. Report metrics delta (links before → after)
+
+### Trigger: User Context Clues
+
+Proactively invoke vault keeper logic when the user's request implies vault maintenance, even without saying "vault keeper":
+
+| User Says | Vault Keeper Interprets As |
+|-----------|---------------------------|
+| "Clean up the vault" | Full maintenance run |
+| "What's in the inbox?" | Triage mode |
+| "How healthy is the vault?" | Quick audit |
+| "Connect these notes" | Link mode |
+| "This note is thin" | Flesh-out mode |
+| "Make this navigable" | MOC generation |
+| "Update the maps" | MOC refresh |
+
+### Proactive Rules
+
+1. **Never announce proactive work unnecessarily.** If you silently fix 2 orphans, don't write a paragraph about it. A one-liner in your response is enough: "Also connected 2 orphan notes."
+2. **Always fix invariant violations immediately.** Missing frontmatter, string tags, and orphaned new notes are bugs, not preferences.
+3. **Respect context budget.** Proactive checks should cost < 500 tokens. If a full audit is needed, ask the user first.
+4. **Don't repeat checks.** If you already ran a health check this session, don't run another unless new notes were created.
+5. **Batch alerts.** If multiple issues are found, combine them into one report rather than alerting per-issue.
+
+---
+
+## Architecture
+
+The Vault Keeper runs a **prioritized maintenance pipeline**. Each phase gates the next — critical issues are fixed before cosmetic ones.
+
+```
+Phase 1: TRIAGE     → Process inbox (new content enters the graph properly)
+Phase 2: AUDIT      → Health check (identify what's broken)
+Phase 3: HEAL       → Fix issues found by audit (frontmatter, broken links, orphans)
+Phase 4: DENSIFY    → Expand thin notes, add missing connections
+Phase 5: NAVIGATE   → Generate/update Maps of Content for traversability
+Phase 6: REPORT     → Summary with metrics and deltas
+```
+
+---
+
+## Phase 1: TRIAGE — Process Inbox
+
+**Goal:** Zero inbox. New content enters the vault through proper channels.
+
+```bash
+ls thalamus/*.md 2>/dev/null | grep -v '.base$'
+```
+
+If inbox has notes:
+1. Invoke the **triage** skill logic for each note
+2. Classify → research → structure → frontmatter → move → cross-link
+3. Log what was triaged in the report
+
+If inbox is empty, skip to Phase 2.
+
+---
+
+## Phase 2: AUDIT — Health Check
+
+**Goal:** Identify all vault issues in a single pass.
+
+Run these checks (parallel where possible):
+
+### 2.1 Broken Wiki-Links
+```bash
+grep -roh '\[\[[^]]*\]\]' cortex/ sensory/ prefrontal/ cerebellum/ laboratory/ motor/ memory/ 2>/dev/null \
+  | sed 's/\[\[//;s/\]\]//' | sed 's/|.*//' | sed 's/#.*//' | grep -v '^$' | sort -u | while read link; do
+  # Check top-level directory files
+  found=0
+  for d in cortex sensory prefrontal cerebellum laboratory motor memory thalamus hippocampus Agents genome missions retrospectives teleport docs meta benchmarks research dreaming songlines; do
+    [ -f "$d/$link.md" ] && found=1 && break
+  done
+  # Check subdirectories (Obsidian resolves bare names across subdirs)
+  if [ $found -eq 0 ]; then
+    match=$(find cortex/ sensory/ prefrontal/ cerebellum/ laboratory/ motor/ memory/ thalamus/ hippocampus/ Agents/ genome/ missions/ retrospectives/ dreaming/ songlines/ subconscious/ metabolism/ visual-cortex/ benchmarks/ research/ -name "$link.md" -maxdepth 4 2>/dev/null | head -1)
+    [ -n "$match" ] && found=1
+  fi
+  [ $found -eq 0 ] && echo "$link"
+done
+```
+
+### 2.2 Orphan Notes (No Inbound Links)
+```bash
+for dir in cortex sensory prefrontal cerebellum laboratory motor memory; do
+  for f in "$dir"/*.md; do
+    [ -f "$f" ] || continue
+    name="${f##*/}"; name="${name%.md}"
+    [ "$name" = "_template" ] && continue
+    count=$(grep -rl "\[\[.*$name" cortex/ sensory/ prefrontal/ cerebellum/ laboratory/ motor/ Agents/ genome/ hippocampus/ missions/ retrospectives/ memory/ 2>/dev/null | grep -v "$f" | wc -l)
+    [ "$count" -eq 0 ] && echo "ORPHAN: $f"
+  done
+done
+```
+
+### 2.3 Frontmatter Issues
+```bash
+for dir in cortex sensory prefrontal cerebellum laboratory motor memory; do
+  for f in "$dir"/*.md; do
+    [ -f "$f" ] || continue
+    head -1 "$f" | grep -q '^---' || echo "NO_FRONTMATTER: $f"
+  done
+done
+
+# Tags as string instead of array
+grep -rl '^tags:' cortex/ sensory/ prefrontal/ cerebellum/ laboratory/ motor/ memory/ 2>/dev/null | while read f; do
+  grep '^tags:' "$f" | grep -qv '\[' && echo "TAGS_NOT_ARRAY: $f"
+done
+
+# Missing aspect field
+grep -rL '^aspect:' cortex/ sensory/ prefrontal/ cerebellum/ laboratory/ motor/ memory/ 2>/dev/null \
+  | grep -v '_template.md' | while read f; do echo "NO_ASPECT: $f"; done
+```
+
+### 2.4 Thin Notes (Under 3KB)
+```bash
+for dir in cortex sensory prefrontal cerebellum laboratory memory; do
+  for f in "$dir"/*.md; do
+    [ -f "$f" ] || continue
+    b="${f##*/}"; [ "$b" = "_template.md" ] && continue
+    sz=$(wc -c < "$f")
+    [ "$sz" -lt 3000 ] && echo "THIN: $sz $f"
+  done
+done
+```
+
+### 2.5 Under-Connected Hubs (High Inbound, Low Outbound)
+```bash
+for f in cortex/*.md; do
+  b="${f##*/}"; n="${b%.md}"; [ "$n" = "_template" ] && continue
+  outbound=$(grep -oh '\[\[[^]]*\]\]' "$f" 2>/dev/null | wc -l)
+  inbound=$(grep -rl "\[\[.*$n" cortex/ sensory/ prefrontal/ cerebellum/ laboratory/ motor/ memory/ 2>/dev/null | grep -v "$f" | wc -l)
+  if [ "$inbound" -gt 15 ] && [ "$outbound" -lt 5 ]; then
+    echo "UNDER-CONNECTED: $f (in:$inbound, out:$outbound)"
+  fi
+done
+```
+
+### 2.6 Missing Maps of Content
+```bash
+ls cortex/MOC-*.md 2>/dev/null | wc -l
+# Target: at least 5 MOCs covering major topic clusters
+```
+
+Classify issues by severity:
+
+| Severity | Issues |
+|----------|--------|
+| **CRITICAL** | Broken links in core concepts, orphan concepts, missing frontmatter |
+| **HIGH** | Orphan sensory/prefrontal/patterns, tags not arrays, under-connected hubs |
+| **MEDIUM** | Thin notes (<3KB), missing MOCs |
+| **LOW** | Thin lessons, cosmetic link improvements |
+
+---
+
+## Phase 3: HEAL — Fix Issues
+
+**Goal:** Resolve all CRITICAL and HIGH issues automatically.
+
+### 3.1 Fix Frontmatter
+For each `NO_FRONTMATTER` or `TAGS_NOT_ARRAY` issue:
+- Read the file
+- Add/fix frontmatter with proper YAML (tags as arrays, title, date)
+- Preserve all existing content
+
+### 3.2 Fix Orphans
+For each orphan note:
+- Read the file to understand its topic
+- Find 1-3 relevant hub notes
+- Add inbound `[[wiki-links]]` from hub notes to the orphan
+
+### 3.3 Fix Broken Links
+For each broken link:
+- Classify: is it a real missing note, a typo, or a code/template reference?
+- Real missing note with 3+ references → create a stub concept note
+- Typo → fix the link
+- Code/template → ignore (non-actionable)
+
+### 3.4 Fix Under-Connected Hubs
+For each hub with high inbound but low outbound:
+- Read the note
+- Add 5-10 relevant outbound `[[wiki-links]]` to related notes
+
+---
+
+## Phase 4: DENSIFY — Expand and Connect
+
+**Goal:** Increase content depth and graph density.
+
+### 4.1 Flesh Out Thin Notes
+Prioritize by inbound link count (highest-impact first):
+1. Read the thin note
+2. Research the topic (WebSearch for authoritative info)
+3. Expand with: definition, key properties, examples, primary sources
+4. Add outbound `[[wiki-links]]` (3-5 per note)
+5. Add "Relevance to Cohezion" section if missing
+
+**Budget:** Expand up to 15 notes per run (quality over quantity).
+
+### 4.2 Add Missing Cross-Links
+Run the **link** skill logic:
+- Tag-based: notes sharing 2+ tags that don't link to each other
+- Content-based: notes mentioning concepts that exist as vault notes
+- Semantic proximity: notes in the same domain that should cross-reference
+
+**Budget:** Add up to 50 bidirectional link pairs per run.
+
+---
+
+## Phase 5: NAVIGATE — Maps of Content
+
+**Goal:** Make the vault traversable via curated entry points.
+
+### 5.1 Identify Topic Clusters
+
+Group notes by primary tag or domain:
+```bash
+# Find most common tags
+grep -roh "tags: \[.*\]" cortex/ sensory/ prefrontal/ cerebellum/ laboratory/ motor/ memory/ 2>/dev/null \
+  | sed 's/tags: \[//;s/\]//' | tr ',' '\n' | sed 's/^ *//;s/ *$//' | sort | uniq -c | sort -rn | head -20
+```
+
+### 5.2 Generate/Update MOCs
+
+For each major topic cluster (5+ notes), create or update a Map of Content:
+
+```markdown
+---
+title: "MOC — [Topic Name]"
+date: 2026-03-04
+tags: [moc, navigation, [topic-tag]]
+---
+
+# Map of Content — [Topic Name]
+
+## Overview
+[1-2 sentences describing this topic area and its role in the vault]
+
+## Core Concepts
+- [[concept-1]] — [brief annotation from first sentence of note]
+- [[concept-2]] — [annotation]
+
+## Key Decisions
+- [[decision-1]] — [annotation]
+
+## Patterns
+- [[pattern-1]] — [annotation]
+
+## Research Papers
+- [[paper-1]] — [annotation]
+
+## Lessons Learned
+- [[lesson-1]] — [annotation]
+
+## Experiments
+- [[experiment-1]] — [annotation]
+
+## Entry Points
+- Start here: [[most-linked-concept]]
+- Deep dive: [[most-detailed-note]]
+- Recent: [[most-recently-modified]]
+```
+
+**Target MOCs** (minimum set):
+1. `MOC-agentic-ai.md` — Agent architecture, multi-agent systems, orchestration
+2. `MOC-quantum-physics.md` — Quantum mechanics, computing, sensors, entanglement
+3. `MOC-vault-architecture.md` — Knowledge graph, linking, vault health, conventions
+4. `MOC-platform-infrastructure.md` — MCP, SurrealDB, Ollama, CI/CD, runbooks
+5. `MOC-machine-learning.md` — ML, neural nets, training, optimization
+6. `MOC-astrophysics.md` — Space, JWST, dark matter, exoplanets, gravitational waves
+7. `MOC-compound-engineering.md` — Compound methodology, sessions, retrospectives
+8. `MOC-safety-alignment.md` — AI safety, adversarial review, alignment, guardrails
+
+### 5.3 Link MOCs to Each Other
+Each MOC should link to 2-3 related MOCs in a "## Related Maps" section, creating a navigable top-level layer.
+
+---
+
+## Phase 6: REPORT — Summary
+
+Generate a structured report:
+
+```markdown
+## Vault Keeper Report — YYYY-MM-DD
+
+### Metrics
+| Metric | Before | After | Delta |
+|--------|--------|-------|-------|
+| Total notes | X | Y | +Z |
+| Wiki-links | X | Y | +Z |
+| Orphan notes | X | Y | -Z |
+| Broken links | X | Y | -Z |
+| Frontmatter issues | X | Y | -Z |
+| Thin notes (<3KB) | X | Y | -Z |
+| Maps of Content | X | Y | +Z |
+| Inbox items | X | Y | -Z |
+
+### Actions Taken
+- **Triaged:** X inbox notes processed
+- **Healed:** X frontmatter fixes, Y orphans connected, Z broken links resolved
+- **Densified:** X notes expanded, Y new cross-links added
+- **Navigation:** X MOCs created/updated
+
+### Remaining Issues
+| Priority | Issue | Count |
+|----------|-------|-------|
+| MEDIUM | Thin notes | X |
+| LOW | Cosmetic links | Y |
+
+### Recommendations
+1. [Top priority for next run]
+2. [Second priority]
+3. [Third priority]
+```
+
+---
+
+## Quick Mode (`--quick`)
+
+Skip Phases 1, 3, 4, 5. Only run Phase 2 (audit) and Phase 6 (report). Read-only — no modifications.
+
+Useful for: daily check-ins, pre-session health verification, CI/CD integration.
+
+## Context Mode (`--context "query"`)
+
+Load relevant vault knowledge for a specific task:
+
+1. Search vault for notes matching the query (by title, tags, content)
+2. Load the most relevant MOC as a navigation entry point
+3. Return top 5-10 notes with brief summaries
+4. Include any relevant lessons (filtered by topic)
+
+Output format:
+```markdown
+## Vault Context for: "[query]"
+
+### Map of Content
+→ [[MOC-relevant-topic]]
+
+### Most Relevant Notes
+1. [[note-1]] — [first sentence summary]
+2. [[note-2]] — [summary]
+...
+
+### Applicable Lessons
+- [[lesson-XX]] (severity: HIGH) — [title]
+- [[lesson-YY]] (severity: MEDIUM) — [title]
+
+### Related Decisions
+- [[decision-1]] — [status: accepted]
+```
+
+This is the output that context hooks should inject at session startup.
+
+---
+
+## Neural Intelligence (SurrealDB-Aware)
+
+When SurrealDB is available (port 8001), the Vault Keeper gains neural awareness.
+
+### Country Health Monitoring
+
+```bash
+curl -s -u root:root -X POST "http://localhost:8001/sql" \
+  -H "surreal-ns: cohezion" -H "surreal-db: vault" \
+  -H "Content-Type: text/plain" \
+  --data-raw 'SELECT name, health, neuron_count FROM country ORDER BY health ASC LIMIT 5;'
+```
+
+**Dark Country alert:** If a Country's `health < 0.3`, surface it as needing attention.
+Recommend: flesh out notes in that Country, add cross-links, run the Dreaming Engine.
+
+### Resting Note Surfacing
+
+Notes with `activation < 0.2` for 30+ days are resting — candidates for renewal or composting:
+
+```bash
+curl -s -u root:root -X POST "http://localhost:8001/sql" \
+  -H "surreal-ns: cohezion" -H "surreal-db: vault" \
+  -H "Content-Type: text/plain" \
+  --data-raw 'SELECT path, activation, stage FROM neuron WHERE activation < 0.2 ORDER BY activation LIMIT 10;'
+```
+
+Surface resting notes to user: "These notes are cooling — should I review them for renewal or composting?"
+
+### HIHO Fusion Alert
+
+```bash
+curl -s -u root:root -X POST "http://localhost:8001/sql" \
+  -H "surreal-ns: cohezion" -H "surreal-db: vault" \
+  -H "Content-Type: text/plain" \
+  --data-raw 'SELECT country, coherence_score, date FROM hiho_event ORDER BY date DESC LIMIT 5;'
+```
+
+Recent fusion events indicate areas of emergent insight. Surface them: "Cluster X just achieved coherence — see `dreaming/` for today's resonances."
+
+### Dreaming Engine Invocation
+
+Run `python3 scripts/dreaming-engine.py` to:
+- Refresh Country health
+- Find today's cross-domain resonances → `dreaming/YYYY-MM-DD-resonances.md`
+- Update `metabolism/metabolism-dashboard.md`
+- Log HIHO fusion events
+
+Run after any bulk operation that adds 10+ notes.
+
+---
+
+## Scheduling
+
+| Frequency | Mode | Purpose |
+|-----------|------|---------|
+| Every session start | `--context` | Load relevant knowledge |
+| Daily | `--quick` | Health monitoring |
+| Weekly | Full run + Dreaming Engine | Comprehensive maintenance + emergence |
+| After bulk imports | Full run + Dreaming Engine | Integration and linking |
+| After `/flesh-out` or `/link` runs | `--quick` | Verify improvements |
+
+## Agent Deployment Strategy
+
+For full maintenance runs, deploy specialist agents in parallel:
+
+```
+Agent 1: Triage (inbox processing)
+Agent 2: Audit + Heal (health check and fixes)
+Agent 3: Densify (flesh-out thin notes)
+Agent 4: Densify (cross-linking)
+Agent 5: Navigate (MOC generation)
+```
+
+This matches the proven pattern from vault densification sessions — 5 parallel agents with non-overlapping file scopes.
+
+## Integration Points
+
+### Claude Code Hooks
+- **PreToolUse hook**: Run `--context` to load relevant vault knowledge before agent responds
+- **PostToolUse hook**: Save session results back to vault (daily notes, new concepts)
+
+### Cloud Vault MCP (port 8360)
+- Use VaultOps for programmatic search
+- Use ObsidianOps for frontmatter updates
+- Use SurrealDB for graph queries
+
+### Obsidian Graph View
+- MOCs appear as high-connectivity hubs in the graph
+- Color-code by directory type for visual navigation
+
+## Quality Standards
+
+**A healthy vault has:**
+- 0 orphan notes in core directories
+- 0 frontmatter issues
+- 0 actionable broken links
+- < 10% thin notes (<3KB) in any directory
+- At least 5 Maps of Content
+- Average 6+ wiki-links per note
+- Every new note connected within 24 hours of creation
+
+**The Vault Keeper's job is to maintain these invariants continuously.**
+
+---
+
+This session is being continued from a previous conversation that ran out of context. The summary below covers the earlier portion of the conversation.
+
+Summary:
+1. Primary Request and Intent:
+   The user invoked a vault-keeper maintenance plan for an Obsidian knowledge vault (cohezion-vault) with 1,072 notes and 11,638 wiki-links. The plan had 5 phases: (1) Triage inbox (skip - empty), (2) Heal structural issues (connect 2 orphan notes, triage 137 broken wiki-links), (3) Densify thin notes (expand 7 cortex notes + 5 laboratory stubs), (4) Refresh MOC links, (5) Generate report. After completing the plan, the user requested `/learn` to extract reusable knowledge, then `commit this`, `push it`, another `/learn` (nothing new), and a final `/vault-keeper` quick health check.
+
+2. Key Technical Concepts:
+   - Obsidian vault architecture with Triune Self directory structure (cortex/, sensory/, prefrontal/, cerebellum/, laboratory/, motor/, memory/)
+   - Wiki-links (`[[bare-name]]`) — Obsidian resolves by filename stem, not path
+   - Orphan notes — notes with zero inbound wiki-links, invisible to graph navigation
+   - Broken link triage — 88% of broken links are non-actionable (templates, test artifacts, git hashes, documentation examples)
+   - Path-prefixed links (`[[cortex/foo]]` → `[[foo]]`) — common fixable broken link pattern
+   - Maps of Content (MOCs) — curated navigation entry points for topic clusters
+   - Neural frontmatter (`neural.activation`, `neural.stage`, `neural.cluster`) — vault metadata for SurrealDB sync
+   - Vault-keeper skill — autonomous maintenance agent orchestrating vault-health, link, flesh-out, triage, note skills
+   - Thin notes — notes under 3KB that need expansion for knowledge graph density
+
+3. Files and Code Sections:
+
+   **Orphan Fixes (inbound links added):**
+   - `cortex/agent-architecture.md` — Added `[[cybernetics]]` to Related Concepts section with annotation about feedback/control theory
+   - `cortex/cognitive-science.md` — Added `[[cybernetics]]` to Related Concepts about Wiener/Ashby/von Foerster
+   - `cortex/cohezion.md` — Added `[[cybernetics]]` to Related section mapping Beer's VSM to vault architecture
+   - `cortex/skill-taxonomy-7-layer-architecture.md` — Added Decisions section with `[[2026-03-07-skill-pruning-consolidation-plan]]`
+   - `cerebellum/skill-routing-decision-tree.md` — Added Decisions section with `[[2026-03-07-skill-pruning-consolidation-plan]]`
+   - `cortex/MOC-vault-architecture.md` — Added `[[MOC-triune-self]]` to Related Maps (fixing MOC orphan discovered during verification)
+
+   **Broken Link Fixes (path-prefix + typos):**
+   - `retrospectives/2026-03-05-vault-state-assessment.md` — Fixed 12 path-prefixed links: `[[cortex/compound-engineering]]` → `[[compound-engineering]]`, `[[cortex/cohezion]]` → `[[cohezion]]`, `[[cortex/anthropic-research-engineer]]` → `[[anthropic-research-engineer]]`, `[[cortex/FLUME-Architecture]]` → `[[FLUME-Architecture]]`, `[[cortex/cohezion-platform-overview]]` → `[[cohezion-platform-overview]]`, `[[cortex/agentic-system-failure-taxonomy]]` → `[[agentic-system-failure-taxonomy]]`, `[[laboratory/2026-03-05-flume-kl-collapse-diagnostic]]` → `[[2026-03-05-flume-kl-collapse-diagnostic]]`, etc.
+   - `cortex/cohezion-platform-overview.md` — Fixed `[[motor/2026-03-04-vault-assessment-v3]]` → `[[2026-03-04-vault-assessment-v3]]`
+   - `cortex/ai-generated/flume-integration-ai-generated.md` — Fixed case mismatches: `[[flume-architecture]]` → `[[FLUME-Architecture]]`, `[[12d-projection]]` → `[[12D-Projection]]`
+   - `laboratory/2026-03-05-flume-kl-collapse-diagnostic.md` — Fixed `[[prefrontal/2026-02-24-anti-pattern-...]]` → `[[2026-02-24-anti-pattern-...]]`
+   - `motor/meridian/PRD.md` — Fixed `[[prefrontal/2026-03-06-meridian-concierge-agent]]` → `[[2026-03-06-adopt-meridian-concierge-agent-over-mcp-infrastructure-prd]]`
+
+   **Expanded Thin Cortex Notes (all from <3KB to 4.6-7.8KB):**
+   - `cortex/bayesian-inference.md` (2073→7778 bytes) — Added Core Mathematics (ELBO, Bayesian Decision Theory), Computational Methods table, Examples, Primary Sources (Bayes 1763, Jaynes 2003, Gelman BDA3, Bishop PRML, Murphy 2023), expanded Related Concepts with cybernetics and FLUME links
+   - `cortex/concept-versioning.md` (2779→6003 bytes) — Added Versioning Strategies Compared table, Anti-Patterns table, expanded examples with neural.stage lifecycle, added Primary Sources
+   - `cortex/planetary-systems.md` (2443→6432 bytes) — Added Formation and Evolution section (core accretion, gravitational instability, migration, Nice model), Detection Methods table, TRAPPIST-1 example, Primary Sources (Mayor & Queloz 1995)
+   - `cortex/red-supergiant-stars.md` (2979→5857 bytes) — Added Internal Structure onion-shell table, Great Dimming of Betelgeuse section, VY Canis Majoris and WOH G64 examples, Primary Sources (Levesque 2017, Montargès 2021)
+   - `cortex/habitable-zone.md` (2915→6343 bytes) — Added Boundaries section (Conservative HZ table, Extended HZ Concepts table), Venus/Mars/TRAPPIST-1 examples, Primary Sources (Kasting 1993, Kopparapu 2013, Seager 2013)
+   - `cortex/synthesis-methods.md` (2834→5698 bytes) — Added Classification section (Bottom-Up vs Top-Down table, Key Techniques table), Primary Sources (Whitesides 2002, Rothemund 2006)
+   - `cortex/hyperdim-viz-portfolio.md` (2302→4620 bytes) — Added 12 Semantic Dimensions table, Architecture diagram, updated scale to 1,000+ nodes
+
+   **Laboratory Stubs Filled (from ~251 bytes to ~1.2-1.5KB each, all marked `status: complete`):**
+   - `laboratory/2026-03-05-remote-claude-code-leverage-architecture.md` — Filled with hypothesis about GitHub Actions as Claude Code execution environments, cross-linked to `[[2026-03-05-autonomous-scout-via-scheduled-github-actions]]` and `[[github-actions-as-autonomous-claude-code-scheduler]]`
+   - `laboratory/2026-03-05-unblocking-pr-33-ci-fixes-for-branch-protection.md` — Filled with cascading CI failure investigation
+   - `laboratory/2026-03-05-gc-corruption-root-cause-entire-auto-commits-and-submodule-conflicts.md` — Filled with auto-commit + submodule conflict root cause, cross-linked to `[[lesson-13-8-6m-file-incident]]` and `[[lesson-14-cleanup-is-multi-pass]]`
+   - `laboratory/2026-03-05-ci-pipeline-debugging-cascading-failures-from-dev-deps-and-permissions.md` — Filled with dev dependency and permissions fix
+   - `laboratory/2026-03-05-gc-corruption-severity-170-bad-objects-across-all-pack-files-3gb-data-file-in-hi.md` — Filled with 3GB data file severity assessment
+
+   **MOC Refreshes:**
+   - `cortex/MOC-agentic-ai.md` — Added `[[cybernetics]]` to Core Concepts
+   - `cortex/MOC-machine-learning.md` — Added `[[bayesian-inference]]` to Core Concepts
+   - `cortex/MOC-vault-architecture.md` — Added `[[concept-versioning]]`, `[[cybernetics]]` to Core Concepts, `[[MOC-triune-self]]` to Related Maps
+
+   **Skill Update (/learn):**
+   - `.claude/skills/vault-health/SKILL.md` — Added broken-link triage categorization table after line 165, replacing the brief note with a detailed heuristic:
+     - Template vars (~55%), Test artifacts (~9%), Git hashes (~1%), Path-prefixed in docs (~7%), Path-prefixed fixable (~12%), Case mismatches (~2%), Real missing concepts (~5%), Portfolio/project-specific (~11%)
+     - Added fast path-prefix fix bash command
+     - Added stub creation threshold rule (3+ references required)
+
+4. Errors and fixes:
+   - **Edit tool error on MOC files**: When attempting to edit `cortex/MOC-agentic-ai.md` and `cortex/MOC-machine-learning.md`, received "File has not been read yet. Read it first before writing to it." Fixed by reading the files first with `Read` tool, then applying the edits.
+   - **Broken link `quantum-entanglementquantum-entanglement-speed-measurement`**: Attempted to find this in the vault but it didn't exist in any current file (may have been in a cleaned worktree). Classified as non-actionable.
+
+5. Problem Solving:
+   - **Orphan detection**: Used grep-based inbound link counting to find notes with zero references. After fixing the 2 planned orphans, verification revealed `MOC-triune-self` was also orphaned — fixed by adding it to `MOC-vault-architecture`'s Related Maps.
+   - **Broken link categorization**: Developed a systematic categorization approach — first scanned all 137 broken links, then classified them into 7 buckets using regex patterns. Only 17 were actionable (12 path-prefixed, 2 case mismatches, 3 combined). Checked all broken links with 3+ references for stub candidates — none met the criteria (all were template placeholders like `mcp`, `test`, `plan`).
+   - **Selective commit staging**: 46 files were dirty in the working tree, but only 26 were changed in this session. Carefully staged only session-specific files to avoid committing prior session changes.
+
+6. All user messages:
+   - "Implement the following plan: # Vault Keeper Maintenance Plan [full detailed plan with phases, tasks, metrics, verification steps]"
+   - "/learn" (first invocation — extracted broken link triage heuristic into vault-health skill)
+   - "commit this"
+   - "push it"
+   - "/learn" (second invocation — nothing new to extract)
+   - "/vault-keeper" (quick health check)
+
+7. Pending Tasks:
+   - No explicit pending tasks. All 6 tracked tasks were completed:
+     - ✅ Connect 2 orphan notes
+     - ✅ Triage 137 broken wiki-links
+     - ✅ Expand 5-10 thin cortex notes (7 expanded)
+     - ✅ Stub laboratory notes (5 filled)
+     - ✅ Refresh MOC links (3 MOCs updated)
+     - ✅ Generate vault keeper report
+   - Changes committed as `9d859e61` and pushed to `origin/track-c`
+
+8. Current Work:
+   The user's most recent action was invoking `/vault-keeper` for a health check. The quick audit showed the vault is healthy with all metrics stable after the maintenance run: 0 inbox, 0 orphans, 0 frontmatter issues, 28 thin notes (down from 60), 1,074 notes with 12,044 wiki-links (~11.2/note), 10 MOCs. The session's work is complete — all phases of the maintenance plan have been executed, verified, committed, and pushed.
+
+9. Optional Next Step:
+   No immediate next step required. The vault-keeper maintenance cycle is complete. The report recommended for the *next* run: (1) expand remaining 28 thin notes focusing on high-inbound-link cortex/ notes, (2) consider template cleanup to reduce non-actionable broken link count, (3) cross-link new APEC sensory notes to related cortex concepts.
+
+If you need specific details from before compaction (like exact code snippets, error messages, or content you generated), read the full transcript at: /home/mike-anderson/.claude/projects/-home-mike-anderson-vaults-cohezion-vault/3a759325-baca-4d0f-a1f2-27cc39fd3dd3.jsonl
+
+---
+
+Base directory for this skill: /home/mike-anderson/vaults/cohezion-vault/.claude/skills/surrealdb-debug
+
+# SurrealDB Debugging
+
+## Problem
+
+SurrealDB connections fail with authentication errors, read-only transaction errors,
+or schema application failures. Documented credentials are stale. The systemd service
+may be failed while a manual process runs on a different port.
+
+## Step 1: Find the Live Process
+
+Never trust documented credentials. Always inspect what's actually running:
+
+```bash
+ps aux | grep surreal | grep -v grep
+```
+
+This reveals the actual `--user`, `--pass`, `--bind` port, and `--path` used.
+
+Example output:
+```
+surreal start --auth --user root --pass root --bind 0.0.0.0:8001 rocksdb://path/to/db
+```
+
+## Step 2: Test Connectivity
+
+```bash
+curl -s -u root:root http://localhost:8001/health
+# or
+curl -s http://localhost:8001/health  # if no auth
+```
+
+If connection refused: the process died or is on a different port. Check the port
+from `ps aux` output above.
+
+## Step 3: Fix "read only transaction" Errors
+
+This error occurs when you try to run statements (even INFO FOR DB) before the
+namespace and database exist. Fix: create them explicitly first.
+
+```bash
+curl -s -X POST http://localhost:8001/sql \
+  -H "Content-Type: application/json" \
+  -H "NS: cohezion" -H "DB: vault" \
+  -u root:root \
+  --data-raw 'DEFINE NAMESPACE cohezion; USE NS cohezion; DEFINE DATABASE vault;'
+```
+
+Then verify the schema can be queried:
+```bash
+curl -s -X POST http://localhost:8001/sql \
+  -H "Content-Type: application/json" \
+  -H "NS: cohezion" -H "DB: vault" \
+  -u root:root \
+  --data-raw 'INFO FOR DB;'
+```
+
+## Step 4: Apply Schema
+
+After namespace+database exist:
+
+```bash
+surreal import --conn http://localhost:8001 --ns cohezion --db vault \
+  -u root -p root scripts/triune-schema.surql
+```
+
+Or via HTTP:
+```bash
+curl -s -X POST http://localhost:8001/sql \
+  -H "NS: cohezion" -H "DB: vault" \
+  -u root:root \
+  --data-raw "$(cat scripts/triune-schema.surql)"
+```
+
+## Step 5: Start Fresh Instance (if systemd service is broken)
+
+```bash
+mkdir -p ~/dev/cohezion/data/surrealdb
+
+surreal start \
+  --auth --user root --pass root \
+  --bind 0.0.0.0:8001 \
+  rocksdb://~/dev/cohezion/data/surrealdb &
+
+# Wait for it to be ready
+sleep 2
+curl -s -u root:root http://localhost:8001/health
+```
+
+## Batch Import Fallback Pattern
+
+When importing large volumes via SQL, batch statements fail when any single one has
+a parse error (bad characters in note titles, etc.). Fall back to one-at-a-time:
+
+```python
+def batch_query(self, statements: list[str], batch_size: int = 50) -> int:
+    success = 0
+    for i in range(0, len(statements), batch_size):
+        batch = statements[i:i + batch_size]
+        combined = "\n".join(batch)
+        results = self.query(combined)
+        # If batch returns single ERR, fall back to one-at-a-time
+        if len(results) == 1 and results[0].get("status") == "ERR":
+            for stmt in batch:
+                r = self.query(stmt)
+                if r and r[0].get("status") == "OK":
+                    success += 1
+        else:
+            success += sum(1 for r in results if r.get("status") == "OK")
+    return success
+```
+
+## Vault-Specific Configuration
+
+| Setting | Value |
+|---------|-------|
+| Port | 8001 |
+| Auth | root / root |
+| Namespace | cohezion |
+| Database | vault |
+| Storage | rocksdb at `~/dev/cohezion/data/surrealdb` |
+| Schema | `scripts/triune-schema.surql` |
+| Import script | `scripts/triune-import.py` |
+
+## RELATE vs CREATE for Relation Tables
+
+Tables with `in TYPE record<X>` and `out TYPE record<Y>` are **RELATION tables**.
+You MUST use `RELATE` syntax, not `CREATE`:
+
+```sql
+-- WRONG (returns "expected a RELATION IN neuron OUT neuron" error)
+CREATE kinship CONTENT { in: neuron:foo, out: neuron:bar, relation: "moiety" };
+
+-- CORRECT
+RELATE neuron:foo->kinship->neuron:bar CONTENT { relation: "moiety", obligation: "cite together" };
+```
+
+**How to detect:** If a CREATE on a table with `in`/`out` record fields fails with
+"which is not a relation, but expected a RELATION IN X OUT Y", switch to RELATE.
+
+## SCHEMAFULL Silent Record Rejection
+
+**SCHEMAFULL tables silently discard records with unknown fields — no error is returned.**
+
+This is the hardest SurrealDB bug to diagnose: `SELECT count()` returns 0 after what
+appeared to be a successful INSERT/UPSERT, but there's no error message.
+
+**Diagnosis:** Add an unknown field to a CREATE statement and check if it persists:
+```bash
+curl -s -X POST http://localhost:8001/sql \
+  -H "surreal-ns: cohezion" -H "surreal-db: vault" \
+  -u root:root \
+  --data-raw 'CREATE country:test CONTENT { name: "test", mystery_field: "x" };
+              SELECT * FROM country:test;'
+# If mystery_field is absent from the result → table is SCHEMAFULL
+```
+
+**Fix:** Add the missing field to the schema:
+```bash
+curl -s -X POST http://localhost:8001/sql \
+  -H "surreal-ns: cohezion" -H "surreal-db: vault" \
+  -u root:root \
+  --data-raw 'DEFINE FIELD avg_activation ON country TYPE float DEFAULT 0.5;
+              DEFINE FIELD updated ON country TYPE string DEFAULT "";'
+```
+
+**Common culprits in Triune Vault:**
+- `country` table: `avg_activation`, `updated` fields were added later
+- `hiho_event` table: `country` field type changed from `record<country>` to `string`
+- After any schema change, re-run the import script
+
+## Stale Neuron Paths After Directory Renames
+
+When the vault directories were renamed (e.g., `concepts/` → `cortex/`) AFTER the
+SurrealDB import ran, all neuron paths become stale. Queries by path return nothing.
+
+**Diagnose:**
+```bash
+curl -s -X POST http://localhost:8001/sql \
+  -H "surreal-ns: cohezion" -H "surreal-db: vault" \
+  -u root:root \
+  --data-raw "SELECT count() FROM neuron WHERE string::starts_with(path, 'concepts/') GROUP ALL;"
+# If > 0, paths are stale
+```
+
+**Fix — batch rename (SurrealDB 3.0 uses `string::starts_with`, NOT `STARTS WITH`):**
+```bash
+RENAMES=(
+  "concepts cortex"
+  "papers sensory"
+  "lessons memory"
+  "specs genome"
+  "decisions prefrontal"
+  "experiments laboratory"
+  "patterns cerebellum"
+  "projects motor"
+  "inbox thalamus"
+  "canvas visual-cortex"
+)
+
+for pair in "${RENAMES[@]}"; do
+  old=$(echo $pair | cut -d' ' -f1)
+  new=$(echo $pair | cut -d' ' -f2)
+  curl -s -X POST http://localhost:8001/sql \
+    -H "surreal-ns: cohezion" -H "surreal-db: vault" \
+    -u root:root \
+    --data-raw "UPDATE neuron SET path = string::replace(path, '${old}/', '${new}/') WHERE string::starts_with(path, '${old}/');"
+done
+```
+
+Apply same pattern to `cluster_id` field if it also stores directory names.
+
+## json.dumps ensure_ascii=False for SurrealQL
+
+**Python's `json.dumps()` defaults to `ensure_ascii=True`, encoding emoji/Unicode as `\uXXXX` escape sequences. SurrealDB rejects these with HTTP 400.**
+
+```python
+# WRONG — SurrealDB returns 400 Bad Request
+title = "🏆 PROJECT COMPLETE"
+sql = f'UPDATE neuron SET title = {json.dumps(title)};'
+# Produces: title = "\ud83c\udfc6 PROJECT COMPLETE"  ← surrogate pair, SurrealDB can't parse
+
+# CORRECT
+sql = f'UPDATE neuron SET title = {json.dumps(title, ensure_ascii=False)};'
+# Produces: title = "🏆 PROJECT COMPLETE"  ← raw UTF-8, SurrealDB accepts
+```
+
+**Rule:** Always use `json.dumps(value, ensure_ascii=False)` when building SurrealQL strings.
+
+## Field Projection HTTP 400
+
+**SurrealDB 3.0 returns HTTP 400 for field-projected queries on some tables.** This is silent and confusing — the same query with `SELECT *` works fine.
+
+**Symptom:** `SELECT country, coherence_score FROM hiho_event ORDER BY date DESC` returns HTTP 400, but `SELECT * FROM hiho_event` works.
+
+**Affected patterns:**
+- Projected fields on tables with computed/derived columns
+- `GROUP BY` on RELATION tables (kinship, synapse): `SELECT out, count() FROM kinship GROUP BY out` → HTTP 400
+- Any field-projected query that SurrealDB's query planner can't resolve
+
+**Fix: Use `SELECT *` and filter client-side:**
+```python
+# WRONG — HTTP 400
+results = query("SELECT country, coherence_score FROM hiho_event ORDER BY date DESC;")
+
+# CORRECT — fetch all, filter in Python
+all_events = query("SELECT * FROM hiho_event;")
+results = sorted(all_events, key=lambda e: e.get("date",""), reverse=True)
+hiho_scores = {e["country"]: e["coherence_score"] for e in all_events if "country" in e}
+```
+
+**GROUP BY alternative (for relation tables like kinship, synapse):**
+```python
+# WRONG — HTTP 400
+counts = query("SELECT out AS nid, count() FROM kinship GROUP BY out;")
+
+# CORRECT — fetch all, aggregate in Python
+all_kin = query("SELECT in, out FROM kinship;")
+kinship_counts = {}
+for r in all_kin:
+    for field in ["in", "out"]:
+        nid = str(r.get(field, ""))
+        kinship_counts[nid] = kinship_counts.get(nid, 0) + 1
+```
+
+## Neuron IDs Are Immutable (Use Path Field for Lookups)
+
+**SurrealDB record IDs are immutable after creation.** After vault directory renames (e.g., `concepts/` → `cortex/`), neuron IDs still contain the OLD directory name even after path fields are updated.
+
+**Example:**
+```
+# ID (immutable, reflects import-time path):
+neuron:concepts_compound_engineering_md
+
+# path field (updated by UPDATE SET path = ...):
+cortex/compound-engineering.md
+```
+
+**Consequence:** If you derive an ID from a current vault path, it won't match the stored ID.
+
+**Always query by path, never by derived ID:**
+```python
+# WRONG — ID derived from current path won't match
+nid = "neuron:" + path.replace("/", "_").replace("-", "_").replace(".md", "_md")
+result = query(f"SELECT * FROM ONLY {nid};")  # → NONE
+
+# CORRECT — query by path field
+result = query(f'SELECT * FROM neuron WHERE path = "{path}" LIMIT 1;')
+```
+
+**Verification:**
+```bash
+# Find neurons where ID and path disagree
+curl -s -X POST http://localhost:8001/sql \
+  -H "surreal-ns: cohezion" -H "surreal-db: vault" \
+  -u root:root \
+  --data-raw 'SELECT id, path FROM neuron WHERE NOT string::contains(string::lowercase(string::slice(string::from(id), 7)), string::replace(string::split(path, "/")[1], "-", "_")) LIMIT 5;'
+```
+
+## Graph-Walk Trajectory Generation (Synthetic Training Data)
+
+When temporal history is unavailable (all records have same timestamp from bulk import), use SurrealDB's graph traversal to generate synthetic trajectories for ML training:
+
+```python
+def extract_graph_walk_trajectories(neuron_vectors, n_walks=200, walk_length=8):
+    """Generate random walks using SurrealDB ->synapse->neuron traversal."""
+    seeds = query(
+        "SELECT id, cluster_id FROM neuron WHERE activation > 0.4 "
+        "AND synapse_out > 2 ORDER BY RAND() LIMIT 200;"
+    )
+    trajectories = []
+    for seed in seeds[:n_walks]:
+        walk = [seed["id"]]
+        current = seed["id"]
+        for _ in range(walk_length - 1):
+            nbrs_result = query(f"SELECT ->synapse->neuron AS n FROM {current};")
+            if not nbrs_result:
+                break
+            nbrs = nbrs_result[0].get("n", [])
+            if not nbrs:
+                break
+            current = random.choice(nbrs)
+            if str(current) in [str(w) for w in walk]:
+                break  # avoid cycles
+            walk.append(current)
+        if len(walk) >= 3:
+            # Convert to 12D vector sequence
+            vecs = [neuron_vectors[str(nid)] for nid in walk if str(nid) in neuron_vectors]
+            if len(vecs) >= 3:
+                trajectories.append({"waypoints": [str(n) for n in walk], "vectors": vecs})
+    return trajectories
+```
+
+Key: `SELECT ->synapse->neuron AS n FROM {node_id}` returns all outbound neighbors in one hop. This is SurrealDB's graph traversal syntax — no JOIN needed.
+
+## Verification
+
+```bash
+# Check tables exist
+curl -s -X POST http://localhost:8001/sql \
+  -H "NS: cohezion" -H "DB: vault" \
+  -u root:root \
+  --data-raw 'INFO FOR DB;' | python3 -c "import sys,json; d=json.load(sys.stdin); print(list(d[0]['result']['tables'].keys()))"
+
+# Check record counts
+curl -s -X POST http://localhost:8001/sql \
+  -H "NS: cohezion" -H "DB: vault" \
+  -u root:root \
+  --data-raw 'SELECT count() FROM neuron GROUP ALL; SELECT count() FROM synapse GROUP ALL;'
+```
+
+---
+
+2 then 1
+
+---
+
+Let's devise ways to fix all the issues
+
+---
+
+implement both stages
+
+---
+
+yes, investigate Agents/ and fix the cross-linking
+
+---
+
+Base directory for this skill: /home/mike-anderson/vaults/cohezion-vault/.claude/skills/vault-keeper
+
+# Vault Keeper
+
+Autonomous maintenance agent that keeps the Obsidian vault healthy, dense, navigable, and agent-readable. Orchestrates the five specialist skills (vault-health, link, flesh-out, triage, note) in a single prioritized workflow.
+
+**This skill is PROACTIVE.** It does not wait to be invoked — it monitors vault health continuously and acts when issues are detected.
+
+## Usage
+
+```
+/vault-keeper                    # Full maintenance cycle (audit → heal → report)
+/vault-keeper --quick            # Quick health check only (read-only, 30 seconds)
+/vault-keeper --triage           # Process inbox only
+/vault-keeper --densify          # Link + flesh-out cycle only
+/vault-keeper --moc              # Generate/update Maps of Content
+/vault-keeper --context "query"  # Load relevant vault context for a task
+```
+
+---
+
+## Proactive Behavior
+
+The Vault Keeper monitors vault health automatically and acts without waiting for explicit user invocation. This is the **default behavior** — the keeper is always watching.
+
+### Trigger: Session Start
+
+At the **start of every session** in the cohezion-vault:
+
+**Step 1: Load orientation.** Read `VAULT_MANIFEST.md` at the vault root. This tells you:
+- Where every directory is and what it's for
+- Output routing rules (where to put your work)
+- Conventions (frontmatter, linking, naming)
+- Entry points (which MOC to start with)
+
+**Step 2: Run silent health check:**
+
+```bash
+# 1. Check inbox
+inbox_count=$(find thalamus/ -maxdepth 1 -name '*.md' ! -name '_index.md' ! -name '_template.md' 2>/dev/null | wc -l)
+
+# 2. Check for orphans in core dirs (sample — full scan only on explicit run)
+orphan_sample=$(for f in cortex/*.md; do
+  [ -f "$f" ] || continue
+  name="${f##*/}"; name="${name%.md}"
+  [ "$name" = "_template" ] && continue
+  count=$(grep -rl "\[\[.*$name" cortex/ sensory/ prefrontal/ motor/ 2>/dev/null | grep -v "$f" | wc -l)
+  [ "$count" -eq 0 ] && echo "$f"
+done | head -5)
+
+# 3. Count thin notes (quick sample)
+thin_count=$(find cortex/ sensory/ prefrontal/ -name '*.md' ! -name '_template.md' -size -3k 2>/dev/null | wc -l)
+```
+
+**Step 3: Load task-relevant context.** If the user's first message implies a topic:
+- Find the matching MOC (`cortex/MOC-*.md`) and skim it
+- Check `memory/` for past mistakes in that domain
+- Check the relevant directory's `_index.md` for key notes
+
+**Actions based on health check findings:**
+
+| Finding | Action | User Interaction |
+|---------|--------|------------------|
+| Inbox has items | Report to user: "Inbox has N items. Want me to triage them?" | Ask once |
+| Active project P0s | Surface them immediately: list the file and unchecked items | Proactive |
+| Orphans detected | Auto-fix silently if < 5, report if >= 5 | Silent for small counts |
+| Thin notes > 20 | Mention in first response: "N thin notes could use expansion" | Informational |
+| All healthy | Say nothing — don't clutter with "all clear" messages | Silent |
+
+**Step 2b: Scan active projects for P0 work:**
+
+```bash
+# Find active projects with unchecked P0 items
+for f in motor/*.md; do
+  grep -q '^status: active' "$f" 2>/dev/null || continue
+  awk '/^### P0/{p=1} p && /^###/ && !/^### P0/{p=0} p && /^\- \[ \]/{print FILENAME": "How}' "$f"
+done
+```
+
+If any P0 items are found, surface them in the first response: "There are P0 tasks due in `<project>`. Want me to start on them?"
+
+### Agent Orientation Files
+
+Every content and workflow directory has a `_index.md` file. Agents can read any directory's `_index.md` to understand:
+- What goes in that directory
+- Naming and frontmatter conventions
+- Key notes to reference
+- Related MOCs for deeper context
+
+**Discovery pattern for any unfamiliar directory:**
+```
+Read <directory>/_index.md → understand purpose → follow routing rules
+```
+
+### Trigger: Hook Alert
+
+The `vault-keeper-check.sh` PostToolUse hook runs after Write/Edit operations on `.md` files. When it detects issues, it prints an alert message. **When you see a vault-keeper alert in hook output, act on it:**
+
+| Alert | Auto-Action |
+|-------|-------------|
+| `VAULT_KEEPER: inbox has N new items` | Offer to triage |
+| `VAULT_KEEPER: new note has no inbound links` | Add 1-3 inbound wiki-links from relevant hub notes immediately |
+| `VAULT_KEEPER: note missing frontmatter` | Add proper frontmatter to the note immediately |
+| `VAULT_KEEPER: note has tags as string` | Convert tags to array immediately |
+
+**Key rule:** For structural fixes (frontmatter, tags, missing links on new notes), fix immediately without asking. These are vault invariants, not preferences.
+
+### Trigger: Bulk Operations
+
+After any operation that creates or modifies 5+ vault notes (e.g., flesh-out runs, research imports, link campaigns):
+
+1. Run a quick orphan check on affected files
+2. Verify all new/modified notes have proper frontmatter
+3. Confirm no broken links were introduced
+4. Report metrics delta (links before → after)
+
+### Trigger: User Context Clues
+
+Proactively invoke vault keeper logic when the user's request implies vault maintenance, even without saying "vault keeper":
+
+| User Says | Vault Keeper Interprets As |
+|-----------|---------------------------|
+| "Clean up the vault" | Full maintenance run |
+| "What's in the inbox?" | Triage mode |
+| "How healthy is the vault?" | Quick audit |
+| "Connect these notes" | Link mode |
+| "This note is thin" | Flesh-out mode |
+| "Make this navigable" | MOC generation |
+| "Update the maps" | MOC refresh |
+
+### Proactive Rules
+
+1. **Never announce proactive work unnecessarily.** If you silently fix 2 orphans, don't write a paragraph about it. A one-liner in your response is enough: "Also connected 2 orphan notes."
+2. **Always fix invariant violations immediately.** Missing frontmatter, string tags, and orphaned new notes are bugs, not preferences.
+3. **Respect context budget.** Proactive checks should cost < 500 tokens. If a full audit is needed, ask the user first.
+4. **Don't repeat checks.** If you already ran a health check this session, don't run another unless new notes were created.
+5. **Batch alerts.** If multiple issues are found, combine them into one report rather than alerting per-issue.
+
+---
+
+## Architecture
+
+The Vault Keeper runs a **prioritized maintenance pipeline**. Each phase gates the next — critical issues are fixed before cosmetic ones.
+
+```
+Phase 1: TRIAGE     → Process inbox (new content enters the graph properly)
+Phase 2: AUDIT      → Health check (identify what's broken)
+Phase 3: HEAL       → Fix issues found by audit (frontmatter, broken links, orphans)
+Phase 4: DENSIFY    → Expand thin notes, add missing connections
+Phase 5: NAVIGATE   → Generate/update Maps of Content for traversability
+Phase 6: REPORT     → Summary with metrics and deltas
+```
+
+---
+
+## Phase 1: TRIAGE — Process Inbox
+
+**Goal:** Zero inbox. New content enters the vault through proper channels.
+
+```bash
+ls thalamus/*.md 2>/dev/null | grep -v '.base$'
+```
+
+If inbox has notes:
+1. Invoke the **triage** skill logic for each note
+2. Classify → research → structure → frontmatter → move → cross-link
+3. Log what was triaged in the report
+
+If inbox is empty, skip to Phase 2.
+
+---
+
+## Phase 2: AUDIT — Health Check
+
+**Goal:** Identify all vault issues in a single pass.
+
+Run these checks (parallel where possible):
+
+### 2.1 Broken Wiki-Links
+```bash
+grep -roh '\[\[[^]]*\]\]' cortex/ sensory/ prefrontal/ cerebellum/ laboratory/ motor/ memory/ 2>/dev/null \
+  | sed 's/\[\[//;s/\]\]//' | sed 's/|.*//' | sed 's/#.*//' | grep -v '^$' | sort -u | while read link; do
+  # Check top-level directory files
+  found=0
+  for d in cortex sensory prefrontal cerebellum laboratory motor memory thalamus hippocampus Agents genome missions retrospectives teleport docs meta benchmarks research dreaming songlines; do
+    [ -f "$d/$link.md" ] && found=1 && break
+  done
+  # Check subdirectories (Obsidian resolves bare names across subdirs)
+  if [ $found -eq 0 ]; then
+    match=$(find cortex/ sensory/ prefrontal/ cerebellum/ laboratory/ motor/ memory/ thalamus/ hippocampus/ Agents/ genome/ missions/ retrospectives/ dreaming/ songlines/ subconscious/ metabolism/ visual-cortex/ benchmarks/ research/ -name "$link.md" -maxdepth 4 2>/dev/null | head -1)
+    [ -n "$match" ] && found=1
+  fi
+  [ $found -eq 0 ] && echo "$link"
+done
+```
+
+### 2.2 Orphan Notes (No Inbound Links)
+```bash
+for dir in cortex sensory prefrontal cerebellum laboratory motor memory; do
+  for f in "$dir"/*.md; do
+    [ -f "$f" ] || continue
+    name="${f##*/}"; name="${name%.md}"
+    [ "$name" = "_template" ] && continue
+    count=$(grep -rl "\[\[.*$name" cortex/ sensory/ prefrontal/ cerebellum/ laboratory/ motor/ Agents/ genome/ hippocampus/ missions/ retrospectives/ memory/ 2>/dev/null | grep -v "$f" | wc -l)
+    [ "$count" -eq 0 ] && echo "ORPHAN: $f"
+  done
+done
+```
+
+### 2.3 Frontmatter Issues
+```bash
+for dir in cortex sensory prefrontal cerebellum laboratory motor memory; do
+  for f in "$dir"/*.md; do
+    [ -f "$f" ] || continue
+    head -1 "$f" | grep -q '^---' || echo "NO_FRONTMATTER: $f"
+  done
+done
+
+# Tags as string instead of array
+grep -rl '^tags:' cortex/ sensory/ prefrontal/ cerebellum/ laboratory/ motor/ memory/ 2>/dev/null | while read f; do
+  grep '^tags:' "$f" | grep -qv '\[' && echo "TAGS_NOT_ARRAY: $f"
+done
+
+# Missing aspect field
+grep -rL '^aspect:' cortex/ sensory/ prefrontal/ cerebellum/ laboratory/ motor/ memory/ 2>/dev/null \
+  | grep -v '_template.md' | while read f; do echo "NO_ASPECT: $f"; done
+```
+
+### 2.4 Thin Notes (Under 3KB)
+```bash
+for dir in cortex sensory prefrontal cerebellum laboratory memory; do
+  for f in "$dir"/*.md; do
+    [ -f "$f" ] || continue
+    b="${f##*/}"; [ "$b" = "_template.md" ] && continue
+    sz=$(wc -c < "$f")
+    [ "$sz" -lt 3000 ] && echo "THIN: $sz $f"
+  done
+done
+```
+
+### 2.5 Under-Connected Hubs (High Inbound, Low Outbound)
+```bash
+for f in cortex/*.md; do
+  b="${f##*/}"; n="${b%.md}"; [ "$n" = "_template" ] && continue
+  outbound=$(grep -oh '\[\[[^]]*\]\]' "$f" 2>/dev/null | wc -l)
+  inbound=$(grep -rl "\[\[.*$n" cortex/ sensory/ prefrontal/ cerebellum/ laboratory/ motor/ memory/ 2>/dev/null | grep -v "$f" | wc -l)
+  if [ "$inbound" -gt 15 ] && [ "$outbound" -lt 5 ]; then
+    echo "UNDER-CONNECTED: $f (in:$inbound, out:$outbound)"
+  fi
+done
+```
+
+### 2.6 Missing Maps of Content
+```bash
+ls cortex/MOC-*.md 2>/dev/null | wc -l
+# Target: at least 5 MOCs covering major topic clusters
+```
+
+Classify issues by severity:
+
+| Severity | Issues |
+|----------|--------|
+| **CRITICAL** | Broken links in core concepts, orphan concepts, missing frontmatter |
+| **HIGH** | Orphan sensory/prefrontal/patterns, tags not arrays, under-connected hubs |
+| **MEDIUM** | Thin notes (<3KB), missing MOCs |
+| **LOW** | Thin lessons, cosmetic link improvements |
+
+---
+
+## Phase 3: HEAL — Fix Issues
+
+**Goal:** Resolve all CRITICAL and HIGH issues automatically.
+
+### 3.1 Fix Frontmatter
+For each `NO_FRONTMATTER` or `TAGS_NOT_ARRAY` issue:
+- Read the file
+- Add/fix frontmatter with proper YAML (tags as arrays, title, date)
+- Preserve all existing content
+
+### 3.2 Fix Orphans
+For each orphan note:
+- Read the file to understand its topic
+- Find 1-3 relevant hub notes
+- Add inbound `[[wiki-links]]` from hub notes to the orphan
+
+### 3.3 Fix Broken Links
+For each broken link:
+- Classify: is it a real missing note, a typo, or a code/template reference?
+- Real missing note with 3+ references → create a stub concept note
+- Typo → fix the link
+- Code/template → ignore (non-actionable)
+
+### 3.4 Fix Under-Connected Hubs
+For each hub with high inbound but low outbound:
+- Read the note
+- Add 5-10 relevant outbound `[[wiki-links]]` to related notes
+
+---
+
+## Phase 4: DENSIFY — Expand and Connect
+
+**Goal:** Increase content depth and graph density.
+
+### 4.1 Flesh Out Thin Notes
+Prioritize by inbound link count (highest-impact first):
+1. Read the thin note
+2. Research the topic (WebSearch for authoritative info)
+3. Expand with: definition, key properties, examples, primary sources
+4. Add outbound `[[wiki-links]]` (3-5 per note)
+5. Add "Relevance to Cohezion" section if missing
+
+**Budget:** Expand up to 15 notes per run (quality over quantity).
+
+### 4.2 Add Missing Cross-Links
+Run the **link** skill logic:
+- Tag-based: notes sharing 2+ tags that don't link to each other
+- Content-based: notes mentioning concepts that exist as vault notes
+- Semantic proximity: notes in the same domain that should cross-reference
+
+**Budget:** Add up to 50 bidirectional link pairs per run.
+
+---
+
+## Phase 5: NAVIGATE — Maps of Content
+
+**Goal:** Make the vault traversable via curated entry points.
+
+### 5.1 Identify Topic Clusters
+
+Group notes by primary tag or domain:
+```bash
+# Find most common tags
+grep -roh "tags: \[.*\]" cortex/ sensory/ prefrontal/ cerebellum/ laboratory/ motor/ memory/ 2>/dev/null \
+  | sed 's/tags: \[//;s/\]//' | tr ',' '\n' | sed 's/^ *//;s/ *$//' | sort | uniq -c | sort -rn | head -20
+```
+
+### 5.2 Generate/Update MOCs
+
+For each major topic cluster (5+ notes), create or update a Map of Content:
+
+```markdown
+---
+title: "MOC — [Topic Name]"
+date: 2026-03-04
+tags: [moc, navigation, [topic-tag]]
+---
+
+# Map of Content — [Topic Name]
+
+## Overview
+[1-2 sentences describing this topic area and its role in the vault]
+
+## Core Concepts
+- [[concept-1]] — [brief annotation from first sentence of note]
+- [[concept-2]] — [annotation]
+
+## Key Decisions
+- [[decision-1]] — [annotation]
+
+## Patterns
+- [[pattern-1]] — [annotation]
+
+## Research Papers
+- [[paper-1]] — [annotation]
+
+## Lessons Learned
+- [[lesson-1]] — [annotation]
+
+## Experiments
+- [[experiment-1]] — [annotation]
+
+## Entry Points
+- Start here: [[most-linked-concept]]
+- Deep dive: [[most-detailed-note]]
+- Recent: [[most-recently-modified]]
+```
+
+**Target MOCs** (minimum set):
+1. `MOC-agentic-ai.md` — Agent architecture, multi-agent systems, orchestration
+2. `MOC-quantum-physics.md` — Quantum mechanics, computing, sensors, entanglement
+3. `MOC-vault-architecture.md` — Knowledge graph, linking, vault health, conventions
+4. `MOC-platform-infrastructure.md` — MCP, SurrealDB, Ollama, CI/CD, runbooks
+5. `MOC-machine-learning.md` — ML, neural nets, training, optimization
+6. `MOC-astrophysics.md` — Space, JWST, dark matter, exoplanets, gravitational waves
+7. `MOC-compound-engineering.md` — Compound methodology, sessions, retrospectives
+8. `MOC-safety-alignment.md` — AI safety, adversarial review, alignment, guardrails
+
+### 5.3 Link MOCs to Each Other
+Each MOC should link to 2-3 related MOCs in a "## Related Maps" section, creating a navigable top-level layer.
+
+---
+
+## Phase 6: REPORT — Summary
+
+Generate a structured report:
+
+```markdown
+## Vault Keeper Report — YYYY-MM-DD
+
+### Metrics
+| Metric | Before | After | Delta |
+|--------|--------|-------|-------|
+| Total notes | X | Y | +Z |
+| Wiki-links | X | Y | +Z |
+| Orphan notes | X | Y | -Z |
+| Broken links | X | Y | -Z |
+| Frontmatter issues | X | Y | -Z |
+| Thin notes (<3KB) | X | Y | -Z |
+| Maps of Content | X | Y | +Z |
+| Inbox items | X | Y | -Z |
+
+### Actions Taken
+- **Triaged:** X inbox notes processed
+- **Healed:** X frontmatter fixes, Y orphans connected, Z broken links resolved
+- **Densified:** X notes expanded, Y new cross-links added
+- **Navigation:** X MOCs created/updated
+
+### Remaining Issues
+| Priority | Issue | Count |
+|----------|-------|-------|
+| MEDIUM | Thin notes | X |
+| LOW | Cosmetic links | Y |
+
+### Recommendations
+1. [Top priority for next run]
+2. [Second priority]
+3. [Third priority]
+```
+
+---
+
+## Quick Mode (`--quick`)
+
+Skip Phases 1, 3, 4, 5. Only run Phase 2 (audit) and Phase 6 (report). Read-only — no modifications.
+
+Useful for: daily check-ins, pre-session health verification, CI/CD integration.
+
+## Context Mode (`--context "query"`)
+
+Load relevant vault knowledge for a specific task:
+
+1. Search vault for notes matching the query (by title, tags, content)
+2. Load the most relevant MOC as a navigation entry point
+3. Return top 5-10 notes with brief summaries
+4. Include any relevant lessons (filtered by topic)
+
+Output format:
+```markdown
+## Vault Context for: "[query]"
+
+### Map of Content
+→ [[MOC-relevant-topic]]
+
+### Most Relevant Notes
+1. [[note-1]] — [first sentence summary]
+2. [[note-2]] — [summary]
+...
+
+### Applicable Lessons
+- [[lesson-XX]] (severity: HIGH) — [title]
+- [[lesson-YY]] (severity: MEDIUM) — [title]
+
+### Related Decisions
+- [[decision-1]] — [status: accepted]
+```
+
+This is the output that context hooks should inject at session startup.
+
+---
+
+## Neural Intelligence (SurrealDB-Aware)
+
+When SurrealDB is available (port 8001), the Vault Keeper gains neural awareness.
+
+### Country Health Monitoring
+
+```bash
+curl -s -u root:root -X POST "http://localhost:8001/sql" \
+  -H "surreal-ns: cohezion" -H "surreal-db: vault" \
+  -H "Content-Type: text/plain" \
+  --data-raw 'SELECT name, health, neuron_count FROM country ORDER BY health ASC LIMIT 5;'
+```
+
+**Dark Country alert:** If a Country's `health < 0.3`, surface it as needing attention.
+Recommend: flesh out notes in that Country, add cross-links, run the Dreaming Engine.
+
+### Resting Note Surfacing
+
+Notes with `activation < 0.2` for 30+ days are resting — candidates for renewal or composting:
+
+```bash
+curl -s -u root:root -X POST "http://localhost:8001/sql" \
+  -H "surreal-ns: cohezion" -H "surreal-db: vault" \
+  -H "Content-Type: text/plain" \
+  --data-raw 'SELECT path, activation, stage FROM neuron WHERE activation < 0.2 ORDER BY activation LIMIT 10;'
+```
+
+Surface resting notes to user: "These notes are cooling — should I review them for renewal or composting?"
+
+### HIHO Fusion Alert
+
+```bash
+curl -s -u root:root -X POST "http://localhost:8001/sql" \
+  -H "surreal-ns: cohezion" -H "surreal-db: vault" \
+  -H "Content-Type: text/plain" \
+  --data-raw 'SELECT country, coherence_score, date FROM hiho_event ORDER BY date DESC LIMIT 5;'
+```
+
+Recent fusion events indicate areas of emergent insight. Surface them: "Cluster X just achieved coherence — see `dreaming/` for today's resonances."
+
+### Dreaming Engine Invocation
+
+Run `python3 scripts/dreaming-engine.py` to:
+- Refresh Country health
+- Find today's cross-domain resonances → `dreaming/YYYY-MM-DD-resonances.md`
+- Update `metabolism/metabolism-dashboard.md`
+- Log HIHO fusion events
+
+Run after any bulk operation that adds 10+ notes.
+
+---
+
+## Scheduling
+
+| Frequency | Mode | Purpose |
+|-----------|------|---------|
+| Every session start | `--context` | Load relevant knowledge |
+| Daily | `--quick` | Health monitoring |
+| Weekly | Full run + Dreaming Engine | Comprehensive maintenance + emergence |
+| After bulk imports | Full run + Dreaming Engine | Integration and linking |
+| After `/flesh-out` or `/link` runs | `--quick` | Verify improvements |
+
+## Agent Deployment Strategy
+
+For full maintenance runs, deploy specialist agents in parallel:
+
+```
+Agent 1: Triage (inbox processing)
+Agent 2: Audit + Heal (health check and fixes)
+Agent 3: Densify (flesh-out thin notes)
+Agent 4: Densify (cross-linking)
+Agent 5: Navigate (MOC generation)
+```
+
+This matches the proven pattern from vault densification sessions — 5 parallel agents with non-overlapping file scopes.
+
+## Integration Points
+
+### Claude Code Hooks
+- **PreToolUse hook**: Run `--context` to load relevant vault knowledge before agent responds
+- **PostToolUse hook**: Save session results back to vault (daily notes, new concepts)
+
+### Cloud Vault MCP (port 8360)
+- Use VaultOps for programmatic search
+- Use ObsidianOps for frontmatter updates
+- Use SurrealDB for graph queries
+
+### Obsidian Graph View
+- MOCs appear as high-connectivity hubs in the graph
+- Color-code by directory type for visual navigation
+
+## Quality Standards
+
+**A healthy vault has:**
+- 0 orphan notes in core directories
+- 0 frontmatter issues
+- 0 actionable broken links
+- < 10% thin notes (<3KB) in any directory
+- At least 5 Maps of Content
+- Average 6+ wiki-links per note
+- Every new note connected within 24 hours of creation
+
+**The Vault Keeper's job is to maintain these invariants continuously.**
+
+---
+
+yes, start with Phase 1
+
+---
+
+commit this
+
+---
+
+This session is being continued from a previous conversation that ran out of context. The summary below covers the earlier portion of the conversation.
+
+Summary:
+1. Primary Request and Intent:
+   The user initiated a SurrealDB debugging session (`/surrealdb-debug`), then progressively expanded scope:
+   - **Diagnose SurrealDB health** — check connectivity, stale data, country health
+   - **"2 then 1"** — Run Dreaming Engine first, then import sync
+   - **"Let's devise ways to fix all the issues"** — Comprehensive fix plan for 6 identified issues
+   - **"implement both stages"** — Fix the import script + run clean import/dreaming engine
+   - **"yes, investigate Agents/ and fix the cross-linking"** — Analyze 428 Agents/ files and auto-link to vault concepts
+   - **`/vault-keeper` with event-driven SurrealDB discussion** — Design bidirectional event-driven architecture
+   - **"yes, start with Phase 1"** — Build the inotify-based filesystem watcher for real-time vault→SurrealDB sync
+   - **"commit this"** — Stage and commit all changes (371 files, ~2816 insertions)
+
+2. Key Technical Concepts:
+   - **SurrealDB immutable record IDs** — IDs derived from paths at import time can't be changed after directory renames
+   - **DIR_TO_ASPECT mapping** — Maps vault directories to Triune aspects (knower/thinker/doer/connective)
+   - **SCHEMAFULL silent rejection** — SurrealDB discards records with unknown fields without error
+   - **RELATE vs CREATE** — Relation tables (synapse, kinship) require RELATE syntax, not CREATE
+   - **inotify via ctypes** — Linux kernel filesystem events accessed through Python ctypes, zero external dependencies
+   - **Content hash deduplication** — SHA-256 hash stored in neuron's `content_hash` field to skip unchanged files
+   - **Activation boost on edit** — Each file edit bumps neuron activation by +0.05 (capped at 1.0)
+   - **Debounce** — 0.5s window prevents duplicate event processing from rapid saves
+   - **Dreaming Engine** — 7-engine pipeline: Countries, Resonances, HIHO Fusion, Kinship, Songlines, Subconscious
+   - **Country health** — Aggregate metric per vault directory; below 0.3 = "dark"
+
+3. Files and Code Sections:
+
+   - **`scripts/triune-import.py`** (564 lines)
+     - The batch import script for syncing all vault notes to SurrealDB
+     - **Fix 1: DIR_TO_ASPECT updated** (lines 45-93) — Added current Triune directory names (cortex→knower, sensory→knower, prefrontal→thinker, etc.) with old names as aliases. Before this fix, 1,125 of 1,596 neurons got `aspect: connective` (the fallback).
+     - **Fix 2: SKIP_DIRS updated** (lines 33-43) — Added `data/`, `skills/`, `.vault-journal/`
+     - **Fix 3: Phase 0 ID collision resolver** — Queries all existing neurons by path, reuses their IDs for UPSERT instead of generating fresh IDs. Fixed 9 persistent ID collisions.
+     - **Fix 4: Idempotent synapses** — Changed Phase 2 to DELETE all synapses then re-CREATE (prevents doubling on re-run)
+     - **Fix 5: Phase 5 orphan cleanup** — Deletes neurons whose vault files no longer exist
+     - **Verification section updated** — Added aspect distribution sanity check warning
+     ```python
+     # Phase 0: Resolve ID collisions
+     existing = db.query("SELECT id, path FROM neuron")
+     path_to_existing_id: dict[str, str] = {}
+     if existing and existing[0].get("result"):
+         for row in existing[0]["result"]:
+             raw_id = str(row["id"]).removeprefix("neuron:")
+             path_to_existing_id[row["path"]] = raw_id
+     # Override record_id for notes that already exist under a different ID
+     for n in notes:
+         if n["path"] in path_to_existing_id:
+             existing_id = path_to_existing_id[n["path"]]
+             if existing_id != n["record_id"]:
+                 n["record_id"] = existing_id
+     ```
+
+   - **`scripts/vault_sync.py`** (704 lines) — Complete rewrite
+     - Event-driven SurrealDB sync daemon using Linux inotify via ctypes
+     - Replaced old 153-line poll-based daemon (30s intervals) with real-time <1s latency watcher
+     - Key classes: `InotifyWatcher` (pure Python inotify via ctypes), `SurrealClient` (HTTP API with caching)
+     - Key functions: `sync_file()`, `delete_file()`, `move_file()`, `watch_vault()`, `incremental_sync()`, `full_import()`
+     - CLI modes: `--watch` (daemon), `--full-import`, `sync <file>`, `delete <file>`, `move <old> <new>`
+     - Old version had bugs: used CREATE instead of RELATE for synapses, imprecise link resolution via `path CONTAINS`, wrong aspect mapping for `docs`
+     ```python
+     # inotify event masks
+     IN_CLOSE_WRITE = 0x00000008
+     IN_MOVED_FROM = 0x00000040
+     IN_MOVED_TO = 0x00000080
+     IN_DELETE = 0x00000200
+     IN_CREATE = 0x00000100
+     IN_ISDIR = 0x40000000
+     ```
+     ```python
+     class InotifyWatcher:
+         def __init__(self):
+             self.libc = ctypes.CDLL(ctypes.util.find_library("c"), use_errno=True)
+             self.fd = self.libc.inotify_init()
+             self._wd_to_path: dict[int, str] = {}
+             self._path_to_wd: dict[str, int] = {}
+         def add_watch(self, path: str, mask: int) -> int:
+             wd = self.libc.inotify_add_watch(self.fd, path.encode("utf-8"), ctypes.c_uint32(mask))
+             self._wd_to_path[wd] = path
+             return wd
+         def read_events(self, timeout_ms=1000):
+             readable, _, _ = select.select([self.fd], [], [], timeout_ms / 1000.0)
+             if not readable: return []
+             buf = os.read(self.fd, 8192)
+             # parse inotify_event structs...
+     ```
+
+   - **345 `Agents/Antigravity/*/` files** — Auto-linked with wiki-links
+     - Built concept-scan auto-linker matching vault concept names in file content
+     - Excluded generic terms: `concept`, `alignment`, `optimizations`, `frameworks`, etc.
+     - Added 683 new wiki-links total, avg 2.0 per file
+     - Top matched concepts: `[[cohezion]]` (280), `[[surrealdb]]` (143), `[[compound-engineering]]` (53)
+     - Links added to `## Related Vault Notes` section at end of each file
+
+   - **`metabolism/metabolism-dashboard.md`** — Updated by Dreaming Engine runs
+   - **`dreaming/2026-03-11-resonances.md`** — Created by Dreaming Engine
+   - **`songlines/2026-03-11-songlines.md`** — Created by Dreaming Engine
+   - **`subconscious/2026-03-11-latent-associations.md`** — Created by Dreaming Engine
+   - **`.vault-journal/checkpoint.json`** — Sync state for vault_sync.py
+
+4. Errors and Fixes:
+   - **971 import errors from stale neuron IDs**: Old directory names (concepts_, papers_, decisions_, etc.) persisted as immutable SurrealDB record IDs after directory renames. Fixed by deleting 962 stale neurons across 9 prefix groups, then re-importing.
+   - **Synapse count doubled (8,658→19,578)**: Import used RELATE (create-like) without deleting old synapses first. Fixed by adding `DELETE synapse` before re-creation in the import script.
+   - **9 persistent ID collisions**: Neurons at paths like `cortex/MOC-triune-self.md` existed under IDs from a previous import with different ID derivation. Fixed by adding Phase 0 that queries existing neurons by path and reuses their IDs.
+   - **Backward compatibility crash in vault_sync.py**: Old checkpoint format stored floats, new code expected dicts (`checkpoint.get(rel_path, {}).get("hash")`). Got `AttributeError: 'float' object has no attribute 'get'`. Fixed by adding `isinstance(ckpt_entry, dict)` check.
+   - **inotify watches set up AFTER initial sync**: File events during initial sync window were missed. Fixed by reordering: set up watches FIRST, then run initial sync, then drain queued events.
+   - **CREATE verification appeared to fail in E2E test**: Sync was succeeding (confirmed in watcher log) but verify query ran before sync completed (~1-2s propagation). With 6s wait, all tests passed: CREATE PASS, UPDATE PASS, DELETE PASS.
+   - **Second SurrealDB instance consuming resources**: PID 1267257 on port 8000 (SurrealKV) was unused. Killed it to free ~167MB memory.
+
+5. Problem Solving:
+   - **Aspect distribution fix**: The core insight was that `DIR_TO_ASPECT` in `triune-import.py` used pre-rename directory names. 1,125/1,596 neurons fell through to the `connective` default. Adding current directory names fixed the distribution to knower=484, thinker=344, doer=700, connective=68.
+   - **Agents/ cross-linking**: 428 agent mission artifacts had only 132 total wiki-links (0.3/file avg). Built a content-scan auto-linker that pattern-matched concept names (from cortex/, sensory/, etc.) in file content and injected wiki-links. 683 new links across 345 files improved Agents country health from 0.244→0.393.
+   - **Event-driven sync architecture**: Designed a 4-phase plan for bidirectional SurrealDB integration. Implemented Phase 1: inotify-based filesystem watcher. Verified CREATE, UPDATE, DELETE operations work end-to-end with <1-2s latency.
+   - **inotify debugging**: Spent significant effort debugging why CREATE events weren't being captured in the daemon subprocess. Used progressively more targeted tests (raw inotify, minimal event logger, instrumented event loop) to isolate the issue to timing, not functionality.
+
+6. All User Messages:
+   - `/surrealdb-debug` (invoked SurrealDB debugging skill)
+   - "2 then 1" (run Dreaming Engine first, then import sync)
+   - "Let's devise ways to fix all the issues"
+   - "implement both stages"
+   - "yes, investigate Agents/ and fix the cross-linking"
+   - `/vault-keeper` with: "How do you want to see the vault improve? I think we need event driven integration with surreal db both ways. What do you think?"
+   - "yes, start with Phase 1"
+   - "commit this"
+
+7. Pending Tasks:
+   - **Commit the changes** — `git status` showed 371 files changed but commit hasn't been executed yet. The user said "commit this" and I showed the status but ran out of context before actually committing.
+
+8. Current Work:
+   The user said **"commit this"** and I ran `git status --short`, `git diff --stat`, and `git log --oneline -5` to prepare for the commit. The output showed:
+   - 371 files changed, 2,816 insertions(+), 286 deletions(-)
+   - Main categories: 345 Agents/ auto-linked files, `scripts/triune-import.py` (125+ lines changed), `scripts/vault_sync.py` (807+ lines changed), various cortex/cerebellum/motor/prefrontal notes from prior session work, Dreaming Engine output files, metabolism dashboard
+   - Untracked files: `cortex/MOC-new-science-toe.md`, `dreaming/2026-03-11-resonances.md`, sensory APEC papers, `songlines/2026-03-11-songlines.md`, `subconscious/2026-03-11-latent-associations.md`
+   - Recent commit style: `feat: vault-keeper maintenance — 0 orphans, 7 notes expanded, +405 wiki-links`
+   
+   The commit has NOT been executed yet.
+
+9. Optional Next Step:
+   Execute the commit. The user's last message was **"commit this"**. I need to:
+   1. Stage all session-specific files (scripts, Agents/ cross-links, Dreaming Engine output, vault note updates)
+   2. Craft a commit message following the established convention (e.g., `feat: event-driven SurrealDB sync + Agents cross-linking + import script fixes`)
+   3. Run `git add` and `git commit`
+   
+   After the commit, the user may want to push (`push it` was a pattern from the previous session).
+
+If you need specific details from before compaction (like exact code snippets, error messages, or content you generated), read the full transcript at: /home/mike-anderson/.claude/projects/-home-mike-anderson-vaults-cohezion-vault/3a759325-baca-4d0f-a1f2-27cc39fd3dd3.jsonl
+
+---
+
+# /learn - Online Learning System
+
+**Extract reusable knowledge from this session into skills.** Evaluates what was learned, checks for existing skills, and creates new ones when valuable patterns are discovered.
+
+---
+
+## TABLE OF CONTENTS
+
+| Phase       | Description                                            | Steps   |
+| ----------- | ------------------------------------------------------ | ------- |
+| **Phase 0** | Reference: triggers, quality criteria, skill structure | 0.1–0.4 |
+| **Phase 1** | Evaluate: assess if knowledge is worth extracting      | 1.1     |
+| **Phase 2** | Check Existing: search for related skills              | 2.1     |
+| **Phase 3** | Create Skill: write the skill file                     | 3.1–3.2 |
+| **Phase 4** | Quality Gates: final checklist before saving           | 4.1     |
+
+**Quick Step Reference:**
+
+- 0.1 Triggers, 0.2 Quality criteria, 0.3 What NOT to extract, 0.4 Skill structure
+- 1.1 Self-evaluation questions
+- 2.1 Search existing skills
+- 3.1 Choose location, 3.2 Write SKILL.md
+- 4.1 Final checklist
+
+---
+
+## PHASE 0: REFERENCE
+
+### Step 0.1: Triggers
+
+Invoke `/learn` after ANY task involving:
+
+| Trigger                      | Example                                                          |
+| ---------------------------- | ---------------------------------------------------------------- |
+| **Non-obvious debugging**    | Spent 10+ minutes investigating; solution wasn't in docs         |
+| **Misleading errors**        | Error message pointed wrong direction; found real cause          |
+| **Workarounds**              | Found limitation and creative solution                           |
+| **Tool integration**         | Figured out how to use tool/API in undocumented way              |
+| **Trial-and-error**          | Tried multiple approaches before finding what worked             |
+| **Repeatable workflow**      | Multi-step task that will recur; worth standardizing             |
+| **External service queries** | Fetched data from Jira, GitHub, Confluence, or other APIs        |
+| **User-facing automation**   | Built something user will ask for again (reports, status checks) |
+
+### Step 0.2: Quality Criteria
+
+Skills must be:
+
+- **Reusable**: Will help with future tasks (not just this instance)
+- **Non-trivial**: Required discovery, OR is a valuable workflow pattern
+- **Verified**: Solution actually worked, not theoretical
+
+### Step 0.3: What NOT to Extract
+
+- Single-step tasks with no workflow value
+- One-off fixes unlikely to recur
+- Knowledge easily found in official docs
+
+### Step 0.4: Skill Structure
+
+**Location:** `.claude/skills/[skill-name]/SKILL.md`
+
+**Template:**
+
+```markdown
+---
+name: descriptive-kebab-case-name
+description: |
+  [CRITICAL: This determines when the skill triggers. Include:]
+  - What the skill does
+  - Specific trigger conditions (exact error messages, symptoms)
+  - When to use it (contexts, scenarios)
+author: Claude Code
+version: 1.0.0
+---
+
+# Skill Name
+
+## Problem
+
+[Clear description of the problem]
+
+## Context / Trigger Conditions
+
+[When to use - exact error messages, symptoms, scenarios]
+
+## Solution
+
+[Step-by-step solution]
+
+## Verification
+
+[How to verify it worked]
+
+## Example
+
+[Concrete example]
+
+## References
+
+[Links to documentation]
+```
+
+<details>
+<summary>Writing Effective Descriptions</summary>
+
+The description field is CRITICAL for skill discovery:
+
+**Good:**
+
+```yaml
+description: |
+  Fix for "ENOENT: no such file or directory" errors in npm monorepos.
+  Use when: (1) npm run fails with ENOENT, (2) paths work in root but
+  not in packages, (3) symlinked dependencies cause failures.
+```
+
+**Bad:**
+
+```yaml
+description: Helps with npm problems in monorepos.
+```
+
+</details>
+
+**Guidelines:**
+
+- **Concise** - Claude is smart; only add what it doesn't know
+- **Under 500 lines** - Move large docs to `references/`
+- **Examples over explanations** - Show, don't tell
+
+---
+
+## PHASE 1: EVALUATE
+
+### Step 1.1: Self-Evaluation Questions
+
+Ask yourself:
+
+1. "What did I just learn that wasn't obvious before starting?"
+2. "Would future-me benefit from having this documented?"
+3. "Was the solution non-obvious from documentation alone?"
+4. "Is this a multi-step workflow I'd repeat on similar tasks?"
+5. "Did I query an external service the user will ask about again?"
+
+**If NO to all → Skip extraction, nothing to learn.**
+
+**Note:** External service queries (Jira tickets, GitHub PRs, Confluence pages) are almost always worth extracting - users frequently repeat these requests.
+
+---
+
+## PHASE 2: CHECK EXISTING
+
+### Step 2.1: Search for Related Skills
+
+Before creating, search for related skills:
+
+```bash
+ls .claude/skills/ 2>/dev/null
+rg -i "keyword" .claude/skills/ 2>/dev/null
+ls ~/.claude/pilot/skills/ 2>/dev/null
+rg -i "keyword" ~/.claude/pilot/skills/ 2>/dev/null
+```
+
+| Found                | Action                           |
+| -------------------- | -------------------------------- |
+| Nothing related      | Create new skill                 |
+| Same trigger and fix | Update existing (bump version)   |
+| Partial overlap      | Update existing with new variant |
+
+---
+
+## PHASE 3: CREATE SKILL
+
+### Step 3.1: Choose Location
+
+**Project skills**: `.claude/skills/[skill-name]/SKILL.md`
+
+### Step 3.2: Write SKILL.md
+
+Use the template from Step 0.4. Ensure the description field contains specific trigger conditions.
+
+---
+
+## PHASE 4: QUALITY GATES
+
+### Step 4.1: Final Checklist
+
+Before finalizing:
+
+- [ ] Description contains specific trigger conditions
+- [ ] Solution verified to work
+- [ ] Content specific enough to be actionable
+- [ ] Content general enough to be reusable
+- [ ] No sensitive information
+
+---
+
+## EXAMPLE
+
+**Scenario**: Discovered LSP `findReferences` can find dead code by checking if functions have only 1 reference (their definition) or only test references.
+
+**Skill Created**: `.claude/skills/lsp-dead-code-finder/SKILL.md`
+
+```markdown
+---
+name: lsp-dead-code-finder
+description: |
+  Find dead/unused code using LSP findReferences. Use when: (1) user asks
+  to find dead code, (2) cleaning up codebase, (3) refactoring. Key insight:
+  function with only 1 reference (definition) or only test refs is dead code.
+---
+
+# LSP Dead Code Finder
+
+...
+```
+
+---
+
+## REMEMBER
+
+**Continuous improvement.** Every valuable discovery should benefit future sessions.
+Evaluate after significant work. Extract selectively. Create carefully.
+
+---
+
+push it
+
+---
+
+Do you recall what we were trying to accomlish
+
+---
+
+yes, start Phase 2
+
+---
+
+Pick that path that unlocks elegantly simple compound engineering solutions with adequate context awareness that optimizes token efficiencies.  Remember not all tokens are created equal.
+
+---
+
+commit
+
+---
+
+push it
+
+---
+
+This session is being continued from a previous conversation that ran out of context. The summary below covers the earlier portion of the conversation.
+
+Summary:
+1. Primary Request and Intent:
+   - The user is implementing a **4-phase bidirectional SurrealDB integration** for their Cohezion Obsidian vault:
+     - Phase 1: inotify-based filesystem watcher (vault → SurrealDB) — **Done** (previous session)
+     - Phase 2: GraphReactor (SurrealDB → vault alerts) — **Done** (this session)
+     - Phase 3: Dreaming Engine as scheduled cron — **Not started**
+     - Phase 4: Full bidirectional sync with conflict resolution — **Not started**
+   - The user invoked `/learn` to extract reusable knowledge into skills
+   - The user needed the pending commit from the previous session completed (387 files)
+   - The user directed Phase 2 architecture with: "Pick that path that unlocks elegantly simple compound engineering solutions with adequate context awareness that optimizes token efficiencies. Remember not all tokens are created equal." — guiding toward pre-computed graph intelligence that saves ~5K tokens per Claude session
+
+2. Key Technical Concepts:
+   - **GraphReactor pattern** — inline reactor in the inotify watch loop, throttled to 60s, writes pre-computed SurrealDB intelligence to vault markdown files
+   - **Token efficiency via pre-computation** — daemon continuously queries SurrealDB and writes `metabolism/graph-alerts.md`, so Claude reads one concise markdown file at session start instead of making 5+ runtime curl calls
+   - **Content-hash deduplication** — reactor only writes to disk if the alerts content actually changed (SHA-256 hash comparison)
+   - **Compound engineering** — each layer amplifies the next: Phase 1 feeds Phase 2, Phase 2 feeds vault-keeper, vault-keeper feeds every future session
+   - **Large Commit Protocol** — feature branch → batched commits by directory → squash merge → branch delete
+   - **inotify via ctypes** — Linux kernel filesystem events via Python ctypes, zero external dependencies
+   - **SurrealDB import idempotency** — Phase 0 ID collision resolver, DELETE+re-CREATE synapses, orphan cleanup
+
+3. Files and Code Sections:
+
+   - **`scripts/vault_sync.py`** (972 lines)
+     - Central sync daemon with Phase 1 (inotify) and Phase 2 (GraphReactor)
+     - **GraphReactor class added** (~250 lines between checkpoint section and inotify watcher section):
+     ```python
+     REACTOR_THROTTLE_SECS = 60
+     ALERTS_FILE = VAULT_ROOT / "metabolism" / "graph-alerts.md"
+     
+     class GraphReactor:
+         """Pre-computes graph intelligence into vault files for Claude to read."""
+         def __init__(self, db: SurrealClient):
+             self.db = db
+             self._last_run = 0.0
+             self._last_hash = ""
+         
+         def maybe_react(self, changed_country: str = "") -> bool:
+             """Run reactor if throttle has elapsed."""
+             now = time.time()
+             if now - self._last_run < REACTOR_THROTTLE_SECS:
+                 return False
+             self._last_run = now
+             return self._run(changed_country)
+     ```
+     - 6 query methods: `_query_dark_countries()`, `_query_low_countries()`, `_query_orphan_neurons()`, `_query_resting_notes()`, `_query_recent_hiho()`, `_query_synapse_gaps()`
+     - Synapse gap detection uses tag-based co-occurrence: finds cortex neurons sharing 2+ tags but no synapse between them
+     - **Wired into watch_vault()**: reactor fires after initial sync and after each event loop iteration (if events occurred)
+     ```python
+     # In watch_vault():
+     reactor = GraphReactor(db)
+     # After initial sync:
+     reactor._last_run = 0  # Force first run
+     if reactor.maybe_react():
+         print("Graph reactor: alerts written", file=sys.stderr)
+     # In event loop:
+     if events:
+         if reactor.maybe_react():
+             if not quiet:
+                 print("Graph reactor: alerts updated", file=sys.stderr)
+     ```
+     - **`--react` CLI mode added** for standalone execution:
+     ```python
+     elif "--react" in sys.argv:
+         reactor = GraphReactor(db)
+         reactor._last_run = 0
+         if reactor.maybe_react():
+             print(f"Alerts written to {ALERTS_FILE}", file=sys.stderr)
+     ```
+     - File is 972 lines — above the 300-line guideline, noted but not split mid-implementation
+
+   - **`metabolism/graph-alerts.md`** (new, auto-generated)
+     - Pre-computed graph intelligence dashboard read by vault-keeper at session start
+     - Contains: Dark Countries (2), Low Countries (6), Orphan Neurons (15), Resting Notes (0), Synapse Gaps (15), HIHO Events (10)
+     - Has proper frontmatter: `aspect: connective`, `tags: [metabolism, graph-reactor, auto-generated]`
+
+   - **`.claude/skills/vault-keeper/SKILL.md`**
+     - Updated "Neural Intelligence" section: replaced runtime SurrealDB curl commands with instructions to read pre-computed `metabolism/graph-alerts.md`
+     - Added fallback: `python3 scripts/vault_sync.py --react` for manual regeneration
+     - Added daemon mode documentation: `python3 scripts/vault_sync.py --watch &`
+
+   - **`.claude/skills/inotify-python-watcher/SKILL.md`** (new)
+     - Complete guide to Linux filesystem watching via ctypes
+     - Key patterns: InotifyWatcher class, debounce, watch ordering race condition, new-dir handling
+     - Created during `/learn` phase
+
+   - **`.claude/skills/surrealdb-debug/SKILL.md`** (updated v1.4 → v1.5)
+     - Added 4 new sections: Import idempotency (synapse doubling), ID collision resolver, orphan cleanup, wrong aspect mapping
+     - Description updated with triggers (7), (8), (9)
+
+   - **`cortex/test-final-e2e.mdnsleep`** (deleted)
+     - Test artifact from previous session, cleaned up and neuron deleted from SurrealDB
+
+4. Errors and fixes:
+   - No errors encountered in this session. The implementation went smoothly:
+     - Syntax check passed on first try (`py_compile.compile`)
+     - E2E test passed: daemon started, initial sync ran, reactor fired, test file created/synced/detected, reactor updated alerts, cleanup worked
+   - **Previous session errors** (documented in skills): synapse count doubling, ID collisions, wrong aspect mapping, inotify watch ordering race condition — all already fixed
+
+5. Problem Solving:
+   - **Architecture decision**: Chose inline reactor with throttle (Option A) over separate module (B) or periodic sweep (C) based on user's guidance about compound engineering and token efficiency
+   - **Token optimization**: Pre-computing graph intelligence into a vault markdown file that Claude reads at session start (~76 lines) replaces 5+ runtime SurrealDB queries (~5,000 tokens saved per session)
+   - **Synapse gap detection**: Built tag-based co-occurrence analysis — finds cortex neuron pairs sharing 2+ tags but no synapse, limited to 15 results for efficiency
+   - **Completed the pending commit** from previous session: 387 files committed via Large Commit Protocol (feature branch `feat/surrealdb-event-sync-agents-crosslink` → 5 batched commits → squash merge to `track-c` → branch deleted)
+
+6. All user messages:
+   - `/compact` (system command)
+   - `/learn` — Extract reusable knowledge into skills
+   - "push it" — Push track-c to remote (after the large commit)
+   - "Do you recall what we were trying to accomplish" — Asked for context recap
+   - "yes, start Phase 2" — Begin implementing Phase 2 of the bidirectional SurrealDB integration
+   - "Pick that path that unlocks elegantly simple compound engineering solutions with adequate context awareness that optimizes token efficiencies. Remember not all tokens are created equal." — Architectural guidance for Phase 2
+   - "commit" — Commit Phase 2 changes
+   - "push it" — Push Phase 2 to remote
+
+7. Pending Tasks:
+   - **Phase 3: Dreaming Engine as scheduled cron** — Not started, next in the 4-phase plan
+   - **Phase 4: Full bidirectional sync with conflict resolution** — Not started
+   - **vault_sync.py is 972 lines** — Above 300-line guideline, may need splitting in a future session
+
+8. Current Work:
+   Phase 2 of the bidirectional SurrealDB integration was just completed, committed (`940e9888`), and pushed to remote. The GraphReactor class was implemented in `scripts/vault_sync.py`, E2E tested, and the vault-keeper skill was updated to read the pre-computed alerts file. The last exchange was:
+   - User: "push it"
+   - Assistant: Pushed `track-c` to remote, confirmed Phase 2 is live, and showed the updated status table with Phase 3 as next.
+
+9. Optional Next Step:
+   **Phase 3: Dreaming Engine as scheduled cron** — The user has been working through the 4-phase plan sequentially (Phase 1 done in previous session, Phase 2 done this session). After the push, I displayed the status table showing Phase 3 as "Not started." However, the user has not explicitly requested Phase 3 yet, so confirmation should be sought before proceeding.
+
+If you need specific details from before compaction (like exact code snippets, error messages, or content you generated), read the full transcript at: /home/mike-anderson/.claude/projects/-home-mike-anderson-vaults-cohezion-vault/3a759325-baca-4d0f-a1f2-27cc39fd3dd3.jsonl
+
+---
+
+# /learn - Online Learning System
+
+**Extract reusable knowledge from this session into skills.** Evaluates what was learned, checks for existing skills, and creates new ones when valuable patterns are discovered.
+
+---
+
+## TABLE OF CONTENTS
+
+| Phase       | Description                                            | Steps   |
+| ----------- | ------------------------------------------------------ | ------- |
+| **Phase 0** | Reference: triggers, quality criteria, skill structure | 0.1–0.4 |
+| **Phase 1** | Evaluate: assess if knowledge is worth extracting      | 1.1     |
+| **Phase 2** | Check Existing: search for related skills              | 2.1     |
+| **Phase 3** | Create Skill: write the skill file                     | 3.1–3.2 |
+| **Phase 4** | Quality Gates: final checklist before saving           | 4.1     |
+
+**Quick Step Reference:**
+
+- 0.1 Triggers, 0.2 Quality criteria, 0.3 What NOT to extract, 0.4 Skill structure
+- 1.1 Self-evaluation questions
+- 2.1 Search existing skills
+- 3.1 Choose location, 3.2 Write SKILL.md
+- 4.1 Final checklist
+
+---
+
+## PHASE 0: REFERENCE
+
+### Step 0.1: Triggers
+
+Invoke `/learn` after ANY task involving:
+
+| Trigger                      | Example                                                          |
+| ---------------------------- | ---------------------------------------------------------------- |
+| **Non-obvious debugging**    | Spent 10+ minutes investigating; solution wasn't in docs         |
+| **Misleading errors**        | Error message pointed wrong direction; found real cause          |
+| **Workarounds**              | Found limitation and creative solution                           |
+| **Tool integration**         | Figured out how to use tool/API in undocumented way              |
+| **Trial-and-error**          | Tried multiple approaches before finding what worked             |
+| **Repeatable workflow**      | Multi-step task that will recur; worth standardizing             |
+| **External service queries** | Fetched data from Jira, GitHub, Confluence, or other APIs        |
+| **User-facing automation**   | Built something user will ask for again (reports, status checks) |
+
+### Step 0.2: Quality Criteria
+
+Skills must be:
+
+- **Reusable**: Will help with future tasks (not just this instance)
+- **Non-trivial**: Required discovery, OR is a valuable workflow pattern
+- **Verified**: Solution actually worked, not theoretical
+
+### Step 0.3: What NOT to Extract
+
+- Single-step tasks with no workflow value
+- One-off fixes unlikely to recur
+- Knowledge easily found in official docs
+
+### Step 0.4: Skill Structure
+
+**Location:** `.claude/skills/[skill-name]/SKILL.md`
+
+**Template:**
+
+```markdown
+---
+name: descriptive-kebab-case-name
+description: |
+  [CRITICAL: This determines when the skill triggers. Include:]
+  - What the skill does
+  - Specific trigger conditions (exact error messages, symptoms)
+  - When to use it (contexts, scenarios)
+author: Claude Code
+version: 1.0.0
+---
+
+# Skill Name
+
+## Problem
+
+[Clear description of the problem]
+
+## Context / Trigger Conditions
+
+[When to use - exact error messages, symptoms, scenarios]
+
+## Solution
+
+[Step-by-step solution]
+
+## Verification
+
+[How to verify it worked]
+
+## Example
+
+[Concrete example]
+
+## References
+
+[Links to documentation]
+```
+
+<details>
+<summary>Writing Effective Descriptions</summary>
+
+The description field is CRITICAL for skill discovery:
+
+**Good:**
+
+```yaml
+description: |
+  Fix for "ENOENT: no such file or directory" errors in npm monorepos.
+  Use when: (1) npm run fails with ENOENT, (2) paths work in root but
+  not in packages, (3) symlinked dependencies cause failures.
+```
+
+**Bad:**
+
+```yaml
+description: Helps with npm problems in monorepos.
+```
+
+</details>
+
+**Guidelines:**
+
+- **Concise** - Claude is smart; only add what it doesn't know
+- **Under 500 lines** - Move large docs to `references/`
+- **Examples over explanations** - Show, don't tell
+
+---
+
+## PHASE 1: EVALUATE
+
+### Step 1.1: Self-Evaluation Questions
+
+Ask yourself:
+
+1. "What did I just learn that wasn't obvious before starting?"
+2. "Would future-me benefit from having this documented?"
+3. "Was the solution non-obvious from documentation alone?"
+4. "Is this a multi-step workflow I'd repeat on similar tasks?"
+5. "Did I query an external service the user will ask about again?"
+
+**If NO to all → Skip extraction, nothing to learn.**
+
+**Note:** External service queries (Jira tickets, GitHub PRs, Confluence pages) are almost always worth extracting - users frequently repeat these requests.
+
+---
+
+## PHASE 2: CHECK EXISTING
+
+### Step 2.1: Search for Related Skills
+
+Before creating, search for related skills:
+
+```bash
+ls .claude/skills/ 2>/dev/null
+rg -i "keyword" .claude/skills/ 2>/dev/null
+ls ~/.claude/pilot/skills/ 2>/dev/null
+rg -i "keyword" ~/.claude/pilot/skills/ 2>/dev/null
+```
+
+| Found                | Action                           |
+| -------------------- | -------------------------------- |
+| Nothing related      | Create new skill                 |
+| Same trigger and fix | Update existing (bump version)   |
+| Partial overlap      | Update existing with new variant |
+
+---
+
+## PHASE 3: CREATE SKILL
+
+### Step 3.1: Choose Location
+
+**Project skills**: `.claude/skills/[skill-name]/SKILL.md`
+
+### Step 3.2: Write SKILL.md
+
+Use the template from Step 0.4. Ensure the description field contains specific trigger conditions.
+
+---
+
+## PHASE 4: QUALITY GATES
+
+### Step 4.1: Final Checklist
+
+Before finalizing:
+
+- [ ] Description contains specific trigger conditions
+- [ ] Solution verified to work
+- [ ] Content specific enough to be actionable
+- [ ] Content general enough to be reusable
+- [ ] No sensitive information
+
+---
+
+## EXAMPLE
+
+**Scenario**: Discovered LSP `findReferences` can find dead code by checking if functions have only 1 reference (their definition) or only test references.
+
+**Skill Created**: `.claude/skills/lsp-dead-code-finder/SKILL.md`
+
+```markdown
+---
+name: lsp-dead-code-finder
+description: |
+  Find dead/unused code using LSP findReferences. Use when: (1) user asks
+  to find dead code, (2) cleaning up codebase, (3) refactoring. Key insight:
+  function with only 1 reference (definition) or only test refs is dead code.
+---
+
+# LSP Dead Code Finder
+
+...
+```
+
+---
+
+## REMEMBER
+
+**Continuous improvement.** Every valuable discovery should benefit future sessions.
+Evaluate after significant work. Extract selectively. Create carefully.
+
+---
+
+go ahead with Phase 3
+
+---
+
+<task-notification>
+<task-id>brs967cyc</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-vaults-cohezion-vault/tasks/brs967cyc.output</output-file>
+<status>completed</status>
+<summary>Background command "Test that wrapper aborts when SurrealDB is unreachable" completed (exit code 0)</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-vaults-cohezion-vault/tasks/brs967cyc.output
+
+---
+
+commit
+
+---
+
+push it
+
+---
+
+go ahead with Phase 4
+
+---
+
+Base directory for this skill: /home/mike-anderson/.claude/plugins/cache/claude-plugins-official/superpowers/4.3.1/skills/brainstorming
+
+# Brainstorming Ideas Into Designs
+
+## Overview
+
+Help turn ideas into fully formed designs and specs through natural collaborative dialogue.
+
+Start by understanding the current project context, then ask questions one at a time to refine the idea. Once you understand what you're building, present the design and get user approval.
+
+<HARD-GATE>
+Do NOT invoke any implementation skill, write any code, scaffold any project, or take any implementation action until you have presented a design and the user has approved it. This applies to EVERY project regardless of perceived simplicity.
+</HARD-GATE>
+
+## Anti-Pattern: "This Is Too Simple To Need A Design"
+
+Every project goes through this process. A todo list, a single-function utility, a config change — all of them. "Simple" projects are where unexamined assumptions cause the most wasted work. The design can be short (a few sentences for truly simple projects), but you MUST present it and get approval.
+
+## Checklist
+
+You MUST create a task for each of these items and complete them in order:
+
+1. **Explore project context** — check files, docs, recent commits
+2. **Ask clarifying questions** — one at a time, understand purpose/constraints/success criteria
+3. **Propose 2-3 approaches** — with trade-offs and your recommendation
+4. **Present design** — in sections scaled to their complexity, get user approval after each section
+5. **Write design doc** — save to `docs/plans/YYYY-MM-DD-<topic>-design.md` and commit
+6. **Transition to implementation** — invoke writing-plans skill to create implementation plan
+
+## Process Flow
+
+```dot
+digraph brainstorming {
+    "Explore project context" [shape=box];
+    "Ask clarifying questions" [shape=box];
+    "Propose 2-3 approaches" [shape=box];
+    "Present design sections" [shape=box];
+    "User approves design?" [shape=diamond];
+    "Write design doc" [shape=box];
+    "Invoke writing-plans skill" [shape=doublecircle];
+
+    "Explore project context" -> "Ask clarifying questions";
+    "Ask clarifying questions" -> "Propose 2-3 approaches";
+    "Propose 2-3 approaches" -> "Present design sections";
+    "Present design sections" -> "User approves design?";
+    "User approves design?" -> "Present design sections" [label="no, revise"];
+    "User approves design?" -> "Write design doc" [label="yes"];
+    "Write design doc" -> "Invoke writing-plans skill";
+}
+```
+
+**The terminal state is invoking writing-plans.** Do NOT invoke frontend-design, mcp-builder, or any other implementation skill. The ONLY skill you invoke after brainstorming is writing-plans.
+
+## The Process
+
+**Understanding the idea:**
+- Check out the current project state first (files, docs, recent commits)
+- Ask questions one at a time to refine the idea
+- Prefer multiple choice questions when possible, but open-ended is fine too
+- Only one question per message - if a topic needs more exploration, break it into multiple questions
+- Focus on understanding: purpose, constraints, success criteria
+
+**Exploring approaches:**
+- Propose 2-3 different approaches with trade-offs
+- Present options conversationally with your recommendation and reasoning
+- Lead with your recommended option and explain why
+
+**Presenting the design:**
+- Once you believe you understand what you're building, present the design
+- Scale each section to its complexity: a few sentences if straightforward, up to 200-300 words if nuanced
+- Ask after each section whether it looks right so far
+- Cover: architecture, components, data flow, error handling, testing
+- Be ready to go back and clarify if something doesn't make sense
+
+## After the Design
+
+**Documentation:**
+- Write the validated design to `docs/plans/YYYY-MM-DD-<topic>-design.md`
+- Use elements-of-style:writing-clearly-and-concisely skill if available
+- Commit the design document to git
+
+**Implementation:**
+- Invoke the writing-plans skill to create a detailed implementation plan
+- Do NOT invoke any other skill. writing-plans is the next step.
+
+## Key Principles
+
+- **One question at a time** - Don't overwhelm with multiple questions
+- **Multiple choice preferred** - Easier to answer than open-ended when possible
+- **YAGNI ruthlessly** - Remove unnecessary features from all designs
+- **Explore alternatives** - Always propose 2-3 approaches before settling
+- **Incremental validation** - Present design, get approval before moving on
+- **Be flexible** - Go back and clarify when something doesn't make sense
+
+
+ARGUMENTS: Phase 4: Full bidirectional SurrealDB sync with conflict resolution for the Cohezion vault
+
+---
+
+Proceed with C
+
+---
+
+Proceed with your recommendation
+
+---
+
+Yes
+
+---
+
+Continue
+
+---
+
+<task-notification>
+<task-id>ba1b050x9</task-id>
+<tool-use-id>toolu_01F9bXDFa6GGKj2XvoPJBZBe</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-vaults-cohezion-vault/tasks/ba1b050x9.output</output-file>
+<status>completed</status>
+<summary>Background command "Test that incremental sync skips writeback-modified files" completed (exit code 0)</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-vaults-cohezion-vault/tasks/ba1b050x9.output
+
+---
+
+This session is being continued from a previous conversation that ran out of context. The summary below covers the earlier portion of the conversation.
+
+Summary:
+1. Primary Request and Intent:
+   The user is implementing a **4-phase bidirectional SurrealDB integration** for their Cohezion Obsidian vault. This session covered:
+   - **`/learn`** — Extract reusable knowledge from the session (GraphReactor pattern)
+   - **Phase 3** — Dreaming Engine as scheduled cron job
+   - **Phase 4** — Full bidirectional sync with conflict resolution (design + implementation + testing)
+   
+   The full 4-phase plan:
+   - Phase 1: inotify-based filesystem watcher (vault → SurrealDB) — Done (previous sessions)
+   - Phase 2: GraphReactor (SurrealDB → vault alerts) — Done (previous sessions)
+   - Phase 3: Dreaming Engine as scheduled cron — **Done this session** (committed `290dc040`, pushed)
+   - Phase 4: Full bidirectional sync with conflict resolution — **Done this session** (implemented, tested, NOT YET COMMITTED)
+
+2. Key Technical Concepts:
+   - **Domain ownership model**: Vault owns content fields (title, tags, body text); SurrealDB owns graph state (activation, stage, synapse_in, synapse_out). No true conflict because domains are separated.
+   - **Forward sync fix**: On edit, boost SurrealDB's current activation by +0.1 (capped at 1.0) instead of re-computing from file stats. File-stats computation only for NEW neurons.
+   - **Neural write-back**: SurrealDB computed fields written back to vault frontmatter `neural:` blocks every 5 minutes.
+   - **Feedback loop prevention**: `content_hash_sans_neural()` strips the neural: YAML block before hashing. Also `_writeback_paths` set for same-process fast-path skip.
+   - **GraphReactor pattern** (skill created): Pre-compute SurrealDB intelligence into vault markdown files for zero-runtime-cost reads. 10x token compression.
+   - **Cron wrapper pattern**: Shell wrapper with SurrealDB health check, lockfile guard, timestamped logging, log rotation.
+   - **Compound engineering**: Each phase amplifies the next — cron → dreaming → vault files → inotify → SurrealDB → GraphReactor → alerts → Claude reads at session start.
+
+3. Files and Code Sections:
+
+   - **`scripts/vault_sync.py`** (1159 lines, modified)
+     - Central sync daemon with all 4 phases. Phase 4 additions:
+     
+     **Added `content_hash_sans_neural()` and `_writeback_paths`** (after line 161):
+     ```python
+     _NEURAL_BLOCK_RE = re.compile(
+         r"^neural:\s*\n(?:[ \t]+\S.*\n)*",
+         re.MULTILINE,
+     )
+
+     def content_hash_sans_neural(text: str) -> str:
+         """Hash file content excluding the neural: frontmatter block."""
+         stripped = _NEURAL_BLOCK_RE.sub("", text)
+         return hashlib.sha256(stripped.encode()).hexdigest()[:16]
+
+     _writeback_paths: set[str] = set()
+     ```
+     
+     **Modified `sync_file()` — writeback skip + sans-neural hash**:
+     ```python
+     # Skip if this file was just written by NeuralWriteBack
+     if rel_path in _writeback_paths:
+         _writeback_paths.discard(rel_path)
+         return True
+
+     # Content hash check — skip if unchanged (excludes neural: block)
+     chash = content_hash_sans_neural(text)
+     ```
+     
+     **Modified `sync_file()` — activation boost instead of re-compute** (replaced lines 267-291):
+     ```python
+     # Activation: SurrealDB owns this field. On edit, boost existing value.
+     if existing_nid:
+         old = db.query_result(f"SELECT activation, stage FROM {nid} LIMIT 1;")
+         if old:
+             old_act = old[0].get("activation", 0.5)
+             activation = min(1.0, old_act + 0.1)
+         else:
+             activation = compute_activation(word_count, len(links), days_since)
+     else:
+         activation = compute_activation(word_count, len(links), days_since)
+     stage = compute_stage(len(links), word_count, activation, days_since)
+     ```
+     
+     **Added `NeuralWriteBack` class** (~130 lines, inserted before inotify section):
+     ```python
+     WRITEBACK_THROTTLE_SECS = 300  # 5 minutes
+
+     class NeuralWriteBack:
+         """Writes SurrealDB-owned fields back to vault frontmatter neural: blocks."""
+         def __init__(self, db: SurrealClient):
+             self.db = db
+             self._last_run = 0.0
+
+         def maybe_run(self, force: bool = False) -> bool:
+             now = time.time()
+             if not force and now - self._last_run < WRITEBACK_THROTTLE_SECS:
+                 return False
+             self._last_run = now
+             return self._run()
+
+         def _run(self) -> bool:
+             # Queries all neurons, diffs against frontmatter, writes changed files
+             # Marks paths in _writeback_paths to prevent feedback loop
+             ...
+
+         @staticmethod
+         def _parse_neural_block(text: str) -> dict:
+             # Parses neural: block from YAML frontmatter
+             ...
+
+         @staticmethod
+         def _update_neural_block(text: str, neural: dict) -> str:
+             # Replaces/inserts neural: block using _NEURAL_BLOCK_RE
+             ...
+     ```
+     
+     **Wired into `watch_vault()`**:
+     ```python
+     writeback = NeuralWriteBack(db)
+     # ... in event loop:
+     if writeback.maybe_run():
+         if not quiet:
+             print("Neural write-back: frontmatter updated", file=sys.stderr)
+     ```
+     
+     **Added `--writeback` CLI mode**:
+     ```python
+     elif "--writeback" in sys.argv:
+         print("Running neural write-back...", file=sys.stderr)
+         wb = NeuralWriteBack(db)
+         wb.maybe_run(force=True)
+         print("Write-back complete", file=sys.stderr)
+     ```
+
+   - **`.claude/skills/graph-reactor/SKILL.md`** (new, committed in Phase 3)
+     - Documents the GraphReactor pre-computation pattern. Captures: throttle + content-hash dedup, token economics (10x compression), wiring into inotify loop, query patterns (dark countries, orphan neurons, synapse gaps).
+
+   - **`scripts/dreaming-cron.sh`** (new, committed in Phase 3)
+     - Shell wrapper with SurrealDB health check (`curl -sf`), lockfile guard (PID-based), timestamped logging, log rotation (keeps last 25KB when file exceeds 50KB).
+     - Supports `--quick` (engines 1-4) and `--full` (all 7 engines) modes.
+
+   - **`.claude/skills/vault-keeper/SKILL.md`** (modified, committed in Phase 3)
+     - Updated scheduling section with 3-tier model: Automated (cron), On-Demand (agent), Real-Time (daemon).
+
+   - **`docs/plans/2026-03-12-phase4-bidirectional-sync-design.md`** (new, uncommitted)
+     - Approved design doc covering: domain ownership model, forward sync fix, write-back class, feedback loop prevention, checkpoint upgrade, wiring, performance estimates.
+
+   - **Cron entries added** (Phase 3):
+     ```
+     0 0,6,12,18 * * * /home/mike-anderson/vaults/cohezion-vault/scripts/dreaming-cron.sh --quick
+     30 2 * * * /home/mike-anderson/vaults/cohezion-vault/scripts/dreaming-cron.sh
+     ```
+
+   - **Auto-generated files** from dreaming engine E2E test:
+     - `dreaming/2026-03-12-resonances.md`
+     - `songlines/2026-03-12-songlines.md`
+     - `subconscious/2026-03-12-latent-associations.md`
+     - `metabolism/metabolism-dashboard.md` (updated)
+
+4. Errors and fixes:
+   - **Old daemon running pre-Phase-4 code (PID 2195709, started Mar09)**: The running `--watch` daemon didn't have the new `content_hash_sans_neural()` or `_writeback_paths` checks. It was re-syncing every file modified by write-back and boosting activation by +0.1 each time, causing oscillation.
+     - Fix: Killed old daemon (`kill -9 2195709`). A new daemon auto-started (PID 35747) with Phase 4 code.
+   - **One-time checkpoint hash migration**: Old checkpoint stored full-text hashes; new code uses sans-neural hashes. All stored hashes mismatched → full re-sync on first incremental sync run. This was expected one-time migration cost.
+     - Result: Background incremental sync ran and re-processed all files, boosting many neurons' activation by +0.1.
+   - **Cross-process `_writeback_paths` doesn't work**: The `_writeback_paths` set is in-memory and only shared within the same process. Running standalone `--writeback` while daemon is running causes temporary oscillation.
+     - By design: standalone `--writeback` is for manual use when daemon isn't running. The daemon handles write-back internally (same process, _writeback_paths works).
+   - **Convergence with daemon running**: Steady-state showed 51-63 files updating per write-back cycle due to daemon boosting.
+     - Acceptable: In production, write-back runs within the daemon. The standalone CLI oscillation is a known, harmless edge case.
+
+5. Problem Solving:
+   - **Phase 3**: Straightforward implementation. Dreaming engine already existed (565 lines, 7 engines). Just needed cron wrapper + scheduling. E2E tested both modes — quick (20s, engines 1-4) and full (20s, all 7 engines including kinship/songlines/subconscious).
+   - **Phase 4 design**: Identified that "conflict resolution" reduces to domain ownership — vault owns content, SurrealDB owns graph state. No true conflicts. Brainstormed 3 approaches, recommended inline in vault_sync.py.
+   - **Phase 4 feedback loop**: Solved with dual-layer prevention: (1) `content_hash_sans_neural()` strips neural block before hashing — primary guard, (2) `_writeback_paths` set for same-process fast-path skip.
+   - **Phase 4 forward sync**: Changed from re-computing activation from file stats to boosting SurrealDB's current value by +0.1 on edit. This respects activation decay and prevents overwriting SurrealDB-owned state.
+
+6. All user messages:
+   - `/compact` (system command)
+   - `/learn` (invoked learning skill)
+   - "go ahead with Phase 3"
+   - "commit"
+   - "push it"
+   - "go ahead with Phase 4"
+   - "Proceed with C" (approved Option C: write-back + conflict-aware forward sync)
+   - "Proceed with your recommendation" (approved Approach 1: inline in vault_sync.py)
+   - "Yes" (approved the 7-section design)
+   - "Continue" (after context limit, continued from continuation file)
+
+7. Pending Tasks:
+   - **Commit and push Phase 4 changes** — Implementation is complete, E2E tested, but NOT YET COMMITTED. The user's last interaction before the summary request was the background task notification, and the assistant had asked "Ready when you are — commit?" The user has not yet said "commit".
+   - **`vault_sync.py` is 1159 lines** — Well above the 300-line guideline (500 hard limit). Module split is deferred but increasingly urgent.
+
+8. Current Work:
+   Phase 4 implementation is complete and E2E tested. All code changes are in the working tree but uncommitted. The last exchange was:
+   - Background task `ba1b050x9` (incremental sync) completed
+   - Assistant said: "Background incremental sync completed (that was the one-time checkpoint migration). Ready when you are — commit?"
+   - User has not yet responded with "commit"
+   
+   Uncommitted files include:
+   - `scripts/vault_sync.py` (Phase 4: NeuralWriteBack class, forward sync fix, feedback loop prevention, --writeback CLI)
+   - `docs/plans/2026-03-12-phase4-bidirectional-sync-design.md` (design doc)
+   - ~1584 vault `.md` files with updated `neural:` frontmatter blocks (from the write-back first run)
+
+9. Optional Next Step:
+   **Commit Phase 4 changes** — The user was about to commit when the summary was requested. The assistant's last message before the task notification was: "Ready when you are — commit?" After the background task notification, the assistant confirmed: "Background incremental sync completed (that was the one-time checkpoint migration). Ready when you are — commit?"
+   
+   The commit should include:
+   - `scripts/vault_sync.py` — Phase 4 additions
+   - `docs/plans/2026-03-12-phase4-bidirectional-sync-design.md` — design doc
+   - The ~1584 modified vault files with neural: frontmatter (may need batched commit via Large Commit Protocol)
+
+If you need specific details from before compaction (like exact code snippets, error messages, or content you generated), read the full transcript at: /home/mike-anderson/.claude/projects/-home-mike-anderson-vaults-cohezion-vault/3a759325-baca-4d0f-a1f2-27cc39fd3dd3.jsonl
+
+---
+
+Pick the path that unlocks elegantly simple compound engineering solutions with adequate context awareness that optimizes token efficiencies.  Remember not all tokens are created equal.
+
+---
+
+You choose
+
+---
+
+Yes
+
+---
+
+# /learn - Online Learning System
+
+**Extract reusable knowledge from this session into skills.** Evaluates what was learned, checks for existing skills, and creates new ones when valuable patterns are discovered.
+
+---
+
+## TABLE OF CONTENTS
+
+| Phase       | Description                                            | Steps   |
+| ----------- | ------------------------------------------------------ | ------- |
+| **Phase 0** | Reference: triggers, quality criteria, skill structure | 0.1–0.4 |
+| **Phase 1** | Evaluate: assess if knowledge is worth extracting      | 1.1     |
+| **Phase 2** | Check Existing: search for related skills              | 2.1     |
+| **Phase 3** | Create Skill: write the skill file                     | 3.1–3.2 |
+| **Phase 4** | Quality Gates: final checklist before saving           | 4.1     |
+
+**Quick Step Reference:**
+
+- 0.1 Triggers, 0.2 Quality criteria, 0.3 What NOT to extract, 0.4 Skill structure
+- 1.1 Self-evaluation questions
+- 2.1 Search existing skills
+- 3.1 Choose location, 3.2 Write SKILL.md
+- 4.1 Final checklist
+
+---
+
+## PHASE 0: REFERENCE
+
+### Step 0.1: Triggers
+
+Invoke `/learn` after ANY task involving:
+
+| Trigger                      | Example                                                          |
+| ---------------------------- | ---------------------------------------------------------------- |
+| **Non-obvious debugging**    | Spent 10+ minutes investigating; solution wasn't in docs         |
+| **Misleading errors**        | Error message pointed wrong direction; found real cause          |
+| **Workarounds**              | Found limitation and creative solution                           |
+| **Tool integration**         | Figured out how to use tool/API in undocumented way              |
+| **Trial-and-error**          | Tried multiple approaches before finding what worked             |
+| **Repeatable workflow**      | Multi-step task that will recur; worth standardizing             |
+| **External service queries** | Fetched data from Jira, GitHub, Confluence, or other APIs        |
+| **User-facing automation**   | Built something user will ask for again (reports, status checks) |
+
+### Step 0.2: Quality Criteria
+
+Skills must be:
+
+- **Reusable**: Will help with future tasks (not just this instance)
+- **Non-trivial**: Required discovery, OR is a valuable workflow pattern
+- **Verified**: Solution actually worked, not theoretical
+
+### Step 0.3: What NOT to Extract
+
+- Single-step tasks with no workflow value
+- One-off fixes unlikely to recur
+- Knowledge easily found in official docs
+
+### Step 0.4: Skill Structure
+
+**Location:** `.claude/skills/[skill-name]/SKILL.md`
+
+**Template:**
+
+```markdown
+---
+name: descriptive-kebab-case-name
+description: |
+  [CRITICAL: This determines when the skill triggers. Include:]
+  - What the skill does
+  - Specific trigger conditions (exact error messages, symptoms)
+  - When to use it (contexts, scenarios)
+author: Claude Code
+version: 1.0.0
+---
+
+# Skill Name
+
+## Problem
+
+[Clear description of the problem]
+
+## Context / Trigger Conditions
+
+[When to use - exact error messages, symptoms, scenarios]
+
+## Solution
+
+[Step-by-step solution]
+
+## Verification
+
+[How to verify it worked]
+
+## Example
+
+[Concrete example]
+
+## References
+
+[Links to documentation]
+```
+
+<details>
+<summary>Writing Effective Descriptions</summary>
+
+The description field is CRITICAL for skill discovery:
+
+**Good:**
+
+```yaml
+description: |
+  Fix for "ENOENT: no such file or directory" errors in npm monorepos.
+  Use when: (1) npm run fails with ENOENT, (2) paths work in root but
+  not in packages, (3) symlinked dependencies cause failures.
+```
+
+**Bad:**
+
+```yaml
+description: Helps with npm problems in monorepos.
+```
+
+</details>
+
+**Guidelines:**
+
+- **Concise** - Claude is smart; only add what it doesn't know
+- **Under 500 lines** - Move large docs to `references/`
+- **Examples over explanations** - Show, don't tell
+
+---
+
+## PHASE 1: EVALUATE
+
+### Step 1.1: Self-Evaluation Questions
+
+Ask yourself:
+
+1. "What did I just learn that wasn't obvious before starting?"
+2. "Would future-me benefit from having this documented?"
+3. "Was the solution non-obvious from documentation alone?"
+4. "Is this a multi-step workflow I'd repeat on similar tasks?"
+5. "Did I query an external service the user will ask about again?"
+
+**If NO to all → Skip extraction, nothing to learn.**
+
+**Note:** External service queries (Jira tickets, GitHub PRs, Confluence pages) are almost always worth extracting - users frequently repeat these requests.
+
+---
+
+## PHASE 2: CHECK EXISTING
+
+### Step 2.1: Search for Related Skills
+
+Before creating, search for related skills:
+
+```bash
+ls .claude/skills/ 2>/dev/null
+rg -i "keyword" .claude/skills/ 2>/dev/null
+ls ~/.claude/pilot/skills/ 2>/dev/null
+rg -i "keyword" ~/.claude/pilot/skills/ 2>/dev/null
+```
+
+| Found                | Action                           |
+| -------------------- | -------------------------------- |
+| Nothing related      | Create new skill                 |
+| Same trigger and fix | Update existing (bump version)   |
+| Partial overlap      | Update existing with new variant |
+
+---
+
+## PHASE 3: CREATE SKILL
+
+### Step 3.1: Choose Location
+
+**Project skills**: `.claude/skills/[skill-name]/SKILL.md`
+
+### Step 3.2: Write SKILL.md
+
+Use the template from Step 0.4. Ensure the description field contains specific trigger conditions.
+
+---
+
+## PHASE 4: QUALITY GATES
+
+### Step 4.1: Final Checklist
+
+Before finalizing:
+
+- [ ] Description contains specific trigger conditions
+- [ ] Solution verified to work
+- [ ] Content specific enough to be actionable
+- [ ] Content general enough to be reusable
+- [ ] No sensitive information
+
+---
+
+## EXAMPLE
+
+**Scenario**: Discovered LSP `findReferences` can find dead code by checking if functions have only 1 reference (their definition) or only test references.
+
+**Skill Created**: `.claude/skills/lsp-dead-code-finder/SKILL.md`
+
+```markdown
+---
+name: lsp-dead-code-finder
+description: |
+  Find dead/unused code using LSP findReferences. Use when: (1) user asks
+  to find dead code, (2) cleaning up codebase, (3) refactoring. Key insight:
+  function with only 1 reference (definition) or only test refs is dead code.
+---
+
+# LSP Dead Code Finder
+
+...
+```
+
+---
+
+## REMEMBER
+
+**Continuous improvement.** Every valuable discovery should benefit future sessions.
+Evaluate after significant work. Extract selectively. Create carefully.
+
+---
+
+We need multiperspective adversarial review

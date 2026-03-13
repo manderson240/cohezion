@@ -1,0 +1,19 @@
+{
+  "cli_version": "0.4.9",
+  "checkpoint_id": "10dec8cfe567",
+  "strategy": "manual-commit",
+  "branch": "track-c",
+  "checkpoints_count": 1,
+  "files_touched": [
+    ".claude/skills/surrealdb-debug/SKILL.md"
+  ],
+  "sessions": [
+    {
+      "metadata": "/10/dec8cfe567/0/metadata.json",
+      "transcript": "/10/dec8cfe567/0/full.jsonl",
+      "context": "",
+      "content_hash": "/10/dec8cfe567/0/content_hash.txt",
+      "prompt": ""
+    }
+  ]
+}
