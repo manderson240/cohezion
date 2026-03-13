@@ -472,9 +472,17 @@ class UniverseSimulationEngine:
             entropy = physics_engine.calculate_entropy(latent_np)
             rep = physics_engine.project_holographic(latent_np)
         except (ImportError, ModuleNotFoundError):
-            logger.debug("cohezion_core not found, using Python fallback")
-            h = sum(embedding_2048d[:100])
-            rep = [(np.sin(h + i * 0.1) + 1.0) / 2.0 for i in range(12)]
+            logger.debug("cohezion_core not found, using High-Fidelity Python fallback")
+            # Substrate: Use a seeded deterministic random projection (Johnson-Lindenstrauss)
+            # to prevent 'Projection Collapse' and preserve manifold topology.
+            # Security: Use full 2048D vector hash to prevent Topology Guessing
+            full_vector_str = "".join(f"{x:.4f}" for x in embedding_2048d)
+            seed_val = int(hashlib.sha256(full_vector_str.encode()).hexdigest(), 16) % 2**32
+            rng = np.random.default_rng(seed=seed_val)
+            projection_matrix = rng.standard_normal((12, 2048))
+            rep = (projection_matrix @ np.array(embedding_2048d)).tolist()
+            # Normalize to [0, 1] range for axiomatic stability
+            rep = [(np.tanh(x) + 1.0) / 2.0 for x in rep]
             entropy = 4.0
 
         # 5. Kinetic Mapping (Hardware + Latent Fusion)

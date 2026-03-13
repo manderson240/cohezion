@@ -31,6 +31,8 @@ class SpatialPhononsEngine:
 
     def __init__(self, params: PhononParameters | None = None):
         self.params = params or PhononParameters()
+        # Physicist: Continuous Journey Clock avoids modulo phase jumps
+        self._start_time: float | None = None
 
     def evolve_state(self, state: AxiomaticState, delta_t: float = 0.1) -> AxiomaticState:
         """
@@ -43,14 +45,20 @@ class SpatialPhononsEngine:
         Returns:
             New AxiomaticState with viscous expansion applied
         """
+        if self._start_time is None:
+            import time
+            self._start_time = time.time()
+            
         # 1. Calculate expansion factor driven by dark energy + viscosity
         # Viscosity creates a 'drag' on the expansion, affecting 'Temporal' (Awareness)
         viscous_drag = self.params.viscosity_alpha * (state.physics - self.params.hiho_threshold)
         expansion_rate = self.params.dark_energy_density - viscous_drag
 
         # 2. Phonon excitations affect Spatial dimensions (X, Y, Z)
-        # Use a simple oscillator model for phonons
-        phonon_oscillation = np.sin(state.temporal * 10.0) * self.params.phonon_coupling
+        # Physics: Use continuous journey time for smooth phase evolution
+        import time
+        journey_time = time.time() - self._start_time
+        phonon_oscillation = np.sin(journey_time * 10.0) * self.params.phonon_coupling
 
         new_state = AxiomaticState(
             spatial_x = state.spatial_x * (1 + expansion_rate * delta_t) + phonon_oscillation,
