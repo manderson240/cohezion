@@ -95,6 +95,10 @@
           {
             "type": "command",
             "command": "bash /home/mike-anderson/vaults/cohezion-vault/.claude/hooks/vault-keeper-check.sh"
+          },
+          {
+            "type": "command",
+            "command": "bash /home/mike-anderson/vaults/cohezion-vault/.claude/hooks/vault-writeback.sh"
           }
         ]
       },

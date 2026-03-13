@@ -9,8 +9,11 @@ description: |
   (5) you need a vault health snapshot.
   Key insight: one graph query (~460 tokens) replaces reading 13 files (~39,500 tokens).
   86x compression ratio. Not all tokens are created equal.
+  Automated layers: (6) briefing at session start (~910 tokens, pre-computed in
+  metabolism/graph-briefing.md), (7) per-prompt hook injects ~275 tokens of
+  graph context automatically via UserPromptSubmit hook.
 author: Claude Code
-version: 1.0.0
+version: 1.1.0
 ---
 
 # Graph Context — Token-Efficient Vault Awareness
@@ -95,6 +98,64 @@ Find neuron IDs from partial name matches.
 ```bash
 python3 scripts/graph_context.py resolve bohm
 ```
+
+### briefing
+
+Compact vault overview for agent session-start context injection. Outputs:
+- Vitals (neuron/synapse counts, stage distribution)
+- Hot neurons (top 15 by activation)
+- Cross-domain bridges (top 10 by connectivity)
+- Attention needed (embryos, orphans)
+- Highest energy (activation ≥ 0.9)
+
+```bash
+python3 scripts/graph_context.py briefing
+# Used by cron to pre-compute:
+# python3 scripts/graph_context.py briefing > metabolism/graph-briefing.md
+```
+
+**Pre-computed version:** `metabolism/graph-briefing.md` (~910 tokens) is regenerated
+by `scripts/dreaming-cron.sh` after each dreaming engine run. Read this at session
+start instead of running the command live.
+
+## Automated Context Injection (Hook Layer)
+
+Two automated layers run without any explicit command:
+
+### Layer 1: Session-Start Briefing
+
+`metabolism/graph-briefing.md` is injected as startup context via CLAUDE.md directive.
+~910 tokens, pre-computed by cron.
+
+### Layer 2: Per-Prompt Hook (UserPromptSubmit)
+
+`scripts/graph_context_hook.py` fires on every user prompt. It:
+1. Extracts keywords using sliding 3/2/1-word windows
+2. Queries SurrealDB for the best-matching neuron
+3. Injects ~275 tokens of context (neuron + 5 outbound + 5 inbound connections)
+4. Is silent (zero output) when no match or SurrealDB unavailable
+
+Registered in `.claude/settings.json`:
+```json
+{
+  "type": "command",
+  "command": "python3 /home/mike-anderson/vaults/cohezion-vault/scripts/graph_context_hook.py"
+}
+```
+
+**Hook output format:**
+```
+--- Graph Context: "Pilot Wave Theory" ---
+[████░] 0.85 Pilot Wave Theory (mature, cortex, out:8 in:12)
+  Path: cortex/pilot-wave-theory.md
+  Tags: quantum, bohmian, determinism
+  -> [████░] 0.82 Quantum Potential (cortex)
+  <- [███░░] 0.71 David Bohm (sensory)
+────────────────────────────────────────
+```
+
+**Latency:** ~259ms total (well within 300ms budget). Skip patterns prevent firing
+on short replies ("yes", "no", "/commands", numbers).
 
 ## Reading the Output
 

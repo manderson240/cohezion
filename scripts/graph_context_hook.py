@@ -119,11 +119,11 @@ def get_connections(neuron_id: str) -> tuple[list, list]:
     """Get outbound and inbound connections for a neuron."""
     sql = (
         f"SELECT out.title AS title, out.activation AS activation, "
-        f"out.stage AS stage, out.cluster_id AS cluster "
+        f"out.stage AS stage, out.cluster_id AS cluster, out.path AS path "
         f"FROM synapse WHERE in = {neuron_id} "
         f"ORDER BY out.activation DESC LIMIT 5;\n"
         f"SELECT in.title AS title, in.activation AS activation, "
-        f"in.stage AS stage, in.cluster_id AS cluster "
+        f"in.stage AS stage, in.cluster_id AS cluster, in.path AS path "
         f"FROM synapse WHERE out = {neuron_id} "
         f"ORDER BY in.activation DESC LIMIT 5;"
     )
@@ -162,6 +162,24 @@ def format_output(neuron: dict, outbound: list, inbound: list) -> str:
     for link in inbound[:5]:
         la = link.get("activation", 0)
         lines.append(f"  <- {_act_bar(la)} {la:.2f} {link.get('title', '?')} ({link.get('cluster', '?')})")
+
+    # Read list: matched neuron path + top 2 connected paths by activation
+    read_paths = []
+    if path and path != "?":
+        read_paths.append(path)
+    connected = sorted(
+        [l for l in (outbound + inbound) if l.get("path")],
+        key=lambda l: l.get("activation", 0),
+        reverse=True,
+    )
+    for link in connected:
+        p = link.get("path", "")
+        if p and p not in read_paths:
+            read_paths.append(p)
+        if len(read_paths) >= 3:
+            break
+    if read_paths:
+        lines.append(f"  Read: {' | '.join(read_paths)}")
 
     lines.append("\u2500" * 40)
     return "\n".join(lines)
