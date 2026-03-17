@@ -3,7 +3,7 @@
   "checkpoint_id": "b8269b39ca1e",
   "strategy": "manual-commit",
   "branch": "gemm-hip-cpp-fused",
-  "checkpoints_count": 3,
+  "checkpoints_count": 7,
   "files_touched": [
     "research/challenges/luma_amd_speedrun/kernels/mixed-mla/submission.py"
   ],
@@ -21,13 +21,20 @@
       "context": "/b8/269b39ca1e/1/context.md",
       "content_hash": "/b8/269b39ca1e/1/content_hash.txt",
       "prompt": "/b8/269b39ca1e/1/prompt.txt"
+    },
+    {
+      "metadata": "/b8/269b39ca1e/2/metadata.json",
+      "transcript": "/b8/269b39ca1e/2/full.jsonl",
+      "context": "/b8/269b39ca1e/2/context.md",
+      "content_hash": "/b8/269b39ca1e/2/content_hash.txt",
+      "prompt": "/b8/269b39ca1e/2/prompt.txt"
     }
   ],
   "token_usage": {
-    "input_tokens": 751,
-    "cache_creation_tokens": 1477519,
-    "cache_read_tokens": 20529562,
-    "output_tokens": 66338,
-    "api_call_count": 175
+    "input_tokens": 6036,
+    "cache_creation_tokens": 7392601,
+    "cache_read_tokens": 116452631,
+    "output_tokens": 488462,
+    "api_call_count": 945
   }
 }
