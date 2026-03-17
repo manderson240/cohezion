@@ -1,0 +1,273 @@
+Implement the following plan:
+
+# Remove Serena Plugin from Claude Code
+
+## Context
+
+Serena (`serena@claude-plugins-official`) is a Claude Code plugin providing semantic code analysis tools (`find_symbol`, `replace_symbol_body`, etc.). Its capabilities are fully redundant with Claude Code's built-in `Read`, `Edit`, `Grep`, `Glob`, and `LSP` tools. It injects ~2,000+ tokens of system instructions into every session and loads 20+ deferred tool definitions — pure overhead.
+
+A previous removal on 2026-03-10 didn't persist because marketplace syncs re-enabled the plugin. This time we'll also add it to the **blocklist** to prevent re-installation.
+
+## Current State
+
+- **Plugin registry**: `serena@claude-plugins-official` — Status: enabled
+- **Config directory**: `~/.serena/` (contains `serena_config.yml`, `logs/`, `memories/`, `prompt_templates/`)
+- **MCP log cache**: 9 directories across project hashes in `~/.cache/claude-cli-nodejs/`
+- **Source code references**: None (cleaned in previous removal)
+- **Blocklist**: `~/.claude/plugins/blocklist.json` — Serena not currently blocklisted
+
+## Plan
+
+### Step 1: Disable the plugin via CLI
+
+```bash
+claude plugins disable serena@claude-plugins-official
+```
+
+This is the safest first step — reversible, and prevents Serena from loading on next session.
+
+### Step 2: Add to blocklist to prevent re-installation
+
+Edit `~/.claude/plugins/blocklist.json` to add Serena to the blocklist array. This prevents marketplace syncs from re-enabling it (the failure mode from the 2026-03-10 removal).
+
+**File**: `~/.claude/plugins/blocklist.json`
+
+Add entry:
+```json
+{
+  "plugin": "serena@claude-plugins-official",
+  "added_at": "2026-03-14T00:00:00.000Z",
+  "reason": "redundant",
+  "text": "Capabilities fully covered by built-in Read, Edit, Grep, Glob, LSP tools. Adds ~2000 tokens system overhead per session."
+}
+```
+
+### Step 3: Remove config directory
+
+```bash
+rm -rf ~/.serena/
+```
+
+### Step 4: Clean up cached MCP logs (9 directories)
+
+```bash
+rm -rf ~/.cache/claude-cli-nodejs/*/mcp-logs-plugin-serena-serena/
+```
+
+### Step 5: Verify complete removal
+
+```bash
+# 1. Plugin disabled/removed
+claude plugins list 2>/dev/null | grep -i serena
+
+# 2. In blocklist
+grep -i serena ~/.claude/plugins/blocklist.json
+
+# 3. Config directory gone
+ls ~/.serena/ 2>/dev/null && echo "EXISTS (BAD)" || echo "GONE"
+
+# 4. MCP logs gone
+find ~/.cache/claude-cli-nodejs/ -maxdepth 2 -type d -name "mcp-logs-plugin-serena-serena" 2>/dev/null | wc -l
+
+# 5. No source code references
+grep -ri "serena" src/ --include="*.py" --include="*.json" 2>/dev/null | wc -l
+```
+
+## Files Modified
+
+| File | Action |
+|------|--------|
+| `~/.claude/plugins/blocklist.json` | Add Serena blocklist entry |
+| `~/.serena/` | Delete directory |
+| `~/.cache/claude-cli-nodejs/*/mcp-logs-plugin-serena-serena/` | Delete 9 log directories |
+
+## Verification
+
+- Start a new Claude Code session — Serena tools (`mcp__plugin_serena_serena__*`) should not appear in available tools
+- No 30-second MCP connection timeout at startup
+- Session token count should be ~2,000 tokens lower (no Serena system instructions injected)
+
+
+If you need specific details from before exiting plan mode (like exact code snippets, error messages, or content you generated), read the full transcript at: /home/mike-anderson/.claude/projects/-home-mike-anderson-dev-cohezion/0113ce54-dd27-463d-b0d5-52c3b63dddc6.jsonl
+
+If this plan can be broken down into multiple independent tasks, consider using the TeamCreate tool to create a team and parallelize the work.
+
+---
+
+Base directory for this skill: /home/mike-anderson/dev/cohezion/.claude/skills/claude-code-plugin-removal
+
+# Claude Code Plugin Removal
+
+## Problem
+
+A Claude Code plugin crashes on startup every session, causing a 30-second connection
+timeout. Or a plugin is redundant and needs to be cleanly removed. Simply deleting
+the plugin directory is insufficient — state persists in 4 separate locations.
+
+## Context / Trigger Conditions
+
+- Session start shows MCP connection timeout for a specific plugin
+- Error like `SerenaConfigError: key not found in configuration` in MCP logs
+- Want to remove a plugin that duplicates built-in capabilities
+- Plugin logs at: `~/.cache/claude-cli-nodejs/<project-hash>/mcp-logs-plugin-<name>-<name>/`
+
+## Solution
+
+### Step 1: Diagnose (optional)
+
+Check the plugin's MCP logs to understand the failure:
+
+```bash
+# Find the log directory
+ls ~/.cache/claude-cli-nodejs/*/mcp-logs-plugin-<name>-<name>/
+# View the most recent log
+tail -50 ~/.cache/claude-cli-nodejs/*/mcp-logs-plugin-<name>-<name>/*.jsonl | jq .
+```
+
+**Fix vs Remove decision:**
+- Fix: if the plugin has unique value and the config issue is trivial
+- Remove: if capabilities are already covered by built-in tools (LSP, vexor, Grep)
+
+### Step 2: Remove from plugin registry
+
+```bash
+# View current plugins
+cat ~/.claude/plugins/installed_plugins.json | python3 -c "import sys,json; data=json.load(sys.stdin); [print(k) for k in data['plugins']]"
+
+# Remove the plugin entry programmatically
+python3 -c "
+import json
+with open('$HOME/.claude/plugins/installed_plugins.json') as f:
+    data = json.load(f)
+key = '<plugin-name>@claude-plugins-official'  # adjust as needed
+if key in data['plugins']:
+    del data['plugins'][key]
+    with open('$HOME/.claude/plugins/installed_plugins.json', 'w') as f:
+        json.dump(data, f, indent=2)
+    print('Removed', key)
+else:
+    print('Not found:', key)
+"
+```
+
+### Step 3: Remove plugin config directory
+
+```bash
+rm -rf ~/.<plugin-name>/
+# e.g.: rm -rf ~/.serena/
+```
+
+### Step 4: Clean up cached MCP logs
+
+```bash
+rm -rf ~/.cache/claude-cli-nodejs/*/mcp-logs-plugin-<name>-<name>/
+```
+
+### Step 5: Clean up source code references (if project tracks the plugin)
+
+Search for references in the project's MCP registry and docstrings:
+
+```bash
+grep -ri "<plugin-name>" src/ --include="*.py" --include="*.json" -l
+```
+
+For each file found, remove the plugin's entry from:
+- `mcp_registry.json` — remove from the `external` array, fix trailing commas
+- `__init__.py` docstrings — remove from the listed external servers
+- `registry.py` docstrings — update class docstring
+
+### Step 6: Verify complete removal
+
+```bash
+# 1. Not in plugin registry
+grep -i "<plugin-name>" ~/.claude/plugins/installed_plugins.json && echo "FOUND (BAD)" || echo "GONE"
+
+# 2. Not in project MCP configs
+grep -ri "<plugin-name>" .mcp.json mcp_servers.json 2>/dev/null && echo "FOUND" || echo "GONE"
+
+# 3. Not in source code (binary .pyc files are harmless, ignore them)
+grep -ri "<plugin-name>" src/ --include="*.py" --include="*.json"
+
+# 4. Config directory gone
+ls ~/.<plugin-name>/ 2>/dev/null && echo "EXISTS (BAD)" || echo "GONE"
+
+# 5. Cached logs gone
+ls ~/.cache/claude-cli-nodejs/*/mcp-logs-plugin-<plugin-name>-<plugin-name>/ 2>/dev/null && echo "EXISTS (BAD)" || echo "GONE"
+```
+
+## Verification
+
+- Start a new Claude Code session — the 30-second timeout should be gone
+- Run tests to confirm no breakage from registry/source changes: `uv run pytest tests/ -q`
+
+## Example: Serena Removal (2026-03-10)
+
+Serena crashed with `SerenaConfigError: 'projects' key not found` on every session.
+Its capabilities (code navigation, semantic search) were fully covered by Claude Code's
+built-in LSP, vexor, and Grep tools.
+
+```bash
+# Plugin key in installed_plugins.json
+"serena@claude-plugins-official"
+
+# Config dir
+rm -rf ~/.serena/
+
+# Cached logs (multiple project hashes)
+rm -rf ~/.cache/claude-cli-nodejs/*/mcp-logs-plugin-serena-serena/
+
+# Source refs removed from:
+# src/cohezion/mcp/mcp_registry.json         (external array entry)
+# src/cohezion/mcp/__init__.py               (docstring)
+# src/cohezion/mcp/registry.py               (class docstring)
+# src/cohezion-archive/mcp/mcp_registry.json (same)
+# src/cohezion-archive/mcp/__init__.py       (same)
+# src/cohezion-archive/mcp/registry.py       (same)
+```
+
+Result: 4020 tests passed, no regressions, no more startup timeout.
+
+## Bulk Namespace Deduplication (Multiple Duplicate Plugins)
+
+When the same skills appear under multiple namespace prefixes (e.g., `claude-api:*`,
+`document-skills:*`, `example-skills:*` all providing identical pdf/docx/pptx skills),
+remove all but one canonical namespace:
+
+```python
+import json
+
+path = f"{os.path.expanduser('~')}/.claude/plugins/installed_plugins.json"
+with open(path) as f:
+    data = json.load(f)
+
+# Remove duplicate namespaces, keep the canonical one
+to_remove = ['claude-api@anthropic-agent-skills', 'example-skills@anthropic-agent-skills']
+# keep: 'document-skills@anthropic-agent-skills'
+
+for key in to_remove:
+    if key in data['plugins']:
+        del data['plugins'][key]
+
+with open(path, 'w') as f:
+    json.dump(data, f, indent=2)
+```
+
+Plugin registry structure: `{"version": int, "plugins": {"name@marketplace": {...}}}`
+
+## Notes
+
+- `.pyc` bytecode files in `__pycache__/` may still contain old strings — safe to ignore,
+  they regenerate automatically on next import with updated source
+- The `~/.claude/plugins/installed_plugins.json` file also controls which plugin cache
+  directories get loaded — removing the entry here is the most important step
+- If the plugin has no source code references in the project, only Steps 2-4 are needed
+- Removals from `installed_plugins.json` may be reverted by marketplace syncs or session
+  restarts — keep a `.bak` file and re-apply if needed:
+  `cp installed_plugins.json installed_plugins.json.bak.$(date +%Y%m%d)`
+
+
+ARGUMENTS: serena@claude-plugins-official
+
+---
+
+What other claude code optimizations can me make?  review /release-notes
