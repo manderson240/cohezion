@@ -1,0 +1,30 @@
+{
+  "cli_version": "0.4.9",
+  "checkpoint_id": "b8269b39ca1e",
+  "session_id": "04d3d686-ad05-4379-84e7-82ee27e9f88b",
+  "strategy": "manual-commit",
+  "created_at": "2026-03-17T09:32:25.987196297Z",
+  "branch": "gemm-hip-cpp-fused",
+  "checkpoints_count": 4,
+  "files_touched": [
+    "research/challenges/luma_amd_speedrun/kernels/mixed-mla/submission.py"
+  ],
+  "agent": "Claude Code",
+  "turn_id": "44a4ca822673",
+  "token_usage": {
+    "input_tokens": 5285,
+    "cache_creation_tokens": 5915082,
+    "cache_read_tokens": 95923069,
+    "output_tokens": 422124,
+    "api_call_count": 770
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-03-17T09:32:24.208009229Z",
+    "agent_lines": 103,
+    "human_added": 0,
+    "human_modified": 24,
+    "human_removed": 114,
+    "total_committed": 109,
+    "agent_percentage": 94.4954128440367
+  }
+}
