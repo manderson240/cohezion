@@ -5,6 +5,8 @@ neural:
   stage: growing
   synapse_in: 0
   synapse_out: 6
+title: "Lesson 35: NON-BLOCKING OBSERVABILITY PATTERN (NEW)"
+date: 2026-02-01
 ---
 # Lesson 35: NON-BLOCKING OBSERVABILITY PATTERN (NEW)
 

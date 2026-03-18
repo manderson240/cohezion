@@ -16,6 +16,7 @@ neural:
   stage: growing
   synapse_in: 2
   synapse_out: 9
+date: 2026-02-01
 ---
 
 # AI-Driven Biomarker Discovery — The Brighter Side of News (Early 2026)

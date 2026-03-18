@@ -5,6 +5,8 @@ neural:
   stage: growing
   synapse_in: 0
   synapse_out: 9
+title: "Lesson 16: pre-commit-hooks STAGE OVERRIDE"
+date: 2026-02-01
 ---
 # Lesson 16: pre-commit-hooks STAGE OVERRIDE
 

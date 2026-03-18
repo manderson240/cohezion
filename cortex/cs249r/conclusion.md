@@ -8,6 +8,7 @@ neural:
   stage: growing
   synapse_in: 4
   synapse_out: 8
+title: "Conclusion"
 ---
 
 # Conclusion

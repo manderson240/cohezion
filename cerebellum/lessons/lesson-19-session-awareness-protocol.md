@@ -5,6 +5,8 @@ neural:
   stage: growing
   synapse_in: 0
   synapse_out: 7
+title: "Lesson 19: SESSION AWARENESS PROTOCOL"
+date: 2026-02-01
 ---
 # Lesson 19: SESSION AWARENESS PROTOCOL
 

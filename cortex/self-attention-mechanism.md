@@ -6,9 +6,9 @@ related_concepts: [transformer-architecture, neural-network-architecture, semant
 status: active
 aspect: knower
 neural:
-  activation: 0.9
+  activation: 0.69
   stage: mature
-  synapse_in: 4
+  synapse_in: 21
   synapse_out: 14
 ---
 

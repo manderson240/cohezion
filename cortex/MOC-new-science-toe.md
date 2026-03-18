@@ -79,8 +79,10 @@ Each maps a cultural cosmology onto the New Science chain, finding structural pa
 
 ## Consciousness & Emergence
 
+- [[cybernetics]] — The science of feedback, control, and circular causality; foundational for understanding self-regulating systems in the TOE chain
 - [[orch-or]] — Penrose-Hameroff: consciousness from quantum computation in microtubules
 - [[integrated-information-theory]] — Tononi's Φ as a measure of consciousness
+- [[active-inference]] — Friston's free energy principle: perception and action as variational Bayesian inference
 - [[autopoiesis-and-enactivism]] — Self-creating systems; embodied cognition
 - [[morphic-resonance]] — Sheldrake's hypothesis; formative causation
 - [[levin-bioelectrics]] — Bioelectric patterns as morphogenetic information

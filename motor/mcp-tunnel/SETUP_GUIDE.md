@@ -5,6 +5,8 @@ neural:
   stage: growing
   synapse_in: 0
   synapse_out: 1
+title: "MCP Tunnel Deployment Guide"
+date: 2026-02-01
 ---
 # MCP Tunnel Deployment Guide
 

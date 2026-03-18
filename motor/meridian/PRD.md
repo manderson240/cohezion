@@ -12,6 +12,7 @@ neural:
   stage: growing
   synapse_in: 3
   synapse_out: 4
+date: 2026-03-06
 ---
 
 # Meridian: Concierge Agent PRD

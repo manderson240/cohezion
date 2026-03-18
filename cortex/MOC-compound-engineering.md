@@ -33,6 +33,8 @@ Compound engineering is the foundational methodology of the Cohezion framework: 
 - [[concept-validation]] — Ensuring concept notes are correct, complete, and genuinely useful
 - [[implementation-first-infrastructure-later]] — Build working features before abstracting infrastructure
 - [[compound-engineering-investigation-retrospection-before-destructive-operations]] — Mandatory knowledge extraction before any destructive operation
+- [[skill-taxonomy-7-layer-architecture]] — Classification of capabilities across 7 source layers for routing clarity
+- [[honest-metrics-over-inflated-claims]] — Ground truth verification before claiming improvement
 - [[non-blocking-observability]] — Telemetry that never interrupts the primary agent workflow
 
 ## Key Decisions
@@ -40,6 +42,7 @@ Compound engineering is the foundational methodology of the Cohezion framework: 
 - [[2026-02-10-compound-engineering-meta-learning]] — Expanding log mining into a continuous meta-learning feedback loop
 - [[2026-02-10-token-efficient-compound-engineering-roadmap]] — One-month roadmap for systematizing token-efficient compound engineering
 - [[2026-02-10-compound-linking-plan-adversarial-review]] — Adversarial review rejecting a compound linking plan due to critical flaws
+- [[2026-03-07-skill-pruning-consolidation-plan]] — Prune ~60 redundant/dormant skills to reduce routing noise and token waste
 
 ## Patterns
 
@@ -65,6 +68,10 @@ Compound engineering is the foundational methodology of the Cohezion framework: 
 
 - [[2026-02-11-session-56-retrospective-and-plan-refinement]] — Session retrospective experiment proving structured reflection improves planning
 - [[2026-02-22-recursive-challenger-session-68-autonomous-improvement-loop]] — Recursive challenger loop for autonomous improvement via adversarial self-review
+
+## Session Checkpoints (Entire.io)
+
+- [[_index|Entire.io Checkpoint Timeline]] — 127 nightly session checkpoints (Feb–Mar 2026) synced from Entire.io, with 8 milestone checkpoints linking to ADRs, patterns, and concept notes
 
 ## Start Here
 

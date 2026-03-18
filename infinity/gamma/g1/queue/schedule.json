@@ -1,0 +1,65 @@
+{
+  "scheduled_submissions": [
+    {
+      "id": "sched_001",
+      "leaderboard": "luma-amd-speedrun-moe",
+      "mode": "test",
+      "kernel_dir": "kernels/moe-mxfp4",
+      "scheduled_time": "06:00",
+      "priority": 1,
+      "status": "pending",
+      "notes": "Initial test run for MoE MXFP4 kernel"
+    },
+    {
+      "id": "sched_002",
+      "leaderboard": "luma-amd-speedrun-moe",
+      "mode": "benchmark",
+      "kernel_dir": "kernels/moe-mxfp4",
+      "scheduled_time": "06:30",
+      "priority": 2,
+      "status": "pending",
+      "notes": "Benchmark if test passes",
+      "depends_on": "sched_001"
+    },
+    {
+      "id": "sched_003",
+      "leaderboard": "luma-amd-speedrun-mla-decode",
+      "mode": "test",
+      "kernel_dir": "kernels/mixed-mla",
+      "scheduled_time": "07:00",
+      "priority": 1,
+      "status": "pending",
+      "notes": "MLA decode kernel test"
+    },
+    {
+      "id": "sched_004",
+      "leaderboard": "luma-amd-speedrun-fp4-gemm",
+      "mode": "test",
+      "kernel_dir": "kernels/mxfp4-mm",
+      "scheduled_time": "08:00",
+      "priority": 1,
+      "status": "pending",
+      "notes": "FP4 GEMM kernel test"
+    },
+    {
+      "id": "sched_005",
+      "leaderboard": "luma-amd-speedrun-moe",
+      "mode": "leaderboard",
+      "kernel_dir": "kernels/moe-mxfp4",
+      "scheduled_time": "09:00",
+      "priority": 3,
+      "status": "pending",
+      "notes": "Final leaderboard submission if benchmark passes",
+      "depends_on": "sched_002"
+    }
+  ],
+  "recurring_jobs": [],
+  "next_window": "06:00 UTC",
+  "optimization_notes": [
+    "Off-peak window (06:00-12:00 UTC) provides 40% better throughput",
+    "Queue 3 concurrent submissions max to avoid timeouts",
+    "Test → Benchmark → Leaderboard pipeline reduces failed submissions",
+    "Retry failed jobs after 60s delay, max 3 attempts"
+  ],
+  "last_updated": "2026-03-14T03:21:00Z"
+}

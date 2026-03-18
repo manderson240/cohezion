@@ -8,6 +8,7 @@ neural:
   stage: growing
   synapse_in: 0
   synapse_out: 26
+title: "CS249R ML Systems Book - Index"
 ---
 
 # CS249R ML Systems Book - Index

@@ -103,7 +103,7 @@ Bayesian inference underpins several vault concepts and platform components:
 - [[machine-learning]] — Bayesian methods provide a principled alternative to frequentist approaches, with built-in regularization via priors
 - [[cognitive-science]] — the Bayesian brain hypothesis: the brain performs approximate Bayesian inference to predict sensory input
 - [[reinforcement-learning]] — Bayesian RL maintains posterior distributions over MDPs, enabling principled exploration-exploitation trade-offs
-- [[information-theory]] — KL divergence, mutual information, and entropy are shared mathematical foundations
+- [[information-theory-it-from-bit|information theory]] — KL divergence, mutual information, and entropy are shared mathematical foundations
 - [[FLUME-Architecture]] — the VAE encoder-decoder is a variational Bayesian inference machine
 - [[cybernetics]] — Bayesian updating is the formal version of the cybernetic feedback loop: sense → update beliefs → act
 

@@ -5,7 +5,7 @@ date: 2026-03-04
 title: "Business Plan"
 aspect: doer
 neural:
-  activation: 0.63
+  activation: 0.39
   stage: embryo
   synapse_in: 0
   synapse_out: 1

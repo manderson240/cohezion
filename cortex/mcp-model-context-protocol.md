@@ -5,9 +5,9 @@ tags: [concept, agentic-ai, agent-loop-architecture, multi-agent-systems]
 related_concepts: [tool-use, agentic-ai, agent-loop-architecture, multi-agent-systems, cloud-vault-mcp]
 aspect: knower
 neural:
-  activation: 1.0
+  activation: 0.71
   stage: mature
-  synapse_in: 30
+  synapse_in: 57
   synapse_out: 26
 ---
 

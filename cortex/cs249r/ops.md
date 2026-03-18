@@ -8,6 +8,7 @@ neural:
   stage: growing
   synapse_in: 5
   synapse_out: 8
+title: "Ops"
 ---
 
 # Ops

@@ -4,9 +4,9 @@ date: 2026-02-19
 tags: [concept]
 aspect: knower
 neural:
-  activation: 0.77
+  activation: 0.56
   stage: growing
-  synapse_in: 6
+  synapse_in: 20
   synapse_out: 12
 ---
 ## Definition

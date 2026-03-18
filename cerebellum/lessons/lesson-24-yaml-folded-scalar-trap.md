@@ -5,6 +5,8 @@ neural:
   stage: growing
   synapse_in: 0
   synapse_out: 7
+title: "Lesson 24: YAML FOLDED SCALAR TRAP"
+date: 2026-02-01
 ---
 # Lesson 24: YAML FOLDED SCALAR TRAP
 

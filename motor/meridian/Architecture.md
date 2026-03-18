@@ -11,6 +11,7 @@ neural:
   stage: growing
   synapse_in: 3
   synapse_out: 3
+date: 2026-03-06
 ---
 
 # Meridian: Architecture Document

@@ -11,6 +11,8 @@ neural:
   stage: mature
   synapse_in: 7
   synapse_out: 21
+title: "Autonomous Context Hooks for AI Agents"
+date: 2026-03-04
 ---
 
 # Autonomous Context Hooks for AI Agents

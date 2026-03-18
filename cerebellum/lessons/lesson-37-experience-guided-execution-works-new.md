@@ -5,6 +5,8 @@ neural:
   stage: growing
   synapse_in: 0
   synapse_out: 8
+title: "Lesson 37: EXPERIENCE-GUIDED EXECUTION WORKS (NEW)"
+date: 2026-02-01
 ---
 # Lesson 37: EXPERIENCE-GUIDED EXECUTION WORKS (NEW)
 

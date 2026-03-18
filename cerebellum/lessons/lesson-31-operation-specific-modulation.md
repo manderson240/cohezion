@@ -5,6 +5,8 @@ neural:
   stage: growing
   synapse_in: 0
   synapse_out: 16
+title: "Lesson 31: OPERATION-SPECIFIC MODULATION"
+date: 2026-02-01
 ---
 # Lesson 31: OPERATION-SPECIFIC MODULATION
 

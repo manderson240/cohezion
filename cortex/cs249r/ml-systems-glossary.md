@@ -9,6 +9,7 @@ neural:
   stage: growing
   synapse_in: 1
   synapse_out: 8
+title: "ML Systems Glossary"
 ---
 
 # ML Systems Glossary

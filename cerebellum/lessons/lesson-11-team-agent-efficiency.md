@@ -5,6 +5,8 @@ neural:
   stage: growing
   synapse_in: 0
   synapse_out: 23
+title: "Lesson 11: Team agent efficiency"
+date: 2026-02-01
 ---
 # Lesson 11: Team agent efficiency
 

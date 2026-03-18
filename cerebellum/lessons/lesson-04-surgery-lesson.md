@@ -5,6 +5,8 @@ neural:
   stage: growing
   synapse_in: 0
   synapse_out: 7
+title: "Lesson 4: SURGERY LESSON"
+date: 2026-02-01
 ---
 # Lesson 4: SURGERY LESSON
 

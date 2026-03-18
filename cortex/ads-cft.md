@@ -119,7 +119,7 @@ Holographic models have been applied to strongly correlated electron systems: ho
 - [[general-relativity]] — the bulk theory is Einstein gravity (plus corrections)
 - [[quantum-error-correction]] — the bulk-boundary map is a quantum error-correcting code
 - [[information-theory-it-from-bit]] — holography realizes Wheeler's "it from bit" program
-- [[holography]] — AdS/CFT is the most precise formulation of the holographic principle
+- [[holographic-principle]] — AdS/CFT is the most precise formulation of the holographic principle
 - [[string-theory]] — the correspondence originates from D-brane constructions in string theory
 - [[black-holes]] — black hole thermodynamics is a key testing ground and motivation
 

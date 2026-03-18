@@ -55,6 +55,7 @@ Agentic AI is the foundation of the Cohezion framework: autonomous systems that 
 
 ## Related Concepts
 
+- [[agentic-system-failure-taxonomy]] — Classification of agent failure modes: hallucination, tool misuse, context loss, etc.
 - [[ai-safety-alignment]] — Ensuring agent behavior stays within intended boundaries
 - [[token-efficiency]] — Minimizing token spend while preserving agent effectiveness
 - [[non-blocking-observability]] — Async telemetry that does not interrupt the agent loop
@@ -62,6 +63,7 @@ Agentic AI is the foundation of the Cohezion framework: autonomous systems that 
 - [[experience-feedback-loop]] — Closed-loop learning where agent outcomes improve future behavior
 - [[adversarial-review]] — Challenger agents that stress-test plans and implementations
 - [[cloud-vault-mcp]] — The MCP server that gives agents programmatic vault access
+- [[troubleshooting-mcp-infrastructure]] — Diagnosing and resolving MCP server failures that block agent access
 - [[session-retrospective]] — Structured reflection at the end of each agent session
 
 ## Start Here

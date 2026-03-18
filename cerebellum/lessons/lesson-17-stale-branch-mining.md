@@ -5,6 +5,8 @@ neural:
   stage: growing
   synapse_in: 0
   synapse_out: 9
+title: "Lesson 17: STALE BRANCH MINING"
+date: 2026-02-01
 ---
 # Lesson 17: STALE BRANCH MINING
 

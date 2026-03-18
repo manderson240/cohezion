@@ -5,6 +5,8 @@ neural:
   stage: growing
   synapse_in: 0
   synapse_out: 8
+title: "Lesson 18: MOCK LIVE SERVICES IN TESTS"
+date: 2026-02-01
 ---
 # Lesson 18: MOCK LIVE SERVICES IN TESTS
 

@@ -48,6 +48,7 @@ Quantum physics spans the vault's coverage of foundational quantum mechanics, pr
 - [[topology-in-physics]] — Berry phase; Chern numbers; topological protection; quantum Hall effect
 - [[wave-physics]] — Wave-particle duality; coherence theory; Fourier analysis; interference
 - [[holographic-principle]] — Ryu-Takayanagi: entanglement entropy = geometric area; emergent spacetime
+- [[ads-cft]] — Anti-de Sitter/conformal field theory correspondence; the most precise formulation of holography
 - [[string-theory]] — Strings as 1D objects replacing point particles; graviton from closed string spectrum
 - [[quantum-foam]] — Wheeler's spacetime foam; Planck-scale topology fluctuations; virtual black holes; the substrate from which EVOs condense
 - [[bob-greenyer-mfmp]] — MFMP open-science verification of EVO and LENR phenomena; LION reactor; cross-scale morphology

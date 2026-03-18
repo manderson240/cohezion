@@ -8,6 +8,7 @@ neural:
   stage: growing
   synapse_in: 12
   synapse_out: 8
+title: "Benchmarking"
 ---
 
 # Benchmarking

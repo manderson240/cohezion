@@ -1,0 +1,20 @@
+{
+  "queue_limit": 3,
+  "off_peak_hours": {
+    "start": 6,
+    "end": 12
+  },
+  "peak_hours": {
+    "start": 14,
+    "end": 20
+  },
+  "retry_attempts": 3,
+  "retry_delay_seconds": 60,
+  "submission_timeout_seconds": 1800,
+  "leaderboards": [
+    "luma-amd-speedrun-moe",
+    "luma-amd-speedrun-mla-decode",
+    "luma-amd-speedrun-fp4-gemm"
+  ],
+  "modes": ["test", "benchmark", "leaderboard"]
+}

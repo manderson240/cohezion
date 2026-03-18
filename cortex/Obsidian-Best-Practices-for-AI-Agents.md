@@ -9,6 +9,8 @@ neural:
   stage: mature
   synapse_in: 3
   synapse_out: 16
+title: "Obsidian Best Practices for AI Agents"
+date: 2026-03-04
 ---
 
 # Obsidian Best Practices for AI Agents

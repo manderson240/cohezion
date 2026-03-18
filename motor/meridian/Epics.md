@@ -11,6 +11,7 @@ neural:
   stage: growing
   synapse_in: 4
   synapse_out: 3
+date: 2026-03-06
 ---
 
 # Meridian: Epics

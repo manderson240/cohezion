@@ -5,6 +5,8 @@ neural:
   stage: growing
   synapse_in: 0
   synapse_out: 8
+title: "Lesson 2: ruff auto-formats on save — re-read files before editing (ha"
+date: 2026-02-01
 ---
 # Lesson 2: ruff auto-formats on save — re-read files before editing (ha
 

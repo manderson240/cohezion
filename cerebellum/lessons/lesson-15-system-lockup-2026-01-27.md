@@ -5,6 +5,8 @@ neural:
   stage: growing
   synapse_in: 0
   synapse_out: 6
+title: "Lesson 15: SYSTEM LOCKUP (2026-01-27)"
+date: 2026-02-01
 ---
 # Lesson 15: SYSTEM LOCKUP (2026-01-27)
 

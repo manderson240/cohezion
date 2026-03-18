@@ -20,7 +20,7 @@ The platform infrastructure layer powers Cohezion's ability to persist knowledge
 
 - [[mcp-model-context-protocol]] — Open standard for connecting AI systems to external tools and data sources
 - [[cloud-vault-mcp]] — The Cloud Vault MCP server providing programmatic access to the Cohezion vault
-- [[huggingface]] — HuggingFace ecosystem integration (Hub API, Inference, MTEB, smolagents, TGI, Spaces)
+- [[huggingface]] — HuggingFace ecosystem integration (Hub API, Inference, MTEB, smolagents, TGI, Spaces) → remaining work tracked in [[2026-03-05-huggingface-integration-remaining-work]]
 - [[mcp-infrastructure-architecture]] — System overview of how MCP servers bridge Claude Code to local services
 - [[surrealdb]] — Multi-model database combining graph, document, and relational capabilities for agent context
 - [[graph-databases]] — Node-and-edge data model that makes relationship traversal natural and efficient
@@ -57,17 +57,20 @@ The platform infrastructure layer powers Cohezion's ability to persist knowledge
 
 ## Lessons Learned
 
+- [[lesson-openclaw-node24-setup]] — OpenClaw requires Node 24; nvm setup for Playwright MCP compatibility
 - [[lesson-surrealdb-schema-design]] — Record-centric schema outperforms table-centric for agent context graphs
 - [[lesson-36-mcp-configuration-requires-end-to-end-test-new]] — MCP unit tests miss protocol negotiation failures; e2e tests required
 - [[lesson-10-gitlab-ci-runner]] — Local test pass does not guarantee CI pass; environment parity matters
 - [[lesson-35-non-blocking-observability-pattern-new]] — Synchronous telemetry caused 100+ second latency; must be async
 
-## Runbooks
+## Runbooks & Troubleshooting
 
+- [[SETUP_GUIDE|MCP Tunnel Deployment Guide]] — Expose local vault via public HTTPS URL with Cloudflare tunnel, systemd persistence, and API key auth
 - [[runbook-ci-cd-pipeline]] — CI/CD pipeline for linting, testing, and deploying vault tooling
 - [[runbook-ollama-mcp-operations]] — Operational procedures for the Ollama embedding MCP server
 - [[runbook-health-checks]] — Automated probes verifying service health across the Cohezion stack
 - [[runbook-benchmarking-validation]] — Performance benchmarking framework for optimization validation
+- [[troubleshooting-mcp-infrastructure]] — Diagnostic procedures for MCP server failures: connectivity, auth, upstream dependencies
 
 ## Experiments
 

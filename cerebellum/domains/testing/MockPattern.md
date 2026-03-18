@@ -1,4 +1,6 @@
 ---
+title: "Mock Pattern"
+date: 2026-02-01
 aspect: thinker
 neural:
   activation: 0.48

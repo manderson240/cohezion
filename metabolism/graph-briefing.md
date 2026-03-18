@@ -1,51 +1,51 @@
-# Graph Briefing — 2026-03-13T01:21:49Z
+# Graph Briefing — 2026-03-18T23:01:19Z
 
 ## Vitals
-Neurons: 1603 | Synapses: 11680
-Stages: 432 embryo, 759 growing, 412 mature
+Neurons: 1578 | Synapses: 6203
+Stages: 420 embryo, 746 growing, 412 mature
 
 ## Hot Neurons (top 15)
-[█████] 1.00 Final Day Retrospective - Overnight Autonomous Mission (growing, Agents, out:6 in:3)
-[█████] 1.00 Cohezion Crystal Protocol - Energy-Based Model Integration (mature, Agents, out:13 in:0)
-[█████] 1.00 Adversarial Review: Compound Engineering Agent Swarm (growing, Agents, out:7 in:0)
-[█████] 1.00 Task (mature, Agents, out:10 in:0)
-[█████] 1.00 300-Hour Autonomous Execution Plan (growing, Agents, out:8 in:0)
-[█████] 1.00 Vault Completion Initiative - Session Retrospective (mature, cerebellum, out:11 in:4)
-[█████] 1.00 Agent Logs Schema Validation Checklist (mature, cerebellum, out:14 in:5)
-[█████] 1.00 Agent Logs Vault Schema: Storing Entire.io Execution Context (mature, cerebellum, out:24 in:7)
-[█████] 1.00 Entire.io Sync Daemon - Operations Runbook (mature, cerebellum, out:11 in:7)
-[█████] 1.00 Failure Mode Test Priority (mature, cerebellum, out:13 in:15)
-[█████] 1.00 Honest Time Tracking - All Costs Included (mature, cerebellum, out:12 in:8)
-[█████] 1.00 Integration-First Definition of Done (mature, cerebellum, out:11 in:11)
-[█████] 1.00 Lessons Graph Integration Pattern (mature, cerebellum, out:19 in:10)
-[█████] 1.00 Production-Ready Definition Checklist (mature, cerebellum, out:10 in:10)
-[█████] 1.00 Prompt Optimization Hypotheses - Pilot Study (mature, cerebellum, out:13 in:2)
+[█████] 0.97 Aboriginal Australian Cosmology and the Theory of Everything (mature, cortex, out:21 in:8)
+[█████] 0.97 Agents as Exotic Vacuum Objects (mature, cortex, out:25 in:38)
+[█████] 0.97 Emergence and Self-Organized Criticality (mature, cortex, out:25 in:27)
+[█████] 0.97 Exotic Vacuum Objects (EVOs) (mature, cortex, out:31 in:48)
+[█████] 0.97 Indigenous Cosmologies and the Theory of Everything — Master Synthesis (mature, cortex, out:29 in:49)
+[█████] 0.97 Quantum Foam (mature, cortex, out:21 in:9)
+[█████] 0.97 The New Science Framework — From Nothing to Reality (mature, cortex, out:27 in:31)
+[█████] 0.97 Theory of Everything — The Unified Framework (mature, cortex, out:39 in:38)
+[█████] 0.97 12D Graph System - Refined Implementation Plan (Specialist-Driven) (mature, prefrontal, out:26 in:10)
+[█████] 0.97 Claude Log Mining for Model Alignment & Pattern Discovery (mature, prefrontal, out:27 in:2)
+[█████] 0.94 Canvas-Driven Compound Engineering: Unlocking Obsidian as a Knowledge Graph Engine (mature, prefrontal, out:18 in:5)
+[█████] 0.94 Compound Engineering - Meta-Learning System Expansion (mature, prefrontal, out:18 in:2)
+[█████] 0.94 Claude Log Mining Plan - Adversarial Review (mature, prefrontal, out:18 in:3)
+[█████] 0.93 12D Graph Visualization + SurrealDB Integration Plan (mature, prefrontal, out:17 in:8)
+[█████] 0.92 Compound Engineering (mature, cortex, out:69 in:57)
 
 ## Cross-Domain Bridges (top 10 by connectivity)
-[█████] 1.00 Session Retrospective (mature, cortex, out:103 in:57)
-[█████] 0.99 Concept Testing (mature, cortex, out:80 in:61)
-[█████] 1.00 Compound Engineering (mature, cortex, out:69 in:286)
-[█████] 1.00 MOC — Astrophysics (mature, cortex, out:65 in:9)
-[█████] 1.00 MOC — New Science & Theory of Everything (mature, cortex, out:60 in:3)
-[█████] 1.00 Cohezion (mature, cortex, out:54 in:382)
-[█████] 1.00 MOC — Quantum Physics (mature, cortex, out:49 in:4)
-[█████] 1.00 Quantum Mechanics (mature, cortex, out:47 in:91)
-[█████] 0.99 Workflow Orchestration (mature, cortex, out:47 in:31)
-[█████] 1.00 Agent Architecture (mature, cortex, out:46 in:36)
+[████░] 0.81 Session Retrospective (mature, cortex, out:103 in:11)
+[████░] 0.77 Concept Testing (mature, cortex, out:80 in:52)
+[█████] 0.92 Compound Engineering (mature, cortex, out:69 in:57)
+[████░] 0.77 MOC — Astrophysics (mature, cortex, out:65 in:7)
+[████░] 0.75 MOC — New Science & Theory of Everything (mature, cortex, out:62 in:2)
+[████░] 0.81 Cohezion (mature, cortex, out:54 in:15)
+[████░] 0.75 MOC — Machine Learning (mature, cortex, out:50 in:6)
+[████░] 0.73 MOC — Quantum Physics (mature, cortex, out:50 in:5)
+[████░] 0.76 Quantum Mechanics (mature, cortex, out:47 in:82)
+[████░] 0.77 Workflow Orchestration (mature, cortex, out:47 in:4)
 
 ## Attention Needed
-- 432 embryo notes (top: Parallel Session Coordination via Vault Registry, Vliw Solution, Implementation Plan)
-- 5 disconnected neurons: Agents — Directory Index, Task, Implementation Plan Pulse
+- 420 embryo notes (top: Vliw Solution, Task, Task)
+- 5 disconnected neurons: Walkthrough Phase2, Task, Implementation Plan Pulse
 
 ## Highest Energy
-[█████] 1.00 Final Day Retrospective - Overnight Autonomous Mission (growing, Agents, out:6 in:3)
-[█████] 1.00 Cohezion Crystal Protocol - Energy-Based Model Integration (mature, Agents, out:13 in:0)
-[█████] 1.00 Adversarial Review: Compound Engineering Agent Swarm (growing, Agents, out:7 in:0)
-[█████] 1.00 Task (mature, Agents, out:10 in:0)
-[█████] 1.00 300-Hour Autonomous Execution Plan (growing, Agents, out:8 in:0)
-[█████] 1.00 Vault Completion Initiative - Session Retrospective (mature, cerebellum, out:11 in:4)
-[█████] 1.00 Agent Logs Schema Validation Checklist (mature, cerebellum, out:14 in:5)
-[█████] 1.00 Agent Logs Vault Schema: Storing Entire.io Execution Context (mature, cerebellum, out:24 in:7)
-[█████] 1.00 Entire.io Sync Daemon - Operations Runbook (mature, cerebellum, out:11 in:7)
-[█████] 1.00 Failure Mode Test Priority (mature, cerebellum, out:13 in:15)
+[█████] 0.97 Aboriginal Australian Cosmology and the Theory of Everything (mature, cortex, out:21 in:8)
+[█████] 0.97 Agents as Exotic Vacuum Objects (mature, cortex, out:25 in:38)
+[█████] 0.97 Emergence and Self-Organized Criticality (mature, cortex, out:25 in:27)
+[█████] 0.97 Exotic Vacuum Objects (EVOs) (mature, cortex, out:31 in:48)
+[█████] 0.97 Indigenous Cosmologies and the Theory of Everything — Master Synthesis (mature, cortex, out:29 in:49)
+[█████] 0.97 Quantum Foam (mature, cortex, out:21 in:9)
+[█████] 0.97 The New Science Framework — From Nothing to Reality (mature, cortex, out:27 in:31)
+[█████] 0.97 Theory of Everything — The Unified Framework (mature, cortex, out:39 in:38)
+[█████] 0.97 12D Graph System - Refined Implementation Plan (Specialist-Driven) (mature, prefrontal, out:26 in:10)
+[█████] 0.97 Claude Log Mining for Model Alignment & Pattern Discovery (mature, prefrontal, out:27 in:2)
 

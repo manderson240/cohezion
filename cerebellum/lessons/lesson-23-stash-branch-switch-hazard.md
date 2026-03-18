@@ -5,6 +5,8 @@ neural:
   stage: growing
   synapse_in: 0
   synapse_out: 8
+title: "Lesson 23: STASH + BRANCH SWITCH HAZARD"
+date: 2026-02-01
 ---
 # Lesson 23: STASH + BRANCH SWITCH HAZARD
 

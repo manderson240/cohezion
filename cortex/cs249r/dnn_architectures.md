@@ -8,6 +8,7 @@ neural:
   stage: growing
   synapse_in: 0
   synapse_out: 8
+title: "Dnn Architectures"
 ---
 
 # Dnn Architectures

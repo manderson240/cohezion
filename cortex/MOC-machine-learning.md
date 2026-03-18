@@ -37,6 +37,8 @@ Machine learning is the computational engine behind Cohezion's agent intelligenc
 - [[semantic-search]] — Embedding-based retrieval that finds notes by meaning rather than keywords
 - [[token-efficiency]] — Minimizing token cost while preserving model output quality
 - [[token-efficiency-patterns]] — Concrete patterns for reducing token usage in agentic workflows
+- [[cognitive-science]] — The Bayesian brain hypothesis and neural inspiration for ML architectures
+- [[information-geometry]] — Fisher information metric on statistical manifolds; natural gradient descent
 - [[data-analysis]] — Statistical and exploratory techniques applied before and during ML pipelines
 
 ## Key Decisions
@@ -49,6 +51,10 @@ Machine learning is the computational engine behind Cohezion's agent intelligenc
 - [[structured-experience-vector-layout]] — Fixed-dimension vector format for encoding agent state into ML models
 - [[conservative-baseline-estimation]] — Establishing honest baselines before claiming ML improvement
 - [[predictive-throttling-via-12d-trajectory-velocity]] — Using 12-dimensional trajectory velocity to predict and throttle agent behavior
+
+## Textbooks
+
+- [[index|CS249R ML Systems Book]] — Harvard's comprehensive textbook: 21 chapters, 656 glossary terms covering full ML systems engineering spectrum
 
 ## Research Papers
 
@@ -64,10 +70,25 @@ Machine learning is the computational engine behind Cohezion's agent intelligenc
 - [[ai-anomaly-detection-hubble-archive]] — ML-based anomaly detection applied to Hubble Space Telescope data
 - [[emoticons-llm-silent-failures]] — How emoji and emoticon tokens cause silent LLM failures
 
+## GPU Kernel Optimization (AMD MI355X)
+
+- [[2026-03-14-gemm-api-ceiling|GEMM MXFP4 API ceiling]] — Hit ~23µs floor; quantization bottleneck equals GEMM time
+- [[2026-03-14-moe-optimization-state|MoE MXFP4 state]] — Rank 13/58 (~155µs) with adaptive KSPLIT routing
+- [[2026-03-14-doweight-cktile-incompatibility|doweight_stage1 bug]] — Critical: broken on both CK and cktile paths
+- [[2026-03-14-mla-three-regime|MLA decode three-regime]] — Rank 20/75 (~69.5µs) with metadata caching
+
 ## Experiments
 
 - [[2026-02-13-first-real-data-vae-training-run]] — First VAE training run on real agent experience data (not synthetic)
 - [[session-57-local-finetuning]] — Local fine-tuning experiment using Ollama models on vault data
+
+## Competition & Optimization Campaigns
+
+- [[luma-amd-speedrun-strategy|Luma AMD Speedrun Strategy]] — Competition tactics for MI355X GPU kernel optimization ($650K prize pool)
+- [[amd-hip-kernel-development|AMD HIP Kernel Development]] — Custom HIP C++ kernels for AMD MI355X (gfx950): MFMA, LDS swizzle, ping-pong scheduling
+- [[CENTRAL_COMMAND|Infinity Central Command]] — Multi-agent GPU optimization campaign coordination
+- [[RESEARCH_REPORT|Infinity Research Report]] — Research findings across alpha/beta/gamma teams
+- [[competition_log|Competition Log]] — Timeline of competitive kernel optimization attempts
 
 ## Start Here
 

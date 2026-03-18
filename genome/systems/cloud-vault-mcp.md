@@ -65,7 +65,7 @@ neural:
 - **SheetsBridge:** Batch read/write Google Sheets for research pipeline output
 
 ### What It Does NOT Do
-- Does not embed content — that's the [[ollama-mcp-server|Ollama MCP server]]'s job
+- Does not embed content — that's the [[runbook-ollama-mcp-operations|Ollama MCP server]]'s job
 - Does not manage the vault's git history
 - Does not serve the Obsidian UI
 
@@ -126,7 +126,7 @@ VAULT_PATH=/home/mike-anderson/vaults/cohezion-vault
 - [[2026-03-05-vault-surrealdb-architecture]] — Architecture ADR for sync pipeline
 - [[ide-and-model-providers]] — How different IDEs connect to this server
 - [[surrealdb]] — SurrealDB concept note (upstream dependency)
-- [[ollama-mcp-server|Ollama MCP]] — Companion server for embeddings (System Card: [[ollama]])
+- [[runbook-ollama-mcp-operations|Ollama MCP]] — Companion server for embeddings (System Card: [[ollama]])
 
 ## Revision History
 

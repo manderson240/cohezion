@@ -5,6 +5,8 @@ neural:
   stage: growing
   synapse_in: 0
   synapse_out: 12
+title: "Lesson 21: RUNTIME JSON POLLUTION"
+date: 2026-02-01
 ---
 # Lesson 21: RUNTIME JSON POLLUTION
 

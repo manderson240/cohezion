@@ -5,6 +5,8 @@ neural:
   stage: growing
   synapse_in: 0
   synapse_out: 6
+title: "Lesson 3: CRITICAL"
+date: 2026-02-01
 ---
 # Lesson 3: CRITICAL
 

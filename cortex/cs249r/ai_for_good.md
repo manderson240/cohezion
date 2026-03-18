@@ -8,6 +8,7 @@ neural:
   stage: growing
   synapse_in: 6
   synapse_out: 8
+title: "Ai For Good"
 ---
 
 # Ai For Good

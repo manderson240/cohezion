@@ -123,7 +123,7 @@ OLLAMA_MODELS=~/.ollama/models
 
 ## Related
 
-- [[ollama-mcp-server|Ollama MCP Server]] — MCP wrapper providing agent access
+- [[runbook-ollama-mcp-operations|Ollama MCP Server]] — MCP wrapper providing agent access
 - [[semantic-search]] — Concept note on vector search using Ollama embeddings
 - [[nomic-embed-text|Embedding Card: nomic-embed-text]] — Primary embedding model card
 - [[mxbai-embed-large|Embedding Card: mxbai-embed-large]] — Alternative embedding model card

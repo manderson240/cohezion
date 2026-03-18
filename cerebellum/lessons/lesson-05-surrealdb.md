@@ -5,6 +5,8 @@ neural:
   stage: growing
   synapse_in: 0
   synapse_out: 6
+title: "Lesson 5: SURREALDB"
+date: 2026-02-01
 ---
 # Lesson 5: SURREALDB
 
