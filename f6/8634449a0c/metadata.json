@@ -1,0 +1,24 @@
+{
+  "cli_version": "0.4.9",
+  "checkpoint_id": "f68634449a0c",
+  "strategy": "manual-commit",
+  "branch": "track-c",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "Agents/Antigravity/d43d945e-8dc9-4138-ac62-5846bd0aadfe/business_plan.md",
+    "cortex/MOC-agentic-ai.md",
+    "cortex/MOC-machine-learning.md",
+    "cortex/bayesian-inference.md",
+    "metabolism/graph-alerts.md",
+    "motor/meridian/PRD.md"
+  ],
+  "sessions": [
+    {
+      "metadata": "/f6/8634449a0c/0/metadata.json",
+      "transcript": "/f6/8634449a0c/0/full.jsonl",
+      "context": "",
+      "content_hash": "/f6/8634449a0c/0/content_hash.txt",
+      "prompt": ""
+    }
+  ]
+}
