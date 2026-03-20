@@ -1,0 +1,458 @@
+Implement the following plan:
+
+# Plan: Integrate K-Search + R-Zero + Karpathy Autoresearch into Kernel Optimization Pipeline
+
+## Context
+
+The Luma AMD Speedrun (deadline March 30, 2026) has an autonomous kernel optimization loop at
+`research/challenges/luma_amd_speedrun/autoresearch/`. Three external references need proper
+integration:
+
+| Reference | What It Is | Current Integration | Gap |
+|-----------|-----------|-------------------|-----|
+| K-Search (arxiv 2602.19128) | LLM-guided tree search with co-evolving world model for GPU kernels | 60% — tree structure, K=7 stagnation, priority selection implemented | Missing: LLM pi_plan (INSERT/UPDATE/PRUNE), LLM pi_code (code synthesis), V-score co-evolution |
+| R-Zero (2508.05004) | Challenger-Solver co-evolution for LLM training | Conceptual only — `r_zero.py` tracks metrics, no kernel application | Missing: Challenger that proposes harder optimization targets, difficulty calibration |
+| Karpathy autoresearch | Autonomous 5-min experiment loops with LLM code modification | 80% — overnight loop, fixed metric, convergence detection, crash recovery | Missing: LLM modifies code directly instead of templates; program.md research strategy layer |
+
+**Core gap across all three: our autoresearch uses deterministic templates + parameter perturbation,
+not LLM-guided code synthesis. This is the single biggest upgrade.**
+
+## Approach: Three-Layer Enhancement
+
+### Layer 1: K-Search World Model (pi_plan) — Highest Impact
+
+**What:** Replace static pre-seeded trees with LLM-driven INSERT/UPDATE/PRUNE operations.
+
+**Files to modify:**
+- `autoresearch/ksearch_tree.py` — Add `insert_child()`, `update_v_scores()`, `strategic_prune()` methods
+- `autoresearch/analyzer.py` — After analyzing results, call LLM to propose new child strategies
+- `autoresearch/driver.py` — Add world model evolution step after each cycle
+
+**Implementation:**
+```python
+# In analyzer.py — after analyzing results:
+def evolve_world_model(tree, node, result, llm_client):
+    """K-Search Phase 3: World model co-evolution via LLM."""
+    trajectory = tree.get_trajectory(node.id)  # All attempts on this branch
+
+    prompt = f"""You are a GPU kernel optimization world model.
+
+    Current tree state: {tree.to_summary()}
+    Just tested: {node.strategy} → {result.geomean_us}µs (baseline: {result.baseline_us}µs)
+    Trajectory: {trajectory}
+
+    Based on this result, propose:
+    1. INSERT: New child strategies worth exploring (0-2 children)
+    2. UPDATE: Revised V-scores for affected nodes
+    3. PRUNE: Branches that should be abandoned
+
+    Output JSON: {{"insert": [...], "update": {...}, "prune": [...]}}"""
+
+    response = llm_client.generate(prompt)
+    tree.apply_evolution(response)  # INSERT/UPDATE/PRUNE atomically
+```
+
+**LLM choice:** Local Ollama (qwen3-coder:30b) — free, fast enough for 1 call per 8-min cycle.
+No API costs. Falls back to current deterministic behavior if Ollama unavailable.
+
+### Layer 2: K-Search Code Instantiation (pi_code) — Medium Impact
+
+**What:** Replace template-based generator with LLM-guided code synthesis.
+
+**Files to modify:**
+- `autoresearch/generator.py` — Add LLM code generation path alongside templates
+- New: `autoresearch/code_synthesizer.py` — LLM-based submission.py generation
+
+**Implementation:**
+```python
+# In code_synthesizer.py:
+def synthesize_kernel(strategy, kernel_type, reference_code, constraints, llm_client):
+    """K-Search pi_code: Generate kernel implementation from strategy description."""
+    prompt = f"""Generate a submission.py for AMD MI355X {kernel_type} kernel.
+
+    Strategy: {strategy}
+    Reference implementation: {reference_code}
+    Constraints: {constraints}  # Dead ends, blocked APIs, etc.
+
+    The submission must:
+    1. Define custom_kernel(data: input_t) -> output_t
+    2. Pass correctness within rtol=1e-2
+    3. Be faster than baseline
+
+    Output ONLY the Python code."""
+
+    code = llm_client.generate(prompt)
+    if validate_syntax(code):
+        return code
+    return None  # Fall back to template generator
+```
+
+**Key insight from K-Search paper:** pi_code samples implementations REPEATEDLY until K=7
+stagnation. Each sample is a new LLM generation with the same strategy but different code.
+This separates "strategy failure" from "implementation failure."
+
+### Layer 3: R-Zero Challenger Pattern — Low Impact, Long-Term
+
+**What:** Add difficulty calibration to the optimization loop. The Challenger proposes
+*harder* optimization targets (tighter performance thresholds, new shape combinations)
+to push the Solver beyond local optima.
+
+**Files to modify:**
+- `autoresearch/driver.py` — Add challenger step that adjusts target thresholds
+- `src/cohezion/optimization/r_zero.py` — Connect to kernel optimization metrics
+
+**Implementation:**
+```python
+# In driver.py — after convergence detected:
+def challenge_plateau(tree, kernel, current_best):
+    """R-Zero: Propose harder target when plateau detected."""
+    # Instead of stopping at convergence, raise the bar
+    new_target = current_best * 0.9  # 10% harder
+    tree.insert_child(
+        parent_id="root",
+        strategy=f"Beat {new_target:.1f}µs (10% below plateau)",
+        priority=0.8,
+    )
+```
+
+**This is lightweight** — just adjusts targets rather than generating adversarial problems.
+The full R-Zero Challenger-Solver loop is unnecessary for kernel optimization since we don't
+control the problem difficulty (competition shapes are fixed).
+
+### Layer 4: Karpathy program.md Pattern — Quick Win
+
+**What:** Create a `research_strategy.md` file that guides the LLM agent's optimization
+direction. Human-editable research strategy that the LLM reads before each cycle.
+
+**Files to create:**
+- `autoresearch/research_strategy.md` — Current optimization priorities, known dead ends, focus areas
+
+**Implementation:**
+```markdown
+# Research Strategy (Human-Editable)
+
+## Current Focus
+- MoE: Try direct moe_sorting_fwd with local_expert_mask parameter
+- GEMM: Explore tritonblas.matmul_fp4 as alternative to gemm_a4w4
+- MLA: At Python ceiling, deprioritize
+
+## Dead Ends (Do NOT retry)
+- [loaded from kernel-specific skills automatically]
+
+## Budget Allocation
+- MoE: 50% (closest to leader, new untested path)
+- GEMM: 30% (1.45x gap, limited paths)
+- MLA: 20% (15.8x gap, Python ceiling)
+```
+
+The LLM world model reads this before proposing strategies, ensuring human research direction
+guides the autonomous loop.
+
+## Critical Files
+
+| File | Action | Purpose |
+|------|--------|---------|
+| `autoresearch/ksearch_tree.py` | Modify | Add `insert_child()`, `apply_evolution()`, trajectory tracking |
+| `autoresearch/analyzer.py` | Modify | Add `evolve_world_model()` LLM call after each analysis |
+| `autoresearch/driver.py` | Modify | Add world model evolution step, challenger pattern |
+| `autoresearch/generator.py` | Modify | Add LLM fallback alongside templates |
+| `autoresearch/code_synthesizer.py` | Create | LLM-based kernel code generation |
+| `autoresearch/research_strategy.md` | Create | Karpathy-style human research direction |
+| `~/.claude/skills/k-search-llm-kernel-optimization/SKILL.md` | Modify | Update with implementation status |
+
+## Task Sequence
+
+1. **[ ] Add trajectory tracking to KNode** — Store full attempt history, not just best_result
+2. **[ ] Implement `insert_child()` and `apply_evolution()`** in ksearch_tree.py
+3. **[ ] Create code_synthesizer.py** with Ollama integration (qwen3-coder:30b)
+4. **[ ] Add world model evolution step** to analyzer.py (call LLM after each result)
+5. **[ ] Create research_strategy.md** with current priorities from kernel skills
+6. **[ ] Add challenger pattern** to driver.py (raise target on plateau)
+7. **[ ] Wire generator.py** to try LLM synthesis first, fall back to templates
+8. **[ ] Dry-run test** — Run 3 cycles with LLM evolution, verify tree evolves sensibly
+9. **[ ] Update K-Search skill** with implementation status
+
+## Verification
+
+1. **Dry-run:** `python autoresearch/driver.py --dry-run --cycles 3` — verify LLM world model
+   proposes sensible INSERT/UPDATE/PRUNE operations
+2. **Template fallback:** Disable Ollama, verify system falls back to deterministic templates
+3. **Tree evolution:** After 5 cycles, verify tree has new nodes that weren't in the pre-seed
+4. **Code synthesis:** Verify at least 1 LLM-generated submission passes correctness test
+5. **Research strategy:** Verify LLM reads research_strategy.md and respects dead ends
+
+## Risk Mitigation
+
+- **Ollama unavailable:** Fall back to template generation (current behavior)
+- **LLM generates bad code:** Syntax validation + correctness test gate before benchmark
+- **LLM proposes dead ends:** Feed kernel-specific skill dead-end lists into system prompt
+- **Budget overrun:** Cap at 1 LLM call per cycle (~8min), max 4096 tokens per call
+
+
+If you need specific details from before exiting plan mode (like exact code snippets, error messages, or content you generated), read the full transcript at: /home/mike-anderson/.claude/projects/-home-mike-anderson-dev-cohezion/375c2124-8ae6-4582-9662-d0aafa92d590.jsonl
+
+If this plan can be broken down into multiple independent tasks, consider using the TeamCreate tool to create a team and parallelize the work.
+
+---
+
+<task-notification>
+<task-id>bgysrei4i</task-id>
+<tool-use-id>toolu_01M6jWrKMvbbjWPFSPMXnTBM</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/372cbc1b-32c1-4d7a-b071-c206e9699dbc/tasks/bgysrei4i.output</output-file>
+<status>completed</status>
+<summary>Background command "Find K-Search skill files" completed (exit code 0)</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/372cbc1b-32c1-4d7a-b071-c206e9699dbc/tasks/bgysrei4i.output
+
+---
+
+Continue towards excellence
+
+---
+
+let's see what it can do
+
+---
+
+# /learn - Online Learning System
+
+**Extract reusable knowledge from this session into skills.** Evaluates what was learned, checks for existing skills, and creates new ones when valuable patterns are discovered.
+
+---
+
+## TABLE OF CONTENTS
+
+| Phase       | Description                                            | Steps   |
+| ----------- | ------------------------------------------------------ | ------- |
+| **Phase 0** | Reference: triggers, quality criteria, skill structure | 0.1–0.4 |
+| **Phase 1** | Evaluate: assess if knowledge is worth extracting      | 1.1     |
+| **Phase 2** | Check Existing: search for related skills              | 2.1     |
+| **Phase 3** | Create Skill: write the skill file                     | 3.1–3.2 |
+| **Phase 4** | Quality Gates: final checklist before saving           | 4.1     |
+
+**Quick Step Reference:**
+
+- 0.1 Triggers, 0.2 Quality criteria, 0.3 What NOT to extract, 0.4 Skill structure
+- 1.1 Self-evaluation questions
+- 2.1 Search existing skills
+- 3.1 Choose location, 3.2 Write SKILL.md
+- 4.1 Final checklist
+
+---
+
+## PHASE 0: REFERENCE
+
+### Step 0.1: Triggers
+
+Invoke `/learn` after ANY task involving:
+
+| Trigger                      | Example                                                          |
+| ---------------------------- | ---------------------------------------------------------------- |
+| **Non-obvious debugging**    | Spent 10+ minutes investigating; solution wasn't in docs         |
+| **Misleading errors**        | Error message pointed wrong direction; found real cause          |
+| **Workarounds**              | Found limitation and creative solution                           |
+| **Tool integration**         | Figured out how to use tool/API in undocumented way              |
+| **Trial-and-error**          | Tried multiple approaches before finding what worked             |
+| **Repeatable workflow**      | Multi-step task that will recur; worth standardizing             |
+| **External service queries** | Fetched data from Jira, GitHub, Confluence, or other APIs        |
+| **User-facing automation**   | Built something user will ask for again (reports, status checks) |
+
+### Step 0.2: Quality Criteria
+
+Skills must be:
+
+- **Reusable**: Will help with future tasks (not just this instance)
+- **Non-trivial**: Required discovery, OR is a valuable workflow pattern
+- **Verified**: Solution actually worked, not theoretical
+
+### Step 0.3: What NOT to Extract
+
+- Single-step tasks with no workflow value
+- One-off fixes unlikely to recur
+- Knowledge easily found in official docs
+
+### Step 0.4: Skill Structure
+
+**Location:** `.claude/skills/[skill-name]/SKILL.md`
+
+**Template:**
+
+```markdown
+---
+name: descriptive-kebab-case-name
+description: |
+  [CRITICAL: This determines when the skill triggers. Include:]
+  - What the skill does
+  - Specific trigger conditions (exact error messages, symptoms)
+  - When to use it (contexts, scenarios)
+author: Claude Code
+version: 1.0.0
+---
+
+# Skill Name
+
+## Problem
+
+[Clear description of the problem]
+
+## Context / Trigger Conditions
+
+[When to use - exact error messages, symptoms, scenarios]
+
+## Solution
+
+[Step-by-step solution]
+
+## Verification
+
+[How to verify it worked]
+
+## Example
+
+[Concrete example]
+
+## References
+
+[Links to documentation]
+```
+
+<details>
+<summary>Writing Effective Descriptions</summary>
+
+The description field is CRITICAL for skill discovery:
+
+**Good:**
+
+```yaml
+description: |
+  Fix for "ENOENT: no such file or directory" errors in npm monorepos.
+  Use when: (1) npm run fails with ENOENT, (2) paths work in root but
+  not in packages, (3) symlinked dependencies cause failures.
+```
+
+**Bad:**
+
+```yaml
+description: Helps with npm problems in monorepos.
+```
+
+</details>
+
+**Guidelines:**
+
+- **Concise** - Claude is smart; only add what it doesn't know
+- **Under 500 lines** - Move large docs to `references/`
+- **Examples over explanations** - Show, don't tell
+
+---
+
+## PHASE 1: EVALUATE
+
+### Step 1.1: Self-Evaluation Questions
+
+Ask yourself:
+
+1. "What did I just learn that wasn't obvious before starting?"
+2. "Would future-me benefit from having this documented?"
+3. "Was the solution non-obvious from documentation alone?"
+4. "Is this a multi-step workflow I'd repeat on similar tasks?"
+5. "Did I query an external service the user will ask about again?"
+
+**If NO to all → Skip extraction, nothing to learn.**
+
+**Note:** External service queries (Jira tickets, GitHub PRs, Confluence pages) are almost always worth extracting - users frequently repeat these requests.
+
+---
+
+## PHASE 2: CHECK EXISTING
+
+### Step 2.1: Search for Related Skills
+
+Before creating, search for related skills:
+
+```bash
+ls .claude/skills/ 2>/dev/null
+rg -i "keyword" .claude/skills/ 2>/dev/null
+ls ~/.claude/pilot/skills/ 2>/dev/null
+rg -i "keyword" ~/.claude/pilot/skills/ 2>/dev/null
+```
+
+| Found                | Action                           |
+| -------------------- | -------------------------------- |
+| Nothing related      | Create new skill                 |
+| Same trigger and fix | Update existing (bump version)   |
+| Partial overlap      | Update existing with new variant |
+
+---
+
+## PHASE 3: CREATE SKILL
+
+### Step 3.1: Choose Location
+
+**Project skills**: `.claude/skills/[skill-name]/SKILL.md`
+
+### Step 3.2: Write SKILL.md
+
+Use the template from Step 0.4. Ensure the description field contains specific trigger conditions.
+
+---
+
+## PHASE 4: QUALITY GATES
+
+### Step 4.1: Final Checklist
+
+Before finalizing:
+
+- [ ] Description contains specific trigger conditions
+- [ ] Solution verified to work
+- [ ] Content specific enough to be actionable
+- [ ] Content general enough to be reusable
+- [ ] No sensitive information
+
+---
+
+## EXAMPLE
+
+**Scenario**: Discovered LSP `findReferences` can find dead code by checking if functions have only 1 reference (their definition) or only test references.
+
+**Skill Created**: `.claude/skills/lsp-dead-code-finder/SKILL.md`
+
+```markdown
+---
+name: lsp-dead-code-finder
+description: |
+  Find dead/unused code using LSP findReferences. Use when: (1) user asks
+  to find dead code, (2) cleaning up codebase, (3) refactoring. Key insight:
+  function with only 1 reference (definition) or only test refs is dead code.
+---
+
+# LSP Dead Code Finder
+
+...
+```
+
+---
+
+## REMEMBER
+
+**Continuous improvement.** Every valuable discovery should benefit future sessions.
+Evaluate after significant work. Extract selectively. Create carefully.
+
+---
+
+Let's give it a spin with an ollama cloud model first then.
+
+---
+
+Yes
+
+---
+
+<task-notification>
+<task-id>bdnd1wn35</task-id>
+<tool-use-id>toolu_01CXwwZ5NEtsUszVExQ57mNt</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/372cbc1b-32c1-4d7a-b071-c206e9699dbc/tasks/bdnd1wn35.output</output-file>
+<status>completed</status>
+<summary>Background command "Run 1-cycle dry-run-llm with qwen3-coder:30b" completed (exit code 0)</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/372cbc1b-32c1-4d7a-b071-c206e9699dbc/tasks/bdnd1wn35.output
