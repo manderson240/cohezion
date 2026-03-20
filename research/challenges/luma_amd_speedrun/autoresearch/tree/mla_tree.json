@@ -7,7 +7,7 @@
       "strategy": "Minimize MLA decode geomean across 8 shapes",
       "parameters": {},
       "parent_id": null,
-      "priority": 0.34056162628811465,
+      "priority": 0.014239574134637464,
       "attempts": 0,
       "best_result_us": null,
       "stagnation_count": 0,
@@ -40,11 +40,11 @@
         "DEFAULT_SPLITS": 16
       },
       "parent_id": "root_mla",
-      "priority": 0.3235335449737089,
+      "priority": 0.16608338398760714,
       "attempts": 0,
       "best_result_us": null,
       "stagnation_count": 0,
-      "status": "active",
+      "status": "pruned",
       "children": [
         "mla_n1a",
         "mla_n1b",
@@ -52,7 +52,7 @@
         "mla_n1d",
         "n_433ee328"
       ],
-      "notes": "HIGHEST LEVERAGE \u2014 num_kv_splits hardcoded at 16/8 in current submission",
+      "notes": "HIGHEST LEVERAGE \u2014 num_kv_splits hardcoded at 16/8 in current submission [STRATEGIC PRUNE: LLM world model]",
       "attempt_history": []
     },
     "mla_n1a": {
@@ -69,15 +69,16 @@
         "DEFAULT_SPLITS": 16
       },
       "parent_id": "mla_n1",
-      "priority": 0.14339436896341679,
+      "priority": 0.15,
       "attempts": 5,
       "best_result_us": 161.53,
       "stagnation_count": 2,
-      "status": "active",
+      "status": "pruned",
       "children": [
-        "n_11afa32a"
+        "n_11afa32a",
+        "n_bf3808a3"
       ],
-      "notes": "Small batch, short seq \u2014 few splits needed",
+      "notes": "Small batch, short seq \u2014 few splits needed [STRATEGIC PRUNE: LLM world model]",
       "attempt_history": [
         {
           "result_us": 183.90364326336066,
@@ -170,16 +171,18 @@
         "DEFAULT_SPLITS": 16
       },
       "parent_id": "mla_n1",
-      "priority": 0.23301584956555227,
+      "priority": 0.05,
       "attempts": 1,
       "best_result_us": 221.54,
       "stagnation_count": 0,
-      "status": "active",
+      "status": "pruned",
       "children": [
         "n_ee469d9f",
-        "n_8f02bee6"
+        "n_8f02bee6",
+        "n_69ba4c34",
+        "n_2d76f924"
       ],
-      "notes": "Small batch, long seq \u2014 more splits to parallelize",
+      "notes": "Small batch, long seq \u2014 more splits to parallelize [STRATEGIC PRUNE: LLM world model]",
       "attempt_history": [
         {
           "result_us": 221.53733448198483,
@@ -212,14 +215,32 @@
         "DEFAULT_SPLITS": 16
       },
       "parent_id": "mla_n1",
-      "priority": 0.27244930103049186,
-      "attempts": 0,
-      "best_result_us": null,
+      "priority": 0.05,
+      "attempts": 1,
+      "best_result_us": 190.05,
       "stagnation_count": 0,
-      "status": "active",
-      "children": [],
-      "notes": "",
-      "attempt_history": []
+      "status": "pruned",
+      "children": [
+        "n_313286f1"
+      ],
+      "notes": " [STRATEGIC PRUNE: LLM world model]",
+      "attempt_history": [
+        {
+          "result_us": 190.05262852721953,
+          "parameters": {
+            "SPLITS_TABLE": {
+              "4_1024": 4,
+              "4_8192": 16,
+              "32_1024": 8,
+              "32_8192": 32,
+              "128_8192": 32
+            },
+            "DEFAULT_SPLITS": 16
+          },
+          "timestamp": "2026-03-20T16:48:34.800135",
+          "source": "template"
+        }
+      ]
     },
     "mla_n1d": {
       "id": "mla_n1d",
@@ -235,14 +256,32 @@
         "DEFAULT_SPLITS": 16
       },
       "parent_id": "mla_n1",
-      "priority": 0.255421219716086,
-      "attempts": 0,
-      "best_result_us": null,
+      "priority": 0.1,
+      "attempts": 1,
+      "best_result_us": 208.77,
       "stagnation_count": 0,
-      "status": "active",
-      "children": [],
-      "notes": "",
-      "attempt_history": []
+      "status": "pruned",
+      "children": [
+        "n_4c934f7a"
+      ],
+      "notes": " [STRATEGIC PRUNE: parent mla_n1 pruned]",
+      "attempt_history": [
+        {
+          "result_us": 208.77397747889952,
+          "parameters": {
+            "SPLITS_TABLE": {
+              "4_1024": 4,
+              "4_8192": 16,
+              "32_1024": 8,
+              "32_8192": 32,
+              "128_8192": 32
+            },
+            "DEFAULT_SPLITS": 16
+          },
+          "timestamp": "2026-03-20T16:55:48.000355",
+          "source": "template"
+        }
+      ]
     },
     "mla_n1e": {
       "id": "mla_n1e",
@@ -355,7 +394,7 @@
         "DEFAULT_SPLITS": 16
       },
       "parent_id": "root_mla",
-      "priority": 0.24441805363281238,
+      "priority": 0.019026150820426573,
       "attempts": 16,
       "best_result_us": 139.55,
       "stagnation_count": 0,
@@ -638,14 +677,33 @@
         "DEFAULT_SPLITS": 16
       },
       "parent_id": "root_mla",
-      "priority": 0.23839313840168025,
-      "attempts": 0,
-      "best_result_us": null,
+      "priority": 0.05,
+      "attempts": 1,
+      "best_result_us": 201.29,
       "stagnation_count": 0,
-      "status": "active",
-      "children": [],
-      "notes": "fast_mode=False is paradoxically faster on MI355X per COORDINATION.md \u2014 verify",
-      "attempt_history": []
+      "status": "pruned",
+      "children": [
+        "n_68584ac2"
+      ],
+      "notes": "fast_mode=False is paradoxically faster on MI355X per COORDINATION.md \u2014 verify [STRATEGIC PRUNE: LLM world model]",
+      "attempt_history": [
+        {
+          "result_us": 201.28532061816728,
+          "parameters": {
+            "FAST_MODE": true,
+            "SPLITS_TABLE": {
+              "4_1024": 4,
+              "4_8192": 16,
+              "32_1024": 8,
+              "32_8192": 32,
+              "128_8192": 32
+            },
+            "DEFAULT_SPLITS": 16
+          },
+          "timestamp": "2026-03-20T16:56:33.736167",
+          "source": "template"
+        }
+      ]
     },
     "mla_n4": {
       "id": "mla_n4",
@@ -662,21 +720,53 @@
         "DEFAULT_SPLITS": 16
       },
       "parent_id": "root_mla",
-      "priority": 0.20433697577286888,
-      "attempts": 0,
-      "best_result_us": null,
+      "priority": 0.6001624999999999,
+      "attempts": 1,
+      "best_result_us": 176.25,
       "stagnation_count": 0,
       "status": "active",
-      "children": [],
+      "children": [
+        "n_dcc244d3",
+        "n_6954981b",
+        "n_1c0c9f35",
+        "n_73d7f095",
+        "n_432f6a59",
+        "n_ca19bf13",
+        "n_6868391c",
+        "n_ee2f5998",
+        "n_7dd9256f",
+        "n_fd082834",
+        "n_0480a1bc",
+        "n_0c0fb7ae",
+        "n_0a15b1aa",
+        "n_6350d80a"
+      ],
       "notes": "kv_granularity affects memory coalescing",
-      "attempt_history": []
+      "attempt_history": [
+        {
+          "result_us": 176.2540459584196,
+          "parameters": {
+            "KV_GRANULARITY": 32,
+            "SPLITS_TABLE": {
+              "4_1024": 4,
+              "4_8192": 16,
+              "32_1024": 8,
+              "32_8192": 32,
+              "128_8192": 32
+            },
+            "DEFAULT_SPLITS": 16
+          },
+          "timestamp": "2026-03-20T16:57:08.501154",
+          "source": "template"
+        }
+      ]
     },
     "mla_n5": {
       "id": "mla_n5",
       "strategy": "Pre-compute metadata outside timed region",
       "parameters": {},
       "parent_id": "root_mla",
-      "priority": 0.17028081314405732,
+      "priority": 0.019749546953218955,
       "attempts": 0,
       "best_result_us": null,
       "stagnation_count": 0,
@@ -690,21 +780,28 @@
       "strategy": "Adaptive KV cache size",
       "parameters": {},
       "parent_id": "root_mla",
-      "priority": 0.21509155344512515,
-      "attempts": 0,
-      "best_result_us": null,
+      "priority": 0.1,
+      "attempts": 1,
+      "best_result_us": 200.69,
       "stagnation_count": 0,
-      "status": "active",
+      "status": "pruned",
       "children": [],
-      "notes": "[LLM-proposed]",
-      "attempt_history": []
+      "notes": "[LLM-proposed] [STRATEGIC PRUNE: LLM world model]",
+      "attempt_history": [
+        {
+          "result_us": 200.68603631131273,
+          "parameters": {},
+          "timestamp": "2026-03-20T16:57:01.406178",
+          "source": "template"
+        }
+      ]
     },
     "n_81c6a22e": {
       "id": "n_81c6a22e",
       "strategy": "Fused quant+GEMM for FP4",
       "parameters": {},
       "parent_id": "root_mla",
-      "priority": 0.17924296120427088,
+      "priority": 0.020788996792862058,
       "attempts": 0,
       "best_result_us": null,
       "stagnation_count": 0,
@@ -725,14 +822,28 @@
         "block_size": "dynamic"
       },
       "parent_id": "mla_n1a",
-      "priority": 0.28678873792683357,
-      "attempts": 0,
-      "best_result_us": null,
+      "priority": 0.15,
+      "attempts": 1,
+      "best_result_us": 182.16,
       "stagnation_count": 0,
-      "status": "active",
+      "status": "pruned",
       "children": [],
-      "notes": "[LLM-proposed]",
-      "attempt_history": []
+      "notes": "[LLM-proposed] [STRATEGIC PRUNE: LLM world model]",
+      "attempt_history": [
+        {
+          "result_us": 182.16279756690878,
+          "parameters": {
+            "splits_range": [
+              1,
+              24
+            ],
+            "wavefront_tuning": true,
+            "block_size": "dynamic"
+          },
+          "timestamp": "2026-03-20T16:44:06.199879",
+          "source": "template"
+        }
+      ]
     },
     "n_433ee328": {
       "id": "n_433ee328",
@@ -747,13 +858,13 @@
         "l2_block_size": 65536
       },
       "parent_id": "mla_n1",
-      "priority": 0.23301584956555227,
+      "priority": 0.11961684165312429,
       "attempts": 0,
       "best_result_us": null,
       "stagnation_count": 0,
-      "status": "active",
+      "status": "pruned",
       "children": [],
-      "notes": "[LLM-proposed]",
+      "notes": "[LLM-proposed] [STRATEGIC PRUNE: parent mla_n1 pruned]",
       "attempt_history": []
     },
     "n_ee469d9f": {
@@ -771,14 +882,31 @@
         "split_k": 16
       },
       "parent_id": "mla_n1b",
-      "priority": 0.26886444180640634,
-      "attempts": 0,
-      "best_result_us": null,
+      "priority": 0.028499999999999998,
+      "attempts": 1,
+      "best_result_us": 193.35,
       "stagnation_count": 0,
-      "status": "active",
+      "status": "pruned",
       "children": [],
-      "notes": "[LLM-proposed]",
-      "attempt_history": []
+      "notes": "[LLM-proposed] [STRATEGIC PRUNE: parent mla_n1b pruned]",
+      "attempt_history": [
+        {
+          "result_us": 193.3508775903252,
+          "parameters": {
+            "tile_m": [
+              64,
+              128
+            ],
+            "tile_n": [
+              128,
+              256
+            ],
+            "split_k": 16
+          },
+          "timestamp": "2026-03-20T16:53:52.503944",
+          "source": "template"
+        }
+      ]
     },
     "n_8f02bee6": {
       "id": "n_8f02bee6",
@@ -795,13 +923,13 @@
         "split_k": 16
       },
       "parent_id": "mla_n1b",
-      "priority": 0.23301584956555227,
+      "priority": 0.12591246489802557,
       "attempts": 0,
       "best_result_us": null,
       "stagnation_count": 0,
-      "status": "active",
+      "status": "pruned",
       "children": [],
-      "notes": "[LLM-proposed]",
+      "notes": "[LLM-proposed] [STRATEGIC PRUNE: parent mla_n1b pruned]",
       "attempt_history": []
     },
     "n_ee6633bc": {
@@ -809,16 +937,16 @@
       "strategy": "Beat 145.4\u00b5s (10% below 161.5\u00b5s plateau)",
       "parameters": {},
       "parent_id": "root_mla",
-      "priority": 0.19805700089329445,
+      "priority": 0.1,
       "attempts": 1,
       "best_result_us": 198.54,
       "stagnation_count": 0,
-      "status": "active",
+      "status": "pruned",
       "children": [
         "n_3f4640c9",
         "n_53dcf987"
       ],
-      "notes": "[R-Zero challenger]",
+      "notes": "[R-Zero challenger] [STRATEGIC PRUNE: LLM world model]",
       "attempt_history": [
         {
           "result_us": 198.54102353515663,
@@ -840,14 +968,30 @@
         "num_kv_splits": 1
       },
       "parent_id": "n_ee6633bc",
-      "priority": 0.2860823346236475,
-      "attempts": 0,
-      "best_result_us": null,
+      "priority": 0.05,
+      "attempts": 1,
+      "best_result_us": 216.62,
       "stagnation_count": 0,
-      "status": "active",
-      "children": [],
-      "notes": "[LLM-proposed]",
-      "attempt_history": []
+      "status": "pruned",
+      "children": [
+        "n_ed3ae0ce"
+      ],
+      "notes": "[LLM-proposed] [STRATEGIC PRUNE: parent n_ee6633bc pruned]",
+      "attempt_history": [
+        {
+          "result_us": 216.6152342389743,
+          "parameters": {
+            "wavefront_size": 64,
+            "tile_m": 128,
+            "tile_n": 64,
+            "tile_k": 128,
+            "unroll_k": 4,
+            "num_kv_splits": 1
+          },
+          "timestamp": "2026-03-20T16:45:13.302688",
+          "source": "template"
+        }
+      ]
     },
     "n_53dcf987": {
       "id": "n_53dcf987",
@@ -860,13 +1004,13 @@
         "max_split": 32
       },
       "parent_id": "n_ee6633bc",
-      "priority": 0.27287853456409455,
+      "priority": 0.222261271893296,
       "attempts": 0,
       "best_result_us": null,
       "stagnation_count": 0,
-      "status": "active",
+      "status": "pruned",
       "children": [],
-      "notes": "[LLM-proposed]",
+      "notes": "[LLM-proposed] [STRATEGIC PRUNE: parent n_ee6633bc pruned]",
       "attempt_history": []
     },
     "n_e598d2a3": {
@@ -874,7 +1018,7 @@
       "strategy": "FP8 KV cache + wavefront-aware tiling (64x256 vs 128x128) with split=1 for bs=4,kv=1024",
       "parameters": {},
       "parent_id": "mla_n2",
-      "priority": 0.15475618749999998,
+      "priority": 0.01794896638617014,
       "attempts": 2,
       "best_result_us": 193.07,
       "stagnation_count": 1,
@@ -901,13 +1045,486 @@
       "strategy": "Beat 125.6\u00b5s (10% below 139.6\u00b5s plateau)",
       "parameters": {},
       "parent_id": "root_mla",
-      "priority": 0.6516049999999999,
+      "priority": 0.1,
+      "attempts": 1,
+      "best_result_us": 217.03,
+      "stagnation_count": 0,
+      "status": "pruned",
+      "children": [],
+      "notes": "[R-Zero challenger] [STRATEGIC PRUNE: LLM world model]",
+      "attempt_history": [
+        {
+          "result_us": 217.02620131235776,
+          "parameters": {},
+          "timestamp": "2026-03-20T16:43:05.500377",
+          "source": "template"
+        }
+      ]
+    },
+    "n_bf3808a3": {
+      "id": "n_bf3808a3",
+      "strategy": "bs=4,kv=1024: tile_size=64x128 + split=8 baseline + unrolled load loop for MLA decode (wavefront-aware)",
+      "parameters": {},
+      "parent_id": "mla_n1a",
+      "priority": 0.2,
+      "attempts": 1,
+      "best_result_us": 176.79,
+      "stagnation_count": 0,
+      "status": "pruned",
+      "children": [],
+      "notes": "[LLM-proposed] [STRATEGIC PRUNE: parent mla_n1a pruned]",
+      "attempt_history": [
+        {
+          "result_us": 176.7939932744701,
+          "parameters": {},
+          "timestamp": "2026-03-20T16:44:24.199964",
+          "source": "template"
+        }
+      ]
+    },
+    "n_ed3ae0ce": {
+      "id": "n_ed3ae0ce",
+      "strategy": "Wavefront-aware tiling + split=2 baseline with unrolled load loop and coalesced KV load for MLA decode (bs=4, kv=1024)",
+      "parameters": {},
+      "parent_id": "n_3f4640c9",
+      "priority": 0.05,
+      "attempts": 1,
+      "best_result_us": 228.57,
+      "stagnation_count": 0,
+      "status": "pruned",
+      "children": [
+        "n_ff65a26b"
+      ],
+      "notes": "[LLM-proposed] [STRATEGIC PRUNE: parent n_3f4640c9 pruned]",
+      "attempt_history": [
+        {
+          "result_us": 228.57308296431577,
+          "parameters": {},
+          "timestamp": "2026-03-20T16:46:28.503870",
+          "source": "template"
+        }
+      ]
+    },
+    "n_ff65a26b": {
+      "id": "n_ff65a26b",
+      "strategy": "Wavefront-aware tiling + split=2 with vectorized FP16 load/store (float4) and L2 cache blocking (32KB) for bs=4,kv=1024",
+      "parameters": {},
+      "parent_id": "n_ed3ae0ce",
+      "priority": 0.15,
+      "attempts": 1,
+      "best_result_us": 179.86,
+      "stagnation_count": 0,
+      "status": "pruned",
+      "children": [],
+      "notes": "[LLM-proposed] [STRATEGIC PRUNE: parent n_ed3ae0ce pruned]",
+      "attempt_history": [
+        {
+          "result_us": 179.85837534433722,
+          "parameters": {},
+          "timestamp": "2026-03-20T16:47:00.700025",
+          "source": "template"
+        }
+      ]
+    },
+    "n_313286f1": {
+      "id": "n_313286f1",
+      "strategy": "bs=32,kv=1024: tile_size + split co-tuning (64x128/128x64/96x96) with wavefront alignment",
+      "parameters": {},
+      "parent_id": "mla_n1c",
+      "priority": 0.02,
+      "attempts": 1,
+      "best_result_us": 206.21,
+      "stagnation_count": 0,
+      "status": "pruned",
+      "children": [],
+      "notes": "[LLM-proposed] [STRATEGIC PRUNE: LLM world model]",
+      "attempt_history": [
+        {
+          "result_us": 206.21416341906146,
+          "parameters": {},
+          "timestamp": "2026-03-20T16:49:17.499465",
+          "source": "template"
+        }
+      ]
+    },
+    "n_69ba4c34": {
+      "id": "n_69ba4c34",
+      "strategy": "bs=4,kv=8192: tile_size + split sweep (64x128, 128x64, 64x256, 128x128) \u00d7 splits 8-32 (step=4)",
+      "parameters": {},
+      "parent_id": "mla_n1b",
+      "priority": 0.15,
+      "attempts": 1,
+      "best_result_us": 181.77,
+      "stagnation_count": 0,
+      "status": "pruned",
+      "children": [],
+      "notes": "[LLM-proposed] [STRATEGIC PRUNE: parent mla_n1b pruned]",
+      "attempt_history": [
+        {
+          "result_us": 181.7716829525334,
+          "parameters": {},
+          "timestamp": "2026-03-20T16:55:01.902446",
+          "source": "template"
+        }
+      ]
+    },
+    "n_2d76f924": {
+      "id": "n_2d76f924",
+      "strategy": "bs=4,kv=8192: tile_size + split sweep with extended ranges (64x128,128x64,64x256,128x128,256x64,128x256) \u00d7 splits 4-40 (step=2)",
+      "parameters": {},
+      "parent_id": "mla_n1b",
+      "priority": 0.05,
+      "attempts": 1,
+      "best_result_us": 195.34,
+      "stagnation_count": 0,
+      "status": "pruned",
+      "children": [],
+      "notes": "[LLM-proposed] [STRATEGIC PRUNE: parent mla_n1b pruned]",
+      "attempt_history": [
+        {
+          "result_us": 195.34036112270434,
+          "parameters": {},
+          "timestamp": "2026-03-20T16:55:23.300503",
+          "source": "template"
+        }
+      ]
+    },
+    "n_4c934f7a": {
+      "id": "n_4c934f7a",
+      "strategy": "bs=32,kv=8192: sweep splits 8-64 with wavefront-aware tiling (32x512, 64x256, 128x128) and split=1 for small kv",
+      "parameters": {},
+      "parent_id": "mla_n1d",
+      "priority": 0.6,
+      "attempts": 0,
+      "best_result_us": null,
+      "stagnation_count": 0,
+      "status": "pruned",
+      "children": [],
+      "notes": "[LLM-proposed] [STRATEGIC PRUNE: parent mla_n1d pruned]",
+      "attempt_history": []
+    },
+    "n_68584ac2": {
+      "id": "n_68584ac2",
+      "strategy": "Wavefront-aware tiling + split=1 + unrolled load loop for bs=4,kv=1024 (tile_size=64x128, baseline from prior attempt)",
+      "parameters": {},
+      "parent_id": "mla_n3",
+      "priority": 0.25,
+      "attempts": 0,
+      "best_result_us": null,
+      "stagnation_count": 0,
+      "status": "pruned",
+      "children": [],
+      "notes": "[LLM-proposed] [STRATEGIC PRUNE: parent mla_n3 pruned]",
+      "attempt_history": []
+    },
+    "n_dcc244d3": {
+      "id": "n_dcc244d3",
+      "strategy": "Wavefront-aware tiling + split=1 + unrolled load loop for bs=4,kv=1024 (tile_size=64x128, baseline from prior attempt)",
+      "parameters": {},
+      "parent_id": "mla_n4",
+      "priority": 0.04160843596827506,
+      "attempts": 1,
+      "best_result_us": 188.73,
+      "stagnation_count": 0,
+      "status": "active",
+      "children": [],
+      "notes": "[LLM-proposed]",
+      "attempt_history": [
+        {
+          "result_us": 188.72736455515428,
+          "parameters": {},
+          "timestamp": "2026-03-20T16:58:29.503130",
+          "source": "template"
+        }
+      ]
+    },
+    "n_6954981b": {
+      "id": "n_6954981b",
+      "strategy": "Wavefront-aware tiling + split=2 + unrolled load loop for bs=4,kv=1024 (tile_size=64x128, double split vs baseline split=1)",
+      "parameters": {},
+      "parent_id": "mla_n4",
+      "priority": 0.3,
+      "attempts": 1,
+      "best_result_us": 195.82,
+      "stagnation_count": 0,
+      "status": "pruned",
+      "children": [],
+      "notes": "[LLM-proposed] [STRATEGIC PRUNE: LLM world model]",
+      "attempt_history": [
+        {
+          "result_us": 195.82327549662057,
+          "parameters": {},
+          "timestamp": "2026-03-20T16:59:10.300618",
+          "source": "template"
+        }
+      ]
+    },
+    "n_1c0c9f35": {
+      "id": "n_1c0c9f35",
+      "strategy": "Wavefront-aware tiling + split=1 + unrolled load loop for bs=4,kv=1024 (tile_size=64x128, baseline from prior attempt) with vectorized load/store for FP8 KV cache",
+      "parameters": {},
+      "parent_id": "mla_n4",
+      "priority": 0.05403600876626367,
+      "attempts": 1,
+      "best_result_us": 220.09,
+      "stagnation_count": 0,
+      "status": "active",
+      "children": [],
+      "notes": "[LLM-proposed]",
+      "attempt_history": [
+        {
+          "result_us": 220.08547622883418,
+          "parameters": {},
+          "timestamp": "2026-03-20T17:10:17.800034",
+          "source": "template"
+        }
+      ]
+    },
+    "n_73d7f095": {
+      "id": "n_73d7f095",
+      "strategy": "Wavefront-aware tiling + split=2 + unrolled load loop + vectorized FP8 load for bs=4,kv=1024 (tile_size=64x128, double split vs baseline split=1)",
+      "parameters": {},
+      "parent_id": "mla_n4",
+      "priority": 0.15,
+      "attempts": 1,
+      "best_result_us": 217.75,
+      "stagnation_count": 0,
+      "status": "pruned",
+      "children": [],
+      "notes": "[LLM-proposed] [STRATEGIC PRUNE: LLM world model]",
+      "attempt_history": [
+        {
+          "result_us": 217.75477983256062,
+          "parameters": {},
+          "timestamp": "2026-03-20T17:11:27.701033",
+          "source": "template"
+        }
+      ]
+    },
+    "n_432f6a59": {
+      "id": "n_432f6a59",
+      "strategy": "Wavefront-aware tiling + split=1 + unrolled load loop + FP8 KV cache with 128x128 tile (no vectorization) for bs=4,kv=1024 \u2014 isolate impact of vectorization",
+      "parameters": {},
+      "parent_id": "mla_n4",
+      "priority": 0.2,
+      "attempts": 1,
+      "best_result_us": 203.85,
+      "stagnation_count": 0,
+      "status": "pruned",
+      "children": [],
+      "notes": "[LLM-proposed] [STRATEGIC PRUNE: LLM world model]",
+      "attempt_history": [
+        {
+          "result_us": 203.84809415385573,
+          "parameters": {},
+          "timestamp": "2026-03-20T17:15:28.403348",
+          "source": "template"
+        }
+      ]
+    },
+    "n_ca19bf13": {
+      "id": "n_ca19bf13",
+      "strategy": "Wavefront-aware tiling + split=1 + unrolled load loop + FP8 KV cache with 64x256 tile (vectorized loads) for bs=4,kv=1024 \u2014 isolate impact of tile aspect ratio",
+      "parameters": {},
+      "parent_id": "mla_n4",
+      "priority": 0.3,
+      "attempts": 1,
+      "best_result_us": 218.61,
+      "stagnation_count": 0,
+      "status": "pruned",
+      "children": [],
+      "notes": "[LLM-proposed] [STRATEGIC PRUNE: LLM world model]",
+      "attempt_history": [
+        {
+          "result_us": 218.60627526183936,
+          "parameters": {},
+          "timestamp": "2026-03-20T17:12:18.166187",
+          "source": "template"
+        }
+      ]
+    },
+    "n_6868391c": {
+      "id": "n_6868391c",
+      "strategy": "FP8 KV cache + wavefront-aware tiling (128x64 vs 64x128) + split=2 for bs=4,kv=1024 \u2014 test transpose-friendly tiling to improve L2 reuse",
+      "parameters": {},
+      "parent_id": "mla_n4",
+      "priority": 0.3,
+      "attempts": 1,
+      "best_result_us": 219.93,
+      "stagnation_count": 0,
+      "status": "pruned",
+      "children": [],
+      "notes": "[LLM-proposed] [STRATEGIC PRUNE: LLM world model]",
+      "attempt_history": [
+        {
+          "result_us": 219.93209144931978,
+          "parameters": {},
+          "timestamp": "2026-03-20T17:14:23.202675",
+          "source": "template"
+        }
+      ]
+    },
+    "n_ee2f5998": {
+      "id": "n_ee2f5998",
+      "strategy": "Wavefront-aware tiling + split=2 + unrolled load loop + FP8 KV cache with 128x64 tile (vectorized loads) for bs=4,kv=1024 \u2014 test transpose-friendly tiling to improve L2 reuse (complementing 64x256)",
+      "parameters": {},
+      "parent_id": "mla_n4",
+      "priority": 0.2,
+      "attempts": 1,
+      "best_result_us": 206.68,
+      "stagnation_count": 0,
+      "status": "pruned",
+      "children": [],
+      "notes": "[LLM-proposed] [STRATEGIC PRUNE: LLM world model]",
+      "attempt_history": [
+        {
+          "result_us": 206.67747457534347,
+          "parameters": {},
+          "timestamp": "2026-03-20T17:12:36.102287",
+          "source": "template"
+        }
+      ]
+    },
+    "n_7dd9256f": {
+      "id": "n_7dd9256f",
+      "strategy": "Wavefront-aware tiling + split=2 + unrolled load loop + FP8 KV cache with 64x256 tile (vectorized loads) for bs=4,kv=1024 \u2014 prioritize L2 cache blocking over transpose-friendliness",
+      "parameters": {},
+      "parent_id": "mla_n4",
+      "priority": 0.15,
+      "attempts": 1,
+      "best_result_us": 176.09,
+      "stagnation_count": 0,
+      "status": "pruned",
+      "children": [],
+      "notes": "[LLM-proposed] [STRATEGIC PRUNE: LLM world model]",
+      "attempt_history": [
+        {
+          "result_us": 176.0949257132961,
+          "parameters": {},
+          "timestamp": "2026-03-20T17:12:46.800414",
+          "source": "template"
+        }
+      ]
+    },
+    "n_fd082834": {
+      "id": "n_fd082834",
+      "strategy": "Wavefront-aware tiling + split=2 + unrolled load loop + FP8 KV cache (64x256 tile) + L1 cache blocking (tile prefetching) for bs=4,kv=1024 \u2014 reduce L1 misses by reordering loads",
+      "parameters": {},
+      "parent_id": "mla_n4",
+      "priority": 0.19902612938671868,
+      "attempts": 1,
+      "best_result_us": 197.66,
+      "stagnation_count": 0,
+      "status": "active",
+      "children": [],
+      "notes": "[LLM-proposed]",
+      "attempt_history": [
+        {
+          "result_us": 197.6607860812245,
+          "parameters": {},
+          "timestamp": "2026-03-20T17:13:02.100774",
+          "source": "template"
+        }
+      ]
+    },
+    "n_0480a1bc": {
+      "id": "n_0480a1bc",
+      "strategy": "Wavefront-aware tiling + split=1 + unrolled load loop + FP8 KV cache (64x256 tile) + vectorized load/store for FP8 (e.g., v2 or v4) for bs=4,kv=1024 \u2014 test vectorization impact on optimal tiling",
+      "parameters": {},
+      "parent_id": "mla_n4",
+      "priority": 0.3,
+      "attempts": 1,
+      "best_result_us": 184.12,
+      "stagnation_count": 0,
+      "status": "pruned",
+      "children": [
+        "n_bb0410f0"
+      ],
+      "notes": "[LLM-proposed] [STRATEGIC PRUNE: LLM world model]",
+      "attempt_history": [
+        {
+          "result_us": 184.12283415202032,
+          "parameters": {},
+          "timestamp": "2026-03-20T17:16:36.202259",
+          "source": "template"
+        }
+      ]
+    },
+    "n_bb0410f0": {
+      "id": "n_bb0410f0",
+      "strategy": "Wavefront-aware tiling + split=1 + unrolled load loop + FP8 KV cache (64x256 tile) + vectorized load/store (v4) + L1 prefetching + wavefront partitioning for bs=4,kv=1024 \u2014 isolate vectorization vs prefetching interaction",
+      "parameters": {},
+      "parent_id": "n_0480a1bc",
+      "priority": 0.15,
+      "attempts": 1,
+      "best_result_us": 214.33,
+      "stagnation_count": 0,
+      "status": "pruned",
+      "children": [],
+      "notes": "[LLM-proposed] [STRATEGIC PRUNE: parent n_0480a1bc pruned]",
+      "attempt_history": [
+        {
+          "result_us": 214.3258652970426,
+          "parameters": {},
+          "timestamp": "2026-03-20T17:16:50.900694",
+          "source": "template"
+        }
+      ]
+    },
+    "n_0c0fb7ae": {
+      "id": "n_0c0fb7ae",
+      "strategy": "Wavefront-aware tiling + split=1 + unrolled load loop + FP8 KV cache (64x256 tile) + vectorized load/store (v4) for bs=4,kv=1024 \u2014 omit L1 prefetching and wavefront partitioning to isolate prefetching overhead",
+      "parameters": {},
+      "parent_id": "mla_n4",
+      "priority": 0.1,
+      "attempts": 1,
+      "best_result_us": 211.18,
+      "stagnation_count": 0,
+      "status": "pruned",
+      "children": [],
+      "notes": "[LLM-proposed] [STRATEGIC PRUNE: LLM world model]",
+      "attempt_history": [
+        {
+          "result_us": 211.18071655893206,
+          "parameters": {},
+          "timestamp": "2026-03-20T17:16:57.904225",
+          "source": "template"
+        }
+      ]
+    },
+    "n_0a15b1aa": {
+      "id": "n_0a15b1aa",
+      "strategy": "Wavefront-aware tiling + split=1 + unrolled load loop + FP8 KV cache (64x256 tile) + L1 cache blocking (tile prefetching) + wavefront partitioning for bs=4,kv=1024 \u2014 reintroduce wavefront partitioning after isolating its overhead",
+      "parameters": {},
+      "parent_id": "mla_n4",
+      "priority": 0.2,
+      "attempts": 1,
+      "best_result_us": 222.96,
+      "stagnation_count": 0,
+      "status": "pruned",
+      "children": [],
+      "notes": "[LLM-proposed] [STRATEGIC PRUNE: LLM world model]",
+      "attempt_history": [
+        {
+          "result_us": 222.9614491861123,
+          "parameters": {},
+          "timestamp": "2026-03-20T17:17:04.799725",
+          "source": "template"
+        }
+      ]
+    },
+    "n_6350d80a": {
+      "id": "n_6350d80a",
+      "strategy": "Wavefront-aware tiling + split=1 + unrolled load loop + FP8 KV cache (64x256 tile) + L1 cache blocking \u2014 drop wavefront partitioning, instead tune L1 tile prefetching stride and vector width for KV load coherence",
+      "parameters": {},
+      "parent_id": "mla_n4",
+      "priority": 0.7124999999999999,
       "attempts": 0,
       "best_result_us": null,
       "stagnation_count": 0,
       "status": "active",
       "children": [],
-      "notes": "[R-Zero challenger]",
+      "notes": "[LLM-proposed]",
       "attempt_history": []
     }
   }

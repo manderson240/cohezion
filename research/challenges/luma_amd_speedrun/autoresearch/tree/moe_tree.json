@@ -7,11 +7,11 @@
       "strategy": "Minimize fused_moe geomean across 7 shapes",
       "parameters": {},
       "parent_id": null,
-      "priority": 0.34056162628811465,
-      "attempts": 0,
-      "best_result_us": null,
-      "stagnation_count": 0,
-      "status": "active",
+      "priority": 0.30260709570638983,
+      "attempts": 83,
+      "best_result_us": 9.48,
+      "stagnation_count": 7,
+      "status": "exhausted",
       "children": [
         "moe_n1",
         "moe_n2",
@@ -22,10 +22,511 @@
         "n_67bb9a8f",
         "n_d04213f0",
         "n_d0029ba8",
-        "n_63bcd7d1"
+        "n_63bcd7d1",
+        "n_7ba66ff2",
+        "n_2504e948"
       ],
-      "notes": "",
-      "attempt_history": []
+      "notes": " [Exhausted after 83 attempts]",
+      "attempt_history": [
+        {
+          "result_us": 220.37895079043665,
+          "parameters": {},
+          "timestamp": "2026-03-20T16:42:17.900186",
+          "source": "template"
+        },
+        {
+          "result_us": 200.80374831619153,
+          "parameters": {},
+          "timestamp": "2026-03-20T16:42:47.899201",
+          "source": "template"
+        },
+        {
+          "result_us": 201.7362928610995,
+          "parameters": {},
+          "timestamp": "2026-03-20T16:43:55.802076",
+          "source": "template"
+        },
+        {
+          "result_us": 209.21411604353918,
+          "parameters": {},
+          "timestamp": "2026-03-20T16:44:13.801406",
+          "source": "template"
+        },
+        {
+          "result_us": 190.3806534442503,
+          "parameters": {},
+          "timestamp": "2026-03-20T16:44:30.901506",
+          "source": "template"
+        },
+        {
+          "result_us": 198.37718165774064,
+          "parameters": {},
+          "timestamp": "2026-03-20T16:44:50.299465",
+          "source": "template"
+        },
+        {
+          "result_us": 206.19819895388775,
+          "parameters": {},
+          "timestamp": "2026-03-20T16:45:28.199511",
+          "source": "template"
+        },
+        {
+          "result_us": 173.25516290658385,
+          "parameters": {},
+          "timestamp": "2026-03-20T16:45:56.699513",
+          "source": "template"
+        },
+        {
+          "result_us": 192.43495793945752,
+          "parameters": {},
+          "timestamp": "2026-03-20T16:47:43.598834",
+          "source": "template"
+        },
+        {
+          "result_us": 149.04888867785206,
+          "parameters": {},
+          "timestamp": "2026-03-20T16:48:25.999778",
+          "source": "template"
+        },
+        {
+          "result_us": 138.6588033393501,
+          "parameters": {},
+          "timestamp": "2026-03-20T16:48:55.699299",
+          "source": "template"
+        },
+        {
+          "result_us": 124.46909424145797,
+          "parameters": {},
+          "timestamp": "2026-03-20T16:49:26.901590",
+          "source": "template"
+        },
+        {
+          "result_us": 136.43735986734785,
+          "parameters": {},
+          "timestamp": "2026-03-20T16:49:40.942152",
+          "source": "template"
+        },
+        {
+          "result_us": 116.2044629893924,
+          "parameters": {},
+          "timestamp": "2026-03-20T16:50:10.999620",
+          "source": "template"
+        },
+        {
+          "result_us": 133.41847006371765,
+          "parameters": {},
+          "timestamp": "2026-03-20T16:50:27.898869",
+          "source": "template"
+        },
+        {
+          "result_us": 129.4130155064575,
+          "parameters": {},
+          "timestamp": "2026-03-20T16:50:51.700921",
+          "source": "template"
+        },
+        {
+          "result_us": 131.76552841945866,
+          "parameters": {},
+          "timestamp": "2026-03-20T16:51:13.173984",
+          "source": "template"
+        },
+        {
+          "result_us": 130.83921804562186,
+          "parameters": {},
+          "timestamp": "2026-03-20T16:51:51.298990",
+          "source": "template"
+        },
+        {
+          "result_us": 109.638562491586,
+          "parameters": {},
+          "timestamp": "2026-03-20T16:52:54.201165",
+          "source": "template"
+        },
+        {
+          "result_us": 120.27050349247976,
+          "parameters": {},
+          "timestamp": "2026-03-20T16:53:08.699453",
+          "source": "template"
+        },
+        {
+          "result_us": 110.55858650933328,
+          "parameters": {},
+          "timestamp": "2026-03-20T16:53:25.099878",
+          "source": "template"
+        },
+        {
+          "result_us": 125.16861957318143,
+          "parameters": {},
+          "timestamp": "2026-03-20T16:53:59.599713",
+          "source": "template"
+        },
+        {
+          "result_us": 120.94369148944998,
+          "parameters": {},
+          "timestamp": "2026-03-20T16:54:16.400000",
+          "source": "template"
+        },
+        {
+          "result_us": 116.9913396770665,
+          "parameters": {},
+          "timestamp": "2026-03-20T16:54:31.199339",
+          "source": "template"
+        },
+        {
+          "result_us": 123.14331004700725,
+          "parameters": {},
+          "timestamp": "2026-03-20T16:54:37.799518",
+          "source": "template"
+        },
+        {
+          "result_us": 96.19107541139245,
+          "parameters": {},
+          "timestamp": "2026-03-20T16:55:30.303142",
+          "source": "template"
+        },
+        {
+          "result_us": 84.47140493552088,
+          "parameters": {},
+          "timestamp": "2026-03-20T16:55:54.457265",
+          "source": "template"
+        },
+        {
+          "result_us": 86.53494720711635,
+          "parameters": {},
+          "timestamp": "2026-03-20T16:56:05.331443",
+          "source": "template"
+        },
+        {
+          "result_us": 77.73703362776193,
+          "parameters": {},
+          "timestamp": "2026-03-20T16:56:23.901441",
+          "source": "template"
+        },
+        {
+          "result_us": 74.01065961321493,
+          "parameters": {},
+          "timestamp": "2026-03-20T16:56:40.501695",
+          "source": "template"
+        },
+        {
+          "result_us": 67.67001820423013,
+          "parameters": {},
+          "timestamp": "2026-03-20T16:56:50.999242",
+          "source": "template"
+        },
+        {
+          "result_us": 66.63787481084199,
+          "parameters": {},
+          "timestamp": "2026-03-20T16:57:14.998953",
+          "source": "template"
+        },
+        {
+          "result_us": 60.53741582503168,
+          "parameters": {},
+          "timestamp": "2026-03-20T16:57:32.901387",
+          "source": "template"
+        },
+        {
+          "result_us": 62.69563734483237,
+          "parameters": {},
+          "timestamp": "2026-03-20T16:57:40.002715",
+          "source": "template"
+        },
+        {
+          "result_us": 59.52924039328886,
+          "parameters": {},
+          "timestamp": "2026-03-20T16:57:48.736685",
+          "source": "template"
+        },
+        {
+          "result_us": 51.12165741522164,
+          "parameters": {},
+          "timestamp": "2026-03-20T16:57:58.599227",
+          "source": "template"
+        },
+        {
+          "result_us": 57.20520012624995,
+          "parameters": {},
+          "timestamp": "2026-03-20T16:58:06.299884",
+          "source": "template"
+        },
+        {
+          "result_us": 54.03601781062969,
+          "parameters": {},
+          "timestamp": "2026-03-20T16:58:18.099692",
+          "source": "template"
+        },
+        {
+          "result_us": 55.888301573730445,
+          "parameters": {},
+          "timestamp": "2026-03-20T16:58:36.276702",
+          "source": "template"
+        },
+        {
+          "result_us": 45.51957829660935,
+          "parameters": {},
+          "timestamp": "2026-03-20T16:59:02.399801",
+          "source": "template"
+        },
+        {
+          "result_us": 41.4475925109239,
+          "parameters": {},
+          "timestamp": "2026-03-20T16:59:17.402131",
+          "source": "template"
+        },
+        {
+          "result_us": 39.768880543746306,
+          "parameters": {},
+          "timestamp": "2026-03-20T16:59:25.199572",
+          "source": "template"
+        },
+        {
+          "result_us": 42.95772462554094,
+          "parameters": {},
+          "timestamp": "2026-03-20T16:59:33.099534",
+          "source": "template"
+        },
+        {
+          "result_us": 36.011679085037535,
+          "parameters": {},
+          "timestamp": "2026-03-20T16:59:42.299633",
+          "source": "template"
+        },
+        {
+          "result_us": 38.2670829180944,
+          "parameters": {},
+          "timestamp": "2026-03-20T16:59:49.999900",
+          "source": "template"
+        },
+        {
+          "result_us": 34.952242834537294,
+          "parameters": {},
+          "timestamp": "2026-03-20T16:59:59.001413",
+          "source": "template"
+        },
+        {
+          "result_us": 32.55417167642274,
+          "parameters": {},
+          "timestamp": "2026-03-20T17:00:07.799676",
+          "source": "template"
+        },
+        {
+          "result_us": 32.700135727277235,
+          "parameters": {},
+          "timestamp": "2026-03-20T17:00:17.400652",
+          "source": "template"
+        },
+        {
+          "result_us": 33.18285325689893,
+          "parameters": {},
+          "timestamp": "2026-03-20T17:00:26.899676",
+          "source": "template"
+        },
+        {
+          "result_us": 28.654068774965634,
+          "parameters": {},
+          "timestamp": "2026-03-20T17:00:37.899387",
+          "source": "template"
+        },
+        {
+          "result_us": 24.826120568731774,
+          "parameters": {},
+          "timestamp": "2026-03-20T17:00:48.703844",
+          "source": "template"
+        },
+        {
+          "result_us": 22.37605119298077,
+          "parameters": {},
+          "timestamp": "2026-03-20T17:01:04.801559",
+          "source": "template"
+        },
+        {
+          "result_us": 23.234825095542,
+          "parameters": {},
+          "timestamp": "2026-03-20T17:01:13.699793",
+          "source": "template"
+        },
+        {
+          "result_us": 23.008111797684546,
+          "parameters": {},
+          "timestamp": "2026-03-20T17:01:22.799991",
+          "source": "template"
+        },
+        {
+          "result_us": 20.73783188312173,
+          "parameters": {},
+          "timestamp": "2026-03-20T17:01:31.699970",
+          "source": "template"
+        },
+        {
+          "result_us": 22.225455744140326,
+          "parameters": {},
+          "timestamp": "2026-03-20T17:01:44.401571",
+          "source": "template"
+        },
+        {
+          "result_us": 19.816391983061965,
+          "parameters": {},
+          "timestamp": "2026-03-20T17:01:53.299697",
+          "source": "template"
+        },
+        {
+          "result_us": 20.025424886831953,
+          "parameters": {},
+          "timestamp": "2026-03-20T17:02:02.299582",
+          "source": "template"
+        },
+        {
+          "result_us": 18.69342040301688,
+          "parameters": {},
+          "timestamp": "2026-03-20T17:02:11.200315",
+          "source": "template"
+        },
+        {
+          "result_us": 18.22536398986503,
+          "parameters": {},
+          "timestamp": "2026-03-20T17:02:18.999678",
+          "source": "template"
+        },
+        {
+          "result_us": 18.1914671002798,
+          "parameters": {},
+          "timestamp": "2026-03-20T17:02:28.701229",
+          "source": "template"
+        },
+        {
+          "result_us": 18.304187070174457,
+          "parameters": {},
+          "timestamp": "2026-03-20T17:02:36.899312",
+          "source": "template"
+        },
+        {
+          "result_us": 18.450866944179776,
+          "parameters": {},
+          "timestamp": "2026-03-20T17:02:45.299495",
+          "source": "template"
+        },
+        {
+          "result_us": 20.045235346869873,
+          "parameters": {},
+          "timestamp": "2026-03-20T17:02:51.222151",
+          "source": "template"
+        },
+        {
+          "result_us": 15.728126834866668,
+          "parameters": {},
+          "timestamp": "2026-03-20T17:03:02.901222",
+          "source": "template"
+        },
+        {
+          "result_us": 15.997535477718548,
+          "parameters": {},
+          "timestamp": "2026-03-20T17:03:13.602260",
+          "source": "template"
+        },
+        {
+          "result_us": 13.462669467867006,
+          "parameters": {},
+          "timestamp": "2026-03-20T17:03:22.699747",
+          "source": "template"
+        },
+        {
+          "result_us": 12.712284642849617,
+          "parameters": {},
+          "timestamp": "2026-03-20T17:03:30.899236",
+          "source": "template"
+        },
+        {
+          "result_us": 12.670139446461528,
+          "parameters": {},
+          "timestamp": "2026-03-20T17:03:47.199658",
+          "source": "template"
+        },
+        {
+          "result_us": 13.344813931169277,
+          "parameters": {},
+          "timestamp": "2026-03-20T17:04:04.099231",
+          "source": "template"
+        },
+        {
+          "result_us": 12.11403696133768,
+          "parameters": {},
+          "timestamp": "2026-03-20T17:04:17.201834",
+          "source": "template"
+        },
+        {
+          "result_us": 11.281381078216626,
+          "parameters": {},
+          "timestamp": "2026-03-20T17:04:43.000562",
+          "source": "template"
+        },
+        {
+          "result_us": 11.972899772318806,
+          "parameters": {},
+          "timestamp": "2026-03-20T17:05:01.167557",
+          "source": "template"
+        },
+        {
+          "result_us": 11.71545318997117,
+          "parameters": {},
+          "timestamp": "2026-03-20T17:05:13.199851",
+          "source": "template"
+        },
+        {
+          "result_us": 10.769235492625356,
+          "parameters": {},
+          "timestamp": "2026-03-20T17:05:33.199382",
+          "source": "template"
+        },
+        {
+          "result_us": 9.483151802036339,
+          "parameters": {},
+          "timestamp": "2026-03-20T17:05:55.502398",
+          "source": "template"
+        },
+        {
+          "result_us": 9.47716917346545,
+          "parameters": {},
+          "timestamp": "2026-03-20T17:06:10.626129",
+          "source": "template"
+        },
+        {
+          "result_us": 10.516434481072462,
+          "parameters": {},
+          "timestamp": "2026-03-20T17:06:25.999425",
+          "source": "template"
+        },
+        {
+          "result_us": 10.16312129791737,
+          "parameters": {},
+          "timestamp": "2026-03-20T17:06:39.514809",
+          "source": "template"
+        },
+        {
+          "result_us": 9.631953863806412,
+          "parameters": {},
+          "timestamp": "2026-03-20T17:06:54.301876",
+          "source": "template"
+        },
+        {
+          "result_us": 10.85466068837842,
+          "parameters": {},
+          "timestamp": "2026-03-20T17:07:15.601740",
+          "source": "template"
+        },
+        {
+          "result_us": 10.664406121560972,
+          "parameters": {},
+          "timestamp": "2026-03-20T17:07:25.900620",
+          "source": "template"
+        },
+        {
+          "result_us": 9.518482916413909,
+          "parameters": {},
+          "timestamp": "2026-03-20T17:07:38.000014",
+          "source": "template"
+        }
+      ]
     },
     "moe_n1": {
       "id": "moe_n1",
@@ -847,12 +1348,12 @@
       "attempts": 1,
       "best_result_us": 210.05,
       "stagnation_count": 0,
-      "status": "active",
+      "status": "pruned",
       "children": [
         "n_d6341c48",
         "n_470d7ed4"
       ],
-      "notes": "Call CK kernel directly, skip Python fused_moe wrapper overhead",
+      "notes": "Call CK kernel directly, skip Python fused_moe wrapper overhead [STRATEGIC PRUNE: LLM world model]",
       "attempt_history": [
         {
           "result_us": 210.04817099646763,
@@ -1676,9 +2177,9 @@
       "attempts": 1,
       "best_result_us": 217.77,
       "stagnation_count": 0,
-      "status": "active",
+      "status": "pruned",
       "children": [],
-      "notes": "[LLM-proposed]",
+      "notes": "[LLM-proposed] [STRATEGIC PRUNE: parent moe_n4 pruned]",
       "attempt_history": [
         {
           "result_us": 217.76641620563896,
@@ -1693,13 +2194,181 @@
       "strategy": "Direct torch.ops.aiter.fmoe with fmoe_g1u1 + local_expert_mask + KSPLIT=2 (E<200 only) + warp_specialize + tuned BLOCK_SIZE (64/128) + disable_tma + smem_tile_reuse",
       "parameters": {},
       "parent_id": "moe_n4",
-      "priority": 0.7124999999999999,
+      "priority": 0.34,
+      "attempts": 1,
+      "best_result_us": 202.65,
+      "stagnation_count": 0,
+      "status": "pruned",
+      "children": [
+        "n_a782c44b"
+      ],
+      "notes": "[LLM-proposed] [STRATEGIC PRUNE: parent moe_n4 pruned]",
+      "attempt_history": [
+        {
+          "result_us": 202.65249270288734,
+          "parameters": {},
+          "timestamp": "2026-03-20T16:42:03.099563",
+          "source": "template"
+        }
+      ]
+    },
+    "n_a782c44b": {
+      "id": "n_a782c44b",
+      "strategy": "Direct torch.ops.aiter.fmoe with fmoe_g1u1 + local_expert_mask + KSPLIT=4 (E>=200 only) + warp_specialize + tuned BLOCK_SIZE (32/64/128) + enable_tma + wave_quant (4) + smem_tile_reuse",
+      "parameters": {},
+      "parent_id": "n_470d7ed4",
+      "priority": 0.72,
       "attempts": 0,
       "best_result_us": null,
       "stagnation_count": 0,
-      "status": "active",
+      "status": "pruned",
       "children": [],
-      "notes": "[LLM-proposed]",
+      "notes": "[LLM-proposed] [STRATEGIC PRUNE: parent n_470d7ed4 pruned]",
+      "attempt_history": []
+    },
+    "n_7ba66ff2": {
+      "id": "n_7ba66ff2",
+      "strategy": "Direct torch.ops.aiter.fmoe with local_expert_mask disabled, OPUS sorting, KSPLIT=2, BLOCK_SIZE=128, enable_tma, wave_quant=4, smem_tile_reuse for E=257,d=256,bs=128",
+      "parameters": {},
+      "parent_id": "root_moe",
+      "priority": 0.2,
+      "attempts": 8,
+      "best_result_us": 139.7,
+      "stagnation_count": 1,
+      "status": "pruned",
+      "children": [
+        "n_55bc7f05"
+      ],
+      "notes": "[LLM-proposed] [STRATEGIC PRUNE: LLM world model]",
+      "attempt_history": [
+        {
+          "result_us": 173.2067135988236,
+          "parameters": {},
+          "timestamp": "2026-03-20T17:07:52.900566",
+          "source": "template"
+        },
+        {
+          "result_us": 160.41412346546298,
+          "parameters": {},
+          "timestamp": "2026-03-20T17:08:03.200088",
+          "source": "template"
+        },
+        {
+          "result_us": 169.36153500633353,
+          "parameters": {},
+          "timestamp": "2026-03-20T17:08:10.301863",
+          "source": "template"
+        },
+        {
+          "result_us": 155.6239743307192,
+          "parameters": {},
+          "timestamp": "2026-03-20T17:08:22.803059",
+          "source": "template"
+        },
+        {
+          "result_us": 165.41821379401514,
+          "parameters": {},
+          "timestamp": "2026-03-20T17:08:30.099323",
+          "source": "template"
+        },
+        {
+          "result_us": 150.57010443806783,
+          "parameters": {},
+          "timestamp": "2026-03-20T17:08:36.999892",
+          "source": "template"
+        },
+        {
+          "result_us": 139.7020815045236,
+          "parameters": {},
+          "timestamp": "2026-03-20T17:08:44.599962",
+          "source": "template"
+        },
+        {
+          "result_us": 144.92257087061938,
+          "parameters": {},
+          "timestamp": "2026-03-20T17:09:08.599791",
+          "source": "template"
+        }
+      ]
+    },
+    "n_2504e948": {
+      "id": "n_2504e948",
+      "strategy": "Beat 8.5\u00b5s (10% below 9.5\u00b5s plateau)",
+      "parameters": {},
+      "parent_id": "root_moe",
+      "priority": 0.2,
+      "attempts": 2,
+      "best_result_us": 192.31,
+      "stagnation_count": 0,
+      "status": "pruned",
+      "children": [
+        "n_afa88d2f"
+      ],
+      "notes": "[R-Zero challenger] [STRATEGIC PRUNE: LLM world model]",
+      "attempt_history": [
+        {
+          "result_us": 207.35199525305111,
+          "parameters": {},
+          "timestamp": "2026-03-20T17:08:51.505103",
+          "source": "template"
+        },
+        {
+          "result_us": 192.3124683433573,
+          "parameters": {},
+          "timestamp": "2026-03-20T17:09:00.552397",
+          "source": "template"
+        }
+      ]
+    },
+    "n_afa88d2f": {
+      "id": "n_afa88d2f",
+      "strategy": "Direct torch.ops.aiter.fmoe with fmoe_g1u1, local_expert_mask disabled, OPUS sorting, KSPLIT=1, BLOCK_SIZE=64, enable_tma, wave_quant=2, smem_tile_reuse, no warp_specialize (baseline for comparison)",
+      "parameters": {},
+      "parent_id": "n_2504e948",
+      "priority": 0.1,
+      "attempts": 1,
+      "best_result_us": 222.23,
+      "stagnation_count": 0,
+      "status": "pruned",
+      "children": [
+        "n_d3639a9e"
+      ],
+      "notes": "[LLM-proposed] [STRATEGIC PRUNE: LLM world model]",
+      "attempt_history": [
+        {
+          "result_us": 222.23428011785612,
+          "parameters": {},
+          "timestamp": "2026-03-20T17:09:15.199615",
+          "source": "template"
+        }
+      ]
+    },
+    "n_55bc7f05": {
+      "id": "n_55bc7f05",
+      "strategy": "Direct torch.ops.aiter.fmoe with fmoe_g1u1 + local_expert_mask + KSPLIT=2 + OPUS sorting + warp_specialize + BLOCK_SIZE=64 + enable_tma + wave_quant=4 + smem_tile_reuse for E=257,d=256,bs=128",
+      "parameters": {},
+      "parent_id": "n_7ba66ff2",
+      "priority": 0.8,
+      "attempts": 0,
+      "best_result_us": null,
+      "stagnation_count": 0,
+      "status": "pruned",
+      "children": [],
+      "notes": "[LLM-proposed] [STRATEGIC PRUNE: parent n_7ba66ff2 pruned]",
+      "attempt_history": []
+    },
+    "n_d3639a9e": {
+      "id": "n_d3639a9e",
+      "strategy": "Direct torch.ops.aiter.fmoe with fmoe_g1u1 + local_expert_mask enabled + KSPLIT=4 + OPUS sorting + warp_specialize + BLOCK_SIZE=64 + enable_tma + wave_quant=4 + smem_tile_reuse (E=257,d=256,bs=128)",
+      "parameters": {},
+      "parent_id": "n_afa88d2f",
+      "priority": 0.72,
+      "attempts": 0,
+      "best_result_us": null,
+      "stagnation_count": 0,
+      "status": "pruned",
+      "children": [],
+      "notes": "[LLM-proposed] [STRATEGIC PRUNE: parent n_afa88d2f pruned]",
       "attempt_history": []
     }
   }
