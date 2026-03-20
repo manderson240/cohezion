@@ -1,0 +1,874 @@
+Implement the following plan:
+
+# Plan: Integrate K-Search + R-Zero + Karpathy Autoresearch into Kernel Optimization Pipeline
+
+## Context
+
+The Luma AMD Speedrun (deadline March 30, 2026) has an autonomous kernel optimization loop at
+`research/challenges/luma_amd_speedrun/autoresearch/`. Three external references need proper
+integration:
+
+| Reference | What It Is | Current Integration | Gap |
+|-----------|-----------|-------------------|-----|
+| K-Search (arxiv 2602.19128) | LLM-guided tree search with co-evolving world model for GPU kernels | 60% — tree structure, K=7 stagnation, priority selection implemented | Missing: LLM pi_plan (INSERT/UPDATE/PRUNE), LLM pi_code (code synthesis), V-score co-evolution |
+| R-Zero (2508.05004) | Challenger-Solver co-evolution for LLM training | Conceptual only — `r_zero.py` tracks metrics, no kernel application | Missing: Challenger that proposes harder optimization targets, difficulty calibration |
+| Karpathy autoresearch | Autonomous 5-min experiment loops with LLM code modification | 80% — overnight loop, fixed metric, convergence detection, crash recovery | Missing: LLM modifies code directly instead of templates; program.md research strategy layer |
+
+**Core gap across all three: our autoresearch uses deterministic templates + parameter perturbation,
+not LLM-guided code synthesis. This is the single biggest upgrade.**
+
+## Approach: Three-Layer Enhancement
+
+### Layer 1: K-Search World Model (pi_plan) — Highest Impact
+
+**What:** Replace static pre-seeded trees with LLM-driven INSERT/UPDATE/PRUNE operations.
+
+**Files to modify:**
+- `autoresearch/ksearch_tree.py` — Add `insert_child()`, `update_v_scores()`, `strategic_prune()` methods
+- `autoresearch/analyzer.py` — After analyzing results, call LLM to propose new child strategies
+- `autoresearch/driver.py` — Add world model evolution step after each cycle
+
+**Implementation:**
+```python
+# In analyzer.py — after analyzing results:
+def evolve_world_model(tree, node, result, llm_client):
+    """K-Search Phase 3: World model co-evolution via LLM."""
+    trajectory = tree.get_trajectory(node.id)  # All attempts on this branch
+
+    prompt = f"""You are a GPU kernel optimization world model.
+
+    Current tree state: {tree.to_summary()}
+    Just tested: {node.strategy} → {result.geomean_us}µs (baseline: {result.baseline_us}µs)
+    Trajectory: {trajectory}
+
+    Based on this result, propose:
+    1. INSERT: New child strategies worth exploring (0-2 children)
+    2. UPDATE: Revised V-scores for affected nodes
+    3. PRUNE: Branches that should be abandoned
+
+    Output JSON: {{"insert": [...], "update": {...}, "prune": [...]}}"""
+
+    response = llm_client.generate(prompt)
+    tree.apply_evolution(response)  # INSERT/UPDATE/PRUNE atomically
+```
+
+**LLM choice:** Local Ollama (qwen3-coder:30b) — free, fast enough for 1 call per 8-min cycle.
+No API costs. Falls back to current deterministic behavior if Ollama unavailable.
+
+### Layer 2: K-Search Code Instantiation (pi_code) — Medium Impact
+
+**What:** Replace template-based generator with LLM-guided code synthesis.
+
+**Files to modify:**
+- `autoresearch/generator.py` — Add LLM code generation path alongside templates
+- New: `autoresearch/code_synthesizer.py` — LLM-based submission.py generation
+
+**Implementation:**
+```python
+# In code_synthesizer.py:
+def synthesize_kernel(strategy, kernel_type, reference_code, constraints, llm_client):
+    """K-Search pi_code: Generate kernel implementation from strategy description."""
+    prompt = f"""Generate a submission.py for AMD MI355X {kernel_type} kernel.
+
+    Strategy: {strategy}
+    Reference implementation: {reference_code}
+    Constraints: {constraints}  # Dead ends, blocked APIs, etc.
+
+    The submission must:
+    1. Define custom_kernel(data: input_t) -> output_t
+    2. Pass correctness within rtol=1e-2
+    3. Be faster than baseline
+
+    Output ONLY the Python code."""
+
+    code = llm_client.generate(prompt)
+    if validate_syntax(code):
+        return code
+    return None  # Fall back to template generator
+```
+
+**Key insight from K-Search paper:** pi_code samples implementations REPEATEDLY until K=7
+stagnation. Each sample is a new LLM generation with the same strategy but different code.
+This separates "strategy failure" from "implementation failure."
+
+### Layer 3: R-Zero Challenger Pattern — Low Impact, Long-Term
+
+**What:** Add difficulty calibration to the optimization loop. The Challenger proposes
+*harder* optimization targets (tighter performance thresholds, new shape combinations)
+to push the Solver beyond local optima.
+
+**Files to modify:**
+- `autoresearch/driver.py` — Add challenger step that adjusts target thresholds
+- `src/cohezion/optimization/r_zero.py` — Connect to kernel optimization metrics
+
+**Implementation:**
+```python
+# In driver.py — after convergence detected:
+def challenge_plateau(tree, kernel, current_best):
+    """R-Zero: Propose harder target when plateau detected."""
+    # Instead of stopping at convergence, raise the bar
+    new_target = current_best * 0.9  # 10% harder
+    tree.insert_child(
+        parent_id="root",
+        strategy=f"Beat {new_target:.1f}µs (10% below plateau)",
+        priority=0.8,
+    )
+```
+
+**This is lightweight** — just adjusts targets rather than generating adversarial problems.
+The full R-Zero Challenger-Solver loop is unnecessary for kernel optimization since we don't
+control the problem difficulty (competition shapes are fixed).
+
+### Layer 4: Karpathy program.md Pattern — Quick Win
+
+**What:** Create a `research_strategy.md` file that guides the LLM agent's optimization
+direction. Human-editable research strategy that the LLM reads before each cycle.
+
+**Files to create:**
+- `autoresearch/research_strategy.md` — Current optimization priorities, known dead ends, focus areas
+
+**Implementation:**
+```markdown
+# Research Strategy (Human-Editable)
+
+## Current Focus
+- MoE: Try direct moe_sorting_fwd with local_expert_mask parameter
+- GEMM: Explore tritonblas.matmul_fp4 as alternative to gemm_a4w4
+- MLA: At Python ceiling, deprioritize
+
+## Dead Ends (Do NOT retry)
+- [loaded from kernel-specific skills automatically]
+
+## Budget Allocation
+- MoE: 50% (closest to leader, new untested path)
+- GEMM: 30% (1.45x gap, limited paths)
+- MLA: 20% (15.8x gap, Python ceiling)
+```
+
+The LLM world model reads this before proposing strategies, ensuring human research direction
+guides the autonomous loop.
+
+## Critical Files
+
+| File | Action | Purpose |
+|------|--------|---------|
+| `autoresearch/ksearch_tree.py` | Modify | Add `insert_child()`, `apply_evolution()`, trajectory tracking |
+| `autoresearch/analyzer.py` | Modify | Add `evolve_world_model()` LLM call after each analysis |
+| `autoresearch/driver.py` | Modify | Add world model evolution step, challenger pattern |
+| `autoresearch/generator.py` | Modify | Add LLM fallback alongside templates |
+| `autoresearch/code_synthesizer.py` | Create | LLM-based kernel code generation |
+| `autoresearch/research_strategy.md` | Create | Karpathy-style human research direction |
+| `~/.claude/skills/k-search-llm-kernel-optimization/SKILL.md` | Modify | Update with implementation status |
+
+## Task Sequence
+
+1. **[ ] Add trajectory tracking to KNode** — Store full attempt history, not just best_result
+2. **[ ] Implement `insert_child()` and `apply_evolution()`** in ksearch_tree.py
+3. **[ ] Create code_synthesizer.py** with Ollama integration (qwen3-coder:30b)
+4. **[ ] Add world model evolution step** to analyzer.py (call LLM after each result)
+5. **[ ] Create research_strategy.md** with current priorities from kernel skills
+6. **[ ] Add challenger pattern** to driver.py (raise target on plateau)
+7. **[ ] Wire generator.py** to try LLM synthesis first, fall back to templates
+8. **[ ] Dry-run test** — Run 3 cycles with LLM evolution, verify tree evolves sensibly
+9. **[ ] Update K-Search skill** with implementation status
+
+## Verification
+
+1. **Dry-run:** `python autoresearch/driver.py --dry-run --cycles 3` — verify LLM world model
+   proposes sensible INSERT/UPDATE/PRUNE operations
+2. **Template fallback:** Disable Ollama, verify system falls back to deterministic templates
+3. **Tree evolution:** After 5 cycles, verify tree has new nodes that weren't in the pre-seed
+4. **Code synthesis:** Verify at least 1 LLM-generated submission passes correctness test
+5. **Research strategy:** Verify LLM reads research_strategy.md and respects dead ends
+
+## Risk Mitigation
+
+- **Ollama unavailable:** Fall back to template generation (current behavior)
+- **LLM generates bad code:** Syntax validation + correctness test gate before benchmark
+- **LLM proposes dead ends:** Feed kernel-specific skill dead-end lists into system prompt
+- **Budget overrun:** Cap at 1 LLM call per cycle (~8min), max 4096 tokens per call
+
+
+If you need specific details from before exiting plan mode (like exact code snippets, error messages, or content you generated), read the full transcript at: /home/mike-anderson/.claude/projects/-home-mike-anderson-dev-cohezion/375c2124-8ae6-4582-9662-d0aafa92d590.jsonl
+
+If this plan can be broken down into multiple independent tasks, consider using the TeamCreate tool to create a team and parallelize the work.
+
+---
+
+<task-notification>
+<task-id>bgysrei4i</task-id>
+<tool-use-id>toolu_01M6jWrKMvbbjWPFSPMXnTBM</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/372cbc1b-32c1-4d7a-b071-c206e9699dbc/tasks/bgysrei4i.output</output-file>
+<status>completed</status>
+<summary>Background command "Find K-Search skill files" completed (exit code 0)</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/372cbc1b-32c1-4d7a-b071-c206e9699dbc/tasks/bgysrei4i.output
+
+---
+
+Continue towards excellence
+
+---
+
+let's see what it can do
+
+---
+
+# /learn - Online Learning System
+
+**Extract reusable knowledge from this session into skills.** Evaluates what was learned, checks for existing skills, and creates new ones when valuable patterns are discovered.
+
+---
+
+## TABLE OF CONTENTS
+
+| Phase       | Description                                            | Steps   |
+| ----------- | ------------------------------------------------------ | ------- |
+| **Phase 0** | Reference: triggers, quality criteria, skill structure | 0.1–0.4 |
+| **Phase 1** | Evaluate: assess if knowledge is worth extracting      | 1.1     |
+| **Phase 2** | Check Existing: search for related skills              | 2.1     |
+| **Phase 3** | Create Skill: write the skill file                     | 3.1–3.2 |
+| **Phase 4** | Quality Gates: final checklist before saving           | 4.1     |
+
+**Quick Step Reference:**
+
+- 0.1 Triggers, 0.2 Quality criteria, 0.3 What NOT to extract, 0.4 Skill structure
+- 1.1 Self-evaluation questions
+- 2.1 Search existing skills
+- 3.1 Choose location, 3.2 Write SKILL.md
+- 4.1 Final checklist
+
+---
+
+## PHASE 0: REFERENCE
+
+### Step 0.1: Triggers
+
+Invoke `/learn` after ANY task involving:
+
+| Trigger                      | Example                                                          |
+| ---------------------------- | ---------------------------------------------------------------- |
+| **Non-obvious debugging**    | Spent 10+ minutes investigating; solution wasn't in docs         |
+| **Misleading errors**        | Error message pointed wrong direction; found real cause          |
+| **Workarounds**              | Found limitation and creative solution                           |
+| **Tool integration**         | Figured out how to use tool/API in undocumented way              |
+| **Trial-and-error**          | Tried multiple approaches before finding what worked             |
+| **Repeatable workflow**      | Multi-step task that will recur; worth standardizing             |
+| **External service queries** | Fetched data from Jira, GitHub, Confluence, or other APIs        |
+| **User-facing automation**   | Built something user will ask for again (reports, status checks) |
+
+### Step 0.2: Quality Criteria
+
+Skills must be:
+
+- **Reusable**: Will help with future tasks (not just this instance)
+- **Non-trivial**: Required discovery, OR is a valuable workflow pattern
+- **Verified**: Solution actually worked, not theoretical
+
+### Step 0.3: What NOT to Extract
+
+- Single-step tasks with no workflow value
+- One-off fixes unlikely to recur
+- Knowledge easily found in official docs
+
+### Step 0.4: Skill Structure
+
+**Location:** `.claude/skills/[skill-name]/SKILL.md`
+
+**Template:**
+
+```markdown
+---
+name: descriptive-kebab-case-name
+description: |
+  [CRITICAL: This determines when the skill triggers. Include:]
+  - What the skill does
+  - Specific trigger conditions (exact error messages, symptoms)
+  - When to use it (contexts, scenarios)
+author: Claude Code
+version: 1.0.0
+---
+
+# Skill Name
+
+## Problem
+
+[Clear description of the problem]
+
+## Context / Trigger Conditions
+
+[When to use - exact error messages, symptoms, scenarios]
+
+## Solution
+
+[Step-by-step solution]
+
+## Verification
+
+[How to verify it worked]
+
+## Example
+
+[Concrete example]
+
+## References
+
+[Links to documentation]
+```
+
+<details>
+<summary>Writing Effective Descriptions</summary>
+
+The description field is CRITICAL for skill discovery:
+
+**Good:**
+
+```yaml
+description: |
+  Fix for "ENOENT: no such file or directory" errors in npm monorepos.
+  Use when: (1) npm run fails with ENOENT, (2) paths work in root but
+  not in packages, (3) symlinked dependencies cause failures.
+```
+
+**Bad:**
+
+```yaml
+description: Helps with npm problems in monorepos.
+```
+
+</details>
+
+**Guidelines:**
+
+- **Concise** - Claude is smart; only add what it doesn't know
+- **Under 500 lines** - Move large docs to `references/`
+- **Examples over explanations** - Show, don't tell
+
+---
+
+## PHASE 1: EVALUATE
+
+### Step 1.1: Self-Evaluation Questions
+
+Ask yourself:
+
+1. "What did I just learn that wasn't obvious before starting?"
+2. "Would future-me benefit from having this documented?"
+3. "Was the solution non-obvious from documentation alone?"
+4. "Is this a multi-step workflow I'd repeat on similar tasks?"
+5. "Did I query an external service the user will ask about again?"
+
+**If NO to all → Skip extraction, nothing to learn.**
+
+**Note:** External service queries (Jira tickets, GitHub PRs, Confluence pages) are almost always worth extracting - users frequently repeat these requests.
+
+---
+
+## PHASE 2: CHECK EXISTING
+
+### Step 2.1: Search for Related Skills
+
+Before creating, search for related skills:
+
+```bash
+ls .claude/skills/ 2>/dev/null
+rg -i "keyword" .claude/skills/ 2>/dev/null
+ls ~/.claude/pilot/skills/ 2>/dev/null
+rg -i "keyword" ~/.claude/pilot/skills/ 2>/dev/null
+```
+
+| Found                | Action                           |
+| -------------------- | -------------------------------- |
+| Nothing related      | Create new skill                 |
+| Same trigger and fix | Update existing (bump version)   |
+| Partial overlap      | Update existing with new variant |
+
+---
+
+## PHASE 3: CREATE SKILL
+
+### Step 3.1: Choose Location
+
+**Project skills**: `.claude/skills/[skill-name]/SKILL.md`
+
+### Step 3.2: Write SKILL.md
+
+Use the template from Step 0.4. Ensure the description field contains specific trigger conditions.
+
+---
+
+## PHASE 4: QUALITY GATES
+
+### Step 4.1: Final Checklist
+
+Before finalizing:
+
+- [ ] Description contains specific trigger conditions
+- [ ] Solution verified to work
+- [ ] Content specific enough to be actionable
+- [ ] Content general enough to be reusable
+- [ ] No sensitive information
+
+---
+
+## EXAMPLE
+
+**Scenario**: Discovered LSP `findReferences` can find dead code by checking if functions have only 1 reference (their definition) or only test references.
+
+**Skill Created**: `.claude/skills/lsp-dead-code-finder/SKILL.md`
+
+```markdown
+---
+name: lsp-dead-code-finder
+description: |
+  Find dead/unused code using LSP findReferences. Use when: (1) user asks
+  to find dead code, (2) cleaning up codebase, (3) refactoring. Key insight:
+  function with only 1 reference (definition) or only test refs is dead code.
+---
+
+# LSP Dead Code Finder
+
+...
+```
+
+---
+
+## REMEMBER
+
+**Continuous improvement.** Every valuable discovery should benefit future sessions.
+Evaluate after significant work. Extract selectively. Create carefully.
+
+---
+
+Let's give it a spin with an ollama cloud model first then.
+
+---
+
+Yes
+
+---
+
+<task-notification>
+<task-id>bdnd1wn35</task-id>
+<tool-use-id>toolu_01CXwwZ5NEtsUszVExQ57mNt</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/372cbc1b-32c1-4d7a-b071-c206e9699dbc/tasks/bdnd1wn35.output</output-file>
+<status>completed</status>
+<summary>Background command "Run 1-cycle dry-run-llm with qwen3-coder:30b" completed (exit code 0)</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/372cbc1b-32c1-4d7a-b071-c206e9699dbc/tasks/bdnd1wn35.output
+
+---
+
+<task-notification>
+<task-id>bajk26ecu</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/372cbc1b-32c1-4d7a-b071-c206e9699dbc/tasks/bajk26ecu.output</output-file>
+<status>completed</status>
+<summary>Background command "Pre-load qwen2.5-coder:7b with structured output test" completed (exit code 0)</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/372cbc1b-32c1-4d7a-b071-c206e9699dbc/tasks/bajk26ecu.output
+
+---
+
+<task-notification>
+<task-id>bjyi9w1jl</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/372cbc1b-32c1-4d7a-b071-c206e9699dbc/tasks/bjyi9w1jl.output</output-file>
+<status>completed</status>
+<summary>Background command "Full K-Search dry-run-llm cycle with qwen2.5-coder:7b" completed (exit code 0)</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/372cbc1b-32c1-4d7a-b071-c206e9699dbc/tasks/bjyi9w1jl.output
+
+---
+
+<task-notification>
+<task-id>b5l0fteai</task-id>
+<tool-use-id>toolu_01DxnfKKLYLiyQ6KxiH4Y7Ry</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/372cbc1b-32c1-4d7a-b071-c206e9699dbc/tasks/b5l0fteai.output</output-file>
+<status>completed</status>
+<summary>Background command "Full K-Search demo with warm qwen2.5-coder:7b" completed (exit code 0)</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/372cbc1b-32c1-4d7a-b071-c206e9699dbc/tasks/b5l0fteai.output
+
+---
+
+<task-notification>
+<task-id>bx5mz7gqw</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/372cbc1b-32c1-4d7a-b071-c206e9699dbc/tasks/bx5mz7gqw.output</output-file>
+<status>completed</status>
+<summary>Background command "K-Search demo: world model only (15min timeout)" completed (exit code 0)</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/372cbc1b-32c1-4d7a-b071-c206e9699dbc/tasks/bx5mz7gqw.output
+
+---
+
+<task-notification>
+<task-id>ben5b9eop</task-id>
+<tool-use-id>toolu_015zRTgMu2rxw4WWQrfdw51f</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/372cbc1b-32c1-4d7a-b071-c206e9699dbc/tasks/ben5b9eop.output</output-file>
+<status>completed</status>
+<summary>Background command "K-Search demo: 20-minute timeout (should complete)" completed (exit code 0)</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/372cbc1b-32c1-4d7a-b071-c206e9699dbc/tasks/ben5b9eop.output
+
+---
+
+any status updates?
+
+---
+
+Can we do a dry run for the other 2 kernels?
+
+---
+
+Can we use different models so they can run in parallel?
+
+---
+
+<task-notification>
+<task-id>b3tho1stk</task-id>
+<tool-use-id>toolu_01QVRphnpLgHKYoXYQ8CJiRu</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/372cbc1b-32c1-4d7a-b071-c206e9699dbc/tasks/b3tho1stk.output</output-file>
+<status>completed</status>
+<summary>Background command "MLA with deepcoder:14b" completed (exit code 0)</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/372cbc1b-32c1-4d7a-b071-c206e9699dbc/tasks/b3tho1stk.output
+
+---
+
+<task-notification>
+<task-id>bqghy1bag</task-id>
+<tool-use-id>toolu_01GqugDoNjaq3namwNzG2NfR</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/372cbc1b-32c1-4d7a-b071-c206e9699dbc/tasks/bqghy1bag.output</output-file>
+<status>completed</status>
+<summary>Background command "GEMM with qwen2.5-coder:7b" completed (exit code 0)</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/372cbc1b-32c1-4d7a-b071-c206e9699dbc/tasks/bqghy1bag.output
+
+---
+
+Sure
+
+---
+
+<task-notification>
+<task-id>by4oh7gte</task-id>
+<tool-use-id>toolu_015gNDK465R7aJ12rSNqVoyq</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/372cbc1b-32c1-4d7a-b071-c206e9699dbc/tasks/by4oh7gte.output</output-file>
+<status>completed</status>
+<summary>Background command "Sequential: GEMM then MLA with qwen2.5-coder:7b solo" completed (exit code 0)</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/372cbc1b-32c1-4d7a-b071-c206e9699dbc/tasks/by4oh7gte.output
+
+---
+
+Let's go for an hour run instead of overnight.
+
+---
+
+Can we leverage the kernel optimizations they did at https://unsloth.ai/docs/new/studio?
+
+---
+
+Document this and then proceed
+
+---
+
+<task-notification>
+<task-id>b4hfjr5zq</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/372cbc1b-32c1-4d7a-b071-c206e9699dbc/tasks/b4hfjr5zq.output</output-file>
+<status>completed</status>
+<summary>Background command "1-hour K-Search run: 4 cycles across all 3 kernels" completed (exit code 0)</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/372cbc1b-32c1-4d7a-b071-c206e9699dbc/tasks/b4hfjr5zq.output
+
+---
+
+Let's use opus to think deeply and coordinate teams of specialist agents and subagents with a mixture of sonnet, haiku, and ollama cloud models.
+
+---
+
+<task-notification>
+<task-id>b5z45qzui</task-id>
+<tool-use-id>toolu_0161rpM6bS7RMPsUFMkjtwCP</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/372cbc1b-32c1-4d7a-b071-c206e9699dbc/tasks/b5z45qzui.output</output-file>
+<status>completed</status>
+<summary>Background command "Find aiter installation locations" completed (exit code 0)</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/372cbc1b-32c1-4d7a-b071-c206e9699dbc/tasks/b5z45qzui.output
+
+---
+
+<task-notification>
+<task-id>b91w18f42</task-id>
+<tool-use-id>toolu_01FKTPpPBQXSaCTP3mALQTB5</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/372cbc1b-32c1-4d7a-b071-c206e9699dbc/tasks/b91w18f42.output</output-file>
+<status>completed</status>
+<summary>Background command "Run K-Search tree evolution cycle for MoE kernel (dry-run-llm, 1 cycle, ~15-20min)" completed (exit code 0)</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/372cbc1b-32c1-4d7a-b071-c206e9699dbc/tasks/b91w18f42.output
+
+---
+
+<task-notification>
+<task-id>bhwxu27hm</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/372cbc1b-32c1-4d7a-b071-c206e9699dbc/tasks/bhwxu27hm.output</output-file>
+<status>completed</status>
+<summary>Background command "Run K-Search tree evolution cycle for GEMM kernel (dry-run-llm, 1 cycle, ~15-20min)" completed (exit code 0)</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/372cbc1b-32c1-4d7a-b071-c206e9699dbc/tasks/bhwxu27hm.output
+
+---
+
+<task-notification>
+<task-id>b6i9pw23b</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/372cbc1b-32c1-4d7a-b071-c206e9699dbc/tasks/b6i9pw23b.output</output-file>
+<status>completed</status>
+<summary>Background command "Run K-Search tree evolution cycle for MLA kernel (dry-run-llm, 1 cycle, ~15-20min)" completed (exit code 0)</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/372cbc1b-32c1-4d7a-b071-c206e9699dbc/tasks/b6i9pw23b.output
+
+---
+
+<teammate-message teammate_id="kernel-researcher" color="blue" summary="Task #3 complete — fused_moe spec ready, task #1 unblocked">
+Task #3 complete. Spec written to:
+`research/challenges/luma_amd_speedrun/autoresearch/probes/custom_triton_moe_spec.md`
+
+## Key Findings
+
+### Interface
+- Competition input tuple: 12 elements. Custom Triton kernel should use **raw (un-shuffled)** weights `[1]-[4]`, NOT pre-shuffled `[5]-[8]` (those are CK-formatted).
+- Output: `[M, d_hidden]` bf16.
+
+### aiter fused_moe Dispatch Flow
+- Python wrapper calls `moe_sorting_fwd` (separate kernel ~5-10µs) then `ck_moe_stage1` + `ck_moe_stage2`.
+- `sorted_token_ids [E*block_m]`: compact expert-sorted token positions with padding.
+- `sorted_expert_ids [E]`: expert ID per tile. `num_valid_ids [1]`: non-padding token count.
+- KSPLIT env var is **dead code** for competition shapes (zero CSV matches).
+
+### Critical Blockers (found in skills)
+1. **`float4_e2m1fn_x2` KeyError** — Triton JIT on Popcorn CLI can't handle this dtype. Must view fp4x2 as `torch.uint8` before passing to any kernel. Use `"e2m1"` format string in `tl.dot_scaled`, not dtype.
+2. **BLOCK_M >= 16** — silent wrong results on gfx950 if smaller.
+3. **BLOCK_K >= 64** — GPU assertion failure if smaller.
+4. **RHS scale layout** — must be `[BLOCK_N, SCALE_PER_K]` (N-first), NOT transposed.
+5. **XCD remapping with cdiv** — non-bijective, silent zeros. Use group-M swizzle instead.
+
+### Novel vs Previously Attempted
+Previous "custom Triton MoE" was 68% slower because it did NOT use: (a) fused permutation, (b) `tl.dot_scaled`, (c) persistent tiles. All three are novel.
+
+### Fused Permutation Strategy
+Replace `moe_sorting_fwd` with Python-side `torch.argsort` on flattened `topk_ids`. Kernel receives `sorted_token_pos [M*top_k]` + `expert_offsets [E+1]`. Stage 1 gathers tokens in expert order (PERMUTE_X). Stage 2 atomic-adds back with topk_weight multiplication (PERMUTE_Y).
+
+Task #1 (Write the kernel) is now unblocked.
+</teammate-message>
+
+<teammate-message teammate_id="kernel-researcher" color="blue">
+{"type":"idle_notification","from":"kernel-researcher","timestamp":"2026-03-20T18:29:36.072Z","idleReason":"available"}
+</teammate-message>
+
+<teammate-message teammate_id="kernel-researcher" color="blue">
+{"type":"idle_notification","from":"kernel-researcher","timestamp":"2026-03-20T18:29:42.313Z","idleReason":"available"}
+</teammate-message>
+
+<teammate-message teammate_id="tree-evolver" color="green" summary="Task #2 done, all 3 LLM cycles timed out, tree committed">
+Task #2 complete. K-Search tree evolution results:
+
+**All 3 kernels ran 1 dry-run-llm cycle with qwen2.5-coder:7b. All 3 LLM calls timed out (~30 min each at CPU-only ~0.15 tok/s).**
+
+The 1800s budget is insufficient for a complete 4096-token structured JSON response at this speed. The driver handled it gracefully (empty `{}` evolution), but no tree topology changes were made.
+
+**Final tree state (post-run):**
+| Kernel | Nodes | Attempts | Best (µs) | LLM Changes |
+|--------|-------|----------|-----------|-------------|
+| moe    | 12    | 6        | 215.63    | None (timeout) |
+| gemm   | 13    | 4        | 176.4     | None (timeout) |
+| mla    | 16    | 4        | 161.53    | None (timeout) |
+
+New attempt entries (with synthetic benchmark scores) were logged to all 3 tree files and committed: `ec63733e`.
+
+**Recommendation**: The `qwen2.5-coder:7b` at CPU speed cannot complete the world-model evolution prompt within 30 minutes. Options to get actual LLM tree evolution:
+1. Use `--model qwen2.5-coder:1.5b` or smaller to fit in the time budget
+2. Reduce `MAX_TOKENS` in code_synthesizer.py (currently 4096) to ~512-1024 for the world model role
+3. Or accept the current behavior as a benchmark-logging-only mode and run LLM evolution overnight with a longer timeout
+</teammate-message>
+
+<teammate-message teammate_id="tree-evolver" color="green">
+{"type":"idle_notification","from":"tree-evolver","timestamp":"2026-03-20T19:53:26.999Z","idleReason":"available"}
+</teammate-message>
+
+---
+
+<teammate-message teammate_id="system">
+{"type":"teammate_terminated","message":"kernel-researcher has shut down."}
+</teammate-message>
+
+<teammate-message teammate_id="kernel-researcher" color="blue">
+{"type":"shutdown_approved","requestId":"shutdown-1774036429553@kernel-researcher","from":"kernel-researcher","timestamp":"2026-03-20T19:53:57.868Z","paneId":"in-process","backendType":"in-process"}
+</teammate-message>
+
+---
+
+I think it's too slow, capture what it's learned and then kickoff a 4 hour session with an ollama cloud model
+
+---
+
+<task-notification>
+<task-id>b5h1qbovv</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/372cbc1b-32c1-4d7a-b071-c206e9699dbc/tasks/b5h1qbovv.output</output-file>
+<status>killed</status>
+<summary>Background command "Run 3-cycle K-Search evolution across all kernels (dry-run-llm, reduced token budget)" was stopped</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/372cbc1b-32c1-4d7a-b071-c206e9699dbc/tasks/b5h1qbovv.output
+
+---
+
+<teammate-message teammate_id="tree-evolver" color="green" summary="3-cycle run started, token budget fix applied">
+Running 3-cycle K-Search evolution (all kernels) as assigned. Status update:
+
+**Fix applied**: Split `MAX_TOKENS` into `MAX_TOKENS_PLAN=512` (world model) and `MAX_TOKENS=4096` (code synthesis). This is the root cause of all previous timeouts — the world model was requesting 4096 tokens but only needs ~200.
+
+**Note**: The hook updated `OLLAMA_MODEL_PLAN` to `qwen3-coder-next:cloud` with 60s timeout — but this run started before that change and is using local `qwen2.5-coder:7b`. With `MAX_TOKENS_PLAN=512` at 0.15 tok/s that's ~57 min/call, still over budget. The cloud model path is the right fix for future runs.
+
+**Currently**: Cycle 1 (moe) LLM call in progress (~30 min). Will report final results when all 3 cycles complete.
+
+Tree state entering this run: moe=11 active/12 total, gemm=13, mla=12 active/16 total.
+</teammate-message>
+
+<teammate-message teammate_id="tree-evolver" color="green">
+{"type":"idle_notification","from":"tree-evolver","timestamp":"2026-03-20T20:07:38.125Z","idleReason":"available"}
+</teammate-message>
+
+<teammate-message teammate_id="system">
+{"type":"teammate_terminated","message":"tree-evolver has shut down."}
+</teammate-message>
+
+<teammate-message teammate_id="tree-evolver" color="green">
+{"type":"shutdown_approved","requestId":"shutdown-1774036429706@tree-evolver","from":"tree-evolver","timestamp":"2026-03-20T20:07:42.318Z","paneId":"in-process","backendType":"in-process"}
+</teammate-message>
+
+---
+
+Let's run for a full hour of real time with the same team after incorporating learnings.
+
+---
+
+<teammate-message teammate_id="kernel-researcher" color="green" summary="Phase 2 MXFP4 conversion guide complete">
+Task #1 complete. Phase 2 MXFP4 conversion guide written to:
+`research/challenges/luma_amd_speedrun/autoresearch/probes/phase2_mxfp4_conversion.md`
+
+Key findings:
+
+**Exactly 2 tl.dot call sites to convert:**
+- Line 251 (Stage 1): `tl.dot(a, tl.trans(b), acc=acc, input_precision="ieee")`
+- Line 401 (Stage 2): same pattern
+
+**Python-side changes required:**
+1. Remove `_dequant_all_experts_bf16` calls (lines 504-510) — entire dequant path eliminated
+2. Add `.view(torch.uint8)` for all 4 tensors: `w1`, `w1s`, `w2`, `w2s`
+3. Add `dynamic_mxfp4_quant(hidden_states)` → `x_u8`, `xs_u8` before Stage 1
+4. Add `dynamic_mxfp4_quant(inter_silu)` → `inter_u8`, `inters_u8` before Stage 2 (new step not in Phase 1)
+
+**Critical non-obvious constraint:** B weight is loaded `[BLOCK_K, BLOCK_N]` (K-major, no tl.trans), but B_scale must stay `[BLOCK_N, SCALE_PER_BLOCK]` (N-first). These are in opposite major orders — easy mistake.
+
+**BLOCK_K semantics change:** Phase 1 BLOCK_K=64 means 64 bf16 elements. Phase 2 BLOCK_K=64 means 64 packed uint8 bytes = 128 fp4 values. All k_mask bounds must change from `< d_hidden` to `< d_hidden // 2`.
+
+**Pitfall flagged from skill:** The `float4_e2m1fn_x2` KeyError is a permanent Triton JIT blocker — uint8 views are mandatory, not optional.
+
+**Autotune:** Phase 1 uses fixed BLOCK_M=32, BLOCK_N=64, BLOCK_K=64. Guide includes full autotune config with BLOCK_M in [16,32,64,128], BLOCK_K in [64,128] (min 64 enforced).
+</teammate-message>
+
+<teammate-message teammate_id="kernel-researcher" color="green">
+{"type":"idle_notification","from":"kernel-researcher","timestamp":"2026-03-20T20:15:56.033Z","idleReason":"available"}
+</teammate-message>
+
+<teammate-message teammate_id="kernel-researcher" color="green">
+{"type":"idle_notification","from":"kernel-researcher","timestamp":"2026-03-20T20:16:00.866Z","idleReason":"available"}
+</teammate-message>
+
+<teammate-message teammate_id="tree-evolver" color="blue" summary="Task #3 done: K-Search 71 cycles, moe 2x speedup, trees committed">
+Task #3 complete: 1-hour K-Search evolution finished and trees committed.
+
+**Run summary:**
+- Duration: ~13 minutes (71 cycles — early stop due to convergence, all kernels no >1% improvement in 20 cycles)
+- Commit: `31c5b76b` on feat/graph-architecture
+
+**Final tree stats:**
+| Kernel | Before | After | Improvement | Active Nodes | Attempts |
+|--------|--------|-------|-------------|--------------|----------|
+| moe    | 178.2µs | 88.68µs | **2.01x** | 4 | 70 |
+| gemm   | 139.92µs | 122.94µs | **12.1%** | 23 | 25 |
+| mla    | 161.53µs | 139.55µs | **13.6%** | 21 | 25 |
+
+**LLM-proposed nodes per kernel:**
+- moe: 19 nodes
+- gemm: 7 nodes
+- mla: 1 node
+- Total: 27 LLM INSERT operations
+
+**Prune operations:** 44 dead branches removed
+
+**Notes:**
+- The driver converged early — moe hit the 20-cycle no-improvement threshold first, then all kernels stopped together
+- `--max-cycles 420` was the ceiling; actual convergence happened at 71 cycles
+- MoE showed the most dramatic improvement (2x) with high LLM-proposed node density
+- Tree JSON files grew by 1,911 insertions (from 289 prior lines)
+
+Task #2 (analyze tree evolution quality) is now unblocked.
+</teammate-message>
+
+<teammate-message teammate_id="tree-evolver" color="blue">
+{"type":"idle_notification","from":"tree-evolver","timestamp":"2026-03-20T20:36:35.622Z","idleReason":"available"}
+</teammate-message>
+
+---
+
+<teammate-message teammate_id="tree-evolver" color="blue" summary="Duplicate Task #3 message ignored, awaiting Task #2 direction">
+Received a duplicate task assignment message for Task #3 (K-Search evolution) — this appears to be a stale message from the prior session. Task #3 is already completed and committed (commit 31c5b76b). No action taken.
+
+Task #2 (Analyze tree evolution quality) is the next unblocked item. Should I proceed with that, or are you assigning it to another agent?
+</teammate-message>
+
+<teammate-message teammate_id="tree-evolver" color="blue">
+{"type":"idle_notification","from":"tree-evolver","timestamp":"2026-03-20T20:36:54.466Z","idleReason":"available"}
+</teammate-message>
+
+<teammate-message teammate_id="tree-evolver" color="blue">
+{"type":"idle_notification","from":"tree-evolver","timestamp":"2026-03-20T20:37:02.583Z","idleReason":"available"}
+</teammate-message>
+
+<teammate-message teammate_id="system">
+{"type":"teammate_terminated","message":"kernel-researcher has shut down."}
+</teammate-message>
+
+<teammate-message teammate_id="system">
+{"type":"teammate_terminated","message":"tree-evolver has shut down."}
+</teammate-message>
+
+<teammate-message teammate_id="kernel-researcher" color="green">
+{"type":"shutdown_approved","requestId":"shutdown-1774039055206@kernel-researcher","from":"kernel-researcher","timestamp":"2026-03-20T20:37:41.267Z","paneId":"in-process","backendType":"in-process"}
+</teammate-message>
+
+<teammate-message teammate_id="tree-evolver" color="blue">
+{"type":"shutdown_approved","requestId":"shutdown-1774039055404@tree-evolver","from":"tree-evolver","timestamp":"2026-03-20T20:37:41.601Z","paneId":"in-process","backendType":"in-process"}
+</teammate-message>
+
+---
+
+Use a timer and keep running for the next 4 hours.
+
+---
+
+Check the K-Search 4-hour session status. Run: `tail -5 /tmp/ksearch-4hr/session.log 2>/dev/null` and `ps -p 1608625 -o etime --no-headers 2>/dev/null || echo "Process ended"`. Report the latest batch number, total cycles, and whether it's still running. Don't take any action — just report status briefly.
+
+---
+
+Check the K-Search 4-hour session status. Run: `tail -5 /tmp/ksearch-4hr/session.log 2>/dev/null` and `ps -p 1608625 -o etime --no-headers 2>/dev/null || echo "Process ended"`. Report the latest batch number, total cycles, and whether it's still running. Don't take any action — just report status briefly.
+
+---
+
+Check the K-Search 4-hour session status. Run: `tail -5 /tmp/ksearch-4hr/session.log 2>/dev/null` and `ps -p 1608625 -o etime --no-headers 2>/dev/null || echo "Process ended"`. Report the latest batch number, total cycles, and whether it's still running. Don't take any action — just report status briefly.
