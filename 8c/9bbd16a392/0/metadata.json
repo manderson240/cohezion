@@ -1,0 +1,49 @@
+{
+  "cli_version": "0.4.9",
+  "checkpoint_id": "8c9bbd16a392",
+  "session_id": "375c2124-8ae6-4582-9662-d0aafa92d590",
+  "strategy": "manual-commit",
+  "created_at": "2026-03-20T04:48:46.3286328Z",
+  "branch": "gemm-hip-cpp-fused",
+  "checkpoints_count": 13,
+  "files_touched": [
+    "research/challenges/luma_amd_speedrun/autoresearch/README.md",
+    "research/challenges/luma_amd_speedrun/autoresearch/__init__.py",
+    "research/challenges/luma_amd_speedrun/autoresearch/analyzer.py",
+    "research/challenges/luma_amd_speedrun/autoresearch/driver.py",
+    "research/challenges/luma_amd_speedrun/autoresearch/evaluator.py",
+    "research/challenges/luma_amd_speedrun/autoresearch/generator.py",
+    "research/challenges/luma_amd_speedrun/autoresearch/ksearch_tree.py",
+    "research/challenges/luma_amd_speedrun/autoresearch/probes/__init__.py",
+    "research/challenges/luma_amd_speedrun/autoresearch/probes/aiter_recon_probe.py",
+    "research/challenges/luma_amd_speedrun/autoresearch/probes/ksplit_validation_probe.py",
+    "research/challenges/luma_amd_speedrun/autoresearch/rate_limiter.py",
+    "research/challenges/luma_amd_speedrun/autoresearch/team.json",
+    "research/challenges/luma_amd_speedrun/autoresearch/templates/__init__.py",
+    "research/challenges/luma_amd_speedrun/autoresearch/templates/gemm_cached_template.py",
+    "research/challenges/luma_amd_speedrun/autoresearch/templates/gemm_template.py",
+    "research/challenges/luma_amd_speedrun/autoresearch/templates/mla_template.py",
+    "research/challenges/luma_amd_speedrun/autoresearch/templates/moe_template.py",
+    "research/challenges/luma_amd_speedrun/autoresearch/tree/gemm_tree.json",
+    "research/challenges/luma_amd_speedrun/autoresearch/tree/mla_tree.json",
+    "research/challenges/luma_amd_speedrun/autoresearch/tree/moe_tree.json"
+  ],
+  "agent": "Claude Code",
+  "turn_id": "d5e796e56ec0",
+  "token_usage": {
+    "input_tokens": 5609,
+    "cache_creation_tokens": 2802153,
+    "cache_read_tokens": 16445844,
+    "output_tokens": 45678,
+    "api_call_count": 83
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-03-20T04:48:45.893141881Z",
+    "agent_lines": 3065,
+    "human_added": 138,
+    "human_modified": 221,
+    "human_removed": 0,
+    "total_committed": 3424,
+    "agent_percentage": 89.51518691588785
+  }
+}
