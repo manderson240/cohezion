@@ -11,7 +11,7 @@ from __future__ import annotations
 import json
 import logging
 import uuid
-from dataclasses import dataclass, field, asdict
+from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from typing import Any
 
@@ -24,6 +24,7 @@ STAGNATION_THRESHOLD = 7  # Prune after 7 attempts without improvement
 @dataclass
 class AttemptRecord:
     """Single attempt on a node — used for trajectory tracking."""
+
     result_us: float
     parameters: dict[str, Any] = field(default_factory=dict)
     timestamp: str = ""
@@ -56,12 +57,15 @@ class KNode:
     ) -> None:
         """Record a single attempt for trajectory tracking."""
         from datetime import datetime
-        self.attempt_history.append({
-            "result_us": result_us,
-            "parameters": parameters or self.parameters,
-            "timestamp": datetime.now().isoformat(),
-            "source": source,
-        })
+
+        self.attempt_history.append(
+            {
+                "result_us": result_us,
+                "parameters": parameters or self.parameters,
+                "timestamp": datetime.now().isoformat(),
+                "source": source,
+            }
+        )
 
     def get_trajectory_summary(self) -> str:
         """Compact trajectory for LLM prompts."""
@@ -127,9 +131,11 @@ class KSearchTree:
             return None
         # Prefer leaves (no active children) over internal nodes
         _dummy = KNode(id="", strategy="", status="pruned")
-        leaves = [n for n in active if not any(
-            self.nodes.get(c, _dummy).is_selectable() for c in n.children
-        )]
+        leaves = [
+            n
+            for n in active
+            if not any(self.nodes.get(c, _dummy).is_selectable() for c in n.children)
+        ]
         candidates = leaves if leaves else active
         return max(candidates, key=lambda n: n.priority)
 
@@ -197,14 +203,16 @@ class KSearchTree:
         current_id: str | None = node_id
         while current_id and current_id in self.nodes:
             node = self.nodes[current_id]
-            trajectory.append({
-                "node_id": node.id,
-                "strategy": node.strategy,
-                "attempts": node.attempts,
-                "best_us": node.best_result_us,
-                "status": node.status,
-                "history": node.attempt_history[-5:],  # Last 5 for brevity
-            })
+            trajectory.append(
+                {
+                    "node_id": node.id,
+                    "strategy": node.strategy,
+                    "attempts": node.attempts,
+                    "best_us": node.best_result_us,
+                    "status": node.status,
+                    "history": node.attempt_history[-5:],  # Last 5 for brevity
+                }
+            )
             current_id = node.parent_id
         trajectory.reverse()  # Root first
         return trajectory
@@ -284,9 +292,7 @@ class KSearchTree:
                 old_p = node.priority
                 node.priority = min(1.0, max(0.0, float(new_priority)))
                 counts["updated"] += 1
-                log.info(
-                    f"LLM UPDATE: {node_id} priority {old_p:.2f} → {node.priority:.2f}"
-                )
+                log.info(f"LLM UPDATE: {node_id} priority {old_p:.2f} → {node.priority:.2f}")
 
         # PRUNE branches
         for node_id in evolution.get("prune", []):

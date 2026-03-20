@@ -12,7 +12,7 @@ values and reports the difference. The actual benchmark timing doesn't matter;
 we only care about the stderr diagnostic.
 """
 
-PROBE_SUBMISSION = '''\
+PROBE_SUBMISSION = """\
 import os, time, torch
 from task import input_t, output_t
 from aiter.fused_moe import fused_moe as fm
@@ -101,4 +101,4 @@ def custom_kernel(data: input_t) -> output_t:
               w1_scale=w1ssh, w2_scale=w2ssh,
               hidden_pad=cfg["d_hidden_pad"]-cfg["d_hidden"],
               intermediate_pad=cfg["d_expert_pad"]-cfg["d_expert"])
-'''
+"""

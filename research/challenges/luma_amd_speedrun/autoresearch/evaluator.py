@@ -6,7 +6,6 @@ output parsing for per-shape timings, and retry logic.
 
 from __future__ import annotations
 
-import json
 import math
 import re
 import subprocess
@@ -37,6 +36,7 @@ KERNEL_DIRS = {
 @dataclass
 class EvalResult:
     """Result of a popcorn-cli evaluation."""
+
     kernel: str
     mode: str  # test | benchmark | leaderboard
     success: bool
@@ -137,11 +137,15 @@ def _run_popcorn(
     """Run popcorn-cli submit command."""
     leaderboard = LEADERBOARD_NAMES[kernel]
     cmd = [
-        str(POPCORN_CLI), "submit",
+        str(POPCORN_CLI),
+        "submit",
         "--no-tui",
-        "--mode", mode,
-        "--gpu", "MI355X",
-        "--leaderboard", leaderboard,
+        "--mode",
+        mode,
+        "--gpu",
+        "MI355X",
+        "--leaderboard",
+        leaderboard,
         str(submission_path),
     ]
     return subprocess.run(
@@ -190,32 +194,46 @@ def evaluate(
             # Check for correctness errors
             if "mismatch" in output.lower() or "incorrect" in output.lower():
                 return EvalResult(
-                    kernel=kernel, mode=mode, success=False,
-                    raw_output=output, error="Correctness check failed",
+                    kernel=kernel,
+                    mode=mode,
+                    success=False,
+                    raw_output=output,
+                    error="Correctness check failed",
                     duration_s=duration,
                 )
             return EvalResult(
-                kernel=kernel, mode=mode, success=False,
-                raw_output=output, error=f"Exit code {result.returncode}",
+                kernel=kernel,
+                mode=mode,
+                success=False,
+                raw_output=output,
+                error=f"Exit code {result.returncode}",
                 duration_s=duration,
             )
 
         geomean, per_shape = _parse_benchmark_output(output)
         return EvalResult(
-            kernel=kernel, mode=mode, success=True,
-            geomean_us=geomean, per_shape_us=per_shape,
-            raw_output=output, duration_s=duration,
+            kernel=kernel,
+            mode=mode,
+            success=True,
+            geomean_us=geomean,
+            per_shape_us=per_shape,
+            raw_output=output,
+            duration_s=duration,
         )
 
     except subprocess.TimeoutExpired:
         return EvalResult(
-            kernel=kernel, mode=mode, success=False,
+            kernel=kernel,
+            mode=mode,
+            success=False,
             error=f"Timeout after {TIMEOUT_SECONDS}s",
             duration_s=time.time() - start,
         )
     except Exception as e:
         return EvalResult(
-            kernel=kernel, mode=mode, success=False,
+            kernel=kernel,
+            mode=mode,
+            success=False,
             error=str(e),
             duration_s=time.time() - start,
         )
