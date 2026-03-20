@@ -1,0 +1,27 @@
+{
+  "cli_version": "0.4.9",
+  "checkpoint_id": "fe4dde1a0e70",
+  "strategy": "manual-commit",
+  "branch": "gemm-hip-cpp-fused",
+  "checkpoints_count": 3,
+  "files_touched": [
+    "pyproject.toml",
+    "uv.lock"
+  ],
+  "sessions": [
+    {
+      "metadata": "/fe/4dde1a0e70/0/metadata.json",
+      "transcript": "/fe/4dde1a0e70/0/full.jsonl",
+      "context": "/fe/4dde1a0e70/0/context.md",
+      "content_hash": "/fe/4dde1a0e70/0/content_hash.txt",
+      "prompt": "/fe/4dde1a0e70/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 24,
+    "cache_creation_tokens": 77271,
+    "cache_read_tokens": 524354,
+    "output_tokens": 4519,
+    "api_call_count": 10
+  }
+}
