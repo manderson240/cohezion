@@ -141,12 +141,14 @@
         }
       },
       "parent_id": "moe_n1",
-      "priority": 0.9075,
-      "attempts": 3,
-      "best_result_us": 223.34,
-      "stagnation_count": 2,
+      "priority": 0.95,
+      "attempts": 5,
+      "best_result_us": 186.22,
+      "stagnation_count": 0,
       "status": "active",
-      "children": [],
+      "children": [
+        "n_34777fe5"
+      ],
       "notes": "Medium batch 257-expert",
       "attempt_history": [
         {
@@ -196,6 +198,38 @@
           },
           "timestamp": "2026-03-20T14:20:57.299608",
           "source": "template"
+        },
+        {
+          "result_us": 205.2558922417152,
+          "parameters": {
+            "KSPLIT_TABLE": {
+              "257_256_16": 4,
+              "257_256_128": 4,
+              "257_256_512": 1,
+              "33_512_16": 2,
+              "33_512_128": 2,
+              "33_512_512": 0,
+              "33_2048_512": 0
+            }
+          },
+          "timestamp": "2026-03-20T16:05:02.198831",
+          "source": "template"
+        },
+        {
+          "result_us": 186.22031564450995,
+          "parameters": {
+            "KSPLIT_TABLE": {
+              "257_256_16": 4,
+              "257_256_128": 4,
+              "257_256_512": 0,
+              "33_512_16": 2,
+              "33_512_128": 4,
+              "33_512_512": 0,
+              "33_2048_512": 0
+            }
+          },
+          "timestamp": "2026-03-20T16:05:25.301658",
+          "source": "template"
         }
       ]
     },
@@ -218,9 +252,9 @@
       "attempts": 0,
       "best_result_us": null,
       "stagnation_count": 0,
-      "status": "active",
+      "status": "pruned",
       "children": [],
-      "notes": "33-expert medium batch",
+      "notes": "33-expert medium batch [STRATEGIC PRUNE: LLM world model]",
       "attempt_history": []
     },
     "moe_n1d": {
@@ -355,6 +389,26 @@
       "parameters": {},
       "parent_id": "root_moe",
       "priority": 0.7,
+      "attempts": 0,
+      "best_result_us": null,
+      "stagnation_count": 0,
+      "status": "active",
+      "children": [],
+      "notes": "[LLM-proposed]",
+      "attempt_history": []
+    },
+    "n_34777fe5": {
+      "id": "n_34777fe5",
+      "strategy": "E=257,d=256,bs=128: sweep KSPLIT 0-12 with OPUS sorting enabled",
+      "parameters": {
+        "ksplit_range": [
+          0,
+          12
+        ],
+        "use_opus_sorting": true
+      },
+      "parent_id": "moe_n1b",
+      "priority": 0.65,
       "attempts": 0,
       "best_result_us": null,
       "stagnation_count": 0,

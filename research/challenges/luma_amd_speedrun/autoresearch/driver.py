@@ -17,7 +17,6 @@ Usage:
 from __future__ import annotations
 
 import argparse
-import json
 import logging
 import random
 import shutil
@@ -26,16 +25,18 @@ import time
 from datetime import datetime
 from pathlib import Path
 
+
 # Add autoresearch to path
 sys.path.insert(0, str(Path(__file__).parent))
 
-from ksearch_tree import KSearchTree
 import generator
-from generator import generate_submission
-from evaluator import evaluate, test_then_benchmark, EvalResult, KERNEL_DIRS
-from analyzer import analyze_result, log_result, evolve_world_model, Analysis
-from rate_limiter import RateLimiter
+from analyzer import Analysis, analyze_result, evolve_world_model, log_result
 from code_synthesizer import is_ollama_available
+from evaluator import KERNEL_DIRS, EvalResult, evaluate
+from generator import generate_submission
+from ksearch_tree import KSearchTree
+from rate_limiter import RateLimiter
+
 
 logging.basicConfig(
     level=logging.INFO,
@@ -52,9 +53,9 @@ KERNELS_DIR = BASE_DIR.parent / "kernels"
 # Priority weights for kernel rotation (higher = more likely to be selected)
 # Based on gap-to-leader: MoE 1.27x (closeable), GEMM 2.4x, MLA 15.6x
 KERNEL_WEIGHTS = {
-    "moe": 0.5,   # Closest to leader — highest ROI
+    "moe": 0.5,  # Closest to leader — highest ROI
     "gemm": 0.3,  # Medium gap
-    "mla": 0.2,   # Largest gap — moonshot
+    "mla": 0.2,  # Largest gap — moonshot
 }
 
 CYCLE_SLEEP_SECONDS = 5  # Sleep between cycles
@@ -186,7 +187,9 @@ def run_cycle(
     if node is None:
         return False, f"{kernel}: No active nodes remaining"
 
-    log.info(f"[{kernel}] Selected: {node.strategy} (p={node.priority:.2f}, attempts={node.attempts})")
+    log.info(
+        f"[{kernel}] Selected: {node.strategy} (p={node.priority:.2f}, attempts={node.attempts})"
+    )
 
     # Generate variant parameters
     params = generate_variant_params(tree, node)
@@ -216,7 +219,9 @@ def run_cycle(
         log.info(f"[{kernel}] DRY RUN (LLM) — {len(code)} chars (template), testing world model...")
         synthetic_geomean = (node.best_result_us or 200.0) * random.uniform(0.85, 1.15)
         synthetic_result = EvalResult(
-            kernel=kernel, mode="benchmark", success=True,
+            kernel=kernel,
+            mode="benchmark",
+            success=True,
             geomean_us=round(synthetic_geomean, 2),
         )
         analysis = analyze_result(synthetic_result, tree, node)
@@ -272,7 +277,8 @@ def run_cycle(
         save_tree(tree)
         # Log failure
         log_result(
-            test_result, node,
+            test_result,
+            node,
             Analysis(float("inf"), None, 0.0, {}, test_result.error),
             RESULTS_DIR / f"{kernel}_runs.jsonl",
         )
@@ -348,15 +354,22 @@ def run_cycle(
 
 def main():
     parser = argparse.ArgumentParser(description="K-Search autonomous experiment driver")
-    parser.add_argument("--kernel", choices=["moe", "gemm", "mla"], help="Single kernel to optimize")
-    parser.add_argument("--max-cycles", type=int, default=0, help="Max experiment cycles (0=unlimited)")
+    parser.add_argument(
+        "--kernel", choices=["moe", "gemm", "mla"], help="Single kernel to optimize"
+    )
+    parser.add_argument(
+        "--max-cycles", type=int, default=0, help="Max experiment cycles (0=unlimited)"
+    )
     parser.add_argument("--dry-run", action="store_true", help="Generate but don't submit")
     parser.add_argument(
-        "--dry-run-llm", action="store_true",
+        "--dry-run-llm",
+        action="store_true",
         help="Generate + exercise LLM world model with synthetic results (no submission)",
     )
     parser.add_argument(
-        "--model", type=str, default=None,
+        "--model",
+        type=str,
+        default=None,
         help="Override Ollama model for world model (e.g., qwen2.5-coder:7b, deepcoder:14b)",
     )
     args = parser.parse_args()
@@ -367,6 +380,7 @@ def main():
     # Override model if specified
     if args.model:
         import code_synthesizer
+
         code_synthesizer.OLLAMA_MODEL_PLAN = args.model
         code_synthesizer.OLLAMA_MODEL = args.model
 
@@ -378,10 +392,13 @@ def main():
         dry_run_mode = True
 
     from code_synthesizer import OLLAMA_MODEL_PLAN
+
     llm_available = is_ollama_available()
     log.info(f"Starting K-Search driver for: {', '.join(kernels)}")
     log.info(f"Max cycles: {'unlimited' if args.max_cycles == 0 else args.max_cycles}")
-    log.info(f"Mode: {'dry-run-llm' if dry_run_mode == 'llm' else 'dry-run' if dry_run_mode else 'live'}")
+    log.info(
+        f"Mode: {'dry-run-llm' if dry_run_mode == 'llm' else 'dry-run' if dry_run_mode else 'live'}"
+    )
     log.info(f"LLM model: {OLLAMA_MODEL_PLAN} ({'available' if llm_available else 'unavailable'})")
     log.info(f"Rate limiter: {rate_limiter.status()}")
 
@@ -406,9 +423,9 @@ def main():
             kernel = select_kernel(active_kernels)
             tree = trees[kernel]
 
-            log.info(f"\n{'='*60}")
+            log.info(f"\n{'=' * 60}")
             log.info(f"Cycle {cycle}: {kernel}")
-            log.info(f"{'='*60}")
+            log.info(f"{'=' * 60}")
 
             success, summary = run_cycle(kernel, tree, rate_limiter, dry_run=dry_run_mode)
             log.info(summary)
@@ -458,7 +475,7 @@ def main():
         for t in trees.values():
             save_tree(t)
         # Print final stats
-        log.info(f"\n{'='*60}")
+        log.info(f"\n{'=' * 60}")
         log.info(f"Final stats after {cycle} cycles:")
         for k, t in trees.items():
             stats = t.get_stats()
@@ -467,7 +484,7 @@ def main():
                 f"active={stats['active']}, "
                 f"attempts={stats['total_attempts']}"
             )
-        log.info(f"{'='*60}")
+        log.info(f"{'=' * 60}")
 
 
 if __name__ == "__main__":

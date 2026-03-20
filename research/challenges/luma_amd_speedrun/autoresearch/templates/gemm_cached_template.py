@@ -14,7 +14,7 @@ Parameters (JSON):
   default_log2_ks: int (default 0)
 """
 
-TEMPLATE = '''\
+TEMPLATE = """\
 import torch
 from task import input_t, output_t
 from aiter import dtypes
@@ -63,7 +63,7 @@ def custom_kernel(data: input_t) -> output_t:
             dtype=dtypes.bf16, bpreshuffle=True,
         )
     return C
-'''
+"""
 
 DEFAULT_PARAMS = {
     "KERNEL_TABLE": {

@@ -8,7 +8,7 @@ Output goes to stderr (visible in popcorn-cli output).
 """
 
 # This probe works for GEMM — submit as kernels/mxfp4-mm/submission.py
-PROBE_SUBMISSION_GEMM = '''\
+PROBE_SUBMISSION_GEMM = """\
 import sys, torch
 from task import input_t, output_t
 import aiter
@@ -92,4 +92,4 @@ def custom_kernel(data: input_t) -> output_t:
     A_q = A_q_raw.view(dtypes.fp4x2)
     return aiter.gemm_a4w4(A_q, B_shuffle, A_scale_shuffled, B_scale_sh,
                            dtype=dtypes.bf16, bpreshuffle=True)
-'''
+"""

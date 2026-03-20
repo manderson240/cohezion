@@ -11,7 +11,7 @@ Parameters (JSON):
   use_persistent: bool — use ASM persistent kernel (default True)
 """
 
-TEMPLATE = '''\
+TEMPLATE = """\
 import os,torch,ctypes
 from task import input_t,output_t
 from aiter import dtypes as dt
@@ -82,7 +82,7 @@ def custom_kernel(data:input_t)->output_t:
         return ot
     from aiter.mla import mla_decode_fwd as mf
     return mf(q,k4,ot,qi,ki,page_size=1,nhead_kv=1,sm_scale=1.0/(576**.5),q_scale=None,kv_scale=ks,num_kv_splits=ns,intra_batch_mode=True)
-'''
+"""
 
 DEFAULT_PARAMS = {
     "SPLITS_TABLE": {

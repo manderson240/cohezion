@@ -17,7 +17,8 @@ from pathlib import Path
 from string import Template
 from typing import Any
 
-from templates import moe_template, gemm_template, gemm_cached_template, mla_template
+from templates import gemm_cached_template, gemm_template, mla_template, moe_template
+
 
 log = logging.getLogger("generator")
 
@@ -66,6 +67,7 @@ def generate_submission(
     if use_llm and strategy:
         try:
             from code_synthesizer import synthesize_kernel
+
             code = synthesize_kernel(
                 strategy=strategy,
                 kernel=kernel,
@@ -78,7 +80,7 @@ def generate_submission(
                     output_path.parent.mkdir(parents=True, exist_ok=True)
                     output_path.write_text(code)
                 return code
-            log.info(f"LLM synthesis returned None, falling back to template")
+            log.info("LLM synthesis returned None, falling back to template")
         except Exception as e:
             log.warning(f"LLM synthesis failed, falling back to template: {e}")
 
@@ -96,9 +98,7 @@ def generate_submission(
     for key, value in params.items():
         if isinstance(value, (dict, list)):
             subs[key] = json.dumps(value)
-        elif isinstance(value, bool):
-            subs[key] = str(value)
-        elif isinstance(value, (int, float)):
+        elif isinstance(value, bool) or isinstance(value, (int, float)):
             subs[key] = str(value)
         else:
             subs[key] = str(value)
