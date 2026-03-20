@@ -1,0 +1,39 @@
+{
+  "cli_version": "0.4.9",
+  "checkpoint_id": "4ff79068200d",
+  "session_id": "9a7a40e8-257d-4b95-8105-159a21aade84",
+  "strategy": "manual-commit",
+  "created_at": "2026-03-20T20:48:57.470889481Z",
+  "branch": "feat/graph-architecture",
+  "checkpoints_count": 0,
+  "files_touched": [
+    "src/cohezion/agentjet/context_optimizer.py",
+    "src/cohezion/agentjet/embeddings.py",
+    "src/cohezion/agentjet/task_reader.py",
+    "src/cohezion/agentjet/trainer.py",
+    "src/cohezion/agentjet/unsloth_bridge.py",
+    "src/cohezion/agentjet/workflow.py",
+    "src/cohezion/api/__init__.py",
+    "tests/agentjet/test_trainer.py"
+  ],
+  "agent": "Claude Code",
+  "turn_id": "09e53b05639b",
+  "checkpoint_transcript_start": 581,
+  "transcript_lines_at_start": 581,
+  "token_usage": {
+    "input_tokens": 6571,
+    "cache_creation_tokens": 305482,
+    "cache_read_tokens": 14875131,
+    "output_tokens": 66488,
+    "api_call_count": 122
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-03-20T20:48:56.573977816Z",
+    "agent_lines": 80,
+    "human_added": 4898,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 4978,
+    "agent_percentage": 1.6070711128967456
+  }
+}

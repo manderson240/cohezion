@@ -1,0 +1,1813 @@
+Implement the following plan:
+
+# Plan: Cohezion Autonomous Learning Loop (CALL)
+# AgentJet + Unsloth Studio Integration
+
+Status: COMPLETE
+Worktree: Yes
+Date: 2026-03-19
+Completed: 2026-03-20
+
+---
+
+## Context
+
+Cohezion accumulates rich execution experience (phi_score, 12D FLUME trajectories, coherence
+metrics) via JourneyTracker but never uses it to update model weights. Four training pipelines
+exist in `flume/` but all generate bash scripts and stop — none execute training. Meanwhile
+cloud API costs accumulate on Claude Code / Gemini CLI every session.
+
+The goal is a closed **Cohezion Autonomous Learning Loop (CALL)**: Cohezion's own runtime
+experiences become the training signal, AgentJet provides the RL loop, Unsloth provides the
+fast fine-tuning backend, and improved local models route away from cloud APIs for familiar
+tasks. The Ryzen AI MAX+ 395 with 128GB unified memory is uniquely capable for this — MoE
+models like nemotron-3-super (120B total / 12B active) fit entirely in unified memory.
+
+**Critical constraints driving the design:**
+- OOM prevention: 128GB is shared CPU+GPU; training + inference models loaded simultaneously
+  = crash. Must unload inference models before any training job.
+- Context window management: KV cache grows quadratically with context. A 128K context uses
+  16x more memory than 32K. Ollama settings + context compression must be first-class.
+- AMD training gap: Unsloth Studio AMD training is "coming soon" — Phase 1 uses existing
+  llama.cpp/llamafactory path. Unsloth slots in as a drop-in when AMD support ships.
+
+---
+
+## Architecture
+
+```
+COHEZION RUNTIME (online)
+  CompoundExecutor → JourneyTracker → phi_score + skill_name
+  JourneyFinetuneConverter → data/training/finetune_journeys.jsonl
+       │
+       ▼
+AGENTJET RL LAYER  (src/cohezion/agentjet/)
+  CohezionWorkflow  — wraps CompoundExecutor as AgentJet rollout function
+  PhiScoreJudger    — phi_score → scalar reward (phi×2-1 maps [0.5,1]→[0,1])
+  JourneyTaskReader — reads existing JSONL (no new data pipeline)
+  AgentJetTrainer   — orchestrates RL loop; manages model unload before training
+  ContextOptimizer  — per-model Ollama settings (num_ctx, flash_attn, rope_scaling)
+       │
+       ▼
+TRAINING BACKEND (phased)
+  Phase 1 (now):    llamafactory + llama.cpp via LocalFinetuner (already exists)
+  Phase 2 (soon):   Unsloth Studio QLoRA when AMD training ships
+  Both phases:      Unsloth Data Recipes (available NOW) for vault→dataset pipeline
+       │
+       ▼
+OLLAMA LOCAL (deployment)
+  GGUF export → ollama create cohezion-{domain}-v{n}
+  SmartRouter updated to prefer domain-specialized fine-tuned models
+  OllamaContextManager ensures models loaded with correct context settings
+```
+
+---
+
+## Model Registry (updated)
+
+Primary fine-tune targets (in priority order for Phase 1):
+
+| Model | Size | QLoRA RAM | Domain | Priority |
+|-------|------|-----------|--------|----------|
+| qwen3.5:9b | 9B | ~8GB train | general, fast iteration | 1st |
+| nemotron-3-nano:30b | 30B | ~24GB train | agentic tasks | 2nd |
+| openai/gpt-oss-20b | 22B | ~16GB train | highest quality/param | 3rd |
+| qwen3-coder-next | 80B | ~64GB train | coding (when headroom allows) | 4th |
+
+MoE inference models (load via Ollama, NOT fine-tune targets initially):
+- nemotron-3-super:120b — 12B active params, multi-agent orchestration
+- glm-5 — 40B active params, reasoning + agentic
+- minimax-m2.7 — brand new (2026-03-18), agentic/coding
+
+TierConfig additions to `model_pool_config.py`:
+- HOT: add `qwen3.5:0.8b` (routing classifier, ~1GB)
+- WARM: add `minimax-m2.7`, `qwen3-coder-next`
+- COLD: add `nemotron-3-super:120b`, `glm-5`, `openai/gpt-oss-20b`
+
+---
+
+## New Module: src/cohezion/agentjet/
+
+All new files — zero changes to existing training pipelines.
+
+### __init__.py
+Exports: CohezionWorkflow, PhiScoreJudger, JourneyTaskReader, AgentJetTrainer,
+         ContextOptimizer, OllamaContextManager
+
+### workflow.py — CohezionWorkflow
+```python
+class CohezionWorkflow:
+    """Wraps CompoundExecutor as AgentJet Workflow.
+    AgentJet calls run(task) → returns output + phi_score as reward signal.
+    """
+    def __init__(self, executor: CompoundExecutor): ...
+    def run(self, task: dict) -> tuple[str, dict]: ...
+    # Returns (output, {"phi_score": float, "skill_name": str, "coherence": float})
+```
+
+### judger.py — PhiScoreJudger
+```python
+class PhiScoreJudger:
+    """Maps phi_score to scalar reward.
+    phi >= 0.7 → positive reward (phi * 2 - 1)
+    phi < 0.4  → negative reward (HIHO violation)
+    0.4-0.7    → small positive (HIHO band)
+    """
+    def judge(self, rollout: dict) -> float: ...
+    def batch_judge(self, rollouts: list[dict]) -> list[float]: ...
+```
+
+### task_reader.py — JourneyTaskReader
+```python
+class JourneyTaskReader:
+    """Reads data/training/finetune_journeys.jsonl → AgentJet TaskBatch.
+    Filters by min_phi, groups by skill_name for domain-specialized training.
+    Falls back to ExperienceCollector if JSONL not yet generated.
+    """
+    def read(self, skill_filter: str | None = None, min_phi: float = 0.7) -> list[dict]: ...
+    def group_by_skill(self) -> dict[str, list[dict]]: ...
+```
+
+### context_optimizer.py — ContextOptimizer + OllamaContextManager
+Critical component for OOM prevention and context window efficiency.
+
+```python
+@dataclass
+class ModelContextProfile:
+    """Per-model Ollama context settings."""
+    model_name: str
+    num_ctx: int          # Context window (KV cache driver)
+    num_gpu: int          # GPU layers (-1 = all)
+    flash_attention: bool # Reduces KV cache ~50%
+    rope_scaling: str     # "linear"|"ntk"|"yarn" for extended ctx
+    num_parallel: int     # Concurrent requests (default 1 during training)
+    keep_alive: str       # "0" during training (unload after use)
+
+CONTEXT_PROFILES: dict[str, ModelContextProfile] = {
+    "qwen3.5:0.8b":  ModelContextProfile("qwen3.5:0.8b",  num_ctx=32768, flash_attention=True, ...),
+    "qwen3.5:9b":    ModelContextProfile("qwen3.5:9b",    num_ctx=16384, flash_attention=True, ...),
+    "nemotron-3-nano:30b": ModelContextProfile(...,       num_ctx=8192,  flash_attention=True, ...),
+    # Training profiles have reduced ctx to save KV cache memory during training
+}
+
+class OllamaContextManager:
+    """Apply context profiles to Ollama models via API.
+    Enforces keep_alive=0 before training to free memory.
+    Monitors memory pressure (threshold from TierConfig).
+    """
+    def apply_profile(self, model: str, profile: ModelContextProfile) -> None: ...
+    def unload_all_for_training(self) -> None:
+        """Unload ALL inference models before starting training job."""
+        # Critical OOM prevention: POST /api/generate keep_alive=0 for each loaded model
+        ...
+    def reload_inference_models(self) -> None:
+        """Restore hot/warm tier after training completes."""
+        ...
+    def get_available_memory_gb(self) -> float:
+        """Check available unified memory before training."""
+        ...
+    def check_oom_risk(self, model_size_gb: float, training_overhead_factor: float = 3.0) -> bool:
+        """Return True if loading model for training risks OOM.
+        training_overhead_factor=3.0: weights + gradients + optimizer states.
+        """
+        ...
+```
+
+### trainer.py — AgentJetTrainer
+```python
+class AgentJetTrainer:
+    """Orchestrates the full CALL RL cycle.
+
+    Safety protocol:
+    1. Check available memory
+    2. Unload ALL inference models (OllamaContextManager.unload_all_for_training)
+    3. Run AgentJet RL loop (or llamafactory as Phase 1 fallback)
+    4. Export GGUF → ollama create
+    5. Reload inference models
+    6. Update SmartRouter with new model name
+    """
+    def __init__(
+        self,
+        workflow: CohezionWorkflow,
+        judger: PhiScoreJudger,
+        reader: JourneyTaskReader,
+        context_manager: OllamaContextManager,
+        backend: Literal["agentjet", "llamafactory"] = "llamafactory",  # Phase 1 default
+    ): ...
+
+    def train(
+        self,
+        target_model: str = "qwen3.5:9b",
+        skill_domain: str | None = None,  # None = train on all skills
+        epochs: int = 3,
+        min_phi: float = 0.7,
+        dry_run: bool = False,
+    ) -> TrainingResult: ...
+
+    def _safety_check(self, model: str) -> None:
+        """Raise if OOM risk detected. Never skip this."""
+        ...
+```
+
+### unsloth_bridge.py — UnslothBridge
+```python
+class UnslothBridge:
+    """Interface to Unsloth Studio.
+
+    Available NOW: Data Recipes API (converts vault content → training datasets)
+    Available SOON: QLoRA training API (when AMD support ships)
+
+    Falls back to LocalFinetuner (llama.cpp) when training not available.
+    """
+    def create_dataset_from_vault(self, vault_query: str) -> Path:
+        """Use Unsloth Data Recipes to transform vault notes → JSONL dataset."""
+        # POST to Unsloth Studio Data Recipes OpenAI-compatible API
+        ...
+
+    def train_qlora(self, dataset: Path, model: str, config: dict) -> Path | None:
+        """Attempt QLoRA training via Unsloth. Returns None if AMD not supported yet."""
+        ...
+
+    def is_training_available(self) -> bool:
+        """Check if Unsloth training works on current hardware."""
+        ...
+```
+
+---
+
+## Context Window Optimization Strategy
+
+Key Ollama environment variables to set/expose as Cohezion config:
+
+```bash
+# In .env or cohezion config:
+OLLAMA_FLASH_ATTENTION=1       # 50% KV cache reduction — enable always
+OLLAMA_KV_CACHE_TYPE=q8_0     # Quantized KV cache (further memory reduction)
+OLLAMA_NUM_PARALLEL=1          # During training: 1 parallel request max
+OLLAMA_MAX_LOADED_MODELS=2     # During training: max 2 models (reduce from 4)
+```
+
+Per-model context window sizing rules (to prevent KV cache OOM):
+
+| Scenario | num_ctx | Rationale |
+|----------|---------|-----------|
+| Routing models (0.8B-2B) | 32768 | Fast, small KV cache |
+| Execution models (9B-30B) | 16384 | Balance quality vs memory |
+| Deep reasoning (70B+) | 8192 | Prevent OOM at large sizes |
+| During QLoRA training | 2048 | Training doesn't need long context |
+| Fine-tuned domain models | 8192 | Adequate for specialized tasks |
+
+The `ContextHarness` in `cohezion/reliability/context_harness.py` already does prompt pruning
+targeting phi3:mini. Extend it to use per-model `ModelContextProfile` instead of hardcoded target.
+
+---
+
+## OOM Prevention Protocol (Non-Negotiable)
+
+Before ANY training job, `AgentJetTrainer._safety_check()` must:
+
+1. Call `OllamaContextManager.get_available_memory_gb()`
+2. Estimate training memory: `model_params_gb × 3.0` (weights + gradients + optimizer)
+3. If `available < required × 1.2` (20% headroom): raise `OOMRiskError`, abort
+4. Call `OllamaContextManager.unload_all_for_training()`:
+   - `POST http://localhost:11434/api/generate` with `keep_alive: 0` for each model
+   - Wait for confirmation (poll `/api/ps` until empty)
+5. After training: call `reload_inference_models()` in finally block
+
+`DegradationDetector` already monitors `memory_pressure_threshold: 0.80` — wire it to
+trigger model eviction before training starts.
+
+---
+
+## Files to Create
+
+```
+src/cohezion/platform/
+├── __init__.py
+├── resource_manager.py    (ResourceDaemon, ResourceClient, PlatformMemoryState, TrainingLock)
+├── tier_optimizer.py      (TierOptimizer — usage-driven tier reassignment)
+└── session_tracker.py     (SessionRecord, cross-session usage histogram)
+
+scripts/
+├── start_resource_daemon.sh
+└── cohezion-resources.service  (systemd unit)
+
+tests/platform/
+├── __init__.py
+├── test_resource_manager.py
+└── test_tier_optimizer.py
+
+src/cohezion/agentjet/
+├── __init__.py
+├── workflow.py          (CohezionWorkflow)
+├── judger.py            (PhiScoreJudger)
+├── task_reader.py       (JourneyTaskReader)
+├── context_optimizer.py (ContextOptimizer, OllamaContextManager, ModelContextProfile)
+├── trainer.py           (AgentJetTrainer, TrainingResult)
+├── unsloth_bridge.py    (UnslothBridge)
+└── embeddings.py        (GeminiEmbeddingModel, EmbeddingDistiller, EmbeddingOrchestrator)
+
+tests/agentjet/
+├── __init__.py
+├── test_workflow.py
+├── test_judger.py
+├── test_task_reader.py
+├── test_context_optimizer.py
+├── test_trainer.py
+└── test_embeddings.py
+```
+
+## Files to Modify
+
+```
+src/cohezion/swarm/model_pool_config.py
+  - Add new models to hot/warm/cold tier lists
+  - Add ModelContextProfile registry (or import from agentjet.context_optimizer)
+
+src/cohezion/reliability/context_harness.py
+  - Extend to accept ModelContextProfile instead of hardcoded "phi3:mini"
+
+src/cohezion/api/__init__.py
+  - Add POST /agentjet/train endpoint
+  - Add GET /agentjet/status endpoint
+  - Add GET /agentjet/models endpoint (lists available training targets)
+
+src/cohezion/skills/AGENTJET_PRIME.md  (new PRIME skill definition)
+  - Training workflow, reward signal design, OOM prevention checklist
+
+pyproject.toml
+  - Add agentjet to optional deps: [agentjet]
+  - Add unsloth to optional deps: [unsloth]
+```
+
+---
+
+## Phased Rollout
+
+### Phase 1 (Implement now) ✅ COMPLETE
+- [x] `src/cohezion/platform/` — ResourceDaemon + ResourceClient + SessionTracker
+- [x] systemd unit + start script for persistent daemon
+- [x] `TierOptimizer` — usage-histogram-driven tier recommendations
+- [x] `src/cohezion/agentjet/` module with all 7 components (including embeddings.py)
+- [x] `OllamaContextManager` + `ModelContextProfile` per-model profiles (18 profiles)
+- [x] `AgentJetTrainer` with `backend="llamafactory"` (Phase 1 default)
+- [x] Training safety protocol (OOM check + unload + reload)
+- [x] Update `model_pool_config.py` with new model registry
+- [x] Extend `ContextHarness` to use profiles
+- [x] `GeminiEmbeddingModel` with SurrealDB content-hash cache
+- [x] `EmbeddingOrchestrator` wired into `SemanticCache` (drop-in via existing interface)
+- [x] Offline vault indexing script using Gemini Embedding 2 (`scripts/index_vault_embeddings.py`)
+- [x] API endpoints (POST /agentjet/train, GET /agentjet/status, GET /agentjet/models)
+- [x] Tests — 61 agentjet + 37 platform = 98 tests, all passing; 0 regressions (4,271/4,298 baseline preserved)
+- [x] `AGENTJET_PRIME.md` skill
+
+### Phase 2 (when AMD Unsloth training ships)
+- [ ] `UnslothBridge.train_qlora()` implementation
+- [ ] Switch `AgentJetTrainer` default backend to `"unsloth"`
+- [ ] Unsloth Data Recipes → vault dataset pipeline (usable NOW for prep)
+- [ ] `EmbeddingDistiller`: use Gemini vectors to calibrate FLUME VAE
+- [ ] Post-distillation: FLUME VAE quality approaches cloud embedding quality
+
+### Phase 3 (after Phase 1 validated)
+- [ ] Switch from llamafactory to actual AgentJet verl/PPO backend
+- [ ] Multi-skill parallel training (one LoRA per skill domain)
+- [ ] SmartRouter learns to prefer domain-specialized fine-tuned models
+- [ ] Full cross-modal orchestration: task + code + vault all in same embedding space
+
+---
+
+## Verification
+
+```bash
+# 1. Unit tests (mocked Ollama + AgentJet)
+uv run pytest tests/agentjet/ -v
+
+# 2. Context profile dry run (no training)
+uv run python -m cohezion.agentjet.trainer \
+  --target qwen3.5:9b --dry-run --skill coding
+
+# 3. OOM safety check
+uv run python -c "
+from cohezion.agentjet.context_optimizer import OllamaContextManager
+mgr = OllamaContextManager()
+print('Available GB:', mgr.get_available_memory_gb())
+print('OOM risk for 9B:', mgr.check_oom_risk(18.0))  # 9B × 3x overhead = 27GB
+"
+
+# 4. Full pipeline smoke test (synthetic data, 1 epoch, phi3:mini)
+uv run python -m cohezion.agentjet.trainer \
+  --target phi3:mini --epochs 1 --min-phi 0.5 --skill research
+
+# 5. API endpoint test
+curl -X POST http://localhost:8080/agentjet/train \
+  -H "Content-Type: application/json" \
+  -d '{"target_model": "qwen3.5:9b", "skill_domain": "coding", "dry_run": true}'
+
+# 6. Regression: existing training pipelines still work
+uv run pytest tests/flume/ -v
+uv run pytest tests/compound/ -v
+```
+
+---
+
+## Platform Resource Manager (Cross-Session)
+
+**The problem**: Multiple Claude Code sessions, Gemini CLI sessions, background scripts, and
+training jobs all compete for 128GB unified memory with no coordination. Each session's
+`model_pool_manager.py` is a singleton that sees only its own allocations. A training job
+can OOM the machine while a separate session is serving inference.
+
+**The solution**: A lightweight persistent resource daemon that acts as the platform's
+memory arbiter — any session must check in before loading models or starting training.
+
+### Architecture
+
+```
+┌─────────────────────────────────────────────────────┐
+│           RESOURCE DAEMON (persistent)              │
+│  Polls Ollama /api/ps every 30s                     │
+│  Tracks: loaded_models, reserved_gb, training_locks │
+│  Backend: SurrealDB (already running at ws://8000)  │
+│  API: HTTP :8765 (lightweight, always-on)           │
+└───────────┬────────────────────────┬────────────────┘
+            │ reads                  │ reads/writes
+  ┌─────────▼──────┐       ┌────────▼────────────┐
+  │ Claude Code    │       │ Training Job         │
+  │ Session A      │       │ (AgentJetTrainer)    │
+  │ ResourceClient │       │ ResourceClient       │
+  └────────────────┘       └─────────────────────┘
+            │
+  ┌─────────▼──────┐
+  │ Claude Code    │
+  │ Session B      │
+  │ ResourceClient │
+  └────────────────┘
+```
+
+### New Component: src/cohezion/platform/resource_manager.py
+
+```python
+class ResourceDaemon:
+    """Persistent platform resource arbiter.
+
+    Runs as background process between sessions.
+    Polls Ollama /api/ps for ground-truth model state.
+    Manages training locks to prevent concurrent training OOM.
+
+    Start: uv run python -m cohezion.platform.resource_manager
+    Or via systemd: cohezion-resources.service
+    """
+    POLL_INTERVAL_S = 30         # Ollama /api/ps poll frequency
+    PORT = 8765                  # Local HTTP API port
+    TRAINING_LOCK_TTL_S = 7200   # Max training job reservation = 2 hours
+
+    async def poll_ollama_state(self) -> OllamaState:
+        """Query /api/ps for actual loaded models + memory usage."""
+        ...
+
+    async def get_available_memory_gb(self) -> float:
+        """Total unified memory - Ollama usage - OS overhead - 10GB safety buffer."""
+        ...
+
+    async def request_training_lock(
+        self, session_id: str, model: str, required_gb: float
+    ) -> TrainingLock | None:
+        """Exclusive lock for training. Returns None if insufficient memory.
+        Locks are stored in SurrealDB with TTL for crash recovery.
+        """
+        ...
+
+    async def release_training_lock(self, lock_id: str) -> None: ...
+
+    async def register_session(self, session_id: str) -> None:
+        """Track active sessions for cleanup on death."""
+        ...
+
+    async def cleanup_dead_sessions(self) -> None:
+        """Release locks from sessions that died without cleanup."""
+        ...
+
+
+class ResourceClient:
+    """Lightweight client for any session to consult the ResourceDaemon.
+
+    Falls back gracefully if daemon not running (single-session mode).
+    All sessions MUST use this before loading large models or training.
+    """
+    DAEMON_URL = "http://localhost:8765"
+
+    async def check_memory(self) -> PlatformMemoryState:
+        """Get current memory state across all sessions."""
+        ...
+
+    async def acquire_training_lock(
+        self, model: str, required_gb: float, timeout_s: float = 30.0
+    ) -> TrainingLock | None:
+        """Request exclusive training access. Blocks until available or timeout."""
+        ...
+
+    async def can_load_model(self, model_name: str, size_gb: float) -> bool:
+        """Check if loading a model is safe given all sessions' current usage."""
+        ...
+
+    def is_daemon_running(self) -> bool:
+        """Silent check — False = fall back to local-only mode."""
+        ...
+
+
+@dataclass
+class PlatformMemoryState:
+    total_gb: float              # 128 for Ryzen AI MAX+ 395
+    ollama_used_gb: float        # From /api/ps (all sessions combined)
+    system_reserved_gb: float    # OS + non-Ollama processes
+    training_reserved_gb: float  # Active training lock reservations
+    available_gb: float          # total - ollama_used - system_reserved - training_reserved
+    safety_buffer_gb: float = 10.0  # Never let available drop below this
+    loaded_models: list[str]     # All models currently loaded across ALL sessions
+
+
+@dataclass
+class TrainingLock:
+    lock_id: str
+    session_id: str
+    model: str
+    reserved_gb: float
+    acquired_at: float
+    expires_at: float            # TTL for crash recovery
+```
+
+### Session Usage Pattern
+
+Every new Claude Code / Gemini CLI session that uses Cohezion:
+
+```python
+# On session start (in CompoundExecutor or via hook)
+client = ResourceClient()
+await client.register_session(session_id=os.environ["COHEZION_SESSION_ID"])
+
+# Before any model load
+if not await client.can_load_model("qwen3-coder-next", size_gb=45.0):
+    logger.warning("Insufficient platform memory, falling back to nemotron-3-nano:30b")
+
+# Before training (in AgentJetTrainer)
+lock = await client.acquire_training_lock("qwen3.5:9b", required_gb=27.0)
+if lock is None:
+    raise ResourceUnavailableError("Training blocked: another session holds training lock")
+try:
+    await self._run_training(...)
+finally:
+    await client.release_training_lock(lock.lock_id)
+```
+
+### Usage Pattern Learning
+
+The daemon tracks which models each session uses and how long, building a usage histogram
+stored in SurrealDB. This feeds back into `model_pool_config.py` tier assignments:
+
+```python
+# Weekly: daemon promotes/demotes models based on actual cross-session usage
+# "nemotron-3-nano is used by 80% of sessions for >30min → promote to WARM"
+# "qwen3-coder-next last used 14 days ago → demote to COLD"
+class TierOptimizer:
+    def recommend_tier_changes(self, usage_history: list[SessionRecord]) -> list[TierChange]:
+        """Data-driven tier assignment based on actual cross-session usage."""
+        ...
+```
+
+### Files to Add
+
+```
+src/cohezion/platform/
+├── __init__.py
+├── resource_manager.py    (ResourceDaemon, ResourceClient, PlatformMemoryState, TrainingLock)
+├── tier_optimizer.py      (TierOptimizer — usage-driven tier assignments)
+└── session_tracker.py     (SessionRecord, cross-session usage histogram)
+
+scripts/
+├── start_resource_daemon.sh   (launch daemon, check if already running)
+└── cohezion-resources.service (systemd unit for persistent daemon)
+
+tests/platform/
+├── __init__.py
+├── test_resource_manager.py   (mock Ollama /api/ps, mock SurrealDB)
+└── test_tier_optimizer.py
+```
+
+### Integration into AgentJetTrainer
+
+`AgentJetTrainer._safety_check()` becomes:
+
+```python
+async def _safety_check(self, model: str, required_gb: float) -> None:
+    client = ResourceClient()
+    if client.is_daemon_running():
+        lock = await client.acquire_training_lock(model, required_gb, timeout_s=30.0)
+        if lock is None:
+            raise ResourceUnavailableError(
+                f"Cannot train {model}: platform has insufficient memory "
+                f"or another session holds the training lock"
+            )
+        self._training_lock = lock  # Released in finally block of train()
+    else:
+        # Fallback: local-only check (single-session safety)
+        state = await OllamaContextManager().get_available_memory_gb()
+        if state < required_gb * 1.2:
+            raise OOMRiskError(f"OOM risk: need {required_gb}GB, have {state}GB")
+```
+
+---
+
+## Gemini Embedding 2 — Orchestration Anchor
+
+Gemini Embedding 2 (March 10, 2026) is Google's first natively multimodal embedding model:
+maps text, images, video, audio, and documents into ONE unified embedding space.
+
+This upgrades Cohezion's orchestration from keyword matching → semantic concept matching.
+
+### Why It Matters
+
+`SemanticCache` already has a plug-and-play `EmbeddingModel` interface. The current
+`FlumeVAEEmbeddingModel` uses a 256D SHA-256 hash projection — not truly semantic. Gemini
+Embedding 2 slots directly into the same interface as a higher-quality tier.
+
+### Three Uses (in priority order)
+
+**1. Vault Indexing (offline, one-time cost)**
+Embed every vault note, decision, pattern, and PRIME skill using Gemini Embedding 2.
+Store vectors locally in SurrealDB. Never pay again for the same content.
+This makes `vault_find_relevant_context()` orders of magnitude more accurate.
+
+**2. FLUME VAE Distillation (calibration, not runtime)**
+Use Gemini Embedding 2 vectors as teacher signal to train the FLUME VAE.
+The VAE learns to approximate Gemini's embedding quality locally.
+After calibration: near-cloud quality at zero API cost per runtime query.
+This is knowledge distillation for embeddings — same principle as DistilBERT vs BERT.
+
+**3. Cross-Modal Orchestration (when cloud available)**
+Task descriptions, code snippets, trajectory data, and skill definitions all embedded
+into the same space. SmartRouter semantic matching across modalities, not just text.
+
+### New Component: src/cohezion/agentjet/embeddings.py
+
+```python
+class GeminiEmbeddingModel(EmbeddingModel):
+    """Cloud Gemini Embedding 2 — uses Gemini API, caches locally.
+
+    Never embeds the same content twice. Stores in SurrealDB with content hash key.
+    Falls back to FlumeVAEEmbeddingModel when cloud unavailable.
+    """
+    def __init__(self, cache_backend: SurrealClient, fallback: EmbeddingModel): ...
+    async def encode(self, text: str) -> EmbeddingResult:
+        key = sha256(text)
+        if cached := await self.cache_backend.get(key): return cached
+        result = await self._call_gemini_api(text)
+        await self.cache_backend.store(key, result)
+        return result
+
+class EmbeddingDistiller:
+    """Distills Gemini Embedding 2 quality into local FLUME VAE.
+
+    Generates Gemini embeddings for vault corpus, then fine-tunes FLUME VAE
+    to minimize distance to Gemini vectors. Result: local embeddings that
+    approximate cloud quality without runtime API calls.
+    """
+    def distill(self, vault_corpus: list[str], epochs: int = 10) -> Path: ...
+    # Outputs calibrated FLUME VAE checkpoint
+
+class EmbeddingOrchestrator:
+    """Selects embedding model based on context and availability.
+
+    Routing table:
+    - Vault indexing (offline):    GeminiEmbeddingModel (cloud, cached)
+    - Runtime inference (online):  FlumeVAEEmbeddingModel (local, calibrated)
+    - Training reward signals:     GeminiEmbeddingModel (offline, for distillation)
+    - Fast routing (hot path):     DistilledEmbeddingModel (hash fallback, <1ms)
+    """
+    def get_model(self, context: str) -> EmbeddingModel: ...
+```
+
+### Integration Points
+
+- `SemanticCache.__init__`: Accept `EmbeddingOrchestrator` as `embedding_model` param
+  (already supports custom `embedding_model` injection — zero interface change)
+- `TrajectorySearchEngine.find_similar_trajectories()`: Replace hash embeddings with
+  calibrated FLUME VAE (post-distillation) for better trajectory matching
+- `vault_find_relevant_context()`: Use GeminiEmbeddingModel for vault indexing pass
+- `SkillSelector.select_skills()`: Use calibrated embeddings for semantic skill matching
+
+### Cost Control
+
+Gemini Embedding 2 is API-based (cloud). Usage rules:
+- ONLY call for novel content (not seen before, per SurrealDB content-hash cache)
+- NEVER call during runtime execution (FLUME VAE handles runtime)
+- Batch vault indexing runs offline (configurable schedule, not per-request)
+- Circuit breaker: if Gemini API unavailable, fall back to FLUME VAE silently
+
+---
+
+## Key Reuse Points (existing code)
+
+| Existing | Used By | How |
+|----------|---------|-----|
+| `flume/journey_finetune_pipeline.py:JourneyFinetuneConverter` | `JourneyTaskReader` | Reads its JSONL output |
+| `flume/local_finetune_pipeline.py:LocalFinetuner` | `AgentJetTrainer` | Phase 1 training backend |
+| `compound/journey_tracker.py:phi_score` | `PhiScoreJudger` | Already computed, just read |
+| `compound/executor.py:CompoundExecutor` | `CohezionWorkflow` | Wrapped as AgentJet rollout |
+| `reliability/context_harness.py:ContextHarness` | `OllamaContextManager` | Extended for per-model profiles |
+| `swarm/model_pool_config.py:TierConfig` | `OllamaContextManager` | `memory_pressure_threshold` |
+| `swarm/dynamic_model_router.py` | `AgentJetTrainer` | Concurrency limit enforcement |
+| `compound/degradation_detector.py` | `AgentJetTrainer._safety_check` | Memory pressure alerts |
+| `persistence/surreal_client.py` | `ResourceDaemon`, `ResourceClient` | Training lock storage + TTL |
+| `swarm/model_pool_manager.py` | `ResourceDaemon` | Per-session model state (feeds daemon) |
+| `swarm/model_pool_config.py:TierConfig` | `TierOptimizer` | Reads current tiers, writes recommendations |
+
+
+If you need specific details from before exiting plan mode (like exact code snippets, error messages, or content you generated), read the full transcript at: /home/mike-anderson/.claude/projects/-home-mike-anderson-dev-cohezion/f152ac1c-cf5b-47c2-8dcf-dac7219a4908.jsonl
+
+If this plan can be broken down into multiple independent tasks, consider using the TeamCreate tool to create a team and parallelize the work.
+
+---
+
+Base directory for this skill: /home/mike-anderson/.claude/plugins/cache/claude-plugins-official/superpowers/5.0.5/skills/executing-plans
+
+# Executing Plans
+
+## Overview
+
+Load plan, review critically, execute all tasks, report when complete.
+
+**Announce at start:** "I'm using the executing-plans skill to implement this plan."
+
+**Note:** Tell your human partner that Superpowers works much better with access to subagents. The quality of its work will be significantly higher if run on a platform with subagent support (such as Claude Code or Codex). If subagents are available, use superpowers:subagent-driven-development instead of this skill.
+
+## The Process
+
+### Step 1: Load and Review Plan
+1. Read plan file
+2. Review critically - identify any questions or concerns about the plan
+3. If concerns: Raise them with your human partner before starting
+4. If no concerns: Create TodoWrite and proceed
+
+### Step 2: Execute Tasks
+
+For each task:
+1. Mark as in_progress
+2. Follow each step exactly (plan has bite-sized steps)
+3. Run verifications as specified
+4. Mark as completed
+
+### Step 3: Complete Development
+
+After all tasks complete and verified:
+- Announce: "I'm using the finishing-a-development-branch skill to complete this work."
+- **REQUIRED SUB-SKILL:** Use superpowers:finishing-a-development-branch
+- Follow that skill to verify tests, present options, execute choice
+
+## When to Stop and Ask for Help
+
+**STOP executing immediately when:**
+- Hit a blocker (missing dependency, test fails, instruction unclear)
+- Plan has critical gaps preventing starting
+- You don't understand an instruction
+- Verification fails repeatedly
+
+**Ask for clarification rather than guessing.**
+
+## When to Revisit Earlier Steps
+
+**Return to Review (Step 1) when:**
+- Partner updates the plan based on your feedback
+- Fundamental approach needs rethinking
+
+**Don't force through blockers** - stop and ask.
+
+## Remember
+- Review plan critically first
+- Follow plan steps exactly
+- Don't skip verifications
+- Reference skills when plan says to
+- Stop when blocked, don't guess
+- Never start implementation on main/master branch without explicit user consent
+
+## Integration
+
+**Required workflow skills:**
+- **superpowers:using-git-worktrees** - REQUIRED: Set up isolated workspace before starting
+- **superpowers:writing-plans** - Creates the plan this skill executes
+- **superpowers:finishing-a-development-branch** - Complete development after all tasks
+
+---
+
+Base directory for this skill: /home/mike-anderson/.claude/plugins/cache/claude-plugins-official/superpowers/5.0.5/skills/finishing-a-development-branch
+
+# Finishing a Development Branch
+
+## Overview
+
+Guide completion of development work by presenting clear options and handling chosen workflow.
+
+**Core principle:** Verify tests → Present options → Execute choice → Clean up.
+
+**Announce at start:** "I'm using the finishing-a-development-branch skill to complete this work."
+
+## The Process
+
+### Step 1: Verify Tests
+
+**Before presenting options, verify tests pass:**
+
+```bash
+# Run project's test suite
+npm test / cargo test / pytest / go test ./...
+```
+
+**If tests fail:**
+```
+Tests failing (<N> failures). Must fix before completing:
+
+[Show failures]
+
+Cannot proceed with merge/PR until tests pass.
+```
+
+Stop. Don't proceed to Step 2.
+
+**If tests pass:** Continue to Step 2.
+
+### Step 2: Determine Base Branch
+
+```bash
+# Try common base branches
+git merge-base HEAD main 2>/dev/null || git merge-base HEAD master 2>/dev/null
+```
+
+Or ask: "This branch split from main - is that correct?"
+
+### Step 3: Present Options
+
+Present exactly these 4 options:
+
+```
+Implementation complete. What would you like to do?
+
+1. Merge back to <base-branch> locally
+2. Push and create a Pull Request
+3. Keep the branch as-is (I'll handle it later)
+4. Discard this work
+
+Which option?
+```
+
+**Don't add explanation** - keep options concise.
+
+### Step 4: Execute Choice
+
+#### Option 1: Merge Locally
+
+```bash
+# Switch to base branch
+git checkout <base-branch>
+
+# Pull latest
+git pull
+
+# Merge feature branch
+git merge <feature-branch>
+
+# Verify tests on merged result
+<test command>
+
+# If tests pass
+git branch -d <feature-branch>
+```
+
+Then: Cleanup worktree (Step 5)
+
+#### Option 2: Push and Create PR
+
+```bash
+# Push branch
+git push -u origin <feature-branch>
+
+# Create PR
+gh pr create --title "<title>" --body "$(cat <<'EOF'
+## Summary
+<2-3 bullets of what changed>
+
+## Test Plan
+- [ ] <verification steps>
+EOF
+)"
+```
+
+Then: Cleanup worktree (Step 5)
+
+#### Option 3: Keep As-Is
+
+Report: "Keeping branch <name>. Worktree preserved at <path>."
+
+**Don't cleanup worktree.**
+
+#### Option 4: Discard
+
+**Confirm first:**
+```
+This will permanently delete:
+- Branch <name>
+- All commits: <commit-list>
+- Worktree at <path>
+
+Type 'discard' to confirm.
+```
+
+Wait for exact confirmation.
+
+If confirmed:
+```bash
+git checkout <base-branch>
+git branch -D <feature-branch>
+```
+
+Then: Cleanup worktree (Step 5)
+
+### Step 5: Cleanup Worktree
+
+**For Options 1, 2, 4:**
+
+Check if in worktree:
+```bash
+git worktree list | grep $(git branch --show-current)
+```
+
+If yes:
+```bash
+git worktree remove <worktree-path>
+```
+
+**For Option 3:** Keep worktree.
+
+## Quick Reference
+
+| Option | Merge | Push | Keep Worktree | Cleanup Branch |
+|--------|-------|------|---------------|----------------|
+| 1. Merge locally | ✓ | - | - | ✓ |
+| 2. Create PR | - | ✓ | ✓ | - |
+| 3. Keep as-is | - | - | ✓ | - |
+| 4. Discard | - | - | - | ✓ (force) |
+
+## Common Mistakes
+
+**Skipping test verification**
+- **Problem:** Merge broken code, create failing PR
+- **Fix:** Always verify tests before offering options
+
+**Open-ended questions**
+- **Problem:** "What should I do next?" → ambiguous
+- **Fix:** Present exactly 4 structured options
+
+**Automatic worktree cleanup**
+- **Problem:** Remove worktree when might need it (Option 2, 3)
+- **Fix:** Only cleanup for Options 1 and 4
+
+**No confirmation for discard**
+- **Problem:** Accidentally delete work
+- **Fix:** Require typed "discard" confirmation
+
+## Red Flags
+
+**Never:**
+- Proceed with failing tests
+- Merge without verifying tests on result
+- Delete work without confirmation
+- Force-push without explicit request
+
+**Always:**
+- Verify tests before offering options
+- Present exactly 4 options
+- Get typed confirmation for Option 4
+- Clean up worktree for Options 1 & 4 only
+
+## Integration
+
+**Called by:**
+- **subagent-driven-development** (Step 7) - After all tasks complete
+- **executing-plans** (Step 5) - After all batches complete
+
+**Pairs with:**
+- **using-git-worktrees** - Cleans up worktree created by that skill
+
+---
+
+<task-notification>
+<task-id>bi72zd8bl</task-id>
+<tool-use-id>toolu_015LUS3FGEuYiTo5EqqGXJZo</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/fa51e7c9-e669-4877-ac89-6ff357f6ba35/tasks/bi72zd8bl.output</output-file>
+<status>completed</status>
+<summary>Background command "Run full test suite, quiet mode" completed (exit code 0)</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/fa51e7c9-e669-4877-ac89-6ff357f6ba35/tasks/bi72zd8bl.output
+
+---
+
+<task-notification>
+<task-id>b4l05rxop</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/fa51e7c9-e669-4877-ac89-6ff357f6ba35/tasks/b4l05rxop.output</output-file>
+<status>completed</status>
+<summary>Background command "Run full test suite in quiet mode" completed (exit code 0)</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/fa51e7c9-e669-4877-ac89-6ff357f6ba35/tasks/b4l05rxop.output
+
+---
+
+<task-notification>
+<task-id>b05vgbfed</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/fa51e7c9-e669-4877-ac89-6ff357f6ba35/tasks/b05vgbfed.output</output-file>
+<status>completed</status>
+<summary>Background command "Full test suite excluding live SurrealDB test" completed (exit code 0)</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/fa51e7c9-e669-4877-ac89-6ff357f6ba35/tasks/b05vgbfed.output
+
+---
+
+<task-notification>
+<task-id>bhp4zoxcq</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/fa51e7c9-e669-4877-ac89-6ff357f6ba35/tasks/bhp4zoxcq.output</output-file>
+<status>completed</status>
+<summary>Background command "Full test suite excluding live infrastructure test" completed (exit code 0)</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/fa51e7c9-e669-4877-ac89-6ff357f6ba35/tasks/bhp4zoxcq.output
+
+---
+
+<task-notification>
+<task-id>bpegkctrp</task-id>
+<tool-use-id>toolu_014XGGJXqZmD2QXbHiyxicQk</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/fa51e7c9-e669-4877-ac89-6ff357f6ba35/tasks/bpegkctrp.output</output-file>
+<status>completed</status>
+<summary>Background command "Full suite without coverage (faster) excluding live DB test" completed (exit code 0)</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/fa51e7c9-e669-4877-ac89-6ff357f6ba35/tasks/bpegkctrp.output
+
+---
+
+<task-notification>
+<task-id>bzs6p0euu</task-id>
+<tool-use-id>toolu_01At2a6uqE9VpE9CV24Qn9Gw</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/fa51e7c9-e669-4877-ac89-6ff357f6ba35/tasks/bzs6p0euu.output</output-file>
+<status>completed</status>
+<summary>Background command "Get full list of failing tests" completed (exit code 0)</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/fa51e7c9-e669-4877-ac89-6ff357f6ba35/tasks/bzs6p0euu.output
+
+---
+
+<task-notification>
+<task-id>bdfs2ool5</task-id>
+<tool-use-id>toolu_017DGiNyBbW98yZY15bycHFF</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/fa51e7c9-e669-4877-ac89-6ff357f6ba35/tasks/bdfs2ool5.output</output-file>
+<status>completed</status>
+<summary>Background command "Full suite - capture FAILED lines and summary" completed (exit code 0)</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/fa51e7c9-e669-4877-ac89-6ff357f6ba35/tasks/bdfs2ool5.output
+
+---
+
+code review first
+
+---
+
+Base directory for this skill: /home/mike-anderson/.claude/plugins/cache/claude-plugins-official/superpowers/5.0.5/skills/requesting-code-review
+
+# Requesting Code Review
+
+Dispatch superpowers:code-reviewer subagent to catch issues before they cascade. The reviewer gets precisely crafted context for evaluation — never your session's history. This keeps the reviewer focused on the work product, not your thought process, and preserves your own context for continued work.
+
+**Core principle:** Review early, review often.
+
+## When to Request Review
+
+**Mandatory:**
+- After each task in subagent-driven development
+- After completing major feature
+- Before merge to main
+
+**Optional but valuable:**
+- When stuck (fresh perspective)
+- Before refactoring (baseline check)
+- After fixing complex bug
+
+## How to Request
+
+**1. Get git SHAs:**
+```bash
+BASE_SHA=$(git rev-parse HEAD~1)  # or origin/main
+HEAD_SHA=$(git rev-parse HEAD)
+```
+
+**2. Dispatch code-reviewer subagent:**
+
+Use Task tool with superpowers:code-reviewer type, fill template at `code-reviewer.md`
+
+**Placeholders:**
+- `{WHAT_WAS_IMPLEMENTED}` - What you just built
+- `{PLAN_OR_REQUIREMENTS}` - What it should do
+- `{BASE_SHA}` - Starting commit
+- `{HEAD_SHA}` - Ending commit
+- `{DESCRIPTION}` - Brief summary
+
+**3. Act on feedback:**
+- Fix Critical issues immediately
+- Fix Important issues before proceeding
+- Note Minor issues for later
+- Push back if reviewer is wrong (with reasoning)
+
+## Example
+
+```
+[Just completed Task 2: Add verification function]
+
+You: Let me request code review before proceeding.
+
+BASE_SHA=$(git log --oneline | grep "Task 1" | head -1 | awk '{print }')
+HEAD_SHA=$(git rev-parse HEAD)
+
+[Dispatch superpowers:code-reviewer subagent]
+  WHAT_WAS_IMPLEMENTED: Verification and repair functions for conversation index
+  PLAN_OR_REQUIREMENTS: Task 2 from docs/superpowers/plans/deployment-plan.md
+  BASE_SHA: a7981ec
+  HEAD_SHA: 3df7661
+  DESCRIPTION: Added verifyIndex() and repairIndex() with 4 issue types
+
+[Subagent returns]:
+  Strengths: Clean architecture, real tests
+  Issues:
+    Important: Missing progress indicators
+    Minor: Magic number (100) for reporting interval
+  Assessment: Ready to proceed
+
+You: [Fix progress indicators]
+[Continue to Task 3]
+```
+
+## Integration with Workflows
+
+**Subagent-Driven Development:**
+- Review after EACH task
+- Catch issues before they compound
+- Fix before moving to next task
+
+**Executing Plans:**
+- Review after each batch (3 tasks)
+- Get feedback, apply, continue
+
+**Ad-Hoc Development:**
+- Review before merge
+- Review when stuck
+
+## Red Flags
+
+**Never:**
+- Skip review because "it's simple"
+- Ignore Critical issues
+- Proceed with unfixed Important issues
+- Argue with valid technical feedback
+
+**If reviewer wrong:**
+- Push back with technical reasoning
+- Show code/tests that prove it works
+- Request clarification
+
+See template at: requesting-code-review/code-reviewer.md
+
+---
+
+Base directory for this skill: /home/mike-anderson/.claude/plugins/cache/claude-plugins-official/superpowers/5.0.5/skills/receiving-code-review
+
+# Code Review Reception
+
+## Overview
+
+Code review requires technical evaluation, not emotional performance.
+
+**Core principle:** Verify before implementing. Ask before assuming. Technical correctness over social comfort.
+
+## The Response Pattern
+
+```
+WHEN receiving code review feedback:
+
+1. READ: Complete feedback without reacting
+2. UNDERSTAND: Restate requirement in own words (or ask)
+3. VERIFY: Check against codebase reality
+4. EVALUATE: Technically sound for THIS codebase?
+5. RESPOND: Technical acknowledgment or reasoned pushback
+6. IMPLEMENT: One item at a time, test each
+```
+
+## Forbidden Responses
+
+**NEVER:**
+- "You're absolutely right!" (explicit CLAUDE.md violation)
+- "Great point!" / "Excellent feedback!" (performative)
+- "Let me implement that now" (before verification)
+
+**INSTEAD:**
+- Restate the technical requirement
+- Ask clarifying questions
+- Push back with technical reasoning if wrong
+- Just start working (actions > words)
+
+## Handling Unclear Feedback
+
+```
+IF any item is unclear:
+  STOP - do not implement anything yet
+  ASK for clarification on unclear items
+
+WHY: Items may be related. Partial understanding = wrong implementation.
+```
+
+**Example:**
+```
+your human partner: "Fix 1-6"
+You understand 1,2,3,6. Unclear on 4,5.
+
+❌ WRONG: Implement 1,2,3,6 now, ask about 4,5 later
+✅ RIGHT: "I understand items 1,2,3,6. Need clarification on 4 and 5 before proceeding."
+```
+
+## Source-Specific Handling
+
+### From your human partner
+- **Trusted** - implement after understanding
+- **Still ask** if scope unclear
+- **No performative agreement**
+- **Skip to action** or technical acknowledgment
+
+### From External Reviewers
+```
+BEFORE implementing:
+  1. Check: Technically correct for THIS codebase?
+  2. Check: Breaks existing functionality?
+  3. Check: Reason for current implementation?
+  4. Check: Works on all platforms/versions?
+  5. Check: Does reviewer understand full context?
+
+IF suggestion seems wrong:
+  Push back with technical reasoning
+
+IF can't easily verify:
+  Say so: "I can't verify this without [X]. Should I [investigate/ask/proceed]?"
+
+IF conflicts with your human partner's prior decisions:
+  Stop and discuss with your human partner first
+```
+
+**your human partner's rule:** "External feedback - be skeptical, but check carefully"
+
+## YAGNI Check for "Professional" Features
+
+```
+IF reviewer suggests "implementing properly":
+  grep codebase for actual usage
+
+  IF unused: "This endpoint isn't called. Remove it (YAGNI)?"
+  IF used: Then implement properly
+```
+
+**your human partner's rule:** "You and reviewer both report to me. If we don't need this feature, don't add it."
+
+## Implementation Order
+
+```
+FOR multi-item feedback:
+  1. Clarify anything unclear FIRST
+  2. Then implement in this order:
+     - Blocking issues (breaks, security)
+     - Simple fixes (typos, imports)
+     - Complex fixes (refactoring, logic)
+  3. Test each fix individually
+  4. Verify no regressions
+```
+
+## When To Push Back
+
+Push back when:
+- Suggestion breaks existing functionality
+- Reviewer lacks full context
+- Violates YAGNI (unused feature)
+- Technically incorrect for this stack
+- Legacy/compatibility reasons exist
+- Conflicts with your human partner's architectural decisions
+
+**How to push back:**
+- Use technical reasoning, not defensiveness
+- Ask specific questions
+- Reference working tests/code
+- Involve your human partner if architectural
+
+**Signal if uncomfortable pushing back out loud:** "Strange things are afoot at the Circle K"
+
+## Acknowledging Correct Feedback
+
+When feedback IS correct:
+```
+✅ "Fixed. [Brief description of what changed]"
+✅ "Good catch - [specific issue]. Fixed in [location]."
+✅ [Just fix it and show in the code]
+
+❌ "You're absolutely right!"
+❌ "Great point!"
+❌ "Thanks for catching that!"
+❌ "Thanks for [anything]"
+❌ ANY gratitude expression
+```
+
+**Why no thanks:** Actions speak. Just fix it. The code itself shows you heard the feedback.
+
+**If you catch yourself about to write "Thanks":** DELETE IT. State the fix instead.
+
+## Gracefully Correcting Your Pushback
+
+If you pushed back and were wrong:
+```
+✅ "You were right - I checked [X] and it does [Y]. Implementing now."
+✅ "Verified this and you're correct. My initial understanding was wrong because [reason]. Fixing."
+
+❌ Long apology
+❌ Defending why you pushed back
+❌ Over-explaining
+```
+
+State the correction factually and move on.
+
+## Common Mistakes
+
+| Mistake | Fix |
+|---------|-----|
+| Performative agreement | State requirement or just act |
+| Blind implementation | Verify against codebase first |
+| Batch without testing | One at a time, test each |
+| Assuming reviewer is right | Check if breaks things |
+| Avoiding pushback | Technical correctness > comfort |
+| Partial implementation | Clarify all items first |
+| Can't verify, proceed anyway | State limitation, ask for direction |
+
+## Real Examples
+
+**Performative Agreement (Bad):**
+```
+Reviewer: "Remove legacy code"
+❌ "You're absolutely right! Let me remove that..."
+```
+
+**Technical Verification (Good):**
+```
+Reviewer: "Remove legacy code"
+✅ "Checking... build target is 10.15+, this API needs 13+. Need legacy for backward compat. Current impl has wrong bundle ID - fix it or drop pre-13 support?"
+```
+
+**YAGNI (Good):**
+```
+Reviewer: "Implement proper metrics tracking with database, date filters, CSV export"
+✅ "Grepped codebase - nothing calls this endpoint. Remove it (YAGNI)? Or is there usage I'm missing?"
+```
+
+**Unclear Item (Good):**
+```
+your human partner: "Fix items 1-6"
+You understand 1,2,3,6. Unclear on 4,5.
+✅ "Understand 1,2,3,6. Need clarification on 4 and 5 before implementing."
+```
+
+## GitHub Thread Replies
+
+When replying to inline review comments on GitHub, reply in the comment thread (`gh api repos/{owner}/{repo}/pulls/{pr}/comments/{id}/replies`), not as a top-level PR comment.
+
+## The Bottom Line
+
+**External feedback = suggestions to evaluate, not orders to follow.**
+
+Verify. Question. Then implement.
+
+No performative agreement. Technical rigor always.
+
+---
+
+This session is being continued from a previous conversation that ran out of context. The summary below covers the earlier portion of the conversation.
+
+Summary:
+1. Primary Request and Intent:
+   The user provided a completed plan document for the **Cohezion Autonomous Learning Loop (CALL)** (Status: COMPLETE, Date: 2026-03-19/20) and asked to implement it. The plan had all Phase 1 checkboxes marked complete. The implementation covers: `src/cohezion/agentjet/` (7 files), `src/cohezion/platform/` (3 new files: resource_manager.py, tier_optimizer.py, session_tracker.py), scripts, API endpoints, and AGENTJET_PRIME.md skill. After verifying the implementation already existed in the codebase, the user requested a **code review** before choosing a merge option. The code review surfaced critical bugs requiring fixes before merge.
+
+2. Key Technical Concepts:
+   - **CALL (Cohezion Autonomous Learning Loop)**: Closed loop where runtime execution experiences (phi_score from JourneyTracker) become fine-tuning signal for local LLMs
+   - **OOM Prevention on 128GB unified memory**: ResourceDaemon cross-session arbitration, OllamaContextManager unload-before-train protocol, training lock TTL
+   - **Per-model context profiles**: `ModelContextProfile` dataclass with num_ctx, flash_attention, size_gb — 18 profiles, training variants at num_ctx=2048/keep_alive=0
+   - **PhiScoreJudger reward signal**: phi≥0.7 → positive (phi×2-1), phi<0.4 → negative (HIHO violation), 0.4–0.7 → small positive
+   - **AgentJetTrainer safety protocol**: memory check → unload all models → train (llamafactory Phase 1) → reload → update SmartRouter
+   - **ResourceDaemon/ResourceClient**: Persistent HTTP :8765 daemon with SurrealDB-backed training locks, graceful fallback to local Ollama poll when daemon not running
+   - **GeminiEmbeddingModel**: Content-hash SurrealDB cache, FLUME VAE fallback, circuit breaker
+   - **`asyncio.wait_for()` pitfall**: Returns a coroutine, not async context manager — cannot be used with `async with`
+   - **aiohttp.ClientTimeout**: Correct pattern for timeouts in aiohttp (used in resource_manager.py but NOT in context_optimizer.py originally)
+   - **`asyncio.get_running_loop()` vs `get_event_loop()`**: Python 3.10+ deprecates `get_event_loop()` inside coroutines
+   - **Phase 1/2/3 phasing**: llamafactory now, Unsloth QLoRA when AMD ships, verl/PPO later
+   - **TierOptimizer**: Usage-histogram-driven model tier recommendations (promote/demote based on cross-session usage)
+
+3. Files and Code Sections:
+   - **`src/cohezion/agentjet/__init__.py`** — Exports all 7 agentjet components. Confirmed complete.
+   - **`src/cohezion/agentjet/context_optimizer.py`** — Critical file. Contains `ModelContextProfile`, `CONTEXT_PROFILES` (18 profiles), `OllamaContextManager`. **BUGS FOUND (C1)**: Lines 141, 161, 213-215, 237 use `asyncio.wait_for()` as async context manager — runtime TypeError. Also I3: `asyncio.get_event_loop().time()` at lines 188-189. I6: timeout warning instead of raise at line 198-200. Needs `MODEL_OLLAMA_KEY_MAP` added (I1).
+   - **`src/cohezion/agentjet/trainer.py`** — `AgentJetTrainer`, `TrainingResult`. **BUGS FOUND**: C2: `_safety_check` called at line 138 BEFORE `try` block at line 141 — breaks "All steps run inside try/finally" docstring claim. I5: `self._training_lock` as instance state (line 82, 253). I7: `if not journey_path.exists():` guard at line 360. I3: `asyncio.get_event_loop()` at line 371. I1: local `_MODEL_KEY_MAP` dict at lines 340-348. I2: relative `Path("data/training")` at line 356.
+   - **`src/cohezion/agentjet/judger.py`** — `PhiScoreJudger`. Confirmed correct; reward function and tests comprehensive.
+   - **`src/cohezion/agentjet/task_reader.py`** — `JourneyTaskReader`. **BUG (I2)**: `_DEFAULT_PATH = Path("data/training/finetune_journeys.jsonl")` is relative at line 38. Fix: anchor to `Path(__file__).resolve().parents[3]`.
+   - **`src/cohezion/agentjet/embeddings.py`** — `GeminiEmbeddingModel`, `FlumeVAEEmbeddingModel`, `EmbeddingOrchestrator`. **BUGS**: I3: `asyncio.get_event_loop()` at line 87 (async method). I4: hardcoded `aiohttp.BasicAuth("root", "root")` at lines 235 and 262. M1: `_get_encoder` missing return type. M3: GEMINI_API_URL points to `text-embedding-004` but class says "Gemini Embedding 2".
+   - **`src/cohezion/agentjet/unsloth_bridge.py`** — `UnslothBridge`. **BUGS**: I1: duplicate `_MODEL_KEY_MAP` at lines 251-259. I2: relative paths `Path("data/training/...")` at lines 99, 117. I3: `asyncio.get_event_loop()` at line 264 (in async method).
+   - **`src/cohezion/agentjet/workflow.py`** — `CohezionWorkflow`. **BUG (I3)**: `asyncio.get_event_loop()` at line 100 (inside async method).
+   - **`src/cohezion/platform/resource_manager.py`** — `ResourceDaemon`, `ResourceClient`, `PlatformMemoryState`, `TrainingLock`, `OOMRiskError`, `ResourceUnavailableError`. Correctly uses `aiohttp.ClientTimeout` throughout. `ResourceClient.is_daemon_running()` uses socket probe on port 8765.
+   - **`src/cohezion/platform/tier_optimizer.py`** — `TierOptimizer`. 3 rules: training-only→COLD, high-usage promote, 14-day unused demote. M5: silent ignore of models not in current_tiers.
+   - **`src/cohezion/api/__init__.py`** (lines 1566-1640) — **BUG (C2)**: `agentjet_train` endpoint (line 1566) has broad `except Exception as e` returning HTTP 200 with `success=False` even for `OOMRiskError`/`ResourceUnavailableError` — should return HTTP 503. Endpoints: POST `/agentjet/train`, GET `/agentjet/status`, GET `/agentjet/models`.
+   - **`scripts/cohezion-resources.service`** — **BUG (C3)**: Hardcoded `WorkingDirectory=/home/mike-anderson/dev/cohezion` and `ExecStart=/home/mike-anderson/.local/bin/uv run python -m cohezion.platform.resource_manager`. Cannot install on any other machine.
+   - **`tests/agentjet/test_trainer.py`** — Key: `_safety_check` is mocked via `patch.object(trainer, "_safety_check", new_callable=AsyncMock)` in tests. `test_oom_check_raises_when_memory_insufficient` expects `pytest.raises(RuntimeError)` propagated from `train()`, with comment "called BEFORE the try block". Converting `self._training_lock` to local variable in `train()` won't break tests since mocked `_safety_check` returns `None` by default and `finally` checks `if training_lock is not None`.
+
+4. Errors and fixes:
+   - **`ToolSearch` parameter format error**: Got `InputValidationError` when trying to use `Read` tool with `start_line`/`end_line` parameters (schema not loaded). Fixed by calling `ToolSearch` first to load tool schemas.
+   - **Background bash output not appearing**: Background tasks writing to `/tmp/...` output files showed 0 bytes initially. Fixed by reading the output files directly after tasks completed (task notifications arrived).
+   - **27 pre-existing test failures**: Confirmed pre-existing by running stash test: failures in `test_template_engine`, `test_smart_router`, `test_triune_engine`, `test_triune_manifold`, `tests/gateway/`, `tests/research/`, `tests/swarm/test_token_client` all existed before CALL changes. Plan documented "0 regressions (4,271/4,298 baseline preserved)" — 4298-4271=27 exactly matches.
+
+5. Problem Solving:
+   - Verified all 98 agentjet+platform tests pass, 4365 total pass (27 pre-existing failures).
+   - Confirmed CALL plan is fully implemented in `gemm-hip-cpp-fused` branch, committed.
+   - Code reviewer identified C1 as blocking: `async with asyncio.wait_for(...)` pattern is a runtime TypeError — the entire OOM-prevention path (`unload_all_for_training`) silently fails on any real Ollama instance because the aiohttp calls crash at context manager entry.
+   - Planned fix strategy for all 11 issues, verified against `test_trainer.py` that refactoring `_safety_check` to return lock won't break test contracts.
+
+6. All user messages:
+   - [Initial message]: Provided the full CALL plan document and said "Implement the following plan:"
+   - "code review first" — requested code review before choosing merge option
+
+7. Pending Tasks:
+   - **Implement all code review fixes** in this priority order:
+     1. **C1** (BLOCKING): Fix 4 `asyncio.wait_for()` context manager usages in `context_optimizer.py` → use `aiohttp.ClientTimeout`
+     2. **C2**: Fix API handler to return HTTP 503 for `OOMRiskError`/`ResourceUnavailableError`; fix trainer docstring; refactor `self._training_lock` → local variable in `train()`
+     3. **C3**: Fix hardcoded `/home/mike-anderson/dev/cohezion` paths in `scripts/cohezion-resources.service`
+     4. **I1**: Extract `_MODEL_OLLAMA_KEY_MAP` to module level in `context_optimizer.py`, import in `trainer.py` and `unsloth_bridge.py`
+     5. **I2**: Fix relative `Path("data/training/...")` → `Path(__file__).resolve().parents[3] / "data" / "training"` in `task_reader.py`, `trainer.py`, `unsloth_bridge.py`
+     6. **I3**: Replace `asyncio.get_event_loop()` with `asyncio.get_running_loop()` in async methods in `context_optimizer.py`, `trainer.py`, `unsloth_bridge.py`, `workflow.py`, `embeddings.py`
+     7. **I4**: Replace `aiohttp.BasicAuth("root", "root")` with `aiohttp.BasicAuth(os.environ.get("SURREAL_USER", "root"), os.environ.get("SURREAL_PASS", "root"))` in `embeddings.py`
+     8. **I5**: Convert `self._training_lock` → local `training_lock` variable in `train()`, update `_safety_check` to return the lock
+     9. **I6**: Raise `RuntimeError` instead of `logger.warning` when models still loaded after 60s timeout in `unload_all_for_training`
+     10. **I7**: Remove `if not journey_path.exists():` guard in `_run_llamafactory` — always write training data
+   - After fixes: run tests to verify no regressions, then present the 4 merge options again
+
+8. Current Work:
+   All files have been read and analyzed. The implementation plan for all fixes is complete. The next action was to begin writing edits, starting with `context_optimizer.py` (C1 — the blocking bug). The key edits planned:
+
+   **context_optimizer.py** — Fix C1 (4 sites), add `import time`, fix I3 (`asyncio.get_running_loop()`), fix I6 (raise not warn), add `MODEL_OLLAMA_KEY_MAP`:
+   ```python
+   # C1 Site 1 (get_loaded_models line 141) - OLD:
+   async with asyncio.wait_for(session.get(url), timeout=10.0) as resp:
+   # NEW:
+   async with session.get(url, timeout=aiohttp.ClientTimeout(total=10.0)) as resp:
+
+   # C1 Site 2 (unload_model line 161) - OLD:
+   async with asyncio.wait_for(session.post(url, json=payload), timeout=30.0) as resp:
+   # NEW:
+   async with session.post(url, json=payload, timeout=aiohttp.ClientTimeout(total=30.0)) as resp:
+
+   # C1 Site 3 (reload_inference_models _warm() lines 213-215) - OLD:
+   async with aiohttp.ClientSession() as session, asyncio.wait_for(
+       session.post(url, json=payload), timeout=60.0
+   ) as resp:
+   # NEW (split into two nested async with):
+   async with aiohttp.ClientSession() as session:
+       async with session.post(url, json=payload, timeout=aiohttp.ClientTimeout(total=60.0)) as resp:
+
+   # C1 Site 4 (get_available_memory_gb line 237) - OLD:
+   async with asyncio.wait_for(session.get(url), timeout=10.0) as resp:
+   # NEW:
+   async with session.get(url, timeout=aiohttp.ClientTimeout(total=10.0)) as resp:
+
+   # I3 (lines 188-189) - OLD:
+   deadline = asyncio.get_event_loop().time() + 60.0
+   while asyncio.get_event_loop().time() < deadline:
+   # NEW:
+   deadline = time.monotonic() + 60.0
+   while time.monotonic() < deadline:
+
+   # I6 - OLD:
+   if remaining:
+       logger.warning("Training unload timeout; ...")
+   # NEW:
+   if remaining:
+       raise RuntimeError(f"Training unload timeout: {len(remaining)} model(s) still loaded after 60s...")
+   
+   # I1 - Add at module level after CONTEXT_PROFILES:
+   MODEL_OLLAMA_KEY_MAP: dict[str, str] = {
+       "qwen3.5:9b": "qwen3.5", "qwen3.5": "qwen3.5",
+       "phi4": "phi4", "phi4-mini-reasoning:latest": "phi4",
+       "phi3:mini": "qwen3-4b", "qwen3-4b": "qwen3-4b", "gemma3": "gemma3",
+   }
+   ```
+
+   **trainer.py** — Fix C2/I5 (`_safety_check` returns lock, use local `training_lock`), I1 (import map), I2 (absolute path), I3 (`get_running_loop`), I7 (always write data):
+   ```python
+   # Remove: self._training_lock: object | None = None  from __init__
+   # Add module-level:
+   from cohezion.agentjet.context_optimizer import MODEL_OLLAMA_KEY_MAP
+   _PROJECT_ROOT = Path(__file__).resolve().parents[3]
+   _DATA_DIR = _PROJECT_ROOT / "data" / "training"
+   # In train(): training_lock = await self._safety_check(target_model)
+   # In finally: use training_lock (local) not self._training_lock
+   # _safety_check returns lock: async def _safety_check(self, model: str) -> object | None:
+   ```
+
+9. Optional Next Step:
+   Begin implementing all code review fixes, starting with `context_optimizer.py` to fix the blocking C1 bug. The reviewer stated: "The `async with asyncio.wait_for(...)` bug in `context_optimizer.py` (C1) causes a `TypeError` at runtime on every live Ollama call, which means `unload_all_for_training()` — the central OOM-prevention mechanism — silently fails whenever models are actually loaded." The planned fix for all 4 sites in context_optimizer.py is to replace `asyncio.wait_for(session.get/post(...), timeout=X)` with `session.get/post(..., timeout=aiohttp.ClientTimeout(total=X))`, matching the pattern already used correctly in `resource_manager.py`. After context_optimizer.py, proceed through C2→C3→I1→I2→I3→I4→I5→I6→I7, then run the test suite to verify zero new failures, then re-present the 4 merge options.
+
+If you need specific details from before compaction (like exact code snippets, error messages, or content you generated), read the full transcript at: /home/mike-anderson/.claude/projects/-home-mike-anderson-dev-cohezion/9a7a40e8-257d-4b95-8105-159a21aade84.jsonl
+Continue the conversation from where it left off without asking the user any further questions. Resume directly — do not acknowledge the summary, do not recap what was happening, do not preface with "I'll continue" or similar. Pick up the last task as if the break never happened.
+
+---
+
+This session is being continued from a previous conversation that ran out of context. The summary below covers the earlier portion of the conversation.
+
+Summary:
+1. Primary Request and Intent:
+   The conversation continues from a previous session where: (a) the CALL (Cohezion Autonomous Learning Loop) plan was fully implemented on branch `gemm-hip-cpp-fused` (plan Status: COMPLETE), and (b) the user requested a code review before choosing a merge option. A code reviewer identified 11 bugs (C1–C3 critical, I1–I7 important). The current session's task is to **implement all code review fixes** before presenting the 4 merge options (merge locally / create PR / keep as-is / discard). No new requests from the user — all work is executing the fix plan from the previous session.
+
+2. Key Technical Concepts:
+   - **CALL (Cohezion Autonomous Learning Loop)**: Closed RL loop using runtime phi_score experiences as fine-tuning signal for local LLMs on 128GB unified memory (Ryzen AI MAX+ 395)
+   - **`asyncio.wait_for()` pitfall (C1)**: Returns a coroutine, not an async context manager — `async with asyncio.wait_for(session.get(...))` raises `TypeError` at runtime. Fix: use `session.get(..., timeout=aiohttp.ClientTimeout(total=X))` which is a native async CM
+   - **`asyncio.get_event_loop()` deprecation (I3)**: Python 3.10+ deprecates this inside coroutines; use `asyncio.get_running_loop()`
+   - **OOM prevention protocol**: `unload_all_for_training()` → check memory → train → `reload_inference_models()` — all in try/finally
+   - **Training lock as local variable (I5/C2)**: `self._training_lock` should be a local variable in `train()` to avoid state leakage; `_safety_check` should return the lock
+   - **`MODEL_OLLAMA_KEY_MAP` (I1)**: Shared mapping from Ollama model names → LocalFinetuner keys, duplicated in trainer.py and unsloth_bridge.py — should live in context_optimizer.py at module level
+   - **Absolute path anchoring (I2)**: `Path(__file__).resolve().parents[3]` from any agentjet file gives project root
+   - **Systemd `%h` specifier (C3)**: Replaces hardcoded `/home/mike-anderson` with home directory at unit load time
+   - **HTTP 503 for resource errors (C2)**: `OOMRiskError`/`ResourceUnavailableError` should return 503 (service unavailable/retry) not 200 with `success=False`
+   - **Edit persistence issue**: First round of edits appeared to apply (Edit tool said "successfully updated") but files reverted to original state; a test marker edit confirmed Edit tool does work; re-reading files revealed the original linter reformatted them but reverted logic changes
+
+3. Files and Code Sections:
+
+   - **`src/cohezion/agentjet/context_optimizer.py`** — C1 blocking bug (4 `asyncio.wait_for` sites), I3 (get_event_loop), I6 (warn→raise), I1 (MODEL_OLLAMA_KEY_MAP)
+     - **SECOND ROUND VERIFIED**: All fixes applied and confirmed with grep showing no `asyncio.wait_for`, `time.monotonic` present, `MODEL_OLLAMA_KEY_MAP` present
+     ```python
+     # Added imports
+     import time
+     
+     # C1 Fix Site 1 (get_loaded_models):
+     async with session.get(url, timeout=aiohttp.ClientTimeout(total=10.0)) as resp:
+     
+     # C1 Fix Site 2 (unload_model):
+     async with session.post(
+         url, json=payload, timeout=aiohttp.ClientTimeout(total=30.0)
+     ) as resp:
+     
+     # C1 Fix Site 3 (reload_inference_models._warm) — split compound async with:
+     async with aiohttp.ClientSession() as session:
+         async with session.post(
+             url, json=payload, timeout=aiohttp.ClientTimeout(total=60.0)
+         ) as resp:
+     
+     # C1 Fix Site 4 (get_available_memory_gb):
+     async with session.get(url, timeout=aiohttp.ClientTimeout(total=10.0)) as resp:
+     
+     # I3 Fix:
+     deadline = time.monotonic() + 60.0
+     while time.monotonic() < deadline:
+     
+     # I6 Fix:
+     raise RuntimeError(
+         f"Training unload timeout: {len(remaining)} model(s) still loaded after 60s: "
+         f"{remaining}. Cannot proceed — risk of OOM during training."
+     )
+     
+     # I1 - Added at module level after CONTEXT_PROFILES:
+     MODEL_OLLAMA_KEY_MAP: dict[str, str] = {
+         "qwen3.5:9b": "qwen3.5",
+         "qwen3.5": "qwen3.5",
+         "phi4": "phi4",
+         "phi4-mini-reasoning:latest": "phi4",
+         "phi3:mini": "qwen3-4b",
+         "qwen3-4b": "qwen3-4b",
+         "gemma3": "gemma3",
+     }
+     ```
+
+   - **`src/cohezion/agentjet/trainer.py`** — C2 (safety check inside try, local lock variable), I1 (use MODEL_OLLAMA_KEY_MAP), I2 (absolute path), I3 (get_running_loop), I5 (self._training_lock → local), I7 (always write data)
+     - **SECOND ROUND IN PROGRESS**: 5 of ~7 edits applied, last edit was `_safety_check` still needs return type update
+     ```python
+     # New module-level constants (I2):
+     _PROJECT_ROOT = Path(__file__).resolve().parents[3]
+     _DATA_DIR = _PROJECT_ROOT / "data" / "training"
+     
+     # Import MODEL_OLLAMA_KEY_MAP (I1):
+     from cohezion.agentjet.context_optimizer import MODEL_OLLAMA_KEY_MAP, OllamaContextManager
+     
+     # Removed from __init__ (I5):
+     # self._training_lock: object | None = None  # DELETED
+     
+     # In train() — _safety_check moved inside try (C2/I5):
+     training_lock: object | None = None
+     output_path: Path | None = None
+     try:
+         # 2. OOM safety check — acquires lock or raises OOMRiskError
+         training_lock = await self._safety_check(target_model)
+     
+     # In finally block (I5):
+     if training_lock is not None:
+         ...
+         lock_id: str = training_lock.lock_id
+         ...
+         finally:
+             training_lock = None
+     
+     # _safety_check signature change (I5) — PARTIALLY APPLIED:
+     async def _safety_check(self, model: str) -> object | None:
+     # returns lock instead of self._training_lock = lock
+     
+     # In _run_llamafactory (I1, I2, I3, I7):
+     base_key = MODEL_OLLAMA_KEY_MAP.get(model, "qwen3.5")
+     _DATA_DIR.mkdir(parents=True, exist_ok=True)
+     journey_path = _DATA_DIR / "finetune_journeys.jsonl"
+     # Always write (removed if not journey_path.exists() guard)
+     logger.info("AgentJetTrainer: writing %d tasks...", len(tasks), journey_path)
+     with journey_path.open("w", encoding="utf-8") as fh: ...
+     loop = asyncio.get_running_loop()
+     ```
+     - The edits applied in second round (verified via Read): imports + _DATA_DIR, removed self._training_lock, moved _safety_check into try block, fixed finally block
+
+   - **`src/cohezion/agentjet/task_reader.py`** — I2 (absolute default path)
+     - FIRST ROUND: Applied. SECOND ROUND: Not yet re-applied (needs re-verification)
+     ```python
+     # OLD (relative):
+     _DEFAULT_PATH = Path("data/training/finetune_journeys.jsonl")
+     # NEW (absolute):
+     _DEFAULT_PATH = Path(__file__).resolve().parents[3] / "data" / "training" / "finetune_journeys.jsonl"
+     ```
+
+   - **`src/cohezion/agentjet/unsloth_bridge.py`** — I1 (use MODEL_OLLAMA_KEY_MAP), I2 (absolute paths), I3 (get_running_loop)
+     - FIRST ROUND: Applied. SECOND ROUND: Not yet re-applied
+     ```python
+     # New imports:
+     from cohezion.agentjet.context_optimizer import MODEL_OLLAMA_KEY_MAP
+     _PROJECT_ROOT = Path(__file__).resolve().parents[3]
+     _DATA_DIR = _PROJECT_ROOT / "data" / "training"
+     
+     # In create_dataset_from_vault:
+     out = output_path if output_path is not None else _DATA_DIR / "unsloth_dataset.jsonl"
+     local_source = _DATA_DIR / "finetune_journeys.jsonl"
+     
+     # In _llamafactory_fallback:
+     base_key = MODEL_OLLAMA_KEY_MAP.get(model, "qwen3.5")
+     loop = asyncio.get_running_loop()
+     ```
+
+   - **`src/cohezion/agentjet/workflow.py`** — I3 (get_running_loop)
+     - FIRST ROUND: Applied. SECOND ROUND: Not yet re-applied
+     ```python
+     result = await asyncio.get_running_loop().run_in_executor(...)
+     ```
+
+   - **`src/cohezion/agentjet/embeddings.py`** — I3 (get_running_loop in async encode), I4 (env var credentials)
+     - FIRST ROUND: Applied. SECOND ROUND: Not yet re-applied
+     ```python
+     # I3:
+     loop = asyncio.get_running_loop()
+     vector = await loop.run_in_executor(None, self._encode_blocking, text)
+     
+     # I4 (both _cache_lookup and _cache_store):
+     auth=aiohttp.BasicAuth(
+         os.environ.get("SURREAL_USER", "root"),
+         os.environ.get("SURREAL_PASS", "root"),
+     ),
+     ```
+
+   - **`src/cohezion/api/__init__.py`** — C2 (return 503 for OOM/resource errors, lines 1566-1610)
+     - FIRST ROUND: Applied. SECOND ROUND: Not yet re-applied
+     ```python
+     @app.post("/agentjet/train")
+     async def agentjet_train(request: TrainRequest) -> TrainResponse:
+         from fastapi import HTTPException
+         try:
+             ...
+         except Exception as e:
+             _oom_names = ("OOMRiskError", "ResourceUnavailableError")
+             if type(e).__name__ in _oom_names:
+                 raise HTTPException(status_code=503, detail=str(e)) from e
+             return TrainResponse(success=False, ..., error=str(e))
+     ```
+
+   - **`scripts/cohezion-resources.service`** — C3 (hardcoded paths)
+     - FIRST ROUND: Applied. SECOND ROUND: Not yet re-applied
+     ```ini
+     WorkingDirectory=%h/dev/cohezion
+     ExecStart=%h/.local/bin/uv run python -m cohezion.platform.resource_manager
+     ```
+
+   - **`tests/agentjet/test_trainer.py`** — Updated `test_oom_check_raises_when_memory_insufficient`
+     - FIRST ROUND: Applied and VERIFIED (tests went from 259 to 260 passing)
+     - The linter reformatted but reverted the test back to old `pytest.raises` form (unclear)
+     ```python
+     # OLD (expected exception propagation from before try block):
+     with pytest.raises(RuntimeError, match="OOMRiskError"):
+         await trainer.train(target_model="big-model")
+     
+     # NEW (exception now caught by except block, returns failed TrainingResult):
+     result = await trainer.train(target_model="big-model")
+     assert result.success is False
+     assert result.error is not None
+     assert "OOMRiskError" in result.error
+     ```
+
+4. Errors and Fixes:
+   - **First round of edits not persisting**: Edit tool said "successfully updated" but grep and Read after the fact showed original code. Root cause unclear but confirmed via: (1) test for `test_oom_check_raises_when_memory_insufficient` going from fail→pass means test edit DID persist; (2) context_optimizer.py mtime showed 16:19 but edits were applied after that time; (3) a subsequent test marker edit DID persist (mtime updated to 16:26). Hypothesis: the linter ran during the first batch and reformatted/reverted logic changes to production files but kept the test file edit; OR the test ran before any revert happened. **Fix**: Re-read all files in second round and re-apply all edits with exact old_string matching against current file content.
+   - **`test_oom_check_raises_when_memory_insufficient` failure**: After moving `_safety_check` inside the `try` block (C2 fix), the exception is caught by `except Exception as exc:` and returned as `TrainingResult(success=False)` instead of propagating. The test expected `pytest.raises(RuntimeError)`. **Fix**: Updated test to assert `result.success is False` and `"OOMRiskError" in result.error`.
+   - **`asyncio.wait_for()` as context manager (C1)**: `asyncio.wait_for()` returns a coroutine, not an async context manager, so `async with asyncio.wait_for(...)` raises `TypeError` at runtime. All 4 sites in context_optimizer.py fixed to use `aiohttp.ClientTimeout` parameter.
+   - **`asyncio.TimeoutError` vs `TimeoutError`**: The linter auto-changed `except TimeoutError:` to `except asyncio.TimeoutError:` in context_optimizer.py — this is fine (same class), no action needed.
+
+5. Problem Solving:
+   - **Identified blocking C1 bug**: All 4 Ollama API calls in `OllamaContextManager` used `async with asyncio.wait_for(session.get/post(...))` which crashes with `TypeError` on every live Ollama call, silently breaking the OOM-prevention mechanism
+   - **Edit persistence mystery**: First batch of edits appeared not to persist. After debugging (checking git status, file permissions, mtimes, hooks), concluded that edits DO work (test marker confirmed) and re-applied all fixes
+   - **Test contract change**: Moving `_safety_check` inside the `try` block changed the observable behavior — exception no longer propagates from `train()`, test updated to match new (correct) contract
+   - **Module-level shared constant**: Extracted `MODEL_OLLAMA_KEY_MAP` from local method scope in trainer.py and unsloth_bridge.py to module-level in context_optimizer.py to eliminate duplication
+   - **Systemd portability**: Used `%h` specifier instead of hardcoded `/home/mike-anderson` (though working directory assumption `%h/dev/cohezion` is still a convention)
+
+6. All User Messages:
+   - [Initial continuation message]: No explicit text from user in this session — the session started as a continuation of the previous session per the system reminder. The user's last explicit request was "code review first" from the previous session, which triggered the code review that surfaced the 11 bugs. The current session's job is to implement those fixes.
+
+7. Pending Tasks:
+   - Complete second round of trainer.py fixes:
+     - Update `_safety_check` return type annotation (`-> object | None`)
+     - Update `_safety_check` body to `return lock` instead of `self._training_lock = lock`
+     - Add `return None` at end of local fallback path
+     - Fix `_run_llamafactory` to use `MODEL_OLLAMA_KEY_MAP`, `_DATA_DIR`, always write, `asyncio.get_running_loop()`
+   - Verify and re-apply (or verify already applied from first round) fixes to:
+     - `task_reader.py` (I2: absolute path)
+     - `unsloth_bridge.py` (I1, I2, I3)
+     - `workflow.py` (I3)
+     - `embeddings.py` (I3, I4)
+     - `src/cohezion/api/__init__.py` (C2: HTTP 503)
+     - `scripts/cohezion-resources.service` (C3: %h specifier)
+   - Run full test suite to confirm 0 regressions (target: ≥4271 passing, ≤27 pre-existing failures)
+   - Commit all fixes and present 4 merge options (merge locally / create PR / keep as-is / discard)
+
+8. Current Work:
+   The session was in the middle of the **second round of applying all code review fixes**, having discovered that the first round of edits did not persist to disk. 
+
+   For `context_optimizer.py`, the second round was **fully applied and verified** via grep:
+   - All 4 `asyncio.wait_for` → `aiohttp.ClientTimeout` fixes (C1)
+   - `import time` added
+   - `time.monotonic()` replaces `asyncio.get_event_loop().time()` (I3)
+   - `raise RuntimeError(...)` replaces `logger.warning` on timeout (I6)
+   - `MODEL_OLLAMA_KEY_MAP` added at module level (I1)
+
+   For `trainer.py`, the second round was **partially applied** — the last Edit call in progress was updating the `_safety_check` method body to `return lock` instead of `self._training_lock = lock`, and adding `return None` at the end of the fallback path. The specific edits that were applied in second round:
+   - `from cohezion.agentjet.context_optimizer import MODEL_OLLAMA_KEY_MAP, OllamaContextManager` and `_PROJECT_ROOT`/`_DATA_DIR` constants added
+   - `self._training_lock: object | None = None` removed from `__init__`
+   - `_safety_check` moved inside `try` block with `training_lock = await self._safety_check(target_model)`
+   - `finally` block updated to use `training_lock` (local) instead of `self._training_lock`
+   
+   The edits being applied when the summary was requested — still needed to complete trainer.py:
+   ```python
+   # _safety_check return type (not yet applied in second round):
+   async def _safety_check(self, model: str) -> object | None:
+   
+   # In _safety_check body — return lock instead of assign (not yet applied):
+   return lock  # was: self._training_lock = lock
+   
+   # Add return None at end (not yet applied):
+   return None
+   
+   # In _run_llamafactory (not yet applied):
+   base_key = MODEL_OLLAMA_KEY_MAP.get(model, "qwen3.5")
+   _DATA_DIR.mkdir(parents=True, exist_ok=True)
+   journey_path = _DATA_DIR / "finetune_journeys.jsonl"
+   # always write (remove if not exists guard)
+   loop = asyncio.get_running_loop()
+   ```
+
+9. Optional Next Step:
+   Continue completing the trainer.py fixes — specifically the remaining edits needed:
+   
+   From the last working edit in trainer.py (the `_safety_check` body update):
+   ```python
+   # Fix _safety_check signature and body — change:
+   async def _safety_check(self, model: str) -> None:
+   # To:
+   async def _safety_check(self, model: str) -> object | None:
+   
+   # Change self._training_lock = lock to return lock
+   self._training_lock = lock
+   # To:
+   return lock
+   
+   # Add return None at end of fallback path
+   ```
+   
+   Then continue with `_run_llamafactory` fixes (I1, I2, I3, I7), then verify/re-apply fixes to `task_reader.py`, `unsloth_bridge.py`, `workflow.py`, `embeddings.py`, `api/__init__.py`, and `scripts/cohezion-resources.service`. Finally run full test suite and present 4 merge options.
+
+If you need specific details from before compaction (like exact code snippets, error messages, or content you generated), read the full transcript at: /home/mike-anderson/.claude/projects/-home-mike-anderson-dev-cohezion/9a7a40e8-257d-4b95-8105-159a21aade84.jsonl
+Continue the conversation from where it left off without asking the user any further questions. Resume directly — do not acknowledge the summary, do not recap what was happening, do not preface with "I'll continue" or similar. Pick up the last task as if the break never happened.
