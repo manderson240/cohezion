@@ -1,0 +1,24 @@
+{
+  "cli_version": "0.4.9",
+  "checkpoint_id": "d2ee3eb933e4",
+  "session_id": "96ac6a48-4e4b-40b0-99d4-75b9544d80d6",
+  "strategy": "manual-commit",
+  "created_at": "2026-03-20T05:32:50.623487685Z",
+  "branch": "track-c",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "Agents/_index.md",
+    "cortex/MOC-agentic-ai.md"
+  ],
+  "agent": "Claude Code",
+  "turn_id": "2d589cd9150b",
+  "initial_attribution": {
+    "calculated_at": "2026-03-20T05:32:50.623189851Z",
+    "agent_lines": 0,
+    "human_added": 8,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 8,
+    "agent_percentage": 0
+  }
+}
