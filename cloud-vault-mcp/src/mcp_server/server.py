@@ -857,4 +857,8 @@ def create_server(config: ServerConfig) -> FastMCP:
     except ImportError:
         logger.warning("Pocket TTS not available (pip install pocket-tts)")
 
+    if config.surrealdb_enabled and surrealdb:
+        from .graph_write_tools import register_graph_write_tools
+        register_graph_write_tools(mcp, lambda: surrealdb)
+
     return mcp
