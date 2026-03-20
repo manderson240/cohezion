@@ -355,10 +355,20 @@ def main():
         "--dry-run-llm", action="store_true",
         help="Generate + exercise LLM world model with synthetic results (no submission)",
     )
+    parser.add_argument(
+        "--model", type=str, default=None,
+        help="Override Ollama model for world model (e.g., qwen2.5-coder:7b, deepcoder:14b)",
+    )
     args = parser.parse_args()
 
     kernels = [args.kernel] if args.kernel else ["moe", "gemm", "mla"]
     rate_limiter = RateLimiter()
+
+    # Override model if specified
+    if args.model:
+        import code_synthesizer
+        code_synthesizer.OLLAMA_MODEL_PLAN = args.model
+        code_synthesizer.OLLAMA_MODEL = args.model
 
     # Determine dry_run mode: False, True, or "llm"
     dry_run_mode: bool | str = False
@@ -367,11 +377,12 @@ def main():
     elif args.dry_run:
         dry_run_mode = True
 
+    from code_synthesizer import OLLAMA_MODEL_PLAN
     llm_available = is_ollama_available()
     log.info(f"Starting K-Search driver for: {', '.join(kernels)}")
     log.info(f"Max cycles: {'unlimited' if args.max_cycles == 0 else args.max_cycles}")
     log.info(f"Mode: {'dry-run-llm' if dry_run_mode == 'llm' else 'dry-run' if dry_run_mode else 'live'}")
-    log.info(f"LLM world model: {'ENABLED (Ollama)' if llm_available else 'DISABLED (template-only)'}")
+    log.info(f"LLM model: {OLLAMA_MODEL_PLAN} ({'available' if llm_available else 'unavailable'})")
     log.info(f"Rate limiter: {rate_limiter.status()}")
 
     # Load trees

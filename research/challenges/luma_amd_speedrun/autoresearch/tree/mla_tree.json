@@ -17,9 +17,12 @@
         "mla_n2",
         "mla_n3",
         "mla_n4",
-        "mla_n5"
+        "mla_n5",
+        "n_8a249fb9",
+        "n_81c6a22e"
       ],
-      "notes": ""
+      "notes": "",
+      "attempt_history": []
     },
     "mla_n1": {
       "id": "mla_n1",
@@ -46,7 +49,8 @@
         "mla_n1c",
         "mla_n1d"
       ],
-      "notes": "HIGHEST LEVERAGE \u2014 num_kv_splits hardcoded at 16/8 in current submission"
+      "notes": "HIGHEST LEVERAGE \u2014 num_kv_splits hardcoded at 16/8 in current submission",
+      "attempt_history": []
     },
     "mla_n1a": {
       "id": "mla_n1a",
@@ -62,13 +66,45 @@
         "DEFAULT_SPLITS": 16
       },
       "parent_id": "mla_n1",
-      "priority": 0.855,
-      "attempts": 0,
-      "best_result_us": null,
+      "priority": 0.9574959216965742,
+      "attempts": 2,
+      "best_result_us": 179.31,
       "stagnation_count": 0,
       "status": "active",
       "children": [],
-      "notes": "Small batch, short seq \u2014 few splits needed"
+      "notes": "Small batch, short seq \u2014 few splits needed",
+      "attempt_history": [
+        {
+          "result_us": 183.90364326336066,
+          "parameters": {
+            "SPLITS_TABLE": {
+              "4_1024": 4,
+              "4_8192": 16,
+              "32_1024": 8,
+              "32_8192": 32,
+              "128_8192": 32
+            },
+            "DEFAULT_SPLITS": 16
+          },
+          "timestamp": "2026-03-20T10:27:47.298815",
+          "source": "template"
+        },
+        {
+          "result_us": 179.30988040948338,
+          "parameters": {
+            "SPLITS_TABLE": {
+              "4_1024": 4,
+              "4_8192": 16,
+              "32_1024": 16,
+              "32_8192": 32,
+              "128_8192": 32
+            },
+            "DEFAULT_SPLITS": 16
+          },
+          "timestamp": "2026-03-20T11:56:26.713733",
+          "source": "template"
+        }
+      ]
     },
     "mla_n1b": {
       "id": "mla_n1b",
@@ -90,7 +126,8 @@
       "stagnation_count": 0,
       "status": "active",
       "children": [],
-      "notes": "Small batch, long seq \u2014 more splits to parallelize"
+      "notes": "Small batch, long seq \u2014 more splits to parallelize",
+      "attempt_history": []
     },
     "mla_n1c": {
       "id": "mla_n1c",
@@ -112,7 +149,8 @@
       "stagnation_count": 0,
       "status": "active",
       "children": [],
-      "notes": ""
+      "notes": "",
+      "attempt_history": []
     },
     "mla_n1d": {
       "id": "mla_n1d",
@@ -134,7 +172,8 @@
       "stagnation_count": 0,
       "status": "active",
       "children": [],
-      "notes": ""
+      "notes": "",
+      "attempt_history": []
     },
     "mla_n1e": {
       "id": "mla_n1e",
@@ -157,7 +196,8 @@
       "stagnation_count": 0,
       "status": "pruned",
       "children": [],
-      "notes": " [PRUNED: bs=64/256 not in benchmark shapes]"
+      "notes": " [PRUNED: bs=64/256 not in benchmark shapes]",
+      "attempt_history": []
     },
     "mla_n1f": {
       "id": "mla_n1f",
@@ -180,7 +220,8 @@
       "stagnation_count": 0,
       "status": "pruned",
       "children": [],
-      "notes": " [PRUNED: bs=64/256 not in benchmark shapes]"
+      "notes": " [PRUNED: bs=64/256 not in benchmark shapes]",
+      "attempt_history": []
     },
     "mla_n1g": {
       "id": "mla_n1g",
@@ -203,7 +244,8 @@
       "stagnation_count": 0,
       "status": "pruned",
       "children": [],
-      "notes": "Large batch \u2014 need many splits to keep CUs busy [PRUNED: bs=64/256 not in benchmark shapes]"
+      "notes": "Large batch \u2014 need many splits to keep CUs busy [PRUNED: bs=64/256 not in benchmark shapes]",
+      "attempt_history": []
     },
     "mla_n1h": {
       "id": "mla_n1h",
@@ -226,7 +268,8 @@
       "stagnation_count": 0,
       "status": "pruned",
       "children": [],
-      "notes": "Largest workload \u2014 upper limit for splits [PRUNED: bs=64/256 not in benchmark shapes]"
+      "notes": "Largest workload \u2014 upper limit for splits [PRUNED: bs=64/256 not in benchmark shapes]",
+      "attempt_history": []
     },
     "mla_n2": {
       "id": "mla_n2",
@@ -249,7 +292,8 @@
       "stagnation_count": 0,
       "status": "active",
       "children": [],
-      "notes": "Test FP8 vs MXFP4 \u2014 FP8 has wider compute support but 2x bandwidth"
+      "notes": "Test FP8 vs MXFP4 \u2014 FP8 has wider compute support but 2x bandwidth",
+      "attempt_history": []
     },
     "mla_n3": {
       "id": "mla_n3",
@@ -272,7 +316,8 @@
       "stagnation_count": 0,
       "status": "active",
       "children": [],
-      "notes": "fast_mode=False is paradoxically faster on MI355X per COORDINATION.md \u2014 verify"
+      "notes": "fast_mode=False is paradoxically faster on MI355X per COORDINATION.md \u2014 verify",
+      "attempt_history": []
     },
     "mla_n4": {
       "id": "mla_n4",
@@ -295,7 +340,8 @@
       "stagnation_count": 0,
       "status": "active",
       "children": [],
-      "notes": "kv_granularity affects memory coalescing"
+      "notes": "kv_granularity affects memory coalescing",
+      "attempt_history": []
     },
     "mla_n5": {
       "id": "mla_n5",
@@ -308,7 +354,36 @@
       "stagnation_count": 0,
       "status": "active",
       "children": [],
-      "notes": "Cache metadata aggressively \u2014 already partially done"
+      "notes": "Cache metadata aggressively \u2014 already partially done",
+      "attempt_history": []
+    },
+    "n_8a249fb9": {
+      "id": "n_8a249fb9",
+      "strategy": "Adaptive KV cache size",
+      "parameters": {},
+      "parent_id": "root_mla",
+      "priority": 0.6,
+      "attempts": 0,
+      "best_result_us": null,
+      "stagnation_count": 0,
+      "status": "active",
+      "children": [],
+      "notes": "[LLM-proposed]",
+      "attempt_history": []
+    },
+    "n_81c6a22e": {
+      "id": "n_81c6a22e",
+      "strategy": "Fused quant+GEMM for FP4",
+      "parameters": {},
+      "parent_id": "root_mla",
+      "priority": 0.5,
+      "attempts": 0,
+      "best_result_us": null,
+      "stagnation_count": 0,
+      "status": "active",
+      "children": [],
+      "notes": "[LLM-proposed]",
+      "attempt_history": []
     }
   }
 }
