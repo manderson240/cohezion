@@ -1,9 +1,11 @@
 {
   "cli_version": "0.4.9",
   "checkpoint_id": "129460b660f9",
+  "session_id": "6eb9f7a9-b9d3-42c7-b376-15d523bbb2c2",
   "strategy": "manual-commit",
+  "created_at": "2026-03-20T20:05:51.288986405Z",
   "branch": "feat/graph-architecture",
-  "checkpoints_count": 5,
+  "checkpoints_count": 4,
   "files_touched": [
     "research/challenges/luma_amd_speedrun/autoresearch/analyzer.py",
     "research/challenges/luma_amd_speedrun/autoresearch/code_synthesizer.py",
@@ -18,27 +20,22 @@
     "research/challenges/luma_amd_speedrun/autoresearch/templates/mla_template.py",
     "research/challenges/luma_amd_speedrun/autoresearch/templates/moe_template.py"
   ],
-  "sessions": [
-    {
-      "metadata": "/12/9460b660f9/0/metadata.json",
-      "transcript": "/12/9460b660f9/0/full.jsonl",
-      "context": "/12/9460b660f9/0/context.md",
-      "content_hash": "/12/9460b660f9/0/content_hash.txt",
-      "prompt": "/12/9460b660f9/0/prompt.txt"
-    },
-    {
-      "metadata": "/12/9460b660f9/1/metadata.json",
-      "transcript": "/12/9460b660f9/1/full.jsonl",
-      "context": "/12/9460b660f9/1/context.md",
-      "content_hash": "/12/9460b660f9/1/content_hash.txt",
-      "prompt": "/12/9460b660f9/1/prompt.txt"
-    }
-  ],
+  "agent": "Claude Code",
+  "turn_id": "e25698a7dddd",
   "token_usage": {
-    "input_tokens": 8703,
-    "cache_creation_tokens": 8827512,
-    "cache_read_tokens": 59373996,
-    "output_tokens": 101310,
-    "api_call_count": 291
+    "input_tokens": 8696,
+    "cache_creation_tokens": 8778389,
+    "cache_read_tokens": 59287932,
+    "output_tokens": 100572,
+    "api_call_count": 288
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-03-20T20:05:50.778268446Z",
+    "agent_lines": 132,
+    "human_added": 63,
+    "human_modified": 4,
+    "human_removed": 0,
+    "total_committed": 199,
+    "agent_percentage": 66.33165829145729
   }
 }
