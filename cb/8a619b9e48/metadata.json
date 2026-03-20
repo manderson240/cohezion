@@ -1,0 +1,26 @@
+{
+  "cli_version": "0.4.9",
+  "checkpoint_id": "cb8a619b9e48",
+  "strategy": "manual-commit",
+  "branch": "feat/graph-architecture",
+  "checkpoints_count": 2,
+  "files_touched": [
+    "research/challenges/luma_amd_speedrun/autoresearch/probes/phase2_mxfp4_conversion.md"
+  ],
+  "sessions": [
+    {
+      "metadata": "/cb/8a619b9e48/0/metadata.json",
+      "transcript": "/cb/8a619b9e48/0/full.jsonl",
+      "context": "/cb/8a619b9e48/0/context.md",
+      "content_hash": "/cb/8a619b9e48/0/content_hash.txt",
+      "prompt": "/cb/8a619b9e48/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 8877,
+    "cache_creation_tokens": 9474761,
+    "cache_read_tokens": 69938742,
+    "output_tokens": 109225,
+    "api_call_count": 319
+  }
+}
