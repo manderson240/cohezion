@@ -135,3 +135,6 @@ With that context, a session can skip 30-60 minutes of re-orientation.
 - [[MOC-agentic-ai]] — map of content for agentic AI topics
 - [[2026-03-05-vault-surrealdb-architecture]] — planned real-time sync architecture
 - [[2026-03-04-vault-assessment-v3]] — current vault state assessment
+- [[2026-03-03-vault-as-platform-memory-recommendations]] — six recommendations for strengthening vault-as-platform-memory: platform spine, machine-readable lessons, link types, session memory protocol
+- [[12D-Manifold]] — the 12-dimensional semantic space providing the quantitative foundation for vault visualization and analytics
+- [[12D-Projection]] — the projection layer that maps FLUME's 256D latent space to 12 interpretable dimensions for the Observatory UI

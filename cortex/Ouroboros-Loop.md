@@ -47,6 +47,7 @@ The Ouroboros Loop is Cohezion's autonomic feedback mechanism -- named after the
 - [[agent-journey-tracking]] -- the Ouroboros Loop monitors journey trajectories in real-time to detect drift
 - [[non-blocking-observability]] -- the Ouroboros Loop observes system state without blocking the primary execution path
 - [[session-retrospective]] -- the RetrospectionEngine component feeds extracted patterns back into the vault, closing the loop
+- [[12D-Manifold]] -- the Ouroboros Loop tracks note trajectories through the 12D manifold dimensions to monitor vault health during active sessions
 
 ## Relevance to Cohezion
 

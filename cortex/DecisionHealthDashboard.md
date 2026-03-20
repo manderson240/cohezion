@@ -47,8 +47,10 @@ The design draws on principles from software observability dashboards (Grafana, 
 - [[compound-engineering]] — the dashboard monitors decision health in the compound engineering lifecycle
 - [[concept-testing]] — staleness detection and consequence validation are analogous to concept testing applied to decisions
 - [[concept-validation]] — consequence validation in the dashboard mirrors the concept validation methodology
+- [[12D-Projection]] — health metrics in the dashboard draw on 12D projection dimensions including connectivity, completion maturity, and recency
 - [[adversarial-review]] — adversarial review of stale decisions is triggered by dashboard health alerts
 - [[knowledge-graph-systems]] — the dashboard visualises health metrics derived from knowledge graph traversal
+- [[12D-Manifold]] — health metrics rendered on the dashboard draw on dimensions of the 12D manifold space
 
 ## Daily References
 

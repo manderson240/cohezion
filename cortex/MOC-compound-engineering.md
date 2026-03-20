@@ -49,6 +49,10 @@ Compound engineering is the foundational methodology of the Cohezion framework: 
 - [[pattern-compound-engineering]] — The meta-pattern: execute, observe, extract, index, inject
 - [[session-retrospective-notes]] — Automating session knowledge capture to prevent context loss
 - [[mini-adversarial-review-checkpoints]] — Lightweight quality gates inserted at key implementation milestones
+- [[honest-time-tracking-all-costs]] — Track all work categories (setup, debugging, reviews, docs) for accurate compression metrics; Session 57 audit revealed 44% hidden costs
+- [[vault-first-session-protocol]] — Strict per-session protocol for persisting artifacts to vault before context fills; prevents knowledge loss at context limits
+- [[parallel-session-coordination-via-vault-registry]] — Vault-as-registry for multi-session coordination; prevents file conflicts in parallel agent runs
+- [[github-actions-as-autonomous-claude-code-scheduler]] — Scheduled GitHub Actions workflows that run compound engineering maintenance (vault audits, research scouting) autonomously
 
 ## Research Papers
 
@@ -68,6 +72,8 @@ Compound engineering is the foundational methodology of the Cohezion framework: 
 
 - [[2026-02-11-session-56-retrospective-and-plan-refinement]] — Session retrospective experiment proving structured reflection improves planning
 - [[2026-02-22-recursive-challenger-session-68-autonomous-improvement-loop]] — Recursive challenger loop for autonomous improvement via adversarial self-review
+- [[2026-02-10-phase4-universe-simulation-complete]] — Phase 4 complete: Decision Fork Simulator, Task Optimizer, and Knowledge Gap Explorer (1,800+ LOC, 73% gap-prediction accuracy)
+- [[2026-02-16-phases-4b-7-completion-summary]] — Phases 4B-7 completion summary: 8 deliverables, 18 adversarial review findings, three execution option paths
 
 ## Session Checkpoints (Entire.io)
 

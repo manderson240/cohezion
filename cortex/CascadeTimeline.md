@@ -48,6 +48,8 @@ The component is designed for two primary use cases: retrospective analysis (und
 - [[graphrag-knowledge-graph-with-surrealdb]] — the GraphRAG system provides the decision graph data the cascade timeline visualizes
 - [[knowledge-graph-systems]] — cascade visualization depends on the typed relationship edges in the knowledge graph
 - [[compound-engineering]] — the cascade view makes visible how compound engineering decisions influence downstream outcomes
+- [[12D-Manifold]] — decision nodes in the cascade are positioned using 12D manifold coordinates encoding semantic properties
+- [[12D-Projection]] — the Decision Cascade lens in the 12D Projection system implements the Cascade Timeline visualization
 
 ## Related Concepts
 

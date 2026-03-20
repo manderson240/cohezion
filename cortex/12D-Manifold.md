@@ -62,6 +62,13 @@ The Cohezion 3D graph plugin computes 8 primary semantic dimensions, with 4 addi
 - [[the-new-science-framework]] — Step 3: 12 parameters = the minimal specification space for a knowledge state
 - [[agents-as-exotic-vacuum-objects]] — the 12D vault manifold parallels the 12 Standard Model parameters
 - [[theory-of-everything-synthesis]] — 12 parameters = VR rule-set (Campbell) = Standard Model = vault manifold
+- [[CascadeTimeline]] — decision cascade timeline positions decisions in the 12D manifold to visualise temporal propagation
+- [[cohezion-platform-overview]] — the platform for which the 12D Manifold provides the quantitative visualization infrastructure
+- [[DecisionExplorer]] — decision cluster layout in the domain cluster view derives positions from 12D manifold coordinates
+- [[DecisionHealthDashboard]] — health metrics rendered on the dashboard draw on dimensions of the 12D manifold space
+- [[FLUME-Architecture]] — FLUME compresses 12D trajectories into a 256D latent vector; the manifold is the input space
+- [[hyperdim-viz-portfolio]] — the hyperdimensional visualization portfolio is a direct implementation of the 12D Manifold projection into 3D
+- [[Ouroboros-Loop]] — the Ouroboros Loop monitors vault health by tracking trajectories through the 12D manifold during active sessions
 
 ## Daily References
 

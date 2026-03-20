@@ -180,3 +180,120 @@ When choosing which stubs to expand first:
 - If a stub topic is too niche or obscure, it may be better to merge it into a parent concept
 - Some stubs may be better deleted than expanded (if the concept is too granular)
 - Always verify WebSearch sources are real before including them
+
+---
+
+## Thin Note Expansion (Non-Stub Notes Under 3KB)
+
+During vault-keeper maintenance cycles, the target is notes that have real content but are too short — not auto-generated stubs, but embryo-stage notes that need depth. Use this section alongside the stub expansion workflow above.
+
+### Finding Thin Notes
+
+```bash
+# Find real (non-template) notes under 3KB in priority directories
+find cortex/ cerebellum/ laboratory/ sensory/ motor/ \
+  -maxdepth 2 -name '*.md' ! -name '_template.md' ! -name '_index.md' \
+  -size -3k 2>/dev/null | xargs wc -c 2>/dev/null | sort -n | grep -v total
+```
+
+### Skip List (Brief by Design)
+
+| Directory / Pattern | Reason to Skip |
+|---------------------|----------------|
+| `prefrontal/` ADRs | Intentionally concise decision records |
+| `cerebellum/lessons/` | Lesson-format notes are fine at 800-1200 bytes |
+| `cerebellum/domains/testing/` | Test artifact stubs, not knowledge notes |
+| Notes < 10 lines with no real content | Investigate before expanding — may be test artifacts |
+
+### Type-Specific Expansion Templates
+
+#### Cerebellum Pattern Notes (`cerebellum/*.md`, `aspect: thinker`)
+
+Pattern notes describe reusable solutions. Embryo-stage ones have the skeleton but no depth. Expand to 4-6KB with:
+
+```markdown
+## Problem
+[Keep existing — ensure it's specific, not generic]
+
+## Solution
+[Keep existing skeleton]
+
+## [Protocol / Schema / Implementation Details]
+[New section — the deep detail: SurrealDB schema, algorithm steps, code block with full YAML/Python]
+
+## Failure Modes
+
+| Failure | Symptom | Recovery |
+|---------|---------|----------|
+| [specific failure] | [how it manifests] | [how to fix] |
+
+## When to Use
+[Keep/expand existing]
+
+## Cohezion Relevance
+[New section — how this pattern directly enables Cohezion capabilities; reference specific vault notes, projects, or metrics]
+
+## Related
+[Expand to 5+ links: existing + [[multi-agent-systems]], [[surrealdb]], [[workflow-orchestration]], etc.]
+```
+
+**Quality bar:** After expansion, each Related link should have an annotation explaining the specific connection (not just the note title).
+
+#### Laboratory Experiment Notes (`laboratory/*.md`, `aspect: thinker`)
+
+Experiment notes have Hypothesis/Method/Results/Learnings. Embryo-stage ones have thin results. Expand to 3-4KB with:
+
+```markdown
+## Hypothesis
+[Keep existing]
+
+## Method
+[Keep existing]
+
+## Results (Detailed)
+[New: add tables, cascade failure chains, diagnosis commands, before/after comparisons]
+
+## [Root Cause Chain / Diagnosis Commands] (if debugging)
+[New section for debugging experiments — the exact commands that worked, the causal chain that led to the bug]
+
+## Learnings
+[Expand from 3 bullets to 5-7, with specific actionable rules, not general observations]
+
+## Cohezion Relevance
+[New section — which Cohezion principle or lesson this validates]
+
+## Related
+[Add: relevant lessons [[lesson-XX-*]], related patterns, downstream ADRs]
+```
+
+### Post-Expansion Verification
+
+After expanding a batch of thin notes, verify they crossed the 3KB threshold:
+
+```bash
+for f in path/to/note1.md path/to/note2.md; do
+  sz=$(wc -c < "$f")
+  echo "$(basename $f): ${sz} bytes"
+done
+```
+
+### Graph-Alerts Refresh Insight
+
+After completing orphan healing and synapse gap work (Phase 3 of vault-keeper), re-read `metabolism/graph-alerts.md`. The GraphReactor runs continuously and typically updates within minutes of edits. The refreshed file will:
+- Confirm healed orphans are no longer listed (verification)
+- Reveal new orphans and synapse gaps exposed by the edits (next targets)
+
+This means Phase 3 and Phase 4 of vault-keeper are iterative — each pass can expose new work.
+
+### Orphan Healing Verification Command
+
+```bash
+# Verify healed orphans now have inbound links
+for note in "note-name-1" "note-name-2" "note-name-3"; do
+  count=$(grep -rl "\[\[.*$note" \
+    cortex/ sensory/ prefrontal/ cerebellum/ motor/ memory/ Agents/ 2>/dev/null \
+    | grep -v "/$note.md" | wc -l)
+  echo "$note: $count inbound"
+done
+# Expect > 0 for each healed orphan
+```

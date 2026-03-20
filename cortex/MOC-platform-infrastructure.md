@@ -41,6 +41,7 @@ The platform infrastructure layer powers Cohezion's ability to persist knowledge
 
 - [[pattern-compound-engineering]] — Execute-observe-extract-index-inject meta-pattern for knowledge compounding
 - [[role-based-multi-agent-coordination]] — Assigning specialist roles to agents for parallel infrastructure work
+- [[extraction-pipeline-spec]] — 12D extraction pipeline: SurrealDB neuron vectors → FLUME VAE training data using unified physics forces (gravity/EM/strong/weak)
 
 ## Research Papers
 

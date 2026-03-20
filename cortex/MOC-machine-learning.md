@@ -51,6 +51,7 @@ Machine learning is the computational engine behind Cohezion's agent intelligenc
 - [[structured-experience-vector-layout]] — Fixed-dimension vector format for encoding agent state into ML models
 - [[conservative-baseline-estimation]] — Establishing honest baselines before claiming ML improvement
 - [[predictive-throttling-via-12d-trajectory-velocity]] — Using 12-dimensional trajectory velocity to predict and throttle agent behavior
+- [[prompt-optimization-hypotheses]] — Pilot study of 98 agent sessions: 5 success hypotheses and 5 failure anti-patterns; context inheritance identified as the primary success factor
 
 ## Textbooks
 

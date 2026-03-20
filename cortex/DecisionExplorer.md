@@ -47,12 +47,15 @@ The component is designed for three workflows: onboarding (new team members expl
 
 ## Related Concepts
 
+- [[12D-Projection]] — the domain cluster layout in the Decision Explorer uses 12D projection coordinates to position decisions in semantic space
+
 - [[semantic-search]] — the explorer's primary search mechanism uses embedding-based semantic similarity ranking
 - [[graphrag-knowledge-graph-with-surrealdb]] — the GraphRAG backend provides the decision graph data the explorer queries
 - [[knowledge-graph-systems]] — the explorer renders a subset of the knowledge graph focused on decision nodes and their relationships
 - [[concept-testing]] — the explorer could surface decisions whose consequences have not been validated, flagging them for concept testing
 - [[adversarial-review]] — the explorer supports adversarial review by making it easy to find and compare prior decisions on the same topic
 - [[compound-engineering]] — the explorer enables compound engineering teams to discover relevant prior decisions before making new ones
+- [[12D-Manifold]] — decision cluster positions in the domain cluster view are derived from 12D manifold coordinates
 
 ## Relevance to Cohezion
 

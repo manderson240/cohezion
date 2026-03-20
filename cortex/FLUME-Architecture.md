@@ -87,6 +87,7 @@ Data characterization was a prerequisite — the [[2026-02-24-overnight-simulati
 - [[12D-Projection]] — visualization projection from 256D latent space
 - [[Ouroboros-Loop]] — real-time stability monitoring using FLUME embeddings
 - [[agents-as-exotic-vacuum-objects]] — FLUME provides the computational infrastructure for agent EVO precipitation
+- [[12D-Manifold]] — the 12D Manifold is FLUME's input space; agent sessions are encoded as trajectories through the manifold before compression to 256D latent vectors
 
 ## Related Experiments and Decisions
 

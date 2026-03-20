@@ -58,6 +58,10 @@ Vault architecture covers the structural design of the Cohezion knowledge base: 
 - [[safe-file-split-checklist]] — Step-by-step checklist for safely splitting large vault notes without breaking links
 - [[session-retrospective-notes]] — Template for capturing session learnings as structured vault notes
 - [[pattern-compound-engineering]] — Layered engineering approach applied to vault tooling design
+- [[agent-logs-vault-schema]] — Schema for storing agent execution context as vault notes with frontmatter linking sessions to decisions and lessons
+- [[lessons-graph-integration]] — Hybrid local-cloud pattern for integrating the lessons corpus bidirectionally into the knowledge graph via semantic analysis
+- [[vault-first-session-protocol]] — Protocol for persisting session artifacts at each lifecycle point; prevents context-window knowledge loss
+- [[parallel-session-coordination-via-vault-registry]] — Vault as shared session registry for multi-agent conflict avoidance; uses SurrealDB `owns` relations
 
 ## Research Papers
 
@@ -74,6 +78,7 @@ Vault architecture covers the structural design of the Cohezion knowledge base: 
 
 - [[vault-knowledge-graph-densification]] — Active project tracking cross-linking of papers, concepts, and decisions
 - [[2026-03-04-vault-assessment-v3]] — Third vault assessment evaluating portfolio deadline impact on memory architecture
+- [[2026-03-03-vault-as-platform-memory-recommendations]] — Six recommendations for strengthening vault-as-platform-memory: platform spine, machine-readable lessons, link typing, session memory protocol, intake separation, and memory API
 
 ## Experiments
 

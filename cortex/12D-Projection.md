@@ -63,10 +63,14 @@ The 12D Projection is Cohezion's dimensionality reduction layer that maps the FL
 - [[VAE-Encoder]] -- the encoder produces the 256D latent vectors that the 12D Projection reduces to interpretable dimensions
 - [[Ouroboros-Loop]] -- the Ouroboros Loop reads 12D coordinates to assess system health across interpretable dimensions
 - [[cohezion]] -- the 12D Projection is the bridge between Cohezion's internal representations and human understanding
+- [[cohezion-platform-overview]] — the platform whose Observatory UI depends entirely on the 12D Projection for its three visualization lenses
+- [[DecisionExplorer]] — Decision Explorer uses 12D coordinates to cluster related decisions in semantic space
+- [[DecisionHealthDashboard]] — health metrics in the dashboard draw on 12D projection dimensions (connectivity, maturity, recency)
 - [[universe-simulation]] -- simulation trajectories are projected into the 12D space for visualization and analysis
 - [[data-analysis]] -- the 12D dimensions (connectivity, depth, recency, etc.) are derived from quantitative analysis of vault metadata
 - [[12D-Manifold]] — the 12-dimensional mathematical space that this projection reduces to 3D
 - [[force-directed-graph]] — the 3D visualization layout applied after projection
+- [[CascadeTimeline]] — the Decision Cascade lens in the 12D Projection system implements the Cascade Timeline visualization for temporal decision propagation
 
 ## Relevance to Cohezion
 

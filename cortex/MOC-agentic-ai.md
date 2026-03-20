@@ -39,6 +39,8 @@ Agentic AI is the foundation of the Cohezion framework: autonomous systems that 
 
 - [[role-based-multi-agent-coordination]] — Assigning specialist roles (researcher, reviewer, implementer) to agents
 - [[pattern-compound-engineering]] — Layered approach to building agentic workflows from composable primitives
+- [[agent-logs-vault-schema]] — Schema for capturing agent execution context as vault notes with structured frontmatter linking sessions to decisions and lessons
+- [[implementation_plan|Cohezion Crystal Protocol]] — Antigravity agent's energy-based model integration: energy descent loop for deterministic, verified agentic reasoning
 
 ## Research Papers
 
@@ -65,6 +67,8 @@ Agentic AI is the foundation of the Cohezion framework: autonomous systems that 
 - [[cloud-vault-mcp]] — The MCP server that gives agents programmatic vault access
 - [[troubleshooting-mcp-infrastructure]] — Diagnosing and resolving MCP server failures that block agent access
 - [[session-retrospective]] — Structured reflection at the end of each agent session
+- [[prompt-optimization-hypotheses]] — Pilot study of 98 sessions: context inheritance and explicit task definition as success enablers; vague prompts as primary failure root cause
+- [[extraction-pipeline-spec]] — 12D extraction pipeline bridging vault SurrealDB graph to FLUME VAE training data using unified physics model
 
 ## Start Here
 

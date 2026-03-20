@@ -70,6 +70,7 @@ Click → Navigate to note | Hover → Show metadata | Filter → Domain subgrap
 - [[2026-02-10-phase3a-3d-graph-validation|Phase 3A: 3D Graph Validation]] — validated 3D graph visualization of vault structure with 84 nodes and 575 edges
 - [[12D-Projection]] — maps FLUME latent space to 12 interpretable dimensions for Observatory visualization
 - [[FLUME-Architecture]] — the VAE providing latent space representations that inform semantic similarity edges
+- [[12D-Manifold]] — the 12D Manifold is the mathematical space that the hyperdimensional visualization projects from high-dimensional semantic space into 3D
 
 ## Relevance to Cohezion
 

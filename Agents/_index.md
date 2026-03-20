@@ -34,3 +34,7 @@ Agents/
 **Current agent names:** Antigravity
 
 **Note:** These are execution traces, not hand-written documentation. Each UUID directory contains the full record of a single agent run.
+
+## Notable Agent Runs
+
+- [[implementation_plan|Cohezion Crystal Protocol (Antigravity)]] — energy-based model integration plan for deterministic, verified agentic reasoning via energy descent loop
