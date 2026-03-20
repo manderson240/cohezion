@@ -1,0 +1,26 @@
+{
+  "cli_version": "0.4.9",
+  "checkpoint_id": "4ff79068200d",
+  "strategy": "manual-commit",
+  "branch": "feat/graph-architecture",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "src/cohezion/agentjet/context_optimizer.py",
+    "src/cohezion/agentjet/embeddings.py",
+    "src/cohezion/agentjet/task_reader.py",
+    "src/cohezion/agentjet/trainer.py",
+    "src/cohezion/agentjet/unsloth_bridge.py",
+    "src/cohezion/agentjet/workflow.py",
+    "src/cohezion/api/__init__.py",
+    "tests/agentjet/test_trainer.py"
+  ],
+  "sessions": [
+    {
+      "metadata": "/4f/f79068200d/0/metadata.json",
+      "transcript": "/4f/f79068200d/0/full.jsonl",
+      "context": "",
+      "content_hash": "/4f/f79068200d/0/content_hash.txt",
+      "prompt": ""
+    }
+  ]
+}
