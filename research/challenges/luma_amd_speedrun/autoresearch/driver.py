@@ -194,14 +194,16 @@ def run_cycle(
     # Get trajectory for LLM context
     trajectory = tree.get_trajectory(node.id)
 
-    # Generate submission (LLM first, template fallback)
+    # Generate submission (skip LLM code synthesis in dry-run-llm to save time)
     template_key = params.pop("_template", kernel)
+    use_llm_code = dry_run != "llm"  # dry-run-llm focuses on world model, not code gen
     try:
         code = generate_submission(
             template_key,
             params,
             strategy=node.strategy,
             trajectory=trajectory,
+            use_llm=use_llm_code,
         )
     except ValueError as e:
         log.error(f"[{kernel}] Generation failed: {e}")
@@ -210,8 +212,8 @@ def run_cycle(
         return False, f"{kernel}: Generation failed: {e}"
 
     if dry_run == "llm":
-        # Dry-run with LLM: exercise world model evolution with synthetic results
-        log.info(f"[{kernel}] DRY RUN (LLM) — {len(code)} chars, source={generator.last_source}")
+        # Dry-run with LLM: skip code synthesis, focus on world model evolution
+        log.info(f"[{kernel}] DRY RUN (LLM) — {len(code)} chars (template), testing world model...")
         synthetic_geomean = (node.best_result_us or 200.0) * random.uniform(0.85, 1.15)
         synthetic_result = EvalResult(
             kernel=kernel, mode="benchmark", success=True,

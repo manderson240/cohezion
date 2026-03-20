@@ -16,9 +16,11 @@
         "moe_n1",
         "moe_n2",
         "moe_n3",
-        "moe_n4"
+        "moe_n4",
+        "n_f2d908f9"
       ],
-      "notes": ""
+      "notes": "",
+      "attempt_history": []
     },
     "moe_n1": {
       "id": "moe_n1",
@@ -48,7 +50,8 @@
         "moe_n1d",
         "moe_n1e"
       ],
-      "notes": "Primary strategy: per-shape KSPLIT values"
+      "notes": "Primary strategy: per-shape KSPLIT values",
+      "attempt_history": []
     },
     "moe_n1a": {
       "id": "moe_n1a",
@@ -65,13 +68,63 @@
         }
       },
       "parent_id": "moe_n1",
-      "priority": 0.855,
-      "attempts": 0,
-      "best_result_us": null,
-      "stagnation_count": 0,
+      "priority": 0.8,
+      "attempts": 3,
+      "best_result_us": 215.63,
+      "stagnation_count": 1,
       "status": "active",
       "children": [],
-      "notes": "Focus on 257-expert small-batch shapes"
+      "notes": "Focus on 257-expert small-batch shapes",
+      "attempt_history": [
+        {
+          "result_us": 220.8958248133445,
+          "parameters": {
+            "KSPLIT_TABLE": {
+              "257_256_16": 4,
+              "257_256_128": 4,
+              "257_256_512": 0,
+              "33_512_16": 2,
+              "33_512_128": 2,
+              "33_512_512": 0,
+              "33_2048_512": 0
+            }
+          },
+          "timestamp": "2026-03-20T01:00:15.498919",
+          "source": "template"
+        },
+        {
+          "result_us": 215.62796060477925,
+          "parameters": {
+            "KSPLIT_TABLE": {
+              "257_256_16": 6,
+              "257_256_128": 4,
+              "257_256_512": 0,
+              "33_512_16": 2,
+              "33_512_128": 2,
+              "33_512_512": 0,
+              "33_2048_512": 0
+            }
+          },
+          "timestamp": "2026-03-20T01:11:02.211043",
+          "source": "template"
+        },
+        {
+          "result_us": 216.05277130673986,
+          "parameters": {
+            "KSPLIT_TABLE": {
+              "257_256_16": 4,
+              "257_256_128": 4,
+              "257_256_512": 0,
+              "33_512_16": 2,
+              "33_512_128": 2,
+              "33_512_512": 0,
+              "33_2048_512": 0
+            }
+          },
+          "timestamp": "2026-03-20T01:26:32.531133",
+          "source": "template"
+        }
+      ]
     },
     "moe_n1b": {
       "id": "moe_n1b",
@@ -94,7 +147,8 @@
       "stagnation_count": 0,
       "status": "active",
       "children": [],
-      "notes": "Medium batch 257-expert"
+      "notes": "Medium batch 257-expert",
+      "attempt_history": []
     },
     "moe_n1c": {
       "id": "moe_n1c",
@@ -117,7 +171,8 @@
       "stagnation_count": 0,
       "status": "active",
       "children": [],
-      "notes": "33-expert medium batch"
+      "notes": "33-expert medium batch",
+      "attempt_history": []
     },
     "moe_n1d": {
       "id": "moe_n1d",
@@ -140,7 +195,8 @@
       "stagnation_count": 0,
       "status": "active",
       "children": [],
-      "notes": "Large d_expert shape \u2014 likely compute-bound"
+      "notes": "Large d_expert shape \u2014 likely compute-bound",
+      "attempt_history": []
     },
     "moe_n1e": {
       "id": "moe_n1e",
@@ -163,7 +219,8 @@
       "stagnation_count": 0,
       "status": "active",
       "children": [],
-      "notes": ""
+      "notes": "",
+      "attempt_history": []
     },
     "moe_n2": {
       "id": "moe_n2",
@@ -187,7 +244,8 @@
       "stagnation_count": 0,
       "status": "active",
       "children": [],
-      "notes": "Enable OPUS token sorting with best KSPLIT table"
+      "notes": "Enable OPUS token sorting with best KSPLIT table",
+      "attempt_history": []
     },
     "moe_n3": {
       "id": "moe_n3",
@@ -211,7 +269,8 @@
       "stagnation_count": 0,
       "status": "active",
       "children": [],
-      "notes": "Higher KSPLIT everywhere \u2014 test if more splits help"
+      "notes": "Higher KSPLIT everywhere \u2014 test if more splits help",
+      "attempt_history": []
     },
     "moe_n4": {
       "id": "moe_n4",
@@ -224,7 +283,8 @@
       "stagnation_count": 0,
       "status": "active",
       "children": [],
-      "notes": "Call CK kernel directly, skip Python fused_moe wrapper overhead"
+      "notes": "Call CK kernel directly, skip Python fused_moe wrapper overhead",
+      "attempt_history": []
     },
     "moe_n5": {
       "id": "moe_n5",
@@ -237,7 +297,22 @@
       "stagnation_count": 0,
       "status": "pruned",
       "children": [],
-      "notes": "If aiter exposes block_size_M parameter [PRUNED: block_size_M not tunable from Python]"
+      "notes": "If aiter exposes block_size_M parameter [PRUNED: block_size_M not tunable from Python]",
+      "attempt_history": []
+    },
+    "n_f2d908f9": {
+      "id": "n_f2d908f9",
+      "strategy": "E=257,d=256,bs=16: sweep KSPLIT 0-10",
+      "parameters": {},
+      "parent_id": "root_moe",
+      "priority": 0.7,
+      "attempts": 0,
+      "best_result_us": null,
+      "stagnation_count": 0,
+      "status": "active",
+      "children": [],
+      "notes": "[LLM-proposed]",
+      "attempt_history": []
     }
   }
 }
