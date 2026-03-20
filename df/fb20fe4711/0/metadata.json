@@ -1,0 +1,30 @@
+{
+  "cli_version": "0.4.9",
+  "checkpoint_id": "dffb20fe4711",
+  "session_id": "6eb9f7a9-b9d3-42c7-b376-15d523bbb2c2",
+  "strategy": "manual-commit",
+  "created_at": "2026-03-20T18:57:42.04674246Z",
+  "branch": "feat/graph-architecture",
+  "checkpoints_count": 4,
+  "files_touched": [
+    "research/challenges/luma_amd_speedrun/kernels/moe-mxfp4/submission_custom_triton_v2.py"
+  ],
+  "agent": "Claude Code",
+  "turn_id": "a22b16c611e6",
+  "token_usage": {
+    "input_tokens": 8653,
+    "cache_creation_tokens": 7378894,
+    "cache_read_tokens": 51226878,
+    "output_tokens": 94039,
+    "api_call_count": 261
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-03-20T18:57:41.529863491Z",
+    "agent_lines": 644,
+    "human_added": 963,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 1607,
+    "agent_percentage": 40.07467330429372
+  }
+}

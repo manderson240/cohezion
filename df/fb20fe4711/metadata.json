@@ -1,0 +1,26 @@
+{
+  "cli_version": "0.4.9",
+  "checkpoint_id": "dffb20fe4711",
+  "strategy": "manual-commit",
+  "branch": "feat/graph-architecture",
+  "checkpoints_count": 4,
+  "files_touched": [
+    "research/challenges/luma_amd_speedrun/kernels/moe-mxfp4/submission_custom_triton_v2.py"
+  ],
+  "sessions": [
+    {
+      "metadata": "/df/fb20fe4711/0/metadata.json",
+      "transcript": "/df/fb20fe4711/0/full.jsonl",
+      "context": "/df/fb20fe4711/0/context.md",
+      "content_hash": "/df/fb20fe4711/0/content_hash.txt",
+      "prompt": "/df/fb20fe4711/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 8653,
+    "cache_creation_tokens": 7378894,
+    "cache_read_tokens": 51226878,
+    "output_tokens": 94039,
+    "api_call_count": 261
+  }
+}
