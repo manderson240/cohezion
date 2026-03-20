@@ -1,0 +1,27 @@
+{
+  "cli_version": "0.4.9",
+  "checkpoint_id": "3ec039cb46df",
+  "strategy": "manual-commit",
+  "branch": "feat/graph-architecture",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "cloud-vault-mcp/pyproject.toml",
+    "cloud-vault-mcp/uv.lock"
+  ],
+  "sessions": [
+    {
+      "metadata": "/3e/c039cb46df/0/metadata.json",
+      "transcript": "/3e/c039cb46df/0/full.jsonl",
+      "context": "/3e/c039cb46df/0/context.md",
+      "content_hash": "/3e/c039cb46df/0/content_hash.txt",
+      "prompt": "/3e/c039cb46df/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 29,
+    "cache_creation_tokens": 158688,
+    "cache_read_tokens": 695747,
+    "output_tokens": 7548,
+    "api_call_count": 13
+  }
+}

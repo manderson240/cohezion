@@ -1,0 +1,31 @@
+{
+  "cli_version": "0.4.9",
+  "checkpoint_id": "3ec039cb46df",
+  "session_id": "2724ac82-b144-43db-bdf7-942ef9b43378",
+  "strategy": "manual-commit",
+  "created_at": "2026-03-20T16:43:59.668320269Z",
+  "branch": "feat/graph-architecture",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "cloud-vault-mcp/pyproject.toml",
+    "cloud-vault-mcp/uv.lock"
+  ],
+  "agent": "Claude Code",
+  "turn_id": "d53245d11194",
+  "token_usage": {
+    "input_tokens": 29,
+    "cache_creation_tokens": 158688,
+    "cache_read_tokens": 695747,
+    "output_tokens": 7548,
+    "api_call_count": 13
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-03-20T16:43:59.590073004Z",
+    "agent_lines": 37,
+    "human_added": 966,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 1003,
+    "agent_percentage": 3.688933200398804
+  }
+}
