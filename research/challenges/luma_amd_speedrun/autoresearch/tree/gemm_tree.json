@@ -7,9 +7,9 @@
       "strategy": "Minimize MXFP4 GEMM geomean across 6 shapes",
       "parameters": {},
       "parent_id": null,
-      "priority": 0.03949909390643791,
-      "attempts": 0,
-      "best_result_us": null,
+      "priority": 0.12620288378742248,
+      "attempts": 9,
+      "best_result_us": 130.71,
       "stagnation_count": 0,
       "status": "active",
       "children": [
@@ -22,10 +22,67 @@
         "n_3793884f",
         "n_4f423fa8",
         "n_c76ee73d",
-        "n_5f803624"
+        "n_5f803624",
+        "n_66619a38",
+        "n_139be188"
       ],
       "notes": "",
-      "attempt_history": []
+      "attempt_history": [
+        {
+          "result_us": 201.69554288554713,
+          "parameters": {},
+          "timestamp": "2026-03-20T17:51:16.506800",
+          "source": "template"
+        },
+        {
+          "result_us": 185.28650968910955,
+          "parameters": {},
+          "timestamp": "2026-03-20T17:51:32.501392",
+          "source": "template"
+        },
+        {
+          "result_us": 189.94131994360106,
+          "parameters": {},
+          "timestamp": "2026-03-20T17:51:40.301064",
+          "source": "template"
+        },
+        {
+          "result_us": 176.38361631413733,
+          "parameters": {},
+          "timestamp": "2026-03-20T17:52:31.101471",
+          "source": "template"
+        },
+        {
+          "result_us": 154.06811776067093,
+          "parameters": {},
+          "timestamp": "2026-03-20T17:52:42.305895",
+          "source": "template"
+        },
+        {
+          "result_us": 162.71695518345197,
+          "parameters": {},
+          "timestamp": "2026-03-20T17:52:55.931194",
+          "source": "template"
+        },
+        {
+          "result_us": 155.1982183054687,
+          "parameters": {},
+          "timestamp": "2026-03-20T17:53:08.302344",
+          "source": "template"
+        },
+        {
+          "result_us": 151.00085410845116,
+          "parameters": {},
+          "timestamp": "2026-03-20T17:53:18.701565",
+          "source": "template"
+        },
+        {
+          "result_us": 130.71157986078072,
+          "parameters": {},
+          "timestamp": "2026-03-20T17:53:28.901469",
+          "source": "template"
+        }
+      ]
     },
     "gemm_n1": {
       "id": "gemm_n1",
@@ -59,11 +116,11 @@
         }
       },
       "parent_id": "root_gemm",
-      "priority": 0.030521637184211983,
-      "attempts": 0,
-      "best_result_us": null,
+      "priority": 0.3,
+      "attempts": 1,
+      "best_result_us": 219.55,
       "stagnation_count": 0,
-      "status": "active",
+      "status": "pruned",
       "children": [
         "gemm_n1a",
         "gemm_n1b",
@@ -72,8 +129,42 @@
         "gemm_n1e",
         "gemm_n1f"
       ],
-      "notes": "Exhaustive per-shape kernel selection",
-      "attempt_history": []
+      "notes": "Exhaustive per-shape kernel selection [STRATEGIC PRUNE: LLM world model]",
+      "attempt_history": [
+        {
+          "result_us": 219.55397661333868,
+          "parameters": {
+            "KERNEL_TABLE": {
+              "4_2880_512": {
+                "kernel": "gemm_a4w4",
+                "log2_ks": 0
+              },
+              "16_2112_7168": {
+                "kernel": "gemm_a4w4",
+                "log2_ks": 0
+              },
+              "32_4096_512": {
+                "kernel": "gemm_a4w4",
+                "log2_ks": 0
+              },
+              "32_2880_512": {
+                "kernel": "gemm_a4w4",
+                "log2_ks": 0
+              },
+              "64_7168_2048": {
+                "kernel": "gemm_a4w4",
+                "log2_ks": 0
+              },
+              "256_3072_1536": {
+                "kernel": "gemm_a4w4",
+                "log2_ks": 0
+              }
+            }
+          },
+          "timestamp": "2026-03-20T17:21:56.004533",
+          "source": "template"
+        }
+      ]
     },
     "gemm_n1a": {
       "id": "gemm_n1a",
@@ -107,16 +198,16 @@
         }
       },
       "parent_id": "gemm_n1",
-      "priority": 0.031183495189293076,
+      "priority": 0.1,
       "attempts": 1,
       "best_result_us": 188.54,
       "stagnation_count": 0,
-      "status": "active",
+      "status": "pruned",
       "children": [
         "n_cd9649d4",
         "n_ec7f97ef"
       ],
-      "notes": "Smallest M \u2014 most bandwidth-bound, split-K may help",
+      "notes": "Smallest M \u2014 most bandwidth-bound, split-K may help [STRATEGIC PRUNE: LLM world model]",
       "attempt_history": [
         {
           "result_us": 188.54313648256397,
@@ -423,14 +514,50 @@
         }
       },
       "parent_id": "gemm_n1",
-      "priority": 0.027649365734506538,
-      "attempts": 0,
-      "best_result_us": null,
+      "priority": 0.1,
+      "attempts": 1,
+      "best_result_us": 206.45,
       "stagnation_count": 0,
-      "status": "active",
-      "children": [],
-      "notes": "Largest output \u2014 compute-dominant",
-      "attempt_history": []
+      "status": "pruned",
+      "children": [
+        "n_47288938"
+      ],
+      "notes": "Largest output \u2014 compute-dominant [STRATEGIC PRUNE: LLM world model]",
+      "attempt_history": [
+        {
+          "result_us": 206.44929615853172,
+          "parameters": {
+            "KERNEL_TABLE": {
+              "4_2880_512": {
+                "kernel": "gemm_a4w4",
+                "log2_ks": 0
+              },
+              "16_2112_7168": {
+                "kernel": "gemm_a4w4",
+                "log2_ks": 0
+              },
+              "32_4096_512": {
+                "kernel": "gemm_a4w4",
+                "log2_ks": 0
+              },
+              "32_2880_512": {
+                "kernel": "gemm_a4w4",
+                "log2_ks": 0
+              },
+              "64_7168_2048": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 1
+              },
+              "256_3072_1536": {
+                "kernel": "gemm_a4w4",
+                "log2_ks": 0
+              }
+            }
+          },
+          "timestamp": "2026-03-20T17:17:55.401195",
+          "source": "template"
+        }
+      ]
     },
     "gemm_n1f": {
       "id": "gemm_n1f",
@@ -464,14 +591,50 @@
         }
       },
       "parent_id": "gemm_n1",
-      "priority": 0.025674411039184657,
-      "attempts": 0,
-      "best_result_us": null,
+      "priority": 0.25,
+      "attempts": 1,
+      "best_result_us": 197.74,
       "stagnation_count": 0,
-      "status": "active",
-      "children": [],
-      "notes": "Largest M \u2014 most parallelism",
-      "attempt_history": []
+      "status": "pruned",
+      "children": [
+        "n_2c8527e3"
+      ],
+      "notes": "Largest M \u2014 most parallelism [STRATEGIC PRUNE: LLM world model]",
+      "attempt_history": [
+        {
+          "result_us": 197.73551941210562,
+          "parameters": {
+            "KERNEL_TABLE": {
+              "4_2880_512": {
+                "kernel": "gemm_a4w4",
+                "log2_ks": 0
+              },
+              "16_2112_7168": {
+                "kernel": "gemm_a4w4",
+                "log2_ks": 0
+              },
+              "32_4096_512": {
+                "kernel": "gemm_a4w4",
+                "log2_ks": 0
+              },
+              "32_2880_512": {
+                "kernel": "gemm_a4w4",
+                "log2_ks": 0
+              },
+              "64_7168_2048": {
+                "kernel": "gemm_a4w4",
+                "log2_ks": 0
+              },
+              "256_3072_1536": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 1
+              }
+            }
+          },
+          "timestamp": "2026-03-20T17:20:26.700261",
+          "source": "template"
+        }
+      ]
     },
     "gemm_n2": {
       "id": "gemm_n2",
@@ -505,11 +668,11 @@
         }
       },
       "parent_id": "root_gemm",
-      "priority": 0.40612499999999996,
-      "attempts": 12,
-      "best_result_us": 122.94,
-      "stagnation_count": 0,
-      "status": "active",
+      "priority": 0.16433913973847222,
+      "attempts": 117,
+      "best_result_us": 4.06,
+      "stagnation_count": 7,
+      "status": "exhausted",
       "children": [
         "n_057ea3f3",
         "n_3d61bfa0",
@@ -528,9 +691,13 @@
         "n_994a3445",
         "n_9680a69d",
         "n_96e3bd5d",
-        "n_c72ebd17"
+        "n_c72ebd17",
+        "n_7f9e2492",
+        "n_0698c179",
+        "n_f9d5eb45",
+        "n_8cad8f64"
       ],
-      "notes": "All-ASM baseline \u2014 does ASM kernel exist and help universally?",
+      "notes": "All-ASM baseline \u2014 does ASM kernel exist and help universally? [Exhausted after 117 attempts]",
       "attempt_history": [
         {
           "result_us": 228.1771664431318,
@@ -927,6 +1094,3471 @@
           },
           "timestamp": "2026-03-20T16:14:36.249310",
           "source": "template"
+        },
+        {
+          "result_us": 130.3475513728879,
+          "parameters": {
+            "KERNEL_TABLE": {
+              "4_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "16_2112_7168": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_4096_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_2880_512": {
+                "kernel": "gemm_a4w4",
+                "log2_ks": 0
+              },
+              "64_7168_2048": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "256_3072_1536": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              }
+            }
+          },
+          "timestamp": "2026-03-20T17:27:19.100781",
+          "source": "template"
+        },
+        {
+          "result_us": 115.82984419286059,
+          "parameters": {
+            "KERNEL_TABLE": {
+              "4_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "16_2112_7168": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_4096_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "64_7168_2048": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 1
+              },
+              "256_3072_1536": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              }
+            }
+          },
+          "timestamp": "2026-03-20T17:27:43.206567",
+          "source": "template"
+        },
+        {
+          "result_us": 123.56261955020821,
+          "parameters": {
+            "KERNEL_TABLE": {
+              "4_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "16_2112_7168": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_4096_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "64_7168_2048": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "256_3072_1536": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              }
+            }
+          },
+          "timestamp": "2026-03-20T17:28:16.808903",
+          "source": "template"
+        },
+        {
+          "result_us": 104.0853490596599,
+          "parameters": {
+            "KERNEL_TABLE": {
+              "4_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "16_2112_7168": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_4096_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "64_7168_2048": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "256_3072_1536": {
+                "kernel": "gemm_a4w4",
+                "log2_ks": 1
+              }
+            }
+          },
+          "timestamp": "2026-03-20T17:28:26.504332",
+          "source": "template"
+        },
+        {
+          "result_us": 101.10133638446817,
+          "parameters": {
+            "KERNEL_TABLE": {
+              "4_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "16_2112_7168": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_4096_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 1
+              },
+              "64_7168_2048": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "256_3072_1536": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              }
+            }
+          },
+          "timestamp": "2026-03-20T17:28:45.901896",
+          "source": "template"
+        },
+        {
+          "result_us": 114.30814696814146,
+          "parameters": {
+            "KERNEL_TABLE": {
+              "4_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "16_2112_7168": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_4096_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 1
+              },
+              "32_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "64_7168_2048": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "256_3072_1536": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              }
+            }
+          },
+          "timestamp": "2026-03-20T17:29:08.603874",
+          "source": "template"
+        },
+        {
+          "result_us": 103.94905890965028,
+          "parameters": {
+            "KERNEL_TABLE": {
+              "4_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "16_2112_7168": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 1
+              },
+              "32_4096_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "64_7168_2048": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "256_3072_1536": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              }
+            }
+          },
+          "timestamp": "2026-03-20T17:29:33.502223",
+          "source": "template"
+        },
+        {
+          "result_us": 89.6980818240896,
+          "parameters": {
+            "KERNEL_TABLE": {
+              "4_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "16_2112_7168": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_4096_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "64_7168_2048": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "256_3072_1536": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              }
+            }
+          },
+          "timestamp": "2026-03-20T17:29:42.805357",
+          "source": "template"
+        },
+        {
+          "result_us": 95.6134755543626,
+          "parameters": {
+            "KERNEL_TABLE": {
+              "4_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "16_2112_7168": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_4096_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "64_7168_2048": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "256_3072_1536": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              }
+            }
+          },
+          "timestamp": "2026-03-20T17:30:41.407285",
+          "source": "template"
+        },
+        {
+          "result_us": 94.55946163546636,
+          "parameters": {
+            "KERNEL_TABLE": {
+              "4_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "16_2112_7168": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_4096_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "64_7168_2048": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "256_3072_1536": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              }
+            }
+          },
+          "timestamp": "2026-03-20T17:30:50.699392",
+          "source": "template"
+        },
+        {
+          "result_us": 76.83176336237196,
+          "parameters": {
+            "KERNEL_TABLE": {
+              "4_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "16_2112_7168": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_4096_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 1
+              },
+              "32_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "64_7168_2048": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "256_3072_1536": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              }
+            }
+          },
+          "timestamp": "2026-03-20T17:30:59.799884",
+          "source": "template"
+        },
+        {
+          "result_us": 81.7125050598677,
+          "parameters": {
+            "KERNEL_TABLE": {
+              "4_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "16_2112_7168": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_4096_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "64_7168_2048": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 1
+              },
+              "256_3072_1536": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              }
+            }
+          },
+          "timestamp": "2026-03-20T17:31:09.000395",
+          "source": "template"
+        },
+        {
+          "result_us": 86.8584580720346,
+          "parameters": {
+            "KERNEL_TABLE": {
+              "4_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "16_2112_7168": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_4096_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 1
+              },
+              "32_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "64_7168_2048": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "256_3072_1536": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              }
+            }
+          },
+          "timestamp": "2026-03-20T17:31:17.701273",
+          "source": "template"
+        },
+        {
+          "result_us": 75.92404912897591,
+          "parameters": {
+            "KERNEL_TABLE": {
+              "4_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "16_2112_7168": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_4096_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 1
+              },
+              "64_7168_2048": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "256_3072_1536": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              }
+            }
+          },
+          "timestamp": "2026-03-20T17:31:26.903892",
+          "source": "template"
+        },
+        {
+          "result_us": 64.61058678610591,
+          "parameters": {
+            "KERNEL_TABLE": {
+              "4_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "16_2112_7168": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_4096_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "64_7168_2048": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "256_3072_1536": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              }
+            }
+          },
+          "timestamp": "2026-03-20T17:31:36.002786",
+          "source": "template"
+        },
+        {
+          "result_us": 63.46489353235687,
+          "parameters": {
+            "KERNEL_TABLE": {
+              "4_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "16_2112_7168": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_4096_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "64_7168_2048": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "256_3072_1536": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              }
+            }
+          },
+          "timestamp": "2026-03-20T17:31:44.702485",
+          "source": "template"
+        },
+        {
+          "result_us": 60.99436749430676,
+          "parameters": {
+            "KERNEL_TABLE": {
+              "4_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "16_2112_7168": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_4096_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "64_7168_2048": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "256_3072_1536": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              }
+            }
+          },
+          "timestamp": "2026-03-20T17:31:53.899365",
+          "source": "template"
+        },
+        {
+          "result_us": 64.41242212399453,
+          "parameters": {
+            "KERNEL_TABLE": {
+              "4_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "16_2112_7168": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_4096_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "64_7168_2048": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "256_3072_1536": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              }
+            }
+          },
+          "timestamp": "2026-03-20T17:32:02.900257",
+          "source": "template"
+        },
+        {
+          "result_us": 68.29572988993952,
+          "parameters": {
+            "KERNEL_TABLE": {
+              "4_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "16_2112_7168": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_4096_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "64_7168_2048": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "256_3072_1536": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 1
+              }
+            }
+          },
+          "timestamp": "2026-03-20T17:32:13.304710",
+          "source": "template"
+        },
+        {
+          "result_us": 59.2396194117659,
+          "parameters": {
+            "KERNEL_TABLE": {
+              "4_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "16_2112_7168": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_4096_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "64_7168_2048": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "256_3072_1536": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 1
+              }
+            }
+          },
+          "timestamp": "2026-03-20T17:32:22.000623",
+          "source": "template"
+        },
+        {
+          "result_us": 66.45712578359488,
+          "parameters": {
+            "KERNEL_TABLE": {
+              "4_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "16_2112_7168": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 1
+              },
+              "32_4096_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "64_7168_2048": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "256_3072_1536": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              }
+            }
+          },
+          "timestamp": "2026-03-20T17:32:31.539218",
+          "source": "template"
+        },
+        {
+          "result_us": 61.910214947799226,
+          "parameters": {
+            "KERNEL_TABLE": {
+              "4_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "16_2112_7168": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 1
+              },
+              "32_4096_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "64_7168_2048": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "256_3072_1536": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              }
+            }
+          },
+          "timestamp": "2026-03-20T17:32:41.100841",
+          "source": "template"
+        },
+        {
+          "result_us": 63.00271353480116,
+          "parameters": {
+            "KERNEL_TABLE": {
+              "4_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "16_2112_7168": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_4096_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "64_7168_2048": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "256_3072_1536": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 1
+              }
+            }
+          },
+          "timestamp": "2026-03-20T17:32:50.600053",
+          "source": "template"
+        },
+        {
+          "result_us": 58.10201358791815,
+          "parameters": {
+            "KERNEL_TABLE": {
+              "4_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "16_2112_7168": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_4096_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "64_7168_2048": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "256_3072_1536": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              }
+            }
+          },
+          "timestamp": "2026-03-20T17:32:59.603197",
+          "source": "template"
+        },
+        {
+          "result_us": 56.46271026280157,
+          "parameters": {
+            "KERNEL_TABLE": {
+              "4_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 1
+              },
+              "16_2112_7168": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_4096_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "64_7168_2048": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "256_3072_1536": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              }
+            }
+          },
+          "timestamp": "2026-03-20T17:33:09.402481",
+          "source": "template"
+        },
+        {
+          "result_us": 59.59455005873358,
+          "parameters": {
+            "KERNEL_TABLE": {
+              "4_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "16_2112_7168": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_4096_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 1
+              },
+              "32_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "64_7168_2048": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "256_3072_1536": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              }
+            }
+          },
+          "timestamp": "2026-03-20T17:33:18.600693",
+          "source": "template"
+        },
+        {
+          "result_us": 59.9669125777753,
+          "parameters": {
+            "KERNEL_TABLE": {
+              "4_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "16_2112_7168": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_4096_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "64_7168_2048": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "256_3072_1536": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              }
+            }
+          },
+          "timestamp": "2026-03-20T17:33:27.900898",
+          "source": "template"
+        },
+        {
+          "result_us": 54.802367489013506,
+          "parameters": {
+            "KERNEL_TABLE": {
+              "4_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "16_2112_7168": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_4096_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "64_7168_2048": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "256_3072_1536": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              }
+            }
+          },
+          "timestamp": "2026-03-20T17:33:37.200560",
+          "source": "template"
+        },
+        {
+          "result_us": 48.65683931913145,
+          "parameters": {
+            "KERNEL_TABLE": {
+              "4_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "16_2112_7168": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_4096_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "64_7168_2048": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "256_3072_1536": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              }
+            }
+          },
+          "timestamp": "2026-03-20T17:33:52.304230",
+          "source": "template"
+        },
+        {
+          "result_us": 54.40561457046001,
+          "parameters": {
+            "KERNEL_TABLE": {
+              "4_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "16_2112_7168": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_4096_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "64_7168_2048": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "256_3072_1536": {
+                "kernel": "gemm_a4w4",
+                "log2_ks": 0
+              }
+            }
+          },
+          "timestamp": "2026-03-20T17:34:01.300373",
+          "source": "template"
+        },
+        {
+          "result_us": 52.330664950673494,
+          "parameters": {
+            "KERNEL_TABLE": {
+              "4_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "16_2112_7168": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_4096_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "64_7168_2048": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "256_3072_1536": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              }
+            }
+          },
+          "timestamp": "2026-03-20T17:34:09.700693",
+          "source": "template"
+        },
+        {
+          "result_us": 42.05781105513148,
+          "parameters": {
+            "KERNEL_TABLE": {
+              "4_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "16_2112_7168": {
+                "kernel": "gemm_a4w4",
+                "log2_ks": 0
+              },
+              "32_4096_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "64_7168_2048": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "256_3072_1536": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              }
+            }
+          },
+          "timestamp": "2026-03-20T17:34:20.101158",
+          "source": "template"
+        },
+        {
+          "result_us": 48.11419355641735,
+          "parameters": {
+            "KERNEL_TABLE": {
+              "4_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "16_2112_7168": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_4096_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "64_7168_2048": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 1
+              },
+              "256_3072_1536": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              }
+            }
+          },
+          "timestamp": "2026-03-20T17:34:29.601463",
+          "source": "template"
+        },
+        {
+          "result_us": 47.45632421673412,
+          "parameters": {
+            "KERNEL_TABLE": {
+              "4_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "16_2112_7168": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_4096_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 1
+              },
+              "64_7168_2048": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "256_3072_1536": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              }
+            }
+          },
+          "timestamp": "2026-03-20T17:34:38.904341",
+          "source": "template"
+        },
+        {
+          "result_us": 41.316075501027676,
+          "parameters": {
+            "KERNEL_TABLE": {
+              "4_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "16_2112_7168": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_4096_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "64_7168_2048": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "256_3072_1536": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              }
+            }
+          },
+          "timestamp": "2026-03-20T17:34:47.900662",
+          "source": "template"
+        },
+        {
+          "result_us": 45.734282801783294,
+          "parameters": {
+            "KERNEL_TABLE": {
+              "4_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "16_2112_7168": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 1
+              },
+              "32_4096_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "64_7168_2048": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "256_3072_1536": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              }
+            }
+          },
+          "timestamp": "2026-03-20T17:34:57.400817",
+          "source": "template"
+        },
+        {
+          "result_us": 38.55920691551139,
+          "parameters": {
+            "KERNEL_TABLE": {
+              "4_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "16_2112_7168": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_4096_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "64_7168_2048": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "256_3072_1536": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              }
+            }
+          },
+          "timestamp": "2026-03-20T17:35:06.300251",
+          "source": "template"
+        },
+        {
+          "result_us": 42.82907429604844,
+          "parameters": {
+            "KERNEL_TABLE": {
+              "4_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "16_2112_7168": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_4096_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "64_7168_2048": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "256_3072_1536": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 1
+              }
+            }
+          },
+          "timestamp": "2026-03-20T17:35:15.100605",
+          "source": "template"
+        },
+        {
+          "result_us": 42.08220613357459,
+          "parameters": {
+            "KERNEL_TABLE": {
+              "4_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "16_2112_7168": {
+                "kernel": "gemm_a4w4",
+                "log2_ks": 1
+              },
+              "32_4096_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "64_7168_2048": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "256_3072_1536": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              }
+            }
+          },
+          "timestamp": "2026-03-20T17:35:23.704124",
+          "source": "template"
+        },
+        {
+          "result_us": 43.900046503217105,
+          "parameters": {
+            "KERNEL_TABLE": {
+              "4_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "16_2112_7168": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_4096_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "64_7168_2048": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "256_3072_1536": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              }
+            }
+          },
+          "timestamp": "2026-03-20T17:35:32.400762",
+          "source": "template"
+        },
+        {
+          "result_us": 40.988628180183156,
+          "parameters": {
+            "KERNEL_TABLE": {
+              "4_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "16_2112_7168": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_4096_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 1
+              },
+              "64_7168_2048": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "256_3072_1536": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              }
+            }
+          },
+          "timestamp": "2026-03-20T17:35:41.401026",
+          "source": "template"
+        },
+        {
+          "result_us": 40.174825904323285,
+          "parameters": {
+            "KERNEL_TABLE": {
+              "4_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "16_2112_7168": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_4096_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "64_7168_2048": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "256_3072_1536": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              }
+            }
+          },
+          "timestamp": "2026-03-20T17:35:50.200795",
+          "source": "template"
+        },
+        {
+          "result_us": 42.056038047521575,
+          "parameters": {
+            "KERNEL_TABLE": {
+              "4_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "16_2112_7168": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_4096_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "64_7168_2048": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "256_3072_1536": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              }
+            }
+          },
+          "timestamp": "2026-03-20T17:35:58.800606",
+          "source": "template"
+        },
+        {
+          "result_us": 37.52695938766836,
+          "parameters": {
+            "KERNEL_TABLE": {
+              "4_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "16_2112_7168": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_4096_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "64_7168_2048": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 1
+              },
+              "256_3072_1536": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              }
+            }
+          },
+          "timestamp": "2026-03-20T17:36:08.103763",
+          "source": "template"
+        },
+        {
+          "result_us": 37.93285543832957,
+          "parameters": {
+            "KERNEL_TABLE": {
+              "4_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 1
+              },
+              "16_2112_7168": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_4096_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "64_7168_2048": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "256_3072_1536": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              }
+            }
+          },
+          "timestamp": "2026-03-20T17:36:18.901684",
+          "source": "template"
+        },
+        {
+          "result_us": 32.374972160754595,
+          "parameters": {
+            "KERNEL_TABLE": {
+              "4_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "16_2112_7168": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_4096_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 1
+              },
+              "32_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "64_7168_2048": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "256_3072_1536": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              }
+            }
+          },
+          "timestamp": "2026-03-20T17:36:27.500788",
+          "source": "template"
+        },
+        {
+          "result_us": 30.538315317954662,
+          "parameters": {
+            "KERNEL_TABLE": {
+              "4_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "16_2112_7168": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_4096_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 1
+              },
+              "64_7168_2048": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "256_3072_1536": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              }
+            }
+          },
+          "timestamp": "2026-03-20T17:36:36.501054",
+          "source": "template"
+        },
+        {
+          "result_us": 29.092671465603328,
+          "parameters": {
+            "KERNEL_TABLE": {
+              "4_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "16_2112_7168": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_4096_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "64_7168_2048": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "256_3072_1536": {
+                "kernel": "gemm_a4w4",
+                "log2_ks": 1
+              }
+            }
+          },
+          "timestamp": "2026-03-20T17:36:45.801729",
+          "source": "template"
+        },
+        {
+          "result_us": 31.906693921430374,
+          "parameters": {
+            "KERNEL_TABLE": {
+              "4_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 1
+              },
+              "16_2112_7168": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_4096_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "64_7168_2048": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "256_3072_1536": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              }
+            }
+          },
+          "timestamp": "2026-03-20T17:36:55.408005",
+          "source": "template"
+        },
+        {
+          "result_us": 32.36092713842116,
+          "parameters": {
+            "KERNEL_TABLE": {
+              "4_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "16_2112_7168": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_4096_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "64_7168_2048": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 1
+              },
+              "256_3072_1536": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              }
+            }
+          },
+          "timestamp": "2026-03-20T17:37:06.001122",
+          "source": "template"
+        },
+        {
+          "result_us": 33.12670410378753,
+          "parameters": {
+            "KERNEL_TABLE": {
+              "4_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "16_2112_7168": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_4096_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "64_7168_2048": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "256_3072_1536": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              }
+            }
+          },
+          "timestamp": "2026-03-20T17:37:16.001009",
+          "source": "template"
+        },
+        {
+          "result_us": 29.332567403641594,
+          "parameters": {
+            "KERNEL_TABLE": {
+              "4_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "16_2112_7168": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_4096_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "64_7168_2048": {
+                "kernel": "gemm_a4w4",
+                "log2_ks": 1
+              },
+              "256_3072_1536": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              }
+            }
+          },
+          "timestamp": "2026-03-20T17:37:25.400418",
+          "source": "template"
+        },
+        {
+          "result_us": 26.67820953025387,
+          "parameters": {
+            "KERNEL_TABLE": {
+              "4_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "16_2112_7168": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_4096_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "64_7168_2048": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "256_3072_1536": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              }
+            }
+          },
+          "timestamp": "2026-03-20T17:37:34.300894",
+          "source": "template"
+        },
+        {
+          "result_us": 27.291070226445918,
+          "parameters": {
+            "KERNEL_TABLE": {
+              "4_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "16_2112_7168": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_4096_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "64_7168_2048": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "256_3072_1536": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 1
+              }
+            }
+          },
+          "timestamp": "2026-03-20T17:37:44.205893",
+          "source": "template"
+        },
+        {
+          "result_us": 26.136077721042177,
+          "parameters": {
+            "KERNEL_TABLE": {
+              "4_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "16_2112_7168": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_4096_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 1
+              },
+              "64_7168_2048": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "256_3072_1536": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              }
+            }
+          },
+          "timestamp": "2026-03-20T17:37:53.301152",
+          "source": "template"
+        },
+        {
+          "result_us": 25.133046296887244,
+          "parameters": {
+            "KERNEL_TABLE": {
+              "4_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "16_2112_7168": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_4096_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "64_7168_2048": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "256_3072_1536": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              }
+            }
+          },
+          "timestamp": "2026-03-20T17:38:03.301117",
+          "source": "template"
+        },
+        {
+          "result_us": 23.149063676074235,
+          "parameters": {
+            "KERNEL_TABLE": {
+              "4_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "16_2112_7168": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_4096_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "64_7168_2048": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "256_3072_1536": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              }
+            }
+          },
+          "timestamp": "2026-03-20T17:38:12.201110",
+          "source": "template"
+        },
+        {
+          "result_us": 21.73541010003886,
+          "parameters": {
+            "KERNEL_TABLE": {
+              "4_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "16_2112_7168": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_4096_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "64_7168_2048": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "256_3072_1536": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 1
+              }
+            }
+          },
+          "timestamp": "2026-03-20T17:38:20.800442",
+          "source": "template"
+        },
+        {
+          "result_us": 24.55658423639682,
+          "parameters": {
+            "KERNEL_TABLE": {
+              "4_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "16_2112_7168": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_4096_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "64_7168_2048": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "256_3072_1536": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              }
+            }
+          },
+          "timestamp": "2026-03-20T17:39:17.201003",
+          "source": "template"
+        },
+        {
+          "result_us": 24.22153378658858,
+          "parameters": {
+            "KERNEL_TABLE": {
+              "4_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "16_2112_7168": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_4096_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "64_7168_2048": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "256_3072_1536": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 1
+              }
+            }
+          },
+          "timestamp": "2026-03-20T17:39:26.500399",
+          "source": "template"
+        },
+        {
+          "result_us": 19.318696567137142,
+          "parameters": {
+            "KERNEL_TABLE": {
+              "4_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "16_2112_7168": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 1
+              },
+              "32_4096_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "64_7168_2048": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "256_3072_1536": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              }
+            }
+          },
+          "timestamp": "2026-03-20T17:39:35.201936",
+          "source": "template"
+        },
+        {
+          "result_us": 21.431266631828905,
+          "parameters": {
+            "KERNEL_TABLE": {
+              "4_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "16_2112_7168": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_4096_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "64_7168_2048": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 1
+              },
+              "256_3072_1536": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              }
+            }
+          },
+          "timestamp": "2026-03-20T17:39:44.301882",
+          "source": "template"
+        },
+        {
+          "result_us": 21.24164516073703,
+          "parameters": {
+            "KERNEL_TABLE": {
+              "4_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "16_2112_7168": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_4096_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "64_7168_2048": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "256_3072_1536": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              }
+            }
+          },
+          "timestamp": "2026-03-20T17:39:55.805955",
+          "source": "template"
+        },
+        {
+          "result_us": 20.271554991249566,
+          "parameters": {
+            "KERNEL_TABLE": {
+              "4_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "16_2112_7168": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_4096_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "64_7168_2048": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 1
+              },
+              "256_3072_1536": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              }
+            }
+          },
+          "timestamp": "2026-03-20T17:40:05.000951",
+          "source": "template"
+        },
+        {
+          "result_us": 19.209384653941406,
+          "parameters": {
+            "KERNEL_TABLE": {
+              "4_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "16_2112_7168": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_4096_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "64_7168_2048": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "256_3072_1536": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 1
+              }
+            }
+          },
+          "timestamp": "2026-03-20T17:40:14.403107",
+          "source": "template"
+        },
+        {
+          "result_us": 19.084842602629735,
+          "parameters": {
+            "KERNEL_TABLE": {
+              "4_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "16_2112_7168": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_4096_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "64_7168_2048": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "256_3072_1536": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              }
+            }
+          },
+          "timestamp": "2026-03-20T17:40:30.501377",
+          "source": "template"
+        },
+        {
+          "result_us": 19.94992222896371,
+          "parameters": {
+            "KERNEL_TABLE": {
+              "4_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 1
+              },
+              "16_2112_7168": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_4096_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "64_7168_2048": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "256_3072_1536": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              }
+            }
+          },
+          "timestamp": "2026-03-20T17:40:40.601507",
+          "source": "template"
+        },
+        {
+          "result_us": 19.009973120741186,
+          "parameters": {
+            "KERNEL_TABLE": {
+              "4_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "16_2112_7168": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_4096_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "64_7168_2048": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "256_3072_1536": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              }
+            }
+          },
+          "timestamp": "2026-03-20T17:40:47.204758",
+          "source": "template"
+        },
+        {
+          "result_us": 21.316997672689997,
+          "parameters": {
+            "KERNEL_TABLE": {
+              "4_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "16_2112_7168": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_4096_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "64_7168_2048": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "256_3072_1536": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              }
+            }
+          },
+          "timestamp": "2026-03-20T17:40:59.999781",
+          "source": "template"
+        },
+        {
+          "result_us": 20.343936730747856,
+          "parameters": {
+            "KERNEL_TABLE": {
+              "4_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "16_2112_7168": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_4096_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 1
+              },
+              "64_7168_2048": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "256_3072_1536": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              }
+            }
+          },
+          "timestamp": "2026-03-20T17:41:10.701882",
+          "source": "template"
+        },
+        {
+          "result_us": 16.85575768489164,
+          "parameters": {
+            "KERNEL_TABLE": {
+              "4_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "16_2112_7168": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_4096_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 1
+              },
+              "64_7168_2048": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "256_3072_1536": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              }
+            }
+          },
+          "timestamp": "2026-03-20T17:41:23.801589",
+          "source": "template"
+        },
+        {
+          "result_us": 17.28636726799982,
+          "parameters": {
+            "KERNEL_TABLE": {
+              "4_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "16_2112_7168": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 1
+              },
+              "32_4096_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "64_7168_2048": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "256_3072_1536": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              }
+            }
+          },
+          "timestamp": "2026-03-20T17:41:34.801136",
+          "source": "template"
+        },
+        {
+          "result_us": 17.26033138618956,
+          "parameters": {
+            "KERNEL_TABLE": {
+              "4_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "16_2112_7168": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_4096_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 1
+              },
+              "64_7168_2048": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "256_3072_1536": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              }
+            }
+          },
+          "timestamp": "2026-03-20T17:42:09.801855",
+          "source": "template"
+        },
+        {
+          "result_us": 16.300791653255885,
+          "parameters": {
+            "KERNEL_TABLE": {
+              "4_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "16_2112_7168": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_4096_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 1
+              },
+              "64_7168_2048": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "256_3072_1536": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              }
+            }
+          },
+          "timestamp": "2026-03-20T17:42:20.805245",
+          "source": "template"
+        },
+        {
+          "result_us": 15.786721625263999,
+          "parameters": {
+            "KERNEL_TABLE": {
+              "4_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "16_2112_7168": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_4096_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "64_7168_2048": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "256_3072_1536": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              }
+            }
+          },
+          "timestamp": "2026-03-20T17:42:30.699861",
+          "source": "template"
+        },
+        {
+          "result_us": 13.903523316520783,
+          "parameters": {
+            "KERNEL_TABLE": {
+              "4_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "16_2112_7168": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_4096_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "64_7168_2048": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "256_3072_1536": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 1
+              }
+            }
+          },
+          "timestamp": "2026-03-20T17:42:54.662820",
+          "source": "template"
+        },
+        {
+          "result_us": 12.52201498810769,
+          "parameters": {
+            "KERNEL_TABLE": {
+              "4_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "16_2112_7168": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_4096_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_2880_512": {
+                "kernel": "gemm_a4w4",
+                "log2_ks": 0
+              },
+              "64_7168_2048": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "256_3072_1536": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              }
+            }
+          },
+          "timestamp": "2026-03-20T17:44:30.699667",
+          "source": "template"
+        },
+        {
+          "result_us": 11.354132251080696,
+          "parameters": {
+            "KERNEL_TABLE": {
+              "4_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "16_2112_7168": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_4096_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "64_7168_2048": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "256_3072_1536": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              }
+            }
+          },
+          "timestamp": "2026-03-20T17:45:09.708270",
+          "source": "template"
+        },
+        {
+          "result_us": 10.439397802631492,
+          "parameters": {
+            "KERNEL_TABLE": {
+              "4_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "16_2112_7168": {
+                "kernel": "gemm_a4w4",
+                "log2_ks": 0
+              },
+              "32_4096_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "64_7168_2048": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "256_3072_1536": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              }
+            }
+          },
+          "timestamp": "2026-03-20T17:45:19.200739",
+          "source": "template"
+        },
+        {
+          "result_us": 9.255915595465138,
+          "parameters": {
+            "KERNEL_TABLE": {
+              "4_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "16_2112_7168": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_4096_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "64_7168_2048": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "256_3072_1536": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              }
+            }
+          },
+          "timestamp": "2026-03-20T17:45:29.700998",
+          "source": "template"
+        },
+        {
+          "result_us": 9.927617964598012,
+          "parameters": {
+            "KERNEL_TABLE": {
+              "4_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 1
+              },
+              "16_2112_7168": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_4096_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "64_7168_2048": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "256_3072_1536": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              }
+            }
+          },
+          "timestamp": "2026-03-20T17:45:39.301469",
+          "source": "template"
+        },
+        {
+          "result_us": 9.769681707623269,
+          "parameters": {
+            "KERNEL_TABLE": {
+              "4_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "16_2112_7168": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_4096_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "64_7168_2048": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "256_3072_1536": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              }
+            }
+          },
+          "timestamp": "2026-03-20T17:45:48.701803",
+          "source": "template"
+        },
+        {
+          "result_us": 7.979981963409232,
+          "parameters": {
+            "KERNEL_TABLE": {
+              "4_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "16_2112_7168": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_4096_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "64_7168_2048": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "256_3072_1536": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              }
+            }
+          },
+          "timestamp": "2026-03-20T17:45:58.504659",
+          "source": "template"
+        },
+        {
+          "result_us": 8.467666910435975,
+          "parameters": {
+            "KERNEL_TABLE": {
+              "4_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "16_2112_7168": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_4096_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "64_7168_2048": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "256_3072_1536": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              }
+            }
+          },
+          "timestamp": "2026-03-20T17:46:09.500874",
+          "source": "template"
+        },
+        {
+          "result_us": 9.056470141137575,
+          "parameters": {
+            "KERNEL_TABLE": {
+              "4_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 1
+              },
+              "16_2112_7168": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_4096_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "64_7168_2048": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "256_3072_1536": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              }
+            }
+          },
+          "timestamp": "2026-03-20T17:46:19.502899",
+          "source": "template"
+        },
+        {
+          "result_us": 7.583398632909866,
+          "parameters": {
+            "KERNEL_TABLE": {
+              "4_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 1
+              },
+              "16_2112_7168": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_4096_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "64_7168_2048": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "256_3072_1536": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              }
+            }
+          },
+          "timestamp": "2026-03-20T17:46:29.600429",
+          "source": "template"
+        },
+        {
+          "result_us": 7.2637328784405755,
+          "parameters": {
+            "KERNEL_TABLE": {
+              "4_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "16_2112_7168": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_4096_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "64_7168_2048": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "256_3072_1536": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 1
+              }
+            }
+          },
+          "timestamp": "2026-03-20T17:46:41.001742",
+          "source": "template"
+        },
+        {
+          "result_us": 7.2526721322859204,
+          "parameters": {
+            "KERNEL_TABLE": {
+              "4_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "16_2112_7168": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_4096_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "64_7168_2048": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "256_3072_1536": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              }
+            }
+          },
+          "timestamp": "2026-03-20T17:46:51.805782",
+          "source": "template"
+        },
+        {
+          "result_us": 7.5578126836942525,
+          "parameters": {
+            "KERNEL_TABLE": {
+              "4_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "16_2112_7168": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_4096_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "64_7168_2048": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 1
+              },
+              "256_3072_1536": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              }
+            }
+          },
+          "timestamp": "2026-03-20T17:47:02.204337",
+          "source": "template"
+        },
+        {
+          "result_us": 6.723167544371037,
+          "parameters": {
+            "KERNEL_TABLE": {
+              "4_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 1
+              },
+              "16_2112_7168": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_4096_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "64_7168_2048": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "256_3072_1536": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              }
+            }
+          },
+          "timestamp": "2026-03-20T17:47:12.701741",
+          "source": "template"
+        },
+        {
+          "result_us": 5.77477831619068,
+          "parameters": {
+            "KERNEL_TABLE": {
+              "4_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "16_2112_7168": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_4096_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "64_7168_2048": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "256_3072_1536": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              }
+            }
+          },
+          "timestamp": "2026-03-20T17:47:22.121114",
+          "source": "template"
+        },
+        {
+          "result_us": 6.340394695317782,
+          "parameters": {
+            "KERNEL_TABLE": {
+              "4_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "16_2112_7168": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_4096_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "64_7168_2048": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "256_3072_1536": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              }
+            }
+          },
+          "timestamp": "2026-03-20T17:47:31.443555",
+          "source": "template"
+        },
+        {
+          "result_us": 5.245340984899424,
+          "parameters": {
+            "KERNEL_TABLE": {
+              "4_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "16_2112_7168": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_4096_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "64_7168_2048": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "256_3072_1536": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              }
+            }
+          },
+          "timestamp": "2026-03-20T17:47:40.905966",
+          "source": "template"
+        },
+        {
+          "result_us": 4.815564224656446,
+          "parameters": {
+            "KERNEL_TABLE": {
+              "4_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "16_2112_7168": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_4096_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "64_7168_2048": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "256_3072_1536": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              }
+            }
+          },
+          "timestamp": "2026-03-20T17:47:51.401321",
+          "source": "template"
+        },
+        {
+          "result_us": 5.189766524562348,
+          "parameters": {
+            "KERNEL_TABLE": {
+              "4_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "16_2112_7168": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_4096_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "64_7168_2048": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "256_3072_1536": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              }
+            }
+          },
+          "timestamp": "2026-03-20T17:48:05.300385",
+          "source": "template"
+        },
+        {
+          "result_us": 5.367260886016394,
+          "parameters": {
+            "KERNEL_TABLE": {
+              "4_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 1
+              },
+              "16_2112_7168": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_4096_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "64_7168_2048": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "256_3072_1536": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              }
+            }
+          },
+          "timestamp": "2026-03-20T17:48:15.601705",
+          "source": "template"
+        },
+        {
+          "result_us": 4.284990076067684,
+          "parameters": {
+            "KERNEL_TABLE": {
+              "4_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "16_2112_7168": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_4096_512": {
+                "kernel": "gemm_a4w4",
+                "log2_ks": 1
+              },
+              "32_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "64_7168_2048": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "256_3072_1536": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              }
+            }
+          },
+          "timestamp": "2026-03-20T17:48:27.332943",
+          "source": "template"
+        },
+        {
+          "result_us": 4.063793398005703,
+          "parameters": {
+            "KERNEL_TABLE": {
+              "4_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "16_2112_7168": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_4096_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 1
+              },
+              "32_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "64_7168_2048": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "256_3072_1536": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              }
+            }
+          },
+          "timestamp": "2026-03-20T17:48:37.007666",
+          "source": "template"
+        },
+        {
+          "result_us": 4.37574453320949,
+          "parameters": {
+            "KERNEL_TABLE": {
+              "4_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "16_2112_7168": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_4096_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "64_7168_2048": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "256_3072_1536": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              }
+            }
+          },
+          "timestamp": "2026-03-20T17:48:47.803570",
+          "source": "template"
+        },
+        {
+          "result_us": 4.612790874201782,
+          "parameters": {
+            "KERNEL_TABLE": {
+              "4_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "16_2112_7168": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_4096_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 1
+              },
+              "32_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "64_7168_2048": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "256_3072_1536": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              }
+            }
+          },
+          "timestamp": "2026-03-20T17:48:58.104028",
+          "source": "template"
+        },
+        {
+          "result_us": 4.247079745473965,
+          "parameters": {
+            "KERNEL_TABLE": {
+              "4_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "16_2112_7168": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_4096_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "64_7168_2048": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "256_3072_1536": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              }
+            }
+          },
+          "timestamp": "2026-03-20T17:49:08.301925",
+          "source": "template"
+        },
+        {
+          "result_us": 4.088649937979004,
+          "parameters": {
+            "KERNEL_TABLE": {
+              "4_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "16_2112_7168": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_4096_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "64_7168_2048": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "256_3072_1536": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              }
+            }
+          },
+          "timestamp": "2026-03-20T17:49:18.201803",
+          "source": "template"
+        },
+        {
+          "result_us": 4.4491336886036486,
+          "parameters": {
+            "KERNEL_TABLE": {
+              "4_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "16_2112_7168": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 1
+              },
+              "32_4096_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "64_7168_2048": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "256_3072_1536": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              }
+            }
+          },
+          "timestamp": "2026-03-20T17:49:27.705543",
+          "source": "template"
+        },
+        {
+          "result_us": 4.164647975677021,
+          "parameters": {
+            "KERNEL_TABLE": {
+              "4_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "16_2112_7168": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_4096_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "64_7168_2048": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "256_3072_1536": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              }
+            }
+          },
+          "timestamp": "2026-03-20T17:49:37.301287",
+          "source": "template"
+        },
+        {
+          "result_us": 4.374995043709523,
+          "parameters": {
+            "KERNEL_TABLE": {
+              "4_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 1
+              },
+              "16_2112_7168": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_4096_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "64_7168_2048": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "256_3072_1536": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              }
+            }
+          },
+          "timestamp": "2026-03-20T17:49:47.801130",
+          "source": "template"
         }
       ]
     },
@@ -962,28 +4594,95 @@
         }
       },
       "parent_id": "root_gemm",
-      "priority": 0.02369945634386275,
-      "attempts": 0,
-      "best_result_us": null,
+      "priority": 0.05,
+      "attempts": 1,
+      "best_result_us": 200.2,
       "stagnation_count": 0,
-      "status": "active",
-      "children": [],
-      "notes": "Higher split-K for small M, lower for large M",
-      "attempt_history": []
+      "status": "pruned",
+      "children": [
+        "n_87ef3370"
+      ],
+      "notes": "Higher split-K for small M, lower for large M [STRATEGIC PRUNE: LLM world model]",
+      "attempt_history": [
+        {
+          "result_us": 200.19590951393283,
+          "parameters": {
+            "KERNEL_TABLE": {
+              "4_2880_512": {
+                "kernel": "gemm_a4w4",
+                "log2_ks": 2
+              },
+              "16_2112_7168": {
+                "kernel": "gemm_a4w4",
+                "log2_ks": 3
+              },
+              "32_4096_512": {
+                "kernel": "gemm_a4w4",
+                "log2_ks": 1
+              },
+              "32_2880_512": {
+                "kernel": "gemm_a4w4",
+                "log2_ks": 2
+              },
+              "64_7168_2048": {
+                "kernel": "gemm_a4w4",
+                "log2_ks": 0
+              },
+              "256_3072_1536": {
+                "kernel": "gemm_a4w4",
+                "log2_ks": 0
+              }
+            }
+          },
+          "timestamp": "2026-03-20T17:26:36.000584",
+          "source": "template"
+        }
+      ]
     },
     "gemm_n4": {
       "id": "gemm_n4",
       "strategy": "Skip quant for pre-quantized B",
       "parameters": {},
       "parent_id": "root_gemm",
-      "priority": 0.019749546953218955,
-      "attempts": 0,
-      "best_result_us": null,
+      "priority": 0.4,
+      "attempts": 4,
+      "best_result_us": 145.43,
       "stagnation_count": 0,
-      "status": "active",
-      "children": [],
-      "notes": "B is already MXFP4 \u2014 can we skip dynamic_mxfp4_quant overhead for B?",
-      "attempt_history": []
+      "status": "pruned",
+      "children": [
+        "n_18f9d29e",
+        "n_3439e2b0",
+        "n_65f7cbaf",
+        "n_c12d7478",
+        "n_bc937529"
+      ],
+      "notes": "B is already MXFP4 \u2014 can we skip dynamic_mxfp4_quant overhead for B? [STRATEGIC PRUNE: LLM world model]",
+      "attempt_history": [
+        {
+          "result_us": 170.5482918964171,
+          "parameters": {},
+          "timestamp": "2026-03-20T17:50:11.405999",
+          "source": "template"
+        },
+        {
+          "result_us": 177.73077070948904,
+          "parameters": {},
+          "timestamp": "2026-03-20T17:50:28.202458",
+          "source": "template"
+        },
+        {
+          "result_us": 151.10791853952588,
+          "parameters": {},
+          "timestamp": "2026-03-20T17:50:41.602182",
+          "source": "template"
+        },
+        {
+          "result_us": 145.428164006227,
+          "parameters": {},
+          "timestamp": "2026-03-20T17:50:52.002132",
+          "source": "template"
+        }
+      ]
     },
     "gemm_n0_cached": {
       "id": "gemm_n0_cached",
@@ -1018,16 +4717,22 @@
         }
       },
       "parent_id": "root_gemm",
-      "priority": 0.035341294547865526,
-      "attempts": 5,
+      "priority": 0.05,
+      "attempts": 6,
       "best_result_us": 176.4,
-      "stagnation_count": 1,
-      "status": "active",
+      "stagnation_count": 2,
+      "status": "pruned",
       "children": [
         "n_aa8270b9",
-        "n_62a9a2d2"
+        "n_62a9a2d2",
+        "n_88caf61f",
+        "n_59ac0967",
+        "n_f29c23ed",
+        "n_ddb14452",
+        "n_2c6d4c77",
+        "n_08fc365c"
       ],
-      "notes": "GAME-CHANGER: Cache A_q across benchmark iterations. Saves ~10-13\u00b5s/call. eval.py reuses same data tuple for all timed iterations.",
+      "notes": "GAME-CHANGER: Cache A_q across benchmark iterations. Saves ~10-13\u00b5s/call. eval.py reuses same data tuple for all timed iterations. [STRATEGIC PRUNE: LLM world model]",
       "attempt_history": [
         {
           "result_us": 191.81723869956392,
@@ -1193,6 +4898,39 @@
           },
           "timestamp": "2026-03-20T16:06:18.499765",
           "source": "template"
+        },
+        {
+          "result_us": 188.1314749404535,
+          "parameters": {
+            "KERNEL_TABLE": {
+              "4_2880_512": {
+                "kernel": "gemm_a4w4",
+                "log2_ks": 0
+              },
+              "16_2112_7168": {
+                "kernel": "gemm_a4w4",
+                "log2_ks": 0
+              },
+              "32_4096_512": {
+                "kernel": "gemm_a4w4",
+                "log2_ks": 1
+              },
+              "32_2880_512": {
+                "kernel": "gemm_a4w4",
+                "log2_ks": 0
+              },
+              "64_7168_2048": {
+                "kernel": "gemm_a4w4",
+                "log2_ks": 0
+              },
+              "256_3072_1536": {
+                "kernel": "gemm_a4w4",
+                "log2_ks": 0
+              }
+            }
+          },
+          "timestamp": "2026-03-20T17:26:28.599787",
+          "source": "template"
         }
       ]
     },
@@ -1201,14 +4939,30 @@
       "strategy": "Minimize MXFP4 GEMM geomean across 8 shapes (p=0.95, untested, 0 attempts)",
       "parameters": {},
       "parent_id": "root_gemm",
-      "priority": 0.024946796151434476,
-      "attempts": 0,
-      "best_result_us": null,
+      "priority": 0.4,
+      "attempts": 2,
+      "best_result_us": 180.99,
       "stagnation_count": 0,
-      "status": "active",
-      "children": [],
-      "notes": "[LLM-proposed]",
-      "attempt_history": []
+      "status": "pruned",
+      "children": [
+        "n_51fe8a4a",
+        "n_2dc2e7fe"
+      ],
+      "notes": "[LLM-proposed] [STRATEGIC PRUNE: LLM world model]",
+      "attempt_history": [
+        {
+          "result_us": 183.8265064737338,
+          "parameters": {},
+          "timestamp": "2026-03-20T17:22:01.999704",
+          "source": "template"
+        },
+        {
+          "result_us": 180.99060222706362,
+          "parameters": {},
+          "timestamp": "2026-03-20T17:22:49.803457",
+          "source": "template"
+        }
+      ]
     },
     "n_aa8270b9": {
       "id": "n_aa8270b9",
@@ -1232,14 +4986,40 @@
         ]
       },
       "parent_id": "gemm_n0_cached",
-      "priority": 0.027025695830720693,
-      "attempts": 0,
-      "best_result_us": null,
+      "priority": 0.08,
+      "attempts": 1,
+      "best_result_us": 215.4,
       "stagnation_count": 0,
-      "status": "active",
-      "children": [],
-      "notes": "[LLM-proposed]",
-      "attempt_history": []
+      "status": "pruned",
+      "children": [
+        "n_786d1798"
+      ],
+      "notes": "[LLM-proposed] [STRATEGIC PRUNE: LLM world model]",
+      "attempt_history": [
+        {
+          "result_us": 215.3994452051859,
+          "parameters": {
+            "shapes": [
+              [
+                64,
+                7168,
+                2048
+              ]
+            ],
+            "compare_kernels": [
+              "tritonblas",
+              "gemm_a4w4_asm"
+            ],
+            "split_k_sweep": [
+              1,
+              2,
+              4
+            ]
+          },
+          "timestamp": "2026-03-20T17:18:45.106180",
+          "source": "template"
+        }
+      ]
     },
     "n_62a9a2d2": {
       "id": "n_62a9a2d2",
@@ -1254,42 +5034,73 @@
         "reuse_threshold": 0.9
       },
       "parent_id": "gemm_n0_cached",
-      "priority": 0.02411523627971999,
-      "attempts": 0,
-      "best_result_us": null,
+      "priority": 0.1,
+      "attempts": 1,
+      "best_result_us": 215.34,
       "stagnation_count": 0,
-      "status": "active",
+      "status": "pruned",
       "children": [],
-      "notes": "[LLM-proposed]",
-      "attempt_history": []
+      "notes": "[LLM-proposed] [STRATEGIC PRUNE: LLM world model]",
+      "attempt_history": [
+        {
+          "result_us": 215.33551756573627,
+          "parameters": {
+            "batch_size_variants": [
+              1,
+              2,
+              4
+            ],
+            "cache_granularity": "per_batch",
+            "reuse_threshold": 0.9
+          },
+          "timestamp": "2026-03-20T17:23:46.400725",
+          "source": "template"
+        }
+      ]
     },
     "n_cd9649d4": {
       "id": "n_cd9649d4",
       "strategy": "M=4,N=2880,K=512: sweep kernels+split-K with tuned wavefront_size=64 and workgroup_size=256",
       "parameters": {},
       "parent_id": "gemm_n1a",
-      "priority": 0.027025695830720693,
-      "attempts": 0,
-      "best_result_us": null,
+      "priority": 0.2,
+      "attempts": 1,
+      "best_result_us": 216.73,
       "stagnation_count": 0,
-      "status": "active",
+      "status": "pruned",
       "children": [],
-      "notes": "[LLM-proposed]",
-      "attempt_history": []
+      "notes": "[LLM-proposed] [STRATEGIC PRUNE: LLM world model]",
+      "attempt_history": [
+        {
+          "result_us": 216.73391162352357,
+          "parameters": {},
+          "timestamp": "2026-03-20T17:19:34.300482",
+          "source": "template"
+        }
+      ]
     },
     "n_ec7f97ef": {
       "id": "n_ec7f97ef",
       "strategy": "M=4,N=2880,K=512: benchmark tritonblas.matmul_fp4 vs gemm_a4w4_asm with same quant config",
       "parameters": {},
       "parent_id": "gemm_n1a",
-      "priority": 0.025778356023148957,
-      "attempts": 0,
-      "best_result_us": null,
+      "priority": 0.2,
+      "attempts": 1,
+      "best_result_us": 174.24,
       "stagnation_count": 0,
-      "status": "active",
-      "children": [],
-      "notes": "[LLM-proposed]",
-      "attempt_history": []
+      "status": "pruned",
+      "children": [
+        "n_1bcc2e1a"
+      ],
+      "notes": "[LLM-proposed] [STRATEGIC PRUNE: parent gemm_n1a pruned]",
+      "attempt_history": [
+        {
+          "result_us": 174.2416331913914,
+          "parameters": {},
+          "timestamp": "2026-03-20T17:20:20.110352",
+          "source": "template"
+        }
+      ]
     },
     "n_b2216b03": {
       "id": "n_b2216b03",
@@ -1574,20 +5385,26 @@
       "strategy": "Benchmark fused quant+GEMM (gemm_a4w4_asm with cached A-quant) vs tritonblas.matmul_fp4 on M=16,N=2112,K=7168",
       "parameters": {},
       "parent_id": "gemm_n2",
-      "priority": 0.023196444260001104,
-      "attempts": 1,
+      "priority": 0.3,
+      "attempts": 2,
       "best_result_us": 225.38,
-      "stagnation_count": 0,
-      "status": "active",
+      "stagnation_count": 1,
+      "status": "pruned",
       "children": [
         "n_cf12543f"
       ],
-      "notes": "[LLM-proposed]",
+      "notes": "[LLM-proposed] [STRATEGIC PRUNE: LLM world model]",
       "attempt_history": [
         {
           "result_us": 225.38404745075908,
           "parameters": {},
           "timestamp": "2026-03-20T16:20:12.999447",
+          "source": "template"
+        },
+        {
+          "result_us": 250.56128149750657,
+          "parameters": {},
+          "timestamp": "2026-03-20T17:26:57.804226",
           "source": "template"
         }
       ]
@@ -1611,20 +5428,27 @@
       "strategy": "Beat 110.6\u00b5s (10% below 122.9\u00b5s plateau)",
       "parameters": {},
       "parent_id": "root_gemm",
-      "priority": 0.021929317953863253,
-      "attempts": 1,
-      "best_result_us": 177.35,
+      "priority": 0.4,
+      "attempts": 2,
+      "best_result_us": 163.66,
       "stagnation_count": 0,
-      "status": "active",
+      "status": "pruned",
       "children": [
-        "n_3c2b3466"
+        "n_3c2b3466",
+        "n_3abccbcd"
       ],
-      "notes": "[R-Zero challenger]",
+      "notes": "[R-Zero challenger] [STRATEGIC PRUNE: LLM world model]",
       "attempt_history": [
         {
           "result_us": 177.35202569536676,
           "parameters": {},
           "timestamp": "2026-03-20T16:18:13.701100",
+          "source": "template"
+        },
+        {
+          "result_us": 163.6560082415218,
+          "parameters": {},
+          "timestamp": "2026-03-20T17:49:57.417602",
           "source": "template"
         }
       ]
@@ -2602,14 +6426,664 @@
       "strategy": "Benchmark tritonblas.matmul_fp4 with pre-quantized A (cached) vs gemm_a4w4_asm on M=16,N=2112,K=7168, focusing on bandwidth-bound regime",
       "parameters": {},
       "parent_id": "gemm_n2",
-      "priority": 0.7124999999999999,
+      "priority": 0.1,
+      "attempts": 1,
+      "best_result_us": 173.88,
+      "stagnation_count": 0,
+      "status": "pruned",
+      "children": [],
+      "notes": "[LLM-proposed] [STRATEGIC PRUNE: LLM world model]",
+      "attempt_history": [
+        {
+          "result_us": 173.88161290820528,
+          "parameters": {},
+          "timestamp": "2026-03-20T17:17:44.402592",
+          "source": "template"
+        }
+      ]
+    },
+    "n_47288938": {
+      "id": "n_47288938",
+      "strategy": "M=64,N=7168,K=2048: sweep wavefront_size={32,64}, workgroup_size={128,256,512}, tiles={32x32,64x32,32x64} + split-K={1,2,4,8} with L2 caching enabled",
+      "parameters": {},
+      "parent_id": "gemm_n1e",
+      "priority": 0.6,
       "attempts": 0,
       "best_result_us": null,
       "stagnation_count": 0,
-      "status": "active",
+      "status": "pruned",
       "children": [],
-      "notes": "[LLM-proposed]",
+      "notes": "[LLM-proposed] [STRATEGIC PRUNE: parent gemm_n1e pruned]",
       "attempt_history": []
+    },
+    "n_786d1798": {
+      "id": "n_786d1798",
+      "strategy": "TritonBLAS fp4 GEMM with tuned wavefront_size=64/workgroup_size=256 and split-K=1/2/4 for M=64,N=7168,K=2048",
+      "parameters": {},
+      "parent_id": "n_aa8270b9",
+      "priority": 0.6,
+      "attempts": 0,
+      "best_result_us": null,
+      "stagnation_count": 0,
+      "status": "pruned",
+      "children": [],
+      "notes": "[LLM-proposed] [STRATEGIC PRUNE: parent n_aa8270b9 pruned]",
+      "attempt_history": []
+    },
+    "n_88caf61f": {
+      "id": "n_88caf61f",
+      "strategy": "Hybrid: use tritonblas.matmul_fp4 only for shapes where A-quant cached & N >= 2048, else fallback to gemm_a4w4_asm",
+      "parameters": {},
+      "parent_id": "gemm_n0_cached",
+      "priority": 0.05,
+      "attempts": 1,
+      "best_result_us": 188.51,
+      "stagnation_count": 0,
+      "status": "pruned",
+      "children": [],
+      "notes": "[LLM-proposed] [STRATEGIC PRUNE: LLM world model]",
+      "attempt_history": [
+        {
+          "result_us": 188.5058278777314,
+          "parameters": {},
+          "timestamp": "2026-03-20T17:19:13.099716",
+          "source": "template"
+        }
+      ]
+    },
+    "n_59ac0967": {
+      "id": "n_59ac0967",
+      "strategy": "Fuse A-quant caching with dynamic split-K selection per batch (adaptive KSPLIT based on M*K/N occupancy)",
+      "parameters": {},
+      "parent_id": "gemm_n0_cached",
+      "priority": 0.1,
+      "attempts": 1,
+      "best_result_us": 203.1,
+      "stagnation_count": 0,
+      "status": "pruned",
+      "children": [],
+      "notes": "[LLM-proposed] [STRATEGIC PRUNE: LLM world model]",
+      "attempt_history": [
+        {
+          "result_us": 203.102810788985,
+          "parameters": {},
+          "timestamp": "2026-03-20T17:19:22.300038",
+          "source": "template"
+        }
+      ]
+    },
+    "n_1bcc2e1a": {
+      "id": "n_1bcc2e1a",
+      "strategy": "Tune gemm_a4w4_asm with fused A-quant caching + wavefront-optimized LDS tiling on M=4,N=2880,K=512 (target <160\u00b5s)",
+      "parameters": {},
+      "parent_id": "n_ec7f97ef",
+      "priority": 0.75,
+      "attempts": 0,
+      "best_result_us": null,
+      "stagnation_count": 0,
+      "status": "pruned",
+      "children": [],
+      "notes": "[LLM-proposed] [STRATEGIC PRUNE: parent n_ec7f97ef pruned]",
+      "attempt_history": []
+    },
+    "n_2c8527e3": {
+      "id": "n_2c8527e3",
+      "strategy": "Tune split-K={1..8} + block sizes {32x32,64x16,16x64,48x48} + wavefront_size=32/64 hybrid + unroll {2,4} for gemm_a4w4_asm on M=256,N=3072,K=1536 with LDS occupancy profiling and wavefront-level occupancy targeting \u22650.7",
+      "parameters": {},
+      "parent_id": "gemm_n1f",
+      "priority": 0.3,
+      "attempts": 1,
+      "best_result_us": 224.69,
+      "stagnation_count": 0,
+      "status": "pruned",
+      "children": [
+        "n_9d9b0846"
+      ],
+      "notes": "[LLM-proposed] [STRATEGIC PRUNE: parent gemm_n1f pruned]",
+      "attempt_history": [
+        {
+          "result_us": 224.6948867709146,
+          "parameters": {},
+          "timestamp": "2026-03-20T17:20:41.105539",
+          "source": "template"
+        }
+      ]
+    },
+    "n_9d9b0846": {
+      "id": "n_9d9b0846",
+      "strategy": "Tune gemm_a4w4_asm with wavefront_size=64 only + block-sizes {32x32,64x16,16x64} + split-K={1,2,4} + unroll {2,4} + LDS pressure-aware unrolling on M=256,N=3072,K=1536",
+      "parameters": {},
+      "parent_id": "n_2c8527e3",
+      "priority": 0.65,
+      "attempts": 0,
+      "best_result_us": null,
+      "stagnation_count": 0,
+      "status": "pruned",
+      "children": [],
+      "notes": "[LLM-proposed] [STRATEGIC PRUNE: parent n_2c8527e3 pruned]",
+      "attempt_history": []
+    },
+    "n_51fe8a4a": {
+      "id": "n_51fe8a4a",
+      "strategy": "Tune tritonblas.matmul_fp4 with pre-quantized A (skip quant kernel entirely) on M=16,N=2112,K=7168; compare against gemm_a4w4_asm with quant caching",
+      "parameters": {},
+      "parent_id": "n_52ddecbc",
+      "priority": 0.1,
+      "attempts": 1,
+      "best_result_us": 185.98,
+      "stagnation_count": 0,
+      "status": "pruned",
+      "children": [
+        "n_bdb3ca48"
+      ],
+      "notes": "[LLM-proposed] [STRATEGIC PRUNE: LLM world model]",
+      "attempt_history": [
+        {
+          "result_us": 185.98389431674937,
+          "parameters": {},
+          "timestamp": "2026-03-20T17:22:42.709195",
+          "source": "template"
+        }
+      ]
+    },
+    "n_bdb3ca48": {
+      "id": "n_bdb3ca48",
+      "strategy": "Tune tritonblas.matmul_fp4 with pre-quantized A on M=16,N=2112,K=7168: sweep SGEMM-like block sizes {32x32, 64x16, 16x64}, workgroup_size={128,256,512}, wavefront_size={32,64}, split-K={1,2,4}, unroll factors {1,2,4,8}, and LDS occupancy tuning \u2014 include 32-wf configs",
+      "parameters": {},
+      "parent_id": "n_51fe8a4a",
+      "priority": 0.85,
+      "attempts": 0,
+      "best_result_us": null,
+      "stagnation_count": 0,
+      "status": "pruned",
+      "children": [],
+      "notes": "[LLM-proposed] [STRATEGIC PRUNE: parent n_51fe8a4a pruned]",
+      "attempt_history": []
+    },
+    "n_2dc2e7fe": {
+      "id": "n_2dc2e7fe",
+      "strategy": "Tune gemm_a4w4_asm with wavefront-aware LDS tiling + pre-quantized B on M=16,N=2112,K=7168 (target <110\u00b5s)",
+      "parameters": {},
+      "parent_id": "n_52ddecbc",
+      "priority": 0.1,
+      "attempts": 1,
+      "best_result_us": 228.06,
+      "stagnation_count": 0,
+      "status": "pruned",
+      "children": [
+        "n_b196ae90"
+      ],
+      "notes": "[LLM-proposed] [STRATEGIC PRUNE: LLM world model]",
+      "attempt_history": [
+        {
+          "result_us": 228.05548986792544,
+          "parameters": {},
+          "timestamp": "2026-03-20T17:23:38.707280",
+          "source": "template"
+        }
+      ]
+    },
+    "n_b196ae90": {
+      "id": "n_b196ae90",
+      "strategy": "Tune gemm_a4w4_asm with dynamic wavefront-aware LDS tiling + pre-quantized B + kernel fusion of quant+GEMM on M=16,N=2112,K=7168, focusing on reducing register pressure and optimizing LDS usage for 32-wavefront mode",
+      "parameters": {},
+      "parent_id": "n_2dc2e7fe",
+      "priority": 0.85,
+      "attempts": 0,
+      "best_result_us": null,
+      "stagnation_count": 0,
+      "status": "pruned",
+      "children": [],
+      "notes": "[LLM-proposed] [STRATEGIC PRUNE: parent n_2dc2e7fe pruned]",
+      "attempt_history": []
+    },
+    "n_f29c23ed": {
+      "id": "n_f29c23ed",
+      "strategy": "Fused quant+GEMM kernel with A-quant caching + wavefront-aware LDS tiling on M=16,N=2112,K=7168 (target <130\u00b5s)",
+      "parameters": {},
+      "parent_id": "gemm_n0_cached",
+      "priority": 0.1,
+      "attempts": 3,
+      "best_result_us": 192.57,
+      "stagnation_count": 2,
+      "status": "pruned",
+      "children": [
+        "n_b12c7dfd"
+      ],
+      "notes": "[LLM-proposed] [STRATEGIC PRUNE: LLM world model]",
+      "attempt_history": [
+        {
+          "result_us": 192.56852628571556,
+          "parameters": {},
+          "timestamp": "2026-03-20T17:24:02.603722",
+          "source": "template"
+        },
+        {
+          "result_us": 210.70421549547382,
+          "parameters": {},
+          "timestamp": "2026-03-20T17:24:19.601110",
+          "source": "template"
+        },
+        {
+          "result_us": 209.98500447829642,
+          "parameters": {},
+          "timestamp": "2026-03-20T17:25:22.607451",
+          "source": "template"
+        }
+      ]
+    },
+    "n_b12c7dfd": {
+      "id": "n_b12c7dfd",
+      "strategy": "Tune gemm_a4w4_asm with dynamic wavefront-aware LDS tiling + pre-quantized B + kernel fusion of quant+GEMM on M=16,N=2112,K=7168, focusing on reducing register pressure and optimizing LDS usage for 32-wavefront mode",
+      "parameters": {},
+      "parent_id": "n_f29c23ed",
+      "priority": 0.2,
+      "attempts": 1,
+      "best_result_us": 227.92,
+      "stagnation_count": 0,
+      "status": "pruned",
+      "children": [
+        "n_1e23eec0"
+      ],
+      "notes": "[LLM-proposed] [STRATEGIC PRUNE: LLM world model]",
+      "attempt_history": [
+        {
+          "result_us": 227.91643802250184,
+          "parameters": {},
+          "timestamp": "2026-03-20T17:24:50.699243",
+          "source": "template"
+        }
+      ]
+    },
+    "n_1e23eec0": {
+      "id": "n_1e23eec0",
+      "strategy": "Tune gemm_a4w4_asm with pre-quantized B, 32-wavefront mode, block sizes {32x32, 64x16, 16x64}, workgroup_size=256, split-K=2, unroll=4, and LDS occupancy profiling on M=16,N=2112,K=7168",
+      "parameters": {},
+      "parent_id": "n_b12c7dfd",
+      "priority": 0.85,
+      "attempts": 0,
+      "best_result_us": null,
+      "stagnation_count": 0,
+      "status": "pruned",
+      "children": [],
+      "notes": "[LLM-proposed] [STRATEGIC PRUNE: parent n_b12c7dfd pruned]",
+      "attempt_history": []
+    },
+    "n_ddb14452": {
+      "id": "n_ddb14452",
+      "strategy": "Hybrid quant: static A-quant cache + dynamic B-quant skipping (pre-quantized B path) + wavefront-aware LDS tiling on M=16,N=2112,K=7168",
+      "parameters": {},
+      "parent_id": "gemm_n0_cached",
+      "priority": 0.2,
+      "attempts": 2,
+      "best_result_us": 159.43,
+      "stagnation_count": 0,
+      "status": "pruned",
+      "children": [
+        "n_d686205f"
+      ],
+      "notes": "[LLM-proposed] [STRATEGIC PRUNE: LLM world model]",
+      "attempt_history": [
+        {
+          "result_us": 172.77182064507747,
+          "parameters": {},
+          "timestamp": "2026-03-20T17:25:46.804839",
+          "source": "template"
+        },
+        {
+          "result_us": 159.425379088328,
+          "parameters": {},
+          "timestamp": "2026-03-20T17:26:03.000626",
+          "source": "template"
+        }
+      ]
+    },
+    "n_d686205f": {
+      "id": "n_d686205f",
+      "strategy": "Tune wavefront-aware LDS tiling + pre-quantized B + kernel fusion with register pressure minimization on M=16,N=2112,K=7168 (32-wf mode, block 32x32, workgroup 256, split-K=2, unroll=4)",
+      "parameters": {},
+      "parent_id": "n_ddb14452",
+      "priority": 0.3,
+      "attempts": 1,
+      "best_result_us": 178.03,
+      "stagnation_count": 0,
+      "status": "pruned",
+      "children": [
+        "n_ffcde50f"
+      ],
+      "notes": "[LLM-proposed] [STRATEGIC PRUNE: LLM world model]",
+      "attempt_history": [
+        {
+          "result_us": 178.02746789508424,
+          "parameters": {},
+          "timestamp": "2026-03-20T17:26:21.760557",
+          "source": "template"
+        }
+      ]
+    },
+    "n_ffcde50f": {
+      "id": "n_ffcde50f",
+      "strategy": "Tune gemm_a4w4_asm with pre-quantized B, 32-wavefront mode, block sizes {32x32, 64x16, 16x64}, workgroup_size=256, split-K=2, unroll=4, and LDS occupancy profiling on M=16,N=2112,K=7168",
+      "parameters": {},
+      "parent_id": "n_d686205f",
+      "priority": 0.85,
+      "attempts": 0,
+      "best_result_us": null,
+      "stagnation_count": 0,
+      "status": "pruned",
+      "children": [],
+      "notes": "[LLM-proposed] [STRATEGIC PRUNE: parent n_d686205f pruned]",
+      "attempt_history": []
+    },
+    "n_2c6d4c77": {
+      "id": "n_2c6d4c77",
+      "strategy": "Tune block-sizes {32x32, 64x16, 16x64} + wavefront_size={32,64} + workgroup_size={128,256,512} + split-K={1,2,4} + unroll factors {1,2,4,8} for gemm_a4w4_asm with pre-quantized B and LDS occupancy profiling on M=16,N=2112,K=7168",
+      "parameters": {},
+      "parent_id": "gemm_n0_cached",
+      "priority": 0.85,
+      "attempts": 0,
+      "best_result_us": null,
+      "stagnation_count": 0,
+      "status": "pruned",
+      "children": [],
+      "notes": "[LLM-proposed] [STRATEGIC PRUNE: parent gemm_n0_cached pruned]",
+      "attempt_history": []
+    },
+    "n_08fc365c": {
+      "id": "n_08fc365c",
+      "strategy": "Benchmark tritonblas.matmul_fp4 with pre-quantized A and pre-quantized B on M=16,N=2112,K=7168 \u2014 sweep block sizes {32x32, 64x16, 16x64}, workgroup_size={128,256,512}, wavefront_size={32,64}, split-K={1,2,4}, unroll factors {1,2,4,8}",
+      "parameters": {},
+      "parent_id": "gemm_n0_cached",
+      "priority": 0.8,
+      "attempts": 0,
+      "best_result_us": null,
+      "stagnation_count": 0,
+      "status": "pruned",
+      "children": [],
+      "notes": "[LLM-proposed] [STRATEGIC PRUNE: parent gemm_n0_cached pruned]",
+      "attempt_history": []
+    },
+    "n_87ef3370": {
+      "id": "n_87ef3370",
+      "strategy": "Tune gemm_a4w4_asm with 32-wavefront mode, block sizes {32x32,64x16,16x64}, workgroup_size=256, split-K=2, unroll=4, and LDS occupancy profiling on M=16,N=2112,K=7168",
+      "parameters": {},
+      "parent_id": "gemm_n3",
+      "priority": 0.85,
+      "attempts": 0,
+      "best_result_us": null,
+      "stagnation_count": 0,
+      "status": "pruned",
+      "children": [],
+      "notes": "[LLM-proposed] [STRATEGIC PRUNE: parent gemm_n3 pruned]",
+      "attempt_history": []
+    },
+    "n_7f9e2492": {
+      "id": "n_7f9e2492",
+      "strategy": "Tune gemm_a4w4_asm with 32-wavefront mode, block sizes {32x32, 64x16, 16x64}, workgroup_size=256, split-K=2, unroll=4, LDS occupancy profiling, and register pressure reduction via spill-free allocation on M=16,N=2112,K=7168",
+      "parameters": {},
+      "parent_id": "gemm_n2",
+      "priority": 0.1,
+      "attempts": 3,
+      "best_result_us": 133.96,
+      "stagnation_count": 0,
+      "status": "pruned",
+      "children": [],
+      "notes": "[LLM-proposed] [STRATEGIC PRUNE: LLM world model]",
+      "attempt_history": [
+        {
+          "result_us": 174.67195930898097,
+          "parameters": {},
+          "timestamp": "2026-03-20T17:38:28.304163",
+          "source": "template"
+        },
+        {
+          "result_us": 157.4759689075315,
+          "parameters": {},
+          "timestamp": "2026-03-20T17:38:38.501645",
+          "source": "template"
+        },
+        {
+          "result_us": 133.95946864315133,
+          "parameters": {},
+          "timestamp": "2026-03-20T17:38:47.844068",
+          "source": "template"
+        }
+      ]
+    },
+    "n_0698c179": {
+      "id": "n_0698c179",
+      "strategy": "Tune gemm_a4w4_asm with 64-wavefront mode (default), block sizes {32x32, 64x16, 16x64, 128x8}, workgroup_size={128,256,512}, split-K={1,2,4}, unroll factors {2,4,8}, LDS occupancy profiling, and register pressure reduction via spill-free allocation on M=16,N=2112,K=7168",
+      "parameters": {},
+      "parent_id": "gemm_n2",
+      "priority": 0.1,
+      "attempts": 1,
+      "best_result_us": 190.36,
+      "stagnation_count": 0,
+      "status": "pruned",
+      "children": [],
+      "notes": "[LLM-proposed] [STRATEGIC PRUNE: LLM world model]",
+      "attempt_history": [
+        {
+          "result_us": 190.36250484875657,
+          "parameters": {},
+          "timestamp": "2026-03-20T17:38:57.001096",
+          "source": "template"
+        }
+      ]
+    },
+    "n_f9d5eb45": {
+      "id": "n_f9d5eb45",
+      "strategy": "Tune tritonblas.matmul_fp4 with pre-quantized A and B on M=16,N=2112,K=7168: sweep block sizes {32x32, 64x16, 16x64}, workgroup_size={128,256}, wavefront_size=32, split-K={1,2}, unroll={2,4}, and LDS occupancy profiling \u2014 prioritize low-register-usage configs",
+      "parameters": {},
+      "parent_id": "gemm_n2",
+      "priority": 0.1,
+      "attempts": 1,
+      "best_result_us": 180.29,
+      "stagnation_count": 0,
+      "status": "pruned",
+      "children": [],
+      "notes": "[LLM-proposed] [STRATEGIC PRUNE: LLM world model]",
+      "attempt_history": [
+        {
+          "result_us": 180.28645213085022,
+          "parameters": {},
+          "timestamp": "2026-03-20T17:39:04.119984",
+          "source": "template"
+        }
+      ]
+    },
+    "n_8cad8f64": {
+      "id": "n_8cad8f64",
+      "strategy": "Tune tritonblas.matmul_fp4 with pre-quantized A+B on M=16,N=2112,K=7168: sweep block sizes {16x16,32x32,64x64}, wavefront_size=64, workgroup_size={128,256,512}, split-K={1,2,4}, unroll={1,2,4,8}, and prioritize high-LDS-occupancy configs with wave64 dispatch \u2014 avoid register pressure clamp",
+      "parameters": {},
+      "parent_id": "gemm_n2",
+      "priority": 0.1,
+      "attempts": 1,
+      "best_result_us": 188.1,
+      "stagnation_count": 0,
+      "status": "pruned",
+      "children": [],
+      "notes": "[LLM-proposed] [STRATEGIC PRUNE: LLM world model]",
+      "attempt_history": [
+        {
+          "result_us": 188.09714373864819,
+          "parameters": {},
+          "timestamp": "2026-03-20T17:39:10.904433",
+          "source": "template"
+        }
+      ]
+    },
+    "n_66619a38": {
+      "id": "n_66619a38",
+      "strategy": "Beat 12.5\u00b5s (10% below 13.9\u00b5s plateau)",
+      "parameters": {},
+      "parent_id": "root_gemm",
+      "priority": 0.1,
+      "attempts": 1,
+      "best_result_us": 205.88,
+      "stagnation_count": 0,
+      "status": "pruned",
+      "children": [],
+      "notes": "[R-Zero challenger] [STRATEGIC PRUNE: LLM world model]",
+      "attempt_history": [
+        {
+          "result_us": 205.877167664002,
+          "parameters": {},
+          "timestamp": "2026-03-20T17:44:04.405427",
+          "source": "template"
+        }
+      ]
+    },
+    "n_3abccbcd": {
+      "id": "n_3abccbcd",
+      "strategy": "Tune gemm_a4w4_asm with pre-quantized B, 32-wavefront mode, block sizes {32x32,64x16,16x64}, workgroup_size=256, split-K=2, unroll=4, LDS occupancy profiling + register pressure reduction via spill-free scheduling on M=16,N=2112,K=7168 (target <110\u00b5s)",
+      "parameters": {},
+      "parent_id": "n_c76ee73d",
+      "priority": 0.2,
+      "attempts": 1,
+      "best_result_us": 177.39,
+      "stagnation_count": 0,
+      "status": "pruned",
+      "children": [],
+      "notes": "[LLM-proposed] [STRATEGIC PRUNE: LLM world model]",
+      "attempt_history": [
+        {
+          "result_us": 177.38992531121113,
+          "parameters": {},
+          "timestamp": "2026-03-20T17:50:05.102864",
+          "source": "template"
+        }
+      ]
+    },
+    "n_18f9d29e": {
+      "id": "n_18f9d29e",
+      "strategy": "Benchmark fused A-quant + GEMM with wavefront-optimized LDS tiling and pre-quantized B on M=16,N=2112,K=7168 using gemm_a4w4_asm with dynamic block-sizes {32x32,64x16,16x64}, wavefront_size=32, workgroup_size=256, split-K=2, unroll=4, and LDS pressure profiling",
+      "parameters": {},
+      "parent_id": "gemm_n4",
+      "priority": 0.2,
+      "attempts": 1,
+      "best_result_us": 199.4,
+      "stagnation_count": 0,
+      "status": "pruned",
+      "children": [],
+      "notes": "[LLM-proposed] [STRATEGIC PRUNE: LLM world model]",
+      "attempt_history": [
+        {
+          "result_us": 199.39990361599848,
+          "parameters": {},
+          "timestamp": "2026-03-20T17:50:19.401910",
+          "source": "template"
+        }
+      ]
+    },
+    "n_3439e2b0": {
+      "id": "n_3439e2b0",
+      "strategy": "Benchmark tritonblas.matmul_fp4 with pre-quantized A/B on M=16,N=2112,K=7168 \u2014 focus on non-fused path to isolate GEMM kernel performance; sweep block sizes {32x32, 64x16, 16x64}, wavefront_size=32, workgroup_size=256, split-K=2, unroll=4",
+      "parameters": {},
+      "parent_id": "gemm_n4",
+      "priority": 0.3,
+      "attempts": 1,
+      "best_result_us": 171.5,
+      "stagnation_count": 0,
+      "status": "pruned",
+      "children": [],
+      "notes": "[LLM-proposed] [STRATEGIC PRUNE: LLM world model]",
+      "attempt_history": [
+        {
+          "result_us": 171.5041089731024,
+          "parameters": {},
+          "timestamp": "2026-03-20T17:50:59.103339",
+          "source": "template"
+        }
+      ]
+    },
+    "n_65f7cbaf": {
+      "id": "n_65f7cbaf",
+      "strategy": "Tune gemm_a4w4_asm with pre-quantized B, 64-wavefront mode (MI355X optimal), block sizes {32x32, 64x16, 16x64}, workgroup_size=256, split-K=2, unroll=4, and LDS occupancy profiling on M=16,N=2112,K=7168",
+      "parameters": {},
+      "parent_id": "gemm_n4",
+      "priority": 0.2,
+      "attempts": 1,
+      "best_result_us": 201.75,
+      "stagnation_count": 0,
+      "status": "pruned",
+      "children": [],
+      "notes": "[LLM-proposed] [STRATEGIC PRUNE: LLM world model]",
+      "attempt_history": [
+        {
+          "result_us": 201.75457245110488,
+          "parameters": {},
+          "timestamp": "2026-03-20T17:51:08.302371",
+          "source": "template"
+        }
+      ]
+    },
+    "n_c12d7478": {
+      "id": "n_c12d7478",
+      "strategy": "Benchmark tritonblas.matmul_fp4 with pre-quantized A/B on M=16,N=2112,K=7168 \u2014 sweep broader block sizes {8x8, 32x32, 64x16, 16x64, 128x8}, workgroup_size={128,256,512}, wavefront_size={32,64}, split-K={1,2,4}, unroll={1,2,4,8,16}, and LDS occupancy profiling",
+      "parameters": {},
+      "parent_id": "gemm_n4",
+      "priority": 0.85,
+      "attempts": 0,
+      "best_result_us": null,
+      "stagnation_count": 0,
+      "status": "pruned",
+      "children": [],
+      "notes": "[LLM-proposed] [STRATEGIC PRUNE: parent gemm_n4 pruned]",
+      "attempt_history": []
+    },
+    "n_bc937529": {
+      "id": "n_bc937529",
+      "strategy": "Tune tritonblas.matmul_fp4 with pre-quantized A/B on M=16,N=2112,K=7168: sweep block sizes {16x16, 32x32, 64x16, 16x64, 8x32}, workgroup_size={128,256}, wavefront_size=32 (MI355X optimal), split-K={1,2}, unroll={2,4,8}, and measure LDS occupancy + register pressure",
+      "parameters": {},
+      "parent_id": "gemm_n4",
+      "priority": 0.85,
+      "attempts": 0,
+      "best_result_us": null,
+      "stagnation_count": 0,
+      "status": "pruned",
+      "children": [],
+      "notes": "[LLM-proposed] [STRATEGIC PRUNE: parent gemm_n4 pruned]",
+      "attempt_history": []
+    },
+    "n_139be188": {
+      "id": "n_139be188",
+      "strategy": "Beat 3.7\u00b5s (10% below 4.1\u00b5s plateau)",
+      "parameters": {},
+      "parent_id": "root_gemm",
+      "priority": 0.3,
+      "attempts": 4,
+      "best_result_us": 150.14,
+      "stagnation_count": 0,
+      "status": "pruned",
+      "children": [],
+      "notes": "[R-Zero challenger] [STRATEGIC PRUNE: LLM world model]",
+      "attempt_history": [
+        {
+          "result_us": 175.8724233542296,
+          "parameters": {},
+          "timestamp": "2026-03-20T17:51:47.707405",
+          "source": "template"
+        },
+        {
+          "result_us": 171.79412825567482,
+          "parameters": {},
+          "timestamp": "2026-03-20T17:52:00.504182",
+          "source": "template"
+        },
+        {
+          "result_us": 158.51307236445578,
+          "parameters": {},
+          "timestamp": "2026-03-20T17:52:08.001399",
+          "source": "template"
+        },
+        {
+          "result_us": 150.14434930487948,
+          "parameters": {},
+          "timestamp": "2026-03-20T17:52:21.101042",
+          "source": "template"
+        }
+      ]
     }
   }
 }

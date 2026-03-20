@@ -7,10 +7,10 @@
       "strategy": "Minimize MLA decode geomean across 8 shapes",
       "parameters": {},
       "parent_id": null,
-      "priority": 0.014239574134637464,
-      "attempts": 0,
-      "best_result_us": null,
-      "stagnation_count": 0,
+      "priority": 0.05432736419151383,
+      "attempts": 6,
+      "best_result_us": 174.38,
+      "stagnation_count": 2,
       "status": "active",
       "children": [
         "mla_n1",
@@ -24,7 +24,44 @@
         "n_b3879422"
       ],
       "notes": "",
-      "attempt_history": []
+      "attempt_history": [
+        {
+          "result_us": 212.57656385814226,
+          "parameters": {},
+          "timestamp": "2026-03-20T17:41:56.308126",
+          "source": "template"
+        },
+        {
+          "result_us": 236.38517006790585,
+          "parameters": {},
+          "timestamp": "2026-03-20T17:42:45.901896",
+          "source": "template"
+        },
+        {
+          "result_us": 203.97182819272624,
+          "parameters": {},
+          "timestamp": "2026-03-20T17:43:25.607439",
+          "source": "template"
+        },
+        {
+          "result_us": 174.37584333417058,
+          "parameters": {},
+          "timestamp": "2026-03-20T17:43:51.507065",
+          "source": "template"
+        },
+        {
+          "result_us": 194.9620108517115,
+          "parameters": {},
+          "timestamp": "2026-03-20T17:44:20.603807",
+          "source": "template"
+        },
+        {
+          "result_us": 180.56335279435768,
+          "parameters": {},
+          "timestamp": "2026-03-20T17:44:40.805611",
+          "source": "template"
+        }
+      ]
     },
     "mla_n1": {
       "id": "mla_n1",
@@ -394,15 +431,21 @@
         "DEFAULT_SPLITS": 16
       },
       "parent_id": "root_mla",
-      "priority": 0.019026150820426573,
-      "attempts": 16,
+      "priority": 0.1,
+      "attempts": 19,
       "best_result_us": 139.55,
-      "stagnation_count": 0,
-      "status": "active",
+      "stagnation_count": 3,
+      "status": "pruned",
       "children": [
-        "n_e598d2a3"
+        "n_e598d2a3",
+        "n_9de8d0b9",
+        "n_71bdefd4",
+        "n_be939dcc",
+        "n_e2b6d5bd",
+        "n_82f850cd",
+        "n_991c855c"
       ],
-      "notes": "Test FP8 vs MXFP4 \u2014 FP8 has wider compute support but 2x bandwidth",
+      "notes": "Test FP8 vs MXFP4 \u2014 FP8 has wider compute support but 2x bandwidth [STRATEGIC PRUNE: LLM world model]",
       "attempt_history": [
         {
           "result_us": 199.72758096542842,
@@ -659,6 +702,54 @@
           },
           "timestamp": "2026-03-20T16:21:07.404661",
           "source": "template"
+        },
+        {
+          "result_us": 145.80184336675984,
+          "parameters": {
+            "KV_FORMAT": "fp8",
+            "SPLITS_TABLE": {
+              "4_1024": 4,
+              "4_8192": 16,
+              "32_1024": 8,
+              "32_8192": 32,
+              "128_8192": 64
+            },
+            "DEFAULT_SPLITS": 16
+          },
+          "timestamp": "2026-03-20T17:23:05.199640",
+          "source": "template"
+        },
+        {
+          "result_us": 151.41691412691128,
+          "parameters": {
+            "KV_FORMAT": "fp8",
+            "SPLITS_TABLE": {
+              "4_1024": 4,
+              "4_8192": 16,
+              "32_1024": 8,
+              "32_8192": 16,
+              "128_8192": 32
+            },
+            "DEFAULT_SPLITS": 16
+          },
+          "timestamp": "2026-03-20T17:23:12.803095",
+          "source": "template"
+        },
+        {
+          "result_us": 141.56922707228549,
+          "parameters": {
+            "KV_FORMAT": "fp8",
+            "SPLITS_TABLE": {
+              "4_1024": 4,
+              "4_8192": 16,
+              "32_1024": 8,
+              "32_8192": 28,
+              "128_8192": 32
+            },
+            "DEFAULT_SPLITS": 16
+          },
+          "timestamp": "2026-03-20T17:30:29.305622",
+          "source": "template"
         }
       ]
     },
@@ -720,11 +811,11 @@
         "DEFAULT_SPLITS": 16
       },
       "parent_id": "root_mla",
-      "priority": 0.6001624999999999,
+      "priority": 0.4275,
       "attempts": 1,
       "best_result_us": 176.25,
       "stagnation_count": 0,
-      "status": "active",
+      "status": "pruned",
       "children": [
         "n_dcc244d3",
         "n_6954981b",
@@ -741,7 +832,7 @@
         "n_0a15b1aa",
         "n_6350d80a"
       ],
-      "notes": "kv_granularity affects memory coalescing",
+      "notes": "kv_granularity affects memory coalescing [STRATEGIC PRUNE: LLM world model]",
       "attempt_history": [
         {
           "result_us": 176.2540459584196,
@@ -766,14 +857,23 @@
       "strategy": "Pre-compute metadata outside timed region",
       "parameters": {},
       "parent_id": "root_mla",
-      "priority": 0.019749546953218955,
-      "attempts": 0,
-      "best_result_us": null,
+      "priority": 0.6,
+      "attempts": 1,
+      "best_result_us": 188.7,
       "stagnation_count": 0,
-      "status": "active",
-      "children": [],
-      "notes": "Cache metadata aggressively \u2014 already partially done",
-      "attempt_history": []
+      "status": "pruned",
+      "children": [
+        "n_6741e992"
+      ],
+      "notes": "Cache metadata aggressively \u2014 already partially done [STRATEGIC PRUNE: LLM world model]",
+      "attempt_history": [
+        {
+          "result_us": 188.7044295675524,
+          "parameters": {},
+          "timestamp": "2026-03-20T17:20:56.600865",
+          "source": "template"
+        }
+      ]
     },
     "n_8a249fb9": {
       "id": "n_8a249fb9",
@@ -801,14 +901,24 @@
       "strategy": "Fused quant+GEMM for FP4",
       "parameters": {},
       "parent_id": "root_mla",
-      "priority": 0.020788996792862058,
-      "attempts": 0,
-      "best_result_us": null,
+      "priority": 0.05,
+      "attempts": 1,
+      "best_result_us": 223.27,
       "stagnation_count": 0,
-      "status": "active",
-      "children": [],
-      "notes": "[LLM-proposed]",
-      "attempt_history": []
+      "status": "pruned",
+      "children": [
+        "n_68c6d2e4",
+        "n_2c478fef"
+      ],
+      "notes": "[LLM-proposed] [STRATEGIC PRUNE: LLM world model]",
+      "attempt_history": [
+        {
+          "result_us": 223.27351724952845,
+          "parameters": {},
+          "timestamp": "2026-03-20T17:19:04.802529",
+          "source": "template"
+        }
+      ]
     },
     "n_11afa32a": {
       "id": "n_11afa32a",
@@ -1018,13 +1128,13 @@
       "strategy": "FP8 KV cache + wavefront-aware tiling (64x256 vs 128x128) with split=1 for bs=4,kv=1024",
       "parameters": {},
       "parent_id": "mla_n2",
-      "priority": 0.01794896638617014,
-      "attempts": 2,
-      "best_result_us": 193.07,
-      "stagnation_count": 1,
-      "status": "active",
+      "priority": 0.2,
+      "attempts": 3,
+      "best_result_us": 182.49,
+      "stagnation_count": 0,
+      "status": "pruned",
       "children": [],
-      "notes": "[LLM-proposed]",
+      "notes": "[LLM-proposed] [STRATEGIC PRUNE: LLM world model]",
       "attempt_history": [
         {
           "result_us": 193.06541483125827,
@@ -1036,6 +1146,12 @@
           "result_us": 220.89982961789005,
           "parameters": {},
           "timestamp": "2026-03-20T16:23:10.998931",
+          "source": "template"
+        },
+        {
+          "result_us": 182.49063647579374,
+          "parameters": {},
+          "timestamp": "2026-03-20T17:22:58.100829",
           "source": "template"
         }
       ]
@@ -1222,13 +1338,13 @@
       "strategy": "Wavefront-aware tiling + split=1 + unrolled load loop for bs=4,kv=1024 (tile_size=64x128, baseline from prior attempt)",
       "parameters": {},
       "parent_id": "mla_n4",
-      "priority": 0.04160843596827506,
+      "priority": 0.03755161346136824,
       "attempts": 1,
       "best_result_us": 188.73,
       "stagnation_count": 0,
-      "status": "active",
+      "status": "pruned",
       "children": [],
-      "notes": "[LLM-proposed]",
+      "notes": "[LLM-proposed] [STRATEGIC PRUNE: parent mla_n4 pruned]",
       "attempt_history": [
         {
           "result_us": 188.72736455515428,
@@ -1264,13 +1380,13 @@
       "strategy": "Wavefront-aware tiling + split=1 + unrolled load loop for bs=4,kv=1024 (tile_size=64x128, baseline from prior attempt) with vectorized load/store for FP8 KV cache",
       "parameters": {},
       "parent_id": "mla_n4",
-      "priority": 0.05403600876626367,
+      "priority": 0.04876749791155295,
       "attempts": 1,
       "best_result_us": 220.09,
       "stagnation_count": 0,
-      "status": "active",
+      "status": "pruned",
       "children": [],
-      "notes": "[LLM-proposed]",
+      "notes": "[LLM-proposed] [STRATEGIC PRUNE: parent mla_n4 pruned]",
       "attempt_history": [
         {
           "result_us": 220.08547622883418,
@@ -1411,13 +1527,13 @@
       "strategy": "Wavefront-aware tiling + split=2 + unrolled load loop + FP8 KV cache (64x256 tile) + L1 cache blocking (tile prefetching) for bs=4,kv=1024 \u2014 reduce L1 misses by reordering loads",
       "parameters": {},
       "parent_id": "mla_n4",
-      "priority": 0.19902612938671868,
+      "priority": 0.1796210817715136,
       "attempts": 1,
       "best_result_us": 197.66,
       "stagnation_count": 0,
-      "status": "active",
+      "status": "pruned",
       "children": [],
-      "notes": "[LLM-proposed]",
+      "notes": "[LLM-proposed] [STRATEGIC PRUNE: parent mla_n4 pruned]",
       "attempt_history": [
         {
           "result_us": 197.6607860812245,
@@ -1518,13 +1634,252 @@
       "strategy": "Wavefront-aware tiling + split=1 + unrolled load loop + FP8 KV cache (64x256 tile) + L1 cache blocking \u2014 drop wavefront partitioning, instead tune L1 tile prefetching stride and vector width for KV load coherence",
       "parameters": {},
       "parent_id": "mla_n4",
-      "priority": 0.7124999999999999,
+      "priority": 0.35,
+      "attempts": 2,
+      "best_result_us": 160.81,
+      "stagnation_count": 0,
+      "status": "pruned",
+      "children": [],
+      "notes": "[LLM-proposed] [STRATEGIC PRUNE: parent mla_n4 pruned]",
+      "attempt_history": [
+        {
+          "result_us": 186.62822834337481,
+          "parameters": {},
+          "timestamp": "2026-03-20T17:18:12.405617",
+          "source": "template"
+        },
+        {
+          "result_us": 160.81111038082398,
+          "parameters": {},
+          "timestamp": "2026-03-20T17:18:57.703421",
+          "source": "template"
+        }
+      ]
+    },
+    "n_68c6d2e4": {
+      "id": "n_68c6d2e4",
+      "strategy": "Fused quant+GEMM for FP4 with dynamic tiling: tile size sweep (32x32, 64x64, 128x128) + split=1/2 + vector width (1/2/4) for bs=4,kv=1024",
+      "parameters": {},
+      "parent_id": "n_81c6a22e",
+      "priority": 0.75,
       "attempts": 0,
       "best_result_us": null,
       "stagnation_count": 0,
-      "status": "active",
+      "status": "pruned",
       "children": [],
-      "notes": "[LLM-proposed]",
+      "notes": "[LLM-proposed] [STRATEGIC PRUNE: parent n_81c6a22e pruned]",
+      "attempt_history": []
+    },
+    "n_2c478fef": {
+      "id": "n_2c478fef",
+      "strategy": "Fused quant+GEMM for FP4 + LDS double-buffering + unrolled epilogue for bs=4,kv=1024",
+      "parameters": {},
+      "parent_id": "n_81c6a22e",
+      "priority": 0.65,
+      "attempts": 0,
+      "best_result_us": null,
+      "stagnation_count": 0,
+      "status": "pruned",
+      "children": [],
+      "notes": "[LLM-proposed] [STRATEGIC PRUNE: parent n_81c6a22e pruned]",
+      "attempt_history": []
+    },
+    "n_6741e992": {
+      "id": "n_6741e992",
+      "strategy": "Fused quant+GEMM for FP4 with LDS double-buffering and unrolled epilogue: tile size sweep (32x32, 64x64, 128x128) + split=1/2 + vector width (1/2/4) for bs=4,kv=1024",
+      "parameters": {},
+      "parent_id": "mla_n5",
+      "priority": 0.15,
+      "attempts": 2,
+      "best_result_us": 197.31,
+      "stagnation_count": 1,
+      "status": "pruned",
+      "children": [],
+      "notes": "[LLM-proposed] [STRATEGIC PRUNE: parent mla_n5 pruned]",
+      "attempt_history": [
+        {
+          "result_us": 197.3141981137531,
+          "parameters": {},
+          "timestamp": "2026-03-20T17:21:20.405605",
+          "source": "template"
+        },
+        {
+          "result_us": 200.46313957636133,
+          "parameters": {},
+          "timestamp": "2026-03-20T17:21:29.000483",
+          "source": "template"
+        }
+      ]
+    },
+    "n_9de8d0b9": {
+      "id": "n_9de8d0b9",
+      "strategy": "FP8 KV cache + LDS double-buffering + vector width sweep (2/4) + split=1/2 for bs=4,kv=1024 \u2014 target L2 bandwidth saturation",
+      "parameters": {},
+      "parent_id": "mla_n2",
+      "priority": 0.35,
+      "attempts": 1,
+      "best_result_us": 204.43,
+      "stagnation_count": 0,
+      "status": "pruned",
+      "children": [
+        "n_3d172003"
+      ],
+      "notes": "[LLM-proposed] [STRATEGIC PRUNE: LLM world model]",
+      "attempt_history": [
+        {
+          "result_us": 204.4302871819939,
+          "parameters": {},
+          "timestamp": "2026-03-20T17:23:52.901198",
+          "source": "template"
+        }
+      ]
+    },
+    "n_71bdefd4": {
+      "id": "n_71bdefd4",
+      "strategy": "FP8 KV cache + wavefront-aware tiling (64x256) + L1 cache blocking + unrolled epilogue + FP8-specific quantization bias removal for bs=4,kv=1024",
+      "parameters": {},
+      "parent_id": "mla_n2",
+      "priority": 0.0,
+      "attempts": 1,
+      "best_result_us": 186.74,
+      "stagnation_count": 0,
+      "status": "pruned",
+      "children": [],
+      "notes": "[LLM-proposed] [STRATEGIC PRUNE: LLM world model]",
+      "attempt_history": [
+        {
+          "result_us": 186.7390804443623,
+          "parameters": {},
+          "timestamp": "2026-03-20T17:26:14.703448",
+          "source": "template"
+        }
+      ]
+    },
+    "n_3d172003": {
+      "id": "n_3d172003",
+      "strategy": "FP8 KV cache + LDS double-buffering + split=1 + vector width=4 + L2 prefetch stride tuning + unrolled epilogue for bs=4,kv=1024 \u2014 target L2 bandwidth saturation with reduced stall time",
+      "parameters": {},
+      "parent_id": "n_9de8d0b9",
+      "priority": 0.25,
+      "attempts": 1,
+      "best_result_us": 223.12,
+      "stagnation_count": 0,
+      "status": "pruned",
+      "children": [
+        "n_81a401a6"
+      ],
+      "notes": "[LLM-proposed] [STRATEGIC PRUNE: parent n_9de8d0b9 pruned]",
+      "attempt_history": [
+        {
+          "result_us": 223.12251288047923,
+          "parameters": {},
+          "timestamp": "2026-03-20T17:24:43.106902",
+          "source": "template"
+        }
+      ]
+    },
+    "n_81a401a6": {
+      "id": "n_81a401a6",
+      "strategy": "FP8 KV cache + LDS double-buffering + split=1 + vector width=4 + L2 prefetch stride sweep (8/16/32/64) + unrolled epilogue + dynamic loop unrolling factor (2/4/8) for bs=4,kv=1024 \u2014 target L2 bandwidth saturation with reduced stall time",
+      "parameters": {},
+      "parent_id": "n_3d172003",
+      "priority": 0.2,
+      "attempts": 1,
+      "best_result_us": 188.92,
+      "stagnation_count": 0,
+      "status": "pruned",
+      "children": [],
+      "notes": "[LLM-proposed] [STRATEGIC PRUNE: parent n_3d172003 pruned]",
+      "attempt_history": [
+        {
+          "result_us": 188.91698849216596,
+          "parameters": {},
+          "timestamp": "2026-03-20T17:25:29.300947",
+          "source": "template"
+        }
+      ]
+    },
+    "n_be939dcc": {
+      "id": "n_be939dcc",
+      "strategy": "FP8 KV cache + wavefront-aware tiling (64x256) + L1 cache blocking + unrolled epilogue + FP8-specific quantization bias removal + LDS double-buffering + vector width sweep (2/4/8) for bs=4,kv=1024 \u2014 target L2 bandwidth saturation and LDS bandwidth optimization",
+      "parameters": {},
+      "parent_id": "mla_n2",
+      "priority": 0.30951237499999995,
+      "attempts": 2,
+      "best_result_us": 189.18,
+      "stagnation_count": 1,
+      "status": "pruned",
+      "children": [],
+      "notes": "[LLM-proposed] [STRATEGIC PRUNE: LLM world model]",
+      "attempt_history": [
+        {
+          "result_us": 189.1799177322538,
+          "parameters": {},
+          "timestamp": "2026-03-20T17:27:04.001940",
+          "source": "template"
+        },
+        {
+          "result_us": 194.19189265231904,
+          "parameters": {},
+          "timestamp": "2026-03-20T17:30:07.202339",
+          "source": "template"
+        }
+      ]
+    },
+    "n_e2b6d5bd": {
+      "id": "n_e2b6d5bd",
+      "strategy": "FP8 KV cache + wavefront-aware tiling (64x256) + L1 cache blocking + unrolled epilogue + FP8-specific quantization bias removal + LDS double-buffering \u2014 vary tile size (32x128, 64x128, 64x192, 96x192) and vector width (1/2/4/8) with split=1/2/4 for bs=4,kv=1024 \u2014 systematic 3D sweep for optimal LDS/L2 utilization",
+      "parameters": {},
+      "parent_id": "mla_n2",
+      "priority": 0.1,
+      "attempts": 1,
+      "best_result_us": 220.75,
+      "stagnation_count": 0,
+      "status": "pruned",
+      "children": [],
+      "notes": "[LLM-proposed] [STRATEGIC PRUNE: LLM world model]",
+      "attempt_history": [
+        {
+          "result_us": 220.749543819915,
+          "parameters": {},
+          "timestamp": "2026-03-20T17:28:08.503036",
+          "source": "template"
+        }
+      ]
+    },
+    "n_82f850cd": {
+      "id": "n_82f850cd",
+      "strategy": "FP8 KV cache + wavefront-aware tiling (64x256) + L1 cache blocking + unrolled epilogue + FP8-specific quantization bias removal + LDS double-buffering + prefetch-aware vector width (2/4/8) + split=1/2 sweep + dynamic tile stride tuning for KV coherence on MI355X \u2014 target L2 bank conflict reduction and LDS bandwidth saturation for bs=4,kv=1024",
+      "parameters": {},
+      "parent_id": "mla_n2",
+      "priority": 0.1,
+      "attempts": 1,
+      "best_result_us": 229.58,
+      "stagnation_count": 0,
+      "status": "pruned",
+      "children": [],
+      "notes": "[LLM-proposed] [STRATEGIC PRUNE: LLM world model]",
+      "attempt_history": [
+        {
+          "result_us": 229.57917622218665,
+          "parameters": {},
+          "timestamp": "2026-03-20T17:29:02.200765",
+          "source": "template"
+        }
+      ]
+    },
+    "n_991c855c": {
+      "id": "n_991c855c",
+      "strategy": "FP8 KV cache + L2 prefetch stride tuning + vector width sweep (4/8/16) for bs=4,kv=1024 \u2014 target full L2 line utilization and avoid bank conflicts",
+      "parameters": {},
+      "parent_id": "mla_n2",
+      "priority": 0.7,
+      "attempts": 0,
+      "best_result_us": null,
+      "stagnation_count": 0,
+      "status": "pruned",
+      "children": [],
+      "notes": "[LLM-proposed] [STRATEGIC PRUNE: parent mla_n2 pruned]",
       "attempt_history": []
     }
   }
