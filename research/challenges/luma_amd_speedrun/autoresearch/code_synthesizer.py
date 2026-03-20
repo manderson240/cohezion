@@ -23,7 +23,7 @@ OLLAMA_URL = "http://localhost:11434/api/generate"
 OLLAMA_MODEL_PLAN = "qwen2.5-coder:7b"   # pi_plan: world model (fast, structured JSON)
 OLLAMA_MODEL_CODE = "qwen3-coder:30b"     # pi_code: code synthesis (quality, overnight)
 OLLAMA_MODEL = OLLAMA_MODEL_PLAN          # Default to fast model
-OLLAMA_TIMEOUT = 600  # seconds (CPU-only: ~0.2 tok/s for 7B, ~10min for 100 tokens)
+OLLAMA_TIMEOUT = 1200  # seconds (CPU-only: ~0.15 tok/s for 7B, 20min for complete response)
 MAX_TOKENS = 4096
 
 # JSON schema for world model evolution (Ollama structured output)
