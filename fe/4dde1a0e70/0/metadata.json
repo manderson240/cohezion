@@ -1,0 +1,31 @@
+{
+  "cli_version": "0.4.9",
+  "checkpoint_id": "fe4dde1a0e70",
+  "session_id": "2724ac82-b144-43db-bdf7-942ef9b43378",
+  "strategy": "manual-commit",
+  "created_at": "2026-03-20T05:05:28.640380263Z",
+  "branch": "gemm-hip-cpp-fused",
+  "checkpoints_count": 3,
+  "files_touched": [
+    "pyproject.toml",
+    "uv.lock"
+  ],
+  "agent": "Claude Code",
+  "turn_id": "d53245d11194",
+  "token_usage": {
+    "input_tokens": 24,
+    "cache_creation_tokens": 77271,
+    "cache_read_tokens": 524354,
+    "output_tokens": 4519,
+    "api_call_count": 10
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-03-20T05:05:28.551210411Z",
+    "agent_lines": 0,
+    "human_added": 4697,
+    "human_modified": 496,
+    "human_removed": 0,
+    "total_committed": 4697,
+    "agent_percentage": 0
+  }
+}
