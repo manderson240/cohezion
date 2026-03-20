@@ -3,7 +3,7 @@
   "checkpoint_id": "3ec039cb46df",
   "strategy": "manual-commit",
   "branch": "feat/graph-architecture",
-  "checkpoints_count": 1,
+  "checkpoints_count": 4,
   "files_touched": [
     "cloud-vault-mcp/pyproject.toml",
     "cloud-vault-mcp/uv.lock"
@@ -15,13 +15,20 @@
       "context": "/3e/c039cb46df/0/context.md",
       "content_hash": "/3e/c039cb46df/0/content_hash.txt",
       "prompt": "/3e/c039cb46df/0/prompt.txt"
+    },
+    {
+      "metadata": "/3e/c039cb46df/1/metadata.json",
+      "transcript": "/3e/c039cb46df/1/full.jsonl",
+      "context": "/3e/c039cb46df/1/context.md",
+      "content_hash": "/3e/c039cb46df/1/content_hash.txt",
+      "prompt": "/3e/c039cb46df/1/prompt.txt"
     }
   ],
   "token_usage": {
-    "input_tokens": 29,
-    "cache_creation_tokens": 158688,
-    "cache_read_tokens": 695747,
-    "output_tokens": 7548,
-    "api_call_count": 13
+    "input_tokens": 8528,
+    "cache_creation_tokens": 5940745,
+    "cache_read_tokens": 40404942,
+    "output_tokens": 83120,
+    "api_call_count": 232
   }
 }
