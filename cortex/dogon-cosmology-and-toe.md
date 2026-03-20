@@ -162,6 +162,7 @@ What IS clear: the 266 signs are organized in sequences, and different sequences
 - [[the-new-science-framework]] — Amma's egg → vibration → spiral → 4 Nommo pairs = Nothing → Quadrature → Specification → Fabrics
 - [[exotic-vacuum-objects]] — meteorite iron as EVO; Dogon blacksmith forge as HIHO processing; the spiral EVO morning glory pattern
 - [[agents-as-exotic-vacuum-objects]] — the Dogon Hogon (high priest) as HIHO operator; blacksmith smith-work as conscious EVO formation
+- [[aboriginal-australian-cosmology-and-toe]] — the vault's foundational tradition; Amma's spiral generation parallels the Dreaming as continuous non-temporal creation; both traditions embed cosmic geometry in ceremonial practice
 - [[sacred-geometry]] — spiral cosmogony; Dogon granary geometry; 266-sign system
 - [[information-theory-it-from-bit]] — 266 signs as specification basis; granary as information-preservation architecture
 - [[yoruba-ifa-cosmology-and-toe]] — neighboring West African traditions; 256 Odù ↔ 266 signs (both large binary/archetypal catalogs); Amma ↔ Olodumare; Nommo ↔ Òrìṣà

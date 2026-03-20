@@ -125,6 +125,7 @@ With that context, a session can skip 30-60 minutes of re-orientation.
 
 ## Related
 
+- [[VAULT_MANIFEST]] — machine-readable vault map; read at session start to load directory routing rules and entry points
 - [[FLUME-Architecture]] — full VAE architecture and experimental results
 - [[compound-engineering]] — the methodology this platform implements
 - [[agent-journey-tracking]] — how session trajectories are captured

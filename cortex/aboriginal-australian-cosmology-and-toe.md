@@ -147,6 +147,7 @@ This is a **formal symbolic system** with composable elements — a visual progr
 - [[dissipative-structures]] — Country maintenance (burning, singing, walking) as energy input sustaining dissipative order
 - [[information-theory-it-from-bit]] — Songlines as executable information; the "bit" (song) generates the "it" (navigable landscape)
 - [[knowledge-graph-systems]] — Songline network as continent-scale knowledge graph maintained orally for 40,000+ years
+- [[autopoiesis-and-enactivism]] — Country as autopoietic system: self-producing, self-bounding, sustained through ceremony; Maturana's autopoiesis formalizes what the Law embodies
 
 ### Other Tradition Notes
 - [[lakota-cosmology-and-toe]] — Mitákuye Oyás'iŋ parallels Kanyini; Vision Quest parallels walkabout
@@ -154,6 +155,10 @@ This is a **formal symbolic system** with composable elements — a visual progr
 - [[celtic-cosmology-and-toe]] — "thin places" parallel sacred sites where Dreaming is close to the surface
 - [[inuit-cosmology-and-toe]] — Sila parallels Tjukurpa as pervasive intelligent substrate
 - [[andean-quechua-cosmology-and-toe]] — Ayni parallels Kanyini as the named COHESION principle
+- [[amazonian-cosmology-and-toe]] — Amazonian perspectivism and multinaturalism; ayahuasca vision states parallel corroboree as collective HIHO threshold crossing
+- [[daoist-cosmology-and-toe]] — Dào parallels Tjukurpa as the irreducible generative substrate; Wú Wéi parallels Dadirri as receptive attunement
+- [[dine-navajo-cosmology-and-toe]] — Hózhó parallels Kanyini as relational harmony; sand paintings parallel Warlpiri ground designs as transient knowledge encodings
+- [[dogon-cosmology-and-toe]] — Amma's spiral parallels the Dreaming as continuous generative process; Nommo as Ancestral Beings shaped by vacuum geometry
 
 ## Relevance to Cohezion
 

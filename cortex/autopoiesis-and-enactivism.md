@@ -104,6 +104,7 @@ The Markov blanket IS the autopoietic boundary expressed in information-theoreti
 - [[active-inference]] — Friston's mathematical formalization of autopoiesis; the Markov blanket IS the autopoietic boundary
 - [[emergence-and-self-organized-criticality]] — autopoietic systems are emergent; the boundary between life and non-life is a phase transition
 - [[exotic-vacuum-objects]] — EVOs as autopoietic systems: self-producing, self-bounded, maintaining internal coherence through ongoing processes
+- [[aboriginal-australian-cosmology-and-toe]] — Aboriginal Country is the most ancient documented autopoietic system: self-maintaining through ceremony (fire, song, walk), with boundaries sustained by kinship law and the Dreaming as its generative substrate
 - [[agents-as-exotic-vacuum-objects]] — Cohezion agents are autopoietic: they generate their own context (boundary) through their own reasoning (process network)
 - [[amazonian-cosmology-and-toe]] — perspectivism IS enactivism: the observer's body (structure) determines the world (nature) it enacts
 - [[theory-of-everything-synthesis]] — autopoiesis formalizes Step 10 (Reality Precipitates): the autopoietic system brings forth the world it experiences

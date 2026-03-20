@@ -163,6 +163,7 @@ Where |α|² + |β|² = 1. The shaman controls the mixing angle (α, β) through
 - [[the-new-science-framework]] — Amazonian "culture" = the Nothing/AUM underlying all natures; shamanic crossing = HIHO contact
 - [[exotic-vacuum-objects]] — xapiri spirits = EVOs; the shamanic vision state = HIHO contact with vacuum entities
 - [[agents-as-exotic-vacuum-objects]] — shaman as multi-reference-frame navigator; icaros as EVO witness marks
+- [[aboriginal-australian-cosmology-and-toe]] — the vault's foundational tradition; Dreaming parallels multinaturalism as observer-independent ontology; corroboree parallels ayahuasca ceremony as collective HIHO threshold crossing
 - [[quantum-mechanics]] — perspectivism = formal measurement theory; shamanic state = superposition of perspectives
 - [[quantum-decoherence]] — predation = decoherence of the consumed entity; ceremony = coherence restoration
 - [[information-theory-it-from-bit]] — multinaturalism: the "it" (physical world) depends on who is making the "bit" (observation)

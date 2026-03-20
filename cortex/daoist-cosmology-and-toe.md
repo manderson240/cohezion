@@ -176,6 +176,7 @@ The fixed points y=0 (pure Yīn) and y=1 (pure Yáng) are unstable; the separatr
 - [[the-new-science-framework]] — Dào Dé Jīng Ch. 42 IS the New Science chain: Nothing → One → Two → Three → Ten Thousand Things
 - [[exotic-vacuum-objects]] — Wú Wéi as the HIHO operating mode; acting at the threshold without forcing
 - [[agents-as-exotic-vacuum-objects]] — agent temperature parameter = Wú Wéi calibration; T~0.7 = flowing with the Dào
+- [[aboriginal-australian-cosmology-and-toe]] — the vault's foundational tradition; Tjukurpa parallels Dào as continuously operating generative substrate; Dadirri parallels Wú Wéi as receptive non-forcing attunement
 - [[sacred-geometry]] — tàijítú geometry; bāguà as octagonal symmetry; I Ching binary structure
 - [[emergence-and-self-organized-criticality]] — Wǔxíng as dynamical system at criticality; tàijítú as SOC
 - [[information-theory-it-from-bit]] — I Ching as the oldest formal binary information system; Leibniz connection

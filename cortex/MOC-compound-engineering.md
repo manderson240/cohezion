@@ -43,6 +43,7 @@ Compound engineering is the foundational methodology of the Cohezion framework: 
 - [[2026-02-10-token-efficient-compound-engineering-roadmap]] — One-month roadmap for systematizing token-efficient compound engineering
 - [[2026-02-10-compound-linking-plan-adversarial-review]] — Adversarial review rejecting a compound linking plan due to critical flaws
 - [[2026-03-07-skill-pruning-consolidation-plan]] — Prune ~60 redundant/dormant skills to reduce routing noise and token waste
+- [[2026-02-10-framework-driven-prioritization]] — ROI framework applied to prioritize SurrealDB queries, Sheets pipeline, and Ollama MCP against each other; 144x compound ROI over 1 year
 
 ## Patterns
 

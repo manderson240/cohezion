@@ -275,6 +275,7 @@ Directories with `_template.md` files: `prefrontal/`, `cerebellum/`, `laboratory
 | Space, JWST, cosmology | `[[MOC-astrophysics]]` |
 | Compound sessions, retrospectives | `[[MOC-compound-engineering]]` |
 | AI safety, alignment, guardrails | `[[MOC-safety-alignment]]` |
+| Skills and agent capabilities | [[skills_index]] |
 
 ---
 

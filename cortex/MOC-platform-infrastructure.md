@@ -36,6 +36,7 @@ The platform infrastructure layer powers Cohezion's ability to persist knowledge
 - [[2026-02-13-next-10-phases-graphrag-roadmap]] — 10-phase roadmap for GraphRAG implementation with SurrealDB
 - [[2026-02-12-cloudflare-tunnel-for-persistent-mcp-remote-access]] — Persistent remote access to MCP servers via Cloudflare Tunnel
 - [[2026-02-10-claude-log-mining-architecture]] — Systematic log mining for alignment patterns and token waste signals
+- [[docs/plans/2026-03-12-compound-graph-context]] — Implementation plan to make SurrealDB graph active: cron briefing + UserPromptSubmit hook for ~50% token savings
 
 ## Patterns
 

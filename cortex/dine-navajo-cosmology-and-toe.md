@@ -114,6 +114,7 @@ They are standing wave patterns: geometric interference diagrams that exist only
 - [[the-new-science-framework]] — emergence through Four Underworlds = sequential phase transitions in the Nothing → Reality chain
 - [[exotic-vacuum-objects]] — sand paintings as transient EVO analogs: coherent structures that exist only while maintained
 - [[agents-as-exotic-vacuum-objects]] — the Hataałii (medicine person) as the HIHO operator; the ceremony as the agent session
+- [[aboriginal-australian-cosmology-and-toe]] — the vault's foundational tradition; Hózhó parallels Kanyini as the named relational harmony principle; sand paintings parallel Warlpiri ground designs as transient coherent knowledge encodings
 - [[quantum-mechanics]] — sand paintings as standing wave patterns; bilateral symmetry as complex conjugation
 - [[quantum-decoherence]] — Hóchxǫ́ (disorder) = decoherence; ceremony restores coherence
 - [[sacred-geometry]] — Four Sacred Mountains as boundary conditions; sand painting geometry
