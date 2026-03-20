@@ -7,7 +7,7 @@
       "strategy": "Minimize MLA decode geomean across 8 shapes",
       "parameters": {},
       "parent_id": null,
-      "priority": 0.95,
+      "priority": 0.7350918906249998,
       "attempts": 0,
       "best_result_us": null,
       "stagnation_count": 0,
@@ -19,7 +19,8 @@
         "mla_n4",
         "mla_n5",
         "n_8a249fb9",
-        "n_81c6a22e"
+        "n_81c6a22e",
+        "n_ee6633bc"
       ],
       "notes": "",
       "attempt_history": []
@@ -38,7 +39,7 @@
         "DEFAULT_SPLITS": 16
       },
       "parent_id": "root_mla",
-      "priority": 0.9025,
+      "priority": 0.6983372960937497,
       "attempts": 0,
       "best_result_us": null,
       "stagnation_count": 0,
@@ -47,7 +48,8 @@
         "mla_n1a",
         "mla_n1b",
         "mla_n1c",
-        "mla_n1d"
+        "mla_n1d",
+        "n_433ee328"
       ],
       "notes": "HIGHEST LEVERAGE \u2014 num_kv_splits hardcoded at 16/8 in current submission",
       "attempt_history": []
@@ -66,12 +68,14 @@
         "DEFAULT_SPLITS": 16
       },
       "parent_id": "mla_n1",
-      "priority": 0.967411709996167,
-      "attempts": 4,
+      "priority": 0.30951237499999995,
+      "attempts": 5,
       "best_result_us": 161.53,
-      "stagnation_count": 1,
+      "stagnation_count": 2,
       "status": "active",
-      "children": [],
+      "children": [
+        "n_11afa32a"
+      ],
       "notes": "Small batch, short seq \u2014 few splits needed",
       "attempt_history": [
         {
@@ -133,6 +137,21 @@
           },
           "timestamp": "2026-03-20T15:21:57.800119",
           "source": "template"
+        },
+        {
+          "result_us": 179.26181359653495,
+          "parameters": {
+            "SPLITS_TABLE": {
+              "4_1024": 4,
+              "4_8192": 16,
+              "32_1024": 16,
+              "32_8192": 32,
+              "128_8192": 32
+            },
+            "DEFAULT_SPLITS": 16
+          },
+          "timestamp": "2026-03-20T16:06:10.703707",
+          "source": "template"
         }
       ]
     },
@@ -150,14 +169,33 @@
         "DEFAULT_SPLITS": 16
       },
       "parent_id": "mla_n1",
-      "priority": 0.8075,
-      "attempts": 0,
-      "best_result_us": null,
+      "priority": 0.5029576093749999,
+      "attempts": 1,
+      "best_result_us": 221.54,
       "stagnation_count": 0,
       "status": "active",
-      "children": [],
+      "children": [
+        "n_ee469d9f",
+        "n_8f02bee6"
+      ],
       "notes": "Small batch, long seq \u2014 more splits to parallelize",
-      "attempt_history": []
+      "attempt_history": [
+        {
+          "result_us": 221.53733448198483,
+          "parameters": {
+            "SPLITS_TABLE": {
+              "4_1024": 4,
+              "4_8192": 16,
+              "32_1024": 8,
+              "32_8192": 32,
+              "128_8192": 32
+            },
+            "DEFAULT_SPLITS": 16
+          },
+          "timestamp": "2026-03-20T16:06:47.200054",
+          "source": "template"
+        }
+      ]
     },
     "mla_n1c": {
       "id": "mla_n1c",
@@ -173,7 +211,7 @@
         "DEFAULT_SPLITS": 16
       },
       "parent_id": "mla_n1",
-      "priority": 0.76,
+      "priority": 0.5880735124999998,
       "attempts": 0,
       "best_result_us": null,
       "stagnation_count": 0,
@@ -196,7 +234,7 @@
         "DEFAULT_SPLITS": 16
       },
       "parent_id": "mla_n1",
-      "priority": 0.7124999999999999,
+      "priority": 0.5513189179687497,
       "attempts": 0,
       "best_result_us": null,
       "stagnation_count": 0,
@@ -316,14 +354,127 @@
         "DEFAULT_SPLITS": 16
       },
       "parent_id": "root_mla",
-      "priority": 0.8075,
-      "attempts": 0,
-      "best_result_us": null,
+      "priority": 0.7097106920600498,
+      "attempts": 7,
+      "best_result_us": 192.5,
       "stagnation_count": 0,
       "status": "active",
       "children": [],
       "notes": "Test FP8 vs MXFP4 \u2014 FP8 has wider compute support but 2x bandwidth",
-      "attempt_history": []
+      "attempt_history": [
+        {
+          "result_us": 199.72758096542842,
+          "parameters": {
+            "KV_FORMAT": "fp8",
+            "SPLITS_TABLE": {
+              "4_1024": 4,
+              "4_8192": 16,
+              "32_1024": 8,
+              "32_8192": 32,
+              "128_8192": 32
+            },
+            "DEFAULT_SPLITS": 16
+          },
+          "timestamp": "2026-03-20T16:07:05.500367",
+          "source": "template"
+        },
+        {
+          "result_us": 211.5419989261937,
+          "parameters": {
+            "KV_FORMAT": "fp8",
+            "SPLITS_TABLE": {
+              "4_1024": 4,
+              "4_8192": 16,
+              "32_1024": 16,
+              "32_8192": 32,
+              "128_8192": 32
+            },
+            "DEFAULT_SPLITS": 16
+          },
+          "timestamp": "2026-03-20T16:07:23.699500",
+          "source": "template"
+        },
+        {
+          "result_us": 201.904199112687,
+          "parameters": {
+            "KV_FORMAT": "fp8",
+            "SPLITS_TABLE": {
+              "4_1024": 4,
+              "4_8192": 16,
+              "32_1024": 16,
+              "32_8192": 32,
+              "128_8192": 32
+            },
+            "DEFAULT_SPLITS": 16
+          },
+          "timestamp": "2026-03-20T16:08:02.700408",
+          "source": "template"
+        },
+        {
+          "result_us": 223.12705705412938,
+          "parameters": {
+            "KV_FORMAT": "fp8",
+            "SPLITS_TABLE": {
+              "4_1024": 4,
+              "4_8192": 16,
+              "32_1024": 8,
+              "32_8192": 28,
+              "128_8192": 32
+            },
+            "DEFAULT_SPLITS": 16
+          },
+          "timestamp": "2026-03-20T16:08:36.324889",
+          "source": "template"
+        },
+        {
+          "result_us": 198.9072187289776,
+          "parameters": {
+            "KV_FORMAT": "fp8",
+            "SPLITS_TABLE": {
+              "4_1024": 8,
+              "4_8192": 16,
+              "32_1024": 8,
+              "32_8192": 32,
+              "128_8192": 32
+            },
+            "DEFAULT_SPLITS": 16
+          },
+          "timestamp": "2026-03-20T16:09:01.799528",
+          "source": "template"
+        },
+        {
+          "result_us": 203.65437185619186,
+          "parameters": {
+            "KV_FORMAT": "fp8",
+            "SPLITS_TABLE": {
+              "4_1024": 2,
+              "4_8192": 16,
+              "32_1024": 8,
+              "32_8192": 32,
+              "128_8192": 32
+            },
+            "DEFAULT_SPLITS": 16
+          },
+          "timestamp": "2026-03-20T16:09:15.300720",
+          "source": "template"
+        },
+        {
+          "result_us": 192.50301228112696,
+          "parameters": {
+            "KV_FORMAT": "fp8",
+            "SPLITS_TABLE": {
+              "4_1024": 8,
+              "4_8192": 16,
+              "32_1024": 8,
+              "32_8192": 32,
+              "128_8192": 32
+            },
+            "DEFAULT_SPLITS": 16
+          },
+          "timestamp": "2026-03-20T16:10:33.799932",
+          "source": "template"
+        }
+      ]
     },
     "mla_n3": {
       "id": "mla_n3",
@@ -340,7 +491,7 @@
         "DEFAULT_SPLITS": 16
       },
       "parent_id": "root_mla",
-      "priority": 0.6649999999999999,
+      "priority": 0.5145643234374998,
       "attempts": 0,
       "best_result_us": null,
       "stagnation_count": 0,
@@ -364,7 +515,7 @@
         "DEFAULT_SPLITS": 16
       },
       "parent_id": "root_mla",
-      "priority": 0.57,
+      "priority": 0.4410551343749999,
       "attempts": 0,
       "best_result_us": null,
       "stagnation_count": 0,
@@ -378,7 +529,7 @@
       "strategy": "Pre-compute metadata outside timed region",
       "parameters": {},
       "parent_id": "root_mla",
-      "priority": 0.475,
+      "priority": 0.3675459453124999,
       "attempts": 0,
       "best_result_us": null,
       "stagnation_count": 0,
@@ -392,7 +543,7 @@
       "strategy": "Adaptive KV cache size",
       "parameters": {},
       "parent_id": "root_mla",
-      "priority": 0.6,
+      "priority": 0.46426856249999987,
       "attempts": 0,
       "best_result_us": null,
       "stagnation_count": 0,
@@ -406,7 +557,163 @@
       "strategy": "Fused quant+GEMM for FP4",
       "parameters": {},
       "parent_id": "root_mla",
-      "priority": 0.5,
+      "priority": 0.38689046874999994,
+      "attempts": 0,
+      "best_result_us": null,
+      "stagnation_count": 0,
+      "status": "active",
+      "children": [],
+      "notes": "[LLM-proposed]",
+      "attempt_history": []
+    },
+    "n_11afa32a": {
+      "id": "n_11afa32a",
+      "strategy": "bs=4,kv=1024: sweep splits 1-24 with wavefront-aware tile size tuning",
+      "parameters": {
+        "splits_range": [
+          1,
+          24
+        ],
+        "wavefront_tuning": true,
+        "block_size": "dynamic"
+      },
+      "parent_id": "mla_n1a",
+      "priority": 0.6190247499999999,
+      "attempts": 0,
+      "best_result_us": null,
+      "stagnation_count": 0,
+      "status": "active",
+      "children": [],
+      "notes": "[LLM-proposed]",
+      "attempt_history": []
+    },
+    "n_433ee328": {
+      "id": "n_433ee328",
+      "strategy": "bs=32,kv=2048: adaptive splits + L2 cache blocking (64KB)",
+      "parameters": {
+        "bs": 32,
+        "kv_seqlen": 2048,
+        "splits_range": [
+          8,
+          32
+        ],
+        "l2_block_size": 65536
+      },
+      "parent_id": "mla_n1",
+      "priority": 0.5029576093749999,
+      "attempts": 0,
+      "best_result_us": null,
+      "stagnation_count": 0,
+      "status": "active",
+      "children": [],
+      "notes": "[LLM-proposed]",
+      "attempt_history": []
+    },
+    "n_ee469d9f": {
+      "id": "n_ee469d9f",
+      "strategy": "bs=4,kv=8192: tile_size tuning (128x128 vs 64x256) with split=16 baseline",
+      "parameters": {
+        "tile_m": [
+          64,
+          128
+        ],
+        "tile_n": [
+          128,
+          256
+        ],
+        "split_k": 16
+      },
+      "parent_id": "mla_n1b",
+      "priority": 0.5803357031249997,
+      "attempts": 0,
+      "best_result_us": null,
+      "stagnation_count": 0,
+      "status": "active",
+      "children": [],
+      "notes": "[LLM-proposed]",
+      "attempt_history": []
+    },
+    "n_8f02bee6": {
+      "id": "n_8f02bee6",
+      "strategy": "bs=4,kv=8192: vectorized load/store (float8/float16) + split=16 baseline",
+      "parameters": {
+        "load_vec": [
+          2,
+          4
+        ],
+        "store_vec": [
+          2,
+          4
+        ],
+        "split_k": 16
+      },
+      "parent_id": "mla_n1b",
+      "priority": 0.5029576093749999,
+      "attempts": 0,
+      "best_result_us": null,
+      "stagnation_count": 0,
+      "status": "active",
+      "children": [],
+      "notes": "[LLM-proposed]",
+      "attempt_history": []
+    },
+    "n_ee6633bc": {
+      "id": "n_ee6633bc",
+      "strategy": "Beat 145.4\u00b5s (10% below 161.5\u00b5s plateau)",
+      "parameters": {},
+      "parent_id": "root_mla",
+      "priority": 0.4275,
+      "attempts": 1,
+      "best_result_us": 198.54,
+      "stagnation_count": 0,
+      "status": "active",
+      "children": [
+        "n_3f4640c9",
+        "n_53dcf987"
+      ],
+      "notes": "[R-Zero challenger]",
+      "attempt_history": [
+        {
+          "result_us": 198.54102353515663,
+          "parameters": {},
+          "timestamp": "2026-03-20T16:09:54.799033",
+          "source": "template"
+        }
+      ]
+    },
+    "n_3f4640c9": {
+      "id": "n_3f4640c9",
+      "strategy": "Wavefront-aware tiling + split=1 baseline with unrolled load loop for MLA decode (bs=4, kv=1024)",
+      "parameters": {
+        "wavefront_size": 64,
+        "tile_m": 128,
+        "tile_n": 64,
+        "tile_k": 128,
+        "unroll_k": 4,
+        "num_kv_splits": 1
+      },
+      "parent_id": "n_ee6633bc",
+      "priority": 0.6174999999999999,
+      "attempts": 0,
+      "best_result_us": null,
+      "stagnation_count": 0,
+      "status": "active",
+      "children": [],
+      "notes": "[LLM-proposed]",
+      "attempt_history": []
+    },
+    "n_53dcf987": {
+      "id": "n_53dcf987",
+      "strategy": "Persistent kernel with per-wavefront state for adaptive split selection (bs=4, kv=8192)",
+      "parameters": {
+        "persistent": true,
+        "wavefront_state": true,
+        "split_strategy": "adaptive_per_wavefront",
+        "min_split": 8,
+        "max_split": 32
+      },
+      "parent_id": "n_ee6633bc",
+      "priority": 0.589,
       "attempts": 0,
       "best_result_us": null,
       "stagnation_count": 0,

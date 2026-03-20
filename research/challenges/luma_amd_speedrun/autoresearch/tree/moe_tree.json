@@ -7,7 +7,7 @@
       "strategy": "Minimize fused_moe geomean across 7 shapes",
       "parameters": {},
       "parent_id": null,
-      "priority": 0.95,
+      "priority": 0.7350918906249998,
       "attempts": 0,
       "best_result_us": null,
       "stagnation_count": 0,
@@ -17,7 +17,8 @@
         "moe_n2",
         "moe_n3",
         "moe_n4",
-        "n_f2d908f9"
+        "n_f2d908f9",
+        "n_bfa1958e"
       ],
       "notes": "",
       "attempt_history": []
@@ -38,7 +39,7 @@
         "DEFAULT_KSPLIT": "2"
       },
       "parent_id": "root_moe",
-      "priority": 0.9025,
+      "priority": 0.6983372960937497,
       "attempts": 0,
       "best_result_us": null,
       "stagnation_count": 0,
@@ -68,12 +69,15 @@
         }
       },
       "parent_id": "moe_n1",
-      "priority": 0.8,
-      "attempts": 3,
+      "priority": 0.5803357031249997,
+      "attempts": 4,
       "best_result_us": 215.63,
-      "stagnation_count": 1,
+      "stagnation_count": 2,
       "status": "active",
-      "children": [],
+      "children": [
+        "n_8727754c",
+        "n_2a5e66bb"
+      ],
       "notes": "Focus on 257-expert small-batch shapes",
       "attempt_history": [
         {
@@ -123,6 +127,22 @@
           },
           "timestamp": "2026-03-20T01:26:32.531133",
           "source": "template"
+        },
+        {
+          "result_us": 226.43012027426047,
+          "parameters": {
+            "KSPLIT_TABLE": {
+              "257_256_16": 4,
+              "257_256_128": 4,
+              "257_256_512": 0,
+              "33_512_16": 2,
+              "33_512_128": 0,
+              "33_512_512": 0,
+              "33_2048_512": 0
+            }
+          },
+          "timestamp": "2026-03-20T16:06:28.799758",
+          "source": "template"
         }
       ]
     },
@@ -141,7 +161,7 @@
         }
       },
       "parent_id": "moe_n1",
-      "priority": 0.95,
+      "priority": 0.7350918906249998,
       "attempts": 5,
       "best_result_us": 186.22,
       "stagnation_count": 0,
@@ -272,14 +292,33 @@
         }
       },
       "parent_id": "moe_n1",
-      "priority": 0.7124999999999999,
-      "attempts": 0,
-      "best_result_us": null,
+      "priority": 0.6173099999999999,
+      "attempts": 1,
+      "best_result_us": 189.43,
       "stagnation_count": 0,
       "status": "active",
-      "children": [],
+      "children": [
+        "n_bfcbf907"
+      ],
       "notes": "Large d_expert shape \u2014 likely compute-bound",
-      "attempt_history": []
+      "attempt_history": [
+        {
+          "result_us": 189.43008609875218,
+          "parameters": {
+            "KSPLIT_TABLE": {
+              "257_256_16": 4,
+              "257_256_128": 4,
+              "257_256_512": 0,
+              "33_512_16": 2,
+              "33_512_128": 2,
+              "33_512_512": 0,
+              "33_2048_512": 2
+            }
+          },
+          "timestamp": "2026-03-20T16:08:09.641061",
+          "source": "template"
+        }
+      ]
     },
     "moe_n1e": {
       "id": "moe_n1e",
@@ -296,7 +335,7 @@
         }
       },
       "parent_id": "moe_n1",
-      "priority": 0.6649999999999999,
+      "priority": 0.5145643234374998,
       "attempts": 0,
       "best_result_us": null,
       "stagnation_count": 0,
@@ -321,7 +360,7 @@
         }
       },
       "parent_id": "root_moe",
-      "priority": 0.6649999999999999,
+      "priority": 0.5145643234374998,
       "attempts": 0,
       "best_result_us": null,
       "stagnation_count": 0,
@@ -346,7 +385,7 @@
         "DEFAULT_KSPLIT": "4"
       },
       "parent_id": "root_moe",
-      "priority": 0.6174999999999999,
+      "priority": 0.4778097289062499,
       "attempts": 0,
       "best_result_us": null,
       "stagnation_count": 0,
@@ -360,7 +399,7 @@
       "strategy": "Direct torch.ops.aiter.fmoe bypass",
       "parameters": {},
       "parent_id": "root_moe",
-      "priority": 0.475,
+      "priority": 0.3675459453124999,
       "attempts": 0,
       "best_result_us": null,
       "stagnation_count": 0,
@@ -388,14 +427,23 @@
       "strategy": "E=257,d=256,bs=16: sweep KSPLIT 0-10",
       "parameters": {},
       "parent_id": "root_moe",
-      "priority": 0.7,
-      "attempts": 0,
-      "best_result_us": null,
+      "priority": 0.6949249999999999,
+      "attempts": 1,
+      "best_result_us": 178.79,
       "stagnation_count": 0,
       "status": "active",
-      "children": [],
+      "children": [
+        "n_e3dc9038"
+      ],
       "notes": "[LLM-proposed]",
-      "attempt_history": []
+      "attempt_history": [
+        {
+          "result_us": 178.79037125985678,
+          "parameters": {},
+          "timestamp": "2026-03-20T16:08:47.198471",
+          "source": "template"
+        }
+      ]
     },
     "n_34777fe5": {
       "id": "n_34777fe5",
@@ -408,7 +456,158 @@
         "use_opus_sorting": true
       },
       "parent_id": "moe_n1b",
-      "priority": 0.65,
+      "priority": 0.5029576093749999,
+      "attempts": 0,
+      "best_result_us": null,
+      "stagnation_count": 0,
+      "status": "active",
+      "children": [],
+      "notes": "[LLM-proposed]",
+      "attempt_history": []
+    },
+    "n_8727754c": {
+      "id": "n_8727754c",
+      "strategy": "E=257,d=256,bs=16: sweep KSPLIT 0-12 with OPUS sorting enabled",
+      "parameters": {
+        "opus_sorting": true,
+        "ksplit_range": [
+          0,
+          12
+        ]
+      },
+      "parent_id": "moe_n1a",
+      "priority": 0.5029576093749999,
+      "attempts": 0,
+      "best_result_us": null,
+      "stagnation_count": 0,
+      "status": "active",
+      "children": [],
+      "notes": "[LLM-proposed]",
+      "attempt_history": []
+    },
+    "n_2a5e66bb": {
+      "id": "n_2a5e66bb",
+      "strategy": "E=257,d=256,bs=16: direct torch.ops.aiter.fmoe with local_expert_mask",
+      "parameters": {
+        "use_aiter_fmoe": true,
+        "local_expert_mask": true
+      },
+      "parent_id": "moe_n1a",
+      "priority": 0.38689046874999994,
+      "attempts": 0,
+      "best_result_us": null,
+      "stagnation_count": 0,
+      "status": "active",
+      "children": [],
+      "notes": "[LLM-proposed]",
+      "attempt_history": []
+    },
+    "n_bfcbf907": {
+      "id": "n_bfcbf907",
+      "strategy": "E=33,d=2048,bs=512: sweep KSPLIT 0-10 with OPUS sorting enabled",
+      "parameters": {
+        "sort_method": "OPUS",
+        "ksplit_range": [
+          0,
+          10
+        ]
+      },
+      "parent_id": "moe_n1d",
+      "priority": 0.5315725,
+      "attempts": 0,
+      "best_result_us": null,
+      "stagnation_count": 0,
+      "status": "active",
+      "children": [],
+      "notes": "[LLM-proposed]",
+      "attempt_history": []
+    },
+    "n_e3dc9038": {
+      "id": "n_e3dc9038",
+      "strategy": "E=257,d=256,bs=16: sweep KSPLIT 0-12 + OPUS sorting enabled",
+      "parameters": {
+        "op": "moe_sorting_fwd",
+        "use_local_expert_mask": true
+      },
+      "parent_id": "n_f2d908f9",
+      "priority": 0.6678499999999999,
+      "attempts": 1,
+      "best_result_us": 178.2,
+      "stagnation_count": 0,
+      "status": "active",
+      "children": [
+        "n_79da16a1",
+        "n_abf9fe06",
+        "n_b278b260"
+      ],
+      "notes": "[LLM-proposed]",
+      "attempt_history": [
+        {
+          "result_us": 178.19677059799915,
+          "parameters": {
+            "op": "moe_sorting_fwd",
+            "use_local_expert_mask": true
+          },
+          "timestamp": "2026-03-20T16:08:54.101177",
+          "source": "template"
+        }
+      ]
+    },
+    "n_79da16a1": {
+      "id": "n_79da16a1",
+      "strategy": "E=257,d=256,bs=16: sweep KSPLIT 0-12 + OPUS sorting + tuned BLOCK_SIZE (8/16/32/64)",
+      "parameters": {},
+      "parent_id": "n_e3dc9038",
+      "priority": 0.4,
+      "attempts": 1,
+      "best_result_us": 197.28,
+      "stagnation_count": 0,
+      "status": "pruned",
+      "children": [],
+      "notes": "[LLM-proposed] [STRATEGIC PRUNE: LLM world model]",
+      "attempt_history": [
+        {
+          "result_us": 197.28499502450165,
+          "parameters": {},
+          "timestamp": "2026-03-20T16:09:37.599110",
+          "source": "template"
+        }
+      ]
+    },
+    "n_bfa1958e": {
+      "id": "n_bfa1958e",
+      "strategy": "E=257,d=256,bs=16: direct torch.ops.aiter.fmoe with local_expert_mask (non-OPUS, KSPLIT=4)",
+      "parameters": {},
+      "parent_id": "root_moe",
+      "priority": 0.49637499999999996,
+      "attempts": 0,
+      "best_result_us": null,
+      "stagnation_count": 0,
+      "status": "active",
+      "children": [],
+      "notes": "[LLM-proposed]",
+      "attempt_history": []
+    },
+    "n_abf9fe06": {
+      "id": "n_abf9fe06",
+      "strategy": "E=257,d=256,bs=16: KSPLIT=4 fixed + OPUS sorting + tuned BLOCK_SIZE (32/64 only) + enable warp_specialize",
+      "parameters": {},
+      "parent_id": "n_e3dc9038",
+      "priority": 0.589,
+      "attempts": 0,
+      "best_result_us": null,
+      "stagnation_count": 0,
+      "status": "active",
+      "children": [],
+      "notes": "[LLM-proposed]",
+      "attempt_history": []
+    },
+    "n_b278b260": {
+      "id": "n_b278b260",
+      "strategy": "E=257,d=256,bs=16: KSPLIT=4 fixed + OPUS sorting + fused_moe with local_expert_mask (non-OPUS fallback) + tuned BLOCK_SIZE",
+      "parameters": {},
+      "parent_id": "n_e3dc9038",
+      "priority": 0.6174999999999999,
       "attempts": 0,
       "best_result_us": null,
       "stagnation_count": 0,
