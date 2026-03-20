@@ -129,17 +129,20 @@ docker-compose up -e CONFIG_PATH=/path/to/config.yaml
 
 ## Python Environment
 
-**CRITICAL:** Always use the venv Python, never bare `python3`:
+**CRITICAL:** Use `uv run` — never bare `python3`:
 
 ```bash
 # ❌ WRONG
 python3 script.py
 
-# ✅ RIGHT
+# ✅ RIGHT (preferred)
+uv run script.py
+
+# ✅ ALSO RIGHT (explicit venv path)
 /home/mike-anderson/dev/cohezion/cloud-vault-mcp/.venv/bin/python3 script.py
 ```
 
-**Why:** Isolated dependencies, matches CI/CD, prevents version conflicts
+**Why:** `uv run` automatically resolves the correct venv and all its dependencies. Bare `python3` uses the system Python which lacks vault dependencies.
 
 ## Common Workflows
 
@@ -149,7 +152,7 @@ python3 script.py
 2. Include frontmatter with tags
 3. Regenerate graph data:
    ```bash
-   /home/mike-anderson/dev/cohezion/cloud-vault-mcp/.venv/bin/python3 .claude/extract_3d_graph.py
+   uv run .claude/extract_3d_graph.py
    ```
 4. Reload plugin in Obsidian
 

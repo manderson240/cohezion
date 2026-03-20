@@ -230,17 +230,20 @@ unless explicitly authorized for that specific operation.
 
 ### Python Environment Conventions
 
-**CRITICAL**: Always use the venv Python, never bare `python3`:
+**CRITICAL**: Use `uv run` — never bare `python3`:
 
 ```bash
 # ❌ WRONG
 python3 script.py
 
-# ✅ RIGHT
+# ✅ RIGHT (preferred)
+uv run script.py
+
+# ✅ ALSO RIGHT (explicit venv path)
 /home/mike-anderson/dev/cohezion/cloud-vault-mcp/.venv/bin/python3 script.py
 ```
 
-**Why**: Isolated dependencies, matches CI/CD, prevents version conflicts
+**Why**: `uv run` automatically resolves the correct venv, ensuring all dependencies (`requests`, `surrealdb`, etc.) are available. Bare `python3` uses the system Python which lacks vault dependencies.
 
 ### Token Budget Strategy
 
