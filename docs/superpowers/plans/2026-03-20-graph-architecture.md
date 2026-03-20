@@ -1550,12 +1550,12 @@ from typing import Any
 
 import numpy as np
 
-PCA_PATH = Path(__file__).parent.parent.parent.parent.parent / "vaults" / "cohezion-vault" / "scripts" / "dba" / "pca_matrix.npy"
-# Override via env var for portability:
-import os
-_pca_env = os.environ.get("VAULT_PCA_MATRIX_PATH")
-if _pca_env:
-    PCA_PATH = Path(_pca_env)
+import os as _os
+
+# VAULT_PCA_MATRIX_PATH env var is required in production and tests.
+# Default falls back to the standard vault layout for local dev only.
+_default = Path(_os.environ.get("VAULT_PATH", "/home/mike-anderson/vaults/cohezion-vault")) / "scripts" / "dba" / "pca_matrix.npy"
+PCA_PATH = Path(_os.environ.get("VAULT_PCA_MATRIX_PATH", str(_default)))
 
 
 def load_pca_matrix() -> np.ndarray | None:
@@ -1976,12 +1976,138 @@ print(sorted(graph_tools))
 
 Expected: `['graph_annotate_neuron', 'graph_bridges', 'graph_cluster', 'graph_hops', 'graph_neighborhood', 'graph_search', 'graph_stats', 'graph_write_affinity', 'graph_write_dream_synapse', 'graph_write_latent_synapse']`
 
-- [ ] **Step 8: Commit**
+- [ ] **Step 8: Rewire graph_write_tools.py to delegate to vault_graph.tools**
+
+The four write functions now live in `vault_graph/tools.py`. Replace `graph_write_tools.py` contents with thin delegation:
+
+```python
+"""graph_write_tools.py — thin delegation to vault_graph.tools.
+
+The actual implementations are in vault_graph/tools.py.
+This file exists only to preserve the import path used by server.py.
+"""
+
+from .vault_graph.tools import (  # noqa: F401  (re-exported)
+    register_write_tools as register_graph_write_tools,
+)
+```
+
+Then move the four write tool functions and `register_write_tools()` into `vault_graph/tools.py` alongside the six read tools. Add `register_write_tools` to `vault_graph/tools.py`:
+
+```python
+def register_write_tools(mcp, get_surrealdb_client=None):
+    """Register 4 agent-write tools. Called from server.py."""
+    from .client import get_graph_client
+
+    def _client():
+        # Use the SurrealDB client from vault_graph, not the old sync wrapper
+        return get_graph_client()
+
+    @mcp.tool()
+    async def graph_write_latent_synapse(from_neuron_id: str, to_neuron_id: str, reason: str) -> str:
+        """Create a latent (semantically inferred) synapse between two neurons."""
+        from .client import GraphClient
+        client = _client()
+        # validate + write using async client
+        existing = await client.query(
+            f"SELECT type FROM synapse WHERE in = {from_neuron_id} AND out = {to_neuron_id} AND type = 'explicit';"
+        )
+        if existing:
+            return f"Error: explicit synapse already exists between {from_neuron_id} and {to_neuron_id}"
+        reason_esc = reason.replace("'", "\\'")
+        await client.execute(
+            f"RELATE {from_neuron_id}->{to_neuron_id} SET type = 'latent', reason = '{reason_esc}', created_at = time::now();"
+        )
+        return f"Latent synapse created: {from_neuron_id} -> {to_neuron_id}"
+
+    @mcp.tool()
+    async def graph_write_dream_synapse(from_neuron_id: str, to_neuron_id: str, resonance: str) -> str:
+        """Create a dream synapse (cross-domain resonance) between two neurons."""
+        client = _client()
+        existing = await client.query(
+            f"SELECT type FROM synapse WHERE in = {from_neuron_id} AND out = {to_neuron_id} AND type = 'explicit';"
+        )
+        if existing:
+            return f"Error: explicit synapse already exists between {from_neuron_id} and {to_neuron_id}"
+        r_esc = resonance.replace("'", "\\'")
+        await client.execute(
+            f"RELATE {from_neuron_id}->{to_neuron_id} SET type = 'dream', resonance = '{r_esc}', created_at = time::now();"
+        )
+        return f"Dream synapse created: {from_neuron_id} -> {to_neuron_id}"
+
+    @mcp.tool()
+    async def graph_write_affinity(neuron_id: str, affinity_vector: list[float]) -> str:
+        """Write a 12D FLUME affinity vector to a neuron."""
+        if len(affinity_vector) != 12:
+            return f"Error: affinity_vector must have 12 elements, got {len(affinity_vector)}"
+        client = _client()
+        vec_str = "[" + ", ".join(str(v) for v in affinity_vector) + "]"
+        await client.execute(f"UPDATE {neuron_id} SET dim_agent_affinity = {vec_str};")
+        return f"Affinity vector written to {neuron_id}"
+
+    @mcp.tool()
+    async def graph_annotate_neuron(
+        neuron_id: str,
+        last_accessed: str = "",
+        agent_notes: str = "",
+        increment_access_count: bool = False,
+    ) -> str:
+        """Annotate a neuron with agent metadata (does not touch structural fields)."""
+        sets = []
+        if last_accessed:
+            sets.append(f"last_accessed = '{last_accessed}'")
+        if agent_notes:
+            sets.append(f"agent_notes = '{agent_notes.replace(chr(39), chr(39)*2)}'")
+        if increment_access_count:
+            sets.append("access_count += 1")
+        if not sets:
+            return "No fields to update."
+        client = _client()
+        await client.execute(f"UPDATE {neuron_id} SET {', '.join(sets)};")
+        return f"Annotations written to {neuron_id}"
+```
+
+Update `server.py` to call both:
+
+```python
+    from .vault_graph.tools import register_read_tools, register_write_tools
+    register_read_tools(mcp)
+    if config.surrealdb_enabled:
+        register_write_tools(mcp)
+```
+
+Remove the old `register_graph_write_tools` call.
+
+- [ ] **Step 9: Run full test suite**
+
+```bash
+uv run pytest -q 2>&1 | tail -5
+```
+
+Expected: 0 failures.
+
+- [ ] **Step 10: Restart service and smoke-test**
+
+```bash
+systemctl --user restart cohezion-vault.service && sleep 3
+curl -s -H "Authorization: Bearer a712027605bbd33068da5462bbcc18d90f844df23f948f124908fa726d678263" \
+  http://localhost:8360/tools | python3 -c "
+import sys, json
+tools = [t['name'] for t in json.load(sys.stdin)]
+graph_tools = [t for t in tools if t.startswith('graph_')]
+print(sorted(graph_tools))
+"
+```
+
+Expected: `['graph_annotate_neuron', 'graph_bridges', 'graph_cluster', 'graph_hops', 'graph_neighborhood', 'graph_search', 'graph_stats', 'graph_write_affinity', 'graph_write_dream_synapse', 'graph_write_latent_synapse']`
+
+- [ ] **Step 11: Commit**
 
 ```bash
 cd /home/mike-anderson/dev/cohezion/cloud-vault-mcp
-git add src/mcp_server/vault_graph/tools.py src/mcp_server/server.py tests/test_vault_graph_tools.py
-git commit -m "feat(vault_graph): 6 read MCP tools — neighborhood/search/cluster/hops/bridges/stats"
+git add src/mcp_server/vault_graph/tools.py src/mcp_server/server.py \
+        src/mcp_server/graph_write_tools.py tests/test_vault_graph_tools.py
+git commit -m "feat(vault_graph): 10 graph MCP tools — 6 read + 4 write, fully in vault_graph/"
 ```
 
 ---
