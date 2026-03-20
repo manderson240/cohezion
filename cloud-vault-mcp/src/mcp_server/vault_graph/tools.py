@@ -100,9 +100,17 @@ async def tool_graph_stats() -> str:
     data = await queries.stats()
     if not data:
         return "Could not fetch vault stats"
+
+    def _unwrap_count(field):
+        """fn::vault_stats() returns counts as [{count: N}] subquery arrays."""
+        v = data.get(field, "?")
+        if isinstance(v, list) and v and isinstance(v[0], dict) and "count" in v[0]:
+            return v[0]["count"]
+        return v
+
     lines = [
         "=== Vault Stats ===",
-        f"Neurons: {data.get('total_neurons', '?')} | Synapses: {data.get('total_synapses', '?')}",
+        f"Neurons: {_unwrap_count('total_neurons')} | Synapses: {_unwrap_count('total_synapses')}",
     ]
     for s in data.get("stage_distribution", []):
         lines.append(f"  {s.get('stage', '?')}: {s.get('n', 0)}")

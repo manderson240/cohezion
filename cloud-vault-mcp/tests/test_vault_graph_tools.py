@@ -21,9 +21,17 @@ async def test_tool_graph_search_calls_queries_search():
 @pytest.mark.asyncio
 async def test_tool_graph_stats_returns_stats():
     with patch("mcp_server.vault_graph.tools.queries") as mock_q:
-        mock_q.stats = AsyncMock(return_value={"total_neurons": 1578, "total_synapses": 6203})
+        # fn::vault_stats() returns counts as [{count: N}] subquery arrays
+        mock_q.stats = AsyncMock(
+            return_value={
+                "total_neurons": [{"count": 1578}],
+                "total_synapses": [{"count": 6203}],
+                "stage_distribution": [],
+            }
+        )
         result = await tools.tool_graph_stats()
     assert "1578" in result
+    assert "6203" in result
 
 
 @pytest.mark.asyncio
