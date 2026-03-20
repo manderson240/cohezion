@@ -430,10 +430,22 @@ def main():
             success, summary = run_cycle(kernel, tree, rate_limiter, dry_run=dry_run_mode)
             log.info(summary)
 
-            # Periodic priority decay to encourage exploration
+            # Periodic maintenance
             if cycle % 5 == 0:
                 for t in trees.values():
+                    # Priority decay to encourage exploration
                     t.decay_priorities(factor=0.95)
+                    # Cap tree size: prune lowest-priority nodes if too large
+                    active = [n for n in t.nodes.values() if n.status == "active"]
+                    if len(active) > 30:
+                        # Keep top 20 by priority, prune the rest
+                        by_priority = sorted(active, key=lambda n: n.priority)
+                        for n in by_priority[: len(active) - 20]:
+                            t.strategic_prune(n.id, reason="tree size cap (>30 active)")
+                        log.info(
+                            f"[{t.kernel_name}] Tree cap: pruned {len(active) - 20} "
+                            f"low-priority nodes ({len(active)} → 20 active)"
+                        )
                     save_tree(t)
 
             # Convergence check every 10 cycles per kernel
