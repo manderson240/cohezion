@@ -1,9 +1,11 @@
 {
   "cli_version": "0.4.9",
   "checkpoint_id": "4ff79068200d",
+  "session_id": "6eb9f7a9-b9d3-42c7-b376-15d523bbb2c2",
   "strategy": "manual-commit",
+  "created_at": "2026-03-20T20:48:50.456922354Z",
   "branch": "feat/graph-architecture",
-  "checkpoints_count": 2,
+  "checkpoints_count": 1,
   "files_touched": [
     "scripts/cohezion-resources.service",
     "src/cohezion/agentjet/context_optimizer.py",
@@ -15,27 +17,22 @@
     "src/cohezion/api/__init__.py",
     "tests/agentjet/test_trainer.py"
   ],
-  "sessions": [
-    {
-      "metadata": "/4f/f79068200d/0/metadata.json",
-      "transcript": "/4f/f79068200d/0/full.jsonl",
-      "context": "",
-      "content_hash": "/4f/f79068200d/0/content_hash.txt",
-      "prompt": ""
-    },
-    {
-      "metadata": "/4f/f79068200d/1/metadata.json",
-      "transcript": "/4f/f79068200d/1/full.jsonl",
-      "context": "/4f/f79068200d/1/context.md",
-      "content_hash": "/4f/f79068200d/1/content_hash.txt",
-      "prompt": "/4f/f79068200d/1/prompt.txt"
-    }
-  ],
+  "agent": "Claude Code",
+  "turn_id": "58b936e1723e",
   "token_usage": {
     "input_tokens": 8895,
     "cache_creation_tokens": 9484186,
     "cache_read_tokens": 75244990,
     "output_tokens": 114411,
     "api_call_count": 333
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-03-20T20:48:49.837972878Z",
+    "agent_lines": 82,
+    "human_added": 0,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 82,
+    "agent_percentage": 100
   }
 }
