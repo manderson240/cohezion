@@ -35,7 +35,7 @@ from typing import Any
 
 logger = logging.getLogger(__name__)
 
-_DEFAULT_PATH = Path("data/training/finetune_journeys.jsonl")
+_DEFAULT_PATH = Path(__file__).resolve().parents[3] / "data" / "training" / "finetune_journeys.jsonl"
 
 
 class JourneyTaskReader:

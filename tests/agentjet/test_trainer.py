@@ -93,9 +93,11 @@ async def test_oom_check_raises_when_memory_insufficient(
             new_callable=AsyncMock,
             side_effect=RuntimeError("OOMRiskError: insufficient memory"),
         ):
-            # _safety_check is called BEFORE the try block; exception propagates
-            with pytest.raises(RuntimeError, match="OOMRiskError"):
-                await trainer.train(target_model="big-model")
+            # _safety_check is now inside try; exception is caught → TrainingResult failure
+            result = await trainer.train(target_model="big-model")
+        assert result.success is False
+        assert result.error is not None
+        assert "OOMRiskError" in result.error
 
 
 @pytest.mark.asyncio

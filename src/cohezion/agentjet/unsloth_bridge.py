@@ -15,7 +15,12 @@ from typing import Any
 
 import aiohttp
 
+from cohezion.agentjet.context_optimizer import MODEL_OLLAMA_KEY_MAP
+
 logger = logging.getLogger(__name__)
+
+_PROJECT_ROOT = Path(__file__).resolve().parents[3]
+_DATA_DIR = _PROJECT_ROOT / "data" / "training"
 
 UNSLOTH_STUDIO_URL = "https://studio.unsloth.ai"
 
@@ -93,7 +98,7 @@ class UnslothBridge:
         Path
             Absolute path to the generated JSONL dataset file.
         """
-        out = output_path if output_path is not None else Path("data/training/unsloth_dataset.jsonl")
+        out = output_path if output_path is not None else _DATA_DIR / "unsloth_dataset.jsonl"
         out.parent.mkdir(parents=True, exist_ok=True)
 
         # Try Unsloth Data Recipes API first
@@ -110,7 +115,7 @@ class UnslothBridge:
             return out
 
         # Fallback: copy local finetune_journeys.jsonl
-        local_source = Path("data/training/finetune_journeys.jsonl")
+        local_source = _DATA_DIR / "finetune_journeys.jsonl"
         if local_source.exists():
             logger.info(
                 "UnslothBridge: Data Recipes API unavailable; "
@@ -247,20 +252,11 @@ class UnslothBridge:
         try:
             from cohezion.flume.local_finetune_pipeline import LocalFinetuner
 
-            _MODEL_KEY_MAP = {
-                "qwen3.5:9b": "qwen3.5",
-                "qwen3.5": "qwen3.5",
-                "phi4": "phi4",
-                "phi4-mini-reasoning:latest": "phi4",
-                "phi3:mini": "qwen3-4b",
-                "qwen3-4b": "qwen3-4b",
-                "gemma3": "gemma3",
-            }
-            base_key = _MODEL_KEY_MAP.get(model, "qwen3.5")
+            base_key = MODEL_OLLAMA_KEY_MAP.get(model, "qwen3.5")
             epochs = int((config or {}).get("epochs", 3))
 
             finetuner = LocalFinetuner(base_model=base_key, output_name="cohezion_unsloth_phase2")
-            loop = asyncio.get_event_loop()
+            loop = asyncio.get_running_loop()
             config_path: Path = await loop.run_in_executor(
                 None,
                 lambda: finetuner.run_qlora_training(epochs=epochs),
