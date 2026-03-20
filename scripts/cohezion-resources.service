@@ -5,8 +5,8 @@ After=network.target
 [Service]
 Type=simple
 User=%i
-WorkingDirectory=/home/mike-anderson/dev/cohezion
-ExecStart=/home/mike-anderson/.local/bin/uv run python -m cohezion.platform.resource_manager
+WorkingDirectory=%h/dev/cohezion
+ExecStart=%h/.local/bin/uv run python -m cohezion.platform.resource_manager
 Restart=on-failure
 RestartSec=5s
 StandardOutput=journal

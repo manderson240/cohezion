@@ -97,7 +97,7 @@ class CohezionWorkflow:
 
         # Execute via CompoundExecutor (synchronous call wrapped in async context)
         try:
-            result = await asyncio.get_event_loop().run_in_executor(
+            result = await asyncio.get_running_loop().run_in_executor(
                 None,
                 lambda: self._executor.execute_task(
                     task_description=description,

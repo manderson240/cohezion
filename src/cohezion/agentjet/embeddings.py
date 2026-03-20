@@ -82,7 +82,7 @@ class FlumeVAEEmbeddingModel:
 
     async def encode(self, text: str) -> EmbeddingResult:
         """Encode text using FLUME VAE (runs in thread to avoid blocking loop)."""
-        loop = asyncio.get_event_loop()
+        loop = asyncio.get_running_loop()
         vector = await loop.run_in_executor(None, self._encode_blocking, text)
         return EmbeddingResult(vector=vector, model="flume-vae-256d")
 
@@ -230,7 +230,10 @@ class GeminiEmbeddingModel:
                     url,
                     data=query,
                     headers={"Accept": "application/json", "NS": "cohezion", "DB": "embeddings"},
-                    auth=aiohttp.BasicAuth("root", "root"),
+                    auth=aiohttp.BasicAuth(
+                        os.environ.get("SURREAL_USER", "root"),
+                        os.environ.get("SURREAL_PASS", "root"),
+                    ),
                     timeout=aiohttp.ClientTimeout(total=2),
                 ) as resp:
                     if resp.status != 200:
@@ -260,7 +263,10 @@ class GeminiEmbeddingModel:
                     url,
                     data=query,
                     headers={"Accept": "application/json", "NS": "cohezion", "DB": "embeddings"},
-                    auth=aiohttp.BasicAuth("root", "root"),
+                    auth=aiohttp.BasicAuth(
+                        os.environ.get("SURREAL_USER", "root"),
+                        os.environ.get("SURREAL_PASS", "root"),
+                    ),
                     timeout=aiohttp.ClientTimeout(total=2),
                 ) as resp:
                     if resp.status != 200:

@@ -1588,6 +1588,10 @@ async def agentjet_train(request: TrainRequest) -> TrainResponse:
             error=result.error,
         )
     except Exception as e:
+        _oom_names = ("OOMRiskError", "ResourceUnavailableError")
+        if type(e).__name__ in _oom_names:
+            from fastapi import HTTPException
+            raise HTTPException(status_code=503, detail=str(e)) from e
         return TrainResponse(
             success=False,
             model_name="",

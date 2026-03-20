@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import time
 from dataclasses import dataclass, field
 
 import aiohttp
@@ -84,6 +85,18 @@ for _model_name in _TRAINING_VARIANTS:
     _key = f"{_model_name}:training"
     CONTEXT_PROFILES[_key] = _training(CONTEXT_PROFILES[_model_name])
 
+# Maps Ollama model identifiers to LocalFinetuner base_model keys.
+# Used by AgentJetTrainer and UnslothBridge to translate pull names → training keys.
+MODEL_OLLAMA_KEY_MAP: dict[str, str] = {
+    "qwen3.5:9b": "qwen3.5",
+    "qwen3.5": "qwen3.5",
+    "phi4": "phi4",
+    "phi4-mini-reasoning:latest": "phi4",
+    "phi3:mini": "qwen3-4b",
+    "qwen3-4b": "qwen3-4b",
+    "gemma3": "gemma3",
+}
+
 
 # ---------------------------------------------------------------------------
 # OllamaContextManager
@@ -124,7 +137,7 @@ class OllamaContextManager:
         url = f"{self._base_url}/api/ps"
         try:
             async with aiohttp.ClientSession() as session:
-                async with asyncio.wait_for(session.get(url), timeout=10.0) as resp:
+                async with session.get(url, timeout=aiohttp.ClientTimeout(total=10.0)) as resp:
                     if resp.status != 200:
                         logger.warning("GET /api/ps returned HTTP %d", resp.status)
                         return []
@@ -144,8 +157,8 @@ class OllamaContextManager:
         payload = {"model": model, "keep_alive": 0}
         try:
             async with aiohttp.ClientSession() as session:
-                async with asyncio.wait_for(
-                    session.post(url, json=payload), timeout=30.0
+                async with session.post(
+                    url, json=payload, timeout=aiohttp.ClientTimeout(total=30.0)
                 ) as resp:
                     if resp.status not in (200, 404):
                         logger.warning("Unload of %s returned HTTP %d", model, resp.status)
@@ -173,8 +186,8 @@ class OllamaContextManager:
         await asyncio.gather(*(self.unload_model(m) for m in loaded))
 
         # Poll until /api/ps is empty or timeout
-        deadline = asyncio.get_event_loop().time() + 60.0
-        while asyncio.get_event_loop().time() < deadline:
+        deadline = time.monotonic() + 60.0
+        while time.monotonic() < deadline:
             remaining = await self.get_loaded_models()
             if not remaining:
                 logger.info("All models unloaded; safe to begin training.")
@@ -183,7 +196,10 @@ class OllamaContextManager:
 
         remaining = await self.get_loaded_models()
         if remaining:
-            logger.warning("Training unload timeout; %d model(s) still loaded: %s", len(remaining), remaining)
+            raise RuntimeError(
+                f"Training unload timeout: {len(remaining)} model(s) still loaded after 60s: "
+                f"{remaining}. Cannot proceed — risk of OOM during training."
+            )
 
     async def reload_inference_models(self, hot_models: list[str] | None = None) -> None:
         """Restore hot-tier models after training completes.
@@ -197,8 +213,8 @@ class OllamaContextManager:
             payload = {"model": model, "prompt": "", "keep_alive": "5m", "stream": False}
             try:
                 async with aiohttp.ClientSession() as session:
-                    async with asyncio.wait_for(
-                        session.post(url, json=payload), timeout=60.0
+                    async with session.post(
+                        url, json=payload, timeout=aiohttp.ClientTimeout(total=60.0)
                     ) as resp:
                         if resp.status == 200:
                             logger.info("Reloaded inference model: %s", model)
@@ -221,7 +237,7 @@ class OllamaContextManager:
         loaded_gb = 0.0
         try:
             async with aiohttp.ClientSession() as session:
-                async with asyncio.wait_for(session.get(url), timeout=10.0) as resp:
+                async with session.get(url, timeout=aiohttp.ClientTimeout(total=10.0)) as resp:
                     if resp.status == 200:
                         data = await resp.json()
                         for m in data.get("models", []):
