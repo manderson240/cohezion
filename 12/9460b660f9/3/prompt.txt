@@ -1394,3 +1394,420 @@ When replying to inline review comments on GitHub, reply in the comment thread (
 Verify. Question. Then implement.
 
 No performative agreement. Technical rigor always.
+
+---
+
+This session is being continued from a previous conversation that ran out of context. The summary below covers the earlier portion of the conversation.
+
+Summary:
+1. Primary Request and Intent:
+   The user provided a completed plan document for the **Cohezion Autonomous Learning Loop (CALL)** (Status: COMPLETE, Date: 2026-03-19/20) and asked to implement it. The plan had all Phase 1 checkboxes marked complete. The implementation covers: `src/cohezion/agentjet/` (7 files), `src/cohezion/platform/` (3 new files: resource_manager.py, tier_optimizer.py, session_tracker.py), scripts, API endpoints, and AGENTJET_PRIME.md skill. After verifying the implementation already existed in the codebase, the user requested a **code review** before choosing a merge option. The code review surfaced critical bugs requiring fixes before merge.
+
+2. Key Technical Concepts:
+   - **CALL (Cohezion Autonomous Learning Loop)**: Closed loop where runtime execution experiences (phi_score from JourneyTracker) become fine-tuning signal for local LLMs
+   - **OOM Prevention on 128GB unified memory**: ResourceDaemon cross-session arbitration, OllamaContextManager unload-before-train protocol, training lock TTL
+   - **Per-model context profiles**: `ModelContextProfile` dataclass with num_ctx, flash_attention, size_gb — 18 profiles, training variants at num_ctx=2048/keep_alive=0
+   - **PhiScoreJudger reward signal**: phi≥0.7 → positive (phi×2-1), phi<0.4 → negative (HIHO violation), 0.4–0.7 → small positive
+   - **AgentJetTrainer safety protocol**: memory check → unload all models → train (llamafactory Phase 1) → reload → update SmartRouter
+   - **ResourceDaemon/ResourceClient**: Persistent HTTP :8765 daemon with SurrealDB-backed training locks, graceful fallback to local Ollama poll when daemon not running
+   - **GeminiEmbeddingModel**: Content-hash SurrealDB cache, FLUME VAE fallback, circuit breaker
+   - **`asyncio.wait_for()` pitfall**: Returns a coroutine, not async context manager — cannot be used with `async with`
+   - **aiohttp.ClientTimeout**: Correct pattern for timeouts in aiohttp (used in resource_manager.py but NOT in context_optimizer.py originally)
+   - **`asyncio.get_running_loop()` vs `get_event_loop()`**: Python 3.10+ deprecates `get_event_loop()` inside coroutines
+   - **Phase 1/2/3 phasing**: llamafactory now, Unsloth QLoRA when AMD ships, verl/PPO later
+   - **TierOptimizer**: Usage-histogram-driven model tier recommendations (promote/demote based on cross-session usage)
+
+3. Files and Code Sections:
+   - **`src/cohezion/agentjet/__init__.py`** — Exports all 7 agentjet components. Confirmed complete.
+   - **`src/cohezion/agentjet/context_optimizer.py`** — Critical file. Contains `ModelContextProfile`, `CONTEXT_PROFILES` (18 profiles), `OllamaContextManager`. **BUGS FOUND (C1)**: Lines 141, 161, 213-215, 237 use `asyncio.wait_for()` as async context manager — runtime TypeError. Also I3: `asyncio.get_event_loop().time()` at lines 188-189. I6: timeout warning instead of raise at line 198-200. Needs `MODEL_OLLAMA_KEY_MAP` added (I1).
+   - **`src/cohezion/agentjet/trainer.py`** — `AgentJetTrainer`, `TrainingResult`. **BUGS FOUND**: C2: `_safety_check` called at line 138 BEFORE `try` block at line 141 — breaks "All steps run inside try/finally" docstring claim. I5: `self._training_lock` as instance state (line 82, 253). I7: `if not journey_path.exists():` guard at line 360. I3: `asyncio.get_event_loop()` at line 371. I1: local `_MODEL_KEY_MAP` dict at lines 340-348. I2: relative `Path("data/training")` at line 356.
+   - **`src/cohezion/agentjet/judger.py`** — `PhiScoreJudger`. Confirmed correct; reward function and tests comprehensive.
+   - **`src/cohezion/agentjet/task_reader.py`** — `JourneyTaskReader`. **BUG (I2)**: `_DEFAULT_PATH = Path("data/training/finetune_journeys.jsonl")` is relative at line 38. Fix: anchor to `Path(__file__).resolve().parents[3]`.
+   - **`src/cohezion/agentjet/embeddings.py`** — `GeminiEmbeddingModel`, `FlumeVAEEmbeddingModel`, `EmbeddingOrchestrator`. **BUGS**: I3: `asyncio.get_event_loop()` at line 87 (async method). I4: hardcoded `aiohttp.BasicAuth("root", "root")` at lines 235 and 262. M1: `_get_encoder` missing return type. M3: GEMINI_API_URL points to `text-embedding-004` but class says "Gemini Embedding 2".
+   - **`src/cohezion/agentjet/unsloth_bridge.py`** — `UnslothBridge`. **BUGS**: I1: duplicate `_MODEL_KEY_MAP` at lines 251-259. I2: relative paths `Path("data/training/...")` at lines 99, 117. I3: `asyncio.get_event_loop()` at line 264 (in async method).
+   - **`src/cohezion/agentjet/workflow.py`** — `CohezionWorkflow`. **BUG (I3)**: `asyncio.get_event_loop()` at line 100 (inside async method).
+   - **`src/cohezion/platform/resource_manager.py`** — `ResourceDaemon`, `ResourceClient`, `PlatformMemoryState`, `TrainingLock`, `OOMRiskError`, `ResourceUnavailableError`. Correctly uses `aiohttp.ClientTimeout` throughout. `ResourceClient.is_daemon_running()` uses socket probe on port 8765.
+   - **`src/cohezion/platform/tier_optimizer.py`** — `TierOptimizer`. 3 rules: training-only→COLD, high-usage promote, 14-day unused demote. M5: silent ignore of models not in current_tiers.
+   - **`src/cohezion/api/__init__.py`** (lines 1566-1640) — **BUG (C2)**: `agentjet_train` endpoint (line 1566) has broad `except Exception as e` returning HTTP 200 with `success=False` even for `OOMRiskError`/`ResourceUnavailableError` — should return HTTP 503. Endpoints: POST `/agentjet/train`, GET `/agentjet/status`, GET `/agentjet/models`.
+   - **`scripts/cohezion-resources.service`** — **BUG (C3)**: Hardcoded `WorkingDirectory=/home/mike-anderson/dev/cohezion` and `ExecStart=/home/mike-anderson/.local/bin/uv run python -m cohezion.platform.resource_manager`. Cannot install on any other machine.
+   - **`tests/agentjet/test_trainer.py`** — Key: `_safety_check` is mocked via `patch.object(trainer, "_safety_check", new_callable=AsyncMock)` in tests. `test_oom_check_raises_when_memory_insufficient` expects `pytest.raises(RuntimeError)` propagated from `train()`, with comment "called BEFORE the try block". Converting `self._training_lock` to local variable in `train()` won't break tests since mocked `_safety_check` returns `None` by default and `finally` checks `if training_lock is not None`.
+
+4. Errors and fixes:
+   - **`ToolSearch` parameter format error**: Got `InputValidationError` when trying to use `Read` tool with `start_line`/`end_line` parameters (schema not loaded). Fixed by calling `ToolSearch` first to load tool schemas.
+   - **Background bash output not appearing**: Background tasks writing to `/tmp/...` output files showed 0 bytes initially. Fixed by reading the output files directly after tasks completed (task notifications arrived).
+   - **27 pre-existing test failures**: Confirmed pre-existing by running stash test: failures in `test_template_engine`, `test_smart_router`, `test_triune_engine`, `test_triune_manifold`, `tests/gateway/`, `tests/research/`, `tests/swarm/test_token_client` all existed before CALL changes. Plan documented "0 regressions (4,271/4,298 baseline preserved)" — 4298-4271=27 exactly matches.
+
+5. Problem Solving:
+   - Verified all 98 agentjet+platform tests pass, 4365 total pass (27 pre-existing failures).
+   - Confirmed CALL plan is fully implemented in `gemm-hip-cpp-fused` branch, committed.
+   - Code reviewer identified C1 as blocking: `async with asyncio.wait_for(...)` pattern is a runtime TypeError — the entire OOM-prevention path (`unload_all_for_training`) silently fails on any real Ollama instance because the aiohttp calls crash at context manager entry.
+   - Planned fix strategy for all 11 issues, verified against `test_trainer.py` that refactoring `_safety_check` to return lock won't break test contracts.
+
+6. All user messages:
+   - [Initial message]: Provided the full CALL plan document and said "Implement the following plan:"
+   - "code review first" — requested code review before choosing merge option
+
+7. Pending Tasks:
+   - **Implement all code review fixes** in this priority order:
+     1. **C1** (BLOCKING): Fix 4 `asyncio.wait_for()` context manager usages in `context_optimizer.py` → use `aiohttp.ClientTimeout`
+     2. **C2**: Fix API handler to return HTTP 503 for `OOMRiskError`/`ResourceUnavailableError`; fix trainer docstring; refactor `self._training_lock` → local variable in `train()`
+     3. **C3**: Fix hardcoded `/home/mike-anderson/dev/cohezion` paths in `scripts/cohezion-resources.service`
+     4. **I1**: Extract `_MODEL_OLLAMA_KEY_MAP` to module level in `context_optimizer.py`, import in `trainer.py` and `unsloth_bridge.py`
+     5. **I2**: Fix relative `Path("data/training/...")` → `Path(__file__).resolve().parents[3] / "data" / "training"` in `task_reader.py`, `trainer.py`, `unsloth_bridge.py`
+     6. **I3**: Replace `asyncio.get_event_loop()` with `asyncio.get_running_loop()` in async methods in `context_optimizer.py`, `trainer.py`, `unsloth_bridge.py`, `workflow.py`, `embeddings.py`
+     7. **I4**: Replace `aiohttp.BasicAuth("root", "root")` with `aiohttp.BasicAuth(os.environ.get("SURREAL_USER", "root"), os.environ.get("SURREAL_PASS", "root"))` in `embeddings.py`
+     8. **I5**: Convert `self._training_lock` → local `training_lock` variable in `train()`, update `_safety_check` to return the lock
+     9. **I6**: Raise `RuntimeError` instead of `logger.warning` when models still loaded after 60s timeout in `unload_all_for_training`
+     10. **I7**: Remove `if not journey_path.exists():` guard in `_run_llamafactory` — always write training data
+   - After fixes: run tests to verify no regressions, then present the 4 merge options again
+
+8. Current Work:
+   All files have been read and analyzed. The implementation plan for all fixes is complete. The next action was to begin writing edits, starting with `context_optimizer.py` (C1 — the blocking bug). The key edits planned:
+
+   **context_optimizer.py** — Fix C1 (4 sites), add `import time`, fix I3 (`asyncio.get_running_loop()`), fix I6 (raise not warn), add `MODEL_OLLAMA_KEY_MAP`:
+   ```python
+   # C1 Site 1 (get_loaded_models line 141) - OLD:
+   async with asyncio.wait_for(session.get(url), timeout=10.0) as resp:
+   # NEW:
+   async with session.get(url, timeout=aiohttp.ClientTimeout(total=10.0)) as resp:
+
+   # C1 Site 2 (unload_model line 161) - OLD:
+   async with asyncio.wait_for(session.post(url, json=payload), timeout=30.0) as resp:
+   # NEW:
+   async with session.post(url, json=payload, timeout=aiohttp.ClientTimeout(total=30.0)) as resp:
+
+   # C1 Site 3 (reload_inference_models _warm() lines 213-215) - OLD:
+   async with aiohttp.ClientSession() as session, asyncio.wait_for(
+       session.post(url, json=payload), timeout=60.0
+   ) as resp:
+   # NEW (split into two nested async with):
+   async with aiohttp.ClientSession() as session:
+       async with session.post(url, json=payload, timeout=aiohttp.ClientTimeout(total=60.0)) as resp:
+
+   # C1 Site 4 (get_available_memory_gb line 237) - OLD:
+   async with asyncio.wait_for(session.get(url), timeout=10.0) as resp:
+   # NEW:
+   async with session.get(url, timeout=aiohttp.ClientTimeout(total=10.0)) as resp:
+
+   # I3 (lines 188-189) - OLD:
+   deadline = asyncio.get_event_loop().time() + 60.0
+   while asyncio.get_event_loop().time() < deadline:
+   # NEW:
+   deadline = time.monotonic() + 60.0
+   while time.monotonic() < deadline:
+
+   # I6 - OLD:
+   if remaining:
+       logger.warning("Training unload timeout; ...")
+   # NEW:
+   if remaining:
+       raise RuntimeError(f"Training unload timeout: {len(remaining)} model(s) still loaded after 60s...")
+   
+   # I1 - Add at module level after CONTEXT_PROFILES:
+   MODEL_OLLAMA_KEY_MAP: dict[str, str] = {
+       "qwen3.5:9b": "qwen3.5", "qwen3.5": "qwen3.5",
+       "phi4": "phi4", "phi4-mini-reasoning:latest": "phi4",
+       "phi3:mini": "qwen3-4b", "qwen3-4b": "qwen3-4b", "gemma3": "gemma3",
+   }
+   ```
+
+   **trainer.py** — Fix C2/I5 (`_safety_check` returns lock, use local `training_lock`), I1 (import map), I2 (absolute path), I3 (`get_running_loop`), I7 (always write data):
+   ```python
+   # Remove: self._training_lock: object | None = None  from __init__
+   # Add module-level:
+   from cohezion.agentjet.context_optimizer import MODEL_OLLAMA_KEY_MAP
+   _PROJECT_ROOT = Path(__file__).resolve().parents[3]
+   _DATA_DIR = _PROJECT_ROOT / "data" / "training"
+   # In train(): training_lock = await self._safety_check(target_model)
+   # In finally: use training_lock (local) not self._training_lock
+   # _safety_check returns lock: async def _safety_check(self, model: str) -> object | None:
+   ```
+
+9. Optional Next Step:
+   Begin implementing all code review fixes, starting with `context_optimizer.py` to fix the blocking C1 bug. The reviewer stated: "The `async with asyncio.wait_for(...)` bug in `context_optimizer.py` (C1) causes a `TypeError` at runtime on every live Ollama call, which means `unload_all_for_training()` — the central OOM-prevention mechanism — silently fails whenever models are actually loaded." The planned fix for all 4 sites in context_optimizer.py is to replace `asyncio.wait_for(session.get/post(...), timeout=X)` with `session.get/post(..., timeout=aiohttp.ClientTimeout(total=X))`, matching the pattern already used correctly in `resource_manager.py`. After context_optimizer.py, proceed through C2→C3→I1→I2→I3→I4→I5→I6→I7, then run the test suite to verify zero new failures, then re-present the 4 merge options.
+
+If you need specific details from before compaction (like exact code snippets, error messages, or content you generated), read the full transcript at: /home/mike-anderson/.claude/projects/-home-mike-anderson-dev-cohezion/9a7a40e8-257d-4b95-8105-159a21aade84.jsonl
+Continue the conversation from where it left off without asking the user any further questions. Resume directly — do not acknowledge the summary, do not recap what was happening, do not preface with "I'll continue" or similar. Pick up the last task as if the break never happened.
+
+---
+
+This session is being continued from a previous conversation that ran out of context. The summary below covers the earlier portion of the conversation.
+
+Summary:
+1. Primary Request and Intent:
+   The conversation continues from a previous session where: (a) the CALL (Cohezion Autonomous Learning Loop) plan was fully implemented on branch `gemm-hip-cpp-fused` (plan Status: COMPLETE), and (b) the user requested a code review before choosing a merge option. A code reviewer identified 11 bugs (C1–C3 critical, I1–I7 important). The current session's task is to **implement all code review fixes** before presenting the 4 merge options (merge locally / create PR / keep as-is / discard). No new requests from the user — all work is executing the fix plan from the previous session.
+
+2. Key Technical Concepts:
+   - **CALL (Cohezion Autonomous Learning Loop)**: Closed RL loop using runtime phi_score experiences as fine-tuning signal for local LLMs on 128GB unified memory (Ryzen AI MAX+ 395)
+   - **`asyncio.wait_for()` pitfall (C1)**: Returns a coroutine, not an async context manager — `async with asyncio.wait_for(session.get(...))` raises `TypeError` at runtime. Fix: use `session.get(..., timeout=aiohttp.ClientTimeout(total=X))` which is a native async CM
+   - **`asyncio.get_event_loop()` deprecation (I3)**: Python 3.10+ deprecates this inside coroutines; use `asyncio.get_running_loop()`
+   - **OOM prevention protocol**: `unload_all_for_training()` → check memory → train → `reload_inference_models()` — all in try/finally
+   - **Training lock as local variable (I5/C2)**: `self._training_lock` should be a local variable in `train()` to avoid state leakage; `_safety_check` should return the lock
+   - **`MODEL_OLLAMA_KEY_MAP` (I1)**: Shared mapping from Ollama model names → LocalFinetuner keys, duplicated in trainer.py and unsloth_bridge.py — should live in context_optimizer.py at module level
+   - **Absolute path anchoring (I2)**: `Path(__file__).resolve().parents[3]` from any agentjet file gives project root
+   - **Systemd `%h` specifier (C3)**: Replaces hardcoded `/home/mike-anderson` with home directory at unit load time
+   - **HTTP 503 for resource errors (C2)**: `OOMRiskError`/`ResourceUnavailableError` should return 503 (service unavailable/retry) not 200 with `success=False`
+   - **Edit persistence issue**: First round of edits appeared to apply (Edit tool said "successfully updated") but files reverted to original state; a test marker edit confirmed Edit tool does work; re-reading files revealed the original linter reformatted them but reverted logic changes
+
+3. Files and Code Sections:
+
+   - **`src/cohezion/agentjet/context_optimizer.py`** — C1 blocking bug (4 `asyncio.wait_for` sites), I3 (get_event_loop), I6 (warn→raise), I1 (MODEL_OLLAMA_KEY_MAP)
+     - **SECOND ROUND VERIFIED**: All fixes applied and confirmed with grep showing no `asyncio.wait_for`, `time.monotonic` present, `MODEL_OLLAMA_KEY_MAP` present
+     ```python
+     # Added imports
+     import time
+     
+     # C1 Fix Site 1 (get_loaded_models):
+     async with session.get(url, timeout=aiohttp.ClientTimeout(total=10.0)) as resp:
+     
+     # C1 Fix Site 2 (unload_model):
+     async with session.post(
+         url, json=payload, timeout=aiohttp.ClientTimeout(total=30.0)
+     ) as resp:
+     
+     # C1 Fix Site 3 (reload_inference_models._warm) — split compound async with:
+     async with aiohttp.ClientSession() as session:
+         async with session.post(
+             url, json=payload, timeout=aiohttp.ClientTimeout(total=60.0)
+         ) as resp:
+     
+     # C1 Fix Site 4 (get_available_memory_gb):
+     async with session.get(url, timeout=aiohttp.ClientTimeout(total=10.0)) as resp:
+     
+     # I3 Fix:
+     deadline = time.monotonic() + 60.0
+     while time.monotonic() < deadline:
+     
+     # I6 Fix:
+     raise RuntimeError(
+         f"Training unload timeout: {len(remaining)} model(s) still loaded after 60s: "
+         f"{remaining}. Cannot proceed — risk of OOM during training."
+     )
+     
+     # I1 - Added at module level after CONTEXT_PROFILES:
+     MODEL_OLLAMA_KEY_MAP: dict[str, str] = {
+         "qwen3.5:9b": "qwen3.5",
+         "qwen3.5": "qwen3.5",
+         "phi4": "phi4",
+         "phi4-mini-reasoning:latest": "phi4",
+         "phi3:mini": "qwen3-4b",
+         "qwen3-4b": "qwen3-4b",
+         "gemma3": "gemma3",
+     }
+     ```
+
+   - **`src/cohezion/agentjet/trainer.py`** — C2 (safety check inside try, local lock variable), I1 (use MODEL_OLLAMA_KEY_MAP), I2 (absolute path), I3 (get_running_loop), I5 (self._training_lock → local), I7 (always write data)
+     - **SECOND ROUND IN PROGRESS**: 5 of ~7 edits applied, last edit was `_safety_check` still needs return type update
+     ```python
+     # New module-level constants (I2):
+     _PROJECT_ROOT = Path(__file__).resolve().parents[3]
+     _DATA_DIR = _PROJECT_ROOT / "data" / "training"
+     
+     # Import MODEL_OLLAMA_KEY_MAP (I1):
+     from cohezion.agentjet.context_optimizer import MODEL_OLLAMA_KEY_MAP, OllamaContextManager
+     
+     # Removed from __init__ (I5):
+     # self._training_lock: object | None = None  # DELETED
+     
+     # In train() — _safety_check moved inside try (C2/I5):
+     training_lock: object | None = None
+     output_path: Path | None = None
+     try:
+         # 2. OOM safety check — acquires lock or raises OOMRiskError
+         training_lock = await self._safety_check(target_model)
+     
+     # In finally block (I5):
+     if training_lock is not None:
+         ...
+         lock_id: str = training_lock.lock_id
+         ...
+         finally:
+             training_lock = None
+     
+     # _safety_check signature change (I5) — PARTIALLY APPLIED:
+     async def _safety_check(self, model: str) -> object | None:
+     # returns lock instead of self._training_lock = lock
+     
+     # In _run_llamafactory (I1, I2, I3, I7):
+     base_key = MODEL_OLLAMA_KEY_MAP.get(model, "qwen3.5")
+     _DATA_DIR.mkdir(parents=True, exist_ok=True)
+     journey_path = _DATA_DIR / "finetune_journeys.jsonl"
+     # Always write (removed if not journey_path.exists() guard)
+     logger.info("AgentJetTrainer: writing %d tasks...", len(tasks), journey_path)
+     with journey_path.open("w", encoding="utf-8") as fh: ...
+     loop = asyncio.get_running_loop()
+     ```
+     - The edits applied in second round (verified via Read): imports + _DATA_DIR, removed self._training_lock, moved _safety_check into try block, fixed finally block
+
+   - **`src/cohezion/agentjet/task_reader.py`** — I2 (absolute default path)
+     - FIRST ROUND: Applied. SECOND ROUND: Not yet re-applied (needs re-verification)
+     ```python
+     # OLD (relative):
+     _DEFAULT_PATH = Path("data/training/finetune_journeys.jsonl")
+     # NEW (absolute):
+     _DEFAULT_PATH = Path(__file__).resolve().parents[3] / "data" / "training" / "finetune_journeys.jsonl"
+     ```
+
+   - **`src/cohezion/agentjet/unsloth_bridge.py`** — I1 (use MODEL_OLLAMA_KEY_MAP), I2 (absolute paths), I3 (get_running_loop)
+     - FIRST ROUND: Applied. SECOND ROUND: Not yet re-applied
+     ```python
+     # New imports:
+     from cohezion.agentjet.context_optimizer import MODEL_OLLAMA_KEY_MAP
+     _PROJECT_ROOT = Path(__file__).resolve().parents[3]
+     _DATA_DIR = _PROJECT_ROOT / "data" / "training"
+     
+     # In create_dataset_from_vault:
+     out = output_path if output_path is not None else _DATA_DIR / "unsloth_dataset.jsonl"
+     local_source = _DATA_DIR / "finetune_journeys.jsonl"
+     
+     # In _llamafactory_fallback:
+     base_key = MODEL_OLLAMA_KEY_MAP.get(model, "qwen3.5")
+     loop = asyncio.get_running_loop()
+     ```
+
+   - **`src/cohezion/agentjet/workflow.py`** — I3 (get_running_loop)
+     - FIRST ROUND: Applied. SECOND ROUND: Not yet re-applied
+     ```python
+     result = await asyncio.get_running_loop().run_in_executor(...)
+     ```
+
+   - **`src/cohezion/agentjet/embeddings.py`** — I3 (get_running_loop in async encode), I4 (env var credentials)
+     - FIRST ROUND: Applied. SECOND ROUND: Not yet re-applied
+     ```python
+     # I3:
+     loop = asyncio.get_running_loop()
+     vector = await loop.run_in_executor(None, self._encode_blocking, text)
+     
+     # I4 (both _cache_lookup and _cache_store):
+     auth=aiohttp.BasicAuth(
+         os.environ.get("SURREAL_USER", "root"),
+         os.environ.get("SURREAL_PASS", "root"),
+     ),
+     ```
+
+   - **`src/cohezion/api/__init__.py`** — C2 (return 503 for OOM/resource errors, lines 1566-1610)
+     - FIRST ROUND: Applied. SECOND ROUND: Not yet re-applied
+     ```python
+     @app.post("/agentjet/train")
+     async def agentjet_train(request: TrainRequest) -> TrainResponse:
+         from fastapi import HTTPException
+         try:
+             ...
+         except Exception as e:
+             _oom_names = ("OOMRiskError", "ResourceUnavailableError")
+             if type(e).__name__ in _oom_names:
+                 raise HTTPException(status_code=503, detail=str(e)) from e
+             return TrainResponse(success=False, ..., error=str(e))
+     ```
+
+   - **`scripts/cohezion-resources.service`** — C3 (hardcoded paths)
+     - FIRST ROUND: Applied. SECOND ROUND: Not yet re-applied
+     ```ini
+     WorkingDirectory=%h/dev/cohezion
+     ExecStart=%h/.local/bin/uv run python -m cohezion.platform.resource_manager
+     ```
+
+   - **`tests/agentjet/test_trainer.py`** — Updated `test_oom_check_raises_when_memory_insufficient`
+     - FIRST ROUND: Applied and VERIFIED (tests went from 259 to 260 passing)
+     - The linter reformatted but reverted the test back to old `pytest.raises` form (unclear)
+     ```python
+     # OLD (expected exception propagation from before try block):
+     with pytest.raises(RuntimeError, match="OOMRiskError"):
+         await trainer.train(target_model="big-model")
+     
+     # NEW (exception now caught by except block, returns failed TrainingResult):
+     result = await trainer.train(target_model="big-model")
+     assert result.success is False
+     assert result.error is not None
+     assert "OOMRiskError" in result.error
+     ```
+
+4. Errors and Fixes:
+   - **First round of edits not persisting**: Edit tool said "successfully updated" but grep and Read after the fact showed original code. Root cause unclear but confirmed via: (1) test for `test_oom_check_raises_when_memory_insufficient` going from fail→pass means test edit DID persist; (2) context_optimizer.py mtime showed 16:19 but edits were applied after that time; (3) a subsequent test marker edit DID persist (mtime updated to 16:26). Hypothesis: the linter ran during the first batch and reformatted/reverted logic changes to production files but kept the test file edit; OR the test ran before any revert happened. **Fix**: Re-read all files in second round and re-apply all edits with exact old_string matching against current file content.
+   - **`test_oom_check_raises_when_memory_insufficient` failure**: After moving `_safety_check` inside the `try` block (C2 fix), the exception is caught by `except Exception as exc:` and returned as `TrainingResult(success=False)` instead of propagating. The test expected `pytest.raises(RuntimeError)`. **Fix**: Updated test to assert `result.success is False` and `"OOMRiskError" in result.error`.
+   - **`asyncio.wait_for()` as context manager (C1)**: `asyncio.wait_for()` returns a coroutine, not an async context manager, so `async with asyncio.wait_for(...)` raises `TypeError` at runtime. All 4 sites in context_optimizer.py fixed to use `aiohttp.ClientTimeout` parameter.
+   - **`asyncio.TimeoutError` vs `TimeoutError`**: The linter auto-changed `except TimeoutError:` to `except asyncio.TimeoutError:` in context_optimizer.py — this is fine (same class), no action needed.
+
+5. Problem Solving:
+   - **Identified blocking C1 bug**: All 4 Ollama API calls in `OllamaContextManager` used `async with asyncio.wait_for(session.get/post(...))` which crashes with `TypeError` on every live Ollama call, silently breaking the OOM-prevention mechanism
+   - **Edit persistence mystery**: First batch of edits appeared not to persist. After debugging (checking git status, file permissions, mtimes, hooks), concluded that edits DO work (test marker confirmed) and re-applied all fixes
+   - **Test contract change**: Moving `_safety_check` inside the `try` block changed the observable behavior — exception no longer propagates from `train()`, test updated to match new (correct) contract
+   - **Module-level shared constant**: Extracted `MODEL_OLLAMA_KEY_MAP` from local method scope in trainer.py and unsloth_bridge.py to module-level in context_optimizer.py to eliminate duplication
+   - **Systemd portability**: Used `%h` specifier instead of hardcoded `/home/mike-anderson` (though working directory assumption `%h/dev/cohezion` is still a convention)
+
+6. All User Messages:
+   - [Initial continuation message]: No explicit text from user in this session — the session started as a continuation of the previous session per the system reminder. The user's last explicit request was "code review first" from the previous session, which triggered the code review that surfaced the 11 bugs. The current session's job is to implement those fixes.
+
+7. Pending Tasks:
+   - Complete second round of trainer.py fixes:
+     - Update `_safety_check` return type annotation (`-> object | None`)
+     - Update `_safety_check` body to `return lock` instead of `self._training_lock = lock`
+     - Add `return None` at end of local fallback path
+     - Fix `_run_llamafactory` to use `MODEL_OLLAMA_KEY_MAP`, `_DATA_DIR`, always write, `asyncio.get_running_loop()`
+   - Verify and re-apply (or verify already applied from first round) fixes to:
+     - `task_reader.py` (I2: absolute path)
+     - `unsloth_bridge.py` (I1, I2, I3)
+     - `workflow.py` (I3)
+     - `embeddings.py` (I3, I4)
+     - `src/cohezion/api/__init__.py` (C2: HTTP 503)
+     - `scripts/cohezion-resources.service` (C3: %h specifier)
+   - Run full test suite to confirm 0 regressions (target: ≥4271 passing, ≤27 pre-existing failures)
+   - Commit all fixes and present 4 merge options (merge locally / create PR / keep as-is / discard)
+
+8. Current Work:
+   The session was in the middle of the **second round of applying all code review fixes**, having discovered that the first round of edits did not persist to disk. 
+
+   For `context_optimizer.py`, the second round was **fully applied and verified** via grep:
+   - All 4 `asyncio.wait_for` → `aiohttp.ClientTimeout` fixes (C1)
+   - `import time` added
+   - `time.monotonic()` replaces `asyncio.get_event_loop().time()` (I3)
+   - `raise RuntimeError(...)` replaces `logger.warning` on timeout (I6)
+   - `MODEL_OLLAMA_KEY_MAP` added at module level (I1)
+
+   For `trainer.py`, the second round was **partially applied** — the last Edit call in progress was updating the `_safety_check` method body to `return lock` instead of `self._training_lock = lock`, and adding `return None` at the end of the fallback path. The specific edits that were applied in second round:
+   - `from cohezion.agentjet.context_optimizer import MODEL_OLLAMA_KEY_MAP, OllamaContextManager` and `_PROJECT_ROOT`/`_DATA_DIR` constants added
+   - `self._training_lock: object | None = None` removed from `__init__`
+   - `_safety_check` moved inside `try` block with `training_lock = await self._safety_check(target_model)`
+   - `finally` block updated to use `training_lock` (local) instead of `self._training_lock`
+   
+   The edits being applied when the summary was requested — still needed to complete trainer.py:
+   ```python
+   # _safety_check return type (not yet applied in second round):
+   async def _safety_check(self, model: str) -> object | None:
+   
+   # In _safety_check body — return lock instead of assign (not yet applied):
+   return lock  # was: self._training_lock = lock
+   
+   # Add return None at end (not yet applied):
+   return None
+   
+   # In _run_llamafactory (not yet applied):
+   base_key = MODEL_OLLAMA_KEY_MAP.get(model, "qwen3.5")
+   _DATA_DIR.mkdir(parents=True, exist_ok=True)
+   journey_path = _DATA_DIR / "finetune_journeys.jsonl"
+   # always write (remove if not exists guard)
+   loop = asyncio.get_running_loop()
+   ```
+
+9. Optional Next Step:
+   Continue completing the trainer.py fixes — specifically the remaining edits needed:
+   
+   From the last working edit in trainer.py (the `_safety_check` body update):
+   ```python
+   # Fix _safety_check signature and body — change:
+   async def _safety_check(self, model: str) -> None:
+   # To:
+   async def _safety_check(self, model: str) -> object | None:
+   
+   # Change self._training_lock = lock to return lock
+   self._training_lock = lock
+   # To:
+   return lock
+   
+   # Add return None at end of fallback path
+   ```
+   
+   Then continue with `_run_llamafactory` fixes (I1, I2, I3, I7), then verify/re-apply fixes to `task_reader.py`, `unsloth_bridge.py`, `workflow.py`, `embeddings.py`, `api/__init__.py`, and `scripts/cohezion-resources.service`. Finally run full test suite and present 4 merge options.
+
+If you need specific details from before compaction (like exact code snippets, error messages, or content you generated), read the full transcript at: /home/mike-anderson/.claude/projects/-home-mike-anderson-dev-cohezion/9a7a40e8-257d-4b95-8105-159a21aade84.jsonl
+Continue the conversation from where it left off without asking the user any further questions. Resume directly — do not acknowledge the summary, do not recap what was happening, do not preface with "I'll continue" or similar. Pick up the last task as if the break never happened.
