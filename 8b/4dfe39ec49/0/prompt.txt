@@ -1,0 +1,953 @@
+[Request interrupted by user for tool use]
+
+---
+
+Implement the following plan:
+
+# SurrealDB Health Check & Recovery Plan
+
+## Context
+
+The vault's SurrealDB graph system has been down for ~22 hours. Two services are failing:
+1. `cohezion-vault.service` (Cloud Vault MCP, port 8360) — crashes immediately on import: `ModuleNotFoundError: No module named 'psutil'`
+2. `cohezion-vault-sync.service` — restart-looping 7882+ times with `ERROR: SurrealDB not reachable on port 8001`
+
+Root cause: The `surreal` binary is not in PATH and no SurrealDB process is running. The data files exist and are intact at `~/dev/cohezion/data/surrealdb` (RocksDB SST files, last written Mar 19 00:12).
+
+## Diagnosis Summary
+
+| Component | Status | Port |
+|-----------|--------|------|
+| SurrealDB server | DOWN — binary not in PATH, no process | 8001 (vault scripts) |
+| Cloud Vault MCP | FAILED — `psutil` missing in venv | 8360 |
+| Vault sync daemon | CRASH-LOOPING (7882 restarts) | — |
+| Vault graph data | INTACT — RocksDB files present | — |
+| Graph briefing | STALE — last generated Mar 18 23:01 | — |
+
+## Fix Plan
+
+### Step 1 — Install SurrealDB binary
+
+```bash
+curl -sSf https://install.surrealdb.com | sh
+# Installs to ~/.surrealdb/surreal or ~/.local/bin/surreal
+# Verify:
+surreal version
+```
+
+### Step 2 — Start SurrealDB server
+
+```bash
+surreal start \
+  --auth --user root --pass root \
+  --bind 0.0.0.0:8001 \
+  rocksdb://~/dev/cohezion/data/surrealdb &
+
+sleep 2
+curl -s -u root:root http://localhost:8001/health
+```
+
+### Step 3 — Verify data integrity
+
+```bash
+curl -s -X POST http://localhost:8001/sql \
+  -H "surreal-ns: cohezion" -H "surreal-db: vault" \
+  -u root:root \
+  --data-raw 'SELECT count() FROM neuron GROUP ALL; SELECT count() FROM synapse GROUP ALL;'
+```
+
+Expected: ~1578 neurons, ~6203 synapses (matching last graph briefing).
+
+### Step 4 — Fix psutil in cloud-vault-mcp
+
+```bash
+cd /home/mike-anderson/dev/cohezion/cloud-vault-mcp
+uv add psutil
+# or if using pip in the venv:
+uv run pip install psutil
+```
+
+### Step 5 — Reset and restart services
+
+```bash
+# Reset restart counter for cohezion-vault (hit burst limit)
+systemctl --user reset-failed cohezion-vault.service
+systemctl --user start cohezion-vault.service
+
+# Verify cohezion-vault is up
+curl -s http://localhost:8360/health | python3 -c "import sys,json; d=json.load(sys.stdin); print(d['status'])"
+
+# vault-sync will recover automatically once SurrealDB is up (already in restart loop)
+# Optionally reset its counter too:
+systemctl --user reset-failed cohezion-vault-sync.service
+```
+
+### Step 6 — Regenerate graph briefing
+
+```bash
+cd /home/mike-anderson/vaults/cohezion-vault
+python3 scripts/graph_context.py briefing > /tmp/briefing_check.txt
+head -10 /tmp/briefing_check.txt
+```
+
+## Verification
+
+- [ ] `curl -s -u root:root http://localhost:8001/health` → `{"code":200,"details":"Check successful"}`
+- [ ] Neuron count ~1578, synapse count ~6203
+- [ ] `curl -s http://localhost:8360/health` returns `"status": "healthy"` (or `"degraded"` at worst)
+- [ ] `systemctl --user status cohezion-vault-sync.service` shows active (running), not crash-looping
+- [ ] `graph_context.py briefing` returns vault overview without errors
+
+## Key Files
+
+- `~/.config/systemd/user/cohezion-vault.service` — Cloud Vault MCP service (port 8360)
+- `~/.config/systemd/user/cohezion-vault-sync.service` — Vault sync daemon
+- `~/dev/cohezion/data/surrealdb/` — RocksDB data files (intact)
+- `scripts/graph_context.py` — Graph query tool (uses port 8001)
+- `scripts/triune-import.py` — Vault import (uses port 8001)
+- `scripts/vault_sync.py` — Sync daemon (uses port 8001)
+- `cloud-vault-mcp/src/mcp_server/health.py` — Imports psutil (line 12)
+
+
+If you need specific details from before exiting plan mode (like exact code snippets, error messages, or content you generated), read the full transcript at: /home/mike-anderson/.claude/projects/-home-mike-anderson-vaults-cohezion-vault/e4a4c792-20c3-4abd-80a5-2fedb9f5b12d.jsonl
+
+If this plan can be broken down into multiple independent tasks, consider using the TeamCreate tool to create a team and parallelize the work.
+
+---
+
+Let's do that then, we need to make it persistent.
+
+---
+
+# /learn - Online Learning System
+
+**Extract reusable knowledge from this session into skills.** Evaluates what was learned, checks for existing skills, and creates new ones when valuable patterns are discovered.
+
+---
+
+## TABLE OF CONTENTS
+
+| Phase       | Description                                            | Steps   |
+| ----------- | ------------------------------------------------------ | ------- |
+| **Phase 0** | Reference: triggers, quality criteria, skill structure | 0.1–0.4 |
+| **Phase 1** | Evaluate: assess if knowledge is worth extracting      | 1.1     |
+| **Phase 2** | Check Existing: search for related skills              | 2.1     |
+| **Phase 3** | Create Skill: write the skill file                     | 3.1–3.2 |
+| **Phase 4** | Quality Gates: final checklist before saving           | 4.1     |
+
+**Quick Step Reference:**
+
+- 0.1 Triggers, 0.2 Quality criteria, 0.3 What NOT to extract, 0.4 Skill structure
+- 1.1 Self-evaluation questions
+- 2.1 Search existing skills
+- 3.1 Choose location, 3.2 Write SKILL.md
+- 4.1 Final checklist
+
+---
+
+## PHASE 0: REFERENCE
+
+### Step 0.1: Triggers
+
+Invoke `/learn` after ANY task involving:
+
+| Trigger                      | Example                                                          |
+| ---------------------------- | ---------------------------------------------------------------- |
+| **Non-obvious debugging**    | Spent 10+ minutes investigating; solution wasn't in docs         |
+| **Misleading errors**        | Error message pointed wrong direction; found real cause          |
+| **Workarounds**              | Found limitation and creative solution                           |
+| **Tool integration**         | Figured out how to use tool/API in undocumented way              |
+| **Trial-and-error**          | Tried multiple approaches before finding what worked             |
+| **Repeatable workflow**      | Multi-step task that will recur; worth standardizing             |
+| **External service queries** | Fetched data from Jira, GitHub, Confluence, or other APIs        |
+| **User-facing automation**   | Built something user will ask for again (reports, status checks) |
+
+### Step 0.2: Quality Criteria
+
+Skills must be:
+
+- **Reusable**: Will help with future tasks (not just this instance)
+- **Non-trivial**: Required discovery, OR is a valuable workflow pattern
+- **Verified**: Solution actually worked, not theoretical
+
+### Step 0.3: What NOT to Extract
+
+- Single-step tasks with no workflow value
+- One-off fixes unlikely to recur
+- Knowledge easily found in official docs
+
+### Step 0.4: Skill Structure
+
+**Location:** `.claude/skills/[skill-name]/SKILL.md`
+
+**Template:**
+
+```markdown
+---
+name: descriptive-kebab-case-name
+description: |
+  [CRITICAL: This determines when the skill triggers. Include:]
+  - What the skill does
+  - Specific trigger conditions (exact error messages, symptoms)
+  - When to use it (contexts, scenarios)
+author: Claude Code
+version: 1.0.0
+---
+
+# Skill Name
+
+## Problem
+
+[Clear description of the problem]
+
+## Context / Trigger Conditions
+
+[When to use - exact error messages, symptoms, scenarios]
+
+## Solution
+
+[Step-by-step solution]
+
+## Verification
+
+[How to verify it worked]
+
+## Example
+
+[Concrete example]
+
+## References
+
+[Links to documentation]
+```
+
+<details>
+<summary>Writing Effective Descriptions</summary>
+
+The description field is CRITICAL for skill discovery:
+
+**Good:**
+
+```yaml
+description: |
+  Fix for "ENOENT: no such file or directory" errors in npm monorepos.
+  Use when: (1) npm run fails with ENOENT, (2) paths work in root but
+  not in packages, (3) symlinked dependencies cause failures.
+```
+
+**Bad:**
+
+```yaml
+description: Helps with npm problems in monorepos.
+```
+
+</details>
+
+**Guidelines:**
+
+- **Concise** - Claude is smart; only add what it doesn't know
+- **Under 500 lines** - Move large docs to `references/`
+- **Examples over explanations** - Show, don't tell
+
+---
+
+## PHASE 1: EVALUATE
+
+### Step 1.1: Self-Evaluation Questions
+
+Ask yourself:
+
+1. "What did I just learn that wasn't obvious before starting?"
+2. "Would future-me benefit from having this documented?"
+3. "Was the solution non-obvious from documentation alone?"
+4. "Is this a multi-step workflow I'd repeat on similar tasks?"
+5. "Did I query an external service the user will ask about again?"
+
+**If NO to all → Skip extraction, nothing to learn.**
+
+**Note:** External service queries (Jira tickets, GitHub PRs, Confluence pages) are almost always worth extracting - users frequently repeat these requests.
+
+---
+
+## PHASE 2: CHECK EXISTING
+
+### Step 2.1: Search for Related Skills
+
+Before creating, search for related skills:
+
+```bash
+ls .claude/skills/ 2>/dev/null
+rg -i "keyword" .claude/skills/ 2>/dev/null
+ls ~/.claude/pilot/skills/ 2>/dev/null
+rg -i "keyword" ~/.claude/pilot/skills/ 2>/dev/null
+```
+
+| Found                | Action                           |
+| -------------------- | -------------------------------- |
+| Nothing related      | Create new skill                 |
+| Same trigger and fix | Update existing (bump version)   |
+| Partial overlap      | Update existing with new variant |
+
+---
+
+## PHASE 3: CREATE SKILL
+
+### Step 3.1: Choose Location
+
+**Project skills**: `.claude/skills/[skill-name]/SKILL.md`
+
+### Step 3.2: Write SKILL.md
+
+Use the template from Step 0.4. Ensure the description field contains specific trigger conditions.
+
+---
+
+## PHASE 4: QUALITY GATES
+
+### Step 4.1: Final Checklist
+
+Before finalizing:
+
+- [ ] Description contains specific trigger conditions
+- [ ] Solution verified to work
+- [ ] Content specific enough to be actionable
+- [ ] Content general enough to be reusable
+- [ ] No sensitive information
+
+---
+
+## EXAMPLE
+
+**Scenario**: Discovered LSP `findReferences` can find dead code by checking if functions have only 1 reference (their definition) or only test references.
+
+**Skill Created**: `.claude/skills/lsp-dead-code-finder/SKILL.md`
+
+```markdown
+---
+name: lsp-dead-code-finder
+description: |
+  Find dead/unused code using LSP findReferences. Use when: (1) user asks
+  to find dead code, (2) cleaning up codebase, (3) refactoring. Key insight:
+  function with only 1 reference (definition) or only test refs is dead code.
+---
+
+# LSP Dead Code Finder
+
+...
+```
+
+---
+
+## REMEMBER
+
+**Continuous improvement.** Every valuable discovery should benefit future sessions.
+Evaluate after significant work. Extract selectively. Create carefully.
+
+---
+
+We need to improve Cohezion's ability to actually use the vault and surrealdb.  How can improve our graph architecture and make it easily operable by humans and agents?
+
+---
+
+Base directory for this skill: /home/mike-anderson/.claude/plugins/cache/claude-plugins-official/superpowers/5.0.5/skills/brainstorming
+
+# Brainstorming Ideas Into Designs
+
+Help turn ideas into fully formed designs and specs through natural collaborative dialogue.
+
+Start by understanding the current project context, then ask questions one at a time to refine the idea. Once you understand what you're building, present the design and get user approval.
+
+<HARD-GATE>
+Do NOT invoke any implementation skill, write any code, scaffold any project, or take any implementation action until you have presented a design and the user has approved it. This applies to EVERY project regardless of perceived simplicity.
+</HARD-GATE>
+
+## Anti-Pattern: "This Is Too Simple To Need A Design"
+
+Every project goes through this process. A todo list, a single-function utility, a config change — all of them. "Simple" projects are where unexamined assumptions cause the most wasted work. The design can be short (a few sentences for truly simple projects), but you MUST present it and get approval.
+
+## Checklist
+
+You MUST create a task for each of these items and complete them in order:
+
+1. **Explore project context** — check files, docs, recent commits
+2. **Offer visual companion** (if topic will involve visual questions) — this is its own message, not combined with a clarifying question. See the Visual Companion section below.
+3. **Ask clarifying questions** — one at a time, understand purpose/constraints/success criteria
+4. **Propose 2-3 approaches** — with trade-offs and your recommendation
+5. **Present design** — in sections scaled to their complexity, get user approval after each section
+6. **Write design doc** — save to `docs/superpowers/specs/YYYY-MM-DD-<topic>-design.md` and commit
+7. **Spec review loop** — dispatch spec-document-reviewer subagent with precisely crafted review context (never your session history); fix issues and re-dispatch until approved (max 3 iterations, then surface to human)
+8. **User reviews written spec** — ask user to review the spec file before proceeding
+9. **Transition to implementation** — invoke writing-plans skill to create implementation plan
+
+## Process Flow
+
+```dot
+digraph brainstorming {
+    "Explore project context" [shape=box];
+    "Visual questions ahead?" [shape=diamond];
+    "Offer Visual Companion\n(own message, no other content)" [shape=box];
+    "Ask clarifying questions" [shape=box];
+    "Propose 2-3 approaches" [shape=box];
+    "Present design sections" [shape=box];
+    "User approves design?" [shape=diamond];
+    "Write design doc" [shape=box];
+    "Spec review loop" [shape=box];
+    "Spec review passed?" [shape=diamond];
+    "User reviews spec?" [shape=diamond];
+    "Invoke writing-plans skill" [shape=doublecircle];
+
+    "Explore project context" -> "Visual questions ahead?";
+    "Visual questions ahead?" -> "Offer Visual Companion\n(own message, no other content)" [label="yes"];
+    "Visual questions ahead?" -> "Ask clarifying questions" [label="no"];
+    "Offer Visual Companion\n(own message, no other content)" -> "Ask clarifying questions";
+    "Ask clarifying questions" -> "Propose 2-3 approaches";
+    "Propose 2-3 approaches" -> "Present design sections";
+    "Present design sections" -> "User approves design?";
+    "User approves design?" -> "Present design sections" [label="no, revise"];
+    "User approves design?" -> "Write design doc" [label="yes"];
+    "Write design doc" -> "Spec review loop";
+    "Spec review loop" -> "Spec review passed?";
+    "Spec review passed?" -> "Spec review loop" [label="issues found,\nfix and re-dispatch"];
+    "Spec review passed?" -> "User reviews spec?" [label="approved"];
+    "User reviews spec?" -> "Write design doc" [label="changes requested"];
+    "User reviews spec?" -> "Invoke writing-plans skill" [label="approved"];
+}
+```
+
+**The terminal state is invoking writing-plans.** Do NOT invoke frontend-design, mcp-builder, or any other implementation skill. The ONLY skill you invoke after brainstorming is writing-plans.
+
+## The Process
+
+**Understanding the idea:**
+
+- Check out the current project state first (files, docs, recent commits)
+- Before asking detailed questions, assess scope: if the request describes multiple independent subsystems (e.g., "build a platform with chat, file storage, billing, and analytics"), flag this immediately. Don't spend questions refining details of a project that needs to be decomposed first.
+- If the project is too large for a single spec, help the user decompose into sub-projects: what are the independent pieces, how do they relate, what order should they be built? Then brainstorm the first sub-project through the normal design flow. Each sub-project gets its own spec → plan → implementation cycle.
+- For appropriately-scoped projects, ask questions one at a time to refine the idea
+- Prefer multiple choice questions when possible, but open-ended is fine too
+- Only one question per message - if a topic needs more exploration, break it into multiple questions
+- Focus on understanding: purpose, constraints, success criteria
+
+**Exploring approaches:**
+
+- Propose 2-3 different approaches with trade-offs
+- Present options conversationally with your recommendation and reasoning
+- Lead with your recommended option and explain why
+
+**Presenting the design:**
+
+- Once you believe you understand what you're building, present the design
+- Scale each section to its complexity: a few sentences if straightforward, up to 200-300 words if nuanced
+- Ask after each section whether it looks right so far
+- Cover: architecture, components, data flow, error handling, testing
+- Be ready to go back and clarify if something doesn't make sense
+
+**Design for isolation and clarity:**
+
+- Break the system into smaller units that each have one clear purpose, communicate through well-defined interfaces, and can be understood and tested independently
+- For each unit, you should be able to answer: what does it do, how do you use it, and what does it depend on?
+- Can someone understand what a unit does without reading its internals? Can you change the internals without breaking consumers? If not, the boundaries need work.
+- Smaller, well-bounded units are also easier for you to work with - you reason better about code you can hold in context at once, and your edits are more reliable when files are focused. When a file grows large, that's often a signal that it's doing too much.
+
+**Working in existing codebases:**
+
+- Explore the current structure before proposing changes. Follow existing patterns.
+- Where existing code has problems that affect the work (e.g., a file that's grown too large, unclear boundaries, tangled responsibilities), include targeted improvements as part of the design - the way a good developer improves code they're working in.
+- Don't propose unrelated refactoring. Stay focused on what serves the current goal.
+
+## After the Design
+
+**Documentation:**
+
+- Write the validated design (spec) to `docs/superpowers/specs/YYYY-MM-DD-<topic>-design.md`
+  - (User preferences for spec location override this default)
+- Use elements-of-style:writing-clearly-and-concisely skill if available
+- Commit the design document to git
+
+**Spec Review Loop:**
+After writing the spec document:
+
+1. Dispatch spec-document-reviewer subagent (see spec-document-reviewer-prompt.md)
+2. If Issues Found: fix, re-dispatch, repeat until Approved
+3. If loop exceeds 3 iterations, surface to human for guidance
+
+**User Review Gate:**
+After the spec review loop passes, ask the user to review the written spec before proceeding:
+
+> "Spec written and committed to `<path>`. Please review it and let me know if you want to make any changes before we start writing out the implementation plan."
+
+Wait for the user's response. If they request changes, make them and re-run the spec review loop. Only proceed once the user approves.
+
+**Implementation:**
+
+- Invoke the writing-plans skill to create a detailed implementation plan
+- Do NOT invoke any other skill. writing-plans is the next step.
+
+## Key Principles
+
+- **One question at a time** - Don't overwhelm with multiple questions
+- **Multiple choice preferred** - Easier to answer than open-ended when possible
+- **YAGNI ruthlessly** - Remove unnecessary features from all designs
+- **Explore alternatives** - Always propose 2-3 approaches before settling
+- **Incremental validation** - Present design, get approval before moving on
+- **Be flexible** - Go back and clarify when something doesn't make sense
+
+## Visual Companion
+
+A browser-based companion for showing mockups, diagrams, and visual options during brainstorming. Available as a tool — not a mode. Accepting the companion means it's available for questions that benefit from visual treatment; it does NOT mean every question goes through the browser.
+
+**Offering the companion:** When you anticipate that upcoming questions will involve visual content (mockups, layouts, diagrams), offer it once for consent:
+> "Some of what we're working on might be easier to explain if I can show it to you in a web browser. I can put together mockups, diagrams, comparisons, and other visuals as we go. This feature is still new and can be token-intensive. Want to try it? (Requires opening a local URL)"
+
+**This offer MUST be its own message.** Do not combine it with clarifying questions, context summaries, or any other content. The message should contain ONLY the offer above and nothing else. Wait for the user's response before continuing. If they decline, proceed with text-only brainstorming.
+
+**Per-question decision:** Even after the user accepts, decide FOR EACH QUESTION whether to use the browser or the terminal. The test: **would the user understand this better by seeing it than reading it?**
+
+- **Use the browser** for content that IS visual — mockups, wireframes, layout comparisons, architecture diagrams, side-by-side visual designs
+- **Use the terminal** for content that is text — requirements questions, conceptual choices, tradeoff lists, A/B/C/D text options, scope decisions
+
+A question about a UI topic is not automatically a visual question. "What does personality mean in this context?" is a conceptual question — use the terminal. "Which wizard layout works better?" is a visual question — use the browser.
+
+If they agree to the companion, read the detailed guide before proceeding:
+`skills/brainstorming/visual-companion.md`
+
+---
+
+a,b,c and we need to be looking towards the future.
+
+---
+
+All 3
+
+---
+
+Can we get party mode democratic consensus for this choice?
+
+---
+
+Yes, we can always change it later
+
+---
+
+we need agentic democratic consensus for this
+
+---
+
+yes
+
+---
+
+The 3d graph is garbage, I thought we we were working on a 12-d plugin?
+
+---
+
+How do you think we should proceed?
+
+---
+
+yes, let's see the approaches
+
+---
+
+Yes
+
+---
+
+yes
+
+---
+
+yes and are we leveraging what others have done?  https://surrealdb.com/docs/labs
+
+---
+
+Proceed
+
+---
+
+Pick a path that unlocks compound engineering and token efficiencies.  Not all tokens are the same.
+
+---
+
+Finish it
+
+---
+
+This session is being continued from a previous conversation that ran out of context. The summary below covers the earlier portion of the conversation.
+
+Summary:
+1. Primary Request and Intent:
+   The session had two major phases:
+   
+   **Phase 1 — Infrastructure Recovery**: Implement a pre-planned recovery for a vault SurrealDB system that had been down ~22 hours. Three failures needed fixing: (1) SurrealDB not running (binary not in PATH), (2) `cloud-vault-mcp` service crashing on import with `ModuleNotFoundError: No module named 'psutil'`, (3) `cohezion-vault-sync` crash-looping 7882+ times. After completing recovery, user requested making SurrealDB persistent via systemd. Then `/learn` was invoked to capture lessons into the `surrealdb-debug` skill.
+   
+   **Phase 2 — Graph Architecture Brainstorming**: User asked to improve Cohezion's graph architecture to make it "easily operable by humans and agents" and "looking towards the future." Via structured brainstorming (superpowers:brainstorming skill), agreed on: unified intelligence layer serving agents + humans + multi-agent coordination; SurrealDB stored functions as canonical layer; MCP tools + CLI as thin wrappers; agents own latent/dream synapses + metadata writes; sync daemon owns structural writes. User asked to "pick a path that unlocks compound engineering and token efficiencies" and then said "Finish it" — meaning complete the remaining brainstorming phases: present remaining design sections, write the spec doc, run spec review loop, get user approval, and invoke writing-plans skill.
+
+2. Key Technical Concepts:
+   - SurrealDB v3 flag changes: `--auth` removed, auth on by default, use `--username`/`--password`
+   - SurrealDB binary location: `~/.surrealdb/surreal` (not in PATH)
+   - systemd user services: `After=`, `Wants=` vs `Requires=` dependency semantics
+   - RocksDB storage backend for SurrealDB
+   - `psutil` dependency missing from `pyproject.toml` in cloud-vault-mcp
+   - Port mismatch: cloud-vault-mcp defaults to port 8000, vault uses 8001
+   - SurrealDB stored functions: `fn::context_neighborhood`, `fn::context_cluster`, `fn::context_search`, `fn::context_bridges`, `fn::context_hops`, `fn::vault_stats`
+   - SurrealDB Labs: official MCP server (`nsxdavid/surrealdb-mcp-server`), `surrealdb.py` SDK, `surrealdb.js` SDK, Surrealist UI, `surrealdb-migrations`, LangChain GraphRAG integration
+   - 12D graph visualization: 12 dimensions mapped to neuron properties, Three.js/WebGL rendering, SurrealDB WebSocket LIVE queries
+   - FLUME latent vectors for `dim_agent_affinity`: `nomic-embed-text (768D) → PCA projection → 12D` (hash-based approach already rejected in vault decision doc)
+   - GraphReactor pattern: pre-computing graph intelligence into `metabolism/` markdown files at change-time, zero session-start query cost
+   - Per-prompt hook: `graph_context_hook.py` injects ~275 tokens of graph context on every user prompt
+   - Token efficiency: "not all tokens are the same" — 86x compression ratio from graph queries vs file reads
+   - Compound engineering: agents leave trails in `dim_agent_affinity`, future agents inherit intelligence
+   - Write boundary: sync daemon owns `explicit` synapses + neuron CRUD; agents own `latent`/`dream` synapses + metadata annotations
+
+3. Files and Code Sections:
+   - **`~/.config/systemd/user/surrealdb.service`** (CREATED)
+     - New persistent systemd service for SurrealDB
+     ```ini
+     [Unit]
+     Description=SurrealDB Server (Cohezion Vault)
+     After=network.target
+     StartLimitBurst=5
+     StartLimitIntervalSec=60
+     [Service]
+     Type=simple
+     ExecStart=/home/mike-anderson/.surrealdb/surreal start \
+         --username root --password root \
+         --bind 0.0.0.0:8001 \
+         --no-banner \
+         rocksdb:///home/mike-anderson/dev/cohezion/data/surrealdb
+     Restart=on-failure
+     RestartSec=5
+     StandardOutput=journal
+     StandardError=journal
+     [Install]
+     WantedBy=default.target
+     ```
+
+   - **`~/.config/systemd/user/cohezion-vault.service`** (MODIFIED)
+     - Added `After=network.target surrealdb.service` and `Wants=surrealdb.service`
+     - Added `Environment=SURREALDB_URL=http://localhost:8001` (critical fix for port mismatch)
+
+   - **`~/.config/systemd/user/cohezion-vault-sync.service`** (MODIFIED)
+     - Added `After=network.target surrealdb.service` and `Wants=surrealdb.service`
+
+   - **`/home/mike-anderson/dev/cohezion/cloud-vault-mcp/pyproject.toml`** (MODIFIED)
+     - Added `"psutil>=5.9.0"` to dependencies list
+
+   - **`/home/mike-anderson/vaults/cohezion-vault/.claude/skills/surrealdb-debug/SKILL.md`** (MODIFIED)
+     - Updated from v1.7.0 to v1.8.0
+     - Updated description to add triggers 15, 16, 17
+     - Rewrote Step 5 with correct v3 syntax (full binary path, `--username`/`--password` instead of `--auth --user --pass`)
+     - Added "Setting Up Persistent systemd Service" section with complete unit file and `Wants=` vs `Requires=` explanation
+     - Added "cohezion-vault.service Port Mismatch" section documenting the port 8000 vs 8001 bug
+
+   - **`/home/mike-anderson/vaults/cohezion-vault/scripts/graph_context.py`** (READ)
+     - 324 lines, 8 CLI commands: neighborhood, search, cluster, hops, bridges, stats, resolve, briefing
+     - Uses raw `urllib.request` HTTP calls (to be replaced with `surrealdb.py` SDK)
+
+   - **`/home/mike-anderson/vaults/cohezion-vault/scripts/dba/context_functions.surql`** (READ)
+     - 153 lines of SurrealDB stored functions: `fn::context_neighborhood`, `fn::context_cluster`, `fn::context_search`, `fn::context_hops`, `fn::context_bridges`, `fn::vault_stats`
+     - These are the canonical query layer that MCP tools will wrap
+
+   - **`/home/mike-anderson/vaults/cohezion-vault/scripts/triune-schema.surql`** (READ)
+     - Current schema: `neuron`, `synapse`, `country`, `songline`, `kinship`, `dream`, `hiho_event`, `neuron_history`
+     - No `dim_*` fields yet — these are to be added in Track 2
+
+   - **`/home/mike-anderson/vaults/cohezion-vault/prefrontal/2026-02-09-12d-graph-refined-plan.md`** (READ)
+     - 12D framework with all dimensions defined
+     - Specialist-driven implementation plan (6 specialists)
+     - Phase 1 (SurrealDB) marked ✅ COMPLETE, other phases pending
+     - Technical stack: TypeScript + Three.js + surrealdb.js + Svelte for plugin
+
+   - **`/home/mike-anderson/vaults/cohezion-vault/prefrontal/2026-02-23-hash-based-journey-tracking-produces-meaningless-12d-trajectories.md`** (READ)
+     - Critical decision: hash-based journey tracking rejected
+     - Correct approach: `nomic-embed-text (768D) → FLUME VAE encoder → latent (12D projected)`
+     - This makes `dim_agent_affinity` a Track 2 priority (moved from deferred)
+
+4. Errors and fixes:
+   - **`ModuleNotFoundError: No module named 'psutil'`** in cohezion-vault.service:
+     - `psutil` imported in `health.py:12` but missing from `pyproject.toml`
+     - Fixed by adding `"psutil>=5.9.0"` to dependencies and running `uv pip install psutil`
+   
+   - **SurrealDB not starting**: Binary at `~/.surrealdb/surreal` not in PATH; v3 removed `--auth` flag
+     - Fixed by using full path and corrected v3 flags: `--username root --password root`
+   
+   - **`cohezion-vault.service` SurrealDB connection refused despite DB running**:
+     - Service defaulted `SURREALDB_URL` to port 8000; vault uses 8001
+     - Fixed by adding `Environment=SURREALDB_URL=http://localhost:8001`
+   
+   - **`systemctl enable --now` returned exit code 144**:
+     - Happened because background surreal process was killed at same time
+     - Fixed by separating `enable` and `start` commands
+
+5. Problem Solving:
+   - **Three-failure cascade** (DB down → sync loop → MCP crash) diagnosed and fixed sequentially
+   - **v3 API change**: `--auth` flag removal discovered empirically by checking `surreal start --help`
+   - **Port mismatch**: Found by reading the service file and comparing against config.py default
+   - **12D plan vs graph architecture**: Recognized they're the same project — graph architecture improvement IS the 12D plugin foundation
+   - **SurrealDB Labs leverage**: Identified 5 components to use instead of building: official MCP server, surrealdb.py SDK, Surrealist UI, surrealdb.js, surrealdb-migrations
+   - **Sequencing for compound engineering**: User prompted reordering — moved `dim_agent_affinity` (FLUME pipeline) from Track 3 to Phase B because it's the compound multiplier
+
+6. All user messages:
+   - "Implement the following plan: [SurrealDB Health Check & Recovery Plan]"
+   - "Let's do that then, we need to make it persistent."
+   - `/learn` command
+   - "We need to improve Cohezion's ability to actually use the vault and surrealdb. How can improve our graph architecture and make it easily operable by humans and agents?"
+   - "a,b,c and we need to be looking towards the future." (confirming all three pain points)
+   - "All 3" (confirming unified intelligence layer vision)
+   - "Can we get party mode democratic consensus for this choice?" (re: access path architecture)
+   - "Yes, we can always change it later" (approving coalition: SurrealDB functions → MCP tools + CLI)
+   - "we need agentic democratic consensus for this" (re: write model options)
+   - "yes" (approving annotation-writes model with event-sourced upgrade path)
+   - "One more question before I propose approaches: [human UI question]"
+   - "The 3d graph is garbage, I thought we were working on a 12-d plugin?" (correcting assumption about Obsidian 3D plugin)
+   - "How do you think we should proceed?" (after seeing 12D plans)
+   - "yes, let's see the approaches"
+   - "Yes" (approving Approach C: parallel tracks)
+   - "yes" (approving Section 1 architecture diagram)
+   - "yes and are we leveraging what others have done? https://surrealdb.com/docs/labs"
+   - "Proceed" (after seeing SurrealDB Labs findings)
+   - "yes" (approving Section 2 MCP tools design)
+   - "Pick a path that unlocks compound engineering and token efficiencies. Not all tokens are the same."
+   - "Finish it" (complete remaining brainstorming phases)
+
+7. Pending Tasks:
+   - Complete remaining design sections (error handling, testing strategy)
+   - Write design doc to `docs/superpowers/specs/2026-03-20-graph-architecture-design.md`
+   - Commit design doc to git
+   - Run spec-document-reviewer subagent (spec review loop, max 3 iterations)
+   - Ask user to review the written spec
+   - Invoke `writing-plans` skill to create implementation plan
+
+8. Current Work:
+   Immediately before the summary request, the brainstorming session was presenting design sections for approval. The final design section presented (Section 3 revised) was the "Intelligence Density First" resequenced path:
+   
+   - **Phase A (Week 1)**: Switch to `surrealdb.py` SDK; add `dim_bridging`, `dim_completion`, `dim_recency` to schema; expand GraphReactor to write dimensional aggregates to `metabolism/graph-briefing.md`; register official `surrealdb-mcp-server` as second MCP server
+   - **Phase B (Week 2)**: FLUME pipeline for `dim_agent_affinity` (`nomic-embed-text → 768D → PCA → 12D`); enrich per-prompt hook with affinity signal
+   - **Phase C (Week 2-3)**: `vault_graph/` module extraction + 6 MCP graph tools
+   
+   The user responded "Finish it" after approving the resequenced design.
+
+9. Optional Next Step:
+   Complete the brainstorming process as directed by "Finish it." The remaining steps per the brainstorming skill are:
+   
+   - Present any remaining design sections (error handling, testing) and get approval
+   - Write the validated design to `docs/superpowers/specs/2026-03-20-graph-architecture-design.md`
+   - Commit the design document
+   - Dispatch spec-document-reviewer subagent for review loop
+   - Ask user to review the written spec
+   - Invoke `writing-plans` skill
+   
+   Verbatim from last exchange:
+   - Assistant: "Does this resequencing land right?"
+   - User: "Finish it"
+   
+   The design has been approved through the resequenced Phase A/B/C structure. The next action is to present the final design sections (error handling + testing), then write and commit the spec doc.
+
+If you need specific details from before compaction (like exact code snippets, error messages, or content you generated), read the full transcript at: /home/mike-anderson/.claude/projects/-home-mike-anderson-vaults-cohezion-vault/c7d6eeca-c05b-4905-b281-d7f96449b3ce.jsonl
+Continue the conversation from where it left off without asking the user any further questions. Resume directly — do not acknowledge the summary, do not recap what was happening, do not preface with "I'll continue" or similar. Pick up the last task as if the break never happened.
+
+---
+
+<task-notification>
+<task-id>aeada1a41e7a693b5</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-vaults-cohezion-vault/e4a4c792-20c3-4abd-80a5-2fedb9f5b12d/tasks/aeada1a41e7a693b5.output</output-file>
+<status>completed</status>
+<summary>Agent "Review spec document" completed</summary>
+<result>## Spec Review
+
+**Status:** Approved
+
+**Issues (if any):**
+
+None that would cause a flawed plan.
+
+**Recommendations (advisory, do not block approval):**
+
+- [Section A4 / Dependencies]: `surrealdb-mcp-server` is listed as `nsxdavid/surrealdb-mcp-server` (GitHub handle format) in the config block but as `npm: nsxdavid/surrealdb-mcp-server` in the dependencies table. If this is an npm package, the package name should be confirmed before implementation so the `npx` invocation uses the correct name.
+
+- [Section C1]: The module path `src/mcp_server/vault_graph/` is specified, but Section A1 installs the `surrealdb` SDK into `cloud-vault-mcp`. A planner should confirm that `cloud-vault-mcp` and `src/mcp_server/` resolve to the same package root, or note the discrepancy explicitly during task breakdown.
+
+- [Section 6, Phase ordering]: Phase C (module extraction) depends on the SDK migration done in Phase A1, but Phase B tools also call into graph query logic. The planner should note that B3 tool stubs may need to be wired to Phase C's `vault_graph/` module rather than the pre-extraction `graph_context.py`, or decide explicitly which to target first.</result>
+<usage><total_tokens>56374</total_tokens><tool_uses>1</tool_uses><duration_ms>19647</duration_ms></usage>
+</task-notification>
+Full transcript available at: /tmp/claude-1000/-home-mike-anderson-vaults-cohezion-vault/e4a4c792-20c3-4abd-80a5-2fedb9f5b12d/tasks/aeada1a41e7a693b5.output
+
+---
+
+go ahead
+
+---
+
+Base directory for this skill: /home/mike-anderson/.claude/plugins/cache/claude-plugins-official/superpowers/5.0.5/skills/writing-plans
+
+# Writing Plans
+
+## Overview
+
+Write comprehensive implementation plans assuming the engineer has zero context for our codebase and questionable taste. Document everything they need to know: which files to touch for each task, code, testing, docs they might need to check, how to test it. Give them the whole plan as bite-sized tasks. DRY. YAGNI. TDD. Frequent commits.
+
+Assume they are a skilled developer, but know almost nothing about our toolset or problem domain. Assume they don't know good test design very well.
+
+**Announce at start:** "I'm using the writing-plans skill to create the implementation plan."
+
+**Context:** This should be run in a dedicated worktree (created by brainstorming skill).
+
+**Save plans to:** `docs/superpowers/plans/YYYY-MM-DD-<feature-name>.md`
+- (User preferences for plan location override this default)
+
+## Scope Check
+
+If the spec covers multiple independent subsystems, it should have been broken into sub-project specs during brainstorming. If it wasn't, suggest breaking this into separate plans — one per subsystem. Each plan should produce working, testable software on its own.
+
+## File Structure
+
+Before defining tasks, map out which files will be created or modified and what each one is responsible for. This is where decomposition decisions get locked in.
+
+- Design units with clear boundaries and well-defined interfaces. Each file should have one clear responsibility.
+- You reason best about code you can hold in context at once, and your edits are more reliable when files are focused. Prefer smaller, focused files over large ones that do too much.
+- Files that change together should live together. Split by responsibility, not by technical layer.
+- In existing codebases, follow established patterns. If the codebase uses large files, don't unilaterally restructure - but if a file you're modifying has grown unwieldy, including a split in the plan is reasonable.
+
+This structure informs the task decomposition. Each task should produce self-contained changes that make sense independently.
+
+## Bite-Sized Task Granularity
+
+**Each step is one action (2-5 minutes):**
+- "Write the failing test" - step
+- "Run it to make sure it fails" - step
+- "Implement the minimal code to make the test pass" - step
+- "Run the tests and make sure they pass" - step
+- "Commit" - step
+
+## Plan Document Header
+
+**Every plan MUST start with this header:**
+
+```markdown
+# [Feature Name] Implementation Plan
+
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+
+**Goal:** [One sentence describing what this builds]
+
+**Architecture:** [2-3 sentences about approach]
+
+**Tech Stack:** [Key technologies/libraries]
+
+---
+```
+
+## Task Structure
+
+````markdown
+### Task N: [Component Name]
+
+**Files:**
+- Create: `exact/path/to/file.py`
+- Modify: `exact/path/to/existing.py:123-145`
+- Test: `tests/exact/path/to/test.py`
+
+- [ ] **Step 1: Write the failing test**
+
+```python
+def test_specific_behavior():
+    result = function(input)
+    assert result == expected
+```
+
+- [ ] **Step 2: Run test to verify it fails**
+
+Run: `pytest tests/path/test.py::test_name -v`
+Expected: FAIL with "function not defined"
+
+- [ ] **Step 3: Write minimal implementation**
+
+```python
+def function(input):
+    return expected
+```
+
+- [ ] **Step 4: Run test to verify it passes**
+
+Run: `pytest tests/path/test.py::test_name -v`
+Expected: PASS
+
+- [ ] **Step 5: Commit**
+
+```bash
+git add tests/path/test.py src/path/file.py
+git commit -m "feat: add specific feature"
+```
+````
+
+## Remember
+- Exact file paths always
+- Complete code in plan (not "add validation")
+- Exact commands with expected output
+- Reference relevant skills with @ syntax
+- DRY, YAGNI, TDD, frequent commits
+
+## Plan Review Loop
+
+After writing the complete plan:
+
+1. Dispatch a single plan-document-reviewer subagent (see plan-document-reviewer-prompt.md) with precisely crafted review context — never your session history. This keeps the reviewer focused on the plan, not your thought process.
+   - Provide: path to the plan document, path to spec document
+2. If ❌ Issues Found: fix the issues, re-dispatch reviewer for the whole plan
+3. If ✅ Approved: proceed to execution handoff
+
+**Review loop guidance:**
+- Same agent that wrote the plan fixes it (preserves context)
+- If loop exceeds 3 iterations, surface to human for guidance
+- Reviewers are advisory — explain disagreements if you believe feedback is incorrect
+
+## Execution Handoff
+
+After saving the plan, offer execution choice:
+
+**"Plan complete and saved to `docs/superpowers/plans/<filename>.md`. Two execution options:**
+
+**1. Subagent-Driven (recommended)** - I dispatch a fresh subagent per task, review between tasks, fast iteration
+
+**2. Inline Execution** - Execute tasks in this session using executing-plans, batch execution with checkpoints
+
+**Which approach?"**
+
+**If Subagent-Driven chosen:**
+- **REQUIRED SUB-SKILL:** Use superpowers:subagent-driven-development
+- Fresh subagent per task + two-stage review
+
+**If Inline Execution chosen:**
+- **REQUIRED SUB-SKILL:** Use superpowers:executing-plans
+- Batch execution with checkpoints for review
+
+---
+
+<task-notification>
+<task-id>ae9ed7a9ce0e26e43</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-vaults-cohezion-vault/e4a4c792-20c3-4abd-80a5-2fedb9f5b12d/tasks/ae9ed7a9ce0e26e43.output</output-file>
+<status>completed</status>
+<summary>Agent "Review plan document" completed</summary>
+<result>## Plan Review
+
+**Status:** Approved
+
+**Issues (if any):**
+
+- [Task 5, Step 2]: The plan hardcodes `root/root` credentials for the surrealdb MCP entry, but the spec (Section A4) specifies using `sdb_admin_session43` scoped user with `<from service file>` for the password. The plan note acknowledges this is intentional ("needs root for direct SurrealQL"), but this contradicts the spec without explanation of why root is required here versus the scoped user. An implementer following the plan will need to know the actual `sdb_admin_session43` password from the service file, or accept the root credential deviation consciously. This is a minor ambiguity but won't cause the implementation to fail.
+
+- [Task 6, Step 3]: `compute_pca_matrix.py` imports `sklearn` but Task 6 Step 4 adds `scikit-learn` after the implementation step. The test in Step 2 will also fail at import time because sklearn isn't installed yet. The ordering works out in practice since Step 4 runs before Step 5 (tests), but running Step 2's test-expect-failure will produce a different error than `ModuleNotFoundError: No module named 'compute_pca_matrix'` — it'll fail at `sklearn` import. This is cosmetic and won't block implementation.
+
+- [Phase C, Task 9-10]: The spec lists `reactor.py` and `affinity.py` as Phase C files (`vault_graph/reactor.py`, `vault_graph/affinity.py`), but the plan has no tasks for implementing these two files. Task 9 creates `client.py` and `queries.py`, Task 10 creates `tools.py`, and neither creates `reactor.py` or `affinity.py`. The spec's success criterion for ">80% test coverage" on the `vault_graph/` module and the file map both list these files as Phase C deliverables. The reactor and affinity pipeline are functional pieces, not documentation — an implementer following this plan will end up with an incomplete `vault_graph/` module missing two of its five planned files.
+
+**Recommendations (advisory, do not block approval):**
+
+- The plan's briefing template in Task 4 omits the "Bridges (connect otherwise-disconnected clusters)" section that appears in the spec's template (Section A3). The plan's version only generates hot neurons, completion gaps, and recent activity. This is not a blocking issue since the spec marks it as a template suggestion, but worth noting.
+
+- Task 8's `graph_write_tools.py` uses a synchronous `client.query()` interface while the existing `cloud-vault-mcp` server is async (FastMCP). The plan's `register_graph_write_tools` registers tools as synchronous functions. This may work depending on how FastMCP handles sync tools, but is worth verifying against the existing server pattern when implementing Step 4.</result>
+<usage><total_tokens>83077</total_tokens><tool_uses>2</tool_uses><duration_ms>33872</duration_ms></usage>
+</task-notification>
+Full transcript available at: /tmp/claude-1000/-home-mike-anderson-vaults-cohezion-vault/e4a4c792-20c3-4abd-80a5-2fedb9f5b12d/tasks/ae9ed7a9ce0e26e43.output
