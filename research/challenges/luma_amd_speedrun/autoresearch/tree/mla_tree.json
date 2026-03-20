@@ -7,7 +7,7 @@
       "strategy": "Minimize MLA decode geomean across 8 shapes",
       "parameters": {},
       "parent_id": null,
-      "priority": 0.7350918906249998,
+      "priority": 0.34056162628811465,
       "attempts": 0,
       "best_result_us": null,
       "stagnation_count": 0,
@@ -20,7 +20,8 @@
         "mla_n5",
         "n_8a249fb9",
         "n_81c6a22e",
-        "n_ee6633bc"
+        "n_ee6633bc",
+        "n_b3879422"
       ],
       "notes": "",
       "attempt_history": []
@@ -39,7 +40,7 @@
         "DEFAULT_SPLITS": 16
       },
       "parent_id": "root_mla",
-      "priority": 0.6983372960937497,
+      "priority": 0.3235335449737089,
       "attempts": 0,
       "best_result_us": null,
       "stagnation_count": 0,
@@ -68,7 +69,7 @@
         "DEFAULT_SPLITS": 16
       },
       "parent_id": "mla_n1",
-      "priority": 0.30951237499999995,
+      "priority": 0.14339436896341679,
       "attempts": 5,
       "best_result_us": 161.53,
       "stagnation_count": 2,
@@ -169,7 +170,7 @@
         "DEFAULT_SPLITS": 16
       },
       "parent_id": "mla_n1",
-      "priority": 0.5029576093749999,
+      "priority": 0.23301584956555227,
       "attempts": 1,
       "best_result_us": 221.54,
       "stagnation_count": 0,
@@ -211,7 +212,7 @@
         "DEFAULT_SPLITS": 16
       },
       "parent_id": "mla_n1",
-      "priority": 0.5880735124999998,
+      "priority": 0.27244930103049186,
       "attempts": 0,
       "best_result_us": null,
       "stagnation_count": 0,
@@ -234,7 +235,7 @@
         "DEFAULT_SPLITS": 16
       },
       "parent_id": "mla_n1",
-      "priority": 0.5513189179687497,
+      "priority": 0.255421219716086,
       "attempts": 0,
       "best_result_us": null,
       "stagnation_count": 0,
@@ -354,12 +355,14 @@
         "DEFAULT_SPLITS": 16
       },
       "parent_id": "root_mla",
-      "priority": 0.7097106920600498,
-      "attempts": 7,
-      "best_result_us": 192.5,
+      "priority": 0.24441805363281238,
+      "attempts": 16,
+      "best_result_us": 139.55,
       "stagnation_count": 0,
       "status": "active",
-      "children": [],
+      "children": [
+        "n_e598d2a3"
+      ],
       "notes": "Test FP8 vs MXFP4 \u2014 FP8 has wider compute support but 2x bandwidth",
       "attempt_history": [
         {
@@ -473,6 +476,150 @@
           },
           "timestamp": "2026-03-20T16:10:33.799932",
           "source": "template"
+        },
+        {
+          "result_us": 203.02676594816057,
+          "parameters": {
+            "KV_FORMAT": "fp8",
+            "SPLITS_TABLE": {
+              "4_1024": 4,
+              "4_8192": 16,
+              "32_1024": 8,
+              "32_8192": 36,
+              "128_8192": 32
+            },
+            "DEFAULT_SPLITS": 16
+          },
+          "timestamp": "2026-03-20T16:11:56.002586",
+          "source": "template"
+        },
+        {
+          "result_us": 182.07859127622356,
+          "parameters": {
+            "KV_FORMAT": "fp8",
+            "SPLITS_TABLE": {
+              "4_1024": 4,
+              "4_8192": 16,
+              "32_1024": 8,
+              "32_8192": 32,
+              "128_8192": 28
+            },
+            "DEFAULT_SPLITS": 16
+          },
+          "timestamp": "2026-03-20T16:15:02.101927",
+          "source": "template"
+        },
+        {
+          "result_us": 201.72252931212128,
+          "parameters": {
+            "KV_FORMAT": "fp8",
+            "SPLITS_TABLE": {
+              "4_1024": 4,
+              "4_8192": 16,
+              "32_1024": 8,
+              "32_8192": 28,
+              "128_8192": 32
+            },
+            "DEFAULT_SPLITS": 16
+          },
+          "timestamp": "2026-03-20T16:15:33.100883",
+          "source": "template"
+        },
+        {
+          "result_us": 187.9047275323378,
+          "parameters": {
+            "KV_FORMAT": "fp8",
+            "SPLITS_TABLE": {
+              "4_1024": 4,
+              "4_8192": 16,
+              "32_1024": 8,
+              "32_8192": 28,
+              "128_8192": 32
+            },
+            "DEFAULT_SPLITS": 16
+          },
+          "timestamp": "2026-03-20T16:15:42.499972",
+          "source": "template"
+        },
+        {
+          "result_us": 165.4496795124056,
+          "parameters": {
+            "KV_FORMAT": "fp8",
+            "SPLITS_TABLE": {
+              "4_1024": 4,
+              "4_8192": 16,
+              "32_1024": 4,
+              "32_8192": 32,
+              "128_8192": 32
+            },
+            "DEFAULT_SPLITS": 16
+          },
+          "timestamp": "2026-03-20T16:18:47.000079",
+          "source": "template"
+        },
+        {
+          "result_us": 145.4534632874164,
+          "parameters": {
+            "KV_FORMAT": "fp8",
+            "SPLITS_TABLE": {
+              "4_1024": 4,
+              "4_8192": 12,
+              "32_1024": 8,
+              "32_8192": 32,
+              "128_8192": 32
+            },
+            "DEFAULT_SPLITS": 16
+          },
+          "timestamp": "2026-03-20T16:18:53.799584",
+          "source": "template"
+        },
+        {
+          "result_us": 147.06500425380293,
+          "parameters": {
+            "KV_FORMAT": "fp8",
+            "SPLITS_TABLE": {
+              "4_1024": 2,
+              "4_8192": 16,
+              "32_1024": 8,
+              "32_8192": 32,
+              "128_8192": 32
+            },
+            "DEFAULT_SPLITS": 16
+          },
+          "timestamp": "2026-03-20T16:19:06.499583",
+          "source": "template"
+        },
+        {
+          "result_us": 163.390836072253,
+          "parameters": {
+            "KV_FORMAT": "fp8",
+            "SPLITS_TABLE": {
+              "4_1024": 4,
+              "4_8192": 16,
+              "32_1024": 8,
+              "32_8192": 32,
+              "128_8192": 28
+            },
+            "DEFAULT_SPLITS": 16
+          },
+          "timestamp": "2026-03-20T16:19:27.600326",
+          "source": "template"
+        },
+        {
+          "result_us": 139.55117013245118,
+          "parameters": {
+            "KV_FORMAT": "fp8",
+            "SPLITS_TABLE": {
+              "4_1024": 4,
+              "4_8192": 20,
+              "32_1024": 8,
+              "32_8192": 32,
+              "128_8192": 32
+            },
+            "DEFAULT_SPLITS": 16
+          },
+          "timestamp": "2026-03-20T16:21:07.404661",
+          "source": "template"
         }
       ]
     },
@@ -491,7 +638,7 @@
         "DEFAULT_SPLITS": 16
       },
       "parent_id": "root_mla",
-      "priority": 0.5145643234374998,
+      "priority": 0.23839313840168025,
       "attempts": 0,
       "best_result_us": null,
       "stagnation_count": 0,
@@ -515,7 +662,7 @@
         "DEFAULT_SPLITS": 16
       },
       "parent_id": "root_mla",
-      "priority": 0.4410551343749999,
+      "priority": 0.20433697577286888,
       "attempts": 0,
       "best_result_us": null,
       "stagnation_count": 0,
@@ -529,7 +676,7 @@
       "strategy": "Pre-compute metadata outside timed region",
       "parameters": {},
       "parent_id": "root_mla",
-      "priority": 0.3675459453124999,
+      "priority": 0.17028081314405732,
       "attempts": 0,
       "best_result_us": null,
       "stagnation_count": 0,
@@ -543,7 +690,7 @@
       "strategy": "Adaptive KV cache size",
       "parameters": {},
       "parent_id": "root_mla",
-      "priority": 0.46426856249999987,
+      "priority": 0.21509155344512515,
       "attempts": 0,
       "best_result_us": null,
       "stagnation_count": 0,
@@ -557,7 +704,7 @@
       "strategy": "Fused quant+GEMM for FP4",
       "parameters": {},
       "parent_id": "root_mla",
-      "priority": 0.38689046874999994,
+      "priority": 0.17924296120427088,
       "attempts": 0,
       "best_result_us": null,
       "stagnation_count": 0,
@@ -578,7 +725,7 @@
         "block_size": "dynamic"
       },
       "parent_id": "mla_n1a",
-      "priority": 0.6190247499999999,
+      "priority": 0.28678873792683357,
       "attempts": 0,
       "best_result_us": null,
       "stagnation_count": 0,
@@ -600,7 +747,7 @@
         "l2_block_size": 65536
       },
       "parent_id": "mla_n1",
-      "priority": 0.5029576093749999,
+      "priority": 0.23301584956555227,
       "attempts": 0,
       "best_result_us": null,
       "stagnation_count": 0,
@@ -624,7 +771,7 @@
         "split_k": 16
       },
       "parent_id": "mla_n1b",
-      "priority": 0.5803357031249997,
+      "priority": 0.26886444180640634,
       "attempts": 0,
       "best_result_us": null,
       "stagnation_count": 0,
@@ -648,7 +795,7 @@
         "split_k": 16
       },
       "parent_id": "mla_n1b",
-      "priority": 0.5029576093749999,
+      "priority": 0.23301584956555227,
       "attempts": 0,
       "best_result_us": null,
       "stagnation_count": 0,
@@ -662,7 +809,7 @@
       "strategy": "Beat 145.4\u00b5s (10% below 161.5\u00b5s plateau)",
       "parameters": {},
       "parent_id": "root_mla",
-      "priority": 0.4275,
+      "priority": 0.19805700089329445,
       "attempts": 1,
       "best_result_us": 198.54,
       "stagnation_count": 0,
@@ -693,7 +840,7 @@
         "num_kv_splits": 1
       },
       "parent_id": "n_ee6633bc",
-      "priority": 0.6174999999999999,
+      "priority": 0.2860823346236475,
       "attempts": 0,
       "best_result_us": null,
       "stagnation_count": 0,
@@ -713,13 +860,54 @@
         "max_split": 32
       },
       "parent_id": "n_ee6633bc",
-      "priority": 0.589,
+      "priority": 0.27287853456409455,
       "attempts": 0,
       "best_result_us": null,
       "stagnation_count": 0,
       "status": "active",
       "children": [],
       "notes": "[LLM-proposed]",
+      "attempt_history": []
+    },
+    "n_e598d2a3": {
+      "id": "n_e598d2a3",
+      "strategy": "FP8 KV cache + wavefront-aware tiling (64x256 vs 128x128) with split=1 for bs=4,kv=1024",
+      "parameters": {},
+      "parent_id": "mla_n2",
+      "priority": 0.15475618749999998,
+      "attempts": 2,
+      "best_result_us": 193.07,
+      "stagnation_count": 1,
+      "status": "active",
+      "children": [],
+      "notes": "[LLM-proposed]",
+      "attempt_history": [
+        {
+          "result_us": 193.06541483125827,
+          "parameters": {},
+          "timestamp": "2026-03-20T16:23:03.902612",
+          "source": "template"
+        },
+        {
+          "result_us": 220.89982961789005,
+          "parameters": {},
+          "timestamp": "2026-03-20T16:23:10.998931",
+          "source": "template"
+        }
+      ]
+    },
+    "n_b3879422": {
+      "id": "n_b3879422",
+      "strategy": "Beat 125.6\u00b5s (10% below 139.6\u00b5s plateau)",
+      "parameters": {},
+      "parent_id": "root_mla",
+      "priority": 0.6516049999999999,
+      "attempts": 0,
+      "best_result_us": null,
+      "stagnation_count": 0,
+      "status": "active",
+      "children": [],
+      "notes": "[R-Zero challenger]",
       "attempt_history": []
     }
   }
