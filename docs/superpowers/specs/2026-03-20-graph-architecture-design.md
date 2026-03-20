@@ -145,7 +145,9 @@ The per-prompt hook (`scripts/hooks/graph_context_hook.py`) already injects this
 
 #### A4: Official SurrealDB MCP Server
 
-Register `nsxdavid/surrealdb-mcp-server` as a second MCP server in `~/.claude/mcp.json`:
+Register `nsxdavid/surrealdb-mcp-server` as a second MCP server in `~/.claude/mcp.json`.
+
+> **Package name:** The npm package name must be confirmed before implementation — try `npx -y surrealdb-mcp-server` and fall back to `npx -y github:nsxdavid/surrealdb-mcp-server` if the npm registry name differs.
 
 ```json
 "surrealdb": {
@@ -197,7 +199,7 @@ The hook now provides ~350 tokens total — still well within the target budget.
 
 #### B3: Agent-Write MCP Tools
 
-Add four tools to the existing `cloud-vault-mcp` server:
+Add four tools to the existing `cloud-vault-mcp` server. These tool stubs call `scripts/graph_context.py` (pre-extraction) and are rewired to `vault_graph/` when Phase C completes — this is an explicit two-step, not a contradiction.
 
 | Tool | Description |
 |------|-------------|
@@ -216,7 +218,9 @@ All four tools validate that the caller is not overwriting `type: explicit` syna
 
 #### C1: `vault_graph/` Module
 
-Extract all graph query logic from `scripts/graph_context.py` into `src/mcp_server/vault_graph/`:
+Extract all graph query logic from `scripts/graph_context.py` into `src/mcp_server/vault_graph/`.
+
+> **Package root:** `cloud-vault-mcp` is the project at `~/dev/cohezion/cloud-vault-mcp`; its package root is `src/mcp_server/` (per `pyproject.toml`: `packages = ["src/mcp_server"]`). These are the same thing — `vault_graph/` lives at `src/mcp_server/vault_graph/` inside that repo.
 
 ```
 vault_graph/
