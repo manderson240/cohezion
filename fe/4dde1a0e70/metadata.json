@@ -3,7 +3,7 @@
   "checkpoint_id": "fe4dde1a0e70",
   "strategy": "manual-commit",
   "branch": "gemm-hip-cpp-fused",
-  "checkpoints_count": 3,
+  "checkpoints_count": 5,
   "files_touched": [
     "pyproject.toml",
     "src/cohezion/api/__init__.py",
@@ -23,13 +23,20 @@
       "context": "/fe/4dde1a0e70/1/context.md",
       "content_hash": "/fe/4dde1a0e70/1/content_hash.txt",
       "prompt": "/fe/4dde1a0e70/1/prompt.txt"
+    },
+    {
+      "metadata": "/fe/4dde1a0e70/2/metadata.json",
+      "transcript": "/fe/4dde1a0e70/2/full.jsonl",
+      "context": "/fe/4dde1a0e70/2/context.md",
+      "content_hash": "/fe/4dde1a0e70/2/content_hash.txt",
+      "prompt": "/fe/4dde1a0e70/2/prompt.txt"
     }
   ],
   "token_usage": {
-    "input_tokens": 24,
-    "cache_creation_tokens": 77271,
-    "cache_read_tokens": 524354,
-    "output_tokens": 4519,
-    "api_call_count": 10
+    "input_tokens": 11975,
+    "cache_creation_tokens": 7656559,
+    "cache_read_tokens": 125544582,
+    "output_tokens": 404851,
+    "api_call_count": 1015
   }
 }
