@@ -124,6 +124,66 @@ When processing multiple inbox notes:
 2. Process in order: concepts first (they're link targets), then papers, then decisions
 3. This ordering maximizes bidirectional linking opportunities
 
+## Triage-in-Place (Active Project Directories)
+
+Use when notes are found outside `thalamus/` lacking frontmatter — in `competition/`, `infinity/`,
+`Agents/`, or other active project directories.
+
+**Do NOT move these notes.** Their paths may be referenced by scripts, build systems, or other
+tools. Moving silently breaks those references.
+
+### Detection
+
+```bash
+# Find notes without frontmatter in project directories
+python3 -c "
+import os, re
+ACTIVE_DIRS = ['competition', 'infinity', 'Agents', 'missions']
+for d in ACTIVE_DIRS:
+    if not os.path.isdir(d): continue
+    for root, _, files in os.walk(d):
+        for f in files:
+            if not f.endswith('.md') or f.startswith('_'): continue
+            path = os.path.join(root, f)
+            with open(path) as fh:
+                content = fh.read(200)
+            if not content.startswith('---'):
+                print(path)
+"
+```
+
+### Enrichment Steps
+
+1. **Read the note** — understand domain, date, status from content
+2. **Assign aspect** from directory context:
+   - `competition/` → `thinker` (experiment results, benchmarks)
+   - `infinity/` agent outputs → `thinker` (analysis/design)
+   - `Agents/` business plans → `doer` (active projects)
+   - `missions/` → `doer` (coordinated tasks)
+3. **Build frontmatter** and prepend it:
+   ```yaml
+   ---
+   title: "Descriptive Title from H1"
+   date: YYYY-MM-DD        # from content or filename date prefix
+   status: complete|in-progress
+   tags: [domain, subtags]
+   aspect: thinker|doer|knower
+   ---
+   ```
+4. **Cluster cross-link** — add `## Related` section linking to sibling notes in the same
+   project directory (see `batch-backlinks` Pattern 2 for the fully-connected subgraph approach)
+5. **MOC entry point** — find the nearest thematic MOC and add a new section:
+   ```markdown
+   ## [Domain Name]
+   - [[note-name|Display title]] — one-line description
+   ```
+
+### What NOT to Do
+
+- Do not move the file to `laboratory/` or `cortex/` — leave it where it is
+- Do not delete it from its current location
+- Do not use the standard triage move workflow (Steps 1-7 above) on these notes
+
 ## Quality Checks
 
 Before marking triage complete:

@@ -106,6 +106,7 @@ This convergence — six independently derived frameworks all identifying non-lo
 - [[sacred-geometry]] — Platonic solids and golden ratio as morphic attractors: patterns so fundamental they recur across all scales
 - [[quantum-entanglement]] — morphic resonance's non-locality parallels quantum entanglement's non-locality; both violate classical locality
 - [[cognitive-science]] — morphic resonance applied to mind: habits of thought as morphic fields
+- [[aboriginal-australian-cosmology-and-toe]] — the Dreaming IS a morphic field: non-local accumulated pattern memory of 65,000+ years of Country inhabitation; Songlines are morphic resonance pathways that must be actively walked (reinforced) or the pattern degrades
 
 ## Relevance to Cohezion
 

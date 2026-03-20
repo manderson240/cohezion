@@ -166,6 +166,7 @@ The runes are not a binary system — they are a 24-element basis. Their combina
 - [[celtic-cosmology-and-toe]] — neighboring European traditions; thin places ↔ Yggdrasil boundary crossings
 - [[hopi-cosmology-and-toe]] — Four Worlds ↔ Nine Worlds; Ragnarök ↔ World destruction phase transitions
 - [[indigenous-cosmologies-toe-synthesis]] — master cross-tradition comparison
+- [[aboriginal-australian-cosmology-and-toe]] — Yggdrasil connecting nine worlds parallels Songlines connecting Country; the völva's seiðr practice parallels dadirri as threshold-crossing knowledge seeking; both traditions warn that failure to maintain the structure (sing Yggdrasil / walk Songlines) leads to catastrophic collapse
 
 ## Relevance to Cohezion
 

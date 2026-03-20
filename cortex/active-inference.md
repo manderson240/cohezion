@@ -125,6 +125,9 @@ Friston and colleagues have applied active inference to morphogenesis, arguing t
 - [[emergence-and-self-organized-criticality]] — self-organization emerges from collective free energy minimization
 - [[reinforcement-learning]] — active inference generalizes and subsumes RL
 - [[anomaly-detection]] — surprise (negative log evidence) is literally the anomaly signal
+- [[astrophysics-observations]] — AI anomaly detection in JWST and Hubble archives is active inference: models predict expected observations, flag high-surprise deviations as discovery candidates
+- [[computer-vision]] — ViT and CNN models implement perceptual inference — mapping visual observations to latent states — which is the perceptual half of active inference
+- [[federated-learning]] — distributed FL agents each minimize local free energy; federated aggregation corresponds to collective free energy minimization across a distributed generative model
 
 ### Indigenous Cosmology Cross-Validation
 

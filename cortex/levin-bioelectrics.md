@@ -171,6 +171,7 @@ Below G_c: cells act as independent agents with individual cognitive light cones
 - [[indigenous-cosmologies-toe-synthesis]] — Levin's "every cell is an agent" parallels Amazonian perspectivism (every entity has a perspective/interiority)
 - [[amazonian-cosmology-and-toe]] — perspectivism's "one culture, many natures" maps to "one bioelectric code, many morphological implementations"
 - [[haudenosaunee-cosmology-and-toe]] — Great Law's consensus-based governance as gap junction network: decisions propagate through the confederacy when coupling (agreement) exceeds threshold
+- [[aboriginal-australian-cosmology-and-toe]] — Country maintenance through ceremony (burning, singing, walking) as continental-scale bioelectric field maintenance; the 65,000-year continuity of Songline practice is the longest documented example of pattern persistence through substrate renewal
 
 ## The TOE Mapping
 

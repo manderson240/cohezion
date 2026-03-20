@@ -43,6 +43,7 @@ Computer vision is a subfield of artificial intelligence that enables machines t
 - [[self-attention-mechanism]] — the operation that enables Vision Transformers to process image patches
 - [[natural-language-processing]] — the textual counterpart to computer vision; multimodal models bridge both
 - [[edge-computing]] — enables deployment of CV models on resource-constrained devices
+- [[active-inference]] — ViT and CNN perceptual inference implements the perceptual half of active inference: mapping visual observations to latent state estimates that minimize prediction error
 - [[transfer-learning]] — pre-trained vision models are commonly fine-tuned for domain-specific tasks
 - [[robotics]] — computer vision provides the perception layer for autonomous robotic systems
 

@@ -175,6 +175,7 @@ The Onondaga (Firekeepers) occupy the center — the critical node. Remove the c
 - [[daoist-cosmology-and-toe]] — Kaswentha (parallel worldlines) ↔ Wú Wéi (non-interference with natural flow)
 - [[yoruba-ifa-cosmology-and-toe]] — wampum ↔ Ifá divination board: physical records of wisdom
 - [[indigenous-cosmologies-toe-synthesis]] — master cross-tradition comparison
+- [[aboriginal-australian-cosmology-and-toe]] — oldest continuous land-governance tradition on Earth; Tjukurpa (Dreaming Law) parallels the Great Law as natural law governing collective life; both traditions encode governance as inherent pattern rather than external imposition
 
 ## Relevance to Cohezion
 

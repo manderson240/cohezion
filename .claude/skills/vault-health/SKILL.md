@@ -80,6 +80,57 @@ for directory in ['prefrontal', 'cortex', 'cerebellum', 'laboratory', 'sensory',
 
 **Key insight:** Link aliases `[[target|display text]]` are handled — the regex captures only the target part (before `|` or `#`). The single-pass approach reads each file once and indexes all outbound links, making it O(n) rather than O(n²).
 
+**Bare-name links required when fixing orphans:** The orphan scanner keys notes by bare
+filename stem (`index`, `SETUP_GUIDE`). When adding inbound links to fix orphans, you MUST
+use bare names — `[[index|CS249R Book]]` — not path-prefixed — `[[cs249r/index|CS249R Book]]`.
+Path-prefixed links (`cs249r/index`) don't match the key `index` in the inbound-count dict,
+so the orphan remains uncounted. Always use bare filenames per vault conventions, and always
+re-run the orphan scanner after fixing to confirm counts dropped to 0.
+
+### False Positive Filter (Run Before Acting on Orphan Alerts)
+
+SurrealDB `synapse_in` metadata can be severely stale. Before treating any note as orphaned
+based on graph alerts or frontmatter `synapse_in: 0`, verify with actual grep:
+
+```bash
+# For each suspected orphan, check actual inbound wiki-link count
+NOTE_STEM="note-filename-without-extension"
+rg -l "\[\[$NOTE_STEM" --type md | grep -v "$NOTE_STEM.md" | wc -l
+```
+
+If the count is > 0, the note is NOT orphaned — update its `synapse_in` frontmatter to match
+reality and skip it.
+
+**Common false positive sources:**
+
+| Source | Example | Action |
+|--------|---------|--------|
+| Stale SurrealDB `synapse_in: 0` | Note has 57 actual inbound links | Grep to verify, update frontmatter |
+| Template placeholders | `[[{artifact-name}]]`, `[[bare-name]]` | Categorize as non-actionable |
+| node_modules content | `[[EventEmitter]]` in plugin source | Exclude from audit scope |
+| Git hashes | `[[9403aab]]`, `[[271e02938e5f]]` | Non-actionable, skip |
+| Portfolio/external refs | `[[my-portfolio]]` in showcase notes | Non-actionable, skip |
+
+**Broken link audit inflation:** The raw broken-link count includes all of the above. Run a
+categorization pass before reporting the "real" broken link count:
+
+```python
+# Categorize broken links into actionable vs non-actionable
+import re
+patterns = {
+    'template': r'^\{.*\}$|^bare-name$|^note-name$',
+    'hash': r'^[0-9a-f]{7,40}$',
+    'external': r'portfolio|showcase',
+}
+# Count only links not matching any pattern as "real" broken links
+```
+
+Expect: a raw count of "137" may reduce to 2-5 genuinely broken concept links.
+
+**Note:** The Python orphan scanner in Step 1 above counts actual wiki-links from file content
+and is accurate. This filter applies specifically to *SurrealDB-sourced alerts* (e.g. from
+`metabolism/graph-alerts.md`) where metadata staleness is the issue.
+
 ### 2. Stub Notes
 
 Find empty template stubs (auto-generated with `{{title}}` placeholders):
@@ -111,6 +162,36 @@ rg -L 'date:' cortex/ sensory/ prefrontal/ cerebellum/ laboratory/ motor/ 2>/dev
 # Missing aspect field (required for all content dirs)
 rg -L 'aspect:' cortex/ sensory/ prefrontal/ cerebellum/ laboratory/ motor/ 2>/dev/null | head -20
 ```
+
+**Shell check false positive — `head -N` truncation:** Shell-based frontmatter checks that
+use `head -20 "$f" | grep -q '^aspect:'` will produce false "missing" counts when notes have
+rich frontmatter (neural metadata, dimensions, similar_papers) that pushes `aspect:` past
+line 20. The `rg -L '^aspect:'` approach above has the same problem — it searches file content,
+not just the frontmatter block, so a body mention of "aspect:" tricks it.
+
+**Use Python for accurate frontmatter-only checks:**
+
+```python
+import os, re
+
+for directory in ['sensory', 'prefrontal', 'cortex']:
+    missing = []
+    for f in os.listdir(directory):
+        if not f.endswith('.md') or f.startswith('_'): continue
+        path = os.path.join(directory, f)
+        with open(path) as fh:
+            content = fh.read()
+        if not content.startswith('---'): continue
+        end_match = re.search(r'\n---', content[3:])
+        if not end_match: continue
+        frontmatter = content[3:3+end_match.start()]
+        if not re.search(r'^aspect:', frontmatter, re.MULTILINE):
+            missing.append(f)
+    print(f'{directory}: {len(missing)} actually missing aspect')
+```
+
+A shell check showing "84 missing" reduced to 0 when checked with Python — all were false
+positives from `aspect:` appearing beyond line 20 in valid frontmatter.
 
 ### 4. Broken Wiki-Links
 

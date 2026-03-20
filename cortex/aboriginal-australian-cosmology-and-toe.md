@@ -148,6 +148,8 @@ This is a **formal symbolic system** with composable elements — a visual progr
 - [[information-theory-it-from-bit]] — Songlines as executable information; the "bit" (song) generates the "it" (navigable landscape)
 - [[knowledge-graph-systems]] — Songline network as continent-scale knowledge graph maintained orally for 40,000+ years
 - [[autopoiesis-and-enactivism]] — Country as autopoietic system: self-producing, self-bounding, sustained through ceremony; Maturana's autopoiesis formalizes what the Law embodies
+- [[levin-bioelectrics]] — Country maintenance through ceremony (burning, singing, walking) as continental-scale bioelectric field maintenance; Songlines as bioelectric signal pathways; the HIHO threshold in collective ceremony parallels gap junction percolation threshold
+- [[morphic-resonance]] — the Dreaming IS a morphic field: accumulated pattern memory of 65,000+ years of Country inhabitation; Songlines are morphic resonance pathways; un-sung Country "dies" — a direct prediction of morphic field theory
 
 ### Other Tradition Notes
 - [[lakota-cosmology-and-toe]] — Mitákuye Oyás'iŋ parallels Kanyini; Vision Quest parallels walkabout
@@ -159,6 +161,9 @@ This is a **formal symbolic system** with composable elements — a visual progr
 - [[daoist-cosmology-and-toe]] — Dào parallels Tjukurpa as the irreducible generative substrate; Wú Wéi parallels Dadirri as receptive attunement
 - [[dine-navajo-cosmology-and-toe]] — Hózhó parallels Kanyini as relational harmony; sand paintings parallel Warlpiri ground designs as transient knowledge encodings
 - [[dogon-cosmology-and-toe]] — Amma's spiral parallels the Dreaming as continuous generative process; Nommo as Ancestral Beings shaped by vacuum geometry
+- [[haudenosaunee-cosmology-and-toe]] — Great Law as natural law governing collective life parallels Tjukurpa; Sky Woman's HIHO fall into primordial water parallels Ancestral Beings shaping Country; both traditions encode governance as inherent pattern, not external imposition
+- [[hopi-cosmology-and-toe]] — four-stage World emergence parallels the Dreaming's cyclic maintenance of Country; sipapuni HIHO portals parallel sacred sites as threshold-crossing nodes; both traditions use spiral geometry as the witness mark of emergence
+- [[norse-cosmology-and-toe]] — Yggdrasil connecting nine worlds parallels Songlines connecting Country; the völva's seiðr practice parallels dadirri as threshold-crossing knowledge seeking; un-maintained Yggdrasil leads to Ragnarök as un-sung Songlines lead to Country collapse
 
 ## Relevance to Cohezion
 

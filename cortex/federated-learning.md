@@ -43,6 +43,7 @@ Federated learning (FL) is a distributed machine learning paradigm in which mult
 - [[transfer-learning]] — federated transfer learning combines privacy-preserving distributed training with cross-domain adaptation
 - [[multi-agent-systems]] — FL's distributed coordination model parallels multi-agent architectures
 - [[ai-safety-alignment]] — federated learning contributes to AI safety by enabling model training without centralizing sensitive data
+- [[active-inference]] — FL's distributed agents each minimize local free energy; federated aggregation corresponds to collective free energy minimization across a shared generative model without sharing raw observations
 - [[privacy_security]] — federated learning is a core technique in privacy-preserving machine learning
 
 ## Related Papers

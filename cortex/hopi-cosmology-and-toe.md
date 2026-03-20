@@ -104,6 +104,7 @@ Each World has a sipapuni — the hole through which the people emerge from the 
 - [[lakota-cosmology-and-toe]] — both traditions share the four-directions framework and the spiral symbol
 - [[haudenosaunee-cosmology-and-toe]] — shared Turtle Island creation narrative
 - [[indigenous-cosmologies-toe-synthesis]] — master cross-tradition comparison
+- [[aboriginal-australian-cosmology-and-toe]] — both traditions encode cyclic World/Dreaming maintenance through ceremony; Aboriginal sacred sites parallel Hopi shrines as HIHO threshold nodes; sipapuni portals parallel the moment of Ancestral Being emergence into Country
 
 ## Relevance to Cohezion
 

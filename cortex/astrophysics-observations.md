@@ -73,6 +73,7 @@ For Cohezion's knowledge graph, astrophysics observations connect papers across 
 - [[gravitational-waves]] — a new observational channel opened by LIGO
 - [[dark-matter-detection]] — astrophysical observations constraining dark matter properties
 - [[anomaly-detection]] — ML technique used in astrophysics archives
+- [[active-inference]] — AI anomaly detection in astrophysics archives is active inference: models predict expected observations and flag high-surprise deviations as discovery candidates
 - [[black-holes]] — primary targets of many high-energy astrophysics observations
 - [[cosmology]] — the theoretical framework (Lambda-CDM) that astrophysical observations test and constrain
 

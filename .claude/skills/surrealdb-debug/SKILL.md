@@ -14,11 +14,16 @@ description: |
   (13) N+1 query: searching N candidates with N sequential HTTP calls — batch into
   one OR query for 3-10x speedup,
   (14) _esc() for SurrealQL string literals must escape backslashes BEFORE single
-  quotes, or a trailing backslash breaks the string boundary.
+  quotes, or a trailing backslash breaks the string boundary,
+  (15) SurrealDB v3 removed --auth flag; auth is ON by default — use --username/--password
+  only, not --auth --user --pass,
+  (16) surreal binary installs to ~/.surrealdb/surreal (not in PATH — use full path),
+  (17) cohezion-vault.service defaults SURREALDB_URL to port 8000, not 8001 — must
+  set Environment=SURREALDB_URL=http://localhost:8001 in the service file.
   Key insight: credentials and port in docs are often stale — always inspect the
   live process, and always create namespace+database before applying schema.
 author: Claude Code
-version: 1.7.0
+version: 1.8.0
 ---
 
 # SurrealDB Debugging
@@ -96,17 +101,99 @@ curl -s -X POST http://localhost:8001/sql \
 
 ## Step 5: Start Fresh Instance (if systemd service is broken)
 
+**Binary is at `~/.surrealdb/surreal` — not in PATH. Use full path.**
+
+**SurrealDB v3 change:** `--auth` flag removed. Auth is ON by default. Use `--username`/`--password` (or `--user`/`--pass` aliases). Do NOT include `--auth`.
+
 ```bash
 mkdir -p ~/dev/cohezion/data/surrealdb
 
-surreal start \
-  --auth --user root --pass root \
+~/.surrealdb/surreal start \
+  --username root --password root \
   --bind 0.0.0.0:8001 \
-  rocksdb://~/dev/cohezion/data/surrealdb &
+  --no-banner \
+  rocksdb:///home/mike-anderson/dev/cohezion/data/surrealdb &
 
 # Wait for it to be ready
-sleep 2
+sleep 3
 curl -s -u root:root http://localhost:8001/health
+# Returns: HTTP 200 with empty body (healthy)
+```
+
+**v2 vs v3 flag comparison:**
+```
+# v2 (BROKEN in v3)
+surreal start --auth --user root --pass root ...
+
+# v3 (correct)
+~/.surrealdb/surreal start --username root --password root ...
+```
+
+## Setting Up Persistent systemd Service
+
+To survive reboots, create `~/.config/systemd/user/surrealdb.service`:
+
+```ini
+[Unit]
+Description=SurrealDB Server (Cohezion Vault)
+After=network.target
+StartLimitBurst=5
+StartLimitIntervalSec=60
+
+[Service]
+Type=simple
+ExecStart=/home/mike-anderson/.surrealdb/surreal start \
+    --username root \
+    --password root \
+    --bind 0.0.0.0:8001 \
+    --no-banner \
+    rocksdb:///home/mike-anderson/dev/cohezion/data/surrealdb
+Restart=on-failure
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=default.target
+```
+
+Add `After=surrealdb.service` and `Wants=surrealdb.service` to dependent services:
+
+```ini
+# In cohezion-vault.service and cohezion-vault-sync.service:
+[Unit]
+After=network.target surrealdb.service
+Wants=surrealdb.service
+```
+
+Then enable and start:
+```bash
+systemctl --user daemon-reload
+systemctl --user enable --now surrealdb.service
+systemctl --user status surrealdb.service
+```
+
+**`Wants=` vs `Requires=`:** Use `Wants=` so dependent services still attempt to start
+even if SurrealDB fails (degraded mode). Use `Requires=` for hard dependency (chain stops
+if DB fails).
+
+## cohezion-vault.service Port Mismatch
+
+The MCP service defaults `SURREALDB_URL` to port **8000** but the vault uses port **8001**.
+If SurrealDB health shows "Connection refused" despite SurrealDB running:
+
+```bash
+# Check what URL the service is using
+grep -i surreal ~/.config/systemd/user/cohezion-vault.service
+
+# Add the missing env var
+# In cohezion-vault.service [Service] section:
+Environment=SURREALDB_URL=http://localhost:8001
+
+# Reload and restart
+systemctl --user daemon-reload
+systemctl --user restart cohezion-vault.service
+curl -s http://localhost:8360/health | python3 -c "import sys,json; d=json.load(sys.stdin); print(d['checks']['surrealdb']['status'])"
 ```
 
 ## Batch Import Fallback Pattern
