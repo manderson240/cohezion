@@ -67,9 +67,9 @@
       },
       "parent_id": "mla_n1",
       "priority": 0.967411709996167,
-      "attempts": 3,
+      "attempts": 4,
       "best_result_us": 161.53,
-      "stagnation_count": 0,
+      "stagnation_count": 1,
       "status": "active",
       "children": [],
       "notes": "Small batch, short seq \u2014 few splits needed",
@@ -117,6 +117,21 @@
             "DEFAULT_SPLITS": 16
           },
           "timestamp": "2026-03-20T12:46:02.999213",
+          "source": "template"
+        },
+        {
+          "result_us": 178.2685350117359,
+          "parameters": {
+            "SPLITS_TABLE": {
+              "4_1024": 4,
+              "4_8192": 12,
+              "32_1024": 8,
+              "32_8192": 32,
+              "128_8192": 32
+            },
+            "DEFAULT_SPLITS": 16
+          },
+          "timestamp": "2026-03-20T15:21:57.800119",
           "source": "template"
         }
       ]
