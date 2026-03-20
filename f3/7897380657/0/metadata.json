@@ -1,0 +1,32 @@
+{
+  "cli_version": "0.4.9",
+  "checkpoint_id": "f37897380657",
+  "session_id": "96ac6a48-4e4b-40b0-99d4-75b9544d80d6",
+  "strategy": "manual-commit",
+  "created_at": "2026-03-20T05:00:52.75828645Z",
+  "branch": "track-c",
+  "checkpoints_count": 0,
+  "files_touched": [
+    "cortex/MOC-compound-engineering.md",
+    "cortex/MOC-platform-infrastructure.md",
+    "cortex/cohezion-platform-overview.md"
+  ],
+  "agent": "Claude Code",
+  "turn_id": "2d589cd9150b",
+  "token_usage": {
+    "input_tokens": 35244,
+    "cache_creation_tokens": 1199567,
+    "cache_read_tokens": 6977143,
+    "output_tokens": 57046,
+    "api_call_count": 75
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-03-20T05:00:51.938475579Z",
+    "agent_lines": 0,
+    "human_added": 14,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 14,
+    "agent_percentage": 0
+  }
+}
