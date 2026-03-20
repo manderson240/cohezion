@@ -1,0 +1,243 @@
+{
+  "kernel_name": "moe",
+  "root_id": "root_moe",
+  "nodes": {
+    "root_moe": {
+      "id": "root_moe",
+      "strategy": "Minimize fused_moe geomean across 7 shapes",
+      "parameters": {},
+      "parent_id": null,
+      "priority": 0.95,
+      "attempts": 0,
+      "best_result_us": null,
+      "stagnation_count": 0,
+      "status": "active",
+      "children": [
+        "moe_n1",
+        "moe_n2",
+        "moe_n3",
+        "moe_n4"
+      ],
+      "notes": ""
+    },
+    "moe_n1": {
+      "id": "moe_n1",
+      "strategy": "Per-shape KSPLIT lookup table",
+      "parameters": {
+        "KSPLIT_TABLE": {
+          "257_256_16": 4,
+          "257_256_128": 4,
+          "257_256_512": 0,
+          "33_512_16": 2,
+          "33_512_128": 2,
+          "33_512_512": 0,
+          "33_2048_512": 0
+        },
+        "DEFAULT_KSPLIT": "2"
+      },
+      "parent_id": "root_moe",
+      "priority": 0.9025,
+      "attempts": 0,
+      "best_result_us": null,
+      "stagnation_count": 0,
+      "status": "active",
+      "children": [
+        "moe_n1a",
+        "moe_n1b",
+        "moe_n1c",
+        "moe_n1d",
+        "moe_n1e"
+      ],
+      "notes": "Primary strategy: per-shape KSPLIT values"
+    },
+    "moe_n1a": {
+      "id": "moe_n1a",
+      "strategy": "E=257,d=256,bs=16: sweep KSPLIT 1-6",
+      "parameters": {
+        "KSPLIT_TABLE": {
+          "257_256_16": 4,
+          "257_256_128": 4,
+          "257_256_512": 0,
+          "33_512_16": 2,
+          "33_512_128": 2,
+          "33_512_512": 0,
+          "33_2048_512": 0
+        }
+      },
+      "parent_id": "moe_n1",
+      "priority": 0.855,
+      "attempts": 0,
+      "best_result_us": null,
+      "stagnation_count": 0,
+      "status": "active",
+      "children": [],
+      "notes": "Focus on 257-expert small-batch shapes"
+    },
+    "moe_n1b": {
+      "id": "moe_n1b",
+      "strategy": "E=257,d=256,bs=128: sweep KSPLIT 0-6",
+      "parameters": {
+        "KSPLIT_TABLE": {
+          "257_256_16": 4,
+          "257_256_128": 4,
+          "257_256_512": 0,
+          "33_512_16": 2,
+          "33_512_128": 2,
+          "33_512_512": 0,
+          "33_2048_512": 0
+        }
+      },
+      "parent_id": "moe_n1",
+      "priority": 0.8075,
+      "attempts": 0,
+      "best_result_us": null,
+      "stagnation_count": 0,
+      "status": "active",
+      "children": [],
+      "notes": "Medium batch 257-expert"
+    },
+    "moe_n1c": {
+      "id": "moe_n1c",
+      "strategy": "E=33,d=512,bs=128: sweep KSPLIT 0-6",
+      "parameters": {
+        "KSPLIT_TABLE": {
+          "257_256_16": 4,
+          "257_256_128": 4,
+          "257_256_512": 0,
+          "33_512_16": 2,
+          "33_512_128": 4,
+          "33_512_512": 0,
+          "33_2048_512": 0
+        }
+      },
+      "parent_id": "moe_n1",
+      "priority": 0.76,
+      "attempts": 0,
+      "best_result_us": null,
+      "stagnation_count": 0,
+      "status": "active",
+      "children": [],
+      "notes": "33-expert medium batch"
+    },
+    "moe_n1d": {
+      "id": "moe_n1d",
+      "strategy": "E=33,d=2048,bs=512: sweep KSPLIT 0-6",
+      "parameters": {
+        "KSPLIT_TABLE": {
+          "257_256_16": 4,
+          "257_256_128": 4,
+          "257_256_512": 0,
+          "33_512_16": 2,
+          "33_512_128": 2,
+          "33_512_512": 0,
+          "33_2048_512": 2
+        }
+      },
+      "parent_id": "moe_n1",
+      "priority": 0.7124999999999999,
+      "attempts": 0,
+      "best_result_us": null,
+      "stagnation_count": 0,
+      "status": "active",
+      "children": [],
+      "notes": "Large d_expert shape \u2014 likely compute-bound"
+    },
+    "moe_n1e": {
+      "id": "moe_n1e",
+      "strategy": "E=33,d=256,bs=32: sweep KSPLIT 0-6",
+      "parameters": {
+        "KSPLIT_TABLE": {
+          "257_256_16": 4,
+          "257_256_128": 4,
+          "257_256_512": 0,
+          "33_512_16": 3,
+          "33_512_128": 2,
+          "33_512_512": 0,
+          "33_2048_512": 0
+        }
+      },
+      "parent_id": "moe_n1",
+      "priority": 0.6649999999999999,
+      "attempts": 0,
+      "best_result_us": null,
+      "stagnation_count": 0,
+      "status": "active",
+      "children": [],
+      "notes": ""
+    },
+    "moe_n2": {
+      "id": "moe_n2",
+      "strategy": "OPUS sorting + KSPLIT combo",
+      "parameters": {
+        "USE_NT": "1",
+        "KSPLIT_TABLE": {
+          "257_256_16": 4,
+          "257_256_128": 4,
+          "257_256_512": 0,
+          "33_512_16": 2,
+          "33_512_128": 2,
+          "33_512_512": 0,
+          "33_2048_512": 0
+        }
+      },
+      "parent_id": "root_moe",
+      "priority": 0.6649999999999999,
+      "attempts": 0,
+      "best_result_us": null,
+      "stagnation_count": 0,
+      "status": "active",
+      "children": [],
+      "notes": "Enable OPUS token sorting with best KSPLIT table"
+    },
+    "moe_n3": {
+      "id": "moe_n3",
+      "strategy": "BYPASS_TUNE_CONFIG=1 with aggressive KSPLIT",
+      "parameters": {
+        "KSPLIT_TABLE": {
+          "257_256_16": 6,
+          "257_256_128": 4,
+          "257_256_512": 2,
+          "33_512_16": 4,
+          "33_512_128": 4,
+          "33_512_512": 2,
+          "33_2048_512": 2
+        },
+        "DEFAULT_KSPLIT": "4"
+      },
+      "parent_id": "root_moe",
+      "priority": 0.6174999999999999,
+      "attempts": 0,
+      "best_result_us": null,
+      "stagnation_count": 0,
+      "status": "active",
+      "children": [],
+      "notes": "Higher KSPLIT everywhere \u2014 test if more splits help"
+    },
+    "moe_n4": {
+      "id": "moe_n4",
+      "strategy": "Direct torch.ops.aiter.fmoe bypass",
+      "parameters": {},
+      "parent_id": "root_moe",
+      "priority": 0.475,
+      "attempts": 0,
+      "best_result_us": null,
+      "stagnation_count": 0,
+      "status": "active",
+      "children": [],
+      "notes": "Call CK kernel directly, skip Python fused_moe wrapper overhead"
+    },
+    "moe_n5": {
+      "id": "moe_n5",
+      "strategy": "block_size_M tuning (32, 64, 128)",
+      "parameters": {},
+      "parent_id": "root_moe",
+      "priority": 0.4,
+      "attempts": 0,
+      "best_result_us": null,
+      "stagnation_count": 0,
+      "status": "pruned",
+      "children": [],
+      "notes": "If aiter exposes block_size_M parameter [PRUNED: block_size_M not tunable from Python]"
+    }
+  }
+}

@@ -1,0 +1,446 @@
+{
+  "kernel_name": "gemm",
+  "root_id": "root_gemm",
+  "nodes": {
+    "root_gemm": {
+      "id": "root_gemm",
+      "strategy": "Minimize MXFP4 GEMM geomean across 6 shapes",
+      "parameters": {},
+      "parent_id": null,
+      "priority": 0.95,
+      "attempts": 0,
+      "best_result_us": null,
+      "stagnation_count": 0,
+      "status": "active",
+      "children": [
+        "gemm_n0_cached",
+        "gemm_n1",
+        "gemm_n2",
+        "gemm_n3",
+        "gemm_n4"
+      ],
+      "notes": ""
+    },
+    "gemm_n1": {
+      "id": "gemm_n1",
+      "strategy": "Per-shape ASM kernel + split-K table",
+      "parameters": {
+        "KERNEL_TABLE": {
+          "4_2880_512": {
+            "kernel": "gemm_a4w4",
+            "log2_ks": 0
+          },
+          "16_2112_7168": {
+            "kernel": "gemm_a4w4",
+            "log2_ks": 0
+          },
+          "32_4096_512": {
+            "kernel": "gemm_a4w4",
+            "log2_ks": 0
+          },
+          "32_2880_512": {
+            "kernel": "gemm_a4w4",
+            "log2_ks": 0
+          },
+          "64_7168_2048": {
+            "kernel": "gemm_a4w4",
+            "log2_ks": 0
+          },
+          "256_3072_1536": {
+            "kernel": "gemm_a4w4",
+            "log2_ks": 0
+          }
+        }
+      },
+      "parent_id": "root_gemm",
+      "priority": 0.9025,
+      "attempts": 0,
+      "best_result_us": null,
+      "stagnation_count": 0,
+      "status": "active",
+      "children": [
+        "gemm_n1a",
+        "gemm_n1b",
+        "gemm_n1c",
+        "gemm_n1d",
+        "gemm_n1e",
+        "gemm_n1f"
+      ],
+      "notes": "Exhaustive per-shape kernel selection"
+    },
+    "gemm_n1a": {
+      "id": "gemm_n1a",
+      "strategy": "M=4,N=2880,K=512: sweep kernels+split-K",
+      "parameters": {
+        "KERNEL_TABLE": {
+          "4_2880_512": {
+            "kernel": "gemm_a4w4_asm",
+            "log2_ks": 2
+          },
+          "16_2112_7168": {
+            "kernel": "gemm_a4w4",
+            "log2_ks": 0
+          },
+          "32_4096_512": {
+            "kernel": "gemm_a4w4",
+            "log2_ks": 0
+          },
+          "32_2880_512": {
+            "kernel": "gemm_a4w4",
+            "log2_ks": 0
+          },
+          "64_7168_2048": {
+            "kernel": "gemm_a4w4",
+            "log2_ks": 0
+          },
+          "256_3072_1536": {
+            "kernel": "gemm_a4w4",
+            "log2_ks": 0
+          }
+        }
+      },
+      "parent_id": "gemm_n1",
+      "priority": 0.855,
+      "attempts": 0,
+      "best_result_us": null,
+      "stagnation_count": 0,
+      "status": "active",
+      "children": [],
+      "notes": "Smallest M \u2014 most bandwidth-bound, split-K may help"
+    },
+    "gemm_n1b": {
+      "id": "gemm_n1b",
+      "strategy": "M=16,N=2112,K=7168: sweep kernels+split-K",
+      "parameters": {
+        "KERNEL_TABLE": {
+          "4_2880_512": {
+            "kernel": "gemm_a4w4",
+            "log2_ks": 0
+          },
+          "16_2112_7168": {
+            "kernel": "gemm_a4w4_asm",
+            "log2_ks": 2
+          },
+          "32_4096_512": {
+            "kernel": "gemm_a4w4",
+            "log2_ks": 0
+          },
+          "32_2880_512": {
+            "kernel": "gemm_a4w4",
+            "log2_ks": 0
+          },
+          "64_7168_2048": {
+            "kernel": "gemm_a4w4",
+            "log2_ks": 0
+          },
+          "256_3072_1536": {
+            "kernel": "gemm_a4w4",
+            "log2_ks": 0
+          }
+        }
+      },
+      "parent_id": "gemm_n1",
+      "priority": 0.8075,
+      "attempts": 0,
+      "best_result_us": null,
+      "stagnation_count": 0,
+      "status": "active",
+      "children": [],
+      "notes": "Largest K \u2014 most compute, likely benefits from split-K"
+    },
+    "gemm_n1c": {
+      "id": "gemm_n1c",
+      "strategy": "M=32,N=4096,K=512: sweep kernels+split-K",
+      "parameters": {
+        "KERNEL_TABLE": {
+          "4_2880_512": {
+            "kernel": "gemm_a4w4",
+            "log2_ks": 0
+          },
+          "16_2112_7168": {
+            "kernel": "gemm_a4w4",
+            "log2_ks": 0
+          },
+          "32_4096_512": {
+            "kernel": "gemm_a4w4_asm",
+            "log2_ks": 1
+          },
+          "32_2880_512": {
+            "kernel": "gemm_a4w4",
+            "log2_ks": 0
+          },
+          "64_7168_2048": {
+            "kernel": "gemm_a4w4",
+            "log2_ks": 0
+          },
+          "256_3072_1536": {
+            "kernel": "gemm_a4w4",
+            "log2_ks": 0
+          }
+        }
+      },
+      "parent_id": "gemm_n1",
+      "priority": 0.76,
+      "attempts": 0,
+      "best_result_us": null,
+      "stagnation_count": 0,
+      "status": "active",
+      "children": [],
+      "notes": "Largest N with small K"
+    },
+    "gemm_n1d": {
+      "id": "gemm_n1d",
+      "strategy": "M=32,N=2880,K=512: sweep kernels+split-K",
+      "parameters": {
+        "KERNEL_TABLE": {
+          "4_2880_512": {
+            "kernel": "gemm_a4w4",
+            "log2_ks": 0
+          },
+          "16_2112_7168": {
+            "kernel": "gemm_a4w4",
+            "log2_ks": 0
+          },
+          "32_4096_512": {
+            "kernel": "gemm_a4w4",
+            "log2_ks": 0
+          },
+          "32_2880_512": {
+            "kernel": "gemm_a4w4_asm",
+            "log2_ks": 1
+          },
+          "64_7168_2048": {
+            "kernel": "gemm_a4w4",
+            "log2_ks": 0
+          },
+          "256_3072_1536": {
+            "kernel": "gemm_a4w4",
+            "log2_ks": 0
+          }
+        }
+      },
+      "parent_id": "gemm_n1",
+      "priority": 0.7124999999999999,
+      "attempts": 0,
+      "best_result_us": null,
+      "stagnation_count": 0,
+      "status": "active",
+      "children": [],
+      "notes": ""
+    },
+    "gemm_n1e": {
+      "id": "gemm_n1e",
+      "strategy": "M=64,N=7168,K=2048: sweep kernels+split-K",
+      "parameters": {
+        "KERNEL_TABLE": {
+          "4_2880_512": {
+            "kernel": "gemm_a4w4",
+            "log2_ks": 0
+          },
+          "16_2112_7168": {
+            "kernel": "gemm_a4w4",
+            "log2_ks": 0
+          },
+          "32_4096_512": {
+            "kernel": "gemm_a4w4",
+            "log2_ks": 0
+          },
+          "32_2880_512": {
+            "kernel": "gemm_a4w4",
+            "log2_ks": 0
+          },
+          "64_7168_2048": {
+            "kernel": "gemm_a4w4_asm",
+            "log2_ks": 1
+          },
+          "256_3072_1536": {
+            "kernel": "gemm_a4w4",
+            "log2_ks": 0
+          }
+        }
+      },
+      "parent_id": "gemm_n1",
+      "priority": 0.6649999999999999,
+      "attempts": 0,
+      "best_result_us": null,
+      "stagnation_count": 0,
+      "status": "active",
+      "children": [],
+      "notes": "Largest output \u2014 compute-dominant"
+    },
+    "gemm_n1f": {
+      "id": "gemm_n1f",
+      "strategy": "M=256,N=3072,K=1536: sweep kernels+split-K",
+      "parameters": {
+        "KERNEL_TABLE": {
+          "4_2880_512": {
+            "kernel": "gemm_a4w4",
+            "log2_ks": 0
+          },
+          "16_2112_7168": {
+            "kernel": "gemm_a4w4",
+            "log2_ks": 0
+          },
+          "32_4096_512": {
+            "kernel": "gemm_a4w4",
+            "log2_ks": 0
+          },
+          "32_2880_512": {
+            "kernel": "gemm_a4w4",
+            "log2_ks": 0
+          },
+          "64_7168_2048": {
+            "kernel": "gemm_a4w4",
+            "log2_ks": 0
+          },
+          "256_3072_1536": {
+            "kernel": "gemm_a4w4_asm",
+            "log2_ks": 1
+          }
+        }
+      },
+      "parent_id": "gemm_n1",
+      "priority": 0.6174999999999999,
+      "attempts": 0,
+      "best_result_us": null,
+      "stagnation_count": 0,
+      "status": "active",
+      "children": [],
+      "notes": "Largest M \u2014 most parallelism"
+    },
+    "gemm_n2": {
+      "id": "gemm_n2",
+      "strategy": "gemm_a4w4_asm vs gemm_a4w4 per shape",
+      "parameters": {
+        "KERNEL_TABLE": {
+          "4_2880_512": {
+            "kernel": "gemm_a4w4_asm",
+            "log2_ks": 0
+          },
+          "16_2112_7168": {
+            "kernel": "gemm_a4w4_asm",
+            "log2_ks": 0
+          },
+          "32_4096_512": {
+            "kernel": "gemm_a4w4_asm",
+            "log2_ks": 0
+          },
+          "32_2880_512": {
+            "kernel": "gemm_a4w4_asm",
+            "log2_ks": 0
+          },
+          "64_7168_2048": {
+            "kernel": "gemm_a4w4_asm",
+            "log2_ks": 0
+          },
+          "256_3072_1536": {
+            "kernel": "gemm_a4w4_asm",
+            "log2_ks": 0
+          }
+        }
+      },
+      "parent_id": "root_gemm",
+      "priority": 0.8075,
+      "attempts": 0,
+      "best_result_us": null,
+      "stagnation_count": 0,
+      "status": "active",
+      "children": [],
+      "notes": "All-ASM baseline \u2014 does ASM kernel exist and help universally?"
+    },
+    "gemm_n3": {
+      "id": "gemm_n3",
+      "strategy": "N-dependent tile selection via log2_ks",
+      "parameters": {
+        "KERNEL_TABLE": {
+          "4_2880_512": {
+            "kernel": "gemm_a4w4",
+            "log2_ks": 2
+          },
+          "16_2112_7168": {
+            "kernel": "gemm_a4w4",
+            "log2_ks": 3
+          },
+          "32_4096_512": {
+            "kernel": "gemm_a4w4",
+            "log2_ks": 1
+          },
+          "32_2880_512": {
+            "kernel": "gemm_a4w4",
+            "log2_ks": 2
+          },
+          "64_7168_2048": {
+            "kernel": "gemm_a4w4",
+            "log2_ks": 0
+          },
+          "256_3072_1536": {
+            "kernel": "gemm_a4w4",
+            "log2_ks": 0
+          }
+        }
+      },
+      "parent_id": "root_gemm",
+      "priority": 0.57,
+      "attempts": 0,
+      "best_result_us": null,
+      "stagnation_count": 0,
+      "status": "active",
+      "children": [],
+      "notes": "Higher split-K for small M, lower for large M"
+    },
+    "gemm_n4": {
+      "id": "gemm_n4",
+      "strategy": "Skip quant for pre-quantized B",
+      "parameters": {},
+      "parent_id": "root_gemm",
+      "priority": 0.475,
+      "attempts": 0,
+      "best_result_us": null,
+      "stagnation_count": 0,
+      "status": "active",
+      "children": [],
+      "notes": "B is already MXFP4 \u2014 can we skip dynamic_mxfp4_quant overhead for B?"
+    },
+    "gemm_n0_cached": {
+      "id": "gemm_n0_cached",
+      "strategy": "A-quantization caching (skip dynamic_mxfp4_quant on repeat calls)",
+      "parameters": {
+        "_template": "gemm_cached",
+        "KERNEL_TABLE": {
+          "4_2880_512": {
+            "kernel": "gemm_a4w4",
+            "log2_ks": 0
+          },
+          "16_2112_7168": {
+            "kernel": "gemm_a4w4",
+            "log2_ks": 0
+          },
+          "32_4096_512": {
+            "kernel": "gemm_a4w4",
+            "log2_ks": 0
+          },
+          "32_2880_512": {
+            "kernel": "gemm_a4w4",
+            "log2_ks": 0
+          },
+          "64_7168_2048": {
+            "kernel": "gemm_a4w4",
+            "log2_ks": 0
+          },
+          "256_3072_1536": {
+            "kernel": "gemm_a4w4",
+            "log2_ks": 0
+          }
+        }
+      },
+      "parent_id": "root_gemm",
+      "priority": 0.9405,
+      "attempts": 0,
+      "best_result_us": null,
+      "stagnation_count": 0,
+      "status": "active",
+      "children": [],
+      "notes": "GAME-CHANGER: Cache A_q across benchmark iterations. Saves ~10-13\u00b5s/call. eval.py reuses same data tuple for all timed iterations."
+    }
+  }
+}

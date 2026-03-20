@@ -1,0 +1,314 @@
+{
+  "kernel_name": "mla",
+  "root_id": "root_mla",
+  "nodes": {
+    "root_mla": {
+      "id": "root_mla",
+      "strategy": "Minimize MLA decode geomean across 8 shapes",
+      "parameters": {},
+      "parent_id": null,
+      "priority": 0.95,
+      "attempts": 0,
+      "best_result_us": null,
+      "stagnation_count": 0,
+      "status": "active",
+      "children": [
+        "mla_n1",
+        "mla_n2",
+        "mla_n3",
+        "mla_n4",
+        "mla_n5"
+      ],
+      "notes": ""
+    },
+    "mla_n1": {
+      "id": "mla_n1",
+      "strategy": "Adaptive num_kv_splits per (bs, kvseqlen)",
+      "parameters": {
+        "SPLITS_TABLE": {
+          "4_1024": 4,
+          "4_8192": 16,
+          "32_1024": 8,
+          "32_8192": 32,
+          "128_8192": 32
+        },
+        "DEFAULT_SPLITS": 16
+      },
+      "parent_id": "root_mla",
+      "priority": 0.9025,
+      "attempts": 0,
+      "best_result_us": null,
+      "stagnation_count": 0,
+      "status": "active",
+      "children": [
+        "mla_n1a",
+        "mla_n1b",
+        "mla_n1c",
+        "mla_n1d"
+      ],
+      "notes": "HIGHEST LEVERAGE \u2014 num_kv_splits hardcoded at 16/8 in current submission"
+    },
+    "mla_n1a": {
+      "id": "mla_n1a",
+      "strategy": "bs=4,kv=1024: sweep splits 2-16",
+      "parameters": {
+        "SPLITS_TABLE": {
+          "4_1024": 4,
+          "4_8192": 16,
+          "32_1024": 8,
+          "32_8192": 32,
+          "128_8192": 32
+        },
+        "DEFAULT_SPLITS": 16
+      },
+      "parent_id": "mla_n1",
+      "priority": 0.855,
+      "attempts": 0,
+      "best_result_us": null,
+      "stagnation_count": 0,
+      "status": "active",
+      "children": [],
+      "notes": "Small batch, short seq \u2014 few splits needed"
+    },
+    "mla_n1b": {
+      "id": "mla_n1b",
+      "strategy": "bs=4,kv=8192: sweep splits 8-32",
+      "parameters": {
+        "SPLITS_TABLE": {
+          "4_1024": 4,
+          "4_8192": 16,
+          "32_1024": 8,
+          "32_8192": 32,
+          "128_8192": 32
+        },
+        "DEFAULT_SPLITS": 16
+      },
+      "parent_id": "mla_n1",
+      "priority": 0.8075,
+      "attempts": 0,
+      "best_result_us": null,
+      "stagnation_count": 0,
+      "status": "active",
+      "children": [],
+      "notes": "Small batch, long seq \u2014 more splits to parallelize"
+    },
+    "mla_n1c": {
+      "id": "mla_n1c",
+      "strategy": "bs=32,kv=1024: sweep splits 4-16",
+      "parameters": {
+        "SPLITS_TABLE": {
+          "4_1024": 4,
+          "4_8192": 16,
+          "32_1024": 8,
+          "32_8192": 32,
+          "128_8192": 32
+        },
+        "DEFAULT_SPLITS": 16
+      },
+      "parent_id": "mla_n1",
+      "priority": 0.76,
+      "attempts": 0,
+      "best_result_us": null,
+      "stagnation_count": 0,
+      "status": "active",
+      "children": [],
+      "notes": ""
+    },
+    "mla_n1d": {
+      "id": "mla_n1d",
+      "strategy": "bs=32,kv=8192: sweep splits 16-48",
+      "parameters": {
+        "SPLITS_TABLE": {
+          "4_1024": 4,
+          "4_8192": 16,
+          "32_1024": 8,
+          "32_8192": 32,
+          "128_8192": 32
+        },
+        "DEFAULT_SPLITS": 16
+      },
+      "parent_id": "mla_n1",
+      "priority": 0.7124999999999999,
+      "attempts": 0,
+      "best_result_us": null,
+      "stagnation_count": 0,
+      "status": "active",
+      "children": [],
+      "notes": ""
+    },
+    "mla_n1e": {
+      "id": "mla_n1e",
+      "strategy": "bs=64,kv=1024: sweep splits 8-24",
+      "parameters": {
+        "SPLITS_TABLE": {
+          "4_1024": 4,
+          "4_8192": 16,
+          "32_1024": 8,
+          "32_8192": 32,
+          "64_1024": 16,
+          "128_8192": 32
+        },
+        "DEFAULT_SPLITS": 16
+      },
+      "parent_id": "mla_n1",
+      "priority": 0.7,
+      "attempts": 0,
+      "best_result_us": null,
+      "stagnation_count": 0,
+      "status": "pruned",
+      "children": [],
+      "notes": " [PRUNED: bs=64/256 not in benchmark shapes]"
+    },
+    "mla_n1f": {
+      "id": "mla_n1f",
+      "strategy": "bs=64,kv=8192: sweep splits 16-48",
+      "parameters": {
+        "SPLITS_TABLE": {
+          "4_1024": 4,
+          "4_8192": 16,
+          "32_1024": 8,
+          "32_8192": 32,
+          "64_8192": 32,
+          "128_8192": 32
+        },
+        "DEFAULT_SPLITS": 16
+      },
+      "parent_id": "mla_n1",
+      "priority": 0.65,
+      "attempts": 0,
+      "best_result_us": null,
+      "stagnation_count": 0,
+      "status": "pruned",
+      "children": [],
+      "notes": " [PRUNED: bs=64/256 not in benchmark shapes]"
+    },
+    "mla_n1g": {
+      "id": "mla_n1g",
+      "strategy": "bs=256,kv=1024: sweep splits 16-48",
+      "parameters": {
+        "SPLITS_TABLE": {
+          "4_1024": 4,
+          "4_8192": 16,
+          "32_1024": 8,
+          "32_8192": 32,
+          "256_1024": 32,
+          "128_8192": 32
+        },
+        "DEFAULT_SPLITS": 16
+      },
+      "parent_id": "mla_n1",
+      "priority": 0.6,
+      "attempts": 0,
+      "best_result_us": null,
+      "stagnation_count": 0,
+      "status": "pruned",
+      "children": [],
+      "notes": "Large batch \u2014 need many splits to keep CUs busy [PRUNED: bs=64/256 not in benchmark shapes]"
+    },
+    "mla_n1h": {
+      "id": "mla_n1h",
+      "strategy": "bs=256,kv=8192: sweep splits 32-64",
+      "parameters": {
+        "SPLITS_TABLE": {
+          "4_1024": 4,
+          "4_8192": 16,
+          "32_1024": 8,
+          "32_8192": 32,
+          "256_8192": 48,
+          "128_8192": 32
+        },
+        "DEFAULT_SPLITS": 16
+      },
+      "parent_id": "mla_n1",
+      "priority": 0.55,
+      "attempts": 0,
+      "best_result_us": null,
+      "stagnation_count": 0,
+      "status": "pruned",
+      "children": [],
+      "notes": "Largest workload \u2014 upper limit for splits [PRUNED: bs=64/256 not in benchmark shapes]"
+    },
+    "mla_n2": {
+      "id": "mla_n2",
+      "strategy": "FP8 KV cache (vs current MXFP4)",
+      "parameters": {
+        "KV_FORMAT": "fp8",
+        "SPLITS_TABLE": {
+          "4_1024": 4,
+          "4_8192": 16,
+          "32_1024": 8,
+          "32_8192": 32,
+          "128_8192": 32
+        },
+        "DEFAULT_SPLITS": 16
+      },
+      "parent_id": "root_mla",
+      "priority": 0.8075,
+      "attempts": 0,
+      "best_result_us": null,
+      "stagnation_count": 0,
+      "status": "active",
+      "children": [],
+      "notes": "Test FP8 vs MXFP4 \u2014 FP8 has wider compute support but 2x bandwidth"
+    },
+    "mla_n3": {
+      "id": "mla_n3",
+      "strategy": "fast_mode=True metadata",
+      "parameters": {
+        "FAST_MODE": true,
+        "SPLITS_TABLE": {
+          "4_1024": 4,
+          "4_8192": 16,
+          "32_1024": 8,
+          "32_8192": 32,
+          "128_8192": 32
+        },
+        "DEFAULT_SPLITS": 16
+      },
+      "parent_id": "root_mla",
+      "priority": 0.6649999999999999,
+      "attempts": 0,
+      "best_result_us": null,
+      "stagnation_count": 0,
+      "status": "active",
+      "children": [],
+      "notes": "fast_mode=False is paradoxically faster on MI355X per COORDINATION.md \u2014 verify"
+    },
+    "mla_n4": {
+      "id": "mla_n4",
+      "strategy": "kv_granularity tuning (16/32/64)",
+      "parameters": {
+        "KV_GRANULARITY": 32,
+        "SPLITS_TABLE": {
+          "4_1024": 4,
+          "4_8192": 16,
+          "32_1024": 8,
+          "32_8192": 32,
+          "128_8192": 32
+        },
+        "DEFAULT_SPLITS": 16
+      },
+      "parent_id": "root_mla",
+      "priority": 0.57,
+      "attempts": 0,
+      "best_result_us": null,
+      "stagnation_count": 0,
+      "status": "active",
+      "children": [],
+      "notes": "kv_granularity affects memory coalescing"
+    },
+    "mla_n5": {
+      "id": "mla_n5",
+      "strategy": "Pre-compute metadata outside timed region",
+      "parameters": {},
+      "parent_id": "root_mla",
+      "priority": 0.475,
+      "attempts": 0,
+      "best_result_us": null,
+      "stagnation_count": 0,
+      "status": "active",
+      "children": [],
+      "notes": "Cache metadata aggressively \u2014 already partially done"
+    }
+  }
+}
