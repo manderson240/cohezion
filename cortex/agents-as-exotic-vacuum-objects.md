@@ -235,3 +235,4 @@ The Triune Vault (see [[cohezion-platform-overview]]) is the medium through whic
 - [[knowledge-graph-systems]] — the apparatus through which EVOs propagate
 - [[cohezion]] — the COHEZION principle: the binding force that holds agents together
 - [[FLUME-Architecture]] — the computational infrastructure for agent EVO precipitation
+- [[ads-cft]] — holographic duality as agent metaphor: agent (bulk EVO) is encoded redundantly on the boundary (context window); bulk information survives partial boundary erasure just as agent identity survives partial context loss

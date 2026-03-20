@@ -128,6 +128,7 @@ For n > ~15 elements, exact computation is infeasible. This has motivated approx
 - [[theory-of-everything-synthesis]] — IIT provides the mathematics for Campbell's claim that consciousness is fundamental: Φ > 0 everywhere, Φ → max at AUM
 - [[quantum-mechanics]] — quantum IIT (QIIT) extends integrated information to quantum systems; entanglement boosts Φ
 - [[cognitive-science]] — IIT as a theory of consciousness vs. Global Workspace Theory, Higher-Order Theories
+- [[active-inference]] — FEP and IIT as complementary theories: active inference governs how systems with Markov blankets behave; IIT measures the intrinsic information of the resulting causal structure — both are needed for a complete theory of mind
 - [[sacred-geometry]] — the exclusion postulate selects specific spatial grains, echoing the discrete geometric structure of reality
 
 ### Indigenous Cosmology Cross-Validation

@@ -37,6 +37,7 @@ For Cohezion's knowledge graph, materials science connects papers on DNA origami
 
 - [[nanofabrication]] — bottom-up material construction at nanometer scales
 - [[machine-learning]] — ML potentials and foundation models accelerating materials discovery
+- [[active-inference]] — active inference applied to materials discovery: generative models predict structure-property relations, and high-surprise experimental outcomes drive targeted synthesis campaigns (epistemic foraging)
 - [[synthetic-biology]] — intersection where biomaterials and engineered biological systems overlap
 - [[materials-informatics]] — application of ML and data science to materials discovery, a subfield of materials science
 - [[optical-properties]] — optical properties are a key category within the structure-property relationships studied in materials science

@@ -53,6 +53,7 @@ Advanced physics simulation refers to the computational investigation of physica
 - [[chaos-theory]] -- Lyapunov exponents quantify simulation sensitivity; chaotic mixing in plasma codes
 - [[magnetohydrodynamics]] -- MHD solvers are core simulation capability (GRMHD for jets and accretion)
 - [[plasma-physics]] -- PIC codes and MHD solvers simulate plasma dynamics at multiple scales
+- [[ads-cft]] -- AdS/CMT (condensed matter) applications: holographic superconductors and the KSS viscosity bound η/s ≥ ℏ/4πk_B inform strongly correlated plasma simulations
 
 ## Relevance to Cohezion
 

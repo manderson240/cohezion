@@ -174,6 +174,7 @@ Spinor BEC supports non-abelian vortices, spin textures, skyrmions, and dynamica
 - [[quantum-computing]] — BEC is used for quantum simulation of condensed matter Hamiltonians
 - [[planck-scale]] — BEC analogues of Hawking radiation: phonons at sonic horizons mimic black hole radiation
 - [[chaos-theory]] — BEC turbulence (quantum turbulence): quantized vortex tangles exhibit Kolmogorov spectrum
+- [[ads-cft]] — holographic superconductors (AdS/CMT) model BEC-like condensation at strong coupling; the KSS bound η/s ≥ ℏ/4πk_B from holography agrees with measured values in ultracold unitary Fermi gases near BEC-BCS crossover
 
 ## Relevance to Cohezion
 

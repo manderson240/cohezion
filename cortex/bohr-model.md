@@ -160,6 +160,7 @@ The Bohr model is the leading term of the Rydberg series — exact in the non-re
 - [[spectroscopy]] — Rydberg formula directly observable in stellar spectra; Balmer lines identify hydrogen across the universe
 - [[orch-or]] — Microtubule quantum states in ORCH OR are Bohr-like: discrete energy levels, transitions mediated by OR events
 - [[chirality]] — Hydrogen fine structure (spin-orbit coupling) couples orbital angular momentum to spin — the origin of atomic chirality
+- [[ads-cft]] — AdS/CFT provides the UV completion of atomic physics: Bohr quantization is the semiclassical limit of the full holographic dual; the hydrogen atom's Rydberg spectrum arises from the boundary CFT perspective
 
 ## Relevance to Cohezion
 

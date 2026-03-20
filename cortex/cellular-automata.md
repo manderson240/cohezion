@@ -94,6 +94,7 @@ where P(w, t) is the probability of finding window pattern w in the configuratio
 - [[advanced_physics_simulation]] — lattice gas automata simulate fluid dynamics and plasma flows
 - [[chaos-theory]] — Class 3 CAs exhibit sensitive dependence on initial conditions
 - [[neural-network-architecture]] — neural CAs (Neural CA) learn update rules for pattern generation
+- [[ads-cft]] — both exhibit bulk-boundary encoding: CA spacetime can be reconstructed from boundary initial data, analogous to holographic reconstruction of bulk operators from boundary CFT
 
 ## Relevance to Cohezion
 

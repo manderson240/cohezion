@@ -45,6 +45,7 @@ Natural Language Processing (NLP) is a field at the intersection of linguistics,
 - [[machine-learning]] — the broader field that provides NLP's learning algorithms and optimization techniques
 - [[agentic-ai]] — autonomous agents built on NLP-powered language models
 - [[computer-vision]] — the visual counterpart to NLP; multimodal models increasingly combine both
+- [[active-inference]] — language models as predictive coding machines; next-token prediction minimizes variational free energy over a sequence generative model; RLHF aligns the generative model's priors with human preferences
 
 ## Related Papers
 

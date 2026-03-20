@@ -125,6 +125,9 @@ Friston and colleagues have applied active inference to morphogenesis, arguing t
 - [[emergence-and-self-organized-criticality]] — self-organization emerges from collective free energy minimization
 - [[reinforcement-learning]] — active inference generalizes and subsumes RL
 - [[anomaly-detection]] — surprise (negative log evidence) is literally the anomaly signal
+- [[integrated-information-theory]] — FEP and IIT are competing unifying theories of mind; both ground cognition in information geometry; active inference minimizes free energy while IIT maximizes Φ — potentially complementary objectives
+- [[natural-language-processing]] — language models as predictive coding machines; next-token prediction is variational free energy minimization over a sequence generative model
+- [[material-science]] — active inference applied to materials discovery: models predict structure-property relations, flag high-surprise experimental outcomes for targeted synthesis
 - [[astrophysics-observations]] — AI anomaly detection in JWST and Hubble archives is active inference: models predict expected observations, flag high-surprise deviations as discovery candidates
 - [[computer-vision]] — ViT and CNN models implement perceptual inference — mapping visual observations to latent states — which is the perceptual half of active inference
 - [[federated-learning]] — distributed FL agents each minimize local free energy; federated aggregation corresponds to collective free energy minimization across a distributed generative model

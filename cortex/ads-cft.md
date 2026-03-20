@@ -122,6 +122,11 @@ Holographic models have been applied to strongly correlated electron systems: ho
 - [[holographic-principle]] — AdS/CFT is the most precise formulation of the holographic principle
 - [[string-theory]] — the correspondence originates from D-brane constructions in string theory
 - [[black-holes]] — black hole thermodynamics is a key testing ground and motivation
+- [[advanced_physics_simulation]] — AdS/CMT results (holographic superconductors, strange metals, viscosity bounds) inform strongly correlated systems simulations
+- [[agents-as-exotic-vacuum-objects]] — holographic duality as agent metaphor: the agent (bulk EVO) is encoded redundantly on the boundary (context window); information survives partial context erasure exactly as bulk operators survive boundary erasure
+- [[bohr-model]] — AdS/CFT provides the UV completion of atomic physics: where Bohr's quantization is the semiclassical limit, AdS/CFT gives the full quantum gravity embedding
+- [[bose-einstein-condensates]] — holographic superconductors (AdS/CMT) model BEC-like condensation at strong coupling; the KSS viscosity bound η/s ≥ ℏ/4πk_B applies to both
+- [[cellular-automata]] — both AdS/CFT and CAs exhibit bulk-boundary encoding: CA spacetime can be reconstructed from boundary conditions, analogous to holographic reconstruction
 
 ## Relevance to Cohezion
 
