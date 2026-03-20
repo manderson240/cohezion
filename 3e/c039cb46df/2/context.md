@@ -1,0 +1,134 @@
+# Session Context
+
+## User Prompts
+
+### Prompt 1
+
+Implement the following plan:
+
+# Plan: Cohezion Autonomous Learning Loop (CALL)
+# AgentJet + Unsloth Studio Integration
+
+Status: COMPLETE
+Worktree: Yes
+Date: 2026-03-19
+Completed: 2026-03-20
+
+---
+
+## Context
+
+Cohezion accumulates rich execution experience (phi_score, 12D FLUME trajectories, coherence
+metrics) via JourneyTracker but never uses it to update model weights. Four training pipelines
+exist in `flume/` but all generate bash scripts and stop — none execute training. Meanwhile
+cloud AP...
+
+### Prompt 2
+
+Base directory for this skill: /home/mike-anderson/.claude/plugins/cache/claude-plugins-official/superpowers/5.0.5/skills/executing-plans
+
+# Executing Plans
+
+## Overview
+
+Load plan, review critically, execute all tasks, report when complete.
+
+**Announce at start:** "I'm using the executing-plans skill to implement this plan."
+
+**Note:** Tell your human partner that Superpowers works much better with access to subagents. The quality of its work will be significantly higher if run on a platform...
+
+### Prompt 3
+
+Base directory for this skill: /home/mike-anderson/.claude/plugins/cache/claude-plugins-official/superpowers/5.0.5/skills/finishing-a-development-branch
+
+# Finishing a Development Branch
+
+## Overview
+
+Guide completion of development work by presenting clear options and handling chosen workflow.
+
+**Core principle:** Verify tests → Present options → Execute choice → Clean up.
+
+**Announce at start:** "I'm using the finishing-a-development-branch skill to complete this work."
+
+## The Process
+
+###...
+
+### Prompt 4
+
+<task-notification>
+<task-id>bi72zd8bl</task-id>
+<tool-use-id>toolu_015LUS3FGEuYiTo5EqqGXJZo</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/fa51e7c9-e669-4877-ac89-6ff357f6ba35/tasks/bi72zd8bl.output</output-file>
+<status>completed</status>
+<summary>Background command "Run full test suite, quiet mode" completed (exit code 0)</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/fa51e7c9-e669-...
+
+### Prompt 5
+
+<task-notification>
+<task-id>b4l05rxop</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/fa51e7c9-e669-4877-ac89-6ff357f6ba35/tasks/b4l05rxop.output</output-file>
+<status>completed</status>
+<summary>Background command "Run full test suite in quiet mode" completed (exit code 0)</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/fa51e7c9-e66...
+
+### Prompt 6
+
+<task-notification>
+<task-id>b05vgbfed</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/fa51e7c9-e669-4877-ac89-6ff357f6ba35/tasks/b05vgbfed.output</output-file>
+<status>completed</status>
+<summary>Background command "Full test suite excluding live SurrealDB test" completed (exit code 0)</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/...
+
+### Prompt 7
+
+<task-notification>
+<task-id>bhp4zoxcq</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/fa51e7c9-e669-4877-ac89-6ff357f6ba35/tasks/bhp4zoxcq.output</output-file>
+<status>completed</status>
+<summary>Background command "Full test suite excluding live infrastructure test" completed (exit code 0)</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohe...
+
+### Prompt 8
+
+<task-notification>
+<task-id>bpegkctrp</task-id>
+<tool-use-id>toolu_014XGGJXqZmD2QXbHiyxicQk</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/fa51e7c9-e669-4877-ac89-6ff357f6ba35/tasks/bpegkctrp.output</output-file>
+<status>completed</status>
+<summary>Background command "Full suite without coverage (faster) excluding live DB test" completed (exit code 0)</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson...
+
+### Prompt 9
+
+<task-notification>
+<task-id>bzs6p0euu</task-id>
+<tool-use-id>toolu_01At2a6uqE9VpE9CV24Qn9Gw</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/fa51e7c9-e669-4877-ac89-6ff357f6ba35/tasks/bzs6p0euu.output</output-file>
+<status>completed</status>
+<summary>Background command "Get full list of failing tests" completed (exit code 0)</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/fa51e7c9-e669-4...
+
+### Prompt 10
+
+<task-notification>
+<task-id>bdfs2ool5</task-id>
+<tool-use-id>toolu_017DGiNyBbW98yZY15bycHFF</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/fa51e7c9-e669-4877-ac89-6ff357f6ba35/tasks/bdfs2ool5.output</output-file>
+<status>completed</status>
+<summary>Background command "Full suite - capture FAILED lines and summary" completed (exit code 0)</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/...
+
