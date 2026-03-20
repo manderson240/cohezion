@@ -69,3 +69,16 @@ neural:
 - 128GB LPDDR5X, Radeon 8060S (iGPU, unified memory)
 - 2TB NVMe (ZFS), 32GB swap
 - SandboxManager budget: 85GB ceiling
+
+## Related Concepts
+
+- [[12D-Manifold]] — the 12-parameter axiomatic space implemented in `universe/engine.py`
+- [[matsumoto_hiho_synthesis]] — HIHO Unified Engine implements the HIHO boundary condition at CA/MHD/twistor level
+- [[FLUME-Architecture]] — the 16-module FLUME intelligence pipeline documented here
+- [[extraction-pipeline-spec]] — 12D extraction pipeline bridging this platform to FLUME VAE training data
+- [[multi-agent-systems]] — 30+ compound + 25+ swarm modules; CompoundExecutor 11-step pipeline
+- [[reinforcement-learning]] — FlumeNavEnv 256D continuous obs/action with Hamiltonian dynamics
+- [[mcp-model-context-protocol]] — MCP Fleet (12+ servers) powering agent tool access
+- [[surrealdb]] — backing store for the knowledge graph and agent context
+- [[compound-engineering]] — CompoundExecutor, RetrospectionEngine, and Ouroboros Engine implement the compound methodology at platform scale
+- [[ai-safety-alignment]] — eval_awareness_defense, ethical_framework, consent_manager, and prompt_guard modules

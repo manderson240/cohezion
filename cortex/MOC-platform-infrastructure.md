@@ -78,6 +78,10 @@ The platform infrastructure layer powers Cohezion's ability to persist knowledge
 
 - [[2026-02-12-graphrag-phase-1-sql-syntax-errors-block-imports]] — First GraphRAG import attempt; SurrealQL syntax issues discovered
 
+## Platform Scale
+
+- [[2026-03-08-platform-inventory-441-modules]] — March 2026 inventory: 441 Python modules, 90K LOC, 3,200+ tests, 12+ MCP servers, 7 epics — full platform scale snapshot
+
 ## Start Here
 
 - **New to this topic?** Start with [[mcp-model-context-protocol]]
