@@ -17,7 +17,8 @@
         "moe_n2",
         "moe_n3",
         "moe_n4",
-        "n_f2d908f9"
+        "n_f2d908f9",
+        "n_4c2fefa4"
       ],
       "notes": "",
       "attempt_history": []
@@ -141,14 +142,31 @@
         }
       },
       "parent_id": "moe_n1",
-      "priority": 0.8075,
-      "attempts": 0,
-      "best_result_us": null,
+      "priority": 0.9075,
+      "attempts": 1,
+      "best_result_us": 223.34,
       "stagnation_count": 0,
       "status": "active",
       "children": [],
       "notes": "Medium batch 257-expert",
-      "attempt_history": []
+      "attempt_history": [
+        {
+          "result_us": 223.34405484969187,
+          "parameters": {
+            "KSPLIT_TABLE": {
+              "257_256_16": 4,
+              "257_256_128": 4,
+              "257_256_512": 0,
+              "33_512_16": 2,
+              "33_512_128": 2,
+              "33_512_512": 0,
+              "33_2048_512": 0
+            }
+          },
+          "timestamp": "2026-03-20T12:25:23.613505",
+          "source": "template"
+        }
+      ]
     },
     "moe_n1c": {
       "id": "moe_n1c",
@@ -312,6 +330,43 @@
       "status": "active",
       "children": [],
       "notes": "[LLM-proposed]",
+      "attempt_history": []
+    },
+    "n_4c2fefa4": {
+      "id": "n_4c2fefa4",
+      "strategy": "Custom Triton MoE: persistent tiles + fused permutation + tl.dot_scaled MXFP4 (Unsloth-inspired)",
+      "parameters": {
+        "approach": "custom_triton",
+        "tile_configs": {
+          "BLOCK_M": [
+            64,
+            128
+          ],
+          "BLOCK_N": [
+            64,
+            128,
+            256
+          ],
+          "BLOCK_K": [
+            128,
+            256
+          ]
+        },
+        "features": [
+          "persistent_tiles",
+          "fused_permutation",
+          "dot_scaled_mxfp4",
+          "xcd_aware"
+        ]
+      },
+      "parent_id": "root_moe",
+      "priority": 0.88,
+      "attempts": 0,
+      "best_result_us": null,
+      "stagnation_count": 0,
+      "status": "active",
+      "children": [],
+      "notes": "[Human-proposed] Based on Unsloth grouped_gemm architecture. Previous custom Triton was 68% slower but did not use persistent tiles, fused permutation, or tl.dot_scaled.",
       "attempt_history": []
     }
   }
