@@ -51,6 +51,7 @@ The troubleshooting approach follows a layered strategy: check connectivity firs
 - [[runbook-ollama-mcp-operations]] -- Ollama-specific operational procedures
 - [[cloud-vault-mcp]] -- the primary MCP server for this vault
 - [[2026-02-09-session-43-mcp-setup|Session 43: MCP Setup]] — the FastMCP Mount bug found in this session is a canonical MCP infrastructure troubleshooting case
+- [[cerebellum/troubleshooting-mcp-infrastructure|Troubleshooting Guide (Operational)]] -- full diagnostic runbook: Ollama MCP restart, CI failure patterns, health check timeouts, benchmark slowdowns, API hangs
 
 ## Relevance to Cohezion
 

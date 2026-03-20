@@ -42,6 +42,10 @@ Agentic AI is the foundation of the Cohezion framework: autonomous systems that 
 - [[agent-logs-vault-schema]] — Schema for capturing agent execution context as vault notes with structured frontmatter linking sessions to decisions and lessons
 - [[implementation_plan|Cohezion Crystal Protocol]] — Antigravity agent's energy-based model integration: energy descent loop for deterministic, verified agentic reasoning
 
+## Agent Execution Records
+
+- [[Agents/_index|Agents Directory]] — 427 auto-generated execution traces from Antigravity and future agent runtimes
+
 ## Research Papers
 
 - [[scaling-agent-systems]] — Google Research on scaling laws and coordination bottlenecks in multi-agent systems

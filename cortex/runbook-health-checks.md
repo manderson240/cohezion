@@ -54,6 +54,7 @@ Health checks range from simple liveness probes (is the process running?) to dee
 - [[runbook-ollama-mcp-operations]] -- Ollama-specific operations including health checking
 - [[runbook-ci-cd-pipeline]] -- CI pipelines that run health checks as pre-deployment gates
 - [[non-blocking-observability]] -- observability pattern that health checks contribute to
+- [[cerebellum/runbook-health-checks|Runbook: Health Checks (Operational)]] -- full step-by-step health check procedures with cron monitoring, systemd timer setup, and per-service troubleshooting
 
 ## Primary Sources
 

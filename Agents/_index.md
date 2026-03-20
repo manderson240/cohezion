@@ -38,3 +38,5 @@ Agents/
 ## Notable Agent Runs
 
 - [[implementation_plan|Cohezion Crystal Protocol (Antigravity)]] — energy-based model integration plan for deterministic, verified agentic reasoning via energy descent loop
+- [[Agents/Antigravity/4bda55e4-549b-43bb-88a0-0685989866ac/task|Directed Research Sprint: Google Sheet Edition]] — batch research across astronomy, neuroscience, cosmology, astrophysics topics using 12D abstraction strategy
+- [[Agents/Antigravity/aee99195-4c6a-4b80-ac7e-b0aaddb284cc/implementation_plan|300-Hour Autonomous Execution Plan]] — Sprint 75 retrospective and long-horizon autonomous compound engineering execution plan
