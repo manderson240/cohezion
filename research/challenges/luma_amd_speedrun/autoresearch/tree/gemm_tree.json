@@ -7,9 +7,9 @@
       "strategy": "Minimize MXFP4 GEMM geomean across 6 shapes",
       "parameters": {},
       "parent_id": null,
-      "priority": 0.12620288378742248,
-      "attempts": 9,
-      "best_result_us": 130.71,
+      "priority": 0.1009094861813066,
+      "attempts": 21,
+      "best_result_us": 118.11,
       "stagnation_count": 0,
       "status": "active",
       "children": [
@@ -80,6 +80,78 @@
           "result_us": 130.71157986078072,
           "parameters": {},
           "timestamp": "2026-03-20T17:53:28.901469",
+          "source": "template"
+        },
+        {
+          "result_us": 128.46646508573087,
+          "parameters": {},
+          "timestamp": "2026-03-20T17:53:44.003029",
+          "source": "template"
+        },
+        {
+          "result_us": 124.20557132504379,
+          "parameters": {},
+          "timestamp": "2026-03-20T17:54:07.103045",
+          "source": "template"
+        },
+        {
+          "result_us": 124.58040777633185,
+          "parameters": {},
+          "timestamp": "2026-03-20T17:54:17.201537",
+          "source": "template"
+        },
+        {
+          "result_us": 138.447692464307,
+          "parameters": {},
+          "timestamp": "2026-03-20T17:54:50.269469",
+          "source": "template"
+        },
+        {
+          "result_us": 130.14817655727524,
+          "parameters": {},
+          "timestamp": "2026-03-20T17:54:59.907603",
+          "source": "template"
+        },
+        {
+          "result_us": 142.24708486911382,
+          "parameters": {},
+          "timestamp": "2026-03-20T17:55:09.601743",
+          "source": "template"
+        },
+        {
+          "result_us": 132.59487911730164,
+          "parameters": {},
+          "timestamp": "2026-03-20T17:55:19.302482",
+          "source": "template"
+        },
+        {
+          "result_us": 123.89861489410823,
+          "parameters": {},
+          "timestamp": "2026-03-20T17:55:29.101314",
+          "source": "template"
+        },
+        {
+          "result_us": 129.36673535050198,
+          "parameters": {},
+          "timestamp": "2026-03-20T17:56:13.906207",
+          "source": "template"
+        },
+        {
+          "result_us": 129.80782611135112,
+          "parameters": {},
+          "timestamp": "2026-03-20T17:56:23.602248",
+          "source": "template"
+        },
+        {
+          "result_us": 118.39467301424885,
+          "parameters": {},
+          "timestamp": "2026-03-20T17:56:48.599606",
+          "source": "template"
+        },
+        {
+          "result_us": 118.10967807899702,
+          "parameters": {},
+          "timestamp": "2026-03-20T17:57:20.000423",
           "source": "template"
         }
       ]
