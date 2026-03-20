@@ -523,7 +523,7 @@ curl -s -u root:root -X POST "http://localhost:8001/sql" \
 
 ### Dreaming Engine Invocation
 
-Run `python3 scripts/dreaming-engine.py` to:
+Run `uv run --project /home/mike-anderson/dev/cohezion/cloud-vault-mcp scripts/dreaming-engine.py` to:
 - Refresh Country health
 - Find today's cross-domain resonances → `dreaming/YYYY-MM-DD-resonances.md`
 - Update `metabolism/metabolism-dashboard.md`
