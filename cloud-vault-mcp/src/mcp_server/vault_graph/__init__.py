@@ -1,6 +1,6 @@
 """vault_graph — typed wrappers around the SurrealDB graph intelligence layer."""
 
 from .client import GraphClient, GraphQueryError, get_graph_client
-from . import queries
+from . import affinity, queries, reactor
 
-__all__ = ["GraphClient", "GraphQueryError", "get_graph_client", "queries"]
+__all__ = ["GraphClient", "GraphQueryError", "get_graph_client", "queries", "reactor", "affinity"]
