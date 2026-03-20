@@ -142,9 +142,9 @@
       },
       "parent_id": "moe_n1",
       "priority": 0.9075,
-      "attempts": 2,
+      "attempts": 3,
       "best_result_us": 223.34,
-      "stagnation_count": 1,
+      "stagnation_count": 2,
       "status": "active",
       "children": [],
       "notes": "Medium batch 257-expert",
@@ -179,6 +179,22 @@
             }
           },
           "timestamp": "2026-03-20T13:06:08.401191",
+          "source": "template"
+        },
+        {
+          "result_us": 241.06936505698886,
+          "parameters": {
+            "KSPLIT_TABLE": {
+              "257_256_16": 4,
+              "257_256_128": 4,
+              "257_256_512": 0,
+              "33_512_16": 2,
+              "33_512_128": 2,
+              "33_512_512": 0,
+              "33_2048_512": 0
+            }
+          },
+          "timestamp": "2026-03-20T14:20:57.299608",
           "source": "template"
         }
       ]
