@@ -14,11 +14,11 @@ Use `uv run` instead — it automatically resolves the correct venv:
 # WRONG
 python3 scripts/dreaming-engine.py
 
-# CORRECT
-uv run scripts/dreaming-engine.py
+# CORRECT (preferred — uv resolves the cloud-vault-mcp venv)
+uv run --project /home/mike-anderson/dev/cohezion/cloud-vault-mcp scripts/dreaming-engine.py
 
 # Also correct (explicit venv path)
 /home/mike-anderson/dev/cohezion/cloud-vault-mcp/.venv/bin/python3 scripts/dreaming-engine.py
 ```
 
-`uv run` picks up the project venv, ensuring `requests`, `surrealdb`, and all vault dependencies are available.
+The vault has no local `pyproject.toml`. Plain `uv run` also fails — must use `--project` to point at `cloud-vault-mcp/`.

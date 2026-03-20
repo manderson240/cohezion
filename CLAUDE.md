@@ -230,20 +230,20 @@ unless explicitly authorized for that specific operation.
 
 ### Python Environment Conventions
 
-**CRITICAL**: Use `uv run` — never bare `python3`:
+**CRITICAL**: Never use bare `python3`. The vault has no local venv — the venv lives in `cloud-vault-mcp/`:
 
 ```bash
 # ❌ WRONG
-python3 script.py
+python3 scripts/dreaming-engine.py
 
-# ✅ RIGHT (preferred)
-uv run script.py
+# ✅ RIGHT (preferred — uv resolves the cloud-vault-mcp venv)
+uv run --project /home/mike-anderson/dev/cohezion/cloud-vault-mcp scripts/dreaming-engine.py
 
 # ✅ ALSO RIGHT (explicit venv path)
-/home/mike-anderson/dev/cohezion/cloud-vault-mcp/.venv/bin/python3 script.py
+/home/mike-anderson/dev/cohezion/cloud-vault-mcp/.venv/bin/python3 scripts/dreaming-engine.py
 ```
 
-**Why**: `uv run` automatically resolves the correct venv, ensuring all dependencies (`requests`, `surrealdb`, etc.) are available. Bare `python3` uses the system Python which lacks vault dependencies.
+**Why**: The vault has no `pyproject.toml`. All vault script dependencies (`requests`, `surrealdb`, etc.) are installed in `cloud-vault-mcp/.venv/`. Bare `python3` and plain `uv run` both miss the venv.
 
 ### Token Budget Strategy
 

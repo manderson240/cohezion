@@ -129,20 +129,20 @@ docker-compose up -e CONFIG_PATH=/path/to/config.yaml
 
 ## Python Environment
 
-**CRITICAL:** Use `uv run` — never bare `python3`:
+**CRITICAL:** Never use bare `python3`. The vault has no local venv:
 
 ```bash
 # ❌ WRONG
 python3 script.py
 
 # ✅ RIGHT (preferred)
-uv run script.py
+uv run --project /home/mike-anderson/dev/cohezion/cloud-vault-mcp script.py
 
 # ✅ ALSO RIGHT (explicit venv path)
 /home/mike-anderson/dev/cohezion/cloud-vault-mcp/.venv/bin/python3 script.py
 ```
 
-**Why:** `uv run` automatically resolves the correct venv and all its dependencies. Bare `python3` uses the system Python which lacks vault dependencies.
+**Why:** The vault has no `pyproject.toml`. All dependencies live in `cloud-vault-mcp/.venv/`. Plain `uv run` without `--project` also misses the venv.
 
 ## Common Workflows
 
