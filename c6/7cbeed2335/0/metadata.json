@@ -1,0 +1,32 @@
+{
+  "cli_version": "0.4.9",
+  "checkpoint_id": "c67cbeed2335",
+  "session_id": "6eb9f7a9-b9d3-42c7-b376-15d523bbb2c2",
+  "strategy": "manual-commit",
+  "created_at": "2026-03-20T20:35:45.593398814Z",
+  "branch": "feat/graph-architecture",
+  "checkpoints_count": 2,
+  "files_touched": [
+    "research/challenges/luma_amd_speedrun/autoresearch/tree/gemm_tree.json",
+    "research/challenges/luma_amd_speedrun/autoresearch/tree/mla_tree.json",
+    "research/challenges/luma_amd_speedrun/autoresearch/tree/moe_tree.json"
+  ],
+  "agent": "Claude Code",
+  "turn_id": "d90d6cf525fe",
+  "token_usage": {
+    "input_tokens": 8826,
+    "cache_creation_tokens": 9099668,
+    "cache_read_tokens": 67330735,
+    "output_tokens": 107305,
+    "api_call_count": 311
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-03-20T20:35:45.040521842Z",
+    "agent_lines": 120,
+    "human_added": 2281,
+    "human_modified": 155,
+    "human_removed": 0,
+    "total_committed": 2556,
+    "agent_percentage": 4.694835680751173
+  }
+}

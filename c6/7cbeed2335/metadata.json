@@ -1,0 +1,28 @@
+{
+  "cli_version": "0.4.9",
+  "checkpoint_id": "c67cbeed2335",
+  "strategy": "manual-commit",
+  "branch": "feat/graph-architecture",
+  "checkpoints_count": 2,
+  "files_touched": [
+    "research/challenges/luma_amd_speedrun/autoresearch/tree/gemm_tree.json",
+    "research/challenges/luma_amd_speedrun/autoresearch/tree/mla_tree.json",
+    "research/challenges/luma_amd_speedrun/autoresearch/tree/moe_tree.json"
+  ],
+  "sessions": [
+    {
+      "metadata": "/c6/7cbeed2335/0/metadata.json",
+      "transcript": "/c6/7cbeed2335/0/full.jsonl",
+      "context": "/c6/7cbeed2335/0/context.md",
+      "content_hash": "/c6/7cbeed2335/0/content_hash.txt",
+      "prompt": "/c6/7cbeed2335/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 8826,
+    "cache_creation_tokens": 9099668,
+    "cache_read_tokens": 67330735,
+    "output_tokens": 107305,
+    "api_call_count": 311
+  }
+}
