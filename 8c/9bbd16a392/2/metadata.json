@@ -1,14 +1,15 @@
 {
   "cli_version": "0.4.9",
   "checkpoint_id": "8c9bbd16a392",
+  "session_id": "aaf3a51d-ec01-44db-bbd8-7096024dde05",
   "strategy": "manual-commit",
+  "created_at": "2026-03-20T04:48:50.819854744Z",
   "branch": "gemm-hip-cpp-fused",
-  "checkpoints_count": 39,
+  "checkpoints_count": 20,
   "files_touched": [
     "research/challenges/luma_amd_speedrun/autoresearch/README.md",
     "research/challenges/luma_amd_speedrun/autoresearch/__init__.py",
     "research/challenges/luma_amd_speedrun/autoresearch/analyzer.py",
-    "research/challenges/luma_amd_speedrun/autoresearch/code_synthesizer.py",
     "research/challenges/luma_amd_speedrun/autoresearch/driver.py",
     "research/challenges/luma_amd_speedrun/autoresearch/evaluator.py",
     "research/challenges/luma_amd_speedrun/autoresearch/generator.py",
@@ -17,7 +18,6 @@
     "research/challenges/luma_amd_speedrun/autoresearch/probes/aiter_recon_probe.py",
     "research/challenges/luma_amd_speedrun/autoresearch/probes/ksplit_validation_probe.py",
     "research/challenges/luma_amd_speedrun/autoresearch/rate_limiter.py",
-    "research/challenges/luma_amd_speedrun/autoresearch/research_strategy.md",
     "research/challenges/luma_amd_speedrun/autoresearch/team.json",
     "research/challenges/luma_amd_speedrun/autoresearch/templates/__init__.py",
     "research/challenges/luma_amd_speedrun/autoresearch/templates/gemm_cached_template.py",
@@ -28,34 +28,22 @@
     "research/challenges/luma_amd_speedrun/autoresearch/tree/mla_tree.json",
     "research/challenges/luma_amd_speedrun/autoresearch/tree/moe_tree.json"
   ],
-  "sessions": [
-    {
-      "metadata": "/8c/9bbd16a392/0/metadata.json",
-      "transcript": "/8c/9bbd16a392/0/full.jsonl",
-      "context": "/8c/9bbd16a392/0/context.md",
-      "content_hash": "/8c/9bbd16a392/0/content_hash.txt",
-      "prompt": "/8c/9bbd16a392/0/prompt.txt"
-    },
-    {
-      "metadata": "/8c/9bbd16a392/1/metadata.json",
-      "transcript": "/8c/9bbd16a392/1/full.jsonl",
-      "context": "/8c/9bbd16a392/1/context.md",
-      "content_hash": "/8c/9bbd16a392/1/content_hash.txt",
-      "prompt": "/8c/9bbd16a392/1/prompt.txt"
-    },
-    {
-      "metadata": "/8c/9bbd16a392/2/metadata.json",
-      "transcript": "/8c/9bbd16a392/2/full.jsonl",
-      "context": "/8c/9bbd16a392/2/context.md",
-      "content_hash": "/8c/9bbd16a392/2/content_hash.txt",
-      "prompt": "/8c/9bbd16a392/2/prompt.txt"
-    }
-  ],
+  "agent": "Claude Code",
+  "turn_id": "0ebfd59ffac0",
   "token_usage": {
-    "input_tokens": 16684,
-    "cache_creation_tokens": 8906930,
-    "cache_read_tokens": 106625036,
-    "output_tokens": 232282,
-    "api_call_count": 512
+    "input_tokens": 2641,
+    "cache_creation_tokens": 3093266,
+    "cache_read_tokens": 60648464,
+    "output_tokens": 122565,
+    "api_call_count": 257
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-03-20T04:48:50.25156831Z",
+    "agent_lines": 2035,
+    "human_added": 0,
+    "human_modified": 468,
+    "human_removed": 674,
+    "total_committed": 2503,
+    "agent_percentage": 81.30243707550939
   }
 }
