@@ -73,6 +73,12 @@ ml = [
     "torch>=2.0.0",
     "transformers>=4.30.0",
 ]
+agentjet = [
+    "aiohttp>=3.9",
+]
+unsloth = [
+    "unsloth",
+]
 
 [tool.ruff]
 target-version = "py311"

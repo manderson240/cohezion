@@ -1,0 +1,16 @@
+[Unit]
+Description=Cohezion Platform Resource Daemon
+After=network.target
+
+[Service]
+Type=simple
+User=%i
+WorkingDirectory=/home/mike-anderson/dev/cohezion
+ExecStart=/home/mike-anderson/.local/bin/uv run python -m cohezion.platform.resource_manager
+Restart=on-failure
+RestartSec=5s
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

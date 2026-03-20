@@ -3,13 +3,21 @@ Context Harness for Local SLM Optimization.
 Prunes, summaryzes, and anchors context for smaller local models.
 """
 
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 from cohezion.reliability.monitor import get_resource_monitor
 from cohezion.reliability.resolver import HallucinationResolver
 
+if TYPE_CHECKING:
+    from cohezion.agentjet.context_optimizer import ModelContextProfile
+
 
 class ContextHarness:
-    def __init__(self, target_model: str = "phi4"):
+    def __init__(self, target_model: str = "phi4", profile: ModelContextProfile | None = None) -> None:
         self.target_model = target_model
+        self._profile = profile
         self.resolver = HallucinationResolver()
         # Max context target in characters (approximate)
         self.context_limits = {
@@ -44,7 +52,11 @@ class ContextHarness:
         avail = stats["memory_available_gb"]
 
         # Base limits (characters)
-        base_limit = self.context_limits.get(model, self.context_limits["default"])
+        # If profile provided, use profile.num_ctx (converted chars: num_ctx * 4 bytes ≈ chars)
+        if self._profile is not None:
+            base_limit = self._profile.num_ctx * 4  # tokens → approximate chars
+        else:
+            base_limit = self.context_limits.get(model, self.context_limits["default"])
 
         # 1. RAH Emergency Mitigation (Maxwellian Relaxation signal)
         if getattr(monitor, "pressure_mitigation_active", False):
