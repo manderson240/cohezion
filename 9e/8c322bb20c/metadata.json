@@ -1,0 +1,33 @@
+{
+  "cli_version": "0.4.9",
+  "checkpoint_id": "9e8c322bb20c",
+  "strategy": "manual-commit",
+  "branch": "session-kaggle-benchmark",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "kaggle-agi-benchmark/adversarial_eval_loop.py",
+    "kaggle-agi-benchmark/format_kaggle_submission.py",
+    "kaggle-agi-benchmark/generate_evo_hiho_tasks.py",
+    "kaggle-agi-benchmark/kaggle_benchmark.json",
+    "kaggle-agi-benchmark/kaggle_formatter.py",
+    "kaggle-agi-benchmark/kaggle_writeup.md",
+    "src/cohezion/skills/MAMBA_STATE_TRACKING_PRIME.md",
+    "src/cohezion/swarm/r_zero_evolver.py"
+  ],
+  "sessions": [
+    {
+      "metadata": "/9e/8c322bb20c/0/metadata.json",
+      "transcript": "/9e/8c322bb20c/0/full.jsonl",
+      "context": "/9e/8c322bb20c/0/context.md",
+      "content_hash": "/9e/8c322bb20c/0/content_hash.txt",
+      "prompt": "/9e/8c322bb20c/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 1419,
+    "cache_creation_tokens": 113406,
+    "cache_read_tokens": 520112,
+    "output_tokens": 4410,
+    "api_call_count": 11
+  }
+}
