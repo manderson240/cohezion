@@ -1,0 +1,162 @@
+Implement the following plan:
+
+# Session Review: K-Search + R-Zero + Karpathy Integration
+
+## What We Set Out To Do
+
+Integrate three research papers into the Luma AMD Speedrun autoresearch pipeline:
+- **K-Search** (arxiv 2602.19128): LLM-guided tree search with world model co-evolution
+- **R-Zero** (2508.05004): Challenger pattern to escape local optima
+- **Karpathy autoresearch**: Human-editable research strategy steering autonomous loops
+
+Core gap: the autoresearch loop used deterministic templates + parameter perturbation,
+not LLM-guided code synthesis.
+
+---
+
+## What Was Accomplished
+
+### Original Plan: 9 Tasks — ALL COMPLETED
+
+| # | Task | Status | Key Outcome |
+|---|------|--------|-------------|
+| 1 | Trajectory tracking on KNode | DONE | `attempt_history`, `record_attempt()`, `get_trajectory_summary()` |
+| 2 | `apply_evolution()` + `strategic_prune()` | DONE | Atomic INSERT/UPDATE/PRUNE from LLM JSON |
+| 3 | `code_synthesizer.py` with Ollama | DONE | 310 lines, streaming, thinking-block stripping |
+| 4 | `evolve_world_model()` in analyzer.py | DONE | 267 lines, prompt injection defense |
+| 5 | `research_strategy.md` | DONE | 102 lines, dead ends, budget allocation, Unsloth analysis |
+| 6 | Challenger pattern in driver.py | DONE | `challenge_plateau()`, triggers on convergence |
+| 7 | Wire generator.py for LLM synthesis | DONE | `last_source` tracking, LLM-first with template fallback |
+| 8 | Dry-run test | DONE | Verified with `--dry-run-llm` mode |
+| 9 | Update K-Search skill | DONE | Implementation status table added |
+
+### Beyond-Plan Achievements
+
+| Achievement | What | Impact |
+|-------------|------|--------|
+| **Cloud model switch** | `qwen3-coder-next:cloud` — 2s vs 30min per call | 1000x faster tree evolution |
+| **Ollama streaming fix** | `stream: True` + wall-clock timeout | Solved CPU idle-socket timeouts |
+| **Structured output** | `EVOLUTION_SCHEMA` for JSON enforcement | Eliminated parsing failures (local models) |
+| **Prompt injection defense** | `<external-data>` XML isolation tags | Security hardening for autonomous pipeline |
+| **Aggressive pruning** | Prompt redesign + 30-node tree cap | Prevents unbounded growth in long runs |
+| **`--dry-run-llm` mode** | Exercises world model with synthetic results | Verification without MI355X hardware |
+| **`--model` CLI flag** | Override Ollama model per-run | Enables model comparison |
+| **Split model architecture** | `OLLAMA_MODEL_PLAN` vs `OLLAMA_MODEL_CODE` | Fast world model + quality code synthesis |
+| **`MAX_TOKENS_PLAN=512`** | Separate token budgets per role | 8x faster world model calls |
+| **`run_4hr.sh`** | Auto-restart on convergence, git commits every 5 batches | Sustained multi-hour runs |
+| **Unsloth kernel analysis** | Grouped GEMM architecture study (AGPL) | Informed custom Triton kernel design |
+| **Custom Triton MoE v2** | Phase 1: bf16 GEMM + fused permutation (644 lines) | Persistent tiles, token sorting |
+| **Custom Triton MoE v3** | Phase 2: `tl.dot_scaled` MXFP4 (749 lines) | Hardware-accelerated fp4 GEMM |
+| **Kernel spec document** | 714-line implementation blueprint | Full interface, constraints, code skeleton |
+| **Phase 2 conversion guide** | 455-line tl.dot → tl.dot_scaled guide | Exact line-by-line changes |
+| **3 reusable agent definitions** | kernel-researcher, kernel-writer, tree-evolver | Reproducible team sprint pattern |
+| **Ollama timeout skill** | `ollama-cpu-streaming-timeout` | Reusable fix for CPU inference |
+
+### Verification Results
+
+| Verification | Plan Target | Actual Result |
+|--------------|-------------|---------------|
+| LLM proposes sensible operations | 3-cycle dry-run | 510+ cycles, 110 inserts, 157 prunes |
+| Template fallback | Disable Ollama | 6+ timeout events, zero crashes, deterministic behavior preserved |
+| Tree has LLM-proposed nodes | After 5 cycles | 170 LLM-proposed strategies across 3 kernels |
+| LLM reads research_strategy.md | Respects dead ends | Verified — strategies align with priorities |
+| Code synthesis | 1 passing submission | Phase 1 + Phase 2 kernels written (syntax validated) |
+
+---
+
+## Quantitative Summary
+
+| Metric | Value |
+|--------|-------|
+| **Autoresearch pipeline** | 21 files, 3,935 lines |
+| **Kernel submissions** | 15 files, 2,368 lines |
+| **K-Search tree nodes explored** | 217 total (98.2% pruned to 4 survivors) |
+| **LLM evolution cycles** | 510+ across all sessions |
+| **LLM-proposed strategies** | 170 (110 inserts, 157 prunes) |
+| **Git commits** | 20+ in this session |
+| **Agent teams run** | 2 teams (ksearch-kernel-sprint, ksearch-hour-run) |
+| **Agent-produced artifacts** | 714-line spec + 644-line kernel + 455-line guide |
+| **Skills extracted** | 2 (ollama-cpu-streaming-timeout, k-search-llm-kernel-optimization updated) |
+| **Model evolution** | qwen3-coder:30b (CPU, 30min) → qwen2.5-coder:7b (CPU, 15min) → qwen3-coder-next:cloud (2s) |
+
+---
+
+## Architecture Delivered
+
+```
+                          Human edits
+                              ↓
+                    research_strategy.md
+                              ↓
+    ┌─────────────────────────────────────────────┐
+    │           K-Search Driver (driver.py)        │
+    │  SELECT node → GENERATE code → EVALUATE      │
+    │  → UPDATE tree → EVOLVE world model → SLEEP  │
+    │                                               │
+    │  --dry-run-llm: synthetic results             │
+    │  --model: override Ollama model               │
+    │  R-Zero challenger on convergence             │
+    │  Auto-restart via run_4hr.sh                  │
+    └────────┬──────────┬──────────┬───────────────┘
+             │          │          │
+    ┌────────▼──┐ ┌─────▼────┐ ┌──▼──────────────┐
+    │ generator │ │ analyzer │ │ code_synthesizer │
+    │ LLM-first │ │ evolve   │ │ Ollama streaming │
+    │ template  │ │ world    │ │ thinking-strip   │
+    │ fallback  │ │ model    │ │ prompt injection │
+    └───────────┘ └──────────┘ │ structured JSON  │
+                               └──────────────────┘
+                                       ↓
+                              Ollama (cloud or local)
+                              qwen3-coder-next:cloud (2s)
+                              qwen2.5-coder:7b (15min)
+                              qwen3-coder:30b (overnight)
+```
+
+---
+
+## Key Decisions Made During Session
+
+| Decision | Why | Alternative Rejected |
+|----------|-----|---------------------|
+| Streaming Ollama API | `urlopen` idle timeout kills non-streaming on CPU | Non-streaming (works only on GPU) |
+| Cloud model for pi_plan | 1000x faster, 100% success rate | Local 7B (too slow for interactive) |
+| No structured output for cloud | Cloud models ignore schema, better with prompt-only | Schema enforcement (empty responses) |
+| Aggressive pruning prompt | Trees grew 20+ nodes/batch without pruning | Conservative pruning (tree bloat) |
+| 30-node tree cap | Prevents unbounded growth in multi-hour runs | No cap (hundreds of low-quality nodes) |
+| Split MAX_TOKENS (512 plan / 4096 code) | World model only needs ~100 tokens of JSON | Single budget (wasted on thinking tokens) |
+| bf16 Phase 1 before MXFP4 Phase 2 | Validate sorting logic independently of fp4 | Direct to MXFP4 (harder to debug) |
+| AGPL study-only for Unsloth | License prohibits copying code | Direct code reuse (license violation) |
+
+---
+
+## What's Ready for MI355X Testing
+
+| File | Purpose | Test Command |
+|------|---------|--------------|
+| `submission_custom_triton_v2.py` | Phase 1 (bf16) — validates fused permutation | `popcorn-cli submit --mode test` |
+| `submission_custom_triton_v3.py` | Phase 2 (MXFP4) — performance candidate | `popcorn-cli submit --mode benchmark` |
+| `submission.py` | Current baseline (aiter fused_moe) | Already submitted |
+
+---
+
+## What Would Improve Next
+
+1. **Real MI355X benchmarks** — synthetic results cause premature convergence; real data would keep trees alive
+2. **Phase 2 kernel testing** — `tl.dot_scaled` scale layout is the highest-risk element (N-first vs K-first)
+3. **Smaller world model JSON** — cloud model generates verbose JSON; tighter prompt could reduce to ~50 tokens
+4. **Tree seeding from kernel skills** — auto-populate initial trees from existing optimization skills
+5. **Multi-kernel co-evolution** — share insights across MoE/GEMM/MLA trees (e.g., "fused quant worked for GEMM, try for MoE")
+
+
+If you need specific details from before exiting plan mode (like exact code snippets, error messages, or content you generated), read the full transcript at: /home/mike-anderson/.claude/projects/-home-mike-anderson-dev-cohezion/6eb9f7a9-b9d3-42c7-b376-15d523bbb2c2.jsonl
+
+If this plan can be broken down into multiple independent tasks, consider using the TeamCreate tool to create a team and parallelize the work.
+
+---
+
+Let's make some real submissions.  Test first, refine, then when we think we have a breakthrough actually submit to the leaderboards.
+
+---
+
+[Request interrupted by user for tool use]
