@@ -1,0 +1,26 @@
+{
+  "cli_version": "0.4.9",
+  "checkpoint_id": "a0654f016114",
+  "strategy": "manual-commit",
+  "branch": "track-c",
+  "checkpoints_count": 0,
+  "files_touched": [
+    "docs/superpowers/specs/2026-03-20-graph-architecture-design.md"
+  ],
+  "sessions": [
+    {
+      "metadata": "/a0/654f016114/0/metadata.json",
+      "transcript": "/a0/654f016114/0/full.jsonl",
+      "context": "/a0/654f016114/0/context.md",
+      "content_hash": "/a0/654f016114/0/content_hash.txt",
+      "prompt": "/a0/654f016114/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 434,
+    "cache_creation_tokens": 967625,
+    "cache_read_tokens": 7278566,
+    "output_tokens": 40615,
+    "api_call_count": 100
+  }
+}

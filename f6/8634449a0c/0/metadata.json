@@ -1,0 +1,28 @@
+{
+  "cli_version": "0.4.9",
+  "checkpoint_id": "f68634449a0c",
+  "session_id": "3a759325-baca-4d0f-a1f2-27cc39fd3dd3",
+  "strategy": "manual-commit",
+  "created_at": "2026-03-18T23:02:18.331645308Z",
+  "branch": "track-c",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "Agents/Antigravity/d43d945e-8dc9-4138-ac62-5846bd0aadfe/business_plan.md",
+    "cortex/MOC-agentic-ai.md",
+    "cortex/MOC-machine-learning.md",
+    "cortex/bayesian-inference.md",
+    "metabolism/graph-alerts.md",
+    "motor/meridian/PRD.md"
+  ],
+  "agent": "Claude Code",
+  "turn_id": "f2bb2a2973e1",
+  "initial_attribution": {
+    "calculated_at": "2026-03-18T23:02:18.330973257Z",
+    "agent_lines": 0,
+    "human_added": 21933,
+    "human_modified": 28,
+    "human_removed": 0,
+    "total_committed": 21950,
+    "agent_percentage": 0
+  }
+}
