@@ -689,6 +689,10 @@ class EvolutionTrainingPipeline:
         exported = self.exporter.export(signals, prefix=prefix)
 
         # --- Stage 7: Add new offspring to archive ---
+        # Capture generation BEFORE the loop: add_to_archive() increments
+        # engine._generation once per call, so reading it after the loop
+        # would report a stale count (off by n_archived).
+        generation = engine._generation
         n_archived = 0
         for parent in parents:
             if parent.success_vector is not None:
@@ -703,7 +707,7 @@ class EvolutionTrainingPipeline:
         elapsed = time.time() - start
 
         result = EvolutionRoundResult(
-            generation=engine._generation,
+            generation=generation,
             n_candidates=len(candidates),
             n_parents_selected=len(parents),
             n_offspring_archived=n_archived,
