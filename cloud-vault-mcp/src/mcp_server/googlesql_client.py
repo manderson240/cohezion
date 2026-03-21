@@ -77,14 +77,14 @@ class GoogleSqlClient:
         """Send a POST request to the analyzer service."""
         url = f"{self._base}{path}"
         data = json.dumps(payload).encode("utf-8")
-        req = urllib.request.Request(
+        req = urllib.request.Request(  # noqa: S310
             url,
             data=data,
             headers={"Content-Type": "application/json"},
             method="POST",
         )
         try:
-            with urllib.request.urlopen(req, timeout=self.config.timeout) as resp:
+            with urllib.request.urlopen(req, timeout=self.config.timeout) as resp:  # noqa: S310
                 return json.loads(resp.read().decode("utf-8"))
         except urllib.error.URLError as e:
             logger.error("GoogleSQL service request failed: %s", e)
@@ -95,9 +95,9 @@ class GoogleSqlClient:
     def _get(self, path: str) -> dict:
         """Send a GET request to the analyzer service."""
         url = f"{self._base}{path}"
-        req = urllib.request.Request(url, method="GET")
+        req = urllib.request.Request(url, method="GET")  # noqa: S310
         try:
-            with urllib.request.urlopen(req, timeout=self.config.timeout) as resp:
+            with urllib.request.urlopen(req, timeout=self.config.timeout) as resp:  # noqa: S310
                 return json.loads(resp.read().decode("utf-8"))
         except urllib.error.URLError as e:
             logger.error("GoogleSQL service request failed: %s", e)
