@@ -204,22 +204,36 @@ class SemanticEmbedder:
             LRU cache size for repeated texts.
         """
 
-    def embed(self, text: str) -> np.ndarray:
+    async def embed(self, text: str) -> np.ndarray:
         """Embed text into target_dim floats.
 
         Pipeline:
-        1. Call Ollama nomic-embed-text (768D output)
+        1. Call Ollama nomic-embed-text (768D output) via async HTTP, with timeout
         2. Project 768D → 227D via PCA/random projection
         3. Normalize to [0, 1] range
         4. Cache result
 
-        Falls back to SHA-256 hash if Ollama unavailable.
+        Falls back to SHA-256 hash if Ollama unavailable or times out.
+
+        Uses ``asyncio.wait_for`` internally so the caller is never blocked
+        indefinitely by a slow or unresponsive Ollama instance::
+
+            raw = await asyncio.wait_for(
+                _call_ollama_http(text, self.model),
+                timeout=5.0,
+            )
+
+        Raises
+        ------
+        asyncio.TimeoutError
+            Propagated when Ollama does not respond within the configured
+            timeout and no fallback is appropriate.
         """
 
-    def embed_batch(self, texts: list[str]) -> np.ndarray:
+    async def embed_batch(self, texts: list[str]) -> np.ndarray:
         """Batch embedding for training efficiency."""
 
-    def embed_experience(self, experience: dict) -> np.ndarray:
+    async def embed_experience(self, experience: dict) -> np.ndarray:
         """Build fingerprint text from experience dict, then embed.
 
         Uses same key extraction as ExperienceEncoder._build_fingerprint_text()
@@ -311,14 +325,14 @@ class ExperienceEncoder:
     def __init__(self, embedder: SemanticEmbedder | None = None):
         self._embedder = embedder
 
-    def encode(self, experience: dict) -> np.ndarray:
+    async def encode(self, experience: dict) -> np.ndarray:
         vec = np.zeros(TOTAL_DIM, dtype=np.float32)
 
         # ... dims [0:29] unchanged ...
 
         # Dims [29:256]: semantic fingerprint
         if self._embedder is not None:
-            vec[29:256] = self._embedder.embed_experience(experience)
+            vec[29:256] = await self._embedder.embed_experience(experience)
         else:
             # Legacy SHA-256 fallback
             fingerprint_text = self._build_fingerprint_text(experience)
@@ -494,25 +508,58 @@ def test_all_modules_same_ordering():
     assert jt_coherence_idx == AxisDimension.COHERENCE
 
 # tests/flume/test_semantic_embedder.py
-def test_deterministic_output():
-    emb = SemanticEmbedder()
-    a = emb.embed("test input")
-    b = emb.embed("test input")
-    np.testing.assert_array_equal(a, b)
+import asyncio
+from unittest.mock import AsyncMock, patch
+import numpy as np
 
-def test_output_shape():
+# A fixed fake 768D vector returned by the mocked Ollama HTTP call.
+_FAKE_768D = np.random.default_rng(42).random(768).astype(np.float32)
+
+@patch(
+    "cohezion.flume.semantic_embedder._call_ollama_http",
+    new_callable=AsyncMock,
+    return_value=_FAKE_768D,
+)
+def test_deterministic_output(mock_ollama):
     emb = SemanticEmbedder()
-    result = emb.embed("test")
+    a = asyncio.run(emb.embed("test input"))
+    b = asyncio.run(emb.embed("test input"))
+    np.testing.assert_array_equal(a, b)
+    # Second call should hit the LRU cache — Ollama called exactly once.
+    mock_ollama.assert_called_once()
+
+@patch(
+    "cohezion.flume.semantic_embedder._call_ollama_http",
+    new_callable=AsyncMock,
+    return_value=_FAKE_768D,
+)
+def test_output_shape(mock_ollama):
+    emb = SemanticEmbedder()
+    result = asyncio.run(emb.embed("test"))
     assert result.shape == (227,)
 
-def test_similar_texts_closer():
+@patch(
+    "cohezion.flume.semantic_embedder._call_ollama_http",
+    new_callable=AsyncMock,
+)
+def test_similar_texts_closer(mock_ollama):
+    # Give each text a distinct fake 768D vector so the projection can
+    # distinguish them; the ab-pair is intentionally closer in cosine space.
+    vec_a = np.ones(768, dtype=np.float32) * 0.9
+    vec_b = np.ones(768, dtype=np.float32) * 0.8   # close to vec_a
+    vec_c = np.zeros(768, dtype=np.float32)          # far from vec_a
+
+    mock_ollama.side_effect = [vec_a, vec_b, vec_c]
+
     emb = SemanticEmbedder()
-    a = emb.embed("python function for sorting")
-    b = emb.embed("python method for ordering")
-    c = emb.embed("recipe for chocolate cake")
+    a = asyncio.run(emb.embed("python function for sorting"))
+    b = asyncio.run(emb.embed("python method for ordering"))
+    c = asyncio.run(emb.embed("recipe for chocolate cake"))
+
     # Use cosine similarity (normalize before dot product) for distance comparison
     def cosine_sim(x: np.ndarray, y: np.ndarray) -> float:
         return float(np.dot(x, y) / (np.linalg.norm(x) * np.linalg.norm(y) + 1e-8))
+
     sim_ab = cosine_sim(a, b)
     sim_ac = cosine_sim(a, c)
     assert sim_ab > sim_ac  # Related texts are more similar
