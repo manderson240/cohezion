@@ -157,3 +157,10 @@ class ConfigState(BaseModel):
     total_conflicts: int = 0
     total_validations: int = 0
     sync_failures: int = 0
+
+
+# Required for Pydantic v2 with from __future__ import annotations
+# Ensures forward references (e.g. FileMetadata, ConfigConflict dataclass fields)
+# are resolved correctly when the module is imported.
+ValidationReport.model_rebuild()
+ConfigState.model_rebuild()
