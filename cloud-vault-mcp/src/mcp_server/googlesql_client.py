@@ -145,8 +145,8 @@ class GoogleSqlClient:
             error=result.get("error"),
             resolved_type=result.get("resolvedType"),
             resolved_ast=result.get("resolvedAst"),
-            referenced_tables=result.get("referencedTables", []),
-            referenced_columns=result.get("referencedColumns", []),
+            referenced_tables=result.get("referencedTables") or [],
+            referenced_columns=result.get("referencedColumns") or [],
         )
 
     def validate(self, sql: str) -> ValidationResult:

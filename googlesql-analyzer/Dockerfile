@@ -16,6 +16,9 @@ WORKDIR /app
 # Copy the fat JAR from builder
 COPY --from=builder /build/build/libs/googlesql-analyzer-0.1.0.jar app.jar
 
+# Install curl for healthcheck (not included in eclipse-temurin JRE image)
+RUN apt-get update && apt-get install -y --no-install-recommends curl && rm -rf /var/lib/apt/lists/*
+
 # Non-root user
 RUN useradd --create-home --shell /bin/bash analyzer
 USER analyzer
