@@ -138,10 +138,19 @@ jobs:
               --template minimal || true
           done
 
-      - name: Commit generated tests
+      - name: Open PR with generated tests
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
+          BRANCH="auto-tests/$(date +%Y%m%d-%H%M%S)"
+          git checkout -b "$BRANCH"
           git add tests/
-          git diff --staged --quiet || git commit -m "Auto-generate test scaffolds for new modules [skip ci]"
-          git push
+          if git diff --staged --quiet; then
+            echo "No new test scaffolds generated, skipping PR."
+          else
+            git commit -m "Auto-generate test scaffolds for new modules [skip ci]"
+            git push origin "$BRANCH"
+            gh pr create               --title "Auto-generated test scaffolds"               --body "Automatically generated test scaffolds for modules missing coverage. Please review before merging."               --base main               --head "$BRANCH"
+          fi
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
