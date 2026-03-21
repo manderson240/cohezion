@@ -402,8 +402,8 @@ class SmartRouter:
                 )
                 resp.raise_for_status()
 
-                data = await resp.json()
-                response = data.get("response", "")
+                data = resp.json()
+                response = data.get("message", {}).get("content", "") or data.get("response", "")
                 tokens = data.get("eval_count", 0) + data.get("prompt_eval_count", 0)
                 success = True
                 break
