@@ -92,38 +92,103 @@ class MemoryGraph:
             try:
                 from surrealdb import AsyncSurreal
 
-                self._surreal = AsyncSurreal(SURREAL_URL)
-                await self._surreal.connect()
-                await self._surreal.use("bmad", "memory")
+                client = AsyncSurreal(SURREAL_URL)
+                await client.connect()
+                await client.signin(
+                    {
+                        "username": os.getenv("SURREAL_USER", "root"),
+                        "password": os.getenv("SURREAL_PASSWORD", "root"),
+                    }
+                )
+                await client.use("bmad", "memory")
+                self._surreal = client
+                logger.info("Connected to SurrealDB at %s (bmad/memory)", SURREAL_URL)
             except Exception as e:
-                logger.warning(f"SurrealDB not available: {e}")
+                logger.warning("SurrealDB not available: %s", e)
                 self._surreal = None
         return self._surreal
 
-    def create_entity(self, name: str, entity_type: str) -> Entity:
-        """Create new entity."""
+    async def load_from_surreal(self) -> None:
+        """Load existing entities and relations from SurrealDB into memory on startup."""
+        db = await self._get_surreal()
+        if db is None:
+            return
+        try:
+            entity_rows = await db.query("SELECT * FROM memory_entities")
+            rows = entity_rows[0].get("result", []) if entity_rows else []
+            for row in rows:
+                entity = Entity(
+                    name=row["name"],
+                    entity_type=row["entity_type"],
+                    observations=row.get("observations", []),
+                    created_at=row.get("created_at", datetime.utcnow().isoformat()),
+                )
+                self.entities[entity.name] = entity
+            logger.info("Loaded %d entities from SurrealDB", len(rows))
+
+            relation_rows = await db.query("SELECT * FROM memory_relations")
+            rows = relation_rows[0].get("result", []) if relation_rows else []
+            for row in rows:
+                relation = Relation(
+                    from_entity=row["from_entity"],
+                    to_entity=row["to_entity"],
+                    relation_type=row["relation_type"],
+                    created_at=row.get("created_at", datetime.utcnow().isoformat()),
+                )
+                self.relations.append(relation)
+            logger.info("Loaded %d relations from SurrealDB", len(rows))
+        except Exception as e:
+            logger.warning("Failed to load from SurrealDB: %s", e)
+
+    async def create_entity(self, name: str, entity_type: str) -> Entity:
+        """Create new entity and persist to SurrealDB."""
         entity = Entity(name=name, entity_type=entity_type)
         self.entities[name] = entity
         logger.debug(
             "Created entity: %s (%s)", name.replace("\n", " "), entity_type.replace("\n", " ")
         )
+        db = await self._get_surreal()
+        if db is not None:
+            try:
+                await db.create(
+                    f"memory_entities:{name}",
+                    {
+                        "name": entity.name,
+                        "entity_type": entity.entity_type,
+                        "observations": entity.observations,
+                        "created_at": entity.created_at,
+                    },
+                )
+            except Exception as e:
+                logger.warning("Failed to persist entity to SurrealDB: %s", e)
         return entity
 
     def get_entity(self, name: str) -> Entity | None:
         """Get entity by name."""
         return self.entities.get(name)
 
-    def add_observation(self, entity_name: str, observation: str) -> bool:
-        """Add observation to entity."""
+    async def add_observation(self, entity_name: str, observation: str) -> bool:
+        """Add observation to entity and persist to SurrealDB."""
         entity = self.entities.get(entity_name)
         if entity:
             entity.observations.append(observation)
             logger.debug("Added observation to %s", entity_name.replace("\n", " "))
+            db = await self._get_surreal()
+            if db is not None:
+                try:
+                    await db.merge(
+                        f"memory_entities:{entity_name}",
+                        {"observations": entity.observations},
+                    )
+                except Exception as e:
+                    logger.warning("Failed to persist observation to SurrealDB: %s", e)
             return True
         return False
 
-    def create_relation(self, from_entity: str, to_entity: str, relation_type: str) -> bool:
-        """Create relation between entities."""
+    async def create_relation(
+        self, from_entity: str, to_entity: str, relation_type: str
+    ) -> bool:
+        """Create relation between entities and persist to SurrealDB."""
         if from_entity not in self.entities or to_entity not in self.entities:
             return False
 
@@ -137,6 +202,21 @@ class MemoryGraph:
             relation_type.replace("\n", " "),
             to_entity.replace("\n", " "),
         )
+        db = await self._get_surreal()
+        if db is not None:
+            try:
+                rel_id = f"{from_entity}__{relation_type}__{to_entity}"
+                await db.create(
+                    f"memory_relations:{rel_id}",
+                    {
+                        "from_entity": relation.from_entity,
+                        "to_entity": relation.to_entity,
+                        "relation_type": relation.relation_type,
+                        "created_at": relation.created_at,
+                    },
+                )
+            except Exception as e:
+                logger.warning("Failed to persist relation to SurrealDB: %s", e)
         return True
 
     def get_related(self, entity_name: str, relation_type: str | None = None) -> list[str]:
@@ -255,7 +335,7 @@ async def tool_create_entity(request: web.Request) -> web.Response:
                 }
             )
 
-        entity = graph.create_entity(name, entity_type)
+        entity = await graph.create_entity(name, entity_type)
 
         return web.json_response(
             {
@@ -322,7 +402,7 @@ async def tool_add_observation(request: web.Request) -> web.Response:
             )
 
         graph = get_graph()
-        success = graph.add_observation(entity_name, observation)
+        success = await graph.add_observation(entity_name, observation)
 
         if success:
             return web.json_response(
@@ -353,7 +433,7 @@ async def tool_create_relation(request: web.Request) -> web.Response:
             return web.json_response({"error": "from and to are required"}, status=400)
 
         graph = get_graph()
-        success = graph.create_relation(from_entity, to_entity, relation_type)
+        success = await graph.create_relation(from_entity, to_entity, relation_type)
 
         if success:
             return web.json_response(
@@ -469,7 +549,8 @@ app = create_app()
 
 async def main():
     """Run the Memory MCP Server."""
-    get_graph()  # Initialize
+    graph = get_graph()
+    await graph.load_from_surreal()  # Restore persisted state on startup
 
     logger.info(f"Starting Memory MCP Server on port {MCP_PORT}")
     runner = web.AppRunner(app)
