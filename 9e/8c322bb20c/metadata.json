@@ -3,7 +3,7 @@
   "checkpoint_id": "9e8c322bb20c",
   "strategy": "manual-commit",
   "branch": "session-kaggle-benchmark",
-  "checkpoints_count": 5,
+  "checkpoints_count": 7,
   "files_touched": [
     "kaggle-agi-benchmark/adversarial_eval_loop.py",
     "kaggle-agi-benchmark/build_notebook.py",
@@ -47,13 +47,20 @@
       "context": "/9e/8c322bb20c/3/context.md",
       "content_hash": "/9e/8c322bb20c/3/content_hash.txt",
       "prompt": "/9e/8c322bb20c/3/prompt.txt"
+    },
+    {
+      "metadata": "/9e/8c322bb20c/4/metadata.json",
+      "transcript": "/9e/8c322bb20c/4/full.jsonl",
+      "context": "/9e/8c322bb20c/4/context.md",
+      "content_hash": "/9e/8c322bb20c/4/content_hash.txt",
+      "prompt": "/9e/8c322bb20c/4/prompt.txt"
     }
   ],
   "token_usage": {
-    "input_tokens": 19144,
-    "cache_creation_tokens": 13239440,
-    "cache_read_tokens": 83428227,
-    "output_tokens": 138449,
-    "api_call_count": 388
+    "input_tokens": 19174,
+    "cache_creation_tokens": 13338366,
+    "cache_read_tokens": 84180237,
+    "output_tokens": 142012,
+    "api_call_count": 406
   }
 }
