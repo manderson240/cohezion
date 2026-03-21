@@ -222,3 +222,142 @@ class TestWorkflowExecution:
         engine.register_node(CustomNode(spec, forward_fn=solo_fn))
         result = await engine.execute(wf, {})
         assert result.status == "completed"
+
+
+class TestLogicSwitchRouting:
+    @pytest.mark.asyncio
+    async def test_logic_switch_routes_to_matching_branch_only(self):
+        """LogicSwitchNode must activate only the edge whose condition matches the route key."""
+        engine = WorkflowEngine()
+
+        nodes = [
+            NodeSpec(
+                id="switch",
+                name="router",
+                node_type="logic_switch",
+                pull_keys=["val"],
+                push_keys=["route"],
+            ),
+            NodeSpec(
+                id="branch_a",
+                name="branch_a",
+                node_type="custom",
+                pull_keys=[],
+                push_keys=["result"],
+            ),
+            NodeSpec(
+                id="branch_b",
+                name="branch_b",
+                node_type="custom",
+                pull_keys=[],
+                push_keys=["result"],
+            ),
+        ]
+        edges = [
+            EdgeSpec(id="e1", sender_id="switch", receiver_id="branch_a", keys=[], condition="a"),
+            EdgeSpec(id="e2", sender_id="switch", receiver_id="branch_b", keys=[], condition="b"),
+        ]
+        wf = _make_spec(nodes, edges, entry="switch", exits=["branch_a", "branch_b"])
+
+        executed = []
+
+        async def branch_a_fn(inputs):
+            executed.append("branch_a")
+            return {"result": "A"}
+
+        async def branch_b_fn(inputs):
+            executed.append("branch_b")
+            return {"result": "B"}
+
+        switch_node = LogicSwitchNode(nodes[0], condition_fn=lambda inputs: "a")
+        engine.register_node(switch_node)
+        engine.register_node(CustomNode(nodes[1], forward_fn=branch_a_fn))
+        engine.register_node(CustomNode(nodes[2], forward_fn=branch_b_fn))
+
+        result = await engine.execute(wf, {"val": 1})
+
+        # Only branch_a should have executed — branch_b's condition ("b") didn't match
+        assert executed == ["branch_a"], f"Expected only branch_a to run, got: {executed}"
+        assert result.node_results["branch_b"].status == NodeStatus.SKIPPED
+        assert result.node_results["branch_a"].status == NodeStatus.COMPLETED
+        assert result.final_output.get("result") == "A"
+
+    @pytest.mark.asyncio
+    async def test_logic_switch_routes_to_other_branch(self):
+        """LogicSwitchNode routing to branch_b skips branch_a."""
+        engine = WorkflowEngine()
+
+        nodes = [
+            NodeSpec(
+                id="switch",
+                name="router",
+                node_type="logic_switch",
+                pull_keys=[],
+                push_keys=["route"],
+            ),
+            NodeSpec(
+                id="branch_a",
+                name="branch_a",
+                node_type="custom",
+                pull_keys=[],
+                push_keys=["result"],
+            ),
+            NodeSpec(
+                id="branch_b",
+                name="branch_b",
+                node_type="custom",
+                pull_keys=[],
+                push_keys=["result"],
+            ),
+        ]
+        edges = [
+            EdgeSpec(id="e1", sender_id="switch", receiver_id="branch_a", keys=[], condition="a"),
+            EdgeSpec(id="e2", sender_id="switch", receiver_id="branch_b", keys=[], condition="b"),
+        ]
+        wf = _make_spec(nodes, edges, entry="switch", exits=["branch_a", "branch_b"])
+
+        executed = []
+
+        async def branch_a_fn(inputs):
+            executed.append("branch_a")
+            return {"result": "A"}
+
+        async def branch_b_fn(inputs):
+            executed.append("branch_b")
+            return {"result": "B"}
+
+        switch_node = LogicSwitchNode(nodes[0], condition_fn=lambda inputs: "b")
+        engine.register_node(switch_node)
+        engine.register_node(CustomNode(nodes[1], forward_fn=branch_a_fn))
+        engine.register_node(CustomNode(nodes[2], forward_fn=branch_b_fn))
+
+        result = await engine.execute(wf, {})
+
+        assert executed == ["branch_b"], f"Expected only branch_b to run, got: {executed}"
+        assert result.node_results["branch_a"].status == NodeStatus.SKIPPED
+        assert result.node_results["branch_b"].status == NodeStatus.COMPLETED
+
+    @pytest.mark.asyncio
+    async def test_unconditional_edges_always_fire(self):
+        """Edges with condition=None must always propagate regardless of node type."""
+        engine = WorkflowEngine()
+
+        nodes = [
+            NodeSpec(id="n1", name="start", node_type="custom", pull_keys=[], push_keys=["x"]),
+            NodeSpec(id="n2", name="end", node_type="custom", pull_keys=["x"], push_keys=["out"]),
+        ]
+        edges = [EdgeSpec(id="e1", sender_id="n1", receiver_id="n2", keys=["x"], condition=None)]
+        wf = _make_spec(nodes, edges)
+
+        async def start_fn(inputs):
+            return {"x": 42}
+
+        async def end_fn(inputs):
+            return {"out": inputs.get("x", 0) + 1}
+
+        engine.register_node(CustomNode(nodes[0], forward_fn=start_fn))
+        engine.register_node(CustomNode(nodes[1], forward_fn=end_fn))
+
+        result = await engine.execute(wf, {})
+        assert result.status == "completed"
+        assert result.final_output["out"] == 43

@@ -161,13 +161,43 @@ class WorkflowEngine:
                     for succ_id in successors.get(nid, []):
                         if succ_id not in node_data:
                             node_data[succ_id] = {}
+                        edge_taken = False
                         for edge in edge_lookup.get((nid, succ_id), []):
+                            # Skip conditional edges that don't match the route
+                            # returned by this node (e.g. LogicSwitchNode).
+                            if edge.condition is not None:
+                                route_matches = any(
+                                    v == edge.condition
+                                    for v in result.output.values()
+                                )
+                                if not route_matches:
+                                    continue
+                            edge_taken = True
                             for key in edge.keys:
                                 if key in result.output:
                                     node_data[succ_id][key] = result.output[key]
                             # If no specific keys, pass all output
                             if not edge.keys:
                                 node_data[succ_id].update(result.output)
+                        # If every edge to this successor was conditional and
+                        # none matched, the successor is on an untaken branch —
+                        # mark it SKIPPED so the workflow doesn't stall.
+                        if not edge_taken:
+                            self._mark_downstream_skipped(
+                                succ_id,
+                                successors,
+                                node_states,
+                                node_results,
+                                failed_nodes,
+                            )
+                            node_states[succ_id] = NodeStatus.SKIPPED
+                            node_results[succ_id] = NodeResult(
+                                node_id=succ_id,
+                                status=NodeStatus.SKIPPED,
+                                output={},
+                                metrics={},
+                                duration_ms=0,
+                            )
 
         # Determine final output from exit nodes
         final_output: dict[str, Any] = {}
