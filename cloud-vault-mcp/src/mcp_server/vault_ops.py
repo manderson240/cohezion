@@ -15,7 +15,8 @@ class VaultOps:
     def _resolve(self, path: str) -> Path:
         """Resolve a vault-relative path safely, preventing directory traversal."""
         resolved = (self.vault_path / path).resolve()
-        if not str(resolved).startswith(str(self.vault_path)):
+        # is_relative_to avoids prefix-confusion bugs (e.g. /vault vs /vaultattack)
+        if not resolved.is_relative_to(self.vault_path):
             raise ValueError(f"Path escapes vault: {path}")
         return resolved
 
