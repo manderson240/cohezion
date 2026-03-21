@@ -42,6 +42,7 @@ References:
 
 from __future__ import annotations
 
+import asyncio
 import hashlib
 import json
 import logging
@@ -602,7 +603,13 @@ class EvalRunner:
         tokens_used = 0
 
         try:
-            agent_output, tokens_used = await agent.execute(task.prompt)
+            agent_output, tokens_used = await asyncio.wait_for(
+                agent.execute(task.prompt),
+                timeout=task.timeout_seconds,
+            )
+        except asyncio.TimeoutError:
+            error = f"Task timed out after {task.timeout_seconds}s"
+            logger.warning("Task %s timed out after %ss", task.task_id, task.timeout_seconds)
         except Exception as e:
             error = str(e)
             logger.warning("Task %s failed: %s", task.task_id, error)
