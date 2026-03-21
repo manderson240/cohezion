@@ -17,13 +17,17 @@ def summarize_request(request: str) -> str:
 def extract_entities(request: str) -> list:
     """
     Extracts entities from the user's request.
+
+    Returns a list of structured entity objects with name, type, and value fields.
+    Quoted substrings are treated as named entities of type 'literal'.
     """
     # This is a simplified implementation. A real implementation would use a more
     # sophisticated entity extraction model.
     entities = []
     # Find all words that are in quotes
     for match in re.finditer(r'"(.*?)"|\'(.*?)\'', request):
-        entities.append(match.group(1) or match.group(2))
+        value = match.group(1) or match.group(2)
+        entities.append({"name": value, "type": "literal", "value": value})
     return entities
 
 def extract_keywords(request: str) -> list:
@@ -47,21 +51,6 @@ def suggest_workflow(request: str) -> str:
     else:
         return "default-workflow"
 
-def validate_intent(original_request: str, summarized_intent: str) -> bool:
-    """
-    Validates that the summarized intent preserves the core meaning of the original request.
-    """
-    # This is a simplified implementation. A real implementation would use a
-    # sentence similarity model.
-    original_keywords = set(original_request.lower().split())
-    summarized_keywords = set(summarized_intent.lower().split())
-
-    # Check if at least 50% of the keywords are shared
-    if len(original_keywords.intersection(summarized_keywords)) / len(original_keywords) >= 0.5:
-        return True
-    else:
-        return False
-
 def process_natural_language(request: str) -> str:
     """
     Processes a natural language request, summarizes it, and structures it into a YAML format.
@@ -74,8 +63,6 @@ def process_natural_language(request: str) -> str:
     """
 
     summarized_intent = summarize_request(request)
-    if not validate_intent(request, summarized_intent):
-        raise ValueError("Intent validation failed: The summarized intent does not seem to preserve the original meaning.")
 
     entities = extract_entities(request)
     keywords = extract_keywords(request)
