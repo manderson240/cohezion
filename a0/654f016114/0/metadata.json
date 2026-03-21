@@ -1,0 +1,30 @@
+{
+  "cli_version": "0.4.9",
+  "checkpoint_id": "a0654f016114",
+  "session_id": "c7d6eeca-c05b-4905-b281-d7f96449b3ce",
+  "strategy": "manual-commit",
+  "created_at": "2026-03-20T06:08:13.471754608Z",
+  "branch": "track-c",
+  "checkpoints_count": 0,
+  "files_touched": [
+    "docs/superpowers/specs/2026-03-20-graph-architecture-design.md"
+  ],
+  "agent": "Claude Code",
+  "turn_id": "86387d314e23",
+  "token_usage": {
+    "input_tokens": 434,
+    "cache_creation_tokens": 967625,
+    "cache_read_tokens": 7278566,
+    "output_tokens": 40615,
+    "api_call_count": 100
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-03-20T06:08:13.127719923Z",
+    "agent_lines": 0,
+    "human_added": 4,
+    "human_modified": 3,
+    "human_removed": 0,
+    "total_committed": 4,
+    "agent_percentage": 0
+  }
+}

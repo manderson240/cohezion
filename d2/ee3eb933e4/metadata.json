@@ -1,0 +1,20 @@
+{
+  "cli_version": "0.4.9",
+  "checkpoint_id": "d2ee3eb933e4",
+  "strategy": "manual-commit",
+  "branch": "track-c",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "Agents/_index.md",
+    "cortex/MOC-agentic-ai.md"
+  ],
+  "sessions": [
+    {
+      "metadata": "/d2/ee3eb933e4/0/metadata.json",
+      "transcript": "/d2/ee3eb933e4/0/full.jsonl",
+      "context": "",
+      "content_hash": "/d2/ee3eb933e4/0/content_hash.txt",
+      "prompt": ""
+    }
+  ]
+}

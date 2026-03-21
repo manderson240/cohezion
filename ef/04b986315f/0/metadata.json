@@ -1,0 +1,23 @@
+{
+  "cli_version": "0.4.9",
+  "checkpoint_id": "ef04b986315f",
+  "session_id": "96ac6a48-4e4b-40b0-99d4-75b9544d80d6",
+  "strategy": "manual-commit",
+  "created_at": "2026-03-20T18:28:33.953850106Z",
+  "branch": "track-c",
+  "checkpoints_count": 1,
+  "files_touched": [
+    ".claude/skills/vault-keeper/SKILL.md"
+  ],
+  "agent": "Claude Code",
+  "turn_id": "2d589cd9150b",
+  "initial_attribution": {
+    "calculated_at": "2026-03-20T18:28:33.95359611Z",
+    "agent_lines": 0,
+    "human_added": 3022,
+    "human_modified": 1,
+    "human_removed": 0,
+    "total_committed": 3022,
+    "agent_percentage": 0
+  }
+}

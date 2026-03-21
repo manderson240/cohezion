@@ -1,0 +1,28 @@
+{
+  "cli_version": "0.4.9",
+  "checkpoint_id": "f37897380657",
+  "strategy": "manual-commit",
+  "branch": "track-c",
+  "checkpoints_count": 0,
+  "files_touched": [
+    "cortex/MOC-compound-engineering.md",
+    "cortex/MOC-platform-infrastructure.md",
+    "cortex/cohezion-platform-overview.md"
+  ],
+  "sessions": [
+    {
+      "metadata": "/f3/7897380657/0/metadata.json",
+      "transcript": "/f3/7897380657/0/full.jsonl",
+      "context": "/f3/7897380657/0/context.md",
+      "content_hash": "/f3/7897380657/0/content_hash.txt",
+      "prompt": "/f3/7897380657/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 35244,
+    "cache_creation_tokens": 1199567,
+    "cache_read_tokens": 6977143,
+    "output_tokens": 57046,
+    "api_call_count": 75
+  }
+}

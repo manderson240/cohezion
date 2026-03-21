@@ -1,0 +1,1631 @@
+[Request interrupted by user for tool use]
+
+---
+
+Implement the following plan:
+
+# Vault Keeper — Full Maintenance Cycle
+
+**Context:** The vault-keeper was invoked to run the full maintenance pipeline. A pre-flight read of `metabolism/graph-alerts.md` and spot-checks on frontmatter, orphans, and thin notes revealed the vault's current health state. The inbox is empty, frontmatter is clean, and MOCs are healthy — the primary work is healing 15 orphan neurons, closing 15 synapse gaps, and expanding 15 high-priority thin notes.
+
+---
+
+## Vault State (Read-Only Pre-Flight)
+
+| Metric | Status |
+|--------|--------|
+| Inbox (thalamus) | EMPTY — Phase 1 skipped |
+| Frontmatter issues | 0 — clean |
+| Tags-as-string | 0 — clean |
+| Orphan neurons | 15 (10 high-activation) |
+| Synapse gaps | 15 pairs |
+| Thin notes (<3KB) | 61 across core dirs |
+| MOCs | 10 (exceeds 5 minimum) |
+| Dark countries | 2 (thalamus, assessments) |
+| HIHO events (recent) | 5 on 2026-03-18 |
+
+---
+
+## Plan
+
+### Phase 1 (Triage) — SKIPPED
+Inbox is empty. Only `_index.md` in `thalamus/`.
+
+### Phase 2 (Audit) — DONE
+Health state gathered from `metabolism/graph-alerts.md` + spot-checks.
+
+### Phase 3: Heal — Orphans + Synapse Gaps
+
+**3.1 — Fix Orphan Neurons (10 high-activation)**
+
+Read each orphan, identify 1–3 relevant hub notes, and add inbound `[[wiki-links]]` from those hubs. Priority order by activation:
+
+1. `motor/2026-03-03-vault-as-platform-memory-recommendations.md` (act=0.920) → link from `cortex/cohezion-platform-overview.md`, `MOC-vault-architecture.md`
+2. `laboratory/2026-02-10-phase4-universe-simulation-complete.md` (act=0.890) → link from `MOC-compound-engineering.md`, relevant `motor/` project note
+3. `motor/2026-02-16-phases-4b-7-completion-summary.md` (act=0.880) → link from `MOC-compound-engineering.md`, adjacent motor notes
+4. `cerebellum/agent-logs-vault-schema.md` (act=0.870, out=24) → link from `MOC-vault-architecture.md`, `MOC-agentic-ai.md`
+5. `cerebellum/prompt-optimization-hypotheses.md` (act=0.870) → link from `MOC-agentic-ai.md`, `MOC-machine-learning.md`
+6. `genome/extraction-pipeline-spec.md` (act=0.870) → link from `MOC-platform-infrastructure.md`, `MOC-agentic-ai.md`
+7. `cerebellum/honest-time-tracking-all-costs.md` (act=0.840) → link from `MOC-compound-engineering.md`
+8. `cerebellum/lessons-graph-integration.md` (act=0.840, out=19) → link from `MOC-vault-architecture.md`
+9. `cerebellum/troubleshooting-mcp-infrastructure.md` (act=0.840) → link from `MOC-platform-infrastructure.md`
+10. `Agents/Antigravity/.../implementation_plan.md` (act=0.870) → link from `MOC-agentic-ai.md`, relevant Agents index
+
+**3.2 — Close Synapse Gaps (15 pairs)**
+
+Add bidirectional `[[wiki-links]]` between pairs. Key gaps from graph-alerts:
+- `[[12D-Manifold]]` ↔ `[[CascadeTimeline]]`
+- `[[12D-Manifold]]` ↔ `[[cohezion-platform-overview]]`
+- `[[12D-Manifold]]` ↔ `[[DecisionExplorer]]`
+- `[[12D-Manifold]]` ↔ `[[DecisionHealthDashboard]]`
+- `[[12D-Manifold]]` ↔ `[[FLUME-Architecture]]`
+- `[[12D-Manifold]]` ↔ `[[hyperdim-viz-portfolio]]`
+- `[[12D-Manifold]]` ↔ `[[Ouroboros-Loop]]`
+- `[[12D-Projection]]` ↔ `[[CascadeTimeline]]`
+- … (remaining 7 gaps from full alert list)
+
+Locate each note, read both sides, add cross-links in appropriate "Related" or inline sections.
+
+### Phase 4: Densify — Expand 15 Thin Notes
+
+**Budget:** 15 notes. Prioritize by directory (cerebellum > cortex > laboratory) over prefrontal (ADRs are intentionally brief).
+
+From the thin-note list, skip:
+- `prefrontal/` ADRs — brief by design
+- `cerebellum/lessons/` — small lesson-format notes are fine
+
+**Expand (in order):**
+1. `cerebellum/parallel-session-coordination-via-vault-registry.md`
+2. `cerebellum/github-actions-as-autonomous-claude-code-scheduler.md`
+3. `cortex/cs249r/introduction.md` (or move to correct location)
+4. Up to 12 more from the 61-note thin list, chosen by domain freshness
+
+For each: research the topic, expand with definition + key properties + Cohezion relevance + outbound links (3–5 per note). Add `aspect:` field if missing.
+
+### Phase 5: Navigate — MOC Refresh
+
+10 MOCs exist (above minimum). No new MOCs needed.
+
+**Spot-check 2–3 MOCs for staleness:**
+- `MOC-compound-engineering.md` — recent HIHO events on 2026-03-18 may warrant adding new entries
+- `MOC-vault-architecture.md` — new cerebellum patterns from Phase 4 should be added
+- `MOC-agentic-ai.md` — genome and cerebellum notes from Phase 3 should appear here
+
+### Phase 6: Report
+
+Generate metrics table (before → after) covering: total notes, wiki-links, orphans, synapse gaps, thin notes, inbox items.
+
+---
+
+## Critical Files
+
+| File | Role |
+|------|------|
+| `metabolism/graph-alerts.md` | Primary health dashboard — source of truth for orphans/gaps |
+| `cortex/MOC-*.md` (10 files) | Navigation hubs — used as inbound link sources for orphans |
+| `cerebellum/agent-logs-vault-schema.md` | Highest-outbound orphan cerebellum note |
+| `motor/2026-03-03-vault-as-platform-memory-recommendations.md` | Highest-activation orphan |
+| `cortex/12D-Manifold.md` | Central node in synapse gap cluster |
+
+## Execution Order
+
+1. Read each orphan + find its hub notes (parallel where possible)
+2. Edit hub notes to add inbound links (batch edits)
+3. Close synapse gaps (bidirectional edits)
+4. Expand 15 thin notes (sequential, research-then-write)
+5. Spot-check + update 3 MOCs
+6. Write report
+
+## Verification
+
+After execution:
+- Re-run orphan check: `grep -rl "vault-as-platform-memory-recommendations" cortex/ sensory/ prefrontal/ cerebellum/ motor/ memory/ | wc -l` (expect > 0 for each healed orphan)
+- Re-run synapse gap check: verify `[[12D-Manifold]]` appears in each gap-partner note
+- Compare thin note count: `find cortex/ sensory/ cerebellum/ -name '*.md' ! -name '_template.md' -size -3k | wc -l` (expect < 55)
+- Re-read `metabolism/graph-alerts.md` after dreaming engine regenerates (or run manually: `python3 scripts/dreaming-engine.py`)
+
+
+If you need specific details from before exiting plan mode (like exact code snippets, error messages, or content you generated), read the full transcript at: /home/mike-anderson/.claude/projects/-home-mike-anderson-vaults-cohezion-vault/d6eb63c0-8b36-43d5-bd50-082b15c85cd0.jsonl
+
+If this plan can be broken down into multiple independent tasks, consider using the TeamCreate tool to create a team and parallelize the work.
+
+---
+
+Base directory for this skill: /home/mike-anderson/vaults/cohezion-vault/.claude/skills/vault-keeper
+
+# Vault Keeper
+
+Autonomous maintenance agent that keeps the Obsidian vault healthy, dense, navigable, and agent-readable. Orchestrates the five specialist skills (vault-health, link, flesh-out, triage, note) in a single prioritized workflow.
+
+**This skill is PROACTIVE.** It does not wait to be invoked — it monitors vault health continuously and acts when issues are detected.
+
+## Usage
+
+```
+/vault-keeper                    # Full maintenance cycle (audit → heal → report)
+/vault-keeper --quick            # Quick health check only (read-only, 30 seconds)
+/vault-keeper --triage           # Process inbox only
+/vault-keeper --densify          # Link + flesh-out cycle only
+/vault-keeper --moc              # Generate/update Maps of Content
+/vault-keeper --context "query"  # Load relevant vault context for a task
+```
+
+---
+
+## Proactive Behavior
+
+The Vault Keeper monitors vault health automatically and acts without waiting for explicit user invocation. This is the **default behavior** — the keeper is always watching.
+
+### Trigger: Session Start
+
+At the **start of every session** in the cohezion-vault:
+
+**Step 1: Load orientation.** Read `VAULT_MANIFEST.md` at the vault root. This tells you:
+- Where every directory is and what it's for
+- Output routing rules (where to put your work)
+- Conventions (frontmatter, linking, naming)
+- Entry points (which MOC to start with)
+
+**Step 2: Run silent health check:**
+
+```bash
+# 1. Check inbox
+inbox_count=$(find thalamus/ -maxdepth 1 -name '*.md' ! -name '_index.md' ! -name '_template.md' 2>/dev/null | wc -l)
+
+# 2. Check for orphans in core dirs (sample — full scan only on explicit run)
+orphan_sample=$(for f in cortex/*.md; do
+  [ -f "$f" ] || continue
+  name="${f##*/}"; name="${name%.md}"
+  [ "$name" = "_template" ] && continue
+  count=$(grep -rl "\[\[.*$name" cortex/ sensory/ prefrontal/ motor/ 2>/dev/null | grep -v "$f" | wc -l)
+  [ "$count" -eq 0 ] && echo "$f"
+done | head -5)
+
+# 3. Count thin notes (quick sample)
+thin_count=$(find cortex/ sensory/ prefrontal/ -name '*.md' ! -name '_template.md' -size -3k 2>/dev/null | wc -l)
+```
+
+**Step 3: Load task-relevant context.** If the user's first message implies a topic:
+- Find the matching MOC (`cortex/MOC-*.md`) and skim it
+- Check `memory/` for past mistakes in that domain
+- Check the relevant directory's `_index.md` for key notes
+
+**Actions based on health check findings:**
+
+| Finding | Action | User Interaction |
+|---------|--------|------------------|
+| Inbox has items | Report to user: "Inbox has N items. Want me to triage them?" | Ask once |
+| Active project P0s | Surface them immediately: list the file and unchecked items | Proactive |
+| Orphans detected | Auto-fix silently if < 5, report if >= 5 | Silent for small counts |
+| Thin notes > 20 | Mention in first response: "N thin notes could use expansion" | Informational |
+| All healthy | Say nothing — don't clutter with "all clear" messages | Silent |
+
+**Step 2b: Scan active projects for P0 work:**
+
+```bash
+# Find active projects with unchecked P0 items
+for f in motor/*.md; do
+  grep -q '^status: active' "$f" 2>/dev/null || continue
+  awk '/^### P0/{p=1} p && /^###/ && !/^### P0/{p=0} p && /^\- \[ \]/{print FILENAME": "}' "$f"
+done
+```
+
+If any P0 items are found, surface them in the first response: "There are P0 tasks due in `<project>`. Want me to start on them?"
+
+### Agent Orientation Files
+
+Every content and workflow directory has a `_index.md` file. Agents can read any directory's `_index.md` to understand:
+- What goes in that directory
+- Naming and frontmatter conventions
+- Key notes to reference
+- Related MOCs for deeper context
+
+**Discovery pattern for any unfamiliar directory:**
+```
+Read <directory>/_index.md → understand purpose → follow routing rules
+```
+
+### Trigger: Hook Alert
+
+The `vault-keeper-check.sh` PostToolUse hook runs after Write/Edit operations on `.md` files. When it detects issues, it prints an alert message. **When you see a vault-keeper alert in hook output, act on it:**
+
+| Alert | Auto-Action |
+|-------|-------------|
+| `VAULT_KEEPER: inbox has N new items` | Offer to triage |
+| `VAULT_KEEPER: new note has no inbound links` | Add 1-3 inbound wiki-links from relevant hub notes immediately |
+| `VAULT_KEEPER: note missing frontmatter` | Add proper frontmatter to the note immediately |
+| `VAULT_KEEPER: note has tags as string` | Convert tags to array immediately |
+
+**Key rule:** For structural fixes (frontmatter, tags, missing links on new notes), fix immediately without asking. These are vault invariants, not preferences.
+
+### Trigger: Bulk Operations
+
+After any operation that creates or modifies 5+ vault notes (e.g., flesh-out runs, research imports, link campaigns):
+
+1. Run a quick orphan check on affected files
+2. Verify all new/modified notes have proper frontmatter
+3. Confirm no broken links were introduced
+4. Report metrics delta (links before → after)
+
+### Trigger: User Context Clues
+
+Proactively invoke vault keeper logic when the user's request implies vault maintenance, even without saying "vault keeper":
+
+| User Says | Vault Keeper Interprets As |
+|-----------|---------------------------|
+| "Clean up the vault" | Full maintenance run |
+| "What's in the inbox?" | Triage mode |
+| "How healthy is the vault?" | Quick audit |
+| "Connect these notes" | Link mode |
+| "This note is thin" | Flesh-out mode |
+| "Make this navigable" | MOC generation |
+| "Update the maps" | MOC refresh |
+
+### Proactive Rules
+
+1. **Never announce proactive work unnecessarily.** If you silently fix 2 orphans, don't write a paragraph about it. A one-liner in your response is enough: "Also connected 2 orphan notes."
+2. **Always fix invariant violations immediately.** Missing frontmatter, string tags, and orphaned new notes are bugs, not preferences.
+3. **Respect context budget.** Proactive checks should cost < 500 tokens. If a full audit is needed, ask the user first.
+4. **Don't repeat checks.** If you already ran a health check this session, don't run another unless new notes were created.
+5. **Batch alerts.** If multiple issues are found, combine them into one report rather than alerting per-issue.
+
+---
+
+## Architecture
+
+The Vault Keeper runs a **prioritized maintenance pipeline**. Each phase gates the next — critical issues are fixed before cosmetic ones.
+
+```
+Phase 1: TRIAGE     → Process inbox (new content enters the graph properly)
+Phase 2: AUDIT      → Health check (identify what's broken)
+Phase 3: HEAL       → Fix issues found by audit (frontmatter, broken links, orphans)
+Phase 4: DENSIFY    → Expand thin notes, add missing connections
+Phase 5: NAVIGATE   → Generate/update Maps of Content for traversability
+Phase 6: REPORT     → Summary with metrics and deltas
+```
+
+---
+
+## Phase 1: TRIAGE — Process Inbox
+
+**Goal:** Zero inbox. New content enters the vault through proper channels.
+
+```bash
+ls thalamus/*.md 2>/dev/null | grep -v '.base$'
+```
+
+If inbox has notes:
+1. Invoke the **triage** skill logic for each note
+2. Classify → research → structure → frontmatter → move → cross-link
+3. Log what was triaged in the report
+
+If inbox is empty, skip to Phase 2.
+
+---
+
+## Phase 2: AUDIT — Health Check
+
+**Goal:** Identify all vault issues in a single pass.
+
+Run these checks (parallel where possible):
+
+### 2.1 Broken Wiki-Links
+```bash
+grep -roh '\[\[[^]]*\]\]' cortex/ sensory/ prefrontal/ cerebellum/ laboratory/ motor/ memory/ 2>/dev/null \
+  | sed 's/\[\[//;s/\]\]//' | sed 's/|.*//' | sed 's/#.*//' | grep -v '^$' | sort -u | while read link; do
+  # Check top-level directory files
+  found=0
+  for d in cortex sensory prefrontal cerebellum laboratory motor memory thalamus hippocampus Agents genome missions retrospectives teleport docs meta benchmarks research dreaming songlines; do
+    [ -f "$d/$link.md" ] && found=1 && break
+  done
+  # Check subdirectories (Obsidian resolves bare names across subdirs)
+  if [ $found -eq 0 ]; then
+    match=$(find cortex/ sensory/ prefrontal/ cerebellum/ laboratory/ motor/ memory/ thalamus/ hippocampus/ Agents/ genome/ missions/ retrospectives/ dreaming/ songlines/ subconscious/ metabolism/ visual-cortex/ benchmarks/ research/ -name "$link.md" -maxdepth 4 2>/dev/null | head -1)
+    [ -n "$match" ] && found=1
+  fi
+  [ $found -eq 0 ] && echo "$link"
+done
+```
+
+### 2.2 Orphan Notes (No Inbound Links)
+```bash
+for dir in cortex sensory prefrontal cerebellum laboratory motor memory; do
+  for f in "$dir"/*.md; do
+    [ -f "$f" ] || continue
+    name="${f##*/}"; name="${name%.md}"
+    [ "$name" = "_template" ] && continue
+    count=$(grep -rl "\[\[.*$name" cortex/ sensory/ prefrontal/ cerebellum/ laboratory/ motor/ Agents/ genome/ hippocampus/ missions/ retrospectives/ memory/ 2>/dev/null | grep -v "$f" | wc -l)
+    [ "$count" -eq 0 ] && echo "ORPHAN: $f"
+  done
+done
+```
+
+### 2.3 Frontmatter Issues
+```bash
+for dir in cortex sensory prefrontal cerebellum laboratory motor memory; do
+  for f in "$dir"/*.md; do
+    [ -f "$f" ] || continue
+    head -1 "$f" | grep -q '^---' || echo "NO_FRONTMATTER: $f"
+  done
+done
+
+# Tags as string instead of array
+grep -rl '^tags:' cortex/ sensory/ prefrontal/ cerebellum/ laboratory/ motor/ memory/ 2>/dev/null | while read f; do
+  grep '^tags:' "$f" | grep -qv '\[' && echo "TAGS_NOT_ARRAY: $f"
+done
+
+# Missing aspect field
+grep -rL '^aspect:' cortex/ sensory/ prefrontal/ cerebellum/ laboratory/ motor/ memory/ 2>/dev/null \
+  | grep -v '_template.md' | while read f; do echo "NO_ASPECT: $f"; done
+```
+
+### 2.4 Thin Notes (Under 3KB)
+```bash
+for dir in cortex sensory prefrontal cerebellum laboratory memory; do
+  for f in "$dir"/*.md; do
+    [ -f "$f" ] || continue
+    b="${f##*/}"; [ "$b" = "_template.md" ] && continue
+    sz=$(wc -c < "$f")
+    [ "$sz" -lt 3000 ] && echo "THIN: $sz $f"
+  done
+done
+```
+
+### 2.5 Under-Connected Hubs (High Inbound, Low Outbound)
+```bash
+for f in cortex/*.md; do
+  b="${f##*/}"; n="${b%.md}"; [ "$n" = "_template" ] && continue
+  outbound=$(grep -oh '\[\[[^]]*\]\]' "$f" 2>/dev/null | wc -l)
+  inbound=$(grep -rl "\[\[.*$n" cortex/ sensory/ prefrontal/ cerebellum/ laboratory/ motor/ memory/ 2>/dev/null | grep -v "$f" | wc -l)
+  if [ "$inbound" -gt 15 ] && [ "$outbound" -lt 5 ]; then
+    echo "UNDER-CONNECTED: $f (in:$inbound, out:$outbound)"
+  fi
+done
+```
+
+### 2.6 Missing Maps of Content
+```bash
+ls cortex/MOC-*.md 2>/dev/null | wc -l
+# Target: at least 5 MOCs covering major topic clusters
+```
+
+Classify issues by severity:
+
+| Severity | Issues |
+|----------|--------|
+| **CRITICAL** | Broken links in core concepts, orphan concepts, missing frontmatter |
+| **HIGH** | Orphan sensory/prefrontal/patterns, tags not arrays, under-connected hubs |
+| **MEDIUM** | Thin notes (<3KB), missing MOCs |
+| **LOW** | Thin lessons, cosmetic link improvements |
+
+---
+
+## Phase 3: HEAL — Fix Issues
+
+**Goal:** Resolve all CRITICAL and HIGH issues automatically.
+
+### 3.1 Fix Frontmatter
+For each `NO_FRONTMATTER` or `TAGS_NOT_ARRAY` issue:
+- Read the file
+- Add/fix frontmatter with proper YAML (tags as arrays, title, date)
+- Preserve all existing content
+
+### 3.2 Fix Orphans
+For each orphan note:
+- Read the file to understand its topic
+- Find 1-3 relevant hub notes
+- Add inbound `[[wiki-links]]` from hub notes to the orphan
+
+### 3.3 Fix Broken Links
+For each broken link:
+- Classify: is it a real missing note, a typo, or a code/template reference?
+- Real missing note with 3+ references → create a stub concept note
+- Typo → fix the link
+- Code/template → ignore (non-actionable)
+
+### 3.4 Fix Under-Connected Hubs
+For each hub with high inbound but low outbound:
+- Read the note
+- Add 5-10 relevant outbound `[[wiki-links]]` to related notes
+
+---
+
+## Phase 4: DENSIFY — Expand and Connect
+
+**Goal:** Increase content depth and graph density.
+
+### 4.1 Flesh Out Thin Notes
+Prioritize by inbound link count (highest-impact first):
+1. Read the thin note
+2. Research the topic (WebSearch for authoritative info)
+3. Expand with: definition, key properties, examples, primary sources
+4. Add outbound `[[wiki-links]]` (3-5 per note)
+5. Add "Relevance to Cohezion" section if missing
+
+**Budget:** Expand up to 15 notes per run (quality over quantity).
+
+### 4.2 Add Missing Cross-Links
+Run the **link** skill logic:
+- Tag-based: notes sharing 2+ tags that don't link to each other
+- Content-based: notes mentioning concepts that exist as vault notes
+- Semantic proximity: notes in the same domain that should cross-reference
+
+**Budget:** Add up to 50 bidirectional link pairs per run.
+
+---
+
+## Phase 5: NAVIGATE — Maps of Content
+
+**Goal:** Make the vault traversable via curated entry points.
+
+### 5.1 Identify Topic Clusters
+
+Group notes by primary tag or domain:
+```bash
+# Find most common tags
+grep -roh "tags: \[.*\]" cortex/ sensory/ prefrontal/ cerebellum/ laboratory/ motor/ memory/ 2>/dev/null \
+  | sed 's/tags: \[//;s/\]//' | tr ',' '\n' | sed 's/^ *//;s/ *$//' | sort | uniq -c | sort -rn | head -20
+```
+
+### 5.2 Generate/Update MOCs
+
+For each major topic cluster (5+ notes), create or update a Map of Content:
+
+```markdown
+---
+title: "MOC — [Topic Name]"
+date: 2026-03-04
+tags: [moc, navigation, [topic-tag]]
+---
+
+# Map of Content — [Topic Name]
+
+## Overview
+[1-2 sentences describing this topic area and its role in the vault]
+
+## Core Concepts
+- [[concept-1]] — [brief annotation from first sentence of note]
+- [[concept-2]] — [annotation]
+
+## Key Decisions
+- [[decision-1]] — [annotation]
+
+## Patterns
+- [[pattern-1]] — [annotation]
+
+## Research Papers
+- [[paper-1]] — [annotation]
+
+## Lessons Learned
+- [[lesson-1]] — [annotation]
+
+## Experiments
+- [[experiment-1]] — [annotation]
+
+## Entry Points
+- Start here: [[most-linked-concept]]
+- Deep dive: [[most-detailed-note]]
+- Recent: [[most-recently-modified]]
+```
+
+**Target MOCs** (minimum set):
+1. `MOC-agentic-ai.md` — Agent architecture, multi-agent systems, orchestration
+2. `MOC-quantum-physics.md` — Quantum mechanics, computing, sensors, entanglement
+3. `MOC-vault-architecture.md` — Knowledge graph, linking, vault health, conventions
+4. `MOC-platform-infrastructure.md` — MCP, SurrealDB, Ollama, CI/CD, runbooks
+5. `MOC-machine-learning.md` — ML, neural nets, training, optimization
+6. `MOC-astrophysics.md` — Space, JWST, dark matter, exoplanets, gravitational waves
+7. `MOC-compound-engineering.md` — Compound methodology, sessions, retrospectives
+8. `MOC-safety-alignment.md` — AI safety, adversarial review, alignment, guardrails
+
+### 5.3 Link MOCs to Each Other
+Each MOC should link to 2-3 related MOCs in a "## Related Maps" section, creating a navigable top-level layer.
+
+---
+
+## Phase 6: REPORT — Summary
+
+Generate a structured report:
+
+```markdown
+## Vault Keeper Report — YYYY-MM-DD
+
+### Metrics
+| Metric | Before | After | Delta |
+|--------|--------|-------|-------|
+| Total notes | X | Y | +Z |
+| Wiki-links | X | Y | +Z |
+| Orphan notes | X | Y | -Z |
+| Broken links | X | Y | -Z |
+| Frontmatter issues | X | Y | -Z |
+| Thin notes (<3KB) | X | Y | -Z |
+| Maps of Content | X | Y | +Z |
+| Inbox items | X | Y | -Z |
+
+### Actions Taken
+- **Triaged:** X inbox notes processed
+- **Healed:** X frontmatter fixes, Y orphans connected, Z broken links resolved
+- **Densified:** X notes expanded, Y new cross-links added
+- **Navigation:** X MOCs created/updated
+
+### Remaining Issues
+| Priority | Issue | Count |
+|----------|-------|-------|
+| MEDIUM | Thin notes | X |
+| LOW | Cosmetic links | Y |
+
+### Recommendations
+1. [Top priority for next run]
+2. [Second priority]
+3. [Third priority]
+```
+
+---
+
+## Quick Mode (`--quick`)
+
+Skip Phases 1, 3, 4, 5. Only run Phase 2 (audit) and Phase 6 (report). Read-only — no modifications.
+
+Useful for: daily check-ins, pre-session health verification, CI/CD integration.
+
+## Context Mode (`--context "query"`)
+
+Load relevant vault knowledge for a specific task:
+
+1. Search vault for notes matching the query (by title, tags, content)
+2. Load the most relevant MOC as a navigation entry point
+3. Return top 5-10 notes with brief summaries
+4. Include any relevant lessons (filtered by topic)
+
+Output format:
+```markdown
+## Vault Context for: "[query]"
+
+### Map of Content
+→ [[MOC-relevant-topic]]
+
+### Most Relevant Notes
+1. [[note-1]] — [first sentence summary]
+2. [[note-2]] — [summary]
+...
+
+### Applicable Lessons
+- [[lesson-XX]] (severity: HIGH) — [title]
+- [[lesson-YY]] (severity: MEDIUM) — [title]
+
+### Related Decisions
+- [[decision-1]] — [status: accepted]
+```
+
+This is the output that context hooks should inject at session startup.
+
+---
+
+## Neural Intelligence (Pre-Computed Graph Alerts)
+
+The vault_sync daemon's **GraphReactor** continuously queries SurrealDB and writes
+pre-computed intelligence to `metabolism/graph-alerts.md`. This is the **primary**
+source of graph intelligence — read this file instead of making SurrealDB queries.
+
+### At Session Start: Read Graph Alerts
+
+```bash
+cat metabolism/graph-alerts.md
+```
+
+This file contains:
+- **Dark Countries** (health < 0.3) — directories needing content expansion
+- **Low Countries** (0.3-0.5) — at-risk areas to monitor
+- **Orphan Neurons** — high-activation notes with 0 inbound synapses
+- **Resting Notes** — candidates for renewal or composting
+- **Synapse Gaps** — note pairs sharing tags but no links (cross-link targets)
+- **HIHO Fusion Events** — recent coherence breakthroughs
+
+**Actions based on alerts:**
+
+| Alert | Action |
+|-------|--------|
+| Dark Country | Flesh out notes in that directory, add cross-links |
+| Orphan Neuron (cortex/) | Add inbound links from relevant hub notes |
+| Synapse Gap | Add [[wiki-link]] between the two notes |
+| HIHO Fusion | Check `dreaming/` for today's resonances |
+
+### Fallback: Direct SurrealDB Queries
+
+Only use these if the graph-alerts file is stale (>24h old) or missing:
+
+```bash
+# Regenerate alerts manually
+python3 scripts/vault_sync.py --react
+
+# Or query SurrealDB directly (higher token cost)
+curl -s -u root:root -X POST "http://localhost:8001/sql" \
+  -H "surreal-ns: cohezion" -H "surreal-db: vault" \
+  -H "Content-Type: text/plain" \
+  --data-raw 'SELECT name, health, neuron_count FROM country ORDER BY health ASC LIMIT 5;'
+```
+
+### Dreaming Engine Invocation
+
+Run `python3 scripts/dreaming-engine.py` to:
+- Refresh Country health
+- Find today's cross-domain resonances → `dreaming/YYYY-MM-DD-resonances.md`
+- Update `metabolism/metabolism-dashboard.md`
+- Log HIHO fusion events
+
+Run after any bulk operation that adds 10+ notes.
+
+### Daemon Mode
+
+Start the sync daemon for continuous graph intelligence:
+
+```bash
+python3 scripts/vault_sync.py --watch &
+```
+
+This provides:
+- Phase 1: Real-time vault→SurrealDB sync via inotify (<1s latency)
+- Phase 2: Graph reactor updates `metabolism/graph-alerts.md` every 60s after changes
+
+---
+
+## Scheduling
+
+### Automated (Cron — runs unattended)
+
+| Schedule | Command | Purpose |
+|----------|---------|---------|
+| Every 6h (0,6,12,18) | `dreaming-cron.sh --quick` | Engines 1-4: country health, resonances, HIHO fusion, metabolism dashboard |
+| Daily 2:30 AM | `dreaming-cron.sh` | Full run: all 7 engines including kinship, songlines, subconscious |
+
+The cron wrapper (`scripts/dreaming-cron.sh`) checks SurrealDB health before running,
+uses a lockfile to prevent overlapping runs, and logs to `logs/dreaming-engine.log`.
+
+### On-Demand (Agent-driven)
+
+| Frequency | Mode | Purpose |
+|-----------|------|---------|
+| Every session start | Read `metabolism/graph-alerts.md` | Pre-computed graph intelligence (zero query cost) |
+| Every session start | `--context` | Load relevant knowledge |
+| After bulk imports | Full vault-keeper run | Integration and linking |
+| After `/flesh-out` or `/link` runs | `--quick` | Verify improvements |
+
+### Real-Time (Daemon — Phase 1+2)
+
+The `vault_sync.py --watch` daemon runs continuously and provides:
+- **Phase 1**: inotify-based vault-to-SurrealDB sync (<1s latency)
+- **Phase 2**: GraphReactor updates `metabolism/graph-alerts.md` every 60s after changes
+
+## Agent Deployment Strategy
+
+For full maintenance runs, deploy specialist agents in parallel:
+
+```
+Agent 1: Triage (inbox processing)
+Agent 2: Audit + Heal (health check and fixes)
+Agent 3: Densify (flesh-out thin notes)
+Agent 4: Densify (cross-linking)
+Agent 5: Navigate (MOC generation)
+```
+
+This matches the proven pattern from vault densification sessions — 5 parallel agents with non-overlapping file scopes.
+
+## Integration Points
+
+### Claude Code Hooks
+- **PreToolUse hook**: Run `--context` to load relevant vault knowledge before agent responds
+- **PostToolUse hook**: Save session results back to vault (daily notes, new concepts)
+
+### Cloud Vault MCP (port 8360)
+- Use VaultOps for programmatic search
+- Use ObsidianOps for frontmatter updates
+- Use SurrealDB for graph queries
+
+### Obsidian Graph View
+- MOCs appear as high-connectivity hubs in the graph
+- Color-code by directory type for visual navigation
+
+## Quality Standards
+
+**A healthy vault has:**
+- 0 orphan notes in core directories
+- 0 frontmatter issues
+- 0 actionable broken links
+- < 10% thin notes (<3KB) in any directory
+- At least 5 Maps of Content
+- Average 6+ wiki-links per note
+- Every new note connected within 24 hours of creation
+
+**The Vault Keeper's job is to maintain these invariants continuously.**
+
+---
+
+This session is being continued from a previous conversation that ran out of context. The summary below covers the earlier portion of the conversation.
+
+Summary:
+1. Primary Request and Intent:
+   The user provided a detailed implementation plan for a **Vault Keeper Full Maintenance Cycle** on the Cohezion knowledge vault (`/home/mike-anderson/vaults/cohezion-vault/`). The plan had six phases:
+   - **Phase 1 (Triage):** SKIPPED — inbox (thalamus/) is empty
+   - **Phase 2 (Audit):** DONE — health state already gathered from `metabolism/graph-alerts.md`
+   - **Phase 3: Heal** — Fix 10 high-activation orphan neurons (add inbound wiki-links from hub MOC notes) + close 15 synapse gaps (bidirectional links)
+   - **Phase 4: Densify** — Expand 15 thin notes (<3KB), prioritizing cerebellum > cortex > laboratory
+   - **Phase 5: Navigate** — Spot-check and update 3 MOCs (MOC-compound-engineering, MOC-vault-architecture, MOC-agentic-ai) for staleness
+   - **Phase 6: Report** — Generate before/after metrics table
+
+2. Key Technical Concepts:
+   - **Obsidian vault** with `[[wiki-links]]` as the primary bidirectional linking mechanism
+   - **SurrealDB** knowledge graph (`neuron`, `synapse`, `kinship`, `country` tables) storing vault structure
+   - **Graph Reactor** (`metabolism/graph-alerts.md`) — pre-computed intelligence: orphan neurons, synapse gaps, HIHO events, dark countries
+   - **Orphan neuron** — a note with 0 inbound `[[wiki-links]]` from other notes; healed by adding links FROM hub notes TO the orphan
+   - **Synapse gap** — two notes sharing 2+ tags but with no wiki-link between them; healed bidirectionally
+   - **Thin note** — any `.md` file under 3KB that needs content expansion
+   - **MOC (Map of Content)** — navigation hubs in `cortex/MOC-*.md` serving as graph entry points
+   - **FLUME** — Variational Autoencoder (256D latent space) trained on agent session trajectories
+   - **12D Manifold** — 12-dimensional semantic space where each vault note is a point; projected to 3D for visualization
+   - **HIHO coherence** — metric measuring when synapse density × activation mean in a Country crosses a fusion threshold
+   - **Compound Engineering** — the core Cohezion methodology: execute-observe-extract-index-inject cycle
+   - **Activation decay** (5% daily) and lifecycle stages: embryo → growing → mature → resting → composting
+   - **Dark Country** — a vault directory with health < 0.3 (thalamus: 0.179, assessments: 0.204)
+   - **vault-keeper skill** — autonomous maintenance agent skill loaded at session start
+
+3. Files and Code Sections:
+
+   **Read-only context files:**
+   - `/home/mike-anderson/vaults/cohezion-vault/metabolism/graph-alerts.md` — Source of truth listing 10 orphan neurons, 8 documented synapse gaps, 2 dark countries, 5 HIHO events
+   - `cortex/MOC-vault-architecture.md` — Hub MOC with Projects, Patterns, Infrastructure sections
+   - `cortex/MOC-agentic-ai.md` — Hub MOC with Patterns, Related Concepts sections
+   - `cortex/MOC-compound-engineering.md` — Hub MOC with Experiments, Patterns sections
+   - `cortex/MOC-platform-infrastructure.md` — Hub MOC with Patterns, Runbooks sections
+   - `cortex/MOC-machine-learning.md` — Hub MOC with Patterns section
+   - `motor/2026-03-03-vault-as-platform-memory-recommendations.md` — Highest activation orphan (0.920); 6 recommendations for vault-as-platform-memory
+   - `laboratory/2026-02-10-phase4-universe-simulation-complete.md` — Orphan (0.890); Phase 4 Universe Simulation with Decision Fork Simulator, Task Optimizer, Knowledge Gap Explorer
+   - `motor/2026-02-16-phases-4b-7-completion-summary.md` — Orphan (0.880); 8-document completion summary, 18 adversarial review findings
+   - `cerebellum/agent-logs-vault-schema.md` — Orphan (0.870); schema for storing agent execution context in vault
+   - `cerebellum/prompt-optimization-hypotheses.md` — Orphan (0.870); pilot study of 98 sessions with 5 success hypotheses and 5 failure anti-patterns
+   - `genome/extraction-pipeline-spec.md` — Orphan (0.870); 12D extraction pipeline from SurrealDB to FLUME using four-force physics model
+   - `cerebellum/honest-time-tracking-all-costs.md` — Orphan (0.840); Session 57 revealed 44% hidden costs
+   - `cerebellum/lessons-graph-integration.md` — Orphan (0.840); hybrid local-cloud graph integration pattern
+   - `cerebellum/troubleshooting-mcp-infrastructure.md` — Orphan (0.840); MCP troubleshooting runbook
+   - `Agents/Antigravity/2a476f70-c770-4044-8d44-e6e507591ec1/implementation_plan.md` — Orphan (0.870); Cohezion Crystal Protocol energy-based model integration
+   - `cortex/12D-Manifold.md` — Central synapse gap node (synapse_in: 44); 12-dimensional mathematical space
+   - `cortex/CascadeTimeline.md` — Synapse gap partner; temporal decision cascade visualization
+   - `cortex/cohezion-platform-overview.md` — Synapse gap partner; platform entry point note
+   - `cortex/DecisionExplorer.md` — Synapse gap partner; semantic search UI for decisions
+   - `cortex/DecisionHealthDashboard.md` — Synapse gap partner; decision health monitoring UI
+   - `cortex/FLUME-Architecture.md` — Synapse gap partner; VAE architecture note
+   - `cortex/hyperdim-viz-portfolio.md` — Synapse gap partner; 3D visualization portfolio
+   - `cortex/Ouroboros-Loop.md` — Synapse gap partner; autonomic feedback loop (uses `--` not `—`)
+   - `cortex/12D-Projection.md` — Synapse gap partner for CascadeTimeline
+   - `Agents/_index.md` — Directory index for agent execution traces
+   - Thin note candidates: `cerebellum/parallel-session-coordination-via-vault-registry.md` (58 lines), `cerebellum/github-actions-as-autonomous-claude-code-scheduler.md` (62 lines), `cortex/cs249r/introduction.md` (100 lines)
+
+   **Edited files (Phase 3.1 — Orphan Healing):**
+
+   - `cortex/MOC-vault-architecture.md`:
+     - Added to Projects: `[[2026-03-03-vault-as-platform-memory-recommendations]]`
+     - Added to Patterns: `[[agent-logs-vault-schema]]`, `[[lessons-graph-integration]]`
+
+   - `cortex/MOC-compound-engineering.md`:
+     - Added to Experiments: `[[2026-02-10-phase4-universe-simulation-complete]]`, `[[2026-02-16-phases-4b-7-completion-summary]]`
+     - Added to Patterns: `[[honest-time-tracking-all-costs]]`
+
+   - `cortex/MOC-agentic-ai.md`:
+     - Added to Patterns: `[[agent-logs-vault-schema]]`, `[[implementation_plan|Cohezion Crystal Protocol]]`
+     - Added to Related Concepts: `[[prompt-optimization-hypotheses]]`, `[[extraction-pipeline-spec]]`
+
+   - `cortex/MOC-platform-infrastructure.md`:
+     - Added to Patterns: `[[extraction-pipeline-spec]]`
+
+   - `cortex/cohezion-platform-overview.md`:
+     - Added to Related: `[[2026-03-03-vault-as-platform-memory-recommendations]]`, `[[12D-Manifold]]`
+
+   - `Agents/_index.md`:
+     - Added "## Notable Agent Runs" section with `[[implementation_plan|Cohezion Crystal Protocol (Antigravity)]]`
+
+   **Edited files (Phase 3.2 — Synapse Gaps):**
+
+   - `cortex/12D-Manifold.md`: Added 7 bidirectional links in Related section:
+     ```
+     - [[CascadeTimeline]] — decision cascade timeline positions decisions in the 12D manifold
+     - [[cohezion-platform-overview]] — platform for which the 12D Manifold provides quantitative visualization infrastructure
+     - [[DecisionExplorer]] — decision cluster layout derives positions from 12D manifold coordinates
+     - [[DecisionHealthDashboard]] — health metrics draw on dimensions of the 12D manifold space
+     - [[FLUME-Architecture]] — FLUME compresses 12D trajectories into 256D latent vector; manifold is the input space
+     - [[hyperdim-viz-portfolio]] — direct implementation of the 12D Manifold projection into 3D
+     - [[Ouroboros-Loop]] — tracks trajectories through the 12D manifold during active sessions
+     ```
+
+   - `cortex/CascadeTimeline.md`: Added `[[12D-Manifold]]` and `[[12D-Projection]]`
+   - `cortex/DecisionExplorer.md`: Added `[[12D-Manifold]]`
+   - `cortex/DecisionHealthDashboard.md`: Added `[[12D-Manifold]]`
+   - `cortex/FLUME-Architecture.md`: Added `[[12D-Manifold]]`
+   - `cortex/hyperdim-viz-portfolio.md`: Added `[[12D-Manifold]]`
+   - `cortex/Ouroboros-Loop.md`: Added `[[12D-Manifold]]` (after fixing double-dash issue)
+   - `cortex/12D-Projection.md`: Added `[[CascadeTimeline]]`
+
+   **Edited files (supplementary orphan healing + ML MOC):**
+   - `cortex/MOC-machine-learning.md`: Added `[[prompt-optimization-hypotheses]]` to Patterns section
+
+4. Errors and fixes:
+   - **Ouroboros-Loop.md em-dash mismatch**: Initial Edit failed with "String to replace not found in file" because the target string used `—` (em-dash) but the file uses `--` (double dash) in its Related Concepts section. Fixed by re-reading lines 45-50 to discover the exact character used, then retrying with `--` in the old_string.
+
+5. Problem Solving:
+   - **Graph alerts showed only 8 synapse gaps** but plan mentioned 15 — proceeded with what was documented in the authoritative `metabolism/graph-alerts.md`
+   - **MOC files already contained some orphan links** (e.g., `troubleshooting-mcp-infrastructure` was already in MOC-platform-infrastructure and MOC-agentic-ai) — added additional links from other MOCs to increase inbound count
+   - **Thin notes Bash scan** revealed most thin files are in `cerebellum/lessons/` which the plan says to SKIP (lesson-format notes are fine to be brief). The actual cortex/cerebellum thin notes needing expansion are identified as the 3 priority files plus more to find
+
+6. All user messages:
+   - **Message 1**: The user submitted the full vault-keeper maintenance plan as a large structured prompt including vault state table, 6-phase plan with specific orphan/gap/thin note targets, critical files table, execution order, and verification commands. Key instruction: "If this plan can be broken down into multiple independent tasks, consider using the TeamCreate tool to create a team and parallelize the work."
+   - **Message 2** (system): Skill tool result loaded vault-keeper skill content
+   - **Message 3** (system): Tool search results loaded
+   - **Message 4** (system): Subsequent tool results throughout execution
+
+7. Pending Tasks:
+   - **Phase 4: Thin Note Densification** — Expand 15 thin notes. Priority order:
+     1. `cerebellum/parallel-session-coordination-via-vault-registry.md` (already read, 58 lines — needs: failure modes, SurrealDB integration details, conflict resolution strategies, more related concepts)
+     2. `cerebellum/github-actions-as-autonomous-claude-code-scheduler.md` (already read, 62 lines — needs: security considerations, more workflow variants, integration with vault-keeper, cost estimation)
+     3. `cortex/cs249r/introduction.md` (already read, 100 lines — is a concept-list stub, needs actual narrative content about ML systems engineering)
+     4. 12 more from the 61-note thin list (need to identify non-lesson thin notes in cortex/ using Bash — Bash output showed mostly cerebellum/lessons/ which are skipped)
+   - **Phase 5: MOC Refresh** — Spot-check 3 MOCs:
+     - `MOC-compound-engineering.md` — check for 2026-03-18 HIHO events
+     - `MOC-vault-architecture.md` — verify new cerebellum patterns appear
+     - `MOC-agentic-ai.md` — verify genome and cerebellum notes appear (partially done via Phase 3.1)
+   - **Phase 6: Report** — Generate before→after metrics table (total notes, wiki-links, orphans, synapse gaps, thin notes, inbox items)
+   - **Verification** — Run grep checks to confirm healed orphans are linked
+
+8. Current Work:
+   The assistant had just completed Phases 3.1 and 3.2 (all orphan healing and synapse gap edits — 17 files edited successfully) and was beginning Phase 4 (thin note expansion). The last two actions were:
+   1. Running `find /home/mike-anderson/vaults/cohezion-vault/cortex /home/mike-anderson/vaults/cohezion-vault/cerebellum -name '*.md' ! -name '_template.md' ! -name '_index.md' -size -3k 2>/dev/null | xargs wc -c 2>/dev/null | sort -n | head -40` to identify thin notes — result showed 38 files mostly in `cerebellum/lessons/` (which should be skipped)
+   2. Adding `[[prompt-optimization-hypotheses]]` to `cortex/MOC-machine-learning.md` Patterns section (succeeded)
+
+   Three priority thin notes have been read but NOT yet expanded:
+   - `cerebellum/parallel-session-coordination-via-vault-registry.md` — 58 lines, embryo stage, problem/solution/code stub pattern
+   - `cerebellum/github-actions-as-autonomous-claude-code-scheduler.md` — 62 lines, embryo stage, pattern stub with YAML code example
+   - `cortex/cs249r/introduction.md` — 100 lines, concept-list stub without narrative content
+
+9. Optional Next Step:
+   The next step is to **expand the thin notes starting with the three priority cerebellum notes** and then find additional cortex thin notes (non-lessons). The Bash output showed most thin files were lessons (skipped), so a refined search is needed for actual cortex thin notes:
+
+   ```bash
+   find /home/mike-anderson/vaults/cohezion-vault/cortex -name '*.md' ! -name '_template.md' ! -name '_index.md' -size -3k 2>/dev/null | xargs wc -c | sort -n | grep -v total
+   ```
+
+   Then expand `cerebellum/parallel-session-coordination-via-vault-registry.md` by adding: deeper explanation of the registry coordination protocol, SurrealDB schema for session locking, failure modes and recovery strategies, conflict resolution algorithms, handoff protocol when context windows fill, and 3-5 additional related concepts including `[[multi-agent-systems]]`, `[[cloud-vault-mcp]]`, `[[surrealdb]]`, `[[workflow-orchestration]]`.
+
+   This directly continues the Phase 4 work from the plan: "**Expand (in order): 1. `cerebellum/parallel-session-coordination-via-vault-registry.md`**"
+
+If you need specific details from before compaction (like exact code snippets, error messages, or content you generated), read the full transcript at: /home/mike-anderson/.claude/projects/-home-mike-anderson-vaults-cohezion-vault/96ac6a48-4e4b-40b0-99d4-75b9544d80d6.jsonl
+Continue the conversation from where it left off without asking the user any further questions. Resume directly — do not acknowledge the summary, do not recap what was happening, do not preface with "I'll continue" or similar. Pick up the last task as if the break never happened.
+
+---
+
+# /learn - Online Learning System
+
+**Extract reusable knowledge from this session into skills.** Evaluates what was learned, checks for existing skills, and creates new ones when valuable patterns are discovered.
+
+---
+
+## TABLE OF CONTENTS
+
+| Phase       | Description                                            | Steps   |
+| ----------- | ------------------------------------------------------ | ------- |
+| **Phase 0** | Reference: triggers, quality criteria, skill structure | 0.1–0.4 |
+| **Phase 1** | Evaluate: assess if knowledge is worth extracting      | 1.1     |
+| **Phase 2** | Check Existing: search for related skills              | 2.1     |
+| **Phase 3** | Create Skill: write the skill file                     | 3.1–3.2 |
+| **Phase 4** | Quality Gates: final checklist before saving           | 4.1     |
+
+**Quick Step Reference:**
+
+- 0.1 Triggers, 0.2 Quality criteria, 0.3 What NOT to extract, 0.4 Skill structure
+- 1.1 Self-evaluation questions
+- 2.1 Search existing skills
+- 3.1 Choose location, 3.2 Write SKILL.md
+- 4.1 Final checklist
+
+---
+
+## PHASE 0: REFERENCE
+
+### Step 0.1: Triggers
+
+Invoke `/learn` after ANY task involving:
+
+| Trigger                      | Example                                                          |
+| ---------------------------- | ---------------------------------------------------------------- |
+| **Non-obvious debugging**    | Spent 10+ minutes investigating; solution wasn't in docs         |
+| **Misleading errors**        | Error message pointed wrong direction; found real cause          |
+| **Workarounds**              | Found limitation and creative solution                           |
+| **Tool integration**         | Figured out how to use tool/API in undocumented way              |
+| **Trial-and-error**          | Tried multiple approaches before finding what worked             |
+| **Repeatable workflow**      | Multi-step task that will recur; worth standardizing             |
+| **External service queries** | Fetched data from Jira, GitHub, Confluence, or other APIs        |
+| **User-facing automation**   | Built something user will ask for again (reports, status checks) |
+
+### Step 0.2: Quality Criteria
+
+Skills must be:
+
+- **Reusable**: Will help with future tasks (not just this instance)
+- **Non-trivial**: Required discovery, OR is a valuable workflow pattern
+- **Verified**: Solution actually worked, not theoretical
+
+### Step 0.3: What NOT to Extract
+
+- Single-step tasks with no workflow value
+- One-off fixes unlikely to recur
+- Knowledge easily found in official docs
+
+### Step 0.4: Skill Structure
+
+**Location:** `.claude/skills/[skill-name]/SKILL.md`
+
+**Template:**
+
+```markdown
+---
+name: descriptive-kebab-case-name
+description: |
+  [CRITICAL: This determines when the skill triggers. Include:]
+  - What the skill does
+  - Specific trigger conditions (exact error messages, symptoms)
+  - When to use it (contexts, scenarios)
+author: Claude Code
+version: 1.0.0
+---
+
+# Skill Name
+
+## Problem
+
+[Clear description of the problem]
+
+## Context / Trigger Conditions
+
+[When to use - exact error messages, symptoms, scenarios]
+
+## Solution
+
+[Step-by-step solution]
+
+## Verification
+
+[How to verify it worked]
+
+## Example
+
+[Concrete example]
+
+## References
+
+[Links to documentation]
+```
+
+<details>
+<summary>Writing Effective Descriptions</summary>
+
+The description field is CRITICAL for skill discovery:
+
+**Good:**
+
+```yaml
+description: |
+  Fix for "ENOENT: no such file or directory" errors in npm monorepos.
+  Use when: (1) npm run fails with ENOENT, (2) paths work in root but
+  not in packages, (3) symlinked dependencies cause failures.
+```
+
+**Bad:**
+
+```yaml
+description: Helps with npm problems in monorepos.
+```
+
+</details>
+
+**Guidelines:**
+
+- **Concise** - Claude is smart; only add what it doesn't know
+- **Under 500 lines** - Move large docs to `references/`
+- **Examples over explanations** - Show, don't tell
+
+---
+
+## PHASE 1: EVALUATE
+
+### Step 1.1: Self-Evaluation Questions
+
+Ask yourself:
+
+1. "What did I just learn that wasn't obvious before starting?"
+2. "Would future-me benefit from having this documented?"
+3. "Was the solution non-obvious from documentation alone?"
+4. "Is this a multi-step workflow I'd repeat on similar tasks?"
+5. "Did I query an external service the user will ask about again?"
+
+**If NO to all → Skip extraction, nothing to learn.**
+
+**Note:** External service queries (Jira tickets, GitHub PRs, Confluence pages) are almost always worth extracting - users frequently repeat these requests.
+
+---
+
+## PHASE 2: CHECK EXISTING
+
+### Step 2.1: Search for Related Skills
+
+Before creating, search for related skills:
+
+```bash
+ls .claude/skills/ 2>/dev/null
+rg -i "keyword" .claude/skills/ 2>/dev/null
+ls ~/.claude/pilot/skills/ 2>/dev/null
+rg -i "keyword" ~/.claude/pilot/skills/ 2>/dev/null
+```
+
+| Found                | Action                           |
+| -------------------- | -------------------------------- |
+| Nothing related      | Create new skill                 |
+| Same trigger and fix | Update existing (bump version)   |
+| Partial overlap      | Update existing with new variant |
+
+---
+
+## PHASE 3: CREATE SKILL
+
+### Step 3.1: Choose Location
+
+**Project skills**: `.claude/skills/[skill-name]/SKILL.md`
+
+### Step 3.2: Write SKILL.md
+
+Use the template from Step 0.4. Ensure the description field contains specific trigger conditions.
+
+---
+
+## PHASE 4: QUALITY GATES
+
+### Step 4.1: Final Checklist
+
+Before finalizing:
+
+- [ ] Description contains specific trigger conditions
+- [ ] Solution verified to work
+- [ ] Content specific enough to be actionable
+- [ ] Content general enough to be reusable
+- [ ] No sensitive information
+
+---
+
+## EXAMPLE
+
+**Scenario**: Discovered LSP `findReferences` can find dead code by checking if functions have only 1 reference (their definition) or only test references.
+
+**Skill Created**: `.claude/skills/lsp-dead-code-finder/SKILL.md`
+
+```markdown
+---
+name: lsp-dead-code-finder
+description: |
+  Find dead/unused code using LSP findReferences. Use when: (1) user asks
+  to find dead code, (2) cleaning up codebase, (3) refactoring. Key insight:
+  function with only 1 reference (definition) or only test refs is dead code.
+---
+
+# LSP Dead Code Finder
+
+...
+```
+
+---
+
+## REMEMBER
+
+**Continuous improvement.** Every valuable discovery should benefit future sessions.
+Evaluate after significant work. Extract selectively. Create carefully.
+
+---
+
+commit the changes
+
+---
+
+# /learn - Online Learning System
+
+**Extract reusable knowledge from this session into skills.** Evaluates what was learned, checks for existing skills, and creates new ones when valuable patterns are discovered.
+
+---
+
+## TABLE OF CONTENTS
+
+| Phase       | Description                                            | Steps   |
+| ----------- | ------------------------------------------------------ | ------- |
+| **Phase 0** | Reference: triggers, quality criteria, skill structure | 0.1–0.4 |
+| **Phase 1** | Evaluate: assess if knowledge is worth extracting      | 1.1     |
+| **Phase 2** | Check Existing: search for related skills              | 2.1     |
+| **Phase 3** | Create Skill: write the skill file                     | 3.1–3.2 |
+| **Phase 4** | Quality Gates: final checklist before saving           | 4.1     |
+
+**Quick Step Reference:**
+
+- 0.1 Triggers, 0.2 Quality criteria, 0.3 What NOT to extract, 0.4 Skill structure
+- 1.1 Self-evaluation questions
+- 2.1 Search existing skills
+- 3.1 Choose location, 3.2 Write SKILL.md
+- 4.1 Final checklist
+
+---
+
+## PHASE 0: REFERENCE
+
+### Step 0.1: Triggers
+
+Invoke `/learn` after ANY task involving:
+
+| Trigger                      | Example                                                          |
+| ---------------------------- | ---------------------------------------------------------------- |
+| **Non-obvious debugging**    | Spent 10+ minutes investigating; solution wasn't in docs         |
+| **Misleading errors**        | Error message pointed wrong direction; found real cause          |
+| **Workarounds**              | Found limitation and creative solution                           |
+| **Tool integration**         | Figured out how to use tool/API in undocumented way              |
+| **Trial-and-error**          | Tried multiple approaches before finding what worked             |
+| **Repeatable workflow**      | Multi-step task that will recur; worth standardizing             |
+| **External service queries** | Fetched data from Jira, GitHub, Confluence, or other APIs        |
+| **User-facing automation**   | Built something user will ask for again (reports, status checks) |
+
+### Step 0.2: Quality Criteria
+
+Skills must be:
+
+- **Reusable**: Will help with future tasks (not just this instance)
+- **Non-trivial**: Required discovery, OR is a valuable workflow pattern
+- **Verified**: Solution actually worked, not theoretical
+
+### Step 0.3: What NOT to Extract
+
+- Single-step tasks with no workflow value
+- One-off fixes unlikely to recur
+- Knowledge easily found in official docs
+
+### Step 0.4: Skill Structure
+
+**Location:** `.claude/skills/[skill-name]/SKILL.md`
+
+**Template:**
+
+```markdown
+---
+name: descriptive-kebab-case-name
+description: |
+  [CRITICAL: This determines when the skill triggers. Include:]
+  - What the skill does
+  - Specific trigger conditions (exact error messages, symptoms)
+  - When to use it (contexts, scenarios)
+author: Claude Code
+version: 1.0.0
+---
+
+# Skill Name
+
+## Problem
+
+[Clear description of the problem]
+
+## Context / Trigger Conditions
+
+[When to use - exact error messages, symptoms, scenarios]
+
+## Solution
+
+[Step-by-step solution]
+
+## Verification
+
+[How to verify it worked]
+
+## Example
+
+[Concrete example]
+
+## References
+
+[Links to documentation]
+```
+
+<details>
+<summary>Writing Effective Descriptions</summary>
+
+The description field is CRITICAL for skill discovery:
+
+**Good:**
+
+```yaml
+description: |
+  Fix for "ENOENT: no such file or directory" errors in npm monorepos.
+  Use when: (1) npm run fails with ENOENT, (2) paths work in root but
+  not in packages, (3) symlinked dependencies cause failures.
+```
+
+**Bad:**
+
+```yaml
+description: Helps with npm problems in monorepos.
+```
+
+</details>
+
+**Guidelines:**
+
+- **Concise** - Claude is smart; only add what it doesn't know
+- **Under 500 lines** - Move large docs to `references/`
+- **Examples over explanations** - Show, don't tell
+
+---
+
+## PHASE 1: EVALUATE
+
+### Step 1.1: Self-Evaluation Questions
+
+Ask yourself:
+
+1. "What did I just learn that wasn't obvious before starting?"
+2. "Would future-me benefit from having this documented?"
+3. "Was the solution non-obvious from documentation alone?"
+4. "Is this a multi-step workflow I'd repeat on similar tasks?"
+5. "Did I query an external service the user will ask about again?"
+
+**If NO to all → Skip extraction, nothing to learn.**
+
+**Note:** External service queries (Jira tickets, GitHub PRs, Confluence pages) are almost always worth extracting - users frequently repeat these requests.
+
+---
+
+## PHASE 2: CHECK EXISTING
+
+### Step 2.1: Search for Related Skills
+
+Before creating, search for related skills:
+
+```bash
+ls .claude/skills/ 2>/dev/null
+rg -i "keyword" .claude/skills/ 2>/dev/null
+ls ~/.claude/pilot/skills/ 2>/dev/null
+rg -i "keyword" ~/.claude/pilot/skills/ 2>/dev/null
+```
+
+| Found                | Action                           |
+| -------------------- | -------------------------------- |
+| Nothing related      | Create new skill                 |
+| Same trigger and fix | Update existing (bump version)   |
+| Partial overlap      | Update existing with new variant |
+
+---
+
+## PHASE 3: CREATE SKILL
+
+### Step 3.1: Choose Location
+
+**Project skills**: `.claude/skills/[skill-name]/SKILL.md`
+
+### Step 3.2: Write SKILL.md
+
+Use the template from Step 0.4. Ensure the description field contains specific trigger conditions.
+
+---
+
+## PHASE 4: QUALITY GATES
+
+### Step 4.1: Final Checklist
+
+Before finalizing:
+
+- [ ] Description contains specific trigger conditions
+- [ ] Solution verified to work
+- [ ] Content specific enough to be actionable
+- [ ] Content general enough to be reusable
+- [ ] No sensitive information
+
+---
+
+## EXAMPLE
+
+**Scenario**: Discovered LSP `findReferences` can find dead code by checking if functions have only 1 reference (their definition) or only test references.
+
+**Skill Created**: `.claude/skills/lsp-dead-code-finder/SKILL.md`
+
+```markdown
+---
+name: lsp-dead-code-finder
+description: |
+  Find dead/unused code using LSP findReferences. Use when: (1) user asks
+  to find dead code, (2) cleaning up codebase, (3) refactoring. Key insight:
+  function with only 1 reference (definition) or only test refs is dead code.
+---
+
+# LSP Dead Code Finder
+
+...
+```
+
+---
+
+## REMEMBER
+
+**Continuous improvement.** Every valuable discovery should benefit future sessions.
+Evaluate after significant work. Extract selectively. Create carefully.
+
+---
+
+push it
+
+---
+
+Provide a code review for the given pull request.
+
+To do this, follow these steps precisely:
+
+1. Use a Haiku agent to check if the pull request (a) is closed, (b) is a draft, (c) does not need a code review (eg. because it is an automated pull request, or is very simple and obviously ok), or (d) already has a code review from you from earlier. If so, do not proceed.
+2. Use another Haiku agent to give you a list of file paths to (but not the contents of) any relevant CLAUDE.md files from the codebase: the root CLAUDE.md file (if one exists), as well as any CLAUDE.md files in the directories whose files the pull request modified
+3. Use a Haiku agent to view the pull request, and ask the agent to return a summary of the change
+4. Then, launch 5 parallel Sonnet agents to independently code review the change. The agents should do the following, then return a list of issues and the reason each issue was flagged (eg. CLAUDE.md adherence, bug, historical git context, etc.):
+   a. Agent #1: Audit the changes to make sure they compily with the CLAUDE.md. Note that CLAUDE.md is guidance for Claude as it writes code, so not all instructions will be applicable during code review.
+   b. Agent #2: Read the file changes in the pull request, then do a shallow scan for obvious bugs. Avoid reading extra context beyond the changes, focusing just on the changes themselves. Focus on large bugs, and avoid small issues and nitpicks. Ignore likely false positives.
+   c. Agent #3: Read the git blame and history of the code modified, to identify any bugs in light of that historical context
+   d. Agent #4: Read previous pull requests that touched these files, and check for any comments on those pull requests that may also apply to the current pull request.
+   e. Agent #5: Read code comments in the modified files, and make sure the changes in the pull request comply with any guidance in the comments.
+5. For each issue found in #4, launch a parallel Haiku agent that takes the PR, issue description, and list of CLAUDE.md files (from step 2), and returns a score to indicate the agent's level of confidence for whether the issue is real or false positive. To do that, the agent should score each issue on a scale from 0-100, indicating its level of confidence. For issues that were flagged due to CLAUDE.md instructions, the agent should double check that the CLAUDE.md actually calls out that issue specifically. The scale is (give this rubric to the agent verbatim):
+   a. 0: Not confident at all. This is a false positive that doesn't stand up to light scrutiny, or is a pre-existing issue.
+   b. 25: Somewhat confident. This might be a real issue, but may also be a false positive. The agent wasn't able to verify that it's a real issue. If the issue is stylistic, it is one that was not explicitly called out in the relevant CLAUDE.md.
+   c. 50: Moderately confident. The agent was able to verify this is a real issue, but it might be a nitpick or not happen very often in practice. Relative to the rest of the PR, it's not very important.
+   d. 75: Highly confident. The agent double checked the issue, and verified that it is very likely it is a real issue that will be hit in practice. The existing approach in the PR is insufficient. The issue is very important and will directly impact the code's functionality, or it is an issue that is directly mentioned in the relevant CLAUDE.md.
+   e. 100: Absolutely certain. The agent double checked the issue, and confirmed that it is definitely a real issue, that will happen frequently in practice. The evidence directly confirms this.
+6. Filter out any issues with a score less than 80. If there are no issues that meet this criteria, do not proceed.
+7. Use a Haiku agent to repeat the eligibility check from #1, to make sure that the pull request is still eligible for code review.
+8. Finally, use the gh bash command to comment back on the pull request with the result. When writing your comment, keep in mind to:
+   a. Keep your output brief
+   b. Avoid emojis
+   c. Link and cite relevant code, files, and URLs
+
+Examples of false positives, for steps 4 and 5:
+
+- Pre-existing issues
+- Something that looks like a bug but is not actually a bug
+- Pedantic nitpicks that a senior engineer wouldn't call out
+- Issues that a linter, typechecker, or compiler would catch (eg. missing or incorrect imports, type errors, broken tests, formatting issues, pedantic style issues like newlines). No need to run these build steps yourself -- it is safe to assume that they will be run separately as part of CI.
+- General code quality issues (eg. lack of test coverage, general security issues, poor documentation), unless explicitly required in CLAUDE.md
+- Issues that are called out in CLAUDE.md, but explicitly silenced in the code (eg. due to a lint ignore comment)
+- Changes in functionality that are likely intentional or are directly related to the broader change
+- Real issues, but on lines that the user did not modify in their pull request
+
+Notes:
+
+- Do not check build signal or attempt to build or typecheck the app. These will run separately, and are not relevant to your code review.
+- Use `gh` to interact with Github (eg. to fetch a pull request, or to create inline comments), rather than web fetch
+- Make a todo list first
+- You must cite and link each bug (eg. if referring to a CLAUDE.md, you must link it)
+- For your final comment, follow the following format precisely (assuming for this example that you found 3 issues):
+
+---
+
+### Code review
+
+Found 3 issues:
+
+1. <brief description of bug> (CLAUDE.md says "<...>")
+
+<link to file and line with full sha1 + line range for context, note that you MUST provide the full sha and not use bash here, eg. https://github.com/anthropics/claude-code/blob/1d54823877c4de72b2316a64032a54afc404e619/README.md#L13-L17>
+
+2. <brief description of bug> (some/other/CLAUDE.md says "<...>")
+
+<link to file and line with full sha1 + line range for context>
+
+3. <brief description of bug> (bug due to <file and code snippet>)
+
+<link to file and line with full sha1 + line range for context>
+
+🤖 Generated with [Claude Code](https://claude.ai/code)
+
+<sub>- If this code review was useful, please react with 👍. Otherwise, react with 👎.</sub>
+
+---
+
+- Or, if you found no issues:
+
+---
+
+### Code review
+
+No issues found. Checked for bugs and CLAUDE.md compliance.
+
+🤖 Generated with [Claude Code](https://claude.ai/code)
+
+- When linking to code, follow the following format precisely, otherwise the Markdown preview won't render correctly: https://github.com/anthropics/claude-cli-internal/blob/c21d3c10bc8e898b7ac1a2d745bdc9bc4e423afe/package.json#L10-L15
+  - Requires full git sha
+  - You must provide the full sha. Commands like `https://github.com/owner/repo/blob/$(git rev-parse HEAD)/foo/bar` will not work, since your comment will be directly rendered in Markdown.
+  - Repo name must match the repo you're code reviewing
+  - # sign after the file name
+  - Line range format is L[start]-L[end]
+  - Provide at least 1 line of context before and after, centered on the line you are commenting about (eg. if you are commenting about lines 5-6, you should link to `L4-7`)
+
+---
+
+This session is being continued from a previous conversation that ran out of context. The summary below covers the earlier portion of the conversation.
+
+Summary:
+1. Primary Request and Intent:
+   The session continued a pre-existing **Vault Keeper Full Maintenance Cycle** plan (from `/home/mike-anderson/.claude/plans/jazzy-sniffing-canyon.md`). Phases 1-2 were already done. The work this session covered:
+   - **Phase 4:** Expand 15 thin notes (<3KB) in cerebellum, cortex, and laboratory directories
+   - **Phase 5:** Spot-check and update 3 MOCs; close new synapse gaps revealed by the updated graph-alerts
+   - **Phase 6:** Generate before/after metrics report
+   - **`/learn` (x2):** Extract reusable knowledge from the session into existing skills
+   - **`commit` + `push`:** Stage and push vault changes to `track-c`
+   - **`/code-review:code-review`:** Run the full multi-agent code review workflow on PR #39 (`feat: MASFactory-inspired graph architecture - 3-layer incremental build`) — this was in progress at summary time
+
+2. Key Technical Concepts:
+   - **Obsidian vault** with `[[wiki-links]]` as the bidirectional linking mechanism
+   - **SurrealDB** knowledge graph (neuron, synapse, country tables)
+   - **Graph Reactor / graph-alerts.md** — pre-computed intelligence: orphan neurons, synapse gaps, HIHO events. Refreshes after edits, confirming healed work and revealing new targets
+   - **Orphan neuron** — vault note with 0 inbound `[[wiki-links]]`; healed by adding links FROM hub notes
+   - **Synapse gap** — note pair sharing 2+ tags but no wiki-link; closed bidirectionally
+   - **Thin note** — `.md` file under 3KB; expanded using type-specific templates
+   - **Note lifecycle stages** (embryo → growing → mature → resting); 5% daily activation decay
+   - **Cerebellum pattern note expansion template:** Problem + Solution + Protocol/Schema + Failure Modes Table + When to Use + Cohezion Relevance + Related (5+ annotated links)
+   - **Laboratory experiment note expansion template:** Hypothesis + Method + Detailed Results + Root Cause Chain + Learnings + Cohezion Relevance + Related
+   - **MOC (Map of Content)** — navigation hubs in `cortex/MOC-*.md`
+   - **12D Manifold / 12D Projection** — Cohezion's semantic visualization infrastructure; central synapse gap cluster
+   - **FLUME** — Variational Autoencoder (256D latent space) for agent trajectory encoding
+   - **FLUX Protocol** — federated context aggregation (5 providers: vault, SurrealDB, tools, history, cache)
+   - **WorkflowEngine (DAG)** — Kahn's algorithm for cycle detection, topological dispatch
+   - **Vibe Graphing** — NL-to-graph compiler using TF-IDF keyword extraction
+   - **CODE REVIEW:** MASFactory-inspired 3-layer graph architecture: WorkflowEngine + FLUX + Vibe Graphing
+   - **AgentNode/ToolNode/LogicSwitchNode/CustomNode** — node types in the WorkflowEngine
+   - **`_flux_context`** — internal metadata key injected into AgentNode inputs, should be stripped from outputs
+   - **`_find_ready_nodes`** — checks `NodeStatus.COMPLETED` for predecessors; does not handle `NodeStatus.SKIPPED`
+   - **`TaskResult.execution`** / **`TaskResult.subject`** — docstring-defined fields that `execute_graph()` fails to populate correctly
+   - **Conventional commits** — `chore(vault):` prefix for maintenance, with section breakdown in body
+   - **Git staging exclusions** — `.entire/queue.db`, `.obsidian/workspace.json`, `.vault-journal/checkpoint.json`, `metabolism/graph-alerts.md` must never be committed
+
+3. Files and Code Sections:
+
+   **Phase 4 — Thin Note Expansions (10 notes):**
+
+   - `cerebellum/parallel-session-coordination-via-vault-registry.md`
+     - Was 2KB (embryo); expanded to 5.6KB
+     - Added: SurrealDB registry schema with DEFINE TABLE/FIELD statements, conflict resolution algorithm (3-step query→decide→claim), Failure Modes table (4 rows: stale lock, race condition, context overflow, session ID collision), Handoff Protocol (80% context trigger), Cohezion Relevance section, 5 new Related links: `[[multi-agent-systems]]`, `[[cloud-vault-mcp]]`, `[[surrealdb]]`, `[[workflow-orchestration]]`, `[[context-management]]`
+
+   - `cerebellum/github-actions-as-autonomous-claude-code-scheduler.md`
+     - Was 1.9KB (embryo); expanded to 5.6KB
+     - Added: Full nightly vault audit workflow YAML, weekly research scout YAML, Security Considerations table (5 rows), Cost Estimation table (4 task types), Failure Handling section, Cohezion Relevance connecting to Ouroboros Loop, 6 new Related links
+
+   - `cerebellum/vault-first-session-protocol.md`
+     - Was 1.8KB (embryo); expanded to 5.1KB
+     - Added: "Why Context Loss Is Catastrophic" section, Token-Efficient Vault Write Patterns table (4 patterns with token costs), Continuation File Pattern with full markdown template, Enforcement Mechanisms section (3 mechanisms), 7 new Related links
+
+   - `cerebellum/github-issue-form-as-mobile-claude-terminal.md`
+     - Was 1.9KB (embryo); expanded to 5.1KB
+     - Added: Full GitHub Issue Form YAML template with dropdown + input + checkbox fields, Workflow Integration section with YAML listener, Security Considerations table (4 rows), "Adding New Commands" section, 5 new Related links
+
+   - `cortex/cs249r/introduction.md`
+     - Was concept list (100 lines); transformed to 6.3KB narrative
+     - Added: "Overview" narrative framing ML systems engineering as an infrastructure discipline, "The Research-to-Production Gap" table (5 rows), "Historical Milestones and Paradigm Shifts" (4 eras), "Production System Challenges" (8 canonical challenges), Application Domains section, "Cohezion Relevance" connecting to conservative-baseline-estimation and honest-metrics patterns, expanded Related Concepts with annotations
+
+   - `laboratory/2026-03-05-remote-claude-code-leverage-architecture.md`
+     - Was 1.3KB; expanded to 3.2KB
+     - Added: Approach Comparison table (3 approaches), Session Bootstrap Architecture section (cold-start cost: ~2.3K tokens), 5 new Related links
+
+   - `laboratory/2026-03-05-unblocking-pr-33-ci-fixes-for-branch-protection.md`
+     - Was 1.1KB; expanded to 3.2KB
+     - Added: Detailed Results section with 3-step root cause chain, Minimum Required Permissions block YAML, Cohezion Relevance, 3 new Related links
+
+   - `laboratory/2026-03-05-gc-corruption-root-cause-entire-auto-commits-and-submodule-conflicts.md`
+     - Was 1.5KB; expanded to 3.3KB
+     - Added: Detailed Root Cause Chain (4-step chain), Diagnosis Commands That Worked (3 bash commands), expanded Learnings with prevention rules
+
+   - `laboratory/2026-03-05-ci-pipeline-debugging-cascading-failures-from-dev-deps-and-permissions.md`
+     - Was 1.4KB; expanded to 3.5KB
+     - Added: Cascading Failure Chain Diagram (ASCII), Minimum Required Permissions Block YAML, Dev Dependency Installation fix YAML, Cohezion Relevance, 3 new Related links
+
+   - `laboratory/2026-03-05-gc-corruption-severity-170-bad-objects-across-all-pack-files-3gb-data-file-in-hi.md`
+     - Was 1.6KB; expanded to 3.9KB
+     - Added: Severity Assessment table (7 metrics), "Why Re-Clone Was the Only Option" section, Recovery Protocol bash script, expanded Learnings, 4 new Related links
+
+   **Phase 5 — MOC Updates:**
+
+   - `cortex/MOC-compound-engineering.md`
+     - Added 3 patterns: `[[vault-first-session-protocol]]`, `[[parallel-session-coordination-via-vault-registry]]`, `[[github-actions-as-autonomous-claude-code-scheduler]]`
+
+   - `cortex/MOC-vault-architecture.md`
+     - Added 2 patterns: `[[vault-first-session-protocol]]`, `[[parallel-session-coordination-via-vault-registry]]`
+
+   **Phase 5 — New Synapse Gaps Closed (from refreshed graph-alerts.md):**
+
+   - `cortex/12D-Projection.md` — Added 3 new Related links: `[[cohezion-platform-overview]]`, `[[DecisionExplorer]]`, `[[DecisionHealthDashboard]]`
+   - `cortex/cohezion-platform-overview.md` — Added `[[12D-Projection]]`
+   - `cortex/DecisionExplorer.md` — Added `[[12D-Projection]]` to Related Concepts section
+   - `cortex/DecisionHealthDashboard.md` — Added `[[12D-Projection]]`
+
+   **Skills Updated:**
+
+   - `.claude/skills/flesh-out/SKILL.md`
+     - Added entire "Thin Note Expansion (Non-Stub Notes Under 3KB)" section including:
+       - Bash find command for thin notes
+       - Skip list table (prefrontal ADRs, cerebellum/lessons/, domains/testing/ stubs)
+       - Cerebellum Pattern Notes template (6-section structure)
+       - Laboratory Experiment Notes template (6-section structure)
+       - Post-expansion size verification bash loop
+       - Graph-alerts refresh insight
+       - Orphan verification command pattern
+
+   - `.claude/skills/vault-keeper/SKILL.md`
+     - Added "Committing Vault Changes" section at end:
+       - Table of 5 files to always exclude (`.entire/queue.db`, `.obsidian/workspace.json`, `.vault-journal/checkpoint.json`, `metabolism/graph-alerts.md`, `daily/checkpoints/*.md`)
+       - Explicit `git add` staging pattern (never `git add -A`)
+       - `chore(vault):` conventional commit format with Phase 3/4/5 section breakdown
+
+   **Code Review Artifacts (PR #39):**
+
+   Key files under review:
+   - `src/cohezion/graph/engine.py` — WorkflowEngine, `_find_ready_nodes`, `_mark_downstream_skipped`
+   - `src/cohezion/graph/nodes.py` — AgentNode, ToolNode, LogicSwitchNode, CustomNode with `forward()` methods
+   - `src/cohezion/graph/builder.py` — `WorkflowBuilder.from_team_plan()`
+   - `src/cohezion/flux/aggregator.py` — FluxAggregator, `_safe_query`
+   - `src/cohezion/vibe/parser.py` — `_enrich_keywords`, `_classify_operation`, `_extract_keywords`
+   - `src/cohezion/vibe/orchestrator.py` — `_FALLBACK_NODE` singleton, `_build_fallback_spec`
+   - `src/cohezion/swarm/execution_orchestrator.py` — `execute_graph()`, `TaskResult` bridge
+   - `src/cohezion/swarm/team_orchestrator.py` — `plan_workflow()`, TYPE_CHECKING import
+
+4. Errors and Fixes:
+   - **`metabolism/graph-alerts.md` showed updated orphan list after Phase 3 work** — The graph-alerts.md refreshed after Phase 3 edits, confirming original orphans were healed but revealing 10 new orphans (VAULT_MANIFEST, skills_index, runbook-health-checks, etc.). These were noted in the Phase 6 report as "Remaining Issues" but not addressed (outside original plan scope).
+   - **Eligibility re-check for PR #39** — The Haiku eligibility agent initially found prior review comments from `manderson240` (the PR author) and marked it NOT ELIGIBLE. The assistant correctly overrode this: the reviews were from the PR *author*, not from an automated reviewer. The PR was re-evaluated as ELIGIBLE.
+   - **TYPE_CHECKING import scored 0 (false positive)** — Agent #5 flagged an unused `WorkflowSpec` TYPE_CHECKING import in `team_orchestrator.py`. The scoring agent found it was actually used as a return type annotation for `plan_workflow() -> WorkflowSpec`. Correctly filtered out.
+
+5. Problem Solving:
+   - **Thin note selection strategy:** After scanning, most thin notes were in `cerebellum/lessons/` (skipped by design). The solution was to find the 4 cerebellum non-lesson thin notes + 5 lab experiment notes + cs249r introduction for a total of 10 expansions.
+   - **Graph-alerts refresh insight:** After Phase 3, re-reading `metabolism/graph-alerts.md` confirmed healed orphans were gone and revealed new synapse gaps (`12D-Projection` cluster). This was captured in the `flesh-out` skill as a key workflow insight.
+   - **Code review confidence filtering:** 12 unique issues across 5 agents were scored. 4 issues scored ≥ 80 and will appear in the final PR comment. Issues scoring 75 (FALLBACK_NODE singleton, _classify_operation, node_type_map, _safe_query) were filtered out. One issue (execute_graph status bypass, scored 78) is borderline just below the 80 threshold.
+
+6. All User Messages:
+   - *(Session start — implicit continuation from plan file)*
+   - `"commit the changes"` — triggered `git status`, selective staging of 26 content files (excluding system files), and commit `bd94e8d8`
+   - `"/learn"` (first invocation) — triggered extraction of thin-note expansion templates into `flesh-out/SKILL.md`; committed `bd94e8d8` already done
+   - `"push it"` — triggered `git push origin track-c`; result: `0005a558..6b9ef2fe`
+   - `"/learn"` (second invocation) — triggered extraction of vault commit pattern (file exclusions) into `vault-keeper/SKILL.md`; committed as `6b9ef2fe`
+   - `"commit the changes"` (second) — committed vault-keeper skill update
+   - `"/code-review:code-review"` — triggered full multi-agent PR code review workflow for PR #39
+
+7. Pending Tasks:
+   - **Complete the PR #39 code review** — The confidence scoring agents have all returned. Still need to:
+     1. Filter issues to those scoring ≥ 80 (issues 1, 2, 3, 4)
+     2. Re-run eligibility check (step 7 of the workflow)
+     3. Post the final `gh pr comment` on PR #39 (step 8)
+   - **New orphan neurons from refreshed graph-alerts** — 10 new orphans identified (VAULT_MANIFEST, skills_index, runbook-health-checks, docs/plans/2026-03-12-compound-graph-context, 3 Antigravity agent files, cerebellum/runbook-health-checks, etc.) — noted as recommendations but not acted on
+   - **TOE cosmology cluster synapse gaps** — 5 gaps between aboriginal/amazonian/daoist/dine/dogon cosmology notes not closed (separate domain cluster, outside original plan scope)
+
+8. Current Work:
+   The assistant was mid-execution of the `/code-review:code-review` workflow for PR #39 on `manderson240/cohezion`. All 12 confidence scoring Haiku agents had returned their results. The scores were:
+   - **SCORE 92** — `execute_graph()` `execution=None`: per-task token data lost; `to_dict()` emits `"tokens": 0` for all graph tasks. File: `src/cohezion/swarm/execution_orchestrator.py`
+   - **SCORE 85** — `_find_ready_nodes` ignores SKIPPED predecessors: node with a skipped predecessor AND non-failed predecessor never becomes READY, causing `while True` infinite loop. File: `src/cohezion/graph/engine.py`
+   - **SCORE 85** — `_flux_context` not stripped from `ToolNode`/`LogicSwitchNode`/`CustomNode`: fix was applied only to `AgentNode.forward()` but not other node types. File: `src/cohezion/graph/nodes.py`
+   - **SCORE 85** — `execute_graph()` sets `subject = nr.node_id`: violates `TaskResult` docstring "Human-readable task title". File: `src/cohezion/swarm/execution_orchestrator.py`
+   - **SCORE 78** — `execute_graph()` status bypass (borderline below threshold)
+   - All others scored ≤ 75 or were false positives
+
+   The next required step was the eligibility re-check followed by posting the PR comment.
+
+9. Optional Next Step:
+   Continue the code review workflow from where it stopped. The confidence scoring step (step 5) has completed. The remaining steps are:
+   
+   **Step 7:** Re-run eligibility check for PR #39 (confirm it is still open, not draft, not already reviewed)
+   
+   **Step 8:** Post the final review comment using:
+   ```bash
+   gh pr comment 39 --repo manderson240/cohezion --body "..."
+   ```
+   
+   The comment should include the 4 issues scoring ≥ 80, formatted per the code review template with links to specific file lines using the full SHA1 of the PR's HEAD commit. Issues to include:
+   1. `_find_ready_nodes` infinite loop with SKIPPED predecessors — `src/cohezion/graph/engine.py`
+   2. `execute_graph()` `execution=None` silent token loss — `src/cohezion/swarm/execution_orchestrator.py`
+   3. `execute_graph()` `subject = node_id` violating "Human-readable task title" — `src/cohezion/swarm/execution_orchestrator.py`
+   4. `_flux_context` not stripped from ToolNode/LogicSwitchNode — `src/cohezion/graph/nodes.py`
+
+If you need specific details from before compaction (like exact code snippets, error messages, or content you generated), read the full transcript at: /home/mike-anderson/.claude/projects/-home-mike-anderson-vaults-cohezion-vault/96ac6a48-4e4b-40b0-99d4-75b9544d80d6.jsonl
+Continue the conversation from where it left off without asking the user any further questions. Resume directly — do not acknowledge the summary, do not recap what was happening, do not preface with "I'll continue" or similar. Pick up the last task as if the break never happened.
