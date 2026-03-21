@@ -102,16 +102,27 @@ def _parse_see_also(text: str) -> list[str]:
     return refs
 
 
+def _sanitize_identifier(name: str) -> str:
+    """Strip non-ASCII and replace non-identifier characters with underscores."""
+    name = name.encode("ascii", "ignore").decode("ascii")
+    name = re.sub(r"[^a-zA-Z0-9_]", "_", name)
+    if name and name[0].isdigit():
+        name = "_" + name
+    return name or "_"
+
+
 def _skill_name_to_class(skill_name: str) -> str:
     """Convert ``COMPOUND_ENGINEERING_PRIME`` to ``CompoundEngineering``."""
+    # Sanitize non-ASCII characters (e.g. em-dash U+2014) before processing
+    skill_name = _sanitize_identifier(skill_name)
     # Remove trailing _PRIME
     base = re.sub(r"_PRIME$", "", skill_name, flags=re.IGNORECASE)
     # Title-case each word, remove underscores
-    result = "".join(word.capitalize() for word in base.split("_"))
+    result = "".join(word.capitalize() for word in base.split("_") if word)
     # Ensure the class name doesn't start with a digit
     if result and result[0].isdigit():
         result = f"Skill{result}"
-    return result
+    return result or "Skill"
 
 
 def _concept_name_to_field(name: str) -> str:
