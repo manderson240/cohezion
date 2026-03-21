@@ -86,10 +86,13 @@ def _build_dataset(args: argparse.Namespace):
     # Default: try Ollama / embedding provider, fall back gracefully
     try:
         from cohezion.flume.data_pipeline import TrainingDataPipeline
-        pipeline = TrainingDataPipeline(n_samples=args.n_samples)
-        embeddings = pipeline.generate()
+        from cohezion.flume.embedding_provider import OllamaEmbeddingProvider
+        provider = OllamaEmbeddingProvider()
+        pipeline = TrainingDataPipeline(embedding_provider=provider)
+        result = pipeline.prepare(n_synthetic=args.n_samples)
+        embeddings = result["embeddings"]
         return embeddings, None
-    except Exception as exc:
+    except (ImportError, OSError, RuntimeError) as exc:
         log.warning("Embedding generation failed (%s). Use --load-data or --synthetic.", exc)
         if args.require_ollama:
             sys.exit(1)
