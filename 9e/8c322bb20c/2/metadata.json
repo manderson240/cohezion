@@ -1,0 +1,42 @@
+{
+  "cli_version": "0.4.9",
+  "checkpoint_id": "9e8c322bb20c",
+  "session_id": "6816ffd7-d10d-455f-904f-41e5640c5e5e",
+  "strategy": "manual-commit",
+  "created_at": "2026-03-21T04:01:37.681587491Z",
+  "branch": "session-kaggle-benchmark",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "kaggle-agi-benchmark/adversarial_eval_loop.py",
+    "kaggle-agi-benchmark/build_notebook.py",
+    "kaggle-agi-benchmark/dataset/dataset-metadata.json",
+    "kaggle-agi-benchmark/dataset/kaggle_benchmark.json",
+    "kaggle-agi-benchmark/evaluator.ipynb",
+    "kaggle-agi-benchmark/format_kaggle_submission.py",
+    "kaggle-agi-benchmark/generate_evo_hiho_tasks.py",
+    "kaggle-agi-benchmark/kaggle_benchmark.json",
+    "kaggle-agi-benchmark/kaggle_formatter.py",
+    "kaggle-agi-benchmark/kaggle_writeup.md",
+    "kaggle-agi-benchmark/kernel-metadata.json",
+    "src/cohezion/skills/MAMBA_STATE_TRACKING_PRIME.md",
+    "src/cohezion/swarm/r_zero_evolver.py"
+  ],
+  "agent": "Claude Code",
+  "turn_id": "ff9cbfe3a14e",
+  "token_usage": {
+    "input_tokens": 9,
+    "cache_creation_tokens": 50846,
+    "cache_read_tokens": 212013,
+    "output_tokens": 1971,
+    "api_call_count": 5
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-03-21T04:01:37.616573862Z",
+    "agent_lines": 919,
+    "human_added": 67,
+    "human_modified": 26,
+    "human_removed": 0,
+    "total_committed": 1012,
+    "agent_percentage": 90.81027667984189
+  }
+}
