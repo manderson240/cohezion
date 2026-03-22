@@ -114,7 +114,9 @@ class FractalNexusMission:
         # THROTTLE: Only if approaching critical
         elif vitals.needs_throttle():
             self.num_rounds = max(MIN_NUM_ROUNDS, int(self.num_rounds * 0.5))
-            logger.warning(f"⚠️ System pressure detected. Scaling DOWN dynamics: {self.num_rounds:,} rounds")
+            logger.warning(
+                f"⚠️ System pressure detected. Scaling DOWN dynamics: {self.num_rounds:,} rounds"
+            )
 
         self.engine.num_rounds = self.num_rounds
 
@@ -394,7 +396,9 @@ Address the "Black Box" concern: what is the underlying physics logic of this co
                 self.total_cycles = checkpoint.get("total_cycles", 0)
                 self.num_rounds = checkpoint.get("num_rounds", DEFAULT_NUM_ROUNDS)
                 self.stability_history = checkpoint.get("stability_history", [])
-                logger.info(f"✓ Resumed: Iteration {self.batch_count}, Total Cycles: {self.total_cycles}")
+                logger.info(
+                    f"✓ Resumed: Iteration {self.batch_count}, Total Cycles: {self.total_cycles}"
+                )
         except Exception as e:
             logger.error(f"Failed to load checkpoint: {e}")
 

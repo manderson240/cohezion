@@ -381,7 +381,9 @@ class OvernightDriver:
         chunk_result = await asyncio.to_thread(self.simulator.run_custom_chunk, int(time.time()), inputs, process_sim)
 
         # UPDATE CHALLENGER STATE
-        batch_scores = [r.get("score", 0.0) for r in chunk_result.raw_results if isinstance(r, dict)]
+        batch_scores = [
+            r.get("score", 0.0) for r in chunk_result.raw_results if isinstance(r, dict)
+        ]
         if batch_scores:
             avg_score = sum(batch_scores) / len(batch_scores)
             self.r_zero.update(avg_score)

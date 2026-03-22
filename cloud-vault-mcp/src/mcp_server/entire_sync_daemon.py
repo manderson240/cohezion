@@ -427,7 +427,9 @@ class EntireSyncDaemon:
             logger.warning(f"Failed to parse commit {commit_hash[:8]}: {e}")
             self.dlq.add(commit_hash, str(e))
         except Exception as e:
-            logger.error(f"Error processing commit {commit_hash[:8]}: {e}", exc_info=True)
+            logger.error(
+                f"Error processing commit {commit_hash[:8]}: {e}", exc_info=True
+            )
             self.dlq.add(commit_hash, str(e))
 
     async def _sync_to_surrealdb(self, commit_data: CommitData) -> None:
@@ -564,7 +566,9 @@ tags: [checkpoint, entire-io, {commit_data.agent_id}]
         """Get current daemon status."""
         return {
             "status": "running",
-            "last_sync": self.last_sync_time.isoformat() if self.last_sync_time else None,
+            "last_sync": self.last_sync_time.isoformat()
+            if self.last_sync_time
+            else None,
             "processed_count": self.work_queue.get_pending_count(),
             "dlq_count": self.dlq.get_count(),
             "poll_interval": self.poll_interval,

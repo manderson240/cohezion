@@ -45,6 +45,9 @@ class ResourceMonitor:
         self.secondary_pids: set[int] = set()
         self.resource_coordinator = None
         self.dilation_factor = 1.0  # 1.0 = Regular speed, 0.1 = Severe Dilation
+        self.viscosity = 0.0  # Current manifold viscosity
+        self.relaxation_tau = 30.0  # Relaxation time in seconds
+        self.last_vitals = None
         self._running = True
         self._sandbox_registry: dict[str, int] = {}  # sandbox_id -> memory_mb
         self.service_health: dict[str, str] = {}  # service -> status
@@ -364,6 +367,29 @@ class ResourceMonitor:
             ram = vitals["memory_percent"]
             vram = vitals["vram_percent"]
 
+            # Calculate Viscoelastic Dilation (Maxwellian Relaxation)
+            # Based on Research 2512.00056: Phantom deviation around mass-gap H*
+            current_pressure = max(cpu, ram, vram) / 100.0
+            dt = 2.0  # Loop interval
+            
+            if self.last_vitals:
+                prev_pressure = max(
+                    self.last_vitals["cpu_percent"],
+                    self.last_vitals["memory_percent"],
+                    self.last_vitals["vram_percent"]
+                ) / 100.0
+                pressure_rate = (current_pressure - prev_pressure) / dt
+                
+                # If pressure is rising, increase viscosity (Slow down more aggressively)
+                if pressure_rate > 0:
+                    self.viscosity += pressure_rate * self.relaxation_tau
+                else:
+                    # Maxwell-type relaxation back to equilibrium
+                    self.viscosity *= (1.0 - dt / self.relaxation_tau)
+            
+            self.last_vitals = vitals
+            viscous_correction = max(0.0, self.viscosity)
+
             # Tiered Response Logic & Dilation Calculation (Gateway Hardening)
             if cpu > 90 or ram > 90 or vram > 90:
                 logger.error(f"🚑 EMERGENCY SYSTEM PRESSURE (Tier 3): {vitals}")
@@ -387,6 +413,9 @@ class ResourceMonitor:
                 await self.exit_desperation_mode()
                 self.throttled = False
                 self.dilation_factor = 1.0
+
+            # Apply viscous damping (Transient slowdown based on rate of pressure increase)
+            self.dilation_factor = max(0.01, self.dilation_factor - viscous_correction)
 
             # Sandbox pressure warning
             sandbox_mem = self.total_sandbox_memory_mb

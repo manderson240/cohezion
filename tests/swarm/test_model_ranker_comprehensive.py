@@ -146,7 +146,9 @@ class TestRankingStrategies:
         # Scores should differ for at least some models
         # (different weighting produces different scores)
         score_diffs = [abs(cost_scores[m] - quality_scores[m]) for m in models]
-        assert any(diff > 0.01 for diff in score_diffs), "Strategies should produce different composite scores"
+        assert any(diff > 0.01 for diff in score_diffs), (
+            "Strategies should produce different composite scores"
+        )
 
 
 class TestCoherenceScoring:

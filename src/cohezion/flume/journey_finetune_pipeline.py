@@ -12,11 +12,11 @@ from __future__ import annotations
 import json
 import logging
 from pathlib import Path
-from typing import Any
 
 import numpy as np
 
 from cohezion.flume.experience_collector import ExperienceCollector
+
 
 logger = logging.getLogger(__name__)
 

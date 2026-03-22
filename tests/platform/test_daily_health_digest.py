@@ -302,7 +302,9 @@ def test_run_health_checks_some_warnings(digest):
         loose_objects=4000,
         pack_count=2,
     )
-    test = TestMetrics(total_tests=100, passing_tests=92, failing_tests=8, pass_rate=0.92)  # Warning
+    test = TestMetrics(
+        total_tests=100, passing_tests=92, failing_tests=8, pass_rate=0.92
+    )  # Warning
     dep = DependencyMetrics(
         total_dependencies=50,
         outdated_dependencies=3,
@@ -326,7 +328,9 @@ def test_run_health_checks_critical(digest):
         loose_objects=20000,
         pack_count=5,
     )
-    test = TestMetrics(total_tests=100, passing_tests=85, failing_tests=15, pass_rate=0.85)  # Critical
+    test = TestMetrics(
+        total_tests=100, passing_tests=85, failing_tests=15, pass_rate=0.85
+    )  # Critical
     dep = DependencyMetrics(
         total_dependencies=50,
         outdated_dependencies=10,
@@ -634,7 +638,9 @@ async def test_generate_recommendations_failing_tests(digest):
         loose_objects=50,
         pack_count=1,
     )
-    test = TestMetrics(total_tests=100, passing_tests=85, failing_tests=15, pass_rate=0.85)  # Critical
+    test = TestMetrics(
+        total_tests=100, passing_tests=85, failing_tests=15, pass_rate=0.85
+    )  # Critical
     dep = DependencyMetrics(
         total_dependencies=50,
         outdated_dependencies=1,

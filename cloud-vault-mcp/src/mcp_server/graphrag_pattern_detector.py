@@ -145,7 +145,9 @@ class PatternDetector:
                 )
                 patterns.append(pattern)
 
-            logger.info(f"Detected {len(patterns)} patterns with ≥{min_usage} references")
+            logger.info(
+                f"Detected {len(patterns)} patterns with ≥{min_usage} references"
+            )
             return patterns
 
         except Exception as e:
@@ -314,7 +316,9 @@ class PatternDetector:
             max_usage = data.get("max_usage", 0)
 
             # Get high-impact count (≥5 references)
-            high_impact_patterns = await self.detect_patterns(min_usage=5, max_results=100)
+            high_impact_patterns = await self.detect_patterns(
+                min_usage=5, max_results=100
+            )
 
             # Get unused patterns
             unused_query = """

@@ -62,7 +62,9 @@ class AgentReasoningQueries:
                         "chain_length": len(reasoning.get("reasoning_chain", [])),
                         "reasoning_chain": reasoning.get("reasoning_chain", []),
                         "assumptions": reasoning.get("assumptions", []),
-                        "alternatives_rejected": reasoning.get("alternatives_rejected", []),
+                        "alternatives_rejected": reasoning.get(
+                            "alternatives_rejected", []
+                        ),
                         "created_at": reasoning.get("created_at"),
                     }
                 )
@@ -340,8 +342,12 @@ class AgentReasoningQueries:
                 "total_count": len(reasoning_list),
                 "confidence_threshold": confidence_threshold,
                 "avg_confidence": round(avg_confidence, 3),
-                "min_confidence": round(min(confidence_scores), 3) if confidence_scores else 0.0,
-                "max_confidence": round(max(confidence_scores), 3) if confidence_scores else 0.0,
+                "min_confidence": round(min(confidence_scores), 3)
+                if confidence_scores
+                else 0.0,
+                "max_confidence": round(max(confidence_scores), 3)
+                if confidence_scores
+                else 0.0,
                 "reasoning_types": reasoning_types,
             }
 

@@ -205,7 +205,9 @@ class GraphRAGQuery:
 
 # LRU-cached query function for frequent searches
 @lru_cache(maxsize=100)
-def _cache_key(query: str, top_k: int, include_ancestry: bool, include_descendants: bool) -> str:
+def _cache_key(
+    query: str, top_k: int, include_ancestry: bool, include_descendants: bool
+) -> str:
     """Generate cache key for query"""
     return f"{query}::{top_k}::{include_ancestry}::{include_descendants}"
 

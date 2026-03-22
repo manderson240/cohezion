@@ -1,21 +1,8 @@
 #!/usr/bin/env python3
 """
-COHEZION OVERNIGHT AUTONOMOUS RESEARCH SPRINT
+COHEZION OVERNIGHT AUTONOMOUS RESEARCH SPRINT (Verified TDD Edition)
 ==============================================
-Duration: 8 REAL hours (00:09 - 08:09 EST)
-
-Mission: Maximize Coherence/Cohezion through:
-- TensorBeam 12-parameter evolution
-- SLM swarm adversarial research
-- Infinite gateway progression
-- Continuous retrospectives
-- Novel step generation when complete
-
-Inspired by:
-- Wilbert B Smith (TensorBeam, geomag, Project Magnet)
-- Alan Turing (foundational research database)
-- Ratchet (G1 Transformers - vigilant health monitoring)
-- Old school operators (intelligent task routing)
+Grounded in EnhancedSimulator (FLUME + R-Zero).
 """
 
 import asyncio
@@ -59,6 +46,7 @@ class OvernightResearchMission:
     8-hour autonomous research sprint.
     """
 
+class OvernightMission:
     def __init__(self):
         self.start_time = datetime.now()
         self.end_time = self.start_time + timedelta(hours=8)
@@ -463,15 +451,37 @@ METRICS:
 🎯 Mission accomplished!
 {"=" * 80}
         """
+        response = await self.client.generate(prompt, task_type="analysis")
+        
+        # 3. Log to Trackio
+        trackio.log({
+            "iteration": iteration, 
+            "stability": stability,
+            "difficulty": stats.get("current_difficulty", 1.0)
+        })
+        
+        # 4. Append Learning (Manifestation)
+        with open(PROJECT_ROOT / "src/cohezion/knowledge_graph/KEY_LEARNINGS.md", "a") as f:
+            f.write(f"\n### Overnight Learning (Iteration {iteration})\n{response}\n")
+            
+        logger.info(f"✅ Cycle {iteration} Complete.")
 
-        print(report)
-
-        with open("/home/mike-anderson/dev/cohezion/logs/overnight_report.txt", "w") as f:
-            f.write(report)
+    async def main_loop(self):
+        trackio.init(project="cohezion-core")
+        iteration = 1
+        while datetime.now() < self.end_time:
+            try:
+                await self.run_cycle(iteration)
+                iteration += 1
+            except Exception as e:
+                logger.error(f"Cycle failed: {e}", exc_info=True)
+            
+            # Breathe between cycles
+            await asyncio.sleep(600) # 10 min break
+            
+        trackio.finish()
 
 
 if __name__ == "__main__":
-    import numpy as np
-
-    mission = OvernightResearchMission()
-    asyncio.run(mission.run())
+    mission = OvernightMission()
+    asyncio.run(mission.main_loop())

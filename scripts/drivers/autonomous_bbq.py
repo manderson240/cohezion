@@ -83,7 +83,9 @@ class BBQDriver:
                 if vram > 96.0:
                     # Critical Danger Zone - Deep Sleep
                     if self.current_round % 10 == 0:
-                        logger.warning(f"🛑 VRAM CRITICAL ({vram}%). Entering COMA MODE (30s sleep)...")
+                        logger.warning(
+                            f"🛑 VRAM CRITICAL ({vram}%). Entering COMA MODE (30s sleep)..."
+                        )
                     await asyncio.sleep(30)
                     continue
                 elif vram > 92.0:

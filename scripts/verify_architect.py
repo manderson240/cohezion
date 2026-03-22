@@ -39,9 +39,13 @@ async def main():
 
     # Simple validation: Check if tasks were found
     if tasks and len(tasks) >= 3:
-        print(f"\n✅ PASS: Architect successfully decomposed complex request into {len(tasks)} tasks.")
+        print(
+            f"\n✅ PASS: Architect successfully decomposed complex request into {len(tasks)} tasks."
+        )
     else:
-        print(f"\n❌ FAIL: Architect failed to produce a valid task breakdown (Found: {len(tasks)}).")
+        print(
+            f"\n❌ FAIL: Architect failed to produce a valid task breakdown (Found: {len(tasks)})."
+        )
 
     await architect.close()
 

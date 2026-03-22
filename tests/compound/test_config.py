@@ -1,6 +1,5 @@
 """Tests for compound execution configuration."""
 
-import pytest
 
 from cohezion.compound.config import CompoundConfig
 

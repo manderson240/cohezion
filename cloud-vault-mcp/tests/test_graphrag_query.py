@@ -1,11 +1,17 @@
 """Tests for GraphRAG hybrid query"""
 
+import os
+
 import pytest
 
 from mcp_server.graphrag_query import GraphRAGQuery, _cache_key
 
+_IN_CI = os.environ.get("CI") == "true"
+_SKIP_REASON = "Requires Ollama/SurrealDB — unavailable in CI"
+
 
 @pytest.mark.asyncio
+@pytest.mark.skipif(_IN_CI, reason=_SKIP_REASON)
 async def test_semantic_search():
     """Test semantic vector search"""
     async with GraphRAGQuery() as query:
@@ -18,6 +24,7 @@ async def test_semantic_search():
 
 
 @pytest.mark.asyncio
+@pytest.mark.skipif(_IN_CI, reason=_SKIP_REASON)
 async def test_hybrid_search():
     """Test hybrid semantic + graph search"""
     async with GraphRAGQuery() as query:
@@ -33,6 +40,7 @@ async def test_hybrid_search():
 
 
 @pytest.mark.asyncio
+@pytest.mark.skipif(_IN_CI, reason=_SKIP_REASON)
 async def test_find_related():
     """Test finding related documents via graph"""
     async with GraphRAGQuery() as query:
@@ -54,6 +62,7 @@ def test_cache_key():
 
 
 @pytest.mark.asyncio
+@pytest.mark.skipif(_IN_CI, reason=_SKIP_REASON)
 async def test_embedding_generation():
     """Test query embedding generation"""
     async with GraphRAGQuery() as query:
@@ -63,6 +72,7 @@ async def test_embedding_generation():
 
 
 @pytest.mark.asyncio
+@pytest.mark.skipif(_IN_CI, reason=_SKIP_REASON)
 async def test_min_score_filter():
     """Test minimum score filtering"""
     async with GraphRAGQuery() as query:

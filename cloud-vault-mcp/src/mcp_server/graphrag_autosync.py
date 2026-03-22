@@ -109,7 +109,9 @@ class GraphRAGAutoSync:
 _auto_sync: GraphRAGAutoSync | None = None
 
 
-async def start_autosync(vault_path: Path, watcher: VaultFileWatcher, enable_edges: bool = True):
+async def start_autosync(
+    vault_path: Path, watcher: VaultFileWatcher, enable_edges: bool = True
+):
     """Start global auto-sync instance"""
     global _auto_sync
 

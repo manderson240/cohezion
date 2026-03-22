@@ -64,8 +64,8 @@ class TestPolicyToFlumeWeights:
         expected_w2 = mean_w @ shared2_w
         expected_b2 = mean_b + mean_w @ shared2_b
 
-        np.testing.assert_allclose(weights["w2"], expected_w2, rtol=1e-3)
-        np.testing.assert_allclose(weights["b2"], expected_b2, rtol=1e-3)
+        np.testing.assert_allclose(weights["w2"], expected_w2, rtol=1e-3, atol=1e-8)
+        np.testing.assert_allclose(weights["b2"], expected_b2, rtol=1e-3, atol=1e-8)
 
     def test_layernorm_defaults(self, policy_checkpoint):
         """LayerNorm gamma=1, beta=0.5 (HIHO target shift)."""

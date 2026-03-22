@@ -30,7 +30,9 @@ class RankingStrategy(Enum):
 
     COST_OPTIMIZED = "cost_optimized"  # Prioritize cost (cost×0.5)
     QUALITY_FIRST = "quality_first"  # Prioritize quality (coherence×0.6)
-    BALANCED = "balanced"  # Balanced weighting (coherence×0.4 + cost×0.3 + latency×0.2 + freshness×0.1)
+    BALANCED = (
+        "balanced"  # Balanced weighting (coherence×0.4 + cost×0.3 + latency×0.2 + freshness×0.1)
+    )
 
 
 @dataclass

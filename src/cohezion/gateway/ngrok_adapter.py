@@ -51,6 +51,7 @@ from cohezion.deployment.feature_flags import (
 )
 
 
+
 logger = logging.getLogger(__name__)
 
 
@@ -304,7 +305,9 @@ class NgrokAIGateway:
 
             except Exception as e:
                 if attempt == self.max_retries - 1:
-                    raise RuntimeError(f"ngrok request failed after {self.max_retries} retries: {e}") from e
+                    raise RuntimeError(
+                        f"ngrok request failed after {self.max_retries} retries: {e}"
+                    ) from e
 
                 wait_time = 0.5 * (2**attempt)
                 logger.warning(

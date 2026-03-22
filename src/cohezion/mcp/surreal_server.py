@@ -274,7 +274,9 @@ class SurrealMCP:
         from pathlib import Path
 
         if markdown_path is None:
-            markdown_path = "/home/mike-anderson/dev/cohezion/src/cohezion/knowledge_graph/KEY_LEARNINGS.md"
+            markdown_path = (
+                "/home/mike-anderson/dev/cohezion/src/cohezion/knowledge_graph/KEY_LEARNINGS.md"
+            )
 
         path = Path(markdown_path)
         if not path.exists():

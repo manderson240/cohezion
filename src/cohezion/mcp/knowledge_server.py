@@ -7,8 +7,10 @@ Provides tools:
 - list_skills: List available skills
 """
 
+import asyncio
 import json
 import logging
+import os
 from pathlib import Path
 from typing import Any
 
@@ -19,6 +21,8 @@ logger = logging.getLogger(__name__)
 LIBRARY_PATH = Path(__file__).parent.parent / "library"
 SKILLS_PATH = Path(__file__).parent.parent / "skills"
 KNOWLEDGE_GRAPH_PATH = Path(__file__).parent.parent / "knowledge_graph"
+
+MCP_PORT = int(os.getenv("MCP_PORT", "8371"))
 
 
 class KnowledgeMCP:
@@ -105,12 +109,14 @@ class KnowledgeMCP:
         Returns:
             Skill content and metadata
         """
-        skill_path = SKILLS_PATH / f"{skill_name}.md"
+        from cohezion.mcp.servers.safe_input import sanitize_path
+
+        skill_path = sanitize_path(f"{skill_name}.md", base_dir=SKILLS_PATH)
         if not skill_path.exists():
             # Try fuzzy match
             for name in self._skills_cache:
                 if skill_name.lower() in name.lower():
-                    skill_path = SKILLS_PATH / f"{name}.md"
+                    skill_path = sanitize_path(f"{name}.md", base_dir=SKILLS_PATH)
                     break
 
         if not skill_path.exists():
@@ -146,8 +152,6 @@ class KnowledgeMCP:
         entity_file = entities_path / f"{entity['id']}.json"
         entity_file.write_text(json.dumps(entity, indent=2))
 
-        # Trigger hooks
-
     def get_context_chunk(self, path: str, query: str | None = None) -> dict[str, Any]:
         """
         Get a specific chunk of context for a prompt.
@@ -176,34 +180,6 @@ class KnowledgeMCP:
         }
 
 
-# MCP tool definitions
-TOOLS = [
-    {
-        "name": "search_knowledge",
-        "description": "Search for relevant knowledge in skills and library",
-        "parameters": {
-            "query": {"type": "string", "required": True},
-            "limit": {"type": "integer", "default": 5},
-        },
-    },
-    {
-        "name": "get_skill",
-        "description": "Get full content of a specific skill",
-        "parameters": {
-            "skill_name": {"type": "string", "required": True},
-        },
-    },
-    {
-        "name": "get_context_chunk",
-        "description": "Retrieve a specific, high-fidelity context chunk for a code file or doc",
-        "parameters": {
-            "path": {"type": "string", "required": True},
-            "query": {"type": "string", "required": False},
-        },
-    },
-]
-
-
 # Singleton
 _server: KnowledgeMCP | None = None
 
@@ -213,3 +189,67 @@ def get_server() -> KnowledgeMCP:
     if _server is None:
         _server = KnowledgeMCP()
     return _server
+
+
+routes = web.RouteTableDef()
+
+
+@routes.get("/health")
+async def health(request: web.Request) -> web.Response:
+    return web.json_response({"status": "healthy", "server": "knowledge"})
+
+
+@routes.post("/tools/search_knowledge")
+async def tool_search_knowledge(request: web.Request) -> web.Response:
+    data = await request.json()
+    query = data.get("query", "")
+    limit = data.get("limit", 5)
+    server = get_server()
+    return web.json_response(server.search_knowledge(query, limit))
+
+
+@routes.post("/tools/get_skill")
+async def tool_get_skill(request: web.Request) -> web.Response:
+    data = await request.json()
+    skill_name = data.get("skill_name", "")
+    server = get_server()
+    return web.json_response(server.get_skill(skill_name))
+
+
+@routes.post("/tools/list_skills")
+async def tool_list_skills(request: web.Request) -> web.Response:
+    server = get_server()
+    return web.json_response(server.list_skills())
+
+
+@routes.post("/tools/get_context_chunk")
+async def tool_get_context_chunk(request: web.Request) -> web.Response:
+    data = await request.json()
+    path = data.get("path", "")
+    query = data.get("query")
+    server = get_server()
+    return web.json_response(server.get_context_chunk(path, query))
+
+
+def create_app() -> web.Application:
+    app = web.Application()
+    app.add_routes(routes)
+    return app
+
+
+app = create_app()
+
+
+async def main():
+    get_server()
+    runner = web.AppRunner(app)
+    await runner.setup()
+    site = web.TCPSite(runner, "0.0.0.0", MCP_PORT)
+    await site.start()
+    logger.info(f"Knowledge MCP Server running on port {MCP_PORT}")
+    while True:
+        await asyncio.sleep(3600)
+
+
+if __name__ == "__main__":
+    asyncio.run(main())

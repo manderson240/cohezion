@@ -211,7 +211,9 @@ class TestRecordChallenge:
 
     def test_record_challenge_lesson_not_found(self, mock_db, reasoning_ops):
         """Test challenge when lesson doesn't exist."""
-        mock_db.set_response("SELECT id FROM agent_decision", [{"id": "agent_decision:test"}])
+        mock_db.set_response(
+            "SELECT id FROM agent_decision", [{"id": "agent_decision:test"}]
+        )
         mock_db.set_response("SELECT id FROM lesson", [])
 
         result = reasoning_ops.record_challenge(
@@ -456,7 +458,9 @@ class TestQueryGeneration:
         )
 
         # Verify RELATE query was executed
-        relate_queries = [q for q in mock_db.queries if "RELATE" in q and "challenges_lesson" in q]
+        relate_queries = [
+            q for q in mock_db.queries if "RELATE" in q and "challenges_lesson" in q
+        ]
         assert len(relate_queries) > 0
 
         relate_query = relate_queries[0]
@@ -478,7 +482,9 @@ class TestQueryGeneration:
         )
 
         # Verify RELATE query was executed
-        relate_queries = [q for q in mock_db.queries if "RELATE" in q and "relates_to_decision" in q]
+        relate_queries = [
+            q for q in mock_db.queries if "RELATE" in q and "relates_to_decision" in q
+        ]
         assert len(relate_queries) > 0
 
         relate_query = relate_queries[0]

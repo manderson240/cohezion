@@ -35,7 +35,9 @@ class MissionFinalizer:
 
         # 1. Fetch Data
         pulses = await self.db.query("SELECT * FROM mission_pulse ORDER BY timestamp ASC")
-        reports = await self.db.query("SELECT * FROM interpretability_reports ORDER BY timestamp ASC")
+        reports = await self.db.query(
+            "SELECT * FROM interpretability_reports ORDER BY timestamp ASC"
+        )
 
         # 2. Generate Summary
         summary = self._generate_summary(pulses, reports)

@@ -114,7 +114,9 @@ class TestAsyncPaperSync:
             # Mock the sync links
             with patch.object(sync_instance, "_sync_paper_links") as mock_links:
                 client = MagicMock()
-                success, paper_id = await sync_instance._sync_paper_async(paper_path, client)
+                success, paper_id = await sync_instance._sync_paper_async(
+                    paper_path, client
+                )
 
                 assert success is True
                 assert paper_id == "papers_paper-00"
@@ -160,7 +162,9 @@ class TestAsyncConceptSync:
             mock_query.return_value = []
 
             client = MagicMock()
-            success, concept_id = await sync_instance._sync_concept_async(concept_path, client)
+            success, concept_id = await sync_instance._sync_concept_async(
+                concept_path, client
+            )
 
             assert success is True
             assert concept_id == "concept-0"

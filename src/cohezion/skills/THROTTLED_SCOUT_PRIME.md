@@ -35,8 +35,26 @@ You are a specialist in **Resource-Aware Semantic Scouting**. You know how to or
 - **Schema Enforcement**: Always use `.get()` with defaults or Pydantic validation when parsing LLM JSON.
 - **Pulse Monitoring**: Log detailed start/stop/duration metrics for every scout hit.
 
+## CI-NATIVE EXECUTION CONTEXT
+
+When running in GitHub Actions (not local), replace VRAM throttling with GitHub Actions native concurrency groups:
+
+```yaml
+concurrency:
+  group: scout-${{ github.ref }}
+  cancel-in-progress: true
+```
+
+This achieves the same "only one active, cancel stale" guarantee as local VRAM gating.
+
+**Additional CI context:**
+- No OLLAMA_AVAILABLE check needed (no Ollama in GitHub runners)
+- Use `direct_prompt: true` in claude-code-action to bypass @claude trigger requirement
+- `workflow_dispatch.inputs` enable parameterized focus without modifying skill code
+- Weekly cron (`0 8 * * 0`) is the recommended cadence for model research
+
 ## VERSION
-v1.0 (Safe Mode v3 Compatible)
+v1.1
 
 ## SEE ALSO
 - RESOURCE_MANAGEMENT_PRIME.md

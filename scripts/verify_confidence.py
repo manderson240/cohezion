@@ -36,7 +36,9 @@ async def main():
 
     # Validation logic
     if resp_high.confidence > resp_low.confidence:
-        print(f"\n✅ PASS: Calibration delta detected (Delta: {resp_high.confidence - resp_low.confidence:.2f})")
+        print(
+            f"\n✅ PASS: Calibration delta detected (Delta: {resp_high.confidence - resp_low.confidence:.2f})"
+        )
     else:
         print("\n❌ FAIL: No significant calibration delta detected.")
 

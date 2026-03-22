@@ -1,21 +1,18 @@
-"""
-Research MCP Server - Specialized for arXiv, Hugging Face, and GitHub mining.
-
-Provides tools:
-- search_arxiv: Fetch research papers from arXiv
-- get_hf_trending: Fetch trending papers/models from Hugging Face
-- list_research_channels: List available research sources
-"""
-
+import asyncio
 import logging
+import os
 import random
 import time
 from typing import Any
 
 import requests
+from aiohttp import web
+
 
 
 logger = logging.getLogger(__name__)
+
+MCP_PORT = int(os.getenv("MCP_PORT", "8373"))
 
 
 class ResearchMinerServer:
@@ -92,30 +89,6 @@ class ResearchMinerServer:
         return list(self.sources.keys())
 
 
-# MCP tool definitions
-TOOLS = [
-    {
-        "name": "search_arxiv",
-        "description": "Search arXiv for technical research papers",
-        "parameters": {
-            "query": {"type": "string", "required": True},
-            "limit": {"type": "integer", "default": 5},
-        },
-    },
-    {
-        "name": "get_hf_trending",
-        "description": "Fetch daily trending papers from Hugging Face",
-        "parameters": {
-            "limit": {"type": "integer", "default": 5},
-        },
-    },
-    {
-        "name": "list_research_channels",
-        "description": "List available research sources and channels",
-        "parameters": {},
-    },
-]
-
 # Singleton
 _server: ResearchMinerServer | None = None
 
@@ -125,3 +98,58 @@ def get_server() -> ResearchMinerServer:
     if _server is None:
         _server = ResearchMinerServer()
     return _server
+
+
+routes = web.RouteTableDef()
+
+
+@routes.get("/health")
+async def health(request: web.Request) -> web.Response:
+    return web.json_response({"status": "healthy", "server": "research"})
+
+
+@routes.post("/tools/search_arxiv")
+async def tool_search_arxiv(request: web.Request) -> web.Response:
+    data = await request.json()
+    query = data.get("query", "")
+    limit = data.get("limit", 5)
+    server = get_server()
+    return web.json_response(server.search_arxiv(query, limit))
+
+
+@routes.post("/tools/get_hf_trending")
+async def tool_get_hf_trending(request: web.Request) -> web.Response:
+    data = await request.json()
+    limit = data.get("limit", 5)
+    server = get_server()
+    return web.json_response(server.get_hf_trending(limit))
+
+
+@routes.post("/tools/list_research_channels")
+async def tool_list_research_channels(request: web.Request) -> web.Response:
+    server = get_server()
+    return web.json_response(server.list_research_channels())
+
+
+def create_app() -> web.Application:
+    app = web.Application()
+    app.add_routes(routes)
+    return app
+
+
+app = create_app()
+
+
+async def main():
+    get_server()
+    runner = web.AppRunner(app)
+    await runner.setup()
+    site = web.TCPSite(runner, "0.0.0.0", MCP_PORT)
+    await site.start()
+    logger.info(f"Research MCP Server running on port {MCP_PORT}")
+    while True:
+        await asyncio.sleep(3600)
+
+
+if __name__ == "__main__":
+    asyncio.run(main())

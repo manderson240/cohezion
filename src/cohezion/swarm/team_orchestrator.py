@@ -10,6 +10,11 @@ from __future__ import annotations
 import logging
 import re
 from dataclasses import dataclass, field
+from typing import TYPE_CHECKING
+
+
+if TYPE_CHECKING:
+    from cohezion.graph.types import WorkflowSpec
 
 
 logger = logging.getLogger(__name__)
@@ -405,6 +410,20 @@ class TeamOrchestrator:
         team_executor = TeamCompoundExecutor(auto_feedback=auto_feedback)
         orchestrator = ExecutionOrchestrator(compound_executor=team_executor)
         return await orchestrator.execute(plan)
+
+    def plan_workflow(
+        self,
+        intent: str,
+        max_agents: int = 4,
+    ) -> WorkflowSpec:
+        """Plan a team and convert to a WorkflowSpec for graph execution.
+
+        Returns a ``WorkflowSpec`` ready for ``WorkflowEngine.execute()``.
+        """
+        from cohezion.graph.builder import WorkflowBuilder
+
+        plan = self.plan_team(intent, max_agents=max_agents)
+        return WorkflowBuilder().from_team_plan(plan)
 
     @staticmethod
     def _slugify(text: str) -> str:

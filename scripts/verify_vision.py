@@ -22,7 +22,9 @@ async def main():
 
     print("\n--- Testing VisionAgent Analysis ---")
     if Path(image_path).exists():
-        description = await vision.process(image_path, "Describe the visual structure of this diagram.")
+        description = await vision.process(
+            image_path, "Describe the visual structure of this diagram."
+        )
         print(f"Vision Analysis Result:\n{description[:500]}...")
     else:
         print(f"Error: {image_path} not found. Skipping vision test.")

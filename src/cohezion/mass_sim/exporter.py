@@ -18,6 +18,7 @@ if TYPE_CHECKING:
     from cohezion.mass_sim.config import UniverseResult
 
 
+
 logger = logging.getLogger(__name__)
 
 

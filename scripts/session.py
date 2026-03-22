@@ -132,7 +132,9 @@ def main():
 
     # Start
     start_parser = subparsers.add_parser("start", help="Start a new session")
-    start_parser.add_argument("--phase", required=True, help="Short name for the phase (e.g., bugfix)")
+    start_parser.add_argument(
+        "--phase", required=True, help="Short name for the phase (e.g., bugfix)"
+    )
 
     # Status
     subparsers.add_parser("status", help="List active sessions")
@@ -140,7 +142,9 @@ def main():
     # Clean
     clean_parser = subparsers.add_parser("clean", help="Clean up a session")
     clean_parser.add_argument("--session", type=int, required=True, help="Session ID to clean")
-    clean_parser.add_argument("--force", action="store_true", help="Force removal despite unpushed work")
+    clean_parser.add_argument(
+        "--force", action="store_true", help="Force removal despite unpushed work"
+    )
 
     args = parser.parse_args()
 

@@ -29,7 +29,14 @@ from cohezion.swarm.gateway_detector import get_gateway_detector
 from cohezion.swarm.self_improvement_orchestrator import get_orchestrator
 
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s - [ASCENSION] - %(levelname)s - %(message)s")
+from cohezion.mcp.email_notifier import EmailNotifier
+from cohezion.swarm.gateway_detector import get_gateway_detector
+from cohezion.swarm.self_improvement_orchestrator import get_orchestrator
+
+
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - [ASCENSION] - %(levelname)s - %(message)s"
+)
 logger = logging.getLogger("ASCENSION_ENGINE")
 
 

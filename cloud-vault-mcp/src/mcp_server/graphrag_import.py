@@ -66,7 +66,9 @@ class GraphRAGImporter:
     async def generate_embedding(self, text: str) -> list[float]:
         """Generate embedding via Ollama"""
         if not self.http_client:
-            raise GraphRAGError("HTTP client not initialized (use async context manager)")
+            raise GraphRAGError(
+                "HTTP client not initialized (use async context manager)"
+            )
 
         try:
             # Truncate to reasonable length (2K chars ~500 tokens)
@@ -122,7 +124,9 @@ class GraphRAGImporter:
             doc_id = f"vault_memory:{slugify(file_path.stem)}"
 
             # Build UPSERT query (DELETE + CREATE for true upsert)
-            embedding_json = f"[{','.join(map(str, embedding))}]" if embedding else "NONE"
+            embedding_json = (
+                f"[{','.join(map(str, embedding))}]" if embedding else "NONE"
+            )
 
             query = f"""
             DELETE {doc_id};

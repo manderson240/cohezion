@@ -48,7 +48,9 @@ class AdversarialTests(unittest.TestCase):
         n_nodes = len(forest.values)
 
         kb_obj = KernelBuilder()
-        kb_instrs = kb_obj.build_kernel(height, n_nodes, len(inp.indices), rounds, HASH_STAGES)
+        kb_instrs = kb_obj.build_kernel(
+            height, n_nodes, len(inp.indices), rounds, HASH_STAGES
+        )
 
         mem = build_mem_image(forest, inp)
         machine = Machine(mem, kb_instrs, {})

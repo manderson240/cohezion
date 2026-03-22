@@ -157,7 +157,9 @@ class QueryComplexityAnalyzer:
         ):
             complexity = QueryComplexity.SIMPLE
         # COMPLEX: has multiple complex keywords, code, or is long with logic
-        elif (complex_matches >= 2) or (has_code and has_logic) or (is_long and has_data_processing):
+        elif (
+            (complex_matches >= 2) or (has_code and has_logic) or (is_long and has_data_processing)
+        ):
             complexity = QueryComplexity.COMPLEX
         # MEDIUM: everything else
         else:
@@ -206,9 +208,15 @@ class QueryComplexityAnalyzer:
             }
 
         total = len(self.history)
-        simple_count = sum(1 for h in self.history if h["complexity"] == QueryComplexity.SIMPLE.value)
-        medium_count = sum(1 for h in self.history if h["complexity"] == QueryComplexity.MEDIUM.value)
-        complex_count = sum(1 for h in self.history if h["complexity"] == QueryComplexity.COMPLEX.value)
+        simple_count = sum(
+            1 for h in self.history if h["complexity"] == QueryComplexity.SIMPLE.value
+        )
+        medium_count = sum(
+            1 for h in self.history if h["complexity"] == QueryComplexity.MEDIUM.value
+        )
+        complex_count = sum(
+            1 for h in self.history if h["complexity"] == QueryComplexity.COMPLEX.value
+        )
 
         return {
             "total_queries": total,
@@ -477,7 +485,9 @@ class CostAwareRouter:
 
             # If aggressive cost reduction, be more lenient with phi3 for medium queries
             if self.aggressive_cost_reduction:
-                latency_diff = self.MODEL_LATENCY.get("phi3:mini", 50.0) - self.MODEL_LATENCY.get(primary_model, 100.0)
+                latency_diff = self.MODEL_LATENCY.get("phi3:mini", 50.0) - self.MODEL_LATENCY.get(
+                    primary_model, 100.0
+                )
                 # Allow phi3 even if latency is slightly higher (up to 200ms for 50% cost savings)
                 if latency_diff <= 200.0:
                     self.token_optimization_swaps += 1
@@ -487,7 +497,9 @@ class CostAwareRouter:
         if complexity == QueryComplexity.SIMPLE:
             # Always prefer phi3 for simple queries unless latency is critical
             if primary_model != "phi3:mini":
-                latency_diff = self.MODEL_LATENCY.get("phi3:mini", 50.0) - self.MODEL_LATENCY.get(primary_model, 50.0)
+                latency_diff = self.MODEL_LATENCY.get("phi3:mini", 50.0) - self.MODEL_LATENCY.get(
+                    primary_model, 50.0
+                )
                 if latency_diff <= 150.0:  # phi3 is still acceptable for simple queries
                     self.token_optimization_swaps += 1
                     return "phi3:mini"
@@ -541,7 +553,11 @@ class CostAwareRouter:
                 return False
         else:
             # For API models, check cost ratio
-            cost_ratio = candidate_cost_per_token / primary_cost_per_token if primary_cost_per_token > 0 else 1.0
+            cost_ratio = (
+                candidate_cost_per_token / primary_cost_per_token
+                if primary_cost_per_token > 0
+                else 1.0
+            )
             threshold = self.cost_threshold if not aggressive else (self.cost_threshold + 0.15)
             if cost_ratio > (1.0 - threshold):
                 return False

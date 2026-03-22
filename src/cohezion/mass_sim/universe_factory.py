@@ -17,14 +17,17 @@ logger = logging.getLogger(__name__)
 
 
 def _import_flume_physics():
-    """Import FlumePhysics from Rust extension with graceful fallback."""
+    """Import FlumePhysics from Rust extension, fall back to pure-Python."""
     try:
         from cohezion_core.cohezion_core_rs import FlumePhysics
 
+        logger.info("Using Rust FlumePhysics (fast path)")
         return FlumePhysics
     except ImportError:
-        logger.warning("cohezion_core_rs not available, using mock FlumePhysics")
-        return None
+        from cohezion.mass_sim.flume_physics_py import FlumePhysicsPy
+
+        logger.info("cohezion_core_rs unavailable, using pure-Python FlumePhysics")
+        return FlumePhysicsPy
 
 
 class UniverseFactory:
@@ -34,7 +37,7 @@ class UniverseFactory:
     def create(
         spec: UniverseSpec,
         delta_scale: float = 0.01,
-        hiho_damping: float = 0.01,
+        hiho_damping: float = 0.05,
         weights: dict[str, np.ndarray] | None = None,
     ):
         """Create a FlumePhysics instance.
@@ -52,8 +55,6 @@ class UniverseFactory:
             If None, uses Xavier initialization from seed.
         """
         FlumePhysics = _import_flume_physics()
-        if FlumePhysics is None:
-            raise RuntimeError("Rust FlumePhysics extension not compiled")
 
         if weights is not None:
             w1 = weights["w1"].astype(np.float32)

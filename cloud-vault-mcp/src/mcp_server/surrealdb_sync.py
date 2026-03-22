@@ -88,7 +88,9 @@ class SurrealDBSync:
         response.raise_for_status()
         return response.json()
 
-    async def _execute_query_async(self, query: str, client: httpx.AsyncClient) -> list[dict[str, Any]]:
+    async def _execute_query_async(
+        self, query: str, client: httpx.AsyncClient
+    ) -> list[dict[str, Any]]:
         """Execute SurrealDB SQL query (async).
 
         Args:
@@ -177,7 +179,9 @@ class SurrealDBSync:
                         date_iso = date_str.isoformat()
                     else:
                         # Try parsing common formats
-                        dt = datetime.fromisoformat(str(date_str).replace("Z", "+00:00"))
+                        dt = datetime.fromisoformat(
+                            str(date_str).replace("Z", "+00:00")
+                        )
                         date_iso = dt.isoformat()
                 except (ValueError, AttributeError):
                     logger.warning(f"Could not parse date: {date_str}")
@@ -260,9 +264,13 @@ class SurrealDBSync:
             try:
                 self._execute_query(link_query)
             except Exception as e:
-                logger.warning(f"Failed to create link {paper_id} -> {concept_name}: {e}")
+                logger.warning(
+                    f"Failed to create link {paper_id} -> {concept_name}: {e}"
+                )
 
-    async def _sync_paper_async(self, paper_path: Path, client: httpx.AsyncClient) -> tuple[bool, str]:
+    async def _sync_paper_async(
+        self, paper_path: Path, client: httpx.AsyncClient
+    ) -> tuple[bool, str]:
         """Sync a single paper file to SurrealDB (async).
 
         Args:
@@ -292,7 +300,9 @@ class SurrealDBSync:
                     if isinstance(date_str, datetime):
                         date_iso = date_str.isoformat()
                     else:
-                        dt = datetime.fromisoformat(str(date_str).replace("Z", "+00:00"))
+                        dt = datetime.fromisoformat(
+                            str(date_str).replace("Z", "+00:00")
+                        )
                         date_iso = dt.isoformat()
                 except (ValueError, AttributeError):
                     logger.warning(f"Could not parse date: {date_str}")
@@ -371,7 +381,9 @@ class SurrealDBSync:
             except Exception as e:
                 logger.error(f"Failed to import {paper_path.name}: {e}")
 
-        logger.info(f"Sequential bulk import complete: {count}/{len(paper_files)} papers")
+        logger.info(
+            f"Sequential bulk import complete: {count}/{len(paper_files)} papers"
+        )
         return count
 
     async def _bulk_import_papers_parallel(self) -> int:
@@ -393,7 +405,9 @@ class SurrealDBSync:
         )
 
         # Create async client with connection pooling
-        async with httpx.AsyncClient(timeout=30.0, limits=httpx.Limits(max_connections=self.max_concurrent)) as client:
+        async with httpx.AsyncClient(
+            timeout=30.0, limits=httpx.Limits(max_connections=self.max_concurrent)
+        ) as client:
             semaphore = asyncio.Semaphore(self.max_concurrent)
 
             async def sync_with_limit(paper_path: Path) -> tuple[bool, str]:
@@ -459,7 +473,9 @@ class SurrealDBSync:
         except Exception as e:
             logger.error(f"Failed to sync concept {concept_path}: {e}")
 
-    async def _sync_concept_async(self, concept_path: Path, client: httpx.AsyncClient) -> tuple[bool, str]:
+    async def _sync_concept_async(
+        self, concept_path: Path, client: httpx.AsyncClient
+    ) -> tuple[bool, str]:
         """Sync a single concept file to SurrealDB (async).
 
         Args:
@@ -533,7 +549,9 @@ class SurrealDBSync:
             return 0
 
         concept_files = list(concepts_dir.glob("*.md"))
-        logger.info(f"Starting sequential bulk import of {len(concept_files)} concepts...")
+        logger.info(
+            f"Starting sequential bulk import of {len(concept_files)} concepts..."
+        )
 
         count = 0
         for concept_path in concept_files:
@@ -543,7 +561,9 @@ class SurrealDBSync:
             except Exception as e:
                 logger.error(f"Failed to import {concept_path.name}: {e}")
 
-        logger.info(f"Sequential bulk import complete: {count}/{len(concept_files)} concepts")
+        logger.info(
+            f"Sequential bulk import complete: {count}/{len(concept_files)} concepts"
+        )
         return count
 
     async def _bulk_import_concepts_parallel(self) -> int:
@@ -565,7 +585,9 @@ class SurrealDBSync:
         )
 
         # Create async client with connection pooling
-        async with httpx.AsyncClient(timeout=30.0, limits=httpx.Limits(max_connections=self.max_concurrent)) as client:
+        async with httpx.AsyncClient(
+            timeout=30.0, limits=httpx.Limits(max_connections=self.max_concurrent)
+        ) as client:
             semaphore = asyncio.Semaphore(self.max_concurrent)
 
             async def sync_with_limit(concept_path: Path) -> tuple[bool, str]:
@@ -586,7 +608,9 @@ class SurrealDBSync:
                 elif isinstance(result, tuple) and result[0]:
                     count += 1
 
-        logger.info(f"Parallel bulk import complete: {count}/{len(concept_files)} concepts")
+        logger.info(
+            f"Parallel bulk import complete: {count}/{len(concept_files)} concepts"
+        )
         return count
 
     def start_watching(self) -> None:

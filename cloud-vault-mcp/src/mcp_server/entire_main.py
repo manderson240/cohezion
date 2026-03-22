@@ -40,8 +40,12 @@ def cli():
 @click.option("--vault-path", default=VAULT_PATH, help="Path to vault")
 @click.option("--git-path", default=GIT_PATH, help="Path to git repository")
 @click.option("--surrealdb-url", default=SURREALDB_URL, help="SurrealDB HTTP endpoint")
-@click.option("--since", default=None, help="ISO date to start syncing from (e.g. 2026-01-01)")
-def start(poll_interval: int, vault_path: str, git_path: str, surrealdb_url: str, since: str) -> None:
+@click.option(
+    "--since", default=None, help="ISO date to start syncing from (e.g. 2026-01-01)"
+)
+def start(
+    poll_interval: int, vault_path: str, git_path: str, surrealdb_url: str, since: str
+) -> None:
     """Start the entire.io sync daemon."""
     logger.info(f"Starting daemon with vault: {vault_path}")
     logger.info(f"Git repository: {git_path}")
@@ -128,7 +132,9 @@ def retry(commit_hash: str, vault_path: str) -> None:
 @click.option("--vault-path", default=VAULT_PATH, help="Path to vault")
 @click.option("--git-path", default=GIT_PATH, help="Path to git repository")
 @click.option("--surrealdb-url", default=SURREALDB_URL, help="SurrealDB HTTP endpoint")
-@click.option("--since", default=None, help="ISO date to backfill from (e.g. 2026-01-01)")
+@click.option(
+    "--since", default=None, help="ISO date to backfill from (e.g. 2026-01-01)"
+)
 def backfill(vault_path: str, git_path: str, surrealdb_url: str, since: str) -> None:
     """Run one-time backfill of historical commits."""
     click.echo(f"Starting backfill (since={since or 'all time'})")
@@ -158,7 +164,9 @@ def backfill(vault_path: str, git_path: str, surrealdb_url: str, since: str) -> 
 @click.option("--git-path", default=GIT_PATH, help="Path to git repository")
 @click.option("--surrealdb-url", default=SURREALDB_URL, help="SurrealDB HTTP endpoint")
 @click.option("--json-output", is_flag=True, help="Output as JSON for machine parsing")
-def health(vault_path: str, git_path: str, surrealdb_url: str, json_output: bool) -> None:
+def health(
+    vault_path: str, git_path: str, surrealdb_url: str, json_output: bool
+) -> None:
     """Check daemon health: paths, queues, SurrealDB connectivity."""
     checks = {
         "vault_path": {"status": "fail", "detail": ""},
@@ -244,7 +252,9 @@ def health(vault_path: str, git_path: str, surrealdb_url: str, json_output: bool
         for name, check in checks.items():
             if name.startswith("_"):
                 continue
-            icon = {"pass": "OK", "fail": "FAIL", "warn": "WARN", "skip": "SKIP"}[check["status"]]
+            icon = {"pass": "OK", "fail": "FAIL", "warn": "WARN", "skip": "SKIP"}[
+                check["status"]
+            ]
             click.echo(f"  [{icon:4s}] {name}: {check['detail']}")
         click.echo()
         if healthy:

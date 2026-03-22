@@ -101,7 +101,9 @@ async def verify_services():
             models = resp.json().get("models", [])
             model_names = [m["name"] for m in models]
             has_nomic = any("nomic-embed-text" in n for n in model_names)
-            logger.info(f"Ollama: OK (models: {model_names}, nomic-embed-text: {has_nomic})")
+            logger.info(
+                f"Ollama: OK (models: {model_names}, nomic-embed-text: {has_nomic})"
+            )
             if not has_nomic:
                 logger.error("nomic-embed-text model not available!")
                 return False
@@ -179,7 +181,9 @@ async def main():
                 recursive=recursive,
             )
             all_stats[directory] = stats
-            logger.info(f"  Result: {stats['success']}/{stats['total']} imported, {stats['failed']} failed")
+            logger.info(
+                f"  Result: {stats['success']}/{stats['total']} imported, {stats['failed']} failed"
+            )
 
     # Step 4: Show post-import counts
     logger.info("\n--- Post-import counts ---")
@@ -197,11 +201,15 @@ async def main():
     total_files = 0
     total_failed = 0
     for directory, stats in all_stats.items():
-        logger.info(f"  {directory:25s}: {stats['success']:3d}/{stats['total']:3d} imported, {stats['failed']} failed")
+        logger.info(
+            f"  {directory:25s}: {stats['success']:3d}/{stats['total']:3d} imported, {stats['failed']} failed"
+        )
         total_success += stats["success"]
         total_files += stats["total"]
         total_failed += stats["failed"]
-    logger.info(f"  {'TOTAL':25s}: {total_success:3d}/{total_files:3d} imported, {total_failed} failed")
+    logger.info(
+        f"  {'TOTAL':25s}: {total_success:3d}/{total_files:3d} imported, {total_failed} failed"
+    )
     logger.info(f"  Elapsed: {elapsed:.1f}s")
     logger.info("=" * 60)
 

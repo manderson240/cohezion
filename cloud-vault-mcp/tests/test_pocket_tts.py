@@ -4,9 +4,15 @@ Following token-efficient pattern: tests written AFTER implementation and valida
 """
 
 import json
+import sys
 from unittest.mock import MagicMock, patch
 
 import pytest
+
+# Ensure pocket_tts module exists for patching (optional dependency)
+if "pocket_tts" not in sys.modules:
+    _mock_pocket_tts = MagicMock()
+    sys.modules["pocket_tts"] = _mock_pocket_tts
 
 
 @pytest.fixture

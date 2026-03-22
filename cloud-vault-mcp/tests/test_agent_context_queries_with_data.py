@@ -4,6 +4,7 @@ Creates sample data in SurrealDB and validates queries return correct results.
 """
 
 import json
+import os
 import uuid
 
 from mcp_server.agent_context_queries import AgentContextQueries

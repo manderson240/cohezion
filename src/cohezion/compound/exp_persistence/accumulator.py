@@ -112,6 +112,7 @@ class PersistenceAccumulator:
                 await self._worker_task
 
 
+
 def get_accumulator() -> PersistenceAccumulator:
     """Get the global PersistenceAccumulator instance."""
     return PersistenceAccumulator()

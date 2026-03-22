@@ -118,7 +118,6 @@ class HyperparameterDebate:
         try:
             session = await debate.run_debate(
                 topic=topic,
-                structured_output=True,
                 max_rounds=3,
                 min_rounds=3,
             )

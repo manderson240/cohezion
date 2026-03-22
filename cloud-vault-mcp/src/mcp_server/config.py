@@ -55,7 +55,9 @@ class ServerConfig:
         default_factory=lambda: os.environ.get("SHEETS_RESEARCH_ENABLED", "false").lower() == "true"
     )
     sheets_research_poll_interval: int = field(
-        default_factory=lambda: int(os.environ.get("SHEETS_RESEARCH_POLL_INTERVAL", "300"))
+        default_factory=lambda: int(
+            os.environ.get("SHEETS_RESEARCH_POLL_INTERVAL", "300")
+        )
     )
     sheets_research_batch_size: int = field(
         default_factory=lambda: int(os.environ.get("SHEETS_RESEARCH_BATCH_SIZE", "10"))
@@ -64,7 +66,9 @@ class ServerConfig:
         default_factory=lambda: int(os.environ.get("SHEETS_RESEARCH_MAX_CONCURRENT_AGENTS", "4"))
     )
     sheets_research_agent_timeout: int = field(
-        default_factory=lambda: int(os.environ.get("SHEETS_RESEARCH_AGENT_TIMEOUT", "300"))
+        default_factory=lambda: int(
+            os.environ.get("SHEETS_RESEARCH_AGENT_TIMEOUT", "300")
+        )
     )
     sheets_research_work_queue_db: str = field(
         default_factory=lambda: os.environ.get(
@@ -76,7 +80,9 @@ class ServerConfig:
         default_factory=lambda: os.environ.get("VAULT_SEARCH_CACHE_ENABLED", "true").lower() == "true"
     )
     vault_search_cache_ttl_seconds: float = field(
-        default_factory=lambda: float(os.environ.get("VAULT_SEARCH_CACHE_TTL_SECONDS", "60"))
+        default_factory=lambda: float(
+            os.environ.get("VAULT_SEARCH_CACHE_TTL_SECONDS", "60")
+        )
     )
 
     @classmethod

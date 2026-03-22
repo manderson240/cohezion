@@ -26,7 +26,9 @@ logger = logging.getLogger(__name__)
 
 async def run_simulation():
     logger.info("Initializing Glass Box Debate...")
-    encoder = FlumeEncoder(z_dim=256)
+    from cohezion.flume.autoencoder import FlumeConfig
+
+    encoder = FlumeEncoder(FlumeConfig(z_dim=256))
 
     # 1. Define Debate Topic & Initial Positions
     topic = "AI Regulation"

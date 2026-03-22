@@ -162,7 +162,9 @@ class ThermalProfiler:
                 "avg_gpu_load": round(np.mean(gpu_load_list), 1),
                 "peak_gpu_load": round(np.max([r["peak_gpu_load"] for r in iteration_results]), 1),
                 "avg_temperature": round(np.mean(temp_list), 1),
-                "peak_temperature": round(np.max([r["peak_temperature"] for r in iteration_results]), 1),
+                "peak_temperature": round(
+                    np.max([r["peak_temperature"] for r in iteration_results]), 1
+                ),
                 "thermal_throttled": any(r["thermal_throttled"] for r in iteration_results),
                 "iterations": iteration_results,
             }

@@ -218,13 +218,13 @@ class DemocraticDebate:
         """Call an agent via Ollama, using TokenEfficientClient if available."""
         if self._token_client is not None:
             try:
-                return await self._token_client.generate(
+                result = await self._token_client.generate(
                     prompt=prompt,
                     system=persona.system_prompt(),
                     model=persona.model,
-                    temperature=0.8,
                     num_predict=512,
                 )
+                return result[0] if isinstance(result, tuple) else result
             except Exception as e:
                 logger.error(f"TokenEfficientClient call for {persona.name} failed: {e}")
                 return f"[{persona.name} error: {e}]"

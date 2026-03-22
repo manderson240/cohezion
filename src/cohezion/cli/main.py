@@ -24,11 +24,14 @@ from cohezion.core.persistence.repositories.surreal_universe_repository import (
 )
 
 # Cohezion Imports
+from cohezion.core.persistence.repositories.pattern_repository import PatternRepository
 from cohezion.core.persistence.surreal_client import SurrealClient
 from cohezion.services.agent_service import AgentConfig, AgentService
 from cohezion.services.knowledge_service import KnowledgeService
 from cohezion.services.physics_service import PhysicsService
 from cohezion.services.swarm_service import SwarmService
+from cohezion.swarm.agents.code_review_swarm import CodeReviewSwarm
+
 
 
 app = typer.Typer(
@@ -307,6 +310,99 @@ def swarm_simulate(
         time.sleep(1)
 
     console.print("[bold green]✓ Simulation complete[/bold green]")
+
+
+@swarm_app.command("review")
+def swarm_review(
+    target_dir: str = typer.Option("src/cohezion", "--target", "-t", help="Directory to review"),
+    batch_size: int = typer.Option(5, "--batch-size", "-b", help="Files per static batch"),
+    complexity: int = typer.Option(15, "--complexity", "-c", help="AST complexity threshold for LLM scans"),
+    output: str = typer.Option("code_review_report.md", "--output", "-o", help="Markdown report output path"),
+):
+    """Run full codebase review using specialist swarm agents.
+
+    Orchestrates static and LLM-based code scouts to identify
+    patterns and anti-patterns across the codebase.
+    """
+    console.print(
+        Panel(
+            f"[bold]Swarm Code Review[/bold]\n\n"
+            f"Target: [cyan]{target_dir}[/cyan]\n"
+            f"Batch Size: {batch_size}\n"
+            f"Complexity Threshold: {complexity}\n"
+            f"Output: {output}",
+            title="🔬 Review Configuration",
+            border_style="magenta",
+        )
+    )
+
+    import asyncio
+
+    async def run():
+        client = SurrealClient()
+        await client.connect()
+        repo = PatternRepository(client)
+
+        swarm = CodeReviewSwarm(
+            repository=repo,
+            target_dir=target_dir,
+            batch_size=batch_size,
+            complexity_threshold=complexity,
+        )
+
+        with Progress(
+            SpinnerColumn(),
+            TextColumn("[progress.description]{task.description}"),
+            console=console,
+        ) as progress:
+            task = progress.add_task("Running Code Review Swarm...", total=None)
+            report = await swarm.run_full_scan()
+            progress.update(task, description="✓ Scan Complete")
+
+        # Format and write report
+        from pathlib import Path
+
+        out_path = Path(output)
+        out_path.parent.mkdir(parents=True, exist_ok=True)
+
+        with open(out_path, "w") as f:
+            f.write("# Code Review Report\n\n")
+            f.write(f"**Target Directory:** `{target_dir}`\n")
+            f.write(f"**Total Files Checked:** {report.total_files}\n")
+            f.write(f"**Files Scanned (High Complexity):** {report.scanned_files}\n")
+            f.write(f"**Total Findings:** {len(report.findings)}\n\n")
+
+            f.write("## Findings\n\n")
+
+            # Group findings by type
+            patterns = [find for find in report.findings if find.type == "pattern"]
+            anti_patterns = [find for find in report.findings if find.type == "anti_pattern"]
+
+            if anti_patterns:
+                f.write("### 🚨 Anti-Patterns (Requires Attention)\n\n")
+                for finding in anti_patterns:
+                    f.write(f"#### {finding.name} ({finding.category})\n")
+                    f.write(f"- **Severity:** {finding.severity}\n")
+                    f.write(f"- **File:** `{finding.file_path}`\n")
+                    f.write(f"- **Description:** {finding.description}\n")
+                    f.write(f"- **Remediation:** {finding.remediation}\n\n")
+                    f.write("```python\n")
+                    f.write(f"{finding.code_snippet}\n")
+                    f.write("```\n\n")
+
+            if patterns:
+                f.write("### ✨ Recognized Patterns\n\n")
+                for finding in patterns:
+                    f.write(f"#### {finding.name} ({finding.category})\n")
+                    f.write(f"- **File:** `{finding.file_path}`\n")
+                    f.write(f"- **Description:** {finding.description}\n\n")
+                    f.write("```python\n")
+                    f.write(f"{finding.code_snippet}\n")
+                    f.write("```\n\n")
+
+        console.print(f"[bold green]✓ Report generated: {out_path.absolute()}[/bold green]")
+
+    asyncio.run(run())
 
 
 dashboard_app = typer.Typer(help="Dashboard operations")

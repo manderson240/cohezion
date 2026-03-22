@@ -685,7 +685,9 @@ class Transaction:
                 duration_seconds=duration,
             )
 
-            logger.info(f"Transaction {self.transaction_id} committed ({len(self.changes)} changes)")
+            logger.info(
+                f"Transaction {self.transaction_id} committed ({len(self.changes)} changes)"
+            )
             return result
 
         except Exception as e:
@@ -698,7 +700,9 @@ class Transaction:
                     pass  # Already rolled back
             raise
 
-    def rollback(self, reason: str = "", restore_to_checkpoint: str | None = None) -> RollbackResult:
+    def rollback(
+        self, reason: str = "", restore_to_checkpoint: str | None = None
+    ) -> RollbackResult:
         """Rollback transaction: restore to snapshot."""
         start = time.time()
 
@@ -745,7 +749,9 @@ class Transaction:
                 duration_seconds=duration,
             )
 
-            logger.info(f"Transaction {self.transaction_id} rolled back ({changes_undone} changes undone)")
+            logger.info(
+                f"Transaction {self.transaction_id} rolled back ({changes_undone} changes undone)"
+            )
             return result
 
         except Exception as e:

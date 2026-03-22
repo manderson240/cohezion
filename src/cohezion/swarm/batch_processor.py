@@ -165,13 +165,19 @@ class BatchProcessor:
         )
 
         # Phase 1.5: Semantic cache lookup (L2 fuzzy matching) for remaining misses
-        if cache_misses > 0 and hasattr(self.token_client, "semantic_cache") and self.token_client.semantic_cache:
+        if (
+            cache_misses > 0
+            and hasattr(self.token_client, "semantic_cache")
+            and self.token_client.semantic_cache
+        ):
             logger.info("Phase 1.5: Checking L2 semantic cache for %d misses", cache_misses)
             remaining_misses = []
 
             for item, key in cache_misses_list:
                 try:
-                    semantic_hit = await self.token_client.semantic_cache.get(item.prompt, item.system)
+                    semantic_hit = await self.token_client.semantic_cache.get(
+                        item.prompt, item.system
+                    )
                     if semantic_hit:
                         item.cache_entry = CacheEntry(
                             key=key,
@@ -269,7 +275,9 @@ class BatchProcessor:
             cache_hits=cache_hits,
             cache_misses=cache_misses,
             total_duration_ms=round(elapsed_ms, 2),
-            parallel_executions=min(len(unique_misses) if cache_misses > 0 else 0, actual_concurrency),
+            parallel_executions=min(
+                len(unique_misses) if cache_misses > 0 else 0, actual_concurrency
+            ),
             semantic_hits=semantic_hits,
         )
 

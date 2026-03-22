@@ -145,7 +145,9 @@ def run_parallel_simulation_benchmark() -> BenchmarkResult:
     return result
 
 
-def compare_results(sequential: BenchmarkResult, parallel: BenchmarkResult) -> dict[str, Any]:
+def compare_results(
+    sequential: BenchmarkResult, parallel: BenchmarkResult
+) -> dict[str, Any]:
     """Compare sequential vs parallel results.
 
     Args:
@@ -168,7 +170,11 @@ def compare_results(sequential: BenchmarkResult, parallel: BenchmarkResult) -> d
         "improvement_ms": round(improvement, 2),
         "improvement_percent": round(improvement_pct, 1),
         "speedup_factor": round(speedup, 1),
-        "status": "PASS" if speedup >= 1.5 else "CHECK" if speedup >= 1.0 else "NEEDS_INVESTIGATION",
+        "status": "PASS"
+        if speedup >= 1.5
+        else "CHECK"
+        if speedup >= 1.0
+        else "NEEDS_INVESTIGATION",
     }
 
 

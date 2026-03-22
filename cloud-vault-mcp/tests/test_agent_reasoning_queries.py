@@ -513,7 +513,9 @@ class TestQueryStructure:
         reasoning_queries.root_cause_analysis("test_decision")
 
         # Verify SELECT query was executed
-        select_queries = [q for q in mock_db.queries if "SELECT * FROM agent_reasoning" in q]
+        select_queries = [
+            q for q in mock_db.queries if "SELECT * FROM agent_reasoning" in q
+        ]
         assert len(select_queries) > 0
         assert "decision_id" in select_queries[0]
         assert "ORDER BY" in select_queries[0]

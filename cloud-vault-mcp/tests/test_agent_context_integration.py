@@ -494,7 +494,9 @@ class TestAgentContextIntegration:
 
         # Verify session was updated
         session_updates = [q for q in update_queries if session_id in q]
-        assert len(session_updates) > 0, "Session should be updated with completion status"
+        assert len(session_updates) > 0, (
+            "Session should be updated with completion status"
+        )
 
         # Verify update sets status to completed
         for update_query in session_updates:

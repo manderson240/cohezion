@@ -74,6 +74,7 @@ class SemanticCache:
             Optional[Dict[str, Any]]: The cached metadata if found.
         """
         # Tier 1: Redis Exact Match (L1) - Fastest for identical queries
+        redis_key = ""
         if query_text:
             key_hash = hashlib.sha256(query_text.encode()).hexdigest()
             redis_key = f"semantic_cache:exact:{key_hash}"

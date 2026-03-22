@@ -34,8 +34,10 @@ from cohezion.universe.sandbox_profiles import (
 
 logger = logging.getLogger(__name__)
 
-# System-wide memory budget for all sandboxes (100GB of 128GB)
-SYSTEM_MEMORY_BUDGET_MB = 100 * 1024
+# System-wide memory budget for all sandboxes (85GB of 128GB)
+# Desktop baseline ~60GB (Chrome, Obsidian, etc.) leaves ~65GB headroom;
+# 85GB ceiling prevents OOM while allowing burst simulation workloads.
+SYSTEM_MEMORY_BUDGET_MB = 85 * 1024
 
 
 @dataclass

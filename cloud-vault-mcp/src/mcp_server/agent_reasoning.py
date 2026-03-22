@@ -54,7 +54,9 @@ class AgentReasoningOps:
             alternatives_rejected = alternatives_rejected or []
 
             # Validate decision exists
-            decision_check = self.db._execute_query(f"SELECT id FROM {decision_id} LIMIT 1")
+            decision_check = self.db._execute_query(
+                f"SELECT id FROM {decision_id} LIMIT 1"
+            )
             if not decision_check or len(decision_check) == 0:
                 return {
                     "success": False,
@@ -107,12 +109,16 @@ class AgentReasoningOps:
                 """
                 edge_result = self.db._execute_query(edge_query)
                 if not edge_result or len(edge_result) == 0:
-                    logger.warning(f"Failed to create informs_reasoning edge for {reasoning_id}")
+                    logger.warning(
+                        f"Failed to create informs_reasoning edge for {reasoning_id}"
+                    )
 
             except Exception as e:
                 logger.warning(f"Error creating informs_reasoning edge: {e}")
 
-            logger.info(f"Created reasoning node: {reasoning_id} for decision {decision_id}")
+            logger.info(
+                f"Created reasoning node: {reasoning_id} for decision {decision_id}"
+            )
 
             return {
                 "success": True,
@@ -156,7 +162,9 @@ class AgentReasoningOps:
             now = datetime.now(UTC).isoformat()
 
             # Validate decision exists
-            decision_check = self.db._execute_query(f"SELECT id FROM {decision_id} LIMIT 1")
+            decision_check = self.db._execute_query(
+                f"SELECT id FROM {decision_id} LIMIT 1"
+            )
             if not decision_check or len(decision_check) == 0:
                 return {
                     "success": False,
@@ -164,7 +172,9 @@ class AgentReasoningOps:
                 }
 
             # Validate lesson exists
-            lesson_check = self.db._execute_query(f"SELECT id FROM lesson:{lesson_id} LIMIT 1")
+            lesson_check = self.db._execute_query(
+                f"SELECT id FROM lesson:{lesson_id} LIMIT 1"
+            )
             if not lesson_check or len(lesson_check) == 0:
                 return {
                     "success": False,

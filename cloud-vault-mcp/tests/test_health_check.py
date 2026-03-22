@@ -7,6 +7,8 @@ import pytest
 
 from mcp_server.health import HealthChecker, HealthStatus
 
+_IN_CI = os.environ.get("CI") == "true"
+
 
 class TestHealthChecker:
     """Test suite for HealthChecker."""
@@ -22,7 +24,9 @@ class TestHealthChecker:
 
     @pytest.fixture
     def real_vault_checker(self):
-        """Create health checker with real vault path."""
+        """Create health checker with real vault path (local-only)."""
+        if _IN_CI:
+            pytest.skip("Requires local vault path — unavailable in CI")
         return HealthChecker(
             vault_path="/home/mike-anderson/vaults/cohezion-vault",
             surrealdb_url="http://localhost:8000",

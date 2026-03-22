@@ -31,6 +31,7 @@ from cohezion.compound.models import (
 )
 
 
+
 if TYPE_CHECKING:
     from cohezion.compound.executor import ExecutionResult
     from cohezion.compound.inflection_detector import AnomalyDetection
@@ -141,7 +142,7 @@ class RequestAlignmentAnalyzer:
     def __init__(
         self,
         mcp_client: MCPClient,
-        intent_confidence_threshold: float = 0.5,
+        intent_confidence_threshold: float = 0.1,
         constraint_tolerance: float = 0.1,
     ):
         """Initialize request alignment analyzer.
@@ -332,12 +333,14 @@ class RequestAlignmentAnalyzer:
 
         best_intent = max(scores, key=scores.get)
         best_score = scores[best_intent]
-        total_keywords = sum(len(kws) for kws in _INTENT_KEYWORDS.values())
-        confidence = best_score / max(1, total_keywords)
+        # Normalize by matched category's keywords (not all keywords) so a
+        # single match out of 7 gives confidence ≈ 0.14, not 0.03.
+        intent_keyword_count = len(_INTENT_KEYWORDS.get(best_intent, [1]))
+        confidence = best_score / max(1, intent_keyword_count)
 
         if confidence >= self.intent_confidence_threshold:
             return (
-                IntentType(best_intent),
+                IntentType[best_intent.upper()],
                 confidence,
             )
 
@@ -391,7 +394,7 @@ class RequestAlignmentAnalyzer:
                     best_intent = intent_str
 
             if best_similarity >= 0.3:  # Semantic threshold
-                return IntentType(best_intent), best_similarity
+                return IntentType[best_intent.upper()], best_similarity
 
             return IntentType.UNKNOWN, 0.0
         except Exception as e:
@@ -527,8 +530,8 @@ class RequestAlignmentAnalyzer:
         Returns:
             0.0-1.0 intent match score
         """
-        # Direct intent match
-        if request_intent.value == operation_type:
+        # Direct intent match (compare lowercase name to operation_type string)
+        if request_intent.name.lower() == operation_type.lower():
             return 1.0
 
         # Semantic similarity (if encoder available)
@@ -537,7 +540,7 @@ class RequestAlignmentAnalyzer:
                 import numpy as np
 
                 encoder = self.text_encoder
-                intent_prototype = encoder.encode(f"This is a {request_intent.value} task")
+                intent_prototype = encoder.encode(f"This is a {request_intent.name.lower()} task")
                 output_embedding = encoder.encode(result.output[:500])  # First 500 chars
 
                 similarity = float(
@@ -748,7 +751,7 @@ class RequestAlignmentAnalyzer:
 
         for violation in violations:
             issues.append(
-                f"{violation.constraint.type.value.capitalize()} constraint violated: "
+                f"{violation.constraint.type.name.capitalize()} constraint violated: "
                 f"requested {violation.requested_value}, got {violation.actual_value}"
             )
 
@@ -823,9 +826,9 @@ class RequestAlignmentAnalyzer:
             title = f"High misalignment in {request.intent.value} task: {request.raw_text[:50]}"
             context = (
                 f"Request: {request.raw_text}\n\n"
-                f"Intent: {request.intent.value} (confidence={request.intent_confidence:.2f})\n\n"
-                f"Constraints: {len(request.constraints)}\n"
-                f"Criteria: {len(request.criteria)}"
+                f"Intent: {request.intent.name} (confidence={request.intent_confidence:.2f})\n\n"
+                f"Constraints: {len(request.constraints or [])}\n"
+                f"Criteria: {len(request.criteria or [])}"
             )
             decision = (
                 f"Misalignment score: {alignment.misalignment_score:.2f}\n"
@@ -866,8 +869,8 @@ class RequestAlignmentAnalyzer:
         try:
             hypothesis = f"Request alignment for {request.intent.value} task: {request.raw_text[:100]}"
             method = (
-                f"Analyzed request with intent={request.intent.value}, "
-                f"{len(request.constraints)} constraints, {len(request.criteria)} criteria"
+                f"Analyzed request with intent={request.intent.name}, "
+                f"{len(request.constraints or [])} constraints, {len(request.criteria or [])} criteria"
             )
             result = f"Misalignment score: {alignment.misalignment_score:.2f} ({len(alignment.issues)} issues)"
             learnings = (

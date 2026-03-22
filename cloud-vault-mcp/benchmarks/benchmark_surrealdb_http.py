@@ -131,7 +131,9 @@ def run_parallel_http_benchmark() -> BenchmarkResult:
     return result
 
 
-def compare_results(sequential: BenchmarkResult, parallel: BenchmarkResult) -> dict[str, Any]:
+def compare_results(
+    sequential: BenchmarkResult, parallel: BenchmarkResult
+) -> dict[str, Any]:
     """Compare sequential vs parallel results.
 
     Args:
@@ -154,7 +156,13 @@ def compare_results(sequential: BenchmarkResult, parallel: BenchmarkResult) -> d
         "improvement_ms": round(improvement, 2),
         "improvement_percent": round(improvement_pct, 1),
         "speedup_factor": round(speedup, 1),
-        "status": "EXCELLENT" if speedup >= 8 else "GOOD" if speedup >= 5 else "PASS" if speedup >= 2 else "CHECK",
+        "status": "EXCELLENT"
+        if speedup >= 8
+        else "GOOD"
+        if speedup >= 5
+        else "PASS"
+        if speedup >= 2
+        else "CHECK",
     }
 
 
@@ -176,7 +184,9 @@ def run() -> dict[str, Any]:
 
 
 if __name__ == "__main__":
-    print("Running SurrealDB parallel sync benchmarks (with HTTP latency simulation)...")
+    print(
+        "Running SurrealDB parallel sync benchmarks (with HTTP latency simulation)..."
+    )
     print("=" * 70)
 
     results = run()

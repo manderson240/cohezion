@@ -751,7 +751,9 @@ class SheetsResearchDaemon:
         stats = self.work_queue.get_stats()
         dlq_size = self.dlq.get_size()
         return {
-            "status": "running" if self.shutdown_event and not self.shutdown_event.is_set() else "stopped",
+            "status": "running"
+            if self.shutdown_event and not self.shutdown_event.is_set()
+            else "stopped",
             "work_queue": stats,
             "dlq_size": dlq_size,
             "rows_processed_today": self.rows_processed_today,

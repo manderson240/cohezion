@@ -157,7 +157,10 @@ class ModelCircuitBreaker:
             self._transition_to_open()
 
         # If error rate too high (only check after enough samples)
-        if self.metrics.total_requests >= 10 and self.metrics.error_rate >= self.error_rate_threshold:
+        if (
+            self.metrics.total_requests >= 10
+            and self.metrics.error_rate >= self.error_rate_threshold
+        ):
             self._transition_to_open()
 
     def allow_request(self) -> bool:

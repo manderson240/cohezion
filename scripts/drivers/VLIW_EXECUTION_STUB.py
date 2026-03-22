@@ -86,7 +86,10 @@ async def demo_precipitation():
     ]
 
     result = await executor.execute_bundle(bundle)
-    print(f"\n[FINAL REPORT]\nTransaction: {result['tx_id']}\nPrecipitation Value: {result['value']}")
+    print(
+        f"\n[FINAL REPORT]\nTransaction: {result['tx_id']}\nPrecipitation Value: {result['value']}"
+    )
+
 
 
 if __name__ == "__main__":
