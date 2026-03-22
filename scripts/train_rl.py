@@ -15,37 +15,28 @@ import sys
 from dataclasses import asdict
 from pathlib import Path
 
+
 # Global flag for graceful interruption
 _interrupted = False
 
 
 def _handle_sigint(signum: int, frame: object) -> None:
-    global _interrupted  # noqa: PLW0603
+    global _interrupted
     if _interrupted:
         # Second SIGINT — hard exit
         sys.exit(1)
     _interrupted = True
-    logging.getLogger(__name__).warning(
-        "SIGINT received — finishing current episode then stopping"
-    )
+    logging.getLogger(__name__).warning("SIGINT received — finishing current episode then stopping")
 
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
-    parser = argparse.ArgumentParser(
-        description="Train a REINFORCE policy on FlumeNav-v0"
-    )
+    parser = argparse.ArgumentParser(description="Train a REINFORCE policy on FlumeNav-v0")
     parser.add_argument("--episodes", type=int, default=500, help="Number of episodes")
-    parser.add_argument(
-        "--max-steps", type=int, default=200, help="Max steps per episode"
-    )
+    parser.add_argument("--max-steps", type=int, default=200, help="Max steps per episode")
     parser.add_argument("--lr", type=float, default=3e-4, help="Learning rate")
     parser.add_argument("--gamma", type=float, default=0.99, help="Discount factor")
-    parser.add_argument(
-        "--hidden-dim", type=int, default=128, help="Policy hidden layer size"
-    )
-    parser.add_argument(
-        "--z-dim", type=int, default=256, help="FLUME latent dimension"
-    )
+    parser.add_argument("--hidden-dim", type=int, default=128, help="Policy hidden layer size")
+    parser.add_argument("--z-dim", type=int, default=256, help="FLUME latent dimension")
     parser.add_argument(
         "--output-dir",
         type=str,
@@ -123,9 +114,7 @@ def main(argv: list[str] | None = None) -> None:
     avg_coherence = sum(r.mean_coherence for r in tail) / len(tail)
 
     log.info(
-        "Training complete: %d episodes | "
-        "Last-%d avg reward: %.3f | "
-        "Last-%d avg coherence: %.4f",
+        "Training complete: %d episodes | Last-%d avg reward: %.3f | Last-%d avg coherence: %.4f",
         total,
         len(tail),
         avg_reward,

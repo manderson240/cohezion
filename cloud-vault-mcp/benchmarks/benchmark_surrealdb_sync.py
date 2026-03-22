@@ -1,6 +1,5 @@
 """Benchmark SurrealDB bulk sync operation."""
 
-import json
 from pathlib import Path
 
 from benchmarks.benchmark_utils import BenchmarkResult, run_benchmark

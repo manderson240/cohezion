@@ -1,3 +1,15 @@
+---
+name: token-efficiency
+description: Token consumption tracking, analysis, and optimization across the
+  agent swarm. Reduces waste through batching, caching, context pruning, and
+  adaptive model selection. Use when optimizing token costs, analyzing waste
+  patterns, setting token budgets, or when user mentions "token efficiency",
+  "token budget", "cache hit rate", "model downgrade", or "cost optimization".
+metadata:
+  version: "1.0"
+  legacy-name: TOKEN_EFFICIENCY_PRIME
+---
+
 # SKILL: TOKEN_EFFICIENCY_PRIME
 
 ## DOMAIN EXPERTISE

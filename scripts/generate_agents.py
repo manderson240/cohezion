@@ -13,6 +13,7 @@ import argparse
 import sys
 from pathlib import Path
 
+
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 from cohezion.agents.factory import AgentFactory
@@ -20,9 +21,7 @@ from cohezion.agents.factory import AgentFactory
 
 def main(argv: list[str] | None = None) -> None:
     """CLI entry point for agent generation."""
-    parser = argparse.ArgumentParser(
-        description="Generate executable agents from PRIME skills"
-    )
+    parser = argparse.ArgumentParser(description="Generate executable agents from PRIME skills")
     parser.add_argument(
         "--count",
         type=int,

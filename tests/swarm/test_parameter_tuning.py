@@ -3,11 +3,10 @@
 Tests how cost_threshold and latency_threshold parameters affect routing behavior.
 """
 
-import pytest
+from cohezion.cost_optimization.cost_tracker import SessionCostTracker
 from cohezion.swarm.cost_aware_router import (
     CostAwareRouter,
 )
-from cohezion.cost_optimization.cost_tracker import SessionCostTracker
 
 
 class TestCostThresholdTuning:

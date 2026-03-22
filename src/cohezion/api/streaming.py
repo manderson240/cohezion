@@ -95,9 +95,7 @@ async def stream_inference(request: StreamingInferenceRequest):
 
     except Exception as e:
         logger.exception("Stream inference failed")
-        raise HTTPException(
-            status_code=500, detail=f"Streaming inference failed: {e!s}"
-        ) from e
+        raise HTTPException(status_code=500, detail=f"Streaming inference failed: {e!s}") from e
 
 
 @router.post("/resume/{session_id}")

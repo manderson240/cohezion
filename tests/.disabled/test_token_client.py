@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
@@ -139,9 +139,7 @@ class TestTokenEfficientClientHarnessing:
             "system": "harnessed_system",
         }
 
-        client = TokenEfficientClient(
-            ollama_client=mock_ollama, context_harness=mock_harness
-        )
+        client = TokenEfficientClient(ollama_client=mock_ollama, context_harness=mock_harness)
         await client.generate("very long prompt " * 1000, system="original system")
 
         # Verify harness was called
@@ -160,9 +158,7 @@ class TestTokenEfficientClientHarnessing:
         mock_harness = MagicMock()
         mock_harness.harness_prompt.side_effect = RuntimeError("harness broken")
 
-        client = TokenEfficientClient(
-            ollama_client=mock_ollama, context_harness=mock_harness
-        )
+        client = TokenEfficientClient(ollama_client=mock_ollama, context_harness=mock_harness)
         result = await client.generate("raw prompt", system="raw system")
 
         assert result == "ok"
@@ -185,9 +181,7 @@ class TestTokenEfficientClientRouting:
         mock_router = AsyncMock()
         mock_router.select_optimal_model = AsyncMock(return_value=mock_config)
 
-        client = TokenEfficientClient(
-            ollama_client=mock_ollama, model_router=mock_router
-        )
+        client = TokenEfficientClient(ollama_client=mock_ollama, model_router=mock_router)
         result = await client.generate("code this", task_type="coding")
 
         assert result == "routed response"
@@ -204,9 +198,7 @@ class TestTokenEfficientClientRouting:
 
         mock_router = AsyncMock()
 
-        client = TokenEfficientClient(
-            ollama_client=mock_ollama, model_router=mock_router
-        )
+        client = TokenEfficientClient(ollama_client=mock_ollama, model_router=mock_router)
         await client.generate("prompt", model="explicit_model")
 
         # Router should NOT be called when model is explicit
@@ -221,13 +213,9 @@ class TestTokenEfficientClientRouting:
         mock_ollama.model = "phi3:mini"
 
         mock_router = AsyncMock()
-        mock_router.select_optimal_model = AsyncMock(
-            side_effect=RuntimeError("router broken")
-        )
+        mock_router.select_optimal_model = AsyncMock(side_effect=RuntimeError("router broken"))
 
-        client = TokenEfficientClient(
-            ollama_client=mock_ollama, model_router=mock_router
-        )
+        client = TokenEfficientClient(ollama_client=mock_ollama, model_router=mock_router)
         result = await client.generate("prompt")
 
         assert result == "ok"

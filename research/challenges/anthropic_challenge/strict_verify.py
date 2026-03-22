@@ -1,4 +1,3 @@
-
 import simple_builder
 import optimizer
 from perf_takehome import do_kernel_test

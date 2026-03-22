@@ -1,11 +1,14 @@
+import asyncio
 import json
 import logging
-import asyncio
 from pathlib import Path
+
 from cohezion.core.persistence.surreal_client import SurrealClient, UniverseNode
+
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("SimulationIngestor")
+
 
 async def ingest_overnight_cache():
     """
@@ -28,15 +31,15 @@ async def ingest_overnight_cache():
             data = json.loads(jp.read_text())
             # Map cache schema to UniverseNode
             node = UniverseNode(
-                id=jp.stem[:32], # Use part of hash as ID
+                id=jp.stem[:32],  # Use part of hash as ID
                 content=data.get("response", ""),
                 embedding=data.get("embedding"),
                 node_type="agent_thought",
                 metadata={
                     "model": data.get("model"),
                     "phi_score": data.get("phi_score"),
-                    "timestamp": data.get("timestamp")
-                }
+                    "timestamp": data.get("timestamp"),
+                },
             )
 
             await client.store_node(node)
@@ -45,6 +48,7 @@ async def ingest_overnight_cache():
             logger.warning(f"Failed to ingest {jp.name}: {e}")
 
     logger.info(f"Successfully ingested {success_count}/{len(json_files)} nodes into SurrealDB.")
+
 
 if __name__ == "__main__":
     asyncio.run(ingest_overnight_cache())

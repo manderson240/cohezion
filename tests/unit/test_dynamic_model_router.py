@@ -72,7 +72,7 @@ class TestMemoryBandwidthAnalyzer:
 
     def test_estimate_tokens_per_second(self):
         analyzer = self._make(total_gb=128.0, available_gb=100.0)
-        from cohezion.swarm.dynamic_model_router import ModelConfig, IDEPriority
+        from cohezion.swarm.dynamic_model_router import IDEPriority, ModelConfig
 
         config = ModelConfig(
             name="test:model",
@@ -137,9 +137,7 @@ class TestAdaptiveTemplateManager:
 
 class TestDynamicModelRouter:
     def _make(self):
-        with patch(
-            "psutil.virtual_memory", return_value=_mock_virtual_memory(128.0, 100.0)
-        ):
+        with patch("psutil.virtual_memory", return_value=_mock_virtual_memory(128.0, 100.0)):
             from cohezion.swarm.dynamic_model_router import DynamicModelRouter
 
             return DynamicModelRouter()
@@ -168,7 +166,7 @@ class TestDynamicModelRouter:
 
     def test_calculate_model_score_coding_bonus(self):
         router = self._make()
-        from cohezion.swarm.dynamic_model_router import ModelConfig, IDEPriority
+        from cohezion.swarm.dynamic_model_router import IDEPriority, ModelConfig
 
         coder_model = ModelConfig(
             name="qwen3-coder:30b",
@@ -198,7 +196,7 @@ class TestDynamicModelRouter:
 
     def test_calculate_dynamic_context_limit(self):
         router = self._make()
-        from cohezion.swarm.dynamic_model_router import ModelConfig, IDEPriority
+        from cohezion.swarm.dynamic_model_router import IDEPriority, ModelConfig
 
         model = ModelConfig(
             name="test:8b",
@@ -216,7 +214,7 @@ class TestDynamicModelRouter:
 
     def test_record_performance(self):
         router = self._make()
-        from cohezion.swarm.dynamic_model_router import ModelConfig, IDEPriority
+        from cohezion.swarm.dynamic_model_router import IDEPriority, ModelConfig
 
         model = ModelConfig(
             name="test:model",
@@ -234,7 +232,7 @@ class TestDynamicModelRouter:
 
     def test_record_performance_caps_history(self):
         router = self._make()
-        from cohezion.swarm.dynamic_model_router import ModelConfig, IDEPriority
+        from cohezion.swarm.dynamic_model_router import IDEPriority, ModelConfig
 
         model = ModelConfig(
             name="test:model",

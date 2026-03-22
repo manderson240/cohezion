@@ -60,7 +60,9 @@ class HourlyReporter:
         config.recipient_email = recipient
         self.notifier = EmailNotifier(config=config)
 
-    async def generate_snapshot(self, journey_id: str, step: int, axiomatic: AxiomaticState, phi: float):
+    async def generate_snapshot(
+        self, journey_id: str, step: int, axiomatic: AxiomaticState, phi: float
+    ):
         timestamp = datetime.now().strftime("%Y%m%d_%H%M")
         h_score = 1.0 - abs(axiomatic.coherence_score() - 0.5) * 2
 
@@ -156,12 +158,16 @@ async def run_overnight_mission(hours: int = 8):
             # 3.5 INFLECTION POINT: Trigger Solar Flare on High-Phi
             if leader.coherence > 0.9:
                 engine.trigger_solar_flare(intensity=leader.coherence)
-                logger.info(f"✨ Breakthrough detected (Phi: {leader.coherence:.2f}). Solar Flare ignited.")
+                logger.info(
+                    f"✨ Breakthrough detected (Phi: {leader.coherence:.2f}). Solar Flare ignited."
+                )
 
             # 4. Hourly Reporting
             current_hour = datetime.now().hour
             if current_hour != last_report_hour:
-                await reporter.generate_snapshot(journey.id, step, point.axiomatic, leader.coherence)
+                await reporter.generate_snapshot(
+                    journey.id, step, point.axiomatic, leader.coherence
+                )
                 last_report_hour = current_hour
 
             step += 1
@@ -181,7 +187,10 @@ async def run_overnight_mission(hours: int = 8):
             await LOCAL_MULTIMODAL_BRIDGE.schedule_asset(
                 asset_type="video",
                 priority=3,
-                payload={"storyboard": "The Great Precipitation (8-Hour Mission Archive)", "journey_id": journey.id},
+                payload={
+                    "storyboard": "The Great Precipitation (8-Hour Mission Archive)",
+                    "journey_id": journey.id,
+                },
             )
         except Exception:
             pass

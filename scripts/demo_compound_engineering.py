@@ -12,7 +12,6 @@ Usage:
 """
 
 import asyncio
-import json
 from pathlib import Path
 
 
@@ -64,7 +63,7 @@ async def demo():
     auto_deploy = [s for s in suggestions if s.action == "auto_deploy"]
     review = [s for s in suggestions if s.action == "review_required"]
 
-    print(f"  📊 Files analyzed: 257")
+    print("  📊 Files analyzed: 257")
     print(f"  🔎 Patterns detected: {len(patterns)}")
     print(f"  ✅ Auto-deploy: {len(auto_deploy)}")
     print(f"  ⚠️  Review required: {len(review)}")
@@ -85,9 +84,7 @@ async def demo():
     leaderboard = rewards.get_leaderboard(limit=5)
     print("\n  📊 Top Contributors:")
     for entry in leaderboard[:5]:
-        print(
-            f"     {entry['rank']}. {entry['agent_id']}: {entry['xp']} XP ({entry['tier']})"
-        )
+        print(f"     {entry['rank']}. {entry['agent_id']}: {entry['xp']} XP ({entry['tier']})")
 
     # Summary
     print("\n" + "=" * 70)

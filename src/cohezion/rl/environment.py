@@ -16,6 +16,7 @@ import gymnasium as gym
 import numpy as np
 from gymnasium import spaces
 
+
 logger = logging.getLogger(__name__)
 
 
@@ -67,12 +68,8 @@ class FlumeNavEnv(gym.Env):
         self.use_composite_reward = use_composite_reward
 
         # Continuous observation and action spaces
-        self.observation_space = spaces.Box(
-            low=-2.0, high=2.0, shape=(z_dim,), dtype=np.float32
-        )
-        self.action_space = spaces.Box(
-            low=-1.0, high=1.0, shape=(z_dim,), dtype=np.float32
-        )
+        self.observation_space = spaces.Box(low=-2.0, high=2.0, shape=(z_dim,), dtype=np.float32)
+        self.action_space = spaces.Box(low=-1.0, high=1.0, shape=(z_dim,), dtype=np.float32)
 
         self._state: np.ndarray | None = None
         self._prev_state: np.ndarray | None = None
@@ -105,9 +102,7 @@ class FlumeNavEnv(gym.Env):
         info = {"coherence": self._compute_coherence(self._state)}
         return self._state.copy(), info
 
-    def step(
-        self, action: np.ndarray
-    ) -> tuple[np.ndarray, float, bool, bool, dict[str, Any]]:
+    def step(self, action: np.ndarray) -> tuple[np.ndarray, float, bool, bool, dict[str, Any]]:
         """Apply action + physics, return (obs, reward, terminated, truncated, info)."""
         assert self._state is not None, "Call reset() before step()"
         self._step_count += 1

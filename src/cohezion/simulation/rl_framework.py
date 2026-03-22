@@ -30,10 +30,11 @@ from __future__ import annotations
 import logging
 import math
 from collections import deque
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Any
 
 import numpy as np
+
 
 logger = logging.getLogger(__name__)
 
@@ -49,13 +50,13 @@ HIHO = 0.5
 class Transition:
     """Single experience transition for replay buffer."""
 
-    state: np.ndarray       # 12D state before action
-    action: int             # Action taken (0-8)
-    reward: float           # Reward received
+    state: np.ndarray  # 12D state before action
+    action: int  # Action taken (0-8)
+    reward: float  # Reward received
     next_state: np.ndarray  # 12D state after action
-    done: bool              # Episode terminated
-    log_prob: float = 0.0   # Log probability of action under policy
-    value: float = 0.0      # Value estimate at state
+    done: bool  # Episode terminated
+    log_prob: float = 0.0  # Log probability of action under policy
+    value: float = 0.0  # Value estimate at state
 
 
 class ExperienceBuffer:
@@ -72,7 +73,9 @@ class ExperienceBuffer:
         self._buffer.append(transition)
 
     def sample(self, batch_size: int) -> list[Transition]:
-        indices = np.random.choice(len(self._buffer), size=min(batch_size, len(self._buffer)), replace=False)
+        indices = np.random.choice(
+            len(self._buffer), size=min(batch_size, len(self._buffer)), replace=False
+        )
         return [self._buffer[i] for i in indices]
 
     def get_all(self) -> list[Transition]:
@@ -106,9 +109,15 @@ class HihoEnvironment:
 
     # Action encoding: (dx, dy) offsets for 8 directions + stay
     ACTION_MAP = {
-        0: (-1, -1), 1: (0, -1), 2: (1, -1),
-        3: (-1, 0),  4: (0, 0),  5: (1, 0),
-        6: (-1, 1),  7: (0, 1),  8: (1, 1),
+        0: (-1, -1),
+        1: (0, -1),
+        2: (1, -1),
+        3: (-1, 0),
+        4: (0, 0),
+        5: (1, 0),
+        6: (-1, 1),
+        7: (0, 1),
+        8: (1, 1),
     }
 
     def __init__(self, grid_size: int = 64, max_steps: int = 1000):
@@ -241,7 +250,9 @@ class PolicyNetwork:
     Suitable for small-scale local training on CPU.
     """
 
-    def __init__(self, state_dim: int = STATE_DIM, hidden_dim: int = 64, n_actions: int = NUM_ACTIONS):
+    def __init__(
+        self, state_dim: int = STATE_DIM, hidden_dim: int = 64, n_actions: int = NUM_ACTIONS
+    ):
         self.state_dim = state_dim
         self.hidden_dim = hidden_dim
         self.n_actions = n_actions
@@ -342,14 +353,26 @@ class PPOAgent:
         return action, log_prob, value
 
     def store_transition(
-        self, state: np.ndarray, action: int, reward: float,
-        next_state: np.ndarray, done: bool, log_prob: float, value: float,
+        self,
+        state: np.ndarray,
+        action: int,
+        reward: float,
+        next_state: np.ndarray,
+        done: bool,
+        log_prob: float,
+        value: float,
     ) -> None:
-        self.buffer.push(Transition(
-            state=state, action=action, reward=reward,
-            next_state=next_state, done=done,
-            log_prob=log_prob, value=value,
-        ))
+        self.buffer.push(
+            Transition(
+                state=state,
+                action=action,
+                reward=reward,
+                next_state=next_state,
+                done=done,
+                log_prob=log_prob,
+                value=value,
+            )
+        )
 
     def compute_gae(self, transitions: list[Transition]) -> tuple[np.ndarray, np.ndarray]:
         """Compute Generalized Advantage Estimation.
@@ -371,7 +394,9 @@ class PPOAgent:
                 next_value = transitions[t + 1].value
 
             delta = transitions[t].reward + self.gamma * next_value - transitions[t].value
-            last_gae = delta + self.gamma * self.gae_lambda * (0.0 if transitions[t].done else last_gae)
+            last_gae = delta + self.gamma * self.gae_lambda * (
+                0.0 if transitions[t].done else last_gae
+            )
             advantages[t] = last_gae
             returns[t] = advantages[t] + transitions[t].value
 
@@ -418,7 +443,9 @@ class PPOAgent:
 
                 # Gradient approximation (finite differences for numpy-only)
                 # In production, this would use autograd (PyTorch/JAX)
-                grad_scale = self.lr * (policy_loss + 0.5 * value_loss - self.entropy_coeff * entropy)
+                grad_scale = self.lr * (
+                    policy_loss + 0.5 * value_loss - self.entropy_coeff * entropy
+                )
 
                 # Stochastic weight perturbation (evolutionary strategy approximation)
                 noise_p = np.random.randn(*self.policy.w2.shape) * grad_scale * 0.01
@@ -519,7 +546,11 @@ def train_hiho_agent(
             recent_avg = np.mean(episode_rewards[-10:])
             logger.info(
                 "Episode %d/%d: reward=%.2f, avg_10=%.2f, steps=%d",
-                episode + 1, num_episodes, episode_reward, recent_avg, step,
+                episode + 1,
+                num_episodes,
+                episode_reward,
+                recent_avg,
+                step,
             )
 
     return {

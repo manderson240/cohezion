@@ -84,7 +84,9 @@ def test_github_api_access() -> bool:
     env_path = Path(__file__).parent.parent.parent / ".env"
     load_dotenv(env_path)
 
-    result = subprocess.run(["gh", "api", "/user", "--jq", ".login"], capture_output=True, text=True)
+    result = subprocess.run(
+        ["gh", "api", "/user", "--jq", ".login"], capture_output=True, text=True
+    )
 
     if result.returncode == 0:
         user = result.stdout.strip()
@@ -167,7 +169,9 @@ def test_mcp_server_image() -> bool:
     print("🔍 Testing MCP server Docker image...")
 
     result = subprocess.run(
-        ["docker", "pull", "ghcr.io/github/github-mcp-server", "--quiet"], capture_output=True, text=True
+        ["docker", "pull", "ghcr.io/github/github-mcp-server", "--quiet"],
+        capture_output=True,
+        text=True,
     )
 
     if result.returncode == 0:

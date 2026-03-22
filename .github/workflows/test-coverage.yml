@@ -1,0 +1,147 @@
+name: Test Coverage
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.13"]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+
+      - name: Install dependencies
+        run: uv sync
+
+      - name: Run lint
+        run: make lint-check
+
+      - name: Run type check
+        run: make type-check
+
+      - name: Run tests with coverage
+        run: |
+          uv run pytest tests/ \
+            --cov=cohezion \
+            --cov-report=xml \
+            --cov-report=html \
+            -v
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          files: ./coverage.xml
+          fail_ci_if_error: true
+          verbose: true
+
+      - name: Check coverage threshold
+        run: |
+          COVERAGE=$(uv run python -c "import xml.etree.ElementTree as ET; tree = ET.parse('coverage.xml'); root = tree.getroot(); print(float(root.attrib['line-rate']) * 100)")
+          echo "Coverage: $COVERAGE%"
+          if (( $(echo "$COVERAGE < 10" | bc -l) )); then
+            echo "Coverage below threshold (10%)"
+            exit 1
+          fi
+
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: htmlcov/
+
+  test-generated:
+    runs-on: ubuntu-latest
+    needs: test
+    if: github.event_name == 'pull_request'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+
+      - name: Check for missing test coverage
+        run: |
+          # Find Python files in src/ without corresponding tests
+          MISSING=0
+          for file in $(find src/cohezion -name "*.py" -type f | grep -v __pycache__ | grep -v __init__); do
+            module=$(echo $file | sed 's|src/||; s|/|.|g; s|\.py$||')
+            test_file=$(echo $file | sed 's|src/cohezion|tests|; s|\.py$|')
+            if [ ! -f "$test_file.py" ]; then
+              echo "Missing test: $module"
+              MISSING=$((MISSING + 1))
+            fi
+          done
+          
+          if [ $MISSING -gt 0 ]; then
+            echo "Found $MISSING modules without tests"
+            # Don't fail yet, just warn
+            # exit 1
+          fi
+
+  auto-generate-tests:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+
+      - name: Install dependencies
+        run: uv sync
+
+      - name: Auto-generate tests for new modules
+        run: |
+          # Generate tests for modules without coverage
+          for file in $(find src/cohezion -name "*.py" -type f | grep -v __pycache__ | grep -v __init__); do
+            module=$(echo $file | sed 's|src/cohezion/||; s|\.py$||')
+            test_path=$(echo $file | sed 's|src/cohezion|tests|; s|\.py$|_test.py|')
+            
+            # Skip if test already exists
+            if [ -f "${test_path%.py}.py" ]; then
+              continue
+            fi
+            
+            # Generate test scaffold
+            echo "Generating tests for $module..."
+            uv run python -m cohezion.tools.test_generator \
+              --target "$file" \
+              --output "$test_path" \
+              --template minimal || true
+          done
+
+      - name: Commit generated tests
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add tests/
+          git diff --staged --quiet || git commit -m "Auto-generate test scaffolds for new modules [skip ci]"
+          git push

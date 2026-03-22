@@ -10,6 +10,7 @@ import io
 import logging
 from typing import Any
 
+
 logger = logging.getLogger(__name__)
 
 
@@ -86,9 +87,7 @@ class PocketTTSService:
             voice_state = self.model.get_state_for_audio_prompt(torch.randn(24000))
 
             # Generate audio
-            audio_tensor = self.model.generate_audio(
-                voice_state, text, copy_state=True
-            )
+            audio_tensor = self.model.generate_audio(voice_state, text, copy_state=True)
 
             # Convert to WAV bytes
             buffer = io.BytesIO()

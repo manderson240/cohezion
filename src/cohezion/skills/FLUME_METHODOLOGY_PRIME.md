@@ -1,3 +1,16 @@
+---
+name: flume-methodology
+description: FLUME (Fluid Latent Understanding through Manifold Encoding)
+  implementation for thought vector compression, trajectory prediction, and
+  semantic interpolation. Use when working with FLUME encoders, training VAE
+  models, interpolating concepts in z-space, or when user mentions "FLUME",
+  "latent space", "thought vectors", "trajectory prediction", or "semantic
+  interpolation".
+metadata:
+  version: "1.0"
+  legacy-name: FLUME_METHODOLOGY_PRIME
+---
+
 # SKILL: FLUME_METHODOLOGY_PRIME
 
 ## DOMAIN EXPERTISE

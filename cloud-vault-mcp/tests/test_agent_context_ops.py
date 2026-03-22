@@ -3,12 +3,11 @@
 Tests the SurrealDB integration for sessions, decisions, actions, outcomes, and lessons.
 """
 
-import json
 import logging
-from datetime import datetime
 from unittest.mock import MagicMock, patch
 
 import pytest
+
 
 logger = logging.getLogger(__name__)
 

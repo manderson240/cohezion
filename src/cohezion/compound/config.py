@@ -8,6 +8,7 @@ from __future__ import annotations
 
 from pydantic import BaseModel, Field
 
+
 # Default operation → model mapping
 _DEFAULT_OPERATION_MODELS: dict[str, str] = {
     "generate": "qwen3-coder:30b",

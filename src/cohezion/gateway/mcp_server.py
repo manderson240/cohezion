@@ -32,9 +32,10 @@ from typing import Any
 
 from mcp.server import Server
 from mcp.server.stdio import stdio_server
-from mcp.types import Tool, TextContent
+from mcp.types import TextContent, Tool
 
 from cohezion.gateway.demo_gateway import DemoGateway
+
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(
@@ -228,9 +229,7 @@ async def call_tool(name: str, arguments: dict[str, Any]) -> list[TextContent]:
                     TextContent(
                         type="text",
                         text=json.dumps(
-                            {
-                                "error": f"Gateway '{arguments.get('gateway_id')}' not found"
-                            }
+                            {"error": f"Gateway '{arguments.get('gateway_id')}' not found"}
                         ),
                     )
                 ]
@@ -290,9 +289,7 @@ async def call_tool(name: str, arguments: dict[str, Any]) -> list[TextContent]:
             try:
                 gateway = manager.create_gateway(
                     gateway_id=arguments["gateway_id"],
-                    ollama_url=arguments.get(
-                        "ollama_url", "http://localhost:11434"
-                    ),
+                    ollama_url=arguments.get("ollama_url", "http://localhost:11434"),
                 )
 
                 return [

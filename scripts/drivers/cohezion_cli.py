@@ -5,8 +5,6 @@ import re
 import sys
 from datetime import datetime
 
-from cohezion.branding import Colors
-from cohezion.ui.nexus_ui import ConsciousnessIgnition, NexusUI
 from rich.align import Align
 from rich.console import Console
 from rich.layout import Layout
@@ -15,6 +13,10 @@ from rich.panel import Panel
 from rich.progress import BarColumn, Progress, TextColumn
 from rich.table import Table
 from rich.text import Text
+
+from cohezion.branding import Colors
+from cohezion.ui.nexus_ui import ConsciousnessIgnition, NexusUI
+
 
 # Configuration
 LOG_PATH = "logs/lab_driver.log"
@@ -25,7 +27,7 @@ EXPERT_DOMAINS = {
     "quantum_hw": "Quantum HW",
     "quantum_algo": "Quantum Algo",
 }
-EXPERTS_STATUS = {e: "Idle" for e in EXPERT_DOMAINS.keys()}
+EXPERTS_STATUS = dict.fromkeys(EXPERT_DOMAINS.keys(), "Idle")
 
 
 class SimulationDriver:
@@ -34,7 +36,7 @@ class SimulationDriver:
     def __init__(self):
         self.discoveries = []
         self.coherence = 0.45
-        self.experts_status = {e: "Idle" for e in EXPERT_DOMAINS.keys()}
+        self.experts_status = dict.fromkeys(EXPERT_DOMAINS.keys(), "Idle")
 
     async def cool_down_expert(self, expert):
         await asyncio.sleep(5)
@@ -55,7 +57,7 @@ class SimulationDriver:
                     continue
 
                 # Check for expert ignition
-                for key in EXPERT_DOMAINS.keys():
+                for key in EXPERT_DOMAINS:
                     if f"route: {key}" in line.lower():
                         self.experts_status[key] = "Ignited"
                         asyncio.create_task(self.cool_down_expert(key))
@@ -237,9 +239,7 @@ async def cmd_research(args):
     agent = NexusResearchAgent()
     try:
         if args.query:
-            console.print(
-                f"[dim]Searching for:[/dim] [bold #f093fb]{args.query}[/bold #f093fb]"
-            )
+            console.print(f"[dim]Searching for:[/dim] [bold #f093fb]{args.query}[/bold #f093fb]")
             res = await agent.search_and_rank(args.query)
         else:
             console.print("[dim]Executing comprehensive daily sweep...[/dim]")
@@ -267,9 +267,7 @@ async def cmd_journey(args):
     console = Console()
 
     if args.list:
-        table = Table(
-            title="Available Cohezion Journeys", border_style=Colors.EARTH_BLUE
-        )
+        table = Table(title="Available Cohezion Journeys", border_style=Colors.EARTH_BLUE)
         table.add_column("Voyage", style=f"bold {Colors.NEXUS_GREEN}")
         table.add_column("Description", style="italic")
         for name, data in registry.list_voyages().items():
@@ -291,9 +289,7 @@ async def cmd_journey(args):
 
 
 async def main():
-    parser = argparse.ArgumentParser(
-        description="Cohezion CLI - Swarm Orchestration Utility"
-    )
+    parser = argparse.ArgumentParser(description="Cohezion CLI - Swarm Orchestration Utility")
     subparsers = parser.add_subparsers(dest="command", help="Subcommand to run")
 
     # Dash command
@@ -305,16 +301,10 @@ async def main():
     res_parser.add_argument("--limit", type=int, default=5, help="Limit per source")
 
     # Browser command
-    browser_parser = subparsers.add_parser(
-        "browser", help="Launch Cohezion Browser Agent"
-    )
+    browser_parser = subparsers.add_parser("browser", help="Launch Cohezion Browser Agent")
     browser_parser.add_argument("url", type=str, help="URL to explore")
-    browser_parser.add_argument(
-        "--screenshot", type=str, help="Path to save screenshot"
-    )
-    browser_parser.add_argument(
-        "--headful", action="store_true", help="Launch in headful mode"
-    )
+    browser_parser.add_argument("--screenshot", type=str, help="Path to save screenshot")
+    browser_parser.add_argument("--headful", action="store_true", help="Launch in headful mode")
 
     # Verify command
     verify_parser = subparsers.add_parser("verify", help="Run validation suite")
@@ -323,12 +313,8 @@ async def main():
     )
 
     # Journey command
-    journey_parser = subparsers.add_parser(
-        "journey", help="Begin an interactive Cohezion Journey"
-    )
-    journey_parser.add_argument(
-        "--list", action="store_true", help="List all available journeys"
-    )
+    journey_parser = subparsers.add_parser("journey", help="Begin an interactive Cohezion Journey")
+    journey_parser.add_argument("--list", action="store_true", help="List all available journeys")
     journey_parser.add_argument("--start", type=str, help="Start a specific journey")
 
     args = parser.parse_args()

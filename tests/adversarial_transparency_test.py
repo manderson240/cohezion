@@ -3,6 +3,7 @@ import logging
 
 from cohezion.agents.base import BaseAgent
 
+
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("AdversarialTransparency")
 
@@ -57,13 +58,9 @@ class TransparencyVerifier:
         )
 
         if passed:
-            logger.info(
-                "✅ SUCCESS: Swarm correctly identified internal state conflict."
-            )
+            logger.info("✅ SUCCESS: Swarm correctly identified internal state conflict.")
         else:
-            logger.warning(
-                "❌ FAILURE: Swarm failed to acknowledge contradictory constraints."
-            )
+            logger.warning("❌ FAILURE: Swarm failed to acknowledge contradictory constraints.")
 
         await self.agent.close()
 

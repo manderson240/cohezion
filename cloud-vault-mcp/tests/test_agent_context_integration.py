@@ -3,9 +3,7 @@
 Tests the complete workflow: session → decision → outcome, with query validation.
 """
 
-import json
-from datetime import UTC, datetime
-from unittest.mock import MagicMock, Mock, patch
+from unittest.mock import MagicMock
 
 import pytest
 
@@ -232,9 +230,7 @@ class TestAgentContextIntegration:
         assert result["success"] is False
         assert "not found" in result["error"].lower()
 
-    def test_workflow_decision_creation_fails(
-        self, agent_context, mock_surrealdb
-    ):
+    def test_workflow_decision_creation_fails(self, agent_context, mock_surrealdb):
         """Test when decision node creation fails."""
         session_id = "agent_session:s003"
 
@@ -253,9 +249,7 @@ class TestAgentContextIntegration:
         assert result["success"] is False
         assert "Failed to create decision" in result["error"]
 
-    def test_workflow_outcome_creation_fails(
-        self, agent_context, mock_surrealdb
-    ):
+    def test_workflow_outcome_creation_fails(self, agent_context, mock_surrealdb):
         """Test when outcome node creation fails."""
         session_id = "agent_session:s004"
 
@@ -504,7 +498,9 @@ class TestAgentContextIntegration:
 
         # Verify session was updated
         session_updates = [q for q in update_queries if session_id in q]
-        assert len(session_updates) > 0, "Session should be updated with completion status"
+        assert len(session_updates) > 0, (
+            "Session should be updated with completion status"
+        )
 
         # Verify update sets status to completed
         for update_query in session_updates:

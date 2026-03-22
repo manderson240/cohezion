@@ -10,10 +10,12 @@ import logging
 import sys
 from pathlib import Path
 
+
 # Add src to path
 sys.path.append(str(Path(__file__).parent.parent.parent / "src"))
 
 from cohezion.swarm.agents.lab_agent import LabAgent
+
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("research_task")
@@ -22,9 +24,7 @@ logger = logging.getLogger("research_task")
 async def main():
     parser = argparse.ArgumentParser(description="Run directed AI Lab research.")
     parser.add_argument("--topic", type=str, required=True, help="Research topic")
-    parser.add_argument(
-        "--context", type=str, required=True, help="Context or URL content"
-    )
+    parser.add_argument("--context", type=str, required=True, help="Context or URL content")
 
     args = parser.parse_args()
 

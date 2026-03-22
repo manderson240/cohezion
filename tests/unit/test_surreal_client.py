@@ -197,9 +197,7 @@ class TestSurrealClientConnect:
         mod._SHARED_STORE = None
 
         client = SurrealClient()
-        with patch(
-            "cohezion.core.persistence.surreal_client.get_circuit"
-        ) as mock_circuit:
+        with patch("cohezion.core.persistence.surreal_client.get_circuit") as mock_circuit:
             mock_breaker = MagicMock()
             mock_breaker.allow_request.return_value = True
             mock_circuit.return_value = mock_breaker
@@ -250,9 +248,7 @@ class TestSurrealClientGetNode:
         client._client = InMemoryStore()
 
         # Store a node-like dict
-        node = UniverseNode(
-            id="gn1", content="get me", physics_state=PhysicsState(x=1.0)
-        )
+        node = UniverseNode(id="gn1", content="get me", physics_state=PhysicsState(x=1.0))
         await client.store_node(node)
 
         retrieved = await client.get_node("gn1")
@@ -280,9 +276,7 @@ class TestSurrealClientQuerySimilar:
         for i in range(3):
             vec = [0.0] * 768
             vec[i] = 1.0
-            node_data = UniverseNode(
-                id=f"sim_{i}", content=f"node {i}", embedding=vec
-            ).to_dict()
+            node_data = UniverseNode(id=f"sim_{i}", content=f"node {i}", embedding=vec).to_dict()
             client._client.store(f"sim_{i}", node_data)
 
         query_vec = [0.0] * 768
@@ -333,9 +327,7 @@ class TestDictToNode:
         import zlib
 
         original = "A" * 200
-        compressed = base64.b64encode(zlib.compress(original.encode("utf-8"))).decode(
-            "ascii"
-        )
+        compressed = base64.b64encode(zlib.compress(original.encode("utf-8"))).decode("ascii")
         data = {
             "id": "t2",
             "content": compressed,
