@@ -1,3 +1,15 @@
+---
+name: security-guardrails
+description: AI security guardrail implementation including input validation,
+  rate limiting, authentication, prompt injection defense, output filtering,
+  and audit logging. Use when implementing auth flows, reviewing security
+  posture, or when user mentions "security", "prompt guard", "rate limiting",
+  "OWASP", "prompt injection", or "credential rotation".
+metadata:
+  version: "0.1"
+  legacy-name: SECURITY_GUARDRAILS_PRIME
+---
+
 # SKILL: SECURITY_GUARDRAILS_PRIME
 
 ## DOMAIN EXPERTISE

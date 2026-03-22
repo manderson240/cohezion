@@ -12,6 +12,7 @@ import math
 from collections import deque
 from dataclasses import dataclass, field
 
+
 logger = logging.getLogger(__name__)
 
 # HIHO target coherence (Half-In-Half-Out equilibrium)
@@ -133,9 +134,7 @@ class DivergenceDetector:
             self._recompute_stats()
 
         # 3. HIHO coherence drift check
-        current_coherence = (
-            coherence if coherence is not None else self._estimate_coherence()
-        )
+        current_coherence = coherence if coherence is not None else self._estimate_coherence()
         if coherence is not None:
             self._coherence_values.append(coherence)
 
@@ -188,9 +187,7 @@ class DivergenceDetector:
     def get_stats(self) -> dict:
         """Return current detector statistics."""
         mean = self._sum / self._count if self._count > 0 else 0.0
-        variance = (
-            (self._sum_sq / self._count) - (mean * mean) if self._count > 0 else 0.0
-        )
+        variance = (self._sum_sq / self._count) - (mean * mean) if self._count > 0 else 0.0
         return {
             "count": self._count,
             "mean": mean,

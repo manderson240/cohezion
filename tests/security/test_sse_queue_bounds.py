@@ -8,6 +8,7 @@ CVSS 6.5 Mitigation: Bounded queues prevent OOM attacks.
 """
 
 import asyncio
+
 import pytest
 
 from cohezion.api.sse_queue_bounds import (

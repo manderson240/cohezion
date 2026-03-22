@@ -1,6 +1,7 @@
-from cohezion_branding_mcp import get_brand_colors, get_brand_identity, get_ascii_logo
+from cohezion_branding_mcp import get_ascii_logo, get_brand_colors, get_brand_identity
 from rich.console import Console
 from rich.panel import Panel
+
 
 def verify_mcp_interfaces():
     console = Console()
@@ -27,6 +28,7 @@ def verify_mcp_interfaces():
         console.print(logo)
     else:
         console.print("❌ Logo: Verification [bold red]FAILED[/bold red]")
+
 
 if __name__ == "__main__":
     verify_mcp_interfaces()

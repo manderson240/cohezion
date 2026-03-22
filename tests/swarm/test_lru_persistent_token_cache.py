@@ -8,7 +8,6 @@ Tests cover:
 - Error handling and edge cases
 """
 
-import json
 import tempfile
 from pathlib import Path
 
@@ -141,6 +140,7 @@ class TestLRUPersistentTokenCacheMemoryBounding:
     def test_lru_evicts_oldest(self):
         """Test that LRU eviction works and keeps cache bounded."""
         import tempfile
+
         with tempfile.TemporaryDirectory() as tmpdir:
             # Use persistence to trigger eviction properly
             cache = LRUPersistentTokenCache(
@@ -380,9 +380,7 @@ class TestLRUPersistentTokenCacheEdgeCases:
 
     def test_large_token_values(self, bounded_cache):
         """Test handling large token counts."""
-        entry = CacheEntry(
-            key="large", value="response", tokens_used=999999999
-        )
+        entry = CacheEntry(key="large", value="response", tokens_used=999999999)
         bounded_cache["large"] = entry
 
         assert bounded_cache["large"].tokens_used == 999999999
@@ -397,9 +395,7 @@ class TestLRUPersistentTokenCacheEdgeCases:
 
     def test_unicode_in_values(self, bounded_cache):
         """Test handling unicode characters."""
-        entry = CacheEntry(
-            key="unicode", value="🚀 Rocket response éàü", tokens_used=100
-        )
+        entry = CacheEntry(key="unicode", value="🚀 Rocket response éàü", tokens_used=100)
         bounded_cache["unicode"] = entry
 
         assert bounded_cache["unicode"].value == "🚀 Rocket response éàü"

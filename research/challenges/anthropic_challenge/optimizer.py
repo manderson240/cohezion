@@ -91,9 +91,9 @@ class OptimizedKernelBuilder:
         addr = self.scratch_ptr
         self.scratch_ptr += size
         # print(f"ALLOC: {name} size={size} ptr={self.scratch_ptr}")
-        assert (
-            self.scratch_ptr <= SCRATCH_SIZE
-        ), f"Scratch overflow: {self.scratch_ptr} > {SCRATCH_SIZE}"
+        assert self.scratch_ptr <= SCRATCH_SIZE, (
+            f"Scratch overflow: {self.scratch_ptr} > {SCRATCH_SIZE}"
+        )
         self.scratch_names[addr] = name, size
         return addr
 

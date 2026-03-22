@@ -24,6 +24,7 @@ import sys
 import time
 from pathlib import Path
 
+
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s | %(levelname)-7s | %(message)s",
@@ -139,10 +140,10 @@ def main() -> int:
 
     for iteration in range(args.iterations):
         t0 = time.time()
-        logger.info(f"\n{'='*40}")
+        logger.info(f"\n{'=' * 40}")
         logger.info(f"ITERATION {iteration + 1}/{args.iterations}")
         logger.info(f"Params: {json.dumps(params, indent=2)}")
-        logger.info(f"{'='*40}")
+        logger.info(f"{'=' * 40}")
 
         # Step 1: Train VAE
         logger.info("[VAE] Training %d epochs...", args.vae_epochs)

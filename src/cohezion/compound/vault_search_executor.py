@@ -16,7 +16,7 @@ import logging
 from dataclasses import dataclass
 from typing import Any
 
-from cohezion.compound.executor import CompoundExecutor, ExecutionResult
+from cohezion.compound.executor import CompoundExecutor
 from cohezion.core.mcp_client import MCPClient
 
 
@@ -209,9 +209,7 @@ class VaultSearchExecutor(CompoundExecutor):
         if not 0.0 <= query.min_relevance <= 1.0:
             raise ValueError("Min relevance must be between 0.0 and 1.0")
 
-    def _execute_search(
-        self, query: SearchQuery, skill_context: list[str]
-    ) -> list[dict[str, Any]]:
+    def _execute_search(self, query: SearchQuery, skill_context: list[str]) -> list[dict[str, Any]]:
         """Phase 4: Execute search operation with skill context.
 
         Args:
@@ -262,9 +260,7 @@ class VaultSearchExecutor(CompoundExecutor):
 
         # Keyword matching
         doc_text = (
-            json.dumps(document).lower()
-            if isinstance(document, dict)
-            else str(document).lower()
+            json.dumps(document).lower() if isinstance(document, dict) else str(document).lower()
         )
         matching_keywords = sum(1 for kw in query.keywords if kw in doc_text)
         score += (matching_keywords / len(query.keywords)) * 0.7

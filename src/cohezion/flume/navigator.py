@@ -14,6 +14,7 @@ from cohezion.flume.mnm import ManifoldManager
 from cohezion.flume.predictor import TrajectoryPredictor
 from cohezion.swarm.hiho_vector_engine import HihoVectorEngine
 
+
 logger = logging.getLogger(__name__)
 
 
@@ -92,22 +93,17 @@ class FlumeNavigator:
             z_noisy = z + noise
 
             # Predict trajectory for this branch
-            traj_vecs = self.predictor.predict_with_physics(
-                z_noisy, steps=steps, momentum=0.85
-            )
+            traj_vecs = self.predictor.predict_with_physics(z_noisy, steps=steps, momentum=0.85)
 
             # Decode branch
             branch_text = [
-                self.encoder.decode(v if v.dim() == 2 else v.unsqueeze(0))[0]
-                for v in traj_vecs
+                self.encoder.decode(v if v.dim() == 2 else v.unsqueeze(0))[0] for v in traj_vecs
             ]
             branches.append(branch_text)
 
         return branches
 
-    async def bridge_manifolds(
-        self, concept: str, source_domain: str, target_domain: str
-    ) -> str:
+    async def bridge_manifolds(self, concept: str, source_domain: str, target_domain: str) -> str:
         """
         Navigates from source_domain manifold to target_domain manifold.
         """

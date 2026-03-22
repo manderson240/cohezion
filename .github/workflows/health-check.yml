@@ -52,7 +52,7 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           
           # Run health check and capture output
-          uv run python scripts/ci/daily_health_check.py --output json > health_report.json 2>&1 || true
+          uv run python scripts/ci/daily_health_check.py --output json > health_report.json 2>/dev/null || true
           
           # Parse results
           OVERALL_SCORE=$(cat health_report.json | python -c "import json,sys; print(json.load(sys.stdin).get('overall_score', 0))" 2>/dev/null || echo "0")

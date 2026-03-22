@@ -14,6 +14,7 @@ from cohezion.services.agent_service import AgentService
 from cohezion.services.knowledge_service import KnowledgeNode
 from cohezion.services.physics_service import PhysicsAnalysis, PhysicsService
 
+
 logger = logging.getLogger(__name__)
 
 
@@ -145,19 +146,13 @@ class SwarmService:
                     content=final_response or query,
                     metadata=context,
                 )
-                physics_analysis = await self._physics_service.analyze_physics_state(
-                    physics_state
-                )
-                journey.aggregate_metrics.safety_alignment_score = (
-                    physics_analysis.coherence_score
-                )
+                physics_analysis = await self._physics_service.analyze_physics_state(physics_state)
+                journey.aggregate_metrics.safety_alignment_score = physics_analysis.coherence_score
 
             if self._config.enable_journey_recording:
                 journey.final_response = final_response
                 journey.final_confidence = confidence
-                journey.total_duration_ms = (
-                    datetime.now() - start_time
-                ).total_seconds() * 1000
+                journey.total_duration_ms = (datetime.now() - start_time).total_seconds() * 1000
 
                 journey.aggregate_metrics = JourneyMetrics(
                     context_utilization=0.75,
@@ -197,11 +192,9 @@ class SwarmService:
         except Exception as e:
             logger.error(f"QUADRATURE NEXUS execution failed: {e}")
 
-            journey.final_response = f"Error: {str(e)}"
+            journey.final_response = f"Error: {e!s}"
             journey.final_confidence = 0.0
-            journey.total_duration_ms = (
-                datetime.now() - start_time
-            ).total_seconds() * 1000
+            journey.total_duration_ms = (datetime.now() - start_time).total_seconds() * 1000
 
             return QuadratureResult(
                 journey=journey,
@@ -245,9 +238,7 @@ class SwarmService:
                 context={**(context or {}), "model_name": model_name},
             )
 
-            output = (
-                f"Analyst phase completed: {len(journey.steps)} perspectives analyzed"
-            )
+            output = f"Analyst phase completed: {len(journey.steps)} perspectives analyzed"
 
             return QuadraturePhase(
                 name="analyst",
@@ -267,7 +258,7 @@ class SwarmService:
                 started_at=start.isoformat(),
                 completed_at=datetime.now().isoformat(),
                 success=False,
-                output=f"Error: {str(e)}",
+                output=f"Error: {e!s}",
                 duration_ms=(datetime.now() - start).total_seconds() * 1000,
             )
 
@@ -327,7 +318,7 @@ class SwarmService:
                 started_at=start.isoformat(),
                 completed_at=datetime.now().isoformat(),
                 success=False,
-                output=f"Error: {str(e)}",
+                output=f"Error: {e!s}",
                 duration_ms=(datetime.now() - start).total_seconds() * 1000,
             )
 
@@ -367,9 +358,7 @@ class SwarmService:
                 context={"model_name": model_name},
             )
 
-            output = (
-                f"Synthesized response based on {len(previous_phases)} input phases"
-            )
+            output = f"Synthesized response based on {len(previous_phases)} input phases"
 
             return QuadraturePhase(
                 name="synthesizer",
@@ -389,7 +378,7 @@ class SwarmService:
                 started_at=start.isoformat(),
                 completed_at=datetime.now().isoformat(),
                 success=False,
-                output=f"Error: {str(e)}",
+                output=f"Error: {e!s}",
                 duration_ms=(datetime.now() - start).total_seconds() * 1000,
             )
 

@@ -3,8 +3,12 @@ name: Portfolio E2E Tests
 on:
   push:
     branches: [main, develop]
+    paths:
+      - 'apps/dashboard/**'
   pull_request:
     branches: [main]
+    paths:
+      - 'apps/dashboard/**'
 
 jobs:
   test:
@@ -12,24 +16,32 @@ jobs:
     
     steps:
       - uses: actions/checkout@v4
-      
+
+      - name: Check dashboard exists
+        id: check
+        run: test -f apps/dashboard/package.json
+        continue-on-error: true
+
       - name: Setup Node.js
+        if: steps.check.outcome == 'success'
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-          
+
       - name: Install dependencies
+        if: steps.check.outcome == 'success'
         working-directory: apps/dashboard
         run: |
-          npm ci
+          npm install --no-audit --no-fund
           npx playwright install chromium
-          
+
       - name: Run Portfolio Tests
+        if: steps.check.outcome == 'success'
         working-directory: apps/dashboard
         run: npm run test:e2e -- --grep=Portfolio
-        
+
       - name: Upload test results
-        if: always()
+        if: always() && steps.check.outcome == 'success'
         uses: actions/upload-artifact@v4
         with:
           name: playwright-report

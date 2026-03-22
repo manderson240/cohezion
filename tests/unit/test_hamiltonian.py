@@ -55,9 +55,7 @@ class TestHamiltonianDynamics:
         z_final = hd.simulate(z0, epochs=1000, seed=42)
         # After long simulation, agents should cluster near potential minima
         # which are near the target for the double-well
-        assert (
-            z_final.std() < z0.std() * 3
-        )  # Shouldn't diverge wildly (thermal noise spreads)
+        assert z_final.std() < z0.std() * 3  # Shouldn't diverge wildly (thermal noise spreads)
 
     def test_trajectory_checkpoints(self, z0):
         hd = HamiltonianDynamics()

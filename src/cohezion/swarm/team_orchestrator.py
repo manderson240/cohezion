@@ -10,6 +10,11 @@ from __future__ import annotations
 import logging
 import re
 from dataclasses import dataclass, field
+from typing import TYPE_CHECKING
+
+
+if TYPE_CHECKING:
+    from cohezion.graph.types import WorkflowSpec
 
 
 logger = logging.getLogger(__name__)
@@ -61,9 +66,7 @@ class TeamPlan:
             lines.append(f"  - {a.name} ({a.model}): {a.description[:60]}")
         lines.append(f"\nTasks ({len(self.tasks)}):")
         for t in self.tasks:
-            blocked = (
-                f" [blocked by: {', '.join(t.blocked_by)}]" if t.blocked_by else ""
-            )
+            blocked = f" [blocked by: {', '.join(t.blocked_by)}]" if t.blocked_by else ""
             lines.append(f"  - [{t.id}] {t.subject}{blocked}")
         return "\n".join(lines)
 
@@ -160,9 +163,7 @@ class TeamOrchestrator:
 
         return plan
 
-    def generate_agent_spec(
-        self, skill_name: str, role: str = "implementer"
-    ) -> AgentSpec:
+    def generate_agent_spec(self, skill_name: str, role: str = "implementer") -> AgentSpec:
         """Convert a PRIME skill into a Claude Code agent specification.
 
         Parameters
@@ -192,9 +193,7 @@ class TeamOrchestrator:
 
         return self._spec_to_agent(spec, role)
 
-    def generate_agent_spec_from_capability(
-        self, cap, role: str = "implementer"
-    ) -> AgentSpec:
+    def generate_agent_spec_from_capability(self, cap, role: str = "implementer") -> AgentSpec:
         """Convert a Capability registry entry into an AgentSpec."""
         # Try to find the underlying skill spec for richer instructions
         skill_spec = self.engine.get_spec_by_name(cap.name)
@@ -369,18 +368,11 @@ class TeamOrchestrator:
         name_lower = name.lower()
         tags_str = " ".join(tags).lower()
 
-        if any(
-            kw in name_lower or kw in tags_str for kw in ["test", "verify", "quality"]
-        ):
+        if any(kw in name_lower or kw in tags_str for kw in ["test", "verify", "quality"]):
             return "tester"
-        if any(
-            kw in name_lower or kw in tags_str for kw in ["review", "audit", "security"]
-        ):
+        if any(kw in name_lower or kw in tags_str for kw in ["review", "audit", "security"]):
             return "reviewer"
-        if any(
-            kw in name_lower or kw in tags_str
-            for kw in ["research", "scout", "explore"]
-        ):
+        if any(kw in name_lower or kw in tags_str for kw in ["research", "scout", "explore"]):
             return "researcher"
         return "implementer"
 
@@ -426,6 +418,20 @@ class TeamOrchestrator:
         team_executor = TeamCompoundExecutor(auto_feedback=auto_feedback)
         orchestrator = ExecutionOrchestrator(compound_executor=team_executor)
         return await orchestrator.execute(plan)
+
+    def plan_workflow(
+        self,
+        intent: str,
+        max_agents: int = 4,
+    ) -> WorkflowSpec:
+        """Plan a team and convert to a WorkflowSpec for graph execution.
+
+        Returns a ``WorkflowSpec`` ready for ``WorkflowEngine.execute()``.
+        """
+        from cohezion.graph.builder import WorkflowBuilder
+
+        plan = self.plan_team(intent, max_agents=max_agents)
+        return WorkflowBuilder().from_team_plan(plan)
 
     @staticmethod
     def _slugify(text: str) -> str:

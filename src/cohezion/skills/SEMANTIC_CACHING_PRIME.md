@@ -1,3 +1,14 @@
+---
+name: semantic-caching
+description: Semantic caching using vector similarity to serve cached responses
+  for semantically equivalent queries. Use when implementing cache layers,
+  optimizing LLM call costs, or when user mentions "semantic cache", "vector
+  similarity", "cache hit rate", "cosine similarity", or "embedding cache".
+metadata:
+  version: "1.0"
+  legacy-name: SEMANTIC_CACHING_PRIME
+---
+
 # SKILL: SEMANTIC_CACHING_PRIME
 
 ## DOMAIN EXPERTISE

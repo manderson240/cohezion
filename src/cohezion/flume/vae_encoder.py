@@ -15,9 +15,9 @@ Features:
 import hashlib
 import logging
 from pathlib import Path
-from typing import Optional
 
 import numpy as np
+
 
 try:
     import torch
@@ -63,7 +63,7 @@ class FlumeVAEEncoder:
 
     def __init__(
         self,
-        model_path: Optional[Path] = None,
+        model_path: Path | None = None,
         device: str = "cpu",
         fallback_to_hash: bool = True,
     ):
@@ -94,9 +94,7 @@ class FlumeVAEEncoder:
                 return
 
             # Load checkpoint — weights_only=True prevents arbitrary code execution
-            checkpoint = torch.load(
-                self.model_path, map_location=self.device, weights_only=True
-            )
+            checkpoint = torch.load(self.model_path, map_location=self.device, weights_only=True)
 
             # Extract encoder and mu_head
             encoder_state = checkpoint.get("encoder")
@@ -144,9 +142,7 @@ class FlumeVAEEncoder:
         elif self.fallback_to_hash:
             return self._hash_encode(text)
         else:
-            raise RuntimeError(
-                "VAE encoder not available and fallback disabled"
-            )
+            raise RuntimeError("VAE encoder not available and fallback disabled")
 
     def _vae_encode(self, text: str) -> np.ndarray:
         """Encode using trained VAE encoder.
@@ -161,12 +157,7 @@ class FlumeVAEEncoder:
             with torch.no_grad():
                 # Generate initial embedding from text hash
                 hash_embedding = self._hash_encode(text)
-                hash_tensor = (
-                    torch.from_numpy(hash_embedding)
-                    .float()
-                    .unsqueeze(0)
-                    .to(self.device)
-                )
+                hash_tensor = torch.from_numpy(hash_embedding).float().unsqueeze(0).to(self.device)
 
                 # Pass through encoder and mu_head
                 encoded = self.encoder(hash_tensor)
@@ -215,7 +206,7 @@ class FlumeVAEEncoder:
 
 
 # Global encoder instance
-_encoder_instance: Optional[FlumeVAEEncoder] = None
+_encoder_instance: FlumeVAEEncoder | None = None
 
 
 def get_encoder() -> FlumeVAEEncoder:

@@ -11,12 +11,11 @@ to detect:
 - Inconsistent naming conventions
 """
 
+import json
 import os
 import re
-import json
+from collections import defaultdict
 from pathlib import Path
-from typing import Dict, List, Set, Tuple
-from collections import defaultdict, deque
 
 
 class VaultReferenceAnalyzer:
@@ -34,7 +33,7 @@ class VaultReferenceAnalyzer:
         self.graph_nodes = set()
         self.missing_targets = defaultdict(set)
 
-    def run_analysis(self) -> Dict:
+    def run_analysis(self) -> dict:
         """Run complete reference analysis"""
         print("[*] Vault Reference Integrity Analysis")
         print(f"[*] Vault path: {self.vault_path}\n")
@@ -66,7 +65,7 @@ class VaultReferenceAnalyzer:
         self._check_conventions()
 
         # Generate report
-        print("\n" + "="*60)
+        print("\n" + "=" * 60)
         return self._generate_report()
 
     def _load_documents(self):
@@ -80,7 +79,7 @@ class VaultReferenceAnalyzer:
                     rel_path = file_path.relative_to(self.vault_path)
 
                     try:
-                        with open(file_path, "r", encoding="utf-8") as f:
+                        with open(file_path, encoding="utf-8") as f:
                             content = f.read()
                         self.documents[str(rel_path)] = content
                         self.graph_nodes.add(str(rel_path))
@@ -223,18 +222,17 @@ class VaultReferenceAnalyzer:
             for issue in issues[:5]:
                 print(f"    - {issue}")
 
-    def _generate_report(self) -> Dict:
+    def _generate_report(self) -> dict:
         """Generate comprehensive reference integrity report"""
         report = {
             "total_documents": len(self.documents),
             "total_references": sum(len(v) for v in self.references.values()),
             "missing_references": {
-                source: list(targets)
-                for source, targets in self.missing_targets.items()
-                if targets
+                source: list(targets) for source, targets in self.missing_targets.items() if targets
             },
             "orphaned_documents": [
-                doc for doc in self.documents.keys()
+                doc
+                for doc in self.documents.keys()
                 if doc not in self.inverse_refs or len(self.inverse_refs[doc]) == 0
             ],
             "high_connectivity": self._find_hubs(),
@@ -243,30 +241,30 @@ class VaultReferenceAnalyzer:
 
         # Print summary
         print("\nREFERENCE INTEGRITY REPORT")
-        print("="*60)
+        print("=" * 60)
         print(f"Total Documents: {report['total_documents']}")
         print(f"Total References: {report['total_references']}")
 
-        if report['missing_references']:
+        if report["missing_references"]:
             print(f"\nBroken References: {len(report['missing_references'])}")
-            for source, targets in list(report['missing_references'].items())[:5]:
+            for source, targets in list(report["missing_references"].items())[:5]:
                 print(f"  {source}:")
                 for target in targets[:3]:
                     print(f"    -> {target}")
 
-        if report['orphaned_documents']:
+        if report["orphaned_documents"]:
             print(f"\nOrphaned Documents: {len(report['orphaned_documents'])}")
-            for doc in report['orphaned_documents'][:5]:
+            for doc in report["orphaned_documents"][:5]:
                 print(f"  - {doc}")
 
-        if report['high_connectivity']:
-            print(f"\nHigh-connectivity Hubs (well-integrated):")
-            for doc, count in report['high_connectivity'][:5]:
+        if report["high_connectivity"]:
+            print("\nHigh-connectivity Hubs (well-integrated):")
+            for doc, count in report["high_connectivity"][:5]:
                 print(f"  - {doc}: {count} incoming references")
 
         return report
 
-    def _find_hubs(self) -> List[Tuple[str, int]]:
+    def _find_hubs(self) -> list[tuple[str, int]]:
         """Find well-connected hub documents"""
         hubs = [
             (doc, len(self.inverse_refs[doc]))
@@ -276,7 +274,7 @@ class VaultReferenceAnalyzer:
         hubs.sort(key=lambda x: x[1], reverse=True)
         return hubs[:10]
 
-    def export_report(self, output_path: str = None) -> Dict:
+    def export_report(self, output_path: str = None) -> dict:
         """Export detailed reference report"""
         if output_path is None:
             output_path = self.vault_path.parent / "vault_reference_report.json"

@@ -132,9 +132,7 @@ class TestPersistentTokenCache:
 
     def test_persistence_disabled_option(self, temp_cache_dir):
         """Test cache with persistence disabled."""
-        cache = PersistentTokenCache(
-            cache_dir=temp_cache_dir, persistence_enabled=False
-        )
+        cache = PersistentTokenCache(cache_dir=temp_cache_dir, persistence_enabled=False)
 
         entry = CacheEntry(key="test", value="response", tokens_used=50)
         cache["key1"] = entry

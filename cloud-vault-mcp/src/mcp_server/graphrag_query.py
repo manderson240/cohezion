@@ -7,15 +7,14 @@ Combines:
 - Query caching (LRU for frequent queries)
 """
 
-import asyncio
 import logging
 from functools import lru_cache
-from typing import List, Dict, Any, Optional
-from pathlib import Path
+from typing import Any
 
 import httpx
 
-from .graphrag_helpers import execute_surreal_async, GraphRAGError
+from .graphrag_helpers import GraphRAGError, execute_surreal_async
+
 
 logger = logging.getLogger(__name__)
 
@@ -30,7 +29,7 @@ class GraphRAGQuery:
         namespace: str = "cohezion",
         database: str = "vault",
         embedding_model: str = "nomic-embed-text:latest",
-        max_graph_depth: int = 3
+        max_graph_depth: int = 3,
     ):
         self.ollama_url = ollama_url.rstrip("/")
         self.surrealdb_url = surrealdb_url
@@ -39,7 +38,7 @@ class GraphRAGQuery:
         self.embedding_model = embedding_model
         self.max_graph_depth = max_graph_depth
 
-        self.http_client: Optional[httpx.AsyncClient] = None
+        self.http_client: httpx.AsyncClient | None = None
 
     async def __aenter__(self):
         """Async context manager entry"""
@@ -51,7 +50,7 @@ class GraphRAGQuery:
         if self.http_client:
             await self.http_client.aclose()
 
-    async def generate_embedding(self, text: str) -> List[float]:
+    async def generate_embedding(self, text: str) -> list[float]:
         """Generate query embedding via Ollama"""
         if not self.http_client:
             raise GraphRAGError("HTTP client not initialized")
@@ -60,12 +59,12 @@ class GraphRAGQuery:
             response = await self.http_client.post(
                 f"{self.ollama_url}/api/embeddings",
                 json={"model": self.embedding_model, "prompt": text[:2000]},
-                timeout=30.0
+                timeout=30.0,
             )
             response.raise_for_status()
             data = response.json()
 
-            embedding = data.get('embedding', [])
+            embedding = data.get("embedding", [])
             if not embedding:
                 raise GraphRAGError("No embedding returned from Ollama")
 
@@ -76,11 +75,8 @@ class GraphRAGQuery:
             raise GraphRAGError(f"Failed to generate embedding: {e}")
 
     async def semantic_search(
-        self,
-        query: str,
-        top_k: int = 5,
-        min_score: float = 0.3
-    ) -> List[Dict[str, Any]]:
+        self, query: str, top_k: int = 5, min_score: float = 0.3
+    ) -> list[dict[str, Any]]:
         """
         Semantic vector search
 
@@ -110,13 +106,10 @@ class GraphRAGQuery:
         """
 
         results = await execute_surreal_async(
-            search_query,
-            self.http_client,
-            self.namespace,
-            self.database
+            search_query, self.http_client, self.namespace, self.database
         )
 
-        return results[0].get('result', [])
+        return results[0].get("result", [])
 
     async def hybrid_search(
         self,
@@ -124,8 +117,8 @@ class GraphRAGQuery:
         top_k: int = 5,
         include_ancestry: bool = True,
         include_descendants: bool = True,
-        max_depth: int = None
-    ) -> List[Dict[str, Any]]:
+        max_depth: int = None,
+    ) -> list[dict[str, Any]]:
         """
         Hybrid semantic + graph search
 
@@ -148,8 +141,16 @@ class GraphRAGQuery:
         query_vec = await self.generate_embedding(query)
 
         # Build hybrid query
-        ancestry_clause = f"->informed_by[..{max_depth}]->vault_memory AS ancestors" if include_ancestry else "[] AS ancestors"
-        descendants_clause = f"<-led_to[..{max_depth}]<-vault_memory AS descendants" if include_descendants else "[] AS descendants"
+        ancestry_clause = (
+            f"->informed_by[..{max_depth}]->vault_memory AS ancestors"
+            if include_ancestry
+            else "[] AS ancestors"
+        )
+        descendants_clause = (
+            f"<-led_to[..{max_depth}]<-vault_memory AS descendants"
+            if include_descendants
+            else "[] AS descendants"
+        )
 
         hybrid_query = f"""
         SELECT id, title, type, content, path,
@@ -163,20 +164,17 @@ class GraphRAGQuery:
         """
 
         results = await execute_surreal_async(
-            hybrid_query,
-            self.http_client,
-            self.namespace,
-            self.database
+            hybrid_query, self.http_client, self.namespace, self.database
         )
 
-        return results[0].get('result', [])
+        return results[0].get("result", [])
 
     async def find_related(
         self,
         doc_id: str,
         max_depth: int = None,
-        relation_types: Optional[List[str]] = None
-    ) -> Dict[str, Any]:
+        relation_types: list[str] | None = None,
+    ) -> dict[str, Any]:
         """
         Find all related documents via graph edges
 
@@ -192,7 +190,12 @@ class GraphRAGQuery:
             raise GraphRAGError("HTTP client not initialized")
 
         max_depth = max_depth or self.max_graph_depth
-        relation_types = relation_types or ['informed_by', 'led_to', 'used_in', 'extracted_from']
+        relation_types = relation_types or [
+            "informed_by",
+            "led_to",
+            "used_in",
+            "extracted_from",
+        ]
 
         # Build query with all relationship types
         query = f"""
@@ -205,32 +208,33 @@ class GraphRAGQuery:
         """
 
         results = await execute_surreal_async(
-            query,
-            self.http_client,
-            self.namespace,
-            self.database
+            query, self.http_client, self.namespace, self.database
         )
 
-        result_list = results[0].get('result', [])
+        result_list = results[0].get("result", [])
         return result_list[0] if result_list else {}
 
 
 # LRU-cached query function for frequent searches
 @lru_cache(maxsize=100)
-def _cache_key(query: str, top_k: int, include_ancestry: bool, include_descendants: bool) -> str:
+def _cache_key(
+    query: str, top_k: int, include_ancestry: bool, include_descendants: bool
+) -> str:
     """Generate cache key for query"""
     return f"{query}::{top_k}::{include_ancestry}::{include_descendants}"
 
 
 async def cached_hybrid_search(
-    query_engine: GraphRAGQuery,
-    query: str,
-    top_k: int = 5,
-    **kwargs
-) -> List[Dict[str, Any]]:
+    query_engine: GraphRAGQuery, query: str, top_k: int = 5, **kwargs
+) -> list[dict[str, Any]]:
     """Cached hybrid search (use for frequent queries)"""
     # Check cache
-    cache_key = _cache_key(query, top_k, kwargs.get('include_ancestry', True), kwargs.get('include_descendants', True))
+    cache_key = _cache_key(
+        query,
+        top_k,
+        kwargs.get("include_ancestry", True),
+        kwargs.get("include_descendants", True),
+    )
 
     # Execute query (cache hit/miss handled by LRU decorator)
     return await query_engine.hybrid_search(query, top_k, **kwargs)

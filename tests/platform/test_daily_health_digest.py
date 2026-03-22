@@ -7,24 +7,24 @@ Charter compliance verification:
 - Layer 3: EDL routing for critical issues
 """
 
-import pytest
-from datetime import datetime, timedelta
-from unittest.mock import Mock, patch, AsyncMock
 import subprocess
+from datetime import datetime
+from unittest.mock import AsyncMock, Mock, patch
 
+import pytest
+
+from cohezion.platform.coherence_tracker import CoherenceMetrics
 from cohezion.platform.daily_health_digest import (
     DailyHealthDigest,
+    DependencyMetrics,
+    HealthCheckResult,
     HealthDigest,
     HealthStatus,
     RepositoryMetrics,
     TestMetrics,
-    DependencyMetrics,
-    CICDMetrics,
-    HealthCheckResult,
     get_daily_health_digest,
     reset_daily_health_digest,
 )
-from cohezion.platform.coherence_tracker import CoherenceMetrics
 
 
 @pytest.fixture
@@ -92,9 +92,7 @@ async def test_collect_repository_metrics_healthy(digest):
         mock_run.side_effect = [
             Mock(stdout="6442450944\t.git\n", returncode=0),  # 6GB
             Mock(stdout="25\n", returncode=0),  # 25 large files
-            Mock(
-                stdout="count: 50\npacks: 1\n", returncode=0
-            ),  # Good pack efficiency
+            Mock(stdout="count: 50\npacks: 1\n", returncode=0),  # Good pack efficiency
         ]
 
         metrics = await digest._collect_repository_metrics()
@@ -131,9 +129,7 @@ async def test_collect_repository_metrics_critical(digest):
         mock_run.side_effect = [
             Mock(stdout="13958643712\t.git\n", returncode=0),  # 13GB (critical)
             Mock(stdout="120\n", returncode=0),  # 120 large files (critical)
-            Mock(
-                stdout="count: 15000\npacks: 10\n", returncode=0
-            ),  # Poor efficiency
+            Mock(stdout="count: 15000\npacks: 10\n", returncode=0),  # Poor efficiency
         ]
 
         metrics = await digest._collect_repository_metrics()
@@ -163,9 +159,7 @@ async def test_collect_test_metrics_from_db(digest):
     """Test collecting test metrics from SurrealDB."""
 
     digest.db.query = AsyncMock(
-        return_value=[
-            {"total_tests": 2850, "passing_tests": 2830, "timestamp": datetime.now()}
-        ]
+        return_value=[{"total_tests": 2850, "passing_tests": 2830, "timestamp": datetime.now()}]
     )
 
     metrics = await digest._collect_test_metrics()
@@ -270,9 +264,7 @@ def test_check_status_inverted_thresholds(digest):
     # Higher is better (e.g., test pass rate)
     assert digest._check_status(0.98, 0.95, 0.90, invert=True) == HealthStatus.HEALTHY
     assert digest._check_status(0.92, 0.95, 0.90, invert=True) == HealthStatus.WARNING
-    assert (
-        digest._check_status(0.85, 0.95, 0.90, invert=True) == HealthStatus.CRITICAL
-    )
+    assert digest._check_status(0.85, 0.95, 0.90, invert=True) == HealthStatus.CRITICAL
 
 
 def test_run_health_checks_all_healthy(digest):
@@ -310,7 +302,9 @@ def test_run_health_checks_some_warnings(digest):
         loose_objects=4000,
         pack_count=2,
     )
-    test = TestMetrics(total_tests=100, passing_tests=92, failing_tests=8, pass_rate=0.92)  # Warning
+    test = TestMetrics(
+        total_tests=100, passing_tests=92, failing_tests=8, pass_rate=0.92
+    )  # Warning
     dep = DependencyMetrics(
         total_dependencies=50,
         outdated_dependencies=3,
@@ -334,7 +328,9 @@ def test_run_health_checks_critical(digest):
         loose_objects=20000,
         pack_count=5,
     )
-    test = TestMetrics(total_tests=100, passing_tests=85, failing_tests=15, pass_rate=0.85)  # Critical
+    test = TestMetrics(
+        total_tests=100, passing_tests=85, failing_tests=15, pass_rate=0.85
+    )  # Critical
     dep = DependencyMetrics(
         total_dependencies=50,
         outdated_dependencies=10,
@@ -628,7 +624,9 @@ async def test_generate_recommendations_failing_tests(digest):
     repo = RepositoryMetrics(
         size_gb=6.0, large_file_count=20, pack_efficiency=0.95, loose_objects=50, pack_count=1
     )
-    test = TestMetrics(total_tests=100, passing_tests=85, failing_tests=15, pass_rate=0.85)  # Critical
+    test = TestMetrics(
+        total_tests=100, passing_tests=85, failing_tests=15, pass_rate=0.85
+    )  # Critical
     dep = DependencyMetrics(
         total_dependencies=50,
         outdated_dependencies=1,

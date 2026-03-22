@@ -17,7 +17,7 @@ from cohezion.concurrency.shared_resources import (
 @pytest.fixture
 def temp_skill_registry():
     """Create temporary skill registry file."""
-    with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.json') as f:
+    with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".json") as f:
         json.dump({"skills": {}}, f)
         filepath = f.name
     yield filepath
@@ -27,7 +27,7 @@ def temp_skill_registry():
 @pytest.fixture
 def temp_usage_tracker():
     """Create temporary usage tracking file."""
-    with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.json') as f:
+    with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".json") as f:
         json.dump({"operations": {}}, f)
         filepath = f.name
     yield filepath
@@ -122,10 +122,7 @@ class TestSkillRegistry:
             result = registry.register_skill(f"skill_{skill_id}", skill_data)
             results.append(len(result["skills"]))
 
-        threads = [
-            threading.Thread(target=register_skill, args=(i,))
-            for i in range(5)
-        ]
+        threads = [threading.Thread(target=register_skill, args=(i,)) for i in range(5)]
 
         for t in threads:
             t.start()
@@ -148,10 +145,7 @@ class TestSkillRegistry:
             for _ in range(10):
                 registry.increment_skill_usage("my_skill")
 
-        threads = [
-            threading.Thread(target=increment_usage)
-            for _ in range(3)
-        ]
+        threads = [threading.Thread(target=increment_usage) for _ in range(3)]
 
         for t in threads:
             t.start()
@@ -282,10 +276,7 @@ class TestCapabilityUsageTracker:
                 )
                 time.sleep(0.001)
 
-        threads = [
-            threading.Thread(target=record_operations)
-            for _ in range(5)
-        ]
+        threads = [threading.Thread(target=record_operations) for _ in range(5)]
 
         for t in threads:
             t.start()

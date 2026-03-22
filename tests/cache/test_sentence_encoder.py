@@ -53,9 +53,7 @@ class TestSentenceTransformerEncoder:
 
     def test_encode_without_model(self):
         """Error-case: Encoding without loaded model returns zero vector."""
-        with patch(
-            "sentence_transformers.SentenceTransformer", side_effect=ImportError
-        ):
+        with patch("sentence_transformers.SentenceTransformer", side_effect=ImportError):
             encoder = SentenceTransformerEncoder()
             assert encoder.model is None
 
@@ -172,9 +170,7 @@ class TestSentenceTransformerEncoder:
 
     def test_get_embedding_dim_no_model(self):
         """Error-case: get_embedding_dim returns 0 when model unavailable."""
-        with patch(
-            "sentence_transformers.SentenceTransformer", side_effect=ImportError
-        ):
+        with patch("sentence_transformers.SentenceTransformer", side_effect=ImportError):
             encoder = SentenceTransformerEncoder()
             dim = encoder.get_embedding_dim()
 
@@ -196,9 +192,7 @@ class TestSentenceTransformerEncoder:
 
     def test_repr_without_model(self):
         """Error-case: __repr__ shows unavailable status when model fails."""
-        with patch(
-            "sentence_transformers.SentenceTransformer", side_effect=ImportError
-        ):
+        with patch("sentence_transformers.SentenceTransformer", side_effect=ImportError):
             encoder = SentenceTransformerEncoder()
             repr_str = repr(encoder)
 

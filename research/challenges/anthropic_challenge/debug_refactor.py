@@ -1,5 +1,4 @@
 from perf_takehome import do_kernel_test
-import optimizer
 
 # Run standard test with prints
 print("Running diagnostic test...")

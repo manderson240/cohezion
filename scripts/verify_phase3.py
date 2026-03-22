@@ -3,13 +3,15 @@ import logging
 import sys
 from pathlib import Path
 
+
 # Add src to path
 sys.path.append(str(Path(__name__).parent / "src"))
 
-from cohezion.swarm.agents.healer_agent import HealerAgent
-from cohezion.swarm.agents.chronicle_agent import ChronicleAgent
-from cohezion.swarm.swarm_types import SwarmConfig
 from cohezion.core.time_keeper import get_time_keeper
+from cohezion.swarm.agents.chronicle_agent import ChronicleAgent
+from cohezion.swarm.agents.healer_agent import HealerAgent
+from cohezion.swarm.swarm_types import SwarmConfig
+
 
 async def main():
     logging.basicConfig(level=logging.INFO)
@@ -32,7 +34,7 @@ async def main():
     # 3. Test Sandbox Healing
     print("\n--- 2. Testing Sandbox Healing ---")
     # Mock an audit report finding
-    report = f"Audit Finding: Blocking call at `src/cohezion/core/time_keeper.py:1`"
+    report = "Audit Finding: Blocking call at `src/cohezion/core/time_keeper.py:1`"
     # Actually, we'll point it at a safer test file if needed, but for now we'll see if it extracts
     result = await healer.process(report)
     print(result)
@@ -45,6 +47,7 @@ async def main():
 
     await healer.close()
     await chronicle.close()
+
 
 if __name__ == "__main__":
     asyncio.run(main())

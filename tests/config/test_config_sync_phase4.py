@@ -3,12 +3,7 @@
 Tests template rendering, sync operations, commit generation, and orchestrator integration.
 """
 
-import asyncio
-import json
-import tempfile
-from datetime import datetime
 from pathlib import Path
-from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
@@ -18,7 +13,6 @@ from cohezion.config.config_templates import (
     TemplateContext,
     TemplateType,
 )
-from cohezion.config.config_sync_logger import ConfigSyncLogger
 
 
 class TestConfigTemplateEngine:
@@ -96,9 +90,7 @@ class TestConfigSyncEngine:
         vault_root = tmp_path / "vault"
         vault_root.mkdir()
 
-        sync_engine = ConfigSyncEngine(
-            repo_root=tmp_path, vault_root=vault_root
-        )
+        sync_engine = ConfigSyncEngine(repo_root=tmp_path, vault_root=vault_root)
 
         assert sync_engine.repo_root == tmp_path
         assert sync_engine.vault_root == vault_root
@@ -150,9 +142,7 @@ class TestConfigSyncEngine:
             "guardrails": [],
         }
 
-        message = await sync_engine._generate_commit_message(
-            "CLAUDE.md", vault_content
-        )
+        message = await sync_engine._generate_commit_message("CLAUDE.md", vault_content)
 
         assert "config:" in message
         assert "CLAUDE.md" in message
@@ -323,9 +313,7 @@ class TestCommitMessageGeneration:
     """Test AI-style commit message generation."""
 
     @pytest.mark.asyncio
-    async def test_commit_message_with_multiple_decisions(
-        self, tmp_path: Path
-    ) -> None:
+    async def test_commit_message_with_multiple_decisions(self, tmp_path: Path) -> None:
         """Test commit message with multiple decisions."""
         sync_engine = ConfigSyncEngine(repo_root=tmp_path)
 
@@ -336,9 +324,7 @@ class TestCommitMessageGeneration:
             "guardrails": [],
         }
 
-        message = await sync_engine._generate_commit_message(
-            "CLAUDE.md", vault_content
-        )
+        message = await sync_engine._generate_commit_message("CLAUDE.md", vault_content)
 
         assert "3" in message or "decisions" in message.lower()
 
@@ -354,9 +340,7 @@ class TestCommitMessageGeneration:
             "guardrails": [],
         }
 
-        message = await sync_engine._generate_commit_message(
-            "CLAUDE.md", vault_content
-        )
+        message = await sync_engine._generate_commit_message("CLAUDE.md", vault_content)
 
         assert "pattern" in message.lower()
 

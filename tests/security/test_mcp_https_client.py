@@ -1,12 +1,9 @@
 """Tests for MCP HTTPS client."""
 
-import socket
 import ssl
 import tempfile
 from pathlib import Path
 from unittest.mock import MagicMock, patch
-
-import pytest
 
 from cohezion.security.mcp_https_client import MCPHTTPSClient
 
