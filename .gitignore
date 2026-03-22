@@ -153,6 +153,11 @@ dist/
 # Runtime Data (Database and Metrics)
 data/surrealdb/
 data/compound/metrics/
+data/compound/cache/
+data/compound/cycles/
+data/checkpoints/
+data/config-sync-logs/
+data/journeys/
 
 # IDE/System Files
 .DS_Store
@@ -232,6 +237,3 @@ data/
 
 .gemini/
 gha-creds-*.json
-
-# MCP configuration (contains machine-specific paths and tokens — copy from .mcp.json.example)
-.mcp.json

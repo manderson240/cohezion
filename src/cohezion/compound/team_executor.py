@@ -27,7 +27,9 @@ class AgentTask:
     description: str  # What the task does
     operation_type: str  # generate, analyze, search, transform, persist
     dependencies: list[str] = field(default_factory=list)  # Task IDs it depends on
-    available_skills: list[str] = field(default_factory=list)  # Skills this task can use
+    available_skills: list[str] = field(
+        default_factory=list
+    )  # Skills this task can use
     execute_fn: Callable | None = None  # Optional execution function
     timeout_seconds: float = 300.0  # Execution timeout
 
@@ -240,9 +242,7 @@ class TeamExecutor:
 
                 def execute_fn(guidance):
                     # Default execution: pass parent results as context
-                    parent_outputs = {
-                        parent_id: result.output for parent_id, result in parent_results.items()
-                    }
+                    parent_outputs = {parent_id: result.output for parent_id, result in parent_results.items()}
                     return f"Executed {task.task_id}", {"parent_context": parent_outputs}
 
             # Execute task
@@ -312,8 +312,12 @@ class TeamExecutor:
         success_rate = successful / len(results)
 
         # Average coherence
-        coherence_scores = [r.metrics.get("coherence", 0.5) for r in results if r.success]
-        avg_coherence = sum(coherence_scores) / len(coherence_scores) if coherence_scores else 0.0
+        coherence_scores = [
+            r.metrics.get("coherence", 0.5) for r in results if r.success
+        ]
+        avg_coherence = (
+            sum(coherence_scores) / len(coherence_scores) if coherence_scores else 0.0
+        )
 
         # Average efficiency (token efficiency)
         efficiency_scores = []
@@ -322,12 +326,12 @@ class TeamExecutor:
                 cache_hit_rate = r.execution_result.token_metrics.get("cache_hit_rate", 0.0)
                 efficiency_scores.append(cache_hit_rate)
 
-        avg_efficiency = (
-            sum(efficiency_scores) / len(efficiency_scores) if efficiency_scores else 0.5
-        )
+        avg_efficiency = sum(efficiency_scores) / len(efficiency_scores) if efficiency_scores else 0.5
 
         # Weighted combination
-        compound = (success_rate * 0.6) + (avg_coherence * 0.25) + (avg_efficiency * 0.15)
+        compound = (
+            (success_rate * 0.6) + (avg_coherence * 0.25) + (avg_efficiency * 0.15)
+        )
 
         logger.info(
             "Compound score: %.3f (success=%.2f, coherence=%.2f, efficiency=%.2f)",
@@ -399,11 +403,7 @@ class TeamExecutor:
                 result = await self._execute_task(
                     task,
                     agent,
-                    {
-                        dep_id: task_results[dep_id]
-                        for dep_id in task.dependencies
-                        if dep_id in task_results
-                    },
+                    {dep_id: task_results[dep_id] for dep_id in task.dependencies if dep_id in task_results},
                 )
 
                 task_results[task.task_id] = result

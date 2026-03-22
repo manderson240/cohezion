@@ -50,7 +50,11 @@ class CodeReviewSwarm:
 
         # Initialize scouts
         self.static_scout = QualityScout()
-        self.llm_scouts: list[BaseScout] = [ArchitectureScout(), PatternScout(), AntiPatternScout()]
+        self.llm_scouts: list[BaseScout] = [
+            ArchitectureScout(),
+            PatternScout(),
+            AntiPatternScout(),
+        ]
 
     async def run_full_scan(self) -> SwarmReport:
         """
@@ -74,6 +78,13 @@ class CodeReviewSwarm:
                 ast_sum = self.static_scout._parse_python_ast(file_path)
                 if ast_sum and ast_sum.complexity_score >= self.complexity_threshold:
                     report.high_complexity_files.append(str(file_path))
+
+                report.scanned_files += 1
+
+            logger.info(
+                f"Static Phase: Scanned {report.scanned_files}/{len(all_files)} files..."
+            )
+            await asyncio.sleep(1.0)  # Breath between batches
 
                 report.scanned_files += 1
 

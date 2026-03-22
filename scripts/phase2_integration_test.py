@@ -33,9 +33,7 @@ async def test_lru_persistent_token_cache():
 
         # Add entries up to eviction threshold
         for i in range(6):
-            cache[f"key_{i}"] = CacheEntry(
-                key=f"key_{i}", value=f"response_{i}", tokens_used=100 + i
-            )
+            cache[f"key_{i}"] = CacheEntry(key=f"key_{i}", value=f"response_{i}", tokens_used=100 + i)
 
         # Check stats
         stats = cache.get_stats()

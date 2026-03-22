@@ -98,7 +98,20 @@ def _(mo):
         part = mo.ui.slider(0, 1, value=0.5, label="Particularization")
         precip = mo.ui.slider(0, 1, value=0.4, label="Precipitation")
 
-    return s1, s2, s3, tempic, electric, magnetic, rotation, precession, charge, aware, part, precip
+    return (
+        s1,
+        s2,
+        s3,
+        tempic,
+        electric,
+        magnetic,
+        rotation,
+        precession,
+        charge,
+        aware,
+        part,
+        precip,
+    )
 
 
 @app.cell
@@ -133,11 +146,26 @@ def _(aware, tempic, electric, magnetic, rotation, precession):
     else:
         particle_type = "Near-Neutral"
 
-    return coherence, stability, precipitated, charge_polarity, particle_type, spin_coherence
+    return (
+        coherence,
+        stability,
+        precipitated,
+        charge_polarity,
+        particle_type,
+        spin_coherence,
+    )
 
 
 @app.cell
-def _(mo, coherence, stability, precipitated, charge_polarity, particle_type, spin_coherence):
+def _(
+    mo,
+    coherence,
+    stability,
+    precipitated,
+    charge_polarity,
+    particle_type,
+    spin_coherence,
+):
     # Visual Output
     status_emoji = "🌟" if stability > 0.9 else "🌌" if stability > 0.5 else "🌫️"
     precip_status = "✅ REALITY PRECIPITATED" if precipitated else "❌ UNPRECIPITATED VOID"
@@ -175,7 +203,7 @@ def _(plt, np, coherence, stability):
     values = [0.5, (coherence / 0.8), 0.45, 0.4]  # Mock values for visualization
 
     # 12D State Visualization
-    fig, ax = plt.subplots(figsize=(6, 6), subplot_kw=dict(polar=True))
+    fig, ax = plt.subplots(figsize=(6, 6), subplot_kw={"polar": True})
 
     angles = np.linspace(0, 2 * np.pi, len(labels), endpoint=False).tolist()
     values += values[:1]
@@ -189,7 +217,11 @@ def _(plt, np, coherence, stability):
 
     # Add a marker for the 0.5 Stability Threshold
     ax.plot(
-        np.linspace(0, 2 * np.pi, 100), [0.5] * 100, "r--", alpha=0.5, label="HIHO 0.5 Threshold"
+        np.linspace(0, 2 * np.pi, 100),
+        [0.5] * 100,
+        "r--",
+        alpha=0.5,
+        label="HIHO 0.5 Threshold",
     )
     ax.legend(loc="upper right")
 

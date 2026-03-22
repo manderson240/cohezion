@@ -48,7 +48,7 @@ class TestSemanticCacheStore:
 
         cache.put("Hello", "Hi there", 1, 2)
 
-        result, is_exact = cache.get("Goodbye")
+        result, _is_exact = cache.get("Goodbye")
         assert result is None
         assert cache.get_stats()["misses"] == 1
 
@@ -91,7 +91,7 @@ class TestSemanticCacheStore:
         for _ in range(5):
             cache.get("test")
 
-        entry = list(cache._entries.values())[0]
+        entry = next(iter(cache._entries.values()))
         assert entry.access_count == 5
 
     def test_cache_metrics(self):
@@ -350,9 +350,9 @@ class TestMultiLayerCache:
             persistence_enabled=True,
         )
 
-        result, layer = cache2.get("test")
+        _result, _layer = cache2.get("test")
         # May not match due to timing, but should have loaded
-        assert cache2._semantic_cache._entries or True
+        assert True
 
     def test_clear_all(self):
         """Test clearing all caches."""
@@ -522,7 +522,7 @@ class TestCacheIntegration:
         ]
 
         for prompt in prompts:
-            cached, layer = cache.get(prompt)
+            cached, _layer = cache.get(prompt)
             if cached is None:
                 cache.put(prompt, f"Response to: {prompt}", 10, 20)
 
@@ -573,7 +573,7 @@ class TestCacheIntegration:
 
                     if i > 0:
                         # Repeated prompts should hit cache
-                        cached, layer = optimizer.get_cached_or_none(
+                        _cached, _layer = optimizer.get_cached_or_none(
                             f"{op}_{i}",
                             model=model,
                             operation_type=op,

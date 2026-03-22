@@ -65,10 +65,7 @@ class OffloadManager:
             return True
 
         # Very short queries are almost always offloadable unless they hit critical keywords above
-        if len(q) < 50:
-            return True
-
-        return False
+        return len(q) < 50
 
     def get_offload_recommendation(self, query: str) -> dict[str, Any]:
         """Provides a recommendation on whether to offload and which model to use."""
@@ -79,10 +76,7 @@ class OffloadManager:
 
         # Determine specific local target
         q = query.lower()
-        if "code" in q or "python" in q:
-            target = "qwen3-coder-256k"
-        else:
-            target = "phi4"
+        target = "qwen3-coder-256k" if "code" in q or "python" in q else "phi4"
 
         return {
             "offload": True,

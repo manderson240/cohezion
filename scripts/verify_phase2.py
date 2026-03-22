@@ -13,7 +13,7 @@ from cohezion.swarm.swarm_types import SwarmConfig
 
 async def main():
     logging.basicConfig(level=logging.INFO)
-    logger = logging.getLogger("Phase2Verification")
+    logging.getLogger("Phase2Verification")
 
     tk = get_time_keeper()
 
@@ -49,7 +49,6 @@ async def main():
 
     # 3. Test Skill Detection Trigger
     print("\n--- 3. Testing Skill Detection ---")
-
     # Simulate a few more calls to the same hash in actual BaseAgent logic
     # But for now, we'll verify the logic is intact in base.py
     print("Frequency check is verified via verify_agent_persistence.py")

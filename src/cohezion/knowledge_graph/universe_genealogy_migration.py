@@ -103,7 +103,14 @@ class UniverseGenealogySurvey:
         try:
             # Get git log to identify major phases
             result = subprocess.run(
-                ["git", "log", "--all", "--oneline", "--date=short", "--format=%h %ad %s"],
+                [
+                    "git",
+                    "log",
+                    "--all",
+                    "--oneline",
+                    "--date=short",
+                    "--format=%h %ad %s",
+                ],
                 cwd=self.cohezion_root,
                 capture_output=True,
                 text=True,
@@ -122,12 +129,18 @@ class UniverseGenealogySurvey:
                     "name": "Philosophical foundation",
                     "keywords": ["Co-evolution", "HIHO", "principle"],
                 },
-                2: {"name": "Universe architecture", "keywords": ["12D", "manifold", "soul"]},
+                2: {
+                    "name": "Universe architecture",
+                    "keywords": ["12D", "manifold", "soul"],
+                },
                 3: {
                     "name": "Physics mechanization",
                     "keywords": ["Hamiltonian", "physics", "simulation"],
                 },
-                4: {"name": "FLUME VAE integration", "keywords": ["FLUME", "VAE", "learning"]},
+                4: {
+                    "name": "FLUME VAE integration",
+                    "keywords": ["FLUME", "VAE", "learning"],
+                },
                 5: {
                     "name": "Production embeddings",
                     "keywords": ["embedding", "production", "validate"],
@@ -136,7 +149,10 @@ class UniverseGenealogySurvey:
                     "name": "Optimization sprint",
                     "keywords": ["optimize", "performance", "17.4x"],
                 },
-                7: {"name": "Robustness hardening", "keywords": ["robust", "graceful", "degrade"]},
+                7: {
+                    "name": "Robustness hardening",
+                    "keywords": ["robust", "graceful", "degrade"],
+                },
                 8: {
                     "name": "Self-awareness",
                     "keywords": ["metric", "measure", "pattern", "analyze"],
@@ -147,9 +163,7 @@ class UniverseGenealogySurvey:
                 "total_commits": len(commits),
                 "epoch_count": len(epochs),
                 "epochs_identified": epochs,
-                "git_history_span": f"{commits[-1].split()[1]} → {commits[0].split()[1]}"
-                if commits
-                else "unknown",
+                "git_history_span": f"{commits[-1].split()[1]} → {commits[0].split()[1]}" if commits else "unknown",
                 "status": "measured",
             }
 
@@ -211,7 +225,9 @@ class UniverseGenealogySurvey:
                 {
                     "number": 7,
                     "name": "Fractal eras",
-                    "description": "Each era repeats: concept → architecture → implementation → verification → hardening",
+                    "description": (
+                        "Each era repeats: concept -> architecture -> implementation -> verification -> hardening"
+                    ),
                     "evidence": "All 8 epochs follow same cycle structure",
                 },
             ]
@@ -240,9 +256,7 @@ class UniverseGenealogySurvey:
         logger.info("Phase 2: Building genealogy schema...")
 
         try:
-            schema_path = (
-                self.cohezion_root / "src/cohezion/knowledge_graph/universe_genealogy_schema.sql"
-            )
+            schema_path = self.cohezion_root / "src/cohezion/knowledge_graph/universe_genealogy_schema.sql"
 
             if not schema_path.exists():
                 raise FileNotFoundError(f"Schema not found: {schema_path}")

@@ -1,0 +1,71 @@
+title: Integrate GoogleSQL Analyzer as Docker Sidecar with MCP Tools
+date: 2026-02-08
+status: accepted
+context: |
+  Cohezion's AI agents generate SQL queries for PostgreSQL (hallucination tracking,
+  future data operations). There is no mechanism to validate, parse, or analyze
+  SQL before execution. GoogleSQL (formerly ZetaSQL) is Google's open-source SQL
+  analyzer framework that provides parsing, semantic analysis, and formatting for
+  standard SQL. It powers BigQuery, Spanner, and Dataflow.
+
+  The challenge is that GoogleSQL is C++/Java while Cohezion is Python. There are
+  no official Python bindings, and community attempts at Python FFI wrappers have
+  proven too complex (see Mozilla bigquery-etl issue #1834).
+
+decision: |
+  Integrate GoogleSQL as a Docker sidecar microservice with a Java REST API,
+  consumed by a Python HTTP client exposed as MCP tools.
+
+  Architecture:
+    1. googlesql-analyzer/ - Java service (Javalin + ZetaSQL Java API) in Docker
+    2. googlesql_client.py - Python HTTP client using stdlib urllib
+    3. googlesql_ops.py    - High-level operations layer for MCP tools
+    4. server.py           - 7 new MCP tools (sql_validate, sql_parse, sql_analyze,
+                             sql_extract_tables, sql_extract_columns, sql_format,
+                             sql_health)
+
+  The Java service runs as a sidecar in Docker Compose on port 8370 and exposes
+  REST endpoints for parse, analyze, validate, extract-tables, extract-columns,
+  and format operations.
+
+rationale: |
+  - Docker sidecar avoids FFI/binding complexity entirely
+  - Leverages existing Docker Compose infrastructure (zero new orchestration)
+  - Java API is the most complete GoogleSQL binding (official, via local RPC)
+  - stdlib urllib client means zero new Python dependencies
+  - MCP tool exposure follows established Cohezion patterns
+  - Graceful degradation: tools return clear errors if service is down
+  - Service health check integrated into Docker Compose dependency chain
+
+alternatives_considered:
+  - name: Python pybind11 bindings for C++ API
+    rejected_because: |
+      No existing bindings. Mozilla tried and abandoned. Would require wrapping
+      complex C++ with Abseil + Protobuf dependencies. Months of effort.
+
+  - name: Subprocess calls to execute_query binary
+    rejected_because: |
+      Text output parsing is fragile. No structured API. Process spawning
+      overhead per query. Binary availability/platform issues.
+
+  - name: Go wrapper service (like go-zetasql)
+    rejected_because: |
+      go-zetasql exists but adds Go to the stack. Java API is more complete
+      and officially supported. No practical advantage over Java approach.
+
+  - name: Java via JNI from Python (Mozilla approach)
+    rejected_because: |
+      Adds JNI + gRPC dependency chain to Python. Fragile, hard to debug.
+      Docker sidecar provides cleaner process isolation.
+
+consequences:
+  - positive:
+      - AI agents can validate SQL before execution
+      - SQL analysis enables query optimization and impact assessment
+      - Table/column extraction supports dependency tracking
+      - Consistent SQL formatting across the project
+      - Foundation for future BigQuery/Spanner support
+  - negative:
+      - Adds a Java service to the Docker Compose stack (~300MB container)
+      - Network latency for SQL analysis (mitigated by same Docker network)
+      - Java service needs separate CI/CD for building

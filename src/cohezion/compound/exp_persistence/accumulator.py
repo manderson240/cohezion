@@ -1,4 +1,5 @@
 import asyncio
+import contextlib
 import logging
 from typing import Any
 
@@ -55,7 +56,9 @@ class PersistenceAccumulator:
 
         # HW-Aware Drop: No persistence if system is severely dilated
         if dilation < 0.3:
-            logger.warning(f"Persistence skipped due to severe dilation ({dilation:.2f})")
+            logger.warning(
+                f"Persistence skipped due to severe dilation ({dilation:.2f})"
+            )
             return
 
         # Importance Sampling: Reject low-novelty logs if queue is getting full
@@ -107,10 +110,9 @@ class PersistenceAccumulator:
         self._running = False
         if hasattr(self, "_worker_task"):
             self._worker_task.cancel()
-            try:
+            with contextlib.suppress(asyncio.CancelledError):
                 await self._worker_task
-            except asyncio.CancelledError:
-                pass
+
 
 
 def get_accumulator() -> PersistenceAccumulator:

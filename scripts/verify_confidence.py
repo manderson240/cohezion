@@ -13,7 +13,7 @@ from cohezion.swarm.swarm_types import Perspective, SwarmConfig
 
 async def main():
     logging.basicConfig(level=logging.INFO)
-    logger = logging.getLogger("ConfidenceVerification")
+    logging.getLogger("ConfidenceVerification")
 
     config = SwarmConfig()
     analyst = AnalystAgent(Perspective.TECHNICAL, config=config)
@@ -28,9 +28,7 @@ async def main():
 
     # 2. Low Certainty / Speculative Question
     print("\n--- Testing Low Certainty (Speculation) ---")
-    q_low = (
-        "What will be the exact stock price of Apple (AAPL) on December 12, 2030, at 11:34 AM UTC?"
-    )
+    q_low = "What will be the exact stock price of Apple (AAPL) on December 12, 2030, at 11:34 AM UTC?"
     resp_low = await analyst.analyze(q_low, ignore_cache=True)
     print(f"Query: {q_low}")
     print(f"Phi Score: {resp_low.phi_score:.2f}")

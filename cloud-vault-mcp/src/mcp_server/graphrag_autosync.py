@@ -6,6 +6,7 @@ documents in SurrealDB when files change.
 """
 
 import asyncio
+import contextlib
 import logging
 from pathlib import Path
 
@@ -19,9 +20,7 @@ logger = logging.getLogger(__name__)
 class GraphRAGAutoSync:
     """Auto-sync vault changes to SurrealDB GraphRAG"""
 
-    def __init__(
-        self, vault_path: Path, watcher: VaultFileWatcher, enable_edges: bool = True
-    ):
+    def __init__(self, vault_path: Path, watcher: VaultFileWatcher, enable_edges: bool = True):
         self.vault_path = Path(vault_path).resolve()
         self.watcher = watcher
         self.enable_edges = enable_edges
@@ -51,10 +50,8 @@ class GraphRAGAutoSync:
         """Stop auto-sync background task"""
         if self.task and not self.task.done():
             self.task.cancel()
-            try:
+            with contextlib.suppress(asyncio.CancelledError):
                 await self.task
-            except asyncio.CancelledError:
-                pass
 
         if self.queue:
             self.watcher.unsubscribe(self.queue)
@@ -97,9 +94,7 @@ class GraphRAGAutoSync:
     async def _sync_document(self, file_path: Path):
         """Sync single document to SurrealDB"""
         try:
-            doc_id = await self.importer.import_document(
-                file_path, create_edges=self.enable_edges
-            )
+            doc_id = await self.importer.import_document(file_path, create_edges=self.enable_edges)
 
             if doc_id:
                 logger.info(f"Auto-synced {file_path.name} → {doc_id}")

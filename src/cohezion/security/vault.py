@@ -17,9 +17,7 @@ class BitwardenVault:
     def is_locked(self) -> bool:
         """Check if the vault is locked."""
         try:
-            result = subprocess.run(
-                [self.bw_path, "status"], capture_output=True, text=True, check=True
-            )
+            result = subprocess.run([self.bw_path, "status"], capture_output=True, text=True, check=True)
             status = json.loads(result.stdout)
             return status.get("status") == "locked"
         except Exception:

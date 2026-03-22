@@ -47,13 +47,13 @@ def extended_detect_document_type(file_path: Path, vault_path: Path) -> str:
 
 
 # Apply the patch
-import mcp_server.graphrag_helpers as helpers_module
+import mcp_server.graphrag_helpers as helpers_module  # noqa: E402
 
 
 helpers_module.detect_document_type = extended_detect_document_type
 
 # Also patch it in the import module since it may have imported it directly
-import mcp_server.graphrag_import as import_module
+import mcp_server.graphrag_import as import_module  # noqa: E402
 
 
 import_module.detect_document_type = extended_detect_document_type
@@ -128,7 +128,12 @@ async def count_records():
                 "DB": "vault",
             },
             auth=("root", "root"),
-            content="USE NS cohezion DB vault; SELECT type, count() FROM vault_memory GROUP BY type; SELECT count() FROM vault_memory GROUP ALL; SELECT count() FROM informed_by GROUP ALL;",
+            content=(
+                "USE NS cohezion DB vault;"
+                " SELECT type, count() FROM vault_memory GROUP BY type;"
+                " SELECT count() FROM vault_memory GROUP ALL;"
+                " SELECT count() FROM informed_by GROUP ALL;"
+            ),
         )
         results = resp.json()
         return results

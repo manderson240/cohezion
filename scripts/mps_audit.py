@@ -40,13 +40,7 @@ def audit():
         for line in f:
             line = line.strip()
             if line.startswith("cz"):
-                parts = (
-                    line.replace("cz q[", "")
-                    .replace("]", "")
-                    .replace(",q[", " ")
-                    .replace(";", "")
-                    .split()
-                )
+                parts = line.replace("cz q[", "").replace("]", "").replace(",q[", " ").replace(";", "").split()
                 if not parts:
                     continue
                 q_idxs = [int(p) for p in parts]
@@ -81,7 +75,7 @@ def audit():
     logger.info("Sampling 20,000 shots...")
     samples = list(psi.sample(20000))
     counts = {}
-    for bits, p in samples:
+    for bits, _p in samples:
         ordered = [""] * N
         for s_idx, b in enumerate(bits):
             q_idx = site_to_qubit[s_idx]

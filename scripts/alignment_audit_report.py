@@ -41,7 +41,7 @@ async def generate_alignment_report():
 
     for n in nodes:
         meta = n.get("metadata", {})
-        content = n.get("content", "")
+        n.get("content", "")
         agent = meta.get("agent", "Unknown")
         score = meta.get("alignment_score", 1.0)
         total_alignment += score

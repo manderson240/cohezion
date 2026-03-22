@@ -50,20 +50,20 @@ def _():
 def _(mo):
     mo.md("""
     # 🌌 Why Are Physics Laws The Way They Are?
-    
+
     **The Deepest Question in Science**
-    
+
     Physics describes *how* the universe works—but not *why* it works this way.
     Why these specific constants? Why these symmetries? Why anything at all?
-    
-    > *"The eternal mystery of the world is its comprehensibility."*  
+
+    > *"The eternal mystery of the world is its comprehensibility."*
     > — Albert Einstein
-    
+
     This notebook explores three philosophical approaches to this question,
     then ventures into **novel proposals** that synthesize cutting-edge physics.
-    
+
     ---
-    
+
     **Select an approach to explore:**
     """)
     return
@@ -262,7 +262,7 @@ You're reading a coherent story because you CAN'T read gibberish.
 
 String theory predicts $\\sim 10^{500}$ possible vacuum states, each with different:
 - Particle masses
-- Force strengths  
+- Force strengths
 - Number of dimensions
 - Cosmological constant
 
@@ -367,7 +367,7 @@ $$\\Psi_{\\text{stable}} = \\arg\\max_\\Psi \\left[ C(\\Psi, \\Phi) \\cdot (1 - 
 
 Where:
 - $\\Psi$ = Observer state
-- $\\Phi$ = Reality state  
+- $\\Phi$ = Reality state
 - $C(\\Psi, \\Phi)$ = Coherence function
 
 **Maximum at $C = 0.5$** — the HIHO sweet spot.
@@ -437,9 +437,7 @@ def _(mo, np, go, make_subplots, approach):
     if approach_key == "math":
         # Stable, symmetric oscillations (mathematical structure)
         trajectory[:, 0] = np.sin(np.linspace(0, 4 * np.pi, timesteps))  # Energy
-        trajectory[:, 1] = 0.8 + 0.1 * np.sin(
-            np.linspace(0, 2 * np.pi, timesteps)
-        )  # Coherence high
+        trajectory[:, 1] = 0.8 + 0.1 * np.sin(np.linspace(0, 2 * np.pi, timesteps))  # Coherence high
         trajectory[:, 2] = 0.9 * np.ones(timesteps)  # Very stable
         trajectory[:, 3] = 0.3 + 0.2 * np.cos(np.linspace(0, 4 * np.pi, timesteps))  # Low novelty
     elif approach_key == "anthropic":
@@ -484,9 +482,9 @@ def _(mo, np, go, make_subplots, approach):
                 y=trajectory[:, i],
                 mode="lines",
                 name=dim,
-                line=dict(color=colors[i], width=3),
+                line={"color": colors[i], "width": 3},
                 fill="tozeroy",
-                fillcolor=f"rgba{tuple(list(int(colors[i][j : j + 2], 16) for j in (1, 3, 5)) + [0.2])}",
+                fillcolor=f"rgba{tuple([int(colors[i][j : j + 2], 16) for j in (1, 3, 5)] + [0.2])}",
                 showlegend=True,
             ),
             row=row,
@@ -508,7 +506,13 @@ def _(mo, np, go, make_subplots, approach):
         title_text=f"Idea Evolution: {approach.value}",
         template="plotly_dark",
         showlegend=True,
-        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="center", x=0.5),
+        legend={
+            "orientation": "h",
+            "yanchor": "bottom",
+            "y": 1.02,
+            "xanchor": "center",
+            "x": 0.5,
+        },
     )
 
     fig
@@ -532,24 +536,24 @@ def _(mo, np, go, trajectory, dim_names):
                 y=trajectory[:, 1],
                 z=trajectory[:, 2],
                 mode="lines+markers",
-                marker=dict(
-                    size=3,
-                    color=np.arange(len(trajectory)),
-                    colorscale="Viridis",
-                    showscale=True,
-                    colorbar=dict(title="Time Step"),
-                ),
-                line=dict(color="rgba(100,100,255,0.5)", width=2),
+                marker={
+                    "size": 3,
+                    "color": np.arange(len(trajectory)),
+                    "colorscale": "Viridis",
+                    "showscale": True,
+                    "colorbar": {"title": "Time Step"},
+                },
+                line={"color": "rgba(100,100,255,0.5)", "width": 2},
             )
         ]
     )
 
     fig_3d.update_layout(
-        scene=dict(
-            xaxis_title=dim_names[0],
-            yaxis_title=dim_names[1],
-            zaxis_title=dim_names[2],
-        ),
+        scene={
+            "xaxis_title": dim_names[0],
+            "yaxis_title": dim_names[1],
+            "zaxis_title": dim_names[2],
+        },
         height=500,
         title="Trajectory Through Concept Space",
         template="plotly_dark",
@@ -568,15 +572,13 @@ def _(mo, np, go, trajectory, dim_names):
 def _(mo, np, json, datetime, hashlib):
     mo.md("""
     ## 🧠 FLUME Trajectory Capture
-    
+
     The journey through this notebook is being encoded as a **FLUME trajectory**—
     a continuous path through 256-dimensional thought-space.
     """)
 
     # Create FLUME journey record
-    journey_id = hashlib.sha256(f"physics_laws_{datetime.now().isoformat()}".encode()).hexdigest()[
-        :16
-    ]
+    journey_id = hashlib.sha256(f"physics_laws_{datetime.now().isoformat()}".encode()).hexdigest()[:16]
 
     # Simulated FLUME encoding (would use actual FlumeEncoder in production)
     journey_record = {
@@ -605,14 +607,14 @@ def _(mo, np, json, datetime, hashlib):
     }
 
     mo.md(f"""
-    **Journey ID:** `{journey_id}`  
-    **Captured at:** {journey_record["timestamp"]}  
+    **Journey ID:** `{journey_id}`
+    **Captured at:** {journey_record["timestamp"]}
     **Coherence:** {journey_record["coherence_final"]:.3f} (target: 0.500)
-    
+
     ```json
     {json.dumps(journey_record, indent=2)}
     ```
-    
+
     *This record will be persisted to SurrealDB for long-term retrieval.*
     """)
     return journey_record, journey_id
@@ -627,25 +629,25 @@ def _(mo, np, json, datetime, hashlib):
 def _(mo):
     mo.md("""
     ## 🔊 Key Insight Narration
-    
+
     *Pocket TTS generates natural speech for key insights using the Sage voice profile.*
-    
+
     ---
-    
+
     **🎙️ Insight 1: The Mathematical Skeleton**
     > "Symmetry doesn't explain why the universe is mathematical—
     > but it does explain why, *given* mathematics, the laws must have this structure."
-    
+
     **🎙️ Insight 2: The Anthropic Bootstrap**
     > "We're not privileged observers—we're *selected* observers.
     > The constants appear fine-tuned because we couldn't exist otherwise."
-    
+
     **🎙️ Insight 3: The HIHO Sweet Spot**
     > "Reality precipitates at 50% coherence—the exact balance between
     > quantum indeterminacy and classical definiteness. Physics laws are attractors."
-    
+
     ---
-    
+
     *Audio playback requires TTS service running on port 8081.*
     """)
     return
@@ -679,7 +681,7 @@ def _(mo, question):
 
         if "alpha" in q or "fine" in q or "constant" in q:
             answer = """**Great question!**
-            
+
 If α (the fine-structure constant) were even 4% different:
 - **Larger α:** Electrons would spiral into nuclei. No atoms.
 - **Smaller α:** Electrons wouldn't bind strongly. No chemistry.
@@ -736,40 +738,40 @@ Try asking about:
 def _(mo):
     mo.md("""
     ---
-    
+
     ## 📌 Summary: Three Answers + One Novel Proposal
-    
+
     | Approach | Explains | Leaves Open |
     |----------|----------|-------------|
     | **Mathematical Necessity** | Structure, symmetries | Why math? Why these symmetries? |
     | **Anthropic Selection** | Fine-tuned constants | Requires multiverse assumption |
     | **Multiverse Selection** | Everything | Measure problem, unfalsifiable? |
     | **HIHO + FLUME** | Laws as coherence attractors | Needs experimental validation |
-    
+
     ---
-    
+
     ### ✨ The Novel Proposal
-    
+
     Physics laws emerge where **observer-reality coherence stabilizes at 0.5**.
     Using FLUME trajectories, we can:
     1. Encode theories as 256-dim vectors
     2. Find attractors where coherence gradients vanish
     3. Predict new physics by exploring interpolations
-    
+
     **This journey has been captured and persisted to SurrealDB.**
-    
+
     ---
-    
+
     ## 📦 Export as Standalone
-    
+
     ```bash
     marimo export html-wasm physics_laws_explorer.py \\
         --mode run \\
         --output renders/physics_laws_explorer/
     ```
-    
+
     ---
-    
+
     *Built with Cohezion Swarm | FLUME Methodology | 2026*
     """)
     return

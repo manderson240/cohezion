@@ -201,7 +201,7 @@ class TestSimpleEncoder:
 class TestUniverseSimulationEngine:
     def test_init_creates_storage(self, tmp_path):
         storage = tmp_path / "universe"
-        engine = UniverseSimulationEngine(local_storage_path=storage)
+        UniverseSimulationEngine(local_storage_path=storage)
         assert storage.exists()
 
     def test_toward_target(self, tmp_path):

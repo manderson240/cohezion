@@ -242,9 +242,7 @@ class SurrealMCP:
         nodes = await client.get_all_nodes(limit=limit * 2)  # Over-fetch for filter
 
         learnings = [
-            n
-            for n in nodes
-            if n.metadata.get("type") == "learning" and n.metadata.get("score", 0) >= min_score
+            n for n in nodes if n.metadata.get("type") == "learning" and n.metadata.get("score", 0) >= min_score
         ][:limit]
 
         return [
@@ -260,7 +258,7 @@ class SurrealMCP:
             for n in learnings
         ]
 
-    async def sync_key_learnings(self, markdown_path: str = None) -> dict[str, Any]:
+    async def sync_key_learnings(self, markdown_path: str | None = None) -> dict[str, Any]:
         """
         Sync KEY_LEARNINGS.md to SurrealDB.
 

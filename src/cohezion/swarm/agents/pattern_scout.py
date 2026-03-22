@@ -29,16 +29,16 @@ class PatternScout(BaseScout):
 
         prompt = f"""
         Scan this Python code for design patterns.
-        
+
         File: {path.name}
         Content Snippets: {path.read_text()[:3000]} # First 3k chars
-        
+
         Look for:
         - Circuit Breaker (cohezion.reliability.get_circuit)
         - Strategy Pattern
         - Observer/Event emitter
         - 12D State vectors (FLUME)
-        
+
         Return JSON structure: {{ "patterns": [...] }}
         """
 

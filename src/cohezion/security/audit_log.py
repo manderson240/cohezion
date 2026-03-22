@@ -19,7 +19,7 @@ import json
 import logging
 from dataclasses import asdict, dataclass
 from datetime import UTC, datetime, timedelta
-from enum import Enum
+from enum import StrEnum
 from pathlib import Path
 from typing import Any
 
@@ -27,7 +27,7 @@ from typing import Any
 logger = logging.getLogger(__name__)
 
 
-class AuditAction(str, Enum):
+class AuditAction(StrEnum):
     """Audit-logged actions."""
 
     READ = "read"
@@ -195,7 +195,9 @@ class AuditLogger:
 
         # Set default date range (last 90 days)
         if not start_date:
-            start_date = datetime.now(UTC) - timedelta(days=self.retention_days)
+            start_date = datetime.now(UTC) - timedelta(
+                days=self.retention_days
+            )
         if not end_date:
             end_date = datetime.now(UTC)
 
@@ -282,7 +284,9 @@ class AuditLogger:
                 for entry in entries:
                     row = asdict(entry)
                     row["action"] = row["action"].value
-                    row["details"] = json.dumps(row["details"]) if row["details"] else ""
+                    row["details"] = (
+                        json.dumps(row["details"]) if row["details"] else ""
+                    )
                     writer.writerow(row)
 
             return output.getvalue()
@@ -313,7 +317,9 @@ class AuditLogger:
                 date_str = log_file.stem.replace("audit_", "")
 
                 try:
-                    file_date = datetime.fromisoformat(date_str).replace(tzinfo=UTC)
+                    file_date = datetime.fromisoformat(date_str).replace(
+                        tzinfo=UTC
+                    )
 
                     if file_date < cutoff_date:
                         log_file.unlink()
@@ -328,7 +334,9 @@ class AuditLogger:
 
         if deleted_count > 0:
             logger.info(
-                "Cleaned up %d audit logs older than %d days", deleted_count, retention_days
+                "Cleaned up %d audit logs older than %d days",
+                deleted_count,
+                retention_days,
             )
 
         return deleted_count

@@ -61,7 +61,7 @@ def swarm_debate():
     print("\n🎯 CONSENSUS:")
     print("""
     Create an interactive web experience: "You Are Awareness: A Journey From Nothing to Particle"
-    
+
     Structure:
     1. Prelude: The Void (pure black screen, minimal UI)
     2. Chapter 1: "The First Quadrature" (Space unfolds in 3D)
@@ -69,14 +69,14 @@ def swarm_debate():
     4. Chapter 3: "The Toroidal Dance" (3D particle formation with spin)
     5. Chapter 4: "The HIHO Moment" (crossing the 0.5 threshold, precipitation)
     6. Epilogue: "You Created a Universe" (parameter summary, export option)
-    
+
     Tech Stack:
     - THREE.js for 3D visualization
     - React for UI components
     - KaTeX for mathematical notation
     - Tone.js for sonification of field transitions
     - Export → Coherent story + parameter values to share
-    
+
     Accessibility:
     - College-level reading (explain jargon, but use it)
     - Mathematical equations with prose translations

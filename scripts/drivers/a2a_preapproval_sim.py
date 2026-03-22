@@ -51,9 +51,7 @@ def simulate_soft_handshake():
 
     print(f"[✔] Soft Handshake Complete. {len(offers)} non-binding offers received.")
     for offer in offers:
-        print(
-            f"    - {offer['lender']}: ${offer['capacity']:,} at {offer['fee']} (ID: {offer['id']})"
-        )
+        print(f"    - {offer['lender']}: ${offer['capacity']:,} at {offer['fee']} (ID: {offer['id']})")
     print("[✔] Results cached in knowledge_graph/A2A_PREAPPROVAL_LOG.json")
 
 

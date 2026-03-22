@@ -251,7 +251,10 @@ class PolicyNetwork:
     """
 
     def __init__(
-        self, state_dim: int = STATE_DIM, hidden_dim: int = 64, n_actions: int = NUM_ACTIONS
+        self,
+        state_dim: int = STATE_DIM,
+        hidden_dim: int = 64,
+        n_actions: int = NUM_ACTIONS,
     ):
         self.state_dim = state_dim
         self.hidden_dim = hidden_dim
@@ -514,7 +517,7 @@ def train_hiho_agent(
 
         while True:
             action, log_prob, value = agent.select_action(state)
-            next_state, reward, done, info = env.step(action)
+            next_state, reward, done, _info = env.step(action)
 
             agent.store_transition(state, action, reward, next_state, done, log_prob, value)
 

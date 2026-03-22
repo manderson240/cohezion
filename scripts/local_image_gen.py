@@ -35,7 +35,7 @@ print(f"🎨 Local Image Generator starting at {datetime.now()}", flush=True)
 
 def generate_hiho_stability():
     """Generate HIHO stability threshold diagram"""
-    fig, ax = plt.subplots(figsize=(10, 6))
+    _fig, ax = plt.subplots(figsize=(10, 6))
 
     # Generate curve with peak at 0.5
     x = np.linspace(0, 1, 1000)
@@ -43,7 +43,7 @@ def generate_hiho_stability():
     stability = np.exp(-20 * (x - 0.5) ** 2)
 
     # Color gradient
-    colors = ["#3498db" if xi < 0.5 else "#e74c3c" for xi in x]
+    ["#3498db" if xi < 0.5 else "#e74c3c" for xi in x]
     ax.fill_between(x, 0, stability, color="#3498db", alpha=0.3, label="Unprecipitated (Radiation)")
     ax.fill_between(
         x[x >= 0.5],
@@ -73,7 +73,7 @@ def generate_hiho_stability():
         ha="center",
         fontsize=12,
         fontweight="bold",
-        arrowprops=dict(arrowstyle="->", lw=2, color="gold"),
+        arrowprops={"arrowstyle": "->", "lw": 2, "color": "gold"},
     )
 
     ax.set_xlabel("Coherence (Reality Overlap)", fontsize=12, fontweight="bold")
@@ -92,12 +92,17 @@ def generate_hiho_stability():
 
 def generate_12d_space():
     """Generate TensorBeam 12D parameter space visualization"""
-    fig, ax = plt.subplots(figsize=(10, 10))
+    _fig, ax = plt.subplots(figsize=(10, 10))
     ax.set_aspect("equal")
 
     # Concentric circles representing nested dimensions
     layers = [
-        {"radius": 0.9, "color": "#f39c12", "label": "Awareness (Primary)", "dims": "1D"},
+        {
+            "radius": 0.9,
+            "color": "#f39c12",
+            "label": "Awareness (Primary)",
+            "dims": "1D",
+        },
         {"radius": 0.7, "color": "#3498db", "label": "Space", "dims": "3D"},
         {"radius": 0.5, "color": "#2ecc71", "label": "Fields (T,E,M)", "dims": "3D"},
         {"radius": 0.3, "color": "#9b59b6", "label": "Particle (R,P,C)", "dims": "3D"},
@@ -127,7 +132,7 @@ def generate_12d_space():
             ha="center",
             va="center",
             fontweight="bold",
-            bbox=dict(boxstyle="round", facecolor=layer["color"], alpha=0.3),
+            bbox={"boxstyle": "round", "facecolor": layer["color"], "alpha": 0.3},
         )
 
     # Center point
@@ -171,7 +176,7 @@ def generate_12d_space():
 
 def generate_gateway_progression():
     """Generate gateway progression chart"""
-    fig, ax = plt.subplots(figsize=(12, 6))
+    _fig, ax = plt.subplots(figsize=(12, 6))
 
     # Gateway data
     gateways = list(range(43, 53))
@@ -180,13 +185,19 @@ def generate_gateway_progression():
     completed.extend([False] * len(gateways))
 
     # Create staircase
-    for i, (gate, thresh) in enumerate(zip(gateways, thresholds)):
+    for i, (gate, thresh) in enumerate(zip(gateways, thresholds, strict=False)):
         color = "#2ecc71" if i < len([c for c in completed if c]) else "#95a5a6"
         marker = "✓" if i < len([c for c in completed if c]) else "?"
 
         # Draw step
         rect = Rectangle(
-            (i, 0), 1, thresh, facecolor=color, edgecolor="black", linewidth=2, alpha=0.7
+            (i, 0),
+            1,
+            thresh,
+            facecolor=color,
+            edgecolor="black",
+            linewidth=2,
+            alpha=0.7,
         )
         ax.add_patch(rect)
 
@@ -201,7 +212,13 @@ def generate_gateway_progression():
             fontweight="bold",
         )
         ax.text(
-            i + 0.5, thresh / 2, marker, ha="center", va="center", fontsize=20, fontweight="bold"
+            i + 0.5,
+            thresh / 2,
+            marker,
+            ha="center",
+            va="center",
+            fontsize=20,
+            fontweight="bold",
         )
 
     ax.set_xlim(0, len(gateways))
@@ -219,7 +236,7 @@ def generate_gateway_progression():
 
 def generate_architecture_diagram():
     """Generate system architecture diagram"""
-    fig, ax = plt.subplots(figsize=(12, 8))
+    _fig, ax = plt.subplots(figsize=(12, 8))
     ax.set_aspect("equal")
 
     # Main coordinator
@@ -253,17 +270,30 @@ def generate_architecture_diagram():
         hiho_positions.append((x, y))
 
         box = Rectangle(
-            (x - 0.08, y - 0.05), 0.16, 0.1, facecolor="#2ecc71", edgecolor="black", linewidth=1.5
+            (x - 0.08, y - 0.05),
+            0.16,
+            0.1,
+            facecolor="#2ecc71",
+            edgecolor="black",
+            linewidth=1.5,
         )
         ax.add_patch(box)
-        ax.text(x, y, f"HIHO\n#{i + 1}", ha="center", va="center", fontsize=7, fontweight="bold")
+        ax.text(
+            x,
+            y,
+            f"HIHO\n#{i + 1}",
+            ha="center",
+            va="center",
+            fontsize=7,
+            fontweight="bold",
+        )
 
         # Arrow from main
         ax.annotate(
             "",
             xy=(x, y),
             xytext=(main_x, main_y),
-            arrowprops=dict(arrowstyle="->", lw=1.5, color="#2c3e50"),
+            arrowprops={"arrowstyle": "->", "lw": 1.5, "color": "#2c3e50"},
         )
 
     # Ollama Workers
@@ -294,7 +324,7 @@ def generate_architecture_diagram():
             "",
             xy=(x, ollama_y + 0.05),
             xytext=(main_x, main_y - 0.08),
-            arrowprops=dict(arrowstyle="->", lw=1.5, color="#8e44ad"),
+            arrowprops={"arrowstyle": "->", "lw": 1.5, "color": "#8e44ad"},
         )
 
     # Data storage
@@ -324,7 +354,7 @@ def generate_architecture_diagram():
         "",
         xy=(data_x, data_y - 0.06),
         xytext=(main_x, main_y + 0.08),
-        arrowprops=dict(arrowstyle="<->", lw=2, color="#c0392b"),
+        arrowprops={"arrowstyle": "<->", "lw": 2, "color": "#c0392b"},
     )
 
     # Labels
@@ -334,7 +364,7 @@ def generate_architecture_diagram():
         "16 HIHO\nWorkers",
         fontsize=10,
         fontweight="bold",
-        bbox=dict(boxstyle="round", facecolor="#2ecc71", alpha=0.3),
+        bbox={"boxstyle": "round", "facecolor": "#2ecc71", "alpha": 0.3},
     )
     ax.text(
         -0.95,
@@ -342,7 +372,7 @@ def generate_architecture_diagram():
         "6 Ollama\nWorkers",
         fontsize=10,
         fontweight="bold",
-        bbox=dict(boxstyle="round", facecolor="#9b59b6", alpha=0.3),
+        bbox={"boxstyle": "round", "facecolor": "#9b59b6", "alpha": 0.3},
     )
 
     ax.set_xlim(-1.1, 1.1)

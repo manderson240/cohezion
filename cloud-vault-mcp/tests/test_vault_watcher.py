@@ -46,9 +46,7 @@ class TestVaultEvent:
         assert d["old_path"] is None
 
     def test_to_dict_with_old_path(self):
-        event = VaultEvent(
-            event_type="moved", path="decisions/moved.md", old_path="inbox/test.md"
-        )
+        event = VaultEvent(event_type="moved", path="decisions/moved.md", old_path="inbox/test.md")
         d = event.to_dict()
         assert d["event_type"] == "moved"
         assert d["old_path"] == "inbox/test.md"

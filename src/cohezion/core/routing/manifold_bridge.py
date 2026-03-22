@@ -25,9 +25,7 @@ class ManifoldBridge:
     def __init__(self):
         self.router = LOCAL_ROUTER
 
-    async def precipitate_intent(
-        self, journey: UniverseJourney, latent_intent: LatentState
-    ) -> dict[str, Any]:
+    async def precipitate_intent(self, journey: UniverseJourney, latent_intent: LatentState) -> dict[str, Any]:
         """
         Takes a latent intent and precipitates a physical reality.
         This is an autonomous 'Genie-style' action.
@@ -66,7 +64,7 @@ TRANSCENDENCE PROTOCOL ACTIVATED.
 ARCHETYPE: {archetype}
 INTENT: {latent.semantic_intent}
 
-Task: Push the boundaries of the current system. 
+Task: Push the boundaries of the current system.
 Generate a high-fidelity 'Precipitation' that addresses this intent.
 Format your output as a Sovereign Narration followed by a Technical Implementation.
 """

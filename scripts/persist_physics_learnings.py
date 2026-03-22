@@ -11,7 +11,10 @@ sys.path.insert(0, "/home/mike-anderson/dev/cohezion/src")
 
 import asyncio
 
-from cohezion.core.persistence.surreal_client import SurrealClient, UniverseNode
+from cohezion.core.persistence.surreal_client import (
+    SurrealClient,
+    UniverseNode,
+)
 
 
 async def persist_learnings():
@@ -72,7 +75,13 @@ Visual elements (emojis, cards, spacing) enhance retention.""",
         metadata={
             "learning_id": 61,
             "title": "Layperson Physics Communication Pattern",
-            "tags": ["communication", "layperson", "physics", "analogies", "universe_storybook"],
+            "tags": [
+                "communication",
+                "layperson",
+                "physics",
+                "analogies",
+                "universe_storybook",
+            ],
         },
     )
     await db.store_node(node61)

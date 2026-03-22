@@ -9,10 +9,13 @@ from __future__ import annotations
 
 import logging
 import time
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from cohezion.swarm.team_metrics import TeamMetricsAggregator
-from cohezion.swarm.team_orchestrator import TaskSpec
+
+
+if TYPE_CHECKING:
+    from cohezion.swarm.team_orchestrator import TaskSpec
 
 
 logger = logging.getLogger(__name__)

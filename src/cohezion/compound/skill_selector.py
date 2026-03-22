@@ -204,25 +204,13 @@ class SkillSelector:
         result = []
         for skill_name, metrics in skill_scores.items():
             # Average the metrics
-            coherence = (
-                sum(metrics["coherence"]) / len(metrics["coherence"])
-                if metrics["coherence"]
-                else 0.5
-            )
-            efficiency = (
-                sum(metrics["efficiency"]) / len(metrics["efficiency"])
-                if metrics["efficiency"]
-                else 0.5
-            )
-            success = (
-                sum(metrics["success"]) / len(metrics["success"]) if metrics["success"] else 0.5
-            )
+            coherence = sum(metrics["coherence"]) / len(metrics["coherence"]) if metrics["coherence"] else 0.5
+            efficiency = sum(metrics["efficiency"]) / len(metrics["efficiency"]) if metrics["efficiency"] else 0.5
+            success = sum(metrics["success"]) / len(metrics["success"]) if metrics["success"] else 0.5
 
             # Compute composite score
             composite = (
-                self.coherence_weight * coherence
-                + self.efficiency_weight * efficiency
-                + self.success_weight * success
+                self.coherence_weight * coherence + self.efficiency_weight * efficiency + self.success_weight * success
             )
 
             score = SkillScore(
@@ -268,10 +256,14 @@ class SkillSelector:
             "skill_name": skill_name,
             "coherence": metrics.get("coherence", 0.5),
             "efficiency": metrics.get("efficiency", 0.5),
-            "success": 1.0 if "success" in title.lower() else metrics.get("success", 0.5),
+            "success": 1.0
+            if "success" in title.lower()
+            else metrics.get("success", 0.5),
         }
 
-    def _parse_pattern_string(self, pattern_str: str, operation_type: str) -> dict | None:
+    def _parse_pattern_string(
+        self, pattern_str: str, operation_type: str
+    ) -> dict | None:
         """Parse skill data from pattern string.
 
         Args:

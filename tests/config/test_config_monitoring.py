@@ -4,6 +4,7 @@ Tests vault monitoring, config file monitoring, and event emission.
 """
 
 import asyncio
+import contextlib
 from pathlib import Path
 from unittest.mock import AsyncMock, patch
 
@@ -195,10 +196,8 @@ class TestOrchestrationWithMonitoring:
 
                 # Cancel the task
                 orchestration_task.cancel()
-                try:
+                with contextlib.suppress(asyncio.CancelledError):
                     await orchestration_task
-                except asyncio.CancelledError:
-                    pass
 
                 # Verify stop was called within context
                 stop_mock.assert_called()
@@ -242,7 +241,7 @@ class TestEventEmission:
             check=True,
         )
         subprocess.run(
-            ["git", "config", "commit.gpgsign", "false"],
+            ["git", "config", "commit.gpgSign", "false"],
             cwd=tmp_path,
             capture_output=True,
             check=True,
@@ -251,9 +250,11 @@ class TestEventEmission:
         # Create and commit initial file
         claude_md = tmp_path / "CLAUDE.md"
         claude_md.write_text("# Initial")
-        subprocess.run(["git", "add", "."], cwd=tmp_path, capture_output=True, check=True)
         subprocess.run(
-            ["git", "commit", "-m", "initial"], cwd=tmp_path, capture_output=True, check=True
+            ["git", "commit", "-m", "initial"],
+            cwd=tmp_path,
+            capture_output=True,
+            check=True,
         )
 
         monitor = ConfigMonitor(tmp_path)

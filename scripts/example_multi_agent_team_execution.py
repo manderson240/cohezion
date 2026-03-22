@@ -251,9 +251,7 @@ async def main():
         successful = sum(1 for r in result_seq.results if r.success)
         success_rate = successful / len(result_seq.results) if result_seq.results else 0
 
-        coherence_scores = [
-            r.metrics.get("coherence", 0.5) for r in result_seq.results if r.success
-        ]
+        coherence_scores = [r.metrics.get("coherence", 0.5) for r in result_seq.results if r.success]
         avg_coherence = sum(coherence_scores) / len(coherence_scores) if coherence_scores else 0.0
 
         efficiency_scores = []
@@ -262,12 +260,13 @@ async def main():
                 cache_hit_rate = r.execution_result.token_metrics.get("cache_hit_rate", 0.0)
                 efficiency_scores.append(cache_hit_rate)
 
-        avg_efficiency = (
-            sum(efficiency_scores) / len(efficiency_scores) if efficiency_scores else 0.5
-        )
+        avg_efficiency = sum(efficiency_scores) / len(efficiency_scores) if efficiency_scores else 0.5
 
         logger.info(
-            "  Success rate: %.2f (%d/%d tasks)", success_rate, successful, len(result_seq.results)
+            "  Success rate: %.2f (%d/%d tasks)",
+            success_rate,
+            successful,
+            len(result_seq.results),
         )
         logger.info("  Average coherence: %.2f", avg_coherence)
         logger.info("  Average efficiency: %.2f", avg_efficiency)
@@ -317,9 +316,7 @@ async def main():
     logger.info("--------|-------|---------|-------|--------")
     for pattern_name, result in results_by_pattern:
         success_pct = (
-            f"{(1 - result.tasks_failed / result.tasks_executed) * 100:.0f}%"
-            if result.tasks_executed > 0
-            else "N/A"
+            f"{(1 - result.tasks_failed / result.tasks_executed) * 100:.0f}%" if result.tasks_executed > 0 else "N/A"
         )
         logger.info(
             "%-30s | %5d | %7s | %.3f | %.2f",

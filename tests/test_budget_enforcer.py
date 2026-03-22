@@ -264,7 +264,7 @@ class TestBudgetEnforcer:
         )
 
         # Even at 150% utilization
-        can_proceed, reason = enforcer.check_budget(current_cost_usd=15.0)
+        can_proceed, _reason = enforcer.check_budget(current_cost_usd=15.0)
 
         assert can_proceed is True  # Never blocks
 

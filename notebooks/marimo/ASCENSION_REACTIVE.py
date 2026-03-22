@@ -55,16 +55,18 @@ def __(go, np, mo):
                 await db.use("cohezion", "universe")
 
                 # Query the latest node with physics state
-                results = await db.query(
-                    "SELECT * FROM universe_nodes ORDER BY created_at DESC LIMIT 1"
-                )
+                results = await db.query("SELECT * FROM universe_nodes ORDER BY created_at DESC LIMIT 1")
                 if results and results[0]["result"]:
                     node = results[0]["result"][0]
                     ps = node.get("physics_state", {})
 
                     return {
                         "spatial": np.array(
-                            [ps.get("dim_1_x", 0), ps.get("dim_2_y", 0), ps.get("dim_3_z", 0)]
+                            [
+                                ps.get("dim_1_x", 0),
+                                ps.get("dim_2_y", 0),
+                                ps.get("dim_3_z", 0),
+                            ]
                         ),
                         "temporal": ps.get("dim_4_time", 0),
                         "brane": np.array(
@@ -84,7 +86,11 @@ def __(go, np, mo):
             pass
 
         # Fallback if DB is down or empty (Mock for demo)
-        return {"spatial": np.random.rand(3), "temporal": 0.5, "brane": np.random.rand(8)}
+        return {
+            "spatial": np.random.rand(3),
+            "temporal": 0.5,
+            "brane": np.random.rand(8),
+        }
 
     def plot_12d_radar(state):
         categories = [
@@ -111,10 +117,13 @@ def __(go, np, mo):
         )
 
         fig.update_layout(
-            polar=dict(radialaxis=dict(visible=True, range=[0, 1]), bgcolor="black"),
+            polar={
+                "radialaxis": {"visible": True, "range": [0, 1]},
+                "bgcolor": "black",
+            },
             showlegend=False,
             template="plotly_dark",
-            margin=dict(l=20, r=20, t=20, b=20),
+            margin={"l": 20, "r": 20, "t": 20, "b": 20},
             paper_bgcolor="black",
         )
         return fig
@@ -123,7 +132,7 @@ def __(go, np, mo):
 
 
 @app.cell
-async def __(mo, plot_12d_radar, fetch_real_state, refresh_button):
+async def __(mo, np, plot_12d_radar, fetch_real_state, refresh_button):
     refresh_button
     state = await fetch_real_state()
     radar_plot = plot_12d_radar(state)

@@ -2,7 +2,11 @@ import asyncio
 import logging
 from pathlib import Path
 
-from cohezion.core.persistence.surreal_client import PhysicsState, SurrealClient, UniverseNode
+from cohezion.core.persistence.surreal_client import (
+    PhysicsState,
+    SurrealClient,
+    UniverseNode,
+)
 
 
 logger = logging.getLogger(__name__)

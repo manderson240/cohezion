@@ -4,7 +4,11 @@ import logging
 import time
 from pathlib import Path
 
-from cohezion.core.persistence.surreal_client import PhysicsState, SurrealClient, UniverseNode
+from cohezion.core.persistence.surreal_client import (
+    PhysicsState,
+    SurrealClient,
+    UniverseNode,
+)
 
 
 logging.basicConfig(level=logging.INFO)

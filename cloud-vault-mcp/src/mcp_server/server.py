@@ -5,17 +5,12 @@ import logging
 
 from mcp.server.fastmcp import FastMCP
 
-from .agent_context import AgentContextOps
 from .compound_ops import CompoundOps
 from .config import ServerConfig
-from .health import HealthChecker
-from .memory_bridge import VaultMemoryBridge
+from .googlesql_client import GoogleSqlConfig
+from .googlesql_ops import GoogleSqlOps
 from .obsidian_ops import ObsidianOps
-from .sheets_bridge import SheetsBridge
-from .surrealdb_sync import SurrealDBSync
-from .teleport import CloudTeleportProtocol
 from .vault_ops import VaultOps
-
 
 logger = logging.getLogger(__name__)
 
@@ -25,44 +20,15 @@ def create_server(config: ServerConfig) -> FastMCP:
     vault = VaultOps(config.vault_path)
     obsidian = ObsidianOps(vault)
     compound = CompoundOps(vault, obsidian)
-    teleport = CloudTeleportProtocol(vault)
-    memory_bridge = VaultMemoryBridge(vault)
-
-    sheets: SheetsBridge | None = None
-    if config.sheets_enabled:
-        sheets = SheetsBridge(
-            spreadsheet_id=config.sheets_spreadsheet_id,
-            quota_project=config.sheets_quota_project,
-        )
-
-    surrealdb: SurrealDBSync | None = None
-    agent_context: AgentContextOps | None = None
-    if config.surrealdb_enabled:
-        surrealdb = SurrealDBSync(
-            vault_path=config.vault_path,
-            surrealdb_url=config.surrealdb_url,
-            namespace=config.surrealdb_namespace,
-            database=config.surrealdb_database,
-            username=config.surrealdb_username,
-            password=config.surrealdb_password,
-        )
-        agent_context = AgentContextOps(surrealdb)
-
-    health_checker: HealthChecker | None = None
-    if config.health_check_enabled:
-        health_checker = HealthChecker(
-            vault_path=config.vault_path,
-            surrealdb_url=config.surrealdb_url,
-            sheets_bridge=sheets,
-            ollama_url=config.ollama_url,
-        )
+    googlesql = GoogleSqlOps(GoogleSqlConfig(base_url=config.googlesql_url))
 
     mcp = FastMCP(
         "Cloud Vault",
         instructions=(
             "A knowledge vault MCP server for compound engineering. "
             "Read, write, search, and link Obsidian notes. "
-            "Log decisions, experiments, and patterns to build reusable context."
+            "Log decisions, experiments, and patterns to build reusable context. "
+            "Analyze, validate, and format SQL using the GoogleSQL analyzer."
         ),
     )
 
@@ -197,9 +163,7 @@ def create_server(config: ServerConfig) -> FastMCP:
             return f"Error: {e}"
 
     @mcp.tool()
-    def vault_create_from_template(
-        template_name: str, target_path: str, variables: dict[str, str]
-    ) -> str:
+    def vault_create_from_template(template_name: str, target_path: str, variables: dict[str, str]) -> str:
         """Create a new note from a template with variable substitution.
 
         Available templates: decisions, experiments, patterns, papers, daily, projects
@@ -238,9 +202,7 @@ def create_server(config: ServerConfig) -> FastMCP:
             rationale: Why this option was chosen
             alternatives_considered: Other options that were evaluated
         """
-        return compound.log_decision(
-            project, title, context, decision, rationale, alternatives_considered
-        )
+        return compound.log_decision(project, title, context, decision, rationale, alternatives_considered)
 
     @mcp.tool()
     def vault_log_experiment(
@@ -264,9 +226,7 @@ def create_server(config: ServerConfig) -> FastMCP:
             learnings: Key takeaways (can be filled in later)
             title: Optional title (defaults to truncated hypothesis)
         """
-        return compound.log_experiment(
-            project, hypothesis, method, result, learnings, title
-        )
+        return compound.log_experiment(project, hypothesis, method, result, learnings, title)
 
     @mcp.tool()
     def vault_extract_pattern(
@@ -287,9 +247,7 @@ def create_server(config: ServerConfig) -> FastMCP:
             code_example: Optional code example
             domain: Domain tag (e.g. 'rl', 'ml', 'devops', 'general')
         """
-        return compound.extract_pattern(
-            source_path, pattern_name, description, code_example, domain
-        )
+        return compound.extract_pattern(source_path, pattern_name, description, code_example, domain)
 
     @mcp.tool()
     def vault_find_relevant_context(query: str, project: str = "") -> str:
@@ -308,20 +266,14 @@ def create_server(config: ServerConfig) -> FastMCP:
             return "No relevant prior context found."
         return json.dumps(results, indent=2)
 
-    # ── Teleport Operations ──────────────────────────────────────────
+    # ── GoogleSQL Analysis Operations ─────────────────────────────────
 
     @mcp.tool()
-    def teleport_create_task(
-        title: str,
-        description: str,
-        context: str = "",
-        expected_output: str = "",
-        priority: str = "medium",
-    ) -> str:
-        """Create a teleport task for delegation between Claude instances.
+    def sql_validate(sql: str) -> str:
+        """Validate SQL syntax using the GoogleSQL analyzer.
 
-        Use this to delegate work (research, refactoring, doc generation)
-        to another Claude instance (e.g. cloud Claude with web access).
+        Use this to check whether a SQL statement is syntactically correct
+        before executing it. Catches syntax errors early.
 
         Args:
             title: Short task title
@@ -330,9 +282,7 @@ def create_server(config: ServerConfig) -> FastMCP:
             expected_output: What the result should look like
             priority: low, medium, high, or critical
         """
-        result = teleport.create_task(
-            title, description, context, expected_output, priority
-        )
+        result = teleport.create_task(title, description, context, expected_output, priority)
         return json.dumps(result, indent=2)
 
     @mcp.tool()
@@ -357,77 +307,69 @@ def create_server(config: ServerConfig) -> FastMCP:
             assigned_to: Who is claiming it (e.g. 'cloud-claude', 'local-claude')
         """
         try:
-            result = teleport.claim_task(task_id, assigned_to)
-            return json.dumps(result, indent=2, default=str)
-        except (ValueError, FileNotFoundError) as e:
-            return f"Error: {e}"
+            return googlesql.validate(sql)
+        except ConnectionError:
+            return "Error: GoogleSQL Analyzer service is not available."
 
     @mcp.tool()
-    def teleport_complete_task(task_id: str, result: str) -> str:
-        """Complete a teleport task with a result.
+    def sql_parse(sql: str) -> str:
+        """Parse SQL into an Abstract Syntax Tree (AST).
+
+        Use this to understand the structure of a SQL statement, including
+        what type of statement it is and its component parts.
 
         Args:
-            task_id: The task ID to complete
-            result: The result/output of the completed task
+            sql: SQL statement to parse
         """
         try:
-            task = teleport.complete_task(task_id, result)
-            return json.dumps(task, indent=2, default=str)
-        except (ValueError, FileNotFoundError) as e:
-            return f"Error: {e}"
+            return googlesql.parse(sql)
+        except ConnectionError:
+            return "Error: GoogleSQL Analyzer service is not available."
 
     @mcp.tool()
-    def teleport_fail_task(task_id: str, error: str) -> str:
-        """Mark a teleport task as failed.
+    def sql_analyze(sql: str, catalog_json: str = "") -> str:
+        """Perform full semantic analysis of SQL with optional catalog context.
+
+        Resolves table and column references against a provided schema.
+        Use this for deep analysis of query semantics, including type checking
+        and reference resolution.
 
         Args:
-            task_id: The task ID that failed
-            error: Description of what went wrong
+            sql: SQL statement to analyze
+            catalog_json: Optional JSON array of table definitions.
+                Example: [{"name": "t", "columns": [{"name": "id", "type": "INT64"}]}]
         """
         try:
-            task = teleport.fail_task(task_id, error)
-            return json.dumps(task, indent=2, default=str)
-        except FileNotFoundError as e:
-            return f"Error: {e}"
+            return googlesql.analyze(sql, catalog_json)
+        except ConnectionError:
+            return "Error: GoogleSQL Analyzer service is not available."
 
     @mcp.tool()
-    def teleport_get_result(task_id: str) -> str:
-        """Get the result of a completed teleport task.
+    def sql_extract_tables(sql: str) -> str:
+        """Extract all table references from a SQL statement.
+
+        Use this to discover which tables a query depends on, useful for
+        dependency analysis and impact assessment.
 
         Args:
-            task_id: The task ID to get the result for
+            sql: SQL statement to extract table references from
         """
         try:
-            result = teleport.get_result(task_id)
-            return json.dumps(result, indent=2, default=str)
-        except FileNotFoundError as e:
-            return f"Error: {e}"
-
-    # ── Memory Bridge Operations ─────────────────────────────────────
+            return googlesql.extract_tables(sql)
+        except ConnectionError:
+            return "Error: GoogleSQL Analyzer service is not available."
 
     @mcp.tool()
-    def vault_push_session_state(
-        branch: str,
-        test_status: str,
-        phase: str,
-        active_tasks: list[str] | None = None,
-        last_commit: str = "",
-    ) -> str:
-        """Push current session state to a daily session note in the vault.
+    def sql_extract_columns(sql: str) -> str:
+        """Extract all column references from a SQL statement.
 
-        Creates a snapshot of the current Claude Code session that other
-        Claude instances can read for context.
+        Use this to discover which columns a query uses, useful for
+        understanding data access patterns.
 
         Args:
-            branch: Current git branch name
-            test_status: Test suite status (e.g. '24/24 passing')
-            phase: Current project phase
-            active_tasks: List of active task descriptions
-            last_commit: Last commit hash or message
+            sql: SQL statement to extract column references from
         """
-        path = memory_bridge.push_session_state(
-            branch, test_status, phase, active_tasks, last_commit
-        )
+        path = memory_bridge.push_session_state(branch, test_status, phase, active_tasks, last_commit)
         return f"Session state pushed to: {path}"
 
     @mcp.tool()
@@ -503,9 +445,7 @@ def create_server(config: ServerConfig) -> FastMCP:
                 integration_point: Relevant Cohezion module
             """
             try:
-                result = sheets.update_row(
-                    row_num, status, abstractions, domain, integration_point
-                )
+                result = sheets.update_row(row_num, status, abstractions, domain, integration_point)
                 return json.dumps(result, indent=2)
             except Exception as e:
                 return f"Error: {e}"
@@ -632,25 +572,23 @@ def create_server(config: ServerConfig) -> FastMCP:
     if config.ollama_enabled:
         # Import Ollama client for direct integration
         try:
-            from .ollama_client import OllamaClient
+            return googlesql.extract_columns(sql)
+        except ConnectionError:
+            return "Error: GoogleSQL Analyzer service is not available."
 
-            ollama_client = OllamaClient(
-                base_url=config.ollama_url,
-                timeout=config.ollama_timeout,
-            )
+    @mcp.tool()
+    def sql_format(sql: str) -> str:
+        """Format a SQL statement for readability.
 
-            @mcp.tool()
-            async def ollama_query(
-                prompt: str,
-                model: str = "auto",
-                temperature: float = 0.7,
-            ) -> str:
-                """Execute a query against Ollama model.
+        Applies consistent formatting to SQL using GoogleSQL's formatter.
 
-                Args:
-                    prompt: The prompt/question to send to the model
-                    model: Model to use (use "auto" for automatic selection)
-                    temperature: Temperature for generation (0.0-1.0)
+        Args:
+            sql: SQL statement to format
+        """
+        try:
+            return googlesql.format_sql(sql)
+        except ConnectionError:
+            return "Error: GoogleSQL Analyzer service is not available."
 
                 Returns:
                     Generated text response from the model
@@ -807,7 +745,7 @@ def create_server(config: ServerConfig) -> FastMCP:
             session_id: str,
             outcome_type: str,
             lessons_learned: list[str],
-            metrics: dict = None,
+            metrics: dict | None = None,
         ) -> str:
             """Record session outcome and validate against lessons learned.
 
@@ -826,9 +764,7 @@ def create_server(config: ServerConfig) -> FastMCP:
                 validation_errors for missing lessons on partial failures
             """
             try:
-                result = agent_context.record_outcome(
-                    session_id, outcome_type, lessons_learned, metrics
-                )
+                result = agent_context.record_outcome(session_id, outcome_type, lessons_learned, metrics)
                 return json.dumps(result, indent=2)
             except Exception as e:
                 logger.error(f"Error recording outcome: {e}")

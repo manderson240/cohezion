@@ -170,17 +170,13 @@ class UniverseJourney:
             "intent": self.intent,
             "status": self.status,
             "initial_axiomatic": self.initial_axiomatic.to_vector(),
-            "initial_latent_embedding": self.initial_latent.embedding
-            if self.initial_latent
-            else [],
+            "initial_latent_embedding": self.initial_latent.embedding if self.initial_latent else [],
             "trajectory_count": len(self.trajectory),
             "precipitation_type": list(self.precipitation.keys()),
             "final_coherence": self.final_coherence,
             "final_phi_score": self.final_phi_score,
             "created_at": self.created_at.isoformat(),
-            "completed_at": self.completed_at.isoformat()
-            if self.completed_at
-            else None,
+            "completed_at": self.completed_at.isoformat() if self.completed_at else None,
         }
 
 
@@ -236,9 +232,7 @@ class UniverseSimulationEngine:
         # 1. Encode intent
         encoder = await self._ensure_encoder()
         embedding = await encoder.encode(intent)
-        latent = LatentState(
-            embedding=embedding, semantic_intent=intent, confidence=0.7
-        )
+        latent = LatentState(embedding=embedding, semantic_intent=intent, confidence=0.7)
 
         # 2. Project to 12D
         axiomatic = self._project_to_axiomatic(embedding, context)
@@ -404,12 +398,12 @@ class UniverseSimulationEngine:
         latent_vec = np.random.randn(2048).tolist()
 
         # 1. Project to Axiomatic
-        axiomatic = self._project_to_axiomatic(latent_vec)
+        self._project_to_axiomatic(latent_vec)
 
         # 2. Rust-Optimized Quantization
         from cohezion_core.cohezion_core_rs import FlumePhysics
 
-        physics_engine = FlumePhysics(
+        FlumePhysics(
             np.zeros((1, 1), dtype=np.float32),
             np.zeros(1, dtype=np.float32),
             np.zeros((1, 1), dtype=np.float32),
@@ -470,9 +464,7 @@ class UniverseSimulationEngine:
 
         journey.add_trajectory_point(point)
 
-        logger.debug(
-            f"   Trajectory step {step_num}: coherence={coherence:.3f}, phi={phi_score:.3f}"
-        )
+        logger.debug(f"   Trajectory step {step_num}: coherence={coherence:.3f}, phi={phi_score:.3f}")
 
         return point
 
@@ -488,21 +480,15 @@ class UniverseSimulationEngine:
         TRANSFORMATION: Predict and precipitate the next 'Latent Action'.
         Uses the ManifoldBridge to convert intent into reality.
         """
-        logger.info(
-            f"✨ [GLE] Precipitating Latent Action for {journey.id}: {prompt[:50]}..."
-        )
+        logger.info(f"✨ [GLE] Precipitating Latent Action for {journey.id}: {prompt[:50]}...")
 
         # 1. Evolve Trajectory (Movement in latent space)
-        point = await self.evolve_trajectory(
-            journey, action=f"Latent Projection: {prompt}"
-        )
+        point = await self.evolve_trajectory(journey, action=f"Latent Projection: {prompt}")
 
         # 2. Use Manifold Bridge for Physical Precipitation
         from cohezion.core.routing.manifold_bridge import LOCAL_MANIFOLD_BRIDGE
 
-        precipitation = await LOCAL_MANIFOLD_BRIDGE.precipitate_intent(
-            journey, point.latent
-        )
+        precipitation = await LOCAL_MANIFOLD_BRIDGE.precipitate_intent(journey, point.latent)
 
         # 3. Update trajectory with achieved result
         point.result_achieved = precipitation["result_summary"]
@@ -523,7 +509,7 @@ Intent: {journey.intent}
 Trajectory Steps: {len(journey.trajectory)}
 Final Coherence: {journey.final_coherence}
 
-Based on the 0.5 Coherence Rule and HIHO protocol, predict the next 'TRANSFORMATIVE' action 
+Based on the 0.5 Coherence Rule and HIHO protocol, predict the next 'TRANSFORMATIVE' action
 that would push this project into the 'Unknown'.
 """
         prediction = await LOCAL_ROUTER.route_task("reasoning", prediction_prompt)
@@ -591,8 +577,7 @@ that would push this project into the 'Unknown'.
                     "type": "process_pattern",
                     "pattern": "Multi-step refinement successful",
                     "step_count": len(journey.trajectory),
-                    "avg_coherence": sum(t.coherence for t in journey.trajectory)
-                    / len(journey.trajectory),
+                    "avg_coherence": sum(t.coherence for t in journey.trajectory) / len(journey.trajectory),
                 }
             )
 

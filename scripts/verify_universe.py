@@ -39,7 +39,7 @@ sys.path.append(str(Path.cwd() / "src"))
 
 async def main():
     logging.basicConfig(level=logging.INFO)
-    logger = logging.getLogger("UniverseVerify")
+    logging.getLogger("UniverseVerify")
 
     print("\n--- 🌌 Test 1: Instantiation ---")
     driver = FastDriver()

@@ -41,11 +41,7 @@ class AgentVote:
     def __repr__(self) -> str:
         """Readable representation."""
         skills_str = ", ".join(s.skill_name for s in self.voted_skills[:3])
-        return (
-            f"AgentVote(agent={self.agent_id}, "
-            f"skills=[{skills_str}...], "
-            f"coherence={self.agent_coherence_score:.2f})"
-        )
+        return f"AgentVote(agent={self.agent_id}, skills=[{skills_str}...], coherence={self.agent_coherence_score:.2f})"
 
 
 @dataclass
@@ -214,7 +210,7 @@ class SkillConsensusVoter:
             reverse=True,
         )
 
-        best_skill_name, best_data = sorted_skills[0]
+        _best_skill_name, best_data = sorted_skills[0]
         vote_fraction = best_data["count"] / len(votes)
 
         # Check if threshold met (strictly greater for majority)
@@ -296,7 +292,7 @@ class SkillConsensusVoter:
             reverse=True,
         )
 
-        best_skill_name, best_data = sorted_skills[0]
+        _best_skill_name, best_data = sorted_skills[0]
         weight_fraction = best_data["weight"] / total_weight if total_weight > 0 else 0
 
         consensus_achieved = weight_fraction > threshold
@@ -358,8 +354,7 @@ class SkillConsensusVoter:
 
         # Check if all agents voted for this skill
         unanimous = all(
-            (vote.voted_skills and vote.voted_skills[0].skill_name == first_skill.skill_name)
-            for vote in votes
+            (vote.voted_skills and vote.voted_skills[0].skill_name == first_skill.skill_name) for vote in votes
         )
 
         result = ConsensusResult(
@@ -376,10 +371,7 @@ class SkillConsensusVoter:
                 "disagreed_agents": [
                     vote.agent_id
                     for vote in votes
-                    if not (
-                        vote.voted_skills
-                        and vote.voted_skills[0].skill_name == first_skill.skill_name
-                    )
+                    if not (vote.voted_skills and vote.voted_skills[0].skill_name == first_skill.skill_name)
                 ]
                 if not unanimous
                 else [],
@@ -463,9 +455,7 @@ class SkillConsensusVoter:
             total_votes=len(votes),
             fallback_used=True,
             vote_aggregation={
-                "all_skills": {
-                    name: entry["total_score"] for name, entry in skill_scores_weighted.items()
-                },
+                "all_skills": {name: entry["total_score"] for name, entry in skill_scores_weighted.items()},
                 "max_possible_score": max_possible_score,
             },
         )
@@ -503,19 +493,14 @@ class SkillConsensusVoter:
                 "timestamp": datetime.now().isoformat(),
                 "strategy": strategy.value,
                 "num_agents": len(votes),
-                "consensus_skill": (
-                    result.consensus_skill.skill_name if result.consensus_skill else None
-                ),
+                "consensus_skill": (result.consensus_skill.skill_name if result.consensus_skill else None),
                 "confidence": result.confidence_score,
                 "consensus_achieved": not result.fallback_used,
                 "fallback_used": result.fallback_used,
                 "votes_for_consensus": result.votes_for_consensus,
                 "total_votes": result.total_votes,
                 "agent_ids": [vote.agent_id for vote in votes],
-                "vote_aggregation": {
-                    k: (v if not isinstance(v, (int, float, str, bool, list)) else v)
-                    for k, v in result.vote_aggregation.items()
-                },
+                "vote_aggregation": dict(result.vote_aggregation.items()),
             }
 
             # Persist to vault with vault_add_document

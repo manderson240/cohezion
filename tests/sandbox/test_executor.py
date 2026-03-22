@@ -342,7 +342,7 @@ class TestErrorHandling:
         sandbox.client.containers.create.side_effect = Exception("Docker error")
 
         try:
-            result = sandbox.execute(basic_request)
+            sandbox.execute(basic_request)
             # If we get here, check the audit log
             assert len(sandbox.audit_entries) > 0
         except RuntimeError:

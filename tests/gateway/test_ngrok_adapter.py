@@ -376,7 +376,10 @@ class TestTokenEfficientClientWithNgrok:
 
     def test_token_client_without_ngrok_endpoint(self, config):
         """Test TokenEfficientClient defaults to Ollama."""
-        from cohezion.swarm.token_client import ResilientOllamaClient, TokenEfficientClient
+        from cohezion.swarm.token_client import (
+            ResilientOllamaClient,
+            TokenEfficientClient,
+        )
 
         client = TokenEfficientClient(config=config)
 

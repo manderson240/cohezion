@@ -9,6 +9,7 @@ import requests
 from aiohttp import web
 
 
+
 logger = logging.getLogger(__name__)
 
 MCP_PORT = int(os.getenv("MCP_PORT", "8373"))
@@ -38,9 +39,7 @@ class ResearchMinerServer:
         try:
             import arxiv
 
-            search = arxiv.Search(
-                query=query, max_results=limit, sort_by=arxiv.SortCriterion.Relevance
-            )
+            search = arxiv.Search(query=query, max_results=limit, sort_by=arxiv.SortCriterion.Relevance)
 
             results = []
             for result in search.results():

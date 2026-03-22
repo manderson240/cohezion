@@ -7,12 +7,13 @@ ALLOW operations based on their exit codes.
 """
 
 import logging
+import os
 import re
 import subprocess
 import time
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
-from enum import Enum
+from enum import StrEnum
 from pathlib import Path
 from typing import Any
 
@@ -20,7 +21,7 @@ from typing import Any
 logger = logging.getLogger(__name__)
 
 
-class HookStage(str, Enum):
+class HookStage(StrEnum):
     """Lifecycle stages where hooks can execute."""
 
     PRE_EXECUTE = "pre_execute"
@@ -29,7 +30,7 @@ class HookStage(str, Enum):
     CLEANUP = "cleanup"
 
 
-class HookAction(str, Enum):
+class HookAction(StrEnum):
     """Actions that hooks can request."""
 
     BLOCK = "block"  # Exit code 1: Block operation
@@ -492,10 +493,6 @@ class HookIntegration:
             "registry": self.registry.to_dict(),
             "audit_trail": [result.to_dict() for result in self.audit_trail],
         }
-
-
-# Import os for environment variable access
-import os
 
 
 def get_hook_integration(

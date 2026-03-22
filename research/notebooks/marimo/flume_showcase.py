@@ -115,7 +115,7 @@ def _(mo, np, plt):
     fig, axes = plt.subplots(3, 4, figsize=(14, 10))
     fig.suptitle("12D Agent Physics State Over Time", fontsize=14)
 
-    for i, (ax, dim) in enumerate(zip(axes.flat, dimensions)):
+    for i, (ax, dim) in enumerate(zip(axes.flat, dimensions, strict=False)):
         ax.plot(trajectory[:, i], linewidth=2)
         ax.set_title(dim.capitalize())
         ax.set_xlabel("Timestep")

@@ -1,49 +1,43 @@
 # Pre-commit hooks for code quality enforcement
 # Install: pip install pre-commit && pre-commit install
 # Run manually: pre-commit run --all-files
-#
-# Hook stages:
-#   - [commit] (fast): Runs on `git commit` - ~3-5s for quick feedback
-#   - [push] (safety): Runs on `git push` - large files and secrets only (linting in CI)
-#
-# Usage:
-#   pre-commit run --all-files                   # Run all hooks, all stages
-#   pre-commit run --all-files --hook-stage=commit # Run only fast checks
 
 repos:
   # ============================================================================
   # FAST CHECKS (commit stage) - Quick syntax and formatting validation
   # ============================================================================
 
-  # Ruff - Fast Python formatter and quick linter
+  # Ruff - Fast Python formatter and linter (full rule set from pyproject.toml)
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.15.0
     hooks:
-      # Format check (no auto-fix on commit, just warn)
+      # Format: auto-fix on commit
       - id: ruff-format
         stages: [pre-commit]
-        args: [--check]
-      # Quick lint - only basic syntax errors and auto-fixes
+      # Lint: full rule set with auto-fix (rules configured in pyproject.toml)
       - id: ruff
         stages: [pre-commit]
-        args: [--select=F,E9,E501, --fix]
-        name: ruff-quick (syntax errors only)
+        args: [--fix]
+        name: ruff-lint (full rules)
 
-  # General file checks - Fast validation
+  # Type checking with mypy
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.13.0
+    hooks:
+      - id: mypy
+        additional_dependencies: []
+        args: [--ignore-missing-imports]
+
+  # General pre-commit hooks
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v5.0.0
     hooks:
       - id: trailing-whitespace
-        stages: [pre-commit]
       - id: end-of-file-fixer
-        stages: [pre-commit]
       - id: check-yaml
-        stages: [pre-commit]
       - id: check-added-large-files
         args: [--maxkb=1000]
-        stages: [pre-commit]
       - id: check-merge-conflict
-        stages: [pre-commit]
       - id: detect-private-key
         stages: [pre-commit]
 
@@ -69,7 +63,7 @@ repos:
       - id: large-artifact-gate
         name: large-artifact-gate (>50MB requires registration)
         language: python
-        entry: python -c "import sys,os;[sys.exit(print(f'ERROR {f} ({os.path.getsize(f)//1048576}MB) >50MB')) for f in sys.argv[1:] if os.path.getsize(f)>52428800] or None"
+        entry: python -c "import sys,os;bad=[f for f in sys.argv[1:] if os.path.getsize(f)>52428800];[print(f'ERROR {f} ({os.path.getsize(f)//1048576}MB) >50MB -- register as external artifact') for f in bad];sys.exit(1 if bad else 0)"
         stages: [pre-commit]
 
       # Version consistency: all version strings must match pyproject.toml

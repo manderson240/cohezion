@@ -11,9 +11,11 @@ from __future__ import annotations
 import logging
 import re
 from dataclasses import dataclass, field
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
-from cohezion.core.template_engine import SkillSpec
+
+if TYPE_CHECKING:
+    from cohezion.core.template_engine import SkillSpec
 
 
 logger = logging.getLogger(__name__)
@@ -120,8 +122,7 @@ OPERATION_KEYWORDS: dict[str, list[str]] = {
 
 # Pre-compile word-boundary patterns for each keyword.
 _KEYWORD_PATTERNS: dict[str, list[re.Pattern[str]]] = {
-    op: [re.compile(rf"\b{kw}\b", re.IGNORECASE) for kw in keywords]
-    for op, keywords in OPERATION_KEYWORDS.items()
+    op: [re.compile(rf"\b{kw}\b", re.IGNORECASE) for kw in keywords] for op, keywords in OPERATION_KEYWORDS.items()
 }
 
 

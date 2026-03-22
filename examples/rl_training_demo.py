@@ -49,17 +49,13 @@ def main() -> None:
         coherences.append(info["coherence"])
         if step % 10 == 0:
             print(
-                f"  Step {step:>3}: coherence={info['coherence']:.4f}, "
-                f"reward={reward:.3f}, mean_obs={obs.mean():.4f}"
+                f"  Step {step:>3}: coherence={info['coherence']:.4f}, reward={reward:.3f}, mean_obs={obs.mean():.4f}"
             )
         if terminated or truncated:
             break
 
     print(f"\n  Episode coherence: mean={np.mean(coherences):.4f}, std={np.std(coherences):.4f}")
-    print(
-        f"  HIHO band (0.4-0.6) compliance: "
-        f"{sum(0.4 <= c <= 0.6 for c in coherences) / len(coherences):.1%}"
-    )
+    print(f"  HIHO band (0.4-0.6) compliance: {sum(0.4 <= c <= 0.6 for c in coherences) / len(coherences):.1%}")
 
 
 if __name__ == "__main__":

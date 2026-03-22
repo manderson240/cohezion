@@ -6,7 +6,10 @@ import asyncio
 import logging
 from datetime import datetime
 
-from cohezion.core.persistence.repositories.journey_repository import AgentJourney, JourneyMetrics
+from cohezion.core.persistence.repositories.journey_repository import (
+    AgentJourney,
+    JourneyMetrics,
+)
 from cohezion.core.persistence.repositories.surreal_journey_repository import (
     SurrealJourneyRepository,
 )

@@ -92,77 +92,6 @@ class ExoticVacuumObject:
         }
 
 
-class SemanticLagrangeFinder:
-    """
-    Finds stable 'Semantic Lagrange Points' (SLPs) in the 12D manifold.
-    Based on the Restricted Three-Body Problem (Kordylewsky Cloud physics).
-    """
-
-    def __init__(self, mu_limit: float = 0.0385):
-        self.mu_limit = mu_limit
-
-    def find_triangular_points(
-        self,
-        topic_a: np.ndarray,
-        topic_b: np.ndarray,
-        weight_a: float,
-        weight_b: float
-    ) -> dict[str, Any]:
-        """
-        Calculate L4 and L5 points between two semantic topics.
-        
-        L4 and L5 form equilateral triangles with the two main masses.
-        """
-        total_weight = weight_a + weight_b
-        mu = weight_b / total_weight if total_weight > 0 else 0
-        
-        if mu >= self.mu_limit:
-            return {
-                "stable": False,
-                "reason": f"Mass ratio mu={mu:.4f} exceeds Routh critical value {self.mu_limit}",
-                "mu": mu
-            }
-
-        # Vector from A to B
-        r_ab = topic_b - topic_a
-        distance = np.linalg.norm(r_ab)
-        
-        if distance == 0:
-            return {"stable": False, "reason": "Topics are identical (distance=0)"}
-
-        # Barycenter position
-        barycenter = (1 - mu) * topic_a + mu * topic_b
-        
-        # In a 12D space, we define the 'orbital plane' using the first 2 principal 
-        # components of the difference vector or just arbitrary orthogonal vectors.
-        # For simplicity, we'll use a 2D rotation in the first two dimensions of the manifold.
-        
-        # Unit vector from A to B
-        u = r_ab / distance
-        
-        # Create an orthogonal vector 'v' for the triangle height
-        # (This is a simplification for 12D; a real manifold would use the 'field' dimension)
-        v = np.zeros_like(u)
-        v[0], v[1] = -u[1], u[0] # Simple 2D orthogonal rotation
-        if np.linalg.norm(v) == 0: # Fallback if u is [0,0,z...]
-            v[2], v[3] = -u[3], u[2]
-            
-        height = distance * np.sqrt(3) / 2
-        midpoint = topic_a + 0.5 * r_ab
-        
-        l4 = midpoint + height * v
-        l5 = midpoint - height * v
-        
-        return {
-            "stable": True,
-            "mu": mu,
-            "distance": distance,
-            "l4_point": l4.tolist(),
-            "l5_point": l5.tolist(),
-            "barycenter": barycenter.tolist()
-        }
-
-
 class PlasmaSimulation:
     """Particle-in-Cell plasma simulation."""
 
@@ -318,14 +247,13 @@ async def index(request: web.Request) -> web.Response:
     return web.json_response(
         {
             "name": "Plasma Physics MCP Server",
-            "version": "2.0.0",
+            "version": "1.0.0",
             "port": MCP_PORT,
             "physics": [
                 "Particle-in-Cell (PIC)",
                 "Exotic Vacuum Objects",
                 "HIHO Operations",
                 "Quantum Vacuum Effects",
-                "Kordylewsky Semantic Lagrange Points",
             ],
             "tools": [
                 "plasma_create_simulation",
@@ -335,78 +263,9 @@ async def index(request: web.Request) -> web.Response:
                 "plasma_get_hiho_agents",
                 "plasma_get_field",
                 "plasma_400_year_unification",
-                "plasma_find_semantic_lagrange_points",
-                "plasma_park_context_in_cloud",
             ],
         }
     )
-
-
-@routes.post("/tools/plasma_find_semantic_lagrange_points")
-async def tool_find_slp(request: web.Request) -> web.Response:
-    """Calculate stable L4/L5 points between two semantic topics."""
-    try:
-        data = await request.json()
-        vec_a = np.array(data["topic_a_vec"])
-        vec_b = np.array(data["topic_b_vec"])
-        weight_a = float(data.get("weight_a", 1.0))
-        weight_b = float(data.get("weight_b", 0.01)) # Default to light satellite topic
-
-        finder = SemanticLagrangeFinder()
-        result = finder.find_triangular_points(vec_a, vec_b, weight_a, weight_b)
-
-        return web.json_response(
-            {
-                "tool": "plasma_find_semantic_lagrange_points",
-                "result": result,
-                "theory": "Kordylewsky Dust Cloud stability conditions",
-            }
-        )
-    except Exception as e:
-        logger.exception("Find SLP failed")
-        return web.json_response({"error": str(e)}, status=500)
-
-
-@routes.post("/tools/plasma_park_context_in_cloud")
-async def tool_park_context(request: web.Request) -> web.Response:
-    """'Park' a memory context at a stable Lagrange point as a plasma cloud."""
-    try:
-        data = await request.json()
-        context_id = data["context_id"]
-        slp_vec = data["slp_vec"]
-        
-        # In this simulation, parking means creating a 'dusty plasma' of particles 
-        # oscillating around the SLP.
-        sim_id = data.get("simulation_id", "default")
-        sim = get_simulation(sim_id)
-        
-        # Create 10 'memory particles' near the point
-        particles = []
-        for _ in range(10):
-            pos = np.array(slp_vec) + np.random.normal(0, 0.1, len(slp_vec))
-            # Only use first 3 dims for PIC position, but store full manifold
-            p = sim.create_particle(
-                species="memory_grain",
-                position=pos[:3].tolist(),
-                velocity=np.random.normal(0, 0.01, 3).tolist(),
-                charge=1.0,
-                mass=0.1
-            )
-            particles.append(p.id)
-
-        return web.json_response(
-            {
-                "tool": "plasma_park_context_in_cloud",
-                "context_id": context_id,
-                "status": "parked",
-                "cloud_size": len(particles),
-                "point": slp_vec,
-                "message": f"Context {context_id} stabilized at Lagrange Point. Libration movements initiated."
-            }
-        )
-    except Exception as e:
-        logger.exception("Park context failed")
-        return web.json_response({"error": str(e)}, status=500)
 
 
 @routes.post("/tools/plasma_create_simulation")

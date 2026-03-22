@@ -88,7 +88,7 @@ def visualize_debate(traj_a: list[torch.Tensor], traj_b: list[torch.Tensor], fil
     # Center data
     mean = np.mean(combined, axis=0)
     centered = combined - mean
-    U, S, Vt = np.linalg.svd(centered)
+    _U, _S, Vt = np.linalg.svd(centered)
 
     # Project to top 2 components
     pcs = Vt[:2, :]

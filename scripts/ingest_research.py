@@ -2,7 +2,11 @@ import asyncio
 import logging
 import re
 
-from cohezion.core.persistence.surreal_client import PhysicsState, SurrealClient, UniverseNode
+from cohezion.core.persistence.surreal_client import (
+    PhysicsState,
+    SurrealClient,
+    UniverseNode,
+)
 from cohezion.cosmic.knowledge_mapper import KnowledgeMapper
 from cohezion.system.sheet_sync import SheetSyncAgent
 

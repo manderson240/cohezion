@@ -9,7 +9,10 @@ def call_mcp(method, params=None):
         request["params"] = params
 
     proc = subprocess.Popen(
-        ["python3", "/home/mike-anderson/dev/cohezion/src/cohezion/skills/cohezion_mcp.py"],
+        [
+            "python3",
+            "/home/mike-anderson/dev/cohezion/src/cohezion/skills/cohezion_mcp.py",
+        ],
         stdin=subprocess.PIPE,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,

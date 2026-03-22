@@ -85,14 +85,11 @@ class ThoughtEncoder(nn.Module):
         tokens: torch.Tensor,
         attention_mask: torch.Tensor | None = None,
     ) -> torch.Tensor:
-        batch_size, seq_len = tokens.shape
+        _batch_size, seq_len = tokens.shape
         positions = torch.arange(seq_len, device=tokens.device).unsqueeze(0)
         x = self.embedding(tokens) + self.pos_embedding(positions)
 
-        if attention_mask is not None:
-            src_key_padding_mask = ~attention_mask.bool()
-        else:
-            src_key_padding_mask = None
+        src_key_padding_mask = ~attention_mask.bool() if attention_mask is not None else None
 
         x = self.transformer(x, src_key_padding_mask=src_key_padding_mask)
 
@@ -133,7 +130,7 @@ class ThoughtDecoder(nn.Module):
         z: torch.Tensor,
         target_tokens: torch.Tensor,
     ) -> torch.Tensor:
-        batch_size, seq_len = target_tokens.shape
+        _batch_size, seq_len = target_tokens.shape
         positions = torch.arange(seq_len, device=target_tokens.device).unsqueeze(0)
         tgt = self.embedding(target_tokens) + self.pos_embedding(positions)
 
@@ -176,18 +173,14 @@ class FlumeEncoder(PreTrainedModel):
         if isinstance(module, nn.Linear):
             module.weight.data.normal_(
                 mean=0.0,
-                std=self.config.initializer_range
-                if hasattr(self.config, "initializer_range")
-                else 0.02,
+                std=self.config.initializer_range if hasattr(self.config, "initializer_range") else 0.02,
             )
             if module.bias is not None:
                 module.bias.data.zero_()
         elif isinstance(module, nn.Embedding):
             module.weight.data.normal_(
                 mean=0.0,
-                std=self.config.initializer_range
-                if hasattr(self.config, "initializer_range")
-                else 0.02,
+                std=self.config.initializer_range if hasattr(self.config, "initializer_range") else 0.02,
             )
             if module.padding_idx is not None:
                 module.weight.data[module.padding_idx].zero_()
@@ -201,9 +194,7 @@ class FlumeEncoder(PreTrainedModel):
         if isinstance(text, str):
             text = [text]
 
-        inputs = self.tokenizer(
-            text, padding=True, truncation=True, max_length=max_len, return_tensors="pt"
-        )
+        inputs = self.tokenizer(text, padding=True, truncation=True, max_length=max_len, return_tensors="pt")
         inputs = {k: v.to(self.device) for k, v in inputs.items()}
 
         with torch.no_grad():
@@ -270,7 +261,7 @@ class FlumeEncoder(PreTrainedModel):
         attention_mask: torch.Tensor | None = None,
     ) -> torch.Tensor:
         """Compute reconstruction loss for training."""
-        z, logits = self.forward(input_ids, attention_mask)
+        _z, logits = self.forward(input_ids, attention_mask)
 
         # Shift for next-token prediction
         shift_logits = logits[:, :-1, :].contiguous()
@@ -348,15 +339,9 @@ class FlumeEncoder(PreTrainedModel):
         to_concept: str | torch.Tensor,
     ) -> torch.Tensor:
         """Compute the semantic direction from one concept to another."""
-        if isinstance(from_concept, str):
-            z_from = self.encode(from_concept)
-        else:
-            z_from = from_concept
+        z_from = self.encode(from_concept) if isinstance(from_concept, str) else from_concept
 
-        if isinstance(to_concept, str):
-            z_to = self.encode(to_concept)
-        else:
-            z_to = to_concept
+        z_to = self.encode(to_concept) if isinstance(to_concept, str) else to_concept
 
         return z_to - z_from
 

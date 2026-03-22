@@ -44,7 +44,7 @@ def run_sequential_http_benchmark() -> BenchmarkResult:
         for paper_file in paper_files:
             try:
                 # Simulate file I/O
-                content = paper_file.read_text(encoding="utf-8", errors="ignore")
+                paper_file.read_text(encoding="utf-8", errors="ignore")
 
                 # Simulate HTTP request to SurrealDB
                 # In real scenario: 84 papers * 10ms = 840ms sequential
@@ -96,7 +96,7 @@ def run_parallel_http_benchmark() -> BenchmarkResult:
         async def process_paper(paper_file: Path) -> None:
             try:
                 # Simulate file I/O
-                content = paper_file.read_text(encoding="utf-8", errors="ignore")
+                paper_file.read_text(encoding="utf-8", errors="ignore")
 
                 # Simulate HTTP request
                 await asyncio.sleep(http_latency_ms / 1000.0)
@@ -215,9 +215,7 @@ if __name__ == "__main__":
     print("\nAnalysis:")
     if comp["speedup_factor"] >= 5:
         print("  ✓ Parallelization is highly effective")
-        print(
-            f"  ✓ Achieves {comp['speedup_factor']:.1f}x speedup (well above 5x target)"
-        )
+        print(f"  ✓ Achieves {comp['speedup_factor']:.1f}x speedup (well above 5x target)")
     elif comp["speedup_factor"] >= 2:
         print("  ✓ Parallelization is working")
         print(f"  ✓ Achieves {comp['speedup_factor']:.1f}x speedup")

@@ -78,15 +78,11 @@ class KernelBuilder:
             slots.append(("alu", (op1, tmp1, val_hash_addr, self.scratch_const(val1))))
             slots.append(("alu", (op3, tmp2, val_hash_addr, self.scratch_const(val3))))
             slots.append(("alu", (op2, val_hash_addr, tmp1, tmp2)))
-            slots.append(
-                ("debug", ("compare", val_hash_addr, (round, i, "hash_stage", hi)))
-            )
+            slots.append(("debug", ("compare", val_hash_addr, (round, i, "hash_stage", hi))))
 
         return slots
 
-    def build_kernel(
-        self, forest_height: int, n_nodes: int, batch_size: int, rounds: int
-    ):
+    def build_kernel(self, forest_height: int, n_nodes: int, batch_size: int, rounds: int):
         """
         Optimized implementation using SIMD and VLIW packing.
         """
@@ -94,13 +90,9 @@ class KernelBuilder:
         from problem import HASH_STAGES
 
         okb = OptimizedKernelBuilder()
-        self.instrs = okb.build_kernel(
-            forest_height, n_nodes, batch_size, rounds, HASH_STAGES
-        )
+        self.instrs = okb.build_kernel(forest_height, n_nodes, batch_size, rounds, HASH_STAGES)
         # Update scratch_debug for Machine's debug_info
-        self.scratch_debug = {
-            addr: (name, length) for addr, (name, length) in okb.scratch_names.items()
-        }
+        self.scratch_debug = {addr: (name, length) for addr, (name, length) in okb.scratch_names.items()}
         self.scratch_ptr = okb.scratch_ptr
 
 
@@ -181,7 +173,7 @@ class Tests(unittest.TestCase):
         Test the reference kernels against each other
         """
         random.seed(123)
-        for i in range(10):
+        for _i in range(10):
             f = Tree.generate(4)
             inp = Input.generate(f, 10, 6)
             mem = build_mem_image(f, inp)

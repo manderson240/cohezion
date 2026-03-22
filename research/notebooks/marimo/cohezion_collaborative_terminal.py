@@ -140,15 +140,18 @@ def generate_visuals():
                 y=points[:, 1],
                 z=points[:, 2],
                 mode="markers",
-                marker=dict(
-                    size=4, color=np.linspace(0, 1, n_points), colorscale="Viridis", opacity=0.8
-                ),
+                marker={
+                    "size": 4,
+                    "color": np.linspace(0, 1, n_points),
+                    "colorscale": "Viridis",
+                    "opacity": 0.8,
+                },
             )
         ]
     )
     fig_manifold.update_layout(
         title="12D Thought Manifold (3D Projection)",
-        margin=dict(l=0, r=0, b=0, t=30),
+        margin={"l": 0, "r": 0, "b": 0, "t": 30},
         template="plotly_dark",
         height=400,
     )
@@ -164,14 +167,14 @@ def generate_visuals():
             go.Bar(
                 x=list(summary.keys()),
                 y=list(summary.values()),
-                marker_color=[colors.get(k, "white") for k in summary.keys()],
+                marker_color=[colors.get(k, "white") for k in summary],
             )
         ]
     )
     fig_light.update_layout(
         title="Biophotonic Spectrum (Last 5s)",
-        yaxis=dict(range=[0, 1], title="Intensity"),
-        margin=dict(l=0, r=0, b=0, t=30),
+        yaxis={"range": [0, 1], "title": "Intensity"},
+        margin={"l": 0, "r": 0, "b": 0, "t": 30},
         template="plotly_dark",
         height=400,
     )

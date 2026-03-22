@@ -41,12 +41,12 @@ def _():
 def _(mo):
     mo.md("""
     # 🌌 HIHO Awareness Explorer
-    
+
     **The 12 Parameters of Reality** (Based on Wilbert Smith's TensorBeam)
-    
-    Explore the transition from "Nothing-At-All" to "Precipitated Reality". 
+
+    Explore the transition from "Nothing-At-All" to "Precipitated Reality".
     Stability occurs exactly at the **Half-In-Half-Out** (HIHO) point of 0.5 coherence.
-    
+
     > *"Reality extends from zero to infinity, but stability is a function of overlap."*
     """)
     return
@@ -98,7 +98,20 @@ def _(mo):
         part = mo.ui.slider(0, 1, value=0.5, label="Particularization")
         precip = mo.ui.slider(0, 1, value=0.4, label="Precipitation")
 
-    return s1, s2, s3, tempic, electric, magnetic, rotation, precession, charge, aware, part, precip
+    return (
+        s1,
+        s2,
+        s3,
+        tempic,
+        electric,
+        magnetic,
+        rotation,
+        precession,
+        charge,
+        aware,
+        part,
+        precip,
+    )
 
 
 @app.cell
@@ -133,29 +146,44 @@ def _(aware, tempic, electric, magnetic, rotation, precession):
     else:
         particle_type = "Near-Neutral"
 
-    return coherence, stability, precipitated, charge_polarity, particle_type, spin_coherence
+    return (
+        coherence,
+        stability,
+        precipitated,
+        charge_polarity,
+        particle_type,
+        spin_coherence,
+    )
 
 
 @app.cell
-def _(mo, coherence, stability, precipitated, charge_polarity, particle_type, spin_coherence):
+def _(
+    mo,
+    coherence,
+    stability,
+    precipitated,
+    charge_polarity,
+    particle_type,
+    spin_coherence,
+):
     # Visual Output
     status_emoji = "🌟" if stability > 0.9 else "🌌" if stability > 0.5 else "🌫️"
     precip_status = "✅ REALITY PRECIPITATED" if precipitated else "❌ UNPRECIPITATED VOID"
 
     mo.md(f"""
     ### {status_emoji} Current State: {precip_status}
-    
+
     - **Coherence Overlap**: `{coherence:.4f}`
     - **Stability Coefficient**: `{stability:.4f}` (Spin Coherence: {spin_coherence:.2f})
     - **Particle Type**: **{particle_type}** (Charge: {charge_polarity:.3f})
-    
+
     **Toroidal Spin Analysis:**
     {
         "The rotation and precession are aligned (coherent), maximizing stability."
         if spin_coherence > 0.5
         else "The rotation and precession are counter-aligned, creating instability."
     }
-    
+
     **HIHO Analysis:**
     {
         "The system is perfectly balanced at the 0.5 threshold. Stability is maximum."
@@ -175,7 +203,7 @@ def _(plt, np, coherence, stability):
     values = [0.5, (coherence / 0.8), 0.45, 0.4]  # Mock values for visualization
 
     # 12D State Visualization
-    fig, ax = plt.subplots(figsize=(6, 6), subplot_kw=dict(polar=True))
+    fig, ax = plt.subplots(figsize=(6, 6), subplot_kw={"polar": True})
 
     angles = np.linspace(0, 2 * np.pi, len(labels), endpoint=False).tolist()
     values += values[:1]
@@ -189,7 +217,11 @@ def _(plt, np, coherence, stability):
 
     # Add a marker for the 0.5 Stability Threshold
     ax.plot(
-        np.linspace(0, 2 * np.pi, 100), [0.5] * 100, "r--", alpha=0.5, label="HIHO 0.5 Threshold"
+        np.linspace(0, 2 * np.pi, 100),
+        [0.5] * 100,
+        "r--",
+        alpha=0.5,
+        label="HIHO 0.5 Threshold",
     )
     ax.legend(loc="upper right")
 
@@ -202,7 +234,7 @@ def _(plt, np, coherence, stability):
 def _(mo):
     mo.md("""
     ### 💬 Swarm Meta-Gateway Q&A
-    
+
     Ask the swarm about the implications of HIHO stability:
     """)
 
@@ -224,7 +256,7 @@ def _(mo, q):
 def _(mo):
     mo.md("""
     ---
-    *Built with Cohezion Swarm & HIHO_REALITY_SIM_PRIME*  
+    *Built with Cohezion Swarm & HIHO_REALITY_SIM_PRIME*
     *cohezion.duckdns.org | 2026*
     """)
     return

@@ -47,7 +47,7 @@ import asyncio
 
 
 class StreamAgent:
-    def __init__(self, name: str, focus: str, target_file: str = None):
+    def __init__(self, name: str, focus: str, target_file: str | None = None):
         self.name = name
         self.focus = focus
         self.target_file = target_file
@@ -106,7 +106,7 @@ class StreamAgent:
 
 
 class SwarmOrchestrator:
-    def __init__(self, engineer_target: str = None):
+    def __init__(self, engineer_target: str | None = None):
         self.streams = [
             StreamAgent("Architect", "Structure & Patterns"),
             StreamAgent("Engineer", "Performance & Correctness", target_file=engineer_target),
@@ -134,9 +134,7 @@ class EvolutionarySpiral:
     def check_vital_signs(self) -> bool:
         stats = self.resource_monitor.get_stats()
         if stats["memory_percent"] > 85.0:
-            logger.warning(
-                f"🛑 Vital Signs Critical: Memory {stats['memory_percent']}%. Pausing Evolution."
-            )
+            logger.warning(f"🛑 Vital Signs Critical: Memory {stats['memory_percent']}%. Pausing Evolution.")
             time.sleep(60)
             return False
         return True

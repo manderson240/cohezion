@@ -22,7 +22,7 @@ def __():
 
 
 @app.cell
-async def __():
+async def __(np):
     # Load data from SurrealDB
     # In a real environment, we'd use the SurrealClient
     # For now, we'll simulate data if DB is down
@@ -33,7 +33,7 @@ async def __():
         # nodes = await client.query("SELECT * FROM agent_thought WHERE embedding IS NOT NULL")
         # data = nodes
         pass
-    except:
+    except Exception:
         pass
 
     if not data:
@@ -82,13 +82,13 @@ def __(PCA, data, mo, np, pd, px):
             },
         )
 
-        fig.update_layout(margin=dict(l=0, r=0, b=0, t=30))
+        fig.update_layout(margin={"l": 0, "r": 0, "b": 0, "t": 30})
         plot = mo.ui.plotly(fig)
     else:
         plot = mo.md("Not enough data points yet to render manifold.")
 
     mo.vstack([mo.md("### 3D Latent Manifold Projection"), plot])
-    return coords, df, fig, i, n_points, pca, plot
+    return coords, df, fig, pca, plot
 
 
 @app.cell

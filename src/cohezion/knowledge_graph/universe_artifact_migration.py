@@ -157,7 +157,9 @@ class UniverseArtifactMigration:
                 timeout=30,
             )
 
-            total_bytes = sum(int(line) for line in result.stdout.strip().split("\n") if line)
+            total_bytes = sum(
+                int(line) for line in result.stdout.strip().split("\n") if line
+            )
 
             # Get commit history
             result = subprocess.run(
@@ -176,7 +178,9 @@ class UniverseArtifactMigration:
                 timeout=30,
             )
 
-            commit_count = len([line for line in result.stdout.strip().split("\n") if line])
+            commit_count = len(
+                [line for line in result.stdout.strip().split("\n") if line]
+            )
 
             summary = {
                 "file_count": file_count,
@@ -275,10 +279,7 @@ class UniverseArtifactMigration:
             # For now, we validate the schema and prepare data
 
             # Load schema
-            schema_path = (
-                self.cohezion_root
-                / "src/cohezion/knowledge_graph/universe_artifact_surrealdb_schema.sql"
-            )
+            schema_path = self.cohezion_root / "src/cohezion/knowledge_graph/universe_artifact_surrealdb_schema.sql"
 
             if not schema_path.exists():
                 raise FileNotFoundError(f"Schema not found: {schema_path}")
@@ -335,7 +336,7 @@ class UniverseArtifactMigration:
                 verified_count = 0
                 failed_count = 0
 
-                for i, member in enumerate(members[: min(10, len(members))]):
+                for _i, member in enumerate(members[: min(10, len(members))]):
                     if not member.isdir():
                         try:
                             f = tar.extractfile(member)

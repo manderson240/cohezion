@@ -1,6 +1,24 @@
 """Tests for sandbox isolation backends."""
 
+import shutil
+import subprocess
+
 import pytest
+
+
+def _systemd_user_available() -> bool:
+    """Check if systemd-run --user can connect to the session bus."""
+    if not shutil.which("systemd-run"):
+        return False
+    try:
+        result = subprocess.run(
+            ["systemd-run", "--user", "--scope", "--", "true"],
+            capture_output=True,
+            timeout=5,
+        )
+        return result.returncode == 0
+    except Exception:
+        return False
 
 from cohezion.universe.sandbox_backends import (
     BackendResult,
@@ -94,8 +112,8 @@ class TestDockerBackend:
 
 class TestSystemdRunBackend:
     @pytest.mark.skipif(
-        not SystemdRunBackend.is_available(),
-        reason="systemd-run not available",
+        not _systemd_user_available(),
+        reason="systemd-run --user session bus not available",
     )
     @pytest.mark.anyio
     async def test_systemd_simple_script(self):

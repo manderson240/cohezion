@@ -99,7 +99,7 @@ class LabAgent(BaseAgent):
 
         return self.session_discoveries[-1] if self.session_discoveries else None
 
-    async def run_cycle(self, seed_override: str = None):
+    async def run_cycle(self, seed_override: str | None = None):
         """Execute a single autonomous lab cycle."""
         logger.info("LabAgent: Starting new research cycle...")
 
@@ -203,8 +203,7 @@ class LabAgent(BaseAgent):
         self.session_discoveries.append(node)
 
         logger.info(
-            f"Discovery {discovery_id} persisted to SurrealDB. "
-            f"Alignment: {alignment_score:.2f}, Verified: {success}"
+            f"Discovery {discovery_id} persisted to SurrealDB. Alignment: {alignment_score:.2f}, Verified: {success}"
         )
 
     def _determine_domain(self, text: str) -> str:
@@ -296,8 +295,7 @@ class LabAgent(BaseAgent):
         logger.info(f"Autonomous Lab: {len(self.session_discoveries)} New Discoveries")
         for d in self.session_discoveries:
             logger.info(
-                f"  {d.id}: Alignment {d.metadata['anthropic_alignment']:.2f} "
-                f"| Verified: {d.metadata['verified']}"
+                f"  {d.id}: Alignment {d.metadata['anthropic_alignment']:.2f} | Verified: {d.metadata['verified']}"
             )
 
         self.session_discoveries = []

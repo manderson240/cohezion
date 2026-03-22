@@ -30,9 +30,7 @@ from cohezion.reliability.monitor import get_resource_monitor
 logger = logging.getLogger(__name__)
 
 # Allowed CORS origins from environment, default to localhost only
-_CORS_ORIGINS = os.environ.get(
-    "COHEZION_CORS_ORIGINS", "http://localhost:3000,http://localhost:8080"
-).split(",")
+_CORS_ORIGINS = os.environ.get("COHEZION_CORS_ORIGINS", "http://localhost:3000,http://localhost:8080").split(",")
 
 # ---------------------------------------------------------------------------
 # Globals initialised during lifespan

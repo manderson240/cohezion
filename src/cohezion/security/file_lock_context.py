@@ -66,15 +66,19 @@ class FileLock:
         for attempt in range(self.max_retries):
             try:
                 # Open lockfile (create if needed)
-                self._lockfile = open(self.filepath, "a+", encoding="utf-8")
+                self._lockfile = open(self.filepath, "a+", encoding="utf-8")  # noqa: SIM115
 
                 # Try to acquire exclusive lock with timeout
                 start_time = time.time()
                 while True:
                     try:
-                        fcntl.flock(self._lockfile.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+                        fcntl.flock(
+                            self._lockfile.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB
+                        )
                         self._acquired = True
-                        logger.debug(f"Acquired lock on {self.filepath} (attempt {attempt + 1})")
+                        logger.debug(
+                            f"Acquired lock on {self.filepath} (attempt {attempt + 1})"
+                        )
                         return
                     except BlockingIOError:
                         if time.time() - start_time > self.timeout:
@@ -88,9 +92,7 @@ class FileLock:
 
                 if attempt < self.max_retries - 1:
                     wait_time = 0.1 * (2**attempt)  # Exponential backoff
-                    logger.warning(
-                        f"Failed to acquire lock on {self.filepath}, retrying in {wait_time}s"
-                    )
+                    logger.warning(f"Failed to acquire lock on {self.filepath}, retrying in {wait_time}s")
                     time.sleep(wait_time)
                 else:
                     raise FileLockError(

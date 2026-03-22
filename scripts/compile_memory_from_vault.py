@@ -372,9 +372,7 @@ async def main_async(use_graphrag: bool):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Compile MEMORY.md from vault")
-    parser.add_argument(
-        "--graphrag", action="store_true", help="Use V2 GraphRAG (requires SurrealDB)"
-    )
+    parser.add_argument("--graphrag", action="store_true", help="Use V2 GraphRAG (requires SurrealDB)")
     args = parser.parse_args()
 
     asyncio.run(main_async(args.graphrag))

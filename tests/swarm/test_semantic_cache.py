@@ -149,7 +149,9 @@ class TestSemanticCache:
 
         # Query multiple times
         await semantic_cache.get("prompt", "sys")  # Hit
-        await semantic_cache.get("other", "sys")  # Miss (after error, but still increments)
+        await semantic_cache.get(
+            "other", "sys"
+        )  # Miss (after error, but still increments)
         await semantic_cache.get("prompt", "sys")  # Hit
 
         stats = semantic_cache.get_stats()
@@ -246,7 +248,7 @@ class TestLRUEviction:
         """Test eviction when max entries reached."""
         semantic_cache.max_entries = 3
 
-        embedding = [1.0] + [0.0] * 255
+        [1.0] + [0.0] * 255
 
         async def mock_encode(text):
             # Deterministic but different for each text

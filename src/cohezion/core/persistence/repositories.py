@@ -89,9 +89,7 @@ class SurrealNodeRepository(NodeRepository):
         self._client = client
 
     async def get_by_id(self, node_id: str) -> UniverseNode | None:
-        result = await self._client.query(
-            "SELECT * FROM universe_nodes WHERE id = $id", {"id": node_id}
-        )
+        result = await self._client.query("SELECT * FROM universe_nodes WHERE id = $id", {"id": node_id})
 
         if result and len(result) > 0:
             data = result[0].get("result", [None])[0]
@@ -223,9 +221,7 @@ class SurrealJourneyRepository(JourneyRepository):
         self._client = client
 
     async def get_by_id(self, journey_id: str) -> AgentJourney | None:
-        result = await self._client.query(
-            "SELECT * FROM agent_journeys WHERE id = $id", {"id": journey_id}
-        )
+        result = await self._client.query("SELECT * FROM agent_journeys WHERE id = $id", {"id": journey_id})
 
         if result and len(result) > 0:
             data = result[0].get("result", [None])[0]

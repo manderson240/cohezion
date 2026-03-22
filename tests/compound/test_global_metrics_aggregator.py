@@ -678,7 +678,9 @@ class TestCoherenceTrendVisualization:
 
         # Verify trend is increasing
         for i in range(1, len(skill_metrics.coherence_trend)):
-            assert skill_metrics.coherence_trend[i] >= skill_metrics.coherence_trend[i - 1]
+            assert (
+                skill_metrics.coherence_trend[i] >= skill_metrics.coherence_trend[i - 1]
+            )
 
     def test_dashboard_coherence_trending(self, aggregator):
         """Test coherence trending in dashboard snapshot."""
@@ -715,7 +717,7 @@ class TestDashboardRealtimeUpdates:
         aggregator.record_instance_metrics("agent1", m)
 
         snapshots = []
-        for i in range(5):
+        for _i in range(5):
             start = time.time()
             snapshot = aggregator.get_dashboard_snapshot()
             latency = (time.time() - start) * 1000
