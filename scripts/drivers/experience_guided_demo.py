@@ -167,15 +167,11 @@ def run_experience_guided_demo():
     logger.info("\n" + "=" * 80)
     logger.info("EXPERIENCE-GUIDED LEARNING DEMONSTRATION")
     logger.info("=" * 80)
-    logger.info(
-        f"Task 1: Cold start (no guidance) → coherence={result1.metrics.get('coherence', 0.0):.3f}"
-    )
+    logger.info(f"Task 1: Cold start (no guidance) → coherence={result1.metrics.get('coherence', 0.0):.3f}")
     logger.info(
         f"Task 2: Guided by Task 1 (confidence={guidance_received['confidence']:.2f}) → coherence={result2.metrics.get('coherence', 0.0):.3f}"
     )
-    logger.info(
-        f"Task 3: Low quality execution → coherence={result3.metrics.get('coherence', 0.0):.3f}"
-    )
+    logger.info(f"Task 3: Low quality execution → coherence={result3.metrics.get('coherence', 0.0):.3f}")
     logger.info(
         f"Task 4: Warned by Task 3 ({len(warnings_received)} warnings) → coherence={result4.metrics.get('coherence', 0.0):.3f}"
     )

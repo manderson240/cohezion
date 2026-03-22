@@ -303,9 +303,7 @@ class TestEdgeCases:
         )
         registry.register_model(paid_model)
         # Try to select with low budget - should not pick expensive model
-        result = registry.get_best_for_task(
-            "expensive-analysis", budget=0.001, available_models=["expensive:model"]
-        )
+        result = registry.get_best_for_task("expensive-analysis", budget=0.001, available_models=["expensive:model"])
         assert result is None
 
     def test_multiple_models_same_capability(self):

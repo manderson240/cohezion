@@ -110,9 +110,7 @@ class TestPreFlightChecker:
 
         assert result.passed is False
         assert len(result.violations) > 0
-        critical_violations = [
-            v for v in result.violations if v.severity == ViolationSeverity.CRITICAL
-        ]
+        critical_violations = [v for v in result.violations if v.severity == ViolationSeverity.CRITICAL]
         assert len(critical_violations) > 0
 
     def test_preflight_detects_git_reset_hard(self, low_risk_policy):

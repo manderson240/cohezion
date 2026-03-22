@@ -71,16 +71,12 @@ class LatentAligner:
             # Running average update (ema)
             self.domain_centroids[domain] = 0.9 * self.domain_centroids[domain] + 0.1 * current_mean
 
-    def domain_shift(
-        self, vector: torch.Tensor, source_domain: str, target_domain: str
-    ) -> torch.Tensor:
+    def domain_shift(self, vector: torch.Tensor, source_domain: str, target_domain: str) -> torch.Tensor:
         """
         Applies a simple centroid-based shift as a fast approximation of alignment.
         """
         if source_domain not in self.domain_centroids or target_domain not in self.domain_centroids:
-            logger.warning(
-                f"⚠️ Centroids missing for {source_domain} or {target_domain}. Returning original vector."
-            )
+            logger.warning(f"⚠️ Centroids missing for {source_domain} or {target_domain}. Returning original vector.")
             return vector
 
         shift = self.domain_centroids[target_domain] - self.domain_centroids[source_domain]

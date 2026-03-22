@@ -26,7 +26,7 @@ logger = logging.getLogger(__name__)
 
 
 DEBATE_QUERY = """
-We are organizing the Cohezion platform as a showcase for applying to Anthropic's 
+We are organizing the Cohezion platform as a showcase for applying to Anthropic's
 Research Engineer, Universes position. The swarm must debate and decide:
 
 1. **Structure**: How should we organize 27+ modules to match Anthropic/HuggingFace standards?
@@ -89,9 +89,7 @@ async def run_organization_debate():
             "duration_seconds": duration,
         }
 
-        output_path = Path(
-            "src/cohezion/knowledge_graph/debates/project_organization_2026-01-18.json"
-        )
+        output_path = Path("src/cohezion/knowledge_graph/debates/project_organization_2026-01-18.json")
         output_path.parent.mkdir(parents=True, exist_ok=True)
         output_path.write_text(json.dumps(result, indent=2))
 

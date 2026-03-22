@@ -115,9 +115,7 @@ class TestPreCommitConfiguration:
                 for hook in hooks:
                     assert hook.get("id") == "detect-secrets"
                     # Should use baseline
-                    assert ".secrets.baseline" in str(hook.get("args", [])), (
-                        "detect-secrets should use baseline"
-                    )
+                    assert ".secrets.baseline" in str(hook.get("args", [])), "detect-secrets should use baseline"
 
         assert found_detect_secrets, "detect-secrets hook not found"
 
@@ -311,9 +309,7 @@ class TestSecurityHooksPerformance:
                     hook_id = hook.get("id", "")
 
                     for slow in slow_repos:
-                        assert slow not in repo_url, (
-                            f"Slow check '{hook_id}' should not be on commit stage"
-                        )
+                        assert slow not in repo_url, f"Slow check '{hook_id}' should not be on commit stage"
 
     def test_push_stage_has_security_checks(self):
         """Test that push stage includes security checks."""

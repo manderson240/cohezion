@@ -113,9 +113,7 @@ class CompoundOps:
             self.vault.write(path, content)
             return f"Created pattern: {path}"
 
-    def find_relevant_context(
-        self, query: str, project: str | None = None
-    ) -> list[dict]:
+    def find_relevant_context(self, query: str, project: str | None = None) -> list[dict]:
         """Search for prior decisions, patterns, and experiments.
 
         Searches across decisions/, patterns/, experiments/, and

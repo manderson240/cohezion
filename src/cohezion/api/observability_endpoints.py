@@ -58,7 +58,7 @@ async def get_unified_metrics():
         }
     except Exception as e:
         logger.error("Failed to get unified metrics: %s", e, exc_info=True)
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
 
 @router.get("/cache")
@@ -84,7 +84,7 @@ async def get_cache_analytics():
         }
     except Exception as e:
         logger.error("Failed to get cache analytics: %s", e, exc_info=True)
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
 
 @router.get("/efficiency")
@@ -109,7 +109,7 @@ async def get_token_efficiency():
         }
     except Exception as e:
         logger.error("Failed to get token efficiency metrics: %s", e, exc_info=True)
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
 
 @router.get("/guardrails")
@@ -134,7 +134,7 @@ async def get_guardrail_analytics():
         }
     except Exception as e:
         logger.error("Failed to get guardrail analytics: %s", e, exc_info=True)
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
 
 @router.get("/resources")
@@ -159,7 +159,7 @@ async def get_resource_analytics():
         }
     except Exception as e:
         logger.error("Failed to get resource analytics: %s", e, exc_info=True)
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
 
 @router.get("/health")
@@ -196,7 +196,7 @@ async def get_health_score():
         }
     except Exception as e:
         logger.error("Failed to get health score: %s", e, exc_info=True)
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
 
 @router.get("/trends/{metric_name}")
@@ -241,7 +241,7 @@ async def get_metric_trend(metric_name: str, window: int = 10):
         raise
     except Exception as e:
         logger.error("Failed to get metric trend: %s", e, exc_info=True)
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
 
 @router.get("/dashboard")
@@ -332,7 +332,7 @@ async def get_full_dashboard():
         }
     except Exception as e:
         logger.error("Failed to generate dashboard: %s", e, exc_info=True)
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
 
 @router.post("/reset")
@@ -357,4 +357,4 @@ async def reset_metrics():
         }
     except Exception as e:
         logger.error("Failed to reset metrics: %s", e, exc_info=True)
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e

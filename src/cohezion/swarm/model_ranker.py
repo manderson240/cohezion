@@ -128,10 +128,7 @@ class ModelRanker:
         # Verify weights sum to approximately 1.0
         total_weight = sum([coherence_weight, cost_weight, latency_weight, freshness_weight])
         if not (0.9 <= total_weight <= 1.1):
-            logger.warning(
-                f"Model ranking weights sum to {total_weight}, expected ~1.0. "
-                f"Scores will be normalized."
-            )
+            logger.warning(f"Model ranking weights sum to {total_weight}, expected ~1.0. Scores will be normalized.")
 
         # Cache for coherence scores
         self._coherence_cache: dict[
@@ -326,7 +323,6 @@ class ModelRanker:
 
         try:
             # Query vault for patterns matching task and model
-            query = f"coherence pattern where model='{model}' and similarity(task, '{task_description}') > 0.7"
             # Note: This is a conceptual query - actual implementation would depend on vault API
             # For now, return None to fall back to defaults
             return None
@@ -349,7 +345,7 @@ class ModelRanker:
             # No cached evaluation = moderate freshness
             return 0.7
 
-        score, timestamp = self._coherence_cache[model]
+        _score, timestamp = self._coherence_cache[model]
         age_hours = (time.time() - timestamp) / 3600.0
 
         # Exponential decay with half-life of freshness_decay_hours
@@ -381,9 +377,7 @@ class ModelRanker:
         """
         return {model: self.DEFAULT_LATENCY.get(model, 100.0) for model in models}
 
-    def update_coherence_score(
-        self, model: str, coherence_score: float, timestamp: float | None = None
-    ) -> None:
+    def update_coherence_score(self, model: str, coherence_score: float, timestamp: float | None = None) -> None:
         """Update cached coherence score for a model.
 
         Args:
@@ -415,7 +409,7 @@ class ModelRanker:
         # Add freshness stats
         if self._coherence_cache:
             ages = []
-            for model, (score, timestamp) in self._coherence_cache.items():
+            for _model, (_score, timestamp) in self._coherence_cache.items():
                 age_hours = (time.time() - timestamp) / 3600.0
                 ages.append(age_hours)
 

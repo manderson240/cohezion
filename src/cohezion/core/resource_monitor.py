@@ -75,7 +75,9 @@ class ResourceMonitor:
 
                     if any(t in cmd for t in targets) and proc.info["memory_percent"] > 5.0:
                         logger.warning(
-                            f"Killing process {proc.info['pid']} ({proc.info['name']}) - {proc.info['memory_percent']:.1f}% MEM"
+                            f"Killing process {proc.info['pid']}"
+                            f" ({proc.info['name']}) -"
+                            f" {proc.info['memory_percent']:.1f}% MEM"
                         )
                         proc.kill()
                         actions.append(f"Killed {proc.info['name']} (PID {proc.info['pid']})")

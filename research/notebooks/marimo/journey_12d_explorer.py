@@ -51,7 +51,7 @@ def _(mo):
 
 
 @app.cell
-def _(mo, np, pd):
+def _(datetime, mo, np, pd):
     # Mock data generation if SurrealDB is empty (Sprint 6 bootstrap)
     def generate_mock_journey(n_steps=20):
         data = []
@@ -88,7 +88,12 @@ def _(mo, np, pd):
     journey_df = generate_mock_journey()
 
     step_slider = mo.ui.slider(
-        start=0, stop=len(journey_df) - 1, step=1, value=0, label="🚶 Journey Step", show_value=True
+        start=0,
+        stop=len(journey_df) - 1,
+        step=1,
+        value=0,
+        label="🚶 Journey Step",
+        show_value=True,
     )
 
     mo.hstack([step_slider], justify="center")
@@ -131,19 +136,19 @@ def _(mo, journey_df, step_slider, go):
             r=[0.5] * 8,
             theta=categories,
             mode="lines",
-            line=dict(color="gold", dash="dash"),
+            line={"color": "gold", "dash": "dash"},
             name="HIHO Stability (0.5)",
         )
     )
 
     fig_radar.update_layout(
-        polar=dict(
-            radialaxis=dict(visible=True, range=[0, 1], gridcolor="gray"),
-            angularaxis=dict(gridcolor="gray"),
-        ),
+        polar={
+            "radialaxis": {"visible": True, "range": [0, 1], "gridcolor": "gray"},
+            "angularaxis": {"gridcolor": "gray"},
+        },
         showlegend=True,
         template="plotly_dark",
-        margin=dict(t=30, b=30, l=30, r=30),
+        margin={"t": 30, "b": 30, "l": 30, "r": 30},
         title=f"8-Brane Resonance: {current_step['agent']}",
     )
 
@@ -168,22 +173,27 @@ def _(mo, journey_df, go):
             y=journey_df["y"],
             z=journey_df["z"],
             mode="lines+markers",
-            line=dict(color="#FF6B6B", width=4),
-            marker=dict(size=5, color=journey_df["t"], colorscale="Viridis", opacity=0.8),
+            line={"color": "#FF6B6B", "width": 4},
+            marker={
+                "size": 5,
+                "color": journey_df["t"],
+                "colorscale": "Viridis",
+                "opacity": 0.8,
+            },
             name="Thought Trajectory",
         )
     )
 
     fig_3d.update_layout(
         title="12D Spatial-Temporal Journey",
-        scene=dict(
-            xaxis_title="Spatial X",
-            yaxis_title="Spatial Y",
-            zaxis_title="Spatial Z",
-            bgcolor="black",
-        ),
+        scene={
+            "xaxis_title": "Spatial X",
+            "yaxis_title": "Spatial Y",
+            "zaxis_title": "Spatial Z",
+            "bgcolor": "black",
+        },
         template="plotly_dark",
-        margin=dict(t=50, b=10, l=10, r=10),
+        margin={"t": 50, "b": 10, "l": 10, "r": 10},
         height=600,
     )
 

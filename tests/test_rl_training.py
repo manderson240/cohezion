@@ -2,11 +2,16 @@
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 import numpy as np
-import pytest
 
 from cohezion.rl.reward_shaping import CompositeReward, HamiltonianReward
 from cohezion.rl.trainer import EpisodeResult, TrainingConfig, train
+
+
+if TYPE_CHECKING:
+    import pytest
 
 
 class TestHamiltonianReward:
@@ -24,8 +29,7 @@ class TestHamiltonianReward:
 
         # HIHO_WELL has minimum energy at 0.5, so reward (negative energy) is higher there
         assert reward_target > reward_zero, (
-            f"Reward at target ({reward_target:.4f}) should exceed "
-            f"reward at zero ({reward_zero:.4f})"
+            f"Reward at target ({reward_target:.4f}) should exceed reward at zero ({reward_zero:.4f})"
         )
 
     def test_hamiltonian_reward_returns_float(self) -> None:
@@ -60,9 +64,7 @@ class TestCompositeWithHamiltonian:
         """CompositeReward with hamiltonian_weight=0.0 should work unchanged."""
         composite = CompositeReward(hamiltonian_weight=0.0)
         assert composite.hamiltonian_reward is None
-        state = np.full(256, 0.5, dtype=np.float32) + np.random.default_rng(0).normal(
-            0, 0.05, 256
-        ).astype(np.float32)
+        state = np.full(256, 0.5, dtype=np.float32) + np.random.default_rng(0).normal(0, 0.05, 256).astype(np.float32)
         reward = composite(coherence=0.5, state=state)
         assert isinstance(reward, float)
         assert reward > 0
@@ -125,9 +127,7 @@ class TestTrainingRuns:
 
         # Allow generous threshold: last 5 should be at least 80% of first 5
         # (the environment starts near target so rewards are high immediately)
-        assert last_5 >= first_5 * 0.8, (
-            f"Reward degraded too much: first 5 avg={first_5:.2f}, last 5 avg={last_5:.2f}"
-        )
+        assert last_5 >= first_5 * 0.8, f"Reward degraded too much: first 5 avg={first_5:.2f}, last 5 avg={last_5:.2f}"
 
     def test_policy_beats_random(self, tmp_path: pytest.TempPathFactory) -> None:
         """Trained policy should achieve higher coherence than random actions."""
@@ -157,7 +157,7 @@ class TestTrainingRuns:
             ep_coherences = []
             for _ in range(100):
                 action = env.action_space.sample()
-                obs, _, terminated, truncated, info = env.step(action)
+                _obs, _, terminated, truncated, info = env.step(action)
                 ep_coherences.append(info["coherence"])
                 if terminated or truncated:
                     break

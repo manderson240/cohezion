@@ -40,10 +40,10 @@ def test_singularity():
 
     try:
         print("⏳ Running for 30 seconds...")
-        for i in range(30):
+        for _i in range(30):
             time.sleep(1)
             # Check for early failures
-            for p, name in zip(processes, names):
+            for p, name in zip(processes, names, strict=False):
                 if p.poll() is not None:
                     print(f"❌ {name} died early! Exit Code: {p.returncode}")
                     # stdout, stderr = p.communicate()

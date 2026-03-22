@@ -74,9 +74,7 @@ class SemanticCompressor(BaseAgent):
                 temperature=0.3,
             )
 
-            summary_markdown = (
-                f"**[SEMANTICALLY COMPRESSED]**\n\n{summary}\n\n*(Original Archived)*"
-            )
+            summary_markdown = f"**[SEMANTICALLY COMPRESSED]**\n\n{summary}\n\n*(Original Archived)*"
 
             # B. Archive Original
             archive_path = ARCHIVE_DIR / f"{node.id.replace(':', '_')}.json.gz"

@@ -182,7 +182,7 @@ class ConfigurationOrchestrator:
             try:
                 logger.debug("Checking size limits")
 
-                for filename, limit in self.size_limits.items():
+                for filename, _limit in self.size_limits.items():
                     if filename == "CLAUDE.md":
                         file_path = self.claude_md
                     else:
@@ -193,9 +193,7 @@ class ConfigurationOrchestrator:
                         violation_check = self.size_enforcer.check_violations(file_path)
 
                         if violation_check["violates"]:
-                            logger.warning(
-                                f"{filename} size violation: {violation_check['violations']}"
-                            )
+                            logger.warning(f"{filename} size violation: {violation_check['violations']}")
 
                             # Archive old sections
                             archive_result = await self.archiver.archive_old_sections(
@@ -364,7 +362,7 @@ class ConfigurationOrchestrator:
 
         try:
             # Phase 2: Detect manual edits
-            is_manual = self.detect_manual_edits(file_path)
+            self.detect_manual_edits(file_path)
 
             # Phase 2: Detect conflicts
             conflicts = await self.detect_conflicts()

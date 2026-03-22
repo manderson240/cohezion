@@ -245,11 +245,7 @@ class AuditLog:
                                 timestamp=datetime.fromisoformat(data["ts"]),
                                 event_type=AuditEventType(data["event"]),
                                 transaction_id=data["txn_id"],
-                                details={
-                                    k: v
-                                    for k, v in data.items()
-                                    if k not in ("ts", "event", "txn_id")
-                                },
+                                details={k: v for k, v in data.items() if k not in ("ts", "event", "txn_id")},
                             )
                             entries.append(entry)
                         except (json.JSONDecodeError, ValueError, KeyError) as e:
@@ -382,7 +378,7 @@ class BtrfsSnapshotBackend(SnapshotBackend):
 class JsonlSnapshotBackend(SnapshotBackend):
     """JSONL-based metadata-only snapshots (no actual filesystem restore)."""
 
-    def __init__(self, metadata_dir: Path = None):
+    def __init__(self, metadata_dir: Path | None = None):
         """Initialize with metadata directory."""
         self.metadata_dir = metadata_dir or Path("/tmp/rollback_snapshots")
         self.metadata_dir.mkdir(parents=True, exist_ok=True)
@@ -499,9 +495,7 @@ class Transaction:
         self.checkpoints: dict[str, Checkpoint] = {}
 
         # Audit log
-        self.audit_log = AuditLog(
-            config.audit_log_path or Path(f"/tmp/rollback_audit_{transaction_id}.jsonl")
-        )
+        self.audit_log = AuditLog(config.audit_log_path or Path(f"/tmp/rollback_audit_{transaction_id}.jsonl"))
 
         # Snapshots
         self.snapshots: dict[str, Snapshot] = {}
@@ -813,7 +807,7 @@ class TransactionManager:
     def begin(
         self,
         operation_name: str,
-        working_dir: Path = None,
+        working_dir: Path | None = None,
         config: TransactionConfig = None,
         backend: SnapshotBackendType = SnapshotBackendType.JSONL,
     ) -> Transaction:

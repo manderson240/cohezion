@@ -46,7 +46,9 @@ def __(mo):
 def __(img_path, mo):
     # Display the stunning asset
     return mo.image(
-        src=img_path, width=600, caption="Figure 1: 12D Latent Manifold Pulse Visualization"
+        src=img_path,
+        width=600,
+        caption="Figure 1: 12D Latent Manifold Pulse Visualization",
     )
 
 
@@ -86,7 +88,7 @@ def __(px, z_df):
         range_y=[0, 1],
         range_z=[0, 1],
     )
-    fig_traj.update_layout(margin=dict(l=0, r=0, b=0, t=30))
+    fig_traj.update_layout(margin={"l": 0, "r": 0, "b": 0, "t": 30})
     return fig_traj
 
 
@@ -103,9 +105,7 @@ def __(mo):
 
 @app.cell
 def __(mo):
-    target_coherence = mo.ui.slider(
-        0, 1, step=0.01, value=0.5, label="Target Coherence Rule (Interactive)"
-    )
+    target_coherence = mo.ui.slider(0, 1, step=0.01, value=0.5, label="Target Coherence Rule (Interactive)")
     return (target_coherence,)
 
 
@@ -160,20 +160,22 @@ def __(go, mo, target_coherence):
     r_nexus = [0.5] * 12
 
     fig_rd = go.Figure()
-    fig_rd.add_trace(
-        go.Scatterpolar(r=r_nexus, theta=param_names, fill="toself", name="Nexus Target (0.5)")
-    )
+    fig_rd.add_trace(go.Scatterpolar(r=r_nexus, theta=param_names, fill="toself", name="Nexus Target (0.5)"))
     fig_rd.add_trace(
         go.Scatterpolar(
-            r=r_live, theta=param_names, fill="toself", name="Current Alignment", line_color="cyan"
+            r=r_live,
+            theta=param_names,
+            fill="toself",
+            name="Current Alignment",
+            line_color="cyan",
         )
     )
 
     fig_rd.update_layout(
-        polar=dict(radialaxis=dict(visible=True, range=[0, 1])),
+        polar={"radialaxis": {"visible": True, "range": [0, 1]}},
         template="plotly_dark",
         showlegend=True,
-        margin=dict(l=40, r=40, b=20, t=40),
+        margin={"l": 40, "r": 40, "b": 20, "t": 40},
     )
 
     return mo.vstack([mo.md("### 📊 12D Parameter Balancing (Live Snapshot)"), mo.as_html(fig_rd)])

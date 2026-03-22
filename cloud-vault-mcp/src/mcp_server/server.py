@@ -163,9 +163,7 @@ def create_server(config: ServerConfig) -> FastMCP:
             return f"Error: {e}"
 
     @mcp.tool()
-    def vault_create_from_template(
-        template_name: str, target_path: str, variables: dict[str, str]
-    ) -> str:
+    def vault_create_from_template(template_name: str, target_path: str, variables: dict[str, str]) -> str:
         """Create a new note from a template with variable substitution.
 
         Available templates: decisions, experiments, patterns, papers, daily, projects
@@ -204,9 +202,7 @@ def create_server(config: ServerConfig) -> FastMCP:
             rationale: Why this option was chosen
             alternatives_considered: Other options that were evaluated
         """
-        return compound.log_decision(
-            project, title, context, decision, rationale, alternatives_considered
-        )
+        return compound.log_decision(project, title, context, decision, rationale, alternatives_considered)
 
     @mcp.tool()
     def vault_log_experiment(
@@ -230,9 +226,7 @@ def create_server(config: ServerConfig) -> FastMCP:
             learnings: Key takeaways (can be filled in later)
             title: Optional title (defaults to truncated hypothesis)
         """
-        return compound.log_experiment(
-            project, hypothesis, method, result, learnings, title
-        )
+        return compound.log_experiment(project, hypothesis, method, result, learnings, title)
 
     @mcp.tool()
     def vault_extract_pattern(
@@ -253,9 +247,7 @@ def create_server(config: ServerConfig) -> FastMCP:
             code_example: Optional code example
             domain: Domain tag (e.g. 'rl', 'ml', 'devops', 'general')
         """
-        return compound.extract_pattern(
-            source_path, pattern_name, description, code_example, domain
-        )
+        return compound.extract_pattern(source_path, pattern_name, description, code_example, domain)
 
     @mcp.tool()
     def vault_find_relevant_context(query: str, project: str = "") -> str:
@@ -284,7 +276,35 @@ def create_server(config: ServerConfig) -> FastMCP:
         before executing it. Catches syntax errors early.
 
         Args:
-            sql: SQL statement to validate
+            title: Short task title
+            description: What needs to be done
+            context: Background information for the task
+            expected_output: What the result should look like
+            priority: low, medium, high, or critical
+        """
+        result = teleport.create_task(title, description, context, expected_output, priority)
+        return json.dumps(result, indent=2)
+
+    @mcp.tool()
+    def teleport_list_tasks(status: str = "") -> str:
+        """List teleport tasks, optionally filtered by status.
+
+        Args:
+            status: Filter by status (pending, in_progress, completed, failed).
+                    Empty string returns all tasks.
+        """
+        tasks = teleport.list_tasks(status if status else None)
+        if not tasks:
+            return "No teleport tasks found."
+        return json.dumps(tasks, indent=2, default=str)
+
+    @mcp.tool()
+    def teleport_claim_task(task_id: str, assigned_to: str) -> str:
+        """Claim a pending teleport task for processing.
+
+        Args:
+            task_id: The task ID to claim
+            assigned_to: Who is claiming it (e.g. 'cloud-claude', 'local-claude')
         """
         try:
             return googlesql.validate(sql)
@@ -349,6 +369,208 @@ def create_server(config: ServerConfig) -> FastMCP:
         Args:
             sql: SQL statement to extract column references from
         """
+        path = memory_bridge.push_session_state(branch, test_status, phase, active_tasks, last_commit)
+        return f"Session state pushed to: {path}"
+
+    @mcp.tool()
+    def vault_push_memory(memory_content: str) -> str:
+        """Parse MEMORY.md content and distribute to vault sections.
+
+        Parses the memory content by ## headings and distributes:
+        - Current State → daily/ session note
+        - Lessons → patterns/ (deduplicated)
+        - TODO → projects/cohezion-todos.md
+
+        Args:
+            memory_content: Full content of MEMORY.md
+        """
+        result = memory_bridge.push_memory(memory_content)
+        return json.dumps(result, indent=2)
+
+    @mcp.tool()
+    def vault_pull_session_context() -> str:
+        """Pull latest session context from the vault.
+
+        Reads recent session notes to build cross-instance context.
+        Returns the latest branch, phase, test status, and recent sessions.
+        """
+        context = memory_bridge.pull_session_context()
+        return json.dumps(context, indent=2, default=str)
+
+    # ── Sheets Bridge Operations ────────────────────────────────────
+
+    if sheets:
+
+        @mcp.tool()
+        def sheets_read_range(range_spec: str) -> str:
+            """Read a range from the Cohezion_Research Google Sheet.
+
+            Args:
+                range_spec: A1 notation range (e.g. 'A1:F100', 'A2:A50')
+            """
+            try:
+                rows = sheets.read_range(range_spec)
+                return json.dumps(rows, indent=2)
+            except Exception as e:
+                return f"Error: {e}"
+
+        @mcp.tool()
+        def sheets_get_all_rows() -> str:
+            """Read all data rows from Cohezion_Research as structured dicts.
+
+            Returns rows with: row number, link, status, abstractions, domain,
+            integration_point, vault_note.
+            """
+            try:
+                rows = sheets.get_all_rows()
+                return json.dumps(rows, indent=2)
+            except Exception as e:
+                return f"Error: {e}"
+
+        @mcp.tool()
+        def sheets_update_row(
+            row_num: int,
+            status: str,
+            abstractions: str,
+            domain: str,
+            integration_point: str,
+        ) -> str:
+            """Update columns B-E for a row in Cohezion_Research.
+
+            Args:
+                row_num: Row number (1-based, row 2 = first data row)
+                status: Research status (e.g. 'Researched', 'Inaccessible')
+                abstractions: Key abstractions (1-2 sentences)
+                domain: Domain category (e.g. 'AI Architecture', 'Astrophysics')
+                integration_point: Relevant Cohezion module
+            """
+            try:
+                result = sheets.update_row(row_num, status, abstractions, domain, integration_point)
+                return json.dumps(result, indent=2)
+            except Exception as e:
+                return f"Error: {e}"
+
+        @mcp.tool()
+        def sheets_batch_update(data: list[dict]) -> str:
+            """Batch update multiple ranges in Cohezion_Research.
+
+            Args:
+                data: List of {range: 'Sheet1!B2:E2', values: [['v1', ...]]}
+            """
+            try:
+                result = sheets.batch_update(data)
+                return json.dumps(result, indent=2)
+            except Exception as e:
+                return f"Error: {e}"
+
+        @mcp.tool()
+        def sheets_update_vault_note(row_num: int, vault_note: str) -> str:
+            """Update column F (Vault Note) for a row.
+
+            Args:
+                row_num: Row number (1-based)
+                vault_note: Vault note filename (e.g. 'agentic-ai-memory-hierarchies.md')
+            """
+            try:
+                result = sheets.update_vault_note_column(row_num, vault_note)
+                return json.dumps(result, indent=2)
+            except Exception as e:
+                return f"Error: {e}"
+
+    # ── SurrealDB Graph Database Sync ────────────────────────────────
+
+    if surrealdb:
+
+        @mcp.tool()
+        def surrealdb_import_papers() -> str:
+            """Import all papers from vault/papers/ to SurrealDB.
+
+            Performs bulk import of all paper markdown files, extracting:
+            - Frontmatter metadata (title, date, tags)
+            - Wiki-links to concepts
+            - Content for indexing
+
+            Returns count of papers imported.
+            """
+            try:
+                count = surrealdb.bulk_import_papers()
+                return f"Successfully imported {count} papers to SurrealDB"
+            except Exception as e:
+                logger.error(f"Failed to import papers: {e}")
+                return f"Error importing papers: {e}"
+
+        @mcp.tool()
+        def surrealdb_import_concepts() -> str:
+            """Import all concepts from vault/concepts/ to SurrealDB.
+
+            Performs bulk import of all concept markdown files, extracting:
+            - Frontmatter metadata (title, tags)
+            - Content for indexing
+
+            Returns count of concepts imported.
+            """
+            try:
+                count = surrealdb.bulk_import_concepts()
+                return f"Successfully imported {count} concepts to SurrealDB"
+            except Exception as e:
+                logger.error(f"Failed to import concepts: {e}")
+                return f"Error importing concepts: {e}"
+
+        @mcp.tool()
+        def surrealdb_start_watching() -> str:
+            """Start real-time file watching for vault changes.
+
+            Monitors papers/, concepts/, patterns/, and decisions/ directories
+            for file modifications and creations. Changes are automatically
+            synced to SurrealDB in real-time.
+
+            This enables live updates to the 12D graph visualization.
+            """
+            try:
+                surrealdb.start_watching()
+                return "File watcher started - vault changes will sync to SurrealDB"
+            except Exception as e:
+                logger.error(f"Failed to start file watcher: {e}")
+                return f"Error starting file watcher: {e}"
+
+        @mcp.tool()
+        def surrealdb_stop_watching() -> str:
+            """Stop real-time file watching."""
+            try:
+                surrealdb.stop_watching()
+                return "File watcher stopped"
+            except Exception as e:
+                logger.error(f"Failed to stop file watcher: {e}")
+                return f"Error stopping file watcher: {e}"
+
+        @mcp.tool()
+        def surrealdb_query(query: str) -> str:
+            """Execute a custom SurrealQL query against the vault graph database.
+
+            Args:
+                query: SurrealQL query string (automatically prefixed with USE NS/DB)
+
+            Returns:
+                Query results as JSON
+
+            Example queries:
+            - "SELECT * FROM paper WHERE tags CONTAINS 'ai' LIMIT 10;"
+            - "SELECT count() FROM links GROUP BY out;"
+            - "SELECT * FROM paper->links->concept WHERE out.title = 'agentic-ai';"
+            """
+            try:
+                # Prepend USE statements
+                full_query = f"USE NS {surrealdb.namespace}; USE DB {surrealdb.database}; {query}"
+                results = surrealdb._execute_query(full_query)
+                return json.dumps(results, indent=2, default=str)
+            except Exception as e:
+                logger.error(f"Query failed: {e}")
+                return f"Error executing query: {e}"
+
+    # ── Ollama Integration ────────────────────────────────────────────
+
+    if config.ollama_enabled:
+        # Import Ollama client for direct integration
         try:
             return googlesql.extract_columns(sql)
         except ConnectionError:
@@ -368,11 +590,207 @@ def create_server(config: ServerConfig) -> FastMCP:
         except ConnectionError:
             return "Error: GoogleSQL Analyzer service is not available."
 
-    @mcp.tool()
-    def sql_health() -> str:
-        """Check if the GoogleSQL Analyzer service is available."""
-        if googlesql.is_available():
-            return json.dumps({"status": "ok", "service": "googlesql-analyzer"})
-        return json.dumps({"status": "unavailable", "service": "googlesql-analyzer"})
+                Returns:
+                    Generated text response from the model
+                """
+                try:
+                    response = await ollama_client.query(prompt, model, temperature)
+                    return response or "Empty response from Ollama"
+                except Exception as e:
+                    logger.error(f"Ollama query failed: {e}")
+                    return f"Error: {e}"
+
+            @mcp.tool()
+            async def ollama_embed(
+                texts: list[str],
+                model: str = "nomic-embed-text:latest",
+            ) -> str:
+                """Generate embeddings for texts.
+
+                Args:
+                    texts: List of text strings to embed
+                    model: Embedding model to use
+
+                Returns:
+                    List of embedding vectors as JSON
+                """
+                try:
+                    embeddings = await ollama_client.embed(texts, model)
+                    return json.dumps(embeddings)
+                except Exception as e:
+                    logger.error(f"Ollama embed failed: {e}")
+                    return f"Error: {e}"
+
+            @mcp.tool()
+            async def ollama_status() -> str:
+                """Get Ollama service status and available models.
+
+                Returns:
+                    Status information including loaded models
+                """
+                try:
+                    status = await ollama_client.status()
+                    return json.dumps(status)
+                except Exception as e:
+                    logger.error(f"Ollama status check failed: {e}")
+                    return f"Error: {e}"
+
+        except ImportError:
+            logger.warning("Ollama client not available for direct integration")
+
+    # ── Health Check Operations ────────────────────────────────────────
+
+    if health_checker:
+
+        @mcp.tool()
+        async def vault_health_check() -> str:
+            """Check health of all MCP dependencies.
+
+            Tests the following services:
+            - Vault filesystem (read/write access)
+            - SurrealDB graph database
+            - Google Sheets API
+            - Ollama service
+            - Disk space
+            - Process memory usage
+
+            Returns a detailed status report with latencies and connection status.
+            """
+            try:
+                status = await health_checker.run_all_checks(timeout=5)
+                return json.dumps(status.to_dict(), indent=2)
+            except Exception as e:
+                logger.error(f"Health check failed: {e}")
+                return json.dumps(
+                    {
+                        "status": "unhealthy",
+                        "error": str(e),
+                        "timestamp": None,
+                    },
+                    indent=2,
+                )
+
+    # ── Agent Context Operations (SurrealDB Phase 1) ────────────────────
+
+    if agent_context:
+
+        @mcp.tool()
+        def track_session(
+            agent_id: str,
+            goals: list[str],
+            model_used: str = "claude-haiku-4-5",
+            phase: str = "research",
+        ) -> str:
+            """Track the start of an agent session for research lineage.
+
+            Creates an agent_session node in SurrealDB to capture session metadata,
+            goals, resource usage, and status.
+
+            Args:
+                agent_id: Unique agent identifier (e.g., 'integration-engineer')
+                goals: List of goals for this session
+                model_used: LLM model name (default: claude-haiku-4-5)
+                phase: Session phase (research, decision, implementation, validation)
+
+            Returns:
+                JSON with session_id, status, timestamp on success;
+                error message on failure
+            """
+            try:
+                result = agent_context.track_session(agent_id, goals, model_used, phase)
+                return json.dumps(result, indent=2)
+            except Exception as e:
+                logger.error(f"Error tracking session: {e}")
+                return json.dumps({"success": False, "error": str(e)}, indent=2)
+
+        @mcp.tool()
+        def record_decision(
+            session_id: str,
+            decision_type: str,
+            reasoning: str,
+            papers_applied: list[str],
+            confidence_score: float = 0.7,
+        ) -> str:
+            """Record an architectural decision with research lineage.
+
+            Creates an agent_decision node and APPLIED_RESEARCH edges linking
+            the decision to research papers that informed it.
+
+            Args:
+                session_id: Session ID from track_session
+                decision_type: Type (architecture, feature, refactor, bugfix, data)
+                reasoning: Natural language explanation of the decision
+                papers_applied: List of paper IDs that informed this decision
+                confidence_score: Confidence level (0-1)
+
+            Returns:
+                JSON with decision_id, links_created, timestamp on success;
+                validation_warnings and error messages on partial failures
+            """
+            try:
+                result = agent_context.record_decision(
+                    session_id,
+                    decision_type,
+                    reasoning,
+                    papers_applied,
+                    confidence_score,
+                )
+                return json.dumps(result, indent=2)
+            except Exception as e:
+                logger.error(f"Error recording decision: {e}")
+                return json.dumps({"success": False, "error": str(e)}, indent=2)
+
+        @mcp.tool()
+        def record_outcome(
+            session_id: str,
+            outcome_type: str,
+            lessons_learned: list[str],
+            metrics: dict | None = None,
+        ) -> str:
+            """Record session outcome and validate against lessons learned.
+
+            Creates an agent_outcome node and VALIDATES_LESSON edges linking
+            the outcome to lessons from the vault. Also closes the session
+            and marks it as completed.
+
+            Args:
+                session_id: Session ID from track_session
+                outcome_type: Type (success, partial, failed)
+                lessons_learned: List of lesson note IDs from vault
+                metrics: Dict of outcome metrics (session_duration_min, token_efficiency_ratio, etc)
+
+            Returns:
+                JSON with outcome_id, validated_lessons, timestamp on success;
+                validation_errors for missing lessons on partial failures
+            """
+            try:
+                result = agent_context.record_outcome(session_id, outcome_type, lessons_learned, metrics)
+                return json.dumps(result, indent=2)
+            except Exception as e:
+                logger.error(f"Error recording outcome: {e}")
+                return json.dumps({"success": False, "error": str(e)}, indent=2)
+
+    # ── Pocket TTS (Text-to-Speech) ─────────────────────────────────
+    try:
+        from .pocket_tts import PocketTTSService
+
+        pocket_tts = PocketTTSService()
+
+        @mcp.tool()
+        def tts_speak(text: str) -> str:
+            """Convert text to speech using Pocket TTS.
+
+            Args:
+                text: Text to synthesize (max 4096 characters)
+
+            Returns:
+                JSON with audio_base64 (WAV format), duration_ms, sample_rate, and status.
+                On error, returns JSON with status="error" and error message.
+            """
+            result = pocket_tts.speak(text)
+            return json.dumps(result, indent=2)
+
+    except ImportError:
+        logger.warning("Pocket TTS not available (pip install pocket-tts)")
 
     return mcp

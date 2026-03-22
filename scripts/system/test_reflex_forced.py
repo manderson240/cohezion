@@ -6,9 +6,7 @@ from unittest.mock import MagicMock
 
 # Mock vitals before importing reflex
 sys.modules["cohezion.reliability.monitor"] = MagicMock()
-sys.modules[
-    "cohezion.reliability.monitor"
-].get_resource_monitor.return_value.get_vitals.return_value = {
+sys.modules["cohezion.reliability.monitor"].get_resource_monitor.return_value.get_vitals.return_value = {
     "cpu_percent": 10.0,
     "memory_percent": 30.0,
     "vram_percent": 20.0,

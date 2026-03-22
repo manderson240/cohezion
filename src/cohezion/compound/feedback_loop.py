@@ -191,9 +191,7 @@ class CompoundFeedbackLoop:
             # Create retry attempt record
             attempt = RetryAttempt(
                 attempt_number=current_retry + 1,
-                strategy=self._select_retry_strategy(
-                    current_retry, anomaly, available_alternative_skills
-                ),
+                strategy=self._select_retry_strategy(current_retry, anomaly, available_alternative_skills),
                 skill_used=current_skill,
                 success=execution_result.success
                 and anomaly.score > self.critical_threshold,
@@ -451,9 +449,7 @@ class CompoundFeedbackLoop:
             "average_retries": total_retries / total if total > 0 else 0,
         }
 
-    async def execute_batch_with_feedback(
-        self, tasks: list[tuple[str, Callable]]
-    ) -> dict[str, Any]:
+    async def execute_batch_with_feedback(self, tasks: list[tuple[str, Callable]]) -> dict[str, Any]:
         """Execute batch of tasks with feedback loop integration.
 
         Phase 2.5: Batch execution with cache warming from learned patterns.
@@ -523,10 +519,7 @@ class CompoundFeedbackLoop:
                     critical_failures.append((i, "Task failed after all retries"))
 
         # Cache successful retry results for future batch executions
-        logger.info(
-            f"Batch cache warming: Found {len(cache_warming_opportunities)} "
-            f"successful retry patterns to cache"
-        )
+        logger.info(f"Batch cache warming: Found {len(cache_warming_opportunities)} successful retry patterns to cache")
 
         # Extract and persist learning patterns
         learned_patterns = []

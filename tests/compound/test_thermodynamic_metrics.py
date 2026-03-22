@@ -4,7 +4,6 @@ Each test validates a real mathematical property — not just that a number
 is returned, but that the physics is correct.
 """
 
-
 import numpy as np
 import pytest
 

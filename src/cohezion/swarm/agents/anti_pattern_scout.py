@@ -27,16 +27,16 @@ class AntiPatternScout(BaseScout):
 
         prompt = f"""
         Analyze this code for Anti-Patterns.
-        
+
         Code:
         {content[:3000]}
-        
+
         Check specifically for:
         1. Sync blocking calls in async functions.
         2. Usage of 'matplotlib' (Should use Plotly/Datashader).
         3. Lack of 'FUTURE HOOKS' section in skill/agent files.
         4. Bare except handlers.
-        
+
         Return JSON structure: {{ "anti_patterns": [...] }}
         """
 

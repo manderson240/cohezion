@@ -38,9 +38,7 @@ class ResearchSquad:
             return json.load(f)
 
     async def run_benchmark(self):
-        logger.info(
-            f"🚀 Starting Research Squad Benchmarking on {len(self.tasks)} GAIA Level 3 tasks."
-        )
+        logger.info(f"🚀 Starting Research Squad Benchmarking on {len(self.tasks)} GAIA Level 3 tasks.")
 
         for task in self.tasks:
             logger.info(f"📍 Executing Task: {task['task_id']}")
@@ -54,9 +52,7 @@ class ResearchSquad:
         Implementation of the Scout -> Engineer -> Auditor loop.
         """
         # 1. Start Journey (12D Manifold Tracking)
-        journey = await self.engine.start_journey(
-            agent_name="ResearchSquad", intent=f"Solve GAIA {task['task_id']}"
-        )
+        journey = await self.engine.start_journey(agent_name="ResearchSquad", intent=f"Solve GAIA {task['task_id']}")
 
         task_state = {
             "task_id": task["task_id"],
@@ -66,15 +62,15 @@ class ResearchSquad:
         }
 
         # --- STEP 1: SCOUT (Task Decomposition) ---
-        scout_prompt = (
-            f"Decompose this GAIA Level 3 task into semantic sub-trajectories: {task['question']}"
-        )
+        scout_prompt = f"Decompose this GAIA Level 3 task into semantic sub-trajectories: {task['question']}"
         sub_tasks = await LOCAL_ROUTER.route_task(task_type="reasoning", prompt=scout_prompt)
         task_state["steps"].append({"role": "Scout", "output": sub_tasks})
 
         # --- STEP 2: ENGINEER (Execution) ---
         # Simulate tool execution via Sandbox if needed
-        engineer_prompt = f"Implement the solution for these sub-tasks: {sub_tasks}. Focus on tool-use: {task['tools_required']}"
+        engineer_prompt = (
+            f"Implement the solution for these sub-tasks: {sub_tasks}. Focus on tool-use: {task['tools_required']}"
+        )
         code_solution = await LOCAL_ROUTER.route_task(task_type="coding", prompt=engineer_prompt)
 
         # Execute in Sandbox (Simulated for this benchmark driver run)
@@ -88,7 +84,9 @@ class ResearchSquad:
         drift = self._calculate_drift(journey)
         task_state["drift"] = drift
 
-        auditor_prompt = f"Audit the solution for GAIA {task['task_id']}. Drift detected: {drift:.4f}. Is the solution HIHO stable?"
+        auditor_prompt = (
+            f"Audit the solution for GAIA {task['task_id']}. Drift detected: {drift:.4f}. Is the solution HIHO stable?"
+        )
         audit_res = await LOCAL_ROUTER.route_task(task_type="reasoning", prompt=auditor_prompt)
         task_state["steps"].append({"role": "Auditor", "output": audit_res})
 
@@ -106,10 +104,10 @@ class ResearchSquad:
         """
         Gemma 3 Reporter synthesis.
         """
-        summary = "\n".join(
-            [f"- {r['task_id']}: {r['status']} (Drift: {r['drift']:.4f})" for r in self.results]
+        summary = "\n".join([f"- {r['task_id']}: {r['status']} (Drift: {r['drift']:.4f})" for r in self.results])
+        reporter_prompt = (
+            f"Synthesize a Research Bulletin for the GAIA Level 3 benchmark based on these results:\n{summary}"
         )
-        reporter_prompt = f"Synthesize a Research Bulletin for the GAIA Level 3 benchmark based on these results:\n{summary}"
 
         report = await LOCAL_ROUTER.route_task(task_type="general", prompt=reporter_prompt)
 

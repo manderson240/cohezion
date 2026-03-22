@@ -47,14 +47,10 @@ class SimulationAnalyzer:
                     exps = res[0].get("result", [])
                     if exps:
                         logger.info(f"Found {len(exps)} QFTDHD Trace Summaries in SurrealDB")
-                        best_energy = min(
-                            [float(e.get("metadata", {}).get("final_energy", 999)) for e in exps]
-                        )
+                        best_energy = min([float(e.get("metadata", {}).get("final_energy", 999)) for e in exps])
 
                         if best_energy < 50.0:
-                            logger.info(
-                                f"Optimization Breakthrough detected! Best Energy: {best_energy}"
-                            )
+                            logger.info(f"Optimization Breakthrough detected! Best Energy: {best_energy}")
                             self._crystallize_skill(best_energy)
 
             await client.close()

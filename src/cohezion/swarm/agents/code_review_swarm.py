@@ -86,6 +86,11 @@ class CodeReviewSwarm:
             )
             await asyncio.sleep(1.0)  # Breath between batches
 
+                report.scanned_files += 1
+
+            logger.info(f"Static Phase: Scanned {report.scanned_files}/{len(all_files)} files...")
+            await asyncio.sleep(1.0)  # Breath between batches
+
         logger.info(
             f"✅ Static Phase Complete. Found {len(report.high_complexity_files)} high-complexity files."
         )

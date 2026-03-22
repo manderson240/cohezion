@@ -82,7 +82,7 @@ def diagnostic_semantic_discrimination():
     logger.info("=" * 70)
 
     cache = SemanticCache()
-    encoder = get_encoder()
+    get_encoder()
 
     # Test pairs
     test_pairs = [

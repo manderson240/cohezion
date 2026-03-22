@@ -10,7 +10,10 @@ MAX_SIZE_BYTES = 5 * 1024 * 1024  # 5MB
 def get_staged_files():
     try:
         result = subprocess.run(
-            ["git", "diff", "--cached", "--name-only"], capture_output=True, text=True, check=True
+            ["git", "diff", "--cached", "--name-only"],
+            capture_output=True,
+            text=True,
+            check=True,
         )
         return result.stdout.splitlines()
     except subprocess.CalledProcessError:
@@ -45,7 +48,9 @@ def main():
     # Check for ignored files that are somehow staged
     # (Rare but happens with git add -f)
     ignored_staged = subprocess.run(
-        ["git", "ls-files", "-i", "-c", "--exclude-standard"], capture_output=True, text=True
+        ["git", "ls-files", "-i", "-c", "--exclude-standard"],
+        capture_output=True,
+        text=True,
     ).stdout.splitlines()
 
     if ignored_staged:

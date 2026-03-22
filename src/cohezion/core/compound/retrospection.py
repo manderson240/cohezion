@@ -268,8 +268,7 @@ class RetrospectionEngine:
                     SkillRefinement(
                         skill_name=skill,
                         reason=(
-                            f"Referenced by {len(learning_titles)} learnings,"
-                            " may need integration of new insights"
+                            f"Referenced by {len(learning_titles)} learnings, may need integration of new insights"
                         ),
                         suggested_additions=learning_titles[:5],
                     )
@@ -338,9 +337,7 @@ class RetrospectionEngine:
                 f"Execution of '{plan_name}' completed {completed}/{total} tasks",
                 f"Token usage: {sum(tokens_by_task.values())} across {total} tasks",
             ],
-            "suggested_refinements": [
-                {"skill": r.skill_name, "reason": r.reason} for r in suggestions
-            ],
+            "suggested_refinements": [{"skill": r.skill_name, "reason": r.reason} for r in suggestions],
         }
 
         logger.info(

@@ -60,7 +60,7 @@ def test_itonic_cluster_dataclass():
 def test_failure_conditions():
     # Low energy should rarely form clusters
     sim = USDSimulator(voltage_kv=5, pulse_duration_us=10)
-    cluster = sim.generate_spark(num_attempts=5)
+    sim.generate_spark(num_attempts=5)
     # This might still pass by chance, but mostly should be None
     # We won't assert it's None to avoid flaky test, just run it
     pass

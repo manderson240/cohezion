@@ -39,7 +39,7 @@ def verify_no_placeholders(path: str):
     for p in placeholders:
         if p in content:
             # Check if it's an exception
-            is_exception = any(ex in content for ex in exceptions if p in ex)
+            any(ex in content for ex in exceptions if p in ex)
             if p == "${" and content.count(p) == content.count("${skill}"):
                 continue
             found.append(p)
@@ -96,9 +96,7 @@ def verify_adversarial(path: str):
 
     # 2. Protocol hijacking (javascript: or data: in links)
     if re.search(r"\[.*\]\((javascript:|data:).*\)", content):
-        print(
-            f"❌ Error: Malicious protocol (javascript:/data:) detected in {os.path.basename(path)}."
-        )
+        print(f"❌ Error: Malicious protocol (javascript:/data:) detected in {os.path.basename(path)}.")
         return False
 
     print(f"✅ Adversarial audit PASSED for {os.path.basename(path)}.")
@@ -133,9 +131,7 @@ def main():
     if all_passed:
         # Custom header checks
         verify_header_exists("GEMINI.md", "# GEMINI.md - Cohezion Orchestration Layer")
-        verify_header_exists(
-            ".agent/CONSTITUTION.md", "## 3. The 0.5 Coherence Rule (HIHO Stability)"
-        )
+        verify_header_exists(".agent/CONSTITUTION.md", "## 3. The 0.5 Coherence Rule (HIHO Stability)")
         verify_header_exists(".agent/EVOLUTION_PROTOCOL.md", "## 1. Continuous Experience Mining")
 
         # 3. Vector & Link Audits
@@ -151,13 +147,11 @@ def main():
 
         # 4. Mandatory Placeholder & Adversarial Checks
         for f in critical_files:
-            if "CAPABILITY_MAP" not in f:
-                if not verify_no_placeholders(f):
-                    all_passed = False
+            if "CAPABILITY_MAP" not in f and not verify_no_placeholders(f):
+                all_passed = False
 
-            if args.adversarial:
-                if not verify_adversarial(f):
-                    all_passed = False
+            if args.adversarial and not verify_adversarial(f):
+                all_passed = False
 
     if all_passed:
         print("\n✨ All context validations PASSED.")

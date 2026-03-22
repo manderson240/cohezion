@@ -64,7 +64,7 @@ class AgentContextOps:
 
             result = self.db._execute_query(query)
             if result and len(result) > 0:
-                record = result[0]
+                result[0]
                 logger.info(f"Created agent session: {session_id}")
                 return {
                     "success": True,
@@ -111,9 +111,7 @@ class AgentContextOps:
             now = datetime.now(UTC).isoformat()
 
             # Validate session exists
-            session_check = self.db._execute_query(
-                f"SELECT id FROM {session_id} LIMIT 1"
-            )
+            session_check = self.db._execute_query(f"SELECT id FROM {session_id} LIMIT 1")
             if not session_check or len(session_check) == 0:
                 return {
                     "success": False,
@@ -153,9 +151,7 @@ class AgentContextOps:
                         paper_id = f"paper:{paper_id}"
 
                     # Check if paper exists
-                    paper_check = self.db._execute_query(
-                        f"SELECT id FROM {paper_id} LIMIT 1"
-                    )
+                    paper_check = self.db._execute_query(f"SELECT id FROM {paper_id} LIMIT 1")
                     if not paper_check or len(paper_check) == 0:
                         paper_errors.append(f"Paper not found: {paper_id}")
                         continue
@@ -183,9 +179,7 @@ class AgentContextOps:
             except Exception as e:
                 logger.warning(f"Failed to update session tokens: {e}")
 
-            logger.info(
-                f"Created decision {decision_id} with {links_created} paper links"
-            )
+            logger.info(f"Created decision {decision_id} with {links_created} paper links")
 
             result_dict = {
                 "success": True,
@@ -215,7 +209,7 @@ class AgentContextOps:
         session_id: str,
         outcome_type: str,
         lessons_learned: list[str],
-        metrics: dict = None,
+        metrics: dict | None = None,
     ) -> dict[str, Any]:
         """Record session outcome and link to lessons.
 
@@ -234,9 +228,7 @@ class AgentContextOps:
             metrics = metrics or {}
 
             # Validate session exists
-            session_check = self.db._execute_query(
-                f"SELECT id FROM {session_id} LIMIT 1"
-            )
+            session_check = self.db._execute_query(f"SELECT id FROM {session_id} LIMIT 1")
             if not session_check or len(session_check) == 0:
                 return {
                     "success": False,
@@ -270,9 +262,7 @@ class AgentContextOps:
             for lesson_id in lessons_learned:
                 try:
                     # Check if lesson exists
-                    lesson_check = self.db._execute_query(
-                        f"SELECT id FROM lesson:{lesson_id} LIMIT 1"
-                    )
+                    lesson_check = self.db._execute_query(f"SELECT id FROM lesson:{lesson_id} LIMIT 1")
                     if not lesson_check or len(lesson_check) == 0:
                         validation_errors.append(f"Lesson not found: {lesson_id}")
                         continue
@@ -289,9 +279,7 @@ class AgentContextOps:
                     if edge_result and len(edge_result) > 0:
                         validated_lessons += 1
                     else:
-                        validation_errors.append(
-                            f"Failed to validate lesson: {lesson_id}"
-                        )
+                        validation_errors.append(f"Failed to validate lesson: {lesson_id}")
 
                 except Exception as e:
                     validation_errors.append(f"Error validating {lesson_id}: {e!s}")
@@ -309,9 +297,7 @@ class AgentContextOps:
             except Exception as e:
                 logger.warning(f"Failed to update session completion: {e}")
 
-            logger.info(
-                f"Created outcome {outcome_id} with {validated_lessons} lesson validations"
-            )
+            logger.info(f"Created outcome {outcome_id} with {validated_lessons} lesson validations")
 
             result_dict = {
                 "success": True,

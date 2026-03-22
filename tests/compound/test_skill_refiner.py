@@ -65,9 +65,7 @@ class TestExecutionMetricsExtraction:
         assert metrics.success is False
         assert metrics.duration_seconds == 0.5
 
-    def test_extract_metrics_calculates_token_efficiency(
-        self, skill_refiner, sample_execution_result
-    ):
+    def test_extract_metrics_calculates_token_efficiency(self, skill_refiner, sample_execution_result):
         """Test token efficiency calculation."""
         metrics = skill_refiner._extract_metrics(sample_execution_result)
 

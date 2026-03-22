@@ -268,7 +268,7 @@ class TestCapabilityUsageTracker:
         tracker = CapabilityUsageTracker(temp_usage_tracker)
 
         def record_operations():
-            for i in range(20):
+            for _i in range(20):
                 tracker.record_operation(
                     "generate",
                     tokens_used=10,

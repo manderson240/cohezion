@@ -143,9 +143,7 @@ class TestExecutorSkillSelectionWorkflow:
 
     def test_get_guidance_then_suggest_skills(self, executor):
         """Test typical workflow: get guidance then suggest skills."""
-        executor.logger.get_experience_guidance.return_value = {
-            "relevant_context": [{"pattern": "test"}]
-        }
+        executor.logger.get_experience_guidance.return_value = {"relevant_context": [{"pattern": "test"}]}
         executor.mcp_client.vault_find_relevant_context.return_value = [
             {"title": "skill1", "content": "coherence: 0.9"}
         ]

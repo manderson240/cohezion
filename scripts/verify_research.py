@@ -29,9 +29,7 @@ async def main():
         test_id = "test_verify"
         from cohezion.core.persistence.surreal_client import UniverseNode
 
-        await db.store_node(
-            UniverseNode(id=test_id, content="Verification Probe", node_type="probe")
-        )
+        await db.store_node(UniverseNode(id=test_id, content="Verification Probe", node_type="probe"))
         print("Stored Probe.")
 
         # READ CHECK

@@ -210,9 +210,7 @@ class AgentAuthManager:
             True if revoked, False if not found
         """
         # Find credential by agent_id
-        tokens_to_revoke = [
-            token for token, cred in self.token_cache.items() if cred.agent_id == agent_id
-        ]
+        tokens_to_revoke = [token for token, cred in self.token_cache.items() if cred.agent_id == agent_id]
 
         if not tokens_to_revoke:
             logger.warning("No credentials found for agent %s", agent_id)
@@ -282,9 +280,8 @@ class AgentAuthManager:
             AgentCredential if found and active, None otherwise
         """
         for credential in self.token_cache.values():
-            if credential.agent_id == agent_id and credential.is_active:
-                if not credential.is_expired():
-                    return credential
+            if credential.agent_id == agent_id and credential.is_active and not credential.is_expired():
+                return credential
 
         return None
 
@@ -349,5 +346,5 @@ class AgentAuthManager:
             "active_credentials": len(active_creds),
             "expired_credentials": len(expired_creds),
             "inactive_credentials": len(inactive_creds),
-            "agents": len(set(c.agent_id for c in self.token_cache.values())),
+            "agents": len({c.agent_id for c in self.token_cache.values()}),
         }

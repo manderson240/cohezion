@@ -23,7 +23,10 @@ from google.oauth2.credentials import Credentials
 load_dotenv("/home/mike-anderson/dev/cohezion/.env")
 
 # Scopes are required for gspread
-SCOPES = ["https://www.googleapis.com/auth/spreadsheets", "https://www.googleapis.com/auth/drive"]
+SCOPES = [
+    "https://www.googleapis.com/auth/spreadsheets",
+    "https://www.googleapis.com/auth/drive",
+]
 
 SHEET_NAME = "Cohezion_Research"
 

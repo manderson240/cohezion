@@ -1,5 +1,6 @@
 import argparse
 import asyncio
+import contextlib
 import os
 import re
 import sys
@@ -144,9 +145,6 @@ class TerminalNexus:
             border_style=Colors.WARNING_GOLD,
         )
 
-    def get_pulse(self) -> Panel:
-        return self.ui.create_pulse(self.driver.coherence)
-
     def get_metrics(self) -> Panel:
         return self.ui.create_metrics()
 
@@ -159,8 +157,6 @@ class TerminalNexus:
             ),
             border_style=Colors.NEXUS_GREEN,
         )
-
-    # Removed duplicate get_concept_explorer
 
     def get_pulse(self) -> Panel:
         intensity = min(1.0, max(0.0, self.driver.coherence))
@@ -181,7 +177,7 @@ class TerminalNexus:
             TextColumn("[progress.percentage]{task.percentage:>3.0f}%"),
             expand=True,
         )
-        task_id = progress.add_task("Coherence", total=100, completed=intensity * 100)
+        progress.add_task("Coherence", total=100, completed=intensity * 100)
 
         # Add a subtle "pulse" animation character
         pulse_char = "⚡" if datetime.now().second % 2 == 0 else " "
@@ -204,7 +200,7 @@ class TerminalNexus:
     async def run(self):
         self.make_layout()
 
-        with Live(self.layout, refresh_per_second=4, screen=True) as live:
+        with Live(self.layout, refresh_per_second=4, screen=True):
             async for _ in self.driver.digest_logs():
                 self.layout["header"].update(self.get_header())
                 self.layout["lattice"].update(self.get_lattice())
@@ -245,9 +241,7 @@ async def cmd_research(args):
             console.print("[dim]Executing comprehensive daily sweep...[/dim]")
             res = await agent.mine_daily(limit_per_source=args.limit)
 
-        console.print(
-            f"\n[bold {Colors.NEXUS_GREEN}]RESEARCH SYNTHESIS COMPLETE[/bold {Colors.NEXUS_GREEN}]"
-        )
+        console.print(f"\n[bold {Colors.NEXUS_GREEN}]RESEARCH SYNTHESIS COMPLETE[/bold {Colors.NEXUS_GREEN}]")
         console.print(
             Panel(
                 res,
@@ -282,9 +276,7 @@ async def cmd_journey(args):
         console.print(f"[bold red]Error:[/bold red] Voyage '{voyage_name}' not found.")
         return
 
-    console.print(
-        f"[bold {Colors.EARTH_BLUE}]IGNITING VOYAGE:[/bold {Colors.EARTH_BLUE}] {voyage_name}"
-    )
+    console.print(f"[bold {Colors.EARTH_BLUE}]IGNITING VOYAGE:[/bold {Colors.EARTH_BLUE}] {voyage_name}")
     await voyage["entry_point"]()
 
 
@@ -308,9 +300,7 @@ async def main():
 
     # Verify command
     verify_parser = subparsers.add_parser("verify", help="Run validation suite")
-    verify_parser.add_argument(
-        "--adversarial", action="store_true", help="Run adversarial stress tests"
-    )
+    verify_parser.add_argument("--adversarial", action="store_true", help="Run adversarial stress tests")
 
     # Journey command
     journey_parser = subparsers.add_parser("journey", help="Begin an interactive Cohezion Journey")
@@ -355,9 +345,7 @@ async def main():
         console = Console()
         from cohezion.branding import Colors
 
-        console.print(
-            f"[bold {Colors.NEXUS_GREEN}]Initializing Validation Suite...[/bold {Colors.NEXUS_GREEN}]"
-        )
+        console.print(f"[bold {Colors.NEXUS_GREEN}]Initializing Validation Suite...[/bold {Colors.NEXUS_GREEN}]")
         cmd = ["uv", "run", "tests/verify_context.py"]
         if args.adversarial:
             cmd.append("--adversarial")
@@ -374,7 +362,5 @@ async def main():
 
 
 if __name__ == "__main__":
-    try:
+    with contextlib.suppress(KeyboardInterrupt):
         asyncio.run(main())
-    except KeyboardInterrupt:
-        pass

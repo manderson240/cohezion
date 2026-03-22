@@ -6,11 +6,15 @@ weight bridge -> FlumePhysics with trained weights -> coherence validation.
 
 from __future__ import annotations
 
-from pathlib import Path
+from typing import TYPE_CHECKING
 
 import numpy as np
 import pytest
 import torch
+
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 
 def _rust_available() -> bool:
@@ -157,13 +161,13 @@ class TestCompositeRewardInEnv:
         rewards = []
         for _ in range(10):
             action = env.action_space.sample()
-            obs, reward, terminated, truncated, info = env.step(action)
+            _obs, reward, terminated, truncated, info = env.step(action)
             rewards.append(reward)
             if terminated or truncated:
                 break
 
         # Rewards should vary (not all identical)
-        assert len(set(f"{r:.6f}" for r in rewards)) > 1
+        assert len({f"{r:.6f}" for r in rewards}) > 1
         env.close()
 
     def test_legacy_reward_still_works(self):
@@ -173,7 +177,7 @@ class TestCompositeRewardInEnv:
         obs, info = env.reset(seed=42)
 
         action = env.action_space.sample()
-        obs, reward, terminated, truncated, info = env.step(action)
+        _obs, reward, _terminated, _truncated, _info = env.step(action)
         assert isinstance(reward, float)
         env.close()
 

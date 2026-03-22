@@ -39,8 +39,7 @@ class FileLock:
         # Touch the file to ensure it exists
         self.lock_file.touch()
 
-        self._fd = open(self.lock_file)
-        try:
+        with open(self.lock_file) as self._fd:
             start_time = time.monotonic()
             while True:
                 try:
@@ -50,15 +49,12 @@ class FileLock:
                 except OSError:
                     current_time = time.monotonic()
                     if current_time - start_time > self.timeout:
-                        raise TimeoutError(
-                            f"Timed out waiting for lock on {self.lock_file}"
-                        ) from None
+                        raise TimeoutError(f"Timed out waiting for lock on {self.lock_file}") from None
                     time.sleep(0.1)  # Fixed sleep instead of os.sched_yield for test stability
-            yield
-        finally:
-            if self._fd:
+            try:
+                yield
+            finally:
                 fcntl.flock(self._fd, fcntl.LOCK_UN)
-                self._fd.close()
                 self._fd = None
                 logger.debug(f"Lock released on {self.lock_file}")
 

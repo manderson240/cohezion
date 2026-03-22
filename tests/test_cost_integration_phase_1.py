@@ -202,7 +202,7 @@ class TestBudgetEnforcerIntegration:
         summary = tracker.get_session_cost()
 
         # Check budget
-        can_proceed, reason = enforcer.check_budget(summary["total_cost_usd"])
+        can_proceed, _reason = enforcer.check_budget(summary["total_cost_usd"])
 
         assert can_proceed is True
         assert summary["total_cost_usd"] < 10.0
@@ -268,7 +268,7 @@ class TestEndToEndCostFlow:
         total_cost = summary["total_cost_usd"]
 
         # Check budget
-        can_proceed, reason = enforcer.check_budget(total_cost)
+        can_proceed, _reason = enforcer.check_budget(total_cost)
 
         # Create metrics
         metrics = InferenceMetrics(

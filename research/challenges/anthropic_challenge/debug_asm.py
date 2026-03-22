@@ -20,11 +20,7 @@ def debug_asm():
         print(f"{i}: {instr}")
 
     # Execute
-    from anthropic_challenge.problem import (
-        build_mem_image,
-        Machine,
-        DebugInfo,
-    )
+    from anthropic_challenge.problem import build_mem_image, Machine, DebugInfo
 
     t = Tree.generate(2)
     t.values[0] = 12345678  # Force known value
@@ -33,7 +29,7 @@ def debug_asm():
     inp.indices = [0] * 256
 
     mem = build_mem_image(t, inp)
-    debug_info = DebugInfo(builder.scratch_names)  # Need scratch map?
+    DebugInfo(builder.scratch_names)  # Need scratch map?
     # Builder scratch_names is {name: addr}.
     # DebugInfo needs {addr: (name, len)}.
     rev_map = {v: (k, 1) for k, v in builder.scratch_names.items()}

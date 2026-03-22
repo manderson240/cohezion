@@ -211,7 +211,5 @@ class ConfigSyncLogger:
             "total_duration_ms": total_duration,
             "average_duration_ms": avg_duration,
             "failure_count": statuses.get("failed", 0),
-            "success_rate": (
-                statuses.get("success", 0) / len(self._entries) * 100 if self._entries else 0
-            ),
+            "success_rate": (statuses.get("success", 0) / len(self._entries) * 100 if self._entries else 0),
         }

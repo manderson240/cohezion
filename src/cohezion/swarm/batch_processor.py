@@ -67,18 +67,12 @@ class BatchResult:
     @property
     def tokens_saved(self) -> int:
         """Tokens saved from caching."""
-        return sum(
-            item.cache_entry.tokens_used
-            for item in self.items
-            if item.cached and item.cache_entry
-        )
+        return sum(item.cache_entry.tokens_used for item in self.items if item.cached and item.cache_entry)
 
     @property
     def avg_semantic_confidence(self) -> float:
         """Average confidence of semantic cache hits."""
-        confidences = [
-            item.semantic_confidence for item in self.items if item.semantic_confidence is not None
-        ]
+        confidences = [item.semantic_confidence for item in self.items if item.semantic_confidence is not None]
         return sum(confidences) / len(confidences) if confidences else 0.0
 
 
@@ -246,9 +240,7 @@ class BatchProcessor:
             # Create fresh semaphore with dynamic concurrency level
             self._concurrency_semaphore = asyncio.Semaphore(actual_concurrency)
 
-            tasks = [
-                self._execute_with_concurrency(item, key, execute_fn) for item, key in unique_misses
-            ]
+            tasks = [self._execute_with_concurrency(item, key, execute_fn) for item, key in unique_misses]
 
             results = await asyncio.gather(*tasks, return_exceptions=True)
 
@@ -276,7 +268,7 @@ class BatchProcessor:
 
                 # Replicate to duplicate items
                 if key in duplicate_map:
-                    for dup_item, dup_key in duplicate_map[key]:
+                    for dup_item, _dup_key in duplicate_map[key]:
                         dup_item.result = representative_item.result
                         dup_item.tokens_used = representative_item.tokens_used
                         dup_item.error = representative_item.error
@@ -329,7 +321,7 @@ class BatchProcessor:
         unique_misses = []
         duplicate_map = {}
 
-        for signature, items_with_keys in prompt_groups.items():
+        for _signature, items_with_keys in prompt_groups.items():
             if len(items_with_keys) == 1:
                 # No duplicates, just add to unique
                 unique_misses.append(items_with_keys[0])

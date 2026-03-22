@@ -128,17 +128,6 @@ from cohezion.compound.team_executor import (
     TeamExecutor,
     TeamExecutorFactory,
 )
-from cohezion.compound.thermodynamic_metrics import (
-    PhaseTransition,
-    ThermodynamicMetrics,
-    ThermodynamicState,
-)
-from cohezion.compound.topological_persistence import (
-    PersistenceDiagram,
-    PersistencePair,
-    TopologicalPersistence,
-    trajectory_persistence_summary,
-)
 from cohezion.compound.thermal_history_persistence import (
     ThermalTimeSeriesCollector,
     get_thermal_time_series_collector,
@@ -153,6 +142,17 @@ from cohezion.compound.thermal_trend_predictor import (
     ThermalTimeSeries,
     ThermalTrendPredictor,
     get_thermal_trend_predictor,
+)
+from cohezion.compound.thermodynamic_metrics import (
+    PhaseTransition,
+    ThermodynamicMetrics,
+    ThermodynamicState,
+)
+from cohezion.compound.topological_persistence import (
+    PersistenceDiagram,
+    PersistencePair,
+    TopologicalPersistence,
+    trajectory_persistence_summary,
 )
 from cohezion.compound.vault_search_executor import (
     SearchQuery,
@@ -279,6 +279,9 @@ __all__ = [
     "MetricsPersistence",
     "ModelQualityClassifier",
     "OperationType",
+    "PersistenceDiagram",
+    "PersistencePair",
+    "PhaseTransition",
     "PromptOptimizer",
     "QualityForecast",
     "QualityPredictor",
@@ -307,20 +310,16 @@ __all__ = [
     "ThermalTimeSeriesCollector",
     "ThermalTrendAnalyzer",
     "ThermalTrendPredictor",
+    "ThermodynamicMetrics",
+    "ThermodynamicState",
     "TimeWindowMetrics",
+    "TopologicalPersistence",
     "TrajectoryPoint",
     "VaultLogger",
     "VaultSearchExecutor",
     "VotingStrategy",
     "WarmCacheLoader",
     "create_vault_search_executor",
-    "PhaseTransition",
-    "PersistenceDiagram",
-    "PersistencePair",
-    "ThermodynamicMetrics",
-    "ThermodynamicState",
-    "TopologicalPersistence",
-    "trajectory_persistence_summary",
     "get_batch_size_predictor",
     "get_collector",
     "get_global_aggregator",
@@ -331,4 +330,5 @@ __all__ = [
     "load_jsonl_history",
     "reset_collector",
     "reset_global_aggregator",
+    "trajectory_persistence_summary",
 ]

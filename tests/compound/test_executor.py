@@ -20,12 +20,8 @@ from cohezion.compound.executor import (
 def mock_mcp_client():
     """Create a mock MCP client."""
     client = MagicMock()
-    client.vault_find_relevant_context.return_value = [
-        {"file": "experiments/similar.md", "score": 0.85}
-    ]
-    client.vault_search.return_value = [
-        {"file": "experiments/similar.md", "score": 0.85}
-    ]
+    client.vault_find_relevant_context.return_value = [{"file": "experiments/similar.md", "score": 0.85}]
+    client.vault_search.return_value = [{"file": "experiments/similar.md", "score": 0.85}]
     client.vault_write.return_value = "success"
     client.vault_read.return_value = '{"status": "started"}'
     client.vault_log_experiment.return_value = "experiments/execution_123.md"
@@ -185,11 +181,7 @@ def test_execute_task_no_pattern_on_failure(executor, mock_mcp_client):
     # Pattern extraction should not happen on failure
     # Calls: start + result + inflection point (3 total)
     # Verify no pattern paths in calls (pattern extraction writes to patterns/domains/)
-    pattern_calls = [
-        call
-        for call in mock_mcp_client.vault_write.call_args_list
-        if "patterns/domains" in str(call)
-    ]
+    pattern_calls = [call for call in mock_mcp_client.vault_write.call_args_list if "patterns/domains" in str(call)]
     assert len(pattern_calls) == 0  # no pattern extraction on failure
 
 
@@ -555,11 +547,7 @@ class TestCompoundExecutorIntegration:
         )
         assert result.success is True
         # No pattern extraction calls (normally writes to patterns/domains/)
-        pattern_calls = [
-            c
-            for c in mock_mcp_client.vault_write.call_args_list
-            if "patterns/domains" in str(c)
-        ]
+        pattern_calls = [c for c in mock_mcp_client.vault_write.call_args_list if "patterns/domains" in str(c)]
         assert len(pattern_calls) == 0
 
     def test_degradation_clears_on_hiho_return(self, mock_mcp_client):

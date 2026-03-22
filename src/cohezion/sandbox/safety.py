@@ -17,7 +17,7 @@ import time
 from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import datetime
-from enum import Enum
+from enum import StrEnum
 from typing import Any
 
 import psutil
@@ -26,7 +26,7 @@ import psutil
 logger = logging.getLogger(__name__)
 
 
-class RiskLevel(str, Enum):
+class RiskLevel(StrEnum):
     """Safety risk levels."""
 
     LOW = "low"
@@ -35,7 +35,7 @@ class RiskLevel(str, Enum):
     CRITICAL = "critical"
 
 
-class ViolationSeverity(str, Enum):
+class ViolationSeverity(StrEnum):
     """Violation severity levels."""
 
     WARNING = "warning"
@@ -347,9 +347,7 @@ class PreFlightChecker:
 
         return None
 
-    def _check_path_whitelist(
-        self, request: dict[str, Any], policy: SafetyPolicy
-    ) -> list[Violation]:
+    def _check_path_whitelist(self, request: dict[str, Any], policy: SafetyPolicy) -> list[Violation]:
         """Check if modified paths are whitelisted."""
         violations = []
         context = request.get("context", {})
@@ -383,10 +381,7 @@ class PreFlightChecker:
         context = request.get("context", {})
         needs_network = context.get("network_required", False)
 
-        if needs_network and not policy.network_allowed:
-            return False
-
-        return True
+        return not (needs_network and not policy.network_allowed)
 
     def _check_resource_availability(self, policy: SafetyPolicy) -> list[Violation]:
         """Check if required resources are available."""
@@ -549,8 +544,7 @@ class ConstraintEnforcer:
             # In production, would write to /sys/fs/cgroup/...
             # For now, log the intended limits
             logger.debug(
-                f"Would set cgroup limits: CPU {self.policy.max_cpu_percent}%, "
-                f"Memory {self.policy.max_memory_gb}GB"
+                f"Would set cgroup limits: CPU {self.policy.max_cpu_percent}%, Memory {self.policy.max_memory_gb}GB"
             )
         except Exception as e:
             logger.debug(f"Failed to set cgroup limits: {e}")

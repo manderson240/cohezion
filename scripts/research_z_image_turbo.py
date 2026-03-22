@@ -13,9 +13,9 @@ def research_z_image_turbo():
 
     # Check GPU
     try:
-        gpu_info = subprocess.check_output(["radeontop", "-l", "1"]).decode()
+        subprocess.check_output(["radeontop", "-l", "1"]).decode()
         print("  ✓ AMD GPU detected (Radeon RX 7700S)")
-    except:
+    except Exception:
         print("  ⚠️ radeontop failed, assuming 12GB VRAM available")
 
     # Requirements
@@ -37,7 +37,7 @@ def research_z_image_turbo():
             print("  ✓ Z-Image-Turbo already available in Ollama roster")
         else:
             print("  - Not in Ollama roster. Searching library...")
-    except:
+    except Exception:
         print("  - Ollama not responsive")
 
     # Final Installation Recommendations

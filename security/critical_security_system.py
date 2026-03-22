@@ -150,17 +150,12 @@ class ConstitutionalSecuritySystem:
             normalized_path = os.path.normpath(path)
 
             # Check for dangerous patterns
-            for pattern in self.security_patterns["path_sanitization"]["absolute_path_block"][
-                "blocked_patterns"
-            ]:
+            for pattern in self.security_patterns["path_sanitization"]["absolute_path_block"]["blocked_patterns"]:
                 if pattern in normalized_path.lower():
                     return False
 
             # Check relative path constraints
-            if ".." in normalized_path:
-                return False
-
-            return True
+            return ".." not in normalized_path
 
         except Exception:
             return False
@@ -255,9 +250,7 @@ class ConstitutionalSecuritySystem:
             "component": component,
             "violations": violations,
             "compliance_score": max(0, 100 - len(violations) * 10),
-            "compound_engineering_score": 1.2
-            if not self._has_compound_violations(violations)
-            else 0.8,
+            "compound_engineering_score": 1.2 if not self._has_compound_violations(violations) else 0.8,
             "recommendations": self._generate_security_improvements(violations),
         }
 
@@ -272,9 +265,7 @@ class ConstitutionalSecuritySystem:
             "modify",
         ]
 
-        return hasattr(implementation, attr) and any(
-            pattern in getattr(implementation, "", "") for pattern in dangerous_patterns
-        )
+        return any(hasattr(implementation, pattern) for pattern in dangerous_patterns)
 
     def _violates_hard_constraints(self, implementation: Any) -> bool:
         """Check if component violates hard constraints"""
@@ -306,9 +297,7 @@ class ConstitutionalSecuritySystem:
 
     def _has_compound_violations(self, violations: list[dict[str, Any]]) -> bool:
         """Check if any violations block compound engineering"""
-        return any(
-            v.get("constitutional_violations", []) and any(item["item"] == 8 for item in violations)
-        )
+        return any(v.get("item") == 8 for v in violations)
 
     def _generate_security_improvements(self, violations: list[dict[str, Any]]) -> list[str]:
         """Generate security improvement recommendations"""
@@ -320,9 +309,7 @@ class ConstitutionalSecuritySystem:
             elif violation["item"] == 6:  # Hard Constraints
                 improvements.append("Add explicit authorization and constraint validation")
             elif violation["item"] == 8:  # Compound Engineering
-                improvements.append(
-                    "Refactor component to enable modular design and future enhancement"
-                )
+                improvements.append("Refactor component to enable modular design and future enhancement")
 
         return improvements
 
@@ -377,7 +364,7 @@ class SecureGPUAccelerator:
                 raise RuntimeError(f"GPU temperature query failed: {result.stderr}")
 
         except Exception as e:
-            raise RuntimeError(f"GPU monitoring error: {e}")
+            raise RuntimeError(f"GPU monitoring error: {e}") from e
 
     async def execute_secure_shell_command(self, command: str, timeout: int = 30) -> str:
         """Execute shell command with security validation"""
@@ -400,7 +387,7 @@ class SecureGPUAccelerator:
             return result.stdout.strip()
 
         except Exception as e:
-            raise RuntimeError(f"Secure command execution failed: {e}")
+            raise RuntimeError(f"Secure command execution failed: {e}") from e
 
 
 class SecurityError(Exception):
@@ -434,7 +421,7 @@ async def test_security_system():
             if security_system._validate_command_security(cmd):
                 print(f"Command '{cmd}': BLOCKED (as expected)")
             else:
-                secured_cmd = security_system._sanitize_shell_command(cmd)
+                security_system._sanitize_shell_command(cmd)
                 print(f"Command '{cmd}': ALLOWED (unusual but allowed)")
         except Exception as e:
             print(f"Command '{cmd}': ERROR - {e}")

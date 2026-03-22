@@ -113,7 +113,7 @@ class TestTokenEfficientClient:
             mock_gen.return_value = ("Response", 100)
 
             # First call (cache miss)
-            response1, tokens1 = await token_client.generate(
+            _response1, _tokens1 = await token_client.generate(
                 prompt="Test prompt",
                 model="phi3:mini",
             )

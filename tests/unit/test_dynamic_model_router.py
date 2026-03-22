@@ -190,7 +190,7 @@ class TestDynamicModelRouter:
         )
         request = {"task_type": "coding", "context_length": 1000, "ide_priority": 2}
         score_coder = router.calculate_model_score(coder_model, request, 0.2)
-        score_generic = router.calculate_model_score(generic_model, request, 0.2)
+        router.calculate_model_score(generic_model, request, 0.2)
         # Coder model should get the coding bonus
         assert score_coder > 0
 
@@ -244,7 +244,7 @@ class TestDynamicModelRouter:
             template_format="chatml",
             optimal_for_ide=[IDEPriority.OPENCODE],
         )
-        for i in range(1100):
+        for _i in range(1100):
             router.record_performance(model, execution_time=0.1, response_length=10)
         assert len(router.performance_history) <= 1000
 

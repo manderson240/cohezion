@@ -127,9 +127,7 @@ class IntentClassifier:
         # Return operation with highest score
         if max(scores.values()) > 0:
             best_operation = max(scores, key=scores.get)
-            logger.debug(
-                f"Classified '{text[:50]}...' → {best_operation} (score={scores[best_operation]})"
-            )
+            logger.debug(f"Classified '{text[:50]}...' → {best_operation} (score={scores[best_operation]})")
             return best_operation
 
         # Default fallback

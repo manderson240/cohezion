@@ -69,7 +69,7 @@ class HealthMetrics:
 class CodebaseHealthAssessment:
     """Comprehensive codebase health assessment."""
 
-    def __init__(self, repo_root: Path = None):
+    def __init__(self, repo_root: Path | None = None):
         """Initialize assessment.
 
         Args:
@@ -117,7 +117,7 @@ class CodebaseHealthAssessment:
                 text=True,
                 timeout=10,
             )
-            counts["untracked"] = len([l for l in result.stdout.strip().split("\n") if l])
+            counts["untracked"] = len([line for line in result.stdout.strip().split("\n") if line])
         except Exception as e:
             logger.warning(f"Could not count untracked files: {e}")
 
@@ -166,8 +166,8 @@ class CodebaseHealthAssessment:
                 timeout=5,
             )
             lines = result.stdout.strip().split("\n") if result.stdout.strip() else []
-            health["uncommitted_changes"] = len([l for l in lines if not l.startswith("??")])
-            health["untracked_files"] = len([l for l in lines if l.startswith("??")])
+            health["uncommitted_changes"] = len([line for line in lines if not line.startswith("??")])
+            health["untracked_files"] = len([line for line in lines if line.startswith("??")])
 
         except Exception as e:
             logger.warning(f"Could not assess git health: {e}")
@@ -188,9 +188,7 @@ class CodebaseHealthAssessment:
 
         try:
             # Count test files
-            test_files = list(self.repo_root.rglob("test_*.py")) + list(
-                self.repo_root.rglob("*_test.py")
-            )
+            test_files = list(self.repo_root.rglob("test_*.py")) + list(self.repo_root.rglob("*_test.py"))
             coverage["test_files"] = len(test_files)
 
             # Count tests (rough estimate from test functions)
@@ -235,14 +233,11 @@ class CodebaseHealthAssessment:
         try:
             # Check for README
             docs["readme_exists"] = any(
-                f.name.lower() in ["readme.md", "readme.rst", "readme.txt"]
-                for f in self.repo_root.iterdir()
+                f.name.lower() in ["readme.md", "readme.rst", "readme.txt"] for f in self.repo_root.iterdir()
             )
 
             # Check for LICENSE
-            docs["license_exists"] = any(
-                f.name.lower() == "license" for f in self.repo_root.iterdir()
-            )
+            docs["license_exists"] = any(f.name.lower() == "license" for f in self.repo_root.iterdir())
 
             # Check for CHANGELOG
             docs["changelog_exists"] = any(

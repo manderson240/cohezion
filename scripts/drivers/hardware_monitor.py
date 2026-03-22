@@ -26,7 +26,7 @@ def get_gpu_load():
     try:
         with open("/sys/class/drm/card0/device/gpu_busy_percent") as f:
             return int(f.read().strip())
-    except:
+    except Exception:
         return 0
 
 

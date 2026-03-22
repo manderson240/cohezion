@@ -99,9 +99,7 @@ class SurrealJourneyRepository(JourneyRepository):
             capability_delta=metrics_data.get("capability_delta", 0.0),
             latency_per_token_ms=metrics_data.get("latency_per_token_ms", 0.0),
             safety_alignment_score=metrics_data.get("safety_alignment_score", 0.0),
-            computational_relativity_factor=metrics_data.get(
-                "computational_relativity_factor", 1.0
-            ),
+            computational_relativity_factor=metrics_data.get("computational_relativity_factor", 1.0),
         )
 
         return AgentJourney(

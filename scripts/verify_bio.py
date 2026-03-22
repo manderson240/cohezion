@@ -15,12 +15,12 @@ from cohezion.swarm.swarm_types import SwarmConfig
 
 async def main():
     logging.basicConfig(level=logging.INFO)
-    logger = logging.getLogger("BioVerification")
+    logging.getLogger("BioVerification")
 
     config = SwarmConfig()
     agent = BiologicalAgent(config=config)
     light_field = get_light_field()
-    morphic_field = get_morphic_field()
+    get_morphic_field()
 
     print("\n--- 🦠 Test 1: Initial Thought (Imprinting) ---")
     query = "Explain the concept of Morphic Resonance in biological systems."

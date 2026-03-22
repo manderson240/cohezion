@@ -13,7 +13,7 @@ from cohezion.swarm.swarm_types import SwarmConfig
 
 async def main():
     logging.basicConfig(level=logging.INFO)
-    logger = logging.getLogger("VisionVerification")
+    logging.getLogger("VisionVerification")
 
     config = SwarmConfig()
     vision = VisionAgent(config=config)
