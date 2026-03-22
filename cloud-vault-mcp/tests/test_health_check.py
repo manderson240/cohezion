@@ -10,6 +10,9 @@ from mcp_server.health import HealthChecker, HealthStatus
 _IN_CI = os.environ.get("CI") == "true"
 
 
+_IN_CI = os.environ.get("CI") == "true"
+
+
 class TestHealthChecker:
     """Test suite for HealthChecker."""
 

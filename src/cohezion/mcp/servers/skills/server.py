@@ -183,7 +183,8 @@ async def tool_skills_install(request: web.Request) -> web.Response:
         # Validate skill_id is a safe owner/repo format (alphanumeric, hyphens, underscores)
         if not _re.match(r"^[a-zA-Z0-9_-]+/[a-zA-Z0-9_.-]+$", skill_id):
             return web.json_response(
-                {"error": "Invalid skill_id format. Use owner/repo format (alphanumeric only)."}, status=400
+                {"error": "Invalid skill_id format. Use owner/repo format (alphanumeric only)."},
+                status=400,
             )
 
         # Run npx skills add — skill_id is validated above
@@ -412,7 +413,9 @@ async def tool_skills_cache_info(request: web.Request) -> web.Response:
 
 def create_app() -> web.Application:
     """Create the web application."""
-    app = web.Application()
+    from cohezion.mcp.shared.auth import api_key_middleware
+
+    app = web.Application(middlewares=[api_key_middleware])
     app.add_routes(routes)
     return app
 

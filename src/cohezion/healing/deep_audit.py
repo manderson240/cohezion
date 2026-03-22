@@ -162,7 +162,7 @@ class DeepAuditor(ast.NodeVisitor):
         ok = []
         bad = []
 
-        for _, stat in self.stats.items():
+        for _path, stat in self.stats.items():
             if stat.complexity > 50 or stat.loc > 300:
                 bad.append(stat)
             elif stat.complexity > 20 or stat.loc > 150:

@@ -9,7 +9,6 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum, auto
-from pathlib import Path
 from typing import Any
 
 
@@ -163,25 +162,6 @@ VaultPath = str
 # Legacy Compatibility Models (for backward compatibility)
 # These preserve old API while new code uses simplified models above
 # ============================================================================
-
-
-@dataclass
-class SessionCheckpoint:
-    """Session checkpoint for persistence."""
-
-    session_id: str
-    timestamp: datetime
-    task: Task
-    results: list[ExecutionResult]
-    metadata: dict[str, Any] = field(default_factory=dict)
-
-    def to_dict(self) -> dict[str, Any]:
-        return {
-            "session_id": self.session_id,
-            "timestamp": self.timestamp.isoformat(),
-            "task": self.task.__dict__,
-            "result_count": len(self.results),
-        }
 
 
 @dataclass

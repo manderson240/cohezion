@@ -446,7 +446,7 @@ class ProcessIsolation:
         """
         try:
             # Check if namespace exists in /var/run/netns or /proc/*/ns/
-            subprocess.run(
+            _result = subprocess.run(
                 ["ip", "netns", "list"],
                 capture_output=True,
                 text=True,

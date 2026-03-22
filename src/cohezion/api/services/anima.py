@@ -10,10 +10,10 @@ Each tier falls back gracefully to the one below it.
 from __future__ import annotations
 
 import logging
-from typing import Any
 
 from fastapi import APIRouter
 from pydantic import BaseModel
+
 
 anima_router = APIRouter(tags=["anima"])
 logger = logging.getLogger(__name__)
@@ -63,6 +63,7 @@ class AnimaService:
         # Tier 2: Check if KnowledgeMCP is reachable
         try:
             import httpx
+
             resp = httpx.get("http://localhost:8371/health", timeout=2.0)
             self._mcp_available = resp.status_code == 200
         except Exception:
@@ -70,7 +71,6 @@ class AnimaService:
 
         # Tier 3: Check if pocket-tts model is available
         try:
-            from cohezion.mcp.servers.plasma.server import PocketTTSService  # noqa: F401
             self._voice_available = True
         except Exception:
             self._voice_available = False
@@ -105,6 +105,7 @@ class AnimaService:
         if self._mcp_available:
             try:
                 import httpx
+
                 async with httpx.AsyncClient() as client:
                     resp = await client.post(
                         "http://localhost:8371/search",
@@ -115,13 +116,10 @@ class AnimaService:
                         results = resp.json()
                         if results:
                             answer = "\n".join(
-                                r.get("content", r.get("text", ""))[:200]
-                                for r in results[:3]
+                                r.get("content", r.get("text", ""))[:200] for r in results[:3]
                             )
                             sources = [r.get("source", "vault") for r in results[:3]]
-                            return AskResponse(
-                                answer=answer, tier="mcp", sources=sources
-                            )
+                            return AskResponse(answer=answer, tier="mcp", sources=sources)
             except Exception as e:
                 logger.warning("MCP query failed, falling back to template: %s", e)
 
@@ -172,11 +170,10 @@ class AnimaService:
         if self._voice_available:
             try:
                 from cloud_vault_mcp.src.mcp_server.pocket_tts import PocketTTSService
+
                 tts = PocketTTSService()
                 audio = await tts.synthesize(text)
-                return SpeakResponse(
-                    audio_base64=audio, tier="voice", fallback_text=text
-                )
+                return SpeakResponse(audio_base64=audio, tier="voice", fallback_text=text)
             except Exception as e:
                 logger.warning("TTS failed: %s", e)
 

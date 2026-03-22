@@ -14,8 +14,6 @@ import time
 from dataclasses import dataclass
 from typing import Any
 
-from docker.errors import DockerException
-
 import docker
 
 
@@ -160,10 +158,7 @@ class ContainerizedUniverse:
             # Add other files
             if files:
                 for name, content in files.items():
-                    if isinstance(content, str):
-                        content_bytes = content.encode("utf-8")
-                    else:
-                        content_bytes = content
+                    content_bytes = content.encode("utf-8") if isinstance(content, str) else content
                     tarinfo = tarfile.TarInfo(name)
                     tarinfo.size = len(content_bytes)
                     tar.addfile(tarinfo, io.BytesIO(content_bytes))

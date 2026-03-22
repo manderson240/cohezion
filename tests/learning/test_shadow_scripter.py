@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import pytest
-
 from cohezion.learning.shadow_scripter import (
     ShadowScripter,
     TestGenStatus,

@@ -169,7 +169,6 @@ class IncrementalRLTrainer:
         import gymnasium as gym
         import torch
 
-        import cohezion.rl.environment  # noqa: F401
         from cohezion.rl.trainer import PolicyNetwork, TrainingConfig
 
         # Load existing policy

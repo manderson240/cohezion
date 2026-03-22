@@ -222,10 +222,7 @@ class ForecastEngine:
         # Determine anomaly type
         anomaly_type = "normal"
         if is_anomaly:
-            if current_rate_usd_per_hour > expected_rate:
-                anomaly_type = "spike"
-            else:
-                anomaly_type = "drop"
+            anomaly_type = "spike" if current_rate_usd_per_hour > expected_rate else "drop"
 
         return AnomalyScore(
             timestamp=time.time(),

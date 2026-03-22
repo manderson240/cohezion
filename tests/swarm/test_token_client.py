@@ -31,8 +31,9 @@ class TestResilientOllamaClient:
 
         with patch("cohezion.swarm.token_client.requests.post") as mock_post:
             mock_post.return_value.json.return_value = {
-                "response": "Hello, world!",
+                "message": {"content": "Hello, world!"},
                 "eval_count": 50,
+                "prompt_eval_count": 0,
             }
 
             response, tokens = await client.generate(
@@ -56,7 +57,11 @@ class TestResilientOllamaClient:
             mock_post.side_effect = [
                 Exception("Connection failed"),
                 MagicMock(
-                    json=lambda: {"response": "Success", "eval_count": 100},
+                    json=lambda: {
+                        "message": {"content": "Success"},
+                        "eval_count": 100,
+                        "prompt_eval_count": 0,
+                    },
                     raise_for_status=lambda: None,
                 ),
             ]

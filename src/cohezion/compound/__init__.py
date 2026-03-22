@@ -4,25 +4,26 @@ Integrates skill execution, knowledge persistence (vault), and experience-guided
 Phase 1: Compatibility layer with simplified internals
 """
 
-from cohezion.compound.batch_sizer import (
-    BatchExecutionMetrics,
-    BatchSizePredictor,
-    get_batch_size_predictor,
+# ============================================================================
+# Compatibility Layer (Phase 1) - Preserves old API
+# ============================================================================
+
+# ============================================================================
+# New Simplified Analytics (Phase 1)
+# ============================================================================
+from cohezion.compound.analytics.engine import (
+    AnalysisConfig,
+    ExecutionAnalyzer,
+    SimpleAnalyzer,
 )
-from cohezion.compound.context_integration import (
-    CompoundContextMixin,
-    ContextCoherenceError,
-    ContextLoadError,
-    ContextManager,
+from cohezion.compound.analytics.metrics import (
+    MetricsCollector,
+    MetricsSnapshot,
+    SimpleMetrics,
 )
-from cohezion.compound.cache_persistence import CachePersistence, WarmCacheLoader
-from cohezion.compound.degradation_detector import (
-    AlertSeverity,
-    DegradationAlert,
-    DegradationDetector,
-    MetricBaseline,
-)
-from cohezion.compound.executor import (
+from cohezion.compound.compat import (
+    CompoundCycleReport,
+    CompoundCycleResult,
     CompoundExecutor,
     ExecutionResult,
     ExecutorFactory,
@@ -98,60 +99,53 @@ from cohezion.compound.request_alignment_analyzer import (
     IntentType,
     SuccessCriterion,
 )
-from cohezion.compound.request_cache import RequestCache
-from cohezion.compound.skill_consensus_voter import (
-    AgentVote,
-    ConsensusResult,
-    SkillConsensusVoter,
-    VotingStrategy,
+from cohezion.compound.compat import (
+    ExecutionResult as LegacyExecutionResult,
 )
-from cohezion.compound.skill_selector import (
-    SkillScore,
+from cohezion.compound.core.batch_processor import (
+    BatchProcessor,
+    BatchResult,
+    SimpleBatch,
+)
+from cohezion.compound.core.executor import (
+    CompoundExecutor as NewCompoundExecutor,
+)
+from cohezion.compound.core.executor import (
+    ExecutionConfig,
+    execute_simple,
+)
+
+# ============================================================================
+# New Simplified Core (Phase 1) - Clean implementations
+# ============================================================================
+from cohezion.compound.models import (
+    AnalysisReport,
+    BatchConfig,
+    ExecutionContext,
+    ExecutionMetrics,
+    ExecutionResult,
+    ExecutionStatus,
+    Task,
+)
+
+# ============================================================================
+# New Simplified Persistence (Phase 1)
+# ============================================================================
+from cohezion.compound.persistence.vault import (
+    PersistenceConfig,
+    SessionPersister,
+    SimplePersistence,
+    VaultPersister,
+)
+
+# ============================================================================
+# New Simplified Skills (Phase 1)
+# ============================================================================
+from cohezion.compound.skills.selector import (
+    SimpleSkills,
+    SkillMatch,
+    SkillRefiner,
     SkillSelector,
-)
-from cohezion.compound.task_queue import (
-    QueuedTask,
-    TaskPriority,
-    TaskQueue,
-)
-from cohezion.compound.team_executor import (
-    AgentTask,
-    AgentTaskResult,
-    TeamExecutionResult,
-    TeamExecutor,
-    TeamExecutorFactory,
-)
-from cohezion.compound.thermal_history_persistence import (
-    ThermalTimeSeriesCollector,
-    get_thermal_time_series_collector,
-    load_jsonl_history,
-)
-from cohezion.compound.thermal_predictor import (
-    ThermalMetrics,
-    ThermalTrendAnalyzer,
-    get_thermal_trend_analyzer,
-)
-from cohezion.compound.thermal_trend_predictor import (
-    ThermalTimeSeries,
-    ThermalTrendPredictor,
-    get_thermal_trend_predictor,
-)
-from cohezion.compound.thermodynamic_metrics import (
-    PhaseTransition,
-    ThermodynamicMetrics,
-    ThermodynamicState,
-)
-from cohezion.compound.topological_persistence import (
-    PersistenceDiagram,
-    PersistencePair,
-    TopologicalPersistence,
-    trajectory_persistence_summary,
-)
-from cohezion.compound.vault_search_executor import (
-    SearchQuery,
-    SearchResult,
-    VaultSearchExecutor,
-    create_vault_search_executor,
 )
 
 from cohezion.compound.core.executor import (
@@ -221,19 +215,31 @@ def get_version() -> str:
 # Exports
 # ============================================================================
 
+# ============================================================================
+# Version Info
+# ============================================================================
+
+__version__ = "2.0.0-simplified"
+
+
+def get_version() -> str:
+    """Get compound module version."""
+    return __version__
+
+
+# ============================================================================
+# Exports
+# ============================================================================
+
 __all__ = [
-    "ActionRecommendation",
-    "CompoundContextMixin",
-    "ContextCoherenceError",
-    "ContextLoadError",
-    "ContextManager",
-    "AgentTask",
-    "AgentTaskResult",
-    "AgentVote",
-    "AlertSeverity",
-    "BatchExecutionMetrics",
-    "BatchSizePredictor",
-    "CachePersistence",
+    # New analytics
+    "AnalysisConfig",
+    # New models
+    "AnalysisReport",
+    "BatchConfig",
+    "BatchProcessor",
+    "BatchResult",
+    # Compatibility layer (old API)
     "CompoundCycleReport",
     "CompoundCycleResult",
     "CompoundExecutor",
@@ -249,81 +255,37 @@ __all__ = [
     "EvolutionTrainingSignalGenerator",
     "EvolutionTrajectory",
     "ExecutionAlignment",
+    "ExecutionAnalyzer",
+    "ExecutionConfig",
     "ExecutionConstraint",
     "ExecutionContext",
-    "ExecutionRecord",
+    "ExecutionMetrics",
     "ExecutionResult",
-    "ExecutorFactory",
-    "ExperienceTrace",
-    "ExperienceTraceType",
-    "FailureMode",
-    "FeedbackLoopResult",
-    "FitnessEvaluator",
-    "GlobalMetricsAggregator",
-    "GroupEvolutionEngine",
-    "GroupExperiencePool",
-    "HardwareMetrics",
-    "HardwareMonitor",
+    "ExecutionStatus",
     "HumanRequest",
     "IntentType",
-    "Journey",
-    "JourneyPersistence",
-    "JourneyTracker",
-    "JourneyTrackerFactory",
-    "MetricBaseline",
-    "MetricsPersistence",
-    "ModelQualityClassifier",
-    "OperationType",
-    "PersistenceDiagram",
-    "PersistencePair",
-    "PhaseTransition",
-    "PromptOptimizer",
-    "QualityForecast",
-    "QualityPredictor",
-    "QueuedTask",
-    "RecommendedAction",
-    "RequestAlignmentAnalyzer",
-    "RequestAlignmentAnalyzerFactory",
-    "RequestCache",
-    "RetryAttempt",
-    "RetryStrategy",
-    "SearchQuery",
-    "SearchResult",
-    "Severity",
-    "SkillConsensusVoter",
-    "SkillMetrics",
-    "SkillScore",
+    "LegacyExecutionResult",
+    "MetricsCollector",
+    "MetricsSnapshot",
+    # New core
+    "NewCompoundExecutor",
+    # New persistence
+    "PersistenceConfig",
+    "SessionPersister",
+    "SimpleAnalyzer",
+    "SimpleBatch",
+    "SimpleMetrics",
+    "SimplePersistence",
+    "SimpleSkills",
+    # New skills
+    "SkillMatch",
+    "SkillRefiner",
     "SkillSelector",
     "SuccessCriterion",
-    "TaskPriority",
-    "TaskQueue",
-    "TeamExecutionResult",
-    "TeamExecutor",
-    "TeamExecutorFactory",
-    "ThermalMetrics",
-    "ThermalTimeSeries",
-    "ThermalTimeSeriesCollector",
-    "ThermalTrendAnalyzer",
-    "ThermalTrendPredictor",
-    "ThermodynamicMetrics",
-    "ThermodynamicState",
-    "TimeWindowMetrics",
-    "TopologicalPersistence",
-    "TrajectoryPoint",
-    "VaultLogger",
-    "VaultSearchExecutor",
-    "VotingStrategy",
-    "WarmCacheLoader",
-    "create_vault_search_executor",
-    "get_batch_size_predictor",
-    "get_collector",
-    "get_global_aggregator",
-    "get_hardware_monitor",
-    "get_thermal_time_series_collector",
-    "get_thermal_trend_analyzer",
-    "get_thermal_trend_predictor",
-    "load_jsonl_history",
-    "reset_collector",
-    "reset_global_aggregator",
-    "trajectory_persistence_summary",
+    "Task",
+    "VaultPersister",
+    # Version
+    "__version__",
+    "execute_simple",
+    "get_version",
 ]

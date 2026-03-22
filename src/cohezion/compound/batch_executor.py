@@ -272,7 +272,7 @@ class BatchableExecutor:
         guidance_results = await asyncio.gather(*guidance_tasks, return_exceptions=True)
 
         guidance_map = {}
-        for task, result in zip(tasks, guidance_results, strict=False):
+        for task, result in zip(tasks, guidance_results, strict=True):
             if isinstance(result, Exception):
                 logger.debug(f"Guidance lookup failed for {task.task_id}: {result}")
                 guidance_map[task.task_id] = {}
@@ -399,7 +399,7 @@ class BatchableExecutor:
         # Replicate results to all deduplicated tasks
         for task_id, task_group in task_groups.items():
             result = unique_results[task_id]
-            for _task in task_group:
+            for _ in task_group:
                 # Copy result for each task in the group
                 results.append(result)
 
@@ -419,7 +419,10 @@ class BatchableExecutor:
             tasks: Original tasks
             results: ExecutionResults from Phase 2
         """
-        phase3_tasks = [self._process_single_result(task, result) for task, result in zip(tasks, results, strict=False)]
+        phase3_tasks = [
+            self._process_single_result(task, result)
+            for task, result in zip(tasks, results, strict=True)
+        ]
 
         # Run all post-execution in parallel
         await asyncio.gather(*phase3_tasks, return_exceptions=True)

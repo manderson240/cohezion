@@ -8,6 +8,8 @@ from typing import Any
 
 import psutil
 
+from .viscoelastic import ViscoelasticController
+
 
 logger = logging.getLogger(__name__)
 
@@ -42,16 +44,18 @@ class ResourceMonitor:
         self.critical_pressure = False
         self.throttled = False
         self.desperation_active = False
+        self.pressure_mitigation_active = False  # Global flag for context pruning
         self.secondary_pids: set[int] = set()
         self.resource_coordinator = None
         self.dilation_factor = 1.0  # 1.0 = Regular speed, 0.1 = Severe Dilation
-        self.viscosity = 0.0  # Current manifold viscosity
-        self.relaxation_tau = 30.0  # Relaxation time in seconds
-        self.last_vitals = None
+        self.viscoelastic_controller = ViscoelasticController(relaxation_tau=30.0)
         self._running = True
         self._sandbox_registry: dict[str, int] = {}  # sandbox_id -> memory_mb
         self.service_health: dict[str, str] = {}  # service -> status
         self._initialized = True
+
+        # Initialize cpu_percent to avoid 0.0 on first call
+        psutil.cpu_percent(interval=None)
 
         # Start background heartbeat if loop is running
         try:
@@ -242,7 +246,18 @@ class ResourceMonitor:
         which is equivalent on UMA hardware.
         """
         try:
-            device = Path("/sys/class/drm/card1/device")
+            # Dynamically discover AMD GPU device path
+            gpu_paths = list(Path("/sys/class/drm/").glob("card*/device"))
+            device = None
+            for p in gpu_paths:
+                vendor_path = p / "vendor"
+                if vendor_path.exists() and vendor_path.read_text().strip() == "0x1002":
+                    device = p
+                    break
+
+            if not device:
+                # Fallback to default if discovery fails
+                device = Path("/sys/class/drm/card1/device")
 
             # Prefer GTT (unified memory pool) over dedicated VRAM carveout
             gtt_total_path = device / "mem_info_gtt_total"
@@ -336,7 +351,8 @@ class ResourceMonitor:
             "Ollama": "http://localhost:11434/api/tags",
             "Obsidian": "http://localhost:22360/",
         }
-        for name, url in services.items():
+
+        async def _check_single(name, url):
             try:
                 proc = await asyncio.create_subprocess_exec(
                     "curl",
@@ -355,6 +371,9 @@ class ResourceMonitor:
             except Exception:
                 self.service_health[name] = "LOST"
 
+        # Run checks in parallel to maintain heartbeat timing
+        await asyncio.gather(*[_check_single(n, u) for n, u in services.items()])
+
     async def _heartbeat_loop(self):
         """Background loop to log system health and monitor for stalled processes."""
         self.last_heartbeat = time.time()
@@ -367,30 +386,12 @@ class ResourceMonitor:
             ram = vitals["memory_percent"]
             vram = vitals["vram_percent"]
 
-            # Calculate Viscoelastic Dilation (Maxwellian Relaxation)
-            # Based on Research 2512.00056: Phantom deviation around mass-gap H*
-            current_pressure = max(cpu, ram, vram) / 100.0
-            dt = 2.0  # Loop interval
-            
-            if self.last_vitals:
-                prev_pressure = max(
-                    self.last_vitals["cpu_percent"],
-                    self.last_vitals["memory_percent"],
-                    self.last_vitals["vram_percent"]
-                ) / 100.0
-                pressure_rate = (current_pressure - prev_pressure) / dt
-                
-                # If pressure is rising, increase viscosity (Slow down more aggressively)
-                if pressure_rate > 0:
-                    self.viscosity += pressure_rate * self.relaxation_tau
-                else:
-                    # Maxwell-type relaxation back to equilibrium
-                    self.viscosity *= (1.0 - dt / self.relaxation_tau)
-            
-            self.last_vitals = vitals
-            viscous_correction = max(0.0, self.viscosity)
+            # 1. Calculate Viscous Adjustment (Maxwellian Relaxation)
+            viscous_correction = self.viscoelastic_controller.calculate_dilation_adjustment(
+                cpu, ram, vram
+            )
 
-            # Tiered Response Logic & Dilation Calculation (Gateway Hardening)
+            # 2. Determine Base Dilation Factor (Tiered Thresholds)
             if cpu > 90 or ram > 90 or vram > 90:
                 logger.error(f"🚑 EMERGENCY SYSTEM PRESSURE (Tier 3): {vitals}")
                 await self.emergency_shutdown(vitals)
@@ -414,7 +415,7 @@ class ResourceMonitor:
                 self.throttled = False
                 self.dilation_factor = 1.0
 
-            # Apply viscous damping (Transient slowdown based on rate of pressure increase)
+            # 3. Apply Viscous Damping (Proactive slowdown)
             self.dilation_factor = max(0.01, self.dilation_factor - viscous_correction)
 
             # Sandbox pressure warning
@@ -432,10 +433,15 @@ class ResourceMonitor:
                 f"Sandboxes: {len(self._sandbox_registry)} ({sandbox_mem}MB)\n"
             )
 
-            with open(self.heartbeat_log, "a") as f:
-                f.write(log_entry)
+            # Use thread for blocking file I/O to avoid event loop latency
+            await asyncio.to_thread(self._append_log, log_entry)
 
             await asyncio.sleep(2)  # Tight 2s loop for Framework 16 stability
+
+    def _append_log(self, entry: str):
+        """Synchronous log append for use in thread."""
+        with open(self.heartbeat_log, "a") as f:
+            f.write(entry)
 
     def checkpoint_active_mission(self, data: dict[str, Any], mission_id: str):
         """

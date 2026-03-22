@@ -5,16 +5,23 @@ Bridges old Swarm API to new simplified implementation.
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Any, Callable
+from typing import Any
+
+from cohezion.swarm.orchestrator import (
+    Agent as NewAgent,
+)
 
 # Import new simplified implementation
 from cohezion.swarm.orchestrator import (
     Swarm as NewSwarm,
-    Agent as NewAgent,
-    Task as NewTask,
-    AgentResult as NewAgentResult,
+)
+from cohezion.swarm.orchestrator import (
     SwarmConfig as NewSwarmConfig,
+)
+from cohezion.swarm.orchestrator import (
+    Task as NewTask,
 )
 
 
@@ -68,7 +75,7 @@ class SwarmOrchestrator:
         description: str,
         required_capabilities: list[str],
         **kwargs,
-    ) -> "LegacyAgentResult":
+    ) -> LegacyAgentResult:
         """Execute task with legacy interface."""
         task = NewTask(
             id=task_id,
@@ -87,7 +94,7 @@ class SwarmOrchestrator:
     async def execute_parallel(
         self,
         tasks: list[dict[str, Any]],
-    ) -> list["LegacyAgentResult"]:
+    ) -> list[LegacyAgentResult]:
         """Execute tasks in parallel."""
         new_tasks = [
             NewTask(
@@ -149,11 +156,11 @@ AgentResult = LegacyAgentResult
 
 
 __all__ = [
-    "SwarmOrchestrator",
-    "Swarm",
     "Agent",
     "AgentCapability",
     "AgentResult",
     "LegacyAgentResult",
+    "Swarm",
+    "SwarmOrchestrator",
     "Task",
 ]

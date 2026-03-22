@@ -64,7 +64,7 @@ async def test_actuator_patch_case_sensitivity():
 
 @pytest.mark.asyncio
 async def test_actuator_patch_verification_success():
-    from unittest.mock import patch, MagicMock
+    from unittest.mock import MagicMock, patch
 
     actuator = ActuatorSystem()
     # Mock subprocess so we don't run the full test suite

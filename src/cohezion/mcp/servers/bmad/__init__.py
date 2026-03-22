@@ -1,6 +1,7 @@
 """BMAD MCP Server tools module."""
 
-from .server import app, get_engine
+from ._shared import get_engine
+from .server import app
 
 
 __all__ = ["app", "get_engine"]

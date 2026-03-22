@@ -8,10 +8,10 @@ early. Projects where coherence will drop or topological knots will form.
 from __future__ import annotations
 
 import logging
-import math
 from dataclasses import dataclass, field
 
 import numpy as np
+
 
 logger = logging.getLogger(__name__)
 
@@ -128,10 +128,12 @@ class LifecyclePreSimulator:
             for j in range(i + 2, len(positions)):  # Skip adjacent
                 dist = float(np.linalg.norm(positions[i] - positions[j]))
                 if dist < self._knot_threshold:
-                    knots.append(TopologicalKnot(
-                        step_a=i,
-                        step_b=j,
-                        distance=dist,
-                        description=f"{steps[i].phase} collides with {steps[j].phase}",
-                    ))
+                    knots.append(
+                        TopologicalKnot(
+                            step_a=i,
+                            step_b=j,
+                            distance=dist,
+                            description=f"{steps[i].phase} collides with {steps[j].phase}",
+                        )
+                    )
         return knots

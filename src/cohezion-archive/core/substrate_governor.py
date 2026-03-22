@@ -12,6 +12,7 @@ import time
 from dataclasses import dataclass, field
 from enum import Enum
 
+
 logger = logging.getLogger(__name__)
 
 PRESSURE_THRESHOLD = 0.90  # 90% triggers dilation
@@ -131,8 +132,10 @@ class SubstrateGovernor:
         return base_interval_ms * self._state.factor
 
     def _emit(self, event_type: str, pressure: float, factor: float) -> None:
-        self._events.append(GovernorEvent(
-            event_type=event_type,
-            pressure=pressure,
-            dilation_factor=factor,
-        ))
+        self._events.append(
+            GovernorEvent(
+                event_type=event_type,
+                pressure=pressure,
+                dilation_factor=factor,
+            )
+        )

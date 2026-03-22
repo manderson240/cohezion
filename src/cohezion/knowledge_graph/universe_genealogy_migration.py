@@ -78,10 +78,12 @@ class UniverseGenealogySurvey:
 
     def __init__(
         self,
-        cohezion_root: Path = Path.home() / "dev" / "cohezion",
+        cohezion_root: Path | None = None,
         output_dir: Path = Path("/tmp/cohezion_universe_genealogy"),
     ):
         """Initialize genealogy survey."""
+        if cohezion_root is None:
+            cohezion_root = Path.home() / "dev" / "cohezion"
         self.cohezion_root = cohezion_root
         self.output_dir = output_dir
         self.output_dir.mkdir(parents=True, exist_ok=True)

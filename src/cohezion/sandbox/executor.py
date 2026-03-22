@@ -407,6 +407,7 @@ class SandboxExecutor:
             SandboxResult with execution outcome
         """
         start_time = time.time()
+        _audit_log = []
         container_id = None
 
         try:

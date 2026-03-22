@@ -8,7 +8,8 @@ are blocked and logged at the barrier level.
 from __future__ import annotations
 
 import logging
-from dataclasses import dataclass, field
+from dataclasses import dataclass
+
 
 logger = logging.getLogger(__name__)
 
@@ -102,7 +103,9 @@ class MemoryMappedBarrier:
 
         return True
 
-    def deny_over_quota_allocation(self, allocation_id: str, requested_bytes: int, quota_bytes: int) -> None:
+    def deny_over_quota_allocation(
+        self, allocation_id: str, requested_bytes: int, quota_bytes: int
+    ) -> None:
         """Deny and log an over-quota allocation attempt."""
         event = BarrierEvent(
             allocation_id=allocation_id,

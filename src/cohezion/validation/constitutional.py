@@ -49,7 +49,7 @@ class ConstitutionalShield:
         Audit agent-generated content against constitutional principles and the charter.
         Returns a 'Veracity Score' and 'Alignment Verdict'.
         """
-        await self._get_constitution_and_charter()
+        _rules = await self._get_constitution_and_charter()
 
         # In a real implementation, this would be a prompt to the teacher model.
         # Here we simulate the CAI (Constitutional AI) feedback loop.

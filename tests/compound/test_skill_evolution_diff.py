@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import pytest
-
 from cohezion.compound.skill_evolution_diff import SkillEvolutionTracker
 
 

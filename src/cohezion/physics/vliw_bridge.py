@@ -9,10 +9,11 @@ from __future__ import annotations
 
 import logging
 import time
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from enum import Enum
 
 import numpy as np
+
 
 logger = logging.getLogger(__name__)
 
@@ -94,6 +95,6 @@ class VLIWBridge:
     def _python_transition(self, state: np.ndarray, delta: np.ndarray) -> np.ndarray:
         """Pure-Python fallback — functional but slower."""
         result = []
-        for s, d in zip(state, delta):
+        for s, d in zip(state, delta, strict=True):
             result.append(max(-1.0, min(1.0, s + d)))
         return np.array(result)

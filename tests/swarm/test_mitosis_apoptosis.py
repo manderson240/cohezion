@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import pytest
-
 from cohezion.swarm.mitosis_apoptosis import AgentState, SwarmGovernor
 
 
@@ -18,7 +16,9 @@ class TestMitosis:
         """Agent above context threshold splits into two children."""
         gov = SwarmGovernor(mitosis_threshold=0.8)
         agent = AgentState(
-            "a1", coherence=0.5, context_usage=0.9,
+            "a1",
+            coherence=0.5,
+            context_usage=0.9,
             task_queue=["t1", "t2", "t3", "t4"],
         )
         event = gov.check_mitosis(agent)

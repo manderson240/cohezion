@@ -672,7 +672,9 @@ class DailyHealthDigest:
 
         return any(check.status == HealthStatus.CRITICAL for check in health_checks)
 
-    def _determine_overall_status(self, overall_score: float, health_checks: list[HealthCheckResult]) -> HealthStatus:
+    def _determine_overall_status(
+        self, overall_score: float, health_checks: list[HealthCheckResult]
+    ) -> HealthStatus:
         """Determine overall health status from score and checks."""
 
         # If any check is CRITICAL, overall is CRITICAL

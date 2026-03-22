@@ -26,7 +26,6 @@ Tools exposed:
 import asyncio
 import json
 import logging
-import os
 import sys
 from typing import Any
 
@@ -35,6 +34,8 @@ from mcp.server.stdio import stdio_server
 from mcp.types import TextContent, Tool
 
 from cohezion.gateway.demo_gateway import DemoGateway
+from cohezion.security.credentials import get_credentials
+
 
 
 logger = logging.getLogger(__name__)
@@ -59,7 +60,11 @@ class GatewayManager:
 
     def _initialize_default(self) -> None:
         """Initialize default demo gateway with local Ollama."""
-        ollama_url = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
+        # Primary: Vault Warden, Fallback: Environment
+        ollama_url = (
+            get_credentials().get_secret("COHEZION_OLLAMA_URL", env_var="OLLAMA_BASE_URL")
+            or "http://localhost:11434"
+        )
 
         self.gateways[self.default_gateway_id] = DemoGateway(
             ollama_url=ollama_url,

@@ -20,6 +20,8 @@ from typing import Any
 import aiohttp
 from aiohttp import web
 
+from cohezion.security.credentials import get_credentials
+
 
 logging.basicConfig(
     level=logging.INFO,
@@ -29,7 +31,8 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 MCP_PORT = int(os.getenv("MCP_PORT", "8365"))
-HF_API_TOKEN = os.getenv("HF_API_TOKEN", "")
+# Primary: Vault Warden, Fallback: Environment
+HF_API_TOKEN = get_credentials().get_secret("COHEZION_HF_TOKEN", env_var="HF_API_TOKEN") or ""
 HF_API_BASE = "https://huggingface.co/api"
 
 
@@ -438,7 +441,9 @@ async def tool_hf_get_readme(request: web.Request) -> web.Response:
 
 def create_app() -> web.Application:
     """Create the web application."""
-    app = web.Application()
+    from cohezion.mcp.shared.auth import api_key_middleware
+
+    app = web.Application(middlewares=[api_key_middleware])
     app.add_routes(routes)
     return app
 

@@ -8,8 +8,10 @@ from __future__ import annotations
 
 import asyncio
 import logging
+from collections.abc import Callable
 from dataclasses import dataclass, field
-from typing import Any, Callable
+from typing import Any
+
 
 logger = logging.getLogger(__name__)
 
@@ -127,7 +129,7 @@ class Swarm:
                     agent.execute(task),
                     timeout=task.timeout_seconds,
                 )
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 return AgentResult(
                     agent_id=agent.id,
                     success=False,

@@ -13,6 +13,7 @@ import time
 from dataclasses import dataclass, field
 from enum import Enum
 
+
 logger = logging.getLogger(__name__)
 
 DIVERGENCE_PATIENCE = 3  # Epochs of increasing loss before rollback
@@ -89,9 +90,7 @@ class OuroborosTrigger:
 
         if not consensus_reached:
             event.state = TriggerState.DEFERRED
-            logger.info(
-                "Ouroboros deferred: no consensus for %s", failure_hash[:16]
-            )
+            logger.info("Ouroboros deferred: no consensus for %s", failure_hash[:16])
             self._events.append(event)
             return event
 
@@ -110,7 +109,7 @@ class OuroborosTrigger:
 
         # Check divergence: loss increasing for patience consecutive epochs
         if len(self._active_event.epoch_losses) >= self._patience:
-            recent = self._active_event.epoch_losses[-self._patience:]
+            recent = self._active_event.epoch_losses[-self._patience :]
             if all(recent[i] < recent[i + 1] for i in range(len(recent) - 1)):
                 self._active_event.state = TriggerState.DIVERGED
                 logger.warning(

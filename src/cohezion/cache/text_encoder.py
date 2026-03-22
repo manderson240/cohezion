@@ -158,7 +158,7 @@ class SemanticTextEncoder:
             sorted_ngrams = sorted(ngrams.items(), key=lambda x: x[1], reverse=True)
             total_ngrams = sum(v for _, v in sorted_ngrams)
 
-            for idx, (_, count) in enumerate(sorted_ngrams[: self.embedding_dim]):
+            for idx, (_ngram, count) in enumerate(sorted_ngrams[: self.embedding_dim]):
                 embedding[idx] = count / total_ngrams
 
         # Normalize

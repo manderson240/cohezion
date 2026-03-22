@@ -1,11 +1,8 @@
 import asyncio
-import hashlib
-import json
-import os
 import sys
-import time
-from pathlib import Path
 from datetime import datetime
+from pathlib import Path
+
 
 # Add src to path
 PROJECT_ROOT = Path("/home/mike-anderson/dev/cohezion")
@@ -13,14 +10,16 @@ sys.path.insert(0, str(PROJECT_ROOT / "src"))
 
 from cohezion.core.persistence.surreal_client import SurrealClient
 
+
 # Configuration
 SURREAL_URL = "ws://localhost:8000/rpc"
 NAMESPACE = "cohezion"
 DATABASE = "logs"
 LOG_FILES = [
     PROJECT_ROOT / "logs/cron_runs.log",
-    PROJECT_ROOT / "logs/overnight_sprint_20260309_004122.log"
+    PROJECT_ROOT / "logs/overnight_sprint_20260309_004122.log",
 ]
+
 
 class LogSink:
     def __init__(self, client: SurrealClient):
@@ -62,27 +61,31 @@ class LogSink:
                 self.positions[file_path] = 0
 
             if current_size > self.positions[file_path]:
-                with open(file_path, "r") as f:
+                with open(file_path) as f:
                     f.seek(self.positions[file_path])
                     lines = f.readlines()
                     self.positions[file_path] = f.tell()
 
                     for line in lines:
                         line = line.strip()
-                        if not line: continue
-                        
+                        if not line:
+                            continue
+
                         # Try to parse level
                         level = "INFO"
-                        if "ERROR" in line: level = "ERROR"
-                        elif "WARN" in line: level = "WARN"
-                        elif "DEBUG" in line: level = "DEBUG"
+                        if "ERROR" in line:
+                            level = "ERROR"
+                        elif "WARN" in line:
+                            level = "WARN"
+                        elif "DEBUG" in line:
+                            level = "DEBUG"
 
                         # Insert into SurrealDB
                         data = {
                             "source": source_name,
                             "message": line,
                             "level": level,
-                            "timestamp": datetime.now().isoformat()
+                            "timestamp": datetime.now().isoformat(),
                         }
                         try:
                             await self.client.create("log_entries", data)
@@ -95,6 +98,7 @@ class LogSink:
         await self.setup()
         tasks = [self.tail_file(f) for f in LOG_FILES]
         await asyncio.gather(*tasks)
+
 
 if __name__ == "__main__":
     client = SurrealClient(url=SURREAL_URL, namespace=NAMESPACE, database=DATABASE)

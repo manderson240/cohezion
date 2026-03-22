@@ -17,6 +17,7 @@ from dataclasses import dataclass, field
 
 import numpy as np
 
+
 logger = logging.getLogger(__name__)
 
 MANIFOLD_DIM = 12

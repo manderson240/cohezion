@@ -10,7 +10,8 @@ from __future__ import annotations
 import hashlib
 import logging
 import struct
-from dataclasses import dataclass, field
+from dataclasses import dataclass
+
 
 logger = logging.getLogger(__name__)
 
@@ -86,11 +87,13 @@ class ZeroCopyValidator:
         # Checksum validation
         actual_checksum = buf.compute_checksum()
         if buf.checksum and actual_checksum != buf.checksum:
-            self._corruption_events.append({
-                "declared_checksum": buf.checksum,
-                "actual_checksum": actual_checksum,
-                "dim": buf.declared_dim,
-            })
+            self._corruption_events.append(
+                {
+                    "declared_checksum": buf.checksum,
+                    "actual_checksum": actual_checksum,
+                    "dim": buf.declared_dim,
+                }
+            )
             logger.warning("SHM checksum mismatch — falling back to last known-good snapshot")
 
             if self._last_good_snapshot is None:

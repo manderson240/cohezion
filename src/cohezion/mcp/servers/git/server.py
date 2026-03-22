@@ -18,7 +18,6 @@ import logging
 import os
 import subprocess
 import sys
-from pathlib import Path
 from typing import Any
 
 from aiohttp import web
@@ -38,15 +37,17 @@ class GitContext:
     """Git repository context analyzer."""
 
     def __init__(self, repo_path: str = "."):
+        from pathlib import Path
+
         from cohezion.mcp.servers.safe_input import sanitize_path
 
-        self.repo_path = sanitize_path(repo_path)
+        self.repo_path = sanitize_path(repo_path, base_dir=Path.cwd())
 
     def _run_git(self, args: list[str]) -> tuple[str, bool]:
         """Run git command and return output."""
         try:
             result = subprocess.run(
-                ["git", "-C", str(self.repo_path)] + args,
+                ["git", "-C", str(self.repo_path), *args],
                 capture_output=True,
                 text=True,
                 timeout=30,
@@ -106,7 +107,7 @@ class GitContext:
 
     def get_diff(self, staged: bool = False) -> str:
         """Get diff output."""
-        args = ["diff", "--stat"] if staged else ["diff", "--stat"]
+        args = ["diff", "--cached", "--stat"] if staged else ["diff", "--stat"]
         output, success = self._run_git(args)
         return output if success else ""
 
@@ -321,7 +322,9 @@ async def tool_git_info(request: web.Request) -> web.Response:
 
 def create_app() -> web.Application:
     """Create the web application."""
-    app = web.Application()
+    from cohezion.mcp.shared.auth import api_key_middleware
+
+    app = web.Application(middlewares=[api_key_middleware])
     app.add_routes(routes)
     return app
 

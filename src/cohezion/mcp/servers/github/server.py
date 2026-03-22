@@ -15,6 +15,8 @@ from typing import Any
 import aiohttp
 from aiohttp import web
 
+from cohezion.security.credentials import get_credentials
+
 
 # Configure logging
 logging.basicConfig(
@@ -26,7 +28,8 @@ logger = logging.getLogger(__name__)
 
 # Configuration
 MCP_PORT = int(os.getenv("MCP_PORT", "8363"))
-GITHUB_TOKEN = os.getenv("GITHUB_TOKEN", "")
+# Primary: Vault Warden, Fallback: Environment
+GITHUB_TOKEN = get_credentials().get_secret("COHEZION_GITHUB_TOKEN", env_var="GITHUB_TOKEN") or ""
 GITHUB_API_BASE = "https://api.github.com"
 
 
@@ -426,7 +429,9 @@ async def tool_github_get_user(request: web.Request) -> web.Response:
 
 def create_app() -> web.Application:
     """Create the web application."""
-    app = web.Application()
+    from cohezion.mcp.shared.auth import api_key_middleware
+
+    app = web.Application(middlewares=[api_key_middleware])
     app.add_routes(routes)
     return app
 

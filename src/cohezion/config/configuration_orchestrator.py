@@ -55,11 +55,13 @@ class ConfigurationOrchestrator:
 
     def __init__(
         self,
-        repo_root: Path = Path.cwd(),
+        repo_root: Path | None = None,
         vault_url: str = "http://localhost:8360",
         vault_api_key: str = "",
     ):
         """Initialize orchestrator with repo root."""
+        if repo_root is None:
+            repo_root = Path.cwd()
         self.repo_root = Path(repo_root)
         self.git_utils = GitUtils(self.repo_root)
         self.config_state = ConfigState()
@@ -183,10 +185,7 @@ class ConfigurationOrchestrator:
                 logger.debug("Checking size limits")
 
                 for filename, _limit in self.size_limits.items():
-                    if filename == "CLAUDE.md":
-                        file_path = self.claude_md
-                    else:
-                        file_path = self.gemini_md
+                    file_path = self.claude_md if filename == "CLAUDE.md" else self.gemini_md
 
                     if file_path.exists():
                         # Check for violations
@@ -362,7 +361,7 @@ class ConfigurationOrchestrator:
 
         try:
             # Phase 2: Detect manual edits
-            self.detect_manual_edits(file_path)
+            _is_manual = self.detect_manual_edits(file_path)
 
             # Phase 2: Detect conflicts
             conflicts = await self.detect_conflicts()

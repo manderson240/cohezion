@@ -1,14 +1,15 @@
 import asyncio
 import os
 
-from surrealdb import Surreal
+from surrealdb import AsyncSurreal
+
 
 
 async def init_brand_db():
     """Initializes SurrealDB with Cohezion branding tokens."""
     db_url = os.environ.get("SURREALDB_URL", "ws://localhost:8000/rpc")
 
-    async with Surreal(db_url) as db:
+    async with AsyncSurreal(db_url) as db:
         await db.signin({"user": "root", "pass": "root"})
         await db.use("cohezion", "identity")
 

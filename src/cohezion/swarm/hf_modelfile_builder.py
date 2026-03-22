@@ -39,9 +39,7 @@ class HFModelfileBuilder:
         logger.info(f"Downloaded {filename} to {dest_path}")
         return dest_path
 
-    def build_modelfile(
-        self, model_name: str, gguf_path: Path, system_prompt: str = ""
-    ) -> Path:
+    def build_modelfile(self, model_name: str, gguf_path: Path, system_prompt: str = "") -> Path:
         """Generate an Ollama Modelfile mapping to a specific file."""
         modelfile_content = f"FROM {gguf_path.absolute()}\n"
         if system_prompt:
@@ -93,9 +91,7 @@ async def main() -> None:
         required=True,
         help="Ollama model name (e.g. qwen2.5-coder-custom:7b)",
     )
-    parser.add_argument(
-        "--system", type=str, default="", help="Custom system prompt"
-    )
+    parser.add_argument("--system", type=str, default="", help="Custom system prompt")
 
     args = parser.parse_args()
 

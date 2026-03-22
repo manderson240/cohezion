@@ -13,6 +13,7 @@ import logging
 import time
 from dataclasses import dataclass, field
 
+
 logger = logging.getLogger(__name__)
 
 
@@ -93,15 +94,17 @@ class SkillEvolutionTracker:
         before_lines = before.content.splitlines(keepends=True)
         after_lines = after.content.splitlines(keepends=True)
 
-        diff_lines = list(difflib.unified_diff(
-            before_lines,
-            after_lines,
-            fromfile=f"{before.skill_name} v{before.version}",
-            tofile=f"{after.skill_name} v{after.version}",
-        ))
+        diff_lines = list(
+            difflib.unified_diff(
+                before_lines,
+                after_lines,
+                fromfile=f"{before.skill_name} v{before.version}",
+                tofile=f"{after.skill_name} v{after.version}",
+            )
+        )
 
-        additions = sum(1 for l in diff_lines if l.startswith("+") and not l.startswith("+++"))
-        removals = sum(1 for l in diff_lines if l.startswith("-") and not l.startswith("---"))
+        additions = sum(1 for ln in diff_lines if ln.startswith("+") and not ln.startswith("+++"))
+        removals = sum(1 for ln in diff_lines if ln.startswith("-") and not ln.startswith("---"))
 
         return SkillDiff(
             skill_name=before.skill_name,

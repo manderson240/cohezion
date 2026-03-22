@@ -266,7 +266,7 @@ class BatchProcessor:
 
                 # Replicate to duplicate items
                 if key in duplicate_map:
-                    for dup_item, dup_key in duplicate_map[key]:
+                    for dup_item, _dup_key in duplicate_map[key]:
                         dup_item.result = representative_item.result
                         dup_item.tokens_used = representative_item.tokens_used
                         dup_item.error = representative_item.error

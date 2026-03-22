@@ -48,9 +48,7 @@ class TestVectorPruningEngine:
 
     def test_compaction_trigger(self):
         """Compaction triggers after N cycles."""
-        engine = VectorPruningEngine(
-            decay_rate=0.0, prune_threshold=0.0, compaction_trigger=3
-        )
+        engine = VectorPruningEngine(decay_rate=0.0, prune_threshold=0.0, compaction_trigger=3)
         engine.add_vector("v1")
         assert not engine.should_compact()
         for _ in range(3):

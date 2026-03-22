@@ -12,6 +12,7 @@ Features:
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import logging
 import os
 import subprocess
@@ -202,7 +203,7 @@ class MCPServerManager:
             env["REDIS_URL"] = REDIS_URL
 
             # Parse entry point
-            module_path, app_name = config.entry_point.rsplit(":", 1)
+            module_path, _app_name = config.entry_point.rsplit(":", 1)
 
             # Start the server
             cmd = [
@@ -241,7 +242,7 @@ class MCPServerManager:
                 logger.error("Server '%s' failed to start", sanitize_log(name))
                 return False
 
-        except Exception as e:
+        except Exception as _e:
             logger.exception("Error starting server '%s'", sanitize_log(name))
             config.status = "failed"
             return False
@@ -281,7 +282,7 @@ class MCPServerManager:
             logger.info("Stopped server '%s'", sanitize_log(name))
             return True
 
-        except Exception as e:
+        except Exception as _e:
             logger.exception("Error stopping server '%s'", sanitize_log(name))
             return False
 
@@ -380,10 +381,8 @@ class MCPServerManager:
         """Stop all servers."""
         if self.health_check_task:
             self.health_check_task.cancel()
-            try:
+            with contextlib.suppress(asyncio.CancelledError):
                 await self.health_check_task
-            except asyncio.CancelledError:
-                pass
 
         logger.info(f"Stopping {len(self.servers)} MCP servers...")
 

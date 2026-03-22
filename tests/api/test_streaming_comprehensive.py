@@ -6,13 +6,9 @@ Tests Pydantic models and endpoints.
 
 from __future__ import annotations
 
-import json
-import pytest
-from unittest.mock import AsyncMock, MagicMock, patch
-
 from cohezion.api.streaming import (
-    StreamingInferenceRequest,
     SessionListResponse,
+    StreamingInferenceRequest,
 )
 
 

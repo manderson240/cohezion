@@ -196,10 +196,44 @@ Always use warm-start / clean-shutdown pattern for long-running sessions:
 from cohezion.compound.session_manager import CompoundSessionManager
 
 async with CompoundSessionManager() as mgr:
+    # Warm-start: cache + metrics loaded automatically
     summary = mgr.start_session(max_cache_entries=256)
-    # ... run compound cycles ...
-    result = mgr.end_session()
+    
+    # Alignment gate before execution (HIHO threshold 0.5)
+    success, result = await mgr.execute_aligned(
+        request="Your task description",
+        execute_fn=my_async_function,
+        skill_name="auto",
+        use_executor=True,  # Full pipeline: inflection + vault + metrics
+    )
+    
+    # Clean-shutdown: cache + metrics persisted automatically
+    end_summary = mgr.end_session()
 ```
+
+### Alignment Gate (HIHO Stability)
+The alignment gate prevents wasted tokens on misaligned requests:
+```python
+# High coherence (> 0.5) → proceeds
+result = mgr.check_alignment("Generate a simple function")
+assert result.should_proceed  # True
+
+# Low coherence (< threshold) → blocked
+result = mgr.check_alignment("Ambiguous unclear request", threshold=0.5)
+if not result.should_proceed:
+    # Decompose or escalate instead of executing
+    pass
+```
+
+### Executor Delegation
+When `use_executor=True`, the full pipeline runs:
+- get_experience_guidance() - Query vault for similar tasks
+- guardrails check - Safety validation
+- execute_fn(guidance) - Your task function
+- inflection detection - Anomaly detection
+- CRITICAL inflection → vault logging
+- metrics collection - Token, duration, coherence
+- skill refinement trigger - Update skill definitions
 
 ### Checkpoint Persistence (Required)
 - Primary: Vault storage via MCP (`mcp.vault_write/read/delete`)

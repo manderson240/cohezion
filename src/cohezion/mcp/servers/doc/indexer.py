@@ -148,7 +148,7 @@ class SmartChunker:
     def _hash_chunk(content: str, library_id: str, suffix: str = "") -> str:
         """Generate unique chunk ID."""
         hash_input = f"{library_id}:{content[:100]}:{suffix}"
-        return hashlib.md5(hash_input.encode()).hexdigest()[:16]
+        return hashlib.sha256(hash_input.encode()).hexdigest()[:16]
 
 
 class OllamaEmbedder:
@@ -221,9 +221,10 @@ class SimpleSurrealStore:
 
     async def connect(self):
         """Connect to SurrealDB."""
-        from surrealdb import Surreal
+        from surrealdb import AsyncSurreal
 
-        self._client = Surreal(self.url)
+        self._client = AsyncSurreal(self.url)
+        await self._client.connect()
         await self._client.use(self.namespace, self.database)
         logger.info(f"Connected to SurrealDB: {self.url}")
 
@@ -337,9 +338,16 @@ class DocumentIndexer:
 
     async def index_library(self, library_id: str, source_path: Path) -> dict:
         """Index an entire library directory."""
-        logger.info(f"Indexing library: {library_id} from {source_path}")
+        from cohezion.mcp.servers.safe_input import sanitize_path
 
-        md_files = list(source_path.rglob("*.md"))
+        try:
+            safe_source = sanitize_path(str(source_path), base_dir=Path.cwd())
+        except ValueError:
+            return {"error": f"Path escapes allowed directory: {source_path}"}
+
+        logger.info(f"Indexing library: {library_id} from {safe_source}")
+
+        md_files = list(safe_source.rglob("*.md"))
         total_chunks = 0
         total_tokens = 0
 

@@ -21,11 +21,13 @@ class ConfigArchiver:
 
     def __init__(
         self,
-        vault_root: Path = Path.home() / "vaults" / "cohezion-vault",
+        vault_root: Path | None = None,
         archive_dir: str = "archived/config-sync",
         age_threshold_days: int = 30,
     ):
         """Initialize archiver with vault paths."""
+        if vault_root is None:
+            vault_root = Path.home() / "vaults" / "cohezion-vault"
         self.vault_root = vault_root
         self.archive_dir = vault_root / archive_dir
         self.age_threshold_days = age_threshold_days

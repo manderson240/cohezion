@@ -8,12 +8,11 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import MagicMock, patch
 
 import pytest
 
 from cohezion.compound.context_integration import (
-    CompoundContextMixin,
     ContextCoherenceError,
     ContextManager,
 )
@@ -244,7 +243,6 @@ class TestContextWithSkillLoading:
 
     def test_skill_context_loaded_on_demand(self, temp_context_with_skills):
         """[P0] Should load skill context when requested."""
-        import yaml
 
         with patch.object(Path, "cwd", return_value=temp_context_with_skills):
             mgr = ContextManager()

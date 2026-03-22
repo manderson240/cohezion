@@ -7,14 +7,9 @@ Preserves all original functionality while using clean internals.
 from __future__ import annotations
 
 import logging
-from typing import Any
 
 # Import new simplified models AND legacy types now canonical in models
 from cohezion.compound.models import (
-    AnalysisReport as NewAnalysisReport,
-    ExecutionResult as NewExecutionResult,
-    ExecutionMetrics as NewExecutionMetrics,
-    Task as NewTask,
     # Legacy types — canonical definitions now live in models.py
     ConstraintType,
     ConstraintViolation,
@@ -25,15 +20,11 @@ from cohezion.compound.models import (
     HumanRequest,
     IntentType,
     SuccessCriterion,
-    CompoundCycleReport,
-    CompoundCycleResult,
-    SessionCheckpoint,
+)
+from cohezion.compound.models import (
+    ExecutionMetrics as NewExecutionMetrics,
 )
 
-from cohezion.compound.core.executor import (
-    CompoundExecutor as NewCompoundExecutor,
-    ExecutionConfig as NewExecutionConfig,
-)
 
 # ============================================================================
 # Legacy Type Aliases (for backward compatibility)
@@ -226,25 +217,23 @@ class CompoundCycleReport:
         self.final_compound_score_delta = final_compound_score_delta
 
 
-import logging
-
 # Re-export all legacy symbols
 __all__ = [
-    # Enums
-    "ConstraintType",
-    "IntentType",
-    # Legacy dataclasses
-    "ExecutionConstraint",
-    "SuccessCriterion",
-    "DriftSignal",
-    "ConstraintViolation",
-    "CriterionFailure",
-    "ExecutionAlignment",
-    "HumanRequest",
+    "CompoundCycleReport",
+    "CompoundCycleResult",
     # Legacy executor
     "CompoundExecutor",
+    # Enums
+    "ConstraintType",
+    "ConstraintViolation",
+    "CriterionFailure",
+    "DriftSignal",
+    "ExecutionAlignment",
+    # Legacy dataclasses
+    "ExecutionConstraint",
     # Legacy results
     "ExecutionResult",
-    "CompoundCycleResult",
-    "CompoundCycleReport",
+    "HumanRequest",
+    "IntentType",
+    "SuccessCriterion",
 ]

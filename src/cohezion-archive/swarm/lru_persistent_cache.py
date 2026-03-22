@@ -294,7 +294,7 @@ class LRUPersistentCache(PersistentCache):
         """
         with self._lock:
             self._access_order.clear()
-            for key in self.memory_cache.keys():
+            for key in self.memory_cache:
                 self._access_order[key] = None
 
             logger.debug(f"Rebuilt LRU access order for {len(self._access_order)} entries")

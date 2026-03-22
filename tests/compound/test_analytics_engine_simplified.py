@@ -7,7 +7,6 @@ Generated for P0 coverage.
 from __future__ import annotations
 
 import pytest
-from unittest.mock import MagicMock
 
 from cohezion.compound.analytics.engine import (
     AnalysisConfig,

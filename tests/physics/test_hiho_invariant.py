@@ -16,13 +16,13 @@ Reference: HIHO Principle in COHEZION_CHARTER.md — Hooke's Law attractor:
 from __future__ import annotations
 
 import numpy as np
-import pytest
+
 
 # ──────────────────────────────────────────────────────────────────────────────
 # HIHO Band Constants
 # ──────────────────────────────────────────────────────────────────────────────
 
-HIHO_LOW = 0.3   # Below this: coherence collapse (hallucination risk)
+HIHO_LOW = 0.3  # Below this: coherence collapse (hallucination risk)
 HIHO_HIGH = 0.7  # Above this: rigid over-fitting risk
 HIHO_CENTER = 0.5
 HIHO_TOLERANCE = 0.2  # ± from center
@@ -36,6 +36,7 @@ def _in_hiho_band(value: float) -> bool:
 # ──────────────────────────────────────────────────────────────────────────────
 # Module 1: ExperienceEncoder (FLUME pipeline foundation)
 # ──────────────────────────────────────────────────────────────────────────────
+
 
 class TestExperienceEncoderHIHO:
     """ExperienceEncoder 256D output must have mean near 0.5 (HIHO attractor)."""
@@ -98,6 +99,7 @@ class TestExperienceEncoderHIHO:
 # Module 2: VLIWBridge (12D state transitions)
 # ──────────────────────────────────────────────────────────────────────────────
 
+
 class TestVLIWBridgeHIHO:
     """VLIWBridge state transitions must keep state values within HIHO band."""
 
@@ -106,7 +108,7 @@ class TestVLIWBridgeHIHO:
         from cohezion.physics.vliw_bridge import VLIWBridge
 
         bridge = VLIWBridge()  # SIMD mode
-        state = np.full(12, 0.5, dtype=float)   # Start at equilibrium
+        state = np.full(12, 0.5, dtype=float)  # Start at equilibrium
         delta = np.full(12, 0.05, dtype=float)  # Small push
 
         result = bridge.execute_state_transition(state, delta)
@@ -126,9 +128,7 @@ class TestVLIWBridgeHIHO:
 
         result = bridge.execute_state_transition(state, delta)
         mean = float(np.mean(result))
-        assert _in_hiho_band(mean), (
-            f"Fallback transition mean={mean:.3f} outside HIHO band."
-        )
+        assert _in_hiho_band(mean), f"Fallback transition mean={mean:.3f} outside HIHO band."
 
     def test_large_delta_clipped_to_hiho_band(self) -> None:
         """Extreme delta must be clipped — HIHO attractor prevents runaway."""
@@ -147,6 +147,7 @@ class TestVLIWBridgeHIHO:
 # ──────────────────────────────────────────────────────────────────────────────
 # Module 3: TriuneConsensus (NFR-7, FR-14)
 # ──────────────────────────────────────────────────────────────────────────────
+
 
 class TestTriuneConsensusHIHO:
     """TriuneConsensus centroid must converge toward 0.5 when agents start spread."""
@@ -201,6 +202,7 @@ class TestTriuneConsensusHIHO:
 # Module 4: ManifoldSharding (Winston Decoupling)
 # ──────────────────────────────────────────────────────────────────────────────
 
+
 class TestManifoldShardingHIHO:
     """ManifoldSharding coherence score must be within HIHO band after sharding."""
 
@@ -238,12 +240,14 @@ class TestManifoldShardingHIHO:
 # Module 5: ZeroCopyValidator (NFR-9)
 # ──────────────────────────────────────────────────────────────────────────────
 
+
 class TestZeroCopyValidatorHIHO:
     """ZeroCopyValidator must accept HIHO-band state vectors without error."""
 
     def test_hiho_state_passes_validation(self) -> None:
         """A 12D state vector with values in [0.3, 0.7] must validate cleanly."""
         import struct
+
         from cohezion.core.zero_copy_validator import SHMBuffer, ZeroCopyValidator
 
         # Create a valid 12D HIHO-band state
@@ -258,14 +262,13 @@ class TestZeroCopyValidatorHIHO:
         assert result is not None, "HIHO-band state must pass ZeroCopy validation."
         assert len(result) == 12, f"Expected 12D, got {len(result)}D."
         mean = float(np.mean(result))
-        assert _in_hiho_band(mean), (
-            f"Validated state mean={mean:.3f} outside HIHO band."
-        )
+        assert _in_hiho_band(mean), f"Validated state mean={mean:.3f} outside HIHO band."
 
 
 # ──────────────────────────────────────────────────────────────────────────────
 # Module 6: OuroborosVersionHealer (NFR-OUROBOROS_VERSION_HEALING)
 # ──────────────────────────────────────────────────────────────────────────────
+
 
 class TestOuroborosVersionHealerHIHO:
     """OuroborosVersionHealer auto-heal rate must stay at or above HIHO-analogous 0.5."""
@@ -306,6 +309,7 @@ class TestOuroborosVersionHealerHIHO:
 # Module 7: VersionTelemetry (NFR-VERSION_TELEMETRY)
 # ──────────────────────────────────────────────────────────────────────────────
 
+
 class TestVersionTelemetryHIHO:
     """VersionTelemetry coherence score must obey HIHO band dynamics."""
 
@@ -329,7 +333,7 @@ class TestVersionTelemetryHIHO:
 
     def test_severe_drift_triggers_hiho_healing(self) -> None:
         """Coherence < 0.3 triggers healing — HIHO collapse prevention."""
-        from cohezion.registry.version_telemetry import VersionTelemetry, VersionConflict
+        from cohezion.registry.version_telemetry import VersionConflict, VersionTelemetry
 
         telemetry = VersionTelemetry()
         current = {f"pkg{i}": "1.0.0" for i in range(5)}

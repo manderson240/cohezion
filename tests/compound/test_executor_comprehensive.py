@@ -7,16 +7,12 @@ guardrails, skill refinement, and token metrics.
 
 from __future__ import annotations
 
-import time
-from dataclasses import dataclass
-from pathlib import Path
-from unittest.mock import AsyncMock, MagicMock, Mock, patch
+from unittest.mock import Mock
 
 import pytest
 
-from cohezion.compound.executor import CompoundExecutor, ExecutionResult
-from cohezion.core.mcp_client import MCPClient
-from cohezion.security.guardrail_pipeline import GuardrailAction, GuardrailPipeline, GuardrailResult
+from cohezion.compound.core.executor import CompoundExecutor, ExecutionConfig
+from cohezion.compound.models import ExecutionMetrics, ExecutionResult, Task
 
 
 class TestCompoundExecutorInitialization:
@@ -27,9 +23,8 @@ class TestCompoundExecutorInitialization:
         """Create mock MCP client."""
         return MagicMock(spec=MCPClient)
 
-    def test_executor_initializes_with_mcp_client(self, mock_mcp):
-        """[P0] Should initialize with MCP client."""
-        executor = CompoundExecutor(mcp_client=mock_mcp)
+        def execute_fn(task, context):
+            return ("output", {"total_tokens": 100})
 
         assert executor.mcp_client == mock_mcp
         assert executor.logger is not None
@@ -64,9 +59,13 @@ class TestCompoundExecutorExecution:
     """[P0] Tests for task execution."""
 
     @pytest.fixture()
-    def mock_mcp(self):
-        """Create mock MCP client."""
-        return MagicMock(spec=MCPClient)
+    def executor(self):
+        """Create executor with mock function."""
+
+        def execute_fn(task, context):
+            return (f"output for {task.description}", {"total_tokens": 100})
+
+        return CompoundExecutor(execute_fn=execute_fn)
 
     @pytest.fixture()
     def executor(self, mock_mcp):

@@ -9,6 +9,12 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass, field
+from typing import TYPE_CHECKING
+
+
+if TYPE_CHECKING:
+    from cohezion.core.template_engine import TemplateEngine
+
 
 
 logger = logging.getLogger(__name__)
@@ -82,10 +88,10 @@ class SkillGenerator:
 
     def __init__(self) -> None:
         self.detector = PatternDetector()
-        self._engine: TemplateEngine | None = None  # noqa: F821
+        self._engine: TemplateEngine | None = None
 
     @property
-    def engine(self) -> TemplateEngine:  # noqa: F821
+    def engine(self) -> TemplateEngine:
         """Lazily create the template engine."""
         if self._engine is None:
             from cohezion.core.template_engine import TemplateEngine

@@ -11,6 +11,7 @@ import logging
 import time
 from dataclasses import dataclass, field
 
+
 logger = logging.getLogger(__name__)
 
 DEFAULT_DECAY_RATE = 0.01  # Relevance decays by 1% per cycle

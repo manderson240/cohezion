@@ -398,7 +398,12 @@ Content {i}
         )
 
         with (
-            patch.object(sync_par, "_execute_query_async", new_callable=AsyncMock, return_value=[]),
+            patch.object(
+                sync_par,
+                "_execute_query_async",
+                new_callable=AsyncMock,
+                return_value=[],
+            ),
             patch.object(sync_par, "_sync_paper_links"),
         ):
             start = time.perf_counter()

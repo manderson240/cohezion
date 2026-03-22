@@ -19,6 +19,7 @@ from cohezion.compound.models import (
     SessionCheckpoint,
 )
 
+
 logger = logging.getLogger(__name__)
 
 
@@ -55,7 +56,7 @@ class SessionPersister:
             session_id=context.session_id,
             timestamp=context.start_time,
             task=context.task,
-            results=context.previous_results + [result],
+            results=[*context.previous_results, result],
             metadata={
                 "attempt_number": context.attempt_number,
                 "success": result.success,

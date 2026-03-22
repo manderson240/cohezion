@@ -9,8 +9,8 @@ from __future__ import annotations
 
 import asyncio
 import logging
+from collections.abc import Callable
 from dataclasses import dataclass, field
-from typing import Callable
 
 from cohezion.compound.models import (
     BatchConfig,
@@ -18,6 +18,7 @@ from cohezion.compound.models import (
     ExecutionResult,
     Task,
 )
+
 
 logger = logging.getLogger(__name__)
 
@@ -91,7 +92,7 @@ class BatchProcessor:
 
         # Process results
         batch_result = BatchResult()
-        for task, result in zip(batch, results):
+        for task, result in zip(batch, results, strict=True):
             if isinstance(result, Exception):
                 batch_result.results.append(
                     ExecutionResult(

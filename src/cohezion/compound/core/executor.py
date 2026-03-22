@@ -8,9 +8,9 @@ from __future__ import annotations
 
 import logging
 import time
+from collections.abc import Callable
 from dataclasses import dataclass
-from pathlib import Path
-from typing import Any, Callable
+from typing import Any
 
 from cohezion.compound.models import (
     AnalysisReport,
@@ -19,6 +19,7 @@ from cohezion.compound.models import (
     ExecutionResult,
     Task,
 )
+
 
 logger = logging.getLogger(__name__)
 
