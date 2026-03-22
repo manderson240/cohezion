@@ -1,0 +1,70 @@
+Implement the following plan:
+
+# Plan: Auto-lint Hook for Python File Edits
+
+## Context
+
+After reviewing `~/.claude/settings.json` and `.claude/settings.json`, the setup is mature but missing automatic lint enforcement. Currently, `ruff` violations in edited Python files are only caught if explicitly run or tests are invoked. A `PostToolUse` hook on `Edit|Write|MultiEdit` that runs `ruff check --fix` on changed `.py` files will silently maintain code quality with zero friction.
+
+Adding to **global settings** (`~/.claude/settings.json`) so it benefits all Python projects, not just cohezion. With `|| true` guard, it fails silently on non-Python projects.
+
+## Target File
+
+`~/.claude/settings.json` — merge into existing `hooks.PostToolUse` array (currently has one entry for `Bash` → `post-bash-cleanup.sh`).
+
+## Hook to Add
+
+```json
+{
+  "matcher": "Edit|Write|MultiEdit",
+  "hooks": [
+    {
+      "type": "command",
+      "command": "jq -r '.tool_input.file_path // empty' | { read -r f; [[ \"$f\" == *.py ]] || exit 0; root=$(git -C \"$(dirname \"$f\")\" rev-parse --show-toplevel 2>/dev/null) && cd \"$root\" && uv run ruff check --fix \"$f\"; } 2>/dev/null || true",
+      "statusMessage": "Linting..."
+    }
+  ]
+}
+```
+
+**Command breakdown:**
+- `jq -r '.tool_input.file_path // empty'` — safely extracts file path from stdin JSON
+- `{ read -r f; ... }` — reads into quoted variable (no word-splitting on spaces)
+- `[[ "$f" == *.py ]] || exit 0` — skips non-Python files
+- `git rev-parse --show-toplevel` — finds project root so ruff uses the correct `pyproject.toml` config
+- `cd "$root" && uv run ruff check --fix "$f"` — runs ruff with project config
+- `2>/dev/null || true` — suppresses errors and prevents hook from blocking Claude
+
+## Implementation Steps
+
+1. ✅ **Read** `~/.claude/settings.json` — confirmed existing `PostToolUse` array with one `Bash` entry
+2. ✅ **Pipe-test** raw command → `All checks passed!` (ruff ran cleanly on real `.py` file, exit 0)
+3. ✅ **Edit** `~/.claude/settings.json` — new `Edit|Write|MultiEdit` matcher merged into `PostToolUse` array
+4. ✅ **Validate JSON** — `jq -e` exited 0, command string printed correctly from correct nesting
+5. ⚠️ **Proof-of-fire** — in-session hook invocation failed (expected: settings watcher only watches dirs present at session start). Pipe-test + schema validation confirm correctness. **Activate by opening `/hooks` or restarting Claude Code.**
+
+## Remaining Step
+
+6. **Check git status** in cohezion repo (the `__init__.py` test violation was reverted; working tree should be clean). If clean, nothing to commit — `~/.claude/settings.json` is outside any tracked repo.
+
+## Verification (Post-Restart)
+
+After restarting or hitting `/hooks`:
+- Edit any `.py` file with an unused import
+- Confirm "Linting..." spinner appears and the import is auto-removed
+- Re-read file to verify fix applied without manual intervention
+
+## Status: COMPLETE
+
+
+If you need specific details from before exiting plan mode (like exact code snippets, error messages, or content you generated), read the full transcript at: /home/mike-anderson/.claude/projects/-home-mike-anderson-dev-cohezion/75c4ab17-25a1-4024-b562-bc0cbd0e623c.jsonl
+
+If this plan can be broken down into multiple independent tasks, consider using the TeamCreate tool to create a team and parallelize the work.
+
+---
+
+What other outstanding issues do we have from this session?
+
+---
+
+[Request interrupted by user for tool use]
