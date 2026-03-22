@@ -3,54 +3,20 @@
 import re
 from pathlib import Path
 
-from mcp_server.search_cache import SearchCache
-
 
 class VaultOps:
     """Low-level vault file operations with path safety."""
 
-    def __init__(
-        self, vault_path: str, cache_enabled: bool = True, cache_ttl_seconds: float = 60
-    ):
+    def __init__(self, vault_path: str):
         self.vault_path = Path(vault_path).resolve()
         if not self.vault_path.is_dir():
             raise ValueError(f"Vault path does not exist: {self.vault_path}")
 
-        self._cache_enabled = cache_enabled
-        self._search_cache = (
-            SearchCache(ttl_seconds=cache_ttl_seconds) if cache_enabled else None
-        )
-
     def _resolve(self, path: str) -> Path:
-        """Resolve a vault-relative path safely, preventing directory traversal.
-
-        Security:
-        - Rejects paths with .. components
-        - Resolves symlinks and validates final location
-        - Ensures final path is within vault directory
-        - Prevents symlink escape attacks
-        """
-        # Reject obvious traversal attempts
-        if ".." in path or path.startswith("/"):
-            raise ValueError(f"Invalid path (traversal attempt): {path}")
-
-        # Construct candidate path
-        candidate = self.vault_path / path
-
-        # Resolve all symlinks to get real path
-        try:
-            resolved = candidate.resolve(strict=False)
-        except (OSError, RuntimeError) as e:
-            raise ValueError(f"Cannot resolve path: {path}") from e
-
-        # Verify resolved path is within vault
-        vault_str = str(self.vault_path.resolve())
-        resolved_str = str(resolved)
-
-        # Use startswith with trailing slash to prevent partial prefix matches
-        if not (resolved_str.startswith(vault_str + "/") or resolved_str == vault_str):
-            raise ValueError(f"Path escapes vault: {path} -> {resolved_str}")
-
+        """Resolve a vault-relative path safely, preventing directory traversal."""
+        resolved = (self.vault_path / path).resolve()
+        if not str(resolved).startswith(str(self.vault_path)):
+            raise ValueError(f"Path escapes vault: {path}")
         return resolved
 
     def read(self, path: str) -> str:
@@ -151,15 +117,7 @@ class VaultOps:
         """Full-text search across vault.
 
         Returns list of {path, line_number, line, context} dicts.
-        Caches results when enabled.
         """
-        # Check cache first
-        if self._cache_enabled:
-            cache_key = SearchCache.generate_key(query, scope, folder)
-            cached_results = self._search_cache.get(cache_key)
-            if cached_results is not None:
-                return cached_results
-
         results = []
         query_lower = query.lower()
 
@@ -207,11 +165,6 @@ class VaultOps:
                         }
                     )
 
-        # Cache the results before returning
-        if self._cache_enabled:
-            cache_key = SearchCache.generate_key(query, scope, folder)
-            self._search_cache.set(cache_key, results)
-
         return results
 
     def _is_hidden(self, path: Path) -> bool:
@@ -227,7 +180,9 @@ class VaultOps:
         if tag_clean.lower() in fm.lower():
             return True
         # Check inline tags
-        return f"#{tag_clean}" in content
+        if f"#{tag_clean}" in content:
+            return True
+        return False
 
     def _extract_frontmatter(self, content: str) -> str:
         """Extract YAML frontmatter from content."""
@@ -236,48 +191,3 @@ class VaultOps:
             if end != -1:
                 return content[3:end].strip()
         return ""
-
-    def invalidate_search_cache(self, key: str | None = None) -> int:
-        """Invalidate search cache.
-
-        Args:
-            key: Specific cache key to invalidate. If None, clears all cache.
-
-        Returns:
-            Number of entries removed
-        """
-        if not self._cache_enabled or self._search_cache is None:
-            return 0
-
-        if key is None:
-            return self._search_cache.clear()
-        return 1 if self._search_cache.invalidate(key) else 0
-
-    def invalidate_search_cache_for_file(self, file_path: str) -> int:
-        """Invalidate cache entries related to a file.
-
-        Clears all search cache since any file change could affect any search.
-
-        Args:
-            file_path: Path of the changed file (for logging)
-
-        Returns:
-            Number of entries removed
-        """
-        if not self._cache_enabled:
-            return 0
-
-        return self._search_cache.clear() if self._search_cache else 0
-
-    def get_search_cache_stats(self) -> dict:
-        """Get search cache statistics.
-
-        Returns:
-            Dictionary with cache stats or empty dict if cache disabled
-        """
-        if not self._cache_enabled or self._search_cache is None:
-            return {"enabled": False}
-
-        stats = self._search_cache.get_stats()
-        stats["enabled"] = True
-        return stats

@@ -82,7 +82,7 @@ ml = [
 
 [tool.ruff]
 target-version = "py311"
-line-length = 100  # Extended from 88 to accommodate f-strings and comprehensions (Retrospective Session 14)
+line-length = 88
 
 # Linting configuration
 [tool.ruff.lint]
@@ -114,9 +114,13 @@ ignore = [
     "S105",  # Allow hardcoded passwords in tests
     "S106",  # Allow hardcoded passwords in tests
 ]
+"bmad/scripts/**/*.py" = [
+    "S101",  # Allow assert in scripts
+]
+
 # Import sorting configuration
 [tool.ruff.lint.isort]
-known-first-party = ["cohezion"]
+known-first-party = ["bmad"]
 force-single-line = false
 lines-after-imports = 2
 
@@ -144,15 +148,3 @@ strict_equality = true
 [[tool.mypy.overrides]]
 module = "tests.*"
 disallow_untyped_defs = false
-
-# Pytest configuration
-[tool.pytest.ini_options]
-testpaths = ["tests"]
-python_files = ["test_*.py"]
-python_classes = ["Test*"]
-python_functions = ["test_*"]
-markers = [
-    "fast: Fast unit tests (<1s each, no live services)",
-    "integration: Integration tests (require live services like Ollama/SurrealDB)",
-    "mcp: MCP server tests (require vault access)",
-]

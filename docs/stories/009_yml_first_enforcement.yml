@@ -1,0 +1,9 @@
+story_id: 009
+title: "Create a Code Formatting and 'YML First' Enforcement Mechanism"
+description: "As a developer, I want a mechanism to automatically format our code and enforce our 'YML First' principle, so that we can maintain a consistent and readable codebase."
+acceptance_criteria:
+  - "AC1: A pre-commit hook is created."
+  - "AC2: The pre-commit hook is configured to run the `black` code formatter on all staged Python files."
+  - "AC3: The pre-commit hook prevents commits if the `black` formatter makes any changes to the code."
+  - "AC4: The pre-commit hook checks all staged files for new schema or configuration files."
+  - "AC5: The pre-commit hook prevents commits if any new schema or configuration files are not in YAML format (i.e., have a `.json` extension)."

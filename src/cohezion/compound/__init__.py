@@ -4,13 +4,32 @@ Integrates skill execution, knowledge persistence (vault), and experience-guided
 Phase 1: Compatibility layer with simplified internals
 """
 
-# ============================================================================
-# Compatibility Layer (Phase 1) - Preserves old API
-# ============================================================================
-
-from cohezion.compound.compat import (
-    CompoundCycleReport,
-    CompoundCycleResult,
+from cohezion.compound.batch_sizer import (
+    BatchExecutionMetrics,
+    BatchSizePredictor,
+    get_batch_size_predictor,
+)
+from cohezion.compound.cache_persistence import CachePersistence, WarmCacheLoader
+from cohezion.compound.degradation_detector import (
+    AlertSeverity,
+    DegradationAlert,
+    DegradationDetector,
+    MetricBaseline,
+)
+from cohezion.compound.evolution_training_bridge import (
+    EvolutionRoundResult,
+    EvolutionTrainingConfig,
+    EvolutionTrainingExporter,
+    EvolutionTrainingPipeline,
+    EvolutionTrainingSignalGenerator,
+    EvolutionTrajectory,
+    FitnessEvaluator,
+    LatentNoveltyScorer,
+    ModelEvaluationResult,
+    TraceToTrajectoryConverter,
+    TrainingSignals,
+)
+from cohezion.compound.executor import (
     CompoundExecutor,
     ExecutionResult,
     ExecutorFactory,
@@ -210,7 +229,16 @@ def get_version() -> str:
 # ============================================================================
 
 __all__ = [
-    # Compatibility layer (old API)
+    "ActionRecommendation",
+    "AgentCandidate",
+    "AgentTask",
+    "AgentTaskResult",
+    "AgentVote",
+    "AlertSeverity",
+    "ArchiveEntry",
+    "BatchExecutionMetrics",
+    "BatchSizePredictor",
+    "CachePersistence",
     "CompoundCycleReport",
     "CompoundCycleResult",
     "CompoundExecutor",
@@ -218,8 +246,29 @@ __all__ = [
     "ConstraintViolation",
     "CriterionFailure",
     "DriftSignal",
+    "EvolutionDirective",
+    "EvolutionRoundResult",
+    "EvolutionTrainingConfig",
+    "EvolutionTrainingExporter",
+    "EvolutionTrainingPipeline",
+    "EvolutionTrainingSignalGenerator",
+    "EvolutionTrajectory",
     "ExecutionAlignment",
     "ExecutionConstraint",
+    "ExecutionContext",
+    "ExecutionRecord",
+    "ExecutionResult",
+    "ExecutorFactory",
+    "ExperienceTrace",
+    "ExperienceTraceType",
+    "FailureMode",
+    "FeedbackLoopResult",
+    "FitnessEvaluator",
+    "GlobalMetricsAggregator",
+    "GroupEvolutionEngine",
+    "GroupExperiencePool",
+    "HardwareMetrics",
+    "HardwareMonitor",
     "HumanRequest",
     "IntentType",
     "Journey",
