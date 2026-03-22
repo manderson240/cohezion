@@ -17,6 +17,7 @@ import re
 import sys
 from pathlib import Path
 
+
 REPO_ROOT = Path(__file__).resolve().parents[2]
 TESTS_DIR = REPO_ROOT / "tests"
 SRC_DIR = REPO_ROOT / "src"
@@ -34,14 +35,14 @@ RULES: list[dict] = [
     {
         "id": "GIT_INIT_NO_GPGSIGN",
         "description": "git init without commit.gpgsign=false (fails in GPG-enabled envs)",
-        "pattern": re.compile(r'git.*init'),
+        "pattern": re.compile(r"git.*init"),
         "scope": "tests",
         "validator": "_check_git_init_no_gpgsign",
     },
     {
         "id": "LOG_FILTER_STR_CAST",
         "description": "Logging filter converts args to str() (breaks %d format specifiers)",
-        "pattern": re.compile(r'str\(arg\).*for arg in'),
+        "pattern": re.compile(r"str\(arg\).*for arg in"),
         "scope": "src",
         "fix": "Only redact string args: use isinstance(arg, str) guard",
     },
@@ -60,9 +61,7 @@ def _check_git_init_no_gpgsign(filepath: Path, content: str) -> list[tuple[int, 
             # Search forward 20 lines for gpgsign
             region = "\n".join(lines[i - 1 : i + 20])
             if "gpgsign" not in region:
-                violations.append(
-                    (i, "git init found without commit.gpgsign=false nearby")
-                )
+                violations.append((i, "git init found without commit.gpgsign=false nearby"))
     return violations
 
 
@@ -112,9 +111,7 @@ def main() -> int:
         print(f"Found {len(all_issues)} test anti-pattern violation(s):\n")
         for issue in all_issues:
             print(issue)
-        print(
-            "\nSee scripts/ci/lint_tests.py for rule descriptions and fix guidance."
-        )
+        print("\nSee scripts/ci/lint_tests.py for rule descriptions and fix guidance.")
         return 1
 
     print("No test anti-pattern violations found.")

@@ -1,3 +1,15 @@
+---
+name: testing
+description: Python testing methodology with pytest patterns, fixture design,
+  parametrization, and adversarial security testing. Use when writing tests,
+  debugging flaky test suites, setting up test isolation, or when user mentions
+  "pytest", "test fixtures", "conftest", "mock at source", "test isolation",
+  or "coverage".
+metadata:
+  version: "1.0"
+  legacy-name: TESTING_PRIME
+---
+
 # SKILL: TESTING_PRIME
 
 ## DOMAIN EXPERTISE

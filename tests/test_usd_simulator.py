@@ -29,9 +29,7 @@ def test_plasma_bubble_creation():
 
 
 def test_generate_spark_formation():
-    sim = USDSimulator(
-        voltage_kv=20, pulse_duration_us=500
-    )  # High energy for better success
+    sim = USDSimulator(voltage_kv=20, pulse_duration_us=500)  # High energy for better success
     # Try multiple times to account for randomness
     cluster = sim.generate_spark(num_attempts=50)
 

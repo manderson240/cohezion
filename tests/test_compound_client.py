@@ -14,8 +14,8 @@ from cohezion.swarm.compound_client import (
     get_compound_client,
     reset_compound_client,
 )
-from cohezion.swarm.model_adapter import SmartRouterAdapter, _TASK_TYPE_MAP
-from cohezion.swarm.smart_router import LOCAL_MODELS, SmartRouter, TaskType
+from cohezion.swarm.model_adapter import _TASK_TYPE_MAP, SmartRouterAdapter
+from cohezion.swarm.smart_router import LOCAL_MODELS, SmartRouter
 from cohezion.swarm.token_client import TokenEfficientClient
 
 
@@ -77,9 +77,7 @@ async def test_smart_router_adapter_maps_task_types():
     adapter = SmartRouterAdapter(router)
 
     for task_str, expected_enum in _TASK_TYPE_MAP.items():
-        result = await adapter.select_optimal_model(
-            {"task_type": task_str, "context_length": 100}
-        )
+        result = await adapter.select_optimal_model({"task_type": task_str, "context_length": 100})
         assert hasattr(result, "name")
         assert isinstance(result.name, str)
         assert len(result.name) > 0
@@ -101,9 +99,7 @@ async def test_adapter_fallback_on_error():
 
     adapter = SmartRouterAdapter(router)
 
-    result = await adapter.select_optimal_model(
-        {"task_type": "coding", "context_length": 50}
-    )
+    result = await adapter.select_optimal_model({"task_type": "coding", "context_length": 50})
     # Should fall through to SmartRouter.route()'s ultimate fallback
     assert hasattr(result, "name")
     assert isinstance(result.name, str)
@@ -184,9 +180,7 @@ async def test_api_swarm_execute_uses_compound_client():
     with (
         patch("cohezion.swarm.compound_client.get_compound_client") as mock_get_cc,
         patch("cohezion.swarm.team_orchestrator.TeamOrchestrator") as mock_orch_cls,
-        patch(
-            "cohezion.swarm.execution_orchestrator.ExecutionOrchestrator"
-        ) as mock_exec_cls,
+        patch("cohezion.swarm.execution_orchestrator.ExecutionOrchestrator") as mock_exec_cls,
     ):
         mock_client = MagicMock()
         mock_get_cc.return_value = mock_client
@@ -267,9 +261,7 @@ async def test_api_skill_execute_uses_compound_client():
     with (
         patch("cohezion.swarm.compound_client.get_compound_client") as mock_get_cc,
         patch("cohezion.agents.factory.AgentFactory") as mock_factory_cls,
-        patch(
-            "cohezion.core.instruction_expander.InstructionExpander"
-        ) as mock_expander_cls,
+        patch("cohezion.core.instruction_expander.InstructionExpander") as mock_expander_cls,
         patch("cohezion.core.plan_executor.PlanExecutor") as mock_executor_cls,
     ):
         mock_client = MagicMock()

@@ -1,9 +1,10 @@
 """Tests for PersistentCache - Phase 1 Bottleneck #2."""
 
 import json
-import pytest
 import tempfile
 from pathlib import Path
+
+import pytest
 
 from cohezion.swarm.persistent_cache import (
     PersistentCache,
@@ -131,7 +132,7 @@ class TestPersistence:
         cache.set("key1", "value1")
 
         # Read file and verify
-        with open(temp_cache_file, "r") as f:
+        with open(temp_cache_file) as f:
             lines = f.readlines()
         assert len(lines) > 0
         entry = json.loads(lines[-1])

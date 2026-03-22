@@ -1,10 +1,8 @@
 """Tests for TLS/HTTPS security configuration and middleware."""
 
-import ssl
 import tempfile
 from pathlib import Path
 
-import pytest
 from starlette.applications import Starlette
 from starlette.responses import PlainTextResponse
 from starlette.testclient import TestClient
@@ -63,9 +61,7 @@ class TestTLSConfig:
             cert_file.write_text("CERTIFICATE")
             key_file.write_text("KEY")
 
-            config = TLSConfig(
-                cert_path=str(cert_file), key_path=str(key_file)
-            )
+            config = TLSConfig(cert_path=str(cert_file), key_path=str(key_file))
             assert config.validate_certificate() is True
 
     def test_hsts_header_generation(self):
@@ -151,6 +147,7 @@ class TestHTTPSMiddleware:
 
     def setup_method(self):
         """Set up test app."""
+
         # Create simple Starlette app
         def homepage(request):
             return PlainTextResponse("OK")
@@ -163,9 +160,7 @@ class TestHTTPSMiddleware:
     def test_https_request_allowed(self):
         """Test that HTTPS requests are allowed."""
         config = TLSConfig()
-        app = HTTPSEnforcementMiddleware(
-            self.base_app, config, allow_http_localhost=True
-        )
+        app = HTTPSEnforcementMiddleware(self.base_app, config, allow_http_localhost=True)
         client = TestClient(app)
 
         # TestClient from 127.0.0.1 with allow_http_localhost=True
@@ -175,9 +170,7 @@ class TestHTTPSMiddleware:
     def test_http_request_rejected_non_localhost(self):
         """Test that HTTP requests from non-localhost are rejected."""
         config = TLSConfig()
-        app = HTTPSEnforcementMiddleware(
-            self.base_app, config, allow_http_localhost=True
-        )
+        app = HTTPSEnforcementMiddleware(self.base_app, config, allow_http_localhost=True)
         client = TestClient(app)
 
         # Simulate HTTP request from non-localhost
@@ -238,6 +231,7 @@ class TestSecureCookieMiddleware:
 
     def setup_method(self):
         """Set up test app with cookie."""
+
         def set_cookie(request):
             response = PlainTextResponse("OK")
             response.set_cookie("session", "abc123", path="/")
@@ -282,13 +276,12 @@ class TestSecureCookieMiddleware:
 
     def test_cookie_flag_replacement(self):
         """Test that existing cookie flags are replaced correctly."""
+
         # Create response with existing flags
         def set_cookie_with_flags(request):
             response = PlainTextResponse("OK")
             # Manually set cookie with some flags
-            response.headers.append(
-                "set-cookie", "session=abc123; Path=/; SameSite=Lax; Secure"
-            )
+            response.headers.append("set-cookie", "session=abc123; Path=/; SameSite=Lax; Secure")
             return response
 
         app = Starlette()
@@ -313,6 +306,7 @@ class TestHTTPSAppCreation:
 
     def test_create_https_app(self):
         """Test HTTPS app creation with middleware stack."""
+
         def homepage(request):
             return PlainTextResponse("OK")
 
@@ -335,6 +329,7 @@ class TestSecurityIntegration:
 
     def test_full_security_stack(self):
         """Test complete security middleware stack."""
+
         def protected_endpoint(request):
             response = PlainTextResponse("Protected resource")
             response.set_cookie("auth_token", "secret123", path="/api")
@@ -378,6 +373,7 @@ class TestSecurityIntegration:
 
     def test_security_headers_complete_set(self):
         """Test that all required security headers are present."""
+
         def endpoint(request):
             return PlainTextResponse("OK")
 

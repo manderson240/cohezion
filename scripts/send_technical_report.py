@@ -1,5 +1,7 @@
 import asyncio
+
 from cohezion.mcp.email_notifier import EmailNotifier
+
 
 async def send_report():
     notifier = EmailNotifier()
@@ -42,6 +44,7 @@ async def send_report():
 
     await notifier.send_email(subject, body, is_html=True)
     print("✅ Technical report sent via email.")
+
 
 if __name__ == "__main__":
     asyncio.run(send_report())

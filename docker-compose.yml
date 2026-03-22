@@ -57,7 +57,7 @@ services:
 
   # Database - The Memory Layer
   surrealdb:
-    image: surrealdb/surreal:v2.0
+    image: surrealdb/surrealdb:v3.0
     container_name: cohezion-db
     ports:
       - "8000:8000"

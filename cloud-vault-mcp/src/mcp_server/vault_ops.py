@@ -9,13 +9,17 @@ from mcp_server.search_cache import SearchCache
 class VaultOps:
     """Low-level vault file operations with path safety."""
 
-    def __init__(self, vault_path: str, cache_enabled: bool = True, cache_ttl_seconds: float = 60):
+    def __init__(
+        self, vault_path: str, cache_enabled: bool = True, cache_ttl_seconds: float = 60
+    ):
         self.vault_path = Path(vault_path).resolve()
         if not self.vault_path.is_dir():
             raise ValueError(f"Vault path does not exist: {self.vault_path}")
 
         self._cache_enabled = cache_enabled
-        self._search_cache = SearchCache(ttl_seconds=cache_ttl_seconds) if cache_enabled else None
+        self._search_cache = (
+            SearchCache(ttl_seconds=cache_ttl_seconds) if cache_enabled else None
+        )
 
     def _resolve(self, path: str) -> Path:
         """Resolve a vault-relative path safely, preventing directory traversal.

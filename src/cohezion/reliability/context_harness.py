@@ -19,9 +19,7 @@ class ContextHarness:
             "default": 16000,
         }
 
-    def harness_prompt(
-        self, prompt: str, system_prompt: str | None = None
-    ) -> dict[str, str]:
+    def harness_prompt(self, prompt: str, system_prompt: str | None = None) -> dict[str, str]:
         """Prepare optimized prompt and system prompt for local SLM."""
 
         # 1. Start with Truth Anchors

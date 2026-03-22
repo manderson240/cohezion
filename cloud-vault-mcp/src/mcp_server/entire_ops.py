@@ -1,12 +1,11 @@
 """Entire.io checkpoint commit parsing and metadata extraction."""
 
+import logging
 import re
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, List
 
-import logging
 
 logger = logging.getLogger(__name__)
 
@@ -18,10 +17,10 @@ class CommitData:
     commit_hash: str
     timestamp: datetime
     agent_id: str
-    outcomes: List[str]
-    metrics: Dict[str, float]
+    outcomes: list[str]
+    metrics: dict[str, float]
     team_status: str
-    next_actions: List[str]
+    next_actions: list[str]
 
 
 class ParsingError(Exception):
@@ -113,7 +112,7 @@ class EntireOps:
             return name if name else "unknown"
         return "unknown"
 
-    def _extract_outcomes(self, commit_body: str) -> List[str]:
+    def _extract_outcomes(self, commit_body: str) -> list[str]:
         """Extract outcome bullets from 'Session Summary' or 'Outcomes' section.
 
         Looks for sections like:
@@ -148,7 +147,7 @@ class EntireOps:
 
         return outcomes
 
-    def _extract_metrics(self, commit_body: str) -> Dict[str, float]:
+    def _extract_metrics(self, commit_body: str) -> dict[str, float]:
         """Extract numeric metrics from 'Metrics:' section.
 
         Looks for patterns like:
@@ -177,9 +176,7 @@ class EntireOps:
             matches = re.findall(pattern, section)
 
             for name, percent, current, total in matches:
-                base_key = (
-                    name.strip().lower().replace(" ", "_").replace("-", "_")
-                )
+                base_key = name.strip().lower().replace(" ", "_").replace("-", "_")
                 percent_val = float(percent) / 100.0
                 current_val = float(current)
                 total_val = float(total)
@@ -203,7 +200,7 @@ class EntireOps:
             return match.group(1).strip()
         return "No status recorded"
 
-    def _extract_next_actions(self, commit_body: str) -> List[str]:
+    def _extract_next_actions(self, commit_body: str) -> list[str]:
         """Extract next action items from commit body.
 
         Looks for:

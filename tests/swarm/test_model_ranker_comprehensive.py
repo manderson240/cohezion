@@ -8,9 +8,10 @@ Tests model ranking strategies:
 - Multi-strategy comparison
 """
 
-import pytest
 import time
-from unittest.mock import Mock, MagicMock
+from unittest.mock import Mock
+
+import pytest
 
 from cohezion.swarm.model_ranker import (
     ModelRanker,
@@ -145,7 +146,9 @@ class TestRankingStrategies:
         # Scores should differ for at least some models
         # (different weighting produces different scores)
         score_diffs = [abs(cost_scores[m] - quality_scores[m]) for m in models]
-        assert any(diff > 0.01 for diff in score_diffs), "Strategies should produce different composite scores"
+        assert any(diff > 0.01 for diff in score_diffs), (
+            "Strategies should produce different composite scores"
+        )
 
 
 class TestCoherenceScoring:
@@ -553,13 +556,14 @@ class TestPerformanceAndEdgeCases:
         models = [f"model_{i}" for i in range(100)]
 
         import time
+
         start = time.time()
         ranked = ranker.rank_models(available_models=models)
         elapsed = time.time() - start
 
         assert len(ranked) == 100
         # Should complete in < 100ms
-        assert elapsed < 0.1, f"Ranking 100 models took {elapsed*1000:.1f}ms (target: <100ms)"
+        assert elapsed < 0.1, f"Ranking 100 models took {elapsed * 1000:.1f}ms (target: <100ms)"
 
     def test_duplicate_models_handled(self):
         """Test that duplicate models in list are ranked."""
@@ -713,10 +717,7 @@ class TestRankingConsistency:
         models = ["phi3:mini", "qwen3-coder:32b", "deepseek-r1:8b"]
 
         # Rank 5 times
-        rankings = [
-            ranker.rank_models(available_models=models)
-            for _ in range(5)
-        ]
+        rankings = [ranker.rank_models(available_models=models) for _ in range(5)]
 
         # All should be identical
         for ranking in rankings[1:]:

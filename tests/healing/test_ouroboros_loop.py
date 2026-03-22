@@ -64,9 +64,14 @@ async def test_actuator_patch_case_sensitivity():
 
 @pytest.mark.asyncio
 async def test_actuator_patch_verification_success():
+    from unittest.mock import patch, MagicMock
+
     actuator = ActuatorSystem()
-    # Mocking successful run (current suite should pass)
-    res = await actuator.execute_patch("src/cohezion/healing/drift_analyzer.py", ["Optimize imports"])
-    # If pytest passes locally, this should be True
-    # In CI, we might need a mock for subprocess.run
+    # Mock subprocess so we don't run the full test suite
+    mock_result = MagicMock()
+    mock_result.returncode = 0
+    with patch("subprocess.run", return_value=mock_result):
+        res = await actuator.execute_patch(
+            "src/cohezion/healing/drift_analyzer.py", ["Optimize imports"]
+        )
     assert res is True

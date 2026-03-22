@@ -2,6 +2,7 @@ from pathlib import Path
 
 import requests
 
+
 # Configuration
 OLLAMA_URL = "http://localhost:11434/api/generate"
 CRITIC_MODEL = "deepseek-r1:70b"  # Verified available

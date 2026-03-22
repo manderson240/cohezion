@@ -43,8 +43,7 @@ class TestTrainingConvergence:
 
         assert len(metrics) == 5
         assert metrics[-1]["mse"] < metrics[0]["mse"], (
-            f"MSE should decrease: first={metrics[0]['mse']:.4f}, "
-            f"last={metrics[-1]['mse']:.4f}"
+            f"MSE should decrease: first={metrics[0]['mse']:.4f}, last={metrics[-1]['mse']:.4f}"
         )
         assert metrics[-1]["total"] < metrics[0]["total"], (
             f"Total loss should decrease: first={metrics[0]['total']:.4f}, "
@@ -113,17 +112,13 @@ class TestLatentInterpolation:
             assert diff > 0, f"Decoded points {i} and {i + 1} are identical (collapsed)"
 
         # Consecutive differences should be relatively smooth
-        diffs = [
-            np.linalg.norm(decoded[i] - decoded[i + 1]) for i in range(len(decoded) - 1)
-        ]
+        diffs = [np.linalg.norm(decoded[i] - decoded[i + 1]) for i in range(len(decoded) - 1)]
         max_diff = max(diffs)
         min_diff = min(diffs)
         # The ratio of max to min step size should not be extreme
         if min_diff > 0:
             ratio = max_diff / min_diff
-            assert ratio < 10.0, (
-                f"Interpolation is not smooth: max/min step ratio = {ratio:.2f}"
-            )
+            assert ratio < 10.0, f"Interpolation is not smooth: max/min step ratio = {ratio:.2f}"
 
 
 class TestSyntheticDataset:

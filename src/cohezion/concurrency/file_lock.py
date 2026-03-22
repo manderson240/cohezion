@@ -81,8 +81,7 @@ class FileLock:
                 time.sleep(0.1)
 
         raise FileLockError(
-            f"Could not acquire lock on {self.filepath} "
-            f"within {self.timeout}s: {last_error}"
+            f"Could not acquire lock on {self.filepath} within {self.timeout}s: {last_error}"
         )
 
     def release(self) -> None:
@@ -254,9 +253,7 @@ class ConfigManager:
                     )
                     time.sleep(wait_time)
 
-        raise FileLockError(
-            f"Atomic update failed after {max_retries} retries: {last_error}"
-        )
+        raise FileLockError(f"Atomic update failed after {max_retries} retries: {last_error}")
 
 
 class LockedFileOperation:

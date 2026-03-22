@@ -3,11 +3,12 @@ Journey persistence to SurrealDB with FLUME trajectories.
 Constitution requirement: "All plans, milestones, learnings synced to platform memory"
 """
 
-from typing import List, Dict, Optional
-from datetime import datetime
-from pydantic import BaseModel
 import uuid
+from datetime import datetime
+
 import numpy as np
+from pydantic import BaseModel
+
 from cohezion.core.persistence.surreal_client import get_surreal_client
 from cohezion.flume.vae_encoder import get_encoder
 from cohezion.platform.coherence_tracker import get_coherence_tracker
@@ -22,11 +23,11 @@ class Journey(BaseModel):
     coherence_at_start: float
     coherence_at_end: float
     hiho_stable: bool
-    flume_trajectory: List[float]  # 256D latent state
-    decisions_made: List[str]
-    learnings_extracted: List[str]
+    flume_trajectory: list[float]  # 256D latent state
+    decisions_made: list[str]
+    learnings_extracted: list[str]
     outcome: str
-    metadata: Dict
+    metadata: dict
 
 
 class JourneyLogger:
@@ -118,9 +119,7 @@ class JourneyLogger:
             },
         )
 
-    async def complete_journey(
-        self, journey_id: str, outcome: str, context_end: str
-    ) -> Journey:
+    async def complete_journey(self, journey_id: str, outcome: str, context_end: str) -> Journey:
         """
         Complete journey and calculate final coherence.
 
@@ -179,9 +178,7 @@ class JourneyLogger:
             coherence_at_end=journey_data.get("coherence_at_end", 0.5),
             hiho_stable=journey_data.get("hiho_stable", False),
             flume_trajectory=journey_data.get("flume_state_end", []),
-            decisions_made=[
-                d["decision"] for d in journey_data.get("decisions_made", [])
-            ],
+            decisions_made=[d["decision"] for d in journey_data.get("decisions_made", [])],
             learnings_extracted=[
                 l["learning"] for l in journey_data.get("learnings_extracted", [])
             ],
@@ -190,8 +187,8 @@ class JourneyLogger:
         )
 
     async def get_recent_journeys(
-        self, journey_type: Optional[str] = None, limit: int = 10
-    ) -> List[Journey]:
+        self, journey_type: str | None = None, limit: int = 10
+    ) -> list[Journey]:
         """Get recent journeys, optionally filtered by type."""
 
         if journey_type:
@@ -226,9 +223,7 @@ class JourneyLogger:
                     hiho_stable=j.get("hiho_stable", False),
                     flume_trajectory=j.get("flume_state_end", []),
                     decisions_made=[d["decision"] for d in j.get("decisions_made", [])],
-                    learnings_extracted=[
-                        l["learning"] for l in j.get("learnings_extracted", [])
-                    ],
+                    learnings_extracted=[l["learning"] for l in j.get("learnings_extracted", [])],
                     outcome=j.get("outcome", ""),
                     metadata=j.get("metadata", {}),
                 )

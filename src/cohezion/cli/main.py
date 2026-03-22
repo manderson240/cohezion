@@ -24,11 +24,14 @@ from cohezion.core.persistence.repositories.surreal_universe_repository import (
 )
 
 # Cohezion Imports
+from cohezion.core.persistence.repositories.pattern_repository import PatternRepository
 from cohezion.core.persistence.surreal_client import SurrealClient
 from cohezion.services.agent_service import AgentConfig, AgentService
 from cohezion.services.knowledge_service import KnowledgeService
 from cohezion.services.physics_service import PhysicsService
 from cohezion.services.swarm_service import SwarmService
+from cohezion.swarm.agents.code_review_swarm import CodeReviewSwarm
+
 
 app = typer.Typer(
     name="cohezion",
@@ -79,9 +82,7 @@ def quickstart():
     table.add_column("Description", style="dim")
     table.add_column("Example", style="yellow")
 
-    table.add_row(
-        "cohezion hello", "Verify installation", "cohezion hello --name 'Anthropic'"
-    )
+    table.add_row("cohezion hello", "Verify installation", "cohezion hello --name 'Anthropic'")
     table.add_row(
         "cohezion swarm run",
         "Run QUADRATURE NEXUS analysis",
@@ -110,9 +111,7 @@ def quickstart():
 @app.command()
 def hello(
     name: str = typer.Option("World", "--name", "-n", help="Name to greet"),
-    colorful: bool = typer.Option(
-        True, "--color/--no-color", help="Enable colored output"
-    ),
+    colorful: bool = typer.Option(True, "--color/--no-color", help="Enable colored output"),
 ):
     """Quick start verification command.
 
@@ -149,12 +148,8 @@ def version():
 
 @app.callback()
 def main(
-    verbose: bool = typer.Option(
-        False, "--verbose", "-v", help="Enable verbose output"
-    ),
-    config: str | None = typer.Option(
-        None, "--config", "-c", help="Path to config file"
-    ),
+    verbose: bool = typer.Option(False, "--verbose", "-v", help="Enable verbose output"),
+    config: str | None = typer.Option(None, "--config", "-c", help="Path to config file"),
 ):
     """Cohezion: Self-Evolving Agentic Sandbox.
 
@@ -184,9 +179,7 @@ async def get_swarm_service():
         AgentConfig(name="critic", agent_type="critic", model_name="phi3:mini")
     )
     await agent_service.register_agent(
-        AgentConfig(
-            name="synthesizer", agent_type="synthesizer", model_name="mistral:7b"
-        )
+        AgentConfig(name="synthesizer", agent_type="synthesizer", model_name="mistral:7b")
     )
 
     physics_service = PhysicsService(repo_universe)
@@ -260,9 +253,7 @@ def swarm_run(
 @swarm_app.command("debate")
 def swarm_debate(
     topic: str = typer.Argument(..., help="Topic for democratic debate"),
-    participants: int = typer.Option(
-        7, "--participants", "-p", help="Number of participants"
-    ),
+    participants: int = typer.Option(7, "--participants", "-p", help="Number of participants"),
     duration: int = typer.Option(300, "--duration", "-d", help="Duration in seconds"),
 ):
     """Run democratic debate.
@@ -296,13 +287,9 @@ def swarm_debate(
 
 @swarm_app.command("simulate")
 def swarm_simulate(
-    iterations: int = typer.Option(
-        1000, "--iterations", "-i", help="Number of iterations"
-    ),
+    iterations: int = typer.Option(1000, "--iterations", "-i", help="Number of iterations"),
     agents: int = typer.Option(100, "--agents", "-a", help="Number of agents"),
-    parallel: bool = typer.Option(
-        True, "--parallel/--sequential", help="Run in parallel"
-    ),
+    parallel: bool = typer.Option(True, "--parallel/--sequential", help="Run in parallel"),
 ):
     """Run mass simulation.
 
@@ -333,6 +320,99 @@ def swarm_simulate(
     console.print("[bold green]✓ Simulation complete[/bold green]")
 
 
+@swarm_app.command("review")
+def swarm_review(
+    target_dir: str = typer.Option("src/cohezion", "--target", "-t", help="Directory to review"),
+    batch_size: int = typer.Option(5, "--batch-size", "-b", help="Files per static batch"),
+    complexity: int = typer.Option(15, "--complexity", "-c", help="AST complexity threshold for LLM scans"),
+    output: str = typer.Option("code_review_report.md", "--output", "-o", help="Markdown report output path"),
+):
+    """Run full codebase review using specialist swarm agents.
+
+    Orchestrates static and LLM-based code scouts to identify
+    patterns and anti-patterns across the codebase.
+    """
+    console.print(
+        Panel(
+            f"[bold]Swarm Code Review[/bold]\n\n"
+            f"Target: [cyan]{target_dir}[/cyan]\n"
+            f"Batch Size: {batch_size}\n"
+            f"Complexity Threshold: {complexity}\n"
+            f"Output: {output}",
+            title="🔬 Review Configuration",
+            border_style="magenta",
+        )
+    )
+
+    import asyncio
+
+    async def run():
+        client = SurrealClient()
+        await client.connect()
+        repo = PatternRepository(client)
+
+        swarm = CodeReviewSwarm(
+            repository=repo,
+            target_dir=target_dir,
+            batch_size=batch_size,
+            complexity_threshold=complexity,
+        )
+
+        with Progress(
+            SpinnerColumn(),
+            TextColumn("[progress.description]{task.description}"),
+            console=console,
+        ) as progress:
+            task = progress.add_task("Running Code Review Swarm...", total=None)
+            report = await swarm.run_full_scan()
+            progress.update(task, description="✓ Scan Complete")
+
+        # Format and write report
+        from pathlib import Path
+
+        out_path = Path(output)
+        out_path.parent.mkdir(parents=True, exist_ok=True)
+
+        with open(out_path, "w") as f:
+            f.write("# Code Review Report\n\n")
+            f.write(f"**Target Directory:** `{target_dir}`\n")
+            f.write(f"**Total Files Checked:** {report.total_files}\n")
+            f.write(f"**Files Scanned (High Complexity):** {report.scanned_files}\n")
+            f.write(f"**Total Findings:** {len(report.findings)}\n\n")
+
+            f.write("## Findings\n\n")
+
+            # Group findings by type
+            patterns = [find for find in report.findings if find.type == "pattern"]
+            anti_patterns = [find for find in report.findings if find.type == "anti_pattern"]
+
+            if anti_patterns:
+                f.write("### 🚨 Anti-Patterns (Requires Attention)\n\n")
+                for finding in anti_patterns:
+                    f.write(f"#### {finding.name} ({finding.category})\n")
+                    f.write(f"- **Severity:** {finding.severity}\n")
+                    f.write(f"- **File:** `{finding.file_path}`\n")
+                    f.write(f"- **Description:** {finding.description}\n")
+                    f.write(f"- **Remediation:** {finding.remediation}\n\n")
+                    f.write("```python\n")
+                    f.write(f"{finding.code_snippet}\n")
+                    f.write("```\n\n")
+
+            if patterns:
+                f.write("### ✨ Recognized Patterns\n\n")
+                for finding in patterns:
+                    f.write(f"#### {finding.name} ({finding.category})\n")
+                    f.write(f"- **File:** `{finding.file_path}`\n")
+                    f.write(f"- **Description:** {finding.description}\n\n")
+                    f.write("```python\n")
+                    f.write(f"{finding.code_snippet}\n")
+                    f.write("```\n\n")
+
+        console.print(f"[bold green]✓ Report generated: {out_path.absolute()}[/bold green]")
+
+    asyncio.run(run())
+
+
 dashboard_app = typer.Typer(help="Dashboard operations")
 app.add_typer(dashboard_app, name="dashboard", help="Dashboard operations")
 
@@ -341,9 +421,7 @@ app.add_typer(dashboard_app, name="dashboard", help="Dashboard operations")
 def dashboard_start(
     host: str = typer.Option("0.0.0.0", "--host", help="Dashboard host"),
     port: int = typer.Option(8080, "--port", "-p", help="Dashboard port"),
-    reload: bool = typer.Option(
-        True, "--reload/--no-reload", help="Enable auto-reload"
-    ),
+    reload: bool = typer.Option(True, "--reload/--no-reload", help="Enable auto-reload"),
 ):
     """Start interactive dashboard.
 
@@ -362,9 +440,7 @@ def dashboard_start(
     )
 
     console.print(f"\n[dim]Dashboard would start at http://{host}:{port}[/dim]")
-    console.print(
-        "[yellow]Note: Dashboard launch not implemented in this phase[/yellow]"
-    )
+    console.print("[yellow]Note: Dashboard launch not implemented in this phase[/yellow]")
 
 
 config_app = typer.Typer(help="Configuration management")
@@ -373,9 +449,7 @@ app.add_typer(config_app, name="config", help="Configuration management")
 
 @config_app.command("show")
 def config_show(
-    section: str | None = typer.Option(
-        None, "--section", "-s", help="Show specific section"
-    ),
+    section: str | None = typer.Option(None, "--section", "-s", help="Show specific section"),
 ):
     """Show current configuration.
 
@@ -466,9 +540,7 @@ app.add_typer(explore_app, name="explore", help="Explore Cohezion capabilities")
 
 @explore_app.command("skills")
 def explore_skills(
-    category: str | None = typer.Option(
-        None, "--category", "-c", help="Filter by category"
-    ),
+    category: str | None = typer.Option(None, "--category", "-c", help="Filter by category"),
     limit: int = typer.Option(10, "--limit", "-l", help="Maximum number to show"),
 ):
     """Explore available capabilities.
@@ -478,9 +550,7 @@ def explore_skills(
     """
     console.print(
         Panel(
-            f"[bold]Capability Registry[/bold]\n\n"
-            f"Category: {category or 'All'}\n"
-            f"Limit: {limit}",
+            f"[bold]Capability Registry[/bold]\n\nCategory: {category or 'All'}\nLimit: {limit}",
             title="🔍 Skills Explorer",
             border_style="blue",
         )
@@ -518,9 +588,7 @@ app.add_typer(demo_app, name="demo", help="Interactive demonstrations")
 def demo_flume(
     input_text: str = typer.Argument(..., help="Input text for interpolation"),
     steps: int = typer.Option(10, "--steps", "-s", help="Interpolation steps"),
-    visualize: bool = typer.Option(
-        True, "--visualize/--no-visualize", help="Show visualization"
-    ),
+    visualize: bool = typer.Option(True, "--visualize/--no-visualize", help="Show visualization"),
 ):
     """FLUME fluid interpolation demo.
 
@@ -575,12 +643,8 @@ def demo_flume(
 @demo_app.command("nexus")
 def demo_nexus(
     scenario: str = typer.Option("physics", "--scenario", "-s", help="Scenario type"),
-    complexity: int = typer.Option(
-        5, "--complexity", "-c", help="Complexity level (1-10)"
-    ),
-    interactive: bool = typer.Option(
-        True, "--interactive", help="Enable interactive mode"
-    ),
+    complexity: int = typer.Option(5, "--complexity", "-c", help="Complexity level (1-10)"),
+    interactive: bool = typer.Option(True, "--interactive", help="Enable interactive mode"),
 ):
     """QUADRATURE NEXUS orchestration demo.
 
@@ -669,9 +733,7 @@ app.add_typer(universe_app, name="universe", help="Universe operations")
 @universe_app.command("seed")
 def universe_seed(
     name: str = typer.Argument(..., help="Name of the universe to seed"),
-    description: str = typer.Option(
-        "A new simulation universe", "--desc", help="Description"
-    ),
+    description: str = typer.Option("A new simulation universe", "--desc", help="Description"),
 ):
     """Seed a new simulation universe.
 
@@ -726,9 +788,7 @@ def universe_seed(
 
 @universe_app.command("list")
 def universe_list(
-    node_type: str | None = typer.Option(
-        None, "--type", "-t", help="Filter by node type"
-    ),
+    node_type: str | None = typer.Option(None, "--type", "-t", help="Filter by node type"),
     limit: int = typer.Option(50, "--limit", "-l", help="Maximum number to show"),
 ):
     """List all seeded universes."""
@@ -751,9 +811,7 @@ def universe_list(
             display_id = str(u.id)
             if ":" in display_id:
                 display_id = display_id.split(":")[-1]
-            table.add_row(
-                display_id, display_id, u.node_type, f"{u.stability_score:.2f}"
-            )
+            table.add_row(display_id, display_id, u.node_type, f"{u.stability_score:.2f}")
 
         console.print(table)
 
@@ -766,9 +824,7 @@ app.add_typer(ouroboros_app, name="ouroboros", help="Self-healing system operati
 
 @ouroboros_app.command("status")
 def ouroboros_status(
-    detailed: bool = typer.Option(
-        False, "--detailed", "-d", help="Show detailed status"
-    ),
+    detailed: bool = typer.Option(False, "--detailed", "-d", help="Show detailed status"),
 ):
     """Show system health.
 
@@ -801,9 +857,7 @@ def ouroboros_status(
 @ouroboros_app.command("heal")
 def ouroboros_heal(
     force: bool = typer.Option(False, "--force", "-f", help="Force healing cycle"),
-    dry_run: bool = typer.Option(
-        False, "--dry-run", help="Simulate healing without action"
-    ),
+    dry_run: bool = typer.Option(False, "--dry-run", help="Simulate healing without action"),
 ):
     """Trigger healing cycle.
 

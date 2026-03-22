@@ -7,10 +7,12 @@ import os
 import sys
 from pathlib import Path
 
+
 # Add src to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 from cohezion.security.cert_generator import CertificateGenerator
+
 
 logging.basicConfig(
     level=logging.INFO,
@@ -80,9 +82,7 @@ def setup_production_certificates(
 
 def main():
     """Main entry point."""
-    parser = argparse.ArgumentParser(
-        description="Setup TLS/HTTPS certificates for Cohezion"
-    )
+    parser = argparse.ArgumentParser(description="Setup TLS/HTTPS certificates for Cohezion")
 
     parser.add_argument(
         "mode",

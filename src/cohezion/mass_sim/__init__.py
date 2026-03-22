@@ -14,9 +14,10 @@ Usage:
 from cohezion.mass_sim.config import SCALE_TIERS, ScaleTier, SimulationConfig
 from cohezion.mass_sim.orchestrator import MassSimOrchestrator
 
+
 __all__ = [
-    "MassSimOrchestrator",
-    "SimulationConfig",
-    "ScaleTier",
     "SCALE_TIERS",
+    "MassSimOrchestrator",
+    "ScaleTier",
+    "SimulationConfig",
 ]

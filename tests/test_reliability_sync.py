@@ -94,7 +94,4 @@ def test_agent_workspace_basic(tmp_path):
 
     # After commit and session end
     assert f1.read_text() == "print('world')"
-    assert (
-        not (tmp_path / "sandbox").exists()
-        or len(list((tmp_path / "sandbox").glob("*"))) == 0
-    )
+    assert not (tmp_path / "sandbox").exists() or len(list((tmp_path / "sandbox").glob("*"))) == 0

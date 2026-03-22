@@ -3,8 +3,9 @@
 Tests request parsing, constraint extraction, alignment analysis, and vault integration.
 """
 
+from unittest.mock import MagicMock
+
 import pytest
-from unittest.mock import MagicMock, patch
 
 from cohezion.compound.models import (
     ConstraintType,
@@ -51,9 +52,7 @@ class TestRequestParsing:
     def setup_method(self):
         """Set up test fixtures."""
         self.mcp_client = MockMCPClient()
-        self.analyzer = RequestAlignmentAnalyzer(
-            self.mcp_client, intent_confidence_threshold=0.5
-        )
+        self.analyzer = RequestAlignmentAnalyzer(self.mcp_client, intent_confidence_threshold=0.5)
 
     def test_parse_simple_request(self):
         """Test parsing a simple request."""
@@ -70,9 +69,7 @@ class TestRequestParsing:
         request = self.analyzer.parse_request(request_text)
 
         assert len(request.constraints) > 0
-        token_constraints = [
-            c for c in request.constraints if c.type == ConstraintType.TOKENS
-        ]
+        token_constraints = [c for c in request.constraints if c.type == ConstraintType.TOKENS]
         assert len(token_constraints) > 0
         assert token_constraints[0].value == 500
 
@@ -82,9 +79,7 @@ class TestRequestParsing:
         request = self.analyzer.parse_request(request_text)
 
         assert len(request.constraints) > 0
-        latency_constraints = [
-            c for c in request.constraints if c.type == ConstraintType.LATENCY
-        ]
+        latency_constraints = [c for c in request.constraints if c.type == ConstraintType.LATENCY]
         assert len(latency_constraints) > 0
         # Should be normalized to ms: 5 seconds = 5000 ms
         assert latency_constraints[0].value == 5000
@@ -94,16 +89,12 @@ class TestRequestParsing:
         request_text = "Generate high quality content"
         request = self.analyzer.parse_request(request_text)
 
-        quality_constraints = [
-            c for c in request.constraints if c.type == ConstraintType.QUALITY
-        ]
+        quality_constraints = [c for c in request.constraints if c.type == ConstraintType.QUALITY]
         assert len(quality_constraints) > 0
 
     def test_classify_intent_generate(self):
         """Test intent classification for generate."""
-        intent_type, confidence = self.analyzer._classify_intent(
-            "Write a creative story"
-        )
+        intent_type, confidence = self.analyzer._classify_intent("Write a creative story")
         assert intent_type == IntentType.GENERATE
         assert confidence > 0.0
 
@@ -172,9 +163,7 @@ class TestConstraintExtraction:
 
         for text in texts:
             constraints = self.analyzer._extract_constraints(text)
-            token_constraints = [
-                c for c in constraints if c.type == ConstraintType.TOKENS
-            ]
+            token_constraints = [c for c in constraints if c.type == ConstraintType.TOKENS]
             assert len(token_constraints) > 0, f"Failed to extract from: {text}"
 
     def test_extract_latency_constraint_variations(self):
@@ -187,9 +176,7 @@ class TestConstraintExtraction:
 
         for text, expected_ms in test_cases:
             constraints = self.analyzer._extract_constraints(text)
-            latency_constraints = [
-                c for c in constraints if c.type == ConstraintType.LATENCY
-            ]
+            latency_constraints = [c for c in constraints if c.type == ConstraintType.LATENCY]
             assert len(latency_constraints) > 0
             assert latency_constraints[0].value == expected_ms
 
@@ -217,9 +204,7 @@ class TestAlignmentAnalysis:
                     type=ConstraintType.TOKENS, value=500, unit="tokens", is_hard=True
                 )
             ],
-            criteria=[
-                SuccessCriterion("Output is coherent", "coherence", 0.7, False)
-            ],
+            criteria=[SuccessCriterion("Output is coherent", "coherence", 0.7, False)],
         )
 
     def test_perfect_alignment(self):
@@ -234,9 +219,7 @@ class TestAlignmentAnalysis:
             "duration_seconds": 1.0,
         }
 
-        alignment = self.analyzer.analyze_alignment(
-            self.request, mock_result, "generate"
-        )
+        alignment = self.analyzer.analyze_alignment(self.request, mock_result, "generate")
 
         assert alignment.intent_match_score > 0.5
         assert alignment.misalignment_score < 0.3
@@ -253,9 +236,7 @@ class TestAlignmentAnalysis:
             "duration_seconds": 1.0,
         }
 
-        alignment = self.analyzer.analyze_alignment(
-            self.request, mock_result, "generate"
-        )
+        alignment = self.analyzer.analyze_alignment(self.request, mock_result, "generate")
 
         assert len(alignment.violations) > 0
         assert alignment.constraint_satisfaction < 1.0
@@ -267,9 +248,7 @@ class TestAlignmentAnalysis:
         mock_result.output = "Error: API timeout"
         mock_result.metrics = {"error": "API timeout", "duration_seconds": 2.0}
 
-        alignment = self.analyzer.analyze_alignment(
-            self.request, mock_result, "generate"
-        )
+        alignment = self.analyzer.analyze_alignment(self.request, mock_result, "generate")
 
         assert len(alignment.drift_signals) > 0
         # Failure still allows some alignment due to intent still matching
@@ -286,9 +265,7 @@ class TestAlignmentAnalysis:
             "duration_seconds": 1.0,
         }
 
-        alignment = self.analyzer.analyze_alignment(
-            self.request, mock_result, "generate"
-        )
+        alignment = self.analyzer.analyze_alignment(self.request, mock_result, "generate")
 
         assert len(alignment.failures) > 0
         assert alignment.criteria_satisfaction < 1.0
@@ -304,9 +281,7 @@ class TestAlignmentAnalysis:
             "duration_seconds": 1.0,
         }
 
-        alignment = self.analyzer.analyze_alignment(
-            self.request, mock_result, "generate"
-        )
+        alignment = self.analyzer.analyze_alignment(self.request, mock_result, "generate")
 
         # Should be between 0 and 1
         assert 0.0 <= alignment.misalignment_score <= 1.0
@@ -419,9 +394,7 @@ class TestIntentClassification:
     def test_intent_confidence_score(self):
         """Test intent confidence scoring."""
         # High confidence: multiple intent keywords
-        intent1, conf1 = self.analyzer._classify_intent(
-            "Generate and create multiple new stories"
-        )
+        intent1, conf1 = self.analyzer._classify_intent("Generate and create multiple new stories")
         # Low confidence: single keyword
         intent2, conf2 = self.analyzer._classify_intent("Generate")
 
@@ -440,9 +413,7 @@ class TestIssueGeneration:
         """Test issue generation from constraint violations."""
         from cohezion.compound.models import ConstraintViolation
 
-        constraint = ExecutionConstraint(
-            type=ConstraintType.TOKENS, value=500, unit="tokens"
-        )
+        constraint = ExecutionConstraint(type=ConstraintType.TOKENS, value=500, unit="tokens")
         violation = ConstraintViolation(
             constraint=constraint, requested_value=500, actual_value=600, severity=0.2
         )
@@ -456,9 +427,7 @@ class TestIssueGeneration:
         """Test recommendation generation from violations."""
         from cohezion.compound.models import ConstraintViolation
 
-        constraint = ExecutionConstraint(
-            type=ConstraintType.TOKENS, value=500, unit="tokens"
-        )
+        constraint = ExecutionConstraint(type=ConstraintType.TOKENS, value=500, unit="tokens")
         violation = ConstraintViolation(
             constraint=constraint, requested_value=500, actual_value=600, severity=0.2
         )

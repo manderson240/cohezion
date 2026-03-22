@@ -3,12 +3,12 @@
 Tests end-to-end alignment analysis flow within executor.
 """
 
-import pytest
 from unittest.mock import MagicMock, patch
 
-from cohezion.compound.executor import CompoundExecutor, ExecutorFactory, ExecutionResult
+import pytest
+
+from cohezion.compound.executor import ExecutorFactory
 from cohezion.compound.request_alignment_analyzer import RequestAlignmentAnalyzer
-from cohezion.security.guardrail_pipeline import GuardrailPipeline
 
 
 class MockMCPClient:
@@ -28,9 +28,7 @@ class MockMCPClient:
         self, project: str, title: str, context: str, decision: str, rationale: str
     ) -> str:
         """Mock decision logging."""
-        self.vault_logs.append(
-            {"type": "decision", "project": project, "title": title}
-        )
+        self.vault_logs.append({"type": "decision", "project": project, "title": title})
         return "decisions/alignment-test.md"
 
     def vault_log_experiment(
@@ -43,9 +41,7 @@ class MockMCPClient:
         title: str = "",
     ) -> str:
         """Mock experiment logging."""
-        self.vault_logs.append(
-            {"type": "experiment", "project": project, "hypothesis": hypothesis}
-        )
+        self.vault_logs.append({"type": "experiment", "project": project, "hypothesis": hypothesis})
         return "experiments/alignment-test.md"
 
     def vault_edit(self, path: str, edits: list) -> None:
@@ -62,18 +58,14 @@ class TestExecutorAlignmentIntegration:
 
     def test_executor_with_alignment_disabled(self):
         """Test executor with alignment analysis disabled (default)."""
-        executor = ExecutorFactory.create(
-            self.mcp_client, enable_alignment_analysis=False
-        )
+        executor = ExecutorFactory.create(self.mcp_client, enable_alignment_analysis=False)
 
         assert not executor._enable_alignment_analysis
         assert executor.alignment_analyzer is None
 
     def test_executor_with_alignment_enabled(self):
         """Test executor with alignment analysis enabled."""
-        executor = ExecutorFactory.create(
-            self.mcp_client, enable_alignment_analysis=True
-        )
+        executor = ExecutorFactory.create(self.mcp_client, enable_alignment_analysis=True)
 
         assert executor._enable_alignment_analysis
         assert executor.alignment_analyzer is not None
@@ -92,9 +84,7 @@ class TestExecutorAlignmentIntegration:
 
     def test_execute_task_without_human_request(self):
         """Test execute_task without human_request parameter."""
-        executor = ExecutorFactory.create(
-            self.mcp_client, enable_alignment_analysis=True
-        )
+        executor = ExecutorFactory.create(self.mcp_client, enable_alignment_analysis=True)
 
         def mock_execute(guidance):
             return "Generated ideas", {"coherence": 0.85}
@@ -113,9 +103,7 @@ class TestExecutorAlignmentIntegration:
 
     def test_execute_task_with_human_request(self):
         """Test execute_task with human_request parameter."""
-        executor = ExecutorFactory.create(
-            self.mcp_client, enable_alignment_analysis=True
-        )
+        executor = ExecutorFactory.create(self.mcp_client, enable_alignment_analysis=True)
 
         def mock_execute(guidance):
             return "Generated ideas", {"coherence": 0.85, "tokens_used": 200}
@@ -135,9 +123,7 @@ class TestExecutorAlignmentIntegration:
 
     def test_alignment_metrics_in_result(self):
         """Test that alignment metrics are added to result."""
-        executor = ExecutorFactory.create(
-            self.mcp_client, enable_alignment_analysis=True
-        )
+        executor = ExecutorFactory.create(self.mcp_client, enable_alignment_analysis=True)
 
         def mock_execute(guidance):
             return "Ideas", {
@@ -166,9 +152,7 @@ class TestExecutorAlignmentIntegration:
 
     def test_alignment_constraint_violation_detected(self):
         """Test that constraint violations are detected in alignment."""
-        executor = ExecutorFactory.create(
-            self.mcp_client, enable_alignment_analysis=True
-        )
+        executor = ExecutorFactory.create(self.mcp_client, enable_alignment_analysis=True)
 
         def mock_execute(guidance):
             return "Ideas", {
@@ -191,9 +175,7 @@ class TestExecutorAlignmentIntegration:
 
     def test_alignment_high_misalignment_logs_decision(self):
         """Test that high misalignment is logged as decision."""
-        executor = ExecutorFactory.create(
-            self.mcp_client, enable_alignment_analysis=True
-        )
+        executor = ExecutorFactory.create(self.mcp_client, enable_alignment_analysis=True)
 
         def mock_execute(guidance):
             return "Unexpected output", {
@@ -212,9 +194,7 @@ class TestExecutorAlignmentIntegration:
         )
 
         # Check if decision was logged for high misalignment
-        decision_logs = [
-            log for log in self.mcp_client.vault_logs if log["type"] == "decision"
-        ]
+        decision_logs = [log for log in self.mcp_client.vault_logs if log["type"] == "decision"]
         # High misalignment > 0.3, so should trigger vault logging
         if result.metrics["alignment"]["misalignment_score"] > 0.5:
             # May be logged as decision
@@ -222,9 +202,7 @@ class TestExecutorAlignmentIntegration:
 
     def test_alignment_with_failed_execution(self):
         """Test alignment analysis when execution fails."""
-        executor = ExecutorFactory.create(
-            self.mcp_client, enable_alignment_analysis=True
-        )
+        executor = ExecutorFactory.create(self.mcp_client, enable_alignment_analysis=True)
 
         def mock_execute(guidance):
             raise Exception("API timeout")
@@ -262,9 +240,7 @@ class TestExecutorAlignmentIntegration:
 
     def test_alignment_with_multiple_constraints(self):
         """Test alignment analysis with multiple constraints."""
-        executor = ExecutorFactory.create(
-            self.mcp_client, enable_alignment_analysis=True
-        )
+        executor = ExecutorFactory.create(self.mcp_client, enable_alignment_analysis=True)
 
         def mock_execute(guidance):
             return "Output", {
@@ -288,9 +264,7 @@ class TestExecutorAlignmentIntegration:
 
     def test_alignment_intent_match_scoring(self):
         """Test that intent match is scored correctly."""
-        executor = ExecutorFactory.create(
-            self.mcp_client, enable_alignment_analysis=True
-        )
+        executor = ExecutorFactory.create(self.mcp_client, enable_alignment_analysis=True)
 
         def mock_execute(guidance):
             return "Generated content", {"coherence": 0.8}
@@ -316,9 +290,7 @@ class TestAlignmentFactoryMethods:
     def test_create_executor_factory_method(self):
         """Test ExecutorFactory.create with alignment."""
         mcp_client = MockMCPClient()
-        executor = ExecutorFactory.create(
-            mcp_client, enable_alignment_analysis=True
-        )
+        executor = ExecutorFactory.create(mcp_client, enable_alignment_analysis=True)
 
         assert executor._enable_alignment_analysis
         assert executor.alignment_analyzer is not None
@@ -327,9 +299,7 @@ class TestAlignmentFactoryMethods:
         """Test singleton executor with alignment."""
         ExecutorFactory.reset_singleton()
         mcp_client = MockMCPClient()
-        executor1 = ExecutorFactory.get_singleton(
-            mcp_client, enable_alignment_analysis=True
-        )
+        executor1 = ExecutorFactory.get_singleton(mcp_client, enable_alignment_analysis=True)
         executor2 = ExecutorFactory.get_singleton(mcp_client)
 
         assert executor1 is executor2
@@ -351,9 +321,7 @@ class TestAlignmentNonBlocking:
         with patch.object(
             RequestAlignmentAnalyzer, "analyze_alignment", side_effect=Exception("Test error")
         ):
-            executor = ExecutorFactory.create(
-                mcp_client, enable_alignment_analysis=True
-            )
+            executor = ExecutorFactory.create(mcp_client, enable_alignment_analysis=True)
 
             def mock_execute(guidance):
                 return "Output", {"metric": 1.0}
@@ -376,9 +344,7 @@ class TestAlignmentNonBlocking:
         mcp_client = MockMCPClient()
         mcp_client.vault_log_decision = MagicMock(side_effect=Exception("Vault error"))
 
-        executor = ExecutorFactory.create(
-            mcp_client, enable_alignment_analysis=True
-        )
+        executor = ExecutorFactory.create(mcp_client, enable_alignment_analysis=True)
 
         def mock_execute(guidance):
             return "Output", {"metric": 1.0}
