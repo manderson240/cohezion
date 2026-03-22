@@ -27,6 +27,7 @@ from cohezion.swarm.git_health import (
 from cohezion.swarm.journey_tracker import AgentType, get_journey_tracker
 from cohezion.swarm.swarm_types import SwarmConfig
 
+
 # Setup logging
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
@@ -78,9 +79,7 @@ async def run_assessment():
         traces=traces,
     )
 
-    health_thought, simplifier_thought = await asyncio.gather(
-        health_task, simplification_task
-    )
+    health_thought, simplifier_thought = await asyncio.gather(health_task, simplification_task)
 
     # Record Journey Steps
     tracker.record_step(
@@ -114,27 +113,27 @@ async def run_assessment():
     <ul>
         <li><b>Health Score:</b> {auditor._calculate_global_score()} / 100</li>
         <li><b>Stability Drift:</b> {drift_score:.2f}</li>
-        <li><b>Critical Issues:</b> {len([i for i in auditor.issues if i.severity == 'Critical'])}</li>
-        <li><b>Bloat Status:</b> {bloat['total_pending']} pending files</li>
+        <li><b>Critical Issues:</b> {len([i for i in auditor.issues if i.severity == "Critical"])}</li>
+        <li><b>Bloat Status:</b> {bloat["total_pending"]} pending files</li>
     </ul>
     <h3>Top Recommendations</h3>
     <pre>{health_thought.content[:500]}...</pre>
     """
 
     # Full Markdown Report
-    report = f"""# 🛡️ Git Health Report - {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
+    report = f"""# 🛡️ Git Health Report - {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
 
 ## 🎯 Executive Summary
 - **Health Score:** {auditor._calculate_global_score()} / 100
 - **Semantic Stability:** {drift_score:.2f} (1.0 = Stable)
-- **Repo Bloat:** {bloat['total_pending']} pending changes ⚠️
+- **Repo Bloat:** {bloat["total_pending"]} pending changes ⚠️
 - **Unpushed Work:** {len(unpushed)} commits
 - **Complexity Hotspots:** {len(traces)} issues attributed to history
 
 ## 📦 Bloat Details
-- **Untracked:** {bloat.get('untracked_count', 0)} files
-- **Modified/Deleted:** {bloat.get('modified_count', 0)} files
-- **Hotspots:** {", ".join([f"{k} ({v})" for k, v in bloat.get('hotspots', [])])}
+- **Untracked:** {bloat.get("untracked_count", 0)} files
+- **Modified/Deleted:** {bloat.get("modified_count", 0)} files
+- **Hotspots:** {", ".join([f"{k} ({v})" for k, v in bloat.get("hotspots", [])])}
 
 ## 蜂 Health Agent Analysis
 {health_thought.content}
@@ -166,9 +165,7 @@ async def run_assessment():
             physics_state=PhysicsState(
                 complexity=auditor._calculate_global_score() / 100.0,
                 stability=drift_score,
-                mass=float(bloat["total_pending"]) / 100.0
-                if bloat["total_pending"] < 100
-                else 1.0,
+                mass=float(bloat["total_pending"]) / 100.0 if bloat["total_pending"] < 100 else 1.0,
             ),
             metadata={
                 "unpushed_count": len(unpushed),
@@ -180,9 +177,7 @@ async def run_assessment():
         logger.info(f"✅ Audit results persisted to SurrealDB as {audit_node.id}")
         await db.close()
     except Exception as e:
-        logger.warning(
-            f"⚠️ Failed to persist to SurrealDB (falling back to filesystem only): {e}"
-        )
+        logger.warning(f"⚠️ Failed to persist to SurrealDB (falling back to filesystem only): {e}")
 
     logger.info(f"✅ Assessment complete. Report saved to {report_path}")
     print(report)

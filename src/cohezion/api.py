@@ -26,6 +26,7 @@ from cohezion.core.persistence.surreal_client import SurrealClient
 from cohezion.reliability import get_circuit
 from cohezion.reliability.monitor import get_resource_monitor
 
+
 logger = logging.getLogger(__name__)
 
 # Allowed CORS origins from environment, default to localhost only
@@ -186,9 +187,7 @@ async def get_universe_nodes(
                     "axiomatic": axiomatic,
                     "coherence": (ps.control + ps.precipitation) / 2.0,
                     "agent_name": n.metadata.get("agent_name", "unknown"),
-                    "intent": n.metadata.get(
-                        "intent", n.content[:80] if n.content else ""
-                    ),
+                    "intent": n.metadata.get("intent", n.content[:80] if n.content else ""),
                     "node_type": n.node_type,
                 }
             )
@@ -216,17 +215,11 @@ async def get_wallet() -> dict[str, Any]:
 
     try:
         db = await _get_db()
-        results = await db.query(
-            "SELECT * FROM wallet ORDER BY created_at DESC LIMIT 1"
-        )
+        results = await db.query("SELECT * FROM wallet ORDER BY created_at DESC LIMIT 1")
 
         if results and isinstance(results, list):
             # Unpack SurrealDB response
-            rows = (
-                results[0]
-                if isinstance(results[0], list)
-                else results[0].get("result", [])
-            )
+            rows = results[0] if isinstance(results[0], list) else results[0].get("result", [])
             if rows:
                 record = rows[0]
                 breaker.record_success()
@@ -276,8 +269,7 @@ async def pulse(ws: WebSocket) -> None:
                 vram_norm if vram_norm > 0 else 0.3,  # field    (GPU pressure)
                 max(0.1, dilation),  # control  (stability)
                 0.02 + random.random() * 0.03,  # novelty  (entropy)
-                0.5 * (1 - cpu_norm)
-                + 0.5 * (1 - mem_norm),  # precipitation (coherence)
+                0.5 * (1 - cpu_norm) + 0.5 * (1 - mem_norm),  # precipitation (coherence)
             ]
 
             await ws.send_json({"type": "pulse", "payload": {"brane": brane}})

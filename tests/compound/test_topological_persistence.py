@@ -93,10 +93,12 @@ class TestH1Loops:
     def test_collinear_points_no_h1(self, topo):
         """Points on a line should have no significant H1 features."""
         # Points on a line: no loops possible
-        points = np.column_stack([
-            np.linspace(0, 10, 10),
-            np.zeros(10),
-        ])
+        points = np.column_stack(
+            [
+                np.linspace(0, 10, 10),
+                np.zeros(10),
+            ]
+        )
 
         dgm = topo.compute_persistence(points)
         h1_finite = [p for p in dgm.h1_pairs if not math.isinf(p.death)]
@@ -145,18 +147,13 @@ class TestPersistenceEntropy:
 
     def test_single_feature_zero_entropy(self):
         """A diagram with one finite feature has entropy 0."""
-        dgm = PersistenceDiagram(
-            pairs=[PersistencePair(birth=0.0, death=1.0, dimension=0)]
-        )
+        dgm = PersistenceDiagram(pairs=[PersistencePair(birth=0.0, death=1.0, dimension=0)])
         assert dgm.persistence_entropy(0) == pytest.approx(0.0)
 
     def test_uniform_features_max_entropy(self):
         """Equal-persistence features maximize entropy."""
         # All features have same persistence → maximum entropy
-        pairs = [
-            PersistencePair(birth=0.0, death=1.0, dimension=0)
-            for _ in range(5)
-        ]
+        pairs = [PersistencePair(birth=0.0, death=1.0, dimension=0) for _ in range(5)]
         dgm = PersistenceDiagram(pairs=pairs)
 
         entropy = dgm.persistence_entropy(0)

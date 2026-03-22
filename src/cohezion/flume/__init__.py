@@ -2,15 +2,16 @@
 
 from cohezion.flume.vae_encoder import FlumeVAEEncoder
 
+
 __all__ = [
-    "FlumeVAEEncoder",
-    "ExperienceEncoder",
     "ExperienceDataset",
+    "ExperienceEncoder",
     "ExperienceTrainingPipeline",
+    "FlumeVAEEncoder",
 ]
 
 
-def __getattr__(name: str):  # noqa: ANN001
+def __getattr__(name: str):
     """Lazy imports for experience pipeline classes."""
     if name == "ExperienceEncoder":
         from cohezion.flume.experience_encoder import ExperienceEncoder

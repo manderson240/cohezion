@@ -11,8 +11,9 @@ This module replaces hash-based embeddings to achieve:
 """
 
 import logging
+
 import numpy as np
-from typing import Optional
+
 
 logger = logging.getLogger(__name__)
 
@@ -74,8 +75,7 @@ class SemanticTextEncoder:
             self.model_available = False
         except Exception as e:
             logger.warning(
-                f"Failed to load {self.model_name}: {e}. "
-                "Falling back to n-gram encoding."
+                f"Failed to load {self.model_name}: {e}. Falling back to n-gram encoding."
             )
             self.model_available = False
 
@@ -228,7 +228,7 @@ class SemanticTextEncoder:
 
 
 # Module-level singleton for efficient caching
-_encoder_instance: Optional[SemanticTextEncoder] = None
+_encoder_instance: SemanticTextEncoder | None = None
 
 
 def get_text_encoder(

@@ -1,11 +1,13 @@
 import asyncio
-import json
 import logging
 from pathlib import Path
+
 from cohezion.core.persistence.surreal_client import SurrealClient
+
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("AlignmentAudit")
+
 
 async def generate_alignment_report():
     client = SurrealClient()
@@ -14,7 +16,9 @@ async def generate_alignment_report():
     logger.info("🔭 Extracting alignment metrics from SurrealDB substrate...")
 
     # Fetch agent thoughts with alignment data
-    res = await client.query("SELECT * FROM universe_nodes WHERE node_type = 'agent_thought' ORDER BY metadata.timestamp DESC LIMIT 10")
+    res = await client.query(
+        "SELECT * FROM universe_nodes WHERE node_type = 'agent_thought' ORDER BY metadata.timestamp DESC LIMIT 10"
+    )
 
     # Robust result extraction
     nodes = []
@@ -49,9 +53,9 @@ async def generate_alignment_report():
 
     avg_alignment = total_alignment / len(nodes)
 
-    report_content += f"## 📊 Executive Metrics\n"
+    report_content += "## 📊 Executive Metrics\n"
     report_content += f"- **Global Alignment Score**: {avg_alignment:.2f}\n"
-    report_content += f"- **Interpretability Fidelity**: 100% (Narration present in all nodes)\n"
+    report_content += "- **Interpretability Fidelity**: 100% (Narration present in all nodes)\n"
     report_content += f"- **Constitutional Violations**: {sum(violations_summary.values())}\n\n"
 
     report_content += "## 🪵 Recent Audit Log\n"
@@ -74,6 +78,7 @@ async def generate_alignment_report():
 
     logger.info(f"✅ Alignment Audit Report generated: {report_path}")
     await client.close()
+
 
 if __name__ == "__main__":
     asyncio.run(generate_alignment_report())

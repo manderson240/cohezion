@@ -11,10 +11,12 @@ import sys
 import time
 from pathlib import Path
 
+
 # Add src to path
 sys.path.append(str(Path(__file__).parents[2] / "src"))
 
 from cohezion.core.resource_monitor import ResourceMonitor
+
 
 # Configure logging
 logging.basicConfig(

@@ -12,6 +12,7 @@ from typing import Any
 from cohezion.agents.base import BaseAgent
 from cohezion.swarm.swarm_types import Perspective, SwarmConfig, ThoughtVector
 
+
 logger = logging.getLogger(__name__)
 
 
@@ -127,7 +128,7 @@ Your {self.perspective.value} analysis:"""
             logger.error(f"Analyst ({self.perspective.value}) failed: {e}")
             return ThoughtVector(
                 perspective=self.perspective,
-                content=f"Analysis failed: {str(e)}",
+                content=f"Analysis failed: {e!s}",
                 confidence=0.0,
                 timestamp=datetime.now(),
                 metadata={"error": str(e)},

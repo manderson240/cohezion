@@ -1,0 +1,28 @@
+{
+  "mcpServers": {
+    "cohezion-bmad": {
+      "url": "http://127.0.0.1:8361/mcp",
+      "type": "http"
+    },
+    "cohezion-skills": {
+      "command": "PYTHONPATH=/home/mike-anderson/dev/cohezion/src /home/mike-anderson/dev/cohezion/.venv/bin/python -m cohezion.mcp.skills_server_mcp",
+      "args": []
+    },
+    "cohezion-research": {
+      "command": "PYTHONPATH=/home/mike-anderson/dev/cohezion/src /home/mike-anderson/dev/cohezion/.venv/bin/python -m cohezion.mcp.research_server_mcp",
+      "args": []
+    },
+    "cohezion-surreal": {
+      "command": "PYTHONPATH=/home/mike-anderson/dev/cohezion/src /home/mike-anderson/dev/cohezion/.venv/bin/python -m cohezion.mcp.surreal_server_mcp",
+      "args": []
+    },
+    "cohezion-swarm": {
+      "command": "PYTHONPATH=/home/mike-anderson/dev/cohezion/src /home/mike-anderson/dev/cohezion/.venv/bin/python -m cohezion.mcp.swarm_server_mcp",
+      "args": []
+    },
+    "cohezion-knowledge": {
+      "command": "PYTHONPATH=/home/mike-anderson/dev/cohezion/src /home/mike-anderson/dev/cohezion/.venv/bin/python -m cohezion.mcp.knowledge_server_mcp",
+      "args": []
+    }
+  }
+}

@@ -12,6 +12,7 @@ from typing import Any
 from cohezion.agents.base import BaseAgent
 from cohezion.swarm.swarm_types import CritiqueResult, SwarmConfig, SynthesizedResponse
 
+
 logger = logging.getLogger(__name__)
 
 
@@ -46,13 +47,9 @@ class SynthesizerAgent(BaseAgent):
             config=config,
         )
 
-    async def process(
-        self, critique: CritiqueResult, **kwargs: Any
-    ) -> SynthesizedResponse:
+    async def process(self, critique: CritiqueResult, **kwargs: Any) -> SynthesizedResponse:
         """Process critique result and return synthesized response."""
-        return await self.synthesize(
-            critique, original_query=kwargs.get("original_query", "")
-        )
+        return await self.synthesize(critique, original_query=kwargs.get("original_query", ""))
 
     async def synthesize(
         self,
@@ -120,7 +117,7 @@ SYNTHESIZED RESPONSE:"""
         except Exception as e:
             logger.error(f"Synthesizer failed: {e}")
             return SynthesizedResponse(
-                content=f"Synthesis failed: {str(e)}",
+                content=f"Synthesis failed: {e!s}",
                 source_critique=critique,
                 confidence=0.0,
                 processing_time_ms=(time.perf_counter() - start_time) * 1000,

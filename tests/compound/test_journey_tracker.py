@@ -3,6 +3,7 @@
 import numpy as np
 import pytest
 
+from cohezion.compound.executor import ExecutionResult
 from cohezion.compound.journey_tracker import (
     Journey,
     JourneyTracker,
@@ -10,7 +11,6 @@ from cohezion.compound.journey_tracker import (
     OperationType,
     TrajectoryPoint,
 )
-from cohezion.compound.executor import ExecutionResult
 
 
 @pytest.fixture
@@ -256,9 +256,7 @@ class TestStepToAxiomatic:
     def test_step_to_axiomatic_analyze_profile(self, tracker):
         """Test ANALYZE profile emphasizes logic and field."""
         projection = np.zeros(12)
-        axiomatic = tracker._step_to_axiomatic(
-            projection, "analyze", coherence=1.0, efficiency=1.0
-        )
+        axiomatic = tracker._step_to_axiomatic(projection, "analyze", coherence=1.0, efficiency=1.0)
 
         profile = tracker._modulation_profiles["analyze"]
         assert np.allclose(axiomatic, profile, atol=0.1)
@@ -281,9 +279,7 @@ class TestPhiScore:
 
     def test_phi_score_computation(self, tracker):
         """Test phi score is computed correctly."""
-        phi = tracker._compute_phi_score(
-            coherence=0.8, smoothness=0.6, convergence=0.7
-        )
+        phi = tracker._compute_phi_score(coherence=0.8, smoothness=0.6, convergence=0.7)
 
         # phi = coherence * 0.5 + smoothness * 0.3 + convergence * 0.2
         expected = 0.8 * 0.5 + 0.6 * 0.3 + 0.7 * 0.2
@@ -291,17 +287,13 @@ class TestPhiScore:
 
     def test_phi_score_normalized(self, tracker):
         """Test phi score is in [0, 1]."""
-        phi = tracker._compute_phi_score(
-            coherence=0.9, smoothness=0.95, convergence=0.85
-        )
+        phi = tracker._compute_phi_score(coherence=0.9, smoothness=0.95, convergence=0.85)
 
         assert 0.0 <= phi <= 1.0
 
     def test_phi_score_clipping(self, tracker):
         """Test phi score clips to [0, 1]."""
-        phi = tracker._compute_phi_score(
-            coherence=1.5, smoothness=1.2, convergence=1.0
-        )
+        phi = tracker._compute_phi_score(coherence=1.5, smoothness=1.2, convergence=1.0)
 
         assert 0.0 <= phi <= 1.0
 
@@ -394,9 +386,7 @@ class TestTrajectoryQuality:
         assert 0.0 <= quality["smoothness"] <= 1.0
         assert 0.0 <= quality["convergence"] <= 1.0
 
-    def test_compute_trajectory_quality_multiple_points(
-        self, tracker, execution_result
-    ):
+    def test_compute_trajectory_quality_multiple_points(self, tracker, execution_result):
         """Test quality with multiple points."""
         points = [
             tracker.track_execution(
@@ -567,9 +557,7 @@ class TestRealPhiScore:
                 duration_seconds=1.0 + i,
                 token_metrics={"cache_hit_rate": 0.1 * i},
             )
-            divergent_tracker.track_execution(
-                result, f"Very different task {i * 100}", ops[i]
-            )
+            divergent_tracker.track_execution(result, f"Very different task {i * 100}", ops[i])
 
         divergent_quality = divergent_tracker.compute_trajectory_quality(
             divergent_tracker._recent_points

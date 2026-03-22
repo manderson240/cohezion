@@ -22,9 +22,9 @@ import logging
 import time
 from datetime import datetime
 from pathlib import Path
-from typing import Optional
 
 from cohezion.compound.thermal_trend_predictor import ThermalTimeSeries
+
 
 logger = logging.getLogger(__name__)
 
@@ -51,7 +51,7 @@ class ThermalTimeSeriesCollector:
 
     def __init__(
         self,
-        history_path: Optional[Path] = None,
+        history_path: Path | None = None,
         sample_interval_seconds: int = 300,
         enable_vault_logging: bool = True,
     ) -> None:
@@ -63,7 +63,7 @@ class ThermalTimeSeriesCollector:
         # Ensure directory exists
         self.history_path.parent.mkdir(parents=True, exist_ok=True)
 
-        self._collection_task: Optional[asyncio.Task] = None
+        self._collection_task: asyncio.Task | None = None
         self._samples_since_vault_log = 0
 
     def start_collection(self) -> None:
@@ -89,10 +89,7 @@ class ThermalTimeSeriesCollector:
                         self._samples_since_vault_log += 1
 
                         # Log to vault every 12 samples (1 hour)
-                        if (
-                            self.enable_vault_logging
-                            and self._samples_since_vault_log >= 12
-                        ):
+                        if self.enable_vault_logging and self._samples_since_vault_log >= 12:
                             asyncio.create_task(self._log_to_vault_async())
                             self._samples_since_vault_log = 0
                 except Exception as e:
@@ -102,7 +99,7 @@ class ThermalTimeSeriesCollector:
         except asyncio.CancelledError:
             logger.debug("Thermal collection task cancelled")
 
-    async def _collect_sample(self) -> Optional[ThermalTimeSeries]:
+    async def _collect_sample(self) -> ThermalTimeSeries | None:
         """Collect single thermal sample from hardware.
 
         Returns
@@ -234,14 +231,12 @@ class ThermalTimeSeriesCollector:
                     ),
                     timeout=1.0,  # 1-second timeout
                 )
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 logger.debug("Vault logging timed out (non-blocking)")
         except Exception as e:
             logger.debug(f"Vault logging failed (non-blocking): {e}")
 
-    async def load_jsonl_history_async(
-        self, hours: int = 1
-    ) -> list[dict]:
+    async def load_jsonl_history_async(self, hours: int = 1) -> list[dict]:
         """Load recent thermal samples from JSONL (async).
 
         Parameters
@@ -262,7 +257,7 @@ class ThermalTimeSeriesCollector:
             cutoff_time = current_time - (hours * 3600)
 
             samples = []
-            with open(self.history_path, "r", encoding="utf-8") as f:
+            with open(self.history_path, encoding="utf-8") as f:
                 for line in f:
                     line = line.strip()
                     if not line:
@@ -321,16 +316,13 @@ class ThermalTimeSeriesCollector:
                 f.write(json_line)
 
             logger.debug(
-                f"Recorded batch thermal: batch_size={batch_size}, "
-                f"temp={peak_gpu_temp:.1f}°C"
+                f"Recorded batch thermal: batch_size={batch_size}, temp={peak_gpu_temp:.1f}°C"
             )
         except Exception as e:
             logger.debug(f"Failed to record batch thermal: {e}")
 
 
-def load_jsonl_history(
-    history_path: Optional[Path] = None, days: int = 7
-) -> list[dict]:
+def load_jsonl_history(history_path: Path | None = None, days: int = 7) -> list[dict]:
     """Load thermal samples from JSONL (synchronous).
 
     Parameters
@@ -356,7 +348,7 @@ def load_jsonl_history(
         cutoff_time = current_time - (days * 86400)
 
         samples = []
-        with open(path, "r", encoding="utf-8") as f:
+        with open(path, encoding="utf-8") as f:
             for line in f:
                 line = line.strip()
                 if not line:
@@ -398,11 +390,11 @@ def get_thermal_time_series_collector(reset: bool = False) -> ThermalTimeSeriesC
 
 
 # Module-level singleton
-_collector_instance: Optional[ThermalTimeSeriesCollector] = None
+_collector_instance: ThermalTimeSeriesCollector | None = None
 
 
 __all__ = [
     "ThermalTimeSeriesCollector",
-    "load_jsonl_history",
     "get_thermal_time_series_collector",
+    "load_jsonl_history",
 ]

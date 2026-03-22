@@ -15,6 +15,7 @@ from enum import Enum
 
 import numpy as np
 
+
 logger = logging.getLogger(__name__)
 
 

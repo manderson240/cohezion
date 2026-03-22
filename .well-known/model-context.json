@@ -1,0 +1,52 @@
+{
+  "mcpServers": {
+    "bmad": {
+      "url": "http://localhost:8361",
+      "description": "Biological Multifold Awareness Driver"
+    },
+    "skills": {
+      "url": "http://localhost:8362",
+      "description": "Skills and Capability Manager"
+    },
+    "doc-retriever": {
+      "url": "http://localhost:8364",
+      "description": "Documentation and Research Retriever"
+    },
+    "huggingface": {
+      "url": "http://localhost:8365",
+      "description": "HuggingFace Open-Weights Model Hub"
+    },
+    "memory": {
+      "url": "http://localhost:8366",
+      "description": "State and Context Memory Server"
+    },
+    "sequential-thinking": {
+      "url": "http://localhost:8367",
+      "description": "Logical Reasoning Chain-of-Thought"
+    },
+    "git-context": {
+      "url": "http://localhost:8368",
+      "description": "Git Source Control Awareness"
+    },
+    "security": {
+      "url": "http://localhost:8369",
+      "description": "Security Governance and Prompt Guard"
+    },
+    "mcp-manager": {
+      "url": "http://localhost:8370",
+      "description": "MCP Daemon and Fleet Manager"
+    },
+    "knowledge": {
+      "url": "http://localhost:8371",
+      "description": "Cohezion Knowledge Graph Search"
+    },
+    "swarm": {
+      "url": "http://localhost:8372",
+      "description": "Swarm Orchestration Core"
+    },
+    "research": {
+      "url": "http://localhost:8373",
+      "description": "Adversarial Research & Adversary Simulation"
+    }
+  }
+}

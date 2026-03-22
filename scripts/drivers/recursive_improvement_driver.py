@@ -13,37 +13,32 @@ Dynamics:
 """
 
 import asyncio
-import logging
 import json
+import logging
 import random
-from datetime import datetime
 from pathlib import Path
-from typing import Any
 
 # Cohezion Imports
 from cohezion.registry.capability_registry import CapabilityRegistry
-from cohezion.swarm.agents import CriticAgent, AnalystAgent, NexusResearchAgent
+from cohezion.swarm.agents import AnalystAgent, CriticAgent, NexusResearchAgent
 from cohezion.swarm.swarm_types import Perspective
+
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO, format="%(asctime)s | %(name)s | %(message)s")
+
 
 class MetaRecursiveLoop:
     def __init__(self, cycles: int = 25_000_000):
         self.cycles = cycles
         self.registry = CapabilityRegistry()
         self.critic = CriticAgent()
-        self.solver = AnalystAgent(perspective=Perspective.TECHNICAL) # Analyst acting as Solver
+        self.solver = AnalystAgent(perspective=Perspective.TECHNICAL)  # Analyst acting as Solver
         self.researcher = NexusResearchAgent()
         self.results_dir = Path("data/recursion_logs")
         self.results_dir.mkdir(parents=True, exist_ok=True)
-        
-        self.state = {
-            "coherence": 0.5,
-            "novelty": 0.0,
-            "complexity": 0.01,
-            "abstractions": []
-        }
+
+        self.state = {"coherence": 0.5, "novelty": 0.0, "complexity": 0.01, "abstractions": []}
 
     async def run_beat(self, step: int):
         """A single 'beat' in the recursive heart of the swarm."""
@@ -53,23 +48,27 @@ class MetaRecursiveLoop:
             if discovery:
                 self.state["abstractions"].append(discovery)
                 self.state["novelty"] += 0.001
-        
+
         # 2. CHALLENGER Dynamics (Identify Entropy)
         entropy_gap = abs(self.state["coherence"] - 0.5)
         if entropy_gap > 0.1:
-            challenge = await self.critic.process(analyst_outputs=[], target="codebase", state=self.state)
-            
+            challenge = await self.critic.process(
+                analyst_outputs=[], target="codebase", state=self.state
+            )
+
             # 3. SOLVER Dynamics (Apply Improvement)
             if challenge:
                 improvement = await self.solver.process(context=self.state, challenge=challenge)
-                self.state["coherence"] = 0.5 + (random.random() - 0.5) * 0.02 # Stabilization
-        
+                self.state["coherence"] = 0.5 + (random.random() - 0.5) * 0.02  # Stabilization
+
         # 4. LEARNER Dynamics (Scaling factors)
         self.state["complexity"] += 0.000001
-        self.state["novelty"] *= 0.999 # Decay unless new research found
-        
+        self.state["novelty"] *= 0.999  # Decay unless new research found
+
         if step % 100_000 == 0:
-            logger.info(f"🌀 Loop {step:,}/{self.cycles:,} | Coherence: {self.state['coherence']:.4f} | Novelty: {self.state['novelty']:.4f}")
+            logger.info(
+                f"🌀 Loop {step:,}/{self.cycles:,} | Coherence: {self.state['coherence']:.4f} | Novelty: {self.state['novelty']:.4f}"
+            )
             self.save_checkpoint(step)
 
     def save_checkpoint(self, step: int):
@@ -83,14 +82,16 @@ class MetaRecursiveLoop:
             # To avoid actually doing 25M LLM calls (token/time cost),
             # we simulate the trajectory while sampling real agent calls at milestones.
             await self.run_beat(i)
-            
+
             # Artificial suspension to avoid CPU pegging
             if i % 1000 == 0:
                 await asyncio.sleep(0.001)
 
+
 async def main():
     loop = MetaRecursiveLoop(cycles=25_000_000)
     await loop.start()
+
 
 if __name__ == "__main__":
     asyncio.run(main())

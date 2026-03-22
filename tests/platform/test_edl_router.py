@@ -2,13 +2,15 @@
 Tests for ExpertDomainRouter - Expert Domain Lattice consensus routing.
 """
 
+from unittest.mock import AsyncMock, MagicMock, patch
+
 import pytest
-from unittest.mock import AsyncMock, patch, MagicMock
+
 from cohezion.platform.edl_router import (
+    EDLConsensus,
     ExpertDomainRouter,
     ExpertStream,
     StreamRecommendation,
-    EDLConsensus,
     get_edl_router,
     reset_edl_router,
 )
@@ -174,12 +176,8 @@ class TestExpertDomainRouter:
         assert edl_router._get_stream_model(ExpertStream.ARCHITECT) == "deepseek-r1:70b"
         assert edl_router._get_stream_model(ExpertStream.ENGINEER) == "qwen3-coder:30b"
         assert edl_router._get_stream_model(ExpertStream.BIOLOGIST) == "deepseek-r1:70b"
-        assert (
-            edl_router._get_stream_model(ExpertStream.QUANTUM_HW) == "qwen3-coder:30b"
-        )
-        assert (
-            edl_router._get_stream_model(ExpertStream.QUANTUM_ALGO) == "deepseek-r1:70b"
-        )
+        assert edl_router._get_stream_model(ExpertStream.QUANTUM_HW) == "qwen3-coder:30b"
+        assert edl_router._get_stream_model(ExpertStream.QUANTUM_ALGO) == "deepseek-r1:70b"
 
     @pytest.mark.asyncio
     async def test_consult_stream_success(self, edl_router, mock_compound_client):
