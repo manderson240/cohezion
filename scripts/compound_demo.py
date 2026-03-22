@@ -13,9 +13,11 @@ from __future__ import annotations
 import sys
 from pathlib import Path
 
+
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 from scripts.compound_driver import main
+
 
 if __name__ == "__main__":
     main(["--skills", "3", "--dry-run", "--threshold", "0.0"])

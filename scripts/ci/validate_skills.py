@@ -5,7 +5,7 @@ from __future__ import annotations
 
 import sys
 
-from cohezion.core.template_engine import TemplateEngine, SkillSpec
+from cohezion.core.template_engine import SkillSpec, TemplateEngine
 
 
 def main() -> int:

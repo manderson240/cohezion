@@ -9,6 +9,7 @@ from dataclasses import dataclass
 
 import numpy as np
 
+
 sys.path.insert(0, "/home/mike-anderson/dev/cohezion/src")
 
 # Simplified: Use NumPy directly instead of importing HihoVectorEngine
@@ -44,9 +45,7 @@ class USDSimulator:
     - Negative charge clustering despite Coulomb repulsion
     """
 
-    def __init__(
-        self, voltage_kv=10.0, pulse_duration_us=100.0, water_conductivity=0.05
-    ):
+    def __init__(self, voltage_kv=10.0, pulse_duration_us=100.0, water_conductivity=0.05):
         """
          Initialize USD simulator.
 
@@ -97,15 +96,11 @@ class USDSimulator:
         - At HIHO threshold (0.5 coherence), charges cluster despite repulsion
         - Coherent field state overcomes Coulomb repulsion
         """
-        num_electrons = int(
-            bubble["electron_density"] * (bubble["radius_mm"] / 10) ** 3
-        )
+        num_electrons = int(bubble["electron_density"] * (bubble["radius_mm"] / 10) ** 3)
 
         # Run HIHO simulations directly
         # Generate random coherence values (simulating charge clustering attempts)
-        results = np.random.beta(
-            2, 2, self.num_simulations
-        )  # Beta distribution peaks near 0.5
+        results = np.random.beta(2, 2, self.num_simulations)  # Beta distribution peaks near 0.5
 
         # Find "bright spots" near HIHO threshold
         near_threshold = np.abs(results - self.hiho_threshold) < 0.05
@@ -123,9 +118,7 @@ class USDSimulator:
             "coherence": coherence,
             "charge_coulombs": -num_electrons * 1.6e-19,  # Negative
             "magnetic_moment": num_electrons * 9.27e-24 * coherence,  # Bohr magnetons
-            "radius_nm": bubble["radius_mm"]
-            * 1e6
-            * coherence,  # Shrinks as it coherences
+            "radius_nm": bubble["radius_mm"] * 1e6 * coherence,  # Shrinks as it coherences
         }
 
     def form_itonic_cluster(self, cluster_data: dict) -> ItonicCluster | None:

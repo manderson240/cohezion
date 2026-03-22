@@ -96,7 +96,9 @@ class VaultFileWatcher:
         queue: asyncio.Queue[VaultEvent] = asyncio.Queue(maxsize=maxsize)
         with self._lock:
             self._subscribers.append(queue)
-        logger.debug(f"Subscriber added (queue maxsize={maxsize}, total={len(self._subscribers)})")
+        logger.debug(
+            f"Subscriber added (queue maxsize={maxsize}, total={len(self._subscribers)})"
+        )
         return queue
 
     def unsubscribe(self, queue: asyncio.Queue) -> None:

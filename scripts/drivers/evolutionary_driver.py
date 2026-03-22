@@ -16,15 +16,18 @@ import time
 from datetime import datetime
 from pathlib import Path
 
+
 # Add src to path
 sys.path.append(str(Path(__file__).parents[2] / "src"))
 
 from cohezion.core.resource_monitor import get_resource_monitor
 from cohezion.mcp.email_notifier import notify_completion
 
+
 # Import the Code Simplifier (locally)
 sys.path.append(str(Path(__file__).parent))
 from code_simplifier import CodeSimplifier
+
 
 logging.basicConfig(
     level=logging.INFO,
@@ -38,6 +41,7 @@ logger = logging.getLogger("EvolutionaryDriver")
 
 # ... (Imports remain the same)
 import asyncio
+
 
 # ... (Logging setup remains the same)
 
@@ -105,9 +109,7 @@ class SwarmOrchestrator:
     def __init__(self, engineer_target: str = None):
         self.streams = [
             StreamAgent("Architect", "Structure & Patterns"),
-            StreamAgent(
-                "Engineer", "Performance & Correctness", target_file=engineer_target
-            ),
+            StreamAgent("Engineer", "Performance & Correctness", target_file=engineer_target),
             StreamAgent("Biologist", "Evolution & Healing"),
             StreamAgent("QuantumHW", "Simulation Constraints"),
             StreamAgent("QuantumAlgo", "Logic Optimization"),
@@ -147,9 +149,7 @@ class EvolutionarySpiral:
             if not self.check_vital_signs():
                 continue
 
-            logger.info(
-                f"🌀 Entering Gateway {self.current_gateway + 1}/{self.max_gateways}"
-            )
+            logger.info(f"🌀 Entering Gateway {self.current_gateway + 1}/{self.max_gateways}")
 
             # Run Swarm
             results = await self.swarm.execute_swarm_gateway(self.current_gateway)
@@ -193,9 +193,7 @@ if __name__ == "__main__":
     import argparse
 
     parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "--gateways", type=int, default=50, help="Number of gateways to traverse"
-    )
+    parser.add_argument("--gateways", type=int, default=50, help="Number of gateways to traverse")
     args = parser.parse_args()
 
     # We can pass an optional target for the engineer via env var or arg

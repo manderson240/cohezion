@@ -14,14 +14,20 @@ Success Metrics:
 """
 
 import asyncio
-import pytest
 from typing import Any
+
+import pytest
+
+from cohezion.cache.text_encoder import get_text_encoder
+from cohezion.compound.session_manager import (
+    InferenceSession,
+    SessionConfig,
+    VaultCheckpointManager,
+)
 
 # Component imports
 from cohezion.security.guardrail_factory import create_default_pipeline, create_minimal_pipeline
-from cohezion.compound.session_manager import InferenceSession, SessionConfig, VaultCheckpointManager
 from cohezion.swarm.semantic_cache import SemanticCache
-from cohezion.cache.text_encoder import get_text_encoder
 
 
 class TestPhase3GuardrailIntegration:
@@ -93,7 +99,7 @@ class TestPhase3SessionIntegration:
         config = SessionConfig(
             checkpoint_interval_steps=3,
             checkpoint_timeout_sec=60.0,
-            max_session_duration_sec=3600.0
+            max_session_duration_sec=3600.0,
         )
         session = InferenceSession("test-session", config)
 
@@ -107,6 +113,7 @@ class TestPhase3SessionIntegration:
 
         # Mock execute function
         call_count = 0
+
         async def mock_execute(step: int, state: Any) -> tuple[str, dict]:
             nonlocal call_count
             call_count += 1
@@ -117,10 +124,7 @@ class TestPhase3SessionIntegration:
         async def run_session():
             events = []
             async for event in session.execute_with_checkpoints(
-                "test-skill",
-                "input",
-                mock_execute,
-                total_steps=10
+                "test-skill", "input", mock_execute, total_steps=10
             ):
                 events.append(event)
             return events
@@ -144,6 +148,7 @@ class TestPhase3SessionIntegration:
         session = InferenceSession("timeout-test", config)
 
         call_count = 0
+
         async def slow_execute(step: int, state: Any) -> tuple[str, dict]:
             nonlocal call_count
             call_count += 1
@@ -152,10 +157,7 @@ class TestPhase3SessionIntegration:
 
         events = []
         async for event in session.execute_with_checkpoints(
-            "test-skill",
-            "input",
-            slow_execute,
-            total_steps=10
+            "test-skill", "input", slow_execute, total_steps=10
         ):
             events.append(event)
 
@@ -169,12 +171,13 @@ class TestPhase3SessionIntegration:
 
         # Save checkpoint
         from cohezion.compound.session_manager import SessionState
+
         state = SessionState(
             session_id="test",
             skill_name="test-skill",
             current_step=5,
             total_steps=10,
-            context="test context"
+            context="test context",
         )
 
         await manager.save(state)
@@ -197,7 +200,7 @@ class TestPhase3CacheIntegration:
         # Lower threshold due to hash-based embeddings
         cache = SemanticCache(
             similarity_threshold=0.25,  # Very low for hash-based embeddings
-            max_entries=100
+            max_entries=100,
         )
 
         # Prime cache with base queries
@@ -236,10 +239,7 @@ class TestPhase3CacheIntegration:
         if not encoder.is_available():
             pytest.skip("FLUME VAE encoder not available - skipping semantic discrimination test")
 
-        cache = SemanticCache(
-            similarity_threshold=0.80,
-            max_entries=100
-        )
+        cache = SemanticCache(similarity_threshold=0.80, max_entries=100)
 
         # Prime with ML content
         await cache.put("machine learning algorithms", "", "model", "ML response")

@@ -19,6 +19,7 @@ from cohezion.cache.semantic_cache import SemanticCache
 from cohezion.core.mcp_client import MCPClient, MCPConfig
 from cohezion.flume.vae_encoder import get_encoder
 
+
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
@@ -60,7 +61,7 @@ def diagnostic_vae_availability():
         elapsed = time.time() - start
 
         logger.info(f"  Encoded {len(texts)} texts in {elapsed:.3f}s")
-        logger.info(f"  Avg per text: {elapsed/len(texts)*1000:.2f}ms")
+        logger.info(f"  Avg per text: {elapsed / len(texts) * 1000:.2f}ms")
         logger.info(f"  Embedding dimension: {embeddings[0].shape}")
         logger.info("")
 
@@ -114,9 +115,7 @@ def diagnostic_semantic_discrimination():
         else:  # unrelated
             quality = "✅" if similarity < 0.70 else "❌"
 
-        logger.info(
-            f"{len(test_pairs)} | {relationship:15} | {similarity:.3f}     | {quality}"
-        )
+        logger.info(f"{len(test_pairs)} | {relationship:15} | {similarity:.3f}     | {quality}")
 
     logger.info("")
     logger.info("Target Thresholds:")

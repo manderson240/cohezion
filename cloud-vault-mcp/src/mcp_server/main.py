@@ -1,7 +1,6 @@
 """Entry point for the Cloud Vault MCP Server."""
 
 import asyncio
-import json
 import logging
 from contextlib import asynccontextmanager
 
@@ -10,7 +9,7 @@ from starlette.applications import Starlette
 from starlette.middleware.trustedhost import TrustedHostMiddleware
 from starlette.requests import Request
 from starlette.responses import JSONResponse
-from starlette.routing import Mount, Route
+from starlette.routing import Route
 
 from .config import ServerConfig
 from .health import HealthChecker
@@ -18,10 +17,11 @@ from .server import create_server
 from .sse_stream import VaultEventStream
 from .vault_watcher import VaultFileWatcher
 
+
 # Import security modules
 try:
-    from cohezion.security.tls_config import TLSConfig
     from cohezion.security.https_middleware import create_https_app
+    from cohezion.security.tls_config import TLSConfig
 except ImportError:
     TLSConfig = None
     create_https_app = None
@@ -180,9 +180,7 @@ def main():
             )
         else:
             logger.info("TLS certificate validated successfully")
-            app = create_https_app(
-                app, tls_config, allow_http_localhost=True
-            )
+            app = create_https_app(app, tls_config, allow_http_localhost=True)
 
     # Run with uvicorn directly to control host/port
     # Note: For HTTPS, use ssl_certfile and ssl_keyfile parameters

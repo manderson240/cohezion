@@ -1,6 +1,5 @@
 """Tests for Model Quality Classifier - Phase 5A.7."""
 
-import numpy as np
 import pytest
 
 from cohezion.compound.model_quality_classifier import (
@@ -248,7 +247,10 @@ class TestModelQualityClassifier:
 
         forecast = classifier.predict_quality("qwen3-coder:30b")
 
-        if forecast.failure_mode == FailureMode.COHERENCE_DROP and forecast.failure_probability > 0.7:
+        if (
+            forecast.failure_mode == FailureMode.COHERENCE_DROP
+            and forecast.failure_probability > 0.7
+        ):
             assert forecast.recommendation is not None
             assert forecast.recommendation.action == RecommendedAction.SWITCH_MODEL
             assert len(forecast.recommendation.alternative_models) > 0

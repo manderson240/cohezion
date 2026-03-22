@@ -3,6 +3,7 @@ import logging
 
 from cohezion.swarm.controller_agent import ControllerAgent
 
+
 logging.basicConfig(level=logging.INFO)
 
 

@@ -192,11 +192,14 @@ class TestTeamOrchestratorExecute:
             MagicMock(name="TEST_SKILL", description="A test skill"),
         ]
 
-        with patch(
-            "cohezion.swarm.team_execution.TeamCompoundExecutor.execute_task",
-            new_callable=AsyncMock,
-            return_value=mock_task_result,
-        ), patch("cohezion.swarm.compound_client.get_compound_client"):
+        with (
+            patch(
+                "cohezion.swarm.team_execution.TeamCompoundExecutor.execute_task",
+                new_callable=AsyncMock,
+                return_value=mock_task_result,
+            ),
+            patch("cohezion.swarm.compound_client.get_compound_client"),
+        ):
             orch = TeamOrchestrator()
             orch._registry = mock_registry
             report = await orch.execute_team("test compound engineering", max_agents=2)

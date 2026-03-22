@@ -5,6 +5,7 @@ Skipped: the cohezion.journey module has been removed.
 
 import pytest
 
+
 pytestmark = pytest.mark.skip(reason="cohezion.journey module removed")
 
 

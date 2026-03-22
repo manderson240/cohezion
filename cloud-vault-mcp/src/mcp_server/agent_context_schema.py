@@ -11,6 +11,7 @@ from typing import Any
 
 import httpx
 
+
 logger = logging.getLogger(__name__)
 
 
@@ -112,7 +113,9 @@ class AgentContextSchema:
                 self._execute_query(full_query)
                 logger.info(f"Created table: {table_name}")
             except Exception as e:
-                logger.warning(f"Table creation note (may already exist): {table_name}: {e}")
+                logger.warning(
+                    f"Table creation note (may already exist): {table_name}: {e}"
+                )
 
     def _create_edge_tables(self) -> None:
         """Create 8 edge tables for relationships."""
@@ -134,7 +137,9 @@ class AgentContextSchema:
                 self._execute_query(full_query)
                 logger.info(f"Created edge table: {edge_name}")
             except Exception as e:
-                logger.warning(f"Edge creation note (may already exist): {edge_name}: {e}")
+                logger.warning(
+                    f"Edge creation note (may already exist): {edge_name}: {e}"
+                )
 
     def _create_indexes(self) -> None:
         """Create strategic indexes for common queries.
@@ -163,7 +168,7 @@ class AgentContextSchema:
               agent_name = 'test-agent',
               started_at = fn::now(),
               status = 'test',
-              context = {json.dumps({'model': 'test', 'test': True})};
+              context = {json.dumps({"model": "test", "test": True})};
 
             SELECT * FROM agent_session WHERE id == `{test_session_id}`;
             """

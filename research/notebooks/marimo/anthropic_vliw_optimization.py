@@ -1,5 +1,6 @@
 import marimo
 
+
 __generated_with = "0.10.15"
 app = marimo.App(width="medium")
 
@@ -7,6 +8,7 @@ app = marimo.App(width="medium")
 @app.cell
 def _():
     import marimo as mo
+
     return (mo,)
 
 
@@ -31,10 +33,10 @@ def _(mo):
             "Off",
             "Phase 1: The Scalar Bottleneck",
             "Phase 2: The Barrier Discovery",
-            "Phase 3: Bit-Exact Victory"
+            "Phase 3: Bit-Exact Victory",
         ],
         value="Off",
-        label="🔊 Agent Journey Narration"
+        label="🔊 Agent Journey Narration",
     )
     narrator
     return (narrator,)
@@ -47,7 +49,7 @@ def _(mo, narrator):
     scripts = {
         "Phase 1: The Scalar Bottleneck": "Phase One: The Scalar Bottleneck. We started with a naive reference implementation that processed items one by one. It was 360 times slower than our final target. Discovered: Scalar memory access patterns are the death of performance in VLIW. Escalating to Phase Two: Vectorization.",
         "Phase 2: The Barrier Discovery": "Phase Two: The Barrier Discovery. As we unrolled the loop to process 32 batches in parallel, we encountered 'Temporal Instruction Leakage'. The VLIW packer was scheduling next-round instructions before the current round's synchronization point. Solution: We implemented Data-Dependency Barriers to lock the pipeline state.",
-        "Phase 3: Bit-Exact Victory": "Phase Three: Bit-Exact Victory. The final kernel processes 256 items in parallel using merged register mapping. It passed the 16-round verification suite with zero bit errors. We have achieved maximum theoretical throughput within the 1.5 kilobyte scratch limit."
+        "Phase 3: Bit-Exact Victory": "Phase Three: Bit-Exact Victory. The final kernel processes 256 items in parallel using merged register mapping. It passed the 16-round verification suite with zero bit errors. We have achieved maximum theoretical throughput within the 1.5 kilobyte scratch limit.",
     }
 
     script = scripts.get(narrator.value, "")
@@ -79,11 +81,14 @@ def _(mo):
 
 @app.cell
 def _(mo):
-    mo.hstack([
-        mo.stat(value="8", label="SIMD Lanes", caption="VLEN=8 Synchronous"),
-        mo.stat(value="1.5 KB", label="Scratchpad", caption="High Pressure"),
-        mo.stat(value="360x", label="Target Speedup", caption="Over Scalar")
-    ], justify="space-around")
+    mo.hstack(
+        [
+            mo.stat(value="8", label="SIMD Lanes", caption="VLEN=8 Synchronous"),
+            mo.stat(value="1.5 KB", label="Scratchpad", caption="High Pressure"),
+            mo.stat(value="360x", label="Target Speedup", caption="Over Scalar"),
+        ],
+        justify="space-around",
+    )
     return
 
 
@@ -111,7 +116,9 @@ def _(mo):
 
 @app.cell
 def _(mo):
-    batch_slider = mo.ui.slider(start=8, stop=256, step=8, value=256, label="Item Batch Size (n=8k)")
+    batch_slider = mo.ui.slider(
+        start=8, stop=256, step=8, value=256, label="Item Batch Size (n=8k)"
+    )
     batch_slider
     return (batch_slider,)
 
@@ -127,7 +134,7 @@ def _(batch_slider, mo):
         value=f"{int(cycles_per_item * batch_slider.value)}",
         label="Total Cycles",
         caption=f"{cycles_per_item:.2f} cycles/item",
-        direction="decrease"
+        direction="decrease",
     )
     return (cycles_per_item, items, verified_cycles)
 
@@ -171,10 +178,12 @@ class SimpleKernelBuilder:
         # ... Implementation details ...
 """
 
-    mo.tabs({
-        "Verified Kernel Code": mo.Code(BUILDER_CODE),
-        "Key Architectural Learnings": mo.md(LEARNINGS_CONTENT)
-    })
+    mo.tabs(
+        {
+            "Verified Kernel Code": mo.Code(BUILDER_CODE),
+            "Key Architectural Learnings": mo.md(LEARNINGS_CONTENT),
+        }
+    )
     return (BUILDER_CODE, LEARNINGS_CONTENT)
 
 

@@ -5,14 +5,14 @@ Tests pattern usage analysis, similarity-based suggestions,
 and impact summary statistics.
 """
 
+from unittest.mock import patch
+
 import pytest
-from pathlib import Path
-from unittest.mock import AsyncMock, MagicMock, patch
 
 from mcp_server.graphrag_pattern_detector import (
     PatternDetector,
-    PatternUsage,
     PatternSuggestion,
+    PatternUsage,
 )
 
 
@@ -153,7 +153,10 @@ async def test_suggest_patterns_finds_similar_docs(mock_execute, pattern_detecto
     suggestions = await pattern_detector.suggest_patterns(min_similarity=0.7)
 
     assert len(suggestions) > 0
-    assert "testing" in suggestions[0].common_themes or "isolation" in suggestions[0].common_themes
+    assert (
+        "testing" in suggestions[0].common_themes
+        or "isolation" in suggestions[0].common_themes
+    )
 
 
 @pytest.mark.asyncio

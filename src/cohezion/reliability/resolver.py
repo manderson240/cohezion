@@ -25,9 +25,7 @@ class HallucinationResolver:
         corrections = {}
 
         # 1. Check for Hardware Hallucinations (e.g. Framework 16 vs Ryzen AI Max)
-        if "Framework 16" in text and "AMD RYZEN AI MAX+" not in self.ground_truth.get(
-            "cpu", ""
-        ):
+        if "Framework 16" in text and "AMD RYZEN AI MAX+" not in self.ground_truth.get("cpu", ""):
             # This is a bit of a nuance: if the user CALLS it a Framework 16, it might be fine,
             # but if the agent CLAIMS specs optimized for it without checking, it's a flag.
             pass

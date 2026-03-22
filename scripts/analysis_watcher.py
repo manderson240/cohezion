@@ -26,6 +26,7 @@ from pathlib import Path
 
 import httpx
 
+
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s | %(levelname)-7s | %(name)s | %(message)s",
@@ -342,9 +343,7 @@ def _extract_rows(result: list) -> list[dict]:
 async def discover_latest_run(db) -> str | None:
     """Find the most recent mass_sim_run in SurrealDB."""
     try:
-        result = await db.query(
-            "SELECT id FROM mass_sim_run ORDER BY created_at DESC LIMIT 1"
-        )
+        result = await db.query("SELECT id FROM mass_sim_run ORDER BY created_at DESC LIMIT 1")
         rows = _extract_rows(result) if result and isinstance(result, list) else []
         if rows:
             run_id = rows[0].get("id", "")
@@ -537,9 +536,7 @@ async def run_watcher(run_id: str) -> None:
 
                         # Persist
                         try:
-                            await store_narrative(
-                                db, run_id, summary.universe_id, narrative
-                            )
+                            await store_narrative(db, run_id, summary.universe_id, narrative)
                             total_narratives += 1
                             consecutive_failures = 0
                             logger.info(

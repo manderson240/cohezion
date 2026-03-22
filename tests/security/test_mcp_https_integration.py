@@ -5,7 +5,6 @@ import tempfile
 from pathlib import Path
 from unittest.mock import patch
 
-import pytest
 from starlette.applications import Starlette
 from starlette.responses import PlainTextResponse
 from starlette.testclient import TestClient
@@ -73,9 +72,7 @@ class TestMCPHTTPSIntegration:
         base_app.add_route("/resources/read", api_endpoint)
 
         # Create TLS config
-        config = TLSConfig(
-            allowed_origins=["https://localhost", "https://127.0.0.1"]
-        )
+        config = TLSConfig(allowed_origins=["https://localhost", "https://127.0.0.1"])
 
         # Wrap with HTTPS middleware
         app = create_https_app(base_app, config, allow_http_localhost=True)
@@ -121,10 +118,7 @@ class TestMCPHTTPSIntegration:
             headers={"origin": "https://app.example.com"},
         )
         assert response.status_code == 200
-        assert (
-            response.headers.get("Access-Control-Allow-Origin")
-            == "https://app.example.com"
-        )
+        assert response.headers.get("Access-Control-Allow-Origin") == "https://app.example.com"
 
         # Request from disallowed origin
         response = client.get(
@@ -211,9 +205,7 @@ class TestMCPHTTPSIntegration:
         base_app.add_route("/", endpoint)
 
         config = TLSConfig()
-        app = HTTPSEnforcementMiddleware(
-            base_app, config, allow_http_localhost=False
-        )
+        app = HTTPSEnforcementMiddleware(base_app, config, allow_http_localhost=False)
 
         client = TestClient(app)
 
@@ -265,9 +257,9 @@ class TestMCPHTTPSIntegration:
         for header, expected_value in required_headers.items():
             assert header in response.headers, f"Missing header: {header}"
             if expected_value:
-                assert (
-                    expected_value in response.headers[header]
-                ), f"Header {header} missing expected value"
+                assert expected_value in response.headers[header], (
+                    f"Header {header} missing expected value"
+                )
 
 
 class TestMCPEnvironmentConfiguration:
@@ -275,17 +267,13 @@ class TestMCPEnvironmentConfiguration:
 
     def test_tls_cert_path_from_env(self):
         """Test that TLS certificate path is read from environment."""
-        with patch.dict(
-            os.environ, {"TLS_CERT_PATH": "/etc/ssl/certs/server.crt"}
-        ):
+        with patch.dict(os.environ, {"TLS_CERT_PATH": "/etc/ssl/certs/server.crt"}):
             cert_path = os.environ.get("TLS_CERT_PATH", "")
             assert cert_path == "/etc/ssl/certs/server.crt"
 
     def test_tls_key_path_from_env(self):
         """Test that TLS key path is read from environment."""
-        with patch.dict(
-            os.environ, {"TLS_KEY_PATH": "/etc/ssl/private/server.key"}
-        ):
+        with patch.dict(os.environ, {"TLS_KEY_PATH": "/etc/ssl/private/server.key"}):
             key_path = os.environ.get("TLS_KEY_PATH", "")
             assert key_path == "/etc/ssl/private/server.key"
 
@@ -293,9 +281,7 @@ class TestMCPEnvironmentConfiguration:
         """Test that TLS allowed origins are read from environment."""
         origins_str = "https://app.example.com,https://api.example.com"
         with patch.dict(os.environ, {"TLS_ALLOWED_ORIGINS": origins_str}):
-            origins = (
-                os.environ.get("TLS_ALLOWED_ORIGINS", "").split(",")
-            )
+            origins = os.environ.get("TLS_ALLOWED_ORIGINS", "").split(",")
             assert len(origins) == 2
             assert "https://app.example.com" in origins
             assert "https://api.example.com" in origins

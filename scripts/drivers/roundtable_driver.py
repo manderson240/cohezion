@@ -10,6 +10,7 @@ import sys
 from datetime import datetime, timedelta
 from pathlib import Path
 
+
 # Add src to path
 sys.path.append(str(Path(__file__).parents[2] / "src"))
 
@@ -33,9 +34,7 @@ class LocalAgent:
         self.role = role
         self.model = model
 
-    async def speak(
-        self, conversation_history: str, specific_instruction: str = None
-    ) -> str:
+    async def speak(self, conversation_history: str, specific_instruction: str = None) -> str:
         instruction = (
             specific_instruction
             or f"""
@@ -84,9 +83,7 @@ class Roundtable:
         self.agents = [
             LocalAgent("DeepSeek-R1", "Architect & Logic Master", "deepseek-r1:70b"),
             LocalAgent("GPT-OSS", "Lateral Thinker & Visionary", "gpt-oss:120b"),
-            LocalAgent(
-                "Qwen3-Coder", "Technical Implementation Expert", "qwen3-coder:30b"
-            ),
+            LocalAgent("Qwen3-Coder", "Technical Implementation Expert", "qwen3-coder:30b"),
             LocalAgent("Mistral", "Critical Reviewer", "mistral:7b"),
         ]
 
@@ -105,7 +102,7 @@ class Roundtable:
 
     async def run_session(self):
         logger.info(
-            f"🚀 Starting Roundtable Session. Duration: {(self.end_time - self.start_time).total_seconds()/3600:.1f}h"
+            f"🚀 Starting Roundtable Session. Duration: {(self.end_time - self.start_time).total_seconds() / 3600:.1f}h"
         )
 
         topic = "Topic: Formulate a concrete, implementable Python prototype for a 'Quantum-Fluid Information Field (QFIF)' system that enhances Cohezion's autonomous optimization capabilities."

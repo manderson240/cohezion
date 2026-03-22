@@ -7,11 +7,8 @@ Tests focus on:
 - End-to-end cache promotion workflow (L0→L1→L2)
 """
 
-import asyncio
-import json
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
-import numpy as np
 import pytest
 
 from cohezion.cache.redis_cache import RedisSemanticCache
@@ -83,6 +80,7 @@ class TestDistributedL0Tier:
         # Both can compute same L0 key for same input
         prompt = "test prompt"
         import hashlib
+
         full_prompt = f"\n{prompt}\n"
         hash_key = hashlib.sha256(full_prompt.encode()).hexdigest()[:16]
 
@@ -125,6 +123,7 @@ class TestWarmCacheScenario:
 
         # Time L1 hit
         import time
+
         start = time.perf_counter()
         result = await cache.get("warm prompt")
         elapsed_ms = (time.perf_counter() - start) * 1000
@@ -383,6 +382,7 @@ class TestEndToEndDistributedWorkflow:
         # Instance 2 would read from Redis in real scenario
         # Here we just verify key generation matches
         import hashlib
+
         prompt = "distributed question"
         full_prompt = f"\n{prompt}\n"
         hash_key = hashlib.sha256(full_prompt.encode()).hexdigest()[:16]
@@ -444,11 +444,13 @@ class TestRedisConnectionRetryIntegration:
     """Integration tests for Redis connection retry logic."""
 
     def test_connection_retry_does_not_block_cache(self):
-        """Test connection retries don't block cache operations."""
+        """Test connection retries don't block cache operations when retries exhausted."""
         cache = RedisSemanticCache(enable_redis=True)
+        # Force unavailable state and exhaust retries to test the retry-limit path
+        cache._redis_available = False
         cache._redis_connection_attempts = cache._redis_max_retries
 
-        # Should mark as unavailable but not crash
+        # Should return False when retries exhausted and unavailable
         result = cache._ensure_redis_connection()
         assert result is False
 
