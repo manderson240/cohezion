@@ -1,0 +1,270 @@
+Implement the following plan:
+
+# Plan: Custom Triton Kernel Development — Luma AMD Speedrun
+
+## Context
+
+Parameter tuning is exhausted across all 3 kernels (confirmed over 20+ experiments across sessions 2-3). The autoresearch infrastructure (K-Search tree, driver, code synthesizer, evaluator) is fully built and operational — but its templates only generate parameter-tuning variants of `fused_moe`/`gemm_a4w4`/`mla_decode_fwd`. To break through API ceilings, we need **custom Triton kernel templates** that the K-Search driver can parameterize and evolve via LLM synthesis.
+
+**Competition deadline**: March 30, 2026 (8 days remaining)
+**Rate limit**: 10 test/benchmark per hour, 1 leaderboard per hour per kernel
+
+### Current State
+
+| Kernel | Ranked µs | Leader µs | Gap | API Ceiling Confirmed |
+|--------|-----------|-----------|-----|-----------------------|
+| MoE | 186.0 | 145 | 1.28x | CSV tuning exhaustive, all params tried |
+| GEMM | 24.4 | 9.7 | 2.51x | ~16µs quant overhead dominates |
+| MLA | 90.1 | 4.3 | 20.9x | Python dispatch floor ~30µs |
+
+### Why Custom Kernels Now
+
+Previous custom Triton was 68% slower (MoE) or ~35µs (GEMM). But those attempts lacked:
+- **MoE**: Persistent-tile scheduling + fused permutation + `tl.dot_scaled` (never combined)
+- **GEMM**: Inline bf16→fp4 quantization fused into GEMM (eliminates 16µs quant kernel)
+- **MLA**: Flash Attention-style fused tiling (eliminates 3-stage pipeline overhead)
+
+---
+
+## Phase 1: GEMM — Fused Quant+GEMM Triton Kernel
+
+**Target**: Beat 24.4µs ranked by eliminating the separate `dynamic_mxfp4_quant` call (~16µs).
+
+### Task 1.1: Create `gemm_fused_template.py`
+
+New autoresearch template that generates a Triton kernel fusing:
+1. Inline bf16→fp4 e2m1 quantization (using patterns from `triton-fp4-inline-quantization` skill)
+2. `tl.dot_scaled` GEMM (using constraints from `amd-gfx950-tl-dot-scaled-constraints` skill)
+3. B data reused from input (no re-quantization — B is already MXFP4)
+
+**Parameterizable axes** (for K-Search tree):
+- `BLOCK_M`: [16, 32, 64] (min 16 for gfx950)
+- `BLOCK_N`: [32, 64, 128]
+- `BLOCK_K`: [64, 128] (packed bytes, min 64 for `tl.dot_scaled`)
+- `num_warps`: [4, 8]
+- `num_stages`: [1, 2, 3]
+
+**Key files to modify**:
+- Create: `autoresearch/templates/gemm_fused_template.py`
+- Modify: `autoresearch/generator.py` (register new template)
+
+**Critical constraints** (from skills):
+- BLOCK_M ≥ 16 (silent wrong results below)
+- BLOCK_K ≥ 64 packed bytes (assertion failure below)
+- RHS scale must be `[BLOCK_N, SCALE_PER_K]` (N-first)
+- E8M0 formula: `floor(log2(amax / 6.0)) + 128` (NOT `floor(log2(amax)) + 127`)
+- Nibble packing: sum-as-OR trick (no integer indexing in Triton)
+
+### Task 1.2: Seed GEMM K-Search tree with fused strategies
+
+Add nodes to `autoresearch/tree/gemm_tree.json`:
+- `"Fused quant+GEMM: BLOCK_M=16, BLOCK_N=64, BLOCK_K=64"` (small shapes)
+- `"Fused quant+GEMM: BLOCK_M=64, BLOCK_N=128, BLOCK_K=128"` (large shapes)
+- `"Per-shape fused: use fused for small M, aiter for large M"` (hybrid)
+
+### Task 1.3: Test fused kernel manually first
+
+Before enabling autoresearch, hand-test one variant via popcorn-cli to validate correctness. The fused kernel MUST pass all 4 GEMM test shapes.
+
+---
+
+## Phase 2: MoE — Persistent-Tile Triton Kernel
+
+**Target**: Beat 186µs ranked with a single Triton kernel that fuses sorting + GEMM.
+
+### Task 2.1: Create `moe_triton_template.py`
+
+New template generating a persistent-tile MoE kernel inspired by Unsloth grouped GEMM (AGPL-3.0 — study architecture only, write original code):
+
+1. **Persistent-tile loop**: Single kernel launch iterates over all experts
+2. **Fused permutation**: `gather_indices` loaded per-tile (PERMUTE_X pattern)
+3. **`tl.dot_scaled`**: Native MXFP4 GEMM on gfx950
+4. **Two-stage**: gate_up (SiLU activation fused) + down projection
+
+**Parameterizable axes**:
+- `BLOCK_M`: [32, 64, 128]
+- `BLOCK_N`: [32, 64, 128]
+- `BLOCK_K`: [64, 128]
+- `FUSE_PERMUTE`: [True, False] (fuse vs separate sorting)
+- `num_warps`: [4, 8]
+
+**Architecture sketch** (NOT copied from Unsloth — original implementation):
+```
+@triton.jit
+def moe_fused_kernel(
+    hidden_ptr, gate_up_ptr, down_ptr, output_ptr,
+    sorted_ids_ptr, expert_offsets_ptr, topk_weights_ptr,
+    gate_up_scale_ptr, down_scale_ptr,
+    ...  # strides, dims
+    BLOCK_M, BLOCK_N, BLOCK_K,
+):
+    pid = tl.program_id(0)
+    # Persistent tile: find which expert and which tile within expert
+    expert_id, local_tile_id = find_tile(pid, expert_offsets_ptr, ...)
+    # Load sorted token indices for this expert's tile
+    token_indices = tl.load(sorted_ids_ptr + expert_offset + ...)
+    # Gate-up GEMM with tl.dot_scaled (MXFP4)
+    # Apply SiLU activation
+    # Down GEMM with tl.dot_scaled
+    # Weighted accumulate to output via topk_weights
+```
+
+### Task 2.2: Seed MoE K-Search tree with Triton strategies
+
+Add nodes for persistent-tile variants with different tile configs.
+
+### Task 2.3: Hand-test one variant
+
+Test correctness via popcorn-cli before enabling autoresearch.
+
+---
+
+## Phase 3: MLA — Flash Attention-Style Triton Kernel
+
+**Target**: Moonshot — any improvement over 90.1µs. Eliminate 3-stage pipeline overhead.
+
+### Task 3.1: Create `mla_flash_template.py`
+
+Single-pass Flash Attention kernel adapted for MLA's K≠V dimensions:
+- Q: [bs, num_heads, 576] (QK dimension)
+- K: [total_kv, 576] (FP8 packed)
+- V: [total_kv, 512] (V dimension, embedded in K)
+- Output: [bs, num_heads, 512]
+
+**Key challenge**: MLA has 576-dim QK but 512-dim V. Standard Flash Attention assumes QK_DIM == V_DIM. We need to:
+1. Compute attention scores with Q·K^T (576-dim)
+2. Apply softmax
+3. Multiply attention × V (512-dim subset)
+
+**Triton constraint**: 576 is NOT power-of-2. Must pad to 1024 for `tl.arange` (44% waste in registers).
+
+**Parameterizable axes**:
+- `BLOCK_KV`: [32, 64, 128] (KV sequence tiles)
+- `num_warps`: [4, 8, 16]
+- `num_stages`: [1, 2]
+
+### Task 3.2: Seed MLA K-Search tree
+
+Add flash-attention-style strategy nodes.
+
+### Task 3.3: Hand-test correctness
+
+MLA has relaxed tolerance (rtol=1e-1) — so FP8/approximation errors are acceptable.
+
+---
+
+## Phase 4: Autoresearch Integration & Launch
+
+### Task 4.1: Update `research_strategy.md`
+
+Replace parameter-tuning focus with custom kernel priorities:
+```
+- GEMM (40%): Fused quant+GEMM Triton — eliminates 16µs quant overhead
+- MoE (40%): Persistent-tile Triton with fused permutation — eliminates dispatch overhead
+- MLA (20%): Flash Attention Triton — eliminates 3-stage pipeline
+```
+
+### Task 4.2: Update `code_synthesizer.py` prompts
+
+Ensure the LLM code synthesis prompt includes:
+- The custom Triton kernel as a base to modify (not just parameter tables)
+- The gfx950 constraints (BLOCK_M≥16, BLOCK_K≥64, scale layout)
+- Dead ends to avoid
+
+### Task 4.3: Run autoresearch driver
+
+```bash
+cd research/challenges/luma_amd_speedrun/autoresearch
+uv run python driver.py --max-cycles 100
+```
+
+Monitor: tail JSONL logs, check for improvements, submit to leaderboard on confirmed gains.
+
+---
+
+## Dead Ends (DO NOT retry)
+
+### Runner Constraints (hard blockers)
+- **HIP compilation**: blocked by runner source scanning (`hipModuleLaunchKernel`, `hiprtc`, `load_inline`)
+- **Multi-file submissions**: runner only uploads `submission.py`
+- **torch.compile**: crashes on ROCm 7.1 (`auto_functionalized_v2`)
+
+### Parameter Tuning (exhausted — do not re-explore)
+- MoE: KSPLIT bypass, OPUS sorting, block_size_M, conditional KSPLIT, all env vars
+- GEMM: log2_ks, gemm_a4w4_asm, gemm_afp4wfp4, bpreshuffle=False, skip e8m0_shuffle
+- MLA: BYPASS_TUNE, USE_NT, kv_granularity (8/16/32), expanded splits, halved splits
+
+### Custom Kernel Previous Attempts
+- Triton MoE v2/v3: IndexError (scale dimension mismatch) — **but didn't use `tl.dot_scaled`**
+- Triton GEMM: 35µs achievable but quant overhead not fused — **path still open**
+- `float4_e2m1fn_x2` in Triton JIT: KeyError — **use uint8 views instead**
+
+## Key Files
+
+| File | Purpose |
+|------|---------|
+| `autoresearch/templates/gemm_fused_template.py` | **NEW**: Fused quant+GEMM Triton |
+| `autoresearch/templates/moe_triton_template.py` | **NEW**: Persistent-tile MoE Triton |
+| `autoresearch/templates/mla_flash_template.py` | **NEW**: Flash Attention MLA Triton |
+| `autoresearch/driver.py` | K-Search experiment loop (existing, working) |
+| `autoresearch/code_synthesizer.py` | LLM code generation (existing, working) |
+| `autoresearch/generator.py` | Template instantiation (modify: register new templates) |
+| `autoresearch/tree/{moe,gemm,mla}_tree.json` | K-Search trees (modify: seed new nodes) |
+| `autoresearch/research_strategy.md` | Human-editable strategy (modify: custom kernel focus) |
+| `kernels/*/submission.py` | Active submissions (update on improvement) |
+
+### Skill References (read before implementing)
+| Skill | Critical Info |
+|-------|--------------|
+| `amd-gfx950-tl-dot-scaled-constraints` | BLOCK_M≥16, BLOCK_K≥64, RHS scale [N, K//16] |
+| `triton-fp4-inline-quantization` | E8M0 formula, nibble packing, 3D indexing ban |
+| `k-search-llm-kernel-optimization` | Tree structure, action space, world model |
+| `competitive-kernel-optimization-ceiling` | Two Builders pattern |
+| `helion-triton-code-generation` | Local code gen workflow (CPU only) |
+
+## Verification
+
+1. **Hand-test each new kernel template** via popcorn-cli `--mode test` before autoresearch
+2. **Benchmark** passing kernels to establish baseline for custom Triton approach
+3. **Autoresearch** loop: driver handles test→benchmark→leaderboard automatically
+4. **Leaderboard** only on confirmed improvement vs ranked (driver enforces rate limit)
+5. **JSONL logs**: `autoresearch/results/{kernel}_runs.jsonl` tracks all experiments
+
+
+If you need specific details from before exiting plan mode (like exact code snippets, error messages, or content you generated), read the full transcript at: /home/mike-anderson/.claude/projects/-home-mike-anderson-dev-cohezion/9e877234-e5bd-4758-bea4-0c0d0e6d5637.jsonl
+
+If this plan can be broken down into multiple independent tasks, consider using the TeamCreate tool to create a team and parallelize the work.
+
+---
+
+<task-notification>
+<task-id>bvxk2tagb</task-id>
+<tool-use-id>toolu_01JbXapjThKocZPVMTuiEhEB</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/372cbc1b-32c1-4d7a-b071-c206e9699dbc/tasks/bvxk2tagb.output</output-file>
+<status>completed</status>
+<summary>Background command "Find skill files in luma challenge dirs" completed (exit code 0)</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/372cbc1b-32c1-4d7a-b071-c206e9699dbc/tasks/bvxk2tagb.output
+
+---
+
+<task-notification>
+<task-id>bfuqmnyya</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/372cbc1b-32c1-4d7a-b071-c206e9699dbc/tasks/bfuqmnyya.output</output-file>
+<status>completed</status>
+<summary>Background command "Search globally for AMD/Triton skill files" completed (exit code 0)</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/372cbc1b-32c1-4d7a-b071-c206e9699dbc/tasks/bfuqmnyya.output
+
+---
+
+Can you run it?
+
+---
+
+Let's refine our plan to continue with breakthrough approaches.  Let's try some submissions if you think they are significantly better.
+
+---
+
+[Request interrupted by user for tool use]
