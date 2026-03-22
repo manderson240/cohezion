@@ -15,9 +15,11 @@ dependencies = [
     "watchdog>=4.0",
     "anthropic>=0.40.0",
     "httpx>=0.27.0",
+    "filelock>=3.12.0",
     "pocket-tts>=0.1.0",
     "torch>=2.0.0",
     "torchaudio>=2.0.0",
+    "psutil>=7.2.2",
 ]
 
 [project.optional-dependencies]
@@ -100,3 +102,9 @@ warn_unused_ignores = true
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 testpaths = ["tests"]
+
+[dependency-groups]
+dev = [
+    "pytest>=9.0.2",
+    "pytest-asyncio>=1.3.0",
+]

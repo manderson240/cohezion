@@ -10,6 +10,7 @@ from .compound_ops import CompoundOps
 from .config import ServerConfig
 from .health import HealthChecker
 from .memory_bridge import VaultMemoryBridge
+from .memory_store import MemoryStore
 from .obsidian_ops import ObsidianOps
 from .sheets_bridge import SheetsBridge
 from .surrealdb_sync import SurrealDBSync
@@ -27,6 +28,9 @@ def create_server(config: ServerConfig) -> FastMCP:
     compound = CompoundOps(vault, obsidian)
     teleport = CloudTeleportProtocol(vault)
     memory_bridge = VaultMemoryBridge(vault)
+    memory_store = MemoryStore(
+        jsonl_path=config.vault_path / "memory" / "observations.jsonl"
+    )
 
     sheets: SheetsBridge | None = None
     if config.sheets_enabled:
@@ -852,5 +856,129 @@ def create_server(config: ServerConfig) -> FastMCP:
 
     except ImportError:
         logger.warning("Pocket TTS not available (pip install pocket-tts)")
+
+    # ── Persistent Memory (JSONL observation log) ──────────────────────
+    # These tools store cross-session observations in a searchable JSONL file.
+    # Distinction from vault_push_memory: memory_* tools maintain an ID-based
+    # observation log; vault_push_memory syncs MEMORY.md to vault sections.
+
+    @mcp.tool()
+    async def memory_search(
+        query: str,
+        limit: int = 20,
+        type: str = "",
+        project: str = "",
+        dateStart: str = "",
+        dateEnd: str = "",
+    ) -> str:
+        """Search past observations by text (Step 1 of 3-layer workflow).
+
+        Returns index entries (id, title, timestamp, snippet) for token
+        efficiency. Use memory_get with specific IDs to fetch full details.
+
+        Args:
+            query: Case-insensitive substring to match in text or title.
+            limit: Maximum results to return (default 20).
+            type: Filter by type: bugfix, feature, refactor, discovery,
+                decision, change. Empty = no filter.
+            project: Filter by project name. Empty = no filter.
+            dateStart: ISO 8601 timestamp; include entries on/after this date.
+            dateEnd: ISO 8601 timestamp; include entries on/before this date.
+
+        Returns:
+            JSON array of index entries ordered newest-first.
+        """
+        import asyncio
+
+        results = await asyncio.to_thread(
+            memory_store.search,
+            query,
+            limit=limit,
+            type=type,
+            project=project,
+            dateStart=dateStart,
+            dateEnd=dateEnd,
+        )
+        return json.dumps(results, indent=2)
+
+    @mcp.tool()
+    async def memory_save(
+        text: str,
+        title: str = "",
+        project: str = "cohezion",
+        type: str = "discovery",
+    ) -> str:
+        """Save a new observation to the persistent memory log.
+
+        Args:
+            text: Observation text (required).
+            title: Short title for index display.
+            project: Project name for filtering (default "cohezion").
+            type: One of: bugfix, feature, refactor, discovery, decision,
+                change (default "discovery").
+
+        Returns:
+            JSON with the new observation's id and timestamp.
+        """
+        import asyncio
+
+        try:
+            new_id = await asyncio.to_thread(
+                memory_store.save, text, title=title, project=project, type=type
+            )
+            return json.dumps({"id": new_id, "status": "saved"})
+        except ValueError as e:
+            return json.dumps({"error": str(e)})
+
+    @mcp.tool()
+    async def memory_get(ids: list[int]) -> str:
+        """Fetch full observation details by ID list (Step 3 of 3-layer workflow).
+
+        Args:
+            ids: List of integer observation IDs from memory_search results.
+
+        Returns:
+            JSON array of full observation objects. Missing IDs are omitted.
+        """
+        import asyncio
+
+        entries = await asyncio.to_thread(memory_store.get, ids)
+        return json.dumps(entries, indent=2)
+
+    @mcp.tool()
+    async def memory_timeline(
+        anchor: int | None = None,
+        query: str = "",
+        depth_before: int = 5,
+        depth_after: int = 5,
+    ) -> str:
+        """Get chronological context around an anchor observation (Step 2).
+
+        Either ``anchor`` (an ID from memory_search) or ``query`` is required.
+        If both are provided, ``anchor`` takes precedence.
+
+        Args:
+            anchor: Observation ID to use as the chronological centre.
+            query: If anchor is None, finds the most recent matching
+                observation and uses it as the centre.
+            depth_before: Observations to include before the anchor.
+            depth_after: Observations to include after the anchor.
+
+        Returns:
+            JSON array of observations ordered chronologically.
+        """
+        import asyncio
+
+        try:
+            entries = await asyncio.to_thread(
+                memory_store.timeline,
+                anchor=anchor,
+                query=query,
+                depth_before=depth_before,
+                depth_after=depth_after,
+            )
+            return json.dumps(entries, indent=2)
+        except ValueError as e:
+            return json.dumps({"error": str(e)})
 
     return mcp
