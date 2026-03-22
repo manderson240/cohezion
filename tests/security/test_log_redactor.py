@@ -215,8 +215,13 @@ class TestRedactionFilterTypePreservation:
         """Integer args must stay int so %d format works."""
         f = RedactionFilter()
         record = logging.LogRecord(
-            name="test", level=logging.WARNING, pathname="", lineno=0,
-            msg="Processed %d items in %d seconds", args=(42, 7), exc_info=None,
+            name="test",
+            level=logging.WARNING,
+            pathname="",
+            lineno=0,
+            msg="Processed %d items in %d seconds",
+            args=(42, 7),
+            exc_info=None,
         )
         f.filter(record)
         assert record.args == (42, 7), f"int args corrupted to {record.args}"
@@ -227,8 +232,13 @@ class TestRedactionFilterTypePreservation:
         """Float args must stay float so %.2f format works."""
         f = RedactionFilter()
         record = logging.LogRecord(
-            name="test", level=logging.INFO, pathname="", lineno=0,
-            msg="Coherence: %.2f, drift: %.4f", args=(0.87, 0.0012), exc_info=None,
+            name="test",
+            level=logging.INFO,
+            pathname="",
+            lineno=0,
+            msg="Coherence: %.2f, drift: %.4f",
+            args=(0.87, 0.0012),
+            exc_info=None,
         )
         f.filter(record)
         assert record.args == (0.87, 0.0012), f"float args corrupted to {record.args}"
@@ -238,14 +248,17 @@ class TestRedactionFilterTypePreservation:
         """Mixed type args: only strings get redacted, others stay unchanged."""
         f = RedactionFilter()
         record = logging.LogRecord(
-            name="test", level=logging.INFO, pathname="", lineno=0,
+            name="test",
+            level=logging.INFO,
+            pathname="",
+            lineno=0,
             msg="User %s completed %d tasks (score: %.1f)",
             args=("alice", 5, 98.6),
             exc_info=None,
         )
         f.filter(record)
         assert isinstance(record.args[0], str)  # string stays string
-        assert isinstance(record.args[1], int)   # int stays int
+        assert isinstance(record.args[1], int)  # int stays int
         assert isinstance(record.args[2], float)  # float stays float
         assert record.getMessage() == "User alice completed 5 tasks (score: 98.6)"
 
@@ -253,7 +266,10 @@ class TestRedactionFilterTypePreservation:
         """String args with secrets get redacted, but type stays str."""
         f = RedactionFilter()
         record = logging.LogRecord(
-            name="test", level=logging.INFO, pathname="", lineno=0,
+            name="test",
+            level=logging.INFO,
+            pathname="",
+            lineno=0,
             msg="Config: %s, count: %d",
             args=("api_key=secret123", 10),
             exc_info=None,
@@ -268,8 +284,13 @@ class TestRedactionFilterTypePreservation:
         """None args should not crash the filter."""
         f = RedactionFilter()
         record = logging.LogRecord(
-            name="test", level=logging.INFO, pathname="", lineno=0,
-            msg="No args message", args=None, exc_info=None,
+            name="test",
+            level=logging.INFO,
+            pathname="",
+            lineno=0,
+            msg="No args message",
+            args=None,
+            exc_info=None,
         )
         f.filter(record)
         assert record.args is None
@@ -278,7 +299,10 @@ class TestRedactionFilterTypePreservation:
         """Dict args: only string values get redacted."""
         f = RedactionFilter()
         record = logging.LogRecord(
-            name="test", level=logging.INFO, pathname="", lineno=0,
+            name="test",
+            level=logging.INFO,
+            pathname="",
+            lineno=0,
             msg="%(name)s processed %(count)d items",
             args={"name": "worker-1", "count": 42},
             exc_info=None,

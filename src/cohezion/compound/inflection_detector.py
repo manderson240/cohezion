@@ -119,9 +119,7 @@ class InflectionDetector:
                     len(self.coherence_history) - 1
                 )
                 if previous_avg > 0 and current < previous_avg * 0.8:  # 20% drop
-                    issues.append(
-                        f"Coherence trend down: {current:.2f} < {previous_avg:.2f}"
-                    )
+                    issues.append(f"Coherence trend down: {current:.2f} < {previous_avg:.2f}")
                     score *= 0.7
 
         # Check token efficiency (if token_metrics available)
@@ -153,8 +151,7 @@ class InflectionDetector:
             severity = Severity.CRITICAL
             if f"Failure streak: {self.consecutive_failures}" not in str(issues):
                 issues.append(
-                    f"Failure streak: {self.consecutive_failures} "
-                    f">= {self.failure_streak_limit}"
+                    f"Failure streak: {self.consecutive_failures} >= {self.failure_streak_limit}"
                 )
             score = min(score, 0.2)  # Very low score
         elif len(issues) > 0 and score < 0.6:

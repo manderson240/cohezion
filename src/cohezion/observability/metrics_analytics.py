@@ -263,9 +263,7 @@ class MetricsAnalytics:
         # Weight each component
         cache_score = (cache_stats["total_hit_rate_avg"] / 100.0) * 0.35
         token_score = min((token_stats["tokens_per_sec"] / 155.0), 1.0) * 0.35
-        guardrail_score = (
-            1.0 - min(guardrail_stats["block_rate_percent"] / 10.0, 1.0)
-        ) * 0.15
+        guardrail_score = (1.0 - min(guardrail_stats["block_rate_percent"] / 10.0, 1.0)) * 0.15
         resource_score = (
             1.0 - (min(resource_stats["memory_utilization_percent"] / 100.0, 1.0))
         ) * 0.15

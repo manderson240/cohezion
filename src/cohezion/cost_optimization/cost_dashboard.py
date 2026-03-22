@@ -139,9 +139,7 @@ class CostDashboard:
                 breakdown.cost_by_model[model] = cost
 
         if hasattr(self.cost_tracker, "token_count"):
-            breakdown.tokens_by_model["all_models"] = session_cost.get(
-                "total_tokens", 0
-            )
+            breakdown.tokens_by_model["all_models"] = session_cost.get("total_tokens", 0)
 
         return breakdown
 
@@ -258,9 +256,7 @@ class CostDashboard:
 
         # Keep only recent history
         cutoff_time = time.time() - (self.history_window_hours * 60 * 60)
-        self.trend_history = [
-            t for t in self.trend_history if t.timestamp >= cutoff_time
-        ]
+        self.trend_history = [t for t in self.trend_history if t.timestamp >= cutoff_time]
 
     def get_cost_by_model_pie_chart(self) -> dict[str, float]:
         """Get cost distribution by model for pie chart visualization.

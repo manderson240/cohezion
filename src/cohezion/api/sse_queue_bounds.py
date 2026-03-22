@@ -122,9 +122,7 @@ async def safe_queue_put(queue: asyncio.Queue, item: Any, max_retries: int = 3) 
             if attempt < max_retries - 1:
                 await asyncio.sleep(0.01 * (2**attempt))  # Exponential backoff
             else:
-                logger.warning(
-                    f"Failed to queue item after {max_retries} retries (queue full)"
-                )
+                logger.warning(f"Failed to queue item after {max_retries} retries (queue full)")
                 return False
 
     return False

@@ -30,9 +30,7 @@ def mock_mcp_client():
 @pytest.fixture
 def mock_vault_logger():
     """Patch VaultExecutionLogger to avoid real vault calls."""
-    with patch(
-        "cohezion.compound.exp_persistence.vault.VaultLogger"
-    ) as mock_logger_cls:
+    with patch("cohezion.compound.exp_persistence.vault.VaultLogger") as mock_logger_cls:
         mock_logger = MagicMock()
         mock_logger.get_experience_guidance.return_value = {"relevant_context": []}
         mock_logger.log_execution_start.return_value = "experiments/test.md"
@@ -69,17 +67,13 @@ def _make_executor(
 class TestDegradationDetectorIntegration:
     """Test DegradationDetector wired into CompoundExecutor Step 7.5."""
 
-    def test_executor_accepts_degradation_detector(
-        self, mock_mcp_client, mock_vault_logger
-    ):
+    def test_executor_accepts_degradation_detector(self, mock_mcp_client, mock_vault_logger):
         """Verify executor accepts degradation_detector parameter."""
         detector = DegradationDetector()
         executor = _make_executor(mock_mcp_client, degradation_detector=detector)
         assert executor._degradation_detector is detector
 
-    def test_executor_without_detector_unchanged(
-        self, mock_mcp_client, mock_vault_logger
-    ):
+    def test_executor_without_detector_unchanged(self, mock_mcp_client, mock_vault_logger):
         """Verify executor works without degradation_detector."""
         executor = _make_executor(mock_mcp_client)
         result = executor.execute_task(
@@ -91,9 +85,7 @@ class TestDegradationDetectorIntegration:
         assert result.success is True
         assert "degradation_alerts" not in result.metrics
 
-    def test_detector_receives_metrics_during_execution(
-        self, mock_mcp_client, mock_vault_logger
-    ):
+    def test_detector_receives_metrics_during_execution(self, mock_mcp_client, mock_vault_logger):
         """Verify detector.check_degradation() is called with metrics."""
         detector = DegradationDetector()
         executor = _make_executor(mock_mcp_client, degradation_detector=detector)
@@ -112,9 +104,7 @@ class TestDegradationDetectorIntegration:
         assert stats["coherence"]["num_samples"] >= 5
         assert stats["coherence"]["is_established"] is True
 
-    def test_degradation_alert_recorded_in_metrics(
-        self, mock_mcp_client, mock_vault_logger
-    ):
+    def test_degradation_alert_recorded_in_metrics(self, mock_mcp_client, mock_vault_logger):
         """Verify degradation alerts appear in result.metrics."""
         detector = DegradationDetector(
             cache_hit_rate_threshold=0.50,
@@ -207,17 +197,13 @@ class TestDegradationDetectorIntegration:
 class TestModelQualityClassifierIntegration:
     """Test ModelQualityClassifier wired into CompoundExecutor Step 7.7."""
 
-    def test_executor_accepts_quality_classifier(
-        self, mock_mcp_client, mock_vault_logger
-    ):
+    def test_executor_accepts_quality_classifier(self, mock_mcp_client, mock_vault_logger):
         """Verify executor accepts model_quality_classifier parameter."""
         classifier = ModelQualityClassifier()
         executor = _make_executor(mock_mcp_client, model_quality_classifier=classifier)
         assert executor._model_quality_classifier is classifier
 
-    def test_executor_without_classifier_unchanged(
-        self, mock_mcp_client, mock_vault_logger
-    ):
+    def test_executor_without_classifier_unchanged(self, mock_mcp_client, mock_vault_logger):
         """Verify executor works without model_quality_classifier."""
         executor = _make_executor(mock_mcp_client)
         result = executor.execute_task(
@@ -228,9 +214,7 @@ class TestModelQualityClassifierIntegration:
         )
         assert result.success is True
 
-    def test_classifier_records_execution_outcome(
-        self, mock_mcp_client, mock_vault_logger
-    ):
+    def test_classifier_records_execution_outcome(self, mock_mcp_client, mock_vault_logger):
         """Verify classifier.add_execution() is called after execution."""
         classifier = ModelQualityClassifier()
         token_client = MagicMock()
@@ -258,9 +242,7 @@ class TestModelQualityClassifierIntegration:
         predictor = classifier._predictors["phi3:mini"]
         assert len(predictor.coherence_history) == 1
 
-    def test_classifier_failure_is_non_blocking(
-        self, mock_mcp_client, mock_vault_logger
-    ):
+    def test_classifier_failure_is_non_blocking(self, mock_mcp_client, mock_vault_logger):
         """Verify classifier failures don't crash execution."""
         classifier = MagicMock()
         classifier.add_execution.side_effect = RuntimeError("Classifier crash")
@@ -295,9 +277,7 @@ class TestModelQualityClassifierIntegration:
             task_description="Failing task",
             skill_name="test_skill",
             operation_type="generate",
-            execute_fn=lambda guidance: (_ for _ in ()).throw(
-                RuntimeError("Task failed")
-            ),
+            execute_fn=lambda guidance: (_ for _ in ()).throw(RuntimeError("Task failed")),
         )
 
         # Classifier should record the failure
@@ -315,9 +295,7 @@ class TestModelQualityClassifierIntegration:
 class TestCombinedMonitoringIntegration:
     """Test DegradationDetector + ModelQualityClassifier together."""
 
-    def test_both_monitoring_components_work_together(
-        self, mock_mcp_client, mock_vault_logger
-    ):
+    def test_both_monitoring_components_work_together(self, mock_mcp_client, mock_vault_logger):
         """Verify both detector and classifier work in same executor."""
         detector = DegradationDetector()
         classifier = ModelQualityClassifier()
@@ -356,9 +334,7 @@ class TestCombinedMonitoringIntegration:
         assert executor._degradation_detector is detector
         assert executor._model_quality_classifier is classifier
 
-    def test_singleton_factory_passes_monitoring_params(
-        self, mock_mcp_client, mock_vault_logger
-    ):
+    def test_singleton_factory_passes_monitoring_params(self, mock_mcp_client, mock_vault_logger):
         """Verify ExecutorFactory.get_singleton() passes monitoring params."""
         ExecutorFactory.reset_singleton()
         detector = DegradationDetector()

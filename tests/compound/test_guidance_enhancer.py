@@ -74,9 +74,7 @@ class TestGuidanceEnhancer:
             for rec in enhanced.recommendations
         )
 
-    def test_enhance_guidance_generates_warnings_from_failures(
-        self, mock_trajectory_results
-    ):
+    def test_enhance_guidance_generates_warnings_from_failures(self, mock_trajectory_results):
         """Enhancer generates warnings from failed trajectories."""
         enhancer = GuidanceEnhancer()
         base_guidance = {"decisions": [], "patterns": []}

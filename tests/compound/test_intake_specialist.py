@@ -104,9 +104,7 @@ class TestPromptOptimizer:
 
     def setup_method(self):
         """Set up test fixtures."""
-        self.optimizer = PromptOptimizer(
-            enable_filler_removal=True, estimate_tokens=True
-        )
+        self.optimizer = PromptOptimizer(enable_filler_removal=True, estimate_tokens=True)
 
     def test_optimize_removes_filler_words(self):
         """Test removal of filler words."""

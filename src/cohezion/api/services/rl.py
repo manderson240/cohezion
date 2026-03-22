@@ -83,9 +83,7 @@ def get_rl_policy_singleton():
         _rl_policy = PolicyNetwork(state_dim=256, action_dim=256, hidden=128)
         ckpt_path = Path("data/rl/checkpoints/policy_final.pt")
         if ckpt_path.exists():
-            _rl_policy.load_state_dict(
-                torch.load(ckpt_path, map_location="cpu", weights_only=True)
-            )
+            _rl_policy.load_state_dict(torch.load(ckpt_path, map_location="cpu", weights_only=True))
             _rl_policy.eval()
             logger.info("Loaded RL policy from %s", ckpt_path)
         else:

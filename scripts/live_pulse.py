@@ -1,8 +1,8 @@
 import asyncio
 import os
-import json
 from datetime import datetime
 from pathlib import Path
+
 
 async def pulse_dashboard():
     """A 'tail -f' friendly dashboard for the terminal."""
@@ -19,15 +19,17 @@ async def pulse_dashboard():
 
     def get_last_line(path):
         try:
-            with open(path, "r") as f:
+            with open(path) as f:
                 lines = f.readlines()
                 return lines[-1].strip() if lines else "Waiting..."
         except:
             return "File not found."
 
     while True:
-        os.system('clear')
-        print(f"{CYAN}🌍 COHEZION LIVE PULSE | {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}{RESET}")
+        os.system("clear")
+        print(
+            f"{CYAN}🌍 COHEZION LIVE PULSE | {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}{RESET}"
+        )
         print("-" * 60)
 
         # 1. System Status
@@ -53,6 +55,7 @@ async def pulse_dashboard():
         print("Press Ctrl+C to exit.")
 
         await asyncio.sleep(2)
+
 
 if __name__ == "__main__":
     try:

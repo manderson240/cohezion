@@ -15,9 +15,7 @@ async def test_mrp_synchronization():
     with patch("cohezion.agents.base.SurrealClient") as mock_db_class:
         mock_db = mock_db_class.return_value
         mock_db.query = AsyncMock(
-            return_value=[
-                {"timestamp": "2026-01-20T23:00:00", "state_vector": [0.1] * 12}
-            ]
+            return_value=[{"timestamp": "2026-01-20T23:00:00", "state_vector": [0.1] * 12}]
         )
         mock_db.store_node = AsyncMock()  # Pre-mock this too
 

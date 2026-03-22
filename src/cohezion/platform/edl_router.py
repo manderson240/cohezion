@@ -52,9 +52,7 @@ class ExpertDomainRouter:
         self.client = get_compound_client()
         self.coherence_tracker = get_coherence_tracker()
 
-    async def route_decision(
-        self, decision_type: str, context: str, proposal: str
-    ) -> EDLConsensus:
+    async def route_decision(self, decision_type: str, context: str, proposal: str) -> EDLConsensus:
         """
         Route decision through appropriate expert streams.
 
@@ -221,9 +219,7 @@ Respond in JSON format:
         # Weighted by confidence
         weighted_recs = []
         for rec in recommendations:
-            weighted_recs.append(
-                f"{rec.stream.value} ({rec.confidence:.2f}): {rec.recommendation}"
-            )
+            weighted_recs.append(f"{rec.stream.value} ({rec.confidence:.2f}): {rec.recommendation}")
 
         return "\n".join(weighted_recs)
 

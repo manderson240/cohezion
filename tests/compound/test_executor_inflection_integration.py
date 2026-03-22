@@ -448,9 +448,7 @@ class TestExecutorFactoryWithDetector:
     def test_factory_create_with_detector(self, mock_mcp_client, detector):
         """Test factory create with custom detector."""
         with patch("cohezion.compound.exp_persistence.vault.VaultLogger"):
-            executor = ExecutorFactory.create(
-                mock_mcp_client, inflection_detector=detector
-            )
+            executor = ExecutorFactory.create(mock_mcp_client, inflection_detector=detector)
             assert executor.inflection_detector is detector
 
     def test_factory_create_default_detector(self, mock_mcp_client):
@@ -463,9 +461,7 @@ class TestExecutorFactoryWithDetector:
         """Test factory singleton preserves detector instance."""
         with patch("cohezion.compound.exp_persistence.vault.VaultLogger"):
             ExecutorFactory.reset_singleton()
-            executor1 = ExecutorFactory.get_singleton(
-                mock_mcp_client, inflection_detector=detector
-            )
+            executor1 = ExecutorFactory.get_singleton(mock_mcp_client, inflection_detector=detector)
             executor2 = ExecutorFactory.get_singleton(mock_mcp_client)
 
             assert executor1 is executor2

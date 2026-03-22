@@ -45,9 +45,7 @@ def monitor_recovery():
             entropy = data.get("avg_entropy", 0.0)
             corrections = data.get("corrections", 0)
 
-            logger.info(
-                f"Tick {step}: Entropy={entropy:.2f} (Corrections={corrections})"
-            )
+            logger.info(f"Tick {step}: Entropy={entropy:.2f} (Corrections={corrections})")
 
             # 1. Wait for the Spike
             if not spiked:
@@ -59,9 +57,7 @@ def monitor_recovery():
             # 2. Wait for Recovery
             elif spiked:
                 if entropy < 0.3:
-                    logger.info(
-                        f"✅ SYSTEM RECOVERED in {time.time() - start_time:.2f}s!"
-                    )
+                    logger.info(f"✅ SYSTEM RECOVERED in {time.time() - start_time:.2f}s!")
                     recovered = True
                     break
 

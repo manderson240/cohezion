@@ -91,9 +91,7 @@ def _make_agent(tmp_path: Path):
     from cohezion.swarm.swarm_types import SwarmConfig
 
     config = SwarmConfig(mrp_sync=False, cache_ttl_seconds=3600)
-    agent = TestableAgent(
-        model_name="test-model", config=config, cache_dir=tmp_path / "cache"
-    )
+    agent = TestableAgent(model_name="test-model", config=config, cache_dir=tmp_path / "cache")
 
     return agent, patchers
 

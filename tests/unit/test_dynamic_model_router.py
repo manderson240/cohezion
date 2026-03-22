@@ -137,9 +137,7 @@ class TestAdaptiveTemplateManager:
 
 class TestDynamicModelRouter:
     def _make(self):
-        with patch(
-            "psutil.virtual_memory", return_value=_mock_virtual_memory(128.0, 100.0)
-        ):
+        with patch("psutil.virtual_memory", return_value=_mock_virtual_memory(128.0, 100.0)):
             from cohezion.swarm.dynamic_model_router import DynamicModelRouter
 
             return DynamicModelRouter()

@@ -116,9 +116,7 @@ class FileLock:
 
 
 @contextmanager
-def locked_file_operation(
-    filepath: str, timeout: float = 5.0, max_retries: int = 3
-) -> Generator:
+def locked_file_operation(filepath: str, timeout: float = 5.0, max_retries: int = 3) -> Generator:
     """
     Context manager for atomic file operations with locking.
 

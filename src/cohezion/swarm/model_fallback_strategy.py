@@ -138,9 +138,7 @@ class ModelCircuitBreaker:
         if self.metrics.avg_latency_ms == 0.0:
             self.metrics.avg_latency_ms = latency_ms
         else:
-            self.metrics.avg_latency_ms = (
-                0.7 * self.metrics.avg_latency_ms + 0.3 * latency_ms
-            )
+            self.metrics.avg_latency_ms = 0.7 * self.metrics.avg_latency_ms + 0.3 * latency_ms
 
         # If HALF_OPEN and succeeded, go back to CLOSED
         if self.state == CircuitBreakerState.HALF_OPEN:
@@ -318,9 +316,7 @@ class ModelFallbackStrategy:
             return primary_model, False
 
         # Try fallback chain
-        fallback_chain = self.DEFAULT_FALLBACK_CHAINS.get(
-            primary_model, available_models
-        )
+        fallback_chain = self.DEFAULT_FALLBACK_CHAINS.get(primary_model, available_models)
 
         for fallback_model in fallback_chain:
             if fallback_model not in available_models:
@@ -355,21 +351,15 @@ class ModelFallbackStrategy:
         available_non_primary = [m for m in available_models if m != primary_model]
         if available_non_primary:
             selected = available_non_primary[0]
-            logger.error(
-                f"All models degraded or primary unavailable, using fallback: {selected}"
-            )
+            logger.error(f"All models degraded or primary unavailable, using fallback: {selected}")
             self._record_fallback(primary_model, selected)
             return selected, True
 
         # Absolute last resort: return primary anyway
-        logger.error(
-            f"No alternative models available, forced to use primary: {primary_model}"
-        )
+        logger.error(f"No alternative models available, forced to use primary: {primary_model}")
         return primary_model, True
 
-    def record_execution(
-        self, model: str, success: bool, latency_ms: float = 0.0
-    ) -> None:
+    def record_execution(self, model: str, success: bool, latency_ms: float = 0.0) -> None:
         """Record execution result for circuit breaker.
 
         Args:

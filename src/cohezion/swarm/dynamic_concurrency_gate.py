@@ -68,9 +68,7 @@ class DynamicConcurrencyGate:
         profiler: HardwareProfiler for thermal prediction
     """
 
-    def __init__(
-        self, base_concurrency: int = 4, enable_thermal_prediction: bool = False
-    ):
+    def __init__(self, base_concurrency: int = 4, enable_thermal_prediction: bool = False):
         """Initialize DynamicConcurrencyGate.
 
         Args:
@@ -147,8 +145,8 @@ class DynamicConcurrencyGate:
             # Phase 3 Sprint 2: Check 30-minute thermal prediction
             if self.enable_thermal_prediction and self._thermal_predictor:
                 try:
-                    predicted_temp, confidence = (
-                        self._thermal_predictor.predict_temperature_ahead(30)
+                    predicted_temp, confidence = self._thermal_predictor.predict_temperature_ahead(
+                        30
                     )
 
                     # Pre-emptive throttling based on prediction

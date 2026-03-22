@@ -243,12 +243,9 @@ class TeamExecutor:
                 def execute_fn(guidance):
                     # Default execution: pass parent results as context
                     parent_outputs = {
-                        parent_id: result.output
-                        for parent_id, result in parent_results.items()
+                        parent_id: result.output for parent_id, result in parent_results.items()
                     }
-                    return f"Executed {task.task_id}", {
-                        "parent_context": parent_outputs
-                    }
+                    return f"Executed {task.task_id}", {"parent_context": parent_outputs}
 
             # Execute task
             execution_result = agent.execute_task(
@@ -328,15 +325,11 @@ class TeamExecutor:
         efficiency_scores = []
         for r in results:
             if r.execution_result and r.execution_result.token_metrics:
-                cache_hit_rate = r.execution_result.token_metrics.get(
-                    "cache_hit_rate", 0.0
-                )
+                cache_hit_rate = r.execution_result.token_metrics.get("cache_hit_rate", 0.0)
                 efficiency_scores.append(cache_hit_rate)
 
         avg_efficiency = (
-            sum(efficiency_scores) / len(efficiency_scores)
-            if efficiency_scores
-            else 0.5
+            sum(efficiency_scores) / len(efficiency_scores) if efficiency_scores else 0.5
         )
 
         # Weighted combination

@@ -99,18 +99,14 @@ class TestVaultSearchExecutor:
 
     def test_validate_search_query_max_results(self, vault_search_executor):
         """Test validation rejects max_results > 100."""
-        query = SearchQuery(
-            query="test", keywords=["test"], document_types=[], max_results=101
-        )
+        query = SearchQuery(query="test", keywords=["test"], document_types=[], max_results=101)
 
         with pytest.raises(ValueError, match="Max results cannot exceed 100"):
             vault_search_executor._validate_search_query(query)
 
     def test_validate_search_query_relevance_bounds(self, vault_search_executor):
         """Test validation enforces relevance bounds."""
-        query = SearchQuery(
-            query="test", keywords=["test"], document_types=[], min_relevance=1.5
-        )
+        query = SearchQuery(query="test", keywords=["test"], document_types=[], min_relevance=1.5)
 
         with pytest.raises(
             ValueError, match="Min relevance must be between 0.0 and 1.0"
@@ -126,9 +122,7 @@ class TestVaultSearchExecutor:
             document_types=[],
         )
 
-        relevance = vault_search_executor._calculate_relevance(
-            document, query, skill_context=[]
-        )
+        relevance = vault_search_executor._calculate_relevance(document, query, skill_context=[])
 
         # 2 matching keywords out of 2, so score should be high
         assert relevance > 0.5
@@ -284,9 +278,7 @@ class TestSearchQuery:
 
     def test_search_query_defaults(self):
         """Test SearchQuery uses proper defaults."""
-        query = SearchQuery(
-            query="test", keywords=["test"], document_types=["decisions"]
-        )
+        query = SearchQuery(query="test", keywords=["test"], document_types=["decisions"])
 
         assert query.max_results == 10
         assert query.min_relevance == 0.5

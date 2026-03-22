@@ -202,9 +202,7 @@ class DemoGateway:
             ],
         }
 
-    def cost_estimate(
-        self, model: str, input_tokens: int, output_tokens: int
-    ) -> dict[str, Any]:
+    def cost_estimate(self, model: str, input_tokens: int, output_tokens: int) -> dict[str, Any]:
         """Estimate cost (simulated for demo)."""
         cost = self._calculate_cost(model, input_tokens, output_tokens)
         return {

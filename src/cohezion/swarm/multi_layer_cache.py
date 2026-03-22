@@ -187,9 +187,7 @@ class SemanticCacheStore:
         total_queries = sum(self._stats.values())
         hit_rate = 0.0
         if total_queries > 0:
-            hit_rate = (
-                self._stats["exact_hits"] + self._stats["semantic_hits"]
-            ) / total_queries
+            hit_rate = (self._stats["exact_hits"] + self._stats["semantic_hits"]) / total_queries
 
         return {
             "total_entries": len(self._entries),
@@ -326,9 +324,7 @@ class KVCacheOptimizer:
             "deepseek-r1:70b": 3.0,
         }
 
-    def register_model(
-        self, model: str, allocated_mb: int, cost_factor: float = 1.0
-    ) -> None:
+    def register_model(self, model: str, allocated_mb: int, cost_factor: float = 1.0) -> None:
         """Register model for KV-cache tracking.
 
         Parameters
@@ -348,9 +344,7 @@ class KVCacheOptimizer:
         self._model_costs[model] = cost_factor
         self._defrag_history[model] = []
 
-    def update_usage(
-        self, model: str, used_mb: int, fragmentation_percent: float
-    ) -> None:
+    def update_usage(self, model: str, used_mb: int, fragmentation_percent: float) -> None:
         """Update KV-cache usage metrics.
 
         Parameters

@@ -77,9 +77,7 @@ class BatchResult:
     def avg_semantic_confidence(self) -> float:
         """Average confidence of semantic cache hits."""
         confidences = [
-            item.semantic_confidence
-            for item in self.items
-            if item.semantic_confidence is not None
+            item.semantic_confidence for item in self.items if item.semantic_confidence is not None
         ]
         return sum(confidences) / len(confidences) if confidences else 0.0
 
@@ -227,8 +225,7 @@ class BatchProcessor:
             dedup_savings = cache_misses - len(unique_misses)
             if dedup_savings > 0:
                 logger.info(
-                    "Phase 1.5: Batch deduplication found %d duplicate prompts "
-                    "(%.1f%% savings)",
+                    "Phase 1.5: Batch deduplication found %d duplicate prompts (%.1f%% savings)",
                     dedup_savings,
                     100.0 * dedup_savings / cache_misses,
                 )
@@ -250,8 +247,7 @@ class BatchProcessor:
             self._concurrency_semaphore = asyncio.Semaphore(actual_concurrency)
 
             tasks = [
-                self._execute_with_concurrency(item, key, execute_fn)
-                for item, key in unique_misses
+                self._execute_with_concurrency(item, key, execute_fn) for item, key in unique_misses
             ]
 
             results = await asyncio.gather(*tasks, return_exceptions=True)

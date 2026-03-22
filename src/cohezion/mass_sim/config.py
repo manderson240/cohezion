@@ -30,9 +30,7 @@ SCALE_TIERS: dict[str, ScaleTier] = {
     "demo": ScaleTier("demo", 100, 1_000, 10, 100, 100),
     "medium": ScaleTier("medium", 1_000, 10_000, 100, 1_000, 500),
     "overnight": ScaleTier("overnight", 10_000, 100_000, 1_000, 5_000, 2_000),
-    "aspirational": ScaleTier(
-        "aspirational", 25_000_000, 10_000_000, 1_000_000, 100_000, 10_000
-    ),
+    "aspirational": ScaleTier("aspirational", 25_000_000, 10_000_000, 1_000_000, 100_000, 10_000),
 }
 
 
@@ -117,8 +115,8 @@ class SimulationConfig:
     # Navigator delta scaling (multiplied into state update per epoch)
     delta_scale: float = 0.01
     # HIHO damping factor (attractor strength toward 0.5 equilibrium)
-    # 0.01 is the empirically optimal value: coherence ~0.51, 96% within [0.3, 0.7]
-    hiho_damping: float = 0.01
+    # 0.05 provides 5% pull toward 0.5 per step — balances convergence within HIHO bounds with diversity preservation
+    hiho_damping: float = 0.05
     # Export final agent states as .npy files for training pipeline
     export_npy: bool = False
 

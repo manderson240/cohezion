@@ -249,9 +249,7 @@ class PeakedCircuitSolver:
 
             count_swaps = 0
 
-            for i, (name, params, qubits) in enumerate(
-                tqdm(ops, desc="Manifold Encoding")
-            ):
+            for i, (name, params, qubits) in enumerate(tqdm(ops, desc="Manifold Encoding")):
                 if name == "CZ":
                     G = qg.CZ
                 elif name == "U3":

@@ -64,8 +64,7 @@ class CheckpointExporter:
             arr = np.array(ckpt.sample_states, dtype=np.float32)
             if arr.ndim != 2:
                 logger.warning(
-                    f"Skipping checkpoint epoch {ckpt.epoch}: "
-                    f"unexpected shape {arr.shape}"
+                    f"Skipping checkpoint epoch {ckpt.epoch}: unexpected shape {arr.shape}"
                 )
                 continue
 

@@ -102,9 +102,7 @@ def get_vae():
                     str(e),
                 )
         else:
-            logger.warning(
-                "No FLUME VAE checkpoint found at %s; using random weights", ckpt_path
-            )
+            logger.warning("No FLUME VAE checkpoint found at %s; using random weights", ckpt_path)
     return _vae_trainer
 
 
@@ -183,9 +181,7 @@ async def get_flume_status() -> FlumeStatusResponse:
         try:
             all_metrics = json.loads(metrics_file.read_text())
             if all_metrics:
-                last_metrics = (
-                    all_metrics[-1] if isinstance(all_metrics, list) else all_metrics
-                )
+                last_metrics = all_metrics[-1] if isinstance(all_metrics, list) else all_metrics
         except (json.JSONDecodeError, OSError):
             pass
 

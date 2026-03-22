@@ -216,9 +216,7 @@ class CompoundExecutor:
                 RequestAlignmentAnalyzerFactory,
             )
 
-            self._alignment_analyzer = RequestAlignmentAnalyzerFactory.create(
-                self.mcp_client
-            )
+            self._alignment_analyzer = RequestAlignmentAnalyzerFactory.create(self.mcp_client)
             logger.debug("Initialized default alignment analyzer")
 
         return self._alignment_analyzer
@@ -416,8 +414,7 @@ class CompoundExecutor:
                     task_description, project
                 )
                 logger.debug(
-                    "Parsed request: intent=%s (confidence=%.2f), "
-                    "%d constraints, %d criteria",
+                    "Parsed request: intent=%s (confidence=%.2f), %d constraints, %d criteria",
                     parsed_request.intent.value,
                     parsed_request.intent_confidence,
                     len(parsed_request.constraints),
@@ -488,9 +485,7 @@ class CompoundExecutor:
         # Capture token metrics after execution (if token_client available)
         if self.token_client:
             token_metrics_after = self.token_client.get_metrics()
-            token_metrics = self._compute_token_delta(
-                token_metrics_before, token_metrics_after
-            )
+            token_metrics = self._compute_token_delta(token_metrics_before, token_metrics_after)
             logger.debug("Token metrics: %s", token_metrics)
 
         # Check output via guardrails if successful
@@ -566,9 +561,7 @@ class CompoundExecutor:
                 except Exception as e:
                     logger.debug("Failed to log inflection point (non-blocking): %s", e)
         except Exception as e:
-            logger.debug(
-                "Anomaly detection failed (non-blocking): %s", e, exc_info=True
-            )
+            logger.debug("Anomaly detection failed (non-blocking): %s", e, exc_info=True)
 
         # Step 5.5: Analyze request-execution alignment (if enabled)
         if (
@@ -693,9 +686,7 @@ class CompoundExecutor:
                     retrospection_context.get("compound_score", 0.0),
                 )
             except Exception as e:
-                logger.debug(
-                    "Retrospection failed (non-blocking): %s", e, exc_info=True
-                )
+                logger.debug("Retrospection failed (non-blocking): %s", e, exc_info=True)
 
         # Step 7: Refine skills based on execution results (non-blocking)
         # Gated by retrospection: only refine when quadrature assessment warrants it
@@ -723,9 +714,7 @@ class CompoundExecutor:
                     decision_paths.append(refined_path)
 
             except Exception as e:
-                logger.debug(
-                    "Skill refinement failed (non-blocking): %s", e, exc_info=True
-                )
+                logger.debug("Skill refinement failed (non-blocking): %s", e, exc_info=True)
 
         # Step 7.5: Check for degradation and manage HIHO band (non-blocking)
         # Coherence within HIHO band [0.4, 0.6] -> exit degradation mode
@@ -755,9 +744,7 @@ class CompoundExecutor:
                     degradation_metrics["tokens_per_second"] = token_metrics.get(
                         "tokens_per_second", 0.0
                     )
-                alerts = self._degradation_detector.check_degradation(
-                    degradation_metrics
-                )
+                alerts = self._degradation_detector.check_degradation(degradation_metrics)
                 if alerts:
                     metrics["degradation_alerts"] = len(alerts)
                     for alert in alerts:
@@ -949,21 +936,15 @@ class CompoundExecutor:
 
         # Compute differences
         if "total_tokens" in metrics_after and "total_tokens" in metrics_before:
-            delta["tokens_used"] = (
-                metrics_after["total_tokens"] - metrics_before["total_tokens"]
-            )
+            delta["tokens_used"] = metrics_after["total_tokens"] - metrics_before["total_tokens"]
         if "api_calls" in metrics_after and "api_calls" in metrics_before:
-            delta["api_calls_made"] = (
-                metrics_after["api_calls"] - metrics_before["api_calls"]
-            )
+            delta["api_calls_made"] = metrics_after["api_calls"] - metrics_before["api_calls"]
         if "cache_hits" in metrics_after and "cache_hits" in metrics_before:
             delta["cache_hits"] = (
                 metrics_after["cache_hits"] - metrics_before["cache_hits"]
             )
         if "cache_misses" in metrics_after and "cache_misses" in metrics_before:
-            delta["cache_misses"] = (
-                metrics_after["cache_misses"] - metrics_before["cache_misses"]
-            )
+            delta["cache_misses"] = metrics_after["cache_misses"] - metrics_before["cache_misses"]
 
         # Include final hit rate
         if "cache_hit_rate" in metrics_after:

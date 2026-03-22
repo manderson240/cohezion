@@ -79,9 +79,7 @@ class SimulationLogger:
         if not files:
             return Dataset.from_dict({}, features=self.features)
 
-        dataset = load_dataset(
-            "parquet", data_files=[str(f) for f in files], split="train"
-        )
+        dataset = load_dataset("parquet", data_files=[str(f) for f in files], split="train")
 
         if domain:
             dataset = dataset.filter(lambda x: x["universe_domain"] == domain)

@@ -56,7 +56,10 @@ def git_repo(tmp_path: Path) -> Path:
     Returns the repo root path.
     """
     _run = lambda cmd: subprocess.run(
-        cmd, cwd=tmp_path, capture_output=True, check=True,
+        cmd,
+        cwd=tmp_path,
+        capture_output=True,
+        check=True,
     )
     _run(["git", "init"])
     _run(["git", "config", "user.email", "test@cohezion.dev"])

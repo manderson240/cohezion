@@ -185,9 +185,7 @@ class ExperienceCollector:
 
             client = SurrealClient()
             await client.connect()
-            result = await client.query(
-                f"SELECT * FROM mission_journey LIMIT {max_samples}"
-            )
+            result = await client.query(f"SELECT * FROM mission_journey LIMIT {max_samples}")
             records = []
             if result and isinstance(result, list):
                 for row in result:

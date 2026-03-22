@@ -44,9 +44,7 @@ def profile() -> SandboxProfile:
 
 
 @pytest.mark.asyncio
-async def test_hello_sandbox_example(
-    backend: SubprocessBackend, profile: SandboxProfile
-) -> None:
+async def test_hello_sandbox_example(backend: SubprocessBackend, profile: SandboxProfile) -> None:
     """Run HELLO_SANDBOX and verify JSON output."""
     result = await backend.execute(HELLO_SANDBOX, profile)
 
@@ -61,9 +59,7 @@ async def test_hello_sandbox_example(
 
 
 @pytest.mark.asyncio
-async def test_coherence_walk_example(
-    backend: SubprocessBackend, profile: SandboxProfile
-) -> None:
+async def test_coherence_walk_example(backend: SubprocessBackend, profile: SandboxProfile) -> None:
     """Run COHERENCE_WALK and verify coherence stays in [0, 1]."""
     result = await backend.execute(COHERENCE_WALK, profile)
 
@@ -78,9 +74,7 @@ async def test_coherence_walk_example(
 
 
 @pytest.mark.asyncio
-async def test_output_files_collected(
-    backend: SubprocessBackend, profile: SandboxProfile
-) -> None:
+async def test_output_files_collected(backend: SubprocessBackend, profile: SandboxProfile) -> None:
     """Verify files written to output/ appear in result.output_files."""
     result = await backend.execute(HELLO_SANDBOX, profile)
 
@@ -111,9 +105,7 @@ async def test_coherence_walk_output_files(
 
 
 @pytest.mark.asyncio
-async def test_result_persistence(
-    backend: SubprocessBackend, profile: SandboxProfile
-) -> None:
+async def test_result_persistence(backend: SubprocessBackend, profile: SandboxProfile) -> None:
     """Verify persist_result writes to disk correctly."""
     result = await backend.execute(HELLO_SANDBOX, profile)
     assert result.success
@@ -143,9 +135,7 @@ async def test_result_persistence(
 
 
 @pytest.mark.asyncio
-async def test_failed_script(
-    backend: SubprocessBackend, profile: SandboxProfile
-) -> None:
+async def test_failed_script(backend: SubprocessBackend, profile: SandboxProfile) -> None:
     """Verify a failing script returns success=False."""
     bad_script = "import sys; print('about to fail'); sys.exit(1)"
     result = await backend.execute(bad_script, profile)

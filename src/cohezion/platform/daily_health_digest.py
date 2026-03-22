@@ -289,9 +289,7 @@ class DailyHealthDigest:
             )
 
         # Default fallback
-        return TestMetrics(
-            total_tests=0, passing_tests=0, failing_tests=0, pass_rate=0.0
-        )
+        return TestMetrics(total_tests=0, passing_tests=0, failing_tests=0, pass_rate=0.0)
 
     async def _collect_dependency_metrics(self) -> DependencyMetrics:
         """Collect dependency health metrics."""
@@ -351,9 +349,7 @@ class DailyHealthDigest:
                 last_build_time=datetime.fromisoformat(
                     metrics.get("timestamp", datetime.now().isoformat())
                 ),
-                average_build_duration_seconds=metrics.get(
-                    "average_duration_seconds", 0.0
-                ),
+                average_build_duration_seconds=metrics.get("average_duration_seconds", 0.0),
                 failure_rate_7d=metrics.get("failure_rate_7d", 0.0),
             )
 
@@ -432,9 +428,7 @@ class DailyHealthDigest:
 
         # CI/CD health check (if available)
         if cicd:
-            failure_rate_status = self._check_status(
-                cicd.failure_rate_7d, 0.1, 0.2, invert=False
-            )
+            failure_rate_status = self._check_status(cicd.failure_rate_7d, 0.1, 0.2, invert=False)
             checks.append(
                 HealthCheckResult(
                     check_name="CI/CD Health",
@@ -480,9 +474,7 @@ class DailyHealthDigest:
             else:
                 return HealthStatus.CRITICAL
 
-    def _check_hiho_stability(
-        self, repo: RepositoryMetrics, coherence: CoherenceMetrics
-    ) -> bool:
+    def _check_hiho_stability(self, repo: RepositoryMetrics, coherence: CoherenceMetrics) -> bool:
         """
         Check if system is in HIHO stability range.
 
@@ -545,9 +537,7 @@ class DailyHealthDigest:
         trend_improvement = (trend_7d + 1.0) / 2.0  # -1 → 0.0, 0 → 0.5, 1 → 1.0
 
         # Charter-aligned weighted score
-        overall_score = (
-            0.50 * hiho_stability + 0.25 * metrics_health + 0.25 * trend_improvement
-        )
+        overall_score = 0.50 * hiho_stability + 0.25 * metrics_health + 0.25 * trend_improvement
 
         return overall_score
 
@@ -643,8 +633,7 @@ class DailyHealthDigest:
             )
         elif repo.pack_efficiency < 0.7:
             recommendations.append(
-                f"⚠️  WARNING: Pack efficiency {repo.pack_efficiency:.1%}. "
-                "Run git gc --auto."
+                f"⚠️  WARNING: Pack efficiency {repo.pack_efficiency:.1%}. Run git gc --auto."
             )
 
         # Test recommendations
@@ -790,9 +779,7 @@ Critical Issues:
         )
 
         # Log EDL consensus
-        print(
-            f"\n{'=' * 70}\nEDL CONSENSUS: Platform Health\n{'=' * 70}\n{consensus.reasoning}\n"
-        )
+        print(f"\n{'=' * 70}\nEDL CONSENSUS: Platform Health\n{'=' * 70}\n{consensus.reasoning}\n")
 
     def format_digest_terminal(self, digest: HealthDigest) -> str:
         """Format digest for terminal output."""

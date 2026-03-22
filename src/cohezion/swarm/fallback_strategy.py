@@ -178,9 +178,7 @@ class CircuitBreaker:
         if self.metrics.avg_latency_ms == 0.0:
             self.metrics.avg_latency_ms = latency_ms
         else:
-            self.metrics.avg_latency_ms = (
-                0.7 * self.metrics.avg_latency_ms + 0.3 * latency_ms
-            )
+            self.metrics.avg_latency_ms = 0.7 * self.metrics.avg_latency_ms + 0.3 * latency_ms
 
         # If HALF_OPEN and succeeded, go back to CLOSED
         if self.state == CircuitBreakerState.HALF_OPEN:
@@ -399,9 +397,7 @@ class FallbackStrategy:
             return primary_model, False, 0.0
 
         # Try fallback chain
-        fallback_chain = self.DEFAULT_FALLBACK_CHAINS.get(
-            primary_model, available_models
-        )
+        fallback_chain = self.DEFAULT_FALLBACK_CHAINS.get(primary_model, available_models)
 
         for fallback_model in fallback_chain:
             if fallback_model not in available_models:
@@ -469,9 +465,7 @@ class FallbackStrategy:
             fallback_cost = model_costs.get(selected, 0.0)
             cost_saving = max(0.0, primary_cost - fallback_cost)
 
-            logger.error(
-                f"All models degraded or primary unavailable, using fallback: {selected}"
-            )
+            logger.error(f"All models degraded or primary unavailable, using fallback: {selected}")
             self._record_fallback(
                 primary_model,
                 selected,
@@ -482,9 +476,7 @@ class FallbackStrategy:
             return selected, True, cost_saving
 
         # Absolute last resort: return primary anyway
-        logger.error(
-            f"No alternative models available, forced to use primary: {primary_model}"
-        )
+        logger.error(f"No alternative models available, forced to use primary: {primary_model}")
         return primary_model, True, 0.0
 
     def detect_model_unavailability(
@@ -571,9 +563,7 @@ class FallbackStrategy:
         # Fallback to most available
         return available_sorted[0], 0.0
 
-    def record_execution(
-        self, model: str, success: bool, latency_ms: float = 0.0
-    ) -> None:
+    def record_execution(self, model: str, success: bool, latency_ms: float = 0.0) -> None:
         """Record execution result for circuit breaker.
 
         Args:

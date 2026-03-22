@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "bmad": {
+      "name": "BMAD Method",
+      "type": "streamable-http",
+      "url": "http://localhost:8361",
+      "description": "108 BMAD commands for agile AI-driven development"
+    }
+  }
+}

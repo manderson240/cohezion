@@ -204,9 +204,7 @@ class SkillRefiner:
             confidence=confidence,
         )
 
-    def _generate_recommendation(
-        self, metrics: ExecutionMetrics, operation_type: str
-    ) -> str:
+    def _generate_recommendation(self, metrics: ExecutionMetrics, operation_type: str) -> str:
         """Generate recommendation based on metrics.
 
         Args:

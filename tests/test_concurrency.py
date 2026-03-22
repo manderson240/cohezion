@@ -78,9 +78,7 @@ class TestOllamaGate:
         assert max_active == 1
 
     @pytest.mark.asyncio
-    async def test_gate_logs_acquire_release(
-        self, caplog: pytest.LogCaptureFixture
-    ) -> None:
+    async def test_gate_logs_acquire_release(self, caplog: pytest.LogCaptureFixture) -> None:
         """Gate should log acquire and release at DEBUG level."""
         gate = OllamaGate(max_concurrent=2)
         with caplog.at_level(logging.DEBUG, logger="cohezion.concurrency.ollama_gate"):

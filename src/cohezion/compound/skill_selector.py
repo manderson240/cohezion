@@ -91,8 +91,7 @@ class SkillSelector:
         self.success_weight /= total
 
         logger.debug(
-            "Initialized SkillSelector with weights: "
-            "coherence=%.2f, efficiency=%.2f, success=%.2f",
+            "Initialized SkillSelector with weights: coherence=%.2f, efficiency=%.2f, success=%.2f",
             self.coherence_weight,
             self.efficiency_weight,
             self.success_weight,
@@ -157,9 +156,7 @@ class SkillSelector:
             )
             return []
 
-    def _extract_skill_scores(
-        self, context: Any, operation_type: str
-    ) -> list[SkillScore]:
+    def _extract_skill_scores(self, context: Any, operation_type: str) -> list[SkillScore]:
         """Extract skill performance scores from vault context.
 
         Args:
@@ -196,13 +193,9 @@ class SkillSelector:
 
                 # Accumulate metrics
                 if "coherence" in skill_data:
-                    skill_scores[skill_name]["coherence"].append(
-                        skill_data["coherence"]
-                    )
+                    skill_scores[skill_name]["coherence"].append(skill_data["coherence"])
                 if "efficiency" in skill_data:
-                    skill_scores[skill_name]["efficiency"].append(
-                        skill_data["efficiency"]
-                    )
+                    skill_scores[skill_name]["efficiency"].append(skill_data["efficiency"])
                 if "success" in skill_data:
                     skill_scores[skill_name]["success"].append(skill_data["success"])
                 skill_scores[skill_name]["count"] += 1
@@ -222,9 +215,7 @@ class SkillSelector:
                 else 0.5
             )
             success = (
-                sum(metrics["success"]) / len(metrics["success"])
-                if metrics["success"]
-                else 0.5
+                sum(metrics["success"]) / len(metrics["success"]) if metrics["success"] else 0.5
             )
 
             # Compute composite score
@@ -265,9 +256,7 @@ class SkillSelector:
         # Try to extract skill name from title/content
         # Expected patterns: "skill_name_operation_type_success"
         # or "Skill Name" or mentions in content
-        skill_name = self._extract_skill_name(title) or self._extract_skill_name(
-            content
-        )
+        skill_name = self._extract_skill_name(title) or self._extract_skill_name(content)
 
         if not skill_name:
             return None

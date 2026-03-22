@@ -62,9 +62,7 @@ class DeepAuditor(ast.NodeVisitor):
                     if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))
                 ),
                 imports=sum(
-                    1
-                    for node in ast.walk(tree)
-                    if isinstance(node, (ast.Import, ast.ImportFrom))
+                    1 for node in ast.walk(tree) if isinstance(node, (ast.Import, ast.ImportFrom))
                 ),
             )
 
@@ -73,9 +71,7 @@ class DeepAuditor(ast.NodeVisitor):
 
         except Exception as e:
             self.issues.append(
-                CodeIssue(
-                    str(file_path), 0, "Critical", "Parser", f"Failed to parse: {e}"
-                )
+                CodeIssue(str(file_path), 0, "Critical", "Parser", f"Failed to parse: {e}")
             )
 
     def visit_AsyncFunctionDef(self, node):
@@ -123,10 +119,7 @@ class DeepAuditor(ast.NodeVisitor):
             if isinstance(child, ast.Call):
                 if isinstance(child.func, ast.Attribute):
                     # Check for time.sleep
-                    if (
-                        getattr(child.func.value, "id", "") == "time"
-                        and child.func.attr == "sleep"
-                    ):
+                    if getattr(child.func.value, "id", "") == "time" and child.func.attr == "sleep":
                         self.issues.append(
                             CodeIssue(
                                 self.current_file,

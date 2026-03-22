@@ -82,7 +82,9 @@ class TestQueryComplexityAnalyzer:
         assert 1 <= est_short <= 10
 
         # Medium query: ~20-40 tokens
-        medium = "Write a Python function to calculate fibonacci numbers recursively with memoization"
+        medium = (
+            "Write a Python function to calculate fibonacci numbers recursively with memoization"
+        )
         est_medium = analyzer._estimate_tokens(medium)
         assert 10 <= est_medium <= 50
 

@@ -65,11 +65,7 @@ class TestSkillSelectorInitialization:
         selector = SkillSelector(mock_mcp_client)
 
         # Weights should be normalized
-        total = (
-            selector.coherence_weight
-            + selector.efficiency_weight
-            + selector.success_weight
-        )
+        total = selector.coherence_weight + selector.efficiency_weight + selector.success_weight
         assert abs(total - 1.0) < 0.001
 
     def test_initialization_custom_weights(self, mock_mcp_client):
@@ -82,11 +78,7 @@ class TestSkillSelectorInitialization:
         )
 
         # Weights should be normalized
-        total = (
-            selector.coherence_weight
-            + selector.efficiency_weight
-            + selector.success_weight
-        )
+        total = selector.coherence_weight + selector.efficiency_weight + selector.success_weight
         assert abs(total - 1.0) < 0.001
 
 

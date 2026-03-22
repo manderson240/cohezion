@@ -235,9 +235,7 @@ class UniverseGenealogySurvey:
             summary = {
                 "patterns_identified": len(patterns),
                 "patterns": patterns,
-                "total_evidence_points": sum(
-                    1 for p in patterns for _ in [p.get("evidence")]
-                ),
+                "total_evidence_points": sum(1 for p in patterns for _ in [p.get("evidence")]),
                 "status": "extracted",
             }
 

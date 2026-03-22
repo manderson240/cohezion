@@ -645,10 +645,7 @@ class TestLoadScenarios:
                 errors.append(e)
 
         # Run 5 writers and 3 readers concurrently
-        writers = [
-            threading.Thread(target=write_metrics, args=(f"agent_{i}",))
-            for i in range(5)
-        ]
+        writers = [threading.Thread(target=write_metrics, args=(f"agent_{i}",)) for i in range(5)]
         readers = [threading.Thread(target=read_metrics) for _ in range(3)]
 
         for t in writers + readers:

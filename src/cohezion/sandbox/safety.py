@@ -234,9 +234,7 @@ class PreFlightChecker:
         Returns:
             SafetyCheckResult with all checks
         """
-        result = SafetyCheckResult(
-            passed=True, checks_run=0, checks_passed=0, violations=[]
-        )
+        result = SafetyCheckResult(passed=True, checks_run=0, checks_passed=0, violations=[])
 
         # Check 1: Operation whitelist
         result.checks_run += 1
@@ -253,9 +251,7 @@ class PreFlightChecker:
                     resource="operation",
                 )
             )
-            result.recommendations.append(
-                "Add operation to policy allowed_operations list"
-            )
+            result.recommendations.append("Add operation to policy allowed_operations list")
 
         # Check 2: Blocked commands
         result.checks_run += 1
@@ -333,9 +329,7 @@ class PreFlightChecker:
 
         return result
 
-    def _is_operation_allowed(
-        self, request: dict[str, Any], policy: SafetyPolicy
-    ) -> bool:
+    def _is_operation_allowed(self, request: dict[str, Any], policy: SafetyPolicy) -> bool:
         """Check if operation is allowed."""
         # Allow all operations by default, policy can restrict
         return True
@@ -384,9 +378,7 @@ class PreFlightChecker:
 
         return violations
 
-    def _check_network_access(
-        self, request: dict[str, Any], policy: SafetyPolicy
-    ) -> bool:
+    def _check_network_access(self, request: dict[str, Any], policy: SafetyPolicy) -> bool:
         """Check if network access is allowed."""
         context = request.get("context", {})
         needs_network = context.get("network_required", False)
@@ -432,9 +424,7 @@ class PreFlightChecker:
 
         return violations
 
-    def _calculate_risk_score(
-        self, result: SafetyCheckResult, policy: SafetyPolicy
-    ) -> float:
+    def _calculate_risk_score(self, result: SafetyCheckResult, policy: SafetyPolicy) -> float:
         """Calculate composite risk score (0.0 to 1.0)."""
         if result.passed and len(result.violations) == 0:
             return 0.0
@@ -497,9 +487,7 @@ class RiskAssessor:
         if context.get("spawn_processes", False):
             score += self._risk_weights["process_spawn"]
 
-        if context.get("cpu_intensive", False) or context.get(
-            "memory_intensive", False
-        ):
+        if context.get("cpu_intensive", False) or context.get("memory_intensive", False):
             score += self._risk_weights["resource_intensive"]
 
         if context.get("system_call", False):
@@ -607,9 +595,7 @@ class SafetyHarness:
         self._risk_assessor = RiskAssessor()
         self._monitors: dict[str, Monitor] = {}
 
-    def preflight_check(
-        self, request: dict[str, Any], policy: SafetyPolicy
-    ) -> SafetyCheckResult:
+    def preflight_check(self, request: dict[str, Any], policy: SafetyPolicy) -> SafetyCheckResult:
         """Run preflight safety checks.
 
         Args:

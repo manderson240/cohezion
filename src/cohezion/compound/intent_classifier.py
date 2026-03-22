@@ -121,9 +121,7 @@ class IntentClassifier:
         scores = {}
         for operation, keywords in self.keywords.items():
             # Count how many keywords appear in text
-            matches = sum(
-                1 for keyword in keywords if self._keyword_in_text(text_lower, keyword)
-            )
+            matches = sum(1 for keyword in keywords if self._keyword_in_text(text_lower, keyword))
             scores[operation] = matches
 
         # Return operation with highest score

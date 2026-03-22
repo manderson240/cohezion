@@ -3,15 +3,13 @@
 import asyncio
 import json
 import logging
-import os
 import re
 import sqlite3
-import subprocess
-import tempfile
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
+
 
 logger = logging.getLogger(__name__)
 
@@ -202,10 +200,7 @@ class WorkQueue:
                 """,
                 (limit,),
             )
-            rows = [
-                {"row": row[0], "link": row[1]}
-                for row in cursor.fetchall()
-            ]
+            rows = [{"row": row[0], "link": row[1]} for row in cursor.fetchall()]
             return rows
         finally:
             conn.close()
@@ -318,9 +313,10 @@ class AgentCoordinator:
         try:
             # Use provided client or create one
             if not self.client:
-                import anthropic
                 import json as json_lib
                 from pathlib import Path as PathLib
+
+                import anthropic
 
                 # Try OAuth token first (Claude Code)
                 auth_token = None
@@ -343,9 +339,7 @@ class AgentCoordinator:
                 self.client.messages.create,
                 model=self.model,
                 max_tokens=2000,
-                messages=[
-                    {"role": "user", "content": prompt}
-                ],
+                messages=[{"role": "user", "content": prompt}],
             )
 
             # Extract response text
@@ -353,12 +347,13 @@ class AgentCoordinator:
             logger.debug(f"Agent response: {response_text[:200]}...")
             return response_text
 
-        except asyncio.TimeoutError:
+        except TimeoutError:
             logger.error(f"Agent timed out after {self.timeout_seconds}s")
             return ""
         except Exception as e:
             logger.error(f"Agent spawn failed: {e}")
             import traceback
+
             logger.error(f"Traceback: {traceback.format_exc()}")
             return ""
 
@@ -395,7 +390,13 @@ class AgentCoordinator:
             for item in results:
                 if all(
                     key in item
-                    for key in ["row", "status", "abstractions", "domain", "integration_point"]
+                    for key in [
+                        "row",
+                        "status",
+                        "abstractions",
+                        "domain",
+                        "integration_point",
+                    ]
                 ):
                     validated.append(item)
                 else:
@@ -412,9 +413,7 @@ class AgentCoordinator:
 
     def _create_task_prompt(self, rows: list[dict]) -> str:
         """Create task prompt for agent."""
-        rows_text = "\n".join(
-            [f"- Row {r['row']}: {r['link']}" for r in rows]
-        )
+        rows_text = "\n".join([f"- Row {r['row']}: {r['link']}" for r in rows])
 
         return f"""Research the following links and return ONLY valid JSON array:
 
@@ -515,7 +514,7 @@ class SheetsResearchDaemon:
                         self._poll_and_process(),
                         timeout=self.config.sheets_research_poll_interval,
                     )
-                except asyncio.TimeoutError:
+                except TimeoutError:
                     pass
                 except Exception:
                     logger.exception("Unexpected error in poll cycle")
@@ -530,10 +529,7 @@ class SheetsResearchDaemon:
             logger.info(f"Fetched {len(all_rows)} total rows from sheet")
 
             # Filter unresearched rows (empty status column)
-            unresearched = [
-                r for r in all_rows
-                if r["link"] and not r["status"]
-            ]
+            unresearched = [r for r in all_rows if r["link"] and not r["status"]]
 
             if not unresearched:
                 logger.debug("No unresearched rows found")
@@ -565,8 +561,7 @@ class SheetsResearchDaemon:
         # Split into sub-batches for parallel agent spawn
         batch_size = self.config.sheets_research_batch_size
         sub_batches = [
-            rows[i : i + batch_size]
-            for i in range(0, len(rows), batch_size)
+            rows[i : i + batch_size] for i in range(0, len(rows), batch_size)
         ]
 
         logger.info(f"Spawning {len(sub_batches)} agents")
@@ -576,19 +571,14 @@ class SheetsResearchDaemon:
         self.work_queue.mark_in_progress(row_nums)
 
         # Spawn agents in parallel
-        tasks = [
-            self.coordinator.spawn_agent(batch)
-            for batch in sub_batches
-        ]
+        tasks = [self.coordinator.spawn_agent(batch) for batch in sub_batches]
 
         results = await asyncio.gather(*tasks)
 
         # Collect and validate results
         all_results = []
         for agent_output in results:
-            extracted = self.coordinator.extract_json_from_output(
-                agent_output
-            )
+            extracted = self.coordinator.extract_json_from_output(agent_output)
             all_results.extend(extracted)
 
         logger.info(f"Collected {len(all_results)} research results")
@@ -606,9 +596,7 @@ class SheetsResearchDaemon:
             logger.warning("No results to apply")
             # Mark all as failed and implement retry logic
             for row in submitted_rows:
-                should_retry, retry_count = self.work_queue.mark_failed(
-                    row["row"]
-                )
+                should_retry, retry_count = self.work_queue.mark_failed(row["row"])
                 if not should_retry:
                     # Move to DLQ after 3 attempts
                     self.dlq.add(
@@ -682,8 +670,7 @@ class SheetsResearchDaemon:
 
         self.rows_processed_today += len(successful)
         logger.info(
-            f"Processed {len(successful)} rows successfully, "
-            f"{len(failed)} failed"
+            f"Processed {len(successful)} rows successfully, {len(failed)} failed"
         )
 
         if failed:
@@ -698,10 +685,7 @@ class SheetsResearchDaemon:
         """Generate vault note for researched row."""
         # Create filename from abstractions (first 50 chars)
         title_slug = (
-            result["abstractions"][:50]
-            .lower()
-            .replace(" ", "-")
-            .replace("/", "-")
+            result["abstractions"][:50].lower().replace(" ", "-").replace("/", "-")
         )
         filename = f"papers/{result['row']}-{title_slug}.md"
         filepath = Path(self.vault.vault_path) / filename
@@ -736,24 +720,24 @@ class SheetsResearchDaemon:
         # Create note content
         content = f"""{yaml_frontmatter}
 
-# {result['abstractions'][:100]}
+# {result["abstractions"][:100]}
 
 ## Summary
 
-{result['abstractions']}
+{result["abstractions"]}
 
 ## Domain
 
-{result['domain']}
+{result["domain"]}
 
 ## Integration Point
 
-{result['integration_point']}
+{result["integration_point"]}
 
 ## Notes
 
 - Researched via automated Sheets Research Pipeline
-- Row {result['row']}
+- Row {result["row"]}
 """
 
         # Write to vault
@@ -770,9 +754,7 @@ class SheetsResearchDaemon:
                 )
                 logger.info(f"Updated column F for row {result['row']}: {filename}")
             except Exception:
-                logger.exception(
-                    f"Failed to update column F for row {result['row']}"
-                )
+                logger.exception(f"Failed to update column F for row {result['row']}")
 
         except Exception:
             logger.exception(f"Failed to write vault note: {filename}")
@@ -782,7 +764,9 @@ class SheetsResearchDaemon:
         stats = self.work_queue.get_stats()
         dlq_size = self.dlq.get_size()
         return {
-            "status": "running" if self.shutdown_event and not self.shutdown_event.is_set() else "stopped",
+            "status": "running"
+            if self.shutdown_event and not self.shutdown_event.is_set()
+            else "stopped",
             "work_queue": stats,
             "dlq_size": dlq_size,
             "rows_processed_today": self.rows_processed_today,

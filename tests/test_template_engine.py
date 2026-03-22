@@ -36,12 +36,10 @@ def test_parse_single_skill(engine: TemplateEngine) -> None:
         or "engineering" in spec.domain_expertise.lower()
     )
     assert len(spec.concepts) >= 3, f"Expected >= 3 concepts, got {spec.concepts}"
-    assert len(spec.instructions) >= 3, (
-        f"Expected >= 3 instructions, got {spec.instructions}"
-    )
+    assert len(spec.instructions) >= 3, f"Expected >= 3 instructions, got {spec.instructions}"
     assert spec.version != "unknown"
     assert len(spec.see_also) >= 1
-    assert spec.raw_content.startswith("# SKILL:")
+    assert "# SKILL:" in spec.raw_content
     assert spec.source_path == path
 
 

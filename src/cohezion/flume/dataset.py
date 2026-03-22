@@ -115,9 +115,7 @@ class SyntheticFlumeDataset(Dataset):
         RNG seed (default 42).
     """
 
-    def __init__(
-        self, n_samples: int = 10000, z_dim: int = 256, seed: int = 42
-    ) -> None:
+    def __init__(self, n_samples: int = 10000, z_dim: int = 256, seed: int = 42) -> None:
         rng = np.random.default_rng(seed)
         self.data = rng.normal(0.5, 0.15, (n_samples, z_dim)).astype(np.float32)
 

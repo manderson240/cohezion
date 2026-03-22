@@ -42,10 +42,9 @@ import logging
 import multiprocessing as mp
 import time
 from dataclasses import dataclass, field
-from multiprocessing import Queue
-from typing import Any
 
 import numpy as np
+
 
 logger = logging.getLogger(__name__)
 
@@ -79,10 +78,7 @@ class ShardSpec:
 
     def is_boundary(self, x: int, y: int) -> bool:
         """Check if position is on shard boundary (needs ghost zone sync)."""
-        return (
-            x == self.x_start or x == self.x_end - 1
-            or y == self.y_start or y == self.y_end - 1
-        )
+        return x == self.x_start or x == self.x_end - 1 or y == self.y_start or y == self.y_end - 1
 
 
 @dataclass
@@ -174,12 +170,16 @@ def compute_shard_layout(grid_size: int, num_shards: int) -> list[ShardSpec]:
             y_start = row * shard_h
             y_end = (row + 1) * shard_h if row < best_rows - 1 else grid_size
 
-            shards.append(ShardSpec(
-                shard_id=shard_id,
-                x_start=x_start, x_end=x_end,
-                y_start=y_start, y_end=y_end,
-                grid_size=grid_size,
-            ))
+            shards.append(
+                ShardSpec(
+                    shard_id=shard_id,
+                    x_start=x_start,
+                    x_end=x_end,
+                    y_start=y_start,
+                    y_end=y_end,
+                    grid_size=grid_size,
+                )
+            )
             shard_id += 1
 
     return shards
@@ -290,7 +290,8 @@ class ShardWorker:
                 child_z = z + self.rng.normal(0, 0.01, STATE_DIM)
                 child = AgentState(
                     agent_id=f"{agent.agent_id}_g{agent.generation + 1}_{self.rng.randint(100, 999)}",
-                    x=agent.x, y=agent.y,
+                    x=agent.x,
+                    y=agent.y,
                     energy=75.0,
                     z_vector=child_z.tolist(),
                     generation=agent.generation + 1,
@@ -355,11 +356,17 @@ class ShardWorker:
         """Compute shard-level metrics."""
         if not self.agents:
             return ShardMetrics(
-                shard_id=self.spec.shard_id, tick=self.tick,
-                num_agents=0, avg_coherence=HIHO, avg_spin_coherence=0.0,
-                avg_energy=0.0, global_entropy=float(np.mean(self.entropy)),
-                births=self.births, deaths=self.deaths,
-                migrations_out=self.migrations_out, timestamp=time.time(),
+                shard_id=self.spec.shard_id,
+                tick=self.tick,
+                num_agents=0,
+                avg_coherence=HIHO,
+                avg_spin_coherence=0.0,
+                avg_energy=0.0,
+                global_entropy=float(np.mean(self.entropy)),
+                births=self.births,
+                deaths=self.deaths,
+                migrations_out=self.migrations_out,
+                timestamp=time.time(),
             )
 
         coherences = []
@@ -408,12 +415,12 @@ class CoherenceAggregator:
 
         if total_agents > 0:
             # Weighted average by agent count
-            global_coherence = sum(
-                m.avg_coherence * m.num_agents for m in shard_metrics
-            ) / total_agents
-            global_spin = sum(
-                m.avg_spin_coherence * m.num_agents for m in shard_metrics
-            ) / total_agents
+            global_coherence = (
+                sum(m.avg_coherence * m.num_agents for m in shard_metrics) / total_agents
+            )
+            global_spin = (
+                sum(m.avg_spin_coherence * m.num_agents for m in shard_metrics) / total_agents
+            )
         else:
             global_coherence = HIHO
             global_spin = 0.0
@@ -431,7 +438,9 @@ class CoherenceAggregator:
                 phase_transition = True
                 logger.warning(
                     "Phase transition detected at tick %d: coherence %.3f → %.3f",
-                    tick, prev.global_coherence, global_coherence,
+                    tick,
+                    prev.global_coherence,
+                    global_coherence,
                 )
 
         # Detect precipitation events (system-wide HIHO convergence)
@@ -498,8 +507,7 @@ class ShardedUniverse:
 
         # Create workers
         self.workers = [
-            ShardWorker(spec, rng_seed=seed + spec.shard_id)
-            for spec in self.shard_specs
+            ShardWorker(spec, rng_seed=seed + spec.shard_id) for spec in self.shard_specs
         ]
 
         # Create and distribute agents
@@ -508,7 +516,8 @@ class ShardedUniverse:
             y = self.rng.randint(0, grid_size)
             agent = AgentState(
                 agent_id=f"agent_{i}",
-                x=x, y=y,
+                x=x,
+                y=y,
                 energy=100.0,
                 z_vector=self.rng.rand(STATE_DIM).tolist(),
                 generation=0,
@@ -599,7 +608,8 @@ class ShardedUniverse:
             if verbose and (i + 1) % 10 == 0:
                 logger.info(
                     "Step %d/%d: agents=%d, coherence=%.3f, spin=%.3f, entropy=%.3f, births=%d, deaths=%d",
-                    i + 1, num_steps,
+                    i + 1,
+                    num_steps,
                     metrics.total_agents,
                     metrics.global_coherence,
                     metrics.global_spin_coherence,
@@ -612,7 +622,9 @@ class ShardedUniverse:
                     logger.warning("PHASE TRANSITION at step %d!", i + 1)
 
                 if metrics.precipitation_events > 0:
-                    logger.info("PRECIPITATION EVENT at step %d (HIHO convergence + SPIN alignment)", i + 1)
+                    logger.info(
+                        "PRECIPITATION EVENT at step %d (HIHO convergence + SPIN alignment)", i + 1
+                    )
 
         return history
 
@@ -629,11 +641,16 @@ if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 
     universe = ShardedUniverse(
-        grid_size=64, num_shards=4, num_agents=256, seed=42,
+        grid_size=64,
+        num_shards=4,
+        num_agents=256,
+        seed=42,
     )
     logger.info("Starting distributed simulation: %d shards, %d agents", 4, 256)
     history = universe.run(num_steps=100, verbose=True)
 
     final = history[-1]
-    print(f"\nFinal: {final.total_agents} agents, coherence={final.global_coherence:.3f}, "
-          f"spin={final.global_spin_coherence:.3f}")
+    print(
+        f"\nFinal: {final.total_agents} agents, coherence={final.global_coherence:.3f}, "
+        f"spin={final.global_spin_coherence:.3f}"
+    )

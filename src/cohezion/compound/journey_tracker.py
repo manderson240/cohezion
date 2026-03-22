@@ -351,9 +351,7 @@ class JourneyTracker:
         # Combine projection with modulation
         # Weight modulation by execution quality
         quality_weight = 0.5 * coherence + 0.5 * efficiency
-        axiomatic = (
-            projection_12d * (1.0 - quality_weight) + modulation * quality_weight
-        )
+        axiomatic = projection_12d * (1.0 - quality_weight) + modulation * quality_weight
 
         # Normalize
         axiomatic = np.clip(axiomatic, 0.0, 1.0)

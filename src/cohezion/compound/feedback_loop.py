@@ -123,8 +123,7 @@ class CompoundFeedbackLoop:
         self.execution_history: list[RetryAttempt] = []
 
         logger.debug(
-            "Initialized CompoundFeedbackLoop with max_retries=%d, "
-            "critical_threshold=%.2f",
+            "Initialized CompoundFeedbackLoop with max_retries=%d, critical_threshold=%.2f",
             max_retries,
             critical_threshold,
         )
@@ -234,10 +233,7 @@ class CompoundFeedbackLoop:
                 )
 
             # If critical and retries available, attempt retry
-            if (
-                anomaly.severity == Severity.CRITICAL
-                and current_retry < self.max_retries
-            ):
+            if anomaly.severity == Severity.CRITICAL and current_retry < self.max_retries:
                 logger.warning(
                     "Critical anomaly detected: %s. Attempting retry %d/%d",
                     anomaly.issues,
@@ -396,8 +392,7 @@ class CompoundFeedbackLoop:
             failures = [a for a in attempts if not a.success]
 
             logger.info(
-                "Learning from retry trajectory: "
-                "task=%s, skill=%s, attempts=%d, success_rate=%.2f",
+                "Learning from retry trajectory: task=%s, skill=%s, attempts=%d, success_rate=%.2f",
                 task_description,
                 original_skill,
                 len(attempts),
@@ -447,9 +442,7 @@ class CompoundFeedbackLoop:
 
         total = len(self.execution_history)
         first_attempts = sum(1 for a in self.execution_history if a.attempt_number == 1)
-        total_retries = sum(
-            (a.attempt_number - 1) for a in self.execution_history if a.success
-        )
+        total_retries = sum((a.attempt_number - 1) for a in self.execution_history if a.success)
 
         return {
             "total_executions": total,

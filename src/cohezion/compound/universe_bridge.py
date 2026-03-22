@@ -102,9 +102,7 @@ class UniverseBridge:
             precipitation=float(arr[11]),
         )
 
-    def start_journey(
-        self, task_description: str, execution_id: str | None = None
-    ) -> str | None:
+    def start_journey(self, task_description: str, execution_id: str | None = None) -> str | None:
         """Create a UniverseJourney at execution start.
 
         Parameters

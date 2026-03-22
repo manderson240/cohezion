@@ -42,7 +42,9 @@ class VaultLogger:
     def log_execution_start(self, ctx: ExecutionContext) -> str:
         """Log the start of an execution to the Vault."""
         try:
-            path = f"experiments/{ctx.project}/{ctx.skill_name}/{int(ctx.start_time.timestamp())}.json"
+            path = (
+                f"experiments/{ctx.project}/{ctx.skill_name}/{int(ctx.start_time.timestamp())}.json"
+            )
             data = {
                 "project": ctx.project,
                 "skill_name": ctx.skill_name,

@@ -53,8 +53,6 @@ class ExperienceDataset(Dataset):
     def __getitem__(self, idx: int) -> torch.Tensor:
         vec = self._vectors[idx].copy()
         if self._augment:
-            noise = self._rng.normal(0.0, self._augment_std, vec.shape).astype(
-                np.float32
-            )
+            noise = self._rng.normal(0.0, self._augment_std, vec.shape).astype(np.float32)
             vec = vec + noise
         return torch.from_numpy(vec)

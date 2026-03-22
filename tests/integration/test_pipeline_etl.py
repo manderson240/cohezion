@@ -64,9 +64,7 @@ class TestCheckpointExporter:
 
     def test_export_final_only(self, tmp_artifact_dir, mock_universe_result):
         exporter = CheckpointExporter(tmp_artifact_dir)
-        paths = exporter.export_universe_to_npy(
-            mock_universe_result, include_checkpoints=False
-        )
+        paths = exporter.export_universe_to_npy(mock_universe_result, include_checkpoints=False)
 
         assert len(paths) == 1
         assert "ep300" in paths[0].name

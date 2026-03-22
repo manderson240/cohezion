@@ -118,10 +118,7 @@ class TestMCPHTTPSIntegration:
             headers={"origin": "https://app.example.com"},
         )
         assert response.status_code == 200
-        assert (
-            response.headers.get("Access-Control-Allow-Origin")
-            == "https://app.example.com"
-        )
+        assert response.headers.get("Access-Control-Allow-Origin") == "https://app.example.com"
 
         # Request from disallowed origin
         response = client.get(

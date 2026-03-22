@@ -132,17 +132,13 @@ class TestSessionCostTracker:
         tracker = SessionCostTracker(session_id="test-session-1")
 
         # Call 1: qwen3 (free)
-        cost1 = tracker.track_usage_fast(
-            model="qwen3-coder:32b", tokens=500, duration_ms=250.0
-        )
+        cost1 = tracker.track_usage_fast(model="qwen3-coder:32b", tokens=500, duration_ms=250.0)
 
         # Call 2: gpt-4 ($0.03 per 1K)
         cost2 = tracker.track_usage_fast(model="gpt-4", tokens=1000, duration_ms=500.0)
 
         # Call 3: claude-3-sonnet ($0.003 per 1K)
-        cost3 = tracker.track_usage_fast(
-            model="claude-3-sonnet", tokens=2000, duration_ms=1000.0
-        )
+        cost3 = tracker.track_usage_fast(model="claude-3-sonnet", tokens=2000, duration_ms=1000.0)
 
         assert cost1 == 0.0
         assert cost2 == 0.03

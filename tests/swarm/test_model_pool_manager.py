@@ -39,9 +39,7 @@ def tier_config() -> TierConfig:
 @pytest.fixture
 def pool(tier_config: TierConfig) -> ModelPoolManager:
     """Pool manager with mocked MemoryBandwidthAnalyzer."""
-    with patch(
-        "cohezion.swarm.model_pool_manager.MemoryBandwidthAnalyzer"
-    ) as MockAnalyzer:
+    with patch("cohezion.swarm.model_pool_manager.MemoryBandwidthAnalyzer") as MockAnalyzer:
         mock_analyzer = MockAnalyzer.return_value
         mock_analyzer.analyze_memory_pressure.return_value = 0.5  # 50% pressure
         mock_analyzer.total_memory_gb = 128.0
@@ -187,9 +185,7 @@ class TestModelPoolManager:
             mock_client = AsyncMock()
             MockClient.return_value.__aenter__ = AsyncMock(return_value=mock_client)
             MockClient.return_value.__aexit__ = AsyncMock(return_value=False)
-            mock_client.post = AsyncMock(
-                side_effect=[evict_resp, load_resp, health_resp]
-            )
+            mock_client.post = AsyncMock(side_effect=[evict_resp, load_resp, health_resp])
 
             result = await pool.ensure_loaded("hot-model:latest")
 

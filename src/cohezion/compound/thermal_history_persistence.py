@@ -89,10 +89,7 @@ class ThermalTimeSeriesCollector:
                         self._samples_since_vault_log += 1
 
                         # Log to vault every 12 samples (1 hour)
-                        if (
-                            self.enable_vault_logging
-                            and self._samples_since_vault_log >= 12
-                        ):
+                        if self.enable_vault_logging and self._samples_since_vault_log >= 12:
                             asyncio.create_task(self._log_to_vault_async())
                             self._samples_since_vault_log = 0
                 except Exception as e:
@@ -319,8 +316,7 @@ class ThermalTimeSeriesCollector:
                 f.write(json_line)
 
             logger.debug(
-                f"Recorded batch thermal: batch_size={batch_size}, "
-                f"temp={peak_gpu_temp:.1f}°C"
+                f"Recorded batch thermal: batch_size={batch_size}, temp={peak_gpu_temp:.1f}°C"
             )
         except Exception as e:
             logger.debug(f"Failed to record batch thermal: {e}")

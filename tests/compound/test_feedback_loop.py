@@ -497,9 +497,7 @@ class TestReset:
 
     def test_reset_feedback_loop(self, feedback_loop):
         """Test resetting feedback loop state."""
-        feedback_loop.execution_history = [
-            RetryAttempt(1, RetryStrategy.SAME_SKILL, "skill", True)
-        ]
+        feedback_loop.execution_history = [RetryAttempt(1, RetryStrategy.SAME_SKILL, "skill", True)]
 
         feedback_loop.reset()
 

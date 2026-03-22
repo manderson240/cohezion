@@ -232,9 +232,7 @@ async def call_tool(name: str, arguments: dict[str, Any]) -> list[TextContent]:
                     TextContent(
                         type="text",
                         text=json.dumps(
-                            {
-                                "error": f"Gateway '{arguments.get('gateway_id')}' not found"
-                            }
+                            {"error": f"Gateway '{arguments.get('gateway_id')}' not found"}
                         ),
                     )
                 ]

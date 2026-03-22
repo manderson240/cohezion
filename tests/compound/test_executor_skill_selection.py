@@ -98,9 +98,7 @@ class TestExecutorSkillSuggestion:
 
     def test_suggest_skills_error_handling(self, executor):
         """Test suggest_skills gracefully handles errors."""
-        executor.mcp_client.vault_find_relevant_context.side_effect = RuntimeError(
-            "Vault error"
-        )
+        executor.mcp_client.vault_find_relevant_context.side_effect = RuntimeError("Vault error")
 
         suggestions = executor.suggest_skills(
             "Task",

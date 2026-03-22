@@ -10,12 +10,11 @@ from __future__ import annotations
 
 import json
 import logging
-import os
-import shutil
 import subprocess
 from pathlib import Path
 
 import numpy as np
+
 
 logger = logging.getLogger(__name__)
 
@@ -258,7 +257,7 @@ def quick_finetune(
     tuner = LocalFinetuner(base_model=base, output_name=name)
 
     print(f"\n{'=' * 50}")
-    print(f"Local Finetuning Pipeline")
+    print("Local Finetuning Pipeline")
     print(f"{'=' * 50}")
     print(f"Base: {base}")
     print(f"Output: {name}")

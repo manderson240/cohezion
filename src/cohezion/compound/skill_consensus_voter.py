@@ -284,9 +284,7 @@ class SkillConsensusVoter:
                         "voters": [],
                     }
                 skill_weights[top_skill.skill_name]["weight"] += agent_weight
-                skill_weights[top_skill.skill_name]["voters"].append(
-                    (vote.agent_id, agent_weight)
-                )
+                skill_weights[top_skill.skill_name]["voters"].append((vote.agent_id, agent_weight))
 
         if not skill_weights or total_weight == 0:
             return self._fallback_single_best(votes)
@@ -392,9 +390,7 @@ class SkillConsensusVoter:
         )
 
         if not unanimous:
-            logger.warning(
-                "Unanimous consensus failed. Agents disagreed. Using fallback."
-            )
+            logger.warning("Unanimous consensus failed. Agents disagreed. Using fallback.")
             result = self._fallback_single_best(votes)
             result.fallback_used = True
 
@@ -437,9 +433,7 @@ class SkillConsensusVoter:
                         "count": 0,
                     }
 
-                skill_scores_weighted[skill.skill_name]["total_score"] += (
-                    rank_weight * agent_weight
-                )
+                skill_scores_weighted[skill.skill_name]["total_score"] += rank_weight * agent_weight
                 skill_scores_weighted[skill.skill_name]["count"] += 1
 
         # Handle case where no skills were collected
@@ -473,8 +467,7 @@ class SkillConsensusVoter:
             fallback_used=True,
             vote_aggregation={
                 "all_skills": {
-                    name: entry["total_score"]
-                    for name, entry in skill_scores_weighted.items()
+                    name: entry["total_score"] for name, entry in skill_scores_weighted.items()
                 },
                 "max_possible_score": max_possible_score,
             },
@@ -514,9 +507,7 @@ class SkillConsensusVoter:
                 "strategy": strategy.value,
                 "num_agents": len(votes),
                 "consensus_skill": (
-                    result.consensus_skill.skill_name
-                    if result.consensus_skill
-                    else None
+                    result.consensus_skill.skill_name if result.consensus_skill else None
                 ),
                 "confidence": result.confidence_score,
                 "consensus_achieved": not result.fallback_used,

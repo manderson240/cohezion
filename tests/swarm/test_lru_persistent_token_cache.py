@@ -397,9 +397,7 @@ class TestLRUPersistentTokenCacheEdgeCases:
 
     def test_unicode_in_values(self, bounded_cache):
         """Test handling unicode characters."""
-        entry = CacheEntry(
-            key="unicode", value="🚀 Rocket response éàü", tokens_used=100
-        )
+        entry = CacheEntry(key="unicode", value="🚀 Rocket response éàü", tokens_used=100)
         bounded_cache["unicode"] = entry
 
         assert bounded_cache["unicode"].value == "🚀 Rocket response éàü"

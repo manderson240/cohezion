@@ -244,9 +244,7 @@ class FeatureFlagManager:
             metadata={"priority": "safety", "impact": "disable", "risk": "none"},
         )
 
-    def is_enabled(
-        self, flag: FeatureFlag, context: FeatureFlagContext | None = None
-    ) -> bool:
+    def is_enabled(self, flag: FeatureFlag, context: FeatureFlagContext | None = None) -> bool:
         """Evaluate if a feature flag is enabled for given context.
 
         Args:
@@ -446,9 +444,7 @@ def get_feature_flag_manager() -> FeatureFlagManager:
     return _global_manager
 
 
-def is_feature_enabled(
-    flag: FeatureFlag, context: FeatureFlagContext | None = None
-) -> bool:
+def is_feature_enabled(flag: FeatureFlag, context: FeatureFlagContext | None = None) -> bool:
     """Convenience function to check if feature is enabled.
 
     Args:

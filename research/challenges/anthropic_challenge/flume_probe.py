@@ -1,10 +1,8 @@
-
-import random
 import sys
 import os
 
 # Add src to path
-sys.path.append(os.path.join(os.getcwd(), 'src'))
+sys.path.append(os.path.join(os.getcwd(), "src"))
 sys.path.append(os.getcwd())
 
 try:
@@ -12,6 +10,7 @@ try:
 except ImportError:
     # Fallback or assume running from root
     pass
+
 
 def simple_probe():
     print("Running Pure Python FLUME Probe...")
@@ -21,7 +20,7 @@ def simple_probe():
     rounds = 16
 
     try:
-        t = Tree.generate(12) # 4096 nodes
+        t = Tree.generate(12)  # 4096 nodes
         print(f"Tree generated with {len(t.values)} nodes.")
         inp = Input.generate(t, 256, rounds)
     except NameError:
@@ -33,13 +32,14 @@ def simple_probe():
 
     history_bits = []
 
-    for i in range(256): # Per batch item
+    for i in range(256):  # Per batch item
         c_idx = idxs[i]
         c_val = vals[i]
 
         seq = []
         for r in range(rounds):
-            if c_idx >= len(t.values): c_idx = 0
+            if c_idx >= len(t.values):
+                c_idx = 0
             n_val = t.values[c_idx]
 
             # Hash logic (simplified simulation of problem.py)
@@ -68,14 +68,14 @@ def simple_probe():
     # Analysis
     total_bits = 0
     ones = 0
-    transitions = [[0, 0], [0, 0]] # [prev][curr]
+    transitions = [[0, 0], [0, 0]]  # [prev][curr]
 
     for seq in history_bits:
         total_bits += len(seq)
         ones += sum(seq)
-        for i in range(len(seq)-1):
+        for i in range(len(seq) - 1):
             prev = seq[i]
-            curr = seq[i+1]
+            curr = seq[i + 1]
             transitions[prev][curr] += 1
 
     avg_val = ones / total_bits if total_bits > 0 else 0
@@ -108,6 +108,7 @@ def simple_probe():
         print("RESULT: PREDICTABLE STRUCTURE FOUND (Markov)!")
     else:
         print("RESULT: NO OBVIOUS PREDICTABILITY (Random Walk)")
+
 
 if __name__ == "__main__":
     simple_probe()

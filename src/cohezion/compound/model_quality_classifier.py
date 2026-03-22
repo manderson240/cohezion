@@ -374,9 +374,7 @@ class ModelQualityClassifier:
         coh_trend = predictor.get_trend(predictor.coherence_history)
 
         pred_success, success_conf = predictor.forecast_success_rate(num_steps_ahead)
-        success_trend = predictor.get_trend(
-            [float(s) for s in predictor.success_history]
-        )
+        success_trend = predictor.get_trend([float(s) for s in predictor.success_history])
 
         # Determine failure mode
         failure_mode = None

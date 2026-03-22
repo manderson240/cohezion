@@ -35,9 +35,7 @@ class TestAggressiveCostOptimization:
     def test_aggressive_medium_to_phi3_routing(self, aggressive_router):
         """Test that medium queries route to phi3 with aggressive cost reduction."""
         # Medium queries normally route to qwen, but aggressive mode prefers phi3
-        decision, _ = aggressive_router.select_model(
-            "Write a Python function to process data"
-        )
+        decision, _ = aggressive_router.select_model("Write a Python function to process data")
 
         # With aggressive cost reduction, should prefer phi3 for medium queries
         # if latency impact is acceptable
@@ -46,9 +44,7 @@ class TestAggressiveCostOptimization:
 
     def test_aggressive_complex_to_phi3_possible(self, aggressive_router):
         """Test that complex queries can be routed to phi3 with aggressive cost reduction."""
-        decision, _ = aggressive_router.select_model(
-            "Design and implement a distributed system"
-        )
+        decision, _ = aggressive_router.select_model("Design and implement a distributed system")
 
         # With aggressive cost reduction, complex might route to phi3
         # if quality is acceptable
@@ -200,9 +196,7 @@ class TestCostPerTokenOptimization:
         """Test that phi3 is selected when latency impact is acceptable."""
         # For medium query, normally routed to qwen
         # But if aggressive mode and TPS acceptable, use phi3
-        decision, _ = optimizer_router.select_model(
-            "Write a function to validate input"
-        )
+        decision, _ = optimizer_router.select_model("Write a function to validate input")
 
         # With aggressive optimization, may prefer phi3
         assert decision.model in ["phi3:mini", "qwen3-coder:32b"]

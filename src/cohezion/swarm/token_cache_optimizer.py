@@ -237,9 +237,7 @@ class TokenCacheOptimizer:
             stats["hits"] += 1
             stats["by_layer"][cache_layer] = stats["by_layer"].get(cache_layer, 0) + 1
 
-    def _update_operation_stats(
-        self, operation_type: str, total_tokens: int, model: str
-    ) -> None:
+    def _update_operation_stats(self, operation_type: str, total_tokens: int, model: str) -> None:
         """Update per-operation statistics.
 
         Parameters
@@ -300,9 +298,7 @@ class TokenCacheOptimizer:
             },
             "cross_model_sharing": {
                 "enabled": self._config.cross_model_sharing,
-                "safe_pairs": {
-                    k: list(v) for k, v in self._cross_model_safe_pairs.items()
-                },
+                "safe_pairs": {k: list(v) for k, v in self._cross_model_safe_pairs.items()},
             },
         }
 
@@ -334,11 +330,7 @@ class TokenCacheOptimizer:
 
         for model, stats in self._model_stats.items():
             model_recs: list[str] = []
-            hit_rate = (
-                stats["hits"] / stats["total_requests"]
-                if stats["total_requests"] > 0
-                else 0
-            )
+            hit_rate = stats["hits"] / stats["total_requests"] if stats["total_requests"] > 0 else 0
 
             if hit_rate < 0.3:
                 model_recs.append(

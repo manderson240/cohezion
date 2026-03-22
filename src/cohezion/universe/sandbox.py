@@ -45,16 +45,13 @@ class ContainerizedUniverse:
         network_mode: str = "bridge",
         profile: Any | None = None,
     ):
-        # If a SandboxProfile is provided, use it to override defaults
-        if profile is not None:
-            from cohezion.universe.sandbox_profiles import SandboxProfile
-
-            if isinstance(profile, SandboxProfile):
-                image_name = image_name
-                memory_limit = profile.to_docker_memory_str()
-                cpu_quota = profile.cpu_quota_percent * 1000
-                timeout_seconds = profile.timeout_seconds
-                network_mode = "bridge" if profile.network_enabled else "none"
+        # If a SandboxProfile is provided, use it to override defaults.
+        # Duck-type check avoids isinstance() issues when the class is mocked in tests.
+        if profile is not None and hasattr(profile, "to_docker_memory_str"):
+            memory_limit = profile.to_docker_memory_str()
+            cpu_quota = profile.cpu_quota_percent * 1000
+            timeout_seconds = profile.timeout_seconds
+            network_mode = "bridge" if profile.network_enabled else "none"
 
         self.image_name = image_name
         self.memory_limit = memory_limit
@@ -64,7 +61,7 @@ class ContainerizedUniverse:
 
         try:
             self.client = docker.from_env()
-        except DockerException as e:
+        except Exception as e:
             logger.error(f"Failed to connect to Docker: {e}")
             raise RuntimeError("Docker is required for ContainerizedUniverse") from e
 
@@ -149,9 +146,7 @@ class ContainerizedUniverse:
                 except Exception:
                     pass
 
-    def _create_tar_stream(
-        self, script: str, files: dict[str, str | bytes] | None
-    ) -> bytes:
+    def _create_tar_stream(self, script: str, files: dict[str, str | bytes] | None) -> bytes:
         """Create a tar archive in memory."""
         import io
 

@@ -1,24 +1,20 @@
 import asyncio
 import logging
-import json
-import os
-import psutil
-from datetime import datetime, timedelta
-from pathlib import Path
-import random
+from datetime import datetime
 
-from cohezion.core.persistence.surreal_client import SurrealClient, UniverseNode, PhysicsState
+import psutil
+
+from cohezion.core.persistence.surreal_client import PhysicsState, SurrealClient
 from cohezion.mcp.email_notifier import EmailNotifier
+
 
 logging.basicConfig(
     level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.FileHandler("eco_research_swarm.log"),
-        logging.StreamHandler()
-    ]
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    handlers=[logging.FileHandler("eco_research_swarm.log"), logging.StreamHandler()],
 )
 logger = logging.getLogger("EcoResearchSwarm")
+
 
 class EcoResearchSwarm:
     """
@@ -78,7 +74,6 @@ class EcoResearchSwarm:
                 logger.warning(f"Skipping non-dict node: {type(node)}")
                 continue
             try:
-
                 # 1. Extract Physics State (handle dict or packed string)
                 p_raw = node.get("physics_state")
 
@@ -117,19 +112,20 @@ class EcoResearchSwarm:
                     "info_density": float(info_density),
                     "energy_flow": float(energy_flow),
                     "habitat_quality": float(habitat_quality),
-                    "eco_evaluation_time": datetime.now().isoformat()
+                    "eco_evaluation_time": datetime.now().isoformat(),
                 }
 
                 # Surgical update using the direct record ID to avoid full-record schema validation issues
                 update_res = await self.db.query(
                     "UPDATE $id SET metadata.eco_metrics = $eco, metadata.eco_valued = true",
-                    {"eco": eco_metrics, "id": node["id"]}
+                    {"eco": eco_metrics, "id": node["id"]},
                 )
                 logger.info(f"Update result for {node['id']}: {update_res}")
             except Exception as e:
                 logger.error(f"Failed to process node {node.get('id')}: {e}")
 
         logger.info("Batch eco-valuation complete.")
+
 
 if __name__ == "__main__":
     swarm = EcoResearchSwarm()

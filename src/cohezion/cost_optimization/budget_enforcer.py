@@ -200,9 +200,7 @@ class BudgetCircuitBreaker:
 
         # Check if auto-reset timeout elapsed
         if time.time() - self.open_time > self.reset_timeout_sec:
-            logger.info(
-                f"Budget circuit breaker auto-reset after {self.reset_timeout_sec}s"
-            )
+            logger.info(f"Budget circuit breaker auto-reset after {self.reset_timeout_sec}s")
             self.is_open = False
             self.strike_count = 0
             return False

@@ -32,9 +32,7 @@ class TestHierarchicalVaultSearch:
             {"path": "patterns/operations/analyze/p2.md", "line": 2},
         ]
 
-        mcp_client._call_tool.return_value = (
-            "" if not mock_patterns else str(mock_patterns)
-        )
+        mcp_client._call_tool.return_value = "" if not mock_patterns else str(mock_patterns)
         # Mock the tool to use vault_search implementation
         with patch.object(mcp_client, "vault_search") as mock_search:
             mock_search.return_value = mock_patterns
@@ -125,9 +123,7 @@ class TestHierarchicalVaultSearch:
 
     def test_hierarchical_search_graceful_error_handling(self, mcp_client):
         """Test graceful error handling."""
-        with patch.object(
-            mcp_client, "vault_search", side_effect=Exception("Network error")
-        ):
+        with patch.object(mcp_client, "vault_search", side_effect=Exception("Network error")):
             # Should not raise, returns empty list
             results = mcp_client.vault_search_by_operation("analyze", limit=5)
             assert results == []
@@ -145,9 +141,7 @@ class TestHierarchicalVaultSearch:
 
         # Mock hierarchical search (fast path)
         with patch.object(client, "vault_search") as mock_search:
-            mock_search.return_value = [
-                {"path": f"patterns/analyze/p{i}.md"} for i in range(10)
-            ]
+            mock_search.return_value = [{"path": f"patterns/analyze/p{i}.md"} for i in range(10)]
 
             start = time.perf_counter()
             results_hierarchical = client.vault_search_by_operation("analyze")

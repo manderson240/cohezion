@@ -59,9 +59,7 @@ def verify_12d_vectors(path: str):
         print(f"✅ 12D Vector signature validated in {os.path.basename(path)}.")
         return True
     else:
-        print(
-            f"❌ Error: Malformed or missing 12D vector signature in {os.path.basename(path)}."
-        )
+        print(f"❌ Error: Malformed or missing 12D vector signature in {os.path.basename(path)}.")
         return False
 
 
@@ -109,9 +107,7 @@ def verify_adversarial(path: str):
 
 def main():
     parser = argparse.ArgumentParser(description="Cohezion Context Validation Suite")
-    parser.add_argument(
-        "--adversarial", action="store_true", help="Run intense adversarial audits"
-    )
+    parser.add_argument("--adversarial", action="store_true", help="Run intense adversarial audits")
     args = parser.parse_args()
 
     print("--- Cohezion Context Validation Suite (Hardened) ---")
@@ -140,9 +136,7 @@ def main():
         verify_header_exists(
             ".agent/CONSTITUTION.md", "## 3. The 0.5 Coherence Rule (HIHO Stability)"
         )
-        verify_header_exists(
-            ".agent/EVOLUTION_PROTOCOL.md", "## 1. Continuous Experience Mining"
-        )
+        verify_header_exists(".agent/EVOLUTION_PROTOCOL.md", "## 1. Continuous Experience Mining")
 
         # 3. Vector & Link Audits
         for f in [

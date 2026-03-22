@@ -444,11 +444,13 @@ class TestRedisConnectionRetryIntegration:
     """Integration tests for Redis connection retry logic."""
 
     def test_connection_retry_does_not_block_cache(self):
-        """Test connection retries don't block cache operations."""
+        """Test connection retries don't block cache operations when retries exhausted."""
         cache = RedisSemanticCache(enable_redis=True)
+        # Force unavailable state and exhaust retries to test the retry-limit path
+        cache._redis_available = False
         cache._redis_connection_attempts = cache._redis_max_retries
 
-        # Should mark as unavailable but not crash
+        # Should return False when retries exhausted and unavailable
         result = cache._ensure_redis_connection()
         assert result is False
 

@@ -159,9 +159,7 @@ async def test_collect_test_metrics_from_db(digest):
     """Test collecting test metrics from SurrealDB."""
 
     digest.db.query = AsyncMock(
-        return_value=[
-            {"total_tests": 2850, "passing_tests": 2830, "timestamp": datetime.now()}
-        ]
+        return_value=[{"total_tests": 2850, "passing_tests": 2830, "timestamp": datetime.now()}]
     )
 
     metrics = await digest._collect_test_metrics()

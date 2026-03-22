@@ -616,9 +616,7 @@ class CostAwareRouter:
         # If latency increase is within threshold, accept the optimization
         return latency_increase <= threshold
 
-    def _find_available_fallback(
-        self, preferred: str, available: set[str]
-    ) -> str | None:
+    def _find_available_fallback(self, preferred: str, available: set[str]) -> str | None:
         """Find the best available model as a fallback.
 
         Selects from available models in order of quality score (highest first).

@@ -478,9 +478,7 @@ class TestContextEngineeringInfrastructure(unittest.TestCase):
         )
 
         # Verify client was created with correct config
-        mock_create_client.assert_called_once_with(
-            "http://custom-server:8360", "custom-api-key"
-        )
+        mock_create_client.assert_called_once_with("http://custom-server:8360", "custom-api-key")
 
 
 class TestMCPIntegrationWithCompoundSystem(unittest.TestCase):
@@ -516,9 +514,7 @@ class TestMCPIntegrationWithCompoundSystem(unittest.TestCase):
     def test_skill_refiner_integration(self, mock_create_client):
         """Test SkillRefiner can use MCP for extracting patterns."""
         mock_client = MagicMock()
-        mock_client.vault_extract_pattern.return_value = (
-            "patterns/compound-feedback-loop.md"
-        )
+        mock_client.vault_extract_pattern.return_value = "patterns/compound-feedback-loop.md"
         mock_create_client.return_value = mock_client
 
         cei = ContextEngineeringInfrastructure(
@@ -544,9 +540,7 @@ class TestMCPIntegrationWithCompoundSystem(unittest.TestCase):
     def test_journey_persistence_integration(self, mock_create_client):
         """Test JourneyPersistence can use MCP for logging experiments."""
         mock_client = MagicMock()
-        mock_client.vault_log_experiment.return_value = (
-            "experiments/2025-01-15-journey-tracking.md"
-        )
+        mock_client.vault_log_experiment.return_value = "experiments/2025-01-15-journey-tracking.md"
         mock_create_client.return_value = mock_client
 
         cei = ContextEngineeringInfrastructure(

@@ -129,9 +129,7 @@ class BatchSizePredictor:
             f"task_type={task_type}"
         )
 
-    def predict_optimal_size(
-        self, task_type: str, task_count: int
-    ) -> tuple[int, float]:
+    def predict_optimal_size(self, task_type: str, task_count: int) -> tuple[int, float]:
         """Predict optimal batch size for a task.
 
         Uses historical patterns to recommend batch size. Falls back to
@@ -159,9 +157,7 @@ class BatchSizePredictor:
             # No history: use heuristic
             size = self.DEFAULT_BATCH_SIZES[task_type]
             confidence = 0.3  # Low confidence for heuristic
-            logger.debug(
-                f"No history for {task_type}, using heuristic batch_size={size}"
-            )
+            logger.debug(f"No history for {task_type}, using heuristic batch_size={size}")
             self._last_prediction = (size, confidence)
             return size, confidence
 
@@ -213,9 +209,7 @@ class BatchSizePredictor:
             size_groups[metrics.batch_size].append(metrics.throughput)
 
         # Calculate average throughput per batch size
-        size_throughput = {
-            size: sum(values) / len(values) for size, values in size_groups.items()
-        }
+        size_throughput = {size: sum(values) / len(values) for size, values in size_groups.items()}
 
         # Find optimal size (highest throughput)
         if not size_throughput:
@@ -237,9 +231,7 @@ class BatchSizePredictor:
         # Variance penalty: if very inconsistent, lower confidence
         if num_samples > 1:
             throughputs = size_groups[optimal_size]
-            variance = sum((t - max_throughput) ** 2 for t in throughputs) / len(
-                throughputs
-            )
+            variance = sum((t - max_throughput) ** 2 for t in throughputs) / len(throughputs)
             variance_penalty = min(0.2, variance / max_throughput)
             confidence -= variance_penalty
 

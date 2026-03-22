@@ -88,14 +88,8 @@ class TestGenerateExecutableAgentSource:
         spec = _make_spec()
         source = engine.generate_executable_agent(spec)
 
-        assert (
-            "from cohezion.core.instruction_expander import ExecutablePlan, PlanStep"
-            in source
-        )
-        assert (
-            "from cohezion.core.plan_executor import ExecutionResult, PlanExecutor"
-            in source
-        )
+        assert "from cohezion.core.instruction_expander import ExecutablePlan, PlanStep" in source
+        assert "from cohezion.core.plan_executor import ExecutionResult, PlanExecutor" in source
 
     def test_multiple_instructions_produce_steps(self) -> None:
         """Each instruction should become a PlanStep in the source."""
@@ -146,9 +140,7 @@ class TestGeneratedAgentProcess:
         agent_cls = namespace["TestSkillAgent"]
         agent = agent_cls(token_client=None)
 
-        result = asyncio.get_event_loop().run_until_complete(
-            agent.process("test input")
-        )
+        result = asyncio.get_event_loop().run_until_complete(agent.process("test input"))
 
         assert isinstance(result, ExecutionResult)
         assert result.skill_name == "TEST_SKILL_PRIME"
@@ -166,9 +158,7 @@ class TestGeneratedAgentProcess:
         agent_cls = namespace["TestSkillAgent"]
         agent = agent_cls(token_client=mock_client)
 
-        result = asyncio.get_event_loop().run_until_complete(
-            agent.process("analyze this")
-        )
+        result = asyncio.get_event_loop().run_until_complete(agent.process("analyze this"))
 
         assert isinstance(result, ExecutionResult)
         assert result.skill_name == "TEST_SKILL_PRIME"
@@ -212,9 +202,7 @@ class TestFactoryCreateExecutable:
 
         # Dynamic creation (no pre-generated file) should still work
         agent = factory.create_executable("FACTORY_TEST_PRIME")
-        result = asyncio.get_event_loop().run_until_complete(
-            agent.process("test input")
-        )
+        result = asyncio.get_event_loop().run_until_complete(agent.process("test input"))
         assert result.skill_name == "FACTORY_TEST_PRIME"
 
     def test_factory_generate_top_skills(self, tmp_path: Path) -> None:
@@ -327,9 +315,7 @@ class TestGenerateExecutableAndRegister:
 
         # Verify __init__.py update logic (same logic as generate_executable_and_register)
         class_name = "RegTestAgent"
-        import_line = (
-            f"from cohezion.agents.generated.reg_test_agent import {class_name}"
-        )
+        import_line = f"from cohezion.agents.generated.reg_test_agent import {class_name}"
         init_content = init_path.read_text(encoding="utf-8")
         if import_line not in init_content:
             init_content = init_content.replace(

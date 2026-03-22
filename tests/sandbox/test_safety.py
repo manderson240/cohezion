@@ -394,9 +394,7 @@ class TestConstraintEnforcer:
         assert enforcer._enforced is True
 
     @patch("cohezion.sandbox.safety.logger")
-    def test_constraint_enforcer_nonblocking_on_cgroup_failure(
-        self, mock_logger, low_risk_policy
-    ):
+    def test_constraint_enforcer_nonblocking_on_cgroup_failure(self, mock_logger, low_risk_policy):
         """Enforcer should be non-blocking on cgroup failure."""
         enforcer = ConstraintEnforcer(low_risk_policy)
         result = enforcer.enforce()
@@ -405,9 +403,7 @@ class TestConstraintEnforcer:
         assert result is True
 
     @patch("cohezion.sandbox.safety.logger")
-    def test_constraint_enforcer_nonblocking_on_seccomp_failure(
-        self, mock_logger, low_risk_policy
-    ):
+    def test_constraint_enforcer_nonblocking_on_seccomp_failure(self, mock_logger, low_risk_policy):
         """Enforcer should be non-blocking on seccomp failure."""
         enforcer = ConstraintEnforcer(low_risk_policy)
         result = enforcer.enforce()

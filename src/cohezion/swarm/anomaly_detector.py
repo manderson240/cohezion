@@ -436,8 +436,7 @@ class AnomalyDetector:
         if len(recent_history) >= 3:
             # Check if values are consistently high/low
             variance = sum(
-                (x - sum(recent_history) / len(recent_history)) ** 2
-                for x in recent_history
+                (x - sum(recent_history) / len(recent_history)) ** 2 for x in recent_history
             ) / len(recent_history)
             consistency = 1.0 / (1.0 + variance)  # Normalize
             base_confidence = base_confidence * (0.5 + 0.5 * consistency)

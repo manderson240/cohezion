@@ -56,9 +56,7 @@ class TestCompoundExecutorTokenIntegration:
             assert executor.token_client is None
             assert executor.mcp_client == mock_mcp_client
 
-    def test_executor_initialization_with_token_client(
-        self, mock_mcp_client, mock_token_client
-    ):
+    def test_executor_initialization_with_token_client(self, mock_mcp_client, mock_token_client):
         """Test executor initialization with token client."""
         with patch("cohezion.compound.exp_persistence.vault.VaultLogger"):
             executor = CompoundExecutor(mock_mcp_client, mock_token_client)

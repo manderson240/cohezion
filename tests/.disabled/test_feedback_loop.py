@@ -100,9 +100,7 @@ class TestModels:
         assert result.model_usage["phi3:mini"] == 3
 
     def test_cycle_result_serialization(self) -> None:
-        result = CompoundCycleResult(
-            skill_name="s", input_text="i", patterns=["p1", "p2"]
-        )
+        result = CompoundCycleResult(skill_name="s", input_text="i", patterns=["p1", "p2"])
         data = result.model_dump()
         assert data["skill_name"] == "s"
         assert len(data["patterns"]) == 2
@@ -142,9 +140,7 @@ class TestPersistence:
         # Force JSONL by setting surreal unavailable
         persistence._surreal_available = False
 
-        record_id = await persistence.save_cycle(
-            "test_skill", {"tokens": 42, "output": "hello"}
-        )
+        record_id = await persistence.save_cycle("test_skill", {"tokens": 42, "output": "hello"})
         assert record_id.startswith("jsonl:test_skill:")
 
         history = await persistence.load_history("test_skill", limit=5)
@@ -220,9 +216,7 @@ class TestFeedbackLoop:
     """Tests for CompoundFeedbackLoop."""
 
     @pytest.mark.asyncio()
-    async def test_single_cycle(
-        self, mock_executor: CompoundExecutor, tmp_path: Path
-    ) -> None:
+    async def test_single_cycle(self, mock_executor: CompoundExecutor, tmp_path: Path) -> None:
         exec_result = _make_mock_exec_result()
         mock_executor.execute_skill = AsyncMock(return_value=exec_result)
 
@@ -245,9 +239,7 @@ class TestFeedbackLoop:
         mock_executor.execute_skill.assert_awaited_once()
 
     @pytest.mark.asyncio()
-    async def test_multi_cycle(
-        self, mock_executor: CompoundExecutor, tmp_path: Path
-    ) -> None:
+    async def test_multi_cycle(self, mock_executor: CompoundExecutor, tmp_path: Path) -> None:
         exec_result = _make_mock_exec_result()
         mock_executor.execute_skill = AsyncMock(return_value=exec_result)
 

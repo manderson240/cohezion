@@ -1,12 +1,14 @@
 """Tests for the health check module."""
 
-import asyncio
+import os
 from pathlib import Path
-from unittest.mock import AsyncMock, Mock, patch
+from unittest.mock import Mock
 
 import pytest
 
 from mcp_server.health import HealthChecker, HealthStatus
+
+_IN_CI = os.environ.get("CI") == "true"
 
 
 class TestHealthChecker:
@@ -23,7 +25,9 @@ class TestHealthChecker:
 
     @pytest.fixture
     def real_vault_checker(self):
-        """Create health checker with real vault path."""
+        """Create health checker with real vault path (local-only)."""
+        if _IN_CI:
+            pytest.skip("Requires local vault path — unavailable in CI")
         return HealthChecker(
             vault_path="/home/mike-anderson/vaults/cohezion-vault",
             surrealdb_url="http://localhost:8000",
@@ -140,9 +144,7 @@ class TestHealthChecker:
     async def test_check_sheets_api_error(self, health_checker):
         """Test Sheets API check with bridge that raises error."""
         mock_bridge = Mock()
-        mock_bridge.get_all_rows = Mock(
-            side_effect=Exception("Auth failed")
-        )
+        mock_bridge.get_all_rows = Mock(side_effect=Exception("Auth failed"))
         health_checker.sheets_bridge = mock_bridge
         result = await health_checker.check_sheets_api()
         assert result["status"] == "error"

@@ -98,9 +98,7 @@ class TestExecutorSkillRefinement:
         assert result.success is True
         # Skill refiner is called but may not modify anything for test skills
 
-    def test_execute_task_skips_refiner_on_failure(
-        self, executor_with_refiner, mock_mcp_client
-    ):
+    def test_execute_task_skips_refiner_on_failure(self, executor_with_refiner, mock_mcp_client):
         """Test that skill refiner is skipped on failed execution."""
 
         def failing_task(guidance):
@@ -116,9 +114,7 @@ class TestExecutorSkillRefinement:
         assert result.success is False
         # Skill refiner should not be called for failed tasks
 
-    def test_execute_task_with_refiner_disabled(
-        self, executor_without_refiner, mock_mcp_client
-    ):
+    def test_execute_task_with_refiner_disabled(self, executor_without_refiner, mock_mcp_client):
         """Test execution with skill refiner disabled."""
 
         def dummy_task(guidance):
@@ -146,9 +142,7 @@ class TestExecutorFactoryWithRefiner:
 
     def test_factory_create_with_refiner_disabled(self, mock_mcp_client):
         """Test factory creates executor with refiner disabled."""
-        executor = ExecutorFactory.create(
-            mock_mcp_client, enable_skill_refinement=False
-        )
+        executor = ExecutorFactory.create(mock_mcp_client, enable_skill_refinement=False)
 
         assert executor.skill_refiner is None
 
@@ -163,9 +157,7 @@ class TestExecutorFactoryWithRefiner:
         """Test singleton factory with skill refiner."""
         ExecutorFactory.reset_singleton()
 
-        executor1 = ExecutorFactory.get_singleton(
-            mock_mcp_client, enable_skill_refinement=True
-        )
+        executor1 = ExecutorFactory.get_singleton(mock_mcp_client, enable_skill_refinement=True)
         executor2 = ExecutorFactory.get_singleton(mock_mcp_client)
 
         assert executor1 is executor2

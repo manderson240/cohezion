@@ -188,9 +188,7 @@ class RequestCache:
                 self.l2_cache.popitem(last=False)  # Remove oldest (first inserted)
                 logger.debug(f"L2 cache evicted oldest entry (size={self.l2_size})")
 
-            logger.debug(
-                f"Cached request: {request_text[:50]}... → task_id={task.task_id}"
-            )
+            logger.debug(f"Cached request: {request_text[:50]}... → task_id={task.task_id}")
         except Exception as e:
             logger.warning(f"Failed to cache request: {e}")
 
@@ -381,9 +379,7 @@ class RequestCache:
         try:
             # Check if result contains key intake-related terms
             text = str(result).lower()
-            return any(
-                term in text for term in ["request", "task", "operation", "intent"]
-            )
+            return any(term in text for term in ["request", "task", "operation", "intent"])
         except Exception:
             return False
 

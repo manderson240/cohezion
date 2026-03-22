@@ -143,9 +143,7 @@ class TestCharterAlignedSkillTracker:
         assert skill_tracker.vae is not None
 
     @pytest.mark.asyncio
-    async def test_log_skill_usage_hiho_stable(
-        self, skill_tracker, mock_surreal_client
-    ):
+    async def test_log_skill_usage_hiho_stable(self, skill_tracker, mock_surreal_client):
         """Test logging skill usage that is HIHO stable."""
         event = SkillUsageEvent(
             skill_name="test_skill",
@@ -306,9 +304,7 @@ class TestCharterAlignedSkillAnalytics:
         return mock_proposer
 
     @pytest.fixture
-    def skill_analytics(
-        self, mock_surreal_client, mock_edl_router, mock_observable_proposer
-    ):
+    def skill_analytics(self, mock_surreal_client, mock_edl_router, mock_observable_proposer):
         """Create CharterAlignedSkillAnalytics with mocked dependencies."""
         with (
             patch(

@@ -92,9 +92,7 @@ class FlumeVAETrainer:
         eps = torch.randn_like(std)
         return mu + std * eps
 
-    def _forward(
-        self, x: torch.Tensor
-    ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+    def _forward(self, x: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
         """Full VAE forward pass. Returns (reconstruction, mu, log_var)."""
         h = self.encoder(x)
         mu = self.mu_head(h)
@@ -121,11 +119,7 @@ class FlumeVAETrainer:
         mu_mean = mu.mean(dim=-1)
         coherence_loss = torch.mean((mu_mean - 0.5) ** 2)
 
-        total = (
-            mse
-            + self.config.kl_weight * kl
-            + self.config.coherence_weight * coherence_loss
-        )
+        total = mse + self.config.kl_weight * kl + self.config.coherence_weight * coherence_loss
 
         metrics = {
             "mse": mse.item(),
@@ -167,9 +161,7 @@ class FlumeVAETrainer:
         optimizer = optim.Adam(self._all_params, lr=self.config.lr)
 
         if self.config.lr_schedule == "cosine":
-            scheduler = optim.lr_scheduler.CosineAnnealingLR(
-                optimizer, T_max=self.config.epochs
-            )
+            scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=self.config.epochs)
         else:
             scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=20, gamma=0.5)
 
@@ -201,9 +193,7 @@ class FlumeVAETrainer:
             scheduler.step()
 
             # Aggregate epoch metrics
-            epoch_avg = {
-                k: np.mean([m[k] for m in batch_metrics]) for k in batch_metrics[0]
-            }
+            epoch_avg = {k: np.mean([m[k] for m in batch_metrics]) for k in batch_metrics[0]}
             epoch_avg["epoch"] = epoch
             epoch_avg["lr"] = scheduler.get_last_lr()[0]
             epoch_avg["elapsed_s"] = time.perf_counter() - epoch_start

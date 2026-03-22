@@ -34,8 +34,10 @@ from cohezion.universe.sandbox_profiles import (
 
 logger = logging.getLogger(__name__)
 
-# System-wide memory budget for all sandboxes (100GB of 128GB)
-SYSTEM_MEMORY_BUDGET_MB = 100 * 1024
+# System-wide memory budget for all sandboxes (85GB of 128GB)
+# Desktop baseline ~60GB (Chrome, Obsidian, etc.) leaves ~65GB headroom;
+# 85GB ceiling prevents OOM while allowing burst simulation workloads.
+SYSTEM_MEMORY_BUDGET_MB = 85 * 1024
 
 
 @dataclass
@@ -138,9 +140,7 @@ class SandboxManager:
         """
         # 1. Circuit breaker check
         if not self._circuit.allow_request():
-            raise RuntimeError(
-                "Sandbox circuit breaker is OPEN — too many recent failures"
-            )
+            raise RuntimeError("Sandbox circuit breaker is OPEN — too many recent failures")
 
         # 2. Resolve profile
         effective_profile = profile if profile is not None else get_profile(tier)
@@ -181,9 +181,7 @@ class SandboxManager:
 
         try:
             # 7. Execute via backend
-            result = await self.backend.execute(
-                script, effective_profile, files=files, env=env
-            )
+            result = await self.backend.execute(script, effective_profile, files=files, env=env)
 
             if result.success:
                 self._circuit.record_success()
@@ -227,9 +225,7 @@ class SandboxManager:
 
             monitor = get_resource_monitor()
             if hasattr(monitor, "register_sandbox"):
-                monitor.register_sandbox(
-                    instance.sandbox_id, instance.profile.memory_limit_mb
-                )
+                monitor.register_sandbox(instance.sandbox_id, instance.profile.memory_limit_mb)
         except Exception as e:
             logger.debug(f"Monitor registration skipped: {e}")
 

@@ -31,9 +31,7 @@ async def verify_translator():
     try:
         query_res = await db.query("SELECT * FROM cross_domain_mapping LIMIT 5")
         if query_res and query_res[0]:
-            print(
-                f"✓ Verified persistence: Found {len(query_res[0])} records in SurrealDB."
-            )
+            print(f"✓ Verified persistence: Found {len(query_res[0])} records in SurrealDB.")
         else:
             print("⚠️ Persistence check: No records found (is SurrealDB running?)")
     except Exception as e:

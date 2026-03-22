@@ -74,8 +74,6 @@ class TestCostTokenTradeoff:
         # May be qwen (0.85) or phi3 (0.6) due to optimization
         assert decision_medium.quality_score in [0.6, 0.85]
 
-        decision_complex, _ = router.select_model(
-            "Design and implement a production system"
-        )
+        decision_complex, _ = router.select_model("Design and implement a production system")
         # May be deepseek (0.95), qwen (0.85), or phi3 (0.6) due to optimization
         assert decision_complex.quality_score in [0.6, 0.85, 0.95]

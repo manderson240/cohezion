@@ -78,9 +78,7 @@ def mock_encoder():
 class TestTrajectorySearchEngine:
     """Tests for TrajectorySearchEngine."""
 
-    def test_find_similar_trajectories_returns_results(
-        self, mock_collector, mock_encoder
-    ):
+    def test_find_similar_trajectories_returns_results(self, mock_collector, mock_encoder):
         """Search returns similar trajectories ranked by quality."""
         search = TrajectorySearchEngine(mock_collector, mock_encoder)
 
@@ -95,13 +93,9 @@ class TestTrajectorySearchEngine:
         # First result should be highest quality (sorted)
         assert results[0].coherence >= 0.5
 
-    def test_similarity_threshold_filters_low_matches(
-        self, mock_collector, mock_encoder
-    ):
+    def test_similarity_threshold_filters_low_matches(self, mock_collector, mock_encoder):
         """Only results above similarity threshold are returned."""
-        search = TrajectorySearchEngine(
-            mock_collector, mock_encoder, similarity_threshold=0.9
-        )
+        search = TrajectorySearchEngine(mock_collector, mock_encoder, similarity_threshold=0.9)
 
         results = search.find_similar_trajectories(
             task_description="Completely different task",

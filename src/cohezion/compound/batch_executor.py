@@ -142,10 +142,8 @@ class BatchableExecutor:
         prediction_confidence = 0.0
         if self.batch_sizer and len(tasks) > 1:
             task_types = self._detect_task_types(tasks)
-            predicted_batch_size, prediction_confidence = (
-                self.batch_sizer.predict_optimal_size(
-                    task_types[0] if task_types else "unknown", len(tasks)
-                )
+            predicted_batch_size, prediction_confidence = self.batch_sizer.predict_optimal_size(
+                task_types[0] if task_types else "unknown", len(tasks)
             )
             self.batch_size = predicted_batch_size
             logger.info(
@@ -264,9 +262,7 @@ class BatchableExecutor:
             errors=errors,
         )
 
-    async def _get_batch_guidance(
-        self, tasks: list[CompoundTask]
-    ) -> dict[str, dict[str, Any]]:
+    async def _get_batch_guidance(self, tasks: list[CompoundTask]) -> dict[str, dict[str, Any]]:
         """Phase 1: Get experience guidance for all tasks in parallel.
 
         Queries vault for each task to find similar prior executions.
@@ -355,8 +351,7 @@ class BatchableExecutor:
             ):
                 task_types.append("analyze")
             elif any(
-                word in prompt_lower
-                for word in ["search", "find", "look for", "retrieve", "list"]
+                word in prompt_lower for word in ["search", "find", "look for", "retrieve", "list"]
             ):
                 task_types.append("search")
             elif any(
@@ -365,8 +360,7 @@ class BatchableExecutor:
             ):
                 task_types.append("transform")
             elif any(
-                word in prompt_lower
-                for word in ["save", "store", "persist", "record", "store"]
+                word in prompt_lower for word in ["save", "store", "persist", "record", "store"]
             ):
                 task_types.append("persist")
             else:
@@ -449,16 +443,13 @@ class BatchableExecutor:
             results: ExecutionResults from Phase 2
         """
         phase3_tasks = [
-            self._process_single_result(task, result)
-            for task, result in zip(tasks, results)
+            self._process_single_result(task, result) for task, result in zip(tasks, results)
         ]
 
         # Run all post-execution in parallel
         await asyncio.gather(*phase3_tasks, return_exceptions=True)
 
-    async def _process_single_result(
-        self, task: CompoundTask, result: ExecutionResult
-    ) -> None:
+    async def _process_single_result(self, task: CompoundTask, result: ExecutionResult) -> None:
         """Process single task's post-execution.
 
         Logs to vault, detects anomalies, extracts patterns.
@@ -502,9 +493,7 @@ class BatchableExecutor:
             # Non-blocking: log and continue
             logger.debug(f"Post-execution processing failed: {e}")
 
-    def _deduplicate_tasks(
-        self, tasks: list[CompoundTask]
-    ) -> dict[int, list[CompoundTask]]:
+    def _deduplicate_tasks(self, tasks: list[CompoundTask]) -> dict[int, list[CompoundTask]]:
         """Deduplicate identical prompts within batch.
 
         Returns dict mapping representative task id → list of duplicate tasks.

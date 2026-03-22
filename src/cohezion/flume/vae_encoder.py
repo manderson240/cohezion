@@ -94,9 +94,7 @@ class FlumeVAEEncoder:
                 return
 
             # Load checkpoint — weights_only=True prevents arbitrary code execution
-            checkpoint = torch.load(
-                self.model_path, map_location=self.device, weights_only=True
-            )
+            checkpoint = torch.load(self.model_path, map_location=self.device, weights_only=True)
 
             # Extract encoder and mu_head
             encoder_state = checkpoint.get("encoder")
@@ -159,12 +157,7 @@ class FlumeVAEEncoder:
             with torch.no_grad():
                 # Generate initial embedding from text hash
                 hash_embedding = self._hash_encode(text)
-                hash_tensor = (
-                    torch.from_numpy(hash_embedding)
-                    .float()
-                    .unsqueeze(0)
-                    .to(self.device)
-                )
+                hash_tensor = torch.from_numpy(hash_embedding).float().unsqueeze(0).to(self.device)
 
                 # Pass through encoder and mu_head
                 encoded = self.encoder(hash_tensor)

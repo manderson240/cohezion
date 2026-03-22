@@ -143,7 +143,7 @@ class RequestAlignmentAnalyzer:
     def __init__(
         self,
         mcp_client: MCPClient,
-        intent_confidence_threshold: float = 0.5,
+        intent_confidence_threshold: float = 0.1,
         constraint_tolerance: float = 0.1,
     ):
         """Initialize request alignment analyzer.
@@ -174,9 +174,7 @@ class RequestAlignmentAnalyzer:
                 self._text_encoder = get_text_encoder()
                 logger.debug("Initialized semantic text encoder")
             except Exception as e:
-                logger.debug(
-                    "Failed to load semantic encoder (using keyword fallback): %s", e
-                )
+                logger.debug("Failed to load semantic encoder (using keyword fallback): %s", e)
                 self._text_encoder = False  # Flag: tried and failed
         return self._text_encoder if self._text_encoder else None
 
@@ -210,9 +208,7 @@ class RequestAlignmentAnalyzer:
         logger.debug("Extracted %d success criteria", len(request.criteria))
 
         # Step 4: Extract scope
-        request.scope_includes, request.scope_excludes = self._extract_scope(
-            request_text
-        )
+        request.scope_includes, request.scope_excludes = self._extract_scope(request_text)
 
         return request
 
@@ -240,40 +236,28 @@ class RequestAlignmentAnalyzer:
         )
 
         # Check constraint satisfaction
-        violations = self._check_constraints(
-            request.constraints, execution_result.metrics
-        )
-        constraint_satisfaction = max(
-            0.0, 1.0 - (len(violations) * 0.3)
-        )  # Penalty per violation
+        violations = self._check_constraints(request.constraints or [], execution_result.metrics)
+        constraint_satisfaction = max(0.0, 1.0 - (len(violations) * 0.3))  # Penalty per violation
 
         # Check success criteria
-        failures = self._check_criteria(request.criteria, execution_result.metrics)
-        criteria_satisfaction = max(
-            0.0, 1.0 - (len(failures) * 0.2)
-        )  # Penalty per failure
+        failures = self._check_criteria(request.criteria or [], execution_result.metrics)
+        criteria_satisfaction = max(0.0, 1.0 - (len(failures) * 0.2))  # Penalty per failure
 
         # Detect drift signals
         drift_signals = self._detect_drift_signals(execution_result, anomaly_analysis)
         drift_penalty = (
-            sum(s.severity for s in drift_signals) / len(drift_signals)
-            if drift_signals
-            else 0.0
+            sum(s.severity for s in drift_signals) / len(drift_signals) if drift_signals else 0.0
         )
 
         # Compute composite misalignment score
         alignment_score = (
-            0.4 * intent_match_score
-            + 0.3 * constraint_satisfaction
-            + 0.3 * criteria_satisfaction
+            0.4 * intent_match_score + 0.3 * constraint_satisfaction + 0.3 * criteria_satisfaction
         )
         misalignment_score = (1.0 - alignment_score) + (drift_penalty * 0.2)
         misalignment_score = min(1.0, max(0.0, misalignment_score))
 
         # Generate issues and recommendations
-        issues = self._generate_issues(
-            violations, failures, drift_signals, intent_match_score
-        )
+        issues = self._generate_issues(violations, failures, drift_signals, intent_match_score)
         recommendations = self._generate_recommendations(
             violations, failures, drift_signals, request.intent
         )
@@ -362,12 +346,14 @@ class RequestAlignmentAnalyzer:
 
         best_intent = max(scores, key=scores.get)
         best_score = scores[best_intent]
-        total_keywords = sum(len(kws) for kws in _INTENT_KEYWORDS.values())
-        confidence = best_score / max(1, total_keywords)
+        # Normalize by matched category's keywords (not all keywords) so a
+        # single match out of 7 gives confidence ≈ 0.14, not 0.03.
+        intent_keyword_count = len(_INTENT_KEYWORDS.get(best_intent, [1]))
+        confidence = best_score / max(1, intent_keyword_count)
 
         if confidence >= self.intent_confidence_threshold:
             return (
-                IntentType(best_intent),
+                IntentType[best_intent.upper()],
                 confidence,
             )
 
@@ -431,7 +417,7 @@ class RequestAlignmentAnalyzer:
                     best_intent = intent_str
 
             if best_similarity >= 0.3:  # Semantic threshold
-                return IntentType(best_intent), best_similarity
+                return IntentType[best_intent.upper()], best_similarity
 
             return IntentType.UNKNOWN, 0.0
         except Exception as e:
@@ -500,9 +486,7 @@ class RequestAlignmentAnalyzer:
         if match:
             scope = match.group(1)
             constraints.append(
-                ExecutionConstraint(
-                    type=ConstraintType.SCOPE, value=1.0, unit=scope, is_hard=True
-                )
+                ExecutionConstraint(type=ConstraintType.SCOPE, value=1.0, unit=scope, is_hard=True)
             )
 
         return constraints
@@ -522,9 +506,7 @@ class RequestAlignmentAnalyzer:
         criteria = []
 
         # Look for explicit criteria ("must be...", "should be...")
-        explicit_pattern = re.compile(
-            r"(?:must|should|needs?)\s+(?:be\s+)?(\w+)", re.IGNORECASE
-        )
+        explicit_pattern = re.compile(r"(?:must|should|needs?)\s+(?:be\s+)?(\w+)", re.IGNORECASE)
         for match in explicit_pattern.finditer(request_text):
             criterion_word = match.group(1).lower()
             if criterion_word in _CRITERION_METRIC_MAP:
@@ -562,9 +544,7 @@ class RequestAlignmentAnalyzer:
             includes.append(match.group(1))
 
         # Look for "except", "excluding", "not", "without" (exclusions)
-        except_pattern = re.compile(
-            r"(?:except|excluding|not|without)\s+(\w+)", re.IGNORECASE
-        )
+        except_pattern = re.compile(r"(?:except|excluding|not|without)\s+(\w+)", re.IGNORECASE)
         for match in except_pattern.finditer(request_text):
             excludes.append(match.group(1))
 
@@ -583,8 +563,8 @@ class RequestAlignmentAnalyzer:
         Returns:
             0.0-1.0 intent match score
         """
-        # Direct intent match
-        if request_intent.value == operation_type:
+        # Direct intent match (compare lowercase name to operation_type string)
+        if request_intent.name.lower() == operation_type.lower():
             return 1.0
 
         # Semantic similarity (if encoder available)
@@ -664,9 +644,7 @@ class RequestAlignmentAnalyzer:
             elif constraint.type == ConstraintType.QUALITY:
                 # Check quality metrics (coherence, accuracy, etc.)
                 quality_metrics = ["coherence", "accuracy", "correctness"]
-                actual_quality = max(
-                    (metrics.get(m, 0) for m in quality_metrics), default=0.0
-                )
+                actual_quality = max((metrics.get(m, 0) for m in quality_metrics), default=0.0)
                 if actual_quality < constraint.value:
                     severity = min(
                         1.0, (constraint.value - actual_quality) / constraint.value
@@ -815,13 +793,11 @@ class RequestAlignmentAnalyzer:
         issues = []
 
         if intent_match < 0.5:
-            issues.append(
-                f"Execution may not match request intent (match={intent_match:.2f})"
-            )
+            issues.append(f"Execution may not match request intent (match={intent_match:.2f})")
 
         for violation in violations:
             issues.append(
-                f"{violation.constraint.type.value.capitalize()} constraint violated: "
+                f"{violation.constraint.type.name.capitalize()} constraint violated: "
                 f"requested {violation.requested_value}, got {violation.actual_value}"
             )
 
@@ -859,26 +835,18 @@ class RequestAlignmentAnalyzer:
 
         for violation in violations:
             if violation.constraint.type == ConstraintType.TOKENS:
-                recommendations.append(
-                    "Reduce token requirements or optimize prompt/execution"
-                )
+                recommendations.append("Reduce token requirements or optimize prompt/execution")
             elif violation.constraint.type == ConstraintType.LATENCY:
-                recommendations.append(
-                    "Optimize execution speed or increase time budget"
-                )
+                recommendations.append("Optimize execution speed or increase time budget")
             elif violation.constraint.type == ConstraintType.QUALITY:
                 recommendations.append("Use higher-quality model or improve prompt")
 
         for failure in failures:
-            recommendations.append(
-                f"Improve {failure.criterion.metric_name} to meet requirements"
-            )
+            recommendations.append(f"Improve {failure.criterion.metric_name} to meet requirements")
 
         for signal in drift_signals:
             if signal.signal_type == "coherence_drop":
-                recommendations.append(
-                    "Improve prompt clarity or use higher-capability model"
-                )
+                recommendations.append("Improve prompt clarity or use higher-capability model")
             elif signal.signal_type == "retry_required":
                 recommendations.append("Investigate root cause of retries")
             elif signal.signal_type == "cache_miss_storm":
@@ -903,15 +871,12 @@ class RequestAlignmentAnalyzer:
             Vault path or empty string on failure
         """
         try:
-            title = (
-                f"High misalignment in {request.intent.value} task: "
-                f"{request.raw_text[:50]}"
-            )
+            title = f"High misalignment in {request.intent.name} task: {request.raw_text[:50]}"
             context = (
                 f"Request: {request.raw_text}\n\n"
-                f"Intent: {request.intent.value} (confidence={request.intent_confidence:.2f})\n\n"
-                f"Constraints: {len(request.constraints)}\n"
-                f"Criteria: {len(request.criteria)}"
+                f"Intent: {request.intent.name} (confidence={request.intent_confidence:.2f})\n\n"
+                f"Constraints: {len(request.constraints or [])}\n"
+                f"Criteria: {len(request.criteria or [])}"
             )
             decision = (
                 f"Misalignment score: {alignment.misalignment_score:.2f}\n"
@@ -952,24 +917,25 @@ class RequestAlignmentAnalyzer:
             Vault path or empty string on failure
         """
         try:
+            issues = alignment.issues or []
+            recommendations = alignment.recommendations or []
             hypothesis = (
-                f"Request alignment for {request.intent.value} task: "
-                f"{request.raw_text[:100]}"
+                f"Request alignment for {request.intent.name} task: {request.raw_text[:100]}"
             )
             method = (
-                f"Analyzed request with intent={request.intent.value}, "
-                f"{len(request.constraints)} constraints, {len(request.criteria)} criteria"
+                f"Analyzed request with intent={request.intent.name}, "
+                f"{len(request.constraints or [])} constraints, {len(request.criteria or [])} criteria"
             )
             result = (
                 f"Misalignment score: {alignment.misalignment_score:.2f} "
-                f"({len(alignment.issues)} issues)"
+                f"({len(issues)} issues)"
             )
             learnings = (
                 f"Execution aligned well with request. "
-                f"Recommendations: {', '.join(alignment.recommendations)}"
+                f"Recommendations: {', '.join(recommendations)}"
                 if alignment.misalignment_score <= 0.3
                 else f"Moderate misalignment detected. "
-                f"{len(alignment.issues)} issues, retry recommended."
+                f"{len(issues)} issues, retry recommended."
             )
 
             path = self.mcp_client.vault_log_experiment(

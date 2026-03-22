@@ -241,8 +241,7 @@ class GuidanceEnhancer:
         # High failure rate
         if len(failed) >= 3:
             warnings.append(
-                f"Warning: {len(failed)} similar tasks had poor outcomes. "
-                f"Proceed with caution."
+                f"Warning: {len(failed)} similar tasks had poor outcomes. Proceed with caution."
             )
 
         # Low smoothness (chaotic trajectories)
@@ -257,8 +256,7 @@ class GuidanceEnhancer:
         divergent = [r for r in failed if r.trajectory_convergence < 0.3]
         if divergent:
             warnings.append(
-                f"{len(divergent)} similar tasks failed to converge. "
-                f"Monitor coherence closely."
+                f"{len(divergent)} similar tasks failed to converge. Monitor coherence closely."
             )
 
         return warnings[:2]  # Top 2 warnings

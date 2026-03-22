@@ -162,9 +162,7 @@ class MockSkillRegistry:
         ranked = []
         for skill_name, metrics in self.skills.items():
             score = sum(
-                metrics.get(key, 0) * weights[key]
-                for key in weights.keys()
-                if key in metrics
+                metrics.get(key, 0) * weights[key] for key in weights.keys() if key in metrics
             )
             ranked.append((skill_name, score))
 
@@ -516,9 +514,7 @@ class TestMultiAgentCoordination:
             assert data is not None
 
     @pytest.mark.asyncio
-    async def test_5_agent_consensus_skill_selection(
-        self, agent_profiles, mock_skill_registry
-    ):
+    async def test_5_agent_consensus_skill_selection(self, agent_profiles, mock_skill_registry):
         """Test 5 agents reach consensus on skill selection."""
         # Prerequisites:
         # - SkillConsensusVoter implemented
@@ -920,9 +916,7 @@ class TestEndToEndPhase5B:
         for agent in agents:
             await mock_redis_client.set(
                 f"agent-{agent.agent_id}-result",
-                json.dumps(
-                    {"agent_id": agent.agent_id, "cost": 0.0, "tokens": 1000}
-                ).encode(),
+                json.dumps({"agent_id": agent.agent_id, "cost": 0.0, "tokens": 1000}).encode(),
             )
 
         # Step 2: Verify cache hits for repeated queries

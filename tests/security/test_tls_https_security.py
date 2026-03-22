@@ -160,9 +160,7 @@ class TestHTTPSMiddleware:
     def test_https_request_allowed(self):
         """Test that HTTPS requests are allowed."""
         config = TLSConfig()
-        app = HTTPSEnforcementMiddleware(
-            self.base_app, config, allow_http_localhost=True
-        )
+        app = HTTPSEnforcementMiddleware(self.base_app, config, allow_http_localhost=True)
         client = TestClient(app)
 
         # TestClient from 127.0.0.1 with allow_http_localhost=True
@@ -172,9 +170,7 @@ class TestHTTPSMiddleware:
     def test_http_request_rejected_non_localhost(self):
         """Test that HTTP requests from non-localhost are rejected."""
         config = TLSConfig()
-        app = HTTPSEnforcementMiddleware(
-            self.base_app, config, allow_http_localhost=True
-        )
+        app = HTTPSEnforcementMiddleware(self.base_app, config, allow_http_localhost=True)
         client = TestClient(app)
 
         # Simulate HTTP request from non-localhost
@@ -295,9 +291,7 @@ class TestSecureCookieMiddleware:
         def set_cookie_with_flags(request):
             response = PlainTextResponse("OK")
             # Manually set cookie with some flags
-            response.headers.append(
-                "set-cookie", "session=abc123; Path=/; SameSite=Lax; Secure"
-            )
+            response.headers.append("set-cookie", "session=abc123; Path=/; SameSite=Lax; Secure")
             return response
 
         app = Starlette()

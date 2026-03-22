@@ -14,9 +14,7 @@ from cohezion.core.compound.retrospection import (
 @pytest.fixture
 def engine():
     """Create engine pointing at actual knowledge graph."""
-    kg_dir = (
-        Path(__file__).parent.parent.parent / "src" / "cohezion" / "knowledge_graph"
-    )
+    kg_dir = Path(__file__).parent.parent.parent / "src" / "cohezion" / "knowledge_graph"
     return RetrospectionEngine(kg_dir=kg_dir)
 
 
