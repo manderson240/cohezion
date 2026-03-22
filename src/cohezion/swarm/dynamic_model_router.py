@@ -300,8 +300,20 @@ class DynamicModelRouter:
         urgency: str = str(request.get("urgency", "medium"))
 
         # Base capability score
-        if request.get("task_type") == "coding" and ("coder" in model.name or "phi" in model.name):
-            score += 30
+        if task_type == "coding" and ("coder" in model.name or "phi" in model.name):
+            score += 200  # Massive boost for specialized coding models
+
+        # Cloud Hybrid Routing Rules
+        if (task_type == "complex_reasoning" or task_type == "architecture") and model.is_cloud:
+            score += 300  # Enormously prioritize Cloud for advanced logic
+
+        # Avoid network roundtrip of cloud if local fits for urgent tasks
+        if urgency == "high" and not model.is_cloud:
+            score += 15
+
+        # Avoid cloud for simple code formatting
+        if task_type == "formatting" and model.is_cloud:
+            score -= 50
 
         # Memory efficiency score (prefer models that fit comfortably)
         memory_fit = max(0, (model.size_gb / self.memory_analyzer.available_memory_gb) * 100)

@@ -431,7 +431,9 @@ class ModelFallbackStrategy:
         """
         stats = {
             "total_fallbacks": self.fallback_count,
-            "recent_fallbacks": len([ts for _, _, ts in self.fallback_history if time.time() - ts < 3600]),
+            "recent_fallbacks": len(
+                [ts for _, _, ts in self.fallback_history if time.time() - ts < 3600]
+            ),
         }
 
         # Count fallback patterns

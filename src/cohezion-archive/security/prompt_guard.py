@@ -219,9 +219,8 @@ class PromptGuard:
 
         for check_text in texts_to_check:
             for pattern, name in COMPILED_PATTERNS:
-                if pattern.search(check_text):
-                    if name not in matched:
-                        matched.append(name)
+                if pattern.search(check_text) and name not in matched:
+                    matched.append(name)
 
         if not matched:
             return PromptAnalysis(
@@ -308,10 +307,7 @@ class PromptGuard:
             logger.warning(f"Blocked malicious input: {analysis.matched_patterns}")
             return True
 
-        if self.strict_mode and analysis.threat_level == ThreatLevel.SUSPICIOUS:
-            return True
-
-        return False
+        return bool(self.strict_mode and analysis.threat_level == ThreatLevel.SUSPICIOUS)
 
     def get_stats(self) -> dict:
         """Get blocking statistics."""

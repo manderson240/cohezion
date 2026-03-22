@@ -12,14 +12,15 @@ import os
 from datetime import UTC, datetime, timedelta
 from typing import Any
 
-from jose import JWTError, jwt
+import jwt
+from jwt.exceptions import PyJWTError
 from passlib.context import CryptContext
 
 
 logger = logging.getLogger(__name__)
 
 # Configuration
-SECRET_KEY = os.environ.get("COHEZION_SECRET_KEY", "dev-secret-change-in-production")
+SECRET_KEY = os.environ.get("COHEZION_SECRET_KEY", "dev-secret-change-in-production!!")
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60
 
@@ -114,7 +115,7 @@ def verify_token(token: str) -> dict[str, Any]:
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         return payload
-    except JWTError as e:
+    except PyJWTError as e:
         raise AuthError(f"Invalid token: {e}", "invalid_token") from e
 
 

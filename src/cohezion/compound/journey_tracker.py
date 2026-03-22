@@ -24,6 +24,10 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import TYPE_CHECKING, Any
 
+
+if TYPE_CHECKING:
+    from cohezion.compound.thermodynamic_metrics import ThermodynamicState
+
 import numpy as np
 
 

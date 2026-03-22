@@ -48,7 +48,7 @@ class SkillsCache:
             logger.debug("Cache miss: %s", skill_id.replace("\n", " "))
             return None
 
-        except Exception as e:
+        except Exception:
             logger.exception("Error getting from cache")
             return None
 

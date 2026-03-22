@@ -10,6 +10,12 @@ import uuid
 from mcp_server.agent_context_queries import AgentContextQueries
 
 
+pytestmark = pytest.mark.skipif(
+    os.environ.get("CI") == "true",
+    reason="Requires SurrealDB — unavailable in CI",
+)
+
+
 def create_sample_data():
     """Create sample data for testing."""
     import httpx

@@ -291,7 +291,7 @@ class SwarmService:
             for phase in previous_phases:
                 critic_query += f"\n\n{phase.name}: {phase.output[:100]}"
 
-            await self._agent_service.execute_task(
+            _journey = await self._agent_service.execute_task(
                 agent_name="critic",
                 query=critic_query,
                 context={"model_name": model_name},
@@ -351,7 +351,7 @@ class SwarmService:
             for phase in previous_phases:
                 synthesis_query += f"\n\n{phase.name} output: {phase.output[:200]}"
 
-            await self._agent_service.execute_task(
+            _journey = await self._agent_service.execute_task(
                 agent_name="synthesizer",
                 query=synthesis_query,
                 context={"model_name": model_name},

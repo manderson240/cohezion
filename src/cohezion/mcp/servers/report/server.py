@@ -78,8 +78,12 @@ class MarimoReportGenerator:
         """Generate a Marimo notebook."""
         report_id = str(uuid.uuid4())[:8]
 
-        # Create Marimo notebook content
-        notebook_content = self._create_marimo_content(title, data, template)
+        # Write data to a sidecar JSON file to prevent code injection
+        data_path = self.output_dir / f"{report_id}_data.json"
+        data_path.write_text(json.dumps(data, indent=2))
+
+        # Create Marimo notebook content (loads from data_path)
+        notebook_content = self._create_marimo_content(title, str(data_path), template)
 
         # Write notebook file
         notebook_path = self.output_dir / f"{report_id}.py"
@@ -99,18 +103,31 @@ class MarimoReportGenerator:
     def _create_marimo_content(
         self,
         title: str,
-        data: dict[str, Any],
+        data_path: str,
         template: str,
     ) -> str:
         """Create Marimo notebook Python code."""
 
-        base_imports = """
+        base_imports = f"""
 import marimo as mo
 import numpy as np
 import matplotlib.pyplot as plt
 import plotly.graph_objects as go
+import json
+from pathlib import Path
 
 __generated__ = True
+DATA_PATH = {json.dumps(data_path)}
+"""
+
+        load_data_cell = """
+@app.cell
+def load_data():
+    if Path(DATA_PATH).exists():
+        data = json.loads(Path(DATA_PATH).read_text())
+    else:
+        data = {}
+    return data,
 """
 
         if template == "analysis":
@@ -118,31 +135,30 @@ __generated__ = True
 
 # {title}
 
-app = marimo.App()
+app = mo.App()
+
+{load_data_cell}
 
 @app.cell
-def title():
+def title(data):
     mo.md(f"""
     # {title}
-    
-    *Generated: {datetime.utcnow().isoformat()}*
-    *Report ID: {data.get("report_id", "N/A")}*
+
+    *Generated: {{data.get("generated_at", "N/A")}}*
+    *Report ID: {{data.get("report_id", "N/A")}}*
     """)
 
 @app.cell
-def data_overview():
-    # Load data
-    data = {json.dumps(data)}
-    
+def data_overview(data):
     mo.md(f"""
     ## Data Overview
-    
+
     - **Total Records:** {{len(data.get('records', []))}}
     - **Summary:** {{data.get('summary', 'N/A')}}
     """)
 
 @app.cell
-def visualization():
+def visualization(data):
     # Create interactive plot
     if 'records' in data and len(data['records']) > 0:
         fig = go.Figure()
@@ -164,7 +180,7 @@ def visualization():
 def analysis():
     mo.md("""
     ## Analysis
-    
+
     This report is generated using Marimo's reactive execution model.
     Update cells and see results update automatically.
     """)
@@ -177,54 +193,50 @@ if __name__ == "__main__":
 
 # {title} - Physics Simulation Report
 
-import numpy as np
-import matplotlib.pyplot as plt
+app = mo.App()
 
-app = marimo.App()
+{load_data_cell}
 
 @app.cell
-def title():
+def title(data):
     mo.md(f"""
     # {title}
-    
+
     ## Physics Simulation Analysis
-    
-    *Generated: {datetime.utcnow().isoformat()}*
+
+    *Generated: {{data.get("generated_at", "N/A")}}*
     """)
 
 @app.cell
-def simulation_params():
-    # Simulation parameters
-    sim_data = {json.dumps(data)}
-    
+def simulation_params(data):
     mo.md(f"""
     ### Parameters
-    
-    - **Grid Size:** {{sim_data.get('grid_size', 'N/A')}}
-    - **Time Step:** {{sim_data.get('time_step', 'N/A')}}
-    - **Duration:** {{sim_data.get('duration', 'N/A')}}
+
+    - **Grid Size:** {{data.get('grid_size', 'N/A')}}
+    - **Time Step:** {{data.get('time_step', 'N/A')}}
+    - **Duration:** {{data.get('duration', 'N/A')}}
     """)
 
 @app.cell
-def results():
+def results(data):
     if 'results' in data:
         results = data['results']
-        
+
         # Create visualization
         fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 4))
-        
+
         if 'particle_count' in results:
             ax1.plot(results['particle_count'])
             ax1.set_title('Particle Count Over Time')
             ax1.set_xlabel('Step')
             ax1.set_ylabel('Count')
-        
+
         if 'energy' in results:
             ax2.plot(results['energy'])
             ax2.set_title('System Energy')
             ax2.set_xlabel('Step')
             ax2.set_ylabel('Energy')
-        
+
         plt.tight_layout()
         mo.ui.pyplot(fig)
     else:
@@ -238,19 +250,18 @@ if __name__ == "__main__":
 
 # {title}
 
-app = marimo.App()
+app = mo.App()
+
+{load_data_cell}
 
 @app.cell
 def _():
     mo.md(f"""
     # {title}
-    
-    *Generated: {datetime.utcnow().isoformat()}*
     """)
 
 @app.cell
-def _():
-    data = {json.dumps(data)}
+def _(data):
     mo.json(data)
 
 if __name__ == "__main__":
@@ -466,7 +477,9 @@ async def main():
     """Run Report Generation MCP Server."""
     get_generator()  # Initialize
 
-    app = web.Application()
+    from cohezion.mcp.shared.auth import api_key_middleware
+
+    app = web.Application(middlewares=[api_key_middleware])
     app.add_routes(routes)
 
     logger.info(f"Starting Report Generation MCP Server on port {MCP_PORT}")

@@ -74,31 +74,38 @@ class ResilientOllamaClient:
     async def generate(
         self,
         prompt: str,
-        model: str,
+        model: str = "phi4:latest",
         system: str = "",
-        num_predict: int = 256,
+        **kwargs: Any,
     ) -> tuple[str, int]:
-        """Generate response from Ollama via OpenAI-compatible API.
+        """Generate response from Ollama via standard API.
 
         Args:
             prompt: User prompt
             model: Model name
             system: System prompt
-            num_predict: Max tokens to generate
 
         Returns:
             Tuple of (response_text, tokens_used)
         """
         for attempt in range(self.max_retries):
             try:
-                # Construct OpenAI-compatible messages
+                # Construct standard Ollama messages
                 messages = []
                 if system:
                     messages.append({"role": "system", "content": system})
                 messages.append({"role": "user", "content": prompt})
 
+                # Normalize base URL: strip trailing slashes, /api, or /v1 to prevent doubling
+                clean_base = self.base_url.rstrip("/")
+                if clean_base.endswith("/api"):
+                    clean_base = clean_base[:-4]
+                if clean_base.endswith("/v1"):
+                    clean_base = clean_base[:-3]
+
+                # Using /api/generate for better legacy stability in high-load scenarios
                 response = requests.post(
-                    f"{self.base_url}/v1/chat/completions",
+                    f"{clean_base}/api/generate",
                     json={
                         "model": model,
                         "messages": messages,
@@ -110,10 +117,9 @@ class ResilientOllamaClient:
                 response.raise_for_status()
 
                 data = response.json()
-                choice = data.get("choices", [{}])[0]
-                content = choice.get("message", {}).get("content", "")
-                tokens = data.get("usage", {}).get("total_tokens", 0)
-                
+                content = data.get("response", "")
+                tokens = data.get("eval_count", 0) + data.get("prompt_eval_count", 0)
+
                 return content, tokens
 
             except Exception as e:
@@ -185,6 +191,13 @@ class TokenEfficientClient:
             ngrok_api_key: ngrok API key for authentication
             enable_ngrok_failover: Whether to failover to Ollama if ngrok fails (default: True)
         """
+        # Normalize base URL: strip trailing slashes, /api, or /v1
+        clean_base = ollama_base_url.rstrip("/")
+        if clean_base.endswith("/api"):
+            clean_base = clean_base[:-4]
+        if clean_base.endswith("/v1"):
+            clean_base = clean_base[:-3]
+
         # Initialize with ngrok gateway if configured
         if ngrok_endpoint:
             from cohezion.gateway import NgrokAIGateway
@@ -192,12 +205,15 @@ class TokenEfficientClient:
             self.ollama = NgrokAIGateway(
                 ngrok_endpoint=ngrok_endpoint,
                 ngrok_api_key=ngrok_api_key,
-                fallback_ollama_url=ollama_base_url,
+                fallback_ollama_url=clean_base,
                 enable_failover=enable_ngrok_failover,
             )
-            logger.info(f"TokenEfficientClient using ngrok gateway: {ngrok_endpoint}")
+            from urllib.parse import urlparse
+
+            _safe_host = urlparse(ngrok_endpoint).netloc
+            logger.info("TokenEfficientClient using ngrok gateway host: %s", _safe_host)
         else:
-            self.ollama = ResilientOllamaClient(base_url=ollama_base_url)
+            self.ollama = ResilientOllamaClient(base_url=clean_base)
 
         self.router = router
         self.config = config or CohezionConfig()
@@ -295,12 +311,23 @@ class TokenEfficientClient:
         self._cache_misses += 1
         self._api_calls += 1
 
-        num_predict = self.config.inference.num_predict_default
+        # Use the router if available to select the optimal model
+        selected_model = model
+        if self.router:
+            try:
+                # The adapter maps context to SmartRouter TaskType
+                selection = await self.router.select_optimal_model(
+                    {"task_type": kwargs.get("task_type", "general"), "context_length": len(prompt)}
+                )
+                selected_model = selection.name
+            except Exception as e:
+                logger.warning(f"Router selection failed, falling back to {model}: {e}")
+
+        # Use the resilient client with modern chat parameters
         response, tokens = await self.ollama.generate(
             prompt=prompt,
-            model=model,
+            model=selected_model,
             system=system,
-            num_predict=num_predict,
         )
 
         self._total_tokens += tokens

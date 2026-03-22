@@ -8,8 +8,9 @@ Version Coherence Collapse (< 0.3) triggers Ouroboros Version Healing (Story 7.5
 from __future__ import annotations
 
 import logging
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from enum import Enum
+
 
 logger = logging.getLogger(__name__)
 
@@ -18,9 +19,9 @@ COHERENCE_COLLAPSE_THRESHOLD = 0.3
 
 
 class DriftStatus(Enum):
-    GREEN = "green"    # Up to date
-    AMBER = "amber"    # >= DRIFT_THRESHOLD minor versions behind
-    RED = "red"        # Major version behind or conflict
+    GREEN = "green"  # Up to date
+    AMBER = "amber"  # >= DRIFT_THRESHOLD minor versions behind
+    RED = "red"  # Major version behind or conflict
 
 
 @dataclass
@@ -103,14 +104,16 @@ class VersionTelemetry:
                 status = DriftStatus.GREEN
 
             if status != DriftStatus.GREEN:
-                drifts.append(DependencyDrift(
-                    package=pkg,
-                    current_version=current,
-                    latest_version=latest,
-                    minor_versions_behind=behind,
-                    status=status,
-                    recommended_action=f"Upgrade {pkg} from {current} to {latest}",
-                ))
+                drifts.append(
+                    DependencyDrift(
+                        package=pkg,
+                        current_version=current,
+                        latest_version=latest,
+                        minor_versions_behind=behind,
+                        status=status,
+                        recommended_action=f"Upgrade {pkg} from {current} to {latest}",
+                    )
+                )
 
         conflicts = conflicts or []
         coherence = self._compute_coherence(drifts, conflicts, len(current_versions))
@@ -145,17 +148,17 @@ class VersionTelemetry:
     def _minor_versions_behind(self, current: str, latest: str) -> int:
         try:
             c = tuple(int(x) for x in current.split("."))
-            l = tuple(int(x) for x in latest.split("."))
-            if c[0] != l[0]:
+            lv = tuple(int(x) for x in latest.split("."))
+            if c[0] != lv[0]:
                 return 0  # Major version diff handled separately
-            return max(0, l[1] - c[1])
+            return max(0, lv[1] - c[1])
         except (ValueError, IndexError):
             return 0
 
     def _major_behind(self, current: str, latest: str) -> bool:
         try:
             c = int(current.split(".")[0])
-            l = int(latest.split(".")[0])
-            return l > c
+            lv = int(latest.split(".")[0])
+            return lv > c
         except (ValueError, IndexError):
             return False

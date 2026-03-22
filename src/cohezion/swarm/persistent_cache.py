@@ -191,7 +191,7 @@ class PersistentCache:
             if persist:
                 try:
                     with open(self.cache_file, "a") as f:
-                        for key, _value in entries.items():
+                        for key, _ in entries.items():
                             if key in self.memory_cache:
                                 entry = self.memory_cache[key]
                                 f.write(json.dumps(entry) + "\n")

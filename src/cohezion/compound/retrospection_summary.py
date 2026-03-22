@@ -11,6 +11,7 @@ import logging
 import time
 from dataclasses import dataclass, field
 
+
 logger = logging.getLogger(__name__)
 
 
@@ -103,8 +104,7 @@ class RetrospectionEngine:
 
         if metrics.anomalies:
             parts.append(
-                f"I detected {len(metrics.anomalies)} anomalies"
-                f" that warrant further investigation."
+                f"I detected {len(metrics.anomalies)} anomalies that warrant further investigation."
             )
 
         return " ".join(parts)

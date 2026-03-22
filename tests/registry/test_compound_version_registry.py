@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import pytest
-
 from cohezion.registry.compound_version_registry import CompoundVersionRegistry
 
 

@@ -391,10 +391,7 @@ class PPOAgent:
 
         last_gae = 0.0
         for t in reversed(range(n)):
-            if t == n - 1 or transitions[t].done:
-                next_value = 0.0
-            else:
-                next_value = transitions[t + 1].value
+            next_value = 0.0 if t == n - 1 or transitions[t].done else transitions[t + 1].value
 
             delta = transitions[t].reward + self.gamma * next_value - transitions[t].value
             last_gae = delta + self.gamma * self.gae_lambda * (

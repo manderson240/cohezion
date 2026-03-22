@@ -5,7 +5,6 @@ Captures full 12D state snapshots during TDD failures for Ouroboros training.
 
 from __future__ import annotations
 
-import hashlib
 import json
 
 import numpy as np
@@ -142,12 +141,14 @@ class TestFreezeFrameStore:
         """Export all frames as Ouroboros training data."""
         store = FreezeFrameStore()
         for i in range(3):
-            store.add(FreezeFrame(
-                trigger="tdd_red",
-                latent_state=[float(i)] * 12,
-                failure_hash=f"hash_{i}",
-                agent_id="agent-1",
-            ))
+            store.add(
+                FreezeFrame(
+                    trigger="tdd_red",
+                    latent_state=[float(i)] * 12,
+                    failure_hash=f"hash_{i}",
+                    agent_id="agent-1",
+                )
+            )
         data = store.export_training_data()
         assert len(data) == 3
         assert all("latent_state" in d for d in data)
@@ -155,12 +156,14 @@ class TestFreezeFrameStore:
     def test_clear_after_consumption(self):
         """Frames can be cleared after Ouroboros consumes them."""
         store = FreezeFrameStore()
-        store.add(FreezeFrame(
-            trigger="tdd_red",
-            latent_state=[0.0] * 12,
-            failure_hash="clear_test",
-            agent_id="agent-1",
-        ))
+        store.add(
+            FreezeFrame(
+                trigger="tdd_red",
+                latent_state=[0.0] * 12,
+                failure_hash="clear_test",
+                agent_id="agent-1",
+            )
+        )
         assert len(store.frames) == 1
         store.clear()
         assert len(store.frames) == 0

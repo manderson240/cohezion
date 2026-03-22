@@ -124,7 +124,7 @@ app = marimo.App()
 def title():
     mo.md(f"""
     # {title}
-    
+
     *Generated: {datetime.utcnow().isoformat()}*
     *Report ID: {data.get("report_id", "N/A")}*
     """)
@@ -133,10 +133,10 @@ def title():
 def data_overview():
     # Load data
     data = {json.dumps(data)}
-    
+
     mo.md(f"""
     ## Data Overview
-    
+
     - **Total Records:** {{len(data.get('records', []))}}
     - **Summary:** {{data.get('summary', 'N/A')}}
     """)
@@ -164,7 +164,7 @@ def visualization():
 def analysis():
     mo.md("""
     ## Analysis
-    
+
     This report is generated using Marimo's reactive execution model.
     Update cells and see results update automatically.
     """)
@@ -186,9 +186,9 @@ app = marimo.App()
 def title():
     mo.md(f"""
     # {title}
-    
+
     ## Physics Simulation Analysis
-    
+
     *Generated: {datetime.utcnow().isoformat()}*
     """)
 
@@ -196,10 +196,10 @@ def title():
 def simulation_params():
     # Simulation parameters
     sim_data = {json.dumps(data)}
-    
+
     mo.md(f"""
     ### Parameters
-    
+
     - **Grid Size:** {{sim_data.get('grid_size', 'N/A')}}
     - **Time Step:** {{sim_data.get('time_step', 'N/A')}}
     - **Duration:** {{sim_data.get('duration', 'N/A')}}
@@ -209,22 +209,22 @@ def simulation_params():
 def results():
     if 'results' in data:
         results = data['results']
-        
+
         # Create visualization
         fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 4))
-        
+
         if 'particle_count' in results:
             ax1.plot(results['particle_count'])
             ax1.set_title('Particle Count Over Time')
             ax1.set_xlabel('Step')
             ax1.set_ylabel('Count')
-        
+
         if 'energy' in results:
             ax2.plot(results['energy'])
             ax2.set_title('System Energy')
             ax2.set_xlabel('Step')
             ax2.set_ylabel('Energy')
-        
+
         plt.tight_layout()
         mo.ui.pyplot(fig)
     else:
@@ -244,7 +244,7 @@ app = marimo.App()
 def _():
     mo.md(f"""
     # {title}
-    
+
     *Generated: {datetime.utcnow().isoformat()}*
     """)
 

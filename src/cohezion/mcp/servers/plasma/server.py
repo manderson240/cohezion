@@ -15,14 +15,16 @@ from __future__ import annotations
 
 import asyncio
 import logging
-import os
 import sys
 import uuid
-from dataclasses import dataclass
-from typing import Any
 
 import numpy as np
 from aiohttp import web
+
+from cohezion.physics.manifold_utils import SemanticLagrangeFinder
+
+from .models import MCP_PORT
+from .simulation import PlasmaSimulation, _simulations, get_simulation
 
 
 logging.basicConfig(
@@ -32,213 +34,13 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-MCP_PORT = int(os.getenv("MCP_PORT", "8371"))
-
-
-@dataclass
-class Particle:
-    """A particle in the plasma simulation."""
-
-    id: str
-    species: str  # electron, ion, positron, etc.
-    position: np.ndarray  # 3D position
-    velocity: np.ndarray  # 3D velocity
-    charge: float
-    mass: float
-    birth_time: float
-    lifetime: float | None = None  # For exotic objects
-    is_exotic: bool = False  # Exotic vacuum object flag
-
-    def to_dict(self) -> dict:
-        return {
-            "id": self.id,
-            "species": self.species,
-            "position": self.position.tolist(),
-            "velocity": self.velocity.tolist(),
-            "charge": self.charge,
-            "mass": self.mass,
-            "birth_time": self.birth_time,
-            "lifetime": self.lifetime,
-            "is_exotic": self.is_exotic,
-        }
-
-
-@dataclass
-class ExoticVacuumObject:
-    """Exotic vacuum object that pops in and out of existence."""
-
-    id: str
-    object_type: str  # virtual_pair, vacuum_fluctuation, quantum_foam
-    position: np.ndarray
-    creation_time: float
-    expected_lifetime: float
-    energy: float
-    agent_representation: str  # How this object appears as an agent
-
-    def is_active(self, current_time: float) -> bool:
-        """Check if object still exists."""
-        return current_time - self.creation_time < self.expected_lifetime
-
-    def to_dict(self) -> dict:
-        return {
-            "id": self.id,
-            "type": self.object_type,
-            "position": self.position.tolist(),
-            "creation_time": self.creation_time,
-            "expected_lifetime": self.expected_lifetime,
-            "energy": self.energy,
-            "agent_representation": self.agent_representation,
-            "is_active": True,
-        }
-
-
-class PlasmaSimulation:
-    """Particle-in-Cell plasma simulation."""
-
-    def __init__(self, grid_size: int = 64):
-        self.grid_size = grid_size
-        self.particles: list[Particle] = []
-        self.exotic_objects: list[ExoticVacuumObject] = []
-        self.electric_field = np.zeros((grid_size, grid_size, grid_size, 3))
-        self.magnetic_field = np.zeros((grid_size, grid_size, grid_size, 3))
-        self.current_time: float = 0.0
-        self.time_step: float = 0.01
-
-    def create_particle(
-        self,
-        species: str,
-        position: list[float],
-        velocity: list[float],
-        charge: float,
-        mass: float,
-    ) -> Particle:
-        """Create a particle in the simulation."""
-        particle = Particle(
-            id=str(uuid.uuid4())[:8],
-            species=species,
-            position=np.array(position),
-            velocity=np.array(velocity),
-            charge=charge,
-            mass=mass,
-            birth_time=self.current_time,
-        )
-        self.particles.append(particle)
-        return particle
-
-    def generate_exotic_vacuum_object(self) -> ExoticVacuumObject | None:
-        """Generate an exotic vacuum object (quantum fluctuation)."""
-        # Random chance to create exotic object
-        if np.random.random() < 0.1:  # 10% chance per step
-            obj = ExoticVacuumObject(
-                id=str(uuid.uuid4())[:8],
-                object_type=np.random.choice(
-                    [
-                        "virtual_pair",
-                        "vacuum_fluctuation",
-                        "quantum_foam",
-                        "casimir_effect",
-                    ]
-                ),
-                position=np.random.rand(3) * self.grid_size,
-                creation_time=self.current_time,
-                expected_lifetime=np.random.exponential(0.1),  # Exponential decay
-                energy=np.random.exponential(1.0),
-                agent_representation=self._generate_agent_description(),
-            )
-            self.exotic_objects.append(obj)
-            return obj
-        return None
-
-    def _generate_agent_description(self) -> str:
-        """Generate an agent description for an exotic vacuum object."""
-        descriptions = [
-            "A fleeting presence in the quantum foam, manifesting as energy fluctuations.",
-            "Virtual particles dancing at the edge of existence, momentarily real.",
-            "The vacuum itself stirs, creating ephemeral agents of pure potential.",
-            "Quantum uncertainty made manifest - here, then gone, yet leaving traces.",
-            "An echo of the Big Bang, still reverberating through spacetime.",
-        ]
-        return np.random.choice(descriptions)
-
-    def step(self) -> dict[str, Any]:
-        """Advance simulation by one time step."""
-        self.current_time += self.time_step
-
-        # Update particle positions
-        for p in self.particles:
-            p.position += p.velocity * self.time_step
-            # Apply periodic boundary conditions
-            p.position = p.position % self.grid_size
-
-        # Generate exotic vacuum objects
-        new_exotic = self.generate_exotic_vacuum_object()
-
-        # Remove decayed exotic objects
-        self.exotic_objects = [
-            obj for obj in self.exotic_objects if obj.is_active(self.current_time)
-        ]
-
-        return {
-            "time": self.current_time,
-            "particle_count": len(self.particles),
-            "exotic_objects_count": len(self.exotic_objects),
-            "new_exotic_object": new_exotic.to_dict() if new_exotic else None,
-        }
-
-    def get_hiho_agents(self) -> list[dict]:
-        """Get agents representing HIHO (High-Intensity Hadron Operations)."""
-        return [
-            {
-                "name": "Accelerator Operator",
-                "role": "Controls beam intensity and collision parameters",
-                "expertise": ["beam_dynamics", "vacuum_systems", "safety_protocols"],
-            },
-            {
-                "name": "Vacuum Physicist",
-                "role": "Studies exotic vacuum phenomena",
-                "expertise": ["quantum_field_theory", "vacuum_fluctuations", "casimir_effects"],
-            },
-            {
-                "name": "Plasma Diagnostics",
-                "role": "Monitors plasma conditions and instabilities",
-                "expertise": ["langmuir_probes", "spectroscopy", "tomography"],
-            },
-        ]
-
-    def get_field_at(self, position: list[float]) -> dict[str, Any]:
-        """Get electromagnetic field at a specific position."""
-        idx = [int(p) % self.grid_size for p in position]
-        return {
-            "position": position,
-            "electric_field": self.electric_field[idx[0], idx[1], idx[2]].tolist(),
-            "magnetic_field": self.magnetic_field[idx[0], idx[1], idx[2]].tolist(),
-        }
-
-
-# Global simulation instance
-_simulations: dict[str, PlasmaSimulation] = {}
-
-
-def get_simulation(sim_id: str) -> PlasmaSimulation:
-    """Get or create simulation."""
-    if sim_id not in _simulations:
-        _simulations[sim_id] = PlasmaSimulation()
-    return _simulations[sim_id]
-
-
 routes = web.RouteTableDef()
 
 
 @routes.get("/health")
 async def health(request: web.Request) -> web.Response:
     """Health check."""
-    return web.json_response(
-        {
-            "status": "healthy",
-            "server": "plasma-physics",
-            "port": MCP_PORT,
-        }
-    )
+    return web.json_response({"status": "healthy", "server": "plasma-physics", "port": MCP_PORT})
 
 
 @routes.get("/")
@@ -268,6 +70,70 @@ async def index(request: web.Request) -> web.Response:
     )
 
 
+@routes.post("/tools/plasma_find_semantic_lagrange_points")
+async def tool_find_slp(request: web.Request) -> web.Response:
+    """Calculate stable L4/L5 points between two semantic topics."""
+    try:
+        data = await request.json()
+        vec_a = np.array(data["topic_a_vec"])
+        vec_b = np.array(data["topic_b_vec"])
+        weight_a = float(data.get("weight_a", 1.0))
+        weight_b = float(data.get("weight_b", 0.01))
+
+        finder = SemanticLagrangeFinder()
+        result = finder.find_triangular_points(vec_a, vec_b, weight_a, weight_b)
+
+        return web.json_response(
+            {
+                "tool": "plasma_find_semantic_lagrange_points",
+                "result": result,
+                "theory": "Kordylewsky Dust Cloud stability conditions",
+            }
+        )
+    except Exception as e:
+        logger.exception("Find SLP failed")
+        return web.json_response({"error": str(e)}, status=500)
+
+
+@routes.post("/tools/plasma_park_context_in_cloud")
+async def tool_park_context(request: web.Request) -> web.Response:
+    """'Park' a memory context at a stable Lagrange point as a plasma cloud."""
+    try:
+        data = await request.json()
+        context_id = data["context_id"]
+        slp_vec = data["slp_vec"]
+
+        sim_id = data.get("simulation_id", "default")
+        sim = get_simulation(sim_id)
+
+        particles = []
+        for _ in range(10):
+            pos = np.array(slp_vec) + np.random.normal(0, 0.1, len(slp_vec))
+            pos = np.clip(pos, 0, sim.grid_size - 0.001)
+            p = sim.create_particle(
+                species="memory_grain",
+                position=pos[:3].tolist(),
+                velocity=np.random.normal(0, 0.01, 3).tolist(),
+                charge=1.0,
+                mass=0.1,
+            )
+            particles.append(p.id)
+
+        return web.json_response(
+            {
+                "tool": "plasma_park_context_in_cloud",
+                "context_id": context_id,
+                "status": "parked",
+                "cloud_size": len(particles),
+                "point": slp_vec,
+                "message": f"Context {context_id} stabilized at Lagrange Point. Libration movements initiated.",
+            }
+        )
+    except Exception as e:
+        logger.exception("Park context failed")
+        return web.json_response({"error": str(e)}, status=500)
+
+
 @routes.post("/tools/plasma_create_simulation")
 async def tool_create_simulation(request: web.Request) -> web.Response:
     """Create new plasma simulation."""
@@ -276,8 +142,7 @@ async def tool_create_simulation(request: web.Request) -> web.Response:
         grid_size = data.get("grid_size", 64)
 
         sim_id = str(uuid.uuid4())[:8]
-        sim = PlasmaSimulation(grid_size=grid_size)
-        _simulations[sim_id] = sim
+        _simulations[sim_id] = PlasmaSimulation(grid_size=grid_size)
 
         return web.json_response(
             {
@@ -297,20 +162,18 @@ async def tool_add_particle(request: web.Request) -> web.Response:
     """Add particle to simulation."""
     try:
         data = await request.json()
-        sim_id = data.get("simulation_id", "")
-        species = data.get("species", "electron")
-        position = data.get("position", [0.0, 0.0, 0.0])
-        velocity = data.get("velocity", [0.0, 0.0, 0.0])
-        charge = data.get("charge", -1.0)
-        mass = data.get("mass", 1.0)
-
-        sim = get_simulation(sim_id)
-        particle = sim.create_particle(species, position, velocity, charge, mass)
-
+        sim = get_simulation(data.get("simulation_id", ""))
+        particle = sim.create_particle(
+            data.get("species", "electron"),
+            data.get("position", [0.0, 0.0, 0.0]),
+            data.get("velocity", [0.0, 0.0, 0.0]),
+            data.get("charge", -1.0),
+            data.get("mass", 1.0),
+        )
         return web.json_response(
             {
                 "tool": "plasma_add_particle",
-                "simulation_id": sim_id,
+                "simulation_id": data.get("simulation_id", ""),
                 "particle": particle.to_dict(),
             }
         )
@@ -328,10 +191,7 @@ async def tool_step(request: web.Request) -> web.Response:
         steps = data.get("steps", 1)
 
         sim = get_simulation(sim_id)
-        results = []
-        for _ in range(steps):
-            result = sim.step()
-            results.append(result)
+        results = [sim.step() for _ in range(steps)]
 
         return web.json_response(
             {
@@ -353,10 +213,8 @@ async def tool_get_exotic(request: web.Request) -> web.Response:
     try:
         data = await request.json()
         sim_id = data.get("simulation_id", "")
-
         sim = get_simulation(sim_id)
         objects = [obj.to_dict() for obj in sim.exotic_objects]
-
         return web.json_response(
             {
                 "tool": "plasma_get_exotic_objects",
@@ -376,15 +234,12 @@ async def tool_get_hiho(request: web.Request) -> web.Response:
     try:
         data = await request.json()
         sim_id = data.get("simulation_id", "")
-
         sim = get_simulation(sim_id)
-        agents = sim.get_hiho_agents()
-
         return web.json_response(
             {
                 "tool": "plasma_get_hiho_agents",
                 "simulation_id": sim_id,
-                "agents": agents,
+                "agents": sim.get_hiho_agents(),
                 "context": "400-year unification of physics through high-intensity hadron operations",
             }
         )
@@ -399,17 +254,10 @@ async def tool_get_field(request: web.Request) -> web.Response:
     try:
         data = await request.json()
         sim_id = data.get("simulation_id", "")
-        position = data.get("position", [0.0, 0.0, 0.0])
-
         sim = get_simulation(sim_id)
-        field = sim.get_field_at(position)
-
+        field = sim.get_field_at(data.get("position", [0.0, 0.0, 0.0]))
         return web.json_response(
-            {
-                "tool": "plasma_get_field",
-                "simulation_id": sim_id,
-                "field": field,
-            }
+            {"tool": "plasma_get_field", "simulation_id": sim_id, "field": field}
         )
     except Exception as e:
         logger.exception("Get field failed")
@@ -477,20 +325,20 @@ async def tool_400_year(request: web.Request) -> web.Response:
         return web.json_response({"error": str(e)}, status=500)
 
 
-async def main():
+async def main() -> None:
     """Run Plasma Physics MCP Server."""
-    app = web.Application()
+    from cohezion.mcp.shared.auth import api_key_middleware
+
+    app = web.Application(middlewares=[api_key_middleware])
     app.add_routes(routes)
 
-    logger.info(f"Starting Plasma Physics MCP Server on port {MCP_PORT}")
+    logger.info("Starting Plasma Physics MCP Server on port %d", MCP_PORT)
     runner = web.AppRunner(app)
     await runner.setup()
     site = web.TCPSite(runner, "0.0.0.0", MCP_PORT)
     await site.start()
 
-    logger.info(f"✅ Plasma Physics Server running on http://localhost:{MCP_PORT}")
-    logger.info("   Exotic vacuum objects: Enabled")
-    logger.info("   HIHO story: 400-year unification")
+    logger.info("Plasma Physics Server running on http://localhost:%d", MCP_PORT)
 
     while True:
         await asyncio.sleep(3600)

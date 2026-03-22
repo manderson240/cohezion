@@ -47,20 +47,31 @@ class SkillsMCP:
         Returns:
             Skill content and metadata
         """
-        skill_path = SKILLS_PATH / f"{skill_name}.md"
+        from cohezion.mcp.servers.safe_input import sanitize_path
 
-        # Try exact match first
-        if not skill_path.exists():
+        # Sanitize name to prevent directory traversal via filename
+        # We allow .md extension or not
+        filename = f"{skill_name}.md" if not skill_name.endswith(".md") else skill_name
+
+        try:
+            skill_path = sanitize_path(filename, base_dir=SKILLS_PATH)
+        except ValueError:
             # Try with _PRIME suffix
-            skill_path = SKILLS_PATH / f"{skill_name}_PRIME.md"
+            try:
+                skill_path = sanitize_path(f"{skill_name}_PRIME.md", base_dir=SKILLS_PATH)
+            except ValueError:
+                # Try fuzzy match
+                results = self.search_skills(skill_name, limit=1)
+                if results and results[0].get("path"):
+                    try:
+                        skill_path = sanitize_path(results[0]["path"], base_dir=SKILLS_PATH)
+                    except ValueError:
+                        return {"error": f"Invalid skill path in registry: {results[0]['path']}"}
+                else:
+                    return {"error": f"Skill not found: {skill_name}"}
 
         if not skill_path.exists():
-            # Try fuzzy match
-            results = self.search_skills(skill_name, limit=1)
-            if results:
-                skill_path = Path(results[0].get("path", ""))
-
-        if not skill_path.exists():
+            # If sanitize_path succeeded but file doesn't exist (e.g. no _PRIME)
             return {"error": f"Skill not found: {skill_name}"}
 
         content = skill_path.read_text()
@@ -103,12 +114,22 @@ class SkillsMCP:
             name: Skill name
             description: Short description
             keywords: Search keywords
-            path: Relative path to skill file
+            path: Relative path to skill file (relative to project root)
 
         Returns:
             Registration result
         """
+        from cohezion.mcp.servers.safe_input import sanitize_path
+
         try:
+            # Path Traversal Protection: Validate registration path
+            # Skills must be within the skills directory
+            try:
+                sanitize_path(path, base_dir=SKILLS_PATH)
+            except ValueError as e:
+                logger.warning(f"RAH Security: {e}")
+                return {"success": False, "error": str(e)}
+
             _register_skill(name, description, keywords, path)
             self._registry = load_registry()  # Reload
 

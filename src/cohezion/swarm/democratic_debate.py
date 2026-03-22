@@ -14,6 +14,10 @@ from enum import Enum
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
+
+if TYPE_CHECKING:
+    from cohezion.swarm.token_client import TokenEfficientClient
+
 import httpx
 
 

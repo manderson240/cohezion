@@ -65,7 +65,7 @@ class CertificateGenerator:
                 f"/C=US/ST=State/L=City/O=Org/CN={cn}",
             ]
 
-            subprocess.run(cmd, capture_output=True, text=True, check=True)
+            _result = subprocess.run(cmd, capture_output=True, text=True, check=True)
 
             # Set proper permissions
             key_file.chmod(0o600)

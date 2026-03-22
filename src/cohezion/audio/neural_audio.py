@@ -9,9 +9,9 @@ from __future__ import annotations
 
 import base64
 import logging
-import os
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from enum import Enum
+
 
 logger = logging.getLogger(__name__)
 
@@ -85,10 +85,13 @@ class NeuralAudioStream:
             raise RuntimeError("Audio stream not connected")
 
         # Generate pseudo-audio from physics state
-        raw = bytes([
-            int(coherence * 127 + 128) & 0xFF,
-            int(ca_density * 127 + 128) & 0xFF,
-        ] * (AUDIO_CHUNK_BYTES // 2))
+        raw = bytes(
+            [
+                int(coherence * 127 + 128) & 0xFF,
+                int(ca_density * 127 + 128) & 0xFF,
+            ]
+            * (AUDIO_CHUNK_BYTES // 2)
+        )
 
         self._sequence += 1
         self._chunks_sent += 1
@@ -102,7 +105,9 @@ class NeuralAudioStream:
         """Simulate stream failure — Observatory should continue in degraded mode."""
         self._status = AudioStreamStatus.DEGRADED
         self._error = error
-        logger.warning("Audio stream dropped: %s. Observatory continuing in visuals-only mode.", error)
+        logger.warning(
+            "Audio stream dropped: %s. Observatory continuing in visuals-only mode.", error
+        )
         return self._state()
 
     def reconnect(self) -> AudioStreamState:

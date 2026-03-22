@@ -2,4 +2,5 @@
 
 from cohezion.tools.test_generator import TestGenerator, main
 
+
 __all__ = ["TestGenerator", "main"]

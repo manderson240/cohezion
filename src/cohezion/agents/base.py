@@ -704,6 +704,8 @@ RESPONSE:
 
 Provide output in JSON format: {{"phi_score": 0.85, "confidence": 0.90}}
 """
+        import json
+
         phi, conf = 0.8, 0.8
         try:
             payload = {
@@ -717,8 +719,6 @@ Provide output in JSON format: {{"phi_score": 0.85, "confidence": 0.90}}
             response.raise_for_status()
             data = response.json().get("response", "{}")
             if isinstance(data, str):
-                import json
-
                 data = json.loads(data)
             phi = float(data.get("phi_score", 0.8))
             conf = float(data.get("confidence", 0.8))

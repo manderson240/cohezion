@@ -127,7 +127,7 @@ class VaultSearchExecutor(CompoundExecutor):
 
             # Phase 6: Analyze and refine search patterns
             logger.info("Phase 6: Analyzing and refining search patterns")
-            self._analyze_search_patterns(search_docs, skill_context)
+            _refined_patterns = self._analyze_search_patterns(search_docs, skill_context)
 
             # Phase 7: Record metrics and journey
             execution_time_ms = (time.time() - start_time) * 1000

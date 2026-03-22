@@ -6,13 +6,9 @@ to detect Middle-Man Drift or substrate tampering.
 
 from __future__ import annotations
 
-import numpy as np
-import pytest
-
 from cohezion.universe.intent_action_sync import (
     IntentActionPair,
     IntentActionSync,
-    SyncVerdict,
 )
 
 
@@ -101,8 +97,8 @@ class TestIntentActionSync:
         """Export drift events for Ouroboros training."""
         sync = IntentActionSync(drift_threshold=0.1)
         # One aligned, one drifted
-        sync.verify(IntentActionPair("a1", [0.5]*12, [0.51]*12, "close"))
-        sync.verify(IntentActionPair("a1", [0.1]*12, [0.9]*12, "far"))
+        sync.verify(IntentActionPair("a1", [0.5] * 12, [0.51] * 12, "close"))
+        sync.verify(IntentActionPair("a1", [0.1] * 12, [0.9] * 12, "far"))
         events = sync.get_drift_events()
         assert len(events) == 1  # Only the drifted one
         assert events[0]["aligned"] is False
@@ -110,5 +106,5 @@ class TestIntentActionSync:
     def test_custom_threshold(self):
         """Drift threshold is configurable."""
         strict = IntentActionSync(drift_threshold=0.01)
-        pair = IntentActionPair("a1", [0.5]*12, [0.52]*12, "small")
+        pair = IntentActionPair("a1", [0.5] * 12, [0.52] * 12, "small")
         assert strict.verify(pair).aligned is False  # 0.02 > 0.01

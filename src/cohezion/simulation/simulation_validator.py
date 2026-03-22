@@ -316,8 +316,7 @@ class SimulationValidator:
             statistic=float(slope),
             p_value=float(p_value),
             details=(
-                f"AR(1) slope={slope:.4f}. "
-                f"{'Stationary' if is_stationary else 'Non-stationary'}"
+                f"AR(1) slope={slope:.4f}. {'Stationary' if is_stationary else 'Non-stationary'}"
             ),
         )
 

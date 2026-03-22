@@ -10,12 +10,10 @@ from __future__ import annotations
 import json
 
 import numpy as np
-import pytest
 
 from cohezion.universe.intent_capture import (
     IntentCapture,
     IntentPayload,
-    IntentViolation,
     StateChangeRequest,
 )
 
@@ -127,10 +125,12 @@ class TestIntentCaptureMiddleware:
 
         # Two violations
         for _ in range(2):
-            capture.check(StateChangeRequest(
-                intent=None,
-                proposed_state=np.zeros(12),
-            ))
+            capture.check(
+                StateChangeRequest(
+                    intent=None,
+                    proposed_state=np.zeros(12),
+                )
+            )
 
         assert len(capture.violations) == 2
 

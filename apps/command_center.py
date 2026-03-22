@@ -27,21 +27,21 @@ log_client = SurrealClient(url="ws://localhost:8000/rpc", namespace="cohezion", 
 
 async def get_surreal_logs():
     try:
-        async with SurrealClient(url="ws://localhost:8000/rpc", namespace="cohezion", database="logs") as client:
-            # Query latest 50 logs
-            res = await client.query("SELECT * FROM log_entries ORDER BY timestamp DESC LIMIT 50")
-            if not res or not res[0].get("result"):
-                return "No logs found in SurrealDB 3.0."
+        await log_client.connect()
+        # Query latest 50 logs
+        res = await log_client.query("SELECT * FROM log_entries ORDER BY timestamp DESC LIMIT 50")
+        if not res or not res[0].get("result"):
+            return "No logs found in SurrealDB 3.0."
 
-            logs = res[0]["result"]
-            formatted = "| Timestamp | Source | Level | Message |\n| :--- | :--- | :--- | :--- |\n"
-            for log in logs:
-                ts = html.escape(str(log.get("timestamp", "")).split("T")[-1][:8])
-                source = html.escape(str(log.get("source", "")))
-                level = html.escape(str(log.get("level", "")))
-                message = html.escape(str(log.get("message", "")))
-                formatted += f"| {ts} | {source} | {level} | {message} |\n"
-            return formatted
+        logs = res[0]["result"]
+        formatted = "| Timestamp | Source | Level | Message |\n| :--- | :--- | :--- | :--- |\n"
+        for log in logs:
+            ts = html.escape(str(log.get("timestamp", "")).split("T")[-1][:8])
+            source = html.escape(str(log.get("source", "")))
+            level = html.escape(str(log.get("level", "")))
+            message = html.escape(str(log.get("message", "")))
+            formatted += f"| {ts} | {source} | {level} | {message} |\n"
+        return formatted
     except Exception as e:
         return f"Error querying SurrealDB: {e}"
 

@@ -195,7 +195,10 @@ class ThermalTrendPredictor:
         window_seconds = window_minutes * 60
 
         # Find samples within window
-        window_temps = [s.gpu_temp_c for s in self.history if (current_time - s.timestamp) <= window_seconds]
+        _current_temp = self.history[-1].gpu_temp_c
+        window_temps = [
+            s.gpu_temp_c for s in self.history if (current_time - s.timestamp) <= window_seconds
+        ]
 
         if len(window_temps) < 2:
             return 0.0
@@ -382,7 +385,7 @@ class ThermalTrendPredictor:
         try:
             # Extract 30-minute pairs: (temp_t, temp_t+30min)
             pairs = []
-            time.time()
+            _current_time = time.time()
             window_seconds = 30 * 60  # 30 minutes
 
             for i, sample in enumerate(self.history[:-1]):

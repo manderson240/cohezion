@@ -147,6 +147,7 @@ class QueryComplexityAnalyzer:
         has_code = any(pattern in query for pattern in ["```", "def ", "class ", "import", "function"])
         has_data_processing = any(word in query_lower for word in ["process", "analyze", "transform", "pipeline"])
         has_logic = " and " in query_lower or " or " in query_lower or "if " in query_lower
+        _is_short = token_count < 30
         is_long = token_count > 200
 
         # Determine complexity tier

@@ -9,10 +9,8 @@ from __future__ import annotations
 import json
 import logging
 from pathlib import Path
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
-if TYPE_CHECKING:
-    from collections.abc import Sequence
 
 logger = logging.getLogger(__name__)
 
@@ -97,7 +95,7 @@ class ContextManager:
                 logger.debug("Loaded context manifest: %s", self.manifest_path)
                 return self.manifest
         except json.JSONDecodeError as e:
-            raise ContextLoadError(f"Invalid manifest JSON: {e}")
+            raise ContextLoadError(f"Invalid manifest JSON: {e}") from e
 
     def load_core_context(self) -> list[dict[str, Any]]:
         """Load all core context files.

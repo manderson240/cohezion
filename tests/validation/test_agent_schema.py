@@ -569,7 +569,7 @@ class TestAgentFileValidationError:
 
         exc = AgentFileValidationError(None, errors)
 
-        assert "Error one; Error two; Error three" == str(exc)
+        assert str(exc) == "Error one; Error two; Error three"
 
 
 class TestValidationIntegration:

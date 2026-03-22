@@ -33,6 +33,7 @@ from cohezion.universe.hiho_unified_engine import (
     MagnetohydrodynamicsEngine,
 )
 
+
 logger = logging.getLogger(__name__)
 
 universe_router = APIRouter(tags=["universe"])
@@ -152,7 +153,7 @@ class UniverseStateService:
         self._ca.evolve()
 
         # 2. Apply physics to each EVO
-        for i, (evo, vec) in enumerate(zip(self._evos, self._vectors)):
+        for i, (evo, vec) in enumerate(zip(self._evos, self._vectors, strict=True)):
             # Chaos butterfly effect
             vec = self._chaos.apply_butterfly_effect(vec, self._time)
             # MHD plasma stability
@@ -197,7 +198,7 @@ class UniverseStateService:
         )
         if alert_count > 0:
             narrative += f"{alert_count} coherence alert(s) were detected. "
-        narrative += f"CA density settled at {ca_densities[-1]*100:.1f}%."
+        narrative += f"CA density settled at {ca_densities[-1] * 100:.1f}%."
 
         return {
             "ticks_elapsed": len(history),
@@ -254,21 +255,23 @@ class UniverseStateService:
                 charge_status = "decaying"
             else:
                 charge_status = "depleted"
-            evo_health.append(EvoHealthEntry(
-                id=i,
-                coherence=evo.coherence,
-                charge_density=evo.charge_density,
-                charge_status=charge_status,
-                magnetic_helicity=evo.magnetic_helicity,
-                toroidal_moment=evo.toroidal_moment,
-            ))
+            evo_health.append(
+                EvoHealthEntry(
+                    id=i,
+                    coherence=evo.coherence,
+                    charge_density=evo.charge_density,
+                    charge_status=charge_status,
+                    magnetic_helicity=evo.magnetic_helicity,
+                    toroidal_moment=evo.toroidal_moment,
+                )
+            )
 
         nominal_count = sum(1 for e in evo_health if e.charge_status == "nominal")
         summary = (
             f"HIHO {stability.upper()}: {mean_c:.4f} coherence "
             f"(deviation {deviation:.4f} from 0.5 target). "
             f"CA Rule {self._ca.config.rule}: {active}/{total} cells active "
-            f"({density*100:.1f}% density). "
+            f"({density * 100:.1f}% density). "
             f"{nominal_count}/{len(self._evos)} EVOs nominal."
         )
 
@@ -301,10 +304,12 @@ class UniverseStateService:
             return None
 
         # Build point cloud: each tick's EVO coherences as a vector
-        points = np.array([
-            [e["coherence"] for e in snap.evo_states]
-            for snap in history[-50:]  # Last 50 ticks max
-        ])
+        points = np.array(
+            [
+                [e["coherence"] for e in snap.evo_states]
+                for snap in history[-50:]  # Last 50 ticks max
+            ]
+        )
         if points.shape[0] < 3:
             return None
 
@@ -392,8 +397,7 @@ async def perturb_universe(req: PerturbRequest) -> UniverseStateResponse:
 
         raise HTTPException(
             status_code=422,
-            detail=f"Invalid perturbation kind: {req.kind!r}. "
-            f"Valid: {sorted(VALID_PERTURBATIONS)}",
+            detail=f"Invalid perturbation kind: {req.kind!r}. Valid: {sorted(VALID_PERTURBATIONS)}",
         )
     return get_universe_service().perturb(req.kind, req.magnitude)
 
@@ -442,7 +446,10 @@ async def stream_universe(
             # Alert when coherence exits safe band
             if state.coherence < 0.3 or state.coherence > 0.7:
                 zone = "low" if state.coherence < 0.3 else "high"
-                alert = {"kind": f"coherence_{zone}", "message": f"Coherence {state.coherence:.4f} outside [0.3, 0.7]"}
+                alert = {
+                    "kind": f"coherence_{zone}",
+                    "message": f"Coherence {state.coherence:.4f} outside [0.3, 0.7]",
+                }
                 yield f"event: alert\ndata: {json.dumps(alert)}\n\n"
 
             await asyncio.sleep(0.1)  # 10 Hz tick rate

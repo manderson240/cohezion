@@ -6,8 +6,6 @@ Covers SmartRouter, ModelProfile, TaskType, ModelCapability, RoutingDecision.
 
 from __future__ import annotations
 
-from unittest.mock import MagicMock, patch
-
 import pytest
 
 from cohezion.swarm.smart_router import (

@@ -88,13 +88,15 @@ class UniverseArtifactMigration:
 
     def __init__(
         self,
-        cohezion_root: Path = Path.home() / "dev" / "cohezion",
+        cohezion_root: Path | None = None,
         output_dir: Path = Path("/tmp/cohezion_universe_artifacts_export"),
         surreal_ns: str = "cohezion",
         surreal_db: str = "core",
         surreal_url: str = "ws://localhost:8000/rpc",
     ):
         """Initialize migration service."""
+        if cohezion_root is None:
+            cohezion_root = Path.home() / "dev" / "cohezion"
         self.cohezion_root = cohezion_root
         self.output_dir = output_dir
         self.surreal_ns = surreal_ns
@@ -336,7 +338,7 @@ class UniverseArtifactMigration:
                 verified_count = 0
                 failed_count = 0
 
-                for _i, member in enumerate(members[: min(10, len(members))]):
+                for _, member in enumerate(members[: min(10, len(members))]):
                     if not member.isdir():
                         try:
                             f = tar.extractfile(member)

@@ -8,9 +8,9 @@ from __future__ import annotations
 
 import asyncio
 import logging
-from dataclasses import dataclass, field
-from pathlib import Path
-from typing import Any, Callable
+from dataclasses import dataclass
+from typing import Any
+
 
 logger = logging.getLogger(__name__)
 
@@ -224,7 +224,7 @@ class MCPManager:
 
     def list_servers(self) -> list[dict[str, Any]]:
         """List all servers."""
-        return [self.get_server_status(sid) for sid in self.servers.keys()]
+        return [self.get_server_status(sid) for sid in self.servers]
 
 
 class SimpleMCP:

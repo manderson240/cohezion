@@ -6,8 +6,6 @@ Tests team orchestrator, cost router, and execution.
 
 from __future__ import annotations
 
-from unittest.mock import MagicMock
-
 import pytest
 
 from cohezion.swarm.smart_router import SmartRouter
@@ -32,7 +30,7 @@ class TestExecutionOrchestrator:
     def test_orchestrator_exists(self):
         """[P1] Should have orchestrator."""
         from cohezion.swarm.execution_orchestrator import ExecutionOrchestrator
-        
+
         orchestrator = ExecutionOrchestrator()
         assert orchestrator is not None
 
@@ -43,6 +41,6 @@ class TestDynamicModelRouter:
     def test_router_exists(self):
         """[P1] Should have dynamic router."""
         from cohezion.swarm.dynamic_model_router import DynamicModelRouter
-        
+
         router = DynamicModelRouter()
         assert router is not None

@@ -322,7 +322,7 @@ class TeamOrchestrator:
             if instructions_parts
             else f"Expert in {spec.name}.",
             ollama_model=self._select_ollama_model(
-                [c.lower() for c in spec.concepts.keys()] if spec.concepts else []
+                [c.lower() for c in spec.concepts] if spec.concepts else []
             ),
         )
 

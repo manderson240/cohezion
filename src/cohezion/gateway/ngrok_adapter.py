@@ -139,14 +139,21 @@ class NgrokAIGateway:
         # Metrics tracking
         self.metrics = NgrokMetrics()
 
-        # Response cache (4th tier)
+        # Response cache (4th tier) with max size to prevent memory exhaustion
         self._response_cache: dict[str, tuple[str, int]] = {}
+        self._cache_max_size = 1000
 
         # Feature flag context
         self._flag_context = FeatureFlagContext()
 
         # Validate configuration
         self._validate_config()
+
+    def __repr__(self) -> str:
+        from urllib.parse import urlparse
+
+        safe_host = urlparse(self.ngrok_endpoint).netloc if self.ngrok_endpoint else "none"
+        return f"NgrokAIGateway(endpoint={safe_host!r}, key=***)"
 
     def _validate_config(self) -> None:
         """Validate ngrok configuration."""
@@ -159,7 +166,10 @@ class NgrokAIGateway:
                 "ngrok endpoint configured but no API key provided. Set NGROK_API_KEY for authenticated requests."
             )
         elif self.ngrok_endpoint:
-            logger.info(f"ngrok AI Gateway configured: {self.ngrok_endpoint}")
+            from urllib.parse import urlparse
+
+            safe_host = urlparse(self.ngrok_endpoint).netloc
+            logger.info(f"ngrok AI Gateway configured: {safe_host}")
 
     def _cache_key(self, prompt: str, system: str, model: str) -> str:
         """Generate cache key for response."""
@@ -218,10 +228,13 @@ class NgrokAIGateway:
                 response, tokens = await self._call_ngrok(prompt, model, system)
                 self.metrics.successful_requests += 1
                 self.metrics.ngrok_requests += 1
+                if len(self._response_cache) >= self._cache_max_size:
+                    oldest = next(iter(self._response_cache))
+                    del self._response_cache[oldest]
                 self._response_cache[cache_key] = (response, tokens)
                 return response, tokens
             except Exception as e:
-                logger.warning(f"ngrok request failed: {e}")
+                logger.warning(f"ngrok request failed: {type(e).__name__}")
                 self.metrics.failed_requests += 1
 
                 if not self.enable_failover:
@@ -239,6 +252,9 @@ class NgrokAIGateway:
             )
             self.metrics.successful_requests += 1
             self.metrics.ollama_requests += 1
+            if len(self._response_cache) >= self._cache_max_size:
+                oldest = next(iter(self._response_cache))
+                del self._response_cache[oldest]
             self._response_cache[cache_key] = (response, tokens)
             return response, tokens
         except Exception as e:
@@ -316,13 +332,13 @@ class NgrokAIGateway:
             except Exception as e:
                 if attempt == self.max_retries - 1:
                     raise RuntimeError(
-                        f"ngrok request failed after {self.max_retries} retries: {e}"
+                        f"ngrok request failed after {self.max_retries} retries: {type(e).__name__}"
                     ) from e
 
                 wait_time = 0.5 * (2**attempt)
                 logger.warning(
                     f"ngrok request failed (attempt {attempt + 1}/{self.max_retries}), "
-                    f"retrying in {wait_time:.1f}s: {e}"
+                    f"retrying in {wait_time:.1f}s: {type(e).__name__}"
                 )
                 await asyncio.sleep(wait_time)
 
@@ -335,19 +351,16 @@ class NgrokAIGateway:
         system: str = "",
         num_predict: int = 256,
     ) -> tuple[str, int]:
-        """Call local Ollama as fallback.
+        """Call local Ollama as fallback via standard generate API.
 
         Args:
             prompt: User prompt
-            model: Model name (ollama format, e.g., "qwen3-coder:30b")
+            model: Model name
             system: System prompt
             num_predict: Max tokens to generate
 
         Returns:
             Tuple of (response_text, tokens_used)
-
-        Raises:
-            RuntimeError: If request fails
         """
         for attempt in range(self.max_retries):
             try:
@@ -358,7 +371,6 @@ class NgrokAIGateway:
                         "prompt": prompt,
                         "system": system,
                         "stream": False,
-                        "num_predict": num_predict,
                     },
                     timeout=self.timeout,
                 )
@@ -366,7 +378,7 @@ class NgrokAIGateway:
 
                 data = response.json()
                 text = data.get("response", "")
-                tokens = data.get("eval_count", 0)
+                tokens = data.get("eval_count", 0) + data.get("prompt_eval_count", 0)
 
                 self.metrics.total_tokens += tokens
 

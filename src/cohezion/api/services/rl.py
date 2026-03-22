@@ -191,8 +191,6 @@ async def rl_episode_service() -> RlEpisodeResponse:
     import gymnasium as gym
     import numpy as np
 
-    import cohezion.rl.environment  # noqa: F401
-
     policy = get_rl_policy_singleton()
     env = gym.make("cohezion/FlumeNav-v0", max_steps=200)
 

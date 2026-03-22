@@ -16,6 +16,7 @@ from aiohttp import web
 
 from cohezion.mcp.registry import get_registry
 
+
 logger = logging.getLogger(__name__)
 
 # Allowed name pattern: alphanumeric, hyphens, underscores; max 64 chars
@@ -32,11 +33,13 @@ class WebMCPBridge:
         self._setup_routes()
 
     def _setup_routes(self) -> None:
-        self.app.add_routes([
-            web.get("/.well-known/model-context.json", self.handle_context),
-            web.get("/mcp/list_servers", self.handle_list_servers),
-            web.post("/mcp/call_tool", self.handle_call_tool),
-        ])
+        self.app.add_routes(
+            [
+                web.get("/.well-known/model-context.json", self.handle_context),
+                web.get("/mcp/list_servers", self.handle_list_servers),
+                web.post("/mcp/call_tool", self.handle_call_tool),
+            ]
+        )
 
     @staticmethod
     def _validate_name(name: str) -> bool:
@@ -138,9 +141,7 @@ class WebMCPBridge:
             return await handler(**arguments)
         return handler(**arguments)
 
-    def _resolve_internal_handler(
-        self, server_name: str, tool_name: str
-    ) -> Any | None:
+    def _resolve_internal_handler(self, server_name: str, tool_name: str) -> Any | None:
         """Resolve a Python handler function for an internal MCP tool."""
         # Map server names to their handler modules
         try:

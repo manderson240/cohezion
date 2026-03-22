@@ -1,5 +1,5 @@
 import logging
-from typing import TYPE_CHECKING, Protocol, runtime_checkable
+from typing import Any
 
 import httpx
 
@@ -244,7 +244,7 @@ class LocalExpertRouter:
         self,
         task_type: str,
         available_memory: float,
-        hardware_profile: "HardwareProfile",
+        hardware_profile: Any,
     ) -> str:
         """Select model using adaptive hardware profile for precise tier matching.
 

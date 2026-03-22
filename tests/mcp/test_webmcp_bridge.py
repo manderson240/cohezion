@@ -14,13 +14,19 @@ class TestWebMCPBridgeRouting:
     """Verify the bridge routes to real MCP handlers, not mocks."""
 
     def test_bridge_has_call_tool_route(self, bridge: WebMCPBridge) -> None:
-        routes = [r.resource.canonical for r in bridge.app.router.routes()
-                  if hasattr(r, 'resource') and hasattr(r.resource, 'canonical')]
+        routes = [
+            r.resource.canonical
+            for r in bridge.app.router.routes()
+            if hasattr(r, "resource") and hasattr(r.resource, "canonical")
+        ]
         assert "/mcp/call_tool" in routes
 
     def test_bridge_has_list_servers_route(self, bridge: WebMCPBridge) -> None:
-        routes = [r.resource.canonical for r in bridge.app.router.routes()
-                  if hasattr(r, 'resource') and hasattr(r.resource, 'canonical')]
+        routes = [
+            r.resource.canonical
+            for r in bridge.app.router.routes()
+            if hasattr(r, "resource") and hasattr(r.resource, "canonical")
+        ]
         assert "/mcp/list_servers" in routes
 
 
@@ -41,5 +47,6 @@ class TestToolNameValidation:
     def test_no_mock_string_in_response(self, bridge: WebMCPBridge) -> None:
         """Ensure 'MOCKED' never appears in any response handler source."""
         import inspect
+
         source = inspect.getsource(bridge.handle_call_tool)
         assert "MOCKED" not in source

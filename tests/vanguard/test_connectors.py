@@ -2,13 +2,11 @@
 
 from __future__ import annotations
 
-import pytest
-
 from cohezion.vanguard.connectors import (
-    HuggingFaceConnector,
     GitHubTrendingConnector,
-    RedditConnector,
+    HuggingFaceConnector,
     OllamaConnector,
+    RedditConnector,
     VanguardScout,
 )
 from cohezion.vanguard.source_connector import FailingConnector, SourceHealth
@@ -16,7 +14,12 @@ from cohezion.vanguard.source_connector import FailingConnector, SourceHealth
 
 class TestMultiSourceConnectors:
     def test_all_connectors_return_records(self):
-        for connector_cls in [HuggingFaceConnector, GitHubTrendingConnector, RedditConnector, OllamaConnector]:
+        for connector_cls in [
+            HuggingFaceConnector,
+            GitHubTrendingConnector,
+            RedditConnector,
+            OllamaConnector,
+        ]:
             conn = connector_cls()
             records, health = conn.discover()
             assert len(records) >= 1
@@ -30,11 +33,13 @@ class TestMultiSourceConnectors:
 
     def test_failing_connector_does_not_block_cycle(self):
         """Single source failure should not block other connectors."""
-        scout = VanguardScout(connectors=[
-            HuggingFaceConnector(),
-            FailingConnector(http_status=503),
-            RedditConnector(),
-        ])
+        scout = VanguardScout(
+            connectors=[
+                HuggingFaceConnector(),
+                FailingConnector(http_status=503),
+                RedditConnector(),
+            ]
+        )
         records, report = scout.run_cycle()
         # Should still get records from HF and Reddit
         assert len(records) >= 2

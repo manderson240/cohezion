@@ -4,14 +4,19 @@ from __future__ import annotations
 
 import json
 import logging
-import os
 
 import redis.asyncio as redis
+
+from cohezion.security.credentials import get_credentials
 
 
 logger = logging.getLogger(__name__)
 
-REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379")
+# Primary: Vault Warden, Fallback: Environment
+REDIS_URL = (
+    get_credentials().get_secret("COHEZION_REDIS_URL", env_var="REDIS_URL")
+    or "redis://localhost:6379"
+)
 DEFAULT_TTL = 3600  # 1 hour
 
 
@@ -141,6 +146,19 @@ class SessionManager:
         # Extract session IDs from keys
         prefix_len = len(f"{self.prefix}session:")
         return [k[prefix_len:] for k in keys]
+
+    async def clear_all_sessions(self) -> int:
+        """Clear all active sessions from Redis.
+
+        Returns:
+            Number of sessions deleted
+        """
+        redis_client = await self._get_redis()
+        key_pattern = f"{self.prefix}session:*"
+        keys = await redis_client.keys(key_pattern)
+        if keys:
+            return await redis_client.delete(*keys)
+        return 0
 
     async def is_connected(self) -> bool:
         """Check Redis connectivity."""

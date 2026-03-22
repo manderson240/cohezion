@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import numpy as np
-import pytest
 
 from cohezion.simulation.lifecycle_presim import (
     LifecyclePreSimulator,
@@ -20,10 +19,7 @@ class TestLifecyclePreSimulator:
     def test_smooth_trajectory_passes(self):
         """A trajectory with no coherence drops passes."""
         sim = LifecyclePreSimulator()
-        steps = [
-            _make_step("requirement", 0.8, [float(i)] * 12)
-            for i in range(4)
-        ]
+        steps = [_make_step("requirement", 0.8, [float(i)] * 12) for i in range(4)]
         result = sim.simulate("plan-1", steps)
         assert result.passed
 

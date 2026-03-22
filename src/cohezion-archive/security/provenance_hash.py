@@ -13,6 +13,7 @@ import logging
 import time
 from dataclasses import dataclass, field
 
+
 logger = logging.getLogger(__name__)
 
 
@@ -101,10 +102,7 @@ class ProvenanceRegistry:
         current = self._records.get(provenance_hash)
         while current is not None:
             chain.append(current)
-            if current.parent_hash:
-                current = self._records.get(current.parent_hash)
-            else:
-                current = None
+            current = self._records.get(current.parent_hash) if current.parent_hash else None
         return chain
 
     def get_all(self) -> list[dict]:

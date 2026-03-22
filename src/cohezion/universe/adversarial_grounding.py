@@ -15,11 +15,6 @@ from dataclasses import dataclass, field
 
 import numpy as np
 
-from cohezion.universe.truth_anchor import (
-    HIHO_COHERENCE_TARGET,
-    TruthAnchorValidator,
-    ValidationResult,
-)
 
 logger = logging.getLogger(__name__)
 

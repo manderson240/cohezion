@@ -13,6 +13,7 @@ import time
 from dataclasses import dataclass, field
 from enum import Enum
 
+
 logger = logging.getLogger(__name__)
 
 HEARTBEAT_CYCLE_S = 0.1  # 100ms heartbeat cycle
@@ -117,9 +118,7 @@ class HeterogeneousShardingProtocol:
 
     def redistribute_orphaned_shards(self, orphaned_ids: list[str]) -> ShardingReport:
         """Redistribute orphaned shards within 2 heartbeat cycles."""
-        active_nodes = [
-            n for n in self.nodes.values() if n.status == NodeStatus.ACTIVE
-        ]
+        active_nodes = [n for n in self.nodes.values() if n.status == NodeStatus.ACTIVE]
         if not active_nodes:
             raise RuntimeError("No active nodes for redistribution")
 

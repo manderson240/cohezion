@@ -11,17 +11,18 @@ import logging
 from dataclasses import dataclass, field
 from enum import Enum
 
+
 logger = logging.getLogger(__name__)
 
 HIGH_SEVERITY_THRESHOLD = 7.0
 
 
 class Severity(Enum):
-    CRITICAL = "critical"   # CVSS >= 9.0
-    HIGH = "high"           # CVSS 7.0-8.9
-    MEDIUM = "medium"       # CVSS 4.0-6.9
-    LOW = "low"             # CVSS < 4.0
-    INFO = "info"           # Deprecation warning
+    CRITICAL = "critical"  # CVSS >= 9.0
+    HIGH = "high"  # CVSS 7.0-8.9
+    MEDIUM = "medium"  # CVSS 4.0-6.9
+    LOW = "low"  # CVSS < 4.0
+    INFO = "info"  # Deprecation warning
 
 
 @dataclass
@@ -98,13 +99,15 @@ class DependencySecurityScanner:
         fixed_version: str,
     ) -> None:
         """Add a simulated CVE to the vulnerability database."""
-        self._vulnerability_db.append({
-            "package": package,
-            "cve_id": cve_id,
-            "cvss_score": cvss_score,
-            "vulnerable_range": vulnerable_range,
-            "fixed_version": fixed_version,
-        })
+        self._vulnerability_db.append(
+            {
+                "package": package,
+                "cve_id": cve_id,
+                "cvss_score": cvss_score,
+                "vulnerable_range": vulnerable_range,
+                "fixed_version": fixed_version,
+            }
+        )
 
     def scan(self, packages: dict[str, str]) -> ScanReport:
         """Scan packages (name→version) against vulnerability database.
@@ -142,16 +145,18 @@ class DependencySecurityScanner:
                         score,
                     )
 
-                alerts.append(CVEAlert(
-                    package=pkg_name,
-                    cve_id=vuln["cve_id"],
-                    cvss_score=score,
-                    vulnerable_range=vuln["vulnerable_range"],
-                    fixed_version=vuln["fixed_version"],
-                    severity=severity,
-                    remediation=f"Upgrade to {vuln['fixed_version']}",
-                    pr_created=pr_created,
-                ))
+                alerts.append(
+                    CVEAlert(
+                        package=pkg_name,
+                        cve_id=vuln["cve_id"],
+                        cvss_score=score,
+                        vulnerable_range=vuln["vulnerable_range"],
+                        fixed_version=vuln["fixed_version"],
+                        severity=severity,
+                        remediation=f"Upgrade to {vuln['fixed_version']}",
+                        pr_created=pr_created,
+                    )
+                )
 
         report = ScanReport(
             scanned_packages=len(packages),

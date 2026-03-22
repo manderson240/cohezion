@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import pytest
-
 from cohezion.registry.ouroboros_version_healer import HealingOutcome, OuroborosVersionHealer
 
 

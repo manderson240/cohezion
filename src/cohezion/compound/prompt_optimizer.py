@@ -127,9 +127,6 @@ class PromptOptimizer:
         Returns:
             Text with filler words removed
         """
-        text.lower()
-        text.split()
-
         # Build pattern that matches filler words as whole words
         for filler in self.FILLER_WORDS:
             pattern = r"\b" + re.escape(filler) + r"\b"

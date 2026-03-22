@@ -30,11 +30,15 @@ class ConfigSyncEngine:
 
     def __init__(
         self,
-        repo_root: Path = Path.cwd(),
-        vault_root: Path = Path.home() / "vaults" / "cohezion-vault",
+        repo_root: Path | None = None,
+        vault_root: Path | None = None,
         sync_logger: ConfigSyncLogger | None = None,
     ):
         """Initialize sync engine."""
+        if repo_root is None:
+            repo_root = Path.cwd()
+        if vault_root is None:
+            vault_root = Path.home() / "vaults" / "cohezion-vault"
         self.repo_root = Path(repo_root)
         self.vault_root = Path(vault_root)
         self.git_utils = GitUtils(repo_root)

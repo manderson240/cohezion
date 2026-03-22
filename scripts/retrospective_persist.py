@@ -14,7 +14,8 @@ import json
 from datetime import datetime
 from pathlib import Path
 
-from surrealdb import Surreal
+from surrealdb import AsyncSurreal
+
 
 
 async def save_overnight_artifacts():
@@ -23,7 +24,7 @@ async def save_overnight_artifacts():
     print("🔄 Starting retrospective artifact persistence...", flush=True)
 
     # Connect to SurrealDB
-    db = Surreal("http://localhost:8000")
+    db = AsyncSurreal("http://localhost:8000")
     await db.connect()
     await db.use("cohezion", "research")
 

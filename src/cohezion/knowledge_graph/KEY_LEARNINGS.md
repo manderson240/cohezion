@@ -326,10 +326,48 @@ Research from Sheet 4 (Zenodo 18353294 / QDE) indicates that thrust and trajecto
 
 ---
 
-## Session 66: Grounded TDD & Substrate Verification (2026-03-09)
+## Session 67: Autonomic Healing & Manifold Stability (2026-03-08)
 
-### Learning 147: The Grounded TDD Axiom
-Autonomous loops must never be launched without a corresponding "Red" test phase. Relying on "Green" implementation alone leads to "Hallucination Artifacts"—where the agent assumes the existence of classes or parameters that do not exist in the physical codebase. Our `test_overnight_integrity.py` now serves as the mandatory verification barrier for all background swarms.
+### Learning 149: The Viscoelastic Control Loop (Proactive Dilation)
+Implementing a MAPE-K loop for resource management revealed that static thresholds are insufficient for rapid agentic scaling. By applying a **Maxwell-type relaxation law** (inspired by ArXiv 2512.00056) to system vitals, we can calculate "System Viscosity"—the rate of change of pressure. This enables **Proactive Dilation**, where the simulation slows down *before* a lockup occurs, effectively turning the computational substrate into a viscoelastic medium that absorbs surges.
 
-### Learning 148: SurrealDB 3.0 surrealkv Migration
-SurrealDB 3.0 requires the `surrealkv` prefix for file-based storage. Persistence failed until the datastore path was corrected to `surrealkv:/my/surreal/data` and the container was launched with explicit UID/GID (1000:1000) to match the host filesystem owner. This establishes the pattern for high-fidelity local logging.
+### Learning 150: Semantic Lagrange Points (Stable Memory Parking)
+The Restricted Three-Body Problem (Earth-Moon-Satellite) translates perfectly to 12D semantic manifolds. By identifying stable L4/L5 "gravity wells" between two dominant semantic topics, we can "park" non-active memory context as a low-density "plasma cloud." This maintains semantic accessibility (via proximity) without the active computational tension of the primary attention window. **Critical Threshold**: Stability requires a semantic weight ratio $\mu < 0.0385$.
+
+### Learning 151: Gram-Schmidt Manifold Orthogonalization
+In 12D latent spaces, simple 2D rotation for orthogonal vector calculation (e.g., `v[0], v[1] = -u[1], u[0]`) is a high-risk anti-pattern. If the semantic difference between topics lies primarily in higher dimensions (e.g., `logic`, `quantum`), the resulting vector can collapse to zero. **Correct Pattern**: Find the dimension with the minimum absolute value in the primary vector `u`, set that dimension to 1.0 in a new vector `v`, and then apply **Gram-Schmidt orthogonalization** to ensure a robust, non-zero orthogonal basis.
+
+---
+
+## Session 68: Secure-by-Default Substrate & The 360-Degree Autonomic Cycle (2026-03-10)
+
+### Learning 152: The 360-Degree Autonomic Cycle
+A complete architectural evolution loop has been achieved within a single 60-minute window: **Sensing (:00) -> Optimization (:15) -> Refinement (:30) -> Manifestation (:35) -> Verification (:40) -> Auditing (:45) -> Scouting (:50) -> Analysis (:55).** This closed loop ensures that the platform is a self-optimizing engine of growth.
+
+### Learning 153: Unified Authentication Middleware
+Platform-wide security is best enforced via a centralized middleware layer rather than per-server logic. By injecting `api_key_middleware` into the `aiohttp.Application` of all MCP servers, we establish a consistent security perimeter that rejects all unauthenticated traffic while allowing internal health checks via a shared `MCP_API_KEY`.
+
+### Learning 154: Recursive Path Sanitization (CWD-Bounding)
+Path traversal vulnerabilities in multi-agent systems are critically dangerous as agents often have broad filesystem access. The `sanitize_path` utility must be used with a strict `base_dir=Path.cwd()` bound for all tool-exposed file operations (indexing, scanning, reading). This prevents agents (or attackers hijacking them) from escaping the project workspace.
+
+### Learning 155: API Response Redaction (Secret Scrubbing)
+Management endpoints that return system status must recursively scrub environment variables. Identifying keys matching `["token", "key", "secret", "password"]` and replacing them with `***REDACTED***` prevents the accidental leakage of high-privilege credentials (e.g., `HF_TOKEN`, `GITHUB_TOKEN`) through administrative APIs.
+
+### Learning 156: CI/CD Prompt Injection Defense (HITL + Isolation)
+GitHub Action workflows that grant LLMs write access to the repository are high-value targets. Effective defense requires a multi-layered approach: 1) Explicit `system_instruction` warning the agent about injection, 2) XML-style delimiters (`<USER_INPUT>`) to segregate untrusted metadata from instructions, and 3) Environment variable passing for inputs to prevent shell command injection.
+
+---
+
+## Session 69: MCP Infrastructure Recovery (2026-03-11)
+
+### Learning 157: Syntax-Valid Marimo Templates
+When generating Marimo notebooks via f-strings in Python, triple-quoted strings within the template must be meticulously terminated and indented. An extra `'''` at the end of a return block will cause a `SyntaxError` that prevents the entire server from importing. Correct pattern: `return f'''...'''` followed immediately by the next method definition, with no trailing quotes in the module scope.
+
+### Learning 158: AsyncSurreal Migration & Connect Protocol
+The `surrealdb-py` library (v0.3.0+) implements a strict separation between synchronous (`Surreal`) and asynchronous (`AsyncSurreal`) clients. Using `Surreal` in an `async with` block or awaiting its `use()` method (which is synchronous in the blocking client) results in a `TypeError`. **Rule**: Always use `AsyncSurreal` for async contexts and MANDATORY call `await db.connect()` before `signin()` or `use()`.
+
+### Learning 159: Doc-Retriever & Memory Consistency
+Fixing infrastructure requires a "Sweep Pattern"—identifying all modules sharing a common dependency (e.g., SurrealDB) and verifying they all adhere to the updated protocol. The migration of `doc/indexer.py` and `memory/server.py` to `AsyncSurreal` restored coherence across the "Compound Engineering" and "Physics" server groups.
+
+### Learning 160: Skill Documentation as a Truth Anchor
+Skills (e.g., `DATABASE_PRIME.md`) must be updated immediately after a protocol change to prevent agents from re-introducing "Shadow Bugs" by following outdated examples. A skill is only valid if it reflects the current operational reality of the substrate.

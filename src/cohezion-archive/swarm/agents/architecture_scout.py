@@ -27,17 +27,17 @@ class ArchitectureScout(BaseScout):
 
         prompt = f"""
         Analyze the following Python module structure and identify its architectural role.
-        
+
         File: {path.name}
         Classes: {ast_summary.classes}
         Functions: {ast_summary.functions}
         Imports: {ast_summary.imports}
-        
+
         Identify:
         1. The primary architectural pattern/role (e.g., Persistence Client, Service, Controller, Agent, Skill).
         2. Any high-coupling issues (e.g., too many imports, class bloat).
         3. Integration with COHEZION core (SurrealDB, FLUME, ResourceGuard).
-        
+
         Return a JSON object with this structure:
         {{
             "patterns": [

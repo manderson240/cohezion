@@ -8,9 +8,9 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass
-from typing import Callable
 
 from cohezion.compound.models import AnalysisReport, ExecutionResult, Task
+
 
 logger = logging.getLogger(__name__)
 
@@ -88,10 +88,7 @@ class ExecutionAnalyzer:
     def _check_degradation(self, result: ExecutionResult, task: Task) -> bool:
         """Check for performance degradation."""
         # Compare with expected duration for this task type
-        if result.metrics.duration_seconds > task.timeout_seconds * 0.8:
-            return True
-
-        return False
+        return result.metrics.duration_seconds > task.timeout_seconds * 0.8
 
     def _detect_anomalies(self, result: ExecutionResult) -> bool:
         """Detect anomalous patterns."""
@@ -100,10 +97,7 @@ class ExecutionAnalyzer:
             return True
 
         # Error patterns
-        if result.failed and "timeout" in result.error_message.lower():
-            return True
-
-        return False
+        return bool(result.failed and "timeout" in result.error_message.lower())
 
     def _should_retry(self, report: AnalysisReport) -> bool:
         """Determine if retry is recommended."""
@@ -113,10 +107,7 @@ class ExecutionAnalyzer:
         if report.quality_issue and self.config.retry_on_quality_failure:
             return True
 
-        if report.degradation_detected and self.config.retry_on_degradation:
-            return True
-
-        return False
+        return bool(report.degradation_detected and self.config.retry_on_degradation)
 
     def _suggest_action(self, report: AnalysisReport) -> str:
         """Suggest corrective action."""

@@ -8,12 +8,13 @@ Watchdog detects stale pointers (no flip within 2 heartbeats) and activates degr
 from __future__ import annotations
 
 import logging
-import time
 import threading
+import time
 from dataclasses import dataclass, field
 from enum import Enum
 
 import numpy as np
+
 
 logger = logging.getLogger(__name__)
 
@@ -94,5 +95,7 @@ class SubstrateLoom:
 
     def _activate_degraded_mode(self, reason: str) -> None:
         if self._mode != LoomMode.DEGRADED:
-            logger.warning("SubstrateLoom degraded: %s. Crash context: %s", reason, self._crash_context)
+            logger.warning(
+                "SubstrateLoom degraded: %s. Crash context: %s", reason, self._crash_context
+            )
         self._mode = LoomMode.DEGRADED

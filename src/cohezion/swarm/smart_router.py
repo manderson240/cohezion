@@ -268,8 +268,9 @@ class SmartRouter:
         # Track model availability
         self.available_models: dict[str, ModelProfile] = {}
 
-        # Action log persistence
-        self.action_log_dir = Path("src/cohezion/knowledge_graph/universe_nodes/actions")
+        # Action log persistence — anchored to module location, not CWD
+        _module_root = Path(__file__).resolve().parent.parent
+        self.action_log_dir = _module_root / "knowledge_graph/universe_nodes/actions"
         self.action_log_dir.mkdir(parents=True, exist_ok=True)
 
     async def refresh_models(self):
@@ -378,22 +379,34 @@ class SmartRouter:
 
         for model in models_to_try:
             try:
+                # Construct standard Ollama messages
+                messages = []
+                if system_prompt:
+                    messages.append({"role": "system", "content": system_prompt})
+                messages.append({"role": "user", "content": prompt})
+
+                clean_host = self.ollama_host.rstrip("/")
+                if clean_host.endswith("/api"):
+                    clean_host = clean_host[:-4]
+                if clean_host.endswith("/v1"):
+                    clean_host = clean_host[:-3]
+
                 resp = await self.client.post(
-                    f"{self.ollama_host}/api/generate",
+                    f"{clean_host}/api/generate",
                     json={
                         "model": model,
                         "prompt": prompt,
                         "system": system_prompt,
                         "stream": False,
-                        "options": {"temperature": 0.7, "num_predict": 512},
                     },
                 )
+                resp.raise_for_status()
 
-                if resp.status_code == 200:
-                    data = resp.json()
-                    response = data.get("response", "").strip()
-                    success = True
-                    break
+                data = await resp.json()
+                response = data.get("response", "")
+                tokens = data.get("eval_count", 0) + data.get("prompt_eval_count", 0)
+                success = True
+                break
 
             except Exception as e:
                 logger.warning(f"Model {model} failed: {e}")
