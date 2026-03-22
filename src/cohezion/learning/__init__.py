@@ -16,6 +16,7 @@ if TYPE_CHECKING:
     from cohezion.core.template_engine import TemplateEngine
 
 
+
 logger = logging.getLogger(__name__)
 
 

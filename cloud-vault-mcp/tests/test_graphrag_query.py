@@ -6,6 +6,9 @@ import pytest
 
 from mcp_server.graphrag_query import GraphRAGQuery, _cache_key
 
+_IN_CI = os.environ.get("CI") == "true"
+_SKIP_REASON = "Requires Ollama/SurrealDB — unavailable in CI"
+
 
 _IN_CI = os.environ.get("CI") == "true"
 _SKIP_REASON = "Requires Ollama/SurrealDB — unavailable in CI"

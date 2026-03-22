@@ -108,8 +108,8 @@ class ResilientOllamaClient:
                     f"{clean_base}/api/generate",
                     json={
                         "model": model,
-                        "prompt": prompt,
-                        "system": system,
+                        "messages": messages,
+                        "max_tokens": num_predict,
                         "stream": False,
                     },
                     timeout=self.timeout,

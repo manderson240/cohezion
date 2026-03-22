@@ -17,6 +17,7 @@ from pathlib import Path
 from surrealdb import AsyncSurreal
 
 
+
 async def save_overnight_artifacts():
     """Save key overnight mission results to SurrealDB."""
 

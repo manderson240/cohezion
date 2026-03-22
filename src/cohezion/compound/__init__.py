@@ -31,6 +31,7 @@ from cohezion.compound.compat import (
     DriftSignal,
     ExecutionAlignment,
     ExecutionConstraint,
+    ExecutionResult as LegacyExecutionResult,
     HumanRequest,
     IntentType,
     SuccessCriterion,
@@ -84,6 +85,72 @@ from cohezion.compound.skills.selector import (
     SkillSelector,
 )
 
+from cohezion.compound.core.executor import (
+    CompoundExecutor as NewCompoundExecutor,
+    ExecutionConfig,
+    execute_simple,
+)
+
+from cohezion.compound.core.batch_processor import (
+    BatchProcessor,
+    BatchResult,
+    SimpleBatch,
+)
+
+# ============================================================================
+# New Simplified Analytics (Phase 1)
+# ============================================================================
+
+from cohezion.compound.analytics.engine import (
+    AnalysisConfig,
+    ExecutionAnalyzer,
+    SimpleAnalyzer,
+)
+
+from cohezion.compound.analytics.metrics import (
+    MetricsCollector,
+    MetricsSnapshot,
+    SimpleMetrics,
+)
+
+# ============================================================================
+# New Simplified Skills (Phase 1)
+# ============================================================================
+
+from cohezion.compound.skills.selector import (
+    SkillMatch,
+    SkillRefiner,
+    SkillSelector,
+    SimpleSkills,
+)
+
+# ============================================================================
+# New Simplified Persistence (Phase 1)
+# ============================================================================
+
+from cohezion.compound.persistence.vault import (
+    PersistenceConfig,
+    SessionPersister,
+    SimplePersistence,
+    VaultPersister,
+)
+
+
+# ============================================================================
+# Version Info
+# ============================================================================
+
+__version__ = "2.0.0-simplified"
+
+
+def get_version() -> str:
+    """Get compound module version."""
+    return __version__
+
+
+# ============================================================================
+# Exports
+# ============================================================================
 
 # ============================================================================
 # Version Info

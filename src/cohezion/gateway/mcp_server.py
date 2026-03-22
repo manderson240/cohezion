@@ -37,6 +37,7 @@ from cohezion.gateway.demo_gateway import DemoGateway
 from cohezion.security.credentials import get_credentials
 
 
+
 logger = logging.getLogger(__name__)
 logging.basicConfig(
     level=logging.INFO,

@@ -17,6 +17,10 @@ from fastapi.responses import JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
+from cohezion.api.services.anima import anima_router
+from cohezion.api.services.architecture import architecture_router
+from cohezion.api.services.brand import brand_router
+from cohezion.api.services.universe import universe_router
 from cohezion.mcp.knowledge_server import get_server as get_knowledge_server
 from cohezion.mcp.registry import get_registry
 from cohezion.mcp.swarm_server import get_server as get_swarm_server
@@ -34,7 +38,7 @@ _CORS_ORIGINS = os.environ.get(
 app = FastAPI(
     title="Cohezion API",
     description="AI Research Lab API - Swarm workflows and MCP tools",
-    version="0.1.0",
+    version="1.0.2",
     docs_url="/docs" if os.environ.get("COHEZION_ENV") != "production" else None,
     redoc_url="/redoc" if os.environ.get("COHEZION_ENV") != "production" else None,
 )
@@ -74,6 +78,13 @@ async def rate_limit_middleware(request: Request, call_next):
 static_dir = Path(__file__).parent / "static"
 if static_dir.exists():
     app.mount("/static", StaticFiles(directory=static_dir, html=True), name="static")
+
+
+# Universe physics API (real HIHO engine state for the Anima Dashboard)
+app.include_router(anima_router, prefix="/api/anima")
+app.include_router(architecture_router, prefix="/api/architecture")
+app.include_router(brand_router, prefix="/api/brand")
+app.include_router(universe_router, prefix="/api/universe")
 
 
 # Root redirect to UI
