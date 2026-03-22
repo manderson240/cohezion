@@ -598,9 +598,11 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
                     "SELECT * FROM universe_nodes LIMIT $limit",
                     {"limit": safe_limit},
                 )
-                results = results[0].get("result", []) if results else []
+                # surrealdb 1.x returns records directly as a list of dicts
+                if not isinstance(results, list):
+                    results = []
 
-            return [self._dict_to_node(r) for r in results]
+            return [self._dict_to_node(r) for r in results if isinstance(r, dict)]
 
         except Exception as e:
             logger.error(f"Failed to get all nodes: {e}")
@@ -651,20 +653,31 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
                 # Validate relation_type to prevent injection (allow only alphanumeric + underscore)
                 if not re.match(r"^[a-zA-Z_][a-zA-Z0-9_]*$", relation_type):
                     raise ValueError(f"Invalid relation type: {relation_type}")
+                # surrealdb 1.x requires RecordID objects (not strings) in
+                # RELATE parameters
+                from surrealdb.data.types.record_id import RecordID
+
+                def _to_record_id(node_id: str) -> RecordID:
+                    if ":" in node_id:
+                        table, bare = node_id.split(":", 1)
+                        return RecordID(table, bare)
+                    return RecordID("universe_nodes", node_id)
+
                 result = await self._client.query(
                     f"RELATE $from_id->{relation_type}->$to_id SET "
                     "weight = $weight, "
                     "metadata = $metadata, "
                     "created_at = time::now()",
                     {
-                        "from_id": from_id,
-                        "to_id": to_id,
+                        "from_id": _to_record_id(from_id),
+                        "to_id": _to_record_id(to_id),
                         "weight": weight,
                         "metadata": metadata or {},
                     },
                 )
-                if result and result[0].get("result"):
-                    return str(result[0]["result"][0].get("id", ""))
+                # surrealdb 1.x returns the RELATE record directly
+                if result and isinstance(result[0], dict):
+                    return str(result[0].get("id", ""))
                 return None
 
         except Exception as e:
