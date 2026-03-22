@@ -13,6 +13,7 @@ from cohezion.flume.experience_collector import ExperienceCollector
 from cohezion.flume.experience_dataset import ExperienceDataset
 from cohezion.flume.training import FlumeVAETrainer, TrainConfig
 
+
 logger = logging.getLogger(__name__)
 
 

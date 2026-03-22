@@ -19,9 +19,7 @@ class CacheWarmer:
         3. Patterns from successful compound cycles
     """
 
-    def __init__(
-        self, semantic_cache: SemanticCache, mcp_client: Any = None
-    ):
+    def __init__(self, semantic_cache: SemanticCache, mcp_client: Any = None):
         """Initialize cache warmer.
 
         Args:
@@ -49,9 +47,7 @@ class CacheWarmer:
 
         try:
             # List all cache pattern files from vault
-            pattern_files = self.mcp_client.vault_list(
-                directory="cache_patterns", recursive=True
-            )
+            pattern_files = self.mcp_client.vault_list(directory="cache_patterns", recursive=True)
 
             if not pattern_files:
                 logger.debug("No cache patterns found in vault")
@@ -109,9 +105,7 @@ class CacheWarmer:
         """
         # TODO: Query vault for recent high-coherence executions
         # Extract (prompt, response) pairs and load
-        logger.debug(
-            f"Warming cache from recent executions (limit={limit}) - not implemented"
-        )
+        logger.debug(f"Warming cache from recent executions (limit={limit}) - not implemented")
         return 0
 
     async def analyze_cache_effectiveness(self) -> dict:

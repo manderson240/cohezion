@@ -1,0 +1,17 @@
+{
+  "mcpServers": {
+    "bmad": {
+      "name": "BMAD Method",
+      "type": "streamable-http",
+      "url": "http://localhost:8361",
+      "port": 8361,
+      "description": "108 BMAD commands for agile AI-driven development",
+      "modules": ["bmm", "gds", "cis", "tea", "bmb", "core"],
+      "agents": 28
+    }
+  },
+  "sharedConfig": {
+    "redisUrl": "redis://localhost:6379",
+    "logLevel": "info"
+  }
+}

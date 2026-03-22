@@ -1,8 +1,0 @@
-{
-  "mcpServers": {
-    "cohezion-vault": {
-      "type": "http",
-      "url": "http://localhost:8360/mcp"
-    }
-  }
-}

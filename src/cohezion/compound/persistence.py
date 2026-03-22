@@ -6,7 +6,9 @@ import json
 import logging
 from pathlib import Path
 from typing import Any
+
 from cohezion.core.mcp_client import get_mcp_client
+
 
 logger = logging.getLogger(__name__)
 
@@ -57,9 +59,7 @@ class CompoundPersistence:
         # Tier 3: JSONL (Local Fallback)
         return self._save_to_jsonl(skill_name, cycle_data)
 
-    async def load_history(
-        self, skill_name: str, limit: int = 10
-    ) -> list[dict[str, Any]]:
+    async def load_history(self, skill_name: str, limit: int = 10) -> list[dict[str, Any]]:
         """Load cycle history for a skill.
 
         Parameters
@@ -105,23 +105,17 @@ class CompoundPersistence:
                 self._surreal_available = False
         return self._surreal_available
 
-    async def _save_to_surreal(
-        self, skill_name: str, cycle_data: dict[str, Any]
-    ) -> str:
+    async def _save_to_surreal(self, skill_name: str, cycle_data: dict[str, Any]) -> str:
         """Save to SurrealDB compound_cycle table."""
         from cohezion.persistence.surreal_client import get_client
 
         client = await get_client()
         record = {"skill_name": skill_name, **cycle_data}
         result = await client.create("compound_cycle", record)
-        record_id = (
-            result[0]["id"] if isinstance(result, list) and result else "unknown"
-        )
+        record_id = result[0]["id"] if isinstance(result, list) and result else "unknown"
         return str(record_id)
 
-    async def _load_from_surreal(
-        self, skill_name: str, limit: int
-    ) -> list[dict[str, Any]]:
+    async def _load_from_surreal(self, skill_name: str, limit: int) -> list[dict[str, Any]]:
         """Load from SurrealDB."""
         from cohezion.persistence.surreal_client import get_client
 
@@ -140,6 +134,7 @@ class CompoundPersistence:
         mcp = get_mcp_client()
         safe_name = skill_name.replace("/", "_").replace(" ", "_").lower()
         import time
+
         timestamp = int(time.time())
         path = f"cycles/{safe_name}/{timestamp}.json"
         mcp.vault_write(path, json.dumps(cycle_data, indent=2))

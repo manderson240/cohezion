@@ -12,6 +12,7 @@ from cohezion.core.persistence.repositories.journey_repository import (
 )
 from cohezion.core.persistence.repositories.universe_repository import PhysicsState
 
+
 logger = logging.getLogger(__name__)
 
 

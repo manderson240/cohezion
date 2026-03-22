@@ -12,6 +12,7 @@ import time
 from dataclasses import dataclass, field
 from typing import Any
 
+
 logger = logging.getLogger(__name__)
 
 
@@ -61,27 +62,19 @@ class InferenceMetrics:
     def total_cache_hit_rate(self) -> float:
         """Combined L1+L2+L3 hit rate."""
         total_cache_ops = (
-            self.cache_l1_hits
-            + self.cache_l2_hits
-            + self.cache_l3_hits
-            + self.cache_misses
+            self.cache_l1_hits + self.cache_l2_hits + self.cache_l3_hits + self.cache_misses
         )
         if total_cache_ops == 0:
             return 0.0
         return (
-            (self.cache_l1_hits + self.cache_l2_hits + self.cache_l3_hits)
-            / total_cache_ops
-            * 100
+            (self.cache_l1_hits + self.cache_l2_hits + self.cache_l3_hits) / total_cache_ops * 100
         )
 
     @property
     def l1_cache_hit_rate(self) -> float:
         """L1 cache hit rate percentage."""
         total_cache_ops = (
-            self.cache_l1_hits
-            + self.cache_l2_hits
-            + self.cache_l3_hits
-            + self.cache_misses
+            self.cache_l1_hits + self.cache_l2_hits + self.cache_l3_hits + self.cache_misses
         )
         if total_cache_ops == 0:
             return 0.0
@@ -91,10 +84,7 @@ class InferenceMetrics:
     def l2_cache_hit_rate(self) -> float:
         """L2 cache hit rate percentage."""
         total_cache_ops = (
-            self.cache_l1_hits
-            + self.cache_l2_hits
-            + self.cache_l3_hits
-            + self.cache_misses
+            self.cache_l1_hits + self.cache_l2_hits + self.cache_l3_hits + self.cache_misses
         )
         if total_cache_ops == 0:
             return 0.0
@@ -154,9 +144,7 @@ class UnifiedMetricsCollector:
         self.history: list[InferenceMetrics] = []
         self.start_time = time.time()
 
-    def record_guardrail_action(
-        self, action: str, latency_ms: float = 0.0
-    ) -> None:
+    def record_guardrail_action(self, action: str, latency_ms: float = 0.0) -> None:
         """Record guardrail action.
 
         Args:
@@ -187,9 +175,7 @@ class UnifiedMetricsCollector:
         """Record cache miss."""
         self.current_metrics.cache_misses += 1
 
-    def record_execution(
-        self, tokens: int, duration_ms: float, model: str = "unknown"
-    ) -> None:
+    def record_execution(self, tokens: int, duration_ms: float, model: str = "unknown") -> None:
         """Record execution metrics.
 
         Args:
@@ -217,9 +203,7 @@ class UnifiedMetricsCollector:
         Args:
             memory_gb: Memory in gigabytes
         """
-        self.current_metrics.peak_memory_gb = max(
-            self.current_metrics.peak_memory_gb, memory_gb
-        )
+        self.current_metrics.peak_memory_gb = max(self.current_metrics.peak_memory_gb, memory_gb)
 
     def record_concurrency_wait(self) -> None:
         """Record concurrency wait event."""
@@ -270,21 +254,14 @@ class UnifiedMetricsCollector:
             ),
             "total_guardrail_blocks": sum(m.guardrail_blocks for m in all_metrics),
             "total_cache_hits": sum(
-                m.cache_l1_hits + m.cache_l2_hits + m.cache_l3_hits
-                for m in all_metrics
+                m.cache_l1_hits + m.cache_l2_hits + m.cache_l3_hits for m in all_metrics
             ),
             "total_cache_misses": sum(m.cache_misses for m in all_metrics),
             "aggregate_cache_hit_rate": (
-                sum(
-                    m.cache_l1_hits + m.cache_l2_hits + m.cache_l3_hits
-                    for m in all_metrics
-                )
+                sum(m.cache_l1_hits + m.cache_l2_hits + m.cache_l3_hits for m in all_metrics)
                 / (
                     sum(
-                        m.cache_l1_hits
-                        + m.cache_l2_hits
-                        + m.cache_l3_hits
-                        + m.cache_misses
+                        m.cache_l1_hits + m.cache_l2_hits + m.cache_l3_hits + m.cache_misses
                         for m in all_metrics
                     )
                     or 1

@@ -1,0 +1,44 @@
+name: Claude Command
+description: Trigger a Claude Code command remotely (heal, audit, scout, deploy, etc.)
+title: "@claude "
+labels: ["claude-command"]
+body:
+  - type: dropdown
+    id: command
+    attributes:
+      label: Command
+      description: Which command should Claude run?
+      options:
+        - "/heal — autonomic self-healing (fix imports, lint, integrity check)"
+        - "/audit — deep platform audit (performance, schema, git health)"
+        - "/scout — daily model research (find new SLMs on HuggingFace/Ollama)"
+        - "/async-audit — asyncio anti-pattern detector"
+        - "/deploy — deploy to Cloud Run (free tier)"
+        - "run compound cycle dry-run and report metrics"
+        - "run pytest and report failures"
+        - "check git status and summarize changes"
+        - "custom (fill in below)"
+    validations:
+      required: true
+
+  - type: textarea
+    id: custom_command
+    attributes:
+      label: Custom instruction (if not selecting from list)
+      description: Describe exactly what you want Claude to do.
+      placeholder: "@claude run the compound cycle dry-run, check for degradation, and log findings to vault"
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Context (optional)
+      description: Any extra context Claude should know before starting.
+      placeholder: "Focus on the swarm module. Ignore test failures in tests/legacy/."
+
+  - type: checkboxes
+    id: confirmation
+    attributes:
+      label: Confirmation
+      options:
+        - label: The title starts with `@claude` followed by the command or instruction
+          required: true

@@ -1,15 +1,15 @@
 import asyncio
 import logging
 import sys
-from datetime import datetime, timedelta
 from pathlib import Path
-from cohezion.mcp.email_notifier import EmailNotifier
 
 # Mock the UniverseDriver to run fast
 from scripts.universe_driver import UniverseDriver
 
+
 class FastDriver(UniverseDriver):
     """Driver with accelerated time for testing."""
+
     async def run_simulation(self):
         # Override run to simulate faster
         self._log_event("BIG BANG: Universe instantiated.")
@@ -32,8 +32,10 @@ class FastDriver(UniverseDriver):
         self.interface.report_activity()
         self._log_event(f"Step in {epoch}")
 
+
 # Add src to path
 sys.path.append(str(Path.cwd() / "src"))
+
 
 async def main():
     logging.basicConfig(level=logging.INFO)
@@ -47,9 +49,9 @@ async def main():
     print(f"End: {driver.end_time}")
 
     if driver.end_time > driver.start_time:
-         print("✅ PASS: Time horizon valid.")
+        print("✅ PASS: Time horizon valid.")
     else:
-         print("❌ FAIL: Invalid time horizon.")
+        print("❌ FAIL: Invalid time horizon.")
 
     print("\n--- ⏳ Test 2: Epoch Progression (Fast Forward) ---")
 
@@ -66,7 +68,8 @@ async def main():
     # Check if artifacts generated
     if Path("chronicle_of_the_infinite.md").exists():
         print("✅ PASS: Chronicle Artifact saved.")
-        Path("chronicle_of_the_infinite.md").unlink() # Cleanup
+        Path("chronicle_of_the_infinite.md").unlink()  # Cleanup
+
 
 if __name__ == "__main__":
     asyncio.run(main())

@@ -9,21 +9,17 @@ Tests:
 - Chaos testing with cost bounds
 """
 
-import pytest
-import time
-from unittest.mock import Mock, MagicMock, patch
 
+import pytest
+
+from cohezion.cost_optimization.budget_enforcer import BudgetEnforcer, BudgetPolicy
+from cohezion.cost_optimization.cost_tracker import SessionCostTracker
 from cohezion.swarm.cost_aware_router import (
     CostAwareRouter,
-    QueryComplexityAnalyzer,
     QueryComplexity,
-    ModelRoutingDecision,
-    RoutingStatistics,
-    get_cost_aware_router,
+    QueryComplexityAnalyzer,
     reset_cost_aware_router,
 )
-from cohezion.cost_optimization.cost_tracker import SessionCostTracker
-from cohezion.cost_optimization.budget_enforcer import BudgetEnforcer, BudgetPolicy
 
 
 class TestQueryComplexityAnalyzer:
@@ -72,7 +68,9 @@ class TestQueryComplexityAnalyzer:
         for query in non_simple_queries:
             complexity = analyzer.analyze(query)
             # Medium or complex is acceptable - should not be simple
-            assert complexity in [QueryComplexity.MEDIUM, QueryComplexity.COMPLEX], f"Failed for: {query}"
+            assert complexity in [QueryComplexity.MEDIUM, QueryComplexity.COMPLEX], (
+                f"Failed for: {query}"
+            )
 
     def test_token_estimation(self):
         """Test token estimation accuracy."""
@@ -84,7 +82,9 @@ class TestQueryComplexityAnalyzer:
         assert 1 <= est_short <= 10
 
         # Medium query: ~20-40 tokens
-        medium = "Write a Python function to calculate fibonacci numbers recursively with memoization"
+        medium = (
+            "Write a Python function to calculate fibonacci numbers recursively with memoization"
+        )
         est_medium = analyzer._estimate_tokens(medium)
         assert 10 <= est_medium <= 50
 
@@ -113,7 +113,9 @@ class TestQueryComplexityAnalyzer:
         assert stats["simple_pct"] > 0  # At least 2 simple queries
         assert stats["medium_pct"] >= 0  # May have medium
         # Don't require complex since it's keyword-dependent
-        assert abs(sum([stats["simple_pct"], stats["medium_pct"], stats["complex_pct"]]) - 100.0) < 0.1
+        assert (
+            abs(sum([stats["simple_pct"], stats["medium_pct"], stats["complex_pct"]]) - 100.0) < 0.1
+        )
 
 
 class TestCostAwareRouter:
@@ -203,14 +205,28 @@ class TestCostAwareRouter:
         queries = [
             ("What is this?", "simple", ["phi3:mini"]),
             ("Where is the file?", "simple", ["phi3:mini"]),
-            ("Write a Python function", "medium", ["qwen3-coder:32b", "phi3:mini"]),  # May optimize to phi3
-            ("Design a distributed system", "complex", ["deepseek-r1:8b", "qwen3-coder:32b"]),  # May optimize to qwen
-            ("Implement and optimize a production system", "complex", ["deepseek-r1:8b", "qwen3-coder:32b"]),  # May optimize
+            (
+                "Write a Python function",
+                "medium",
+                ["qwen3-coder:32b", "phi3:mini"],
+            ),  # May optimize to phi3
+            (
+                "Design a distributed system",
+                "complex",
+                ["deepseek-r1:8b", "qwen3-coder:32b"],
+            ),  # May optimize to qwen
+            (
+                "Implement and optimize a production system",
+                "complex",
+                ["deepseek-r1:8b", "qwen3-coder:32b"],
+            ),  # May optimize
         ]
 
         for query, expected_type, allowed_models in queries:
             decision, _ = router.select_model(query)
-            assert decision.model in allowed_models, f"Query '{query}' routed to {decision.model}, expected one of {allowed_models}"
+            assert decision.model in allowed_models, (
+                f"Query '{query}' routed to {decision.model}, expected one of {allowed_models}"
+            )
 
     def test_statistics_tracking(self, router):
         """Test statistics aggregation."""
@@ -322,7 +338,6 @@ class TestCostAwareRouterChaosTest:
         router, tracker, enforcer = router_with_tight_budget
 
         # Generate 100 random queries
-        import random
 
         queries = [
             f"Query {i}: {'What' if i % 3 == 0 else 'Design' if i % 3 == 1 else 'Write'} something"
@@ -390,7 +405,9 @@ class TestCostAwareRouterChaosTest:
             # All routed models should be allowed
             invalid_count = sum(1 for m in models if m not in allowed)
             if invalid_count > 0:
-                assert False, f"Query '{query}' routed to unexpected models: {set(m for m in models if m not in allowed)}"
+                assert False, (
+                    f"Query '{query}' routed to unexpected models: {set(m for m in models if m not in allowed)}"
+                )
 
             # At least 70% of routes should be to the same model (consistency check)
             model_counts = {}

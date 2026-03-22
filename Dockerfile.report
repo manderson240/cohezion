@@ -1,0 +1,16 @@
+FROM python:3.11-slim
+
+WORKDIR /app
+
+# Install marimo and dependencies
+RUN pip install --no-cache-dir marimo numpy matplotlib plotly aiohttp
+
+# Copy server code
+COPY src/cohezion/mcp/servers/report /app/mcp/report
+
+# Create reports directory
+RUN mkdir -p /app/reports
+
+EXPOSE 8381 8765
+
+CMD ["python3", "-m", "mcp.report.server"]

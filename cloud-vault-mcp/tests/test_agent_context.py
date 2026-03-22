@@ -1,7 +1,6 @@
 """Unit tests for agent context operations (Phase 1)."""
 
-import json
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
 import pytest
 

@@ -6,6 +6,7 @@ import threading
 from datetime import UTC, datetime, timedelta
 from typing import Any
 
+
 logger = logging.getLogger(__name__)
 
 
@@ -125,9 +126,7 @@ class SearchCache:
             # Count expired entries
             now = datetime.now(UTC)
             expired_count = sum(
-                1
-                for ts in self._timestamps.values()
-                if (now - ts) > self._ttl
+                1 for ts in self._timestamps.values() if (now - ts) > self._ttl
             )
 
             return {

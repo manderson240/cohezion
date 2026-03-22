@@ -1,19 +1,21 @@
 import asyncio
 import logging
 import sys
-import os
 from pathlib import Path
+
 
 # Add src to path
 sys.path.append(str(Path.cwd() / "src"))
 
 from cohezion.mcp.email_notifier import EmailNotifier
 
+
 async def main():
     logging.basicConfig(level=logging.INFO)
 
     # Load env
     from dotenv import load_dotenv
+
     load_dotenv()
 
     notifier = EmailNotifier()
@@ -44,6 +46,7 @@ async def main():
             print("Failed to send milestone email.")
     else:
         print("Email notifier not configured.")
+
 
 if __name__ == "__main__":
     asyncio.run(main())

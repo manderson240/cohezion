@@ -67,9 +67,7 @@ class FlumeTokenizer(PreTrainedTokenizer):
     ) -> tuple[str]:
         import os
 
-        vocab_file = os.path.join(
-            save_directory, (filename_prefix or "") + "vocab.json"
-        )
+        vocab_file = os.path.join(save_directory, (filename_prefix or "") + "vocab.json")
         with open(vocab_file, "w", encoding="utf-8") as f:
             json.dump(self._char_to_idx, f, ensure_ascii=False)
         return (vocab_file,)
