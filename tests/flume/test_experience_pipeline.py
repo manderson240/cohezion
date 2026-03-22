@@ -24,7 +24,9 @@ if TYPE_CHECKING:
 def _make_experience(**overrides: object) -> dict:
     """Create a minimal valid experience dict."""
     base: dict = {
-        "trajectory": np.random.default_rng(42).normal(0.5, 0.15, 12).astype(np.float32),
+        "trajectory": np.random.default_rng(42)
+        .normal(0.5, 0.15, 12)
+        .astype(np.float32),
         "mission_id": "test-mission-1",
         "agent_id": "test-agent",
         "skill_name": "research",
@@ -98,8 +100,7 @@ class TestExperienceCollector:
             parquet_dir=tmp_path / "nonexistent_parquet",
             vault_dir=tmp_path / "nonexistent_vault",
         )
-        # Mock the SurrealDB tier to isolate from live data — this test only
-        # validates filesystem tier behavior when directories don't exist.
+        # SurrealDB may be live; isolate this test to missing-dir behavior only
         with patch.object(collector, "_collect_surreal", return_value=[]):
             results = collector.collect_all()
         assert isinstance(results, list)

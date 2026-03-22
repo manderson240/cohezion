@@ -89,10 +89,7 @@ class ThoughtEncoder(nn.Module):
         positions = torch.arange(seq_len, device=tokens.device).unsqueeze(0)
         x = self.embedding(tokens) + self.pos_embedding(positions)
 
-        if attention_mask is not None:
-            src_key_padding_mask = ~attention_mask.bool()
-        else:
-            src_key_padding_mask = None
+        src_key_padding_mask = ~attention_mask.bool() if attention_mask is not None else None
 
         x = self.transformer(x, src_key_padding_mask=src_key_padding_mask)
 
@@ -342,10 +339,7 @@ class FlumeEncoder(PreTrainedModel):
         to_concept: str | torch.Tensor,
     ) -> torch.Tensor:
         """Compute the semantic direction from one concept to another."""
-        if isinstance(from_concept, str):
-            z_from = self.encode(from_concept)
-        else:
-            z_from = from_concept
+        z_from = self.encode(from_concept) if isinstance(from_concept, str) else from_concept
 
         z_to = self.encode(to_concept) if isinstance(to_concept, str) else to_concept
 

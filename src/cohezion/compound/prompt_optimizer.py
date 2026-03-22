@@ -69,7 +69,9 @@ class PromptOptimizer:
         (r"\s+", " "),  # Multiple spaces
     ]
 
-    def __init__(self, enable_filler_removal: bool = True, estimate_tokens: bool = True):
+    def __init__(
+        self, enable_filler_removal: bool = True, estimate_tokens: bool = True
+    ):
         """Initialize optimizer.
 
         Args:

@@ -73,7 +73,9 @@ class TestVaultSearchExecutor:
         """Test search returns SearchResult object."""
         vault_search_executor.logger = MagicMock()
         vault_search_executor.logger.get_experience_guidance = MagicMock(
-            return_value={"relevant_skills": ["vault-integration", "search-optimization"]}
+            return_value={
+                "relevant_skills": ["vault-integration", "search-optimization"]
+            }
         )
 
         result = vault_search_executor.search("test vault search")

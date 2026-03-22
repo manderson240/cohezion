@@ -540,12 +540,19 @@ class RequestAlignmentAnalyzer:
                 import numpy as np
 
                 encoder = self.text_encoder
-                intent_prototype = encoder.encode(f"This is a {request_intent.name.lower()} task")
-                output_embedding = encoder.encode(result.output[:500])  # First 500 chars
+                intent_prototype = encoder.encode(
+                    f"This is a {request_intent.value} task"
+                )
+                output_embedding = encoder.encode(
+                    result.output[:500]
+                )  # First 500 chars
 
                 similarity = float(
                     np.dot(intent_prototype, output_embedding)
-                    / (np.linalg.norm(intent_prototype) * np.linalg.norm(output_embedding))
+                    / (
+                        np.linalg.norm(intent_prototype)
+                        * np.linalg.norm(output_embedding)
+                    )
                 )
                 return max(0.0, min(1.0, similarity))
             except Exception as e:
@@ -606,7 +613,9 @@ class RequestAlignmentAnalyzer:
                 quality_metrics = ["coherence", "accuracy", "correctness"]
                 actual_quality = max((metrics.get(m, 0) for m in quality_metrics), default=0.0)
                 if actual_quality < constraint.value:
-                    severity = min(1.0, (constraint.value - actual_quality) / constraint.value)
+                    severity = min(
+                        1.0, (constraint.value - actual_quality) / constraint.value
+                    )
                     violations.append(
                         ConstraintViolation(
                             constraint=constraint,

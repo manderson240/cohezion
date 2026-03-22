@@ -563,7 +563,9 @@ class TestPerformanceAndEdgeCases:
 
         assert len(ranked) == 100
         # Should complete in < 100ms
-        assert elapsed < 0.1, f"Ranking 100 models took {elapsed * 1000:.1f}ms (target: <100ms)"
+        assert elapsed < 0.1, (
+            f"Ranking 100 models took {elapsed * 1000:.1f}ms (target: <100ms)"
+        )
 
     def test_duplicate_models_handled(self):
         """Test that duplicate models in list are ranked."""

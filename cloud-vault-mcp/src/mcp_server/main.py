@@ -1,31 +1,10 @@
 """Entry point for the Cloud Vault MCP Server."""
 
-import asyncio
 import logging
-from contextlib import asynccontextmanager
 
-import uvicorn
-from starlette.applications import Starlette
-from starlette.middleware.trustedhost import TrustedHostMiddleware
-from starlette.requests import Request
-from starlette.responses import JSONResponse
-from starlette.routing import Route
-
+from .auth import APIKeyAuth
 from .config import ServerConfig
-from .health import HealthChecker
 from .server import create_server
-from .sse_stream import VaultEventStream
-from .vault_watcher import VaultFileWatcher
-
-
-# Import security modules
-try:
-    from cohezion.security.https_middleware import create_https_app
-    from cohezion.security.tls_config import TLSConfig
-except ImportError:
-    TLSConfig = None
-    create_https_app = None
-
 
 logger = logging.getLogger("cloud-vault-mcp")
 

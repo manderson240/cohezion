@@ -179,7 +179,9 @@ class BatchableExecutor:
         cache_hits = sum(r.metrics.get("cache_hits", 0) for r in results)
         cache_misses = sum(r.metrics.get("cache_misses", 0) for r in results)
         total_requests = cache_hits + cache_misses
-        cache_hit_rate = (cache_hits / total_requests * 100) if total_requests > 0 else 0.0
+        cache_hit_rate = (
+            (cache_hits / total_requests * 100) if total_requests > 0 else 0.0
+        )
 
         # Phase 3 Sprint 1: Record metrics for batch sizing learning
         if self.batch_sizer and results:
@@ -197,7 +199,9 @@ class BatchableExecutor:
                     errors=tasks_failed,
                 )
                 self.batch_sizer.record_execution(metrics)
-                logger.debug(f"Recorded batch metrics: throughput={throughput:.1f} tok/sec")
+                logger.debug(
+                    f"Recorded batch metrics: throughput={throughput:.1f} tok/sec"
+                )
             except Exception as e:
                 logger.debug(f"Failed to record batch metrics: {e}")
 
@@ -540,7 +544,9 @@ class BatchableExecutor:
 
         try:
             # Format metrics for vault experiment
-            hypothesis = f"Batch execution with batch_size={batch_size}, task_count={task_count}"
+            hypothesis = (
+                f"Batch execution with batch_size={batch_size}, task_count={task_count}"
+            )
 
             method = (
                 f"Executed {task_count} tasks in batch with "

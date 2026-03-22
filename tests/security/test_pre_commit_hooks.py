@@ -137,7 +137,7 @@ class TestPreCommitConfiguration:
 
                 for hook in hooks:
                     assert hook.get("id") == "bandit"
-                    # Should be on push stage (accept both old and new naming)
+                    # Should be on push stage (pre-commit v3 uses "pre-push")
                     stages = hook.get("stages", [])
                     assert "push" in stages or "pre-push" in stages
 
@@ -323,7 +323,6 @@ class TestSecurityHooksPerformance:
         for repo in config.get("repos", []):
             for hook in repo.get("hooks", []):
                 stages = hook.get("stages", [])
-                # Accept both old (push) and new (pre-push) naming
                 if "push" in stages or "pre-push" in stages:
                     push_hooks.append(hook.get("id", ""))
 

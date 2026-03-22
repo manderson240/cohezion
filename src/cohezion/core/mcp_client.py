@@ -464,7 +464,10 @@ class MCPClient:
         """
         if operation_type and domain and category:
             # Most specific: search exact path
-            folder = f"patterns/operations/{operation_type}/domains/{domain}/skills/{category}"
+            folder = (
+                f"patterns/operations/{operation_type}"
+                f"/domains/{domain}/skills/{category}"
+            )
             results = self.vault_search(query="", scope="folder", folder=folder)
             return results[:limit] if results else []
 
@@ -496,7 +499,9 @@ class MCPClient:
 
         # Fall back to general patterns search if no specific match
         if not all_results:
-            results = self.vault_search(query="skill", scope="folder", folder="patterns")
+            results = self.vault_search(
+                query="skill", scope="folder", folder="patterns"
+            )
             all_results = {result.get("path", ""): result for result in results}
 
         # Return limited results

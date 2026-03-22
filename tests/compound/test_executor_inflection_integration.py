@@ -71,7 +71,9 @@ class TestExecutorInflectionIntegration:
                 "get_experience_guidance",
                 return_value={"context": "test"},
             ),
-            patch.object(executor.logger, "log_execution_start", return_value="exp_path"),
+            patch.object(
+                executor.logger, "log_execution_start", return_value="exp_path"
+            ),
             patch.object(executor.logger, "log_execution_result"),
             patch.object(
                 executor.logger,
@@ -104,7 +106,9 @@ class TestExecutorInflectionIntegration:
                 "get_experience_guidance",
                 return_value={"context": "test"},
             ),
-            patch.object(executor.logger, "log_execution_start", return_value="exp_path"),
+            patch.object(
+                executor.logger, "log_execution_start", return_value="exp_path"
+            ),
             patch.object(executor.logger, "log_execution_result"),
             patch.object(
                 executor.logger,
@@ -135,7 +139,9 @@ class TestExecutorInflectionIntegration:
                 "get_experience_guidance",
                 return_value={"context": "test"},
             ),
-            patch.object(executor.logger, "log_execution_start", return_value="exp_path"),
+            patch.object(
+                executor.logger, "log_execution_start", return_value="exp_path"
+            ),
             patch.object(executor.logger, "log_execution_result"),
         ):
 
@@ -162,7 +168,9 @@ class TestExecutorInflectionIntegration:
                 "get_experience_guidance",
                 return_value={"context": "test"},
             ),
-            patch.object(executor.logger, "log_execution_start", return_value="exp_path"),
+            patch.object(
+                executor.logger, "log_execution_start", return_value="exp_path"
+            ),
             patch.object(executor.logger, "log_execution_result"),
             patch.object(executor, "log_inflection_point", return_value="decision_path") as mock_log_inflection,
         ):
@@ -200,7 +208,9 @@ class TestExecutorInflectionIntegration:
                 "get_experience_guidance",
                 return_value={"context": "test"},
             ),
-            patch.object(executor.logger, "log_execution_start", return_value="exp_path"),
+            patch.object(
+                executor.logger, "log_execution_start", return_value="exp_path"
+            ),
             patch.object(executor.logger, "log_execution_result"),
             patch.object(executor, "log_inflection_point", return_value="decision_path") as mock_log_inflection,
         ):
@@ -246,7 +256,9 @@ class TestExecutorInflectionIntegration:
                 "get_experience_guidance",
                 return_value={"context": "test"},
             ),
-            patch.object(executor.logger, "log_execution_start", return_value="exp_path"),
+            patch.object(
+                executor.logger, "log_execution_start", return_value="exp_path"
+            ),
             patch.object(executor.logger, "log_execution_result"),
         ):
 
@@ -271,7 +283,9 @@ class TestExecutorInflectionIntegration:
                 "get_experience_guidance",
                 return_value={"context": "test"},
             ),
-            patch.object(executor.logger, "log_execution_start", return_value="exp_path"),
+            patch.object(
+                executor.logger, "log_execution_start", return_value="exp_path"
+            ),
             patch.object(executor.logger, "log_execution_result"),
         ):
 
@@ -296,7 +310,9 @@ class TestExecutorInflectionIntegration:
                 "get_experience_guidance",
                 return_value={"context": "test"},
             ),
-            patch.object(executor.logger, "log_execution_start", return_value="exp_path"),
+            patch.object(
+                executor.logger, "log_execution_start", return_value="exp_path"
+            ),
             patch.object(executor.logger, "log_execution_result"),
         ):
 
@@ -327,7 +343,9 @@ class TestExecutorInflectionIntegration:
                 "get_experience_guidance",
                 return_value={"context": "test"},
             ),
-            patch.object(executor.logger, "log_execution_start", return_value="exp_path"),
+            patch.object(
+                executor.logger, "log_execution_start", return_value="exp_path"
+            ),
             patch.object(executor.logger, "log_execution_result"),
             patch.object(
                 executor.logger,
@@ -355,7 +373,9 @@ class TestExecutorInflectionIntegration:
                 "get_experience_guidance",
                 return_value={"context": "test"},
             ),
-            patch.object(executor.logger, "log_execution_start", return_value="exp_path"),
+            patch.object(
+                executor.logger, "log_execution_start", return_value="exp_path"
+            ),
             patch.object(executor.logger, "log_execution_result"),
             patch.object(
                 executor.logger,
@@ -385,7 +405,9 @@ class TestExecutorInflectionIntegration:
                 "get_experience_guidance",
                 return_value={"context": "test"},
             ),
-            patch.object(executor.logger, "log_execution_start", return_value="exp_path"),
+            patch.object(
+                executor.logger, "log_execution_start", return_value="exp_path"
+            ),
             patch.object(executor.logger, "log_execution_result"),
             patch.object(
                 executor.logger,
@@ -477,7 +499,9 @@ class TestExecutorIntegrationScenarios:
                     "get_experience_guidance",
                     return_value={"context": f"batch_{i}"},
                 ),
-                patch.object(executor.logger, "log_execution_start", return_value=f"exp_{i}"),
+                patch.object(
+                    executor.logger, "log_execution_start", return_value=f"exp_{i}"
+                ),
                 patch.object(executor.logger, "log_execution_result"),
                 patch.object(
                     executor.logger,
@@ -523,7 +547,9 @@ class TestExecutorIntegrationScenarios:
                     "get_experience_guidance",
                     return_value={"context": "test"},
                 ),
-                patch.object(executor.logger, "log_execution_start", return_value="exp"),
+                patch.object(
+                    executor.logger, "log_execution_start", return_value="exp"
+                ),
                 patch.object(executor.logger, "log_execution_result"),
             ):
 
@@ -544,9 +570,13 @@ class TestExecutorIntegrationScenarios:
                 "get_experience_guidance",
                 return_value={"context": "recovery"},
             ),
-            patch.object(executor.logger, "log_execution_start", return_value="exp_recovery"),
+            patch.object(
+                executor.logger, "log_execution_start", return_value="exp_recovery"
+            ),
             patch.object(executor.logger, "log_execution_result"),
-            patch.object(executor.logger, "extract_execution_pattern", return_value="pattern"),
+            patch.object(
+                executor.logger, "extract_execution_pattern", return_value="pattern"
+            ),
         ):
 
             def execute_fn_success(guidance):

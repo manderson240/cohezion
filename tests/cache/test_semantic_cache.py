@@ -469,8 +469,40 @@ class TestSemanticCacheIntegration:
 
         # Check stats
         stats = cache.get_stats()
-        assert stats["l1_hits"] + stats["l2_hits"] >= 1
-        assert stats["misses"] >= 1
+        assert stats["l1_hits"] == 1
+        assert stats["overall_hit_rate"] == 100.0
+
+    @pytest.mark.asyncio
+    async def test_cache_performance_metrics(self):
+        """Test cache performance with multiple operations."""
+        # High similarity threshold to test L1 behavior (no L2 semantic matches)
+        cache = SemanticCache(
+            max_l1_size=10, similarity_threshold=0.9999, mcp_client=None
+        )
+
+        # Put multiple entries
+        prompts = [
+            "explain quantum computing",
+            "how to cook pasta",
+            "machine learning basics",
+            "climate change impacts",
+            "ancient roman history",
+        ]
+        for i, prompt in enumerate(prompts):
+            await cache.put(prompt, f"response_{i}")
+
+        # Get some hits (exact matches)
+        for i in range(3):
+            await cache.get(prompts[i])
+
+        # Get some misses (prompts not in cache)
+        misses = [
+            "tell me a joke",
+            "what is 2+2",
+            "describe the moon",
+        ]
+        for miss_prompt in misses:
+            await cache.get(miss_prompt)
 
         # Clear
         cache.clear()

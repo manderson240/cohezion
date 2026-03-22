@@ -166,7 +166,9 @@ class NgrokAIGateway:
         combined = f"{prompt}|{system}|{model}"
         return hashlib.sha256(combined.encode()).hexdigest()
 
-    def _calculate_cost(self, model: str, input_tokens: int, output_tokens: int) -> float:
+    def _calculate_cost(
+        self, model: str, input_tokens: int, output_tokens: int
+    ) -> float:
         """Calculate request cost in USD."""
         costs = self.MODEL_COSTS.get(model)
         if not costs:
@@ -223,14 +225,18 @@ class NgrokAIGateway:
                 self.metrics.failed_requests += 1
 
                 if not self.enable_failover:
-                    raise RuntimeError(f"ngrok request failed and failover disabled: {e}") from e
+                    raise RuntimeError(
+                        f"ngrok request failed and failover disabled: {e}"
+                    ) from e
 
                 logger.info("Falling back to Ollama")
                 self.metrics.fallback_requests += 1
 
         # Fallback to Ollama
         try:
-            response, tokens = await self._call_ollama(prompt, model, system, num_predict)
+            response, tokens = await self._call_ollama(
+                prompt, model, system, num_predict
+            )
             self.metrics.successful_requests += 1
             self.metrics.ollama_requests += 1
             self._response_cache[cache_key] = (response, tokens)
@@ -263,7 +269,9 @@ class NgrokAIGateway:
             raise ValueError("ngrok endpoint not configured")
 
         headers = {
-            "Authorization": f"Bearer {self.ngrok_api_key}" if self.ngrok_api_key else "",
+            "Authorization": f"Bearer {self.ngrok_api_key}"
+            if self.ngrok_api_key
+            else "",
             "Content-Type": "application/json",
         }
 
@@ -300,7 +308,9 @@ class NgrokAIGateway:
                 self.metrics.total_cost += cost
                 self.metrics.total_tokens += tokens
 
-                logger.debug(f"ngrok response: {len(text)} chars, {tokens} tokens, ${cost:.6f}")
+                logger.debug(
+                    f"ngrok response: {len(text)} chars, {tokens} tokens, ${cost:.6f}"
+                )
                 return text, tokens
 
             except Exception as e:

@@ -160,7 +160,9 @@ Respond in JSON format:
         }
         return model_map.get(stream, "phi3:mini")
 
-    def _stabilize_consensus(self, recommendations: list[StreamRecommendation]) -> EDLConsensus:
+    def _stabilize_consensus(
+        self, recommendations: list[StreamRecommendation]
+    ) -> EDLConsensus:
         """
         Stabilize consensus using 0.5 coherence rule.
 
@@ -204,7 +206,9 @@ Respond in JSON format:
             reasoning=reasoning,
         )
 
-    def _merge_recommendations(self, recommendations: list[StreamRecommendation]) -> str:
+    def _merge_recommendations(
+        self, recommendations: list[StreamRecommendation]
+    ) -> str:
         """Merge recommendations from multiple streams."""
         # Weighted by confidence
         weighted_recs = []

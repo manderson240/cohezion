@@ -6,7 +6,7 @@ from pathlib import Path
 from datetime import datetime
 
 # Add src to path for SurrealClient
-PROJECT_ROOT = Path("/home/mike-anderson/dev/cohezion")
+PROJECT_ROOT = Path(os.environ.get("PROJECT_ROOT", Path(__file__).parent.parent))
 sys.path.insert(0, str(PROJECT_ROOT / "src"))
 
 from cohezion.core.persistence.surreal_client import SurrealClient
@@ -17,23 +17,23 @@ AUDIT_DIR = PROJECT_ROOT / "reports/audits"
 MEMORY_FILE = PROJECT_ROOT / "memory/session_snapshot.md"
 RESEARCH_FILE = PROJECT_ROOT / "src/cohezion/knowledge_graph/RESEARCH_FEED.md"
 
-# SurrealDB Client for Logs
+# SurrealDB Client for Logs (kept for backward-compat imports; connect is per-call)
 log_client = SurrealClient(url="ws://localhost:8000/rpc", namespace="cohezion", database="logs")
 
 async def get_surreal_logs():
     try:
-        await log_client.connect()
-        # Query latest 50 logs
-        res = await log_client.query("SELECT * FROM log_entries ORDER BY timestamp DESC LIMIT 50")
-        if not res or not res[0].get("result"):
-            return "No logs found in SurrealDB 3.0."
-        
-        logs = res[0]["result"]
-        formatted = "| Timestamp | Source | Level | Message |\n| :--- | :--- | :--- | :--- |\n"
-        for log in logs:
-            ts = log.get("timestamp", "").split("T")[-1][:8]
-            formatted += f"| {ts} | {log.get('source')} | {log.get('level')} | {log.get('message')} |\n"
-        return formatted
+        async with SurrealClient(url="ws://localhost:8000/rpc", namespace="cohezion", database="logs") as client:
+            # Query latest 50 logs
+            res = await client.query("SELECT * FROM log_entries ORDER BY timestamp DESC LIMIT 50")
+            if not res or not res[0].get("result"):
+                return "No logs found in SurrealDB 3.0."
+
+            logs = res[0]["result"]
+            formatted = "| Timestamp | Source | Level | Message |\n| :--- | :--- | :--- | :--- |\n"
+            for log in logs:
+                ts = log.get("timestamp", "").split("T")[-1][:8]
+                formatted += f"| {ts} | {log.get('source')} | {log.get('level')} | {log.get('message')} |\n"
+            return formatted
     except Exception as e:
         return f"Error querying SurrealDB: {e}"
 
@@ -64,7 +64,7 @@ def get_latest_research():
 def get_system_status():
     pulses = sorted(DATA_DIR.glob("pulse_*.json"))
     audits = sorted(AUDIT_DIR.glob("meta_audit_*.md"))
-    
+
     status = "🟢 SYSTEM NOMINAL"
     if audits:
         latest = audits[-1].read_text()
@@ -72,7 +72,7 @@ def get_system_status():
             status = "🔴 CRITICAL DRIFT DETECTED"
         elif "Semantic Drift" in latest:
             status = "🟡 SEMANTIC DRIFT WARNING"
-            
+
     return f"""
     # Cohezion Command Center
     **Status**: {status}
@@ -96,11 +96,11 @@ def get_physics_telemetry():
     if not pulses: return "No physics data."
     with open(pulses[-1], "r") as f:
         data = json.load(f)
-    
+
     # Extract research-linked fields
     alfven = data.get("alfven_velocity", "N/A")
     thrust = data.get("brane_thrust_mN", "N/A")
-    
+
     return f"""
     ### Vacuum Engineering (L133, L146)
     - **Alfven Velocity**: {alfven} c
@@ -110,7 +110,7 @@ def get_physics_telemetry():
 
 with gr.Blocks(title="Cohezion Command Center") as demo:
     gr.Markdown(get_system_status())
-    
+
     with gr.Tabs():
         with gr.TabItem("📊 Journey Pulse"):
             with gr.Row():
@@ -120,12 +120,12 @@ with gr.Blocks(title="Cohezion Command Center") as demo:
             pulse_btn = gr.Button("Refresh Pulse")
             pulse_btn.click(get_latest_pulse, outputs=pulse_output)
             pulse_btn.click(get_physics_telemetry, outputs=physics_output)
-            
+
         with gr.TabItem("🛡️ Meta-Audit"):
             audit_output = gr.Markdown(label="Latest Audit Report")
             audit_btn = gr.Button("Refresh Audit")
             audit_btn.click(get_latest_audit, outputs=audit_output)
-            
+
         with gr.TabItem("🧠 Memory & Cache"):
             with gr.Row():
                 memory_output = gr.Markdown(label="Session Snapshot")
@@ -133,7 +133,7 @@ with gr.Blocks(title="Cohezion Command Center") as demo:
             memory_btn = gr.Button("Refresh View")
             memory_btn.click(get_memory_snapshot, outputs=memory_output)
             memory_btn.click(get_cache_stats, outputs=cache_output)
-            
+
         with gr.TabItem("🛰️ Research Scout"):
             research_output = gr.Markdown(label="Latest Findings (HF/arXiv)")
             research_btn = gr.Button("Refresh Feed")

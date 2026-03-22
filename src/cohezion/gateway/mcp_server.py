@@ -339,7 +339,11 @@ async def call_tool(name: str, arguments: dict[str, Any]) -> list[TextContent]:
             ]
 
         else:
-            return [TextContent(type="text", text=json.dumps({"error": f"Unknown tool: {name}"}))]
+            return [
+                TextContent(
+                    type="text", text=json.dumps({"error": f"Unknown tool: {name}"})
+                )
+            ]
 
     except Exception as e:
         logger.error(f"Tool error: {e}")

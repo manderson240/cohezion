@@ -194,7 +194,7 @@ class TestConfigSyncEngineIntegration:
             check=True,
         )
         subprocess.run(
-            ["git", "config", "commit.gpgsign", "false"],
+            ["git", "config", "commit.gpgSign", "false"],
             cwd=tmp_path,
             capture_output=True,
             check=True,
@@ -237,7 +237,7 @@ class TestConfigSyncEngineIntegration:
             check=True,
         )
         subprocess.run(
-            ["git", "config", "commit.gpgsign", "false"],
+            ["git", "config", "commit.gpgSign", "false"],
             cwd=tmp_path,
             capture_output=True,
             check=True,
@@ -292,7 +292,7 @@ class TestOrchestrationWithSync:
             check=True,
         )
         subprocess.run(
-            ["git", "config", "commit.gpgsign", "false"],
+            ["git", "config", "commit.gpgSign", "false"],
             cwd=tmp_path,
             capture_output=True,
             check=True,
@@ -373,7 +373,7 @@ class TestConflictDetection:
             check=True,
         )
         subprocess.run(
-            ["git", "config", "commit.gpgsign", "false"],
+            ["git", "config", "commit.gpgSign", "false"],
             cwd=tmp_path,
             capture_output=True,
             check=True,

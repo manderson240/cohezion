@@ -98,7 +98,9 @@ class TestQualityPredictor:
             coherence = 0.9 - (i * 0.05)  # 0.9, 0.85, 0.8, ...
             predictor.add_execution(coherence, True, 150, 1.5)
 
-        predicted, confidence, steps_to_crit = predictor.forecast_coherence(steps_ahead=3)
+        predicted, confidence, steps_to_crit = predictor.forecast_coherence(
+            steps_ahead=3
+        )
 
         assert isinstance(predicted, float)
         assert 0.0 <= predicted <= 1.0
@@ -404,7 +406,9 @@ class TestForecastAccuracy:
 
         # Consistent should have higher confidence
         if forecast1.coherence_confidence > 0 and forecast2.coherence_confidence > 0:
-            assert forecast1.coherence_confidence >= forecast2.coherence_confidence * 0.8
+            assert (
+                forecast1.coherence_confidence >= forecast2.coherence_confidence * 0.8
+            )
 
     def test_steps_to_critical_calculation(self, classifier):
         """Test calculation of steps until critical threshold."""

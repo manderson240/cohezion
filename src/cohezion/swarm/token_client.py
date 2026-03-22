@@ -122,10 +122,10 @@ class ResilientOllamaClient:
 
                 wait_time = 0.5 * (2**attempt)
                 logger.warning(
-                    "Ollama request failed (attempt %d/%d), retrying in %.1f seconds: %s",
+                    "Ollama request failed (attempt %s/%s), retrying in %s seconds: %s",
                     attempt + 1,
                     self.max_retries,
-                    wait_time,
+                    f"{wait_time:.1f}",
                     e,
                 )
                 await asyncio.sleep(wait_time)
@@ -222,7 +222,9 @@ class TokenEfficientClient:
                 )
                 logger.debug("SemanticCache initialized for L2 fuzzy matching")
             except Exception as e:
-                logger.warning(f"Failed to initialize semantic cache, disabling L2: {e}")
+                logger.warning(
+                    f"Failed to initialize semantic cache, disabling L2: {e}"
+                )
                 self.semantic_cache = None
 
         # Metrics

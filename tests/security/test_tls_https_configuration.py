@@ -70,6 +70,10 @@ class TestTLSConfig:
 
             assert config.validate_certificate() is True
 
+    @pytest.mark.skipif(
+        os.getuid() == 0,
+        reason="Root can read files regardless of permissions",
+    )
     def test_validate_certificate_unreadable_files(self):
         """Test certificate validation with unreadable files."""
         with tempfile.TemporaryDirectory() as tmpdir:

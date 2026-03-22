@@ -69,6 +69,12 @@ dev = [
     "mypy>=1.5.0",
     "black>=23.0",
     "flake8>=6.0",
+    "pandas>=2.0.0",
+    "docker>=7.0.0",
+    "python-jose>=3.3.0",
+    "gymnasium>=0.29.0",
+    "datasets>=2.14.0",
+    "passlib>=1.7.4",
 ]
 ml = [
     "torch>=2.0.0",
@@ -196,9 +202,13 @@ ignore = [
     "E501",   # Allow long lines in infrastructure scripts
     "F821",   # Allow forward references in infrastructure scripts
 ]
+"bmad/scripts/**/*.py" = [
+    "S101",  # Allow assert in scripts
+]
+
 # Import sorting configuration
 [tool.ruff.lint.isort]
-known-first-party = ["cohezion"]
+known-first-party = ["bmad"]
 force-single-line = false
 lines-after-imports = 2
 
@@ -226,15 +236,3 @@ strict_equality = true
 [[tool.mypy.overrides]]
 module = "tests.*"
 disallow_untyped_defs = false
-
-# Pytest configuration
-[tool.pytest.ini_options]
-testpaths = ["tests"]
-python_files = ["test_*.py"]
-python_classes = ["Test*"]
-python_functions = ["test_*"]
-markers = [
-    "fast: Fast unit tests (<1s each, no live services)",
-    "integration: Integration tests (require live services like Ollama/SurrealDB)",
-    "mcp: MCP server tests (require vault access)",
-]
