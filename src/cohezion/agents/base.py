@@ -8,6 +8,7 @@ import json
 import logging
 import re
 import time
+import uuid
 from abc import ABC, abstractmethod
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
@@ -34,6 +35,7 @@ from cohezion.reliability.semantic_cache import SemanticCache
 from cohezion.rewards.system import RewardSystem
 from cohezion.security.output_filter import OutputFilter
 from cohezion.security.prompt_guard import PromptGuard, ThreatLevel
+from cohezion.swarm.swarm_types import SwarmConfig
 from cohezion.universe.engine import UniverseSimulationEngine
 
 
@@ -127,8 +129,11 @@ class BaseAgent(ABC):
 
         # Gateway 12: Memory Recovery Protocol (MRP)
         self._compound_engine = CompoundLogicEngine(registry=self.registry)
+        self._background_tasks: set[asyncio.Task] = set()
         if self.config.mrp_sync:
-            asyncio.create_task(self._synchronize_mrp())
+            _task = asyncio.create_task(self._synchronize_mrp())
+            self._background_tasks.add(_task)
+            _task.add_done_callback(self._background_tasks.discard)
 
     @property
     def client(self) -> Any:
@@ -232,7 +237,9 @@ class BaseAgent(ABC):
 
     async def enqueue_batch_task(self, query: str, context: str | None = None) -> str:
         """Enqueue a task for later batch processing."""
-        task_id = hashlib.md5(query.encode()).hexdigest()[:8]
+        # Security: Use UUID instead of MD5 for task identifiers
+        # MD5 is cryptographically weak and should not be used even for non-security identifiers
+        task_id = uuid.uuid4().hex[:8]
         self._batch_mgr.enqueue(task_id, query, context)
         logger.info(f"📥 Task {task_id} enqueued for batch processing.")
         return task_id
@@ -546,7 +553,9 @@ class BaseAgent(ABC):
                 "novelty": novelty,
                 "decisions": [],
             }
-            asyncio.create_task(accumulator.add_experience(experience_data))
+            _task = asyncio.create_task(accumulator.add_experience(experience_data))
+            self._background_tasks.add(_task)
+            _task.add_done_callback(self._background_tasks.discard)
         except Exception as e:
             logger.warning(f"Persistence hook failed: {e}")
 
@@ -651,14 +660,12 @@ class BaseAgent(ABC):
         payload = harness.harness_prompt(query, system_prompt)
 
         # Execute with Ollama directly
-        result = await self._call_ollama(
+        return await self._call_ollama(
             prompt=payload["prompt"],
             system_prompt=payload["system"],
             model=target_model,
             ignore_cache=True,  # Usually offloads are unique/maintenance
         )
-
-        return result
 
     async def self_evaluate(
         self, response_text: str, query: str = "", metadata: dict | None = None
@@ -723,7 +730,6 @@ Provide output in JSON format: {{"phi_score": 0.85, "confidence": 0.90}}
     @abstractmethod
     async def process(self, *args: Any, **kwargs: Any) -> Any:
         """Process input and return output. Implemented by subclasses."""
-        pass
 
     def get_metrics(self) -> dict[str, Any]:
         """Return current metrics."""
@@ -795,7 +801,9 @@ Provide output in JSON format: {{"phi_score": 0.85, "confidence": 0.90}}
                 self._mrp_experience = experience
 
             # Start the background pulse task
-            asyncio.create_task(self._mrp_pulse_loop())
+            _task = asyncio.create_task(self._mrp_pulse_loop())
+            self._background_tasks.add(_task)
+            _task.add_done_callback(self._background_tasks.discard)
 
         except Exception as e:
             logger.error(f"MRP Synchronization failed: {e}")

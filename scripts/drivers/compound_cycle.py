@@ -66,8 +66,7 @@ def create_mock_inflection_detector():
 
 def create_mock_universe_engine():
     """Create a mock universe simulation engine."""
-    engine = MagicMock()
-    return engine
+    return MagicMock()
 
 
 def run_compound_cycle(dry_run: bool = True):

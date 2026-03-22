@@ -475,7 +475,8 @@ class KnowledgeService:
         """Convert concept string to a simple vector."""
         import hashlib
 
-        hash_obj = hashlib.md5(concept.encode())
+        # Security: SHA-256 used for deterministic vector generation (non-security purpose)
+        hash_obj = hashlib.sha256(concept.encode())
         hash_bytes = hash_obj.digest()
 
         vector = [float(b) / 255.0 for b in hash_bytes[:32]]
