@@ -10,7 +10,7 @@ Register as: cohezion/FlumeNav-v0
 from __future__ import annotations
 
 import logging
-from typing import Any
+from typing import ClassVar, Any
 
 import gymnasium as gym
 import numpy as np
@@ -43,7 +43,7 @@ class FlumeNavEnv(gym.Env):
         Scale factor for actions (default 0.01).
     """
 
-    metadata = {"render_modes": ["human", "ansi"], "render_fps": 10}
+    metadata: ClassVar[dict] = {"render_modes": ["human", "ansi"], "render_fps": 10}
 
     def __init__(
         self,

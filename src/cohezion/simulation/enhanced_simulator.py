@@ -12,6 +12,7 @@ Key Features:
 5. Semantic Clustering: Group similar trajectories for analysis
 """
 
+from typing import ClassVar
 import asyncio
 import json
 import logging
@@ -190,7 +191,7 @@ class RZeroEnhancedTriad:
     """
 
     # 2026-edge Physics-Informed Neural Operator (PINO) Constraints
-    PINO_LAWS = {
+    PINO_LAWS: ClassVar[dict] = {
         "newtonian": ["f = ma", "energy_conservation", "action_reaction"],
         "quantum": ["uncertainty_principle", "superposition", "entanglement_entropy"],
         "relativistic": [
@@ -202,7 +203,7 @@ class RZeroEnhancedTriad:
         "liquid_phase": ["migdal_effect_probability", "neutron_recoil_signature"],
     }
 
-    CHALLENGE_CONSTRAINTS = [
+    CHALLENGE_CONSTRAINTS: ClassVar[list] = [
         "Minimize entropy while maximizing expressiveness",
         "Reconcile quantum uncertainty with deterministic outcomes",
         "Balance energy conservation with warp capability",
@@ -210,7 +211,7 @@ class RZeroEnhancedTriad:
         "Navigate manifold curvature without losing coherence",
     ]
 
-    EDGE_CASES = [
+    EDGE_CASES: ClassVar[list] = [
         {"name": "Zero Energy Paradox", "energy_limit": 0.0, "output_required": True},
         {"name": "Infinite Recursion", "depth_limit": 1000, "halt_required": True},
         {
@@ -226,7 +227,7 @@ class RZeroEnhancedTriad:
         {"name": "Standard Operation", "energy_limit": 100.0, "output_required": True},
     ]
 
-    BUZZWORDS = [
+    BUZZWORDS: ClassVar[list] = [
         "quantum miracle",
         "infinite power",
         "unlimited",

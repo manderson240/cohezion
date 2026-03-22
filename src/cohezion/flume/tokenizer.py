@@ -1,3 +1,4 @@
+from typing import ClassVar
 import json
 
 from transformers import PreTrainedTokenizer
@@ -8,7 +9,7 @@ class FlumeTokenizer(PreTrainedTokenizer):
     Simple character-level tokenizer for Flume.
     """
 
-    model_input_names = ["input_ids", "attention_mask"]
+    model_input_names: ClassVar[list] = ["input_ids", "attention_mask"]
 
     def __init__(
         self,

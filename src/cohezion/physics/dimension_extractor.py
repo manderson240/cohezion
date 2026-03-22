@@ -17,7 +17,7 @@ Maps semantic content to physical coordinates for visualization:
 import logging
 import re
 from datetime import datetime
-from typing import Any
+from typing import ClassVar, Any
 
 try:
     import numpy as np
@@ -40,10 +40,10 @@ class DimensionExtractor:
     """
 
     # Common question words for factuality detection
-    QUESTION_WORDS = {"who", "what", "when", "where", "why", "how"}
+    QUESTION_WORDS: ClassVar[dict] = {"who", "what", "when", "where", "why", "how"}
 
     # Words indicating uncertainty
-    UNCERTAINTY_WORDS = {
+    UNCERTAINTY_WORDS: ClassVar[dict] = {
         "maybe",
         "perhaps",
         "possibly",
@@ -56,7 +56,7 @@ class DimensionExtractor:
     }
 
     # Words indicating confidence
-    CONFIDENCE_WORDS = {
+    CONFIDENCE_WORDS: ClassVar[dict] = {
         "definitely",
         "certainly",
         "clearly",

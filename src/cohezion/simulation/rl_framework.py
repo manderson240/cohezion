@@ -31,7 +31,7 @@ import logging
 import math
 from collections import deque
 from dataclasses import dataclass, field
-from typing import Any
+from typing import ClassVar, Any
 
 import numpy as np
 
@@ -105,7 +105,7 @@ class HihoEnvironment:
     """
 
     # Action encoding: (dx, dy) offsets for 8 directions + stay
-    ACTION_MAP = {
+    ACTION_MAP: ClassVar[dict] = {
         0: (-1, -1), 1: (0, -1), 2: (1, -1),
         3: (-1, 0),  4: (0, 0),  5: (1, 0),
         6: (-1, 1),  7: (0, 1),  8: (1, 1),

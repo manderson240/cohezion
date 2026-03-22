@@ -13,7 +13,7 @@ Security:
 
 import logging
 import re
-from typing import Dict, Pattern, List
+from typing import ClassVar, Dict, Pattern, List
 
 
 class RedactionFilter(logging.Filter):
@@ -31,7 +31,7 @@ class RedactionFilter(logging.Filter):
     """
 
     # Patterns to match and redact
-    PATTERNS: Dict[str, Pattern[str]] = {
+    PATTERNS: ClassVar[dict] = {
         "api_key": re.compile(
             r"(api[_-]?key|apikey)\s*[:=]\s*['\"]?[a-zA-Z0-9_\-\.]+['\"]?",
             re.IGNORECASE,

@@ -32,7 +32,7 @@ import re
 import time
 from dataclasses import dataclass
 from enum import Enum
-from typing import Optional, Tuple
+from typing import ClassVar, Optional, Tuple
 
 from cohezion.cost_optimization.cost_tracker import SessionCostTracker
 from cohezion.cost_optimization.budget_enforcer import BudgetEnforcer
@@ -83,7 +83,7 @@ class QueryComplexityAnalyzer:
     """Analyze query complexity for routing decisions."""
 
     # Keywords indicating simple queries
-    SIMPLE_KEYWORDS = {
+    SIMPLE_KEYWORDS: ClassVar[dict] = {
         "what",
         "when",
         "where",
@@ -97,7 +97,7 @@ class QueryComplexityAnalyzer:
     }
 
     # Keywords indicating complex queries (must be >= 2 for complex)
-    COMPLEX_KEYWORDS = {
+    COMPLEX_KEYWORDS: ClassVar[dict] = {
         "design",
         "implement",
         "build",
@@ -230,35 +230,35 @@ class CostAwareRouter:
     """
 
     # Model costs per 1K tokens (local models = $0.00)
-    MODEL_COSTS = {
+    MODEL_COSTS: ClassVar[dict] = {
         "phi3:mini": 0.0,  # Local, 100x cheaper than deepseek
         "qwen3-coder:32b": 0.0,  # Local
         "deepseek-r1:8b": 0.0,  # Local
     }
 
     # Expected token counts by complexity (refined estimates)
-    EXPECTED_TOKENS = {
+    EXPECTED_TOKENS: ClassVar[dict] = {
         QueryComplexity.SIMPLE: 80,  # Simple queries: ~80 tokens
         QueryComplexity.MEDIUM: 200,  # Medium: ~200 tokens (reduced for better cost ratio)
         QueryComplexity.COMPLEX: 400,  # Complex: ~400 tokens (reduced from 500)
     }
 
     # Quality scores per model (0.0 - 1.0)
-    MODEL_QUALITY = {
+    MODEL_QUALITY: ClassVar[dict] = {
         "phi3:mini": 0.6,  # Fast, basic tasks
         "qwen3-coder:32b": 0.85,  # Good balance
         "deepseek-r1:8b": 0.95,  # Best quality
     }
 
     # TPS (tokens per second) for cost-time tradeoff
-    MODEL_TPS = {
+    MODEL_TPS: ClassVar[dict] = {
         "phi3:mini": 15.0,  # Fastest
         "qwen3-coder:32b": 8.0,  # Moderate
         "deepseek-r1:8b": 2.0,  # Slowest but best
     }
 
     # Expected latency (ms) by model
-    MODEL_LATENCY = {
+    MODEL_LATENCY: ClassVar[dict] = {
         "phi3:mini": 50.0,  # Fastest: ~50ms
         "qwen3-coder:32b": 100.0,  # Moderate: ~100ms
         "deepseek-r1:8b": 300.0,  # Slower: ~300ms

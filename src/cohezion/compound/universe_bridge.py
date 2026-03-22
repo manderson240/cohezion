@@ -14,7 +14,7 @@ from __future__ import annotations
 
 import logging
 import time
-from typing import Any
+from typing import ClassVar, Any
 from uuid import uuid4
 
 logger = logging.getLogger(__name__)
@@ -39,7 +39,7 @@ class UniverseBridge:
     # Field fabric: indices 3-5
     # Control fabric: indices 6-8
     # Precipitation fabric: indices 9-11
-    _DIM_NAMES = [
+    _DIM_NAMES: ClassVar[list] = [
         "spatial_x", "spatial_y", "spatial_z",  # Space
         "physics", "biology", "field",           # Field
         "logic", "quantum", "control",           # Control

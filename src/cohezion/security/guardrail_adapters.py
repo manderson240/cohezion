@@ -5,7 +5,7 @@ safety/validation components in the codebase.
 """
 
 import logging
-from typing import Any
+from typing import ClassVar, Any
 
 from cohezion.security.guardrail_pipeline import GuardrailAction, GuardrailResult
 
@@ -60,7 +60,7 @@ class PromptInjectionGuard:
     """
 
     # Common injection patterns
-    INJECTION_PATTERNS = [
+    INJECTION_PATTERNS: ClassVar[list] = [
         "ignore previous",
         "disregard",
         "system prompt",
@@ -156,7 +156,7 @@ class OutputFilterGuard:
     """
 
     # Common harmful patterns in output
-    HARMFUL_PATTERNS = [
+    HARMFUL_PATTERNS: ClassVar[list] = [
         "execute malicious",
         "delete all",
         "drop database",

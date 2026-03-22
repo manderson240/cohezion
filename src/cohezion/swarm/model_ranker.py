@@ -19,7 +19,7 @@ Usage:
 import logging
 import time
 from dataclasses import dataclass
-from typing import Optional, List, Tuple, Dict
+from typing import ClassVar, Optional, List, Tuple, Dict
 from enum import Enum
 
 logger = logging.getLogger(__name__)
@@ -78,7 +78,7 @@ class ModelRanker:
     """
 
     # Default coherence scores (fallback if vault unavailable)
-    DEFAULT_COHERENCE = {
+    DEFAULT_COHERENCE: ClassVar[dict] = {
         "phi3:mini": 0.65,  # Fast, good for simple tasks
         "qwen3-coder:32b": 0.82,  # Good balance
         "deepseek-r1:8b": 0.95,  # Best quality
@@ -88,7 +88,7 @@ class ModelRanker:
     }
 
     # Default latency expectations (ms)
-    DEFAULT_LATENCY = {
+    DEFAULT_LATENCY: ClassVar[dict] = {
         "phi3:mini": 50.0,
         "qwen3-coder:32b": 100.0,
         "deepseek-r1:8b": 300.0,
