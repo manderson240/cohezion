@@ -1,0 +1,31 @@
+{
+  "name": "testing_benchmark",
+  "description": "Testing tasks for Cohezion testing skill benchmarking",
+  "tasks": [
+    {
+      "task": "Write pytest tests for a factorial function",
+      "skill": "testing_PRIME",
+      "difficulty": "easy"
+    },
+    {
+      "task": "Write pytest tests for a stack class with mocked time",
+      "skill": "testing_PRIME",
+      "difficulty": "medium"
+    },
+    {
+      "task": "Write pytest tests for an async HTTP client function",
+      "skill": "testing_PRIME",
+      "difficulty": "hard"
+    },
+    {
+      "task": "Write parametrized pytest tests for a calculator class",
+      "skill": "testing_PRIME",
+      "difficulty": "medium"
+    },
+    {
+      "task": "Write pytest tests with fixtures for a database helper class",
+      "skill": "testing_PRIME",
+      "difficulty": "hard"
+    }
+  ]
+}
