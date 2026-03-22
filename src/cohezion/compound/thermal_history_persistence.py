@@ -65,6 +65,7 @@ class ThermalTimeSeriesCollector:
 
         self._collection_task: Optional[asyncio.Task] = None
         self._samples_since_vault_log = 0
+        self._background_tasks: set[asyncio.Task] = set()
 
     def start_collection(self) -> None:
         """Start background thermal collection task."""
@@ -93,7 +94,9 @@ class ThermalTimeSeriesCollector:
                             self.enable_vault_logging
                             and self._samples_since_vault_log >= 12
                         ):
-                            asyncio.create_task(self._log_to_vault_async())
+                            _task = asyncio.create_task(self._log_to_vault_async())
+                            self._background_tasks.add(_task)
+                            _task.add_done_callback(self._background_tasks.discard)
                             self._samples_since_vault_log = 0
                 except Exception as e:
                     logger.debug(f"Error in collection loop: {e}")

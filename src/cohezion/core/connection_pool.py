@@ -95,14 +95,18 @@ class ConnectionPool:
         self._health_task: asyncio.Task | None = None
         self._scaling_task: asyncio.Task | None = None
         self._usage_history = deque(maxlen=100)  # (timestamp, usage)
+        self._background_tasks: set[asyncio.Task] = set()
+        self._initialized = False
 
-        # Initialize with min_size connections
-        self._initialize_pool()
-
-    def _initialize_pool(self) -> None:
-        """Initialize connection pool with minimum size."""
+    async def _ensure_initialized(self) -> None:
+        """Lazily initialize pool connections (called on first acquire)."""
+        if self._initialized:
+            return
+        self._initialized = True
         for _ in range(self.config.min_size):
-            asyncio.create_task(self._create_connection())
+            _task = asyncio.create_task(self._create_connection())
+            self._background_tasks.add(_task)
+            _task.add_done_callback(self._background_tasks.discard)
 
     async def _create_connection(self) -> PooledConnection:
         """Create a new connection with health checking."""
@@ -243,6 +247,7 @@ class ConnectionPool:
 
     async def acquire(self) -> PooledConnection:
         """Acquire a connection from the pool."""
+        await self._ensure_initialized()
         start_time = time.time()
 
         try:
@@ -275,7 +280,9 @@ class ConnectionPool:
 
             # Auto-scale if needed
             if self._metrics["acquired"] % 10 == 0:  # Scale every 10 acquisitions
-                asyncio.create_task(self._scale_pool())
+                _scale = asyncio.create_task(self._scale_pool())
+                self._background_tasks.add(_scale)
+                _scale.add_done_callback(self._background_tasks.discard)
 
             return connection
 

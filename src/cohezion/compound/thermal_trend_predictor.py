@@ -87,6 +87,7 @@ class ThermalTrendPredictor:
 
         # Prediction cache
         self._last_prediction: Optional[tuple[float, float]] = None  # (temp, confidence)
+        self._background_tasks: set[asyncio.Task] = set()
 
     def record_sample(self, sample: ThermalTimeSeries) -> None:
         """Record a thermal observation.
@@ -110,7 +111,9 @@ class ThermalTrendPredictor:
         # Trigger training after 50 new samples
         if len(self.history) % 50 == 0 and not self._model_training_in_progress:
             try:
-                asyncio.create_task(self.train_30min_model_async())
+                _task = asyncio.create_task(self.train_30min_model_async())
+                self._background_tasks.add(_task)
+                _task.add_done_callback(self._background_tasks.discard)
             except RuntimeError:
                 # No event loop running, skip async training
                 pass

@@ -122,6 +122,7 @@ class SessionCostTracker:
         # Flush state
         self._flush_task: Optional[asyncio.Task] = None
         self._pending_flush = False
+        self._background_tasks: set[asyncio.Task] = set()
 
     @classmethod
     def get_current(cls) -> Optional["SessionCostTracker"]:
@@ -179,13 +180,10 @@ class SessionCostTracker:
         """Schedule asynchronous flush (non-blocking, best-effort)."""
         self._pending_flush = True
         try:
-            # Only schedule if event loop is running
-            loop = asyncio.get_event_loop()
-            if loop.is_running():
-                loop.create_task(self._flush_batch())
-            else:
-                # Fallback: synchronous flush (shouldn't happen in async context)
-                self._flush_batch_sync()
+            loop = asyncio.get_running_loop()
+            _task = loop.create_task(self._flush_batch())
+            self._background_tasks.add(_task)
+            _task.add_done_callback(self._background_tasks.discard)
         except RuntimeError:
             # No event loop running, fall back to sync
             self._flush_batch_sync()

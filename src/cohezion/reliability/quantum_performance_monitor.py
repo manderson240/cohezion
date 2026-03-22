@@ -133,6 +133,7 @@ class QuantumPerformanceMonitor:
 
         # Load historical data
         self._load_historical_data()
+        self._background_tasks: set[asyncio.Task] = set()
 
     def _initialize_baselines(self) -> dict[str, dict[str, float]]:
         """Initialize performance baselines for different model sizes"""
@@ -263,7 +264,12 @@ class QuantumPerformanceMonitor:
         monitor_thread.start()
 
         # Start auto-swap monitoring
-        asyncio.create_task(self._auto_swap_monitor())
+        try:
+            _task = asyncio.create_task(self._auto_swap_monitor())
+            self._background_tasks.add(_task)
+            _task.add_done_callback(self._background_tasks.discard)
+        except RuntimeError:
+            logger.warning("No running event loop; auto-swap monitor not started")
 
     def _monitoring_loop(self, interval_seconds: int):
         """Main monitoring loop"""
@@ -471,7 +477,9 @@ class QuantumPerformanceMonitor:
 
         # Execute automatic action if enabled
         if self.auto_swap_enabled and condition:
-            asyncio.create_task(self._execute_automatic_action(condition, metric))
+            _task = asyncio.create_task(self._execute_automatic_action(condition, metric))
+            self._background_tasks.add(_task)
+            _task.add_done_callback(self._background_tasks.discard)
 
     async def _execute_automatic_action(
         self, condition: AlertCondition | None, metric: PerformanceMetric

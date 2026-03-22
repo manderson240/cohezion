@@ -72,6 +72,7 @@ class TaskManager:
             "failed": 0,
             "cancelled": 0,
         }
+        self._background_tasks: set[asyncio.Task] = set()
 
     async def create_task(
         self,
@@ -158,7 +159,9 @@ class TaskManager:
 
                     finally:
                         # Cleanup after a delay to allow status inspection
-                        asyncio.create_task(self._delayed_cleanup(task_id))
+                        _cleanup = asyncio.create_task(self._delayed_cleanup(task_id))
+                        self._background_tasks.add(_cleanup)
+                        _cleanup.add_done_callback(self._background_tasks.discard)
 
             # Create and store task
             task = asyncio.create_task(wrapped(), name=task_id)

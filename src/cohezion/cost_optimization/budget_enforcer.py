@@ -263,6 +263,7 @@ class BudgetEnforcer:
         # Cached state (refreshed every 60s)
         self._cached_state: Optional[BudgetState] = None
         self._cache_time = 0.0
+        self._background_tasks: set[asyncio.Task] = set()
 
     @classmethod
     def get_current(cls) -> Optional["BudgetEnforcer"]:
@@ -301,7 +302,9 @@ class BudgetEnforcer:
         # Log alert if present (async, non-blocking)
         if alert:
             try:
-                asyncio.create_task(self._log_alert_async(alert))
+                _task = asyncio.create_task(self._log_alert_async(alert))
+                self._background_tasks.add(_task)
+                _task.add_done_callback(self._background_tasks.discard)
             except RuntimeError:
                 # No event loop, log synchronously
                 logger.warning(alert)
