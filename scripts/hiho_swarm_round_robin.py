@@ -12,7 +12,9 @@ class SwarmAgent:
 AGENTS = [
     SwarmAgent("Architect", "System Design", "Cloud Run deployment, Dockerization, Scalability"),
     SwarmAgent(
-        "Engineer", "Performance", "10M round simulation optimization (Numpy/Vectorization)"
+        "Engineer",
+        "Performance",
+        "10M round simulation optimization (Numpy/Vectorization)",
     ),
     SwarmAgent("Researcher", "Theory", "TensorBeam 12-parameters mapping, HIHO threshold logic"),
     SwarmAgent(
@@ -21,7 +23,9 @@ AGENTS = [
         "R-Zero integration, Skill generation, GEMINI.md optimization",
     ),
     SwarmAgent(
-        "UX Designer", "Interaction", "Marimo reactive components, Interactive Q&A, Visuals"
+        "UX Designer",
+        "Interaction",
+        "Marimo reactive components, Interactive Q&A, Visuals",
     ),
 ]
 
@@ -81,9 +85,7 @@ async def round_robin():
     for idea in ideas:
         print(f"[{idea['agent']}] {idea['input']}\n")
 
-    print(
-        "🚀 CONSENSUS: Implement vectorized HIHO engine -> Batch simulation -> Marimo-in-Docker -> Cloud Run."
-    )
+    print("🚀 CONSENSUS: Implement vectorized HIHO engine -> Batch simulation -> Marimo-in-Docker -> Cloud Run.")
 
 
 if __name__ == "__main__":

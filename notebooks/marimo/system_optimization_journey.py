@@ -27,7 +27,7 @@ mo.md("""
 
 **Goal:** Optimize GEMINI.md and system definitions for persistent quality
 
-This notebook documents the journey of extracting patterns from the Cohezion 
+This notebook documents the journey of extracting patterns from the Cohezion
 codebase and synthesizing them into actionable system definitions.
 """)
 

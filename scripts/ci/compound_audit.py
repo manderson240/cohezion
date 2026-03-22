@@ -48,7 +48,7 @@ def main() -> int:
     # Write artifact
     report = {
         "learning_count": len(patterns),
-        "top_scores": {name: score for name, score in top_scores},
+        "top_scores": dict(top_scores),
         "refinement_suggestions": [
             {
                 "skill_name": ref.skill_name,

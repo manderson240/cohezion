@@ -38,7 +38,12 @@ class MetaRecursiveLoop:
         self.results_dir = Path("data/recursion_logs")
         self.results_dir.mkdir(parents=True, exist_ok=True)
 
-        self.state = {"coherence": 0.5, "novelty": 0.0, "complexity": 0.01, "abstractions": []}
+        self.state = {
+            "coherence": 0.5,
+            "novelty": 0.0,
+            "complexity": 0.01,
+            "abstractions": [],
+        }
 
     async def run_beat(self, step: int):
         """A single 'beat' in the recursive heart of the swarm."""
@@ -52,13 +57,11 @@ class MetaRecursiveLoop:
         # 2. CHALLENGER Dynamics (Identify Entropy)
         entropy_gap = abs(self.state["coherence"] - 0.5)
         if entropy_gap > 0.1:
-            challenge = await self.critic.process(
-                analyst_outputs=[], target="codebase", state=self.state
-            )
+            challenge = await self.critic.process(analyst_outputs=[], target="codebase", state=self.state)
 
             # 3. SOLVER Dynamics (Apply Improvement)
             if challenge:
-                improvement = await self.solver.process(context=self.state, challenge=challenge)
+                await self.solver.process(context=self.state, challenge=challenge)
                 self.state["coherence"] = 0.5 + (random.random() - 0.5) * 0.02  # Stabilization
 
         # 4. LEARNER Dynamics (Scaling factors)

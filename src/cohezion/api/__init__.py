@@ -4,6 +4,7 @@ Cohezion API - FastAPI server exposing swarm and MCP tools.
 Provides REST endpoints for Open-Notebook integration.
 """
 
+import contextlib
 import logging
 import os
 import re
@@ -30,9 +31,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # Allowed CORS origins from environment, default to localhost only
-_CORS_ORIGINS = os.environ.get(
-    "COHEZION_CORS_ORIGINS", "http://localhost:3000,http://localhost:8080"
-).split(",")
+_CORS_ORIGINS = os.environ.get("COHEZION_CORS_ORIGINS", "http://localhost:3000,http://localhost:8080").split(",")
 
 app = FastAPI(
     title="Cohezion API",
@@ -121,11 +120,7 @@ async def health():
 async def list_servers():
     """List all available MCP servers."""
     registry = get_registry()
-    return {
-        "servers": [
-            {"name": s.name, "type": s.type, "status": s.status} for s in registry.list_servers()
-        ]
-    }
+    return {"servers": [{"name": s.name, "type": s.type, "status": s.status} for s in registry.list_servers()]}
 
 
 @app.get("/mcp/tools")
@@ -197,7 +192,6 @@ async def get_metrics():
 @app.get("/notebooks")
 async def list_notebooks():
     """List all research notebooks."""
-    import os
     from pathlib import Path
 
     notebooks_dir = Path("docs/notebooks")
@@ -266,12 +260,7 @@ async def list_journeys():
 
     tracker = get_journey_tracker()
     journeys = tracker.get_recent_journeys(limit=20)
-    return {
-        "journeys": [
-            {"id": j["journey_id"], "query": j["query"][:50], "steps": j["step_count"]}
-            for j in journeys
-        ]
-    }
+    return {"journeys": [{"id": j["journey_id"], "query": j["query"][:50], "steps": j["step_count"]} for j in journeys]}
 
 
 @app.get("/journeys/{journey_id}")
@@ -469,9 +458,7 @@ async def visualize_journey(journey_id: str):
         trajectory_data.append(vec)
 
     if len(trajectory_data) < 2:
-        raise HTTPException(
-            status_code=400, detail="Journey needs at least 2 steps for visualization"
-        )
+        raise HTTPException(status_code=400, detail="Journey needs at least 2 steps for visualization")
 
     trajectory = np.array(trajectory_data)
 
@@ -1271,10 +1258,8 @@ async def rl_policy_info():
     metrics_path = Path("data/rl/checkpoints/training_metrics.json")
     training_metrics = None
     if metrics_path.exists():
-        try:
+        with contextlib.suppress(json.JSONDecodeError, OSError):
             training_metrics = json.loads(metrics_path.read_text())
-        except (json.JSONDecodeError, OSError):
-            pass
 
     return RlPolicyInfoResponse(
         loaded=True,
@@ -1495,8 +1480,8 @@ async def execute_skill(skill_name: str, request: SkillExecuteRequest):
     factory = AgentFactory()
     try:
         spec = factory._resolve_spec(skill_name)
-    except KeyError:
-        raise HTTPException(status_code=404, detail=f"Skill not found: {skill_name}")
+    except KeyError as e:
+        raise HTTPException(status_code=404, detail=f"Skill not found: {skill_name}") from e
 
     class_name = f"{spec.name}Agent"
 
@@ -1562,7 +1547,7 @@ async def find_capable_agent(request: CapabilityQueryRequest):
 
 
 @app.get("/skills/list")
-async def list_skills():
+async def list_prime_skills():
     """List all available PRIME skills."""
     from cohezion.agents.factory import AgentFactory
 
@@ -1948,9 +1933,7 @@ async def compound_execute(request: CompoundExecuteRequest):
             model=request.model,
         )
     except KeyError as exc:
-        raise HTTPException(
-            status_code=404, detail=f"Skill not found: {request.skill_name}"
-        ) from exc
+        raise HTTPException(status_code=404, detail=f"Skill not found: {request.skill_name}") from exc
     except Exception as exc:
         logger.exception("Compound execution failed: %s", request.skill_name)
         raise HTTPException(status_code=500, detail="Execution failed") from exc
@@ -2031,9 +2014,7 @@ async def compound_feedback(request: CompoundFeedbackRequest):
                 patterns=result.patterns,
             )
     except KeyError as exc:
-        raise HTTPException(
-            status_code=404, detail=f"Skill not found: {request.skill_name}"
-        ) from exc
+        raise HTTPException(status_code=404, detail=f"Skill not found: {request.skill_name}") from exc
     except Exception as exc:
         logger.exception("Compound feedback failed: %s", request.skill_name)
         raise HTTPException(status_code=500, detail="Feedback cycle failed") from exc

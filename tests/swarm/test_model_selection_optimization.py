@@ -79,9 +79,7 @@ class TestModelSelectionOptimization:
         decision_medium, _ = router.select_model("Write a Python function")
         assert decision_medium.complexity == QueryComplexity.MEDIUM
 
-        decision_complex, _ = router.select_model(
-            "Design and implement a distributed system with optimization"
-        )
+        decision_complex, _ = router.select_model("Design and implement a distributed system with optimization")
         assert decision_complex.complexity == QueryComplexity.COMPLEX
 
     def test_optimization_maintains_quality_threshold(self, router):

@@ -1,4 +1,5 @@
 import asyncio
+import contextlib
 import logging
 import signal
 
@@ -53,7 +54,5 @@ if __name__ == "__main__":
     for sig in (signal.SIGINT, signal.SIGTERM):
         loop.add_signal_handler(sig, main_task.cancel)
 
-    try:
+    with contextlib.suppress(asyncio.CancelledError):
         loop.run_until_complete(main_task)
-    except asyncio.CancelledError:
-        pass

@@ -15,9 +15,7 @@ async def analyze():
     logger.info("📊 FINAL AUDIT of SurrealDB Tables...")
     try:
         tables_res = await client.query("INFO FOR DB")
-        tables_info = (
-            tables_res[0].get("result", {}) if isinstance(tables_res[0], dict) else tables_res[0]
-        )
+        tables_info = tables_res[0].get("result", {}) if isinstance(tables_res[0], dict) else tables_res[0]
         tables = tables_info.get("tables", {}).keys()
 
         for table in tables:
@@ -27,9 +25,7 @@ async def analyze():
                 # Standard SurrealDB response is a list of results
                 # Each result is a list of records (for this group all query)
                 result_item = count_res[0]
-                records = (
-                    result_item.get("result", []) if isinstance(result_item, dict) else result_item
-                )
+                records = result_item.get("result", []) if isinstance(result_item, dict) else result_item
                 if records and isinstance(records, list) and len(records) > 0:
                     count = records[0].get("count", 0)
 

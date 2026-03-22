@@ -56,9 +56,7 @@ class Librarian:
                         created_at = created_at.replace(tzinfo=None)
 
                     if created_at < cutoff:
-                        logger.info(
-                            f"🗑️ Pruning Junk: {item['id']} (Grade {item['metadata'].get('grade')})"
-                        )
+                        logger.info(f"🗑️ Pruning Junk: {item['id']} (Grade {item['metadata'].get('grade')})")
                         await self.db.delete_node(item["id"])
                         deleted_count += 1
                 except Exception as e:

@@ -10,7 +10,6 @@ import os
 
 def calculate_qualification(annual_income, rd_spend_labor, hardware_cost):
     tax_rate = 0.37  # Assuming top bracket for optimization
-    qbi_deduction = 0.20
 
     # 1. Immediate Expensing Benefit (Section 174A)
     # Total deduction = Labor + Hardware
@@ -68,8 +67,8 @@ Lender Collateral (70%):   ${qual["hardware_collateral"]:,}
 >>> TOTAL QUALIFIED LOAN:  ${qual["total_loan_qualification"]:,} <<<
 Interest Coverage (8%):    {qual["interest_coverage_ratio"]}x
 
-[CONCLUSION]: The tax recovery alone covers {round((qual["tax_savings_y1"] / (HARDWARE + LABOR)) * 100)}% 
-of the total investment principal in Year 1. This is a low-risk 
+[CONCLUSION]: The tax recovery alone covers {round((qual["tax_savings_y1"] / (HARDWARE + LABOR)) * 100)}%
+of the total investment principal in Year 1. This is a low-risk
 autonomous credit event.
 """
     print(report)

@@ -216,9 +216,7 @@ class OllamaModelManager:
             return metrics.confidence_score
         return 0.0
 
-    async def get_recommended_model(
-        self, task_type: str, min_confidence: float = 0.3
-    ) -> str | None:
+    async def get_recommended_model(self, task_type: str, min_confidence: float = 0.3) -> str | None:
         """Get the best model for a task based on confidence scores."""
         candidates = []
         for model_name in await self.list_models():
@@ -232,9 +230,7 @@ class OllamaModelManager:
             return max(candidates, key=lambda x: x[1])[0]
         return None
 
-    async def should_escalate(
-        self, model_name: str, task_type: str, min_confidence: float = 0.3
-    ) -> bool:
+    async def should_escalate(self, model_name: str, task_type: str, min_confidence: float = 0.3) -> bool:
         """Check if we should escalate to a stronger model."""
         confidence = await self.get_model_confidence(model_name, task_type)
         return confidence < min_confidence
@@ -288,10 +284,9 @@ class OllamaModelManager:
                     if last_used is None or used_ts > last_used:
                         last_used = used_ts
 
-            if last_used and last_used < cutoff:
-                if await self.delete_model(name):
-                    deleted.append(name)
-                    logger.info(f"Cleaned up unused model: {name}")
+            if last_used and last_used < cutoff and await self.delete_model(name):
+                deleted.append(name)
+                logger.info(f"Cleaned up unused model: {name}")
 
         return deleted
 

@@ -13,7 +13,7 @@ sys.path.append(str(Path.cwd() / "src"))
 
 async def main():
     logging.basicConfig(level=logging.INFO)
-    logger = logging.getLogger("IntrospectVerify")
+    logging.getLogger("IntrospectVerify")
 
     config = SwarmConfig()
     agent = IntrospectAgent(config=config)

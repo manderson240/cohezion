@@ -258,9 +258,7 @@ class ThermodynamicMetrics:
 
         return max(h, 0.0)
 
-    def _compute_entropy_production_rate(
-        self, coherences: np.ndarray, energies: np.ndarray
-    ) -> float:
+    def _compute_entropy_production_rate(self, coherences: np.ndarray, energies: np.ndarray) -> float:
         """Compute entropy production rate from trajectory irreversibility.
 
         Uses the Crooks fluctuation theorem approach: estimate the KL divergence
@@ -347,10 +345,7 @@ class ThermodynamicMetrics:
         # Find peaks in susceptibility (phase transition candidates)
         transitions = []
         for i in range(1, len(susceptibilities) - 1):
-            if (
-                susceptibilities[i] > susceptibilities[i - 1]
-                and susceptibilities[i] > susceptibilities[i + 1]
-            ):
+            if susceptibilities[i] > susceptibilities[i - 1] and susceptibilities[i] > susceptibilities[i + 1]:
                 # Peak found — potential phase transition
                 T_c = temperatures[i]
                 chi_peak = susceptibilities[i]
@@ -424,9 +419,7 @@ class ThermodynamicMetrics:
         pos_clipped = np.clip(positive, -20, 20)
         neg_clipped = np.clip(np.abs(negative), -20, 20)
 
-        ratio = float(np.mean(np.exp(pos_clipped))) / max(
-            float(np.mean(np.exp(neg_clipped))), 1e-10
-        )
+        ratio = float(np.mean(np.exp(pos_clipped))) / max(float(np.mean(np.exp(neg_clipped))), 1e-10)
 
         return ratio
 
@@ -521,11 +514,7 @@ class ThermodynamicMetrics:
         # Escape barrier: minimum energy needed to leave the basin
         # Look for the lowest saddle point on either side
         left_barrier = float(np.max(F_landscape[:hiho_idx]) - hiho_energy) if hiho_idx > 0 else 0.0
-        right_barrier = (
-            float(np.max(F_landscape[hiho_idx + 1 :]) - hiho_energy)
-            if hiho_idx < n_bins - 1
-            else 0.0
-        )
+        right_barrier = float(np.max(F_landscape[hiho_idx + 1 :]) - hiho_energy) if hiho_idx < n_bins - 1 else 0.0
         escape_barrier = min(left_barrier, right_barrier)
 
         # Is HIHO actually an attractor? Check if it's a local minimum in

@@ -170,7 +170,7 @@ class TestL2Cache:
         await cache.put("p3", "r3")
 
         # Now query p3 (should be in L2)
-        result = await cache.get("p3")
+        await cache.get("p3")
 
         # Check if promoted to L1
         stats = cache.get_stats()

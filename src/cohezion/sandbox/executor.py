@@ -8,7 +8,7 @@ import time
 from collections.abc import Callable
 from dataclasses import asdict, dataclass, field
 from datetime import UTC, datetime
-from enum import Enum
+from enum import StrEnum
 from pathlib import Path
 from typing import Any
 
@@ -31,7 +31,7 @@ except ImportError:
 logger = logging.getLogger(__name__)
 
 
-class ResourceLimitType(str, Enum):
+class ResourceLimitType(StrEnum):
     """Resource limit types."""
 
     CPU_PERCENT = "cpu_percent"
@@ -39,7 +39,7 @@ class ResourceLimitType(str, Enum):
     DISK_GB = "disk_gb"
 
 
-class ExecutorEventType(str, Enum):
+class ExecutorEventType(StrEnum):
     """Executor-specific audit event types (internal use)."""
 
     SANDBOX_START = "sandbox_start"
@@ -301,9 +301,7 @@ class SandboxExecutor:
             RuntimeError: If container creation fails
         """
         if not self.client:
-            raise RuntimeError(
-                "Docker client not available. Ensure Docker is installed and running."
-            )
+            raise RuntimeError("Docker client not available. Ensure Docker is installed and running.")
 
         try:
             container = self.client.containers.create(
@@ -332,7 +330,7 @@ class SandboxExecutor:
             return container_id
         except Exception as e:
             logger.error(f"Failed to start container: {e}")
-            raise RuntimeError(f"Container creation failed: {e}")
+            raise RuntimeError(f"Container creation failed: {e}") from e
 
     def stop(self, container_id: str) -> None:
         """Stop and remove a sandbox container.
@@ -409,7 +407,6 @@ class SandboxExecutor:
             SandboxResult with execution outcome
         """
         start_time = time.time()
-        audit_log = []
         container_id = None
 
         try:
@@ -541,9 +538,7 @@ class SandboxExecutor:
                 import concurrent.futures
 
                 with concurrent.futures.ThreadPoolExecutor() as pool:
-                    return loop.run_in_executor(
-                        pool, lambda: asyncio.run(self.execute_async(request))
-                    ).result()
+                    return loop.run_in_executor(pool, lambda: asyncio.run(self.execute_async(request))).result()
             else:
                 return asyncio.run(self.execute_async(request))
         except RuntimeError:

@@ -4,7 +4,10 @@ from datetime import datetime
 
 import psutil
 
-from cohezion.core.persistence.surreal_client import PhysicsState, SurrealClient
+from cohezion.core.persistence.surreal_client import (
+    PhysicsState,
+    SurrealClient,
+)
 from cohezion.mcp.email_notifier import EmailNotifier
 
 
@@ -48,9 +51,7 @@ class EcoResearchSwarm:
     def _check_resource_safety(self) -> bool:
         cpu_usage = psutil.cpu_percent(interval=None)
         # Relaxed threshold to allow parallel research during high-throughput runs
-        if cpu_usage > 90:
-            return False
-        return True
+        return not cpu_usage > 90
 
     async def _analyze_ecosystemic_trends(self):
         """Perform InVEST-based abstraction analysis on simulation nodes."""
@@ -105,7 +106,7 @@ class EcoResearchSwarm:
                 habitat_quality = max(0.0, 1.0 - (goldilocks_deviation * 2))
 
                 # ID can be a RecordID object, cast to string for splitting
-                node_id_str = str(node["id"])
+                str(node["id"])
 
                 # Update Node Metadata
                 eco_metrics = {

@@ -166,7 +166,7 @@ class TestSessionCostTracker:
         tracker = SessionCostTracker(session_id="test-session-1", batch_size=5)
 
         # Add 4 records (below threshold)
-        for i in range(4):
+        for _i in range(4):
             tracker.track_usage_fast("qwen3-coder:32b", tokens=100)
 
         assert len(tracker.records) == 4
@@ -260,7 +260,7 @@ class TestSessionCostTracker:
         )
 
         # Add records
-        for i in range(12):
+        for _i in range(12):
             tracker.track_usage_fast("qwen3-coder:32b", tokens=100)
 
         # Flush all
@@ -284,7 +284,7 @@ class TestSessionCostTracker:
         )
 
         # Add records
-        for i in range(10):
+        for _i in range(10):
             tracker.track_usage_fast("qwen3-coder:32b", tokens=100)
 
         # Flush all (should fail gracefully)

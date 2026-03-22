@@ -45,14 +45,14 @@ def _(mo):
     mo.md(
         """
         # 🎯 R-Zero Observable Dashboard
-        
+
         **Self-Improving AI in Real-Time**
-        
+
         This dashboard shows the R-Zero Challenger/Solver/Pragmatist loop in action:
         - Watch Gateways unlock as capabilities emerge
         - Monitor coherence trajectories
         - See learnings extracted automatically
-        
+
         > *"Each simulation unlocks new Gateways → N gateways create N! capability combinations"*
         """
     )
@@ -80,7 +80,7 @@ def _(mo):
 
     mo.md(f"""
 ## 🚪 Gateway Status
-    
+
 {gateway_table}
 
 **Target:** Gateway 42 (The Answer to Everything) 🌌
@@ -121,7 +121,10 @@ def _(mo, np, plt, gateway_data):
     score = 0.87
     ax2 = axes[1]
     ax2.pie(
-        [score, 1 - score], colors=["#4CAF50", "#E0E0E0"], startangle=90, wedgeprops=dict(width=0.3)
+        [score, 1 - score],
+        colors=["#4CAF50", "#E0E0E0"],
+        startangle=90,
+        wedgeprops={"width": 0.3},
     )
     ax2.set_title(f"Pragmatist Score: {score:.0%}")
 
@@ -188,9 +191,9 @@ def _(mo):
 | ID | Title | Score |
 |----|-------|-------|
 """
-    for l in recent_learnings:
-        score_bar = "🟢" if l["score"] >= 0.85 else "🟡"
-        learning_md += f"| {l['id']} | {l['title']} | {score_bar} {l['score']:.0%} |\n"
+    for learning in recent_learnings:
+        score_bar = "🟢" if learning["score"] >= 0.85 else "🟡"
+        learning_md += f"| {learning['id']} | {learning['title']} | {score_bar} {learning['score']:.0%} |\n"
 
     learning_md += "\n*Learnings with ≥85% score trigger skill generation*"
 
@@ -226,7 +229,7 @@ def _(mo):
     # Self-Improvement Loop Status
     mo.md("""
 ## 🔄 Self-Improvement Loop
-    
+
 ```
 ┌─────────────┐    ┌─────────────┐    ┌─────────────┐
 │   MEASURE   │ →  │  CHALLENGE  │ →  │    SOLVE    │
@@ -258,7 +261,7 @@ def _(mo, datetime):
 
 **Dashboard Updated:** {now.strftime("%Y-%m-%d %H:%M:%S")}
 
-*Built for Anthropic Research Engineer, Universes Application*  
+*Built for Anthropic Research Engineer, Universes Application*
 *cohezion.duckdns.org | 2026*
 
 [View on GitHub](https://github.com/manderson240/cohezion) | [CREDITS](file:///home/mike-anderson/dev/cohezion/CREDITS.md)

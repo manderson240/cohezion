@@ -11,7 +11,9 @@ import numpy as np
 from cohezion_core.cohezion_core_rs import FlumePhysics
 
 from cohezion.core.multimodal_bridge import LOCAL_MULTIMODAL_BRIDGE
-from cohezion.universe.engine import UniverseSimulationEngine
+from cohezion.universe.engine import (
+    UniverseSimulationEngine,
+)
 
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
@@ -41,9 +43,7 @@ class TsunamiSimulator:
         self.current_epoch = 0
 
     async def run(self):
-        logger.info(
-            f"🌊 Starting Tsunami Verification: {self.num_agents} agents, {self.total_epochs} epochs"
-        )
+        logger.info(f"🌊 Starting Tsunami Verification: {self.num_agents} agents, {self.total_epochs} epochs")
 
         while self.current_epoch < self.total_epochs:
             # 1. vectorized inner loop (1000 epochs at a time)
@@ -68,7 +68,7 @@ class TsunamiSimulator:
         entropies = self.physics.calculate_entropy_batch(self.latent_states)
 
         # Logic for pruning
-        coherence_scores = [np.mean(row) for row in reps]
+        [np.mean(row) for row in reps]
 
         pruned_indices = []
         for i in range(self.num_agents):
@@ -80,9 +80,7 @@ class TsunamiSimulator:
             if survivors:
                 for idx in pruned_indices:
                     parent_idx = np.random.choice(survivors)
-                    self.latent_states[idx] = self.latent_states[parent_idx] + np.random.normal(
-                        0, 0.01, 2048
-                    )
+                    self.latent_states[idx] = self.latent_states[parent_idx] + np.random.normal(0, 0.01, 2048)
 
             logger.info(f"✂️ Pruned {len(pruned_indices)} agents.")
 

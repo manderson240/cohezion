@@ -85,16 +85,12 @@ async def execute_surreal_async(
             error_detail = getattr(e.response, "text", str(e))
             logger.error(f"SurrealDB HTTP {e.response.status_code}: {error_detail}")
             if attempt == max_retries - 1:
-                raise GraphRAGError(
-                    f"Query failed after {max_retries} attempts: {error_detail}"
-                )
+                raise GraphRAGError(f"Query failed after {max_retries} attempts: {error_detail}") from e
             await asyncio.sleep(2**attempt)  # Exponential backoff
         except httpx.HTTPError as e:
             if attempt == max_retries - 1:
-                logger.error(
-                    f"SurrealDB query failed after {max_retries} attempts: {e}"
-                )
-                raise GraphRAGError(f"Query failed: {e}")
+                logger.error(f"SurrealDB query failed after {max_retries} attempts: {e}")
+                raise GraphRAGError(f"Query failed: {e}") from e
 
             # Exponential backoff
             await asyncio.sleep(0.1 * (2**attempt))

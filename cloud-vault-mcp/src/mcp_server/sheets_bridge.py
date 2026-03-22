@@ -43,10 +43,7 @@ class SheetsBridge:
         }
 
     def _api_url(self, path: str) -> str:
-        return (
-            f"https://sheets.googleapis.com/v4/spreadsheets/"
-            f"{self._spreadsheet_id}{path}"
-        )
+        return f"https://sheets.googleapis.com/v4/spreadsheets/{self._spreadsheet_id}{path}"
 
     def read_range(self, range_spec: str) -> list[list[str]]:
         """Read a range from the sheet.
@@ -98,9 +95,7 @@ class SheetsBridge:
         """
         token = self._get_token()
         range_ = f"{self._sheet_name}!B{row_num}:E{row_num}"
-        url = self._api_url(
-            f"/values/{urllib.parse.quote(range_)}?valueInputOption=USER_ENTERED"
-        )
+        url = self._api_url(f"/values/{urllib.parse.quote(range_)}?valueInputOption=USER_ENTERED")
         body = json.dumps(
             {
                 "range": range_,
@@ -108,9 +103,7 @@ class SheetsBridge:
             }
         ).encode()
 
-        req = urllib.request.Request(
-            url, data=body, headers=self._headers(token), method="PUT"
-        )
+        req = urllib.request.Request(url, data=body, headers=self._headers(token), method="PUT")
         with urllib.request.urlopen(req) as resp:
             return json.loads(resp.read())
 
@@ -127,9 +120,7 @@ class SheetsBridge:
         url = self._api_url("/values:batchUpdate")
         payload = json.dumps({"valueInputOption": "RAW", "data": data}).encode()
 
-        req = urllib.request.Request(
-            url, data=payload, headers=self._headers(token), method="POST"
-        )
+        req = urllib.request.Request(url, data=payload, headers=self._headers(token), method="POST")
         with urllib.request.urlopen(req) as resp:
             return json.loads(resp.read())
 
@@ -142,14 +133,10 @@ class SheetsBridge:
         """
         token = self._get_token()
         range_ = f"{self._sheet_name}!F{row_num}"
-        url = self._api_url(
-            f"/values/{urllib.parse.quote(range_)}?valueInputOption=USER_ENTERED"
-        )
+        url = self._api_url(f"/values/{urllib.parse.quote(range_)}?valueInputOption=USER_ENTERED")
         body = json.dumps({"range": range_, "values": [[vault_note]]}).encode()
 
-        req = urllib.request.Request(
-            url, data=body, headers=self._headers(token), method="PUT"
-        )
+        req = urllib.request.Request(url, data=body, headers=self._headers(token), method="PUT")
         with urllib.request.urlopen(req) as resp:
             return json.loads(resp.read())
 

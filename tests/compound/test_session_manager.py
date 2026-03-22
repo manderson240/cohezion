@@ -317,8 +317,8 @@ class TestSessionRegistry:
 
     def test_list_sessions(self):
         """List active sessions."""
-        session1 = create_session("session_1")
-        session2 = create_session("session_2")
+        create_session("session_1")
+        create_session("session_2")
 
         sessions = list_sessions()
         assert "session_1" in sessions
@@ -326,7 +326,7 @@ class TestSessionRegistry:
 
     def test_close_session(self):
         """Close session removes from registry."""
-        session = create_session("to_close")
+        create_session("to_close")
         assert get_session("to_close") is not None
 
         success = close_session("to_close")

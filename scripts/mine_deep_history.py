@@ -44,7 +44,14 @@ async def main():
 
                 # Simple keyword heuristic to find relevant content
                 body_lower = (msg.text or "").lower()
-                keywords = ["gateway", "phase", "cohezion", "research", "idea", "sprint"]
+                keywords = [
+                    "gateway",
+                    "phase",
+                    "cohezion",
+                    "research",
+                    "idea",
+                    "sprint",
+                ]
 
                 if any(k in body_lower or k in msg.subject.lower() for k in keywords):
                     print("   MATCH: Found relevant keywords.")

@@ -3,11 +3,8 @@ from problem import HASH_STAGES, VLEN
 
 
 class NexusKernelBuilder(OptimizedKernelBuilder):
-    def build_nexus_kernel(
-        self, forest_height, n_nodes, batch_size, rounds, hash_stages
-    ):
+    def build_nexus_kernel(self, forest_height, n_nodes, batch_size, rounds, hash_stages):
         # 1. Setup Phase
-        crown_depth = 0  # Disable crown check for simplicity in prototype
         N_VEC = 28  # Reduced from 32 to fit in 1536 words with globals
         n_windows = N_VEC
 
@@ -17,9 +14,7 @@ class NexusKernelBuilder(OptimizedKernelBuilder):
             win = {}
             win["v_idx"] = self.valloc(f"v_idx_{w}")
             win["v_val"] = self.valloc(f"v_val_{w}")  # The 'accumulator' value
-            win["v_node_val"] = self.valloc(
-                f"v_node_val_{w}"
-            )  # Current round's tree node
+            win["v_node_val"] = self.valloc(f"v_node_val_{w}")  # Current round's tree node
 
             # Speculative Buffer for Next Round
             win["v_node_L"] = self.valloc(f"v_node_L_{w}")
@@ -35,12 +30,12 @@ class NexusKernelBuilder(OptimizedKernelBuilder):
         # Assuming initial loads are done similarly to execution_harness
 
         # Load Constants needed: 0, 1, 2
-        g_vzero = self.get_vconst(0)
+        self.get_vconst(0)
         g_vone = self.get_vconst(1)
         g_vtwo = self.get_vconst(2)
 
         # MAIN PIPELINE LOOP (No Barriers between rounds)
-        for r in range(rounds):
+        for _r in range(rounds):
             for w in range(n_windows):
                 win = windows[w]
 
@@ -71,18 +66,14 @@ class NexusKernelBuilder(OptimizedKernelBuilder):
 
                 # 3. Start Hash (Dependent on Load)
                 self.emit_op("^", win["v_val"], [win["v_val"], win["v_node_val"]])
-                self.add_hash_hybrid(
-                    win["v_val"], win["v_tmp1"], win["v_addr"], hash_stages
-                )
+                self.add_hash_hybrid(win["v_val"], win["v_tmp1"], win["v_addr"], hash_stages)
 
                 # 4. Update Index (Dependent on Hash)
                 # Direction = v_val & 1
                 self.emit_op("&", win["v_tmp1"], [win["v_val"], g_vone])
 
                 # New Index = 2*idx + 1 + Direction
-                self.emit_op(
-                    "multiply_add", win["v_idx"], [win["v_idx"], g_vtwo, g_vone]
-                )
+                self.emit_op("multiply_add", win["v_idx"], [win["v_idx"], g_vtwo, g_vone])
                 self.emit_op("+", win["v_idx"], [win["v_idx"], win["v_tmp1"]])
 
                 # Wrap Logic

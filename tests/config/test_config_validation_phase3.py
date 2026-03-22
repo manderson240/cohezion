@@ -92,7 +92,7 @@ See [[test_decision.md]] for details."""
         test_file.write_text(content)
 
         validator = ConfigValidator()
-        check_result = validator._check_references(test_file)
+        validator._check_references(test_file)
 
         # Will pass because we're not checking vault root in this simple test
         assert True  # Basic structure test

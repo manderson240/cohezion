@@ -29,9 +29,7 @@ class MyHandler(http.server.BaseHTTPRequestHandler):
             # Serve the file modification time of 'trace.json' at '/mtime'
             elif self.path == "/mtime":
                 mtime = os.path.getmtime("trace.json")
-                last_modified_date = datetime.fromtimestamp(mtime).strftime(
-                    "%Y-%m-%d %H:%M:%S"
-                )
+                last_modified_date = datetime.fromtimestamp(mtime).strftime("%Y-%m-%d %H:%M:%S")
                 self.send_response(200)
                 self.send_header("Content-type", "text/plain")
                 self.end_headers()
@@ -54,9 +52,7 @@ class MyHandler(http.server.BaseHTTPRequestHandler):
                         )
                         # Auto-expand tracks by default
                         res = res.replace(b"collapsed: true", b"collapsed: false")
-                        res = res.replace(
-                            b"collapsed: !hasHeapProfiles", b"collapsed: false"
-                        )
+                        res = res.replace(b"collapsed: !hasHeapProfiles", b"collapsed: false")
                     for header in response.headers:
                         if header == "Content-Length":
                             self.send_header(header, len(res))

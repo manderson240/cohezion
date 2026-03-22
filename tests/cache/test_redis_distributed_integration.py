@@ -255,11 +255,11 @@ class TestFallbackBehavior:
 
         # Both should have similar get_stats() latency
         start1 = time.perf_counter()
-        stats1 = cache_redis.get_stats()
+        cache_redis.get_stats()
         elapsed1 = (time.perf_counter() - start1) * 1000
 
         start2 = time.perf_counter()
-        stats2 = cache_no_redis.get_stats()
+        cache_no_redis.get_stats()
         elapsed2 = (time.perf_counter() - start2) * 1000
 
         # Latencies should be similar (within measurement noise)
@@ -469,7 +469,7 @@ class TestRedisConnectionRetryIntegration:
         cache._redis_client.ping = MagicMock()
         cache._redis_connection_attempts = 0
 
-        result = cache._ensure_redis_connection()
+        cache._ensure_redis_connection()
         # Would succeed if ping didn't fail
         # For now, verify it's attempted
         assert cache._redis_connection_attempts == 0

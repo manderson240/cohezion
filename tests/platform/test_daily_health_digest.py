@@ -564,9 +564,6 @@ async def test_generate_recommendations_healthy(digest):
         loose_objects=50,
         pack_count=1,
     )
-    test = TestMetrics(
-        total_tests=100, passing_tests=98, failing_tests=2, pass_rate=0.98
-    )
     dep = DependencyMetrics(
         total_dependencies=50,
         outdated_dependencies=1,
@@ -575,9 +572,7 @@ async def test_generate_recommendations_healthy(digest):
     )
     checks = digest._run_health_checks(repo, test, dep, None)
 
-    recommendations = await digest._generate_recommendations(
-        repo, test, dep, checks, hiho_stable=True
-    )
+    recommendations = await digest._generate_recommendations(repo, test, dep, checks, hiho_stable=True)
 
     # Should have "All systems healthy" message
     assert any("All systems healthy" in r for r in recommendations)
@@ -605,9 +600,7 @@ async def test_generate_recommendations_repo_critical(digest):
     )
     checks = digest._run_health_checks(repo, test, dep, None)
 
-    recommendations = await digest._generate_recommendations(
-        repo, test, dep, checks, hiho_stable=False
-    )
+    recommendations = await digest._generate_recommendations(repo, test, dep, checks, hiho_stable=False)
 
     # Should recommend cleanup
     assert any("CRITICAL" in r and "Repository size" in r for r in recommendations)
@@ -626,9 +619,6 @@ async def test_generate_recommendations_vulnerable_deps(digest):
         loose_objects=50,
         pack_count=1,
     )
-    test = TestMetrics(
-        total_tests=100, passing_tests=98, failing_tests=2, pass_rate=0.98
-    )
     dep = DependencyMetrics(
         total_dependencies=50,
         outdated_dependencies=5,
@@ -637,9 +627,7 @@ async def test_generate_recommendations_vulnerable_deps(digest):
     )
     checks = digest._run_health_checks(repo, test, dep, None)
 
-    recommendations = await digest._generate_recommendations(
-        repo, test, dep, checks, hiho_stable=True
-    )
+    recommendations = await digest._generate_recommendations(repo, test, dep, checks, hiho_stable=True)
 
     # Should recommend immediate update
     assert any("vulnerable" in r.lower() and "CRITICAL" in r for r in recommendations)
@@ -667,9 +655,7 @@ async def test_generate_recommendations_failing_tests(digest):
     )
     checks = digest._run_health_checks(repo, test, dep, None)
 
-    recommendations = await digest._generate_recommendations(
-        repo, test, dep, checks, hiho_stable=True
-    )
+    recommendations = await digest._generate_recommendations(repo, test, dep, checks, hiho_stable=True)
 
     # Should recommend fixing tests
     assert any("Test pass rate" in r and "CRITICAL" in r for r in recommendations)
@@ -852,9 +838,7 @@ async def test_persist_digest(digest):
             loose_objects=50,
             pack_count=1,
         ),
-        test_metrics=TestMetrics(
-            total_tests=100, passing_tests=98, failing_tests=2, pass_rate=0.98
-        ),
+        test_metrics=TestMetrics(total_tests=100, passing_tests=98, failing_tests=2, pass_rate=0.98),
         dependency_metrics=DependencyMetrics(
             total_dependencies=50,
             outdated_dependencies=2,
@@ -900,9 +884,7 @@ def test_format_digest_terminal(digest):
             loose_objects=50,
             pack_count=1,
         ),
-        test_metrics=TestMetrics(
-            total_tests=2850, passing_tests=2830, failing_tests=20, pass_rate=0.993
-        ),
+        test_metrics=TestMetrics(total_tests=2850, passing_tests=2830, failing_tests=20, pass_rate=0.993),
         dependency_metrics=DependencyMetrics(
             total_dependencies=50,
             outdated_dependencies=2,

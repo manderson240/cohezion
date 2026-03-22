@@ -134,7 +134,6 @@ class LRUPersistentTokenCache(dict):
             Cache entry to store
         """
         # Track if this is a new entry
-        is_new_entry = key not in self
 
         # Store in memory dict
         super().__setitem__(key, value)

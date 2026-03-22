@@ -1,10 +1,8 @@
-
-
 def solver_routing(N, ops):
     site_to_qubit = list(range(N))
     qubit_to_site = list(range(N))
 
-    for name, qubits in ops:
+    for _name, qubits in ops:
         target_sites = [qubit_to_site[q] for q in qubits]
         if len(target_sites) == 2:
             s1, s2 = target_sites

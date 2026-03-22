@@ -65,7 +65,6 @@ class AdversarialTests(unittest.TestCase):
         inp_ref = deepcopy(inp)
         reference_kernel(forest, inp_ref)
 
-        header = 7
         forest_values_p = 7
         inp_indices_p = forest_values_p + n_nodes
         inp_values_p = inp_indices_p + len(inp.indices)

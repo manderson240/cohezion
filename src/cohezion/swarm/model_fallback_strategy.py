@@ -141,9 +141,8 @@ class ModelCircuitBreaker:
             self.metrics.avg_latency_ms = 0.7 * self.metrics.avg_latency_ms + 0.3 * latency_ms
 
         # If HALF_OPEN and succeeded, go back to CLOSED
-        if self.state == CircuitBreakerState.HALF_OPEN:
-            if self.metrics.success_count >= self.success_threshold:
-                self._transition_to_closed()
+        if self.state == CircuitBreakerState.HALF_OPEN and self.metrics.success_count >= self.success_threshold:
+            self._transition_to_closed()
 
     def record_error(self) -> None:
         """Record failed execution."""
@@ -181,11 +180,9 @@ class ModelCircuitBreaker:
                     self._transition_to_half_open()
                     return True
             return False
-        elif self.state == CircuitBreakerState.HALF_OPEN:
-            # Allow one test request
-            return True
         else:
-            return False
+            # Allow one test request if HALF_OPEN
+            return self.state == CircuitBreakerState.HALF_OPEN
 
     def _transition_to_open(self) -> None:
         """Transition to OPEN state."""
@@ -202,8 +199,7 @@ class ModelCircuitBreaker:
         """Transition to HALF_OPEN state (testing recovery)."""
         if self.state != CircuitBreakerState.HALF_OPEN:
             logger.info(
-                f"Circuit breaker HALF_OPEN for {self.model}: "
-                f"testing recovery after {self.recovery_timeout_sec}s"
+                f"Circuit breaker HALF_OPEN for {self.model}: testing recovery after {self.recovery_timeout_sec}s"
             )
             self.state = CircuitBreakerState.HALF_OPEN
             self.metrics.error_count = 0
@@ -424,8 +420,7 @@ class ModelFallbackStrategy:
         self.fallback_history.append((primary, fallback, time.time()))
 
         logger.info(
-            f"Fallback #{self.fallback_count}: {primary} → {fallback} "
-            f"(total degradations: {self.fallback_count})"
+            f"Fallback #{self.fallback_count}: {primary} → {fallback} (total degradations: {self.fallback_count})"
         )
 
     def get_fallback_stats(self) -> dict:
@@ -436,9 +431,7 @@ class ModelFallbackStrategy:
         """
         stats = {
             "total_fallbacks": self.fallback_count,
-            "recent_fallbacks": len(
-                [t for _, _, ts in self.fallback_history if time.time() - ts < 3600]
-            ),
+            "recent_fallbacks": len([ts for _, _, ts in self.fallback_history if time.time() - ts < 3600]),
         }
 
         # Count fallback patterns

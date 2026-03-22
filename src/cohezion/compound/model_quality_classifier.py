@@ -487,8 +487,7 @@ class ModelQualityClassifier:
             else:
                 return ActionRecommendation(
                     action=RecommendedAction.RESTART_SESSION,
-                    message=f"Success rate trend {coherence_trend}. "
-                    f"Consider clearing session state and restarting.",
+                    message=f"Success rate trend {coherence_trend}. Consider clearing session state and restarting.",
                     priority="MEDIUM",
                     confidence=failure_probability,
                 )
@@ -510,16 +509,14 @@ class ModelQualityClassifier:
         stats = {}
         for model_name, predictor in self._predictors.items():
             if predictor.is_established():
-                coh_pred, coh_conf, steps_crit = predictor.forecast_coherence()
-                success_pred, success_conf = predictor.forecast_success_rate()
+                coh_pred, _coh_conf, _steps_crit = predictor.forecast_coherence()
+                success_pred, _success_conf = predictor.forecast_success_rate()
 
                 stats[model_name] = {
                     "num_executions": len(predictor.coherence_history),
                     "avg_coherence": float(np.mean(predictor.coherence_history)),
                     "std_coherence": float(np.std(predictor.coherence_history)),
-                    "success_rate": float(
-                        sum(predictor.success_history) / len(predictor.success_history)
-                    ),
+                    "success_rate": float(sum(predictor.success_history) / len(predictor.success_history)),
                     "predicted_coherence": round(coh_pred, 3),
                     "predicted_success_rate": round(success_pred, 3),
                     "coherence_trend": predictor.get_trend(predictor.coherence_history),

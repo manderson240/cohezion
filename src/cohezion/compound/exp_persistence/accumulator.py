@@ -1,4 +1,5 @@
 import asyncio
+import contextlib
 import logging
 from typing import Any
 
@@ -109,10 +110,9 @@ class PersistenceAccumulator:
         self._running = False
         if hasattr(self, "_worker_task"):
             self._worker_task.cancel()
-            try:
+            with contextlib.suppress(asyncio.CancelledError):
                 await self._worker_task
-            except asyncio.CancelledError:
-                pass
+
 
 
 def get_accumulator() -> PersistenceAccumulator:

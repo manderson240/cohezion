@@ -547,19 +547,41 @@ class TestExecutionContext:
 class TestPhase21HooksIntegration:
     """Test integration with Phase 2.1 hooks."""
 
-    @pytest.mark.skipif(
-        not Path(".claude/hooks").exists(),
-        reason=".claude/hooks directory not present",
-    )
-    def test_discover_phase21_hooks(self):
-        """Test discovering Phase 2.1 hooks from .claude/hooks."""
-        integration = HookIntegration(".claude/hooks")
+    def test_discover_phase21_hooks(self, tmp_path):
+        """Test discovering Phase 2.1 hooks from a hooks directory."""
+        hooks_dir = tmp_path / "hooks"
+        hooks_dir.mkdir()
+
+        # Create the 4 Phase 2.1 hooks
+        hook_specs = [
+            ("protect-files", "PRE_OPERATION", "BLOCK", "Protect sensitive files"),
+            (
+                "warn-sensitive-commands",
+                "PRE_EXECUTE",
+                "WARN",
+                "Warn on sensitive commands",
+            ),
+            ("format-on-edit", "POST_OPERATION", "ALLOW", "Format on edit"),
+            ("validate-agent-files", "PRE_EXECUTE", "BLOCK", "Validate agent files"),
+        ]
+
+        for name, stage, action, description in hook_specs:
+            script = hooks_dir / f"{name}.sh"
+            script.write_text(
+                f"#!/bin/bash\n"
+                f"# HOOK_NAME: {name}\n"
+                f"# HOOK_STAGE: {stage}\n"
+                f"# HOOK_ACTION: {action}\n"
+                f"# HOOK_DESCRIPTION: {description}\n"
+                f"exit 0\n"
+            )
+            script.chmod(0o755)
+
+        integration = HookIntegration(str(hooks_dir))
 
         # Should discover the 4 Phase 2.1 hooks
         all_hooks = integration.registry.to_dict()
-        hook_names = [
-            hook_name for stage_hooks in all_hooks.values() for hook_name in stage_hooks.keys()
-        ]
+        hook_names = [hook_name for stage_hooks in all_hooks.values() for hook_name in stage_hooks]
 
         expected_hooks = [
             "protect-files",
@@ -569,9 +591,7 @@ class TestPhase21HooksIntegration:
         ]
 
         for expected in expected_hooks:
-            assert any(expected in name for name in hook_names), (
-                f"Expected hook '{expected}' not found"
-            )
+            assert any(expected in name for name in hook_names), f"Expected hook '{expected}' not found"
 
     def test_pre_execute_hooks(self):
         """Test PRE_EXECUTE stage hooks."""

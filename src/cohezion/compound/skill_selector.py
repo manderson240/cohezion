@@ -204,25 +204,13 @@ class SkillSelector:
         result = []
         for skill_name, metrics in skill_scores.items():
             # Average the metrics
-            coherence = (
-                sum(metrics["coherence"]) / len(metrics["coherence"])
-                if metrics["coherence"]
-                else 0.5
-            )
-            efficiency = (
-                sum(metrics["efficiency"]) / len(metrics["efficiency"])
-                if metrics["efficiency"]
-                else 0.5
-            )
-            success = (
-                sum(metrics["success"]) / len(metrics["success"]) if metrics["success"] else 0.5
-            )
+            coherence = sum(metrics["coherence"]) / len(metrics["coherence"]) if metrics["coherence"] else 0.5
+            efficiency = sum(metrics["efficiency"]) / len(metrics["efficiency"]) if metrics["efficiency"] else 0.5
+            success = sum(metrics["success"]) / len(metrics["success"]) if metrics["success"] else 0.5
 
             # Compute composite score
             composite = (
-                self.coherence_weight * coherence
-                + self.efficiency_weight * efficiency
-                + self.success_weight * success
+                self.coherence_weight * coherence + self.efficiency_weight * efficiency + self.success_weight * success
             )
 
             score = SkillScore(

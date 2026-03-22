@@ -121,8 +121,7 @@ class CompoundPersistence:
 
         client = await get_client()
         result = await client.query(
-            "SELECT * FROM compound_cycle WHERE skill_name = $name "
-            "ORDER BY timestamp DESC LIMIT $limit",
+            "SELECT * FROM compound_cycle WHERE skill_name = $name ORDER BY timestamp DESC LIMIT $limit",
             {"name": skill_name, "limit": limit},
         )
         if isinstance(result, list):

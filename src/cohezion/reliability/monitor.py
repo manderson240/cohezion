@@ -1,4 +1,5 @@
 import asyncio
+import contextlib
 import json
 import logging
 import time
@@ -67,10 +68,8 @@ class ResourceMonitor:
         self._running = False
         if hasattr(self, "_heartbeat_task"):
             self._heartbeat_task.cancel()
-            try:
+            with contextlib.suppress(asyncio.CancelledError):
                 await self._heartbeat_task
-            except asyncio.CancelledError:
-                pass
         logger.info("ResourceMonitor stopped.")
 
     def register_coordinator(self, coordinator: Any):
@@ -160,15 +159,9 @@ class ResourceMonitor:
         async with self._lock:
             # Check system vitals before proceeding
             vitals = self.get_vitals()
-            if (
-                vitals["cpu_percent"] > 90
-                or vitals["memory_percent"] > 90
-                or vitals.get("vram_percent", 0) > 90
-            ):
+            if vitals["cpu_percent"] > 90 or vitals["memory_percent"] > 90 or vitals.get("vram_percent", 0) > 90:
                 wait_time = 10.0
-                logger.warning(
-                    f"⚠️ Extreme System Pressure Detected: {vitals}. Throttling for {wait_time}s..."
-                )
+                logger.warning(f"⚠️ Extreme System Pressure Detected: {vitals}. Throttling for {wait_time}s...")
                 self.throttled = True
                 await asyncio.sleep(wait_time)
             else:
@@ -196,8 +189,7 @@ class ResourceMonitor:
         """
         self._sandbox_registry[sandbox_id] = memory_mb
         logger.info(
-            f"Sandbox registered: {sandbox_id} ({memory_mb}MB). "
-            f"Total sandbox memory: {self.total_sandbox_memory_mb}MB"
+            f"Sandbox registered: {sandbox_id} ({memory_mb}MB). Total sandbox memory: {self.total_sandbox_memory_mb}MB"
         )
 
     def deregister_sandbox(self, sandbox_id: str) -> None:
@@ -210,10 +202,7 @@ class ResourceMonitor:
         """
         removed = self._sandbox_registry.pop(sandbox_id, None)
         if removed is not None:
-            logger.info(
-                f"Sandbox deregistered: {sandbox_id}. "
-                f"Total sandbox memory: {self.total_sandbox_memory_mb}MB"
-            )
+            logger.info(f"Sandbox deregistered: {sandbox_id}. Total sandbox memory: {self.total_sandbox_memory_mb}MB")
 
     @property
     def total_sandbox_memory_mb(self) -> int:
@@ -432,8 +421,7 @@ class ResourceMonitor:
             sandbox_mem = self.total_sandbox_memory_mb
             if sandbox_mem > 80 * 1024:  # >80GB sandbox memory
                 logger.warning(
-                    f"Sandbox memory pressure: {sandbox_mem}MB allocated "
-                    f"across {len(self._sandbox_registry)} sandboxes"
+                    f"Sandbox memory pressure: {sandbox_mem}MB allocated across {len(self._sandbox_registry)} sandboxes"
                 )
 
             log_entry = (

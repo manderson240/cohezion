@@ -237,7 +237,7 @@ class TestSkillScoreComputation:
 
     def test_composite_score_calculation(self, selector):
         """Test composite score calculation."""
-        score = SkillScore(
+        SkillScore(
             skill_name="test",
             coherence_score=0.5,
             token_efficiency=0.5,
@@ -247,11 +247,7 @@ class TestSkillScoreComputation:
         )
 
         # Manually compute with selector's weights
-        expected = (
-            selector.coherence_weight * 0.5
-            + selector.efficiency_weight * 0.5
-            + selector.success_weight * 0.5
-        )
+        expected = selector.coherence_weight * 0.5 + selector.efficiency_weight * 0.5 + selector.success_weight * 0.5
 
         # All equal means composite should be 0.5
         assert expected == 0.5

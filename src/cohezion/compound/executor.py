@@ -401,18 +401,11 @@ class CompoundExecutor:
         # Step 1.5: Parse request for alignment analysis (if enabled)
         # Skip in degradation mode to conserve resources
         parsed_request = None
-        alignment_patterns = None
-        if (
-            self._enable_alignment_analysis
-            and self.alignment_analyzer
-            and not self._degradation_mode
-        ):
+        if self._enable_alignment_analysis and self.alignment_analyzer and not self._degradation_mode:
             try:
                 request_text = human_request or task_description
                 parsed_request = self.alignment_analyzer.parse_request(request_text)
-                alignment_patterns = self.alignment_analyzer.query_alignment_patterns(
-                    task_description, project
-                )
+                self.alignment_analyzer.query_alignment_patterns(task_description, project)
                 logger.debug(
                     "Parsed request: intent=%s (confidence=%.2f), %d constraints, %d criteria",
                     parsed_request.intent.value,
@@ -444,9 +437,7 @@ class CompoundExecutor:
                 "operation_type": operation_type,
                 "task_description": task_description,
             }
-            input_check = _run_async_guardrail(
-                self.guardrail_pipeline.check_input(task_description, guard_context)
-            )
+            input_check = _run_async_guardrail(self.guardrail_pipeline.check_input(task_description, guard_context))
             if input_check and input_check.action == GuardrailAction.BLOCK:
                 error_msg = f"Input blocked by guardrails: {input_check.reason}"
                 output = f"Error: {error_msg}"
@@ -495,9 +486,7 @@ class CompoundExecutor:
                 "operation_type": operation_type,
                 "task_description": task_description,
             }
-            output_check = _run_async_guardrail(
-                self.guardrail_pipeline.check_output(output, guard_context)
-            )
+            output_check = _run_async_guardrail(self.guardrail_pipeline.check_output(output, guard_context))
             if output_check:
                 if output_check.action == GuardrailAction.BLOCK:
                     output = "[Output blocked by content filter]"
@@ -553,7 +542,10 @@ class CompoundExecutor:
                         title=f"Critical anomaly in {skill_name}",
                         context=f"Task: {task_description}\nIssues: {'; '.join(anomaly.issues)}",
                         decision="Re-execution recommended",
-                        rationale=f"Quality score {anomaly.score:.2f}, {anomaly.recommendations[0] if anomaly.recommendations else 'Investigate issues'}",
+                        rationale=(
+                            f"Quality score {anomaly.score:.2f},"
+                            f" {anomaly.recommendations[0] if anomaly.recommendations else 'Investigate issues'}"
+                        ),
                         project=project,
                     )
                     if decision_path:
@@ -602,9 +594,7 @@ class CompoundExecutor:
 
                 # Log alignment to vault if high misalignment
                 if alignment.misalignment_score > 0.3:
-                    vault_path = self.alignment_analyzer.log_alignment_to_vault(
-                        parsed_request, alignment, project
-                    )
+                    vault_path = self.alignment_analyzer.log_alignment_to_vault(parsed_request, alignment, project)
                     if vault_path:
                         decision_paths.append(vault_path)
                         logger.debug("Logged alignment analysis: %s", vault_path)
@@ -670,11 +660,7 @@ class CompoundExecutor:
                     duration_seconds=duration_seconds,
                     token_metrics=token_metrics,
                 )
-                retrospection_context = (
-                    self._retrospection_engine.analyze_execution_result(
-                        temp_result, skill_name
-                    )
-                )
+                retrospection_context = self._retrospection_engine.analyze_execution_result(temp_result, skill_name)
                 should_refine = retrospection_context.get("should_refine", True)
                 if retrospection_context.get("insights"):
                     metrics["retrospection_insights"] = retrospection_context[
@@ -720,13 +706,12 @@ class CompoundExecutor:
         # Coherence within HIHO band [0.4, 0.6] -> exit degradation mode
         # Coherence outside band with CRITICAL alert -> enter degradation mode
         coherence_val = metrics.get("coherence", 0.5)
-        if 0.4 <= coherence_val <= 0.6:
-            if self._degradation_mode:
-                logger.info(
-                    "Cohesion returned to HIHO band (%.2f), exiting degradation mode",
-                    coherence_val,
-                )
-                self._degradation_mode = False
+        if 0.4 <= coherence_val <= 0.6 and self._degradation_mode:
+            logger.info(
+                "Cohesion returned to HIHO band (%.2f), exiting degradation mode",
+                coherence_val,
+            )
+            self._degradation_mode = False
 
         if self._degradation_detector:
             try:
@@ -741,9 +726,7 @@ class CompoundExecutor:
                     degradation_metrics["combined_hit_rate"] = token_metrics.get(
                         "cache_hit_rate", token_metrics.get("combined_hit_rate", 0.0)
                     )
-                    degradation_metrics["tokens_per_second"] = token_metrics.get(
-                        "tokens_per_second", 0.0
-                    )
+                    degradation_metrics["tokens_per_second"] = token_metrics.get("tokens_per_second", 0.0)
                 alerts = self._degradation_detector.check_degradation(degradation_metrics)
                 if alerts:
                     metrics["degradation_alerts"] = len(alerts)
@@ -761,8 +744,7 @@ class CompoundExecutor:
                         self._degradation_mode = True
                         metrics["execution_degraded"] = True
                         logger.warning(
-                            "Entering degradation mode: %d CRITICAL alerts, "
-                            "cohesion=%.2f outside HIHO band",
+                            "Entering degradation mode: %d CRITICAL alerts, cohesion=%.2f outside HIHO band",
                             len(critical_alerts),
                             coherence_val,
                         )
@@ -834,9 +816,7 @@ class CompoundExecutor:
                     duration_seconds=duration_seconds,
                     token_metrics=token_metrics,
                 )
-                point = self._journey_tracker.track_execution(
-                    temp_result, task_description, operation_type
-                )
+                point = self._journey_tracker.track_execution(temp_result, task_description, operation_type)
                 journey_point_tracked = True
                 # Propagate phi_score to metrics for retrospection
                 if point and point.metadata:
@@ -857,7 +837,7 @@ class CompoundExecutor:
                         exec_id = f"exec_{int(time.time())}"
                         try:
                             asyncio.get_running_loop()
-                            _task = asyncio.ensure_future(  # noqa: RUF006
+                            _task = asyncio.ensure_future(
                                 self._journey_persistence.save_trajectory_point(
                                     exec_id,
                                     point_data,

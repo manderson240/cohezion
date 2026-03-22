@@ -22,7 +22,11 @@ def mock_compound_client():
     mock_client = AsyncMock()
     mock_client.execute = AsyncMock(
         return_value={
-            "result": '{"approve": "yes", "recommendation": "Approved", "confidence": 0.8, "coherence": 0.5, "rationale": "Looks good"}'
+            "result": (
+                '{"approve": "yes", "recommendation": "Approved",'
+                ' "confidence": 0.8, "coherence": 0.5,'
+                ' "rationale": "Looks good"}'
+            )
         }
     )
     return mock_client
@@ -183,12 +187,14 @@ class TestExpertDomainRouter:
     async def test_consult_stream_success(self, edl_router, mock_compound_client):
         """Test consulting expert stream with valid JSON response."""
         mock_compound_client.execute.return_value = {
-            "result": '{"approve": "yes", "recommendation": "Approved", "confidence": 0.8, "coherence": 0.5, "rationale": "Good design"}'
+            "result": (
+                '{"approve": "yes", "recommendation": "Approved",'
+                ' "confidence": 0.8, "coherence": 0.5,'
+                ' "rationale": "Good design"}'
+            )
         }
 
-        rec = await edl_router._consult_stream(
-            ExpertStream.ARCHITECT, "Test context", "Test proposal"
-        )
+        rec = await edl_router._consult_stream(ExpertStream.ARCHITECT, "Test context", "Test proposal")
 
         assert rec.stream == ExpertStream.ARCHITECT
         assert rec.recommendation == "Approved"
@@ -201,9 +207,7 @@ class TestExpertDomainRouter:
         """Test consulting expert stream with invalid JSON (fallback)."""
         mock_compound_client.execute.return_value = {"result": "This is not valid JSON"}
 
-        rec = await edl_router._consult_stream(
-            ExpertStream.ARCHITECT, "Test context", "Test proposal"
-        )
+        rec = await edl_router._consult_stream(ExpertStream.ARCHITECT, "Test context", "Test proposal")
 
         assert rec.stream == ExpertStream.ARCHITECT
         assert rec.recommendation == "This is not valid JSON"
@@ -339,7 +343,11 @@ class TestExpertDomainRouter:
     async def test_route_decision_architecture(self, edl_router, mock_compound_client):
         """Test routing architecture decision through EDL."""
         mock_compound_client.execute.return_value = {
-            "result": '{"approve": "yes", "recommendation": "Approved", "confidence": 0.8, "coherence": 0.5, "rationale": "Good design"}'
+            "result": (
+                '{"approve": "yes", "recommendation": "Approved",'
+                ' "confidence": 0.8, "coherence": 0.5,'
+                ' "rationale": "Good design"}'
+            )
         }
 
         consensus = await edl_router.route_decision(
@@ -357,7 +365,11 @@ class TestExpertDomainRouter:
     async def test_route_decision_integration(self, edl_router, mock_compound_client):
         """Test routing integration decision through EDL (3 streams)."""
         mock_compound_client.execute.return_value = {
-            "result": '{"approve": "yes", "recommendation": "Approved", "confidence": 0.8, "coherence": 0.5, "rationale": "Good integration"}'
+            "result": (
+                '{"approve": "yes", "recommendation": "Approved",'
+                ' "confidence": 0.8, "coherence": 0.5,'
+                ' "rationale": "Good integration"}'
+            )
         }
 
         consensus = await edl_router.route_decision(

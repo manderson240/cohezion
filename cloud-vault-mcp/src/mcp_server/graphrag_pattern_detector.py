@@ -66,9 +66,7 @@ class PatternDetector:
         self.surrealdb_url = surrealdb_url
         self.namespace = namespace
         self.database = database
-        self.query_engine = GraphRAGQuery(
-            surrealdb_url=surrealdb_url, namespace=namespace, database=database
-        )
+        self.query_engine = GraphRAGQuery(surrealdb_url=surrealdb_url, namespace=namespace, database=database)
 
     async def __aenter__(self):
         await self.query_engine.__aenter__()
@@ -77,9 +75,7 @@ class PatternDetector:
     async def __aexit__(self, exc_type, exc_val, exc_tb):
         await self.query_engine.__aexit__(exc_type, exc_val, exc_tb)
 
-    async def detect_patterns(
-        self, min_usage: int = 3, max_results: int = 20
-    ) -> list[PatternUsage]:
+    async def detect_patterns(self, min_usage: int = 3, max_results: int = 20) -> list[PatternUsage]:
         """
         Detect high-usage patterns from graph relationships.
 
@@ -113,9 +109,7 @@ class PatternDetector:
             LIMIT {max_results};
             """
 
-            results = await execute_surreal_async(
-                query, self.surrealdb_url, self.namespace, self.database
-            )
+            results = await execute_surreal_async(query, self.surrealdb_url, self.namespace, self.database)
 
             if not results or not results[0].get("result"):
                 logger.warning("No patterns found in graph")
@@ -160,9 +154,7 @@ class PatternDetector:
             logger.error(f"Pattern detection failed: {e}")
             raise GraphRAGError(f"Pattern detection failed: {e}") from e
 
-    async def suggest_patterns(
-        self, min_similarity: float = 0.7, max_suggestions: int = 10
-    ) -> list[PatternSuggestion]:
+    async def suggest_patterns(self, min_similarity: float = 0.7, max_suggestions: int = 10) -> list[PatternSuggestion]:
         """
         Suggest pattern extraction from similar decisions/experiments.
 
@@ -196,9 +188,7 @@ class PatternDetector:
             LIMIT 50;
             """
 
-            results = await execute_surreal_async(
-                query, self.surrealdb_url, self.namespace, self.database
-            )
+            results = await execute_surreal_async(query, self.surrealdb_url, self.namespace, self.database)
 
             if not results or not results[0].get("result"):
                 logger.warning("No unpatternized documents found")
@@ -230,9 +220,7 @@ class PatternDetector:
                         continue
 
                     # Calculate cosine similarity (simple dot product for normalized vectors)
-                    similarity = sum(
-                        a * b for a, b in zip(doc1_embedding, doc2_embedding)
-                    )
+                    similarity = sum(a * b for a, b in zip(doc1_embedding, doc2_embedding, strict=False))
 
                     if similarity >= min_similarity:
                         similar_group.append(doc2)
@@ -249,9 +237,7 @@ class PatternDetector:
                     for tag in all_tags:
                         tag_counts[tag] += 1
 
-                    common_themes = [
-                        tag for tag, count in tag_counts.items() if count >= 2
-                    ]
+                    common_themes = [tag for tag, count in tag_counts.items() if count >= 2]
 
                     # Generate suggested title from common themes
                     if common_themes:
@@ -260,7 +246,7 @@ class PatternDetector:
                         suggested_title = "Unnamed Pattern"
 
                     # Build rationale
-                    doc_titles = [doc.get("title", "Untitled") for doc in similar_group]
+                    [doc.get("title", "Untitled") for doc in similar_group]
                     rationale = (
                         f"Found {len(similar_group)} similar {similar_group[0]['type']}s "
                         f"that could be abstracted into a reusable pattern"
@@ -311,9 +297,7 @@ class PatternDetector:
             GROUP ALL;
             """
 
-            results = await execute_surreal_async(
-                query, self.surrealdb_url, self.namespace, self.database
-            )
+            results = await execute_surreal_async(query, self.surrealdb_url, self.namespace, self.database)
 
             if not results or not results[0].get("result"):
                 return {
@@ -353,11 +337,7 @@ class PatternDetector:
             if unused_results and unused_results[0].get("result"):
                 unused_count = unused_results[0]["result"][0].get("unused", 0)
 
-            avg_usage = (
-                (total_used_in + total_informed_by) / total_patterns
-                if total_patterns > 0
-                else 0.0
-            )
+            avg_usage = (total_used_in + total_informed_by) / total_patterns if total_patterns > 0 else 0.0
 
             return {
                 "total_patterns": total_patterns,

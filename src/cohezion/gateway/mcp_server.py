@@ -214,8 +214,7 @@ async def call_tool(name: str, arguments: dict[str, Any]) -> list[TextContent]:
                             "response": response,
                             "tokens": tokens,
                             "cost": round(
-                                metrics.get("total_cost", 0.0)
-                                / max(metrics.get("total_requests", 1), 1),
+                                metrics.get("total_cost", 0.0) / max(metrics.get("total_requests", 1), 1),
                                 6,
                             ),
                         }
@@ -231,9 +230,7 @@ async def call_tool(name: str, arguments: dict[str, Any]) -> list[TextContent]:
                 return [
                     TextContent(
                         type="text",
-                        text=json.dumps(
-                            {"error": f"Gateway '{arguments.get('gateway_id')}' not found"}
-                        ),
+                        text=json.dumps({"error": f"Gateway '{arguments.get('gateway_id')}' not found"}),
                     )
                 ]
 

@@ -102,7 +102,7 @@ async def mass_ingest():
         batch = []
         count = 0
         # Walk recursively
-        for root, dirs, files in os.walk(SOURCE_ROOT):
+        for root, _dirs, files in os.walk(SOURCE_ROOT):
             for file in files:
                 if file.endswith(".json") or file.endswith(".jsonl") or file.endswith(".txt"):
                     batch.append(Path(root) / file)

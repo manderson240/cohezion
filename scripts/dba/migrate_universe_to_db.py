@@ -72,15 +72,16 @@ async def main():
         if not batch:
             continue
 
-        success_count, error_count = await dba.batch_ingest(
-            "universe_nodes", batch, batch_size=BATCH_SIZE
-        )
+        success_count, _error_count = await dba.batch_ingest("universe_nodes", batch, batch_size=BATCH_SIZE)
         total_ingested += success_count
 
         # Calculate rate
         elapsed = time.time() - start_time
         rate = total_ingested / elapsed if elapsed > 0 else 0
         logger.info(f"Progress: {total_ingested} records. Rate: {rate:.2f} rec/s")
+
+        # Optional: Delete chunk after successful ingest to save space?
+        # file_path.unlink()
 
         # Optional: Delete chunk after successful ingest to save space?
         # file_path.unlink()

@@ -15,9 +15,7 @@ import sys
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(
-        description="Train FLUME VAE on collected execution experiences."
-    )
+    parser = argparse.ArgumentParser(description="Train FLUME VAE on collected execution experiences.")
     parser.add_argument(
         "--min-real",
         type=int,

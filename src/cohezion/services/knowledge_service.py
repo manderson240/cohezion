@@ -129,8 +129,9 @@ class KnowledgeService:
             date_str = datetime.now().strftime("%Y-%m-%d")
             journal_entry = f"\n\n## Session Developments ({date_str})\n"
             journal_entry += (
-                f"- **Targeted Mission State**: Synchronized journey from "
-                f"`{os.path.basename(task_file)}` and `{os.path.basename(plan_file)}`.\n"
+                f"- **Targeted Mission State**: Synchronized journey from"
+                f" `{os.path.basename(task_file)}` and"
+                f" `{os.path.basename(plan_file)}`.\n"
             )
 
             # Extract key milestones (simple heuristic)

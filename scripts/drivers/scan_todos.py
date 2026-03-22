@@ -20,9 +20,7 @@ def scan_codebase():
     # Patterns to search for
     patterns = {
         "TODO": re.compile(r"(TODO|FIXME|HACK|XXX):\s*(.*)", re.IGNORECASE),
-        "Next Step": re.compile(
-            r"(?:##|\*\*|[\-\*])\s*(?:Proposed )?Next Steps?:?\s*(.*)", re.IGNORECASE
-        ),
+        "Next Step": re.compile(r"(?:##|\*\*|[\-\*])\s*(?:Proposed )?Next Steps?:?\s*(.*)", re.IGNORECASE),
         "Option": re.compile(r"(?:##|\*\*|[\-\*])\s*Option\s*(\d+|[A-Z])?:?\s*(.*)", re.IGNORECASE),
         "Future Work": re.compile(r"(?:##|\*\*|[\-\*])\s*Future Work:?\s*(.*)", re.IGNORECASE),
     }

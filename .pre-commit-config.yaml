@@ -3,15 +3,22 @@
 # Run manually: pre-commit run --all-files
 
 repos:
-  # Ruff - Fast Python linter and formatter
+  # ============================================================================
+  # FAST CHECKS (commit stage) - Quick syntax and formatting validation
+  # ============================================================================
+
+  # Ruff - Fast Python formatter and linter (full rule set from pyproject.toml)
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.15.0
     hooks:
-      # Run the linter
-      - id: ruff
-        args: [--fix]
-      # Run the formatter
+      # Format: auto-fix on commit
       - id: ruff-format
+        stages: [pre-commit]
+      # Lint: full rule set with auto-fix (rules configured in pyproject.toml)
+      - id: ruff
+        stages: [pre-commit]
+        args: [--fix]
+        name: ruff-lint (full rules)
 
   # Type checking with mypy
   - repo: https://github.com/pre-commit/mirrors-mypy

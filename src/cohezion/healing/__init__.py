@@ -280,10 +280,9 @@ class SelfHealingSystem:
 
         for issue in issues:
             diagnosis = self.diagnostician.diagnose(issue)
-            if diagnosis.confidence >= 0.5:
-                if await self.corrector.apply_correction(diagnosis):
-                    healed += 1
-                    logger.info(f"Healed: {diagnosis.issue}")
+            if diagnosis.confidence >= 0.5 and await self.corrector.apply_correction(diagnosis):
+                healed += 1
+                logger.info(f"Healed: {diagnosis.issue}")
 
         return healed
 

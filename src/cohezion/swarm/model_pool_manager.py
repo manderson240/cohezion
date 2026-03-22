@@ -375,11 +375,7 @@ class ModelPoolManager:
     async def _evict_one(self, exclude: str = "") -> bool:
         """Evict one model to free a slot. Returns True if a model was evicted."""
         candidates = sorted(
-            [
-                m
-                for m in self._pool.values()
-                if m.loaded and m.tier != ModelTierPolicy.HOT and m.name != exclude
-            ],
+            [m for m in self._pool.values() if m.loaded and m.tier != ModelTierPolicy.HOT and m.name != exclude],
             key=lambda m: (
                 0 if m.tier == ModelTierPolicy.COLD else 1,
                 m.last_used,

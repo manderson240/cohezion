@@ -59,9 +59,7 @@ class VaultLogger:
             logger.error(f"Failed to log execution start to Vault: {e}")
             return ""
 
-    def log_execution_result(
-        self, experiment_path: str, success: bool, output: str, metrics: dict[str, Any]
-    ):
+    def log_execution_result(self, experiment_path: str, success: bool, output: str, metrics: dict[str, Any]):
         """Update the execution log with results."""
         if not experiment_path:
             return
@@ -81,9 +79,7 @@ class VaultLogger:
         except Exception as e:
             logger.error(f"Failed to log execution result to Vault: {e}")
 
-    def get_experience_guidance(
-        self, task_description: str, project: str = "cohezion"
-    ) -> dict[str, Any]:
+    def get_experience_guidance(self, task_description: str, project: str = "cohezion") -> dict[str, Any]:
         """Fetch similar patterns from the Vault for guidance."""
         try:
             # Simple keyword extraction for search
@@ -187,7 +183,11 @@ class VaultLogger:
 
                 filename = f"missions/{mission_id}.md"
                 # Add links to relevant project and skill for Obsidian Graph connectivity
-                content += f"\n\n--- \nTags: #retrospective #{data.get('agent', 'agent').lower()} #{data.get('skill_name', 'skill').lower()}\n"
+                content += (
+                    f"\n\n--- \nTags: #retrospective"
+                    f" #{data.get('agent', 'agent').lower()}"
+                    f" #{data.get('skill_name', 'skill').lower()}\n"
+                )
 
                 self.mcp.vault_write(filename, content)
                 logger.info(f"Architectural insight persisted to Vault: {filename}")
@@ -196,6 +196,7 @@ class VaultLogger:
                 logger.error(
                     f"Vault human-readable persistence failed for mission {data.get('mission_id')}: {e}"
                 )
+
 
 
 def get_vault_logger() -> VaultLogger:

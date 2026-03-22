@@ -279,10 +279,7 @@ class UniverseArtifactMigration:
             # For now, we validate the schema and prepare data
 
             # Load schema
-            schema_path = (
-                self.cohezion_root
-                / "src/cohezion/knowledge_graph/universe_artifact_surrealdb_schema.sql"
-            )
+            schema_path = self.cohezion_root / "src/cohezion/knowledge_graph/universe_artifact_surrealdb_schema.sql"
 
             if not schema_path.exists():
                 raise FileNotFoundError(f"Schema not found: {schema_path}")
@@ -339,7 +336,7 @@ class UniverseArtifactMigration:
                 verified_count = 0
                 failed_count = 0
 
-                for i, member in enumerate(members[: min(10, len(members))]):
+                for _i, member in enumerate(members[: min(10, len(members))]):
                     if not member.isdir():
                         try:
                             f = tar.extractfile(member)

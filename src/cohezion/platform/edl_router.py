@@ -5,7 +5,7 @@ Charter requirement: "All complex problems must route through five specialized s
 
 import asyncio
 import json
-from enum import Enum
+from enum import StrEnum
 
 from pydantic import BaseModel
 
@@ -13,7 +13,7 @@ from cohezion.platform.coherence_tracker import get_coherence_tracker
 from cohezion.swarm.compound_client import get_compound_client
 
 
-class ExpertStream(str, Enum):
+class ExpertStream(StrEnum):
     """Five expert streams per Charter."""
 
     ARCHITECT = "architect"  # Design decisions
@@ -68,9 +68,7 @@ class ExpertDomainRouter:
         streams = self._select_streams(decision_type)
 
         # Consult each stream in parallel
-        recommendations = await asyncio.gather(
-            *[self._consult_stream(stream, context, proposal) for stream in streams]
-        )
+        recommendations = await asyncio.gather(*[self._consult_stream(stream, context, proposal) for stream in streams])
 
         # Stabilize consensus (Charter requirement: 0.5 coherence)
         consensus = self._stabilize_consensus(recommendations)
@@ -95,9 +93,7 @@ class ExpertDomainRouter:
 
         return stream_map.get(decision_type, [ExpertStream.ARCHITECT])
 
-    async def _consult_stream(
-        self, stream: ExpertStream, context: str, proposal: str
-    ) -> StreamRecommendation:
+    async def _consult_stream(self, stream: ExpertStream, context: str, proposal: str) -> StreamRecommendation:
         """Consult a single expert stream."""
 
         # Construct prompt for expert stream
@@ -198,9 +194,7 @@ Respond in JSON format:
         )
 
         # Generate reasoning
-        reasoning = self._generate_consensus_reasoning(
-            recommendations, avg_coherence, hiho_stable, consensus_strength
-        )
+        reasoning = self._generate_consensus_reasoning(recommendations, avg_coherence, hiho_stable, consensus_strength)
 
         return EDLConsensus(
             decision=merged_decision,

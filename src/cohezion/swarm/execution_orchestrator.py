@@ -16,7 +16,10 @@ from typing import TYPE_CHECKING, Any
 
 from cohezion.core.instruction_expander import InstructionExpander
 from cohezion.core.plan_executor import ExecutionResult, PlanExecutor
-from cohezion.swarm.team_orchestrator import TaskSpec, TeamPlan
+
+
+if TYPE_CHECKING:
+    from cohezion.swarm.team_orchestrator import TaskSpec, TeamPlan
 
 
 if TYPE_CHECKING:
@@ -123,9 +126,7 @@ def _topological_sort(tasks: list[TaskSpec]) -> list[list[TaskSpec]]:
 
     while remaining:
         # Find tasks whose dependencies are all satisfied
-        ready = [
-            tid for tid in remaining if all(dep in completed for dep in task_map[tid].blocked_by)
-        ]
+        ready = [tid for tid in remaining if all(dep in completed for dep in task_map[tid].blocked_by)]
         if not ready:
             # Break cycle: force remaining tasks into one wave
             logger.warning(
@@ -222,9 +223,7 @@ class ExecutionOrchestrator:
 
         elapsed = (time.monotonic() - t0) * 1000.0
         report.total_duration_ms = elapsed
-        report.total_tokens = sum(
-            tr.execution.total_tokens for tr in report.task_results if tr.execution
-        )
+        report.total_tokens = sum(tr.execution.total_tokens for tr in report.task_results if tr.execution)
 
         # Determine overall status
         statuses = {tr.status for tr in report.task_results}
@@ -309,9 +308,7 @@ class ExecutionOrchestrator:
 
             if spec is None:
                 for skill_spec in engine._cache.values():
-                    if any(
-                        kw.lower() in task.subject.lower() for kw in skill_spec.name.split("_")[:3]
-                    ):
+                    if any(kw.lower() in task.subject.lower() for kw in skill_spec.name.split("_")[:3]):
                         spec = skill_spec
                         break
 

@@ -34,9 +34,7 @@ def tmp_skills(tmp_path: Path) -> Path:
     for i in range(3):
         md = skills_dir / f"SKILL_{i}_PRIME.md"
         md.write_text(
-            f"# SKILL: SKILL_{i}_PRIME\n\n"
-            f"## VERSION\n\n1.{i}\n\n"
-            f"## INSTRUCTION\n\n1. Do step one\n2. Do step two\n",
+            f"# SKILL: SKILL_{i}_PRIME\n\n## VERSION\n\n1.{i}\n\n## INSTRUCTION\n\n1. Do step one\n2. Do step two\n",
             encoding="utf-8",
         )
     # One skill without instructions
@@ -131,9 +129,7 @@ class TestVersionTracker:
 class TestGenerateAll:
     def test_generate_all_calls_manager(self, pipeline: TemplatePipeline) -> None:
         mock_manager = MagicMock()
-        mock_manager.generate_executable_and_register.return_value = {
-            "agent": Path("/tmp/agent.py")
-        }
+        mock_manager.generate_executable_and_register.return_value = {"agent": Path("/tmp/agent.py")}
         pipeline._manager = mock_manager
 
         mock_tracker = MagicMock()
@@ -148,9 +144,7 @@ class TestGenerateAll:
 
     def test_generate_all_top_n_limit(self, pipeline: TemplatePipeline) -> None:
         mock_manager = MagicMock()
-        mock_manager.generate_executable_and_register.return_value = {
-            "agent": Path("/tmp/agent.py")
-        }
+        mock_manager.generate_executable_and_register.return_value = {"agent": Path("/tmp/agent.py")}
         pipeline._manager = mock_manager
         pipeline._tracker = MagicMock()
 
@@ -177,9 +171,7 @@ class TestGenerateAll:
 class TestRegenerateForSkill:
     def test_regenerate_success(self, pipeline: TemplatePipeline) -> None:
         mock_manager = MagicMock()
-        mock_manager.generate_executable_and_register.return_value = {
-            "agent": Path("/tmp/agent.py")
-        }
+        mock_manager.generate_executable_and_register.return_value = {"agent": Path("/tmp/agent.py")}
         pipeline._manager = mock_manager
         pipeline._tracker = MagicMock()
 

@@ -13,7 +13,7 @@ def debug_mem():
     forest_values_p = header
     inp_indices_p = forest_values_p + len(forest.values)
     inp_values_p = inp_indices_p + len(inp.indices)
-    extra_room = inp_values_p + len(inp.values)
+    inp_values_p + len(inp.values)
 
     print(f"Indices P: {inp_indices_p}")
     print(f"Values P: {inp_values_p}")

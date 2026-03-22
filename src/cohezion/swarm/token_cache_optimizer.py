@@ -277,9 +277,7 @@ class TokenCacheOptimizer:
             "model_statistics": {
                 model: {
                     "hit_rate": round(
-                        stats["hits"] / stats["total_requests"]
-                        if stats["total_requests"] > 0
-                        else 0,
+                        stats["hits"] / stats["total_requests"] if stats["total_requests"] > 0 else 0,
                         4,
                     ),
                     "total_requests": stats["total_requests"],
