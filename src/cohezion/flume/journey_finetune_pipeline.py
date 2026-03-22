@@ -131,7 +131,7 @@ Response format: Show your reasoning, code, and verification steps."""
         return f"""## Execution Result
 
 **Quality Score (phi):** {phi:.3f}
-**Trajectory Smoothness:** {smoothness:.3f}  
+**Trajectory Smoothness:** {smoothness:.3f}
 **Convergence Rate:** {convergence:.3f}
 
 **Final 12D Position (first 6 dims):** [{traj_str}]
@@ -303,7 +303,7 @@ async def main():
 
     # Step 1: Collect and convert
     converter = JourneyToFinetuneConverter()
-    output_path = converter.run(min_phi=args.min_phi, max_samples=args.max_samples)
+    converter.run(min_phi=args.min_phi, max_samples=args.max_samples)
 
     # Step 2: Optionally deploy
     if args.deploy:

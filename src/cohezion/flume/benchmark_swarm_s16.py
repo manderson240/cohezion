@@ -79,7 +79,7 @@ def benchmark_swarm():
     # Convert list of numpy arrays to a single 2D array for the batch call
     swarm_z_batch = np.stack(swarm_z_np).astype(np.float32)
 
-    results_rs = rust_physics.simulate_epochs_batch(swarm_z_batch, steps)
+    rust_physics.simulate_epochs_batch(swarm_z_batch, steps)
 
     rust_time = time.perf_counter() - start
     print(f"Rust Parallel Time: {rust_time * 1000:.4f}ms")
