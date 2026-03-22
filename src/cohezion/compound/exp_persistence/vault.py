@@ -104,7 +104,12 @@ class VaultLogger:
             return {"relevant_context": [], "guidance": "Vault guidance unavailable."}
 
     def extract_execution_pattern(
-        self, source_path: str, pattern_name: str, description: str, code_example: str, domain: str
+        self,
+        source_path: str,
+        pattern_name: str,
+        description: str,
+        code_example: str,
+        domain: str,
     ) -> str:
         """Extract a reusable pattern from a successful execution."""
         try:

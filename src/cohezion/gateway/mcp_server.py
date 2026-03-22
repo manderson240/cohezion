@@ -165,7 +165,10 @@ async def list_tools() -> list[Tool]:
                 "properties": {
                     "model": {"type": "string", "description": "Model name"},
                     "input_tokens": {"type": "integer", "description": "Input tokens"},
-                    "output_tokens": {"type": "integer", "description": "Output tokens"},
+                    "output_tokens": {
+                        "type": "integer",
+                        "description": "Output tokens",
+                    },
                 },
                 "required": ["model", "input_tokens", "output_tokens"],
             },
@@ -339,7 +342,11 @@ async def call_tool(name: str, arguments: dict[str, Any]) -> list[TextContent]:
             ]
 
         else:
-            return [TextContent(type="text", text=json.dumps({"error": f"Unknown tool: {name}"}))]
+            return [
+                TextContent(
+                    type="text", text=json.dumps({"error": f"Unknown tool: {name}"})
+                )
+            ]
 
     except Exception as e:
         logger.error(f"Tool error: {e}")

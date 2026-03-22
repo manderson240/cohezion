@@ -139,9 +139,164 @@ class JourneyTracker:
             flume_encoder=self._flume_encoder,
         )
 
-    def holographic_project(self, latent_2048d: np.ndarray) -> np.ndarray:
-        """Project 2048D embedding to 12D using chunk-mean averaging."""
-        return _holographic_project(latent_2048d, projection_cache=self._projection_cache)
+        # ANALYZE: High logic (1) + field (2)
+        profiles[OperationType.ANALYZE.value] = np.array(
+            [
+                0.5,  # novelty
+                0.9,  # logic
+                0.8,  # field
+                0.4,  # spatial
+                0.3,  # temporal
+                0.4,  # precipitation
+                0.7,  # coherence
+                0.6,  # efficiency
+                0.5,  # convergence
+                0.4,  # smoothness
+                0.6,  # resonance
+                0.5,  # harmony
+            ]
+        )
+
+        # SEARCH: High spatial (3)
+        profiles[OperationType.SEARCH.value] = np.array(
+            [
+                0.6,  # novelty
+                0.5,  # logic
+                0.4,  # field
+                0.9,  # spatial
+                0.4,  # temporal
+                0.3,  # precipitation
+                0.6,  # coherence
+                0.8,  # efficiency
+                0.4,  # convergence
+                0.5,  # smoothness
+                0.5,  # resonance
+                0.4,  # harmony
+            ]
+        )
+
+        # TRANSFORM: Moderate all
+        profiles[OperationType.TRANSFORM.value] = np.array(
+            [
+                0.6,  # novelty
+                0.6,  # logic
+                0.6,  # field
+                0.6,  # spatial
+                0.6,  # temporal
+                0.6,  # precipitation
+                0.6,  # coherence
+                0.6,  # efficiency
+                0.5,  # convergence
+                0.5,  # smoothness
+                0.6,  # resonance
+                0.6,  # harmony
+            ]
+        )
+
+        # PERSIST: High temporal (4) + precipitation (5)
+        profiles[OperationType.PERSIST.value] = np.array(
+            [
+                0.3,  # novelty
+                0.4,  # logic
+                0.5,  # field
+                0.4,  # spatial
+                0.9,  # temporal
+                0.8,  # precipitation
+                0.7,  # coherence
+                0.5,  # efficiency
+                0.6,  # convergence
+                0.4,  # smoothness
+                0.5,  # resonance
+                0.5,  # harmony
+            ]
+        )
+
+        return profiles
+
+    def _text_to_latent(self, text: str) -> np.ndarray:
+        """Generate deterministic 2048D embedding from text.
+
+        Uses SHA-256 hash expanded to 2048D with sine wave modulation.
+
+        Args:
+            text: Input text to embed
+
+        Returns:
+            2048D numpy array with normalized values
+        """
+        # Generate hash
+        hash_obj = hashlib.sha256(text.encode())
+        hash_bytes = hash_obj.digest()
+
+        # Expand to 2048 dimensions using deterministic method
+        latent = np.zeros(self.HASH_DIMS)
+        for i in range(self.HASH_DIMS):
+            # Cycle through hash bytes
+            byte_idx = i % len(hash_bytes)
+            # Use sine wave modulation for smooth variation
+            phase = (2.0 * np.pi * i) / self.HASH_DIMS
+            latent[i] = (
+                (hash_bytes[byte_idx] / 255.0) * 0.5
+                + 0.25 * np.sin(phase)
+                + 0.25 * np.cos(phase * 2)
+            )
+
+        # Normalize to [-1, 1]
+        latent = (
+            2.0 * (latent - np.min(latent)) / (np.max(latent) - np.min(latent) + 1e-8)
+            - 1.0
+        )
+
+        return latent
+
+    def _holographic_project(self, latent_2048d: np.ndarray) -> np.ndarray:
+        """Project 2048D embedding to 12D using holographic method.
+
+        Uses chunk-mean averaging: divide 2048D into 128-element segments
+        and take mean of each segment. Then interpolate to 12D.
+
+        Args:
+            latent_2048d: 2048D embedding vector
+
+        Returns:
+            12D normalized vector
+        """
+        # Check cache
+        latent_hash = hashlib.sha256(latent_2048d.tobytes()).hexdigest()[:8]
+        if latent_hash in self._projection_cache:
+            return self._projection_cache[latent_hash]
+
+        # Chunk-mean projection: 2048 → 16 dimensions (128-element chunks)
+        num_chunks = self.HASH_DIMS // self.CHUNK_SIZE
+        chunk_means = np.array(
+            [
+                np.mean(latent_2048d[i * self.CHUNK_SIZE : (i + 1) * self.CHUNK_SIZE])
+                for i in range(num_chunks)
+            ]
+        )
+
+        # Interpolate 16D → 12D
+        if len(chunk_means) > self.AXIOMATIC_DIMS:
+            # Downsample using linear interpolation
+            indices = np.linspace(0, len(chunk_means) - 1, self.AXIOMATIC_DIMS)
+            result_12d = np.interp(indices, np.arange(len(chunk_means)), chunk_means)
+        else:
+            # Upsample if needed
+            indices = np.linspace(0, len(chunk_means) - 1, self.AXIOMATIC_DIMS)
+            result_12d = np.interp(indices, np.arange(len(chunk_means)), chunk_means)
+
+        # Normalize to [0, 1]
+        result_12d = (result_12d - np.min(result_12d)) / (
+            np.max(result_12d) - np.min(result_12d) + 1e-8
+        )
+
+        # Cache result (evict oldest if at capacity)
+        if len(self._projection_cache) >= self.MAX_CACHE_SIZE:
+            oldest_key = next(iter(self._projection_cache))
+            del self._projection_cache[oldest_key]
+        self._projection_cache[latent_hash] = result_12d
+
+        return result_12d
 
     def _step_to_axiomatic(
         self,
@@ -150,9 +305,38 @@ class JourneyTracker:
         coherence: float,
         efficiency: float,
     ) -> np.ndarray:
-        """Apply operation-specific modulation to 12D projection."""
-        operation_str = operation_type if isinstance(operation_type, str) else operation_type.value
-        return step_to_axiomatic(projection_12d, operation_str, coherence, efficiency)
+        """Apply operation-specific modulation to 12D projection.
+
+        Combines base projection with operation modulation and
+        execution quality metrics.
+
+        Args:
+            projection_12d: 12D base projection
+            operation_type: Type of operation
+            coherence: Quality metric (0.0-1.0)
+            efficiency: Token efficiency (0.0-1.0)
+
+        Returns:
+            12D axiomatic vector
+        """
+        # Get modulation profile
+        operation_str = (
+            operation_type if isinstance(operation_type, str) else operation_type.value
+        )
+        modulation = self._modulation_profiles.get(
+            operation_str,
+            self._modulation_profiles[OperationType.TRANSFORM.value],
+        )
+
+        # Combine projection with modulation
+        # Weight modulation by execution quality
+        quality_weight = 0.5 * coherence + 0.5 * efficiency
+        axiomatic = projection_12d * (1.0 - quality_weight) + modulation * quality_weight
+
+        # Normalize
+        axiomatic = np.clip(axiomatic, 0.0, 1.0)
+
+        return axiomatic
 
     def _compute_phi_score(
         self,
@@ -253,7 +437,9 @@ class JourneyTracker:
 
         coherences = np.array([p.coherence for p in points])
         efficiencies = np.array([p.efficiency for p in points])
-        phi_scores = np.array([(p.metadata or {}).get("phi_score", 0.0) for p in points])
+        phi_scores = np.array(
+            [(p.metadata or {}).get("phi_score", 0.0) for p in points]
+        )
 
         dimensions = np.array([p.dimensions for p in points])
         if len(dimensions) > 1:

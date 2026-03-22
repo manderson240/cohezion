@@ -195,7 +195,9 @@ class TestMCPClient(unittest.TestCase):
             {
                 "jsonrpc": "2.0",
                 "id": 1,
-                "result": {"content": [{"text": "decisions/2025-01-15-test-decision.md"}]},
+                "result": {
+                    "content": [{"text": "decisions/2025-01-15-test-decision.md"}]
+                },
             }
         )
         mock_client.post.return_value = tool_response
@@ -214,7 +216,9 @@ class TestMCPClient(unittest.TestCase):
             {
                 "jsonrpc": "2.0",
                 "id": 1,
-                "result": {"content": [{"text": "experiments/2025-01-15-test-experiment.md"}]},
+                "result": {
+                    "content": [{"text": "experiments/2025-01-15-test-experiment.md"}]
+                },
             }
         )
         result = client.vault_log_experiment(

@@ -260,7 +260,9 @@ class TaskQueue:
         self.metrics.total_flushed += flushed
         self.metrics.current_depth = self.size()
 
-        logger.warning(f"Flushed {flushed} tasks (priority < {priority_threshold.name})")
+        logger.warning(
+            f"Flushed {flushed} tasks (priority < {priority_threshold.name})"
+        )
 
         return flushed
 
@@ -289,7 +291,9 @@ class TaskQueue:
         int
             Number of tasks in queue
         """
-        return len(self._critical_queue) + len(self._normal_queue) + len(self._low_queue)
+        return (
+            len(self._critical_queue) + len(self._normal_queue) + len(self._low_queue)
+        )
 
     def is_empty(self) -> bool:
         """Check if queue is empty.
@@ -344,7 +348,11 @@ class TaskQueue:
             filepath.parent.mkdir(parents=True, exist_ok=True)
 
             with open(filepath, "w") as f:
-                for queue in [self._critical_queue, self._normal_queue, self._low_queue]:
+                for queue in [
+                    self._critical_queue,
+                    self._normal_queue,
+                    self._low_queue,
+                ]:
                     for task in queue:
                         record = {
                             "task_id": task.task_id,

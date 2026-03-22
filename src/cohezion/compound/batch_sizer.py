@@ -469,7 +469,9 @@ class BatchSizePredictor:
             )
             if task_types_match:
                 types_str = task_types_match.group(1)
-                data["task_types"] = [t.strip().strip("\"'") for t in types_str.split(",")]
+                data["task_types"] = [
+                    t.strip().strip("\"'") for t in types_str.split(",")
+                ]
             else:
                 # Try alternative format without brackets
                 task_types_alt = re.search(
@@ -479,7 +481,9 @@ class BatchSizePredictor:
                     types_str = task_types_alt.group(1).strip()
                     # Handle comma-separated or space-separated
                     if "," in types_str:
-                        data["task_types"] = [t.strip().strip("\"'") for t in types_str.split(",")]
+                        data["task_types"] = [
+                            t.strip().strip("\"'") for t in types_str.split(",")
+                        ]
                     else:
                         data["task_types"] = [types_str.strip("\"'")]
                 else:
@@ -487,7 +491,9 @@ class BatchSizePredictor:
                     data["task_types"] = ["unknown"]
 
             # Extract timestamp
-            timestamp_match = re.search(r"timestamp[:\s]*([^\n]+)", content, re.IGNORECASE)
+            timestamp_match = re.search(
+                r"timestamp[:\s]*([^\n]+)", content, re.IGNORECASE
+            )
             if timestamp_match:
                 data["timestamp"] = timestamp_match.group(1).strip()
 

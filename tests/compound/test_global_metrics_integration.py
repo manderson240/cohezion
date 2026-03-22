@@ -17,7 +17,11 @@ from cohezion.compound.global_metrics_aggregator import (
     get_global_aggregator,
     reset_global_aggregator,
 )
-from cohezion.swarm.team_metrics import TeamCompoundMetrics, TeamMetricsAggregator, WaveMetrics
+from cohezion.swarm.team_metrics import (
+    TeamCompoundMetrics,
+    TeamMetricsAggregator,
+    WaveMetrics,
+)
 
 
 @pytest.fixture

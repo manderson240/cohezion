@@ -28,7 +28,9 @@ class TestTokenCountingEdgeCases:
     def test_very_large_token_count_million_tokens(self):
         """Test with 1M token query."""
         router = CostAwareRouter()
-        decision, can_proceed = router.select_model(query="x" * 10000)  # Scaled down for test
+        decision, can_proceed = router.select_model(
+            query="x" * 10000
+        )  # Scaled down for test
         assert decision is not None or can_proceed is not None
 
     def test_zero_token_query(self):
@@ -109,7 +111,9 @@ class TestLongRunningExecutionEdgeCases:
 
         for i in range(100):
             detector.detect_spike(
-                actual_cost=0.40 + (i % 5) * 0.02, forecasted_cost=0.40, model="continuous-test"
+                actual_cost=0.40 + (i % 5) * 0.02,
+                forecasted_cost=0.40,
+                model="continuous-test",
             )
 
         assert len(detector.recent_alerts) <= 1000
@@ -225,7 +229,9 @@ class TestDataConsistencyEdgeCases:
 
         for i in range(1000):
             detector.detect_spike(
-                actual_cost=0.40 + (i % 100) * 0.001, forecasted_cost=0.40, model="stress-test"
+                actual_cost=0.40 + (i % 100) * 0.001,
+                forecasted_cost=0.40,
+                model="stress-test",
             )
 
         assert len(detector.recent_alerts) <= 1000
@@ -286,7 +292,9 @@ class TestNumericalEdgeCases:
         reset_anomaly_detector()
         detector = get_anomaly_detector()
 
-        alert = detector.detect_spike(actual_cost=1000.0, forecasted_cost=500.0, model="expensive")
+        alert = detector.detect_spike(
+            actual_cost=1000.0, forecasted_cost=500.0, model="expensive"
+        )
 
         assert alert is not None or alert is None
 
@@ -295,7 +303,9 @@ class TestNumericalEdgeCases:
         reset_anomaly_detector()
         detector = get_anomaly_detector()
 
-        alert = detector.detect_spike(actual_cost=0.00001, forecasted_cost=0.00001, model="cheap")
+        alert = detector.detect_spike(
+            actual_cost=0.00001, forecasted_cost=0.00001, model="cheap"
+        )
 
         assert alert is not None or alert is None
 
@@ -316,7 +326,9 @@ class TestEmptyDataSetEdgeCases:
         reset_anomaly_detector()
         detector = get_anomaly_detector()
 
-        alert = detector.detect_spike(actual_cost=0.50, forecasted_cost=0.40, model="new-model")
+        alert = detector.detect_spike(
+            actual_cost=0.50, forecasted_cost=0.40, model="new-model"
+        )
 
         assert alert is not None or alert is None
 

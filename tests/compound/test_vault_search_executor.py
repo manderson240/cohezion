@@ -73,7 +73,9 @@ class TestVaultSearchExecutor:
         """Test search returns SearchResult object."""
         vault_search_executor.logger = MagicMock()
         vault_search_executor.logger.get_experience_guidance = MagicMock(
-            return_value={"relevant_skills": ["vault-integration", "search-optimization"]}
+            return_value={
+                "relevant_skills": ["vault-integration", "search-optimization"]
+            }
         )
 
         result = vault_search_executor.search("test vault search")
@@ -106,7 +108,9 @@ class TestVaultSearchExecutor:
         """Test validation enforces relevance bounds."""
         query = SearchQuery(query="test", keywords=["test"], document_types=[], min_relevance=1.5)
 
-        with pytest.raises(ValueError, match="Min relevance must be between 0.0 and 1.0"):
+        with pytest.raises(
+            ValueError, match="Min relevance must be between 0.0 and 1.0"
+        ):
             vault_search_executor._validate_search_query(query)
 
     def test_calculate_relevance_keyword_match(self, vault_search_executor):

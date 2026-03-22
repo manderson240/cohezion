@@ -242,7 +242,7 @@ class TestEventEmission:
             check=True,
         )
         subprocess.run(
-            ["git", "config", "commit.gpgsign", "false"],
+            ["git", "config", "commit.gpgSign", "false"],
             cwd=tmp_path,
             capture_output=True,
             check=True,
@@ -251,9 +251,14 @@ class TestEventEmission:
         # Create and commit initial file
         claude_md = tmp_path / "CLAUDE.md"
         claude_md.write_text("# Initial")
-        subprocess.run(["git", "add", "."], cwd=tmp_path, capture_output=True, check=True)
         subprocess.run(
-            ["git", "commit", "-m", "initial"], cwd=tmp_path, capture_output=True, check=True
+            ["git", "add", "."], cwd=tmp_path, capture_output=True, check=True
+        )
+        subprocess.run(
+            ["git", "commit", "-m", "initial"],
+            cwd=tmp_path,
+            capture_output=True,
+            check=True,
         )
 
         monitor = ConfigMonitor(tmp_path)

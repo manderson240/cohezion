@@ -527,7 +527,9 @@ class DailyHealthDigest:
             else:  # CRITICAL
                 health_scores.append(0.0)
 
-        metrics_health = sum(health_scores) / len(health_scores) if health_scores else 0.5
+        metrics_health = (
+            sum(health_scores) / len(health_scores) if health_scores else 0.5
+        )
 
         # Component 3: Trend Improvement (25% weight)
         trend_7d = await self._calculate_trend(days=7)

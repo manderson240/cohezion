@@ -336,7 +336,13 @@ class BtrfsSnapshotBackend(SnapshotBackend):
         try:
             snapshot_path = working_dir.parent / f".snapshots_{snapshot_id}"
             result = subprocess.run(
-                ["btrfs", "subvolume", "snapshot", str(working_dir), str(snapshot_path)],
+                [
+                    "btrfs",
+                    "subvolume",
+                    "snapshot",
+                    str(working_dir),
+                    str(snapshot_path),
+                ],
                 capture_output=True,
                 timeout=30,
             )
@@ -485,7 +491,9 @@ class Transaction:
 
         # Change tracking
         self.changes: list[Change] = []
-        self.change_index: dict[str, list[int]] = defaultdict(list)  # path → change indices
+        self.change_index: dict[str, list[int]] = defaultdict(
+            list
+        )  # path → change indices
 
         # Checkpoints
         self.checkpoints: dict[str, Checkpoint] = {}
@@ -720,8 +728,12 @@ class Transaction:
                 raise RuntimeError("No snapshot available for rollback")
 
             # Restore snapshot
-            if not self.backend.restore_snapshot(target_snapshot.snapshot_id, self.working_dir):
-                logger.warning(f"Snapshot restore may have failed: {target_snapshot.snapshot_id}")
+            if not self.backend.restore_snapshot(
+                target_snapshot.snapshot_id, self.working_dir
+            ):
+                logger.warning(
+                    f"Snapshot restore may have failed: {target_snapshot.snapshot_id}"
+                )
 
             # Mark as rolled back
             self.rolled_back = True

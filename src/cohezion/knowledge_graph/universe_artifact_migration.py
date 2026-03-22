@@ -157,7 +157,9 @@ class UniverseArtifactMigration:
                 timeout=30,
             )
 
-            total_bytes = sum(int(line) for line in result.stdout.strip().split("\n") if line)
+            total_bytes = sum(
+                int(line) for line in result.stdout.strip().split("\n") if line
+            )
 
             # Get commit history
             result = subprocess.run(
@@ -176,7 +178,9 @@ class UniverseArtifactMigration:
                 timeout=30,
             )
 
-            commit_count = len([line for line in result.stdout.strip().split("\n") if line])
+            commit_count = len(
+                [line for line in result.stdout.strip().split("\n") if line]
+            )
 
             summary = {
                 "file_count": file_count,

@@ -50,7 +50,11 @@ class CodeReviewSwarm:
 
         # Initialize scouts
         self.static_scout = QualityScout()
-        self.llm_scouts: list[BaseScout] = [ArchitectureScout(), PatternScout(), AntiPatternScout()]
+        self.llm_scouts: list[BaseScout] = [
+            ArchitectureScout(),
+            PatternScout(),
+            AntiPatternScout(),
+        ]
 
     async def run_full_scan(self) -> SwarmReport:
         """
@@ -77,7 +81,9 @@ class CodeReviewSwarm:
 
                 report.scanned_files += 1
 
-            logger.info(f"Static Phase: Scanned {report.scanned_files}/{len(all_files)} files...")
+            logger.info(
+                f"Static Phase: Scanned {report.scanned_files}/{len(all_files)} files..."
+            )
             await asyncio.sleep(1.0)  # Breath between batches
 
         logger.info(

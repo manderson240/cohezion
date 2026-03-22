@@ -7,7 +7,10 @@ Phase 2 Priority 3 Implementation Tests.
 import pytest
 
 from cohezion.observability.metrics_analytics import MetricsAnalytics, PerformanceReport
-from cohezion.observability.unified_metrics import InferenceMetrics, UnifiedMetricsCollector
+from cohezion.observability.unified_metrics import (
+    InferenceMetrics,
+    UnifiedMetricsCollector,
+)
 
 
 class TestMetricsAnalytics:

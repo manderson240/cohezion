@@ -65,7 +65,10 @@ class QualityScout(BaseScout):
                                 file_path=rel_path,
                                 line_range=(node.lineno, node.end_lineno),
                                 confidence=1.0,
-                                code_snippet=ast.get_source_segment(path.read_text(), node) or "",
+                                code_snippet=ast.get_source_segment(
+                                    path.read_text(), node
+                                )
+                                or "",
                                 severity="low",
                             )
                         )
@@ -82,14 +85,20 @@ class QualityScout(BaseScout):
                                 file_path=rel_path,
                                 line_range=(node.lineno, node.end_lineno),
                                 confidence=1.0,
-                                code_snippet=ast.get_source_segment(path.read_text(), node) or "",
+                                code_snippet=ast.get_source_segment(
+                                    path.read_text(), node
+                                )
+                                or "",
                                 severity="medium",
                             )
                         )
 
                     # Bare except check
                     for body_node in ast.walk(node):
-                        if isinstance(body_node, ast.ExceptHandler) and body_node.type is None:
+                        if (
+                            isinstance(body_node, ast.ExceptHandler)
+                            and body_node.type is None
+                        ):
                             findings.append(
                                 Finding(
                                     type="anti_pattern",
@@ -99,7 +108,9 @@ class QualityScout(BaseScout):
                                     file_path=rel_path,
                                     line_range=(body_node.lineno, body_node.end_lineno),
                                     confidence=1.0,
-                                    code_snippet=ast.get_source_segment(path.read_text(), body_node)
+                                    code_snippet=ast.get_source_segment(
+                                        path.read_text(), body_node
+                                    )
                                     or "",
                                     severity="high",
                                 )
@@ -115,7 +126,16 @@ class QualityScout(BaseScout):
         depths = [current_depth]
         for child in ast.iter_child_nodes(node):
             if isinstance(
-                child, (ast.If, ast.While, ast.For, ast.AsyncFor, ast.Try, ast.With, ast.AsyncWith)
+                child,
+                (
+                    ast.If,
+                    ast.While,
+                    ast.For,
+                    ast.AsyncFor,
+                    ast.Try,
+                    ast.With,
+                    ast.AsyncWith,
+                ),
             ):
                 depths.append(self._get_nesting_depth(child, current_depth + 1))
             else:

@@ -222,7 +222,10 @@ class CompoundExecutor:
         return self._alignment_analyzer
 
     def get_experience_guidance(
-        self, task_description: str, project: str = "cohezion", operation_type: str = "generate"
+        self,
+        task_description: str,
+        project: str = "cohezion",
+        operation_type: str = "generate",
     ) -> dict[str, Any]:
         """Fetch experience guidance from vault before execution.
 
@@ -390,7 +393,9 @@ class CompoundExecutor:
                 logger.debug("Universe bridge start failed (non-blocking): %s", e)
 
         # Step 1: Get experience guidance (enhanced with trajectory search)
-        guidance = self.get_experience_guidance(task_description, project, operation_type)
+        guidance = self.get_experience_guidance(
+            task_description, project, operation_type
+        )
         logger.debug("Experience guidance: %s", guidance)
 
         # Step 1.5: Parse request for alignment analysis (if enabled)
@@ -417,7 +422,9 @@ class CompoundExecutor:
                 )
             except Exception as e:
                 logger.debug(
-                    "Request alignment parsing failed (non-blocking): %s", e, exc_info=True
+                    "Request alignment parsing failed (non-blocking): %s",
+                    e,
+                    exc_info=True,
                 )
 
         # Step 2: Log execution start
@@ -557,7 +564,11 @@ class CompoundExecutor:
             logger.debug("Anomaly detection failed (non-blocking): %s", e, exc_info=True)
 
         # Step 5.5: Analyze request-execution alignment (if enabled)
-        if self._enable_alignment_analysis and self.alignment_analyzer and parsed_request:
+        if (
+            self._enable_alignment_analysis
+            and self.alignment_analyzer
+            and parsed_request
+        ):
             try:
                 from cohezion.compound.inflection_detector import Severity
 
@@ -659,12 +670,16 @@ class CompoundExecutor:
                     duration_seconds=duration_seconds,
                     token_metrics=token_metrics,
                 )
-                retrospection_context = self._retrospection_engine.analyze_execution_result(
-                    temp_result, skill_name
+                retrospection_context = (
+                    self._retrospection_engine.analyze_execution_result(
+                        temp_result, skill_name
+                    )
                 )
                 should_refine = retrospection_context.get("should_refine", True)
                 if retrospection_context.get("insights"):
-                    metrics["retrospection_insights"] = retrospection_context["insights"]
+                    metrics["retrospection_insights"] = retrospection_context[
+                        "insights"
+                    ]
                 logger.debug(
                     "Retrospection: should_refine=%s, compound=%.3f",
                     should_refine,
@@ -708,7 +723,8 @@ class CompoundExecutor:
         if 0.4 <= coherence_val <= 0.6:
             if self._degradation_mode:
                 logger.info(
-                    "Cohesion returned to HIHO band (%.2f), exiting degradation mode", coherence_val
+                    "Cohesion returned to HIHO band (%.2f), exiting degradation mode",
+                    coherence_val,
                 )
                 self._degradation_mode = False
 
@@ -738,7 +754,9 @@ class CompoundExecutor:
                             alert.message,
                         )
                     # Log critical alerts to vault and enter degradation mode
-                    critical_alerts = [a for a in alerts if a.severity.value == "CRITICAL"]
+                    critical_alerts = [
+                        a for a in alerts if a.severity.value == "CRITICAL"
+                    ]
                     if critical_alerts:
                         self._degradation_mode = True
                         metrics["execution_degraded"] = True
@@ -922,7 +940,9 @@ class CompoundExecutor:
         if "api_calls" in metrics_after and "api_calls" in metrics_before:
             delta["api_calls_made"] = metrics_after["api_calls"] - metrics_before["api_calls"]
         if "cache_hits" in metrics_after and "cache_hits" in metrics_before:
-            delta["cache_hits"] = metrics_after["cache_hits"] - metrics_before["cache_hits"]
+            delta["cache_hits"] = (
+                metrics_after["cache_hits"] - metrics_before["cache_hits"]
+            )
         if "cache_misses" in metrics_after and "cache_misses" in metrics_before:
             delta["cache_misses"] = metrics_after["cache_misses"] - metrics_before["cache_misses"]
 

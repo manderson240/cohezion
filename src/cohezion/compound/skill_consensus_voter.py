@@ -358,7 +358,10 @@ class SkillConsensusVoter:
 
         # Check if all agents voted for this skill
         unanimous = all(
-            (vote.voted_skills and vote.voted_skills[0].skill_name == first_skill.skill_name)
+            (
+                vote.voted_skills
+                and vote.voted_skills[0].skill_name == first_skill.skill_name
+            )
             for vote in votes
         )
 
