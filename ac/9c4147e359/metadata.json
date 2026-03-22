@@ -1,0 +1,36 @@
+{
+  "cli_version": "0.4.9",
+  "checkpoint_id": "ac9c4147e359",
+  "strategy": "manual-commit",
+  "branch": "session-kaggle-benchmark",
+  "checkpoints_count": 2,
+  "files_touched": [
+    "src/cohezion/integrations/agentverse/__init__.py",
+    "src/cohezion/integrations/agentverse/benchmark_runner.py",
+    "src/cohezion/integrations/agentverse/bridge.py",
+    "src/cohezion/integrations/agentverse/cohezion_agent.py",
+    "src/cohezion/integrations/agentverse/cohezion_environment.py",
+    "tests/integrations/test_agentverse_adversarial.py",
+    "tests/integrations/test_agentverse_benchmark_runner.py",
+    "tests/integrations/test_agentverse_bridge.py",
+    "tests/integrations/test_agentverse_cohezion_adapter.py",
+    "tests/integrations/test_agentverse_cohezion_environment.py",
+    "tests/integrations/test_agentverse_health.py"
+  ],
+  "sessions": [
+    {
+      "metadata": "/ac/9c4147e359/0/metadata.json",
+      "transcript": "/ac/9c4147e359/0/full.jsonl",
+      "context": "/ac/9c4147e359/0/context.md",
+      "content_hash": "/ac/9c4147e359/0/content_hash.txt",
+      "prompt": "/ac/9c4147e359/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 201,
+    "cache_creation_tokens": 2896182,
+    "cache_read_tokens": 11771245,
+    "output_tokens": 38748,
+    "api_call_count": 86
+  }
+}
