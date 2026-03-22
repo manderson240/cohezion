@@ -1,0 +1,80 @@
+name: Commit Lint
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened, edited]
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  commit-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Validate PR title (conventional commit)
+        run: |
+          PR_TITLE="${{ github.event.pull_request.title }}"
+          echo "PR title: $PR_TITLE"
+
+          # Conventional commit pattern:
+          # type(scope)?: description  OR  type(scope)?!: description (breaking)
+          PATTERN='^(feat|fix|perf|refactor|test|docs|build|ci|chore|revert|style)(\([^)]+\))?!?\s*:\s*.+'
+
+          if echo "$PR_TITLE" | grep -qP "$PATTERN"; then
+            echo "PR title follows conventional commit format"
+          else
+            echo "::error::PR title does not follow conventional commit format"
+            echo ""
+            echo "Expected format: type(scope): description"
+            echo "  Types: feat, fix, perf, refactor, test, docs, build, ci, chore, revert, style"
+            echo "  Examples:"
+            echo "    feat: add BMAD slash commands"
+            echo "    fix(ci): resolve permission error in test workflow"
+            echo "    chore: update dependencies"
+            echo "    feat!: breaking change description"
+            echo ""
+            echo "Semver mapping:"
+            echo "  feat:  -> MINOR version bump"
+            echo "  fix:   -> PATCH version bump"
+            echo "  !:     -> MAJOR version bump"
+            echo "  other: -> no version bump"
+            exit 1
+          fi
+
+      - name: Validate commit messages
+        run: |
+          PATTERN='^(feat|fix|perf|refactor|test|docs|build|ci|chore|revert|style)(\([^)]+\))?!?\s*:\s*.+'
+          MERGE_PATTERN='^Merge '
+          REVERT_PATTERN='^Revert '
+
+          BASE_SHA="${{ github.event.pull_request.base.sha }}"
+          COMMITS=$(git log "$BASE_SHA..HEAD" --format="%s")
+          ISSUES=0
+
+          while IFS= read -r msg; do
+            [ -z "$msg" ] && continue
+            if echo "$msg" | grep -qP "$PATTERN" || \
+               echo "$msg" | grep -qP "$MERGE_PATTERN" || \
+               echo "$msg" | grep -qP "$REVERT_PATTERN"; then
+              echo "  OK: $msg"
+            else
+              echo "  ::warning::Non-conventional commit: $msg"
+              ISSUES=$((ISSUES + 1))
+            fi
+          done <<< "$COMMITS"
+
+          if [ "$ISSUES" -gt 0 ]; then
+            echo ""
+            echo "$ISSUES commit(s) don't follow conventional commit format (warnings only)"
+            echo "PR title is the primary enforcement point for squash merges"
+          fi
+
+          echo ""
+          echo "Commit lint passed"

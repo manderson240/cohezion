@@ -1,0 +1,26 @@
+{
+  "mcpServers": {
+    "surrealmcp": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@surrealdb/mcp-server"
+      ],
+      "env": {
+        "SURREALDB_URL": "ws://localhost:8000/rpc",
+        "SURREALDB_NS": "cohezion",
+        "SURREALDB_DB": "core"
+      }
+    },
+    "cohezion-components": {
+            "command": "./.venv/bin/python3",
+            "args": ["cohezion_component_mcp.py"]
+        },
+        "cohezion-skills": {
+      "command": "./.venv/bin/python3",
+      "args": [
+        "src/cohezion/skills/cohezion_mcp.py"
+      ]
+    }
+  }
+}

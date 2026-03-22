@@ -1,6 +1,0 @@
-<task id="bmad/core/tasks/git-status.xml" name="Git Status">
-  <objective>Get the status of the git repository.</objective>
-  <action>
-    <run-shell-command>git status</run-shell-command>
-  </action>
-</task>

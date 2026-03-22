@@ -1,7 +1,0 @@
-name: status
-description: "Gets the status of the git repository."
-
-instructions:
-  - step: 1
-    goal: "Get the repository status"
-    invoke-task: "bmad/core/tasks/git-status.xml"
