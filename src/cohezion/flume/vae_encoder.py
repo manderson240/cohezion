@@ -93,9 +93,9 @@ class FlumeVAEEncoder:
                 logger.warning(f"Model path not found: {self.model_path}")
                 return
 
-            # Load checkpoint
+            # Load checkpoint — weights_only=True prevents arbitrary code execution
             checkpoint = torch.load(
-                self.model_path, map_location=self.device, weights_only=False
+                self.model_path, map_location=self.device, weights_only=True
             )
 
             # Extract encoder and mu_head

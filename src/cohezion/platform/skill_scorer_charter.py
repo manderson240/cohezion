@@ -9,6 +9,8 @@ from pydantic import BaseModel
 
 from cohezion.core.persistence.surreal_client import get_surreal_client
 
+logger = logging.getLogger(__name__)
+
 
 class CharterSkillScore(BaseModel):
     """Skill score with Charter-aligned metrics."""
@@ -135,8 +137,7 @@ class CharterAlignedSkillScorer:
                 },
             )
         except Exception as e:
-            # Non-blocking: log but don't fail
-            print(f"Warning: Failed to persist skill metric to SurrealDB: {e}")
+            logger.warning("Failed to persist skill metric to SurrealDB: %s", e)
 
     async def get_trending_skills(
         self, days: int = 7, limit: int = 10

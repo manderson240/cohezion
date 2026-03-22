@@ -59,8 +59,8 @@ class SemanticCache:
         try:
             self.index_path.write_text(json.dumps(self.metadata, indent=2))
             np.save(self.vectors_path, np.array(self.vectors))
-        except Exception:
-            pass
+        except Exception as e:
+            logger.warning("Failed to persist semantic cache to disk: %s", e)
 
     async def search(
         self, query_vec: np.ndarray, query_text: str | None = None

@@ -14,6 +14,8 @@ from cohezion.flume.vae_encoder import get_encoder
 from cohezion.platform.coherence_tracker import get_coherence_tracker
 from cohezion.platform.journey_logger import get_journey_logger
 
+logger = logging.getLogger(__name__)
+
 
 class SkillUsageEvent(BaseModel):
     """Single skill usage event with Charter metrics."""
@@ -90,8 +92,7 @@ class CharterAlignedSkillTracker:
                 },
             )
         except Exception as e:
-            # Non-blocking: log but don't fail
-            print(f"Warning: Failed to persist skill usage to SurrealDB: {e}")
+            logger.warning("Failed to persist skill usage to SurrealDB: %s", e)
 
         # If HIHO unstable and journey exists, log as potential issue
         if not hiho_stable and journey_id:
@@ -102,8 +103,7 @@ class CharterAlignedSkillTracker:
                     pattern_type="hiho_violation",
                 )
             except Exception as e:
-                # Non-blocking: log but don't fail
-                print(f"Warning: Failed to log HIHO violation to journey: {e}")
+                logger.warning("Failed to log HIHO violation to journey: %s", e)
 
     async def create_skill_usage_event(
         self,

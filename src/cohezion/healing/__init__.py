@@ -278,8 +278,8 @@ class SelfHealingSystem:
             )
             if status.status != "healthy":
                 issues.append(status)
-        except Exception:
-            pass
+        except Exception as e:
+            logger.debug("Sandbox memory check failed: %s", e)
 
         return issues
 

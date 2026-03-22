@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import subprocess
 from pathlib import Path
 from unittest.mock import AsyncMock, MagicMock, patch
 
@@ -43,6 +44,29 @@ def tmp_workdir(tmp_path: Path):
     workdir = tmp_path / "workdir"
     workdir.mkdir()
     return workdir
+
+
+@pytest.fixture
+def git_repo(tmp_path: Path) -> Path:
+    """Create an initialized git repo with safe defaults for testing.
+
+    Prevents GPG signing failures, sets dummy user info, and creates
+    an initial commit so that git operations (diff, log, etc.) work.
+
+    Returns the repo root path.
+    """
+    _run = lambda cmd: subprocess.run(
+        cmd, cwd=tmp_path, capture_output=True, check=True,
+    )
+    _run(["git", "init"])
+    _run(["git", "config", "user.email", "test@cohezion.dev"])
+    _run(["git", "config", "user.name", "Test User"])
+    _run(["git", "config", "commit.gpgsign", "false"])
+    # Create initial commit so HEAD exists
+    (tmp_path / ".gitkeep").write_text("")
+    _run(["git", "add", ".gitkeep"])
+    _run(["git", "commit", "-m", "initial"])
+    return tmp_path
 
 
 @pytest.fixture(autouse=True)
@@ -97,14 +121,18 @@ def reset_singletons():
     if hasattr(api_module, "_rl_policy"):
         api_module._rl_policy = None
 
-    # Clear ALL logger handlers to prevent test pollution
-    # Clear root logger
-    logging.getLogger().handlers.clear()
-    # Clear all named loggers
+    # Clear ALL logger handlers and filters to prevent test pollution.
+    # Root cause: RedactionFilter (or any filter) can modify LogRecord.args,
+    # corrupting types (%d expects int, but filter may convert to str).
+    # Clearing filters on every logger before each test prevents this.
+    root = logging.getLogger()
+    root.handlers.clear()
+    root.filters.clear()
     for name in list(logging.Logger.manager.loggerDict.keys()):
         logger = logging.getLogger(name)
         logger.handlers.clear()
-        logger.propagate = True  # Reset propagation
+        logger.filters.clear()
+        logger.propagate = True
 
     yield
 
@@ -129,9 +157,12 @@ def reset_singletons():
     if hasattr(api_module, "_rl_policy"):
         api_module._rl_policy = None
 
-    # Clear ALL logger handlers after test too
-    logging.getLogger().handlers.clear()
+    # Clear ALL logger handlers and filters after test too
+    root = logging.getLogger()
+    root.handlers.clear()
+    root.filters.clear()
     for name in list(logging.Logger.manager.loggerDict.keys()):
         logger = logging.getLogger(name)
         logger.handlers.clear()
+        logger.filters.clear()
         logger.propagate = True

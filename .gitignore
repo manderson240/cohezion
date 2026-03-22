@@ -188,3 +188,49 @@ data/journeys/
 /*_BACKUP_*/
 /cohezion-session-[0-9]*/
 .worktrees/
+infrastructure/
+.env.surrealdb
+cloud-vault-mcp/history.txt
+
+# Generated/large files discovered during triage
+ruff_*.txt
+ruff_*.json
+mypy_*.txt
+f821_out.txt
+
+# Claude worktrees (ephemeral)
+.claude/worktrees/
+
+# BMAD runtime memory (session-specific, not version-controlled)
+_bmad/_memory/
+
+# Generated data
+data/cache/
+*.db
+
+# Session archives
+.archived/
+
+# Large generated files
+COHEZION_ANTHROPIC_PORTFOLIO_2026.zip
+
+# Temporary files
+*.tmp
+
+# === DATA DIRECTORY LIFECYCLE POLICY (P3 Consensus) ===
+# data/ is ephemeral cache - all contents regenerable from source
+# Only track .gitkeep and README.md
+data/
+!data/.gitkeep
+!data/README.md
+
+# Specific cache patterns (anywhere in repo)
+*.parquet
+*.jsonl
+*.pt
+*.pkl
+*.checkpoint
+*.model
+*.weights
+*.npy
+*.npz

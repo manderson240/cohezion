@@ -115,6 +115,17 @@ from cohezion.compound.team_executor import (
     TeamExecutor,
     TeamExecutorFactory,
 )
+from cohezion.compound.thermodynamic_metrics import (
+    PhaseTransition,
+    ThermodynamicMetrics,
+    ThermodynamicState,
+)
+from cohezion.compound.topological_persistence import (
+    PersistenceDiagram,
+    PersistencePair,
+    TopologicalPersistence,
+    trajectory_persistence_summary,
+)
 from cohezion.compound.thermal_history_persistence import (
     ThermalTimeSeriesCollector,
     get_thermal_time_series_collector,
@@ -222,6 +233,13 @@ __all__ = [
     "VotingStrategy",
     "WarmCacheLoader",
     "create_vault_search_executor",
+    "PhaseTransition",
+    "PersistenceDiagram",
+    "PersistencePair",
+    "ThermodynamicMetrics",
+    "ThermodynamicState",
+    "TopologicalPersistence",
+    "trajectory_persistence_summary",
     "get_batch_size_predictor",
     "get_collector",
     "get_global_aggregator",

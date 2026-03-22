@@ -49,7 +49,7 @@ class SemanticCache:
     Parameters
     ----------
     similarity_threshold : float
-        Cosine similarity threshold for L2 hits (default: 0.92)
+        Cosine similarity threshold for L2 hits (default: 0.88)
     max_l1_size : int
         Maximum L1 cache entries (default: 512)
     max_l2_size : int
@@ -60,7 +60,7 @@ class SemanticCache:
 
     def __init__(
         self,
-        similarity_threshold: float = 0.92,
+        similarity_threshold: float = 0.88,
         max_l1_size: int = 512,
         max_l2_size: int = 1024,
         mcp_client: Any = None,
@@ -98,22 +98,23 @@ class SemanticCache:
 
         # Adaptive threshold tracking
         self._threshold_adjustment_interval = 100  # Adjust every 100 ops
+        self._background_tasks: set[asyncio.Task] = set()
 
     @staticmethod
     def _text_to_embedding(text: str) -> np.ndarray:
         """Convert text to production semantic embedding.
 
-        Uses semantic text encoder (sentence-transformers) for real 256D
+        Uses semantic text encoder (sentence-transformers) for native 384D
         semantic embeddings with proper semantic discrimination.
 
         Args:
             text: Text to embed
 
         Returns:
-            256D numpy array, normalized for cosine similarity
+            384D numpy array, normalized for cosine similarity
         """
         try:
-            # Use semantic encoder (all-MiniLM-L6-v2 384D → 256D)
+            # Use semantic encoder (all-MiniLM-L6-v2 native 384D)
             encoder = get_text_encoder()
             return encoder.encode(text)
         except Exception as e:
@@ -128,8 +129,8 @@ class SemanticCache:
                 hash_obj = hashlib.sha256(text.encode())
                 hash_bytes = hash_obj.digest()
 
-                embedding = np.zeros(256, dtype=np.float32)
-                for i in range(256):
+                embedding = np.zeros(384, dtype=np.float32)
+                for i in range(384):
                     byte_idx = i % len(hash_bytes)
                     embedding[i] = hash_bytes[byte_idx] / 255.0
 
@@ -182,7 +183,7 @@ class SemanticCache:
                 f"relaxing threshold: {self.similarity_threshold:.2f} → {new_threshold:.2f}"
             )
             return new_threshold
-        elif l2_hit_rate > 0.40:
+        if l2_hit_rate > 0.40:
             # Too many hits - tighten threshold for precision
             new_threshold = min(0.97, self.initial_threshold + 0.05)
             logger.debug(
@@ -190,13 +191,10 @@ class SemanticCache:
                 f"tightening threshold: {self.similarity_threshold:.2f} → {new_threshold:.2f}"
             )
             return new_threshold
-        else:
-            # Hit rate in target range (5-40%)
-            return self.similarity_threshold
+        # Hit rate in target range (5-40%)
+        return self.similarity_threshold
 
-    async def get(
-        self, prompt: str, system: str | None = None, model: str | None = None
-    ) -> str | None:
+    async def get(self, prompt: str, system: str | None = None, model: str | None = None) -> str | None:
         """Lookup with 3-tier fallback.
 
         Checks L1 (exact), L2 (semantic), then L3 (vault).
@@ -290,7 +288,9 @@ class SemanticCache:
         # Store in L3 (vault, async non-blocking fire-and-forget)
         # Schedule vault storage without awaiting (non-blocking pattern)
         try:
-            asyncio.create_task(self._vault_store(prompt, response))
+            _task = asyncio.create_task(self._vault_store(prompt, response))
+            self._background_tasks.add(_task)
+            _task.add_done_callback(self._background_tasks.discard)
         except RuntimeError:
             # No event loop running (e.g., sync context) - skip L3 storage
             logger.debug("No event loop for L3 vault store (non-critical)")
@@ -352,9 +352,7 @@ class SemanticCache:
 
             # Run synchronous vault_search in default executor to avoid blocking
             loop = asyncio.get_event_loop()
-            results = await loop.run_in_executor(
-                None, self.mcp_client.vault_search, search_query
-            )
+            results = await loop.run_in_executor(None, self.mcp_client.vault_search, search_query)
 
             if not results:
                 return None
@@ -368,9 +366,7 @@ class SemanticCache:
                     path = first_result.get("path", "")
                     if path:
                         try:
-                            content = await loop.run_in_executor(
-                                None, self.mcp_client.vault_read, path
-                            )
+                            content = await loop.run_in_executor(None, self.mcp_client.vault_read, path)
                             # Parse as JSON cache entry
                             cache_data = json.loads(content)
                             response = cache_data.get("response", "")
@@ -380,7 +376,7 @@ class SemanticCache:
 
                         except (json.JSONDecodeError, FileNotFoundError) as e:
                             logger.debug(f"Cache pattern parse failed: {e}")
-                            pass  # Fall through to return None
+                            # Fall through to return None
 
             return None
 
@@ -414,7 +410,8 @@ class SemanticCache:
 
             # Create a cache pattern note in vault
             # Use timestamp + hash to avoid collisions
-            entry_hash = hashlib.md5(f"{prompt}{timestamp}".encode()).hexdigest()[:8]
+            # Security: SHA-256 used for non-security identifier (cache entry ID)
+            entry_hash = hashlib.sha256(f"{prompt}{timestamp}".encode()).hexdigest()[:8]
             vault_path = f"cache_patterns/cache_entry_{entry_hash}.json"
 
             # Run synchronous vault_write in executor (non-blocking)
@@ -438,11 +435,7 @@ class SemanticCache:
             Dict with hit rates by tier and counts
         """
         total = self.hits_l1 + self.hits_l2 + self.hits_l3 + self.misses
-        hit_rate = (
-            (self.hits_l1 + self.hits_l2 + self.hits_l3) / total * 100
-            if total > 0
-            else 0.0
-        )
+        hit_rate = (self.hits_l1 + self.hits_l2 + self.hits_l3) / total * 100 if total > 0 else 0.0
 
         return {
             "l1_hits": self.hits_l1,

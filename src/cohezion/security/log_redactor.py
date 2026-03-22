@@ -77,11 +77,11 @@ class RedactionFilter(logging.Filter):
         if record.msg:
             record.msg = self._redact_string(str(record.msg))
 
-        # Redact the formatted message
+        # Redact the formatted message (only redact string args to preserve types)
         if record.args:
             if isinstance(record.args, dict):
                 record.args = {
-                    key: self._redact_string(str(value))
+                    key: self._redact_string(str(value)) if isinstance(value, str) else value
                     for key, value in record.args.items()
                 }
             elif isinstance(record.args, (list, tuple)):

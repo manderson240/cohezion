@@ -8,6 +8,7 @@ import json
 import logging
 import re
 import time
+import uuid
 from abc import ABC, abstractmethod
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
@@ -34,6 +35,7 @@ from cohezion.reliability.semantic_cache import SemanticCache
 from cohezion.rewards.system import RewardSystem
 from cohezion.security.output_filter import OutputFilter
 from cohezion.security.prompt_guard import PromptGuard, ThreatLevel
+from cohezion.swarm.swarm_types import SwarmConfig
 from cohezion.universe.engine import UniverseSimulationEngine
 
 
@@ -127,8 +129,11 @@ class BaseAgent(ABC):
 
         # Gateway 12: Memory Recovery Protocol (MRP)
         self._compound_engine = CompoundLogicEngine(registry=self.registry)
+        self._background_tasks: set[asyncio.Task] = set()
         if self.config.mrp_sync:
-            asyncio.create_task(self._synchronize_mrp())
+            _task = asyncio.create_task(self._synchronize_mrp())
+            self._background_tasks.add(_task)
+            _task.add_done_callback(self._background_tasks.discard)
 
     @property
     def client(self) -> Any:
@@ -152,9 +157,7 @@ class BaseAgent(ABC):
             content += ":" + ":".join(images[:3])  # Use first 3 images for keying
         return hashlib.sha256(content.encode()).hexdigest()
 
-    async def _get_cached(
-        self, prompt: str, images: list[str] | None = None
-    ) -> dict[str, Any] | None:
+    async def _get_cached(self, prompt: str, images: list[str] | None = None) -> dict[str, Any] | None:
         """Retrieve a cached response if available and not expired."""
         key = self._cache_key(prompt, images)
         cache_file = self.cache_dir / f"{key}.json"
@@ -167,8 +170,8 @@ class BaseAgent(ABC):
             age = time.time() - data.get("timestamp", 0)
             if age < self.config.cache_ttl_seconds:
                 return data
-        except Exception:
-            pass
+        except Exception as e:
+            logger.debug("Cache read failed for %s: %s", cache_file, e)
 
         # Phase 4: Semantic Fallback
         if not images and self._encoder:
@@ -176,13 +179,9 @@ class BaseAgent(ABC):
             query_vec = self._encoder.encode(prompt)
             if hasattr(query_vec, "cpu"):
                 query_vec = query_vec.cpu().numpy()
-            semantic_hit = await self._semantic_cache.search(
-                query_vec, query_text=prompt
-            )
+            semantic_hit = await self._semantic_cache.search(query_vec, query_text=prompt)
             if semantic_hit:
-                logger.info(
-                    f"✨ Semantic Cache Hit (score: {semantic_hit['semantic_score']:.2f})"
-                )
+                logger.info(f"✨ Semantic Cache Hit (score: {semantic_hit['semantic_score']:.2f})")
                 self._metrics["cache_hits"] += 1
                 return semantic_hit
 
@@ -208,17 +207,13 @@ class BaseAgent(ABC):
             "model": self.model_name,
             "prompt": prompt[:500],
             "response": response,
-            "embedding": embedding.tolist()
-            if hasattr(embedding, "tolist")
-            else embedding,
+            "embedding": embedding.tolist() if hasattr(embedding, "tolist") else embedding,
             "persistence_id": persistence_id,
             "phi_score": phi_score,
             "confidence": confidence,
             "alignment_score": alignment_score,
             "narration": narration,
-            "images_hash": hashlib.sha256(":".join(images).encode()).hexdigest()
-            if images
-            else None,
+            "images_hash": hashlib.sha256(":".join(images).encode()).hexdigest() if images else None,
             "timestamp": time.time(),
         }
         cache_file.write_text(json.dumps(data, ensure_ascii=False))
@@ -242,7 +237,9 @@ class BaseAgent(ABC):
 
     async def enqueue_batch_task(self, query: str, context: str | None = None) -> str:
         """Enqueue a task for later batch processing."""
-        task_id = hashlib.md5(query.encode()).hexdigest()[:8]
+        # Security: Use UUID instead of MD5 for task identifiers
+        # MD5 is cryptographically weak and should not be used even for non-security identifiers
+        task_id = uuid.uuid4().hex[:8]
         self._batch_mgr.enqueue(task_id, query, context)
         logger.info(f"📥 Task {task_id} enqueued for batch processing.")
         return task_id
@@ -254,9 +251,7 @@ class BaseAgent(ABC):
         compounds = self._compound_engine.analyze_task_for_compounding(query)
         if compounds:
             # Inject compound wisdom into the narrator or logs
-            summary = ", ".join(
-                [f"{c['name']} ({len(c['hooks'])} hooks)" for c in compounds]
-            )
+            summary = ", ".join([f"{c['name']} ({len(c['hooks'])} hooks)" for c in compounds])
             logger.info(f"🧩 [COMPOUND] Leveraging existing patterns: {summary}")
             # Potentially update system prompt for the next call
             self._compound_wisdom = compounds
@@ -285,9 +280,7 @@ class BaseAgent(ABC):
 
         # Parse results
         results = self._batch_mgr.parse_batch_response(str(response))
-        logger.info(
-            f"✅ Batch processing complete. {len(results)}/{batch['count']} results parsed."
-        )
+        logger.info(f"✅ Batch processing complete. {len(results)}/{batch['count']} results parsed.")
 
         return results
 
@@ -340,9 +333,7 @@ class BaseAgent(ABC):
             )
 
         # Check cache first
-        cached_data = (
-            await self._get_cached(prompt, images) if not ignore_cache else None
-        )
+        cached_data = await self._get_cached(prompt, images) if not ignore_cache else None
         if cached_data:
             # Log cache hit event
             await tk.log_event(
@@ -367,9 +358,7 @@ class BaseAgent(ABC):
         # 1. Input Security Check (LLM01, LLM07)
         security_analysis = self._security_guard.analyze(prompt)
         if security_analysis.threat_level == ThreatLevel.MALICIOUS:
-            logger.error(
-                f"⚠️ SECURITY BLOCK: Malicious input detected: {security_analysis.matched_patterns}"
-            )
+            logger.error(f"⚠️ SECURITY BLOCK: Malicious input detected: {security_analysis.matched_patterns}")
             await tk.log_event(
                 agent_name=self.__class__.__name__,
                 event_type="SECURITY_BLOCK",
@@ -388,12 +377,8 @@ class BaseAgent(ABC):
         active_model = model or self.model_name
 
         if not self._credit_manager.can_afford(agent_id, active_model):
-            active_model = self._credit_manager.get_best_affordable_model(
-                agent_id, active_model
-            )
-            logger.warning(
-                f"Agent {agent_id} cannot afford {self.model_name}. Downgraded to {active_model}."
-            )
+            active_model = self._credit_manager.get_best_affordable_model(agent_id, active_model)
+            logger.warning(f"Agent {agent_id} cannot afford {self.model_name}. Downgraded to {active_model}.")
 
         self._metrics["total_calls"] += 1
         monitor = get_resource_monitor()
@@ -417,9 +402,7 @@ class BaseAgent(ABC):
         for round_idx in range(self.config.max_refinement_rounds):
             # Proactive resource preparation for priority tasks
             if monitor.resource_coordinator:
-                await monitor.resource_coordinator.prepare_resources_for_priority(
-                    self.priority
-                )
+                await monitor.resource_coordinator.prepare_resources_for_priority(self.priority)
 
             await monitor.wait_for_capacity()
             call_start = time.perf_counter()
@@ -434,10 +417,7 @@ class BaseAgent(ABC):
                     if current_prompt:
                         if "def " in current_prompt or "class " in current_prompt:
                             effective_task_type = "coding"
-                        elif (
-                            "reason" in current_prompt.lower()
-                            or "why" in current_prompt.lower()
-                        ):
+                        elif "reason" in current_prompt.lower() or "why" in current_prompt.lower():
                             effective_task_type = "reasoning"
 
                 result = await LOCAL_ROUTER.route_task(
@@ -480,21 +460,17 @@ class BaseAgent(ABC):
                 # Check for stability well breakthrough
                 if phi_score >= self.config.min_phi_threshold:
                     final_result = result
-                    logger.info(
-                        f"✨ Stability Well reached in round {round_idx + 1} (Phi: {phi_score:.2f})"
-                    )
+                    logger.info(f"✨ Stability Well reached in round {round_idx + 1} (Phi: {phi_score:.2f})")
                     break
 
                 # Prepare refinement or exit
                 if round_idx < self.config.max_refinement_rounds - 1:
-                    logger.info(
-                        f"🔄 Low coherence ({phi_score:.2f}). Triggering refinement round {round_idx + 2}..."
-                    )
+                    logger.info(f"🔄 Low coherence ({phi_score:.2f}). Triggering refinement round {round_idx + 2}...")
                     current_prompt = (
                         f"{effective_prompt}\n\n"
                         f"PREVIOUS ATTEMPT: {result}\n\n"
-                        f"CRITIQUE: The previous output score was {phi_score:.2f} (Target: {self.config.min_phi_threshold}). "
-                        "Please refine and deepen your response specifically addressing any missing technical logic or ethical nuance."
+                        f"CRITIQUE: Previous score {phi_score:.2f} (target: {self.config.min_phi_threshold}). "
+                        "Refine and deepen your response addressing missing technical logic or ethical nuance."
                     )
                 else:
                     final_result = result
@@ -529,9 +505,7 @@ class BaseAgent(ABC):
             logger.debug(f"FLUME encoding unavailable, skipping: {e}")
 
         # 2.5 Journey Narration
-        narration = self._narrator.generate_narration(
-            self.__class__.__name__, prompt[:100], final_result
-        )
+        narration = self._narrator.generate_narration(self.__class__.__name__, prompt[:100], final_result)
         await self._narrator.narrate(narration)
 
         # Persistence & Cache
@@ -576,7 +550,9 @@ class BaseAgent(ABC):
                 "novelty": novelty,
                 "decisions": [],
             }
-            asyncio.create_task(accumulator.add_experience(experience_data))
+            _task = asyncio.create_task(accumulator.add_experience(experience_data))
+            self._background_tasks.add(_task)
+            _task.add_done_callback(self._background_tasks.discard)
         except Exception as e:
             logger.warning(f"Persistence hook failed: {e}")
 
@@ -663,9 +639,7 @@ class BaseAgent(ABC):
             )
             return None
 
-    async def offload_to_local(
-        self, query: str, system_prompt: str | None = None
-    ) -> AgentResponse:
+    async def offload_to_local(self, query: str, system_prompt: str | None = None) -> AgentResponse:
         """
         Offload a menial task to a local SLM with a context harness.
         """
@@ -683,14 +657,12 @@ class BaseAgent(ABC):
         payload = harness.harness_prompt(query, system_prompt)
 
         # Execute with Ollama directly
-        result = await self._call_ollama(
+        return await self._call_ollama(
             prompt=payload["prompt"],
             system_prompt=payload["system"],
             model=target_model,
             ignore_cache=True,  # Usually offloads are unique/maintenance
         )
-
-        return result
 
     async def self_evaluate(
         self, response_text: str, query: str = "", metadata: dict | None = None
@@ -755,7 +727,6 @@ Provide output in JSON format: {{"phi_score": 0.85, "confidence": 0.90}}
     @abstractmethod
     async def process(self, *args: Any, **kwargs: Any) -> Any:
         """Process input and return output. Implemented by subclasses."""
-        pass
 
     def get_metrics(self) -> dict[str, Any]:
         """Return current metrics."""
@@ -764,12 +735,8 @@ Provide output in JSON format: {{"phi_score": 0.85, "confidence": 0.90}}
         return {
             **self._metrics,
             "model": self.model_name,
-            "cache_hit_rate": (
-                self._metrics["cache_hits"] / max(1, self._metrics["total_calls"])
-            ),
-            "avg_latency_ms": (
-                self._metrics["total_latency_ms"] / max(1, self._metrics["total_calls"])
-            ),
+            "cache_hit_rate": (self._metrics["cache_hits"] / max(1, self._metrics["total_calls"])),
+            "avg_latency_ms": (self._metrics["total_latency_ms"] / max(1, self._metrics["total_calls"])),
             "timestamp": get_time_keeper().now_iso,
         }
 
@@ -787,16 +754,12 @@ Provide output in JSON format: {{"phi_score": 0.85, "confidence": 0.90}}
 
             # Check if agent has maintenance capabilities
             agent_caps = self.registry.get_capabilities(self.__class__.__name__)
-            is_maintenance = any(
-                cap in policy.get("maintenance_capabilities", []) for cap in agent_caps
-            )
+            is_maintenance = any(cap in policy.get("maintenance_capabilities", []) for cap in agent_caps)
 
             if is_maintenance and policy.get("policy") == "local_first":
                 # Route to local model
                 self.model_name = policy.get("default_local_model", "qwen3-coder:32b")
-                logger.info(
-                    f"🛡️ Local Routing: Agent {self.__class__.__name__} routed to {self.model_name}"
-                )
+                logger.info(f"🛡️ Local Routing: Agent {self.__class__.__name__} routed to {self.model_name}")
             else:
                 self.model_name = model_name
         except Exception as e:
@@ -816,9 +779,7 @@ Provide output in JSON format: {{"phi_score": 0.85, "confidence": 0.90}}
 
         try:
             # Step 1: Query SurrealDB for the latest SESSION_SNAPSHOT or MISSION_PULSE
-            latest_pulse = await self._db.query(
-                "SELECT * FROM mission_pulse ORDER BY timestamp DESC LIMIT 1"
-            )
+            latest_pulse = await self._db.query("SELECT * FROM mission_pulse ORDER BY timestamp DESC LIMIT 1")
 
             # Check if query returned valid results
             if not latest_pulse or len(latest_pulse) == 0:
@@ -826,24 +787,20 @@ Provide output in JSON format: {{"phi_score": 0.85, "confidence": 0.90}}
 
             if latest_pulse:
                 pulse_data = latest_pulse[0]
-                logger.info(
-                    f"MRP: Reached consensus with latest pulse from {pulse_data.get('timestamp')}"
-                )
+                logger.info(f"MRP: Reached consensus with latest pulse from {pulse_data.get('timestamp')}")
 
             # Phase 6: Experience Replay (Semantic Memory Recovery)
-            experience = await self._universe.get_experience_replay(
-                self.__class__.__name__
-            )
+            experience = await self._universe.get_experience_replay(self.__class__.__name__)
             if experience:
-                logger.info(
-                    f"✨ MRP: Experience Replay recovered for {self.__class__.__name__}"
-                )
+                logger.info(f"✨ MRP: Experience Replay recovered for {self.__class__.__name__}")
                 # Store in internal memory for prompt injection
                 self._metrics["mrp_hydrated"] = True
                 self._mrp_experience = experience
 
             # Start the background pulse task
-            asyncio.create_task(self._mrp_pulse_loop())
+            _task = asyncio.create_task(self._mrp_pulse_loop())
+            self._background_tasks.add(_task)
+            _task.add_done_callback(self._background_tasks.discard)
 
         except Exception as e:
             logger.error(f"MRP Synchronization failed: {e}")
@@ -865,9 +822,7 @@ Provide output in JSON format: {{"phi_score": 0.85, "confidence": 0.90}}
             except Exception as e:
                 logger.error(f"MRP Pulse failed: {e}")
 
-    async def _execute_with_universe_tracking(
-        self, query: str, process_func: callable
-    ) -> Any:
+    async def _execute_with_universe_tracking(self, query: str, process_func: callable) -> Any:
         """Execute agent process with universe journey tracking and reward system.
 
         This method wraps the actual processing to provide:
@@ -879,9 +834,7 @@ Provide output in JSON format: {{"phi_score": 0.85, "confidence": 0.90}}
 
         try:
             # 1. Start Universe Journey
-            self._current_journey = await self._universe.start_journey(
-                agent_name=agent_name, intent=query
-            )
+            self._current_journey = await self._universe.start_journey(agent_name=agent_name, intent=query)
 
             # 2. Execute actual processing
             result = await process_func(query)

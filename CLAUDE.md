@@ -10,10 +10,24 @@ COHEZION: 12D agentic universe with FLUME VAE, compound engineering, multi-agent
 
 ### ⚡ Core Commands
 ```bash
-uv run pytest tests/ -q              # Full test suite (2,854 tests, ~5min)
+uv run pytest tests/ -q              # Full test suite (3,200+ tests, ~90s)
 uv run pytest tests/compound/ -v     # Run module tests
 uv run pytest tests/test_*.py::name  # Single test
 make format && make lint && make all # Check → fix → verify
+```
+
+### ⚡ Security Standards (MANDATORY)
+```bash
+# NEVER print, echo, or display any passwords or secrets
+# NEVER store SUDO_PASSWORD in .env for scripts - use passwordless sudo
+# NEVER write secrets to temp files that persist
+
+# ALWAYS use 'uv' for package management - NEVER bare 'pip' or 'pip install'
+uv pip install package              # Install package
+uv venv && source .venv/bin/activate && uv pip install -e .  # New project setup
+
+# For sudo: configure passwordless sudo for automation OR run interactively
+# Do NOT attempt to parse .env for SUDO_PASSWORD - this is a security risk
 ```
 
 ### ⚡ Critical Principles (Sessions 40-55)
@@ -89,7 +103,7 @@ uv run python scripts/compile_memory_from_vault.py
 ### ⚡ Quick Reference
 - **Language**: Python 3.13+ | **Package Manager**: `uv` (never bare python)
 - **DB**: SurrealDB (ws://localhost:8000) | **API**: FastAPI :8080
-- **Tests**: 2,854 (99.3% passing) | **Coverage**: html report in `htmlcov/`
+- **Tests**: 3,214 passing / 4 failing (99.9%) | **Coverage**: html report in `htmlcov/`
 - **CI**: `make lint-check && uv run pytest` before commit
 - **Entry point**: `cohezion = "cohezion.__main__:main"`
 - **Vault**: `~/vaults/cohezion-vault/` — Query via `vault_find_relevant_context(query)`
@@ -128,7 +142,7 @@ Updated Skill (loop again)
 | `src/cohezion/cache/` | L1/L2/L3 semantic cache (95%+ hit rate) | `semantic_cache.py` |
 | `src/cohezion/skills/` | 124 PRIME skill definitions (*.md + *.py) | `skill_registry.json` |
 | `src/cohezion/persistence/` | SurrealDB, checkpoints, session recovery | `surreal_client.py` |
-| `src/cohezion/api/` | FastAPI backend (46 endpoints) | `__init__.py` (FastMCP patterns) |
+| `src/cohezion/api/` | FastAPI backend (72 endpoints) | `__init__.py` (FastMCP patterns) |
 | `src/cohezion/flume/` | FLUME VAE (256D latent space) | `flume_vae.py` |
 | `tests/conftest.py` | **CRITICAL**: Singleton reset for FLUME VAE, RL policy, loggers | **Read this first** |
 
@@ -216,30 +230,49 @@ Before declaring task complete:
 
 ## Multi-Session Worktree Pattern (MANDATORY)
 
-**Every Claude session creates an isolated feature branch to prevent conflicts and data loss.**
+**Every Claude session MUST start with an isolated worktree.** This is the primary development pattern.
+
+### ⚡ Quick Start (Session Scripts)
 
 ```bash
-# Session startup
-SESSION_ID="55"
-PHASE="test-fixes"
-git worktree add ~/dev/cohezion-session-${SESSION_ID} -b session-${SESSION_ID}-${PHASE}
-cd ~/dev/cohezion-session-${SESSION_ID}
+# Start session (interactive or explicit)
+./scripts/session/start_session.sh           # Auto-increments session ID
+./scripts/session/start_session.sh 56 feature  # Explicit
+
+# List active sessions
+./scripts/session/list_sessions.sh
+
+# End session (commit, push, cleanup)
+./scripts/session/end_session.sh 56
+```
+
+See [`scripts/session/README.md`](scripts/session/README.md) for complete documentation.
+
+### Manual Worktree Commands (Fallback)
+
+```bash
+# Create worktree with new branch
+git worktree add -b session-56-feature ~/dev/cohezion-session-56 main
+cd ~/dev/cohezion-session-56
 
 # Session work: One goal, atomic commits
 uv run pytest tests/ -q  # Verify baseline
 # ... make changes, test incrementally ...
 
-# Session cleanup
-git commit -m "Session ${SESSION_ID}: ${PHASE}
+# Commit with session summary
+git commit -m "Session 56: feature
 
 ## Accomplishments
 - [Deliverables + test count/%, regressions: zero]
 
-## For Session ${SESSION_ID+1}
-- [Key assumptions, remaining work, gotchas]"
+## For Session 57
+- [Key assumptions, remaining work, gotchas]
 
-git push origin session-${SESSION_ID}-${PHASE}
-cd ~/dev/cohezion && git worktree remove ~/dev/cohezion-session-${SESSION_ID}
+Co-Authored-By: Claude <noreply@anthropic.com>"
+
+# Push and cleanup
+git push -u origin session-56-feature
+cd ~/dev/cohezion && git worktree remove ~/dev/cohezion-session-56
 ```
 
 **Why**: Isolation → no conflicts | Reversibility → safe branching | Audit trail → clear history | Safety → main never edited directly
@@ -250,6 +283,13 @@ cd ~/dev/cohezion && git worktree remove ~/dev/cohezion-session-${SESSION_ID}
 - AI commits include: `Co-Authored-By: Claude <noreply@anthropic.com>`
 - No files >1MB (use git-lfs)
 - Check `git status` before any commit
+
+**Recommended Git Config**:
+```bash
+git config worktree.useRelativePaths true   # Portable worktrees
+git config worktree.guessRemote true        # Auto-track remotes
+git config gc.worktreePruneExpire 2.weeks.ago
+```
 
 ## Design Principles (Compound-Aligned)
 

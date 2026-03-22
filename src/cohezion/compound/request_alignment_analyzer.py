@@ -608,8 +608,8 @@ class RequestAlignmentAnalyzer:
                     )
                 )
                 return max(0.0, min(1.0, similarity))
-            except Exception:
-                pass
+            except Exception as e:
+                logger.debug("Intent alignment computation failed: %s", e)
 
         # Multi-step request handling
         if request_intent == IntentType.MULTI_STEP:

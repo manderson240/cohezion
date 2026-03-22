@@ -172,7 +172,8 @@ class HardwareMonitor:
                     continue
 
             return max_temp
-        except Exception:
+        except Exception as e:
+            logger.debug("CPU temp read failed, using default: %s", e)
             return self.DEFAULT_CPU_TEMP
 
     def _read_gpu_temp(self) -> float:
@@ -198,7 +199,8 @@ class HardwareMonitor:
                         continue
 
             return max_temp
-        except Exception:
+        except Exception as e:
+            logger.debug("GPU temp read failed, using default: %s", e)
             return self.DEFAULT_GPU_TEMP
 
     def _read_cpu_power(self) -> float:
@@ -227,7 +229,8 @@ class HardwareMonitor:
                         continue
 
             return total_power
-        except Exception:
+        except Exception as e:
+            logger.debug("CPU power read failed, using default: %s", e)
             return self.DEFAULT_CPU_POWER
 
     def _read_gpu_power(self) -> float:
@@ -247,7 +250,8 @@ class HardwareMonitor:
             normalized_clock = gpu_clock / 2800.0
             power = 25.0 * (normalized_clock**2)
             return max(self.DEFAULT_GPU_POWER, min(50.0, power))
-        except Exception:
+        except Exception as e:
+            logger.debug("GPU power read failed, using default: %s", e)
             return self.DEFAULT_GPU_POWER
 
     def _read_gpu_clock(self) -> float:
@@ -274,7 +278,8 @@ class HardwareMonitor:
                     continue
 
             return 2800.0  # Default to max clock
-        except Exception:
+        except Exception as e:
+            logger.debug("GPU clock read failed, using default: %s", e)
             return 2800.0
 
     def _read_memory_used(self) -> float:

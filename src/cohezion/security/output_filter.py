@@ -48,11 +48,47 @@ COMPILED_PII = {name: re.compile(pattern) for name, pattern in PII_PATTERNS.item
 
 # Basic toxic patterns (would use ML model in production)
 TOXIC_PATTERNS = [
-    r"\b(hate|kill|attack|destroy)\s+(all|every)\s+\w+",
-    r"\b(bomb|weapon|explosive)\s+(make|build|create)",
+    r"\b(hate|kill|attack|destroy)\s+(all|every)\b",
+    r"\b(make|build|create)\s+(a\s+)?(bomb|weapon|explosive)\b",
+    r"\b(bomb|weapon|explosive)\s+(make|build|create)\b",
 ]
 
 COMPILED_TOXIC = [re.compile(p, re.IGNORECASE) for p in TOXIC_PATTERNS]
+
+
+class InsightPacketGenerator:
+    """Synthesizes sensitive context into abstract 12D manifold trajectories."""
+
+    def __init__(self):
+        self.embedding_model = None  # Lazy load via cost_aware_router
+
+    def synthesize(self, text: str) -> dict:
+        """
+        Compresses raw text into a Zero-Knowledge Insight Packet.
+        Removes semantic noise and keeps only the 12D topological shape.
+        """
+        # 1. Detect and Redact sensitive tokens first
+        filter_engine = OutputFilter()
+        filtered = filter_engine.filter(text)
+
+        # 2. Map redacted content to 12D vector space
+        # (Mocked for Story 11.6 implementation - usually calls FlumeEncoder)
+        import hashlib
+
+        content_hash = hashlib.sha256(filtered.content.encode())
+        # Derive 12 dimensions from hash bytes for deterministic mapping
+        digest = content_hash.digest()
+        vec = [float(b) / 255.0 for b in digest[:12]]
+
+        # Security: Use SHA-256 truncated instead of MD5 for packet_id
+        # MD5 is cryptographically weak and has collision vulnerabilities
+        return {
+            "packet_id": content_hash.hexdigest()[:16],  # First 16 chars of SHA-256
+            "trajectory": vec,
+            "density": len(text) / len(vec),
+            "warnings": filtered.warnings,
+            "is_redacted": filtered.result != FilterResult.CLEAN,
+        }
 
 
 class OutputFilter:
@@ -103,9 +139,7 @@ class OutputFilter:
                 redactions.append(f"{pii_type}:{len(matches)}")
 
                 if self.redact_pii:
-                    filtered_text = pattern.sub(
-                        f"[REDACTED_{pii_type.upper()}]", filtered_text
-                    )
+                    filtered_text = pattern.sub(f"[REDACTED_{pii_type.upper()}]", filtered_text)
 
         result = FilterResult.CLEAN
         if redactions:

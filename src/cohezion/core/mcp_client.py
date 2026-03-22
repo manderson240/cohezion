@@ -405,8 +405,8 @@ class MCPClient:
             results = self.vault_search(query="", scope="folder", folder=folder)
             if results:
                 return results[:limit]
-        except Exception:
-            pass
+        except Exception as e:
+            logger.debug("Vault folder search failed for domain %s: %s", domain, e)
 
         # Fall back to full-text search
         try:
@@ -414,7 +414,8 @@ class MCPClient:
                 query=f"{domain} pattern", scope="all", folder=""
             )
             return results[:limit] if results else []
-        except Exception:
+        except Exception as e:
+            logger.debug("Vault text search fallback failed for domain %s: %s", domain, e)
             return []
 
     def vault_search_by_skill_category(
@@ -438,8 +439,8 @@ class MCPClient:
             results = self.vault_search(query="", scope="folder", folder=folder)
             if results:
                 return results[:limit]
-        except Exception:
-            pass
+        except Exception as e:
+            logger.debug("Vault folder search failed for category %s: %s", category, e)
 
         # Fall back to full-text search
         try:
@@ -447,7 +448,8 @@ class MCPClient:
                 query=f"{category} skill", scope="all", folder=""
             )
             return results[:limit] if results else []
-        except Exception:
+        except Exception as e:
+            logger.debug("Vault text search fallback failed for category %s: %s", category, e)
             return []
 
     def vault_search_hierarchical(

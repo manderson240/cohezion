@@ -123,8 +123,8 @@ class PhysicsState:
         if hasattr(arr, "tobytes"):
             try:
                 return base64.b64encode(arr.tobytes()).decode("ascii")
-            except Exception:
-                pass
+            except Exception as e:
+                logger.debug("Binary pack failed, using JSON fallback: %s", e)
         # Fallback to JSON string as 'packed' if numpy is missing
         return base64.b64encode(str(arr).encode()).decode("ascii")
 
@@ -253,6 +253,7 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
         self.namespace = namespace
         self.database = database
         self._connected = False
+        self._using_fallback = False
         self._client: Any = None  # Will be surrealdb client when connected
 
     async def connect(self) -> bool:
@@ -285,9 +286,14 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
                 return True
 
             # Use AsyncSurreal with the new API (v1.0.8+)
+            import os as _os
+
             self._client = AsyncSurreal(self.url)
             await self._client.connect()
-            await self._client.signin({"username": "root", "password": "root"})
+            await self._client.signin({
+                "username": _os.environ.get("SURREAL_USER", "root"),
+                "password": _os.environ.get("SURREAL_PASSWORD", "root"),
+            })
             await self._client.use(self.namespace, self.database)
             self._connected = True
             breaker.record_success()
@@ -310,6 +316,7 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
             _SHARED_STORE = InMemoryStore()
         self._client = _SHARED_STORE
         self._connected = True
+        self._using_fallback = True
         logger.warning("🔸 FALLBACK: Using InMemoryStore for persistence.")
 
     async def setup_schema(self) -> bool:
@@ -345,8 +352,8 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
 
             if isinstance(self._client, InMemoryStore):
                 self._client.store(node.id, data)
-                logger.info(
-                    f"DEBUG: Stored node {node.id}. Compressed: {data.get('compressed')}"
+                logger.debug(
+                    "Stored node %s. Compressed: %s", node.id, data.get("compressed")
                 )
             else:
                 await self._client.create(f"universe_nodes:{node.id}", data)
@@ -375,7 +382,7 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
                 return await self._client.create(table, data)
         except Exception as e:
             logger.error(f"Create failed in {table}: {e}")
-            raise e
+            raise
 
     async def query(self, sql: str, vars: dict[str, Any] | None = None) -> Any:
         """Execute a raw SQL query against the database."""
@@ -559,14 +566,17 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
             if isinstance(self._client, InMemoryStore):
                 results = self._client.search_similar(vector, limit)
             else:
-                # SurrealDB vector search query
-                query = f"""
+                # SurrealDB vector search query — cap limit to prevent abuse
+                safe_limit = min(int(limit), 10000)
+                query = """
                 SELECT *, vector::similarity::cosine(embedding, $vector) AS score
                 FROM universe_nodes
                 ORDER BY score DESC
-                LIMIT {limit}
+                LIMIT $limit
                 """
-                results = await self._client.query(query, {"vector": vector})
+                results = await self._client.query(
+                    query, {"vector": vector, "limit": safe_limit}
+                )
                 results = results[0].get("result", []) if results else []
 
             return [self._dict_to_node(r) for r in results]
@@ -584,8 +594,10 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
             if isinstance(self._client, InMemoryStore):
                 results = self._client.get_all(limit)
             else:
+                safe_limit = min(int(limit), 10000)
                 results = await self._client.query(
-                    f"SELECT * FROM universe_nodes LIMIT {limit}"
+                    "SELECT * FROM universe_nodes LIMIT $limit",
+                    {"limit": safe_limit},
                 )
                 results = results[0].get("result", []) if results else []
 
@@ -637,11 +649,20 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
                 )
                 return rel_id
             else:
+                # Validate relation_type to prevent injection (allow only alphanumeric + underscore)
+                if not re.match(r"^[a-zA-Z_][a-zA-Z0-9_]*$", relation_type):
+                    raise ValueError(f"Invalid relation type: {relation_type}")
                 result = await self._client.query(
-                    f"RELATE {from_id}->{relation_type}->{to_id} SET "
-                    f"weight = {weight}, "
-                    f"metadata = {json.dumps(metadata or {})}, "
-                    f"created_at = time::now()"
+                    f"RELATE $from_id->{relation_type}->$to_id SET "
+                    "weight = $weight, "
+                    "metadata = $metadata, "
+                    "created_at = time::now()",
+                    {
+                        "from_id": from_id,
+                        "to_id": to_id,
+                        "weight": weight,
+                        "metadata": metadata or {},
+                    },
                 )
                 if result and result[0].get("result"):
                     return str(result[0]["result"][0].get("id", ""))
@@ -679,10 +700,10 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
                         rels.append(item)
                 return rels
             else:
-                query = (
-                    f"SELECT * FROM universe_nodes WHERE id = {node_id} FETCH <->, ->;"
+                result = await self._client.query(
+                    "SELECT * FROM universe_nodes WHERE id = $node_id FETCH <->, ->;",
+                    {"node_id": node_id},
                 )
-                result = await self._client.query(query)
                 if result and result[0].get("result"):
                     return result[0]["result"]
                 return []
@@ -714,23 +735,26 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
             await self.connect()
 
         try:
-            # Find nodes that have relationships to both domains
-            query = f"""
-                SELECT *,
-                    (SELECT count() FROM ->bridges WHERE out.node_type = '{domain_b}')[0].count AS b_count
-                FROM universe_nodes
-                WHERE node_type = '{domain_a}'
-                ORDER BY b_count DESC
-                LIMIT {limit}
-            """
-
             if isinstance(self._client, InMemoryStore):
                 # Fallback for in-memory
                 all_nodes = self._client.get_all(1000)
                 a_nodes = [n for n in all_nodes if n.get("node_type") == domain_a]
                 return a_nodes[:limit]
             else:
-                result = await self._client.query(query)
+                # Find nodes that have relationships to both domains
+                safe_limit = min(int(limit), 10000)
+                query = """
+                    SELECT *,
+                        (SELECT count() FROM ->bridges WHERE out.node_type = $domain_b)[0].count AS b_count
+                    FROM universe_nodes
+                    WHERE node_type = $domain_a
+                    ORDER BY b_count DESC
+                    LIMIT $limit
+                """
+                result = await self._client.query(
+                    query,
+                    {"domain_a": domain_a, "domain_b": domain_b, "limit": safe_limit},
+                )
                 if result and result[0].get("result"):
                     return result[0]["result"]
                 return []

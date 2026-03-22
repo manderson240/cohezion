@@ -217,3 +217,32 @@ Extracting machine learning and training logic (VAE/RL) from the main `api/__ini
 
 ## Learning 120: Soft Schema Enforcement for Scout Resilience (2026-02-10)
 When dealing with non-deterministic LLM JSON outputs, implementing "Soft Schema" enforcement (using `.get()` with intelligent defaults) prevents catastrophic swarm failures during semantic scouting. This pattern provides a first line of defense before harder Pydantic validation layers.
+
+## Learning 121: Autonomic Self-Healing Protocol (2026-02-20)
+The `/heal` command orchestrates 6-stage diagnostics: (1) immune system check via `immune_system.py`, (2) SurrealDB connection validation with graceful fallback to InMemoryStore, (3) lint auto-fix with ruff, (4) code formatting, (5) package integrity check (`__init__.py` enforcement), (6) healing outcome report. System demonstrated graceful degradation under SurrealDB auth failure while maintaining operational stability. Remaining issues post-heal: 1,003 linting errors (down from 1,058), primarily line-length violations (432) and security patterns (192).
+
+---
+
+## Session 58: Cosmic Fire Module (2026-02-20)
+
+### Learning 122: Integration Theater Detection
+Initial claims of integration into lcsp.py, morphospace.py, journey_tracker.py were false - fields existed in documentation but not in actual files. Fix: adversarial audit pattern that imports and inspects actual classes rather than trusting edit claims. Pattern: `assert hasattr(Class, 'claimed_field'), "INTEGRATION THEATER"`.
+
+### Learning 123: Circular Import Resolution via Lazy Loading
+JourneyTracker cannot import ThreeFiresEngine at module level due to import cycles. Fix: lazy loading with caching: `_cache = None; def _get_engine(): global _cache; if _cache is None: from path import Engine; _cache = Engine(); return _cache`. This pattern applies to any module that creates cycles when importing from child packages.
+
+### Learning 124: HIHO Consistency Enforcement
+Multiple files had inconsistent HIHO calculations: old pattern `1.0 - abs(c - 0.5)` (linear penalty, wrong shape) vs correct `HihoVectorEngine.calculate_hiho_score(c)` (Gaussian peak at 0.5). Rule: always use shared engine classes, never inline physics calculations.
+
+### Learning 125: Fire-Type Sigma Tuning Maps to Task Profile
+Three Fires have different sigma values mapping to agent task profiles: Electric (σ=0.20, sharp peak) for precision/validation tasks; Solar (σ=0.25, standard) for general work; Friction (σ=0.35, wide) for resilient/recovery tasks. This enables semantic routing based on reliability requirements.
+
+### Learning 126: 5-Essential-Tests Pattern
+Session 58 cosmic module: 34 tests covering 6 modules in 7.7s. Effective test strategy: manual validation → 5 essential tests (happy path, edge-empty, edge-max, error-case, integration-point) → ship. Anti-pattern: 600 pre-build tests with no implementation.
+
+---
+
+## Session 59: Dev Environment Recovery (2026-02-20)
+
+### Learning 127: Claude Code Native Install vs npm Conflict Resolution
+When `claude update` warns "Running native installation but config install method is 'npm'": (1) remove leftover npm global: `npm -g uninstall @anthropic-ai/claude-code`, (2) re-run `claude update` which self-corrects `installMethod` in `~/.claude.json`. Root cause of lost auto-updates: `"autoUpdates": false` in `~/.claude.json` — fix by setting `true`. For user-scope MCP servers (e.g., context7): use `claude mcp add --scope user --transport stdio name -- command` which writes to `~/.claude.json` under `mcpServers`. Do NOT edit `~/.claude/mcp.json` for Claude Code MCP — that file is Pilot's config and serves a different system. The two files must not be conflated.

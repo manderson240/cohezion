@@ -112,7 +112,8 @@ class DockerBackend:
             client = docker.from_env()
             client.ping()
             return True
-        except Exception:
+        except Exception as e:
+            logger.debug("Docker daemon not reachable: %s", e)
             return False
 
 
@@ -202,8 +203,18 @@ class SystemdRunBackend:
 
     @classmethod
     def is_available(cls) -> bool:
-        """Check if systemd-run is available."""
-        return shutil.which("systemd-run") is not None
+        """Check if systemd-run is available and functional."""
+        if shutil.which("systemd-run") is None:
+            return False
+        try:
+            result = subprocess.run(
+                ["systemd-run", "--scope", "--user", "true"],
+                capture_output=True,
+                timeout=5,
+            )
+            return result.returncode == 0
+        except Exception:
+            return False
 
 
 class SubprocessBackend:

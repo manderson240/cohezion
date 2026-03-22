@@ -57,8 +57,7 @@ class TestTLSCertificateGeneration:
         try:
             import OpenSSL
 
-            with open(cert_path, "rb") as f:
-                cert_data = f.read()
+            cert_data = cert_path.read_bytes()
             cert = OpenSSL.crypto.load_certificate(
                 OpenSSL.crypto.FILETYPE_PEM, cert_data
             )
@@ -74,10 +73,9 @@ class TestTLSCertificateGeneration:
         try:
             import OpenSSL
 
-            with open(cert_path, "rb") as f:
-                cert = OpenSSL.crypto.load_certificate(
-                    OpenSSL.crypto.FILETYPE_PEM, f.read()
-                )
+            cert = OpenSSL.crypto.load_certificate(
+                OpenSSL.crypto.FILETYPE_PEM, cert_path.read_bytes()
+            )
             cn = cert.get_subject().CN
             assert cn == "localhost", (
                 f"Certificate CN should be 'localhost', got '{cn}'"
@@ -92,10 +90,9 @@ class TestTLSCertificateGeneration:
         try:
             import OpenSSL
 
-            with open(cert_path, "rb") as f:
-                cert = OpenSSL.crypto.load_certificate(
-                    OpenSSL.crypto.FILETYPE_PEM, f.read()
-                )
+            cert = OpenSSL.crypto.load_certificate(
+                OpenSSL.crypto.FILETYPE_PEM, cert_path.read_bytes()
+            )
             # Self-signed: issuer == subject
             issuer = cert.get_issuer()
             subject = cert.get_subject()
@@ -274,6 +271,11 @@ class TestTLSIntegration:
 
     def test_certificate_validity_period(self):
         """Verify certificate is valid for at least one year."""
+        cert_path = CERTS_DIR / "server.crt"
+
+        if not cert_path.exists():
+            pytest.skip("Deployment certificates not present")
+
         try:
             from datetime import datetime
 
@@ -295,33 +297,3 @@ class TestTLSIntegration:
             )
         except ImportError:
             pytest.skip("OpenSSL library not available")
-
-
-# Summary
-"""
-Task #2: TLS/HTTPS Configuration - Test Coverage
-
-✅ Certificate Generation:
-   - Self-signed certificates generated in ./certs/
-   - Proper file permissions (600 for private key)
-   - Valid X.509 format
-   - CN=localhost for localhost-only development
-
-✅ TLS Configuration:
-   - TLSConfig module for SSL configuration
-   - HTTPS middleware for Starlette
-   - Certificate validation
-   - HSTS header support
-
-✅ MCP Server Integration:
-   - main.py imports TLS modules
-   - Uvicorn SSL configuration ready
-   - Environment variables for TLS paths
-
-✅ MCP Client Support:
-   - HTTPS client support verified
-   - SSL context creation tested
-   - Certificate chain handling
-
-Tests Target: 4+ test cases covering all TLS aspects
-"""

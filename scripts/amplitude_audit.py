@@ -1,3 +1,7 @@
+import ast
+import operator
+import re
+
 import quimb.tensor as qtn
 import numpy as np
 import logging
@@ -5,6 +9,38 @@ import os
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("AmplitudeAudit")
+
+
+def _safe_parse_param(expr: str) -> float:
+    """Safely parse a QASM gate parameter using AST-based evaluation."""
+    expr = expr.strip()
+    expr = re.sub(r"\bpi\b", str(np.pi), expr)
+    if not re.match(r"^[\d\.\+\-\*/eE\s]+$", expr):
+        raise ValueError(f"Unsafe QASM parameter expression: {expr!r}")
+
+    _ops = {
+        ast.Add: operator.add,
+        ast.Sub: operator.sub,
+        ast.Mult: operator.mul,
+        ast.Div: operator.truediv,
+        ast.USub: operator.neg,
+        ast.UAdd: operator.pos,
+    }
+
+    def _eval_node(node):
+        if isinstance(node, ast.Expression):
+            return _eval_node(node.body)
+        if isinstance(node, ast.Constant) and isinstance(node.value, (int, float)):
+            return float(node.value)
+        if isinstance(node, ast.BinOp) and type(node.op) in _ops:
+            return float(_ops[type(node.op)](_eval_node(node.left), _eval_node(node.right)))
+        if isinstance(node, ast.UnaryOp) and type(node.op) in _ops:
+            return float(_ops[type(node.op)](_eval_node(node.operand)))
+        raise ValueError(f"Unsupported expression node: {ast.dump(node)}")
+
+    tree = ast.parse(expr, mode="eval")
+    return _eval_node(tree)
+
 
 def load_qasm_manual(qasm_path):
     with open(qasm_path, 'r') as f:
@@ -17,7 +53,6 @@ def load_qasm_manual(qasm_path):
             break
 
     circ = qtn.Circuit(N)
-    safe_dict = {"pi": np.pi}
 
     for line in lines:
         line = line.strip().replace(';', '')
@@ -30,7 +65,7 @@ def load_qasm_manual(qasm_path):
             circ.apply_gate('CZ', q1, q2)
         elif line.startswith('u('):
             params_str = line.split('(')[1].split(')')[0]
-            params = [float(eval(p, {"__builtins__": None}, safe_dict)) for p in params_str.split(',')]
+            params = [_safe_parse_param(p) for p in params_str.split(',')]
             q_str = line.split(')')[1].strip()
             q = int(q_str.split('[')[1].split(']')[0])
             circ.apply_gate('U3', *params, q)

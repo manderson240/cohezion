@@ -646,8 +646,8 @@ async def cmd_ouroboros(args: argparse.Namespace) -> int:
                         outputs={"status": "stopped_by_user"},
                         phi_score=0.7,
                     )
-                except Exception:
-                    pass
+                except Exception as e:
+                    logger.debug("Failed to precipitate reality on shutdown: %s", e)
 
             logger.info("✅ Ouroboros stopped")
 

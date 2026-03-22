@@ -11,6 +11,7 @@ Provides professional-grade database management capabilities:
 import asyncio
 import json
 import logging
+import re
 from datetime import datetime
 from pathlib import Path
 from typing import Any
@@ -60,6 +61,7 @@ class DBAdmin:
             # For massive tables, we'd want to stream this.
             # SurrealDB EXPORT is the native way, but client support varies.
             # We'll do a robust query based export for now.
+            _validate_table_name(table_name)
             query = f"SELECT * FROM {table_name}"
             # TODO: Implement cursor/pagination for >1M records
             results = await self.client.query(query)
@@ -103,6 +105,7 @@ class DBAdmin:
         try:
             # Use raw query for batch insert to support lists
             # Note: We use query params to handle the list efficiently
+            _validate_table_name(table_name)
             query = f"INSERT INTO {table_name} $batch"
 
             # Client.query returns the result directly in some wrappers, or strict response in others.
