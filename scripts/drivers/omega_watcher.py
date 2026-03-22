@@ -4,6 +4,7 @@ import os
 import time
 from pathlib import Path
 
+
 # Project OMEGA: Skill Crystallizer Watcher
 # Responsibility: Watch for "MISSION SUCCESS" in logs/archive/ and queue them for crystallization.
 

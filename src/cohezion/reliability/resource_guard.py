@@ -6,10 +6,13 @@ Enforces limits on CPU load and RAM usage.
 import asyncio
 import logging
 import os
-import psutil
 from dataclasses import dataclass
 
+import psutil
+
+
 logger = logging.getLogger(__name__)
+
 
 @dataclass
 class SystemVitals:
@@ -17,6 +20,7 @@ class SystemVitals:
     ram_available_mb: int
     ram_percent: float
     swap_used_mb: int
+
 
 class ResourceGuard:
     """
@@ -52,27 +56,27 @@ class ResourceGuard:
 
         if vitals.cpu_load_1m > self.max_cpu_load:
             return False, f"CPU load too high: {vitals.cpu_load_1m}"
-        
+
         if vitals.ram_available_mb < self.min_ram_available_mb:
             return False, f"RAM available too low: {vitals.ram_available_mb}MB"
-        
+
         if vitals.ram_percent > self.max_ram_percent:
             return False, f"RAM usage too high: {vitals.ram_percent}%"
-            
+
         return True, "System healthy"
 
     async def wait_for_stability(self, timeout_seconds: int = 300, check_interval: int = 5) -> bool:
         """Wait until system stabilizes or timeout occurs."""
         start_time = asyncio.get_event_loop().time()
-        
+
         while True:
             healthy, reason = self.is_healthy()
             if healthy:
                 return True
-            
+
             if (asyncio.get_event_loop().time() - start_time) > timeout_seconds:
                 logger.error(f"ResourceGuard timeout: {reason}")
                 return False
-                
+
             logger.warning(f"Throttling: {reason}. Waiting {check_interval}s...")
             await asyncio.sleep(check_interval)

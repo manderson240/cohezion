@@ -170,12 +170,10 @@ class TestVaultOpsWithCache:
             "This paper discusses machine learning concepts.\n"
         )
         (tmp_path / "papers" / "test2.md").write_text(
-            "# Deep Learning\n\n"
-            "Deep learning is a subset of machine learning.\n"
+            "# Deep Learning\n\nDeep learning is a subset of machine learning.\n"
         )
         (tmp_path / "papers" / "test3.md").write_text(
-            "# Natural Language Processing\n\n"
-            "NLP uses neural networks.\n"
+            "# Natural Language Processing\n\nNLP uses neural networks.\n"
         )
         return VaultOps(str(tmp_path), cache_enabled=True, cache_ttl_seconds=60)
 
@@ -183,9 +181,7 @@ class TestVaultOpsWithCache:
     def vault_without_cache(self, tmp_path):
         """Create a vault with cache disabled."""
         (tmp_path / "papers").mkdir()
-        (tmp_path / "papers" / "test1.md").write_text(
-            "# Test Paper\n\nContent here.\n"
-        )
+        (tmp_path / "papers" / "test1.md").write_text("# Test Paper\n\nContent here.\n")
         return VaultOps(str(tmp_path), cache_enabled=False)
 
     def test_vault_cache_hit_repeated_search(self, vault_with_cache):
@@ -271,10 +267,7 @@ class TestVaultOpsWithCache:
         results_cache = vault_with_cache.search("learning")
 
         # Create new vault instance without cache and search
-        vault_ops = VaultOps(
-            str(vault_with_cache.vault_path),
-            cache_enabled=False
-        )
+        vault_ops = VaultOps(str(vault_with_cache.vault_path), cache_enabled=False)
         results_no_cache = vault_ops.search("learning")
 
         # Results should be identical

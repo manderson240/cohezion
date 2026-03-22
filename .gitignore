@@ -229,3 +229,9 @@ data/
 *.weights
 *.npy
 *.npz
+
+.gemini/
+gha-creds-*.json
+
+# MCP configuration (contains machine-specific paths and tokens — copy from .mcp.json.example)
+.mcp.json

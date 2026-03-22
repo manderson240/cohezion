@@ -14,6 +14,7 @@ import numpy as np
 
 from cohezion.mass_sim.config import UniverseResult
 
+
 logger = logging.getLogger(__name__)
 
 
@@ -63,8 +64,7 @@ class CheckpointExporter:
             arr = np.array(ckpt.sample_states, dtype=np.float32)
             if arr.ndim != 2:
                 logger.warning(
-                    f"Skipping checkpoint epoch {ckpt.epoch}: "
-                    f"unexpected shape {arr.shape}"
+                    f"Skipping checkpoint epoch {ckpt.epoch}: unexpected shape {arr.shape}"
                 )
                 continue
 
@@ -133,7 +133,7 @@ class CheckpointExporter:
                 with open(jsonl_file) as f:
                     for line in f:
                         record = json.loads(line)
-                        if "sample_states" in record and record["sample_states"]:
+                        if record.get("sample_states"):
                             for state in record["sample_states"]:
                                 if len(state) == z_dim:
                                     vectors.append(state)

@@ -19,12 +19,14 @@ import re
 from datetime import datetime
 from typing import Any
 
+
 try:
     import numpy as np
 except ImportError:
     np = None
 
 from cohezion.core.persistence.surreal_client import PhysicsState
+
 
 logger = logging.getLogger(__name__)
 

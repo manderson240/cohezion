@@ -1,4 +1,4 @@
-"""
+r"""
 Overnight Driver: "The Holographic Unification" (v12.0)
 -------------------------------------------------------
 Architecture: Pragmatic R-Zero (Challenger/Solver Co-Evolution)
@@ -23,44 +23,48 @@ Infrastructure:
 
 import asyncio
 import logging
+import random
 import time
 from datetime import datetime, timedelta
 from pathlib import Path
-import random
+
 import matplotlib
-matplotlib.use('Agg')
-import matplotlib.pyplot as plt
-import numpy as np
-import math
-import json
+
+
+matplotlib.use("Agg")
 from dataclasses import dataclass, field
 from typing import Any
 
-# Internal imports
-from cohezion.swarm.mass_simulator import MassSimulator, ChunkResult, MassSimulationResult
+import matplotlib.pyplot as plt
+import numpy as np
+from prometheus_client import Counter, Gauge, start_http_server
+
+from cohezion.core.persistence.surreal_client import PhysicsState, SurrealClient, UniverseNode
 from cohezion.mcp.email_notifier import EmailNotifier
+
+# Internal imports
+from cohezion.swarm.mass_simulator import MassSimulator
 from cohezion.training.training_data_capture import (
-    TrainingDataCapture,
     InteractionRecord,
-    JourneyRecord
+    TrainingDataCapture,
 )
-from cohezion.core.persistence.surreal_client import SurrealClient, UniverseNode, PhysicsState
-from prometheus_client import start_http_server, Gauge, Counter
+
 
 logger = logging.getLogger(__name__)
 
 # Prometheus Metrics
-SIMULATION_COUNTER = Counter('cohezion_simulations_total', 'Total simulations processed')
-DIFFICULTY_GAUGE = Gauge('cohezion_r_zero_difficulty', 'Current R-Zero Difficulty')
-EPOCH_GAUGE = Gauge('cohezion_epoch', 'Current Simulation Epoch')
-COHERENCE_GAUGE = Gauge('cohezion_avg_coherence', 'Average Batch Coherence')
-PRAGMATISM_SCORE = Gauge('cohezion_pragmatism_score', 'Pragmatic Quality Score')
+SIMULATION_COUNTER = Counter("cohezion_simulations_total", "Total simulations processed")
+DIFFICULTY_GAUGE = Gauge("cohezion_r_zero_difficulty", "Current R-Zero Difficulty")
+EPOCH_GAUGE = Gauge("cohezion_epoch", "Current Simulation Epoch")
+COHERENCE_GAUGE = Gauge("cohezion_avg_coherence", "Average Batch Coherence")
+PRAGMATISM_SCORE = Gauge("cohezion_pragmatism_score", "Pragmatic Quality Score")
 
 # Constants
 TARGET_SIMULATIONS = 500_000
 END_TIME_HOUR = 8  # 8 AM local time
-BATCH_SIZE = 500   # Token efficient batching
+BATCH_SIZE = 500  # Token efficient batching
 WORKER_MODELS = ["gemma3:4b", "phi3:mini"]
+
 
 @dataclass
 class RZeroState:
@@ -68,6 +72,7 @@ class RZeroState:
     R-Zero Framework State.
     Manages Challenger (Constraints) and Pragmatic Evaluator.
     """
+
     epoch: int = 1
     difficulty: float = 1.0
     history: list[float] = field(default_factory=list)
@@ -77,17 +82,20 @@ class RZeroState:
         """Initialize Mem0 persistence layer (or Fallback)."""
         try:
             from mem0 import Memory
+
             # Updated config format for newer mem0 versions
-            self.mem0_client = Memory.from_config({
-                "vector_store": {
-                    "provider": "qdrant",
-                    "config": {
-                        "collection_name": "cohezion_r_zero",
-                        "host": "localhost",
-                        "port": 6333
+            self.mem0_client = Memory.from_config(
+                {
+                    "vector_store": {
+                        "provider": "qdrant",
+                        "config": {
+                            "collection_name": "cohezion_r_zero",
+                            "host": "localhost",
+                            "port": 6333,
+                        },
                     }
                 }
-            })
+            )
             logger.info("Mem0 Client Initialized.")
         except Exception as e:
             logger.warning(f"Mem0 not available ({e}). Using Pragmatic JSON Fallback.")
@@ -104,15 +112,12 @@ class RZeroState:
             {"name": "Zero Energy Warp", "zpe_limit": 0.1, "warp_target": 2.0},  # Impossible
             {"name": "Infinite Fertility", "fertility_target": 5.0},  # Boundary break
             {"name": "Cold Fusion", "temp_limit": 300, "energy_target": 1000},  # Edge case
-            {"name": "Standard Op", "zpe_limit": 10.0, "warp_target": 1.0}  # Control
+            {"name": "Standard Op", "zpe_limit": 10.0, "warp_target": 1.0},  # Control
         ]
 
         selected_case = random.choice(edge_cases)
 
-        return {
-            "case": selected_case,
-            "difficulty": self.difficulty
-        }
+        return {"case": selected_case, "difficulty": self.difficulty}
 
     def update(self, score: float):
         """Evolve difficulty based on Solver performance."""
@@ -128,19 +133,24 @@ class RZeroState:
 
             # Persist Learnings
             if hasattr(self.mem0_client, "add"):
-                self.mem0_client.add(f"Epoch {self.epoch}: Plateau at diff {self.difficulty-0.1}", user_id="challenger")
+                self.mem0_client.add(
+                    f"Epoch {self.epoch}: Plateau at diff {self.difficulty - 0.1}",
+                    user_id="challenger",
+                )
 
     def update(self, latest_avg_score: float):
         """Update state. If solver succeeds, raise difficulty."""
         self.history.append(latest_avg_score)
-        if len(self.history) > 20: self.history.pop(0)
+        if len(self.history) > 20:
+            self.history.pop(0)
 
         recent_avg = sum(self.history[-10:]) / 10 if len(self.history) >= 10 else 0.5
 
-        if recent_avg > 0.8: # Solver is reliable
+        if recent_avg > 0.8:  # Solver is reliable
             self.difficulty += 0.05
             self.epoch += 1
             logger.info(f"R-ZERO: Pragmatism verified. Difficulty raised to {self.difficulty:.2f}")
+
 
 class PragmaticScorer:
     """Evaluates solutions for Overhype and Correctness."""
@@ -160,35 +170,33 @@ class PragmaticScorer:
             penalty_reasons.append(f"Overhype (-{penalty:.2f})")
 
         # 2. EDGE CASE VALIDATION (Correctness)
-        case = challenge['case']
+        case = challenge["case"]
 
         # Test: Zero Energy Warp
-        if case['name'] == "Zero Energy Warp":
-            if metrics['warp_factor'] > 1.0 and metrics['zpe_density'] < 0.5:
+        if case["name"] == "Zero Energy Warp":
+            if metrics["warp_factor"] > 1.0 and metrics["zpe_density"] < 0.5:
                 score -= 0.5
                 penalty_reasons.append("Violated Physics (Zero Energy Warp)")
 
         # Test: Infinite Fertility
-        if case['name'] == "Infinite Fertility":
-            if metrics['fertility_index'] > 1.0: # Fertility is 0-1 normalized
+        if case["name"] == "Infinite Fertility":
+            if metrics["fertility_index"] > 1.0:  # Fertility is 0-1 normalized
                 score -= 0.5
                 penalty_reasons.append("Boundary Breach (Fertility > 1.0)")
 
         # 3. PRAGMATISM BONUS
-        if metrics['warp_factor'] > 0 and metrics['warp_factor'] < 100: # Reasonable range
+        if metrics["warp_factor"] > 0 and metrics["warp_factor"] < 100:  # Reasonable range
             score += 0.1
 
-        return {
-            "final_score": max(0.0, min(1.0, score)),
-            "penalties": penalty_reasons
-        }
+        return {"final_score": max(0.0, min(1.0, score)), "penalties": penalty_reasons}
+
 
 class OvernightDriver:
     def __init__(self):
         self.simulator = MassSimulator(
             total_simulations=TARGET_SIMULATIONS,
             chunk_size=BATCH_SIZE,
-            output_dir=Path("src/cohezion/knowledge_graph/universe_nodes/plasma_theosophy")
+            output_dir=Path("src/cohezion/knowledge_graph/universe_nodes/plasma_theosophy"),
         )
         self.notifier = EmailNotifier()
         self.start_time = datetime.now()
@@ -205,9 +213,7 @@ class OvernightDriver:
         self._db_connected = False
 
         # Training Data Capture System
-        self.training_capture = TrainingDataCapture(
-            output_dir=Path("training_data")
-        )
+        self.training_capture = TrainingDataCapture(output_dir=Path("training_data"))
         self.active_streams = ["architect", "engineer", "biologist", "quantum_hw", "quantum_algo"]
 
         # Start journeys for each stream
@@ -238,7 +244,7 @@ class OvernightDriver:
             f"Target: {TARGET_SIMULATIONS} sims.\n"
             f"Logic: R-Zero Challenger with Overhype Punishment.\n"
             f"Edge Cases: Active.\n"
-            f"Storage: {'SurrealDB' if self._db_connected else 'Filesystem (fallback)'}"
+            f"Storage: {'SurrealDB' if self._db_connected else 'Filesystem (fallback)'}",
         )
 
         while True:
@@ -280,11 +286,12 @@ class OvernightDriver:
 
         # 1. CHALLENGER PHASE
         challenge = self.r_zero.generate_challenge()
-        difficulty = challenge['difficulty']
+        difficulty = challenge["difficulty"]
 
         # Simulation Processor (Solver)
         def process_sim(input_data: str, idx: int) -> dict:
             import re
+
             seed_match = re.search(r"Seed: (\d+)", input_data)
             seed = int(seed_match.group(1)) if seed_match else random.randint(0, 1000)
             random.seed(seed)
@@ -300,11 +307,11 @@ class OvernightDriver:
             fertility_index = implicate_potential
 
             # Apply constraints (The Solver tries to cheat or fail based on difficulty)
-            if challenge['case']['name'] == "Zero Energy Warp":
+            if challenge["case"]["name"] == "Zero Energy Warp":
                 # High difficulty might force the solver to hallucinate a solution (bad)
                 if difficulty > 1.5:
-                     zpe_density = 0.05
-                     warp_factor = 3.0 # HALLUCINATION
+                    zpe_density = 0.05
+                    warp_factor = 3.0  # HALLUCINATION
 
             # Generate Text (Prone to Hype if difficulty is high)
             hype_words = ""
@@ -320,13 +327,16 @@ class OvernightDriver:
             metrics = {
                 "warp_factor": warp_factor,
                 "zpe_density": zpe_density,
-                "fertility_index": fertility_index
+                "fertility_index": fertility_index,
             }
             evaluation = PragmaticScorer.evaluate(response_text, metrics, challenge)
-            score = evaluation['final_score']
-            penalties = ", ".join(evaluation['penalties'])
+            score = evaluation["final_score"]
+            penalties = ", ".join(evaluation["penalties"])
 
-            full_response = response_text + f"EVALUATION: Score {score:.2f}. Penalties: {penalties if penalties else 'None'}."
+            full_response = (
+                response_text
+                + f"EVALUATION: Score {score:.2f}. Penalties: {penalties if penalties else 'None'}."
+            )
 
             # Generate "Audio Script"
             audio_script = (
@@ -345,7 +355,7 @@ class OvernightDriver:
                 "penalties": penalties,
                 "prompt": input_data,
                 "response": full_response,
-                "case_name": challenge['case']['name'],
+                "case_name": challenge["case"]["name"],
                 "audio_script": audio_script,
                 "timestamp": timestamp_val,
             }
@@ -356,16 +366,20 @@ class OvernightDriver:
             "Return JSON keys: score, metrics."
         )
 
-        inputs = [batch_prompt.format(seed=random.randint(0, 999999), case=challenge['case']['name']) for _ in range(BATCH_SIZE)]
+        inputs = [
+            batch_prompt.format(seed=random.randint(0, 999999), case=challenge["case"]["name"])
+            for _ in range(BATCH_SIZE)
+        ]
 
         # Run Batch
         chunk_result = await asyncio.to_thread(
-            self.simulator.run_custom_chunk,
-            int(time.time()), inputs, process_sim
+            self.simulator.run_custom_chunk, int(time.time()), inputs, process_sim
         )
 
         # UPDATE CHALLENGER STATE
-        batch_scores = [r.get("score", 0.0) for r in chunk_result.raw_results if isinstance(r, dict)]
+        batch_scores = [
+            r.get("score", 0.0) for r in chunk_result.raw_results if isinstance(r, dict)
+        ]
         if batch_scores:
             avg_score = sum(batch_scores) / len(batch_scores)
             self.r_zero.update(avg_score)
@@ -386,7 +400,7 @@ class OvernightDriver:
                     step=self.total_completed + i,
                     coherence=result.get("score", 0.0),
                     relevance=result.get("score", 0.0),
-                    success=result.get("score", 0.0) > 0.5
+                    success=result.get("score", 0.0) > 0.5,
                 )
                 log_tasks.append(self.training_capture.log_interaction(interaction))
 
@@ -430,10 +444,7 @@ class OvernightDriver:
 
     def _analyze_latest_results(self) -> dict:
         """Analyze recent results for anomalies."""
-        return {
-            "epoch": self.r_zero.epoch,
-            "difficulty": self.r_zero.difficulty
-        }
+        return {"epoch": self.r_zero.epoch, "difficulty": self.r_zero.difficulty}
 
     def _generate_visualizations(self, metrics: dict) -> Path:
         """Create Rich Audio-Visual Plot with Pragmatic Scoring."""
@@ -445,22 +456,22 @@ class OvernightDriver:
 
         # Plot 1: Difficulty vs Valid Solutions
         t = np.linspace(0, 10, 200)
-        diff_curve = (t * 0.1) + metrics['difficulty']
+        diff_curve = (t * 0.1) + metrics["difficulty"]
         validity = np.ones_like(t) * 0.8
 
-        ax1.plot(t, diff_curve, label='Challenge Difficulty', color='red')
-        ax1.plot(t, validity, label='Solution Validity Threshold', color='green', linestyle='--')
+        ax1.plot(t, diff_curve, label="Challenge Difficulty", color="red")
+        ax1.plot(t, validity, label="Solution Validity Threshold", color="green", linestyle="--")
         ax1.set_title(f"Pragmatic Challenge (Epoch {metrics['epoch']})")
         ax1.legend()
         ax1.grid(True, alpha=0.3)
-        ax1.set_facecolor('#111111')
+        ax1.set_facecolor("#111111")
 
         # Plot 2: Penalty Distribution (Simulated)
-        categories = ['Overhype', 'Physics Violation', 'Boundary Breach']
+        categories = ["Overhype", "Physics Violation", "Boundary Breach"]
         values = [random.randint(0, 10), random.randint(0, 5), random.randint(0, 2)]
-        ax2.bar(categories, values, color=['orange', 'red', 'purple'])
+        ax2.bar(categories, values, color=["orange", "red", "purple"])
         ax2.set_title("Penalty Distribution (Recent Batch)")
-        ax2.set_facecolor('black')
+        ax2.set_facecolor("black")
 
         plt.tight_layout()
         plt.savefig(filename)
@@ -473,8 +484,8 @@ class OvernightDriver:
         <h2>Pragmatic Status Report</h2>
         <ul>
             <li><strong>Total Sims:</strong> {self.total_completed}</li>
-            <li><strong>Epoch:</strong> {metrics['epoch']}</li>
-            <li><strong>Diff:</strong> {metrics['difficulty']:.2f}</li>
+            <li><strong>Epoch:</strong> {metrics["epoch"]}</li>
+            <li><strong>Diff:</strong> {metrics["difficulty"]:.2f}</li>
         </ul>
         <p><strong>Visualizing Penalties & Progress:</strong></p>
         <p><em>See attachment: {viz_path.name}</em></p>
@@ -488,7 +499,7 @@ class OvernightDriver:
                 agent_id=f"{stream}_overnight",
                 stream=stream,
                 status="completed",
-                final_score=sum(self.r_zero.history[-10:]) / 10 if self.r_zero.history else 0.0
+                final_score=sum(self.r_zero.history[-10:]) / 10 if self.r_zero.history else 0.0,
             )
 
         rankings = self.training_capture.compute_rankings()
@@ -498,13 +509,14 @@ class OvernightDriver:
         ☀️ 8 AM: Pragmatic Simulation Complete
 
         Training Data Captured:
-        - Interactions: {stats['interactions']}
-        - Journeys: {stats['journeys']}
+        - Interactions: {stats["interactions"]}
+        - Journeys: {stats["journeys"]}
 
         Top Performing Streams:
         {chr(10).join(f"  {r['rank']}. {r['stream']} - Score: {r['score']:.2f}" for r in rankings[:5])}
         """
         await self.notifier.send_email("☀️ 8 AM: Pragmatic Simulation Complete", body)
+
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)

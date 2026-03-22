@@ -13,27 +13,28 @@ Features:
 """
 
 import asyncio
-import logging
 import json
+import logging
 import time
-import random
-import psutil
 from datetime import datetime, timedelta
 from pathlib import Path
 
+import psutil
+
+from cohezion.core.persistence.surreal_client import PhysicsState, SurrealClient, UniverseNode
+from cohezion.mcp.email_notifier import EmailNotifier
+from cohezion.monitoring.ratchet_monitor import RatchetMonitor
+from cohezion.swarm.agents.base import BaseAgent
+
 # Core Cohezion Imports
 from cohezion.swarm.hiho_vector_engine import HihoVectorEngine
-from cohezion.monitoring.ratchet_monitor import RatchetMonitor, SystemVitals
-from cohezion.swarm.agents.base import BaseAgent
+from cohezion.swarm.journey_tracker import AgentType, JourneyMetrics, get_journey_tracker
 from cohezion.swarm.swarm_types import SwarmConfig
-from cohezion.swarm.journey_tracker import get_journey_tracker, AgentType, JourneyMetrics
-from cohezion.core.persistence.surreal_client import SurrealClient, UniverseNode, PhysicsState
-from cohezion.mcp.email_notifier import EmailNotifier
+
 
 # Setup Logging
 logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 )
 logger = logging.getLogger("FractalNexus")
 
@@ -44,6 +45,7 @@ REPORT_INTERVAL_HOURS = 3
 DEFAULT_NUM_ROUNDS = 1_000_000
 MAX_NUM_ROUNDS = 5_000_000
 MIN_NUM_ROUNDS = 100_000
+
 
 class FractalNexusMission:
     def __init__(self):
@@ -86,8 +88,8 @@ class FractalNexusMission:
                 "mission": "Fractal Nexus",
                 "start_time": self.start_time.isoformat(),
                 "status": "in_progress",
-                "initial_rounds": self.num_rounds
-            }
+                "initial_rounds": self.num_rounds,
+            },
         )
         await self.db.store_node(status_node)
 
@@ -101,12 +103,16 @@ class FractalNexusMission:
         # INCREASE DYNAMICS: If system is healthy, be much more aggressive
         # Thresholds relaxed for 128GB Framework 16
         if vitals.ram_percent < 65 and vitals.cpu_percent < 60 and self.num_rounds < MAX_NUM_ROUNDS:
-            self.num_rounds = min(MAX_NUM_ROUNDS, int(self.num_rounds * 1.2)) # Reduced from 1.5x
-            logger.info(f"🚀 High inference headroom. Scaling UP dynamics: {self.num_rounds:,} rounds")
+            self.num_rounds = min(MAX_NUM_ROUNDS, int(self.num_rounds * 1.2))  # Reduced from 1.5x
+            logger.info(
+                f"🚀 High inference headroom. Scaling UP dynamics: {self.num_rounds:,} rounds"
+            )
         # THROTTLE: Only if approaching critical
         elif vitals.needs_throttle():
             self.num_rounds = max(MIN_NUM_ROUNDS, int(self.num_rounds * 0.5))
-            logger.warning(f"⚠️ System pressure detected. Scaling DOWN dynamics: {self.num_rounds:,} rounds")
+            logger.warning(
+                f"⚠️ System pressure detected. Scaling DOWN dynamics: {self.num_rounds:,} rounds"
+            )
 
         self.engine.num_rounds = self.num_rounds
 
@@ -130,12 +136,13 @@ class FractalNexusMission:
         logic_velocity = self.num_rounds / (duration_ms / 1000)
 
         metrics = JourneyMetrics(
-            context_utilization=0.9, # Simulated for now
-            latent_coherence=results['mean_stability'],
-            capability_delta=results['mean_stability'] - (self.stability_history[-1] if self.stability_history else 0),
+            context_utilization=0.9,  # Simulated for now
+            latent_coherence=results["mean_stability"],
+            capability_delta=results["mean_stability"]
+            - (self.stability_history[-1] if self.stability_history else 0),
             latency_per_token_ms=duration_ms / self.num_rounds * 1000,
             safety_alignment_score=0.98,
-            computational_relativity_factor=relativity_factor
+            computational_relativity_factor=relativity_factor,
         )
 
         # Record the Physics Step in the Journey
@@ -146,21 +153,21 @@ class FractalNexusMission:
             input_text=f"Params: rounds={self.num_rounds}",
             output_text=f"Stability: {results['mean_stability']:.4f}, Velocity: {logic_velocity:.0f} Hz",
             physics_state={
-                "coherence": results['mean_stability'],
-                "stability": results['mean_stability'],
-                "novelty": float(results['max_reality']),
-                "relativity": relativity_factor
+                "coherence": results["mean_stability"],
+                "stability": results["mean_stability"],
+                "novelty": float(results["max_reality"]),
+                "relativity": relativity_factor,
             },
             duration_ms=duration_ms,
-            confidence=results['mean_stability'],
-            metrics=metrics
+            confidence=results["mean_stability"],
+            metrics=metrics,
         )
 
         self.total_cycles += self.num_rounds
-        self.stability_history.append(results['mean_stability'])
+        self.stability_history.append(results["mean_stability"])
 
         # 2. Mechanistic Interpretability (if stability breakthrough detected)
-        if results['mean_stability'] > 0.96:
+        if results["mean_stability"] > 0.96:
             interpretation = await self._run_interpretability_report(results)
             # Record the Interpretability Step
             self.tracker.record_step(
@@ -169,9 +176,9 @@ class FractalNexusMission:
                 perspective="INTERPRETABILITY",
                 input_text="Explain breakthrough stability.",
                 output_text=interpretation[:200] + "..." if interpretation else "None",
-                physics_state={"coherence": results['mean_stability']},
-                duration_ms=5000, # Estimated
-                confidence=results['mean_stability']
+                physics_state={"coherence": results["mean_stability"]},
+                duration_ms=5000,  # Estimated
+                confidence=results["mean_stability"],
             )
 
         # 3. Store Results to SurrealDB
@@ -184,8 +191,8 @@ class FractalNexusMission:
         # End Journey and Persist to SurrealDB
         await self.tracker.end_journey(
             final_response=f"Stability Convergence: {results['mean_stability']:.4f}",
-            final_confidence=results['mean_stability'],
-            aggregate_metrics=metrics
+            final_confidence=results["mean_stability"],
+            aggregate_metrics=metrics,
         )
 
         # 5. Checkpoint
@@ -196,15 +203,15 @@ class FractalNexusMission:
         logger.info("✨ Stability Breakthrough! Reporting for interpretability...")
 
         # Sample top bright spots for the prompt
-        samples = results['bright_spot_states'][:3].tolist()
+        samples = results["bright_spot_states"][:3].tolist()
 
         # Calculate resonance for the first sample to show in report
-        resonance = self._calculate_resonance(results['mean_stability'])
+        resonance = self._calculate_resonance(results["mean_stability"])
 
         prompt = f"""MECHANISTIC INTERPRETABILITY REPORT (FRACTAL NEXUS):
-Stability achieved: {results['mean_stability']:.4f}
+Stability achieved: {results["mean_stability"]:.4f}
 Resonance Frequency: {resonance:.2f} Hz
-Bright Spots: {results['bright_spot_count']:,}
+Bright Spots: {results["bright_spot_count"]:,}
 Sample Coordinates (12D): {samples}
 
 Explain the emergent resonance patterns in the FLUME manifold.
@@ -218,13 +225,16 @@ Address the "Black Box" concern: what is the underlying physics logic of this co
             await agent.close()
 
             # Store interpretation
-            await self.db.store_node("interpretability_reports", {
-                "iteration": self.batch_count,
-                "stability": results['mean_stability'],
-                "resonance_hz": resonance,
-                "content": interpretation,
-                "timestamp": datetime.now().isoformat()
-            })
+            await self.db.store_node(
+                "interpretability_reports",
+                {
+                    "iteration": self.batch_count,
+                    "stability": results["mean_stability"],
+                    "resonance_hz": resonance,
+                    "content": interpretation,
+                    "timestamp": datetime.now().isoformat(),
+                },
+            )
             logger.info("✓ Interpretability report persisted.")
             return interpretation
         except Exception as e:
@@ -245,7 +255,7 @@ Address the "Black Box" concern: what is the underlying physics logic of this co
 
     async def _store_iteration_results(self, results):
         """Persist simulation summary to SurrealDB."""
-        resonance = self._calculate_resonance(results['mean_stability'])
+        resonance = self._calculate_resonance(results["mean_stability"])
         try:
             node = UniverseNode(
                 id=f"sim_{int(time.time())}_{self.batch_count}",
@@ -253,16 +263,16 @@ Address the "Black Box" concern: what is the underlying physics logic of this co
                 node_type="simulation_step",
                 physics_state=PhysicsState(
                     time=float(time.time()),
-                    coherence=results['mean_stability'],
-                    stability=results['mean_stability'],
-                    novelty=float(results['max_reality']),
+                    coherence=results["mean_stability"],
+                    stability=results["mean_stability"],
+                    novelty=float(results["max_reality"]),
                 ),
                 metadata={
-                    "num_rounds": results['num_rounds'],
-                    "bright_spots": results['bright_spot_count'],
-                    "duration": results['duration'],
-                    "resonance_hz": resonance
-                }
+                    "num_rounds": results["num_rounds"],
+                    "bright_spots": results["bright_spot_count"],
+                    "duration": results["duration"],
+                    "resonance_hz": resonance,
+                },
             )
             await self.db.store_node(node)
         except Exception as e:
@@ -276,9 +286,9 @@ Address the "Black Box" concern: what is the underlying physics logic of this co
                 "timestamp": datetime.now().isoformat(),
                 "iteration": self.batch_count,
                 "total_cycles": self.total_cycles,
-                "current_stability": results['mean_stability'],
+                "current_stability": results["mean_stability"],
                 "resource_rounds": self.num_rounds,
-                "vitals": self.ratchet.check_vitals().__dict__
+                "vitals": self.ratchet.check_vitals().__dict__,
             }
             # Use SQL parameters for safer and correct syntax
             await self.db.query("CREATE mission_pulse CONTENT $pulse", {"pulse": pulse})
@@ -296,10 +306,13 @@ Address the "Black Box" concern: what is the underlying physics logic of this co
             try:
                 # 1. Scaling & Pressure Check
                 from cohezion.reliability.monitor import get_resource_monitor
+
                 monitor = get_resource_monitor()
                 if monitor.critical_pressure:
-                    logger.error("🛑 EMERGENCY SYSTEM PRESSURE DETECTED. Pausing iteration for cooldown...")
-                    await asyncio.sleep(120) # 2 minute hard pause
+                    logger.error(
+                        "🛑 EMERGENCY SYSTEM PRESSURE DETECTED. Pausing iteration for cooldown..."
+                    )
+                    await asyncio.sleep(120)  # 2 minute hard pause
                     continue
 
                 await self._adjust_dynamics()
@@ -312,8 +325,8 @@ Address the "Black Box" concern: what is the underlying physics logic of this co
 
             except Exception as e:
                 logger.error(f"Iterative failure: {e}")
-                await self._save_checkpoint() # Save what we have
-                await asyncio.sleep(60) # Cooldown on failure
+                await self._save_checkpoint()  # Save what we have
+                await asyncio.sleep(60)  # Cooldown on failure
 
         logger.info("Mission Completion Threshold Reached.")
         await self._finalize_mission()
@@ -322,10 +335,15 @@ Address the "Black Box" concern: what is the underlying physics logic of this co
         """Finalize mission and trigger reporting."""
         logger.info("Finalizing Fractal Nexus Mission...")
         # Mark mission as complete in DB
-        await self.db.query("UPDATE mission_status SET status = 'completed', end_time = '" + datetime.now().isoformat() + "' WHERE mission = 'Fractal Nexus'")
+        await self.db.query(
+            "UPDATE mission_status SET status = 'completed', end_time = '"
+            + datetime.now().isoformat()
+            + "' WHERE mission = 'Fractal Nexus'"
+        )
 
         # Trigger the Finalizer Script
         import subprocess
+
         subprocess.Popen(["uv", "run", "python3", "scripts/mission_finalizer.py"])
         subprocess.Popen(["uv", "run", "python3", "scripts/mission_finalizer.py"])
         logger.info("🚀 mission_finalizer.py triggered.")
@@ -338,15 +356,18 @@ Address the "Black Box" concern: what is the underlying physics logic of this co
             "batch_count": self.batch_count,
             "total_cycles": self.total_cycles,
             "num_rounds": self.num_rounds,
-            "stability_history": self.stability_history[-100:], # keep last 100
-            "timestamp": datetime.now().isoformat()
+            "stability_history": self.stability_history[-100:],  # keep last 100
+            "timestamp": datetime.now().isoformat(),
         }
         try:
             # Save to Local
             with open(self.checkpoint_path, "w") as f:
                 json.dump(checkpoint, f)
             # Save to DB
-            await self.db.query("UPSERT mission_checkpoint:fractal_nexus CONTENT $checkpoint", {"checkpoint": checkpoint})
+            await self.db.query(
+                "UPSERT mission_checkpoint:fractal_nexus CONTENT $checkpoint",
+                {"checkpoint": checkpoint},
+            )
             logger.debug(f"💾 Checkpoint saved at iteration {self.batch_count}")
         except Exception as e:
             logger.error(f"Failed to save checkpoint: {e}")
@@ -360,12 +381,14 @@ Address the "Black Box" concern: what is the underlying physics logic of this co
             if res and isinstance(res, list) and len(res) > 0:
                 result_item = res[0]
                 # Handle both raw list and {'result': [...]} format
-                records = result_item.get('result', []) if isinstance(result_item, dict) else result_item
+                records = (
+                    result_item.get("result", []) if isinstance(result_item, dict) else result_item
+                )
                 if records:
                     checkpoint = records[0]
                     logger.info("⚡ Resuming from SurrealDB checkpoint.")
             elif self.checkpoint_path.exists():
-                with open(self.checkpoint_path, "r") as f:
+                with open(self.checkpoint_path) as f:
                     checkpoint = json.load(f)
                 logger.info("⚡ Resuming from local checkpoint.")
 
@@ -374,9 +397,12 @@ Address the "Black Box" concern: what is the underlying physics logic of this co
                 self.total_cycles = checkpoint.get("total_cycles", 0)
                 self.num_rounds = checkpoint.get("num_rounds", DEFAULT_NUM_ROUNDS)
                 self.stability_history = checkpoint.get("stability_history", [])
-                logger.info(f"✓ Resumed: Iteration {self.batch_count}, Total Cycles: {self.total_cycles}")
+                logger.info(
+                    f"✓ Resumed: Iteration {self.batch_count}, Total Cycles: {self.total_cycles}"
+                )
         except Exception as e:
             logger.error(f"Failed to load checkpoint: {e}")
+
 
 if __name__ == "__main__":
     mission = FractalNexusMission()

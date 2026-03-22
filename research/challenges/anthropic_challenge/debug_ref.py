@@ -11,4 +11,5 @@ for i, ref_mem in enumerate(reference_kernel2(mem, {})):
     inp_values_p = ref_mem[6]
     res0 = ref_mem[inp_values_p]
     print(f"Round {i} hash item 0: {res0}")
-    if i == 1: break
+    if i == 1:
+        break

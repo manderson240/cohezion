@@ -1,7 +1,6 @@
 """Tests for TLS/HTTPS configuration and certificate management."""
 
 import os
-import ssl
 import tempfile
 from pathlib import Path
 from unittest.mock import MagicMock, patch
@@ -218,9 +217,7 @@ class TestCertificateGenerator:
             key_path = str(Path(tmpdir) / "key.pem")
 
             with patch("subprocess.run", side_effect=FileNotFoundError):
-                result = CertificateGenerator.generate_self_signed_cert(
-                    cert_path, key_path
-                )
+                result = CertificateGenerator.generate_self_signed_cert(cert_path, key_path)
 
             assert result is False
 
@@ -254,9 +251,7 @@ class TestCertificateGenerator:
             key_path = str(Path(tmpdir) / "key.pem")
 
             # Create initial certificate
-            result1 = CertificateGenerator.generate_self_signed_cert(
-                cert_path, key_path
-            )
+            result1 = CertificateGenerator.generate_self_signed_cert(cert_path, key_path)
             assert result1 is True
 
             # Record file modification times
@@ -289,9 +284,7 @@ class TestCertificateGenerator:
             key_path = str(Path(tmpdir) / "key.pem")
 
             # Create initial certificate
-            result1 = CertificateGenerator.generate_self_signed_cert(
-                cert_path, key_path
-            )
+            result1 = CertificateGenerator.generate_self_signed_cert(cert_path, key_path)
             assert result1 is True
 
             cert_mtime1 = Path(cert_path).stat().st_mtime
@@ -335,9 +328,7 @@ class TestHTTPSEnforcementMiddleware:
         config = TLSConfig()
         app = MagicMock()
 
-        middleware = HTTPSEnforcementMiddleware(
-            app, config, allow_http_localhost=False
-        )
+        middleware = HTTPSEnforcementMiddleware(app, config, allow_http_localhost=False)
 
         # Create mock request with HTTP scheme
         request = MagicMock()
@@ -375,9 +366,7 @@ class TestHTTPSEnforcementMiddleware:
             return MagicMock(headers={})
 
         app = MagicMock()
-        middleware = HTTPSEnforcementMiddleware(
-            app, config, allow_http_localhost=True
-        )
+        middleware = HTTPSEnforcementMiddleware(app, config, allow_http_localhost=True)
 
         request = MagicMock()
         request.url.scheme = "http"
@@ -437,9 +426,7 @@ class TestSecureCookieMiddleware:
 
         response_obj = MagicMock()
         response_obj.headers = MagicMock()
-        response_obj.headers.getlist = MagicMock(
-            return_value=["session=abc123; Path=/"]
-        )
+        response_obj.headers.getlist = MagicMock(return_value=["session=abc123; Path=/"])
 
         async def mock_next(request):
             return response_obj

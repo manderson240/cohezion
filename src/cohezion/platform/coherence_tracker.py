@@ -3,9 +3,10 @@ Coherence tracking aligned with 0.5 HIHO stability principle.
 Charter requirement: "Maximum stability at exactly 50% coherence overlap"
 """
 
-from typing import List
 from datetime import datetime, timedelta
+
 from pydantic import BaseModel
+
 from cohezion.core.persistence.surreal_client import get_surreal_client
 
 
@@ -259,7 +260,7 @@ class CoherenceTracker:
         """Check if coherence is within HIHO stability range."""
         return 0.4 <= coherence <= 0.6
 
-    async def get_coherence_trend(self, days: int = 7) -> List[float]:
+    async def get_coherence_trend(self, days: int = 7) -> list[float]:
         """Get historical coherence trend."""
         result = await self.db.query(
             """

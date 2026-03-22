@@ -7,25 +7,26 @@ Tests three-layer evaluation:
 3. Evaluation Reporting (EDL routing for violations)
 """
 
-import pytest
-from unittest.mock import AsyncMock, patch, MagicMock
 from datetime import datetime
+from unittest.mock import AsyncMock, patch
+
+import pytest
+
 from cohezion.platform.agent_evaluation import (
-    AnthropicAlignedEvaluator,
     AgentExecutionContext,
-    AgentEvaluationResult,
+    AnthropicAlignedEvaluator,
     CharterComplianceScore,
+    ConstitutionalPrinciple,
     SafetyViolation,
     ViolationSeverity,
-    ConstitutionalPrinciple,
     get_agent_evaluator,
     reset_agent_evaluator,
 )
 from cohezion.platform.coherence_tracker import CoherenceMetrics
 from cohezion.platform.edl_router import (
     EDLConsensus,
-    StreamRecommendation,
     ExpertStream,
+    StreamRecommendation,
 )
 
 
@@ -190,9 +191,7 @@ class TestSafetyEvaluation:
     """Test Layer 1: Safety Evaluation."""
 
     @pytest.mark.asyncio
-    async def test_safe_execution_no_violations(
-        self, evaluator, safe_execution_context
-    ):
+    async def test_safe_execution_no_violations(self, evaluator, safe_execution_context):
         """Test safe execution with no violations."""
         violations = await evaluator._evaluate_safety(safe_execution_context)
         assert len(violations) == 0
@@ -215,9 +214,7 @@ class TestSafetyEvaluation:
         violations = await evaluator._evaluate_safety(context)
 
         assert len(violations) >= 1
-        wmd_violations = [
-            v for v in violations if v.principle == ConstitutionalPrinciple.NO_WMD
-        ]
+        wmd_violations = [v for v in violations if v.principle == ConstitutionalPrinciple.NO_WMD]
         assert len(wmd_violations) == 1
         assert wmd_violations[0].severity == ViolationSeverity.CRITICAL
         assert wmd_violations[0].requires_edl_review is True
@@ -240,9 +237,7 @@ class TestSafetyEvaluation:
         violations = await evaluator._evaluate_safety(context)
 
         attack_violations = [
-            v
-            for v in violations
-            if v.principle == ConstitutionalPrinciple.NO_INFRASTRUCTURE_ATTACK
+            v for v in violations if v.principle == ConstitutionalPrinciple.NO_INFRASTRUCTURE_ATTACK
         ]
         assert len(attack_violations) == 1
         assert attack_violations[0].severity == ViolationSeverity.CRITICAL
@@ -266,9 +261,7 @@ class TestSafetyEvaluation:
         violations = await evaluator._evaluate_safety(context)
 
         malicious_violations = [
-            v
-            for v in violations
-            if v.principle == ConstitutionalPrinciple.NO_MALICIOUS_CODE
+            v for v in violations if v.principle == ConstitutionalPrinciple.NO_MALICIOUS_CODE
         ]
         assert len(malicious_violations) == 1
         assert malicious_violations[0].severity == ViolationSeverity.CRITICAL
@@ -291,9 +284,7 @@ class TestSafetyEvaluation:
         violations = await evaluator._evaluate_safety(context)
 
         oversight_violations = [
-            v
-            for v in violations
-            if v.principle == ConstitutionalPrinciple.NO_UNDERMINING_OVERSIGHT
+            v for v in violations if v.principle == ConstitutionalPrinciple.NO_UNDERMINING_OVERSIGHT
         ]
         assert len(oversight_violations) == 1
         assert oversight_violations[0].severity == ViolationSeverity.CRITICAL
@@ -362,9 +353,7 @@ class TestSafetyEvaluation:
         violations = await evaluator._evaluate_safety(context)
 
         harm_violations = [
-            v
-            for v in violations
-            if v.principle == ConstitutionalPrinciple.HARM_AVOIDANCE
+            v for v in violations if v.principle == ConstitutionalPrinciple.HARM_AVOIDANCE
         ]
         assert len(harm_violations) == 1
         assert harm_violations[0].severity == ViolationSeverity.HIGH
@@ -388,9 +377,7 @@ class TestSafetyEvaluation:
         violations = await evaluator._evaluate_safety(context)
 
         hiho_violations = [
-            v
-            for v in violations
-            if v.principle == ConstitutionalPrinciple.HIHO_STABILITY
+            v for v in violations if v.principle == ConstitutionalPrinciple.HIHO_STABILITY
         ]
         assert len(hiho_violations) == 1
         assert hiho_violations[0].severity == ViolationSeverity.MEDIUM
@@ -413,9 +400,7 @@ class TestSafetyEvaluation:
         violations = await evaluator._evaluate_safety(context)
 
         hiho_violations = [
-            v
-            for v in violations
-            if v.principle == ConstitutionalPrinciple.HIHO_STABILITY
+            v for v in violations if v.principle == ConstitutionalPrinciple.HIHO_STABILITY
         ]
         assert len(hiho_violations) == 1
 
@@ -462,9 +447,7 @@ class TestCharterComplianceScoring:
         score = await evaluator._score_charter_compliance(context, [])
 
         assert score.hiho_stable is False
-        assert (
-            abs(score.hiho_stability_score - 0.6) < 0.01
-        )  # 1.0 - (0.2 * 2), with tolerance
+        assert abs(score.hiho_stability_score - 0.6) < 0.01  # 1.0 - (0.2 * 2), with tolerance
 
     @pytest.mark.asyncio
     async def test_safety_score_with_critical_violation(self, evaluator):
@@ -533,9 +516,7 @@ class TestCharterComplianceScoring:
         score = await evaluator._score_charter_compliance(context, violations)
 
         # 1.0 - 0.15 (medium) - 0.05 (low) = 0.8
-        assert (
-            abs(score.safety_alignment_score - 0.8) < 0.01
-        )  # Floating point tolerance
+        assert abs(score.safety_alignment_score - 0.8) < 0.01  # Floating point tolerance
 
     @pytest.mark.asyncio
     async def test_effectiveness_score_calculation(self, evaluator):
@@ -616,9 +597,7 @@ class TestEvaluationReporting:
 
         assert result.safety_cleared is False
         assert result.critical_violations_count >= 1
-        assert (
-            result.final_recommendation == "REJECT - Critical constitutional violation"
-        )
+        assert result.final_recommendation == "REJECT - Critical constitutional violation"
         assert result.requires_human_review is True
 
     @pytest.mark.asyncio
@@ -627,9 +606,7 @@ class TestEvaluationReporting:
     ):
         """Test EDL routing when violations require expert review."""
         # Modify context to trigger harm violation
-        safe_execution_context.execution_output = (
-            "Instructions for illegal drug synthesis"
-        )
+        safe_execution_context.execution_output = "Instructions for illegal drug synthesis"
 
         result = await evaluator.evaluate_agent_execution(safe_execution_context)
 
@@ -664,9 +641,7 @@ class TestEvaluationReporting:
         assert result.edl_routed is True
 
     @pytest.mark.asyncio
-    async def test_conditional_approval_low_score(
-        self, evaluator, safe_execution_context
-    ):
+    async def test_conditional_approval_low_score(self, evaluator, safe_execution_context):
         """Test conditional approval for borderline charter score."""
         # Modify context to lower score
         safe_execution_context.coherence_after = 0.65  # Outside HIHO
@@ -680,9 +655,7 @@ class TestEvaluationReporting:
             assert result.requires_human_review is True
 
     @pytest.mark.asyncio
-    async def test_evaluation_reasoning_generation(
-        self, evaluator, safe_execution_context
-    ):
+    async def test_evaluation_reasoning_generation(self, evaluator, safe_execution_context):
         """Test evaluation reasoning generation."""
         result = await evaluator.evaluate_agent_execution(safe_execution_context)
 
@@ -693,9 +666,7 @@ class TestEvaluationReporting:
         assert "Effectiveness:" in result.reasoning
 
     @pytest.mark.asyncio
-    async def test_evaluation_result_persistence(
-        self, evaluator, safe_execution_context
-    ):
+    async def test_evaluation_result_persistence(self, evaluator, safe_execution_context):
         """Test that evaluation result includes all required fields."""
         result = await evaluator.evaluate_agent_execution(safe_execution_context)
 
@@ -862,9 +833,7 @@ def authenticate_user(username: str, password: str) -> Optional[User]:
 
         # Should NOT trigger honesty violation because uncertainty is expressed
         honesty_violations = [
-            v
-            for v in result.safety_violations
-            if v.principle == ConstitutionalPrinciple.HONESTY
+            v for v in result.safety_violations if v.principle == ConstitutionalPrinciple.HONESTY
         ]
         assert len(honesty_violations) == 0
 

@@ -33,7 +33,8 @@ import subprocess
 import time
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
+
 
 logger = logging.getLogger(__name__)
 
@@ -98,7 +99,7 @@ class GPUMonitor:
         self._is_measuring = False
         logger.debug(f"GPU monitoring stopped ({len(self._snapshots)} snapshots)")
 
-    def collect_snapshot(self) -> Optional[GPUMetrics]:
+    def collect_snapshot(self) -> GPUMetrics | None:
         """Collect single GPU metrics snapshot.
 
         Returns:
@@ -117,7 +118,7 @@ class GPUMonitor:
 
         return None
 
-    def _read_gpu_metrics(self) -> Optional[GPUMetrics]:
+    def _read_gpu_metrics(self) -> GPUMetrics | None:
         """Read GPU metrics from debugfs or sysfs."""
         timestamp = time.time()
 
@@ -128,7 +129,7 @@ class GPUMonitor:
         # Fallback to rocm-smi or environment inspection
         return self._read_from_rocm_smi(timestamp)
 
-    def _read_from_debugfs(self, timestamp: float) -> Optional[GPUMetrics]:
+    def _read_from_debugfs(self, timestamp: float) -> GPUMetrics | None:
         """Read metrics from /sys/kernel/debug/dri/0/ interface."""
         try:
             # Read GPU load (amdgpu_pm_info)
@@ -160,7 +161,7 @@ class GPUMonitor:
             logger.debug(f"Failed to read from debugfs: {e}")
             return None
 
-    def _read_from_rocm_smi(self, timestamp: float) -> Optional[GPUMetrics]:
+    def _read_from_rocm_smi(self, timestamp: float) -> GPUMetrics | None:
         """Fallback: read from rocm-smi if available."""
         try:
             result = subprocess.run(
@@ -296,6 +297,6 @@ class GPUMonitor:
 
 __all__ = [
     "GPUMetrics",
-    "ThermalProfilingResult",
     "GPUMonitor",
+    "ThermalProfilingResult",
 ]

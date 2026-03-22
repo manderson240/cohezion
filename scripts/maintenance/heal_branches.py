@@ -36,7 +36,10 @@ def get_all_local_branches() -> list[str]:
     """Get a list of all local git branches."""
     try:
         result = subprocess.run(
-            ["git", "branch", "--format=%(refname:short)"], capture_output=True, text=True, check=True
+            ["git", "branch", "--format=%(refname:short)"],
+            capture_output=True,
+            text=True,
+            check=True,
         )
         return [b.strip() for b in result.stdout.split() if b.strip()]
     except subprocess.CalledProcessError as e:
@@ -58,7 +61,9 @@ def determine_action(branch: str) -> BranchAction | None:
 
     # Common non-compliant patterns
     if branch.startswith("feature/"):
-        return BranchAction(branch, branch.replace("feature/", "feat/", 1), "Standardize 'feature/' to 'feat/'")
+        return BranchAction(
+            branch, branch.replace("feature/", "feat/", 1), "Standardize 'feature/' to 'feat/'"
+        )
     if branch.startswith(("bugfix/", "bug/")):
         new_name = re.sub(r"^bug(fix)?/", "fix/", branch)
         return BranchAction(branch, new_name, "Standardize bugfix prefix to 'fix/'")
@@ -67,11 +72,15 @@ def determine_action(branch: str) -> BranchAction | None:
         return BranchAction(branch, f"feat/{branch}", "Wrap session/epic branch as a feature")
     if branch.startswith("entire/"):
         # Snapshots
-        return BranchAction(branch, branch.replace("entire/", "archive/entire/"), "Archive 'entire' snapshot branch")
+        return BranchAction(
+            branch, branch.replace("entire/", "archive/entire/"), "Archive 'entire' snapshot branch"
+        )
     if branch.startswith("worktree-"):
         return BranchAction(branch, f"archive/{branch}", "Archive abandoned worktree branch")
     if branch.startswith("spec/"):
-        return BranchAction(branch, branch.replace("spec/", "docs/spec/"), "Standardize 'spec/' to 'docs/spec/'")
+        return BranchAction(
+            branch, branch.replace("spec/", "docs/spec/"), "Standardize 'spec/' to 'docs/spec/'"
+        )
 
     # If it doesn't match any known pattern, archive it as legacy
     return BranchAction(branch, f"archive/legacy/{branch}", "Archive non-compliant legacy branch")
@@ -84,7 +93,11 @@ def execute_action(action: BranchAction, dry_run: bool = True) -> bool:
         return True
 
     try:
-        subprocess.run(["git", "branch", "-m", action.old_name, action.new_name], check=True, capture_output=True)
+        subprocess.run(
+            ["git", "branch", "-m", action.old_name, action.new_name],
+            check=True,
+            capture_output=True,
+        )
         return True
     except subprocess.CalledProcessError as e:
         logger.error(f"Failed to rename {action.old_name}: {e.stderr.decode().strip()}")
@@ -93,7 +106,9 @@ def execute_action(action: BranchAction, dry_run: bool = True) -> bool:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Heal non-compliant git branches.")
-    parser.add_argument("--execute", action="store_true", help="Actually rename the branches (default is dry-run)")
+    parser.add_argument(
+        "--execute", action="store_true", help="Actually rename the branches (default is dry-run)"
+    )
     args = parser.parse_args()
 
     branches = get_all_local_branches()
@@ -122,7 +137,9 @@ def main() -> None:
     if args.execute:
         logger.info(f"Successfully healed {success_count}/{len(actions)} branches.")
     else:
-        logger.info("Dry run complete. Use 'uv run python scripts/maintenance/heal_branches.py --execute' to apply.")
+        logger.info(
+            "Dry run complete. Use 'uv run python scripts/maintenance/heal_branches.py --execute' to apply."
+        )
 
 
 if __name__ == "__main__":

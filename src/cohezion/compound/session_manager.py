@@ -18,7 +18,9 @@ from collections.abc import AsyncIterator
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from typing import Any
+
 from pydantic import BaseModel
+
 from cohezion.core.mcp_client import get_mcp_client
 
 
@@ -181,9 +183,7 @@ class InferenceSession:
 
                     # Update model usage
                     model = metrics.get("model", "unknown")
-                    self.state.model_usage[model] = (
-                        self.state.model_usage.get(model, 0) + tokens
-                    )
+                    self.state.model_usage[model] = self.state.model_usage.get(model, 0) + tokens
 
                     final_output = output
 

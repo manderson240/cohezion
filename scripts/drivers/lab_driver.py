@@ -4,30 +4,30 @@ Lab Driver - Orchestrates the Autonomous AI Lab background execution.
 
 import asyncio
 import logging
+import os
 import signal
 import sys
-import os
 import time
 from pathlib import Path
+
 
 # Add src to sys.path
 sys.path.append(str(Path(__file__).parent / "src"))
 
 from cohezion.swarm.agents.lab_agent import LabAgent
 
+
 # Setup logging
 os.makedirs("logs", exist_ok=True)
 logging.basicConfig(
     level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.FileHandler("logs/lab_driver.log"),
-        logging.StreamHandler()
-    ]
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    handlers=[logging.FileHandler("logs/lab_driver.log"), logging.StreamHandler()],
 )
 logger = logging.getLogger("LabDriver")
 
 import psutil
+
 
 async def get_throttle_delay(base_delay: float = 60.0) -> float:
     """Calculate delay based on system load to implement autonomic scaling."""
@@ -37,14 +37,17 @@ async def get_throttle_delay(base_delay: float = 60.0) -> float:
     # Scaling factor: if load is high, increase delay
     # Thresholds: > 70% CPU or > 80% RAM is "High Heat"
     if cpu_usage > 70 or ram_usage > 80:
-        logger.warning(f"🔥 High load detected (CPU: {cpu_usage}%, RAM: {ram_usage}%). Throttling...")
-        return base_delay * 3 # Triple the delay
+        logger.warning(
+            f"🔥 High load detected (CPU: {cpu_usage}%, RAM: {ram_usage}%). Throttling..."
+        )
+        return base_delay * 3  # Triple the delay
     elif cpu_usage > 40 or ram_usage > 60:
         logger.info(f"🌤 Moderate load (CPU: {cpu_usage}%, RAM: {ram_usage}%). Slight throttle.")
         return base_delay * 1.5
     else:
         logger.info(f"❄ Low load (CPU: {cpu_usage}%, RAM: {ram_usage}%). Optimal scaling.")
         return base_delay
+
 
 async def main():
     logger.info("🚀 Starting Autonomous AI Lab Driver with Autonomic Scaling...")
@@ -76,8 +79,10 @@ async def main():
             cpu_usage = psutil.cpu_percent(interval=1)
             ram_usage = psutil.virtual_memory().percent
             if cpu_usage > 90 or ram_usage > 95:
-                logger.warning(f"🚨 CRITICAL LOAD: CPU {cpu_usage}%, RAM {ram_usage}%. Skipping cycle.")
-                await asyncio.sleep(300) # Wait 5 mins
+                logger.warning(
+                    f"🚨 CRITICAL LOAD: CPU {cpu_usage}%, RAM {ram_usage}%. Skipping cycle."
+                )
+                await asyncio.sleep(300)  # Wait 5 mins
                 continue
 
             # 2. Automated Module Maintenance (Every 4 hours)
@@ -87,9 +92,10 @@ async def main():
                 try:
                     # Run context verification
                     verify_process = await asyncio.create_subprocess_exec(
-                        sys.executable, "tests/verify_context.py",
+                        sys.executable,
+                        "tests/verify_context.py",
                         stdout=asyncio.subprocess.PIPE,
-                        stderr=asyncio.subprocess.PIPE
+                        stderr=asyncio.subprocess.PIPE,
                     )
                     stdout, stderr = await verify_process.communicate()
                     if verify_process.returncode == 0:
@@ -118,7 +124,7 @@ async def main():
             logger.info(f"Waiting for {delay:.1f}s (Autonomic Scaling)...")
             try:
                 await asyncio.wait_for(stop_event.wait(), timeout=delay)
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 pass
 
     except Exception as e:
@@ -128,6 +134,7 @@ async def main():
         if cycle_count > 0:
             await lab_agent.send_summary_report()
         logger.info("Lab Driver Offline.")
+
 
 if __name__ == "__main__":
     asyncio.run(main())

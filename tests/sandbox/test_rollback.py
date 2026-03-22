@@ -211,10 +211,7 @@ class TestTransaction:
         txn.checkpoint(name="test_checkpoint")
 
         audit_entries = txn.audit_log.entries
-        checkpoint_entries = [
-            e for e in audit_entries
-            if e.event_type == AuditEventType.CHECKPOINT
-        ]
+        checkpoint_entries = [e for e in audit_entries if e.event_type == AuditEventType.CHECKPOINT]
         assert len(checkpoint_entries) == 1
 
     def test_multi_step_transaction(self, temp_dir, transaction_config):

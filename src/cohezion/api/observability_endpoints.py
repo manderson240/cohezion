@@ -14,8 +14,9 @@ from datetime import datetime
 
 from fastapi import APIRouter, HTTPException
 
-from cohezion.observability.unified_metrics import get_metrics_collector
 from cohezion.observability.metrics_analytics import MetricsAnalytics
+from cohezion.observability.unified_metrics import get_metrics_collector
+
 
 logger = logging.getLogger(__name__)
 
@@ -284,11 +285,7 @@ async def get_full_dashboard():
                     else (
                         "good"
                         if report.overall_health_score >= 0.75
-                        else (
-                            "fair"
-                            if report.overall_health_score >= 0.60
-                            else "poor"
-                        )
+                        else ("fair" if report.overall_health_score >= 0.60 else "poor")
                     )
                 ),
             },
@@ -301,18 +298,12 @@ async def get_full_dashboard():
             "aggregate_statistics": {
                 "total_operations": aggregate_metrics["total_operations"],
                 "aggregate_tokens": aggregate_metrics["aggregate_tokens"],
-                "aggregate_duration_ms": round(
-                    aggregate_metrics["aggregate_duration_ms"], 2
-                ),
-                "avg_tokens_per_operation": round(
-                    aggregate_metrics["avg_tokens_per_operation"], 1
-                ),
+                "aggregate_duration_ms": round(aggregate_metrics["aggregate_duration_ms"], 2),
+                "avg_tokens_per_operation": round(aggregate_metrics["avg_tokens_per_operation"], 1),
                 "avg_duration_ms": round(aggregate_metrics["avg_duration_ms"], 2),
                 "total_guardrail_blocks": aggregate_metrics["total_guardrail_blocks"],
                 "total_cache_hits": aggregate_metrics["total_cache_hits"],
-                "aggregate_cache_hit_rate": round(
-                    aggregate_metrics["aggregate_cache_hit_rate"], 2
-                ),
+                "aggregate_cache_hit_rate": round(aggregate_metrics["aggregate_cache_hit_rate"], 2),
                 "uptime_seconds": round(aggregate_metrics["uptime_seconds"], 1),
             },
             "trends": {

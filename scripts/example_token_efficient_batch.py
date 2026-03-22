@@ -55,9 +55,7 @@ async def main() -> None:
     ]
 
     # Mock the generate method to simulate Ollama responses
-    async def mock_generate(
-        prompt: str, model: str, system: str = "", num_predict: int = 256
-    ):
+    async def mock_generate(prompt: str, model: str, system: str = "", num_predict: int = 256):
         """Simulate Ollama response."""
         await asyncio.sleep(0.05)  # Simulate API latency
         # Return different token counts based on prompt length
@@ -70,9 +68,7 @@ async def main() -> None:
     try:
         # Prime cache
         for prompt in popular_prompts:
-            await client.generate(
-                prompt=prompt, model="phi3:mini", system="You are helpful"
-            )
+            await client.generate(prompt=prompt, model="phi3:mini", system="You are helpful")
             print(f"  ✓ Cached: {prompt[:40]}...")
 
         print(f"\n  Cache now contains {len(client.batch_processor.cache)} entries")
@@ -82,22 +78,28 @@ async def main() -> None:
         system_prompt = "You are helpful"
         model = "phi3:mini"
         items = [
-            BatchItem(id="1", prompt="Explain quantum computing",
-                     system=system_prompt, model=model),
-            BatchItem(id="2", prompt="What is machine learning?",
-                     system=system_prompt, model=model),
-            BatchItem(id="3", prompt="Explain quantum computing",
-                     system=system_prompt, model=model),
-            BatchItem(id="4", prompt="Define artificial intelligence",
-                     system=system_prompt, model=model),
-            BatchItem(id="5", prompt="What is machine learning?",
-                     system=system_prompt, model=model),
-            BatchItem(id="6", prompt="Explain quantum computing",
-                     system=system_prompt, model=model),
-            BatchItem(id="7", prompt="Define artificial intelligence",
-                     system=system_prompt, model=model),
-            BatchItem(id="8", prompt="What is deep learning?",
-                     system=system_prompt, model=model),
+            BatchItem(
+                id="1", prompt="Explain quantum computing", system=system_prompt, model=model
+            ),
+            BatchItem(
+                id="2", prompt="What is machine learning?", system=system_prompt, model=model
+            ),
+            BatchItem(
+                id="3", prompt="Explain quantum computing", system=system_prompt, model=model
+            ),
+            BatchItem(
+                id="4", prompt="Define artificial intelligence", system=system_prompt, model=model
+            ),
+            BatchItem(
+                id="5", prompt="What is machine learning?", system=system_prompt, model=model
+            ),
+            BatchItem(
+                id="6", prompt="Explain quantum computing", system=system_prompt, model=model
+            ),
+            BatchItem(
+                id="7", prompt="Define artificial intelligence", system=system_prompt, model=model
+            ),
+            BatchItem(id="8", prompt="What is deep learning?", system=system_prompt, model=model),
         ]
 
         seen = set()
@@ -116,13 +118,10 @@ async def main() -> None:
         print("\n✅ Batch Processing Complete!")
         print("\n📈 Results:")
         print(f"  Total items: {len(result.items)}")
-        print(f"  Cache hits: {result.cache_hits} ({100*result.cache_hit_rate:.1f}%)")
+        print(f"  Cache hits: {result.cache_hits} ({100 * result.cache_hit_rate:.1f}%)")
         print(f"  Cache misses: {result.cache_misses}")
         print(f"  Total tokens: {result.total_tokens}")
-        print(
-            f"  Tokens saved: {result.tokens_saved} "
-            f"(from {result.cache_hits} cache hits)"
-        )
+        print(f"  Tokens saved: {result.tokens_saved} (from {result.cache_hits} cache hits)")
         print(f"  Parallel executions: {result.parallel_executions}")
         print(f"  Total duration: {result.total_duration_ms:.1f}ms")
 
@@ -135,7 +134,7 @@ async def main() -> None:
         # Display client metrics
         metrics = client.get_metrics()
         print("\n📊 Token Efficiency Metrics:")
-        print(f"  Cache hit rate: {metrics['cache_hit_rate']*100:.1f}%")
+        print(f"  Cache hit rate: {metrics['cache_hit_rate'] * 100:.1f}%")
         print(f"  Total operations: {metrics['total_operations']}")
         print(f"  API calls made: {metrics['api_calls']}")
         print(f"  Estimated tokens saved: {metrics['estimated_tokens_saved']}")

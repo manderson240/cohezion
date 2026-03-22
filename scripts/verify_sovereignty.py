@@ -1,10 +1,10 @@
 import asyncio
 import logging
-import sys
-from pathlib import Path
+
+from cohezion.core.local_registry import get_local_registry
 from cohezion.swarm.agents.sovereign_agent import SovereignAgent
 from cohezion.swarm.swarm_types import SwarmConfig
-from cohezion.core.local_registry import get_local_registry
+
 
 async def main():
     logging.basicConfig(level=logging.INFO)
@@ -12,12 +12,12 @@ async def main():
 
     # 1. Test Registry Directly
     registry = get_local_registry()
-    print(f"\n--- 🛡️ Registry Test ---")
+    print("\n--- 🛡️ Registry Test ---")
     print(f"Installed Models: {registry.available_models}")
     print(f"Capacity Check (>20GB): {registry.check_capacity()}")
 
     # 2. Test Sovereign Agent Fallback
-    print(f"\n--- 🏰 Sovereign Agent Fallback Test ---")
+    print("\n--- 🏰 Sovereign Agent Fallback Test ---")
     # Intentional Fake Model
     agent = SovereignAgent(config=SwarmConfig())
     agent.model_name = "gpt-4-turbo-fake"
@@ -37,6 +37,7 @@ async def main():
         print("❌ FAIL: Response invalid.")
 
     await agent.close()
+
 
 if __name__ == "__main__":
     asyncio.run(main())

@@ -131,7 +131,9 @@ def run_parallel_http_benchmark() -> BenchmarkResult:
     return result
 
 
-def compare_results(sequential: BenchmarkResult, parallel: BenchmarkResult) -> dict[str, Any]:
+def compare_results(
+    sequential: BenchmarkResult, parallel: BenchmarkResult
+) -> dict[str, Any]:
     """Compare sequential vs parallel results.
 
     Args:
@@ -154,7 +156,13 @@ def compare_results(sequential: BenchmarkResult, parallel: BenchmarkResult) -> d
         "improvement_ms": round(improvement, 2),
         "improvement_percent": round(improvement_pct, 1),
         "speedup_factor": round(speedup, 1),
-        "status": "EXCELLENT" if speedup >= 8 else "GOOD" if speedup >= 5 else "PASS" if speedup >= 2 else "CHECK",
+        "status": "EXCELLENT"
+        if speedup >= 8
+        else "GOOD"
+        if speedup >= 5
+        else "PASS"
+        if speedup >= 2
+        else "CHECK",
     }
 
 
@@ -176,7 +184,9 @@ def run() -> dict[str, Any]:
 
 
 if __name__ == "__main__":
-    print("Running SurrealDB parallel sync benchmarks (with HTTP latency simulation)...")
+    print(
+        "Running SurrealDB parallel sync benchmarks (with HTTP latency simulation)..."
+    )
     print("=" * 70)
 
     results = run()
@@ -187,33 +197,35 @@ if __name__ == "__main__":
 
     paper_count = 84
 
-    print(f"\nSequential Sync (10ms latency per paper):")
+    print("\nSequential Sync (10ms latency per paper):")
     print(f"  Expected: {paper_count * 10}ms (no parallelization)")
     print(f"  Actual:   {seq_result['mean_ms']:.1f}ms")
     print(f"  Per paper: {seq_result['mean_ms'] / paper_count:.2f}ms")
 
-    print(f"\nParallel Sync (max_concurrent=10, 10ms latency per paper):")
+    print("\nParallel Sync (max_concurrent=10, 10ms latency per paper):")
     print(f"  Expected: {(paper_count / 10) * 10}ms (10 batches)")
     print(f"  Actual:   {par_result['mean_ms']:.1f}ms")
     print(f"  Per paper: {par_result['mean_ms'] / paper_count:.2f}ms")
 
-    print(f"\nComparison:")
+    print("\nComparison:")
     print(f"  Improvement: {comp['improvement_ms']}ms ({comp['improvement_percent']}%)")
     print(f"  Speedup: {comp['speedup_factor']}x")
     print(f"  Status: {comp['status']}")
 
     print("\nAnalysis:")
-    if comp['speedup_factor'] >= 5:
+    if comp["speedup_factor"] >= 5:
         print("  ✓ Parallelization is highly effective")
-        print(f"  ✓ Achieves {comp['speedup_factor']:.1f}x speedup (well above 5x target)")
-    elif comp['speedup_factor'] >= 2:
+        print(
+            f"  ✓ Achieves {comp['speedup_factor']:.1f}x speedup (well above 5x target)"
+        )
+    elif comp["speedup_factor"] >= 2:
         print("  ✓ Parallelization is working")
         print(f"  ✓ Achieves {comp['speedup_factor']:.1f}x speedup")
     else:
         print("  ✗ Parallelization needs investigation")
 
     print("\n" + "=" * 70)
-    print(f"Results saved to: benchmark_surrealdb_http_results.json")
+    print("Results saved to: benchmark_surrealdb_http_results.json")
 
     # Save results
     with open("benchmark_surrealdb_http_results.json", "w") as f:

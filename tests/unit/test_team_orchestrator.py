@@ -60,9 +60,7 @@ class TestGenerateAgentSpec:
 
 class TestSelectModel:
     def test_test_tasks_route_to_phi3(self, orchestrator):
-        task = TaskSpec(
-            id="t1", subject="Run tests", description="verify", tags=["test"]
-        )
+        task = TaskSpec(id="t1", subject="Run tests", description="verify", tags=["test"])
         model = orchestrator.select_model(task)
         assert model == "phi3:mini"
 

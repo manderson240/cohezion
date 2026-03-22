@@ -14,7 +14,6 @@ Example:
 
 import logging
 import re
-from typing import Optional
 
 
 logger = logging.getLogger(__name__)
@@ -219,9 +218,7 @@ class PromptOptimizer:
             "compressed_tokens": compressed_tokens,
             "tokens_saved": original_tokens - compressed_tokens,
             "reduction_pct": (
-                100 * (1 - compressed_tokens / original_tokens)
-                if original_tokens > 0
-                else 0.0
+                100 * (1 - compressed_tokens / original_tokens) if original_tokens > 0 else 0.0
             ),
             "original_chars": len(original),
             "compressed_chars": len(compressed),
