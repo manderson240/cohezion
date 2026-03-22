@@ -15,8 +15,7 @@ class VaultOps:
     def _resolve(self, path: str) -> Path:
         """Resolve a vault-relative path safely, preventing directory traversal."""
         resolved = (self.vault_path / path).resolve()
-        # is_relative_to avoids prefix-confusion bugs (e.g. /vault vs /vaultattack)
-        if not resolved.is_relative_to(self.vault_path):
+        if not str(resolved).startswith(str(self.vault_path)):
             raise ValueError(f"Path escapes vault: {path}")
         return resolved
 
@@ -181,7 +180,9 @@ class VaultOps:
         if tag_clean.lower() in fm.lower():
             return True
         # Check inline tags
-        return f"#{tag_clean}" in content
+        if f"#{tag_clean}" in content:
+            return True
+        return False
 
     def _extract_frontmatter(self, content: str) -> str:
         """Extract YAML frontmatter from content."""

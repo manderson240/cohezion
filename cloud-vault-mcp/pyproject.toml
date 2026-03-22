@@ -18,8 +18,8 @@ dependencies = [
 dev = [
     "pytest>=8.0",
     "pytest-asyncio>=0.24.0",
-    "ruff>=0.8.0",
-    "mypy>=1.0",
+    "black>=24.0",
+    "ruff>=0.5.0",
 ]
 
 [project.scripts]
@@ -28,61 +28,12 @@ cloud-vault-mcp = "mcp_server.main:main"
 [tool.hatch.build.targets.wheel]
 packages = ["src/mcp_server"]
 
-[tool.ruff]
-target-version = "py311"
+[tool.black]
 line-length = 88
 
-# Linting configuration
-[tool.ruff.lint]
-# Enable comprehensive rule set
-select = [
-    "E",     # pycodestyle errors
-    "F",     # pyflakes
-    "W",     # pycodestyle warnings
-    "I",     # isort
-    "N",     # pep8-naming
-    "UP",    # pyupgrade
-    "S",     # flake8-bandit (security)
-    "B",     # flake8-bugbear
-    "A",     # flake8-builtins
-    "C4",    # flake8-comprehensions
-    "SIM",   # flake8-simplify
-    "TCH",   # flake8-type-checking
-    "RUF",   # Ruff-specific rules
-]
-
-# Per-file customization
-[tool.ruff.lint.per-file-ignores]
-"tests/**/*.py" = [
-    "S101",  # Allow assert in tests
-]
-"src/mcp_server/config.py" = [
-    "S104",  # Allow binding to all interfaces (0.0.0.0) for server config
-]
-
-# Import sorting configuration
-[tool.ruff.lint.isort]
-known-first-party = ["mcp_server"]
-force-single-line = false
-lines-after-imports = 2
-
-# Formatter configuration (replaces Black)
-[tool.ruff.format]
-quote-style = "double"
-indent-style = "space"
-skip-magic-trailing-comma = false
-line-ending = "auto"
-
-# Type checking with mypy
-[tool.mypy]
-python_version = "3.11"
-warn_return_any = true
-warn_unused_configs = true
-disallow_untyped_defs = false
-check_untyped_defs = true
-no_implicit_optional = true
-warn_redundant_casts = true
-warn_unused_ignores = true
+[tool.ruff]
+line-length = 88
+select = ["E", "F", "W", "I"]
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
