@@ -13,7 +13,10 @@ import numpy as np
 import pytest
 
 from cohezion.swarm.batch_processor import BatchItem, CacheEntry
-from cohezion.swarm.semantic_cache import EmbeddingResult, SemanticCache
+from cohezion.swarm.semantic_cache import (
+    EmbeddingResult,
+    SemanticCache,
+)
 from cohezion.swarm.token_client import TokenEfficientClient
 
 
@@ -260,7 +263,9 @@ class TestThreeTierCacheHierarchy:
             assert client.semantic_cache is None
 
     @pytest.mark.asyncio
-    async def test_semantic_cache_thread_safety_with_batch(self, token_client_with_semantic):
+    async def test_semantic_cache_thread_safety_with_batch(
+        self, token_client_with_semantic
+    ):
         """Test semantic cache is thread-safe during batch operations."""
         if not token_client_with_semantic.semantic_cache:
             pytest.skip("Semantic cache not available")

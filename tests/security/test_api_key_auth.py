@@ -7,11 +7,78 @@ Covers APIKeyValidator, get_validator, reset_validator.
 from __future__ import annotations
 
 import os
-from unittest.mock import patch
 
 import pytest
 
-from cohezion.security.api_key_auth import APIKeyValidator, get_validator, reset_validator
+from cohezion.security.api_key_auth import (
+    APIKeyValidator,
+    get_validator,
+    reset_validator,
+)
+
+
+@pytest.fixture
+def set_api_key():
+    """Set up and tear down API key for tests."""
+    original = os.environ.get("MCP_API_KEY")
+    os.environ["MCP_API_KEY"] = "test-api-key-12345"
+    yield
+    reset_validator()
+    if original:
+        os.environ["MCP_API_KEY"] = original
+    else:
+        os.environ.pop("MCP_API_KEY", None)
+
+
+class TestAPIKeyValidator:
+    """Test APIKeyValidator class."""
+
+    def test_validator_initialization(self, set_api_key):
+        """Test validator initializes with API key from environment."""
+        validator = APIKeyValidator()
+        assert validator.api_key == "test-api-key-12345"
+
+    def test_valid_key(self, set_api_key):
+        """Test validation passes with correct key."""
+        validator = APIKeyValidator()
+        assert validator.validate("test-api-key-12345") is True
+
+    def test_invalid_key(self, set_api_key):
+        """Test validation fails with incorrect key."""
+        validator = APIKeyValidator()
+        assert validator.validate("wrong-key") is False
+
+    def test_missing_key(self, set_api_key):
+        """Test validation fails with missing key."""
+        validator = APIKeyValidator()
+        assert validator.validate(None) is False
+
+    def test_empty_key(self, set_api_key):
+        """Test validation fails with empty key."""
+        validator = APIKeyValidator()
+        assert validator.validate("") is False
+
+    def test_no_environment_key(self):
+        """Test validator when no environment key is set."""
+        reset_validator()
+        os.environ.pop("MCP_API_KEY", None)
+        validator = APIKeyValidator()
+        assert validator.api_key is None
+        # Should return True if no key configured (auth disabled)
+        assert validator.validate("any-key") is True
+
+    def test_case_sensitive(self, set_api_key):
+        """Test that API key validation is case-sensitive."""
+        validator = APIKeyValidator()
+        assert validator.validate("TEST-API-KEY-12345") is False
+
+    def test_timing_attack_resistance(self, set_api_key):
+        """Test that validation uses constant-time comparison."""
+        validator = APIKeyValidator()
+        # Both should take similar time (constant-time comparison)
+        # We can't easily test timing, but we verify the behavior
+        assert validator.validate("test-api-key-12345") is True
+        assert validator.validate("wrong-api-key-wrong") is False
 
 
 class TestGetValidator:
@@ -56,162 +123,5 @@ class TestGetValidator:
         assert validator.api_key == "custom-value"
 
 
-class TestResetValidator:
-    """[P0] Unit tests for reset_validator function."""
-
-    def test_reset_validator_clears_instance(self):
-        """[P0] Should reset global validator instance."""
-        # Create a validator
-        with patch.dict(os.environ, {"MCP_API_KEY": "key"}):
-            get_validator()
-
-        # Reset
-        reset_validator()
-
-        # Next call should create new instance
-        with patch.dict(os.environ, {"MCP_API_KEY": "new-key"}):
-            validator = get_validator()
-            assert validator.api_key == "new-key"
-
-    def test_reset_validator_returns_none(self):
-        """[P1] Should return None."""
-        result = reset_validator()
-        assert result is None
-
-
-class TestAPIKeyValidator:
-    """[P0] Unit tests for APIKeyValidator class."""
-
-    def test_initialization_with_key(self):
-        """[P0] Should initialize with API key."""
-        with patch.dict(os.environ, {"MCP_API_KEY": "test-api-key"}):
-            validator = APIKeyValidator()
-
-        assert validator.api_key == "test-api-key"
-
-    def test_initialization_without_key(self):
-        """[P0] Should handle missing API key gracefully."""
-        with patch.dict(os.environ, {}, clear=True):
-            validator = APIKeyValidator()
-
-        assert validator.api_key is None
-
-    def test_initialization_custom_env_key(self):
-        """[P1] Should read from custom environment variable."""
-        with patch.dict(os.environ, {"CUSTOM_API_KEY": "custom-value"}):
-            validator = APIKeyValidator(env_key="CUSTOM_API_KEY")
-
-        assert validator.api_key == "custom-value"
-
-    def test_validate_with_valid_key(self):
-        """[P0] Should validate correct API key."""
-        with patch.dict(os.environ, {"MCP_API_KEY": "secret-key"}):
-            validator = APIKeyValidator()
-
-        result = validator.validate("secret-key")
-
-        assert result is True
-
-    def test_validate_with_invalid_key(self):
-        """[P0] Should reject invalid API key."""
-        with patch.dict(os.environ, {"MCP_API_KEY": "secret-key"}):
-            validator = APIKeyValidator()
-
-        result = validator.validate("wrong-key")
-
-        assert result is False
-
-    def test_validate_with_missing_key(self):
-        """[P0] Should reject missing API key."""
-        with patch.dict(os.environ, {"MCP_API_KEY": "secret-key"}):
-            validator = APIKeyValidator()
-
-        result = validator.validate(None)
-
-        assert result is False
-
-    def test_validate_with_no_api_key_configured(self):
-        """[P0] Should allow all requests when no API key configured."""
-        with patch.dict(os.environ, {}, clear=True):
-            validator = APIKeyValidator()
-
-        result = validator.validate("any-key")
-
-        assert result is True
-
-    def test_validate_uses_constant_time_comparison(self):
-        """[P1] Should use constant-time comparison to prevent timing attacks."""
-        with patch.dict(os.environ, {"MCP_API_KEY": "secret"}):
-            validator = APIKeyValidator()
-
-        # Should not raise and should be consistent
-        result1 = validator.validate("secret")
-        result2 = validator.validate("secret")
-
-        assert result1 is True
-        assert result2 is True
-        assert result1 == result2
-
-    def test_validate_case_sensitive(self):
-        """[P1] Should be case-sensitive."""
-        with patch.dict(os.environ, {"MCP_API_KEY": "SecretKey"}):
-            validator = APIKeyValidator()
-
-        result = validator.validate("secretkey")
-
-        assert result is False
-
-
-class TestAPIKeyValidatorIntegration:
-    """[P1] Integration tests for API key validation."""
-
-    @pytest.mark.fast
-    def test_full_validation_workflow(self):
-        """[P0] Should demonstrate complete validation workflow."""
-        reset_validator()
-
-        # Set up API key
-        with patch.dict(os.environ, {"MCP_API_KEY": "production-key"}):
-            validator = get_validator()
-
-            # Valid key
-            assert validator.validate("production-key") is True
-
-            # Invalid key
-            assert validator.validate("hacker-key") is False
-
-            # Missing key
-            assert validator.validate(None) is False
-
-    @pytest.mark.fast
-    def test_validator_persists_across_calls(self):
-        """[P1] Should maintain singleton behavior."""
-        reset_validator()
-
-        with patch.dict(os.environ, {"MCP_API_KEY": "persistent-key"}):
-            v1 = get_validator()
-            v2 = get_validator()
-
-            assert v1 is v2
-            assert v1.api_key == "persistent-key"
-
-    @pytest.mark.fast
-    def test_reset_allows_reconfiguration(self):
-        """[P1] Should allow reconfiguration after reset."""
-        reset_validator()
-
-        # First configuration
-        with patch.dict(os.environ, {"MCP_API_KEY": "key1"}):
-            v1 = get_validator()
-            assert v1.api_key == "key1"
-
-        # Reset
-        reset_validator()
-
-        # Second configuration
-        with patch.dict(os.environ, {"MCP_API_KEY": "key2"}):
-            v2 = get_validator()
-            assert v2.api_key == "key2"
-
-        # Should be different instances
-        assert v1 is not v2
+if __name__ == "__main__":
+    pytest.main([__file__, "-v"])

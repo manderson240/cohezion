@@ -20,7 +20,11 @@ from enum import Enum
 from typing import Any
 
 from cohezion.compound.executor import CompoundExecutor, ExecutionResult
-from cohezion.compound.inflection_detector import AnomalyDetection, InflectionDetector, Severity
+from cohezion.compound.inflection_detector import (
+    AnomalyDetection,
+    InflectionDetector,
+    Severity,
+)
 
 
 logger = logging.getLogger(__name__)
@@ -191,7 +195,8 @@ class CompoundFeedbackLoop:
                     current_retry, anomaly, available_alternative_skills
                 ),
                 skill_used=current_skill,
-                success=execution_result.success and anomaly.score > self.critical_threshold,
+                success=execution_result.success
+                and anomaly.score > self.critical_threshold,
                 anomaly_detected=anomaly,
                 execution_result=execution_result,
             )

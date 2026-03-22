@@ -3,7 +3,6 @@ Charter-aligned skill tracking with HIHO stability measurement.
 Integrates Phase 0 infrastructure for 100% Charter compliance.
 """
 
-import logging
 import uuid
 from datetime import datetime
 
@@ -14,7 +13,6 @@ from cohezion.core.persistence.surreal_client import get_surreal_client
 from cohezion.flume.vae_encoder import get_encoder
 from cohezion.platform.coherence_tracker import get_coherence_tracker
 from cohezion.platform.journey_logger import get_journey_logger
-
 
 logger = logging.getLogger(__name__)
 
@@ -43,7 +41,9 @@ class CharterAlignedSkillTracker:
         self.journey_logger = get_journey_logger()
         self.vae = get_encoder()
 
-    async def log_skill_usage(self, event: SkillUsageEvent, journey_id: str | None = None):
+    async def log_skill_usage(
+        self, event: SkillUsageEvent, journey_id: str | None = None
+    ):
         """
         Log skill usage with Charter-compliant tracking.
 

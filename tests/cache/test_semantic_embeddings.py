@@ -9,7 +9,11 @@ Phase 2 Priority 2 Implementation Tests.
 import numpy as np
 import pytest
 
-from cohezion.cache.text_encoder import SemanticTextEncoder, get_text_encoder, reset_encoder
+from cohezion.cache.text_encoder import (
+    SemanticTextEncoder,
+    get_text_encoder,
+    reset_encoder,
+)
 
 
 class TestSemanticTextEncoder:
@@ -191,7 +195,9 @@ class TestSemanticTextEncoder:
         embedding = encoder.encode(text)
 
         assert embedding.shape == (256,), "Fallback should still return 256D"
-        assert not np.allclose(embedding, 0.0), "Fallback should return non-zero embedding"
+        assert not np.allclose(embedding, 0.0), (
+            "Fallback should return non-zero embedding"
+        )
 
         # Fallback should still provide some discrimination (n-gram similarity varies)
         text2 = "Completely different text about space travel"
@@ -227,7 +233,9 @@ class TestSemanticCacheDiscrimination:
 
         # Should find a match (L2 semantic hit or at least check)
         # If result is None, check the cache stats
-        print(f"Cache hits L1: {cache.hits_l1}, L2: {cache.hits_l2}, L3: {cache.hits_l3}")
+        print(
+            f"Cache hits L1: {cache.hits_l1}, L2: {cache.hits_l2}, L3: {cache.hits_l3}"
+        )
         print(f"Query result: {result}")
 
     def test_threshold_discrimination(self):

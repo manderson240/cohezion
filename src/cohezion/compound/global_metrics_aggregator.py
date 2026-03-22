@@ -151,7 +151,9 @@ class GlobalMetricsAggregator:
         if self._data_dir:
             self._data_dir.mkdir(parents=True, exist_ok=True)
 
-    def record_instance_metrics(self, instance_id: str, metrics: InstanceMetrics) -> None:
+    def record_instance_metrics(
+        self, instance_id: str, metrics: InstanceMetrics
+    ) -> None:
         """Record metrics from a single instance.
 
         Parameters
@@ -193,7 +195,9 @@ class GlobalMetricsAggregator:
         total_executions = metrics.total_tasks
         total_successes = sum(w.successes for w in metrics.waves)
 
-        avg_duration = metrics.total_duration_ms / len(metrics.waves) if metrics.waves else 0.0
+        avg_duration = (
+            metrics.total_duration_ms / len(metrics.waves) if metrics.waves else 0.0
+        )
 
         instance_metrics = InstanceMetrics(
             instance_id=instance_id,
@@ -206,7 +210,10 @@ class GlobalMetricsAggregator:
             cache_hit_rate=0.0,  # Would be populated by executor
             skill_diversity=len(metrics.model_usage),
             model_usage=metrics.model_usage,
-            metadata={"team_id": team_id, "parallel_efficiency": metrics.parallel_efficiency},
+            metadata={
+                "team_id": team_id,
+                "parallel_efficiency": metrics.parallel_efficiency,
+            },
         )
 
         self.record_instance_metrics(instance_id, instance_metrics)
@@ -302,7 +309,10 @@ class GlobalMetricsAggregator:
             return agg
 
     def query_by_agent(
-        self, agent_id: str, start_time: float | None = None, end_time: float | None = None
+        self,
+        agent_id: str,
+        start_time: float | None = None,
+        end_time: float | None = None,
     ) -> list[InstanceMetrics]:
         """Query metrics for a specific agent.
 
@@ -335,7 +345,10 @@ class GlobalMetricsAggregator:
             return list(metrics_list)
 
     def query_by_skill(
-        self, skill_name: str, start_time: float | None = None, end_time: float | None = None
+        self,
+        skill_name: str,
+        start_time: float | None = None,
+        end_time: float | None = None,
     ) -> SkillMetrics | None:
         """Query aggregated metrics for a specific skill.
 

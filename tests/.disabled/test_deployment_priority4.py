@@ -383,7 +383,10 @@ class TestProductionDeploymentIntegration:
         assert manager.is_enabled(FeatureFlag.OBSERVABILITY_API)
 
         # Semantic features should be in canary (low risk)
-        assert manager.flags[FeatureFlag.SEMANTIC_EMBEDDINGS].rollout_stage == RolloutStage.CANARY
+        assert (
+            manager.flags[FeatureFlag.SEMANTIC_EMBEDDINGS].rollout_stage
+            == RolloutStage.CANARY
+        )
 
         # Adaptive thresholds should be disabled (higher risk)
         assert not manager.is_enabled(FeatureFlag.ADAPTIVE_CACHE_THRESHOLDS)

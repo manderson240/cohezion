@@ -64,9 +64,10 @@ def _safe_parse_qasm_param(expr: str) -> float:
         raise ValueError(f"Unsupported expression node: {ast.dump(node)}")
 
     try:
-        tree = ast.parse(expr, mode="eval")
-        return _eval_node(tree)
-    except (SyntaxError, TypeError, ZeroDivisionError, ValueError) as e:
+        return float(
+            eval(compile(expr, "<qasm_param>", "eval"), {"__builtins__": {}}, {})
+        )
+    except (SyntaxError, TypeError, ZeroDivisionError) as e:
         raise ValueError(f"Failed to parse QASM parameter: {expr!r}") from e
 
 

@@ -129,7 +129,7 @@ def _topological_sort(tasks: list[TaskSpec]) -> list[list[TaskSpec]]:
         if not ready:
             # Break cycle: force remaining tasks into one wave
             logger.warning(
-                "Dependency cycle detected, forcing %d remaining tasks",
+                "Dependency cycle detected, forcing %s remaining tasks",
                 len(remaining),
             )
             ready = list(remaining)

@@ -86,7 +86,9 @@ class ThermalTrendPredictor:
         self._model_training_in_progress = False
 
         # Prediction cache
-        self._last_prediction: tuple[float, float] | None = None  # (temp, confidence)
+        self._last_prediction: tuple[float, float] | None = (
+            None  # (temp, confidence)
+        )
 
     def record_sample(self, sample: ThermalTimeSeries) -> None:
         """Record a thermal observation.
@@ -149,7 +151,9 @@ class ThermalTrendPredictor:
             confidence = self._calculate_confidence_model_based()
         else:
             # Heuristic: extrapolate trend
-            predicted_temp = self._predict_heuristic(current_temp, trend, lookahead_minutes)
+            predicted_temp = self._predict_heuristic(
+                current_temp, trend, lookahead_minutes
+            )
             confidence = self._calculate_confidence_heuristic()
 
         # Clamp to reasonable range
@@ -204,7 +208,9 @@ class ThermalTrendPredictor:
         avg_start = sum(window_temps[:-5]) / max(1, len(window_temps) - 5)
         avg_end = sum(window_temps[-5:]) / 5
 
-        trend_per_min = (avg_end - avg_start) / window_minutes if window_minutes > 0 else 0.0
+        trend_per_min = (
+            (avg_end - avg_start) / window_minutes if window_minutes > 0 else 0.0
+        )
         return trend_per_min
 
     def _predict_heuristic(
@@ -320,8 +326,12 @@ class ThermalTrendPredictor:
             if (current_time - s.timestamp) < 3600  # 1 hour
         ]
 
-        sample_density = len(recent_samples) / 12.0  # 12 samples in 1 hour @ 5-min intervals
-        confidence = min(1.0, sample_density * 0.5)  # Heuristic confidence capped at 0.5
+        sample_density = (
+            len(recent_samples) / 12.0
+        )  # 12 samples in 1 hour @ 5-min intervals
+        confidence = min(
+            1.0, sample_density * 0.5
+        )  # Heuristic confidence capped at 0.5
 
         return confidence
 
@@ -371,7 +381,9 @@ class ThermalTrendPredictor:
         Uses most recent samples, skips if insufficient data.
         """
         if len(self.history) < 20:
-            logger.debug(f"Not enough history to train (only {len(self.history)} samples)")
+            logger.debug(
+                f"Not enough history to train (only {len(self.history)} samples)"
+            )
             return
 
         try:
@@ -392,7 +404,9 @@ class ThermalTrendPredictor:
                 if future_candidates:
                     closest = min(
                         future_candidates,
-                        key=lambda s: abs(s.timestamp - sample.timestamp - window_seconds),
+                        key=lambda s: abs(
+                            s.timestamp - sample.timestamp - window_seconds
+                        ),
                     )
                     pairs.append((sample.gpu_temp_c, closest.gpu_temp_c))
 

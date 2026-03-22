@@ -224,10 +224,14 @@ class TestExecutorSkillSelectionIntegrationWithExecution:
                     "get_experience_guidance",
                     return_value={"context": "test"},
                 ),
-                patch.object(executor.logger, "log_execution_start", return_value="exp_path"),
+                patch.object(
+                    executor.logger, "log_execution_start", return_value="exp_path"
+                ),
                 patch.object(executor.logger, "log_execution_result"),
                 patch.object(
-                    executor.logger, "extract_execution_pattern", return_value="pattern_path"
+                    executor.logger,
+                    "extract_execution_pattern",
+                    return_value="pattern_path",
                 ),
             ):
 
@@ -261,9 +265,15 @@ class TestExecutorSkillSelectionIntegrationWithExecution:
                 "get_experience_guidance",
                 return_value={"context": "test"},
             ),
-            patch.object(executor.logger, "log_execution_start", return_value="exp_path"),
+            patch.object(
+                executor.logger, "log_execution_start", return_value="exp_path"
+            ),
             patch.object(executor.logger, "log_execution_result"),
-            patch.object(executor.logger, "extract_execution_pattern", return_value="pattern_path"),
+            patch.object(
+                executor.logger,
+                "extract_execution_pattern",
+                return_value="pattern_path",
+            ),
         ):
 
             def execute_fn(guidance):

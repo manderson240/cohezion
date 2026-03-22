@@ -114,7 +114,11 @@ class TestQueryComplexityAnalyzer:
         assert stats["medium_pct"] >= 0  # May have medium
         # Don't require complex since it's keyword-dependent
         assert (
-            abs(sum([stats["simple_pct"], stats["medium_pct"], stats["complex_pct"]]) - 100.0) < 0.1
+            abs(
+                sum([stats["simple_pct"], stats["medium_pct"], stats["complex_pct"]])
+                - 100.0
+            )
+            < 0.1
         )
 
 
@@ -192,7 +196,9 @@ class TestCostAwareRouter:
     def test_cost_tracking(self, router):
         """Test cost recording and aggregation."""
         router.record_execution("phi3:mini", actual_tokens=150, duration_ms=1000.0)
-        router.record_execution("qwen3-coder:32b", actual_tokens=300, duration_ms=2000.0)
+        router.record_execution(
+            "qwen3-coder:32b", actual_tokens=300, duration_ms=2000.0
+        )
         router.record_execution("deepseek-r1:8b", actual_tokens=600, duration_ms=5000.0)
 
         # All local models should have $0 cost
@@ -349,7 +355,9 @@ class TestCostAwareRouterChaosTest:
 
             if can_proceed:
                 # Simulate execution
-                router.record_execution(decision.model, decision.estimated_tokens, 100.0)
+                router.record_execution(
+                    decision.model, decision.estimated_tokens, 100.0
+                )
 
         # Check enforcer state
         budget_ok, _ = enforcer.check_budget(tracker.total_cost_usd)

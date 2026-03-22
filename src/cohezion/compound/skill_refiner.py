@@ -246,7 +246,9 @@ class SkillRefiner:
 
         return None
 
-    def _append_refinement(self, prime_file: Path, signal: LearningSignal) -> Path | None:
+    def _append_refinement(
+        self, prime_file: Path, signal: LearningSignal
+    ) -> Path | None:
         """Append learned refinement to PRIME file.
 
         Args:

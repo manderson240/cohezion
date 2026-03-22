@@ -14,8 +14,6 @@ import os
 from pathlib import Path
 from typing import Any
 
-from aiohttp import web
-
 
 logger = logging.getLogger(__name__)
 

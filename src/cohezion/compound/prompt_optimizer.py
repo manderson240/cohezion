@@ -61,12 +61,17 @@ class PromptOptimizer:
 
     # Redundant phrase patterns
     REDUNDANCY_PATTERNS = [
-        (r"\b(very|really|quite)\s+(very|really|quite)\b", r"$1"),  # Repeated intensifiers
+        (
+            r"\b(very|really|quite)\s+(very|really|quite)\b",
+            r"$1",
+        ),  # Repeated intensifiers
         (r"\b(and\s+)+and\b", "and"),  # Repeated "and"
         (r"\s+", " "),  # Multiple spaces
     ]
 
-    def __init__(self, enable_filler_removal: bool = True, estimate_tokens: bool = True):
+    def __init__(
+        self, enable_filler_removal: bool = True, estimate_tokens: bool = True
+    ):
         """Initialize optimizer.
 
         Args:

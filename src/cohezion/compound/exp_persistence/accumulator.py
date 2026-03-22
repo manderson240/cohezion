@@ -55,7 +55,9 @@ class PersistenceAccumulator:
 
         # HW-Aware Drop: No persistence if system is severely dilated
         if dilation < 0.3:
-            logger.warning(f"Persistence skipped due to severe dilation ({dilation:.2f})")
+            logger.warning(
+                f"Persistence skipped due to severe dilation ({dilation:.2f})"
+            )
             return
 
         # Importance Sampling: Reject low-novelty logs if queue is getting full

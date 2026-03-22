@@ -7,7 +7,9 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from cohezion.compound.executor import ExecutorFactory
+from cohezion.compound.executor import (
+    ExecutorFactory,
+)
 from cohezion.compound.request_alignment_analyzer import RequestAlignmentAnalyzer
 
 
@@ -319,7 +321,9 @@ class TestAlignmentNonBlocking:
 
         # Mock alignment analyzer to raise exception
         with patch.object(
-            RequestAlignmentAnalyzer, "analyze_alignment", side_effect=Exception("Test error")
+            RequestAlignmentAnalyzer,
+            "analyze_alignment",
+            side_effect=Exception("Test error"),
         ):
             executor = ExecutorFactory.create(mcp_client, enable_alignment_analysis=True)
 
