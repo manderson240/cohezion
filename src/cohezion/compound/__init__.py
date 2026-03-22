@@ -1,6 +1,7 @@
 """Compound engineering system for iterative AI refinement.
 
 Integrates skill execution, knowledge persistence (vault), and experience-guided loops.
+Phase 1: Compatibility layer with simplified internals
 """
 
 from cohezion.compound.batch_sizer import (
@@ -92,10 +93,9 @@ from cohezion.compound.request_alignment_analyzer import (
     DriftSignal,
     ExecutionAlignment,
     ExecutionConstraint,
+    ExecutionResult as LegacyExecutionResult,
     HumanRequest,
     IntentType,
-    RequestAlignmentAnalyzer,
-    RequestAlignmentAnalyzerFactory,
     SuccessCriterion,
 )
 from cohezion.compound.request_cache import RequestCache
@@ -154,6 +154,72 @@ from cohezion.compound.vault_search_executor import (
     create_vault_search_executor,
 )
 
+from cohezion.compound.core.executor import (
+    CompoundExecutor as NewCompoundExecutor,
+    ExecutionConfig,
+    execute_simple,
+)
+
+from cohezion.compound.core.batch_processor import (
+    BatchProcessor,
+    BatchResult,
+    SimpleBatch,
+)
+
+# ============================================================================
+# New Simplified Analytics (Phase 1)
+# ============================================================================
+
+from cohezion.compound.analytics.engine import (
+    AnalysisConfig,
+    ExecutionAnalyzer,
+    SimpleAnalyzer,
+)
+
+from cohezion.compound.analytics.metrics import (
+    MetricsCollector,
+    MetricsSnapshot,
+    SimpleMetrics,
+)
+
+# ============================================================================
+# New Simplified Skills (Phase 1)
+# ============================================================================
+
+from cohezion.compound.skills.selector import (
+    SkillMatch,
+    SkillRefiner,
+    SkillSelector,
+    SimpleSkills,
+)
+
+# ============================================================================
+# New Simplified Persistence (Phase 1)
+# ============================================================================
+
+from cohezion.compound.persistence.vault import (
+    PersistenceConfig,
+    SessionPersister,
+    SimplePersistence,
+    VaultPersister,
+)
+
+
+# ============================================================================
+# Version Info
+# ============================================================================
+
+__version__ = "2.0.0-simplified"
+
+
+def get_version() -> str:
+    """Get compound module version."""
+    return __version__
+
+
+# ============================================================================
+# Exports
+# ============================================================================
 
 __all__ = [
     "ActionRecommendation",
@@ -171,34 +237,13 @@ __all__ = [
     "CompoundCycleReport",
     "CompoundCycleResult",
     "CompoundExecutor",
-    "CompoundFeedbackLoop",
-    "CompoundFeedbackLoopFactory",
-    "CompoundMetricsCollector",
-    "ConsensusResult",
     "ConstraintType",
     "ConstraintViolation",
     "CriterionFailure",
-    "DegradationAlert",
-    "DegradationDetector",
     "DriftSignal",
     "ExecutionAlignment",
     "ExecutionConstraint",
-    "ExecutionContext",
-    "ExecutionRecord",
-    "ExecutionResult",
-    "ExecutorFactory",
-    "FailureMode",
-    "FeedbackLoopResult",
-    "GlobalMetricsAggregator",
-    "HardwareMetrics",
-    "HardwareMonitor",
     "HumanRequest",
-    "InflectionDetector",
-    "InflectionDetectorFactory",
-    "InstanceMetrics",
-    "IntakeGreeting",
-    "IntakeSpecialist",
-    "IntentClassifier",
     "IntentType",
     "Journey",
     "JourneyPersistence",
