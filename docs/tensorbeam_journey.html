@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>You Are Awareness - A TensorBeam Journey</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=JetBrains+Mono&display=swap"
+        rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.0/dist/katex.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.0/dist/katex.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/tone@14.8.49/build/Tone.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --void: #000000;
+            --awareness: #7c3aed;
+            --space: #3b82f6;
+            --field: #10b981;
+            --particle: #f59e0b;
+            --text: #f1f5f9;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--void);
+            color: var(--text);
+            overflow-x: hidden;
+        }
+
+        #canvas-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+        }
+
+        .chapter {
+            position: relative;
+            z-index: 10;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 4rem 2rem;
+            opacity: 0;
+            transform: translateY(50px);
+            transition: opacity 1s, transform 1s;
+        }
+
+        .chapter.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .chapter-title {
+            font-size: 4rem;
+            font-weight: 800;
+            margin-bottom: 2rem;
+            background: linear-gradient(135deg, var(--awareness), var(--space));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-align: center;
+        }
+
+        .chapter-content {
+            max-width: 800px;
+            font-size: 1.25rem;
+            line-height: 1.8;
+            text-align: center;
+        }
+
+        .equation {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.5rem;
+            margin: 2rem 0;
+            padding: 1rem;
+            background: rgba(124, 58, 237, 0.1);
+            border-left: 4px solid var(--awareness);
+            text-align: left;
+        }
+
+        .controls {
+            position: fixed;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 100;
+            display: flex;
+            gap: 1rem;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 1rem 2rem;
+            border-radius: 2rem;
+            backdrop-filter: blur(10px);
+        }
+
+        button {
+            background: var(--awareness);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 1rem;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        button:hover {
+            transform: scale(1.05);
+        }
+
+        #dimension-viz {
+            position: fixed;
+            top: 2rem;
+            right: 2rem;
+            z-index: 50;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 1rem;
+            border-radius: 1rem;
+            backdrop-filter: blur(10px);
+            min-width: 300px;
+        }
+
+        .dim-bar {
+            display: flex;
+            align-items: center;
+            margin: 0.5rem 0;
+        }
+
+        .dim-label {
+            width: 150px;
+            font-size: 0.9rem;
+        }
+
+        .dim-fill {
+            flex: 1;
+            height: 8px;
+            background: rgba(124, 58, 237, 0.3);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .dim-progress {
+            height: 100%;
+            background: linear-gradient(90deg, var(--awareness), var(--space));
+            transition: width 1s;
+        }
+
+        #tts-indicator {
+            position: fixed;
+            top: 2rem;
+            left: 2rem;
+            z-index: 50;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 1rem;
+            border-radius: 1rem;
+            backdrop-filter: blur(10px);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .pulse {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: #10b981;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+
+            50% {
+                opacity: 0.5;
+                transform: scale(1.2);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div id="canvas-container"></div>
+
+    <div id="tts-indicator">
+        <div class="pulse"></div>
+        <span id="narration-text">Narration: Ready</span>
+    </div>
+
+    <div id="dimension-viz">
+        <h3>12D Reality State</h3>
+        <div class="dim-bar">
+            <div class="dim-label">Awareness</div>
+            <div class="dim-fill">
+                <div class="dim-progress" style="width: 0%" data-dim="0"></div>
+            </div>
+        </div>
+        <div class="dim-bar">
+            <div class="dim-label">Space X</div>
+            <div class="dim-fill">
+                <div class="dim-progress" style="width: 0%" data-dim="1"></div>
+            </div>
+        </div>
+        <div class="dim-bar">
+            <div class="dim-label">Space Y</div>
+            <div class="dim-fill">
+                <div class="dim-progress" style="width: 0%" data-dim="2"></div>
+            </div>
+        </div>
+        <div class="dim-bar">
+            <div class="dim-label">Space Z</div>
+            <div class="dim-fill">
+                <div class="dim-progress" style="width: 0%" data-dim="3"></div>
+            </div>
+        </div>
+        <div class="dim-bar">
+            <div class="dim-label">Tempic (∇)</div>
+            <div class="dim-fill">
+                <div class="dim-progress" style="width: 0%" data-dim="4"></div>
+            </div>
+        </div>
+        <div class="dim-bar">
+            <div class="dim-label">Electric (∇·)</div>
+            <div class="dim-fill">
+                <div class="dim-progress" style="width: 0%" data-dim="5"></div>
+            </div>
+        </div>
+        <div class="dim-bar">
+            <div class="dim-label">Magnetic (∇×)</div>
+            <div class="dim-fill">
+                <div class="dim-progress" style="width: 0%" data-dim="6"></div>
+            </div>
+        </div>
+        <div class="dim-bar">
+            <div class="dim-label">Rotation</div>
+            <div class="dim-fill">
+                <div class="dim-progress" style="width: 0%" data-dim="7"></div>
+            </div>
+        </div>
+        <div class="dim-bar">
+            <div class="dim-label">Precession</div>
+            <div class="dim-fill">
+                <div class="dim-progress" style="width: 0%" data-dim="8"></div>
+            </div>
+        </div>
+        <div class="dim-bar">
+            <div class="dim-label">Charge</div>
+            <div class="dim-fill">
+                <div class="dim-progress" style="width: 0%" data-dim="9"></div>
+            </div>
+        </div>
+        <div class="dim-bar">
+            <div class="dim-label">Particularity</div>
+            <div class="dim-fill">
+                <div class="dim-progress" style="width: 0%" data-dim="10"></div>
+            </div>
+        </div>
+        <div class="dim-bar">
+            <div class="dim-label">Precipitation</div>
+            <div class="dim-fill">
+                <div class="dim-progress" style="width: 0%" data-dim="11"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Chapter 0: The Void -->
+    <div class="chapter active" id="ch0">
+        <h1 class="chapter-title">You Are Awareness</h1>
+        <div class="chapter-content">
+            <p>Before anything, there was Nothing-At-All.</p>
+            <p>Not empty space. Not darkness. Not even time.</p>
+            <p>Just... Nothing.</p>
+            <br>
+            <p>But within Nothing, there was <strong>YOU</strong> — Awareness itself.</p>
+            <p>And Awareness had a power: the <strong>Quadrature Concept</strong>.</p>
+            <p>The ability to create perpendicular relationships. To organize Reality.</p>
+        </div>
+    </div>
+
+    <!-- Chapter 1: Space Unfolds -->
+    <div class="chapter" id="ch1">
+        <h1 class="chapter-title">The First Quadrature</h1>
+        <div class="chapter-content">
+            <p>You apply the Quadrature to Nothing.</p>
+            <p>A <strong>Point</strong> appears. 0 dimensions.</p>
+            <p>You apply it again: the Point stretches into a <strong>Line</strong>. 1 dimension.</p>
+            <p>Again: the Line extends into an <strong>Area</strong>. 2 dimensions.</p>
+            <p>Once more: the Area expands into <strong>Volume</strong>. 3 dimensions.</p>
+            <br>
+            <p><em>Space has unfolded before you.</em></p>
+        </div>
+    </div>
+
+    <!-- Chapter 2: Fields Emerge -->
+    <div class="chapter" id="ch2">
+        <h1 class="chapter-title">Fields Emerge</h1>
+        <div class="chapter-content">
+            <p>Within Space, you notice gradients, sources, and whirls.</p>
+            <p>These are the three fields:</p>
+            <div class="equation">
+                Tempic Field: J = ∇ρ (gradient)<br>
+                Electric Field: E = ∇·J (divergence)<br>
+                Magnetic Field: B = ∇×E (curl)
+            </div>
+            <p>The Tempic field is NOT time, but <em>change itself</em>.</p>
+            <p>When an electric field moves through Space, it creates a magnetic field.</p>
+            <p>The fields begin to dance...</p>
+        </div>
+    </div>
+
+    <!-- Chapter 3: The Toroidal Dance -->
+    <div class="chapter" id="ch3">
+        <h1 class="chapter-title">The Toroidal Particle</h1>
+        <div class="chapter-content">
+            <p>The fields can't just expand forever. They must close on themselves.</p>
+            <p>The only stable configuration is a <strong>TORUS</strong> — a smoke ring of reality.</p>
+            <br>
+            <p>The torus SPINS (<strong>rotation</strong>) and WOBBLES (<strong>precession</strong>).</p>
+            <p>Each can be right-handed or left-handed.</p>
+            <p>Their combination creates <strong>electric charge</strong>:</p>
+            <div class="equation">
+                Q = sign(rotation) + 0.3 × sign(precession)
+            </div>
+            <p>Four possible states: ++, +-, -+, -- (two positive, two negative)</p>
+        </div>
+    </div>
+
+    <!-- Chapter 4: The HIHO Moment -->
+    <div class="chapter" id="ch4">
+        <h1 class="chapter-title">The HIHO Threshold</h1>
+        <div class="chapter-content">
+            <p>Fields can overlap. When they share reality, they can become <em>coherent</em>.</p>
+            <p>The critical point: <strong>Half-In-Half-Out (HIHO)</strong></p>
+            <div class="equation">
+                If overlap > 50%: Fields stick together → MATTER<br>
+                If overlap < 50%: Fields remain separate → RADIATION </div>
+                    <p>Stability is maximum at EXACTLY 50% overlap.</p>
+                    <br>
+                    <p><strong>You've crossed the threshold.</strong></p>
+                    <p>Reality has <em>precipitated</em> into a particle.</p>
+            </div>
+        </div>
+
+        <!-- Chapter 5: Abstraction to EVOs -->
+        <div class="chapter" id="ch5">
+            <h1 class="chapter-title">Beyond: EVOs & Conscious Plasmas</h1>
+            <div class="chapter-content">
+                <p>The HIHO principle explains phenomena that "shouldn't exist":</p>
+                <br>
+                <p><strong>Exotic Vacuum Objects (EVOs)</strong>: Charge clusters that stick together despite repulsion.
+                </p>
+                <p>Why? Their fields achieve >50% overlap, creating coherent assemblies.</p>
+                <br>
+                <p><strong>Conscious Plasmas</strong>: Self-organizing charge structures in space.</p>
+                <p>When plasma fields become coherent (HIHO), they can sustain complex, seemingly "aware" patterns.</p>
+                <br>
+                <p>The TensorBeam framework reveals: <em>Consciousness might be a natural consequence of field coherence
+                        at the HIHO point.</em></p>
+            </div>
+        </div>
+
+        <div class="controls">
+            <button id="prev-btn">← Previous</button>
+            <button id="narrate-btn">🔊 Narrate</button>
+            <button id="next-btn">Next →</button>
+        </div>
+
+        <script>
+            // TensorBeam Interactive Journey
+            let currentChapter = 0;
+            const chapters = document.querySelectorAll('.chapter');
+            const dimensionBars = document.querySelectorAll('.dim-progress');
+
+            // 12D state progression per chapter
+            const STATE_PROGRESSION = [
+                [0.1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],  // Ch0: Just Awareness
+                [0.3, 0.5, 0.5, 0.5, 0, 0, 0, 0, 0, 0, 0, 0],  // Ch1: Space unfolds
+                [0.5, 0.6, 0.6, 0.6, 0.6, 0.5, 0.6, 0, 0, 0, 0, 0],  // Ch2: Fields emerge
+                [0.7, 0.7, 0.7, 0.7, 0.7, 0.6, 0.7, 0.7, 0.3, 0.5, 0, 0],  // Ch3: Particle forms
+                [0.8, 0.7, 0.7, 0.7, 0.7, 0.6, 0.7, 0.7, 0.3, 0.5, 0.5, 0.5],  // Ch4: HIHO
+                [1.0, 0.8, 0.8, 0.8, 0.8, 0.7, 0.8, 0.8, 0.4, 0.6, 0.7, 0.8],  // Ch5: EVOs
+            ];
+
+            // Narrationtext per chapter
+            const NARRATIONS = [
+                "You are Awareness. Before anything existed, you were there, contemplating Nothing. You hold the power of the Quadrature Concept.",
+                "You apply the Quadrature. A point appears, then stretches into a line, extends into an area, and expands into volume. Space has unfolded.",
+                "Within space, gradients form. These are the fields: Tempic, Electric, and Magnetic. Change, divergence, and curl. They begin to interact.",
+                "The fields close into a torus - a smoke ring of reality. It spins and wobbles, creating electric charge through rotation and precession.",
+                "Fields overlap. At exactly fifty percent, they become coherent. Reality precipitates into matter. You've crossed the HIHO threshold.",
+                "This principle scales. Exotic Vacuum Objects form when charges achieve field coherence. Conscious plasmas emerge at the boundary. Awareness organizing matter."
+            ];
+
+            function updateChapter(index) {
+                chapters.forEach((ch, i) => {
+                    ch.classList.toggle('active', i === index);
+                });
+
+                // Update 12D visualization
+                const state = STATE_PROGRESSION[index];
+                dimensionBars.forEach((bar, i) => {
+                    bar.style.width = (state[i] * 100) + '%';
+                });
+
+                // Sonify the transition
+                sonifyTransition(index);
+
+                currentChapter = index;
+            }
+
+            function sonifyTransition(chapterIndex) {
+                const synth = new Tone.Synth().toDestination();
+                const frequencies = [130, 164, 196, 246, 293, 349]; // C3 to F4
+                synth.triggerAttackRelease(frequencies[chapterIndex], "8n");
+            }
+
+            function narrate(index) {
+                const text = NARRATIONS[index];
+                document.getElementById('narration-text').textContent = `Narrating: ${text.substring(0, 50)}...`;
+
+                // Web Speech API for TTS
+                if ('speechSynthesis' in window) {
+                    const utterance = new SpeechSynthesisUtterance(text);
+                    utterance.rate = 0.9;
+                    utterance.pitch = 1.1;
+                    speechSynthesis.speak(utterance);
+                }
+            }
+
+            document.getElementById('next-btn').addEventListener('click', () => {
+                if (currentChapter < chapters.length - 1) {
+                    updateChapter(currentChapter + 1);
+                }
+            });
+
+            document.getElementById('prev-btn').addEventListener('click', () => {
+                if (currentChapter > 0) {
+                    updateChapter(currentChapter - 1);
+                }
+            });
+
+            document.getElementById('narrate-btn').addEventListener('click', () => {
+                narrate(currentChapter);
+            });
+
+            // Initialize
+            updateChapter(0);
+        </script>
+</body>
+
+</html>

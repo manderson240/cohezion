@@ -1,9 +1,10 @@
 import unittest
-from bmad.core.context_engineering import ContextEngineeringInfrastructure
+
+from cohezion.core.context_engineering import ContextEngineeringInfrastructure
+
 
 
 class TestContextEngineeringInfrastructure(unittest.TestCase):
-
     def setUp(self):
         self.cei = ContextEngineeringInfrastructure()
 

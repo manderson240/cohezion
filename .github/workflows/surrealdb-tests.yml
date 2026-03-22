@@ -1,0 +1,829 @@
+# SurrealDB Integration Tests - Production CI/CD Pipeline
+# =============================================================================
+# Purpose: Comprehensive testing for SurrealDB persistence layer
+# Includes: Lint/format, type-check, unit, integration, benchmark, and live tests
+#
+# Usage:
+#   - Push to main/develop: Full pipeline with fast feedback
+#   - PR: Stages 1-5 (excludes live tests requiring secrets)
+#   - Scheduled: Nightly live tests against real DB
+#
+# Secrets Required:
+#   - SLACK_WEBHOOK_URL: For failure notifications
+#   - SURREAL_URL: Live database endpoint
+#   - SURREAL_USER/SURREAL_PASS: Live credentials
+# =============================================================================
+
+name: SurrealDB CI/CD Pipeline
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - '**/surreal*/**'
+      - '**/persistence/**'
+      - '**/core/**'
+      - '.github/workflows/surrealdb*'
+      - 'pyproject.toml'
+      - 'Makefile'
+      - 'docker/surrealdb*'
+      - 'scripts/run-surreal-tests.sh'
+  pull_request:
+    branches: [main, develop]
+    paths:
+      - '**/surreal*/**'
+      - '**/persistence/**'
+      - '**/core/**'
+      - '.github/workflows/surrealdb*'
+      - 'pyproject.toml'
+  schedule:
+    # Nightly live tests at 2 AM UTC
+    - cron: '0 2 * * *'
+    # Weekly compatibility tests on Sundays at 4 AM UTC
+    - cron: '0 4 * * 0'
+  workflow_dispatch:
+    inputs:
+      test_stage:
+        description: 'Test stage to run'
+        required: true
+        default: 'all'
+        type: choice
+        options:
+          - all
+          - lint
+          - type-check
+          - unit
+          - integration
+          - benchmark
+          - live
+
+env:
+  COHEZION_CI: "true"
+  PYTHONUNBUFFERED: "1"
+  UV_SYSTEM_PYTHON: "1"
+  PYTEST_XDIST_AUTO_NUM_WORKERS: "auto"
+  PYTEST_CURRENT_TEST: "1"
+  # SurrealDB test configuration
+  SURREAL_NAMESPACE: test
+  SURREAL_DATABASE: test
+  SURREAL_USER: root
+  SURREAL_PASS: root
+
+# =============================================================================
+# STAGE 1: LINT AND FORMAT
+# =============================================================================
+jobs:
+  lint-and-format:
+    name: Lint & Format (Stage 1)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          version: "0.5.x"
+          enable-cache: true
+          cache-dependency-glob: "pyproject.toml"
+
+      - name: Sync dependencies
+        run: uv sync --frozen --group dev
+
+      - name: Run ruff format check
+        id: format
+        run: uv run ruff format --check --diff src/ tests/
+        continue-on-error: true
+
+      - name: Run ruff lint check
+        id: lint
+        run: uv run ruff check --output-format=github src/ tests/
+
+      - name: Check for unused imports
+        run: uv run ruff check --select=F401 --output-format=github src/ tests/
+        continue-on-error: true
+
+      - name: Generate lint summary
+        if: always()
+        run: |
+          echo "## Lint & Format Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          if [ "${{ steps.format.outcome }}" == "failure" ]; then
+            echo "⚠️ **Format Check**: Failed (run 'make format' to fix)" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "✅ **Format Check**: Passed" >> $GITHUB_STEP_SUMMARY
+          fi
+          if [ "${{ steps.lint.outcome }}" == "failure" ]; then
+            echo "❌ **Lint Check**: Failed" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "✅ **Lint Check**: Passed" >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: Upload lint results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lint-results
+          path: |
+            .ruff_cache/
+          retention-days: 7
+
+# =============================================================================
+# STAGE 2: TYPE CHECK
+# =============================================================================
+  type-check:
+    name: Type Check (Stage 2)
+    runs-on: ubuntu-latest
+    needs: lint-and-format
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          version: "0.5.x"
+          enable-cache: true
+          cache-dependency-glob: "pyproject.toml"
+
+      - name: Sync dependencies
+        run: uv sync --frozen --group dev
+
+      - name: Run mypy strict
+        id: mypy
+        run: |
+          uv run mypy --strict \
+            --show-error-codes \
+            --pretty \
+            --show-column-numbers \
+            --show-absolute-path \
+            --error-summary \
+            src/cohezion/persistence/ \
+            src/cohezion/surreal* 2>&1 | tee mypy-report.txt || true
+
+      - name: Upload type check results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: type-check-results
+          path: mypy-report.txt
+          retention-days: 7
+
+      - name: Check for errors
+        run: |
+          if grep -q "error:" mypy-report.txt; then
+            echo "Type errors found!"
+            cat mypy-report.txt
+            exit 1
+          fi
+          echo "No type errors found!"
+
+      - name: Generate type check summary
+        if: always()
+        run: |
+          echo "## Type Check Results" >> $GITHUB_STEP_SUMMARY
+          if [ "${{ steps.mypy.outcome }}" == "failure" ]; then
+            echo "❌ **mypy**: Failed" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "✅ **mypy**: Passed" >> $GITHUB_STEP_SUMMARY
+          fi
+
+# =============================================================================
+# STAGE 3: UNIT TESTS (Fast, no external services)
+# =============================================================================
+  unit-tests:
+    name: Unit Tests (Stage 3)
+    runs-on: ubuntu-latest
+    needs: type-check
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.13"]
+        shard: [1, 2, 3, 4]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          version: "0.5.x"
+          enable-cache: true
+          cache-dependency-glob: "pyproject.toml"
+
+      - name: Sync dependencies
+        run: uv sync --frozen --group dev
+
+      - name: Run unit tests (shard ${{ matrix.shard }}/4)
+        run: |
+          uv run pytest -m fast \
+            --dist loadgroup \
+            --tx "4*popen//python=python${{ matrix.python-version }}" \
+            --rsyncdir src/ \
+            tests/unit/ tests/persistence/ \
+            -v --tb=short \
+            --junitxml=junit-unit-${{ matrix.shard }}.xml \
+            --cov=src/cohezion \
+            --cov-report=xml:coverage-unit-${{ matrix.shard }}.xml \
+            --cov-report=html:htmlcov-unit-${{ matrix.shard }}/ \
+            -x
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: unit-test-results-${{ matrix.shard }}
+          path: |
+            junit-unit-${{ matrix.shard }}.xml
+            coverage-unit-${{ matrix.shard }}.xml
+            htmlcov-unit-${{ matrix.shard }}/
+          retention-days: 7
+
+      - name: Generate coverage summary
+        run: |
+          echo "## Unit Tests (Shard ${{ matrix.shard }}/4)" >> $GITHUB_STEP_SUMMARY
+          if [ -f coverage-unit-${{ matrix.shard }}.xml ]; then
+            coverage=$(grep -o 'line-rate="[0-9.]*"' coverage-unit-${{ matrix.shard }}.xml | head -1 | grep -o '[0-9.]*')
+            echo "📊 **Coverage**: ${coverage}%" >> $GITHUB_STEP_SUMMARY
+          fi
+
+# =============================================================================
+# STAGE 4: INTEGRATION TESTS (With SurrealDB Container)
+# =============================================================================
+  integration-tests:
+    name: Integration Tests (Stage 4)
+    runs-on: ubuntu-latest
+    needs: [type-check, unit-tests]
+    timeout-minutes: 30
+    if: |
+      github.event_name == 'schedule' ||
+      github.event_name == 'workflow_dispatch' ||
+      needs.unit-tests.result == 'success'
+
+    services:
+      surrealdb:
+        image: surrealdb/surrealdb:v2.0
+        ports:
+          - 8000:8000
+        options: >-
+          --health-cmd "curl -f http://localhost:8000/health || exit 1"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 5
+          --health-start-period 10s
+        env:
+          SURREAL_USER: root
+          SURREAL_PASS: root
+        volumes:
+          - ${{ github.workspace }}/data/surreal-test:/my/surreal/data
+        # Security hardening
+        security-opt: no-new-privileges:true
+        # Resource limits
+        resources:
+          limits:
+            memory: 2g
+            cpus: "2.0"
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          version: "0.5.x"
+          enable-cache: true
+          cache-dependency-glob: "pyproject.toml"
+
+      - name: Sync dependencies
+        run: uv sync --frozen --group dev
+
+      - name: Wait for SurrealDB
+        timeout-minutes: 3
+        run: |
+          echo "Waiting for SurrealDB..."
+          for i in {1..30}; do
+            if curl -sf http://localhost:8000/health > /dev/null; then
+              echo "✓ SurrealDB is ready"
+              exit 0
+            fi
+            echo "Attempt $i/30..."
+            sleep 2
+          done
+          echo "✗ SurrealDB failed to start"
+          exit 1
+
+      - name: Initialize SurrealDB schema
+        run: |
+          if [ -f scripts/graphrag_schema.surql ]; then
+            echo "Loading schema..."
+            curl -X POST \
+              -u "root:root" \
+              -H "Accept: application/json" \
+              -H "NS: test" \
+              -H "DB: test" \
+              -d "$(cat scripts/graphrag_schema.surql)" \
+              http://localhost:8000/import || echo "Schema load skipped"
+          fi
+
+      - name: Run integration tests
+        env:
+          SURREAL_URL: ws://localhost:8000/rpc
+          TEST_WITH_LIVE_DB: "1"
+        run: |
+          uv run pytest -m integration \
+            --dist loadgroup \
+            -n auto \
+            tests/integration/ \
+            -v --tb=short \
+            --junitxml=junit-integration.xml \
+            --cov=src/cohezion \
+            --cov-report=xml:coverage-integration.xml \
+            --cov-report=html:htmlcov-integration/ \
+            --cov-append
+
+      - name: Upload integration results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: integration-test-results
+          path: |
+            junit-integration.xml
+            coverage-integration.xml
+            htmlcov-integration/
+          retention-days: 14
+
+      - name: Generate integration summary
+        if: always()
+        run: |
+          echo "## Integration Tests" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **SurrealDB Version**: v2.0" >> $GITHUB_STEP_SUMMARY
+          echo "- **Endpoint**: ws://localhost:8000/rpc" >> $GITHUB_STEP_SUMMARY
+          if [ -f junit-integration.xml ]; then
+            tests=$(grep -o 'tests="[0-9]*"' junit-integration.xml | grep -o '[0-9]*')
+            failures=$(grep -o 'failures="[0-9]*"' junit-integration.xml | grep -o '[0-9]*' || echo "0")
+            errors=$(grep -o 'errors="[0-9]*"' junit-integration.xml | grep -o '[0-9]*' || echo "0")
+            echo "- **Tests Run**: $tests" >> $GITHUB_STEP_SUMMARY
+            if [ "$failures" -gt 0 ] || [ "$errors" -gt 0 ]; then
+              echo "- **Status**: ❌ Failed ($failures failures, $errors errors)" >> $GITHUB_STEP_SUMMARY
+            else
+              echo "- **Status**: ✅ Passed" >> $GITHUB_STEP_SUMMARY
+            fi
+          fi
+
+# =============================================================================
+# STAGE 5: BENCHMARK TESTS
+# =============================================================================
+  benchmark-tests:
+    name: Benchmark Tests (Stage 5)
+    runs-on: ubuntu-latest
+    needs: [unit-tests, integration-tests]
+    timeout-minutes: 20
+    if: |
+      github.event_name == 'pull_request' ||
+      github.event_name == 'schedule' ||
+      contains(github.event.head_commit.message, '[benchmark]')
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          version: "0.5.x"
+          enable-cache: true
+          cache-dependency-glob: "pyproject.toml"
+
+      - name: Sync dependencies
+        run: uv sync --frozen --group dev
+
+      - name: Run benchmark tests
+        run: |
+          uv run pytest -m benchmark \
+            --benchmark-only \
+            --benchmark-json=benchmark-results.json \
+            --benchmark-compare \
+            --benchmark-histogram=.benchmark-results/histogram \
+            tests/ \
+            -v --tb=short
+
+      - name: Upload benchmark results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: benchmark-results
+          path: |
+            benchmark-results.json
+            .benchmark-results/
+          retention-days: 30
+
+      - name: Generate benchmark summary
+        if: always()
+        run: |
+          echo "## Benchmark Results" >> $GITHUB_STEP_SUMMARY
+          if [ -f benchmark-results.json ]; then
+            echo "```json" >> $GITHUB_STEP_SUMMARY
+            head -100 benchmark-results.json >> $GITHUB_STEP_SUMMARY
+            echo "```" >> $GITHUB_STEP_SUMMARY
+          fi
+
+# =============================================================================
+# STAGE 6: LIVE TESTS (Nightly against real DB)
+# =============================================================================
+  live-tests:
+    name: Live Tests (Stage 6)
+    runs-on: ubuntu-latest
+    needs: [unit-tests, integration-tests]
+    timeout-minutes: 30
+    environment: live-testing
+    if: |
+      github.event.schedule == '0 2 * * *' ||
+      (github.event_name == 'workflow_dispatch' && github.event.inputs.test_stage == 'live') ||
+      (github.event_name == 'workflow_dispatch' && github.event.inputs.test_stage == 'all')
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          version: "0.5.x"
+          enable-cache: true
+          cache-dependency-glob: "pyproject.toml"
+
+      - name: Sync dependencies
+        run: uv sync --frozen --group dev
+
+      - name: Verify live DB connectivity
+        id: verify
+        env:
+          SURREAL_URL: ${{ secrets.SURREAL_URL }}
+          SURREAL_USER: ${{ secrets.SURREAL_USER }}
+          SURREAL_PASS: ${{ secrets.SURREAL_PASS }}
+        run: |
+          echo "Testing connectivity to live SurrealDB..."
+          # Convert ws:// to http:// for health check
+          HEALTH_URL="${SURREAL_URL/ws/http}"
+          if curl -sf "$HEALTH_URL/health" > /dev/null; then
+            echo "✅ Live DB is accessible"
+          else
+            echo "⚠️ Live DB health check failed (proceeding anyway)"
+          fi
+
+      - name: Run live tests
+        env:
+          SURREAL_URL: ${{ secrets.SURREAL_URL }}
+          SURREAL_USER: ${{ secrets.SURREAL_USER }}
+          SURREAL_PASS: ${{ secrets.SURREAL_PASS }}
+          TEST_WITH_LIVE_DB: "1"
+          PYTEST_CURRENT_TEST_LIVE: "1"
+        run: |
+          uv run pytest -m live \
+            --timeout=300 \
+            tests/ \
+            -v --tb=short \
+            --junitxml=junit-live.xml \
+            --cov=src/cohezion \
+            --cov-report=xml:coverage-live.xml \
+            --cov-report=html:htmlcov-live/
+        continue-on-error: true
+
+      - name: Upload live test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: live-test-results
+          path: |
+            junit-live.xml
+            coverage-live.xml
+            htmlcov-live/
+          retention-days: 30
+
+      - name: Notify Slack on failure
+        if: failure()
+        uses: slackapi/slack-github-action@v1
+        with:
+          payload: |
+            {
+              "text": "🚨 SurrealDB Live Tests Failed",
+              "blocks": [
+                {
+                  "type": "header",
+                  "text": {
+                    "type": "plain_text",
+                    "text": "SurrealDB Live Tests Failed",
+                    "emoji": true
+                  }
+                },
+                {
+                  "type": "section",
+                  "fields": [
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Repository:*\n${{ github.repository }}"
+                    },
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Branch:*\n${{ github.ref_name }}"
+                    },
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Commit:*\n${{ github.sha }}"
+                    },
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Workflow:*\n<${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View Run>"
+                    }
+                  ]
+                }
+              ]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SURREALDB_SLACK_WEBHOOK_URL }}
+
+# =============================================================================
+# COMPATIBILITY TESTS (Weekly against SurrealDB latest)
+# =============================================================================
+  compatibility-tests:
+    name: Compatibility Tests
+    runs-on: ubuntu-latest
+    needs: unit-tests
+    timeout-minutes: 30
+    if: |
+      github.event.schedule == '0 4 * * 0' ||
+      contains(github.event.head_commit.message, '[compat]')
+
+    services:
+      surrealdb-latest:
+        image: surrealdb/surrealdb:latest
+        ports:
+          - 8000:8000
+        options: >-
+          --health-cmd "curl -f http://localhost:8000/health || exit 1"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+          --health-start-period 15s
+        env:
+          SURREAL_USER: root
+          SURREAL_PASS: root
+        security-opt: no-new-privileges:true
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          version: "0.5.x"
+          enable-cache: true
+
+      - name: Sync dependencies
+        run: uv sync --frozen --group dev
+
+      - name: Wait for SurrealDB (latest)
+        timeout-minutes: 5
+        run: |
+          for i in {1..60}; do
+            if curl -sf http://localhost:8000/health > /dev/null; then
+              echo "✓ SurrealDB (latest) is ready"
+              exit 0
+            fi
+            echo "Attempt $i/60..."
+            sleep 2
+          done
+          echo "✗ SurrealDB (latest) failed to start"
+          exit 1
+
+      - name: Run compatibility tests
+        env:
+          SURREAL_URL: ws://localhost:8000/rpc
+          TEST_WITH_LIVE_DB: "1"
+        run: |
+          uv run pytest tests/integration/test_surreal*.py \
+            -v --tb=short \
+            --junitxml=junit-compatibility.xml
+        continue-on-error: true
+
+      - name: Upload compatibility results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: compatibility-test-results
+          path: junit-compatibility.xml
+          retention-days: 30
+
+# =============================================================================
+# TEST REPORT AGGREGATION AND PR COMMENTS
+# =============================================================================
+  test-summary:
+    name: Test Summary & PR Comments
+    runs-on: ubuntu-latest
+    needs: [lint-and-format, type-check, unit-tests, integration-tests, benchmark-tests, live-tests, compatibility-tests]
+    if: always()
+    permissions:
+      pull-requests: write
+      contents: read
+
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+          pattern: '*-results*'
+
+      - name: Aggregate test results
+        id: aggregate
+        run: |
+          echo "# SurrealDB CI/CD Pipeline Summary" > summary.md
+          echo "" >> summary.md
+
+          # Stage 1: Lint
+          echo "## Stage 1: Lint & Format" >> summary.md
+          if [ "${{ needs.lint-and-format.result }}" == "success" ]; then
+            echo "✅ **Passed**" >> summary.md
+          else
+            echo "❌ **Failed**" >> summary.md
+          fi
+          echo "" >> summary.md
+
+          # Stage 2: Type Check
+          echo "## Stage 2: Type Check" >> summary.md
+          if [ "${{ needs.type-check.result }}" == "success" ]; then
+            echo "✅ **Passed**" >> summary.md
+          else
+            echo "❌ **Failed**" >> summary.md
+          fi
+          echo "" >> summary.md
+
+          # Stage 3: Unit Tests
+          echo "## Stage 3: Unit Tests" >> summary.md
+          if [ "${{ needs.unit-tests.result }}" == "success" ]; then
+            echo "✅ **Passed**" >> summary.md
+            # Count total tests
+            total=0
+            for f in artifacts/unit-test-results-*/junit-unit-*.xml; do
+              if [ -f "$f" ]; then
+                t=$(grep -o 'tests="[0-9]*"' "$f" | grep -o '[0-9]*')
+                total=$((total + t))
+              fi
+            done
+            echo "- Total tests: $total" >> summary.md
+          elif [ "${{ needs.unit-tests.result }}" == "skipped" ]; then
+            echo "⏭️ **Skipped**" >> summary.md
+          else
+            echo "❌ **Failed**" >> summary.md
+          fi
+          echo "" >> summary.md
+
+          # Stage 4: Integration Tests
+          echo "## Stage 4: Integration Tests" >> summary.md
+          if [ "${{ needs.integration-tests.result }}" == "success" ]; then
+            echo "✅ **Passed**" >> summary.md
+          elif [ "${{ needs.integration-tests.result }}" == "skipped" ]; then
+            echo "⏭️ **Skipped**" >> summary.md
+          else
+            echo "❌ **Failed**" >> summary.md
+          fi
+          echo "" >> summary.md
+
+          # Stage 5: Benchmark Tests
+          if [ "${{ needs.benchmark-tests.result }}" != "skipped" ]; then
+            echo "## Stage 5: Benchmark Tests" >> summary.md
+            if [ "${{ needs.benchmark-tests.result }}" == "success" ]; then
+              echo "✅ **Passed**" >> summary.md
+            else
+              echo "❌ **Failed**" >> summary.md
+            fi
+            echo "" >> summary.md
+          fi
+
+          # Stage 6: Live Tests
+          if [ "${{ needs.live-tests.result }}" != "skipped" ]; then
+            echo "## Stage 6: Live Tests" >> summary.md
+            if [ "${{ needs.live-tests.result }}" == "success" ]; then
+              echo "✅ **Passed**" >> summary.md
+            elif [ "${{ needs.live-tests.result }}" == "skipped" ]; then
+              echo "⏭️ **Skipped**" >> summary.md
+            else
+              echo "⚠️ **Failed** (non-blocking)" >> summary.md
+            fi
+            echo "" >> summary.md
+          fi
+
+          cat summary.md >> $GITHUB_STEP_SUMMARY
+
+      - name: Post PR comment with coverage
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const summary = fs.readFileSync('summary.md', 'utf8');
+
+            // Find existing comment
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number
+            });
+
+            const botComment = comments.find(comment =>
+              comment.user.login === 'github-actions[bot]' &&
+              comment.body.includes('SurrealDB CI/CD Pipeline')
+            );
+
+            const body = `## SurrealDB CI/CD Pipeline Results\n\n${summary}\n\n*Run: [${context.runId}](${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId})*`;
+
+            if (botComment) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: botComment.id,
+                body: body
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: body
+              });
+            }
+
+      - name: Check overall status
+        run: |
+          # Required stages must pass
+          if [ "${{ needs.lint-and-format.result }}" == "failure" ]; then
+            echo "❌ Lint & Format failed"
+            exit 1
+          fi
+          if [ "${{ needs.type-check.result }}" == "failure" ]; then
+            echo "❌ Type Check failed"
+            exit 1
+          fi
+          if [ "${{ needs.unit-tests.result }}" == "failure" ]; then
+            echo "❌ Unit Tests failed"
+            exit 1
+          fi
+          if [ "${{ needs.integration-tests.result }}" == "failure" ]; then
+            echo "❌ Integration Tests failed"
+            exit 1
+          fi
+
+          echo "✅ All required stages passed!"
+
+      - name: Cleanup old artifacts
+        if: always()
+        run: |
+          # Keep artifacts for 30 days per retention policy
+          echo "Artifact cleanup scheduled via retention-days"

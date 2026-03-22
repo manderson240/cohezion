@@ -1,9 +1,0 @@
-<task id="bmad/core/tasks/git-create-branch.xml" name="Git Create Branch">
-  <objective>Create a new branch in the git repository.</objective>
-  <inputs>
-    <input name="branch_name" type="string" required="true" />
-  </inputs>
-  <action>
-    <run-shell-command>git checkout -b {{branch_name}}</run-shell-command>
-  </action>
-</task>

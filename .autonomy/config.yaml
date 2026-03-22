@@ -1,0 +1,134 @@
+# Autonomy Configuration for BMAD Agents
+# Generated: 2026-02-28
+# Project: COHEZION
+
+autonomy_level: 2.5  # Decision support mode
+user_name: Mike
+communication_language: English
+
+# Agent-Specific Autonomy Levels
+agents:
+  sentinel:
+    name: "Sentinel"
+    tier: 1
+    description: "Security Monitor - Notify-only for issues"
+    commit_directly: false
+    create_pr: false
+    notify_only: true
+    auto_merge: false
+    require_approval: false
+    behaviors:
+      - daily-security-check
+      - weekly-report
+      - critical-monitor
+
+  archivist:
+    name: "Archivist"
+    tier: 0
+    description: "Documentation Curator - Auto-commit for docs"
+    commit_directly: true
+    create_pr: false
+    auto_merge: true
+    notify_after: true
+    behaviors:
+      - daily-doc-check
+      - weekly-review
+      - quarterly-audit
+
+  inspector:
+    name: "Inspector"
+    tier: 1
+    description: "Code Review Assistant - Auto-review, notify"
+    commit_directly: false
+    create_pr: false
+    notify_only: true
+    auto_merge: false
+    require_approval: false
+    behaviors:
+      - review-on-push
+      - security-scan
+      - pattern-analysis
+
+  robbie:
+    name: "Robbie"
+    tier: 1
+    description: "Auto-Implementer - Auto-implement small fixes"
+    commit_directly: true
+    create_pr: true
+    auto_merge: false
+    require_approval: true
+    behaviors:
+      - idea-to-code
+      - safety-check
+      - version-management
+
+# Decision Tiers
+tiers:
+  tier_0:
+    name: "Pre-Approved"
+    description: "No human needed"
+    commit_directly: true
+    examples:
+      - docs_fixes
+      - typo_fixes
+      - security_patches
+      - test_additions
+      - refactoring
+
+  tier_1:
+    name: "Notification Only"
+    description: "Human informed, no approval needed"
+    create_pr: true
+    auto_merge: true
+    notify_before: false
+    notify_after: true
+    examples:
+      - small_fixes
+      - isolated_features
+      - config_updates
+      - ci_cd_improvements
+
+  tier_2:
+    name: "PR Required"
+    description: "Human reviews but may auto-merge"
+    create_pr: true
+    auto_merge: false
+    require_review: false
+    examples:
+      - new_features
+      - api_changes
+      - database_migrations
+
+  tier_3:
+    name: "Approval Required"
+    description: "Human decides"
+    create_pr: true
+    require_review: true
+    require_approval: true
+    examples:
+      - breaking_changes
+      - architecture_shifts
+      - security_changes
+
+# Notifications
+notifications:
+  before_tier_2: false
+  after_every: true
+  summary_daily: true
+  summary_time: "09:00"
+
+# Safety Mechanisms
+safety:
+  test_before_commit: true
+  scan_for_secrets: true
+  validate_types: true
+  check_imports: true
+  max_files_per_commit: 10
+  max_lines_per_commit: 500
+
+# Human Override
+override:
+  enabled: true
+  can_pause: true
+  can_rollback: true
+  pause_on_failure: true

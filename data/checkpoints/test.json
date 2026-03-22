@@ -1,0 +1,14 @@
+{
+  "session_id": "test",
+  "skill_name": "test-skill",
+  "current_step": 5,
+  "total_steps": 10,
+  "context": "test context",
+  "intermediate_results": [],
+  "start_time": 1771222015.6188173,
+  "last_checkpoint_time": 1771222015.6188176,
+  "model_usage": {},
+  "cache_state": {},
+  "total_cost_usd": 0.0,
+  "cost_breakdown": {}
+}

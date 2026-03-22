@@ -1,0 +1,51 @@
+[Unit]
+Description=Entire.io Sync Daemon - Git to Vault Synchronization
+Documentation=file:///home/mike-anderson/vaults/cohezion-vault/patterns/runbook-entire-sync-daemon.md
+After=network-online.target surrealdb.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=mike-anderson
+WorkingDirectory=/home/mike-anderson/dev/cohezion/cloud-vault-mcp
+
+# Environment variables
+Environment="VAULT_PATH=/home/mike-anderson/vaults/cohezion-vault"
+Environment="GIT_PATH=/home/mike-anderson/vaults/cohezion-vault"
+Environment="SURREALDB_URL=http://localhost:8000"
+Environment="PYTHONUNBUFFERED=1"
+
+# Main process
+ExecStart=/home/mike-anderson/dev/cohezion/cloud-vault-mcp/.venv/bin/python3 -m mcp_server.entire_main start \
+  --poll-interval=300 \
+  --vault-path=${VAULT_PATH} \
+  --git-path=${GIT_PATH} \
+  --surrealdb-url=${SURREALDB_URL}
+
+# Health check
+ExecStartPost=/home/mike-anderson/dev/cohezion/cloud-vault-mcp/.venv/bin/python3 -m mcp_server.entire_main health \
+  --vault-path=${VAULT_PATH} \
+  --git-path=${GIT_PATH}
+
+# Auto-restart on failure
+Restart=on-failure
+RestartSec=30
+StartLimitInterval=300
+StartLimitBurst=5
+
+# Resource limits
+MemoryMax=256M
+CPUQuota=50%
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=entire-io-sync
+
+# Security
+NoNewPrivileges=true
+ProtectSystem=strict
+ReadWritePaths=/home/mike-anderson/vaults/cohezion-vault/.entire /home/mike-anderson/vaults/cohezion-vault/daily
+
+[Install]
+WantedBy=multi-user.target
