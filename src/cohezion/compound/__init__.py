@@ -4,14 +4,109 @@ Integrates skill execution, knowledge persistence (vault), and experience-guided
 Phase 1: Compatibility layer with simplified internals
 """
 
-# ============================================================================
-# Compatibility Layer (Phase 1) - Preserves old API
-# ============================================================================
-
-from cohezion.compound.compat import (
-    CompoundCycleReport,
-    CompoundCycleResult,
+from cohezion.compound.batch_sizer import (
+    BatchExecutionMetrics,
+    BatchSizePredictor,
+    get_batch_size_predictor,
+)
+from cohezion.compound.cache_persistence import CachePersistence, WarmCacheLoader
+from cohezion.compound.degradation_detector import (
+    AlertSeverity,
+    DegradationAlert,
+    DegradationDetector,
+    MetricBaseline,
+)
+from cohezion.compound.evolution_training_bridge import (
+    EvolutionRoundResult,
+    EvolutionTrainingConfig,
+    EvolutionTrainingExporter,
+    EvolutionTrainingPipeline,
+    EvolutionTrainingSignalGenerator,
+    EvolutionTrajectory,
+    FitnessEvaluator,
+    LatentNoveltyScorer,
+    ModelEvaluationResult,
+    TraceToTrajectoryConverter,
+    TrainingSignals,
+)
+from cohezion.compound.executor import (
     CompoundExecutor,
+    ExecutionResult,
+    ExecutorFactory,
+)
+from cohezion.compound.exp_persistence.journey import JourneyPersistence
+from cohezion.compound.exp_persistence.vault import (
+    ExecutionContext,
+    VaultLogger,
+)
+from cohezion.compound.feedback_loop import (
+    CompoundFeedbackLoop,
+    CompoundFeedbackLoopFactory,
+    FeedbackLoopResult,
+    RetryAttempt,
+    RetryStrategy,
+)
+from cohezion.compound.global_metrics_aggregator import (
+    GlobalMetricsAggregator,
+    InstanceMetrics,
+    SkillMetrics,
+    TimeWindowMetrics,
+    get_global_aggregator,
+    reset_global_aggregator,
+)
+from cohezion.compound.group_evolution import (
+    AgentCandidate,
+    ArchiveEntry,
+    EvolutionDirective,
+    ExperienceTrace,
+    ExperienceTraceType,
+    GroupEvolutionEngine,
+    GroupExperiencePool,
+    NoveltyScorer,
+    PerformanceNoveltySelector,
+    SelectionStrategy,
+    TaskSuccessVector,
+)
+from cohezion.compound.hardware_monitor import (
+    HardwareMetrics,
+    HardwareMonitor,
+    get_hardware_monitor,
+)
+from cohezion.compound.inflection_detector import (
+    InflectionDetector,
+    InflectionDetectorFactory,
+    Severity,
+)
+from cohezion.compound.intake_specialist import (
+    IntakeGreeting,
+    IntakeSpecialist,
+)
+from cohezion.compound.intent_classifier import IntentClassifier
+from cohezion.compound.journey_tracker import (
+    Journey,
+    JourneyTracker,
+    JourneyTrackerFactory,
+    OperationType,
+    TrajectoryPoint,
+)
+from cohezion.compound.metrics import (
+    CompoundMetricsCollector,
+    get_collector,
+    reset_collector,
+)
+from cohezion.compound.metrics_persistence import MetricsPersistence
+from cohezion.compound.model_quality_classifier import (
+    ActionRecommendation,
+    ExecutionRecord,
+    FailureMode,
+    ModelQualityClassifier,
+    QualityForecast,
+    QualityPredictor,
+    RecommendedAction,
+)
+from cohezion.compound.models import CompoundCycleReport, CompoundCycleResult
+from cohezion.compound.prompt_optimizer import PromptOptimizer
+from cohezion.compound.request_alignment_analyzer import (
     ConstraintType,
     ConstraintViolation,
     CriterionFailure,
@@ -23,19 +118,60 @@ from cohezion.compound.compat import (
     IntentType,
     SuccessCriterion,
 )
-
-# ============================================================================
-# New Simplified Core (Phase 1) - Clean implementations
-# ============================================================================
-
-from cohezion.compound.models import (
-    AnalysisReport,
-    BatchConfig,
-    ExecutionContext,
-    ExecutionMetrics,
-    ExecutionResult,
-    ExecutionStatus,
-    Task,
+from cohezion.compound.request_cache import RequestCache
+from cohezion.compound.skill_consensus_voter import (
+    AgentVote,
+    ConsensusResult,
+    SkillConsensusVoter,
+    VotingStrategy,
+)
+from cohezion.compound.skill_selector import (
+    SkillScore,
+    SkillSelector,
+)
+from cohezion.compound.task_queue import (
+    QueuedTask,
+    TaskPriority,
+    TaskQueue,
+)
+from cohezion.compound.team_executor import (
+    AgentTask,
+    AgentTaskResult,
+    TeamExecutionResult,
+    TeamExecutor,
+    TeamExecutorFactory,
+)
+from cohezion.compound.thermal_history_persistence import (
+    ThermalTimeSeriesCollector,
+    get_thermal_time_series_collector,
+    load_jsonl_history,
+)
+from cohezion.compound.thermal_predictor import (
+    ThermalMetrics,
+    ThermalTrendAnalyzer,
+    get_thermal_trend_analyzer,
+)
+from cohezion.compound.thermal_trend_predictor import (
+    ThermalTimeSeries,
+    ThermalTrendPredictor,
+    get_thermal_trend_predictor,
+)
+from cohezion.compound.thermodynamic_metrics import (
+    PhaseTransition,
+    ThermodynamicMetrics,
+    ThermodynamicState,
+)
+from cohezion.compound.topological_persistence import (
+    PersistenceDiagram,
+    PersistencePair,
+    TopologicalPersistence,
+    trajectory_persistence_summary,
+)
+from cohezion.compound.vault_search_executor import (
+    SearchQuery,
+    SearchResult,
+    VaultSearchExecutor,
+    create_vault_search_executor,
 )
 
 from cohezion.compound.core.executor import (
@@ -106,7 +242,16 @@ def get_version() -> str:
 # ============================================================================
 
 __all__ = [
-    # Compatibility layer (old API)
+    "ActionRecommendation",
+    "AgentCandidate",
+    "AgentTask",
+    "AgentTaskResult",
+    "AgentVote",
+    "AlertSeverity",
+    "ArchiveEntry",
+    "BatchExecutionMetrics",
+    "BatchSizePredictor",
+    "CachePersistence",
     "CompoundCycleReport",
     "CompoundCycleResult",
     "CompoundExecutor",
@@ -114,45 +259,97 @@ __all__ = [
     "ConstraintViolation",
     "CriterionFailure",
     "DriftSignal",
+    "EvolutionDirective",
+    "EvolutionRoundResult",
+    "EvolutionTrainingConfig",
+    "EvolutionTrainingExporter",
+    "EvolutionTrainingPipeline",
+    "EvolutionTrainingSignalGenerator",
+    "EvolutionTrajectory",
     "ExecutionAlignment",
     "ExecutionConstraint",
+    "ExecutionContext",
+    "ExecutionRecord",
+    "ExecutionResult",
+    "ExecutorFactory",
+    "ExperienceTrace",
+    "ExperienceTraceType",
+    "FailureMode",
+    "FeedbackLoopResult",
+    "FitnessEvaluator",
+    "GlobalMetricsAggregator",
+    "GroupEvolutionEngine",
+    "GroupExperiencePool",
+    "HardwareMetrics",
+    "HardwareMonitor",
     "HumanRequest",
     "IntentType",
-    "SuccessCriterion",
-    "LegacyExecutionResult",
-    # New models
-    "AnalysisReport",
-    "BatchConfig",
-    "ExecutionContext",
-    "ExecutionMetrics",
-    "ExecutionResult",
-    "ExecutionStatus",
-    "Task",
-    # New core
-    "NewCompoundExecutor",
-    "ExecutionConfig",
-    "execute_simple",
-    "BatchProcessor",
-    "BatchResult",
-    "SimpleBatch",
-    # New analytics
-    "AnalysisConfig",
-    "ExecutionAnalyzer",
-    "SimpleAnalyzer",
-    "MetricsCollector",
-    "MetricsSnapshot",
-    "SimpleMetrics",
-    # New skills
-    "SkillMatch",
+    "Journey",
+    "JourneyPersistence",
+    "JourneyTracker",
+    "JourneyTrackerFactory",
+    "LatentNoveltyScorer",
+    "MetricBaseline",
+    "MetricsPersistence",
+    "ModelEvaluationResult",
+    "ModelQualityClassifier",
+    "NoveltyScorer",
+    "OperationType",
+    "PerformanceNoveltySelector",
+    "PersistenceDiagram",
+    "PersistencePair",
+    "PhaseTransition",
+    "PromptOptimizer",
+    "QualityForecast",
+    "QualityPredictor",
+    "QueuedTask",
+    "RecommendedAction",
+    "RequestAlignmentAnalyzer",
+    "RequestAlignmentAnalyzerFactory",
+    "RequestCache",
+    "RetryAttempt",
+    "RetryStrategy",
+    "SearchQuery",
+    "SearchResult",
+    "SelectionStrategy",
+    "Severity",
+    "SkillConsensusVoter",
+    "SkillMetrics",
+    "SkillScore",
     "SkillSelector",
-    "SkillRefiner",
-    "SimpleSkills",
-    # New persistence
-    "PersistenceConfig",
-    "SessionPersister",
-    "SimplePersistence",
-    "VaultPersister",
-    # Version
-    "__version__",
-    "get_version",
+    "SuccessCriterion",
+    "TaskPriority",
+    "TaskQueue",
+    "TaskSuccessVector",
+    "TeamExecutionResult",
+    "TeamExecutor",
+    "TeamExecutorFactory",
+    "ThermalMetrics",
+    "ThermalTimeSeries",
+    "ThermalTimeSeriesCollector",
+    "ThermalTrendAnalyzer",
+    "ThermalTrendPredictor",
+    "ThermodynamicMetrics",
+    "ThermodynamicState",
+    "TimeWindowMetrics",
+    "TopologicalPersistence",
+    "TraceToTrajectoryConverter",
+    "TrainingSignals",
+    "TrajectoryPoint",
+    "VaultLogger",
+    "VaultSearchExecutor",
+    "VotingStrategy",
+    "WarmCacheLoader",
+    "create_vault_search_executor",
+    "get_batch_size_predictor",
+    "get_collector",
+    "get_global_aggregator",
+    "get_hardware_monitor",
+    "get_thermal_time_series_collector",
+    "get_thermal_trend_analyzer",
+    "get_thermal_trend_predictor",
+    "load_jsonl_history",
+    "reset_collector",
+    "reset_global_aggregator",
+    "trajectory_persistence_summary",
 ]

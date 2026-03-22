@@ -1,7 +1,7 @@
 """Obsidian-aware operations: links, tags, templates."""
 
 import re
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from pathlib import Path
 
 import yaml
@@ -88,7 +88,7 @@ class ObsidianOps:
 
         # Apply variable substitution
         content = template_content
-        variables.setdefault("date", datetime.now(UTC).strftime("%Y-%m-%d"))
+        variables.setdefault("date", datetime.now(timezone.utc).strftime("%Y-%m-%d"))
 
         for key, value in variables.items():
             content = content.replace("{{" + key + "}}", value)
