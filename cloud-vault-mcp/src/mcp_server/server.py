@@ -7,9 +7,10 @@ from mcp.server.fastmcp import FastMCP
 
 from .compound_ops import CompoundOps
 from .config import ServerConfig
+from .googlesql_client import GoogleSqlConfig
+from .googlesql_ops import GoogleSqlOps
 from .obsidian_ops import ObsidianOps
 from .vault_ops import VaultOps
-
 
 logger = logging.getLogger(__name__)
 
@@ -19,13 +20,15 @@ def create_server(config: ServerConfig) -> FastMCP:
     vault = VaultOps(config.vault_path)
     obsidian = ObsidianOps(vault)
     compound = CompoundOps(vault, obsidian)
+    googlesql = GoogleSqlOps(GoogleSqlConfig(base_url=config.googlesql_url))
 
     mcp = FastMCP(
         "Cloud Vault",
         instructions=(
             "A knowledge vault MCP server for compound engineering. "
             "Read, write, search, and link Obsidian notes. "
-            "Log decisions, experiments, and patterns to build reusable context."
+            "Log decisions, experiments, and patterns to build reusable context. "
+            "Analyze, validate, and format SQL using the GoogleSQL analyzer."
         ),
     )
 
@@ -270,5 +273,106 @@ def create_server(config: ServerConfig) -> FastMCP:
         if not results:
             return "No relevant prior context found."
         return json.dumps(results, indent=2)
+
+    # ── GoogleSQL Analysis Operations ─────────────────────────────────
+
+    @mcp.tool()
+    def sql_validate(sql: str) -> str:
+        """Validate SQL syntax using the GoogleSQL analyzer.
+
+        Use this to check whether a SQL statement is syntactically correct
+        before executing it. Catches syntax errors early.
+
+        Args:
+            sql: SQL statement to validate
+        """
+        try:
+            return googlesql.validate(sql)
+        except ConnectionError:
+            return "Error: GoogleSQL Analyzer service is not available."
+
+    @mcp.tool()
+    def sql_parse(sql: str) -> str:
+        """Parse SQL into an Abstract Syntax Tree (AST).
+
+        Use this to understand the structure of a SQL statement, including
+        what type of statement it is and its component parts.
+
+        Args:
+            sql: SQL statement to parse
+        """
+        try:
+            return googlesql.parse(sql)
+        except ConnectionError:
+            return "Error: GoogleSQL Analyzer service is not available."
+
+    @mcp.tool()
+    def sql_analyze(sql: str, catalog_json: str = "") -> str:
+        """Perform full semantic analysis of SQL with optional catalog context.
+
+        Resolves table and column references against a provided schema.
+        Use this for deep analysis of query semantics, including type checking
+        and reference resolution.
+
+        Args:
+            sql: SQL statement to analyze
+            catalog_json: Optional JSON array of table definitions.
+                Example: [{"name": "t", "columns": [{"name": "id", "type": "INT64"}]}]
+        """
+        try:
+            return googlesql.analyze(sql, catalog_json)
+        except ConnectionError:
+            return "Error: GoogleSQL Analyzer service is not available."
+
+    @mcp.tool()
+    def sql_extract_tables(sql: str) -> str:
+        """Extract all table references from a SQL statement.
+
+        Use this to discover which tables a query depends on, useful for
+        dependency analysis and impact assessment.
+
+        Args:
+            sql: SQL statement to extract table references from
+        """
+        try:
+            return googlesql.extract_tables(sql)
+        except ConnectionError:
+            return "Error: GoogleSQL Analyzer service is not available."
+
+    @mcp.tool()
+    def sql_extract_columns(sql: str) -> str:
+        """Extract all column references from a SQL statement.
+
+        Use this to discover which columns a query uses, useful for
+        understanding data access patterns.
+
+        Args:
+            sql: SQL statement to extract column references from
+        """
+        try:
+            return googlesql.extract_columns(sql)
+        except ConnectionError:
+            return "Error: GoogleSQL Analyzer service is not available."
+
+    @mcp.tool()
+    def sql_format(sql: str) -> str:
+        """Format a SQL statement for readability.
+
+        Applies consistent formatting to SQL using GoogleSQL's formatter.
+
+        Args:
+            sql: SQL statement to format
+        """
+        try:
+            return googlesql.format_sql(sql)
+        except ConnectionError:
+            return "Error: GoogleSQL Analyzer service is not available."
+
+    @mcp.tool()
+    def sql_health() -> str:
+        """Check if the GoogleSQL Analyzer service is available."""
+        if googlesql.is_available():
+            return json.dumps({"status": "ok", "service": "googlesql-analyzer"})
+        return json.dumps({"status": "unavailable", "service": "googlesql-analyzer"})
 
     return mcp

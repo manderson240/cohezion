@@ -2,12 +2,9 @@
 
 import logging
 
-import uvicorn
-
 from .auth import APIKeyAuth
 from .config import ServerConfig
 from .server import create_server
-
 
 logger = logging.getLogger("cloud-vault-mcp")
 
@@ -32,15 +29,8 @@ def main():
 
     mcp = create_server(config)
 
-    # Build the ASGI app from FastMCP
-    app = mcp.streamable_http_app()
-
-    # Apply API key authentication middleware when MCP_API_KEY is configured
-    if config.api_key:
-        app = APIKeyAuth(app, api_key=config.api_key)
-        logger.info("API key authentication enabled")
-
-    uvicorn.run(app, host=config.host, port=config.port, log_level=config.log_level)
+    # Run with streamable HTTP transport
+    mcp.run(transport="streamable-http", host=config.host, port=config.port)
 
 
 if __name__ == "__main__":
