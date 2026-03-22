@@ -9,25 +9,18 @@ from cohezion.compound.batch_sizer import (
     BatchSizePredictor,
     get_batch_size_predictor,
 )
+from cohezion.compound.context_integration import (
+    CompoundContextMixin,
+    ContextCoherenceError,
+    ContextLoadError,
+    ContextManager,
+)
 from cohezion.compound.cache_persistence import CachePersistence, WarmCacheLoader
 from cohezion.compound.degradation_detector import (
     AlertSeverity,
     DegradationAlert,
     DegradationDetector,
     MetricBaseline,
-)
-from cohezion.compound.evolution_training_bridge import (
-    EvolutionRoundResult,
-    EvolutionTrainingConfig,
-    EvolutionTrainingExporter,
-    EvolutionTrainingPipeline,
-    EvolutionTrainingSignalGenerator,
-    EvolutionTrajectory,
-    FitnessEvaluator,
-    LatentNoveltyScorer,
-    ModelEvaluationResult,
-    TraceToTrajectoryConverter,
-    TrainingSignals,
 )
 from cohezion.compound.executor import (
     CompoundExecutor,
@@ -230,12 +223,14 @@ def get_version() -> str:
 
 __all__ = [
     "ActionRecommendation",
-    "AgentCandidate",
+    "CompoundContextMixin",
+    "ContextCoherenceError",
+    "ContextLoadError",
+    "ContextManager",
     "AgentTask",
     "AgentTaskResult",
     "AgentVote",
     "AlertSeverity",
-    "ArchiveEntry",
     "BatchExecutionMetrics",
     "BatchSizePredictor",
     "CachePersistence",

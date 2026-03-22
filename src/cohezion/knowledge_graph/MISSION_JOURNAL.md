@@ -83,15 +83,6 @@
 - **6 new API endpoints**: /flume/encode, /flume/decode, /flume/interpolate, /rl/step, /rl/episode, /rl/policy-info.
 - **19 integration tests**: All passing. Total: 131 tests in 3.1s.
 
-### [2026-03-08] PLASMA v2.0: SEMANTIC LAGRANGE POINTS
-- **Status**: Mission Successful.
-- **Physics Integration**: Mapped Kordylewsky Plasma Cloud dynamics to the 12D semantic manifold.
-- **Key Implementation**:
-    - `SemanticLagrangeFinder`: Implemented Restricted Three-Topic Problem solver.
-    - `plasma_find_semantic_lagrange_points`: New tool to locate stable semantic gravity wells (L4/L5).
-    - `plasma_park_context_in_cloud`: New tool to offload context into "dusty plasma" clouds, reducing active memory pressure.
-- **Significance**: Provides a physical substrate for long-term memory that remains semantically accessible without active computational tension.
-
 ### [2026-03-08] RAH PHASE 2 & SPATIAL PHONONS SYNTHESIS
 - **RAH Persistence**: Integrated `AutonomicManager` with SurrealDB. Decisions now logged as `rah_decision` nodes with 12D physics state mapping.
 - **Research**: Synthesized ArXiv [2512.00056] ("Spatial Phonons"). Mapped "viscous dark energy" to latent manifold dynamics.
