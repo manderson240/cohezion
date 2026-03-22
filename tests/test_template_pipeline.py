@@ -92,9 +92,7 @@ class TestVersionTracker:
         tracker.record_generation("SKILL_A", "1.0", "/path/a.py")
         assert tracker.needs_regeneration("SKILL_A", "1.0") is False
 
-    def test_needs_regeneration_different_version(
-        self, tracker: VersionTracker
-    ) -> None:
+    def test_needs_regeneration_different_version(self, tracker: VersionTracker) -> None:
         tracker.record_generation("SKILL_A", "1.0", "/path/a.py")
         assert tracker.needs_regeneration("SKILL_A", "1.1") is True
 
@@ -317,9 +315,7 @@ class TestConfigTemplateVersionHeader:
         skills_dir.mkdir()
         md = skills_dir / "TEST_SKILL_PRIME.md"
         md.write_text(
-            "# SKILL: TEST_SKILL_PRIME\n\n"
-            "## VERSION\n\n2.5\n\n"
-            "## INSTRUCTION\n\n1. Do something\n",
+            "# SKILL: TEST_SKILL_PRIME\n\n## VERSION\n\n2.5\n\n## INSTRUCTION\n\n1. Do something\n",
             encoding="utf-8",
         )
 
@@ -355,9 +351,7 @@ class TestFactoryAutoRegenerate:
         skills_dir.mkdir()
         md = skills_dir / "REGEN_TEST_PRIME.md"
         md.write_text(
-            "# SKILL: REGEN_TEST_PRIME\n\n"
-            "## VERSION\n\n1.0\n\n"
-            "## INSTRUCTION\n\n1. Step one\n",
+            "# SKILL: REGEN_TEST_PRIME\n\n## VERSION\n\n1.0\n\n## INSTRUCTION\n\n1. Step one\n",
             encoding="utf-8",
         )
 
@@ -382,9 +376,7 @@ class TestFactoryAutoRegenerate:
                 "REGEN_TEST_PRIME",
                 auto_regenerate=True,
             )
-            mock_pipeline.regenerate_for_skill.assert_called_once_with(
-                "REGEN_TEST_PRIME"
-            )
+            mock_pipeline.regenerate_for_skill.assert_called_once_with("REGEN_TEST_PRIME")
 
     def test_auto_regenerate_false_skips(self, tmp_path: Path) -> None:
         from cohezion.agents.factory import AgentFactory
@@ -393,9 +385,7 @@ class TestFactoryAutoRegenerate:
         skills_dir.mkdir()
         md = skills_dir / "SKIP_TEST_PRIME.md"
         md.write_text(
-            "# SKILL: SKIP_TEST_PRIME\n\n"
-            "## VERSION\n\n1.0\n\n"
-            "## INSTRUCTION\n\n1. Step one\n",
+            "# SKILL: SKIP_TEST_PRIME\n\n## VERSION\n\n1.0\n\n## INSTRUCTION\n\n1. Step one\n",
             encoding="utf-8",
         )
 

@@ -9,15 +9,15 @@ Runs in parallel with Overnight Driver.
 
 import asyncio
 import logging
-import time
-from datetime import datetime, timedelta
-from pathlib import Path
 import random
-import json
-from dataclasses import dataclass, field
+import time
+from dataclasses import dataclass
+from datetime import datetime
+from pathlib import Path
 
 # Internal imports
 from cohezion.swarm.mass_simulator import MassSimulator
+
 
 logger = logging.getLogger("creative")
 
@@ -25,6 +25,7 @@ logger = logging.getLogger("creative")
 TARGET_SIMULATIONS = 500_000
 END_TIME_HOUR = 8
 BATCH_SIZE = 500
+
 
 @dataclass
 class SocietalState:
@@ -39,7 +40,7 @@ class SocietalState:
             {"name": "AI Uprising", "control_loss": 0.5},
             {"name": "Solar Flare", "tech_damage": 0.8},
             {"name": "Pandemic", "pop_drain": 0.4},
-            {"name": "Cultural Renaissance", "chaos_boost": 0.2} # Positive crisis
+            {"name": "Cultural Renaissance", "chaos_boost": 0.2},  # Positive crisis
         ]
         return random.choice(crises)
 
@@ -54,12 +55,13 @@ class SocietalState:
             self.stability += 0.1
             return False
 
+
 class CreativeDriver:
     def __init__(self):
         self.simulator = MassSimulator(
             total_simulations=TARGET_SIMULATIONS,
             chunk_size=BATCH_SIZE,
-            output_dir=Path("src/cohezion/knowledge_graph/universe_nodes/societal_evolution")
+            output_dir=Path("src/cohezion/knowledge_graph/universe_nodes/societal_evolution"),
         )
         self.state = SocietalState()
         self.total_completed = 0
@@ -90,14 +92,15 @@ class CreativeDriver:
             policy = random.choice(["Authoritarian", "Libertarian", "Technocratic", "Anarchist"])
 
             # Crisis Impact
-            survival_chance = resilience - crisis.get('resource_drain', 0)
-            if policy == "Technocratic" and crisis['name'] == "AI Uprising":
-                survival_chance -= 0.5 # Backfire
+            survival_chance = resilience - crisis.get("resource_drain", 0)
+            if policy == "Technocratic" and crisis["name"] == "AI Uprising":
+                survival_chance -= 0.5  # Backfire
 
             # Result
             outcome = "Survived" if survival_chance > 0.5 else "Collapsed"
             unity = random.uniform(0.0, 1.0)
-            if outcome == "Collapsed": unity = 0.0
+            if outcome == "Collapsed":
+                unity = 0.0
 
             result_text = (
                 f"Civ Seed {seed}: Policy {policy}. Crisis: {crisis['name']}.\n"
@@ -109,27 +112,29 @@ class CreativeDriver:
                 f.write(result_text)
 
             return {
-                "final_coherence": unity, # Map unity to coherence for stats
+                "final_coherence": unity,  # Map unity to coherence for stats
                 "policy": policy,
                 "outcome": outcome,
-                "type": "societal"
+                "type": "societal",
             }
 
         inputs = [f"Simulate Civ {i}" for i in range(BATCH_SIZE)]
 
         chunk_result = await asyncio.to_thread(
-            self.simulator.run_custom_chunk,
-            int(time.time()), inputs, process_sim
+            self.simulator.run_custom_chunk, int(time.time()), inputs, process_sim
         )
 
         # Update State
-        u_scores = [r['final_coherence'] for r in chunk_result.raw_results if isinstance(r, dict)]
+        u_scores = [r["final_coherence"] for r in chunk_result.raw_results if isinstance(r, dict)]
         if u_scores:
             avg = sum(u_scores) / len(u_scores)
             self.state.update(avg)
 
         self.total_completed += len(inputs)
-        logger.info(f"[CREATIVE] Batch completed. Total: {self.total_completed}. Crisis: {crisis['name']}")
+        logger.info(
+            f"[CREATIVE] Batch completed. Total: {self.total_completed}. Crisis: {crisis['name']}"
+        )
+
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)

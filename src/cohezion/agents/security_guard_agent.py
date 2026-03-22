@@ -14,6 +14,7 @@ from cohezion.security.prompt_guard import PromptGuard, ThreatLevel
 from cohezion.security.validators import ValidationResult, validate_input
 from cohezion.swarm.swarm_types import SwarmConfig
 
+
 logger = logging.getLogger(__name__)
 
 

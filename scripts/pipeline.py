@@ -23,6 +23,7 @@ from pathlib import Path
 
 import numpy as np
 
+
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s %(name)s %(levelname)s %(message)s",
@@ -156,9 +157,7 @@ def step_4_weight_bridge(policy_path: Path) -> tuple[bool, float]:
     logger.info("=== Step 4: Weight Bridge ===")
 
     weights = WeightBridge.policy_to_flume_weights(policy_path)
-    logger.info(
-        "Extracted weights: w1=%s, w2=%s", weights["w1"].shape, weights["w2"].shape
-    )
+    logger.info("Extracted weights: w1=%s, w2=%s", weights["w1"].shape, weights["w2"].shape)
 
     # Create FlumePhysics with trained weights
     physics = WeightBridge.policy_to_flume_physics(policy_path)
@@ -245,14 +244,10 @@ def run_pipeline(config: PipelineConfig | None = None) -> PipelineResult:
 def main() -> None:
     parser = argparse.ArgumentParser(description="End-to-end FLUME training pipeline")
     parser.add_argument("--agents", type=int, default=100, help="Agents per universe")
-    parser.add_argument(
-        "--epochs", type=int, default=1000, help="Simulation epochs per universe"
-    )
+    parser.add_argument("--epochs", type=int, default=1000, help="Simulation epochs per universe")
     parser.add_argument("--universes", type=int, default=5, help="Number of universes")
     parser.add_argument("--vae-epochs", type=int, default=10, help="VAE training epochs")
-    parser.add_argument(
-        "--rl-episodes", type=int, default=50, help="RL training episodes"
-    )
+    parser.add_argument("--rl-episodes", type=int, default=50, help="RL training episodes")
     parser.add_argument(
         "--output-dir",
         type=str,

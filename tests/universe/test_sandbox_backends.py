@@ -48,9 +48,7 @@ class TestSubprocessBackend:
     @pytest.mark.anyio
     async def test_script_with_env(self, backend, light_profile):
         script = "import os; print(os.environ.get('TEST_VAR', 'missing'))"
-        result = await backend.execute(
-            script, light_profile, env={"TEST_VAR": "found_it"}
-        )
+        result = await backend.execute(script, light_profile, env={"TEST_VAR": "found_it"})
         assert result.success
         assert "found_it" in result.stdout
 
@@ -112,9 +110,7 @@ class TestSelectBackend:
     def test_returns_backend(self):
         backend = select_backend()
         # Should return one of the three backends
-        assert isinstance(
-            backend, (DockerBackend, SystemdRunBackend, SubprocessBackend)
-        )
+        assert isinstance(backend, (DockerBackend, SystemdRunBackend, SubprocessBackend))
 
     def test_subprocess_always_fallback(self):
         # SubprocessBackend should always be available as fallback

@@ -13,9 +13,9 @@ Lifecycle:
 from __future__ import annotations
 
 import logging
-import time
 from typing import Any
 from uuid import uuid4
+
 
 logger = logging.getLogger(__name__)
 
@@ -40,10 +40,18 @@ class UniverseBridge:
     # Control fabric: indices 6-8
     # Precipitation fabric: indices 9-11
     _DIM_NAMES = [
-        "spatial_x", "spatial_y", "spatial_z",  # Space
-        "physics", "biology", "field",           # Field
-        "logic", "quantum", "control",           # Control
-        "temporal", "novelty", "precipitation",  # Precipitation
+        "spatial_x",
+        "spatial_y",
+        "spatial_z",  # Space
+        "physics",
+        "biology",
+        "field",  # Field
+        "logic",
+        "quantum",
+        "control",  # Control
+        "temporal",
+        "novelty",
+        "precipitation",  # Precipitation
     ]
 
     def __init__(
@@ -68,14 +76,15 @@ class UniverseBridge:
         AxiomaticState
             Universe engine state organized by fabric.
         """
+        import numpy as np
+
         from cohezion.universe.engine import AxiomaticState
 
-        import numpy as np
         arr = np.asarray(vector_12d, dtype=float).ravel()
         # Pad to 12 if needed
         if len(arr) < 12:
             padded = np.zeros(12)
-            padded[:len(arr)] = arr
+            padded[: len(arr)] = arr
             arr = padded
 
         return AxiomaticState(
@@ -93,9 +102,7 @@ class UniverseBridge:
             precipitation=float(arr[11]),
         )
 
-    def start_journey(
-        self, task_description: str, execution_id: str | None = None
-    ) -> str | None:
+    def start_journey(self, task_description: str, execution_id: str | None = None) -> str | None:
         """Create a UniverseJourney at execution start.
 
         Parameters
@@ -191,7 +198,9 @@ class UniverseBridge:
             journey.add_trajectory_point(universe_point)
             logger.debug(
                 "Added point to journey %s (step=%d, coherence=%.2f)",
-                journey_id, step_number, trajectory_point.coherence,
+                journey_id,
+                step_number,
+                trajectory_point.coherence,
             )
             return True
 
@@ -245,7 +254,9 @@ class UniverseBridge:
 
             logger.debug(
                 "Completed journey %s (status=%s, phi=%.2f)",
-                journey_id, journey.status, phi_score,
+                journey_id,
+                journey.status,
+                phi_score,
             )
             return journey
 

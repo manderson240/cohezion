@@ -61,9 +61,7 @@ class OffloadManager:
             return True
 
         # Heuristic: shorter queries (<200 chars) about documentation or small edits are offloadable
-        if len(q) < 200 and any(
-            kw in q for kw in ["doc", "comment", "format", "rename", "move"]
-        ):
+        if len(q) < 200 and any(kw in q for kw in ["doc", "comment", "format", "rename", "move"]):
             return True
 
         # Very short queries are almost always offloadable unless they hit critical keywords above

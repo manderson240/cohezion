@@ -12,14 +12,15 @@ Usage:
 import argparse
 import logging
 import sys
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 from cryptography import x509
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
-from cryptography.x509.oid import NameOID, ExtensionOID
+from cryptography.x509.oid import NameOID
+
 
 logger = logging.getLogger(__name__)
 
@@ -79,10 +80,8 @@ def generate_certificate(
         .issuer_name(issuer)
         .public_key(private_key.public_key())
         .serial_number(x509.random_serial_number())
-        .not_valid_before(datetime.now(timezone.utc))
-        .not_valid_after(
-            datetime.now(timezone.utc) + timedelta(days=days_valid)
-        )
+        .not_valid_before(datetime.now(UTC))
+        .not_valid_after(datetime.now(UTC) + timedelta(days=days_valid))
     )
 
     # Add Subject Alternative Names (SANs)
@@ -115,9 +114,7 @@ def generate_certificate(
 
     # Add Extended Key Usage
     cert_builder = cert_builder.add_extension(
-        x509.ExtendedKeyUsage(
-            [x509.oid.ExtendedKeyUsageOID.SERVER_AUTH]
-        ),
+        x509.ExtendedKeyUsage([x509.oid.ExtendedKeyUsageOID.SERVER_AUTH]),
         critical=True,
     )
 
@@ -128,9 +125,7 @@ def generate_certificate(
     )
 
     # Sign the certificate
-    certificate = cert_builder.sign(
-        private_key, hashes.SHA256(), default_backend()
-    )
+    certificate = cert_builder.sign(private_key, hashes.SHA256(), default_backend())
 
     logger.info(
         "Certificate generated (valid for %d days, expires %s)",
@@ -201,9 +196,7 @@ def main():
         default=365,
         help="Days the certificate is valid (default: 365)",
     )
-    parser.add_argument(
-        "-v", "--verbose", action="store_true", help="Verbose logging"
-    )
+    parser.add_argument("-v", "--verbose", action="store_true", help="Verbose logging")
 
     args = parser.parse_args()
 
@@ -250,9 +243,7 @@ def main():
         )
         logger.info("")
         logger.info("To use with environment variables:")
-        logger.info(
-            "  export TLS_CERT_PATH=%s TLS_KEY_PATH=%s", cert_path, key_path
-        )
+        logger.info("  export TLS_CERT_PATH=%s TLS_KEY_PATH=%s", cert_path, key_path)
         logger.info("")
 
         return 0

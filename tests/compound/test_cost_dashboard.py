@@ -8,21 +8,21 @@ Tests cover:
 - Dashboard API endpoints and data accuracy
 """
 
-import pytest
 import time
-from unittest.mock import Mock, MagicMock
 
+import pytest
+
+from cohezion.cost_optimization.budget_enforcer import BudgetEnforcer
 from cohezion.cost_optimization.cost_dashboard import (
-    CostDashboard,
-    CostBreakdown,
-    SpendRate,
     BudgetStatus,
+    CostBreakdown,
+    CostDashboard,
+    SpendRate,
     TrendPoint,
     get_cost_dashboard,
     reset_cost_dashboard,
 )
 from cohezion.cost_optimization.cost_tracker import SessionCostTracker
-from cohezion.cost_optimization.budget_enforcer import BudgetEnforcer
 
 
 class TestCostBreakdown:

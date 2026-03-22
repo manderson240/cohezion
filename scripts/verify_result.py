@@ -1,17 +1,18 @@
+import logging
 import os
 import pickle
-import quimb.tensor as qtn
-import logging
+
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("Verifier")
+
 
 def verify():
     checkpoint_path = "peaked_mps_final.dill"
     logger.info(f"Loading checkpoint from {checkpoint_path}...")
 
     try:
-        with open(checkpoint_path, 'rb') as f:
+        with open(checkpoint_path, "rb") as f:
             psi_mps = pickle.load(f)
 
         logger.info(f"Loaded MPS. Max Bond Dim: {psi_mps.max_bond()}")
@@ -31,34 +32,35 @@ def verify():
         logger.info("Replaying routing to reconstruct site map...")
         qasm_path = "P1_little_dimple.qasm"
         if not os.path.exists(qasm_path):
-             qasm_path = "src/cohezion/physics/quantum/P1_little_dimple.qasm"
+            qasm_path = "src/cohezion/physics/quantum/P1_little_dimple.qasm"
 
         # 1. Parse QASM (Simplified version of Solver parser)
         ops = []
-        with open(qasm_path, 'r') as f:
+        with open(qasm_path) as f:
             lines = f.readlines()
 
         import numpy as np
+
         safe_dict = {"pi": np.pi}
         N_qubits = 36
 
         for line in lines:
-            line = line.strip().replace(';', '')
-            if not line or line.startswith(('OPENQASM', 'include', 'qreg', '//')):
+            line = line.strip().replace(";", "")
+            if not line or line.startswith(("OPENQASM", "include", "qreg", "//")):
                 continue
 
-            if line.startswith('cz'):
-                parts = line.split()[1].split(',')
-                q1 = int(parts[0].split('[')[1].split(']')[0])
-                q2 = int(parts[1].split('[')[1].split(']')[0])
-                ops.append(('CZ', [], (q1, q2)))
-            elif line.startswith('u('):
+            if line.startswith("cz"):
+                parts = line.split()[1].split(",")
+                q1 = int(parts[0].split("[")[1].split("]")[0])
+                q2 = int(parts[1].split("[")[1].split("]")[0])
+                ops.append(("CZ", [], (q1, q2)))
+            elif line.startswith("u("):
                 # We need U gates only to match the iteration count if needed,
                 # but routing only happens on 2-qubit gates.
                 # Solver iterates ALL ops. So we must iterate ALL ops to match indices/order.
-                q_str = line.split(')')[1].strip()
-                q = int(q_str.split('[')[1].split(']')[0])
-                ops.append(('U3', [], (q,)))
+                q_str = line.split(")")[1].strip()
+                q = int(q_str.split("[")[1].split("]")[0])
+                ops.append(("U3", [], (q,)))
 
         # 2. Replay Routing
         site_to_qubit = list(range(N_qubits))
@@ -73,10 +75,10 @@ def verify():
                 while abs(s1 - s2) > 1:
                     # Logic must match Solver EXACTLY
                     if s1 < s2:
-                        swap_a, swap_b = s1, s1+1
+                        swap_a, swap_b = s1, s1 + 1
                         s1 += 1
                     else:
-                        swap_a, swap_b = s1-1, s1
+                        swap_a, swap_b = s1 - 1, s1
                         s1 -= 1
 
                     # Update Map
@@ -103,7 +105,7 @@ def verify():
             # sample_tuple is ( [bits...], probability )
             bits = sample_tuple[0]
 
-            ordered_bits = [''] * N_qubits
+            ordered_bits = [""] * N_qubits
             for site_idx, bit in enumerate(bits):
                 q_idx = site_to_qubit[site_idx]
                 ordered_bits[q_idx] = str(bit)
@@ -116,19 +118,19 @@ def verify():
         logger.info("TOP CANDIDATES FOUND (Big-Endian: Q0 is index 0):")
         for i in range(min(5, len(sorted_counts))):
             cand, freq = sorted_counts[i]
-            print(f"Rank {i+1}: {cand} (Count: {freq})")
+            print(f"Rank {i + 1}: {cand} (Count: {freq})")
 
         # Marginal Analysis
         marginals = [0] * N_qubits
         for bstr in counts:
             for i, bit in enumerate(bstr):
-                if bit == '1':
+                if bit == "1":
                     marginals[i] += counts[bstr]
 
         marginal_winner = []
         for i in range(N_qubits):
             prob1 = marginals[i] / sampling_count
-            marginal_winner.append('1' if prob1 > 0.5 else '0')
+            marginal_winner.append("1" if prob1 > 0.5 else "0")
 
         mw_str = "".join(marginal_winner)
         logger.info(f"MARGINAL WINNER (Big-Endian): {mw_str}")
@@ -137,12 +139,12 @@ def verify():
     except Exception as e:
         logger.error(f"Verification failed: {e}")
         import traceback
+
         traceback.print_exc()
-
-
 
     except Exception as e:
         logger.error(f"Verification failed: {e}")
+
 
 if __name__ == "__main__":
     verify()

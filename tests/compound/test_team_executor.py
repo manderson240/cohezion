@@ -4,6 +4,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
+from cohezion.compound.executor import CompoundExecutor, ExecutionResult
 from cohezion.compound.team_executor import (
     AgentTask,
     AgentTaskResult,
@@ -11,7 +12,6 @@ from cohezion.compound.team_executor import (
     TeamExecutor,
     TeamExecutorFactory,
 )
-from cohezion.compound.executor import CompoundExecutor, ExecutionResult
 
 
 @pytest.fixture
@@ -38,7 +38,10 @@ def mock_executor():
 @pytest.fixture
 def team_executor(mock_mcp_client):
     """Create team executor with mock MCP client."""
-    agents = {"agent1": MagicMock(spec=CompoundExecutor), "agent2": MagicMock(spec=CompoundExecutor)}
+    agents = {
+        "agent1": MagicMock(spec=CompoundExecutor),
+        "agent2": MagicMock(spec=CompoundExecutor),
+    }
     return TeamExecutor(agents, mock_mcp_client)
 
 
@@ -522,9 +525,7 @@ class TestTeamExecution:
     @pytest.mark.asyncio
     async def test_execute_team_single_task(self, team_executor):
         """Test executing a single task."""
-        tasks = [
-            AgentTask("task1", "agent1", "Generate", "generate", available_skills=["skill1"])
-        ]
+        tasks = [AgentTask("task1", "agent1", "Generate", "generate", available_skills=["skill1"])]
 
         agent = MagicMock(spec=CompoundExecutor)
         agent.execute_task = MagicMock(

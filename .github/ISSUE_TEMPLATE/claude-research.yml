@@ -1,0 +1,51 @@
+name: Claude Research Task
+description: Queue a research task for Claude to investigate and log findings to vault
+title: "@claude research: "
+labels: ["claude-research", "vault-task"]
+body:
+  - type: dropdown
+    id: research_type
+    attributes:
+      label: Research type
+      options:
+        - "Papers / academic research"
+        - "Library / framework evaluation"
+        - "Model benchmarks (Ollama/HuggingFace)"
+        - "Architecture pattern analysis"
+        - "Competitor / ecosystem research"
+        - "Codebase investigation (find where X is implemented)"
+        - "Bug root cause analysis"
+        - "Custom"
+    validations:
+      required: true
+
+  - type: textarea
+    id: question
+    attributes:
+      label: Research question
+      description: What should Claude investigate? Be specific.
+      placeholder: "Find 3 recent papers on adiabatic quantum optimization. Extract key algorithms and assess feasibility for Cohezion's FLUME VAE."
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected_output
+    attributes:
+      label: Expected output
+      description: What should Claude produce? (findings logged to vault, PR, summary comment, etc.)
+      placeholder: "Log findings to vault as an experiment note. Post summary as issue comment."
+      value: "Log findings to vault as an experiment note. Post summary as issue comment."
+
+  - type: textarea
+    id: constraints
+    attributes:
+      label: Constraints (optional)
+      placeholder: "Prefer models under 20B parameters. Only consider Apache 2.0 licensed libraries."
+
+  - type: checkboxes
+    id: confirmation
+    attributes:
+      label: Confirmation
+      options:
+        - label: The title starts with `@claude research:` followed by the topic
+          required: true

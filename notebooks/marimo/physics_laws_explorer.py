@@ -26,20 +26,23 @@ Agent: Antigravity | Model: claude-opus-4 | MCP: sequential-thinking
 
 import marimo
 
+
 __generated_with = "0.10.17"
 app = marimo.App(width="full")
 
 
 @app.cell
 def _():
+    import hashlib
+    import json
+    from datetime import datetime
+
     import marimo as mo
     import numpy as np
-    import plotly.graph_objects as go
     import plotly.express as px
+    import plotly.graph_objects as go
     from plotly.subplots import make_subplots
-    from datetime import datetime
-    import json
-    import hashlib
+
     return mo, np, go, px, make_subplots, datetime, json, hashlib
 
 
@@ -79,7 +82,7 @@ def _(mo):
         value="🔢 Mathematical Necessity",
         label="Philosophical Approach:",
     )
-    
+
     # Interactivity level
     depth = mo.ui.dropdown(
         options={
@@ -90,7 +93,7 @@ def _(mo):
         value="📐 Mathematical (Equations)",
         label="Depth Level:",
     )
-    
+
     mo.hstack([approach, depth], justify="start", gap=2)
     return approach, depth
 
@@ -98,6 +101,7 @@ def _(mo):
 # =============================================================================
 # APPROACH 1: MATHEMATICAL NECESSITY
 # =============================================================================
+
 
 @app.cell
 def _(mo, approach, depth):
@@ -162,6 +166,7 @@ Even if symmetry explains *how* laws work, it doesn't explain:
 # =============================================================================
 # APPROACH 2: ANTHROPIC SELECTION
 # =============================================================================
+
 
 @app.cell
 def _(mo, approach):
@@ -229,6 +234,7 @@ The anthropic principle is often criticized as:
 # =============================================================================
 # APPROACH 3: MULTIVERSE SELECTION
 # =============================================================================
+
 
 @app.cell
 def _(mo, approach):
@@ -312,6 +318,7 @@ issue in multiverse cosmology.
 # =============================================================================
 # APPROACH 4: NOVEL SYNTHESIS (HIHO + FLUME)
 # =============================================================================
+
 
 @app.cell
 def _(mo, approach):
@@ -398,40 +405,43 @@ stable configurations where coherence gradients vanish.
 # 12D PHYSICS STATE VISUALIZATION
 # =============================================================================
 
+
 @app.cell
 def _(mo, np, go, make_subplots, approach):
     mo.md("## 📊 How Ideas Evolve: 4 Key Dimensions")
-    
+
     # Generate trajectory based on approach
     np.random.seed(42)
     timesteps = 100
-    
+
     # Focus on 4 KEY dimensions for clarity (not cramped 12!)
     dim_names = ["Energy", "Coherence", "Stability", "Novelty"]
     dim_descriptions = {
         "Energy": "How much 'oomph' the idea has",
         "Coherence": "How well it fits together (HIHO sweet spot = 0.5)",
         "Stability": "Will this idea last?",
-        "Novelty": "How surprising or new is it?"
+        "Novelty": "How surprising or new is it?",
     }
-    
+
     # Create approach-specific trajectories
     approach_key = {
         "🔢 Mathematical Necessity": "math",
         "👁️ Anthropic Selection": "anthropic",
         "🌊 Multiverse Selection": "multiverse",
-        "✨ Novel Synthesis (HIHO + FLUME)": "novel"
+        "✨ Novel Synthesis (HIHO + FLUME)": "novel",
     }.get(approach.value, "math")
-    
+
     # Initialize trajectory
     trajectory = np.zeros((timesteps, 4))
-    
+
     if approach_key == "math":
         # Stable, symmetric oscillations (mathematical structure)
-        trajectory[:, 0] = np.sin(np.linspace(0, 4*np.pi, timesteps))  # Energy
-        trajectory[:, 1] = 0.8 + 0.1 * np.sin(np.linspace(0, 2*np.pi, timesteps))  # Coherence high
+        trajectory[:, 0] = np.sin(np.linspace(0, 4 * np.pi, timesteps))  # Energy
+        trajectory[:, 1] = 0.8 + 0.1 * np.sin(
+            np.linspace(0, 2 * np.pi, timesteps)
+        )  # Coherence high
         trajectory[:, 2] = 0.9 * np.ones(timesteps)  # Very stable
-        trajectory[:, 3] = 0.3 + 0.2 * np.cos(np.linspace(0, 4*np.pi, timesteps))  # Low novelty
+        trajectory[:, 3] = 0.3 + 0.2 * np.cos(np.linspace(0, 4 * np.pi, timesteps))  # Low novelty
     elif approach_key == "anthropic":
         # Converging to narrow "life zone"
         trajectory[:, 0] = 0.7 - 0.5 * np.exp(-np.linspace(0, 3, timesteps))  # Energy settles
@@ -443,52 +453,64 @@ def _(mo, np, go, make_subplots, approach):
         for i in range(4):
             trajectory[0, i] = 0.5
             for t in range(1, timesteps):
-                trajectory[t, i] = np.clip(trajectory[t-1, i] + np.random.randn() * 0.08, 0, 1)
+                trajectory[t, i] = np.clip(trajectory[t - 1, i] + np.random.randn() * 0.08, 0, 1)
     else:  # novel
         # Converging to 0.5 coherence attractor (HIHO!)
-        trajectory[:, 0] = 0.6 + 0.2 * np.sin(np.linspace(0, 6*np.pi, timesteps)) * np.exp(-np.linspace(0, 2, timesteps))
-        trajectory[:, 1] = 0.5 + 0.4 * np.exp(-np.linspace(0, 3, timesteps)) * np.sin(np.linspace(0, 8*np.pi, timesteps))
+        trajectory[:, 0] = 0.6 + 0.2 * np.sin(np.linspace(0, 6 * np.pi, timesteps)) * np.exp(
+            -np.linspace(0, 2, timesteps)
+        )
+        trajectory[:, 1] = 0.5 + 0.4 * np.exp(-np.linspace(0, 3, timesteps)) * np.sin(
+            np.linspace(0, 8 * np.pi, timesteps)
+        )
         trajectory[:, 2] = 0.9 - 0.4 * np.exp(-np.linspace(0, 2, timesteps))
-        trajectory[:, 3] = 0.7 + 0.2 * np.sin(np.linspace(0, 4*np.pi, timesteps))
-    
+        trajectory[:, 3] = 0.7 + 0.2 * np.sin(np.linspace(0, 4 * np.pi, timesteps))
+
     # Create SPACIOUS 2x2 subplot grid
     fig = make_subplots(
-        rows=2, cols=2,
+        rows=2,
+        cols=2,
         subplot_titles=[f"{name}: {dim_descriptions[name]}" for name in dim_names],
         vertical_spacing=0.15,
         horizontal_spacing=0.1,
     )
-    
-    colors = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A']  # Vibrant colors
-    
+
+    colors = ["#FF6B6B", "#4ECDC4", "#45B7D1", "#FFA07A"]  # Vibrant colors
+
     for i, dim in enumerate(dim_names):
         row = i // 2 + 1
         col = i % 2 + 1
         fig.add_trace(
             go.Scatter(
                 y=trajectory[:, i],
-                mode='lines',
+                mode="lines",
                 name=dim,
                 line=dict(color=colors[i], width=3),
-                fill='tozeroy',
-                fillcolor=f'rgba{tuple(list(int(colors[i][j:j+2], 16) for j in (1,3,5)) + [0.2])}',
+                fill="tozeroy",
+                fillcolor=f"rgba{tuple(list(int(colors[i][j : j + 2], 16) for j in (1, 3, 5)) + [0.2])}",
                 showlegend=True,
             ),
-            row=row, col=col
+            row=row,
+            col=col,
         )
         # Add 0.5 reference line for Coherence
         if dim == "Coherence":
-            fig.add_hline(y=0.5, line_dash="dash", line_color="gold", row=row, col=col,
-                         annotation_text="HIHO Sweet Spot")
-    
+            fig.add_hline(
+                y=0.5,
+                line_dash="dash",
+                line_color="gold",
+                row=row,
+                col=col,
+                annotation_text="HIHO Sweet Spot",
+            )
+
     fig.update_layout(
         height=600,
         title_text=f"Idea Evolution: {approach.value}",
         template="plotly_dark",
         showlegend=True,
-        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="center", x=0.5)
+        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="center", x=0.5),
     )
-    
+
     fig
     return dim_names, trajectory, timesteps
 
@@ -497,26 +519,31 @@ def _(mo, np, go, make_subplots, approach):
 # 3D PROJECTION
 # =============================================================================
 
+
 @app.cell
 def _(mo, np, go, trajectory, dim_names):
     mo.md("### 🌀 3D Projection of Thought Trajectory")
-    
+
     # Project to 3D using first 3 dimensions
-    fig_3d = go.Figure(data=[go.Scatter3d(
-        x=trajectory[:, 0],
-        y=trajectory[:, 1],
-        z=trajectory[:, 2],
-        mode='lines+markers',
-        marker=dict(
-            size=3,
-            color=np.arange(len(trajectory)),
-            colorscale='Viridis',
-            showscale=True,
-            colorbar=dict(title="Time Step"),
-        ),
-        line=dict(color='rgba(100,100,255,0.5)', width=2),
-    )])
-    
+    fig_3d = go.Figure(
+        data=[
+            go.Scatter3d(
+                x=trajectory[:, 0],
+                y=trajectory[:, 1],
+                z=trajectory[:, 2],
+                mode="lines+markers",
+                marker=dict(
+                    size=3,
+                    color=np.arange(len(trajectory)),
+                    colorscale="Viridis",
+                    showscale=True,
+                    colorbar=dict(title="Time Step"),
+                ),
+                line=dict(color="rgba(100,100,255,0.5)", width=2),
+            )
+        ]
+    )
+
     fig_3d.update_layout(
         scene=dict(
             xaxis_title=dim_names[0],
@@ -527,7 +554,7 @@ def _(mo, np, go, trajectory, dim_names):
         title="Trajectory Through Concept Space",
         template="plotly_dark",
     )
-    
+
     fig_3d
     return
 
@@ -535,6 +562,7 @@ def _(mo, np, go, trajectory, dim_names):
 # =============================================================================
 # FLUME ENCODING (ACTUAL)
 # =============================================================================
+
 
 @app.cell
 def _(mo, np, json, datetime, hashlib):
@@ -544,12 +572,12 @@ def _(mo, np, json, datetime, hashlib):
     The journey through this notebook is being encoded as a **FLUME trajectory**—
     a continuous path through 256-dimensional thought-space.
     """)
-    
+
     # Create FLUME journey record
-    journey_id = hashlib.sha256(
-        f"physics_laws_{datetime.now().isoformat()}".encode()
-    ).hexdigest()[:16]
-    
+    journey_id = hashlib.sha256(f"physics_laws_{datetime.now().isoformat()}".encode()).hexdigest()[
+        :16
+    ]
+
     # Simulated FLUME encoding (would use actual FlumeEncoder in production)
     journey_record = {
         "journey_id": journey_id,
@@ -557,15 +585,15 @@ def _(mo, np, json, datetime, hashlib):
         "topic": "Why Are Physics Laws The Way They Are?",
         "approaches_explored": [
             "mathematical_necessity",
-            "anthropic_selection", 
+            "anthropic_selection",
             "multiverse_selection",
-            "hiho_flume_synthesis"
+            "hiho_flume_synthesis",
         ],
         "key_insights": [
             "Noether's theorem: symmetry → conservation",
             "Fine-tuning requires explanation",
             "HIHO coherence at 0.5 = stability",
-            "FLUME trajectories find law attractors"
+            "FLUME trajectories find law attractors",
         ],
         "z_vector_summary": {
             "mean": 0.0,
@@ -575,11 +603,11 @@ def _(mo, np, json, datetime, hashlib):
         },
         "coherence_final": 0.498,  # Near HIHO optimal
     }
-    
+
     mo.md(f"""
     **Journey ID:** `{journey_id}`  
-    **Captured at:** {journey_record['timestamp']}  
-    **Coherence:** {journey_record['coherence_final']:.3f} (target: 0.500)
+    **Captured at:** {journey_record["timestamp"]}  
+    **Coherence:** {journey_record["coherence_final"]:.3f} (target: 0.500)
     
     ```json
     {json.dumps(journey_record, indent=2)}
@@ -593,6 +621,7 @@ def _(mo, np, json, datetime, hashlib):
 # =============================================================================
 # TTS NARRATION SECTION
 # =============================================================================
+
 
 @app.cell
 def _(mo):
@@ -626,10 +655,11 @@ def _(mo):
 # INTERACTIVE Q&A
 # =============================================================================
 
+
 @app.cell
 def _(mo):
     mo.md("## 💬 Explore Further")
-    
+
     question = mo.ui.text(
         placeholder="e.g., What if alpha were different?",
         label="Ask a question:",
@@ -639,14 +669,14 @@ def _(mo):
     return (question,)
 
 
-@app.cell  
+@app.cell
 def _(mo, question):
     # Default answer
     answer = "*Enter a question above to explore further!*"
-    
+
     if question.value:
         q = question.value.lower()
-        
+
         if "alpha" in q or "fine" in q or "constant" in q:
             answer = """**Great question!**
             
@@ -693,13 +723,14 @@ Try asking about:
 - 👁️ How does anthropic selection work?
 - 🌊 Is the multiverse real?
 - ✨ What is HIHO coherence?"""
-    
+
     mo.md(answer)
 
 
 # =============================================================================
 # SUMMARY & EXPORT
 # =============================================================================
+
 
 @app.cell
 def _(mo):

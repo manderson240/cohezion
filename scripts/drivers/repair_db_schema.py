@@ -1,9 +1,8 @@
 import asyncio
+from datetime import datetime
+
 from cohezion.core.persistence.surreal_client import SurrealClient
 
-import asyncio
-from datetime import datetime
-from cohezion.core.persistence.surreal_client import SurrealClient
 
 async def repair():
     c = SurrealClient()
@@ -14,12 +13,12 @@ async def repair():
     nodes = await c.query("SELECT id, created_at FROM universe_nodes")
 
     for node in nodes:
-        node_id = node['id']
-        ca = node.get('created_at')
+        node_id = node["id"]
+        ca = node.get("created_at")
         if isinstance(ca, str):
             try:
                 # Convert to proper datetime object
-                dt = datetime.fromisoformat(ca.replace('Z', '+00:00'))
+                dt = datetime.fromisoformat(ca.replace("Z", "+00:00"))
                 # Update specifically this record ID
                 await c.query("UPDATE $id SET created_at = $dt", {"id": node_id, "dt": dt})
                 print(f"Fixed {node_id}")
@@ -28,6 +27,7 @@ async def repair():
 
     print("Repair complete.")
     await c.close()
+
 
 if __name__ == "__main__":
     asyncio.run(repair())

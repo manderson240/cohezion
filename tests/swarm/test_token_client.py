@@ -171,9 +171,7 @@ class TestTokenEfficientClient:
         # Prime cache for item 1
         with patch.object(token_client.ollama, "generate") as mock_gen:
             mock_gen.return_value = ("Cached", 100)
-            await token_client.generate(
-                prompt="p1", model="phi3:mini", system="s"
-            )
+            await token_client.generate(prompt="p1", model="phi3:mini", system="s")
 
         # Create batch items (1 cached, 1 not)
         items = [

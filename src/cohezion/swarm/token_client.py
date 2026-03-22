@@ -32,7 +32,6 @@ import asyncio
 import hashlib
 import logging
 import time
-from pathlib import Path
 from typing import Any
 
 import requests  # type: ignore[import-untyped]
@@ -79,37 +78,43 @@ class ResilientOllamaClient:
         system: str = "",
         num_predict: int = 256,
     ) -> tuple[str, int]:
-        """Generate response from Ollama.
+        """Generate response from Ollama via OpenAI-compatible API.
 
         Args:
             prompt: User prompt
-            model: Model name (e.g., "qwen3-coder:30b")
+            model: Model name
             system: System prompt
             num_predict: Max tokens to generate
 
         Returns:
             Tuple of (response_text, tokens_used)
-
-        Raises:
-            RuntimeError: If all retries fail
         """
         for attempt in range(self.max_retries):
             try:
+                # Construct OpenAI-compatible messages
+                messages = []
+                if system:
+                    messages.append({"role": "system", "content": system})
+                messages.append({"role": "user", "content": prompt})
+
                 response = requests.post(
-                    f"{self.base_url}/api/generate",
+                    f"{self.base_url}/v1/chat/completions",
                     json={
                         "model": model,
-                        "prompt": prompt,
-                        "system": system,
+                        "messages": messages,
+                        "max_tokens": num_predict,
                         "stream": False,
-                        "num_predict": num_predict,
                     },
                     timeout=self.timeout,
                 )
                 response.raise_for_status()
 
                 data = response.json()
-                return data.get("response", ""), data.get("eval_count", 0)
+                choice = data.get("choices", [{}])[0]
+                content = choice.get("message", {}).get("content", "")
+                tokens = data.get("usage", {}).get("total_tokens", 0)
+                
+                return content, tokens
 
             except Exception as e:
                 if attempt == self.max_retries - 1:
@@ -117,7 +122,7 @@ class ResilientOllamaClient:
                         f"Ollama request failed after {self.max_retries} retries: {e}"
                     ) from e
 
-                wait_time = 0.5 * (2 ** attempt)
+                wait_time = 0.5 * (2**attempt)
                 logger.warning(
                     "Ollama request failed (attempt %d/%d), retrying in %.1f seconds: %s",
                     attempt + 1,
@@ -238,6 +243,7 @@ class TokenEfficientClient:
         prompt: str,
         model: str = "phi3:mini",
         system: str = "",
+        **kwargs: Any,
     ) -> tuple[str, int]:
         """Generate response with three-tier caching (L1 exact, L2 semantic, L3 persistent).
 
@@ -277,6 +283,7 @@ class TokenEfficientClient:
                     )
                     # Store in L1 cache for future exact matches
                     from cohezion.swarm.batch_processor import CacheEntry
+
                     self.batch_processor.cache[cache_key] = CacheEntry(
                         key=cache_key,
                         value=semantic_hit.value,
@@ -340,6 +347,7 @@ class TokenEfficientClient:
         Returns:
             BatchResult with results, metrics, cache statistics
         """
+
         async def execute_item(item: BatchItem) -> tuple[str, int]:
             """Execute single item (used by Phase 2)."""
             return await self.generate(
@@ -386,9 +394,7 @@ class TokenEfficientClient:
         combined_hit_rate = total_cache_hits / total_ops if total_ops > 0 else 0.0
 
         semantic_confidence_avg = (
-            self._semantic_confidence_sum / self._semantic_hits
-            if self._semantic_hits > 0
-            else 0.0
+            self._semantic_confidence_sum / self._semantic_hits if self._semantic_hits > 0 else 0.0
         )
 
         # Estimate tokens saved
@@ -412,9 +418,7 @@ class TokenEfficientClient:
             "api_calls": self._api_calls,
             "estimated_tokens_saved": estimated_tokens_saved,
             "elapsed_seconds": round(elapsed, 2),
-            "tokens_per_second": round(self._total_tokens / elapsed, 2)
-            if elapsed > 0
-            else 0.0,
+            "tokens_per_second": round(self._total_tokens / elapsed, 2) if elapsed > 0 else 0.0,
         }
 
         # Add semantic cache stats if available

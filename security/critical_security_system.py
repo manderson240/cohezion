@@ -7,14 +7,11 @@ Token-efficient implementation addressing all adversarial findings
 """
 
 import asyncio
-import subprocess
-import json
 import os
-from pathlib import Path
-from typing import Dict, List, Any, Optional
-from datetime import datetime
 import shlex
-import re
+import subprocess
+from datetime import datetime
+from typing import Any
 
 
 class ConstitutionalSecuritySystem:
@@ -34,7 +31,7 @@ class ConstitutionalSecuritySystem:
             8: "Compound Engineering",
         }
 
-    def _create_input_validation_patterns(self) -> Dict[str, Any]:
+    def _create_input_validation_patterns(self) -> dict[str, Any]:
         """Create comprehensive input validation patterns"""
         return {
             "llm_prompt_injection": {
@@ -62,7 +59,7 @@ class ConstitutionalSecuritySystem:
             },
         }
 
-    def _create_path_sanitization_patterns(self) -> Dict[str, Any]:
+    def _create_path_sanitization_patterns(self) -> dict[str, Any]:
         """Create comprehensive path security patterns"""
         return {
             "absolute_path_block": {
@@ -97,7 +94,7 @@ class ConstitutionalSecuritySystem:
             },
         }
 
-    def _create_command_hardening_patterns(self) -> Dict[str, Any]:
+    def _create_command_hardening_patterns(self) -> dict[str, Any]:
         """Create command execution security patterns"""
         return {
             "subprocess_sanitization": {
@@ -121,7 +118,7 @@ class ConstitutionalSecuritySystem:
             },
         }
 
-    def _create_output_filtering_patterns(self) -> Dict[str, Any]:
+    def _create_output_filtering_patterns(self) -> dict[str, Any]:
         """Create comprehensive output filtering patterns"""
         return {
             "pii_detection": {
@@ -153,9 +150,9 @@ class ConstitutionalSecuritySystem:
             normalized_path = os.path.normpath(path)
 
             # Check for dangerous patterns
-            for pattern in self.security_patterns["path_sanitization"][
-                "absolute_path_block"
-            ]["blocked_patterns"]:
+            for pattern in self.security_patterns["path_sanitization"]["absolute_path_block"][
+                "blocked_patterns"
+            ]:
                 if pattern in normalized_path.lower():
                     return False
 
@@ -173,7 +170,7 @@ class ConstitutionalSecuritySystem:
         # Use shlex.quote for proper argument escaping
         return shlex.quote(command)
 
-    def _get_allowed_commands_list(self) -> List[str]:
+    def _get_allowed_commands_list(self) -> list[str]:
         """Get list of constitutionally allowed commands"""
         return [
             "python3",
@@ -194,7 +191,7 @@ class ConstitutionalSecuritySystem:
             "kubectl",
         ]
 
-    def _create_input_validation_rules(self) -> Dict[str, Any]:
+    def _create_input_validation_rules(self) -> dict[str, Any]:
         """Create input validation rules"""
         return {
             "llm_input_validation": {
@@ -217,9 +214,7 @@ class ConstitutionalSecuritySystem:
             },
         }
 
-    def assess_security_compliance(
-        self, component: str, implementation: Any
-    ) -> Dict[str, Any]:
+    def assess_security_compliance(self, component: str, implementation: Any) -> dict[str, Any]:
         """Assess security compliance of component"""
         violations = []
 
@@ -309,28 +304,21 @@ class ConstitutionalSecuritySystem:
             practice in getattr(implementation, "", "") for practice in good_practices
         )
 
-    def _has_compound_violations(self, violations: List[Dict[str, Any]]) -> bool:
+    def _has_compound_violations(self, violations: list[dict[str, Any]]) -> bool:
         """Check if any violations block compound engineering"""
         return any(
-            v.get("constitutional_violations", [])
-            and any(item["item"] == 8 for item in violations)
+            v.get("constitutional_violations", []) and any(item["item"] == 8 for item in violations)
         )
 
-    def _generate_security_improvements(
-        self, violations: List[Dict[str, Any]]
-    ) -> List[str]:
+    def _generate_security_improvements(self, violations: list[dict[str, Any]]) -> list[str]:
         """Generate security improvement recommendations"""
         improvements = []
 
         for violation in violations:
             if violation["item"] == 5:  # Harm Avoidance
-                improvements.append(
-                    "Implement comprehensive input validation and sanitization"
-                )
+                improvements.append("Implement comprehensive input validation and sanitization")
             elif violation["item"] == 6:  # Hard Constraints
-                improvements.append(
-                    "Add explicit authorization and constraint validation"
-                )
+                improvements.append("Add explicit authorization and constraint validation")
             elif violation["item"] == 8:  # Compound Engineering
                 improvements.append(
                     "Refactor component to enable modular design and future enhancement"
@@ -338,7 +326,7 @@ class ConstitutionalSecuritySystem:
 
         return improvements
 
-    def generate_security_audit_report(self, components: List[str]) -> Dict[str, Any]:
+    def generate_security_audit_report(self, components: list[str]) -> dict[str, Any]:
         """Generate comprehensive security audit report"""
         results = {}
 
@@ -391,9 +379,7 @@ class SecureGPUAccelerator:
         except Exception as e:
             raise RuntimeError(f"GPU monitoring error: {e}")
 
-    async def execute_secure_shell_command(
-        self, command: str, timeout: int = 30
-    ) -> str:
+    async def execute_secure_shell_command(self, command: str, timeout: int = 30) -> str:
         """Execute shell command with security validation"""
         # Validate command against security patterns
         if not self.security_validator._validate_command_security(command):
@@ -457,7 +443,7 @@ async def test_security_system():
     components = ["gpu_accelerator", "universe_engine", "file_handler"]
     report = security_system.generate_security_audit_report(components)
 
-    print(f"\n🛡️ Security Audit Report:")
+    print("\n🛡️ Security Audit Report:")
     print(f"Constitutional Compliance: {report['constitutional_compliance']}%")
     print(f"Total Violations: {report['total_vulnerabilities']}")
     print(f"Improvement Recommendations: {len(report['recommendations'])}")

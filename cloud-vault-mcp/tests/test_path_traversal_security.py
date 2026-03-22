@@ -10,6 +10,7 @@ Verifies that VaultOps prevents directory traversal attacks, including:
 
 import tempfile
 from pathlib import Path
+
 import pytest
 
 from mcp_server.vault_ops import VaultOps

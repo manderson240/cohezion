@@ -7,6 +7,7 @@ import json
 import subprocess
 from pathlib import Path
 
+
 def get_untracked_files():
     """Get list of untracked files."""
     result = subprocess.run(
@@ -17,6 +18,7 @@ def get_untracked_files():
     )
     files = result.stdout.strip().split("\n") if result.stdout.strip() else []
     return [f for f in files if f]
+
 
 def categorize_files(files):
     """Categorize untracked files."""
@@ -50,6 +52,7 @@ def categorize_files(files):
 
     return {k: v for k, v in categories.items() if v}
 
+
 def main():
     """Generate cleanup plan."""
     print("\n" + "=" * 70)
@@ -73,59 +76,73 @@ def main():
 
     # 1. Safe cleanup (artifacts, cache)
     if "build_artifacts" in categorized:
-        plan["immediate_cleanup"].append({
-            "category": "build_artifacts",
-            "count": len(categorized["build_artifacts"]),
-            "action": "Remove build artifacts and compiled files",
-            "command": "# Add to .gitignore: __pycache__/, *.egg-info/, dist/, build/",
-        })
+        plan["immediate_cleanup"].append(
+            {
+                "category": "build_artifacts",
+                "count": len(categorized["build_artifacts"]),
+                "action": "Remove build artifacts and compiled files",
+                "command": "# Add to .gitignore: __pycache__/, *.egg-info/, dist/, build/",
+            }
+        )
 
     if "cache_files" in categorized:
-        plan["immediate_cleanup"].append({
-            "category": "cache_files",
-            "count": len(categorized["cache_files"]),
-            "action": "Remove Python cache files",
-            "command": "find . -type d -name __pycache__ -exec rm -rf {} +",
-        })
+        plan["immediate_cleanup"].append(
+            {
+                "category": "cache_files",
+                "count": len(categorized["cache_files"]),
+                "action": "Remove Python cache files",
+                "command": "find . -type d -name __pycache__ -exec rm -rf {} +",
+            }
+        )
 
     # 2. Review (generated output, data)
     if "generated_output" in categorized:
-        plan["review_and_decide"].append({
-            "category": "generated_output",
-            "count": len(categorized["generated_output"]),
-            "files_sample": categorized["generated_output"][:3],
-            "action": "Review and either add to .gitignore or commit if needed",
-        })
+        plan["review_and_decide"].append(
+            {
+                "category": "generated_output",
+                "count": len(categorized["generated_output"]),
+                "files_sample": categorized["generated_output"][:3],
+                "action": "Review and either add to .gitignore or commit if needed",
+            }
+        )
 
     if "data_files" in categorized:
-        plan["review_and_decide"].append({
-            "category": "data_files",
-            "count": len(categorized["data_files"]),
-            "files_sample": categorized["data_files"][:3],
-            "action": "Ensure data files are in .gitignore or committed intentionally",
-        })
+        plan["review_and_decide"].append(
+            {
+                "category": "data_files",
+                "count": len(categorized["data_files"]),
+                "files_sample": categorized["data_files"][:3],
+                "action": "Ensure data files are in .gitignore or committed intentionally",
+            }
+        )
 
     # 3. Documentation
     if "documentation" in categorized:
-        plan["documentation_additions"].append({
-            "action": "Add new documentation files",
-            "files": categorized["documentation"][:5],
-        })
+        plan["documentation_additions"].append(
+            {
+                "action": "Add new documentation files",
+                "files": categorized["documentation"][:5],
+            }
+        )
 
     # 4. Missing files
     repo = Path("/home/mike-anderson/dev/cohezion")
     missing = []
     if not (repo / "README.md").exists():
-        missing.append({
-            "file": "README.md",
-            "priority": "HIGH",
-            "content": "Project overview, setup, usage instructions",
-        })
+        missing.append(
+            {
+                "file": "README.md",
+                "priority": "HIGH",
+                "content": "Project overview, setup, usage instructions",
+            }
+        )
 
     if missing:
-        plan["documentation_additions"].append({
-            "create": missing,
-        })
+        plan["documentation_additions"].append(
+            {
+                "create": missing,
+            }
+        )
 
     # Print plan
     print("\n" + "=" * 70)
@@ -184,14 +201,19 @@ def main():
     # Save plan to JSON
     plan_file = Path("/home/mike-anderson/dev/cohezion/cleanup_plan.json")
     with open(plan_file, "w") as f:
-        json.dump({
-            "total_untracked": len(files),
-            "categorization": {k: len(v) for k, v in categorized.items()},
-            "plan": plan,
-        }, f, indent=2)
+        json.dump(
+            {
+                "total_untracked": len(files),
+                "categorization": {k: len(v) for k, v in categorized.items()},
+                "plan": plan,
+            },
+            f,
+            indent=2,
+        )
 
     print(f"\nPlan saved to: {plan_file}")
     print("=" * 70 + "\n")
+
 
 if __name__ == "__main__":
     main()
