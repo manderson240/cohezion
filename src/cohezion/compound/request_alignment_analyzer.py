@@ -876,7 +876,11 @@ class RequestAlignmentAnalyzer:
             Vault path or empty string on failure
         """
         try:
-            hypothesis = f"Request alignment for {request.intent.value} task: {request.raw_text[:100]}"
+            issues = alignment.issues or []
+            recommendations = alignment.recommendations or []
+            hypothesis = (
+                f"Request alignment for {request.intent.value} task: {request.raw_text[:100]}"
+            )
             method = (
                 f"Analyzed request with intent={request.intent.name}, "
                 f"{len(request.constraints or [])} constraints, {len(request.criteria or [])} criteria"

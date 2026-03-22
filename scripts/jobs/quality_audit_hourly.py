@@ -25,8 +25,8 @@ logger = logging.getLogger("QualityGuard")
 async def main():
     logger.info("🛡️ Starting Hourly Quality Audit (The Audit-of-Audits)...")
     
-    # Initialize Trackio (Local only)
-    trackio.init(project="cohezion-core")
+    # Initialize Trackio
+    trackio.init(project="cohezion-core", space_id="manderson240/cohezion-trackio")
     
     # 1. Sensing: Collect recent job outputs
     pulse_dir = Path("apps/dashboard/src/assets/data")

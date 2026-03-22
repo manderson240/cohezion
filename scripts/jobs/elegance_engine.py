@@ -44,8 +44,8 @@ def get_complex_files():
 
 async def manifest_elegance():
     logger.info("✨ Elegance Engine: ACTIVE MANIFESTATION phase started...")
-    # Fix: Disable remote space_id to prevent interactive login in background
-    trackio.init(project="cohezion-core")
+    # Fix: trackio.init uses project, not run_name directly in some versions
+    trackio.init(project="cohezion-core", space_id="manderson240/cohezion-trackio")
     
     client = get_compound_client()
     proposals_dir = PROJECT_ROOT / "reports/elegance_manifestations"
