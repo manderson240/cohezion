@@ -23,26 +23,11 @@ jobs:
         run: |
           pip install ruff mypy
 
-      - name: Run ruff format check (root)
-        run: ruff format --check src/ tests/ || true
+      - name: Run ruff format check
+        run: ruff format --check .
 
-      - name: Run ruff format check (cloud-vault-mcp)
-        run: |
-          cd cloud-vault-mcp
-          ruff format --check src/ tests/ || true
+      - name: Run ruff linter
+        run: ruff check .
 
-      - name: Run ruff linter (root)
-        run: ruff check src/ tests/ || true
-
-      - name: Run ruff linter (cloud-vault-mcp)
-        run: |
-          cd cloud-vault-mcp
-          ruff check src/ tests/ || true
-
-      - name: Run mypy (root)
-        run: mypy --ignore-missing-imports src/ || true
-
-      - name: Run mypy (cloud-vault-mcp)
-        run: |
-          cd cloud-vault-mcp
-          mypy --ignore-missing-imports src/ || true
+      - name: Run mypy
+        run: mypy --ignore-missing-imports bmad/ || true

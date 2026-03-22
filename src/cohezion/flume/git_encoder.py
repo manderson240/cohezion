@@ -11,7 +11,7 @@ import logging
 import torch
 import torch.nn.functional as F
 
-from cohezion.flume import FlumeEncoder
+from cohezion.flume.autoencoder import FlumeEncoder
 from cohezion.swarm.git_health import GitCommit
 
 
