@@ -12,6 +12,7 @@ from enum import Enum
 
 from pydantic import BaseModel, Field, model_validator
 
+
 logger = logging.getLogger(__name__)
 
 # Maximum memory budget leaves 8GB headroom on 128GB system

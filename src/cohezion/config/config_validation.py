@@ -11,12 +11,11 @@ import re
 from pathlib import Path
 from typing import Any
 
-from pydantic import ValidationError
-
 from cohezion.config.config_state import (
     FileMetadata,
     ValidationReport,
 )
+
 
 logger = logging.getLogger(__name__)
 
@@ -188,7 +187,7 @@ class ConfigValidator:
             # Check YAML syntax (basic)
             lines = frontmatter.split("\n")
             for line in lines:
-                if line and not ":" in line and not line.startswith("-"):
+                if line and ":" not in line and not line.startswith("-"):
                     return {
                         "passed": False,
                         "recommendations": [f"Invalid YAML line: {line}"],

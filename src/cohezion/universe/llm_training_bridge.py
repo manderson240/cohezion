@@ -34,11 +34,12 @@ from __future__ import annotations
 
 import json
 import logging
-from dataclasses import asdict, dataclass, field
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
 import numpy as np
+
 
 logger = logging.getLogger(__name__)
 
@@ -164,7 +165,9 @@ class TrajectoryToReward:
 
         # Consistency bonus: low coherence variance = stable journey
         coherences = [s.coherence for s in trajectory.steps]
-        consistency = max(0.0, 1.0 - float(np.std(coherences)) * 4.0) if len(coherences) > 1 else 0.5
+        consistency = (
+            max(0.0, 1.0 - float(np.std(coherences)) * 4.0) if len(coherences) > 1 else 0.5
+        )
 
         # Precipitation bonus
         precipitation = 1.0 if trajectory.precipitation_achieved else 0.0
@@ -317,9 +320,7 @@ class JudgmentEvaluator:
             reasoning=reasoning,
         )
 
-    def evaluate_trajectory(
-        self, trajectory: AgentTrajectory
-    ) -> list[JudgmentAssessment]:
+    def evaluate_trajectory(self, trajectory: AgentTrajectory) -> list[JudgmentAssessment]:
         """Evaluate all decisions in a trajectory."""
         assessments = []
         for i in range(len(trajectory.steps) - 1):
@@ -430,9 +431,7 @@ class ExperienceDataset:
         logger.info("Exported %d judgment records to %s", count, output_path)
         return output_path
 
-    def export_all(
-        self, trajectories: list[AgentTrajectory], prefix: str = ""
-    ) -> dict[str, Path]:
+    def export_all(self, trajectories: list[AgentTrajectory], prefix: str = "") -> dict[str, Path]:
         """Export all training data formats."""
         p = f"{prefix}_" if prefix else ""
         return {

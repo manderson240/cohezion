@@ -54,9 +54,7 @@ def expander() -> InstructionExpander:
 
 
 @pytest.fixture()
-def sample_plan(
-    sample_spec: SkillSpec, expander: InstructionExpander
-) -> ExecutablePlan:
+def sample_plan(sample_spec: SkillSpec, expander: InstructionExpander) -> ExecutablePlan:
     return expander.expand(sample_spec)
 
 
@@ -69,10 +67,7 @@ class TestClassifyInstruction:
     """Test keyword classification for each operation type."""
 
     def test_search_keywords(self) -> None:
-        assert (
-            _classify_instruction("Search the codebase for relevant modules")
-            == "search"
-        )
+        assert _classify_instruction("Search the codebase for relevant modules") == "search"
         assert _classify_instruction("Find all available agents") == "search"
         assert _classify_instruction("Locate the configuration file") == "search"
         assert _classify_instruction("Identify potential issues") == "search"
@@ -90,10 +85,7 @@ class TestClassifyInstruction:
         assert _classify_instruction("Verify the output matches expected") == "analyze"
 
     def test_transform_keywords(self) -> None:
-        assert (
-            _classify_instruction("Transform the data into report format")
-            == "transform"
-        )
+        assert _classify_instruction("Transform the data into report format") == "transform"
         assert _classify_instruction("Convert JSON to CSV") == "transform"
         assert _classify_instruction("Extract keywords from the text") == "transform"
         assert _classify_instruction("Parse the configuration file") == "transform"
@@ -221,9 +213,7 @@ class TestPlanExecutor:
 
     def test_execute_tracks_metrics(self, sample_plan: ExecutablePlan) -> None:
         executor = PlanExecutor(token_client=None)
-        result = asyncio.get_event_loop().run_until_complete(
-            executor.execute(sample_plan, "test")
-        )
+        result = asyncio.get_event_loop().run_until_complete(executor.execute(sample_plan, "test"))
         assert result.total_duration_ms >= 0
         assert result.total_tokens >= 0
         for step in result.steps:
@@ -243,9 +233,7 @@ class TestPlanExecutor:
         )
 
         executor = PlanExecutor(token_client=mock_client)
-        result = asyncio.get_event_loop().run_until_complete(
-            executor.execute(plan, "test input")
-        )
+        result = asyncio.get_event_loop().run_until_complete(executor.execute(plan, "test input"))
 
         mock_client.generate.assert_called_once()
         assert result.steps[0].output == "Generated output from LLM"
@@ -263,9 +251,7 @@ class TestPlanExecutor:
         )
 
         executor = PlanExecutor(token_client=None)
-        result = asyncio.get_event_loop().run_until_complete(
-            executor.execute(plan, "input text")
-        )
+        result = asyncio.get_event_loop().run_until_complete(executor.execute(plan, "input text"))
 
         assert "[generate]" in result.steps[0].output
         assert "[analyze]" in result.steps[1].output
@@ -274,9 +260,7 @@ class TestPlanExecutor:
     def test_execute_empty_plan(self) -> None:
         plan = ExecutablePlan(skill_name="EMPTY", steps=[], domain="")
         executor = PlanExecutor(token_client=None)
-        result = asyncio.get_event_loop().run_until_complete(
-            executor.execute(plan, "input")
-        )
+        result = asyncio.get_event_loop().run_until_complete(executor.execute(plan, "input"))
         assert result.steps == []
         assert result.final_output == ""
         assert result.total_tokens == 0
@@ -324,9 +308,7 @@ class TestPlanExecutor:
         )
 
         executor = PlanExecutor(token_client=mock_client)
-        result = asyncio.get_event_loop().run_until_complete(
-            executor.execute(plan, "input")
-        )
+        result = asyncio.get_event_loop().run_until_complete(executor.execute(plan, "input"))
         # Should not raise; falls back to placeholder
         assert "[generate]" in result.steps[0].output
 
@@ -361,9 +343,7 @@ class TestAgentFactoryExecutable:
             pytest.skip("No PRIME skills found")
 
         agent = factory.create_executable(skills[0])
-        result = asyncio.get_event_loop().run_until_complete(
-            agent.process("test input")
-        )
+        result = asyncio.get_event_loop().run_until_complete(agent.process("test input"))
         assert isinstance(result, ExecutionResult)
         assert result.skill_name == skills[0]
 

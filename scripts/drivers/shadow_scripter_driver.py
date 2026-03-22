@@ -5,10 +5,12 @@ import logging
 import sys
 from pathlib import Path
 
+
 sys.path.append(str(Path(__file__).parent.parent.parent))
 
 from cohezion.core.persistence.surreal_client import SurrealClient
 from cohezion.engineering.shadow_scripter import ShadowScripter
+
 
 logging.basicConfig(
     level=logging.INFO,
@@ -24,9 +26,7 @@ async def main():
     db = SurrealClient()
     connected = await db.connect()
     if not connected:
-        logger.error(
-            "❌ Failed to connect to SurrealDB. Shadow Scripter requires persistence."
-        )
+        logger.error("❌ Failed to connect to SurrealDB. Shadow Scripter requires persistence.")
         return
 
     scripter = ShadowScripter(db_client=db)

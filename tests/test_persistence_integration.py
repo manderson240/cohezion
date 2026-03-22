@@ -115,7 +115,8 @@ class TestSessionLifecycle:
     @pytest.mark.asyncio
     @patch("cohezion.swarm.compound_client.get_compound_client")
     async def test_session_async_context_manager(
-        self, mock_get_client: MagicMock,
+        self,
+        mock_get_client: MagicMock,
     ) -> None:
         client = MagicMock()
         client._cache = {}

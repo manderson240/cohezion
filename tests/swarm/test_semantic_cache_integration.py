@@ -7,13 +7,14 @@ Tests three-tier caching hierarchy:
 - Fallback: Generate new via Ollama
 """
 
-import pytest
 from unittest.mock import AsyncMock, patch
-import numpy as np
 
-from cohezion.swarm.token_client import TokenEfficientClient
-from cohezion.swarm.semantic_cache import SemanticCache, EmbeddingResult, SemanticCacheHit
+import numpy as np
+import pytest
+
 from cohezion.swarm.batch_processor import BatchItem, CacheEntry
+from cohezion.swarm.semantic_cache import EmbeddingResult, SemanticCache
+from cohezion.swarm.token_client import TokenEfficientClient
 
 
 @pytest.fixture
@@ -33,9 +34,7 @@ class TestThreeTierCacheHierarchy:
     async def test_l1_cache_hit_exact_match(self, token_client_with_semantic):
         """Test L1 cache hit on exact prompt match."""
         # Pre-populate L1 cache
-        cache_key = token_client_with_semantic._cache_key(
-            "Test prompt", "System", "phi3:mini"
-        )
+        cache_key = token_client_with_semantic._cache_key("Test prompt", "System", "phi3:mini")
         from cohezion.swarm.batch_processor import CacheEntry
 
         token_client_with_semantic.batch_processor.cache[cache_key] = CacheEntry(
@@ -76,13 +75,9 @@ class TestThreeTierCacheHierarchy:
             return EmbeddingResult(embedding=arr.tolist(), tokens_used=10)
 
         # Store in L2 cache
-        cache_entry_key = token_client_with_semantic._cache_key(
-            "Original prompt", "", "phi3:mini"
-        )
+        cache_entry_key = token_client_with_semantic._cache_key("Original prompt", "", "phi3:mini")
         if token_client_with_semantic.semantic_cache:
-            token_client_with_semantic.semantic_cache._embedding_model.encode = (
-                mock_encode
-            )
+            token_client_with_semantic.semantic_cache._embedding_model.encode = mock_encode
 
             # Put original in L2
             await token_client_with_semantic.semantic_cache.put(
@@ -153,9 +148,7 @@ class TestThreeTierCacheHierarchy:
         async def mock_encode(text):
             return EmbeddingResult(embedding=embedding_vec.tolist(), tokens_used=10)
 
-        token_client_with_semantic.semantic_cache._embedding_model.encode = (
-            mock_encode
-        )
+        token_client_with_semantic.semantic_cache._embedding_model.encode = mock_encode
 
         # Mock Ollama to fail (shouldn't be called)
         with patch.object(
@@ -181,9 +174,7 @@ class TestThreeTierCacheHierarchy:
     async def test_batch_with_mixed_cache_tiers(self, token_client_with_semantic):
         """Test batch processing with items hitting L1, L2, and requiring Ollama."""
         # Pre-populate L1 cache
-        cache_key_l1 = token_client_with_semantic._cache_key(
-            "Cached prompt", "", "phi3:mini"
-        )
+        cache_key_l1 = token_client_with_semantic._cache_key("Cached prompt", "", "phi3:mini")
         token_client_with_semantic.batch_processor.cache[cache_key_l1] = CacheEntry(
             key=cache_key_l1,
             value="L1 cached response",
@@ -194,9 +185,10 @@ class TestThreeTierCacheHierarchy:
         if token_client_with_semantic.semantic_cache:
             embedding_vec = np.array([0.9, 0.1] + [0.0] * 382, dtype=np.float32)
             embedding_vec = embedding_vec / np.linalg.norm(embedding_vec)
-            token_client_with_semantic.semantic_cache._embedding_cache[
-                "semantic_key"
-            ] = (embedding_vec.tolist(), "L2 semantic response")
+            token_client_with_semantic.semantic_cache._embedding_cache["semantic_key"] = (
+                embedding_vec.tolist(),
+                "L2 semantic response",
+            )
 
         # Mock Ollama for new items
         with patch.object(

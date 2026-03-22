@@ -12,6 +12,7 @@ import os
 from dataclasses import dataclass, field
 from pathlib import Path
 
+
 logger = logging.getLogger(__name__)
 
 
@@ -62,12 +63,8 @@ class SystemConfig:
 
     # Paths
     root_dir: Path = Path("/home/mike-anderson/dev/cohezion")
-    data_dir: Path = field(
-        default_factory=lambda: Path("/home/mike-anderson/dev/cohezion/data")
-    )
-    logs_dir: Path = field(
-        default_factory=lambda: Path("/home/mike-anderson/dev/cohezion/logs")
-    )
+    data_dir: Path = field(default_factory=lambda: Path("/home/mike-anderson/dev/cohezion/data"))
+    logs_dir: Path = field(default_factory=lambda: Path("/home/mike-anderson/dev/cohezion/logs"))
 
     # Universe tracks
     tracks: dict[str, UniverseTrackConfig] = field(
@@ -124,9 +121,7 @@ class SystemConfig:
         # Override from .env if available
         if os.getenv("GOOGLE_EMAIL"):
             config.email.sender = os.getenv("GOOGLE_EMAIL")
-            config.email.recipient = os.getenv(
-                "NOTIFICATION_EMAIL", config.email.recipient
-            )
+            config.email.recipient = os.getenv("NOTIFICATION_EMAIL", config.email.recipient)
 
         if os.getenv("NOTIFICATION_PASSWORD"):
             config.email.password = os.getenv("NOTIFICATION_PASSWORD")

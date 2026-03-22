@@ -14,6 +14,7 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Any
 
+
 logger = logging.getLogger(__name__)
 
 
@@ -117,9 +118,7 @@ class CircuitBreaker:
         elif self._state == CircuitState.CLOSED:
             if self._stats.failures >= self.failure_threshold:
                 self._state = CircuitState.OPEN
-                logger.warning(
-                    f"Circuit {self.name}: CLOSED -> OPEN (threshold reached)"
-                )
+                logger.warning(f"Circuit {self.name}: CLOSED -> OPEN (threshold reached)")
 
     def reset(self) -> None:
         """Manually reset the circuit."""

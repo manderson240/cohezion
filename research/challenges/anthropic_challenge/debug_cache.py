@@ -1,7 +1,13 @@
-
-from perf_takehome import KernelBuilder, Tree, Input, build_mem_image, Machine, N_CORES, reference_kernel2
+from perf_takehome import (
+    Tree,
+    Input,
+    build_mem_image,
+    Machine,
+    N_CORES,
+)
 from optimizer import OptimizedKernelBuilder, KernelConfig
 import random
+
 
 def debug_trace():
     forest_height = 10
@@ -17,9 +23,16 @@ def debug_trace():
     mem = build_mem_image(forest, inp)
 
     kb = OptimizedKernelBuilder(KernelConfig(crown_depth=1, disable_hash_opt=True))
-    instrs = kb.build_kernel(forest.height, len(forest.values), len(inp.indices), rounds, [(("+", 0, "+", "<<", 0))])
+    instrs = kb.build_kernel(
+        forest.height,
+        len(forest.values),
+        len(inp.indices),
+        rounds,
+        [(("+", 0, "+", "<<", 0))],
+    )
 
     value_trace = {}
+
     class DebugInfo:
         def __init__(self, scratch_map):
             self.scratch_map = scratch_map
@@ -37,10 +50,11 @@ def debug_trace():
     machine.run()
 
     # Check Result
-    inp_values_p = 6 # Val base? No, dynamic.
+    inp_values_p = 6  # Val base? No, dynamic.
     # We need to find input values dest.
     # In perf_takehome: inp_values_p = load_list offsets...
     # Just print scratch trace
     print("Execution Finished")
+
 
 debug_trace()

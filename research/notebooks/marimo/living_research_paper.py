@@ -1,6 +1,8 @@
 import marimo as mo
 
+
 app = mo.App(title="Cohezion: The Living Research Paper")
+
 
 @app.cell
 def __(mo):
@@ -15,15 +17,19 @@ def __(mo):
     """)
     return
 
+
 @app.cell
 def __():
+    from pathlib import Path
+
     import marimo as mo
-    import pandas as pd
     import numpy as np
+    import pandas as pd
     import plotly.express as px
     import plotly.graph_objects as go
-    from pathlib import Path
+
     return mo, pd, np, px, go, Path
+
 
 @app.cell
 def __(mo):
@@ -35,10 +41,14 @@ def __(mo):
 
     return img_path, audio_path
 
+
 @app.cell
 def __(img_path, mo):
     # Display the stunning asset
-    return mo.image(src=img_path, width=600, caption="Figure 1: 12D Latent Manifold Pulse Visualization")
+    return mo.image(
+        src=img_path, width=600, caption="Figure 1: 12D Latent Manifold Pulse Visualization"
+    )
+
 
 @app.cell
 def __(np, pd):
@@ -49,43 +59,55 @@ def __(np, pd):
     z_vectors = []
     for i in range(12):
         phase = (i / 12) * 2 * np.pi
-        z_vectors.append(0.5 + 0.4 * np.sin(t * (0.5 + i/5) + phase))
+        z_vectors.append(0.5 + 0.4 * np.sin(t * (0.5 + i / 5) + phase))
 
-    z_df = pd.DataFrame(np.array(z_vectors).T, columns=[f"D{i+1}" for i in range(12)])
-    z_df['Step'] = np.arange(n_steps)
-    z_df['Time'] = t
-    z_df['Stability'] = 1.0 - (z_df['D1'] - 0.5)**2 # Simulated stability
+    z_df = pd.DataFrame(np.array(z_vectors).T, columns=[f"D{i + 1}" for i in range(12)])
+    z_df["Step"] = np.arange(n_steps)
+    z_df["Time"] = t
+    z_df["Stability"] = 1.0 - (z_df["D1"] - 0.5) ** 2  # Simulated stability
     return n_steps, t, z_vectors, z_df
+
 
 @app.cell
 def __(px, z_df):
     # Stunning 3D Scatter with animation
     fig_traj = px.scatter_3d(
-        z_df, x='D1', y='D2', z='D3',
-        color='Stability',
-        size='D4',
+        z_df,
+        x="D1",
+        y="D2",
+        z="D3",
+        color="Stability",
+        size="D4",
         opacity=0.7,
         title="12D Journey: Nexus Trajectory Animation",
         template="plotly_dark",
         animation_frame="Step",
-        range_x=[0, 1], range_y=[0, 1], range_z=[0, 1]
+        range_x=[0, 1],
+        range_y=[0, 1],
+        range_z=[0, 1],
     )
     fig_traj.update_layout(margin=dict(l=0, r=0, b=0, t=30))
     return fig_traj
 
+
 @app.cell
 def __(fig_traj, mo):
     return mo.as_html(fig_traj)
+
 
 @app.cell
 def __(mo):
     mo.md("## ⚖️ 2. The 0.5 HIHO Stability Pulse")
     return
 
+
 @app.cell
 def __(mo):
-    target_coherence = mo.ui.slider(0, 1, step=0.01, value=0.5, label="Target Coherence Rule (Interactive)")
-    return target_coherence,
+    target_coherence = mo.ui.slider(
+        0, 1, step=0.01, value=0.5, label="Target Coherence Rule (Interactive)"
+    )
+    return (target_coherence,)
+
 
 @app.cell
 def __(audio_path, mo, target_coherence):
@@ -95,54 +117,67 @@ def __(audio_path, mo, target_coherence):
     res_freq = 432 + (1.0 - stab) * 100
 
     # Display stats
-    stats = mo.hstack([
-        mo.stat(label="Resonance Frequency", value=f"{res_freq:.1f} Hz"),
-        mo.stat(label="Current Stability", value=f"{stab:.2f}")
-    ], justify="start")
+    stats = mo.hstack(
+        [
+            mo.stat(label="Resonance Frequency", value=f"{res_freq:.1f} Hz"),
+            mo.stat(label="Current Stability", value=f"{stab:.2f}"),
+        ],
+        justify="start",
+    )
 
     # Audio pulse
     audio = mo.audio(src=audio_path, controls=True)
 
     return stats, audio
 
+
 @app.cell
 def __(audio, mo, stats):
-    return mo.vstack([
-        stats,
-        mo.md("### 🔊 Listen to the Stability Pulse (432Hz Nexus)"),
-        audio
-    ])
+    return mo.vstack([stats, mo.md("### 🔊 Listen to the Stability Pulse (432Hz Nexus)"), audio])
+
 
 @app.cell
 def __(go, mo, target_coherence):
     # Radar comparison based on slider
     val = target_coherence.value
     param_names = [
-        "Awareness", "Space_1", "Space_2", "Space_3",
-        "Tempic", "Electric", "Magnetic",
-        "Spin_Rot", "Spin_Prec", "Charge",
-        "Partic", "Precip"
+        "Awareness",
+        "Space_1",
+        "Space_2",
+        "Space_3",
+        "Tempic",
+        "Electric",
+        "Magnetic",
+        "Spin_Rot",
+        "Spin_Prec",
+        "Charge",
+        "Partic",
+        "Precip",
     ]
 
     # Dynamic radar values
-    r_live = [val, 0.5, 0.5, 0.5, 0.5, 0.5, val, 1-val, 0.5, 0.5, 0.5, 0.5]
+    r_live = [val, 0.5, 0.5, 0.5, 0.5, 0.5, val, 1 - val, 0.5, 0.5, 0.5, 0.5]
     r_nexus = [0.5] * 12
 
     fig_rd = go.Figure()
-    fig_rd.add_trace(go.Scatterpolar(r=r_nexus, theta=param_names, fill='toself', name="Nexus Target (0.5)"))
-    fig_rd.add_trace(go.Scatterpolar(r=r_live, theta=param_names, fill='toself', name="Current Alignment", line_color="cyan"))
+    fig_rd.add_trace(
+        go.Scatterpolar(r=r_nexus, theta=param_names, fill="toself", name="Nexus Target (0.5)")
+    )
+    fig_rd.add_trace(
+        go.Scatterpolar(
+            r=r_live, theta=param_names, fill="toself", name="Current Alignment", line_color="cyan"
+        )
+    )
 
     fig_rd.update_layout(
         polar=dict(radialaxis=dict(visible=True, range=[0, 1])),
         template="plotly_dark",
         showlegend=True,
-        margin=dict(l=40, r=40, b=20, t=40)
+        margin=dict(l=40, r=40, b=20, t=40),
     )
 
-    return mo.vstack([
-        mo.md("### 📊 12D Parameter Balancing (Live Snapshot)"),
-        mo.as_html(fig_rd)
-    ])
+    return mo.vstack([mo.md("### 📊 12D Parameter Balancing (Live Snapshot)"), mo.as_html(fig_rd)])
+
 
 @app.cell
 def __(mo):
@@ -154,6 +189,7 @@ def __(mo):
     *Generated by Cohezion Cloud Orchestrator | Hosted on cohezion.duckdns.org*
     """)
     return
+
 
 if __name__ == "__main__":
     app.run()

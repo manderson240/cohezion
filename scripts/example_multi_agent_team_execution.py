@@ -19,7 +19,7 @@ import asyncio
 import logging
 import sys
 
-from cohezion.compound import CompoundExecutor, TeamExecutor, AgentTask
+from cohezion.compound import AgentTask, CompoundExecutor, TeamExecutor
 from cohezion.core.mcp_client import MCPClient, MCPConfig
 
 
@@ -252,38 +252,39 @@ async def main():
         success_rate = successful / len(result_seq.results) if result_seq.results else 0
 
         coherence_scores = [
-            r.metrics.get("coherence", 0.5)
-            for r in result_seq.results
-            if r.success
+            r.metrics.get("coherence", 0.5) for r in result_seq.results if r.success
         ]
-        avg_coherence = (
-            sum(coherence_scores) / len(coherence_scores)
-            if coherence_scores
-            else 0.0
-        )
+        avg_coherence = sum(coherence_scores) / len(coherence_scores) if coherence_scores else 0.0
 
         efficiency_scores = []
         for r in result_seq.results:
             if r.execution_result and r.execution_result.token_metrics:
-                cache_hit_rate = r.execution_result.token_metrics.get(
-                    "cache_hit_rate", 0.0
-                )
+                cache_hit_rate = r.execution_result.token_metrics.get("cache_hit_rate", 0.0)
                 efficiency_scores.append(cache_hit_rate)
 
         avg_efficiency = (
-            sum(efficiency_scores) / len(efficiency_scores)
-            if efficiency_scores
-            else 0.5
+            sum(efficiency_scores) / len(efficiency_scores) if efficiency_scores else 0.5
         )
 
-        logger.info("  Success rate: %.2f (%d/%d tasks)", success_rate, successful, len(result_seq.results))
+        logger.info(
+            "  Success rate: %.2f (%d/%d tasks)", success_rate, successful, len(result_seq.results)
+        )
         logger.info("  Average coherence: %.2f", avg_coherence)
         logger.info("  Average efficiency: %.2f", avg_efficiency)
         logger.info("")
         logger.info("  Calculation:")
-        logger.info("    = (%.2f × 0.60) + (%.2f × 0.25) + (%.2f × 0.15)",
-                    success_rate, avg_coherence, avg_efficiency)
-        logger.info("    = %.3f + %.3f + %.3f", success_rate * 0.60, avg_coherence * 0.25, avg_efficiency * 0.15)
+        logger.info(
+            "    = (%.2f × 0.60) + (%.2f × 0.25) + (%.2f × 0.15)",
+            success_rate,
+            avg_coherence,
+            avg_efficiency,
+        )
+        logger.info(
+            "    = %.3f + %.3f + %.3f",
+            success_rate * 0.60,
+            avg_coherence * 0.25,
+            avg_efficiency * 0.15,
+        )
         logger.info("    = %.3f", result_seq.compound_score)
 
     logger.info("")
@@ -316,16 +317,18 @@ async def main():
     logger.info("--------|-------|---------|-------|--------")
     for pattern_name, result in results_by_pattern:
         success_pct = (
-            f"{(1 - result.tasks_failed/result.tasks_executed)*100:.0f}%"
+            f"{(1 - result.tasks_failed / result.tasks_executed) * 100:.0f}%"
             if result.tasks_executed > 0
             else "N/A"
         )
-        logger.info("%-30s | %5d | %7s | %.3f | %.2f",
-                    pattern_name,
-                    result.tasks_executed,
-                    success_pct,
-                    result.compound_score,
-                    result.execution_time_seconds)
+        logger.info(
+            "%-30s | %5d | %7s | %.3f | %.2f",
+            pattern_name,
+            result.tasks_executed,
+            success_pct,
+            result.compound_score,
+            result.execution_time_seconds,
+        )
 
     logger.info("")
 

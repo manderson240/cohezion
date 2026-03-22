@@ -13,6 +13,7 @@ from ollama import Client
 from qdrant_client import QdrantClient
 from qdrant_client.http.models import Distance, PointStruct, VectorParams
 
+
 logger = logging.getLogger(__name__)
 
 

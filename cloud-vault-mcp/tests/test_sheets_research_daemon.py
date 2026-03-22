@@ -1,11 +1,8 @@
 """Unit tests for sheets research daemon components."""
 
-import json
 import sqlite3
 import tempfile
 from pathlib import Path
-
-import pytest
 
 from mcp_server.sheets_research_daemon import (
     AgentCoordinator,
@@ -65,9 +62,7 @@ class TestWorkQueue:
 
             # Verify state changed
             conn = sqlite3.connect(db_path)
-            cursor = conn.execute(
-                "SELECT state FROM work_queue WHERE row_number = 100"
-            )
+            cursor = conn.execute("SELECT state FROM work_queue WHERE row_number = 100")
             state = cursor.fetchone()[0]
             conn.close()
             assert state == "IN_PROGRESS"
@@ -222,8 +217,8 @@ class TestAgentCoordinator:
         """Test extracting JSON from agent output."""
         coordinator = AgentCoordinator()
 
-        # Simulate JSONL output with JSON block
-        output = '''{"type": "content_block_delta", "delta": {"type": "text_delta", "text": "```json\\n[{\\"row\\": 100, \\"status\\": \\"Researched\\", \\"abstractions\\": \\"Test\\", \\"domain\\": \\"AI\\", \\"integration_point\\": \\"Test point\\"}]\\n```"}}'''
+        # Plain text with JSON code fence (what extract_json_from_output expects)
+        output = '```json\n[{"row": 100, "status": "Researched", "abstractions": "Test", "domain": "AI", "integration_point": "Test point"}]\n```'
 
         results = coordinator.extract_json_from_output(output)
 
@@ -236,7 +231,7 @@ class TestAgentCoordinator:
         coordinator = AgentCoordinator()
 
         # Missing required fields
-        output = '''{"type": "content_block_delta", "delta": {"type": "text_delta", "text": "```json\\n[{\\"row\\": 100, \\"status\\": \\"Researched\\"}]\\n```"}}'''
+        output = """{"type": "content_block_delta", "delta": {"type": "text_delta", "text": "```json\\n[{\\"row\\": 100, \\"status\\": \\"Researched\\"}]\\n```"}}"""
 
         results = coordinator.extract_json_from_output(output)
 
@@ -257,11 +252,12 @@ class TestAgentCoordinator:
         """Test extracting from multiple JSON blocks (takes largest)."""
         coordinator = AgentCoordinator()
 
-        # Two JSON blocks, larger one has more entries
-        output = '''
-        {"type": "content_block_delta", "delta": {"type": "text_delta", "text": "```json\\n[{\\"row\\": 100, \\"status\\": \\"Researched\\", \\"abstractions\\": \\"Test\\", \\"domain\\": \\"AI\\", \\"integration_point\\": \\"Test\\"}]\\n```"}}
-        {"type": "content_block_delta", "delta": {"type": "text_delta", "text": "```json\\n[{\\"row\\": 101, \\"status\\": \\"Researched\\", \\"abstractions\\": \\"Test1\\", \\"domain\\": \\"AI\\", \\"integration_point\\": \\"Test1\\"}, {\\"row\\": 102, \\"status\\": \\"Researched\\", \\"abstractions\\": \\"Test2\\", \\"domain\\": \\"AI\\", \\"integration_point\\": \\"Test2\\"}]\\n```"}}
-        '''
+        # Two JSON code fence blocks, larger one has more entries
+        output = (
+            '```json\n[{"row": 100, "status": "Researched", "abstractions": "Test", "domain": "AI", "integration_point": "Test"}]\n```\n'
+            '```json\n[{"row": 101, "status": "Researched", "abstractions": "Test1", "domain": "AI", "integration_point": "Test1"}, '
+            '{"row": 102, "status": "Researched", "abstractions": "Test2", "domain": "AI", "integration_point": "Test2"}]\n```'
+        )
 
         results = coordinator.extract_json_from_output(output)
 

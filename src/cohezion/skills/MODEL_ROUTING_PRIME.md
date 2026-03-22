@@ -1,3 +1,15 @@
+---
+name: model-routing
+description: Local LLM orchestration using Ollama with memory-aware scheduling,
+  task classification, and parallel dispatch. Use when configuring model
+  selection, optimizing RAM allocation for models, or when user mentions
+  "model routing", "Ollama", "model selection", "memory scheduling", or
+  "parallel inference".
+metadata:
+  version: "0.1"
+  legacy-name: MODEL_ROUTING_PRIME
+---
+
 # SKILL: MODEL_ROUTING_PRIME
 
 ## DOMAIN EXPERTISE

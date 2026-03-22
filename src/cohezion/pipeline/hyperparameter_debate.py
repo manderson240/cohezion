@@ -13,6 +13,7 @@ from typing import Any
 
 from cohezion.swarm.democratic_debate import DemocraticDebate
 
+
 logger = logging.getLogger(__name__)
 
 # Sensible defaults and bounds for each hyperparameter
@@ -117,7 +118,6 @@ class HyperparameterDebate:
         try:
             session = await debate.run_debate(
                 topic=topic,
-                structured_output=True,
                 max_rounds=3,
                 min_rounds=3,
             )

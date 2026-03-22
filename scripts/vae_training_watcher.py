@@ -26,6 +26,7 @@ from pathlib import Path
 
 import httpx
 
+
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s | %(levelname)-7s | %(message)s",
@@ -220,9 +221,7 @@ def run_watcher(args: argparse.Namespace) -> int:
     if check_ollama_health(client, ollama_host):
         logger.info("Ollama health check: OK")
     else:
-        logger.warning(
-            "Ollama not reachable at startup. Will retry when analysis is needed."
-        )
+        logger.warning("Ollama not reachable at startup. Will retry when analysis is needed.")
 
     try:
         while not _shutdown_requested:
@@ -254,10 +253,7 @@ def run_watcher(args: argparse.Namespace) -> int:
                 total_epochs = latest.get("total_epochs")
 
             # Check if we need to analyze
-            if (
-                latest_epoch > last_analyzed_epoch
-                and latest_epoch % analysis_interval == 0
-            ):
+            if latest_epoch > last_analyzed_epoch and latest_epoch % analysis_interval == 0:
                 logger.info(
                     f"Epoch {latest_epoch}: MSE={latest.get('mse', 0):.4f} "
                     f"KL={latest.get('kl', 0):.4f} "
@@ -273,8 +269,7 @@ def run_watcher(args: argparse.Namespace) -> int:
                     consecutive_failures = 0
                     write_analysis(output_file, latest_epoch, analysis)
                     logger.info(
-                        f"Analysis written for epoch {latest_epoch} "
-                        f"({len(analysis)} chars)"
+                        f"Analysis written for epoch {latest_epoch} ({len(analysis)} chars)"
                     )
                     # Print a preview
                     preview = analysis[:200].replace("\n", " ")
@@ -288,8 +283,7 @@ def run_watcher(args: argparse.Namespace) -> int:
                     )
                     if consecutive_failures >= MAX_CONSECUTIVE_FAILURES:
                         logger.error(
-                            f"Too many consecutive failures ({MAX_CONSECUTIVE_FAILURES}). "
-                            f"Exiting."
+                            f"Too many consecutive failures ({MAX_CONSECUTIVE_FAILURES}). Exiting."
                         )
                         return 1
                     # Still mark as analyzed to avoid retrying the same epoch
@@ -299,9 +293,7 @@ def run_watcher(args: argparse.Namespace) -> int:
             if total_epochs and latest_epoch >= total_epochs:
                 # Do one final analysis if we haven't already
                 if last_analyzed_epoch < latest_epoch:
-                    logger.info(
-                        f"Training complete at epoch {latest_epoch}. Final analysis..."
-                    )
+                    logger.info(f"Training complete at epoch {latest_epoch}. Final analysis...")
                     prompt = build_prompt(latest, initial_metrics, total_epochs)
                     analysis = call_ollama_sync(client, prompt, ollama_host)
                     if analysis:

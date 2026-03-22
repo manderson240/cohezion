@@ -1,0 +1,13 @@
+[package]
+name = "cohezion-physics-core"
+version = "0.1.0"
+edition = "2024"
+
+[lib]
+name = "cohezion_physics_core"
+crate-type = ["cdylib"]
+
+[dependencies]
+ndarray = "0.17.2"
+numpy = "0.28.0"
+pyo3 = { version = "0.28.2", features = ["extension-module"] }

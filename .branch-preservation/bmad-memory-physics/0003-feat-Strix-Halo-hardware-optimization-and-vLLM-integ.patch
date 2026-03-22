@@ -1,0 +1,224 @@
+From 0764fe91dfc2a5943d6a28375859b4c0d11bb9b7 Mon Sep 17 00:00:00 2001
+From: Mike Anderson <mike@example.com>
+Date: Thu, 5 Mar 2026 13:13:32 -0500
+Subject: [PATCH 3/3] feat: Strix Halo hardware optimization and vLLM
+ integration
+
+- Configured local environment for Unified Memory Architecture (UMA) via ttm.pages_limit
+- Integrated vLLM ROCm container into docker-compose for high-throughput inference
+- Added VllmRocmGateway to dynamically route to local vLLM instances
+- Added DeepSeek-R1 (70B) to the model registry as the Tier 1 Orchestrator
+
+Entire-Checkpoint: e62031196b2c
+---
+ scripts/setup-strix-halo.sh            | 42 +++++++++++++++++++++
+ src/cohezion/gateway/__init__.py       |  3 +-
+ src/cohezion/gateway/vllm_adapter.py   | 52 ++++++++++++++++++++++++++
+ src/cohezion/swarm/model_registry.yaml |  9 +++++
+ src/cohezion/swarm/token_client.py     | 26 +++++++++----
+ 5 files changed, 124 insertions(+), 8 deletions(-)
+ create mode 100755 scripts/setup-strix-halo.sh
+ create mode 100644 src/cohezion/gateway/vllm_adapter.py
+
+diff --git a/scripts/setup-strix-halo.sh b/scripts/setup-strix-halo.sh
+new file mode 100755
+index 000000000..9bdc3dd64
+--- /dev/null
++++ b/scripts/setup-strix-halo.sh
+@@ -0,0 +1,42 @@
++#!/bin/bash
++# Strix Halo / Ryzen AI Max OS Configuration Script
++# Automates the application of GTT pool expansion and other ROCm prerequisites
++
++set -e
++
++echo "🚀 Cohezion: Strix Halo Hardware Hardening Script"
++echo "--------------------------------------------------"
++
++# Check for root
++if [ "$EUID" -ne 0 ]; then
++  echo "❌ Please run as root (sudo ./setup-strix-halo.sh)"
++  exit 1
++fi
++
++echo "1. Configuring GRUB for 120GB GTT Pool..."
++# Backup GRUB
++cp /etc/default/grub /etc/default/grub.bak.$(date +%F_%T)
++
++# Check if parameters already exist
++if grep -q "ttm.pages_limit" /etc/default/grub; then
++    echo "⚠️  ttm.pages_limit already found in GRUB. Skipping modification to avoid duplicates."
++else
++    # 120GB = 31457280 pages (4KB pages)
++    # Add parameters to GRUB_CMDLINE_LINUX_DEFAULT
++    sed -i 's/GRUB_CMDLINE_LINUX_DEFAULT="/GRUB_CMDLINE_LINUX_DEFAULT="ttm.pages_limit=31457280 ttm.page_pool_size=31457280 /' /etc/default/grub
++    echo "✅ Applied ttm.pages_limit to GRUB configuration."
++    
++    echo "2. Updating GRUB..."
++    update-grub
++    
++    echo "✅ GRUB updated. A REBOOT IS REQUIRED for these changes to take effect."
++fi
++
++echo "3. Pulling vLLM ROCm Docker image..."
++# We use docker instead of requiring native installation to isolate the environment
++docker pull rocm/vllm-dev:main
++
++echo "--------------------------------------------------"
++echo "✅ Configuration complete."
++echo "⚠️ IMPORTANT: Please reboot your system to apply the kernel parameters."
++echo "⚠️ After rebooting, verify with: dmesg | grep -i 'gtt memory'"
+diff --git a/src/cohezion/gateway/__init__.py b/src/cohezion/gateway/__init__.py
+index 103979385..4f5a71e95 100644
+--- a/src/cohezion/gateway/__init__.py
++++ b/src/cohezion/gateway/__init__.py
+@@ -11,6 +11,7 @@ Two server options:
+ from cohezion.gateway.base_openai_adapter import BaseOpenAIGateway, GatewayMetrics
+ from cohezion.gateway.inception_adapter import InceptionGateway
+ from cohezion.gateway.ngrok_adapter import NgrokAIGateway
++from cohezion.gateway.vllm_adapter import VllmRocmGateway
+ 
+ 
+-__all__ = ["BaseOpenAIGateway", "GatewayMetrics", "InceptionGateway", "NgrokAIGateway"]
++__all__ = ["BaseOpenAIGateway", "GatewayMetrics", "InceptionGateway", "NgrokAIGateway", "VllmRocmGateway"]
+diff --git a/src/cohezion/gateway/vllm_adapter.py b/src/cohezion/gateway/vllm_adapter.py
+new file mode 100644
+index 000000000..7e68c091c
+--- /dev/null
++++ b/src/cohezion/gateway/vllm_adapter.py
+@@ -0,0 +1,52 @@
++"""vLLM ROCm adapter for high-throughput local inference."""
++
++import logging
++import os
++from typing import Any
++
++from cohezion.gateway.base_openai_adapter import BaseOpenAIGateway
++
++
++logger = logging.getLogger(__name__)
++
++
++class VllmRocmGateway(BaseOpenAIGateway):
++    """vLLM ROCm adapter with high-throughput continuous batching support.
++
++    Inherits from BaseOpenAIGateway for httpx support and common OpenAI logic.
++    Assumes vLLM is running locally on port 8000.
++    """
++
++    def __init__(
++        self,
++        api_key: str | None = None,
++        base_url: str = "http://localhost:8000/v1",
++        fallback_ollama_url: str = "http://localhost:11434",
++        enable_failover: bool = True,
++        timeout: float = 300.0,
++        max_retries: int = 3,
++    ):
++        """Initialize vLLM ROCm adapter."""
++        # vLLM API key is usually dummy but we allow overriding
++        api_key = api_key or os.getenv("VLLM_API_KEY", "ollama")
++
++        super().__init__(
++            api_key=api_key,
++            base_url=base_url,
++            fallback_ollama_url=fallback_ollama_url,
++            enable_failover=enable_failover,
++            timeout=timeout,
++            max_retries=max_retries,
++        )
++        logger.info(f"VllmRocmGateway configured: {self.base_url} (httpx enabled)")
++
++    async def generate(
++        self,
++        prompt: str,
++        model: str = "deepseek-ai/DeepSeek-R1-Distill-Llama-70B",
++        system: str = "",
++        num_predict: int = 256,
++        **kwargs: Any,
++    ) -> tuple[str, int]:
++        """Generate response with vLLM gateway or Ollama fallback."""
++        return await super().generate(prompt=prompt, model=model, system=system, num_predict=num_predict, **kwargs)
+diff --git a/src/cohezion/swarm/model_registry.yaml b/src/cohezion/swarm/model_registry.yaml
+index 4e319187a..d8e3cc6dc 100644
+--- a/src/cohezion/swarm/model_registry.yaml
++++ b/src/cohezion/swarm/model_registry.yaml
+@@ -73,6 +73,15 @@ models:
+     context_window: 8192
+     quant_factor: 0.5
+ 
++  - name: deepseek-r1:70b
++    provider: vllm_rocm
++    params_b: 70.0
++    quality: 0.96
++    tps: 12.0
++    context_window: 131072
++    quant_factor: 0.5
++    cost_per_1k: 0.0
++
+   - name: deepseek-r1:7b
+     provider: ollama
+     params_b: 7.0
+diff --git a/src/cohezion/swarm/token_client.py b/src/cohezion/swarm/token_client.py
+index 67d126353..d65a455af 100644
+--- a/src/cohezion/swarm/token_client.py
++++ b/src/cohezion/swarm/token_client.py
+@@ -112,9 +112,7 @@ class ResilientOllamaClient:
+ 
+             except Exception as e:
+                 if attempt == self.max_retries - 1:
+-                    raise RuntimeError(
+-                        f"Ollama request failed after {self.max_retries} retries: {e}"
+-                    ) from e
++                    raise RuntimeError(f"Ollama request failed after {self.max_retries} retries: {e}") from e
+ 
+                 wait_time = 0.5 * (2**attempt)
+                 logger.warning(
+@@ -168,6 +166,9 @@ class TokenEfficientClient:
+         enable_ngrok_failover: bool = True,
+         use_inception: bool = False,
+         inception_api_key: str | None = None,
++        use_vllm: bool = False,
++        vllm_api_key: str | None = None,
++        vllm_base_url: str = "http://localhost:8000/v1",
+     ):
+         """Initialize token-efficient client.
+ 
+@@ -184,9 +185,22 @@ class TokenEfficientClient:
+             enable_ngrok_failover: Whether to failover to Ollama if ngrok fails (default: True)
+             use_inception: Whether to use Inception Labs directly (default: False)
+             inception_api_key: Inception Labs API key
++            use_vllm: Whether to use vLLM directly (default: False)
++            vllm_api_key: vLLM API key
++            vllm_base_url: vLLM API base URL
+         """
+         # Initialize with specialized gateway or local Ollama
+-        if use_inception or inception_api_key:
++        if use_vllm or vllm_api_key:
++            from cohezion.gateway import VllmRocmGateway
++
++            self.ollama = VllmRocmGateway(
++                api_key=vllm_api_key,
++                base_url=vllm_base_url,
++                fallback_ollama_url=ollama_base_url,
++                enable_failover=enable_ngrok_failover,
++            )
++            logger.info(f"TokenEfficientClient using vLLM gateway: {vllm_base_url}")
++        elif use_inception or inception_api_key:
+             from cohezion.gateway import InceptionGateway
+ 
+             self.ollama = InceptionGateway(
+@@ -214,9 +228,7 @@ class TokenEfficientClient:
+ 
+         # Initialize cache - persistent by default for session restore
+         if use_persistent_cache:
+-            persistent_cache = PersistentTokenCache(
+-                cache_dir=cache_dir, persistence_enabled=True, auto_restore=True
+-            )
++            persistent_cache = PersistentTokenCache(cache_dir=cache_dir, persistence_enabled=True, auto_restore=True)
+             self.batch_processor = BatchProcessor(self, self.config, cache=persistent_cache)
+         else:
+             self.batch_processor = BatchProcessor(self, self.config)
+-- 
+2.43.0
+

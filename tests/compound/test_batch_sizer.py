@@ -413,6 +413,7 @@ class TestVaultPersistence:
 
     def test_learn_from_vault_with_mock_client(self, predictor):
         """Test learn_from_vault with mocked vault client."""
+
         # Create a mock vault client
         class MockVaultClient:
             def vault_search(self, query, scope="all"):

@@ -1,0 +1,59 @@
+name: Autonomous Scout
+
+# Runs weekly to research new models and log findings to vault.
+# Also available via workflow_dispatch for on-demand remote triggering.
+#
+# What it does:
+#   - Runs the /scout skill: searches HuggingFace + Ollama for trending SLMs (<20B params)
+#   - Logs findings to cohezion-vault as experiment notes
+#   - Posts a summary comment on the most recent open issue (or creates one)
+#
+# Trigger remotely: GitHub Actions → Autonomous Scout → Run workflow
+
+on:
+  schedule:
+    # Every Sunday at 08:00 UTC
+    - cron: '0 8 * * 0'
+  workflow_dispatch:
+    inputs:
+      focus:
+        description: 'Research focus (leave blank for general model scouting)'
+        required: false
+        default: ''
+        type: string
+      post_issue:
+        description: 'Create a GitHub issue with findings'
+        required: false
+        default: true
+        type: boolean
+
+jobs:
+  scout:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Build scout prompt
+        id: prompt
+        run: |
+          FOCUS="${{ inputs.focus }}"
+          if [ -n "$FOCUS" ]; then
+            PROMPT="Run /scout with a focus on: $FOCUS. Log all findings to vault as an experiment note. Post a summary as a comment on this issue."
+          else
+            PROMPT="Run /scout — search HuggingFace and Ollama for trending models under 20B parameters released in the past 7 days. Evaluate each for Cohezion relevance (local inference on AMD Ryzen AI MAX+ 395 with Ollama). Log findings to vault as an experiment note and post a brief summary."
+          fi
+          echo "prompt=$PROMPT" >> $GITHUB_OUTPUT
+
+      - name: Run Claude Scout
+        uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          prompt: ${{ steps.prompt.outputs.prompt }}
+          direct_prompt: true

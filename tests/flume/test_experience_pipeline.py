@@ -6,10 +6,8 @@
 from __future__ import annotations
 
 from pathlib import Path
-from unittest.mock import patch
 
 import numpy as np
-import pytest
 import torch
 
 from cohezion.flume.experience_encoder import (
@@ -88,13 +86,18 @@ class TestExperienceCollector:
 
     def test_collector_handles_missing_dirs(self, tmp_path: Path) -> None:
         """Empty/missing parquet and vault dirs -> empty list, no crash."""
+        from unittest.mock import patch
+
         from cohezion.flume.experience_collector import ExperienceCollector
 
         collector = ExperienceCollector(
             parquet_dir=tmp_path / "nonexistent_parquet",
             vault_dir=tmp_path / "nonexistent_vault",
         )
-        results = collector.collect_all()
+        # Mock the SurrealDB tier to isolate from live data — this test only
+        # validates filesystem tier behavior when directories don't exist.
+        with patch.object(collector, "_collect_surreal", return_value=[]):
+            results = collector.collect_all()
         assert isinstance(results, list)
         assert len(results) == 0
 

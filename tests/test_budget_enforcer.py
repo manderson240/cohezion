@@ -9,9 +9,7 @@ Verifies:
 - Graceful degradation on vault failure
 """
 
-import asyncio
 import time
-from unittest.mock import AsyncMock
 
 import pytest
 

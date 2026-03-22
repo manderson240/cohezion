@@ -18,6 +18,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
+
 logger = logging.getLogger(__name__)
 
 
@@ -103,11 +104,7 @@ def run_audit(audit_type: str = "pre") -> PlatformAudit:
             )
         )
     except Exception as e:
-        checks.append(
-            AuditResult(
-                name="tests_passing", status="warn", value=False, details=str(e)
-            )
-        )
+        checks.append(AuditResult(name="tests_passing", status="warn", value=False, details=str(e)))
 
     # 4. Count skills
     skills = list(Path("src/cohezion/skills").glob("*.md"))
@@ -152,9 +149,7 @@ def run_audit(audit_type: str = "pre") -> PlatformAudit:
         if resp.status_code == 200:
             models = resp.json().get("models", [])
             slm_count = sum(
-                1
-                for m in models
-                if any(x in m["name"] for x in ["gemma", "phi", "mistral"])
+                1 for m in models if any(x in m["name"] for x in ["gemma", "phi", "mistral"])
             )
             checks.append(
                 AuditResult(
@@ -167,9 +162,7 @@ def run_audit(audit_type: str = "pre") -> PlatformAudit:
         else:
             raise Exception("Ollama not responding")
     except Exception as e:
-        checks.append(
-            AuditResult(name="ollama_slms", status="warn", value=0, details=str(e))
-        )
+        checks.append(AuditResult(name="ollama_slms", status="warn", value=0, details=str(e)))
 
     # 7. Check documentation
     docs = list(Path("src/cohezion/knowledge_graph/retrospectives").glob("*.md"))
@@ -184,12 +177,8 @@ def run_audit(audit_type: str = "pre") -> PlatformAudit:
     )
 
     # 8. Check universe nodes (journeys, simulations)
-    journeys = list(
-        Path("src/cohezion/knowledge_graph/universe_nodes/journeys").glob("*.json")
-    )
-    sims = list(
-        Path("src/cohezion/knowledge_graph/universe_nodes/simulations").glob("*.json")
-    )
+    journeys = list(Path("src/cohezion/knowledge_graph/universe_nodes/journeys").glob("*.json"))
+    sims = list(Path("src/cohezion/knowledge_graph/universe_nodes/simulations").glob("*.json"))
     checks.append(
         AuditResult(
             name="universe_nodes",
@@ -250,10 +239,7 @@ def run_audit(audit_type: str = "pre") -> PlatformAudit:
     # Save audit
     audit_dir = Path("src/cohezion/knowledge_graph/audits")
     audit_dir.mkdir(parents=True, exist_ok=True)
-    audit_file = (
-        audit_dir
-        / f"audit_{audit_type}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
-    )
+    audit_file = audit_dir / f"audit_{audit_type}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
     with open(audit_file, "w") as f:
         json.dump(audit.to_dict(), f, indent=2)
 
@@ -269,9 +255,7 @@ def print_audit(audit: PlatformAudit):
     print(f"{'=' * 60}\n")
 
     for check in audit.checks:
-        icon = (
-            "✅" if check.status == "pass" else "⚠️" if check.status == "warn" else "❌"
-        )
+        icon = "✅" if check.status == "pass" else "⚠️" if check.status == "warn" else "❌"
         print(f"{icon} {check.name}: {check.value}")
         if check.details:
             print(f"   {check.details}")
