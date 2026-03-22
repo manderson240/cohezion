@@ -29,12 +29,13 @@ from cohezion.compound.models import (
     IntentType,
     SuccessCriterion,
 )
-from cohezion.core.mcp_client import MCPClient
+
 
 
 if TYPE_CHECKING:
     from cohezion.compound.executor import ExecutionResult
     from cohezion.compound.inflection_detector import AnomalyDetection
+    from cohezion.core.mcp_client import MCPClient
 
 
 logger = logging.getLogger(__name__)
@@ -98,9 +99,7 @@ _CONSTRAINT_PATTERNS = {
         re.IGNORECASE,
     ),
     ConstraintType.QUALITY: re.compile(r"(high|low|max|min)\s*quality", re.IGNORECASE),
-    ConstraintType.SCOPE: re.compile(
-        r"(?:only|just|restrict(?:ed)?|limit)\s+to\s+(\w+)", re.IGNORECASE
-    ),
+    ConstraintType.SCOPE: re.compile(r"(?:only|just|restrict(?:ed)?|limit)\s+to\s+(\w+)", re.IGNORECASE),
 }
 
 # Success criterion metric mapping
@@ -231,36 +230,28 @@ class RequestAlignmentAnalyzer:
             ExecutionAlignment with scores, violations, failures, recommendations
         """
         # Compute intent match score
-        intent_match_score = self._compute_intent_match(
-            request.intent, operation_type, execution_result
-        )
+        intent_match_score = self._compute_intent_match(request.intent, operation_type, execution_result)
 
         # Check constraint satisfaction
-        violations = self._check_constraints(request.constraints or [], execution_result.metrics)
+        violations = self._check_constraints(request.constraints, execution_result.metrics)
         constraint_satisfaction = max(0.0, 1.0 - (len(violations) * 0.3))  # Penalty per violation
 
         # Check success criteria
-        failures = self._check_criteria(request.criteria or [], execution_result.metrics)
+        failures = self._check_criteria(request.criteria, execution_result.metrics)
         criteria_satisfaction = max(0.0, 1.0 - (len(failures) * 0.2))  # Penalty per failure
 
         # Detect drift signals
         drift_signals = self._detect_drift_signals(execution_result, anomaly_analysis)
-        drift_penalty = (
-            sum(s.severity for s in drift_signals) / len(drift_signals) if drift_signals else 0.0
-        )
+        drift_penalty = sum(s.severity for s in drift_signals) / len(drift_signals) if drift_signals else 0.0
 
         # Compute composite misalignment score
-        alignment_score = (
-            0.4 * intent_match_score + 0.3 * constraint_satisfaction + 0.3 * criteria_satisfaction
-        )
+        alignment_score = 0.4 * intent_match_score + 0.3 * constraint_satisfaction + 0.3 * criteria_satisfaction
         misalignment_score = (1.0 - alignment_score) + (drift_penalty * 0.2)
         misalignment_score = min(1.0, max(0.0, misalignment_score))
 
         # Generate issues and recommendations
         issues = self._generate_issues(violations, failures, drift_signals, intent_match_score)
-        recommendations = self._generate_recommendations(
-            violations, failures, drift_signals, request.intent
-        )
+        recommendations = self._generate_recommendations(violations, failures, drift_signals, request.intent)
 
         return ExecutionAlignment(
             intent_match_score=intent_match_score,
@@ -275,9 +266,7 @@ class RequestAlignmentAnalyzer:
             should_retry=misalignment_score > 0.5,
         )
 
-    def log_alignment_to_vault(
-        self, request: HumanRequest, alignment: ExecutionAlignment, project: str
-    ) -> str:
+    def log_alignment_to_vault(self, request: HumanRequest, alignment: ExecutionAlignment, project: str) -> str:
         """Log alignment analysis to vault for experience guidance.
 
         Args:
@@ -295,9 +284,7 @@ class RequestAlignmentAnalyzer:
             # Normal alignment: log as experiment
             return self._log_as_experiment(request, alignment, project)
 
-    def query_alignment_patterns(
-        self, task_description: str, project: str = "cohezion"
-    ) -> dict[str, Any]:
+    def query_alignment_patterns(self, task_description: str, project: str = "cohezion") -> dict[str, Any]:
         """Query vault for prior alignment patterns on similar tasks.
 
         Args:
@@ -388,9 +375,7 @@ class RequestAlignmentAnalyzer:
 
             # Compute intent prototypes (lazy)
             intent_prototypes = {
-                "generate": encoder.encode(
-                    "Create, write, compose, draft, and produce new content"
-                ),
+                "generate": encoder.encode("Create, write, compose, draft, and produce new content"),
                 "analyze": encoder.encode("Evaluate, assess, review, and analyze existing content"),
                 "search": encoder.encode("Find, locate, discover, and search for items"),
                 "transform": encoder.encode("Convert, reformat, extract, and transform data"),
@@ -434,9 +419,7 @@ class RequestAlignmentAnalyzer:
         if match:
             value = float(match.group(1))
             constraints.append(
-                ExecutionConstraint(
-                    type=ConstraintType.TOKENS, value=value, unit="tokens", is_hard=True
-                )
+                ExecutionConstraint(type=ConstraintType.TOKENS, value=value, unit="tokens", is_hard=True)
             )
 
         # Check LATENCY constraint
@@ -455,9 +438,7 @@ class RequestAlignmentAnalyzer:
             }
             value_ms = value * multipliers.get(unit, 1)
             constraints.append(
-                ExecutionConstraint(
-                    type=ConstraintType.LATENCY, value=value_ms, unit="ms", is_hard=True
-                )
+                ExecutionConstraint(type=ConstraintType.LATENCY, value=value_ms, unit="ms", is_hard=True)
             )
 
         # Check QUALITY constraint
@@ -479,15 +460,11 @@ class RequestAlignmentAnalyzer:
         match = _CONSTRAINT_PATTERNS[ConstraintType.SCOPE].search(request_text)
         if match:
             scope = match.group(1)
-            constraints.append(
-                ExecutionConstraint(type=ConstraintType.SCOPE, value=1.0, unit=scope, is_hard=True)
-            )
+            constraints.append(ExecutionConstraint(type=ConstraintType.SCOPE, value=1.0, unit=scope, is_hard=True))
 
         return constraints
 
-    def _extract_criteria(
-        self, request_text: str, intent_type: IntentType
-    ) -> list[SuccessCriterion]:
+    def _extract_criteria(self, request_text: str, intent_type: IntentType) -> list[SuccessCriterion]:
         """Extract success criteria from request text.
 
         Args:
@@ -544,9 +521,7 @@ class RequestAlignmentAnalyzer:
 
         return includes, excludes
 
-    def _compute_intent_match(
-        self, request_intent: IntentType, operation_type: str, result: ExecutionResult
-    ) -> float:
+    def _compute_intent_match(self, request_intent: IntentType, operation_type: str, result: ExecutionResult) -> float:
         """Compute how well executed operation matched request intent.
 
         Args:
@@ -567,12 +542,19 @@ class RequestAlignmentAnalyzer:
                 import numpy as np
 
                 encoder = self.text_encoder
-                intent_prototype = encoder.encode(f"This is a {request_intent.name.lower()} task")
-                output_embedding = encoder.encode(result.output[:500])  # First 500 chars
+                intent_prototype = encoder.encode(
+                    f"This is a {request_intent.value} task"
+                )
+                output_embedding = encoder.encode(
+                    result.output[:500]
+                )  # First 500 chars
 
                 similarity = float(
                     np.dot(intent_prototype, output_embedding)
-                    / (np.linalg.norm(intent_prototype) * np.linalg.norm(output_embedding))
+                    / (
+                        np.linalg.norm(intent_prototype)
+                        * np.linalg.norm(output_embedding)
+                    )
                 )
                 return max(0.0, min(1.0, similarity))
             except Exception as e:
@@ -633,7 +615,9 @@ class RequestAlignmentAnalyzer:
                 quality_metrics = ["coherence", "accuracy", "correctness"]
                 actual_quality = max((metrics.get(m, 0) for m in quality_metrics), default=0.0)
                 if actual_quality < constraint.value:
-                    severity = min(1.0, (constraint.value - actual_quality) / constraint.value)
+                    severity = min(
+                        1.0, (constraint.value - actual_quality) / constraint.value
+                    )
                     violations.append(
                         ConstraintViolation(
                             constraint=constraint,
@@ -645,9 +629,7 @@ class RequestAlignmentAnalyzer:
 
         return violations
 
-    def _check_criteria(
-        self, criteria: list[SuccessCriterion], metrics: dict[str, Any]
-    ) -> list[CriterionFailure]:
+    def _check_criteria(self, criteria: list[SuccessCriterion], metrics: dict[str, Any]) -> list[CriterionFailure]:
         """Check which success criteria were not met.
 
         Args:
@@ -674,9 +656,7 @@ class RequestAlignmentAnalyzer:
 
         return failures
 
-    def _detect_drift_signals(
-        self, result: ExecutionResult, anomaly: AnomalyDetection | None
-    ) -> list[DriftSignal]:
+    def _detect_drift_signals(self, result: ExecutionResult, anomaly: AnomalyDetection | None) -> list[DriftSignal]:
         """Detect signals indicating execution divergence.
 
         Args:
@@ -842,9 +822,7 @@ class RequestAlignmentAnalyzer:
 
         return recommendations
 
-    def _log_as_decision(
-        self, request: HumanRequest, alignment: ExecutionAlignment, project: str
-    ) -> str:
+    def _log_as_decision(self, request: HumanRequest, alignment: ExecutionAlignment, project: str) -> str:
         """Log high-misalignment as decision (ADR).
 
         Args:
@@ -856,7 +834,7 @@ class RequestAlignmentAnalyzer:
             Vault path or empty string on failure
         """
         try:
-            title = f"High misalignment in {request.intent.name} task: {request.raw_text[:50]}"
+            title = f"High misalignment in {request.intent.value} task: {request.raw_text[:50]}"
             context = (
                 f"Request: {request.raw_text}\n\n"
                 f"Intent: {request.intent.name} (confidence={request.intent_confidence:.2f})\n\n"
@@ -888,9 +866,7 @@ class RequestAlignmentAnalyzer:
             logger.warning("Failed to log misalignment decision (non-blocking): %s", e)
             return ""
 
-    def _log_as_experiment(
-        self, request: HumanRequest, alignment: ExecutionAlignment, project: str
-    ) -> str:
+    def _log_as_experiment(self, request: HumanRequest, alignment: ExecutionAlignment, project: str) -> str:
         """Log normal alignment as experiment.
 
         Args:
@@ -905,7 +881,7 @@ class RequestAlignmentAnalyzer:
             issues = alignment.issues or []
             recommendations = alignment.recommendations or []
             hypothesis = (
-                f"Request alignment for {request.intent.name} task: {request.raw_text[:100]}"
+                f"Request alignment for {request.intent.value} task: {request.raw_text[:100]}"
             )
             method = (
                 f"Analyzed request with intent={request.intent.name}, "
@@ -915,8 +891,7 @@ class RequestAlignmentAnalyzer:
                 f"Misalignment score: {alignment.misalignment_score:.2f} ({len(issues)} issues)"
             )
             learnings = (
-                f"Execution aligned well with request. "
-                f"Recommendations: {', '.join(recommendations)}"
+                f"Execution aligned well with request. Recommendations: {', '.join(alignment.recommendations)}"
                 if alignment.misalignment_score <= 0.3
                 else f"Moderate misalignment detected. {len(issues)} issues, retry recommended."
             )

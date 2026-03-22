@@ -251,7 +251,10 @@ class PolicyNetwork:
     """
 
     def __init__(
-        self, state_dim: int = STATE_DIM, hidden_dim: int = 64, n_actions: int = NUM_ACTIONS
+        self,
+        state_dim: int = STATE_DIM,
+        hidden_dim: int = 64,
+        n_actions: int = NUM_ACTIONS,
     ):
         self.state_dim = state_dim
         self.hidden_dim = hidden_dim

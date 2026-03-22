@@ -14,6 +14,10 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 
 
+if TYPE_CHECKING:
+    from pathlib import Path
+
+
 @pytest.fixture
 def mock_ollama():
     """Patch httpx calls to Ollama, returning a canned JSON response."""
@@ -23,9 +27,7 @@ def mock_ollama():
         json=MagicMock(return_value=canned),
         raise_for_status=MagicMock(),
     )
-    with patch(
-        "httpx.AsyncClient.post", new_callable=AsyncMock, return_value=mock_response
-    ) as mock_post:
+    with patch("httpx.AsyncClient.post", new_callable=AsyncMock, return_value=mock_response) as mock_post:
         yield mock_post
 
 
@@ -59,12 +61,15 @@ def git_repo(tmp_path: Path) -> Path:
 
     Returns the repo root path.
     """
-    _run = lambda cmd: subprocess.run(
-        cmd,
-        cwd=tmp_path,
-        capture_output=True,
-        check=True,
-    )
+
+    def _run(cmd):
+        return subprocess.run(
+            cmd,
+            cwd=tmp_path,
+            capture_output=True,
+            check=True,
+        )
+
     _run(["git", "init"])
     _run(["git", "config", "user.email", "test@cohezion.dev"])
     _run(["git", "config", "user.name", "Test User"])
@@ -149,6 +154,10 @@ def reset_singletons():
     if api_module is not None and hasattr(api_module, "_rl_policy"):
         api_module._rl_policy = None
 
+    # Reset JourneyTracker singleton to prevent trajectory/cache pollution
+    import cohezion.compound.journey_tracker as jt_module
+    jt_module._journey_tracker_instance = None
+
     # Clear ALL logger handlers and filters to prevent test pollution.
     # Root cause: RedactionFilter (or any filter) can modify LogRecord.args,
     # corrupting types (%d expects int, but filter may convert to str).
@@ -184,6 +193,9 @@ def reset_singletons():
     # Reset RL policy singleton after test
     if hasattr(api_module, "_rl_policy"):
         api_module._rl_policy = None
+
+    # Reset JourneyTracker singleton after test
+    jt_module._journey_tracker_instance = None
 
     # Clear ALL logger handlers and filters after test too
     root = logging.getLogger()

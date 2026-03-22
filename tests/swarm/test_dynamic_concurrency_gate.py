@@ -160,7 +160,7 @@ class TestMonitoring:
 
         assert gate.get_last_decision() is None
 
-        concurrency = gate.get_safe_concurrency()
+        gate.get_safe_concurrency()
         decision = gate.get_last_decision()
         assert decision is not None
         assert decision.safe_concurrency == 12

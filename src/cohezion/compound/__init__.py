@@ -25,6 +25,69 @@ from cohezion.compound.compat import (
     CompoundCycleReport,
     CompoundCycleResult,
     CompoundExecutor,
+    ExecutionResult,
+    ExecutorFactory,
+)
+from cohezion.compound.exp_persistence.journey import JourneyPersistence
+from cohezion.compound.exp_persistence.vault import (
+    ExecutionContext,
+    VaultLogger,
+)
+from cohezion.compound.feedback_loop import (
+    CompoundFeedbackLoop,
+    CompoundFeedbackLoopFactory,
+    FeedbackLoopResult,
+    RetryAttempt,
+    RetryStrategy,
+)
+from cohezion.compound.global_metrics_aggregator import (
+    GlobalMetricsAggregator,
+    InstanceMetrics,
+    SkillMetrics,
+    TimeWindowMetrics,
+    get_global_aggregator,
+    reset_global_aggregator,
+)
+from cohezion.compound.hardware_monitor import (
+    HardwareMetrics,
+    HardwareMonitor,
+    get_hardware_monitor,
+)
+from cohezion.compound.inflection_detector import (
+    InflectionDetector,
+    InflectionDetectorFactory,
+    Severity,
+)
+from cohezion.compound.intake_specialist import (
+    IntakeGreeting,
+    IntakeSpecialist,
+)
+from cohezion.compound.intent_classifier import IntentClassifier
+from cohezion.compound.journey_tracker import (
+    Journey,
+    JourneyTracker,
+    JourneyTrackerFactory,
+    OperationType,
+    TrajectoryPoint,
+)
+from cohezion.compound.metrics import (
+    CompoundMetricsCollector,
+    get_collector,
+    reset_collector,
+)
+from cohezion.compound.metrics_persistence import MetricsPersistence
+from cohezion.compound.model_quality_classifier import (
+    ActionRecommendation,
+    ExecutionRecord,
+    FailureMode,
+    ModelQualityClassifier,
+    QualityForecast,
+    QualityPredictor,
+    RecommendedAction,
+)
+from cohezion.compound.models import CompoundCycleReport, CompoundCycleResult
+from cohezion.compound.prompt_optimizer import PromptOptimizer
+from cohezion.compound.request_alignment_analyzer import (
     ConstraintType,
     ConstraintViolation,
     CriterionFailure,
@@ -184,6 +247,13 @@ __all__ = [
     "ConstraintViolation",
     "CriterionFailure",
     "DriftSignal",
+    "EvolutionDirective",
+    "EvolutionRoundResult",
+    "EvolutionTrainingConfig",
+    "EvolutionTrainingExporter",
+    "EvolutionTrainingPipeline",
+    "EvolutionTrainingSignalGenerator",
+    "EvolutionTrajectory",
     "ExecutionAlignment",
     "ExecutionAnalyzer",
     "ExecutionConfig",

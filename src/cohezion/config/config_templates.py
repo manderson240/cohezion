@@ -12,7 +12,11 @@ from enum import Enum
 
 CLAUDE_MD_TEMPLATE = """# Cohezion - Claude Code Orchestration
 
-COHEZION is a systemic AI orchestration ecosystem governed by **Quadrature Nexus Orchestration** and **Hermetic Compound Engineering** ("As Above, So Below"). We implement **FLUME** (Fluid Latent Understanding through Manifold Encoding) combined with **JEPA-aligned World Models** for high-fidelity 12D universe simulation, autonomous research, and value precipitation via **UCP/MCP**.
+COHEZION is a systemic AI orchestration ecosystem governed by
+**Quadrature Nexus Orchestration** and **Hermetic Compound Engineering**
+("As Above, So Below"). We implement **FLUME** combined with
+**JEPA-aligned World Models** for 12D universe simulation,
+autonomous research, and value precipitation via **UCP/MCP**.
 
 ## Constitutional Framework
 
@@ -48,7 +52,10 @@ This document serves as the primary orchestration hub for AI agents in the Cohez
 
 ## 1. Core Project Identity
 
-**COHEZION** is a systemic AI orchestration ecosystem governed by **Quadrature Nexus Orchestration** and **Hermetic Compound Engineering** ("As Above, So Below"). We implement **FLUME** methodology combined with **JEPA-aligned World Models**.
+**COHEZION** is a systemic AI orchestration ecosystem governed by
+**Quadrature Nexus Orchestration** and **Hermetic Compound Engineering**
+("As Above, So Below"). We implement **FLUME** methodology combined
+with **JEPA-aligned World Models**.
 
 ## 2. Constitutional Framework
 

@@ -317,7 +317,14 @@ class PreFlightChecker:
         result.requires_approval = (
             policy.require_human_approval
             or result.risk_score > 0.7
-            or len([v for v in result.violations if v.severity == ViolationSeverity.CRITICAL]) > 0
+            or len(
+                [
+                    v
+                    for v in result.violations
+                    if v.severity == ViolationSeverity.CRITICAL
+                ]
+            )
+            > 0
         )
 
         return result
@@ -327,7 +334,9 @@ class PreFlightChecker:
         # Allow all operations by default, policy can restrict
         return True
 
-    def _check_blocked_commands(self, request: dict[str, Any], policy: SafetyPolicy) -> str | None:
+    def _check_blocked_commands(
+        self, request: dict[str, Any], policy: SafetyPolicy
+    ) -> str | None:
         """Check for blocked command patterns."""
         context = request.get("context", {})
         command = str(context.get("command", ""))
@@ -338,9 +347,7 @@ class PreFlightChecker:
 
         return None
 
-    def _check_path_whitelist(
-        self, request: dict[str, Any], policy: SafetyPolicy
-    ) -> list[Violation]:
+    def _check_path_whitelist(self, request: dict[str, Any], policy: SafetyPolicy) -> list[Violation]:
         """Check if modified paths are whitelisted."""
         violations = []
         context = request.get("context", {})
@@ -464,7 +471,9 @@ class RiskAssessor:
         score = 0.0
 
         # Analyze operation type
-        if any(keyword in operation.lower() for keyword in ["delete", "remove", "drop"]):
+        if any(
+            keyword in operation.lower() for keyword in ["delete", "remove", "drop"]
+        ):
             score += self._risk_weights["file_modification"]
 
         if context.get("network_required", False):
@@ -535,8 +544,7 @@ class ConstraintEnforcer:
             # In production, would write to /sys/fs/cgroup/...
             # For now, log the intended limits
             logger.debug(
-                f"Would set cgroup limits: CPU {self.policy.max_cpu_percent}%, "
-                f"Memory {self.policy.max_memory_gb}GB"
+                f"Would set cgroup limits: CPU {self.policy.max_cpu_percent}%, Memory {self.policy.max_memory_gb}GB"
             )
         except Exception as e:
             logger.debug(f"Failed to set cgroup limits: {e}")
@@ -591,7 +599,9 @@ class SafetyHarness:
         Returns:
             SafetyCheckResult with all checks and violations
         """
-        logger.info(f"Running preflight checks for: {request.get('operation', 'unknown')}")
+        logger.info(
+            f"Running preflight checks for: {request.get('operation', 'unknown')}"
+        )
         return self._preflight_checker.check(request, policy)
 
     def start_monitoring(

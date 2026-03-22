@@ -20,9 +20,12 @@ import tempfile
 import time
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Protocol, runtime_checkable
+from typing import TYPE_CHECKING, Any, Protocol, runtime_checkable
 
-from cohezion.universe.sandbox_profiles import SandboxProfile
+
+if TYPE_CHECKING:
+    from cohezion.universe.sandbox_profiles import SandboxProfile
+
 
 
 logger = logging.getLogger(__name__)
@@ -171,9 +174,7 @@ class SystemdRunBackend:
             )
 
             try:
-                stdout_bytes, stderr_bytes = await asyncio.wait_for(
-                    proc.communicate(), timeout=profile.timeout_seconds
-                )
+                stdout_bytes, stderr_bytes = await asyncio.wait_for(proc.communicate(), timeout=profile.timeout_seconds)
             except TimeoutError:
                 proc.kill()
                 await proc.wait()

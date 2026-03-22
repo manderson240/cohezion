@@ -48,7 +48,7 @@ class NexusResearchDaemon(BaseAgent):
         if QUEUE_FILE.exists():
             try:
                 self.queue = json.loads(QUEUE_FILE.read_text())
-            except:
+            except Exception:
                 self.queue = []
 
         if not self.queue:
@@ -57,7 +57,7 @@ class NexusResearchDaemon(BaseAgent):
         if DONE_FILE.exists():
             try:
                 self.done = json.loads(DONE_FILE.read_text())
-            except:
+            except Exception:
                 self.done = []
 
     def save_state(self):
@@ -232,9 +232,7 @@ class NexusResearchDaemon(BaseAgent):
                 f"OUTPUT: Concise Markdown definition and logic."
             )
 
-            response = await self._call_ollama(
-                prompt=full_prompt, model="phi3:mini", temperature=0.7
-            )
+            response = await self._call_ollama(prompt=full_prompt, model="phi3:mini", temperature=0.7)
 
             # 3. Crystallize & Compress
             filename = f"LEARNING_{task.get('row', 0)}_{int(time.time())}.md"
@@ -259,9 +257,7 @@ class NexusResearchDaemon(BaseAgent):
             if old_id:
                 meta["previous_version"] = old_id
 
-            node = UniverseNode(
-                id=new_id, content=content, node_type="research_paper", metadata=meta
-            )
+            node = UniverseNode(id=new_id, content=content, node_type="research_paper", metadata=meta)
             # Use BaseAgent's db client
             await self._db.store_node(node)
 

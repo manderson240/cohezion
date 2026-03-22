@@ -44,14 +44,14 @@ def _(mo):
     mo.md(
         """
         # 🌌 Cohezion: FLUME Journey Visualization
-        
+
         **Showcasing AI that observes its own reasoning**
-        
+
         This notebook demonstrates:
-        - **12D Physics State**: Observable agent dynamics  
+        - **12D Physics State**: Observable agent dynamics
         - **FLUME Trajectories**: 256-dim thought vector evolution
         - **Swarm Debates**: Multi-perspective synthesis
-        
+
         > *"We are calling ourselves Cohezion so we need to exemplify coherence"*
         """
     )
@@ -68,10 +68,10 @@ def _(mo, Path, json):
         latest_debate = json.loads(debate_files[0].read_text())
         mo.md(f"""
         ## Latest Swarm Debate
-        **File:** `{debate_files[0].name}`  
-        **Confidence:** {latest_debate.get("confidence", 0):.0%}  
+        **File:** `{debate_files[0].name}`
+        **Confidence:** {latest_debate.get("confidence", 0):.0%}
         **Processing Time:** {latest_debate.get("processing_time_ms", 0):.0f}ms
-        
+
         ### Decision
         {latest_debate.get("response", "No response")[:500]}...
         """)
@@ -115,7 +115,7 @@ def _(mo, np, plt):
     fig, axes = plt.subplots(3, 4, figsize=(14, 10))
     fig.suptitle("12D Agent Physics State Over Time", fontsize=14)
 
-    for i, (ax, dim) in enumerate(zip(axes.flat, dimensions)):
+    for i, (ax, dim) in enumerate(zip(axes.flat, dimensions, strict=False)):
         ax.plot(trajectory[:, i], linewidth=2)
         ax.set_title(dim.capitalize())
         ax.set_xlabel("Timestep")
@@ -167,11 +167,11 @@ def _(mo, np, plt, trajectory):
 def _(mo):
     mo.md("""
     ## Credits
-    
+
     - **FLUME** (Fluid Latent Understanding through Manifold Encoding) - Original creation
     - **R-Zero Protocol** - Adapted from [Huang et al.](https://chengsong-huang.github.io/R-Zero.github.io/)
     - **Constitutional AI** - Inspired by Anthropic research
-    
+
     See [CREDITS.md](/home/mike-anderson/dev/cohezion/CREDITS.md) for full attribution.
     """)
     return
@@ -181,7 +181,7 @@ def _(mo):
 def _(mo):
     mo.md("""
     ---
-    *Built for Anthropic Research Engineer, Universes Application*  
+    *Built for Anthropic Research Engineer, Universes Application*
     *cohezion.duckdns.org | 2026*
     """)
     return

@@ -70,9 +70,7 @@ def mock_vae_encoder():
 
 
 @pytest.fixture
-def skill_tracker(
-    mock_surreal_client, mock_coherence_tracker, mock_journey_logger, mock_vae_encoder
-):
+def skill_tracker(mock_surreal_client, mock_coherence_tracker, mock_journey_logger, mock_vae_encoder):
     """Create CharterAlignedSkillTracker with mocked dependencies."""
     with (
         patch(
@@ -169,9 +167,7 @@ class TestCharterAlignedSkillTracker:
         assert call_args[0][1]["hiho_stable"] is True
 
     @pytest.mark.asyncio
-    async def test_log_skill_usage_hiho_unstable(
-        self, skill_tracker, mock_surreal_client, mock_journey_logger
-    ):
+    async def test_log_skill_usage_hiho_unstable(self, skill_tracker, mock_surreal_client, mock_journey_logger):
         """Test logging skill usage that is HIHO unstable."""
         event = SkillUsageEvent(
             skill_name="test_skill",

@@ -226,7 +226,10 @@ class CompoundExecutor(CompoundContextMixin):
         return self._alignment_analyzer
 
     def get_experience_guidance(
-        self, task_description: str, project: str = "cohezion", operation_type: str = "generate"
+        self,
+        task_description: str,
+        project: str = "cohezion",
+        operation_type: str = "generate",
     ) -> dict[str, Any]:
         """Fetch experience guidance from vault before execution.
 
@@ -405,7 +408,9 @@ class CompoundExecutor(CompoundContextMixin):
                 logger.debug("Universe bridge start failed (non-blocking): %s", e)
 
         # Step 1: Get experience guidance (enhanced with trajectory search)
-        guidance = self.get_experience_guidance(task_description, project, operation_type)
+        guidance = self.get_experience_guidance(
+            task_description, project, operation_type
+        )
         logger.debug("Experience guidance: %s", guidance)
 
         # Step 1.5: Parse request for alignment analysis (if enabled)
@@ -432,7 +437,9 @@ class CompoundExecutor(CompoundContextMixin):
                 )
             except Exception as e:
                 logger.debug(
-                    "Request alignment parsing failed (non-blocking): %s", e, exc_info=True
+                    "Request alignment parsing failed (non-blocking): %s",
+                    e,
+                    exc_info=True,
                 )
 
         # Step 2: Log execution start
@@ -452,9 +459,7 @@ class CompoundExecutor(CompoundContextMixin):
                 "operation_type": operation_type,
                 "task_description": task_description,
             }
-            input_check = _run_async_guardrail(
-                self.guardrail_pipeline.check_input(task_description, guard_context)
-            )
+            input_check = _run_async_guardrail(self.guardrail_pipeline.check_input(task_description, guard_context))
             if input_check and input_check.action == GuardrailAction.BLOCK:
                 error_msg = f"Input blocked by guardrails: {input_check.reason}"
                 output = f"Error: {error_msg}"
@@ -503,9 +508,7 @@ class CompoundExecutor(CompoundContextMixin):
                 "operation_type": operation_type,
                 "task_description": task_description,
             }
-            output_check = _run_async_guardrail(
-                self.guardrail_pipeline.check_output(output, guard_context)
-            )
+            output_check = _run_async_guardrail(self.guardrail_pipeline.check_output(output, guard_context))
             if output_check:
                 if output_check.action == GuardrailAction.BLOCK:
                     output = "[Output blocked by content filter]"
@@ -561,7 +564,10 @@ class CompoundExecutor(CompoundContextMixin):
                         title=f"Critical anomaly in {skill_name}",
                         context=f"Task: {task_description}\nIssues: {'; '.join(anomaly.issues)}",
                         decision="Re-execution recommended",
-                        rationale=f"Quality score {anomaly.score:.2f}, {anomaly.recommendations[0] if anomaly.recommendations else 'Investigate issues'}",
+                        rationale=(
+                            f"Quality score {anomaly.score:.2f},"
+                            f" {anomaly.recommendations[0] if anomaly.recommendations else 'Investigate issues'}"
+                        ),
                         project=project,
                     )
                     if decision_path:
@@ -572,7 +578,11 @@ class CompoundExecutor(CompoundContextMixin):
             logger.debug("Anomaly detection failed (non-blocking): %s", e, exc_info=True)
 
         # Step 5.5: Analyze request-execution alignment (if enabled)
-        if self._enable_alignment_analysis and self.alignment_analyzer and parsed_request:
+        if (
+            self._enable_alignment_analysis
+            and self.alignment_analyzer
+            and parsed_request
+        ):
             try:
                 from cohezion.compound.inflection_detector import Severity
 
@@ -606,9 +616,7 @@ class CompoundExecutor(CompoundContextMixin):
 
                 # Log alignment to vault if high misalignment
                 if alignment.misalignment_score > 0.3:
-                    vault_path = self.alignment_analyzer.log_alignment_to_vault(
-                        parsed_request, alignment, project
-                    )
+                    vault_path = self.alignment_analyzer.log_alignment_to_vault(parsed_request, alignment, project)
                     if vault_path:
                         decision_paths.append(vault_path)
                         logger.debug("Logged alignment analysis: %s", vault_path)
@@ -742,9 +750,7 @@ class CompoundExecutor(CompoundContextMixin):
                     degradation_metrics["combined_hit_rate"] = token_metrics.get(
                         "cache_hit_rate", token_metrics.get("combined_hit_rate", 0.0)
                     )
-                    degradation_metrics["tokens_per_second"] = token_metrics.get(
-                        "tokens_per_second", 0.0
-                    )
+                    degradation_metrics["tokens_per_second"] = token_metrics.get("tokens_per_second", 0.0)
                 alerts = self._degradation_detector.check_degradation(degradation_metrics)
                 if alerts:
                     metrics["degradation_alerts"] = len(alerts)
@@ -755,13 +761,14 @@ class CompoundExecutor(CompoundContextMixin):
                             alert.message,
                         )
                     # Log critical alerts to vault and enter degradation mode
-                    critical_alerts = [a for a in alerts if a.severity.value == "CRITICAL"]
+                    critical_alerts = [
+                        a for a in alerts if a.severity.value == "CRITICAL"
+                    ]
                     if critical_alerts:
                         self._degradation_mode = True
                         metrics["execution_degraded"] = True
                         logger.warning(
-                            "Entering degradation mode: %d CRITICAL alerts, "
-                            "cohesion=%.2f outside HIHO band",
+                            "Entering degradation mode: %d CRITICAL alerts, cohesion=%.2f outside HIHO band",
                             len(critical_alerts),
                             coherence_val,
                         )
@@ -833,9 +840,7 @@ class CompoundExecutor(CompoundContextMixin):
                     duration_seconds=duration_seconds,
                     token_metrics=token_metrics,
                 )
-                point = self._journey_tracker.track_execution(
-                    temp_result, task_description, operation_type
-                )
+                point = self._journey_tracker.track_execution(temp_result, task_description, operation_type)
                 journey_point_tracked = True
                 # Propagate phi_score to metrics for retrospection
                 if point and point.metadata:
@@ -939,7 +944,9 @@ class CompoundExecutor(CompoundContextMixin):
         if "api_calls" in metrics_after and "api_calls" in metrics_before:
             delta["api_calls_made"] = metrics_after["api_calls"] - metrics_before["api_calls"]
         if "cache_hits" in metrics_after and "cache_hits" in metrics_before:
-            delta["cache_hits"] = metrics_after["cache_hits"] - metrics_before["cache_hits"]
+            delta["cache_hits"] = (
+                metrics_after["cache_hits"] - metrics_before["cache_hits"]
+            )
         if "cache_misses" in metrics_after and "cache_misses" in metrics_before:
             delta["cache_misses"] = metrics_after["cache_misses"] - metrics_before["cache_misses"]
 

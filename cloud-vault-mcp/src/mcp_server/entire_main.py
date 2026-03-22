@@ -82,7 +82,7 @@ def status(vault_path: str, git_path: str) -> None:
         click.echo(f"Poll interval: {status_info['poll_interval']}s")
     except Exception as e:
         click.echo(f"Error getting status: {e}", err=True)
-        raise SystemExit(1)
+        raise SystemExit(1) from e
 
 
 @cli.command()
@@ -100,16 +100,13 @@ def dlq(vault_path: str) -> None:
         click.echo("Dead Letter Queue")
         click.echo("=" * 80)
         for entry in entries:
-            click.echo(
-                f"Commit: {entry['commit_hash'][:8]} - "
-                f"Failures: {entry['failure_count']}"
-            )
+            click.echo(f"Commit: {entry['commit_hash'][:8]} - Failures: {entry['failure_count']}")
             click.echo(f"  Reason: {entry['failure_reason']}")
             click.echo(f"  Last attempt: {entry['last_attempt']}")
             click.echo()
     except Exception as e:
         click.echo(f"Error listing DLQ: {e}", err=True)
-        raise SystemExit(1)
+        raise SystemExit(1) from e
 
 
 @cli.command()
@@ -128,7 +125,7 @@ def retry(commit_hash: str, vault_path: str) -> None:
             raise SystemExit(1)
     except Exception as e:
         click.echo(f"Error retrying commit: {e}", err=True)
-        raise SystemExit(1)
+        raise SystemExit(1) from e
 
 
 @cli.command()
@@ -159,7 +156,7 @@ def backfill(vault_path: str, git_path: str, surrealdb_url: str, since: str) -> 
         click.echo(f"Failed (sent to DLQ): {results['failed']}")
     except Exception as e:
         click.echo(f"Backfill failed: {e}", err=True)
-        raise SystemExit(1)
+        raise SystemExit(1) from e
 
 
 @cli.command()
@@ -305,7 +302,7 @@ def test(vault_path: str, git_path: str) -> None:
 
     except Exception as e:
         click.echo(f"✗ Test failed: {e}", err=True)
-        raise SystemExit(1)
+        raise SystemExit(1) from e
 
 
 if __name__ == "__main__":

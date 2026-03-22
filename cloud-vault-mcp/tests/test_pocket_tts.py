@@ -200,9 +200,7 @@ class TestTTSMCPTool:
             mcp = create_server(config)
 
             # Call tool
-            result_content, result_dict = await mcp.call_tool(
-                "tts_speak", {"text": "Hello"}
-            )
+            result_content, _result_dict = await mcp.call_tool("tts_speak", {"text": "Hello"})
             # Extract text from content
             result_text = result_content[0].text
             result_data = json.loads(result_text)
@@ -235,9 +233,7 @@ class TestTTSMCPTool:
             mcp = create_server(config)
 
             # Call tool
-            result_content, result_dict = await mcp.call_tool(
-                "tts_speak", {"text": "Hello"}
-            )
+            result_content, _result_dict = await mcp.call_tool("tts_speak", {"text": "Hello"})
             # Extract text from content
             result_text = result_content[0].text
             result_data = json.loads(result_text)

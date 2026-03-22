@@ -191,9 +191,7 @@ class AxiomaticState:
         return displacement**0.5
 
     @staticmethod
-    def compute_tempic_vector(
-        state_before: AxiomaticState, state_after: AxiomaticState
-    ) -> list[float]:
+    def compute_tempic_vector(state_before: AxiomaticState, state_after: AxiomaticState) -> list[float]:
         """Compute per-dimension Tempic field (directional change vector).
 
         Returns the signed change in each brane dimension, showing not just
@@ -329,9 +327,7 @@ class UniverseJourney:
             "intent": self.intent,
             "status": self.status,
             "initial_axiomatic": self.initial_axiomatic.to_vector(),
-            "initial_latent_embedding": self.initial_latent.embedding
-            if self.initial_latent
-            else [],
+            "initial_latent_embedding": self.initial_latent.embedding if self.initial_latent else [],
             "trajectory_count": len(self.trajectory),
             "precipitation_type": list(self.precipitation.keys()),
             "final_coherence": self.final_coherence,
@@ -625,9 +621,7 @@ class UniverseSimulationEngine:
 
         journey.add_trajectory_point(point)
 
-        logger.debug(
-            f"   Trajectory step {step_num}: coherence={coherence:.3f}, phi={phi_score:.3f}"
-        )
+        logger.debug(f"   Trajectory step {step_num}: coherence={coherence:.3f}, phi={phi_score:.3f}")
 
         return point
 
@@ -636,9 +630,7 @@ class UniverseSimulationEngine:
         distance = target - current
         return current + distance * factor * 0.5  # 0.5 for gentle convergence
 
-    async def precipitate_latent_action(
-        self, journey: UniverseJourney, prompt: str
-    ) -> TrajectoryPoint:
+    async def precipitate_latent_action(self, journey: UniverseJourney, prompt: str) -> TrajectoryPoint:
         """
         TRANSFORMATION: Predict and precipitate the next 'Latent Action'.
         Uses the ManifoldBridge to convert intent into reality.
@@ -740,8 +732,7 @@ that would push this project into the 'Unknown'.
                     "type": "process_pattern",
                     "pattern": "Multi-step refinement successful",
                     "step_count": len(journey.trajectory),
-                    "avg_coherence": sum(t.coherence for t in journey.trajectory)
-                    / len(journey.trajectory),
+                    "avg_coherence": sum(t.coherence for t in journey.trajectory) / len(journey.trajectory),
                 }
             )
 

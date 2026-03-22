@@ -1,6 +1,5 @@
 """Tests for the health check module."""
 
-import os
 from pathlib import Path
 from unittest.mock import Mock
 
@@ -248,5 +247,5 @@ class TestHealthChecker:
         assert data["status"] in ("healthy", "degraded", "unhealthy")
         assert "timestamp" in data
         assert isinstance(data["checks"], dict)
-        for check_name, check_result in data["checks"].items():
+        for _check_name, check_result in data["checks"].items():
             assert isinstance(check_result, dict)

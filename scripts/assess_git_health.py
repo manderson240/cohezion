@@ -11,7 +11,11 @@ import logging
 from datetime import datetime
 from pathlib import Path
 
-from cohezion.core.persistence.surreal_client import PhysicsState, SurrealClient, UniverseNode
+from cohezion.core.persistence.surreal_client import (
+    PhysicsState,
+    SurrealClient,
+    UniverseNode,
+)
 from cohezion.flume.git_encoder import GitEncoder
 
 # Relative imports
@@ -29,9 +33,7 @@ from cohezion.swarm.swarm_types import SwarmConfig
 
 
 # Setup logging
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-)
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 logger = logging.getLogger("GitHealthAssessment")
 
 
@@ -108,7 +110,7 @@ async def run_assessment():
     logger.info("📝 Generating Executive Summary & Report...")
 
     # Generate HTML/Markdown Executive Summary for Email
-    executive_summary = f"""
+    f"""
     <h2>🛡️ Git Health Executive Brief</h2>
     <ul>
         <li><b>Health Score:</b> {auditor._calculate_global_score()} / 100</li>

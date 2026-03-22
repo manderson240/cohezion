@@ -119,7 +119,10 @@ def main():
     parser.add_argument("path", nargs="?", help="Markdown file to process")
     parser.add_argument("--all", action="store_true", help="Process all markdown files")
     parser.add_argument(
-        "--output-dir", "-o", default="renders/mermaid", help="Output directory for images"
+        "--output-dir",
+        "-o",
+        default="renders/mermaid",
+        help="Output directory for images",
     )
     parser.add_argument("--format", "-f", choices=["png", "svg", "pdf"], default="png")
 

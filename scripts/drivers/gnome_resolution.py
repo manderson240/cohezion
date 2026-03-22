@@ -25,7 +25,7 @@ def set_resolution(width, height):
 
     new_logical_monitors = []
     for lm in logical_monitors:
-        x, y, scale, transform, primary, monitors_list, properties = lm
+        x, y, scale, transform, primary, monitors_list, _properties = lm
 
         # monitors_list in logical_monitors is a list of (connector, vendor, product, serial)
         connector = monitors_list[0][0]

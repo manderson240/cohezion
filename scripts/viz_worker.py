@@ -12,9 +12,7 @@ from pathlib import Path
 
 
 worker_id = sys.argv[1] if len(sys.argv) > 1 else "1"
-output_dir = Path(
-    "/home/mike-anderson/.gemini/antigravity/brain/1b98adc2-8dce-436b-bac3-d27890e7ce04/assets"
-)
+output_dir = Path("/home/mike-anderson/.gemini/antigravity/brain/1b98adc2-8dce-436b-bac3-d27890e7ce04/assets")
 output_dir.mkdir(parents=True, exist_ok=True)
 
 print(f"🎨 Visualization Worker {worker_id} starting at {datetime.now()}", flush=True)

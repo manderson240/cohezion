@@ -39,11 +39,17 @@ import matplotlib.pyplot as plt
 import numpy as np
 from prometheus_client import Counter, Gauge, start_http_server
 
-from cohezion.core.persistence.surreal_client import PhysicsState, SurrealClient, UniverseNode
+from cohezion.core.persistence.surreal_client import (
+    PhysicsState,
+    SurrealClient,
+    UniverseNode,
+)
 from cohezion.mcp.email_notifier import EmailNotifier
 
 # Internal imports
-from cohezion.swarm.mass_simulator import MassSimulator
+from cohezion.swarm.mass_simulator import (
+    MassSimulator,
+)
 from cohezion.training.training_data_capture import (
     InteractionRecord,
     TrainingDataCapture,
@@ -109,34 +115,23 @@ class RZeroState:
         """Generate constraints with explicit Edge Cases."""
         # Edge Cases (Impossible or Boundary Conditions)
         edge_cases = [
-            {"name": "Zero Energy Warp", "zpe_limit": 0.1, "warp_target": 2.0},  # Impossible
+            {
+                "name": "Zero Energy Warp",
+                "zpe_limit": 0.1,
+                "warp_target": 2.0,
+            },  # Impossible
             {"name": "Infinite Fertility", "fertility_target": 5.0},  # Boundary break
-            {"name": "Cold Fusion", "temp_limit": 300, "energy_target": 1000},  # Edge case
+            {
+                "name": "Cold Fusion",
+                "temp_limit": 300,
+                "energy_target": 1000,
+            },  # Edge case
             {"name": "Standard Op", "zpe_limit": 10.0, "warp_target": 1.0},  # Control
         ]
 
         selected_case = random.choice(edge_cases)
 
         return {"case": selected_case, "difficulty": self.difficulty}
-
-    def update(self, score: float):
-        """Evolve difficulty based on Solver performance."""
-        self.history.append(score)
-        avg_score = sum(self.history[-10:]) / min(len(self.history), 10)
-
-        # Pragmatic Plateau Detection
-        if len(self.history) > 50 and avg_score > 0.85:
-            self.difficulty += 0.1
-            self.epoch += 1
-            self.history = []  # Reset for new epoch
-            logger.warning(f"R-Zero: Plateau detected! Difficulty -> {self.difficulty}")
-
-            # Persist Learnings
-            if hasattr(self.mem0_client, "add"):
-                self.mem0_client.add(
-                    f"Epoch {self.epoch}: Plateau at diff {self.difficulty - 0.1}",
-                    user_id="challenger",
-                )
 
     def update(self, latest_avg_score: float):
         """Update state. If solver succeeds, raise difficulty."""
@@ -155,7 +150,16 @@ class RZeroState:
 class PragmaticScorer:
     """Evaluates solutions for Overhype and Correctness."""
 
-    BUZZWORDS = ["Quantum", "Nano", "Cyber", "Hyper", "Unlimited", "Miracle", "God-Mode", "Sacred"]
+    BUZZWORDS = [
+        "Quantum",
+        "Nano",
+        "Cyber",
+        "Hyper",
+        "Unlimited",
+        "Miracle",
+        "God-Mode",
+        "Sacred",
+    ]
 
     @staticmethod
     def evaluate(response_text: str, metrics: dict, challenge: dict) -> dict:
@@ -173,10 +177,9 @@ class PragmaticScorer:
         case = challenge["case"]
 
         # Test: Zero Energy Warp
-        if case["name"] == "Zero Energy Warp":
-            if metrics["warp_factor"] > 1.0 and metrics["zpe_density"] < 0.5:
-                score -= 0.5
-                penalty_reasons.append("Violated Physics (Zero Energy Warp)")
+        if case["name"] == "Zero Energy Warp" and metrics["warp_factor"] > 1.0 and metrics["zpe_density"] < 0.5:
+            score -= 0.5
+            penalty_reasons.append("Violated Physics (Zero Energy Warp)")
 
         # Test: Infinite Fertility
         if case["name"] == "Infinite Fertility":
@@ -214,7 +217,13 @@ class OvernightDriver:
 
         # Training Data Capture System
         self.training_capture = TrainingDataCapture(output_dir=Path("training_data"))
-        self.active_streams = ["architect", "engineer", "biologist", "quantum_hw", "quantum_algo"]
+        self.active_streams = [
+            "architect",
+            "engineer",
+            "biologist",
+            "quantum_hw",
+            "quantum_algo",
+        ]
 
         # Start journeys for each stream
         for stream in self.active_streams:
@@ -334,8 +343,7 @@ class OvernightDriver:
             penalties = ", ".join(evaluation["penalties"])
 
             full_response = (
-                response_text
-                + f"EVALUATION: Score {score:.2f}. Penalties: {penalties if penalties else 'None'}."
+                response_text + f"EVALUATION: Score {score:.2f}. Penalties: {penalties if penalties else 'None'}."
             )
 
             # Generate "Audio Script"
@@ -361,9 +369,7 @@ class OvernightDriver:
             }
 
         batch_prompt = (
-            "Solver: Address Case {case}. "
-            "Seed: {seed}. Stack: Pragmatic R-Zero. "
-            "Return JSON keys: score, metrics."
+            "Solver: Address Case {case}. Seed: {seed}. Stack: Pragmatic R-Zero. Return JSON keys: score, metrics."
         )
 
         inputs = [
@@ -372,9 +378,7 @@ class OvernightDriver:
         ]
 
         # Run Batch
-        chunk_result = await asyncio.to_thread(
-            self.simulator.run_custom_chunk, int(time.time()), inputs, process_sim
-        )
+        chunk_result = await asyncio.to_thread(self.simulator.run_custom_chunk, int(time.time()), inputs, process_sim)
 
         # UPDATE CHALLENGER STATE
         batch_scores = [
@@ -452,7 +456,7 @@ class OvernightDriver:
         viz_dir.mkdir(exist_ok=True)
         filename = viz_dir / f"pragmatic_viz_{int(time.time())}.png"
 
-        fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(10, 8))
+        _fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(10, 8))
 
         # Plot 1: Difficulty vs Valid Solutions
         t = np.linspace(0, 10, 200)
@@ -460,7 +464,13 @@ class OvernightDriver:
         validity = np.ones_like(t) * 0.8
 
         ax1.plot(t, diff_curve, label="Challenge Difficulty", color="red")
-        ax1.plot(t, validity, label="Solution Validity Threshold", color="green", linestyle="--")
+        ax1.plot(
+            t,
+            validity,
+            label="Solution Validity Threshold",
+            color="green",
+            linestyle="--",
+        )
         ax1.set_title(f"Pragmatic Challenge (Epoch {metrics['epoch']})")
         ax1.legend()
         ax1.grid(True, alpha=0.3)

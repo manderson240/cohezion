@@ -10,6 +10,7 @@ from scripts.overnight_autonomous_run import OvernightMission
 
 def test_autonomic_scripts_loadable():
     """Verify that autonomous scripts are grounded in real components."""
+    # If this fails, the scripts are still hallucinating imports
     assert OvernightMission is not None
     assert manifest_elegance is not None
     assert EnhancedSimulator is not None

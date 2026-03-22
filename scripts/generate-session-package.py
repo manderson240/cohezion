@@ -16,7 +16,7 @@ def get_recent_commits(n: int = 5) -> list[str]:
             cwd="/home/mike-anderson/dev/cohezion",
         )
         return result.stdout.strip().split("\n")
-    except:
+    except Exception:
         return ["(unable to fetch commits)"]
 
 

@@ -1,10 +1,4 @@
-from perf_takehome import (
-    Tree,
-    Input,
-    build_mem_image,
-    Machine,
-    N_CORES,
-)
+from perf_takehome import Tree, Input, build_mem_image, Machine, N_CORES
 from optimizer import OptimizedKernelBuilder, KernelConfig
 import random
 
@@ -50,7 +44,6 @@ def debug_trace():
     machine.run()
 
     # Check Result
-    inp_values_p = 6  # Val base? No, dynamic.
     # We need to find input values dest.
     # In perf_takehome: inp_values_p = load_list offsets...
     # Just print scratch trace

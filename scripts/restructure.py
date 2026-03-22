@@ -29,6 +29,8 @@ import argparse
 import logging
 import shutil
 from pathlib import Path
+from typing import Any
+
 
 
 logging.basicConfig(
@@ -76,7 +78,7 @@ class DirectoryRestructure:
         if agents_dir.exists():
             stats["agent_files"] = len(list(agents_dir.glob("*.py")))
 
-        for py_file in self.src.rglob("*.py"):
+        for _py_file in self.src.rglob("*.py"):
             stats["total_files"] += 1
 
         stats["total_dirs"] = len(list(self.src.rglob("*/")))
@@ -214,9 +216,7 @@ class DirectoryRestructure:
         ]
 
         # Log plan
-        logger.info(
-            f"   Directories to create: {len([s for s in plan['steps'] if s['action'] == 'create_directory'])}"
-        )
+        logger.info(f"   Directories to create: {len([s for s in plan['steps'] if s['action'] == 'create_directory'])}")
         logger.info(f"   Files to move: {len(plan['files_to_move'])}")
         logger.info(f"   Import patterns to update: {len(plan['imports_to_update'])}")
 

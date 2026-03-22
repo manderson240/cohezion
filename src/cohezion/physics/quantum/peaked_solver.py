@@ -64,9 +64,10 @@ def _safe_parse_qasm_param(expr: str) -> float:
         raise ValueError(f"Unsupported expression node: {ast.dump(node)}")
 
     try:
-        tree = ast.parse(expr, mode="eval")
-        return _eval_node(tree)
-    except (SyntaxError, TypeError, ZeroDivisionError, ValueError) as e:
+        return float(
+            eval(compile(expr, "<qasm_param>", "eval"), {"__builtins__": {}}, {})
+        )
+    except (SyntaxError, TypeError, ZeroDivisionError) as e:
         raise ValueError(f"Failed to parse QASM parameter: {expr!r}") from e
 
 
@@ -112,12 +113,7 @@ class PeakedCircuitSolver:
 
             for line in lines:
                 line = line.strip().replace(";", "")
-                if (
-                    not line
-                    or line.startswith("OPENQASM")
-                    or line.startswith("include")
-                    or line.startswith("qreg")
-                ):
+                if not line or line.startswith("OPENQASM") or line.startswith("include") or line.startswith("qreg"):
                     continue
 
                 # Parse CZ
@@ -148,9 +144,7 @@ class PeakedCircuitSolver:
                     theta, phi, lam = params
                     self.circ.apply_gate("U3", theta, phi, lam, q)
 
-            logger.info(
-                f"Circuit loaded manually. Qubits: {self.circ.N}, Gates: {len(self.circ.gates)}"
-            )
+            logger.info(f"Circuit loaded manually. Qubits: {self.circ.N}, Gates: {len(self.circ.gates)}")
 
         except Exception as e:
             logger.error(f"Failed to load circuit: {e}")
@@ -314,9 +308,7 @@ class PeakedCircuitSolver:
                             inplace=True,
                         )
                 except Exception:
-                    logger.error(
-                        f"Gate application failed at step {i} (Gate {name}). Target sites: {target_sites}"
-                    )
+                    logger.error(f"Gate application failed at step {i} (Gate {name}). Target sites: {target_sites}")
                     logger.error(f"Tensor Count: {len(psi_mps.tensors)}")
                     raise
 
@@ -326,12 +318,12 @@ class PeakedCircuitSolver:
 
                 # DEBUG: Check bond dimension
                 if i % 100 == 0:
-                    logger.info(
-                        f"Gate {i}: Max Bond Dim = {psi_mps.max_bond()}. Norm = {psi_mps.norm():.2e}"
-                    )
+                    logger.info(f"Gate {i}: Max Bond Dim = {psi_mps.max_bond()}. Norm = {psi_mps.norm():.2e}")
 
             logger.info(
-                f"Manifold Encoding Complete. Final Bond Dim: {psi_mps.max_bond()}. Total Swaps: {count_swaps}. Tensor Count: {len(psi_mps.tensors)}"
+                f"Manifold Encoding Complete. Final Bond Dim:"
+                f" {psi_mps.max_bond()}. Total Swaps: {count_swaps}."
+                f" Tensor Count: {len(psi_mps.tensors)}"
             )
 
             # CHECKPOINT: Save MPS to disk

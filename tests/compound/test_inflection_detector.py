@@ -147,7 +147,7 @@ class TestAnomalyDetection:
             metrics={},
             duration_seconds=0.5,
         )
-        anomaly1 = detector.detect_anomaly(result1)
+        detector.detect_anomaly(result1)
         assert detector.consecutive_failures == 1
 
         # Second failure
@@ -157,7 +157,7 @@ class TestAnomalyDetection:
             metrics={},
             duration_seconds=0.5,
         )
-        anomaly2 = detector.detect_anomaly(result2)
+        detector.detect_anomaly(result2)
         assert detector.consecutive_failures == 2
 
         # Third failure (critical threshold)

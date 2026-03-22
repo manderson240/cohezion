@@ -103,7 +103,7 @@ class TestGitUtils:
             check=True,
         )
         subprocess.run(
-            ["git", "config", "commit.gpgsign", "false"],
+            ["git", "config", "commit.gpgSign", "false"],
             cwd=tmp_path,
             capture_output=True,
             check=True,
@@ -112,9 +112,11 @@ class TestGitUtils:
         # Create and commit a file
         test_file = tmp_path / "test.txt"
         test_file.write_text("initial")
-        subprocess.run(["git", "add", "test.txt"], cwd=tmp_path, capture_output=True, check=True)
         subprocess.run(
-            ["git", "commit", "-m", "initial"], cwd=tmp_path, capture_output=True, check=True
+            ["git", "commit", "-m", "initial"],
+            cwd=tmp_path,
+            capture_output=True,
+            check=True,
         )
 
         # No changes yet
@@ -144,7 +146,7 @@ class TestGitUtils:
             check=True,
         )
         subprocess.run(
-            ["git", "config", "commit.gpgsign", "false"],
+            ["git", "config", "commit.gpgSign", "false"],
             cwd=tmp_path,
             capture_output=True,
             check=True,
@@ -153,9 +155,11 @@ class TestGitUtils:
         # Create and commit a file
         test_file = tmp_path / "test.txt"
         test_file.write_text("line1\nline2")
-        subprocess.run(["git", "add", "test.txt"], cwd=tmp_path, capture_output=True, check=True)
         subprocess.run(
-            ["git", "commit", "-m", "initial"], cwd=tmp_path, capture_output=True, check=True
+            ["git", "commit", "-m", "initial"],
+            cwd=tmp_path,
+            capture_output=True,
+            check=True,
         )
 
         # Make changes
@@ -187,7 +191,7 @@ class TestGitUtils:
             check=True,
         )
         subprocess.run(
-            ["git", "config", "commit.gpgsign", "false"],
+            ["git", "config", "commit.gpgSign", "false"],
             cwd=tmp_path,
             capture_output=True,
             check=True,
@@ -196,9 +200,11 @@ class TestGitUtils:
         # Create initial commit
         test_file = tmp_path / "test.txt"
         test_file.write_text("initial")
-        subprocess.run(["git", "add", "test.txt"], cwd=tmp_path, capture_output=True, check=True)
         subprocess.run(
-            ["git", "commit", "-m", "initial"], cwd=tmp_path, capture_output=True, check=True
+            ["git", "commit", "-m", "initial"],
+            cwd=tmp_path,
+            capture_output=True,
+            check=True,
         )
 
         # Make changes

@@ -26,7 +26,7 @@ permissions:
 jobs:
   security-audit:
     name: Security Audit
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -146,7 +146,7 @@ jobs:
   # AC-3: Deprecation warnings for outdated packages
   deprecation-check:
     name: Deprecation Check
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4

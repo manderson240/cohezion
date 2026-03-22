@@ -6,7 +6,10 @@ Phase 2 Priority 3 Implementation Tests.
 import pytest
 
 from cohezion.observability.metrics_analytics import MetricsAnalytics, PerformanceReport
-from cohezion.observability.unified_metrics import InferenceMetrics, UnifiedMetricsCollector
+from cohezion.observability.unified_metrics import (
+    InferenceMetrics,
+    UnifiedMetricsCollector,
+)
 
 
 class TestMetricsAnalytics:
@@ -400,7 +403,7 @@ class TestObservabilityIntegration:
         analytics = MetricsAnalytics(window_size=10)
 
         # Simulate multiple operations
-        for i in range(5):
+        for _i in range(5):
             collector.record_cache_hit(1)
             collector.record_execution(tokens=100, duration_ms=500, model="gpt-4")
             metrics = collector.get_current_metrics()

@@ -9,10 +9,14 @@ from __future__ import annotations
 import json
 import logging
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import numpy as np
 
-from cohezion.mass_sim.config import UniverseResult
+
+if TYPE_CHECKING:
+    from cohezion.mass_sim.config import UniverseResult
+
 
 
 logger = logging.getLogger(__name__)
@@ -63,9 +67,7 @@ class CheckpointExporter:
 
             arr = np.array(ckpt.sample_states, dtype=np.float32)
             if arr.ndim != 2:
-                logger.warning(
-                    f"Skipping checkpoint epoch {ckpt.epoch}: unexpected shape {arr.shape}"
-                )
+                logger.warning(f"Skipping checkpoint epoch {ckpt.epoch}: unexpected shape {arr.shape}")
                 continue
 
             filename = f"{result.universe_id}_ep{ckpt.epoch}.npy"
@@ -74,10 +76,7 @@ class CheckpointExporter:
             exported.append(path)
 
         if exported:
-            logger.info(
-                f"Exported {len(exported)} checkpoint arrays for "
-                f"{result.universe_id} to {self.output_dir}"
-            )
+            logger.info(f"Exported {len(exported)} checkpoint arrays for {result.universe_id} to {self.output_dir}")
 
         return exported
 

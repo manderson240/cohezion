@@ -208,9 +208,7 @@ class TestRetryStrategySelection:
             should_reexecute=True,
         )
 
-        strategy = feedback_loop._select_retry_strategy(
-            1, anomaly, available_alternatives=["skill2", "skill3"]
-        )
+        strategy = feedback_loop._select_retry_strategy(1, anomaly, available_alternatives=["skill2", "skill3"])
 
         assert strategy == RetryStrategy.ALTERNATIVE_SKILL
 

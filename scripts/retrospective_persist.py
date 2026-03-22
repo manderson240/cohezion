@@ -84,7 +84,13 @@ async def save_overnight_artifacts():
                 "discovery_method": "autonomous_overnight_worker",
                 "confidence": 0.98,
                 "impact_score": 0.98,
-                "tags": ["matsumoto", "hiho", "evo", "itonic_clusters", "paradigm_unification"],
+                "tags": [
+                    "matsumoto",
+                    "hiho",
+                    "evo",
+                    "itonic_clusters",
+                    "paradigm_unification",
+                ],
             },
         )
         print("  ✓ Saved Learning 59 to learnings", flush=True)

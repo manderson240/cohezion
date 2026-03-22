@@ -121,10 +121,7 @@ class CostAlertManager:
             if current_time - self.last_warn_time > self.alert_cooldown_sec:
                 self.last_warn_time = current_time
                 self.alert_count += 1
-                msg = (
-                    f"Cost WARNING: Budget utilization at {utilization_pct:.1f}% "
-                    f"(threshold: {self.warn_threshold}%)"
-                )
+                msg = f"Cost WARNING: Budget utilization at {utilization_pct:.1f}% (threshold: {self.warn_threshold}%)"
                 return "WARNING", msg
             return "WARNING", None
 
@@ -140,10 +137,7 @@ class CostAlertManager:
             return "CRITICAL", None
 
         if utilization_pct < 100.0:
-            msg = (
-                f"Cost EXTREME: Budget utilization at {utilization_pct:.1f}% "
-                f"(threshold: {self.extreme_threshold}%)"
-            )
+            msg = f"Cost EXTREME: Budget utilization at {utilization_pct:.1f}% (threshold: {self.extreme_threshold}%)"
             return "EXTREME", msg
 
         return "BLOCKED", f"Budget limit reached ({utilization_pct:.1f}%)"
@@ -174,7 +168,9 @@ class BudgetCircuitBreaker:
             True if circuit breaker opened, False otherwise
         """
         self.strike_count += 1
-        logger.warning(f"Budget violation recorded: {self.strike_count}/{self.strike_limit}")
+        logger.warning(
+            f"Budget violation recorded: {self.strike_count}/{self.strike_limit}"
+        )
 
         if self.strike_count >= self.strike_limit:
             self.is_open = True
@@ -292,7 +288,9 @@ class BudgetEnforcer:
             return False, "Budget circuit breaker is OPEN (emergency shutoff)"
 
         # Calculate utilization
-        utilization_pct = (current_cost_usd / self.budget_usd * 100) if self.budget_usd > 0 else 0
+        utilization_pct = (
+            (current_cost_usd / self.budget_usd * 100) if self.budget_usd > 0 else 0
+        )
 
         # Evaluate alerts
         status, alert = self.alert_manager.evaluate(utilization_pct)
@@ -347,7 +345,9 @@ class BudgetEnforcer:
         Returns:
             BudgetState snapshot
         """
-        utilization_pct = (current_cost_usd / self.budget_usd * 100) if self.budget_usd > 0 else 0
+        utilization_pct = (
+            (current_cost_usd / self.budget_usd * 100) if self.budget_usd > 0 else 0
+        )
         remaining = self.budget_usd - current_cost_usd
         status, _ = self.alert_manager.evaluate(utilization_pct)
 

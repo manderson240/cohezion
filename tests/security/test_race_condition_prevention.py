@@ -12,6 +12,7 @@ Tests:
 - Backoff and retry logic
 """
 
+import contextlib
 import tempfile
 import threading
 import time
@@ -39,10 +40,8 @@ def temp_file():
     yield temp_path
 
     # Cleanup
-    try:
+    with contextlib.suppress(FileNotFoundError):
         Path(temp_path).unlink()
-    except FileNotFoundError:
-        pass
 
 
 class TestFileLock:

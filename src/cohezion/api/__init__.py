@@ -31,9 +31,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # Allowed CORS origins from environment, default to localhost only
-_CORS_ORIGINS = os.environ.get(
-    "COHEZION_CORS_ORIGINS", "http://localhost:3000,http://localhost:8080"
-).split(",")
+_CORS_ORIGINS = os.environ.get("COHEZION_CORS_ORIGINS", "http://localhost:3000,http://localhost:8080").split(",")
 
 app = FastAPI(
     title="Cohezion API",
@@ -122,11 +120,7 @@ async def health():
 async def list_servers():
     """List all available MCP servers."""
     registry = get_registry()
-    return {
-        "servers": [
-            {"name": s.name, "type": s.type, "status": s.status} for s in registry.list_servers()
-        ]
-    }
+    return {"servers": [{"name": s.name, "type": s.type, "status": s.status} for s in registry.list_servers()]}
 
 
 @app.get("/mcp/tools")
@@ -1394,9 +1388,7 @@ async def compound_execute(request: CompoundExecuteRequest):
             model=request.model,
         )
     except KeyError as exc:
-        raise HTTPException(
-            status_code=404, detail=f"Skill not found: {request.skill_name}"
-        ) from exc
+        raise HTTPException(status_code=404, detail=f"Skill not found: {request.skill_name}") from exc
     except Exception as exc:
         logger.exception("Compound execution failed: %s", request.skill_name)
         raise HTTPException(status_code=500, detail="Execution failed") from exc
@@ -1477,9 +1469,7 @@ async def compound_feedback(request: CompoundFeedbackRequest):
                 patterns=result.patterns,
             )
     except KeyError as exc:
-        raise HTTPException(
-            status_code=404, detail=f"Skill not found: {request.skill_name}"
-        ) from exc
+        raise HTTPException(status_code=404, detail=f"Skill not found: {request.skill_name}") from exc
     except Exception as exc:
         logger.exception("Compound feedback failed: %s", request.skill_name)
         raise HTTPException(status_code=500, detail="Feedback cycle failed") from exc

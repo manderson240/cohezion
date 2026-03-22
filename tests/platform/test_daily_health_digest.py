@@ -277,7 +277,9 @@ def test_run_health_checks_all_healthy(digest):
         loose_objects=50,
         pack_count=1,
     )
-    test = TestMetrics(total_tests=2850, passing_tests=2830, failing_tests=20, pass_rate=0.993)
+    test = TestMetrics(
+        total_tests=2850, passing_tests=2830, failing_tests=20, pass_rate=0.993
+    )
     dep = DependencyMetrics(
         total_dependencies=50,
         outdated_dependencies=2,
@@ -348,7 +350,11 @@ def test_check_hiho_stability_both_stable(digest, mock_coherence_tracker):
     """Test HIHO stability when both repo and coherence are in range."""
 
     repo = RepositoryMetrics(
-        size_gb=6.0, large_file_count=20, pack_efficiency=0.9, loose_objects=50, pack_count=1
+        size_gb=6.0,
+        large_file_count=20,
+        pack_efficiency=0.9,
+        loose_objects=50,
+        pack_count=1,
     )
     coherence = CoherenceMetrics(
         timestamp=datetime.now(),
@@ -390,7 +396,11 @@ def test_check_hiho_stability_coherence_outside(digest):
     """Test HIHO stability when coherence is outside range."""
 
     repo = RepositoryMetrics(
-        size_gb=6.0, large_file_count=20, pack_efficiency=0.9, loose_objects=50, pack_count=1
+        size_gb=6.0,
+        large_file_count=20,
+        pack_efficiency=0.9,
+        loose_objects=50,
+        pack_count=1,
     )
     coherence = CoherenceMetrics(
         timestamp=datetime.now(),
@@ -419,7 +429,9 @@ async def test_calculate_charter_score_perfect_hiho(digest):
         loose_objects=50,
         pack_count=1,
     )
-    test = TestMetrics(total_tests=100, passing_tests=98, failing_tests=2, pass_rate=0.98)
+    test = TestMetrics(
+        total_tests=100, passing_tests=98, failing_tests=2, pass_rate=0.98
+    )
     dep = DependencyMetrics(
         total_dependencies=50,
         outdated_dependencies=1,
@@ -458,7 +470,9 @@ async def test_calculate_charter_score_weights(digest):
         loose_objects=50,
         pack_count=1,
     )
-    test = TestMetrics(total_tests=100, passing_tests=100, failing_tests=0, pass_rate=1.0)
+    test = TestMetrics(
+        total_tests=100, passing_tests=100, failing_tests=0, pass_rate=1.0
+    )
     dep = DependencyMetrics(
         total_dependencies=50,
         outdated_dependencies=0,
@@ -544,9 +558,12 @@ async def test_generate_recommendations_healthy(digest):
     """Test recommendation generation for healthy system."""
 
     repo = RepositoryMetrics(
-        size_gb=6.0, large_file_count=20, pack_efficiency=0.95, loose_objects=50, pack_count=1
+        size_gb=6.0,
+        large_file_count=20,
+        pack_efficiency=0.95,
+        loose_objects=50,
+        pack_count=1,
     )
-    test = TestMetrics(total_tests=100, passing_tests=98, failing_tests=2, pass_rate=0.98)
     dep = DependencyMetrics(
         total_dependencies=50,
         outdated_dependencies=1,
@@ -555,9 +572,7 @@ async def test_generate_recommendations_healthy(digest):
     )
     checks = digest._run_health_checks(repo, test, dep, None)
 
-    recommendations = await digest._generate_recommendations(
-        repo, test, dep, checks, hiho_stable=True
-    )
+    recommendations = await digest._generate_recommendations(repo, test, dep, checks, hiho_stable=True)
 
     # Should have "All systems healthy" message
     assert any("All systems healthy" in r for r in recommendations)
@@ -574,7 +589,9 @@ async def test_generate_recommendations_repo_critical(digest):
         loose_objects=20000,
         pack_count=5,
     )
-    test = TestMetrics(total_tests=100, passing_tests=98, failing_tests=2, pass_rate=0.98)
+    test = TestMetrics(
+        total_tests=100, passing_tests=98, failing_tests=2, pass_rate=0.98
+    )
     dep = DependencyMetrics(
         total_dependencies=50,
         outdated_dependencies=1,
@@ -583,9 +600,7 @@ async def test_generate_recommendations_repo_critical(digest):
     )
     checks = digest._run_health_checks(repo, test, dep, None)
 
-    recommendations = await digest._generate_recommendations(
-        repo, test, dep, checks, hiho_stable=False
-    )
+    recommendations = await digest._generate_recommendations(repo, test, dep, checks, hiho_stable=False)
 
     # Should recommend cleanup
     assert any("CRITICAL" in r and "Repository size" in r for r in recommendations)
@@ -598,9 +613,12 @@ async def test_generate_recommendations_vulnerable_deps(digest):
     """Test recommendations for vulnerable dependencies."""
 
     repo = RepositoryMetrics(
-        size_gb=6.0, large_file_count=20, pack_efficiency=0.95, loose_objects=50, pack_count=1
+        size_gb=6.0,
+        large_file_count=20,
+        pack_efficiency=0.95,
+        loose_objects=50,
+        pack_count=1,
     )
-    test = TestMetrics(total_tests=100, passing_tests=98, failing_tests=2, pass_rate=0.98)
     dep = DependencyMetrics(
         total_dependencies=50,
         outdated_dependencies=5,
@@ -609,9 +627,7 @@ async def test_generate_recommendations_vulnerable_deps(digest):
     )
     checks = digest._run_health_checks(repo, test, dep, None)
 
-    recommendations = await digest._generate_recommendations(
-        repo, test, dep, checks, hiho_stable=True
-    )
+    recommendations = await digest._generate_recommendations(repo, test, dep, checks, hiho_stable=True)
 
     # Should recommend immediate update
     assert any("vulnerable" in r.lower() and "CRITICAL" in r for r in recommendations)
@@ -622,7 +638,11 @@ async def test_generate_recommendations_failing_tests(digest):
     """Test recommendations for failing tests."""
 
     repo = RepositoryMetrics(
-        size_gb=6.0, large_file_count=20, pack_efficiency=0.95, loose_objects=50, pack_count=1
+        size_gb=6.0,
+        large_file_count=20,
+        pack_efficiency=0.95,
+        loose_objects=50,
+        pack_count=1,
     )
     test = TestMetrics(
         total_tests=100, passing_tests=85, failing_tests=15, pass_rate=0.85
@@ -635,9 +655,7 @@ async def test_generate_recommendations_failing_tests(digest):
     )
     checks = digest._run_health_checks(repo, test, dep, None)
 
-    recommendations = await digest._generate_recommendations(
-        repo, test, dep, checks, hiho_stable=True
-    )
+    recommendations = await digest._generate_recommendations(repo, test, dep, checks, hiho_stable=True)
 
     # Should recommend fixing tests
     assert any("Test pass rate" in r and "CRITICAL" in r for r in recommendations)
@@ -694,7 +712,9 @@ def test_requires_edl_review_healthy(digest):
         )
     ]
 
-    assert digest._requires_edl_review(overall_score=0.85, health_checks=checks) is False
+    assert (
+        digest._requires_edl_review(overall_score=0.85, health_checks=checks) is False
+    )
 
 
 def test_determine_overall_status_critical_check(digest):
@@ -812,11 +832,13 @@ async def test_persist_digest(digest):
             stability_score=1.0,
         ),
         repository_metrics=RepositoryMetrics(
-            size_gb=6.0, large_file_count=20, pack_efficiency=0.95, loose_objects=50, pack_count=1
+            size_gb=6.0,
+            large_file_count=20,
+            pack_efficiency=0.95,
+            loose_objects=50,
+            pack_count=1,
         ),
-        test_metrics=TestMetrics(
-            total_tests=100, passing_tests=98, failing_tests=2, pass_rate=0.98
-        ),
+        test_metrics=TestMetrics(total_tests=100, passing_tests=98, failing_tests=2, pass_rate=0.98),
         dependency_metrics=DependencyMetrics(
             total_dependencies=50,
             outdated_dependencies=2,
@@ -856,11 +878,13 @@ def test_format_digest_terminal(digest):
             stability_score=1.0,
         ),
         repository_metrics=RepositoryMetrics(
-            size_gb=6.0, large_file_count=20, pack_efficiency=0.95, loose_objects=50, pack_count=1
+            size_gb=6.0,
+            large_file_count=20,
+            pack_efficiency=0.95,
+            loose_objects=50,
+            pack_count=1,
         ),
-        test_metrics=TestMetrics(
-            total_tests=2850, passing_tests=2830, failing_tests=20, pass_rate=0.993
-        ),
+        test_metrics=TestMetrics(total_tests=2850, passing_tests=2830, failing_tests=20, pass_rate=0.993),
         dependency_metrics=DependencyMetrics(
             total_dependencies=50,
             outdated_dependencies=2,

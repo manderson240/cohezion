@@ -57,7 +57,7 @@ class SecurityContext:
     """Security context for operations"""
 
     user_id: str | None
-    permissions: Set[Permission]
+    permissions: set[Permission]
     session_token: str | None
     operation_id: str
     timestamp: float
@@ -217,16 +217,12 @@ class ResourceLimiter:
 
             # Check CPU limit
             if current_resources["cpu_percent"] > self.max_cpu_percent:
-                logger.warning(
-                    f"CPU limit exceeded: {current_resources['cpu_percent']}% > {self.max_cpu_percent}%"
-                )
+                logger.warning(f"CPU limit exceeded: {current_resources['cpu_percent']}% > {self.max_cpu_percent}%")
                 return False
 
             # Check concurrent request limit
             if current_resources["active_requests"] >= self.max_concurrent_requests:
-                logger.warning(
-                    f"Concurrent request limit exceeded: {current_resources['active_requests']}"
-                )
+                logger.warning(f"Concurrent request limit exceeded: {current_resources['active_requests']}")
                 return False
 
             # Acquire resources
@@ -437,14 +433,12 @@ class SecureModelRouter:
 
             return result.stdout
 
-        except subprocess.TimeoutExpired:
-            raise SecurityError("Command execution timeout")
+        except subprocess.TimeoutExpired as e:
+            raise SecurityError("Command execution timeout") from e
         except subprocess.CalledProcessError as e:
-            raise SecurityError(f"Command execution failed: {e}")
+            raise SecurityError(f"Command execution failed: {e}") from e
 
-    def _log_secure_operation(
-        self, model: str, prompt: str, params: dict[str, Any], context: SecurityContext
-    ):
+    def _log_secure_operation(self, model: str, prompt: str, params: dict[str, Any], context: SecurityContext):
         """Log security-relevant operations"""
 
         if self.secure_config.get("enable_audit_logging", True):
@@ -517,9 +511,7 @@ if __name__ == "__main__":
             print("✅ Dangerous prompt correctly rejected")
 
         # Test authentication
-        context = secure_router.generate_session_token(
-            "test_user", [Permission.READ, Permission.EXECUTE]
-        )
+        context = secure_router.generate_session_token("test_user", [Permission.READ, Permission.EXECUTE])
         print(f"✅ Generated session context: {context.session_token[:16]}...")
 
         # Test secure model call

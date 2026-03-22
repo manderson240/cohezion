@@ -29,6 +29,11 @@ from cohezion.swarm.gateway_detector import get_gateway_detector
 from cohezion.swarm.self_improvement_orchestrator import get_orchestrator
 
 
+from cohezion.mcp.email_notifier import EmailNotifier
+from cohezion.swarm.gateway_detector import get_gateway_detector
+from cohezion.swarm.self_improvement_orchestrator import get_orchestrator
+
+
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - [ASCENSION] - %(levelname)s - %(message)s"
 )
@@ -76,9 +81,7 @@ class AscensionEngine:
             cycle_result = await self.orchestrator.run_cycle(metrics)
 
             # 3. Apply Rewards based on cycle performance
-            self.reward_manager.process_cycle(
-                "EVO_AGENT_01", cycle_result.score, random.uniform(5.0, 10.0)
-            )
+            self.reward_manager.process_cycle("EVO_AGENT_01", cycle_result.score, random.uniform(5.0, 10.0))
 
             # 4. Check for Gateway Unlocks
             new_gateways = cycle_result.gateways_unlocked
@@ -87,17 +90,13 @@ class AscensionEngine:
                     await self._celebrate_ascension(gw_id)
 
             # 5. Mycelium Reinforcement
-            self.network.apply_reinforcement(
-                "EVO_AGENT_01", self.reward_manager.profiles["EVO_AGENT_01"].rank
-            )
+            self.network.apply_reinforcement("EVO_AGENT_01", self.reward_manager.profiles["EVO_AGENT_01"].rank)
 
             # 6. Throttle/Pause (Wait for next cycle)
             await asyncio.sleep(2)
 
             if self.cycle_count >= 5:  # Limit demo
-                logger.info(
-                    "🛑 ASCENSION ENGINE: Demo threshold reached. Transitioning to background."
-                )
+                logger.info("🛑 ASCENSION ENGINE: Demo threshold reached. Transitioning to background.")
                 break
 
     async def _celebrate_ascension(self, gateway_id: int):

@@ -242,9 +242,7 @@ class SurrealMCP:
         nodes = await client.get_all_nodes(limit=limit * 2)  # Over-fetch for filter
 
         learnings = [
-            n
-            for n in nodes
-            if n.metadata.get("type") == "learning" and n.metadata.get("score", 0) >= min_score
+            n for n in nodes if n.metadata.get("type") == "learning" and n.metadata.get("score", 0) >= min_score
         ][:limit]
 
         return [

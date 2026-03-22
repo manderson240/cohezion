@@ -330,7 +330,7 @@ class TestExecute:
         router.client = AsyncMock()
         router.client.post = mock_post
 
-        response, action = await router.execute("brief this")
+        _response, action = await router.execute("brief this")
         # The primary might fail and fallback succeeds
         assert action is not None
 

@@ -7,8 +7,6 @@ import json
 import os
 import uuid
 
-import pytest
-
 from mcp_server.agent_context_queries import AgentContextQueries
 
 

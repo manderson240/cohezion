@@ -8,7 +8,10 @@ Includes:
 
 from cohezion.config.config_archival import ConfigArchiver, SizeEnforcer
 from cohezion.config.config_events import ConfigEvent
-from cohezion.config.config_monitoring import ConfigMonitor, VaultSubscriptionClientProxy
+from cohezion.config.config_monitoring import (
+    ConfigMonitor,
+    VaultSubscriptionClientProxy,
+)
 from cohezion.config.config_state import (
     ChangeSet,
     ConfigConflict,

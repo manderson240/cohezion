@@ -186,9 +186,7 @@ class JourneyLogger:
             metadata=journey_data.get("metadata", {}),
         )
 
-    async def get_recent_journeys(
-        self, journey_type: str | None = None, limit: int = 10
-    ) -> list[Journey]:
+    async def get_recent_journeys(self, journey_type: str | None = None, limit: int = 10) -> list[Journey]:
         """Get recent journeys, optionally filtered by type."""
 
         if journey_type:

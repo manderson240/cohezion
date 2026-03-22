@@ -62,12 +62,7 @@ class PeakedCircuitSolver:
 
             for line in lines:
                 line = line.strip().replace(";", "")
-                if (
-                    not line
-                    or line.startswith("OPENQASM")
-                    or line.startswith("include")
-                    or line.startswith("qreg")
-                ):
+                if not line or line.startswith("OPENQASM") or line.startswith("include") or line.startswith("qreg"):
                     continue
 
                 # Parse CZ
@@ -197,7 +192,7 @@ class PeakedCircuitSolver:
 
             try:
                 rsrc = resource.RLIMIT_AS
-                soft, hard = resource.getrlimit(rsrc)
+                _soft, hard = resource.getrlimit(rsrc)
                 limit_bytes = 40 * 1024**3
                 resource.setrlimit(rsrc, (limit_bytes, hard))
                 logger.info("Memory Limit set to 40GB")
@@ -265,7 +260,11 @@ class PeakedCircuitSolver:
                     else:
                         # 2-qubit gate? CZ or Others
                         psi_mps.gate_split(
-                            G, tuple(target_sites), max_bond=max_bond, cutoff=cutoff, inplace=True
+                            G,
+                            tuple(target_sites),
+                            max_bond=max_bond,
+                            cutoff=cutoff,
+                            inplace=True,
                         )
                 except Exception as e:
                     logger.error(
@@ -280,9 +279,7 @@ class PeakedCircuitSolver:
 
                 # DEBUG: Check bond dimension
                 if i % 100 == 0:
-                    logger.info(
-                        f"Gate {i}: Max Bond Dim = {psi_mps.max_bond()}. Norm = {psi_mps.norm():.2e}"
-                    )
+                    logger.info(f"Gate {i}: Max Bond Dim = {psi_mps.max_bond()}. Norm = {psi_mps.norm():.2e}")
 
             logger.info(
                 f"Manifold Encoding Complete. Final Bond Dim: {psi_mps.max_bond()}. Total Swaps: {count_swaps}. Tensor Count: {len(psi_mps.tensors)}"
@@ -321,7 +318,7 @@ class PeakedCircuitSolver:
                     q_idx = site_to_qubit[site_idx]
                     try:
                         val = int(bit)
-                    except:
+                    except Exception:
                         val = bit
                     ordered_bits[q_idx] = str(val)
 

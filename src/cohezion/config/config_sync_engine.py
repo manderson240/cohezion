@@ -14,7 +14,11 @@ from typing import Any
 
 from cohezion.config.config_state import FileMetadata
 from cohezion.config.config_sync_logger import ConfigSyncLogger
-from cohezion.config.config_templates import ConfigTemplateEngine, TemplateContext, TemplateType
+from cohezion.config.config_templates import (
+    ConfigTemplateEngine,
+    TemplateContext,
+    TemplateType,
+)
 from cohezion.config.git_utils import GitUtils
 
 
@@ -275,9 +279,13 @@ class ConfigSyncEngine:
         changes = []
 
         if vault_content.get("decisions"):
-            changes.append(f"sync {filename} with {len(vault_content['decisions'])} new decisions")
+            changes.append(
+                f"sync {filename} with {len(vault_content['decisions'])} new decisions"
+            )
         elif vault_content.get("patterns"):
-            changes.append(f"sync {filename} with {len(vault_content['patterns'])} patterns")
+            changes.append(
+                f"sync {filename} with {len(vault_content['patterns'])} patterns"
+            )
         else:
             changes.append(f"sync {filename} with latest vault content")
 

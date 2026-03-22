@@ -24,7 +24,7 @@ def verify_evolution():
     simulated_retro = """
     # Retrospective: Mission X
     We discovered that the 12D state vector requires a mandatory 'Brane' field.
-    
+
     [TEMPLATE IMPROVEMENT]
     ### 12D Brane Requirement
     Standardize the use of the `brane` parameter in all 12D state vector operations to prevent manifold collapse.

@@ -25,7 +25,7 @@ from pathlib import Path
 class VaultIntegrityChecker:
     """Comprehensive vault data integrity validator"""
 
-    def __init__(self, vault_path: str = None):
+    def __init__(self, vault_path: str | None = None):
         if vault_path is None:
             vault_path = Path.cwd() / "cloud-vault-mcp" / "vault"
         self.vault_path = Path(vault_path)
@@ -141,7 +141,7 @@ class VaultIntegrityChecker:
 
             # Check for orphaned links
             links = re.findall(r"\[([^\]]+)\]\(([^)]+)\)", content)
-            for link_text, link_url in links:
+            for _link_text, link_url in links:
                 if link_url.endswith(".md"):
                     # Internal reference
                     self.references[doc_path].add(link_url)
@@ -214,9 +214,7 @@ class VaultIntegrityChecker:
             content_sig = content[:200].lower()  # First 200 chars normalized
 
             if content_sig in content_hashes:
-                self.warnings.append(
-                    f"POTENTIAL DUPLICATE: {doc_path} vs {content_hashes[content_sig]}"
-                )
+                self.warnings.append(f"POTENTIAL DUPLICATE: {doc_path} vs {content_hashes[content_sig]}")
             else:
                 content_hashes[content_sig] = doc_path
 
@@ -236,9 +234,7 @@ class VaultIntegrityChecker:
                     topics.add(title)
 
                 if len(topics) < len(docs):
-                    self.warnings.append(
-                        f"POTENTIAL CONFLICT: Multiple documents on {date_key}: {docs}"
-                    )
+                    self.warnings.append(f"POTENTIAL CONFLICT: Multiple documents on {date_key}: {docs}")
 
     def _validate_git_integrity(self):
         """Validate git history integrity"""
@@ -293,9 +289,7 @@ class VaultIntegrityChecker:
     def _check_recovery_readiness(self):
         """Verify backup and recovery procedures"""
         # Check for backup documentation
-        recovery_docs = [
-            doc for doc in self.documents if "backup" in doc.lower() or "recovery" in doc.lower()
-        ]
+        recovery_docs = [doc for doc in self.documents if "backup" in doc.lower() or "recovery" in doc.lower()]
 
         if not recovery_docs:
             self.warnings.append("No recovery/backup documentation found in vault")
@@ -372,7 +366,7 @@ class VaultIntegrityChecker:
 
         return recommendations
 
-    def export_report(self, output_path: str = None):
+    def export_report(self, output_path: str | None = None):
         """Export detailed report to JSON"""
         if output_path is None:
             output_path = self.vault_path.parent / "vault_integrity_report.json"

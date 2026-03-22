@@ -38,18 +38,18 @@ def _():
 def _(mo):
     mo.md("""
     # ⚡ USD Explorer: Itonic Cluster Generator
-    
+
     *Interactive simulation of Matsumoto's Underwater Spark Discharge method*
-    
+
     ---
-    
+
     ### 🏠 Think of it like...
     Imagine dropping a tiny lightning bolt into water. The resulting plasma bubble
     can organize electrons into stable clusters—even though electrons normally repel each other!
     This happens at the **HIHO sweet spot (0.5 coherence)**.
-    
+
     ---
-    
+
     **Adjust the sliders below to control the spark parameters:**
     """)
 
@@ -57,16 +57,24 @@ def _(mo):
 @app.cell
 def _(mo):
     # Control sliders
-    voltage = mo.ui.slider(
-        start=5, stop=20, step=1, value=10, label="⚡ Voltage (kV)", show_value=True
-    )
+    voltage = mo.ui.slider(start=5, stop=20, step=1, value=10, label="⚡ Voltage (kV)", show_value=True)
 
     pulse_duration = mo.ui.slider(
-        start=10, stop=500, step=10, value=100, label="⏱️ Pulse Duration (μs)", show_value=True
+        start=10,
+        stop=500,
+        step=10,
+        value=100,
+        label="⏱️ Pulse Duration (μs)",
+        show_value=True,
     )
 
     num_sparks = mo.ui.slider(
-        start=10, stop=200, step=10, value=50, label="🔢 Number of Sparks", show_value=True
+        start=10,
+        stop=200,
+        step=10,
+        value=50,
+        label="🔢 Number of Sparks",
+        show_value=True,
     )
 
     mo.vstack([mo.hstack([voltage, pulse_duration], justify="start", gap=2), num_sparks])
@@ -135,7 +143,7 @@ def _(mo, np, voltage, pulse_duration, num_sparks):
 
     mo.md(f"""
     ## 📊 Simulation Results
-    
+
     | Metric | Value |
     |--------|-------|
     | ⚡ Sparks Generated | {num_sparks.value} |
@@ -143,10 +151,18 @@ def _(mo, np, voltage, pulse_duration, num_sparks):
     | 📈 Success Rate | **{success_rate:.1f}%** |
     | 🎯 Mean Coherence | {mean_coherence:.4f} |
     | ⏱️ Mean Lifetime | {mean_lifetime:.2f} μs |
-    
+
     > **HIHO Threshold: 0.5** — Clusters only form when coherence reaches this sweet spot!
     """)
-    return results, coherences, lifetimes, radii, success_rate, formed_count, HIHO_THRESHOLD
+    return (
+        results,
+        coherences,
+        lifetimes,
+        radii,
+        success_rate,
+        formed_count,
+        HIHO_THRESHOLD,
+    )
 
 
 @app.cell
@@ -157,7 +173,13 @@ def _(mo, np, go, coherences, HIHO_THRESHOLD):
     fig_hist = go.Figure()
 
     fig_hist.add_trace(
-        go.Histogram(x=coherences, nbinsx=30, marker_color="#4ECDC4", opacity=0.8, name="Coherence")
+        go.Histogram(
+            x=coherences,
+            nbinsx=30,
+            marker_color="#4ECDC4",
+            opacity=0.8,
+            name="Coherence",
+        )
     )
 
     # Add HIHO threshold line
@@ -189,9 +211,7 @@ def _(mo, np, go, make_subplots, results):
     formed = [r for r in results if r["formed"]]
 
     if len(formed) > 0:
-        fig_props = make_subplots(
-            rows=1, cols=2, subplot_titles=["Lifetime vs Coherence", "Radius vs Energy"]
-        )
+        fig_props = make_subplots(rows=1, cols=2, subplot_titles=["Lifetime vs Coherence", "Radius vs Energy"])
 
         # Lifetime vs Coherence
         fig_props.add_trace(
@@ -199,13 +219,13 @@ def _(mo, np, go, make_subplots, results):
                 x=[r["coherence"] for r in formed],
                 y=[r["lifetime_us"] for r in formed],
                 mode="markers",
-                marker=dict(
-                    size=10,
-                    color=[r["coherence"] for r in formed],
-                    colorscale="Viridis",
-                    showscale=True,
-                    colorbar=dict(title="Coherence", x=0.45),
-                ),
+                marker={
+                    "size": 10,
+                    "color": [r["coherence"] for r in formed],
+                    "colorscale": "Viridis",
+                    "showscale": True,
+                    "colorbar": {"title": "Coherence", "x": 0.45},
+                },
                 name="Clusters",
             ),
             row=1,
@@ -218,7 +238,7 @@ def _(mo, np, go, make_subplots, results):
                 x=[r["energy_j"] for r in formed],
                 y=[r["radius_nm"] for r in formed],
                 mode="markers",
-                marker=dict(size=10, color="#FF6B6B"),
+                marker={"size": 10, "color": "#FF6B6B"},
                 name="Size",
                 showlegend=False,
             ),
@@ -242,31 +262,31 @@ def _(mo, np, go, make_subplots, results):
 def _(mo):
     mo.md("""
     ---
-    
+
     ## 🧪 How It Works: The Matsumoto Method
-    
+
     **Step 1: Spark Discharge**
     - High voltage (5-20 kV) creates spark through water
     - Plasma bubble forms instantaneously
-    
+
     **Step 2: Electron Clustering**
     - Despite Coulomb repulsion, electrons can cluster
     - Electromagnetic force is 10⁴⁰ stronger than gravity!
     - HIHO coherence enables this "impossible" clustering
-    
+
     **Step 3: Itonic Cluster Formation**
     - At 0.5 coherence (HIHO threshold), stability emerges
     - Cluster becomes self-sustaining
     - Can persist for microseconds to seconds
-    
+
     ---
-    
+
     ### 🌍 Why It Matters
-    
+
     - **Clean Energy**: Potential pathway to cold fusion (LENR)
     - **Novel Materials**: Electron clusters with unusual properties
     - **Fundamental Physics**: Challenges our understanding of charge clustering
-    
+
     > 👉 **The key insight**: At exactly 50% coherence, the "impossible" becomes stable.
     """)
 
@@ -275,15 +295,15 @@ def _(mo):
 def _(mo):
     mo.md("""
     ---
-    
+
     ## 📖 References
-    
+
     - Matsumoto, T. (1989-1999) - Underwater spark discharge experiments
     - Ken Shoulders (1996) - EVO (Exotic Vacuum Objects) research
     - HIHO Reality framework - Half-In-Half-Out stability principle
-    
+
     ---
-    
+
     *Built with Cohezion Swarm | FLUME Methodology | 2026*
     """)
 

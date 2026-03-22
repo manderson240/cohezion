@@ -259,8 +259,7 @@ class SizeEnforcer:
 
             if line_count > limits["max_lines"]:
                 result["violations"].append(
-                    f"Lines: {line_count} > {limits['max_lines']} "
-                    f"(excess: {line_count - limits['max_lines']} lines)"
+                    f"Lines: {line_count} > {limits['max_lines']} (excess: {line_count - limits['max_lines']} lines)"
                 )
 
             if char_count > limits["max_chars"]:

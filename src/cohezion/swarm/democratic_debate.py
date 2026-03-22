@@ -21,6 +21,15 @@ if TYPE_CHECKING:
 import httpx
 
 
+if TYPE_CHECKING:
+    from cohezion.swarm.token_client import (
+        TokenEfficientClient,
+    )
+    from cohezion.swarm.token_client import (
+        TokenEfficientClient as _TC,
+    )
+
+
 logger = logging.getLogger(__name__)
 
 
@@ -201,7 +210,6 @@ class DemocraticDebate:
         ollama_host: str = "http://localhost:11434",
         token_client: "TokenEfficientClient | None" = None,
     ):
-        from cohezion.swarm.token_client import TokenEfficientClient as _TC
 
         self.ollama_host = ollama_host
         self.personas = AGENT_PERSONAS
@@ -289,9 +297,7 @@ class DemocraticDebate:
             # Find winning proposal
             if proposals:
                 # Simple: use synthesizer's proposal as the integrated view
-                debate_round.winning_proposal = proposals.get(
-                    "synthesizer", list(proposals.values())[0]
-                )
+                debate_round.winning_proposal = proposals.get("synthesizer", next(iter(proposals.values())))
 
             session.rounds.append(debate_round)
 
@@ -391,9 +397,7 @@ Reasoning: (2-3 sentences)"""
         """Use synthesizer to refine the topic based on feedback."""
         synthesizer = self.personas[AgentRole.SYNTHESIZER]
 
-        feedback = "\n".join(
-            [f"- {v.role.value} ({v.vote.name}): {v.reasoning[:100]}..." for v in last_round.votes]
-        )
+        feedback = "\n".join([f"- {v.role.value} ({v.vote.name}): {v.reasoning[:100]}..." for v in last_round.votes])
 
         prompt = f"""Based on this round's feedback, refine the topic for the next round.
 
@@ -430,9 +434,7 @@ List the TOP 5 actionable improvements with highest consensus:"""
             "total_rounds": len(session.rounds),
             "total_votes": total_votes,
             "positive_vote_rate": positive_votes / max(total_votes, 1),
-            "final_round_consensus": session.rounds[-1].consensus_reached
-            if session.rounds
-            else False,
+            "final_round_consensus": session.rounds[-1].consensus_reached if session.rounds else False,
         }
 
     async def close(self):

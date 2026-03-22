@@ -115,7 +115,9 @@ class TestModelPoolManager:
     @pytest.mark.asyncio
     async def test_initialize_marks_loaded_models(self, pool: ModelPoolManager):
         """Initialize should reconcile with Ollama and mark running models."""
-        tags_resp = _mock_httpx_ok({"models": [{"name": "hot-model:latest", "size": 5 * 1024**3}]})
+        tags_resp = _mock_httpx_ok(
+            {"models": [{"name": "hot-model:latest", "size": 5 * 1024**3}]}
+        )
         ps_resp = _mock_httpx_ok({"models": [{"name": "hot-model:latest"}]})
 
         with patch("httpx.AsyncClient") as MockClient:
@@ -320,7 +322,7 @@ class TestPoolManagerIntegration:
         pool_mgr.get_model("phi3:mini").healthy = True
 
         router = CostAwareRouter(pool_manager=pool_mgr)
-        decision, can_proceed = router.select_model("Design a complex distributed system")
+        decision, _can_proceed = router.select_model("Design a complex distributed system")
 
         # Should fall back to phi3:mini since it's the only available model
         assert decision.model == "phi3:mini"
@@ -330,7 +332,7 @@ class TestPoolManagerIntegration:
         from cohezion.swarm.cost_aware_router import CostAwareRouter
 
         router = CostAwareRouter(pool_manager=None)
-        decision, can_proceed = router.select_model("What is Python?")
+        decision, _can_proceed = router.select_model("What is Python?")
 
         # Normal routing, no pool interference
         assert decision.model in ("phi3:mini", "qwen3-coder:32b", "deepseek-r1:8b")

@@ -166,10 +166,7 @@ class SecureCookieMiddleware(BaseHTTPMiddleware):
         cookie_parts = [
             p.strip()
             for p in cookie.split(";")
-            if not any(
-                p.strip().lower().startswith(prefix)
-                for prefix in ("secure", "httponly", "samesite")
-            )
+            if not any(p.strip().lower().startswith(prefix) for prefix in ("secure", "httponly", "samesite"))
         ]
 
         # Add new flags
