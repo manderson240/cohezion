@@ -1,0 +1,12 @@
+story_id: 008
+title: "Create an Autonomous Repository Manager Agent"
+description: "As a developer, I want to create an Autonomous Repository Manager Agent that can manage our repository according to the GitFlow methodology, so that our branching strategy is enforced automatically."
+acceptance_criteria:
+  - "AC1: A new `RepositoryManager` agent is created."
+  - "AC2: The agent is able to create new feature branches from the `develop` branch."
+  - "AC3: The agent is able to merge feature branches into the `develop` branch."
+  - "AC4: The agent is able to create new release branches from the `develop` branch."
+  - "AC5: The agent is able to merge release branches into the `main` and `develop` branches."
+  - "AC6: The agent is able to create new hotfix branches from the `main` branch."
+  - "AC7: The agent is able to merge hotfix branches into the `main` and `develop` branches."
+  - "AC8: The agent is able to delete feature, release, and hotfix branches after they have been merged."
