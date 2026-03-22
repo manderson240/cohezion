@@ -1,0 +1,12 @@
+[
+    {
+        "name": "cohezion-nginx",
+        "image": "nginx:latest",
+        "ports": [
+            "80:80"
+        ],
+        "volumes": [
+            "/home/mike-anderson/dev/cohezion/nginx.conf:/etc/nginx/nginx.conf:ro"
+        ]
+    }
+]

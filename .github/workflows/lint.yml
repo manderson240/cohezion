@@ -1,7 +1,10 @@
-name: Lint
+name: Lint & Type Check
 
 on:
+  push:
+    branches: [main]
   pull_request:
+    branches: [main]
 
 jobs:
   lint:
@@ -9,12 +12,12 @@ jobs:
 
     steps:
       - name: Check out code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.10'
+          python-version: '3.11'
 
       - name: Install dependencies
         run: |

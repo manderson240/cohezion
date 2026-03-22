@@ -1,0 +1,45 @@
+[Unit]
+Description=Entire.io Sync Daemon - Git to Vault Synchronization
+Documentation=file:///home/mike-anderson/dev/cohezion/cloud-vault-mcp/docs/entire-io-sync-daemon.md
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=mike-anderson
+WorkingDirectory=/home/mike-anderson/dev/cohezion/cloud-vault-mcp
+
+# Environment variables
+Environment="VAULT_PATH=/home/mike-anderson/vaults/cohezion-vault"
+Environment="GIT_PATH=/home/mike-anderson/vaults/cohezion-vault"
+Environment="PYTHONUNBUFFERED=1"
+
+# Main process
+ExecStart=/home/mike-anderson/dev/cohezion/cloud-vault-mcp/.venv/bin/python3 -m mcp_server.entire_main start \
+  --poll-interval=300 \
+  --vault-path=${VAULT_PATH} \
+  --git-path=${GIT_PATH}
+
+# Auto-restart on failure
+Restart=always
+RestartSec=10
+StartLimitInterval=300
+StartLimitBurst=10
+
+# Resource limits
+MemoryLimit=256M
+CPUQuota=50%
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=entire-io-sync
+
+# Security
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=yes
+ReadWritePaths=/home/mike-anderson/vaults/cohezion-vault /tmp
+
+[Install]
+WantedBy=multi-user.target

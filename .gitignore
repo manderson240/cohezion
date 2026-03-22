@@ -114,3 +114,118 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+.certs/
+certs/
+data/certificates/
+
+# === ARTIFACT GOVERNANCE (Session 57 Migration) ===
+# Large artifacts that should be stored in Tier 2/Tier 3 (SurrealDB/External)
+# See: CLAUDE.md "Data Storage Architecture for Simulations"
+
+# Simulation Artifacts (>50MB)
+data/flume/checkpoints/*.pt
+data/rl/checkpoints/*.pt
+data/compound/checkpoints/*.pt
+*.checkpoint
+*.model
+*.weights
+
+# Diagnostic/Log Files (can grow unbounded)
+src/diagnostics/*.log
+src/diagnostics/process_list.log
+logs/
+*.log.*
+
+# Large Data Files (document/analysis exports)
+src/cohezion/knowledge_graph/universe_nodes/*.jsonl
+src/cohezion/knowledge_graph/universe_nodes/*.parquet
+data/exports/
+data/universe_artifacts/
+
+# Cache/Temporary Build Artifacts
+.entire/
+cache/swarm/
+*.npy
+*.npz
+build_cache/
+dist/
+
+# Runtime Data (Database and Metrics)
+data/surrealdb/
+data/compound/metrics/
+
+# IDE/System Files
+.DS_Store
+.vscode/settings.json
+*.swp
+*.swo
+*~
+
+# === SESSION ARTIFACT PREVENTION (Repository Cleanup Session) ===
+# Prevent accumulation of numbered session artifacts at repo root.
+# Use number-prefix patterns to avoid blocking legitimate docs (e.g., SESSION_GUIDELINES.md).
+#
+# To override for a specific file, add exception BEFORE this section:
+#   !SESSION_SPECIAL_DOC.md
+#
+# Note: docs/archive/ is NOT gitignored - archived files are committed for audit trail.
+
+# Numbered session artifacts at root only (not in subdirectories)
+/SESSION_[0-9]*
+/PHASE_[0-9]*
+/TASK_[0-9]*
+
+# Backup directories from old sessions
+/TASKS_BACKUP_*/
+/TEAM_BACKUP_*/
+
+# Other session-related patterns
+/*_BACKUP_*/
+/cohezion-session-[0-9]*/
+.worktrees/
+infrastructure/
+.env.surrealdb
+cloud-vault-mcp/history.txt
+
+# Generated/large files discovered during triage
+ruff_*.txt
+ruff_*.json
+mypy_*.txt
+f821_out.txt
+
+# Claude worktrees (ephemeral)
+.claude/worktrees/
+
+# BMAD runtime memory (session-specific, not version-controlled)
+_bmad/_memory/
+
+# Generated data
+data/cache/
+*.db
+
+# Session archives
+.archived/
+
+# Large generated files
+COHEZION_ANTHROPIC_PORTFOLIO_2026.zip
+
+# Temporary files
+*.tmp
+
+# === DATA DIRECTORY LIFECYCLE POLICY (P3 Consensus) ===
+# data/ is ephemeral cache - all contents regenerable from source
+# Only track .gitkeep and README.md
+data/
+!data/.gitkeep
+!data/README.md
+
+# Specific cache patterns (anywhere in repo)
+*.parquet
+*.jsonl
+*.pt
+*.pkl
+*.checkpoint
+*.model
+*.weights
+*.npy
+*.npz

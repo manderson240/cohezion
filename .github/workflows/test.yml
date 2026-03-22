@@ -1,0 +1,75 @@
+name: Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.13"]
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install root dependencies
+        run: |
+          pip install -e ".[dev]"
+
+      - name: Install cloud-vault-mcp dependencies
+        run: |
+          cd cloud-vault-mcp
+          pip install -e ".[dev]"
+
+      - name: Run root project tests
+        run: |
+          pytest tests/ --cov=src --cov-report=xml --cov-report=term-missing -v
+
+      - name: Run cloud-vault-mcp tests
+        run: |
+          cd cloud-vault-mcp
+          pytest tests/ --cov=src --cov-report=xml --cov-report=term-missing -v
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          files: ./coverage.xml,./cloud-vault-mcp/coverage.xml
+          fail_ci_if_error: false
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+
+  test-markers:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        test-type: ["fast"]
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.13"
+
+      - name: Install dependencies
+        run: |
+          pip install -e ".[dev]"
+          cd cloud-vault-mcp
+          pip install -e ".[dev]"
+
+      - name: Run ${{ matrix.test-type }} tests
+        run: |
+          pytest -m ${{ matrix.test-type }} --co -q
+          pytest -m ${{ matrix.test-type }} -v
