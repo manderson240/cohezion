@@ -45,7 +45,7 @@ class ResidencyAnchorBase:
 - **Architecture**: {anchors["architecture"]}
 - **Hostname**: {anchors["hostname"]}
 - **Root**: {anchors["project_root"]}
-- **Note**: This is a high-performance Strix Halo substrate. 
+- **Note**: This is a high-performance Strix Halo substrate.
 - **Guidance**: Prioritize local inference (Ollama) and high-density 12D state vectors.
 """.strip()
 

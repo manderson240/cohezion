@@ -39,7 +39,7 @@ def relaunch_sudo() -> None:
     """Relaunch the script with sudo if not already running as root"""
     if not is_root():
         print("Relaunching with sudo")
-        os.execvp("sudo", ["sudo", "-E"] + sys.argv + ["-y"])
+        os.execvp("sudo", ["sudo", "-E", *sys.argv, "-y"])
 
 
 class DistroPackage:

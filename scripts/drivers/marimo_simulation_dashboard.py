@@ -104,7 +104,7 @@ def __(mo, px, substrate_df):
             template="plotly_dark",
             height=800,
         )
-        fig.update_layout(margin=dict(l=0, r=0, b=0, t=40))
+        fig.update_layout(margin={"l": 0, "r": 0, "b": 0, "t": 40})
         return mo.plotly(fig)
 
     metric_selector = mo.ui.dropdown(

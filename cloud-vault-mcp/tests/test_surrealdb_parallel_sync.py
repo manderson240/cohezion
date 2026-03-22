@@ -5,6 +5,7 @@ and measures performance improvements.
 """
 
 import asyncio
+import contextlib
 import tempfile
 import time
 from pathlib import Path
@@ -68,10 +69,8 @@ def sync_instance(temp_vault):
     yield sync
     # Cleanup
     if hasattr(sync, "async_client") and sync.async_client:
-        try:
+        with contextlib.suppress(BaseException):
             asyncio.run(sync.async_client.aclose())
-        except:
-            pass
 
 
 class TestParallelConfiguration:
@@ -109,9 +108,7 @@ class TestAsyncPaperSync:
         paper_path = temp_vault / "papers" / "paper-00.md"
 
         # Mock the async execute query
-        with patch.object(
-            sync_instance, "_execute_query_async", new_callable=AsyncMock
-        ) as mock_query:
+        with patch.object(sync_instance, "_execute_query_async", new_callable=AsyncMock) as mock_query:
             mock_query.return_value = []
 
             # Mock the sync links
@@ -141,9 +138,7 @@ class TestAsyncPaperSync:
     @pytest.mark.asyncio
     async def test_bulk_import_papers_parallel(self, sync_instance, temp_vault):
         """Test parallel bulk import of papers."""
-        with patch.object(
-            sync_instance, "_execute_query_async", new_callable=AsyncMock
-        ) as mock_query:
+        with patch.object(sync_instance, "_execute_query_async", new_callable=AsyncMock) as mock_query:
             mock_query.return_value = []
 
             with patch.object(sync_instance, "_sync_paper_links"):
@@ -163,9 +158,7 @@ class TestAsyncConceptSync:
         """Test successful async concept sync."""
         concept_path = temp_vault / "concepts" / "concept-0.md"
 
-        with patch.object(
-            sync_instance, "_execute_query_async", new_callable=AsyncMock
-        ) as mock_query:
+        with patch.object(sync_instance, "_execute_query_async", new_callable=AsyncMock) as mock_query:
             mock_query.return_value = []
 
             client = MagicMock()
@@ -180,9 +173,7 @@ class TestAsyncConceptSync:
     @pytest.mark.asyncio
     async def test_bulk_import_concepts_parallel(self, sync_instance, temp_vault):
         """Test parallel bulk import of concepts."""
-        with patch.object(
-            sync_instance, "_execute_query_async", new_callable=AsyncMock
-        ) as mock_query:
+        with patch.object(sync_instance, "_execute_query_async", new_callable=AsyncMock) as mock_query:
             mock_query.return_value = []
 
             count = await sync_instance._bulk_import_concepts_parallel()
@@ -200,9 +191,7 @@ class TestBulkImportMethods:
         """Verify bulk import uses parallel when enabled."""
         sync_instance.parallel_enabled = True
 
-        with patch.object(
-            sync_instance, "_bulk_import_papers_parallel", return_value=5
-        ) as mock_parallel:
+        with patch.object(sync_instance, "_bulk_import_papers_parallel", return_value=5) as mock_parallel:
             result = sync_instance.bulk_import_papers()
 
             assert result == 5
@@ -212,9 +201,7 @@ class TestBulkImportMethods:
         """Verify bulk import uses sequential when disabled."""
         sync_instance.parallel_enabled = False
 
-        with patch.object(
-            sync_instance, "_bulk_import_papers_sequential", return_value=5
-        ) as mock_seq:
+        with patch.object(sync_instance, "_bulk_import_papers_sequential", return_value=5) as mock_seq:
             result = sync_instance.bulk_import_papers()
 
             assert result == 5
@@ -224,9 +211,7 @@ class TestBulkImportMethods:
         """Verify concept bulk import uses parallel when enabled."""
         sync_instance.parallel_enabled = True
 
-        with patch.object(
-            sync_instance, "_bulk_import_concepts_parallel", return_value=3
-        ) as mock_parallel:
+        with patch.object(sync_instance, "_bulk_import_concepts_parallel", return_value=3) as mock_parallel:
             result = sync_instance.bulk_import_concepts()
 
             assert result == 3
@@ -236,9 +221,7 @@ class TestBulkImportMethods:
         """Verify concept bulk import uses sequential when disabled."""
         sync_instance.parallel_enabled = False
 
-        with patch.object(
-            sync_instance, "_bulk_import_concepts_sequential", return_value=3
-        ) as mock_seq:
+        with patch.object(sync_instance, "_bulk_import_concepts_sequential", return_value=3) as mock_seq:
             result = sync_instance.bulk_import_concepts()
 
             assert result == 3
@@ -277,12 +260,15 @@ class TestErrorHandling:
                 raise Exception("Simulated HTTP error")
             return []
 
-        with patch.object(
-            sync_instance,
-            "_execute_query_async",
-            new_callable=AsyncMock,
-            side_effect=mock_execute,
-        ), patch.object(sync_instance, "_sync_paper_links"):
+        with (
+            patch.object(
+                sync_instance,
+                "_execute_query_async",
+                new_callable=AsyncMock,
+                side_effect=mock_execute,
+            ),
+            patch.object(sync_instance, "_sync_paper_links"),
+        ):
             count = await sync_instance._bulk_import_papers_parallel()
 
             # Should succeed for papers without HTTP error
@@ -295,12 +281,15 @@ class TestErrorHandling:
         async def timeout_execute(*args, **kwargs):
             raise TimeoutError("Request timeout")
 
-        with patch.object(
-            sync_instance,
-            "_execute_query_async",
-            new_callable=AsyncMock,
-            side_effect=timeout_execute,
-        ), patch.object(sync_instance, "_sync_paper_links"):
+        with (
+            patch.object(
+                sync_instance,
+                "_execute_query_async",
+                new_callable=AsyncMock,
+                side_effect=timeout_execute,
+            ),
+            patch.object(sync_instance, "_sync_paper_links"),
+        ):
             count = await sync_instance._bulk_import_papers_parallel()
 
             # All should fail due to timeout
@@ -325,12 +314,15 @@ class TestConcurrencyControl:
 
         sync_instance.max_concurrent = 3
 
-        with patch.object(
-            sync_instance,
-            "_execute_query_async",
-            new_callable=AsyncMock,
-            side_effect=mock_execute,
-        ), patch.object(sync_instance, "_sync_paper_links"):
+        with (
+            patch.object(
+                sync_instance,
+                "_execute_query_async",
+                new_callable=AsyncMock,
+                side_effect=mock_execute,
+            ),
+            patch.object(sync_instance, "_sync_paper_links"),
+        ):
             await sync_instance._bulk_import_papers_parallel()
 
             # Should never exceed max_concurrent
@@ -405,9 +397,10 @@ Content {i}
             max_concurrent=10,
         )
 
-        with patch.object(
-            sync_par, "_execute_query_async", new_callable=AsyncMock, return_value=[]
-        ), patch.object(sync_par, "_sync_paper_links"):
+        with (
+            patch.object(sync_par, "_execute_query_async", new_callable=AsyncMock, return_value=[]),
+            patch.object(sync_par, "_sync_paper_links"),
+        ):
             start = time.perf_counter()
             count_par = await sync_par._bulk_import_papers_parallel()
             time_par = time.perf_counter() - start

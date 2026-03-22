@@ -18,16 +18,14 @@ class TestWorkQueue:
         """Test work queue creates schema correctly."""
         with tempfile.TemporaryDirectory() as tmpdir:
             db_path = str(Path(tmpdir) / "test.db")
-            queue = WorkQueue(db_path)
+            WorkQueue(db_path)
 
             # Verify database exists
             assert Path(db_path).exists()
 
             # Verify schema
             conn = sqlite3.connect(db_path)
-            cursor = conn.execute(
-                "SELECT name FROM sqlite_master WHERE type='table' AND name='work_queue'"
-            )
+            cursor = conn.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='work_queue'")
             assert cursor.fetchone() is not None
             conn.close()
 
@@ -130,16 +128,14 @@ class TestDeadLetterQueue:
         """Test DLQ creates schema correctly."""
         with tempfile.TemporaryDirectory() as tmpdir:
             db_path = str(Path(tmpdir) / "dlq.db")
-            dlq = DeadLetterQueue(db_path)
+            DeadLetterQueue(db_path)
 
             # Verify database exists
             assert Path(db_path).exists()
 
             # Verify schema
             conn = sqlite3.connect(db_path)
-            cursor = conn.execute(
-                "SELECT name FROM sqlite_master WHERE type='table' AND name='dead_letter_queue'"
-            )
+            cursor = conn.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='dead_letter_queue'")
             assert cursor.fetchone() is not None
             conn.close()
 
@@ -217,8 +213,14 @@ class TestAgentCoordinator:
         """Test extracting JSON from agent output."""
         coordinator = AgentCoordinator()
 
-        # Plain text with JSON code fence (what extract_json_from_output expects)
-        output = '```json\n[{"row": 100, "status": "Researched", "abstractions": "Test", "domain": "AI", "integration_point": "Test point"}]\n```'
+        # Simulate JSONL output with JSON block
+        output = (
+            '{"type": "content_block_delta", "delta": {"type":'
+            ' "text_delta", "text": "```json\\n[{\\"row\\": 100,'
+            ' \\"status\\": \\"Researched\\", \\"abstractions\\":'
+            ' \\"Test\\", \\"domain\\": \\"AI\\",'
+            ' \\"integration_point\\": \\"Test point\\"}]\\n```"}}'
+        )
 
         results = coordinator.extract_json_from_output(output)
 
@@ -231,7 +233,11 @@ class TestAgentCoordinator:
         coordinator = AgentCoordinator()
 
         # Missing required fields
-        output = """{"type": "content_block_delta", "delta": {"type": "text_delta", "text": "```json\\n[{\\"row\\": 100, \\"status\\": \\"Researched\\"}]\\n```"}}"""
+        output = (
+            '{"type": "content_block_delta", "delta": {"type":'
+            ' "text_delta", "text": "```json\\n[{\\"row\\": 100,'
+            ' \\"status\\": \\"Researched\\"}]\\n```"}}'
+        )
 
         results = coordinator.extract_json_from_output(output)
 
@@ -252,12 +258,26 @@ class TestAgentCoordinator:
         """Test extracting from multiple JSON blocks (takes largest)."""
         coordinator = AgentCoordinator()
 
-        # Two JSON code fence blocks, larger one has more entries
-        output = (
-            '```json\n[{"row": 100, "status": "Researched", "abstractions": "Test", "domain": "AI", "integration_point": "Test"}]\n```\n'
-            '```json\n[{"row": 101, "status": "Researched", "abstractions": "Test1", "domain": "AI", "integration_point": "Test1"}, '
-            '{"row": 102, "status": "Researched", "abstractions": "Test2", "domain": "AI", "integration_point": "Test2"}]\n```'
+        # Two JSON blocks, larger one has more entries
+        line1 = (
+            '{"type": "content_block_delta", "delta": {"type":'
+            ' "text_delta", "text": "```json\\n[{\\"row\\": 100,'
+            ' \\"status\\": \\"Researched\\", \\"abstractions\\":'
+            ' \\"Test\\", \\"domain\\": \\"AI\\",'
+            ' \\"integration_point\\": \\"Test\\"}]\\n```"}}'
         )
+        line2 = (
+            '{"type": "content_block_delta", "delta": {"type":'
+            ' "text_delta", "text": "```json\\n[{\\"row\\": 101,'
+            ' \\"status\\": \\"Researched\\", \\"abstractions\\":'
+            ' \\"Test1\\", \\"domain\\": \\"AI\\",'
+            ' \\"integration_point\\": \\"Test1\\"}, {\\"row\\":'
+            ' 102, \\"status\\": \\"Researched\\",'
+            ' \\"abstractions\\": \\"Test2\\", \\"domain\\":'
+            ' \\"AI\\", \\"integration_point\\":'
+            ' \\"Test2\\"}]\\n```"}}'
+        )
+        output = f"\n        {line1}\n        {line2}\n        "
 
         results = coordinator.extract_json_from_output(output)
 

@@ -32,7 +32,9 @@ logger = logging.getLogger(__name__)
 
 
 @safe_singleton
-def get_config_orchestrator(repo_root: Path | None = None) -> ConfigurationOrchestrator:
+def get_config_orchestrator(
+    repo_root: Path | None = None,
+) -> ConfigurationOrchestrator:
     """Get or create the configuration orchestrator singleton."""
     if repo_root is None:
         repo_root = Path.cwd()
@@ -180,7 +182,7 @@ class ConfigurationOrchestrator:
             try:
                 logger.debug("Checking size limits")
 
-                for filename, limit in self.size_limits.items():
+                for filename, _limit in self.size_limits.items():
                     if filename == "CLAUDE.md":
                         file_path = self.claude_md
                     else:
@@ -191,12 +193,12 @@ class ConfigurationOrchestrator:
                         violation_check = self.size_enforcer.check_violations(file_path)
 
                         if violation_check["violates"]:
-                            logger.warning(
-                                f"{filename} size violation: {violation_check['violations']}"
-                            )
+                            logger.warning(f"{filename} size violation: {violation_check['violations']}")
 
                             # Archive old sections
-                            archive_result = await self.archiver.archive_old_sections(file_path)
+                            archive_result = await self.archiver.archive_old_sections(
+                                file_path
+                            )
 
                             # Log archival
                             if archive_result.get("archived"):
@@ -213,7 +215,9 @@ class ConfigurationOrchestrator:
                                     payload={
                                         "config_event": ConfigEvent.ARCHIVE_TRIGGERED.name,
                                         "file": filename,
-                                        "sections_archived": archive_result["sections_archived"],
+                                        "sections_archived": archive_result[
+                                            "sections_archived"
+                                        ],
                                     },
                                 )
                                 self.monitor.event_bus.publish(config_event)
@@ -358,7 +362,7 @@ class ConfigurationOrchestrator:
 
         try:
             # Phase 2: Detect manual edits
-            is_manual = self.detect_manual_edits(file_path)
+            self.detect_manual_edits(file_path)
 
             # Phase 2: Detect conflicts
             conflicts = await self.detect_conflicts()

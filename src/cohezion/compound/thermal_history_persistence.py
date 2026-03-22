@@ -178,9 +178,7 @@ class ThermalTimeSeriesCollector:
             if size_mb >= self.MAX_JSONL_SIZE_MB:
                 # Archive current file
                 timestamp = datetime.now().strftime("%Y%m%d")
-                archive_path = self.history_path.with_stem(
-                    f"thermal_history_{timestamp}"
-                ).with_suffix(".jsonl.gz")
+                archive_path = self.history_path.with_stem(f"thermal_history_{timestamp}").with_suffix(".jsonl.gz")
 
                 with open(self.history_path, "rb") as f_in:
                     with gzip.open(archive_path, "wb") as f_out:
@@ -315,14 +313,14 @@ class ThermalTimeSeriesCollector:
             with open(self.history_path, "a", encoding="utf-8") as f:
                 f.write(json_line)
 
-            logger.debug(
-                f"Recorded batch thermal: batch_size={batch_size}, temp={peak_gpu_temp:.1f}°C"
-            )
+            logger.debug(f"Recorded batch thermal: batch_size={batch_size}, temp={peak_gpu_temp:.1f}°C")
         except Exception as e:
             logger.debug(f"Failed to record batch thermal: {e}")
 
 
-def load_jsonl_history(history_path: Path | None = None, days: int = 7) -> list[dict]:
+def load_jsonl_history(
+    history_path: Path | None = None, days: int = 7
+) -> list[dict]:
     """Load thermal samples from JSONL (synchronous).
 
     Parameters
@@ -368,7 +366,9 @@ def load_jsonl_history(history_path: Path | None = None, days: int = 7) -> list[
         return []
 
 
-def get_thermal_time_series_collector(reset: bool = False) -> ThermalTimeSeriesCollector:
+def get_thermal_time_series_collector(
+    reset: bool = False,
+) -> ThermalTimeSeriesCollector:
     """Get or create singleton thermal time-series collector.
 
     Parameters

@@ -130,8 +130,7 @@ SYNTHESIZED RESPONSE:"""
         sections = ["## ANALYST PERSPECTIVES"]
         for output in critique.analyst_outputs:
             sections.append(
-                f"\n### {output.perspective.value.upper()} (confidence: {output.confidence:.0%})\n"
-                f"{output.content}"
+                f"\n### {output.perspective.value.upper()} (confidence: {output.confidence:.0%})\n{output.content}"
             )
         return "\n".join(sections)
 

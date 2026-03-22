@@ -61,12 +61,17 @@ class PromptOptimizer:
 
     # Redundant phrase patterns
     REDUNDANCY_PATTERNS = [
-        (r"\b(very|really|quite)\s+(very|really|quite)\b", r"$1"),  # Repeated intensifiers
+        (
+            r"\b(very|really|quite)\s+(very|really|quite)\b",
+            r"$1",
+        ),  # Repeated intensifiers
         (r"\b(and\s+)+and\b", "and"),  # Repeated "and"
         (r"\s+", " "),  # Multiple spaces
     ]
 
-    def __init__(self, enable_filler_removal: bool = True, estimate_tokens: bool = True):
+    def __init__(
+        self, enable_filler_removal: bool = True, estimate_tokens: bool = True
+    ):
         """Initialize optimizer.
 
         Args:
@@ -108,8 +113,7 @@ class PromptOptimizer:
         if self.estimate_tokens and original_tokens > 0:
             reduction_pct = 100 * (1 - compressed_tokens / original_tokens)
             logger.debug(
-                f"Optimized prompt: {original_tokens} → {compressed_tokens} tokens "
-                f"({reduction_pct:.1f}% reduction)"
+                f"Optimized prompt: {original_tokens} → {compressed_tokens} tokens ({reduction_pct:.1f}% reduction)"
             )
 
         return text
@@ -123,8 +127,8 @@ class PromptOptimizer:
         Returns:
             Text with filler words removed
         """
-        text_lower = text.lower()
-        text_words = text.split()
+        text.lower()
+        text.split()
 
         # Build pattern that matches filler words as whole words
         for filler in self.FILLER_WORDS:
@@ -217,9 +221,7 @@ class PromptOptimizer:
             "original_tokens": original_tokens,
             "compressed_tokens": compressed_tokens,
             "tokens_saved": original_tokens - compressed_tokens,
-            "reduction_pct": (
-                100 * (1 - compressed_tokens / original_tokens) if original_tokens > 0 else 0.0
-            ),
+            "reduction_pct": (100 * (1 - compressed_tokens / original_tokens) if original_tokens > 0 else 0.0),
             "original_chars": len(original),
             "compressed_chars": len(compressed),
         }

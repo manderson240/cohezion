@@ -12,17 +12,43 @@ import time
 from datetime import datetime, timedelta
 from pathlib import Path
 
-# Add src to path
-PROJECT_ROOT = Path("/home/mike-anderson/dev/cohezion")
-sys.path.insert(0, str(PROJECT_ROOT / "src"))
+import numpy as np
 
 from cohezion.swarm.compound_client import get_compound_client
 from cohezion.swarm.hiho_vector_engine import HihoVectorEngine
 from cohezion.core.persistence.surreal_client import SurrealClient
 import trackio
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
-logger = logging.getLogger("OvernightMission")
+# Import our components
+from cohezion.monitoring.ratchet_monitor import RatchetMonitor
+from cohezion.swarm.hiho_vector_engine import HihoVectorEngine
+from cohezion.swarm.rzero_challenger import RZeroChallengerSolver
+
+
+# January 2026 SLM Swarm (8+ models as requested)
+SWARM_ROSTER = {
+    # Reasoning/Thinking
+    "reasoning_heavy": "deepseek-r1:70b",
+    "reasoning_fast": "glm-4.7-thinking",
+    # Coding/Implementation
+    "coding_expert": "qwen3-coder:32b",
+    "coding_micro": "phi-4-mini:3.8b",
+    # Efficiency Champions
+    "efficient_1": "mistral-nemo:12b",
+    "efficient_2": "falcon-h1r:7b",  # Jan 2026 release, hybrid Transformer-Mamba
+    # Multimodal
+    "vision": "qwen3-vl:8b",
+    "multilingual": "gemma-3n:2b",
+    # Orchestrators (for LangChain coordination)
+    "orchestrator_1": "llama-3.1:8b",
+    "orchestrator_2": "mistral:7b",
+}
+
+
+class OvernightResearchMission:
+    """
+    8-hour autonomous research sprint.
+    """
 
 class OvernightMission:
     def __init__(self):
@@ -82,6 +108,7 @@ class OvernightMission:
             await asyncio.sleep(600) # 10 min break
             
         trackio.finish()
+
 
 if __name__ == "__main__":
     mission = OvernightMission()

@@ -366,9 +366,7 @@ class TestMajorityVoting:
         ]
 
         # Require 100% for consensus
-        result = voter.vote_on_skills(
-            votes, strategy=VotingStrategy.MAJORITY, require_agreement_threshold=1.0
-        )
+        result = voter.vote_on_skills(votes, strategy=VotingStrategy.MAJORITY, require_agreement_threshold=1.0)
 
         # 2/3 < 100%, should fallback
         assert result.fallback_used is True
@@ -463,9 +461,7 @@ class TestWeightedVoting:
             ),
         ]
 
-        result = voter.vote_on_skills(
-            votes, strategy=VotingStrategy.WEIGHTED, require_agreement_threshold=0.6
-        )
+        result = voter.vote_on_skills(votes, strategy=VotingStrategy.WEIGHTED, require_agreement_threshold=0.6)
 
         # 50/50 split, threshold 60%, should fallback
         assert result.fallback_used is True
@@ -764,10 +760,7 @@ class TestConsensusAchievementRate:
         # Create 100 votes with 90% agreement
         votes = []
         for i in range(100):
-            if i < 90:
-                skill = sample_skills["skill_a"]
-            else:
-                skill = sample_skills["skill_b"]
+            skill = sample_skills["skill_a"] if i < 90 else sample_skills["skill_b"]
 
             votes.append(
                 AgentVote(

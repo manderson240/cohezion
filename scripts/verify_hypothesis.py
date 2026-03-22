@@ -13,13 +13,15 @@ from cohezion.swarm.swarm_types import SwarmConfig
 
 async def main():
     logging.basicConfig(level=logging.INFO)
-    logger = logging.getLogger("HypothesisVerification")
+    logging.getLogger("HypothesisVerification")
 
     config = SwarmConfig()
     hypothesis_agent = HypothesisAgent(config=config)
 
     # Pure mathematical verifiable context
-    context = "Verify that a 768-dimensional vector where all elements are 0.0 has a Euclidean norm (L2) of exactly 0.0."
+    context = (
+        "Verify that a 768-dimensional vector where all elements are 0.0 has a Euclidean norm (L2) of exactly 0.0."
+    )
 
     print("\n--- Testing Automated Hypothesis Testing ---")
     print(f"Context: {context}")
@@ -32,9 +34,7 @@ async def main():
 
     # Simple validation: Check for "VERIFIED" in report
     if "VERIFIED" in report:
-        print(
-            "\n✅ PASS: At least one conceptual hypothesis was empirically verified in the sandbox."
-        )
+        print("\n✅ PASS: At least one conceptual hypothesis was empirically verified in the sandbox.")
     else:
         print("\n❌ FAIL: No hypotheses were verified (Check logs for sandbox failures).")
 

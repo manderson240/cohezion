@@ -119,9 +119,7 @@ class ConnectionPool:
                 self._metrics["created"] += 1
                 self._metrics["current_size"] += 1
 
-            logger.info(
-                f"Created connection {id(connection.client)} - healthy: {connection._healthy}"
-            )
+            logger.info(f"Created connection {id(connection.client)} - healthy: {connection._healthy}")
             return connection
 
         except Exception as e:
@@ -133,7 +131,7 @@ class ConnectionPool:
         try:
             start = time.time()
             await asyncio.wait_for(connection.client.query("SELECT 1"), 5.0)
-            latency = time.time() - start
+            time.time() - start
 
             # Consider connection healthy if query succeeds within timeout
             return True
@@ -174,9 +172,7 @@ class ConnectionPool:
         )
 
         if max_add > 0:
-            logger.info(
-                f"Scaling up by {max_add} connections (predicted load: {predicted_load:.2f})"
-            )
+            logger.info(f"Scaling up by {max_add} connections (predicted load: {predicted_load:.2f})")
 
             # Create connections in parallel
             tasks = [self._create_connection() for _ in range(max_add)]
@@ -242,7 +238,7 @@ class ConnectionPool:
 
     async def acquire(self) -> PooledConnection:
         """Acquire a connection from the pool."""
-        start_time = time.time()
+        time.time()
 
         try:
             # First try to get from queue
@@ -345,9 +341,7 @@ class ConnectionPool:
 _global_connection_pool = None
 
 
-def get_connection_pool(
-    client_class: type[SurrealClientProtocol], config: PoolConfig | None = None
-) -> ConnectionPool:
+def get_connection_pool(client_class: type[SurrealClientProtocol], config: PoolConfig | None = None) -> ConnectionPool:
     """Get global connection pool instance."""
     global _global_connection_pool
     if _global_connection_pool is None:

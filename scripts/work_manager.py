@@ -14,7 +14,7 @@ JANITOR_CACHE_FILE = REPO_ROOT / ".cache" / "janitor" / "status_cache.json"
 def run_git_command(args, cwd=REPO_ROOT):
     """Run a git command and return the output."""
     try:
-        result = subprocess.run(["git"] + args, cwd=cwd, capture_output=True, text=True, check=True)
+        result = subprocess.run(["git", *args], cwd=cwd, capture_output=True, text=True, check=True)
         return result.stdout.strip()
     except subprocess.CalledProcessError as e:
         logger.error(f"Git command failed: {' '.join(args)} - {e.stderr}")
@@ -79,9 +79,7 @@ def show_status():
                 if (datetime.now().timestamp() - cache.get("timestamp", 0)) < 300:
                     logger.info(f"Pending changes (cached): {cache.get('pending_count')}")
                     if cache.get("pending_count", 0) > 1000:
-                        logger.warning(
-                            "⚠️ High bloat detected. Run 'scripts/repo_janitor.py' for detailed status."
-                        )
+                        logger.warning("⚠️ High bloat detected. Run 'scripts/repo_janitor.py' for detailed status.")
                         return
         except Exception:
             pass

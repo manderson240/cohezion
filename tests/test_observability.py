@@ -90,7 +90,7 @@ class TestKnowledgeGraphQueryEngine:
 
         with patch(
             "cohezion.knowledge_graph.query_engine.Path",
-        ) as mock_path_cls:
+        ):
             # This is tricky — just test the file-based path directly
             engine = KnowledgeGraphQueryEngine(db_client=None)
             # The engine uses Path("data/universe") internally

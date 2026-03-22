@@ -121,8 +121,7 @@ class CompoundPersistence:
 
         client = await get_client()
         result = await client.query(
-            "SELECT * FROM compound_cycle WHERE skill_name = $name "
-            "ORDER BY timestamp DESC LIMIT $limit",
+            "SELECT * FROM compound_cycle WHERE skill_name = $name ORDER BY timestamp DESC LIMIT $limit",
             {"name": skill_name, "limit": limit},
         )
         if isinstance(result, list):
@@ -141,7 +140,9 @@ class CompoundPersistence:
         logger.debug(f"Cycle saved to Vault: {path}")
         return f"vault:{path}"
 
-    async def _load_from_vault(self, skill_name: str, limit: int) -> list[dict[str, Any]]:
+    async def _load_from_vault(
+        self, skill_name: str, limit: int
+    ) -> list[dict[str, Any]]:
         """Load cycle history from Vault."""
         mcp = get_mcp_client()
         safe_name = skill_name.replace("/", "_").replace(" ", "_").lower()

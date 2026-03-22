@@ -1,6 +1,5 @@
 """Tests for conflict resolution policies."""
 
-
 from cohezion.config.conflict_policy import (
     ConflictPolicy,
     ConflictResolutionPolicy,

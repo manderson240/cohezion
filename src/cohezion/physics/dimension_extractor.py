@@ -108,9 +108,8 @@ class DimensionExtractor:
             PhysicsState with all 12 dimensions populated
         """
         # Convert embedding if provided
-        if embedding is not None:
-            if isinstance(embedding, list):
-                embedding = np.array(embedding)
+        if embedding is not None and isinstance(embedding, list):
+            embedding = np.array(embedding)
 
         # Extract spatial dimensions from embedding
         x, y, z = self._extract_spatial(embedding)

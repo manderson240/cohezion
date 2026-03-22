@@ -151,28 +151,28 @@ class TestTextToLatent:
 
     def test_text_to_latent_output_shape(self, tracker):
         """Test latent vector has correct shape."""
-        latent = tracker._text_to_latent("test text")
+        latent = tracker.text_to_latent("test text")
 
         assert len(latent) == 2048
         assert isinstance(latent, np.ndarray)
 
     def test_text_to_latent_normalized(self, tracker):
         """Test latent vector is normalized."""
-        latent = tracker._text_to_latent("test text")
+        latent = tracker.text_to_latent("test text")
 
         assert np.all(latent >= -1.0) and np.all(latent <= 1.0)
 
     def test_text_to_latent_deterministic(self, tracker):
         """Test same text produces same embedding."""
-        latent1 = tracker._text_to_latent("test text")
-        latent2 = tracker._text_to_latent("test text")
+        latent1 = tracker.text_to_latent("test text")
+        latent2 = tracker.text_to_latent("test text")
 
         np.testing.assert_array_almost_equal(latent1, latent2)
 
     def test_text_to_latent_different_text(self, tracker):
         """Test different text produces different embeddings."""
-        latent1 = tracker._text_to_latent("test text 1")
-        latent2 = tracker._text_to_latent("test text 2")
+        latent1 = tracker.text_to_latent("test text 1")
+        latent2 = tracker.text_to_latent("test text 2")
 
         # Should not be identical
         assert not np.allclose(latent1, latent2)
@@ -183,39 +183,39 @@ class TestHolographicProjection:
 
     def test_holographic_projection_output_shape(self, tracker):
         """Test projection output has correct shape."""
-        latent = tracker._text_to_latent("test text")
-        projection = tracker._holographic_project(latent)
+        latent = tracker.text_to_latent("test text")
+        projection = tracker.holographic_project(latent)
 
         assert len(projection) == 12
         assert isinstance(projection, np.ndarray)
 
     def test_holographic_projection_normalized(self, tracker):
         """Test projection is normalized to [0, 1]."""
-        latent = tracker._text_to_latent("test text")
-        projection = tracker._holographic_project(latent)
+        latent = tracker.text_to_latent("test text")
+        projection = tracker.holographic_project(latent)
 
         assert np.all(projection >= 0.0) and np.all(projection <= 1.0)
 
     def test_holographic_projection_deterministic(self, tracker):
         """Test same input produces same projection."""
-        latent = tracker._text_to_latent("test text")
-        proj1 = tracker._holographic_project(latent)
-        proj2 = tracker._holographic_project(latent)
+        latent = tracker.text_to_latent("test text")
+        proj1 = tracker.holographic_project(latent)
+        proj2 = tracker.holographic_project(latent)
 
         np.testing.assert_array_almost_equal(proj1, proj2)
 
     def test_holographic_projection_caching(self, tracker):
         """Test projection results are cached."""
-        latent = tracker._text_to_latent("test text")
+        latent = tracker.text_to_latent("test text")
 
         # First call
-        proj1 = tracker._holographic_project(latent)
+        proj1 = tracker.holographic_project(latent)
 
         # Should be in cache
         assert len(tracker._projection_cache) > 0
 
         # Second call should use cache
-        proj2 = tracker._holographic_project(latent)
+        proj2 = tracker.holographic_project(latent)
 
         np.testing.assert_array_equal(proj1, proj2)
 
@@ -226,27 +226,21 @@ class TestStepToAxiomatic:
     def test_step_to_axiomatic_output_shape(self, tracker):
         """Test axiomatic output has correct shape."""
         projection = np.random.rand(12)
-        axiomatic = tracker._step_to_axiomatic(
-            projection, "generate", coherence=0.85, efficiency=0.7
-        )
+        axiomatic = tracker._step_to_axiomatic(projection, "generate", coherence=0.85, efficiency=0.7)
 
         assert len(axiomatic) == 12
 
     def test_step_to_axiomatic_normalized(self, tracker):
         """Test axiomatic output is normalized."""
         projection = np.random.rand(12)
-        axiomatic = tracker._step_to_axiomatic(
-            projection, "generate", coherence=0.85, efficiency=0.7
-        )
+        axiomatic = tracker._step_to_axiomatic(projection, "generate", coherence=0.85, efficiency=0.7)
 
         assert np.all(axiomatic >= 0.0) and np.all(axiomatic <= 1.0)
 
     def test_step_to_axiomatic_generate_profile(self, tracker):
         """Test GENERATE profile emphasizes novelty and logic."""
         projection = np.zeros(12)
-        axiomatic = tracker._step_to_axiomatic(
-            projection, "generate", coherence=1.0, efficiency=1.0
-        )
+        axiomatic = tracker._step_to_axiomatic(projection, "generate", coherence=1.0, efficiency=1.0)
 
         # With max quality weight, should be close to modulation profile
         profile = tracker._modulation_profiles["generate"]
@@ -266,9 +260,7 @@ class TestStepToAxiomatic:
         projection = np.random.rand(12)
 
         for op_type in ["generate", "analyze", "search", "transform", "persist"]:
-            axiomatic = tracker._step_to_axiomatic(
-                projection, op_type, coherence=0.8, efficiency=0.8
-            )
+            axiomatic = tracker._step_to_axiomatic(projection, op_type, coherence=0.8, efficiency=0.8)
 
             assert len(axiomatic) == 12
             assert np.all(axiomatic >= 0.0) and np.all(axiomatic <= 1.0)
@@ -437,8 +429,8 @@ class TestDeterminism:
         tracker2 = JourneyTracker(seed=42)
 
         text = "test text for determinism"
-        latent1 = tracker1._text_to_latent(text)
-        latent2 = tracker2._text_to_latent(text)
+        latent1 = tracker1.text_to_latent(text)
+        latent2 = tracker2.text_to_latent(text)
 
         np.testing.assert_array_equal(latent1, latent2)
 
@@ -515,7 +507,7 @@ class TestRealPhiScore:
         """Consistent tasks (stable spin) produce smoothness > 0.7."""
         tracker = JourneyTracker(seed=42)
 
-        for i in range(6):
+        for _i in range(6):
             result = ExecutionResult(
                 success=True,
                 output="output",
@@ -532,7 +524,7 @@ class TestRealPhiScore:
         """Divergent tasks produce lower smoothness than consistent tasks."""
         # Run consistent tasks
         consistent_tracker = JourneyTracker(seed=42)
-        for i in range(5):
+        for _ in range(5):
             result = ExecutionResult(
                 success=True,
                 output="output",
@@ -542,9 +534,7 @@ class TestRealPhiScore:
             )
             consistent_tracker.track_execution(result, "Same task", "generate")
 
-        consistent_quality = consistent_tracker.compute_trajectory_quality(
-            consistent_tracker._recent_points
-        )
+        consistent_quality = consistent_tracker.compute_trajectory_quality(consistent_tracker._recent_points)
 
         # Run divergent tasks
         divergent_tracker = JourneyTracker(seed=42)
@@ -559,9 +549,7 @@ class TestRealPhiScore:
             )
             divergent_tracker.track_execution(result, f"Very different task {i * 100}", ops[i])
 
-        divergent_quality = divergent_tracker.compute_trajectory_quality(
-            divergent_tracker._recent_points
-        )
+        divergent_quality = divergent_tracker.compute_trajectory_quality(divergent_tracker._recent_points)
 
         # Divergent tasks should have strictly lower smoothness
         assert divergent_quality["smoothness"] < consistent_quality["smoothness"]
@@ -570,7 +558,7 @@ class TestRealPhiScore:
         """Stable cohesion values produce convergence > 0.7."""
         tracker = JourneyTracker(seed=42)
 
-        for i in range(5):
+        for _i in range(5):
             result = ExecutionResult(
                 success=True,
                 output="output",

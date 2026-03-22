@@ -231,7 +231,7 @@ class TestCredentialRotation:
 
     def test_rotate_preserves_permissions(self, auth_manager):
         """Test rotation preserves permissions by default."""
-        original = auth_manager.create_agent_credential("agent-1", ["read", "execute"])
+        auth_manager.create_agent_credential("agent-1", ["read", "execute"])
 
         rotated = auth_manager.rotate_credentials("agent-1")
 
@@ -269,7 +269,7 @@ class TestGetCredentialByAgentId:
 
     def test_get_revoked_agent(self, auth_manager):
         """Test retrieving revoked agent returns None."""
-        cred = auth_manager.create_agent_credential("agent-1")
+        auth_manager.create_agent_credential("agent-1")
         auth_manager.revoke_credential("agent-1")
 
         result = auth_manager.get_credential_by_agent_id("agent-1")

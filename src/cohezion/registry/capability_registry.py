@@ -43,7 +43,7 @@ class CapabilityRegistry:
 
     USAGE_FILE = "capability_usage.json"
 
-    def __init__(self, root_dir: Path = None):
+    def __init__(self, root_dir: Path | None = None):
         self.root_dir = root_dir or Path(__file__).parent.parent.parent.parent
         self.capabilities: list[Capability] = []
         self.vectorizer = None
@@ -134,7 +134,7 @@ class CapabilityRegistry:
                         type="mcp",
                         description=server.get("description", ""),
                         path=server.get("path", ""),
-                        tags=["tool", "server", "int"] + server.get("tools", []),
+                        tags=["tool", "server", "int", *server.get("tools", [])],
                     )
                 )
             # External
@@ -206,11 +206,7 @@ class CapabilityRegistry:
                             if stripped.startswith('"""'):
                                 # Check for single-line docstring: """text"""
                                 if stripped.count('"""') >= 2:
-                                    desc = (
-                                        stripped.removeprefix('"""')
-                                        .removesuffix('"""')
-                                        .strip()[:200]
-                                    )
+                                    desc = stripped.removeprefix('"""').removesuffix('"""').strip()[:200]
                                     break
                                 # Multi-line docstring starts
                                 in_docstring = True
@@ -375,6 +371,4 @@ if __name__ == "__main__":
     for q in test_queries:
         print(f"\nQUERY: '{q}'")
         for res in reg.find(q, top_k=3):
-            print(
-                f"  - [{res.type.upper()}] {res.name}: {res.description[:50]}... ({res.score:.2f})"
-            )
+            print(f"  - [{res.type.upper()}] {res.name}: {res.description[:50]}... ({res.score:.2f})")

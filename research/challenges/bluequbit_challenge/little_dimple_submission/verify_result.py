@@ -32,13 +32,7 @@ def verify():
             line = line.strip()
             if line.startswith("cz"):
                 # cz q[i],q[j]
-                parts = (
-                    line.replace("cz q[", "")
-                    .replace("]", "")
-                    .replace(",q[", " ")
-                    .replace(";", "")
-                    .split()
-                )
+                parts = line.replace("cz q[", "").replace("]", "").replace(",q[", " ").replace(";", "").split()
                 if not parts:
                     continue
                 q_idxs = [int(p) for p in parts]

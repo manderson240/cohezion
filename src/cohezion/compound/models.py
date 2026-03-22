@@ -233,6 +233,41 @@ class SuccessCriterion:
     threshold: float
     is_explicit: bool = False
 
+    def __repr__(self) -> str:
+        """String representation."""
+        return f"Criterion({self.description}: {self.metric_name}>={self.threshold}, explicit={self.is_explicit})"
+
+
+@dataclass
+class HumanRequest:
+    """Structured representation of human request.
+
+    Attributes:
+        raw_text: Original request text
+        intent: Inferred IntentType
+        intent_confidence: 0.0-1.0 confidence in intent classification
+        constraints: List of ExecutionConstraints
+        criteria: List of SuccessCriteria
+        scope_includes: Task scope items that must be included
+        scope_excludes: Task scope items to exclude
+    """
+
+    raw_text: str
+    intent: IntentType = IntentType.UNKNOWN
+    intent_confidence: float = 0.0
+    constraints: list[ExecutionConstraint] = field(default_factory=list)
+    criteria: list[SuccessCriterion] = field(default_factory=list)
+    scope_includes: list[str] = field(default_factory=list)
+    scope_excludes: list[str] = field(default_factory=list)
+
+    def __repr__(self) -> str:
+        """String representation."""
+        return (
+            f"Request(intent={self.intent.value}, "
+            f"confidence={self.intent_confidence:.2f}, "
+            f"{len(self.constraints)} constraints, {len(self.criteria)} criteria)"
+        )
+
 
 @dataclass
 class DriftSignal:
@@ -253,6 +288,10 @@ class ConstraintViolation:
     actual_value: float
     severity: float
 
+    def __repr__(self) -> str:
+        """String representation."""
+        return f"Violation({self.constraint.type.value}: requested={self.requested_value}, actual={self.actual_value})"
+
 
 @dataclass
 class CriterionFailure:
@@ -262,6 +301,10 @@ class CriterionFailure:
     expected_value: float
     actual_value: float
     gap: float
+
+    def __repr__(self) -> str:
+        """String representation."""
+        return f"Failure({self.criterion.metric_name}: expected={self.expected_value}, actual={self.actual_value})"
 
 
 @dataclass

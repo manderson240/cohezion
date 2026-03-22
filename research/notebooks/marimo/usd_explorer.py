@@ -57,16 +57,24 @@ def _(mo):
 @app.cell
 def _(mo):
     # Control sliders
-    voltage = mo.ui.slider(
-        start=5, stop=20, step=1, value=10, label="⚡ Voltage (kV)", show_value=True
-    )
+    voltage = mo.ui.slider(start=5, stop=20, step=1, value=10, label="⚡ Voltage (kV)", show_value=True)
 
     pulse_duration = mo.ui.slider(
-        start=10, stop=500, step=10, value=100, label="⏱️ Pulse Duration (μs)", show_value=True
+        start=10,
+        stop=500,
+        step=10,
+        value=100,
+        label="⏱️ Pulse Duration (μs)",
+        show_value=True,
     )
 
     num_sparks = mo.ui.slider(
-        start=10, stop=200, step=10, value=50, label="🔢 Number of Sparks", show_value=True
+        start=10,
+        stop=200,
+        step=10,
+        value=50,
+        label="🔢 Number of Sparks",
+        show_value=True,
     )
 
     mo.vstack([mo.hstack([voltage, pulse_duration], justify="start", gap=2), num_sparks])
@@ -146,7 +154,15 @@ def _(mo, np, voltage, pulse_duration, num_sparks):
 
     > **HIHO Threshold: 0.5** — Clusters only form when coherence reaches this sweet spot!
     """)
-    return results, coherences, lifetimes, radii, success_rate, formed_count, HIHO_THRESHOLD
+    return (
+        results,
+        coherences,
+        lifetimes,
+        radii,
+        success_rate,
+        formed_count,
+        HIHO_THRESHOLD,
+    )
 
 
 @app.cell
@@ -157,7 +173,13 @@ def _(mo, np, go, coherences, HIHO_THRESHOLD):
     fig_hist = go.Figure()
 
     fig_hist.add_trace(
-        go.Histogram(x=coherences, nbinsx=30, marker_color="#4ECDC4", opacity=0.8, name="Coherence")
+        go.Histogram(
+            x=coherences,
+            nbinsx=30,
+            marker_color="#4ECDC4",
+            opacity=0.8,
+            name="Coherence",
+        )
     )
 
     # Add HIHO threshold line
@@ -189,9 +211,7 @@ def _(mo, np, go, make_subplots, results):
     formed = [r for r in results if r["formed"]]
 
     if len(formed) > 0:
-        fig_props = make_subplots(
-            rows=1, cols=2, subplot_titles=["Lifetime vs Coherence", "Radius vs Energy"]
-        )
+        fig_props = make_subplots(rows=1, cols=2, subplot_titles=["Lifetime vs Coherence", "Radius vs Energy"])
 
         # Lifetime vs Coherence
         fig_props.add_trace(
@@ -199,13 +219,13 @@ def _(mo, np, go, make_subplots, results):
                 x=[r["coherence"] for r in formed],
                 y=[r["lifetime_us"] for r in formed],
                 mode="markers",
-                marker=dict(
-                    size=10,
-                    color=[r["coherence"] for r in formed],
-                    colorscale="Viridis",
-                    showscale=True,
-                    colorbar=dict(title="Coherence", x=0.45),
-                ),
+                marker={
+                    "size": 10,
+                    "color": [r["coherence"] for r in formed],
+                    "colorscale": "Viridis",
+                    "showscale": True,
+                    "colorbar": {"title": "Coherence", "x": 0.45},
+                },
                 name="Clusters",
             ),
             row=1,
@@ -218,7 +238,7 @@ def _(mo, np, go, make_subplots, results):
                 x=[r["energy_j"] for r in formed],
                 y=[r["radius_nm"] for r in formed],
                 mode="markers",
-                marker=dict(size=10, color="#FF6B6B"),
+                marker={"size": 10, "color": "#FF6B6B"},
                 name="Size",
                 showlegend=False,
             ),

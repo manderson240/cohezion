@@ -15,7 +15,6 @@ def benchmark():
     z_dim = 256
     hidden_dim = 512
     steps = 500
-    batch_size = 1  # We test single trajectory first
 
     predictor = TrajectoryPredictor(z_dim=z_dim, hidden_dim=hidden_dim)
     z = torch.randn(z_dim)
@@ -35,8 +34,8 @@ def benchmark():
     # 2. Rust
     # First sync (ensure cohezion_core is available)
     try:
-        import cohezion_core
-        from cohezion_core import FlumePhysics
+        import cohezion_core  # noqa: F401
+        from cohezion_core import FlumePhysics  # noqa: F401
 
         print("Rust accelerator active.")
     except ImportError:

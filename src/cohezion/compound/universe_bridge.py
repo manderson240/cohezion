@@ -121,7 +121,11 @@ class UniverseBridge:
             return None
 
         try:
-            from cohezion.universe.engine import AxiomaticState, LatentState, UniverseJourney
+            from cohezion.universe.engine import (
+                AxiomaticState,
+                LatentState,
+                UniverseJourney,
+            )
 
             journey_id = execution_id or f"journey_{uuid4().hex[:12]}"
 
@@ -177,7 +181,9 @@ class UniverseBridge:
 
         try:
             from cohezion.universe.engine import LatentState
-            from cohezion.universe.engine import TrajectoryPoint as UniverseTrajectoryPoint
+            from cohezion.universe.engine import (
+                TrajectoryPoint as UniverseTrajectoryPoint,
+            )
 
             journey = self._active_journeys[journey_id]
             axiomatic = self._vector_to_axiomatic(trajectory_point.dimensions)

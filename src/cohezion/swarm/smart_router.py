@@ -332,7 +332,7 @@ class SmartRouter:
         if not scored_models:
             # Fallback to first available
             if self.available_models:
-                best = list(self.available_models.keys())[0]
+                best = next(iter(self.available_models.keys()))
             else:
                 best = "gemma3:4b"  # Ultimate fallback
             return RoutingDecision(
@@ -374,7 +374,7 @@ class SmartRouter:
         response = ""
 
         # Try selected model, then fallbacks
-        models_to_try = [decision.selected_model] + decision.fallback_models
+        models_to_try = [decision.selected_model, *decision.fallback_models]
 
         for model in models_to_try:
             try:
@@ -457,7 +457,7 @@ async def smart_execute(
 ) -> str:
     """Execute a prompt with smart routing."""
     router = await get_router()
-    response, action = await router.execute(prompt, agent_type=agent_type, **kwargs)
+    response, _action = await router.execute(prompt, agent_type=agent_type, **kwargs)
     return response
 
 

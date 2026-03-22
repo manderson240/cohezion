@@ -121,9 +121,7 @@ class FlumeIntegration:
             return ((1 - alpha) * z1_arr + alpha * z2_arr).tolist()
 
         sin_theta = np.sin(theta)
-        z_interp = (
-            np.sin((1 - alpha) * theta) * z1_arr + np.sin(alpha * theta) * z2_arr
-        ) / sin_theta
+        z_interp = (np.sin((1 - alpha) * theta) * z1_arr + np.sin(alpha * theta) * z2_arr) / sin_theta
         return z_interp.tolist()
 
     def compute_coherence(self, z_trajectory: list[list[float]]) -> float:
@@ -350,9 +348,7 @@ class RZeroEnhancedTriad:
             energy = random.uniform(1, 100)
 
         try:
-            coherence = (
-                float(coherence_match.group(1)) if coherence_match else random.uniform(0.5, 1.0)
-            )
+            coherence = float(coherence_match.group(1)) if coherence_match else random.uniform(0.5, 1.0)
         except ValueError:
             coherence = random.uniform(0.5, 1.0)
 
@@ -408,9 +404,7 @@ class RZeroEnhancedTriad:
 
         # 4. Constraint Satisfaction (simplified check)
         if len(challenge.constraints) > 0:
-            addressed = sum(
-                1 for c in challenge.constraints if c.split()[0].lower() in response_lower
-            )
+            addressed = sum(1 for c in challenge.constraints if c.split()[0].lower() in response_lower)
             satisfaction = addressed / len(challenge.constraints)
             if satisfaction < 0.5:
                 score -= 0.1
@@ -439,9 +433,7 @@ class RZeroEnhancedTriad:
             if recent_avg > self.plateau_threshold:
                 self.difficulty += self.difficulty_step
                 self.epoch += 1
-                logger.info(
-                    f"R-Zero: Plateau detected. Difficulty -> {self.difficulty:.2f}, Epoch -> {self.epoch}"
-                )
+                logger.info(f"R-Zero: Plateau detected. Difficulty -> {self.difficulty:.2f}, Epoch -> {self.epoch}")
 
         # Course correction if struggling
         if len(self.history) >= 10:
@@ -652,8 +644,7 @@ class EnhancedSimulator:
             "approval_rate": self.total_approved / max(1, self.total_completed),
             "current_difficulty": self.allostatica.difficulty,
             "current_epoch": self.allostatica.epoch,
-            "avg_score": sum(self.allostatica.history[-100:])
-            / max(1, len(self.allostatica.history[-100:])),
+            "avg_score": sum(self.allostatica.history[-100:]) / max(1, len(self.allostatica.history[-100:])),
         }
 
 

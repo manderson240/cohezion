@@ -23,7 +23,9 @@ async def test_semantic_cache():
 
     # 1. SET
     query_1 = "What is the nature of the void?"
-    response_1 = "The Void is not empty space, but a plenum of infinite potential where i=0.5 stability acts as a gateway."
+    response_1 = (
+        "The Void is not empty space, but a plenum of infinite potential where i=0.5 stability acts as a gateway."
+    )
 
     logger.info(f"Step 1: Caching Query: '{query_1}'")
     await cache.set(query_1, response_1)

@@ -34,12 +34,8 @@ logger = logging.getLogger("hyperparam_search")
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(
-        description="Iterative hyperparameter search via Democratic Debate"
-    )
-    parser.add_argument(
-        "--iterations", type=int, default=5, help="Max search iterations (default: 5)"
-    )
+    parser = argparse.ArgumentParser(description="Iterative hyperparameter search via Democratic Debate")
+    parser.add_argument("--iterations", type=int, default=5, help="Max search iterations (default: 5)")
     parser.add_argument(
         "--vae-epochs",
         type=int,
@@ -264,7 +260,11 @@ def main() -> int:
     best_path = output_dir / "best_params.json"
     with open(best_path, "w") as f:
         json.dump(
-            {"params": best_params, "coherence": best_coherence, "iteration": best_iteration},
+            {
+                "params": best_params,
+                "coherence": best_coherence,
+                "iteration": best_iteration,
+            },
             f,
             indent=2,
         )

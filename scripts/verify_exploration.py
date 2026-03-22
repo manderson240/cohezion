@@ -14,7 +14,7 @@ from cohezion.swarm.swarm_types import Perspective, SwarmConfig
 
 async def main():
     logging.basicConfig(level=logging.INFO)
-    logger = logging.getLogger("ExplorationVerification")
+    logging.getLogger("ExplorationVerification")
 
     config = SwarmConfig()
     analyst = AnalystAgent(Perspective.TECHNICAL, config=config)
@@ -29,7 +29,9 @@ async def main():
 
     # 2. Generate Nobel/Novel Thought
     print("\n--- Generating Novel Thought ---")
-    novel_query = "Propose a theoretical model for Quantum Mycelium Intelligence using fractal toroidal flow in a 12D manifold."
+    novel_query = (
+        "Propose a theoretical model for Quantum Mycelium Intelligence using fractal toroidal flow in a 12D manifold."
+    )
     print("Novel Call...")
     await analyst.analyze(novel_query, ignore_cache=True)
 

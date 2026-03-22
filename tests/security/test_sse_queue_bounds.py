@@ -201,8 +201,8 @@ class TestQueueBounds:
                     await asyncio.sleep(0.001)
 
         # Run producer and consumer concurrently
-        prod = asyncio.create_task(producer())
-        cons = asyncio.create_task(consumer())
+        asyncio.create_task(producer())
+        asyncio.create_task(consumer())
 
         await asyncio.sleep(0.2)
 

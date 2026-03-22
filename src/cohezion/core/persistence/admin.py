@@ -19,13 +19,6 @@ from typing import Any
 from cohezion.core.persistence.surreal_client import SurrealClient
 
 
-def _validate_table_name(table_name: str) -> str:
-    """Validate table name to prevent SurrealQL injection."""
-    if not re.match(r"^[a-zA-Z_][a-zA-Z0-9_]*$", table_name):
-        raise ValueError(f"Invalid table name: {table_name!r}")
-    return table_name
-
-
 # Setup specialized DBA logging
 logging.basicConfig(
     level=logging.INFO,
@@ -87,9 +80,7 @@ class DBAdmin:
             logger.error(f"❌ Snapshot failed: {e}")
             raise
 
-    async def batch_ingest(
-        self, table_name: str, records: list[dict[str, Any]], batch_size: int = 1000
-    ):
+    async def batch_ingest(self, table_name: str, records: list[dict[str, Any]], batch_size: int = 1000):
         """
         Robust batch ingestion with Adaptive Binary Split strategy.
         If a batch fails, we split it to isolate the error (e.g. duplicate ID).

@@ -43,7 +43,7 @@ def test_hf_refactor():
 
     model2 = FlumeEncoder.from_pretrained(save_path)
     model2.eval()
-    tokenizer2 = FlumeTokenizer.from_pretrained(save_path)
+    FlumeTokenizer.from_pretrained(save_path)
     print("✓ Loaded pretrained model and tokenizer")
 
     # Weight Diagnostics

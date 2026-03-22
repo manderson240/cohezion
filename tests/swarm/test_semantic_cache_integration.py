@@ -13,7 +13,10 @@ import numpy as np
 import pytest
 
 from cohezion.swarm.batch_processor import BatchItem, CacheEntry
-from cohezion.swarm.semantic_cache import EmbeddingResult, SemanticCache
+from cohezion.swarm.semantic_cache import (
+    EmbeddingResult,
+    SemanticCache,
+)
 from cohezion.swarm.token_client import TokenEfficientClient
 
 
@@ -109,9 +112,7 @@ class TestThreeTierCacheHierarchy:
     async def test_l3_fallback_with_ollama(self, token_client_with_semantic):
         """Test fallback to Ollama when L1 and L2 miss."""
         # Mock Ollama client
-        with patch.object(
-            token_client_with_semantic.ollama, "generate", new_callable=AsyncMock
-        ) as mock_generate:
+        with patch.object(token_client_with_semantic.ollama, "generate", new_callable=AsyncMock) as mock_generate:
             mock_generate.return_value = ("New generated response", 50)
 
             response, tokens = await token_client_with_semantic.generate(
@@ -134,7 +135,7 @@ class TestThreeTierCacheHierarchy:
             pytest.skip("Semantic cache not available")
 
         # Pre-load L2 cache with a unique key
-        cache_key = token_client_with_semantic._cache_key("Test", "", "phi3:mini")
+        token_client_with_semantic._cache_key("Test", "", "phi3:mini")
         embedding_vec = np.array([1.0] + [0.0] * 383, dtype=np.float32)
         embedding_vec = embedding_vec / np.linalg.norm(embedding_vec)
 
@@ -151,21 +152,15 @@ class TestThreeTierCacheHierarchy:
         token_client_with_semantic.semantic_cache._embedding_model.encode = mock_encode
 
         # Mock Ollama to fail (shouldn't be called)
-        with patch.object(
-            token_client_with_semantic.ollama, "generate", new_callable=AsyncMock
-        ) as mock_generate:
+        with patch.object(token_client_with_semantic.ollama, "generate", new_callable=AsyncMock) as mock_generate:
             # First query should get L2 hit (not call Ollama)
-            response1, tokens1 = await token_client_with_semantic.generate(
-                prompt="Test", model="phi3:mini", system=""
-            )
+            response1, _tokens1 = await token_client_with_semantic.generate(prompt="Test", model="phi3:mini", system="")
             assert response1 == "L2 result"
             assert token_client_with_semantic._semantic_hits == 1
             mock_generate.assert_not_called()
 
             # Second query with identical prompt should now hit L1
-            response2, tokens2 = await token_client_with_semantic.generate(
-                prompt="Test", model="phi3:mini", system=""
-            )
+            response2, _tokens2 = await token_client_with_semantic.generate(prompt="Test", model="phi3:mini", system="")
             assert response2 == "L2 result"
             assert token_client_with_semantic._cache_hits == 1  # Now in L1
             mock_generate.assert_not_called()  # Still shouldn't call Ollama
@@ -191,9 +186,7 @@ class TestThreeTierCacheHierarchy:
             )
 
         # Mock Ollama for new items
-        with patch.object(
-            token_client_with_semantic.ollama, "generate", new_callable=AsyncMock
-        ) as mock_generate:
+        with patch.object(token_client_with_semantic.ollama, "generate", new_callable=AsyncMock) as mock_generate:
             mock_generate.return_value = ("Ollama generated response", 60)
 
             items = [
@@ -260,14 +253,14 @@ class TestThreeTierCacheHierarchy:
             assert client.semantic_cache is None
 
     @pytest.mark.asyncio
-    async def test_semantic_cache_thread_safety_with_batch(self, token_client_with_semantic):
+    async def test_semantic_cache_thread_safety_with_batch(
+        self, token_client_with_semantic
+    ):
         """Test semantic cache is thread-safe during batch operations."""
         if not token_client_with_semantic.semantic_cache:
             pytest.skip("Semantic cache not available")
 
-        with patch.object(
-            token_client_with_semantic.ollama, "generate", new_callable=AsyncMock
-        ) as mock_generate:
+        with patch.object(token_client_with_semantic.ollama, "generate", new_callable=AsyncMock) as mock_generate:
             mock_generate.return_value = ("Response", 50)
 
             # Create batch with duplicate prompts

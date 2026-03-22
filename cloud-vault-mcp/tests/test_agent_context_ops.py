@@ -352,7 +352,7 @@ class TestErrorHandling:
         """Test handling of HTTP errors."""
         agent_context_ops.client.post.side_effect = Exception("Connection refused")
 
-        with pytest.raises(Exception):
+        with pytest.raises(Exception):  # noqa: B017
             agent_context_ops.track_session(
                 agent_names=["test"],
                 duration_ms=1000,

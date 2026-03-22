@@ -46,9 +46,7 @@ stream_select = mo.ui.dropdown(
     label="🎯 Select Expert Stream",
 )
 
-coherence_threshold = mo.ui.slider(
-    start=0.0, stop=1.0, value=0.7, step=0.05, label="📊 Coherence Threshold"
-)
+coherence_threshold = mo.ui.slider(start=0.0, stop=1.0, value=0.7, step=0.05, label="📊 Coherence Threshold")
 
 mo.hstack([stream_select, coherence_threshold])
 
@@ -57,16 +55,24 @@ STREAM_INFO = {
     "architect": {"domain": "Design & Structure", "color": "#FF6B6B", "voice": "echo"},
     "engineer": {"domain": "Physics & Mechanics", "color": "#4ECDC4", "voice": "cleo"},
     "biologist": {"domain": "Life Systems", "color": "#45B7D1", "voice": "phoenix"},
-    "quantum_hardware": {"domain": "Physical Quantum", "color": "#96CEB4", "voice": "marius"},
-    "quantum_algo": {"domain": "Computational Algorithms", "color": "#FFEAA7", "voice": "sage"},
+    "quantum_hardware": {
+        "domain": "Physical Quantum",
+        "color": "#96CEB4",
+        "voice": "marius",
+    },
+    "quantum_algo": {
+        "domain": "Computational Algorithms",
+        "color": "#FFEAA7",
+        "voice": "sage",
+    },
 }
 
 selected = STREAM_INFO[stream_select.value]
 mo.md(f"""
 ### {stream_select.value.upper()} Stream
 
-**Domain:** {selected["domain"]}  
-**Voice Profile:** {selected["voice"]}  
+**Domain:** {selected["domain"]}
+**Voice Profile:** {selected["voice"]}
 **Color:** <span style="color:{selected["color"]}">███</span> `{selected["color"]}`
 
 Each stream maintains its own FLUME manifold for domain-specific reasoning.

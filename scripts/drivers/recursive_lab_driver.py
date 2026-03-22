@@ -21,7 +21,7 @@ async def run_recursive_evolution(rounds: int = 10, batch_size: int = 100):
 
     for r in range(1, rounds + 1):
         logger.info(f"--- Round {r}/{rounds} Starting ---")
-        results = await simulator.run_batch(batch_size)
+        await simulator.run_batch(batch_size)
 
         stats = simulator.get_stats()
         logger.info(f"Round {r} Complete. Stats: {stats}")

@@ -163,19 +163,18 @@ class SwarmService:
                     computational_relativity_factor=1.0,
                 )
 
-            if self._config.enable_knowledge_indexing:
-                if final_response:
-                    node = await self._knowledge_service.add_node(
-                        KnowledgeNode(
-                            concept=final_response[:200],
-                            node_type="quadrature_output",
-                            metadata={
-                                "query": query,
-                                "journey_id": journey_id,
-                            },
-                        )
+            if self._config.enable_knowledge_indexing and final_response:
+                node = await self._knowledge_service.add_node(
+                    KnowledgeNode(
+                        concept=final_response[:200],
+                        node_type="quadrature_output",
+                        metadata={
+                            "query": query,
+                            "journey_id": journey_id,
+                        },
                     )
-                    knowledge_nodes.append(node)
+                )
+                knowledge_nodes.append(node)
 
             processing_time_ms = (datetime.now() - start_time).total_seconds() * 1000
 
@@ -292,7 +291,7 @@ class SwarmService:
             for phase in previous_phases:
                 critic_query += f"\n\n{phase.name}: {phase.output[:100]}"
 
-            journey = await self._agent_service.execute_task(
+            await self._agent_service.execute_task(
                 agent_name="critic",
                 query=critic_query,
                 context={"model_name": model_name},
@@ -352,7 +351,7 @@ class SwarmService:
             for phase in previous_phases:
                 synthesis_query += f"\n\n{phase.name} output: {phase.output[:200]}"
 
-            journey = await self._agent_service.execute_task(
+            await self._agent_service.execute_task(
                 agent_name="synthesizer",
                 query=synthesis_query,
                 context={"model_name": model_name},
@@ -396,9 +395,7 @@ class SwarmService:
 
             return {
                 "registered_agents": registered_agents,
-                "active_agents": [
-                    name for name, status in agent_status.items() if status.is_active
-                ],
+                "active_agents": [name for name, status in agent_status.items() if status.is_active],
                 "agent_status": {
                     name: {
                         "is_active": status.is_active,

@@ -46,8 +46,7 @@ class TestTrainingConvergence:
             f"MSE should decrease: first={metrics[0]['mse']:.4f}, last={metrics[-1]['mse']:.4f}"
         )
         assert metrics[-1]["total"] < metrics[0]["total"], (
-            f"Total loss should decrease: first={metrics[0]['total']:.4f}, "
-            f"last={metrics[-1]['total']:.4f}"
+            f"Total loss should decrease: first={metrics[0]['total']:.4f}, last={metrics[-1]['total']:.4f}"
         )
 
 
@@ -74,9 +73,7 @@ class TestCheckpoints:
             "config",
             "epoch",
         }
-        assert expected_keys.issubset(ckpt.keys()), (
-            f"Missing keys: {expected_keys - set(ckpt.keys())}"
-        )
+        assert expected_keys.issubset(ckpt.keys()), f"Missing keys: {expected_keys - set(ckpt.keys())}"
 
 
 class TestLatentInterpolation:

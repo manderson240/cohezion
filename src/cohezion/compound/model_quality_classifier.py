@@ -117,8 +117,12 @@ class ActionRecommendation:
     message: str  # Human-readable explanation
     priority: str  # "LOW", "MEDIUM", "HIGH"
     confidence: float  # 0.0-1.0
-    alternative_models: list[str] = field(default_factory=list)  # If action=SWITCH_MODEL
-    parameter_suggestions: dict[str, Any] = field(default_factory=dict)  # If action=ADJUST
+    alternative_models: list[str] = field(
+        default_factory=list
+    )  # If action=SWITCH_MODEL
+    parameter_suggestions: dict[str, Any] = field(
+        default_factory=dict
+    )  # If action=ADJUST
 
 
 class QualityPredictor:
@@ -234,7 +238,9 @@ class QualityPredictor:
             logger.debug(f"Forecast failed: {e}, using average")
             return float(np.mean(recent)), 0.3, 999
 
-    def forecast_success_rate(self, steps_ahead: int = 3, window: int = 5) -> tuple[float, float]:
+    def forecast_success_rate(
+        self, steps_ahead: int = 3, window: int = 5
+    ) -> tuple[float, float]:
         """Forecast success rate N steps ahead.
 
         Args:
@@ -362,7 +368,9 @@ class ModelQualityClassifier:
             )
 
         # Get predictions
-        pred_coherence, coh_conf, steps_to_crit = predictor.forecast_coherence(num_steps_ahead)
+        pred_coherence, coh_conf, steps_to_crit = predictor.forecast_coherence(
+            num_steps_ahead
+        )
         coh_trend = predictor.get_trend(predictor.coherence_history)
 
         pred_success, success_conf = predictor.forecast_success_rate(num_steps_ahead)
@@ -479,8 +487,7 @@ class ModelQualityClassifier:
             else:
                 return ActionRecommendation(
                     action=RecommendedAction.RESTART_SESSION,
-                    message=f"Success rate trend {coherence_trend}. "
-                    f"Consider clearing session state and restarting.",
+                    message=f"Success rate trend {coherence_trend}. Consider clearing session state and restarting.",
                     priority="MEDIUM",
                     confidence=failure_probability,
                 )
@@ -502,16 +509,14 @@ class ModelQualityClassifier:
         stats = {}
         for model_name, predictor in self._predictors.items():
             if predictor.is_established():
-                coh_pred, coh_conf, steps_crit = predictor.forecast_coherence()
-                success_pred, success_conf = predictor.forecast_success_rate()
+                coh_pred, _coh_conf, _steps_crit = predictor.forecast_coherence()
+                success_pred, _success_conf = predictor.forecast_success_rate()
 
                 stats[model_name] = {
                     "num_executions": len(predictor.coherence_history),
                     "avg_coherence": float(np.mean(predictor.coherence_history)),
                     "std_coherence": float(np.std(predictor.coherence_history)),
-                    "success_rate": float(
-                        sum(predictor.success_history) / len(predictor.success_history)
-                    ),
+                    "success_rate": float(sum(predictor.success_history) / len(predictor.success_history)),
                     "predicted_coherence": round(coh_pred, 3),
                     "predicted_success_rate": round(success_pred, 3),
                     "coherence_trend": predictor.get_trend(predictor.coherence_history),

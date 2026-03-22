@@ -116,7 +116,7 @@ class TestUniverseBridge:
         def task_fn(guidance):
             return "successful output", {"quality": 0.9}
 
-        result = executor.execute_task(
+        executor.execute_task(
             task_description="Complete test",
             skill_name="test",
             operation_type="generate",

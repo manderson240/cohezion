@@ -33,7 +33,7 @@ async def run_bug_hunt(target_dir: str, recursive: bool = True):
     scout = BugScoutAgent()
     fixer = BugFixerAgent()
     auditor = BugAuditorAgent()
-    universe = UniverseSimulationEngine()
+    UniverseSimulationEngine()
 
     # 2. Run DeepAuditor for initial hotspots
     auditor_engine = DeepAuditor()
@@ -107,7 +107,12 @@ async def run_bug_hunt(target_dir: str, recursive: bool = True):
                 audit_json = {}
 
             results.append(
-                {"issue": vars(issue), "analysis": analysis, "fix": fixed_code, "audit": audit_json}
+                {
+                    "issue": vars(issue),
+                    "analysis": analysis,
+                    "fix": fixed_code,
+                    "audit": audit_json,
+                }
             )
 
             # --- PHASE 4: RETROSPECTIVE ---
@@ -181,7 +186,10 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Run the Bug Hunting Swarm.")
     parser.get_all_args = lambda: None  # placeholder for my brain
     parser.add_argument(
-        "--dir", type=str, default="src/cohezion", help="Target directory to hunt bugs in."
+        "--dir",
+        type=str,
+        default="src/cohezion",
+        help="Target directory to hunt bugs in.",
     )
     parser.add_argument("--no-recursive", action="store_true", help="Do not search recursively.")
 

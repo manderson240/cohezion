@@ -158,7 +158,7 @@ class SurrealDBSync:
         Args:
             paper_path: Path to paper markdown file
         """
-        if not paper_path.suffix == ".md":
+        if paper_path.suffix != ".md":
             return
 
         try:
@@ -194,10 +194,7 @@ class SurrealDBSync:
             paper_id = relative_path.replace("/", "_").replace(".md", "")
 
             # Build date clause - use NONE for null, cast string to datetime
-            if date_iso:
-                date_clause = f"<datetime> {json.dumps(date_iso)}"
-            else:
-                date_clause = "NONE"
+            date_clause = f"<datetime> {json.dumps(date_iso)}" if date_iso else "NONE"
 
             # Truncate content to avoid huge queries
             content_truncated = body[:5000] if body else ""
@@ -233,11 +230,7 @@ class SurrealDBSync:
             wikilinks: List of concept names
         """
         # Filter for concept links (typically in concepts/ directory)
-        concept_links = [
-            link
-            for link in wikilinks
-            if not link.startswith(("papers/", "patterns/", "decisions/"))
-        ]
+        concept_links = [link for link in wikilinks if not link.startswith(("papers/", "patterns/", "decisions/"))]
 
         if not concept_links:
             return
@@ -287,7 +280,7 @@ class SurrealDBSync:
         Returns:
             Tuple of (success, paper_id or error_msg)
         """
-        if not paper_path.suffix == ".md":
+        if paper_path.suffix != ".md":
             return False, f"Skipped non-markdown: {paper_path}"
 
         try:
@@ -321,10 +314,7 @@ class SurrealDBSync:
             paper_id = relative_path.replace("/", "_").replace(".md", "")
 
             # Build date clause
-            if date_iso:
-                date_clause = f"<datetime> {json.dumps(date_iso)}"
-            else:
-                date_clause = "NONE"
+            date_clause = f"<datetime> {json.dumps(date_iso)}" if date_iso else "NONE"
 
             # Truncate content to avoid huge queries
             content_truncated = body[:5000] if body else ""
@@ -411,8 +401,7 @@ class SurrealDBSync:
 
         paper_files = list(papers_dir.glob("*.md"))
         logger.info(
-            f"Starting parallel bulk import of {len(paper_files)} papers "
-            f"(max_concurrent={self.max_concurrent})..."
+            f"Starting parallel bulk import of {len(paper_files)} papers (max_concurrent={self.max_concurrent})..."
         )
 
         # Create async client with connection pooling
@@ -448,7 +437,7 @@ class SurrealDBSync:
         Args:
             concept_path: Path to concept markdown file
         """
-        if not concept_path.suffix == ".md":
+        if concept_path.suffix != ".md":
             return
 
         try:
@@ -496,7 +485,7 @@ class SurrealDBSync:
         Returns:
             Tuple of (success, concept_id or error_msg)
         """
-        if not concept_path.suffix == ".md":
+        if concept_path.suffix != ".md":
             return False, f"Skipped non-markdown: {concept_path}"
 
         try:
@@ -592,8 +581,7 @@ class SurrealDBSync:
 
         concept_files = list(concepts_dir.glob("*.md"))
         logger.info(
-            f"Starting parallel bulk import of {len(concept_files)} concepts "
-            f"(max_concurrent={self.max_concurrent})..."
+            f"Starting parallel bulk import of {len(concept_files)} concepts (max_concurrent={self.max_concurrent})..."
         )
 
         # Create async client with connection pooling

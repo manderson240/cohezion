@@ -68,9 +68,7 @@ def run_audit(audit_type: str = "pre") -> PlatformAudit:
             name="package_structure",
             status="pass" if not missing_init else "warn",
             value=len(missing_init),
-            details=f"Missing __init__.py: {missing_init[:5]}"
-            if missing_init
-            else "All packages initialized",
+            details=f"Missing __init__.py: {missing_init[:5]}" if missing_init else "All packages initialized",
         )
     )
 
@@ -148,9 +146,7 @@ def run_audit(audit_type: str = "pre") -> PlatformAudit:
         resp = httpx.get("http://localhost:11434/api/tags", timeout=5)
         if resp.status_code == 200:
             models = resp.json().get("models", [])
-            slm_count = sum(
-                1 for m in models if any(x in m["name"] for x in ["gemma", "phi", "mistral"])
-            )
+            slm_count = sum(1 for m in models if any(x in m["name"] for x in ["gemma", "phi", "mistral"]))
             checks.append(
                 AuditResult(
                     name="ollama_slms",
@@ -261,9 +257,7 @@ def print_audit(audit: PlatformAudit):
             print(f"   {check.details}")
 
     print(f"\n{'─' * 60}")
-    print(
-        f"Summary: {audit.summary['pass']} pass, {audit.summary['warn']} warn, {audit.summary['fail']} fail"
-    )
+    print(f"Summary: {audit.summary['pass']} pass, {audit.summary['warn']} warn, {audit.summary['fail']} fail")
     print(f"{'=' * 60}\n")
 
 

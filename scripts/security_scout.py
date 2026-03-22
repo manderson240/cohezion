@@ -21,7 +21,10 @@ SECRET_PATTERNS = [
     (re.compile(r"ghp_[a-zA-Z0-9]{36}"), "GitHub Personal Access Token"),
     (re.compile(r"sq0csp-[0-9A-Za-z-_]{43}"), "Square Access Token"),
     (re.compile(r"access_key_id\s*=\s*['\"][A-Z0-9]{20}['\"]"), "AWS Access Key ID"),
-    (re.compile(r"secret_access_key\s*=\s*['\"][A-Za-z0-9/+=]{40}['\"]"), "AWS Secret Access Key"),
+    (
+        re.compile(r"secret_access_key\s*=\s*['\"][A-Za-z0-9/+=]{40}['\"]"),
+        "AWS Secret Access Key",
+    ),
     (re.compile(r"PRIVATE\s+KEY"), "Private Key Descriptor"),
     (re.compile(r"BEGIN\s+RSA\s+PRIVATE\s+KEY"), "RSA Private Key"),
     (re.compile(r"BEGIN\s+OPENSSH\s+PRIVATE\s+KEY"), "OpenSSH Private Key"),
@@ -69,23 +72,19 @@ def audit_secrets():
 def audit_logs():
     """Analyze audit logs for security anomalies."""
     logger.info("📜 Analyzing audit logs for anomalies...")
-    logger = get_audit_logger()
-    events = logger.get_recent_events(limit=1000)
+    audit_logger = get_audit_logger()
+    events = audit_logger.get_recent_events(limit=1000)
 
     security_events = [e for e in events if e.get("event_type") == "security"]
     failures = [e for e in events if e.get("status") == "failure"]
-    blocked = [
-        e for e in events if e.get("event_type") == "security" and e.get("status") == "blocked"
-    ]
+    blocked = [e for e in events if e.get("event_type") == "security" and e.get("status") == "blocked"]
 
     logger.info(f" - Recent security events: {len(security_events)}")
     logger.info(f" - Auth failures: {len(failures)}")
     logger.info(f" - Blocked injections: {len(blocked)}")
 
     if len(blocked) > 50:
-        logger.error(
-            "🚨 High frequency of blocked injections detected! Possible adversarial attack."
-        )
+        logger.error("🚨 High frequency of blocked injections detected! Possible adversarial attack.")
 
     return {
         "security_events": len(security_events),
@@ -111,7 +110,11 @@ def main():
     logs = audit_logs()
     vault_status = verify_vault()
 
-    summary = {"secrets_found": len(secrets), "audit_summary": logs, "vault_unlocked": vault_status}
+    summary = {
+        "secrets_found": len(secrets),
+        "audit_summary": logs,
+        "vault_unlocked": vault_status,
+    }
 
     # Save report
     report_path = REPO_ROOT / "reports" / "security_audit.json"

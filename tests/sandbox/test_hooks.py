@@ -555,7 +555,12 @@ class TestPhase21HooksIntegration:
         # Create the 4 Phase 2.1 hooks
         hook_specs = [
             ("protect-files", "PRE_OPERATION", "BLOCK", "Protect sensitive files"),
-            ("warn-sensitive-commands", "PRE_EXECUTE", "WARN", "Warn on sensitive commands"),
+            (
+                "warn-sensitive-commands",
+                "PRE_EXECUTE",
+                "WARN",
+                "Warn on sensitive commands",
+            ),
             ("format-on-edit", "POST_OPERATION", "ALLOW", "Format on edit"),
             ("validate-agent-files", "PRE_EXECUTE", "BLOCK", "Validate agent files"),
         ]
@@ -576,9 +581,7 @@ class TestPhase21HooksIntegration:
 
         # Should discover the 4 Phase 2.1 hooks
         all_hooks = integration.registry.to_dict()
-        hook_names = [
-            hook_name for stage_hooks in all_hooks.values() for hook_name in stage_hooks.keys()
-        ]
+        hook_names = [hook_name for stage_hooks in all_hooks.values() for hook_name in stage_hooks]
 
         expected_hooks = [
             "protect-files",
@@ -588,9 +591,7 @@ class TestPhase21HooksIntegration:
         ]
 
         for expected in expected_hooks:
-            assert any(expected in name for name in hook_names), (
-                f"Expected hook '{expected}' not found"
-            )
+            assert any(expected in name for name in hook_names), f"Expected hook '{expected}' not found"
 
     def test_pre_execute_hooks(self):
         """Test PRE_EXECUTE stage hooks."""
@@ -611,7 +612,9 @@ class TestPhase21HooksIntegration:
     def test_post_operation_hooks(self):
         """Test POST_OPERATION stage hooks."""
         integration = HookIntegration(".claude/hooks")
-        post_op_hooks = integration.registry.get_hooks_for_stage(HookStage.POST_OPERATION)
+        post_op_hooks = integration.registry.get_hooks_for_stage(
+            HookStage.POST_OPERATION
+        )
 
         # Should have at least format-on-edit
         assert len(post_op_hooks) >= 0

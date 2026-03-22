@@ -1,4 +1,5 @@
 import asyncio
+import contextlib
 import json
 import logging
 import math
@@ -43,7 +44,7 @@ async def broadcast_loop():
                 if any("autonomous_bbq.py" in str(c) for c in cmd):
                     bbq_active = True
                     break
-            except:
+            except Exception:
                 pass
 
         # 2. Fabricate 12D Physics (Simulated for Visuals)
@@ -64,7 +65,7 @@ async def broadcast_loop():
                     if "💭 Thought:" in line:
                         latest_thought = line.split("💭 Thought:")[-1].strip()
                         break
-        except:
+        except Exception:
             pass
 
         data = {
@@ -91,16 +92,12 @@ async def broadcast_loop():
 
         if CONNECTED_CLIENTS:
             for ws in list(CONNECTED_CLIENTS):
-                try:
+                with contextlib.suppress(BaseException):
                     await ws.send(msg)
-                except:
-                    pass
 
         # Log occasionally
         if int(t) % 10 == 0:
-            logger.info(
-                f"Broadcast: Clients={len(CONNECTED_CLIENTS)} | BBQ={bbq_active} | Coh={coherence:.3f}"
-            )
+            logger.info(f"Broadcast: Clients={len(CONNECTED_CLIENTS)} | BBQ={bbq_active} | Coh={coherence:.3f}")
 
         await asyncio.sleep(0.1)  # 10Hz Update
 
@@ -111,7 +108,5 @@ async def main():
 
 
 if __name__ == "__main__":
-    try:
+    with contextlib.suppress(KeyboardInterrupt):
         asyncio.run(main())
-    except KeyboardInterrupt:
-        pass

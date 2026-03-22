@@ -170,19 +170,18 @@ class DegradationDetector:
         # Then add samples after all checks are done
 
         # Check cache hit rate
-        if self._baselines["cache_hit_rate"].is_established:
-            if cache_hit_rate < self.cache_hit_rate_threshold:
-                alert = DegradationAlert(
-                    metric="cache_hit_rate",
-                    severity=AlertSeverity.WARNING,
-                    message=f"Cache hit rate dropped to {cache_hit_rate:.1%} "
-                    f"(threshold: {self.cache_hit_rate_threshold:.1%})",
-                    current_value=cache_hit_rate,
-                    baseline_value=self._baselines["cache_hit_rate"].mean,
-                    threshold=self.cache_hit_rate_threshold,
-                )
-                if self._should_emit_alert(alert):
-                    alerts.append(alert)
+        if self._baselines["cache_hit_rate"].is_established and cache_hit_rate < self.cache_hit_rate_threshold:
+            alert = DegradationAlert(
+                metric="cache_hit_rate",
+                severity=AlertSeverity.WARNING,
+                message=f"Cache hit rate dropped to {cache_hit_rate:.1%} "
+                f"(threshold: {self.cache_hit_rate_threshold:.1%})",
+                current_value=cache_hit_rate,
+                baseline_value=self._baselines["cache_hit_rate"].mean,
+                threshold=self.cache_hit_rate_threshold,
+            )
+            if self._should_emit_alert(alert):
+                alerts.append(alert)
 
         # Check token efficiency
         if self._baselines["token_efficiency"].is_established:
@@ -197,25 +196,24 @@ class DegradationDetector:
                         f"({tokens_per_sec:.0f} vs baseline {baseline_tok_sec:.0f} tok/sec)",
                         current_value=tokens_per_sec,
                         baseline_value=baseline_tok_sec,
-                        threshold=baseline_tok_sec * (1 - self.token_efficiency_drop_threshold),
+                        threshold=baseline_tok_sec
+                        * (1 - self.token_efficiency_drop_threshold),
                     )
                     if self._should_emit_alert(alert):
                         alerts.append(alert)
 
         # Check coherence
-        if self._baselines["coherence"].is_established:
-            if coherence < self.coherence_threshold:
-                alert = DegradationAlert(
-                    metric="coherence",
-                    severity=AlertSeverity.CRITICAL,
-                    message=f"Coherence dropped to {coherence:.2f} "
-                    f"(threshold: {self.coherence_threshold:.2f})",
-                    current_value=coherence,
-                    baseline_value=self._baselines["coherence"].mean,
-                    threshold=self.coherence_threshold,
-                )
-                if self._should_emit_alert(alert):
-                    alerts.append(alert)
+        if self._baselines["coherence"].is_established and coherence < self.coherence_threshold:
+            alert = DegradationAlert(
+                metric="coherence",
+                severity=AlertSeverity.CRITICAL,
+                message=f"Coherence dropped to {coherence:.2f} (threshold: {self.coherence_threshold:.2f})",
+                current_value=coherence,
+                baseline_value=self._baselines["coherence"].mean,
+                threshold=self.coherence_threshold,
+            )
+            if self._should_emit_alert(alert):
+                alerts.append(alert)
 
         # Check duration slowdown
         if self._baselines["duration_seconds"].is_established:
@@ -230,7 +228,8 @@ class DegradationDetector:
                         f"({duration:.2f}s vs baseline {baseline_duration:.2f}s)",
                         current_value=duration,
                         baseline_value=baseline_duration,
-                        threshold=baseline_duration * (1 + self.duration_slowdown_threshold),
+                        threshold=baseline_duration
+                        * (1 + self.duration_slowdown_threshold),
                     )
                     if self._should_emit_alert(alert):
                         alerts.append(alert)
@@ -242,8 +241,7 @@ class DegradationDetector:
                 alert = DegradationAlert(
                     metric="success_rate",
                     severity=AlertSeverity.CRITICAL,
-                    message=f"Success rate dropped to {success_rate:.1%} "
-                    f"(baseline: {baseline_success:.1%})",
+                    message=f"Success rate dropped to {success_rate:.1%} (baseline: {baseline_success:.1%})",
                     current_value=success_rate,
                     baseline_value=baseline_success,
                     threshold=baseline_success * 0.8,

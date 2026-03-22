@@ -110,14 +110,10 @@ RECOMMENDATION:
         """Format analyst outputs for the prompt."""
         sections = []
         for i, output in enumerate(outputs, 1):
-            sections.append(
-                f"## Perspective {i}: {output.perspective.value.upper()}\n{output.content}\n"
-            )
+            sections.append(f"## Perspective {i}: {output.perspective.value.upper()}\n{output.content}\n")
         return "\n".join(sections)
 
-    def _parse_critique(
-        self, response: str, analyst_outputs: list[ThoughtVector]
-    ) -> CritiqueResult:
+    def _parse_critique(self, response: str, analyst_outputs: list[ThoughtVector]) -> CritiqueResult:
         """Parse the critic's response into structured CritiqueResult."""
         contradictions: list[Contradiction] = []
         logical_issues: list[str] = []

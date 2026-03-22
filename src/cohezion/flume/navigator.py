@@ -96,9 +96,7 @@ class FlumeNavigator:
             traj_vecs = self.predictor.predict_with_physics(z_noisy, steps=steps, momentum=0.85)
 
             # Decode branch
-            branch_text = [
-                self.encoder.decode(v if v.dim() == 2 else v.unsqueeze(0))[0] for v in traj_vecs
-            ]
+            branch_text = [self.encoder.decode(v if v.dim() == 2 else v.unsqueeze(0))[0] for v in traj_vecs]
             branches.append(branch_text)
 
         return branches

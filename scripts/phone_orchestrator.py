@@ -76,9 +76,7 @@ class PhoneOrchestrator:
                     details = event.get("details", {})
 
                     message = f"Agent {agent} encountered a {event_type}. Details: {details}"
-                    await self.notifier.send_block_alert(
-                        task_title=f"{agent} Blocked", message=message
-                    )
+                    await self.notifier.send_block_alert(task_title=f"{agent} Blocked", message=message)
                     logger.info(f"🚨 Block Alert sent for {agent}")
 
                 self.last_event_check = datetime.now().isoformat()
@@ -95,9 +93,7 @@ class PhoneOrchestrator:
             return []
 
         try:
-            with MailBox(self.imap_host).login(
-                self.config.sender_email, self.config.sender_password
-            ) as mailbox:
+            with MailBox(self.imap_host).login(self.config.sender_email, self.config.sender_password) as mailbox:
                 # Criteria: Unseen AND From authorized sender AND contains [CMD]
                 criteria = AND(seen=False, from_=self.authorized_sender)
                 for msg in mailbox.fetch(criteria, mark_seen=True):
@@ -138,9 +134,7 @@ class PhoneOrchestrator:
         try:
             # Check active python processes
             res = subprocess.run(["ps", "aux", "--sort=-%cpu"], capture_output=True, text=True)
-            procs = [line for line in res.stdout.split("\n") if "python" in line or "uv" in line][
-                :5
-            ]
+            procs = [line for line in res.stdout.split("\n") if "python" in line or "uv" in line][:5]
 
             status = f"Time: {datetime.now().strftime('%H:%M:%S')}\n"
             status += "Active Processes:\n" + "\n".join(procs)

@@ -67,7 +67,7 @@ class TestHamiltonianDynamics:
     def test_hiho_well_potential(self):
         hd = HamiltonianDynamics(PotentialType.HIHO_WELL)
         z = np.linspace(0.0, 1.0, 100).reshape(1, -1).astype(np.float32)
-        e, g = hd._hiho_well(z)
+        e, _g = hd._hiho_well(z)
         # Energy should be lowest near 0.5
         mid_idx = 50
         assert e[0, mid_idx] < e[0, 0]

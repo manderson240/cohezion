@@ -41,7 +41,10 @@ while True:
 
     try:
         result = subprocess.run(
-            ["ollama", "run", model, question], capture_output=True, text=True, timeout=60
+            ["ollama", "run", model, question],
+            capture_output=True,
+            text=True,
+            timeout=60,
         )
 
         response = result.stdout[:500]  # First 500 chars
@@ -70,7 +73,10 @@ while True:
 
     responses_log.append(log_entry)
 
-    print(f"[Ollama {worker_id}] Iter {iteration}: {model} answered in {duration:.1f}s", flush=True)
+    print(
+        f"[Ollama {worker_id}] Iter {iteration}: {model} answered in {duration:.1f}s",
+        flush=True,
+    )
 
     # Save every 5 iterations
     if iteration % 5 == 0:

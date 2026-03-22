@@ -9,10 +9,10 @@ def generate_arch():
     prompt = f"""
     ROLE: System Architect.
     TASK: Generate a Mermaid Class Diagram based on the repository structure.
-    
+
     CONTEXT:
     {context}
-    
+
     INSTRUCTION:
     1. Create a `classDiagram` that visualizes the high-level architecture.
     2. Focus on:
@@ -23,7 +23,7 @@ def generate_arch():
        - `src/cohezion/delegation` (PromptArchitect)
     3. Show relationships (arrows) where logical.
     4. Output ONLY the mermaid code.
-    
+
     OUTPUT FORMAT:
     ```mermaid
     classDiagram

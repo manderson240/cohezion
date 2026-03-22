@@ -37,9 +37,7 @@ class LocalRegistry:
                 # Parse output (skip header)
                 lines = result.stdout.strip().split("\n")[1:]
                 self.available_models = {line.split()[0] for line in lines}
-                logger.info(
-                    f"🛡️ Local Registry Refreshed: {len(self.available_models)} models found."
-                )
+                logger.info(f"🛡️ Local Registry Refreshed: {len(self.available_models)} models found.")
                 logger.debug(f"Available: {self.available_models}")
             else:
                 logger.warning("Failed to list Ollama models.")
@@ -74,7 +72,7 @@ class LocalRegistry:
         """
         Check if system has enough storage headroom.
         """
-        total, used, free = shutil.disk_usage("/")
+        _total, _used, free = shutil.disk_usage("/")
         free_gb = free / (1024**3)
         return free_gb >= min_gb
 

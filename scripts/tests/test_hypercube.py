@@ -1,7 +1,10 @@
 import asyncio
 import logging
 
-from cohezion.swarm.agents.universe_sim_agent import UniverseNode, UniverseSimulationAgent
+from cohezion.swarm.agents.universe_sim_agent import (
+    UniverseNode,
+    UniverseSimulationAgent,
+)
 
 
 logging.basicConfig(level=logging.INFO)

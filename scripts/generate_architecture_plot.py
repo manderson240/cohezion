@@ -66,7 +66,12 @@ def generate_arch_plot():
         text=node_text,
         textposition="top center",
         hoverinfo="text",
-        marker=dict(showscale=False, color=node_color, size=node_size, line_width=2),
+        marker={
+            "showscale": False,
+            "color": node_color,
+            "size": node_size,
+            "line_width": 2,
+        },
     )
 
     # Trace edges
@@ -79,19 +84,26 @@ def generate_arch_plot():
         edge_y.extend([y0, y1, None])
 
     edge_trace = go.Scatter(
-        x=edge_x, y=edge_y, line=dict(width=1, color="#888"), hoverinfo="none", mode="lines"
+        x=edge_x,
+        y=edge_y,
+        line={"width": 1, "color": "#888"},
+        hoverinfo="none",
+        mode="lines",
     )
 
     # Create Figure
     fig = go.Figure(
         data=[edge_trace, node_trace],
         layout=go.Layout(
-            title={"text": "Cohezion Overnight Mission Architecture", "font": {"size": 20}},
+            title={
+                "text": "Cohezion Overnight Mission Architecture",
+                "font": {"size": 20},
+            },
             showlegend=False,
             hovermode="closest",
-            margin=dict(b=20, l=5, r=5, t=40),
-            xaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
-            yaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
+            margin={"b": 20, "l": 5, "r": 5, "t": 40},
+            xaxis={"showgrid": False, "zeroline": False, "showticklabels": False},
+            yaxis={"showgrid": False, "zeroline": False, "showticklabels": False},
             template="plotly_white",
         ),
     )
@@ -104,7 +116,10 @@ def generate_arch_plot():
 
     fig.write_html(str(output_dir / "overnight_architecture_interactive.html"))
     fig.write_image(
-        str(output_dir / "overnight_architecture_plotly.png"), width=1000, height=800, scale=2
+        str(output_dir / "overnight_architecture_plotly.png"),
+        width=1000,
+        height=800,
+        scale=2,
     )
 
     print(f"✅ Architecture plots saved to {output_dir}")
