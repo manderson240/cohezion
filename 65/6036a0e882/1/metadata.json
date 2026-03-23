@@ -1,0 +1,31 @@
+{
+  "cli_version": "0.4.9",
+  "checkpoint_id": "656036a0e882",
+  "session_id": "3b172dfb-df52-48a8-8785-ef0885bc9f5b",
+  "strategy": "manual-commit",
+  "created_at": "2026-03-23T02:15:33.958714002Z",
+  "branch": "session-kaggle-benchmark",
+  "checkpoints_count": 4,
+  "files_touched": [
+    "cloud-vault-mcp/src/mcp_server/graph_write_tools.py",
+    "cloud-vault-mcp/src/mcp_server/vault_graph/tools.py"
+  ],
+  "agent": "Claude Code",
+  "turn_id": "0ddb99f2a652",
+  "token_usage": {
+    "input_tokens": 1708,
+    "cache_creation_tokens": 465857,
+    "cache_read_tokens": 5346689,
+    "output_tokens": 40567,
+    "api_call_count": 62
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-03-23T02:15:33.675942889Z",
+    "agent_lines": 0,
+    "human_added": 4690,
+    "human_modified": 46,
+    "human_removed": 0,
+    "total_committed": 4698,
+    "agent_percentage": 0
+  }
+}

@@ -1,0 +1,692 @@
+Implement the following plan:
+
+# Fix 28 Pre-Existing Test Failures
+
+## Context
+
+The `feat/graph-architecture` branch has 28 pre-existing test failures that predate the CALL implementation. PR #40 is open. Fixing these failures would bring the test suite to a clean baseline and unblock future work on this branch.
+
+Root-cause analysis (full exploration run) identified 8 distinct causes. The largest single fix eliminates 18/28 failures.
+
+---
+
+## Root Causes + Fixes
+
+### Group A — ConfigState Pydantic model not rebuilt (18 failures)
+
+**Error:** `PydanticUserError: ConfigState is not fully defined; you should define Path, then call ConfigState.model_rebuild()`
+**File:** `src/cohezion/config/configuration_orchestrator.py` (line ~65, in `__init__`)
+**Fix:** Add `ConfigState.model_rebuild()` call after all imports are resolved (after the class body, at module level). In Pydantic v2, models referencing `pathlib.Path` as a forward reference must call `model_rebuild()` explicitly.
+
+Affected tests (18): all of `tests/config/test_configuration_orchestrator.py`, `test_config_monitoring.py`, `test_config_sync_phase4.py`, `test_config_validation_phase3.py`
+
+---
+
+### Group B — Behavioral logic failures (3 failures)
+
+**B1 — Smart router returns empty string** (1 failure)
+- Test: `tests/unit/test_smart_router.py::TestExecute::test_execute_success`
+- Error: `assert '' == 'generated text'`
+- Fix: Investigate `SmartRouter.execute()` — likely a missing `return` statement or wrong branch taken.
+
+**B2 — Triune engine tuple index out of range** (1 failure)
+- Test: `tests/universe/test_triune_engine.py::test_engine_step_persistence`
+- Error: `IndexError: tuple index out of range`
+- Fix: Find the unpacking site, check how many elements `engine.step()` returns vs how many are expected.
+
+**B3 — Triune manifold Pydantic v2 error message** (1 failure)
+- Test: `tests/universe/test_triune_manifold.py::test_triune_state_type_validation`
+- Error: Test asserts `'doer must be a torch.Tensor'` but Pydantic v2 emits `'Input should be an instance of Tensor'`
+- Fix: Update test assertion regex to match Pydantic v2 format (low-risk: test-only change).
+
+---
+
+### Group C — Agent schema extra fields (4 failures)
+
+**Error:** `AgentFileValidationError: {name}.md: Extra inputs are not permitted`
+**Affected agents:** `code-reviewer.md`, `compound-executor.md`, `compound-planner.md`, `skill-refiner.md`, `skill-researcher.md`, `test-runner.md`
+**Tests:** `tests/unit/test_agent_schema.py` (4 tests)
+**Fix:** Read the agent schema (`src/cohezion/validation/agent_schema.py`) to see which fields are allowed. Either:
+- (Preferred) Add the extra field names to the schema's `model_config` or field definitions
+- (Alternative) Remove the extra fields from the agent `.md` files if they're genuinely invalid
+
+---
+
+### Group D — FlumeEncoder missing from `cohezion.agents.base` + `F` import (~2 failures)
+
+**D1 — FlumeEncoder attribute error:**
+- Error: `AttributeError: module 'cohezion.agents.base' does not have attribute 'FlumeEncoder'`
+- Fix: Locate where `FlumeEncoder` lives (likely `src/cohezion/flume/`) and add the import to `src/cohezion/agents/base.py` or its `__init__.py`
+
+**D2 — Missing `F` import in autoencoder:**
+- Test: `tests/unit/test_autoencoder.py::TestFlumeEncoderModel::test_reconstruction_loss`
+- Error: `NameError: name 'F' is not defined`
+- Fix: Add `import torch.nn.functional as F` to the relevant source file
+
+---
+
+### Group E — Template engine Unicode em-dash (1 failure)
+
+**Test:** `tests/test_template_engine.py::test_generate_all_skills_produce_valid_python`
+**Error:** `SyntaxError: invalid character '—' (U+2014)` — em-dash in generated class name
+**Fix:** In the template engine, sanitize skill names before using as Python identifiers: replace non-ASCII characters and spaces with underscores.
+
+---
+
+### Group F — SurrealDB external service offline (1 failure)
+
+**Test:** `tests/autonomic/test_overnight_integrity.py::test_surreal_substrate_alive`
+**Error:** `AssertionError: SurrealDB substrate is offline`
+**Fix:** Add `@pytest.mark.skipif` guard: skip when `ws://localhost:8000` is not reachable. This is an infrastructure-dependent integration test that should not fail CI when the service isn't running.
+
+---
+
+## Execution Order
+
+Execute in this order (highest ROI first):
+
+- [ ] **A** — Fix `ConfigState.model_rebuild()` in `src/cohezion/config/configuration_orchestrator.py` (18 tests)
+- [ ] **B3** — Update triune manifold assertion to Pydantic v2 format (1 test, test-only)
+- [ ] **E** — Fix template engine Unicode em-dash in class name generation (1 test)
+- [ ] **F** — Add `skipif` guard to SurrealDB integration test (1 test)
+- [ ] **B1** — Debug and fix `SmartRouter.execute()` empty return (1 test)
+- [ ] **B2** — Fix triune engine tuple unpacking (1 test)
+- [ ] **C** — Fix agent schema validation (4 tests — read schema first to determine approach)
+- [ ] **D** — Fix FlumeEncoder import + F import (~2 tests)
+
+---
+
+## Verification
+
+```bash
+# After each group, run just the affected tests:
+uv run pytest tests/config/ -q                          # Group A (expect 18 fixed)
+uv run pytest tests/universe/ -q                        # Groups B2, B3
+uv run pytest tests/test_template_engine.py -q          # Group E
+uv run pytest tests/autonomic/ -q                       # Group F
+uv run pytest tests/unit/test_smart_router.py -q        # Group B1
+uv run pytest tests/unit/test_agent_schema.py -q        # Group C
+uv run pytest tests/unit/test_base_agent.py tests/unit/test_autoencoder.py -q  # Group D
+
+# Final full run — target: 0 failures, 4400 passing
+uv run pytest tests/ -q --tb=no
+```
+
+
+If you need specific details from before exiting plan mode (like exact code snippets, error messages, or content you generated), read the full transcript at: /home/mike-anderson/.claude/projects/-home-mike-anderson-dev-cohezion/90c73d6d-3541-49fa-b249-0ffc78ca93a3.jsonl
+
+If this plan can be broken down into multiple independent tasks, consider using the TeamCreate tool to create a team and parallelize the work.
+
+---
+
+Base directory for this skill: /home/mike-anderson/.claude/plugins/cache/claude-plugins-official/superpowers/5.0.5/skills/executing-plans
+
+# Executing Plans
+
+## Overview
+
+Load plan, review critically, execute all tasks, report when complete.
+
+**Announce at start:** "I'm using the executing-plans skill to implement this plan."
+
+**Note:** Tell your human partner that Superpowers works much better with access to subagents. The quality of its work will be significantly higher if run on a platform with subagent support (such as Claude Code or Codex). If subagents are available, use superpowers:subagent-driven-development instead of this skill.
+
+## The Process
+
+### Step 1: Load and Review Plan
+1. Read plan file
+2. Review critically - identify any questions or concerns about the plan
+3. If concerns: Raise them with your human partner before starting
+4. If no concerns: Create TodoWrite and proceed
+
+### Step 2: Execute Tasks
+
+For each task:
+1. Mark as in_progress
+2. Follow each step exactly (plan has bite-sized steps)
+3. Run verifications as specified
+4. Mark as completed
+
+### Step 3: Complete Development
+
+After all tasks complete and verified:
+- Announce: "I'm using the finishing-a-development-branch skill to complete this work."
+- **REQUIRED SUB-SKILL:** Use superpowers:finishing-a-development-branch
+- Follow that skill to verify tests, present options, execute choice
+
+## When to Stop and Ask for Help
+
+**STOP executing immediately when:**
+- Hit a blocker (missing dependency, test fails, instruction unclear)
+- Plan has critical gaps preventing starting
+- You don't understand an instruction
+- Verification fails repeatedly
+
+**Ask for clarification rather than guessing.**
+
+## When to Revisit Earlier Steps
+
+**Return to Review (Step 1) when:**
+- Partner updates the plan based on your feedback
+- Fundamental approach needs rethinking
+
+**Don't force through blockers** - stop and ask.
+
+## Remember
+- Review plan critically first
+- Follow plan steps exactly
+- Don't skip verifications
+- Reference skills when plan says to
+- Stop when blocked, don't guess
+- Never start implementation on main/master branch without explicit user consent
+
+## Integration
+
+**Required workflow skills:**
+- **superpowers:using-git-worktrees** - REQUIRED: Set up isolated workspace before starting
+- **superpowers:writing-plans** - Creates the plan this skill executes
+- **superpowers:finishing-a-development-branch** - Complete development after all tasks
+
+---
+
+Base directory for this skill: /home/mike-anderson/.claude/plugins/cache/claude-plugins-official/superpowers/5.0.5/skills/subagent-driven-development
+
+# Subagent-Driven Development
+
+Execute plan by dispatching fresh subagent per task, with two-stage review after each: spec compliance review first, then code quality review.
+
+**Why subagents:** You delegate tasks to specialized agents with isolated context. By precisely crafting their instructions and context, you ensure they stay focused and succeed at their task. They should never inherit your session's context or history — you construct exactly what they need. This also preserves your own context for coordination work.
+
+**Core principle:** Fresh subagent per task + two-stage review (spec then quality) = high quality, fast iteration
+
+## When to Use
+
+```dot
+digraph when_to_use {
+    "Have implementation plan?" [shape=diamond];
+    "Tasks mostly independent?" [shape=diamond];
+    "Stay in this session?" [shape=diamond];
+    "subagent-driven-development" [shape=box];
+    "executing-plans" [shape=box];
+    "Manual execution or brainstorm first" [shape=box];
+
+    "Have implementation plan?" -> "Tasks mostly independent?" [label="yes"];
+    "Have implementation plan?" -> "Manual execution or brainstorm first" [label="no"];
+    "Tasks mostly independent?" -> "Stay in this session?" [label="yes"];
+    "Tasks mostly independent?" -> "Manual execution or brainstorm first" [label="no - tightly coupled"];
+    "Stay in this session?" -> "subagent-driven-development" [label="yes"];
+    "Stay in this session?" -> "executing-plans" [label="no - parallel session"];
+}
+```
+
+**vs. Executing Plans (parallel session):**
+- Same session (no context switch)
+- Fresh subagent per task (no context pollution)
+- Two-stage review after each task: spec compliance first, then code quality
+- Faster iteration (no human-in-loop between tasks)
+
+## The Process
+
+```dot
+digraph process {
+    rankdir=TB;
+
+    subgraph cluster_per_task {
+        label="Per Task";
+        "Dispatch implementer subagent (./implementer-prompt.md)" [shape=box];
+        "Implementer subagent asks questions?" [shape=diamond];
+        "Answer questions, provide context" [shape=box];
+        "Implementer subagent implements, tests, commits, self-reviews" [shape=box];
+        "Dispatch spec reviewer subagent (./spec-reviewer-prompt.md)" [shape=box];
+        "Spec reviewer subagent confirms code matches spec?" [shape=diamond];
+        "Implementer subagent fixes spec gaps" [shape=box];
+        "Dispatch code quality reviewer subagent (./code-quality-reviewer-prompt.md)" [shape=box];
+        "Code quality reviewer subagent approves?" [shape=diamond];
+        "Implementer subagent fixes quality issues" [shape=box];
+        "Mark task complete in TodoWrite" [shape=box];
+    }
+
+    "Read plan, extract all tasks with full text, note context, create TodoWrite" [shape=box];
+    "More tasks remain?" [shape=diamond];
+    "Dispatch final code reviewer subagent for entire implementation" [shape=box];
+    "Use superpowers:finishing-a-development-branch" [shape=box style=filled fillcolor=lightgreen];
+
+    "Read plan, extract all tasks with full text, note context, create TodoWrite" -> "Dispatch implementer subagent (./implementer-prompt.md)";
+    "Dispatch implementer subagent (./implementer-prompt.md)" -> "Implementer subagent asks questions?";
+    "Implementer subagent asks questions?" -> "Answer questions, provide context" [label="yes"];
+    "Answer questions, provide context" -> "Dispatch implementer subagent (./implementer-prompt.md)";
+    "Implementer subagent asks questions?" -> "Implementer subagent implements, tests, commits, self-reviews" [label="no"];
+    "Implementer subagent implements, tests, commits, self-reviews" -> "Dispatch spec reviewer subagent (./spec-reviewer-prompt.md)";
+    "Dispatch spec reviewer subagent (./spec-reviewer-prompt.md)" -> "Spec reviewer subagent confirms code matches spec?";
+    "Spec reviewer subagent confirms code matches spec?" -> "Implementer subagent fixes spec gaps" [label="no"];
+    "Implementer subagent fixes spec gaps" -> "Dispatch spec reviewer subagent (./spec-reviewer-prompt.md)" [label="re-review"];
+    "Spec reviewer subagent confirms code matches spec?" -> "Dispatch code quality reviewer subagent (./code-quality-reviewer-prompt.md)" [label="yes"];
+    "Dispatch code quality reviewer subagent (./code-quality-reviewer-prompt.md)" -> "Code quality reviewer subagent approves?";
+    "Code quality reviewer subagent approves?" -> "Implementer subagent fixes quality issues" [label="no"];
+    "Implementer subagent fixes quality issues" -> "Dispatch code quality reviewer subagent (./code-quality-reviewer-prompt.md)" [label="re-review"];
+    "Code quality reviewer subagent approves?" -> "Mark task complete in TodoWrite" [label="yes"];
+    "Mark task complete in TodoWrite" -> "More tasks remain?";
+    "More tasks remain?" -> "Dispatch implementer subagent (./implementer-prompt.md)" [label="yes"];
+    "More tasks remain?" -> "Dispatch final code reviewer subagent for entire implementation" [label="no"];
+    "Dispatch final code reviewer subagent for entire implementation" -> "Use superpowers:finishing-a-development-branch";
+}
+```
+
+## Model Selection
+
+Use the least powerful model that can handle each role to conserve cost and increase speed.
+
+**Mechanical implementation tasks** (isolated functions, clear specs, 1-2 files): use a fast, cheap model. Most implementation tasks are mechanical when the plan is well-specified.
+
+**Integration and judgment tasks** (multi-file coordination, pattern matching, debugging): use a standard model.
+
+**Architecture, design, and review tasks**: use the most capable available model.
+
+**Task complexity signals:**
+- Touches 1-2 files with a complete spec → cheap model
+- Touches multiple files with integration concerns → standard model
+- Requires design judgment or broad codebase understanding → most capable model
+
+## Handling Implementer Status
+
+Implementer subagents report one of four statuses. Handle each appropriately:
+
+**DONE:** Proceed to spec compliance review.
+
+**DONE_WITH_CONCERNS:** The implementer completed the work but flagged doubts. Read the concerns before proceeding. If the concerns are about correctness or scope, address them before review. If they're observations (e.g., "this file is getting large"), note them and proceed to review.
+
+**NEEDS_CONTEXT:** The implementer needs information that wasn't provided. Provide the missing context and re-dispatch.
+
+**BLOCKED:** The implementer cannot complete the task. Assess the blocker:
+1. If it's a context problem, provide more context and re-dispatch with the same model
+2. If the task requires more reasoning, re-dispatch with a more capable model
+3. If the task is too large, break it into smaller pieces
+4. If the plan itself is wrong, escalate to the human
+
+**Never** ignore an escalation or force the same model to retry without changes. If the implementer said it's stuck, something needs to change.
+
+## Prompt Templates
+
+- `./implementer-prompt.md` - Dispatch implementer subagent
+- `./spec-reviewer-prompt.md` - Dispatch spec compliance reviewer subagent
+- `./code-quality-reviewer-prompt.md` - Dispatch code quality reviewer subagent
+
+## Example Workflow
+
+```
+You: I'm using Subagent-Driven Development to execute this plan.
+
+[Read plan file once: docs/superpowers/plans/feature-plan.md]
+[Extract all 5 tasks with full text and context]
+[Create TodoWrite with all tasks]
+
+Task 1: Hook installation script
+
+[Get Task 1 text and context (already extracted)]
+[Dispatch implementation subagent with full task text + context]
+
+Implementer: "Before I begin - should the hook be installed at user or system level?"
+
+You: "User level (~/.config/superpowers/hooks/)"
+
+Implementer: "Got it. Implementing now..."
+[Later] Implementer:
+  - Implemented install-hook command
+  - Added tests, 5/5 passing
+  - Self-review: Found I missed --force flag, added it
+  - Committed
+
+[Dispatch spec compliance reviewer]
+Spec reviewer: ✅ Spec compliant - all requirements met, nothing extra
+
+[Get git SHAs, dispatch code quality reviewer]
+Code reviewer: Strengths: Good test coverage, clean. Issues: None. Approved.
+
+[Mark Task 1 complete]
+
+Task 2: Recovery modes
+
+[Get Task 2 text and context (already extracted)]
+[Dispatch implementation subagent with full task text + context]
+
+Implementer: [No questions, proceeds]
+Implementer:
+  - Added verify/repair modes
+  - 8/8 tests passing
+  - Self-review: All good
+  - Committed
+
+[Dispatch spec compliance reviewer]
+Spec reviewer: ❌ Issues:
+  - Missing: Progress reporting (spec says "report every 100 items")
+  - Extra: Added --json flag (not requested)
+
+[Implementer fixes issues]
+Implementer: Removed --json flag, added progress reporting
+
+[Spec reviewer reviews again]
+Spec reviewer: ✅ Spec compliant now
+
+[Dispatch code quality reviewer]
+Code reviewer: Strengths: Solid. Issues (Important): Magic number (100)
+
+[Implementer fixes]
+Implementer: Extracted PROGRESS_INTERVAL constant
+
+[Code reviewer reviews again]
+Code reviewer: ✅ Approved
+
+[Mark Task 2 complete]
+
+...
+
+[After all tasks]
+[Dispatch final code-reviewer]
+Final reviewer: All requirements met, ready to merge
+
+Done!
+```
+
+## Advantages
+
+**vs. Manual execution:**
+- Subagents follow TDD naturally
+- Fresh context per task (no confusion)
+- Parallel-safe (subagents don't interfere)
+- Subagent can ask questions (before AND during work)
+
+**vs. Executing Plans:**
+- Same session (no handoff)
+- Continuous progress (no waiting)
+- Review checkpoints automatic
+
+**Efficiency gains:**
+- No file reading overhead (controller provides full text)
+- Controller curates exactly what context is needed
+- Subagent gets complete information upfront
+- Questions surfaced before work begins (not after)
+
+**Quality gates:**
+- Self-review catches issues before handoff
+- Two-stage review: spec compliance, then code quality
+- Review loops ensure fixes actually work
+- Spec compliance prevents over/under-building
+- Code quality ensures implementation is well-built
+
+**Cost:**
+- More subagent invocations (implementer + 2 reviewers per task)
+- Controller does more prep work (extracting all tasks upfront)
+- Review loops add iterations
+- But catches issues early (cheaper than debugging later)
+
+## Red Flags
+
+**Never:**
+- Start implementation on main/master branch without explicit user consent
+- Skip reviews (spec compliance OR code quality)
+- Proceed with unfixed issues
+- Dispatch multiple implementation subagents in parallel (conflicts)
+- Make subagent read plan file (provide full text instead)
+- Skip scene-setting context (subagent needs to understand where task fits)
+- Ignore subagent questions (answer before letting them proceed)
+- Accept "close enough" on spec compliance (spec reviewer found issues = not done)
+- Skip review loops (reviewer found issues = implementer fixes = review again)
+- Let implementer self-review replace actual review (both are needed)
+- **Start code quality review before spec compliance is ✅** (wrong order)
+- Move to next task while either review has open issues
+
+**If subagent asks questions:**
+- Answer clearly and completely
+- Provide additional context if needed
+- Don't rush them into implementation
+
+**If reviewer finds issues:**
+- Implementer (same subagent) fixes them
+- Reviewer reviews again
+- Repeat until approved
+- Don't skip the re-review
+
+**If subagent fails task:**
+- Dispatch fix subagent with specific instructions
+- Don't try to fix manually (context pollution)
+
+## Integration
+
+**Required workflow skills:**
+- **superpowers:using-git-worktrees** - REQUIRED: Set up isolated workspace before starting
+- **superpowers:writing-plans** - Creates the plan this skill executes
+- **superpowers:requesting-code-review** - Code review template for reviewer subagents
+- **superpowers:finishing-a-development-branch** - Complete development after all tasks
+
+**Subagents should use:**
+- **superpowers:test-driven-development** - Subagents follow TDD for each task
+
+**Alternative workflow:**
+- **superpowers:executing-plans** - Use for parallel session instead of same-session execution
+
+---
+
+Base directory for this skill: /home/mike-anderson/.claude/plugins/cache/claude-plugins-official/superpowers/5.0.5/skills/finishing-a-development-branch
+
+# Finishing a Development Branch
+
+## Overview
+
+Guide completion of development work by presenting clear options and handling chosen workflow.
+
+**Core principle:** Verify tests → Present options → Execute choice → Clean up.
+
+**Announce at start:** "I'm using the finishing-a-development-branch skill to complete this work."
+
+## The Process
+
+### Step 1: Verify Tests
+
+**Before presenting options, verify tests pass:**
+
+```bash
+# Run project's test suite
+npm test / cargo test / pytest / go test ./...
+```
+
+**If tests fail:**
+```
+Tests failing (<N> failures). Must fix before completing:
+
+[Show failures]
+
+Cannot proceed with merge/PR until tests pass.
+```
+
+Stop. Don't proceed to Step 2.
+
+**If tests pass:** Continue to Step 2.
+
+### Step 2: Determine Base Branch
+
+```bash
+# Try common base branches
+git merge-base HEAD main 2>/dev/null || git merge-base HEAD master 2>/dev/null
+```
+
+Or ask: "This branch split from main - is that correct?"
+
+### Step 3: Present Options
+
+Present exactly these 4 options:
+
+```
+Implementation complete. What would you like to do?
+
+1. Merge back to <base-branch> locally
+2. Push and create a Pull Request
+3. Keep the branch as-is (I'll handle it later)
+4. Discard this work
+
+Which option?
+```
+
+**Don't add explanation** - keep options concise.
+
+### Step 4: Execute Choice
+
+#### Option 1: Merge Locally
+
+```bash
+# Switch to base branch
+git checkout <base-branch>
+
+# Pull latest
+git pull
+
+# Merge feature branch
+git merge <feature-branch>
+
+# Verify tests on merged result
+<test command>
+
+# If tests pass
+git branch -d <feature-branch>
+```
+
+Then: Cleanup worktree (Step 5)
+
+#### Option 2: Push and Create PR
+
+```bash
+# Push branch
+git push -u origin <feature-branch>
+
+# Create PR
+gh pr create --title "<title>" --body "$(cat <<'EOF'
+## Summary
+<2-3 bullets of what changed>
+
+## Test Plan
+- [ ] <verification steps>
+EOF
+)"
+```
+
+Then: Cleanup worktree (Step 5)
+
+#### Option 3: Keep As-Is
+
+Report: "Keeping branch <name>. Worktree preserved at <path>."
+
+**Don't cleanup worktree.**
+
+#### Option 4: Discard
+
+**Confirm first:**
+```
+This will permanently delete:
+- Branch <name>
+- All commits: <commit-list>
+- Worktree at <path>
+
+Type 'discard' to confirm.
+```
+
+Wait for exact confirmation.
+
+If confirmed:
+```bash
+git checkout <base-branch>
+git branch -D <feature-branch>
+```
+
+Then: Cleanup worktree (Step 5)
+
+### Step 5: Cleanup Worktree
+
+**For Options 1, 2, 4:**
+
+Check if in worktree:
+```bash
+git worktree list | grep $(git branch --show-current)
+```
+
+If yes:
+```bash
+git worktree remove <worktree-path>
+```
+
+**For Option 3:** Keep worktree.
+
+## Quick Reference
+
+| Option | Merge | Push | Keep Worktree | Cleanup Branch |
+|--------|-------|------|---------------|----------------|
+| 1. Merge locally | ✓ | - | - | ✓ |
+| 2. Create PR | - | ✓ | ✓ | - |
+| 3. Keep as-is | - | - | ✓ | - |
+| 4. Discard | - | - | - | ✓ (force) |
+
+## Common Mistakes
+
+**Skipping test verification**
+- **Problem:** Merge broken code, create failing PR
+- **Fix:** Always verify tests before offering options
+
+**Open-ended questions**
+- **Problem:** "What should I do next?" → ambiguous
+- **Fix:** Present exactly 4 structured options
+
+**Automatic worktree cleanup**
+- **Problem:** Remove worktree when might need it (Option 2, 3)
+- **Fix:** Only cleanup for Options 1 and 4
+
+**No confirmation for discard**
+- **Problem:** Accidentally delete work
+- **Fix:** Require typed "discard" confirmation
+
+## Red Flags
+
+**Never:**
+- Proceed with failing tests
+- Merge without verifying tests on result
+- Delete work without confirmation
+- Force-push without explicit request
+
+**Always:**
+- Verify tests before offering options
+- Present exactly 4 options
+- Get typed confirmation for Option 4
+- Clean up worktree for Options 1 & 4 only
+
+## Integration
+
+**Called by:**
+- **subagent-driven-development** (Step 7) - After all tasks complete
+- **executing-plans** (Step 5) - After all batches complete
+
+**Pairs with:**
+- **using-git-worktrees** - Cleans up worktree created by that skill
+
+---
+
+<task-notification>
+<task-id>b1treyasa</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/ace86df4-9d7b-4a91-86cf-bed8940d8896/tasks/b1treyasa.output</output-file>
+<status>completed</status>
+<summary>Background command "Run full test suite on feat/graph-architecture to count failures" completed (exit code 0)</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/ace86df4-9d7b-4a91-86cf-bed8940d8896/tasks/b1treyasa.output
+
+---
+
+How do you think we should proceed?
+
+---
+
+Yes then what's the next step after that?
+
+---
+
+Tackle the 23 remaining failures and update coding standards, hookify, and overall learnings
+
+---
+
+[Request interrupted by user for tool use]
