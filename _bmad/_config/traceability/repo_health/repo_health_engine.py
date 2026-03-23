@@ -21,7 +21,10 @@ from datetime import datetime
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
-from ..base_engine import BaseEngine, EngineConfig
+try:
+    from ..base_engine import BaseEngine, EngineConfig
+except (ImportError, ValueError):
+    from base_engine import BaseEngine, EngineConfig
 
 
 @dataclass
