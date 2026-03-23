@@ -1,0 +1,30 @@
+{
+  "cli_version": "0.4.9",
+  "checkpoint_id": "b31d01313f51",
+  "session_id": "87690cbd-1f05-41b2-957b-f79a73f65310",
+  "strategy": "manual-commit",
+  "created_at": "2026-03-23T03:29:28.435275465Z",
+  "branch": "session-repo-health-automation",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "conductor/tracks.md"
+  ],
+  "agent": "Claude Code",
+  "turn_id": "cc99a8eaf02c",
+  "token_usage": {
+    "input_tokens": 8472,
+    "cache_creation_tokens": 1198293,
+    "cache_read_tokens": 13877424,
+    "output_tokens": 43482,
+    "api_call_count": 114
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-03-23T03:29:28.007233612Z",
+    "agent_lines": 5,
+    "human_added": 33222,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 33227,
+    "agent_percentage": 0.01504800312998465
+  }
+}
