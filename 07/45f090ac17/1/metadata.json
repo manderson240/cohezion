@@ -1,0 +1,30 @@
+{
+  "cli_version": "0.4.9",
+  "checkpoint_id": "0745f090ac17",
+  "session_id": "35f70797-2df7-4280-bb95-2f01c9f8f473",
+  "strategy": "manual-commit",
+  "created_at": "2026-03-23T02:53:01.502643061Z",
+  "branch": "session-repo-health-automation",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "src/cohezion/api/__init__.py"
+  ],
+  "agent": "Claude Code",
+  "turn_id": "1a33c05efd63",
+  "token_usage": {
+    "input_tokens": 714,
+    "cache_creation_tokens": 520641,
+    "cache_read_tokens": 14308476,
+    "output_tokens": 40050,
+    "api_call_count": 63
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-03-23T02:53:01.210780745Z",
+    "agent_lines": 351,
+    "human_added": 0,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 351,
+    "agent_percentage": 100
+  }
+}
