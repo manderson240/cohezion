@@ -1,0 +1,305 @@
+Implement the following plan:
+
+# Plan: Luma AMD Speedrun — Research-Driven Breakthrough Strategy
+
+## IMMEDIATE: Store Research as Baseline Skills
+
+Create/update these skills to lock in the new approach so future sessions can't revert:
+
+1. **UPDATE** `competitive-kernel-optimization-ceiling` — add research-driven approaches (HipKittens, GPU Kernel Scientist, KernelFoundry, CK-Tile)
+2. **CREATE** `amd-speedrun-research-baseline` — comprehensive skill with all research findings, bidirectional links to existing skills, dead ends, and the new baseline approach
+3. **UPDATE** `k-search-llm-kernel-optimization` — add adaptive K, cross-kernel learning, meta-prompt evolution from KernelFoundry
+4. **UPDATE** `amd-moe-mxfp4-optimization` — add HipKittens as viable path, update current best (154µs), add CK-Tile gfx950 primitives
+5. **UPDATE** `amd-mla-decode-optimization` — add HipKittens attention kernel as viable path, update current best (69.7µs)
+6. **UPDATE** `amd-gemm-mxfp4-optimization` — add HipKittens GEMM as viable path, Triton dead end confirmed, CK-Tile flatmm examples
+
+## Context
+
+Competition deadline April 6. Top 10 advance to finals ($1.1M prize pool).
+Parameter tuning is exhausted. Breakthroughs require new approaches from research.
+
+### Current State
+
+| Kernel | Us | Leader | Gap | Points Est |
+|--------|-----|--------|-----|-----------|
+| GEMM | 13.4µs | 4.3µs | 3.1x | ~300 (rank ~14) |
+| MoE | 154.2µs | 109.8µs | 1.4x | ~600 (rank ~12) |
+| MLA | 69.7µs | 33.0µs | 2.1x | ~312 (rank ~15) |
+| **Total** | | | | **~1,212** |
+
+Top-10 needs ~2,250+ points. We need ~940 more points = improve all 3 kernels significantly.
+
+### Key Constraint
+All submissions must be **original work**. Code must be upstreamable. No copying.
+Runner blocks HIP compilation via static source scanning (HTTP 500).
+
+---
+
+## Phase 1: Research Integration (This Session)
+
+### Task 1.1: Study K-Search paper code for integration gaps
+- Repo: https://github.com/caoshiyi/K-Search
+- Our implementation missing: adaptive K-values, cross-kernel learning, learned V-scores, constraint propagation, trajectory reification, budget rebalancing
+- **Action**: Implement adaptive K + divergence detection + cross-kernel learning in autoresearch/
+
+### Task 1.2: Study QiMeng-GEMM meta-prompt hierarchy
+- Repo: https://github.com/QiMeng-Team/QiMeng-GEMM
+- Key: Decompose optimization into 5 reusable patterns (tiling, reordering, vectorization, layout, pipeline) with MI355X-specific meta-prompts
+- 113x improvement over naive prompts reported
+- **Action**: Create MI355X-specific meta-prompt templates for each kernel
+
+### Task 1.3: Study CUDAMaster hardware-aware bottleneck classification
+- Paper: https://huggingface.co/papers/2603.07169
+- Key: Otsu-based classification of kernels as compute/memory-bound
+- Must recalibrate thresholds for MI355X (HBM3, MFMA, wave64)
+- **Action**: Build hardware analysis module for MI355X kernel classification
+
+### Task 1.4: Review competition rules compliance
+- File: `luma_speedrun/[Public] AMD x GPU MODE - E2E Model Speedrun Rules and T&C.md`
+- Original work required. Code becomes AMD property (royalty-free license).
+- Top 20 per kernel get points. Score = MaxPoints * (1 - rank/20).
+- **Verified**: All our approaches are original implementations, not copies.
+
+---
+
+## Phase 2: K-Search Enhancement
+
+### Task 2.1: Implement adaptive stagnation limit (K-value)
+- File: `autoresearch/ksearch_tree.py`
+- Change: K varies by node depth, parent success rate, kernel difficulty
+- MLA gets K=12-15 (non-monotonic landscape), MoE K=7-10, GEMM K=7
+- Expected: 8-12% efficiency improvement
+
+### Task 2.2: Add divergence detection
+- File: `autoresearch/ksearch_tree.py`
+- Prune nodes immediately on regression (not just stagnation)
+- Saves 5-7% wasted evaluations
+
+### Task 2.3: Cross-kernel learning
+- File: `autoresearch/driver.py`
+- Propagate failed strategies across kernel trees
+- Share successful patterns (e.g., "metadata caching" works on MoE → try on MLA)
+- Expected: 20% efficiency gain
+
+### Task 2.4: Integrate QiMeng-style meta-prompts into code_synthesizer
+- File: `autoresearch/code_synthesizer.py`
+- Replace generic prompts with structured 5-tuple meta-prompts
+- MI355X-specific: MFMA block sizes, wave64, HBM3 hierarchy, MXFP4 packing
+- Expected: Higher first-pass correctness, fewer wasted evaluations
+
+---
+
+## Phase 3: Novel Kernel Approaches (Research-Driven)
+
+### HIGH PRIORITY: HipKittens (Stanford Hazy Research)
+- **Paper**: arxiv.org/abs/2511.08083 | **GitHub**: github.com/HazyResearch/HipKittens
+- Tile-based DSL for AMD that OUTPERFORMS aiter's hand-ASM on MI355X
+- 8-Wave Ping-Pong scheduling for GEMM/attention, 4-Wave Interleave for fine-grained
+- ~500 LOC attention forward kernels beat AMD baselines
+- **Action**: Study HK's attention + GEMM primitives. Can we write MLA/MoE/GEMM in HK?
+- **Constraint**: Must produce ORIGINAL code using HK primitives, not copy their kernels
+
+### HIGH PRIORITY: GPU Kernel Scientist Pattern
+- **Paper**: arxiv.org/abs/2506.20807 (proven on AMD MI300 with HIP)
+- Evolutionary selector + LLM kernel writer + timing-only feedback
+- Gemini 2.5 Pro generates correct HIP code autonomously
+- **Action**: Adapt this pattern for our kernels. Use Claude/local LLM as kernel writer
+  with popcorn-cli timing as evaluation signal
+
+### MEDIUM: KernelFoundry MAP-Elites + Meta-Prompt Evolution
+- **Paper**: arxiv.org/abs/2603.12440
+- Quality-diversity search prevents mode collapse
+- Meta-prompts co-evolve with kernels (solves context pollution)
+- **Action**: Integrate MAP-Elites behavioral coordinates into K-Search tree
+
+### MEDIUM: CK-Tile gfx950 MXFP4 Hardware Primitives
+- Blog: rocm.blogs.amd.com/software-tools-optimization/building-efficient-gemm-kernels-with-ck-tile-vendo
+- gfx950 has native `mfma_f32_32x32x64_f8f6f4` + scale MFMA for MXFP4
+- Compute async pipeline in CK Tile universal GEMM
+- Example code: composable_kernel/example/ck_tile/18_flatmm/ (MXFP4 mixed precision)
+- **Action**: Study CK-Tile GEMM patterns for gfx950. Can we write a CK-Tile kernel
+  that runs on the popcorn runner?
+
+### MEDIUM: QiMeng-GEMM Meta-Prompt Hierarchy
+- **GitHub**: github.com/QiMeng-Team/QiMeng-GEMM (113x over naive prompts)
+- 5-pattern decomposition: tiling, reordering, vectorization, layout, pipeline
+- **Action**: Create MI355X-specific meta-prompts for code_synthesizer.py
+
+### Research: AITER FP8 Block-Scaled MoE (vLLM PR #14967)
+- AITER has `fmoe_fp8_block_scaled` kernel (disabled by default in vLLM)
+- Also `asm_moe` for dynamic per-tensor FP8 quantization
+- **Action**: Test if AITER has newer MoE kernels not exposed via fused_moe API
+
+### Research: FlashMLA Architecture Insights
+- blog.vllm.ai/2026/02/27/rocm-attention-backend.html
+- AITER MLA backends deliver 1.2-1.6x faster TPOT via shared ASM decode kernel
+- Key: the ASM kernel is the same one we're using (mla_decode_stage1_asm_fwd)
+- **Insight**: Our gap is NOT the kernel itself but Python dispatch overhead on small shapes
+- rocm.blogs.amd.com/software-tools-optimization/kernel-analysis-deep/README.html
+  has ROCm profiling analysis of DeepSeek-V3 inference
+
+---
+
+## Phase 4: Implementation Strategy
+
+### Approach A: HipKittens-Based Custom Kernels (HIGHEST POTENTIAL)
+1. Clone and study HipKittens primitives for MI355X
+2. Write MLA attention kernel using HK's 8-Wave Ping-Pong scheduling
+3. Write MXFP4 GEMM using HK's tile primitives + MFMA scale instructions
+4. If runner blocks HIP compilation → pre-compile .co binary and load via hipModuleLoad
+5. Test each kernel via popcorn-cli
+
+### Approach B: LLM-Driven Evolutionary Search (MEDIUM POTENTIAL)
+1. Enhance K-Search with adaptive K, cross-kernel learning, meta-prompt evolution
+2. Use Claude Opus as pi_code (kernel writer) with structured MI355X meta-prompts
+3. Run 50+ evaluation cycles targeting each kernel
+4. Behavioral dimensions: {memory_access_pattern, parallelism_strategy, tile_size}
+
+### Approach C: CK-Tile Direct Integration (MEDIUM POTENTIAL)
+1. Study composable_kernel examples for gfx950 MXFP4 GEMM
+2. Build CK-Tile kernel template for competition shapes
+3. Compile and load via hipModuleLoad (if runner allows .co files)
+4. This is what leaders likely use — CK backends are pre-tuned for MI355X
+
+---
+
+## Phase 5: Run Enhanced K-Search Driver
+
+After implementing Phases 2-4:
+```bash
+cd autoresearch && python driver.py --max-cycles 50
+```
+
+The driver handles: test → benchmark → leaderboard (rate-limited) → tree evolution.
+
+---
+
+## Key Files
+
+| File | Purpose |
+|------|---------|
+| `autoresearch/ksearch_tree.py` | K-Search tree + adaptive K + divergence |
+| `autoresearch/driver.py` | Main loop + cross-kernel learning |
+| `autoresearch/code_synthesizer.py` | LLM code gen + meta-prompts |
+| `autoresearch/analyzer.py` | Result analysis + world model |
+| `kernels/*/submission.py` | Current best submissions |
+| `autoresearch/templates/*.py` | Updated kernel templates |
+
+## Key Research Sources
+
+| Paper/Tool | Link | Key Insight |
+|-----------|------|-------------|
+| HipKittens | github.com/HazyResearch/HipKittens | Tile DSL beats AMD ASM on MI355X |
+| K-Search | github.com/caoshiyi/K-Search | Co-evolving world model, 14.3x on MoE |
+| GPU Kernel Scientist | arxiv.org/abs/2506.20807 | Iterative LLM on AMD MI300 with HIP |
+| KernelFoundry | arxiv.org/abs/2603.12440 | MAP-Elites + meta-prompt evolution |
+| KernelAgent | PyTorch blog (March 2026) | 100% on KernelBench, multi-agent |
+| QiMeng-GEMM | github.com/QiMeng-Team/QiMeng-GEMM | 113x via structured meta-prompts |
+| CUDAMaster | huggingface.co/papers/2603.07169 | Hardware-aware bottleneck classification |
+| CK-Tile | rocm.docs.amd.com (composable_kernel) | Native gfx950 MXFP4 MFMA instructions |
+| AITER | github.com/ROCm/aiter | fused_moe, MLA decode, GEMM backends |
+| FlashMLA | github.com/deepseek-ai/FlashMLA | MLA decode architecture reference |
+| vLLM ROCm | blog.vllm.ai/2026/02/27/rocm-attention-backend.html | AITER backend benchmarks |
+
+## Verification
+
+After each enhancement:
+1. Run driver in dry-run mode: `python driver.py --dry-run --max-cycles 5`
+2. Verify tree mutations are reasonable
+3. Run one live cycle per kernel to confirm test+benchmark works
+4. Only leaderboard if benchmark confirms improvement
+
+
+If you need specific details from before exiting plan mode (like exact code snippets, error messages, or content you generated), read the full transcript at: /home/mike-anderson/.claude/projects/-home-mike-anderson-dev-cohezion/1f022bd8-5f55-4c21-8e47-621d8cc2be50.jsonl
+
+If this plan can be broken down into multiple independent tasks, consider using the TeamCreate tool to create a team and parallelize the work.
+
+---
+
+<task-notification>
+<task-id>a28ce47b79c323248</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/372cbc1b-32c1-4d7a-b071-c206e9699dbc/tasks/a28ce47b79c323248.output</output-file>
+<status>completed</status>
+<summary>Agent "Update K-Search skill" completed</summary>
+<result>All three edits applied to `/home/mike-anderson/.claude/skills/k-search-llm-kernel-optimization/SKILL.md`:
+
+1. Version bumped from `1.0.0` to `2.0.0`
+2. Added the "Enhanced K-Search (v2): Research-Driven Extensions" section (with Adaptive Stagnation Limit, Divergence Detection, Cross-Kernel Learning, Meta-Prompt Evolution, QiMeng-Style 5-Tuple Decomposition, and Updated Search Tree for Luma) immediately before `## References`
+3. Updated the implementation path from `research/challenges/luma_amd_speedrun/autoresearch/` to `luma_speedrun/autoresearch/`</result>
+<usage><total_tokens>95482</total_tokens><tool_uses>4</tool_uses><duration_ms>51368</duration_ms></usage>
+</task-notification>
+Full transcript available at: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/372cbc1b-32c1-4d7a-b071-c206e9699dbc/tasks/a28ce47b79c323248.output
+
+---
+
+<task-notification>
+<task-id>abbb41c4ab723910d</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/372cbc1b-32c1-4d7a-b071-c206e9699dbc/tasks/abbb41c4ab723910d.output</output-file>
+<status>completed</status>
+<summary>Agent "Update MoE, MLA, GEMM skills" completed</summary>
+<result>All edits complete. Here is a summary of what was done:
+
+**File 1: `/home/mike-anderson/.claude/skills/amd-moe-mxfp4-optimization/SKILL.md`**
+- Version: 1.0.0 -> 2.0.0
+- Status table: Our Best ~155us -> ~154.2us, Leader 145us -> 109.8us, Gap 1.07x -> 1.4x
+- Added "Research-Driven Approaches" section before Cross-References (HipKittens MoE, CK-Tile gfx950, AITER FP8 Block-Scaled MoE)
+
+**File 2: `/home/mike-anderson/.claude/skills/amd-mla-decode-optimization/SKILL.md`**
+- Version: 1.0.0 -> 2.0.0
+- Status table: Our Best ~67.8us -> ~69.7us, Leader 4.3us -> 33.0us, Gap 15.8x -> 2.1x
+- Added "Research-Driven Approaches" section before Cross-References (HipKittens Attention, FlashMLA Insights, GPU Kernel Scientist Pattern)
+
+**File 3: `/home/mike-anderson/.claude/skills/amd-gemm-mxfp4-optimization/SKILL.md`**
+- Version: 1.0.0 -> 2.0.0
+- Status table: Our Best ~14.1us -> ~13.4us, Leader 9.7us -> 4.3us, Gap 1.45x -> 3.1x
+- Added "Research-Driven Approaches" section before Cross-References (HipKittens GEMM, CK-Tile flatmm, Triton Dead End Confirmed)</result>
+<usage><total_tokens>191408</total_tokens><tool_uses>12</tool_uses><duration_ms>118920</duration_ms></usage>
+</task-notification>
+Full transcript available at: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/372cbc1b-32c1-4d7a-b071-c206e9699dbc/tasks/abbb41c4ab723910d.output
+
+---
+
+<task-notification>
+<task-id>a45ab1ad4565859d1</task-id>
+<tool-use-id>toolu_01WaxEXuYYnZyV515tKrEr9i</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/372cbc1b-32c1-4d7a-b071-c206e9699dbc/tasks/a45ab1ad4565859d1.output</output-file>
+<status>completed</status>
+<summary>Agent "Create ksearch_tree.py with adaptive K" completed</summary>
+<result>Exactly 300 lines, runs clean. File created at `/home/mike-anderson/dev/cohezion/luma_speedrun/autoresearch/ksearch_tree.py`.
+
+Summary of what was implemented:
+
+- **`KNode` dataclass** with all requested fields (id, parent_id, strategy, status, v_score, depth, attempt_history, children, kernel_type, meta_prompt), plus `best_score` and `success_rate` computed properties, and `to_dict`/`from_dict` serialization.
+- **`KSearchTree` class** with:
+  - `select_best()` -- picks highest v_score OPEN node
+  - `record_attempt()` -- appends to history, updates v_score, auto-prunes on stagnation (5 attempts with <0.02 delta)
+  - `adaptive_k()` -- base K by kernel type (MLA=12, MoE=8, GEMM=7), decreases by 1 per depth (min 3), +2 bonus if parent success rate >50%
+  - `check_divergence()` -- returns True if score < 80% of node's best
+  - `apply_evolution()` -- batch INSERT/UPDATE/PRUNE operations
+  - `prune_node()` / `diverge_node()` -- distinct CLOSED vs DIVERGED status
+  - `insert_child()` -- creates child node with proper depth tracking
+  - `save()` / `load()` -- JSON serialization via pathlib
+  - `get_cross_kernel_failures()` / `get_cross_kernel_successes()` -- cross-kernel learning interfaces
+- **`__main__` block** -- creates a MoE tree with 3 root strategies, records attempts, demonstrates divergence detection, expands the best node, and prints the tree summary.</result>
+<usage><total_tokens>69945</total_tokens><tool_uses>23</tool_uses><duration_ms>148681</duration_ms></usage>
+</task-notification>
+Full transcript available at: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/372cbc1b-32c1-4d7a-b071-c206e9699dbc/tasks/a45ab1ad4565859d1.output
+
+---
+
+<task-notification>
+<task-id>a5a8ab16d76fcbdd2</task-id>
+<tool-use-id>toolu_018tAF8kVrJ1A2R6nT5VN2fd</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/372cbc1b-32c1-4d7a-b071-c206e9699dbc/tasks/a5a8ab16d76fcbdd2.output</output-file>
+<status>completed</status>
+<summary>Agent "Create driver.py and analyzer.py" completed</summary>
+<result>Both files are created and verified:
+
+- `/home/mike-anderson/dev/cohezion/luma_speedrun/autoresearch/driver.py` (203 lines) -- `KernelDriver` managing 3 `KSearchTree` instances (gemm, moe, mla) with `run_cycle()`, `cross_kernel_propagate()` (shares failures/successes across kernels), `challenge_plateau()` (R-Zero mutation injection), CLI with `--dry-run`/`--max-cycles`/`--kernel`, state persistence to `state/`, logging to `logs/`, and 10-minute leaderboard submit rate limiting.
+
+- `/home/mike-anderson/dev/cohezion/luma_speedrun/autoresearch/analyzer.py` (137 lines) -- `ResultAnalyzer` with MI355X hardware specs (1.3 PFLOPS bf16, 8 TB/s HBM3, ~162.5 FLOP/byte crossover), `analyze_attempt()`, `is_regression()`, `classify_bottleneck()`, `compute_arithmetic_intensity()`, `estimate_roofline_time()`, `evolve_world_model()` (INSERT/UPDATE/PRUNE suggestions), and code tag extraction. All methods are pure functions with no side effects.</result>
+<usage><total_tokens>94862</total_tokens><tool_uses>41</tool_uses><duration_ms>430509</duration_ms></usage>
+</task-notification>
+Full transcript available at: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/372cbc1b-32c1-4d7a-b071-c206e9699dbc/tasks/a5a8ab16d76fcbdd2.output
