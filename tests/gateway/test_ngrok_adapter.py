@@ -223,9 +223,9 @@ class TestNgrokAIGateway:
         flag_manager.set_flag(FeatureFlag.NGROK_AI_GATEWAY, False)
 
         with patch("cohezion.gateway.ngrok_adapter.requests.post") as mock_ollama:
-            # Mock Ollama /api/chat response
+            # Mock Ollama /api/generate response (ngrok adapter uses /api/generate)
             mock_ollama.return_value.json.return_value = {
-                "message": {"content": "ollama response"},
+                "response": "ollama response",
                 "eval_count": 75,
                 "prompt_eval_count": 0,
             }
@@ -253,7 +253,7 @@ class TestNgrokAIGateway:
                 # This is Ollama call
                 mock_response = MagicMock()
                 mock_response.json.return_value = {
-                    "message": {"content": "ollama fallback"},
+                    "response": "ollama fallback",
                     "eval_count": 50,
                     "prompt_eval_count": 0,
                 }

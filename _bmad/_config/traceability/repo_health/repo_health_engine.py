@@ -21,6 +21,8 @@ from datetime import datetime
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
+from ..base_engine import BaseEngine, EngineConfig
+
 
 @dataclass
 class CodeQualityMetrics:
@@ -111,30 +113,34 @@ class RepoHealthReport:
     recommendations: List[str] = field(default_factory=list)
 
 
-class RepoHealthEngine:
+class RepoHealthEngine(BaseEngine):
     """Repository health monitoring engine."""
 
-    def __init__(self, project_root: Path):
-        self.project_root = project_root
-        self.output_dir = project_root / "_bmad" / "_config" / "traceability" / "repo_health"
-        self.output_dir.mkdir(parents=True, exist_ok=True)
+    def __init__(self, project_root: Optional[Path] = None, config: Optional[EngineConfig] = None):
+        # Support both old API and new DI pattern
+        if config:
+            super().__init__(config)
+        else:
+            project_root = project_root or Path("/home/mike-anderson/dev/cohezion")
+            config = EngineConfig(
+                project_root=project_root,
+                output_dir=project_root / "_bmad" / "_config" / "traceability" / "repo_health",
+            )
+            super().__init__(config)
+
+        self.logger.info("RepoHealthEngine initialized")
 
     def run_command(
-        self, cmd: List[str], cwd: Optional[Path] = None, timeout: int = 300
+        self, cmd: List[str], timeout: Optional[int] = None, capture_output: bool = True
     ) -> Tuple[int, str, str]:
-        """Run shell command and return (returncode, stdout, stderr)."""
-        try:
-            result = subprocess.run(
-                cmd,
-                capture_output=True,
-                text=True,
-                cwd=cwd or self.project_root,
-                timeout=timeout,
-            )
-            return result.returncode, result.stdout, result.stderr
-        except subprocess.TimeoutExpired:
-            print(f"⚠️  Command timed out: {' '.join(cmd[:3])}...")
-            return 1, "", "Timeout"
+        """Run shell command with enhanced error handling."""
+        # Use BaseEngine implementation with logging
+        returncode, stdout, stderr = super().run_command(
+            cmd, timeout=timeout, capture_output=capture_output
+        )
+        if returncode == -1:
+            self.logger.warning(f"Command failed: {' '.join(cmd[:3])}")
+        return returncode, stdout, stderr
 
     def check_code_quality(self) -> CodeQualityMetrics:
         """Check code quality using ruff and mypy."""
@@ -160,15 +166,15 @@ class RepoHealthEngine:
         )
         metrics.type_errors = len([line for line in stdout.split("\n") if "error:" in line])
 
-        # Count lines of code
-        py_files = list((self.project_root / "src" / "cohezion").glob("**/*.py"))
-        metrics.lines_of_code = sum(
-            len(f.read_text(encoding="utf-8").split("\n")) for f in py_files if f.exists()
-        )
+        # Count lines of code using BaseEngine method
+        py_files = self.discover_python_files(self.project_root / "src" / "cohezion")
+        metrics.lines_of_code = sum(len(self.read_file_safe(f) or "").split("\n") for f in py_files)
 
         return metrics
 
-    def check_test_health(self, skip_full_run: bool = True) -> TestHealthMetrics:
+    def check_test_health(
+        self, skip_full_run: bool = False, cached_coverage: Optional[float] = None
+    ) -> TestHealthMetrics:
         """Check test health."""
         metrics = TestHealthMetrics()
 
@@ -183,7 +189,7 @@ class RepoHealthEngine:
         if not skip_full_run:
             # Run actual tests to get pass/fail counts (slow - optional)
             returncode, stdout, stderr = self.run_command(
-                ["uv", "run", "pytest", "tests/", "-v", "--tb=no"], timeout=300
+                ["uv", "run", "pytest", "tests/fast", "-v", "--tb=no"], timeout=300
             )
             metrics.passing_tests = stdout.count(" PASSED")
             metrics.failing_tests = stdout.count(" FAILED")
@@ -191,15 +197,18 @@ class RepoHealthEngine:
 
             # Get coverage (slow - optional)
             returncode, stdout, stderr = self.run_command(
-                ["uv", "run", "pytest", "tests/", "--cov=src/cohezion", "-v"], timeout=300
+                ["uv", "run", "pytest", "tests/fast", "--cov=src/cohezion", "-q"], timeout=300
             )
             match = re.search(r"TOTAL.*?(\d+)%", stdout)
             if match:
                 metrics.coverage_percent = int(match.group(1))
+            else:
+                metrics.coverage_percent = cached_coverage or 0.0
         else:
-            # Use cached coverage or estimate
-            metrics.coverage_percent = 75.0  # Placeholder
+            # Use cached coverage if provided, otherwise mark as estimated
+            metrics.coverage_percent = cached_coverage if cached_coverage is not None else 0.0
             metrics.passing_tests = metrics.total_tests
+            self.logger.warning("Test health check skipped, using cached/estimated coverage")
 
         return metrics
 

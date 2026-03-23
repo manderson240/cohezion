@@ -46,7 +46,7 @@ __all__ = [
 ]
 
 
-def __getattr__(name):
+def __getattr__(name: str) -> object:
     """Lazy load components to avoid circular dependencies and heavy imports."""
     if name in (
         "MultiAgentResearchConfig",
@@ -61,7 +61,15 @@ def __getattr__(name):
             SimpleMultiAgent,
         )
 
-        return locals()[name]
+        globals().update(
+            {
+                "MultiAgentResearchConfig": MultiAgentResearchConfig,
+                "MultiAgentResult": MultiAgentResult,
+                "ResearchSwarm": ResearchSwarm,
+                "SimpleMultiAgent": SimpleMultiAgent,
+            }
+        )
+        return globals()[name]
     elif name in (
         "DegradationSignal",
         "OptimizationResult",
@@ -75,15 +83,30 @@ def __getattr__(name):
             integrate_with_compound_system,
         )
 
-        return locals()[name]
+        globals().update(
+            {
+                "DegradationSignal": DegradationSignal,
+                "OptimizationResult": OptimizationResult,
+                "ResearchSquad": ResearchSquad,
+                "integrate_with_compound_system": integrate_with_compound_system,
+            }
+        )
+        return globals()[name]
     elif name in ("SimpleTrainingRunner", "TrainingExecutor"):
         from cohezion.research.training import (
             SimpleTrainingRunner,
             TrainingExecutor,
         )
 
-        return locals()[name]
+        globals().update(
+            {
+                "SimpleTrainingRunner": SimpleTrainingRunner,
+                "TrainingExecutor": TrainingExecutor,
+            }
+        )
+        return globals()[name]
     raise AttributeError(f"module 'cohezion.research' has no attribute '{name}'")
+
 
 
 def get_version() -> str:

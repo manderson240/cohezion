@@ -10,16 +10,24 @@ Supports:
 - Party configurations per module
 - Cycle detection
 - Orphan detection
+
+Refactored to use BaseEngine for DRY compliance and dependency injection.
 """
 
 from __future__ import annotations
 
 import csv
+import logging
 import re
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Dict, List, Optional, Set, Tuple
 from xml.etree import ElementTree as ET
+
+try:
+    from .base_engine import BaseEngine, EngineConfig
+except ImportError:
+    from base_engine import BaseEngine, EngineConfig
 
 
 @dataclass
@@ -100,17 +108,33 @@ class TraceabilityMatrix:
     party_module: List[Dict] = field(default_factory=list)
 
 
-class TraceabilityEngine:
+class TraceabilityEngine(BaseEngine):
     """Main traceability extraction engine."""
 
-    def __init__(self, project_root: Path):
-        self.project_root = project_root
-        self.bmad_root = project_root / "_bmad"
-        self.config_dir = self.bmad_root / "_config"
-        self.output_dir = self.config_dir / "traceability"
+    def __init__(self, project_root: Optional[Path] = None, config: Optional[EngineConfig] = None):
+        # Support both old API and new DI pattern
+        if config:
+            super().__init__(config)
+        else:
+            project_root = project_root or Path("/home/mike-anderson/dev/cohezion")
+            config = EngineConfig(
+                project_root=project_root,
+                output_dir=project_root / "_bmad" / "_config" / "traceability",
+            )
+            super().__init__(config)
 
-        # Ensure output directory exists
-        self.output_dir.mkdir(parents=True, exist_ok=True)
+        self.bmad_root = self.project_root / "_bmad"
+        self.config_dir = self.bmad_root / "_config"
+
+        # Storage
+        self.agents: List[Agent] = []
+        self.workflows: List[Workflow] = []
+        self.tasks: List[Task] = []
+        self.invocations: List[Invocation] = []
+        self.chains: List[WorkflowChain] = []
+        self.party_configs: List[PartyConfig] = []
+
+        self.logger.info("TraceabilityEngine initialized")
 
         # Storage
         self.agents: List[Agent] = []
@@ -194,39 +218,36 @@ class TraceabilityEngine:
         """Find all workflow XML files (instructions.xml, workflow.xml, workflow.yaml)."""
         xml_files = []
         for pattern in ["**/instructions.xml", "**/workflow.xml", "**/workflow.yaml"]:
-            xml_files.extend(self.bmad_root.glob(pattern))
+            xml_files.extend(self.discover_python_files(self.bmad_root, pattern))
         return xml_files
 
     def extract_invocations_from_xml(self, xml_path: Path) -> List[Invocation]:
         """Extract invoke-* tags from workflow XML."""
         invocations = []
 
-        try:
-            with open(xml_path, "r", encoding="utf-8") as f:
-                content = f.read()
+        content = self.read_file_safe(xml_path)
+        if not content:
+            self.logger.warning(f"Could not read {xml_path}")
+            return invocations
 
+        try:
             # Extract invoke-task tags with regex for better text handling
             task_pattern = r"<invoke-task>([^<]+)</invoke-task>"
             workflow_pattern = r"<invoke-workflow>([^<]+)</invoke-workflow>"
             protocol_pattern = r"<invoke-protocol\s+name=\"([^\"]+)\""
 
             workflow_name = self._path_to_workflow_name(xml_path)
-            source_file = str(xml_path.relative_to(self.bmad_root))
-
-            # Find line numbers
-            lines = content.split("\n")
+            source_file = self.get_relative_path(xml_path, self.bmad_root)
 
             # Extract invoke-task
             for match in re.finditer(task_pattern, content):
                 task_name = match.group(1).strip()
                 # Extract just the task name from verbose text
-                # e.g., "Validate against checklist...validate-workflow.xml" → "validate-workflow"
                 if "validate-workflow.xml" in task_name:
                     task_name = "validate-workflow"
                 elif ".xml" in task_name:
                     task_name = task_name.split("/")[-1].replace(".xml", "")
                 elif " " in task_name:
-                    # Take last word as task name
                     task_name = task_name.split()[-1]
 
                 line_num = content[: match.start()].count("\n") + 1
@@ -266,9 +287,10 @@ class TraceabilityEngine:
                 invocations.append(invocation)
 
         except ET.ParseError as e:
-            print(f"XML parse error in {xml_path}: {e}")
+            self.logger.error(f"XML parse error in {xml_path}: {e}")
         except Exception as e:
-            print(f"Error parsing {xml_path}: {e}")
+            self.logger.error(f"Error parsing {xml_path}: {e}")
+            self.logger.debug(__import__("traceback").format_exc())
 
         return invocations
 
@@ -654,9 +676,16 @@ class TraceabilityEngine:
 def main():
     """Main entry point."""
     import sys
+    import os
 
-    project_root = Path("/home/mike-anderson/dev/cohezion")
-    engine = TraceabilityEngine(project_root)
+    # Support hardcoded path from env var or use default
+    project_root = Path(os.environ.get("PROJECT_ROOT", "/home/mike-anderson/dev/cohezion"))
+    config = EngineConfig(
+        project_root=project_root,
+        output_dir=project_root / "_bmad" / "_config" / "traceability",
+        verbose=True,
+    )
+    engine = TraceabilityEngine(config=config)
 
     print("🔍 BMAD Traceability Engine")
     print("=" * 50)

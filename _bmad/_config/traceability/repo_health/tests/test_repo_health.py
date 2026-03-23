@@ -36,25 +36,35 @@ class TestCodeQualityMetrics:
 
     @pytest.mark.fast
     def test_lint_error_counting(self):
-        """Verify lint error counting."""
+        """Verify lint error counting with realistic bounds."""
         engine = RepoHealthEngine(PROJECT_ROOT)
         metrics = engine.check_code_quality()
-        assert metrics.lint_errors >= 0
-        assert metrics.lint_warnings >= 0
+        # Realistic bounds: expect 0-100 errors for healthy codebase
+        assert 0 <= metrics.lint_errors < 100, (
+            f"Lint errors {metrics.lint_errors} outside expected range"
+        )
+        assert 0 <= metrics.lint_warnings < 200, (
+            f"Lint warnings {metrics.lint_warnings} outside expected range"
+        )
 
     @pytest.mark.fast
     def test_type_error_counting(self):
-        """Verify type error counting."""
+        """Verify type error counting with realistic bounds."""
         engine = RepoHealthEngine(PROJECT_ROOT)
         metrics = engine.check_code_quality()
-        assert metrics.type_errors >= 0
+        # Expect 0-50 type errors for healthy codebase
+        assert 0 <= metrics.type_errors < 50, (
+            f"Type errors {metrics.type_errors} outside expected range"
+        )
 
     @pytest.mark.fast
     def test_loc_counting(self):
         """Verify lines of code counting."""
         engine = RepoHealthEngine(PROJECT_ROOT)
         metrics = engine.check_code_quality()
-        assert metrics.lines_of_code > 0
+        # Expect substantial codebase
+        assert metrics.lines_of_code > 10000, f"LOC {metrics.lines_of_code} seems too low"
+        assert metrics.lines_of_code < 1000000, f"LOC {metrics.lines_of_code} seems too high"
 
 
 class TestTestHealthMetrics:
