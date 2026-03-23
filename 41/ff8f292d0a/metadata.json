@@ -1,0 +1,45 @@
+{
+  "cli_version": "0.4.9",
+  "checkpoint_id": "41ff8f292d0a",
+  "strategy": "manual-commit",
+  "branch": "feature/nemotron-reasoning-20260322",
+  "checkpoints_count": 2,
+  "files_touched": [
+    "conductor/tracks/nemotron_reasoning_20260322/plan.md",
+    "src/cohezion/compound/__init__.py",
+    "src/cohezion/compound/__init__.py.backup",
+    "src/cohezion/compound/daemon/__init__.py",
+    "src/cohezion/compound/daemon/workflow_initializer.py",
+    "src/cohezion/compound/tdd_adversarial/README.md",
+    "src/cohezion/compound/tdd_adversarial/adversarial_review.py",
+    "src/cohezion/compound/tdd_adversarial/coordinator.py",
+    "src/cohezion/compound/tdd_adversarial/tdd_integration.py",
+    "src/cohezion/compound/tdd_adversarial/test_integration.py",
+    "src/cohezion/compound/test_basic_import.py",
+    "src/cohezion/compound/universal/init.py",
+    "src/cohezion/integrations/__init__.py",
+    "src/cohezion/integrations/kaggle_api.py",
+    "src/cohezion/integrations/kaggle_curation.py",
+    "src/cohezion/integrations/kaggle_eval.py",
+    "tests/integrations/test_compound_loop.py",
+    "tests/integrations/test_kaggle_api.py",
+    "tests/integrations/test_kaggle_curation.py",
+    "tests/integrations/test_kaggle_eval.py"
+  ],
+  "sessions": [
+    {
+      "metadata": "/41/ff8f292d0a/0/metadata.json",
+      "transcript": "/41/ff8f292d0a/0/full.jsonl",
+      "context": "/41/ff8f292d0a/0/context.md",
+      "content_hash": "/41/ff8f292d0a/0/content_hash.txt",
+      "prompt": "/41/ff8f292d0a/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 10501,
+    "cache_creation_tokens": 1254699,
+    "cache_read_tokens": 8201334,
+    "output_tokens": 34214,
+    "api_call_count": 60
+  }
+}
