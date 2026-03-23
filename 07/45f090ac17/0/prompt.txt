@@ -1,0 +1,1318 @@
+Implement the following plan:
+
+# Plan: Luma AMD Speedrun — Breakthrough Submissions
+
+## Context
+
+Competition deadline March 30 (8 days). Three concrete breakthroughs identified from skill research that can be submitted immediately. Previous session achieved MoE 165µs (from 186µs) via KSPLIT=2 for 33E shapes. GEMM at 24.3µs. MLA at 90.1µs.
+
+### Updated State (post-session learnings)
+
+| Kernel | Ranked µs | Leader µs | Gap | Breakthrough Found |
+|--------|-----------|-----------|-----|--------------------|
+| MoE | ~165 | 145 | 1.14x | **KSPLIT=4 for 257E shapes (-34% on bs=16)** |
+| GEMM | 24.3 | 9.7 | 2.51x | Triton tl.dot_scaled (3/4 pass, M=64 bug — needs fix) |
+| MLA | 90.1 | 4.3 | 20.9x | **Current submission is naive Python loop, NOT ASM kernel** |
+
+---
+
+## Phase 1: MoE — KSPLIT=4 for 256-Expert Shapes (HIGHEST IMPACT)
+
+**Expected gain: ~165µs → ~150µs geomean (-10%)**
+
+The skill `aiter-kernel-parameter-semantics` has verified benchmark numbers:
+
+| Shape | Current (KSPLIT=0) | KSPLIT=4 | Improvement |
+|-------|-------------------|----------|-------------|
+| E=257, bs=16 | 137µs | 91.3µs | **-34%** |
+| E=257, bs=128 | 221µs | 172µs | **-22%** |
+| E=257, bs=512 | 252µs | 284µs (worse) | Use KSPLIT=0 |
+
+**Constraint**: KSPLIT=4 is safe ONLY for E≥200 (dexp=256, K/4=64 ≥ cktile minimum). NEVER for E=33 (overflow to ~1e27).
+
+### Task 1.1: Update MoE KSPLIT table
+
+```python
+_ks_table = {
+    "257_256_16": 4,    # KSPLIT=4: 152→91µs (-40%)
+    "257_256_128": 4,   # KSPLIT=4: 239→172µs (-28%)
+    "257_256_512": 0,   # CK path still best for dense
+    "33_512_16": 2,     # KSPLIT=2: 88→60µs (-33%) [already deployed]
+    "33_512_128": 2,    # KSPLIT=2: 125→107µs (-14%) [already deployed]
+    "33_512_512": 0,
+    "33_2048_512": 0,
+}
+```
+
+**Note**: KSPLIT>0 triggers `module_moe_cktile2stages` JIT build (~109s). This happens on first call per session. The 12-minute workflow timeout should accommodate this since we already trigger it for E=33 shapes.
+
+### Task 1.2: Test + Benchmark + Leaderboard submit
+
+1. `popcorn-cli submit --mode test` — verify correctness (3/3 must pass)
+2. `popcorn-cli submit --mode benchmark` — confirm timing improvement
+3. `popcorn-cli submit --mode leaderboard` — ranked submission
+
+**Files to modify**: `kernels/moe-mxfp4/submission.py` (update `_ks_table` only)
+
+---
+
+## Phase 2: MLA — Restore ASM Persistent Kernel (MEDIUM IMPACT)
+
+**Expected gain: 90µs → ~68µs (-25%)**
+
+The current MLA submission (`kernels/mixed-mla/submission.py`) uses a **naive Python loop** with `torch._scaled_mm` for Q@K^T and `torch.matmul` for softmax@V. This is NOT the aiter ASM persistent kernel.
+
+The MLA template (`autoresearch/templates/mla_template.py`) has the correct ASM kernel code using:
+- `mla_decode_stage1_asm_fwd` + `mla_reduce_v1`
+- FP8 KV cache with per-shape adaptive num_kv_splits
+- Metadata caching by shape key
+
+### Task 2.1: Replace MLA submission with ASM persistent kernel
+
+Use the proven template code from `autoresearch/templates/mla_template.py` which:
+1. Imports `mla_decode_stage1_asm_fwd` and `mla_reduce_v1`
+2. Builds metadata via `get_mla_metadata_v1` (cached by shape key)
+3. Pre-allocates output and split buffers
+4. Uses FP8 KV format (139.55µs best in K-Search tree, vs 139.69µs MXFP4)
+
+### Task 2.2: Test + Benchmark + Leaderboard submit
+
+**Files to modify**: `kernels/mixed-mla/submission.py` (replace with ASM kernel path)
+**Reference**: `autoresearch/templates/mla_template.py` lines 14-85 (the TEMPLATE string)
+
+---
+
+## Phase 3: GEMM — Fix Triton tl.dot_scaled Bug (SPECULATIVE)
+
+**Expected gain: 24.3µs → ~20µs if Triton works, 0 if bug unfixed**
+
+### Known facts about the bug
+- M=64, K=1536 fails with exact same large errors across ALL variants (BLOCK_M=32/64, e8m0_unshuffle/dynamic_mxfp4_quant)
+- M=8,16,256 pass with error=0.0 (exact match)
+- Already tried A_scale slicing to [:M, :scale_K].contiguous() — still fails
+
+### Task 3.1: Try without Group-M swizzle
+
+The Group-M swizzle for XCD locality may produce wrong tile IDs when `num_pid_m` is small (2 for M=64/BLOCK_M=32). Remove the swizzle and use simple `pid_m = pid // num_pid_n; pid_n = pid % num_pid_n` for a diagnostic test.
+
+### Task 3.2: Try 2D grid instead of 1D
+
+Use `grid = (cdiv(M, BLOCK_M), cdiv(N, BLOCK_N))` with `pid_m = tl.program_id(0); pid_n = tl.program_id(1)`. This eliminates all tile mapping logic.
+
+### Task 3.3: If passes, benchmark and submit
+
+If 4/4 correctness passes → benchmark → leaderboard (only if geomean < 24.3µs).
+
+**Files to modify**: `kernels/mxfp4-mm/submission.py`
+**Backup**: `kernels/mxfp4-mm/submission_pre_triton.py` (current 24.3µs aiter version)
+
+---
+
+## Execution Order (Rate-Limit Aware)
+
+Rate limit: 1 leaderboard per hour per kernel. Test/benchmark unlimited.
+
+1. **MoE KSPLIT=4** → test → benchmark → leaderboard (highest confidence, biggest impact)
+2. **MLA ASM kernel** → test → benchmark → leaderboard (while MoE rate limit resets)
+3. **GEMM Triton fix** → test (speculative, accept correctness failures as learning)
+
+All three can be tested in parallel since they target different leaderboards.
+
+---
+
+## Dead Ends (Updated)
+
+- Triton GEMM Group-M swizzle: may cause wrong tile IDs for small M grids (**needs verification**)
+- e8m0_unshuffle on get_triton_quant(shuffle=True) output: produces wrong B_scale for some shapes
+- KSPLIT=4 for E=33: **NEVER** — K/4=128 below cktile minimum → 1e27 overflow
+- KSPLIT for E=257 bs=512: **WORSE** than CK default (284µs vs 252µs)
+- MLA: 4.3µs leader uses fused CK/ASM binary kernel — **not achievable via Python APIs**
+
+## Key Files
+
+| File | Action |
+|------|--------|
+| `kernels/moe-mxfp4/submission.py` | Update KSPLIT table: 257E bs=16/128 → KSPLIT=4 |
+| `kernels/mixed-mla/submission.py` | Replace naive loop with ASM persistent kernel |
+| `kernels/mxfp4-mm/submission.py` | Fix Triton kernel (remove swizzle or use 2D grid) |
+| `autoresearch/templates/mla_template.py` | Reference for ASM kernel code |
+| `~/.claude/skills/aiter-kernel-parameter-semantics/SKILL.md` | KSPLIT benchmark data |
+
+## Verification
+
+1. **MoE**: `popcorn-cli submit --mode test --gpu MI355X --leaderboard amd-moe-mxfp4` — 3/3 pass
+2. **MLA**: `popcorn-cli submit --mode test --gpu MI355X --leaderboard amd-mixed-mla` — verify < 90µs benchmark
+3. **GEMM**: `popcorn-cli submit --mode test --gpu MI355X --leaderboard amd-mxfp4-mm` — 4/4 pass (especially M=64)
+4. Leaderboard only after benchmark confirms improvement vs current ranked
+
+
+If you need specific details from before exiting plan mode (like exact code snippets, error messages, or content you generated), read the full transcript at: /home/mike-anderson/.claude/projects/-home-mike-anderson-dev-cohezion/b6b1cc74-316c-4511-898a-70d1b2fa692d.jsonl
+
+If this plan can be broken down into multiple independent tasks, consider using the TeamCreate tool to create a team and parallelize the work.
+
+---
+
+We need to proceed with what will lead to actual breakthroughs
+
+---
+
+Base directory for this skill: /home/mike-anderson/.claude/skills/popcorn-cli-amd-kernel-submission
+
+# Popcorn CLI AMD Kernel Submission Workflow
+
+## Submission Commands
+
+```bash
+CLI=~/.local/bin/popcorn-cli
+KERNELS=/path/to/kernels/dir
+
+# 1. Test (correctness check — do this first)
+$CLI submit --no-tui --mode test --gpu MI355X --leaderboard <name> $KERNELS/<kernel>/submission.py
+
+# 2. Benchmark (timing, no leaderboard impact)
+$CLI submit --no-tui --mode benchmark --gpu MI355X --leaderboard <name> $KERNELS/<kernel>/submission.py
+
+# 3. Leaderboard (official ranked submission)
+$CLI submit --no-tui --mode leaderboard --gpu MI355X --leaderboard <name> $KERNELS/<kernel>/submission.py
+```
+
+## Leaderboard Name Pattern
+
+Leaderboard names follow the pattern: `amd-<directory-name>`
+
+| Kernel directory | Leaderboard name |
+|-----------------|-----------------|
+| `mxfp4-mm/`    | `amd-mxfp4-mm`  |
+| `mixed-mla/`   | `amd-mixed-mla` |
+| `moe-mxfp4/`   | `amd-moe-mxfp4` |
+
+To discover unknown names: submit with `--mode test` using candidate names. A 404/does-not-exist
+response means the name is wrong; acceptance (even with correctness failures) confirms the name.
+
+## Submission Limits (Luma AMD Speedrun)
+
+- **Leaderboard rate limit: 1 submission per hour per problem** — plan carefully
+- test and benchmark modes: unlimited
+- Strategy: always validate with test + benchmark before using leaderboard slot
+- Server-wide: 3 concurrent submissions (asyncio.Semaphore)
+- ~10 requests/second global rate limit
+- Per-mode timeouts: test=180s, benchmark=180s (overridden per competition in task.yml)
+- **Total workflow timeout: ~12 minutes** — the entire GitHub Actions run must complete within this
+- Use `--mode test` first, then `--mode benchmark`, then `--mode leaderboard`
+
+## aiter JIT Compilation Times (Luma AMD Speedrun)
+
+aiter builds JIT modules on first use. These builds happen **inside** the 12-minute workflow timeout:
+
+| JIT Module | Build Time |
+|-----------|-----------|
+| `module_moe_sorting` | ~25s |
+| `module_moe_ck2stages_fp4x2_*` | ~103s |
+| `module_mla_metadata` | ~32s |
+| `module_mla_asm` | ~21s |
+| `module_mla_reduce` | ~171s |
+| `module_moe_cktile2stages` | ~108s |
+| `module_activation` | ~22s |
+
+**Note:** `module_moe_cktile2stages` and `module_activation` are only built when AITER_KSPLIT>0 path is used (~130s additional JIT).
+
+**Critical implications:**
+- MoE JIT builds alone take ~230s (~4 min), leaving only ~8 min for actual execution
+- MLA JIT builds take ~224s total — similar headroom concern
+- When the server queue is backed up with multiple concurrent submissions, the JIT time can push the total over the 12-minute limit
+- Submissions that appear to fail silently (no output, cancelled status) are often **queue pressure timeouts**, not code errors
+
+**Mitigation:** Retry submissions during off-peak hours. JIT results are cached between runs in the same workflow, so a retry that hits a pre-warmed runner will be much faster.
+
+## Local Testing Limitations on gfx1151 (RDNA4 Strix Halo)
+
+Local GPU testing on gfx1151 (AMD Radeon 8060S, Strix Halo iGPU) is NOT feasible with ROCm 6.2.4:
+
+- Without override: `HIP error: invalid device function` (ISA mismatch)
+- With `HSA_OVERRIDE_GFX_VERSION=11.0.0`: "Memory access fault by GPU node-2" on kernel launch
+  (RDNA4 gfx1151 is not binary-compatible with RDNA3 gfx1100)
+- ROCm 6.3+ would be needed for gfx1151 native support
+
+**Workaround**: All testing via Popcorn CLI remote submission (MI355X hardware).
+
+## `uv run` Reverting ROCm Torch Install
+
+The project's uv lockfile pins CUDA torch (`torch+cu128`). Running `uv run` syncs from the
+lockfile and overwrites any manually installed ROCm torch.
+
+**Fix**: Create an isolated venv outside the project for GPU kernel work:
+
+```bash
+# Create isolated ROCm venv
+python3 -m venv research/challenges/luma_amd_speedrun/.venv-rocm
+source research/challenges/luma_amd_speedrun/.venv-rocm/bin/activate
+pip install torch --index-url https://download.pytorch.org/whl/rocm6.2.4
+
+# Use this venv directly (not uv run) for kernel testing
+python submission.py
+```
+
+## Competition Kernel Structure
+
+Each kernel must implement:
+```python
+# submission.py
+from task import input_t, output_t
+
+def custom_kernel(data: input_t) -> output_t:
+    ...  # Your implementation
+```
+
+The eval harness (`eval.py`) calls `generate_input()` from `reference.py`, passes `_clone_data(data)`
+to `custom_kernel`, then runs `check_implementation()` comparing output to reference. Benchmark
+runs clear L2 cache between runs (`clear_l2_cache_large()`), so cache warming tricks don't help.
+
+**CRITICAL: Popcorn CLI only uploads `submission.py`.** It does NOT upload any other files
+in the kernel directory. Files like `reference.py`, `task.py`, and `eval.py` are already
+present on the runner at the competition's standard location — they are NOT re-uploaded.
+
+**Consequence: Multi-file submissions are NOT possible.** If your submission.py tries to
+`from gemm_wrapper import quant_and_gemm` where `gemm_wrapper.py` is a file you created
+in the kernel directory, the runner will get `ModuleNotFoundError: No module named 'gemm_wrapper'`.
+
+**Workaround attempted — dynamic module creation at `/tmp/`:**
+```python
+# submission.py
+import importlib.util, textwrap, os, sys
+
+code = textwrap.dedent("""...""")
+path = "/tmp/my_module.py"
+with open(path, "w") as f: f.write(code)
+spec = importlib.util.spec_from_file_location("my_module", path)
+mod = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(mod)
+sys.modules["my_module"] = mod
+```
+
+This WORKS for making the module importable, BUT for AMD `gemm_a4w4_asm` specifically,
+the dynamic module does NOT change callsite identity — the dispatch still produces wrong
+results (see `amd-triton-jit-callsite-correctness` skill). Only `from reference import
+ref_kernel` reliably bypasses the callsite sensitivity.
+
+## Troubleshooting: Transient Artifact Download Failures
+
+Popcorn CLI submissions run on GitHub Actions runners. The evaluation job and the artifact
+download are separate steps — a network failure can cause the CLI to report failure even though
+the evaluation job itself **succeeded**.
+
+**Symptoms:**
+- CLI output shows failure / no results despite a correct kernel
+- Error mentions artifact download or GitHub Actions artifact retrieval
+
+**Fix:** Simply retry the same submission command. A retry succeeds in the majority of cases.
+
+```bash
+# Retry exactly the same command — the eval job is idempotent
+$CLI submit --no-tui --mode benchmark --gpu MI355X --leaderboard <name> <file>
+```
+
+**Important:** Transient failures look identical to actual correctness failures in the CLI output.
+If a previously-passing kernel suddenly "fails", try a retry before debugging the kernel code.
+
+## Correctness Tolerances (E2E Model Speedrun — Updated from Runner Probes)
+
+| Kernel | rtol | atol | Notes |
+|--------|------|------|-------|
+| MXFP4 GEMM | 1e-2 | 1e-2 | Same as before |
+| MoE MXFP4 | 2e-2 | 2e-2 | Tightened from 5e-2 |
+| MLA Decode | 1e-1 | 1e-1 | Loosened significantly! |
+
+## Test vs Benchmark Shape Differences (MLA-specific)
+
+**Critical:** `task.yml` test shapes and benchmark shapes differ in `qseqlen`:
+
+| Mode | qseqlen values | Why |
+|------|---------------|-----|
+| Test (`--mode test`) | May include qseqlen=4 | Exercises prefill-like cases |
+| Benchmark (`--mode benchmark`) | Always qseqlen=1 | Decode-only benchmark |
+
+Custom kernels must handle qseqlen>1 correctly or the test will fail, even if the
+benchmark optimization only targets qseqlen=1. Safe pattern:
+
+```python
+total_q = q.shape[0]
+qseqlen = total_q // bs
+if qseqlen != 1:
+    from reference import ref_kernel
+    return ref_kernel(data)
+# ... optimized decode path
+```
+
+**Observation (MLA, March 2026):** The test runner used only qseqlen=1 shapes in practice,
+but the guard is still important for correctness robustness.
+
+## CRITICAL: Runner Problems Differ from Repo
+
+The `reference-kernels` repo (gpu-mode/reference-kernels) has **OLD competition problems**.
+The E2E Model Speedrun runner has **DIFFERENT** `task.py`, `reference.py`, and data formats.
+Only `submission.py` is uploaded — `task.py`/`reference.py`/`eval.py` are runner-side.
+
+**ALWAYS probe the runner with `inspect.getsource()` to discover actual interfaces.**
+Never assume repo code matches runner code.
+
+```python
+# Diagnostic probe pattern for submission.py:
+import inspect
+from task import input_t, output_t
+from reference import ref_kernel
+import eval as eval_mod
+
+def custom_kernel(data: input_t) -> output_t:
+    # Print actual interfaces
+    print("=== task.py ===")
+    print(inspect.getsource(eval_mod))
+    print("=== ref_kernel ===")
+    print(inspect.getsource(ref_kernel))
+    print(f"data type: {type(data)}, len: {len(data) if isinstance(data, tuple) else 'N/A'}")
+    for i, d in enumerate(data if isinstance(data, tuple) else [data]):
+        if hasattr(d, 'shape'):
+            print(f"  [{i}] {d.dtype} {d.shape}")
+        elif isinstance(d, dict):
+            print(f"  [{i}] dict keys: {list(d.keys())}")
+        else:
+            print(f"  [{i}] {type(d).__name__}: {d}")
+    return ref_kernel(data)
+```
+
+## E2E Model Speedrun Runner Environment
+
+| Property | Value |
+|----------|-------|
+| GPU | AMD Instinct MI355X, 309.2 GB HBM3E, gfx950 (9,5) |
+| CPU | AMD EPYC 9575F 64-Core |
+| PyTorch | 2.10.0+rocm7.1 |
+| Python | 3.12.3 |
+| ROCm/HIP | 7.1.25424 |
+
+**Available packages:** triton 3.6.0, aiter 0.1.11, tritonblas 0.1.0, hipblaslt, torch._scaled_mm, SDPA, torch.compile
+
+**Missing packages:** flash_attn, flashinfer, vllm, xformers, composable_kernel
+
+## E2E Model Speedrun Data Formats (from Runner Probes)
+
+### MXFP4 GEMM (`amd-mxfp4-mm`): 5-tuple
+
+```
+(A_bf16[M,K], B_bf16[N,K], B_q_fp4x2, B_shuffle, B_scale_sh_e8m0)
+Output: bf16 [M, N]
+Ref: _quant_mxfp4(A) → aiter.gemm_a4w4(A_q, B_shuffle, ...)
+```
+
+### MXFP4 MoE (`amd-moe-mxfp4`): 12-tuple
+
+```
+(hidden_bf16, gate_up_fp4x2, down_fp4x2, gate_up_scale_e8m0, down_scale_e8m0,
+ gate_up_shuffled, down_shuffled, gate_up_scale_shuffled, down_scale_shuffled,
+ topk_weights_fp32, topk_ids_int32, config_dict)
+Output: bf16 [M, d_hidden]
+Ref: aiter.fused_moe(hidden, shuffled_weights, ..., doweight_stage1=False)
+```
+
+### Mixed MLA (`amd-mixed-mla`): 5-tuple
+
+```
+(q_bf16[total_q, 16, 576], kv_data_dict, qo_indptr_int32, kv_indptr_int32, config_dict)
+kv_data_dict = {"bf16": Tensor, "fp8": (Tensor, scale), "mxfp4": (Tensor, scale)}
+Output: bf16 [total_q, 16, 512]
+Ref: quantize_fp8(q) → aiter.mla_decode_fwd(q_fp8, kv_fp8, ...)
+```
+
+## Baseline Benchmark Results (E2E Model Speedrun, March 2026)
+
+| Kernel | ref_kernel Baseline | Best with Parameter Tuning |
+|--------|--------------------|-----------------------------|
+| MXFP4 GEMM | ~24 µs geomean | ~24 µs (ref_kernel is already optimized) |
+| MXFP4 MoE | ~165 µs geomean | ~155 µs (adaptive KSPLIT strategy) |
+| Mixed MLA | ~195 µs geomean | ~175 µs (adaptive num_kv_splits) |
+
+---
+
+<task-notification>
+<task-id>b1m34xcts</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/372cbc1b-32c1-4d7a-b071-c206e9699dbc/tasks/b1m34xcts.output</output-file>
+<status>completed</status>
+<summary>Background command "Submit MoE KSPLIT=4 for correctness test" completed (exit code 0)</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/372cbc1b-32c1-4d7a-b071-c206e9699dbc/tasks/b1m34xcts.output
+
+---
+
+<task-notification>
+<task-id>b8vivfgv4</task-id>
+<tool-use-id>toolu_01PeaZUzffHzuQw4sM2uxhHn</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/372cbc1b-32c1-4d7a-b071-c206e9699dbc/tasks/b8vivfgv4.output</output-file>
+<status>completed</status>
+<summary>Background command "Submit MLA ASM kernel for correctness test" completed (exit code 0)</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/372cbc1b-32c1-4d7a-b071-c206e9699dbc/tasks/b8vivfgv4.output
+
+---
+
+<task-notification>
+<task-id>bmabyzs2r</task-id>
+<tool-use-id>toolu_01SviDHQZaAuMFCrraLHD4o3</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/372cbc1b-32c1-4d7a-b071-c206e9699dbc/tasks/bmabyzs2r.output</output-file>
+<status>completed</status>
+<summary>Background command "Submit MoE benchmark after test pass" completed (exit code 0)</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/372cbc1b-32c1-4d7a-b071-c206e9699dbc/tasks/bmabyzs2r.output
+
+---
+
+<task-notification>
+<task-id>by2y9ub5t</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/372cbc1b-32c1-4d7a-b071-c206e9699dbc/tasks/by2y9ub5t.output</output-file>
+<status>completed</status>
+<summary>Background command "Submit MLA ASM kernel benchmark" completed (exit code 0)</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/372cbc1b-32c1-4d7a-b071-c206e9699dbc/tasks/by2y9ub5t.output
+
+---
+
+<task-notification>
+<task-id>bgein9q2f</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/372cbc1b-32c1-4d7a-b071-c206e9699dbc/tasks/bgein9q2f.output</output-file>
+<status>completed</status>
+<summary>Background command "Submit MoE to leaderboard (ranked)" completed (exit code 0)</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/372cbc1b-32c1-4d7a-b071-c206e9699dbc/tasks/bgein9q2f.output
+
+---
+
+<task-notification>
+<task-id>bzze45kmt</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/372cbc1b-32c1-4d7a-b071-c206e9699dbc/tasks/bzze45kmt.output</output-file>
+<status>completed</status>
+<summary>Background command "Submit MLA to leaderboard (ranked)" completed (exit code 0)</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/372cbc1b-32c1-4d7a-b071-c206e9699dbc/tasks/bzze45kmt.output
+
+---
+
+Base directory for this skill: /home/mike-anderson/.claude/skills/amd-mla-decode-optimization
+
+# AMD MLA Decode Optimization (amd-mixed-mla)
+
+## Current Status
+
+| Metric | Value |
+|--------|-------|
+| Our Best | ~67.8µs (ranked) |
+| Leader | 4.3µs |
+| Gap | 15.8x |
+| Bottleneck | Python dispatch floor (~20-25µs per torch op); leader uses single fused CK/ASM kernel |
+| API Ceiling | **Confirmed** — all Python-level optimizations exhausted |
+
+## Three-Regime Routing (Current Best)
+
+```python
+MATMUL_MAX_BS = 4
+MATMUL_MAX_TOTAL_KV = 32768
+A16W8_THRESHOLD = 262144  # below: a16w8; above: a8w8
+
+total_kv = bs * kvseqlen
+
+if bs <= MATMUL_MAX_BS or total_kv <= MATMUL_MAX_TOTAL_KV:
+    # Regime 1: torch.matmul (3D batched GEMM)
+    # Python dispatch only — no aiter overhead
+    q_3d = q.view(bs, nheads, QK_HEAD_DIM)
+    kv_t = kv.transpose(1, 2)
+    scores = torch.matmul(q_3d, kv_t).mul_(SM_SCALE)
+    weights = torch.softmax(scores, dim=-1)
+    out = torch.matmul(weights, v)
+elif total_kv <= A16W8_THRESHOLD:
+    # Regime 2: aiter direct ASM (a16w8, adaptive splits)
+    _direct_aiter_dispatch(q, kv, ..., num_kv_splits=_choose_splits(total_kv))
+else:
+    # Regime 3: aiter direct ASM (a8w8, higher splits)
+    _direct_aiter_dispatch(q, kv, ..., num_kv_splits=_choose_splits(total_kv))
+```
+
+**Key: use OR logic for matmul routing** — captures both failure modes:
+- `bs <= 4`: aiter can't fill 256 CUs — pipeline overhead > compute
+- `total_kv <= 32768`: even at bs=32, aiter fixed overhead (~50µs) > matmul (~40µs)
+
+## Adaptive num_kv_splits Schedule
+
+```python
+def _choose_num_kv_splits(total_kv: int) -> int:
+    if total_kv <= 2048:    return 1   # bs=4,kv=512
+    if total_kv <= 16384:   return 4   # bs=4,kv=4k
+    if total_kv <= 131072:  return 8   # bs=32,kv=4k
+    if total_kv <= 524288:  return 16  # bs=64,kv=8k
+    return 32                          # bs=256,kv=8k
+```
+
+## Direct ASM Dispatch (Phase 15 — Bypasses Python Wrapper)
+
+```python
+# Stage 1: ASM attention kernel
+aiter.mla_decode_stage1_asm_fwd(
+    q_input, kv_4d, qo_indptr, kv_indptr,
+    kv_indices, kv_last_page_len,
+    None,  # num_kv_splits_indptr (unused in persistent mode)
+    work_meta_data, work_indptr, work_info_set,
+    qseqlen, PAGE_SIZE, NUM_KV_HEADS, SM_SCALE,
+    logits, attn_lse, output,
+    q_scale, kv_scale,
+)
+
+# Stage 2: C++ reduce
+aiter.mla_reduce_v1(
+    logits, attn_lse,
+    reduce_indptr, reduce_final_map, reduce_partial_map,
+    qseqlen, output, None,  # final_lse not needed
+)
+```
+
+Saves ~3-5µs of Python conditionals per call vs `mla_decode_fwd` wrapper.
+
+## Metadata Caching (Phase 10 — 25% Improvement)
+
+`get_mla_metadata_info_v1` + `get_mla_metadata_v1` allocate 8 work buffer tensors per call.
+These are deterministic for fixed `(bs, qseqlen, kvseqlen)` — safe to cache:
+
+```python
+_cache: dict = {}
+
+def _get_cached_metadata(bs, qseqlen, kvseqlen, qo_indptr, kv_indptr):
+    key = (bs, qseqlen, kvseqlen)
+    if key not in _cache:
+        # ... build metadata (8 tensors: work_meta_data, work_indptr, etc.)
+        _cache[key] = metadata
+    return _cache[key]
+```
+
+Also pre-allocate `logits` and `attn_lse` intermediate buffers in the cache.
+
+## fast_mode=False (Phase 17 — 2.4% Improvement)
+
+**`fast_mode=False` is faster than `fast_mode=True` on MI355X with direct ASM dispatch.**
+
+Set in BOTH metadata calls:
+```python
+get_mla_metadata_info_v1(..., fast_mode=False)
+get_mla_metadata_v1(..., fast_mode=False)
+```
+
+The CU work distribution with `fast_mode=False` avoids over-parallelizing small batches.
+With direct ASM dispatch (low wrapper overhead), this effect is more pronounced.
+
+## Performance History
+
+| Phase | Geomean | Key Change |
+|-------|---------|------------|
+| Baseline (aiter fp8) | ~199µs | 3-stage pipeline dominates |
+| Phase 5 (einsum hybrid) | ~100µs | Bypass pipeline for small batches |
+| Phase 10 (metadata cache) | ~75µs | Cache 8 work buffer tensors |
+| Phase 11 (threshold tuning) | ~69.5µs | OR routing + adaptive splits |
+| Phase 14 (3D matmul + OR) | ~74.3µs | Combine Phase 12+13 |
+| Phase 15 (direct ASM) | ~72µs | Bypass mla_decode_fwd wrapper |
+| **Phase 17 (fast_mode=False)** | **~67.8µs** | CU work distribution fix |
+
+## Per-Shape Benchmark (Best Known)
+
+| Shape | Time | Regime | Notes |
+|-------|------|--------|-------|
+| bs=4, kv=1k | ~22.6µs | matmul | Python dispatch floor |
+| bs=4, kv=8k | ~37.9µs | matmul | — |
+| bs=32, kv=1k | ~38.3µs | matmul (OR: total=32k) | — |
+| bs=32, kv=8k | ~90.8µs | aiter a16w8 (splits=8) | Adaptive splits win |
+| bs=64, kv=1k | ~41.3µs | aiter a16w8 (splits=8) | — |
+| bs=64, kv=8k | ~152µs | aiter a8w8 (splits=16) | — |
+| bs=256, kv=1k | ~86.4µs | aiter a16w8 (splits=16) | — |
+| bs=256, kv=8k | ~293µs | aiter a8w8 (splits=32) | — |
+
+## Exhausted Paths (Do NOT Retry)
+
+### MXFP4 KV Cache — Permanently Blocked
+
+| Path | Result | Root Cause |
+|------|--------|------------|
+| `mla_decode_fwd` with MXFP4 KV (ASM) | RuntimeError | `head_size == KV.size(3)` fails: 576→288 packed |
+| `mla_decode_fwd` with MXFP4 KV (non-ASM) | RuntimeError | Same assertion in all paths |
+| `fav3_sage_mxfp4` (Triton SAGE) | Incompatible | Requires separate K/V with same head_dim; MLA fused buffer is K=576,V=512 |
+
+### Custom Kernel Paths — All Blocked
+
+| Path | Result | Root Cause |
+|------|--------|------------|
+| Triton FlashDecoding (fp8, BLOCK_N=32) | ~168µs (+68% regression) | ~130µs Triton dispatch floor = ref_kernel overhead |
+| `F.scaled_dot_product_attention` (V padded 512→576) | 10x slower (304µs) | head_dim=576 exceeds flash attention limit |
+| 4D matmul with `unsqueeze` broadcast | 9-53x regression | Materializes KV 16× (once per head) |
+| hiprtc via ctypes | HTTP 500 | Runner static source scanning blocks all HIP launch patterns |
+| `load_inline` (torch C++ ext) | HTTP 500 | Scanner detects `<<<>>>` in string literals |
+
+### Threshold/Parameter Dead Ends
+
+| Attempt | Result | Root Cause |
+|---------|--------|------------|
+| `EINSUM_THRESHOLD=300000` | 48-50% regression | bf16 does 2 KV passes; fp8 does 1 fused |
+| `A16W8_THRESHOLD=131072` | +10% regression | Q quant overhead > a8w8 tile advantage below 262k |
+| `kv_granularity=32` | +4.4% regression | 16 is optimal on MI355X |
+| `num_kv_splits=64` | Test failure | Exceeds aiter API limits |
+| Wider matmul (`bs<=8`) | Regression | bs=8/kv=8k better handled by ASM splits |
+| 2x splits (2/8/16/32/64) | Regression | Doubling splits increases reduction overhead |
+
+## Critical Rules
+
+1. **Always use `torch.einsum` or `torch.matmul` (3D)** — never 4D matmul with broadcast
+2. **OR routing, not AND** — `bs <= 4 OR total_kv <= 32768` captures both failure modes
+3. **EINSUM_THRESHOLD=131072 is final** — do not sweep again
+4. **`fast_mode=False`** in both metadata calls — cross-session confirmed
+5. **Pre-allocate intermediates** — `torch.empty` costs ~1-3µs per call on GPU
+6. **Restore from backup after experiments** — MLA submission was silently corrupted once
+
+## Submission Corruption Prevention
+
+Correct submission starts with "three-regime routing" docstring. Multiple backups exist:
+- `submission_phase13_best.py` — Phase 13 v3 OR routing (~76µs ranked)
+- `submission_phase14_best.py` — Phase 13 + 3D matmul (~73µs ranked)
+
+After any MLA experiment, always restore from best backup before leaderboard submit.
+
+## The 15.8x Gap Analysis
+
+| Component | Our Cost | Leader (estimated) |
+|-----------|----------|-------------------|
+| Python dispatch per torch op | ~20-25µs | 0µs (no Python) |
+| 3 torch ops (matmul, softmax, matmul) | ~22-38µs (small) | Single fused kernel |
+| aiter 3-stage (large shapes) | ~85-293µs | Single CK attention |
+| **Total** | **~67.8µs geomean** | **~4.3µs** |
+
+Closing this gap requires a single fused CK/ASM attention kernel with:
+- Zero Python dispatch overhead
+- Fused Q@K^T + softmax + @V in one kernel launch
+- MLA's K≠V head dimension handling (K=576, V=512)
+
+## Scattershot v3 Results (March 2026)
+
+| Submission | Result | Root Cause |
+|-----------|--------|------------|
+| Verify submission integrity (3.3) | FIXED — submission was corrupted AGAIN | Silent overwrite by prior experiment; restored from autokernel backup |
+| torch.compile on matmul regime (3.2) | REGRESSION +63-107% | ROCm recompiles CUDA graph per unique input shape; multi-shape benchmark pays recompile every time |
+| FP8 Triton BLOCK_N=64/128 (3.1) | Not attempted | Time exhausted after 3.2 regression confirmed |
+
+**Submission corruption pattern:** This is the SECOND time the MLA submission was silently replaced
+(first: Phase 16). The hookify `skill-crossref-check` rule now catches this. Always verify
+submission.py starts with "three-regime routing" or "fast_mode=False" before any experiment.
+
+**torch.compile on ROCm is a universal anti-pattern for multi-shape benchmarks.** The recompilation
+per unique (M, K) or (bs, kvseqlen) shape makes it net negative whenever the benchmark rotates
+through multiple shapes. Do NOT retry torch.compile on any kernel's benchmark path.
+
+## Cross-References
+
+- `aiter-kernel-parameter-semantics` — fast_mode, num_kv_splits, A16W8_THRESHOLD semantics
+- `deepseek-mla-decode-flash-attention-gap` — Architectural analysis of the 22.9x gap
+- `competitive-kernel-optimization-ceiling` — Strategy framework
+- `aiter-mxfp4-api-limitations` — MXFP4 KV cache limitations (Limitation 2)
+
+---
+
+<task-notification>
+<task-id>be4ori019</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/372cbc1b-32c1-4d7a-b071-c206e9699dbc/tasks/be4ori019.output</output-file>
+<status>completed</status>
+<summary>Background command "Test MLA three-regime + direct ASM + fast_mode=False" completed (exit code 0)</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/372cbc1b-32c1-4d7a-b071-c206e9699dbc/tasks/be4ori019.output
+
+---
+
+<task-notification>
+<task-id>b5vfrrrnr</task-id>
+<tool-use-id>toolu_01WuywEizkENVyKiYPLdoqxC</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/372cbc1b-32c1-4d7a-b071-c206e9699dbc/tasks/b5vfrrrnr.output</output-file>
+<status>completed</status>
+<summary>Background command "Test GEMM Triton BLOCK_M=32 variant" completed (exit code 0)</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/372cbc1b-32c1-4d7a-b071-c206e9699dbc/tasks/b5vfrrrnr.output
+
+---
+
+<task-notification>
+<task-id>b1whszvo9</task-id>
+<tool-use-id>toolu_01P2LhgamrYNPfitDDVh6hyV</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/372cbc1b-32c1-4d7a-b071-c206e9699dbc/tasks/b1whszvo9.output</output-file>
+<status>completed</status>
+<summary>Background command "Retest MLA with einsum fix" completed (exit code 0)</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/372cbc1b-32c1-4d7a-b071-c206e9699dbc/tasks/b1whszvo9.output
+
+---
+
+<task-notification>
+<task-id>b6thxtf46</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/372cbc1b-32c1-4d7a-b071-c206e9699dbc/tasks/b6thxtf46.output</output-file>
+<status>completed</status>
+<summary>Background command "Benchmark MLA three-regime submission" completed (exit code 0)</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/372cbc1b-32c1-4d7a-b071-c206e9699dbc/tasks/b6thxtf46.output
+
+---
+
+<task-notification>
+<task-id>baeuhzu7r</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/372cbc1b-32c1-4d7a-b071-c206e9699dbc/tasks/baeuhzu7r.output</output-file>
+<status>failed</status>
+<summary>Background command "Submit MLA three-regime to leaderboard" failed with exit code 1</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/372cbc1b-32c1-4d7a-b071-c206e9699dbc/tasks/baeuhzu7r.output
+
+---
+
+<task-notification>
+<task-id>bdui6lagb</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/372cbc1b-32c1-4d7a-b071-c206e9699dbc/tasks/bdui6lagb.output</output-file>
+<status>failed</status>
+<summary>Background command "Retry MLA leaderboard submission (rate limit should be clear)" failed with exit code 1</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/372cbc1b-32c1-4d7a-b071-c206e9699dbc/tasks/bdui6lagb.output
+
+---
+
+<task-notification>
+<task-id>buux3eg3s</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/372cbc1b-32c1-4d7a-b071-c206e9699dbc/tasks/buux3eg3s.output</output-file>
+<status>completed</status>
+<summary>Background command "Test MoE with 257E moderate-density CK path fix" completed (exit code 0)</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/372cbc1b-32c1-4d7a-b071-c206e9699dbc/tasks/buux3eg3s.output
+
+---
+
+<task-notification>
+<task-id>bb3olf49u</task-id>
+<tool-use-id>toolu_017mFtBu51j1yyhomYsmSAud</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/372cbc1b-32c1-4d7a-b071-c206e9699dbc/tasks/bb3olf49u.output</output-file>
+<status>completed</status>
+<summary>Background command "Benchmark MoE with 257E CK path fix" completed (exit code 0)</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/372cbc1b-32c1-4d7a-b071-c206e9699dbc/tasks/bb3olf49u.output
+
+---
+
+Any lessons to learn to improve the plan for cotinuous breakthroughs?
+
+---
+
+Yes do that for the next 4 hours.  We need continuous process improvements.
+
+---
+
+# /learn - Online Learning System
+
+**Extract reusable knowledge from this session into skills.** Evaluates what was learned, checks for existing skills, and creates new ones when valuable patterns are discovered.
+
+---
+
+## TABLE OF CONTENTS
+
+| Phase       | Description                                            | Steps   |
+| ----------- | ------------------------------------------------------ | ------- |
+| **Phase 0** | Reference: triggers, quality criteria, skill structure | 0.1–0.4 |
+| **Phase 1** | Evaluate: assess if knowledge is worth extracting      | 1.1     |
+| **Phase 2** | Check Existing: search for related skills              | 2.1     |
+| **Phase 3** | Create Skill: write the skill file                     | 3.1–3.2 |
+| **Phase 4** | Quality Gates: final checklist before saving           | 4.1     |
+
+**Quick Step Reference:**
+
+- 0.1 Triggers, 0.2 Quality criteria, 0.3 What NOT to extract, 0.4 Skill structure
+- 1.1 Self-evaluation questions
+- 2.1 Search existing skills
+- 3.1 Choose location, 3.2 Write SKILL.md
+- 4.1 Final checklist
+
+---
+
+## PHASE 0: REFERENCE
+
+### Step 0.1: Triggers
+
+Invoke `/learn` after ANY task involving:
+
+| Trigger                      | Example                                                          |
+| ---------------------------- | ---------------------------------------------------------------- |
+| **Non-obvious debugging**    | Spent 10+ minutes investigating; solution wasn't in docs         |
+| **Misleading errors**        | Error message pointed wrong direction; found real cause          |
+| **Workarounds**              | Found limitation and creative solution                           |
+| **Tool integration**         | Figured out how to use tool/API in undocumented way              |
+| **Trial-and-error**          | Tried multiple approaches before finding what worked             |
+| **Repeatable workflow**      | Multi-step task that will recur; worth standardizing             |
+| **External service queries** | Fetched data from Jira, GitHub, Confluence, or other APIs        |
+| **User-facing automation**   | Built something user will ask for again (reports, status checks) |
+
+### Step 0.2: Quality Criteria
+
+Skills must be:
+
+- **Reusable**: Will help with future tasks (not just this instance)
+- **Non-trivial**: Required discovery, OR is a valuable workflow pattern
+- **Verified**: Solution actually worked, not theoretical
+
+### Step 0.3: What NOT to Extract
+
+- Single-step tasks with no workflow value
+- One-off fixes unlikely to recur
+- Knowledge easily found in official docs
+
+### Step 0.4: Skill Structure
+
+**Location:** `.claude/skills/[skill-name]/SKILL.md`
+
+**Template:**
+
+```markdown
+---
+name: descriptive-kebab-case-name
+description: |
+  [CRITICAL: This determines when the skill triggers. Include:]
+  - What the skill does
+  - Specific trigger conditions (exact error messages, symptoms)
+  - When to use it (contexts, scenarios)
+author: Claude Code
+version: 1.0.0
+---
+
+# Skill Name
+
+## Problem
+
+[Clear description of the problem]
+
+## Context / Trigger Conditions
+
+[When to use - exact error messages, symptoms, scenarios]
+
+## Solution
+
+[Step-by-step solution]
+
+## Verification
+
+[How to verify it worked]
+
+## Example
+
+[Concrete example]
+
+## References
+
+[Links to documentation]
+```
+
+<details>
+<summary>Writing Effective Descriptions</summary>
+
+The description field is CRITICAL for skill discovery:
+
+**Good:**
+
+```yaml
+description: |
+  Fix for "ENOENT: no such file or directory" errors in npm monorepos.
+  Use when: (1) npm run fails with ENOENT, (2) paths work in root but
+  not in packages, (3) symlinked dependencies cause failures.
+```
+
+**Bad:**
+
+```yaml
+description: Helps with npm problems in monorepos.
+```
+
+</details>
+
+**Guidelines:**
+
+- **Concise** - Claude is smart; only add what it doesn't know
+- **Under 500 lines** - Move large docs to `references/`
+- **Examples over explanations** - Show, don't tell
+
+---
+
+## PHASE 1: EVALUATE
+
+### Step 1.1: Self-Evaluation Questions
+
+Ask yourself:
+
+1. "What did I just learn that wasn't obvious before starting?"
+2. "Would future-me benefit from having this documented?"
+3. "Was the solution non-obvious from documentation alone?"
+4. "Is this a multi-step workflow I'd repeat on similar tasks?"
+5. "Did I query an external service the user will ask about again?"
+
+**If NO to all → Skip extraction, nothing to learn.**
+
+**Note:** External service queries (Jira tickets, GitHub PRs, Confluence pages) are almost always worth extracting - users frequently repeat these requests.
+
+---
+
+## PHASE 2: CHECK EXISTING
+
+### Step 2.1: Search for Related Skills
+
+Before creating, search for related skills:
+
+```bash
+ls .claude/skills/ 2>/dev/null
+rg -i "keyword" .claude/skills/ 2>/dev/null
+ls ~/.claude/pilot/skills/ 2>/dev/null
+rg -i "keyword" ~/.claude/pilot/skills/ 2>/dev/null
+```
+
+| Found                | Action                           |
+| -------------------- | -------------------------------- |
+| Nothing related      | Create new skill                 |
+| Same trigger and fix | Update existing (bump version)   |
+| Partial overlap      | Update existing with new variant |
+
+---
+
+## PHASE 3: CREATE SKILL
+
+### Step 3.1: Choose Location
+
+**Project skills**: `.claude/skills/[skill-name]/SKILL.md`
+
+### Step 3.2: Write SKILL.md
+
+Use the template from Step 0.4. Ensure the description field contains specific trigger conditions.
+
+---
+
+## PHASE 4: QUALITY GATES
+
+### Step 4.1: Final Checklist
+
+Before finalizing:
+
+- [ ] Description contains specific trigger conditions
+- [ ] Solution verified to work
+- [ ] Content specific enough to be actionable
+- [ ] Content general enough to be reusable
+- [ ] No sensitive information
+
+---
+
+## EXAMPLE
+
+**Scenario**: Discovered LSP `findReferences` can find dead code by checking if functions have only 1 reference (their definition) or only test references.
+
+**Skill Created**: `.claude/skills/lsp-dead-code-finder/SKILL.md`
+
+```markdown
+---
+name: lsp-dead-code-finder
+description: |
+  Find dead/unused code using LSP findReferences. Use when: (1) user asks
+  to find dead code, (2) cleaning up codebase, (3) refactoring. Key insight:
+  function with only 1 reference (definition) or only test refs is dead code.
+---
+
+# LSP Dead Code Finder
+
+...
+```
+
+---
+
+## REMEMBER
+
+**Continuous improvement.** Every valuable discovery should benefit future sessions.
+Evaluate after significant work. Extract selectively. Create carefully.
+
+---
+
+What is causing the API Error?  If it's one of our personal MCP servers change the limit.  If it's am external one adjust are approach to avoid the api errors from being triggered.  How far did we get?  Are we ready for any new submissions?
+
+---
+
+# /learn - Online Learning System
+
+**Extract reusable knowledge from this session into skills.** Evaluates what was learned, checks for existing skills, and creates new ones when valuable patterns are discovered.
+
+---
+
+## TABLE OF CONTENTS
+
+| Phase       | Description                                            | Steps   |
+| ----------- | ------------------------------------------------------ | ------- |
+| **Phase 0** | Reference: triggers, quality criteria, skill structure | 0.1–0.4 |
+| **Phase 1** | Evaluate: assess if knowledge is worth extracting      | 1.1     |
+| **Phase 2** | Check Existing: search for related skills              | 2.1     |
+| **Phase 3** | Create Skill: write the skill file                     | 3.1–3.2 |
+| **Phase 4** | Quality Gates: final checklist before saving           | 4.1     |
+
+**Quick Step Reference:**
+
+- 0.1 Triggers, 0.2 Quality criteria, 0.3 What NOT to extract, 0.4 Skill structure
+- 1.1 Self-evaluation questions
+- 2.1 Search existing skills
+- 3.1 Choose location, 3.2 Write SKILL.md
+- 4.1 Final checklist
+
+---
+
+## PHASE 0: REFERENCE
+
+### Step 0.1: Triggers
+
+Invoke `/learn` after ANY task involving:
+
+| Trigger                      | Example                                                          |
+| ---------------------------- | ---------------------------------------------------------------- |
+| **Non-obvious debugging**    | Spent 10+ minutes investigating; solution wasn't in docs         |
+| **Misleading errors**        | Error message pointed wrong direction; found real cause          |
+| **Workarounds**              | Found limitation and creative solution                           |
+| **Tool integration**         | Figured out how to use tool/API in undocumented way              |
+| **Trial-and-error**          | Tried multiple approaches before finding what worked             |
+| **Repeatable workflow**      | Multi-step task that will recur; worth standardizing             |
+| **External service queries** | Fetched data from Jira, GitHub, Confluence, or other APIs        |
+| **User-facing automation**   | Built something user will ask for again (reports, status checks) |
+
+### Step 0.2: Quality Criteria
+
+Skills must be:
+
+- **Reusable**: Will help with future tasks (not just this instance)
+- **Non-trivial**: Required discovery, OR is a valuable workflow pattern
+- **Verified**: Solution actually worked, not theoretical
+
+### Step 0.3: What NOT to Extract
+
+- Single-step tasks with no workflow value
+- One-off fixes unlikely to recur
+- Knowledge easily found in official docs
+
+### Step 0.4: Skill Structure
+
+**Location:** `.claude/skills/[skill-name]/SKILL.md`
+
+**Template:**
+
+```markdown
+---
+name: descriptive-kebab-case-name
+description: |
+  [CRITICAL: This determines when the skill triggers. Include:]
+  - What the skill does
+  - Specific trigger conditions (exact error messages, symptoms)
+  - When to use it (contexts, scenarios)
+author: Claude Code
+version: 1.0.0
+---
+
+# Skill Name
+
+## Problem
+
+[Clear description of the problem]
+
+## Context / Trigger Conditions
+
+[When to use - exact error messages, symptoms, scenarios]
+
+## Solution
+
+[Step-by-step solution]
+
+## Verification
+
+[How to verify it worked]
+
+## Example
+
+[Concrete example]
+
+## References
+
+[Links to documentation]
+```
+
+<details>
+<summary>Writing Effective Descriptions</summary>
+
+The description field is CRITICAL for skill discovery:
+
+**Good:**
+
+```yaml
+description: |
+  Fix for "ENOENT: no such file or directory" errors in npm monorepos.
+  Use when: (1) npm run fails with ENOENT, (2) paths work in root but
+  not in packages, (3) symlinked dependencies cause failures.
+```
+
+**Bad:**
+
+```yaml
+description: Helps with npm problems in monorepos.
+```
+
+</details>
+
+**Guidelines:**
+
+- **Concise** - Claude is smart; only add what it doesn't know
+- **Under 500 lines** - Move large docs to `references/`
+- **Examples over explanations** - Show, don't tell
+
+---
+
+## PHASE 1: EVALUATE
+
+### Step 1.1: Self-Evaluation Questions
+
+Ask yourself:
+
+1. "What did I just learn that wasn't obvious before starting?"
+2. "Would future-me benefit from having this documented?"
+3. "Was the solution non-obvious from documentation alone?"
+4. "Is this a multi-step workflow I'd repeat on similar tasks?"
+5. "Did I query an external service the user will ask about again?"
+
+**If NO to all → Skip extraction, nothing to learn.**
+
+**Note:** External service queries (Jira tickets, GitHub PRs, Confluence pages) are almost always worth extracting - users frequently repeat these requests.
+
+---
+
+## PHASE 2: CHECK EXISTING
+
+### Step 2.1: Search for Related Skills
+
+Before creating, search for related skills:
+
+```bash
+ls .claude/skills/ 2>/dev/null
+rg -i "keyword" .claude/skills/ 2>/dev/null
+ls ~/.claude/pilot/skills/ 2>/dev/null
+rg -i "keyword" ~/.claude/pilot/skills/ 2>/dev/null
+```
+
+| Found                | Action                           |
+| -------------------- | -------------------------------- |
+| Nothing related      | Create new skill                 |
+| Same trigger and fix | Update existing (bump version)   |
+| Partial overlap      | Update existing with new variant |
+
+---
+
+## PHASE 3: CREATE SKILL
+
+### Step 3.1: Choose Location
+
+**Project skills**: `.claude/skills/[skill-name]/SKILL.md`
+
+### Step 3.2: Write SKILL.md
+
+Use the template from Step 0.4. Ensure the description field contains specific trigger conditions.
+
+---
+
+## PHASE 4: QUALITY GATES
+
+### Step 4.1: Final Checklist
+
+Before finalizing:
+
+- [ ] Description contains specific trigger conditions
+- [ ] Solution verified to work
+- [ ] Content specific enough to be actionable
+- [ ] Content general enough to be reusable
+- [ ] No sensitive information
+
+---
+
+## EXAMPLE
+
+**Scenario**: Discovered LSP `findReferences` can find dead code by checking if functions have only 1 reference (their definition) or only test references.
+
+**Skill Created**: `.claude/skills/lsp-dead-code-finder/SKILL.md`
+
+```markdown
+---
+name: lsp-dead-code-finder
+description: |
+  Find dead/unused code using LSP findReferences. Use when: (1) user asks
+  to find dead code, (2) cleaning up codebase, (3) refactoring. Key insight:
+  function with only 1 reference (definition) or only test refs is dead code.
+---
+
+# LSP Dead Code Finder
+
+...
+```
+
+---
+
+## REMEMBER
+
+**Continuous improvement.** Every valuable discovery should benefit future sessions.
+Evaluate after significant work. Extract selectively. Create carefully.
+
+---
+
+<task-notification>
+<task-id>bjiw24e9c</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/372cbc1b-32c1-4d7a-b071-c206e9699dbc/tasks/bjiw24e9c.output</output-file>
+<status>completed</status>
+<summary>Background command "Submit MoE to leaderboard (151.9µs CK path fix)" completed (exit code 0)</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/372cbc1b-32c1-4d7a-b071-c206e9699dbc/tasks/bjiw24e9c.output
+
+---
+
+<task-notification>
+<task-id>besl4wg4v</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/372cbc1b-32c1-4d7a-b071-c206e9699dbc/tasks/besl4wg4v.output</output-file>
+<status>completed</status>
+<summary>Background command "Submit MLA to leaderboard (67.6µs three-regime)" completed (exit code 0)</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/372cbc1b-32c1-4d7a-b071-c206e9699dbc/tasks/besl4wg4v.output
+
+---
+
+<task-notification>
+<task-id>b3ymmvpow</task-id>
+<tool-use-id>toolu_01QKK6HA2UKpuWGLXnGfgmKN</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/372cbc1b-32c1-4d7a-b071-c206e9699dbc/tasks/b3ymmvpow.output</output-file>
+<status>completed</status>
+<summary>Background command "Test MLA with 48 splits for bs=256,kv=8192" completed (exit code 0)</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/372cbc1b-32c1-4d7a-b071-c206e9699dbc/tasks/b3ymmvpow.output
+
+---
+
+<task-notification>
+<task-id>bn9dhqqkq</task-id>
+<tool-use-id>toolu_014Er4txWT1SHhBJ1UWgW951</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/372cbc1b-32c1-4d7a-b071-c206e9699dbc/tasks/bn9dhqqkq.output</output-file>
+<status>completed</status>
+<summary>Background command "Benchmark MLA with 48 splits for large shapes" completed (exit code 0)</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/372cbc1b-32c1-4d7a-b071-c206e9699dbc/tasks/bn9dhqqkq.output
+
+---
+
+[Request interrupted by user for tool use]
