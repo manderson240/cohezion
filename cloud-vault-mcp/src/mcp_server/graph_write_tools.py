@@ -34,16 +34,16 @@ def _validate_not_explicit_synapse(client: Any, from_id: str, to_id: str) -> Non
 def build_latent_synapse_sql(from_id: str, to_id: str, reason: str) -> str:
     reason_esc = reason.replace("'", "\\'")
     return (
-        f"RELATE {from_id}->{to_id} SET type = 'latent', reason = '{reason_esc}', "
-        f"created_at = time::now();"
+        f"RELATE {from_id}->synapse->{to_id} SET link_type = 'latent', reason = '{reason_esc}', "
+        f"created = time::now();"
     )
 
 
 def build_dream_synapse_sql(from_id: str, to_id: str, resonance: str) -> str:
     resonance_esc = resonance.replace("'", "\\'")
     return (
-        f"RELATE {from_id}->{to_id} SET type = 'dream', resonance = '{resonance_esc}', "
-        f"created_at = time::now();"
+        f"RELATE {from_id}->synapse->{to_id} SET link_type = 'dream', resonance = '{resonance_esc}', "
+        f"created = time::now();"
     )
 
 

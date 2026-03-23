@@ -180,8 +180,8 @@ def register_write_tools(mcp, get_surrealdb_client=None) -> None:
             return f"Error: explicit synapse already exists between {from_neuron_id} and {to_neuron_id}"
         reason_esc = reason.replace("'", "\\'")
         await client.execute(
-            f"RELATE {from_neuron_id}->{to_neuron_id} SET type = 'latent', "
-            f"reason = '{reason_esc}', created_at = time::now();"
+            f"RELATE {from_neuron_id}->synapse->{to_neuron_id} SET link_type = 'latent', "
+            f"reason = '{reason_esc}', created = time::now();"
         )
         return f"Latent synapse created: {from_neuron_id} -> {to_neuron_id}"
 
@@ -205,8 +205,8 @@ def register_write_tools(mcp, get_surrealdb_client=None) -> None:
             return f"Error: explicit synapse already exists between {from_neuron_id} and {to_neuron_id}"
         r_esc = resonance.replace("'", "\\'")
         await client.execute(
-            f"RELATE {from_neuron_id}->{to_neuron_id} SET type = 'dream', "
-            f"resonance = '{r_esc}', created_at = time::now();"
+            f"RELATE {from_neuron_id}->synapse->{to_neuron_id} SET link_type = 'dream', "
+            f"resonance = '{r_esc}', created = time::now();"
         )
         return f"Dream synapse created: {from_neuron_id} -> {to_neuron_id}"
 
