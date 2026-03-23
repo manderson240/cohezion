@@ -112,12 +112,16 @@ class TestAgentManifestParsing:
             "path",
         ]
         assert len(expected) == 9
+        assert "name" in expected
+        assert "module" in expected
 
     @pytest.mark.fast
     def test_module_filtering(self):
         """Verify agents can be filtered by module."""
         modules = ["core", "bmm", "bmb", "cis", "gds", "tea"]
         assert len(modules) == 6
+        assert "core" in modules
+        assert "bmm" in modules
 
 
 class TestPartyConfigurationExtraction:
