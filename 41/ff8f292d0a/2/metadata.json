@@ -1,9 +1,11 @@
 {
   "cli_version": "0.4.9",
   "checkpoint_id": "41ff8f292d0a",
+  "session_id": "d492a6c8-0c18-4a30-8664-c72a848e25a5",
   "strategy": "manual-commit",
+  "created_at": "2026-03-23T17:48:04.443566756Z",
   "branch": "feature/nemotron-reasoning-20260322",
-  "checkpoints_count": 3,
+  "checkpoints_count": 1,
   "files_touched": [
     "conductor/tracks/nemotron_reasoning_20260322/plan.md",
     "src/cohezion/compound/__init__.py",
@@ -28,34 +30,22 @@
     "tests/integrations/test_kaggle_eval.py",
     "tests/integrations/test_kaggle_training.py"
   ],
-  "sessions": [
-    {
-      "metadata": "/41/ff8f292d0a/0/metadata.json",
-      "transcript": "/41/ff8f292d0a/0/full.jsonl",
-      "context": "/41/ff8f292d0a/0/context.md",
-      "content_hash": "/41/ff8f292d0a/0/content_hash.txt",
-      "prompt": "/41/ff8f292d0a/0/prompt.txt"
-    },
-    {
-      "metadata": "/41/ff8f292d0a/1/metadata.json",
-      "transcript": "/41/ff8f292d0a/1/full.jsonl",
-      "context": "/41/ff8f292d0a/1/context.md",
-      "content_hash": "/41/ff8f292d0a/1/content_hash.txt",
-      "prompt": "/41/ff8f292d0a/1/prompt.txt"
-    },
-    {
-      "metadata": "/41/ff8f292d0a/2/metadata.json",
-      "transcript": "/41/ff8f292d0a/2/full.jsonl",
-      "context": "/41/ff8f292d0a/2/context.md",
-      "content_hash": "/41/ff8f292d0a/2/content_hash.txt",
-      "prompt": "/41/ff8f292d0a/2/prompt.txt"
-    }
-  ],
+  "agent": "Claude Code",
+  "turn_id": "5c02331c7b15",
   "token_usage": {
-    "input_tokens": 10915,
-    "cache_creation_tokens": 1330915,
-    "cache_read_tokens": 9692407,
-    "output_tokens": 48944,
-    "api_call_count": 75
+    "input_tokens": 414,
+    "cache_creation_tokens": 76216,
+    "cache_read_tokens": 1491073,
+    "output_tokens": 14730,
+    "api_call_count": 15
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-03-23T17:48:04.378179547Z",
+    "agent_lines": 3450,
+    "human_added": 147,
+    "human_modified": 16,
+    "human_removed": 0,
+    "total_committed": 3613,
+    "agent_percentage": 95.48851370052589
   }
 }
