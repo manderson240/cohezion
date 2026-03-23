@@ -1,0 +1,284 @@
+Implement the following plan:
+
+# Outstanding Issues — Session 2026-03-20
+
+## Summary
+
+Two open items from today's session, one immediately actionable.
+
+---
+
+## Issue 1: Push CALL Branch + Create PR ⚡ READY
+
+**Plan file**: `~/.claude/plans/nifty-snuggling-thompson.md` (Status: PENDING)
+
+**What's done**: The CALL (Cohezion Autonomous Learning Loop) implementation is complete on branch `feat/graph-architecture`. All 11 code review bugs (C1–C3 critical, I1–I7 important) were fixed and committed. Tests: 4,372 passing, 28 pre-existing failures (unchanged from baseline).
+
+**What remains**: Two commands:
+```bash
+git push -u origin feat/graph-architecture
+
+gh pr create \
+  --title "feat(agentjet): Cohezion Autonomous Learning Loop (CALL) + 11 code review fixes" \
+  --body "..." \
+  --base main
+```
+
+**Files changed**: `src/cohezion/agentjet/` (7 files), `src/cohezion/platform/` (3 files), API endpoints, systemd scripts.
+
+**Risk**: Low — branch is isolated, 28 pre-existing failures are confirmed pre-existing.
+
+---
+
+## Issue 2: Luma AMD Speedrun — Real Kernel Submissions 🏃 ONGOING
+
+**Plan file**: `~/.claude/plans/expressive-greeting-sunrise.md` (Status: PENDING)
+
+**Competition deadline**: March 30, 2026 (10 days remaining). Rate limit: 1 leaderboard submission/hour/kernel.
+
+**Performance gaps**:
+| Kernel | Our Best | Leader | Gap | Priority |
+|--------|----------|--------|-----|----------|
+| MoE | ~155µs | 145µs | 1.07x | HIGH — closest to competitive |
+| GEMM | 24.3µs | 9.7µs | ~2.5x | MEDIUM — regression to investigate |
+| MLA | ~67.8µs | 4.3µs | 15.8x | LOW — needs architectural change |
+
+**What remains**: Run real MI355X submissions via popcorn-cli (Phase 1: verify baselines; Phase 2: MoE KSPLIT sweep; Phase 3: GEMM regression hunt; Phase 4: MLA triage).
+
+---
+
+## Already Completed This Session
+
+- ✅ **Auto-lint hook** — `ruff check --fix` PostToolUse hook added to `~/.claude/settings.json`. Activates on next Claude Code restart.
+- ✅ **CALL code review fixes** — 11 bugs fixed, committed as `14500e85`
+- ✅ **K-Search 4hr run** — committed as `07073bf1` (510 cycles, 110 inserts)
+
+---
+
+## Recommended Next Action
+
+Execute Issue 1 (push + PR) — it's 2 commands, zero risk, closes out the CALL work cleanly.
+
+
+If you need specific details from before exiting plan mode (like exact code snippets, error messages, or content you generated), read the full transcript at: /home/mike-anderson/.claude/projects/-home-mike-anderson-dev-cohezion/18059e07-776d-41f9-a8d9-5c48fc97ac02.jsonl
+
+If this plan can be broken down into multiple independent tasks, consider using the TeamCreate tool to create a team and parallelize the work.
+
+---
+
+Base directory for this skill: /home/mike-anderson/.claude/plugins/cache/claude-plugins-official/superpowers/5.0.5/skills/finishing-a-development-branch
+
+# Finishing a Development Branch
+
+## Overview
+
+Guide completion of development work by presenting clear options and handling chosen workflow.
+
+**Core principle:** Verify tests → Present options → Execute choice → Clean up.
+
+**Announce at start:** "I'm using the finishing-a-development-branch skill to complete this work."
+
+## The Process
+
+### Step 1: Verify Tests
+
+**Before presenting options, verify tests pass:**
+
+```bash
+# Run project's test suite
+npm test / cargo test / pytest / go test ./...
+```
+
+**If tests fail:**
+```
+Tests failing (<N> failures). Must fix before completing:
+
+[Show failures]
+
+Cannot proceed with merge/PR until tests pass.
+```
+
+Stop. Don't proceed to Step 2.
+
+**If tests pass:** Continue to Step 2.
+
+### Step 2: Determine Base Branch
+
+```bash
+# Try common base branches
+git merge-base HEAD main 2>/dev/null || git merge-base HEAD master 2>/dev/null
+```
+
+Or ask: "This branch split from main - is that correct?"
+
+### Step 3: Present Options
+
+Present exactly these 4 options:
+
+```
+Implementation complete. What would you like to do?
+
+1. Merge back to <base-branch> locally
+2. Push and create a Pull Request
+3. Keep the branch as-is (I'll handle it later)
+4. Discard this work
+
+Which option?
+```
+
+**Don't add explanation** - keep options concise.
+
+### Step 4: Execute Choice
+
+#### Option 1: Merge Locally
+
+```bash
+# Switch to base branch
+git checkout <base-branch>
+
+# Pull latest
+git pull
+
+# Merge feature branch
+git merge <feature-branch>
+
+# Verify tests on merged result
+<test command>
+
+# If tests pass
+git branch -d <feature-branch>
+```
+
+Then: Cleanup worktree (Step 5)
+
+#### Option 2: Push and Create PR
+
+```bash
+# Push branch
+git push -u origin <feature-branch>
+
+# Create PR
+gh pr create --title "<title>" --body "$(cat <<'EOF'
+## Summary
+<2-3 bullets of what changed>
+
+## Test Plan
+- [ ] <verification steps>
+EOF
+)"
+```
+
+Then: Cleanup worktree (Step 5)
+
+#### Option 3: Keep As-Is
+
+Report: "Keeping branch <name>. Worktree preserved at <path>."
+
+**Don't cleanup worktree.**
+
+#### Option 4: Discard
+
+**Confirm first:**
+```
+This will permanently delete:
+- Branch <name>
+- All commits: <commit-list>
+- Worktree at <path>
+
+Type 'discard' to confirm.
+```
+
+Wait for exact confirmation.
+
+If confirmed:
+```bash
+git checkout <base-branch>
+git branch -D <feature-branch>
+```
+
+Then: Cleanup worktree (Step 5)
+
+### Step 5: Cleanup Worktree
+
+**For Options 1, 2, 4:**
+
+Check if in worktree:
+```bash
+git worktree list | grep $(git branch --show-current)
+```
+
+If yes:
+```bash
+git worktree remove <worktree-path>
+```
+
+**For Option 3:** Keep worktree.
+
+## Quick Reference
+
+| Option | Merge | Push | Keep Worktree | Cleanup Branch |
+|--------|-------|------|---------------|----------------|
+| 1. Merge locally | ✓ | - | - | ✓ |
+| 2. Create PR | - | ✓ | ✓ | - |
+| 3. Keep as-is | - | - | ✓ | - |
+| 4. Discard | - | - | - | ✓ (force) |
+
+## Common Mistakes
+
+**Skipping test verification**
+- **Problem:** Merge broken code, create failing PR
+- **Fix:** Always verify tests before offering options
+
+**Open-ended questions**
+- **Problem:** "What should I do next?" → ambiguous
+- **Fix:** Present exactly 4 structured options
+
+**Automatic worktree cleanup**
+- **Problem:** Remove worktree when might need it (Option 2, 3)
+- **Fix:** Only cleanup for Options 1 and 4
+
+**No confirmation for discard**
+- **Problem:** Accidentally delete work
+- **Fix:** Require typed "discard" confirmation
+
+## Red Flags
+
+**Never:**
+- Proceed with failing tests
+- Merge without verifying tests on result
+- Delete work without confirmation
+- Force-push without explicit request
+
+**Always:**
+- Verify tests before offering options
+- Present exactly 4 options
+- Get typed confirmation for Option 4
+- Clean up worktree for Options 1 & 4 only
+
+## Integration
+
+**Called by:**
+- **subagent-driven-development** (Step 7) - After all tasks complete
+- **executing-plans** (Step 5) - After all batches complete
+
+**Pairs with:**
+- **using-git-worktrees** - Cleans up worktree created by that skill
+
+---
+
+<task-notification>
+<task-id>byjejlzhx</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/ace86df4-9d7b-4a91-86cf-bed8940d8896/tasks/byjejlzhx.output</output-file>
+<status>completed</status>
+<summary>Background command "Run full test suite in quiet mode, show summary only" completed (exit code 0)</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/ace86df4-9d7b-4a91-86cf-bed8940d8896/tasks/byjejlzhx.output
+
+---
+
+How do we fix the 28 pre-existing failures?
+
+---
+
+[Request interrupted by user for tool use]
