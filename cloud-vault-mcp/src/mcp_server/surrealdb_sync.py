@@ -350,12 +350,22 @@ class SurrealDBSync:
         """Import all papers from vault/papers/ directory.
 
         Automatically uses parallel or sequential approach based on configuration.
+        Falls back to sequential when called from within a running event loop
+        (e.g. from an MCP server handler) to avoid 'asyncio.run() cannot be
+        called from a running event loop' errors.
 
         Returns:
             Count of papers imported
         """
         if self.parallel_enabled:
-            return asyncio.run(self._bulk_import_papers_parallel())
+            try:
+                asyncio.get_running_loop()
+                # Already inside an event loop — parallel path would deadlock.
+                # Use the synchronous sequential path instead.
+                logger.debug("bulk_import_papers: running loop detected, using sequential path")
+                return self._bulk_import_papers_sequential()
+            except RuntimeError:
+                return asyncio.run(self._bulk_import_papers_parallel())
         else:
             return self._bulk_import_papers_sequential()
 
@@ -528,12 +538,22 @@ class SurrealDBSync:
         """Import all concepts from vault/concepts/ directory.
 
         Automatically uses parallel or sequential approach based on configuration.
+        Falls back to sequential when called from within a running event loop
+        (e.g. from an MCP server handler) to avoid 'asyncio.run() cannot be
+        called from a running event loop' errors.
 
         Returns:
             Count of concepts imported
         """
         if self.parallel_enabled:
-            return asyncio.run(self._bulk_import_concepts_parallel())
+            try:
+                asyncio.get_running_loop()
+                # Already inside an event loop — parallel path would deadlock.
+                # Use the synchronous sequential path instead.
+                logger.debug("bulk_import_concepts: running loop detected, using sequential path")
+                return self._bulk_import_concepts_sequential()
+            except RuntimeError:
+                return asyncio.run(self._bulk_import_concepts_parallel())
         else:
             return self._bulk_import_concepts_sequential()
 
