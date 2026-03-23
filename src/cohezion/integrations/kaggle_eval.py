@@ -1,0 +1,49 @@
+import re
+import logging
+from typing import List, Optional, Dict
+
+logger = logging.getLogger(__name__)
+
+class KaggleEvaluator:
+    """
+    Evaluator for Kaggle reasoning challenges using LaTeX \boxed{} format.
+    """
+    
+    def __init__(self):
+        # Regex to find content inside \boxed{...}
+        # Supports nested braces by using a recursive-like pattern if needed, 
+        # but for simplicity we'll start with standard non-greedy matching.
+        # The competition usually expects the final boxed answer.
+        self.boxed_regex = re.compile(r"\\boxed\{((?:[^{}]|\{[^{}]*\})+)\}")
+
+    def extract_answer(self, text: str) -> Optional[str]:
+        """
+        Extract the answer from the LaTeX \boxed{} command.
+        If multiple \boxed{} are present, returns the last one.
+        """
+        matches = self.boxed_regex.findall(text)
+        if not matches:
+            return None
+        return matches[-1].strip()
+
+    def score(self, predictions: List[str], references: List[str]) -> Dict[str, float]:
+        """
+        Score a list of predictions against references.
+        """
+        if len(predictions) != len(references):
+            raise ValueError("Predictions and references must have the same length.")
+            
+        correct = 0
+        total = len(predictions)
+        
+        for pred, ref in zip(predictions, references):
+            if str(pred).strip() == str(ref).strip():
+                correct += 1
+                
+        accuracy = correct / total if total > 0 else 0.0
+        
+        return {
+            "accuracy": accuracy,
+            "correct": correct,
+            "total": total
+        }
