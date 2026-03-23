@@ -75,6 +75,27 @@ def run_tests() -> dict:
     }
 
 
+def run_party_mode_review() -> dict:
+    """Trigger party-mode adversarial review workflow."""
+    result = subprocess.run(
+        [
+            "uv",
+            "run",
+            "python",
+            "_bmad/_config/traceability/workflows/run_party_review.py",
+        ],
+        capture_output=True,
+        text=True,
+        cwd="/home/mike-anderson/dev/cohezion",
+        timeout=600,
+    )
+    return {
+        "stdout": result.stdout,
+        "stderr": result.stderr,
+        "returncode": result.returncode,
+    }
+
+
 def find_latest_snapshot(output_dir: Path) -> Path:
     """Find the most recent snapshot."""
     snapshot_dir = output_dir / "snapshots"
@@ -154,15 +175,20 @@ def main():
         print("\n⚠️  Gaps detected:")
         for gap in gaps:
             print(f"  - {gap}")
-        print("\n💡 Recommendation: Run adversarial review workflow")
-        print(
-            "   Command: uv run python _bmad/_config/traceability/traceability_engine.py --self-trace"
-        )
+
+        # Auto-trigger party-mode adversarial review when gaps found
+        print("\n🎉 Triggering party-mode adversarial review...")
+        party_result = run_party_mode_review()
+        if party_result["returncode"] == 0:
+            print("✅ Party-mode review completed")
+            print("   Findings saved to: MULTI_AGENT_REVIEW_FINDINGS.md")
+        else:
+            print(f"⚠️  Party-mode review failed: {party_result['stderr']}")
     else:
         print("\n✅ No critical gaps detected")
 
     print("\n🎯 Recursive loop complete!")
-    print("   Next iteration: Run engine again or trigger party-mode review")
+    print("   Next iteration: Run engine again or review new findings")
 
 
 if __name__ == "__main__":
