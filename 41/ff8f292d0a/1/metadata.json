@@ -1,0 +1,32 @@
+{
+  "cli_version": "0.4.9",
+  "checkpoint_id": "41ff8f292d0a",
+  "session_id": "9e877234-e5bd-4758-bea4-0c0d0e6d5637",
+  "strategy": "manual-commit",
+  "created_at": "2026-03-23T17:48:02.853196221Z",
+  "branch": "feature/nemotron-reasoning-20260322",
+  "checkpoints_count": 0,
+  "files_touched": [
+    "src/cohezion/integrations/__init__.py"
+  ],
+  "agent": "Claude Code",
+  "turn_id": "31fd1e6d4116",
+  "checkpoint_transcript_start": 782,
+  "transcript_lines_at_start": 782,
+  "token_usage": {
+    "input_tokens": 0,
+    "cache_creation_tokens": 0,
+    "cache_read_tokens": 0,
+    "output_tokens": 0,
+    "api_call_count": 0
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-03-23T17:48:02.553756768Z",
+    "agent_lines": 0,
+    "human_added": 5712,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 5712,
+    "agent_percentage": 0
+  }
+}
