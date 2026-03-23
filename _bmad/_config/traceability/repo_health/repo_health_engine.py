@@ -16,15 +16,18 @@ from __future__ import annotations
 import json
 import subprocess
 import re
+import sys
 from dataclasses import dataclass, field, asdict
 from datetime import datetime
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
-try:
-    from ..base_engine import BaseEngine, EngineConfig
-except (ImportError, ValueError):
-    from base_engine import BaseEngine, EngineConfig
+# Add traceability directory to path for both module and script execution
+TRACEABILITY_DIR = Path(__file__).parent.parent
+if str(TRACEABILITY_DIR) not in sys.path:
+    sys.path.insert(0, str(TRACEABILITY_DIR))
+
+from base_engine import BaseEngine, EngineConfig
 
 
 @dataclass
@@ -116,34 +119,78 @@ class RepoHealthReport:
     recommendations: List[str] = field(default_factory=list)
 
 
-class RepoHealthEngine(BaseEngine):
+class RepoHealthEngine:
     """Repository health monitoring engine."""
 
     def __init__(self, project_root: Optional[Path] = None, config: Optional[EngineConfig] = None):
         # Support both old API and new DI pattern
         if config:
-            super().__init__(config)
+            self.config = config
+            self.project_root = config.project_root
+            self.output_dir = config.output_dir
         else:
-            project_root = project_root or Path("/home/mike-anderson/dev/cohezion")
-            config = EngineConfig(
-                project_root=project_root,
-                output_dir=project_root / "_bmad" / "_config" / "traceability" / "repo_health",
+            self.project_root = project_root or Path("/home/mike-anderson/dev/cohezion")
+            self.output_dir = (
+                self.project_root / "_bmad" / "_config" / "traceability" / "repo_health"
             )
-            super().__init__(config)
+            self.config = None
 
-        self.logger.info("RepoHealthEngine initialized")
+        # Setup logging
+        import logging
+
+        self.logger = logging.getLogger(self.__class__.__name__)
+        self.logger.setLevel(logging.INFO)
+
+        # Ensure output directory exists
+        self.output_dir.mkdir(parents=True, exist_ok=True)
+
+    def run_command(
+        self, cmd: List[str], timeout: Optional[int] = None, capture_output: bool = True
+    ) -> Tuple[int, str, str]:
+        """Run shell command with error handling."""
+        import subprocess
+
+        timeout = timeout or 300
+        try:
+            result = subprocess.run(
+                cmd,
+                capture_output=capture_output,
+                text=True,
+                cwd=self.project_root,
+                timeout=timeout,
+            )
+            return result.returncode, result.stdout, result.stderr
+        except subprocess.TimeoutExpired:
+            self.logger.error(f"Command timed out: {' '.join(cmd[:3])}")
+            return -1, "", f"Timeout after {timeout}s"
+        except Exception as e:
+            self.logger.error(f"Command failed: {e}")
+            return -1, "", str(e)
 
     def run_command(
         self, cmd: List[str], timeout: Optional[int] = None, capture_output: bool = True
     ) -> Tuple[int, str, str]:
         """Run shell command with enhanced error handling."""
-        # Use BaseEngine implementation with logging
-        returncode, stdout, stderr = super().run_command(
-            cmd, timeout=timeout, capture_output=capture_output
-        )
-        if returncode == -1:
-            self.logger.warning(f"Command failed: {' '.join(cmd[:3])}")
-        return returncode, stdout, stderr
+        import subprocess
+
+        timeout = timeout or 300
+        try:
+            result = subprocess.run(
+                cmd,
+                capture_output=capture_output,
+                text=True,
+                cwd=self.project_root,
+                timeout=timeout,
+            )
+            if result.returncode == -1:
+                self.logger.warning(f"Command failed: {' '.join(cmd[:3])}")
+            return result.returncode, result.stdout, result.stderr
+        except subprocess.TimeoutExpired:
+            self.logger.error(f"Command timed out: {' '.join(cmd[:3])}")
+            return -1, "", f"Timeout after {timeout}s"
+        except Exception as e:
+            self.logger.error(f"Command failed: {e}")
+            return -1, "", str(e)
 
     def check_code_quality(self) -> CodeQualityMetrics:
         """Check code quality using ruff and mypy."""
@@ -169,9 +216,11 @@ class RepoHealthEngine(BaseEngine):
         )
         metrics.type_errors = len([line for line in stdout.split("\n") if "error:" in line])
 
-        # Count lines of code using BaseEngine method
-        py_files = self.discover_python_files(self.project_root / "src" / "cohezion")
-        metrics.lines_of_code = sum(len(self.read_file_safe(f) or "").split("\n") for f in py_files)
+        # Count lines of code (inline - no BaseEngine dependency)
+        py_files = list((self.project_root / "src" / "cohezion").glob("**/*.py"))
+        metrics.lines_of_code = sum(
+            len((f.read_text(encoding="utf-8") if f.exists() else "").split("\n")) for f in py_files
+        )
 
         return metrics
 
