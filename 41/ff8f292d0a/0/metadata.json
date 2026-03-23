@@ -1,0 +1,49 @@
+{
+  "cli_version": "0.4.9",
+  "checkpoint_id": "41ff8f292d0a",
+  "session_id": "56a0a29f-ec0c-46a9-a9f4-21f36843da42",
+  "strategy": "manual-commit",
+  "created_at": "2026-03-23T17:48:00.938732511Z",
+  "branch": "feature/nemotron-reasoning-20260322",
+  "checkpoints_count": 2,
+  "files_touched": [
+    "conductor/tracks/nemotron_reasoning_20260322/plan.md",
+    "src/cohezion/compound/__init__.py",
+    "src/cohezion/compound/__init__.py.backup",
+    "src/cohezion/compound/daemon/__init__.py",
+    "src/cohezion/compound/daemon/workflow_initializer.py",
+    "src/cohezion/compound/tdd_adversarial/README.md",
+    "src/cohezion/compound/tdd_adversarial/adversarial_review.py",
+    "src/cohezion/compound/tdd_adversarial/coordinator.py",
+    "src/cohezion/compound/tdd_adversarial/tdd_integration.py",
+    "src/cohezion/compound/tdd_adversarial/test_integration.py",
+    "src/cohezion/compound/test_basic_import.py",
+    "src/cohezion/compound/universal/init.py",
+    "src/cohezion/integrations/__init__.py",
+    "src/cohezion/integrations/kaggle_api.py",
+    "src/cohezion/integrations/kaggle_curation.py",
+    "src/cohezion/integrations/kaggle_eval.py",
+    "tests/integrations/test_compound_loop.py",
+    "tests/integrations/test_kaggle_api.py",
+    "tests/integrations/test_kaggle_curation.py",
+    "tests/integrations/test_kaggle_eval.py"
+  ],
+  "agent": "Claude Code",
+  "turn_id": "29598f670942",
+  "token_usage": {
+    "input_tokens": 10501,
+    "cache_creation_tokens": 1254699,
+    "cache_read_tokens": 8201334,
+    "output_tokens": 34214,
+    "api_call_count": 60
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-03-23T17:48:00.666449651Z",
+    "agent_lines": 3228,
+    "human_added": 828,
+    "human_modified": 68,
+    "human_removed": 0,
+    "total_committed": 4122,
+    "agent_percentage": 78.31149927219796
+  }
+}
