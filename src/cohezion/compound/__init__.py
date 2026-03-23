@@ -1,154 +1,58 @@
-"""Compound engineering system for iterative AI refinement.
+"""Cohezion Compound Engineering System."""
 
-Integrates skill execution, knowledge persistence (vault), and experience-guided loops.
-Phase 1: Compatibility layer with simplified internals
-"""
+from __future__ import annotations
 
-# ============================================================================
-# Compatibility Layer (Phase 1) - Preserves old API
-# ============================================================================
+# Universal initialization
+try:
+    from .universal.init import initialize_cohezion_environment
+except Exception:
+    pass
 
-# ============================================================================
-# New Simplified Analytics (Phase 1)
-# ============================================================================
-from cohezion.compound.analytics.engine import (
-    AnalysisConfig,
-    ExecutionAnalyzer,
-    SimpleAnalyzer,
-)
-from cohezion.compound.analytics.metrics import (
-    MetricsCollector,
-    MetricsSnapshot,
-    SimpleMetrics,
-)
-from cohezion.compound.compat import (
-    CompoundCycleReport,
-    CompoundCycleResult,
-    CompoundExecutor,
-    ConstraintType,
-    ConstraintViolation,
-    CriterionFailure,
-    DriftSignal,
-    ExecutionAlignment,
-    ExecutionConstraint,
-    HumanRequest,
-    IntentType,
-    SuccessCriterion,
-)
-from cohezion.compound.compat import (
-    ExecutionResult as LegacyExecutionResult,
-)
-from cohezion.compound.core.batch_processor import (
-    BatchProcessor,
-    BatchResult,
-    SimpleBatch,
-)
-from cohezion.compound.core.executor import (
-    CompoundExecutor as NewCompoundExecutor,
-)
-from cohezion.compound.core.executor import (
-    ExecutionConfig,
-    execute_simple,
-)
+import structlog
 
-# ============================================================================
-# New Simplified Core (Phase 1) - Clean implementations
-# ============================================================================
+# New Simplified API
 from cohezion.compound.models import (
-    AnalysisReport,
-    BatchConfig,
+    Task,
+    ExecutionResult,
     ExecutionContext,
     ExecutionMetrics,
-    ExecutionResult,
+    AnalysisReport,
     ExecutionStatus,
-    Task,
+    IntentType
+)
+from cohezion.compound.core.executor import CompoundExecutor, execute_simple
+from cohezion.compound.core.batch_processor import BatchProcessor
+from cohezion.compound.analytics.engine import ExecutionAnalyzer, SimpleAnalyzer
+from cohezion.compound.analytics.metrics import MetricsCollector
+from cohezion.compound.skills.selector import SkillSelector
+from cohezion.compound.persistence.vault import VaultPersister, SessionPersister
+
+# Legacy API (Selective Compatibility)
+from cohezion.compound.batch_executor import BatchableExecutor, BatchExecutorFactory
+from cohezion.compound.config import CompoundConfig as Config
+from cohezion.compound.executor import CompoundExecutor as LegacyCompoundExecutor, ExecutorFactory as CompoundExecutorFactory
+
+# TDD and Adversarial Review System
+from cohezion.compound.tdd_adversarial.adversarial_review import (
+    AdversarialReviewSystem,
+    ReviewPerspective,
+    ReviewFinding,
+    PerspectiveState,
+    ReviewSession,
+    get_adversarial_review_system
 )
 
-# ============================================================================
-# New Simplified Persistence (Phase 1)
-# ============================================================================
-from cohezion.compound.persistence.vault import (
-    PersistenceConfig,
-    SessionPersister,
-    SimplePersistence,
-    VaultPersister,
+from cohezion.compound.tdd_adversarial.tdd_integration import (
+    TDDIntegration,
+    TestStatus,
+    TestType,
+    TestResult,
+    TDDState,
+    get_tdd_integration
 )
 
-# ============================================================================
-# New Simplified Skills (Phase 1)
-# ============================================================================
-from cohezion.compound.skills.selector import (
-    SimpleSkills,
-    SkillMatch,
-    SkillRefiner,
-    SkillSelector,
+from cohezion.compound.tdd_adversarial.coordinator import (
+    TDDAdversarialCoordinator,
+    TDDAdversarialState,
+    get_tdd_adversarial_coordinator
 )
-
-
-# ============================================================================
-# Version Info
-# ============================================================================
-
-__version__ = "2.0.0-simplified"
-
-
-def get_version() -> str:
-    """Get compound module version."""
-    return __version__
-
-
-# ============================================================================
-# Exports
-# ============================================================================
-
-__all__ = [
-    # New analytics
-    "AnalysisConfig",
-    # New models
-    "AnalysisReport",
-    "BatchConfig",
-    "BatchProcessor",
-    "BatchResult",
-    # Compatibility layer (old API)
-    "CompoundCycleReport",
-    "CompoundCycleResult",
-    "CompoundExecutor",
-    "ConstraintType",
-    "ConstraintViolation",
-    "CriterionFailure",
-    "DriftSignal",
-    "ExecutionAlignment",
-    "ExecutionAnalyzer",
-    "ExecutionConfig",
-    "ExecutionConstraint",
-    "ExecutionContext",
-    "ExecutionMetrics",
-    "ExecutionResult",
-    "ExecutionStatus",
-    "HumanRequest",
-    "IntentType",
-    "LegacyExecutionResult",
-    "MetricsCollector",
-    "MetricsSnapshot",
-    # New core
-    "NewCompoundExecutor",
-    # New persistence
-    "PersistenceConfig",
-    "SessionPersister",
-    "SimpleAnalyzer",
-    "SimpleBatch",
-    "SimpleMetrics",
-    "SimplePersistence",
-    "SimpleSkills",
-    # New skills
-    "SkillMatch",
-    "SkillRefiner",
-    "SkillSelector",
-    "SuccessCriterion",
-    "Task",
-    "VaultPersister",
-    # Version
-    "__version__",
-    "execute_simple",
-    "get_version",
-]

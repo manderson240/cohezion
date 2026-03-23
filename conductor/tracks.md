@@ -9,5 +9,5 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ---
 
-- [ ] **Track: NVIDIA Nemotron Model Reasoning Challenge**
+- [x] **Track: NVIDIA Nemotron Model Reasoning Challenge**
   *Link: [./tracks/nemotron_reasoning_20260322/](./tracks/nemotron_reasoning_20260322/)*
