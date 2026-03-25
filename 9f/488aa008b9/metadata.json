@@ -3,7 +3,7 @@
   "checkpoint_id": "9f488aa008b9",
   "strategy": "manual-commit",
   "branch": "main",
-  "checkpoints_count": 1,
+  "checkpoints_count": 2,
   "files_touched": [
     "tests/cache/test_cache_warmer.py",
     "tests/conftest.py"
@@ -15,6 +15,20 @@
       "context": "",
       "content_hash": "/9f/488aa008b9/0/content_hash.txt",
       "prompt": ""
+    },
+    {
+      "metadata": "/9f/488aa008b9/1/metadata.json",
+      "transcript": "/9f/488aa008b9/1/full.jsonl",
+      "context": "/9f/488aa008b9/1/context.md",
+      "content_hash": "/9f/488aa008b9/1/content_hash.txt",
+      "prompt": "/9f/488aa008b9/1/prompt.txt"
     }
-  ]
+  ],
+  "token_usage": {
+    "input_tokens": 12448,
+    "cache_creation_tokens": 986015,
+    "cache_read_tokens": 9483967,
+    "output_tokens": 26008,
+    "api_call_count": 55
+  }
 }
