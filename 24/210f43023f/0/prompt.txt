@@ -1,0 +1,119 @@
+<task-notification>
+<task-id>a42a441637dcfdda9</task-id>
+<tool-use-id>toolu_01AdJB7BMR5HsGBRVdqwpVJi</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/fa51e7c9-e669-4877-ac89-6ff357f6ba35/tasks/a42a441637dcfdda9.output</output-file>
+<status>completed</status>
+<summary>Agent "Spec compliance review for CALL implementation" completed</summary>
+<result>I now have all the information needed. Let me produce the compliance report.
+
+---
+
+## Phase 1 Spec Compliance Review — CALL Implementation
+
+**Worktree:** `/home/mike-anderson/dev/cohezion/.worktrees/call`
+
+---
+
+### Platform Layer
+
+✅ `src/cohezion/platform/resource_manager.py` — All four exports present: `ResourceDaemon`, `ResourceClient`, `PlatformMemoryState`, `TrainingLock`. Full HTTP daemon with lock management, Ollama polling, fallback to local poll when daemon is down. `OOMRiskError` and `ResourceUnavailableError` included.
+
+✅ `src/cohezion/platform/session_tracker.py` — `SessionRecord` and `SessionTracker` both present with usage histogram, session penetration, and `get_recent_sessions`.
+
+✅ `src/cohezion/platform/tier_optimizer.py` — `TierOptimizer` and `TierChange` present. Three rules implemented: training-only → demote to cold, high-traffic → promote, unused >14 days → demote.
+
+✅ `scripts/start_resource_daemon.sh` — Executable (`-rwxrwxr-x`). Checks for already-running daemon via health probe, then runs `uv run python -m cohezion.platform.resource_manager`.
+
+✅ `scripts/cohezion-resources.service` — Valid systemd unit. Restarts on failure, routes logs to journal, targets correct entry point.
+
+---
+
+### AgentJet Module
+
+⚠️ `src/cohezion/agentjet/__init__.py` — Exports 6 of the 7 components: `AgentJetTrainer`, `CohezionWorkflow`, `JourneyTaskReader`, `PhiScoreJudger`, `TrainingResult`, `UnslothBridge`. **Missing from `__all__`: `OllamaContextManager`, `ModelContextProfile`, `GeminiEmbeddingModel`, `EmbeddingOrchestrator`, `CONTEXT_PROFILES`** — none of the context optimizer or embeddings module classes are re-exported. The files exist and are importable directly, but the module's public surface as declared in `__init__.py` is incomplete. Whether this is a spec violation depends on whether the spec required all 7 components to be exported vs. merely present as submodules.
+
+✅ `src/cohezion/agentjet/workflow.py` — `CohezionWorkflow` present. Wraps `CompoundExecutor`, uses `JourneyTracker` for phi_score, returns `(output, metadata)` tuple with phi_score, coherence, success, duration.
+
+✅ `src/cohezion/agentjet/judger.py` — `PhiScoreJudger` present. HIHO reward mapping implemented: phi ≥ 0.7 → positive reward, phi < 0.4 → -1.0, mid-band → [0, 0.2). `batch_judge` also present.
+
+✅ `src/cohezion/agentjet/task_reader.py` — `JourneyTaskReader` present. Loads from JSONL, falls back to `ExperienceCollector`. Normalizes both schemas. `read()` and `group_by_skill()` present.
+
+✅ `src/cohezion/agentjet/context_optimizer.py` — `OllamaContextManager`, `CONTEXT_PROFILES`, and `ModelContextProfile` all present. Training profiles use `num_ctx=2048` and `keep_alive="0"` (confirmed in `_training()` helper). Training variants defined for `qwen3.5:9b`, `nemotron-3-nano:30b`, `phi3:mini`.
+
+✅ `src/cohezion/agentjet/trainer.py` — `AgentJetTrainer` and `TrainingResult` present. `backend="llamafactory"` is the Phase 1 default. Safety protocol order confirmed:
+1. OOM check (`_safety_check`) — tries ResourceClient daemon first, falls back to local Ollama poll
+2. Unload all inference models (`unload_all_for_training`)
+3. Training backend (`_run_training`)
+4. Reload inference models in `finally` block — **always executes even on failure**
+5. Lock release also in `finally`
+
+✅ `src/cohezion/agentjet/unsloth_bridge.py` — `UnslothBridge` present. Phase 1: Data Recipes API (available now). Phase 2 QLoRA: `is_training_available()` returns `False` for AMD. Falls back to `LocalFinetuner`.
+
+✅ `src/cohezion/agentjet/embeddings.py` — `GeminiEmbeddingModel` with content-hash SurrealDB cache present. `EmbeddingOrchestrator` routes by `EmbeddingContext` (VAULT_INDEXING → Gemini, RUNTIME → FLUME VAE). Circuit breaker (3 failures). `FlumeVAEEmbeddingModel` and `EmbeddingDistiller` also present.
+
+---
+
+### Model Pool & Context Harness
+
+✅ `src/cohezion/swarm/model_pool_config.py` — Updated with 12 models across 3 tiers:
+- **Hot (3):** `phi4-mini-reasoning:latest`, `nomic-embed-text:latest`, `qwen3.5:0.8b`
+- **Warm (4):** `glm-4.7-flash:latest`, `qwen3-coder:30b`, `minimax-m2.7`, `qwen3-coder-next`
+- **Cold (5):** `deepcoder:14b`, `nemotron-3-nano:latest`, `nemotron-3-super:120b`, `glm-5`, `openai/gpt-oss-20b`
+
+The spec mentioned "6 new models" — this has 12 total entries (likely more were added than the minimum spec). This passes.
+
+✅ `src/cohezion/reliability/context_harness.py` — `ContextHarness.__init__` now accepts `profile: ModelContextProfile | None = None`. When provided, `_get_dynamic_limit()` uses `profile.num_ctx * 4` as the base limit. TYPE_CHECKING guard avoids circular import.
+
+---
+
+### API Endpoints
+
+✅ `src/cohezion/api/__init__.py` — All three endpoints confirmed at lines 1565, 1605, 1623:
+- `POST /agentjet/train`
+- `GET /agentjet/status`
+- `GET /agentjet/models`
+
+---
+
+### Skill Definition
+
+✅ `src/cohezion/skills/AGENTJET_PRIME.md` — Present and substantive. YAML frontmatter with name, description, version, legacy-name. Covers CALL cycle, phi_score, HIHO band, OllamaContextManager, LocalFinetuner, UnslothBridge, finetune_journeys.jsonl.
+
+---
+
+### Tests
+
+✅ `tests/agentjet/__init__.py` — Present.
+
+✅ `tests/platform/__init__.py` — Present.
+
+✅ `tests/agentjet/` — 6 test files present with substantive content:
+- `test_context_optimizer.py` (98 lines)
+- `test_embeddings.py` (196 lines)
+- `test_judger.py` (97 lines)
+- `test_task_reader.py` (148 lines)
+- `test_trainer.py` (178 lines)
+- `test_workflow.py` (130 lines)
+
+`tests/platform/` also has relevant tests including `test_resource_manager.py` (346 lines) and `test_tier_optimizer.py` (222 lines).
+
+---
+
+### Known Gap (Pre-flagged)
+
+❌ **Offline vault indexing script using Gemini Embedding 2** — Not implemented. The checklist item was for a standalone script (e.g., `scripts/index_vault_gemini.py`) that would batch-index vault content using `GeminiEmbeddingModel` and store results in SurrealDB. No such script exists in `scripts/`. The `EmbeddingOrchestrator` and `GeminiEmbeddingModel` infrastructure is in place, but the offline indexing driver script that would invoke it is absent.
+
+---
+
+### Minor Concern
+
+⚠️ `agentjet/__init__.py` — `OllamaContextManager`, `ModelContextProfile`, `GeminiEmbeddingModel`, `EmbeddingOrchestrator`, and `CONTEXT_PROFILES` are not in `__all__`. They are importable via their submodule paths (`from cohezion.agentjet.context_optimizer import ...`, `from cohezion.agentjet.embeddings import ...`) but are not part of the declared public API of the package. This is a minor surface-area gap, not a functional gap.
+
+---
+
+## Verdict: PARTIALLY COMPLIANT
+
+All implementation code is present and correct. The one confirmed gap is the offline vault indexing script (acknowledged in the checklist as not done). The `__init__.py` export surface is narrower than the "all 7 components" description would suggest — the embeddings and context optimizer classes are accessible but not re-exported. Everything else — safety protocol, training profiles, model registry, API endpoints, tests, systemd unit — fully matches spec.</result>
+<usage><total_tokens>91522</total_tokens><tool_uses>30</tool_uses><duration_ms>134731</duration_ms></usage>
+</task-notification>
+Full transcript available at: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/fa51e7c9-e669-4877-ac89-6ff357f6ba35/tasks/a42a441637dcfdda9.output

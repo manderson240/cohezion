@@ -1,0 +1,48 @@
+{
+  "cli_version": "0.5.1",
+  "checkpoint_id": "24210f43023f",
+  "session_id": "f152ac1c-cf5b-47c2-8dcf-dac7219a4908",
+  "strategy": "manual-commit",
+  "created_at": "2026-03-25T20:24:07.591545939Z",
+  "branch": "main",
+  "checkpoints_count": 14,
+  "files_touched": [
+    "anthropic-delivery",
+    "ollama-mcp",
+    "pyproject.toml",
+    "research/challenges/anthropic_challenge_original",
+    "scripts/cohezion-resources.service",
+    "scripts/index_vault_embeddings.py",
+    "scripts/start_resource_daemon.sh",
+    "src/cohezion/agentjet/__init__.py",
+    "src/cohezion/agentjet/judger.py",
+    "src/cohezion/agentjet/task_reader.py",
+    "src/cohezion/agentjet/trainer.py",
+    "src/cohezion/agentjet/unsloth_bridge.py",
+    "src/cohezion/agentjet/workflow.py",
+    "src/cohezion/api/__init__.py",
+    "src/cohezion/platform/tier_optimizer.py",
+    "src/cohezion/reliability/context_harness.py",
+    "src/cohezion/swarm/model_pool_config.py",
+    "tests/platform/test_tier_optimizer.py",
+    "uv.lock"
+  ],
+  "agent": "Claude Code",
+  "turn_id": "ffc05f6181cb",
+  "token_usage": {
+    "input_tokens": 3896,
+    "cache_creation_tokens": 530565,
+    "cache_read_tokens": 7835413,
+    "output_tokens": 43140,
+    "api_call_count": 81
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-03-25T20:24:07.312270844Z",
+    "agent_lines": 0,
+    "human_added": 90863,
+    "human_modified": 3248,
+    "human_removed": 0,
+    "total_committed": 93280,
+    "agent_percentage": 0
+  }
+}
