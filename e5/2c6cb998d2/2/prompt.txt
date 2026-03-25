@@ -1,0 +1,54 @@
+<teammate-message teammate_id="team-lead">
+You are implementing Workstream 4 of the Cohezion contribution plan. Your task is to write comprehensive tests for the untested 12D morphospace geometry layer.
+
+## Your deliverable
+Create the file: `tests/flume/test_morphospace_geometry.py`
+
+## Source files you're testing (read these first)
+1. `src/cohezion/flume/lcsp.py` — LCSP predictor (12D state transitions, HIHO=0.5 constant)
+2. `src/cohezion/flume/morphospace.py` — MorphospaceMapper (stability wells, navigation)
+3. `src/cohezion/flume/bioelectric.py` — BioelectricEngine (signal encoding, action vectors)
+
+## Tests to write
+
+### LCSP Predictor tests:
+- `test_predict_returns_lcsp_prediction` — 12D input returns LCSPPrediction with next_state, actions, confidence, hiho_stability
+- `test_predict_rejects_wrong_dimensions` — non-12D input raises ValueError
+- `test_hiho_stability_in_range` — hiho_stability is always in [0, 1]
+- `test_confidence_equals_hiho_stability` — confidence == hiho_stability
+- `test_actions_equal_state_difference` — actions == (next_state - input_state).tolist()
+- `test_lazy_initialization` — predictor initializes weights on first predict() call
+- `test_encode_decode_shapes` — encode returns (256,), decode returns (12,)
+
+### MorphospaceMapper tests:
+- `test_initialization_has_two_wells` — HIHO_Origin and Pure_Awareness
+- `test_compute_stability_max_at_hiho` — state with mean(abs)=0.5 → stability close to 1.0
+- `test_compute_stability_decreases_away_from_hiho` — states far from 0.5 coherence have lower stability
+- `test_find_nearest_well` — returns closest well by Euclidean distance
+- `test_navigate_to_well_converges` — final state is within target well radius
+- `test_navigate_path_metrics` — total_length > 0, avg_stability in [0, 1]
+- `test_discover_wells_with_seeded_random` — use np.random.seed(42) for reproducibility
+
+### BioelectricEngine tests:
+- `test_encode_signal_homeostatic` — near-zero gradient → "homeostatic" pattern
+- `test_encode_signal_regenerative` — far from HIHO → "regenerative" pattern  
+- `test_encode_signal_morphogenic` — normal distance → "morphogenic" pattern
+- `test_voltage_formula` — voltage = (mean(abs(state)) - 0.5) * 2
+- `test_decode_action_blends_with_hiho` — direction uses HIHO weight (0.5)
+- `test_step_moves_toward_target` — new state closer to target than old state
+- `test_simulate_morphogenesis_convergence` — simulation converges toward target well
+
+## Conventions
+- Use `import numpy as np` and `np.random.seed(42)` in fixtures for reproducibility
+- Use `np.testing.assert_array_almost_equal` for float comparisons
+- Use `pytest.raises(ValueError)` for error cases
+- Keep test functions focused (one assertion concept per test)
+- Use `@pytest.fixture` for common setup (predictor, mapper, engine instances)
+
+## Important
+- Check if `tests/flume/` directory exists. If not, ensure there's an `__init__.py` or verify the path.
+- Run `uv run pytest tests/flume/test_morphospace_geometry.py -q` after writing to verify all tests pass.
+- These are testing EXISTING working code — all tests should PASS. If a test fails, it's likely the test is wrong.
+
+After completing the task, mark task #2 as completed using TaskUpdate.
+</teammate-message>
