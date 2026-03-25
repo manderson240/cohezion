@@ -158,6 +158,9 @@ Created by adversarial code review on 2026-03-25:
 - [ ] [AI-Review][MEDIUM] Create API documentation for 11 MCP tools
 
 ### Low Priority
+- [ ] [AI-Review][LOW] Fix integration test: `test_session_lifecycle` failing - mock session_manager properly [tests/api/test_mcp_compound_api.py:201]
+- [ ] [AI-Review][LOW] Fix deprecation warning: `datetime.utcnow()` → `datetime.now(datetime.UTC)` [src/cohezion/compound/autoresearch.py:194]
+- [ ] [AI-Review][LOW] Add word boundary assertions to regex patterns [src/cohezion/compound/adversarial.py:36-41]
 - [ ] [AI-Review][LOW] Run formatter to fix long lines (>100 chars)
 - [ ] [AI-Review][LOW] Add missing docstrings to autoresearch.py classes
 - [ ] [AI-Review][LOW] Move hardcoded thresholds to config file

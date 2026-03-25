@@ -218,24 +218,38 @@ class TestMCPCompoundIntegrationFlow:
             "duration_seconds": 300,
         }
 
+        # Need to patch the global session_manager BEFORE importing functions
         with patch("cohezion.mcp.compound_server.session_manager") as mock_mgr:
-            mock_mgr.start_session.return_value = mock_summary
-            mock_mgr.check_alignment.return_value = MagicMock(
+            # Set up mock for start_session
+            start_mock = MagicMock()
+            start_mock.start_session.return_value = mock_summary
+            start_mock.check_alignment.return_value = MagicMock(
                 coherence=0.8, should_proceed=True, issues=[]
             )
-            mock_mgr.end_session.return_value = mock_summary
+            start_mock.end_session.return_value = mock_summary
 
-            # Start session
-            start_result = await compound_start_session(max_cache_entries=128)
-            assert start_result["status"] == "success"
+            # Import and patch
+            import cohezion.mcp.compound_server as server_module
 
-            # Check alignment
-            align_result = await compound_check_alignment(request="Test workflow", threshold=0.5)
-            assert align_result["status"] == "success"
+            original_session_manager = server_module.session_manager
+            server_module.session_manager = start_mock
 
-            # End session
-            end_result = await compound_end_session(save_cache=True)
-            assert end_result["status"] == "success"
+            try:
+                # Start session
+                start_result = await compound_start_session(max_cache_entries=128)
+                assert start_result["status"] == "success"
+
+                # Check alignment
+                align_result = await compound_check_alignment(
+                    request="Test workflow", threshold=0.5
+                )
+                assert align_result["status"] == "success"
+
+                # End session
+                end_result = await compound_end_session(save_cache=True)
+                assert end_result["status"] == "success"
+            finally:
+                server_module.session_manager = original_session_manager
 
     @pytest.mark.fast
     async def test_adversarial_review_workflow(self):
