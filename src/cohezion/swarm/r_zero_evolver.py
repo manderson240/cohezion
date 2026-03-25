@@ -1,4 +1,5 @@
 import asyncio
+import importlib.util
 import json
 import logging
 import re
@@ -7,8 +8,6 @@ from collections import Counter
 from pathlib import Path
 from typing import Any
 
-
-import importlib.util
 
 # Dynamically load the module from the kaggle-agi-benchmark directory
 prompt_path = str(

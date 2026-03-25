@@ -2,5 +2,5 @@
 
 from cohezion.compound.daemon.workflow_initializer import (
     CompoundEngineeringWorkflowInitializer,
-    get_workflow_initializer
+    get_workflow_initializer,
 )

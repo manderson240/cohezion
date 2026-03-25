@@ -130,9 +130,7 @@ class CohezionWorkflow:
             phi_score: float = float(trajectory_point.metadata.get("phi_score", 0.0))
             coherence: float = float(trajectory_point.coherence)
         except Exception as exc:
-            logger.warning(
-                "Journey tracking failed (non-blocking): %s", exc, exc_info=True
-            )
+            logger.warning("Journey tracking failed (non-blocking): %s", exc, exc_info=True)
             phi_score = float(result.metrics.get("coherence", 0.0))
             coherence = phi_score
 

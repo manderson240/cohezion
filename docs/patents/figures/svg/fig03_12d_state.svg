@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 800" width="800" height="800">
+  <title>FIG. 3: 12D Physics-Grounded State (Smith's 4 Fabrics)</title>
+  
+  <!-- Space Fabric -->
+  <rect x="50" y="50" width="350" height="350" fill="lightblue" stroke="black" stroke-width="2" rx="10"/>
+  <text x="225" y="80" text-anchor="middle" font-size="16" font-weight="bold">Space Fabric</text>
+  
+  <rect x="80" y="100" width="290" height="60" fill="white" stroke="black" stroke-width="1.5"/>
+  <text x="225" y="135" text-anchor="middle" font-size="14">Dim 1: spatial_x</text>
+  
+  <rect x="80" y="170" width="290" height="60" fill="white" stroke="black" stroke-width="1.5"/>
+  <text x="225" y="205" text-anchor="middle" font-size="14">Dim 2: spatial_y</text>
+  
+  <rect x="80" y="240" width="290" height="60" fill="white" stroke="black" stroke-width="1.5"/>
+  <text x="225" y="275" text-anchor="middle" font-size="14">Dim 3: spatial_z</text>
+  
+  <!-- Field Fabric -->
+  <rect x="400" y="50" width="350" height="350" fill="lightgreen" stroke="black" stroke-width="2" rx="10"/>
+  <text x="575" y="80" text-anchor="middle" font-size="16" font-weight="bold">Field Fabric</text>
+  
+  <rect x="430" y="100" width="290" height="60" fill="white" stroke="black" stroke-width="1.5"/>
+  <text x="575" y="135" text-anchor="middle" font-size="14">Dim 4: tempic_field</text>
+  
+  <rect x="430" y="170" width="290" height="60" fill="white" stroke="black" stroke-width="1.5"/>
+  <text x="575" y="205" text-anchor="middle" font-size="14">Dim 5: electric_field</text>
+  
+  <rect x="430" y="240" width="290" height="60" fill="white" stroke="black" stroke-width="1.5"/>
+  <text x="575" y="275" text-anchor="middle" font-size="14">Dim 6: magnetic_field</text>
+  
+  <!-- Control Fabric -->
+  <rect x="50" y="400" width="350" height="350" fill="lightcoral" stroke="black" stroke-width="2" rx="10"/>
+  <text x="225" y="430" text-anchor="middle" font-size="16" font-weight="bold">Control Fabric</text>
+  
+  <rect x="80" y="450" width="290" height="60" fill="white" stroke="black" stroke-width="1.5"/>
+  <text x="225" y="485" text-anchor="middle" font-size="14">Dim 7: spin_rotation</text>
+  
+  <rect x="80" y="520" width="290" height="60" fill="white" stroke="black" stroke-width="1.5"/>
+  <text x="225" y="555" text-anchor="middle" font-size="14">Dim 8: spin_precession</text>
+  
+  <rect x="80" y="590" width="290" height="60" fill="white" stroke="black" stroke-width="1.5"/>
+  <text x="225" y="625" text-anchor="middle" font-size="14">Dim 9: charge_polarity</text>
+  
+  <!-- Precipitation Fabric -->
+  <rect x="400" y="400" width="350" height="350" fill="lavender" stroke="black" stroke-width="2" rx="10"/>
+  <text x="575" y="430" text-anchor="middle" font-size="16" font-weight="bold">Precipitation Fabric</text>
+  
+  <rect x="430" y="450" width="290" height="60" fill="white" stroke="black" stroke-width="1.5"/>
+  <text x="575" y="485" text-anchor="middle" font-size="14">Dim 10: awareness</text>
+  
+  <rect x="430" y="520" width="290" height="60" fill="white" stroke="black" stroke-width="1.5"/>
+  <text x="575" y="555" text-anchor="middle" font-size="14">Dim 11: novelty</text>
+  
+  <rect x="430" y="590" width="290" height="60" fill="white" stroke="black" stroke-width="1.5"/>
+  <text x="575" y="625" text-anchor="middle" font-size="14">Dim 12: precipitation</text>
+  
+  <!-- Central label -->
+  <rect x="250" y="350" width="300" height="100" fill="yellow" stroke="orange" stroke-width="2" rx="10"/>
+  <text x="400" y="390" text-anchor="middle" font-size="18" font-weight="bold">12D Observable State</text>
+  <text x="400" y="420" text-anchor="middle" font-size="12" font-style="italic">Smith's 12-Parameter Reality</text>
+  
+  <!-- Attribution -->
+  <text x="400" y="780" text-anchor="middle" font-size="12" font-style="italic">Smith's 12-Parameter Reality Framework (1962)</text>
+</svg>

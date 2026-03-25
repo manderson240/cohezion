@@ -4,12 +4,13 @@ Tracks usage metrics per skill: invocation count, success rate, token usage,
 quality scores, and computed health scores. Enables identification of stale
 or unhealthy skills for pruning.
 """
+
 from __future__ import annotations
 
 import json
 import math
-from dataclasses import asdict, dataclass, field
-from datetime import datetime, timezone
+from dataclasses import asdict, dataclass
+from datetime import UTC, datetime
 from pathlib import Path
 
 
@@ -55,7 +56,7 @@ class SkillHealthRecord:
             return 0.0
         recency = 1.0
         if self.last_used:
-            days_ago = (datetime.now(timezone.utc) - datetime.fromisoformat(self.last_used)).days
+            days_ago = (datetime.now(UTC) - datetime.fromisoformat(self.last_used)).days
             recency = math.exp(-0.693 * days_ago / 90.0)  # 90-day half-life
         return self.success_rate * recency
 
@@ -97,7 +98,7 @@ class SkillHealthTracker:
         if skill_name not in self._records:
             self._records[skill_name] = SkillHealthRecord(
                 skill_name=skill_name,
-                created_date=datetime.now(timezone.utc).isoformat(),
+                created_date=datetime.now(UTC).isoformat(),
             )
         record = self._records[skill_name]
         record.total_invocations += 1
@@ -107,7 +108,7 @@ class SkillHealthTracker:
         else:
             record.failed_invocations += 1
         record.total_tokens_used += tokens_used
-        record.last_used = datetime.now(timezone.utc).isoformat()
+        record.last_used = datetime.now(UTC).isoformat()
         self._save()
 
     def get_health(self, skill_name: str) -> SkillHealthRecord | None:
@@ -120,7 +121,7 @@ class SkillHealthTracker:
 
     def get_stale_skills(self, days: int = 30) -> list[str]:
         """Return skill names not used within the given number of days."""
-        cutoff = datetime.now(timezone.utc)
+        cutoff = datetime.now(UTC)
         stale = []
         for name, record in self._records.items():
             if not record.last_used:

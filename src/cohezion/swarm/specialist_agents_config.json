@@ -1,0 +1,175 @@
+{
+  "meta": {
+    "version": "1.0.0",
+    "created": "2026-03-21",
+    "purpose": "Reusable specialist agent definitions for compound engineering swarm consensus",
+    "theory": "Expert Domain Lattice: 5 specialist perspectives create consensus space with HIHO stability at 3/5 agreement (0.6 coherence)"
+  },
+  "agents": [
+    {
+      "role": "architect",
+      "name": "System Architect",
+      "model": "qwen3-coder:30b",
+      "weight": 1.0,
+      "expertise": [
+        "System design",
+        "Architectural patterns",
+        "Module boundaries",
+        "Integration points",
+        "Scalability",
+        "Abstraction layers"
+      ],
+      "review_focus": [
+        "Does this fit the overall system architecture?",
+        "Are module boundaries clean?",
+        "Is this the right level of abstraction?",
+        "Will this scale?",
+        "Are there hidden coupling issues?"
+      ],
+      "decision_weight": "High for structural changes, medium for implementation details",
+      "prompt_template": "As the System Architect, evaluate this change from a structural perspective. Consider: architecture alignment, module boundaries, abstraction levels, scalability, and integration points. Focus on whether this is the RIGHT design, not just a working design."
+    },
+    {
+      "role": "engineer",
+      "name": "Physics Engineer",
+      "model": "qwen3-coder:30b",
+      "weight": 1.0,
+      "expertise": [
+        "Smith's 12-parameter reality model",
+        "SPIN physics (rotation + precession → charge)",
+        "Tempic field calculations",
+        "HIHO stability (0.5 coherence)",
+        "Precipitation gate mechanics",
+        "Computational physics accuracy"
+      ],
+      "review_focus": [
+        "Is the physics implementation correct per Smith (1962)?",
+        "Does SPIN coherence calculation match toroidal momentum theory?",
+        "Is the precipitation gate using multi-physics convergence correctly?",
+        "Are all 12 parameters accounted for?",
+        "Does this maintain HIHO stability?"
+      ],
+      "decision_weight": "Critical for universe simulation code, low for non-physics modules",
+      "prompt_template": "As the Physics Engineer, validate this implementation against Smith's 12-parameter reality model and SPIN physics. Check: parameter completeness, HIHO stability maintenance, precipitation gate correctness, Tempic field calculations, and toroidal momentum coherence. Reject anything that contradicts the 400-year physics lineage."
+    },
+    {
+      "role": "biologist",
+      "name": "Emergence Biologist",
+      "model": "deepseek-r1:14b",
+      "weight": 0.8,
+      "expertise": [
+        "Self-organizing systems",
+        "Agent emergence patterns",
+        "Life-like behavior",
+        "Evolutionary dynamics",
+        "Morphogenetic fields",
+        "Complex adaptive systems"
+      ],
+      "review_focus": [
+        "Does this enable emergent behavior?",
+        "Are agent dynamics life-like?",
+        "Is there potential for self-organization?",
+        "Does this support evolutionary learning?",
+        "Are feedback loops healthy?"
+      ],
+      "decision_weight": "High for agent systems and universe dynamics, low for infrastructure",
+      "prompt_template": "As the Emergence Biologist, assess this change from a life-systems perspective. Consider: emergent behavior potential, self-organization capacity, agent dynamics naturalness, evolutionary viability, and feedback loop health. Look for patterns that mirror biological systems or violate life principles."
+    },
+    {
+      "role": "qhw",
+      "name": "Quantum Hardware Specialist",
+      "model": "phi3:mini",
+      "weight": 0.6,
+      "expertise": [
+        "Low-level optimization",
+        "Memory access patterns",
+        "Cache coherence",
+        "SIMD/vectorization",
+        "Hardware acceleration (AMD-specific)",
+        "Performance profiling"
+      ],
+      "review_focus": [
+        "Are memory access patterns cache-friendly?",
+        "Can this be vectorized?",
+        "Is there unnecessary memory allocation?",
+        "Are there performance bottlenecks?",
+        "Does this leverage AMD hardware efficiently?"
+      ],
+      "decision_weight": "Critical for performance-critical paths, advisory for business logic",
+      "prompt_template": "As the Quantum Hardware Specialist, analyze this code for performance and hardware efficiency. Consider: memory access patterns, vectorization opportunities, cache coherence, allocation overhead, and AMD-specific optimizations (AVX-512, unified memory). Focus on what runs efficiently on Strix Halo (Ryzen AI MAX+ 395)."
+    },
+    {
+      "role": "qalgo",
+      "name": "Quantum Algorithm Specialist",
+      "model": "qwen3-coder:30b",
+      "weight": 1.0,
+      "expertise": [
+        "Algorithmic correctness",
+        "Computational complexity",
+        "Numerical stability",
+        "Edge case handling",
+        "Mathematical rigor",
+        "Proof techniques"
+      ],
+      "review_focus": [
+        "Is the algorithm mathematically correct?",
+        "Are edge cases handled?",
+        "Is this numerically stable?",
+        "What's the computational complexity?",
+        "Are there off-by-one errors or boundary issues?"
+      ],
+      "decision_weight": "Critical for correctness, high for core algorithms",
+      "prompt_template": "As the Quantum Algorithm Specialist, verify the mathematical and algorithmic correctness of this implementation. Check: algorithm correctness, edge case coverage, numerical stability, complexity analysis, boundary conditions, and proof of correctness. Reject anything with logical flaws or unhandled edge cases."
+    }
+  ],
+  "consensus_rules": {
+    "minimum_agreement": 0.6,
+    "quorum": 3,
+    "blocking_roles": ["engineer", "qalgo"],
+    "advisory_roles": ["qhw"],
+    "explanation": "HIHO consensus: ≥3/5 agents must agree (0.6 threshold). Engineer and QAlgo can block on correctness issues. QHW is advisory (performance suggestions don't block).",
+    "decision_matrix": {
+      "APPROVE": "≥3 agents approve with no blocking rejections",
+      "REVISE": "2 agents approve OR 1 blocking rejection with constructive feedback",
+      "REJECT": "≤1 agent approves OR 2+ blocking rejections"
+    }
+  },
+  "usage_examples": [
+    {
+      "scenario": "Adding precipitation_gate() to AxiomaticState",
+      "expected_weights": {
+        "architect": 0.8,
+        "engineer": 1.0,
+        "biologist": 0.6,
+        "qhw": 0.4,
+        "qalgo": 1.0
+      },
+      "rationale": "Physics correctness (engineer) and mathematical rigor (qalgo) are critical. Architecture matters (method placement). Biology (emergence) and hardware (perf) are less critical for correctness."
+    },
+    {
+      "scenario": "Optimizing FLUME VAE training loop",
+      "expected_weights": {
+        "architect": 0.6,
+        "engineer": 0.5,
+        "biologist": 0.7,
+        "qhw": 1.0,
+        "qalgo": 0.8
+      },
+      "rationale": "Hardware optimization (qhw) is primary. Algorithm correctness (qalgo) matters for convergence. Biologist assesses learning dynamics. Physics and architecture are secondary."
+    },
+    {
+      "scenario": "Creating UniverseManager interface",
+      "expected_weights": {
+        "architect": 1.0,
+        "engineer": 0.7,
+        "biologist": 0.5,
+        "qhw": 0.3,
+        "qalgo": 0.6
+      },
+      "rationale": "Pure architectural design. Architect dominates. Engineer ensures physics compatibility. Other roles are advisory."
+    }
+  ],
+  "integration_code": {
+    "python_example": "from cohezion.swarm.team_execution import TeamExecutor\nfrom cohezion.swarm.swarm_types import SwarmConfig\nimport json\n\n# Load specialist config\nwith open('src/cohezion/swarm/specialist_agents_config.json') as f:\n    specialist_config = json.load(f)\n\n# Create swarm config\nconfig = SwarmConfig(\n    agents=[\n        {\"role\": agent[\"role\"], \n         \"model\": agent[\"model\"], \n         \"weight\": agent[\"weight\"]}\n        for agent in specialist_config[\"agents\"]\n    ],\n    consensus_threshold=specialist_config[\"consensus_rules\"][\"minimum_agreement\"]\n)\n\n# Execute swarm review\nexecutor = TeamExecutor(config=config)\nreviews = await executor.execute_swarm(\n    prompt=review_prompt,\n    task_context={\"improvement_goal\": \"Add precipitation_gate()\"}\n)\n\n# Calculate consensus\nconsensus = calculate_consensus(\n    reviews, \n    threshold=config.consensus_threshold,\n    blocking_roles=specialist_config[\"consensus_rules\"][\"blocking_roles\"]\n)"
+  }
+}

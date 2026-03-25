@@ -8,8 +8,9 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass
-from typing import Any
 from pathlib import Path
+from typing import Any
+
 
 logger = logging.getLogger(__name__)
 
@@ -22,6 +23,7 @@ def get_test_count() -> int:
 @dataclass
 class ImprovementOpportunity:
     """An opportunity for code improvement identified by the Challenger."""
+
     description: str
     line_start: int
     line_end: int
@@ -61,16 +63,18 @@ class RecursiveChallenger:
         # Simple heuristic for this specific task
         if "immune_system" in self.target_module:
             try:
-                with open("src/cohezion/healing/immune_system.py", "r") as f:
+                with open("src/cohezion/healing/immune_system.py") as f:
                     content = f.read()
-                
-                if content.count("logger.info(\"Ouroboros: Verifying patch with pytest...\")") > 1:
-                    return [ImprovementOpportunity(
-                        description="Remove duplicate code in execute_patch",
-                        line_start=201,
-                        line_end=218,
-                        has_test_coverage=True
-                    )]
+
+                if content.count('logger.info("Ouroboros: Verifying patch with pytest...")') > 1:
+                    return [
+                        ImprovementOpportunity(
+                            description="Remove duplicate code in execute_patch",
+                            line_start=201,
+                            line_end=218,
+                            has_test_coverage=True,
+                        )
+                    ]
             except Exception as e:
                 logger.error(f"Failed to analyze source: {e}")
         return []
@@ -78,7 +82,7 @@ class RecursiveChallenger:
     def execute_improvement_cycle(self) -> bool:
         """Execute one complete TDD improvement cycle."""
         opportunities = self.analyze()
-        
+
         if not opportunities:
             logger.info("No improvement opportunities found.")
             return False
@@ -93,9 +97,9 @@ class RecursiveChallenger:
                 title=f"Autonomous Improvement: {self.target_module}",
                 context=target.description,
                 decision="Applied code transformation and validated with tests",
-                rationale="RecursiveChallenger identified optimization opportunity"
+                rationale="RecursiveChallenger identified optimization opportunity",
             )
-            
+
         return success
 
     def _apply_improvement(self, target: ImprovementOpportunity) -> bool:
@@ -103,10 +107,12 @@ class RecursiveChallenger:
         if "duplicate" in target.description.lower() and "immune_system" in self.target_module:
             try:
                 source_path = "src/cohezion/healing/immune_system.py"
-                
+
                 # Security Gate 1: Perimeter Check
                 if not self._validate_path(source_path):
-                    logger.error(f"Security Violation: Target path {source_path} is outside safe perimeter.")
+                    logger.error(
+                        f"Security Violation: Target path {source_path} is outside safe perimeter."
+                    )
                     return False
 
                 # Security Gate 2: Shadow Staging (Non-Executable)
@@ -115,7 +121,9 @@ class RecursiveChallenger:
                     staging_dir = Path("src/staging")
                     staging_dir.mkdir(exist_ok=True)
                     target_path = str(staging_dir / "immune_system_patch.txt")
-                    logger.info(f"Security: Writing non-executable patch to Shadow Staging at {target_path}")
+                    logger.info(
+                        f"Security: Writing non-executable patch to Shadow Staging at {target_path}"
+                    )
 
                 with open(source_path) as f:
                     lines = f.readlines()

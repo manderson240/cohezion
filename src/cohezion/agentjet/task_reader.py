@@ -35,7 +35,9 @@ from typing import Any
 
 logger = logging.getLogger(__name__)
 
-_DEFAULT_PATH = Path(__file__).resolve().parents[3] / "data" / "training" / "finetune_journeys.jsonl"
+_DEFAULT_PATH = (
+    Path(__file__).resolve().parents[3] / "data" / "training" / "finetune_journeys.jsonl"
+)
 
 
 class JourneyTaskReader:
@@ -101,8 +103,7 @@ class JourneyTaskReader:
                 break
 
         logger.info(
-            "JourneyTaskReader.read: %d/%d records pass filters "
-            "(skill_filter=%r, min_phi=%.2f)",
+            "JourneyTaskReader.read: %d/%d records pass filters (skill_filter=%r, min_phi=%.2f)",
             len(filtered),
             len(records),
             skill_filter,
@@ -227,9 +228,7 @@ class JourneyTaskReader:
             return []
 
         records = [self._normalise_collector_record(r) for r in raw_records]
-        logger.debug(
-            "Loaded %d records from ExperienceCollector", len(records)
-        )
+        logger.debug("Loaded %d records from ExperienceCollector", len(records))
         return records
 
     # ------------------------------------------------------------------

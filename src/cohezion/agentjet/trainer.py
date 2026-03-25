@@ -1,16 +1,18 @@
 """AgentJet RL training orchestrator for the CALL loop."""
+
 from __future__ import annotations
 
 import asyncio
 import logging
 import time
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from pathlib import Path
 from typing import TYPE_CHECKING, Literal
 
 from cohezion.agentjet.context_optimizer import MODEL_OLLAMA_KEY_MAP, OllamaContextManager
 from cohezion.agentjet.judger import PhiScoreJudger
 from cohezion.agentjet.task_reader import JourneyTaskReader
+
 
 _PROJECT_ROOT = Path(__file__).resolve().parents[3]
 _DATA_DIR = _PROJECT_ROOT / "data" / "training"
@@ -26,12 +28,12 @@ class TrainingResult:
     """Result of a single AgentJet CALL training cycle."""
 
     success: bool
-    model_name: str           # Final Ollama model name after training
-    base_model: str           # Model that was fine-tuned
+    model_name: str  # Final Ollama model name after training
+    base_model: str  # Model that was fine-tuned
     skill_domain: str | None  # Which skill domain was trained
     epochs_completed: int
     samples_used: int
-    avg_reward: float         # Average reward from PhiScoreJudger
+    avg_reward: float  # Average reward from PhiScoreJudger
     training_duration_s: float
     output_path: Path | None  # Path to GGUF or config script
     error: str | None = None  # Error message if success=False
@@ -116,8 +118,7 @@ class AgentJetTrainer:
         tasks = self.reader.read(skill_filter=skill_domain, min_phi=min_phi)
         if not tasks:
             logger.warning(
-                "AgentJetTrainer.train: no tasks matched filters "
-                "(skill_domain=%r, min_phi=%.2f)",
+                "AgentJetTrainer.train: no tasks matched filters (skill_domain=%r, min_phi=%.2f)",
                 skill_domain,
                 min_phi,
             )
@@ -156,9 +157,7 @@ class AgentJetTrainer:
 
             # 5. Run training backend
             if not dry_run:
-                output_path = await self._run_training(
-                    target_model, tasks, skill_domain, epochs
-                )
+                output_path = await self._run_training(target_model, tasks, skill_domain, epochs)
 
             # 6. Build final model name
             domain = skill_domain or "general"
@@ -206,9 +205,7 @@ class AgentJetTrainer:
                 try:
                     await self.context_manager.reload_inference_models()
                 except Exception as reload_exc:
-                    logger.warning(
-                        "Inference model reload failed (non-fatal): %s", reload_exc
-                    )
+                    logger.warning("Inference model reload failed (non-fatal): %s", reload_exc)
 
             # Release training lock regardless of outcome
             if training_lock is not None:
@@ -220,9 +217,7 @@ class AgentJetTrainer:
                     await client.release_training_lock(lock_id)
                     logger.debug("AgentJetTrainer: released training lock %s", lock_id)
                 except Exception as lock_exc:
-                    logger.warning(
-                        "Training lock release failed (non-fatal): %s", lock_exc
-                    )
+                    logger.warning("Training lock release failed (non-fatal): %s", lock_exc)
                 finally:
                     training_lock = None
 
@@ -251,9 +246,7 @@ class AgentJetTrainer:
 
             client = ResourceClient()
             if client.is_daemon_running():
-                lock = await client.acquire_training_lock(
-                    model, required_gb, timeout_s=30.0
-                )
+                lock = await client.acquire_training_lock(model, required_gb, timeout_s=30.0)
                 if lock is None:
                     raise ResourceUnavailableError(
                         f"Platform daemon denied training lock for {model} "
@@ -266,9 +259,7 @@ class AgentJetTrainer:
                 )
                 return lock
         except ImportError:
-            logger.debug(
-                "cohezion.platform.resource_manager unavailable; using local OOM check"
-            )
+            logger.debug("cohezion.platform.resource_manager unavailable; using local OOM check")
 
         # Fallback: local available memory estimate
         available = await self.context_manager.get_available_memory_gb()

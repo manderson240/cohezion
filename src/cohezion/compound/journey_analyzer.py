@@ -24,7 +24,7 @@ from __future__ import annotations
 
 import json
 import logging
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
 from pathlib import Path
@@ -376,7 +376,7 @@ class JourneyAnalyzer:
         labels = dbscan.fit_predict(features)
 
         # Handle noise points (label = -1)
-        n_actual_clusters = len([l for l in labels if l >= 0])
+        len([l for l in labels if l >= 0])
         unique_labels = set(labels) - {-1}
 
         centers = []
@@ -409,8 +409,8 @@ class JourneyAnalyzer:
         n_clusters: int,
     ) -> ClusteringResult:
         """Gaussian Mixture Model clustering."""
-        from sklearn.mixture import GaussianMixture
         from sklearn.metrics import silhouette_score
+        from sklearn.mixture import GaussianMixture
 
         gmm = GaussianMixture(
             n_components=n_clusters,

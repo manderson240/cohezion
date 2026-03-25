@@ -543,14 +543,14 @@ def create_server(config: ServerConfig) -> FastMCP:
 
         @mcp.tool()
         def surrealdb_import_papers() -> str:
-            """Import all papers from vault/papers/ to SurrealDB.
+            """Import all cortex notes from vault/cortex/ to SurrealDB.
 
-            Performs bulk import of all paper markdown files, extracting:
+            Performs bulk import of all cortex (knowledge) markdown files, extracting:
             - Frontmatter metadata (title, date, tags)
             - Wiki-links to concepts
             - Content for indexing
 
-            Returns count of papers imported.
+            Returns count of notes imported.
             """
             try:
                 count = surrealdb.bulk_import_papers()
@@ -561,13 +561,13 @@ def create_server(config: ServerConfig) -> FastMCP:
 
         @mcp.tool()
         def surrealdb_import_concepts() -> str:
-            """Import all concepts from vault/concepts/ to SurrealDB.
+            """Import all cerebellum notes from vault/cerebellum/ to SurrealDB.
 
-            Performs bulk import of all concept markdown files, extracting:
+            Performs bulk import of all cerebellum (operational) markdown files, extracting:
             - Frontmatter metadata (title, tags)
             - Content for indexing
 
-            Returns count of concepts imported.
+            Returns count of notes imported.
             """
             try:
                 count = surrealdb.bulk_import_concepts()
@@ -580,7 +580,7 @@ def create_server(config: ServerConfig) -> FastMCP:
         def surrealdb_start_watching() -> str:
             """Start real-time file watching for vault changes.
 
-            Monitors papers/, concepts/, patterns/, and decisions/ directories
+            Monitors cortex/, cerebellum/, patterns/, and decisions/ directories
             for file modifications and creations. Changes are automatically
             synced to SurrealDB in real-time.
 

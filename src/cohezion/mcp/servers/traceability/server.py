@@ -23,14 +23,14 @@ Tools:
 
 from __future__ import annotations
 
-import json
 import os
 import subprocess
+from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 
 from mcp import Server
-from mcp.types import Tool
+
 
 # Configuration
 MCP_PORT = int(os.environ.get("MCP_PORT", "8362"))
@@ -47,7 +47,7 @@ app = Server("traceability")
 
 
 @app.tool()
-def traceability_run_engine(self_trace: bool = False) -> Dict[str, Any]:
+def traceability_run_engine(self_trace: bool = False) -> dict[str, Any]:
     """Execute traceability extraction engine.
 
     Args:
@@ -86,7 +86,7 @@ def traceability_run_engine(self_trace: bool = False) -> Dict[str, Any]:
 
 
 @app.tool()
-def traceability_run_health() -> Dict[str, Any]:
+def traceability_run_health() -> dict[str, Any]:
     """Run repository health check.
 
     Returns:
@@ -115,7 +115,7 @@ def traceability_run_health() -> Dict[str, Any]:
 
 
 @app.tool()
-def traceability_trigger_party() -> Dict[str, Any]:
+def traceability_trigger_party() -> dict[str, Any]:
     """Trigger party-mode adversarial review.
 
     Returns:
@@ -179,7 +179,7 @@ def traceability_get_dashboard() -> str:
 
 
 @app.tool()
-def traceability_get_findings() -> Dict[str, Any]:
+def traceability_get_findings() -> dict[str, Any]:
     """Get recent adversarial review findings.
 
     Returns:
@@ -221,7 +221,7 @@ def traceability_get_findings() -> Dict[str, Any]:
 @app.tool()
 def traceability_auto_commit(
     message: str = "Auto-commit traceability improvements",
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Auto-commit traceability improvements.
 
     Args:
@@ -280,11 +280,12 @@ async def get_findings_resource() -> str:
 def main():
     """Main entry point."""
     import asyncio
+
     from mcp.server import stdio
 
     print(f"🔍 Traceability MCP Server starting on port {MCP_PORT}")
     print(f"📁 Project root: {PROJECT_ROOT}")
-    print(f"📊 Tools: 6 (engine, health, party, dashboard, findings, commit)")
+    print("📊 Tools: 6 (engine, health, party, dashboard, findings, commit)")
 
     # Run server
     asyncio.run(stdio.run(app))

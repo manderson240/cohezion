@@ -1,10 +1,12 @@
 """Data-driven model tier optimization based on cross-session usage."""
+
 from __future__ import annotations
 
 import logging
 import time
 from dataclasses import dataclass
 from enum import Enum
+
 
 logger = logging.getLogger(__name__)
 
@@ -18,8 +20,8 @@ _TIER_ORDER = {_HOT: 2, _WARM: 1, _COLD: 0}
 
 class TierRecommendation(Enum):
     PROMOTE = "promote"  # Move to higher tier (COLD→WARM, WARM→HOT)
-    DEMOTE = "demote"    # Move to lower tier
-    KEEP = "keep"        # No change
+    DEMOTE = "demote"  # Move to lower tier
+    KEEP = "keep"  # No change
 
 
 @dataclass
@@ -43,14 +45,14 @@ class TierOptimizer:
     """
 
     PROMOTE_THRESHOLD_HOURS: float = 0.5  # 30 min/day avg
-    PROMOTE_SESSION_PCT: float = 0.5      # 50% of sessions must have used it
+    PROMOTE_SESSION_PCT: float = 0.5  # 50% of sessions must have used it
     DEMOTE_UNUSED_DAYS: int = 14
 
     def recommend_tier_changes(
         self,
-        usage_histogram: dict[str, float],        # model → hours/day (7-day avg)
-        session_records: list,                     # list[SessionRecord]
-        current_tiers: dict[str, str],             # model → "hot"|"warm"|"cold"
+        usage_histogram: dict[str, float],  # model → hours/day (7-day avg)
+        session_records: list,  # list[SessionRecord]
+        current_tiers: dict[str, str],  # model → "hot"|"warm"|"cold"
     ) -> list[TierChange]:
         """Return a list of suggested tier changes.
 
@@ -87,8 +89,7 @@ class TierOptimizer:
                 sessions_used=len(session_per_model.get(model, set())),
                 has_inference=bool(inference_sessions.get(model)),
                 has_only_training=(
-                    bool(training_sessions.get(model))
-                    and not inference_sessions.get(model)
+                    bool(training_sessions.get(model)) and not inference_sessions.get(model)
                 ),
                 last_used_at=newest_use.get(model, 0.0),
             )
@@ -132,11 +133,14 @@ class TierOptimizer:
         ):
             target = self._next_tier_up(current_tier)
             if target != current_tier:
-                confidence = min(
-                    1.0,
-                    (hours_per_day / self.PROMOTE_THRESHOLD_HOURS) * 0.5
-                    + (session_pct / self.PROMOTE_SESSION_PCT) * 0.5,
-                ) * 0.95
+                confidence = (
+                    min(
+                        1.0,
+                        (hours_per_day / self.PROMOTE_THRESHOLD_HOURS) * 0.5
+                        + (session_pct / self.PROMOTE_SESSION_PCT) * 0.5,
+                    )
+                    * 0.95
+                )
                 return TierChange(
                     model_name=model,
                     current_tier=current_tier,
@@ -151,11 +155,7 @@ class TierOptimizer:
             return None  # Already HOT
 
         # Rule 3: unused demotion
-        days_since_use = (
-            (time.time() - last_used_at) / 86400
-            if last_used_at > 0
-            else float("inf")
-        )
+        days_since_use = (time.time() - last_used_at) / 86400 if last_used_at > 0 else float("inf")
         if days_since_use > self.DEMOTE_UNUSED_DAYS:
             target = self._next_tier_down(current_tier)
             if target != current_tier:

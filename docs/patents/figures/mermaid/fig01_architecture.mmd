@@ -1,0 +1,36 @@
+graph LR
+    subgraph Knower["Knower Encoder (2048D)"]
+        A[Text Input] --> B[LLM Embedding]
+        B --> C[2048D Vector]
+    end
+    
+    subgraph Thinker["Thinker VAE (512D)"]
+        C --> D[Encoder]
+        D --> E[μ, log σ²]
+        E --> F[Reparameterization]
+        F --> G[512D Latent z]
+    end
+    
+    subgraph Doer["Doer Projector (12D)"]
+        G --> H[Projection Layer]
+        H --> I[12D Observable]
+    end
+    
+    subgraph Coherence["Coherence Regularizer"]
+        G --> J[Coherence Loss]
+        J --> K[0.5 Target]
+    end
+    
+    subgraph Navigator["Trajectory Navigator"]
+        G --> L[Geodesic Prediction]
+        L --> M[Trajectory Points]
+    end
+    
+    I --> N[Observable Output]
+    M --> O[Journey Logging]
+    
+    style Knower fill:lightblue,stroke:blue,stroke-width:2px
+    style Thinker fill:lightgreen,stroke:green,stroke-width:2px
+    style Doer fill:lightcoral,stroke:red,stroke-width:2px
+    style Coherence fill:yellow,stroke:orange,stroke-width:2px,stroke-dasharray: 5 5
+    style Navigator fill:lavender,stroke:purple,stroke-width:2px,stroke-dasharray: 5 5

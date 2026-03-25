@@ -73,6 +73,7 @@ uv run python -m cohezion simulate --example coherence_walk  # Run simulation
 ## 6. Operational Guardrails
 - **No Large Files**: Files > 1MB must use `git-lfs` or external storage.
 - **Circuit Breakers**: Use `cohezion.reliability.get_circuit()` for external calls.
+- **Ralph Loop & Autoresearch**: For every significant change or fix, execute a recursive [Benchmark -> Gate -> Propose -> Apply -> Verify] loop. Use `pytest` and diagnostic tools to ensure work is functional before posting. Aim for ≥0.5 HIHO coherence.
 - **Reward System**: Agent progress is tracked via XP and achievements (see `cohezion rewards status`).
 - **Ouroboros**: System flight recorder for self-healing (see `cohezion ouroboros`).
 

@@ -17,11 +17,11 @@ from fastapi.responses import JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, field_validator
 
+from cohezion.api.telemetry import router as telemetry_router
 from cohezion.mcp.knowledge_server import get_server as get_knowledge_server
 from cohezion.mcp.registry import get_registry
 from cohezion.mcp.swarm_server import get_server as get_swarm_server
 from cohezion.security.rate_limiter import get_rate_limiter
-from cohezion.api.telemetry import router as telemetry_router
 
 
 logging.basicConfig(level=logging.INFO)
@@ -626,8 +626,9 @@ async def flume_latent_space(request: FlumeLatentSpaceRequest):
     """Sample the VAE latent space and return PCA-reduced 3D coordinates for visualization."""
     import asyncio
     import time
-    import torch
+
     import numpy as np
+    import torch
     from sklearn.decomposition import PCA
 
     # Validate parameters (prevent DOS, invalid inputs)
@@ -683,7 +684,7 @@ async def flume_latent_space(request: FlumeLatentSpaceRequest):
             n_components = min(3, z_dim, request.n_samples)
             pca = PCA(n_components=n_components)
             samples_3d = await loop.run_in_executor(None, pca.fit_transform, z_samples_np)
-    except asyncio.TimeoutError:
+    except TimeoutError:
         raise HTTPException(
             status_code=504,
             detail="PCA computation timed out. Try reducing n_samples",
@@ -1767,8 +1768,9 @@ async def agentjet_models() -> dict:
 # Reference: https://github.com/a2a-protocol/a2a
 # ============================================================================
 
-from cohezion.protocols.a2a_server import A2AServer, AgentCard
 from cohezion.mcp.manager.auth import validate_token
+from cohezion.protocols.a2a_server import A2AServer, AgentCard
+
 
 # Initialize A2A server (singleton at module level)
 _a2a_server = A2AServer(

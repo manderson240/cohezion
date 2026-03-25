@@ -29,7 +29,11 @@ def extended_detect_document_type(file_path: Path, vault_path: Path) -> str:
     rel_path = file_path.relative_to(vault_path)
     first_dir = rel_path.parts[0] if len(rel_path.parts) > 1 else ""
 
-    if first_dir == "papers":
+    if first_dir == "cortex":
+        return "neuron"
+    elif first_dir == "cerebellum":
+        return "neuron"
+    elif first_dir == "papers":
         return "paper"
     elif first_dir == "concepts":
         return "concept"
@@ -69,16 +73,18 @@ logger = logging.getLogger(__name__)
 
 VAULT_PATH = Path("/home/mike-anderson/vaults/cohezion-vault")
 OLLAMA_URL = "http://localhost:11434"
-SURREALDB_URL = "http://localhost:8000"
+SURREALDB_URL = "http://localhost:8001"
 
 # Directories to import (order matters: import targets before sources for edges)
 DIRECTORIES = [
-    ("concepts", False),  # non-recursive
-    ("papers", False),  # non-recursive
-    ("decisions", False),  # non-recursive
+    ("cortex", False),        # knowledge neurons (physics, ML, cosmologies, MOCs)
+    ("cerebellum", False),    # operational neurons (coordination patterns)
+    ("concepts", False),      # non-recursive
+    ("papers", False),        # non-recursive
+    ("decisions", False),     # non-recursive
     ("patterns/lessons", False),  # lessons subdirectory
-    ("patterns", False),  # patterns root (non-recursive to avoid re-importing lessons)
-    ("experiments", False),  # non-recursive
+    ("patterns", False),      # patterns root (non-recursive to avoid re-importing lessons)
+    ("experiments", False),   # non-recursive
 ]
 
 

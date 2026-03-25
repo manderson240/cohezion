@@ -1,4 +1,5 @@
 """Platform resource arbiter for cross-session memory coordination."""
+
 from __future__ import annotations
 
 import asyncio
@@ -10,6 +11,7 @@ from typing import Any
 
 import aiohttp
 from aiohttp import web
+
 
 logger = logging.getLogger(__name__)
 
@@ -103,19 +105,21 @@ class ResourceClient:
         """Return current memory state from daemon or local Ollama poll."""
         if self.is_daemon_running():
             try:
-                async with aiohttp.ClientSession() as session:
-                    async with session.get(
+                async with (
+                    aiohttp.ClientSession() as session,
+                    session.get(
                         f"{self.DAEMON_URL}/memory", timeout=aiohttp.ClientTimeout(total=5)
-                    ) as resp:
-                        data = await resp.json()
-                        return PlatformMemoryState(
-                            total_gb=data.get("total_gb", 128.0),
-                            ollama_used_gb=data.get("ollama_used_gb", 0.0),
-                            system_reserved_gb=data.get("system_reserved_gb", 8.0),
-                            training_reserved_gb=data.get("training_reserved_gb", 0.0),
-                            safety_buffer_gb=data.get("safety_buffer_gb", 10.0),
-                            loaded_models=data.get("loaded_models", []),
-                        )
+                    ) as resp,
+                ):
+                    data = await resp.json()
+                    return PlatformMemoryState(
+                        total_gb=data.get("total_gb", 128.0),
+                        ollama_used_gb=data.get("ollama_used_gb", 0.0),
+                        system_reserved_gb=data.get("system_reserved_gb", 8.0),
+                        training_reserved_gb=data.get("training_reserved_gb", 0.0),
+                        safety_buffer_gb=data.get("safety_buffer_gb", 10.0),
+                        loaded_models=data.get("loaded_models", []),
+                    )
             except aiohttp.ClientError as exc:
                 logger.warning("Daemon unreachable, falling back to local poll: %s", exc)
 
@@ -125,17 +129,15 @@ class ResourceClient:
         """Poll Ollama /api/ps directly and build a best-effort memory state."""
         state = PlatformMemoryState()
         try:
-            async with aiohttp.ClientSession() as session:
-                async with session.get(
-                    self._OLLAMA_PS_URL, timeout=aiohttp.ClientTimeout(total=5)
-                ) as resp:
-                    data = await resp.json()
-                    models = data.get("models", [])
-                    state.loaded_models = [m.get("name", "") for m in models]
-                    state.ollama_used_gb = sum(
-                        m.get("size", 0) / (1024**3) for m in models
-                    )
-        except (aiohttp.ClientError, Exception) as exc:  # noqa: BLE001
+            async with (
+                aiohttp.ClientSession() as session,
+                session.get(self._OLLAMA_PS_URL, timeout=aiohttp.ClientTimeout(total=5)) as resp,
+            ):
+                data = await resp.json()
+                models = data.get("models", [])
+                state.loaded_models = [m.get("name", "") for m in models]
+                state.ollama_used_gb = sum(m.get("size", 0) / (1024**3) for m in models)
+        except (aiohttp.ClientError, Exception) as exc:
             logger.debug("Could not reach Ollama: %s", exc)
         return state
 
@@ -197,13 +199,15 @@ class ResourceClient:
             logger.debug("Daemon not running; local lock %s released (no-op)", lock_id)
             return
         try:
-            async with aiohttp.ClientSession() as session:
-                async with session.delete(
+            async with (
+                aiohttp.ClientSession() as session,
+                session.delete(
                     f"{self.DAEMON_URL}/locks/{lock_id}",
                     timeout=aiohttp.ClientTimeout(total=5),
-                ) as resp:
-                    if resp.status not in (200, 204):
-                        logger.warning("Lock release returned HTTP %s", resp.status)
+                ) as resp,
+            ):
+                if resp.status not in (200, 204):
+                    logger.warning("Lock release returned HTTP %s", resp.status)
         except aiohttp.ClientError as exc:
             logger.warning("Could not release lock %s: %s", lock_id, exc)
 
@@ -258,23 +262,20 @@ class ResourceDaemon:
         """Fetch /api/ps from Ollama and return a PlatformMemoryState."""
         state = PlatformMemoryState()
         try:
-            async with aiohttp.ClientSession() as session:
-                async with session.get(
-                    self._OLLAMA_PS_URL, timeout=aiohttp.ClientTimeout(total=10)
-                ) as resp:
-                    data = await resp.json()
-                    models = data.get("models", [])
-                    state.loaded_models = [m.get("name", "") for m in models]
-                    state.ollama_used_gb = sum(
-                        m.get("size", 0) / (1024**3) for m in models
+            async with (
+                aiohttp.ClientSession() as session,
+                session.get(self._OLLAMA_PS_URL, timeout=aiohttp.ClientTimeout(total=10)) as resp,
+            ):
+                data = await resp.json()
+                models = data.get("models", [])
+                state.loaded_models = [m.get("name", "") for m in models]
+                state.ollama_used_gb = sum(m.get("size", 0) / (1024**3) for m in models)
+                # training_reserved_gb is computed from active locks
+                async with self._lock:
+                    state.training_reserved_gb = sum(
+                        lk.reserved_gb for lk in self._locks.values() if not lk.is_expired()
                     )
-                    # training_reserved_gb is computed from active locks
-                    async with self._lock:
-                        state.training_reserved_gb = sum(
-                            lk.reserved_gb for lk in self._locks.values()
-                            if not lk.is_expired()
-                        )
-        except (aiohttp.ClientError, Exception) as exc:  # noqa: BLE001
+        except (aiohttp.ClientError, Exception) as exc:
             logger.debug("Ollama poll failed: %s", exc)
         return state
 
@@ -300,7 +301,10 @@ class ResourceDaemon:
             if available < required_gb * 1.2:
                 logger.warning(
                     "Lock denied for %s/%s: need %.1f GiB, available %.1f GiB",
-                    session_id, model, required_gb * 1.2, available,
+                    session_id,
+                    model,
+                    required_gb * 1.2,
+                    available,
                 )
                 return None
 
@@ -349,15 +353,17 @@ class ResourceDaemon:
         state = await self.poll_ollama_state()
         async with self._lock:
             self._memory_state = state
-        return web.json_response({
-            "total_gb": state.total_gb,
-            "ollama_used_gb": state.ollama_used_gb,
-            "system_reserved_gb": state.system_reserved_gb,
-            "training_reserved_gb": state.training_reserved_gb,
-            "safety_buffer_gb": state.safety_buffer_gb,
-            "loaded_models": state.loaded_models,
-            "available_gb": state.available_gb,
-        })
+        return web.json_response(
+            {
+                "total_gb": state.total_gb,
+                "ollama_used_gb": state.ollama_used_gb,
+                "system_reserved_gb": state.system_reserved_gb,
+                "training_reserved_gb": state.training_reserved_gb,
+                "safety_buffer_gb": state.safety_buffer_gb,
+                "loaded_models": state.loaded_models,
+                "available_gb": state.available_gb,
+            }
+        )
 
     async def _handle_post_lock(self, request: web.Request) -> web.Response:
         body: dict[str, Any] = await request.json()
@@ -368,14 +374,16 @@ class ResourceDaemon:
         lock = await self.request_training_lock(session_id, model, required_gb)
         if lock is None:
             return web.json_response({"error": "insufficient_memory"}, status=503)
-        return web.json_response({
-            "lock_id": lock.lock_id,
-            "session_id": lock.session_id,
-            "model": lock.model,
-            "reserved_gb": lock.reserved_gb,
-            "acquired_at": lock.acquired_at,
-            "expires_at": lock.expires_at,
-        })
+        return web.json_response(
+            {
+                "lock_id": lock.lock_id,
+                "session_id": lock.session_id,
+                "model": lock.model,
+                "reserved_gb": lock.reserved_gb,
+                "acquired_at": lock.acquired_at,
+                "expires_at": lock.expires_at,
+            }
+        )
 
     async def _handle_delete_lock(self, request: web.Request) -> web.Response:
         lock_id = request.match_info["lock_id"]
@@ -402,7 +410,7 @@ class ResourceDaemon:
                 async with self._lock:
                     self._memory_state = state
                     await self.cleanup_dead_sessions()
-            except Exception as exc:  # noqa: BLE001
+            except Exception as exc:
                 logger.warning("Poll loop error: %s", exc)
 
     async def start(self) -> None:

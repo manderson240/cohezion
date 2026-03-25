@@ -31,3 +31,34 @@
     - [x] Write Failing Tests: Verify submission format and API call parameters.
     - [x] Implement: Use the Kaggle API integration to submit the resulting LoRA adapter to the competition.
 - [x] Task: Conductor - User Manual Verification 'Baseline Submission' (Protocol in workflow.md)
+
+## Phase 5: Execution & Monitoring
+- [~] Task: Monitor G4 Blackwell Blackwell Training Progress
+    - [~] Implement: Monitor the Kaggle G4 Blackwell Blackwell notebook execution for completion
+    - [ ] Implement: Retrieve the trained LoRA adapter and metrics
+- [ ] Task: Submit Trained Adapter to Competition
+    - [ ] Implement: Use Kaggle API to submit the trained adapter as a competition entry
+- [ ] Task: Evaluate Leaderboard Position
+    - [ ] Implement: Check competition leaderboard to verify placement
+- [ ] Task: Conductor - User Manual Verification 'Execution & Monitoring' (Protocol in workflow.md)
+
+## Phase 6: MoE-Specific Optimization (Research & Refinement)
+- [ ] Task: Analyze Router Weights Influence
+    - [ ] Implement: Propose a LoRA configuration that targets the learned MLP router to prevent expert collapse on reasoning tasks.
+- [ ] Task: Mixed-Architecture Benchmarking
+    - [ ] Implement: Run internal benchmarks comparing Mamba-2 layer performance vs. GQA layer performance for math reasoning.
+- [ ] Task: Conductor - User Manual Verification 'MoE Optimization' (Protocol in workflow.md)
+
+## Phase 7: Metric & Evaluation Alignment
+- [ ] Task: Ensure `\boxed{}` Formatting Compliance
+    - [ ] Implement: Update the data curation pipeline (`kaggle_curation.py`) to enforce that all generated answers are strictly enclosed in `\boxed{...}`.
+- [ ] Task: vLLM Compatibility Check
+    - [ ] Implement: Verify that the generated `adapter_config.json` uses `peft_type="LORA"` and `task_type="CAUSAL_LM"` exactly as expected by the competition's vLLM evaluation script.
+- [ ] Task: Conductor - User Manual Verification 'Metric Alignment' (Protocol in workflow.md)
+
+## Phase 8: Submission Governance & Reproduction
+- [ ] Task: Daily Submission Limit Monitoring
+    - [ ] Implement: Add logic to the submission script to check the current daily submission count via the Kaggle API before attempting a new submission.
+- [ ] Task: Document Reproduction Environment
+    - [ ] Implement: Create a `REPRODUCTION.md` file documenting the exact Docker image (`dockerImageVersionId: 31287`), hardware (Blackwell G4), and dependency installation steps (`--no-build-isolation`).
+- [ ] Task: Conductor - User Manual Verification 'Submission Governance' (Protocol in workflow.md)

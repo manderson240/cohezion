@@ -6,6 +6,9 @@ This track focuses on competing in the Kaggle "NVIDIA Nemotron Model Reasoning C
 ## Competitive Research & Constraints
 - **Submission Format**: Participants must submit a **LoRA (Low-Rank Adaptation) adapter** compatible with the base model, including an `adapter_config.json`.
 - **Evaluation**: Accuracy is measured by the model's ability to solve tasks and place the final answer within a LaTeX `\boxed{}` command using the vLLM inference engine.
+- **Submission Limits**: Strictly limited to **5 submissions per day**.
+- **Licensing**: Winning models must be open-sourced under the **CC BY 4.0** license. External data/tools must be "reasonably accessible" at minimal cost.
+- **Reproduction**: Winners must provide code and environment descriptions capable of fully reproducing their results.
 
 ## Hardware Strategy
 - **Local (AMD Orchestration)**: Local AMD hardware (128GB RAM, RX 7700S) will be used for dataset curation, FLUME VAE embeddings, script generation, and utilizing local SLMs via Ollama for data preprocessing.

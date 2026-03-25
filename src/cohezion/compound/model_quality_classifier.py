@@ -286,9 +286,10 @@ class ModelQualityClassifier:
 
         # Model alternatives for fallback
         self._model_hierarchy = {
-            "qwen3-coder:30b": ["phi3:mini", "deepseek-r1:70b"],
-            "deepseek-r1:70b": ["qwen3-coder:30b", "phi3:mini"],
-            "phi3:mini": ["qwen3-coder:30b", "deepseek-r1:70b"],
+            "qwen3-coder:30b": ["alibayram/smollm3:latest", "phi3:mini", "deepseek-r1:70b"],
+            "deepseek-r1:70b": ["qwen3-coder:30b", "alibayram/smollm3:latest", "phi3:mini"],
+            "phi3:mini": ["alibayram/smollm3:latest", "qwen3-coder:30b", "deepseek-r1:70b"],
+            "alibayram/smollm3:latest": ["phi3:mini", "qwen3-coder:30b", "deepseek-r1:70b"],
         }
 
         logger.debug("ModelQualityClassifier initialized")

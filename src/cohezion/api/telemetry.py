@@ -1,17 +1,21 @@
 import logging
-import asyncio
-from typing import List, Dict, Any
+from typing import Any
+
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
+
 from cohezion.universe.triune_manifold import TriuneState
+
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter(tags=["telemetry"])
 
+
 class ConnectionManager:
     """Manages active WebSocket connections for telemetry."""
+
     def __init__(self):
-        self.active_connections: List[WebSocket] = []
+        self.active_connections: list[WebSocket] = []
 
     async def connect(self, websocket: WebSocket):
         await websocket.accept()
@@ -21,9 +25,11 @@ class ConnectionManager:
     def disconnect(self, websocket: WebSocket):
         if websocket in self.active_connections:
             self.active_connections.remove(websocket)
-            logger.info(f"Telemetry client disconnected. Total clients: {len(self.active_connections)}")
+            logger.info(
+                f"Telemetry client disconnected. Total clients: {len(self.active_connections)}"
+            )
 
-    async def broadcast(self, message: Dict[str, Any]):
+    async def broadcast(self, message: dict[str, Any]):
         """Broadcasts telemetry data to all connected clients."""
         for connection in self.active_connections:
             try:
@@ -33,7 +39,9 @@ class ConnectionManager:
                 # We don't remove here to avoid modifying list during iteration
                 # disconnect() is handled by the endpoint loop
 
+
 manager = ConnectionManager()
+
 
 @router.websocket("/telemetry")
 async def telemetry_endpoint(websocket: WebSocket):
@@ -49,10 +57,11 @@ async def telemetry_endpoint(websocket: WebSocket):
         logger.error(f"WebSocket error: {e}")
         manager.disconnect(websocket)
 
+
 async def broadcast_state(trajectory_id: str, state: TriuneState, coherence: float):
     """
     Utility function to broadcast a state update to all connected clients.
-    
+
     Args:
         trajectory_id: ID of the simulation journey.
         state: The TriuneState object.
@@ -63,8 +72,8 @@ async def broadcast_state(trajectory_id: str, state: TriuneState, coherence: flo
         "coherence": round(coherence, 4),
         "state": {
             "doer": state.doer.tolist(),
-            "thinker": state.thinker.tolist()[:10], # Truncated for telemetry efficiency
-            "knower": state.knower.tolist()[:10]   # Truncated for telemetry efficiency
-        }
+            "thinker": state.thinker.tolist()[:10],  # Truncated for telemetry efficiency
+            "knower": state.knower.tolist()[:10],  # Truncated for telemetry efficiency
+        },
     }
     await manager.broadcast(message)

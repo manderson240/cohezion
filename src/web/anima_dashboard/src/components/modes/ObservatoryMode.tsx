@@ -8,6 +8,7 @@ import SnapshotGallery from "@/components/SnapshotGallery";
 import ReEntryNarrative from "@/components/ReEntryNarrative";
 import ProvenanceTag from "@/components/ProvenanceTag";
 import PersistenceDiagram from "@/components/PersistenceDiagram";
+import JourneyStatus from "@/components/JourneyStatus";
 
 // Dynamic import with SSR disabled — prevents Three.js/R3F hydration errors and WebGL console noise
 const TensorBeamVisualizer = dynamic(
@@ -92,6 +93,11 @@ export default function ObservatoryMode() {
       {/* Right Column: Telemetry + Controls */}
       <div className="xl:col-span-4 flex flex-col gap-8">
         <OuroborosControlRoom />
+
+        {/* 8-Hour Journey Status */}
+        <section>
+          <JourneyStatus />
+        </section>
 
         {/* Mycelium Telemetry */}
         <div className="bg-white/[0.02] backdrop-blur-xl border border-white/10 rounded-2xl p-6 shadow-2xl relative overflow-hidden group">
