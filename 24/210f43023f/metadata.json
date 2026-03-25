@@ -1,0 +1,43 @@
+{
+  "cli_version": "0.5.1",
+  "checkpoint_id": "24210f43023f",
+  "strategy": "manual-commit",
+  "branch": "main",
+  "checkpoints_count": 14,
+  "files_touched": [
+    "anthropic-delivery",
+    "ollama-mcp",
+    "pyproject.toml",
+    "research/challenges/anthropic_challenge_original",
+    "scripts/cohezion-resources.service",
+    "scripts/index_vault_embeddings.py",
+    "scripts/start_resource_daemon.sh",
+    "src/cohezion/agentjet/__init__.py",
+    "src/cohezion/agentjet/judger.py",
+    "src/cohezion/agentjet/task_reader.py",
+    "src/cohezion/agentjet/trainer.py",
+    "src/cohezion/agentjet/unsloth_bridge.py",
+    "src/cohezion/agentjet/workflow.py",
+    "src/cohezion/api/__init__.py",
+    "src/cohezion/platform/tier_optimizer.py",
+    "src/cohezion/reliability/context_harness.py",
+    "src/cohezion/swarm/model_pool_config.py",
+    "tests/platform/test_tier_optimizer.py",
+    "uv.lock"
+  ],
+  "sessions": [
+    {
+      "metadata": "/24/210f43023f/0/metadata.json",
+      "transcript": "/24/210f43023f/0/full.jsonl",
+      "content_hash": "/24/210f43023f/0/content_hash.txt",
+      "prompt": "/24/210f43023f/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 3896,
+    "cache_creation_tokens": 530565,
+    "cache_read_tokens": 7835413,
+    "output_tokens": 43140,
+    "api_call_count": 81
+  }
+}
