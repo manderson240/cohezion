@@ -1,0 +1,36 @@
+{
+  "cli_version": "0.4.9",
+  "checkpoint_id": "e52c6cb998d2",
+  "session_id": "a998ffcb-0d54-485b-9b10-46683c5a1203",
+  "strategy": "manual-commit",
+  "created_at": "2026-03-25T20:08:23.15206062Z",
+  "branch": "main",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "research/challenges/luma_amd_speedrun/docs/stories/epics.md",
+    "research/challenges/luma_amd_speedrun/docs/stories/gemm-api-ceiling.md",
+    "research/challenges/luma_amd_speedrun/docs/stories/mla-flash-attention.md",
+    "research/challenges/luma_amd_speedrun/docs/stories/moe-cktile-direct-dispatch.md",
+    "tests/flume/test_morphospace_geometry.py",
+    "tests/persistence/test_surreal_skill_repository.py",
+    "tests/persistence/test_surreal_universe_repository.py"
+  ],
+  "agent": "Claude Code",
+  "turn_id": "8b891b813a31",
+  "token_usage": {
+    "input_tokens": 21,
+    "cache_creation_tokens": 137627,
+    "cache_read_tokens": 583618,
+    "output_tokens": 7380,
+    "api_call_count": 15
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-03-25T20:08:23.067250399Z",
+    "agent_lines": 1162,
+    "human_added": 541,
+    "human_modified": 2,
+    "human_removed": 0,
+    "total_committed": 1705,
+    "agent_percentage": 68.1524926686217
+  }
+}
