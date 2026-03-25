@@ -62,6 +62,15 @@
             "command": "entire hooks claude-code pre-task"
           }
         ]
+      },
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": ".claude/hooks/branch-safety-warning.sh"
+          }
+        ]
       }
     ],
     "PostToolUse": [
@@ -89,6 +98,19 @@
           {
             "type": "command",
             "command": ".claude/hooks/graph-sync-on-vault-write.sh"
+          }
+        ]
+      },
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": ".claude/hooks/lint-on-edit.sh"
+          },
+          {
+            "type": "command",
+            "command": ".claude/hooks/format-on-edit.sh"
           }
         ]
       }
