@@ -1,0 +1,20 @@
+{
+  "cli_version": "0.4.9",
+  "checkpoint_id": "9f488aa008b9",
+  "strategy": "manual-commit",
+  "branch": "main",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "tests/cache/test_cache_warmer.py",
+    "tests/conftest.py"
+  ],
+  "sessions": [
+    {
+      "metadata": "/9f/488aa008b9/0/metadata.json",
+      "transcript": "/9f/488aa008b9/0/full.jsonl",
+      "context": "",
+      "content_hash": "/9f/488aa008b9/0/content_hash.txt",
+      "prompt": ""
+    }
+  ]
+}
