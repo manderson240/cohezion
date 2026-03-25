@@ -1,0 +1,9 @@
+What would you like to do today?
+
+---
+
+Review the codebase and tell me where your strengths resonate with it.
+
+---
+
+How would you like to see Cohezion improve?
