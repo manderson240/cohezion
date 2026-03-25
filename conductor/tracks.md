@@ -9,11 +9,12 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ---
 
-- [>] **Track: NVIDIA Nemotron Model Reasoning Challenge** (Executing - Training in Progress)
+- [~] **Track: NVIDIA Nemotron Model Reasoning Challenge** (Executing - G4 Blackwell Blackwell Training)
     *Link: [./tracks/nemotron_reasoning_20260322/](./tracks/nemotron_reasoning_20260322/)*
-    *Status: Training notebook RUNNING - Awaiting completion for leaderboard attempt*
+    *Status: G4 Blackwell (NVIDIA RTX 6000 Blackwell) training notebook RUNNING - Monitoring for completion*
 
 ---
 
-- [ ] **Track: Measuring Progress Toward AGI - Cognitive Abilities Kaggle Competition**
+- [x] **Track: Measuring Progress Toward AGI - Cognitive Abilities Kaggle Competition**
   *Link: [./tracks/kaggle_cognitive_agi_20260324/](./tracks/kaggle_cognitive_agi_20260324/)*
+  *Status: COMPLETED - Deliverables ready for submission*
