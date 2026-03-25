@@ -15,6 +15,6 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ---
 
-- [x] **Track: Measuring Progress Toward AGI - Cognitive Abilities Kaggle Competition**
+- [ ] **Track: Measuring Progress Toward AGI - Cognitive Abilities Kaggle Competition**
   *Link: [./tracks/kaggle_cognitive_agi_20260324/](./tracks/kaggle_cognitive_agi_20260324/)*
-  *Status: COMPLETED - Deliverables ready for submission*
+  *Status: IN PROGRESS - Phase 5: Leaderboard Optimization & Iterative Refinement*
