@@ -1,0 +1,450 @@
+Implement the following plan:
+
+# Plan: Overnight Kernel Refinement — Luma AMD Speedrun
+
+## Context
+
+Continuing from previous session where all 3 kernels were submitted to leaderboard. Now running **overnight benchmark-and-refine loop** (until 9 AM). Only submit to leaderboard if a confirmed improvement is found (max 1/hour per kernel).
+
+**Competition deadline**: March 30, 2026 (9 days remaining)
+**Rate limit**: 10 test/benchmark per hour, 1 leaderboard per hour per kernel
+**Leaderboard policy**: Submit ONLY on confirmed improvement
+
+### Current Ranked Scores
+
+| Kernel | Ranked µs | Leader µs | Gap | Active Submission |
+|--------|-----------|-----------|-----|-------------------|
+| MoE | 186.0 | 145 | 1.28x | fused_moe + USE_NT=1 |
+| GEMM | 24.4 | 9.7 | 2.51x | dynamic_mxfp4_quant + gemm_a4w4 |
+| MLA | 90.1 | 4.3 | 20.9x | ASM 3-regime (stage1_asm + reduce_v1) |
+
+---
+
+## Phase 1: MoE — Remaining Parameter Experiments
+
+**Goal**: Find any combination that beats 186µs ranked. Current benchmark: 178.2µs.
+
+### Task 1.1: OPUS sorting env var (not the fused_moe param)
+Previous `moe_sorting_dispatch_policy=1` was 19% worse. But the env var `AITER_USE_OPUS_MOE_SORTING=1` may trigger a different code path. Test separately.
+
+**File**: Create staging variant with just the env var (no fused_moe param change).
+```python
+os.environ["AITER_USE_OPUS_MOE_SORTING"] = "1"
+os.environ["AITER_USE_NT"] = "1"  # keep existing win
+```
+
+### Task 1.2: block_size_M override
+The fused_moe API accepts `block_size_M` parameter. Current CSV tuning selects 32/64/128 per shape. Test forcing `block_size_M=64` globally (may help dense shapes where 128 is wasteful).
+
+**File**: Create staging variant with `block_size_M=64`.
+
+### Task 1.3: Combined USE_NT + per-shape KSPLIT (no bypass)
+Instead of bypassing CSV tuning, try setting KSPLIT for specific expert counts while keeping CSV:
+- `AITER_KSPLIT=4` for 257-expert shapes (very sparse, KSPLIT=4 better per skill docs)
+- Don't bypass — let CSV handle 33-expert shapes
+
+**File**: Create staging variant with conditional KSPLIT based on config["num_experts"].
+
+### Task 1.4: Benchmark each variant
+Test → Benchmark for each passing variant. Record per-shape timings. Calculate geomean.
+
+### Task 1.5: If improvement found → leaderboard submit (1/hour max)
+
+---
+
+## Phase 2: MLA — Env Var Tuning
+
+**Goal**: Check if removing BYPASS_TUNE_CONFIG helps. Current MLA has all 3 env vars set.
+
+### Task 2.1: Test without AITER_BYPASS_TUNE_CONFIG
+The MLA submission currently sets `AITER_BYPASS_TUNE_CONFIG=1`. For MoE, bypassing CSV was WORSE. The MLA tune CSV may also have optimized configs. Test removing it.
+
+**File**: Modify submission.py — remove `AITER_BYPASS_TUNE_CONFIG` line.
+
+### Task 2.2: Test without AITER_USE_NT
+The MLA submission sets `AITER_USE_NT=1`. For MoE this helped, but MLA uses different kernels (ASM attention, not CK GEMM). Test removing it.
+
+### Task 2.3: Test kv_granularity=32
+Current `_kv_gran = 16`. The metadata generation accepts `kv_granularity` — larger values may reduce scheduling overhead for large KV sequences (bs=256, kv=8192).
+
+### Task 2.4: Benchmark each variant, leaderboard if improved
+
+---
+
+## Phase 3: GEMM — Last Resort Experiments
+
+**Goal**: Any improvement over 24.4µs ranked. Gap is 2.51x — likely at API ceiling.
+
+### Task 3.1: Test alpha/beta parameters
+`gemm_a4w4` accepts `alpha` and `beta` kwargs. Default is alpha=1.0, beta=0.0. These shouldn't affect perf, but confirm the kernel isn't doing unnecessary accumulation with beta>0.
+
+### Task 3.2: Test without e8m0_shuffle
+Current path does `e8m0_shuffle(A_bs_e8m0)`. Check if passing the raw scale directly works (may save one kernel launch).
+
+### Task 3.3: Test bpreshuffle=False with raw weights
+Current uses `B_shuffle` with `bpreshuffle=True`. If `bpreshuffle=False` with raw `B_q` works, it may use a different (potentially faster) kernel.
+
+### Task 3.4: Benchmark each, leaderboard if improved
+
+---
+
+## Phase 4: Iteration Loop (overnight)
+
+After Phase 1-3 experiments complete:
+1. Identify which kernel showed most improvement potential
+2. Create refined variants based on per-shape analysis
+3. Re-benchmark, record to results.tsv
+4. Submit to leaderboard only on confirmed improvement (respect 1/hour)
+5. Repeat until 9 AM or rate-limited
+
+### Scheduling
+- Space leaderboard submissions: max 1 per kernel per hour
+- Use test/benchmark liberally (10/hour limit)
+- Schedule final "best of night" submissions at ~8:30 AM for each kernel with improvement
+
+---
+
+## Dead Ends (DO NOT retry)
+
+### MoE Dead Ends
+- `KSPLIT bypass` (AITER_BYPASS_TUNE_CONFIG=1 + AITER_KSPLIT=N) — 7.4% worse
+- `OPUS sorting` (moe_sorting_dispatch_policy=1) — 19.3% worse
+- Custom Triton v2 — IndexError (scale dimension mismatch)
+- Custom Triton v3 — IndexError (stride out of range on 2D scale)
+- `expert_mask=bincount` — GPU memory fault
+- `torch.compile(fused_moe)` — assertion crash on ROCm 7.1
+- `doweight_stage1=True` — 82% mismatch or GPU crash
+- `fmoe_g1u1` for 32-expert shapes — produces NaN
+
+### GEMM Dead Ends
+- `log2_ks` on gemm_a4w4 — RuntimeError: not in API schema
+- `gemm_a4w4_asm` direct — 27K mismatched elements (wrong kernel selection)
+- `gemm_afp4wfp4` — KeyError 'float4_e2m1fn_x2'
+- Custom HIP compilation — blocked by runner source scanning
+- BF16 fused quant+GEMM Triton — fusion overhead > savings
+
+### MLA Dead Ends
+- MXFP4 KV cache — "only support head_size == KV.size(3)"
+- Expanded splits table — no improvement
+- fast_mode=True — counterintuitively slower on MI355X
+- Metadata caching — invalidation complexity not worth gain
+- `AITER_JIT_DIR` pre-caching — internal error 1
+
+## Key Files
+
+| File | Purpose |
+|------|---------|
+| `research/challenges/luma_amd_speedrun/kernels/moe-mxfp4/submission.py` | Active MoE (USE_NT=1) |
+| `research/challenges/luma_amd_speedrun/kernels/mxfp4-mm/submission.py` | Active GEMM |
+| `research/challenges/luma_amd_speedrun/kernels/mixed-mla/submission.py` | Active MLA (ASM 3-regime) |
+| `research/challenges/luma_amd_speedrun/results.tsv` | Results tracking |
+| `research/challenges/luma_amd_speedrun/COORDINATION.md` | Session coordination |
+| `research/challenges/luma_amd_speedrun/kernels/*/staging/` | Experiment variants |
+
+## Verification
+
+1. **Every variant**: test mode first (correctness), then benchmark (performance)
+2. **Leaderboard only** on confirmed benchmark improvement vs current ranked
+3. **results.tsv** updated after each experiment with geomean + per-shape
+4. **Max 1 leaderboard submission per kernel per hour**
+5. **No leaderboard submissions until improvement confirmed** — benchmark-first strategy
+
+
+If you need specific details from before exiting plan mode (like exact code snippets, error messages, or content you generated), read the full transcript at: /home/mike-anderson/.claude/projects/-home-mike-anderson-dev-cohezion/f3ca2ab7-bbe5-426a-8e5c-9a42e4a67878.jsonl
+
+If this plan can be broken down into multiple independent tasks, consider using the TeamCreate tool to create a team and parallelize the work.
+
+---
+
+Base directory for this skill: /home/mike-anderson/.claude/skills/popcorn-cli-amd-kernel-submission
+
+# Popcorn CLI AMD Kernel Submission Workflow
+
+## Submission Commands
+
+```bash
+CLI=~/.local/bin/popcorn-cli
+KERNELS=/path/to/kernels/dir
+
+# 1. Test (correctness check — do this first)
+$CLI submit --no-tui --mode test --gpu MI355X --leaderboard <name> $KERNELS/<kernel>/submission.py
+
+# 2. Benchmark (timing, no leaderboard impact)
+$CLI submit --no-tui --mode benchmark --gpu MI355X --leaderboard <name> $KERNELS/<kernel>/submission.py
+
+# 3. Leaderboard (official ranked submission)
+$CLI submit --no-tui --mode leaderboard --gpu MI355X --leaderboard <name> $KERNELS/<kernel>/submission.py
+```
+
+## Leaderboard Name Pattern
+
+Leaderboard names follow the pattern: `amd-<directory-name>`
+
+| Kernel directory | Leaderboard name |
+|-----------------|-----------------|
+| `mxfp4-mm/`    | `amd-mxfp4-mm`  |
+| `mixed-mla/`   | `amd-mixed-mla` |
+| `moe-mxfp4/`   | `amd-moe-mxfp4` |
+
+To discover unknown names: submit with `--mode test` using candidate names. A 404/does-not-exist
+response means the name is wrong; acceptance (even with correctness failures) confirms the name.
+
+## Submission Limits (Luma AMD Speedrun)
+
+- **Leaderboard rate limit: 1 submission per hour per problem** — plan carefully
+- test and benchmark modes: unlimited
+- Strategy: always validate with test + benchmark before using leaderboard slot
+- Server-wide: 3 concurrent submissions (asyncio.Semaphore)
+- ~10 requests/second global rate limit
+- Per-mode timeouts: test=180s, benchmark=180s (overridden per competition in task.yml)
+- **Total workflow timeout: ~12 minutes** — the entire GitHub Actions run must complete within this
+- Use `--mode test` first, then `--mode benchmark`, then `--mode leaderboard`
+
+## aiter JIT Compilation Times (Luma AMD Speedrun)
+
+aiter builds JIT modules on first use. These builds happen **inside** the 12-minute workflow timeout:
+
+| JIT Module | Build Time |
+|-----------|-----------|
+| `module_moe_sorting` | ~25s |
+| `module_moe_ck2stages_fp4x2_*` | ~103s |
+| `module_mla_metadata` | ~32s |
+| `module_mla_asm` | ~21s |
+| `module_mla_reduce` | ~171s |
+| `module_moe_cktile2stages` | ~108s |
+| `module_activation` | ~22s |
+
+**Note:** `module_moe_cktile2stages` and `module_activation` are only built when AITER_KSPLIT>0 path is used (~130s additional JIT).
+
+**Critical implications:**
+- MoE JIT builds alone take ~230s (~4 min), leaving only ~8 min for actual execution
+- MLA JIT builds take ~224s total — similar headroom concern
+- When the server queue is backed up with multiple concurrent submissions, the JIT time can push the total over the 12-minute limit
+- Submissions that appear to fail silently (no output, cancelled status) are often **queue pressure timeouts**, not code errors
+
+**Mitigation:** Retry submissions during off-peak hours. JIT results are cached between runs in the same workflow, so a retry that hits a pre-warmed runner will be much faster.
+
+## Local Testing Limitations on gfx1151 (RDNA4 Strix Halo)
+
+Local GPU testing on gfx1151 (AMD Radeon 8060S, Strix Halo iGPU) is NOT feasible with ROCm 6.2.4:
+
+- Without override: `HIP error: invalid device function` (ISA mismatch)
+- With `HSA_OVERRIDE_GFX_VERSION=11.0.0`: "Memory access fault by GPU node-2" on kernel launch
+  (RDNA4 gfx1151 is not binary-compatible with RDNA3 gfx1100)
+- ROCm 6.3+ would be needed for gfx1151 native support
+
+**Workaround**: All testing via Popcorn CLI remote submission (MI355X hardware).
+
+## `uv run` Reverting ROCm Torch Install
+
+The project's uv lockfile pins CUDA torch (`torch+cu128`). Running `uv run` syncs from the
+lockfile and overwrites any manually installed ROCm torch.
+
+**Fix**: Create an isolated venv outside the project for GPU kernel work:
+
+```bash
+# Create isolated ROCm venv
+python3 -m venv research/challenges/luma_amd_speedrun/.venv-rocm
+source research/challenges/luma_amd_speedrun/.venv-rocm/bin/activate
+pip install torch --index-url https://download.pytorch.org/whl/rocm6.2.4
+
+# Use this venv directly (not uv run) for kernel testing
+python submission.py
+```
+
+## Competition Kernel Structure
+
+Each kernel must implement:
+```python
+# submission.py
+from task import input_t, output_t
+
+def custom_kernel(data: input_t) -> output_t:
+    ...  # Your implementation
+```
+
+The eval harness (`eval.py`) calls `generate_input()` from `reference.py`, passes `_clone_data(data)`
+to `custom_kernel`, then runs `check_implementation()` comparing output to reference. Benchmark
+runs clear L2 cache between runs (`clear_l2_cache_large()`), so cache warming tricks don't help.
+
+**CRITICAL: Popcorn CLI only uploads `submission.py`.** It does NOT upload any other files
+in the kernel directory. Files like `reference.py`, `task.py`, and `eval.py` are already
+present on the runner at the competition's standard location — they are NOT re-uploaded.
+
+**Consequence: Multi-file submissions are NOT possible.** If your submission.py tries to
+`from gemm_wrapper import quant_and_gemm` where `gemm_wrapper.py` is a file you created
+in the kernel directory, the runner will get `ModuleNotFoundError: No module named 'gemm_wrapper'`.
+
+**Workaround attempted — dynamic module creation at `/tmp/`:**
+```python
+# submission.py
+import importlib.util, textwrap, os, sys
+
+code = textwrap.dedent("""...""")
+path = "/tmp/my_module.py"
+with open(path, "w") as f: f.write(code)
+spec = importlib.util.spec_from_file_location("my_module", path)
+mod = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(mod)
+sys.modules["my_module"] = mod
+```
+
+This WORKS for making the module importable, BUT for AMD `gemm_a4w4_asm` specifically,
+the dynamic module does NOT change callsite identity — the dispatch still produces wrong
+results (see `amd-triton-jit-callsite-correctness` skill). Only `from reference import
+ref_kernel` reliably bypasses the callsite sensitivity.
+
+## Troubleshooting: Transient Artifact Download Failures
+
+Popcorn CLI submissions run on GitHub Actions runners. The evaluation job and the artifact
+download are separate steps — a network failure can cause the CLI to report failure even though
+the evaluation job itself **succeeded**.
+
+**Symptoms:**
+- CLI output shows failure / no results despite a correct kernel
+- Error mentions artifact download or GitHub Actions artifact retrieval
+
+**Fix:** Simply retry the same submission command. A retry succeeds in the majority of cases.
+
+```bash
+# Retry exactly the same command — the eval job is idempotent
+$CLI submit --no-tui --mode benchmark --gpu MI355X --leaderboard <name> <file>
+```
+
+**Important:** Transient failures look identical to actual correctness failures in the CLI output.
+If a previously-passing kernel suddenly "fails", try a retry before debugging the kernel code.
+
+## Correctness Tolerances (E2E Model Speedrun — Updated from Runner Probes)
+
+| Kernel | rtol | atol | Notes |
+|--------|------|------|-------|
+| MXFP4 GEMM | 1e-2 | 1e-2 | Same as before |
+| MoE MXFP4 | 2e-2 | 2e-2 | Tightened from 5e-2 |
+| MLA Decode | 1e-1 | 1e-1 | Loosened significantly! |
+
+## Test vs Benchmark Shape Differences (MLA-specific)
+
+**Critical:** `task.yml` test shapes and benchmark shapes differ in `qseqlen`:
+
+| Mode | qseqlen values | Why |
+|------|---------------|-----|
+| Test (`--mode test`) | May include qseqlen=4 | Exercises prefill-like cases |
+| Benchmark (`--mode benchmark`) | Always qseqlen=1 | Decode-only benchmark |
+
+Custom kernels must handle qseqlen>1 correctly or the test will fail, even if the
+benchmark optimization only targets qseqlen=1. Safe pattern:
+
+```python
+total_q = q.shape[0]
+qseqlen = total_q // bs
+if qseqlen != 1:
+    from reference import ref_kernel
+    return ref_kernel(data)
+# ... optimized decode path
+```
+
+**Observation (MLA, March 2026):** The test runner used only qseqlen=1 shapes in practice,
+but the guard is still important for correctness robustness.
+
+## CRITICAL: Runner Problems Differ from Repo
+
+The `reference-kernels` repo (gpu-mode/reference-kernels) has **OLD competition problems**.
+The E2E Model Speedrun runner has **DIFFERENT** `task.py`, `reference.py`, and data formats.
+Only `submission.py` is uploaded — `task.py`/`reference.py`/`eval.py` are runner-side.
+
+**ALWAYS probe the runner with `inspect.getsource()` to discover actual interfaces.**
+Never assume repo code matches runner code.
+
+```python
+# Diagnostic probe pattern for submission.py:
+import inspect
+from task import input_t, output_t
+from reference import ref_kernel
+import eval as eval_mod
+
+def custom_kernel(data: input_t) -> output_t:
+    # Print actual interfaces
+    print("=== task.py ===")
+    print(inspect.getsource(eval_mod))
+    print("=== ref_kernel ===")
+    print(inspect.getsource(ref_kernel))
+    print(f"data type: {type(data)}, len: {len(data) if isinstance(data, tuple) else 'N/A'}")
+    for i, d in enumerate(data if isinstance(data, tuple) else [data]):
+        if hasattr(d, 'shape'):
+            print(f"  [{i}] {d.dtype} {d.shape}")
+        elif isinstance(d, dict):
+            print(f"  [{i}] dict keys: {list(d.keys())}")
+        else:
+            print(f"  [{i}] {type(d).__name__}: {d}")
+    return ref_kernel(data)
+```
+
+## E2E Model Speedrun Runner Environment
+
+| Property | Value |
+|----------|-------|
+| GPU | AMD Instinct MI355X, 309.2 GB HBM3E, gfx950 (9,5) |
+| CPU | AMD EPYC 9575F 64-Core |
+| PyTorch | 2.10.0+rocm7.1 |
+| Python | 3.12.3 |
+| ROCm/HIP | 7.1.25424 |
+
+**Available packages:** triton 3.6.0, aiter 0.1.11, tritonblas 0.1.0, hipblaslt, torch._scaled_mm, SDPA, torch.compile
+
+**Missing packages:** flash_attn, flashinfer, vllm, xformers, composable_kernel
+
+## E2E Model Speedrun Data Formats (from Runner Probes)
+
+### MXFP4 GEMM (`amd-mxfp4-mm`): 5-tuple
+
+```
+(A_bf16[M,K], B_bf16[N,K], B_q_fp4x2, B_shuffle, B_scale_sh_e8m0)
+Output: bf16 [M, N]
+Ref: _quant_mxfp4(A) → aiter.gemm_a4w4(A_q, B_shuffle, ...)
+```
+
+### MXFP4 MoE (`amd-moe-mxfp4`): 12-tuple
+
+```
+(hidden_bf16, gate_up_fp4x2, down_fp4x2, gate_up_scale_e8m0, down_scale_e8m0,
+ gate_up_shuffled, down_shuffled, gate_up_scale_shuffled, down_scale_shuffled,
+ topk_weights_fp32, topk_ids_int32, config_dict)
+Output: bf16 [M, d_hidden]
+Ref: aiter.fused_moe(hidden, shuffled_weights, ..., doweight_stage1=False)
+```
+
+### Mixed MLA (`amd-mixed-mla`): 5-tuple
+
+```
+(q_bf16[total_q, 16, 576], kv_data_dict, qo_indptr_int32, kv_indptr_int32, config_dict)
+kv_data_dict = {"bf16": Tensor, "fp8": (Tensor, scale), "mxfp4": (Tensor, scale)}
+Output: bf16 [total_q, 16, 512]
+Ref: quantize_fp8(q) → aiter.mla_decode_fwd(q_fp8, kv_fp8, ...)
+```
+
+## Baseline Benchmark Results (E2E Model Speedrun, March 2026)
+
+| Kernel | ref_kernel Baseline | Best with Parameter Tuning |
+|--------|--------------------|-----------------------------|
+| MXFP4 GEMM | ~24 µs geomean | ~24 µs (ref_kernel is already optimized) |
+| MXFP4 MoE | ~165 µs geomean | ~155 µs (adaptive KSPLIT strategy) |
+| Mixed MLA | ~195 µs geomean | ~175 µs (adaptive num_kv_splits) |
+
+---
+
+<task-notification>
+<task-id>byycuhrn2</task-id>
+<tool-use-id>toolu_017grs7enhULsJxujxfyz4c7</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/372cbc1b-32c1-4d7a-b071-c206e9699dbc/tasks/byycuhrn2.output</output-file>
+<status>completed</status>
+<summary>Background command "Benchmark MoE block_size_M=64 variant" completed (exit code 0)</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/372cbc1b-32c1-4d7a-b071-c206e9699dbc/tasks/byycuhrn2.output
+
+---
+
+Obviously, I thought that was our plan all along was custom kernel creation.  We keep getting stuck in a loop of parameter fine-tuning and failing to aachieve breakthroughs.  That was the entire point of adopting k-search, r-zero, and autoresearch was to overcome this.
+
+---
+
+[Request interrupted by user for tool use]
