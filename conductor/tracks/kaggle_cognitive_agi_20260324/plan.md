@@ -17,11 +17,11 @@
 - [x] Task: Conductor - User Manual Verification 'FLUME Evaluation Loop' (Protocol in workflow.md)
 
 ## Phase 3: Notebook Pipeline Optimization
-- [ ] Task: Update `build_notebook.py` for automated dependency inclusion.
-    - [ ] Sub-task: Ensure Kaggle offline constraints are met (e.g., wheel bundling if needed).
-- [ ] Task: Refine `pipeline.ipynb` and `evaluator.ipynb` for final execution.
-- [ ] Task: Test the generated notebooks locally using Jupyter/IPython CLI tools.
-- [ ] Task: Conductor - User Manual Verification 'Notebook Pipeline Optimization' (Protocol in workflow.md)
+- [x] Task: Update `build_notebook.py` for automated dependency inclusion.
+    - [x] Sub-task: Ensure Kaggle offline constraints are met (e.g., wheel bundling if needed).
+- [x] Task: Refine `pipeline.ipynb` and `evaluator.ipynb` for final execution.
+- [x] Task: Test the generated notebooks locally using Jupyter/IPython CLI tools.
+- [x] Task: Conductor - User Manual Verification 'Notebook Pipeline Optimization' (Protocol in workflow.md)
 
 ## Phase 4: Final Deliverables & Documentation
 - [ ] Task: Update `format_kaggle_submission.py` to ensure `submission.csv` is correctly shaped.
