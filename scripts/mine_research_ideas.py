@@ -8,6 +8,7 @@ from pathlib import Path
 sys.path.append(str(Path.cwd() / "src"))
 
 from cohezion.swarm.agents.inbox_miner import InboxMiner
+
 from cohezion.swarm.swarm_types import SwarmConfig
 
 

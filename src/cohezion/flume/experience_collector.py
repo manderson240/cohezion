@@ -14,7 +14,7 @@ from __future__ import annotations
 
 import json
 import logging
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 import numpy as np
@@ -282,7 +282,7 @@ class ExperienceCollector:
         """
         self.execution_log_dir.mkdir(parents=True, exist_ok=True)
         record = {
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
             "task_description": task_description,
             "operation_type": operation_type,
             "metrics": metrics,

@@ -32,7 +32,6 @@ from cohezion.services.swarm_service import SwarmService
 from cohezion.swarm.agents.code_review_swarm import CodeReviewSwarm
 
 
-
 app = typer.Typer(
     name="cohezion",
     help="Cohezion: Self-Evolving Agentic Sandbox",

@@ -41,9 +41,11 @@ from cohezion.compound.holographic_projection import (
     MODULATION_PROFILES,
     _try_load_flume_encoder,
     _try_load_temporal_encoder,
+)
+from cohezion.compound.holographic_projection import (
     encode_step_sequence as _encode_step_sequence,
-    holographic_project as _holographic_project,
-    step_to_axiomatic,
+)
+from cohezion.compound.holographic_projection import (
     text_to_latent as _text_to_latent,
 )
 

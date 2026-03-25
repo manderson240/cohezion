@@ -8,6 +8,7 @@ from .googlesql_client import (
     GoogleSqlConfig,
 )
 
+
 logger = logging.getLogger(__name__)
 
 

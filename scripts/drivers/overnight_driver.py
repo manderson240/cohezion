@@ -37,13 +37,6 @@ from typing import Any
 
 import matplotlib.pyplot as plt
 import numpy as np
-from prometheus_client import Counter, Gauge, start_http_server
-
-from cohezion.core.persistence.surreal_client import (
-    PhysicsState,
-    SurrealClient,
-    UniverseNode,
-)
 from cohezion.mcp.email_notifier import EmailNotifier
 
 # Internal imports
@@ -53,6 +46,13 @@ from cohezion.swarm.mass_simulator import (
 from cohezion.training.training_data_capture import (
     InteractionRecord,
     TrainingDataCapture,
+)
+from prometheus_client import Counter, Gauge, start_http_server
+
+from cohezion.core.persistence.surreal_client import (
+    PhysicsState,
+    SurrealClient,
+    UniverseNode,
 )
 
 

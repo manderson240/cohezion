@@ -5,17 +5,17 @@ Covers metrics analytics and system health endpoints.
 
 from __future__ import annotations
 
+from unittest.mock import MagicMock, patch
+
 import pytest
-from unittest.mock import AsyncMock, MagicMock, patch
-from datetime import datetime
 
 from cohezion.api.observability_endpoints import (
-    get_unified_metrics,
     get_cache_analytics,
-    get_token_efficiency,
     get_health_score,
+    get_unified_metrics,
     reset_metrics,
 )
+
 
 @pytest.fixture
 def mock_collector():

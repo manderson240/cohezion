@@ -9,7 +9,6 @@ from __future__ import annotations
 from unittest.mock import AsyncMock, Mock
 
 import pytest
-
 from cohezion.swarm.adaptive_router_adapter import (
     AdaptiveRouterAdapter,
     ModelSelection,

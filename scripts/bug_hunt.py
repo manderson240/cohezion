@@ -11,10 +11,11 @@ import logging
 from datetime import datetime
 from pathlib import Path
 
-from cohezion.healing.deep_audit import DeepAuditor
 from cohezion.swarm.agents.bug_auditor_agent import BugAuditorAgent
 from cohezion.swarm.agents.bug_fixer_agent import BugFixerAgent
 from cohezion.swarm.agents.bug_scout_agent import BugScoutAgent
+
+from cohezion.healing.deep_audit import DeepAuditor
 from cohezion.universe.engine import UniverseSimulationEngine
 
 

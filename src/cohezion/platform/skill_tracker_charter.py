@@ -14,6 +14,7 @@ from cohezion.flume.vae_encoder import get_encoder
 from cohezion.platform.coherence_tracker import get_coherence_tracker
 from cohezion.platform.journey_logger import get_journey_logger
 
+
 logger = logging.getLogger(__name__)
 
 

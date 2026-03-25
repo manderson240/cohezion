@@ -4,7 +4,6 @@ Tests validation, serialization, and capability checking.
 """
 
 import pytest
-
 from cohezion.models.model_info import ModelInfo
 
 

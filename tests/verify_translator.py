@@ -1,8 +1,9 @@
 import asyncio
 import logging
 
-from cohezion.core.persistence.surreal_client import SurrealClient
 from cohezion.simulation.cross_domain_translator import CrossDomainTranslator
+
+from cohezion.core.persistence.surreal_client import SurrealClient
 
 
 logging.basicConfig(level=logging.INFO)

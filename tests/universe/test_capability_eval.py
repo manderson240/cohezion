@@ -1,10 +1,6 @@
 """Tests for the Capability Evaluation Harness."""
 
-import asyncio
-import json
-from pathlib import Path
 
-import numpy as np
 import pytest
 
 from cohezion.universe.capability_eval import (

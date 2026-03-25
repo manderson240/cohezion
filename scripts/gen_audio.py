@@ -4,9 +4,6 @@ import wave
 import numpy as np
 
 
-import numpy as np
-
-
 def generate_stability_tone(
     duration=2.0, freq=432.0, output_path="src/cohezion/api/static/stability_pulse.wav"
 ):

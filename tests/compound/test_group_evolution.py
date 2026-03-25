@@ -8,13 +8,11 @@ Tests the core GEA concepts integrated into Cohezion's compound engineering:
 - GroupEvolutionEngine (end-to-end evolution cycle)
 """
 
-import math
 
 import pytest
 
 from cohezion.compound.group_evolution import (
     AgentCandidate,
-    ArchiveEntry,
     EvolutionDirective,
     ExperienceTrace,
     ExperienceTraceType,

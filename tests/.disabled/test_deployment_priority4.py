@@ -10,7 +10,6 @@ Covers:
 from datetime import datetime
 
 import pytest
-
 from cohezion.deployment.deployment_config import (
     DeploymentConfig,
     DeploymentMetrics,
@@ -22,6 +21,7 @@ from cohezion.deployment.deployment_config import (
 from cohezion.deployment.deployment_orchestrator import (
     DeploymentOrchestrator,
 )
+
 from cohezion.deployment.feature_flags import (
     FeatureFlag,
     FeatureFlagContext,

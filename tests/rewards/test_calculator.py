@@ -1,5 +1,5 @@
-import pytest
 from cohezion.rewards.calculator import RewardCalculator
+
 
 def test_reward_calculator_perfect_coherence():
     """Test that 0.5 coherence (HIHO) yields a high score."""

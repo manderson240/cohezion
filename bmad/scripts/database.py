@@ -1,7 +1,8 @@
+import json
 import os
+
 import psycopg2
 from psycopg2 import sql
-import json
 
 
 def get_db_connection():

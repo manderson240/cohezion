@@ -21,6 +21,7 @@ from mcp_server.googlesql_client import (
 )
 from mcp_server.googlesql_ops import GoogleSqlOps
 
+
 # ── Client Unit Tests ─────────────────────────────────────────────────
 
 

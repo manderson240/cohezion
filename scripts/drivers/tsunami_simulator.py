@@ -8,9 +8,9 @@ import asyncio
 import logging
 
 import numpy as np
+from cohezion.core.multimodal_bridge import LOCAL_MULTIMODAL_BRIDGE
 from cohezion_core.cohezion_core_rs import FlumePhysics
 
-from cohezion.core.multimodal_bridge import LOCAL_MULTIMODAL_BRIDGE
 from cohezion.universe.engine import (
     UniverseSimulationEngine,
 )

@@ -1,13 +1,11 @@
 """Tests for the Experiment Tracker."""
 
-import json
 from pathlib import Path
 
 import numpy as np
 import pytest
 
 from cohezion.universe.experiment_tracker import (
-    CheckpointRef,
     ExperimentRun,
     ExperimentTracker,
     MetricEntry,

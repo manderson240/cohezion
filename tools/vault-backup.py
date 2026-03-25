@@ -14,6 +14,7 @@ import sys
 from datetime import datetime
 from pathlib import Path
 
+
 VAULT_PATH = Path("~/vaults/cohezion-vault").expanduser()
 BACKUP_ROOT = Path("~/.cohezion-backups/vault").expanduser()
 BRAIN_DIRS = ["cortex", "cerebellum"]

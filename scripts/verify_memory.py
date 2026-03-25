@@ -9,6 +9,7 @@ sys.path.append(str(Path(__name__).parent / "src"))
 
 from cohezion.swarm.agents.analyst import AnalystAgent
 from cohezion.swarm.agents.memory_agent import MemoryAgent
+
 from cohezion.swarm.swarm_types import Perspective, SwarmConfig
 
 

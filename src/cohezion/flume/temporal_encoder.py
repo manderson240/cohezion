@@ -20,6 +20,7 @@ from pathlib import Path
 
 import numpy as np
 
+
 logger = logging.getLogger(__name__)
 
 import torch
@@ -368,7 +369,7 @@ class TemporalVAELoader:
             self._encoder = None
             self.enabled = False
 
-    def encode_sequence(self, steps: "torch.Tensor") -> np.ndarray:
+    def encode_sequence(self, steps: torch.Tensor) -> np.ndarray:
         """Encode a step sequence tensor to a normalized 256D vector.
 
         Parameters

@@ -2,9 +2,9 @@
 
 import logging
 
-from .auth import APIKeyAuth
 from .config import ServerConfig
 from .server import create_server
+
 
 logger = logging.getLogger("cloud-vault-mcp")
 

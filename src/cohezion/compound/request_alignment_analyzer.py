@@ -31,7 +31,6 @@ from cohezion.compound.models import (
 )
 
 
-
 if TYPE_CHECKING:
     from cohezion.compound.executor import ExecutionResult
     from cohezion.compound.inflection_detector import AnomalyDetection

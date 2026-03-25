@@ -104,7 +104,6 @@ def _build_dataset(args: argparse.Namespace):
 
 def _train(model, embeddings, pairs, args: argparse.Namespace, checkpoint_dir: Path):
     """Run training loop; return final metrics dict."""
-    import numpy as np
     import torch
     import torch.nn.functional as F
     from torch.utils.data import DataLoader, TensorDataset
@@ -160,7 +159,6 @@ def _train(model, embeddings, pairs, args: argparse.Namespace, checkpoint_dir: P
 
 def _evaluate(model, embeddings, checkpoint_dir: Path):
     """Run quick evaluation and write evaluation_results.json."""
-    import numpy as np
     import torch
     import torch.nn.functional as F
 
@@ -218,6 +216,7 @@ def main() -> int:
 
     # Build model
     import torch
+
     from cohezion.flume.vae import FlumeVAE
 
     input_dim = embeddings.shape[1]

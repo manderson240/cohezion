@@ -1,7 +1,6 @@
 """Tests for the Agentic Task Environment."""
 
 import json
-from pathlib import Path
 
 import pytest
 
@@ -13,7 +12,6 @@ from cohezion.universe.agentic_env import (
     TaskScenario,
     ToolCall,
     ToolRegistry,
-    ToolResponse,
     ToolResult,
     ToolSpec,
     TrajectoryRecorder,

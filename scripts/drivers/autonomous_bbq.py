@@ -26,6 +26,8 @@ sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))
 
 import contextlib
 
+from cohezion.simulation.biological_diversity import get_diversity_engine
+
 from cohezion.core.persistence.repositories.journey_repository import JourneyMetrics
 from cohezion.core.persistence.repositories.surreal_journey_repository import (
     AgentJourney,
@@ -33,7 +35,6 @@ from cohezion.core.persistence.repositories.surreal_journey_repository import (
 )
 from cohezion.core.persistence.surreal_client import SurrealClient
 from cohezion.reliability.monitor import get_resource_monitor
-from cohezion.simulation.biological_diversity import get_diversity_engine
 from cohezion.simulation.fractal_universe import UniverseGrid
 
 

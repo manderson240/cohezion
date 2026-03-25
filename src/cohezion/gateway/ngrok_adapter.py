@@ -51,7 +51,6 @@ from cohezion.deployment.feature_flags import (
 )
 
 
-
 logger = logging.getLogger(__name__)
 
 

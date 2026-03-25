@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import pytest
 
+
 try:
     import torch
 
@@ -33,12 +34,12 @@ def decoder():
     return TemporalDecoder(step_dim=STEP_DIM, d_model=D_MODEL, latent_dim=LATENT_DIM)
 
 
-def make_z(batch: int, seed: int = 0) -> "torch.Tensor":
+def make_z(batch: int, seed: int = 0) -> torch.Tensor:
     torch.manual_seed(seed)
     return torch.randn(batch, LATENT_DIM)
 
 
-def make_sequence(batch: int, seq_len: int, seed: int = 0) -> "torch.Tensor":
+def make_sequence(batch: int, seq_len: int, seed: int = 0) -> torch.Tensor:
     torch.manual_seed(seed)
     return torch.randn(batch, seq_len, STEP_DIM)
 

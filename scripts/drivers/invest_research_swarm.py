@@ -3,12 +3,12 @@ import logging
 from datetime import datetime
 
 import psutil
+from cohezion.mcp.email_notifier import EmailNotifier
 
 from cohezion.core.persistence.surreal_client import (
     PhysicsState,
     SurrealClient,
 )
-from cohezion.mcp.email_notifier import EmailNotifier
 
 
 logging.basicConfig(

@@ -5,14 +5,14 @@ Covers Anima 3-tier intelligence service.
 
 from __future__ import annotations
 
+from unittest.mock import MagicMock, patch
+
 import pytest
-from unittest.mock import AsyncMock, MagicMock, patch
 
 from cohezion.api.services.anima import (
     AnimaService,
-    AskRequest,
-    SpeakRequest,
 )
+
 
 @pytest.fixture
 def mock_httpx_get():
@@ -35,7 +35,7 @@ async def test_ask_template_fallback(anima_service):
     """[P0] Should fallback to template for unknown questions."""
     # Force MCP unavailable for this test
     anima_service._mcp_available = False
-    
+
     result = await anima_service.ask("what is hiho?")
     assert result.tier == "template"
     assert "HIHO" in result.answer
@@ -44,11 +44,11 @@ async def test_ask_template_fallback(anima_service):
 async def test_ask_mcp_success(anima_service):
     """[P0] Should use MCP when available."""
     anima_service._mcp_available = True
-    
+
     mock_resp = MagicMock()
     mock_resp.status_code = 200
     mock_resp.json.return_value = [{"content": "Grounded answer", "source": "test-vault"}]
-    
+
     with patch("httpx.AsyncClient.post", return_value=mock_resp):
         result = await anima_service.ask("test question")
         assert result.tier == "mcp"

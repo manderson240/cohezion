@@ -11,6 +11,7 @@ from cohezion.simulation.vectorized_env import (
     VectorizedHihoEnv,
 )
 
+
 __all__ = [
     "CurriculumScheduler",
     "FractalSimulator",
