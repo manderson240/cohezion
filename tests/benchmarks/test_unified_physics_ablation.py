@@ -32,9 +32,7 @@ Reproducibility:
 
 from __future__ import annotations
 
-import asyncio
 from dataclasses import dataclass
-from typing import Any
 
 import numpy as np
 import pytest
@@ -45,7 +43,6 @@ from cohezion.universe.advanced_components import (
     EsotericPhysicsEngine,
     KordylewskiSwarmEngine,
     PenroseTwistorEngine,
-    QuantumEmergenceEngine,
     SacredGeometryEngine,
 )
 from cohezion.universe.components import (
@@ -184,14 +181,14 @@ def run_ablation_trial(
     coherence_history = []
     initial_positions = [vec.copy() for vec in latent_vectors]
 
-    for step in range(num_steps):
+    for _step in range(num_steps):
         latent_vectors, coherences = engine.step(latent_vectors, evo_states)
         coherence_history.append(np.mean(coherences))
 
     # Calculate drift (L2 distance from initial positions)
     drifts = [
         np.linalg.norm(final - initial)
-        for final, initial in zip(latent_vectors, initial_positions)
+        for final, initial in zip(latent_vectors, initial_positions, strict=False)
     ]
     avg_drift = np.mean(drifts)
 
@@ -264,17 +261,13 @@ class TestUnifiedPhysicsAblation:
         Note: With HIHO, coherence_std may be 0 (perfect stability), so we use
         absolute comparison instead of ratios.
         """
-        full_result = run_ablation_trial(
-            num_agents=10, num_steps=1000, seed=42, enable_hiho=True
-        )
+        full_result = run_ablation_trial(num_agents=10, num_steps=1000, seed=42, enable_hiho=True)
         ablated_result = run_ablation_trial(
             num_agents=10, num_steps=1000, seed=42, enable_hiho=False
         )
 
         # Without HIHO, coherence should drift away from 0.5
-        full_coherence_deviation = np.mean(
-            [abs(c - 0.5) for c in full_result.coherence_history]
-        )
+        full_coherence_deviation = np.mean([abs(c - 0.5) for c in full_result.coherence_history])
         ablated_coherence_deviation = np.mean(
             [abs(c - 0.5) for c in ablated_result.coherence_history]
         )
@@ -286,14 +279,12 @@ class TestUnifiedPhysicsAblation:
         )
 
         # Statistical significance (Welch's t-test)
-        t_stat, p_value = stats.ttest_ind(
+        _, p_value = stats.ttest_ind(
             full_result.coherence_history,
             ablated_result.coherence_history,
             equal_var=False,
         )
-        assert p_value < 0.01, (
-            f"HIHO ablation p-value {p_value:.4f} not significant " "(p >= 0.01)"
-        )
+        assert p_value < 0.01, f"HIHO ablation p-value {p_value:.4f} not significant (p >= 0.01)"
 
     def test_ablation_without_triune_self_degrades_coherence(self):
         """Removing Triune Self (Percival) should reduce energization effects."""
@@ -373,9 +364,7 @@ class TestUnifiedPhysicsAblation:
 
         # Without any physics, coherence drifts away from 0.5 target
         full_deviation = np.mean([abs(c - 0.5) for c in full_result.coherence_history])
-        baseline_deviation = np.mean(
-            [abs(c - 0.5) for c in baseline_result.coherence_history]
-        )
+        baseline_deviation = np.mean([abs(c - 0.5) for c in baseline_result.coherence_history])
 
         assert baseline_deviation > full_deviation + 0.05, (
             f"Baseline (no physics) deviation {baseline_deviation:.4f} "
@@ -388,7 +377,7 @@ class TestUnifiedPhysicsAblation:
         """Run complete ablation study with 50 trials for publication-quality results.
 
         This test generates the ablation table for the whitepaper/portfolio.
-        Expected runtime: ~5 minutes (50 trials × 6 configs × 1000 steps).
+        Expected runtime: ~5 minutes (50 trials x 6 configs x 1000 steps).
 
         Results can be visualized with marimo reactive notebook:
         marimo edit notebooks/unified_physics_ablation.py
@@ -422,11 +411,10 @@ class TestUnifiedPhysicsAblation:
                 results[name].append(result)
 
         # Calculate statistics (use deviation from 0.5 target, not variance)
-        full_dev = np.mean([
-            np.mean([abs(c - 0.5) for c in r.coherence_history])
-            for r in results["FULL"]
-        ])
-        full_drift = np.mean([r.avg_drift for r in results["FULL"]])
+        full_dev = np.mean(
+            [np.mean([abs(c - 0.5) for c in r.coherence_history]) for r in results["FULL"]]
+        )
+        full_drift = np.mean([r.avg_drift for r in results["FULL"]])  # noqa: F841
 
         print("\n" + "=" * 80)
         print("UNIFIED PHYSICS ABLATION STUDY - STATISTICAL RESULTS")
@@ -438,10 +426,9 @@ class TestUnifiedPhysicsAblation:
 
         for name, *_ in configs:
             # Use deviation from 0.5 target instead of std
-            coh_dev = np.mean([
-                np.mean([abs(c - 0.5) for c in r.coherence_history])
-                for r in results[name]
-            ])
+            coh_dev = np.mean(
+                [np.mean([abs(c - 0.5) for c in r.coherence_history]) for r in results[name]]
+            )
             drift = np.mean([r.avg_drift for r in results[name]])
             drift = np.clip(drift, -1e6, 1e6)  # Prevent overflow display
 
@@ -449,15 +436,9 @@ class TestUnifiedPhysicsAblation:
             dev_increase = coh_dev - full_dev
 
             # Statistical significance
-            full_coh_history = [
-                c for r in results["FULL"] for c in r.coherence_history
-            ]
-            ablated_coh_history = [
-                c for r in results[name] for c in r.coherence_history
-            ]
-            _, p_value = stats.ttest_ind(
-                full_coh_history, ablated_coh_history, equal_var=False
-            )
+            full_coh_history = [c for r in results["FULL"] for c in r.coherence_history]
+            ablated_coh_history = [c for r in results[name] for c in r.coherence_history]
+            _, p_value = stats.ttest_ind(full_coh_history, ablated_coh_history, equal_var=False)
 
             print(
                 f"{name:<25} {coh_dev:<12.6f} {drift:<12.4f} "
@@ -465,26 +446,20 @@ class TestUnifiedPhysicsAblation:
             )
 
         print("=" * 80)
-        print(
-            "✓ All ablations show statistically significant effects (p < 0.05)"
-        )
+        print("✓ All ablations show statistically significant effects (p < 0.05)")
         print("✓ HIHO provides largest stability contribution (prevents drift from 0.5)")
-        print(
-            "✓ Unified physics achieves measurable improvement over baseline"
-        )
+        print("✓ Unified physics achieves measurable improvement over baseline")
         print("=" * 80 + "\n")
 
         # Assertions for CI (use deviation-based metrics)
-        no_hiho_dev = np.mean([
-            np.mean([abs(c - 0.5) for c in r.coherence_history])
-            for r in results["NO_HIHO"]
-        ])
+        no_hiho_dev = np.mean(
+            [np.mean([abs(c - 0.5) for c in r.coherence_history]) for r in results["NO_HIHO"]]
+        )
         assert no_hiho_dev > full_dev + 0.05, "HIHO not preventing drift"
 
-        baseline_dev = np.mean([
-            np.mean([abs(c - 0.5) for c in r.coherence_history])
-            for r in results["BASELINE"]
-        ])
+        baseline_dev = np.mean(
+            [np.mean([abs(c - 0.5) for c in r.coherence_history]) for r in results["BASELINE"]]
+        )
         assert baseline_dev > full_dev + 0.05, "Unified physics not better than baseline"
 
 

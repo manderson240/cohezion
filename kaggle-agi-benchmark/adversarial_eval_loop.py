@@ -86,19 +86,27 @@ async def evaluate_task(
 async def run_adversarial_loop():
     """
     Runs the adversarial evaluation loop for ARC-AGI tasks.
-    """
-    print(f"Loading ARC-AGI tasks from {BENCHMARK_FILE.name}...")
-    if not BENCHMARK_FILE.exists():
-        print("Benchmark file not found. Please run the generator first.")
-        return
+    async def run_adversarial_loop():
+        print(f"Loading ARC-AGI tasks from {BENCHMARK_FILE.name}...")
+        if not BENCHMARK_FILE.exists():
+            print("Benchmark file not found. Please run the generator first.")
+            return
 
-    with open(BENCHMARK_FILE) as f:
-        benchmark_data = json.load(f)
+        with open(BENCHMARK_FILE) as f:
+            benchmark_data = json.load(f)
 
-    # ARC format has 'train' and 'test' keys
-    tasks = benchmark_data.get("train", []) + benchmark_data.get("test", [])
+        # ARC format has 'train' and 'test' keys
+        raw_tasks = benchmark_data.get("train", []) + benchmark_data.get("test", [])
 
-    print(f"Loaded {len(tasks)} tasks for FLUME-backed adversarial testing...")
+        # Extract the nested output from Compound executor if present
+        tasks = []
+        for t in raw_tasks:
+            if "output" in t and isinstance(t["output"], dict) and "input" in t["output"]:
+                tasks.append(t["output"])
+            elif "input" in t:
+                tasks.append(t)
+
+        print(f"Loaded {len(tasks)} tasks for FLUME-backed adversarial testing...")
     evaluated_tasks = []
 
     flume_harness = FlumeGridHarness()

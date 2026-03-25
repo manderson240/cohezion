@@ -70,6 +70,7 @@ See skill: `cohezion-vault-workflow` for vault API examples (log decisions, expe
 - **Results over planning.** Do not spend time on planning/infrastructure when the user wants concrete results
 - **Focused sub-tasks.** Break long tasks into focused sub-tasks with explicit deliverables
 - **3-strike rule.** Never spend more than 3 iterations on a single approach — if stuck, document what failed and try an alternative
+- **Minimal diff.** Change only what's requested or clearly necessary. Don't refactor surrounding code, add docstrings to unchanged functions, or "improve" adjacent code while fixing a bug
 
 ### ⚡ Quick Reference
 - **Language**: Python 3.13+ | **Package Manager**: `uv` (never bare python)

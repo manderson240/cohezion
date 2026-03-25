@@ -361,10 +361,7 @@ class CohezionBenchmark:
         pooled_std = np.sqrt((hiho_std**2 + baseline_std**2) / 2)
 
         # Cohen's d (effect size)
-        if pooled_std > 0:
-            cohen_d = (hiho_mean - baseline_mean) / pooled_std
-        else:
-            cohen_d = 0.0
+        cohen_d = (hiho_mean - baseline_mean) / pooled_std if pooled_std > 0 else 0.0
 
         # Improvement ratio
         if baseline_mean > 0:
@@ -373,7 +370,7 @@ class CohezionBenchmark:
             improvement_ratio = 0.0
 
         # Two-sample t-test
-        t_stat, p_value = stats.ttest_ind(hiho_scores, baseline_scores)
+        _, p_value = stats.ttest_ind(hiho_scores, baseline_scores)
 
         # 95% confidence interval for difference
         diff = hiho_mean - baseline_mean
@@ -433,7 +430,7 @@ class CohezionBenchmark:
         # Simple linear regression: reward = a * coherence + b
         slope, intercept, _, _, _ = stats.linregress(coherences, rewards)
         predictions = [slope * c + intercept for c in coherences]
-        residuals = [r - p for r, p in zip(rewards, predictions)]
+        residuals = [r - p for r, p in zip(rewards, predictions, strict=False)]
         rmse = float(np.sqrt(np.mean([e**2 for e in residuals])))
 
         # Calibration slope (ideal = 1.0)
@@ -442,8 +439,12 @@ class CohezionBenchmark:
         # Discrimination AUC (can we distinguish high vs low reward?)
         # Split into high/low reward groups
         median_reward = np.median(rewards)
-        high_coherences = [c for c, r in zip(coherences, rewards) if r > median_reward]
-        low_coherences = [c for c, r in zip(coherences, rewards) if r <= median_reward]
+        high_coherences = [
+            c for c, r in zip(coherences, rewards, strict=False) if r > median_reward
+        ]
+        low_coherences = [
+            c for c, r in zip(coherences, rewards, strict=False) if r <= median_reward
+        ]
 
         # Mann-Whitney U test (equivalent to AUC)
         if len(high_coherences) > 0 and len(low_coherences) > 0:
@@ -621,7 +622,8 @@ class CohezionBenchmark:
             findings.append(f"Large effect size (Cohen's d = {comparative.cohen_d:.2f})")
         if predictive and abs(predictive.coherence_reward_correlation) > 0.5:
             findings.append(
-                f"Strong coherence-reward correlation (r = {predictive.coherence_reward_correlation:.2f})"
+                f"Strong coherence-reward correlation "
+                f"(r = {predictive.coherence_reward_correlation:.2f})"
             )
 
         # 6. Recommendations
@@ -692,15 +694,14 @@ class CohezionBenchmark:
                 f.write(f"- **Cohen's d: {report.comparative.cohen_d:.2f}**\n")
                 f.write(f"- Improvement Ratio: {report.comparative.improvement_ratio:.1%}\n")
                 f.write(f"- p-value: {report.comparative.p_value:.4f}\n")
-                f.write(
-                    f"- 95% CI: ({report.comparative.confidence_interval[0]:.3f}, {report.comparative.confidence_interval[1]:.3f})\n\n"
-                )
+                ci = report.comparative.confidence_interval
+                f.write("- 95% CI:\n")
+                f.write(f"    ({ci[0]:.3f}, {ci[1]:.3f})\n\n")
 
             if report.predictive:
                 f.write("## Predictive Metrics\n\n")
-                f.write(
-                    f"- Coherence-Reward Correlation: {report.predictive.coherence_reward_correlation:.3f}\n"
-                )
+                corr = report.predictive.coherence_reward_correlation
+                f.write(f"- Coherence-Reward Correlation: {corr:.3f}\n")
                 f.write(f"- p-value: {report.predictive.p_value:.4f}\n")
                 f.write(f"- R-squared: {report.predictive.r_squared:.3f}\n")
                 f.write(f"- RMSE: {report.predictive.rmse:.3f}\n")
@@ -817,7 +818,8 @@ dataset_info:
 
 ## Dataset Description
 
-This dataset contains agent trajectories through the 12D HIHO manifold from the Cohezion universe simulation framework.
+This dataset contains agent trajectories through the 12D HIHO manifold
+from the Cohezion universe simulation framework.
 
 ## Key Features
 
