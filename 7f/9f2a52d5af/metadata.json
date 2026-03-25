@@ -3,8 +3,11 @@
   "checkpoint_id": "7f9f2a52d5af",
   "strategy": "manual-commit",
   "branch": "challenge/nvidia-nemotron-reasoning",
-  "checkpoints_count": 1,
+  "checkpoints_count": 2,
   "files_touched": [
+    "src/cohezion/compound/model_quality_classifier.py",
+    "src/cohezion/swarm/cost_aware_router.py",
+    "src/cohezion/swarm/dynamic_model_router.py",
     "src/cohezion/swarm/model_pool_config.py",
     "src/cohezion/swarm/smart_router.py"
   ],
@@ -15,13 +18,20 @@
       "context": "/7f/9f2a52d5af/0/context.md",
       "content_hash": "/7f/9f2a52d5af/0/content_hash.txt",
       "prompt": "/7f/9f2a52d5af/0/prompt.txt"
+    },
+    {
+      "metadata": "/7f/9f2a52d5af/1/metadata.json",
+      "transcript": "/7f/9f2a52d5af/1/full.jsonl",
+      "context": "/7f/9f2a52d5af/1/context.md",
+      "content_hash": "/7f/9f2a52d5af/1/content_hash.txt",
+      "prompt": "/7f/9f2a52d5af/1/prompt.txt"
     }
   ],
   "token_usage": {
-    "input_tokens": 44,
-    "cache_creation_tokens": 234571,
-    "cache_read_tokens": 1012426,
-    "output_tokens": 10492,
-    "api_call_count": 24
+    "input_tokens": 8358,
+    "cache_creation_tokens": 6361409,
+    "cache_read_tokens": 80490182,
+    "output_tokens": 160355,
+    "api_call_count": 415
   }
 }
