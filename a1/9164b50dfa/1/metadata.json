@@ -1,0 +1,32 @@
+{
+  "cli_version": "0.4.9",
+  "checkpoint_id": "a19164b50dfa",
+  "session_id": "93b66342-a8a3-4e87-b0be-4c0dcf07fa6a",
+  "strategy": "manual-commit",
+  "created_at": "2026-03-25T19:01:11.279042194Z",
+  "branch": "main",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "src/cohezion/compound/coherence_config.py",
+    "src/cohezion/compound/executor.py",
+    "tests/compound/test_coherence_config.py"
+  ],
+  "agent": "Claude Code",
+  "turn_id": "ac78a3035764",
+  "token_usage": {
+    "input_tokens": 11769,
+    "cache_creation_tokens": 8137906,
+    "cache_read_tokens": 133601423,
+    "output_tokens": 230075,
+    "api_call_count": 657
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-03-25T19:01:08.587631513Z",
+    "agent_lines": 102,
+    "human_added": 57,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 159,
+    "agent_percentage": 64.15094339622641
+  }
+}
