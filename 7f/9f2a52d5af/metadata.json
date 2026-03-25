@@ -1,0 +1,27 @@
+{
+  "cli_version": "0.4.9",
+  "checkpoint_id": "7f9f2a52d5af",
+  "strategy": "manual-commit",
+  "branch": "challenge/nvidia-nemotron-reasoning",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "src/cohezion/swarm/model_pool_config.py",
+    "src/cohezion/swarm/smart_router.py"
+  ],
+  "sessions": [
+    {
+      "metadata": "/7f/9f2a52d5af/0/metadata.json",
+      "transcript": "/7f/9f2a52d5af/0/full.jsonl",
+      "context": "/7f/9f2a52d5af/0/context.md",
+      "content_hash": "/7f/9f2a52d5af/0/content_hash.txt",
+      "prompt": "/7f/9f2a52d5af/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 44,
+    "cache_creation_tokens": 234571,
+    "cache_read_tokens": 1012426,
+    "output_tokens": 10492,
+    "api_call_count": 24
+  }
+}
