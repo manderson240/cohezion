@@ -1,0 +1,1139 @@
+Resume from continuation. Plan: research/challenges/luma_amd_speedrun/docs/plans/2026-03-19-breakthrough-direct-ck-kernels.md
+
+  The continuation file at ~/.cohezion-engine/sessions/pid-291980/continuation.md has the full context — what failed, what to do next, which skills to restructure. The next session will pick it up
+  automatically via cz session status.
+
+---
+
+Skill restructuring will make the rest easier.
+
+---
+
+Let's refine our plan and teams and agents as well
+
+---
+
+Proceed
+
+---
+
+<task-notification>
+<task-id>bs65sluyl</task-id>
+<tool-use-id>toolu_01Jawt2GzbFqXUxXhaJtUBce</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/372cbc1b-32c1-4d7a-b071-c206e9699dbc/tasks/bs65sluyl.output</output-file>
+<status>completed</status>
+<summary>Background command "Find gemm_afp4wfp4 source file" completed (exit code 0)</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/372cbc1b-32c1-4d7a-b071-c206e9699dbc/tasks/bs65sluyl.output
+
+---
+
+<task-notification>
+<task-id>bw5fgkolb</task-id>
+<tool-use-id>toolu_01D2Rq2DJvZBboeKmBK41nv3</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/372cbc1b-32c1-4d7a-b071-c206e9699dbc/tasks/bw5fgkolb.output</output-file>
+<status>completed</status>
+<summary>Background command "Find popcorn binary location" completed (exit code 0)</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/372cbc1b-32c1-4d7a-b071-c206e9699dbc/tasks/bw5fgkolb.output
+
+---
+
+<task-notification>
+<task-id>blq008uf2</task-id>
+<tool-use-id>toolu_01GMPioKD1Z9ybKvUb9GvmVu</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/372cbc1b-32c1-4d7a-b071-c206e9699dbc/tasks/blq008uf2.output</output-file>
+<status>completed</status>
+<summary>Background command "Find popcorn CLI binary" completed (exit code 0)</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/372cbc1b-32c1-4d7a-b071-c206e9699dbc/tasks/blq008uf2.output
+
+---
+
+<task-notification>
+<task-id>b1futgru2</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/372cbc1b-32c1-4d7a-b071-c206e9699dbc/tasks/b1futgru2.output</output-file>
+<status>completed</status>
+<summary>Background command "Check background task output and find gemm_afp4wfp4 source" completed (exit code 0)</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/372cbc1b-32c1-4d7a-b071-c206e9699dbc/tasks/b1futgru2.output
+
+---
+
+<task-notification>
+<task-id>byacnp1dq</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/372cbc1b-32c1-4d7a-b071-c206e9699dbc/tasks/byacnp1dq.output</output-file>
+<status>completed</status>
+<summary>Background command "Find popcorn binary everywhere" completed (exit code 0)</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/372cbc1b-32c1-4d7a-b071-c206e9699dbc/tasks/byacnp1dq.output
+
+---
+
+<task-notification>
+<task-id>bwcnv57k2</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/372cbc1b-32c1-4d7a-b071-c206e9699dbc/tasks/bwcnv57k2.output</output-file>
+<status>completed</status>
+<summary>Background command "Find aiter triton gemm source files" completed (exit code 0)</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/372cbc1b-32c1-4d7a-b071-c206e9699dbc/tasks/bwcnv57k2.output
+
+---
+
+<task-notification>
+<task-id>bi8luamm2</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/372cbc1b-32c1-4d7a-b071-c206e9699dbc/tasks/bi8luamm2.output</output-file>
+<status>completed</status>
+<summary>Background command "Find aiter package and gemm_afp4wfp4 source" completed (exit code 0)</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/372cbc1b-32c1-4d7a-b071-c206e9699dbc/tasks/bi8luamm2.output
+
+---
+
+<task-notification>
+<task-id>ba6eobi00</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/372cbc1b-32c1-4d7a-b071-c206e9699dbc/tasks/ba6eobi00.output</output-file>
+<status>completed</status>
+<summary>Background command "Submit with GPU specified" completed (exit code 0)</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/372cbc1b-32c1-4d7a-b071-c206e9699dbc/tasks/ba6eobi00.output
+
+---
+
+Let's make sure we're capturing all of these insights into our recursive experiential loop
+
+---
+
+# /learn - Online Learning System
+
+**Extract reusable knowledge from this session into skills.** Evaluates what was learned, checks for existing skills, and creates new ones when valuable patterns are discovered.
+
+---
+
+## TABLE OF CONTENTS
+
+| Phase       | Description                                            | Steps   |
+| ----------- | ------------------------------------------------------ | ------- |
+| **Phase 0** | Reference: triggers, quality criteria, skill structure | 0.1–0.4 |
+| **Phase 1** | Evaluate: assess if knowledge is worth extracting      | 1.1     |
+| **Phase 2** | Check Existing: search for related skills              | 2.1     |
+| **Phase 3** | Create Skill: write the skill file                     | 3.1–3.2 |
+| **Phase 4** | Quality Gates: final checklist before saving           | 4.1     |
+
+**Quick Step Reference:**
+
+- 0.1 Triggers, 0.2 Quality criteria, 0.3 What NOT to extract, 0.4 Skill structure
+- 1.1 Self-evaluation questions
+- 2.1 Search existing skills
+- 3.1 Choose location, 3.2 Write SKILL.md
+- 4.1 Final checklist
+
+---
+
+## PHASE 0: REFERENCE
+
+### Step 0.1: Triggers
+
+Invoke `/learn` after ANY task involving:
+
+| Trigger                      | Example                                                          |
+| ---------------------------- | ---------------------------------------------------------------- |
+| **Non-obvious debugging**    | Spent 10+ minutes investigating; solution wasn't in docs         |
+| **Misleading errors**        | Error message pointed wrong direction; found real cause          |
+| **Workarounds**              | Found limitation and creative solution                           |
+| **Tool integration**         | Figured out how to use tool/API in undocumented way              |
+| **Trial-and-error**          | Tried multiple approaches before finding what worked             |
+| **Repeatable workflow**      | Multi-step task that will recur; worth standardizing             |
+| **External service queries** | Fetched data from Jira, GitHub, Confluence, or other APIs        |
+| **User-facing automation**   | Built something user will ask for again (reports, status checks) |
+
+### Step 0.2: Quality Criteria
+
+Skills must be:
+
+- **Reusable**: Will help with future tasks (not just this instance)
+- **Non-trivial**: Required discovery, OR is a valuable workflow pattern
+- **Verified**: Solution actually worked, not theoretical
+
+### Step 0.3: What NOT to Extract
+
+- Single-step tasks with no workflow value
+- One-off fixes unlikely to recur
+- Knowledge easily found in official docs
+
+### Step 0.4: Skill Structure
+
+**Location:** `.claude/skills/[skill-name]/SKILL.md`
+
+**Template:**
+
+```markdown
+---
+name: descriptive-kebab-case-name
+description: |
+  [CRITICAL: This determines when the skill triggers. Include:]
+  - What the skill does
+  - Specific trigger conditions (exact error messages, symptoms)
+  - When to use it (contexts, scenarios)
+author: Claude Code
+version: 1.0.0
+---
+
+# Skill Name
+
+## Problem
+
+[Clear description of the problem]
+
+## Context / Trigger Conditions
+
+[When to use - exact error messages, symptoms, scenarios]
+
+## Solution
+
+[Step-by-step solution]
+
+## Verification
+
+[How to verify it worked]
+
+## Example
+
+[Concrete example]
+
+## References
+
+[Links to documentation]
+```
+
+<details>
+<summary>Writing Effective Descriptions</summary>
+
+The description field is CRITICAL for skill discovery:
+
+**Good:**
+
+```yaml
+description: |
+  Fix for "ENOENT: no such file or directory" errors in npm monorepos.
+  Use when: (1) npm run fails with ENOENT, (2) paths work in root but
+  not in packages, (3) symlinked dependencies cause failures.
+```
+
+**Bad:**
+
+```yaml
+description: Helps with npm problems in monorepos.
+```
+
+</details>
+
+**Guidelines:**
+
+- **Concise** - Claude is smart; only add what it doesn't know
+- **Under 500 lines** - Move large docs to `references/`
+- **Examples over explanations** - Show, don't tell
+
+---
+
+## PHASE 1: EVALUATE
+
+### Step 1.1: Self-Evaluation Questions
+
+Ask yourself:
+
+1. "What did I just learn that wasn't obvious before starting?"
+2. "Would future-me benefit from having this documented?"
+3. "Was the solution non-obvious from documentation alone?"
+4. "Is this a multi-step workflow I'd repeat on similar tasks?"
+5. "Did I query an external service the user will ask about again?"
+
+**If NO to all → Skip extraction, nothing to learn.**
+
+**Note:** External service queries (Jira tickets, GitHub PRs, Confluence pages) are almost always worth extracting - users frequently repeat these requests.
+
+---
+
+## PHASE 2: CHECK EXISTING
+
+### Step 2.1: Search for Related Skills
+
+Before creating, search for related skills:
+
+```bash
+ls .claude/skills/ 2>/dev/null
+rg -i "keyword" .claude/skills/ 2>/dev/null
+ls ~/.claude/pilot/skills/ 2>/dev/null
+rg -i "keyword" ~/.claude/pilot/skills/ 2>/dev/null
+```
+
+| Found                | Action                           |
+| -------------------- | -------------------------------- |
+| Nothing related      | Create new skill                 |
+| Same trigger and fix | Update existing (bump version)   |
+| Partial overlap      | Update existing with new variant |
+
+---
+
+## PHASE 3: CREATE SKILL
+
+### Step 3.1: Choose Location
+
+**Project skills**: `.claude/skills/[skill-name]/SKILL.md`
+
+### Step 3.2: Write SKILL.md
+
+Use the template from Step 0.4. Ensure the description field contains specific trigger conditions.
+
+---
+
+## PHASE 4: QUALITY GATES
+
+### Step 4.1: Final Checklist
+
+Before finalizing:
+
+- [ ] Description contains specific trigger conditions
+- [ ] Solution verified to work
+- [ ] Content specific enough to be actionable
+- [ ] Content general enough to be reusable
+- [ ] No sensitive information
+
+---
+
+## EXAMPLE
+
+**Scenario**: Discovered LSP `findReferences` can find dead code by checking if functions have only 1 reference (their definition) or only test references.
+
+**Skill Created**: `.claude/skills/lsp-dead-code-finder/SKILL.md`
+
+```markdown
+---
+name: lsp-dead-code-finder
+description: |
+  Find dead/unused code using LSP findReferences. Use when: (1) user asks
+  to find dead code, (2) cleaning up codebase, (3) refactoring. Key insight:
+  function with only 1 reference (definition) or only test refs is dead code.
+---
+
+# LSP Dead Code Finder
+
+...
+```
+
+---
+
+## REMEMBER
+
+**Continuous improvement.** Every valuable discovery should benefit future sessions.
+Evaluate after significant work. Extract selectively. Create carefully.
+
+---
+
+Is everyone on task?
+
+---
+
+# Hookify - Create Hooks from Unwanted Behaviors
+
+**FIRST: Load the hookify:writing-rules skill** using the Skill tool to understand rule file format and syntax.
+
+Create hook rules to prevent problematic behaviors by analyzing the conversation or from explicit user instructions.
+
+## Your Task
+
+You will help the user create hookify rules to prevent unwanted behaviors. Follow these steps:
+
+### Step 1: Gather Behavior Information
+
+**If  is provided:**
+- User has given specific instructions: ``
+- Still analyze recent conversation (last 10-15 user messages) for additional context
+- Look for examples of the behavior happening
+
+**If  is empty:**
+- Launch the conversation-analyzer agent to find problematic behaviors
+- Agent will scan user prompts for frustration signals
+- Agent will return structured findings
+
+**To analyze conversation:**
+Use the Task tool to launch conversation-analyzer agent:
+```
+{
+  "subagent_type": "general-purpose",
+  "description": "Analyze conversation for unwanted behaviors",
+  "prompt": "You are analyzing a Claude Code conversation to find behaviors the user wants to prevent.
+
+Read user messages in the current conversation and identify:
+1. Explicit requests to avoid something (\"don't do X\", \"stop doing Y\")
+2. Corrections or reversions (user fixing Claude's actions)
+3. Frustrated reactions (\"why did you do X?\", \"I didn't ask for that\")
+4. Repeated issues (same problem multiple times)
+
+For each issue found, extract:
+- What tool was used (Bash, Edit, Write, etc.)
+- Specific pattern or command
+- Why it was problematic
+- User's stated reason
+
+Return findings as a structured list with:
+- category: Type of issue
+- tool: Which tool was involved
+- pattern: Regex or literal pattern to match
+- context: What happened
+- severity: high/medium/low
+
+Focus on the most recent issues (last 20-30 messages). Don't go back further unless explicitly asked."
+}
+```
+
+### Step 2: Present Findings to User
+
+After gathering behaviors (from arguments or agent), present to user using AskUserQuestion:
+
+**Question 1: Which behaviors to hookify?**
+- Header: "Create Rules"
+- multiSelect: true
+- Options: List each detected behavior (max 4)
+  - Label: Short description (e.g., "Block rm -rf")
+  - Description: Why it's problematic
+
+**Question 2: For each selected behavior, ask about action:**
+- "Should this block the operation or just warn?"
+- Options:
+  - "Just warn" (action: warn - shows message but allows)
+  - "Block operation" (action: block - prevents execution)
+
+**Question 3: Ask for example patterns:**
+- "What patterns should trigger this rule?"
+- Show detected patterns
+- Allow user to refine or add more
+
+### Step 3: Generate Rule Files
+
+For each confirmed behavior, create a `.claude/hookify.{rule-name}.local.md` file:
+
+**Rule naming convention:**
+- Use kebab-case
+- Be descriptive: `block-dangerous-rm`, `warn-console-log`, `require-tests-before-stop`
+- Start with action verb: block, warn, prevent, require
+
+**File format:**
+```markdown
+---
+name: {rule-name}
+enabled: true
+event: {bash|file|stop|prompt|all}
+pattern: {regex pattern}
+action: {warn|block}
+---
+
+{Message to show Claude when rule triggers}
+```
+
+**Action values:**
+- `warn`: Show message but allow operation (default)
+- `block`: Prevent operation or stop session
+
+**For more complex rules (multiple conditions):**
+```markdown
+---
+name: {rule-name}
+enabled: true
+event: file
+conditions:
+  - field: file_path
+    operator: regex_match
+    pattern: \.env$
+  - field: new_text
+    operator: contains
+    pattern: API_KEY
+---
+
+{Warning message}
+```
+
+### Step 4: Create Files and Confirm
+
+**IMPORTANT**: Rule files must be created in the current working directory's `.claude/` folder, NOT the plugin directory.
+
+Use the current working directory (where Claude Code was started) as the base path.
+
+1. Check if `.claude/` directory exists in current working directory
+   - If not, create it first with: `mkdir -p .claude`
+
+2. Use Write tool to create each `.claude/hookify.{name}.local.md` file
+   - Use relative path from current working directory: `.claude/hookify.{name}.local.md`
+   - The path should resolve to the project's .claude directory, not the plugin's
+
+3. Show user what was created:
+   ```
+   Created 3 hookify rules:
+   - .claude/hookify.dangerous-rm.local.md
+   - .claude/hookify.console-log.local.md
+   - .claude/hookify.sensitive-files.local.md
+
+   These rules will trigger on:
+   - dangerous-rm: Bash commands matching "rm -rf"
+   - console-log: Edits adding console.log statements
+   - sensitive-files: Edits to .env or credentials files
+   ```
+
+4. Verify files were created in the correct location by listing them
+
+5. Inform user: **"Rules are active immediately - no restart needed!"**
+
+   The hookify hooks are already loaded and will read your new rules on the next tool use.
+
+## Event Types Reference
+
+- **bash**: Matches Bash tool commands
+- **file**: Matches Edit, Write, MultiEdit tools
+- **stop**: Matches when agent wants to stop (use for completion checks)
+- **prompt**: Matches when user submits prompts
+- **all**: Matches all events
+
+## Pattern Writing Tips
+
+**Bash patterns:**
+- Match dangerous commands: `rm\s+-rf|chmod\s+777|dd\s+if=`
+- Match specific tools: `npm\s+install\s+|pip\s+install`
+
+**File patterns:**
+- Match code patterns: `console\.log\(|eval\(|innerHTML\s*=`
+- Match file paths: `\.env$|\.git/|node_modules/`
+
+**Stop patterns:**
+- Check for missing steps: (check transcript or completion criteria)
+
+## Example Workflow
+
+**User says**: "/hookify Don't use rm -rf without asking me first"
+
+**Your response**:
+1. Analyze: User wants to prevent rm -rf commands
+2. Ask: "Should I block this command or just warn you?"
+3. User selects: "Just warn"
+4. Create `.claude/hookify.dangerous-rm.local.md`:
+   ```markdown
+   ---
+   name: warn-dangerous-rm
+   enabled: true
+   event: bash
+   pattern: rm\s+-rf
+   ---
+
+   ⚠️ **Dangerous rm command detected**
+
+   You requested to be warned before using rm -rf.
+   Please verify the path is correct.
+   ```
+5. Confirm: "Created hookify rule. It's active immediately - try triggering it!"
+
+## Important Notes
+
+- **No restart needed**: Rules take effect immediately on the next tool use
+- **File location**: Create files in project's `.claude/` directory (current working directory), NOT the plugin's .claude/
+- **Regex syntax**: Use Python regex syntax (raw strings, no need to escape in YAML)
+- **Action types**: Rules can `warn` (default) or `block` operations
+- **Testing**: Test rules immediately after creating them
+
+## Troubleshooting
+
+**If rule file creation fails:**
+1. Check current working directory with pwd
+2. Ensure `.claude/` directory exists (create with mkdir if needed)
+3. Use absolute path if needed: `{cwd}/.claude/hookify.{name}.local.md`
+4. Verify file was created with Glob or ls
+
+**If rule doesn't trigger after creation:**
+1. Verify file is in project `.claude/` not plugin `.claude/`
+2. Check file with Read tool to ensure pattern is correct
+3. Test pattern with: `python3 -c "import re; print(re.search(r'pattern', 'test text'))"`
+4. Verify `enabled: true` in frontmatter
+5. Remember: Rules work immediately, no restart needed
+
+**If blocking seems too strict:**
+1. Change `action: block` to `action: warn` in the rule file
+2. Or adjust the pattern to be more specific
+3. Changes take effect on next tool use
+
+Use TodoWrite to track your progress through the steps.
+
+---
+
+Base directory for this skill: /home/mike-anderson/.claude/plugins/cache/claude-plugins-official/hookify/d53f6ca4cdb0/skills/writing-rules
+
+# Writing Hookify Rules
+
+## Overview
+
+Hookify rules are markdown files with YAML frontmatter that define patterns to watch for and messages to show when those patterns match. Rules are stored in `.claude/hookify.{rule-name}.local.md` files.
+
+## Rule File Format
+
+### Basic Structure
+
+```markdown
+---
+name: rule-identifier
+enabled: true
+event: bash|file|stop|prompt|all
+pattern: regex-pattern-here
+---
+
+Message to show Claude when this rule triggers.
+Can include markdown formatting, warnings, suggestions, etc.
+```
+
+### Frontmatter Fields
+
+**name** (required): Unique identifier for the rule
+- Use kebab-case: `warn-dangerous-rm`, `block-console-log`
+- Be descriptive and action-oriented
+- Start with verb: warn, prevent, block, require, check
+
+**enabled** (required): Boolean to activate/deactivate
+- `true`: Rule is active
+- `false`: Rule is disabled (won't trigger)
+- Can toggle without deleting rule
+
+**event** (required): Which hook event to trigger on
+- `bash`: Bash tool commands
+- `file`: Edit, Write, MultiEdit tools
+- `stop`: When agent wants to stop
+- `prompt`: When user submits a prompt
+- `all`: All events
+
+**action** (optional): What to do when rule matches
+- `warn`: Show message but allow operation (default)
+- `block`: Prevent operation (PreToolUse) or stop session (Stop events)
+- If omitted, defaults to `warn`
+
+**pattern** (simple format): Regex pattern to match
+- Used for simple single-condition rules
+- Matches against command (bash) or new_text (file)
+- Python regex syntax
+
+**Example:**
+```yaml
+event: bash
+pattern: rm\s+-rf
+```
+
+### Advanced Format (Multiple Conditions)
+
+For complex rules with multiple conditions:
+
+```markdown
+---
+name: warn-env-file-edits
+enabled: true
+event: file
+conditions:
+  - field: file_path
+    operator: regex_match
+    pattern: \.env$
+  - field: new_text
+    operator: contains
+    pattern: API_KEY
+---
+
+You're adding an API key to a .env file. Ensure this file is in .gitignore!
+```
+
+**Condition fields:**
+- `field`: Which field to check
+  - For bash: `command`
+  - For file: `file_path`, `new_text`, `old_text`, `content`
+- `operator`: How to match
+  - `regex_match`: Regex pattern matching
+  - `contains`: Substring check
+  - `equals`: Exact match
+  - `not_contains`: Substring must NOT be present
+  - `starts_with`: Prefix check
+  - `ends_with`: Suffix check
+- `pattern`: Pattern or string to match
+
+**All conditions must match for rule to trigger.**
+
+## Message Body
+
+The markdown content after frontmatter is shown to Claude when the rule triggers.
+
+**Good messages:**
+- Explain what was detected
+- Explain why it's problematic
+- Suggest alternatives or best practices
+- Use formatting for clarity (bold, lists, etc.)
+
+**Example:**
+```markdown
+⚠️ **Console.log detected!**
+
+You're adding console.log to production code.
+
+**Why this matters:**
+- Debug logs shouldn't ship to production
+- Console.log can expose sensitive data
+- Impacts browser performance
+
+**Alternatives:**
+- Use a proper logging library
+- Remove before committing
+- Use conditional debug builds
+```
+
+## Event Type Guide
+
+### bash Events
+
+Match Bash command patterns:
+
+```markdown
+---
+event: bash
+pattern: sudo\s+|rm\s+-rf|chmod\s+777
+---
+
+Dangerous command detected!
+```
+
+**Common patterns:**
+- Dangerous commands: `rm\s+-rf`, `dd\s+if=`, `mkfs`
+- Privilege escalation: `sudo\s+`, `su\s+`
+- Permission issues: `chmod\s+777`, `chown\s+root`
+
+### file Events
+
+Match Edit/Write/MultiEdit operations:
+
+```markdown
+---
+event: file
+pattern: console\.log\(|eval\(|innerHTML\s*=
+---
+
+Potentially problematic code pattern detected!
+```
+
+**Match on different fields:**
+```markdown
+---
+event: file
+conditions:
+  - field: file_path
+    operator: regex_match
+    pattern: \.tsx?$
+  - field: new_text
+    operator: regex_match
+    pattern: console\.log\(
+---
+
+Console.log in TypeScript file!
+```
+
+**Common patterns:**
+- Debug code: `console\.log\(`, `debugger`, `print\(`
+- Security risks: `eval\(`, `innerHTML\s*=`, `dangerouslySetInnerHTML`
+- Sensitive files: `\.env$`, `credentials`, `\.pem$`
+- Generated files: `node_modules/`, `dist/`, `build/`
+
+### stop Events
+
+Match when agent wants to stop (completion checks):
+
+```markdown
+---
+event: stop
+pattern: .*
+---
+
+Before stopping, verify:
+- [ ] Tests were run
+- [ ] Build succeeded
+- [ ] Documentation updated
+```
+
+**Use for:**
+- Reminders about required steps
+- Completion checklists
+- Process enforcement
+
+### prompt Events
+
+Match user prompt content (advanced):
+
+```markdown
+---
+event: prompt
+conditions:
+  - field: user_prompt
+    operator: contains
+    pattern: deploy to production
+---
+
+Production deployment checklist:
+- [ ] Tests passing?
+- [ ] Reviewed by team?
+- [ ] Monitoring ready?
+```
+
+## Pattern Writing Tips
+
+### Regex Basics
+
+**Literal characters:** Most characters match themselves
+- `rm` matches "rm"
+- `console.log` matches "console.log"
+
+**Special characters need escaping:**
+- `.` (any char) → `\.` (literal dot)
+- `(` `)` → `\(` `\)` (literal parens)
+- `[` `]` → `\[` `\]` (literal brackets)
+
+**Common metacharacters:**
+- `\s` - whitespace (space, tab, newline)
+- `\d` - digit (0-9)
+- `\w` - word character (a-z, A-Z, 0-9, _)
+- `.` - any character
+- `+` - one or more
+- `*` - zero or more
+- `?` - zero or one
+- `|` - OR
+
+**Examples:**
+```
+rm\s+-rf         Matches: rm -rf, rm  -rf
+console\.log\(   Matches: console.log(
+(eval|exec)\(    Matches: eval( or exec(
+chmod\s+777      Matches: chmod 777, chmod  777
+API_KEY\s*=      Matches: API_KEY=, API_KEY =
+```
+
+### Testing Patterns
+
+Test regex patterns before using:
+
+```bash
+python3 -c "import re; print(re.search(r'your_pattern', 'test text'))"
+```
+
+Or use online regex testers (regex101.com with Python flavor).
+
+### Common Pitfalls
+
+**Too broad:**
+```yaml
+pattern: log    # Matches "log", "login", "dialog", "catalog"
+```
+Better: `console\.log\(|logger\.`
+
+**Too specific:**
+```yaml
+pattern: rm -rf /tmp  # Only matches exact path
+```
+Better: `rm\s+-rf`
+
+**Escaping issues:**
+- YAML quoted strings: `"pattern"` requires double backslashes `\\s`
+- YAML unquoted: `pattern: \s` works as-is
+- **Recommendation**: Use unquoted patterns in YAML
+
+## File Organization
+
+**Location:** All rules in `.claude/` directory
+**Naming:** `.claude/hookify.{descriptive-name}.local.md`
+**Gitignore:** Add `.claude/*.local.md` to `.gitignore`
+
+**Good names:**
+- `hookify.dangerous-rm.local.md`
+- `hookify.console-log.local.md`
+- `hookify.require-tests.local.md`
+- `hookify.sensitive-files.local.md`
+
+**Bad names:**
+- `hookify.rule1.local.md` (not descriptive)
+- `hookify.md` (missing .local)
+- `danger.local.md` (missing hookify prefix)
+
+## Workflow
+
+### Creating a Rule
+
+1. Identify unwanted behavior
+2. Determine which tool is involved (Bash, Edit, etc.)
+3. Choose event type (bash, file, stop, etc.)
+4. Write regex pattern
+5. Create `.claude/hookify.{name}.local.md` file in project root
+6. Test immediately - rules are read dynamically on next tool use
+
+### Refining a Rule
+
+1. Edit the `.local.md` file
+2. Adjust pattern or message
+3. Test immediately - changes take effect on next tool use
+
+### Disabling a Rule
+
+**Temporary:** Set `enabled: false` in frontmatter
+**Permanent:** Delete the `.local.md` file
+
+## Examples
+
+See `/home/mike-anderson/.claude/plugins/cache/claude-plugins-official/hookify/d53f6ca4cdb0/examples/` for complete examples:
+- `dangerous-rm.local.md` - Block dangerous rm commands
+- `console-log-warning.local.md` - Warn about console.log
+- `sensitive-files-warning.local.md` - Warn about editing .env files
+
+## Quick Reference
+
+**Minimum viable rule:**
+```markdown
+---
+name: my-rule
+enabled: true
+event: bash
+pattern: dangerous_command
+---
+
+Warning message here
+```
+
+**Rule with conditions:**
+```markdown
+---
+name: my-rule
+enabled: true
+event: file
+conditions:
+  - field: file_path
+    operator: regex_match
+    pattern: \.ts$
+  - field: new_text
+    operator: contains
+    pattern: any
+---
+
+Warning message
+```
+
+**Event types:**
+- `bash` - Bash commands
+- `file` - File edits
+- `stop` - Completion checks
+- `prompt` - User input
+- `all` - All events
+
+**Field options:**
+- Bash: `command`
+- File: `file_path`, `new_text`, `old_text`, `content`
+- Prompt: `user_prompt`
+
+**Operators:**
+- `regex_match`, `contains`, `equals`, `not_contains`, `starts_with`, `ends_with`
+
+---
+
+<task-notification>
+<task-id>bg8pgik6w</task-id>
+<tool-use-id>toolu_01XNXfmSpE7KDXgfD8993gZ8</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/372cbc1b-32c1-4d7a-b071-c206e9699dbc/tasks/bg8pgik6w.output</output-file>
+<status>completed</status>
+<summary>Background command "Gate 2 — test active-expert masking with clamped IDs" completed (exit code 0)</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/372cbc1b-32c1-4d7a-b071-c206e9699dbc/tasks/bg8pgik6w.output
+
+---
+
+<teammate-message teammate_id="gemm-optimizer" color="blue" summary="Task #3 complete — all 4 GEMM submissions done">
+**Task #3 complete — GEMM: gemm_afp4wfp4 split-K and per-shape configs**
+
+All 4 submissions executed. Summary:
+
+---
+
+**1.2 — Per-shape config discovery (DONE — informational)**
+- Test: PASS
+- `AITER_TRITON_CONFIGS_PATH` is NOT SET on runner — no per-shape Triton config file exists
+- Found `optCompilerConfig.json` (48KB) at `/home/runner/aiter/aiter/jit/optCompilerConfig.json` — this is the ASM kernel selector, not a tunable Triton config
+- `gemm_afp4wfp4` is NOT exported in `aiter` namespace — it's a module, not a callable at the top level
+- **No per-shape config tuning is available to exploit**
+- Not worth leaderboard submission (probe only, same speed as baseline)
+
+---
+
+**1.1 — gemm_afp4wfp4 skip_reduce=True (DEAD END)**
+- Test: PASS (fell back to gemm_a4w4)
+- `gemm_afp4wfp4` signature: `(x, w, x_scales, w_scales, dtype, y, config, skip_reduce)` — no `bpreshuffle`
+- But calling it with fp4x2 tensors throws `KeyError: 'REDACTED'` — same Triton type registry error as `tl.dot_scaled` fp4
+- **gemm_afp4wfp4 is completely inaccessible on runner** — all paths error on fp4 type lookup
+- Not worth leaderboard submission
+
+---
+
+**1.3 — Quant dispatch floor (INFORMATIONAL — worse)**
+- Test: PASS
+- Timing data from runner:
+  - Call 1 (M=8, K=7168): **73,462µs** — torch.compile JIT compilation
+  - Call 2 (M=16, K=1536): **78,638µs** — another recompile (new shape)
+  - Call 3 (M=64, K=1536): **83.6µs** — warmed compute
+  - Call 4 (M=256, K=512): **76.8µs** — warmed compute
+- `torch.compile` adds recompilation overhead per unique (M, K) shape — net negative for multi-shape benchmark
+- True quant compute floor after warmup: **~77-84µs** (not 26µs as previously measured — the 26µs was an undercount)
+- Pre-warm strategy works but only covers one shape; each new shape recompiles
+- **Do not use torch.compile** — reverted to baseline
+- Not worth leaderboard submission
+
+---
+
+**1.4 — Triton bf16 fused quant+GEMM (CORRECTNESS FAIL)**
+- Test: FAIL — `torch.mm(A, B_bf16.T)` fails correctness because reference uses MXFP4-quantized B, not full-precision B
+- Error magnitude is large (16k+ mismatched elements), well beyond rtol=1e-2
+- The Triton bf16 kernel itself compiled and warmed correctly on runner
+- Would need to dequantize B inside the kernel (expensive) to pass correctness
+- **Not viable without dequant of B** — dead end
+
+---
+
+**Net result for GEMM track:**
+- All 4 paths exhausted — no improvement found
+- Baseline (`gemm_a4w4` with A-quant cache) restored at ~14.1µs geomean
+- The fundamental bottleneck (quant dispatch ~77-84µs per cold shape) remains
+- The only remaining viable path is fused quant+GEMM in a single ASM/CK kernel (blocked by runner scanning)
+
+**New finding for skill update:** The quant floor is **~77-84µs warmed compute** (not 26µs). The 26µs was measured under different conditions. This makes the quant bottleneck even harder to work around at Python level.
+</teammate-message>
+
+<teammate-message teammate_id="gemm-optimizer" color="blue">
+{"type":"idle_notification","from":"gemm-optimizer","timestamp":"2026-03-19T20:52:03.055Z","idleReason":"available"}
+</teammate-message>
+
+<teammate-message teammate_id="gemm-optimizer" color="blue">
+{"type":"idle_notification","from":"gemm-optimizer","timestamp":"2026-03-19T20:52:12.467Z","idleReason":"available"}
+</teammate-message>
+
+<teammate-message teammate_id="mla-explorer" color="green" summary="MLA task complete — submission restored, torch.compile regresses">
+MLA Track complete. Results:
+
+**3.3 Submission Integrity — FIXED**
+- submission.py was CORRUPTED (silently replaced with FP8-only code, no three-regime routing)
+- Restored from submission_autokernel_backup.py (Phase 17 best: three-regime + fast_mode=False)
+- Verified: 4/4 tests pass, MATMUL_MAX_BS=4, MATMUL_MAX_TOTAL_KV=32768, OR logic, fast_mode=False in both metadata calls
+- NOTE: No file called EINSUM_THRESHOLD exists — that was an older naming; the current Phase 17 code uses MATMUL_MAX_TOTAL_KV=32768 + A16W8_THRESHOLD=262144
+
+**3.2 torch.compile on matmul regime — REGRESSION, do not submit**
+- Tested torch.compile(mode="reduce-overhead") on matmul path
+- 4/4 tests passed (correct results)
+- Benchmark: **significant regression on all matmul-regime shapes**
+  - bs=4,kv=1024: 23.3µs → 37.9µs (+63%)
+  - bs=4,kv=8192: 37.6µs → 77.7µs (+107%, with 2.4ms outliers)
+  - bs=32,kv=1024: 39.9µs → 79.8µs (+100%, with 4.4ms outliers)
+- Root cause: ROCm torch.compile recompiles CUDA graph for each new input shape; the benchmark rotates through multiple shapes, hitting recompile penalty repeatedly
+- aiter ASM paths unaffected (neutral on bs=32-256, kv=8192 shapes)
+
+**Current status: submission.py is Phase 17 best (~67.8µs ranked geomean). No improvement found.**
+
+The submission file at research/challenges/luma_amd_speedrun/kernels/mixed-mla/submission.py is the correct Phase 17 version and should be leaderboard-submitted if not already done.
+</teammate-message>
+
+<teammate-message teammate_id="mla-explorer" color="green">
+{"type":"idle_notification","from":"mla-explorer","timestamp":"2026-03-19T20:56:41.592Z","idleReason":"available"}
+</teammate-message>
+
+<teammate-message teammate_id="mla-explorer" color="green">
+{"type":"idle_notification","from":"mla-explorer","timestamp":"2026-03-19T20:56:49.696Z","idleReason":"available"}
+</teammate-message>
+
+<teammate-message teammate_id="moe-infra" color="yellow" summary="Gate 1 PASS (new fix), Gate 2 FAIL (GPU fault), benchmark results">
+## Task #2 Complete — MoE Infrastructure Report
+
+### Gate 1: PASS (with critical new fix)
+
+**Root cause discovered:** aiter JIT builds `module_moe_sorting` and `module_moe_ck2stages_*` to `/home/runner/aiter/aiter/jit/build/<module>/` but the install-step that copies the `.so` to the parent `jit/` dir is failing silently (filesystem permissions). `importlib.import_module()` then can't find it.
+
+**Fix:** Pre-inject build subdirectories into `sys.path` before first `fused_moe` call:
+```python
+_AITER_JIT_BUILD = "/home/runner/aiter/aiter/jit/build"
+for _mod in ("module_moe_sorting", "module_moe_ck2stages_fp4x2_fp4x2_preshuffle_on_b16_silu_per_1x32_mulWeightStage2_"):
+    _p = os.path.join(_AITER_JIT_BUILD, _mod)
+    if _p not in sys.path:
+        sys.path.insert(0, _p)
+```
+
+**Result:** 3/3 tests PASS on two consecutive runs. This fix is now in `submission.py`.
+
+**JIT cache persistence: NEGATIVE.** Each GitHub Actions job gets a fresh runner (different hostnames). JIT rebuilds every time (~25s sorting + ~103-107s ck2stages = ~130s). With 540s test timeout and ~120s overhead, this is within budget (total ~250s << 540s).
+
+### Gate 2: FAIL — GPU memory fault
+
+`fused_moe(expert_mask=<bool tensor>)` → `Memory access fault by GPU node-2 on address 0x7b6601720000`. Confirmed same crash as Phase 18. The `expert_mask` parameter remains broken — the CK stage1 kernel uses it for offset computation but buffer is sized wrong for the compacted expert list. Expert masking via `fused_moe(expert_mask=...)` is a dead end on this runner.
+
+Gate 3 (IREE K-tile probe) was not attempted per protocol (gated on Gate 1, which passed; but the finding is noted).
+
+### Benchmark Results (Gate 1 v4 baseline)
+
+| Shape | Time |
+|-------|------|
+| E=257, bs=16, d=256 | 138µs |
+| E=257, bs=128, d=256 | 223µs |
+| E=257, bs=512, d=256 | 313µs |
+| E=33, bs=16, d=512 | 94.8µs |
+| E=33, bs=128, d=512 | 129µs |
+| E=33, bs=512, d=512 | 213µs |
+| E=33, bs=512, d=2048 | 351µs |
+| **Geomean** | **~190µs** |
+
+Note: benchmark shapes changed from previous sessions (new large d=2048 shapes included). Not directly comparable to the previous 155µs ranked geomean.
+
+Also notable from benchmark stderr: for the 256-expert shapes (bs=16,128,512), aiter uses `kernelName1='', kernelName2=''` (auto-select). For 32-expert shapes it uses "2stage default". The auto-select path for 256-expert shapes may be using a tuned CSV kernel — this is the `AITER_BYPASS_TUNE_CONFIG=1` vs no-bypass difference worth probing.
+
+### Key Finding for Other Tracks
+
+The `module_moe_sorting` `local_expert_mask` parameter now exists in the new aiter signature — but passing it via `fused_moe(expert_mask=...)` still crashes. Direct `moe_sorting_fwd(..., local_expert_mask=mask)` might work but requires calling the raw JIT module directly, bypassing `fused_moe`.
+
+### Updated Files
+- `/home/mike-anderson/dev/cohezion/research/challenges/luma_amd_speedrun/kernels/moe-mxfp4/submission.py` — updated with sys.path fix
+- `/home/mike-anderson/dev/cohezion/research/challenges/luma_amd_speedrun/kernels/moe-mxfp4/staging/submission_gate1_v4_buildpath.py` — the working fix
+- `/home/mike-anderson/dev/cohezion/research/challenges/luma_amd_speedrun/kernels/moe-mxfp4/staging/submission_gate2_expert_mask.py` — the failed Gate 2 attempt
+
+</teammate-message>
+
+<teammate-message teammate_id="moe-infra" color="yellow">
+{"type":"idle_notification","from":"moe-infra","timestamp":"2026-03-19T21:08:00.473Z","idleReason":"available"}
+</teammate-message>
+
+<teammate-message teammate_id="moe-infra" color="yellow">
+{"type":"idle_notification","from":"moe-infra","timestamp":"2026-03-19T21:08:11.162Z","idleReason":"available"}
+</teammate-message>
+
+---
+
+<teammate-message teammate_id="system">
+{"type":"teammate_terminated","message":"gemm-optimizer has shut down."}
+</teammate-message>
+
+<teammate-message teammate_id="system">
+{"type":"teammate_terminated","message":"mla-explorer has shut down."}
+</teammate-message>
+
+<teammate-message teammate_id="gemm-optimizer" color="blue">
+{"type":"shutdown_approved","requestId":"shutdown-1773954785875@gemm-optimizer","from":"gemm-optimizer","timestamp":"2026-03-19T21:13:11.393Z","paneId":"in-process","backendType":"in-process"}
+</teammate-message>
+
+<teammate-message teammate_id="mla-explorer" color="green">
+{"type":"shutdown_approved","requestId":"shutdown-1773954785956@mla-explorer","from":"mla-explorer","timestamp":"2026-03-19T21:13:11.749Z","paneId":"in-process","backendType":"in-process"}
+</teammate-message>
+
+<teammate-message teammate_id="system">
+{"type":"teammate_terminated","message":"moe-infra has shut down."}
+</teammate-message>
+
+<teammate-message teammate_id="moe-infra" color="yellow">
+{"type":"shutdown_approved","requestId":"shutdown-1773954786038@moe-infra","from":"moe-infra","timestamp":"2026-03-19T21:13:16.218Z","paneId":"in-process","backendType":"in-process"}
+</teammate-message>
