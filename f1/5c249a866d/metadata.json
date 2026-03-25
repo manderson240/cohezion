@@ -3,7 +3,7 @@
   "checkpoint_id": "f15c249a866d",
   "strategy": "manual-commit",
   "branch": "research/luma-amd-breakthrough",
-  "checkpoints_count": 11,
+  "checkpoints_count": 12,
   "files_touched": [
     ".claude/hooks/mcp-health-check.sh",
     ".claude/settings.json",
@@ -34,13 +34,20 @@
       "context": "/f1/5c249a866d/1/context.md",
       "content_hash": "/f1/5c249a866d/1/content_hash.txt",
       "prompt": "/f1/5c249a866d/1/prompt.txt"
+    },
+    {
+      "metadata": "/f1/5c249a866d/2/metadata.json",
+      "transcript": "/f1/5c249a866d/2/full.jsonl",
+      "context": "/f1/5c249a866d/2/context.md",
+      "content_hash": "/f1/5c249a866d/2/content_hash.txt",
+      "prompt": "/f1/5c249a866d/2/prompt.txt"
     }
   ],
   "token_usage": {
-    "input_tokens": 1209,
-    "cache_creation_tokens": 1297125,
-    "cache_read_tokens": 11647033,
-    "output_tokens": 43785,
-    "api_call_count": 82
+    "input_tokens": 1561,
+    "cache_creation_tokens": 1615670,
+    "cache_read_tokens": 14528332,
+    "output_tokens": 56902,
+    "api_call_count": 103
   }
 }
