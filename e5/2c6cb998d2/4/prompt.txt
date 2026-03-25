@@ -1,0 +1,125 @@
+<teammate-message teammate_id="team-lead">
+You are implementing Workstream 1 of the Cohezion contribution plan. Your task is to implement the stubbed CRUD methods in both SurrealDB repositories and write tests.
+
+## Your deliverables
+1. Modify: `src/cohezion/core/persistence/repositories/surreal_skill_repository.py` — implement create(), get(), get_all()
+2. Modify: `src/cohezion/core/persistence/repositories/surreal_universe_repository.py` — implement create(), get(), get_all()
+3. Create: `tests/persistence/test_surreal_skill_repository.py`
+4. Create: `tests/persistence/test_surreal_universe_repository.py`
+
+## Read these files first
+1. `src/cohezion/core/persistence/repositories/surreal_skill_repository.py` — the stubs (40 lines)
+2. `src/cohezion/core/persistence/repositories/surreal_universe_repository.py` — the stubs (71 lines)
+3. `src/cohezion/core/persistence/surreal_client.py` — the pattern to follow (SurrealClient class, InMemoryStore class, UniverseNode dataclass, PhysicsState dataclass)
+
+## Implementation: SurrealSkillRepository
+
+### create(skill: dict) -> bool
+```python
+async def create(self, skill: dict[str, Any]) -> bool:
+    try:
+        skill_id = skill.get("id", f"skill_{int(time.time() * 1000)}")
+        await self._client.create("skills", {"id": skill_id, **skill})
+        logger.info("Created skill %s", skill_id)
+        return True
+    except Exception as e:
+        logger.error("Failed to create skill: %s", e)
+        return False
+```
+
+### get(skill_id: str) -> dict | None
+```python
+async def get(self, skill_id: str) -> dict[str, Any] | None:
+    try:
+        result = await self._client.query(
+            "SELECT * FROM skills WHERE id = $id LIMIT 1",
+            {"id": skill_id},
+        )
+        if result and result[0]:
+            records = result[0] if isinstance(result[0], list) else result[0].get("result", [])
+            return records[0] if records else None
+        return None
+    except Exception as e:
+        logger.error("Failed to get skill %s: %s", skill_id, e)
+        return None
+```
+
+### get_all(limit: int = 100) -> list[dict]
+```python
+async def get_all(self, limit: int = 100) -> list[dict[str, Any]]:
+    try:
+        result = await self._client.query(
+            "SELECT * FROM skills LIMIT $limit",
+            {"limit": min(limit, 10000)},
+        )
+        if result and result[0]:
+            records = result[0] if isinstance(result[0], list) else result[0].get("result", [])
+            return records
+        return []
+    except Exception as e:
+        logger.error("Failed to get all skills: %s", e)
+        return []
+```
+
+Add `import time` at the top.
+
+## Implementation: SurrealUniverseRepository
+
+### create(node: UniverseNode) -> bool
+```python
+async def create(self, node: UniverseNode) -> bool:
+    try:
+        data = node.to_dict()
+        await self._client.create(self._table, data)
+        logger.info("Created universe node %s", node.id)
+        return True
+    except Exception as e:
+        logger.error("Failed to create universe node: %s", e)
+        return False
+```
+
+### get(node_id: str) -> UniverseNode | None
+Use `self._client.query()` to SELECT by ID, then reconstruct `UniverseNode` from the dict data. Use `PhysicsState.from_array()` or parse the physics_state dict manually.
+
+### get_all(limit, node_type) -> list[UniverseNode]
+Add WHERE clause for node_type filter when provided. Reconstruct UniverseNode objects from results.
+
+## Tests
+
+### test_surreal_skill_repository.py
+- `test_create_skill_success` — mock client.create, verify returns True
+- `test_create_skill_failure` — mock client.create raises, verify returns False
+- `test_get_skill_found` — mock client.query returns data, verify dict returned
+- `test_get_skill_not_found` — mock client.query returns empty, verify None
+- `test_get_all_skills` — mock client.query returns list, verify list returned
+- `test_get_all_skills_empty` — returns empty list
+
+### test_surreal_universe_repository.py
+- Same pattern but with UniverseNode objects
+- Test node_type filtering in get_all()
+- Test UniverseNode reconstruction from dict
+
+### Mocking strategy
+The `_client` parameter is typed as `Any`, so mock it with AsyncMock:
+```python
+@pytest.fixture
+def mock_client():
+    client = AsyncMock()
+    client.create = AsyncMock(return_value=[{"id": "skills:test_1"}])
+    client.query = AsyncMock(return_value=[[{"id": "test_1", "name": "research"}]])
+    return client
+```
+
+## Conventions
+- Use `pytest.mark.asyncio` for async tests
+- Add `import time` to the repository files
+- Keep files under 300 lines
+- Non-blocking error handling
+
+## Important
+- Check if `tests/persistence/` directory exists. Create `__init__.py` if needed.
+- Run tests after writing: `uv run pytest tests/persistence/ -q`
+- Run lint: `ruff check src/cohezion/core/persistence/repositories/`
+
+After completing the task, mark task #4 as completed using TaskUpdate.
+</teammate-message>
