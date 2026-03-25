@@ -1,6 +1,7 @@
 ---
 name: compound-planner
 description: Plans compound engineering sessions by searching capabilities and generating team specs
+effort: high
 tools:
   - Read
   - Glob

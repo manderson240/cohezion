@@ -1,6 +1,7 @@
 ---
 name: code-reviewer
 description: Reviews code for quality, correctness, and adherence to Cohezion coding standards. Use when you want a second opinion on code changes before committing.
+effort: medium
 tools:
   - Read
   - Glob
