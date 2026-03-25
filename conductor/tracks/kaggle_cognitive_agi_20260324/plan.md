@@ -1,12 +1,12 @@
 # Implementation Plan: Measuring Progress Toward AGI - Cognitive Abilities Kaggle Competition
 
 ## Phase 1: Context & Synthetic Task Generation
-- [ ] Task: Research existing `kaggle-agi-benchmark/` directory and Kaggle competition dataset constraints.
-- [ ] Task: Implement `generate_evo_hiho_tasks.py` improvements.
-    - [ ] Sub-task: Refactor prompt generation for ARC-AGI style grid patterns.
-    - [ ] Sub-task: Ensure output format strictly matches `kaggle_benchmark.json` schema.
-- [ ] Task: Write/update tests for synthetic task generator.
-- [ ] Task: Conductor - User Manual Verification 'Context & Synthetic Task Generation' (Protocol in workflow.md)
+- [x] Task: Research existing `kaggle-agi-benchmark/` directory and Kaggle competition dataset constraints.
+- [x] Task: Implement `generate_evo_hiho_tasks.py` improvements.
+    - [x] Sub-task: Refactor prompt generation for ARC-AGI style grid patterns.
+    - [x] Sub-task: Ensure output format strictly matches `kaggle_benchmark.json` schema.
+- [x] Task: Write/update tests for synthetic task generator.
+- [x] Task: Conductor - User Manual Verification 'Context & Synthetic Task Generation' (Protocol in workflow.md)
 
 ## Phase 2: FLUME Evaluation Loop
 - [ ] Task: Integrate FLUME core with `adversarial_eval_loop.py`.
