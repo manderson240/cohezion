@@ -24,7 +24,7 @@
 - [x] Task: Conductor - User Manual Verification 'Notebook Pipeline Optimization' (Protocol in workflow.md)
 
 ## Phase 4: Final Deliverables & Documentation
-- [ ] Task: Update `format_kaggle_submission.py` to ensure `submission.csv` is correctly shaped.
-- [ ] Task: Draft `kaggle_writeup.md` documenting methodology, FLUME setup, and empirical findings.
-- [ ] Task: Final end-to-end dry run of the evaluation loop and submission pipeline.
-- [ ] Task: Conductor - User Manual Verification 'Final Deliverables & Documentation' (Protocol in workflow.md)
+- [x] Task: Update `format_kaggle_submission.py` to ensure `submission.csv` is correctly shaped.
+- [x] Task: Draft `kaggle_writeup.md` documenting methodology, FLUME setup, and empirical findings.
+- [x] Task: Final end-to-end dry run of the evaluation loop and submission pipeline.
+- [x] Task: Conductor - User Manual Verification 'Final Deliverables & Documentation' (Protocol in workflow.md)
