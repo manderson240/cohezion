@@ -312,10 +312,11 @@ class TestExecutorSkillHealthIntegration:
         assert record.failed_invocations == 1
         assert record.successful_invocations == 0
 
-    def test_no_tracker_by_default(self, mock_mcp_client: MagicMock) -> None:
-        """Executor without tracker parameter works fine — no AttributeError."""
+    def test_auto_creates_tracker_by_default(self, mock_mcp_client: MagicMock) -> None:
+        """Executor auto-creates a SkillHealthTracker when none provided."""
         executor = CompoundExecutor(mock_mcp_client)
-        assert executor._skill_health_tracker is None
+        assert executor._skill_health_tracker is not None
+        assert isinstance(executor._skill_health_tracker, SkillHealthTracker)
 
         def dummy_task(guidance: dict) -> tuple[str, dict]:
             return "output", {}

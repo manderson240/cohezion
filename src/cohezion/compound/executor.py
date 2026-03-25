@@ -160,7 +160,12 @@ class CompoundExecutor(CompoundContextMixin):
         self._model_quality_classifier = model_quality_classifier
         self._retrospection_engine = retrospection_engine
         self._universe_bridge = universe_bridge
-        self._skill_health_tracker = skill_health_tracker
+        if skill_health_tracker:
+            self._skill_health_tracker = skill_health_tracker
+        else:
+            from cohezion.compound.skill_health_tracker import SkillHealthTracker
+
+            self._skill_health_tracker = SkillHealthTracker()
         self._degradation_mode = False  # HIHO band violation flag
         # Lazy import to avoid circular dependency
         if inflection_detector:
