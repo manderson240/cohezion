@@ -1,0 +1,21 @@
+{
+  "cli_version": "0.4.9",
+  "checkpoint_id": "98ff13efeb59",
+  "strategy": "manual-commit",
+  "branch": "main",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "nemotron_logs/nemotron_lora_adapter/README.md",
+    "nemotron_logs/nemotron_lora_adapter/adapter_config.json",
+    "nemotron_logs/nemotron_lora_adapter/adapter_model.safetensors"
+  ],
+  "sessions": [
+    {
+      "metadata": "/98/ff13efeb59/0/metadata.json",
+      "transcript": "/98/ff13efeb59/0/full.jsonl",
+      "context": "",
+      "content_hash": "/98/ff13efeb59/0/content_hash.txt",
+      "prompt": ""
+    }
+  ]
+}
