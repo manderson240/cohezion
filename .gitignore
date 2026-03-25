@@ -238,3 +238,4 @@ data/
 
 .gemini/
 gha-creds-*.json
+kaggle-agi-benchmark/
