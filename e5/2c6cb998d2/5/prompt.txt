@@ -1,0 +1,77 @@
+<teammate-message teammate_id="team-lead">
+You are implementing Workstream 2 of the Cohezion contribution plan. Your task is to complete 2 stub methods in cache_warmer.py and write comprehensive tests.
+
+## Your deliverables
+1. Modify: `src/cohezion/cache/cache_warmer.py` — implement `warm_from_history()` and `warm_from_recent_executions()`
+2. Create: `tests/cache/test_cache_warmer.py`
+
+## Read these files first
+1. `src/cohezion/cache/cache_warmer.py` — the file you're modifying. `warm_from_vault()` (lines 32-81) is the pattern to follow.
+2. `src/cohezion/cache/semantic_cache.py` — the SemanticCache you're loading into (has `put(prompt, response)` and `get_stats()` methods)
+
+## Implementation: warm_from_history(skill_name)
+
+Follow the pattern from `warm_from_vault()`. The method should:
+1. Return 0 early if no mcp_client
+2. Search vault for execution patterns related to the skill: `mcp_client.vault_search(query=f"execution {skill_name} successful")`
+3. Parse results — each result should have prompt/response data
+4. Filter for successful executions (check for "success" or "coherence" > 0.7 in the pattern data)
+5. Sort by quality (coherence score descending if available)
+6. Load top performers into cache via `await self.cache.put(prompt=..., response=...)`
+7. Return count loaded
+8. Wrap everything in try/except, log errors, return 0 on failure
+
+## Implementation: warm_from_recent_executions(limit)
+
+Similar pattern:
+1. Return 0 early if no mcp_client
+2. Search vault for recent executions: `mcp_client.vault_search(query="recent execution high coherence")`
+3. Parse results, extract prompt/response pairs
+4. Limit to `limit` entries
+5. Load into cache
+6. Return count loaded
+7. Non-blocking error handling
+
+## Tests to write
+
+### test_cache_warmer.py should test:
+- `test_warm_from_vault_loads_patterns` — mock MCPClient.vault_list + vault_read, verify cache.put called
+- `test_warm_from_vault_no_client` — returns 0 when mcp_client is None
+- `test_warm_from_vault_handles_errors` — bad JSON doesn't crash, returns partial count
+- `test_warm_from_history_loads_skill_patterns` — mock vault_search, verify filtering and loading
+- `test_warm_from_history_no_client` — returns 0
+- `test_warm_from_history_handles_errors` — graceful failure
+- `test_warm_from_recent_loads_executions` — mock vault_search, verify limit applied
+- `test_warm_from_recent_no_client` — returns 0
+- `test_analyze_cache_effectiveness` — mock get_stats, verify output structure
+
+### Mocking strategy
+```python
+@pytest.fixture
+def mock_mcp_client():
+    client = MagicMock()
+    client.vault_list = MagicMock(return_value=["cache_patterns/p1.json", "cache_patterns/p2.json"])
+    client.vault_read = MagicMock(return_value='{"prompt": "test", "response": "result"}')
+    client.vault_search = MagicMock(return_value=["execution result data..."])
+    return client
+
+@pytest.fixture  
+def mock_cache():
+    cache = AsyncMock(spec=SemanticCache)
+    cache.get_stats.return_value = {"overall_hit_rate": 85, "l1_hit_rate": 60, "l2_hit_rate": 25, "l1_size": 100, "l2_size": 200}
+    return cache
+```
+
+## Conventions
+- Use `pytest.mark.asyncio` for all async tests
+- Keep implementations under 300 lines per file
+- Non-blocking error handling (try/except with logging)
+- Use `from unittest.mock import MagicMock, AsyncMock, patch`
+
+## Important
+- Run `uv run pytest tests/cache/test_cache_warmer.py -q` after writing to verify
+- Run `ruff check src/cohezion/cache/cache_warmer.py` for lint
+- Both new methods should follow the exact pattern of warm_from_vault() for consistency
+
+After completing the task, mark task #3 as completed using TaskUpdate.
+</teammate-message>
