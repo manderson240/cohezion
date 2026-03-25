@@ -1,0 +1,39 @@
+{
+  "cli_version": "0.4.9",
+  "checkpoint_id": "f15c249a866d",
+  "strategy": "manual-commit",
+  "branch": "research/luma-amd-breakthrough",
+  "checkpoints_count": 2,
+  "files_touched": [
+    ".claude/hooks/mcp-health-check.sh",
+    ".claude/settings.json",
+    ".claude/skills/cohezion-data-governance.md",
+    ".claude/skills/cohezion-debugging-scenarios.md",
+    ".claude/skills/cohezion-journey-tracking.md",
+    ".claude/skills/cohezion-metrics-observability.md",
+    ".claude/skills/cohezion-worktree-workflow.md",
+    "CLAUDE.md",
+    "cloud-vault-mcp/src/mcp_server/compound_ops.py",
+    "cloud-vault-mcp/tests/test_compound_ops.py",
+    "src/cohezion/compound/executor.py",
+    "src/cohezion/compound/skill_health_tracker.py",
+    "tests/compound/test_compound_full_cycle.py",
+    "tests/compound/test_skill_health_tracker.py"
+  ],
+  "sessions": [
+    {
+      "metadata": "/f1/5c249a866d/0/metadata.json",
+      "transcript": "/f1/5c249a866d/0/full.jsonl",
+      "context": "/f1/5c249a866d/0/context.md",
+      "content_hash": "/f1/5c249a866d/0/content_hash.txt",
+      "prompt": "/f1/5c249a866d/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 36,
+    "cache_creation_tokens": 253507,
+    "cache_read_tokens": 891588,
+    "output_tokens": 12475,
+    "api_call_count": 20
+  }
+}

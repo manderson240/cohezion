@@ -1,0 +1,77 @@
+<teammate-message teammate_id="team-lead">
+You are the CLAUDE.md Shredder agent. Your task is to reduce CLAUDE.md from ~700 to ~320 lines by extracting rarely-needed sections into on-demand skills.
+
+## Your Task (Task #4)
+
+Mark task #4 as in_progress, then do the work, then mark it completed.
+
+## What to Do
+
+Extract these 5 sections from `/home/mike-anderson/dev/cohezion/CLAUDE.md` into new skill files in `/home/mike-anderson/dev/cohezion/.claude/skills/`:
+
+### 1. `cohezion-debugging-scenarios.md`
+- **Extract from CLAUDE.md:** The "Common Debugging Scenarios" section (~60 lines, 5 scenarios)
+- **Trigger description:** "Cohezion-specific debugging scenarios for test isolation, flaky tests, singleton pollution, Ollama timeouts, journey tracking issues, and token count mismatches. Use when debugging test failures, investigating flaky tests, or troubleshooting Cohezion infrastructure."
+
+### 2. `cohezion-worktree-workflow.md`  
+- **Extract from CLAUDE.md:** The "Multi-Session Worktree Pattern" section (~70 lines including Quick Start, Manual Commands, Git Rules, Git Config)
+- **Trigger description:** "Multi-session worktree workflow for Cohezion development. Covers session scripts (start_session.sh, end_session.sh, list_sessions.sh), manual git worktree commands, commit message format with Co-Authored-By, and recommended git config. Use when starting a new development session, managing worktrees, or committing session work."
+
+### 3. `cohezion-journey-tracking.md`
+- **Extract from CLAUDE.md:** Both "Agent Journey Tracking" AND "Request Alignment Assessment" sections (~103 lines combined)
+- **Trigger description:** "Agent journey tracking and request alignment assessment for the Cohezion compound engineering loop. Covers JourneyTracker API (record_state, record_transition, save_checkpoint, rollback), RequestAlignmentAnalyzer (coherence, completeness, constraint satisfaction, drift risk), and alignment anti-patterns. Use when implementing compound features, adding journey tracking, or checking request alignment."
+
+### 4. `cohezion-metrics-observability.md`
+- **Extract from CLAUDE.md:** The "Metrics & Observability" section (~52 lines)
+- **Trigger description:** "Production monitoring and metrics for the Cohezion compound engineering system. Covers GlobalMetricsAggregator (recording executions, querying snapshots, skill trends), BudgetEnforcer (monthly budget checks, token budget control), and cost tracking. Use when implementing metrics, monitoring costs, or debugging budget issues."
+
+### 5. `cohezion-data-governance.md`
+- **Extract from CLAUDE.md:** The "Data Storage Architecture for Simulations" section (~105 lines)
+- **Trigger description:** "Three-tier data storage governance for Cohezion universe simulations. Covers Git (Tier 1: configs), SurrealDB (Tier 2: queryable index), External/S3 (Tier 3: large artifacts). Includes pre-commit hook for >50MB files, JourneyTracker artifact registration, recovery procedures, and success metrics. Use when managing simulation artifacts, checkpoint storage, or implementing data governance."
+
+### Skill File Format
+
+Each skill file should follow this exact format:
+
+```markdown
+---
+name: <skill-name>
+description: <trigger description from above>
+---
+
+# <Title>
+
+<content extracted from CLAUDE.md>
+```
+
+### CLAUDE.md Modifications
+
+After creating each skill, replace the extracted section in CLAUDE.md with a brief reference like:
+
+```markdown
+### Common Debugging Scenarios
+See skill: `cohezion-debugging-scenarios` — covers test isolation, flaky tests, singleton pollution, Ollama timeouts, journey tracking, token mismatches.
+```
+
+Keep the heading so the table of contents still makes sense, but replace the full content with the 1-line reference.
+
+### Important Rules
+- Read CLAUDE.md first to find the exact section boundaries
+- Preserve ALL content in the skill files — don't lose any information
+- Use the YAML frontmatter format shown above (name + description fields only)
+- Make trigger descriptions specific and keyword-rich so they fire correctly
+- Don't modify any sections that aren't listed above
+- After all edits, count the lines in CLAUDE.md to verify reduction
+
+### Verification
+After completing all changes:
+1. Count lines: `wc -l /home/mike-anderson/dev/cohezion/CLAUDE.md`
+2. List new skills: `ls -la /home/mike-anderson/dev/cohezion/.claude/skills/cohezion-*.md`
+3. Verify each skill file has proper YAML frontmatter
+</teammate-message>
+
+---
+
+<teammate-message teammate_id="claude-md-shredder" color="purple">
+{"type":"task_assignment","taskId":"4","subject":"Shard CLAUDE.md into on-demand skills","description":"Extract 5 rarely-needed sections from CLAUDE.md (~376 lines) into on-demand skills in .claude/skills/. Create: cohezion-debugging-scenarios, cohezion-worktree-workflow, cohezion-journey-tracking, cohezion-metrics-observability, cohezion-data-governance. Each skill gets YAML frontmatter with trigger keywords. Replace extracted sections in CLAUDE.md with 1-line \"See skill\" references. Target: reduce CLAUDE.md from ~700 to ~320 lines.","assignedBy":"claude-md-shredder","timestamp":"2026-03-25T02:12:04.844Z"}
+</teammate-message>
