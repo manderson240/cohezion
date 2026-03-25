@@ -1,3 +1,12 @@
+### [2026-03-25] 4-WORKSTREAM PARALLEL CONTRIBUTION
+- **Team**: 4 parallel agents (flume-tester, debate-tester, cache-impl, surreal-impl) — zero conflicts.
+- **FLUME tests**: 21 tests for LCSP predictor, morphospace mapper, bioelectric engine (previously untested geometry core).
+- **Debate tests**: 19 tests for democratic debate consensus (previously untested). Discovered vote parsing substring bug (L161).
+- **Cache warmer**: Implemented `warm_from_history()` + `warm_from_recent_executions()` stubs. 18 tests.
+- **SurrealDB repos**: Implemented CRUD for `SurrealSkillRepository` + `SurrealUniverseRepository`. 23 tests.
+- **Fixes**: Broken import chain in `compound/__init__.py` (L162). conftest.py TYPE_CHECKING bug (L164).
+- **Total**: 82 new tests, 4,375 passing in full suite, 0 regressions.
+
 ### [2026-02-20] PHASE 19: DEV ENVIRONMENT RECOVERY & RETROSPECTIVE (Session 15)
 - **Claude Code fix**: Resolved native vs npm install conflict. Removed leftover npm global (`npm -g uninstall @anthropic-ai/claude-code`), restored `autoUpdates: true` in `~/.claude.json`, updated from 2.1.42 → 2.1.49.
 - **Context7 MCP**: Added via `claude mcp add --scope user` (correct path: `~/.claude.json`). Reverted incorrect edit to `~/.claude/mcp.json` (Pilot's config, not Claude Code's).
@@ -46,42 +55,12 @@
 - **4 workstreams**: Token middleware + Instruction execution (parallel agents) → Swarm orchestration → Compound feedback (sequential by leader).
 - **45 new tests**, 556 total. Suite healthy.
 
-### [2026-02-06] PHASE 12: HYBRID DEPLOYMENT & BRANCH ARCHAEOLOGY
-- **GitHub**: Primary remote at github.com/manderson240/cohezion. Source of truth.
-- **Public repos extracted**: `llm-prompt-guard` (23 tests, Apache 2.0), `ollama-debate` (7 personas, Apache 2.0) at `/home/mike-anderson/dev/public-repos/`.
-- **Pre-push hooks fixed**: Restricted stage overrides from pre-commit-hooks repo. Push now runs 5 safety hooks only (pytest, import-check, file-count, large-files, private-key).
-- **Integration tests fixed**: 28 passing. Removed references to non-existent `TrainConfig.early_stopping_patience`, `FlumeVAETrainer.metrics_path`, `FlumeTrajectoryDataset.from_mass_sim_run`.
-- **Branch archaeology**: Mined `fix/runaway-files-pre-cleanup` and `ops/hygiene` for 8 new learnings (102-109). Captured: 8.6M file incident, system lockup pattern, Untrack & Mine protocol, OMEGA distiller concept, temporal dilation, .gitignore layered defense.
-- **Knowledge propagated**: Updated KEY_LEARNINGS.md, GIT_HYGIENE.md (comprehensive rewrite), EVOLUTION_PROTOCOL.md (hardware safety section), MEMORY.md.
-
-### [2026-02-06] PHASE 11: OLLAMA-POWERED SPECIALIST PIPELINE
-- **5-phase plan**: ETL bridge → VAE training CLI → RL + weight bridge → end-to-end integration → iterative hyperparameter search.
-- **5-agent team**: vae-trainer, watcher-builder, rl-trainer, bridge-builder, debate-builder — parallel execution in ~15 min.
-- **14 new files**: pipeline/ package (weight_bridge, trained_navigator, hyperparameter_debate, incremental_trainer), mass_sim/exporter.py, 5 scripts (train_vae, train_rl, vae_training_watcher, hyperparameter_search, run_full_pipeline.sh), 3 integration tests.
-- **8 modified files**: batch_runner (trained navigator support), config (export_npy), persistence (3 new DB tables), training.py (JSONL logging, early stopping, from_checkpoint), dataset.py (from_mass_sim_run), democratic_debate (structured_output), mass_sim_driver (--export-npy), overnight_dashboard (real data).
-- **Weight bridge**: Collapses 3-layer PolicyNetwork → 2-layer Rust FlumePhysics via matrix multiplication.
-- **Tests**: 357 passing (329 pre-existing + 28 new integration), 3 skipped.
-
-### [2026-02-06] PHASE 10: AGENT FILE VALIDATION & SCAFFOLDING
-- **Agent schema**: Pydantic `AgentFileSchema` in `validation/agent_schema.py` — single source of truth for `.claude/agents/*.md` frontmatter validation.
-- **Pre-commit hook**: `scripts/hooks/validate-agent-files.py` blocks commits with invalid agent files.
-- **PostToolUse hook**: `.claude/hooks/validate-agent-files.sh` warns Claude in real-time after editing agent files.
-- **Slash command**: `/new-agent` scaffolds valid agent files using `generate_agent_frontmatter()`.
-- **Tests**: 21 unit tests (4 classes), 356 total tests passing (3 skipped, 1 flaky weight bridge test).
-- **3-agent team**: schema-builder → hook-builder + test-template-builder in parallel (~3 min wall time).
-
-### [2026-02-06] PHASE 9: COMPOUND ENGINEERING SYSTEM
-- **Retrospective cleanup**: KEY_LEARNINGS.md pruned from 744→136 lines (removed 3 duplicate retrospective blocks, 54 spam entries, compressed early learnings). MISSION_JOURNAL.md pruned from 297→~100 lines.
-- **Compound system**: RetrospectionEngine, TeamOrchestrator, ResilientOllamaClient — connecting capability registry, template engine, and model router into a self-improving loop.
-- **Pipeline connected**: `scripts/compound_pipeline.py` — search → plan → retrospect in one command.
-- **New agents**: compound-planner (read-only planning), skill-researcher (PRIME skill generation).
-
-### [2026-02-06] PHASE 8.5: CONNECT THE PIPELINE
-- **Mass sim export**: 10 universes × 100 agents × 500 epochs → 61 .npy files, 11K vectors in `data/mass_sim/artifacts/`.
-- **FLUME VAE retrained**: MSE 0.0225→0.1322 (real data 5.9x harder), KL 0.0313→0.4329 (13.8x richer latent).
-- **RL REINFORCE trained**: 200 episodes, avg coherence 0.991. Environment too easy — needs harder dynamics.
-- **6 new API endpoints**: /flume/encode, /flume/decode, /flume/interpolate, /rl/step, /rl/episode, /rl/policy-info.
-- **19 integration tests**: All passing. Total: 131 tests in 3.1s.
+### [2026-02-06] PHASES 8.5-12 (compressed)
+- **Phase 8.5**: Mass sim export (61 .npy, 11K vectors), VAE retrained on real data, RL trained (0.991 coherence), 6 API endpoints, 131 tests.
+- **Phase 9**: Compound loop connected (RetrospectionEngine + TeamOrchestrator + ResilientOllamaClient). KEY_LEARNINGS pruned 744→136 lines.
+- **Phase 10**: Agent file validation (Pydantic schema + pre-commit + PostToolUse hook + `/new-agent`). 356 tests.
+- **Phase 11**: Ollama specialist pipeline (5-agent team, weight bridge, 357 tests). Weight bridge collapses 3→2 layer PolicyNetwork.
+- **Phase 12**: GitHub primary remote. Branch archaeology mined 8 learnings (102-109). Pre-push hooks restricted.
 
 ### [2026-03-08] RAH PHASE 2 & SPATIAL PHONONS SYNTHESIS
 - **RAH Persistence**: Integrated `AutonomicManager` with SurrealDB. Decisions now logged as `rah_decision` nodes with 12D physics state mapping.
