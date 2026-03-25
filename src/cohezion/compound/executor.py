@@ -102,6 +102,7 @@ class CompoundExecutor(CompoundContextMixin):
         model_quality_classifier: Any | None = None,
         retrospection_engine: Any | None = None,
         universe_bridge: Any | None = None,
+        skill_health_tracker: Any | None = None,
     ):
         """Initialize compound executor.
 
@@ -141,6 +142,9 @@ class CompoundExecutor(CompoundContextMixin):
                 If None, skill refinement is not gated by retrospection.
             universe_bridge: Optional UniverseBridge for connecting journeys
                 to the universe simulation engine. If None, no universe tracking.
+            skill_health_tracker: Optional SkillHealthTracker for recording per-skill
+                usage metrics (invocations, success rate, tokens, quality).
+                If None, no health tracking recorded.
         """
         self.mcp_client = mcp_client
         self.token_client = token_client
@@ -157,6 +161,7 @@ class CompoundExecutor(CompoundContextMixin):
         self._model_quality_classifier = model_quality_classifier
         self._retrospection_engine = retrospection_engine
         self._universe_bridge = universe_bridge
+        self._skill_health_tracker = skill_health_tracker
         self._degradation_mode = False  # HIHO band violation flag
         # Lazy import to avoid circular dependency
         if inflection_detector:
@@ -719,6 +724,23 @@ class CompoundExecutor(CompoundContextMixin):
             except Exception as e:
                 logger.debug("Skill refinement failed (non-blocking): %s", e, exc_info=True)
 
+        # Step 7.4: Record skill health metrics (non-blocking)
+        if self._skill_health_tracker:
+            try:
+                tokens = 0
+                quality = 0.0
+                if token_metrics:
+                    tokens = token_metrics.get("tokens_used", 0)
+                quality = metrics.get("coherence", 0.0)
+                self._skill_health_tracker.record_usage(
+                    skill_name=skill_name,
+                    success=success,
+                    tokens_used=tokens,
+                    quality_score=quality,
+                )
+            except Exception as e:
+                logger.warning(f"Skill health tracking failed (non-blocking): {e}")
+
         # Step 7.5: Check for degradation and manage HIHO band (non-blocking)
         # Coherence within HIHO band [0.4, 0.6] -> exit degradation mode
         # Coherence outside band with CRITICAL alert -> enter degradation mode
@@ -1011,6 +1033,7 @@ class ExecutorFactory:
         model_quality_classifier: Any | None = None,
         retrospection_engine: Any | None = None,
         universe_bridge: Any | None = None,
+        skill_health_tracker: Any | None = None,
     ) -> CompoundExecutor:
         """Create a new compound executor.
 
@@ -1031,6 +1054,7 @@ class ExecutorFactory:
             model_quality_classifier: Optional ModelQualityClassifier
             retrospection_engine: Optional RetrospectionEngine
             universe_bridge: Optional UniverseBridge
+            skill_health_tracker: Optional SkillHealthTracker
 
         Returns:
             CompoundExecutor instance
@@ -1052,6 +1076,7 @@ class ExecutorFactory:
             model_quality_classifier=model_quality_classifier,
             retrospection_engine=retrospection_engine,
             universe_bridge=universe_bridge,
+            skill_health_tracker=skill_health_tracker,
         )
 
     @staticmethod
@@ -1072,6 +1097,7 @@ class ExecutorFactory:
         model_quality_classifier: Any | None = None,
         retrospection_engine: Any | None = None,
         universe_bridge: Any | None = None,
+        skill_health_tracker: Any | None = None,
     ) -> CompoundExecutor:
         """Get or create singleton executor.
 
@@ -1114,6 +1140,7 @@ class ExecutorFactory:
                 model_quality_classifier=model_quality_classifier,
                 retrospection_engine=retrospection_engine,
                 universe_bridge=universe_bridge,
+                skill_health_tracker=skill_health_tracker,
             )
         return ExecutorFactory._instance
 
