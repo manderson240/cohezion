@@ -1,0 +1,32 @@
+{
+  "cli_version": "0.4.9",
+  "checkpoint_id": "f3abba03607b",
+  "session_id": "03264568-6dbe-439a-be3a-3ed17da8cf5d",
+  "strategy": "manual-commit",
+  "created_at": "2026-03-25T11:57:41.952613376Z",
+  "branch": "research/luma-amd-breakthrough",
+  "checkpoints_count": 3,
+  "files_touched": [
+    "conductor/tracks.md",
+    "kaggle-agi-benchmark/format_kaggle_submission.py",
+    "kaggle-agi-benchmark/kaggle_writeup.md"
+  ],
+  "agent": "Claude Code",
+  "turn_id": "4a2d52074487",
+  "token_usage": {
+    "input_tokens": 3807,
+    "cache_creation_tokens": 1965504,
+    "cache_read_tokens": 13736933,
+    "output_tokens": 40866,
+    "api_call_count": 75
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-03-25T11:57:41.348317744Z",
+    "agent_lines": 0,
+    "human_added": 671,
+    "human_modified": 53,
+    "human_removed": 0,
+    "total_committed": 673,
+    "agent_percentage": 0
+  }
+}
