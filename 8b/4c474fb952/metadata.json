@@ -1,0 +1,31 @@
+{
+  "cli_version": "0.4.9",
+  "checkpoint_id": "8b4c474fb952",
+  "strategy": "manual-commit",
+  "branch": "feat/insights-remaining-fixes",
+  "checkpoints_count": 3,
+  "files_touched": [
+    ".claude/hooks/pre-commit-check.sh",
+    ".claude/settings.json",
+    "CLAUDE.md",
+    "scripts/headless/README.md",
+    "scripts/headless/execute-plan.sh",
+    "scripts/headless/maintain.sh"
+  ],
+  "sessions": [
+    {
+      "metadata": "/8b/4c474fb952/0/metadata.json",
+      "transcript": "/8b/4c474fb952/0/full.jsonl",
+      "context": "/8b/4c474fb952/0/context.md",
+      "content_hash": "/8b/4c474fb952/0/content_hash.txt",
+      "prompt": "/8b/4c474fb952/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 10957,
+    "cache_creation_tokens": 6781941,
+    "cache_read_tokens": 95194519,
+    "output_tokens": 183216,
+    "api_call_count": 501
+  }
+}
