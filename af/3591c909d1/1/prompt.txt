@@ -1,0 +1,150 @@
+How doul you like to contribute to Cohezion?
+
+---
+
+<task-notification>
+<task-id>bmj1r4o72</task-id>
+<tool-use-id>toolu_01AdfWfNZUTbxf8iGQfxAWqx</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/0e827bda-d662-451e-95d0-882cbec81a9e/tasks/bmj1r4o72.output</output-file>
+<status>killed</status>
+<summary>Background command "uv run pytest tests/ -q 2&gt;&amp;1 | tail -50" was stopped</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/0e827bda-d662-451e-95d0-882cbec81a9e/tasks/bmj1r4o72.output
+
+---
+
+<teammate-message teammate_id="surreal-impl" color="green" summary="Workstream 1 complete: 23/23 tests pass">
+Workstream 1 complete. All deliverables done:
+
+**Modified files:**
+1. `src/cohezion/core/persistence/repositories/surreal_skill_repository.py` — implemented `create()`, `get()`, `get_all()` with error handling, limit capping, and both list/dict response formats
+2. `src/cohezion/core/persistence/repositories/surreal_universe_repository.py` — implemented `create()`, `get()`, `get_all()` with `node_type` filtering, `UniverseNode` reconstruction via `_dict_to_node()`, and `PhysicsState` parsing
+
+**Created files:**
+3. `tests/persistence/test_surreal_skill_repository.py` — 12 tests (create success/failure/auto-id, get found/not-found/dict-format/failure, get_all list/dict/empty/failure/limit-cap)
+4. `tests/persistence/test_surreal_universe_repository.py` — 11 tests (create success/failure, get found/dict-format/not-found/failure, get_all with/without type filter/empty/failure/limit-cap)
+
+**Verification:** 23/23 tests pass, ruff lint clean.
+
+**Note:** I also fixed a pre-existing bug in `tests/conftest.py` — `TYPE_CHECKING` was used without being imported. The tests need `--noconftest --override-ini="asyncio_mode=auto"` due to a separate pre-existing import error in conftest's `reset_singletons` fixture (`ExecutorFactory` missing from `cohezion.compound.compat`). This is unrelated to my changes.
+
+Please mark task #4 as completed.
+</teammate-message>
+
+<teammate-message teammate_id="surreal-impl" color="green">
+{"type":"idle_notification","from":"surreal-impl","timestamp":"2026-03-25T19:11:30.046Z","idleReason":"available"}
+</teammate-message>
+
+<teammate-message teammate_id="cache-impl" color="purple" summary="Workstream 2 complete, 18/18 tests pass">
+Workstream 2 complete. Here's a summary:
+
+**Modified:** `src/cohezion/cache/cache_warmer.py`
+- `warm_from_history(skill_name)` — searches vault for execution patterns, filters by success status or coherence > 0.7, sorts by coherence descending, loads into cache
+- `warm_from_recent_executions(limit)` — searches vault for recent high-coherence executions, applies limit, loads into cache
+- Both follow the exact pattern of `warm_from_vault()` (early return if no client, try/except per entry, outer try/except, logging)
+
+**Created/Expanded:** `tests/cache/test_cache_warmer.py` — 18 tests, all passing
+- warm_from_vault: loads_patterns, no_client, handles_errors, skips_missing_fields
+- warm_from_history: loads_skill_patterns, sorts_by_coherence, no_client, handles_errors, empty_results, vault_search_exception
+- warm_from_recent: loads_executions (with limit verification), no_client, handles_errors, empty_results, skips_missing_fields, vault_search_exception
+- analyze_cache_effectiveness: output structure, full_l1 recommendation
+
+**Verification:** `uv run pytest tests/cache/test_cache_warmer.py -q --noconftest` → 18/18 pass. `ruff check` clean on both files.
+
+**Note:** The root `tests/conftest.py` has a pre-existing bug (`TYPE_CHECKING` used without import on line 17). Tests run fine with `--noconftest`. This is not something I introduced — just flagging it.
+
+Please mark task #3 as completed.
+</teammate-message>
+
+<teammate-message teammate_id="cache-impl" color="purple">
+{"type":"idle_notification","from":"cache-impl","timestamp":"2026-03-25T19:11:40.749Z","idleReason":"available"}
+</teammate-message>
+
+<teammate-message teammate_id="flume-tester" color="blue" summary="Morphospace geometry tests complete, 21/21 passing">
+Task #2 complete. Created `tests/flume/test_morphospace_geometry.py` with 21 tests — all passing.
+
+**Results:** `uv run pytest tests/flume/test_morphospace_geometry.py -q --noconftest --no-cov` → 21 passed in 0.79s
+
+**Coverage:**
+- **LCSPPredictor (7 tests):** predict returns correct type, rejects wrong dimensions, hiho_stability in [0,1], confidence == hiho_stability, actions == state difference, lazy initialization, encode/decode shapes
+- **MorphospaceMapper (7 tests):** two initial wells, stability max at HIHO, stability decreases away from HIHO, find nearest well, navigation produces valid path, path metrics, discover wells with seeded random
+- **BioelectricEngine (7 tests):** homeostatic/regenerative/morphogenic signal encoding, voltage formula, decode action blends with HIHO, step moves toward target, morphogenesis convergence
+
+**Note:** Had to use `--noconftest` because `tests/conftest.py:17` has a pre-existing bug (`TYPE_CHECKING` used without import from `typing`). This doesn't affect the test file itself.
+</teammate-message>
+
+<teammate-message teammate_id="flume-tester" color="blue">
+{"type":"idle_notification","from":"flume-tester","timestamp":"2026-03-25T19:12:47.345Z","idleReason":"available"}
+</teammate-message>
+
+<teammate-message teammate_id="debate-tester" color="yellow" summary="Workstream 3 done: 19 tests passing">
+Workstream 3 complete. Created `tests/swarm/test_democratic_debate.py` — **19 tests, all passing**.
+
+```
+uv run pytest tests/swarm/test_democratic_debate.py -q -o addopts=""
+19 passed in 0.80s
+```
+
+**Pure data (9 tests):** vote enum values, all consensus calculation variants (all agree, all disagree, empty, mixed above/below threshold, formula verification), system_prompt content, session to_dict serialization.
+
+**Mock-based (10 tests):** vote parsing (STRONGLY_AGREE, DISAGREE substring behavior, default NEUTRAL), gather_proposals returns all 7 agents, run_debate consensus/max_rounds/min_rounds/saves_session, refine_topic calls only synthesizer.
+
+**Vote parsing bug found:** The parser iterates VoteValue in definition order — "DISAGREE" contains "AGREE" as substring, so negative votes can never be matched. Test documents actual behavior. Worth a follow-up fix.
+
+**Note:** Tests need `-o addopts=""` due to pre-existing broken import in `cohezion.compound.__init__.py` triggered by coverage. Same as all other swarm tests.
+</teammate-message>
+
+<teammate-message teammate_id="debate-tester" color="yellow">
+{"type":"idle_notification","from":"debate-tester","timestamp":"2026-03-25T19:13:46.041Z","idleReason":"available"}
+</teammate-message>
+
+<teammate-message teammate_id="debate-tester" color="yellow">
+{"type":"idle_notification","from":"debate-tester","timestamp":"2026-03-25T19:14:03.984Z","idleReason":"available"}
+</teammate-message>
+
+<teammate-message teammate_id="system">
+{"type":"teammate_terminated","message":"debate-tester has shut down."}
+</teammate-message>
+
+<teammate-message teammate_id="debate-tester" color="yellow">
+{"type":"shutdown_approved","requestId":"shutdown-1774466061863@debate-tester","from":"debate-tester","timestamp":"2026-03-25T19:14:26.868Z","paneId":"%11","backendType":"tmux"}
+</teammate-message>
+
+<teammate-message teammate_id="system">
+{"type":"teammate_terminated","message":"cache-impl has shut down."}
+</teammate-message>
+
+<teammate-message teammate_id="cache-impl" color="purple">
+{"type":"shutdown_approved","requestId":"shutdown-1774466061906@cache-impl","from":"cache-impl","timestamp":"2026-03-25T19:14:28.128Z","paneId":"%12","backendType":"tmux"}
+</teammate-message>
+
+<teammate-message teammate_id="system">
+{"type":"teammate_terminated","message":"surreal-impl has shut down."}
+</teammate-message>
+
+<teammate-message teammate_id="system">
+{"type":"teammate_terminated","message":"flume-tester has shut down."}
+</teammate-message>
+
+<teammate-message teammate_id="surreal-impl" color="green">
+{"type":"shutdown_approved","requestId":"shutdown-1774466061941@surreal-impl","from":"surreal-impl","timestamp":"2026-03-25T19:14:28.883Z","paneId":"%10","backendType":"tmux"}
+</teammate-message>
+
+<teammate-message teammate_id="flume-tester" color="blue">
+{"type":"shutdown_approved","requestId":"shutdown-1774466061855@flume-tester","from":"flume-tester","timestamp":"2026-03-25T19:14:29.219Z","paneId":"%9","backendType":"tmux"}
+</teammate-message>
+
+---
+
+1 then 2
+
+---
+
+<task-notification>
+<task-id>bpiwvgilk</task-id>
+<tool-use-id>toolu_01LoRcgDsVK8gKkgaa6GKLHU</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/0e827bda-d662-451e-95d0-882cbec81a9e/tasks/bpiwvgilk.output</output-file>
+<status>completed</status>
+<summary>Background command "Full suite ignoring all api/ pre-existing errors" completed (exit code 0)</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/0e827bda-d662-451e-95d0-882cbec81a9e/tasks/bpiwvgilk.output
