@@ -3,13 +3,21 @@
   "checkpoint_id": "85a27236addd",
   "strategy": "manual-commit",
   "branch": "main",
-  "checkpoints_count": 3,
+  "checkpoints_count": 4,
   "files_touched": [
+    "scripts/bug_hunt.py",
+    "scripts/compound_live.py",
+    "scripts/train_flume.py",
     "scripts/wake_up.py",
+    "src/cohezion/agents/generated/__init__.py",
+    "src/cohezion/agents/generated/skill_0_agent.py",
+    "src/cohezion/agents/generated/skill_1_agent.py",
     "src/cohezion/cache/cache_warmer.py",
     "src/cohezion/compound/__init__.py",
     "src/cohezion/core/persistence/repositories/surreal_skill_repository.py",
-    "src/cohezion/core/persistence/repositories/surreal_universe_repository.py"
+    "src/cohezion/core/persistence/repositories/surreal_universe_repository.py",
+    "src/cohezion/skills/skill_registry.json",
+    "src/cohezion/swarm/democratic_debate.py"
   ],
   "sessions": [
     {
@@ -25,13 +33,20 @@
       "context": "",
       "content_hash": "/85/a27236addd/1/content_hash.txt",
       "prompt": ""
+    },
+    {
+      "metadata": "/85/a27236addd/2/metadata.json",
+      "transcript": "/85/a27236addd/2/full.jsonl",
+      "context": "/85/a27236addd/2/context.md",
+      "content_hash": "/85/a27236addd/2/content_hash.txt",
+      "prompt": "/85/a27236addd/2/prompt.txt"
     }
   ],
   "token_usage": {
-    "input_tokens": 40,
-    "cache_creation_tokens": 726626,
-    "cache_read_tokens": 4169081,
-    "output_tokens": 7995,
-    "api_call_count": 28
+    "input_tokens": 12488,
+    "cache_creation_tokens": 1712641,
+    "cache_read_tokens": 13653048,
+    "output_tokens": 34003,
+    "api_call_count": 83
   }
 }
