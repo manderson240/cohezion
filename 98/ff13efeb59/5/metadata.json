@@ -1,0 +1,25 @@
+{
+  "cli_version": "0.4.9",
+  "checkpoint_id": "98ff13efeb59",
+  "session_id": "ca88e1ed-0086-45c9-8ae4-3d894a6bd7da",
+  "strategy": "manual-commit",
+  "created_at": "2026-03-25T20:11:16.250396631Z",
+  "branch": "main",
+  "checkpoints_count": 0,
+  "files_touched": [
+    "nemotron_logs/nemotron_lora_adapter/README.md",
+    "nemotron_logs/nemotron_lora_adapter/adapter_config.json",
+    "nemotron_logs/nemotron_lora_adapter/adapter_model.safetensors"
+  ],
+  "agent": "Claude Code",
+  "turn_id": "62b841286227",
+  "initial_attribution": {
+    "calculated_at": "2026-03-25T20:11:16.249802675Z",
+    "agent_lines": 250,
+    "human_added": 182,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 432,
+    "agent_percentage": 57.870370370370374
+  }
+}
