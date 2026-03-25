@@ -2,65 +2,25 @@
   "train": [
     {
       "output": {
-        "input": "Question:\n[Describe the ARC grid examples and test input]\n\nOptions:\n['[Grid A]', '[Grid B]', '[Grid C]', 'Insufficient Information']\n",
+        "input": "Question:\nExample 1: In [[...]] Out [[...]]\nExample 2: In [[...]] Out [[...]]\nTest Input: [[...]]\n\nOptions:\n['[[...]]', '[[...]]', '[[...]]', 'Insufficient Information']\n",
         "output": "Insufficient Information"
       },
-      "duration_seconds": 470.3648500442505,
+      "duration_seconds": 831.0359086990356,
       "coherence": 0.77,
       "intent_match": 0.5,
-      "session_id": "session_c4c9b69f"
-    },
-    {
-      "output": {
-        "input": "Question:\n[Describe the ARC grid examples and test input]\n\nOptions:\n['[Grid A]', '[Grid B]', '[Grid C]', 'Insufficient Information']\n",
-        "output": "Insufficient Information"
-      },
-      "duration_seconds": 2.1696090698242188e-05,
-      "coherence": 0.77,
-      "intent_match": 0.5,
-      "session_id": "session_c4c9b69f"
-    },
-    {
-      "output": {
-        "input": "Question:\n[Describe the ARC grid examples and test input]\n\nOptions:\n['[Grid A]', '[Grid B]', '[Grid C]', 'Insufficient Information']\n",
-        "output": "Insufficient Information"
-      },
-      "duration_seconds": 1.049041748046875e-05,
-      "coherence": 0.77,
-      "intent_match": 0.5,
-      "session_id": "session_c4c9b69f"
-    },
-    {
-      "output": {
-        "input": "Question:\n[Describe the ARC grid examples and test input]\n\nOptions:\n['[Grid A]', '[Grid B]', '[Grid C]', 'Insufficient Information']\n",
-        "output": "Insufficient Information"
-      },
-      "duration_seconds": 6.198883056640625e-06,
-      "coherence": 0.77,
-      "intent_match": 0.5,
-      "session_id": "session_c4c9b69f"
-    },
-    {
-      "output": {
-        "input": "Question:\n[Describe the ARC grid examples and test input]\n\nOptions:\n['[Grid A]', '[Grid B]', '[Grid C]', 'Insufficient Information']\n",
-        "output": "Insufficient Information"
-      },
-      "duration_seconds": 5.245208740234375e-06,
-      "coherence": 0.77,
-      "intent_match": 0.5,
-      "session_id": "session_c4c9b69f"
+      "session_id": "session_b775b20a"
     }
   ],
   "test": [
     {
       "output": {
-        "input": "Question:\n[Describe the ARC grid examples and test input]\n\nOptions:\n['[Grid A]', '[Grid B]', '[Grid C]', 'Insufficient Information']\n",
+        "input": "Question:\nExample 1: In [[...]] Out [[...]]\nExample 2: In [[...]] Out [[...]]\nTest Input: [[...]]\n\nOptions:\n['[[...]]', '[[...]]', '[[...]]', 'Insufficient Information']\n",
         "output": "Insufficient Information"
       },
-      "duration_seconds": 5.4836273193359375e-06,
+      "duration_seconds": 2.8133392333984375e-05,
       "coherence": 0.77,
       "intent_match": 0.5,
-      "session_id": "session_c4c9b69f"
+      "session_id": "session_b775b20a"
     }
   ]
 }

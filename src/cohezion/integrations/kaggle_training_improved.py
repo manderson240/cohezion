@@ -104,7 +104,25 @@ print("STARTING NEMOTRON LORA TRAINING")
 print("=" * 50)
 
 try:
-    # 1. Verify environment
+    # 1. Blackwell Environment Setup
+    print("Setting up Blackwell environment...")
+    UTILITY_PATH = "/kaggle/usr/lib/notebooks/ryanholbrook/nvidia_utility_script"
+    if os.path.exists(UTILITY_PATH):
+        # Copy to /tmp to make binaries executable
+        subprocess.run(f"tar -cf - -C {UTILITY_PATH} . | tar -xf - -C /tmp", shell=True, check=True)
+        # Set permissions
+        for binary in ["ptxas", "ptxas-blackwell"]:
+            bin_path = f"/tmp/triton/backends/nvidia/bin/{binary}"
+            if os.path.exists(bin_path):
+                subprocess.run(f"chmod +x {bin_path}", shell=True, check=True)
+                print(f"Set execution permission on {binary}")
+        # Insert /tmp into path
+        sys.path.insert(0, "/tmp")
+        print("Blackwell utility script initialized in /tmp")
+    else:
+        print(f"WARNING: Utility script not found at {UTILITY_PATH}")
+
+    # 2. Verify hardware
     import torch
     print(f"PyTorch version: {torch.__version__}")
     print(f"CUDA available: {torch.cuda.is_available()}")
@@ -120,12 +138,17 @@ try:
         import causal_conv1d
         import peft
         import bitsandbytes
+        import cutlass
         print("All mandatory dependencies are pre-installed!")
     except ImportError as e:
         print(f"MISSING DEPENDENCY: {e}")
         print("Attempting to install missing dependency (requires internet)...")
         # Fallback only for missing items
-        pkg = str(e).split("'")[-2]
+        pkg_msg = str(e)
+        if "cutlass" in pkg_msg:
+            pkg = "nvidia-cutlass"
+        else:
+            pkg = pkg_msg.split("'")[-2]
         subprocess.check_call([sys.executable, "-m", "pip", "install", "-q", pkg])
 
     from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
@@ -182,6 +205,14 @@ try:
             torch_dtype=torch.bfloat16
         )
         print("Model loaded successfully!")
+        
+        # Diagnostic: Print a few module names to verify target_modules
+        print("Sample module names:")
+        for i, (name, _) in enumerate(model.named_modules()):
+            if i < 20 or any(x in name for x in ["in_proj", "out_proj"]):
+                print(f"  {name}")
+            if i > 500: # Don't print everything
+                break
     except Exception as e:
         print(f"ERROR loading model: {e}")
         traceback.print_exc()
@@ -189,10 +220,15 @@ try:
 
     # 4. Configure LoRA
     print("Configuring LoRA...")
+    # Use a simpler list-based matching which is more robust than complex regex
+    # PEFT will match these names as suffixes
+    target_modules = ["in_proj", "out_proj", "up_proj", "down_proj"]
+    
+    print(f"Targeting modules: {target_modules}")
     lora_config = LoraConfig(
         r=32,
         lora_alpha=16,
-        target_modules=r".*\\.(in_proj|out_proj|up_proj|down_proj)$",
+        target_modules=target_modules,
         lora_dropout=0.05,
         bias="none",
         task_type="CAUSAL_LM"

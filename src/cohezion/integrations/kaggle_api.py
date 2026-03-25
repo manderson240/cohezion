@@ -57,26 +57,9 @@ class KaggleAPI:
                 "nbformat": 4, "nbformat_minor": 4
             }
 
-        # CRITICAL: Inject the EXACT Kaggle metadata required for Blackwell G4
-        # This matches the Ryan Holbrook demo notebook structure EXACTLY
-        # Including the specific dataSources IDs which might be hardware-locking triggers
+        # Inject internal metadata
         nb_json["metadata"]["kaggle"] = {
             "accelerator": "nvidiaRtxPro6000",
-            "dataSources": [
-                {
-                    "sourceType": "competition",
-                    "sourceId": 129716,
-                    "databundleVersionId": 16082784
-                },
-                {
-                    "sourceType": "modelInstanceVersion",
-                    "sourceId": 784907,
-                    "databundleVersionId": 16059913,
-                    "modelInstanceId": 598905,
-                    "modelId": 611168
-                }
-            ],
-            "dockerImageVersionId": 31287,
             "isInternetEnabled": True,
             "language": "python",
             "sourceType": "notebook",
@@ -87,9 +70,7 @@ class KaggleAPI:
         with open(script_path, "w") as f:
             json.dump(nb_json, f, indent=2)
             
-        # Create kernel-metadata.json for the CLI push
-        # Standard CLI doesn't support the complex dataSources, 
-        # but we use it to specify the ID and competition link
+        # Create kernel-metadata.json using the newly discovered machine_shape field
         metadata = {
             "id": f"{self.username}/{notebook_id}",
             "title": notebook_id,
@@ -102,9 +83,10 @@ class KaggleAPI:
             "enable_internet": "true",
             "dataset_sources": [],
             "competition_sources": ["nvidia-nemotron-model-reasoning-challenge"],
-            "kernel_sources": [],
+            "kernel_sources": ["ryanholbrook/nvidia-utility-script"],
             "model_sources": ["metric/nemotron-3-nano-30b-a3b-bf16/transformers/default/1"],
-            "accelerator": "nvidiaRtxPro6000"
+            "docker_image": "gcr.io/kaggle-private-byod/python@sha256:9fa0da194fad2241d3f01a80581cbecbd3a258b4d1b695e2cbbbc62a0fd205ac",
+            "machine_shape": "NvidiaRtxPro6000"
         }
         
         metadata_path = temp_dir / "kernel-metadata.json"
@@ -112,9 +94,8 @@ class KaggleAPI:
             json.dump(metadata, f, indent=2)
             
         try:
-            logger.info(f"Executing Kaggle CLI push for {notebook_id}...")
-            # Use --accelerator flag as a 'triple-lock' for Blackwell
-            cmd = ["kaggle", "kernels", "push", "-p", str(temp_dir), "--accelerator", "nvidiaRtxPro6000"]
+            logger.info(f"Executing Kaggle CLI push for {notebook_id} with machine_shape=NvidiaRtxPro6000...")
+            cmd = ["kaggle", "kernels", "push", "-p", str(temp_dir)]
             env = os.environ.copy()
             if self.username:
                 env["KAGGLE_USERNAME"] = self.username
@@ -148,7 +129,6 @@ class KaggleAPI:
         try:
             # We don't want to download files, just get the log
             output_result = self.api.kernels_output(kernel_slug, path=f"data/logs_{notebook_id}")
-            # The Kaggle API usually returns logs in the response
             return getattr(output_result, "log", "No logs found.")
         except Exception as e:
             logger.error(f"Failed to get notebook logs: {e}")

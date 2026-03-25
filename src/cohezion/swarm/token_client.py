@@ -57,7 +57,7 @@ class ResilientOllamaClient:
     def __init__(
         self,
         base_url: str = "http://localhost:11434",
-        timeout: float = 300.0,
+        timeout: float = 1200.0,
         max_retries: int = 3,
     ):
         """Initialize Ollama client.
