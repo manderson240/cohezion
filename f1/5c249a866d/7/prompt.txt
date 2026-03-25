@@ -1,0 +1,108 @@
+<teammate-message teammate_id="team-lead">
+You are the Compound E2E Tester agent. Your task is to write a full-cycle integration test for the Cohezion compound engineering loop.
+
+## Your Task (Task #3)
+
+Mark task #3 as in_progress, then do the work, then mark it completed.
+
+## Context
+
+The compound engineering loop has these components:
+1. `CompoundExecutor` — executes tasks with an 11-step pipeline (`src/cohezion/compound/executor.py`)
+2. `RetrospectionEngine` — generates post-mortem summaries (`src/cohezion/compound/retrospection_summary.py`)
+3. `SkillRefiner` — learns from executions, updates skill .md files (`src/cohezion/compound/skill_refiner.py`)
+4. `SkillConsensusVoter` — multi-agent skill selection via voting (`src/cohezion/compound/skill_consensus_voter.py`)
+
+Currently, integration tests cover Executor↔SkillRefiner (15 tests in `tests/compound/test_executor_skill_refiner_integration.py`), and RetrospectionEngine is tested independently (8 tests in `tests/compound/test_retrospection_summary.py`). But there is NO test that exercises the full cycle end-to-end.
+
+## What to Build
+
+### New File: `tests/compound/test_compound_full_cycle.py`
+
+Write a comprehensive integration test that exercises all 4 components in sequence. 
+
+**CRITICAL: Read these files FIRST before writing any code:**
+1. `src/cohezion/compound/executor.py` — understand execute_task() signature, ExecutionResult, how SkillRefiner is called
+2. `src/cohezion/compound/retrospection_summary.py` — understand RetrospectionEngine, CycleMetrics, RetrospectionSummary
+3. `src/cohezion/compound/skill_refiner.py` — understand SkillRefiner.refine() signature, LearningSignal
+4. `src/cohezion/compound/skill_consensus_voter.py` — understand AgentVote, SkillScore, VotingStrategy, ConsensusResult
+5. `tests/compound/test_executor_skill_refiner_integration.py` — REUSE the mocking patterns from this file
+6. `tests/compound/test_retrospection_summary.py` — REUSE the CycleMetrics patterns from this file
+7. `tests/conftest.py` — understand singleton reset fixtures
+
+**Test Design:**
+
+```python
+"""Full-cycle compound engineering loop integration test.
+
+Tests the complete pipeline: CompoundExecutor → RetrospectionEngine → 
+SkillRefiner → SkillConsensusVoter in sequence.
+"""
+
+class TestCompoundFullCycle:
+    """Integration test for the complete compound engineering cycle."""
+
+    def test_full_cycle_success(self, tmp_path):
+        """Execute → Reflect → Refine → Vote: full compound cycle."""
+        # Phase 1: Setup
+        # - Create a temp skill .md file
+        # - Create CompoundExecutor with SkillRefiner enabled
+        # - Mock vault/external services
+        
+        # Phase 2: Execute
+        # - Run execute_task() with a simple success function
+        # - Verify ExecutionResult is successful
+        
+        # Phase 3: Retrospect
+        # - Feed execution metrics to RetrospectionEngine.summarize()
+        # - Verify summary contains insights
+        
+        # Phase 4: Refine (may already have happened in step 2 if refiner is wired)
+        # - Verify skill .md was modified (version bumped)
+        
+        # Phase 5: Vote
+        # - Create 3 AgentVote objects using execution context
+        # - Run SkillConsensusVoter.vote_on_skills() with MAJORITY strategy
+        # - Verify consensus selects the correct skill
+        
+        # Phase 6: Assert chain integrity
+        # - All 4 components executed without errors
+        # - Data flows correctly between stages
+
+    def test_full_cycle_with_failure_recovery(self, tmp_path):
+        """Execute (fail) → Reflect (anomaly) → no-refine → Vote (fallback)."""
+        # Similar but with a failing execution
+        # Verify: refiner NOT called, retrospection detects anomaly,
+        # consensus voting still works with degraded confidence
+
+    def test_full_cycle_metrics_propagation(self, tmp_path):
+        """Verify metrics flow correctly through all stages."""
+        # Focus on data integrity: tokens, coherence, quality scores
+        # propagate correctly from executor → retrospection → refiner
+```
+
+### Mocking Strategy
+- Mock ALL external services (vault, Ollama, SurrealDB) at their source modules
+- Use `tmp_path` for any skill files that SkillRefiner modifies
+- Use `unittest.mock.patch` following the same patterns as the existing integration tests
+- NEVER make real I/O calls
+
+### Important Rules
+- Read ALL source files listed above before writing any test code
+- Follow existing test naming conventions: `test_<what>_<scenario>_<expected>`
+- Use `@pytest.mark.integration` marker
+- Mock at source (where imported, not where defined)
+- Each test must be independent — no shared state between tests
+- Keep the file under 300 lines
+- All tests must pass: `uv run pytest tests/compound/test_compound_full_cycle.py -v`
+
+### Verification
+1. `uv run pytest tests/compound/test_compound_full_cycle.py -v` — all tests pass
+2. `uv run pytest tests/compound/ -q` — no regressions
+</teammate-message>
+
+---
+
+<teammate-message teammate_id="compound-e2e-tester" color="orange">
+{"type":"task_assignment","taskId":"3","subject":"Write full-cycle compound loop smoke test","description":"Create tests/compound/test_compound_full_cycle.py exercising: CompoundExecutor → RetrospectionEngine → SkillRefiner → SkillConsensusVoter in sequence. Use mock skill .md in tmp_path, mock all external services. Verify: refiner modifies skill, retrospection produces insights, consensus voting selects correct skill. Reuse patterns from test_executor_skill_refiner_integration.py and test_retrospection_summary.py.","assignedBy":"compound-e2e-tester","timestamp":"2026-03-25T02:12:11.519Z"}
+</teammate-message>
