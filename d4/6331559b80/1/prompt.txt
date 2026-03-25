@@ -1,0 +1,2143 @@
+We need to make sure surrealdb and obsidian vault are up and running
+
+---
+
+We need to follow claude code best practices.
+
+---
+
+Base directory for this skill: /home/mike-anderson/.claude/plugins/cache/claude-plugins-official/claude-code-setup/1.0.0/skills/claude-automation-recommender
+
+# Claude Automation Recommender
+
+Analyze codebase patterns to recommend tailored Claude Code automations across all extensibility options.
+
+**This skill is read-only.** It analyzes the codebase and outputs recommendations. It does NOT create or modify any files. Users implement the recommendations themselves or ask Claude separately to help build them.
+
+## Output Guidelines
+
+- **Recommend 1-2 of each type**: Don't overwhelm - surface the top 1-2 most valuable automations per category
+- **If user asks for a specific type**: Focus only on that type and provide more options (3-5 recommendations)
+- **Go beyond the reference lists**: The reference files contain common patterns, but use web search to find recommendations specific to the codebase's tools, frameworks, and libraries
+- **Tell users they can ask for more**: End by noting they can request more recommendations for any specific category
+
+## Automation Types Overview
+
+| Type | Best For |
+|------|----------|
+| **Hooks** | Automatic actions on tool events (format on save, lint, block edits) |
+| **Subagents** | Specialized reviewers/analyzers that run in parallel |
+| **Skills** | Packaged expertise, workflows, and repeatable tasks (invoked by Claude or user via `/skill-name`) |
+| **Plugins** | Collections of skills that can be installed |
+| **MCP Servers** | External tool integrations (databases, APIs, browsers, docs) |
+
+## Workflow
+
+### Phase 1: Codebase Analysis
+
+Gather project context:
+
+```bash
+# Detect project type and tools
+ls -la package.json pyproject.toml Cargo.toml go.mod pom.xml 2>/dev/null
+cat package.json 2>/dev/null | head -50
+
+# Check dependencies for MCP server recommendations
+cat package.json 2>/dev/null | grep -E '"(react|vue|angular|next|express|fastapi|django|prisma|supabase|stripe)"'
+
+# Check for existing Claude Code config
+ls -la .claude/ CLAUDE.md 2>/dev/null
+
+# Analyze project structure
+ls -la src/ app/ lib/ tests/ components/ pages/ api/ 2>/dev/null
+```
+
+**Key Indicators to Capture:**
+
+| Category | What to Look For | Informs Recommendations For |
+|----------|------------------|----------------------------|
+| Language/Framework | package.json, pyproject.toml, import patterns | Hooks, MCP servers |
+| Frontend stack | React, Vue, Angular, Next.js | Playwright MCP, frontend skills |
+| Backend stack | Express, FastAPI, Django | API documentation tools |
+| Database | Prisma, Supabase, raw SQL | Database MCP servers |
+| External APIs | Stripe, OpenAI, AWS SDKs | context7 MCP for docs |
+| Testing | Jest, pytest, Playwright configs | Testing hooks, subagents |
+| CI/CD | GitHub Actions, CircleCI | GitHub MCP server |
+| Issue tracking | Linear, Jira references | Issue tracker MCP |
+| Docs patterns | OpenAPI, JSDoc, docstrings | Documentation skills |
+
+### Phase 2: Generate Recommendations
+
+Based on analysis, generate recommendations across all categories:
+
+#### A. MCP Server Recommendations
+
+See [references/mcp-servers.md](references/mcp-servers.md) for detailed patterns.
+
+| Codebase Signal | Recommended MCP Server |
+|-----------------|------------------------|
+| Uses popular libraries (React, Express, etc.) | **context7** - Live documentation lookup |
+| Frontend with UI testing needs | **Playwright** - Browser automation/testing |
+| Uses Supabase | **Supabase MCP** - Direct database operations |
+| PostgreSQL/MySQL database | **Database MCP** - Query and schema tools |
+| GitHub repository | **GitHub MCP** - Issues, PRs, actions |
+| Uses Linear for issues | **Linear MCP** - Issue management |
+| AWS infrastructure | **AWS MCP** - Cloud resource management |
+| Slack workspace | **Slack MCP** - Team notifications |
+| Memory/context persistence | **Memory MCP** - Cross-session memory |
+| Sentry error tracking | **Sentry MCP** - Error investigation |
+| Docker containers | **Docker MCP** - Container management |
+
+#### B. Skills Recommendations
+
+See [references/skills-reference.md](references/skills-reference.md) for details.
+
+Create skills in `.claude/skills/<name>/SKILL.md`. Some are also available via plugins:
+
+| Codebase Signal | Skill | Plugin |
+|-----------------|-------|--------|
+| Building plugins | skill-development | plugin-dev |
+| Git commits | commit | commit-commands |
+| React/Vue/Angular | frontend-design | frontend-design |
+| Automation rules | writing-rules | hookify |
+| Feature planning | feature-dev | feature-dev |
+
+**Custom skills to create** (with templates, scripts, examples):
+
+| Codebase Signal | Skill to Create | Invocation |
+|-----------------|-----------------|------------|
+| API routes | **api-doc** (with OpenAPI template) | Both |
+| Database project | **create-migration** (with validation script) | User-only |
+| Test suite | **gen-test** (with example tests) | User-only |
+| Component library | **new-component** (with templates) | User-only |
+| PR workflow | **pr-check** (with checklist) | User-only |
+| Releases | **release-notes** (with git context) | User-only |
+| Code style | **project-conventions** | Claude-only |
+| Onboarding | **setup-dev** (with prereq script) | User-only |
+
+#### C. Hooks Recommendations
+
+See [references/hooks-patterns.md](references/hooks-patterns.md) for configurations.
+
+| Codebase Signal | Recommended Hook |
+|-----------------|------------------|
+| Prettier configured | PostToolUse: auto-format on edit |
+| ESLint/Ruff configured | PostToolUse: auto-lint on edit |
+| TypeScript project | PostToolUse: type-check on edit |
+| Tests directory exists | PostToolUse: run related tests |
+| `.env` files present | PreToolUse: block `.env` edits |
+| Lock files present | PreToolUse: block lock file edits |
+| Security-sensitive code | PreToolUse: require confirmation |
+
+#### D. Subagent Recommendations
+
+See [references/subagent-templates.md](references/subagent-templates.md) for templates.
+
+| Codebase Signal | Recommended Subagent |
+|-----------------|---------------------|
+| Large codebase (>500 files) | **code-reviewer** - Parallel code review |
+| Auth/payments code | **security-reviewer** - Security audits |
+| API project | **api-documenter** - OpenAPI generation |
+| Performance critical | **performance-analyzer** - Bottleneck detection |
+| Frontend heavy | **ui-reviewer** - Accessibility review |
+| Needs more tests | **test-writer** - Test generation |
+
+#### E. Plugin Recommendations
+
+See [references/plugins-reference.md](references/plugins-reference.md) for available plugins.
+
+| Codebase Signal | Recommended Plugin |
+|-----------------|-------------------|
+| General productivity | **anthropic-agent-skills** - Core skills bundle |
+| Document workflows | Install docx, xlsx, pdf skills |
+| Frontend development | **frontend-design** plugin |
+| Building AI tools | **mcp-builder** for MCP development |
+
+### Phase 3: Output Recommendations Report
+
+Format recommendations clearly. **Only include 1-2 recommendations per category** - the most valuable ones for this specific codebase. Skip categories that aren't relevant.
+
+```markdown
+## Claude Code Automation Recommendations
+
+I've analyzed your codebase and identified the top automations for each category. Here are my top 1-2 recommendations per type:
+
+### Codebase Profile
+- **Type**: [detected language/runtime]
+- **Framework**: [detected framework]
+- **Key Libraries**: [relevant libraries detected]
+
+---
+
+### 🔌 MCP Servers
+
+#### context7
+**Why**: [specific reason based on detected libraries]
+**Install**: `claude mcp add context7`
+
+---
+
+### 🎯 Skills
+
+#### [skill name]
+**Why**: [specific reason]
+**Create**: `.claude/skills/[name]/SKILL.md`
+**Invocation**: User-only / Both / Claude-only
+**Also available in**: [plugin-name] plugin (if applicable)
+```yaml
+---
+name: [skill-name]
+description: [what it does]
+disable-model-invocation: true  # for user-only
+---
+```
+
+---
+
+### ⚡ Hooks
+
+#### [hook name]
+**Why**: [specific reason based on detected config]
+**Where**: `.claude/settings.json`
+
+---
+
+### 🤖 Subagents
+
+#### [agent name]
+**Why**: [specific reason based on codebase patterns]
+**Where**: `.claude/agents/[name].md`
+
+---
+
+**Want more?** Ask for additional recommendations for any specific category (e.g., "show me more MCP server options" or "what other hooks would help?").
+
+**Want help implementing any of these?** Just ask and I can help you set up any of the recommendations above.
+```
+
+## Decision Framework
+
+### When to Recommend MCP Servers
+- External service integration needed (databases, APIs)
+- Documentation lookup for libraries/SDKs
+- Browser automation or testing
+- Team tool integration (GitHub, Linear, Slack)
+- Cloud infrastructure management
+
+### When to Recommend Skills
+
+- Document generation (docx, xlsx, pptx, pdf — also in plugins)
+- Frequently repeated prompts or workflows
+- Project-specific tasks with arguments
+- Applying templates or scripts to tasks (skills can bundle supporting files)
+- Quick actions invoked with `/skill-name`
+- Workflows that should run in isolation (`context: fork`)
+
+**Invocation control:**
+- `disable-model-invocation: true` — User-only (for side effects: deploy, commit, send)
+- `user-invocable: false` — Claude-only (for background knowledge)
+- Default (omit both) — Both can invoke
+
+### When to Recommend Hooks
+- Repetitive post-edit actions (formatting, linting)
+- Protection rules (block sensitive file edits)
+- Validation checks (tests, type checks)
+
+### When to Recommend Subagents
+- Specialized expertise needed (security, performance)
+- Parallel review workflows
+- Background quality checks
+
+### When to Recommend Plugins
+- Need multiple related skills
+- Want pre-packaged automation bundles
+- Team-wide standardization
+
+---
+
+## Configuration Tips
+
+### MCP Server Setup
+
+**Team sharing**: Check `.mcp.json` into repo so entire team gets same MCP servers
+
+**Debugging**: Use `--mcp-debug` flag to identify configuration issues
+
+**Prerequisites to recommend:**
+- GitHub CLI (`gh`) - enables native GitHub operations
+- Puppeteer/Playwright CLI - for browser MCP servers
+
+### Headless Mode (for CI/Automation)
+
+Recommend headless Claude for automated pipelines:
+
+```bash
+# Pre-commit hook example
+claude -p "fix lint errors in src/" --allowedTools Edit,Write
+
+# CI pipeline with structured output
+claude -p "<prompt>" --output-format stream-json | your_command
+```
+
+### Permissions for Hooks
+
+Configure allowed tools in `.claude/settings.json`:
+
+```json
+{
+  "permissions": {
+    "allow": ["Edit", "Write", "Bash(npm test:*)", "Bash(git commit:*)"]
+  }
+}
+```
+
+---
+
+How can we capture these insights so they persist?
+
+---
+
+Base directory for this skill: /home/mike-anderson/.claude/plugins/cache/claude-plugins-official/claude-code-setup/1.0.0/skills/claude-automation-recommender
+
+# Claude Automation Recommender
+
+Analyze codebase patterns to recommend tailored Claude Code automations across all extensibility options.
+
+**This skill is read-only.** It analyzes the codebase and outputs recommendations. It does NOT create or modify any files. Users implement the recommendations themselves or ask Claude separately to help build them.
+
+## Output Guidelines
+
+- **Recommend 1-2 of each type**: Don't overwhelm - surface the top 1-2 most valuable automations per category
+- **If user asks for a specific type**: Focus only on that type and provide more options (3-5 recommendations)
+- **Go beyond the reference lists**: The reference files contain common patterns, but use web search to find recommendations specific to the codebase's tools, frameworks, and libraries
+- **Tell users they can ask for more**: End by noting they can request more recommendations for any specific category
+
+## Automation Types Overview
+
+| Type | Best For |
+|------|----------|
+| **Hooks** | Automatic actions on tool events (format on save, lint, block edits) |
+| **Subagents** | Specialized reviewers/analyzers that run in parallel |
+| **Skills** | Packaged expertise, workflows, and repeatable tasks (invoked by Claude or user via `/skill-name`) |
+| **Plugins** | Collections of skills that can be installed |
+| **MCP Servers** | External tool integrations (databases, APIs, browsers, docs) |
+
+## Workflow
+
+### Phase 1: Codebase Analysis
+
+Gather project context:
+
+```bash
+# Detect project type and tools
+ls -la package.json pyproject.toml Cargo.toml go.mod pom.xml 2>/dev/null
+cat package.json 2>/dev/null | head -50
+
+# Check dependencies for MCP server recommendations
+cat package.json 2>/dev/null | grep -E '"(react|vue|angular|next|express|fastapi|django|prisma|supabase|stripe)"'
+
+# Check for existing Claude Code config
+ls -la .claude/ CLAUDE.md 2>/dev/null
+
+# Analyze project structure
+ls -la src/ app/ lib/ tests/ components/ pages/ api/ 2>/dev/null
+```
+
+**Key Indicators to Capture:**
+
+| Category | What to Look For | Informs Recommendations For |
+|----------|------------------|----------------------------|
+| Language/Framework | package.json, pyproject.toml, import patterns | Hooks, MCP servers |
+| Frontend stack | React, Vue, Angular, Next.js | Playwright MCP, frontend skills |
+| Backend stack | Express, FastAPI, Django | API documentation tools |
+| Database | Prisma, Supabase, raw SQL | Database MCP servers |
+| External APIs | Stripe, OpenAI, AWS SDKs | context7 MCP for docs |
+| Testing | Jest, pytest, Playwright configs | Testing hooks, subagents |
+| CI/CD | GitHub Actions, CircleCI | GitHub MCP server |
+| Issue tracking | Linear, Jira references | Issue tracker MCP |
+| Docs patterns | OpenAPI, JSDoc, docstrings | Documentation skills |
+
+### Phase 2: Generate Recommendations
+
+Based on analysis, generate recommendations across all categories:
+
+#### A. MCP Server Recommendations
+
+See [references/mcp-servers.md](references/mcp-servers.md) for detailed patterns.
+
+| Codebase Signal | Recommended MCP Server |
+|-----------------|------------------------|
+| Uses popular libraries (React, Express, etc.) | **context7** - Live documentation lookup |
+| Frontend with UI testing needs | **Playwright** - Browser automation/testing |
+| Uses Supabase | **Supabase MCP** - Direct database operations |
+| PostgreSQL/MySQL database | **Database MCP** - Query and schema tools |
+| GitHub repository | **GitHub MCP** - Issues, PRs, actions |
+| Uses Linear for issues | **Linear MCP** - Issue management |
+| AWS infrastructure | **AWS MCP** - Cloud resource management |
+| Slack workspace | **Slack MCP** - Team notifications |
+| Memory/context persistence | **Memory MCP** - Cross-session memory |
+| Sentry error tracking | **Sentry MCP** - Error investigation |
+| Docker containers | **Docker MCP** - Container management |
+
+#### B. Skills Recommendations
+
+See [references/skills-reference.md](references/skills-reference.md) for details.
+
+Create skills in `.claude/skills/<name>/SKILL.md`. Some are also available via plugins:
+
+| Codebase Signal | Skill | Plugin |
+|-----------------|-------|--------|
+| Building plugins | skill-development | plugin-dev |
+| Git commits | commit | commit-commands |
+| React/Vue/Angular | frontend-design | frontend-design |
+| Automation rules | writing-rules | hookify |
+| Feature planning | feature-dev | feature-dev |
+
+**Custom skills to create** (with templates, scripts, examples):
+
+| Codebase Signal | Skill to Create | Invocation |
+|-----------------|-----------------|------------|
+| API routes | **api-doc** (with OpenAPI template) | Both |
+| Database project | **create-migration** (with validation script) | User-only |
+| Test suite | **gen-test** (with example tests) | User-only |
+| Component library | **new-component** (with templates) | User-only |
+| PR workflow | **pr-check** (with checklist) | User-only |
+| Releases | **release-notes** (with git context) | User-only |
+| Code style | **project-conventions** | Claude-only |
+| Onboarding | **setup-dev** (with prereq script) | User-only |
+
+#### C. Hooks Recommendations
+
+See [references/hooks-patterns.md](references/hooks-patterns.md) for configurations.
+
+| Codebase Signal | Recommended Hook |
+|-----------------|------------------|
+| Prettier configured | PostToolUse: auto-format on edit |
+| ESLint/Ruff configured | PostToolUse: auto-lint on edit |
+| TypeScript project | PostToolUse: type-check on edit |
+| Tests directory exists | PostToolUse: run related tests |
+| `.env` files present | PreToolUse: block `.env` edits |
+| Lock files present | PreToolUse: block lock file edits |
+| Security-sensitive code | PreToolUse: require confirmation |
+
+#### D. Subagent Recommendations
+
+See [references/subagent-templates.md](references/subagent-templates.md) for templates.
+
+| Codebase Signal | Recommended Subagent |
+|-----------------|---------------------|
+| Large codebase (>500 files) | **code-reviewer** - Parallel code review |
+| Auth/payments code | **security-reviewer** - Security audits |
+| API project | **api-documenter** - OpenAPI generation |
+| Performance critical | **performance-analyzer** - Bottleneck detection |
+| Frontend heavy | **ui-reviewer** - Accessibility review |
+| Needs more tests | **test-writer** - Test generation |
+
+#### E. Plugin Recommendations
+
+See [references/plugins-reference.md](references/plugins-reference.md) for available plugins.
+
+| Codebase Signal | Recommended Plugin |
+|-----------------|-------------------|
+| General productivity | **anthropic-agent-skills** - Core skills bundle |
+| Document workflows | Install docx, xlsx, pdf skills |
+| Frontend development | **frontend-design** plugin |
+| Building AI tools | **mcp-builder** for MCP development |
+
+### Phase 3: Output Recommendations Report
+
+Format recommendations clearly. **Only include 1-2 recommendations per category** - the most valuable ones for this specific codebase. Skip categories that aren't relevant.
+
+```markdown
+## Claude Code Automation Recommendations
+
+I've analyzed your codebase and identified the top automations for each category. Here are my top 1-2 recommendations per type:
+
+### Codebase Profile
+- **Type**: [detected language/runtime]
+- **Framework**: [detected framework]
+- **Key Libraries**: [relevant libraries detected]
+
+---
+
+### 🔌 MCP Servers
+
+#### context7
+**Why**: [specific reason based on detected libraries]
+**Install**: `claude mcp add context7`
+
+---
+
+### 🎯 Skills
+
+#### [skill name]
+**Why**: [specific reason]
+**Create**: `.claude/skills/[name]/SKILL.md`
+**Invocation**: User-only / Both / Claude-only
+**Also available in**: [plugin-name] plugin (if applicable)
+```yaml
+---
+name: [skill-name]
+description: [what it does]
+disable-model-invocation: true  # for user-only
+---
+```
+
+---
+
+### ⚡ Hooks
+
+#### [hook name]
+**Why**: [specific reason based on detected config]
+**Where**: `.claude/settings.json`
+
+---
+
+### 🤖 Subagents
+
+#### [agent name]
+**Why**: [specific reason based on codebase patterns]
+**Where**: `.claude/agents/[name].md`
+
+---
+
+**Want more?** Ask for additional recommendations for any specific category (e.g., "show me more MCP server options" or "what other hooks would help?").
+
+**Want help implementing any of these?** Just ask and I can help you set up any of the recommendations above.
+```
+
+## Decision Framework
+
+### When to Recommend MCP Servers
+- External service integration needed (databases, APIs)
+- Documentation lookup for libraries/SDKs
+- Browser automation or testing
+- Team tool integration (GitHub, Linear, Slack)
+- Cloud infrastructure management
+
+### When to Recommend Skills
+
+- Document generation (docx, xlsx, pptx, pdf — also in plugins)
+- Frequently repeated prompts or workflows
+- Project-specific tasks with arguments
+- Applying templates or scripts to tasks (skills can bundle supporting files)
+- Quick actions invoked with `/skill-name`
+- Workflows that should run in isolation (`context: fork`)
+
+**Invocation control:**
+- `disable-model-invocation: true` — User-only (for side effects: deploy, commit, send)
+- `user-invocable: false` — Claude-only (for background knowledge)
+- Default (omit both) — Both can invoke
+
+### When to Recommend Hooks
+- Repetitive post-edit actions (formatting, linting)
+- Protection rules (block sensitive file edits)
+- Validation checks (tests, type checks)
+
+### When to Recommend Subagents
+- Specialized expertise needed (security, performance)
+- Parallel review workflows
+- Background quality checks
+
+### When to Recommend Plugins
+- Need multiple related skills
+- Want pre-packaged automation bundles
+- Team-wide standardization
+
+---
+
+## Configuration Tips
+
+### MCP Server Setup
+
+**Team sharing**: Check `.mcp.json` into repo so entire team gets same MCP servers
+
+**Debugging**: Use `--mcp-debug` flag to identify configuration issues
+
+**Prerequisites to recommend:**
+- GitHub CLI (`gh`) - enables native GitHub operations
+- Puppeteer/Playwright CLI - for browser MCP servers
+
+### Headless Mode (for CI/Automation)
+
+Recommend headless Claude for automated pipelines:
+
+```bash
+# Pre-commit hook example
+claude -p "fix lint errors in src/" --allowedTools Edit,Write
+
+# CI pipeline with structured output
+claude -p "<prompt>" --output-format stream-json | your_command
+```
+
+### Permissions for Hooks
+
+Configure allowed tools in `.claude/settings.json`:
+
+```json
+{
+  "permissions": {
+    "allow": ["Edit", "Write", "Bash(npm test:*)", "Bash(git commit:*)"]
+  }
+}
+```
+
+---
+
+What about our graph architecture?
+
+---
+
+<task-notification>
+<task-id>bfi2ux2es</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/93b66342-a8a3-4e87-b0be-4c0dcf07fa6a/tasks/bfi2ux2es.output</output-file>
+<status>killed</status>
+<summary>Background command "find /home/mike-anderson -path "*cohezion-vault*" -name "*.sql" | head -5" was stopped</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/93b66342-a8a3-4e87-b0be-4c0dcf07fa6a/tasks/bfi2ux2es.output
+
+---
+
+Yes
+
+---
+
+Let's extend this with the Ralph Loop and Autoresearch
+
+---
+
+<task-notification>
+<task-id>bxbmv5vqy</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/93b66342-a8a3-4e87-b0be-4c0dcf07fa6a/tasks/bxbmv5vqy.output</output-file>
+<status>killed</status>
+<summary>Background command "find /home/mike-anderson -type f \( -name "*.md" -o -name "*.py" -o -name "*.json" \) 2&gt;/dev/null | xargs grep -l "Ralph\|ralph-loop" 2&gt;/dev/null | head -20" was stopped</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/93b66342-a8a3-4e87-b0be-4c0dcf07fa6a/tasks/bxbmv5vqy.output
+
+---
+
+<task-notification>
+<task-id>bkgdjy0pp</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/93b66342-a8a3-4e87-b0be-4c0dcf07fa6a/tasks/bkgdjy0pp.output</output-file>
+<status>killed</status>
+<summary>Background command "find /home/mike-anderson -name ".claudehooks.py" -o -name "*stop*hook*" 2&gt;/dev/null | grep -v node_modules" was stopped</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/93b66342-a8a3-4e87-b0be-4c0dcf07fa6a/tasks/bkgdjy0pp.output
+
+---
+
+Base directory for this skill: /home/mike-anderson/.claude/plugins/cache/claude-plugins-official/claude-code-setup/1.0.0/skills/claude-automation-recommender
+
+# Claude Automation Recommender
+
+Analyze codebase patterns to recommend tailored Claude Code automations across all extensibility options.
+
+**This skill is read-only.** It analyzes the codebase and outputs recommendations. It does NOT create or modify any files. Users implement the recommendations themselves or ask Claude separately to help build them.
+
+## Output Guidelines
+
+- **Recommend 1-2 of each type**: Don't overwhelm - surface the top 1-2 most valuable automations per category
+- **If user asks for a specific type**: Focus only on that type and provide more options (3-5 recommendations)
+- **Go beyond the reference lists**: The reference files contain common patterns, but use web search to find recommendations specific to the codebase's tools, frameworks, and libraries
+- **Tell users they can ask for more**: End by noting they can request more recommendations for any specific category
+
+## Automation Types Overview
+
+| Type | Best For |
+|------|----------|
+| **Hooks** | Automatic actions on tool events (format on save, lint, block edits) |
+| **Subagents** | Specialized reviewers/analyzers that run in parallel |
+| **Skills** | Packaged expertise, workflows, and repeatable tasks (invoked by Claude or user via `/skill-name`) |
+| **Plugins** | Collections of skills that can be installed |
+| **MCP Servers** | External tool integrations (databases, APIs, browsers, docs) |
+
+## Workflow
+
+### Phase 1: Codebase Analysis
+
+Gather project context:
+
+```bash
+# Detect project type and tools
+ls -la package.json pyproject.toml Cargo.toml go.mod pom.xml 2>/dev/null
+cat package.json 2>/dev/null | head -50
+
+# Check dependencies for MCP server recommendations
+cat package.json 2>/dev/null | grep -E '"(react|vue|angular|next|express|fastapi|django|prisma|supabase|stripe)"'
+
+# Check for existing Claude Code config
+ls -la .claude/ CLAUDE.md 2>/dev/null
+
+# Analyze project structure
+ls -la src/ app/ lib/ tests/ components/ pages/ api/ 2>/dev/null
+```
+
+**Key Indicators to Capture:**
+
+| Category | What to Look For | Informs Recommendations For |
+|----------|------------------|----------------------------|
+| Language/Framework | package.json, pyproject.toml, import patterns | Hooks, MCP servers |
+| Frontend stack | React, Vue, Angular, Next.js | Playwright MCP, frontend skills |
+| Backend stack | Express, FastAPI, Django | API documentation tools |
+| Database | Prisma, Supabase, raw SQL | Database MCP servers |
+| External APIs | Stripe, OpenAI, AWS SDKs | context7 MCP for docs |
+| Testing | Jest, pytest, Playwright configs | Testing hooks, subagents |
+| CI/CD | GitHub Actions, CircleCI | GitHub MCP server |
+| Issue tracking | Linear, Jira references | Issue tracker MCP |
+| Docs patterns | OpenAPI, JSDoc, docstrings | Documentation skills |
+
+### Phase 2: Generate Recommendations
+
+Based on analysis, generate recommendations across all categories:
+
+#### A. MCP Server Recommendations
+
+See [references/mcp-servers.md](references/mcp-servers.md) for detailed patterns.
+
+| Codebase Signal | Recommended MCP Server |
+|-----------------|------------------------|
+| Uses popular libraries (React, Express, etc.) | **context7** - Live documentation lookup |
+| Frontend with UI testing needs | **Playwright** - Browser automation/testing |
+| Uses Supabase | **Supabase MCP** - Direct database operations |
+| PostgreSQL/MySQL database | **Database MCP** - Query and schema tools |
+| GitHub repository | **GitHub MCP** - Issues, PRs, actions |
+| Uses Linear for issues | **Linear MCP** - Issue management |
+| AWS infrastructure | **AWS MCP** - Cloud resource management |
+| Slack workspace | **Slack MCP** - Team notifications |
+| Memory/context persistence | **Memory MCP** - Cross-session memory |
+| Sentry error tracking | **Sentry MCP** - Error investigation |
+| Docker containers | **Docker MCP** - Container management |
+
+#### B. Skills Recommendations
+
+See [references/skills-reference.md](references/skills-reference.md) for details.
+
+Create skills in `.claude/skills/<name>/SKILL.md`. Some are also available via plugins:
+
+| Codebase Signal | Skill | Plugin |
+|-----------------|-------|--------|
+| Building plugins | skill-development | plugin-dev |
+| Git commits | commit | commit-commands |
+| React/Vue/Angular | frontend-design | frontend-design |
+| Automation rules | writing-rules | hookify |
+| Feature planning | feature-dev | feature-dev |
+
+**Custom skills to create** (with templates, scripts, examples):
+
+| Codebase Signal | Skill to Create | Invocation |
+|-----------------|-----------------|------------|
+| API routes | **api-doc** (with OpenAPI template) | Both |
+| Database project | **create-migration** (with validation script) | User-only |
+| Test suite | **gen-test** (with example tests) | User-only |
+| Component library | **new-component** (with templates) | User-only |
+| PR workflow | **pr-check** (with checklist) | User-only |
+| Releases | **release-notes** (with git context) | User-only |
+| Code style | **project-conventions** | Claude-only |
+| Onboarding | **setup-dev** (with prereq script) | User-only |
+
+#### C. Hooks Recommendations
+
+See [references/hooks-patterns.md](references/hooks-patterns.md) for configurations.
+
+| Codebase Signal | Recommended Hook |
+|-----------------|------------------|
+| Prettier configured | PostToolUse: auto-format on edit |
+| ESLint/Ruff configured | PostToolUse: auto-lint on edit |
+| TypeScript project | PostToolUse: type-check on edit |
+| Tests directory exists | PostToolUse: run related tests |
+| `.env` files present | PreToolUse: block `.env` edits |
+| Lock files present | PreToolUse: block lock file edits |
+| Security-sensitive code | PreToolUse: require confirmation |
+
+#### D. Subagent Recommendations
+
+See [references/subagent-templates.md](references/subagent-templates.md) for templates.
+
+| Codebase Signal | Recommended Subagent |
+|-----------------|---------------------|
+| Large codebase (>500 files) | **code-reviewer** - Parallel code review |
+| Auth/payments code | **security-reviewer** - Security audits |
+| API project | **api-documenter** - OpenAPI generation |
+| Performance critical | **performance-analyzer** - Bottleneck detection |
+| Frontend heavy | **ui-reviewer** - Accessibility review |
+| Needs more tests | **test-writer** - Test generation |
+
+#### E. Plugin Recommendations
+
+See [references/plugins-reference.md](references/plugins-reference.md) for available plugins.
+
+| Codebase Signal | Recommended Plugin |
+|-----------------|-------------------|
+| General productivity | **anthropic-agent-skills** - Core skills bundle |
+| Document workflows | Install docx, xlsx, pdf skills |
+| Frontend development | **frontend-design** plugin |
+| Building AI tools | **mcp-builder** for MCP development |
+
+### Phase 3: Output Recommendations Report
+
+Format recommendations clearly. **Only include 1-2 recommendations per category** - the most valuable ones for this specific codebase. Skip categories that aren't relevant.
+
+```markdown
+## Claude Code Automation Recommendations
+
+I've analyzed your codebase and identified the top automations for each category. Here are my top 1-2 recommendations per type:
+
+### Codebase Profile
+- **Type**: [detected language/runtime]
+- **Framework**: [detected framework]
+- **Key Libraries**: [relevant libraries detected]
+
+---
+
+### 🔌 MCP Servers
+
+#### context7
+**Why**: [specific reason based on detected libraries]
+**Install**: `claude mcp add context7`
+
+---
+
+### 🎯 Skills
+
+#### [skill name]
+**Why**: [specific reason]
+**Create**: `.claude/skills/[name]/SKILL.md`
+**Invocation**: User-only / Both / Claude-only
+**Also available in**: [plugin-name] plugin (if applicable)
+```yaml
+---
+name: [skill-name]
+description: [what it does]
+disable-model-invocation: true  # for user-only
+---
+```
+
+---
+
+### ⚡ Hooks
+
+#### [hook name]
+**Why**: [specific reason based on detected config]
+**Where**: `.claude/settings.json`
+
+---
+
+### 🤖 Subagents
+
+#### [agent name]
+**Why**: [specific reason based on codebase patterns]
+**Where**: `.claude/agents/[name].md`
+
+---
+
+**Want more?** Ask for additional recommendations for any specific category (e.g., "show me more MCP server options" or "what other hooks would help?").
+
+**Want help implementing any of these?** Just ask and I can help you set up any of the recommendations above.
+```
+
+## Decision Framework
+
+### When to Recommend MCP Servers
+- External service integration needed (databases, APIs)
+- Documentation lookup for libraries/SDKs
+- Browser automation or testing
+- Team tool integration (GitHub, Linear, Slack)
+- Cloud infrastructure management
+
+### When to Recommend Skills
+
+- Document generation (docx, xlsx, pptx, pdf — also in plugins)
+- Frequently repeated prompts or workflows
+- Project-specific tasks with arguments
+- Applying templates or scripts to tasks (skills can bundle supporting files)
+- Quick actions invoked with `/skill-name`
+- Workflows that should run in isolation (`context: fork`)
+
+**Invocation control:**
+- `disable-model-invocation: true` — User-only (for side effects: deploy, commit, send)
+- `user-invocable: false` — Claude-only (for background knowledge)
+- Default (omit both) — Both can invoke
+
+### When to Recommend Hooks
+- Repetitive post-edit actions (formatting, linting)
+- Protection rules (block sensitive file edits)
+- Validation checks (tests, type checks)
+
+### When to Recommend Subagents
+- Specialized expertise needed (security, performance)
+- Parallel review workflows
+- Background quality checks
+
+### When to Recommend Plugins
+- Need multiple related skills
+- Want pre-packaged automation bundles
+- Team-wide standardization
+
+---
+
+## Configuration Tips
+
+### MCP Server Setup
+
+**Team sharing**: Check `.mcp.json` into repo so entire team gets same MCP servers
+
+**Debugging**: Use `--mcp-debug` flag to identify configuration issues
+
+**Prerequisites to recommend:**
+- GitHub CLI (`gh`) - enables native GitHub operations
+- Puppeteer/Playwright CLI - for browser MCP servers
+
+### Headless Mode (for CI/Automation)
+
+Recommend headless Claude for automated pipelines:
+
+```bash
+# Pre-commit hook example
+claude -p "fix lint errors in src/" --allowedTools Edit,Write
+
+# CI pipeline with structured output
+claude -p "<prompt>" --output-format stream-json | your_command
+```
+
+### Permissions for Hooks
+
+Configure allowed tools in `.claude/settings.json`:
+
+```json
+{
+  "permissions": {
+    "allow": ["Edit", "Write", "Bash(npm test:*)", "Bash(git commit:*)"]
+  }
+}
+```
+
+---
+
+This session is being continued from a previous conversation that ran out of context. The summary below covers the earlier portion of the conversation.
+
+Summary:
+1. Primary Request and Intent:
+   The user's session had four major phases:
+   - **Phase 1**: Verify SurrealDB and vault services are running, then follow Claude Code best practices — audit the existing setup and implement improvements.
+   - **Phase 2**: Persist insights from the session to the vault so they compound across sessions.
+   - **Phase 3**: Investigate and fix the graph architecture — the neuron graph was severely underpopulated (11 neurons when 350+ vault notes existed). Unify two separate graph systems (neuron table vs vault_memory table).
+   - **Phase 4**: Extend the graph with Ralph Loop, Autoresearch, and Scout integration — create a live feedback loop where research activity flows into the graph automatically. User specifically chose "Both + scout integration" when asked about integration scope.
+
+2. Key Technical Concepts:
+   - **SurrealDB v2 HTTP API**: Uses `surreal-ns`/`surreal-db` headers (not `NS`/`DB`), running on port 8001
+   - **Two-table graph problem**: `neuron` table (11 records, used by MCP graph tools like graph_search, graph_neighborhood) vs `vault_memory` table (343 records with embeddings, used by GraphRAG import). MCP tools queried one table, import pipeline wrote to the other.
+   - **Brain-region vault structure**: `cortex/` (257 notes, knowledge), `cerebellum/` (95 notes, operational), replacing old `papers/`+`concepts/` directories
+   - **SCHEMAFUL tables**: SurrealDB neuron table rejects ad-hoc fields; synapse link_type constrained to `['explicit', 'latent', 'dream', 'songline']`
+   - **Neuron ID format**: `neuron:<slugified_stem>_md` (e.g., `agent-architecture.md` → `neuron:agent_architecture_md`)
+   - **Activation formula** (from reactor.py): `0.7 * completion + 0.3 * recency` where completion = `0.5 * word_score + 0.3 * stage_score + 0.2 * tag_score`
+   - **Stage derivation**: word_count < 100 → "embryo", < 400 → "growing", >= 400 → "mature"
+   - **K-Search tree**: Tree-structured optimization with nodes representing strategies, stored in `tree/*.json`
+   - **Ralph Loop**: Anthropic plugin for iterative development loops, state in `.claude/ralph-loop.local.md`
+   - **Stored functions**: `fn::vault_stats()`, `fn::context_search()`, `fn::context_neighborhood()` all query the `neuron` table
+   - **GraphRAGImporter**: Uses `vault_memory:` table with 768D nomic-embed-text embeddings and `informed_by` edges
+   - **Claude Code hook exit codes**: 0 = allow, 1 = error (allow), 2 = block action
+
+3. Files and Code Sections:
+
+   - **`.claude/hooks/lint-on-edit.sh`** (CREATED)
+     - PostToolUse hook that runs `ruff check --select E,F,W` on edited Python files
+     - Catches bugs (F821 undefined name, F401 unused import) immediately after every edit
+     ```bash
+     #!/usr/bin/env bash
+     # PostToolUse: Edit|Write
+     # Runs ruff check on edited Python files. Non-blocking.
+     INPUT=$(cat)
+     FILE=$(echo "$INPUT" | python3 -c "
+     import sys, json
+     try:
+         d = json.load(sys.stdin)
+         print(d.get('tool_input', {}).get('file_path', ''))
+     except Exception:
+         print('')
+     " 2>/dev/null)
+     [ -z "$FILE" ] && exit 0
+     [[ "$FILE" != *.py ]] && exit 0
+     [ -f "$FILE" ] || exit 0
+     if command -v ruff &>/dev/null; then
+         OUTPUT=$(ruff check --select E,F,W "$FILE" 2>/dev/null)
+     elif command -v uv &>/dev/null; then
+         OUTPUT=$(uv run ruff check --select E,F,W "$FILE" 2>/dev/null)
+     fi
+     if [ -n "$OUTPUT" ]; then
+         echo "[lint-on-edit] Issues found:"
+         echo "$OUTPUT"
+     fi
+     exit 0
+     ```
+
+   - **`.claude/hooks/pre-commit-check.sh`** (CREATED)
+     - PreToolUse hook that blocks `git commit` if ruff check finds lint errors
+     - Uses exit code 2 to block the action
+     ```bash
+     #!/usr/bin/env bash
+     # PreToolUse: Bash
+     # Runs quick quality check before git commit commands.
+     INPUT=$(cat)
+     CMD=$(echo "$INPUT" | python3 -c "
+     import sys, json
+     try:
+         d = json.load(sys.stdin)
+         print(d.get('tool_input', {}).get('command', ''))
+     except Exception:
+         print('')
+     " 2>/dev/null)
+     [ -z "$CMD" ] && exit 0
+     echo "$CMD" | grep -qE '^\s*git\s+commit' || exit 0
+     LINT_OUTPUT=$(ruff check --select E,F src/cohezion/ 2>/dev/null | head -5)
+     if [ -n "$LINT_OUTPUT" ]; then
+         echo "[pre-commit-check] Lint errors detected — fix before committing:"
+         echo "$LINT_OUTPUT"
+         echo "  Run: ruff check --select E,F src/cohezion/"
+         exit 2
+     fi
+     exit 0
+     ```
+
+   - **`.claude/hooks/protect-files.sh`** (EDITED)
+     - Added lock file protection block before the existing secrets protection
+     ```bash
+     # Blocked patterns - lock files (managed by package manager)
+     case "$BASE" in
+         uv.lock|poetry.lock|package-lock.json|yarn.lock|pnpm-lock.yaml)
+             echo "[protect-files] BLOCKED: $BASE is a lock file managed by package manager. Use 'uv lock' instead."
+             exit 2
+             ;;
+     esac
+     ```
+
+   - **`.claude/settings.local.json`** (EDITED)
+     - Trimmed from 30 allow entries to 9 durable entries
+     - Removed: specific pytest paths, curl commands, awk patterns, bun/playwright commands, SlashCommand entries
+     - Removed `outputStyle` (moved to settings.json)
+     ```json
+     {
+       "permissions": {
+         "allow": [
+           "Read(//home/mike-anderson/.cohezion/**)",
+           "Read(//home/mike-anderson/dev/**)",
+           "Read(//home/mike-anderson/vaults/cohezion-vault/**)",
+           "Bash(uv run pytest tests/ -q --tb=no)",
+           "Bash(uv run pytest --co -q)",
+           "mcp__cohezion-surreal__store_learning",
+           "mcp__cohezion-vault__vault_write",
+           "mcp__cohezion-vault__vault_search",
+           "mcp__cohezion-vault__vault_health_check"
+         ],
+         "deny": [],
+         "ask": []
+       },
+       "spinnerTipsEnabled": false
+     }
+     ```
+
+   - **`.claude/settings.json`** (EDITED)
+     - Added `"outputStyle": "Explanatory"` at the end of the file
+
+   - **`cloud-vault-mcp/scripts/sync_graphrag_to_neurons.py`** (CREATED)
+     - Bridge script that reads all `vault_memory` records and UPSERTs into `neuron` table
+     - Converts `informed_by` edges to `synapse` edges
+     - Computes activation, stage, cluster_id, aspect for each neuron
+     - Results: 11 → 354 neurons, 23 → 2,265 synapses in 7.6 seconds
+     - Uses SurrealDB v2 headers (`surreal-ns`, `surreal-db`) on port 8001
+     - Batch processing (50 records per batch)
+     - Key functions: `derive_cluster()`, `derive_aspect()`, `compute_stage()`, `compute_activation()`, `vault_memory_id_to_neuron_id()`
+
+   - **`cloud-vault-mcp/src/mcp_server/graph_writer.py`** (CREATED)
+     - Shared graph write API used by autoresearch, Ralph Loop, and scout
+     - Four async functions: `upsert_neuron()`, `create_synapse()`, `annotate_neuron()`, `batch_upsert_neurons()`
+     - Non-blocking (all try/except), idempotent (UPSERT), schema-aware
+     - Maps non-standard synapse link_types to 'latent' with original type in reason field
+     - Uses env vars for configuration with defaults: SURREALDB_URL=http://localhost:8001, SURREALDB_NAMESPACE=cohezion, SURREALDB_DATABASE=vault
+     ```python
+     # Key API surface:
+     async def upsert_neuron(neuron_id, title, path="", cluster="", aspect="connective", tags=None, content="") -> bool
+     async def create_synapse(from_id, to_id, link_type="explicit", reason="") -> bool
+     async def annotate_neuron(neuron_id, agent_notes="", increment_access=True) -> bool
+     async def batch_upsert_neurons(neurons: list[dict]) -> int
+     ```
+     - Synapse link_type mapping (critical fix):
+     ```python
+     ALLOWED_TYPES = {"explicit", "latent", "dream", "songline"}
+     actual_type = link_type if link_type in ALLOWED_TYPES else "latent"
+     if link_type not in ALLOWED_TYPES:
+         reason = f"[{link_type}] {reason}"
+     ```
+     - Annotate uses only schema fields:
+     ```python
+     sql = f"UPDATE {neuron_id} SET last_fired = time::now(), modified = time::now();"
+     ```
+
+   - **`cloud-vault-mcp/src/mcp_server/surrealdb_sync.py`** (EDITED)
+     - Updated 5 hardcoded directory paths:
+       - Line 378: `"papers"` → `"cortex"` (sequential import)
+       - Line 407: `"papers"` → `"cortex"` (parallel import)
+       - Line 557: `"concepts"` → `"cerebellum"` (sequential import)
+       - Line 588: `"concepts"` → `"cerebellum"` (parallel import)
+       - Line 638: `["papers", "concepts", "patterns", "decisions"]` → `["cortex", "cerebellum", "patterns", "decisions"]` (file watcher)
+
+   - **`cloud-vault-mcp/src/mcp_server/server.py`** (EDITED)
+     - Updated 3 MCP tool descriptions to reference cortex/cerebellum instead of papers/concepts
+     - `surrealdb_import_papers` docstring: "Import all cortex notes from vault/cortex/"
+     - `surrealdb_import_concepts` docstring: "Import all cerebellum notes from vault/cerebellum/"
+     - `surrealdb_start_watching` docstring: "Monitors cortex/, cerebellum/, patterns/, and decisions/"
+
+   - **`research/challenges/luma_amd_speedrun/autoresearch/driver.py`** (EDITED)
+     - Added sys.path for cloud-vault-mcp and asyncio import at top
+     - Added `_sync_to_graph()` function that writes K-Search cycle results to neuron graph
+     - Hooked into both dry-run LLM path (after save_tree) and real benchmark path (after log_result)
+     ```python
+     def _sync_to_graph(kernel: str, node, result_us: float | None) -> None:
+         """Write K-Search cycle result to neuron graph (non-blocking)."""
+         try:
+             from mcp_server.graph_writer import create_synapse, slugify, upsert_neuron
+             node_id = f"neuron:ksearch_{kernel}_{slugify(node.id)}_md"
+             content = f"Strategy: {node.strategy}\nBest: {node.best_result_us or 'N/A'}µs"
+             if result_us:
+                 content += f"\nLast: {result_us:.1f}µs (attempt #{node.attempts})"
+             asyncio.run(upsert_neuron(
+                 neuron_id=node_id,
+                 title=f"[{kernel.upper()}] {node.strategy[:60]}",
+                 path=f"autoresearch/{kernel}/{node.id}",
+                 cluster="autoresearch",
+                 aspect="thinker",
+                 tags=["autoresearch", kernel, "k-search"],
+                 content=content,
+             ))
+             if node.parent_id:
+                 parent_id = f"neuron:ksearch_{kernel}_{slugify(node.parent_id)}_md"
+                 asyncio.run(create_synapse(
+                     from_id=parent_id, to_id=node_id,
+                     link_type="k-search-child",
+                     reason=f"Child strategy in {kernel} K-Search tree",
+                 ))
+         except Exception as e:
+             log.debug(f"Graph sync skipped (non-blocking): {e}")
+     ```
+
+   - **`.claude/hooks/ralph-graph-annotate.sh`** (CREATED)
+     - Stop hook that fires only when Ralph Loop is active
+     - Creates/updates a Ralph Loop session neuron in the graph per iteration
+     - Reads iteration number and prompt from `.claude/ralph-loop.local.md`
+
+   - **`.claude/commands/scout.md`** (EDITED)
+     - Added Step 6: "Write findings to graph" with instructions to create neurons in `scout` cluster and latent synapses to related cortex concepts
+
+   - **Key reference files READ** (not modified):
+     - `cloud-vault-mcp/src/mcp_server/vault_graph/reactor.py` — activation/stage computation formulas
+     - `cloud-vault-mcp/src/mcp_server/vault_graph/queries.py` — stored function wrappers
+     - `cloud-vault-mcp/src/mcp_server/vault_graph/tools.py` — MCP graph tool definitions
+     - `cloud-vault-mcp/src/mcp_server/graphrag_import.py` — GraphRAGImporter class
+     - `cloud-vault-mcp/src/mcp_server/graphrag_helpers.py` — slugify, parse_frontmatter, execute_surreal_async
+     - `cloud-vault-mcp/scripts/reimport_vault.py` — existing vault reimport script
+     - Various vault notes in cortex/ and cerebellum/ for frontmatter schema understanding
+
+4. Errors and Fixes:
+   - **SurrealDB port mismatch**: Initial queries to port 8000 failed. SurrealDB was running on port 8001. Fixed by checking `ss -tlnp` and adjusting all queries.
+   - **SurrealDB v2 header format**: `NS`/`DB` headers didn't work, returned "NamespaceEmpty". Fixed by using `surreal-ns`/`surreal-db` headers.
+   - **MCP session drops**: `vault_log_decision`, `vault_list`, `graph_search` etc. repeatedly failed with "Session not found". Worked around by querying SurrealDB directly via HTTP API.
+   - **Synapse link_type schema constraint**: Creating synapse with `link_type='test-link'` failed with "Found 'test-link' for field `link_type`, but field must conform to: $value INSIDE ['explicit', 'latent', 'dream', 'songline']". Fixed by mapping non-standard types to 'latent' with original type preserved in reason field.
+   - **Neuron SCHEMAFUL constraints**: `access_count` and `agent_notes` fields don't exist on the neuron table. Fixed `annotate_neuron()` to only use `last_fired` and `modified` timestamps (existing schema fields).
+   - **Python TypeError in formatting**: `f'cluster={r.get("cluster_id","None"):20s}'` failed because `cluster_id` was actually `None` (not string "None"). Fixed with explicit `or 'None'` conversion.
+   - **httpx ModuleNotFoundError**: Running graph_writer test with system Python failed. Fixed by using the cloud-vault-mcp `.venv/bin/python` which has httpx installed.
+
+5. Problem Solving:
+   - **Two-table graph problem**: Discovered that `neuron` (11 records, MCP tools) and `vault_memory` (343 records, GraphRAG) were completely separate. Solved with bridge script that syncs vault_memory → neuron + informed_by → synapse.
+   - **Directory mismatch**: `surrealdb_sync.py` looked for `papers/` and `concepts/` which no longer exist after vault reorganization to `cortex/`/`cerebellum/`. Fixed all 5 hardcoded paths.
+   - **Static graph problem**: Graph had no live data flow from research systems. Solved by creating `graph_writer.py` shared module and hooking autoresearch driver, Ralph Loop, and scout into it.
+   - **Schema enforcement**: SurrealDB SCHEMAFUL tables rejected ad-hoc fields. Adapted code to work within schema constraints rather than fighting them.
+
+6. All User Messages:
+   - "We need to make sure surrealdb and obsidian vault are up and running"
+   - "We need to follow claude code best practices."
+   - "How can we capture these insights so they persist?"
+   - "What about our graph architecture?"
+   - "Yes" (confirming plan to implement sync path fix)
+   - "Let's extend this with the Ralph Loop and Autoresearch"
+   - User selected "Both + scout integration" for integration scope
+   - User ran `/claude-code-setup:claude-automation-recommender` command (final time)
+
+7. Pending Tasks:
+   - No explicitly pending tasks. All tasks created during the session were completed:
+     - Tasks #1-5: Claude Code best practices (all completed)
+     - Tasks #6-9: Graph architecture unification (all completed)
+     - Tasks #10-14: Ralph Loop + Autoresearch + Scout integration (all completed)
+
+8. Current Work:
+   The last substantive work was the final `/claude-code-setup:claude-automation-recommender` run, which I responded to with an updated recommendations report reflecting everything implemented this session. I provided remaining recommendations:
+   - security-reviewer subagent
+   - /gen-test skill
+   - Docker MCP server
+   - graph-sync-on-vault-write hook
+   
+   The session's implementation work is complete. The user's last explicit action was running the automation recommender command to get an updated status of recommendations.
+
+9. Optional Next Step:
+   No immediate next step is required. All user-requested work was completed and verified. The user would need to indicate which remaining recommendation they want implemented next, or start a new task. The most natural follow-up would be running an overnight autoresearch cycle to validate that K-Search discoveries automatically appear as graph neurons — completing the self-improving feedback loop that was wired up this session.
+
+If you need specific details from before compaction (like exact code snippets, error messages, or content you generated), read the full transcript at: /home/mike-anderson/.claude/projects/-home-mike-anderson-dev-cohezion/93b66342-a8a3-4e87-b0be-4c0dcf07fa6a.jsonl
+
+---
+
+Can you can build the security-reviewer agent, gen-test skill, or graph-sync-on-vault-write hook?
+
+---
+
+What else would you like to work on?
+
+---
+
+Base directory for this skill: /home/mike-anderson/dev/cohezion/.claude/skills/gen-test
+
+# Generate Tests for a Module
+
+You are generating pytest tests for `cloud-vault-mcp/src/mcp_server/graph_writer.py`. Follow these steps exactly.
+
+## Step 1: Understand the Testing Infrastructure
+
+Read `tests/conftest.py` to understand:
+- Available fixtures (singleton resets, mock clients, test data)
+- The `autouse` fixtures that run on every test (FLUME VAE reset, RL policy reset, logger cleanup)
+- Any shared test utilities
+
+## Step 2: Read the Target Module
+
+Read the module at `cloud-vault-mcp/src/mcp_server/graph_writer.py` and identify:
+- All public functions and classes (skip `_private` methods)
+- Constructor parameters and their types
+- External dependencies (imports from other packages, HTTP calls, DB queries)
+- Return types and possible exceptions
+
+## Step 3: Find Similar Tests
+
+Search for existing test files that test similar modules:
+- Use Grep to find `test_<module_name>` or tests in the same package directory
+- Study the mocking patterns, fixture usage, and assertion style
+- Note which dependencies are mocked and HOW they are mocked
+
+## Step 4: Generate Tests
+
+Create a test file at `tests/<package_path>/test_<module_name>.py` with:
+
+### File Structure
+```python
+"""Tests for <module_path>."""
+
+import pytest
+from unittest.mock import AsyncMock, MagicMock, patch
+
+# Import the module under test
+from <module_import_path> import <ClassName or function_name>
+
+
+class Test<ClassName>:
+    """Tests for <ClassName>."""
+
+    def test_<method>_happy_path_p0(self):
+        """[P0] <method> returns expected result with valid input."""
+        ...
+
+    def test_<method>_error_handling_p1(self):
+        """[P1] <method> handles <error_case> gracefully."""
+        ...
+```
+
+### Rules
+
+1. **5-10 tests maximum** — cover happy path, error cases, and 1-2 edge cases. Do not over-generate.
+
+2. **Mock at source, not at import**:
+   ```python
+   # CORRECT: patch where the dependency is looked up
+   @patch("cohezion.compound.executor.get_compound_client")
+
+   # WRONG: patch where it was imported from
+   @patch("cohezion.swarm.compound_client.get_compound_client")
+   ```
+
+3. **Priority markers**: Use `[P0]` for critical path tests, `[P1]` for error handling, `[P2]` for edge cases. Put the marker in the docstring.
+
+4. **Pytest marks**:
+   - `@pytest.mark.unit` for pure logic tests
+   - `@pytest.mark.integration` for tests that touch external systems (even mocked)
+
+5. **Async tests**: If the module has async functions, use `@pytest.mark.asyncio` and `async def test_...`
+
+6. **Never mock what you own**: Test real internal logic. Only mock external boundaries (HTTP clients, DB connections, Ollama, file I/O to external paths).
+
+7. **Fixture usage**: Use conftest.py fixtures where available. Create new fixtures only if they would be reused across 3+ tests.
+
+8. **Assertions**: Use specific assertions (`assert result.status == "ok"`) not vague ones (`assert result is not None`).
+
+9. **No hardcoded paths**: Use `tmp_path` fixture or `PROJECT_ROOT / "relative"` — never `/home/mike-anderson/...`
+
+## Step 5: Run and Verify
+
+After writing tests, run them:
+```bash
+uv run pytest tests/<path>/test_<module>.py -q
+```
+
+Fix any failures before marking complete. Tests must pass on first run.
+
+## Anti-Patterns to Avoid
+
+- Generating 50+ tests for a simple module (5-10 is the target)
+- Testing private methods directly (test through public API)
+- Mocking everything including the module under test
+- Using `assert True` or `assert result` without checking specific values
+- Copying test boilerplate without adapting to the actual module
+- Writing tests that duplicate conftest.py fixture behavior
+
+---
+
+Run the Daily Model Research scout for Cohezion.
+
+You are a Market Scout. Find "Tip of the Spear" small language models (SLMs) that could outperform the current roster (deepseek-r1:70b, qwen3-coder:30b, phi3:mini).
+
+Criteria:
+- Under 20B parameters
+- License: Apache 2.0 or MIT
+- Available on Ollama or HuggingFace
+
+Steps:
+1. Search HuggingFace trending text-generation models under 20B params
+2. Check Ollama for new models: `ollama list` to see current roster
+3. Compare against existing models in the project
+4. Rank by novelty and community sentiment
+5. Report top 3 candidates with parameter count, license, and reasoning
+6. **Write findings to graph**: For each top candidate, use `mcp__cohezion-vault__graph_annotate_neuron` or create a neuron via the graph_writer API:
+   - Create neuron: `neuron:model_{slugified_name}_md` in cluster `"scout"` with tags `["model-candidate", "scout", license]`
+   - If a related concept exists in cortex (e.g. `agentic-ai`, `code-generation`), create a latent synapse via `mcp__cohezion-vault__graph_write_latent_synapse` linking the model neuron to the concept
+   - This makes scout findings queryable via `graph_search("model candidate")` in future sessions
+
+---
+
+Create a plan to use it
+
+---
+
+<task-notification>
+<task-id>bzo4i1fwa</task-id>
+<tool-use-id>toolu_01WH7TsYAAcJiKfnKWsnhm7j</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/93b66342-a8a3-4e87-b0be-4c0dcf07fa6a/tasks/bzo4i1fwa.output</output-file>
+<status>completed</status>
+<summary>Background command "Pull SmolLM3 community model" completed (exit code 0)</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/93b66342-a8a3-4e87-b0be-4c0dcf07fa6a/tasks/bzo4i1fwa.output
+
+---
+
+<task-notification>
+<task-id>bjhplamkm</task-id>
+<tool-use-id>toolu_01QohanRqV4xaShTaxbxB1aa</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/93b66342-a8a3-4e87-b0be-4c0dcf07fa6a/tasks/bjhplamkm.output</output-file>
+<status>completed</status>
+<summary>Background command "Quick inference test on SmolLM3" completed (exit code 0)</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/93b66342-a8a3-4e87-b0be-4c0dcf07fa6a/tasks/bjhplamkm.output
+
+---
+
+# /learn - Online Learning System
+
+**Extract reusable knowledge from this session into skills.** Evaluates what was learned, checks for existing skills, and creates new ones when valuable patterns are discovered.
+
+---
+
+## TABLE OF CONTENTS
+
+| Phase       | Description                                            | Steps   |
+| ----------- | ------------------------------------------------------ | ------- |
+| **Phase 0** | Reference: triggers, quality criteria, skill structure | 0.1–0.4 |
+| **Phase 1** | Evaluate: assess if knowledge is worth extracting      | 1.1     |
+| **Phase 2** | Check Existing: search for related skills              | 2.1     |
+| **Phase 3** | Create Skill: write the skill file                     | 3.1–3.2 |
+| **Phase 4** | Quality Gates: final checklist before saving           | 4.1     |
+
+**Quick Step Reference:**
+
+- 0.1 Triggers, 0.2 Quality criteria, 0.3 What NOT to extract, 0.4 Skill structure
+- 1.1 Self-evaluation questions
+- 2.1 Search existing skills
+- 3.1 Choose location, 3.2 Write SKILL.md
+- 4.1 Final checklist
+
+---
+
+## PHASE 0: REFERENCE
+
+### Step 0.1: Triggers
+
+Invoke `/learn` after ANY task involving:
+
+| Trigger                      | Example                                                          |
+| ---------------------------- | ---------------------------------------------------------------- |
+| **Non-obvious debugging**    | Spent 10+ minutes investigating; solution wasn't in docs         |
+| **Misleading errors**        | Error message pointed wrong direction; found real cause          |
+| **Workarounds**              | Found limitation and creative solution                           |
+| **Tool integration**         | Figured out how to use tool/API in undocumented way              |
+| **Trial-and-error**          | Tried multiple approaches before finding what worked             |
+| **Repeatable workflow**      | Multi-step task that will recur; worth standardizing             |
+| **External service queries** | Fetched data from Jira, GitHub, Confluence, or other APIs        |
+| **User-facing automation**   | Built something user will ask for again (reports, status checks) |
+
+### Step 0.2: Quality Criteria
+
+Skills must be:
+
+- **Reusable**: Will help with future tasks (not just this instance)
+- **Non-trivial**: Required discovery, OR is a valuable workflow pattern
+- **Verified**: Solution actually worked, not theoretical
+
+### Step 0.3: What NOT to Extract
+
+- Single-step tasks with no workflow value
+- One-off fixes unlikely to recur
+- Knowledge easily found in official docs
+
+### Step 0.4: Skill Structure
+
+**Location:** `.claude/skills/[skill-name]/SKILL.md`
+
+**Template:**
+
+```markdown
+---
+name: descriptive-kebab-case-name
+description: |
+  [CRITICAL: This determines when the skill triggers. Include:]
+  - What the skill does
+  - Specific trigger conditions (exact error messages, symptoms)
+  - When to use it (contexts, scenarios)
+author: Claude Code
+version: 1.0.0
+---
+
+# Skill Name
+
+## Problem
+
+[Clear description of the problem]
+
+## Context / Trigger Conditions
+
+[When to use - exact error messages, symptoms, scenarios]
+
+## Solution
+
+[Step-by-step solution]
+
+## Verification
+
+[How to verify it worked]
+
+## Example
+
+[Concrete example]
+
+## References
+
+[Links to documentation]
+```
+
+<details>
+<summary>Writing Effective Descriptions</summary>
+
+The description field is CRITICAL for skill discovery:
+
+**Good:**
+
+```yaml
+description: |
+  Fix for "ENOENT: no such file or directory" errors in npm monorepos.
+  Use when: (1) npm run fails with ENOENT, (2) paths work in root but
+  not in packages, (3) symlinked dependencies cause failures.
+```
+
+**Bad:**
+
+```yaml
+description: Helps with npm problems in monorepos.
+```
+
+</details>
+
+**Guidelines:**
+
+- **Concise** - Claude is smart; only add what it doesn't know
+- **Under 500 lines** - Move large docs to `references/`
+- **Examples over explanations** - Show, don't tell
+
+---
+
+## PHASE 1: EVALUATE
+
+### Step 1.1: Self-Evaluation Questions
+
+Ask yourself:
+
+1. "What did I just learn that wasn't obvious before starting?"
+2. "Would future-me benefit from having this documented?"
+3. "Was the solution non-obvious from documentation alone?"
+4. "Is this a multi-step workflow I'd repeat on similar tasks?"
+5. "Did I query an external service the user will ask about again?"
+
+**If NO to all → Skip extraction, nothing to learn.**
+
+**Note:** External service queries (Jira tickets, GitHub PRs, Confluence pages) are almost always worth extracting - users frequently repeat these requests.
+
+---
+
+## PHASE 2: CHECK EXISTING
+
+### Step 2.1: Search for Related Skills
+
+Before creating, search for related skills:
+
+```bash
+ls .claude/skills/ 2>/dev/null
+rg -i "keyword" .claude/skills/ 2>/dev/null
+ls ~/.claude/pilot/skills/ 2>/dev/null
+rg -i "keyword" ~/.claude/pilot/skills/ 2>/dev/null
+```
+
+| Found                | Action                           |
+| -------------------- | -------------------------------- |
+| Nothing related      | Create new skill                 |
+| Same trigger and fix | Update existing (bump version)   |
+| Partial overlap      | Update existing with new variant |
+
+---
+
+## PHASE 3: CREATE SKILL
+
+### Step 3.1: Choose Location
+
+**Project skills**: `.claude/skills/[skill-name]/SKILL.md`
+
+### Step 3.2: Write SKILL.md
+
+Use the template from Step 0.4. Ensure the description field contains specific trigger conditions.
+
+---
+
+## PHASE 4: QUALITY GATES
+
+### Step 4.1: Final Checklist
+
+Before finalizing:
+
+- [ ] Description contains specific trigger conditions
+- [ ] Solution verified to work
+- [ ] Content specific enough to be actionable
+- [ ] Content general enough to be reusable
+- [ ] No sensitive information
+
+---
+
+## EXAMPLE
+
+**Scenario**: Discovered LSP `findReferences` can find dead code by checking if functions have only 1 reference (their definition) or only test references.
+
+**Skill Created**: `.claude/skills/lsp-dead-code-finder/SKILL.md`
+
+```markdown
+---
+name: lsp-dead-code-finder
+description: |
+  Find dead/unused code using LSP findReferences. Use when: (1) user asks
+  to find dead code, (2) cleaning up codebase, (3) refactoring. Key insight:
+  function with only 1 reference (definition) or only test refs is dead code.
+---
+
+# LSP Dead Code Finder
+
+...
+```
+
+---
+
+## REMEMBER
+
+**Continuous improvement.** Every valuable discovery should benefit future sessions.
+Evaluate after significant work. Extract selectively. Create carefully.
+
+---
+
+Can we capture an skills from this session?
+
+---
+
+I think we need a capability matrix assessment and associated skill and workflow manager.
+
+---
+
+Orchestrate a team of specialist agents to use what this session has created for a long horizon task for Cohezion improvement.
+
+---
+
+<task-notification>
+<task-id>bwh5800at</task-id>
+<tool-use-id>toolu_01CduumYbXKr5j5phbe9Vn8t</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/93b66342-a8a3-4e87-b0be-4c0dcf07fa6a/tasks/bwh5800at.output</output-file>
+<status>completed</status>
+<summary>Background command "Quick test suite health check" completed (exit code 0)</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/93b66342-a8a3-4e87-b0be-4c0dcf07fa6a/tasks/bwh5800at.output
+
+---
+
+<teammate-message teammate_id="security-sweep" color="blue" summary="Security review complete, 2 CRITICAL fixed">
+## Security Review: 2026-03-24
+
+### Summary
+Reviewed 5 critical files. Found **2 CRITICAL**, **2 HIGH**, and **3 MEDIUM** findings. Both CRITICAL findings were in `graph_writer.py` and have been **fixed in-place**.
+
+### Findings by File
+
+#### CRITICAL (fixed)
+
+**1. SurrealQL Injection via bare identifiers — `cloud-vault-mcp/src/mcp_server/graph_writer.py`**
+- **Lines affected**: `upsert_neuron` (L127), `create_synapse` (L182), `annotate_neuron` (L213), `batch_upsert_neurons` (L243)
+- **Issue**: `neuron_id`, `from_id`, `to_id` were interpolated directly into SurrealQL statements (`UPSERT {neuron_id} SET ...`, `RELATE {from_id}->synapse->{to_id}`) with zero validation. An attacker controlling these strings could inject arbitrary SurrealQL (e.g., `neuron:x; DELETE neuron;--`).
+- **Fix applied**: Added `validate_surreal_id()` — a strict allowlist regex (`^[a-zA-Z_][a-zA-Z0-9_:.\-]*$`) applied to all bare identifiers before SQL interpolation. All 4 functions now call it.
+
+**2. Tag list injection — `cloud-vault-mcp/src/mcp_server/graph_writer.py`**
+- **Lines affected**: `upsert_neuron` (L138), `batch_upsert_neurons` (L250)
+- **Issue**: `tags = {tags}` used Python's `list.__repr__()` to interpolate tag lists into SQL. A tag like `"'); DELETE neuron; --"` would break out of the SQL context because Python repr uses double quotes, not single-quoted SurrealQL escaping.
+- **Fix applied**: Added `escape_tag_list()` which individually escapes each tag through `escape_sql()` and wraps them in proper SurrealQL array syntax `['tag1', 'tag2']`.
+
+#### HIGH
+
+**3. `escape_sql` is incomplete — `cloud-vault-mcp/src/mcp_server/graph_writer.py:42-44`**
+- Only escapes `\` and `'`. Does not handle null bytes (`\0`) or newlines which could break SurrealQL string literals in edge cases. Recommend also escaping `\n`, `\r`, and `\0`. Not fixed now because the CRITICAL ID validation blocks the most dangerous vectors; this is defense-in-depth.
+
+**4. No timeout on `aiohttp.ClientSession()` constructor — `src/cohezion/swarm/providers/ollama_provider.py:49`**
+- The session is created without a default timeout. While individual requests set `timeout=aiohttp.ClientTimeout(total=self.timeout)`, the session itself has no connection timeout. A DNS resolution hang or TCP connect hang on a misconfigured `base_url` could block the event loop indefinitely. Recommend adding `aiohttp.ClientTimeout(connect=10)` to the session constructor.
+
+#### MEDIUM
+
+**5. `subprocess.run` without `timeout` — `src/cohezion/flume/local_finetune_pipeline.py:228-233, 242-246`**
+- `deploy_to_ollama()` calls `subprocess.run(["ollama", "create", ...])` and `subprocess.run(["ollama", "run", ...])` without a `timeout` parameter. If Ollama hangs (e.g., downloading a large model), the process blocks indefinitely. Recommend `timeout=300` (5 min). Note: no shell=True and no user-controlled arguments in the command list, so there is **no command injection risk** — this is purely a reliability concern.
+
+**6. Hardcoded SurrealDB credentials — `cloud-vault-mcp/src/mcp_server/graph_writer.py:24-27`**
+- `root/root` defaults are acceptable for local dev (as noted in CLAUDE.md), but there's no warning log when defaults are used in a non-localhost URL. If `SURREALDB_URL` points to a remote host while credentials remain default, that's a misconfiguration risk. Recommend logging a warning when URL is not localhost and credentials are default.
+
+**7. Session not closed on provider errors — `src/cohezion/swarm/providers/ollama_provider.py:46-50`**
+- `_get_session()` creates a new session if the old one is closed, but if `generate()` raises after creating a session, the session leaks until `close()` is explicitly called. The provider has a `close()` method but no `__aexit__` / async context manager protocol, making it easy to forget cleanup. Recommend implementing `__aenter__`/`__aexit__`.
+
+### Files Not in Scope but Clean
+
+**`src/cohezion/agentjet/trainer.py`** — Well-structured with proper OOM safety checks, try/finally for model reload, and no subprocess or SQL usage. No findings.
+
+**`cloud-vault-mcp/src/mcp_server/vault_ops.py`** — Path traversal protection in `_resolve()` is solid: rejects `..`, rejects absolute paths, resolves symlinks, and verifies the resolved path starts with `vault_path + "/"`. No findings.
+
+### Verdict
+
+**CRITICAL issues fixed.** The codebase can proceed to merge after addressing the 2 HIGH items (escape_sql completeness and aiohttp session timeout). MEDIUM items are defense-in-depth improvements that can be tracked as tech debt.
+
+### Files Changed
+- `/home/mike-anderson/dev/cohezion/cloud-vault-mcp/src/mcp_server/graph_writer.py` — Added `validate_surreal_id()` and `escape_tag_list()`, applied to all 4 public functions.
+</teammate-message>
+
+<teammate-message teammate_id="security-sweep" color="blue">
+{"type":"idle_notification","from":"security-sweep","timestamp":"2026-03-25T03:58:53.086Z","idleReason":"available"}
+</teammate-message>
+
+---
+
+<teammate-message teammate_id="matrix-analyst" color="green" summary="Task #3 complete — assessment written to vault">
+Task #3 (Matrix assessment + vault write) is complete.
+
+**Note:** The vault MCP server had a session error (Session not found), so I wrote the file directly to the filesystem at `/home/mike-anderson/vaults/cohezion-vault/cortex/capability-assessment-2026-03-24.md`. The graph-sync hook may need a manual trigger if it relies on the MCP write event.
+
+**Key findings:**
+- **18 models**, **11 agents**, **0 skills** tracked
+- **3 capability gaps**: tool-calling (0.00), multilingual (0.00), research (0.60)
+- All agent quality scores are 0.00 — no execution history yet
+- Only 1 fine-tune candidate: qwen3-coder-next:q8_0 for research (soft mode, 2 training samples)
+- 5 agents have identical capability sets — recommend differentiation or consolidation
+- Skill health tracking appears unwired — 0 records from SkillHealthTracker
+
+**Sprint priorities recommended:**
+- P0: Scout tool-calling models + wire skill health tracking
+- P1: Tag multilingual on existing models, populate agent execution history, curate research training data
+- P2: Differentiate overlapping agents, add model assignments, move to benchmark-driven assessment
+</teammate-message>
+
+<teammate-message teammate_id="matrix-analyst" color="green">
+{"type":"idle_notification","from":"matrix-analyst","timestamp":"2026-03-25T03:59:47.830Z","idleReason":"available"}
+</teammate-message>
+
+<teammate-message teammate_id="matrix-analyst" color="green">
+{"type":"idle_notification","from":"matrix-analyst","timestamp":"2026-03-25T03:59:54.192Z","idleReason":"available"}
+</teammate-message>
+
+---
+
+<teammate-message teammate_id="knowledge-enricher" color="yellow" summary="Scout complete: 5 models, 3 already installed, graph enriched">
+Task #4 (Scout for tool-calling + multilingual models) is complete. Here are the findings:
+
+## Gap Analysis Summary
+
+**Already installed models (46 total):** deepseek-r1:7b, gpt-oss:20b, qwen3-coder:30b, phi4, gemma3:4b, glm-4.7-flash, devstral-small-2:24b, and many more. Strong coverage in coding, reasoning, and math. Weak in dedicated tool-calling and multilingual routing.
+
+## Top Candidates for Each Gap
+
+### Tool-Calling Gap (Primary)
+| Model | Params | Status | License | Why |
+|-------|--------|--------|---------|-----|
+| **Qwen3 8B** | 8B | Not installed (qwen3:8b) | Apache 2.0 | Dual-mode reasoning, 131K context, HumanEval 76.0, strongest CJK multilingual. Fills BOTH gaps. |
+| **GPT-OSS 20B** | 20B | ALREADY INSTALLED | MIT | Purpose-built for agent/tool workflows. Already at gpt-oss:20b (13GB). Just needs router entries. |
+
+### Multilingual Gap (Primary)
+| Model | Params | Status | License | Why |
+|-------|--------|--------|---------|-----|
+| **Phi-4-mini** | 3.8B | ALREADY INSTALLED (phi4) | MIT | New function calling support + enhanced multilingual. Lightest option. |
+| **Mistral Small 3** | 7B | NOT installed | Apache 2.0 | Highest tok/s on mid-range HW. Good multilingual. `ollama pull mistral-small` |
+| **Gemma 3 4B** | 4B | ALREADY INSTALLED | Apache 2.0 | Edge multilingual, already at gemma3:4b (3.3GB). Needs router entry. |
+
+## Key Finding
+3 of 5 candidates are ALREADY INSTALLED but lack router entries. Immediate action: generate router entries for gpt-oss:20b, phi4, and gemma3:4b to unlock existing capabilities without any new downloads.
+
+Only 2 models need pulling: `qwen3:8b` (recommended, fills both gaps) and optionally `mistral-small` (speed-focused multilingual).
+
+## Graph Enrichment
+- Wrote 5 scout neurons to `neuron:scout_*` in SurrealDB
+- Created 3 latent synapses connecting related candidates
+- Read 5 vault cortex notes (MOC-compound-engineering, knowledge-graph-systems, neural-network-architecture, data-pipelines, test-isolation-via-singleton-reset) — these are mature nodes with high activation and many synapses, forming the backbone of the knowledge graph
+
+## Vault Cortex Summary (5 notes read)
+1. **MOC-compound-engineering** (activation: 1.0, 35 outgoing synapses) — The foundational methodology hub. Links to all key patterns and decisions.
+2. **Knowledge Graph Systems** (activation: 0.98, 57 incoming synapses) — Documents the SurrealDB-backed graph architecture. Most connected node read.
+3. **Neural Network Architecture** (activation: 1.0, 46 incoming) — Covers transformer/VAE architectures relevant to model selection decisions.
+4. **Data Pipelines** (activation: 0.79, 10 outgoing) — ETL patterns that mirror the research ingestion pipeline.
+5. **Test Isolation via Singleton Reset** (activation: 0.81) — Critical testing pattern for the 3,200+ test suite.
+
+Note: The vault MCP server had session errors throughout this task — `vault_search` and `graph_search` returned "Session not found". I worked around this using filesystem reads and the graph_writer Python module directly.
+</teammate-message>
+
+<teammate-message teammate_id="system">
+{"type":"teammate_terminated","message":"matrix-analyst has shut down."}
+</teammate-message>
+
+<teammate-message teammate_id="matrix-analyst" color="green">
+{"type":"shutdown_approved","requestId":"shutdown-1774411235704@matrix-analyst","from":"matrix-analyst","timestamp":"2026-03-25T04:00:40.701Z"}
+</teammate-message>
+
+<teammate-message teammate_id="knowledge-enricher" color="yellow">
+{"type":"idle_notification","from":"knowledge-enricher","timestamp":"2026-03-25T04:00:43.441Z","idleReason":"available"}
+</teammate-message>
+
+<teammate-message teammate_id="knowledge-enricher" color="yellow">
+{"type":"idle_notification","from":"knowledge-enricher","timestamp":"2026-03-25T04:00:55.016Z","idleReason":"available"}
+</teammate-message>
+
+---
+
+<teammate-message teammate_id="system">
+{"type":"teammate_terminated","message":"knowledge-enricher has shut down."}
+</teammate-message>
+
+<teammate-message teammate_id="knowledge-enricher" color="yellow">
+{"type":"shutdown_approved","requestId":"shutdown-1774411288920@knowledge-enricher","from":"knowledge-enricher","timestamp":"2026-03-25T04:01:34.886Z","paneId":"in-process","backendType":"in-process"}
+</teammate-message>
+
+---
+
+<teammate-message teammate_id="security-sweep" color="blue" summary="Test coverage extended, 50 tests all passing">
+Task #2 complete. Extended test coverage for graph_writer.py and workflow_manager.py. All tests passing.
+
+**graph_writer tests** (31 passing, cloud-vault-mcp/tests/test_graph_writer.py):
+- Added `TestValidateSurrealId` (7 tests): valid IDs, semicolon/quote/space injection, empty string, numeric start
+- Added `TestEscapeTagList` (4 tests): basic tags, empty list, quote escaping, injection payload neutralization
+- Added `test_annotate_neuron_success_p0`, `test_annotate_neuron_rejects_bad_id_p0`, `test_annotate_neuron_failure_returns_false_p1`
+- Added `test_batch_upsert_neurons_success_p0`, `test_batch_upsert_empty_list_p1`, `test_batch_upsert_rejects_bad_id_p0`
+
+**workflow_manager tests** (19 passing, tests/compound/test_capability_matrix.py):
+- Added `test_run_model_onboarding_model_found_p0` (mocked ollama list, model present)
+- Added `test_run_model_onboarding_model_not_found_p0` (model absent)
+- Added `test_run_model_onboarding_ollama_unavailable_p1` (FileNotFoundError)
+- Added `test_run_periodic_reassessment_p0` (validates report structure)
+- Added `test_run_finetune_from_gap_no_candidate_p0` (no matching candidate)
+- Added `test_run_finetune_from_gap_infeasible_p1` (candidate exceeds memory)
+
+**Files changed:**
+- `/home/mike-anderson/dev/cohezion/cloud-vault-mcp/tests/test_graph_writer.py`
+- `/home/mike-anderson/dev/cohezion/tests/compound/test_capability_matrix.py`
+</teammate-message>
+
+---
+
+<teammate-message teammate_id="security-sweep" color="blue">
+{"type":"idle_notification","from":"security-sweep","timestamp":"2026-03-25T04:03:22.652Z","idleReason":"available"}
+</teammate-message>
+
+<teammate-message teammate_id="system">
+{"type":"teammate_terminated","message":"security-sweep has shut down."}
+</teammate-message>
+
+<teammate-message teammate_id="security-sweep" color="blue">
+{"type":"shutdown_approved","requestId":"shutdown-1774411147412@security-sweep","from":"security-sweep","timestamp":"2026-03-25T04:03:34.061Z","paneId":"in-process","backendType":"in-process"}
+</teammate-message>
+
+---
+
+<teammate-message teammate_id="test-coverage" color="purple" summary="Task #2 complete: 4 new tests, all passing">
+Task #2 (Extend test coverage) is complete. All tests pass.
+
+**graph_writer tests** (`cloud-vault-mcp/tests/test_graph_writer.py`): 33 passing (added 2)
+- `test_annotate_neuron_only_updates_timestamps_p0` -- captures SQL and verifies only `last_fired` and `modified` are set, no `agent_notes` or `access_count` (schemaful constraint)
+- `test_batch_upsert_joins_statements_p0` -- captures SQL and verifies all 3 UPSERT statements are joined into a single HTTP call
+
+**capability matrix tests** (`tests/compound/test_capability_matrix.py`): 21 passing (added 2)
+- `test_run_periodic_reassessment_checks_entities_p0` -- asserts `entities_checked > 0` (stronger than existing `>= 0`)
+- `test_run_finetune_from_gap_feasible_candidate_p0` -- mocks CapabilityMatrix with a feasible FinetuneCandidate, patches `_run_soft_finetune`, verifies success=True and correct model ID
+
+The existing tests already covered validate_surreal_id (7 cases), escape_tag_list (4 cases), and model onboarding (3 paths). The new tests fill the SQL-verification and feasible-path gaps.
+</teammate-message>
+
+---
+
+<teammate-message teammate_id="test-coverage" color="purple">
+{"type":"idle_notification","from":"test-coverage","timestamp":"2026-03-25T04:05:17.603Z","idleReason":"available"}
+</teammate-message>
+
+<teammate-message teammate_id="system">
+{"type":"teammate_terminated","message":"test-coverage has shut down."}
+</teammate-message>
+
+<teammate-message teammate_id="test-coverage" color="purple">
+{"type":"shutdown_approved","requestId":"shutdown-1774411430692@test-coverage","from":"test-coverage","timestamp":"2026-03-25T04:05:25.009Z","paneId":"in-process","backendType":"in-process"}
+</teammate-message>
+
+---
+
+Capture key learnings
+
+---
+
+# /learn - Online Learning System
+
+**Extract reusable knowledge from this session into skills.** Evaluates what was learned, checks for existing skills, and creates new ones when valuable patterns are discovered.
+
+---
+
+## TABLE OF CONTENTS
+
+| Phase       | Description                                            | Steps   |
+| ----------- | ------------------------------------------------------ | ------- |
+| **Phase 0** | Reference: triggers, quality criteria, skill structure | 0.1–0.4 |
+| **Phase 1** | Evaluate: assess if knowledge is worth extracting      | 1.1     |
+| **Phase 2** | Check Existing: search for related skills              | 2.1     |
+| **Phase 3** | Create Skill: write the skill file                     | 3.1–3.2 |
+| **Phase 4** | Quality Gates: final checklist before saving           | 4.1     |
+
+**Quick Step Reference:**
+
+- 0.1 Triggers, 0.2 Quality criteria, 0.3 What NOT to extract, 0.4 Skill structure
+- 1.1 Self-evaluation questions
+- 2.1 Search existing skills
+- 3.1 Choose location, 3.2 Write SKILL.md
+- 4.1 Final checklist
+
+---
+
+## PHASE 0: REFERENCE
+
+### Step 0.1: Triggers
+
+Invoke `/learn` after ANY task involving:
+
+| Trigger                      | Example                                                          |
+| ---------------------------- | ---------------------------------------------------------------- |
+| **Non-obvious debugging**    | Spent 10+ minutes investigating; solution wasn't in docs         |
+| **Misleading errors**        | Error message pointed wrong direction; found real cause          |
+| **Workarounds**              | Found limitation and creative solution                           |
+| **Tool integration**         | Figured out how to use tool/API in undocumented way              |
+| **Trial-and-error**          | Tried multiple approaches before finding what worked             |
+| **Repeatable workflow**      | Multi-step task that will recur; worth standardizing             |
+| **External service queries** | Fetched data from Jira, GitHub, Confluence, or other APIs        |
+| **User-facing automation**   | Built something user will ask for again (reports, status checks) |
+
+### Step 0.2: Quality Criteria
+
+Skills must be:
+
+- **Reusable**: Will help with future tasks (not just this instance)
+- **Non-trivial**: Required discovery, OR is a valuable workflow pattern
+- **Verified**: Solution actually worked, not theoretical
+
+### Step 0.3: What NOT to Extract
+
+- Single-step tasks with no workflow value
+- One-off fixes unlikely to recur
+- Knowledge easily found in official docs
+
+### Step 0.4: Skill Structure
+
+**Location:** `.claude/skills/[skill-name]/SKILL.md`
+
+**Template:**
+
+```markdown
+---
+name: descriptive-kebab-case-name
+description: |
+  [CRITICAL: This determines when the skill triggers. Include:]
+  - What the skill does
+  - Specific trigger conditions (exact error messages, symptoms)
+  - When to use it (contexts, scenarios)
+author: Claude Code
+version: 1.0.0
+---
+
+# Skill Name
+
+## Problem
+
+[Clear description of the problem]
+
+## Context / Trigger Conditions
+
+[When to use - exact error messages, symptoms, scenarios]
+
+## Solution
+
+[Step-by-step solution]
+
+## Verification
+
+[How to verify it worked]
+
+## Example
+
+[Concrete example]
+
+## References
+
+[Links to documentation]
+```
+
+<details>
+<summary>Writing Effective Descriptions</summary>
+
+The description field is CRITICAL for skill discovery:
+
+**Good:**
+
+```yaml
+description: |
+  Fix for "ENOENT: no such file or directory" errors in npm monorepos.
+  Use when: (1) npm run fails with ENOENT, (2) paths work in root but
+  not in packages, (3) symlinked dependencies cause failures.
+```
+
+**Bad:**
+
+```yaml
+description: Helps with npm problems in monorepos.
+```
+
+</details>
+
+**Guidelines:**
+
+- **Concise** - Claude is smart; only add what it doesn't know
+- **Under 500 lines** - Move large docs to `references/`
+- **Examples over explanations** - Show, don't tell
+
+---
+
+## PHASE 1: EVALUATE
+
+### Step 1.1: Self-Evaluation Questions
+
+Ask yourself:
+
+1. "What did I just learn that wasn't obvious before starting?"
+2. "Would future-me benefit from having this documented?"
+3. "Was the solution non-obvious from documentation alone?"
+4. "Is this a multi-step workflow I'd repeat on similar tasks?"
+5. "Did I query an external service the user will ask about again?"
+
+**If NO to all → Skip extraction, nothing to learn.**
+
+**Note:** External service queries (Jira tickets, GitHub PRs, Confluence pages) are almost always worth extracting - users frequently repeat these requests.
+
+---
+
+## PHASE 2: CHECK EXISTING
+
+### Step 2.1: Search for Related Skills
+
+Before creating, search for related skills:
+
+```bash
+ls .claude/skills/ 2>/dev/null
+rg -i "keyword" .claude/skills/ 2>/dev/null
+ls ~/.claude/pilot/skills/ 2>/dev/null
+rg -i "keyword" ~/.claude/pilot/skills/ 2>/dev/null
+```
+
+| Found                | Action                           |
+| -------------------- | -------------------------------- |
+| Nothing related      | Create new skill                 |
+| Same trigger and fix | Update existing (bump version)   |
+| Partial overlap      | Update existing with new variant |
+
+---
+
+## PHASE 3: CREATE SKILL
+
+### Step 3.1: Choose Location
+
+**Project skills**: `.claude/skills/[skill-name]/SKILL.md`
+
+### Step 3.2: Write SKILL.md
+
+Use the template from Step 0.4. Ensure the description field contains specific trigger conditions.
+
+---
+
+## PHASE 4: QUALITY GATES
+
+### Step 4.1: Final Checklist
+
+Before finalizing:
+
+- [ ] Description contains specific trigger conditions
+- [ ] Solution verified to work
+- [ ] Content specific enough to be actionable
+- [ ] Content general enough to be reusable
+- [ ] No sensitive information
+
+---
+
+## EXAMPLE
+
+**Scenario**: Discovered LSP `findReferences` can find dead code by checking if functions have only 1 reference (their definition) or only test references.
+
+**Skill Created**: `.claude/skills/lsp-dead-code-finder/SKILL.md`
+
+```markdown
+---
+name: lsp-dead-code-finder
+description: |
+  Find dead/unused code using LSP findReferences. Use when: (1) user asks
+  to find dead code, (2) cleaning up codebase, (3) refactoring. Key insight:
+  function with only 1 reference (definition) or only test refs is dead code.
+---
+
+# LSP Dead Code Finder
+
+...
+```
+
+---
+
+## REMEMBER
+
+**Continuous improvement.** Every valuable discovery should benefit future sessions.
+Evaluate after significant work. Extract selectively. Create carefully.
+
+---
+
+Let's proceed with all paths you identified with teams of specialist agents.
+
+---
+
+<teammate-message teammate_id="sprint-skill-writer" color="green" summary="Task 3 done: sprint skill created">
+Task #3 complete. Created the multi-agent-improvement-sprint skill at:
+
+`/home/mike-anderson/dev/cohezion/.claude/skills/multi-agent-improvement-sprint/SKILL.md`
+
+The skill captures:
+- Full phased workflow (Phase 1 parallel, Phase 2 sequential, Phase 3 cleanup)
+- Four reusable agent role templates (matrix-analyst, security-sweep, knowledge-enricher, test-coverage)
+- Task dependency pattern via addBlockedBy
+- Shutdown protocol with SendMessage
+- Key design decisions table explaining why each choice was made
+- Customization guide and anti-patterns section
+
+Ready for shutdown or next assignment.
+</teammate-message>
+
+<teammate-message teammate_id="sprint-skill-writer" color="green">
+{"type":"idle_notification","from":"sprint-skill-writer","timestamp":"2026-03-25T04:30:03.592Z","idleReason":"available"}
+</teammate-message>
+
+<teammate-message teammate_id="sprint-skill-writer" color="green">
+{"type":"idle_notification","from":"sprint-skill-writer","timestamp":"2026-03-25T04:30:06.979Z","idleReason":"available"}
+</teammate-message>
+
+<teammate-message teammate_id="readlayer-skill-writer" color="yellow" summary="Task #2 capability-matrix-read-layer skill done">
+Task #2 complete. Created `/home/mike-anderson/dev/cohezion/.claude/skills/capability-matrix-read-layer/SKILL.md`.
+
+The skill captures the full read-layer pattern from `capability_matrix.py` and `workflow_manager.py`:
+
+- **Problem section**: Documents the 5 siloed tracking systems and why cross-cutting queries were impossible
+- **7-step instructions**: Common entry schema with affinity scores, per-source loading with graceful degradation, unified query methods, gap analysis (0.7 threshold), EMA runtime updates, fine-tune decision tree (soft/qlora/call by sample count), markdown report export
+- **5 key design decisions**: Read-only at init (no import cycles), affinity scores over binary caps, graceful degradation per source, namespaced keys, three score tiers
+- **When to use / when NOT to use**: Clear trigger conditions and anti-patterns
+- **Common issues**: Import cycles, stale data, over-engineering affinity maps
+</teammate-message>
+
+<teammate-message teammate_id="readlayer-skill-writer" color="yellow">
+{"type":"idle_notification","from":"readlayer-skill-writer","timestamp":"2026-03-25T04:30:41.653Z","idleReason":"available"}
+</teammate-message>
+
+---
+
+<teammate-message teammate_id="injection-skill-writer" color="blue" summary="Task #1 surrealql injection skill completed">
+Task #1 complete. Created `.claude/skills/surrealql-python-repr-injection/SKILL.md` at `/home/mike-anderson/dev/cohezion/cloud-vault-mcp/.claude/skills/surrealql-python-repr-injection/SKILL.md`.
+
+The skill covers:
+- **Bare identifier injection** via UPSERT/RELATE with `validate_surreal_id()` allowlist regex fix
+- **Python `repr()` tag injection** where `list.__repr__()` uses double quotes but SurrealQL uses single quotes, with `escape_tag_list()` fix
+- **Incomplete `escape_sql()`** missing null bytes and newlines, with strict variant
+- **Credential hygiene** warning for default root/root on remote URLs
+- Trigger conditions, verification checklist, and reference back to `graph_writer.py` lines 42/47/58
+</teammate-message>
+
+<teammate-message teammate_id="injection-skill-writer" color="blue">
+{"type":"idle_notification","from":"injection-skill-writer","timestamp":"2026-03-25T04:43:12.497Z","idleReason":"available"}
+</teammate-message>
+
+<teammate-message teammate_id="system">
+{"type":"teammate_terminated","message":"sprint-skill-writer has shut down."}
+</teammate-message>
+
+<teammate-message teammate_id="sprint-skill-writer" color="green">
+{"type":"shutdown_approved","requestId":"shutdown-1774413791512@sprint-skill-writer","from":"sprint-skill-writer","timestamp":"2026-03-25T04:43:15.354Z","paneId":"in-process","backendType":"in-process"}
+</teammate-message>
+
+<teammate-message teammate_id="system">
+{"type":"teammate_terminated","message":"readlayer-skill-writer has shut down."}
+</teammate-message>
+
+<teammate-message teammate_id="readlayer-skill-writer" color="yellow">
+{"type":"shutdown_approved","requestId":"shutdown-1774413791687@readlayer-skill-writer","from":"readlayer-skill-writer","timestamp":"2026-03-25T04:43:17.819Z","paneId":"in-process","backendType":"in-process"}
+</teammate-message>
+
+---
+
+<teammate-message teammate_id="system">
+{"type":"teammate_terminated","message":"injection-skill-writer has shut down."}
+</teammate-message>
+
+<teammate-message teammate_id="injection-skill-writer" color="blue">
+{"type":"shutdown_approved","requestId":"shutdown-1774413823113@injection-skill-writer","from":"injection-skill-writer","timestamp":"2026-03-25T04:43:46.702Z","paneId":"in-process","backendType":"in-process"}
+</teammate-message>
+
+---
+
+Compound it
