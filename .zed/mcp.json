@@ -14,6 +14,30 @@
         "bmad-list-workflows",
         "bmad-list-agents"
       ]
+    },
+    "cohezion-compound": {
+      "name": "Cohezion Compound Engineering",
+      "type": "stdio",
+      "command": "/home/mike-anderson/dev/cohezion/.venv/bin/python",
+      "args": ["-m", "cohezion.mcp.compound_server"],
+      "env": {
+        "PYTHONPATH": "/home/mike-anderson/dev/cohezion/src",
+        "REDIS_URL": "redis://localhost:6379"
+      },
+      "description": "Compound engineering MCP server for multi-session AI workflows",
+      "tools": [
+        "compound_start_session",
+        "compound_check_alignment",
+        "compound_end_session",
+        "cache_get_metrics",
+        "cache_optimize",
+        "ralph_lopps_review",
+        "multiperspective_review",
+        "autoresearch_analyze",
+        "learning_capture",
+        "learning_process_execution",
+        "skill_refinement_apply"
+      ]
     }
   }
 }
