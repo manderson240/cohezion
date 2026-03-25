@@ -3,19 +3,30 @@
   "checkpoint_id": "85a27236addd",
   "strategy": "manual-commit",
   "branch": "main",
-  "checkpoints_count": 5,
+  "checkpoints_count": 6,
   "files_touched": [
     "scripts/bug_hunt.py",
     "scripts/compound_live.py",
+    "scripts/drivers/overnight_driver.py",
     "scripts/train_flume.py",
     "scripts/wake_up.py",
+    "src/cohezion/agents/evo_agent.py",
     "src/cohezion/agents/generated/__init__.py",
     "src/cohezion/agents/generated/skill_0_agent.py",
     "src/cohezion/agents/generated/skill_1_agent.py",
     "src/cohezion/cache/cache_warmer.py",
     "src/cohezion/compound/__init__.py",
+    "src/cohezion/compound/request_alignment_analyzer.py",
     "src/cohezion/core/persistence/repositories/surreal_skill_repository.py",
     "src/cohezion/core/persistence/repositories/surreal_universe_repository.py",
+    "src/cohezion/flume/benchmark_swarm_s16.py",
+    "src/cohezion/flume/bridge.py",
+    "src/cohezion/flume/navigation.py",
+    "src/cohezion/flume/vae.py",
+    "src/cohezion/persistence/surreal_logger.py",
+    "src/cohezion/rewards/calculator.py",
+    "src/cohezion/rewards/ratchet.py",
+    "src/cohezion/simulation/fractal_universe.py",
     "src/cohezion/skills/skill_registry.json",
     "src/cohezion/swarm/democratic_debate.py"
   ],
@@ -54,13 +65,20 @@
       "context": "",
       "content_hash": "/85/a27236addd/4/content_hash.txt",
       "prompt": ""
+    },
+    {
+      "metadata": "/85/a27236addd/5/metadata.json",
+      "transcript": "/85/a27236addd/5/full.jsonl",
+      "context": "/85/a27236addd/5/context.md",
+      "content_hash": "/85/a27236addd/5/content_hash.txt",
+      "prompt": "/85/a27236addd/5/prompt.txt"
     }
   ],
   "token_usage": {
-    "input_tokens": 18097,
-    "cache_creation_tokens": 4514794,
-    "cache_read_tokens": 30098892,
-    "output_tokens": 79681,
-    "api_call_count": 166
+    "input_tokens": 18141,
+    "cache_creation_tokens": 4749365,
+    "cache_read_tokens": 31111318,
+    "output_tokens": 90173,
+    "api_call_count": 190
   }
 }

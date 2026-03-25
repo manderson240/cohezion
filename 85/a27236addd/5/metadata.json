@@ -1,0 +1,41 @@
+{
+  "cli_version": "0.4.9",
+  "checkpoint_id": "85a27236addd",
+  "session_id": "90c73d6d-3541-49fa-b249-0ffc78ca93a3",
+  "strategy": "manual-commit",
+  "created_at": "2026-03-25T20:09:09.464493183Z",
+  "branch": "main",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "scripts/drivers/overnight_driver.py",
+    "src/cohezion/agents/evo_agent.py",
+    "src/cohezion/compound/request_alignment_analyzer.py",
+    "src/cohezion/flume/benchmark_swarm_s16.py",
+    "src/cohezion/flume/bridge.py",
+    "src/cohezion/flume/navigation.py",
+    "src/cohezion/flume/vae.py",
+    "src/cohezion/persistence/surreal_logger.py",
+    "src/cohezion/rewards/calculator.py",
+    "src/cohezion/rewards/ratchet.py",
+    "src/cohezion/simulation/fractal_universe.py",
+    "src/cohezion/swarm/democratic_debate.py"
+  ],
+  "agent": "Claude Code",
+  "turn_id": "5fa3780f0b27",
+  "token_usage": {
+    "input_tokens": 44,
+    "cache_creation_tokens": 234571,
+    "cache_read_tokens": 1012426,
+    "output_tokens": 10492,
+    "api_call_count": 24
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-03-25T20:09:09.402153155Z",
+    "agent_lines": 95,
+    "human_added": 402,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 497,
+    "agent_percentage": 19.114688128772634
+  }
+}
