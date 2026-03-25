@@ -71,6 +71,15 @@
             "command": ".claude/hooks/branch-safety-warning.sh"
           }
         ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": ".claude/hooks/pre-commit-check.sh"
+          }
+        ]
       }
     ],
     "PostToolUse": [

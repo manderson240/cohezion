@@ -74,7 +74,7 @@ See skill: `cohezion-vault-workflow` for vault API examples (log decisions, expe
 ### ⚡ Quick Reference
 - **Language**: Python 3.13+ | **Package Manager**: `uv` (never bare python)
 - **DB**: SurrealDB (ws://localhost:8000) | **API**: FastAPI :8080
-- **Tests**: 3,214 passing / 4 failing (99.9%) | **Coverage**: html report in `htmlcov/`
+- **Tests**: 4,887 passing / 42 failing (99.1%) | **Coverage**: html report in `htmlcov/`
 - **CI**: `make lint-check && uv run pytest` before commit
 - **Entry point**: `cohezion = "cohezion.__main__:main"`
 - **Vault**: `~/vaults/cohezion-vault/` — Query via `vault_find_relevant_context(query)`
