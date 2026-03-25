@@ -52,43 +52,7 @@ uv venv && source .venv/bin/activate && uv pip install -e .  # New project setup
 - Searchable via `vault_find_relevant_context(query)`
 - Survives across sessions, compounds knowledge
 
-**How to Log Learnings**:
-```python
-# Log architectural decisions
-vault_log_decision(
-    project="cohezion",
-    title="Short decision title",
-    context="What led to this decision",
-    decision="What was decided",
-    rationale="Why this option was chosen"
-)
-
-# Log experiments (what was tried & learned)
-vault_log_experiment(
-    project="cohezion",
-    hypothesis="What you expected",
-    method="What you did",
-    result="What happened",
-    learnings="Key takeaways"
-)
-
-# Extract reusable patterns
-vault_extract_pattern(
-    source_path="path/to/source",
-    pattern_name="Pattern Name",
-    description="When to use this pattern",
-    code_example="```python\n# example\n```",
-    domain="testing|mcp|compound-engineering|etc"
-)
-```
-
-**Regenerate MEMORY.md**:
-```bash
-# Run weekly or after major learnings
-uv run python scripts/compile_memory_from_vault.py
-```
-
-**Token Savings**: 10K+ tokens/session (load only relevant context via search vs loading all 1177 lines)
+See skill: `cohezion-vault-workflow` for vault API examples (log decisions, experiments, patterns) and MEMORY.md regeneration.
 
 ### ⚡ Architecture at a Glance
 | Layer | Components | Entry |
@@ -146,35 +110,13 @@ Updated Skill (loop again)
 | `src/cohezion/flume/` | FLUME VAE (256D latent space) | `flume_vae.py` |
 | `tests/conftest.py` | **CRITICAL**: Singleton reset for FLUME VAE, RL policy, loggers | **Read this first** |
 
-## Coding Standards (Compound-Ready)
+## Coding Standards (Cohezion-Specific)
 
-- **Type hints**: Mandatory (mypy --strict). Enables alignment analysis at compile-time
-- **Docstrings**: NumPy-style. Document "why" intent, state assumptions for request alignment
 - **Async**: All I/O must be `async/await` with timeouts. No blocking calls in executors
 - **Error handling**: Specific exceptions + circuit breakers (`cohezion.reliability.get_circuit()`)
 - **Validation**: Pydantic at boundaries (input/output). Fail fast with assertions
-- **KISS**: Simple logic beats multi-agent swarms. Measure first, optimize later
 - **Every `src/` dir**: MUST have `__init__.py`. Enables vault skill discovery
-- **Observability**: Log state transitions (input → processing → output). Track coherence. Measure alignment
-
-### Journey Tracking Checklist (Compound Loop)
-When implementing features, add:
-1. **Input logging**: `journey_tracker.record_request(alignment_score)` at entry
-2. **State changes**: Record before/after for rollback capability
-3. **Metrics**: Call `metrics_collector.record_execution()` at completion
-4. **Coherence**: Check `degradation_detector.check_coherence()` before proceeding
-5. **Reflection**: Populate RetrospectionEngine output for skill refinement
-
-### Alignment Assessment (Before Execution)
-```python
-from cohezion.compound.request_alignment_analyzer import RequestAlignmentAnalyzer
-
-analyzer = RequestAlignmentAnalyzer()
-alignment = analyzer.analyze(request_state, available_skills, agent_context)
-if alignment.coherence < 0.5:  # HIHO threshold
-    logger.warning(f"Low coherence: {alignment.issues}")
-    # Escalate or fallback
-```
+- **Observability**: Log state transitions (input → processing → output). Track coherence
 
 ## Token Budgets (Conservative Estimates)
 
@@ -192,33 +134,12 @@ if alignment.coherence < 0.5:  # HIHO threshold
 
 ## Operational Patterns
 
-### ⚡ Test Isolation (Critical)
-Tests fail only as full suite? **NOT a logic bug — singleton pollution**. Fix in `tests/conftest.py`:
-- FLUME VAE: `cohezion.api._vae_trainer = None` (checkpoint mismatch causes NaN)
-- RL Policy: `cohezion.api._rl_policy = None` (bad reward state persists)
-- Loggers: `logging.getLogger().handlers.clear()` (formatters corrupt across files)
-
-### ⚡ Mocking External Services
-```python
-# CORRECT: Mock at source
-@patch("cohezion.swarm.compound_client.get_compound_client")
-
-# WRONG: Mocking after import fails randomly
-with patch("cohezion.api.compound_client"):  # Import already happened
-```
+See skills: `cohezion-debugging-scenarios` for test isolation, singleton resets, and flaky test fixes. See global rules: `tdd-enforcement.md` for mocking patterns, `verification-before-completion.md` for verification protocol.
 
 ### ⚡ Measurement Integrity
 - **Report actual numbers**: 2,675/2,700 passing (98.1%) > 1,599 passing (inflated)
 - **Flag discrepancies**: If independent test shows different count, request re-verification immediately
 - **Verify claims**: "Complete" = files exist AND tests pass, not projected
-
-### ⚡ Verification Protocol
-Before declaring task complete:
-1. **Code**: Reads logically? Type hints present?
-2. **Tests**: `uv run pytest tests/module/ -v` passes? No warnings?
-3. **Metrics**: Honest count? Zero regressions?
-4. **Alignment**: Does code match what was requested?
-5. **Rollback**: Can prior version recover? (State transitions logged?)
 
 ## Hardware & Constraints (Strix Halo)
 
@@ -272,58 +193,9 @@ See skill: `cohezion-data-governance` — covers three-tier storage (Git/Surreal
 
 See skill: `cohezion-debugging-scenarios` — covers test isolation/singleton pollution, flaky tests with random seeds, Ollama timeouts, journey tracking silent failures, and token count mismatches.
 
-## Skill Routing Quick Reference
+## Skill Routing
 
-### Decision Tree (Priority Order)
-
-When a natural language request arrives, route using this priority:
-
-1. **Exact match** — Does it match a `/slash-command`? Execute directly
-2. **Lifecycle phase** — What phase of work?
-   - Research/Analysis: `bmad-bmm-technical-research`, `bmad-bmm-domain-research`, `bmad-bmm-market-research`
-   - Planning/Design: `bmad-bmm-create-prd`, `bmad-bmm-create-architecture`, `bmad-bmm-create-ux-design`
-   - Implementation: `bmad-bmm-dev-story`, `bmad-bmm-quick-dev`, or `/spec` (structured TDD)
-   - Testing: `bmad-tea-testarch-test-design`, `test-fix`
-   - Review: `bmad-bmm-code-review`, `pr-review-toolkit:review-pr`
-   - Maintenance: `retrospect`, `bmad-bmm-correct-course`, `deploy`, `heal`
-3. **Domain** — Game dev? Use `bmad-gds-*` variant. General product? Use `bmad-bmm-*`
-4. **Meta** — About BMAD itself? Use `bmad-bmb-*` (agent/workflow/module builder)
-5. **Creative** — Ideation/innovation? `bmad-brainstorming`, `bmad-cis-design-thinking`
-6. **Tool need** — External data? Library docs: `context7` | Papers: `cohezion-research` | GitHub: `github` MCP | Knowledge graph: `cohezion-surreal` | Multi-perspective: `cohezion-swarm`
-
-### Top Keyword-to-Skill Routing
-
-| Keywords | Primary Skill | Fallback |
-|----------|---------------|----------|
-| "research", "investigate" | `bmad-bmm-technical-research` | `bmad-bmm-domain-research` |
-| "PRD", "requirements" | `bmad-bmm-create-prd` | `bmad-bmm-edit-prd` |
-| "architecture", "system design" | `bmad-bmm-create-architecture` | — |
-| "story", "epic" | `bmad-bmm-create-story` | `bmad-bmm-create-epics-and-stories` |
-| "sprint", "planning" | `bmad-bmm-sprint-planning` | `bmad-bmm-sprint-status` |
-| "implement", "build", "code this" | `bmad-bmm-dev-story` | `bmad-bmm-quick-dev` |
-| "test", "QA" | `bmad-tea-testarch-test-design` | `test-fix` |
-| "review", "code review" | `bmad-bmm-code-review` | `pr-review-toolkit:review-pr` |
-| "brainstorm", "ideate" | `bmad-brainstorming` | `bmad-cis-design-thinking` |
-| "game", "gameplay" | Route to `bmad-gds-*` variant | — |
-| "deploy", "ship" | `deploy` | — |
-| "fix tests", "failing tests" | `test-fix` | — |
-| "commit", "push", "PR" | `commit-commands:commit` | `commit-commands:commit-push-pr` |
-| "spec", "structured dev" | `/spec` | — |
-| "what now", "help" | `bmad-help` | — |
-
-### Overlap Resolution (Key Ambiguities)
-
-| Ambiguity | Resolution |
-|-----------|------------|
-| BMM vs GDS variants (code-review, sprint, story) | Domain context: game project = GDS, otherwise = BMM |
-| `bmad-brainstorming` vs `superpowers:brainstorming` | `superpowers` is a meta-prompt enhancer; `bmad-brainstorming` is the interactive workflow |
-| `/spec` vs `bmad-bmm-quick-spec` | `/spec` = full TDD workflow; `quick-spec` = lightweight for small changes |
-| `bmad-bmm-code-review` vs `pr-review-toolkit:review-pr` | BMM = general code review; PR toolkit = PR-specific with GitHub integration |
-| `retrospect` vs `bmad-bmm-retrospective` | `retrospect` = dev-focused (flows into core files); BMM = product lifecycle |
-
-**When in doubt**: `bmad-help` — analyzes context and suggests the best next action.
-
-**Skill sources (7 layers)**: BMAD commands (~90), project commands (3), project skills (1), global commands (7), global rules (~15), plugin skills (~40), MCP tools (~80). Full taxonomy: `_bmad-output/planning-artifacts/research/technical-skills-taxonomy-research-2026-03-07.md`
+See skill: `cohezion-skill-routing` for the decision tree, keyword-to-skill routing table, and overlap resolution guide. When in doubt: `bmad-help`.
 
 ## Quick Lookup
 
