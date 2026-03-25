@@ -259,6 +259,9 @@ class CostAwareRouter:
         "qwen3-coder:32b": 0.0,  # Local
         "deepseek-r1:8b": 0.0,  # Local
         "alibayram/smollm3:latest": 0.0,  # Local, 3B reasoning + 128k context
+        "gpt-oss:20b": 0.0,  # Local
+        "phi4:latest": 0.0,  # Local
+        "gemma3:4b": 0.0,  # Local
     }
 
     # Expected token counts by complexity (refined estimates)
@@ -274,6 +277,9 @@ class CostAwareRouter:
         "qwen3-coder:32b": 0.85,  # Good balance
         "deepseek-r1:8b": 0.95,  # Best quality
         "alibayram/smollm3:latest": 0.72,  # Dual-mode reasoning, 128k context, tool calling
+        "gpt-oss:20b": 0.88,  # Large accurate model
+        "phi4:latest": 0.82,  # Strong reasoning
+        "gemma3:4b": 0.65,  # Fast baseline
     }
 
     # TPS (tokens per second) for cost-time tradeoff
@@ -282,6 +288,9 @@ class CostAwareRouter:
         "qwen3-coder:32b": 8.0,  # Moderate
         "deepseek-r1:8b": 2.0,  # Slowest but best
         "alibayram/smollm3:latest": 14.0,  # Similar speed to phi3:mini
+        "gpt-oss:20b": 5.0,  # Large model, slower
+        "phi4:latest": 10.0,  # Medium speed
+        "gemma3:4b": 14.0,  # Fast, small model
     }
 
     # Expected latency (ms) by model
@@ -290,6 +299,9 @@ class CostAwareRouter:
         "qwen3-coder:32b": 100.0,  # Moderate: ~100ms
         "deepseek-r1:8b": 300.0,  # Slower: ~300ms
         "alibayram/smollm3:latest": 55.0,  # Similar to phi3:mini
+        "gpt-oss:20b": 200.0,  # Larger model, higher latency
+        "phi4:latest": 80.0,  # Medium latency
+        "gemma3:4b": 55.0,  # Fast, similar to phi3
     }
 
     _instance: Optional["CostAwareRouter"] = None

@@ -58,6 +58,7 @@ class TierConfig(BaseModel):
         "nomic-embed-text:latest",
         "qwen3.5:0.8b",
         "alibayram/smollm3:latest",
+        "gemma3:4b",
     ]
     warm_models: list[str] = [
         "glm-4.7-flash:latest",
