@@ -1,0 +1,8 @@
+<task-notification>
+<task-id>byjejlzhx</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/ace86df4-9d7b-4a91-86cf-bed8940d8896/tasks/byjejlzhx.output</output-file>
+<status>completed</status>
+<summary>Background command "Run full test suite in quiet mode, show summary only" completed (exit code 0)</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/ace86df4-9d7b-4a91-86cf-bed8940d8896/tasks/byjejlzhx.output
