@@ -1,9 +1,11 @@
 {
   "cli_version": "0.4.9",
   "checkpoint_id": "f15c249a866d",
+  "session_id": "03264568-6dbe-439a-be3a-3ed17da8cf5d",
   "strategy": "manual-commit",
+  "created_at": "2026-03-25T03:31:58.305725774Z",
   "branch": "research/luma-amd-breakthrough",
-  "checkpoints_count": 11,
+  "checkpoints_count": 9,
   "files_touched": [
     ".claude/hooks/mcp-health-check.sh",
     ".claude/settings.json",
@@ -20,27 +22,22 @@
     "tests/compound/test_compound_full_cycle.py",
     "tests/compound/test_skill_health_tracker.py"
   ],
-  "sessions": [
-    {
-      "metadata": "/f1/5c249a866d/0/metadata.json",
-      "transcript": "/f1/5c249a866d/0/full.jsonl",
-      "context": "/f1/5c249a866d/0/context.md",
-      "content_hash": "/f1/5c249a866d/0/content_hash.txt",
-      "prompt": "/f1/5c249a866d/0/prompt.txt"
-    },
-    {
-      "metadata": "/f1/5c249a866d/1/metadata.json",
-      "transcript": "/f1/5c249a866d/1/full.jsonl",
-      "context": "/f1/5c249a866d/1/context.md",
-      "content_hash": "/f1/5c249a866d/1/content_hash.txt",
-      "prompt": "/f1/5c249a866d/1/prompt.txt"
-    }
-  ],
+  "agent": "Claude Code",
+  "turn_id": "9c13b4868be8",
   "token_usage": {
-    "input_tokens": 1209,
-    "cache_creation_tokens": 1297125,
-    "cache_read_tokens": 11647033,
-    "output_tokens": 43785,
-    "api_call_count": 82
+    "input_tokens": 1173,
+    "cache_creation_tokens": 1043618,
+    "cache_read_tokens": 10755445,
+    "output_tokens": 31310,
+    "api_call_count": 62
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-03-25T03:31:57.814962776Z",
+    "agent_lines": 1487,
+    "human_added": 0,
+    "human_modified": 0,
+    "human_removed": 107,
+    "total_committed": 1487,
+    "agent_percentage": 100
   }
 }
