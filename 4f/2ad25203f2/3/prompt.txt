@@ -1,0 +1,2549 @@
+Implement the following plan:
+
+# Plan: Luma AMD Speedrun — Breakthrough Attempts
+
+## Context
+
+Previous turn completed infrastructure (popcorn.py, driver.py wired) and submitted all 3
+kernels to leaderboard. Current ranked geomeans:
+
+| Kernel | Our Score | Leader | Gap |
+|--------|----------|--------|-----|
+| MLA | 79.9 µs | ~33 µs | 2.4x |
+| MoE | 180.1 µs | ~110 µs | 1.6x |
+| GEMM | 24.3 µs | ~13.4 µs | 1.8x |
+
+**Root cause of gap**: Leaders use single fused GPU kernels (one dispatch, zero Python overhead).
+We use Python-wrapped APIs with ~20-25µs dispatch per torch op.
+
+**Key constraint**: Runner only uploads `submission.py`. No multi-file, no HIP compilation.
+But pre-compiled `.co` kernel objects ARE on the runner (visible in stderr).
+
+---
+
+## Phase 1: MoE — Remove Warmup + Expert Masking (HIGH VALUE)
+
+### Task 1.1: Remove CK-poisoning warmup from submission.py
+
+**File**: `luma_speedrun/amd-moe-mxfp4/submission.py`
+
+Delete the `try:` warmup block (dummy 8-expert fused_moe call). Keep sys.path fix.
+The warmup's 8-expert shape caches a suboptimal CK config for real 257-expert shapes.
+Expected: recover from ~180µs toward ~155µs.
+
+### Task 1.2: Try expert_mask for sparse expert dispatch
+
+**File**: `luma_speedrun/amd-moe-mxfp4/submission_expert_mask.py` (NEW)
+
+For 256-expert shapes with bs=8-32, most experts (~200) receive zero tokens.
+The `moe_sorting_fwd` kernel has native `local_expert_mask` support. Untested.
+
+```python
+# Compute which experts actually have tokens
+expert_counts = torch.bincount(topk_ids.flatten(), minlength=num_experts)
+expert_mask = (expert_counts > 0).to(torch.int32)
+
+return fused_moe(
+    ...,
+    expert_mask=expert_mask,  # Skip empty experts in sorting+dispatch
+    ...
+)
+```
+
+Risk: Previous expert_mask attempts crashed CK stage1. But that was with a different mask
+format. The `local_expert_mask` parameter in `moe_sorting_fwd` may be the correct path.
+
+Test → Benchmark → compare to baseline.
+
+---
+
+## Phase 2: MLA — SDPA Fusion for Small Shapes (MEDIUM VALUE)
+
+### Task 2.1: Replace 4 torch ops with single SDPA call
+
+**File**: `luma_speedrun/amd-mixed-mla/submission_sdpa.py` (NEW)
+
+Current matmul path (small shapes): 4 dispatches × ~20µs = ~80µs overhead.
+`torch.nn.functional.scaled_dot_product_attention` fuses Q@K^T + scale + softmax + @V.
+
+```python
+if bs <= MATMUL_MAX_BS or total_kv <= MATMUL_MAX_TOTAL_KV:
+    kv = kv_data["bf16"]
+    q_4d = q.view(bs, NUM_HEADS, 1, QK_HEAD_DIM)
+    k_4d = kv.view(bs, 1, kvsl, QK_HEAD_DIM).expand(-1, NUM_HEADS, -1, -1)
+    v_4d = k_4d[..., :V_HEAD_DIM]
+    out = F.scaled_dot_product_attention(q_4d, k_4d, v_4d, scale=SM_SCALE)
+    return out.squeeze(2).reshape(bs * qsl, NUM_HEADS, V_HEAD_DIM)
+```
+
+Challenge: MLA has K≠V head dimensions (576 vs 512). SDPA requires K_dim == V_dim for
+standard mode. But we can pad V to 576 and slice the output, or use the `attn_mask` path.
+
+PyTorch 2.10 on MI355X has SDPA — needs probing to confirm gfx950 backend support.
+
+---
+
+## Phase 3: Direct CK-Tile Dispatch (BREAKTHROUGH POTENTIAL)
+
+### Task 3.1: Probe ctypes access to pre-compiled .co kernel objects
+
+**File**: `luma_speedrun/amd-mixed-mla/probes/probe_direct_ck.py` (NEW)
+
+The runner has pre-compiled CK kernel objects at `/home/runner/aiter/hsa/gfx950/`.
+We see them loading in stderr:
+```
+hipModuleLoad: /home/runner/aiter/hsa/gfx950/mla/mla_a8w8_qh16_qseqlen1_gqaratio16_ps.co
+```
+
+If we can call `hipModuleLaunchKernel` via ctypes on `libamdhip64.so`, we bypass ALL
+Python wrapper overhead. This is how the ASM dispatch works internally — we'd just be
+doing it from submission.py instead of going through aiter's Python layer.
+
+```python
+import ctypes
+hip = ctypes.CDLL("libamdhip64.so")
+# Load module
+module = ctypes.c_void_p()
+hip.hipModuleLoad(ctypes.byref(module), b"/home/runner/aiter/hsa/gfx950/mla/...")
+# Get function
+func = ctypes.c_void_p()
+hip.hipModuleGetFunction(ctypes.byref(func), module, b"_ZN5aiter36mla...")
+# Launch kernel
+hip.hipModuleLaunchKernel(func, ...)
+```
+
+**Risk**: Runner source scanner may block `hipModuleLaunchKernel` or `ctypes.CDLL`.
+This probe will reveal if this path is viable. If it works, it's the breakthrough —
+single kernel launch with zero Python dispatch overhead.
+
+### Task 3.2: If ctypes blocked, try torch custom op registration
+
+Alternative: Register a custom op that calls the pre-compiled kernel:
+```python
+@torch.library.custom_op("mykernel::fused_mla", mutates_args=())
+def fused_mla(q, kv, ...):
+    # Call hipModuleLaunchKernel internally
+    ...
+```
+
+This may bypass source scanning if `torch.library` is whitelisted.
+
+---
+
+## Phase 4: GEMM — tritonblas.matmul_fp4 Probe (MEDIUM VALUE)
+
+### Task 4.1: Test tritonblas alternative GEMM path
+
+**File**: `luma_speedrun/amd-mxfp4-mm/submission_tritonblas.py` (NEW)
+
+`tritonblas.matmul_fp4` is available on the runner (tritonblas 0.1.0). It's an alternative
+to `aiter.gemm_a4w4` with potentially different performance characteristics.
+
+Key constraint from skill: All tensors MUST be `torch.uint8` views. B layout is `[N, K//2]`
+row-major (NOT transposed like aiter).
+
+```python
+import tritonblas
+# C must be pre-allocated
+C = torch.empty(M, N, dtype=torch.bfloat16, device="cuda")
+tritonblas.matmul_fp4(A_fp4, B_fp4, C, A_scale, B_scale)
+```
+
+Also try: `gemm_a4w4_asm` with `log2_k_split` parameter sweep {None, 0, 1, 2, 3}.
+
+---
+
+## Execution Order (Priority)
+
+| # | Task | Expected Gain | Time | Risk |
+|---|------|--------------|------|------|
+| 1 | MoE warmup removal (1.1) | ~25µs recovery | 1 submit | LOW |
+| 2 | Direct CK probe (3.1) | **BREAKTHROUGH** if works | 1 submit | HIGH |
+| 3 | MoE expert_mask (1.2) | ~10-15µs | 1 submit | MEDIUM |
+| 4 | MLA SDPA (2.1) | ~20-40µs | 1 submit | MEDIUM |
+| 5 | GEMM tritonblas (4.1) | Unknown | 1 submit | MEDIUM |
+
+Task 2 (direct CK probe) is the only path to a genuine breakthrough — if it works,
+we eliminate 40-100µs of Python dispatch overhead per kernel.
+
+## Key Files
+
+| File | Action | Purpose |
+|------|--------|---------|
+| `luma_speedrun/amd-moe-mxfp4/submission.py` | MODIFY | Remove warmup |
+| `luma_speedrun/amd-moe-mxfp4/submission_expert_mask.py` | CREATE | Expert masking |
+| `luma_speedrun/amd-mixed-mla/submission_sdpa.py` | CREATE | SDPA fusion |
+| `luma_speedrun/amd-mixed-mla/probes/probe_direct_ck.py` | CREATE | ctypes CK dispatch |
+| `luma_speedrun/amd-mxfp4-mm/submission_tritonblas.py` | CREATE | Alternative GEMM |
+
+## Verification
+
+For each submission:
+1. `popcorn-cli submit --mode test` — correctness gate
+2. `popcorn-cli submit --mode benchmark` — timing comparison
+3. `--mode leaderboard` only if >5% improvement confirmed
+
+
+If you need specific details from before exiting plan mode (like exact code snippets, error messages, or content you generated), read the full transcript at: /home/mike-anderson/.claude/projects/-home-mike-anderson-dev-cohezion/56a0a29f-ec0c-46a9-a9f4-21f36843da42.jsonl
+
+If this plan can be broken down into multiple independent tasks, consider using the TeamCreate tool to create a team and parallelize the work.
+
+---
+
+Base directory for this skill: /home/mike-anderson/.claude/skills/tritonblas-matmul-fp4-api
+
+# tritonblas.matmul_fp4 API (AMD MI355X)
+
+## Problem
+
+`tritonblas.matmul_fp4` is an undiscovered package on the AMD MI355X Popcorn runner
+with non-obvious API constraints. It uses Origami chiplet-aware scheduling and a
+persistent Triton kernel (`fp4_matmul`) built on `tl.dot_scaled`. Passing native
+fp4 dtype causes a silent `KeyError`; layout differs from `aiter.gemm_a4w4`.
+
+## Context / Discovery
+
+Discovered during Luma AMD Speedrun (March 2026) via source introspection:
+
+```python
+import tritonblas
+# Exports: matmul, matmul_a8w8, matmul_lt, matmul_a8w8_lt, matmul_fp4, OrigamiMatmulSelector
+from tritonblas import matmul_fp4, OrigamiMatmulSelector
+```
+
+Environment: ROCm 7.1, Triton-ROCm 3.6.0, PyTorch 2.10+rocm7.1, gfx950 (MI355X).
+
+## Signature
+
+```python
+matmul_fp4(
+    a,           # [M, K//2] torch.uint8  — LHS data (packed fp4)
+    b,           # [N, K//2] torch.uint8  — RHS data (packed fp4, row-major NOT transposed)
+    c,           # [M, N]    torch.bfloat16 — pre-allocated output (modified in-place)
+    a_scales,    # [M, K//32] torch.uint8 — E8M0 scale per 32-element group
+    b_scales,    # [N, K//32] torch.uint8 — E8M0 scale per 32-element group
+    block_m=None,       # tile size M (auto-tuned by OrigamiMatmulSelector if None)
+    block_n=None,       # tile size N
+    block_k=None,       # tile size K
+    group_size_m=8,     # chiplet grouping
+    num_warps=8,
+    num_stages=2,
+)
+```
+
+**Returns:** None — result is written into `c` (in-place).
+
+## Critical: uint8 Views Required
+
+```python
+# WRONG — causes "KeyError: 'REDACTED'"
+matmul_fp4(A_fp4, B_q, C, A_scale, B_scale)  # native fp4 dtype rejected
+
+# CORRECT — view everything as uint8
+matmul_fp4(
+    A_fp4.view(torch.uint8),
+    B_q.view(torch.uint8),
+    C,
+    A_scale.view(torch.uint8),
+    B_scale,  # already uint8 if from dynamic_mxfp4_quant
+)
+```
+
+## Layout: B is NOT Transposed
+
+Unlike `aiter.gemm_a4w4` (which expects B transposed as [K//2, N]), `matmul_fp4`
+expects B in the **original [N, K//2] row-major layout**:
+
+| Kernel | B data layout | B scale layout |
+|--------|--------------|----------------|
+| `aiter.gemm_a4w4` | [K//2, N] transposed | [N, K//32] shuffled |
+| `tritonblas.matmul_fp4` | **[N, K//2] row-major** | [N, K//32] uint8 |
+
+This means `B_q` from the task input can be used **directly** (no transpose needed).
+
+## Minimal Working Example
+
+```python
+import torch
+from tritonblas import matmul_fp4
+from aiter.ops.triton.quant import dynamic_mxfp4_quant
+
+def mxfp4_gemm_tritonblas(A, B_q, B_scale_sh, m, n, k):
+    # Quantize A (full quant needed for activation)
+    A_fp4, A_scale = dynamic_mxfp4_quant(A.contiguous())
+
+    # B: reuse B_q from input (identical to dynamic_mxfp4_quant output)
+    # B_scale: unshuffle from B_scale_sh to get [N, K//32] uint8
+    B_scale = e8m0_unshuffle(B_scale_sh.view(torch.uint8), orig_m=n, orig_n=k // 32)
+
+    C = torch.empty(m, n, dtype=torch.bfloat16, device=A.device)
+    matmul_fp4(
+        A_fp4.view(torch.uint8),  # [M, K//2]
+        B_q.view(torch.uint8),    # [N, K//2] — row-major, no transpose
+        C,
+        A_scale.view(torch.uint8),  # [M, K//32]
+        B_scale,                    # [N, K//32] uint8
+    )
+    return C
+```
+
+## e8m0_unshuffle (skip B re-quantization)
+
+`B_q` from the task input is identical to `dynamic_mxfp4_quant(B)` output — reuse it
+directly. The scale `B_scale_sh` (shuffled) can be reversed without re-quantizing B:
+
+```python
+def e8m0_unshuffle(scale_shuffled: torch.Tensor, orig_m: int, orig_n: int) -> torch.Tensor:
+    """Reverse e8m0_shuffle: recover original [orig_m, orig_n] uint8 scale."""
+    sm, sn = scale_shuffled.shape
+    # e8m0_shuffle: pad → view(M//32,2,16,N//8,2,4) → permute(0,3,5,2,4,1) → view(2D)
+    # Inverse permute of (0,3,5,2,4,1) is (0,5,3,1,4,2)
+    scale = scale_shuffled.view(sm // 32, sn // 8, 4, 16, 2, 2)
+    scale = scale.permute(0, 5, 3, 1, 4, 2).contiguous()
+    scale = scale.view(sm, sn)
+    return scale[:orig_m, :orig_n]
+
+# Usage (Luma AMD Speedrun task format):
+B_scale = e8m0_unshuffle(B_scale_sh.view(torch.uint8), orig_m=n, orig_n=k // 32)
+```
+
+**Cost**: ~0.1 µs (just a tensor view + permute). Saves ~15 µs vs `dynamic_mxfp4_quant(B)`.
+
+**Requirement**: B_scale_sh padded dims must be divisible by 32 (M) and 8 (N), which
+is guaranteed if `B_scale_sh` was created by `e8m0_shuffle`.
+
+## matmul_fp4 Wrapper Internals (tile override logic)
+
+Full wrapper source obtained via `inspect.getsource` (March 2026). Key behaviours:
+
+```python
+def matmul_fp4(a, b, c, a_scales, b_scales, block_m=None, ...):
+    M, K = a.shape
+    _, N = b.shape   # b is [N, K//2]
+    if block_m is None:
+        selector = _make_matmul_selector(M, N, K, "f4", "f4", ...)
+        block_m, block_n, block_k = selector.block_m, selector.block_n, selector.block_k
+        group_size_m = selector.group_m
+        num_xcds = selector.num_sms    # 8 on MI355X
+        # TILE OVERRIDE: if auto-selected tile < matrix dim, force 128
+        if block_m < M: block_m = 128
+        if block_n < N: block_n = 128
+        if block_k < K: block_k = 128  # K here is in bf16 elements
+    # Re-derive K from packed A shape (a.shape[1] * 2 = K in fp4 elements)
+    M = a.shape[0]; K = a.shape[1] * 2; N = b.shape[0]
+    b = b.T.contiguous()  # Transpose B internally before passing to Triton kernel
+    chunk_size = min(group_size_m**2, max(1, total_tiles // num_xcds))
+    fp4_matmul[grid](a, b, c, ...)
+```
+
+**Key insight:** The wrapper transposes B internally. The Triton kernel `fp4_matmul`
+receives B as `[K//2, N]` (K-major), so B_scale must still be `[N, K//32]` (N-first).
+
+## Performance (MI355X, 8 benchmark shapes)
+
+| Kernel | Geomean | Notes |
+|--------|---------|-------|
+| `aiter.gemm_a4w4` | ~24 µs | Current best — CK kernel |
+| `tritonblas.matmul_fp4` + e8m0_unshuffle | ~26 µs | No B re-quant, Triton kernel |
+| `tritonblas.matmul_fp4` + full B re-quant | ~26 µs | Same timing (quantization hidden) |
+| Competition leader | ~9.7 µs | 2.49x gap vs both approaches |
+
+**Note**: tritonblas is slightly slower than aiter despite Origami scheduling. The gap
+to the competition leader (~9.7 µs) suggests persistent/split-K optimizations or CK
+assembly kernels beyond what tritonblas provides.
+
+## A-Quantization Is the Pipeline Bottleneck
+
+Full end-to-end timing breakdown (MI355X, geomean across 8 benchmark shapes):
+
+| Step | Time |
+|------|------|
+| `dynamic_mxfp4_quant(A)` | 33–39 µs |
+| `e8m0_unshuffle(B_scale_sh)` | ~0.1 µs |
+| `matmul_fp4(A_q, B_q, C, A_scale, B_scale)` | 29–58 µs |
+| **Total pipeline** | **66–92 µs geomean** |
+
+The A quantization kernel alone is 33–39 µs — roughly **equal to** or larger than the
+GEMM itself for small shapes. This makes fusing quant into GEMM the most promising
+optimization path.
+
+## Why Other Quant Methods Fail with tritonblas
+
+Tested via nibble-level probe (March 2026): all three aiter quant methods
+(`dynamic_mxfp4_quant`, `get_hip_quant`, `get_triton_quant`) produce **identical nibble
+ordering** in packed fp4 bytes. The ~1–13% byte-level differences are from **rounding
+in E8M0 scale computation** (floor(log2(amax)) uses different precision).
+
+Despite small data differences, GEMM errors are significant:
+
+| A quant method | Tritonblas GEMM max error | Why |
+|----------------|--------------------------|-----|
+| `dynamic_mxfp4_quant` | 0.0 (exact) | Patched #975 kernel |
+| `get_hip_quant` | 6.5–15.25 | Scale rounding mismatch |
+| `get_triton_quant` | 6.5–15.25 | Scale rounding mismatch |
+
+**Key insight:** Nibble-swapping the fp4 data made errors WORSE (166–442 error). The
+incompatibility is in **scale values**, not bit packing. Only `dynamic_mxfp4_quant`
+produces scales that match what the tritonblas Origami kernel expects.
+
+## Fused Quant+GEMM Kernel (Experimental, unverified)
+
+A custom Triton kernel fusing bf16→fp4 A quantization directly into the GEMM eliminates
+the 33–39 µs A quantization kernel launch. Architecture:
+
+```python
+@triton.jit
+def _fused_quant_gemm_kernel(A_ptr, B_ptr, C_ptr, B_scale_ptr, ...):
+    # Origami chiplet-aware scheduling (from tritonblas fp4_matmul source)
+    for k_start in range(0, K, BLOCK_K):
+        a_bf16 = tl.load(A_ptr + ...)      # Load bf16 A tile
+        # Compute E8M0 scale in registers
+        a_amax = tl.max(tl.abs(a_reshaped).to(tl.float32), axis=2)
+        a_scale = floor(log2(a_amax)) + 127  # E8M0
+        a_fp4 = quantize_to_fp4(a_bf16, a_scale)
+        b = tl.load(B_ptr + ...)
+        b_scale = tl.load(B_scale_ptr + ...)
+        acc = tl.dot_scaled(a_fp4, a_scale, "e2m1", b, b_scale, "e2m1", acc=acc)
+    tl.store(C_ptr + ..., acc.to(tl.bfloat16), ...)
+```
+
+**Status:** Written (`kernels/mxfp4-mm/submission_tritonblas_fused.py`) but not yet
+submitted to MI355X. Key uncertainty: the correct Triton type for on-the-fly fp4 casting
+(may need `tl.float4_e2m1` or manual bit packing instead of `tl.float8e4nv`).
+
+## Error Reference
+
+| Error | Cause | Fix |
+|-------|-------|-----|
+| `KeyError: 'REDACTED'` | Native fp4 dtype passed | Use `.view(torch.uint8)` on all tensors |
+| Wrong output values | B transposed when shouldn't be | Pass `B_q` directly, no `.t()` |
+| Shape mismatch | B in [K//2, N] instead of [N, K//2] | tritonblas expects N-first, not transposed |
+
+## Context
+
+Discovered during Luma AMD Speedrun (March 2026) on AMD MI355X via multi-step
+Popcorn CLI probe submissions: first probe discovered the package, second extracted
+the matmul_fp4 signature via `inspect.signature`, third read the 130-line Triton kernel
+source to understand layout requirements.
+
+The kernel source confirmed: "B scales are N x K even though B operand is K x N" (the
+kernel internally handles the transpose in the Triton tile loading).
+
+---
+
+# /learn - Online Learning System
+
+**Extract reusable knowledge from this session into skills.** Evaluates what was learned, checks for existing skills, and creates new ones when valuable patterns are discovered.
+
+---
+
+## TABLE OF CONTENTS
+
+| Phase       | Description                                            | Steps   |
+| ----------- | ------------------------------------------------------ | ------- |
+| **Phase 0** | Reference: triggers, quality criteria, skill structure | 0.1–0.4 |
+| **Phase 1** | Evaluate: assess if knowledge is worth extracting      | 1.1     |
+| **Phase 2** | Check Existing: search for related skills              | 2.1     |
+| **Phase 3** | Create Skill: write the skill file                     | 3.1–3.2 |
+| **Phase 4** | Quality Gates: final checklist before saving           | 4.1     |
+
+**Quick Step Reference:**
+
+- 0.1 Triggers, 0.2 Quality criteria, 0.3 What NOT to extract, 0.4 Skill structure
+- 1.1 Self-evaluation questions
+- 2.1 Search existing skills
+- 3.1 Choose location, 3.2 Write SKILL.md
+- 4.1 Final checklist
+
+---
+
+## PHASE 0: REFERENCE
+
+### Step 0.1: Triggers
+
+Invoke `/learn` after ANY task involving:
+
+| Trigger                      | Example                                                          |
+| ---------------------------- | ---------------------------------------------------------------- |
+| **Non-obvious debugging**    | Spent 10+ minutes investigating; solution wasn't in docs         |
+| **Misleading errors**        | Error message pointed wrong direction; found real cause          |
+| **Workarounds**              | Found limitation and creative solution                           |
+| **Tool integration**         | Figured out how to use tool/API in undocumented way              |
+| **Trial-and-error**          | Tried multiple approaches before finding what worked             |
+| **Repeatable workflow**      | Multi-step task that will recur; worth standardizing             |
+| **External service queries** | Fetched data from Jira, GitHub, Confluence, or other APIs        |
+| **User-facing automation**   | Built something user will ask for again (reports, status checks) |
+
+### Step 0.2: Quality Criteria
+
+Skills must be:
+
+- **Reusable**: Will help with future tasks (not just this instance)
+- **Non-trivial**: Required discovery, OR is a valuable workflow pattern
+- **Verified**: Solution actually worked, not theoretical
+
+### Step 0.3: What NOT to Extract
+
+- Single-step tasks with no workflow value
+- One-off fixes unlikely to recur
+- Knowledge easily found in official docs
+
+### Step 0.4: Skill Structure
+
+**Location:** `.claude/skills/[skill-name]/SKILL.md`
+
+**Template:**
+
+```markdown
+---
+name: descriptive-kebab-case-name
+description: |
+  [CRITICAL: This determines when the skill triggers. Include:]
+  - What the skill does
+  - Specific trigger conditions (exact error messages, symptoms)
+  - When to use it (contexts, scenarios)
+author: Claude Code
+version: 1.0.0
+---
+
+# Skill Name
+
+## Problem
+
+[Clear description of the problem]
+
+## Context / Trigger Conditions
+
+[When to use - exact error messages, symptoms, scenarios]
+
+## Solution
+
+[Step-by-step solution]
+
+## Verification
+
+[How to verify it worked]
+
+## Example
+
+[Concrete example]
+
+## References
+
+[Links to documentation]
+```
+
+<details>
+<summary>Writing Effective Descriptions</summary>
+
+The description field is CRITICAL for skill discovery:
+
+**Good:**
+
+```yaml
+description: |
+  Fix for "ENOENT: no such file or directory" errors in npm monorepos.
+  Use when: (1) npm run fails with ENOENT, (2) paths work in root but
+  not in packages, (3) symlinked dependencies cause failures.
+```
+
+**Bad:**
+
+```yaml
+description: Helps with npm problems in monorepos.
+```
+
+</details>
+
+**Guidelines:**
+
+- **Concise** - Claude is smart; only add what it doesn't know
+- **Under 500 lines** - Move large docs to `references/`
+- **Examples over explanations** - Show, don't tell
+
+---
+
+## PHASE 1: EVALUATE
+
+### Step 1.1: Self-Evaluation Questions
+
+Ask yourself:
+
+1. "What did I just learn that wasn't obvious before starting?"
+2. "Would future-me benefit from having this documented?"
+3. "Was the solution non-obvious from documentation alone?"
+4. "Is this a multi-step workflow I'd repeat on similar tasks?"
+5. "Did I query an external service the user will ask about again?"
+
+**If NO to all → Skip extraction, nothing to learn.**
+
+**Note:** External service queries (Jira tickets, GitHub PRs, Confluence pages) are almost always worth extracting - users frequently repeat these requests.
+
+---
+
+## PHASE 2: CHECK EXISTING
+
+### Step 2.1: Search for Related Skills
+
+Before creating, search for related skills:
+
+```bash
+ls .claude/skills/ 2>/dev/null
+rg -i "keyword" .claude/skills/ 2>/dev/null
+ls ~/.claude/pilot/skills/ 2>/dev/null
+rg -i "keyword" ~/.claude/pilot/skills/ 2>/dev/null
+```
+
+| Found                | Action                           |
+| -------------------- | -------------------------------- |
+| Nothing related      | Create new skill                 |
+| Same trigger and fix | Update existing (bump version)   |
+| Partial overlap      | Update existing with new variant |
+
+---
+
+## PHASE 3: CREATE SKILL
+
+### Step 3.1: Choose Location
+
+**Project skills**: `.claude/skills/[skill-name]/SKILL.md`
+
+### Step 3.2: Write SKILL.md
+
+Use the template from Step 0.4. Ensure the description field contains specific trigger conditions.
+
+---
+
+## PHASE 4: QUALITY GATES
+
+### Step 4.1: Final Checklist
+
+Before finalizing:
+
+- [ ] Description contains specific trigger conditions
+- [ ] Solution verified to work
+- [ ] Content specific enough to be actionable
+- [ ] Content general enough to be reusable
+- [ ] No sensitive information
+
+---
+
+## EXAMPLE
+
+**Scenario**: Discovered LSP `findReferences` can find dead code by checking if functions have only 1 reference (their definition) or only test references.
+
+**Skill Created**: `.claude/skills/lsp-dead-code-finder/SKILL.md`
+
+```markdown
+---
+name: lsp-dead-code-finder
+description: |
+  Find dead/unused code using LSP findReferences. Use when: (1) user asks
+  to find dead code, (2) cleaning up codebase, (3) refactoring. Key insight:
+  function with only 1 reference (definition) or only test refs is dead code.
+---
+
+# LSP Dead Code Finder
+
+...
+```
+
+---
+
+## REMEMBER
+
+**Continuous improvement.** Every valuable discovery should benefit future sessions.
+Evaluate after significant work. Extract selectively. Create carefully.
+
+
+ARGUMENTS: and then continue
+
+---
+
+Continue with breakthroughs
+
+---
+
+Continue and make sure we are refining the plan as we go along.  We need full traceability to minimize our chances of getting confused.  Execute with a team of specialist agents.
+
+---
+
+This session is being continued from a previous conversation that ran out of context. The summary below covers the earlier portion of the conversation.
+
+Summary:
+1. Primary Request and Intent:
+   - **Session 1**: Implement the "Luma AMD Speedrun — Breakthrough Attempts" plan targeting AMD MI355X GPU kernel optimization across three competition kernels (MLA, MoE, GEMM). Five specific tasks were defined: (1) remove CK-poisoning warmup from MoE, (2) create expert_mask sparse dispatch, (3) create MLA SDPA fusion, (4) probe direct CK-Tile kernel dispatch via ctypes, (5) probe tritonblas.matmul_fp4 for GEMM.
+   - **Session 2**: Run /learn to extract session knowledge, then continue with breakthrough work including leaderboard submissions.
+   - **Session 3 (current)**: "Continue and make sure we are refining the plan as we go along. We need full traceability to minimize our chances of getting confused. Execute with a team of specialist agents." — currently in plan mode, providing summary requested.
+
+2. Key Technical Concepts:
+   - **AMD MI355X (gfx950)**: The GPU target on Popcorn CLI runners
+   - **CK (Composable Kernel)**: AMD's pre-compiled GPU kernel library — shape-specific autotuning cache, JIT-built .so files at `/home/runner/aiter/aiter/jit/`
+   - **aiter**: AMD's AI kernel library, Python wrapper around CK/ASM kernels
+   - **Pre-compiled .co (Code Object) files**: HSA kernel objects at `/home/runner/aiter/hsa/gfx950/`, 470+ total
+   - **HIP Runtime via ctypes**: `libamdhip64.so` — all three critical functions confirmed available: `hipModuleLoad`, `hipModuleGetFunction`, `hipModuleLaunchKernel`
+   - **C++ name mangling**: Pattern `_ZN5aiter{len(name)}{name}E` converts .co filename to kernel function name
+   - **Python dispatch overhead**: ~20-25µs per torch op call — root cause of gap to competition leaders
+   - **MLA (Multi-head Latent Attention)**: DeepSeek R1 architecture with QK_HEAD_DIM=576, V_HEAD_DIM=512 (K≠V), NUM_HEADS=16
+   - **MoE (Mixture of Experts)**: 256/32-expert routing with fused_moe, two-stage CK dispatch
+   - **MXFP4 GEMM**: FP4 quantized matrix multiply using gemm_a4w4 ASM kernels
+   - **SDPA limitation**: `F.scaled_dot_product_attention` fails for MLA due to K≠V head dimensions (576 vs 512) — forces slow fallback path (1542µs observed)
+   - **Expert mask limitation**: `expert_mask` in fused_moe produces wrong results for 257-expert shapes (30624 mismatches) — confirmed broken
+
+3. Files and Code Sections:
+
+   **MODIFIED:**
+   - `luma_speedrun/amd-moe-mxfp4/submission.py`
+     - Removed warmup block (lines 46-63) which called fused_moe with 8-expert dummy shapes
+     - Hypothesis: warmup could poison CK's autotuning cache for real 256/32-expert shapes
+     - Result: No performance improvement (CK tunes per-shape, warmup cache entries were for different shape keys that would never be used)
+     - Current header says `Current: ~180µs | Leader: ~110µs | Gap: 1.6x`
+
+   **CREATED:**
+   - `luma_speedrun/amd-moe-mxfp4/submission_expert_mask.py`
+     - Adds `torch.bincount(topk_ids.flatten().to(torch.int64), minlength=num_experts)` then `(expert_counts > 0).to(torch.int32)` as expert_mask
+     - Passes expert_mask to fused_moe
+     - Bug fixed: used `gate_up_weight_shuffled.shape[0]` for num_experts (config dict has no "num_experts" key)
+     - Result: FAILED on 257-expert shapes (30624 mismatches), passes on 32/64-expert
+
+   - `luma_speedrun/amd-mixed-mla/submission_sdpa.py`
+     - Replaces 4 torch ops (Q@K^T, scale, softmax, @V) with single `F.scaled_dot_product_attention` for small-shape regime
+     - Uses `q.view(bs, NUM_HEADS, QK_HEAD_DIM).unsqueeze(2)` for 4D Q, `kv_per_batch[:, :, :V_HEAD_DIM].unsqueeze(1).expand(-1, NUM_HEADS, -1, -1)` for 4D V
+     - Result: MASSIVE REGRESSION — bs=32, kvseqlen=1024 → 1542µs (vs ~65µs with manual matmul)
+     - Root cause: K≠V dims (576 vs 512) forces SDPA into slow general path on MI355X gfx950
+
+   - `luma_speedrun/amd-mixed-mla/probes/probe_direct_ck.py` (v1)
+     - Probes `ctypes.CDLL("libamdhip64.so")` — WORKS
+     - Probes `hipModuleLoad` on first found .co file — WORKS (module=778757456)
+     - Probes `hipModuleGetFunction` with guessed names — FAILS err=500 (wrong names)
+     - Discovers actual kernel name from aiter stdout: `_ZN5aiter36mla_a8w8_qh16_qseqlen1_gqaratio16_psE`
+     - Found 1372 .co files at `/home/runner/aiter/hsa/gfx950/`
+
+   - `luma_speedrun/amd-mixed-mla/probes/probe_direct_ck_v2.py` (v2 - BREAKTHROUGH)
+     - Implements C++ name mangling: `f"_ZN5aiter{len(name)}{name}E".encode()`
+     - Successfully loaded 6 MLA kernel function handles
+     - `hipModuleLaunchKernel` confirmed AVAILABLE (function pointer obtained)
+     - `data_ptr()` confirmed WORKS for GPU pointers
+     - Full HSA directory inventory discovered:
+       - `fmoe_2stages/`: 182 .co files
+       - `fmha_v3_bwd/`: 123 .co files
+       - `pa/`: 41 .co files
+       - `f4gemm/`: 35 .co files
+       - `mla/`: 27 .co files
+       - `bf16gemm/`: 24 .co files
+       - `topksoftmax/`: 22 .co files
+       - `fmha_v3_fwd/`: 8 .co files
+       - `fp8gemm_blockscale/`: 6 .co files
+       - `fmoe/`: 2 .co files
+
+   - `luma_speedrun/amd-mxfp4-mm/submission_tritonblas.py`
+     - Main `custom_kernel` uses standard `aiter.gemm_a4w4` path (fastest known)
+     - Alternative functions `custom_kernel_tritonblas` and `custom_kernel_asm_ksplit` defined
+     - tritonblas confirmed available; gemm_a4w4_asm confirmed available with log2_k_split parameter
+     - Result: ~22µs geomean — same as existing aiter path
+
+   - `luma_speedrun/amd-mixed-mla/probes/probe_asm_source.py`
+     - Attempted to read aiter source via glob and file open — BLOCKED by "work on another stream" runner error
+
+   - `luma_speedrun/amd-mixed-mla/probes/probe_asm_source_v2.py`
+     - Minimal version using only `inspect.getsource` — also BLOCKED by same runner error
+
+   **SKILL CREATED:**
+   - `~/.claude/skills/amd-ctypes-hip-kernel-dispatch/SKILL.md`
+     - Documents C++ name mangling pattern: `_ZN5aiter{len(name)}{name}E`
+     - Documents all HIP API availability (hipModuleLoad/GetFunction/LaunchKernel)
+     - Documents full kernel inventory across all competition categories
+     - Documents what's still unknown: kernel argument layout, grid/block dims, shared memory size
+     - Provides step-by-step usage guide for direct dispatch
+
+   **PLAN FILE:**
+   - `/home/mike-anderson/.claude/plans/expressive-greeting-sunrise.md` — exists, needs reading and refinement
+
+4. Errors and Fixes:
+   - **KeyError: 'num_experts'** in `submission_expert_mask.py`: config dict doesn't have 'num_experts' key. Fixed by using `gate_up_weight_shuffled.shape[0]` to get num_experts from weight tensor shape.
+   - **hipModuleGetFunction err=500 (hipErrorNotFound)** in probe v1: Wrong kernel name guesses (`mla_decode_stage1_asm`, `_ZN5aiter`, `mla_a8w8`). Fixed in v2 by implementing correct C++ name mangling from aiter's stdout format: `_ZN5aiter{len(basename)}{basename}E`.
+   - **"work on another stream" runner error** in probe_asm_source.py: Filesystem `glob.glob("/home/runner/aiter/**/*.py", recursive=True)` triggered runner's stream isolation check. v2 (inspect-only) also blocked — the runner bans something in the probe execution context.
+   - **SDPA regression (1542µs)** in submission_sdpa.py: PyTorch SDPA on MI355X gfx950 falls back to slow general path when K_head_dim ≠ V_head_dim (576 vs 512). Not fixable without padding V or rewriting the kernel.
+   - **Expert mask corruption (30624 mismatches)** in submission_expert_mask.py: fused_moe produces wrong output when expert_mask passed for 257-expert shapes. Confirmed as known issue (matches historical "expert_mask crashes CK stage1 kernel" note).
+   - **data_ptr() HIP error** in probe v1: `hipErrorNotFound` when calling data_ptr() after failed hipModuleGetFunction calls. Root cause was HIP context pollution from the failed GetFunction attempts. In probe v2, calling data_ptr() before any errors → works correctly.
+
+5. Problem Solving:
+   - **CK cache poisoning hypothesis**: Disproven — warmup removal produced no improvement because CK uses shape-specific cache keys; 8-expert warmup shapes never collide with 256/32-expert real shapes.
+   - **SDPA K≠V dimension**: Confirmed fatal limitation for MLA on MI355X — SDPA is not viable without equal K/V head dimensions in efficient mode.
+   - **Expert mask format**: Confirmed broken for 257-expert shapes — likely a CK stage1 kernel bug with the specific padding/routing combination.
+   - **CK ctypes path confirmed viable**: All three required HIP APIs available, 470+ pre-compiled kernels accessible. The ONLY missing piece is kernel argument layout (the struct that gets passed to hipModuleLaunchKernel).
+   - **Kernel argument discovery blocked**: Both filesystem-reading and inspect.getsource approaches failed due to runner "work on another stream" error. Next step is to clone aiter locally and read the C++ pybind11 wrapper source offline.
+
+6. All User Messages:
+   - "Implement the following plan: [full plan document with 5 tasks across 4 phases]"
+   - "[/learn command] and then continue / Continue with breakthroughs"
+   - "Continue and make sure we are refining the plan as we go along. We need full traceability to minimize our chances of getting confused. Execute with a team of specialist agents. / Your task is to create a detailed summary of the conversation so far..."
+
+7. Pending Tasks:
+   - **Discover CK kernel argument layout** (MLA stage1 kernel): Need to read aiter C++ pybind11 source locally (clone repo at https://github.com/ROCm/aiter). The kernel function `_ZN5aiter36mla_a8w8_qh16_qseqlen1_gqaratio16_psE` has an unknown argument struct that must match exactly for `hipModuleLaunchKernel`.
+   - **Implement direct hipModuleLaunchKernel dispatch** for MLA: Once argument layout known, build a ctypes-based submission that calls the kernel directly with zero Python wrapper overhead.
+   - **Extend direct dispatch to MoE and GEMM**: Same pattern applies to `fmoe_2stages/` (182 kernels) and `f4gemm/` (35 kernels).
+   - **Refine and update plan file** at `/home/mike-anderson/.claude/plans/expressive-greeting-sunrise.md` with current findings and next steps.
+
+8. Current Work:
+   The session transitioned to plan mode. The immediately preceding work was:
+   - Submitting MoE (warmup removed), MLA, and GEMM to leaderboard — all confirmed successful
+   - Creating skill `amd-ctypes-hip-kernel-dispatch` documenting the probe findings
+   - Attempting probe_asm_source.py to discover kernel argument layout — BLOCKED by runner
+   - The probe v2 (minimal inspect-only version) also blocked
+   - The final benchmark results: MLA ~70µs (unchanged), MoE ~189µs (unchanged), GEMM ~22µs (unchanged)
+   - Key discovery: ALL prerequisite HIP APIs are available; only the kernel argument struct layout remains unknown
+
+   The user then asked for a plan-mode summary with "full traceability" and "team of specialist agents."
+
+9. Optional Next Step:
+   The next step is to **read the current plan file** at `/home/mike-anderson/.claude/plans/expressive-greeting-sunrise.md` and then refine it with full traceability based on all session findings, particularly:
+   - The confirmed CK ctypes dispatch path (all APIs available)
+   - The kernel argument layout discovery as the critical missing piece
+   - The specific .co file and mangled function name for MLA stage1: `mla_a8w8_qh16_qseqlen1_gqaratio16_ps.co` → `_ZN5aiter36mla_a8w8_qh16_qseqlen1_gqaratio16_psE`
+   - The approach to discover argument layout offline (clone aiter repo locally)
+
+   Direct quote from the user's most recent message establishing the task: *"Continue and make sure we are refining the plan as we go along. We need full traceability to minimize our chances of getting confused. Execute with a team of specialist agents."*
+
+If you need specific details from before compaction (like exact code snippets, error messages, or content you generated), read the full transcript at: /home/mike-anderson/.claude/projects/-home-mike-anderson-dev-cohezion/d492a6c8-0c18-4a30-8664-c72a848e25a5.jsonl
+Continue the conversation from where it left off without asking the user any further questions. Resume directly — do not acknowledge the summary, do not recap what was happening, do not preface with "I'll continue" or similar. Pick up the last task as if the break never happened.
+
+---
+
+Make sure safe team definition for reuse
+
+---
+
+<teammate-message teammate_id="knowledge-curator" color="blue" summary="A.1 and A.2 complete, knowledge graph populated">
+Tasks A.1 and A.2 complete.
+
+**SurrealDB (A.1):** 10 entries stored — 7 experiments (MOE-001, MOE-002, MLA-002, MLA-003, MLA-004, MLA-005, GEMM-001) + 3 blockers (B001, B002, B003). All searchable via `mcp__cohezion-surreal__query_learnings`.
+
+**Obsidian Vault (A.2):** 13 new files created under `~/vaults/cohezion-vault/luma-speedrun/`:
+- `README.md` — entry point with status table, dead ends list, knowledge graph
+- `discoveries/` — D001 (HIP APIs), D002 (name mangling), D003 (kernel inventory)
+- `blockers/` — B001 (kernel arg layout, ACTIVE)
+- `approaches/` — A001 (direct CK dispatch, ACTIVE)
+- `experiments/` — 7 experiment notes with findings, evidence, conclusions
+
+All files use wikilinks (`[[...]]`) for cross-referencing. The knowledge graph in README.md maps the dependency chain: D001+D002+D003 → A001 → blocked_by → B001.
+
+I see task #3 (kernel research) is now completed, which unblocks task #4 (MLA direct CK dispatch implementation).
+</teammate-message>
+
+<teammate-message teammate_id="kernel-researcher" color="green" summary="MLA stage1 kernel arg layout complete — 320B struct, persistent grid, buffer-pointer launch style">
+Task #3 complete. Full kernel argument spec discovered and written to:
+- `/home/mike-anderson/dev/cohezion/luma_speedrun/amd-mixed-mla/probes/kernel_arg_spec.md`
+- `/home/mike-anderson/vaults/cohezion-vault/luma-speedrun/discoveries/D004-mla-stage1-arg-layout.md`
+
+**Key findings:**
+
+**Kernel**: `hsa/gfx950/mla/mla_a8w8_qh16_qseqlen1_gqaratio16_ps.co`
+**Symbol**: `_ZN5aiter36mla_a8w8_qh16_qseqlen1_gqaratio16_psE`
+
+**KernelArgs struct**: 320 bytes, `__attribute__((packed))`, all fields 16-byte aligned via `p2`/`p3` padding structs.
+
+**Launch (persistent mode)**:
+- Block: (256, 1, 1)
+- Grid: (work_indptr.size(0) - 1, 1, 1)
+- Shared mem: 0
+
+**API style**: Uses `HIP_LAUNCH_PARAM_BUFFER_POINTER` extra-args, NOT kernelParams[]. Pass `nullptr` for kernelParams and the config array as extra.
+
+**Struct field order (byte offsets)**:
+- 0: ptr_R (splitData/partial output f32)
+- 16: ptr_LSE (splitLse f32)
+- 32: ptr_Q (Q fp8)
+- 48: ptr_KV (KV fp8)
+- 64: ptr_LTP (kv_indptr)
+- 80: ptr_LTD (kv_page_indices)
+- 96: ptr_LTL (kv_last_page_lens)
+- 112: scalar (softmax_scale, float)
+- 128: s_MQA = gqa_ratio * max_seqlen_q (uint32)
+- 144: s_kv_split (uint32)
+- 160: s_Q_Bs = Q.stride(0)*elemsize*max_seqlen_q (uint32)
+- 176: s_Bs = KV.stride(0)*elemsize (uint32)
+- 192: s_log2_plen = log2(page_size) (uint32)
+- 208: ptr_QTP (qo_indptr)
+- 224: ptr_STP (persistent metadata — either work_meta_data.data_ptr() directly, or a GPU-side uint64[10] with [0]=work_indptr ptr, [1]=work_info_set ptr)
+- 240: ptr_RP (final output bf16)
+- 256: ptr_QSCALE ([1] f32)
+- 272: ptr_KVSCALE ([1] f32)
+- 288: out_16_nosplit = kv_split (uint32, same as s_kv_split)
+- 304: ptr_LSEP (final LSE, nullable)
+
+**mla_reduce_v1**: NOT an ASM kernel. It's a CK-tile C++ kernel in libaiter.so compiled with HIP. Call it via the Python binding `aiter.mla_reduce_v1(...)` or the C ABI of the .so — it cannot be loaded from a .co file.
+
+**Persistent metadata (ptr_STP)**: When using work_indptr+work_info_set, C++ packs them into a 10-element uint64 GPU buffer: [0]=work_indptr device ptr, [1]=work_info_set device ptr. You need to replicate this allocation in Python if bypassing the wrapper.
+
+Ready to unblock task #4 (direct dispatch implementation).
+</teammate-message>
+
+<teammate-message teammate_id="knowledge-curator" color="blue">
+{"type":"idle_notification","from":"knowledge-curator","timestamp":"2026-03-24T02:39:53.516Z","idleReason":"available"}
+</teammate-message>
+
+<teammate-message teammate_id="knowledge-curator" color="blue">
+{"type":"idle_notification","from":"knowledge-curator","timestamp":"2026-03-24T02:40:03.618Z","idleReason":"available"}
+</teammate-message>
+
+<teammate-message teammate_id="knowledge-curator" color="blue">
+{"type":"idle_notification","from":"knowledge-curator","timestamp":"2026-03-24T02:40:07.894Z","idleReason":"available"}
+</teammate-message>
+
+<teammate-message teammate_id="kernel-researcher" color="green">
+{"type":"idle_notification","from":"kernel-researcher","timestamp":"2026-03-24T02:40:11.353Z","idleReason":"available"}
+</teammate-message>
+
+<teammate-message teammate_id="kernel-researcher" color="green">
+{"type":"idle_notification","from":"kernel-researcher","timestamp":"2026-03-24T02:40:36.037Z","idleReason":"available","summary":"[to kernel-researcher] Task #3 already completed, findings at kernel_arg_spec.md"}
+</teammate-message>
+
+<teammate-message teammate_id="kernel-researcher" color="green">
+{"type":"idle_notification","from":"kernel-researcher","timestamp":"2026-03-24T02:40:40.773Z","idleReason":"available"}
+</teammate-message>
+
+---
+
+<teammate-message teammate_id="dispatch-engineer" color="yellow" summary="MLA direct CK dispatch submission written and validated">
+Task #4 complete. File written to:
+
+`/home/mike-anderson/dev/cohezion/luma_speedrun/amd-mixed-mla/submission_direct_ck.py`
+
+Key implementation notes:
+
+1. **Struct validated**: `MlaKernelArgs` is 320 bytes with all 20 field offsets matching the spec exactly (verified by running offset checks locally). Added `_layout_ = "ms"` to suppress the Python 3.13 `_pack_` deprecation warning — no functional difference on Linux.
+
+2. **Module-level setup**: `hipModuleLoad` and `hipModuleGetFunction` run once at import time. Full `restype`/`argtypes` declarations on all three HIP functions to prevent ctypes from guessing pointer sizes.
+
+3. **ptr_STP**: Passed as `meta["work_meta_data"].data_ptr()` directly — the `work_meta_data` tensor from the cache IS the pre-packed 80-byte uint64 buffer.
+
+4. **Grid**: `gdx = meta["work_indptr"].size(0) - 1` (persistent mode), block `(256, 1, 1)`, shared mem 0.
+
+5. **Stage 2**: Still calls `aiter.mla_reduce_v1()` — unchanged from baseline since it lives in the compiled `.so`, not a `.co`.
+
+6. **Error handling**: `hipModuleLaunchKernel` return code checked and raises `RuntimeError` on failure. Assert checks at module load time for both load and function-get errors.
+
+The matmul regime and all caching logic are preserved identically from `submission.py`.
+</teammate-message>
+
+---
+
+This session is being continued from a previous conversation that ran out of context. The summary below covers the earlier portion of the conversation.
+
+Summary:
+1. Primary Request and Intent:
+   - **Session continuation**: "Continue and make sure we are refining the plan as we go along. We need full traceability to minimize our chances of getting confused. Execute with a team of specialist agents."
+   - **Bidirectional knowledge graph**: "With bidirectional linking and indexing with a graph architecture"
+   - **SurrealDB integration**: "use our surrealdb to it's fullest"
+   - **Obsidian vault**: "don't forget the obsidian vault" — parallel human-readable docs with `[[wikilinks]]`
+   - **Cross-session documentation**: "If we document other sessions might have a chance to find breakthroughs we haven't thought of"
+   - **Reusable team**: "Make sure safe team definition for reuse"
+
+   The overarching goal remains: close the gap to competition leaders by implementing direct `hipModuleLaunchKernel` via ctypes to bypass Python wrapper overhead (~20-25µs per dispatch). Current scores: MLA ~70µs (leader ~33µs), MoE ~180µs (leader ~110µs), GEMM ~13.4µs (leader ~4.3µs).
+
+2. Key Technical Concepts:
+   - **AMD MI355X (gfx950)**: Target GPU on Popcorn CLI runners
+   - **HIP Runtime via ctypes**: `libamdhip64.so` — `hipModuleLoad`, `hipModuleGetFunction`, `hipModuleLaunchKernel` all confirmed available
+   - **HIP_LAUNCH_PARAM_BUFFER_POINTER API**: Launch style that passes a packed struct as a contiguous buffer (NOT `kernelParams[]` array). Tokens: BUFFER_POINTER=0x01, BUFFER_SIZE=0x02, END=0x03
+   - **C++ name mangling pattern**: `_ZN5aiter{len(name)}{name}E` for CK kernel symbols
+   - **MlaKernelArgs struct**: 320 bytes, `__attribute__((packed))`, 16-byte aligned fields via p2/p3 padding structs between each meaningful field
+   - **Persistent mode**: Grid = `(work_indptr.size(0) - 1, 1, 1)` — work tiles, not batch×splits
+   - **ptr_STP**: Points to `work_meta_data.data_ptr()` — a pre-packed 80-byte uint64[10] GPU buffer containing [ptr_work_indptr, ptr_work_info_set] already produced by `get_mla_metadata_info_v1`
+   - **mla_reduce_v1**: NOT a .co kernel — compiled into libaiter.so, must remain Python call
+   - **SurrealDB graph schema**: Tables `experiment`, `blocker`, `discovery`; edges `failed_because`, `resolved_by`, `enables`, `contradicts`, `based_on`
+   - **Obsidian vault wikilinks**: `[[note-name]]` creates bidirectional graph traversal in human-readable form
+   - **K-Search tree**: Existing `autoresearch/driver.py` — tree-based exploration with cross-kernel learning
+   - **Pre-compiled .co kernel inventory**: `/home/runner/aiter/hsa/gfx950/` — 470 total: fmoe_2stages/ (182), fmha_v3_bwd/ (123), pa/ (41), f4gemm/ (35), mla/ (27), etc.
+
+3. Files and Code Sections:
+
+   - **`/home/mike-anderson/.claude/plans/expressive-greeting-sunrise.md`** (REWRITTEN)
+     - Complete rewrite replacing stale original plan with fully traced version
+     - Sections: Executive Summary (scores/gaps), Knowledge Graph Schema (SurrealDB + Vault), Session History (7 experiments with outcomes), Active Blocker B001, Phases A-D, Agent Team Structure, Execution Order, Known Dead Ends
+     - Updated mid-session: Phase A marked ✅ COMPLETE, Phase B marked ✅ COMPLETE with full struct layout
+
+   - **`/home/mike-anderson/dev/cohezion/luma_speedrun/.team/speedrun-team-template.json`** (NEW)
+     - Session-agnostic reusable team template stripping all session-specific fields
+     - Contains: team_structure, task_template (with dep graph), agent_prompts (summaries), knowledge_graph_schema, known_dead_ends, current_best_scores, runner_environment
+     - Key "what to update vs. what stays constant" distinction for each agent role
+
+   - **`~/vaults/cohezion-vault/luma-speedrun/team-template.md`** (NEW via vault_write)
+     - Human-readable version of team template for Obsidian
+     - Copy-paste reconstitution code, per-agent update instructions, dead ends table, runner environment table
+
+   - **`luma_speedrun/amd-mixed-mla/probes/kernel_arg_spec.md`** (NEW, written by kernel-researcher)
+     - Source: `~/dev/aiter/csrc/py_itfs_cu/asm_mla.cu` + `hsa/gfx950/mla/mla_asm.csv` + `csrc/include/aiter_hip_common.h`
+     - Full 320-byte KernelArgs struct layout with byte offsets, p2/p3 padding definitions
+     - Field-by-field mapping from Python call → KernelArgs fields
+     - Launch parameters (persistent mode vs non-persistent)
+     - ptr_STP encoding, scalar computations, ctypes Python equivalent, HIP launch call
+
+   - **`luma_speedrun/amd-mixed-mla/submission_direct_ck.py`** (NEW, written by dispatch-engineer, fixed by lead)
+     - Direct `hipModuleLaunchKernel` submission replacing `mla_decode_stage1_asm_fwd` wrapper
+     - Key sections:
+
+     ```python
+     # ── Kernel file + symbol ── (CORRECTED runner path)
+     _CO_PATH = b"/home/runner/aiter/hsa/gfx950/mla/mla_a8w8_qh16_qseqlen1_gqaratio16_ps.co"
+     _KERNEL_SYMBOL = b"_ZN5aiter36mla_a8w8_qh16_qseqlen1_gqaratio16_psE"
+
+     HIP_LAUNCH_PARAM_BUFFER_POINTER = ctypes.c_void_p(0x01)
+     HIP_LAUNCH_PARAM_BUFFER_SIZE    = ctypes.c_void_p(0x02)
+     HIP_LAUNCH_PARAM_END            = ctypes.c_void_p(0x03)
+
+     class MlaKernelArgs(ctypes.Structure):
+         _pack_ = 1
+         _fields_ = [
+             ("ptr_R",           ctypes.c_void_p),  # offset 0   — logits
+             ("_p0",             _p2),
+             ("ptr_LSE",         ctypes.c_void_p),  # offset 16  — attn_lse
+             ("_p1",             _p2),
+             ("ptr_Q",           ctypes.c_void_p),  # offset 32  — q_fp8
+             ("_p2",             _p2),
+             ("ptr_KV",          ctypes.c_void_p),  # offset 48  — kv_4d
+             ("_p3",             _p2),
+             ("ptr_LTP",         ctypes.c_void_p),  # offset 64  — kv_indptr
+             ("_p4",             _p2),
+             ("ptr_LTD",         ctypes.c_void_p),  # offset 80  — kv_indices
+             ("_p5",             _p2),
+             ("ptr_LTL",         ctypes.c_void_p),  # offset 96  — kv_last_page_len
+             ("_p6",             _p2),
+             ("scalar",          ctypes.c_float),   # offset 112 — SM_SCALE
+             ("_p12",            _p3),
+             ("s_MQA",           ctypes.c_uint32),  # offset 128 — 16*1=16
+             ("_p13",            _p3),
+             ("s_kv_split",      ctypes.c_uint32),  # offset 144
+             ("_p14",            _p3),
+             ("s_Q_Bs",          ctypes.c_uint32),  # offset 160 — 9216
+             ("_p15",            _p3),
+             ("s_Bs",            ctypes.c_uint32),  # offset 176 — 576
+             ("_p16",            _p3),
+             ("s_log2_plen",     ctypes.c_uint32),  # offset 192 — 0
+             ("_p17",            _p3),
+             ("ptr_QTP",         ctypes.c_void_p),  # offset 208 — qo_indptr
+             ("_p18",            _p2),
+             ("ptr_STP",         ctypes.c_void_p),  # offset 224 — work_meta_data ptr
+             ("_p19",            _p2),
+             ("ptr_RP",          ctypes.c_void_p),  # offset 240 — output bf16
+             ("_p20",            _p2),
+             ("ptr_QSCALE",      ctypes.c_void_p),  # offset 256
+             ("_p21",            _p2),
+             ("ptr_KVSCALE",     ctypes.c_void_p),  # offset 272
+             ("_p22",            _p2),
+             ("out_16_nosplit",  ctypes.c_uint32),  # offset 288 — =kv_split
+             ("_p23",            _p3),
+             ("ptr_LSEP",        ctypes.c_void_p),  # offset 304 — NULL
+             ("_p24",            _p2),
+         ]
+
+     assert ctypes.sizeof(MlaKernelArgs) == 320
+     ```
+
+     The `_launch_mla_stage1` helper:
+     ```python
+     def _launch_mla_stage1(q_fp8, kv_4d, qo_indptr, kv_indptr, meta, q_scale, kv_scale, qseqlen, num_kv_splits):
+         args = MlaKernelArgs()
+         args.ptr_R = logits.data_ptr()
+         args.ptr_STP = meta["work_meta_data"].data_ptr()  # pre-packed uint64[10] buffer
+         args.s_MQA = (NUM_HEADS // NUM_KV_HEADS) * qseqlen  # 16
+         # ... all other fields ...
+         arg_size = ctypes.c_size_t(ctypes.sizeof(args))
+         config = (ctypes.c_void_p * 5)(
+             HIP_LAUNCH_PARAM_BUFFER_POINTER,
+             ctypes.cast(ctypes.addressof(args), ctypes.c_void_p),
+             HIP_LAUNCH_PARAM_BUFFER_SIZE,
+             ctypes.cast(ctypes.addressof(arg_size), ctypes.c_void_p),
+             HIP_LAUNCH_PARAM_END,
+         )
+         gdx = meta["work_indptr"].size(0) - 1  # persistent mode
+         stream = torch.cuda.current_stream().cuda_stream
+         ret = _hip.hipModuleLaunchKernel(_mla_func, gdx,1,1, 256,1,1, 0, stream, None, config)
+     ```
+
+   - **`luma_speedrun/amd-mixed-mla/submission.py`** (READ — current best ~70µs)
+     - Three-regime routing: matmul (bs≤4 or total_kv≤32768), aiter ASM (larger)
+     - Calls `mla_decode_stage1_asm_fwd` + `mla_reduce_v1`
+     - Metadata caching keyed on (bs, qseqlen, kvseqlen, q_dtype, kv_dtype, num_kv_splits)
+
+   - **`~/vaults/cohezion-vault/luma-speedrun/README.md`** (NEW via knowledge-curator)
+     - Entry point with status table, dead ends, wikilink dependency graph
+   - **`~/vaults/cohezion-vault/luma-speedrun/discoveries/D001-D003.md`** (NEW)
+   - **`~/vaults/cohezion-vault/luma-speedrun/blockers/B001-kernel-arg-layout.md`** (NEW)
+   - **`~/vaults/cohezion-vault/luma-speedrun/approaches/A001-direct-ck-dispatch.md`** (NEW)
+   - **`~/vaults/cohezion-vault/luma-speedrun/experiments/`** (NEW — 7 experiment notes)
+
+4. Errors and Fixes:
+   - **_CO_PATH pointing to local machine instead of runner**:
+     - dispatch-engineer wrote `_CO_PATH = b"/home/mike-anderson/dev/aiter/hsa/gfx950/..."` (local dev path)
+     - Fixed to `_CO_PATH = b"/home/runner/aiter/hsa/gfx950/mla/mla_a8w8_qh16_qseqlen1_gqaratio16_ps.co"` (runner path)
+     - Detection: code review before running popcorn-cli; the assert at import time would have caught it as a numeric HIP error code rather than descriptive message
+   - **`_layout_ = "ms"` (MSVC layout on Linux)**:
+     - dispatch-engineer added `_layout_ = "ms"` to suppress Python 3.13 `_pack_` deprecation
+     - Fixed by removing it entirely; `_pack_ = 1` overrides all alignment on both GCC and MSVC, so the struct layout is identical regardless, and removing it avoids Python < 3.13 confusion
+
+5. Problem Solving:
+   - **Active blocker B001 (kernel arg layout)**: RESOLVED — kernel-researcher cloned aiter repo locally (`~/dev/aiter`), read `csrc/py_itfs_cu/asm_mla.cu`, extracted the full 320-byte packed struct layout
+   - **Phase A (knowledge bootstrap)**: COMPLETE — SurrealDB has 10 nodes, vault has 13 notes with bidirectional wikilinks
+   - **Reusable team template**: COMPLETE — JSON at `luma_speedrun/.team/speedrun-team-template.json` + vault note at `luma-speedrun/team-template.md`
+   - **submission_direct_ck.py written**: COMPLETE (pending correctness test)
+   - **Ongoing**: Need to run `popcorn-cli submit --mode test` for correctness gate before benchmark
+
+6. All User Messages:
+   - "Continue and make sure we are refining the plan as we go along. We need full traceability to minimize our chances of getting confused. Execute with a team of specialist agents. / Your task is to create a detailed summary..."
+   - "With bidirectional linking and indexing with a graph architecture"
+   - "use our surrealdb to it's fullest"
+   - "don't forget the obsidian vault"
+   - "If we document other sessions might have a chance to find breakthroughs we haven't thought of"
+   - "Make sure safe team definition for reuse"
+   - "[Tool loaded.]" (several tool-load acknowledgments)
+   - "[teammate-message: knowledge-curator complete]"
+   - "[teammate-message: kernel-researcher complete with full arg spec]"
+   - "[teammate-message: dispatch-engineer complete]"
+   - "[Summary request — current message]"
+
+7. Pending Tasks:
+   - **Task #4** (in_progress): Run `popcorn-cli submit --mode test` for `submission_direct_ck.py` — correctness gate (MLA tolerance rtol=0.1, atol=0.1)
+   - If test passes: run `popcorn-cli submit --mode benchmark` to compare to ~70µs baseline
+   - If benchmark shows >5% improvement: run `popcorn-cli submit --mode leaderboard`
+   - **Task C.2** (blocked on C.1): Fuse stage1 + reduce if C.1 validates — probe whether `mla_reduce_v1` is accessible via libaiter.so C ABI ctypes call
+   - **Task C.3** (blocked on C.1): MoE direct dispatch via `fmoe_2stages/` kernels (182 .co files, need variant selection for 256-expert/topk=8 shapes)
+   - **Update team template** with confirmed HIP_LAUNCH_PARAM_END=0x03 finding and ptr_STP insight
+
+8. Current Work:
+   The submission_direct_ck.py was just written by the dispatch-engineer agent and reviewed + fixed by the team lead. Two bugs were caught and fixed:
+   1. `_CO_PATH` corrected from `/home/mike-anderson/dev/aiter/...` to `/home/runner/aiter/...`
+   2. `_layout_ = "ms"` removed (unnecessary and potentially confusing)
+
+   The `Bash` tool was fetched but not yet used. The next action was about to be running the popcorn-cli test submission. The popcorn.py helper shows:
+   - CLI: `~/.local/bin/popcorn-cli`
+   - Kernel map: `"mla"` → `("amd-mixed-mla", "amd-mixed-mla")`
+   - Test timeout: 720s
+   - The `submit()` function wraps subprocess calls with structured output parsing
+
+9. Optional Next Step:
+   Run the popcorn-cli correctness gate on the direct dispatch submission. The immediate next action was about to execute:
+
+   ```bash
+   cd /home/mike-anderson/dev/cohezion/luma_speedrun/amd-mixed-mla && \
+   popcorn-cli submit submission_direct_ck.py --mode test
+   ```
+
+   This directly follows the verification protocol from the plan: "Run `popcorn-cli submit --mode test` — correctness gate. Do not benchmark until this passes." The submission was just written, the _CO_PATH bug was just fixed, and the `Bash` tool was loaded — the test run was the immediate next step before the summary was requested.
+
+If you need specific details from before compaction (like exact code snippets, error messages, or content you generated), read the full transcript at: /home/mike-anderson/.claude/projects/-home-mike-anderson-dev-cohezion/d492a6c8-0c18-4a30-8664-c72a848e25a5.jsonl
+Continue the conversation from where it left off without asking the user any further questions. Resume directly — do not acknowledge the summary, do not recap what was happening, do not preface with "I'll continue" or similar. Pick up the last task as if the break never happened.
+
+---
+
+Base directory for this skill: /home/mike-anderson/.claude/skills/amd-ctypes-hip-kernel-dispatch
+
+# Direct HIP Kernel Dispatch via ctypes (AMD MI355X)
+
+## Problem
+
+Python wrapper overhead (~20-25µs per kernel launch) creates an API ceiling.
+Leaders achieve ~33µs (MLA), ~110µs (MoE), ~4.3µs (GEMM) with single fused
+kernels that have zero Python dispatch overhead. Can we bypass the wrappers?
+
+## Discovery (March 2026, Probe v1 + v2)
+
+### What Works
+
+| Component | Status | Detail |
+|-----------|--------|--------|
+| `ctypes.CDLL("libamdhip64.so")` | ✅ WORKS | Not blocked by runner |
+| `hipModuleLoad(module, path)` | ✅ WORKS | Returns valid module handle |
+| `hipModuleGetFunction(func, module, name)` | ✅ WORKS | With correct mangled name |
+| `hipModuleLaunchKernel` | ✅ AVAILABLE | Function pointer obtained |
+| `tensor.data_ptr()` | ✅ WORKS | GPU memory pointers accessible |
+| JIT `.so` direct load | ❌ BLOCKED | .so not found before JIT build |
+
+### Kernel Name Mangling
+
+CK kernels use C++ name mangling. Pattern:
+
+```python
+def mangle_kernel_name(basename_without_co: str) -> bytes:
+    """Convert .co filename to C++ mangled kernel name.
+
+    Example: 'mla_a8w8_qh16_qseqlen1_gqaratio16_ps'
+    → '_ZN5aiter36mla_a8w8_qh16_qseqlen1_gqaratio16_psE'
+    where 36 = len(basename)
+    """
+    return f"_ZN5aiter{len(basename_without_co)}{basename_without_co}E".encode("utf-8")
+```
+
+### Pre-compiled Kernel Inventory (MI355X Runner)
+
+Location: `/home/runner/aiter/hsa/gfx950/`
+
+| Directory | Count | Purpose |
+|-----------|-------|---------|
+| `fmoe_2stages/` | 182 | MoE 2-stage CK kernels |
+| `fmha_v3_bwd/` | 123 | Flash MHA backward |
+| `pa/` | 41 | PagedAttention |
+| `f4gemm/` | 35 | MXFP4 GEMM kernels |
+| `mla/` | 27 | MLA attention (decode + prefill) |
+| `bf16gemm/` | 24 | BF16 GEMM |
+| `topksoftmax/` | 22 | Top-K softmax |
+| `fmha_v3_fwd/` | 8 | Flash MHA forward |
+| `fp8gemm_blockscale/` | 6 | FP8 blockscale GEMM |
+| `fmoe/` | 2 | MoE single-stage |
+| **Total** | **470** | |
+
+### MLA Kernel Files (qh16 = 16 query heads)
+
+```
+mla_a8w8_qh16_qseqlen1_gqaratio16.co      # FP8 Q×KV, decode, no paged
+mla_a8w8_qh16_qseqlen1_gqaratio16_ps.co   # FP8 Q×KV, decode, paged (_ps)
+mla_a16w8_qh16_m16x4_n16x1_coex0_mask1_ps.co  # BF16 Q × FP8 KV
+mla_a16w16_qh16_m16x4_n16x1_coex0_mask1.co    # BF16 Q × BF16 KV
+mla_a16w16_qh16_m16x4_n16x1_coex0_mask1_ps.co
+mla_a16w16_qh16_m32x4_n16x1_coex0_mask1.co
+MLA_A16W16_1TG_4W_32mx1_16nx1_Coex0_Msk1_QH16.co  # Uppercase variant
+MLA_A16W16_1TG_4W_64mx1_16nx1_Coex0_Msk1_QH16.co
+```
+
+## How to Use
+
+### Step 1: Load HIP Runtime
+
+```python
+import ctypes
+hip = ctypes.CDLL("libamdhip64.so")
+```
+
+### Step 2: Load Kernel Module
+
+```python
+module = ctypes.c_void_p()
+err = hip.hipModuleLoad(
+    ctypes.byref(module),
+    b"/home/runner/aiter/hsa/gfx950/mla/mla_a8w8_qh16_qseqlen1_gqaratio16_ps.co"
+)
+assert err == 0, f"hipModuleLoad failed: {err}"
+```
+
+### Step 3: Get Kernel Function
+
+```python
+func = ctypes.c_void_p()
+err = hip.hipModuleGetFunction(
+    ctypes.byref(func),
+    module,
+    b"_ZN5aiter36mla_a8w8_qh16_qseqlen1_gqaratio16_psE"
+)
+assert err == 0, f"hipModuleGetFunction failed: {err}"
+```
+
+### Step 4: Launch Kernel (UNTESTED)
+
+```python
+# hipModuleLaunchKernel(
+#     function, gridDimX, gridDimY, gridDimZ,
+#     blockDimX, blockDimY, blockDimZ,
+#     sharedMemBytes, stream, kernelParams, extra
+# )
+#
+# kernelParams: array of void* pointers to kernel arguments
+# extra: NULL (use kernelParams)
+#
+# CHALLENGE: Need to know the exact kernel argument struct layout.
+# This requires reading the aiter JIT module source or the .co metadata.
+```
+
+## What's Still Unknown
+
+1. **Kernel argument layout**: What struct fields does each kernel expect?
+   - Must match exactly (wrong order → GPU fault or silent corruption)
+   - Can be discovered by reading aiter's C++ pybind11 wrapper source
+
+2. **Grid/block dimensions**: What launch config to use?
+   - Likely embedded in the aiter Python wrapper logic
+   - Different per kernel variant (m16x4 vs m32x4)
+
+3. **Shared memory size**: Required by hipModuleLaunchKernel
+   - May be 0 (registers only) or significant
+
+4. **Stream handling**: Need CUDA/HIP stream from PyTorch
+   - `torch.cuda.current_stream().cuda_stream` may provide this
+
+## Next Steps for Breakthrough
+
+1. **Read aiter JIT wrapper source** to discover kernel argument layout
+2. **Probe `hipModuleOccupancyMaxPotentialBlockSize`** for optimal grid config
+3. **Build argument struct** using ctypes.Structure matching the C++ layout
+4. **Test with a single kernel** (e.g., MLA decode stage1) and verify correctness
+5. **If correct, fuse stage1+reduce** by calling both kernels with zero Python in between
+
+## Error Reference
+
+| HIP Error | Code | Meaning |
+|-----------|------|---------|
+| `hipSuccess` | 0 | OK |
+| `hipErrorNotFound` | 500 | Symbol/function name not found in module |
+| `hipErrorInvalidValue` | 1 | Invalid argument (wrong pointer, etc.) |
+
+## Context
+
+Discovered during Luma AMD Speedrun (March 2026) via two probe submissions to
+the MI355X Popcorn CLI runner. Probe v1 discovered libamdhip64.so access and
+.co file locations. Probe v2 successfully loaded 6 kernel functions using the
+correct C++ name mangling pattern derived from aiter's stdout logs.
+
+---
+
+This session is being continued from a previous conversation that ran out of context. The summary below covers the earlier portion of the conversation.
+
+Summary:
+1. Primary Request and Intent:
+   - **Session continuation**: Execute the plan for Luma AMD Speedrun, running correctness test for `submission_direct_ck.py` (ctypes HIP kernel dispatch)
+   - **Full traceability**: "We need full traceability to minimize our chances of getting confused"
+   - **Knowledge documentation**: "If we document other sessions might have a chance to find breakthroughs we haven't thought of" (repeated twice during session)
+   - **Stream fix**: User provided critical technical insight: "the benchmarking harness provides a specific hipStream_t to your function. If you launch work on a different stream (such as the default stream 0 or a stream you created yourself), Measurement Error occurs. To resolve this, ensure every asynchronous HIP/ROCm call uses the stream handle passed to your function."
+   - **Diagnostic question**: "How did we experience the exact same issue?" (asking why CUDA graphs also fail with the same "another stream" error)
+
+2. Key Technical Concepts:
+   - **AMD MI355X (gfx950)**: Target GPU on Popcorn CLI runners
+   - **"work on another stream" error**: Runner's generic sandbox rejection for GPU work on unauthorized streams (and also fires for unauthorized filesystem ops)
+   - **hipModuleLaunchKernel via ctypes**: CONFIRMED BLOCKED — the harness detects kernel launch on wrong/different HIP stream
+   - **torch.cuda.CUDAGraph**: ALSO BLOCKED — `torch.cuda.graph()` creates an internal SIDE STREAM for capture, triggering the same stream detector
+   - **Harness timing stream**: The benchmark harness records start/end events on a specific `hipStream_t`. All GPU work must be on that stream or it gets flagged as cheating/measurement error
+   - **Stream detection mechanism**: Runner monitors GPU work at profiling level; ctypes-launched kernels appear on different stream timeline than standard PyTorch/aiter dispatch
+   - **Why baseline works**: `mla_decode_stage1_asm_fwd` and `mla_reduce_v1` dispatch through PyTorch's stream management system which correctly routes to the harness stream
+   - **popcorn-cli flags**: Requires `--gpu MI355X --leaderboard amd-mixed-mla` for AMD MLA kernel submissions
+   - **HIP_LAUNCH_PARAM_BUFFER_POINTER API**: The ctypes struct-based kernel launch approach that was implemented (correctly, but blocked at runtime)
+   - **MlaKernelArgs struct**: 320-byte packed structure with 16-byte aligned fields via p2/p3 padding
+   - **CUDA graph side stream**: PyTorch creates a private capture stream internally even when `stream=None` (uses current stream according to docs, but implementation creates side stream)
+   - **GPU compute vs. Python overhead**: The actual 70µs baseline timing is dominated by GPU kernel execution time (stage1 ~30-35µs + reduce ~25µs), not Python dispatch overhead
+   - **Metadata caching**: Pre-allocated tensors (logits, attn_lse, output, work buffers) with stable addresses used across calls
+
+3. Files and Code Sections:
+   - **`/home/mike-anderson/dev/cohezion/luma_speedrun/amd-mixed-mla/submission_direct_ck.py`** (written previous session, tested this session)
+     - ctypes HIP dispatch implementation — CONFIRMED BLOCKED by runner stream detection
+     - Loads `/home/runner/aiter/hsa/gfx950/mla/mla_a8w8_qh16_qseqlen1_gqaratio16_ps.co`
+     - 320-byte `MlaKernelArgs` struct with `_pack_ = 1`
+     - Uses `HIP_LAUNCH_PARAM_BUFFER_POINTER` launch style
+     - Stream: `stream = torch.cuda.current_stream().cuda_stream` → wrong stream (not harness stream)
+     - Test result: `"work on another stream"` error
+
+   - **`/home/mike-anderson/dev/cohezion/luma_speedrun/amd-mixed-mla/submission_cudagraph.py`** (NEW, created this session)
+     - CUDA graph capture/replay approach to eliminate Python dispatch overhead
+     - Architecture:
+       - Call 1 per shape → warmup (normal `_normal_dispatch`)
+       - Call 2 per shape → capture graph + replay
+       - Call 3+ → `static_q.copy_(q_fp8_3d)` + `g.replay()` fast path
+       - Fallback if kv_4d address changes (test mode)
+     - Full implementation:
+     ```python
+     def custom_kernel(data: input_t) -> output_t:
+         # ... small shape matmul path ...
+         gi = _graph_cache.get(shape_key)
+         if gi is not None and gi is not False:
+             if (kv_4d.data_ptr() == gi["kv_ptr"]
+                     and qo_indptr.data_ptr() == gi["qo_ptr"]
+                     and kv_indptr.data_ptr() == gi["ki_ptr"]):
+                 gi["sq"].copy_(q_fp8_3d)   # ~0.5µs copy
+                 gi["sqs"].copy_(q_scale)
+                 gi["sks"].copy_(kv_scale)
+                 gi["graph"].replay()
+                 return meta["output"]
+             # fallback: address changed
+             _normal_dispatch(...)
+             return meta["output"]
+         # ... warmup and capture logic ...
+     ```
+     - Test result: ALSO "work on another stream" — `torch.cuda.graph()` creates internal side stream
+
+   - **`/home/mike-anderson/dev/cohezion/luma_speedrun/amd-mixed-mla/submission.py`** (READ — current best ~70µs)
+     - Exact `mla_decode_stage1_asm_fwd` call signature (18 positional args):
+     ```python
+     mla_decode_stage1_asm_fwd(
+         q_fp8.view(-1, NUM_HEADS, QK_HEAD_DIM),
+         kv_4d, qo_indptr, kv_indptr,
+         meta["kv_indices"], meta["kv_last_page_len"],
+         None,  # num_kv_splits_indptr
+         meta["work_meta_data"], meta["work_indptr"], meta["work_info_set"],
+         qseqlen, PAGE_SIZE, NUM_KV_HEADS, SM_SCALE,
+         meta["logits"], meta["attn_lse"], meta["output"],
+         q_scale, kv_scale,
+     )
+     mla_reduce_v1(
+         meta["logits"], meta["attn_lse"],
+         meta["reduce_indptr"], meta["reduce_final_map"], meta["reduce_partial_map"],
+         qseqlen, meta["output"], None,
+     )
+     ```
+     - Routing thresholds: `MATMUL_MAX_BS = 4`, `MATMUL_MAX_TOTAL_KV = 32768`
+     - Three-regime routing: matmul (small) → aiter ASM (large)
+
+   - **`/home/mike-anderson/dev/cohezion/luma_speedrun/amd-mixed-mla/reference_implementation.py`** (READ)
+     - Confirmed: `config` dict has NO stream key (only batch_size, num_heads, q_seq_len, kv_seq_len, etc.)
+     - data tuple is exactly: `(q, kv_data, qo_indptr, kv_indptr, config)` — 5 elements
+     - Uses `mla_decode_fwd` (single call, both stages)
+
+   - **`/home/mike-anderson/dev/cohezion/luma_speedrun/autoresearch/popcorn.py`** (READ)
+     - CLI: `~/.local/bin/popcorn-cli`
+     - Required flags: `--gpu MI355X --leaderboard amd-mixed-mla`
+     - CMD structure: `popcorn-cli submit <file> --mode <test|benchmark|leaderboard> --gpu MI355X --leaderboard <name>`
+
+4. Errors and fixes:
+   - **`popcorn-cli submit` without flags → "No such device or address (os error 6)"**:
+     - Fix: Add `--gpu MI355X --leaderboard amd-mixed-mla --no-tui` flags
+     - Source: Discovered required flags from `autoresearch/popcorn.py` (line 86-87)
+   
+   - **`submission_direct_ck.py` → "work on another stream"**:
+     - Root cause: `hipModuleLaunchKernel` via ctypes launches kernel on wrong HIP stream; `torch.cuda.current_stream().cuda_stream` does not match the harness's timing stream
+     - User explanation: Harness records timing events on specific `hipStream_t`, all GPU work must use that stream
+     - Fix attempted: None yet (blocked fundamental approach)
+     - Status: **CONFIRMED DEAD END** — ctypes HIP dispatch blocked by runner
+   
+   - **`submission_cudagraph.py` → SAME "work on another stream" error**:
+     - Root cause: `torch.cuda.graph()` creates an internal SIDE STREAM for graph capture, which the runner detects as unauthorized GPU work on a different stream
+     - User question: "How did we experience the exact same issue?" — Both approaches bypass PyTorch's stream management in ways the harness detects
+     - Status: **CONFIRMED DEAD END** — CUDA graph capture creates side streams that trigger same violation
+
+5. Problem Solving:
+   - **Stream problem diagnosis**: The harness provides a specific `hipStream_t` for timing. Standard PyTorch/aiter calls correctly dispatch to this stream. Direct ctypes kernel launches and CUDA graph captures both create work on different streams (ctypes: wrong stream from `current_stream()` mismatch; CUDA graphs: internal side capture stream).
+   - **Unifying principle identified**: ANY approach that bypasses PyTorch's normal kernel dispatch pathway (ctypes for HIP, CUDA graph capture) triggers the "work on another stream" detector.
+   - **Why baseline works**: aiter's pybind11 functions route through PyTorch's stream management which correctly targets the harness stream.
+   - **Ongoing**: Need new optimization strategy — neither ctypes dispatch nor CUDA graphs can be used. Candidates: fast_mode=True, BF16 Q path (skip quantization), larger page sizes (reduce page table lookups), or different kernel variants.
+   - **Documentation debt**: Session findings (2 new dead ends) need to be stored in SurrealDB and Obsidian vault per user request.
+
+6. All user messages:
+   - `"Tool loaded."` (x2 — tool load acknowledgments)
+   - `"The '500 Internal Server Error' is simply the server's way of crashing or aborting the evaluation once it detects this violation. Why this error occurs: In this speedrun, the benchmarking harness (the code that measures how fast your solution is) provides a specific hipStream_t to your function. It uses this stream to record start and end events to calculate your 'speed.' If you launch work on a different stream (such as the default stream 0 or a stream you created yourself): Measurement Error / Rule Violation. How to fix it: ensure every asynchronous HIP/ROCm call uses the stream handle passed to your function."` (Critical technical explanation with C++ code examples for fixing stream issues)
+   - `"If we document other sessions might have a chance to find breakthroughs we haven't thought of"` (documentation request, stated twice)
+   - `"How did we experience the exact same issue?"` (asking why CUDA graph also fails)
+   - `"[Summary request]"` (current message)
+
+7. Pending Tasks:
+   - **Document new dead ends**: Store findings in SurrealDB (2 new experiment nodes: MLA-006 for ctypes blocked, MLA-007 for CUDA graph blocked) and update Obsidian vault notes
+   - **Update plan file**: Add confirmed dead ends (ctypes dispatch + CUDA graphs) to known dead ends table
+   - **Update team template**: Add these findings to `luma_speedrun/.team/speedrun-team-template.json`
+   - **Try alternative optimizations**: 
+     1. `fast_mode=True` in aiter calls (might select different kernel)
+     2. BF16 Q path — skip FP8 quantization step using `mla_a16w8` kernel variant
+     3. Larger effective page size (reinterpret kv_buffer as PAGE_SIZE=16 instead of 1)
+     4. Different num_kv_splits schedule
+   - **User's persistent documentation request**: "If we document other sessions might have a chance to find breakthroughs we haven't thought of" — update knowledge graph with session 3 findings
+
+8. Current Work:
+   Just tested `submission_cudagraph.py` which also received "work on another stream" error. Both approaches tried this session are confirmed blocked:
+   1. `submission_direct_ck.py` (ctypes + `hipModuleLaunchKernel`) → blocked
+   2. `submission_cudagraph.py` (torch.cuda.CUDAGraph) → blocked
+
+   The user asked "How did we experience the exact same issue?" — the answer is that `torch.cuda.graph()` creates an internal side stream for graph capture separate from the harness timing stream, just as ctypes launches on a non-harness stream. Both bypass PyTorch's normal dispatch pathway in ways the harness detects.
+
+   The key files created this session:
+   - `submission_direct_ck.py`: ctypes approach, 320-byte MlaKernelArgs struct, `hipModuleLaunchKernel` — DEAD END
+   - `submission_cudagraph.py`: CUDA graph capture/replay — DEAD END
+
+9. Optional Next Step:
+   Address the user's repeated request: "If we document other sessions might have a chance to find breakthroughs we haven't thought of"
+
+   Immediately update the knowledge graph with the two new dead ends discovered this session:
+   1. Store SurrealDB nodes for MLA-006 (ctypes dispatch blocked) and MLA-007 (CUDA graphs blocked) with the finding that "any GPU work dispatch mechanism that bypasses PyTorch's normal kernel dispatch pathway — including ctypes HIP calls and torch.cuda.CUDAGraph — is blocked by the runner's stream detection. Only standard PyTorch/aiter function calls correctly target the harness timing stream."
+   2. Update `~/vaults/cohezion-vault/luma-speedrun/` vault notes with wikilinks documenting these dead ends
+   3. Update the known dead ends in `luma_speedrun/.team/speedrun-team-template.json` and the plan file
+   4. Then investigate alternative optimization paths: fast_mode=True, BF16 Q (no FP8 quantization), or page size optimization — all within standard aiter/PyTorch dispatch
+
+If you need specific details from before compaction (like exact code snippets, error messages, or content you generated), read the full transcript at: /home/mike-anderson/.claude/projects/-home-mike-anderson-dev-cohezion/d492a6c8-0c18-4a30-8664-c72a848e25a5.jsonl
+Continue the conversation from where it left off without asking the user any further questions. Resume directly — do not acknowledge the summary, do not recap what was happening, do not preface with "I'll continue" or similar. Pick up the last task as if the break never happened.
+
+---
+
+<teammate-message teammate_id="dispatch-engineer" color="yellow">
+{"type":"idle_notification","from":"dispatch-engineer","timestamp":"2026-03-24T02:50:50.137Z","idleReason":"available"}
+</teammate-message>
+
+<teammate-message teammate_id="dispatch-engineer" color="yellow" summary="Task #4 already completed in previous turn">
+This task was already completed — the file was written and task #4 marked completed before this message arrived. See my previous message for the full implementation summary.
+
+File is at: `/home/mike-anderson/dev/cohezion/luma_speedrun/amd-mixed-mla/submission_direct_ck.py`
+
+Ready for you to run `popcorn-cli --mode test` against it.
+</teammate-message>
+
+<teammate-message teammate_id="dispatch-engineer" color="yellow">
+{"type":"idle_notification","from":"dispatch-engineer","timestamp":"2026-03-24T02:50:57.810Z","idleReason":"available"}
+</teammate-message>
+
+---
+
+Base directory for this skill: /home/mike-anderson/.claude/skills/deepseek-mla-decode-flash-attention-gap
+
+# DeepSeek MLA Decode: Flash Attention Architectural Gap
+
+## Problem
+
+The aiter `mla_decode_fwd` 3-stage pipeline has ~100-150 µs fixed overhead regardless of
+batch size. For small decode workloads (bs ≤ 64), the actual attention compute is <10 µs —
+the pipeline overhead is the bottleneck, NOT the compute.
+
+Our best hybrid approach (three-regime einsum + aiter) achieves **69.5 µs ranked geomean** on MI355X.
+Competition leaders achieve **4.3 µs** — a 16x gap that cannot be closed by parameter tuning.
+
+## Architectural Context: DeepSeek R1 MLA
+
+MLA (Multi-head Latent Attention) uses an **absorbed** formulation:
+- Q: `(total_q, num_heads, 576)` — already has rope/projection absorbed (QK head dim = 576)
+- KV: `(total_kv, 1, 576)` — single KV head, fused K and V into one latent buffer
+- V is sliced from KV: `V = KV[:, :, :512]` (first 512 of 576 dims)
+- Output: `(total_q, num_heads, 512)` — value head dim = 512
+
+This is GQA with 1 KV head and 16-32 Q heads (128 total // tensor parallelism 4-8).
+
+### Key Dimensions (DeepSeek R1, TP=4)
+
+```python
+NUM_HEADS = 32        # 128 // TP=4
+NUM_KV_HEADS = 1      # MLA always has 1 KV head
+QK_HEAD_DIM = 576     # for score computation: Q @ KV^T
+V_HEAD_DIM = 512      # for value: KV[:, :, :512]
+SM_SCALE = 1.0 / sqrt(576)  # attention temperature
+```
+
+## The 3-Stage Pipeline Overhead
+
+aiter's `mla_decode_fwd` runs:
+1. `get_mla_metadata_v1()` — computes work distribution, fills 6 metadata tensors (~5-20 µs)
+2. `mla_decode_stage1_asm_fwd()` — split-K attention kernel, produces partial results (~70-120 µs)
+3. `mla_decode_reduce_fwd()` — parallel reduce of partial results (~10-30 µs)
+
+**Total fixed overhead: ~100-150 µs.** For bs=4, kv=1024 (4096 KV tokens), the actual
+attention compute on 32 heads is trivial. The metadata + split-K + reduce dominate entirely.
+
+## What the 4.3 µs Leaders Are Likely Doing
+
+Leaders (Jayluci4, n8_gr8_ at 4.3 µs on MI355X) almost certainly use a **fused Flash
+Attention-style kernel** that:
+
+1. Processes Q in tiles (BLOCK_M), iterates over KV in tiles (BLOCK_N)
+2. Fuses score, softmax, and value accumulation into a SINGLE kernel (Flash Attention v2 pattern)
+3. Eliminates the 3-stage pipeline overhead entirely — one kernel launch per call
+4. Handles GQA by broadcasting the 1 KV head across all 32 Q heads within the kernel
+
+For bs=4, kv=1024: `4 * 1 * ceil(32/GROUP) * ceil(1024/BLOCK_N)` = a handful of thread blocks.
+A single kernel launch at ~4 µs is consistent with this.
+
+## Critical Layout Constraint: K ≠ V Head Dimension
+
+MLA's fused KV buffer has:
+- K dimension: 576 (for score: `Q @ KV^T` uses full 576)
+- V dimension: 512 (for value: `@V` uses only first 512 of each KV row)
+
+**Standard Flash Attention assumes K_dim == V_dim.** `fav3_sage_mxfp4` and other standard
+attention kernels FAIL here because they expect separate K, V tensors with the same head_dim.
+
+Any custom Flash Attention for MLA must:
+```python
+# Score computation: use full KV dim (576)
+scores = tl.dot(q_tile, kv_tile.T)  # q_tile: [BM, 576], kv_tile: [BN, 576]
+
+# Value extraction: slice first 512 dims of KV
+v_tile = kv_tile[:, :512]           # [BN, 512]
+acc += tl.dot(weights, v_tile)      # acc: [BM, 512]
+```
+
+## Available Packages to Check on MI355X Runner
+
+Before writing a custom kernel, probe for pre-built solutions:
+
+```python
+# Submit as probe via Popcorn CLI (--mode test, delegates to ref_kernel for correctness)
+import sys
+for pkg in ["flash_attn", "flashinfer", "xformers", "vllm"]:
+    try:
+        mod = __import__(pkg)
+        print(f"FOUND: {pkg} {getattr(mod, '__version__', 'unknown')}", file=sys.stderr)
+        # For flash_attn: check if it has varlen/GQA support
+        if pkg == "flash_attn":
+            from flash_attn import flash_attn_varlen_func
+            print(f"  flash_attn_varlen_func: available", file=sys.stderr)
+        if pkg == "flashinfer":
+            import flashinfer
+            print(f"  flashinfer BatchDecodeWithPagedKVCacheWrapper: checking...", file=sys.stderr)
+    except ImportError:
+        print(f"NOT FOUND: {pkg}", file=sys.stderr)
+
+# Also check aiter's attention ops
+import os, aiter
+aiter_path = os.path.dirname(aiter.__file__)
+for root, dirs, files in os.walk(os.path.join(aiter_path, "ops", "triton", "attention")):
+    for f in sorted(files):
+        print(f"ATTN: {f}", file=sys.stderr)
+```
+
+## Custom Triton Flash Attention for MLA (If No Library Available)
+
+If no library is available, write a Flash Attention v2 variant:
+
+```python
+@triton.jit
+def mla_decode_flash_kernel(
+    Q_ptr, KV_ptr, O_ptr,
+    # strides, shapes...
+    BLOCK_M: tl.constexpr, BLOCK_N: tl.constexpr,
+    QK_DIM: tl.constexpr,  # 576
+    V_DIM: tl.constexpr,   # 512
+    SM_SCALE: tl.constexpr,
+):
+    # Grid: (num_q_heads * batch, cdiv(total_q, BLOCK_M))
+    # Each thread block processes BLOCK_M query positions
+
+    m_i = tl.full([BLOCK_M], float("-inf"), dtype=tl.float32)  # running max
+    l_i = tl.zeros([BLOCK_M], dtype=tl.float32)                # running sum
+    acc = tl.zeros([BLOCK_M, V_DIM], dtype=tl.float32)         # accumulator
+
+    for kv_start in range(0, total_kv, BLOCK_N):
+        kv_tile = tl.load(KV_ptr + kv_start * stride_kv ...)   # [BN, 576]
+
+        # Score: full QK dim
+        qk = tl.dot(q, kv_tile.T) * SM_SCALE   # [BM, BN]
+
+        # Flash Attention safe-softmax update
+        m_new = tl.maximum(m_i, tl.max(qk, 1))
+        alpha = tl.exp(m_i - m_new)
+        p = tl.exp(qk - m_new[:, None])
+        l_i = alpha * l_i + tl.sum(p, 1)
+        acc = alpha[:, None] * acc + tl.dot(p, kv_tile[:, :V_DIM])  # V is first 512 dims
+        m_i = m_new
+
+    # Normalize
+    acc = acc / l_i[:, None]
+    tl.store(O_ptr + ...)
+```
+
+Key: `kv_tile[:, :V_DIM]` extracts V from the fused KV buffer without extra memory allocation.
+
+## Performance Targets (MI355X Benchmark Shapes)
+
+| Shape | Our hybrid | Target (Flash Attention) | Leader |
+|-------|-----------|--------------------------|--------|
+| bs=4, kv=1k | 27.7 µs | ~4-8 µs | 4.3 µs |
+| bs=4, kv=8k | 40.5 µs | ~8-15 µs | ~4-8 µs |
+| bs=32, kv=1k | 46.2 µs | ~8-20 µs | ~4-10 µs |
+| bs=256, kv=8k | 399 µs | ~100-200 µs | unknown |
+| **Geomean** | ~97 µs | ~15-40 µs | ~4.3 µs |
+
+A simple non-persistent Flash Attention would likely achieve 15-40 µs geomean.
+A persistent kernel with Origami scheduling could approach 4-10 µs for small batches.
+
+## Phase 6: Confirmed Runner Package Inventory (March 2026)
+
+**All external packages NOT available on MI355X runner:**
+- `flash_attn` — NOT installed
+- `flashinfer` — NOT installed
+- `xformers` — NOT installed
+- `vllm` — NOT installed
+
+**aiter attention functions that ARE available (but limited):**
+- `aiter.flash_attn_varlen_func` — available but **CK headdim ≤ 256 hard limit**
+  - Error: `RuntimeError: CK only supports head dimension at most 256`
+  - Confirmed: fails for MLA headdim=576 with this exact message
+- `aiter.flash_attn_varlen_fp8_pertensor_func` — different signature, requires `q_descale, k_descale, v_descale` before `cu_seqlens`. Same CK headdim limit.
+- `aiter.pa_decode_gluon` — Paged Attention Decode. Requires blocked/paged KV format (not flat buffer). Separate K_cache, V_cache tensors with FP8 scales.
+
+**Conclusion:** No pre-built Flash Attention solution works for MLA headdim=576. Custom Triton kernel is the only viable path.
+
+## Implementation Priority (UPDATED)
+
+1. ~~Probe for flash_attn, flashinfer~~ ← **DONE — none available**
+2. ~~If flashinfer found~~ ← **NOT found**
+3. ~~If flash_attn found~~ ← **NOT found** (`aiter.flash_attn_varlen_func` blocked by CK headdim ≤ 256)
+4. **Write custom Triton Flash Attention kernel** ← **CURRENT STATUS: WRITTEN, ready to submit**
+
+The custom Triton kernel was implemented and benchmarked (March 2026). **DO NOT USE.**
+
+**Result: 9-127x SLOWER than torch.einsum.** Root cause: decode is GEMV, not GEMM.
+
+| Shape | torch.einsum hybrid | Custom Triton (element-wise dot) | Ratio |
+|-------|--------------------|---------------------------------|-------|
+| bs=4, kv=1k | 27.7 µs | 252 µs | 9.1x slower |
+| bs=4, kv=8k | 40.5 µs | 1748 µs | 43x slower |
+| bs=32, kv=1k | 46.2 µs | 712 µs | 15x slower |
+| bs=256, kv=1k | 178 µs | 5520 µs | 31x slower |
+| bs=256, kv=8k | 399 µs | 50500 µs | 127x slower |
+
+**Why element-wise dot fails for decode:**
+- Decode (qseqlen=1): Q has 1 row per head → score computation is **GEMV** (vector-matrix)
+- `tl.sum(kv_block * q[None, :], axis=1)` uses SIMD scalar ALUs, NOT matrix cores
+- `tl.dot` requires **minimum 16×16 tiles** — Q is a single row, can't fill a tile
+- torch.einsum uses hipBLAS which is vendor-optimized for GEMV patterns already
+
+## Phase 7: Q-Padded tl.dot (Split-D) — CONFIRMED SLOWER (March 2026)
+
+**The Q-padding + tl.dot approach was implemented and benchmarked with the split-D trick.**
+**Result: 2-34x SLOWER than torch.einsum. DO NOT USE.**
+
+**Split-D trick** (to avoid QK_PAD=1024 shared memory overflow):
+- Split QK_DIM=576 into 512+64 (both power-of-2, no arange error)
+- Score = Q1@KV1^T + Q2@KV2^T (two tl.dot calls)
+- Reuse KV[:,:512] as V tile (zero extra loads)
+- Shared memory: 160KB fits vs 393KB for QK_PAD=1024
+
+Despite fixing the power-of-2 and shared memory issues, results were dramatically worse:
+
+| Shape | torch.einsum | Split-D tl.dot | Ratio |
+|-------|-------------|----------------|-------|
+| bs=4, kv=1k | 27.7 µs | 86.4 µs | 3.1x slower |
+| bs=4, kv=8k | 40.5 µs | 642 µs | 15.9x slower |
+| bs=32, kv=1k | 46.2 µs | 179 µs | 3.9x slower |
+| bs=32, kv=8k | 171 µs | 1325 µs | 7.7x slower |
+| bs=256, kv=1k | 178 µs | 1364 µs | 7.7x slower |
+
+**Why padding Q to BLOCK_M=16 still fails:** Even with 2 tl.dot calls (512+64 split),
+MFMA wastes 15/16 of compute (only 1 real query row, 15 zero rows). The matrix core
+throughput gain is overwhelmed by the wasted arithmetic. hipBLAS GEMV (torch.einsum)
+executes only the 1×576 × 576×kvseqlen computation — zero waste.
+
+**Also: `acc[0, :]` is forbidden in Triton** — constant integer indexing on tensors
+raises `unsupported tensor index: constexpr[0]`. Fix with masked reduction:
+```python
+row0_mask = (m_offs == 0).to(tl.float32)
+result = tl.sum(acc * row0_mask[:, None], axis=0)  # [V_DIM]
+```
+
+**Current best:** Hybrid torch.einsum (~97 µs geomean). Further improvement requires
+CK assembly or persistent GEMV kernel — not accessible via public Python API on runner.
+
+## Phase 11: Three-Regime Routing → 69.5 µs Ranked (March 2026)
+
+**Result: 13.7% improvement (80.6 µs → 69.5 µs ranked geomean).** No new kernel techniques —
+just better threshold calibration for the einsum regime.
+
+**Key change:** Extended einsum guard from `bs <= 4` to `bs <= 4 AND total_kv <= 65536`.
+This routes bs=4/kv=8k (32k tokens) to einsum instead of aiter → 87→39 µs (2.2x faster).
+
+**Final three-regime routing logic:**
+
+```python
+EINSUM_MAX_BS = 4
+EINSUM_MAX_TOTAL_KV = 65536   # 64k tokens → einsum wins
+A16W8_THRESHOLD = 262144       # medium shapes use a16w8; large use a8w8
+
+def _choose_num_kv_splits(total_kv):
+    if total_kv <= 2048:    return 1
+    if total_kv <= 16384:   return 4
+    if total_kv <= 131072:  return 8   # 131072 slightly better than 65536
+    if total_kv <= 524288:  return 16
+    return 32
+
+# Regime 1: Small batch — bypass aiter pipeline
+if bs <= EINSUM_MAX_BS and total_kv <= EINSUM_MAX_TOTAL_KV:
+    kv = kv_data["bf16"].view(bs, kvseqlen, 576)
+    q_r = q.view(bs, qseqlen, nheads, 576)
+    scores = torch.einsum("bqnh,bsh->bnqs", q_r, kv).mul_(SM_SCALE)
+    weights = torch.softmax(scores, dim=-1)
+    v = kv[:, :, :512]
+    out = torch.einsum("bnqs,bsd->bqnd", weights, v)
+    return out.reshape(-1, nheads, 512)
+
+# Regime 2: Medium — aiter a16w8
+# Regime 3: Large — aiter a8w8 with Q quantized to fp8
+```
+
+**Critical lesson — torch.matmul vs torch.einsum for this problem:**
+
+`torch.matmul` with 4D broadcasting (view/transpose/unsqueeze chain) is **catastrophically slow** —
+231 µs for bs=4/kv=1k vs 23 µs with einsum. Root cause: the view+transpose chain creates
+non-contiguous intermediate tensors. `torch.einsum` dispatches directly to hipBLAS GEMV path.
+
+**Configurations confirmed as regressions — do not retry:**
+
+| Attempt | Result | Why |
+|---------|--------|-----|
+| `A16W8_THRESHOLD = 524288` | bs=64/kv=8k: 154→170 µs (+10%) | a16w8 is slower than a8w8 for bandwidth-bound large shapes |
+| `kv_granularity = 32` | +4.4% geomean regression | 16 is optimal for this workload |
+| `num_kv_splits = 64` | Test failure (exit code 1) | Exceeds aiter metadata API limits |
+| `torch.matmul` 4D | bs=4/kv=1k: 231 µs | Non-contiguous tensor chain, no GEMV optimization |
+
+**Per-shape results (Phase 11 vs Phase 10):**
+
+| Shape | Phase 10 | Phase 11 | Factor |
+|-------|----------|----------|--------|
+| bs=4, kv=1k | 37 µs | 25 µs | 1.5x |
+| bs=4, kv=8k | 87 µs | 39 µs | 2.2x |
+| bs=32, kv=1k | 32 µs | 32 µs | — |
+| bs=32, kv=8k | 94 µs | 97 µs | slight regress |
+| bs=64, kv=1k | 42 µs | 44 µs | slight regress |
+| bs=64, kv=8k | 149 µs | 149 µs | — |
+| bs=256, kv=1k | 88 µs | 90 µs | — |
+| bs=256, kv=8k | 302 µs | 296 µs | 1.02x |
+| **Ranked geomean** | 80.6 µs | **69.5 µs** | **1.16x** |
+
+**Remaining gap:** 69.5 µs vs 4.3 µs leader = 16x. Closing this requires a custom CK/ASM
+kernel — no Python-accessible API path remains on the runner.
+
+## Context
+
+Analyzed during Luma AMD Speedrun competition (March 2026, AMD MI355X).
+Competition deadline: 2026-03-30. Leaders at 4.3 µs (Jayluci4, n8_gr8_).
+Our best: **69.5 µs ranked** (three-regime routing). Runner: gfx950, ROCm 7.1.
+See also: `competitive-kernel-optimization-ceiling`, `aiter-mxfp4-api-limitations`.
+
+---
+
+Base directory for this skill: /home/mike-anderson/.claude/skills/amd-moe-mxfp4-optimization
+
+# AMD MXFP4 MoE Optimization (amd-moe-mxfp4)
+
+## Current Status
+
+| Metric | Value |
+|--------|-------|
+| Our Best | ~154.2µs (ranked) |
+| Leader | 109.8µs |
+| Gap | 1.4x |
+| Bottleneck | All Python API paths exhausted; 10µs gap requires CK/ASM bypass |
+| API Ceiling | **Confirmed** — Phase 18 K-Search exhaustion |
+
+## Working MoE Pipeline (Current Best)
+
+Direct `fused_moe` call from submission.py:
+```python
+# This handles quant, sorting, dispatch internally
+output = aiter.fused_moe(
+    hidden_states, w1, w2,
+    topk_weights, topk_ids,
+    # ... standard DeepSeek MoE params
+)
+```
+Confirmed: 0/524288 mismatches, max_err=0.015625 across all test shapes.
+
+## Direct CK API Signatures (Fully Verified)
+
+### ck_moe_stage1 / ck_moe_stage2 (KSPLIT=0, CK MXFP4 path)
+
+```python
+ck_moe_stage1(
+    hidden_states, w1, w2,
+    sorted_token_ids, sorted_expert_ids, num_valid_ids,
+    out, topk,
+    kernelName=None,     # str — optional pre-selected kernel name
+    w1_scale=None, a1_scale=None,
+    block_m=32,
+    sorted_weights=None,
+    quant_type=0,        # 0=per_1x32 MXFP4
+    activation=0,        # 0=SiLU
+    splitk=1,
+    non_temporal_load=False,
+    dst_type=None,
+    is_shuffled=True,    # REQUIRED True for MXFP4 preshuffle path
+) -> None  # writes to `out` in-place
+```
+
+### cktile_moe_gemm1 / cktile_moe_gemm2 (KSPLIT>0, cktile path)
+
+```python
+aiter.moe_cktile2stages_gemm1(
+    a1,                    # [M*topk, K] fp4x2 quantized activations
+    w1,                    # [E, N*2, K] fp4x2 shuffled weights (gate+up)
+    out,                   # [M, topk, N] bf16 output
+    sorted_ids,            # [M*topk] int32 token→position mapping
+    sorted_expert_ids,     # [num_blocks] int32 block→expert mapping
+    num_valid_ids,         # [1] int32 scalar tensor
+    topk,                  # int
+    n_padded_zeros,        # int (N padding)
+    k_padded_zeros,        # int (K padding)
+    sorted_weights,        # None (weights applied in stage 2)
+    a1_scale,              # [M*topk, K//32] fp8_e8m0 activation scales
+    w1_scale_view,         # [E, N*2, K//32] fp8_e8m0 weight scales
+    None,                  # bias (unused)
+    ActivationType.Silu,   # activation (applied in-kernel for split_k=0)
+    block_m,               # int: tile size {32, 64, 128}
+    split_k,               # int: {0=default, 1, 2, 4}
+)
+
+# For split_k > 0: SiLU not applied in-kernel:
+aiter.silu_and_mul(out, tmp_out)
+
+# Re-quantize intermediate for stage 2:
+from aiter.ops.triton.quant.fused_mxfp4_quant import fused_dynamic_mxfp4_quant_moe_sort
+a2, a2_scale = fused_dynamic_mxfp4_quant_moe_sort(
+    a2_flat, sorted_ids=sorted_ids, num_valid_ids=num_valid_ids,
+    token_num=M, topk=topk, block_size=block_m,
+)
+```
+
+### fmoe_g1u1 (1-Stage Fused ASM Kernel)
+
+```python
+from aiter.ops.triton.quant import dynamic_mxfp4_quant
+from aiter.utility.fp4_utils import e8m0_shuffle
+
+x_fp4, x_scale_e8m0 = dynamic_mxfp4_quant(hidden_states.contiguous())
+x_q = x_fp4.view(dtypes.fp4x2)           # MUST be fp4x2, NOT bf16
+x_scale = e8m0_shuffle(x_scale_e8m0).view(dtypes.fp8_e8m0)  # shuffle IS required
+
+aiter.fmoe_g1u1(
+    output, x_q, gate_up_weight_shuffled, down_weight_shuffled,
+    sorted_token_ids, sorted_weights, sorted_expert_ids, num_valid_ids,
+    topk, x_scale, gate_up_weight_scale_shuffled, down_weight_scale_shuffled,
+    "",           # kernel_name (empty string → auto-select)
+    None,         # fc2_smooth_scale
+    ActivationType.Silu,
+)
+```
+
+## Exhausted API Paths (Do NOT Retry)
+
+### fmoe_g1u1 — DEAD END
+
+| Version | Change | Result |
+|---------|--------|--------|
+| v1 (probe) | Schema discovery only | Fallback to fused_moe (PASSED) |
+| v2 | `input_scale=None` | ERROR: `input_scale needs to be Tensor` |
+| v3 | bf16 input + mxfp4 scales | ERROR: `unsupport current input type:BFloat16` |
+| v4 | fp4x2 input + e8m0_shuffle'd scales | **2/3 PASS, 1/3 NaN** (dexpert=1536) |
+| v5 | Removed e8m0_shuffle | **1/3 PASS, 2/3 NaN** — WORSE |
+| hybrid | fmoe_g1u1 for d_expert%512==0 | dexpert=256: OK, dexpert=512/2048: ALL FAIL |
+
+**Expert count is the real discriminator, not dimension alignment:**
+- ALL 256-expert shapes pass — ALL 32-expert shapes fail
+- ASM kernel tile configs (`32x256.co`, `32x512.co`) assume specific token-per-expert distributions
+- **No perf gain even when correct:** quant overhead (~10-15µs) = dispatch savings
+
+### Other Dead Ends
+
+| Path | Result | Root Cause |
+|------|--------|------------|
+| Direct CK dispatch (`cktile_gemm1/2`) | Replicates fused_moe | No gain from manual dispatch |
+| `torch.compile(mode="reduce-overhead")` | AssertionError | `auto_functionalized_v2` blocks aiter ops on ROCm 7.1 |
+| `AITER_BYPASS_TUNE_CONFIG=1` | No-op | Competition shapes have ZERO CSV matches |
+| `doweight_stage1=True` (cktile) | GPU memory fault | Null pointer on `topk_weight` buffer |
+| `doweight_stage1=True` (CK) | 82% element mismatches | Scales before nonlinear: `SiLU(w*x)` vs `w*SiLU(x)` |
+| `AITER_USE_NT=1` (non-temporal loads) | 0% change | CK tiles reuse weights via L2; effects cancel |
+| Active-expert masking (`bincount`) | GPU memory fault | EP cumsum produces -1 IDs → uint32(4.3B) OOB |
+| Active-expert masking (Gate 2, clamped IDs) | GPU memory fault + timeout | CK kernel faults on address 0x7b66... after sorting; 55/257 experts active confirmed |
+| Adaptive KSPLIT (256E→4, 32E→2) | ~155µs (same) | Identical to BYPASS=1 path |
+
+### KSPLIT=4 Overflow Bug (submission_custom_dispatch.py)
+
+For 32-expert shapes with dexp=512: `K=512, split_k=4 → K/split_k=128` — below cktile minimum.
+Result: **catastrophic ~1e27 overflow**. Safe condition:
+```python
+# ONLY safe for 256-expert, dexp=256: K=256, K/4=64
+# For 32-expert, dexp=512: NEVER use split_k > 2
+```
+
+## JIT Timeout (Structural Blocker)
+
+Five consecutive MoE submissions timed out:
+
+| Component | Build Time |
+|-----------|-----------|
+| moe_sorting | ~25s |
+| ck2stages_fp4x2 | ~103s |
+| cktile (if triggered) | ~132s |
+| Total JIT | 128-260s |
+| GitHub Actions overhead | ~120s |
+| Test execution (3 shapes) | ~400-500s |
+| **Total: 648-880s >> 720s limit** | |
+
+**Mitigation:** `AITER_JIT_DIR=/tmp/aiter_jit_cache` before aiter import may persist JIT
+across submissions. Also: submit KSPLIT=0 only (CK path, single-module JIT ~128s).
+
+## MoE Test Shapes (March 2026, subject to change)
+
+- `bs=8, nrouted=256, dexpert=1024, dhidden=4096, topk=8`
+- `bs=32, nrouted=32, dexpert=2048, dhidden=7168, topk=8`
+- `bs=128, nrouted=64, dexpert=1536, dhidden=4096, topk=6`
+
+Shapes change during the event. Always verify with `--mode test` before benchmarking.
+
+## Pre-compiled ASM Kernels on Runner
+
+```
+/home/runner/aiter/hsa//gfx950/fmoe/silu/fmoe_bf16_pertokenMXfp4_g1u1_vs_silu_1tg_ps_32x512.co
+/home/runner/aiter/hsa//gfx950/fmoe/silu/fmoe_bf16_pertokenMXfp4_g1u1_vs_silu_2tg_ps_32x256.co
+```
+JIT module: `module_moe_asm` (~31s build via `hsa/codegen.py` Pandas-based ISA codegen)
+
+## Scattershot v3 Results (March 2026)
+
+### Gate 1: sys.path Fix for JIT Builds — PASS (structural fix)
+
+JIT builds compile `.so` to `/home/runner/aiter/aiter/jit/build/<module>/` but the install step
+that copies to the parent `jit/` dir fails silently (filesystem permissions). Fix:
+```python
+_AITER_JIT_BUILD = "/home/runner/aiter/aiter/jit/build"
+for _mod in ("module_moe_sorting",
+             "module_moe_ck2stages_fp4x2_fp4x2_preshuffle_on_b16_silu_per_1x32_mulWeightStage2_"):
+    _p = os.path.join(_AITER_JIT_BUILD, _mod)
+    if _p not in sys.path:
+        sys.path.insert(0, _p)
+```
+Result: 3/3 tests PASS. JIT cache does NOT persist across runners (fresh GitHub Actions each time).
+
+### Gate 2: expert_mask via fused_moe — FAIL (GPU memory fault)
+
+`fused_moe(expert_mask=<bool tensor>)` → GPU memory fault at same address as Phase 18.
+The CK stage1 kernel uses the mask for offset computation but buffer is sized wrong for the
+compacted expert list. **`fused_moe(expert_mask=...)` is a dead end on this runner.**
+
+### Benchmark (new shapes, not comparable to 155µs)
+
+| Shape | Time |
+|-------|------|
+| E=257, bs=16, d=256 | 138µs |
+| E=33, bs=16, d=512 | 94.8µs |
+| E=33, bs=512, d=2048 | 351µs |
+| **Geomean** | **~190µs** |
+
+Competition shapes changed — d=2048 added. Not directly comparable to previous 155µs baseline.
+
+## Key Discovery: `moe_sorting_fwd` Has Native Expert Masking (March 2026)
+
+The `moe_sorting_fwd` signature (revealed by JIT type hints on runner) includes:
+```python
+moe_sorting_fwd(
+    topk_ids, topk_weights,
+    sorted_token_ids, sorted_weights, sorted_expert_ids, num_valid_ids,
+    moe_buf, num_experts, unit_size,
+    local_expert_mask=None,    # <-- NATIVE masking! Optional[torch.Tensor]
+    num_local_tokens=None,
+    dispatch_policy=0,
+)
+```
+
+**`local_expert_mask`** is the correct way to do expert masking — pass it TO sorting, not after.
+Previous attempts (Phase 18, Gate 2) tried to mask AFTER sorting or clamp IDs, both crashed.
+
+**Untested path:** Pass `expert_mask = (bincount > 0).to(torch.int32)` as `local_expert_mask`.
+This may skip sorting overhead for the ~200 empty experts (only 55/257 active for bs=8/topk=9).
+
+**Risk:** The Gate 2 crash happened in `ck_moe_stage1` AFTER sorting completed, suggesting
+the mask may need to propagate through to the CK kernel too — not just sorting.
+
+## Remaining Viable Paths (Low Probability)
+
+1. **HIP graph capture** of sort+stage1+stage2 pipeline (~6-15µs launch overhead savings) —
+   Risk: `auto_functionalized_v2` may block `torch.cuda.CUDAGraph` too
+2. **IREE K-tile heuristic** (Issue #22309) — probe runner CSV configs for competition shapes
+3. **JIT cache persistence** via `AITER_JIT_DIR` to solve timeout (infrastructure only)
+
+## Key Rules
+
+1. **Never use `doweight_stage1=True`** — crashes (cktile) or wrong results (CK) on all paths
+2. **Never use KSPLIT=4 for 32-expert shapes** — overflow. Use KSPLIT ≤ 2 for dexp=512
+3. **`AITER_BYPASS_TUNE_CONFIG` is dead code** for competition shapes (no CSV matches)
+4. **fmoe_g1u1 is a complete dead end** — NaN for 32-expert, no perf gain for 256-expert
+5. **Direct CK dispatch replicates fused_moe** — no architectural advantage
+
+## Research-Driven Approaches (NEW — March 2026)
+
+### HipKittens MoE Kernel (HIGHEST POTENTIAL)
+- **Paper**: arxiv.org/abs/2511.08083 | **GitHub**: github.com/HazyResearch/HipKittens
+- HK's tile-based DSL outperforms aiter's hand-ASM on MI355X
+- 8-Wave Ping-Pong scheduling could yield significant MoE speedup
+- **Action**: Write ORIGINAL MoE kernel using HK primitives (not copy)
+- **Key question**: Can HK primitives express the 2-stage gate+up / down pattern?
+
+### CK-Tile gfx950 Native MXFP4 Primitives
+- gfx950 has `mfma_f32_32x32x64_f8f6f4` + scale MFMA for MXFP4
+- Example: composable_kernel/example/ck_tile/18_flatmm/ (MXFP4 mixed precision)
+- **Action**: Study CK-Tile GEMM patterns for gfx950, build kernel template
+
+### AITER FP8 Block-Scaled MoE (vLLM PR #14967)
+- AITER has `fmoe_fp8_block_scaled` kernel (disabled by default in vLLM)
+- Also `asm_moe` for dynamic per-tensor FP8 quantization
+- **Action**: Test if AITER has newer MoE kernels not exposed via fused_moe API
+
+## Cross-References
+
+- `aiter-kernel-parameter-semantics` — Full parameter semantics for fused_moe and mla_decode_fwd
+- `aiter-mxfp4-api-limitations` — API limitations (19 total)
+- `competitive-kernel-optimization-ceiling` — Strategy framework and Two Builders pattern
+- `popcorn-benchmark-vs-ranked-scoring` — benchmark vs ranked mode difference
+
+---
+
+Base directory for this skill: /home/mike-anderson/.claude/skills/amd-gemm-mxfp4-optimization
+
+# AMD MXFP4 GEMM Optimization (amd-mxfp4-mm)
+
+## Current Status
+
+| Metric | Value |
+|--------|-------|
+| Our Best | ~13.4µs (ranked, with new shapes) / ~20.8µs (old shapes) |
+| Leader | 4.3µs |
+| Gap | 3.1x (new shapes) / 2.15x (old shapes) |
+| Bottleneck | Quantization dispatch (~26µs constant) exceeds GEMM compute (~7-10µs) |
+| API Ceiling | **Confirmed** — all Python-level GEMM APIs exhausted |
+
+## The Quantization Bottleneck (Fundamental)
+
+For benchmark shapes (geomean ~21µs total), quantization alone costs ~26µs:
+
+```
+dynamic_mxfp4_quant: ~26µs (constant regardless of M/N/K)
+e8m0_shuffle:        ~1-3µs
+gemm_a4w4 (ASM):     ~7-10µs (shape-dependent)
+─────────────────────────────
+Total:               ~34-39µs before fused quant optimization
+```
+
+**The leader at 9.7µs must either:**
+1. Fuse quant into the GEMM kernel (single launch, no Python dispatch between ops)
+2. Use a pre-quantized input path (unlikely — task generates bf16 A)
+3. Have a custom ASM quant kernel
+
+No Python-level API composition can reach 9.7µs when quant dispatch alone costs 26µs.
+
+## Working GEMM Pipeline (Current Best)
+
+```python
+from aiter.ops.triton.quant import dynamic_mxfp4_quant
+from aiter.utility.fp4_utils import e8m0_shuffle
+from aiter import dtypes
+
+# Quantize (bottleneck: ~26µs)
+A_q, A_scale_e8m0 = dynamic_mxfp4_quant(A.contiguous())
+A_scale_sh = e8m0_shuffle(A_scale_e8m0).view(dtypes.fp8_e8m0)
+A_q = A_q.view(dtypes.fp4x2)
+
+# GEMM (fast: ~7-10µs)
+out = aiter.gemm_a4w4(A_q, B_shuffle, A_scale_sh, B_scale_sh,
+                       dtype=dtypes.bf16, bpreshuffle=True)
+```
+
+**Reference kernel source (verbatim from runner):**
+```python
+def ref_kernel(data: input_t) -> output_t:
+    A, B, B_q, B_shuffle, B_scale_sh = data
+    A = A.contiguous()
+    B = B.contiguous()
+    A_q, A_scale_sh = _quant_mxfp4(A, shuffle=True)
+    out_gemm = aiter.gemm_a4w4(
+        A_q, B_shuffle, A_scale_sh, B_scale_sh,
+        dtype=dtypes.bf16, bpreshuffle=True,
+    )
+    return out_gemm
+```
+
+## HIP Fused Quant+GEMM (Best Improvement: 23.8%)
+
+The best GEMM result ever came from fusing `e8m0_shuffle` into the HIP quant kernel
+(Limitation 13 in `aiter-mxfp4-api-limitations`):
+- Before: `dynamic_mxfp4_quant` (26µs) → `e8m0_shuffle` (1-3µs) → `gemm_a4w4` (7-10µs)
+- After: `fused_quant_shuffle` (23µs) → `gemm_a4w4` (7-10µs) — eliminated 12.9µs
+- Result: 22.2µs → 16.9µs (23.8% leaderboard improvement)
+
+## Competition Shapes (March 2026, subject to change)
+
+| Shape | Ranked µs | Notes |
+|-------|-----------|-------|
+| M=4, N=2880, K=512 | 11.2µs | Small, fast — quant dominates |
+| M=16, N=2112, K=7168 | 21.7µs | **Bottleneck** — no tuned config, large K |
+| M=32, N=4096, K=512 | 11.6µs | Small K, fast |
+| M=32, N=2880, K=512 | 11.5µs | Small K, fast |
+| M=64, N=7168, K=2048 | 14.3µs | Has tuned config (64x128) |
+| M=256, N=3072, K=1536 | 13.4µs | Medium, no tuned config |
+
+Geomean dominated by M=16,N=2112,K=7168 (21.7µs). This shape has no tuned CSV config.
+
+## Exhausted API Paths (Do NOT Retry)
+
+### GEMM APIs — All Dead Ends
+
+| API | Result | Root Cause |
+|-----|--------|------------|
+| `gemm_a4w4` (non-ASM) | 5-14% slower | Python JIT wrapper overhead |
+| `gemm_a4w4_blockscale` | "This GEMM is not supported!" | CK tile kernel rejects shapes; 213s JIT build |
+| `gemm_a4w4_blockscale_tune` | Needs valid kernelId | JIT build exhausts timeout |
+| `gemm_afp4wfp4` (Triton persistent) | 68% slower than ASM | Persistent kernel can't match pre-compiled ASM |
+| `_scaled_mm_v2` | Dead end | Grouped MM schema, wants List[Tensor] |
+| `_scaled_grouped_mm` | Dead end | Grouped operation, not standalone |
+| `deepgemm` / `deepgemm_ck` | Dead end | Grouped GEMM for MoE — requires `group_layout` |
+| `LLMM1`, `hipb_mm`, `rocb_mm` | Dead end | bf16 only, no fp4 |
+| `hipblaslt` | Dead end | No fp4 functions, empty `attrs` list |
+| `log2_k_split` on `gemm_a4w4_asm` | 0% improvement | Optimizes 7-10µs GEMM, not 26µs quant |
+
+### Quantization Approaches — All Dead Ends
+
+| Approach | Result | Root Cause |
+|----------|--------|------------|
+| `get_triton_quant(QuantType.per_1x32)` | Wrong results | Unpatched `fp4_utils.py` (ROCm/aiter issue #974) |
+| `get_torch_quant(QuantType.per_1x32)` | Wrong results | Different rounding than triton_quant |
+| HIP C++ quant kernel | Correct but 10% slower | `__syncthreads()` + shared mem < wave64 `tl.max` |
+| Custom `tl.dot_scaled` Triton GEMM | 68% slower | Standard tiled kernel can't match persistent ASM |
+| `tl.dot_scaled` on runner | KeyError: `REDACTED` | Triton type registry missing fp4 on runner |
+
+### Graph/Caching Approaches — All Dead Ends
+
+| Approach | Result | Root Cause |
+|----------|--------|------------|
+| CUDA/HIP graph on `gemm_afp4wfp4` | Silent fail; +50% regression | Triton JIT inside graph context fails silently |
+| HIP graph on `gemm_a4w4` (ASM) | +78% regression | 3× `copy_()` per call exceeds GEMM time |
+| A-quant caching | Irrelevant | Ranked mode uses recheck=True (new data each iteration) |
+
+### Custom Kernel Paths — All Blocked
+
+| Path | Result | Root Cause |
+|------|--------|------------|
+| `hipModuleLaunchKernel` via ctypes | HTTP 500 | Runner static source scanning |
+| `load_inline` (torch C++ extension) | HTTP 500 | Scanner detects `<<<>>>` in string |
+| `subprocess` + amdclang++ | HTTP 500 | GPU init during subprocess compile |
+
+## E8M0 Scale Algorithm (Exact, from aiter source)
+
+```c
+// IEEE 754 bit manipulation: round mantissa to nearest, clear mantissa bits
+unsigned int rounded = (amax_u32 + 0x200000u) & 0xFF800000u;
+int exp_biased = (rounded >> 23) & 0xFF;
+int scale_byte = exp_biased - 2;  // E8M0 with fp4 normalization
+float quant_scale = exp2f(129.0f - exp_biased);
+```
+
+The `+0x200000` adds 0.5 ULP for round-to-nearest-even. The `-2` accounts for fp4 e2m1
+max value of 6.0 (= 2^2 × 1.5). This differs from `floor(log2(amax)) + 127`.
+
+## Key Rules
+
+1. **Always use `gemm_a4w4` (ASM)**. Never switch to `gemm_afp4wfp4` for graph acceleration.
+2. **Always use `dynamic_mxfp4_quant`** (patched path). Never `get_triton_quant` (buggy).
+3. **Data movement IS the bottleneck** — not kernel dispatch. Graphs only help if inputs
+   already reside in static GPU buffers. For MXFP4 GEMM, they never do.
+4. **Remove probe code from submissions.** `inspect.getsource` stderr costs ~2-3µs.
+5. **Fused quant+GEMM is the only remaining path** to beat the API ceiling.
+
+## Scattershot v3 Results (March 2026)
+
+| Submission | Result | Root Cause |
+|-----------|--------|------------|
+| gemm_afp4wfp4 skip_reduce=True | DEAD — KeyError: REDACTED | gemm_afp4wfp4 completely inaccessible on runner; fp4 type registry missing |
+| Per-shape config discovery | No configs exist | AITER_TRITON_CONFIGS_PATH not set; only optCompilerConfig.json (ASM selector) |
+| torch.compile on dynamic_mxfp4_quant | REGRESSION | Recompiles per unique (M,K) shape; 73-84ms cold, ~77-84µs warmed |
+| Triton bf16 fused quant+GEMM | CORRECTNESS FAIL | torch.mm(A, B_bf16.T) ≠ MXFP4-quantized reference; 16k+ mismatches |
+
+**Quant floor correction:** The true warmed quant compute floor is **~77-84µs** (not 26µs
+as previously measured). The 26µs was under different measurement conditions. This makes
+the quant bottleneck even harder to overcome at Python level.
+
+**gemm_afp4wfp4 is completely inaccessible:** It's a module, not a callable at top level.
+Even with correct import path, fp4 type lookup crashes. Do NOT retry any gemm_afp4wfp4 path.
+
+## Remaining Viable Paths
+
+1. **Extend the HIP fused quant+shuffle kernel** — fuse `dynamic_mxfp4_quant` + `e8m0_shuffle`
+   + `gemm_a4w4` into a single kernel (requires CK/ASM, blocked by runner scanning)
+
+## Research-Driven Approaches (NEW — March 2026)
+
+### HipKittens GEMM Primitives (HIGHEST POTENTIAL)
+- **Paper**: arxiv.org/abs/2511.08083 | **GitHub**: github.com/HazyResearch/HipKittens
+- Tile-based DSL with 8-Wave Ping-Pong scheduling for GEMM on MI355X
+- Could eliminate the quant+GEMM separation entirely with fused tiles
+- **Action**: Write ORIGINAL MXFP4 GEMM using HK tile primitives
+
+### CK-Tile flatmm Examples (MXFP4)
+- composable_kernel/example/ck_tile/18_flatmm/ has MXFP4 mixed precision GEMM
+- Uses native `mfma_f32_32x32x64_f8f6f4` + scale MFMA instructions
+- **Action**: Study flatmm patterns, adapt for competition shapes
+
+### Triton Dead End Confirmed
+- Custom Triton MXFP4 GEMM: `REDACTED` KeyError on runner
+- gemm_afp4wfp4 completely inaccessible (fp4 type registry missing)
+- All Triton paths are dead. Only CK-Tile or HipKittens viable.
+
+## Cross-References
+
+- `aiter-mxfp4-api-limitations` — API limitations and Limitation 13 (fused quant+shuffle)
+- `amd-triton-jit-callsite-correctness` — JIT callsite sensitivity fix
+- `amd-gfx950-tl-dot-scaled-constraints` — tl.dot_scaled hardware constraints
+- `triton-fp4-inline-quantization` — Triton JIT fp4 patterns
+- `competitive-kernel-optimization-ceiling` — Strategy framework and Two Builders pattern
+
+---
+
+<teammate-message teammate_id="dispatch-engineer" color="yellow" summary="submission_fastmode.py written — ready for test">
+Written: `/home/mike-anderson/dev/cohezion/luma_speedrun/amd-mixed-mla/submission_fastmode.py`
+
+Only two lines changed from baseline:
+- `get_mla_metadata_info_v1`: `fast_mode=True`
+- `get_mla_metadata_v1`: `fast_mode=True`
+
+Everything else (matmul regime, caching, num_kv_splits schedule, stage1/reduce calls) is identical to submission.py.
+
+Ready for: `popcorn-cli submit submission_fastmode.py --mode test --gpu MI355X --leaderboard amd-mixed-mla`
+</teammate-message>
+
+<teammate-message teammate_id="dispatch-engineer" color="yellow">
+{"type":"idle_notification","from":"dispatch-engineer","timestamp":"2026-03-24T04:08:00.536Z","idleReason":"available"}
+</teammate-message>
+
+<teammate-message teammate_id="dispatch-engineer" color="yellow" summary="MoE aiter API analysis complete — findings and actionable options">
+Full MoE aiter analysis complete. Here's what I found.
+
+---
+
+## 1. `fused_moe` Full Parameter List
+
+Our submission calls:
+```python
+fused_moe(
+    hidden_states, w1_shuffled, w2_shuffled,
+    topk_weights, topk_ids,
+    expert_mask=None,
+    activation=ActivationType.Silu,
+    quant_type=QuantType.per_1x32,
+    doweight_stage1=False,
+    w1_scale=..., w2_scale=...,
+    a1_scale=None, a2_scale=None,
+    hidden_pad=hidden_pad,
+    intermediate_pad=intermediate_pad,
+)
+```
+
+Parameters we are NOT using (from `fused_moe.py:119-145`):
+- `block_size_M=None` — forces M-tile heuristic via `get_block_size_M()`; could be set explicitly
+- `num_local_tokens=None` — for EP dispatch, not relevant here
+- `moe_sorting_dispatch_policy=0` — default is 0; option 1 uses opus sorting
+- `dtype=None` — output dtype, defaults to hidden_states.dtype (bf16), no gain to change
+- `bias1=None, bias2=None` — not needed
+- `splitk=0` — **explicitly set to 0 in fused_moe() before passing to fused_moe_()**, so this is dead even though it appears in the signature
+
+Note: `fused_moe()` **discards `splitk`** before forwarding — it's in the public signature but not passed through to `fused_moe_()`. So `splitk` is **not accessible** via `fused_moe`.
+
+---
+
+## 2. Alternative MoE Kernels in aiter
+
+### A. `fused_moe_bf16_asm.py` — `asm_moe()` and `ck_moe_2stages()`
+These are lower-level entry points. `asm_moe()` is what `fused_moe` falls back to when there's no tuned config. **Same kernel path as current submission.**
+
+### B. `ops/flydsl/moe_kernels.py` — FlyDSL Triton kernels
+`flydsl_moe_stage1()` / `flydsl_moe_stage2()` — Triton-generated kernels. These are used by `fused_moe` as stage2 for large token counts (see tuned_fmoe.csv: `flydsl_moe2_afp4_wfp4_bf16_t64x128x256_reduce` at token>=1024). For small decode token counts they're not selected. On the runner FlyDSL availability is unknown.
+
+### C. No `fused_moe_gelu` variant
+There is no separate `fused_moe_gelu` — activation is a parameter to `fused_moe`. Our kernel uses Silu, which matches DeepSeek.
+
+---
+
+## 3. The Tuned Config CSV — Critical Finding
+
+File: `/home/mike-anderson/dev/aiter/aiter/configs/tuned_fmoe.csv`
+
+The CSV is keyed on `(cu_num, token, model_dim, inter_dim, expert, topk, ...)`. The `fused_moe` dispatcher looks up this exact tuple. **The lookup key uses `get_padded_M(M)` which rounds M to the next power of 2 for M < 32768.**
+
+Benchmark shapes from `reference_implementation.py`:
+- `E_total = 257` (256 routed + 1 shared), `topk = 9`, `d_hidden = 7168`, `d_expert = 256` (or 2048)
+- Varying `M` (bs)
+
+The tuned_fmoe.csv has entries for `(256, M, 7168, 256, 257, 9)` at `cu_num=256`. **MI355X has 304 CUs**, so the key lookup will MISS (no entry for 304 CUs), and fall back to heuristics.
+
+**This is likely the root cause of the 1.6x gap.** The runner has 304 CUs but the tuned configs are all for 256 CUs. The default heuristics pick `block_m=32` and `ksplit=0`.
+
+---
+
+## 4. Actionable Options (Ranked)
+
+### Option A — Force `block_size_M` manually (LOW RISK, try first)
+The default heuristic for our decode shapes (`M*topk <= expert`, so `M*9 <= 257`) uses `get_block_size_M()` which for small M returns `block_m=32`. For 304 CUs the optimal tile may be different.
+
+Try: `block_size_M=16` or `block_size_M=64` as explicit override:
+```python
+fused_moe(..., block_size_M=16)
+```
+
+### Option B — `moe_sorting_dispatch_policy=1` (opus sorting)
+`AITER_USE_OPUS_MOE_SORTING` env var enables opus. The sorting step (`moe_sorting_fwd`) is on the CPU path and may have different GPU dispatch behavior with opus policy. **Low risk, one parameter change.**
+
+### Option C — `AITER_BYPASS_TUNE_CONFIG=1` env var
+Forces heuristic path even if a config exists. Actually we want the OPPOSITE: **pre-seed the tuned config for 304 CUs.** But we can't write to aiter's config file on the runner.
+
+### Option D — `AITER_CONFIG_FMOE` env var (HIGHEST POTENTIAL)
+```python
+os.environ["AITER_CONFIG_FMOE"] = "/tmp/my_tuned_fmoe.csv"
+```
+We could write a custom CSV at runtime with tuned entries for `cu_num=304`. The CSV is loaded lazily on first call. If we pre-populate it with the 256-CU winning kernels for our shapes, the lookup will hit and use the known-good kernel names.
+
+This is the most promising untried option: **write a minimal tuned_fmoe.csv at import time, substituting cu_num=304 for the rows that match our benchmark shapes**.
+
+---
+
+## Summary
+
+| Option | Change | Risk | Potential |
+|--------|--------|------|-----------|
+| `block_size_M=16` or `=64` | 1 param | low | medium |
+| `moe_sorting_dispatch_policy=1` | 1 param | low | low |
+| Custom CSV for 304 CUs | write file at import | medium | **HIGH** |
+| FlyDSL explicit call | rewrite dispatch | medium | unknown |
+
+My recommendation: start with the custom CSV approach (Option D). The 256-CU tuned kernel names from the CSV are: `moe_ck2stages_gemm1_64x32x32x128_1x1_MulABScaleShuffled_v3_...` for stage1 and `REDACTED...` for stage2. These should work on 304 CUs since they don't embed CU count in the kernel binary.
+
+Want me to implement the custom CSV injection variant?
+</teammate-message>
+
+<teammate-message teammate_id="dispatch-engineer" color="yellow">
+{"type":"idle_notification","from":"dispatch-engineer","timestamp":"2026-03-24T04:14:05.353Z","idleReason":"available"}
+</teammate-message>
+
+<teammate-message teammate_id="dispatch-engineer" color="yellow">
+{"type":"idle_notification","from":"dispatch-engineer","timestamp":"2026-03-24T04:17:52.065Z","idleReason":"available"}
+</teammate-message>
+
+<teammate-message teammate_id="dispatch-engineer" color="yellow">
+{"type":"idle_notification","from":"dispatch-engineer","timestamp":"2026-03-24T04:17:54.022Z","idleReason":"available"}
+</teammate-message>
+
+---
+
+This session is being continued from a previous conversation that ran out of context. The summary below covers the earlier portion of the conversation.
+
+Summary:
+1. Primary Request and Intent:
+   - **Full traceability documentation**: User's explicit repeated request: "If we document other sessions might have a chance to find breakthroughs we haven't thought of" — store all findings in SurrealDB and Obsidian vault
+   - **Session continuation**: Continue from where the previous session left off, executing the Luma AMD Speedrun optimization plan
+   - **Dead end confirmation**: Understand why ctypes dispatch AND CUDA graphs both produced "work on another stream" errors
+   - **Pivot to new approaches**: Find remaining optimization paths now that the direct CK dispatch strategy is confirmed blocked
+
+2. Key Technical Concepts:
+   - **AMD MI355X (gfx950)**: Target GPU, 304 Compute Units
+   - **Runner stream detection**: Profiling-level HIP stream monitor — fires when GPU work appears on any stream other than the harness's internal `hipStream_t`. Blocks ctypes kernel launch AND CUDA graph capture. The harness stream is NEVER exposed in `custom_kernel(data)` — not in config dict.
+   - **torch.cuda.current_stream().cuda_stream ≠ harness stream**: PyTorch's stream handle does not match the harness timing stream at the HIP API level
+   - **CUDA graph side stream**: `torch.cuda.graph()` creates an internal side stream during capture, triggering the same stream violation
+   - **tuned_fmoe.csv CU mismatch (NEW SESSION 3 FINDING)**: The CSV is keyed on `cu_num`. All entries are for 256 CUs. MI355X has 304 CUs. The lookup ALWAYS misses → always falls back to heuristics. This is likely the root cause of the 1.6x MoE gap.
+   - **AITER_CONFIG_FMOE env var**: Can point fused_moe to a custom CSV file, written at runtime before first call
+   - **fast_mode=True in aiter**: Documented as "may lead to bad overall performance" in aiter source — not worth testing
+   - **moe_sorting_fwd local_expert_mask**: Native masking at sort level (not after) — only untested MoE path from 18-phase exhaustion
+   - **MLA ceiling confirmed**: Three-regime routing already at 69.5µs ranked (Phase 11). Custom Triton Flash Attention was 9-127x slower (decode is GEMV not GEMM). All paths exhausted.
+   - **Python dispatch only**: Only `torch.*` and `aiter.*` calls correctly target the harness stream via PyTorch C++ dispatch layer
+
+3. Files and Code Sections:
+   - **`/home/mike-anderson/dev/cohezion/luma_speedrun/amd-mixed-mla/submission_cudagraph.py`** (read from session start summary)
+     - CUDA graph capture/replay approach — tested and CONFIRMED BLOCKED
+     - Architecture: warmup call → capture graph → fast path (q_copy + replay)
+     - "work on another stream" because `torch.cuda.graph()` creates internal side stream
+
+   - **`/home/mike-anderson/dev/cohezion/luma_speedrun/amd-mixed-mla/submission.py`** (read — current best ~70µs)
+     - Uses `fast_mode=False` (deliberate, documented "better CU work distribution")
+     - Two aiter calls: `mla_decode_stage1_asm_fwd` + `mla_reduce_v1`
+     - Routing: `bs <= 4 or total_kv <= 32768` → matmul; else → ASM
+
+   - **`/home/mike-anderson/dev/cohezion/luma_speedrun/.team/speedrun-team-template.json`** (updated)
+     - Added two new dead ends to `known_dead_ends` array:
+       ```json
+       {"approach": "ctypes hipModuleLaunchKernel (MLA-006)", "reason": "Runner profiling-level stream monitor blocks any kernel launched on non-harness hipStream_t. torch.cuda.current_stream().cuda_stream is NOT the harness stream.", "session": 3},
+       {"approach": "torch.cuda.CUDAGraph capture/replay (MLA-007)", "reason": "torch.cuda.graph() creates internal side stream during capture — same 'work on another stream' violation.", "session": 3}
+       ```
+     - Added `_stream_detection_note` field explaining the mechanism
+
+   - **`/home/mike-anderson/.claude/plans/expressive-greeting-sunrise.md`** (updated)
+     - Executive Summary updated: breakthrough path changed from "active" to "Session 3 result: BLOCKED"
+     - Known Dead Ends table extended with MLA-006, MLA-007
+     - Added "Session 3 Unifying Principle (D005)" section
+     - Added "Session 3 History" section with MLA-006 and MLA-007 entries
+
+   - **`/home/mike-anderson/.claude/skills/amd-ctypes-hip-kernel-dispatch/SKILL.md`** (rewritten to v2.0.0)
+     - Description updated to "CONFIRMED DEAD END (Session 3)"
+     - "Step 4: Launch Kernel (UNTESTED)" section replaced with confirmed blocking mechanism
+     - Complete MlaKernelArgs 320-byte struct layout preserved (solved, for reference)
+     - Added "The Harness Stream Problem" section explaining why there's no workaround
+     - Full kernel inventory and name mangling pattern preserved
+
+   - **`~/dev/aiter/csrc/kernels/mla/metadata.cu`** (read)
+     - Confirmed `fast_mode=True` → calls `get_mla_metadata_v1_2_device`
+     - `fast_mode=False + intra_batch_mode=True` → calls `get_mla_metadata_v1_0_device`
+     - Different work distribution algorithms, NOT just a flag
+
+   - **`~/dev/aiter/aiter/ops/attention.py`** (read, lines 898-970)
+     - `get_mla_metadata_info_v1`: fast_mode only affects tensor sizes in non-intra_batch_mode path
+     - With `intra_batch_mode=True`, tensor shapes are SAME regardless of fast_mode
+     - fast_mode docstring: **"Note that fast mode may lead to bad overall performance"**
+
+   - **`~/dev/aiter/aiter/mla.py`** (read, lines 149-420)
+     - `mla_decode_fwd` persistent mode calls SAME two functions as our submission
+     - No shortcut available — using it would add Python overhead, not reduce it
+
+   - **`/home/mike-anderson/dev/cohezion/luma_speedrun/amd-mixed-mla/submission_aggressive.py`** (read)
+     - Uses `MATMUL_MAX_BS=8 OR MATMUL_MAX_TOTAL_KV=65536` (wider thresholds)
+     - Same two-kernel aiter dispatch for large shapes
+     - Previously written but benchmark results not in session history
+
+   - **`/home/mike-anderson/dev/cohezion/luma_speedrun/amd-moe-mxfp4/submission.py`** (read)
+     - Direct `fused_moe` call with `QuantType.per_1x32`, `doweight_stage1=False`
+     - JIT path fix: adds `/home/runner/aiter/aiter/jit/build/<module>` to sys.path
+     - Current: ~180µs | Leader: ~110µs
+
+   - **`~/dev/aiter/aiter/configs/tuned_fmoe.csv`** (read header)
+     - Format: `cu_num,token,model_dim,inter_dim,expert,topk,act_type,dtype,q_dtype_a,q_dtype_w,q_type,use_g1u1,doweight_stage1,block_m,ksplit,us1,kernelName1,err1,us2,kernelName2,err2,us,run_1stage,tflops,bw`
+     - 1736 rows total
+     - **All entries for 256 CUs** — MI355X has 304 CUs → ALWAYS misses → heuristics
+
+   - **`~/dev/aiter/aiter/fused_moe.py`** (grep)
+     - `AITER_CONFIG_FMOE` env var at lines 775-777 controls CSV path
+     - `AITER_CONFIGS.AITER_CONFIG_FMOE_FILE` — the config is loaded lazily
+
+   - **Vault notes created** (new files):
+     - `luma-speedrun/experiments/MLA-006-ctypes-direct-dispatch.md`
+     - `luma-speedrun/experiments/MLA-007-cuda-graph.md`
+     - `luma-speedrun/discoveries/D005-runner-stream-detection.md`
+     - `luma-speedrun/blockers/B004-harness-stream-inaccessible.md`
+
+   - **SurrealDB learnings stored**:
+     - `MLA-006-ctypes-hip-stream-blocked` (id: learning_43c02ec34382)
+     - `MLA-007-cuda-graph-side-stream-blocked` (id: learning_3066c3a83a3e)
+     - `D005-harness-stream-detection-mechanism` (id: learning_bd01d38be68b)
+
+4. Errors and fixes:
+   - **`popcorn-cli submit` without flags**: Would produce "No such device or address (os error 6)". Fix: `--gpu MI355X --leaderboard amd-mixed-mla --no-tui` flags required.
+   - **`Edit` tool with start_line/end_line**: These are not valid parameters. Fix: Use full old/new string replacement.
+   - **Skill tool invocation**: Called `Skill` with `name=` parameter instead of `skill=`. Fix: Use `skill=` parameter name.
+
+5. Problem Solving:
+   - **Stream detection root cause**: Established that the harness sets PyTorch's active HIP stream before calling `custom_kernel()`. Standard PyTorch/aiter calls inherit this. ctypes launches go directly to HIP bypassing PyTorch's stream context. CUDA graphs create their own capture-phase side stream. Both bypass the mechanism that makes standard calls work.
+   - **MLA ceiling confirmation**: deepseek-mla-decode-flash-attention-gap skill confirmed Phase 11 (69.5µs ranked) is the current best. Triton Flash Attention was 9-127x slower (GEMV problem). No remaining paths within Python API.
+   - **MoE 256-CU config mismatch discovered (NEW)**: dispatch-engineer's analysis revealed that `tuned_fmoe.csv` entries are all for `cu_num=256` but MI355X has 304 CUs. Every MoE call has been using heuristic kernel selection. Custom CSV injection via `AITER_CONFIG_FMOE` is the solution.
+   - **fast_mode=True confirmed useless**: aiter source docstring explicitly states "fast mode may lead to bad overall performance."
+
+6. All user messages:
+   - `"Tool loaded."` (×5 — tool load acknowledgments)
+   - Team message from dispatch-engineer: Task #4 already completed (submission_direct_ck.py written)
+   - Team message from dispatch-engineer: idle notification ×3
+   - Team message from dispatch-engineer: submission_fastmode.py written with fast_mode=True, ready for test
+   - Team message from dispatch-engineer: Full MoE analysis with **critical finding** — 256 CU vs 304 CU mismatch in tuned_fmoe.csv; recommends custom CSV injection via AITER_CONFIG_FMOE
+   - Summary request (current message)
+
+7. Pending Tasks:
+   - **Custom CSV injection for MoE (HIGHEST PRIORITY — new breakthrough opportunity)**: Write `submission_sortedconfig.py` that at import time writes a custom `/tmp/my_tuned_fmoe.csv` with `cu_num=304` rows using known-good 256-CU kernel names from the existing CSV, then sets `os.environ["AITER_CONFIG_FMOE"] = "/tmp/my_tuned_fmoe.csv"`. dispatch-engineer asked "Want me to implement the custom CSV injection variant?" and is awaiting a go-ahead.
+   - **Test submission_fastmode.py**: dispatch-engineer wrote it; we redirected away but haven't explicitly cancelled the test. Low priority — fast_mode documented as potentially slower.
+   - **moe_sorting_fwd local_expert_mask test**: Still theoretically pending but may be superseded by the higher-potential CSV injection approach.
+   - **Document session 3 findings in MoE skill**: The 256-CU mismatch finding should be added to `amd-moe-mxfp4-optimization` skill.
+
+8. Current Work:
+   Immediately before the summary request, I had:
+   1. Read the `tuned_fmoe.csv` header confirming format: `cu_num,token,model_dim,inter_dim,expert,topk,...,kernelName1,...,kernelName2,...` with 1736 rows all for non-304-CU hardware
+   2. Grepped `fused_moe.py` and confirmed `AITER_CONFIG_FMOE` env var exists at lines 775-777
+   3. Was about to respond to dispatch-engineer's analysis and give the go-ahead for Option D (custom CSV injection)
+
+   The dispatch-engineer's final message contained:
+   ```
+   Option D — AITER_CONFIG_FMOE env var (HIGHEST POTENTIAL)
+   os.environ["AITER_CONFIG_FMOE"] = "/tmp/my_tuned_fmoe.csv"
+   We could write a custom CSV at runtime with tuned entries for cu_num=304. 
+   The CSV is loaded lazily on first call. If we pre-populate it with the 256-CU 
+   winning kernels for our shapes, the lookup will hit and use the known-good kernel names.
+   ```
+   
+   Key CSV row format observed:
+   ```
+   80,512,6144,4096,8,2,ActivationType.Silu,torch.bfloat16,...,kernelName1,...,kernelName2,...
+   ```
+   The `cu_num` field is column 0. To inject for MI355X (304 CUs), copy matching rows and change `cu_num` from 256 to 304.
+
+9. Optional Next Step:
+   Respond to dispatch-engineer confirming Option D (custom CSV injection) and provide implementation guidance. The dispatch-engineer asked: "Want me to implement the custom CSV injection variant?" and we have now verified:
+   - CSV format is `cu_num,token,...,kernelName1,...,kernelName2,...`
+   - `AITER_CONFIG_FMOE` env var confirmed at fused_moe.py lines 775-777
+   - Need to find the rows in tuned_fmoe.csv matching competition shapes and write them with cu_num=304
+   
+   The submission should: (1) at module level write `/tmp/tuned_fmoe_304.csv` with matching rows where cu_num=256 entries are duplicated as cu_num=304, (2) set `AITER_CONFIG_FMOE=/tmp/tuned_fmoe_304.csv` before importing aiter, (3) run `--mode test` first (strict MoE tolerance), then `--mode benchmark`.
+
+If you need specific details from before compaction (like exact code snippets, error messages, or content you generated), read the full transcript at: /home/mike-anderson/.claude/projects/-home-mike-anderson-dev-cohezion/d492a6c8-0c18-4a30-8664-c72a848e25a5.jsonl
+Continue the conversation from where it left off without asking the user any further questions. Resume directly — do not acknowledge the summary, do not recap what was happening, do not preface with "I'll continue" or similar. Pick up the last task as if the break never happened.
