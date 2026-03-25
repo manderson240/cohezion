@@ -1,0 +1,37 @@
+{
+  "cli_version": "0.4.9",
+  "checkpoint_id": "f15c249a866d",
+  "session_id": "93b66342-a8a3-4e87-b0be-4c0dcf07fa6a",
+  "strategy": "manual-commit",
+  "created_at": "2026-03-25T03:32:13.582088861Z",
+  "branch": "research/luma-amd-breakthrough",
+  "checkpoints_count": 13,
+  "files_touched": [
+    ".claude/settings.json",
+    "CLAUDE.md",
+    "cloud-vault-mcp/src/mcp_server/compound_ops.py",
+    "cloud-vault-mcp/tests/test_compound_ops.py",
+    "src/cohezion/compound/executor.py",
+    "src/cohezion/compound/skill_health_tracker.py",
+    "tests/compound/test_compound_full_cycle.py",
+    "tests/compound/test_skill_health_tracker.py"
+  ],
+  "agent": "Claude Code",
+  "turn_id": "e7d7749ace3e",
+  "token_usage": {
+    "input_tokens": 4530,
+    "cache_creation_tokens": 3151834,
+    "cache_read_tokens": 50270564,
+    "output_tokens": 107683,
+    "api_call_count": 254
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-03-25T03:32:12.419823681Z",
+    "agent_lines": 1057,
+    "human_added": 419,
+    "human_modified": 59,
+    "human_removed": 0,
+    "total_committed": 1535,
+    "agent_percentage": 68.85993485342019
+  }
+}
