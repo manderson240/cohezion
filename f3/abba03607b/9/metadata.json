@@ -1,0 +1,23 @@
+{
+  "cli_version": "0.4.9",
+  "checkpoint_id": "f3abba03607b",
+  "session_id": "a5985a28-2589-4f1a-8566-4bfa706ffcf4",
+  "strategy": "manual-commit",
+  "created_at": "2026-03-25T11:58:01.256481981Z",
+  "branch": "research/luma-amd-breakthrough",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "conductor/tracks.md"
+  ],
+  "agent": "Claude Code",
+  "turn_id": "8fb85cc24766",
+  "initial_attribution": {
+    "calculated_at": "2026-03-25T11:58:01.255792037Z",
+    "agent_lines": 1,
+    "human_added": 723,
+    "human_modified": 1,
+    "human_removed": 0,
+    "total_committed": 725,
+    "agent_percentage": 0.13793103448275862
+  }
+}
