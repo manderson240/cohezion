@@ -8,6 +8,17 @@
       "description": "108 BMAD commands for agile AI-driven development",
       "modules": ["bmm", "gds", "cis", "tea", "bmb", "core"],
       "agents": 28
+    },
+    "cohezion-compound": {
+      "name": "Cohezion Compound Engineering",
+      "type": "stdio",
+      "command": "/home/mike-anderson/dev/cohezion/.venv/bin/python",
+      "args": ["-m", "cohezion.mcp.compound_server"],
+      "env": {
+        "PYTHONPATH": "/home/mike-anderson/dev/cohezion/src",
+        "REDIS_URL": "redis://localhost:6379"
+      },
+      "description": "Compound engineering MCP server for multi-session AI workflows"
     }
   },
   "sharedConfig": {
