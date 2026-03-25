@@ -5,12 +5,12 @@ Covers prompt injection detection and threat classification.
 
 from __future__ import annotations
 
-import pytest
 from cohezion.security.prompt_guard import (
     PromptGuard,
     ThreatLevel,
     normalize_text,
 )
+
 
 def test_normalize_text():
     """[P0] Should deobfuscate text."""

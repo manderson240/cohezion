@@ -4,9 +4,9 @@ Tests MCP tool endpoints with mocked dependencies.
 """
 
 import json
-import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
-from pathlib import Path
+
+import pytest
 
 
 pytestmark = pytest.mark.asyncio
@@ -206,9 +206,9 @@ class TestMCPCompoundIntegrationFlow:
     async def test_session_lifecycle(self):
         """[P0] Complete session start → check → end workflow."""
         from cohezion.mcp.compound_server import (
-            compound_start_session,
             compound_check_alignment,
             compound_end_session,
+            compound_start_session,
         )
 
         # Mock session manager to return dict-like objects
@@ -254,7 +254,7 @@ class TestMCPCompoundIntegrationFlow:
     @pytest.mark.fast
     async def test_adversarial_review_workflow(self):
         """[P0] Ralph Lopps → Multiperspective review chain."""
-        from cohezion.mcp.compound_server import ralph_lopps_review, multiperspective_review
+        from cohezion.mcp.compound_server import multiperspective_review, ralph_lopps_review
 
         code_sample = """
 def process_items(items):

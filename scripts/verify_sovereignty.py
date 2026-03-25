@@ -1,8 +1,9 @@
 import asyncio
 import logging
 
-from cohezion.core.local_registry import get_local_registry
 from cohezion.swarm.agents.sovereign_agent import SovereignAgent
+
+from cohezion.core.local_registry import get_local_registry
 from cohezion.swarm.swarm_types import SwarmConfig
 
 

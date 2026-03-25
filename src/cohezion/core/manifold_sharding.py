@@ -112,7 +112,6 @@ class DistributedManifold:
         #   diff=0   → 0.697 (tight boundary, near HIHO_HIGH)
         #   diff=0.5 → 0.500 (moderate tension, HIHO equilibrium)
         #   diff=1.0 → 0.302 (high tension, near HIHO_LOW)
-        import math as _math
 
         boundary_coherence = []
         for i in range(len(self._shards) - 1):

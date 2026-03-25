@@ -4,7 +4,7 @@ Decisions, experiments, patterns, context retrieval.
 """
 
 import re
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from .obsidian_ops import ObsidianOps
 from .vault_ops import VaultOps
@@ -27,7 +27,7 @@ class CompoundOps:
         alternatives_considered: str = "",
     ) -> str:
         """Create an Architecture Decision Record."""
-        date = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+        date = datetime.now(UTC).strftime("%Y-%m-%d")
         slug = self._slugify(title)
         path = f"decisions/{date}-{slug}.md"
 
@@ -59,7 +59,7 @@ class CompoundOps:
         title: str = "",
     ) -> str:
         """Log an experiment."""
-        date = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+        date = datetime.now(UTC).strftime("%Y-%m-%d")
         exp_title = title or hypothesis[:60]
         slug = self._slugify(exp_title)
         path = f"experiments/{date}-{slug}.md"
@@ -90,7 +90,7 @@ class CompoundOps:
         domain: str = "general",
     ) -> str:
         """Extract a reusable pattern from project work."""
-        date = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+        date = datetime.now(UTC).strftime("%Y-%m-%d")
         slug = self._slugify(pattern_name)
         path = f"patterns/{slug}.md"
 

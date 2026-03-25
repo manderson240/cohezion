@@ -14,8 +14,9 @@ import logging
 from datetime import datetime
 from pathlib import Path
 
-from cohezion.core.persistence.surreal_client import SurrealClient
 from cohezion.mcp.email_notifier import EmailNotifier
+
+from cohezion.core.persistence.surreal_client import SurrealClient
 
 
 logging.basicConfig(level=logging.INFO)

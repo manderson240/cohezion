@@ -11,8 +11,8 @@ from pathlib import Path
 from typing import Any
 
 import numpy as np
-
 from cohezion.core.multimodal_bridge import LOCAL_MULTIMODAL_BRIDGE
+
 from cohezion.core.routing.router import LOCAL_ROUTER
 from cohezion.universe.engine import UniverseSimulationEngine
 from cohezion.universe.sandbox import ContainerizedUniverse

@@ -36,7 +36,6 @@ from pathlib import Path
 from typing import Any
 
 import numpy as np
-
 from cohezion.monitoring import PrometheusMetrics, get_metrics, start_metrics_server
 
 

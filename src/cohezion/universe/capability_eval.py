@@ -57,6 +57,7 @@ from uuid import uuid4
 
 import numpy as np
 
+
 logger = logging.getLogger(__name__)
 
 
@@ -607,7 +608,7 @@ class EvalRunner:
                 agent.execute(task.prompt),
                 timeout=task.timeout_seconds,
             )
-        except asyncio.TimeoutError:
+        except TimeoutError:
             error = f"Task timed out after {task.timeout_seconds}s"
             logger.warning("Task %s timed out after %ss", task.task_id, task.timeout_seconds)
         except Exception as e:

@@ -6,13 +6,13 @@ from datetime import datetime, timedelta
 from pathlib import Path
 
 import psutil
+from cohezion.mcp.email_notifier import EmailNotifier
 
 from cohezion.core.persistence.surreal_client import (
     PhysicsState,
     SurrealClient,
     UniverseNode,
 )
-from cohezion.mcp.email_notifier import EmailNotifier
 from cohezion.simulation.enhanced_simulator import (
     EnhancedSimulationResult,
     EnhancedSimulator,

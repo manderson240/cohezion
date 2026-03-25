@@ -10,6 +10,7 @@ sys.path.append(str(Path.cwd() / "src"))
 from cohezion.bio.biophotonics import Wavelength, get_light_field
 from cohezion.bio.morphic_field import get_morphic_field
 from cohezion.swarm.agents.biological_agent import BiologicalAgent
+
 from cohezion.swarm.swarm_types import SwarmConfig
 
 

@@ -15,6 +15,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
+
 # Project root resolved from test file location
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 

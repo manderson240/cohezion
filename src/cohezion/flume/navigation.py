@@ -1,6 +1,7 @@
 import torch
 import torch.nn.functional as F
 
+
 def lerp(z1: torch.Tensor, z2: torch.Tensor, alpha: float) -> torch.Tensor:
     """
     Linear interpolation between two vectors.
@@ -31,22 +32,22 @@ def slerp(z1: torch.Tensor, z2: torch.Tensor, alpha: float, eps: float = 1e-7) -
     # Normalize to unit sphere
     z1_norm = z1 / (z1.norm(dim=-1, keepdim=True) + eps)
     z2_norm = z2 / (z2.norm(dim=-1, keepdim=True) + eps)
-    
+
     # Calculate cosine of the angle between vectors
     dot = torch.sum(z1_norm * z2_norm, dim=-1, keepdim=True)
     dot = torch.clamp(dot, -1.0, 1.0)
-    
+
     theta = torch.acos(dot)
-    
+
     if theta < eps:
         return lerp(z1, z2, alpha)
-        
+
     sin_theta = torch.sin(theta)
-    
-    res = (torch.sin((1.0 - alpha) * theta) * z1_norm + 
+
+    res = (torch.sin((1.0 - alpha) * theta) * z1_norm +
            torch.sin(alpha * theta) * z2_norm) / sin_theta
-           
-    # Scale back to original average norm if needed? 
+
+    # Scale back to original average norm if needed?
     # For FLUME, we usually operate on unit-sphere or normalized latents.
     return res.squeeze()
 

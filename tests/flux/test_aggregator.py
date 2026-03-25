@@ -6,7 +6,7 @@ import pytest
 
 from cohezion.flux.aggregator import FluxAggregator
 from cohezion.flux.provider import FluxProvider
-from cohezion.flux.types import FluxBlock, FluxContext, FluxSource
+from cohezion.flux.types import FluxBlock, FluxSource
 
 
 class MockProvider(FluxProvider):

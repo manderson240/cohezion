@@ -3,8 +3,9 @@ import json
 import logging
 from pathlib import Path
 
-from cohezion.core.time_keeper import get_time_keeper
 from cohezion.swarm.agents.base import BaseAgent
+
+from cohezion.core.time_keeper import get_time_keeper
 
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - [NEXUS_JUDGE] - %(message)s")

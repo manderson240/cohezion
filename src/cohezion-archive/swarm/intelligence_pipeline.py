@@ -11,9 +11,8 @@ import logging
 from dataclasses import dataclass
 from typing import Any
 
-from pydantic import BaseModel, Field
-
 from cohezion.reliability.circuit_breaker import get_circuit
+from pydantic import BaseModel, Field
 
 
 logger = logging.getLogger(__name__)

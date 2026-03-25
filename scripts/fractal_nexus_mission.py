@@ -20,23 +20,23 @@ from datetime import datetime, timedelta
 from pathlib import Path
 
 import psutil
+from cohezion.mcp.email_notifier import EmailNotifier
+from cohezion.monitoring.ratchet_monitor import RatchetMonitor
+from cohezion.swarm.agents.base import BaseAgent
+from cohezion.swarm.journey_tracker import (
+    AgentType,
+    JourneyMetrics,
+    get_journey_tracker,
+)
 
 from cohezion.core.persistence.surreal_client import (
     PhysicsState,
     SurrealClient,
     UniverseNode,
 )
-from cohezion.mcp.email_notifier import EmailNotifier
-from cohezion.monitoring.ratchet_monitor import RatchetMonitor
-from cohezion.swarm.agents.base import BaseAgent
 
 # Core Cohezion Imports
 from cohezion.swarm.hiho_vector_engine import HihoVectorEngine
-from cohezion.swarm.journey_tracker import (
-    AgentType,
-    JourneyMetrics,
-    get_journey_tracker,
-)
 from cohezion.swarm.swarm_types import SwarmConfig
 
 

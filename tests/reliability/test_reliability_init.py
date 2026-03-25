@@ -5,32 +5,33 @@ Covers failure thresholding and state transitions.
 
 from __future__ import annotations
 
-import pytest
 import time
+
 from cohezion.reliability import CircuitBreaker, CircuitState, get_circuit
+
 
 def test_circuit_breaker_open_close():
     """[P0] Should open circuit after failures and close on success."""
     breaker = CircuitBreaker(name="test", failure_threshold=2, recovery_timeout=0.1)
-    
+
     # Initial state
     assert breaker.state == CircuitState.CLOSED
     assert breaker.allow_request() is True
-    
+
     # 1st failure - stay closed
     breaker.record_failure()
     assert breaker.state == CircuitState.CLOSED
-    
+
     # 2nd failure - open
     breaker.record_failure()
     assert breaker.state == CircuitState.OPEN
     assert breaker.allow_request() is False
-    
+
     # Wait for recovery
     time.sleep(0.15)
     assert breaker.state == CircuitState.HALF_OPEN
     assert breaker.allow_request() is True # First call in half-open
-    
+
     # Success in half-open -> Closed
     breaker.record_success()
     assert breaker.state == CircuitState.CLOSED
@@ -41,10 +42,10 @@ def test_circuit_breaker_half_open_failure():
     breaker = CircuitBreaker(name="test", failure_threshold=1, recovery_timeout=0.1)
     breaker.record_failure()
     assert breaker.state == CircuitState.OPEN
-    
+
     time.sleep(0.15)
     assert breaker.state == CircuitState.HALF_OPEN
-    
+
     breaker.record_failure()
     assert breaker.state == CircuitState.OPEN
 

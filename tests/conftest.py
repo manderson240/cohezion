@@ -82,7 +82,7 @@ def git_repo(tmp_path: Path) -> Path:
 
 
 @pytest.fixture
-def data_temp_dir() -> Generator[Path, None, None]:
+def data_temp_dir() -> Generator[Path]:
     """Create temporary directory under data/ for security compliance.
 
     ResearchConfig requires paths within data/ directory (Issue #12).

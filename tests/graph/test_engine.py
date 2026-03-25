@@ -2,15 +2,12 @@
 
 from __future__ import annotations
 
-import asyncio
-
 import pytest
 
 from cohezion.graph.engine import WorkflowEngine
-from cohezion.graph.nodes import AgentNode, CustomNode, LogicSwitchNode
+from cohezion.graph.nodes import CustomNode, LogicSwitchNode
 from cohezion.graph.types import (
     EdgeSpec,
-    NodeResult,
     NodeSpec,
     NodeStatus,
     WorkflowSpec,

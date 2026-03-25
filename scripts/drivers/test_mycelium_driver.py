@@ -3,8 +3,9 @@ import contextlib
 import logging
 import signal
 
-from cohezion.core.persistence.surreal_client import SurrealClient
 from cohezion.engineering.test_mycelium import TestMycelium
+
+from cohezion.core.persistence.surreal_client import SurrealClient
 from cohezion.reliability.monitor import ResourceMonitor
 
 

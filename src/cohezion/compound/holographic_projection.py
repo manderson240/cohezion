@@ -13,6 +13,7 @@ from typing import Any
 
 import numpy as np
 
+
 logger = logging.getLogger(__name__)
 
 # Holographic projection constants
@@ -136,6 +137,7 @@ def encode_step_sequence(
     if temporal_encoder is not None:
         try:
             import torch
+
             from cohezion.flume.trajectory_dataset import _record_to_step
 
             step_vecs = np.stack([_record_to_step(s) for s in steps])

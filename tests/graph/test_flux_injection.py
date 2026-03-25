@@ -6,7 +6,7 @@ and measures token efficiency of scoped vs global queries.
 
 from __future__ import annotations
 
-from unittest.mock import AsyncMock, MagicMock
+from unittest.mock import AsyncMock
 
 import pytest
 

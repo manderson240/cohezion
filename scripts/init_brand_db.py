@@ -4,7 +4,6 @@ import os
 from surrealdb import AsyncSurreal
 
 
-
 async def init_brand_db():
     """Initializes SurrealDB with Cohezion branding tokens."""
     db_url = os.environ.get("SURREALDB_URL", "ws://localhost:8000/rpc")

@@ -5,14 +5,15 @@ Covers intelligent model selection and hardware-aware routing.
 
 from __future__ import annotations
 
+from unittest.mock import patch
+
 import pytest
-from unittest.mock import MagicMock, patch
+
 from cohezion.swarm.dynamic_model_router import (
     DynamicModelRouter,
-    ModelTier,
     IDEPriority,
-    ModelConfig,
 )
+
 
 @pytest.fixture
 def router():

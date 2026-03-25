@@ -5,9 +5,9 @@ import time
 from pathlib import Path
 
 import psutil
+from cohezion.swarm.agents.base import BaseAgent
 
 from cohezion.core.time_keeper import get_time_keeper
-from cohezion.swarm.agents.base import BaseAgent
 
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - [NEXUS_DAEMON] - %(message)s")

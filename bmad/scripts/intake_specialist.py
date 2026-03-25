@@ -1,6 +1,8 @@
-import yaml
 import re
+
+import yaml
 from jsonschema import validate
+
 
 # Since I am a language model, I can define the functions to perform the summarization,
 # entity extraction, and workflow suggestion. In a real-world scenario, these would
@@ -76,9 +78,9 @@ def process_natural_language(request: str) -> str:
         "suggested_workflow": suggested_workflow_name,
     }
 
-    with open("bmad/schemas/intake_schema.yml", "r") as schema_file:
+    with open("bmad/schemas/intake_schema.yml") as schema_file:
         schema = yaml.safe_load(schema_file)
-    
+
     validate(instance=output_data, schema=schema)
 
     return yaml.dump(output_data)

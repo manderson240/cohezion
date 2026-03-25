@@ -7,12 +7,10 @@ guardrails, skill refinement, and token metrics.
 
 from __future__ import annotations
 
-from unittest.mock import Mock
-
 import pytest
 
-from cohezion.compound.core.executor import CompoundExecutor, ExecutionConfig
-from cohezion.compound.models import ExecutionMetrics, ExecutionResult, Task
+from cohezion.compound.core.executor import CompoundExecutor
+from cohezion.compound.models import ExecutionResult
 
 
 class TestCompoundExecutorInitialization:

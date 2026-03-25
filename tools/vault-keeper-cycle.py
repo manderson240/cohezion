@@ -5,15 +5,15 @@ Runs Health → Waking → Dreaming in sequence.
 Invoked 4x/day via systemd timer.
 """
 
-import json
 import logging
 import os
 import sys
 import textwrap
-from datetime import date, datetime, timezone
+from datetime import UTC, date, datetime
 from pathlib import Path
 
 import httpx
+
 
 # ── Config ──────────────────────────────────────────────────────────────────
 VAULT_PATH = Path("~/vaults/cohezion-vault").expanduser()
@@ -284,7 +284,7 @@ def run_dreaming() -> int:
 
 # ── Main ──────────────────────────────────────────────────────────────────────
 def main():
-    start = datetime.now(timezone.utc).isoformat()
+    start = datetime.now(UTC).isoformat()
     logger.info("Vault Keeper Cycle started: %s", start)
 
     health = run_health()

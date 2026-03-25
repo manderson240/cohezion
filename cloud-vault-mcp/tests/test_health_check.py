@@ -7,6 +7,7 @@ import pytest
 
 from mcp_server.health import HealthChecker, HealthStatus
 
+
 _IN_CI = os.environ.get("CI") == "true"
 
 
