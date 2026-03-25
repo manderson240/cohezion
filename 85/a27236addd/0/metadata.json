@@ -1,0 +1,30 @@
+{
+  "cli_version": "0.4.9",
+  "checkpoint_id": "85a27236addd",
+  "session_id": "03386fbf-5498-4877-8b56-467f9f21d11f",
+  "strategy": "manual-commit",
+  "created_at": "2026-03-25T20:09:06.938616871Z",
+  "branch": "main",
+  "checkpoints_count": 2,
+  "files_touched": [
+    "scripts/wake_up.py"
+  ],
+  "agent": "Claude Code",
+  "turn_id": "578026afff1a",
+  "token_usage": {
+    "input_tokens": 40,
+    "cache_creation_tokens": 726626,
+    "cache_read_tokens": 4169081,
+    "output_tokens": 7995,
+    "api_call_count": 28
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-03-25T20:09:06.735636894Z",
+    "agent_lines": 1,
+    "human_added": 95862,
+    "human_modified": 2,
+    "human_removed": 0,
+    "total_committed": 95865,
+    "agent_percentage": 0.001043133573254055
+  }
+}
