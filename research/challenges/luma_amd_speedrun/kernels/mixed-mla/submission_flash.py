@@ -39,6 +39,7 @@ def _flash_mla_kernel(
     BLOCK: tl.constexpr,
 ):
     """FlashAttention-style MLA kernel with online softmax."""
+    V_DIM = 512
     q_offs = tl.arange(0, BLOCK)
     kv_offs = tl.arange(0, BLOCK)
 
@@ -57,7 +58,7 @@ def _flash_mla_kernel(
 
     m_prev = float("-inf")
     l_prev = 0.0
-    acc = tl.zeros([V_HEAD_DIM], dtype=tl.float32)
+    acc = tl.zeros([V_DIM], dtype=tl.float32)
 
     for kv_tile_start in range(0, seq_kv, BLOCK):
         kv_tile_end = tl.minimum(kv_tile_start + BLOCK, seq_kv)
@@ -80,7 +81,7 @@ def _flash_mla_kernel(
         l_new = alpha * l_prev + tl.sum(p)
 
         v_tile = tl.load(k_tile_ptr, mask=kv_mask, other=0.0)
-        v_tile = v_tile[:, :V_HEAD_DIM].to(tl.float32)
+        v_tile = v_tile[:, :V_DIM].to(tl.float32)
 
         acc = alpha * acc + tl.sum(p[:, None] * v_tile, axis=0)
 
@@ -90,8 +91,8 @@ def _flash_mla_kernel(
     acc = acc / l_prev
 
     out_base = out_ptr + qo_start * q_stride_b + head_idx * q_stride_h
-    out_ptrs = out_base + tl.arange(0, V_HEAD_DIM) * q_stride_d
-    out_mask = tl.arange(0, V_HEAD_DIM) < V_HEAD_DIM
+    out_ptrs = out_base + tl.arange(0, V_DIM) * q_stride_d
+    out_mask = tl.arange(0, V_DIM) < V_DIM
     tl.store(out_ptrs, acc.to(tl.bfloat16), mask=out_mask)
 
 
