@@ -1,9 +1,11 @@
 {
   "cli_version": "0.4.9",
   "checkpoint_id": "9f488aa008b9",
+  "session_id": "90c73d6d-3541-49fa-b249-0ffc78ca93a3",
   "strategy": "manual-commit",
+  "created_at": "2026-03-25T20:08:34.097353369Z",
   "branch": "main",
-  "checkpoints_count": 3,
+  "checkpoints_count": 1,
   "files_touched": [
     "tests/agents/test_evo_agent.py",
     "tests/agents/test_evo_agent_integration.py",
@@ -18,7 +20,6 @@
     "tests/cache/test_cache_warmer.py",
     "tests/cache/test_redis_cache.py",
     "tests/compound/test_batch_executor.py",
-    "tests/conftest.py",
     "tests/flume/test_bridge.py",
     "tests/flume/test_navigation.py",
     "tests/flume/test_vae.py",
@@ -35,41 +36,22 @@
     "tests/swarm/test_execution_orchestrator.py",
     "tests/universe/test_engine.py"
   ],
-  "sessions": [
-    {
-      "metadata": "/9f/488aa008b9/0/metadata.json",
-      "transcript": "/9f/488aa008b9/0/full.jsonl",
-      "context": "",
-      "content_hash": "/9f/488aa008b9/0/content_hash.txt",
-      "prompt": ""
-    },
-    {
-      "metadata": "/9f/488aa008b9/1/metadata.json",
-      "transcript": "/9f/488aa008b9/1/full.jsonl",
-      "context": "/9f/488aa008b9/1/context.md",
-      "content_hash": "/9f/488aa008b9/1/content_hash.txt",
-      "prompt": "/9f/488aa008b9/1/prompt.txt"
-    },
-    {
-      "metadata": "/9f/488aa008b9/2/metadata.json",
-      "transcript": "/9f/488aa008b9/2/full.jsonl",
-      "context": "",
-      "content_hash": "/9f/488aa008b9/2/content_hash.txt",
-      "prompt": ""
-    },
-    {
-      "metadata": "/9f/488aa008b9/3/metadata.json",
-      "transcript": "/9f/488aa008b9/3/full.jsonl",
-      "context": "/9f/488aa008b9/3/context.md",
-      "content_hash": "/9f/488aa008b9/3/content_hash.txt",
-      "prompt": "/9f/488aa008b9/3/prompt.txt"
-    }
-  ],
+  "agent": "Claude Code",
+  "turn_id": "5fa3780f0b27",
   "token_usage": {
-    "input_tokens": 12492,
-    "cache_creation_tokens": 1220586,
-    "cache_read_tokens": 10496393,
-    "output_tokens": 36500,
-    "api_call_count": 79
+    "input_tokens": 44,
+    "cache_creation_tokens": 234571,
+    "cache_read_tokens": 1012426,
+    "output_tokens": 10492,
+    "api_call_count": 24
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-03-25T20:08:34.034561008Z",
+    "agent_lines": 163,
+    "human_added": 94108,
+    "human_modified": 157,
+    "human_removed": 0,
+    "total_committed": 94428,
+    "agent_percentage": 0.17261829118481806
   }
 }
