@@ -9,12 +9,12 @@
 - [x] Task: Conductor - User Manual Verification 'Context & Synthetic Task Generation' (Protocol in workflow.md)
 
 ## Phase 2: FLUME Evaluation Loop
-- [ ] Task: Integrate FLUME core with `adversarial_eval_loop.py`.
-    - [ ] Sub-task: Setup FLUME encoder/decoder for grid states.
-    - [ ] Sub-task: Implement scoring function comparing predicted vs expected state.
-- [ ] Task: Write/update tests for adversarial evaluation loop.
-    - [ ] Sub-task: Test against a known synthetic dataset.
-- [ ] Task: Conductor - User Manual Verification 'FLUME Evaluation Loop' (Protocol in workflow.md)
+- [x] Task: Integrate FLUME core with `adversarial_eval_loop.py`.
+    - [x] Sub-task: Setup FLUME encoder/decoder for grid states.
+    - [x] Sub-task: Implement scoring function comparing predicted vs expected state.
+- [x] Task: Write/update tests for adversarial evaluation loop.
+    - [x] Sub-task: Test against a known synthetic dataset.
+- [x] Task: Conductor - User Manual Verification 'FLUME Evaluation Loop' (Protocol in workflow.md)
 
 ## Phase 3: Notebook Pipeline Optimization
 - [ ] Task: Update `build_notebook.py` for automated dependency inclusion.
