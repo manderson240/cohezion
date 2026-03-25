@@ -150,6 +150,13 @@ LOCAL_MODELS = {
         speed_tier=3,
         quality_tier=4,
     ),
+    "gpt-oss:20b": ModelProfile(
+        name="gpt-oss:20b",
+        capabilities=[ModelCapability.ACCURATE, ModelCapability.LARGE_CONTEXT],
+        context_length=256000,
+        speed_tier=2,
+        quality_tier=4,
+    ),
     "deepseek-r1:7b": ModelProfile(
         name="deepseek-r1:7b",
         capabilities=[ModelCapability.ACCURATE, ModelCapability.CREATIVE],
