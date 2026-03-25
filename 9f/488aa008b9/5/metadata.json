@@ -1,0 +1,26 @@
+{
+  "cli_version": "0.4.9",
+  "checkpoint_id": "9f488aa008b9",
+  "session_id": "a998ffcb-0d54-485b-9b10-46683c5a1203",
+  "strategy": "manual-commit",
+  "created_at": "2026-03-25T20:08:35.951496549Z",
+  "branch": "main",
+  "checkpoints_count": 0,
+  "files_touched": [
+    "tests/cache/test_cache_warmer.py",
+    "tests/conftest.py"
+  ],
+  "agent": "Claude Code",
+  "turn_id": "8b891b813a31",
+  "checkpoint_transcript_start": 96,
+  "transcript_lines_at_start": 96,
+  "initial_attribution": {
+    "calculated_at": "2026-03-25T20:08:35.95089698Z",
+    "agent_lines": 316,
+    "human_added": 214,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 530,
+    "agent_percentage": 59.62264150943396
+  }
+}
