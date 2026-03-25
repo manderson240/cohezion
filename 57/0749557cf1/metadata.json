@@ -1,0 +1,26 @@
+{
+  "cli_version": "0.4.9",
+  "checkpoint_id": "570749557cf1",
+  "strategy": "manual-commit",
+  "branch": "research/luma-amd-breakthrough",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "kaggle-agi-benchmark/adversarial_eval_loop.py"
+  ],
+  "sessions": [
+    {
+      "metadata": "/57/0749557cf1/0/metadata.json",
+      "transcript": "/57/0749557cf1/0/full.jsonl",
+      "context": "/57/0749557cf1/0/context.md",
+      "content_hash": "/57/0749557cf1/0/content_hash.txt",
+      "prompt": "/57/0749557cf1/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 44,
+    "cache_creation_tokens": 234571,
+    "cache_read_tokens": 1012426,
+    "output_tokens": 10492,
+    "api_call_count": 24
+  }
+}
