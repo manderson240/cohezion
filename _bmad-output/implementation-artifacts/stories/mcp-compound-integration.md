@@ -1,7 +1,7 @@
 # Story: MCP Compound Engineering Integration
 
 **Story Key:** mcp-compound-integration  
-**Status:** in-progress  
+**Status:** done  
 **Priority:** P0
 
 ## Story
