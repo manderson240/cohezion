@@ -1,0 +1,32 @@
+{
+  "cli_version": "0.5.1",
+  "checkpoint_id": "bafb6b0200b0",
+  "session_id": "93b66342-a8a3-4e87-b0be-4c0dcf07fa6a",
+  "strategy": "manual-commit",
+  "created_at": "2026-03-25T20:26:19.668014325Z",
+  "branch": "main",
+  "checkpoints_count": 0,
+  "files_touched": [
+    "src/cohezion/knowledge_graph/KEY_LEARNINGS.md"
+  ],
+  "agent": "Claude Code",
+  "turn_id": "b5e02142b2d1",
+  "checkpoint_transcript_start": 5527,
+  "transcript_lines_at_start": 5527,
+  "token_usage": {
+    "input_tokens": 11,
+    "cache_creation_tokens": 6378,
+    "cache_read_tokens": 4300926,
+    "output_tokens": 1852,
+    "api_call_count": 11
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-03-25T20:26:16.847830259Z",
+    "agent_lines": 19,
+    "human_added": 29,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 48,
+    "agent_percentage": 39.58333333333333
+  }
+}
