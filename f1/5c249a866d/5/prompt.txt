@@ -1,0 +1,198 @@
+<teammate-message teammate_id="team-lead">
+You are the Skill Health Builder agent. Your task is to create a skill usage tracking module for the Cohezion compound engineering system.
+
+## Your Task (Task #5)
+
+Mark task #5 as in_progress, then do the work, then mark it completed.
+
+## Context
+
+Cohezion has 124 PRIME skills but NO usage tracking. The skill registry at `src/cohezion/skills/skill_registry.json` only tracks version, concepts, and see_also. There's no way to know which skills are active vs. dead.
+
+The CompoundExecutor at `src/cohezion/compound/executor.py` already has a SkillRefiner integration at step 11. We need to add health tracking alongside it.
+
+## What to Build
+
+### 1. New Module: `src/cohezion/compound/skill_health_tracker.py`
+
+```python
+"""Skill health tracking for the Cohezion compound engineering loop.
+
+Tracks usage metrics per skill: invocation count, success rate, token usage,
+quality scores, and computed health scores. Enables identification of stale
+or unhealthy skills for pruning.
+"""
+from __future__ import annotations
+
+import json
+import math
+from dataclasses import asdict, dataclass, field
+from datetime import datetime, timezone
+from pathlib import Path
+
+
+@dataclass
+class SkillHealthRecord:
+    """Health metrics for a single PRIME skill."""
+    skill_name: str
+    total_invocations: int = 0
+    successful_invocations: int = 0
+    failed_invocations: int = 0
+    last_used: str = ""
+    total_tokens_used: int = 0
+    total_quality_score: float = 0.0
+    created_date: str = ""
+
+    @property
+    def success_rate(self) -> float:
+        if self.total_invocations == 0:
+            return 0.0
+        return self.successful_invocations / self.total_invocations
+
+    @property
+    def avg_tokens_per_use(self) -> float:
+        if self.total_invocations == 0:
+            return 0.0
+        return self.total_tokens_used / self.total_invocations
+
+    @property
+    def avg_quality_score(self) -> float:
+        if self.successful_invocations == 0:
+            return 0.0
+        return self.total_quality_score / self.successful_invocations
+
+    @property
+    def health_score(self) -> float:
+        """Computed health: success_rate * recency_weight (0.0-1.0)."""
+        if self.total_invocations == 0:
+            return 0.0
+        recency = 1.0
+        if self.last_used:
+            days_ago = (datetime.now(timezone.utc) - datetime.fromisoformat(self.last_used)).days
+            recency = math.exp(-0.693 * days_ago / 90.0)  # 90-day half-life
+        return self.success_rate * recency
+
+
+class SkillHealthTracker:
+    """Tracks and persists skill health metrics."""
+
+    def __init__(self, storage_path: Path | None = None) -> None:
+        self._storage_path = storage_path or Path("data/skill_health.json")
+        self._records: dict[str, SkillHealthRecord] = {}
+        self._load()
+
+    def _load(self) -> None:
+        if self._storage_path.exists():
+            data = json.loads(self._storage_path.read_text())
+            for name, record_data in data.items():
+                self._records[name] = SkillHealthRecord(**record_data)
+
+    def _save(self) -> None:
+        self._storage_path.parent.mkdir(parents=True, exist_ok=True)
+        data = {name: asdict(record) for name, record in self._records.items()}
+        self._storage_path.write_text(json.dumps(data, indent=2))
+
+    def record_usage(
+        self,
+        skill_name: str,
+        success: bool,
+        tokens_used: int = 0,
+        quality_score: float = 0.0,
+    ) -> None:
+        if skill_name not in self._records:
+            self._records[skill_name] = SkillHealthRecord(
+                skill_name=skill_name,
+                created_date=datetime.now(timezone.utc).isoformat(),
+            )
+        record = self._records[skill_name]
+        record.total_invocations += 1
+        if success:
+            record.successful_invocations += 1
+            record.total_quality_score += quality_score
+        else:
+            record.failed_invocations += 1
+        record.total_tokens_used += tokens_used
+        record.last_used = datetime.now(timezone.utc).isoformat()
+        self._save()
+
+    def get_health(self, skill_name: str) -> SkillHealthRecord | None:
+        return self._records.get(skill_name)
+
+    def get_all_health(self) -> list[SkillHealthRecord]:
+        return sorted(self._records.values(), key=lambda r: r.health_score, reverse=True)
+
+    def get_stale_skills(self, days: int = 30) -> list[str]:
+        cutoff = datetime.now(timezone.utc)
+        stale = []
+        for name, record in self._records.items():
+            if not record.last_used:
+                stale.append(name)
+                continue
+            last = datetime.fromisoformat(record.last_used)
+            if (cutoff - last).days > days:
+                stale.append(name)
+        return stale
+
+    def get_unhealthy_skills(self, threshold: float = 0.3) -> list[str]:
+        return [
+            name for name, record in self._records.items()
+            if record.total_invocations > 0 and record.health_score < threshold
+        ]
+```
+
+### 2. Integration into CompoundExecutor
+
+Read `src/cohezion/compound/executor.py` carefully. Find the section after task execution where skill refinement happens (around step 11, after `skill_refiner.refine()`). Add health tracking there:
+
+```python
+# After skill refinement (non-blocking)
+try:
+    if self._skill_health_tracker:
+        tokens = getattr(result, 'tokens_used', 0) if result else 0
+        quality = getattr(result, 'quality_score', 0.0) if result else 0.0
+        self._skill_health_tracker.record_usage(
+            skill_name=skill_name,
+            success=result.success if result else False,
+            tokens_used=tokens,
+            quality_score=quality,
+        )
+except Exception as e:
+    logger.warning(f"Skill health tracking failed (non-blocking): {e}")
+```
+
+Add `skill_health_tracker` as an optional parameter to the executor, following the same pattern as `skill_refiner` (lazy init, optional injection, property access).
+
+### 3. Tests: `tests/compound/test_skill_health_tracker.py`
+
+Write comprehensive tests:
+- `test_record_usage_creates_new_record`
+- `test_record_usage_increments_counts`
+- `test_success_rate_computation`
+- `test_avg_tokens_per_use`
+- `test_avg_quality_score`
+- `test_health_score_with_recency`
+- `test_health_score_zero_invocations`
+- `test_get_stale_skills`
+- `test_get_unhealthy_skills`
+- `test_persistence_save_and_load` (use tmp_path)
+- `test_nonblocking_on_failure` (tracker errors don't crash executor)
+
+Use `tmp_path` fixture for storage. Mock `datetime.now()` for deterministic recency tests.
+
+### Important Rules
+- Read executor.py FIRST to understand the existing SkillRefiner integration pattern
+- Follow the same optional/non-blocking pattern used by SkillRefiner
+- Use `from __future__ import annotations` for modern type hints
+- Keep the module under 150 lines (excluding tests)
+- All tests must pass: `uv run pytest tests/compound/test_skill_health_tracker.py -v`
+
+### Verification
+1. `uv run pytest tests/compound/test_skill_health_tracker.py -v` — all tests pass
+2. `uv run pytest tests/compound/ -v` — no regressions in compound module
+</teammate-message>
+
+---
+
+<teammate-message teammate_id="skill-health-builder" color="green">
+{"type":"task_assignment","taskId":"5","subject":"Add usage tracking to skill registry","description":"Create src/cohezion/compound/skill_health_tracker.py with SkillHealthRecord dataclass and SkillHealthTracker class. Track: total/successful/failed invocations, last_used timestamp, avg_tokens_per_use, avg_quality_score, computed health_score. Storage: JSONL at data/skill_health.jsonl. Integration: hook into CompoundExecutor.execute_task() at step 11. Write tests in tests/compound/test_skill_health_tracker.py.","assignedBy":"skill-health-builder","timestamp":"2026-03-25T02:12:02.662Z"}
+</teammate-message>
