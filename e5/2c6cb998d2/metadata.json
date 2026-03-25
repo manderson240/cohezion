@@ -1,0 +1,33 @@
+{
+  "cli_version": "0.4.9",
+  "checkpoint_id": "e52c6cb998d2",
+  "strategy": "manual-commit",
+  "branch": "main",
+  "checkpoints_count": 2,
+  "files_touched": [
+    "research/challenges/luma_amd_speedrun/docs/stories/epics.md",
+    "research/challenges/luma_amd_speedrun/docs/stories/gemm-api-ceiling.md",
+    "research/challenges/luma_amd_speedrun/docs/stories/mla-flash-attention.md",
+    "research/challenges/luma_amd_speedrun/docs/stories/moe-cktile-direct-dispatch.md",
+    "tests/flume/test_morphospace_geometry.py",
+    "tests/persistence/test_surreal_skill_repository.py",
+    "tests/persistence/test_surreal_universe_repository.py",
+    "tests/swarm/test_democratic_debate.py"
+  ],
+  "sessions": [
+    {
+      "metadata": "/e5/2c6cb998d2/0/metadata.json",
+      "transcript": "/e5/2c6cb998d2/0/full.jsonl",
+      "context": "/e5/2c6cb998d2/0/context.md",
+      "content_hash": "/e5/2c6cb998d2/0/content_hash.txt",
+      "prompt": "/e5/2c6cb998d2/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 67,
+    "cache_creation_tokens": 207752,
+    "cache_read_tokens": 745708,
+    "output_tokens": 13637,
+    "api_call_count": 20
+  }
+}

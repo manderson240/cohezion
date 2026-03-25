@@ -1,0 +1,78 @@
+<teammate-message teammate_id="team-lead">
+You are implementing Workstream 3 of the Cohezion contribution plan. Your task is to write the first test suite for the untested democratic debate consensus system.
+
+## Your deliverable
+Create the file: `tests/swarm/test_democratic_debate.py`
+
+## Source file you're testing (read this first)
+`src/cohezion/swarm/democratic_debate.py` (463 lines)
+
+Key classes/functions:
+- `AgentRole` enum: ARCHITECT, BUILDER, GUARDIAN, EXPLORER, SYNTHESIZER, RED_TEAM, BLUE_TEAM
+- `VoteValue` enum: STRONGLY_AGREE(2), AGREE(1), NEUTRAL(0), DISAGREE(-1), STRONGLY_DISAGREE(-2)
+- `AgentPersona` dataclass with `system_prompt()` method
+- `AgentVote` dataclass
+- `DebateRound` dataclass with `calculate_consensus()` method
+- `DebateSession` dataclass with `to_dict()` method
+- `DemocraticDebate` class with `run_debate()`, `_gather_proposals()`, `_voting_phase()`, `_refine_topic()`, `_final_synthesis()`
+
+## Tests to write
+
+### Pure data tests (no mocks needed):
+- `test_vote_values` — STRONGLY_AGREE.value == 2, STRONGLY_DISAGREE.value == -2, etc.
+- `test_consensus_all_agree` — All STRONGLY_AGREE → (True, 1.0)
+- `test_consensus_all_disagree` — All STRONGLY_DISAGREE → (False, 0.0)
+- `test_consensus_empty_votes` — No votes → (False, 0.0)
+- `test_consensus_mixed_above_threshold` — Mix where score >= 0.7 → consensus=True
+- `test_consensus_mixed_below_threshold` — Mix where score < 0.7 → consensus=False
+- `test_consensus_score_calculation` — Verify formula: (total + max_possible) / (2 * max_possible)
+- `test_agent_persona_system_prompt` — Contains role, priorities, catchphrase
+- `test_debate_session_to_dict` — Serializes correctly with session_id, topic, rounds
+
+### Mock-based tests:
+- `test_vote_parsing_strongly_agree` — Agent response containing "STRONGLY_AGREE" parses to that vote
+- `test_vote_parsing_disagree` — Agent response containing "DISAGREE" parses correctly
+- `test_vote_parsing_default_neutral` — Response with no vote keyword → NEUTRAL
+- `test_gather_proposals_parallel` — All 7 agents produce proposals (mock _call_agent)
+- `test_run_debate_reaches_consensus` — Mock agents to always STRONGLY_AGREE, debate ends early
+- `test_run_debate_max_rounds` — Mock agents to always DISAGREE, debate runs max_rounds
+- `test_run_debate_respects_min_rounds` — Even with consensus in round 1, runs at least min_rounds
+- `test_run_debate_saves_session` — Verify JSON file written to output directory
+- `test_refine_topic_calls_synthesizer` — Only Sage (synthesizer) is called for topic refinement
+
+## Mocking strategy
+Mock `DemocraticDebate._call_agent` to avoid real Ollama calls:
+
+```python
+@pytest.fixture
+def debate(tmp_path):
+    d = DemocraticDebate()
+    d.output_dir = tmp_path  # Use temp dir for session files
+    return d
+
+# For vote parsing tests, mock _call_agent to return specific strings
+async def mock_agree_agent(persona, prompt):
+    return "I STRONGLY_AGREE with this proposal because it improves coherence."
+
+# Patch with: debate._call_agent = mock_agree_agent
+```
+
+## Conventions
+- Use `pytest.mark.asyncio` for async tests (vote phase, debate flow)
+- Use `tmp_path` fixture for session file output
+- Keep test functions focused
+- Use `@pytest.fixture` for common setup
+
+## Important
+- Check existing test patterns in `tests/swarm/` for any shared fixtures
+- Run `uv run pytest tests/swarm/test_democratic_debate.py -q` after writing to verify
+- These test EXISTING working code — tests should PASS
+
+After completing the task, mark task #1 as completed using TaskUpdate.
+</teammate-message>
+
+---
+
+<teammate-message teammate_id="debate-tester" color="yellow">
+{"type":"task_assignment","taskId":"1","subject":"Write test suite for democratic_debate.py","description":"Create tests/swarm/test_democratic_debate.py with pure data tests and mock-based tests for the democratic debate consensus system.","assignedBy":"debate-tester","timestamp":"2026-03-25T19:11:48.214Z"}
+</teammate-message>
