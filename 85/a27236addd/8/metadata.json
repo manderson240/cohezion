@@ -1,0 +1,25 @@
+{
+  "cli_version": "0.4.9",
+  "checkpoint_id": "85a27236addd",
+  "session_id": "a998ffcb-0d54-485b-9b10-46683c5a1203",
+  "strategy": "manual-commit",
+  "created_at": "2026-03-25T20:09:13.64151709Z",
+  "branch": "main",
+  "checkpoints_count": 0,
+  "files_touched": [
+    "src/cohezion/cache/cache_warmer.py",
+    "src/cohezion/core/persistence/repositories/surreal_skill_repository.py",
+    "src/cohezion/core/persistence/repositories/surreal_universe_repository.py"
+  ],
+  "agent": "Claude Code",
+  "turn_id": "8b891b813a31",
+  "initial_attribution": {
+    "calculated_at": "2026-03-25T20:09:13.640908423Z",
+    "agent_lines": 215,
+    "human_added": 292,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 507,
+    "agent_percentage": 42.40631163708087
+  }
+}
