@@ -5,12 +5,22 @@ Tracks agent sessions, decisions, and outcomes to enable research lineage querie
 
 import json
 import logging
+import re
 import uuid
 from datetime import UTC, datetime
 from typing import Any
 
 
 logger = logging.getLogger(__name__)
+
+_SURREAL_ID_RE = re.compile(r"^[a-zA-Z_][\w]*:[a-zA-Z0-9_\-]+$")
+
+
+def _validate_record_id(rid: str) -> str:
+    """Validate a SurrealDB record ID to prevent query injection."""
+    if not _SURREAL_ID_RE.match(rid):
+        raise ValueError(f"Invalid SurrealDB record ID: {rid!r}")
+    return rid
 
 
 class AgentContextOps:
@@ -111,6 +121,7 @@ class AgentContextOps:
             now = datetime.now(UTC).isoformat()
 
             # Validate session exists
+            _validate_record_id(session_id)
             session_check = self.db._execute_query(
                 f"SELECT id FROM {session_id} LIMIT 1"
             )
@@ -153,6 +164,7 @@ class AgentContextOps:
                         paper_id = f"paper:{paper_id}"
 
                     # Check if paper exists
+                    _validate_record_id(paper_id)
                     paper_check = self.db._execute_query(
                         f"SELECT id FROM {paper_id} LIMIT 1"
                     )
@@ -234,6 +246,7 @@ class AgentContextOps:
             metrics = metrics or {}
 
             # Validate session exists
+            _validate_record_id(session_id)
             session_check = self.db._execute_query(
                 f"SELECT id FROM {session_id} LIMIT 1"
             )
@@ -270,6 +283,7 @@ class AgentContextOps:
             for lesson_id in lessons_learned:
                 try:
                     # Check if lesson exists
+                    _validate_record_id(f"lesson:{lesson_id}")
                     lesson_check = self.db._execute_query(
                         f"SELECT id FROM lesson:{lesson_id} LIMIT 1"
                     )

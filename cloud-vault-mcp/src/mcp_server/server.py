@@ -59,6 +59,7 @@ def create_server(config: ServerConfig) -> FastMCP:
 
     mcp = FastMCP(
         "Cloud Vault",
+        stateless_http=True,
         instructions=(
             "A knowledge vault MCP server for compound engineering. "
             "Read, write, search, and link Obsidian notes. "
