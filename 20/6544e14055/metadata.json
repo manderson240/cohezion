@@ -1,0 +1,28 @@
+{
+  "cli_version": "0.4.9",
+  "checkpoint_id": "206544e14055",
+  "strategy": "manual-commit",
+  "branch": "feat/mcp-compound-engineering",
+  "checkpoints_count": 3,
+  "files_touched": [
+    "src/cohezion/compound/adversarial.py",
+    "src/cohezion/mcp/compound_server.py",
+    "tests/integration/test_mcp_compound_integration.py"
+  ],
+  "sessions": [
+    {
+      "metadata": "/20/6544e14055/0/metadata.json",
+      "transcript": "/20/6544e14055/0/full.jsonl",
+      "context": "/20/6544e14055/0/context.md",
+      "content_hash": "/20/6544e14055/0/content_hash.txt",
+      "prompt": "/20/6544e14055/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 11760,
+    "cache_creation_tokens": 7781471,
+    "cache_read_tokens": 130765528,
+    "output_tokens": 226665,
+    "api_call_count": 648
+  }
+}
