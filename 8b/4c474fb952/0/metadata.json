@@ -1,0 +1,35 @@
+{
+  "cli_version": "0.4.9",
+  "checkpoint_id": "8b4c474fb952",
+  "session_id": "93b66342-a8a3-4e87-b0be-4c0dcf07fa6a",
+  "strategy": "manual-commit",
+  "created_at": "2026-03-25T14:41:58.534921684Z",
+  "branch": "feat/insights-remaining-fixes",
+  "checkpoints_count": 3,
+  "files_touched": [
+    ".claude/hooks/pre-commit-check.sh",
+    ".claude/settings.json",
+    "CLAUDE.md",
+    "scripts/headless/README.md",
+    "scripts/headless/execute-plan.sh",
+    "scripts/headless/maintain.sh"
+  ],
+  "agent": "Claude Code",
+  "turn_id": "e1bcb3d3f5ac",
+  "token_usage": {
+    "input_tokens": 10957,
+    "cache_creation_tokens": 6781941,
+    "cache_read_tokens": 95194519,
+    "output_tokens": 183216,
+    "api_call_count": 501
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-03-25T14:41:56.538307325Z",
+    "agent_lines": 187,
+    "human_added": 0,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 187,
+    "agent_percentage": 100
+  }
+}
