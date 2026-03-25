@@ -3,7 +3,7 @@
   "checkpoint_id": "98ff13efeb59",
   "strategy": "manual-commit",
   "branch": "main",
-  "checkpoints_count": 1,
+  "checkpoints_count": 2,
   "files_touched": [
     "nemotron_logs/nemotron_lora_adapter/README.md",
     "nemotron_logs/nemotron_lora_adapter/adapter_config.json",
@@ -16,6 +16,20 @@
       "context": "",
       "content_hash": "/98/ff13efeb59/0/content_hash.txt",
       "prompt": ""
+    },
+    {
+      "metadata": "/98/ff13efeb59/1/metadata.json",
+      "transcript": "/98/ff13efeb59/1/full.jsonl",
+      "context": "/98/ff13efeb59/1/context.md",
+      "content_hash": "/98/ff13efeb59/1/content_hash.txt",
+      "prompt": "/98/ff13efeb59/1/prompt.txt"
     }
-  ]
+  ],
+  "token_usage": {
+    "input_tokens": 12448,
+    "cache_creation_tokens": 986015,
+    "cache_read_tokens": 9483967,
+    "output_tokens": 26008,
+    "api_call_count": 55
+  }
 }
