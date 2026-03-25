@@ -25,7 +25,6 @@ if TYPE_CHECKING:
     from cohezion.integrations.agentverse.llm_executor import LLMExecutor
 
 
-
 logger = logging.getLogger(__name__)
 
 

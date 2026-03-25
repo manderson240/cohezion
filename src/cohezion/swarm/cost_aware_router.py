@@ -258,6 +258,7 @@ class CostAwareRouter:
         "phi3:mini": 0.0,  # Local, 100x cheaper than deepseek
         "qwen3-coder:32b": 0.0,  # Local
         "deepseek-r1:8b": 0.0,  # Local
+        "alibayram/smollm3:latest": 0.0,  # Local, 3B reasoning + 128k context
     }
 
     # Expected token counts by complexity (refined estimates)
@@ -272,6 +273,7 @@ class CostAwareRouter:
         "phi3:mini": 0.6,  # Fast, basic tasks
         "qwen3-coder:32b": 0.85,  # Good balance
         "deepseek-r1:8b": 0.95,  # Best quality
+        "alibayram/smollm3:latest": 0.72,  # Dual-mode reasoning, 128k context, tool calling
     }
 
     # TPS (tokens per second) for cost-time tradeoff
@@ -279,6 +281,7 @@ class CostAwareRouter:
         "phi3:mini": 15.0,  # Fastest
         "qwen3-coder:32b": 8.0,  # Moderate
         "deepseek-r1:8b": 2.0,  # Slowest but best
+        "alibayram/smollm3:latest": 14.0,  # Similar speed to phi3:mini
     }
 
     # Expected latency (ms) by model
@@ -286,6 +289,7 @@ class CostAwareRouter:
         "phi3:mini": 50.0,  # Fastest: ~50ms
         "qwen3-coder:32b": 100.0,  # Moderate: ~100ms
         "deepseek-r1:8b": 300.0,  # Slower: ~300ms
+        "alibayram/smollm3:latest": 55.0,  # Similar to phi3:mini
     }
 
     _instance: Optional["CostAwareRouter"] = None

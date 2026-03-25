@@ -375,13 +375,13 @@ class SurrealDBSync:
         Returns:
             Count of papers imported
         """
-        papers_dir = self.vault_path / "papers"
+        papers_dir = self.vault_path / "cortex"
         if not papers_dir.exists():
-            logger.warning(f"Papers directory not found: {papers_dir}")
+            logger.warning(f"Cortex directory not found: {papers_dir}")
             return 0
 
         paper_files = list(papers_dir.glob("*.md"))
-        logger.info(f"Starting sequential bulk import of {len(paper_files)} papers...")
+        logger.info(f"Starting sequential bulk import of {len(paper_files)} cortex notes...")
 
         count = 0
         for paper_path in paper_files:
@@ -404,14 +404,14 @@ class SurrealDBSync:
         Returns:
             Count of papers imported
         """
-        papers_dir = self.vault_path / "papers"
+        papers_dir = self.vault_path / "cortex"
         if not papers_dir.exists():
-            logger.warning(f"Papers directory not found: {papers_dir}")
+            logger.warning(f"Cortex directory not found: {papers_dir}")
             return 0
 
         paper_files = list(papers_dir.glob("*.md"))
         logger.info(
-            f"Starting parallel bulk import of {len(paper_files)} papers "
+            f"Starting parallel bulk import of {len(paper_files)} cortex notes "
             f"(max_concurrent={self.max_concurrent})..."
         )
 
@@ -554,14 +554,14 @@ class SurrealDBSync:
         Returns:
             Count of concepts imported
         """
-        concepts_dir = self.vault_path / "concepts"
+        concepts_dir = self.vault_path / "cerebellum"
         if not concepts_dir.exists():
-            logger.warning(f"Concepts directory not found: {concepts_dir}")
+            logger.warning(f"Cerebellum directory not found: {concepts_dir}")
             return 0
 
         concept_files = list(concepts_dir.glob("*.md"))
         logger.info(
-            f"Starting sequential bulk import of {len(concept_files)} concepts..."
+            f"Starting sequential bulk import of {len(concept_files)} cerebellum notes..."
         )
 
         count = 0
@@ -585,14 +585,14 @@ class SurrealDBSync:
         Returns:
             Count of concepts imported
         """
-        concepts_dir = self.vault_path / "concepts"
+        concepts_dir = self.vault_path / "cerebellum"
         if not concepts_dir.exists():
-            logger.warning(f"Concepts directory not found: {concepts_dir}")
+            logger.warning(f"Cerebellum directory not found: {concepts_dir}")
             return 0
 
         concept_files = list(concepts_dir.glob("*.md"))
         logger.info(
-            f"Starting parallel bulk import of {len(concept_files)} concepts "
+            f"Starting parallel bulk import of {len(concept_files)} cerebellum notes "
             f"(max_concurrent={self.max_concurrent})..."
         )
 
@@ -635,7 +635,7 @@ class SurrealDBSync:
         self.observer = Observer()
 
         # Watch papers and concepts directories
-        for subdir in ["papers", "concepts", "patterns", "decisions"]:
+        for subdir in ["cortex", "cerebellum", "patterns", "decisions"]:
             watch_path = self.vault_path / subdir
             if watch_path.exists():
                 self.observer.schedule(event_handler, str(watch_path), recursive=False)

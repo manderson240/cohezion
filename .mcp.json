@@ -52,6 +52,15 @@
       "env": {
         "PYTHONPATH": "/home/mike-anderson/dev/cohezion/src"
       }
+    },
+    "cohezion-compound": {
+      "type": "stdio",
+      "command": "/home/mike-anderson/dev/cohezion/.venv/bin/python",
+      "args": ["-m", "cohezion.mcp.compound_server"],
+      "env": {
+        "PYTHONPATH": "/home/mike-anderson/dev/cohezion/src",
+        "REDIS_URL": "redis://localhost:6379"
+      }
     }
   }
 }

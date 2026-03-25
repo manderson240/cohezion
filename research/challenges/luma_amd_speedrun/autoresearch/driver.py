@@ -28,6 +28,12 @@ from pathlib import Path
 
 # Add autoresearch to path
 sys.path.insert(0, str(Path(__file__).parent))
+# Add cloud-vault-mcp to path for graph_writer
+_cloud_vault_src = Path(__file__).parent.parent.parent.parent.parent / "cloud-vault-mcp" / "src"
+if _cloud_vault_src.exists():
+    sys.path.insert(0, str(_cloud_vault_src))
+
+import asyncio
 
 import generator
 from analyzer import Analysis, analyze_result, evolve_world_model, log_result
@@ -59,6 +65,39 @@ KERNEL_WEIGHTS = {
 }
 
 CYCLE_SLEEP_SECONDS = 5  # Sleep between cycles
+
+
+def _sync_to_graph(kernel: str, node, result_us: float | None) -> None:
+    """Write K-Search cycle result to neuron graph (non-blocking)."""
+    try:
+        from mcp_server.graph_writer import create_synapse, slugify, upsert_neuron
+
+        node_id = f"neuron:ksearch_{kernel}_{slugify(node.id)}_md"
+        content = f"Strategy: {node.strategy}\nBest: {node.best_result_us or 'N/A'}µs"
+        if result_us:
+            content += f"\nLast: {result_us:.1f}µs (attempt #{node.attempts})"
+
+        asyncio.run(upsert_neuron(
+            neuron_id=node_id,
+            title=f"[{kernel.upper()}] {node.strategy[:60]}",
+            path=f"autoresearch/{kernel}/{node.id}",
+            cluster="autoresearch",
+            aspect="thinker",
+            tags=["autoresearch", kernel, "k-search"],
+            content=content,
+        ))
+
+        # Link to parent if exists
+        if node.parent_id:
+            parent_id = f"neuron:ksearch_{kernel}_{slugify(node.parent_id)}_md"
+            asyncio.run(create_synapse(
+                from_id=parent_id,
+                to_id=node_id,
+                link_type="k-search-child",
+                reason=f"Child strategy in {kernel} K-Search tree",
+            ))
+    except Exception as e:
+        log.debug(f"Graph sync skipped (non-blocking): {e}")
 
 
 def load_tree(kernel: str) -> KSearchTree:
@@ -236,6 +275,7 @@ def run_cycle(
         except Exception as e:
             log.warning(f"[{kernel}] World model evolution failed: {e}")
         save_tree(tree)
+        _sync_to_graph(kernel, node, synthetic_geomean)
         return True, (
             f"{kernel}: Dry run LLM OK "
             f"(synthetic={synthetic_geomean:.1f}µs, "
@@ -316,6 +356,9 @@ def run_cycle(
 
     # Log result
     log_result(bench_result, node, analysis, RESULTS_DIR / f"{kernel}_runs.jsonl")
+
+    # Sync to neuron graph
+    _sync_to_graph(kernel, node, bench_result.geomean_us)
 
     geomean = bench_result.geomean_us or 0
     log.info(

@@ -269,6 +269,16 @@ class DynamicModelRouter:
                 template_format="llama3",
                 optimal_for_ide=[IDEPriority.OPENCODE],
             ),
+            "alibayram/smollm3:latest": ModelConfig(
+                name="alibayram/smollm3:latest",
+                size_gb=2.0,
+                quantization="Q4_K_M",
+                context_max=128000,
+                expected_tps=15.0,
+                cache_hit_rate=0.18,
+                template_format="chatml",
+                optimal_for_ide=[IDEPriority.OPENCODE],
+            ),
         }
 
     async def select_optimal_model(self, request: dict[str, Any]) -> ModelConfig:

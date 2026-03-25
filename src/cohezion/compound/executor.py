@@ -14,7 +14,6 @@ import time
 from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import datetime
-from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
 from cohezion.compound.context_integration import CompoundContextMixin
@@ -379,7 +378,7 @@ class CompoundExecutor(CompoundContextMixin):
             start_time=start_time,
             mcp_client=self.mcp_client,
         )
-        
+
         # Load context automatically if not already done (shoshen-minded automation)
         if not self._context_loaded:
             try:

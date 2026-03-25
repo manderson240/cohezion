@@ -56,6 +56,7 @@ async def execute_surreal_async(
     database: str = "vault",
     auth: tuple = ("root", "root"),
     max_retries: int = 3,
+    url: str = "http://localhost:8001/sql",
 ) -> list[dict[str, Any]]:
     """Execute SurrealQL query with retry logic"""
 
@@ -65,7 +66,7 @@ async def execute_surreal_async(
     for attempt in range(max_retries):
         try:
             response = await client.post(
-                "http://localhost:8000/sql",
+                url,
                 headers={
                     "Content-Type": "text/plain",
                     "Accept": "application/json",

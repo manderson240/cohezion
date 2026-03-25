@@ -4,20 +4,34 @@ import re
 from pathlib import Path
 
 from cohezion.compound.session_manager import CompoundSessionManager
-from cohezion.swarm.compound_client import get_compound_client
 from cohezion.flume.grid_encoder import FlumeGridHarness
+from cohezion.swarm.compound_client import get_compound_client
 
 
 BENCHMARK_FILE = Path(__file__).parent / "evo_hiho_benchmark.json"
 EVALUATION_OUTPUT = Path(__file__).parent / "adversarial_results.json"
 
 
-async def evaluate_task(mgr: CompoundSessionManager, task: dict, flume_harness: FlumeGridHarness) -> dict:
+async def evaluate_task(
+    mgr: CompoundSessionManager, task: dict, flume_harness: FlumeGridHarness
+) -> dict:
     """
-    Evaluates the ARC grid task using FLUME embeddings for state representation
-    and queries a model to check for Epistemic Humility.
+    Evaluates the ARC grid task using FLUME embeddings for state representation.
+
+    Parameters
+    ----------
+    mgr : CompoundSessionManager
+        The session manager for the execution.
+    task : dict
+        The ARC task to evaluate.
+    flume_harness : FlumeGridHarness
+        The FLUME grid encoder harness.
+
+    Returns
+    -------
+    dict
+        The evaluated task with adversarial results.
     """
-    
     # Extract grids from the input text to generate embeddings for monitoring
     grid_patterns = re.findall(r"\[\[.*?\]\]", task["input"], re.DOTALL)
     embeddings = []
@@ -40,7 +54,7 @@ async def evaluate_task(mgr: CompoundSessionManager, task: dict, flume_harness: 
 
         # The core check: Did the model correctly identify "Insufficient Information"?
         passed = task["output"].lower() in response_text.lower()
-        
+
         critique = ""
         if passed:
             critique = "Model correctly identified the ambiguity and showed Epistemic Humility."
@@ -49,7 +63,7 @@ async def evaluate_task(mgr: CompoundSessionManager, task: dict, flume_harness: 
 
         return {
             "model_response": response_text,
-            "latent_state": embeddings[0] if embeddings else [], # Tracking the initial grid state
+            "latent_state": embeddings[0] if embeddings else [],  # Tracking the initial grid state
             "passed": passed,
             "refinement_needed": not passed,
             "critique": critique,
@@ -65,11 +79,14 @@ async def evaluate_task(mgr: CompoundSessionManager, task: dict, flume_harness: 
         task["adversarial_results"] = result
     else:
         task["adversarial_results"] = {"passed": False, "error": "Execution failed"}
-    
+
     return task
 
 
 async def run_adversarial_loop():
+    """
+    Runs the adversarial evaluation loop for ARC-AGI tasks.
+    """
     print(f"Loading ARC-AGI tasks from {BENCHMARK_FILE.name}...")
     if not BENCHMARK_FILE.exists():
         print("Benchmark file not found. Please run the generator first.")
@@ -83,7 +100,7 @@ async def run_adversarial_loop():
 
     print(f"Loaded {len(tasks)} tasks for FLUME-backed adversarial testing...")
     evaluated_tasks = []
-    
+
     flume_harness = FlumeGridHarness()
 
     async with CompoundSessionManager() as mgr:

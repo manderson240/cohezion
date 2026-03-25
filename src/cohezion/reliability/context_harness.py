@@ -10,12 +10,15 @@ from typing import TYPE_CHECKING
 from cohezion.reliability.monitor import get_resource_monitor
 from cohezion.reliability.resolver import HallucinationResolver
 
+
 if TYPE_CHECKING:
     from cohezion.agentjet.context_optimizer import ModelContextProfile
 
 
 class ContextHarness:
-    def __init__(self, target_model: str = "phi4", profile: ModelContextProfile | None = None) -> None:
+    def __init__(
+        self, target_model: str = "phi4", profile: ModelContextProfile | None = None
+    ) -> None:
         self.target_model = target_model
         self._profile = profile
         self.resolver = HallucinationResolver()

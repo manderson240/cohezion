@@ -1,0 +1,29 @@
+graph TD
+    subgraph Observable["12D Observable State Tier"]
+        O1[spatial_x]
+        O2[tempic]
+        O3[logic]
+        O4[awareness]
+        O5[coherence]
+    end
+    
+    subgraph Semantic["2048D Semantic Context Tier"]
+        S1[LLM Embedding]
+        S2[Semantic Intent]
+        S3[Context Vector]
+    end
+    
+    subgraph Logging["Per-Step Logging"]
+        L1[Coherence Tracking]
+        L2[Phi Score]
+        L3[Thermodynamic State]
+        L4[Topological Features]
+    end
+    
+    Semantic -->|Projection| Observable
+    Observable -->|Per-Step| Logging
+    Logging --> E[Journey Export]
+    
+    style Observable fill:lightcoral,stroke:red,stroke-width:2px
+    style Semantic fill:lightblue,stroke:blue,stroke-width:2px
+    style Logging fill:yellow,stroke:orange,stroke-width:2px

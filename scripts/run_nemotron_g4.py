@@ -1,0 +1,67 @@
+#!/usr/bin/env python3
+"""
+Run G4 Blackwell submission for NVIDIA Nemotron Model Reasoning Challenge.
+"""
+
+import asyncio
+import os
+import logging
+from dotenv import load_dotenv
+
+# Load environment variables from .env
+load_dotenv()
+
+# Set Kaggle credentials for all libraries
+username = os.getenv("KAGGLE_USERNAME") or os.getenv("username")
+api_token = os.getenv("KAGGLE_API_TOKEN")
+
+if api_token and api_token.startswith("KGAT_"):
+    api_token = api_token[5:]
+
+if username:
+    os.environ["KAGGLE_USERNAME"] = username
+if api_token:
+    os.environ["KAGGLE_KEY"] = api_token
+
+# Now import the orchestrator (which imports Kaggle libs)
+from cohezion.integrations.kaggle_submission_improved import KaggleSubmissionOrchestrator
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+
+async def run_g4():
+    if not username or not api_token:
+        logger.error("Missing KAGGLE_USERNAME or KAGGLE_API_TOKEN in .env")
+        return
+
+    logger.info(f"Starting NVIDIA Nemotron Challenge G4 BLACKWELL flow for user: {username}")
+
+    orchestrator = KaggleSubmissionOrchestrator(username=username, key=api_token)
+
+    try:
+        # Define competition and notebook details
+        competition_id = "nvidia-nemotron-model-reasoning-challenge"
+        notebook_id = f"nemotron-lora-blackwell-v14"
+
+        # Execute the full flow
+        # This will use the updated KaggleAPI which defaults to NvidiaRtxPro6000
+        result = await orchestrator.run_baseline_flow(
+            competition_id=competition_id, notebook_id=notebook_id
+        )
+
+        print("\n" + "=" * 50)
+        print("G4 BLACKWELL FLOW INITIATED SUCCESSFULLY")
+        print("=" * 50)
+        print(f"Notebook ID: {notebook_id}")
+        print(f"Kaggle URL:  {result.get('url')}")
+        print("=" * 50)
+        print("The training is now running on Kaggle's G4 (NVIDIA RTX 6000 Blackwell) infrastructure.")
+        print("This should be significantly faster than standard accelerators.")
+
+    except Exception as e:
+        logger.error(f"G4 flow failed: {e}")
+
+
+if __name__ == "__main__":
+    asyncio.run(run_g4())

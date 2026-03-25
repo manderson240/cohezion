@@ -53,9 +53,25 @@ class PooledModel:
 class TierConfig(BaseModel):
     """Configuration for model tier assignments and pool limits."""
 
-    hot_models: list[str] = ["phi4-mini-reasoning:latest", "nomic-embed-text:latest", "qwen3.5:0.8b"]
-    warm_models: list[str] = ["glm-4.7-flash:latest", "qwen3-coder:30b", "minimax-m2.7", "qwen3-coder-next"]
-    cold_models: list[str] = ["deepcoder:14b", "nemotron-3-nano:latest", "nemotron-3-super:120b", "glm-5", "openai/gpt-oss-20b"]
+    hot_models: list[str] = [
+        "phi4-mini-reasoning:latest",
+        "nomic-embed-text:latest",
+        "qwen3.5:0.8b",
+        "alibayram/smollm3:latest",
+    ]
+    warm_models: list[str] = [
+        "glm-4.7-flash:latest",
+        "qwen3-coder:30b",
+        "minimax-m2.7",
+        "qwen3-coder-next",
+    ]
+    cold_models: list[str] = [
+        "deepcoder:14b",
+        "nemotron-3-nano:latest",
+        "nemotron-3-super:120b",
+        "glm-5",
+        "openai/gpt-oss-20b",
+    ]
     max_concurrent_loaded: int = 4
     health_check_interval_s: float = 300.0
     memory_pressure_threshold: float = 0.80

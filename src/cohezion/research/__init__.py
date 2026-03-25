@@ -108,7 +108,6 @@ def __getattr__(name: str) -> object:
     raise AttributeError(f"module 'cohezion.research' has no attribute '{name}'")
 
 
-
 def get_version() -> str:
     """Get research module version."""
     return __version__

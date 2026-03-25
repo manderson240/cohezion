@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" width="800" height="600">
+  <title>FIG. 2: VAE Encoder-Decoder with HIHO Coherence Loss</title>
+  
+  <!-- Input -->
+  <rect x="50" y="250" width="100" height="100" fill="lightblue" stroke="blue" stroke-width="2"/>
+  <text x="100" y="305" text-anchor="middle" font-size="14">2048D Input</text>
+  
+  <!-- Encoder -->
+  <rect x="200" y="250" width="120" height="100" fill="white" stroke="blue" stroke-width="2"/>
+  <text x="260" y="305" text-anchor="middle" font-size="14">Encoder</text>
+  
+  <!-- Mu and log_var -->
+  <rect x="370" y="200" width="80" height="50" fill="lightgreen" stroke="green" stroke-width="2"/>
+  <text x="410" y="230" text-anchor="middle" font-size="16" font-weight="bold">μ</text>
+  
+  <rect x="370" y="350" width="80" height="50" fill="lightgreen" stroke="green" stroke-width="2"/>
+  <text x="410" y="380" text-anchor="middle" font-size="14">log(σ²)</text>
+  
+  <!-- Sampling -->
+  <circle cx="500" cy="300" r="30" fill="pink" stroke="red" stroke-width="2"/>
+  <text x="500" y="305" text-anchor="middle" font-size="16" font-weight="bold">ε</text>
+  
+  <!-- Latent z -->
+  <rect x="570" y="275" width="80" height="50" fill="lavender" stroke="purple" stroke-width="2"/>
+  <text x="610" y="305" text-anchor="middle" font-size="16" font-weight="bold">z</text>
+  <text x="610" y="325" text-anchor="middle" font-size="10">512D</text>
+  
+  <!-- Decoder -->
+  <rect x="200" y="450" width="120" height="80" fill="white" stroke="blue" stroke-width="2"/>
+  <text x="260" y="495" text-anchor="middle" font-size="14">Decoder</text>
+  
+  <!-- Reconstruction -->
+  <rect x="50" y="450" width="100" height="80" fill="lightblue" stroke="blue" stroke-width="2"/>
+  <text x="100" y="495" text-anchor="middle" font-size="14">2048D Recon</text>
+  
+  <!-- Arrows -->
+  <line x1="150" y1="300" x2="200" y2="300" stroke="blue" stroke-width="2" marker-end="url(#arrow)"/>
+  <line x1="320" y1="300" x2="370" y2="225" stroke="blue" stroke-width="1.5"/>
+  <line x1="320" y1="300" x2="370" y2="375" stroke="blue" stroke-width="1.5"/>
+  <line x1="450" y1="225" x2="470" y2="225" stroke="blue" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <line x1="450" y1="375" x2="470" y2="375" stroke="blue" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <line x1="530" y1="300" x2="570" y2="300" stroke="blue" stroke-width="1.5" marker-end="url(#arrow)"/>
+  
+  <!-- Loss box -->
+  <rect x="300" y="50" width="250" height="70" fill="yellow" stroke="orange" stroke-width="2" rx="10"/>
+  <text x="425" y="80" text-anchor="middle" font-size="12">Total Loss = Recon + KL + Coherence</text>
+  <text x="425" y="95" text-anchor="middle" font-size="10" font-style="italic">Coherence: (μ_mean - 0.5)²</text>
+  
+  <!-- Connections to loss -->
+  <line x1="260" y1="250" x2="350" y2="120" stroke="blue" stroke-width="1" stroke-dasharray="5,5"/>
+  <line x1="610" y1="275" x2="500" y2="120" stroke="purple" stroke-width="1" stroke-dasharray="5,5"/>
+  
+  <!-- Arrow marker -->
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="blue"/>
+    </marker>
+  </defs>
+</svg>

@@ -178,6 +178,13 @@ LOCAL_MODELS = {
         speed_tier=1,
         quality_tier=3,
     ),
+    "alibayram/smollm3:latest": ModelProfile(
+        name="alibayram/smollm3:latest",
+        capabilities=[ModelCapability.FAST, ModelCapability.CODING, ModelCapability.LARGE_CONTEXT],
+        context_length=128000,
+        speed_tier=1,
+        quality_tier=3,
+    ),
     "phi3:mini": ModelProfile(
         name="phi3:mini",
         capabilities=[ModelCapability.FAST, ModelCapability.CREATIVE],
@@ -404,7 +411,7 @@ class SmartRouter:
 
                 data = await resp.json()
                 response = data.get("response", "")
-                tokens = data.get("eval_count", 0) + data.get("prompt_eval_count", 0)
+                data.get("eval_count", 0) + data.get("prompt_eval_count", 0)
                 success = True
                 break
 
