@@ -1,0 +1,101 @@
+<teammate-message teammate_id="team-lead">
+You are the MCP Health Hook agent. Your task is to create a SessionStart hook that checks MCP server health.
+
+## Your Task (Task #1)
+
+Mark task #1 as in_progress, then do the work, then mark it completed.
+
+## Context
+
+The Cohezion project has 7 MCP servers configured in `.mcp.json`:
+- `cohezion-vault` — HTTP server at `http://localhost:8360/mcp` (CAN be health-checked)
+- `cohezion-bmad`, `cohezion-skills`, `cohezion-research`, `cohezion-surreal`, `cohezion-swarm`, `cohezion-knowledge` — all stdio servers (CANNOT be proactively pinged; spawned on demand)
+
+The vault server already has a comprehensive health check system at `cloud-vault-mcp/src/mcp_server/health.py` with 7 checks (vault filesystem, SurrealDB, Google Sheets, Ollama, disk, memory, research pipeline).
+
+## What to Build
+
+### 1. New Hook Script: `/home/mike-anderson/dev/cohezion/.claude/hooks/mcp-health-check.sh`
+
+```bash
+#!/bin/bash
+# MCP Health Check — SessionStart hook
+# Pings HTTP-accessible MCP servers and warns about degraded ones.
+# Non-blocking: prints warnings but never blocks session start.
+# stdio-based servers are spawned on demand and cannot be proactively checked.
+
+DEGRADED=()
+
+# Check cohezion-vault (the only HTTP MCP server)
+if ! curl -sf --max-time 3 "http://localhost:8360/health" > /dev/null 2>&1; then
+    DEGRADED+=("cohezion-vault (http://localhost:8360)")
+fi
+
+# Check SurrealDB (used by multiple MCP servers)
+if ! curl -sf --max-time 2 "http://localhost:8000/health" > /dev/null 2>&1; then
+    DEGRADED+=("surrealdb (http://localhost:8000)")
+fi
+
+# Check Ollama (used by compound engineering)
+if ! curl -sf --max-time 2 "http://localhost:11434/api/tags" > /dev/null 2>&1; then
+    DEGRADED+=("ollama (http://localhost:11434)")
+fi
+
+if [ ${#DEGRADED[@]} -gt 0 ]; then
+    echo "⚠ MCP Infrastructure Warning: ${#DEGRADED[@]} service(s) unreachable:"
+    for svc in "${DEGRADED[@]}"; do
+        echo "  - $svc"
+    done
+    echo "Run vault_health_check for full diagnostics, or /wake to start services."
+fi
+```
+
+Make the script executable: `chmod +x .claude/hooks/mcp-health-check.sh`
+
+### 2. Register in Project Settings
+
+Read `/home/mike-anderson/dev/cohezion/.claude/settings.json` and add the new hook to the existing SessionStart hooks array. The file already has a SessionStart hook for `entire hooks claude-code session-start`. Add the MCP health check as a SECOND entry in the same array.
+
+The structure should look like:
+```json
+"SessionStart": [
+    {
+        "matcher": "",
+        "hooks": [
+            {
+                "type": "command",
+                "command": "entire hooks claude-code session-start"
+            }
+        ]
+    },
+    {
+        "matcher": "",
+        "hooks": [
+            {
+                "type": "command",
+                "command": ".claude/hooks/mcp-health-check.sh"
+            }
+        ]
+    }
+]
+```
+
+### Important Rules
+- Read the existing `.claude/settings.json` FIRST to understand current hook structure
+- The hook must be NON-BLOCKING — exit 0 always, even if services are down
+- Use `curl -sf --max-time` with short timeouts (2-3 seconds)
+- Don't check stdio MCP servers — they can't be pinged
+- The /health endpoint on the vault server is at port 8360 (NOT /mcp)
+- Don't use emojis in file content unless this project uses them (check existing hooks first)
+
+### Verification
+Run the hook manually to test: `bash .claude/hooks/mcp-health-check.sh`
+- If vault is running: should print nothing (clean exit)
+- If vault is stopped: should print warning message
+</teammate-message>
+
+---
+
+<teammate-message teammate_id="mcp-health-hooker" color="blue">
+{"type":"task_assignment","taskId":"1","subject":"Wire MCP health check into SessionStart","description":"Create .claude/hooks/mcp-health-check.sh that pings http://localhost:8360/mcp (cohezion-vault HTTP endpoint) with curl --max-time 2. Print WARNING for degraded servers. Register in project .claude/settings.json under hooks.SessionStart. Non-blocking: warn but don't block session. Only HTTP servers can be proactively checked; stdio servers are spawned on demand.","assignedBy":"mcp-health-hooker","timestamp":"2026-03-25T02:12:02.977Z"}
+</teammate-message>
