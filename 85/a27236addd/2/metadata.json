@@ -1,0 +1,41 @@
+{
+  "cli_version": "0.4.9",
+  "checkpoint_id": "85a27236addd",
+  "session_id": "0e827bda-d662-451e-95d0-882cbec81a9e",
+  "strategy": "manual-commit",
+  "created_at": "2026-03-25T20:09:07.958841105Z",
+  "branch": "main",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "scripts/bug_hunt.py",
+    "scripts/compound_live.py",
+    "scripts/train_flume.py",
+    "src/cohezion/agents/generated/__init__.py",
+    "src/cohezion/agents/generated/skill_0_agent.py",
+    "src/cohezion/agents/generated/skill_1_agent.py",
+    "src/cohezion/cache/cache_warmer.py",
+    "src/cohezion/compound/__init__.py",
+    "src/cohezion/core/persistence/repositories/surreal_skill_repository.py",
+    "src/cohezion/core/persistence/repositories/surreal_universe_repository.py",
+    "src/cohezion/skills/skill_registry.json",
+    "src/cohezion/swarm/democratic_debate.py"
+  ],
+  "agent": "Claude Code",
+  "turn_id": "cfbfaaeaaf5c",
+  "token_usage": {
+    "input_tokens": 12448,
+    "cache_creation_tokens": 986015,
+    "cache_read_tokens": 9483967,
+    "output_tokens": 26008,
+    "api_call_count": 55
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-03-25T20:09:07.443082543Z",
+    "agent_lines": 264,
+    "human_added": 233,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 497,
+    "agent_percentage": 53.118712273641854
+  }
+}
