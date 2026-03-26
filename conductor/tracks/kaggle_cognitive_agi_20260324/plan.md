@@ -31,8 +31,8 @@
 
 ## Phase 5: Leaderboard Optimization & Iterative Refinement
 - [x] Task: Execute initial baseline synthetic generation using refined prompt (ARC-AGI focus).
-- [x] Task: Create an automated Kaggle submission and leaderboard polling script (`check_leaderboard.py`).
-- [ ] Task: Resolve Kaggle CLI submission issue (Current: Silent Failure).
+- [x] Task: Implement `benchmark_designer.py` using `kaggle-benchmarks` SDK for official task registration.
+- [ ] Task: Upload `benchmark_designer.py` and `evo_hiho_benchmark.json` to Kaggle Notebook.
 - [ ] Task: Analyze model failure modes and refine the `GENERATION_PROMPT` to increase trap difficulty.
-- [ ] Task: Scale up to 100+ high-fidelity tasks once submission is confirmed.
+- [ ] Task: Scale up to 100+ high-fidelity tasks once submission is confirmed via SDK.
 - [ ] Task: Repeat Generation -> Evaluation -> Submission loop until leaderboard target is achieved.
