@@ -1652,6 +1652,14 @@ try:
 except ImportError:
     pass  # genesis module not available
 
+# Register World Model endpoints (JEPA predictor)
+try:
+    from cohezion.api.services.world_model import world_model_router
+
+    app.include_router(world_model_router, prefix="/api")
+except ImportError:
+    pass  # world_model module not available
+
 # Register journey analysis endpoints
 try:
     from cohezion.api.journeys import router as journeys_router
