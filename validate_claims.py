@@ -47,7 +47,7 @@ def count_actual_results():
             skills_optimized.add(skill)
             tokens = data.get("tokens_used", 0)
             total_tokens += tokens
-        except:
+        except (FileNotFoundError, json.JSONDecodeError):
             pass
 
     print(f"Unique skills optimized: {len(skills_optimized)}")
@@ -113,7 +113,7 @@ def validate_token_efficiency():
                     tokens = data.get("tokens_used", 0)
                     total_tokens += tokens
                     total_budget += 8000  # Per skill budget
-                except:
+                except (FileNotFoundError, json.JSONDecodeError):
                     pass
 
     if total_budget > 0:
@@ -194,7 +194,7 @@ def validate_cross_skill_learning():
                     data = json.loads(result_file.read_text())
                     if data.get("learning_applied"):
                         learning_applied += 1
-                except:
+                except (FileNotFoundError, json.JSONDecodeError):
                     pass
 
     if learning_applied > 0:
@@ -225,7 +225,7 @@ def validate_alerting():
                 data = json.loads(report_path.read_text())
                 alerts = data.get("alerts", [])
                 total_alerts += len(alerts)
-            except:
+            except (FileNotFoundError, json.JSONDecodeError):
                 pass
 
     if total_alerts > 0:

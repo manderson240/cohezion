@@ -79,7 +79,7 @@ if __name__ == "__main__":
     # Ensure Sim is running
     try:
         requests.get(f"{BASE_URL}/")
-    except:
+    except requests.exceptions.ConnectionError:
         logger.error("Target DOWN. Start Diplomat first.")
         sys.exit(1)
 

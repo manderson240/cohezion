@@ -68,7 +68,7 @@ class SymbolicExecutor:
                 if hasattr(v, "evalf"):
                     try:
                         clean_results[k] = float(v.evalf())
-                    except:
+                    except (ValueError, TypeError):
                         clean_results[k] = str(v)
                 else:
                     clean_results[k] = v

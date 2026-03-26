@@ -33,7 +33,7 @@ async def __():
         # nodes = await client.query("SELECT * FROM agent_thought WHERE embedding IS NOT NULL")
         # data = nodes
         pass
-    except:
+    except (ConnectionError, TimeoutError):
         pass
 
     if not data:
