@@ -9,6 +9,7 @@ SU(2) spinor algebra for grounded SPIN coherence.
 from cohezion.physics.cosmogony import SymmetryBreaking, SymmetryGroup
 from cohezion.physics.dimension_extractor import DimensionExtractor
 from cohezion.physics.fiber_bundle import FiberBundle
+from cohezion.physics.gauge_theory import FourFabricGauge, GaugeConnection
 from cohezion.physics.lagrangian import LagrangianDynamics
 from cohezion.physics.riemannian_metric import RiemannianMetric
 from cohezion.physics.spinor import SpinorState
@@ -17,6 +18,8 @@ from cohezion.physics.spinor import SpinorState
 __all__ = [
     "DimensionExtractor",
     "FiberBundle",
+    "FourFabricGauge",
+    "GaugeConnection",
     "LagrangianDynamics",
     "RiemannianMetric",
     "SpinorState",

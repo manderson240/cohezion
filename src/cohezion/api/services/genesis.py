@@ -287,3 +287,135 @@ async def get_cosmogony_12d_state() -> dict:
         "symmetry": cosmo.symmetry.value,
         "temperature": cosmo.temperature,
     }
+
+
+# ─── Manifold & Gauge Endpoints (Milestone 3+4) ────────────────────────
+
+
+@genesis_router.post("/fiber-bundle")
+async def get_fiber_bundle_state(state_12d: list[float] | None = None) -> dict:
+    """Decompose a 12D state into base-space + fiber components.
+
+    Base: π(q) = (‖Space‖, ‖Field‖, ‖Control‖, ‖Precip‖)
+    Fiber: unit direction within each fabric triplet.
+
+    If no state provided, generates one from the current cosmogony stage.
+    """
+    from cohezion.physics.fiber_bundle import FiberBundle
+
+    fb = FiberBundle()
+
+    if state_12d is None:
+        from cohezion.physics.cosmogony import get_cosmogony
+
+        state_12d = get_cosmogony().generate_12d_state().tolist()
+
+    state = np.array(state_12d[:12], dtype=float)
+    decomp = fb.decompose(state)
+    return decomp.to_dict()
+
+
+@genesis_router.post("/gauge-state")
+async def get_gauge_state(state_12d: list[float] | None = None) -> dict:
+    """Compute gauge field strengths for all four fabrics.
+
+    At HIHO (all 0.5), all curvatures vanish (flat connection).
+    Deviation from HIHO excites gauge fields with non-zero energy density.
+    """
+    from cohezion.physics.gauge_theory import FourFabricGauge
+
+    gauge = FourFabricGauge()
+
+    if state_12d is None:
+        from cohezion.physics.cosmogony import get_cosmogony
+
+        state_12d = get_cosmogony().generate_12d_state().tolist()
+
+    gauge.set_from_12d_state(np.array(state_12d[:12], dtype=float))
+    return gauge.to_dict()
+
+
+class LagrangianTrajectoryRequest(BaseModel):
+    """Request for a Lagrangian trajectory simulation."""
+
+    initial_state: list[float] = Field(
+        default_factory=lambda: [0.5] * 12, description="Initial 12D position (default: HIHO)"
+    )
+    initial_velocity: list[float] = Field(
+        default_factory=lambda: [0.01] * 12, description="Initial 12D velocity"
+    )
+    n_steps: int = Field(100, ge=10, le=1000, description="Simulation steps")
+    dt: float = Field(0.01, gt=0, le=0.1, description="Time step")
+    damping: float = Field(0.1, ge=0, le=2.0, description="Viscous damping")
+
+
+@genesis_router.post("/lagrangian-trajectory")
+async def simulate_lagrangian_trajectory(req: LagrangianTrajectoryRequest) -> dict:
+    """Simulate a trajectory via Euler-Lagrange equations on the 12D manifold.
+
+    Uses symplectic Störmer-Verlet integration with:
+    - Riemannian kinetic energy T = ½g_ij q̇^i q̇^j (fabric-block metric)
+    - HIHO Gaussian attractor potential
+    - Optional viscous damping
+
+    Returns positions, energies, and the action integral.
+    """
+    from cohezion.physics.lagrangian import LagrangianDynamics, hiho_potential
+    from cohezion.physics.riemannian_metric import fabric_block_metric
+
+    metric = fabric_block_metric(12)
+    potential = hiho_potential(12)
+    dynamics = LagrangianDynamics(metric, potential, damping=req.damping)
+
+    q0 = np.array(req.initial_state[:12], dtype=float)
+    v0 = np.array(req.initial_velocity[:12], dtype=float)
+
+    result = dynamics.simulate(q0, v0, n_steps=req.n_steps, dt=req.dt)
+
+    # Downsample for API response (max 200 points)
+    stride = max(1, len(result["positions"]) // 200)
+
+    return {
+        "positions": result["positions"][::stride].tolist(),
+        "energies": result["energies"][::stride].tolist(),
+        "lagrangians": result["lagrangians"][::stride].tolist(),
+        "action": dynamics.action_integral(result["positions"], req.dt),
+        "energy_initial": float(result["energies"][0]),
+        "energy_final": float(result["energies"][-1]),
+        "n_steps": req.n_steps,
+        "dt": req.dt,
+    }
+
+
+@genesis_router.get("/manifold-summary")
+async def get_manifold_summary() -> dict:
+    """Complete summary of the current manifold state.
+
+    Combines cosmogony, fiber bundle, gauge, and spinor data into
+    a single response for the webapp's unified view.
+    """
+    from cohezion.physics.cosmogony import get_cosmogony
+    from cohezion.physics.fiber_bundle import FiberBundle
+    from cohezion.physics.gauge_theory import FourFabricGauge
+
+    cosmo = get_cosmogony()
+    state_12d = cosmo.generate_12d_state()
+
+    fb = FiberBundle()
+    decomp = fb.decompose(state_12d)
+
+    gauge = FourFabricGauge()
+    gauge.set_from_12d_state(state_12d)
+
+    spinor = SpinorState.from_coherence_values(
+        float(state_12d[6]),  # logic
+        float(state_12d[7]),  # quantum
+    )
+
+    return {
+        "cosmogony": cosmo.state.to_dict(),
+        "fiber_bundle": decomp.to_dict(),
+        "gauge": gauge.to_dict(),
+        "spinor": spinor.to_dict(),
+        "state_12d": state_12d.tolist(),
+    }
