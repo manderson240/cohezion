@@ -321,7 +321,7 @@ class PeakedCircuitSolver:
                     q_idx = site_to_qubit[site_idx]
                     try:
                         val = int(bit)
-                    except:
+                    except (ValueError, TypeError):
                         val = bit
                     ordered_bits[q_idx] = str(val)
 

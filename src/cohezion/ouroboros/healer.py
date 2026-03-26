@@ -33,11 +33,11 @@ class HealerAgent(BaseAgent):
         prompt = f"""
         ANOMALY REPORT DETECTED:
         {json.dumps(anomaly_report, indent=2)}
-        
+
         As the Ouroboros Healer, synthesize a specific patch proposal to stabilize 
         the Cohezion Triune Manifold. Focus on coherence recovery toward the 0.5 
         HIHO stability point.
-        
+
         Provide your response in the following format:
         PATCH Proposal: <Description of adjustment>
         Rationale: <Explanation of why this stabilizes the system>

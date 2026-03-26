@@ -324,7 +324,7 @@ class AgentCoordinator:
                 try:
                     creds_data = json_lib.loads(creds_path.read_text())
                     auth_token = creds_data.get("claudeAiOauth", {}).get("accessToken")
-                except:
+                except (FileNotFoundError, json_lib.JSONDecodeError, KeyError):
                     pass
 
                 # Fall back to API key

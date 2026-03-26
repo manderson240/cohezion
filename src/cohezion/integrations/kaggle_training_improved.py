@@ -129,7 +129,9 @@ try:
     if torch.cuda.is_available():
         for i in range(torch.cuda.device_count()):
             prop = torch.cuda.get_device_properties(i)
+            cap = torch.cuda.get_device_capability(i)
             print(f"GPU {i}: {prop.name} (Total Memory: {prop.total_memory / 1024**3:.2f} GB)")
+            print(f"  Compute Capability: {cap[0]}.{cap[1]} (sm_{cap[0]}{cap[1]})")
 
     # Check for mandatory dependencies
     print("Verifying mandatory dependencies...")
@@ -160,20 +162,20 @@ try:
     print("Downloading model from kagglehub...")
     model_path = kagglehub.model_download("metric/nemotron-3-nano-30b-a3b-bf16/transformers/default")
     print(f"Model path: {model_path}")
-    
+
     # The competition data is attached via the competitionId in metadata
     competition_id = "nvidia-nemotron-model-reasoning-challenge"
-    
+
     print(f"Looking for dataset...")
     train_file = None
-    
+
     # Check common paths
     possible_paths = [
         f"/kaggle/input/{competition_id}",
         f"/kaggle/input/competitions/{competition_id}",
         "/kaggle/input"
     ]
-    
+
     for base_path in possible_paths:
         if os.path.exists(base_path):
             print(f"Checking {base_path}...")
@@ -188,7 +190,7 @@ try:
                     break
         if train_file:
             break
-            
+
     if not train_file:
         print(f"ERROR: Could not find training data in any standard Kaggle input path.")
         sys.exit(1)
@@ -205,7 +207,7 @@ try:
             torch_dtype=torch.bfloat16
         )
         print("Model loaded successfully!")
-        
+
         # Diagnostic: Print a few module names to verify target_modules
         print("Sample module names:")
         for i, (name, _) in enumerate(model.named_modules()):
@@ -223,7 +225,7 @@ try:
     # Use a simpler list-based matching which is more robust than complex regex
     # PEFT will match these names as suffixes
     target_modules = ["in_proj", "out_proj", "up_proj", "down_proj"]
-    
+
     print(f"Targeting modules: {target_modules}")
     lora_config = LoraConfig(
         r=32,
@@ -249,7 +251,7 @@ try:
     print("Saving baseline LoRA adapter...")
     adapter_path = "nemotron_lora_adapter"
     model.save_pretrained(adapter_path)
-    
+
     # Also save the tokenizer for completeness
     try:
         tokenizer = AutoTokenizer.from_pretrained(model_id, trust_remote_code=True)
@@ -257,8 +259,15 @@ try:
         print("Tokenizer saved successfully!")
     except Exception as e:
         print(f"Warning: Could not save tokenizer: {e}")
-    
+
     print("Baseline adapter saved successfully!")
+
+    # 7. Package submission
+    print("Packaging submission.zip...")
+    # Change to adapter directory and zip contents to ensure flat structure
+    subprocess.run(f"cd {adapter_path} && zip -r ../submission.zip ./*", shell=True, check=True)
+    print("submission.zip created successfully!")
+
     print("=" * 50)
     print("TRAINING COMPLETED SUCCESSFULLY")
     print("=" * 50)

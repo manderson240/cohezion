@@ -177,7 +177,7 @@ def encode_text_to_latent(text: str) -> tuple[np.ndarray, float]:
 
             coherence = compute_coherence(latent.tolist())
             return latent, coherence
-        except:
+        except (ValueError, RuntimeError):
             pass
 
     # Fallback: simulate FLUME encoding

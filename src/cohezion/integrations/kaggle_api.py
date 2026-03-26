@@ -3,7 +3,7 @@ import os
 import json
 import subprocess
 from pathlib import Path
-from typing import List, Optional, Any
+from typing import List, Optional
 import kagglehub
 from kaggle.api.kaggle_api_extended import KaggleApi
 
@@ -11,13 +11,13 @@ logger = logging.getLogger(__name__)
 
 class KaggleAPI:
     """Wrapper for official Kaggle API with asynchronous support."""
-    
+
     def __init__(self, username: Optional[str] = None, key: Optional[str] = None):
         self.api = KaggleApi()
         if username and key:
             os.environ["KAGGLE_USERNAME"] = username
             os.environ["KAGGLE_KEY"] = key
-        
+
         try:
             self.api.authenticate()
             self.username = username or os.environ.get("KAGGLE_USERNAME")
@@ -39,10 +39,10 @@ class KaggleAPI:
     async def push_notebook(self, notebook_id: str, code: str, competition_id: Optional[str] = None, model_sources: Optional[List[str]] = None) -> dict:
         """Push a notebook to Kaggle with the EXACT metadata required for Blackwell G4."""
         logger.info(f"Pushing notebook: {notebook_id}")
-        
+
         temp_dir = Path(f"data/temp_notebook_{notebook_id}")
         temp_dir.mkdir(parents=True, exist_ok=True)
-        
+
         # Parse or wrap the code
         try:
             nb_json = json.loads(code)
@@ -69,7 +69,7 @@ class KaggleAPI:
         script_path = temp_dir / "notebook.ipynb"
         with open(script_path, "w") as f:
             json.dump(nb_json, f, indent=2)
-            
+
         # Create kernel-metadata.json using the newly discovered machine_shape field
         metadata = {
             "id": f"{self.username}/{notebook_id}",
@@ -88,24 +88,24 @@ class KaggleAPI:
             "docker_image": "gcr.io/kaggle-private-byod/python@sha256:9fa0da194fad2241d3f01a80581cbecbd3a258b4d1b695e2cbbbc62a0fd205ac",
             "machine_shape": "NvidiaRtxPro6000"
         }
-        
+
         metadata_path = temp_dir / "kernel-metadata.json"
         with open(metadata_path, "w") as f:
             json.dump(metadata, f, indent=2)
-            
+
         try:
             logger.info(f"Executing Kaggle CLI push for {notebook_id} with machine_shape=NvidiaRtxPro6000...")
             cmd = ["kaggle", "kernels", "push", "-p", str(temp_dir)]
             env = os.environ.copy()
             if self.username:
                 env["KAGGLE_USERNAME"] = self.username
-            
+
             result = subprocess.run(cmd, capture_output=True, text=True, env=env)
-            
+
             if result.returncode != 0:
                 logger.error(f"Kaggle push failed: {result.stderr}")
                 raise Exception(f"Kaggle push failed: {result.stderr}")
-                
+
             url = f"https://www.kaggle.com/{self.username}/{notebook_id}"
             logger.info(f"Success! URL: {url}")
             return {"status": "complete", "url": url}
