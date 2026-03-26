@@ -37,6 +37,23 @@ uv venv && source .venv/bin/activate && uv pip install -e .  # New project setup
 4. **Report honest metrics** (98.8% beats inflated 100% for decision-making)
 5. **Never write infrastructure for products that don't exist**
 
+### ⚡ Execution Priority (Sessions 56+)
+
+**EXECUTE FIRST. PLAN SECOND. INFRASTRUCTURE NEVER (unless explicitly requested).**
+
+When given a task:
+1. **Can you execute it RIGHT NOW with existing tools?** If yes, do it. No planning phase needed.
+2. **Does it need a plan?** Only if 10+ files or architectural. Ask user if they want `/spec`.
+3. **Are you building a helper/framework/tool?** STOP. Re-read the original task. Build the deliverable, not tools to build the deliverable.
+
+**Session budget:** If >30 minutes have passed without producing a runnable artifact (code change, submission, commit), you are in infrastructure drift. STOP and deliver something concrete.
+
+**Evidence of drift (any one = STOP):**
+- Creating a new class/module not in the original request
+- Writing >100 lines of "framework" code before the first test passes
+- Researching dependencies for a tool you are building to build the actual thing
+- The phrase "first we need to set up..." when the thing already exists
+
 ### ⚡ Vault-First Knowledge Management (NEW: Session 56)
 
 **CRITICAL**: All session learnings MUST be logged to vault, not MEMORY.md directly.

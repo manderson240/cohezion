@@ -52,6 +52,52 @@ class RetrospectionSummary:
         }
 
 
+@dataclass
+class StrategyTracker:
+    """Tracks consecutive failures and improvement plateaus per skill.
+
+    Used by RetrospectionEngine to detect when an approach should be
+    abandoned in favor of a fundamentally different strategy.
+    """
+
+    pivot_threshold: int = 3
+    improvement_threshold: float = 0.05  # 5%
+    _failure_counts: dict[str, int] = field(default_factory=dict)
+    _improvement_history: dict[str, list[float]] = field(default_factory=dict)
+
+    def record_outcome(self, skill_name: str, success: bool, metric_delta: float) -> str | None:
+        """Record outcome. Returns pivot recommendation if threshold hit."""
+        if not success:
+            self._failure_counts[skill_name] = self._failure_counts.get(skill_name, 0) + 1
+        else:
+            self._failure_counts[skill_name] = 0
+
+        history = self._improvement_history.setdefault(skill_name, [])
+        history.append(metric_delta)
+
+        # Check plateau: N attempts with <threshold improvement
+        if len(history) >= self.pivot_threshold:
+            recent = history[-self.pivot_threshold :]
+            if all(abs(d) < self.improvement_threshold for d in recent):
+                return (
+                    f"PIVOT RECOMMENDED: {skill_name} has plateaued "
+                    f"({self.pivot_threshold} attempts, "
+                    f"<{self.improvement_threshold:.0%} improvement each)"
+                )
+
+        # Check consecutive failures
+        count = self._failure_counts.get(skill_name, 0)
+        if count >= self.pivot_threshold:
+            return f"PIVOT RECOMMENDED: {skill_name} has failed {count} consecutive times"
+
+        return None
+
+    def reset(self, skill_name: str) -> None:
+        """Reset tracking for a skill after a successful pivot."""
+        self._failure_counts.pop(skill_name, None)
+        self._improvement_history.pop(skill_name, None)
+
+
 class RetrospectionEngine:
     """Generates retrospection summaries after compound cycles.
 
@@ -61,6 +107,7 @@ class RetrospectionEngine:
 
     def __init__(self) -> None:
         self._summaries: list[RetrospectionSummary] = []
+        self._strategy_tracker = StrategyTracker()
 
     @property
     def summaries(self) -> list[RetrospectionSummary]:
@@ -74,6 +121,14 @@ class RetrospectionEngine:
         # Generate first-person narrative
         narrative = self._generate_narrative(metrics, coherence_delta, direction)
         insights = self._extract_insights(metrics, coherence_delta)
+
+        # Check for strategy pivot recommendation
+        pivot = self._strategy_tracker.record_outcome(
+            metrics.skill_name, metrics.success, coherence_delta
+        )
+        if pivot:
+            insights.append(pivot)
+            logger.warning("Strategy pivot recommended for %s", metrics.skill_name)
 
         summary = RetrospectionSummary(
             cycle_id=cycle_id,

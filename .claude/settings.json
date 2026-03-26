@@ -71,6 +71,15 @@
             "command": ".claude/hooks/branch-safety-warning.sh"
           }
         ]
+      },
+      {
+        "matcher": "Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": ".claude/hooks/drift-detection.sh"
+          }
+        ]
       }
     ],
     "PostToolUse": [
@@ -111,6 +120,25 @@
           {
             "type": "command",
             "command": ".claude/hooks/format-on-edit.sh"
+          }
+        ]
+      },
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": ".claude/hooks/test-on-edit.sh",
+            "statusMessage": "Running tests..."
+          }
+        ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": ".claude/hooks/check-bash-output.sh"
           }
         ]
       }
