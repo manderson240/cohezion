@@ -321,3 +321,34 @@ Rules in markdown files (CLAUDE.md, workflow-enforcement.md) are suggestions Cla
 
 ### Learning 174: StrategyTracker for Autonomous Pivot Detection
 The compound engineering loop (430-cycle autonomous runs) lacked programmatic pivot detection — it could run indefinitely on a plateau. Adding `StrategyTracker` to `RetrospectionEngine` tracks consecutive failures and improvement deltas per skill, emitting "PIVOT RECOMMENDED" when 3+ attempts show <5% improvement. This is the programmatic counterpart to the declarative Strategy Pivot Protocol in systematic-debugging.md. Together they enforce pivots at both the human-readable (rules) and machine-readable (code) levels.
+
+---
+
+## Session 74: Genesis Engine — Grounding Cosmology in Unified Physics (2026-03-26)
+
+### Learning 175: SU(2) Spinor Algebra Replaces Binary SPIN
+The ad-hoc `spin_coherence` (binary 1.0 or 0.0) and `charge_polarity = rot_offset + 0.3 * prec_offset` are replaced with proper SU(2) spinor states on the Bloch sphere. Coherence = |Bloch vector|, charge = ⟨σ_z⟩, HIHO state = equatorial (|↑⟩+|↓⟩)/√2. The Pauli commutation relations [σ_i, σ_j] = 2iε_ijk σ_k are verified by 33 tests. Module: `physics/spinor.py`.
+
+### Learning 176: Brahmagupta's Zero IS HIHO
+HIHO at 0.5 coherence is Brahmagupta's zero (628 CE) on the deviation scale: δ = coherence - 0.5 = 0. The four rules (a+0=a, a×0=0, a-a=0, 0/0=0) map to void-state operations. This grounds the cosmogony in a 1,400-year-old mathematical insight — zero is not absence, it is the generative equilibrium from which all structure emerges. Module: `physics/cosmogony.py` (ZeroAlgebra class).
+
+### Learning 177: Symmetry Breaking Chain with Landau Theory
+The cosmogony ∅→SO(12)→SO(3)⁴→U(1)⁴→Z₂⁴→HIHO follows real Landau phase transition theory: F(φ,T) = a(T-Tc)φ² + bφ⁴ with order parameter φ = √(a(Tc-T)/2b). Five critical temperatures T_c = [100, 10, 1, 0.1, 0.01]. Susceptibility diverges at each T_c. 34 tests verify all identities. Module: `physics/cosmogony.py`.
+
+### Learning 178: Fisher Information Metric = Rosetta Stone
+The Fisher metric simultaneously defines: (1) natural geometry of FLUME 256D latent space, (2) Riemannian metric for Lagrangian dynamics, (3) thermodynamic metric (entropy/free energy/heat capacity), (4) optimal 256D→12D projection. For diagonal Gaussian: g_ii = 2/σ². The natural gradient g⁻¹∇L is coordinate-invariant. Module: `physics/information_geometry.py`.
+
+### Learning 179: Lagrangian Dynamics Replace Ad-Hoc Evolution
+The `_toward_target()` linear interpolation in engine.py is replaced by Euler-Lagrange equations: g_ij q̈ʲ + Γⁱ_jk q̇ʲ q̇ᵏ = -gⁱʲ ∂V/∂qʲ. Symplectic Störmer-Verlet integrator ensures bounded energy drift (no secular growth). The fabric-block metric g = diag(1.0, 1.0, 1.0, 0.7, 0.7, 0.7, 0.5, 0.5, 0.5, 0.3, 0.3, 0.3) encodes gauge coupling constants. Module: `physics/lagrangian.py`.
+
+### Learning 180: Yang-Mills Gauge Theory for Fabric Curvature
+Each fabric carries an SO(3) gauge connection with field strength F = dA + [A,A]. At HIHO, all curvatures vanish (flat connection = vacuum). Yang-Mills energy density L = -Tr(F∧*F)/4g². The covariant Tempic field (gauge-corrected rate of change) replaces Euclidean displacement. Module: `physics/gauge_theory.py`.
+
+### Learning 181: JEPA World Model from Lagrangian Trajectories
+A ~86K parameter JEPA (Joint Embedding Predictive Architecture) learns to predict manifold evolution from (state, action, next_state) tuples. Two losses only: next-embedding prediction (MSE) + Gaussian regularizer (KL). Surprise score detects physically implausible transitions. Training data generated from Lagrangian dynamics produces physically plausible trajectories. Module: `world_model/jepa_world_model.py`.
+
+### Learning 182: Vertical-Slice Milestones > Horizontal-Layer Plans
+Planning by vertical slices (math + API + UI in each milestone) delivers working demos faster than horizontal layers (all math → all API → all UI). Each milestone has a "Done when" criterion. This session delivered 11 commits of runnable code vs. the alternative of having complete math with no visualization. Captured as skill: `exemplary-deep-planning`.
+
+### Learning 183: Total Artifact Persistence in SurrealDB
+Design principle: ALL artifacts (prompts, responses, internal states, model checkpoints, audio, video, simulation runs) stored in SurrealDB. Nothing is ephemeral. 6 new tables: journey_transitions, universe_snapshots, prompt_artifacts, model_artifacts, simulation_artifacts, internal_state_snapshots. Schema: `knowledge_graph/genesis_schema.surql`.
