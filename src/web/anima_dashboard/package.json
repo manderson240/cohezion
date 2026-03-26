@@ -22,7 +22,8 @@
     "react-error-boundary": "^6.1.1",
     "react-plotly.js": "^2.6.0",
     "tailwind-merge": "^3.5.0",
-    "three": "^0.183.2"
+    "three": "^0.183.2",
+    "tone": "^15.1.22"
   },
   "devDependencies": {
     "@playwright/test": "^1.58.2",
