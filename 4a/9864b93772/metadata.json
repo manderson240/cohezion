@@ -5,7 +5,11 @@
   "branch": "challenge/nvidia-nemotron-reasoning",
   "checkpoints_count": 3,
   "files_touched": [
-    "src/cohezion/swarm/compound_client.py"
+    "src/cohezion/swarm/compound_client.py",
+    "src/cohezion/swarm/providers/ollama_cloud_provider.py",
+    "src/cohezion/swarm/task_type_router.py",
+    "tests/swarm/test_ollama_cloud_provider.py",
+    "tests/swarm/test_task_type_router.py"
   ],
   "sessions": [
     {
@@ -19,13 +23,19 @@
       "transcript": "/4a/9864b93772/1/full.jsonl",
       "content_hash": "/4a/9864b93772/1/content_hash.txt",
       "prompt": "/4a/9864b93772/1/prompt.txt"
+    },
+    {
+      "metadata": "/4a/9864b93772/2/metadata.json",
+      "transcript": "/4a/9864b93772/2/full.jsonl",
+      "content_hash": "/4a/9864b93772/2/content_hash.txt",
+      "prompt": "/4a/9864b93772/2/prompt.txt"
     }
   ],
   "token_usage": {
-    "input_tokens": 32183,
-    "cache_creation_tokens": 5301117,
-    "cache_read_tokens": 86956606,
-    "output_tokens": 107561,
-    "api_call_count": 256
+    "input_tokens": 62470,
+    "cache_creation_tokens": 16941738,
+    "cache_read_tokens": 284835728,
+    "output_tokens": 440619,
+    "api_call_count": 1162
   }
 }
