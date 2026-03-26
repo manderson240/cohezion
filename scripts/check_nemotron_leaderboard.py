@@ -67,7 +67,7 @@ async def check_leaderboard():
                 if score_raw != "N/A":
                     try:
                         score = f"{float(score_raw):.6f}"
-                    except:
+                    except (ValueError, TypeError):
                         score = str(score_raw)
                 else:
                     score = "N/A"
@@ -109,7 +109,7 @@ async def check_leaderboard():
                     if score_raw != "N/A":
                         try:
                             score = f"{float(score_raw):.6f}"
-                        except:
+                        except (ValueError, TypeError):
                             score = str(score_raw)
                     else:
                         score = "N/A"
@@ -131,7 +131,7 @@ async def check_leaderboard():
                             score_val = float(score_raw)
                             if best_score is None or score_val > best_score:
                                 best_score = score_val
-                        except:
+                        except (ValueError, TypeError):
                             pass
 
                 if best_score is not None:

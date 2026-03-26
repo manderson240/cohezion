@@ -43,7 +43,7 @@ async def broadcast_loop():
                 if any("autonomous_bbq.py" in str(c) for c in cmd):
                     bbq_active = True
                     break
-            except:
+            except Exception:
                 pass
 
         # 2. Fabricate 12D Physics (Simulated for Visuals)
@@ -64,7 +64,7 @@ async def broadcast_loop():
                     if "💭 Thought:" in line:
                         latest_thought = line.split("💭 Thought:")[-1].strip()
                         break
-        except:
+        except Exception:
             pass
 
         data = {
@@ -93,7 +93,7 @@ async def broadcast_loop():
             for ws in list(CONNECTED_CLIENTS):
                 try:
                     await ws.send(msg)
-                except:
+                except Exception:
                     pass
 
         # Log occasionally

@@ -22,7 +22,7 @@ async def pulse_dashboard():
             with open(path) as f:
                 lines = f.readlines()
                 return lines[-1].strip() if lines else "Waiting..."
-        except:
+        except Exception:
             return "File not found."
 
     while True:
