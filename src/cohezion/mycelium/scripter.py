@@ -32,10 +32,10 @@ class ShadowScripter(BaseAgent):
         prompt = f"""
         ACT AS AN EXPERT QA ENGINEER.
         Generate a comprehensive set of pytest unit tests for the following code in {file_path}:
-        
+
         CODE CONTEXT:
         {code_context}
-        
+
         REQUIREMENTS:
         1. Use pytest framework.
         2. Aim for 100% logic coverage.

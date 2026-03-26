@@ -97,7 +97,7 @@ def main():
         try:
             with open(EXPERIMENT_LOG) as f:
                 results = json.load(f)
-        except:
+        except (FileNotFoundError, json.JSONDecodeError):
             pass
 
     # Iterate through experiments

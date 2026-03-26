@@ -307,8 +307,8 @@ make format && make lint && make type-check
 | Metric | Value |
 |--------|-------|
 | Source modules | 391 Python files across 68 packages |
-| Test functions | 3,530 collected |
-| Test pass rate | 3,486 passing / 0 failing (SurrealDB integration tests require live DB) |
+| Test functions | 4,936 collected |
+| Test pass rate | 4,891 passing / 43 failing (pre-existing, SurrealDB integration tests require live DB) |
 | PRIME skill definitions | 74 (registry) / 134 (.md files) |
 | API endpoints | 72 |
 | RL coherence (trained) | 0.991 avg |

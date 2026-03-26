@@ -70,7 +70,7 @@ def sync_instance(temp_vault):
     if hasattr(sync, "async_client") and sync.async_client:
         try:
             asyncio.run(sync.async_client.aclose())
-        except:
+        except Exception:
             pass
 
 

@@ -1,3 +1,23 @@
+### [2026-03-25] SESSION 73: INSIGHTS-DRIVEN ENFORCEMENT UPGRADE
+- **Source**: Claude Code Insights report (63 sessions, 38 analyzed, 222h, 395 messages).
+- **Friction Reduction**: Added 4 new rule sections — Execution Priority (CLAUDE.md), Strategy Pivot Protocol (systematic-debugging.md), Correctness Gate (coding-standards.md), Drift Escalation Protocol (workflow-enforcement.md).
+- **Enforcement Hooks**: Created 3 procedural enforcement hooks — drift-detection.sh (PreToolUse: Write), test-on-edit.sh (PostToolUse: Edit|Write), check-bash-output.sh (PostToolUse: Bash). All non-blocking (exit 0).
+- **StrategyTracker**: Added to RetrospectionEngine — detects plateau/failure streaks, emits "PIVOT RECOMMENDED" after 3 attempts with <5% improvement. 5 tests passing.
+- **Systemd Timer**: Created cohezion-jobs.timer + run_jobs.sh to schedule 6 hourly job scripts.
+- **Key Insight**: Rules in markdown are suggestions; hooks are enforcement. The gap between declaring intent and enforcing it is the root cause of drift.
+- **Learnings**: L173 (Declarative-to-Procedural Enforcement), L174 (StrategyTracker Autonomous Pivot).
+
+### [2026-03-24] SESSION 72: NVIDIA NEMOTRON CHALLENGE & BLACKWELL G4 ORCHESTRATION
+- **Goal**: Compete in Kaggle "NVIDIA Nemotron Model Reasoning Challenge" using Blackwell G4 infrastructure.
+- **Blackwell Breakthrough**: Identified definitive G4 hardware locking via `"machine_shape": "NvidiaRtxPro6000"` and private Docker image `gcr.io/kaggle-private-byod/...`. Resolved persistent P100 fallbacks.
+- **Architecture Deep Dive**:
+    - **Nemotron-3-Nano**: Ingested hybrid Mamba2-Transformer MoE dynamics (A3B: 31.6B total, 3.2B active parameters).
+    - **sm_120**: Mapped Blackwell compute capability requirements. Patched Triton `ptxas-blackwell` permissions and pathing.
+- **LoRA Optimization**: Confirmed Mamba-specific projection target modules (`in_proj`, `out_proj`) and max rank `r=32`.
+- **Protocol Integration**: Formalized "Ralph Loop & Autoresearch" mandate in root `GEMINI.md`. Recursive [Benchmark -> Gate -> Propose -> Apply -> Verify] cycle now standard for all high-stakes changes.
+- **Skills Registered**: Created `MOE_HYBRID_ENGINEERING_PRIME.md` and `BLACKWELL_HARDWARE_OPTIMIZATION_PRIME.md`.
+- **Status**: Baseline v19/v20 successfully completed training on Blackwell hardware. Packaging `submission.zip` for leaderboard attempt.
+
 ### [2026-02-20] PHASE 19: DEV ENVIRONMENT RECOVERY & RETROSPECTIVE (Session 15)
 - **Claude Code fix**: Resolved native vs npm install conflict. Removed leftover npm global (`npm -g uninstall @anthropic-ai/claude-code`), restored `autoUpdates: true` in `~/.claude.json`, updated from 2.1.42 → 2.1.49.
 - **Context7 MCP**: Added via `claude mcp add --scope user` (correct path: `~/.claude.json`). Reverted incorrect edit to `~/.claude/mcp.json` (Pilot's config, not Claude Code's).
@@ -32,56 +52,13 @@
 - **Skill Promotion**: Registered `THROTTLED_SCOUT_PRIME` and `RELIABILITY_FALLBACK_PRIME` to formalize hardware-safe orchestration and HA persistence.
 - **Synthesis**: Produced `pillar_deep_dives.md` covering the core Cohezion architectural anchors.
 
-### [2026-02-06] PHASE 14: LIVE COMPOUND ENGINEERING (Session 10)
-- **Compound module**: `src/cohezion/compound/` — 8 files (executor, feedback_loop, metrics, persistence, config, models, health, __init__). CompoundExecutor with per-operation model routing, CompoundFeedbackLoop (execute → retrospect → refine), CompoundMetricsCollector with trend tracking, CompoundPersistence (JSONL + SurrealDB).
-- **Live wiring**: SmartRouterAdapter bridges SmartRouter → TokenEfficientClient. `get_compound_client()` singleton factory pre-wired with ContextHarness + ResilientOllamaClient.
-- **CLI**: `compound_driver.py` (full loop with --dry-run/--model), `compound_demo.py` (3-skill quick demo), `generate_agents.py` (stub generation from PRIME skills).
-- **CI**: GitLab CI pipeline (`.gitlab-ci.yml` with lint/test/validate stages), 4 validation scripts in `scripts/ci/`, `make ci` target.
-- **New agents**: compound-executor (execute+read-only), skill-refiner (read+write skills).
-- **Tests**: 80+ new tests across 6 files. Fixed hanging tests by mocking live Ollama client. Suite: 634 passed, 2 skipped, 0 failures.
-- **3 commits**: compound module + agents (24 files), CLI + CI (11 files), tests (8 files).
-
-### [2026-02-06] PHASE 13: COMPOUND ENGINEERING LOOP (Session 9)
-- **Phase 4 system**: TokenEfficientClient, InstructionExpander, PlanExecutor, ExecutionOrchestrator, SkillRefiner — compound loop closed end-to-end.
-- **4 workstreams**: Token middleware + Instruction execution (parallel agents) → Swarm orchestration → Compound feedback (sequential by leader).
-- **45 new tests**, 556 total. Suite healthy.
-
-### [2026-02-06] PHASE 12: HYBRID DEPLOYMENT & BRANCH ARCHAEOLOGY
-- **GitHub**: Primary remote at github.com/manderson240/cohezion. Source of truth.
-- **Public repos extracted**: `llm-prompt-guard` (23 tests, Apache 2.0), `ollama-debate` (7 personas, Apache 2.0) at `/home/mike-anderson/dev/public-repos/`.
-- **Pre-push hooks fixed**: Restricted stage overrides from pre-commit-hooks repo. Push now runs 5 safety hooks only (pytest, import-check, file-count, large-files, private-key).
-- **Integration tests fixed**: 28 passing. Removed references to non-existent `TrainConfig.early_stopping_patience`, `FlumeVAETrainer.metrics_path`, `FlumeTrajectoryDataset.from_mass_sim_run`.
-- **Branch archaeology**: Mined `fix/runaway-files-pre-cleanup` and `ops/hygiene` for 8 new learnings (102-109). Captured: 8.6M file incident, system lockup pattern, Untrack & Mine protocol, OMEGA distiller concept, temporal dilation, .gitignore layered defense.
-- **Knowledge propagated**: Updated KEY_LEARNINGS.md, GIT_HYGIENE.md (comprehensive rewrite), EVOLUTION_PROTOCOL.md (hardware safety section), MEMORY.md.
-
-### [2026-02-06] PHASE 11: OLLAMA-POWERED SPECIALIST PIPELINE
-- **5-phase plan**: ETL bridge → VAE training CLI → RL + weight bridge → end-to-end integration → iterative hyperparameter search.
-- **5-agent team**: vae-trainer, watcher-builder, rl-trainer, bridge-builder, debate-builder — parallel execution in ~15 min.
-- **14 new files**: pipeline/ package (weight_bridge, trained_navigator, hyperparameter_debate, incremental_trainer), mass_sim/exporter.py, 5 scripts (train_vae, train_rl, vae_training_watcher, hyperparameter_search, run_full_pipeline.sh), 3 integration tests.
-- **8 modified files**: batch_runner (trained navigator support), config (export_npy), persistence (3 new DB tables), training.py (JSONL logging, early stopping, from_checkpoint), dataset.py (from_mass_sim_run), democratic_debate (structured_output), mass_sim_driver (--export-npy), overnight_dashboard (real data).
-- **Weight bridge**: Collapses 3-layer PolicyNetwork → 2-layer Rust FlumePhysics via matrix multiplication.
-- **Tests**: 357 passing (329 pre-existing + 28 new integration), 3 skipped.
-
-### [2026-02-06] PHASE 10: AGENT FILE VALIDATION & SCAFFOLDING
-- **Agent schema**: Pydantic `AgentFileSchema` in `validation/agent_schema.py` — single source of truth for `.claude/agents/*.md` frontmatter validation.
-- **Pre-commit hook**: `scripts/hooks/validate-agent-files.py` blocks commits with invalid agent files.
-- **PostToolUse hook**: `.claude/hooks/validate-agent-files.sh` warns Claude in real-time after editing agent files.
-- **Slash command**: `/new-agent` scaffolds valid agent files using `generate_agent_frontmatter()`.
-- **Tests**: 21 unit tests (4 classes), 356 total tests passing (3 skipped, 1 flaky weight bridge test).
-- **3-agent team**: schema-builder → hook-builder + test-template-builder in parallel (~3 min wall time).
-
-### [2026-02-06] PHASE 9: COMPOUND ENGINEERING SYSTEM
-- **Retrospective cleanup**: KEY_LEARNINGS.md pruned from 744→136 lines (removed 3 duplicate retrospective blocks, 54 spam entries, compressed early learnings). MISSION_JOURNAL.md pruned from 297→~100 lines.
-- **Compound system**: RetrospectionEngine, TeamOrchestrator, ResilientOllamaClient — connecting capability registry, template engine, and model router into a self-improving loop.
-- **Pipeline connected**: `scripts/compound_pipeline.py` — search → plan → retrospect in one command.
-- **New agents**: compound-planner (read-only planning), skill-researcher (PRIME skill generation).
-
-### [2026-02-06] PHASE 8.5: CONNECT THE PIPELINE
-- **Mass sim export**: 10 universes × 100 agents × 500 epochs → 61 .npy files, 11K vectors in `data/mass_sim/artifacts/`.
-- **FLUME VAE retrained**: MSE 0.0225→0.1322 (real data 5.9x harder), KL 0.0313→0.4329 (13.8x richer latent).
-- **RL REINFORCE trained**: 200 episodes, avg coherence 0.991. Environment too easy — needs harder dynamics.
-- **6 new API endpoints**: /flume/encode, /flume/decode, /flume/interpolate, /rl/step, /rl/episode, /rl/policy-info.
-- **19 integration tests**: All passing. Total: 131 tests in 3.1s.
+### [2026-02-06] PHASES 8.5-14 (Sessions 9-10, summarized)
+- Compound engineering system built: CompoundExecutor, FeedbackLoop, SkillRefiner, TeamOrchestrator (8 files, 80+ tests).
+- Ollama specialist pipeline: 5-agent team, weight bridge, training CLI, CI pipeline.
+- Agent validation: Pydantic schema + pre-commit + PostToolUse hooks + `/new-agent` scaffolding.
+- Branch archaeology: Mined 8 learnings (102-109) from cleanup branches.
+- FLUME VAE retrained on real data (11K vectors), RL REINFORCE (0.991 coherence), 6 new API endpoints.
+- Tests grew: 131 → 357 → 556 → 634 across these phases.
 
 ### [2026-03-08] PLASMA v2.0: SEMANTIC LAGRANGE POINTS
 - **Status**: Mission Successful.
@@ -145,32 +122,8 @@
 - 25M cycle simulation: coherence = 0.49999999999999994 (HIHO verified).
 - Quarter on a String Protocol (QSP) codified for premium/local model hybrid orchestration.
 
-### [2026-01-28] HARDWARE STABILITY & DEEP RESEARCH
-- Resolved "Sudo Trap" — direct AMD iGPU VRAM tracking via kernel `/sys` paths.
-- Dynamic model swapping with Priority Slots. Desperation Mode brake system.
-- Deep Research Sprint: 40+ SOTA resources processed (AI, Physics, History).
-- Ouroboros autonomic awareness: Git sensors integrated into 12D state vector.
-
-### [2026-01-25] BIOLOGICAL EVOLUTION
-- Fractal Universe upgraded with StabilizerAgent traits: Mitosis, Apoptosis, Phylogeny.
-- Closed loop: agent system critiqued its own dashboard and implemented improvements.
-
-### [2026-01-24] VLIW BREAKTHROUGH
-- 2,426 Cycles (60.9x speedup) → later optimized to 349 cycles (423x).
-- Project OMEGA: background daemon auto-generates reusable skills from logs.
-- Fractal Universe: Memory-Augmented Agents, physical entropy, global homeostasis.
-
-### [2026-01-23] QUADRATURE NEXUS GENESIS
-- Expert Domain Lattice (EDL) formalized: 5-stream architecture.
-- Autonomic Refinement Loop codified in BaseAgent.
-- VLIW kernel discovery: bit-exact vectorized hash traversal.
-- BlueQubit: 36-qubit "Little Dimple" circuit simulated via FLIER (Bond 64).
-
-### [2026-01-21] MULTIVERSE SCALING
-- 40M round simulations (10M/universe), <1s overhead per 1M rounds.
-- Golden Mean Attractor (0.5 HIHO) validated across 4 archetypal universes.
-- 40M state summaries logged to SurrealDB.
-
-### [2026-01-19] LAB DISCOVERIES
-- Automated hypothesis testing across multiple research domains.
-- Toroidal thought vector verification: stable state at 0.5 probability amplitude.
+### [2026-01-19 to 2026-01-28] FOUNDATION PHASES (summarized)
+- VLIW breakthrough: 423x speedup (349 cycles). Fractal Universe with biological agents.
+- 40M round simulations, HIHO attractor validated. EDL 5-stream architecture.
+- Hardware stability: AMD iGPU sysfs monitoring, Desperation Mode, Ouroboros autonomic awareness.
+- Deep research sprint: 40+ SOTA resources. BlueQubit 36-qubit simulation.

@@ -26,7 +26,7 @@ def _ea():
         from aiter.mla import mla_reduce_v1 as f2
 
         _f1, _f2 = f1, f2
-    except:
+    except (ImportError, AttributeError):
         import aiter as a
 
         _f1, _f2 = getattr(a, "mla_decode_stage1_asm_fwd", None), getattr(a, "mla_reduce_v1", None)

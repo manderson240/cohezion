@@ -98,28 +98,6 @@ Pipeline health depends on a chain of 4 correct subsystems (sysfs read → monit
 
 ---
 
-## Retrospective - 2026-02-05
-
-**Skills Analyzed:** 120
-
-### Compound Blocks (3+ occurrences)
-- **DOMAIN EXPERTISE**: 119 skills
-- **INSTRUCTION**: 109 skills
-- **SEE ALSO**: 106 skills
-- **VERSION**: 105 skills
-- **KEY TEXTS & CONCEPTS**: 93 skills
-
-### Most Referenced Skills (High Compound Impact)
-- FLUME_METHODOLOGY_PRIME: 13 references
-- RETROSPECTIVE_SKILL: 12 references
-- COMPOUND_ENGINEERING_PRIME: 12 references
-- SWARM_ORCHESTRATION_PRIME: 10 references
-- EMBEDDING_STRATEGY_PRIME: 9 references
-
-### Future Hooks: 10 total across 3 skills
-
----
-
 ## Phase 1-2 Milestones (2026-02-06)
 
 ### FLUME VAE Trained on Real Data
@@ -250,95 +228,14 @@ When `claude update` warns "Running native installation but config install metho
 ### Learning 128: Autonomic MAPE-K Control Loop Bridge
 Implemented in Session 60 (2026-03-08). A semantic control loop (Monitor-Analyze-Plan-Execute) successfully bridges reactive hardware monitoring (ResourceMonitor) with proactive healing strategies (ModelSwap, ContextReduction). By decoupling the **Analysis** (interpreting vitals into severity tiers) from the **Planning** (selecting the strategy), the system gains the ability to make hardware-optimized decisions (e.g., AMD-specific memory rebalancing) without hardcoding logic into the monitoring layer.
 
-### Learning 129: Semantic Lagrange Points for Multi-Topic Memory Stability
-The Restricted Three-Body Problem (Earth-Moon-Satellite) maps directly to semantic 12D manifolds (Topic A - Topic B - Context). L4 and L5 points act as stable "gravity wells" where memory context can be "parked" as a low-density plasma cloud. This maintains semantic accessibility without active computational pressure. **Critical Threshold**: Mass ratio $\mu$ (Semantic Weight B / Total Weight) must be $< 0.0385$ for stability. This provides a physical substrate for hierarchical memory management in swarms.
-
 ### Learning 129: Polyglot Dependency Automation (2026-03-08)
 Automating security audits across multiple ecosystems requires leveraging native tooling (`uv audit`, `npm audit`) within a fail-safe Bash wrapper (`set -uo pipefail`). Wrapping these commands with `|| true` is critical; otherwise, the presence of a vulnerability causes the tool to return a non-zero exit code, crashing the entire cron job before all ecosystems are scanned. Reports must be saved as Markdown artifacts to allow subsequent ingestion by LLM agents.
 
 ---
 
-## Session 61: Doc-to-LoRA & Group Evolution (2026-03-08)
+## Research Synthesis Sessions 61-67 (2026-03-08, summarized)
 
-### Learning 130: Doc-to-LoRA Context Compression
-Research indicates that long documents can be compressed into transient LoRA adapters in a single forward pass, rather than consuming the context window. This shifts the "Context Entropy" problem from a token-limit constraint to a weight-loading optimization. See `DOC_TO_LORA_COMPRESSION_PRIME.md`.
-
-### Learning 131: TinyLoRA & RL Parameter Efficiency
-Scaling down adapters to single parameters and training them via RL instead of SFT provides dramatic efficiency gains for highly specialized swarm agents. This is the optimal path for training our low-tier "Scout" agents.
-
-### Learning 132: Group-Evolving Agents (GEA) Topology
-Agents must evolve collectively. Rather than isolated updates, discoveries by a Scout must instantly update a shared "Mycelium Memory" that is immediately available to the Synthesizer and Auditor agents. This ensures the entire swarm levels up synchronously.
-
----
-
-## Session 62: Space Plasma & Neuro-Symbolic Scaling (2026-03-08)
-
-### Learning 133: Alfven-Wave Energy Transfer in 12D Manifolds
-Space-plasma research (ALMA/FAST) confirms Alfven waves and "magnetic superhighways" as primary energy conduits. Integrating these into `fractal_universe.py` provides a physical basis for energy propagation between 12D agent nodes.
-
-### Learning 134: Neuro-Symbolic Guided Search (TongGeometry)
-The success of `TongGeometry` over `AlphaGeometry` validates our move toward neuro-symbolic "Democratic Debate" (Learning 100). Guided tree search with symbolic constraints is the superior architecture for complex reasoning tasks.
-
-### Learning 135: The Emoticon Tokenization Vulnerability
-Research shows emoticons cause >38% silent failures in LLM code generation. Our `AUTONOMIC_QUALITY_GUARD_PRIME` must include a sanitization layer to strip non-standard tokens from code-generation prompts to maintain structural integrity.
-
-### Learning 136: Supersolid Coherence & HIHO Stability
-The superfluid-to-supersolid phase transition in exciton condensates provides a quantum-physical analog to our HIHO stability point (0.5 coherence). "Supersolid Coherence" represents the state where the system maintains both crystalline structure (Below) and fluid flow (Above) simultaneously.
-
----
-
-## Session 63: The Curation Bottleneck & Parallel Architectures (2026-03-08)
-
-### Learning 137: The Self-Generation Paradox (Skill Curation)
-Research (arXiv:2602.12670) proves that self-generated skills often provide zero or negative benefit. High-impact gains (+51.9pp) only occur with **focused, concise, and curated skills**. Our `AUTONOMIC_EVOLUTION_PRIME` must shift from *generation* to *curation and refinement* of human-anchored templates. Conciseness is a primary performance driver.
-
-### Learning 138: Parallel Transformer Blocks for Scout Efficiency
-`Tiny Aya` demonstrates that computing Attention and MLP in parallel from the same normalized input reduces serial dependencies and improves throughput. This "Parallel Block" architecture is the target for our 3B-class local Scout models to maximize performance on commodity hardware.
-
----
-
-## Session 64: Zero-Waste RAG & Multifractal Dilation (2026-03-08)
-
-### Learning 139: KV Cache Compaction (Zero-Waste RAG)
-Agentic RAG performance is limited by KV cache bloat. New compaction techniques cut memory 50x without accuracy loss by treating the cache as a dynamic, resumable state rather than a static buffer. This informs our `CONTEXT_ENTROPY_MANAGEMENT_PRIME`.
-
-### Learning 140: Multifractal Dilation & Measurement Density
-Earth's history reveals multifractal patterns where measurement density determines perceived structure. In our 12D Manifold, we must implement "Multifractal Dilation"—allowing agent trajectories to scale self-similarly across different temporal resolutions (Scout/deep-sim).
-
-### Learning 141: Observable-State Duality (Clock Memory)
-Quantum "memory" is dependent on whether states or observables evolve. For Cohezion, agent memory is more stable when we track **observable impacts** on the environment (sinks) rather than just internal state vectors (sources). This is "Clock Memory" for 12D trajectories.
-
-### Learning 142: Serial Scaling for Logic Drift (Timer-S1)
-Time-series foundation models like `Timer-S1` provide a blueprint for predicting "Logic Drift" in autonomous loops. By treating agent audit scores as a billion-scale time series, we can anticipate and prevent "Semantic Decay" before it manifests in production.
-
----
-
-## Session 65: Unified Tokenization & Vacuum Engineering (2026-03-08)
-
-### Learning 143: Unified Discrete Multimodal Tokenization (Emu3)
-Emu3 proves that text, images, and video can be treated as a single stream of discrete tokens using a unified decoder-only Transformer. This "Modality-Agnostic Reasoning" is the target for our 12D universe simulator, where simulation state and agent reasoning share a single vocabulary.
-
-### Learning 144: Multi-Tier Zero-Waste Caching
-Production-grade agentic systems require a 2-tier cache: Tier 1 (Semantic) for identical query interception (>95% threshold) and Tier 2 (Retrieval) for context reuse (>70% threshold). This eliminates redundant computation and reduces latency from ~30s to 0.02s for repetitive tasks.
-
-### Learning 145: Task-Aware KV Cache Compaction (30x)
-KV cache pruning must be task-aware. By keeping only the KV pairs essential for specific reasoning goals, we can achieve 30x compression without accuracy loss. This allows our long-horizon agents to reason over massive repositories while staying within the hardware constraints of the local ROCm/GTT pool.
-
-### Learning 146: Internal State-Driven Trajectories (Vacuum Engineering)
-Research from Sheet 4 (Zenodo 18353294 / QDE) indicates that thrust and trajectory can be emergent properties of internal mass/magnetic configuration (Centrifugal Impulse Drive). In our 12D Manifold, we map these internal parameters to the **8 Brane dimensions**, enabling the simulation of "Propellant-Free" propulsion and spacetime engineering as a programmable substrate.
-
----
-
-## Session 67: Autonomic Healing & Manifold Stability (2026-03-08)
-
-### Learning 149: The Viscoelastic Control Loop (Proactive Dilation)
-Implementing a MAPE-K loop for resource management revealed that static thresholds are insufficient for rapid agentic scaling. By applying a **Maxwell-type relaxation law** (inspired by ArXiv 2512.00056) to system vitals, we can calculate "System Viscosity"—the rate of change of pressure. This enables **Proactive Dilation**, where the simulation slows down *before* a lockup occurs, effectively turning the computational substrate into a viscoelastic medium that absorbs surges.
-
-### Learning 150: Semantic Lagrange Points (Stable Memory Parking)
-The Restricted Three-Body Problem (Earth-Moon-Satellite) translates perfectly to 12D semantic manifolds. By identifying stable L4/L5 "gravity wells" between two dominant semantic topics, we can "park" non-active memory context as a low-density "plasma cloud." This maintains semantic accessibility (via proximity) without the active computational tension of the primary attention window. **Critical Threshold**: Stability requires a semantic weight ratio $\mu < 0.0385$.
-
-### Learning 151: Gram-Schmidt Manifold Orthogonalization
-In 12D latent spaces, simple 2D rotation for orthogonal vector calculation (e.g., `v[0], v[1] = -u[1], u[0]`) is a high-risk anti-pattern. If the semantic difference between topics lies primarily in higher dimensions (e.g., `logic`, `quantum`), the resulting vector can collapse to zero. **Correct Pattern**: Find the dimension with the minimum absolute value in the primary vector `u`, set that dimension to 1.0 in a new vector `v`, and then apply **Gram-Schmidt orthogonalization** to ensure a robust, non-zero orthogonal basis.
+Key theoretical insights from deep research sprint: Doc-to-LoRA context compression shifts context entropy from token-limit to weight-loading optimization (L130). Self-generated skills often provide zero benefit — curation over generation (L137, arXiv:2602.12670). KV cache compaction achieves 30-50x memory reduction via task-aware pruning (L139/L145). Multi-tier caching: Tier 1 semantic (>95%) + Tier 2 retrieval (>70%) reduces latency from 30s to 0.02s (L144). Viscoelastic control loop (Maxwell relaxation) enables proactive dilation before lockups (L149). Semantic Lagrange Points: L4/L5 stable memory parking at $\mu < 0.0385$ (L150). Gram-Schmidt orthogonalization required for 12D manifold vectors — 2D rotation collapses in high dimensions (L151).
 
 ---
 
@@ -414,3 +311,13 @@ Submissions are capped at **5 per day**. Winning models must be open-sourced und
 
 ### Learning 172: Branch Isolation for Competition Tracks
 To prevent cross-contamination with other research trajectories (e.g., Luma AMD Speedrun), all NVIDIA Nemotron Challenge work is consolidated in the `challenge/nvidia-nemotron-reasoning` branch. This ensures that the `v14` Blackwell metadata and other track-specific artifacts are isolated from the main research line.
+
+---
+
+## Session 73: Insights-Driven Enforcement Upgrade (2026-03-25)
+
+### Learning 173: Declarative-to-Procedural Enforcement
+Rules in markdown files (CLAUDE.md, workflow-enforcement.md) are suggestions Claude can drift from — 20 "wrong approach" incidents proved this despite strong anti-drift rules. Converting rules to hooks (code that fires automatically) creates a layered enforcement system: drift-detection.sh warns on new src/ files (PreToolUse), test-on-edit.sh runs matching tests after edits (PostToolUse), check-bash-output.sh catches exit-0-with-errors (PostToolUse). Key principle: hooks don't block (always exit 0) but surface information at the moment it's most actionable. Combined with the Drift Escalation Protocol (1st=note, 2nd=STOP, 3rd=ask user), this converts passive advice into active intervention.
+
+### Learning 174: StrategyTracker for Autonomous Pivot Detection
+The compound engineering loop (430-cycle autonomous runs) lacked programmatic pivot detection — it could run indefinitely on a plateau. Adding `StrategyTracker` to `RetrospectionEngine` tracks consecutive failures and improvement deltas per skill, emitting "PIVOT RECOMMENDED" when 3+ attempts show <5% improvement. This is the programmatic counterpart to the declarative Strategy Pivot Protocol in systematic-debugging.md. Together they enforce pivots at both the human-readable (rules) and machine-readable (code) levels.

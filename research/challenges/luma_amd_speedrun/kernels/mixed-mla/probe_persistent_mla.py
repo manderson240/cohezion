@@ -13,7 +13,7 @@ def custom_kernel(data):
             print(f"Found symbol: aiter.{s}", file=sys.stderr)
             try:
                 print(f"Signature: {inspect.signature(getattr(aiter, s))}", file=sys.stderr)
-            except:
+            except (ValueError, TypeError):
                 pass
 
     if hasattr(aiter, "mla"):

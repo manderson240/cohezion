@@ -81,18 +81,10 @@ See skill: `cohezion-vault-workflow` for vault API examples (log decisions, expe
 | **Persistence** | SessionPersistence (vault + JSONL), MetricsCollector, DegradationDetector | `SessionManager` |
 | **Knowledge** | Vault-First (decisions/patterns/experiments), auto-compiled MEMORY.md | `vault_find_relevant_context` |
 
-### ⚡ Execution Principles (Sessions 56+)
-
-- **Execute, don't architect.** When given a plan, prioritize actual code and submissions over building infrastructure, frameworks, or meta-tooling
-- **Results over planning.** Do not spend time on planning/infrastructure when the user wants concrete results
-- **Focused sub-tasks.** Break long tasks into focused sub-tasks with explicit deliverables
-- **3-strike rule.** Never spend more than 3 iterations on a single approach — if stuck, document what failed and try an alternative
-- **Minimal diff.** Change only what's requested or clearly necessary. Don't refactor surrounding code, add docstrings to unchanged functions, or "improve" adjacent code while fixing a bug
-
 ### ⚡ Quick Reference
 - **Language**: Python 3.13+ | **Package Manager**: `uv` (never bare python)
 - **DB**: SurrealDB (ws://localhost:8000) | **API**: FastAPI :8080
-- **Tests**: 3,214 passing / 4 failing (99.9%) | **Coverage**: html report in `htmlcov/`
+- **Tests**: 4,891 passing / 43 failing (99.1%) | **Coverage**: html report in `htmlcov/`
 - **CI**: `make lint-check && uv run pytest` before commit
 - **Entry point**: `cohezion = "cohezion.__main__:main"`
 - **Vault**: `~/vaults/cohezion-vault/` — Query via `vault_find_relevant_context(query)`
@@ -112,7 +104,7 @@ ExecutionOrchestrator (execute with 11-step pipeline)
   ├─ DegradationDetector (thermal, quality thresholds)
   └─ JourneyTracker (12D universe position)
   ↓
-RetrospectionEngine (extract learnings, flag anomalies)
+RetrospectionEngine (extract learnings, flag anomalies, pivot detection)
   ↓
 SkillRefiner (update skill definition)
   ↓
