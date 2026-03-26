@@ -1,9 +1,10 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import dynamic from "next/dynamic";
 import { useSonification, type PhysicsState } from "@/hooks/useSonification";
 import { useNarration } from "@/hooks/useNarration";
+import { useCosmogony } from "@/hooks/useCosmogony";
 
 // Dynamic imports for Three.js components (SSR-incompatible)
 const GenesisScene = dynamic(
@@ -31,6 +32,36 @@ export default function GenesisPage() {
   const [tab, setTab] = useState<GenesisTab>("cosmogony");
   const sonification = useSonification();
   const narration = useNarration();
+  const cosmogony = useCosmogony();
+
+  // Wire cosmogony state changes into sonification
+  const prevSymRef = React.useRef<string>("");
+  useEffect(() => {
+    if (!cosmogony.state || !sonification.playing) return;
+
+    const s = cosmogony.state;
+    const physicsState: PhysicsState = {
+      coherence: 1.0 - Math.abs((s.order_parameters?.hiho_coherence ?? 0) - 0.5) * 2,
+      entropy: s.landau_free_energy > 0 ? Math.log(1 + s.landau_free_energy) : 0,
+      temperature: s.temperature,
+      spinRotation: 0,
+      spinPrecession: 0,
+      chargPolarity: 0,
+      gaugeCurvature: Math.abs(s.landau_free_energy),
+      symmetry: s.symmetry,
+    };
+    sonification.update(physicsState);
+
+    // Trigger impact sound on symmetry transitions
+    if (s.symmetry !== prevSymRef.current && prevSymRef.current !== "") {
+      sonification.triggerTransition(prevSymRef.current, s.symmetry);
+      // Auto-narrate the new stage
+      if (!narration.muted) {
+        narration.narrateStage(s.symmetry);
+      }
+    }
+    prevSymRef.current = s.symmetry;
+  }, [cosmogony.state, sonification, narration]);
 
   const tabs: { key: GenesisTab; label: string; desc: string }[] = [
     { key: "cosmogony", label: "Genesis", desc: "From Nothing to Everything" },
