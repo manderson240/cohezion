@@ -1644,6 +1644,14 @@ try:
 except ImportError:
     pass  # universe module not available
 
+# Register Genesis Engine endpoints (grounded physics layer)
+try:
+    from cohezion.api.services.genesis import genesis_router
+
+    app.include_router(genesis_router, prefix="/api")
+except ImportError:
+    pass  # genesis module not available
+
 # Register journey analysis endpoints
 try:
     from cohezion.api.journeys import router as journeys_router

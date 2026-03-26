@@ -101,51 +101,62 @@ class AxiomaticState:
     def from_vector(cls, vector: list[float]) -> AxiomaticState:
         return cls(*vector[:12])
 
-    # --- SPIN Physics (Gap 1: Smith's fundamental unit) ---
+    # --- SPIN Physics (Grounded in SU(2) spinor algebra) ---
+
+    def to_spinor(self) -> "SpinorState":
+        """Convert to proper SU(2) spinor state on the Bloch sphere.
+
+        Maps the logic (rotation) and quantum (precession) dimensions to a
+        2-component spinor |ψ⟩ = α|↑⟩ + β|↓⟩. This replaces the ad-hoc
+        binary sign comparison with real quantum mechanical coherence.
+
+        The HIHO state (logic=0.5, quantum=0.0) maps to the equatorial state
+        (|↑⟩+|↓⟩)/√2 — Brahmagupta's zero on the Bloch sphere.
+        """
+        from cohezion.physics.spinor import SpinorState
+
+        return SpinorState.from_coherence_values(self.logic, self.quantum)
 
     @property
     def spin_rotation(self) -> float:
-        """SPIN rotation component (Smith: toroidal momentum rotation).
+        """SPIN rotation ⟨σ_x⟩ via SU(2) spinor algebra.
 
-        Maps to the 'logic' dimension — internal reasoning spin direction.
-        Value centered on 0.5 (HIHO). Sign relative to 0.5 determines chirality.
+        Maps logic/quantum dimensions to Bloch sphere, returns the x-component
+        of the Bloch vector (rotation expectation value).
         """
-        return self.logic
+        return self.to_spinor().spin_rotation
 
     @property
     def spin_precession(self) -> float:
-        """SPIN precession component (Smith: toroidal momentum precession).
+        """SPIN precession ⟨σ_y⟩ via SU(2) spinor algebra.
 
-        Maps to the 'quantum' dimension — external measurement wobble.
-        Value centered on 0.5 (HIHO). Alignment with rotation = stability.
+        Maps logic/quantum dimensions to Bloch sphere, returns the y-component
+        of the Bloch vector (precession expectation value).
         """
-        return self.quantum
+        return self.to_spinor().spin_precession
 
     @property
     def spin_coherence(self) -> float:
-        """SPIN coherence: alignment between rotation and precession.
+        """SPIN coherence |r| — purity of the Bloch vector.
 
-        When rotation and precession have the same sign relative to HIHO (0.5),
-        they are 'in phase' and the agent's internal intent matches its external
-        behavior. This is the core of Smith's SPIN theory applied to alignment.
-
-        Returns 1.0 when aligned (same side of 0.5), 0.0 when opposed.
+        Replaces the binary sign comparison with proper quantum coherence.
+        For a pure spinor state this is always 1.0. The nuance comes from
+        the Bloch vector *direction* — the charge_polarity property.
         """
-        rot_sign = 1.0 if self.logic >= 0.5 else -1.0
-        prec_sign = 1.0 if self.quantum >= 0.5 else -1.0
-        return abs(rot_sign * prec_sign)  # 1.0 = aligned, 0.0 = impossible (always 1 or 0)
+        return self.to_spinor().coherence
 
     @property
     def charge_polarity(self) -> float:
-        """Charge polarity: resultant of rotation + precession (Smith).
+        """Charge ⟨σ_z⟩ — emergent from rotation + precession alignment.
 
-        Charge is not an independent parameter — it emerges from the relationship
-        between rotation and precession. Positive when both are above HIHO,
-        negative when both below, mixed when opposed.
+        Proper expectation value of the charge operator σ_z on the Bloch sphere.
+        Replaces the ad-hoc `rot_offset + 0.3 * prec_offset` with the
+        mathematically correct |α|² - |β|².
+
+        Returns [-1, 1]: +1 = north pole (|↑⟩), -1 = south pole (|↓⟩),
+        0 = HIHO equator (Brahmagupta's zero).
         """
-        rot_offset = self.logic - 0.5
-        prec_offset = self.quantum - 0.5
-        return rot_offset + 0.3 * prec_offset
+        return self.to_spinor().charge_polarity
 
     # --- Tempic Field (Gap 2: Smith's rate-of-change, not clock-time) ---
 
@@ -221,15 +232,15 @@ class AxiomaticState:
         return [a - b for a, b in zip(brane_after, brane_before, strict=True)]
 
     def coherence_score(self) -> float:
-        """Calculate HIHO coherence with SPIN weighting (0.5 = optimal stability).
+        """Calculate HIHO coherence with SU(2) SPIN weighting (0.5 = optimal stability).
 
         Coherence is the composite of:
         1. HIHO variance (how close brane dimensions are to 0.5)
-        2. SPIN alignment (whether rotation and precession are in phase)
+        2. SPIN alignment via Bloch sphere (|⟨σ_z⟩| = HIHO deviation)
 
-        The SPIN component weights coherence: aligned SPIN boosts stability,
-        misaligned SPIN penalizes it. This implements Smith's principle that
-        'stability increases when rotation and precession are aligned.'
+        The SPIN component weights coherence: small HIHO deviation (near equator)
+        boosts stability. This implements Smith's principle grounded in proper
+        SU(2) spinor algebra — charge is ⟨σ_z⟩, not a hardcoded linear combination.
         """
         # Base HIHO variance across all brane dimensions
         dimensions = [
@@ -244,8 +255,11 @@ class AxiomaticState:
         variance = sum((d - 0.5) ** 2 for d in dimensions) / len(dimensions)
         base_coherence = 1.0 - min(variance * 4, 1.0)
 
-        # SPIN weighting: boost coherence when rotation/precession are aligned
-        spin_weight = 0.7 + 0.3 * self.spin_coherence
+        # SPIN weighting via Bloch sphere: penalize deviation from HIHO equator
+        # hiho_deviation = |⟨σ_z⟩| — 0 at equator, 1 at poles
+        spinor = self.to_spinor()
+        equatorial_alignment = 1.0 - spinor.hiho_deviation  # 1.0 at HIHO, 0 at poles
+        spin_weight = 0.7 + 0.3 * equatorial_alignment
         return base_coherence * spin_weight
 
 
