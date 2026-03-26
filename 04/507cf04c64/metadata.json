@@ -1,0 +1,25 @@
+{
+  "cli_version": "0.5.1",
+  "checkpoint_id": "04507cf04c64",
+  "strategy": "manual-commit",
+  "branch": "session-kaggle-benchmark",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "research/challenges/luma_amd_speedrun/kernels/mixed-mla/submission_flash.py"
+  ],
+  "sessions": [
+    {
+      "metadata": "/04/507cf04c64/0/metadata.json",
+      "transcript": "/04/507cf04c64/0/full.jsonl",
+      "content_hash": "/04/507cf04c64/0/content_hash.txt",
+      "prompt": "/04/507cf04c64/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 11942,
+    "cache_creation_tokens": 9032907,
+    "cache_read_tokens": 167142570,
+    "output_tokens": 252175,
+    "api_call_count": 745
+  }
+}
