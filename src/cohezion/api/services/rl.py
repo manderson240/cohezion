@@ -256,3 +256,190 @@ async def rl_policy_info_service() -> RlPolicyInfoResponse:
         checkpoint_path=str(ckpt_path),
         training_metrics=training_metrics,
     )
+
+
+# --- Benchmark Endpoints ---
+
+
+class BenchmarkRunRequest(BaseModel):
+    """Request to run a benchmark evaluation."""
+
+    tasks: list[str] | None = None
+    num_episodes: int = 10
+    output_path: str | None = None
+    seed: int | None = None
+    verbose: bool = False
+
+
+class BenchmarkRunResponse(BaseModel):
+    """Response from a benchmark run."""
+
+    run_id: str
+    num_episodes: int
+    num_tasks: int
+    total_duration_seconds: float
+    results_summary: dict[str, Any]
+
+
+class BenchmarkScorecardResponse(BaseModel):
+    """Response with full scorecard report."""
+
+    run_id: str
+    report: dict[str, Any]
+
+
+class BenchmarkRadarResponse(BaseModel):
+    """Response with radar chart as base64-encoded SVG."""
+
+    run_id: str
+    format: str
+    data: str
+
+
+# Module-level scorecard registry
+_benchmark_scorecards: dict[str, Any] = {}
+
+
+async def run_benchmark_service(request: BenchmarkRunRequest) -> BenchmarkRunResponse:
+    """Run a FLUME journey benchmark evaluation.
+
+    Uses the BenchmarkSuite to evaluate a trained policy on one or more
+    benchmark tasks, then stores the resulting scorecard for retrieval.
+    """
+    import time
+    import uuid
+    from pathlib import Path
+
+    from cohezion.benchmarks.benchmark_suite import BenchmarkSuite
+
+    policy = get_rl_policy_singleton()
+
+    class PolicyAdapter:
+        """Adapt PolicyNetwork.get_action to BenchmarkSuite protocol."""
+
+        def __init__(self, net):
+            self._net = net
+
+        def get_action(self, state):
+            action, log_prob = self._net.get_action(state)
+            return action, float(log_prob.item()), 0.5
+
+    adapter = PolicyAdapter(policy)
+    suite = BenchmarkSuite()
+
+    start_time = time.monotonic()
+
+    results = suite.run(
+        policy=adapter,
+        tasks=request.tasks,
+        num_episodes=request.num_episodes,
+        output_path=Path(request.output_path) if request.output_path else None,
+        seed=request.seed,
+        verbose=request.verbose,
+    )
+
+    total_duration = time.monotonic() - start_time
+
+    run_id = str(uuid.uuid4())[:8]
+
+    results_summary = {}
+    for task_name, result in results.items():
+        results_summary[task_name] = {
+            "num_episodes": result.num_episodes,
+            "mean_reward": result.mean_reward,
+            "mean_coherence": result.mean_coherence,
+            "success_rate": result.success_rate,
+            "mean_steps": result.mean_steps,
+            "total_duration_seconds": result.total_duration_seconds,
+        }
+
+    scorecard_path = Path("data/rl/benchmarks")
+    scorecard_path.mkdir(parents=True, exist_ok=True)
+    import json
+
+    scorecard_file = scorecard_path / f"scorecard_{run_id}.json"
+    with open(scorecard_file, "w") as f:
+        json.dump(results_summary, f)
+
+    return BenchmarkRunResponse(
+        run_id=run_id,
+        num_episodes=request.num_episodes,
+        num_tasks=len(results),
+        total_duration_seconds=total_duration,
+        results_summary=results_summary,
+    )
+
+
+async def get_benchmark_scorecard_service(run_id: str) -> BenchmarkScorecardResponse:
+    """Get the full scorecard report for a completed benchmark run."""
+    scorecard_path = Path(f"data/rl/benchmarks/scorecard_{run_id}.json")
+
+    if not scorecard_path.exists():
+        raise HTTPException(status_code=404, detail=f"Benchmark run {run_id} not found")
+
+    import json
+
+    with open(scorecard_path) as f:
+        report = json.load(f)
+
+    return BenchmarkScorecardResponse(run_id=run_id, report=report)
+
+
+async def get_benchmark_radar_service(run_id: str) -> BenchmarkRadarResponse:
+    """Get a radar chart SVG for a completed benchmark run.
+
+    Requires plotly. Returns base64-encoded SVG if unavailable.
+    """
+    scorecard_path = Path(f"data/rl/benchmarks/scorecard_{run_id}.json")
+
+    if not scorecard_path.exists():
+        raise HTTPException(status_code=404, detail=f"Benchmark run {run_id} not found")
+
+    try:
+        import json
+
+        from cohezion.eval.capability_scorecard import CapabilityScorecard
+
+        with open(scorecard_path) as f:
+            data = json.load(f)
+
+        scorecard = CapabilityScorecard()
+
+        episode_summaries = []
+        for _task_name, task_data in data.items():
+            n_eps = task_data.get("num_episodes", 10)
+            for i in range(n_eps):
+                episode_summaries.append(
+                    {
+                        "episode": i,
+                        "reward": task_data.get("mean_reward", 0.0),
+                        "coherence": task_data.get("mean_coherence", 0.5),
+                        "final_coherence": task_data.get("mean_coherence", 0.5),
+                        "success": task_data.get("success_rate", 0.0) > 0.5,
+                        "steps": int(task_data.get("mean_steps", 100)),
+                    }
+                )
+
+        scorecard.record_run(f"bench_{run_id}", episode_summaries)
+
+        fig = scorecard.plot_radar(run_id=f"bench_{run_id}")
+
+        try:
+            svg_data = fig.to_image(format="svg")
+        except Exception:
+            import io
+
+            buf = io.BytesIO()
+            fig.write_image(buf, format="svg")
+            buf.seek(0)
+            svg_data = buf.read()
+
+        import base64
+
+        encoded = base64.b64encode(svg_data).decode()
+
+        return BenchmarkRadarResponse(run_id=run_id, format="svg+base64", data=encoded)
+
+    except Exception as e:
+        logger.error(f"Radar chart generation failed: {e}")
+        raise HTTPException(status_code=500, detail=f"Radar chart unavailable: {e}") from None

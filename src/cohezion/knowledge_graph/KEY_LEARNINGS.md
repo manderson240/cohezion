@@ -6,95 +6,17 @@ Packet-greedy scheduling + register windowing + SIMD vectorization achieved 423x
 
 ---
 
-## Learning 12: Kineticization of the 12D Manifold (2026-02-05)
-A 12D manifold must be grounded in the physical substrate (CPU pressure, VRAM density, dilation factor, RAM-weighted semantic intent) to avoid being a purely semantic "Potemkin Universe."
+## Learnings 12-95: Foundation Patterns (2026-01 to 2026-02, compressed)
 
-## Learning 13: VLIW-to-Cognition Abstraction (2026-02-05)
-VLIW architecture parallels biological reasoning — processing 2048D vectors as "instruction packets" for deterministic, slot-based execution of thought. Implemented in `flume_physics.rs`.
+**12D Manifold & Physics** (12-16, 63): Ground 12D state in physical substrate, not abstract semantics. HIHO attractor (0.5) stable at 25M cycles: C(t) = 0.5 + A*e^(-kt)*sin(wt).
 
-## Learning 14: The Organic Modularity Axiom
-Aesthetically bridging high-performance silicon heritage with ecological branding. "Inspired Motifs" maintain legal sovereignty while honoring lineage, increasing user trust.
+**Agent Architecture** (17-19, 22, 29-30): Scout/Strategist hierarchy > monolithic. Specialist swarm > large generalist. 3-Beat Actuation: 3 consecutive low-coherence beats before repair.
 
-## Learning 15: The Peaked Manifold Approximation
-In peaked quantum circuits, state compresses to a low-rank MPS (Bond 64-256) without losing the signal. Manual SWAP routing maintains 1D topology; eager SVD contraction prevents tensor network explosion. 16x bond reduction → 100x throughput with 1e-5 vs 1e-11 signal separation.
+**Rust FFI & Performance** (26-28): GIL limits Python inference to ~10Hz. Batch inside Rust with rayon (29x speedup).
 
-## Learning 16: VLIW Latent Alignment & Temporal Stability
-Instruction stability in VLIW is a latent manifold problem. Barrier-locked manifolds + VLEN=8 alignment ensure hardware cache coherence.
+**Infrastructure** (20, 41-43, 81, 89-92): Never use sudo for automation. ZFS: ZVOL for swap, cap ARC to 12.5% RAM. AMD Strix Halo: monitor GTT (128GB) not VRAM carveout (512MB).
 
-## Learning 17: Subagent Delegation Topology
-Hierarchical agent topology (Scout/Strategist) outperforms monolithic models. Scouts (Qwen-Coder 30b) do high-speed sensing; Strategists (DeepSeek-R1 70b) do deep reasoning.
-
-## Learning 18: Biological Recursion in Silico
-Stability through mortality — introducing apoptosis and mitosis forces dynamic equilibrium (HIHO state). Immortal agents stagnate.
-
-## Learning 19: The Specialist Roster Effectiveness
-Cognitive specialization > parameters. Routed swarm of domain experts (DeepSeek-R1-8B, Qwen2.5-Coder-7B, Phi4-Mini) outperforms generic 7B model.
-
-## Learning 20: VRAM Persistence & The Sudo Trap
-Automated recovery must never rely on `sudo`. Use direct Ollama `/api/generate` with `keep_alive: 0` and AMD `/sys` telemetry for non-privileged VRAM management.
-
-## Learning 22: Agentic Reasoning Paradigms
-Refinement over generation — agentic reasoning shifts from next-token prediction to state-machine planning with recursive verification, checkpointing, and Merkle indexing.
-
-## Learning 26: The Python Autoregression Bottleneck
-GIL limits autoregressive decoding to ~10Hz. Inference loops must move to compiled languages (Rust/C++) for 100Hz+ fluid behavior.
-
-## Learning 27: Rust FFI Bridge Success
-PyO3 + maturin + uv provides seamless Rust-Python bridge. Critical: ensure LD_LIBRARY_PATH/PYTHONPATH for shared object linking during testing.
-
-## Learning 28: FFI Overhead & The Batching Pivot
-Naive 1:1 FFI calls = 0.2x speedup (regression). Moving iteration inside Rust with rayon = 29.1x speedup (20.45s → 0.70s for 10k items).
-
-## Learning 29: Semantic Proprioception
-Intent over vitals — projecting system state into 12D latent manifold detects "Logic Drift" that simple thresholding misses. 0.63 coherence alignment achieved.
-
-## Learning 30: The 3-Beat Actuation Law
-Require 3 consecutive low-coherence beats before triggering repair. Single-point anomalies are noise.
-
-## Learning 41: The Filesystem Entropy Limit
-Filesystems >1M files incur "Entropy Tax" paralyzing IDE indexers. Cold storage isolation (`.archive/`) + SurrealDB persistence is the solution.
-
-## Learning 42: ZFS Sovereign Swap
-ZVOL (32GB) bypasses ZFS COW incompatibility with swap files. Secured 40GB OOM protection buffer.
-
-## Learning 43: ZFS ARC Contention vs AI Workloads
-Hard cap `zfs_arc_max` to 12.5% of RAM (16GB) prevents filesystem from starving AI models.
-
-## Learning 60: UMA/GTT Monitoring (Strix Halo)
-On UMA systems, monitor GTT (128GB unified pool) not VRAM carveout (512MB). Updated `ResourceMonitor` accordingly.
-
-## Learning 63: Mass-Cycle Convergence (25M)
-HIHO attractor (0.5) stable at 25M cycles. Convergence follows damped oscillation: C(t) = 0.5 + A·e^(-kt)·sin(ωt).
-
-## Learning 77: Coherence Over Compression (Context Guard)
-In high-entropy environments, "lossless context" causes paralysis. Context Guard prioritizes high-novelty beginnings/ends, summarizes the mantle, enforces 20k-char limit.
-
-## Learning 78: As Above, So Below (Hermetic Compound Engineering)
-Micro-agent stability directly informs global coherence. Every feature is a fractal seed for the next.
-
-## Learning 81: Ghost Bloat (Physical Entropy)
-9.5M ignored physical files in `.archive/` paralyzed IDE indexers despite empty `git status`. Industrial purge via `repo_janitor.py` restored coherence.
-
-## Learning 88: Autonomic Resilience (Pooling & Circuits)
-Shared `ConnectionPool` with `httpx.AsyncClient` reduces socket overhead >80%. Tri-state circuit breaker (Closed/Open/Half-Open) prevents cascading latency.
-
-## Learning 89: Verified Physical Substrate (2026-02-05)
-AMD Ryzen AI MAX+ 395, Radeon 8060S iGPU, 128GB DDR5, 32GB ZVOL + 8GB swap, 2TB NVMe. Strix Halo architecture enables up to 96GB VRAM allocation.
-
-## Learning 91: The GTT Carveout Illusion (2026-02-05)
-`mem_info_vram_total` reports 512MB carveout (always ~88% full — it's display scanout). Real pool is `mem_info_gtt_total` (128GB). Discriminator: if vram_total < 4GB, use GTT instead.
-
-## Learning 92: Adaptive AMD iGPU Detection via Sysfs (2026-02-05)
-Vendor `0x1002` = AMD. Prefer GTT over VRAM path. If GTT within 5% of system RAM → UMA. Scoring: `vram_score = min(system_ram_gb / 64.0, 2.0)`.
-
-## Learning 93: JSON Comment Stripping (Config Resilience) (2026-02-05)
-Strip `#` comment lines before `json.loads()`. Never silently return empty dict on parse failure.
-
-## Learning 94: Lazy Import Chains (Dependency Firewall) (2026-02-05)
-Move imports to point-of-use to create a dependency firewall. Add `# noqa: E402` to prevent ruff from hoisting them back.
-
-## Learning 95: End-to-End Pipeline Verification (2026-02-05)
-Pipeline health depends on a chain of 4 correct subsystems (sysfs read → monitor → router → agent). Any single failure cascades. 5-stage integration test protocol catches compound failures.
+**Resilience & Config** (77-78, 88, 93-95): Circuit breakers (tri-state) + connection pooling = -80% socket overhead. Lazy imports as dependency firewalls. End-to-end pipeline verification catches compound failures.
 
 ---
 
@@ -374,3 +296,18 @@ Fixing infrastructure requires a "Sweep Pattern"—identifying all modules shari
 
 ### Learning 160: Skill Documentation as a Truth Anchor
 Skills (e.g., `DATABASE_PRIME.md`) must be updated immediately after a protocol change to prevent agents from re-introducing "Shadow Bugs" by following outdated examples. A skill is only valid if it reflects the current operational reality of the substrate.
+---
+
+## Session 70+: Autonomy Sprint & Entire.io Integration (2026-03-25)
+
+### Learning 160: The Integration Theater Anti-Pattern
+Components that exist but aren't wired are worse than missing components — they create false confidence. `enable_alignment_analysis=False` by default and `degradation_detector=None` meant Step 7.5's comprehensive degradation pipeline never fired. Fix: auto-creation fallback pattern (same as inflection_detector).
+
+### Learning 161: CoherenceConfig as Single Source of Truth
+Coherence thresholds scattered across 15+ files (0.3, 0.5, 0.6, 0.7) meant modules disagreed about "healthy." Frozen dataclass `CoherenceConfig` with Charter-aligned hierarchy: 0.3=inflection, 0.4=degradation/HIHO min, 0.5=target, 0.6=HIHO max.
+
+### Learning 162: Entire.io as Cross-Session Memory
+Entire captures checkpoint context (intent, reasoning, files) on every commit. Wiring `get_checkpoint_context()` into RetrospectionEngine gives the compound loop cross-session memory — reasoning survives session boundaries.
+
+### Learning 163: Entire Hooks Can Revert Working Tree
+The `entire hooks claude-code user-prompt-submit` hook modifies the git working tree between turns. New files created with Write tool are deleted, and modified files are reverted. Fix: create files and commit atomically in a single Bash call.

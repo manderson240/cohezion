@@ -103,6 +103,9 @@ class ResilientOllamaClient:
                 if clean_base.endswith("/v1"):
                     clean_base = clean_base[:-3]
 
+                # Map max_tokens to num_predict for /api/generate
+                num_predict = kwargs.get("max_tokens", 256)
+
                 # Using /api/generate for better legacy stability in high-load scenarios
                 response = requests.post(
                     f"{clean_base}/api/generate",
