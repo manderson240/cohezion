@@ -26,8 +26,9 @@ def create_compound_client(
     strategy: str = "efficiency",
     ollama_host: str = "http://localhost:11434",
     cache_max_size: int = 512,
+    use_task_type_router: bool = False,
 ) -> Any:
-    """Create a new :class:`TokenEfficientClient` wired with SmartRouter.
+    """Create a compound client for model inference.
 
     Parameters
     ----------
@@ -37,12 +38,18 @@ def create_compound_client(
         Ollama API base URL.
     cache_max_size : int
         Maximum prompt-response cache entries.
+    use_task_type_router : bool
+        If True, returns a :class:`TaskTypeRouter` with three-tier routing
+        (Anthropic + Ollama Cloud + Local). Default False for backwards compat.
 
     Returns
     -------
-    TokenEfficientClient
-        Fully wired client ready for live Ollama calls.
+    TokenEfficientClient or TaskTypeRouter
+        Fully wired client ready for inference calls.
     """
+    if use_task_type_router:
+        return _create_task_type_router(ollama_host)
+
     from cohezion.reliability.context_harness import ContextHarness
     from cohezion.swarm.model_adapter import SmartRouterAdapter
     from cohezion.swarm.smart_router import SmartRouter
@@ -77,6 +84,39 @@ def create_compound_client(
         cache_max_size,
     )
     return client
+
+
+def _create_task_type_router(ollama_host: str) -> Any:
+    """Create a TaskTypeRouter with available providers based on env vars."""
+    import os
+
+    from cohezion.swarm.providers.ollama_provider import OllamaProvider
+    from cohezion.swarm.task_type_router import ProviderTier, TaskTypeRouter
+
+    router = TaskTypeRouter()
+
+    # Tier 3: Local Ollama (always available)
+    router.register_provider(
+        ProviderTier.LOCAL,
+        OllamaProvider(config={"base_url": ollama_host}),
+    )
+
+    # Tier 1: Anthropic Claude (if API key set)
+    if os.environ.get("ANTHROPIC_API_KEY"):
+        from cohezion.swarm.providers.anthropic_provider import AnthropicProvider
+
+        router.register_provider(ProviderTier.ANTHROPIC, AnthropicProvider())
+        logger.info("TaskTypeRouter: Anthropic tier enabled")
+
+    # Tier 2: Ollama Cloud (if URL set)
+    if os.environ.get("OLLAMA_CLOUD_URL"):
+        from cohezion.swarm.providers.ollama_cloud_provider import OllamaCloudProvider
+
+        router.register_provider(ProviderTier.OLLAMA_CLOUD, OllamaCloudProvider())
+        logger.info("TaskTypeRouter: Ollama Cloud tier enabled")
+
+    logger.info("Created TaskTypeRouter with %d providers", len(router._providers))
+    return router
 
 
 @safe_singleton

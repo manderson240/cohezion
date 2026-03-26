@@ -111,6 +111,13 @@ class SessionCostTracker:
             "claude-3-opus": 0.015,  # $0.015 per 1K tokens (input)
             "claude-3-sonnet": 0.003,  # $0.003 per 1K tokens
             "claude-3-haiku": 0.00025,  # $0.00025 per 1K tokens
+            # Three-tier routing model names (provider/model format)
+            "anthropic/claude-sonnet-4-20250514": 0.003,
+            "anthropic/claude-haiku-3.5-20241022": 0.001,
+            "anthropic/claude-opus-4-20250514": 0.015,
+            "ollama-cloud/qwen3-coder:30b": 0.001,
+            "ollama-cloud/deepseek-r1:7b": 0.001,
+            "ollama-cloud/nomic-embed-text:latest": 0.0001,
         }
 
         # In-memory tracking (hot path)

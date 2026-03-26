@@ -29,23 +29,31 @@ Usage:
     result = await provider.generate(model="phi3:mini", prompt="Hello")
 """
 
+from cohezion.swarm.providers.anthropic_provider import AnthropicProvider
 from cohezion.swarm.providers.model_provider import (
     ModelProvider,
     get_model_provider,
     register_model_provider,
 )
-from cohezion.swarm.providers.ui_generation_provider import (
-    UIGenerationProvider,
-    get_ui_provider,
-    register_ui_provider,
-)
+from cohezion.swarm.providers.ollama_cloud_provider import OllamaCloudProvider
+
+
+try:
+    from cohezion.swarm.providers.ui_generation_provider import (
+        UIGenerationProvider,
+        get_ui_provider,
+        register_ui_provider,
+    )
+except ImportError:
+    UIGenerationProvider = None  # type: ignore[assignment,misc]
+    get_ui_provider = None  # type: ignore[assignment]
+    register_ui_provider = None  # type: ignore[assignment]
 
 
 __all__ = [
+    "AnthropicProvider",
     "ModelProvider",
-    "UIGenerationProvider",
+    "OllamaCloudProvider",
     "get_model_provider",
-    "get_ui_provider",
     "register_model_provider",
-    "register_ui_provider",
 ]
