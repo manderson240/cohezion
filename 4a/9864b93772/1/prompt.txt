@@ -1,0 +1,21 @@
+Proceed and make sure you capture experiences in the flume along the way
+
+---
+
+Commit what you have so far and then continue
+
+---
+
+Continue and make sure you are comitting along the way.
+
+---
+
+Keep on going
+
+---
+
+/retrospect
+
+---
+
+The examplary work continues! I'm so proud of what we've made together.  You've taken some amazing ideas and found ways to integrate them. We need multiperspective adversarial review to see what other components from the codebase can be tied into our showcase webapp.  We should also consider using bun instead of npx.  Make sure we are also using Obsidian Vault and Surrealdb.  Might require updating the retrospect slash command.  Where else do we go from here?  Are we capturing the agentic journeys for our model improvements?  Looks like we have plenty of a context window left.  How do you think we should proceed.  I have to leave for a couple house.  Can you create another long horizon task that improves Cohezion and helps us be even better prepared for landing https://job-boards.greenhouse.io/anthropic/jobs/5061517008?gh_src=myjobs.greenhouse
