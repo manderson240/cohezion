@@ -129,3 +129,48 @@ class RetrospectionEngine:
     def get_recent(self, n: int = 5) -> list[dict]:
         """Get the N most recent summaries."""
         return [s.to_dict() for s in self._summaries[-n:]]
+
+    def get_checkpoint_context(self, n: int = 5) -> list[dict]:
+        """Get recent Entire.io checkpoint context for cross-session memory.
+
+        Parses `entire explain --short` output to extract intent and outcome
+        from prior session checkpoints. Non-blocking: returns empty list
+        if Entire is not installed or fails.
+        """
+        try:
+            import subprocess
+
+            result = subprocess.run(
+                ["entire", "explain", "--short"],
+                capture_output=True,
+                text=True,
+                timeout=10,
+            )
+            if result.returncode != 0:
+                return []
+
+            checkpoints = []
+            current: dict[str, str] = {}
+            for line in result.stdout.splitlines():
+                line = line.strip()
+                if line.startswith("[") and "]" in line:
+                    if current:
+                        checkpoints.append(current)
+                    current = {"id": line.split("]")[0].lstrip("[")}
+                elif line.startswith("Intent:"):
+                    current["intent"] = line[len("Intent:"):].strip()
+                elif line.startswith("Outcome:"):
+                    current["outcome"] = line[len("Outcome:"):].strip()
+                elif "(" in line and line[0].isdigit():
+                    # Commit line like "03-25 15:01 (66f5668) description"
+                    parts = line.split(")", 1)
+                    if len(parts) > 1:
+                        current.setdefault("commits", []).append(parts[1].strip())
+
+            if current:
+                checkpoints.append(current)
+
+            return checkpoints[:n]
+        except Exception:
+            logger.debug("Entire checkpoint context unavailable (non-blocking)")
+            return []
