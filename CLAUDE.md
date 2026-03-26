@@ -79,12 +79,15 @@ See skill: `cohezion-vault-workflow` for vault API examples (log decisions, expe
 | **Cache** | SemanticCache (L1 hash + L2 cosine + L3 vault, 95%+ hit rate) | `SemanticCache` |
 | **Cost Opt** | CostAwareRouter (27.3% savings), BudgetEnforcer, ModelQualityClassifier | `CostAwareRouter` |
 | **Persistence** | SessionPersistence (vault + JSONL), MetricsCollector, DegradationDetector | `SessionManager` |
+| **Physics** | SU(2) Spinors, Riemannian/Lagrangian, FiberBundle, GaugeTheory, Fisher metric | `SpinorState` |
+| **World Model** | JEPA predictor (86K params), Cosmogony, SymmetryBreaking | `JEPAWorldModel` |
+| **Genesis UI** | BlochSphere, GenesisScene, Sonification, Narration, FreeEnergyLandscape | `/genesis` route |
 | **Knowledge** | Vault-First (decisions/patterns/experiments), auto-compiled MEMORY.md | `vault_find_relevant_context` |
 
 ### ⚡ Quick Reference
 - **Language**: Python 3.13+ | **Package Manager**: `uv` (never bare python)
 - **DB**: SurrealDB (ws://localhost:8000) | **API**: FastAPI :8080
-- **Tests**: 4,891 passing / 43 failing (99.1%) | **Coverage**: html report in `htmlcov/`
+- **Tests**: 5,054+ passing (4,891 core + 163 physics/world-model) | **Coverage**: html report in `htmlcov/`
 - **CI**: `make lint-check && uv run pytest` before commit
 - **Entry point**: `cohezion = "cohezion.__main__:main"`
 - **Vault**: `~/vaults/cohezion-vault/` — Query via `vault_find_relevant_context(query)`
@@ -123,8 +126,12 @@ Updated Skill (loop again)
 | `src/cohezion/cache/` | L1/L2/L3 semantic cache (95%+ hit rate) | `semantic_cache.py` |
 | `src/cohezion/skills/` | 124 PRIME skill definitions (*.md + *.py) | `skill_registry.json` |
 | `src/cohezion/persistence/` | SurrealDB, checkpoints, session recovery | `surreal_client.py` |
-| `src/cohezion/api/` | FastAPI backend (72 endpoints) | `__init__.py` (FastMCP patterns) |
+| `src/cohezion/api/` | FastAPI backend (96+ endpoints) | `__init__.py`, `services/genesis.py` |
 | `src/cohezion/flume/` | FLUME VAE (256D latent space) | `flume_vae.py` |
+| `src/cohezion/physics/` | **Genesis Engine**: SU(2) spinors, Riemannian, Lagrangian, fiber bundles, gauge theory, Fisher metric, cosmogony | `spinor.py`, `cosmogony.py` |
+| `src/cohezion/world_model/` | JEPA world model (86K params, CPU-trainable) | `jepa_world_model.py` |
+| `src/cohezion/audio/` | PocketTTS narrator, Kyutai Labs integration | `narrator.py` |
+| `src/web/anima_dashboard/` | Next.js 16 + Three.js + Tone.js webapp | `/genesis` route (4 tabs) |
 | `tests/conftest.py` | **CRITICAL**: Singleton reset for FLUME VAE, RL policy, loggers | **Read this first** |
 
 ## Coding Standards (Cohezion-Specific)
