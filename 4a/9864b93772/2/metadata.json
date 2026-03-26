@@ -1,0 +1,34 @@
+{
+  "cli_version": "0.5.1",
+  "checkpoint_id": "4a9864b93772",
+  "session_id": "93b66342-a8a3-4e87-b0be-4c0dcf07fa6a",
+  "strategy": "manual-commit",
+  "created_at": "2026-03-26T21:22:12.432565823Z",
+  "branch": "challenge/nvidia-nemotron-reasoning",
+  "checkpoints_count": 0,
+  "files_touched": [
+    "src/cohezion/swarm/compound_client.py",
+    "src/cohezion/swarm/providers/ollama_cloud_provider.py",
+    "src/cohezion/swarm/task_type_router.py",
+    "tests/swarm/test_ollama_cloud_provider.py",
+    "tests/swarm/test_task_type_router.py"
+  ],
+  "agent": "Claude Code",
+  "turn_id": "1ec0c1561d6f",
+  "token_usage": {
+    "input_tokens": 30287,
+    "cache_creation_tokens": 11640621,
+    "cache_read_tokens": 197879122,
+    "output_tokens": 333058,
+    "api_call_count": 906
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-03-26T21:22:08.789836644Z",
+    "agent_lines": 0,
+    "human_added": 4,
+    "human_modified": 33,
+    "human_removed": 0,
+    "total_committed": 4,
+    "agent_percentage": 0
+  }
+}
