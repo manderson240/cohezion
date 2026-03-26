@@ -35,8 +35,20 @@ const FreeEnergyLandscape = dynamic(
   () => import("@/components/genesis/FreeEnergyLandscape"),
   { ssr: false }
 );
+const CompoundPipelineViz = dynamic(
+  () => import("@/components/genesis/CompoundPipelineViz"),
+  { ssr: false }
+);
+const CacheTopologyViz = dynamic(
+  () => import("@/components/genesis/CacheTopologyViz"),
+  { ssr: false }
+);
+const ThermodynamicStateLive = dynamic(
+  () => import("@/components/genesis/ThermodynamicStateLive"),
+  { ssr: false }
+);
 
-type GenesisTab = "cosmogony" | "bloch" | "thermo" | "about";
+type GenesisTab = "cosmogony" | "bloch" | "thermo" | "compound" | "cache" | "about";
 
 export default function GenesisPage() {
   const [tab, setTab] = useState<GenesisTab>("cosmogony");
@@ -76,7 +88,9 @@ export default function GenesisPage() {
   const tabs: { key: GenesisTab; label: string; desc: string }[] = [
     { key: "cosmogony", label: "Genesis", desc: "From Nothing to Everything" },
     { key: "bloch", label: "SPIN Lab", desc: "Interactive Bloch Sphere" },
-    { key: "thermo", label: "Thermo", desc: "Free Energy Landscape" },
+    { key: "thermo", label: "Thermo", desc: "Statistical Mechanics" },
+    { key: "compound", label: "Compound", desc: "11-Step Pipeline" },
+    { key: "cache", label: "Cache/Cost", desc: "Optimization" },
     { key: "about", label: "About", desc: "The Mathematics" },
   ];
 
@@ -188,6 +202,7 @@ export default function GenesisPage() {
         {tab === "bloch" && <BlochSphere />}
         {tab === "thermo" && (
           <div className="space-y-6">
+            <ThermodynamicStateLive />
             <FreeEnergyLandscape
               currentTemperature={cosmogony.state?.temperature ?? 200}
             />
@@ -224,6 +239,48 @@ export default function GenesisPage() {
                     <span className="text-purple-400">{cosmogony.state?.fisher_eigenvalue_max.toFixed(4)}</span>
                   </div>
                 </div>
+              </div>
+            </div>
+          </div>
+        )}
+        {tab === "compound" && (
+          <div className="space-y-6">
+            <CompoundPipelineViz activeStep={3} />
+            <div className="bg-black/90 border border-gray-700 rounded-lg p-4 font-mono">
+              <h3 className="text-sm text-green-400 font-bold mb-2">The Learning Loop</h3>
+              <p className="text-[11px] text-gray-400 leading-relaxed">
+                The compound engineering pipeline is the beating heart of Cohezion.
+                Every task flows through 11 steps — from vault experience lookup through
+                execution, quality gating, journey tracking, metrics collection,
+                retrospection, and skill refinement. Each cycle makes the next one better.
+                This is not just execution — it is autonomous learning.
+              </p>
+            </div>
+          </div>
+        )}
+        {tab === "cache" && (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <CacheTopologyViz />
+            <div className="bg-black/90 border border-gray-700 rounded-lg p-4 font-mono">
+              <h3 className="text-sm text-green-400 font-bold mb-2">Cost Optimization</h3>
+              <div className="space-y-3 text-[11px] text-gray-400">
+                <div className="flex justify-between">
+                  <span>CostAwareRouter savings:</span>
+                  <span className="text-green-400 font-bold">27.3%</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Routing strategy:</span>
+                  <span className="text-cyan-400">Simple→phi3 | Medium→qwen | Complex→deepseek</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Semantic cache hit rate:</span>
+                  <span className="text-green-400">95%+</span>
+                </div>
+                <p className="text-gray-500 mt-2 italic text-[10px]">
+                  The L1 hash cache handles exact matches. L2 uses FLUME VAE cosine similarity
+                  (not string matching) to find semantically equivalent queries. L3 async vault
+                  lookup catches long-tail reuse patterns.
+                </p>
               </div>
             </div>
           </div>
