@@ -55,7 +55,7 @@ def probe_mla_source():
 
         env_patterns = re.findall(r"os\.environ\[([^\]]+)\]", source)
         return env_patterns
-    except:
+    except Exception:
         return []
 
 

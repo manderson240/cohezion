@@ -638,7 +638,7 @@ def main():
         if duration_hours > 24:  # Cap at 24 hours for safety
             duration_hours = 24.0
             print("Duration capped at 24 hours for safety")
-    except:
+    except Exception:
         duration_hours = 2.0
         print("Using default duration: 2.0 hours")
 
@@ -665,7 +665,7 @@ def main():
         try:
             if "orchestrator" in locals():
                 orchestrator._shutdown_all_agents()
-        except:
+        except Exception:
             pass
 
         print("\n" + "=" * 70)

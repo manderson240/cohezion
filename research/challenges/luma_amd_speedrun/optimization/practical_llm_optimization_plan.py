@@ -194,7 +194,7 @@ Focus on:
             return (
                 "\n\n".join(guidelines) if guidelines else "Standard Triton kernel guidelines apply"
             )
-        except:
+        except Exception:
             return "Refer to Triton documentation and AMD MI355X optimization guide"
 
     def collect_performance_data(self, kernel_name: str, metrics: dict[str, Any]) -> None:
@@ -226,7 +226,7 @@ Focus on:
                 timeout=5,
             )
             return result.stdout.strip() if result.returncode == 0 else "unknown"
-        except:
+        except Exception:
             return "unknown"
 
     def _get_environment_info(self) -> dict[str, str]:

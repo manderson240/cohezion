@@ -31,7 +31,7 @@ def load_session_data(session_dir):
                 if line.strip():
                     try:
                         performance_data.append(json.loads(line))
-                    except:
+                    except Exception:
                         pass
 
     # Load lessons learned
@@ -43,7 +43,7 @@ def load_session_data(session_dir):
                 if line.strip():
                     try:
                         lessons_data.append(json.loads(line))
-                    except:
+                    except Exception:
                         pass
 
     return {"performance": performance_data, "lessons": lessons_data, "session_dir": session_dir}

@@ -131,7 +131,7 @@ class MLAProbeAgent:
                 import torch.nn.functional as F
 
                 attn_out = F.scaled_dot_product_attention(q, k, v)
-            except:
+            except Exception:
                 attn_out = self._manual_attention(q, k, v)
         else:
             attn_out = self._manual_attention(q, k, v)

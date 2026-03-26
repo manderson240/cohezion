@@ -143,7 +143,7 @@ def custom_kernel(data: input_t) -> output_t:
                 o,
             )
             return o
-    except:
+    except Exception:
         pass
 
     # Fallback to mla_decode_fwd

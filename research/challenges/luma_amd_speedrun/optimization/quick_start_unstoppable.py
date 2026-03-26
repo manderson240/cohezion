@@ -33,7 +33,7 @@ def main():
             print("✅ MLA Decode reference: PRESENT")
         else:
             print("❌ MLA Decode reference: MISSING")
-    except:
+    except Exception:
         print("❓ MLA Decode reference: CHECK FAILED")
 
     try:
@@ -47,7 +47,7 @@ def main():
             print("✅ MXFP4 MoE reference: PRESENT")
         else:
             print("❌ MXFP4 MoE reference: MISSING")
-    except:
+    except Exception:
         print("❓ MXFP4 MoE reference: CHECK FAILED")
 
     # Try to import and validate we can work with the code

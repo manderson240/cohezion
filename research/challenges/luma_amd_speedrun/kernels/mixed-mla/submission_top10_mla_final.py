@@ -126,7 +126,7 @@ def _ensure_hip():
         _hip_lib.launch_mla_strict.argtypes = (
             [ctypes.c_void_p] * 4 + [ctypes.c_int] * 3 + [ctypes.c_float]
         )
-    except:
+    except (ImportError, AttributeError):
         _hip_lib = None
     return _hip_lib
 

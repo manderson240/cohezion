@@ -81,7 +81,7 @@ class KernelEmbedder:
         try:
             self.collection = self.client.get_collection(self.COLLECTION_NAME)
             print(f"Loaded existing collection with {self.collection.count()} patterns")
-        except:
+        except Exception:
             self.collection = self.client.create_collection(
                 self.COLLECTION_NAME, metadata={"description": "GPU kernel optimization patterns"}
             )
