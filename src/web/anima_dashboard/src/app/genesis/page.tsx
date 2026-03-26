@@ -26,7 +26,17 @@ function LoadingScreen() {
   );
 }
 
-type GenesisTab = "cosmogony" | "bloch" | "about";
+// Dynamic imports for non-Three.js components
+const CosmogonyTimeline = dynamic(
+  () => import("@/components/genesis/CosmogonyTimeline"),
+  { ssr: false }
+);
+const FreeEnergyLandscape = dynamic(
+  () => import("@/components/genesis/FreeEnergyLandscape"),
+  { ssr: false }
+);
+
+type GenesisTab = "cosmogony" | "bloch" | "thermo" | "about";
 
 export default function GenesisPage() {
   const [tab, setTab] = useState<GenesisTab>("cosmogony");
@@ -66,6 +76,7 @@ export default function GenesisPage() {
   const tabs: { key: GenesisTab; label: string; desc: string }[] = [
     { key: "cosmogony", label: "Genesis", desc: "From Nothing to Everything" },
     { key: "bloch", label: "SPIN Lab", desc: "Interactive Bloch Sphere" },
+    { key: "thermo", label: "Thermo", desc: "Free Energy Landscape" },
     { key: "about", label: "About", desc: "The Mathematics" },
   ];
 
@@ -165,8 +176,58 @@ export default function GenesisPage() {
 
       {/* Content */}
       <main className="p-6 max-w-[1920px] mx-auto">
-        {tab === "cosmogony" && <GenesisScene />}
+        {tab === "cosmogony" && (
+          <div className="grid grid-cols-1 lg:grid-cols-[1fr_280px] gap-6">
+            <GenesisScene />
+            <CosmogonyTimeline
+              currentStage={cosmogony.state?.stage ?? -1}
+              currentTemperature={cosmogony.state?.temperature ?? 200}
+            />
+          </div>
+        )}
         {tab === "bloch" && <BlochSphere />}
+        {tab === "thermo" && (
+          <div className="space-y-6">
+            <FreeEnergyLandscape
+              currentTemperature={cosmogony.state?.temperature ?? 200}
+            />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="bg-black/90 border border-gray-700 rounded-lg p-4 font-mono">
+                <h3 className="text-sm text-green-400 font-bold mb-2">Order Parameters</h3>
+                {cosmogony.state?.order_parameters &&
+                  Object.entries(cosmogony.state.order_parameters).map(([key, val]) => (
+                    <div key={key} className="flex justify-between text-[11px] mb-1">
+                      <span className="text-gray-400">{key.replace(/_/g, " ")}:</span>
+                      <span className={val > 0.01 ? "text-cyan-400" : "text-gray-600"}>
+                        {(val as number).toFixed(4)}
+                      </span>
+                    </div>
+                  ))}
+              </div>
+              <div className="bg-black/90 border border-gray-700 rounded-lg p-4 font-mono">
+                <h3 className="text-sm text-green-400 font-bold mb-2">Thermodynamic State</h3>
+                <div className="space-y-1 text-[11px]">
+                  <div className="flex justify-between">
+                    <span className="text-gray-400">Temperature:</span>
+                    <span className="text-cyan-400">{cosmogony.state?.temperature.toFixed(4)}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-400">Symmetry:</span>
+                    <span className="text-yellow-400">{cosmogony.state?.symmetry}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-400">Landau F:</span>
+                    <span className="text-green-400">{cosmogony.state?.landau_free_energy.toFixed(6)}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-400">Fisher λ_max:</span>
+                    <span className="text-purple-400">{cosmogony.state?.fisher_eigenvalue_max.toFixed(4)}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
         {tab === "about" && <AboutPanel />}
       </main>
 
