@@ -419,3 +419,65 @@ async def get_manifold_summary() -> dict:
         "spinor": spinor.to_dict(),
         "state_12d": state_12d.tolist(),
     }
+
+
+# ─── Narration Endpoints (Milestone 6) ────────────────────────────────
+
+
+class NarrateRequest(BaseModel):
+    """Request for custom narration."""
+
+    text: str = Field(..., min_length=1, max_length=2000, description="Text to narrate")
+
+
+@genesis_router.get("/narration/stages")
+async def get_narration_stages() -> dict:
+    """Get all pre-written narration texts for cosmogony stages.
+
+    Returns the script for each stage — can be used for display
+    even when PocketTTS is not installed.
+    """
+    from cohezion.audio.narrator import get_narrator
+
+    narrator = get_narrator()
+    return {
+        "stages": narrator.get_all_stage_texts(),
+        "concepts": narrator.get_all_concept_texts(),
+        "tts_available": narrator.available,
+    }
+
+
+@genesis_router.post("/narration/stage/{stage}")
+async def narrate_stage(stage: str) -> dict:
+    """Generate spoken narration for a cosmogonic stage.
+
+    If PocketTTS is installed, returns audio file path.
+    Otherwise returns text-only fallback.
+
+    Valid stages: void, SO(12), SO(3)^4, U(1)^4, Z_2^4, HIHO
+    """
+    from cohezion.audio.narrator import get_narrator
+
+    narrator = get_narrator()
+    return await narrator.narrate_stage(stage)
+
+
+@genesis_router.post("/narration/concept/{concept}")
+async def narrate_concept(concept: str) -> dict:
+    """Generate spoken narration for a physics concept.
+
+    Valid concepts: spinor, fiber_bundle, lagrangian, gauge_theory, world_model
+    """
+    from cohezion.audio.narrator import get_narrator
+
+    narrator = get_narrator()
+    return await narrator.narrate_concept(concept)
+
+
+@genesis_router.post("/narration/custom")
+async def narrate_custom(req: NarrateRequest) -> dict:
+    """Generate spoken narration for arbitrary text."""
+    from cohezion.audio.narrator import get_narrator
+
+    narrator = get_narrator()
+    return await narrator.narrate_custom(req.text)
