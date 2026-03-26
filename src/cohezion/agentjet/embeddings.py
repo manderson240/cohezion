@@ -206,14 +206,13 @@ class GeminiEmbeddingModel:
         url = f"{self.GEMINI_API_URL}?key={self._api_key}"
         payload = {"model": "models/text-embedding-004", "content": {"parts": [{"text": text}]}}
 
-        async with aiohttp.ClientSession() as session:
-            async with session.post(
-                url, json=payload, timeout=aiohttp.ClientTimeout(total=10)
-            ) as resp:
-                if resp.status != 200:
-                    body = await resp.text()
-                    raise RuntimeError(f"Gemini API {resp.status}: {body[:200]}")
-                data = await resp.json()
+        async with aiohttp.ClientSession() as session, session.post(
+            url, json=payload, timeout=aiohttp.ClientTimeout(total=10)
+        ) as resp:
+            if resp.status != 200:
+                body = await resp.text()
+                raise RuntimeError(f"Gemini API {resp.status}: {body[:200]}")
+            data = await resp.json()
 
         values = data["embedding"]["values"]
         vector = np.array(values, dtype=np.float32)

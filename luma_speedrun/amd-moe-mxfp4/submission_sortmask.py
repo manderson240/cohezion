@@ -16,6 +16,7 @@ Key rules preserved:
 import os
 import sys
 
+
 os.environ.setdefault("AITER_JIT_DIR", "/tmp/aiter_jit_cache")
 
 _AITER_JIT_DIR = "/home/runner/aiter/aiter/jit"
@@ -34,17 +35,15 @@ import torch
 from aiter import ActivationType, QuantType, dtypes
 from aiter import dtypes as aiter_dtypes
 from aiter.fused_moe import (
-    fused_moe,
-    fused_moe_2stages,
+    get_2stage_cfgs,
     get_inter_dim,
     get_padded_M,
-    get_2stage_cfgs,
-    moe_sorting,
 )
 from aiter.ops.moe_sorting import moe_sorting_fwd
 from aiter.ops.triton.quant.fused_mxfp4_quant import fused_dynamic_mxfp4_quant_moe_sort
 from aiter.utility import fp4_utils
 from task import input_t, output_t
+
 
 BLOCK_SIZE_M = 32
 

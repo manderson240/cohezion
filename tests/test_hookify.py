@@ -3,10 +3,10 @@ TDD Test Suite for Hookify Rule Engine
 Tests written BEFORE implementation (TDD approach)
 """
 
-import pytest
-from pathlib import Path
 
-from cohezion.hookify.validator import HookifyValidator, Rule, ValidationResult
+import pytest
+
+from cohezion.hookify.validator import HookifyValidator, Rule
 
 
 class TestHookifyRuleParsing:
@@ -484,4 +484,3 @@ class TestHookifyMCPBridge:
 # Placeholder classes that will be implemented
 # Import real implementation from cohezion.hookify
 # The tests now use the real HookifyValidator
-from cohezion.hookify.validator import HookifyValidator, Rule, ValidationResult

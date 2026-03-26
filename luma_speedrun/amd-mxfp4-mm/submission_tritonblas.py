@@ -22,6 +22,7 @@ from aiter.ops.triton.quant import dynamic_mxfp4_quant
 from aiter.utility.fp4_utils import e8m0_shuffle
 from task import input_t, output_t
 
+
 # Try importing tritonblas — may not be available
 _HAS_TRITONBLAS = False
 try:

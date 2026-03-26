@@ -5,19 +5,17 @@ Building upon the existing Gemini session work with LoRA fine-tuning.
 Adapted for CPU-only environment.
 """
 
-import os
-import torch
-import torch.nn as nn
-from torch.utils.data import Dataset, DataLoader
-from transformers import AutoTokenizer, AutoModelForCausalLM, get_linear_schedule_with_warmup
-from peft import LoraConfig, get_peft_model
-import pandas as pd
-import numpy as np
-from pathlib import Path
 import json
-import time
 import logging
+import os
+
+import pandas as pd
+import torch
+from peft import LoraConfig, get_peft_model
+from torch.utils.data import DataLoader, Dataset
 from tqdm.auto import tqdm
+from transformers import AutoModelForCausalLM, AutoTokenizer, get_linear_schedule_with_warmup
+
 
 # Set up logging
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")

@@ -1,10 +1,7 @@
-import os
 import re
-import json
-import time
-import polars as pl
+from typing import Any
+
 import sympy
-from typing import Optional, Dict, Any
 
 
 # --- TOOL: Symbolic Executor ---
@@ -20,7 +17,7 @@ class SymbolicExecutor:
             "isprime": sympy.isprime,
         }
 
-    def execute(self, code: str) -> Dict[str, Any]:
+    def execute(self, code: str) -> dict[str, Any]:
         local_vars = {}
         try:
             exec(code, {**self.namespace}, local_vars)

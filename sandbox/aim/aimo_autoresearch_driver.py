@@ -12,17 +12,14 @@ Features:
 - Thermal protection for long runs
 """
 
-import json
-import time
 import logging
-from pathlib import Path
-from typing import Dict, Any, List, Optional
 from dataclasses import dataclass
+from typing import Any
 
-from swarm_coordinator import SwarmCoordinator
-from base_specialist import BaseSpecialist
+from failure_logger import FailureLogger
 from knower_auditor import KnowerAuditor
-from failure_logger import FailureLogger, FailureType
+from swarm_coordinator import SwarmCoordinator
+
 
 logger = logging.getLogger(__name__)
 
@@ -43,7 +40,7 @@ class AIMOExperiment:
 
     hypothesis_id: str
     hypothesis: str
-    problem_ids: List[str]
+    problem_ids: list[str]
     accuracy: float = 0.0
     stability: float = 0.0
     coherence: float = 0.0
@@ -66,7 +63,7 @@ class AIMOAutoresearchDriver:
 
     def __init__(
         self,
-        ralph_config: Optional[RalphLoopConfig] = None,
+        ralph_config: RalphLoopConfig | None = None,
         benchmark_runner_path: str = "kaggle_benchmark_runner.py",
         failure_log_path: str = "failures",
     ):
@@ -88,7 +85,7 @@ class AIMOAutoresearchDriver:
         logger.info(f"  Ralph coherence threshold: {self.ralph_config.coherence_threshold}")
         logger.info(f"  Max iterations: {self.ralph_config.max_iterations}")
 
-    def run_benchmark(self, problem_ids: Optional[List[str]] = None) -> Dict[str, Any]:
+    def run_benchmark(self, problem_ids: list[str] | None = None) -> dict[str, Any]:
         """
         Run benchmark on reference problems.
 
@@ -127,7 +124,7 @@ class AIMOAutoresearchDriver:
 
         return coherence >= self.ralph_config.coherence_threshold
 
-    def propose_mutation(self, failures: List[Dict[str, Any]]) -> str:
+    def propose_mutation(self, failures: list[dict[str, Any]]) -> str:
         """
         Propose mutation based on failure analysis.
 
@@ -194,7 +191,7 @@ class AIMOAutoresearchDriver:
             logger.warning(f"  Unknown mutation: {hypothesis}")
             return False
 
-    def run_autoresearch_cycle(self, problem_ids: Optional[List[str]] = None) -> Dict[str, Any]:
+    def run_autoresearch_cycle(self, problem_ids: list[str] | None = None) -> dict[str, Any]:
         """
         Run single autoresearch cycle:
         1. Benchmark
@@ -213,7 +210,7 @@ class AIMOAutoresearchDriver:
         accuracy = summary.get("accuracy", 0.0)
         stability = summary.get("stability_ratio", 0.0)
 
-        logger.info(f"Benchmark results:")
+        logger.info("Benchmark results:")
         logger.info(f"  Accuracy: {accuracy * 100:.1f}%")
         logger.info(f"  Stability: {stability * 100:.1f}%")
 
@@ -261,7 +258,7 @@ class AIMOAutoresearchDriver:
             "hypothesis": hypothesis,
         }
 
-    def _collect_failures(self, summary: Dict[str, Any]) -> List[Dict[str, Any]]:
+    def _collect_failures(self, summary: dict[str, Any]) -> list[dict[str, Any]]:
         """Collect failures from benchmark results."""
         # In production, this would read from failure_logger
         # For now, return synthetic failures based on summary
@@ -289,8 +286,8 @@ class AIMOAutoresearchDriver:
         return failures
 
     def run_full_journey(
-        self, problem_ids: Optional[List[str]] = None, max_cycles: Optional[int] = None
-    ) -> List[Dict[str, Any]]:
+        self, problem_ids: list[str] | None = None, max_cycles: int | None = None
+    ) -> list[dict[str, Any]]:
         """
         Run complete autoresearch journey.
 
@@ -301,7 +298,7 @@ class AIMOAutoresearchDriver:
         max_cycles = max_cycles or self.ralph_config.max_iterations
 
         logger.info(f"\n{'=' * 60}")
-        logger.info(f"AIMO Autoresearch Journey")
+        logger.info("AIMO Autoresearch Journey")
         logger.info(f"{'=' * 60}")
         logger.info(f"Target: Ralph coherence >= {self.ralph_config.coherence_threshold}")
         logger.info(f"Max cycles: {max_cycles}")
@@ -317,7 +314,7 @@ class AIMOAutoresearchDriver:
                 break
 
         logger.info(f"\n{'=' * 60}")
-        logger.info(f"Journey Summary")
+        logger.info("Journey Summary")
         logger.info(f"{'=' * 60}")
         logger.info(f"Cycles: {len(results)}")
         logger.info(f"Final accuracy: {results[-1]['accuracy'] * 100:.1f}%")
@@ -327,8 +324,8 @@ class AIMOAutoresearchDriver:
 
 
 def run_aimo_autoresearch(
-    problem_ids: Optional[List[str]] = None, max_cycles: int = 5, coherence_threshold: float = 0.5
-) -> List[Dict[str, Any]]:
+    problem_ids: list[str] | None = None, max_cycles: int = 5, coherence_threshold: float = 0.5
+) -> list[dict[str, Any]]:
     """
     Run AIMO autoresearch journey with Ralph Loop.
 

@@ -15,11 +15,12 @@ Generates formal patent drawings for FLUME provisional application:
 Output: PNG files in docs/patents/figures/
 """
 
-import matplotlib.pyplot as plt
-import matplotlib.patches as patches
-from matplotlib.patches import Rectangle, FancyBboxPatch, Circle, Arrow
-import numpy as np
 from pathlib import Path
+
+import matplotlib.pyplot as plt
+import numpy as np
+from matplotlib.patches import Circle, FancyBboxPatch, Rectangle
+
 
 # Create output directory
 FIGURE_DIR = Path("/home/mike-anderson/dev/cohezion/docs/patents/figures")
@@ -400,9 +401,7 @@ def draw_figure_4():
     # Intermediate points
     for i, (x_pt, y_pt) in enumerate(zip(traj_x[::10], traj_y[::10])):
         ax.plot(x_pt, y_pt, "b.", markersize=10)
-        if i == 0:
-            ax.text(x_pt, y_pt + 0.3, f"Step {i}", ha="center", fontsize=8)
-        elif i == len(traj_x[::10]) - 1:
+        if i == 0 or i == len(traj_x[::10]) - 1:
             ax.text(x_pt, y_pt + 0.3, f"Step {i}", ha="center", fontsize=8)
 
     # Interpolation arrow
@@ -778,7 +777,7 @@ if __name__ == "__main__":
     draw_figure_7()
     draw_figure_8()
 
-    print(f"\n=== Complete ===")
+    print("\n=== Complete ===")
     print(f"Generated 8 patent figures in: {FIGURE_DIR.absolute()}")
     print("\nFigures:")
     for i, fig_file in enumerate(sorted(FIGURE_DIR.glob("fig*.png")), 1):

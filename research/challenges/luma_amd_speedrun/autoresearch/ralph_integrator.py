@@ -19,10 +19,11 @@ import json
 import logging
 import math
 import time
-from dataclasses import asdict, dataclass
+from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
+
 
 logger = logging.getLogger("ralph_integrator")
 
@@ -75,8 +76,8 @@ class RalphLoopIntegrator:
     def __init__(
         self,
         kernel: str,
-        config: Optional[dict[str, Any]] = None,
-        vault_path: Optional[str] = None,
+        config: dict[str, Any] | None = None,
+        vault_path: str | None = None,
     ):
         self.kernel = kernel
         self.config = {**RALPH_CONFIG, **(config or {})}
@@ -87,7 +88,7 @@ class RalphLoopIntegrator:
         self.best_coherence: float = 0.0
         self.stagnation_count: int = 0
         self.breakthrough_achieved: bool = False
-        self.breakthrough_cycle: Optional[int] = None
+        self.breakthrough_cycle: int | None = None
 
         self.coherence_history: list[CoherenceRecord] = []
         self.mutation_log: list[str] = []
@@ -368,7 +369,7 @@ class RalphLoopIntegrator:
 def create_ralph_driver(
     kernel: str,
     base_driver_path: str,
-    config: Optional[dict[str, Any]] = None,
+    config: dict[str, Any] | None = None,
 ) -> str:
     """
     Create a Ralph-enhanced driver for a kernel.

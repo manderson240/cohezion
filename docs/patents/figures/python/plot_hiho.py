@@ -4,9 +4,11 @@ FIG. 5: HIHO Double-Well Potential Energy Landscape
 Output: PNG + SVG for patent application
 """
 
+from pathlib import Path
+
 import matplotlib.pyplot as plt
 import numpy as np
-from pathlib import Path
+
 
 # Set publication quality
 plt.rcParams["figure.dpi"] = 300

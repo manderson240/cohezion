@@ -62,10 +62,9 @@ Layout info from CSV (kernel configs for gfx950):
 """
 
 import ctypes
-import struct
-import os
 import glob
-from typing import Tuple
+import os
+
 
 # Constants
 HIP_SUCCESS = 0
@@ -160,17 +159,17 @@ def test_hip_library():
 def test_module_load(co_path: str):
     """Test loading a .co file directly."""
     hip = ctypes.CDLL('libamdhip64.so', ctypes.RTLD_GLOBAL)
-    
+
     if not os.path.exists(co_path):
         print(f".co file not found: {co_path}")
         return None, None
-    
+
     with open(co_path, 'rb') as f:
         co_data = f.read()
     print(f"Loaded .co file: {len(co_data)} bytes")
-    
+
     module = ctypes.c_void_p()
-    
+
     # Try hipModuleLoadDataEx (preferred for in-memory loading)
     try:
         hip.hipModuleLoadDataEx.argtypes = [
@@ -181,7 +180,7 @@ def test_module_load(co_path: str):
             ctypes.c_void_p
         ]
         hip.hipModuleLoadDataEx.restype = ctypes.c_int
-        
+
         result = hip.hipModuleLoadDataEx(
             ctypes.byref(module),
             co_data,
@@ -193,7 +192,7 @@ def test_module_load(co_path: str):
     except Exception as e:
         print(f"hipModuleLoadDataEx exception: {e}")
         result = -1
-    
+
     if result != HIP_SUCCESS:
         # Try hipModuleLoad with filename
         try:
@@ -203,11 +202,11 @@ def test_module_load(co_path: str):
             print(f"hipModuleLoad (file) result: {result}")
         except Exception as e:
             print(f"hipModuleLoad exception: {e}")
-    
+
     if result != HIP_SUCCESS:
         print(f"Failed to load module: {result}")
         return None, None
-    
+
     print(f"Module loaded: {module.value}")
     return hip, module
 
@@ -217,20 +216,20 @@ def test_kernel_dispatch(hip, module, kernel_name: str, args: KernelArgs):
     if hip is None or module is None:
         print("Skipping kernel dispatch test (no module)")
         return False
-    
+
     func = ctypes.c_void_p()
     result = hip.hipModuleGetFunction(
         ctypes.byref(func),
         module,
         kernel_name.encode() if isinstance(kernel_name, str) else kernel_name
     )
-    
+
     if result != HIP_SUCCESS:
         print(f"hipModuleGetFunction failed: {result}")
         return False
-    
+
     print(f"Got kernel function: {func.value}")
-    
+
     # Grid and block dimensions
     gdx = 1
     gdy = 1
@@ -238,11 +237,11 @@ def test_kernel_dispatch(hip, module, kernel_name: str, args: KernelArgs):
     bdx = 256
     bdy = 1
     bdz = 1
-    
+
     # Create config for hipModuleLaunchKernel
     arg_size = ctypes.c_size_t(get_struct_size())
     args_ptr = ctypes.byref(args)
-    
+
     config = (ctypes.c_void_p * 5)(
         0x4000,  # HIP_LAUNCH_PARAM_BUFFER_POINTER
         args_ptr,
@@ -250,7 +249,7 @@ def test_kernel_dispatch(hip, module, kernel_name: str, args: KernelArgs):
         ctypes.byref(arg_size),
         0x4002   # HIP_LAUNCH_PARAM_END
     )
-    
+
     # Launch kernel
     stream = ctypes.c_void_p(0)  # 0 = default stream
     result = hip.hipModuleLaunchKernel(
@@ -262,7 +261,7 @@ def test_kernel_dispatch(hip, module, kernel_name: str, args: KernelArgs):
         None,  # host耳朵
         config
     )
-    
+
     if result == HIP_SUCCESS:
         print("Kernel launched successfully!")
         return True
@@ -275,24 +274,24 @@ def main():
     print("=" * 60)
     print("Direct CK GEMM Kernel Dispatch - Smoke Test")
     print("=" * 60)
-    
+
     # Test 1: Struct size
     print("\n[1] Testing struct size...")
     test_struct_size()
-    
+
     # Test 2: .co files exist
     print("\n[2] Testing .co files exist...")
     test_co_files_exist()
-    
+
     # Test 3: HIP library
     print("\n[3] Testing HIP library...")
     test_hip_library()
-    
+
     # Test 4: Module loading
     print("\n[4] Testing module loading...")
     co_path = f'{CO_DIR}/f4gemm_bf16_per1x32Fp4_BpreShuffle_128x256.co'
     hip, module = test_module_load(co_path)
-    
+
     # Test 5: Kernel dispatch
     if module:
         print("\n[5] Testing kernel dispatch...")
@@ -322,10 +321,10 @@ def main():
         args.stride_ScaleB0 = 0
         args.stride_ScaleB1 = 0
         args.log2_k_split = 0
-        
+
         kernel_name = '_ZN5aiter42f4gemm_bf16_per1x32Fp4_BpreShuffle_128x256E'
         test_kernel_dispatch(hip, module, kernel_name, args)
-    
+
     print("\n" + "=" * 60)
     print("Smoke test complete")
     print("=" * 60)

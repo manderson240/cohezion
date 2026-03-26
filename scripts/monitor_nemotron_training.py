@@ -4,11 +4,8 @@ Monitor script for NVIDIA Nemotron Model Reasoning Challenge training progress.
 """
 
 import asyncio
-import json
 import os
-import time
 from datetime import datetime
-from pathlib import Path
 
 from cohezion.integrations.kaggle_api import KaggleAPI
 

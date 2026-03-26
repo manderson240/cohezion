@@ -17,12 +17,13 @@ ctypes.CDLL / hipModuleLaunchKernel.
 """
 
 import ctypes
+import glob
 import os
 import sys
-import glob
 
 import torch
 from task import input_t, output_t
+
 
 # ── Probe: Can we load libamdhip64.so? ──
 _hip = None
@@ -140,7 +141,7 @@ print(f"  libamdhip64.so: {'OK' if _hip else 'BLOCKED'}", file=sys.stderr)
 print(f"  .co files found: {len(_found_co_files)}", file=sys.stderr)
 print(f"  hipModuleLoad: {'OK' if _module_loaded else 'BLOCKED'}", file=sys.stderr)
 print(f"  hipModuleGetFunction: {'OK' if _func else 'BLOCKED/UNKNOWN_NAME'}", file=sys.stderr)
-print(f"  data_ptr(): OK", file=sys.stderr)
+print("  data_ptr(): OK", file=sys.stderr)
 print("=" * 60, file=sys.stderr)
 
 
@@ -153,6 +154,7 @@ from aiter import (
     mla_decode_stage1_asm_fwd,
     mla_reduce_v1,
 )
+
 
 NUM_HEADS = 16
 NUM_KV_HEADS = 1

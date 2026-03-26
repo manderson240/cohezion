@@ -39,22 +39,20 @@ import json
 import logging
 import signal
 import sys
-import time
 from pathlib import Path
 from typing import Any
+
 
 # Add src to path
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
+from cohezion.compound.tdp_budget_tracker import PowerProfile, TDPConfig
 from cohezion.compound.thermal_autoresearch_executor import (
-    ThermalAutoresearchExecutor,
-    EightHourConfig,
     DomainConfig,
-    run_8hour_autoresearch_journey,
+    EightHourConfig,
+    ThermalAutoresearchExecutor,
 )
-from cohezion.compound.thermal_checkpoint_manager import ThermalCheckpointManager, ThermalConfig
-from cohezion.compound.tdp_budget_tracker import TDPBudgetTracker, TDPConfig, PowerProfile
-from cohezion.core.mcp_client import get_mcp_client
+from cohezion.compound.thermal_checkpoint_manager import ThermalConfig
 
 
 logger = logging.getLogger(__name__)
@@ -148,7 +146,7 @@ def load_checkpoint(checkpoint_id: str) -> dict[str, Any] | None:
         return None
 
     try:
-        with open(checkpoint_file, "r") as f:
+        with open(checkpoint_file) as f:
             return json.load(f)
     except Exception as e:
         logger.error(f"Failed to load checkpoint: {e}")
@@ -364,11 +362,11 @@ async def main() -> int:
     # Dry run
     if args.dry_run:
         logger.info("Dry run mode - validating configuration...")
-        logger.info(f"Configuration valid!")
+        logger.info("Configuration valid!")
         logger.info(f"  Total duration: {config.total_duration_hours} hours")
         logger.info(f"  Domains: {len(config.domains)}")
-        logger.info(f"  Thermal protection: enabled")
-        logger.info(f"  TDP tracking: enabled")
+        logger.info("  Thermal protection: enabled")
+        logger.info("  TDP tracking: enabled")
         return 0
 
     # Execute
@@ -385,7 +383,7 @@ async def main() -> int:
 
         # Print summary
         print(f"\n{'=' * 80}")
-        print(f"JOURNEY SUMMARY")
+        print("JOURNEY SUMMARY")
         print(f"{'=' * 80}")
         print(f"Journey ID: {result['journey_id']}")
         print(f"Completed: {result['completed']}")

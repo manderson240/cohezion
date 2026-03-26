@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import os
 
+
 os.environ["AITER_USE_NT"] = "1"
 
 from aiter import ActivationType, QuantType

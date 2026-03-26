@@ -1,6 +1,7 @@
 import json
 from pathlib import Path
 
+
 # Paths
 SOURCE_FILE = Path(__file__).parent / "evo_hiho_benchmark.json"
 SUBMISSION_FILE = Path(__file__).parent / "submission.json"
@@ -19,7 +20,7 @@ def format_submission():
         print(f"Source file {SOURCE_FILE.name} not found. Run generate script first.")
         return
 
-    with open(SOURCE_FILE, "r") as f:
+    with open(SOURCE_FILE) as f:
         data = json.load(f)
 
     # In our generator, we already structure it as train/test

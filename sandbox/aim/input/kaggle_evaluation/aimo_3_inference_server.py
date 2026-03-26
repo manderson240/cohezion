@@ -1,6 +1,6 @@
-import kaggle_evaluation.core.templates
-
 import aimo_3_gateway
+
+import kaggle_evaluation.core.templates
 
 
 class AIMO3InferenceServer(kaggle_evaluation.core.templates.InferenceServer):

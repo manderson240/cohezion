@@ -23,12 +23,15 @@ Baseline: ~70µs | Leader: ~33µs | Target: match/beat via graph dispatch.
 import torch
 from aiter import (
     dtypes as aiter_dtypes,
+)
+from aiter import (
     get_mla_metadata_info_v1,
     get_mla_metadata_v1,
     mla_decode_stage1_asm_fwd,
     mla_reduce_v1,
 )
 from task import input_t, output_t
+
 
 # ── DeepSeek R1 MLA constants ──
 NUM_HEADS = 16

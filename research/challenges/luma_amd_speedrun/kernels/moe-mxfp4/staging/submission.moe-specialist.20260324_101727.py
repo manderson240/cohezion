@@ -17,6 +17,7 @@ from __future__ import annotations
 
 import os
 
+
 # Enable Non-Temporal hint for GPU memory transfers (178µs improvement)
 os.environ["AITER_USE_NT"] = "1"
 
@@ -63,18 +64,18 @@ def _choose_ksplit(config: dict) -> int:
     key = _get_ksplit_key(config)
     if key in KSPLIT_TABLE:
         return KSPLIT_TABLE[key]
-    
+
     # Fallback: compute estimated_m
     n_routed = config.get("n_routed_experts", 0)
     n_shared = config.get("n_shared_experts", 0)
     bs = config.get("bs", 0)
     E_total = n_routed + n_shared
-    
+
     if E_total == 0 or bs == 0:
         return 0
-    
+
     estimated_m = bs / E_total
-    
+
     if estimated_m < 10:
         return 4
     elif estimated_m < 30:

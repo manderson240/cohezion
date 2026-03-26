@@ -4,9 +4,11 @@ Run G4 Blackwell submission for NVIDIA Nemotron Model Reasoning Challenge.
 """
 
 import asyncio
-import os
 import logging
+import os
+
 from dotenv import load_dotenv
+
 
 # Load environment variables from .env
 load_dotenv()
@@ -26,6 +28,7 @@ if api_token:
 # Now import the orchestrator (which imports Kaggle libs)
 from cohezion.integrations.kaggle_submission_improved import KaggleSubmissionOrchestrator
 
+
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
@@ -42,7 +45,7 @@ async def run_g4():
     try:
         # Define competition and notebook details
         competition_id = "nvidia-nemotron-model-reasoning-challenge"
-        notebook_id = f"nemotron-lora-blackwell-v20"
+        notebook_id = "nemotron-lora-blackwell-v20"
 
         # Execute the full flow
         # This will use the updated KaggleAPI which defaults to NvidiaRtxPro6000

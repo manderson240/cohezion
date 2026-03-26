@@ -8,7 +8,6 @@ Baseline: ~70µs | Target: ~45-50µs | Leader: ~33µs
 """
 
 import ctypes
-import os
 
 import torch
 from aiter import dtypes as aiter_dtypes
@@ -18,6 +17,7 @@ from aiter import (
     mla_reduce_v1,
 )
 from task import input_t, output_t
+
 
 # ── DeepSeek R1 MLA constants ──
 NUM_HEADS = 16

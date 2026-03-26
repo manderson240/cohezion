@@ -1,5 +1,7 @@
 import os
+
 from dotenv import load_dotenv
+
 
 # MUST be first to ensure Kaggle libs find credentials
 load_dotenv()
@@ -16,7 +18,9 @@ if api_token:
 
 import asyncio
 import logging
+
 from cohezion.integrations.kaggle_api import KaggleAPI
+
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -28,11 +32,11 @@ async def get_logs():
 
     notebook_id = f"nemotron-lora-baseline-improved-{username.replace('_', '-')}"
     logger.info(f"Retrieving logs for: {notebook_id}")
-    
+
     api = KaggleAPI(username=username, key=api_token)
-    
+
     logs = await api.get_notebook_output(notebook_id)
-    
+
     print("\n" + "="*50)
     print(f"KAGGLE LOGS: {notebook_id}")
     print("="*50)

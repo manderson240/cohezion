@@ -1,6 +1,9 @@
+from unittest.mock import AsyncMock, patch
+
 import pytest
-from unittest.mock import MagicMock, patch, AsyncMock
+
 from cohezion.mycelium.loop import CoverageLoop
+
 
 @pytest.fixture
 def mock_scripter():
@@ -34,14 +37,14 @@ async def test_execute_loop_achieves_target(loop, mock_scripter):
     with patch.object(loop, "run_tests_and_get_coverage") as mock_coverage:
         mock_coverage.side_effect = [80.0, 100.0]
         mock_scripter.synthesize_test_suite.return_value = "def test_more(): pass"
-        
+
         final_coverage = await loop.execute(
             file_path="src/cohezion/dummy.py",
             code_context="code",
             target_coverage=100.0,
             max_iterations=2
         )
-        
+
         assert final_coverage == 100.0
         assert mock_scripter.synthesize_test_suite.call_count == 1
         assert mock_coverage.call_count == 2

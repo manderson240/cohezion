@@ -9,11 +9,7 @@ Verifies:
 
 import pytest
 import torch
-import numpy as np
-from scipy.stats import gmean
-
-from task import input_t
-from reference import ref_kernel, generate_input
+from reference import generate_input, ref_kernel
 
 
 # ---------------------------------------------------------------------------

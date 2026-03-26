@@ -7,9 +7,10 @@ Tests:
 - Story 4.3: Submission Automation (kaggle API integration)
 """
 
-import pytest
 import time
-from performance_profiler import PerformanceProfiler, PerformanceMetrics
+
+import pytest
+from performance_profiler import PerformanceProfiler
 
 
 class TestStory41PerformanceProfiler:

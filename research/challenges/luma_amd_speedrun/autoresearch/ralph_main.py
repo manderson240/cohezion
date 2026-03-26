@@ -14,12 +14,12 @@ import argparse
 import json
 import logging
 import math
-import sys
 import time
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
 from typing import Any
+
 
 logging.basicConfig(
     level=logging.INFO,
@@ -260,10 +260,10 @@ class RalphLoop:
             mutation = ""
             if stagnation:
                 mutation = "R-Zero: stagnation detected"
-                log.info(f"  → Triggering R-Zero challenger")
+                log.info("  → Triggering R-Zero challenger")
             elif not gate_passed:
                 mutation = f"Low coherence ({record.coherence:.2f} < {self.coherence_threshold})"
-                log.info(f"  → Proposing mutation")
+                log.info("  → Proposing mutation")
 
             # Log to vault
             self.log_cycle(record, mutation)
@@ -310,7 +310,7 @@ class RalphLoop:
 
 def run_gemm_cycle(cycle_num: int) -> tuple[bool, float]:
     """Run one GEMM optimization cycle."""
-    from driver import run_cycle, load_tree, save_tree, rate_limiter
+    from driver import load_tree, rate_limiter, run_cycle, save_tree
 
     tree = load_tree("gemm")
     success, summary = run_cycle("gemm", tree, rate_limiter, dry_run=False)
@@ -326,7 +326,7 @@ def run_gemm_cycle(cycle_num: int) -> tuple[bool, float]:
 
 def run_moe_cycle(cycle_num: int) -> tuple[bool, float]:
     """Run one MoE optimization cycle."""
-    from driver import run_cycle, load_tree, save_tree, rate_limiter
+    from driver import load_tree, rate_limiter, run_cycle, save_tree
 
     tree = load_tree("moe")
     success, summary = run_cycle("moe", tree, rate_limiter, dry_run=False)
@@ -342,7 +342,7 @@ def run_moe_cycle(cycle_num: int) -> tuple[bool, float]:
 
 def run_mla_cycle(cycle_num: int) -> tuple[bool, float]:
     """Run one MLA optimization cycle."""
-    from driver import run_cycle, load_tree, save_tree, rate_limiter
+    from driver import load_tree, rate_limiter, run_cycle, save_tree
 
     tree = load_tree("mla")
     success, summary = run_cycle("mla", tree, rate_limiter, dry_run=False)
@@ -415,7 +415,7 @@ def main():
     for kernel, result in results.items():
         log.info(f"  {kernel}: {result['best_us']:.1f}µs (target: {result['target_us']:.1f}µs)")
         if result["breakthrough"]:
-            log.info(f"    → BREAKTHROUGH!")
+            log.info("    → BREAKTHROUGH!")
         else:
             gap = result.get("gap_to_target")
             if gap:

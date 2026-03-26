@@ -3,12 +3,10 @@
 import os
 from collections.abc import Generator
 
-import kaggle_evaluation.core.templates
 import polars as pl
-from kaggle_evaluation.core.base_gateway import (
-    GatewayRuntimeError,
-    GatewayRuntimeErrorType,
-)
+
+import kaggle_evaluation.core.templates
+
 
 # Set to True during the private rerun to disable shuffling
 USE_PRIVATE_SET = False

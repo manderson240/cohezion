@@ -20,6 +20,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
+
 # Add project root to path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent.parent))
 
@@ -383,7 +384,7 @@ async def main():
 
     # Summary
     high_count = len([f for f in findings if f.get("severity") == "HIGH"])
-    print(f"\n📊 Summary:")
+    print("\n📊 Summary:")
     print(f"  HIGH findings: {high_count}")
     print(f"  Total findings: {len(findings)}")
 

@@ -16,14 +16,15 @@ from __future__ import annotations
 
 import os
 
+
 # Enable HIP online tuning BEFORE importing aiter
 os.environ["HIP_ONLINE_TUNING"] = "1"
 
-from task import input_t, output_t
-from aiter import dtypes
 import aiter
+from aiter import dtypes
 from aiter.ops.triton.quant import dynamic_mxfp4_quant
 from aiter.utility.fp4_utils import e8m0_shuffle
+from task import input_t, output_t
 
 
 # Kernel name for small M values (32x128 tile)
@@ -34,15 +35,15 @@ def custom_kernel(data: input_t) -> output_t:
     A, B, B_q, B_shuffle, B_scale_sh = data
     m, k = A.shape
     n = B_shuffle.shape[0]
-    
+
     # Quantize A with MXFP4
     x_fp4, bs_e8m0 = dynamic_mxfp4_quant(A)
     A_q = x_fp4.view(dtypes.fp4x2)
     A_scale_sh = e8m0_shuffle(bs_e8m0).view(dtypes.fp8_e8m0)
-    
+
     # Pre-allocate output
     out = A_q.new_empty(m, n, dtype=dtypes.bf16)
-    
+
     # Call ASM path directly with explicit kernel name
     # This bypasses config lookup and dispatch overhead
     aiter.gemm_a4w4_asm(

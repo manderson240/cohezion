@@ -1,14 +1,14 @@
 # Implementation Plan: Luma AMD Speedrun - Phase 1 Kernels
 
 ## Phase 1: Knowledge Ingestion & Baseline
-- [ ] Task: Ingest reference kernels into the Triune Manifold.
-    - [ ] Sub-task: Use `HFEmbeddingBridge` to encode reference code into the 'Knower' layer.
-    - [ ] Sub-task: Run the `benchmark_baseline.py` script to establish our 'Root of Trust' performance metrics.
-- [ ] Task: Conductor - User Manual Verification 'Phase 1: Ingestion & Baseline' (Protocol in workflow.md)
+- [x] Task: Ingest reference kernels into the Triune Manifold.
+    - [x] Sub-task: Use `HFEmbeddingBridge` to encode reference code into the 'Knower' layer.
+    - [x] Sub-task: Run the `benchmark_baseline.py` script to establish our 'Root of Trust' performance metrics.
+- [x] Task: Conductor - User Manual Verification 'Phase 1: Ingestion & Baseline' (Protocol in workflow.md)
 
 ## Phase 2: MLA Decode Optimization (Bandwidth Sprint)
-- [ ] Task: Prototype the native MXFP4 decode kernel.
-    - [ ] Sub-task: Implement `a4w4` or `a8w4` logic using HipKittens primitives.
+- [~] Task: Prototype the native MXFP4 decode kernel.
+    - [~] Sub-task: Implement `a4w4` or `a8w4` logic using HipKittens primitives.
     - [ ] Sub-task: Validate correctness via `popcorn-cli submit --mode test`.
 - [ ] Task: Iterative Performance Tuning.
     - [ ] Sub-task: Loop `EVOAgent` actions to refine tile sizes and register usage.

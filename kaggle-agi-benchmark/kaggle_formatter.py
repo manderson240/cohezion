@@ -2,6 +2,7 @@ import json
 import logging
 from pathlib import Path
 
+
 # Setup logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -18,7 +19,7 @@ def format_kaggle_benchmark() -> None:
     train_data = []
     test_data = []
 
-    with open(BENCHMARK_FILE, "r") as f:
+    with open(BENCHMARK_FILE) as f:
         lines = f.readlines()
 
     # Split 80/20 train/test
@@ -29,24 +30,24 @@ def format_kaggle_benchmark() -> None:
             continue
         try:
             task = json.loads(line)
-            
+
             # Construct Kaggle input
             input_text = (
                 f"Question:\n{task.get('question')}\n\n"
                 f"Options:\n{json.dumps(task.get('options', []))}\n"
             )
             output_text = task.get('correct_answer')
-            
+
             formatted_task = {
                 "input": input_text,
                 "output": output_text
             }
-            
+
             if i < split_idx:
                 train_data.append(formatted_task)
             else:
                 test_data.append(formatted_task)
-                
+
         except json.JSONDecodeError as e:
             logger.warning(f"Skipping invalid JSON line {i}: {e}")
 

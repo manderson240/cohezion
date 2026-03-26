@@ -20,6 +20,7 @@ from __future__ import annotations
 
 import os
 
+
 # Enable Non-Temporal hint for GPU memory transfers
 os.environ["AITER_USE_NT"] = "1"
 
@@ -33,7 +34,7 @@ from task import input_t, output_t
 # Based on estimated_m = bs / E_total analysis
 KSPLIT_TABLE = {
     # 257 experts (sparse) - DeepSeek-R1 style
-    "257_256_16": 4,    # Very sparse (estimated_m=0.06) 
+    "257_256_16": 4,    # Very sparse (estimated_m=0.06)
     "257_256_128": 4,   # Sparse (estimated_m=0.5)
     "257_256_512": 0,   # Dense (estimated_m=2.0)
     # 33 experts (denser) - TP=4 style
@@ -72,18 +73,18 @@ def _choose_ksplit(config: dict) -> int:
     key = _get_ksplit_key(config)
     if key in KSPLIT_TABLE:
         return KSPLIT_TABLE[key]
-    
+
     # Fallback: compute estimated_m
     n_routed = config.get("n_routed_experts", 0)
     n_shared = config.get("n_shared_experts", 0)
     bs = config.get("bs", 0)
     E_total = n_routed + n_shared
-    
+
     if E_total == 0 or bs == 0:
         return 0
-    
+
     estimated_m = bs / E_total
-    
+
     if estimated_m < 10:
         return 4
     elif estimated_m < 30:

@@ -1,25 +1,26 @@
 import os
-import sys
+
 from dotenv import load_dotenv
+
 
 def test_auth():
     load_dotenv()
-    
+
     username = os.getenv("KAGGLE_USERNAME")
     key = os.getenv("KAGGLE_API_TOKEN")
-    
+
     if key and key.startswith("KGAT_"):
         key = key[5:]
-        
+
     print(f"Testing auth for user: {username}")
-    
-    # Set environment variables BEFORE importing KaggleApi if possible, 
+
+    # Set environment variables BEFORE importing KaggleApi if possible,
     # but certainly before instantiating.
     os.environ["KAGGLE_USERNAME"] = username
     os.environ["KAGGLE_KEY"] = key
-    
+
     from kaggle.api.kaggle_api_extended import KaggleApi
-    
+
     api = KaggleApi()
     try:
         api.authenticate()

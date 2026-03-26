@@ -11,8 +11,8 @@ Usage:
 
 import json
 import logging
-from datetime import datetime
 from pathlib import Path
+
 
 logging.basicConfig(level=logging.INFO)
 log = logging.getLogger("inject_breakthrough")

@@ -4,14 +4,16 @@ import abc
 import os
 import time
 import warnings
+from collections.abc import Generator
 from types import FunctionType
-from typing import Any, Generator, Optional, Tuple, Union
+from typing import Any
 
 import pandas as pd
 import polars as pl
 
 import kaggle_evaluation.core.base_gateway
 import kaggle_evaluation.core.relay
+
 
 _initial_import_time = time.time()
 _issued_startup_time_warning = False
@@ -53,7 +55,7 @@ class Gateway(kaggle_evaluation.core.base_gateway.BaseGateway, abc.ABC):
 
     @abc.abstractmethod
     def competition_specific_validation(
-        self, prediction_batch: Any, row_ids: Union[pl.DataFrame, pl.Series, pd.DataFrame, pd.Series], data_batch: Any
+        self, prediction_batch: Any, row_ids: pl.DataFrame | pl.Series | pd.DataFrame | pd.Series, data_batch: Any
     ) -> None:
         """Competition specific checks should be added here. Typically you'll want to confirm the predictions are a valid data type at a minimum.
         Args:
@@ -87,7 +89,7 @@ class InferenceServer(abc.ABC):
         # Must return a version of the competition-specific gateway able to load data for unit tests.
         raise NotImplementedError
 
-    def run_local_gateway(self, data_paths: Optional[Tuple[str]] = None, file_share_dir: Optional[str] = None, *args, **kwargs) -> None:
+    def run_local_gateway(self, data_paths: tuple[str] | None = None, file_share_dir: str | None = None, *args, **kwargs) -> None:
         """Construct a copy of the gateway that uses local file paths."""
         global _issued_startup_time_warning
         script_elapsed_seconds = time.time() - _initial_import_time

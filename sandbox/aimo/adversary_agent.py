@@ -1,7 +1,7 @@
-import json
+from typing import Any
+
 import requests
-import re
-from typing import Dict, Any, Optional
+
 
 class AdversaryAgent:
     """
@@ -12,7 +12,7 @@ class AdversaryAgent:
         self.model_name = model_name
         self.ollama_url = "http://localhost:11434/api/chat"
 
-    def review(self, problem_text: str, reasoning: str, code: str) -> Dict[str, Any]:
+    def review(self, problem_text: str, reasoning: str, code: str) -> dict[str, Any]:
         """
         Attempts to find flaws in the proposed reasoning and code.
         """
@@ -50,7 +50,7 @@ Critique the logic and code:"""
             response = requests.post(self.ollama_url, json=payload, timeout=60)
             response.raise_for_status()
             result = response.json().get("message", {}).get("content", "")
-            
+
             is_verified = "LOGIC VERIFIED" in result.upper()
             return {
                 "success": True,

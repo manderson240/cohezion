@@ -1,7 +1,9 @@
+from unittest.mock import AsyncMock, MagicMock, patch
+
 import pytest
-import torch
-from unittest.mock import AsyncMock, patch, MagicMock
+
 from cohezion.ouroboros.healer import HealerAgent
+
 
 @pytest.fixture
 def mock_config():
@@ -28,19 +30,19 @@ async def test_healer_synthesize_patch_success(mock_config):
         with patch("cohezion.swarm.journey_narrator.JourneyNarrator"):
             with patch("cohezion.swarm.redundancy_suppression.RedundancyManager"):
                 agent = HealerAgent(model_name="test-model", config=mock_config)
-                
+
                 # Mock the LLM call
                 mock_response = "PATCH Proposal: Adjust manifold stiffness to 0.15."
                 agent._call_ollama = AsyncMock(return_value=mock_response)
-                
+
                 anomaly_report = {
                     "is_degraded": True,
                     "anomaly_count": 5,
                     "total_count": 10
                 }
-                
+
                 patch_proposal = await agent.synthesize_patch(anomaly_report)
-                
+
                 assert "PATCH" in patch_proposal
                 agent._call_ollama.assert_called_once()
                 # Verify prompt contains anomaly details

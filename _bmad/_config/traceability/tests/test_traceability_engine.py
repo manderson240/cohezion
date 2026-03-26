@@ -10,9 +10,11 @@ Tests verify:
 6. Orphan detection (agents/workflows with no connections)
 """
 
-import pytest
 from pathlib import Path
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
+
+import pytest
+
 
 # Test fixtures
 PROJECT_ROOT = Path("/home/mike-anderson/dev/cohezion")

@@ -12,7 +12,8 @@ import json
 import logging
 import sys
 from datetime import datetime
-from typing import Any, Optional
+from typing import Any
+
 
 logging.basicConfig(level=logging.INFO)
 log = logging.getLogger("surreal_tracker")
@@ -42,12 +43,12 @@ async def log_experiment(
     session_id: str,
     cycle: int,
     result_us: float,
-    rank_at_time: Optional[int] = None,
+    rank_at_time: int | None = None,
     improvement_pct: float = 0.0,
     approach_used: str = "",
-    per_shape_results: Optional[dict] = None,
+    per_shape_results: dict | None = None,
     notes: str = "",
-) -> Optional[str]:
+) -> str | None:
     """Log an experiment result to SurrealDB."""
     db = await get_surreal_client()
     if not db:
@@ -83,7 +84,7 @@ async def log_session(
     focus_kernel: str,
     git_worktree: str = "",
     status: str = "active",
-) -> Optional[str]:
+) -> str | None:
     """Register a session in SurrealDB."""
     db = await get_surreal_client()
     if not db:

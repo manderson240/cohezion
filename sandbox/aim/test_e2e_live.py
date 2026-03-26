@@ -12,10 +12,11 @@ Validates:
 
 import json
 import time
-from swarm_coordinator import SwarmCoordinator
+
 from base_specialist import BaseSpecialist
-from knower_auditor import KnowerAuditor
 from flume_navigator import FLUMEProfilerNavigator
+from knower_auditor import KnowerAuditor
+from swarm_coordinator import SwarmCoordinator
 
 
 def run_single_problem(problem: dict, timeout_per_call: int = 60) -> dict:
@@ -105,7 +106,7 @@ def run_single_problem(problem: dict, timeout_per_call: int = 60) -> dict:
     correct = final_answer == problem["answer"]
 
     print(f"\n{'=' * 60}")
-    print(f"RESULTS")
+    print("RESULTS")
     print(f"{'=' * 60}")
     print(f"Expected: {problem['answer']}")
     print(f"Actual: {final_answer}")
@@ -130,11 +131,11 @@ def run_single_problem(problem: dict, timeout_per_call: int = 60) -> dict:
 
 if __name__ == "__main__":
     # Load reference problems
-    with open("reference_problems.json", "r") as f:
+    with open("reference_problems.json") as f:
         problems = json.load(f)
 
     print(f"Loaded {len(problems)} reference problems")
-    print(f"Running E2E test on FIRST problem only (to validate pipeline)...")
+    print("Running E2E test on FIRST problem only (to validate pipeline)...")
 
     # Run first problem
     result = run_single_problem(problems[0])
@@ -143,7 +144,7 @@ if __name__ == "__main__":
     with open("e2e_test_result.json", "w") as f:
         json.dump(result, f, indent=2)
 
-    print(f"\nResult saved to e2e_test_result.json")
+    print("\nResult saved to e2e_test_result.json")
 
     # Summary
     if result["correct"]:

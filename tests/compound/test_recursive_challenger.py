@@ -9,11 +9,13 @@ Covers:
 
 from __future__ import annotations
 
-import pytest
 from unittest.mock import MagicMock, patch
 
-from cohezion.compound.recursive_challenger import RecursiveChallenger, ImprovementOpportunity
+import pytest
+
 from cohezion.compound.long_horizon_task import LongHorizonTask
+from cohezion.compound.recursive_challenger import ImprovementOpportunity, RecursiveChallenger
+
 
 @pytest.fixture
 def mock_vault():
@@ -65,7 +67,7 @@ class TestLongHorizonTask:
     def test_long_horizon_task_checkpoints_progress(self):
         """[P0] Task should save and load checkpoints."""
         task = LongHorizonTask(task_id="optimize-self-healing", budget_sessions=5)
-        
+
         with patch.object(task, '_perform_step', return_value=True):
             task.execute_step()
             checkpoint = task.save_checkpoint()
@@ -82,7 +84,7 @@ class TestLongHorizonTask:
     def test_context_guard_triggers_handoff(self):
         """[P0] Task must halt and checkpoint at 80% context, not continue."""
         task = LongHorizonTask(task_id="big-task")
-        
+
         # Mock context usage at 85%
         with patch("cohezion.compound.long_horizon_task.get_context_usage_percent", return_value=85.0):
             result = task.execute_step()

@@ -8,13 +8,11 @@ Tests the 4 critical stability fixes from TROUBLESHOOTING_RETRO.md:
 4. Process management (cleanup.sh)
 """
 
+
 import pytest
-import time
-import re
-from unittest.mock import Mock, patch
 from base_specialist import BaseSpecialist
-from swarm_coordinator import SwarmCoordinator
 from knower_auditor import KnowerAuditor
+from swarm_coordinator import SwarmCoordinator
 
 
 class TestStory11TimeoutConfiguration:
@@ -139,8 +137,8 @@ class TestStory13PolarsMigration:
     @pytest.mark.fast
     def test_no_pandas_imports_in_aimo_files(self):
         """Test no pandas imports in AIMO subsystem."""
-        import os
         import ast
+        import os
 
         aimo_dir = os.path.dirname(os.path.abspath(__file__))
         pandas_files = []
@@ -148,7 +146,7 @@ class TestStory13PolarsMigration:
         for filename in os.listdir(aimo_dir):
             if filename.endswith(".py") and filename != "test_regression_stability.py":
                 filepath = os.path.join(aimo_dir, filename)
-                with open(filepath, "r") as f:
+                with open(filepath) as f:
                     try:
                         tree = ast.parse(f.read())
                         for node in ast.walk(tree):
@@ -167,9 +165,6 @@ class TestStory13PolarsMigration:
     @pytest.mark.fast
     def test_polars_imported_in_core_files(self):
         """Test polars is imported in core AIMO files."""
-        from swarm_coordinator import SwarmCoordinator
-        from knower_auditor import KnowerAuditor
-        from base_specialist import BaseSpecialist
 
         # Verify polars is available
         import polars as pl

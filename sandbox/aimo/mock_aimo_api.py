@@ -1,6 +1,8 @@
 import json
 import os
+
 import polars as pl
+
 
 class AIMOCompetition:
     def __init__(self, problems_path):

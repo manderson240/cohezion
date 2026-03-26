@@ -4,7 +4,11 @@ import time
 
 
 # List of kernel directories and their leaderboards
-KERNELS = {"moe-mxfp4": "3_moe_mxfp4", "mixed-mla": "4_mixed_mla", "mxfp4-mm": "5_mxfp4_mm"}
+KERNELS = {
+    "moe-mxfp4": "amd-moe-mxfp4",
+    "mixed-mla": "amd-mixed-mla",
+    "mxfp4-mm": "amd-mxfp4-mm",
+}
 
 BASE_DIR = "research/challenges/luma_amd_speedrun/kernels"
 RESULTS_FILE = "research/challenges/luma_amd_speedrun/results.md"
@@ -23,6 +27,8 @@ def run_benchmark(kernel_name, leaderboard):
         "submit",
         "--leaderboard",
         leaderboard,
+        "--gpu",
+        "MI355X",
         "--mode",
         "benchmark",
         "--no-tui",

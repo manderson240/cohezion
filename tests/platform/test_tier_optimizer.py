@@ -3,10 +3,8 @@ from __future__ import annotations
 
 import time
 
-import pytest
-
 from cohezion.platform.session_tracker import ModelUsageEvent, SessionRecord
-from cohezion.platform.tier_optimizer import TierChange, TierOptimizer, TierRecommendation
+from cohezion.platform.tier_optimizer import TierOptimizer, TierRecommendation
 
 
 # ---------------------------------------------------------------------------

@@ -15,14 +15,13 @@ Breakthrough: Direct kernel dispatch eliminates aiter's ~2-3µs Python overhead.
 from __future__ import annotations
 
 import ctypes
-import os
 import struct
 from pathlib import Path
 from typing import Any
 
 import torch
-
 from task import input_t, output_t
+
 
 # =============================================================================
 # Constants
@@ -350,7 +349,7 @@ def select_kernel(M: int, N: int) -> tuple[str, str]:
     for tile_M, tile_N, _, bpreshuffle, knl_name, co_name in KERNEL_CONFIGS:
         if bpreshuffle != 1:
             continue
-        if M <= tile_M and N <= tile_N and tile_M >= best_tile_M:
+        if tile_M >= M and tile_N >= N and tile_M >= best_tile_M:
             if tile_M > best_tile_M or (tile_M == best_tile_M and tile_N > best_tile_N):
                 best_tile_M = tile_M
                 best_tile_N = tile_N
@@ -382,7 +381,6 @@ def custom_kernel(data: input_t) -> output_t:
 
     Output: bf16 [M, N]
     """
-    import aiter
     from aiter import dtypes
     from aiter.ops.triton.quant import dynamic_mxfp4_quant
     from aiter.utility.fp4_utils import e8m0_shuffle

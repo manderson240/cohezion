@@ -72,7 +72,7 @@ class HealthConfig:
     dry_run: bool = False
 
     @classmethod
-    def from_dict(cls, config_dict: dict) -> "HealthConfig":
+    def from_dict(cls, config_dict: dict) -> HealthConfig:
         """Create config from dictionary (e.g., YAML/JSON)."""
         weights_dict = config_dict.get("weights", {})
         thresholds_dict = config_dict.get("thresholds", {})

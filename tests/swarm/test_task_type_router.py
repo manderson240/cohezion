@@ -9,7 +9,6 @@ import pytest
 from cohezion.swarm.providers.model_provider import GenerationResult
 from cohezion.swarm.task_type_router import (
     ProviderTier,
-    RouteEntry,
     TaskTypeRouter,
 )
 

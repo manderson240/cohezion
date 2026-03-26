@@ -8,10 +8,10 @@ find stable proof trajectories.
 Inspired by Cohezion's FLUME methodology and 12D triune manifold.
 """
 
-import numpy as np
-from dataclasses import dataclass
-from typing import List, Optional
 import re
+from dataclasses import dataclass
+
+import numpy as np
 
 
 @dataclass
@@ -140,7 +140,7 @@ class FLUMEProfilerNavigator:
         self.profiler = FLUMEProfiler()
         self.stability_threshold = 0.5  # HIHO coherence threshold
 
-    def encode_reasoning_chain(self, reasoning_text: str) -> List[ThoughtVector]:
+    def encode_reasoning_chain(self, reasoning_text: str) -> list[ThoughtVector]:
         """
         Encode complete reasoning chain into sequence of thought vectors.
 
@@ -157,7 +157,7 @@ class FLUMEProfilerNavigator:
 
         return vectors
 
-    def compute_drift(self, chain1: List[ThoughtVector], chain2: List[ThoughtVector]) -> float:
+    def compute_drift(self, chain1: list[ThoughtVector], chain2: list[ThoughtVector]) -> float:
         """
         Compute logical drift between two reasoning chains.
 
@@ -181,7 +181,7 @@ class FLUMEProfilerNavigator:
 
         return np.mean(drifts)
 
-    def identify_stable_trajectory(self, chains: List[List[ThoughtVector]]) -> int:
+    def identify_stable_trajectory(self, chains: list[list[ThoughtVector]]) -> int:
         """
         Identify most stable reasoning chain from multiple runs.
 
@@ -194,7 +194,7 @@ class FLUMEProfilerNavigator:
 
         return int(np.argmax(avg_coherences))
 
-    def check_stability(self, chain1: List[ThoughtVector], chain2: List[ThoughtVector]) -> bool:
+    def check_stability(self, chain1: list[ThoughtVector], chain2: list[ThoughtVector]) -> bool:
         """
         Check if reasoning chain is stable (drift < threshold).
 
@@ -209,7 +209,7 @@ class FLUMEProfilerNavigator:
 
         return stable
 
-    def get_stable_steps(self, chain: List[ThoughtVector]) -> List[ThoughtVector]:
+    def get_stable_steps(self, chain: list[ThoughtVector]) -> list[ThoughtVector]:
         """
         Filter chain to only stable steps (coherence >= threshold).
         """

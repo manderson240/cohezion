@@ -9,6 +9,7 @@ Target: Get submission file ready within 1 hour.
 import argparse
 import time
 from pathlib import Path
+
 import polars as pl
 from base_specialist import BaseSpecialist
 
@@ -76,7 +77,7 @@ def main():
 
     # Create submission DataFrame
     submission_df = pl.DataFrame(results)
-    print(f"\nSubmission DataFrame:")
+    print("\nSubmission DataFrame:")
     print(submission_df)
 
     # Save to parquet

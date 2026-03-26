@@ -9,6 +9,7 @@ or structural neuron fields (title, path, tags, stage).
 import logging
 from typing import Any
 
+
 logger = logging.getLogger(__name__)
 
 

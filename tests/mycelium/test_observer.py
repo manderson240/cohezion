@@ -1,6 +1,9 @@
+from unittest.mock import patch
+
 import pytest
-from unittest.mock import MagicMock, patch
+
 from cohezion.mycelium.observer import ChangeObserver
+
 
 @pytest.fixture
 def observer():
@@ -15,7 +18,7 @@ def test_detect_modified_files_mock(observer):
     with patch("subprocess.check_output") as mock_run:
         mock_run.return_value = b"src/cohezion/universe/engine.py\nsrc/cohezion/agents/base.py\n"
         files = observer.detect_modified_files(since_commit="HEAD~1")
-        
+
         assert len(files) == 2
         assert "src/cohezion/universe/engine.py" in files
         assert "src/cohezion/agents/base.py" in files

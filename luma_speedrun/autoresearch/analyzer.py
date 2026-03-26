@@ -3,6 +3,7 @@ from __future__ import annotations
 
 from typing import Any
 
+
 # AMD Instinct MI355X (CDNA4) specs
 MI355X_BF16_FLOPS: float = 1.3e15      # 1.3 PFLOPS bf16 peak
 MI355X_HBM3_BW: float = 8e12           # 8 TB/s HBM3 bandwidth (bytes/s)

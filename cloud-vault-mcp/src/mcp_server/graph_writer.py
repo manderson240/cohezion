@@ -16,6 +16,7 @@ from typing import Any
 
 import httpx
 
+
 logger = logging.getLogger(__name__)
 
 SURREALDB_URL = os.environ.get("SURREALDB_URL", "http://localhost:8001")

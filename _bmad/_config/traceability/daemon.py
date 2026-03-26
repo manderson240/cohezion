@@ -23,9 +23,8 @@ import signal
 import subprocess
 import sys
 import time
-from datetime import datetime
 from pathlib import Path
-from typing import Optional
+
 
 # Try to import schedule, fallback to simple loop if not available
 try:
@@ -239,7 +238,7 @@ def main():
     logger.info("=" * 60)
     logger.info("Autonomous Traceability Daemon")
     logger.info(
-        f"Mode: {args.foreground and 'foreground' or args.background and 'background' or 'hook'}"
+        f"Mode: {(args.foreground and 'foreground') or (args.background and 'background') or 'hook'}"
     )
     logger.info(f"Interval: {args.interval} minutes")
     logger.info("=" * 60)

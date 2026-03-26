@@ -1,18 +1,19 @@
+import json
 import logging
 import os
-import json
 import subprocess
 from pathlib import Path
-from typing import List, Optional
+
 import kagglehub
 from kaggle.api.kaggle_api_extended import KaggleApi
+
 
 logger = logging.getLogger(__name__)
 
 class KaggleAPI:
     """Wrapper for official Kaggle API with asynchronous support."""
 
-    def __init__(self, username: Optional[str] = None, key: Optional[str] = None):
+    def __init__(self, username: str | None = None, key: str | None = None):
         self.api = KaggleApi()
         if username and key:
             os.environ["KAGGLE_USERNAME"] = username
@@ -36,7 +37,7 @@ class KaggleAPI:
             logger.error(f"Failed to download competition data via kagglehub: {e}")
             raise
 
-    async def push_notebook(self, notebook_id: str, code: str, competition_id: Optional[str] = None, model_sources: Optional[List[str]] = None) -> dict:
+    async def push_notebook(self, notebook_id: str, code: str, competition_id: str | None = None, model_sources: list[str] | None = None) -> dict:
         """Push a notebook to Kaggle with the EXACT metadata required for Blackwell G4."""
         logger.info(f"Pushing notebook: {notebook_id}")
 

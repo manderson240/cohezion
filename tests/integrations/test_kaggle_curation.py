@@ -1,9 +1,11 @@
-import pytest
 import json
+from unittest.mock import patch
+
 import numpy as np
-from pathlib import Path
-from unittest.mock import MagicMock, patch
+import pytest
+
 from cohezion.integrations.kaggle_curation import KaggleCurator
+
 
 @pytest.fixture
 def mock_dataset(tmp_path):
@@ -28,15 +30,15 @@ async def test_process_dataset(mock_dataset, tmp_path):
     """Test processing dataset and generating embeddings."""
     curator = KaggleCurator()
     output_path = tmp_path / "processed.jsonl"
-    
+
     # Mock the encoder to return a fixed vector
     with patch.object(curator.encoder, 'encode') as mock_encode:
         mock_encode.return_value = np.zeros(256, dtype=np.float32)
-        
+
         await curator.process_dataset(mock_dataset, output_path)
-        
+
         assert output_path.exists()
-        with open(output_path, "r") as f:
+        with open(output_path) as f:
             lines = f.readlines()
             assert len(lines) == 2
             first_item = json.loads(lines[0])
@@ -48,11 +50,11 @@ def test_prepare_finetuning_data(mock_dataset, tmp_path):
     """Test preparing data for LoRA fine-tuning format."""
     curator = KaggleCurator()
     output_path = tmp_path / "lora_train.jsonl"
-    
+
     curator.prepare_finetuning_data(mock_dataset, output_path)
-    
+
     assert output_path.exists()
-    with open(output_path, "r") as f:
+    with open(output_path) as f:
         line = json.loads(f.readline())
         assert "instruction" in line
         assert "output" in line

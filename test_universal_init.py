@@ -5,12 +5,13 @@ import os
 import sys
 from pathlib import Path
 
+
 def is_cohezion_environment() -> bool:
     """
     Detect if we're in a Cohezion environment using multiple signals.
     Works in ANY environment that uses Cohezion.
     """
-    
+
     # Signal 1: Check if we're importing Cohezion modules (most reliable)
     # This handles the case where __init__.py is being processed
     try:
@@ -21,38 +22,38 @@ def is_cohezion_environment() -> bool:
             frame = frame.f_back
     except Exception:
         pass  # Continue with other detection methods
-    
+
     # Signal 2: Check working directory for Cohezion markers
     try:
         cwd = Path.cwd()
         cohezion_markers = [
             'src/cohezion/__init__.py',
-            'pyproject.toml', 
+            'pyproject.toml',
             '_bmad/',
             'docs/',
             '.opencode/',
             'cohezion_kb.jsonl'
         ]
-        
-        marker_count = sum(1 for marker in cohezion_markers 
+
+        marker_count = sum(1 for marker in cohezion_markers
                           if (cwd / marker).exists())
         if marker_count >= 3:  # Require multiple markers to reduce false positives
             return True
     except Exception:
         pass  # Continue with other detection methods
-        
+
     # Signal 3: Check for Cohezion-specific environment variables
     cohezion_env_vars = [
         'COHEZION_SESSION_ACTIVE',
-        'OPENCODE_SESSION_ID', 
+        'OPENCODE_SESSION_ID',
         'COHEZION_WORKSPACE_MODE',
         'COHEZION_PROJECT_ROOT',
         'COHEZION_SESSION_ID'
     ]
-    
+
     if any(var in os.environ for var in cohezion_env_vars):
         return True
-        
+
     # Signal 4: Check if we're in a known Cohezion consumer process
     # This helps with IDE integrations, agents, terminals, etc.
     try:
@@ -101,7 +102,7 @@ def is_cohezion_environment() -> bool:
         pass  # psutil not available, continue with other signals
     except Exception:
         pass  # Other errors, continue with other signals
-        
+
     # Signal 5: Check for Cohezion-specific files in parent directories
     # Helps when launched from subdirectories
     try:
@@ -116,7 +117,7 @@ def is_cohezion_environment() -> bool:
                     return True
     except Exception:
         pass  # Continue with other detection methods
-        
+
     return False
 
 def initialize_cohezion_environment() -> bool:
@@ -130,16 +131,16 @@ def initialize_cohezion_environment() -> bool:
         # Prevent multiple initializations using function attribute
         if getattr(initialize_cohezion_environment, '_initialized', False):
             return True  # Already initialized
-            
+
         if not is_cohezion_environment():
             return False  # Not a Cohezion environment, do nothing
-            
+
         # For this test, we'll just return True to indicate we would initialize
         # In the real implementation, this would initialize the actual systems
         initialize_cohezion_environment._initialized = True
         return True
-        
-    except Exception as e:
+
+    except Exception:
         # Never let initialization failures break Cohezion
         # Fail silently to ensure Cohezion always works
         return False  # Indicate initialization was attempted but failed

@@ -2,11 +2,11 @@
 MXFP4 GEMM — Direct dynamic_mxfp4_quant (bypassing unpatched get_triton_quant).
 Uses patched kernel from aiter.ops.triton.quant (ROCm/aiter #975).
 """
-from task import input_t, output_t
-from aiter import dtypes
 import aiter
+from aiter import dtypes
 from aiter.ops.triton.quant import dynamic_mxfp4_quant
 from aiter.utility.fp4_utils import e8m0_shuffle
+from task import input_t, output_t
 
 
 def custom_kernel(data: input_t) -> output_t:

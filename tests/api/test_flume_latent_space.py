@@ -13,9 +13,10 @@ Test Philosophy:
 Follows CLAUDE.md: "Implement ONE feature, validate manually, write 5 tests"
 """
 
-import pytest
 from unittest.mock import MagicMock, patch
+
 import numpy as np
+import pytest
 
 
 @pytest.fixture
@@ -31,6 +32,7 @@ def mock_vae():
 def client():
     """FastAPI test client."""
     from fastapi.testclient import TestClient
+
     from cohezion.api import app
 
     return TestClient(app)

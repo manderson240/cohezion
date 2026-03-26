@@ -4,13 +4,15 @@ Generate submission file for NVIDIA Nemotron Model Reasoning Challenge
 Loads trained model and creates predictions for test data.
 """
 
-import os
-import torch
-import pandas as pd
-from transformers import AutoTokenizer, AutoModelForCausalLM
-from peft import PeftModel, PeftConfig
 import logging
+import os
+
+import pandas as pd
+import torch
+from peft import PeftModel
 from tqdm.auto import tqdm
+from transformers import AutoModelForCausalLM, AutoTokenizer
+
 
 # Set up logging
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
@@ -69,7 +71,7 @@ def load_trained_model():
     if tokenizer.pad_token is None:
         tokenizer.pad_token = tokenizer.eos_token
 
-    logger.info(f"Loading LoRA adapter from: models/quick_baseline/checkpoint-best_epoch_1")
+    logger.info("Loading LoRA adapter from: models/quick_baseline/checkpoint-best_epoch_1")
     # Load the LoRA adapter
     model = PeftModel.from_pretrained(
         base_model, "models/quick_baseline/checkpoint-best_epoch_1", is_trainable=False

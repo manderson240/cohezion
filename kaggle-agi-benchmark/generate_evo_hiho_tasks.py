@@ -121,5 +121,5 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Generate synthetic AGI benchmark tasks.")
     parser.add_argument("--num_tasks", type=int, default=5, help="Number of tasks to generate")
     args = parser.parse_args()
-    
+
     asyncio.run(generate_batch(num_tasks=args.num_tasks))

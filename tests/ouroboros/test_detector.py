@@ -1,5 +1,5 @@
-import pytest
 from cohezion.ouroboros.detector import AnomalyDetector
+
 
 def test_detector_initialization():
     """Test that AnomalyDetector initializes with correct thresholds."""
@@ -26,7 +26,7 @@ def test_detect_degradation_false():
 def test_analyze_batch_degradation():
     """Test batch analysis for sustained degradation."""
     detector = AnomalyDetector(coherence_threshold=0.1)
-    
+
     # Majority of batch is anomalous
     trajectories = [
         {"coherence": 0.3},
@@ -41,7 +41,7 @@ def test_analyze_batch_degradation():
 def test_analyze_batch_stable():
     """Test batch analysis for stable state."""
     detector = AnomalyDetector(coherence_threshold=0.1)
-    
+
     # Majority of batch is within threshold
     trajectories = [
         {"coherence": 0.45},

@@ -11,7 +11,7 @@ import subprocess
 import sys
 import traceback
 from socket import gaierror
-from typing import Any, List, Optional, Tuple, Union, final
+from typing import Any, final
 
 import grpc
 import numpy as np
@@ -19,6 +19,7 @@ import pandas as pd
 import polars as pl
 
 import kaggle_evaluation.core.relay
+
 
 _DATAFRAME_LIKE_TYPES = (pl.DataFrame, pl.Series, pd.DataFrame, pd.Series)
 _VALID_ROW_ID_SCALAR_TYPES = (str, int)
@@ -48,7 +49,7 @@ class GatewayRuntimeErrorType(enum.Enum):
 class GatewayRuntimeError(Exception):
     """Gateways can raise this error to capture a user-visible error enum from above and host-visible error details."""
 
-    def __init__(self, error_type: GatewayRuntimeErrorType, error_details: Optional[str] = None):
+    def __init__(self, error_type: GatewayRuntimeErrorType, error_details: str | None = None):
         self.error_type = error_type
         self.error_details = error_details
 
@@ -56,10 +57,10 @@ class GatewayRuntimeError(Exception):
 class BaseGateway:
     def __init__(
         self,
-        data_paths: Optional[Tuple[str]] = None,
-        file_share_dir: Optional[str] = _FILE_SHARE_DIR,
-        target_column_name: Optional[str] = None,
-        row_id_column_name: Optional[str] = None,
+        data_paths: tuple[str] | None = None,
+        file_share_dir: str | None = _FILE_SHARE_DIR,
+        target_column_name: str | None = None,
+        row_id_column_name: str | None = None,
     ):
         """
         Args:
@@ -100,7 +101,7 @@ class BaseGateway:
         # Set a response deadline that will apply after the very first repsonse
         self.client.endpoint_deadline_seconds = timeout_seconds
 
-    def get_all_predictions(self) -> Tuple[List[Any], List[Any]]:
+    def get_all_predictions(self) -> tuple[list[Any], list[Any]]:
         all_predictions = []
         all_row_ids = []
         self.data_batch_counter = 0
@@ -152,7 +153,7 @@ class BaseGateway:
 
     @final
     def competition_agnostic_validation(
-        self, prediction_batch: Any, row_ids: Union[str, int, pl.DataFrame, pl.Series, pd.DataFrame, pd.Series]
+        self, prediction_batch: Any, row_ids: str | int | pl.DataFrame | pl.Series | pd.DataFrame | pd.Series
     ) -> None:
         """Prevent a potential abuse vector that exists if users can submit unaligned predictions and row IDs.
         This check should run for every competition and should not be customized. All competition specific prediction validation
@@ -200,9 +201,9 @@ class BaseGateway:
                 GatewayRuntimeErrorType.INVALID_SUBMISSION, f'Invalid predictions: expected {num_expected_rows} rows but received {num_received_rows}'
             )
 
-    def _standardize_and_validate_paths(self, input_paths: List[Union[str, pathlib.Path]]) -> Tuple[List[str], List[str]]:
+    def _standardize_and_validate_paths(self, input_paths: list[str | pathlib.Path]) -> tuple[list[str], list[str]]:
         # Accept a list of str or pathlib.Path, but standardize on list of str
-        if input_paths and not self.file_share_dir or not isinstance(self.file_share_dir, (str, os.PathLike)):
+        if (input_paths and not self.file_share_dir) or not isinstance(self.file_share_dir, (str, os.PathLike)):
             raise GatewayRuntimeError(GatewayRuntimeErrorType.GATEWAY_RAISED_EXCEPTION, f'Invalid `file_share_dir`: {self.file_share_dir}')
 
         for path in input_paths:
@@ -236,8 +237,8 @@ class BaseGateway:
 
     def share_files(
         self,
-        input_paths: List[Union[str, pathlib.Path]],
-    ) -> List[str]:
+        input_paths: list[str | pathlib.Path],
+    ) -> list[str]:
         """Makes files and/or directories available to the user's inference_server. They will be mirrored under the
         self.file_share_dir directory, using the full absolute path. An input like:
             /kaggle/input/mycomp/test.csv
@@ -338,7 +339,7 @@ class BaseGateway:
 
         return output_paths
 
-    def _convert_to_df(self, data_batches: Union[List, pl.Series, pl.DataFrame, pd.Series, pd.DataFrame], series_name: Optional[str] = None):
+    def _convert_to_df(self, data_batches: list | pl.Series | pl.DataFrame | pd.Series | pd.DataFrame, series_name: str | None = None):
         """Progressively migrate towards a dataframe as needed: List -> Series -> DataFrame."""
         if isinstance(data_batches, list):
             if isinstance(data_batches[0], (pd.DataFrame, pd.Series)):
@@ -379,8 +380,8 @@ class BaseGateway:
 
     def write_submission(
         self,
-        predictions: Union[List, pl.Series, pl.DataFrame, pd.Series, pd.DataFrame],
-        row_ids: Union[List, pl.Series, pl.DataFrame, pd.Series, pd.DataFrame],
+        predictions: list | pl.Series | pl.DataFrame | pd.Series | pd.DataFrame,
+        row_ids: list | pl.Series | pl.DataFrame | pd.Series | pd.DataFrame,
     ) -> None:
         """Export the predictions to a submission.parquet."""
         submission = self._convert_to_df(predictions, self.target_column_name)
@@ -402,7 +403,7 @@ class BaseGateway:
                 GatewayRuntimeErrorType.GATEWAY_RAISED_EXCEPTION, f"Unsupported predictions type {type(submission)}; can't write submission file"
             )
 
-    def write_result(self, error: Optional[GatewayRuntimeError] = None) -> None:
+    def write_result(self, error: GatewayRuntimeError | None = None) -> None:
         """Export a result.json containing error details if applicable."""
         result = {'Succeeded': error is None}
 

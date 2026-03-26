@@ -7,11 +7,11 @@ Requires Ollama server running with deepseek-r1:7b available.
 Run with: pytest test_acceptance_live.py -v -m integration
 """
 
+
 import pytest
-import os
 from base_specialist import BaseSpecialist
-from swarm_coordinator import SwarmCoordinator
 from knower_auditor import KnowerAuditor
+from swarm_coordinator import SwarmCoordinator
 
 
 def check_ollama_available():

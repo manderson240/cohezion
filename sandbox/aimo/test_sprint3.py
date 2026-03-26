@@ -7,11 +7,11 @@ Tests:
 - Story 3.3: Tie-Breaker Logic
 """
 
+from unittest.mock import patch
+
 import pytest
-from unittest.mock import Mock, patch
-from swarm_driver import run_simulation
-from knower_auditor import KnowerAuditor
 from base_specialist import BaseSpecialist
+from knower_auditor import KnowerAuditor
 from swarm_coordinator import SwarmCoordinator
 
 

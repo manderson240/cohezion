@@ -7,6 +7,7 @@ or np.ndarrays, with gRPC + protobuf as a backing implementation.
 import os
 import sys
 
+
 # Provide additional import management since grpc_tools.protoc doesn't support relative imports
 module_dir = os.path.dirname(os.path.abspath(__file__))
 gen_dir = os.path.join(module_dir, 'core', 'generated')

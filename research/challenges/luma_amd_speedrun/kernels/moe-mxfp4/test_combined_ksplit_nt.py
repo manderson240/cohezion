@@ -11,10 +11,7 @@ Note: These tests work WITHOUT aiter module by parsing the source directly.
 The actual popcorn tests verify correctness against the reference.
 """
 
-import ast
-import os
 import re
-import sys
 from pathlib import Path
 
 
@@ -29,7 +26,7 @@ class TestKSPLITTableSource:
     def _parse_submission(self) -> dict:
         """Parse submission.py and extract KSPLIT_TABLE and functions."""
         source = SUBMISSION_PATH.read_text()
-        
+
         # Extract KSPLIT_TABLE
         ksplit_table_match = re.search(
             r'KSPLIT_TABLE\s*=\s*\{([^}]+)\}',
@@ -47,14 +44,14 @@ class TestKSPLITTableSource:
                     key = key_val[0].strip().strip('"').strip("'")
                     val = int(key_val[1].strip())
                     ksplit_table[key] = val
-        
+
         # Extract _choose_ksplit function
         choose_ksplit_source = re.search(
             r'def _choose_ksplit\(config: dict\) -> int:(.*?)(?=\ndef |\nclass |\Z)',
             source,
             re.DOTALL
         )
-        
+
         return {
             'ksplit_table': ksplit_table,
             'choose_ksplit_source': choose_ksplit_source.group(1) if choose_ksplit_source else None,
@@ -71,14 +68,14 @@ class TestKSPLITTableSource:
         parsed = self._parse_submission()
         expected_keys = [
             "257_256_16",
-            "257_256_128", 
+            "257_256_128",
             "257_256_512",
             "33_512_16",
             "33_512_128",
             "33_512_512",
             "33_2048_512",
         ]
-        
+
         for key in expected_keys:
             assert key in parsed['ksplit_table'], f"Missing key: {key}"
 
@@ -92,20 +89,20 @@ class TestKSPLITTableSource:
     def test_ksplit_table_sparse_shapes(self):
         """257-expert (sparse) shapes should use KSPLIT=4 for low bs."""
         parsed = self._parse_submission()
-        
+
         # Low token count = sparse = higher split
         assert parsed['ksplit_table'].get("257_256_16") == 4, \
             "257_256_16 should have KSPLIT=4"
         assert parsed['ksplit_table'].get("257_256_128") == 4, \
             "257_256_128 should have KSPLIT=4"
-        # High token count = denser = lower split  
+        # High token count = denser = lower split
         assert parsed['ksplit_table'].get("257_256_512") == 0, \
             "257_256_512 should have KSPLIT=0"
 
     def test_ksplit_table_dense_shapes(self):
         """33-expert (denser) shapes should use lower KSPLIT."""
         parsed = self._parse_submission()
-        
+
         assert parsed['ksplit_table'].get("33_512_16") == 2, \
             "33_512_16 should have KSPLIT=2"
         assert parsed['ksplit_table'].get("33_512_128") == 2, \
@@ -123,12 +120,12 @@ class TestChooseKSplitLogic:
         n_shared = config.get("n_shared_experts", 0)
         bs = config.get("bs", 0)
         E_total = n_routed + n_shared
-        
+
         if E_total == 0 or bs == 0:
             return 0
-        
+
         estimated_m = bs / E_total
-        
+
         if estimated_m < 10:
             return 4
         elif estimated_m < 30:
@@ -139,7 +136,7 @@ class TestChooseKSplitLogic:
     def test_exact_match_257_256_16(self):
         """Table lookup: 257_256_16 -> KSPLIT=4."""
         source = SUBMISSION_PATH.read_text()
-        
+
         # The function first checks exact match, so we verify table has it
         assert '"257_256_16": 4' in source or "'257_256_16': 4" in source
 

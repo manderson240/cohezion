@@ -1,13 +1,15 @@
 import os
 import re
 import sys
-import torch
+
 import polars as pl
-from typing import Optional
+import torch
+
 
 # Setup path for Kaggle evaluation API
 sys.path.append('/kaggle/input/ai-mathematical-olympiad-progress-prize-3')
 import kaggle_evaluation.aimo_3_inference_server
+
 
 MODEL_PATH = "/kaggle/input/qwen2-5-math-7b-instruct"
 
@@ -18,7 +20,7 @@ USE_VLLM = False
 
 def load_model():
     global global_model, global_tokenizer, USE_VLLM
-    
+
     try:
         from vllm import LLM, SamplingParams
         USE_VLLM = True
@@ -26,10 +28,10 @@ def load_model():
         # 1. Initialize vLLM with Qwen2.5 Math
         global_model = LLM(
             model=MODEL_PATH,
-            tensor_parallel_size=1, 
+            tensor_parallel_size=1,
             trust_remote_code=True,
             gpu_memory_utilization=0.95,
-            enforce_eager=True, 
+            enforce_eager=True,
             max_model_len=4096
         )
         global_tokenizer = SamplingParams(
@@ -59,7 +61,7 @@ def load_model():
 
 def solve(problem: str) -> str:
     prompt = f"<|im_start|>system\nPlease reason step by step, and put your final answer within \\boxed{{}}.<|im_end|>\n<|im_start|>user\n{problem}<|im_end|>\n<|im_start|>assistant\n"
-    
+
     if USE_VLLM:
         outputs = global_model.generate([prompt], global_tokenizer, use_tqdm=False)
         return outputs[0].outputs[0].text
@@ -76,17 +78,17 @@ def extract_answer(text: str) -> int:
         return int(numbers[-1]) % 100000
     return 0
 
-def predict(id_: pl.DataFrame, question: pl.DataFrame, answer: Optional[pl.DataFrame] = None) -> pl.DataFrame:
+def predict(id_: pl.DataFrame, question: pl.DataFrame, answer: pl.DataFrame | None = None) -> pl.DataFrame:
     # Ensure model is loaded on the first call
     if global_model is None:
         load_model()
-        
+
     problem_id = id_.item(0, 0)
     problem_text = question.item(0, 0)
-    
+
     response = solve(problem_text)
     prediction = extract_answer(response)
-    
+
     return pl.DataFrame({'id': [problem_id], 'answer': [prediction]})
 
 if __name__ == "__main__":
