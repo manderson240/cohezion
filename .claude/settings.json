@@ -9,6 +9,15 @@
             "command": "entire hooks claude-code session-start"
           }
         ]
+      },
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": ".claude/hooks/entire-auto-update.sh"
+          }
+        ]
       }
     ],
     "SessionEnd": [
