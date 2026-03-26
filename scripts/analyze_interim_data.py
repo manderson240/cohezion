@@ -18,7 +18,7 @@ def analyze_fractal_shards(storage_dir="data/simulations/fractal_nexus"):
     for s in recent_shards:
         try:
             dfs.append(pd.read_parquet(s))
-        except:
+        except Exception:
             pass
 
     if not dfs:

@@ -48,7 +48,7 @@ class NexusResearchDaemon(BaseAgent):
         if QUEUE_FILE.exists():
             try:
                 self.queue = json.loads(QUEUE_FILE.read_text())
-            except:
+            except Exception:
                 self.queue = []
 
         if not self.queue:
@@ -57,7 +57,7 @@ class NexusResearchDaemon(BaseAgent):
         if DONE_FILE.exists():
             try:
                 self.done = json.loads(DONE_FILE.read_text())
-            except:
+            except Exception:
                 self.done = []
 
     def save_state(self):

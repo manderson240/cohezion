@@ -195,7 +195,7 @@ class BBQDriver:
         logger.info("🧯 Extinguishing Coals (Shutdown)...")
         try:
             await self.db.close()
-        except:
+        except Exception:
             pass
         logger.info("✅ BBQ Driver Stopped.")
 

@@ -43,7 +43,7 @@ async def broadcast_state(state):
             if "autonomous_bbq.py" in (p.info.get("cmdline") or []):
                 bbq_active = True
                 break
-        except:
+        except Exception:
             pass
 
     # Create simple dict for JSON serialization
