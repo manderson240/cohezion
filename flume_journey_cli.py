@@ -331,7 +331,7 @@ def compute_coherence_sim(latent: list[float]) -> float:
 
         variance = variance_sum / n_chunks
         return max(0.0, 1.0 - min(variance * 4.0, 1.0))
-    except:
+    except (ValueError, ZeroDivisionError):
         return calculate_coherence_fallback(latent)
 
 
