@@ -34,3 +34,7 @@ Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderso
 ---
 
 Yes
+
+---
+
+Now how can we extend our workflows by delegating to a mixute of ollama cloud and local models?
