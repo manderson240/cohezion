@@ -1,0 +1,55 @@
+{
+  "cli_version": "0.5.1",
+  "checkpoint_id": "ea59c820f8fb",
+  "strategy": "manual-commit",
+  "branch": "research/luma-amd-breakthrough",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "data/compound/cache/token_cache.jsonl",
+    "docs/FLUME_BENCHMARK_PLATFORM.md",
+    "docs/phases/EVAL_PROGRESS.md",
+    "docs/phases/PHASE_5_METRICS.md",
+    "docs/phases/PHASE_6_PIPELINE.md",
+    "docs/phases/PHASE_7_SCORECARD.md",
+    "kaggle-measuring-agi.zip",
+    "src/cohezion/api/services/rl.py",
+    "src/cohezion/benchmarks/__init__.py",
+    "src/cohezion/benchmarks/agentic_metrics.py",
+    "src/cohezion/benchmarks/benchmark_suite.py",
+    "src/cohezion/eval/__init__.py",
+    "src/cohezion/eval/capability_scorecard.py",
+    "src/cohezion/eval/compound_integration.py",
+    "src/cohezion/eval/huggingface_export.py",
+    "src/cohezion/eval/pipeline.py",
+    "src/cohezion/rl/evo.py",
+    "src/cohezion/rl/ppo_trainer.py",
+    "src/cohezion/rl/task_generator.py",
+    "src/cohezion/swarm/token_client.py",
+    "tests/benchmarks/conftest.py",
+    "tests/benchmarks/test_agentic_metrics.py",
+    "tests/benchmarks/test_benchmark_suite.py",
+    "tests/eval/test_capability_scorecard.py",
+    "tests/eval/test_huggingface_export.py",
+    "tests/eval/test_pipeline.py",
+    "tests/rl/test_evo.py",
+    "tests/rl/test_flume_env.py",
+    "tests/rl/test_ppo_trainer.py",
+    "tests/rl/test_rl_benchmark.py",
+    "tests/rl/test_task_generator.py"
+  ],
+  "sessions": [
+    {
+      "metadata": "/ea/59c820f8fb/0/metadata.json",
+      "transcript": "/ea/59c820f8fb/0/full.jsonl",
+      "content_hash": "/ea/59c820f8fb/0/content_hash.txt",
+      "prompt": "/ea/59c820f8fb/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 26,
+    "cache_creation_tokens": 436054,
+    "cache_read_tokens": 9636577,
+    "output_tokens": 4798,
+    "api_call_count": 25
+  }
+}
