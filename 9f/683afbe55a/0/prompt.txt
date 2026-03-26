@@ -118,3 +118,7 @@ Proceed
 ---
 
 Proceed
+
+---
+
+It probably should have been commited on a different branch.  We need to setup hookify so sessions know that they should start on git worktrees for safe isolation and then put the pieces they make on proper branches.  We need to have dynamic modularity.
