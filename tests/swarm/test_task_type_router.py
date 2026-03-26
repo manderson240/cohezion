@@ -46,12 +46,12 @@ class TestTaskTypeRouter:
         assert result.provider == "ollama"
         local.generate.assert_called_once()
 
-    def test_route_complex_reasoning_to_anthropic(self):
-        """Complex reasoning should route to Anthropic first."""
+    def test_route_complex_reasoning_to_cloud(self):
+        """Complex reasoning should route to Ollama Cloud first."""
         router = TaskTypeRouter()
-        anthropic = _mock_provider("anthropic")
+        cloud = _mock_provider("ollama-cloud")
         local = _mock_provider("ollama")
-        router.register_provider(ProviderTier.ANTHROPIC, anthropic)
+        router.register_provider(ProviderTier.OLLAMA_CLOUD, cloud)
         router.register_provider(ProviderTier.LOCAL, local)
 
         import asyncio
@@ -59,8 +59,8 @@ class TestTaskTypeRouter:
         result = asyncio.get_event_loop().run_until_complete(
             router.route_and_execute("Explain quantum mechanics", "complex_reasoning")
         )
-        assert result.provider == "anthropic"
-        anthropic.generate.assert_called_once()
+        assert result.provider == "ollama-cloud"
+        cloud.generate.assert_called_once()
         local.generate.assert_not_called()
 
     def test_fallback_when_primary_fails(self):

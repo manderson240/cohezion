@@ -6,12 +6,12 @@ import pytest
 
 
 class TestOllamaCloudProvider:
-    def test_init_without_url_raises(self, monkeypatch):
+    def test_init_without_url_uses_default(self, monkeypatch):
         monkeypatch.delenv("OLLAMA_CLOUD_URL", raising=False)
         from cohezion.swarm.providers.ollama_cloud_provider import OllamaCloudProvider
 
-        with pytest.raises(ValueError, match="Ollama Cloud URL required"):
-            OllamaCloudProvider(config={})
+        provider = OllamaCloudProvider(config={})
+        assert provider.base_url == "https://api.ollama.com"
 
     def test_init_with_url(self, monkeypatch):
         monkeypatch.setenv("OLLAMA_CLOUD_URL", "https://cloud.ollama.com")

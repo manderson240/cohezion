@@ -101,19 +101,21 @@ def _create_task_type_router(ollama_host: str) -> Any:
         OllamaProvider(config={"base_url": ollama_host}),
     )
 
-    # Tier 1: Anthropic Claude (if API key set)
+    # Tier 2: Ollama Cloud (always available — uses default URL)
+    try:
+        from cohezion.swarm.providers.ollama_cloud_provider import OllamaCloudProvider
+
+        router.register_provider(ProviderTier.OLLAMA_CLOUD, OllamaCloudProvider())
+        logger.info("TaskTypeRouter: Ollama Cloud tier enabled")
+    except Exception as e:
+        logger.debug("Ollama Cloud tier unavailable: %s", e)
+
+    # Tier 1: Anthropic Claude (optional — only if API key explicitly set)
     if os.environ.get("ANTHROPIC_API_KEY"):
         from cohezion.swarm.providers.anthropic_provider import AnthropicProvider
 
         router.register_provider(ProviderTier.ANTHROPIC, AnthropicProvider())
         logger.info("TaskTypeRouter: Anthropic tier enabled")
-
-    # Tier 2: Ollama Cloud (if URL set)
-    if os.environ.get("OLLAMA_CLOUD_URL"):
-        from cohezion.swarm.providers.ollama_cloud_provider import OllamaCloudProvider
-
-        router.register_provider(ProviderTier.OLLAMA_CLOUD, OllamaCloudProvider())
-        logger.info("TaskTypeRouter: Ollama Cloud tier enabled")
 
     logger.info("Created TaskTypeRouter with %d providers", len(router._providers))
     return router

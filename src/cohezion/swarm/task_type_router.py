@@ -35,22 +35,25 @@ class RouteEntry:
     max_tokens_default: int = 2048
 
 
-# Task type → ordered list of routing options (primary first, fallbacks after)
+# Default Ollama Cloud URL — no env var needed for standard setup
+OLLAMA_CLOUD_DEFAULT_URL = "https://api.ollama.com"
+
+# Task type -> ordered list of routing options (primary first, fallbacks after)
+# Two-tier: Local Ollama (free) + Ollama Cloud (paid, higher availability)
+# Anthropic-level reasoning comes from the Claude Code session itself.
 ROUTING_TABLE: dict[str, list[RouteEntry]] = {
     "coding": [
         RouteEntry(ProviderTier.LOCAL, "qwen3-coder:30b", 0.0, 0.85, 2048),
         RouteEntry(ProviderTier.OLLAMA_CLOUD, "qwen3-coder:30b", 0.001, 0.85, 2048),
-        RouteEntry(ProviderTier.ANTHROPIC, "claude-sonnet-4-20250514", 0.003, 0.95, 4096),
     ],
     "complex_reasoning": [
-        RouteEntry(ProviderTier.ANTHROPIC, "claude-sonnet-4-20250514", 0.003, 0.95, 4096),
-        RouteEntry(ProviderTier.ANTHROPIC, "claude-haiku-3.5-20241022", 0.001, 0.80, 4096),
+        RouteEntry(ProviderTier.OLLAMA_CLOUD, "deepseek-r1:70b", 0.002, 0.92, 4096),
+        RouteEntry(ProviderTier.LOCAL, "deepseek-r1:70b", 0.0, 0.92, 4096),
         RouteEntry(ProviderTier.LOCAL, "phi4:latest", 0.0, 0.82, 2048),
     ],
     "creative": [
         RouteEntry(ProviderTier.LOCAL, "deepseek-r1:7b", 0.0, 0.75, 2048),
         RouteEntry(ProviderTier.OLLAMA_CLOUD, "deepseek-r1:7b", 0.001, 0.75, 2048),
-        RouteEntry(ProviderTier.ANTHROPIC, "claude-sonnet-4-20250514", 0.003, 0.95, 4096),
     ],
     "embeddings": [
         RouteEntry(ProviderTier.LOCAL, "nomic-embed-text:latest", 0.0, 0.80, 8192),
@@ -58,15 +61,15 @@ ROUTING_TABLE: dict[str, list[RouteEntry]] = {
     ],
     "simple_qa": [
         RouteEntry(ProviderTier.LOCAL, "phi3:mini", 0.0, 0.60, 1024),
-        RouteEntry(ProviderTier.ANTHROPIC, "claude-haiku-3.5-20241022", 0.001, 0.80, 2048),
+        RouteEntry(ProviderTier.OLLAMA_CLOUD, "phi3:mini", 0.0005, 0.60, 1024),
     ],
     "analysis": [
-        RouteEntry(ProviderTier.ANTHROPIC, "claude-sonnet-4-20250514", 0.003, 0.95, 4096),
+        RouteEntry(ProviderTier.OLLAMA_CLOUD, "qwen3-coder:30b", 0.001, 0.85, 4096),
+        RouteEntry(ProviderTier.LOCAL, "qwen3-coder:30b", 0.0, 0.85, 4096),
         RouteEntry(ProviderTier.LOCAL, "phi4:latest", 0.0, 0.82, 2048),
-        RouteEntry(ProviderTier.LOCAL, "qwen3-coder:30b", 0.0, 0.85, 2048),
     ],
     "synthesis": [
-        RouteEntry(ProviderTier.ANTHROPIC, "claude-sonnet-4-20250514", 0.003, 0.95, 4096),
+        RouteEntry(ProviderTier.OLLAMA_CLOUD, "qwen3-coder:30b", 0.001, 0.85, 4096),
         RouteEntry(ProviderTier.LOCAL, "phi4:latest", 0.0, 0.82, 2048),
     ],
     "summary": [
@@ -74,7 +77,7 @@ ROUTING_TABLE: dict[str, list[RouteEntry]] = {
         RouteEntry(ProviderTier.LOCAL, "gemma3:4b", 0.0, 0.65, 1024),
     ],
     "debate": [
-        RouteEntry(ProviderTier.ANTHROPIC, "claude-sonnet-4-20250514", 0.003, 0.95, 8192),
+        RouteEntry(ProviderTier.OLLAMA_CLOUD, "deepseek-r1:70b", 0.002, 0.92, 8192),
         RouteEntry(ProviderTier.LOCAL, "phi4:latest", 0.0, 0.82, 4096),
     ],
 }

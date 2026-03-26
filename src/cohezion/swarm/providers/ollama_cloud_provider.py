@@ -28,12 +28,11 @@ class OllamaCloudProvider(OllamaProvider):
 
     def __init__(self, config: dict[str, Any] | None = None):
         config = config or {}
-        cloud_url = config.get("base_url") or os.environ.get("OLLAMA_CLOUD_URL", "")
-        if not cloud_url:
-            raise ValueError(
-                "Ollama Cloud URL required. Set OLLAMA_CLOUD_URL env var "
-                "or pass base_url in config."
-            )
+        cloud_url = (
+            config.get("base_url")
+            or os.environ.get("OLLAMA_CLOUD_URL", "")
+            or "https://api.ollama.com"
+        )
         merged = {
             "base_url": cloud_url,
             "timeout": config.get("timeout", 120),
