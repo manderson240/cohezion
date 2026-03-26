@@ -226,3 +226,10 @@ See skill: `cohezion-skill-routing` for the decision tree, keyword-to-skill rout
 | Find skill | `grep -r "skill_name" src/cohezion/skills/` | `skill_registry.json` |
 | Debug journeys | `JourneyTracker.get_journey(agent_id)` | `src/cohezion/compound/journey_tracker.py` |
 | Check alignment | `RequestAlignmentAnalyzer.analyze(...)` | `src/cohezion/compound/request_alignment_analyzer.py` |
+
+## Kaggle Blackwell Handshake (Critical)
+When orchestrating jobs on Kaggle G4 (Blackwell) infrastructure, standard `accelerator` requests will fail. You MUST follow this handshake:
+1.  **Metadata**: Set `"machine_shape": "NvidiaRtxPro6000"` and `"dockerImageVersionId": 31287` in the internal `.ipynb` metadata.
+2.  **Environment**: Copy the `nvidia_utility_script` to `/tmp` and `chmod +x` the `ptxas-blackwell` binary.
+3.  **Triton**: Set `os.environ["TRITON_PTXAS_PATH"]` to the `/tmp` binary path.
+4.  **Auth**: Pre-authorize models in the `"model_sources"` metadata array.
