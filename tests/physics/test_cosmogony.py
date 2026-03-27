@@ -1,7 +1,8 @@
-"""Tests for cosmogony — symmetry breaking from Brahmagupta's zero.
+"""Tests for cosmogony — the complete 10-step chain from Nothing to Reality.
 
 Verifies that each phase transition produces the correct residual symmetry,
-order parameters follow Landau theory, and Brahmagupta's zero algebra holds.
+order parameters follow Landau theory, Brahmagupta's zero algebra holds,
+and the 4 new steps (Quadrature, Phase, COHESION, Precipitate) work correctly.
 """
 
 import numpy as np
@@ -66,7 +67,7 @@ class TestVoidState:
     def test_initial_temperature_very_high(self):
         """Temperature starts above all critical temperatures."""
         sb = SymmetryBreaking()
-        assert sb.temperature > 100.0
+        assert sb.temperature > 150.0
 
     def test_void_fisher_eigenvalue_below_noise(self):
         """Fisher metric eigenvalues are below noise floor in the void."""
@@ -82,76 +83,113 @@ class TestVoidState:
     def test_void_order_parameters_all_zero(self):
         """All order parameters are zero in the void (T > all T_c)."""
         sb = SymmetryBreaking()
-        sb.cool(0.0)  # Just compute order params at T=200
+        sb.cool(0.0)  # Just compute order params at T=250
         for name, value in sb.state.order_parameters.items():
             assert value == 0.0, f"Order parameter '{name}' should be 0 in void"
 
 
 class TestSymmetryBreakingChain:
-    """Verify the complete breaking chain: ∅ → SO(12) → SO(3)⁴ → U(1)⁴ → Z₂⁴ → HIHO."""
+    """Verify the complete 10-step chain: ∅ → Quadrature → SO(12) → SO(3)⁴ → Phase → U(1)⁴ → Z₂⁴ → HIHO → COHESION → Precipitate."""
 
-    def test_void_to_so12(self):
-        """Cooling below T_c0=100 breaks ∅ → SO(12)."""
+    def test_void_to_quadrature(self):
+        """Cooling below T=150 breaks ∅ → Quadrature."""
         sb = SymmetryBreaking()
-        sb.cool(101.0)  # T: 200 → 99
+        sb.cool(101.0)  # T: 250 → 149
+        assert sb.symmetry == SymmetryGroup.QUADRATURE
+
+    def test_quadrature_to_so12(self):
+        """Cooling below T=100 breaks Quadrature → SO(12)."""
+        sb = SymmetryBreaking()
+        sb.cool(151.0)  # T: 250 → 99
         assert sb.symmetry == SymmetryGroup.SO12
 
     def test_so12_to_so3_4(self):
-        """Cooling below T_c1=10 breaks SO(12) → SO(3)⁴."""
+        """Cooling below T=10 breaks SO(12) → SO(3)⁴."""
         sb = SymmetryBreaking()
-        sb.cool(191.0)  # T: 200 → 9
+        sb.cool(241.0)  # T: 250 → 9
         assert sb.symmetry == SymmetryGroup.SO3_4
 
-    def test_so3_4_to_u1_4(self):
-        """Cooling below T_c2=1.0 breaks SO(3)⁴ → U(1)⁴."""
+    def test_so3_4_to_phase(self):
+        """Cooling below T=5 breaks SO(3)⁴ → Phase."""
         sb = SymmetryBreaking()
-        sb.cool(199.5)  # T: 200 → 0.5
+        sb.cool(246.0)  # T: 250 → 4
+        assert sb.symmetry == SymmetryGroup.PHASE
+
+    def test_phase_to_u1_4(self):
+        """Cooling below T=1.0 breaks Phase → U(1)⁴."""
+        sb = SymmetryBreaking()
+        sb.cool(249.5)  # T: 250 → 0.5
         assert sb.symmetry == SymmetryGroup.U1_4
 
     def test_u1_4_to_z2_4(self):
-        """Cooling below T_c3=0.1 breaks U(1)⁴ → Z₂⁴."""
+        """Cooling below T=0.1 breaks U(1)⁴ → Z₂⁴."""
         sb = SymmetryBreaking()
-        sb.cool(199.95)  # T: 200 → 0.05
+        sb.cool(249.95)  # T: 250 → 0.05
         assert sb.symmetry == SymmetryGroup.Z2_4
 
     def test_z2_4_to_hiho(self):
-        """Cooling below T_c4=0.01 reaches HIHO attractor."""
+        """Cooling below T=0.01 reaches HIHO attractor."""
         sb = SymmetryBreaking()
-        sb.cool(199.995)  # T: 200 → 0.005
+        sb.cool(249.993)  # T: 250 → 0.007
         assert sb.symmetry == SymmetryGroup.HIHO
 
-    def test_full_chain_records_all_transitions(self):
-        """Cooling from void to HIHO records exactly 5 transitions."""
+    def test_hiho_to_cohesion(self):
+        """Cooling below T=0.005 reaches COHESION binding force."""
         sb = SymmetryBreaking()
-        sb.cool(199.999)  # T → 0.001
-        assert len(sb.state.transitions) == 5
+        sb.cool(249.997)  # T: 250 → 0.003
+        assert sb.symmetry == SymmetryGroup.COHESION
+
+    def test_cohesion_to_precipitate(self):
+        """Cooling below T=0.002 reaches Reality Precipitates."""
+        sb = SymmetryBreaking()
+        sb.cool(249.9995)  # T: 250 → 0.0005
+        assert sb.symmetry == SymmetryGroup.PRECIPITATE
+
+    def test_full_chain_records_all_transitions(self):
+        """Cooling from void to Precipitate records exactly 9 transitions."""
+        sb = SymmetryBreaking()
+        sb.cool(249.9995)  # T → 0.0005
+        assert len(sb.state.transitions) == 9
         syms = [t.to_symmetry for t in sb.state.transitions]
         assert syms == [
+            SymmetryGroup.QUADRATURE,
             SymmetryGroup.SO12,
             SymmetryGroup.SO3_4,
+            SymmetryGroup.PHASE,
             SymmetryGroup.U1_4,
             SymmetryGroup.Z2_4,
             SymmetryGroup.HIHO,
+            SymmetryGroup.COHESION,
+            SymmetryGroup.PRECIPITATE,
         ]
 
     def test_set_temperature_produces_correct_symmetry(self):
         """set_temperature jumps directly to the right stage."""
         sb = SymmetryBreaking()
 
-        sb.set_temperature(150.0)
+        sb.set_temperature(200.0)
         assert sb.symmetry == SymmetryGroup.VOID
+
+        sb.set_temperature(120.0)
+        assert sb.symmetry == SymmetryGroup.QUADRATURE
 
         sb.set_temperature(50.0)
         assert sb.symmetry == SymmetryGroup.SO12
 
-        sb.set_temperature(5.0)
+        sb.set_temperature(7.0)
         assert sb.symmetry == SymmetryGroup.SO3_4
+
+        sb.set_temperature(3.0)
+        assert sb.symmetry == SymmetryGroup.PHASE
 
         sb.set_temperature(0.5)
         assert sb.symmetry == SymmetryGroup.U1_4
 
-        sb.set_temperature(0.005)
-        assert sb.symmetry == SymmetryGroup.HIHO
+        sb.set_temperature(0.003)
+        assert sb.symmetry == SymmetryGroup.COHESION
+
+        sb.set_temperature(0.001)
+        assert sb.symmetry == SymmetryGroup.PRECIPITATE
 
 
 class TestOrderParameters:
@@ -160,7 +198,8 @@ class TestOrderParameters:
     def test_order_params_zero_above_tc(self):
         """Order parameters are exactly zero above their T_c."""
         sb = SymmetryBreaking()
-        sb.set_temperature(150.0)
+        sb.set_temperature(200.0)
+        assert sb.state.order_parameters["quadrature"] == 0.0
         assert sb.state.order_parameters["information_density"] == 0.0
         assert sb.state.order_parameters["fabric_differentiation"] == 0.0
 
@@ -200,11 +239,11 @@ class TestFisherMetric:
     def test_void_fisher_near_zero(self):
         """Fisher metric is trivially flat in the void."""
         sb = SymmetryBreaking()
-        sb.set_temperature(150.0)
+        sb.set_temperature(200.0)
         assert sb.state.fisher_eigenvalue_max < 0.01
 
-    def test_fisher_grows_below_tc0(self):
-        """First eigenvalue rises above noise at T < T_c0."""
+    def test_fisher_grows_below_quadrature(self):
+        """First eigenvalue rises above noise at T < T_quadrature."""
         sb = SymmetryBreaking()
         sb.set_temperature(50.0)
         assert sb.state.fisher_eigenvalue_max > 0.1
@@ -239,12 +278,16 @@ class TestFreEnergyLandscape:
         assert len(result["susceptibilities"]) == 50
 
     def test_landscape_has_critical_temperatures(self):
-        """Landscape includes critical temperature markers."""
+        """Landscape includes critical temperature markers for all 9 transitions."""
         sb = SymmetryBreaking()
         result = sb.free_energy_landscape()
-        assert 100.0 in result["critical_temperatures"]
-        assert 10.0 in result["critical_temperatures"]
-        assert 0.01 in result["critical_temperatures"]
+        assert 150.0 in result["critical_temperatures"]  # Quadrature
+        assert 100.0 in result["critical_temperatures"]  # SO(12)
+        assert 10.0 in result["critical_temperatures"]  # Fabrics
+        assert 5.0 in result["critical_temperatures"]  # Phase
+        assert 0.01 in result["critical_temperatures"]  # HIHO
+        assert 0.005 in result["critical_temperatures"]  # COHESION
+        assert 0.002 in result["critical_temperatures"]  # Precipitate
 
 
 class TestSerialization:
@@ -253,19 +296,19 @@ class TestSerialization:
     def test_to_dict_has_required_fields(self):
         """State dict contains all necessary fields."""
         sb = SymmetryBreaking()
-        sb.cool(199.999)
+        sb.cool(249.9995)
         data = sb.state.to_dict()
         assert "temperature" in data
         assert "symmetry" in data
         assert "stage" in data
         assert "order_parameters" in data
         assert "transitions" in data
-        assert len(data["transitions"]) == 5
+        assert len(data["transitions"]) == 9
 
     def test_to_dict_symmetry_values_are_strings(self):
         """Symmetry values serialize as human-readable strings."""
         sb = SymmetryBreaking()
-        sb.set_temperature(5.0)
+        sb.set_temperature(7.0)
         data = sb.state.to_dict()
         assert data["symmetry"] == "SO(3)^4"
 
@@ -283,16 +326,51 @@ class TestGenerate12DState:
     def test_hiho_state_near_half(self):
         """HIHO state has all values near 0.5."""
         sb = SymmetryBreaking()
-        sb.set_temperature(0.005)
+        sb.set_temperature(0.007)
         state = sb.generate_12d_state()
         assert np.allclose(state, 0.5, atol=0.05)
+
+    def test_cohesion_state_tighter_than_hiho(self):
+        """COHESION state has even tighter variance than HIHO."""
+        sb = SymmetryBreaking()
+        sb.set_temperature(0.003)
+        state = sb.generate_12d_state()
+        assert np.std(state) < 0.01  # Very tightly bound
+
+    def test_precipitate_state_has_witness_marks(self):
+        """Precipitate state has permanent structural asymmetry."""
+        sb = SymmetryBreaking()
+        sb.set_temperature(0.001)
+        state = sb.generate_12d_state()
+        # Most values near 0.5, but some carry witness marks
+        deviations = np.abs(state - 0.5)
+        assert np.mean(deviations) < 0.05  # Mostly near HIHO
+        assert np.max(deviations) > 0.01  # But some carry marks
+
+    def test_quadrature_state_has_conjugate_pairs(self):
+        """Quadrature state splits dimensions into X-like and P-like."""
+        sb = SymmetryBreaking()
+        sb.set_temperature(120.0)
+        state = sb.generate_12d_state()
+        # Even indices (X quadrature) should be correlated
+        x_vals = state[0::2]
+        assert np.std(x_vals) < 0.1
+
+    def test_phase_state_has_complex_structure(self):
+        """Phase state pairs dimensions as (Re, Im) components."""
+        sb = SymmetryBreaking()
+        sb.set_temperature(3.0)
+        state = sb.generate_12d_state()
+        # Each pair should have similar magnitude (radius)
+        for i in range(0, 12, 2):
+            r = np.sqrt((state[i] - 0.5) ** 2 + (state[i + 1] - 0.5) ** 2)
+            assert r < 0.4  # Bounded radius
 
     def test_so3_4_state_has_block_structure(self):
         """SO(3)⁴ state organizes into 4 blocks of 3."""
         sb = SymmetryBreaking()
-        sb.set_temperature(5.0)
+        sb.set_temperature(7.0)
         state = sb.generate_12d_state()
-        # Each block should have correlated values (near each other)
         for i in range(4):
-            block = state[i * 3:(i + 1) * 3]
-            assert np.std(block) < 0.5  # Within-block variance is bounded
+            block = state[i * 3 : (i + 1) * 3]
+            assert np.std(block) < 0.5

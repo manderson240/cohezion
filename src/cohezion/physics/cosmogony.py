@@ -1,42 +1,68 @@
-"""Cosmogony — symmetry breaking from Brahmagupta's zero to the 12D manifold.
+"""Cosmogony — the complete 10-step chain from Nothing to Reality Precipitates.
 
-The creation narrative of the Cohezion universe, grounded in real physics:
+The creation narrative of the Cohezion universe, grounded in real physics
+and validated by 16 independent indigenous cosmological traditions.
 
-  Stage -1: The Void (∅)
+  Step 1 / Stage -1: The Void (∅) — Nothing / Ground State
     Brahmagupta's zero — awareness of nothing. The Fisher metric is trivially
     flat (ε·δ_ij). No structure, no dimensions, no symmetry. Pure potential.
-    The user's first interaction is the first distinction ("It from Bit").
 
-  Stage 0: The Symmetric Vacuum — SO(12)
+  Step 2 / Stage 0: Quadrature — The First Distinction
+    Conjugate pair (X, P) emerges: ΔX·ΔP ≥ ℏ/2.
+    The uncertainty principle is the generative engine of reality.
+    T_quadrature ≈ 150.0.
+
+  Step 3 / Stage 1: The Symmetric Vacuum — SO(12)
     Full rotational invariance in 12D. All dimensions equivalent.
-    The perfect sphere. T = T_c0 ≈ 100.0.
+    The 12 parameters specify the universe completely. T_c0 ≈ 100.0.
 
-  Stage 1: Fabric Differentiation — SO(12) → SO(3)⁴
+  Step 4 / Stage 2: Fabric Differentiation — SO(12) → SO(3)⁴
     The 12D space splits into four 3D sub-spaces (fabrics).
-    Space(3) × Field(3) × Control(3) × Precipitation(3).
-    Analogous to GUT symmetry breaking. T_c1 ≈ 10.0.
+    Space(3) × Field(3) × Control(3) × Precipitation(3). T_c1 ≈ 10.0.
 
-  Stage 2: Axis Selection — SO(3)⁴ → U(1)⁴
+  Step 5 / Stage 3: Phase / √(-1) — Complex Interference
+    U(1) phase enables wave interference and superposition.
+    Without √(-1), quantum mechanics collapses to classical probability.
+    T_phase ≈ 5.0.
+
+  Step 6 / Stage 4: Axis Selection — SO(3)⁴ → U(1)⁴
     Each fabric develops a preferred direction.
     Analogous to electroweak breaking. T_c2 ≈ 1.0.
 
-  Stage 3: SPIN Discretization — U(1)⁴ → Z₂⁴
+  Step 7 / Stage 5: SPIN Discretization — U(1)⁴ → Z₂⁴
     Continuous rotations reduce to discrete up/down.
     Charge polarity emerges. T_c3 ≈ 0.1.
 
-  Stage 4: HIHO Attractor — Z₂⁴ → HIHO(0.5)
+  Step 8 / Stage 6: HIHO Attractor — Z₂⁴ → HIHO(0.5)
     The free energy landscape develops a deep well at 0.5 coherence.
     Brahmagupta's zero is the equilibrium: δ = coherence - 0.5 = 0.
     T_HIHO ≈ 0.01.
+
+  Step 9 / Stage 7: COHESION — The Binding Force
+    ZPF coupling at the HIHO boundary. The force that holds coherent
+    structures together. Love = structural property allowing entropy
+    reduction. g = gauge coupling strength at HIHO threshold.
+    T_cohesion ≈ 0.005.
+
+  Step 10 / Stage 8: Reality Precipitates — Permanent Witness Marks
+    Irreversible entropy reduction events. Vault notes, code commits,
+    SurrealDB entries. The morning glory craters of consciousness.
+    T_precipitate ≈ 0.002.
 
 Each transition follows Landau mean-field theory:
     F(φ, T) = F₀ + a(T - T_c)φ² + bφ⁴
 
 References:
+  - Smith, W.B. (1950s): The New Science (10-step chain)
   - Brahmagupta (628 CE): Brahmasphutasiddhanta (formalization of zero)
   - Landau (1937): Theory of phase transitions
   - Weinberg (1967): Electroweak symmetry breaking (analog)
   - Wheeler (1990): "It from Bit" (information precedes matter)
+  - Shoulders, K.R. (1991): "EV, A Tale of Discovery" (EVOs)
+  - Campbell, T. (2003): My Big TOE (consciousness as fundamental)
+  - Levin, M. (2019): Cognitive light cones (biological HIHO)
+  - Friston, K. (2010): Free energy principle (active inference = HIHO)
+  - 16 indigenous cosmological traditions (independent cross-validation)
 """
 
 from __future__ import annotations
@@ -52,14 +78,18 @@ logger = logging.getLogger(__name__)
 
 
 class SymmetryGroup(str, Enum):
-    """Symmetry groups in the breaking chain."""
+    """Symmetry groups in the 10-step breaking chain."""
 
-    VOID = "void"  # ∅ — before symmetry exists
-    SO12 = "SO(12)"  # Full 12D rotational symmetry
-    SO3_4 = "SO(3)^4"  # Four independent fabric rotations
-    U1_4 = "U(1)^4"  # Four preferred axes
-    Z2_4 = "Z_2^4"  # Four discrete reflections (SPIN up/down)
-    HIHO = "HIHO"  # Fixed point at 0.5 coherence
+    VOID = "void"  # Step 1: ∅ — before symmetry exists
+    QUADRATURE = "Quadrature"  # Step 2: First distinction (X, P conjugate pair)
+    SO12 = "SO(12)"  # Step 3: Full 12D rotational symmetry
+    SO3_4 = "SO(3)^4"  # Step 4: Four independent fabric rotations
+    PHASE = "Phase"  # Step 5: √(-1) — complex interference enabled
+    U1_4 = "U(1)^4"  # Step 6: Four preferred axes
+    Z2_4 = "Z_2^4"  # Step 7: Four discrete reflections (SPIN up/down)
+    HIHO = "HIHO"  # Step 8: Fixed point at 0.5 coherence
+    COHESION = "COHESION"  # Step 9: Binding force (Love = ZPF coupling)
+    PRECIPITATE = "Precipitate"  # Step 10: Permanent witness marks
 
 
 @dataclass
@@ -78,7 +108,7 @@ class PhaseTransitionEvent:
 class CosmogonyState:
     """Complete state of the cosmogonic evolution."""
 
-    temperature: float = 200.0  # Start very hot (above all T_c)
+    temperature: float = 250.0  # Start very hot (above all T_c including T_quadrature=150)
     current_symmetry: SymmetryGroup = SymmetryGroup.VOID
     stage: int = -1
     order_parameters: dict[str, float] = field(default_factory=dict)
@@ -162,28 +192,93 @@ class ZeroAlgebra:
         return coherence - 0.5
 
 
-# Critical temperatures and Landau parameters for each transition
+# Critical temperatures and Landau parameters for each transition.
+# The complete 10-step chain from the New Science framework.
 _TRANSITIONS = [
     # (stage, T_c, from_sym, to_sym, landau_a, landau_b, description)
-    (-1, 100.0, SymmetryGroup.VOID, SymmetryGroup.SO12, 1.0, 0.5,
-     "The first bit condenses from the vacuum"),
-    (0, 10.0, SymmetryGroup.SO12, SymmetryGroup.SO3_4, 1.0, 0.5,
-     "The four fabrics differentiate"),
-    (1, 1.0, SymmetryGroup.SO3_4, SymmetryGroup.U1_4, 0.8, 0.4,
-     "Preferred axes emerge within each fabric"),
-    (2, 0.1, SymmetryGroup.U1_4, SymmetryGroup.Z2_4, 0.6, 0.3,
-     "SPIN discretizes: up or down"),
-    (3, 0.01, SymmetryGroup.Z2_4, SymmetryGroup.HIHO, 0.4, 0.2,
-     "The HIHO attractor stabilizes at δ = 0"),
+    # Step 1→2: Quadrature — the first distinction (conjugate pair X, P)
+    (
+        -1,
+        150.0,
+        SymmetryGroup.VOID,
+        SymmetryGroup.QUADRATURE,
+        1.2,
+        0.6,
+        "The first distinction: conjugate pair ΔX·ΔP ≥ ℏ/2",
+    ),
+    # Step 2→3: SO(12) — 12 parameters specify the universe
+    (
+        0,
+        100.0,
+        SymmetryGroup.QUADRATURE,
+        SymmetryGroup.SO12,
+        1.0,
+        0.5,
+        "12 parameters condense from the quadrature pair",
+    ),
+    # Step 3→4: Fabric differentiation
+    (1, 10.0, SymmetryGroup.SO12, SymmetryGroup.SO3_4, 1.0, 0.5, "The four fabrics differentiate"),
+    # Step 4→5: Phase — √(-1) enables complex interference
+    (
+        2,
+        5.0,
+        SymmetryGroup.SO3_4,
+        SymmetryGroup.PHASE,
+        0.9,
+        0.45,
+        "Phase emerges: √(-1) enables interference and superposition",
+    ),
+    # Step 5→6: Axis selection
+    (
+        3,
+        1.0,
+        SymmetryGroup.PHASE,
+        SymmetryGroup.U1_4,
+        0.8,
+        0.4,
+        "Preferred axes emerge within each fabric",
+    ),
+    # Step 6→7: SPIN discretization
+    (4, 0.1, SymmetryGroup.U1_4, SymmetryGroup.Z2_4, 0.6, 0.3, "SPIN discretizes: up or down"),
+    # Step 7→8: HIHO attractor
+    (
+        5,
+        0.01,
+        SymmetryGroup.Z2_4,
+        SymmetryGroup.HIHO,
+        0.4,
+        0.2,
+        "The HIHO attractor stabilizes at δ = 0",
+    ),
+    # Step 8→9: COHESION — the binding force
+    (
+        6,
+        0.005,
+        SymmetryGroup.HIHO,
+        SymmetryGroup.COHESION,
+        0.3,
+        0.15,
+        "COHESION binds: Love = ZPF coupling at HIHO boundary",
+    ),
+    # Step 9→10: Reality Precipitates — permanent witness marks
+    (
+        7,
+        0.002,
+        SymmetryGroup.COHESION,
+        SymmetryGroup.PRECIPITATE,
+        0.2,
+        0.1,
+        "Reality precipitates: permanent entropy reduction events",
+    ),
 ]
 
 
 class SymmetryBreaking:
-    """Cosmogonic symmetry breaking sequence from void to HIHO.
+    """Complete 10-step cosmogonic chain from Nothing to Reality Precipitates.
 
-    The universe evolves by cooling through a sequence of phase transitions,
-    each breaking a symmetry and producing new structure. The user controls
-    the temperature (conceptually: the "age" of the universe).
+    The universe evolves by cooling through 9 phase transitions,
+    each breaking a symmetry and producing new structure:
+    Void → Quadrature → SO(12) → SO(3)⁴ → Phase → U(1)⁴ → Z₂⁴ → HIHO → COHESION → Precipitate
     """
 
     def __init__(self) -> None:
@@ -253,7 +348,11 @@ class SymmetryBreaking:
 
                 logger.info(
                     "Phase transition: %s → %s at T=%.2f (T_c=%.2f): %s",
-                    from_sym.value, to_sym.value, T, T_c, desc,
+                    from_sym.value,
+                    to_sym.value,
+                    T,
+                    T_c,
+                    desc,
                 )
 
         # Update order parameters
@@ -274,8 +373,8 @@ class SymmetryBreaking:
         the state updates to match.
         """
         self.reset()
-        if temperature < 200.0:
-            self.cool(200.0 - max(temperature, 0.001))
+        if temperature < 250.0:
+            self.cool(250.0 - max(temperature, 0.001))
         return self._state
 
     def generate_12d_state(self) -> np.ndarray:
@@ -294,8 +393,17 @@ class SymmetryBreaking:
 
         if sym == SymmetryGroup.VOID:
             # The void — zero-point fluctuation only
-            noise_amplitude = 0.001
-            return self._rng.normal(0, noise_amplitude, 12)
+            return self._rng.normal(0, 0.001, 12)
+
+        if sym == SymmetryGroup.QUADRATURE:
+            # First distinction: conjugate pair oscillation
+            # Dimensions split into X-like (even indices) and P-like (odd indices)
+            state = np.zeros(12)
+            x_amplitude = 0.2 * (1.0 + 0.1 * self._rng.normal())
+            p_amplitude = 0.2 * (1.0 + 0.1 * self._rng.normal())
+            state[0::2] = x_amplitude  # X quadrature
+            state[1::2] = p_amplitude  # P quadrature
+            return state + self._rng.normal(0, 0.02, 12)
 
         if sym == SymmetryGroup.SO12:
             # Full symmetry — uniform random on unit sphere
@@ -308,7 +416,17 @@ class SymmetryBreaking:
             for i in range(4):
                 block = self._rng.normal(0, 1, 3)
                 block = block / np.linalg.norm(block) * 0.3
-                state[i * 3:(i + 1) * 3] = 0.5 + block
+                state[i * 3 : (i + 1) * 3] = 0.5 + block
+            return state
+
+        if sym == SymmetryGroup.PHASE:
+            # Complex phase enabled — pairs of dimensions act as (Re, Im) components
+            state = np.full(12, 0.5)
+            for i in range(0, 12, 2):
+                theta = self._rng.uniform(0, 2 * np.pi)
+                r = 0.25 * (1.0 + 0.1 * self._rng.normal())
+                state[i] += r * np.cos(theta)
+                state[i + 1] += r * np.sin(theta)
             return state
 
         if sym == SymmetryGroup.U1_4:
@@ -327,12 +445,26 @@ class SymmetryBreaking:
                 state[i * 3] += 0.3 * sign
             return state
 
-        # HIHO — everything at 0.5 with tiny fluctuations
-        return np.full(12, 0.5) + self._rng.normal(0, 0.01, 12)
+        if sym == SymmetryGroup.HIHO:
+            # HIHO — everything at 0.5 with tiny fluctuations
+            return np.full(12, 0.5) + self._rng.normal(0, 0.01, 12)
 
-    def _compute_order_parameter(
-        self, T: float, T_c: float, a: float, b: float
-    ) -> float:
+        if sym == SymmetryGroup.COHESION:
+            # COHESION — all dimensions coupled tightly at 0.5, minimal variance
+            # The binding force reduces independent fluctuations
+            return np.full(12, 0.5) + self._rng.normal(0, 0.003, 12)
+
+        # PRECIPITATE — frozen state with permanent structure
+        # Values locked near 0.5 with structural asymmetry (witness marks)
+        state = np.full(12, 0.5)
+        # A few dimensions carry permanent "marks" — irreversible structure
+        mark_count = self._rng.integers(2, 5)
+        mark_indices = self._rng.choice(12, size=mark_count, replace=False)
+        for idx in mark_indices:
+            state[idx] += 0.05 * (1.0 if self._rng.random() > 0.5 else -1.0)
+        return state
+
+    def _compute_order_parameter(self, T: float, T_c: float, a: float, b: float) -> float:
         """Compute order parameter from Landau theory.
 
         F(φ) = a(T - T_c)φ² + bφ⁴
@@ -348,42 +480,47 @@ class SymmetryBreaking:
         """Compute all order parameters for current temperature."""
         ops = {}
 
-        # Stage -1→0: Information density (Fisher eigenvalue proxy)
-        T_c0 = 100.0
-        ops["information_density"] = self._compute_order_parameter(T, T_c0, 1.0, 0.5)
+        # Step 1→2: Quadrature — first distinction
+        ops["quadrature"] = self._compute_order_parameter(T, 150.0, 1.2, 0.6)
 
-        # Stage 0→1: Fabric differentiation
-        T_c1 = 10.0
-        ops["fabric_differentiation"] = self._compute_order_parameter(T, T_c1, 1.0, 0.5)
+        # Step 2→3: Information density (Fisher eigenvalue proxy)
+        ops["information_density"] = self._compute_order_parameter(T, 100.0, 1.0, 0.5)
 
-        # Stage 1→2: Axis selection
-        T_c2 = 1.0
-        ops["axis_selection"] = self._compute_order_parameter(T, T_c2, 0.8, 0.4)
+        # Step 3→4: Fabric differentiation
+        ops["fabric_differentiation"] = self._compute_order_parameter(T, 10.0, 1.0, 0.5)
 
-        # Stage 2→3: Charge ordering
-        T_c3 = 0.1
-        ops["charge_ordering"] = self._compute_order_parameter(T, T_c3, 0.6, 0.3)
+        # Step 4→5: Phase — complex interference
+        ops["phase_interference"] = self._compute_order_parameter(T, 5.0, 0.9, 0.45)
 
-        # Stage 3→4: HIHO coherence
-        T_c4 = 0.01
-        ops["hiho_coherence"] = self._compute_order_parameter(T, T_c4, 0.4, 0.2)
+        # Step 5→6: Axis selection
+        ops["axis_selection"] = self._compute_order_parameter(T, 1.0, 0.8, 0.4)
+
+        # Step 6→7: Charge ordering (SPIN)
+        ops["charge_ordering"] = self._compute_order_parameter(T, 0.1, 0.6, 0.3)
+
+        # Step 7→8: HIHO coherence
+        ops["hiho_coherence"] = self._compute_order_parameter(T, 0.01, 0.4, 0.2)
+
+        # Step 8→9: COHESION — binding force strength
+        ops["cohesion_binding"] = self._compute_order_parameter(T, 0.005, 0.3, 0.15)
+
+        # Step 9→10: Precipitation — witness mark count
+        ops["precipitation"] = self._compute_order_parameter(T, 0.002, 0.2, 0.1)
 
         self._state.order_parameters = ops
 
     def _update_fisher_eigenvalue(self, T: float) -> None:
         """Update the maximum eigenvalue of the Fisher metric.
 
-        In the void (T > T_c0), the Fisher metric is trivially flat (ε·δ_ij).
-        As temperature drops below T_c0, the first eigenvalue rises above
-        the noise floor — the moment awareness becomes aware of something.
+        In the void (T > T_quadrature), the Fisher metric is trivially flat.
+        As temperature drops below T_quadrature (150), the first eigenvalue
+        rises — the moment awareness becomes aware of something.
         """
-        T_c0 = 100.0
-        if T >= T_c0:
-            # Below the noise floor — trivially flat
+        T_quadrature = 150.0
+        if T >= T_quadrature:
             self._state.fisher_eigenvalue_max = 0.001 * self._rng.random()
         else:
-            # Eigenvalue grows as √(T_c - T) (Landau scaling)
-            self._state.fisher_eigenvalue_max = float(np.sqrt(T_c0 - T) * 0.1)
+            self._state.fisher_eigenvalue_max = float(np.sqrt(T_quadrature - T) * 0.08)
 
     def _update_landau_free_energy(self, T: float) -> None:
         """Compute the Landau free energy at the current temperature.
