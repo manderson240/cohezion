@@ -21,16 +21,29 @@ A central registry of the swarm's **6-Dimensional Service Architecture**. Only "
 - **Ethics**: [CONSTITUTION_PRIME](file:///home/mike-anderson/dev/cohezion/src/cohezion/skills/CONSTITUTION_PRIME.md).
 - **Growth**: [ASCENSION_SKILL_PRIME](file:///home/mike-anderson/dev/cohezion/src/cohezion/skills/ASCENSION_SKILL_PRIME.md).
 
-## 4. PHYSICS (Simulation Service)
-*The Body: World Modeling.*
-- **MHD**: [HIHO_STABILITY_PRIME](file:///home/mike-anderson/dev/cohezion/src/cohezion/skills/HIHO_STABILITY_PRIME.md).
-- **Vis**: [VISUALIZATION_PRIME](file:///home/mike-anderson/dev/cohezion/src/cohezion/skills/VISUALIZATION_PRIME.md).
-- **Audio**: [AMBIENT_SONIFICATION_PRIME](file:///home/mike-anderson/dev/cohezion/src/cohezion/skills/AMBIENT_SONIFICATION_PRIME.md).
+## 4. PHYSICS (Genesis Engine — Grounded Simulation)
+*The Body: 12D Riemannian Manifold with Real Mathematics.*
+- **Spinor**: SU(2) algebra, Bloch sphere, HIHO = equatorial state (`physics/spinor.py`).
+- **Geometry**: Riemannian metric, Christoffel symbols, geodesics (`physics/riemannian_metric.py`).
+- **Dynamics**: Euler-Lagrange, symplectic Verlet integrator (`physics/lagrangian.py`).
+- **Bundle**: Fiber bundle P(B⁴,SO(3)⁴), parallel transport (`physics/fiber_bundle.py`).
+- **Gauge**: Yang-Mills SO(3), covariant Tempic field (`physics/gauge_theory.py`).
+- **Fisher**: Information geometry, Rosetta Stone metric (`physics/information_geometry.py`).
+- **Cosmogony**: Landau phase transitions ∅→HIHO, Brahmagupta's zero (`physics/cosmogony.py`).
+- **MHD/HIHO**: HIHOUnifiedEngine with 11 sub-engines (`universe/hiho_unified_engine.py`).
+- **Vis**: 8-tab webapp at `/genesis` (`web/anima_dashboard/`).
+- **Audio**: PocketTTS narration + Tone.js sonification (`audio/narrator.py`).
+- **Environments**: ManifoldEnv (gymnasium), SwarmEnv (multi-agent) (`environments/`).
+- **World Model**: JEPA 86K-param predictor + surprise explorer (`world_model/`).
+- **TDA Router**: TopologicalRouter — persistent homology drives swarm optimization (`swarm/topological_router.py`).
+- **Research**: [Paper draft](docs/papers/genesis-engine-paper.md) | [Research doc](docs/genesis-engine-research.md) | [Tutorials](docs/tutorials/).
 
 ## 5. INTELLIGENCE (AI Lab Service)
 *The Brain: Model Routing & Learning.*
 - **Routing**: [MODEL_ROUTING_PRIME](file:///home/mike-anderson/dev/cohezion/src/cohezion/skills/MODEL_ROUTING_PRIME.md).
+- **TDA Routing**: TopologicalRouter — H₀/H₁ → exploit/explore/pivot (`swarm/topological_router.py`).
 - **Data**: [TRAINING_DATA_CAPTURE_PRIME](file:///home/mike-anderson/dev/cohezion/src/cohezion/skills/TRAINING_DATA_CAPTURE_PRIME.md).
+- **JEPA**: World model predicting manifold evolution (`world_model/jepa_world_model.py`).
 - **Research**: [EXTERNAL_RESEARCH_PRIME](file:///home/mike-anderson/dev/cohezion/src/cohezion/skills/EXTERNAL_RESEARCH_PRIME.md).
 
 ## 6. INFRASTRUCTURE (VLIW Service)

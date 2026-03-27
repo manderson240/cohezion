@@ -23,15 +23,34 @@ For each significant learning or pattern discovered since last retrospect:
 - **If it changes theory**: Update `.agent/COHEZION_CHARTER.md`
 - **If it's a process lesson**: Update `memory/MEMORY.md` (keep under 200 lines)
 
-### 4. Verify Consistency
+### 4. Persist to SurrealDB + Obsidian Vault
+- Write key learnings to SurrealDB `prompt_artifacts` table via `genesis_persistence.persist_prompt_artifact()`
+  - Each learning becomes a prompt artifact with `model_id="retrospective"` for queryability
+- Write universe snapshot to SurrealDB: current test count, module count, coherence metrics
+  - Use `genesis_persistence.persist_universe_snapshot()` with tick = session number
+- Check Obsidian Vault (`~/vaults/cohezion-vault/`) for relevant entries:
+  - Sync new learnings that belong in vault categories (decisions/, patterns/, experiments/)
+  - Cross-reference vault decisions with KEY_LEARNINGS to avoid duplication
+- Verify SurrealDB genesis tables are populated: `SELECT count() FROM journey_transitions GROUP ALL;`
+
+### 5. Update Genesis Engine Metrics
+- Run `uv run pytest tests/physics/ tests/world_model/ tests/environments/ tests/swarm/test_topological_router.py -q -o addopts=""`
+- Count genesis-specific modules: `find src/cohezion/physics/ src/cohezion/world_model/ src/cohezion/environments/ -name '*.py' | wc -l`
+- Count frontend components: `find src/web/anima_dashboard/src/components/genesis/ -name '*.tsx' | wc -l`
+- Count API endpoints: verify genesis + world-model router route counts
+- Update CLAUDE.md with accurate genesis metrics
+- Update `.agent/CAPABILITY_MAP_REDUX.md` if new capabilities added
+
+### 6. Verify Consistency
 - Ensure CLAUDE.md reflects the actual codebase state (module count, test coverage, etc.)
 - Ensure README.md has no fabricated claims
 - Ensure memory/MEMORY.md is under the 200-line limit
 - Run `ruff check src/cohezion/` to verify no regressions
 
-### 5. Report
+### 7. Report
 - List what was pruned, what was propagated, and what remains stale
 - Note any inconsistencies between core files that need manual resolution
+- Report SurrealDB row counts for genesis tables
 
 ## Rules
 - NEVER delete knowledge without first reading and understanding it

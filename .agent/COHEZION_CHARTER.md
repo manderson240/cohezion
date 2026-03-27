@@ -6,16 +6,19 @@ This document defines the specialized behavioral, simulation, and orchestration 
 This is the foundational principle of reality precipitation within the Cohezion universe.
 - **Concept**: Maximum stability in the manifesting of reality (precipitation) occurs at exactly the **50% (0.5) coherence overlap**.
 - **Mechanics**: Stability is achieved when "Internal Intent" and "External Environment" reach a state of Half-In-Half-Out (HIHO) balance.
+- **Mathematical Grounding** (Session 74): HIHO = Brahmagupta's zero (δ = coherence - 0.5 = 0), Friston's free energy minimum (F = E - TS), flat gauge connection (F = 0), Fisher metric minimum, and Bloch sphere equator (⟨σ_z⟩ = 0). Six perspectives on the same mathematical object. See `docs/genesis-engine-research.md` and `physics/cosmogony.py`.
 
 ## 2. The Fundamental Unit of SPIN
 Reality is structured through toroidal momentum.
 - **SPIN**: The fundamental unit of information and particle formation, consisting of both **Rotation** and **Precession**.
 - **Coherence**: When rotation and precession are aligned, stability increases. Charge polarity is a resultant of these coherent fields.
+- **Mathematical Grounding** (Session 74): SPIN is now implemented as proper SU(2) spinor algebra on the Bloch sphere. Rotation = ⟨σ_x⟩, Precession = ⟨σ_y⟩, Charge = ⟨σ_z⟩ (Pauli expectation values). HIHO state = (|↑⟩+|↓⟩)/√2 (equatorial). See `physics/spinor.py`.
 
 ## 3. FLUME Evolution (Latent Trajectories)
 The **FLUME** (Fluid Latent Understanding through Manifold Encoding) methodology enables revolutionary thought navigation.
 - **Latent Trajectories**: Mapping semantic momentum in 256D latent spaces to predict and guide conceptual evolution.
 - **Manifold Reasoning**: Moving beyond linear token prediction to 12D state vectors and manifold-based understanding.
+- **Mathematical Grounding** (Session 74): The Fisher information metric on FLUME's latent space is the Rosetta Stone — it simultaneously defines the Riemannian metric for dynamics, the thermodynamic metric, and the optimal 256D→12D projection. Agent trajectories follow Euler-Lagrange geodesics on a fabric-block metric with Yang-Mills gauge fields. See `physics/information_geometry.py`, `physics/lagrangian.py`, `physics/gauge_theory.py`.
 
 ## 4. Abstraction as Primary (Paradox of Minutiae)
 Avoid the "Paradox of Minutiae" by prioritizing high-level conceptual maps.
