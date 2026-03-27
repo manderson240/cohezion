@@ -4,157 +4,21 @@
   "nodes": {
     "root_gemm": {
       "id": "root_gemm",
-      "strategy": "Minimize MXFP4 GEMM geomean across 6 shapes",
-      "parameters": {},
+      "strategy": "VLLM_USE_AITER_BLOCK_GEMM=1: Enable block GEMM path for quantized inputs",
+      "parameters": {
+        "env": {
+          "VLLM_USE_AITER_BLOCK_GEMM": "1"
+        }
+      },
       "parent_id": null,
-      "priority": 0.1009094861813066,
-      "attempts": 21,
-      "best_result_us": 118.11,
+      "priority": 0.7,
+      "attempts": 0,
+      "best_result_us": null,
       "stagnation_count": 0,
       "status": "active",
-      "children": [
-        "gemm_n0_cached",
-        "gemm_n1",
-        "gemm_n2",
-        "gemm_n3",
-        "gemm_n4",
-        "n_52ddecbc",
-        "n_3793884f",
-        "n_4f423fa8",
-        "n_c76ee73d",
-        "n_5f803624",
-        "n_66619a38",
-        "n_139be188"
-      ],
-      "notes": "",
-      "attempt_history": [
-        {
-          "result_us": 201.69554288554713,
-          "parameters": {},
-          "timestamp": "2026-03-20T17:51:16.506800",
-          "source": "template"
-        },
-        {
-          "result_us": 185.28650968910955,
-          "parameters": {},
-          "timestamp": "2026-03-20T17:51:32.501392",
-          "source": "template"
-        },
-        {
-          "result_us": 189.94131994360106,
-          "parameters": {},
-          "timestamp": "2026-03-20T17:51:40.301064",
-          "source": "template"
-        },
-        {
-          "result_us": 176.38361631413733,
-          "parameters": {},
-          "timestamp": "2026-03-20T17:52:31.101471",
-          "source": "template"
-        },
-        {
-          "result_us": 154.06811776067093,
-          "parameters": {},
-          "timestamp": "2026-03-20T17:52:42.305895",
-          "source": "template"
-        },
-        {
-          "result_us": 162.71695518345197,
-          "parameters": {},
-          "timestamp": "2026-03-20T17:52:55.931194",
-          "source": "template"
-        },
-        {
-          "result_us": 155.1982183054687,
-          "parameters": {},
-          "timestamp": "2026-03-20T17:53:08.302344",
-          "source": "template"
-        },
-        {
-          "result_us": 151.00085410845116,
-          "parameters": {},
-          "timestamp": "2026-03-20T17:53:18.701565",
-          "source": "template"
-        },
-        {
-          "result_us": 130.71157986078072,
-          "parameters": {},
-          "timestamp": "2026-03-20T17:53:28.901469",
-          "source": "template"
-        },
-        {
-          "result_us": 128.46646508573087,
-          "parameters": {},
-          "timestamp": "2026-03-20T17:53:44.003029",
-          "source": "template"
-        },
-        {
-          "result_us": 124.20557132504379,
-          "parameters": {},
-          "timestamp": "2026-03-20T17:54:07.103045",
-          "source": "template"
-        },
-        {
-          "result_us": 124.58040777633185,
-          "parameters": {},
-          "timestamp": "2026-03-20T17:54:17.201537",
-          "source": "template"
-        },
-        {
-          "result_us": 138.447692464307,
-          "parameters": {},
-          "timestamp": "2026-03-20T17:54:50.269469",
-          "source": "template"
-        },
-        {
-          "result_us": 130.14817655727524,
-          "parameters": {},
-          "timestamp": "2026-03-20T17:54:59.907603",
-          "source": "template"
-        },
-        {
-          "result_us": 142.24708486911382,
-          "parameters": {},
-          "timestamp": "2026-03-20T17:55:09.601743",
-          "source": "template"
-        },
-        {
-          "result_us": 132.59487911730164,
-          "parameters": {},
-          "timestamp": "2026-03-20T17:55:19.302482",
-          "source": "template"
-        },
-        {
-          "result_us": 123.89861489410823,
-          "parameters": {},
-          "timestamp": "2026-03-20T17:55:29.101314",
-          "source": "template"
-        },
-        {
-          "result_us": 129.36673535050198,
-          "parameters": {},
-          "timestamp": "2026-03-20T17:56:13.906207",
-          "source": "template"
-        },
-        {
-          "result_us": 129.80782611135112,
-          "parameters": {},
-          "timestamp": "2026-03-20T17:56:23.602248",
-          "source": "template"
-        },
-        {
-          "result_us": 118.39467301424885,
-          "parameters": {},
-          "timestamp": "2026-03-20T17:56:48.599606",
-          "source": "template"
-        },
-        {
-          "result_us": 118.10967807899702,
-          "parameters": {},
-          "timestamp": "2026-03-20T17:57:20.000423",
-          "source": "template"
-        }
-      ]
+      "children": [],
+      "notes": "From AITER blog. Unknown if compatible with MXFP4.",
+      "attempt_history": []
     },
     "gemm_n1": {
       "id": "gemm_n1",
