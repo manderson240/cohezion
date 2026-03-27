@@ -54,8 +54,41 @@ For each significant learning or pattern discovered since last retrospect:
 - Note any inconsistencies between core files that need manual resolution
 - Report SurrealDB row counts for genesis tables
 
+### 8. Close the Compound Loop
+The retrospect is the MIDDLE feedback loop (knowledge compound). It must connect to the INNER loop (execution) and feed the OUTER loop (coordination):
+
+- **Vault Persistence**: For each significant learning, call `vault_log_decision()` or `vault_log_experiment()` via cloud-vault-mcp tools to persist to Obsidian vault under the brain-region structure (prefrontal/decisions/, cerebellum/patterns/, hippocampus/experiments/)
+- **Graph Registration**: For each code↔learning connection, use `bidirectional_linker.py` link types (DECISION_TO_CODE, PATTERN_TO_CODE, EXPERIMENT_TO_CODE) to register relationships in the knowledge graph
+- **Skill Refinement**: If any learning affects a PRIME skill's effectiveness, trigger `SkillRefiner.refine()` to append the refinement to the skill definition
+- **Journey Analysis**: If sufficient journey data exists, run `JourneyAnalyzer.generate_report()` on recent trajectories to detect behavioral patterns (Explorer, Stabilizer, Innovator, Oscillator, Drifter archetypes)
+- **Graph Health Check**: Run `graph_health()` via cohezion-maintenance-mcp to measure connectivity coherence, orphan ratio, freshness, and link reciprocity — report Graph HIHO score
+
+### 9. Update Continuation
+If a continuation file exists for this session, update it with:
+- Completed items marked
+- New items from retrospective findings (graph hardening, platform coordination, protocol gaps)
+- Updated competition portfolio (check for deadline extensions, priority shifts)
+- Session learnings reference (L### numbers)
+
+## Knowledge Graph Ontology (Reference)
+
+| Node Type | SurrealDB Table | Source |
+|-----------|----------------|--------|
+| `neuron` | `neurons` | Vault notes (.md) |
+| `decision` | `decisions` | `vault_log_decision()` |
+| `experiment` | `experiments` | `vault_log_experiment()` |
+| `pattern` | `patterns` | `vault_extract_pattern()` |
+| `skill` | `skills` | PRIME .md files |
+| `code_module` | `code_modules` | Python source files |
+| `journey` | `journeys` | JourneyTracker trajectories |
+| `agent` | `agents` | Agent definitions |
+
+**Graph HIHO** = weighted avg of: connectivity (>0.8) + reciprocity (>0.6) + freshness (>0.3) + 1-orphan_ratio (<0.1). Target: 0.5 ± 0.15.
+
 ## Rules
 - NEVER delete knowledge without first reading and understanding it
 - Prefer compression over deletion (turn 5 verbose entries into 1 concise entry)
 - Every claim in README.md must be adversarially verifiable
 - CLAUDE.md is the single source of truth — other files defer to it
+- Close the compound loop: every insight must flow to vault + graph + skills, not just markdown files
+- Report Graph HIHO score alongside test counts

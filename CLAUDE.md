@@ -90,10 +90,33 @@ See skill: `cohezion-vault-workflow` for vault API examples (log decisions, expe
 | **Genesis UI** | 12 components across 8 tabs: BlochSphere, GenesisScene, FlumeLatentViz, SwarmTopologyViz, etc. | `/genesis` route |
 | **Knowledge** | Vault-First (decisions/patterns/experiments), auto-compiled MEMORY.md | `vault_find_relevant_context` |
 
+### ⚡ Agent Protocol Stack (6-Protocol Architecture)
+| Protocol | Purpose | Cohezion Status |
+|----------|---------|----------------|
+| **MCP** | Agent ↔ Tool connectivity | **Strong** (41+ tools via cloud-vault-mcp, compound-mcp, maintenance-mcp) |
+| **A2A** | Agent ↔ Agent discovery/coordination | **In Progress** (7 specialist agents with agent cards) |
+| **UCP** | Commerce lifecycle | N/A |
+| **AP2** | Payment authorization | N/A |
+| **A2UI** | Agent ↔ UI composition | **Partial** (Genesis webapp REST APIs) |
+| **AG-UI** | Event streaming transport | **Partial** (WebSocket endpoints) |
+
+### ⚡ Platform Coordination
+| Specialist | Role | Format |
+|-----------|------|--------|
+| `vault-keeper` | Vault health, orphan detection, frontmatter enforcement | Agent + PRIME |
+| `surreal-dba` | Schema validation, index optimization, graph health | Agent + PRIME |
+| `claude-specialist` | Claude Code/API optimization, agent teams | Agent + PRIME |
+| `gemini-specialist` | Gemini CLI, Google ADK, ecosystem integration | Agent + PRIME |
+| `ollama-specialist` | Local model lifecycle, VRAM, DynamicModelRouter | Agent + PRIME |
+| `mcp-specialist` | MCP server lifecycle, tool schemas, health monitoring | Agent + PRIME |
+| `platform-coordinator` | Cross-platform routing, cost tiers, fallback chains | Agent + PRIME |
+
+**Cost routing tiers**: 70% simple (Ollama/Flash-Lite, free) → 20% medium (Sonnet, $3/M) → 10% hard (Opus, $15/M)
+
 ### ⚡ Quick Reference
 - **Language**: Python 3.13+ | **Package Manager**: `uv` (never bare python)
 - **DB**: SurrealDB (ws://localhost:8000) | **API**: FastAPI :8080
-- **Tests**: 5,255+ passing (4,891 core + 364 genesis: physics/world-model/environments/swarm/worldviews/ouroboros) | **Coverage**: html report in `htmlcov/`
+- **Tests**: 5,160 passing / 47 failing (98.5%) — verified 2026-03-27 | **Coverage**: html report in `htmlcov/`
 - **CI**: `make lint-check && uv run pytest` before commit
 - **Entry point**: `cohezion = "cohezion.__main__:main"`
 - **Vault**: `~/vaults/cohezion-vault/` — Query via `vault_find_relevant_context(query)`

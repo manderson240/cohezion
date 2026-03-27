@@ -368,3 +368,22 @@ Agents modeled as Evolutionary Viable Organisms (EVOs) with fitness landscapes d
 
 ### Learning 197: Ralph Loop — Multi-Model Specialist Orchestration
 5 specialist teams with multi-model orchestration executed 10+ commits and 364+ genesis tests in a single session. The Ralph Loop pattern (research → implement → verify → document) scales to parallel specialist teams working on independent vertical slices, then merging via worktree sync. Key: each team owns a complete slice (code + tests + docs), preventing integration theater.
+
+---
+
+## Session 76: Retrospective + Knowledge Architecture (2026-03-27)
+
+### Learning 198: The Three Feedback Loops (Compound Architecture)
+The Charter mandates three interlocking feedback loops: Inner (execution: CompoundExecutor → SkillRefiner), Middle (knowledge: retrospect → vault → SurrealDB graph → skill refinement → governance), Outer (coordination: platform specialists → cost routing → cross-session transfer). Only the inner loop partially works. The retrospect command is a text processor, not a compound orchestrator — it never calls `vault_log_decision()`, `SkillRefiner.refine()`, `BidirectionalLinker`, or `JourneyAnalyzer` (949 lines of unused analysis infrastructure). Closing the middle loop is the highest-impact gap.
+
+### Learning 199: 6-Protocol Agent Stack (MCP/A2A/UCP/AP2/A2UI/AG-UI)
+Google's Developer Guide (March 2026) identifies 6 complementary protocols: MCP (tool connectivity), A2A (agent discovery/coordination), UCP (commerce), AP2 (payment auth), A2UI (UI composition), AG-UI (event streaming). Cohezion has strong MCP (41+ tools) but zero A2A. The missing A2A layer prevents agents from discovering each other's capabilities and delegating without central orchestration. Agent cards (`.well-known/agent.json`) enable protocol-compliant discovery.
+
+### Learning 200: Graph HIHO — Knowledge Coherence Metric
+The knowledge graph needs its own HIHO-like health metric: connectivity coherence (connected/total nodes, target >0.8), link reciprocity (bidirectional paths, target >0.6), freshness (updated in 30 days, target >0.3), orphan ratio (disconnected/total, target <0.1). Weighted average = Graph HIHO (target 0.5±0.15). This grounds graph maintenance in the same mathematical framework as agent coherence.
+
+### Learning 201: Dual-Format Agent Definitions (Agent + PRIME Skill)
+Platform specialist agents need both a Claude Code agent definition (`.claude/agents/*.md`) for interactive subagent use AND a matching PRIME skill definition (`src/cohezion/skills/*.md`) for cross-platform + compound loop compatibility. The agent file defines tools/model/permissions; the PRIME skill defines domain knowledge/patterns/anti-patterns. Together they enable the same specialist to operate in Claude Code, Gemini CLI, or any MCP-compatible framework.
+
+### Learning 202: MCP Specialist as Meta-Agent
+The MCP layer is the nervous system connecting all agents to tools. Without a specialist who manages server lifecycle, tool schemas, health monitoring, and inter-server data flow, the coordination layer is fragile. The `mcp-health-check.sh` hook (3-service ping at session start) is the embryo; the MCP specialist agent graduates it to an active operational capability. Scope: all servers (cloud-vault-mcp, cohezion-compound, bmad, cohezion-maintenance-mcp), settings management, permission orchestration.

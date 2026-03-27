@@ -176,7 +176,12 @@ All agent execution runs in isolation with resource governance:
 | [`persistence/`](src/cohezion/persistence/) | SurrealDB + JSONL checkpoint storage | `SessionManager` |
 | [`security/`](src/cohezion/security/) | Prompt guardrails, output filtering | `GuardrailPipeline` |
 | [`reliability/`](src/cohezion/reliability/) | Circuit breakers, resource monitoring | `get_circuit()` |
-| [`api/`](src/cohezion/api/) | FastAPI server (72 endpoints) | `app` |
+| [`physics/`](src/cohezion/physics/) | SU(2) spinors, Riemannian, Lagrangian, gauge theory, cosmogony | `SpinorState` |
+| [`world_model/`](src/cohezion/world_model/) | JEPA predictor, bioelectric network, EVO model, natural capital | `JEPAWorldModel` |
+| [`worldviews/`](src/cohezion/worldviews/) | 16 indigenous traditions × 10 cosmogony steps | `WorldviewExplorer` |
+| [`ouroboros/`](src/cohezion/ouroboros/) | Self-referential loop closure, mycelium network | `OuroborosBridge` |
+| [`environments/`](src/cohezion/environments/) | ManifoldEnv (gymnasium), SwarmEnv (multi-agent) | `gym.make('Cohezion/ManifoldEnv-v0')` |
+| [`api/`](src/cohezion/api/) | FastAPI server (55+ endpoints) | `app` |
 
 ---
 
@@ -188,7 +193,7 @@ git clone https://github.com/manderson240/cohezion.git
 cd cohezion
 uv sync
 
-# Run the test suite (3,200+ tests)
+# Run the test suite (5,200+ tests)
 uv run pytest tests/ -q
 
 # Start the API server
@@ -274,7 +279,7 @@ print(f"Metrics: {result.metrics}")
 
 ```bash
 # Full suite
-uv run pytest tests/ -q  # 3,486 pass; SurrealDB integration tests require live DB
+uv run pytest tests/ -q  # 5,160 pass; SurrealDB integration tests require live DB
 
 # By module
 uv run pytest tests/compound/ -v       # Compound engineering (275 tests)
@@ -297,7 +302,7 @@ make format && make lint && make type-check
 - **ML**: PyTorch (VAE, RL policy), Gymnasium (RL environments), sentence-transformers (embeddings)
 - **Backend**: FastAPI, SurrealDB (async), JSONL fallback
 - **Inference**: Ollama (local models), Anthropic API, cost-aware model routing
-- **Quality**: ruff (format + lint, 203 errors remaining), mypy (type checking), pytest (3,486 passing)
+- **Quality**: ruff (format + lint), mypy (type checking), pytest (5,160 passing)
 - **Deployment**: Docker, Cloud Run, systemd
 
 ---
@@ -306,11 +311,11 @@ make format && make lint && make type-check
 
 | Metric | Value |
 |--------|-------|
-| Source modules | 391 Python files across 68 packages |
-| Test functions | 4,936 collected |
-| Test pass rate | 4,891 passing / 43 failing (pre-existing, SurrealDB integration tests require live DB) |
-| PRIME skill definitions | 74 (registry) / 134 (.md files) |
-| API endpoints | 72 |
+| Source modules | 702 Python files across 173 packages |
+| Test functions | 5,237 collected |
+| Test pass rate | 5,160 passing / 47 failing (98.5%, verified 2026-03-27) |
+| PRIME skill definitions | 171 (.md files) |
+| API endpoints | 55+ |
 | RL coherence (trained) | 0.991 avg |
 | HIHO band compliance | 92.7% of executions |
 | Simulation stability | 25M cycles |
