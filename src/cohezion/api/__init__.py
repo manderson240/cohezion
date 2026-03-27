@@ -1700,6 +1700,14 @@ try:
 except ImportError:
     pass  # mycelium module not available
 
+# Register disconnected modules API (M24)
+try:
+    from cohezion.api.services.modules_api import modules_router
+
+    app.include_router(modules_router, prefix="/api")
+except ImportError:
+    pass  # modules API not available
+
 # Register telemetry websocket
 app.include_router(telemetry_router)
 
