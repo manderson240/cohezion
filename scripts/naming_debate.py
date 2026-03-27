@@ -67,7 +67,7 @@ async def orchestrate_naming_debate():
     with open("naming_consensus_result.md", "w") as f:
         f.write("# 🤝 Democratic Consensus: Skill Naming Conventions\n\n")
         f.write(f"## Architect View\n{arch_resp}\n\n")
-        f.write(f"## Analyst View\n{analyst_resp}\n\n")
+        f.write(f"## Analyst View\n{analyst_content}\n\n")
         f.write(f"## Critic Recommendation\n{critique_result.recommendation}\n\n")
         f.write(f"## Final Winner\n{final_consensus}\n")
 
