@@ -387,3 +387,18 @@ Platform specialist agents need both a Claude Code agent definition (`.claude/ag
 
 ### Learning 202: MCP Specialist as Meta-Agent
 The MCP layer is the nervous system connecting all agents to tools. Without a specialist who manages server lifecycle, tool schemas, health monitoring, and inter-server data flow, the coordination layer is fragile. The `mcp-health-check.sh` hook (3-service ping at session start) is the embryo; the MCP specialist agent graduates it to an active operational capability. Scope: all servers (cloud-vault-mcp, cohezion-compound, bmad, cohezion-maintenance-mcp), settings management, permission orchestration.
+
+### Learning 203: Intern-S1 SAGE Framework = Expert Domain Lattice
+InternLM's Intern-S1 (arxiv 2603.25040) uses the SAGE framework: Foundation→Fusion→Evolution with Grouped Routing and STE gradient estimation across 512 experts. This maps to Cohezion's Expert Domain Lattice (Charter §8) — both route through specialists but maintain general capabilities. Intern-S1-mini (8B, GGUF Q8=8.7GB) runs on Ollama and could replace phi3:mini for scientific reasoning tasks.
+
+### Learning 204: s1 Budget Forcing = Test-Time Compute Without RL
+Stanford's s1 paper (arxiv 2501.19393) achieves 57% AIME 2024 (vs o1-preview's 44%) using only 1K training examples + "budget forcing" (append "Wait" tokens to extend reasoning). No RL, no PRM, no special infrastructure — just SFT on Qwen2.5-32B. This is the most practical test-time scaling technique for Cohezion's competitions (AIMO3, Nemotron). Directly implementable with FLUME domain encoder for trajectory capture.
+
+### Learning 205: AIMO3 Three-Pillar Approach (NemoSkills Winner)
+AIMO2 winner (Nvidia NemoSkills) used: (1) 540K problems + 3.2M long-reasoning solutions dataset, (2) Tool-Integrated Reasoning (TIR) — code execution interleaved with CoT, (3) GenSelect — train a model to pick the best solution from N candidates, significantly beating majority voting. Score: 34/50 on private leaderboard. AIMO3 has H100 GPUs and harder problems.
+
+### Learning 206: Test-Time Interaction (TTI) > Test-Time Compute (TTC)
+Traditional test-time scaling generates long reasoning traces. TTI adds a new dimension: instead of thinking more, *interact more* — explore, backtrack, re-plan with environment feedback. Gemma 3 12B achieves SOTA open-source web agents via TTI. This maps directly to Cohezion's JourneyTracker + surprise explorer: agents don't just think harder, they explore the manifold dynamically.
+
+### Learning 207: Background Agent Permission Isolation
+Background agents (spawned via Agent tool with `run_in_background=true`) inherit more restrictive permissions than the main session. The platform-specialist-creator had content prepared for 9 files but Write was consistently denied. Pattern: use background agents for research/generation, execute file writes from main session. This compounds with the existing hook system — hooks may also behave differently for subagents.
