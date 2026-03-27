@@ -2,12 +2,16 @@
 
 A central registry of the swarm's **6-Dimensional Service Architecture**. Only "Prime" skills are listed here.
 
+**Last updated**: 2026-03-27 (Session 76). **702 Python files, 178 PRIME skills, 5,160 passing tests (98.5%).**
+
 ## 1. PROPRIOCEPTION (Ouroboros Service)
 *The Nervous System: Health, Hygiene, and Self-Correction.*
 - **Reflex**: [SELF_HEALING_PRIME](file:///home/mike-anderson/dev/cohezion/src/cohezion/skills/SELF_HEALING_PRIME.md) (ReflexAgent).
 - **Pruning**: [REPO_HYGIENE_PRIME](file:///home/mike-anderson/dev/cohezion/src/cohezion/skills/REPO_HYGIENE_PRIME.md) (PrunerAgent).
 - **Rescue**: [KNOWLEDGE_HARVESTING_PRIME](file:///home/mike-anderson/dev/cohezion/src/cohezion/skills/KNOWLEDGE_HARVESTING_PRIME.md) (Ghost Harvest).
 - **Telemetry**: [SYSTEM_MONITORING_PRIME](file:///home/mike-anderson/dev/cohezion/src/cohezion/skills/SYSTEM_MONITORING_PRIME.md).
+- **Maintenance MCP**: `cohezion-maintenance-mcp/` — 6 tools: graph_health, graph_prune_orphans, graph_compact, verify_graph_schema, vault_audit, surreal_table_stats.
+- **Graph HIHO**: Weighted metric (connectivity 0.3, reciprocity 0.2, freshness 0.2, 1-orphan_ratio 0.3). Target: 0.5 +/- 0.15.
 
 ## 2. COGNITION (FLUME Service)
 *The Mind: Latent Navigation & Logic.*
@@ -45,6 +49,9 @@ A central registry of the swarm's **6-Dimensional Service Architecture**. Only "
 - **Data**: [TRAINING_DATA_CAPTURE_PRIME](file:///home/mike-anderson/dev/cohezion/src/cohezion/skills/TRAINING_DATA_CAPTURE_PRIME.md).
 - **JEPA**: World model predicting manifold evolution (`world_model/jepa_world_model.py`).
 - **Research**: [EXTERNAL_RESEARCH_PRIME](file:///home/mike-anderson/dev/cohezion/src/cohezion/skills/EXTERNAL_RESEARCH_PRIME.md).
+- **Intern-S1-mini**: 8B scientific reasoning model (pulled to Ollama). Part of 47-model local inventory.
+- **Specialist Agents (7)**: vault-keeper, surreal-dba, claude/gemini/ollama/mcp-specialist, platform-coordinator — A2A agent cards + PRIME skills.
+- **Cost Tiers**: 70% simple (Ollama/Flash-Lite, free) → 20% medium (Sonnet, $3/M) → 10% hard (Opus, $15/M).
 
 ## 6. INFRASTRUCTURE (VLIW Service)
 *The Substrate: Hardware & Data.*
@@ -52,6 +59,13 @@ A central registry of the swarm's **6-Dimensional Service Architecture**. Only "
 - **Ops**: [IDE_OPTIMIZATION_PRIME](file:///home/mike-anderson/dev/cohezion/src/cohezion/skills/IDE_OPTIMIZATION_PRIME.md).
 - **Security**: [SECURITY_GUARDRAILS_PRIME](file:///home/mike-anderson/dev/cohezion/src/cohezion/skills/SECURITY_GUARDRAILS_PRIME.md).
 
-## DORMANT PROTOCOLS
-- **Mycelium**: [Proposed] Test Synthesis & Preservation (`ShadowScripter`).
-- **Quantum MPS**: [Dormant] Matrix Product States for Q-Sim.
+## 7. COMPETITION (Kaggle Arena)
+*Active competition tracks.*
+- **AMD Speedrun**: 3 kernels ranked; MoE closest to parity (1.41x gap); GEMM quant ceiling confirmed.
+- **Nemotron**: v20 adapter trained (LoRA r=32); submission uploading.
+- **AIMO3**: Sandbox exists; evaluation framework built; H100 compute available.
+- **Kaggle API**: Restored with KGAT_ token auth (`KAGGLE_API_TOKEN` env var).
+
+## PREVIOUSLY DORMANT — NOW ACTIVE
+- **Mycelium**: Implemented — `learning/mycelium_network.py`, `learning/mycelium_registry.py`, API at `/api/mycelium` (3 endpoints).
+- **Quantum MPS**: Implemented — `physics/quantum/peaked_solver.py`, 36-qubit MPS (Bond 64), bit-exact. PRIME skill: `QUANTUM_MPS_ROUTING_PRIME`.
