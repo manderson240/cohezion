@@ -60,6 +60,9 @@ from cohezion.physics.lagrangian import LagrangianDynamics, hiho_potential
 from cohezion.physics.riemannian_metric import fabric_block_metric
 from cohezion.physics.spinor import SpinorState
 
+# Valid dynamics engine choices
+DYNAMICS_ENGINES = ("lagrangian", "hamiltonian")
+
 logger = logging.getLogger(__name__)
 
 
@@ -102,6 +105,7 @@ class ManifoldEnv(gym.Env):
         reward_energy_weight: float = 0.1,
         render_mode: str | None = None,
         seed: int | None = None,
+        dynamics_engine: str = "lagrangian",
     ) -> None:
         super().__init__()
 
@@ -121,12 +125,26 @@ class ManifoldEnv(gym.Env):
         # Action: 12D continuous velocity vector
         self.action_space = spaces.Box(low=-0.5, high=0.5, shape=(dim,), dtype=np.float32)
 
-        # Physics engine
+        # Physics engine selection
+        if dynamics_engine not in DYNAMICS_ENGINES:
+            raise ValueError(
+                f"dynamics_engine must be one of {DYNAMICS_ENGINES}, got '{dynamics_engine}'"
+            )
+        self.dynamics_engine = dynamics_engine
+
         self._metric = fabric_block_metric(dim)
         self._potential = hiho_potential(dim)
-        self._dynamics = LagrangianDynamics(self._metric, self._potential, damping=damping)
         self._fiber_bundle = FiberBundle(dim)
         self._gauge = FourFabricGauge()
+
+        if dynamics_engine == "hamiltonian":
+            from cohezion.physics.hamiltonian import HamiltonianDynamics
+
+            self._hamiltonian = HamiltonianDynamics(dt=dt, temperature=damping)
+            self._dynamics = None  # type: ignore[assignment]
+        else:
+            self._hamiltonian = None
+            self._dynamics = LagrangianDynamics(self._metric, self._potential, damping=damping)
 
         # State
         self._position = np.full(dim, 0.5, dtype=np.float32)
@@ -175,12 +193,18 @@ class ManifoldEnv(gym.Env):
         # Apply action as velocity perturbation
         self._velocity = self._velocity * 0.9 + action * 0.1  # Smooth velocity update
 
-        # Evolve via Lagrangian dynamics (one Verlet step)
-        new_pos, new_vel = self._dynamics.step_verlet(
-            self._position.astype(np.float64),
-            self._velocity.astype(np.float64),
-            self.dt,
-        )
+        # Evolve via selected dynamics engine
+        if self.dynamics_engine == "hamiltonian":
+            z = self._position.astype(np.float32).reshape(1, -1)
+            z_new = self._hamiltonian.step(z, rng=self._rng)
+            new_pos = z_new.flatten()
+            new_vel = (new_pos - self._position) / self.dt
+        else:
+            new_pos, new_vel = self._dynamics.step_verlet(
+                self._position.astype(np.float64),
+                self._velocity.astype(np.float64),
+                self.dt,
+            )
         self._position = np.clip(new_pos, -1.5, 2.0).astype(np.float32)
         self._velocity = new_vel.astype(np.float32)
 
@@ -245,7 +269,9 @@ class ManifoldEnv(gym.Env):
             "kinetic_energy": self._dynamics.kinetic_energy(
                 self._position.astype(np.float64),
                 self._velocity.astype(np.float64),
-            ),
+            )
+            if self._dynamics is not None
+            else 0.5 * float(np.sum(self._velocity**2)),
             "episode_reward": self._episode_reward,
             "trajectory_length": len(self._trajectory),
         }
@@ -293,4 +319,4 @@ gym.register(
 )
 
 
-__all__ = ["ManifoldEnv"]
+__all__ = ["DYNAMICS_ENGINES", "ManifoldEnv"]

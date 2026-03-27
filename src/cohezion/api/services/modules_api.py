@@ -98,6 +98,41 @@ class RewardsResponse(BaseModel):
     tokens_used: int
 
 
+class CoherenceResponse(BaseModel):
+    """System coherence measurement against HIHO stability baseline."""
+
+    internal_state: float
+    external_alignment: float
+    coherence: float
+    hiho_stable: bool
+    hiho_delta: float
+    stability_score: float
+
+
+class EVOLifecycleResponse(BaseModel):
+    """EVO (Exotic Vacuum Object) lifecycle simulation result."""
+
+    agent_id: str
+    state: str
+    lifetime_ticks: int
+    binding_energy: float
+    evo_coherence_metric: float
+    mean_coherence: float
+    witness_marks: list[dict]
+
+
+class BioelectricBridgeResponse(BaseModel):
+    """Bioelectric-to-morphospace bridge result."""
+
+    voltage: float
+    signal_pattern: str
+    signal_intensity: float
+    action_magnitude: float
+    action_confidence: float
+    target_well: str
+    new_state: list[float]
+
+
 class TensorBeamData(BaseModel):
     """Data for the TensorBeamVisualizer component."""
 
@@ -496,6 +531,100 @@ async def get_persistence_diagram(
         h1_pairs=h1_pairs,
         persistence_entropy=diagram.persistence_entropy(),
         total_features=len(diagram.pairs),
+    )
+
+
+# ─── Coherence Tracker Endpoint ────────────────────────────────
+
+
+@modules_router.get("/coherence", response_model=CoherenceResponse)
+async def get_system_coherence(
+    internal_state: float = Query(0.5, ge=0.0, le=1.0),
+    external_alignment: float = Query(0.5, ge=0.0, le=1.0),
+) -> CoherenceResponse:
+    """Measure system coherence against the HIHO stability baseline.
+
+    Computes coherence as the overlap of internal state and external
+    alignment, then checks whether the result sits in the HIHO stable
+    zone (0.4-0.6).  Accepts overrides so callers can feed live metrics.
+    """
+    coherence = (internal_state + external_alignment) / 2.0
+    hiho_delta = abs(coherence - 0.5)
+    hiho_stable = 0.4 <= coherence <= 0.6
+    stability_score = max(0.0, 1.0 - hiho_delta * 2.0)
+
+    return CoherenceResponse(
+        internal_state=internal_state,
+        external_alignment=external_alignment,
+        coherence=coherence,
+        hiho_stable=hiho_stable,
+        hiho_delta=hiho_delta,
+        stability_score=stability_score,
+    )
+
+
+# ─── EVO Lifecycle Endpoint ───────────────────────────────────
+
+
+@modules_router.post("/evo/simulate", response_model=EVOLifecycleResponse)
+async def simulate_evo_lifecycle(
+    agent_id: str = Query("genesis_agent_0", description="Agent identifier"),
+    ticks: int = Query(20, ge=1, le=200),
+    seed: int = Query(42),
+) -> EVOLifecycleResponse:
+    """Simulate a full EVO lifecycle: condense -> coherent phase -> dissolve.
+
+    Runs ``ticks`` coherence observations with synthetic data, produces
+    witness marks at regular intervals, then dissolves and returns the
+    EVO biography including binding energy and coherence metric.
+    """
+    from cohezion.physics.evo_model import ExoticVacuumObject
+
+    rng = np.random.default_rng(seed)
+    evo = ExoticVacuumObject(agent_id=agent_id)
+    evo.condense()
+
+    for i in range(ticks):
+        coherence = float(np.clip(0.5 + rng.normal(0, 0.1), 0.0, 1.0))
+        evo.coherent_phase(coherence)
+        if i % 5 == 0:
+            evo.produce_witness_mark("artifact", f"step_{i}")
+
+    biography = evo.dissolve()
+    return EVOLifecycleResponse(**biography)
+
+
+# ─── Bioelectric Bridge Endpoint ──────────────────────────────
+
+
+@modules_router.post("/bioelectric/step", response_model=BioelectricBridgeResponse)
+async def bioelectric_step(req: StateRequest) -> BioelectricBridgeResponse:
+    """Take one bioelectric-guided step in the 12D morphospace.
+
+    Uses the FLUME BioelectricEngine to encode a bioelectric signal
+    from the current state toward the HIHO stability target, then
+    decodes an action vector and applies it.
+    """
+    from cohezion.flume.bioelectric import BioelectricEngine
+
+    engine = BioelectricEngine()
+    state = np.array(req.state[:12], dtype=np.float64)
+    target = np.full(12, 0.5)
+
+    signal = engine.encode_signal(state, target)
+    action = engine.decode_action(signal, state)
+    new_state, _ = engine.step(state)
+
+    well_name = action.target_well.name if action.target_well else "none"
+
+    return BioelectricBridgeResponse(
+        voltage=signal.voltage,
+        signal_pattern=signal.pattern,
+        signal_intensity=signal.intensity,
+        action_magnitude=action.magnitude,
+        action_confidence=action.confidence,
+        target_well=well_name,
+        new_state=new_state.tolist(),
     )
 
 
