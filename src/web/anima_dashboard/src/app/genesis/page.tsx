@@ -47,8 +47,16 @@ const ThermodynamicStateLive = dynamic(
   () => import("@/components/genesis/ThermodynamicStateLive"),
   { ssr: false }
 );
+const SwarmTopologyViz = dynamic(
+  () => import("@/components/genesis/SwarmTopologyViz"),
+  { ssr: false }
+);
+const FlumeLatentViz = dynamic(
+  () => import("@/components/genesis/FlumeLatentViz"),
+  { ssr: false }
+);
 
-type GenesisTab = "cosmogony" | "bloch" | "thermo" | "compound" | "cache" | "about";
+type GenesisTab = "cosmogony" | "bloch" | "thermo" | "compound" | "swarm" | "cache" | "flume" | "about";
 
 export default function GenesisPage() {
   const [tab, setTab] = useState<GenesisTab>("cosmogony");
@@ -90,7 +98,9 @@ export default function GenesisPage() {
     { key: "bloch", label: "SPIN Lab", desc: "Interactive Bloch Sphere" },
     { key: "thermo", label: "Thermo", desc: "Statistical Mechanics" },
     { key: "compound", label: "Compound", desc: "11-Step Pipeline" },
+    { key: "swarm", label: "Swarm", desc: "TDA Topology" },
     { key: "cache", label: "Cache/Cost", desc: "Optimization" },
+    { key: "flume", label: "FLUME", desc: "Latent Space" },
     { key: "about", label: "About", desc: "The Mathematics" },
   ];
 
@@ -258,6 +268,22 @@ export default function GenesisPage() {
             </div>
           </div>
         )}
+        {tab === "swarm" && (
+          <div className="space-y-6">
+            <SwarmTopologyViz />
+            <div className="bg-black/90 border border-gray-700 rounded-lg p-4 font-mono">
+              <h3 className="text-sm text-green-400 font-bold mb-2">Topology-Aware Routing</h3>
+              <p className="text-[11px] text-gray-400 leading-relaxed">
+                The TopologicalRouter uses persistent homology to classify agents into three regimes:
+                <strong className="text-green-400"> Exploit</strong> (stable cluster, send familiar tasks),
+                <strong className="text-cyan-400"> Explore</strong> (between clusters, send novel tasks),
+                <strong className="text-red-400"> Pivot</strong> (stuck in loops, needs strategy change).
+                This goes beyond visualization — TDA DRIVES routing decisions, producing
+                topologically-informed agent assignments.
+              </p>
+            </div>
+          </div>
+        )}
         {tab === "cache" && (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <CacheTopologyViz />
@@ -282,6 +308,22 @@ export default function GenesisPage() {
                   lookup catches long-tail reuse patterns.
                 </p>
               </div>
+            </div>
+          </div>
+        )}
+        {tab === "flume" && (
+          <div className="space-y-6">
+            <FlumeLatentViz />
+            <div className="bg-black/90 border border-gray-700 rounded-lg p-4 font-mono">
+              <h3 className="text-sm text-green-400 font-bold mb-2">FLUME: The Enabling Innovation</h3>
+              <p className="text-[11px] text-gray-400 leading-relaxed">
+                FLUME (Fluid Latent Understanding through Manifold Encoding) is the 256D VAE
+                that enables everything. The Fisher information metric on the FLUME latent space
+                simultaneously defines: (1) the natural geometry of the latent space,
+                (2) the Riemannian metric for Lagrangian dynamics, (3) the thermodynamic metric
+                for entropy and free energy, and (4) the optimal 12D projection. Without FLUME,
+                there is no manifold, no geometry, no physics — just numbers.
+              </p>
             </div>
           </div>
         )}
