@@ -77,5 +77,12 @@ uv run python -m cohezion simulate --example coherence_walk  # Run simulation
 - **Reward System**: Agent progress is tracked via XP and achievements (see `cohezion rewards status`).
 - **Ouroboros**: System flight recorder for self-healing (see `cohezion ouroboros`).
 
+## 7. Kaggle Blackwell Handshake (Critical)
+When orchestrating jobs on Kaggle G4 (Blackwell) infrastructure, standard `accelerator` requests will fail. You MUST follow this handshake:
+1.  **Metadata**: Set `"machine_shape": "NvidiaRtxPro6000"` and `"dockerImageVersionId": 31287` in the internal `.ipynb` metadata.
+2.  **Environment**: Copy the `nvidia_utility_script` to `/tmp` and `chmod +x` the `ptxas-blackwell` binary.
+3.  **Triton**: Set `os.environ["TRITON_PTXAS_PATH"]` to the `/tmp` binary path.
+4.  **Auth**: Pre-authorize models in the `"model_sources"` metadata array.
+
 > [!IMPORTANT]
 > Always use `uv run` for executing Python scripts to ensure environment consistency. Refer to `.agent/CONSTITUTION.md` for ethical and behavioral guidelines.

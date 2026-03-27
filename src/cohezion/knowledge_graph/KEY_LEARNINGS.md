@@ -402,3 +402,9 @@ Traditional test-time scaling generates long reasoning traces. TTI adds a new di
 
 ### Learning 207: Background Agent Permission Isolation
 Background agents (spawned via Agent tool with `run_in_background=true`) inherit more restrictive permissions than the main session. The platform-specialist-creator had content prepared for 9 files but Write was consistently denied. Pattern: use background agents for research/generation, execute file writes from main session. This compounds with the existing hook system — hooks may also behave differently for subagents.
+
+### Learning 208: Hidden Multi-Platform Infrastructure (Claude + Gemini + OpenCode)
+Cohezion operates across 3 AI platforms simultaneously: `.claude/` (41+ MCP tools, hooks, skills), `.gemini/` (6 MCP servers: skills, research, surreal, swarm, knowledge, bmad), `.opencode/` (113 BMAD commands, provider fallback chains, 4-tier cost routing). `TipOfTheSpearRouter` already implements HOT→WARM→COLD→CLOUD routing and `config/providers.yaml` defines fallback chains. `AGENTS.md` (366 lines) is the cross-platform Rosetta Stone. The platform-coordinator should CONSUME these existing configs, not rebuild them.
+
+### Learning 209: Competition Licensing Conflict (CC BY 4.0 vs MIT-0)
+ARC Prize requires CC0/MIT-0 (public domain). AIMO/Nemotron require CC BY 4.0 (attribution). These conflict — CC BY 4.0 disqualifies from ARC ($-2M). Solution: MIT-0 for all (most permissive, accepted everywhere) or dual licensing per competition. Must decide before first AIMO submission.

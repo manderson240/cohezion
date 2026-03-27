@@ -62,3 +62,12 @@
 - [ ] Task: Document Reproduction Environment
     - [ ] Implement: Create a `REPRODUCTION.md` file documenting the exact Docker image (`dockerImageVersionId: 31287`), hardware (Blackwell G4), and dependency installation steps (`--no-build-isolation`).
 - [ ] Task: Conductor - User Manual Verification 'Submission Governance' (Protocol in workflow.md)
+
+## Phase 9: Blackwell FP4 Transition (v21 Mutation)
+- [ ] Task: Transformer Engine (TE) Integration
+    - [ ] Implement: Integrate `nvidia-transformer-engine` into the Kaggle environment setup logic.
+- [ ] Task: FP4 Micro-Tensor Scaling Implementation
+    - [ ] Implement: Refactor the training loop to use `te.autocast` with the `NVFP4BlockScaling` recipe for 4x throughput.
+- [ ] Task: FP4 Accuracy & Throughput Benchmark
+    - [ ] Implement: Execute v21 and compare results against the v20 BF16 baseline to ensure no "Reasoning Decay" occurs in 4-bit floating point.
+- [ ] Task: Conductor - User Manual Verification 'FP4 Optimization' (Protocol in workflow.md)
