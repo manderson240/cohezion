@@ -1,6 +1,7 @@
-from problem import SCRATCH_SIZE, VLEN
-from optimizer import VLIWPacker, KernelConfig
 from dataclasses import dataclass
+
+from optimizer import KernelConfig, VLIWPacker
+from problem import SCRATCH_SIZE, VLEN
 
 
 @dataclass

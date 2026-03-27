@@ -1,15 +1,16 @@
+import random
+
+import optimizer
 from problem import (
-    DebugInfo,
+    HASH_STAGES,
     N_CORES,
+    DebugInfo,
+    Input,
     Machine,
     Tree,
-    Input,
-    HASH_STAGES,
     build_mem_image,
     reference_kernel2,
 )
-import random
-import optimizer
 
 
 class KernelBuilder:

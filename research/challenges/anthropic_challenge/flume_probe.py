@@ -1,12 +1,12 @@
-import sys
 import os
+import sys
 
 # Add src to path
 sys.path.append(os.path.join(os.getcwd(), "src"))
 sys.path.append(os.getcwd())
 
 try:
-    from anthropic_challenge.problem import Tree, Input
+    from anthropic_challenge.problem import Input, Tree
 except ImportError:
     # Fallback or assume running from root
     pass

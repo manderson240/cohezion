@@ -1,4 +1,4 @@
-from problem import Tree, Input, build_mem_image, reference_kernel2
+from problem import Input, Tree, build_mem_image, reference_kernel2
 
 f = Tree.generate(10)
 inp = Input.generate(f, 256, 16)

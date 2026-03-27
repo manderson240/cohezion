@@ -1,5 +1,5 @@
-import simple_builder
 import optimizer
+import simple_builder
 from perf_takehome import do_kernel_test
 
 # Configure Builder injection without touching limits

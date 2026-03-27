@@ -1,15 +1,15 @@
 # Repository Health Report
 
-**Generated**: 2026-03-26T16:20:59.337014
-**Overall Score**: 55.7/100
+**Generated**: 2026-03-27T00:26:18.152075
+**Overall Score**: 47.9/100
 
 ## Code Quality
 - Lint errors: 0
 - Type errors: 0
-- LOC: 147660
+- LOC: 147793
 
 ## Test Health
-- Passing: 0/4967
+- Passing: 0/4989
 - Coverage: 0.0%
 
 ## Technical Debt
@@ -18,9 +18,9 @@
 
 ## Git Health
 - Branches: 189
-- Untracked: 23
+- Untracked: 49
 
 ## 💡 Recommendations
 - Increase test coverage from 0.0% to 80%+
-- Clean up or commit 23 untracked files
+- Clean up or commit 49 untracked files
 - Consider moving 3149 large files to Git LFS

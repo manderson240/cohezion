@@ -1,21 +1,51 @@
 # Luma AMD Speedrun - Session Coordination
 
 ## Status
-- **Last Updated**: 2026-03-25 07:35 UTC
+- **Last Updated**: 2026-03-26 UTC
 - **Active Sessions**: Parallel optimization
-- **Competition Deadline**: March 30, 2026 (5 days remaining)
+- **Competition Deadline**: March 30, 2026 (4 days remaining)
 
-### Current Benchmark Results (2026-03-25)
-| Kernel | Best µs | Rank 1 µs | Gap | Notes |
-|--------|----------|------------|-----|-------|
-| GEMM | **22.0** | 4.327 | **5.1× behind** | JIT 20s+ per shape; no tuned config |
-| MoE | **167.0** | 109.793 | **1.5× behind** | fused_moe + USE_NT=1 + ksplit=4 |
-| MLA | **70.0** | 32.972 | **2.1× behind** | three-regime routing |
+### Current Submissions (Popcorn CLI Verified)
 
-### SurrealDB Results Logged
-- GEMM: 22.0µs (HIP_ONLINE_TUNING=1)
-- MoE: 167.0µs (fused_moe + USE_NT=1 + ksplit=4)
-- MLA: 70.0µs (three-regime routing)
+| Kernel | File | Tests | Submission ID | Geomean µs |
+|---------|------|-------|--------------|-------------|
+| GEMM | `submission.py` | PASSED (4/4) | 642253 | ~21.9 |
+| MLA | `submission.py` | PASSED | 641967 | [secret] |
+| MoE | `submission.py` | PASSED | 642045 | [secret] |
+| MoE | `submission_cktile_direct.py` | PASSED | 641031 | [secret] |
+
+### GEMM Benchmark Results (Latest)
+| Shape | Best µs | Mean µs |
+|-------|----------|-----------|
+| M=4, N=2880, K=512 | 17.4 | 26.6 |
+| M=16, N=2112, K=7168 | 29.1 | 30.2 |
+| M=32, N=4096, K=512 | 17.5 | 18.5 |
+| M=32, N=2880, K=512 | 17.6 | 18.7 |
+| M=64, N=7168, K=2048 | 23.3 | 24.2 |
+| M=256, N=3072, K=1536 | 22.2 | 23.0 |
+| **Geomean** | **21.9** | **~21.9** |
+
+### Leaderboard Names (Confirmed)
+- GEMM: `amd-mxfp4-mm` - Geomean ~21.9µs
+- MLA: `amd-mixed-mla` - Score hidden
+- MoE: `amd-moe-mxfp4` - Score hidden
+
+### Critical Findings (2026-03-26)
+
+#### 1. API Ceiling Confirmed for All Kernels
+All Python-level API optimizations exhausted. Gap to rank 1 requires fundamentally different approaches.
+
+#### 2. Custom Triton BLOCKED for GEMM
+- `float4_e2m1fn_x2` KeyError in Triton's JIT type registry
+- Permanent blocker - cannot be fixed without runner changes
+
+#### 3. MoE cktile Direct Dispatch Unsuccessful
+The `cktile_moe_stage1/2` functions require internal tensor layouts we cannot match.
+Falls back to `fused_moe` which is already near-optimal for the API path.
+
+#### 4. MLA FlashAttention Template Exists But Not Tested
+Template at `autoresearch/templates/mla_flash_template.py` - single-pass kernel design
+Could eliminate 3-stage pipeline overhead but not yet validated on runner.
 
 ### Custom Triton Kernels Plan
 

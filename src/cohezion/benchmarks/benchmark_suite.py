@@ -86,8 +86,7 @@ class BenchmarkTask(ABC):
     @abstractmethod
     def is_success(self, env: Any, evo: Any) -> bool: ...
 
-    @abstractmethod
-    def before_episode(self, env: Any) -> None: ...
+    def before_episode(self, env: Any) -> None: ...  # noqa: B027
 
     def after_episode(self, env: Any, evo: Any) -> dict[str, Any]:
         return {}

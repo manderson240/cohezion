@@ -1,21 +1,21 @@
-import multiprocessing
+import asyncio
 import json
-import time
 import logging
+import multiprocessing
+import os
 import random
 import sys
-import os
-import asyncio
-from dataclasses import dataclass, asdict
-from typing import Dict, Any, List
+import time
+from dataclasses import asdict, dataclass
+from typing import Any, Dict, List
 
 # Add src to path to import cohezion modules
 sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), "../src"))
 
 from cohezion.core.persistence.surreal_client import (
+    PhysicsState,
     SurrealClient,
     UniverseNode,
-    PhysicsState,
 )
 
 # Configure logging
@@ -43,7 +43,7 @@ class SimulationConfig:
     simulation_id: str = ""
 
 
-def run_simulation_worker(config_dict: Dict[str, Any]) -> Dict[str, Any]:
+def run_simulation_worker(config_dict: dict[str, Any]) -> dict[str, Any]:
     """
     Runs a single simulation in a separate process.
     """
@@ -111,7 +111,7 @@ class SurrealLogger:
     def __init__(self):
         self.client = SurrealClient()
 
-    async def log_journey(self, result: Dict[str, Any]):
+    async def log_journey(self, result: dict[str, Any]):
         try:
             cfg = result["config"]
             cycles = result.get("cycles", -1)
@@ -159,7 +159,7 @@ class SwarmController:
         self.surreal_logger = SurrealLogger()
         self.loop = asyncio.new_event_loop()
 
-    def generate_configs(self, n=1000) -> List[Dict[str, Any]]:
+    def generate_configs(self, n=1000) -> list[dict[str, Any]]:
         configs = []
         for i in range(n):
             # FLUME Search Strategy

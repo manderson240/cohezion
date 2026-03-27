@@ -6,6 +6,15 @@
         "hooks": [
           {
             "type": "command",
+            "command": ".claude/hooks/session-worktree-status.sh"
+          }
+        ]
+      },
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
             "command": "entire hooks claude-code session-start"
           }
         ]

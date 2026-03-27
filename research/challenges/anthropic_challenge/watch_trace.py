@@ -1,8 +1,8 @@
 import http.server
 import os
-from datetime import datetime
-import webbrowser
 import urllib.request
+import webbrowser
+from datetime import datetime
 
 
 # Define a handler class

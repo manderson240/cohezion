@@ -1,9 +1,10 @@
-import sys
 import os
+import sys
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 import unittest
-from problem import Tree, Input, Machine, HASH_STAGES
+
+from problem import HASH_STAGES, Input, Machine, Tree
 
 # Check if build_mem_image is in problem, if so import it
 try:
@@ -59,8 +60,9 @@ class AdversarialTests(unittest.TestCase):
         machine.run()
 
         # Verify
-        from problem import reference_kernel
         from copy import deepcopy
+
+        from problem import reference_kernel
 
         inp_ref = deepcopy(inp)
         reference_kernel(forest, inp_ref)

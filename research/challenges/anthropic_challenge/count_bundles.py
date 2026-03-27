@@ -1,4 +1,4 @@
-from optimizer import OptimizedKernelBuilder, KernelConfig
+from optimizer import KernelConfig, OptimizedKernelBuilder
 from problem import HASH_STAGES
 
 

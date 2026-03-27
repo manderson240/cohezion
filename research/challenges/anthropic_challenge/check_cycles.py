@@ -1,5 +1,4 @@
 from problem import N_CORES
-
 from tests.submission_tests import cycles
 
 print(f"Environment N_CORES: {N_CORES}")

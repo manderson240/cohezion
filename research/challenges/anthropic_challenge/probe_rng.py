@@ -1,4 +1,4 @@
-from anthropic_challenge.problem import Tree, Input
+from anthropic_challenge.problem import Input, Tree
 
 # Check if sequences differ between runs
 seeds = set()

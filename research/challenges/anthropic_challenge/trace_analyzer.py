@@ -1,5 +1,5 @@
-import json
 import collections
+import json
 
 
 def analyze(filename):
