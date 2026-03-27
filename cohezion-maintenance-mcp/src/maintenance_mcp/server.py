@@ -47,12 +47,13 @@ mcp = FastMCP(
 async def _surreal_query(query: str) -> list:
     """Execute a SurrealDB query with graceful fallback."""
     try:
-        from surrealdb import Surreal
+        from surrealdb import AsyncSurreal
 
-        async with Surreal(SURREAL_URL) as db:
-            await db.signin({"username": SURREAL_USER, "password": SURREAL_PASS})
-            await db.use(SURREAL_NS, SURREAL_DB)
-            return await db.query(query)
+        db = AsyncSurreal(SURREAL_URL)
+        await db.connect()
+        await db.signin({"username": SURREAL_USER, "password": SURREAL_PASS})
+        await db.use(SURREAL_NS, SURREAL_DB)
+        return await db.query(query)
     except Exception as e:
         logger.warning("SurrealDB unavailable: %s", e)
         return [{"status": "ERR", "error": str(e)}]
