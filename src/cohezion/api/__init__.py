@@ -1660,6 +1660,22 @@ try:
 except ImportError:
     pass  # world_model module not available
 
+# Register extended physics endpoints (bioelectric, natural-capital, cosmogony chain)
+try:
+    from cohezion.api.services.physics_extended import physics_ext_router
+
+    app.include_router(physics_ext_router, prefix="/api")
+except ImportError:
+    pass  # physics_extended module not available
+
+# Register Worldview Explorer endpoints (indigenous cosmologies)
+try:
+    from cohezion.api.services.worldviews import worldviews_router
+
+    app.include_router(worldviews_router, prefix="/api")
+except ImportError:
+    pass  # worldviews module not available
+
 # Register journey analysis endpoints
 try:
     from cohezion.api.journeys import router as journeys_router
@@ -1667,6 +1683,22 @@ try:
     app.include_router(journeys_router, prefix="/api/journeys")
 except ImportError:
     pass  # journeys module not available
+
+# Register Ouroboros self-healing endpoints
+try:
+    from cohezion.api.services.ouroboros_api import ouroboros_router
+
+    app.include_router(ouroboros_router, prefix="/api")
+except ImportError:
+    pass  # ouroboros module not available
+
+# Register Mycelium knowledge network endpoints
+try:
+    from cohezion.api.services.mycelium_api import mycelium_router
+
+    app.include_router(mycelium_router, prefix="/api")
+except ImportError:
+    pass  # mycelium module not available
 
 # Register telemetry websocket
 app.include_router(telemetry_router)
