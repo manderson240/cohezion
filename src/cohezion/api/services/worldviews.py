@@ -1,14 +1,15 @@
 """Worldview Explorer API — indigenous cosmological traditions mapped to the ToE chain.
 
 Exposes 16 traditions' 10-step mappings, cross-tradition convergences,
-and per-step comparative views for the Genesis Engine webapp.
+per-step comparative views, and vault knowledge graph data for the
+Genesis Engine webapp (Tab 9: Worldview Explorer + VaultKnowledgeGraph).
 """
 
 from __future__ import annotations
 
 import logging
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Query
 
 from cohezion.worldviews.tradition_data import (
     TOE_STEPS,
@@ -17,6 +18,7 @@ from cohezion.worldviews.tradition_data import (
     get_tradition,
     get_traditions,
 )
+from cohezion.worldviews.vault_graph import get_vault_graph
 
 logger = logging.getLogger(__name__)
 
@@ -64,4 +66,43 @@ async def get_step_comparison(step_index: int) -> dict:
         "step_index": step_index,
         "step_name": TOE_STEPS[step_index],
         "traditions": get_step_across_traditions(step_index),
+    }
+
+
+# ─── Vault Knowledge Graph Endpoints ──────────────────────────────
+
+
+@worldviews_router.get("/vault-graph")
+async def get_vault_graph_data(
+    refresh: bool = Query(False, description="Force re-parse of cortex directory"),
+) -> dict:
+    """Full vault knowledge graph — nodes, edges, and clusters.
+
+    Parses ``~/vaults/cohezion-vault/cortex/`` for wikilinks and YAML
+    frontmatter, returning the MOC structure for VaultKnowledgeGraph.tsx.
+    """
+    graph = get_vault_graph(force_refresh=refresh)
+    return graph.to_dict()
+
+
+@worldviews_router.get("/vault-graph/traditions")
+async def get_vault_tradition_subgraph() -> dict:
+    """Indigenous cosmology subgraph — tradition-related nodes and their links.
+
+    Filters the full vault graph to nodes tagged with ``indigenous-cosmology``,
+    ``TOE``, or ``cross-tradition``, returning only intra-subgraph edges.
+    """
+    graph = get_vault_graph()
+    return graph.get_tradition_subgraph()
+
+
+@worldviews_router.get("/vault-graph/clusters")
+async def get_vault_clusters() -> dict:
+    """Vault graph clusters grouped by aspect (doer/thinker/knower)."""
+    graph = get_vault_graph()
+    clusters = graph.get_clusters()
+    return {
+        "count": len(clusters),
+        "total_nodes": graph.node_count,
+        "clusters": clusters,
     }
