@@ -80,7 +80,12 @@ See skill: `cohezion-vault-workflow` for vault API examples (log decisions, expe
 | **Cost Opt** | CostAwareRouter (27.3% savings), BudgetEnforcer, ModelQualityClassifier | `CostAwareRouter` |
 | **Persistence** | SessionPersistence (vault + JSONL), MetricsCollector, DegradationDetector | `SessionManager` |
 | **Physics** | SU(2) Spinors, Riemannian/Lagrangian, FiberBundle, GaugeTheory, Fisher metric | `SpinorState` |
-| **World Model** | JEPA predictor (86K params), Cosmogony, SymmetryBreaking | `JEPAWorldModel` |
+| **World Model** | JEPA predictor (86K params, causal masking), Cosmogony, SymmetryBreaking | `JEPAWorldModel` |
+| **Bioelectric** | Levin bioelectric network, gap junction percolation, HIHO phase transition | `BioelectricNetwork` |
+| **Natural Capital** | InVEST habitat quality model, HIHO proximity as habitat quality | `NaturalCapitalModel` |
+| **Evo Model** | Agents-as-EVOs physics, evolutionary dynamics on manifold | `EvoModel` |
+| **Worldviews** | 16 indigenous traditions x 10 cosmogony steps, Worldview Explorer | `WorldviewExplorer` |
+| **Ouroboros** | Ouroboros bridge + Mycelium network wired into Genesis chain | `OuroborosBridge` |
 | **Environments** | ManifoldEnv (gymnasium, 19D obs), SwarmEnv (multi-agent gauge coupling) | `gym.make('Cohezion/ManifoldEnv-v0')` |
 | **Genesis UI** | 12 components across 8 tabs: BlochSphere, GenesisScene, FlumeLatentViz, SwarmTopologyViz, etc. | `/genesis` route |
 | **Knowledge** | Vault-First (decisions/patterns/experiments), auto-compiled MEMORY.md | `vault_find_relevant_context` |
@@ -88,7 +93,7 @@ See skill: `cohezion-vault-workflow` for vault API examples (log decisions, expe
 ### ⚡ Quick Reference
 - **Language**: Python 3.13+ | **Package Manager**: `uv` (never bare python)
 - **DB**: SurrealDB (ws://localhost:8000) | **API**: FastAPI :8080
-- **Tests**: 5,083+ passing (4,891 core + 192 genesis: physics/world-model/environments/swarm) | **Coverage**: html report in `htmlcov/`
+- **Tests**: 5,255+ passing (4,891 core + 364 genesis: physics/world-model/environments/swarm/worldviews/ouroboros) | **Coverage**: html report in `htmlcov/`
 - **CI**: `make lint-check && uv run pytest` before commit
 - **Entry point**: `cohezion = "cohezion.__main__:main"`
 - **Vault**: `~/vaults/cohezion-vault/` — Query via `vault_find_relevant_context(query)`
@@ -131,7 +136,12 @@ Updated Skill (loop again)
 | `src/cohezion/api/` | FastAPI backend (96+ endpoints) | `__init__.py`, `services/genesis.py` |
 | `src/cohezion/flume/` | FLUME VAE (256D latent space) | `flume_vae.py` |
 | `src/cohezion/physics/` | **Genesis Engine**: SU(2) spinors, Riemannian, Lagrangian, fiber bundles, gauge theory, Fisher metric, cosmogony | `spinor.py`, `cosmogony.py` |
-| `src/cohezion/world_model/` | JEPA world model (86K params, CPU-trainable) | `jepa_world_model.py` |
+| `src/cohezion/world_model/` | JEPA world model (86K params, causal masking, CPU-trainable) | `jepa_world_model.py` |
+| `src/cohezion/world_model/bioelectric_model.py` | Levin bioelectric network, gap junction percolation | `BioelectricNetwork` |
+| `src/cohezion/world_model/natural_capital.py` | InVEST habitat quality, HIHO proximity mapping | `NaturalCapitalModel` |
+| `src/cohezion/world_model/evo_model.py` | Agents-as-EVOs evolutionary physics | `EvoModel` |
+| `src/cohezion/worldviews/` | 16 indigenous traditions x 10 cosmogony steps | `WorldviewExplorer` |
+| `src/cohezion/ouroboros/` | Ouroboros bridge + Mycelium network | `OuroborosBridge` |
 | `src/cohezion/audio/` | PocketTTS narrator, Kyutai Labs integration | `narrator.py` |
 | `src/web/anima_dashboard/` | Next.js 16 + Three.js + Tone.js webapp | `/genesis` route (4 tabs) |
 | `tests/conftest.py` | **CRITICAL**: Singleton reset for FLUME VAE, RL policy, loggers | **Read this first** |

@@ -172,6 +172,13 @@ This extends the position paper on topology-aware MAS by implementing actual rou
 - **PH-enhanced graph RL** (2026): Shows 9-18% improvement from persistent homology in RL — validates our TDA-driven routing.
 - **Topological Structure Learning for MAS** (2025): Position paper calling for topology-aware MAS. We implement what they propose.
 - **Friston's Free Energy Principle** (2010): Our HIHO = active inference equilibrium.
+- **Causal-JEPA** (Nam et al., 2026, arXiv:2602.11389): Causal masking for JEPA enables 8x faster planning by enforcing temporal causality in predictive embeddings. Our Causal-JEPA upgrade adopts this for manifold trajectory prediction.
+- **FiberNet** (Liu, 2025, arXiv:2512.01151): Learns fiber bundle structure from data. Validates our approach of encoding gauge connections on M^12 as learnable fiber bundle geometry.
+- **Levin Bioelectrics** (Levin 2019, 2022; Fields & Levin 2022): Bioelectric networks control morphogenesis via gap junction connectivity. We model gap junction percolation as a HIHO phase transition — bioelectric coherence IS manifold coherence.
+- **InVEST Natural Capital** (Sharp et al., 2020, Stanford Natural Capital Project): Habitat quality model maps threat proximity to ecosystem health. We reinterpret HIHO proximity as habitat quality — agents near equilibrium inhabit high-quality semantic landscape.
+- **TTT-Discover** (Stanford/NVIDIA, 2026, arXiv:2601.16175): Test-time training discovers novel reasoning strategies. Complementary to our surprise-driven exploration where JEPA prediction errors drive manifold exploration.
+- **NCA for ARC-AGI** (arXiv:2506.15746, arXiv:2603.10055): Neural Cellular Automata applied to ARC-AGI tasks demonstrate emergent pattern formation from local rules — parallels our bioelectric network's local gap junction dynamics producing global coherence.
+- **ARC Living Survey** (arXiv:2603.13372): Comprehensive survey of ARC-AGI approaches. Contextualizes our manifold-based reasoning within the broader abstraction and reasoning landscape.
 
 ## 8. Experiments
 
@@ -213,3 +220,13 @@ The HIHO principle — that optimal agent stability occurs at the equilibrium po
 15. Towards a science of scaling agent systems (2025). *arXiv:2512.08296*.
 16. Nakahara, M. (2003). *Geometry, Topology and Physics*.
 17. Eliot, T.S. (1943). *Four Quartets*. "At the still point of the turning world."
+18. Nam, J. et al. (2026). Causal-JEPA: Causal masking for joint embedding predictive architectures. *arXiv:2602.11389*.
+19. Liu, Z. (2025). FiberNet: Learning fiber bundle structure from data. *arXiv:2512.01151*.
+20. Levin, M. (2019). The computational boundary of a "self". *Developmental Biology*.
+21. Levin, M. (2022). Technological approach to mind everywhere. *Frontiers in Systems Neuroscience*.
+22. Fields, C. & Levin, M. (2022). Competency in navigating arbitrary spaces. *Biosystems*.
+23. Sharp, R. et al. (2020). InVEST User's Guide. *Stanford Natural Capital Project*.
+24. TTT-Discover (2026). Test-time training for novel reasoning. *arXiv:2601.16175*.
+25. NCA for ARC-AGI (2025). Neural cellular automata for abstraction. *arXiv:2506.15746*.
+26. Hodel, F. (2026). NCA approaches to ARC-AGI-2. *arXiv:2603.10055*.
+27. Chollet, F. et al. (2026). ARC-AGI: A living survey. *arXiv:2603.13372*.
