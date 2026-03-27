@@ -7,6 +7,7 @@ This is the compound engineering feedback loop. It ensures that session learning
 ### 1. Audit Current State
 - Read `knowledge_graph/KEY_LEARNINGS.md` and `knowledge_graph/MISSION_JOURNAL.md`
 - Read `CLAUDE.md`, `README.md`, and `memory/MEMORY.md`
+- Read `.agent/CONSTITUTION.md`, `.agent/COHEZION_CHARTER.md`, `.agent/CAPABILITY_MAP_REDUX.md`
 - Identify: new learnings since last retrospect, stale/duplicate entries, insights that should propagate upward
 
 ### 2. Prune Knowledge Graph
@@ -21,6 +22,7 @@ For each significant learning or pattern discovered since last retrospect:
 - **If it changes what the project can do**: Update `README.md` Verified Capabilities or Limitations
 - **If it changes architecture**: Update `.agent/CAPABILITY_MAP.md`
 - **If it changes theory**: Update `.agent/COHEZION_CHARTER.md`
+- **If it changes hard constraints**: Update `.agent/CONSTITUTION.md` (Sections 3, 8)
 - **If it's a process lesson**: Update `memory/MEMORY.md` (keep under 200 lines)
 
 ### 4. Persist to SurrealDB + Obsidian Vault
