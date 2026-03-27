@@ -7,6 +7,7 @@ SU(2) spinor algebra for grounded SPIN coherence.
 """
 
 from cohezion.physics.cosmogony import SymmetryBreaking, SymmetryGroup
+from cohezion.physics.evo_model import ExoticVacuumObject
 from cohezion.physics.dimension_extractor import DimensionExtractor
 from cohezion.physics.fiber_bundle import FiberBundle
 from cohezion.physics.gauge_theory import FourFabricGauge, GaugeConnection
@@ -20,6 +21,7 @@ from cohezion.physics.spinor import SpinorState
 __all__ = [
     "CoherenceRatchet",
     "DimensionExtractor",
+    "ExoticVacuumObject",
     "FiberBundle",
     "FisherInformationMetric",
     "FourFabricGauge",
