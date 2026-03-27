@@ -414,3 +414,12 @@ All "new" quant APIs (fused_mxfp4_quant, fused_rms_mxfp4_quant, fused_flatten_mx
 
 ### Learning 211: MoE Has 26 Functions — 21 Untested
 aiter 0.1.11 exposes 26 MoE-related functions (vs 5 previously known). Key untested: `fmoe_g1u1_a16` (bf16 activation), `fused_dynamic_mxfp4_quant_moe_sort` (fuses quant+sort), `moe_stage1_g1u1` (direct stage1 CK). All are thin wrappers around `torch.ops.aiter.<name>` JIT kernels.
+
+### Learning 212: GenSelect > Majority Voting for Math Competitions
+AIMO2 winner approach: instead of majority voting (pick most common answer from N samples), train a GRADING layer that evaluates solution quality ("Grade these N solutions 1-10"), then selects the highest-graded answer verified by tool execution. Expected +8-15% over pure majority voting. Paper: arxiv.org/pdf/2504.16891.
+
+### Learning 213: V-JEPA 2.1 — Temporal World Model Breakthrough (Mar 2026)
+Meta V-JEPA 2.1 (released Mar 16, 2026) solves temporal consistency via dense predictive loss + deep self-supervision. 2B params, trained on 163M images + 1M hours video. This is a direct upgrade path for Cohezion's 86K-param JEPA world model — same architecture family, production-validated. Source: ai.meta.com/blog/v-jepa-2-world-model-benchmarks.
+
+### Learning 214: fmoe_g1u1_a16 Requires bf16 Weights — Not fp4
+`fmoe_g1u1_a16` is a single fused MoE kernel (sort → gate_up GEMM → SiLU → down GEMM → reduce) but rejects fp4x2 weights: "Unsupported gate dtype". The `_a16` means A16W16 or A16W8, not fp4. Our competition inputs are fp4x2 — this path is closed. The 2-stage `fused_moe` CK pipeline IS the ceiling for fp4 weights.
