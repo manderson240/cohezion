@@ -81,13 +81,14 @@ See skill: `cohezion-vault-workflow` for vault API examples (log decisions, expe
 | **Persistence** | SessionPersistence (vault + JSONL), MetricsCollector, DegradationDetector | `SessionManager` |
 | **Physics** | SU(2) Spinors, Riemannian/Lagrangian, FiberBundle, GaugeTheory, Fisher metric | `SpinorState` |
 | **World Model** | JEPA predictor (86K params), Cosmogony, SymmetryBreaking | `JEPAWorldModel` |
-| **Genesis UI** | BlochSphere, GenesisScene, Sonification, Narration, FreeEnergyLandscape | `/genesis` route |
+| **Environments** | ManifoldEnv (gymnasium, 19D obs), SwarmEnv (multi-agent gauge coupling) | `gym.make('Cohezion/ManifoldEnv-v0')` |
+| **Genesis UI** | 12 components across 8 tabs: BlochSphere, GenesisScene, FlumeLatentViz, SwarmTopologyViz, etc. | `/genesis` route |
 | **Knowledge** | Vault-First (decisions/patterns/experiments), auto-compiled MEMORY.md | `vault_find_relevant_context` |
 
 ### ⚡ Quick Reference
 - **Language**: Python 3.13+ | **Package Manager**: `uv` (never bare python)
 - **DB**: SurrealDB (ws://localhost:8000) | **API**: FastAPI :8080
-- **Tests**: 5,054+ passing (4,891 core + 163 physics/world-model) | **Coverage**: html report in `htmlcov/`
+- **Tests**: 5,083+ passing (4,891 core + 192 genesis: physics/world-model/environments/swarm) | **Coverage**: html report in `htmlcov/`
 - **CI**: `make lint-check && uv run pytest` before commit
 - **Entry point**: `cohezion = "cohezion.__main__:main"`
 - **Vault**: `~/vaults/cohezion-vault/` — Query via `vault_find_relevant_context(query)`
@@ -126,6 +127,7 @@ Updated Skill (loop again)
 | `src/cohezion/cache/` | L1/L2/L3 semantic cache (95%+ hit rate) | `semantic_cache.py` |
 | `src/cohezion/skills/` | 124 PRIME skill definitions (*.md + *.py) | `skill_registry.json` |
 | `src/cohezion/persistence/` | SurrealDB, checkpoints, session recovery | `surreal_client.py` |
+| `src/cohezion/environments/` | Gymnasium RL envs: ManifoldEnv (single), SwarmEnv (multi-agent) | `manifold_env.py`, `swarm_env.py` |
 | `src/cohezion/api/` | FastAPI backend (96+ endpoints) | `__init__.py`, `services/genesis.py` |
 | `src/cohezion/flume/` | FLUME VAE (256D latent space) | `flume_vae.py` |
 | `src/cohezion/physics/` | **Genesis Engine**: SU(2) spinors, Riemannian, Lagrangian, fiber bundles, gauge theory, Fisher metric, cosmogony | `spinor.py`, `cosmogony.py` |
