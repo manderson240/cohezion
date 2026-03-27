@@ -360,7 +360,12 @@ def run_cycle(
     # Sync to neuron graph
     _sync_to_graph(kernel, node, bench_result.geomean_us)
 
-    geomean = bench_result.geomean_us or 0
+    geomean = bench_result.geomean_us
+    if geomean is None:
+        log.warning(f"[{kernel}] Failed to parse benchmark result - no geomean found")
+        log.debug(f"[{kernel}] Raw output: {bench_result.raw_output[:500]}...")
+        return False, f"{kernel}: Benchmark parsing failed"
+
     log.info(
         f"[{kernel}] Geomean: {geomean:.1f}µs "
         f"(improvement: {analysis.improvement_pct:+.1f}%) "
@@ -369,8 +374,9 @@ def run_cycle(
 
     # If this is the best result AND leaderboard is available, consider submitting
     stats = tree.get_stats()
+    is_new_best = geomean is not None and stats["best_us"] is not None and abs(stats["best_us"] - geomean) < 0.001
     if (
-        stats["best_us"] == geomean
+        is_new_best
         and analysis.improvement_pct > 0
         and rate_limiter.can_submit(kernel)
     ):
@@ -383,7 +389,7 @@ def run_cycle(
             log.warning(f"[{kernel}] Leaderboard submission failed: {lb_result.error}")
     else:
         # Restore backup if not best
-        if backup_path.exists() and stats["best_us"] != geomean:
+        if backup_path.exists() and not is_new_best:
             shutil.copy2(backup_path, submission_path)
 
     summary = (

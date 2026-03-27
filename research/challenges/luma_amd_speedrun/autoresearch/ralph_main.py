@@ -310,7 +310,9 @@ class RalphLoop:
 
 def run_gemm_cycle(cycle_num: int) -> tuple[bool, float]:
     """Run one GEMM optimization cycle."""
-    from driver import load_tree, rate_limiter, run_cycle, save_tree
+    from driver import load_tree, run_cycle, save_tree
+    from rate_limiter import RateLimiter
+    rate_limiter = RateLimiter()
 
     tree = load_tree("gemm")
     success, summary = run_cycle("gemm", tree, rate_limiter, dry_run=False)
@@ -326,7 +328,9 @@ def run_gemm_cycle(cycle_num: int) -> tuple[bool, float]:
 
 def run_moe_cycle(cycle_num: int) -> tuple[bool, float]:
     """Run one MoE optimization cycle."""
-    from driver import load_tree, rate_limiter, run_cycle, save_tree
+    from driver import load_tree, run_cycle, save_tree
+    from rate_limiter import RateLimiter
+    rate_limiter = RateLimiter()
 
     tree = load_tree("moe")
     success, summary = run_cycle("moe", tree, rate_limiter, dry_run=False)
@@ -342,7 +346,9 @@ def run_moe_cycle(cycle_num: int) -> tuple[bool, float]:
 
 def run_mla_cycle(cycle_num: int) -> tuple[bool, float]:
     """Run one MLA optimization cycle."""
-    from driver import load_tree, rate_limiter, run_cycle, save_tree
+    from driver import load_tree, run_cycle, save_tree
+    from rate_limiter import RateLimiter
+    rate_limiter = RateLimiter()
 
     tree = load_tree("mla")
     success, summary = run_cycle("mla", tree, rate_limiter, dry_run=False)

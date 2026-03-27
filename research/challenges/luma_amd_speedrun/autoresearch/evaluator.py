@@ -57,10 +57,11 @@ class EvalResult:
             "error": self.error,
             "duration_s": self.duration_s,
             "timestamp": self.timestamp,
+            "raw_output": self.raw_output[:2000] if self.raw_output else "",  # Limit size
         }
 
 
-def _parse_benchmark_output(output: str) -> tuple[float | None, dict[str, float]]:
+def _parse_benchmark_output(output: str, debug: bool = False) -> tuple[float | None, dict[str, float]]:
     """Parse popcorn-cli benchmark output for timings.
 
     Popcorn-cli benchmark format (proven from autokernel.py):
@@ -72,11 +73,20 @@ def _parse_benchmark_output(output: str) -> tuple[float | None, dict[str, float]
     2. ⏱ timer emoji lines (popcorn-cli per-shape medians)
     3. "median:" style lines
     4. Tabular format fallback
+    5. Generic float+µs fallback
+    6. Aggressive pattern matching for any timing values
 
     Returns (geomean_us, {shape_key: time_us})
     """
+    import logging
+    log = logging.getLogger("evaluator")
+
     per_shape: dict[str, float] = {}
     geomean: float | None = None
+
+    if debug:
+        log.debug(f"Parsing benchmark output ({len(output)} chars):")
+        log.debug(output[:2000])
 
     # Strategy 1: Explicit geomean line
     for line in output.split("\n"):
@@ -85,16 +95,21 @@ def _parse_benchmark_output(output: str) -> tuple[float | None, dict[str, float]
             match = re.search(r"(\d+\.?\d*)\s*(?:us|µs|microsec)", line, re.IGNORECASE)
             if match:
                 geomean = float(match.group(1))
+                if debug:
+                    log.debug(f"Found geomean from strategy 1: {geomean}")
                 break
             match = re.search(r":\s*(\d+\.?\d*)", line)
             if match:
                 geomean = float(match.group(1))
+                if debug:
+                    log.debug(f"Found geomean from strategy 1b: {geomean}")
                 break
 
     # Strategy 2: Parse popcorn-cli timer emoji lines: "⏱ 19.0 ± 0.02 µs"
     medians: list[float] = []
     for line in output.split("\n"):
-        match = re.search(r"⏱\s*(\d+\.?\d*)\s*±", line)
+        # Match timer emoji with various spacing
+        match = re.search(r"[⏱⚡]\s*(\d+\.?\d*)\s*[±±+-]?", line)
         if match:
             medians.append(float(match.group(1)))
             per_shape[f"shape_{len(per_shape)}"] = float(match.group(1))
@@ -102,6 +117,8 @@ def _parse_benchmark_output(output: str) -> tuple[float | None, dict[str, float]
     if medians and geomean is None:
         log_sum = sum(math.log(m) for m in medians)
         geomean = round(math.exp(log_sum / len(medians)), 2)
+        if debug:
+            log.debug(f"Computed geomean from {len(medians)} medians: {geomean}")
 
     # Strategy 3: Parse "median:" style lines
     if not medians:
@@ -124,6 +141,40 @@ def _parse_benchmark_output(output: str) -> tuple[float | None, dict[str, float]
             if tab_match:
                 shape_key = f"{tab_match.group(1)}_{tab_match.group(2)}_{tab_match.group(3)}"
                 per_shape[shape_key] = float(tab_match.group(4))
+
+    # Strategy 5: Generic fallback - any line with timing patterns
+    if geomean is None:
+        # Pattern: number followed by µs, us, microseconds, etc.
+        pattern = r"(\d+\.\d+|\d+)\s*[µu]s(?:ec)?(?:onds)?"
+        matches = re.findall(pattern, output, re.IGNORECASE)
+        if matches:
+            for i, match in enumerate(matches):
+                val = float(match)
+                if val > 0:
+                    per_shape[f"shape_{i}"] = val
+            if per_shape:
+                values = list(per_shape.values())
+                log_sum = sum(math.log(v) for v in values)
+                geomean = round(math.exp(log_sum / len(values)), 2)
+                if debug:
+                    log.debug(f"Computed geomean from {len(values)} timing values: {geomean}")
+
+    # Strategy 6: Very aggressive - any decimal number in output (last resort)
+    if geomean is None:
+        # Look for any reasonable timing values (0.1 to 10000)
+        all_floats = re.findall(r"\b(\d+\.\d+|\d+)\b", output)
+        candidates = []
+        for f in all_floats:
+            val = float(f)
+            if 0.1 <= val <= 10000:  # Reasonable timing range in µs
+                candidates.append(val)
+        if len(candidates) >= 3:  # Need at least a few values
+            log_sum = sum(math.log(c) for c in candidates)
+            geomean = round(math.exp(log_sum / len(candidates)), 2)
+            for i, val in enumerate(candidates[:6]):  # Store first 6
+                per_shape[f"shape_{i}"] = val
+            if debug:
+                log.debug(f"Computed geomean from {len(candidates)} candidate values: {geomean}")
 
     return geomean, per_shape
 

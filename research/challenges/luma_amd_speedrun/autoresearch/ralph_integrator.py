@@ -415,7 +415,9 @@ def run_{kernel}_cycle(cycle_num: int) -> tuple[bool, float]:
     Returns (success, result_us).
     """
     # Import here to avoid circular deps
-    from driver import run_cycle, load_tree, save_tree, rate_limiter, KERNEL_DIRS
+    from driver import run_cycle, load_tree, save_tree, KERNEL_DIRS
+    from rate_limiter import RateLimiter
+    rate_limiter = RateLimiter()
     
     kernel_dir = Path(".") / "autoresearch"
     tree = load_tree("{kernel}")
@@ -463,7 +465,9 @@ def main():
         prev_best = stats.get("best_us", float("inf"))
         
         # Run cycle
-        from driver import run_cycle, save_tree, rate_limiter
+        from driver import run_cycle, save_tree
+        from rate_limiter import RateLimiter
+        rate_limiter = RateLimiter()
         success, summary = run_cycle(
             "{kernel}",
             tree,
