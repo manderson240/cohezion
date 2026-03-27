@@ -4,88 +4,19 @@
   "nodes": {
     "root_mla": {
       "id": "root_mla",
-      "strategy": "Minimize MLA decode geomean across 8 shapes",
-      "parameters": {},
+      "strategy": "fav3_sage_attn_fwd: SAGE attention variant with MXFP4 KV cache support",
+      "parameters": {
+        "api": "aiter.fav3_sage_attn_fwd or fav3_sage_mxfp4"
+      },
       "parent_id": null,
-      "priority": 0.05875264928278027,
-      "attempts": 10,
-      "best_result_us": 139.69,
+      "priority": 0.7,
+      "attempts": 0,
+      "best_result_us": null,
       "stagnation_count": 0,
       "status": "active",
-      "children": [
-        "mla_n1",
-        "mla_n2",
-        "mla_n3",
-        "mla_n4",
-        "mla_n5",
-        "n_8a249fb9",
-        "n_81c6a22e",
-        "n_ee6633bc",
-        "n_b3879422"
-      ],
-      "notes": "",
-      "attempt_history": [
-        {
-          "result_us": 212.57656385814226,
-          "parameters": {},
-          "timestamp": "2026-03-20T17:41:56.308126",
-          "source": "template"
-        },
-        {
-          "result_us": 236.38517006790585,
-          "parameters": {},
-          "timestamp": "2026-03-20T17:42:45.901896",
-          "source": "template"
-        },
-        {
-          "result_us": 203.97182819272624,
-          "parameters": {},
-          "timestamp": "2026-03-20T17:43:25.607439",
-          "source": "template"
-        },
-        {
-          "result_us": 174.37584333417058,
-          "parameters": {},
-          "timestamp": "2026-03-20T17:43:51.507065",
-          "source": "template"
-        },
-        {
-          "result_us": 194.9620108517115,
-          "parameters": {},
-          "timestamp": "2026-03-20T17:44:20.603807",
-          "source": "template"
-        },
-        {
-          "result_us": 180.56335279435768,
-          "parameters": {},
-          "timestamp": "2026-03-20T17:44:40.805611",
-          "source": "template"
-        },
-        {
-          "result_us": 160.85321676612952,
-          "parameters": {},
-          "timestamp": "2026-03-20T17:55:36.801778",
-          "source": "template"
-        },
-        {
-          "result_us": 164.63896962039527,
-          "parameters": {},
-          "timestamp": "2026-03-20T17:55:58.508127",
-          "source": "template"
-        },
-        {
-          "result_us": 181.08014899311908,
-          "parameters": {},
-          "timestamp": "2026-03-20T17:56:39.003356",
-          "source": "template"
-        },
-        {
-          "result_us": 139.68904719297387,
-          "parameters": {},
-          "timestamp": "2026-03-20T17:56:59.306134",
-          "source": "template"
-        }
-      ]
+      "children": [],
+      "notes": "Previously found but not fully explored. May bypass 3-stage dispatch.",
+      "attempt_history": []
     },
     "mla_n1": {
       "id": "mla_n1",
