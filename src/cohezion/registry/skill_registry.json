@@ -2121,5 +2121,20 @@
       "te_autocast"
     ],
     "last_updated": "2026-03-25T22:23:53.899077"
+  },
+  "KAGLLE_BLACKWELL_RUNNER_PRIME": {
+    "name": "KAGLLE_BLACKWELL_RUNNER_PRIME",
+    "description": "Expertise in Kaggle G4 Blackwell Execution Environment. Ensures compatibility with sm_120 architecture, Triton ptxas-blackwell binary pathing, and non-interactive model authorization.",
+    "path": "src/cohezion/skills/KAGLLE_BLACKWELL_RUNNER_PRIME.md",
+    "version": "1.0.0",
+    "keywords": [
+      "kaggle",
+      "blackwell",
+      "sm_120",
+      "triton_patch",
+      "model_sources",
+      "ptxas-blackwell"
+    ],
+    "last_updated": "2026-03-25T22:57:36.660428"
   }
 }
