@@ -408,3 +408,9 @@ Cohezion operates across 3 AI platforms simultaneously: `.claude/` (41+ MCP tool
 
 ### Learning 209: Competition Licensing Conflict (CC BY 4.0 vs MIT-0)
 ARC Prize requires CC0/MIT-0 (public domain). AIMO/Nemotron require CC BY 4.0 (attribution). These conflict — CC BY 4.0 disqualifies from ARC ($-2M). Solution: MIT-0 for all (most permissive, accepted everywhere) or dual licensing per competition. Must decide before first AIMO submission.
+
+### Learning 210: GEMM Quant Ceiling Confirmed — No Faster Standalone Quant Exists
+All "new" quant APIs (fused_mxfp4_quant, fused_rms_mxfp4_quant, fused_flatten_mxfp4_quant) are fused with OTHER operations (RMSNorm, flatten, MoE sort) — none can replace `dynamic_mxfp4_quant` for standalone GEMM. The 33-39µs A-quant + 7-10µs ASM GEMM = ~24µs geomean is the absolute Python-dispatch floor. Leader's 9.7µs requires a single fused kernel not creatable on this runner.
+
+### Learning 211: MoE Has 26 Functions — 21 Untested
+aiter 0.1.11 exposes 26 MoE-related functions (vs 5 previously known). Key untested: `fmoe_g1u1_a16` (bf16 activation), `fused_dynamic_mxfp4_quant_moe_sort` (fuses quant+sort), `moe_stage1_g1u1` (direct stage1 CK). All are thin wrappers around `torch.ops.aiter.<name>` JIT kernels.
