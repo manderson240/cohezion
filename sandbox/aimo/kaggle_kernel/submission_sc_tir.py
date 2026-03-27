@@ -27,7 +27,7 @@ import kaggle_evaluation.aimo_3_inference_server
 # Model selection: DeepSeek-R1-Distill-Qwen-32B-AWQ (best open-weight reasoning)
 # Fallback: Qwen2.5-Math-7B if 32B doesn't fit
 MODEL_CANDIDATES = [
-    "/kaggle/input/deepseek-r1-distill-qwen-32b-awq",
+    "/kaggle/input/deepseek-r1-distill-qwen/deepseek-r1-distill-qwen-32b-awq",
     "/kaggle/input/qwen2-5-math-7b-instruct",
 ]
 

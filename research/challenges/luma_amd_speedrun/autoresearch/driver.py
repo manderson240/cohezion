@@ -542,5 +542,9 @@ def main():
         log.info(f"{'=' * 60}")
 
 
+# Singleton rate_limiter instance for import by ralph_main.py
+rate_limiter = RateLimiter()
+
+
 if __name__ == "__main__":
     main()
