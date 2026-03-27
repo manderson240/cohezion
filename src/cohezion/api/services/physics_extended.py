@@ -91,6 +91,42 @@ class PhononStateResponse(BaseModel):
     state_after: dict[str, float]
 
 
+class StabilityWellResponse(BaseModel):
+    """A stability well in the 12D morphospace."""
+
+    name: str
+    center: list[float]
+    radius: float
+    depth: float
+
+
+class MorphospaceWellsResponse(BaseModel):
+    """All known stability wells in the morphospace."""
+
+    wells: list[StabilityWellResponse]
+    count: int
+
+
+class LCSPPredictResponse(BaseModel):
+    """Result of an LCSP state prediction."""
+
+    input_state: list[float]
+    next_state: list[float]
+    actions: list[float]
+    confidence: float
+    hiho_stability: float
+
+
+class EmergenceDetectResponse(BaseModel):
+    """Result of emergence detection on synthetic trajectory data."""
+
+    run_id: str
+    total_cycles: int
+    event_count: int
+    complexity_score: float
+    events: list[dict]
+
+
 # ─── Endpoints ─────────────────────────────────────────────────────
 
 
@@ -319,6 +355,151 @@ async def get_phonon_state(
         coherence_gain=coherence_gain,
         state_before=before,
         state_after=after,
+    )
+
+
+# ─── Morphospace Wiring ───────────────────────────────────────────
+
+
+@physics_ext_router.get("/morphospace/wells", response_model=MorphospaceWellsResponse)
+async def get_morphospace_wells() -> MorphospaceWellsResponse:
+    """Return known stability wells in the 12D morphospace.
+
+    Initializes a MorphospaceMapper and returns its pre-computed
+    stability wells (HIHO_Origin and Pure_Awareness by default).
+    """
+    try:
+        from cohezion.flume.morphospace import MorphospaceMapper
+    except Exception as exc:
+        logger.warning("morphospace module not available: %s", exc)
+        return MorphospaceWellsResponse(wells=[], count=0)
+
+    mapper = MorphospaceMapper()
+    wells = [
+        StabilityWellResponse(
+            name=w.name,
+            center=w.center.tolist(),
+            radius=w.radius,
+            depth=w.depth,
+        )
+        for w in mapper.known_wells
+    ]
+    return MorphospaceWellsResponse(wells=wells, count=len(wells))
+
+
+# ─── LCSP Wiring ─────────────────────────────────────────────────
+
+
+@physics_ext_router.get("/lcsp/predict", response_model=LCSPPredictResponse)
+async def get_lcsp_predict(
+    state: str = "0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5",
+) -> LCSPPredictResponse:
+    """Predict the next 12D state from a current state using LCSP.
+
+    Accepts a comma-separated 12D state vector as query parameter.
+    Defaults to the HIHO equilibrium point (all 0.5).
+    """
+    import numpy as np
+
+    try:
+        from cohezion.flume.lcsp import LCSPPredictor
+    except Exception as exc:
+        logger.warning("lcsp module not available: %s", exc)
+        return LCSPPredictResponse(
+            input_state=[0.0] * 12,
+            next_state=[0.0] * 12,
+            actions=[0.0] * 12,
+            confidence=0.0,
+            hiho_stability=0.0,
+        )
+
+    values = [float(v.strip()) for v in state.split(",")]
+    if len(values) != 12:
+        values = [0.5] * 12
+    state_arr = np.array(values, dtype=np.float64)
+
+    predictor = LCSPPredictor()
+    prediction = predictor.predict(state_arr)
+
+    return LCSPPredictResponse(
+        input_state=state_arr.tolist(),
+        next_state=prediction.next_state.tolist(),
+        actions=prediction.actions,
+        confidence=prediction.confidence,
+        hiho_stability=prediction.hiho_stability,
+    )
+
+
+# ─── Emergent Detector Wiring ────────────────────────────────────
+
+
+@physics_ext_router.get("/emergence/detect", response_model=EmergenceDetectResponse)
+async def get_emergence_detect(
+    n_agents: int = 8,
+    n_cycles: int = 100,
+    z_dim: int = 12,
+    seed: int = 42,
+) -> EmergenceDetectResponse:
+    """Detect emergent phenomena in synthetic trajectory data.
+
+    Generates a synthetic multi-agent simulation with ``n_agents``
+    agents over ``n_cycles`` cycles, then runs all emergence
+    detection methods (phase transitions, swarm coherence, novelty).
+    """
+    import numpy as np
+
+    try:
+        from cohezion.simulation.emergent_detector import EmergentDetector
+    except Exception as exc:
+        logger.warning("emergent_detector module not available: %s", exc)
+        return EmergenceDetectResponse(
+            run_id="unavailable",
+            total_cycles=0,
+            event_count=0,
+            complexity_score=0.0,
+            events=[],
+        )
+
+    safe_agents = max(2, min(n_agents, 64))
+    safe_cycles = max(20, min(n_cycles, 1000))
+    safe_dim = max(2, min(z_dim, 64))
+
+    rng = np.random.default_rng(seed)
+
+    # Generate synthetic coherence history (T, N)
+    coherence = rng.random((safe_cycles, safe_agents)) * 0.5 + 0.25
+
+    # Generate synthetic z-vectors (T, N, D) with a phase transition
+    z_vectors = rng.normal(0.0, 0.3, (safe_cycles, safe_agents, safe_dim))
+    # Inject a coherence shift midway to trigger phase detection
+    midpoint = safe_cycles // 2
+    z_vectors[midpoint:] += 0.5
+
+    detector = EmergentDetector()
+    agent_ids = [f"agent_{i}" for i in range(safe_agents)]
+    report = detector.analyze(
+        coherence_history=coherence,
+        z_vectors=z_vectors,
+        agent_ids=agent_ids,
+        run_id=f"synthetic-{seed}",
+    )
+
+    events_dicts = [
+        {
+            "event_type": e.event_type,
+            "cycle": e.cycle,
+            "magnitude": e.magnitude,
+            "description": e.description,
+        }
+        for e in report.events[:50]
+    ]
+
+    return EmergenceDetectResponse(
+        run_id=report.run_id,
+        total_cycles=report.total_cycles,
+        event_count=report.event_count,
+        complexity_score=report.complexity_score,
+        events=events_dicts,
     )
 
 
