@@ -16,7 +16,14 @@
       "best_result_us": null,
       "stagnation_count": 0,
       "status": "active",
-      "children": [],
+      "children": [
+        "n_a4edca94",
+        "n_95a6b4c6",
+        "n_2d539333",
+        "n_fff0ebcd",
+        "n_a1771f4c",
+        "n_1deb3216"
+      ],
       "notes": "From AITER blog. Unknown if compatible with MXFP4.",
       "attempt_history": []
     },
@@ -7020,6 +7027,126 @@
           "source": "template"
         }
       ]
+    },
+    "n_a4edca94": {
+      "id": "n_a4edca94",
+      "strategy": "192x128 tile kernel for M>32: gen_gemm_a4w4 with 192x128 tile (CONFIRMED 4/4 pass, use for M=64 and M=256 shapes)",
+      "parameters": {
+        "kernel": "gen_gemm_a4w4",
+        "tile": "192x128",
+        "condition": "M > 32",
+        "confirmed_shapes": [
+          "64_7168_2048",
+          "256_3072_1536"
+        ],
+        "status": "CONFIRMED_WORKING"
+      },
+      "parent_id": "root_gemm",
+      "priority": 0.92,
+      "attempts": 0,
+      "best_result_us": null,
+      "stagnation_count": 0,
+      "status": "active",
+      "children": [],
+      "notes": "[Session 77] CONFIRMED: 4/4 shapes pass with 192x128 tile. Use for M>32 shapes where larger tile improves occupancy.",
+      "attempt_history": []
+    },
+    "n_95a6b4c6": {
+      "id": "n_95a6b4c6",
+      "strategy": "gen_gemm_a4w4_blockscale_fake_tensors: aiter-level block-scale GEMM (NOT tuned_gemm -- separate API path with blockscale support)",
+      "parameters": {
+        "api": "aiter.gen_gemm_a4w4_blockscale_fake_tensors",
+        "note": "Found at aiter level, not inside tuned_gemm module",
+        "blockscale": true
+      },
+      "parent_id": "root_gemm",
+      "priority": 0.88,
+      "attempts": 0,
+      "best_result_us": null,
+      "stagnation_count": 0,
+      "status": "active",
+      "children": [],
+      "notes": "[Session 77] Discovered at aiter top-level, distinct from tuned_gemm.tgemm.mm(). Block-scale variant may handle MXFP4 natively without separate quant step.",
+      "attempt_history": []
+    },
+    "n_2d539333": {
+      "id": "n_2d539333",
+      "strategy": "Triton block_scaled_matmul tutorial: official MXFP4 CDNA4 reference kernel (Triton tutorial path, not aiter ASM)",
+      "parameters": {
+        "source": "triton_tutorials/block_scaled_matmul",
+        "format": "MXFP4",
+        "target": "CDNA4 (MI355X)",
+        "approach": "triton_jit"
+      },
+      "parent_id": "root_gemm",
+      "priority": 0.8,
+      "attempts": 0,
+      "best_result_us": null,
+      "stagnation_count": 0,
+      "status": "active",
+      "children": [],
+      "notes": "[Session 77] Official Triton tutorial for block-scaled matmul on CDNA4. Reference implementation for MXFP4 -- may be tunable beyond default params.",
+      "attempt_history": []
+    },
+    "n_fff0ebcd": {
+      "id": "n_fff0ebcd",
+      "strategy": "192x128 tile kernel for M>32: gen_gemm_a4w4 with 192x128 tile (CONFIRMED 4/4 pass, use for M=64 and M=256 shapes)",
+      "parameters": {
+        "kernel": "gen_gemm_a4w4",
+        "tile": "192x128",
+        "condition": "M > 32",
+        "confirmed_shapes": [
+          "64_7168_2048",
+          "256_3072_1536"
+        ],
+        "status": "CONFIRMED_WORKING"
+      },
+      "parent_id": "root_gemm",
+      "priority": 0.92,
+      "attempts": 0,
+      "best_result_us": null,
+      "stagnation_count": 0,
+      "status": "active",
+      "children": [],
+      "notes": "[Session 77] CONFIRMED: 4/4 shapes pass with 192x128 tile. Use for M>32 shapes where larger tile improves occupancy.",
+      "attempt_history": []
+    },
+    "n_a1771f4c": {
+      "id": "n_a1771f4c",
+      "strategy": "gen_gemm_a4w4_blockscale_fake_tensors: aiter-level block-scale GEMM (NOT tuned_gemm -- separate API path with blockscale support)",
+      "parameters": {
+        "api": "aiter.gen_gemm_a4w4_blockscale_fake_tensors",
+        "note": "Found at aiter level, not inside tuned_gemm module",
+        "blockscale": true
+      },
+      "parent_id": "root_gemm",
+      "priority": 0.88,
+      "attempts": 0,
+      "best_result_us": null,
+      "stagnation_count": 0,
+      "status": "active",
+      "children": [],
+      "notes": "[Session 77] Discovered at aiter top-level, distinct from tuned_gemm.tgemm.mm(). Block-scale variant may handle MXFP4 natively without separate quant step.",
+      "attempt_history": []
+    },
+    "n_1deb3216": {
+      "id": "n_1deb3216",
+      "strategy": "Triton block_scaled_matmul tutorial: official MXFP4 CDNA4 reference kernel (Triton tutorial path, not aiter ASM)",
+      "parameters": {
+        "source": "triton_tutorials/block_scaled_matmul",
+        "format": "MXFP4",
+        "target": "CDNA4 (MI355X)",
+        "approach": "triton_jit"
+      },
+      "parent_id": "root_gemm",
+      "priority": 0.8,
+      "attempts": 0,
+      "best_result_us": null,
+      "stagnation_count": 0,
+      "status": "active",
+      "children": [],
+      "notes": "[Session 77] Official Triton tutorial for block-scaled matmul on CDNA4. Reference implementation for MXFP4 -- may be tunable beyond default params.",
+      "attempt_history": []
     }
   }
 }

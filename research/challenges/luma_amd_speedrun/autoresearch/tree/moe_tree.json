@@ -15,7 +15,16 @@
       "best_result_us": null,
       "stagnation_count": 0,
       "status": "active",
-      "children": [],
+      "children": [
+        "n_cae99d50",
+        "n_3f63927a",
+        "n_a5649566",
+        "n_ab0f5fab",
+        "n_54cbb901",
+        "n_79e3b208",
+        "n_657c494e",
+        "n_f76f3940"
+      ],
       "notes": "From research: speculating experts accelerates MoE inference.",
       "attempt_history": []
     },
@@ -1860,6 +1869,220 @@
       "status": "pruned",
       "children": [],
       "notes": "[LLM-proposed] [STRATEGIC PRUNE: parent n_afa88d2f pruned]",
+      "attempt_history": []
+    },
+    "n_cae99d50": {
+      "id": "n_cae99d50",
+      "strategy": "CK_BLOCK_GEMM=1 without KSPLIT: block GEMM dispatch (CONFIRMED: all shapes pass, 182us baseline)",
+      "parameters": {
+        "env": {
+          "CK_BLOCK_GEMM": "1"
+        },
+        "KSPLIT": 0,
+        "result_baseline_us": 182.0,
+        "status": "CONFIRMED_WORKING"
+      },
+      "parent_id": "root_moe",
+      "priority": 0.95,
+      "attempts": 0,
+      "best_result_us": null,
+      "stagnation_count": 0,
+      "status": "active",
+      "children": [
+        "n_28480acc"
+      ],
+      "notes": "[Session 77] CONFIRMED: CK_BLOCK_GEMM=1 passes ALL shapes at 182us without any KSPLIT. This is the new baseline to beat with KSPLIT tuning.",
+      "attempt_history": []
+    },
+    "n_28480acc": {
+      "id": "n_28480acc",
+      "strategy": "CK_BLOCK_GEMM=1 + adaptive KSPLIT: combine block GEMM with per-shape KSPLIT tuning (UNTESTED combination)",
+      "parameters": {
+        "env": {
+          "CK_BLOCK_GEMM": "1"
+        },
+        "KSPLIT_TABLE": {
+          "257_256_16": 4,
+          "257_256_128": 4,
+          "257_256_512": 0,
+          "33_512_16": 2,
+          "33_512_128": 2,
+          "33_512_512": 0,
+          "33_2048_512": 0
+        },
+        "status": "UNTESTED"
+      },
+      "parent_id": "n_cae99d50",
+      "priority": 0.93,
+      "attempts": 0,
+      "best_result_us": null,
+      "stagnation_count": 0,
+      "status": "active",
+      "children": [],
+      "notes": "[Session 77] UNTESTED: CK_BLOCK_GEMM=1 confirmed at 182us baseline. Adding adaptive KSPLIT on top may push below 182us. High priority -- best previous MoE result was 88.68us with OPUS+KSPLIT.",
+      "attempt_history": []
+    },
+    "n_3f63927a": {
+      "id": "n_3f63927a",
+      "strategy": "KSPLIT=6 for est_m<5: OpenCode Kimi v16 heuristic (high KSPLIT for very small effective M)",
+      "parameters": {
+        "condition": "est_m < 5",
+        "KSPLIT": 6,
+        "source": "OpenCode Kimi v16",
+        "status": "UNTESTED"
+      },
+      "parent_id": "root_moe",
+      "priority": 0.75,
+      "attempts": 0,
+      "best_result_us": null,
+      "stagnation_count": 0,
+      "status": "active",
+      "children": [],
+      "notes": "[Session 77] From OpenCode Kimi v16 submission. KSPLIT=6 when estimated M per expert is very small (<5 tokens). Rationale: small M needs more K-splits to keep CUs busy. UNTESTED on our shapes.",
+      "attempt_history": []
+    },
+    "n_a5649566": {
+      "id": "n_a5649566",
+      "strategy": "FlyDSL Pipeline: DSL-based kernel generation for MoE dispatch (CONFIRMED available on runner)",
+      "parameters": {
+        "tool": "FlyDSL",
+        "status": "CONFIRMED_AVAILABLE",
+        "approach": "dsl_pipeline"
+      },
+      "parent_id": "root_moe",
+      "priority": 0.65,
+      "attempts": 0,
+      "best_result_us": null,
+      "stagnation_count": 0,
+      "status": "active",
+      "children": [],
+      "notes": "[Session 77] FlyDSL Pipeline confirmed available on Kaggle runner. Can generate custom MoE dispatch kernels. Lower priority than CK_BLOCK_GEMM tuning but offers a fundamentally different approach.",
+      "attempt_history": []
+    },
+    "n_ab0f5fab": {
+      "id": "n_ab0f5fab",
+      "strategy": "AITER_BYPASS_TUNE_CONFIG=1: eliminate CSV tune config lookup (reduces dispatch overhead)",
+      "parameters": {
+        "env": {
+          "AITER_BYPASS_TUNE_CONFIG": "1"
+        },
+        "status": "CONFIRMED_WORKING"
+      },
+      "parent_id": "root_moe",
+      "priority": 0.7,
+      "attempts": 0,
+      "best_result_us": null,
+      "stagnation_count": 0,
+      "status": "active",
+      "children": [],
+      "notes": "[Session 77] CONFIRMED: Setting AITER_BYPASS_TUNE_CONFIG=1 eliminates CSV config file lookup overhead. Combine with CK_BLOCK_GEMM=1 for reduced dispatch latency.",
+      "attempt_history": []
+    },
+    "n_54cbb901": {
+      "id": "n_54cbb901",
+      "strategy": "CK_BLOCK_GEMM=1 without KSPLIT: block GEMM dispatch (CONFIRMED: all shapes pass, 182us baseline)",
+      "parameters": {
+        "env": {
+          "CK_BLOCK_GEMM": "1"
+        },
+        "KSPLIT": 0,
+        "result_baseline_us": 182.0,
+        "status": "CONFIRMED_WORKING"
+      },
+      "parent_id": "root_moe",
+      "priority": 0.95,
+      "attempts": 0,
+      "best_result_us": null,
+      "stagnation_count": 0,
+      "status": "active",
+      "children": [
+        "n_87be4a6a"
+      ],
+      "notes": "[Session 77] CONFIRMED: CK_BLOCK_GEMM=1 passes ALL shapes at 182us without any KSPLIT. This is the new baseline to beat with KSPLIT tuning.",
+      "attempt_history": []
+    },
+    "n_87be4a6a": {
+      "id": "n_87be4a6a",
+      "strategy": "CK_BLOCK_GEMM=1 + adaptive KSPLIT: combine block GEMM with per-shape KSPLIT tuning (UNTESTED combination)",
+      "parameters": {
+        "env": {
+          "CK_BLOCK_GEMM": "1"
+        },
+        "KSPLIT_TABLE": {
+          "257_256_16": 4,
+          "257_256_128": 4,
+          "257_256_512": 0,
+          "33_512_16": 2,
+          "33_512_128": 2,
+          "33_512_512": 0,
+          "33_2048_512": 0
+        },
+        "status": "UNTESTED"
+      },
+      "parent_id": "n_54cbb901",
+      "priority": 0.93,
+      "attempts": 0,
+      "best_result_us": null,
+      "stagnation_count": 0,
+      "status": "active",
+      "children": [],
+      "notes": "[Session 77] UNTESTED: CK_BLOCK_GEMM=1 confirmed at 182us baseline. Adding adaptive KSPLIT on top may push below 182us. High priority -- best previous MoE result was 88.68us with OPUS+KSPLIT.",
+      "attempt_history": []
+    },
+    "n_79e3b208": {
+      "id": "n_79e3b208",
+      "strategy": "KSPLIT=6 for est_m<5: OpenCode Kimi v16 heuristic (high KSPLIT for very small effective M)",
+      "parameters": {
+        "condition": "est_m < 5",
+        "KSPLIT": 6,
+        "source": "OpenCode Kimi v16",
+        "status": "UNTESTED"
+      },
+      "parent_id": "root_moe",
+      "priority": 0.75,
+      "attempts": 0,
+      "best_result_us": null,
+      "stagnation_count": 0,
+      "status": "active",
+      "children": [],
+      "notes": "[Session 77] From OpenCode Kimi v16 submission. KSPLIT=6 when estimated M per expert is very small (<5 tokens). Rationale: small M needs more K-splits to keep CUs busy. UNTESTED on our shapes.",
+      "attempt_history": []
+    },
+    "n_657c494e": {
+      "id": "n_657c494e",
+      "strategy": "FlyDSL Pipeline: DSL-based kernel generation for MoE dispatch (CONFIRMED available on runner)",
+      "parameters": {
+        "tool": "FlyDSL",
+        "status": "CONFIRMED_AVAILABLE",
+        "approach": "dsl_pipeline"
+      },
+      "parent_id": "root_moe",
+      "priority": 0.65,
+      "attempts": 0,
+      "best_result_us": null,
+      "stagnation_count": 0,
+      "status": "active",
+      "children": [],
+      "notes": "[Session 77] FlyDSL Pipeline confirmed available on Kaggle runner. Can generate custom MoE dispatch kernels. Lower priority than CK_BLOCK_GEMM tuning but offers a fundamentally different approach.",
+      "attempt_history": []
+    },
+    "n_f76f3940": {
+      "id": "n_f76f3940",
+      "strategy": "AITER_BYPASS_TUNE_CONFIG=1: eliminate CSV tune config lookup (reduces dispatch overhead)",
+      "parameters": {
+        "env": {
+          "AITER_BYPASS_TUNE_CONFIG": "1"
+        },
+        "status": "CONFIRMED_WORKING"
+      },
+      "parent_id": "root_moe",
+      "priority": 0.7,
+      "attempts": 0,
+      "best_result_us": null,
+      "stagnation_count": 0,
+      "status": "active",
+      "children": [],
+      "notes": "[Session 77] CONFIRMED: Setting AITER_BYPASS_TUNE_CONFIG=1 eliminates CSV config file lookup overhead. Combine with CK_BLOCK_GEMM=1 for reduced dispatch latency.",
       "attempt_history": []
     }
   }

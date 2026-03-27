@@ -14,7 +14,16 @@
       "best_result_us": null,
       "stagnation_count": 0,
       "status": "active",
-      "children": [],
+      "children": [
+        "n_ba9c3d48",
+        "n_9b8c87ec",
+        "n_f37512a3",
+        "n_7d7701aa",
+        "n_d1bf5d70",
+        "n_4158916a",
+        "n_af36fd95",
+        "n_13201908"
+      ],
       "notes": "Previously found but not fully explored. May bypass 3-stage dispatch.",
       "attempt_history": []
     },
@@ -1835,6 +1844,184 @@
       "status": "pruned",
       "children": [],
       "notes": "[LLM-proposed] [STRATEGIC PRUNE: parent mla_n2 pruned]",
+      "attempt_history": []
+    },
+    "n_ba9c3d48": {
+      "id": "n_ba9c3d48",
+      "strategy": "pa_ps_fwd_asm: persistent streaming paged attention (ASM kernel, CONFIRMED EXISTS in aiter)",
+      "parameters": {
+        "api": "aiter.pa_ps_fwd_asm",
+        "type": "persistent_streaming",
+        "format": "paged",
+        "status": "CONFIRMED_EXISTS"
+      },
+      "parent_id": "root_mla",
+      "priority": 0.9,
+      "attempts": 0,
+      "best_result_us": null,
+      "stagnation_count": 0,
+      "status": "active",
+      "children": [],
+      "notes": "[Session 77] CONFIRMED EXISTS: Persistent streaming paged attention ASM kernel. Persistent kernels stay resident on CUs -- avoids launch overhead. Streaming variant processes KV cache incrementally. High priority for decode-heavy workloads.",
+      "attempt_history": []
+    },
+    "n_9b8c87ec": {
+      "id": "n_9b8c87ec",
+      "strategy": "fmha_v3_varlen_fwd: FlashMHA v3 variable-length forward (CONFIRMED EXISTS, latest flash attention generation)",
+      "parameters": {
+        "api": "aiter.fmha_v3_varlen_fwd",
+        "type": "flash_mha_v3",
+        "variable_length": true,
+        "status": "CONFIRMED_EXISTS"
+      },
+      "parent_id": "root_mla",
+      "priority": 0.88,
+      "attempts": 0,
+      "best_result_us": null,
+      "stagnation_count": 0,
+      "status": "active",
+      "children": [],
+      "notes": "[Session 77] CONFIRMED EXISTS: FlashMHA v3 variable-length forward kernel. V3 is the latest generation -- likely optimized for CDNA4. Variable-length support handles ragged batches without padding waste.",
+      "attempt_history": []
+    },
+    "n_f37512a3": {
+      "id": "n_f37512a3",
+      "strategy": "flash_attn_varlen_func with padded V: handle MLA fused KV by padding V dimension (WRITTEN, untested)",
+      "parameters": {
+        "api": "aiter.flash_attn_varlen_func",
+        "approach": "pad_v_dimension",
+        "pad_strategy": "zero_pad_to_head_dim",
+        "status": "WRITTEN_UNTESTED"
+      },
+      "parent_id": "root_mla",
+      "priority": 0.82,
+      "attempts": 0,
+      "best_result_us": null,
+      "stagnation_count": 0,
+      "status": "active",
+      "children": [],
+      "notes": "[Session 77] WRITTEN but untested: flash_attn_varlen_func requires V with same head_dim as Q/K. MLA has compressed KV -- pad V to match. If padding overhead < dispatch overhead savings, this wins.",
+      "attempt_history": []
+    },
+    "n_7d7701aa": {
+      "id": "n_7d7701aa",
+      "strategy": "Attention API landscape: 13 total APIs discovered in aiter (systematic evaluation needed)",
+      "parameters": {
+        "apis_discovered": [
+          "flash_attn_func",
+          "flash_attn_varlen_func",
+          "paged_attention_fwd",
+          "pa_ps_fwd_asm",
+          "fmha_v3_varlen_fwd",
+          "fav3_sage_attn_fwd",
+          "fav3_sage_mxfp4",
+          "mla_decode_fwd",
+          "mla_decode_fwd_v2",
+          "mla_extend_fwd",
+          "fmha_fwd",
+          "fmha_varlen_fwd",
+          "fmha_bwd"
+        ],
+        "total_count": 13,
+        "status": "LANDSCAPE_MAPPED"
+      },
+      "parent_id": "root_mla",
+      "priority": 0.5,
+      "attempts": 0,
+      "best_result_us": null,
+      "stagnation_count": 0,
+      "status": "active",
+      "children": [],
+      "notes": "[Session 77] 13 total attention APIs catalogued. Priority APIs for MLA: pa_ps_fwd_asm (persistent streaming), fmha_v3_varlen_fwd (latest gen), flash_attn_varlen_func (padded V approach). Lower-priority: fav3_sage variants, mla_decode_fwd_v2. This node tracks the landscape for systematic evaluation.",
+      "attempt_history": []
+    },
+    "n_d1bf5d70": {
+      "id": "n_d1bf5d70",
+      "strategy": "pa_ps_fwd_asm: persistent streaming paged attention (ASM kernel, CONFIRMED EXISTS in aiter)",
+      "parameters": {
+        "api": "aiter.pa_ps_fwd_asm",
+        "type": "persistent_streaming",
+        "format": "paged",
+        "status": "CONFIRMED_EXISTS"
+      },
+      "parent_id": "root_mla",
+      "priority": 0.9,
+      "attempts": 0,
+      "best_result_us": null,
+      "stagnation_count": 0,
+      "status": "active",
+      "children": [],
+      "notes": "[Session 77] CONFIRMED EXISTS: Persistent streaming paged attention ASM kernel. Persistent kernels stay resident on CUs -- avoids launch overhead. Streaming variant processes KV cache incrementally. High priority for decode-heavy workloads.",
+      "attempt_history": []
+    },
+    "n_4158916a": {
+      "id": "n_4158916a",
+      "strategy": "fmha_v3_varlen_fwd: FlashMHA v3 variable-length forward (CONFIRMED EXISTS, latest flash attention generation)",
+      "parameters": {
+        "api": "aiter.fmha_v3_varlen_fwd",
+        "type": "flash_mha_v3",
+        "variable_length": true,
+        "status": "CONFIRMED_EXISTS"
+      },
+      "parent_id": "root_mla",
+      "priority": 0.88,
+      "attempts": 0,
+      "best_result_us": null,
+      "stagnation_count": 0,
+      "status": "active",
+      "children": [],
+      "notes": "[Session 77] CONFIRMED EXISTS: FlashMHA v3 variable-length forward kernel. V3 is the latest generation -- likely optimized for CDNA4. Variable-length support handles ragged batches without padding waste.",
+      "attempt_history": []
+    },
+    "n_af36fd95": {
+      "id": "n_af36fd95",
+      "strategy": "flash_attn_varlen_func with padded V: handle MLA fused KV by padding V dimension (WRITTEN, untested)",
+      "parameters": {
+        "api": "aiter.flash_attn_varlen_func",
+        "approach": "pad_v_dimension",
+        "pad_strategy": "zero_pad_to_head_dim",
+        "status": "WRITTEN_UNTESTED"
+      },
+      "parent_id": "root_mla",
+      "priority": 0.82,
+      "attempts": 0,
+      "best_result_us": null,
+      "stagnation_count": 0,
+      "status": "active",
+      "children": [],
+      "notes": "[Session 77] WRITTEN but untested: flash_attn_varlen_func requires V with same head_dim as Q/K. MLA has compressed KV -- pad V to match. If padding overhead < dispatch overhead savings, this wins.",
+      "attempt_history": []
+    },
+    "n_13201908": {
+      "id": "n_13201908",
+      "strategy": "Attention API landscape: 13 total APIs discovered in aiter (systematic evaluation needed)",
+      "parameters": {
+        "apis_discovered": [
+          "flash_attn_func",
+          "flash_attn_varlen_func",
+          "paged_attention_fwd",
+          "pa_ps_fwd_asm",
+          "fmha_v3_varlen_fwd",
+          "fav3_sage_attn_fwd",
+          "fav3_sage_mxfp4",
+          "mla_decode_fwd",
+          "mla_decode_fwd_v2",
+          "mla_extend_fwd",
+          "fmha_fwd",
+          "fmha_varlen_fwd",
+          "fmha_bwd"
+        ],
+        "total_count": 13,
+        "status": "LANDSCAPE_MAPPED"
+      },
+      "parent_id": "root_mla",
+      "priority": 0.5,
+      "attempts": 0,
+      "best_result_us": null,
+      "stagnation_count": 0,
+      "status": "active",
+      "children": [],
+      "notes": "[Session 77] 13 total attention APIs catalogued. Priority APIs for MLA: pa_ps_fwd_asm (persistent streaming), fmha_v3_varlen_fwd (latest gen), flash_attn_varlen_func (padded V approach). Lower-priority: fav3_sage variants, mla_decode_fwd_v2. This node tracks the landscape for systematic evaluation.",
       "attempt_history": []
     }
   }
