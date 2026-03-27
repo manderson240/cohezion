@@ -1,3 +1,17 @@
+### [2026-03-27] SESSION 76: RETROSPECTIVE + KNOWLEDGE ARCHITECTURE
+- **Scope**: Compound retrospective of Session 75, internal code sweep, external research, plan refinement.
+- **Findings**: Knowledge nervous system fractured — retrospect.md never calls vault/graph/skill APIs. 949 lines of JourneyAnalyzer unused. Graph has no health monitoring. Zero A2A agent coordination.
+- **Architecture**: Formalized Three Feedback Loops (inner: execution, middle: knowledge compound, outer: platform coordination). Defined graph ontology (8 node types, 7 edge types, 4 health invariants tied to HIHO). Mapped 6-protocol agent stack (MCP/A2A/UCP/AP2/A2UI/AG-UI).
+- **Deliverables**: 7 new agents (vault-keeper, surreal-dba, claude-specialist, gemini-specialist, ollama-specialist, mcp-specialist, platform-coordinator) + matching PRIME skills. New cohezion-maintenance-mcp server. Updated retrospect.md with vault/SurrealDB integration.
+- **Learnings**: L198-L202 (Three Loops, 6-Protocol Stack, Graph HIHO, Dual-Format Agents, MCP Specialist).
+- **Test baseline**: Worktree 5,160 passing / 47 failing. Main 4,910 passing / 51 failing.
+
+### [2026-03-27] SESSION 75: GENESIS ENGINE PHASE 2 + RALPH LOOP
+- **Scope**: 15 commits, 6 milestones. Ralph Loop overnight autonomous execution.
+- **Delivered**: M22.1 (10-step cosmogony), M22.2 (Worldview Explorer), M22.3 (EVOs), M22.6 (Levin bioelectric), M22.7 (InVEST natural capital), M23 (Ouroboros + Mycelium), M24 partial (rewards bridge, extended physics API), M25.2 (Causal-JEPA).
+- **Competition**: ARC Prize 2026 conductor track initialized, FLUME domain encoder for cross-competition transfer.
+- **Learnings**: L190-L197 (cosmogony completion, bioelectric HIHO, InVEST habitat quality, Causal-JEPA, worldview convergence, Ouroboros wiring, EVO physics, Ralph Loop orchestration).
+
 ### [2026-03-26] SESSION 74: GENESIS ENGINE — COMPLETE SYSTEM (Phase 1 + Phase 2)
 - **Scope**: Single session, 24 commits, ~14,000 lines, 192 tests. Exemplary long-horizon execution.
 - **Phase 1** (M1-M9): Mathematical core — SU(2) spinors, cosmogony (Brahmagupta's zero + Landau), Riemannian geometry, Lagrangian dynamics, fiber bundles, gauge theory (Yang-Mills), Fisher information metric (Rosetta Stone), JEPA world model (86K params), PocketTTS narrator, Tone.js sonification. 8-tab webapp with GenesisScene, BlochSphere, FreeEnergyLandscape, CosmogonyTimeline, EquationPanel.
@@ -120,23 +134,10 @@
 - **Next Step**: Connect RAH to SurrealDB for persistent decision logging and effectiveness analysis.
 
 ### [2026-03-06] SESSION INITIALIZATION & ENVIRONMENT AUDIT
-- **Date**: Friday, March 6, 2026.
-- **Operating System**: Linux (Framework Desktop 16).
-- **Environment Status**: Initial context established for Cohezion Orchestration Layer.
-- **MCP Server Audit**:
-    - **Active Extensions**: `google-workspace`, `huggingface`, `nanobanana`, `context7`, `gemini-cli-security`.
-    - **Offline Local Infrastructure**: `BMAD`, `Doc Retriever`, `Memory`, `Sequential`, `Git Context`, `Security`, `Plasma Physics`, `Report Generation`.
-    - **Action Item**: Local MCP infrastructure (ports 8360-8381) requires manual start via `./start-mcp-servers.sh` if deep research or physics simulations are needed.
-- **Goal**: Documentation complete. Proceeding to current task alignment.
+- Initial MCP server audit: 5 active cloud extensions, 8 offline local services (ports 8360-8381). Environment established.
 
 ### [2026-02-05] PHASE 8: OLLAMA-OPS INTEGRATION & COMPOUND ENGINEERING
-- **Team**: `ollama-ops` multi-agent team (team-lead, code-auditor, integration-tester).
-- **Repo Hygiene**: Deleted 14,042 lines across 114 files. Fixed broken imports across 30+ test files.
-- **Critical Fix — GTT Carveout Illusion**: ResourceMonitor was reading 512MB VRAM carveout, reporting false 88.7% pressure. Rewrote to read GTT (128GB unified pool). True pressure: 0.37%.
-- **Critical Fix — AMD iGPU Detection**: Implemented vendor-agnostic sysfs detection, UMA classification. Hardware tier upgraded from "laptop" to "professional".
-- **Critical Fix — JSON Comment Parsing**: `_load_json_with_comments()` stripping comment lines.
-- **Critical Fix — Import Chain Firewall**: Lazy imports with `# noqa: E402` annotations.
-- **Integration**: 5-stage pipeline test, 25 models discovered, 140 tests collected, elite routing confirmed.
+- Multi-agent team (3 agents). 14,042 lines deleted, 114 files cleaned. GTT carveout illusion fixed (512MB→128GB), AMD iGPU detection, JSON comment stripping, lazy import firewall. 25 models, 140 tests, elite routing confirmed.
 
 ### [2026-02-02] PHASE 7: RESILIENCE & SCALE
 - Unified Connection Pooling and Circuit Breaker protocols.
