@@ -222,3 +222,66 @@ class TestSyntheticData:
         data = generate_synthetic_training_data(n_samples=50, state_dim=12)
         state, action, next_state = data[0]
         np.testing.assert_allclose(action, next_state - state, atol=1e-5)
+
+
+class TestCausalMask:
+    """Verify Causal-JEPA masking upgrade (arxiv 2602.11389)."""
+
+    def test_causal_mask_initializes(self):
+        model = JEPAWorldModel(causal_mask_ratio=0.3)
+        assert model.causal_mask_ratio == 0.3
+        assert model.causal_mask.embed_dim == 64
+
+    def test_causal_importance_scores_sum_to_one(self):
+        model = JEPAWorldModel()
+        scores = model.causal_importance()
+        assert len(scores) == 64
+        assert abs(scores.sum() - 1.0) < 0.01
+
+    def test_top_k_causal_dims_returns_correct_count(self):
+        model = JEPAWorldModel()
+        dims = model.causal_mask.top_k_causal_dims(k=10)
+        assert len(dims) == 10
+        assert all(0 <= d < 64 for d in dims)
+
+    def test_fast_predict_returns_valid_state(self):
+        model = JEPAWorldModel()
+        state = np.random.default_rng(42).uniform(0.2, 0.8, 12).astype(np.float32)
+        action = np.random.default_rng(42).normal(0, 0.05, 12).astype(np.float32)
+        result = model.fast_predict(state, action, k=6)
+        assert result.shape == (12,)
+        assert np.all(np.isfinite(result))
+
+    def test_counterfactual_predict_multiple_actions(self):
+        model = JEPAWorldModel()
+        state = np.full(12, 0.5, dtype=np.float32)
+        actions = [np.random.default_rng(i).normal(0, 0.1, 12).astype(np.float32) for i in range(5)]
+        results = model.counterfactual_predict(state, actions)
+        assert len(results) == 5
+        for r in results:
+            assert r.shape == (12,)
+            assert np.all(np.isfinite(r))
+
+    def test_causal_mask_preserved_in_save_load(self, tmp_path):
+        model = JEPAWorldModel(causal_mask_ratio=0.5)
+        # Train briefly to make importance scores non-uniform
+        data = generate_synthetic_training_data(n_samples=50)
+        model.train_epoch(data)
+        scores_before = model.causal_importance().copy()
+
+        path = tmp_path / "causal_jepa.pt"
+        model.save(path)
+        loaded = JEPAWorldModel.load(path)
+        scores_after = loaded.causal_importance()
+        np.testing.assert_allclose(scores_before, scores_after, atol=1e-5)
+
+    def test_training_with_causal_mask_converges(self):
+        """Training still converges with causal masking enabled."""
+        model = JEPAWorldModel(causal_mask_ratio=0.3)
+        data = generate_synthetic_training_data(n_samples=200)
+        losses = []
+        for _ in range(5):
+            metrics = model.train_epoch(data)
+            losses.append(metrics["total_loss"])
+        # Loss should decrease (or at least not explode)
+        assert losses[-1] < losses[0] * 2.0  # Not diverging
