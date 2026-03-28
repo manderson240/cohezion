@@ -15,7 +15,7 @@ DATASET_PATH = "cohezion_kb.jsonl"
 
 def train():
     # 2. Initialize Trackio
-    trackio.init(project=PROJECT_NAME, run_name="local-qwen3-1.7b-sft-breathable")
+    trackio.init(project=PROJECT_NAME)
 
     # 3. Load Dataset
     dataset = load_dataset("json", data_files=DATASET_PATH, split="train")
@@ -42,7 +42,7 @@ def train():
     model = get_peft_model(model, peft_config)
     model.print_trainable_parameters()
 
-    # 6. Training Arguments (Breathable)
+    # 6. Training Arguments (Breathable - Optimized for 128GB Unified Memory)
     training_args = SFTConfig(
         output_dir="./output/qwen3-1.7b-cohezion",
         max_length=1024,
@@ -57,7 +57,8 @@ def train():
         logging_steps=5,
         push_to_hub=False,
         report_to="trackio",
-        bf16=True,
+        bf16=False,
+        fp16=False,
         gradient_checkpointing=True,
     )
 
@@ -67,7 +68,7 @@ def train():
         train_dataset=dataset,
         peft_config=peft_config,
         args=training_args,
-        tokenizer=tokenizer,
+        processing_class=tokenizer,
     )
 
     print("🧠 Starting Breathable Fine-Tuning...")
