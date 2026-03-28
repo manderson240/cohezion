@@ -53,10 +53,10 @@ class InflectionDetector:
 
     def __init__(
         self,
-        coherence_threshold: float = 0.3,
-        cache_hit_threshold: float = 0.2,
+        coherence_threshold: float | None = None,
+        cache_hit_threshold: float | None = None,
         token_limit_percentile: float = 0.9,
-        failure_streak_limit: int = 3,
+        failure_streak_limit: int | None = None,
     ):
         """Initialize inflection detector.
 
@@ -66,10 +66,24 @@ class InflectionDetector:
             token_limit_percentile: Percentile for anomalous token consumption
             failure_streak_limit: Max consecutive failures before critical
         """
-        self.coherence_threshold = coherence_threshold
-        self.cache_hit_threshold = cache_hit_threshold
+        from cohezion.compound.coherence_config import DEFAULT_CONFIG
+
+        self.coherence_threshold = (
+            coherence_threshold
+            if coherence_threshold is not None
+            else DEFAULT_CONFIG.inflection_coherence
+        )
+        self.cache_hit_threshold = (
+            cache_hit_threshold
+            if cache_hit_threshold is not None
+            else DEFAULT_CONFIG.inflection_cache_hit
+        )
         self.token_limit_percentile = token_limit_percentile
-        self.failure_streak_limit = failure_streak_limit
+        self.failure_streak_limit = (
+            failure_streak_limit
+            if failure_streak_limit is not None
+            else DEFAULT_CONFIG.inflection_failure_streak
+        )
 
         # Track state for streak detection
         self.consecutive_failures = 0

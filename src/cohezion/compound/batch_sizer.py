@@ -365,8 +365,8 @@ class BatchSizePredictor:
                 try:
                     data = json.loads(json_match.group())
                     return self._dict_to_metrics(data)
-                except json.JSONDecodeError:
-                    pass
+                except json.JSONDecodeError as e:
+                    logger.debug("JSON parse failed in batch metrics: %s", e)
 
             # Try to extract structured fields from markdown
             metrics = self._parse_markdown_fields(content)

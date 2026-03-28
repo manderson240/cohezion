@@ -173,3 +173,49 @@ class TestCompoundExecutorIntegration:
 
         assert isinstance(result, ExecutionResult)
         assert result.duration_seconds > 0
+
+
+class TestCompoundExecutorAutoCreation:
+    """[P0] Tests for auto-creation of coherence components."""
+
+    @pytest.fixture()
+    def mock_mcp(self):
+        return MagicMock()
+
+    def test_alignment_analyzer_auto_created(self, mock_mcp):
+        """Alignment analyzer should be auto-created when enabled (now default)."""
+        executor = CompoundExecutor(mcp_client=mock_mcp)
+        assert executor._alignment_analyzer is not None
+        assert type(executor._alignment_analyzer).__name__ == "RequestAlignmentAnalyzer"
+
+    def test_alignment_analyzer_disabled(self, mock_mcp):
+        """Alignment analyzer should be None when explicitly disabled."""
+        executor = CompoundExecutor(mcp_client=mock_mcp, enable_alignment_analysis=False)
+        assert executor._alignment_analyzer is None
+
+    def test_degradation_detector_auto_created(self, mock_mcp):
+        """Degradation detector should be auto-created by default."""
+        executor = CompoundExecutor(mcp_client=mock_mcp)
+        assert executor._degradation_detector is not None
+        assert type(executor._degradation_detector).__name__ == "DegradationDetector"
+
+    def test_degradation_detector_uses_config_threshold(self, mock_mcp):
+        """Auto-created detector should use CoherenceConfig threshold."""
+        from cohezion.compound.coherence_config import DEFAULT_CONFIG
+
+        executor = CompoundExecutor(mcp_client=mock_mcp)
+        assert (
+            executor._degradation_detector.coherence_threshold
+            == DEFAULT_CONFIG.degradation_coherence
+        )
+
+    def test_skill_health_tracker_auto_created(self, mock_mcp):
+        """Skill health tracker should be auto-created by default."""
+        executor = CompoundExecutor(mcp_client=mock_mcp)
+        assert executor._skill_health_tracker is not None
+        assert type(executor._skill_health_tracker).__name__ == "SkillHealthTracker"
+
+    def test_degradation_mode_initially_false(self, mock_mcp):
+        """Degradation mode should start as False."""
+        executor = CompoundExecutor(mcp_client=mock_mcp)
+        assert executor._degradation_mode is False

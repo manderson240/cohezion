@@ -96,7 +96,7 @@ class CompoundExecutor(CompoundContextMixin):
         journey_tracker: Any | None = None,
         journey_persistence: Any | None = None,
         alignment_analyzer: Any | None = None,
-        enable_alignment_analysis: bool = False,
+        enable_alignment_analysis: bool = True,
         degradation_detector: Any | None = None,
         model_quality_classifier: Any | None = None,
         retrospection_engine: Any | None = None,
@@ -154,9 +154,24 @@ class CompoundExecutor(CompoundContextMixin):
         self._metrics_collector = metrics_collector
         self._journey_tracker = journey_tracker
         self._journey_persistence = journey_persistence
-        self._alignment_analyzer = alignment_analyzer
         self._enable_alignment_analysis = enable_alignment_analysis
-        self._degradation_detector = degradation_detector
+        if alignment_analyzer:
+            self._alignment_analyzer = alignment_analyzer
+        elif self._enable_alignment_analysis:
+            from cohezion.compound.request_alignment_analyzer import RequestAlignmentAnalyzer
+
+            self._alignment_analyzer = RequestAlignmentAnalyzer(mcp_client)
+        else:
+            self._alignment_analyzer = None
+        if degradation_detector:
+            self._degradation_detector = degradation_detector
+        else:
+            from cohezion.compound.degradation_detector import DegradationDetector
+            from cohezion.compound.coherence_config import DEFAULT_CONFIG
+
+            self._degradation_detector = DegradationDetector(
+                coherence_threshold=DEFAULT_CONFIG.degradation_coherence,
+            )
         self._model_quality_classifier = model_quality_classifier
         self._retrospection_engine = retrospection_engine
         self._universe_bridge = universe_bridge
@@ -749,7 +764,9 @@ class CompoundExecutor(CompoundContextMixin):
         # Coherence within HIHO band [0.4, 0.6] -> exit degradation mode
         # Coherence outside band with CRITICAL alert -> enter degradation mode
         coherence_val = metrics.get("coherence", 0.5)
-        if 0.4 <= coherence_val <= 0.6 and self._degradation_mode:
+        from cohezion.compound.coherence_config import DEFAULT_CONFIG
+
+        if DEFAULT_CONFIG.is_hiho_stable(coherence_val) and self._degradation_mode:
             logger.info(
                 "Cohesion returned to HIHO band (%.2f), exiting degradation mode", coherence_val
             )
@@ -1032,7 +1049,7 @@ class ExecutorFactory:
         journey_tracker: Any | None = None,
         journey_persistence: Any | None = None,
         alignment_analyzer: Any | None = None,
-        enable_alignment_analysis: bool = False,
+        enable_alignment_analysis: bool = True,
         degradation_detector: Any | None = None,
         model_quality_classifier: Any | None = None,
         retrospection_engine: Any | None = None,
@@ -1096,7 +1113,7 @@ class ExecutorFactory:
         journey_tracker: Any | None = None,
         journey_persistence: Any | None = None,
         alignment_analyzer: Any | None = None,
-        enable_alignment_analysis: bool = False,
+        enable_alignment_analysis: bool = True,
         degradation_detector: Any | None = None,
         model_quality_classifier: Any | None = None,
         retrospection_engine: Any | None = None,

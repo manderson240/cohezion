@@ -122,16 +122,34 @@ class DegradationDetector:
 
     def __init__(
         self,
-        cache_hit_rate_threshold: float = 0.50,
-        token_efficiency_drop_threshold: float = 0.10,
-        coherence_threshold: float = 0.60,
-        duration_slowdown_threshold: float = 0.25,
+        cache_hit_rate_threshold: float | None = None,
+        token_efficiency_drop_threshold: float | None = None,
+        coherence_threshold: float | None = None,
+        duration_slowdown_threshold: float | None = None,
     ) -> None:
         """Initialize degradation detector."""
-        self.cache_hit_rate_threshold = cache_hit_rate_threshold
-        self.token_efficiency_drop_threshold = token_efficiency_drop_threshold
-        self.coherence_threshold = coherence_threshold
-        self.duration_slowdown_threshold = duration_slowdown_threshold
+        from cohezion.compound.coherence_config import DEFAULT_CONFIG
+
+        self.cache_hit_rate_threshold = (
+            cache_hit_rate_threshold
+            if cache_hit_rate_threshold is not None
+            else DEFAULT_CONFIG.degradation_cache_hit
+        )
+        self.token_efficiency_drop_threshold = (
+            token_efficiency_drop_threshold
+            if token_efficiency_drop_threshold is not None
+            else DEFAULT_CONFIG.degradation_efficiency_drop
+        )
+        self.coherence_threshold = (
+            coherence_threshold
+            if coherence_threshold is not None
+            else DEFAULT_CONFIG.degradation_coherence
+        )
+        self.duration_slowdown_threshold = (
+            duration_slowdown_threshold
+            if duration_slowdown_threshold is not None
+            else DEFAULT_CONFIG.degradation_duration_slowdown
+        )
 
         # Baselines for each metric
         self._baselines = {
