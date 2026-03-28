@@ -1,48 +1,57 @@
-name: Lint & Type Check
+name: Lint Enforcement
 
 on:
   push:
-    branches: [main]
+    branches: [main, develop]
   pull_request:
-    branches: [main]
+    branches: [main, develop]
 
 jobs:
   lint:
-    runs-on: ubuntu-latest
-
+    runs-on: self-hosted
+    
     steps:
-      - name: Check out code
+      - name: Checkout
         uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v4
         with:
-          python-version: '3.11'
-
+          submodules: recursive
+      
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      
+      - name: Install uv
+        uses: astral-sh/setup-uv@v2
+        with:
+          version: "latest"
+      
       - name: Install dependencies
+        run: uv sync --all-extras
+      
+      - name: Critical Lint Check (E722, F821, S607)
         run: |
-          pip install ruff mypy
-
-      - name: Run ruff format check (root)
-        run: ruff format --check src/ tests/ || true
-
-      - name: Run ruff format check (cloud-vault-mcp)
+          uv run ruff check . \
+            --select "E722,F821,S607" \
+            --exit-non-zero-on-fix \
+            --exclude "research/,.venv/,__pycache__/"
+        
+      - name: Style Lint Check (Warning Mode)
         run: |
-          cd cloud-vault-mcp
-          ruff format --check src/ tests/ || true
-
-      - name: Run ruff linter (root)
-        run: ruff check src/ tests/ || true
-
-      - name: Run ruff linter (cloud-vault-mcp)
+          uv run ruff check . \
+            --select "E501,I001,W293,N806,RUF059,F401" \
+            --exclude "research/,.venv/,__pycache__/" \
+            --output-format=github || true
+        
+      - name: Test Repo Health
         run: |
-          cd cloud-vault-mcp
-          ruff check src/ tests/ || true
-
-      - name: Run mypy (root)
-        run: mypy --ignore-missing-imports src/ || true
-
-      - name: Run mypy (cloud-vault-mcp)
-        run: |
-          cd cloud-vault-mcp
-          mypy --ignore-missing-imports src/ || true
+          uv run pytest tests/repo_health/ -v --tb=short
+        
+      - name: Upload Lint Report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: lint-report
+          path: |
+            .ruff_cache/
+            health_report.json
