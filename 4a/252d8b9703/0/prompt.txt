@@ -79,3 +79,7 @@ Full transcript available at: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/
 <summary>Background command "Final full suite verification" completed (exit code 0)</summary>
 </task-notification>
 Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/0e827bda-d662-451e-95d0-882cbec81a9e/tasks/bairijglz.output
+
+---
+
+/retrospect
