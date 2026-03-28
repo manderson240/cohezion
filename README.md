@@ -296,8 +296,8 @@ make format && make lint && make type-check
 - **Language**: Python 3.13+
 - **ML**: PyTorch (VAE, RL policy), Gymnasium (RL environments), sentence-transformers (embeddings)
 - **Backend**: FastAPI, SurrealDB (async), JSONL fallback
-- **Inference**: Ollama (local models), Anthropic API, cost-aware model routing
-- **Quality**: ruff (format + lint, 203 errors remaining), mypy (type checking), pytest (3,486 passing)
+- **Inference**: Ollama (local + cloud), Anthropic API (optional), task-type routing with budget gating
+- **Quality**: ruff (format + lint), mypy (type checking), pytest (4,891 passing)
 - **Deployment**: Docker, Cloud Run, systemd
 
 ---

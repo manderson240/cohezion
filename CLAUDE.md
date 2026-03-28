@@ -10,7 +10,7 @@ COHEZION: 12D agentic universe with FLUME VAE, compound engineering, multi-agent
 
 ### ⚡ Core Commands
 ```bash
-uv run pytest tests/ -q              # Full test suite (3,200+ tests, ~90s)
+uv run pytest tests/ -q              # Full test suite (4,900+ tests, ~7min)
 uv run pytest tests/compound/ -v     # Run module tests
 uv run pytest tests/test_*.py::name  # Single test
 make format && make lint && make all # Check → fix → verify
@@ -77,6 +77,7 @@ See skill: `cohezion-vault-workflow` for vault API examples (log decisions, expe
 | **Compound** | Executor, SkillRefiner, RetrospectionEngine, JourneyTracker | `CompoundExecutor` |
 | **Swarm** | TeamOrchestrator, ExecutionOrchestrator, DynamicModelRouter | `TeamExecutor` |
 | **Cache** | SemanticCache (L1 hash + L2 cosine + L3 vault, 95%+ hit rate) | `SemanticCache` |
+| **Routing** | TaskTypeRouter (9 task types), AnthropicProvider, OllamaCloudProvider | `TaskTypeRouter` |
 | **Cost Opt** | CostAwareRouter (27.3% savings), BudgetEnforcer, ModelQualityClassifier | `CostAwareRouter` |
 | **Persistence** | SessionPersistence (vault + JSONL), MetricsCollector, DegradationDetector | `SessionManager` |
 | **Knowledge** | Vault-First (decisions/patterns/experiments), auto-compiled MEMORY.md | `vault_find_relevant_context` |
