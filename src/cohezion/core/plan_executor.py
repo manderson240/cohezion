@@ -11,9 +11,11 @@ import logging
 import re
 import time
 from dataclasses import dataclass, field
-from typing import Any, Protocol, runtime_checkable
+from typing import TYPE_CHECKING, Any, Protocol, runtime_checkable
 
-from cohezion.core.instruction_expander import ExecutablePlan, PlanStep
+
+if TYPE_CHECKING:
+    from cohezion.core.instruction_expander import ExecutablePlan, PlanStep
 
 
 logger = logging.getLogger(__name__)

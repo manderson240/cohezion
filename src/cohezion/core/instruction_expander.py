@@ -11,9 +11,11 @@ from __future__ import annotations
 import logging
 import re
 from dataclasses import dataclass, field
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
-from cohezion.core.template_engine import SkillSpec
+
+if TYPE_CHECKING:
+    from cohezion.core.template_engine import SkillSpec
 
 
 logger = logging.getLogger(__name__)

@@ -24,6 +24,8 @@ import logging
 import sys
 from pathlib import Path
 
+from cohezion.mcp.shared.client import MCPClient
+
 
 # Setup logging
 logging.basicConfig(
@@ -227,154 +229,140 @@ Examples:
         help="Skip SurrealDB persistence",
     )
 
+    # Logs command
+    logs_parser = subparsers.add_parser("logs", help="View aggregated logs from MCP servers")
+    logs_parser.add_argument("--server", "-s", help="Filter by server name")
+    logs_parser.add_argument("--follow", "-f", action="store_true", help="Follow log output")
+    logs_parser.add_argument("--lines", "-n", type=int, default=100, help="Number of lines to show")
+
     # Interactive mode
     subparsers.add_parser("interactive", help="Start interactive mode")
 
     return parser
 
 
-async def cmd_journey_start(args: argparse.Namespace) -> int:
-    """Handle journey start command."""
-    logger.info(f"🌌 Starting universe journey: {args.intent[:50]}...")
-    logger.info(f"   Agent: {args.agent}")
-    logger.info(f"   Model: {args.model}")
-    logger.info(f"   Parallel agents: {args.agents}")
+async def get_mcp_client(server_name: str) -> MCPClient:
+    """Get an MCP client for a specific server, ensuring it's registered and running."""
+    from cohezion.mcp.manager.server_manager import get_manager
 
-    # This would integrate with the universe engine
-    # For now, show what would happen
-    journey_id = f"journey_{args.intent[:20].replace(' ', '_')}"
+    manager = get_manager()
 
-    logger.info(f"✅ Journey created: {journey_id}")
-    logger.info("   Status: active")
-    logger.info("   Coherence target: 0.5 (HIHO stability)")
-
-    # Output in JSON for programmatic use
-    result = {
-        "journey_id": journey_id,
-        "intent": args.intent,
-        "agent": args.agent,
-        "model": args.model,
-        "status": "active",
-        "created_at": "now",
+    # Domain to Server mapping
+    server_map = {
+        "journey": ("cohezion-journey", "cohezion.mcp.servers.journey.server:app", 8363),
+        "simulate": ("cohezion-simulate", "cohezion.mcp.servers.simulate.server:app", 8364),
+        "rewards": ("cohezion-rewards", "cohezion.mcp.servers.rewards.server:app", 8365),
     }
 
-    print(json.dumps(result, indent=2))
-    return 0
+    if server_name not in server_map:
+        raise ValueError(f"Unknown MCP server: {server_name}")
+
+    name, entry, port = server_map[server_name]
+
+    if name not in manager.servers:
+        manager.register_server(name, entry, preferred_port=port)
+
+    config = manager.servers[name]
+    if config.status != "running":
+        success = await manager.start_server(name)
+        if not success:
+            raise RuntimeError(f"Failed to start MCP server {name}")
+
+    return MCPClient(base_url=manager.get_server_url(name), uds_path=manager.get_server_uds(name))
+
+
+async def cmd_journey_start(args: argparse.Namespace) -> int:
+    """Handle journey start command."""
+    try:
+        client = await get_mcp_client("journey")
+        params = {
+            "intent": args.intent,
+            "agent": args.agent,
+            "model": args.model,
+            "agents": args.agents,
+        }
+        result = await client.call_tool("journey_start", params)
+        await client.close()
+
+        if "error" in result:
+            logger.error(f"Error: {result['error']}")
+            return 1
+
+        print(json.dumps(result, indent=2))
+        return 0
+    except Exception:
+        logger.exception("Failed to execute journey start")
+        return 1
 
 
 async def cmd_journey_list(args: argparse.Namespace) -> int:
     """Handle journey list command."""
-    logger.info("📋 Listing journeys...")
+    try:
+        client = await get_mcp_client("journey")
+        result = await client.call_tool("journey_list", {})
+        await client.close()
 
-    # Mock data - would query SurrealDB
-    journeys = [
-        {
-            "id": "journey_001",
-            "intent": "Design API",
-            "status": "completed",
-            "phi": 0.85,
-        },
-        {
-            "id": "journey_002",
-            "intent": "Refactor auth",
-            "status": "active",
-            "phi": 0.72,
-        },
-    ]
+        if "error" in result:
+            logger.error(f"Error: {result['error']}")
+            return 1
 
-    for journey in journeys:
-        status_icon = "✅" if journey["status"] == "completed" else "🔄"
-        print(
-            f"{status_icon} {journey['id']}: {journey['intent'][:40]}... (phi: {journey['phi']:.2f})"
-        )
+        journeys = result.get("journeys", [])
+        for journey in journeys:
+            status_icon = "✅" if journey["status"] == "completed" else "🔄"
+            print(
+                f"{status_icon} {journey['id']}: {journey['intent'][:40]}... (phi: {journey['phi']:.2f})"
+            )
 
-    return 0
+        return 0
+    except Exception:
+        logger.exception("Failed to list journeys")
+        return 1
 
 
 async def cmd_simulate(args: argparse.Namespace) -> int:
     """Handle simulate command — run scripts in sandboxed isolation."""
-    from uuid import uuid4
+    try:
+        client = await get_mcp_client("simulate")
 
-    from cohezion.universe.example_simulations import EXAMPLES
-    from cohezion.universe.sandbox_backends import (
-        DockerBackend,
-        SubprocessBackend,
-        SystemdRunBackend,
-        select_backend,
-    )
-    from cohezion.universe.sandbox_profiles import SandboxTier, get_profile
-    from cohezion.universe.sandbox_results import persist_result
+        script_content = None
+        if args.script:
+            script_path = Path(args.script)
+            if not script_path.is_file():
+                logger.error(f"Script not found: {args.script}")
+                return 1
+            script_content = script_path.read_text()
 
-    # Resolve script content
-    if args.example:
-        script = EXAMPLES[args.example]
-        script_label = f"example:{args.example}"
-    elif args.script:
-        script_path = Path(args.script)
-        if not script_path.is_file():
-            logger.error(f"Script not found: {args.script}")
+        params = {
+            "tier": args.tier,
+            "backend": args.backend,
+            "script": script_content,
+            "example": args.example,
+        }
+
+        result = await client.call_tool("run_simulation", params)
+        await client.close()
+
+        if "error" in result:
+            logger.error(f"Error: {result['error']}")
             return 1
-        script = script_path.read_text()
-        script_label = str(script_path)
-    else:
-        logger.error("Provide --script PATH or --example NAME")
+
+        status = "SUCCESS" if result.get("success") else "FAILED"
+        logger.info(
+            f"\n  Result: {status} (exit_code={result.get('exit_code')}, duration={result.get('duration', 0.0):.2f}s)"
+        )
+
+        if result.get("stdout"):
+            print(result["stdout"])
+
+        if result.get("stderr"):
+            logger.warning(f"  stderr: {result['stderr'][:500]}")
+
+        logger.info(f"  Saved to: {result.get('run_dir')}")
+        return 0 if result.get("success") else 1
+
+    except Exception:
+        logger.exception("Failed to run simulation")
         return 1
-
-    # Resolve tier
-    tier_map = {
-        "light": SandboxTier.LIGHT,
-        "medium": SandboxTier.MEDIUM,
-        "heavy": SandboxTier.HEAVY,
-    }
-    tier = tier_map[args.tier]
-    profile = get_profile(tier)
-
-    # Resolve backend
-    backend_map = {
-        "docker": DockerBackend,
-        "systemd": SystemdRunBackend,
-        "subprocess": SubprocessBackend,
-    }
-    backend = backend_map[args.backend]() if args.backend else select_backend()
-
-    backend_name = type(backend).__name__
-    run_id = f"sim_{uuid4().hex[:8]}"
-
-    logger.info(f"Sandbox run {run_id}")
-    logger.info(f"  Script: {script_label}")
-    logger.info(
-        f"  Tier: {args.tier} (mem={profile.memory_limit_mb}MB, cpu={profile.cpu_quota_percent}%)"
-    )
-    logger.info(f"  Backend: {backend_name}")
-
-    result = await backend.execute(script, profile)
-
-    # Persist results
-    run_dir = persist_result(
-        result,
-        run_id,
-        tier=args.tier,
-        backend=backend_name,
-    )
-
-    # Print summary
-    status = "SUCCESS" if result.success else "FAILED"
-    logger.info(
-        f"\n  Result: {status} (exit_code={result.exit_code}, duration={result.duration:.2f}s)"
-    )
-
-    if result.stdout:
-        print(result.stdout)
-
-    if result.stderr:
-        logger.warning(f"  stderr: {result.stderr[:500]}")
-
-    if result.output_files:
-        logger.info(f"  Output files: {', '.join(result.output_files.keys())}")
-
-    logger.info(f"  Saved to: {run_dir}")
-
-    return 0 if result.success else 1
 
 
 async def cmd_precipitate(args: argparse.Namespace) -> int:
@@ -400,63 +388,112 @@ async def cmd_precipitate(args: argparse.Namespace) -> int:
 
 async def cmd_rewards_status(args: argparse.Namespace) -> int:
     """Handle rewards status command."""
-    logger.info(f"🏆 Reward Status for: {args.agent}")
+    try:
+        client = await get_mcp_client("rewards")
+        result = await client.call_tool("get_reward_status", {"agent": args.agent})
+        await client.close()
 
-    # Mock status - would query reward system
-    status = {
-        "agent_id": args.agent,
-        "total_xp": 12450,
-        "tier": "Master",
-        "capabilities": ["access_deepseek_70b", "meta_programming", "generate_agents"],
-        "parallel_agents": 20,
-        "autonomy_tier": 3,
-        "achievements": [
-            {"name": "Quality Craftsman", "rarity": "rare"},
-            {"name": "Collaborator", "rarity": "common"},
-            {"name": "Dedicated", "rarity": "epic"},
-        ],
-        "streak": {"current": 5, "longest": 12},
-        "next_unlock": {"name": "Architect", "threshold": 25000, "xp_needed": 12550},
-    }
+        if "error" in result:
+            logger.error(f"Error: {result['error']}")
+            return 1
 
-    print(f"\n🎯 Tier: {status['tier']} ({status['total_xp']:,} XP)")
-    print(f"🔓 Capabilities: {', '.join(status['capabilities'])}")
-    print(f"🔥 Streak: {status['streak']['current']} days (longest: {status['streak']['longest']})")
-    print(f"🎖️ Achievements: {len(status['achievements'])}")
-
-    if status["next_unlock"]:
+        status = result.get("status", {})
+        print(f"\n🎯 Tier: {status.get('tier')} ({status.get('total_xp', 0):,} XP)")
+        print(f"🔓 Capabilities: {', '.join(status.get('capabilities', []))}")
         print(
-            f"\n⬆️  Next: {status['next_unlock']['name']} (need {status['next_unlock']['xp_needed']:,} more XP)"
+            f"🔥 Streak: {status.get('streak', {}).get('current')} days (longest: {status.get('streak', {}).get('longest')})"
         )
+        print(f"🎖️ Achievements: {len(status.get('achievements', []))}")
 
-    return 0
+        next_unlock = status.get("next_unlock")
+        if next_unlock:
+            print(
+                f"\n⬆️  Next: {next_unlock.get('name')} (need {next_unlock.get('xp_needed', 0):,} more XP)"
+            )
+
+        return 0
+    except Exception:
+        logger.exception("Failed to get reward status")
+        return 1
 
 
 async def cmd_rewards_leaderboard(args: argparse.Namespace) -> int:
     """Handle rewards leaderboard command."""
-    logger.info(f"📊 XP Leaderboard (Top {args.top})")
+    try:
+        client = await get_mcp_client("rewards")
+        result = await client.call_tool("get_leaderboard", {"top": args.top})
+        await client.close()
 
-    # Mock leaderboard
-    leaderboard = [
-        {"rank": 1, "agent": "EvolutionAgent", "xp": 45600, "tier": "Architect"},
-        {"rank": 2, "agent": "NexusResearchAgent", "xp": 38900, "tier": "Master"},
-        {"rank": 3, "agent": "ArchitectAgent", "xp": 32100, "tier": "Master"},
-    ]
+        if "error" in result:
+            logger.error(f"Error: {result['error']}")
+            return 1
 
-    print()
-    for entry in leaderboard:
-        medal = (
-            "🥇"
-            if entry["rank"] == 1
-            else "🥈"
-            if entry["rank"] == 2
-            else "🥉"
-            if entry["rank"] == 3
-            else "  "
-        )
-        print(f"{medal} #{entry['rank']} {entry['agent']}: {entry['xp']:,} XP ({entry['tier']})")
+        leaderboard = result.get("leaderboard", [])
+        print(f"\n📊 XP Leaderboard (Top {args.top})")
+        print("-" * 40)
+        for entry in leaderboard:
+            medal = (
+                "🥇"
+                if entry["rank"] == 1
+                else "🥈"
+                if entry["rank"] == 2
+                else "🥉"
+                if entry["rank"] == 3
+                else "  "
+            )
+            print(
+                f"{medal} #{entry['rank']} {entry['agent']}: {entry['xp']:,} XP ({entry['tier']})"
+            )
 
-    return 0
+        return 0
+    except Exception:
+        logger.exception("Failed to get leaderboard")
+        return 1
+
+
+async def cmd_logs(args: argparse.Namespace) -> int:
+    """Handle logs command."""
+    from cohezion.mcp.manager.models import VAULT_LOG_PATH
+
+    if not VAULT_LOG_PATH.exists():
+        logger.error(f"Log path not found: {VAULT_LOG_PATH}")
+        return 1
+
+    log_files = []
+    if args.server:
+        log_files = [VAULT_LOG_PATH / f"cohezion-{args.server}.log"]
+        if not log_files[0].exists():
+            # Try without cohezion- prefix
+            log_files = [VAULT_LOG_PATH / f"{args.server}.log"]
+    else:
+        log_files = list(VAULT_LOG_PATH.glob("*.log"))
+
+    if not log_files:
+        logger.info("No log files found")
+        return 0
+
+    import subprocess
+
+    cmd = ["tail", f"-n{args.lines}"]
+    if args.follow:
+        cmd.append("-f")
+
+    # Filter only existing files
+    actual_files = [str(f) for f in log_files if f.exists()]
+    if not actual_files:
+        logger.error("Specified log file(s) do not exist")
+        return 1
+
+    cmd.extend(actual_files)
+
+    try:
+        subprocess.run(cmd)
+        return 0
+    except KeyboardInterrupt:
+        return 0
+    except Exception:
+        logger.exception("Failed to show logs")
+        return 1
 
 
 async def cmd_reflect(args: argparse.Namespace) -> int:
@@ -815,14 +852,11 @@ async def main_async() -> int:
         elif args.rewards_cmd == "leaderboard":
             return await cmd_rewards_leaderboard(args)
         elif args.rewards_cmd == "achievements":
-            print("🎖️ Your achievements:")
-            print("   ✓ First Steps (common)")
-            print("   ✓ Quality Craftsman (rare)")
-            print("   ✓ Collaborator (common)")
+            print("🏆 Achievements: Not yet implemented in MCP")
             return 0
-        else:
-            print("Use: cohezion rewards [status|leaderboard|achievements]")
-            return 1
+
+    elif args.command == "logs":
+        return await cmd_logs(args)
 
     elif args.command == "reflect":
         return await cmd_reflect(args)

@@ -11,7 +11,7 @@ import time
 import uuid
 from abc import ABC, abstractmethod
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import httpx
 
@@ -20,7 +20,6 @@ from cohezion.core.compound.engine import CompoundLogicEngine
 from cohezion.core.credit_manager import get_credit_manager
 from cohezion.core.persistence.surreal_client import SurrealClient
 from cohezion.core.time_keeper import get_time_keeper
-from cohezion.flume.autoencoder import FlumeEncoder
 from cohezion.reliability import get_circuit
 from cohezion.reliability.batch_manager import BatchManager
 from cohezion.reliability.context_harness import ContextHarness
@@ -31,8 +30,12 @@ from cohezion.reliability.semantic_cache import SemanticCache
 from cohezion.rewards.system import RewardSystem
 from cohezion.security.output_filter import OutputFilter
 from cohezion.security.prompt_guard import PromptGuard, ThreatLevel
-from cohezion.swarm.swarm_types import SwarmConfig
 from cohezion.universe.engine import UniverseSimulationEngine
+
+
+if TYPE_CHECKING:
+    from cohezion.flume.autoencoder import FlumeEncoder
+    from cohezion.swarm.swarm_types import SwarmConfig
 
 
 logger = logging.getLogger(__name__)

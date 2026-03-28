@@ -19,6 +19,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 MCP_PORT = int(os.getenv("MCP_PORT", "8361"))
+MCP_UDS_PATH = os.getenv("MCP_UDS_PATH")
 REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379")
 BMAD_DATA_PATH = Path(os.getenv("BMAD_DATA_PATH", "_bmad"))
 

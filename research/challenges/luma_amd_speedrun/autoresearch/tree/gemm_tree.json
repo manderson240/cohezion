@@ -24,7 +24,10 @@
         "n_c76ee73d",
         "n_5f803624",
         "n_66619a38",
-        "n_139be188"
+        "n_139be188",
+        "gemm_fused_small",
+        "gemm_fused_large",
+        "gemm_hybrid_fused"
       ],
       "notes": "",
       "attempt_history": [
@@ -7156,6 +7159,74 @@
           "source": "template"
         }
       ]
+    },
+    "gemm_fused_small": {
+      "id": "gemm_fused_small",
+      "strategy": "Fused quant+GEMM Triton: BLOCK_M=16, BLOCK_N=64, BLOCK_K=64 (small M shapes)",
+      "parameters": {
+        "BLOCK_M": 16,
+        "BLOCK_N": 64,
+        "BLOCK_K": 64,
+        "NUM_WARPS": 4,
+        "NUM_STAGES": 2,
+        "FUSED_SHAPES": []
+      },
+      "parent_id": "root_gemm",
+      "priority": 0.9,
+      "attempts": 0,
+      "best_result_us": null,
+      "stagnation_count": 0,
+      "status": "active",
+      "children": [],
+      "notes": "Custom Triton with tl.dot_scaled, eliminates ~16\u00b5s quant overhead",
+      "attempt_history": []
+    },
+    "gemm_fused_large": {
+      "id": "gemm_fused_large",
+      "strategy": "Fused quant+GEMM Triton: BLOCK_M=64, BLOCK_N=128, BLOCK_K=128 (large M shapes)",
+      "parameters": {
+        "BLOCK_M": 64,
+        "BLOCK_N": 128,
+        "BLOCK_K": 128,
+        "NUM_WARPS": 8,
+        "NUM_STAGES": 2,
+        "FUSED_SHAPES": []
+      },
+      "parent_id": "root_gemm",
+      "priority": 0.85,
+      "attempts": 0,
+      "best_result_us": null,
+      "stagnation_count": 0,
+      "status": "active",
+      "children": [],
+      "notes": "Larger tiles for M=64,256 shapes",
+      "attempt_history": []
+    },
+    "gemm_hybrid_fused": {
+      "id": "gemm_hybrid_fused",
+      "strategy": "Hybrid: fused Triton for small M (4,16,32), aiter for large M (64,256)",
+      "parameters": {
+        "BLOCK_M": 32,
+        "BLOCK_N": 64,
+        "BLOCK_K": 64,
+        "NUM_WARPS": 4,
+        "NUM_STAGES": 2,
+        "FUSED_SHAPES": [
+          "4_2880_512",
+          "16_2112_7168",
+          "32_4096_512",
+          "32_2880_512"
+        ]
+      },
+      "parent_id": "root_gemm",
+      "priority": 0.8,
+      "attempts": 0,
+      "best_result_us": null,
+      "stagnation_count": 0,
+      "status": "active",
+      "children": [],
+      "notes": "Per-shape dispatch: Triton for small, aiter for large",
+      "attempt_history": []
     }
   }
 }

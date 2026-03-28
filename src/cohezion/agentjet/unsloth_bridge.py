@@ -6,6 +6,7 @@ Available SOON: QLoRA training (when AMD ROCm support ships in Unsloth).
 Phase 1 (current): Falls back to LocalFinetuner (llama.cpp / llamafactory).
 Phase 2 (planned): QLoRA via Unsloth Studio once AMD support is confirmed.
 """
+
 from __future__ import annotations
 
 import json
@@ -16,6 +17,7 @@ from typing import Any
 import aiohttp
 
 from cohezion.agentjet.context_optimizer import MODEL_OLLAMA_KEY_MAP
+
 
 logger = logging.getLogger(__name__)
 
@@ -118,8 +120,7 @@ class UnslothBridge:
         local_source = _DATA_DIR / "finetune_journeys.jsonl"
         if local_source.exists():
             logger.info(
-                "UnslothBridge: Data Recipes API unavailable; "
-                "copying %s → %s",
+                "UnslothBridge: Data Recipes API unavailable; copying %s → %s",
                 local_source,
                 out,
             )
@@ -128,7 +129,8 @@ class UnslothBridge:
             if vault_query:
                 query_lower = vault_query.lower()
                 filtered = [
-                    r for r in records
+                    r
+                    for r in records
                     if query_lower in str(r.get("instruction", "")).lower()
                     or query_lower in str(r.get("output", "")).lower()
                 ]
@@ -205,9 +207,7 @@ class UnslothBridge:
     # Private helpers
     # ------------------------------------------------------------------
 
-    async def _call_data_recipes_api(
-        self, vault_query: str
-    ) -> list[dict[str, Any]] | None:
+    async def _call_data_recipes_api(self, vault_query: str) -> list[dict[str, Any]] | None:
         """Call Unsloth Studio Data Recipes endpoint.
 
         Returns the parsed list of records on success, or None on any failure.
@@ -220,22 +220,24 @@ class UnslothBridge:
         payload = {"query": vault_query, "format": "jsonl"}
 
         try:
-            async with aiohttp.ClientSession() as session:
-                async with session.post(
+            async with (
+                aiohttp.ClientSession() as session,
+                session.post(
                     url,
                     json=payload,
                     headers=headers,
                     timeout=aiohttp.ClientTimeout(total=30.0),
-                ) as resp:
-                    if resp.status == 200:
-                        data = await resp.json()
-                        records: list[dict[str, Any]] = data.get("records", [])
-                        return records
-                    logger.debug(
-                        "UnslothBridge: Data Recipes API returned HTTP %d — using fallback",
-                        resp.status,
-                    )
-                    return None
+                ) as resp,
+            ):
+                if resp.status == 200:
+                    data = await resp.json()
+                    records: list[dict[str, Any]] = data.get("records", [])
+                    return records
+                logger.debug(
+                    "UnslothBridge: Data Recipes API returned HTTP %d — using fallback",
+                    resp.status,
+                )
+                return None
         except aiohttp.ClientError as exc:
             logger.debug("UnslothBridge: Data Recipes API unreachable: %s", exc)
             return None
@@ -261,9 +263,7 @@ class UnslothBridge:
                 None,
                 lambda: finetuner.run_qlora_training(epochs=epochs),
             )
-            logger.info(
-                "UnslothBridge: llamafactory fallback config written to %s", config_path
-            )
+            logger.info("UnslothBridge: llamafactory fallback config written to %s", config_path)
             return config_path
         except Exception as exc:
             logger.error("UnslothBridge._llamafactory_fallback failed: %s", exc, exc_info=True)

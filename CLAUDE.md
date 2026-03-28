@@ -95,6 +95,8 @@ uv run python scripts/compile_memory_from_vault.py
 |-------|-----------|-------|
 | **Compound** | Executor, SkillRefiner, RetrospectionEngine, JourneyTracker | `CompoundExecutor` |
 | **Swarm** | TeamOrchestrator, ExecutionOrchestrator, DynamicModelRouter | `TeamExecutor` |
+| **Providers** | **ModelProvider, UIProvider (Ollama/vLLM/Groq/Stitch/v0)** | `get_model_provider("ollama")` |
+| **Sovereignty** | **TipOfTheSpearRouter, Constitutional Checker, HIHO Monitor** | `TipOfTheSpearRouter` |
 | **Cache** | SemanticCache (L1 hash + L2 cosine + L3 vault, 95%+ hit rate) | `SemanticCache` |
 | **Cost Opt** | CostAwareRouter (27.3% savings), BudgetEnforcer, ModelQualityClassifier | `CostAwareRouter` |
 | **Persistence** | SessionPersistence (vault + JSONL), MetricsCollector, DegradationDetector | `SessionManager` |
@@ -107,6 +109,7 @@ uv run python scripts/compile_memory_from_vault.py
 - **CI**: `make lint-check && uv run pytest` before commit
 - **Entry point**: `cohezion = "cohezion.__main__:main"`
 - **Vault**: `~/vaults/cohezion-vault/` — Query via `vault_find_relevant_context(query)`
+- **Providers**: `config/providers.yaml` — Switch Ollama↔vLLM↔Groq↔Stitch without code changes
 
 ## The Compound Engineering Loop (Production-Ready)
 
@@ -632,6 +635,188 @@ metrics = agg.get_metrics_snapshot()
 if metrics.total_cost_usd == 0.0:
     logger.warning("Cost tracking not working, check model rates in cost_aware_router.py")
 ```
+
+## Dynamic Provider Architecture (Technology Independence)
+
+**CRITICAL**: Cohezion is **provider-agnostic**. All model inference and UI generation uses abstraction layers to enable instant technology swapping without code changes.
+
+### Why Provider Abstraction?
+
+**Problem**: Technology landscape is volatile in 2026. Ollama today, vLLM tomorrow, Groq next week.
+**Solution**: Strategy pattern + configuration-driven provider selection.
+
+### Model Providers (Inference)
+
+**Interface**: `ModelProvider` ([src/cohezion/swarm/providers/model_provider.py](src/cohezion/swarm/providers/model_provider.py))
+
+**Implementations**:
+- **OllamaProvider**: Local Ollama (AMD ROCm 7, Ryzen AI MAX+ 395 optimized)
+- **vLLMProvider**: Local vLLM (faster than Ollama, CUDA/ROCm)
+- **GroqProvider**: Cloud Groq (500 tokens/sec, ultra-fast)
+- **TogetherProvider**: Cloud Together.ai (100+ open models)
+- **HuggingFaceProvider**: Cloud HuggingFace Inference API
+
+**Usage**:
+```python
+from cohezion.swarm.providers import get_model_provider
+
+# Runtime selection from config/providers.yaml
+provider = get_model_provider("ollama")  # or "vllm", "groq", "together"
+
+# Same interface for all providers!
+result = await provider.generate(
+    model="phi3:mini",  # Provider translates to their model name
+    prompt="Calculate derivative of f(x) = 3x²",
+    temperature=0.7
+)
+
+print(f"{result.response} (confidence: {result.confidence})")
+```
+
+**Configuration** ([config/providers.yaml](config/providers.yaml)):
+```yaml
+# Switch providers by changing ONE line
+active_model_provider: "ollama"  # Change to "vllm", "groq", "together", "huggingface"
+
+model_providers:
+  ollama:
+    base_url: "http://localhost:11434"
+    timeout: 60
+
+  groq:
+    base_url: "https://api.groq.com/openai/v1"
+    api_key: "${GROQ_API_KEY}"
+    timeout: 30
+
+  # ... more providers
+```
+
+### Tier-to-Model Mapping (Provider-Agnostic)
+
+**TipOfTheSpearRouter uses generic tiers** (HOT/WARM/COLD/CLOUD), not hardcoded model names.
+
+**Mapping** ([config/providers.yaml](config/providers.yaml)):
+```yaml
+tier_mappings:
+  hot:
+    general: "phi3:mini"  # Ollama name
+    embedding: "nomic-embed-text:latest"
+
+  warm:
+    math: "qwen2-math:7b"
+    code: "qwen2.5-coder:7b"
+
+  # Provider translates these to their equivalent models
+  # e.g., Groq translates "phi3:mini" → "llama-3.3-70b-versatile"
+```
+
+### UI Generation Providers
+
+**Interface**: `UIGenerationProvider` ([src/cohezion/swarm/providers/ui_generation_provider.py](src/cohezion/swarm/providers/ui_generation_provider.py))
+
+**Implementations**:
+- **StitchProvider**: Google Stitch (AI-native canvas, MCP server)
+- **V0Provider**: Vercel v0 (React/Next.js focused)
+- **BoltNewProvider**: StackBlitz bolt.new (full-stack apps)
+- **VercelAIProvider**: Vercel AI SDK (Generative UI)
+
+**Configuration**:
+```yaml
+active_ui_provider: "stitch"  # Change to "v0", "bolt_new", "vercel_ai"
+
+ui_providers:
+  stitch:
+    api_url: "https://stitch-mcp.withgoogle.com"
+    api_key: "${STITCH_API_KEY}"
+
+  v0:
+    api_url: "https://api.v0.dev"
+    api_key: "${V0_API_KEY}"
+```
+
+### Dynamic Provider Swapping
+
+**Auto-Fallback** (if provider unhealthy):
+```yaml
+dynamic_swapping:
+  enabled: true
+  model_provider_fallback:
+    - "ollama"    # Try local first
+    - "groq"      # Fast cloud fallback
+    - "together"  # Reliable fallback
+  health_check_interval: 300  # 5 minutes
+  unhealthy_threshold: 3  # Switch after 3 failed checks
+```
+
+**Budget-Based Switching** (prefer local when cloud budget low):
+```yaml
+cost_optimization:
+  local_preference_when_budget_below_usd: 10.0
+  daily_limits:
+    groq: 5.0
+    together: 10.0
+```
+
+### Adding New Providers
+
+**Step 1**: Implement `ModelProvider` interface
+```python
+from cohezion.swarm.providers.model_provider import ModelProvider, GenerationResult
+
+class MyCustomProvider(ModelProvider):
+    async def generate(self, model: str, prompt: str, **kwargs) -> GenerationResult:
+        # Your implementation
+        pass
+
+    async def list_models(self) -> list[str]:
+        # Your implementation
+        pass
+```
+
+**Step 2**: Register provider
+```python
+from cohezion.swarm.providers import register_model_provider
+register_model_provider("my_provider", MyCustomProvider)
+```
+
+**Step 3**: Add to config
+```yaml
+active_model_provider: "my_provider"
+model_providers:
+  my_provider:
+    api_key: "${MY_API_KEY}"
+```
+
+**That's it!** All existing code (TipOfTheSpearRouter, CompoundExecutor, etc.) works with zero changes.
+
+### Provider Benefits
+
+| Benefit | Impact |
+|---------|--------|
+| **Technology Independence** | Switch Ollama → vLLM → Groq instantly |
+| **Zero Code Changes** | Change ONE line in config, entire system adapts |
+| **Resilience** | Auto-fallback if provider unhealthy |
+| **Cost Optimization** | Route to local when cloud budget low |
+| **Future-Proof** | Add new providers without touching app code |
+
+### Integration with Sovereignty
+
+**Constitutional checks happen BEFORE provider selection**:
+```python
+# 1. Check constitution (WMD, CSAM, critical infrastructure)
+constitutional_check = checker.check_constitutional_compliance(request)
+if constitutional_check.violated:
+    return BLOCKED
+
+# 2. Select provider (from config)
+provider = get_model_provider(config.active_provider)
+
+# 3. Generate with sovereignty metadata
+result = await provider.generate(model, prompt)
+journey_tracker.record(idempotency_key, result)
+```
+
+---
 
 ## Skill Routing Quick Reference
 

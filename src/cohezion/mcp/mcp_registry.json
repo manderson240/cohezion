@@ -91,6 +91,35 @@
                 "list_voices",
                 "generate_voiceover"
             ]
+        },
+        {
+            "name": "cohezion-journey",
+            "type": "universe",
+            "description": "Journey management and tracking",
+            "path": "mcp/servers/journey/server.py",
+            "tools": [
+                "journey_start",
+                "journey_list"
+            ]
+        },
+        {
+            "name": "cohezion-simulate",
+            "type": "universe",
+            "description": "Sandboxed simulation execution",
+            "path": "mcp/servers/simulate/server.py",
+            "tools": [
+                "run_simulation"
+            ]
+        },
+        {
+            "name": "cohezion-rewards",
+            "type": "rewards",
+            "description": "Agent reward and progress tracking",
+            "path": "mcp/servers/rewards/server.py",
+            "tools": [
+                "get_reward_status",
+                "get_leaderboard"
+            ]
         }
     ],
     "relationships": {

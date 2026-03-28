@@ -21,7 +21,9 @@
         "n_8a249fb9",
         "n_81c6a22e",
         "n_ee6633bc",
-        "n_b3879422"
+        "n_b3879422",
+        "mla_flash_fp8",
+        "mla_flash_large_kv"
       ],
       "notes": "",
       "attempt_history": [
@@ -1904,6 +1906,44 @@
       "status": "pruned",
       "children": [],
       "notes": "[LLM-proposed] [STRATEGIC PRUNE: parent mla_n2 pruned]",
+      "attempt_history": []
+    },
+    "mla_flash_fp8": {
+      "id": "mla_flash_fp8",
+      "strategy": "Flash Attention Triton MLA: FP8 KV, BLOCK_KV=64, single-pass decode",
+      "parameters": {
+        "BLOCK_KV": 64,
+        "NUM_WARPS": 8,
+        "NUM_STAGES": 1,
+        "KV_FORMAT": "fp8"
+      },
+      "parent_id": "root_mla",
+      "priority": 0.9,
+      "attempts": 0,
+      "best_result_us": null,
+      "stagnation_count": 0,
+      "status": "active",
+      "children": [],
+      "notes": "Eliminates 3-stage pipeline overhead. Moonshot \u2014 any improvement over 90\u00b5s.",
+      "attempt_history": []
+    },
+    "mla_flash_large_kv": {
+      "id": "mla_flash_large_kv",
+      "strategy": "Flash Attention Triton MLA: FP8 KV, BLOCK_KV=128, 16 warps for large sequences",
+      "parameters": {
+        "BLOCK_KV": 128,
+        "NUM_WARPS": 16,
+        "NUM_STAGES": 1,
+        "KV_FORMAT": "fp8"
+      },
+      "parent_id": "root_mla",
+      "priority": 0.85,
+      "attempts": 0,
+      "best_result_us": null,
+      "stagnation_count": 0,
+      "status": "active",
+      "children": [],
+      "notes": "Larger KV tiles for kvseqlen=8192 shapes",
       "attempt_history": []
     }
   }

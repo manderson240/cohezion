@@ -1,8 +1,10 @@
 # tests/test_graph_write_tools.py
-import pytest
-from unittest.mock import MagicMock
-import sys
 import os
+import sys
+from unittest.mock import MagicMock
+
+import pytest
+
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../src"))
 
@@ -31,7 +33,9 @@ def test_affinity_update_sql():
 
 
 def test_annotate_sql_only_safe_fields():
-    sql = build_annotate_sql("neuron:abc", last_accessed="2026-01-01", agent_notes="test")
+    sql = build_annotate_sql(
+        "neuron:abc", last_accessed="2026-01-01", agent_notes="test"
+    )
     assert "last_accessed" in sql
     assert "agent_notes" in sql
     # Must not touch structural fields

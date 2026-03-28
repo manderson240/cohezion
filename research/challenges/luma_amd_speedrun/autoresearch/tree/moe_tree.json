@@ -24,7 +24,9 @@
         "n_d0029ba8",
         "n_63bcd7d1",
         "n_7ba66ff2",
-        "n_2504e948"
+        "n_2504e948",
+        "moe_triton_persistent",
+        "moe_triton_large_tiles"
       ],
       "notes": " [Exhausted after 83 attempts]",
       "attempt_history": [
@@ -2369,6 +2371,48 @@
       "status": "pruned",
       "children": [],
       "notes": "[LLM-proposed] [STRATEGIC PRUNE: parent n_afa88d2f pruned]",
+      "attempt_history": []
+    },
+    "moe_triton_persistent": {
+      "id": "moe_triton_persistent",
+      "strategy": "Persistent-tile Triton MoE: BLOCK_M=64, BLOCK_N=64, BLOCK_K=64, fused permutation + tl.dot_scaled",
+      "parameters": {
+        "BLOCK_M": 64,
+        "BLOCK_N": 64,
+        "BLOCK_K": 64,
+        "NUM_WARPS": 4,
+        "NUM_STAGES": 2,
+        "USE_FALLBACK": false
+      },
+      "parent_id": "root_moe",
+      "priority": 0.9,
+      "attempts": 0,
+      "best_result_us": null,
+      "stagnation_count": 0,
+      "status": "active",
+      "children": [],
+      "notes": "Novel: fused permutation + persistent tiles + tl.dot_scaled (none tried before)",
+      "attempt_history": []
+    },
+    "moe_triton_large_tiles": {
+      "id": "moe_triton_large_tiles",
+      "strategy": "Persistent-tile Triton MoE: BLOCK_M=128, BLOCK_N=128, BLOCK_K=128, 8 warps",
+      "parameters": {
+        "BLOCK_M": 128,
+        "BLOCK_N": 128,
+        "BLOCK_K": 128,
+        "NUM_WARPS": 8,
+        "NUM_STAGES": 2,
+        "USE_FALLBACK": false
+      },
+      "parent_id": "root_moe",
+      "priority": 0.85,
+      "attempts": 0,
+      "best_result_us": null,
+      "stagnation_count": 0,
+      "status": "active",
+      "children": [],
+      "notes": "Larger tiles for better compute utilization on MI355X",
       "attempt_history": []
     }
   }

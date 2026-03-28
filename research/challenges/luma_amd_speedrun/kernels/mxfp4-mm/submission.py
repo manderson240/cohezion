@@ -1,27 +1,25 @@
 """
-FP4 quant + FP4 GEMM reference: bf16 A, MXFP4 B -> MXFP4 per-1x32 quant A -> gemm_a4w4 -> bf16 C.
-Quant logic follows aiter op_tests/test_gemm_a4w4.py (get_triton_quant(QuantType.per_1x32)).
+FP4 quant + FP4 GEMM: bf16 A, MXFP4 B -> dynamic_mxfp4_quant A -> gemm_a4w4 -> bf16 C.
+Uses dynamic_mxfp4_quant directly (ROCm/aiter#975 patched kernel), NOT get_triton_quant
+which may dispatch to the unpatched fp4_utils.py path with subtly wrong results.
 """
 
 from task import input_t, output_t
 
 
 def custom_kernel(data: input_t) -> output_t:
-    """
-    Reference: MXFP4 per-1x32 quant on A; B_shuffle, B_scale_sh from generate_input.
-    gemm_a4w4 with bpreshuffle=True.
-    """
     import aiter
-    from aiter import QuantType, dtypes
+    from aiter import dtypes
+    from aiter.ops.triton.quant import dynamic_mxfp4_quant
+    from aiter.utility.fp4_utils import e8m0_shuffle
 
     A, B, B_q, B_shuffle, B_scale_sh = data
     A = A.contiguous()
-    B = B.contiguous()
-    m, k = A.shape
-    n, _ = B.shape
 
-    quant_func = aiter.get_triton_quant(QuantType.per_1x32)
-    A_q, A_scale_sh = quant_func(A, shuffle=True)
+    A_fp4, A_bs_e8m0 = dynamic_mxfp4_quant(A)
+    A_q = A_fp4.view(dtypes.fp4x2)
+    A_scale_sh = e8m0_shuffle(A_bs_e8m0).view(dtypes.fp8_e8m0)
+
     out_gemm = aiter.gemm_a4w4(
         A_q,
         B_shuffle,

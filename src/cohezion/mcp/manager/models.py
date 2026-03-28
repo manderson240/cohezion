@@ -3,11 +3,14 @@
 from __future__ import annotations
 
 import os
-import subprocess
 from dataclasses import dataclass, field
-from datetime import datetime
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
+
+
+if TYPE_CHECKING:
+    import subprocess
+    from datetime import datetime
 
 
 # Port allocation range for all MCP servers
@@ -15,6 +18,7 @@ PORT_RANGE = range(8360, 8400)
 MANAGER_PORT = int(os.getenv("MANAGER_PORT", "8370"))
 REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379")
 VAULT_LOG_PATH = Path(os.getenv("VAULT_LOG_PATH", "cloud-vault-mcp/vault/logs"))
+UDS_BASE_PATH = Path(os.getenv("UDS_BASE_PATH", "/tmp/cohezion/sockets"))
 
 
 @dataclass
@@ -33,6 +37,9 @@ class MCPServerConfig:
     process: subprocess.Popen | None = None
     last_health_check: datetime | None = None
     restart_count: int = 0
+    use_uds: bool = False
+    uds_path: Path | None = None
+    auth_token: str | None = None
 
     def to_dict(self) -> dict[str, Any]:
         safe_env = {}
@@ -56,6 +63,8 @@ class MCPServerConfig:
             if self.last_health_check
             else None,
             "restart_count": self.restart_count,
+            "use_uds": self.use_uds,
+            "uds_path": str(self.uds_path) if self.uds_path else None,
         }
 
 

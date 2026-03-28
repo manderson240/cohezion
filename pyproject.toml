@@ -114,6 +114,9 @@ ignore = [
     "S105",  # Allow hardcoded passwords in tests
     "S106",  # Allow hardcoded passwords in tests
 ]
+"src/cohezion-archive/**" = [
+    "ALL",  # Archive code excluded from linting
+]
 # Import sorting configuration
 [tool.ruff.lint.isort]
 known-first-party = ["cohezion"]

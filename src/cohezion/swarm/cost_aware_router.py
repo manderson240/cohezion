@@ -94,6 +94,9 @@ class QueryComplexityAnalyzer:
         "is",
         "are",
         "how",
+        "show",
+        "tell",
+        "describe",
     }
 
     # Keywords indicating complex queries (must be >= 2 for complex)
@@ -112,11 +115,122 @@ class QueryComplexityAnalyzer:
         "security",
         "performance",
         "research",
+        "analyze",
+        "synthesize",
+        "evaluate",
+    }
+
+    # Math-specific keywords (routes to math specialists)
+    MATH_KEYWORDS = {
+        "solve",
+        "calculate",
+        "prove",
+        "derivative",
+        "integral",
+        "equation",
+        "theorem",
+        "matrix",
+        "vector",
+        "probability",
+        "statistics",
+        "optimize",
+        "minimize",
+        "maximize",
+        "algebra",
+        "calculus",
+        "geometry",
+        "trigonometry",
+        "differential",
+        "polynomial",
+    }
+
+    # Code-specific keywords (routes to code specialists)
+    CODE_KEYWORDS = {
+        "function",
+        "class",
+        "method",
+        "variable",
+        "loop",
+        "conditional",
+        "import",
+        "package",
+        "module",
+        "syntax",
+        "compile",
+        "runtime",
+        "bug",
+        "error",
+        "exception",
+        "test",
+        "unittest",
+        "pytest",
+    }
+
+    # Vision/multimodal keywords (routes to vision models)
+    VISION_KEYWORDS = {
+        "image",
+        "chart",
+        "diagram",
+        "graph",
+        "plot",
+        "visualization",
+        "screenshot",
+        "figure",
+        "table",
+        "render",
     }
 
     def __init__(self):
         """Initialize analyzer."""
         self.history: list[dict] = []
+
+    def detect_domain(self, query: str) -> str | None:
+        """Detect domain specialization for the query.
+
+        Args:
+            query: User query string
+
+        Returns:
+            Domain name (math|code|vision) or None if general
+        """
+        query_lower = query.lower()
+
+        # Count domain-specific keyword matches
+        math_matches = sum(
+            1 for kw in self.MATH_KEYWORDS
+            if f" {kw} " in f" {query_lower} "
+            or query_lower.startswith(f"{kw} ")
+            or query_lower.endswith(f" {kw}")
+        )
+        code_matches = sum(
+            1 for kw in self.CODE_KEYWORDS
+            if f" {kw} " in f" {query_lower} "
+            or query_lower.startswith(f"{kw} ")
+            or query_lower.endswith(f" {kw}")
+        )
+        vision_matches = sum(
+            1 for kw in self.VISION_KEYWORDS
+            if f" {kw} " in f" {query_lower} "
+            or query_lower.startswith(f"{kw} ")
+            or query_lower.endswith(f" {kw}")
+        )
+
+        # Check for code patterns (stronger signal)
+        has_code_pattern = any(
+            pattern in query for pattern in ["```", "def ", "class ", "import ", "function"]
+        )
+        if has_code_pattern:
+            code_matches += 2  # Boost code detection
+
+        # Determine domain (threshold: ≥2 matches or strong signal)
+        if math_matches >= 2:
+            return "math"
+        if code_matches >= 2 or has_code_pattern:
+            return "code"
+        if vision_matches >= 2:
+            return "vision"
+
+        return None
 
     def analyze(self, query: str) -> QueryComplexity:
         """Analyze query complexity.
@@ -173,6 +287,9 @@ class QueryComplexityAnalyzer:
         else:
             complexity = QueryComplexity.MEDIUM
 
+        # Detect domain specialization
+        domain = self.detect_domain(query)
+
         # Record for analytics
         self.history.append(
             {
@@ -182,6 +299,7 @@ class QueryComplexityAnalyzer:
                 "simple_matches": simple_matches,
                 "complex_matches": complex_matches,
                 "complexity": complexity.value,
+                "domain": domain,  # NEW: track domain specialization
             }
         )
 

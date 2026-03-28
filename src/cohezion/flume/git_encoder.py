@@ -9,7 +9,6 @@ of semantic change over time.
 import logging
 
 import torch
-import torch.nn.functional as F
 
 from cohezion.flume import FlumeEncoder
 from cohezion.swarm.git_health import GitCommit

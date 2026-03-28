@@ -54,7 +54,7 @@ def __getattr__(name):
         "ResearchSwarm",
         "SimpleMultiAgent",
     ):
-        from cohezion.research.multi_agent import (
+        from cohezion.research.multi_agent import (  # noqa: F401 - Lazy load for __all__ exports
             MultiAgentResearchConfig,
             MultiAgentResult,
             ResearchSwarm,
@@ -68,7 +68,7 @@ def __getattr__(name):
         "ResearchSquad",
         "integrate_with_compound_system",
     ):
-        from cohezion.research.research_squad import (
+        from cohezion.research.research_squad import (  # noqa: F401 - Lazy load for __all__ exports
             DegradationSignal,
             OptimizationResult,
             ResearchSquad,
@@ -77,7 +77,7 @@ def __getattr__(name):
 
         return locals()[name]
     elif name in ("SimpleTrainingRunner", "TrainingExecutor"):
-        from cohezion.research.training import (
+        from cohezion.research.training import (  # noqa: F401 - Lazy load for __all__ exports
             SimpleTrainingRunner,
             TrainingExecutor,
         )

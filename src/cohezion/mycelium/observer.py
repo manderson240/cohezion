@@ -4,6 +4,7 @@ import subprocess
 
 logger = logging.getLogger(__name__)
 
+
 class ChangeObserver:
     """
     Observes changes in the codebase to identify files that need test synthesis.
@@ -24,8 +25,7 @@ class ChangeObserver:
         """
         try:
             output = subprocess.check_output(
-                ["git", "diff", "--name-only", since_commit],
-                cwd=self.root_dir
+                ["git", "diff", "--name-only", since_commit], cwd=self.root_dir
             ).decode("utf-8")
 
             files = [f.strip() for f in output.split("\n") if f.strip()]
@@ -49,8 +49,7 @@ class ChangeObserver:
         """
         try:
             output = subprocess.check_output(
-                ["git", "diff", since_commit, "--", file_path],
-                cwd=self.root_dir
+                ["git", "diff", since_commit, "--", file_path], cwd=self.root_dir
             ).decode("utf-8")
             return output
         except subprocess.CalledProcessError as e:

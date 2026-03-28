@@ -13,7 +13,7 @@ import cohezion_core
 
 
 print(f"DEBUG: cohezion_core loaded from: {cohezion_core.__file__}")
-from cohezion_core import FlumePhysics
+from cohezion_core import FlumePhysics  # noqa: E402 - Delayed import after sys.path modification
 
 
 print(f"DEBUG: FlumePhysics dir: {dir(FlumePhysics)}")
@@ -22,7 +22,9 @@ import cohezion.flume.predictor
 
 
 print(f"DEBUG: predictor loaded from: {cohezion.flume.predictor.__file__}")
-from cohezion.flume.predictor import TrajectoryPredictor
+from cohezion.flume.predictor import (
+    TrajectoryPredictor,
+)
 
 
 def benchmark_swarm():

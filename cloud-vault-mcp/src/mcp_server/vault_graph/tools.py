@@ -5,6 +5,7 @@ from . import queries
 
 # ── Read tools ────────────────────────────────────────────────────────────────
 
+
 async def tool_graph_neighborhood(neuron_id: str) -> str:
     """Return the local neighborhood of a neuron: metadata, links, cluster siblings.
 
@@ -152,6 +153,7 @@ def register_read_tools(mcp) -> None:
 
 
 # ── Write tools ───────────────────────────────────────────────────────────────
+
 
 def register_write_tools(mcp, get_surrealdb_client=None) -> None:
     """Register 4 agent-write tools. Uses vault_graph async client."""

@@ -104,7 +104,7 @@ class FlumeNavEnv(gym.Env):
 
     def step(self, action: np.ndarray) -> tuple[np.ndarray, float, bool, bool, dict[str, Any]]:
         """Apply action + physics, return (obs, reward, terminated, truncated, info)."""
-        assert self._state is not None, "Call reset() before step()"
+        assert self._state is not None, "Call reset() before step()"  # noqa: S101 - Gymnasium environment state assertion (acceptable in training code)
         self._step_count += 1
         self._prev_state = self._state.copy()
 

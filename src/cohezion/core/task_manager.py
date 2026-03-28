@@ -6,13 +6,17 @@ Prevents fire-and-forget issues and unhandled exceptions in background tasks.
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import logging
 import traceback
-from collections.abc import Awaitable, Callable, Coroutine
 from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum, auto
-from typing import Any
+from typing import TYPE_CHECKING, Any
+
+
+if TYPE_CHECKING:
+    from collections.abc import Awaitable, Callable, Coroutine
 
 
 logger = logging.getLogger(__name__)
@@ -193,10 +197,8 @@ class TaskManager:
             task.cancel()
 
             if wait and not task.done():
-                try:
+                with contextlib.suppress(asyncio.CancelledError):
                     await task
-                except asyncio.CancelledError:
-                    pass
 
             return True
 

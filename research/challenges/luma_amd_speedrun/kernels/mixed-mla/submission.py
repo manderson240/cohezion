@@ -1,192 +1,146 @@
-"""
-MLA (Multi-head Latent Attention) decode kernel — submission template.
-
-Implement custom_kernel() to beat the aiter a8w8 reference (fp8 Q + fp8 KV).
-
-DeepSeek R1 forward_absorb MLA config:
-  total_num_heads  = 128    (query heads before TP split)
-  num_heads        = 128 // tp  (query heads per device, tp=4 → 32, tp=8 → 16)
-  num_kv_heads     = 1      (shared latent KV head)
-  kv_lora_rank     = 512    (latent dim)
-  qk_rope_head_dim = 64     (RoPE dim)
-  qk_head_dim      = 576    (kv_lora_rank + qk_rope_head_dim, absorbed q/k dim)
-  v_head_dim       = 512    (= kv_lora_rank, output dim)
-  sm_scale         = 1/sqrt(576)
-
-KV buffer format (forward_absorb):
-  - Full 576 dims used as keys (for Q@K^T score computation)
-  - First 512 dims (kv_lora_rank) used as values (for output computation)
-
-Input tuple:
-  q:          (total_q, num_heads, 576) bfloat16 — absorbed query
-  kv_data:    dict with three KV cache formats:
-    kv_data["bf16"]  — Tensor (total_kv, 1, 576) bfloat16
-    kv_data["fp8"]   — (Tensor, Tensor): kv_buffer fp8 (total_kv,1,576) + scalar scale
-    kv_data["mxfp4"] — (Tensor, Tensor): kv_buffer fp4x2 (total_kv,1,288) + fp8_e8m0 scale
-  qo_indptr:  (batch_size + 1,)        int32    — query segment pointers
-  kv_indptr:  (batch_size + 1,)        int32    — KV segment pointers
-  config:     dict with MLA parameters (includes num_heads computed from tp)
-
-Output:
-  attention output: (total_q, num_heads, 512) bfloat16
-
-The reference uses aiter's a8w8 persistent MLA kernel (fp8 Q + fp8 KV),
-which is ~2-3x faster than bf16. To beat it, consider:
-  1. Use mxfp4 KV cache for even lower memory bandwidth
-     - Fuse dequantization with attention to avoid bf16 materialization
-  2. Custom kernel with tighter memory access patterns
-  3. MQA: 1 KV head shared across num_heads query heads — minimize redundant memory loads
-  4. Variable-length batching: indptr-based segmented attention
-  5. Split K/V from buffer: full 576 dims for keys, first 512 dims for values
-"""
+import os
 
 import torch
-import torch.nn.functional as F
-from aiter import dtypes as aiter_dtypes
+from aiter import dtypes as dt
 from task import input_t, output_t
 
 
-FP8_DTYPE = aiter_dtypes.fp8
+os.environ["AITER_MLA_USE_PERSISTENT"] = "1"
+os.environ["AITER_USE_NT"] = "1"
+os.environ["AITER_BYPASS_TUNE_CONFIG"] = "1"
 
-# QKV dtype for custom_kernel dispatch: "bf16", "fp8", or "mxfp4"
-QKV_DTYPE = "fp8"
+_splits_table = {"4_1024": 4, "4_8192": 16, "32_1024": 8, "32_8192": 32, "128_8192": 32}
+_default_splits = 16
+_fast_mode = False
+_kv_gran = 16
+_kv_format = "fp8"
+_c, _o, _f1, _f2 = {}, {}, None, None
 
 
-# ---------------------------------------------------------------------------
-# Dispatcher: select kernel based on QKV_DTYPE
-# ---------------------------------------------------------------------------
+def _ea():
+    global _f1, _f2
+    if _f1:
+        return
+    try:
+        from aiter.mla import mla_decode_stage1_asm_fwd as f1
+        from aiter.mla import mla_reduce_v1 as f2
+
+        _f1, _f2 = f1, f2
+    except:
+        import aiter as a
+
+        _f1, _f2 = getattr(a, "mla_decode_stage1_asm_fwd", None), getattr(a, "mla_reduce_v1", None)
+
+
+def _bm(b, q, n, qd, kd, qi, ki, ns):
+    from aiter import get_mla_metadata_info_v1 as gi
+    from aiter import get_mla_metadata_v1 as gv
+
+    i = gi(
+        b,
+        q,
+        n,
+        qd,
+        kd,
+        is_sparse=False,
+        fast_mode=_fast_mode,
+        num_kv_splits=ns,
+        intra_batch_mode=True,
+    )
+    w = [torch.empty(s, dtype=t, device="cuda") for s, t in i]
+    wm, wi, ws, ri, rf, rp = w
+    kl = (ki[1:] - ki[:-1]).to(torch.int32)
+    gv(
+        qi,
+        ki,
+        kl,
+        n,
+        1,
+        True,
+        wm,
+        ws,
+        wi,
+        ri,
+        rf,
+        rp,
+        page_size=1,
+        kv_granularity=_kv_gran,
+        max_seqlen_qo=q,
+        uni_seqlen_qo=q,
+        fast_mode=_fast_mode,
+        max_split_per_batch=ns,
+        intra_batch_mode=True,
+        dtype_q=qd,
+        dtype_kv=kd,
+    )
+    return {"wm": wm, "wi": wi, "ws": ws, "ri": ri, "rf": rf, "rp": rp, "kl": kl, "ns": ns}
 
 
 def custom_kernel(data: input_t) -> output_t:
-    """Dispatch to the appropriate kernel based on QKV_DTYPE."""
-    if QKV_DTYPE == "fp8":
-        return custom_kernel_fp8(data)
-    elif QKV_DTYPE == "bf16":
-        return custom_kernel_bf16(data)
+    q, kd, qi, ki, cfg = data
+    b, sl, nh = cfg["batch_size"], cfg["kv_seq_len"], cfg["num_heads"]
+    qs = q.shape[0] // b  # actual qseqlen (1 or 4)
+    _ea()
+    # Cache key includes bs, kvseqlen, num_heads (TP-aware), and qseqlen
+    key = f"{b}_{sl}_{nh}_{qs}"
+    if key not in _c:
+        # Try TP-aware key first, then fall back to bs_kvseqlen
+        ns = _splits_table.get(f"{b}_{sl}_{nh}", _splits_table.get(f"{b}_{sl}", _default_splits))
+        kv_dt = dt.fp4x2 if _kv_format == "mxfp4" else torch.float8_e4m3fnuz
+        _c[key] = _bm(b, qs, nh, torch.bfloat16, kv_dt, qi, ki, ns)
+    m = _c[key]
+    ok = (b * nh, 512)
+    if ok not in _o:
+        _o[ok] = torch.empty((b, nh, 512), dtype=torch.bfloat16, device="cuda")
+    ot = _o[ok]
+    ns = m["ns"]
+    # ASM kernel assumes minimum 16 splits in buffer — prevent underallocation
+    buf_ns = max(ns, 16)
+    if _kv_format == "mxfp4":
+        kf, ks = kd["mxfp4"]
+        k4 = kf.view(kf.shape[0], 1, 1, 288)
     else:
-        raise ValueError(f"Invalid QKV_DTYPE: {QKV_DTYPE}")
-
-
-# ---------------------------------------------------------------------------
-# FP8 quantization helper (per-tensor, sglang style)
-# ---------------------------------------------------------------------------
-
-
-def quantize_fp8(tensor: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
-    """Dynamic per-tensor FP8 quantization. Returns (fp8_tensor, scale)."""
-    finfo = torch.finfo(FP8_DTYPE)
-    amax = tensor.abs().amax().clamp(min=1e-12)
-    scale = amax / finfo.max
-    fp8_tensor = (tensor / scale).clamp(min=finfo.min, max=finfo.max).to(FP8_DTYPE)
-    return fp8_tensor, scale.to(torch.float32).reshape(1)
-
-
-# ---------------------------------------------------------------------------
-# Baseline: bf16 Q + bf16 KV — naive torch attention
-# ---------------------------------------------------------------------------
-
-
-def custom_kernel_bf16(data: input_t) -> output_t:
-    q, kv_data, qo_indptr, kv_indptr, config = data
-
-    num_heads = config["num_heads"]
-    kv_lora_rank = config["kv_lora_rank"]
-    sm_scale = config["sm_scale"]
-
-    # This naive baseline uses bf16 KV directly.
-    # For better performance, use kv_data["fp8"] or kv_data["mxfp4"]
-    # which are (kv_buffer, kv_scale) tuples. See docstring for optimization opportunities.
-    kv_buffer_bf16 = kv_data["bf16"]
-
-    batch_size = qo_indptr.shape[0] - 1
-    out_list = []
-
-    for i in range(batch_size):
-        q_s, q_e = int(qo_indptr[i].item()), int(qo_indptr[i + 1].item())
-        kv_s, kv_e = int(kv_indptr[i].item()), int(kv_indptr[i + 1].item())
-
-        qi = q[q_s:q_e]  # (seq_q, nhead, 576)
-        kvc = kv_buffer_bf16[kv_s:kv_e, 0]  # (seq_kv, 576)  squeeze kv_heads dim
-
-        # Key: full 576 dims; Value: first 512 dims (kv_lora_rank)
-        ki = kvc  # (seq_kv, 576) — broadcast over heads
-        vi = kvc[:, :kv_lora_rank]  # (seq_kv, 512)
-
-        # Attention: (nhead, seq_q, 576) @ (576, seq_kv) → (nhead, seq_q, seq_kv)
-        qi_t = qi.float().permute(1, 0, 2)  # (nhead, seq_q, 576)
-        scores = torch.matmul(qi_t * sm_scale, ki.float().T)  # (nhead, seq_q, seq_kv)
-
-        scores = F.softmax(scores, dim=-1)
-
-        # Output: (nhead, seq_q, seq_kv) @ (seq_kv, 512) → (nhead, seq_q, 512)
-        oi = torch.matmul(scores, vi.float())  # (nhead, seq_q, 512)
-        oi = oi.permute(1, 0, 2)  # (seq_q, nhead, 512)
-        out_list.append(oi.to(torch.bfloat16))
-
-    return torch.cat(out_list, dim=0)
-
-
-# ---------------------------------------------------------------------------
-# FP8 Q + FP8 KV — torch._scaled_mm based attention
-#
-# Quantize Q to fp8, use fp8 KV from kv_data["fp8"].
-# QK^T and softmax@V both use torch._scaled_mm for fp8×fp8 matmul.
-# ---------------------------------------------------------------------------
-
-
-def custom_kernel_fp8(data: input_t) -> output_t:
-    q, kv_data, qo_indptr, kv_indptr, config = data
-
-    num_heads = config["num_heads"]
-    kv_lora_rank = config["kv_lora_rank"]
-    qk_head_dim = config["qk_head_dim"]
-    sm_scale = config["sm_scale"]
-
-    # FP8 KV buffer and scale
-    kv_buffer_fp8, kv_scale_fp8 = kv_data["fp8"]
-    kv_fp8_2d = kv_buffer_fp8.view(-1, qk_head_dim)  # (total_kv, 576) fp8
-
-    # Quantize Q to fp8
-    q_fp8, q_scale = quantize_fp8(q)  # q_fp8: (total_q, 16, 576) fp8
-
-    batch_size = qo_indptr.shape[0] - 1
-    out_list = []
-
-    scale_one = torch.ones(1, dtype=torch.float32, device="cuda")
-
-    for i in range(batch_size):
-        q_s, q_e = int(qo_indptr[i].item()), int(qo_indptr[i + 1].item())
-        kv_s, kv_e = int(kv_indptr[i].item()), int(kv_indptr[i + 1].item())
-        seq_q = q_e - q_s
-        seq_kv = kv_e - kv_s
-
-        # Q: (seq_q * nhead, 576) fp8,  K: (seq_kv, 576) fp8
-        qi_fp8 = q_fp8[q_s:q_e].reshape(seq_q * num_heads, qk_head_dim)  # (seq_q*16, 576)
-        ki_fp8 = kv_fp8_2d[kv_s:kv_e]  # (seq_kv, 576)
-
-        # QK^T via _scaled_mm: (seq_q*16, 576) @ (seq_kv, 576).T -> (seq_q*16, seq_kv)
-        # _scaled_mm expects (M,K) @ (N,K).T  where b is row-major contiguous
-        raw_scores = torch._scaled_mm(
-            qi_fp8,
-            ki_fp8.t(),
-            scale_a=q_scale,
-            scale_b=kv_scale_fp8,
-            out_dtype=torch.float32,
+        kf, ks = kd["fp8"]
+        k4 = kf.view(kf.shape[0], 1, 1, 576)
+    if _f1 and _f2:
+        sd = torch.empty((b, buf_ns, nh, 520), dtype=torch.float32, device="cuda")
+        sl_ = torch.empty((b, buf_ns, nh), dtype=torch.float32, device="cuda")
+        _f1(
+            q.view(b, nh, 576),
+            k4,
+            qi,
+            ki,
+            torch.arange(b * sl, dtype=torch.int32, device="cuda"),
+            m["kl"],
+            None,
+            m["wm"],
+            m["wi"],
+            m["ws"],
+            1,
+            1,
+            1,
+            1.0 / (576**0.5),
+            sd,
+            sl_,
+            ot,
+            q_scale=None,
+            kv_scale=ks,
         )
-        # raw_scores: (seq_q*16, seq_kv)
-        scores = raw_scores.view(seq_q, num_heads, seq_kv).permute(
-            1, 0, 2
-        )  # (nhead, seq_q, seq_kv)
-        scores = scores * sm_scale
-        scores = F.softmax(scores, dim=-1)
+        _f2(sd, sl_, m["ri"], m["rf"], m["rp"], 1, ot)
+        return ot
+    from aiter.mla import mla_decode_fwd as mf
 
-        # V: first 512 dims of KV buffer (bf16 for softmax@V since scores are float)
-        kv_bf16 = kv_data["bf16"]
-        vi = kv_bf16[kv_s:kv_e, 0, :kv_lora_rank].float()  # (seq_kv, 512)
-
-        # softmax @ V: (nhead, seq_q, seq_kv) @ (seq_kv, 512) -> (nhead, seq_q, 512)
-        oi = torch.matmul(scores, vi)
-        oi = oi.permute(1, 0, 2)  # (seq_q, nhead, 512)
-        out_list.append(oi.to(torch.bfloat16))
-
-    return torch.cat(out_list, dim=0)
+    return mf(
+        q,
+        k4,
+        ot,
+        qi,
+        ki,
+        page_size=1,
+        nhead_kv=1,
+        sm_scale=1.0 / (576**0.5),
+        q_scale=None,
+        kv_scale=ks,
+        num_kv_splits=ns,
+        intra_batch_mode=True,
+    )

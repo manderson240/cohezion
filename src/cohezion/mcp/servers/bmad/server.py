@@ -11,6 +11,8 @@ import asyncio
 
 from aiohttp import web
 
+from cohezion.mcp.shared.server import run_server
+
 # Import route modules to register their @routes decorators
 from . import (
     routes_bmb,  # noqa: F401
@@ -92,14 +94,7 @@ app = create_app()
 async def main():
     """Run the BMAD MCP Server."""
     get_engine()
-    logger.info(f"Starting BMAD MCP Server on port {MCP_PORT}")
-    runner = web.AppRunner(app)
-    await runner.setup()
-    site = web.TCPSite(runner, "0.0.0.0", MCP_PORT)
-    await site.start()
-    logger.info(f"BMAD MCP Server running on http://localhost:{MCP_PORT}")
-    while True:
-        await asyncio.sleep(3600)
+    await run_server(create_app, MCP_PORT, "BMAD MCP Server")
 
 
 if __name__ == "__main__":

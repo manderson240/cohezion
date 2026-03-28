@@ -6,6 +6,7 @@ import asyncio
 import contextlib
 import logging
 import os
+import signal
 import subprocess
 import sys
 from datetime import datetime
@@ -13,10 +14,12 @@ from typing import Any
 
 import aiohttp
 
+from .auth import generate_ephemeral_token
 from .models import (
     MANAGER_PORT,
     PORT_RANGE,
     REDIS_URL,
+    UDS_BASE_PATH,
     VAULT_LOG_PATH,
     MCPServerConfig,
     PortAllocator,
@@ -39,9 +42,24 @@ class MCPServerManager:
         self.servers: dict[str, MCPServerConfig] = {}
         self.health_check_task: asyncio.Task | None = None
         self.metrics: dict[str, Any] = {}
+        self.auth_token = generate_ephemeral_token()
 
-        # Ensure vault log directory exists
+        # Ensure vault log directory and UDS path exist
         VAULT_LOG_PATH.mkdir(parents=True, exist_ok=True)
+        UDS_BASE_PATH.mkdir(parents=True, exist_ok=True)
+
+        # Register signal handlers for clean exit
+        self._setup_signal_handlers()
+
+    def _setup_signal_handlers(self):
+        """Setup signal handlers for graceful shutdown."""
+        for sig in (signal.SIGINT, signal.SIGTERM):
+            try:
+                loop = asyncio.get_event_loop()
+                loop.add_signal_handler(sig, lambda: asyncio.create_task(self.stop_all()))
+            except (NotImplementedError, RuntimeError):
+                # Fallback for systems that don't support add_signal_handler
+                pass
 
     def register_server(
         self,
@@ -50,7 +68,8 @@ class MCPServerManager:
         preferred_port: int | None = None,
         auto_restart: bool = True,
         env_vars: dict[str, str] | None = None,
-    ) -> int:
+        use_uds: bool = False,
+    ) -> int | str:
         """Register a new MCP server.
 
         Args:
@@ -59,11 +78,13 @@ class MCPServerManager:
             preferred_port: Preferred port number
             auto_restart: Whether to auto-restart on failure
             env_vars: Environment variables
+            use_uds: Whether to use Unix Domain Sockets
 
         Returns:
-            Allocated port number
+            Allocated port number or UDS path
         """
         port = self.port_allocator.allocate(name, preferred_port)
+        uds_path = UDS_BASE_PATH / f"{name}.sock" if use_uds else None
 
         config = MCPServerConfig(
             name=name,
@@ -71,21 +92,22 @@ class MCPServerManager:
             entry_point=entry_point,
             auto_restart=auto_restart,
             env_vars=env_vars or {},
+            use_uds=use_uds,
+            uds_path=uds_path,
+            auth_token=self.auth_token,
         )
 
         self.servers[name] = config
-        logger.info("Registered MCP server '%s' on port %d", name, port)
-        return port
+        logger.info(
+            "Registered MCP server '%s' on port %d%s",
+            name,
+            port,
+            f" (UDS: {uds_path})" if use_uds else "",
+        )
+        return str(uds_path) if use_uds else port
 
     async def start_server(self, name: str) -> bool:
-        """Start an MCP server.
-
-        Args:
-            name: Server name
-
-        Returns:
-            True if started successfully
-        """
+        """Start an MCP server."""
         from cohezion.mcp.servers.safe_input import sanitize_log, sanitize_path
 
         if name not in self.servers:
@@ -103,18 +125,23 @@ class MCPServerManager:
             env.update(config.env_vars)
             env["MCP_PORT"] = str(config.port)
             env["REDIS_URL"] = REDIS_URL
+            env["MCP_AUTH_TOKEN"] = self.auth_token
+
+            if config.use_uds and config.uds_path:
+                env["MCP_UDS_PATH"] = str(config.uds_path)
 
             module_path, _ = config.entry_point.rsplit(":", 1)
             cmd = [sys.executable, "-m", module_path]
 
-            log_file = sanitize_path(f"{name}.log", base_dir=VAULT_LOG_PATH)
+            log_file = sanitize_path(VAULT_LOG_PATH / f"{name}.log", base_dir=VAULT_LOG_PATH)
 
+            # Start process without start_new_session to keep it bound to parent group
+            # unless explicitly desired otherwise. For local CLI, we want binding.
             process = subprocess.Popen(
                 cmd,
                 env=env,
                 stdout=open(log_file, "a", encoding="utf-8"),
                 stderr=subprocess.STDOUT,
-                start_new_session=True,
             )
 
             config.process = process
@@ -199,10 +226,10 @@ class MCPServerManager:
         config.last_health_check = datetime.utcnow()
 
         try:
-            headers = {}
+            headers = {"Authorization": f"Bearer {self.auth_token}"}
             mcp_api_key = os.environ.get("MCP_API_KEY")
             if mcp_api_key:
-                headers["Authorization"] = f"Bearer {mcp_api_key}"
+                headers["X-MCP-API-Key"] = mcp_api_key
 
             async with (
                 aiohttp.ClientSession() as session,
@@ -259,6 +286,20 @@ class MCPServerManager:
             "servers": {name: config.to_dict() for name, config in self.servers.items()},
         }
 
+    def get_server_url(self, name: str) -> str | None:
+        """Get the base URL for a server."""
+        config = self.servers.get(name)
+        if not config:
+            return None
+        return f"http://localhost:{config.port}"
+
+    def get_server_uds(self, name: str) -> str | None:
+        """Get the UDS path for a server."""
+        config = self.servers.get(name)
+        if not config or not config.use_uds:
+            return None
+        return str(config.uds_path)
+
     async def start_all(self) -> None:
         """Start all registered servers."""
         logger.info("Starting %d MCP servers...", len(self.servers))
@@ -279,6 +320,10 @@ class MCPServerManager:
 
         for name in self.servers:
             await self.stop_server(name)
+
+        from .auth import clear_token
+
+        clear_token()
 
 
 # Global manager instance

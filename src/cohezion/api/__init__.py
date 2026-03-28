@@ -17,11 +17,11 @@ from fastapi.responses import JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
+from cohezion.api.telemetry import router as telemetry_router
 from cohezion.mcp.knowledge_server import get_server as get_knowledge_server
 from cohezion.mcp.registry import get_registry
 from cohezion.mcp.swarm_server import get_server as get_swarm_server
 from cohezion.security.rate_limiter import get_rate_limiter
-from cohezion.api.telemetry import router as telemetry_router
 
 
 logging.basicConfig(level=logging.INFO)
@@ -796,8 +796,6 @@ async def rl_episode():
     import gymnasium as gym
     import numpy as np
 
-    import cohezion.rl.environment
-
     policy = _get_rl_policy()
     env = gym.make("cohezion/FlumeNav-v0", max_steps=200)
 
@@ -1541,6 +1539,7 @@ app.include_router(telemetry_router)
 
 # ─── AgentJet CALL endpoints ───────────────────────────────────────────────
 
+
 class TrainRequest(BaseModel):
     target_model: str = "qwen3.5:9b"
     skill_domain: str | None = None
@@ -1567,6 +1566,7 @@ async def agentjet_train(request: TrainRequest) -> TrainResponse:
     """Start an AgentJet CALL training cycle."""
     try:
         from cohezion.agentjet.trainer import AgentJetTrainer
+
         trainer = AgentJetTrainer()
         result = await trainer.train(
             target_model=request.target_model,
@@ -1591,6 +1591,7 @@ async def agentjet_train(request: TrainRequest) -> TrainResponse:
         _oom_names = ("OOMRiskError", "ResourceUnavailableError")
         if type(e).__name__ in _oom_names:
             from fastapi import HTTPException
+
             raise HTTPException(status_code=503, detail=str(e)) from e
         return TrainResponse(
             success=False,
@@ -1611,6 +1612,7 @@ async def agentjet_status() -> dict:
     """Get AgentJet CALL system status."""
     try:
         from cohezion.agentjet.context_optimizer import OllamaContextManager
+
         mgr = OllamaContextManager()
         available_gb = await mgr.get_available_memory_gb()
         loaded_models = await mgr.get_loaded_models()
@@ -1628,9 +1630,13 @@ async def agentjet_status() -> dict:
 async def agentjet_models() -> dict:
     """List available training target models."""
     from cohezion.agentjet.context_optimizer import CONTEXT_PROFILES
+
     targets = [
         {"model": k, "size_gb": v.size_gb, "num_ctx": v.num_ctx}
         for k, v in CONTEXT_PROFILES.items()
         if not k.endswith(":training") and k != "default"
     ]
-    return {"training_targets": targets, "recommended": ["qwen3.5:9b", "nemotron-3-nano:30b", "phi3:mini"]}
+    return {
+        "training_targets": targets,
+        "recommended": ["qwen3.5:9b", "nemotron-3-nano:30b", "phi3:mini"],
+    }

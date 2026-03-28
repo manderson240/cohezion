@@ -1,8 +1,10 @@
 # tests/test_vault_graph_tools.py
-import pytest
-from unittest.mock import AsyncMock, patch
-import sys
 import os
+import sys
+from unittest.mock import AsyncMock, patch
+
+import pytest
+
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../src"))
 
@@ -37,7 +39,12 @@ async def test_tool_graph_stats_returns_stats():
 @pytest.mark.asyncio
 async def test_tool_graph_neighborhood_formats_output():
     mock_data = {
-        "neuron": {"title": "Test", "activation": 0.9, "stage": "mature", "cluster_id": "cortex"},
+        "neuron": {
+            "title": "Test",
+            "activation": 0.9,
+            "stage": "mature",
+            "cluster_id": "cortex",
+        },
         "outbound": [],
         "inbound": [],
         "cluster_top": [],

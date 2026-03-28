@@ -164,7 +164,7 @@ class HihoEnvironment:
         tuple
             (observation, reward, terminated, info)
         """
-        assert 0 <= action < NUM_ACTIONS, f"Invalid action {action}"
+        assert 0 <= action < NUM_ACTIONS, f"Invalid action {action}"  # noqa: S101 - RL framework action validation (acceptable in training code)
 
         dx, dy = self.ACTION_MAP[action]
         x, y = self._position

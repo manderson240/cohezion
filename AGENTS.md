@@ -328,3 +328,331 @@ model = router.select_model(task_complexity=0.7, budget_remaining=0.50)
 - `.agent/CONSTITUTION.md` - Hard constraints
 - `.agent/COHEZION_CHARTER.md` - Design theory
 - `HARDWARE_PROFILE_PRIME.md` - Hardware truth anchor
+- `config/providers.yaml` - Provider configuration (model/agent/UI providers)
+- `src/cohezion/skills/SMALL_MODEL_SPECIALIST_PRIME.md` - Tip-of-spear routing guide
+- `src/cohezion/skills/AGENT_SOVEREIGNTY_ETHICS_PRIME.md` - Constitutional governance
+
+---
+
+## Dynamic Provider Architecture (Agent-System-Agnostic)
+
+**CRITICAL PRINCIPLE**: Cohezion MUST work with whatever system it inhabits (Claude Code, Gemini CLI, Hermes, OpenClaw, NanoClaw, etc.). Hard dependencies on specific vendors create technical debt.
+
+### Provider Abstraction Pattern
+```python
+from cohezion.swarm.providers import get_model_provider
+
+# Configuration-driven provider selection (config/providers.yaml)
+provider = get_model_provider("ollama")  # or "vllm", "groq", "together"
+result = await provider.generate(
+    model="phi3:mini",
+    prompt="Calculate derivative of f(x) = 3x²",
+    max_tokens=500,
+    temperature=0.7
+)
+```
+
+### Supported Provider Types
+
+#### **Model Inference Providers**
+- **Ollama**: Local inference (AMD ROCm 7 optimized for Ryzen AI MAX+ 395)
+- **vLLM**: High-throughput serving with PagedAttention
+- **Groq**: Ultra-low-latency cloud inference (LPU acceleration)
+- **HuggingFace**: Transformers library with 100K+ models
+- **Together**: Scalable cloud inference
+- **Anthropic**: Claude Sonnet/Opus for high-quality reasoning
+
+#### **Agent System Providers** (NEW)
+Cohezion adapts to ANY agent system it runs under:
+- **Claude Code**: Anthropic's native agent environment
+- **Gemini CLI**: Google's agentic code assistant
+- **Hermes**: Open-weight agent runtime
+- **OpenClaw**: Community-driven agent framework
+- **NanoClaw**: Lightweight agent system for resource-constrained environments
+
+#### **UI Generation Providers**
+- **Google Stitch**: Design Agent with AI-native canvas
+- **v0 (Vercel)**: Component generation from natural language
+- **bolt.new (StackBlitz)**: Full-stack app generation
+- **Vercel AI**: SDK for UI generation workflows
+
+### Configuration-Driven Swapping
+**File**: `config/providers.yaml`
+
+```yaml
+# Switch providers without code changes
+active_model_provider: "ollama"  # Change to "groq", "vllm", etc.
+
+model_providers:
+  ollama:
+    base_url: "http://localhost:11434"
+    timeout: 60
+
+  groq:
+    base_url: "https://api.groq.com/openai/v1"
+    api_key: "${GROQ_API_KEY}"
+
+# Auto-fallback chain
+dynamic_swapping:
+  enabled: true
+  model_provider_fallback:
+    - "ollama"    # Try local first (zero cost)
+    - "groq"      # Fallback to cloud
+    - "together"  # Final fallback
+```
+
+### Benefits
+1. **No Vendor Lock-in**: Switch Ollama → vLLM in production with ONE config line
+2. **Technology Evolution**: Adopt new inference engines as they emerge
+3. **Cost Optimization**: Route to local when cloud budget low (<$10)
+4. **Resilience**: Auto-fallback when primary provider unhealthy
+5. **Hardware Adaptation**: AMD-optimized Ollama locally, Groq for cloud bursts
+
+### Agent-Agnostic Patterns
+**WRONG** (hard-coded to specific agent system):
+```python
+from anthropic import Anthropic
+client = Anthropic(api_key="...")  # Only works in Claude
+```
+
+**RIGHT** (works in ANY agent system):
+```python
+from cohezion.swarm.providers import get_model_provider
+provider = get_model_provider("anthropic")  # Provider-agnostic
+result = await provider.generate(model="claude-sonnet-4", prompt="...")
+```
+
+### Runtime Agent System Detection
+```python
+import os
+
+def detect_agent_system() -> str:
+    """Detect which agent system is running Cohezion."""
+    if os.getenv("CLAUDE_CODE_SESSION"):
+        return "claude-code"
+    elif os.getenv("GEMINI_CLI_SESSION"):
+        return "gemini-cli"
+    elif os.getenv("HERMES_RUNTIME"):
+        return "hermes"
+    elif os.getenv("OPENCLAW_ENABLED"):
+        return "openclaw"
+    elif os.getenv("NANOCLAW_LITE"):
+        return "nanoclaw"
+    else:
+        return "unknown"
+```
+
+---
+
+## Agent Sovereignty & Constitutional Governance
+
+**CRITICAL**: All agents operate under constitutional governance (`.agent/CONSTITUTION.md`) regardless of which agent system (Claude, Gemini, Hermes, etc.) is executing.
+
+### Constitutional Hard Lines (7 Violations - NEVER CROSS)
+1. **WMD** (Weapons of Mass Destruction): No biological, chemical, nuclear, radiological weapons
+2. **Critical Infrastructure**: No attacks on power, water, financial systems
+3. **Malicious Code**: No cyberweapons or damaging code
+4. **Undermining Oversight**: No hiding model state from human supervisors
+5. **Species-Level Threat**: No assistance in killing or disempowering humanity
+6. **Illegitimate Power**: No unconstitutional coups or illegitimate control
+7. **CSAM** (Child Sexual Abuse Material): Zero tolerance
+
+### Constitutional Compliance Check
+```python
+from cohezion.security.pipeline import SecurityPipeline
+
+pipeline = SecurityPipeline()
+result = pipeline.check_constitutional_compliance(request)
+
+if result.violated:
+    logger.critical(f"Constitutional violation: {result.constraint}")
+    return {"error": "Request blocked", "reason": result.reason}
+```
+
+### HIHO Stability Enforcement
+- **Optimal Window**: 0.45-0.55 coherence (Half-In-Half-Out balance)
+- **Formula**: `hiho_stability = 1.0 - abs(coherence - 0.5) * 2.0`
+- **<0.45**: Escalate to human (too uncertain, risk of incoherence)
+- **>0.55**: Inject uncertainty (overconfident, risk of brittleness)
+- **0.50**: Perfect balance (stable reality precipitation)
+
+### Idempotency Protocol
+```python
+from cohezion.swarm.tip_of_spear_router import TipOfTheSpearRouter
+
+router = TipOfTheSpearRouter()
+
+# Every action generates deterministic SHA-256 key
+idempotency_key = router.generate_idempotency_key(
+    request="Deploy feature X",
+    agent_id="architect-1"
+)
+# Same request + agent = same key → enables replay/rollback
+```
+
+### Observable AI Requirements
+- **Pre-action state exposure**: Log state before irreversible actions
+- **Journey tracking**: Record all state transitions in 12D universe
+- **Confidence reporting**: Every response includes confidence score (0.0-1.0)
+- **Escalation transparency**: Log all tier escalations (HOT → WARM → COLD → CLOUD)
+
+---
+
+## Tip-of-Spear Routing (Cost Optimization)
+
+**Goal**: Reduce cloud token costs by 70-85% through intelligent local model routing.
+
+### 4-Tier Escalation Cascade
+```
+┌────────────┐
+│  HOT TIER  │ <100ms │ phi3:mini (2.2GB)         │ Simple queries, always loaded
+└────────────┘
+      ↓ (confidence < 0.7)
+┌────────────┐
+│ WARM TIER  │ ~200ms │ qwen2-math:7b (4.7GB)     │ Domain specialists (math/code/vision)
+└────────────┘
+      ↓ (confidence < 0.7)
+┌────────────┐
+│ COLD TIER  │ 1-5s   │ phi4:latest (9GB)         │ Advanced reasoning, 10min idle evict
+└────────────┘
+      ↓ (confidence < 0.7)
+┌────────────┐
+│ CLOUD TIER │ API    │ qwen3.5:cloud, Claude     │ Final fallback, API cost
+└────────────┘
+```
+
+### Domain Detection (60+ Keywords)
+- **Math**: solve, calculate, prove, derivative, integral, equation, theorem, matrix
+- **Code**: function, class, method, bug, error, test, refactor, compile
+- **Vision**: image, chart, diagram, plot, screenshot, render, graphic
+
+### Usage Example
+```python
+from cohezion.swarm.tip_of_spear_router import TipOfTheSpearRouter
+
+router = TipOfTheSpearRouter()
+
+result = await router.route_with_sovereignty(
+    request="Calculate derivative of f(x) = 3x²",
+    agent_id="math-agent-1"
+)
+
+if result.constitutional_violation:
+    logger.error(f"BLOCKED: {result.violation_reason}")
+elif result.confidence < 0.7:
+    logger.warning(f"Low confidence, escalated {result.escalation_count} times")
+else:
+    logger.info(f"Success with {result.model_used} in {result.latency_ms}ms")
+```
+
+### Expected Savings
+- **Simple queries (60%)**: Resolved in HOT tier (zero cloud cost)
+- **Domain tasks (25%)**: Resolved in WARM tier (zero cloud cost)
+- **Complex reasoning (10%)**: COLD tier or cloud (minimal cloud cost)
+- **Critical failures (5%)**: Cloud tier (acceptable cost for high-quality)
+- **Total cloud reduction**: **80-95%** token savings
+
+### OOM Safety
+- **HOT tier**: 3.2GB (always loaded)
+- **WARM tier**: 17.9GB (loaded at startup)
+- **Worst-case**: 21.1GB (safe for 128GB RAM with other sessions)
+- **Max concurrent**: 3 models (reduced from 4 for multi-session safety)
+- **Cold eviction**: 10 minutes idle → unload
+
+---
+
+## Cross-Agent Testing (Multi-System Validation)
+
+**CRITICAL**: Test suite MUST pass under ALL agent systems to ensure true agent-agnostic operation.
+
+### Test Under Multiple Agent Systems
+```bash
+# Test under Claude Code
+uv run pytest tests/ --agent-system=claude-code
+
+# Test under Gemini CLI
+uv run pytest tests/ --agent-system=gemini-cli
+
+# Test under Hermes
+uv run pytest tests/ --agent-system=hermes
+
+# Test under OpenClaw
+uv run pytest tests/ --agent-system=openclaw
+```
+
+### Agent System Mocking
+```python
+import pytest
+from unittest.mock import patch
+
+@pytest.mark.parametrize("agent_system", ["claude-code", "gemini-cli", "hermes"])
+@patch.dict("os.environ", {})
+def test_agent_agnostic_feature(agent_system):
+    """Test feature works under all agent systems."""
+    # Set agent system environment variable
+    if agent_system == "claude-code":
+        os.environ["CLAUDE_CODE_SESSION"] = "session-123"
+    elif agent_system == "gemini-cli":
+        os.environ["GEMINI_CLI_SESSION"] = "session-456"
+    elif agent_system == "hermes":
+        os.environ["HERMES_RUNTIME"] = "runtime-789"
+
+    # Run feature test
+    result = run_feature()
+    assert result.success
+```
+
+### Provider Abstraction Testing
+```python
+@pytest.mark.parametrize("provider", ["ollama", "groq", "together"])
+@patch("cohezion.swarm.providers.model_provider.get_model_provider")
+async def test_provider_agnostic_routing(mock_provider, provider):
+    """Test routing works with any provider."""
+    mock_provider.return_value = AsyncMock()
+
+    router = TipOfTheSpearRouter()
+    result = await router.route_with_sovereignty(
+        request="Simple query",
+        agent_id="test-agent"
+    )
+
+    assert result.success
+```
+
+---
+
+## Common Workflows
+
+### Add New Model Provider
+1. Create `src/cohezion/swarm/providers/{provider_name}_provider.py`
+2. Implement `ModelProvider` interface (generate, list_models, health_check)
+3. Register: `register_model_provider("provider_name", ProviderClass)`
+4. Add config to `config/providers.yaml`
+5. Test: `uv run pytest tests/swarm/test_{provider_name}_provider.py`
+
+### Switch Active Provider
+```bash
+# Edit config/providers.yaml
+active_model_provider: "vllm"  # Change from "ollama"
+
+# Restart service
+uv run uvicorn cohezion.api:app --reload
+```
+
+### Add New Agent System Support
+1. Update `detect_agent_system()` in `src/cohezion/platform/agent_detection.py`
+2. Add agent-specific environment variables
+3. Test constitutional checks under new system
+4. Update `GEMINI.md`, `AGENTS.md`, `CLAUDE.md` with new patterns
+
+### Verify Constitutional Compliance
+```python
+from cohezion.security.pipeline import SecurityPipeline
+
+pipeline = SecurityPipeline()
+result = pipeline.check_constitutional_compliance(request)
+
+if result.violated:
+    logger.critical(f"Constitutional violation: {result.constraint}")
+    # Block request, log to audit trail
+```

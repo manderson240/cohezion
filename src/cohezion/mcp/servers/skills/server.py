@@ -14,6 +14,8 @@ import sys
 
 from aiohttp import web
 
+from cohezion.mcp.shared.server import run_server
+
 from .cache import SkillsCache
 from .client import SkillsShClient
 
@@ -420,27 +422,10 @@ def create_app() -> web.Application:
     return app
 
 
-# Global app instance for import
-app = create_app()
-
-
 async def main():
     """Run the Skills.sh MCP Server."""
-    # Initialize cache
     get_cache()
-
-    # Run the server
-    logger.info(f"Starting Skills.sh MCP Server on port {MCP_PORT}")
-    runner = web.AppRunner(app)
-    await runner.setup()
-    site = web.TCPSite(runner, "0.0.0.0", MCP_PORT)
-    await site.start()
-
-    logger.info(f"Skills.sh MCP Server running on http://localhost:{MCP_PORT}")
-
-    # Keep running
-    while True:
-        await asyncio.sleep(3600)
+    await run_server(create_app, MCP_PORT, "Skills.sh MCP Server")
 
 
 if __name__ == "__main__":

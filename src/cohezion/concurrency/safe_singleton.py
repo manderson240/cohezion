@@ -4,8 +4,11 @@ from __future__ import annotations
 
 import functools
 import threading
-from collections.abc import Callable
-from typing import Any, TypeVar
+from typing import TYPE_CHECKING, Any, TypeVar
+
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
 
 
 T = TypeVar("T")

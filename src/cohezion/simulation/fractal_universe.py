@@ -42,7 +42,9 @@ logging.basicConfig(
 )
 logger = logging.getLogger("FractalNexus")
 
-from cohezion.simulation.analysis_prime import SimulationAnalyzer
+from cohezion.simulation.analysis_prime import (
+    SimulationAnalyzer,
+)
 
 
 # Constants

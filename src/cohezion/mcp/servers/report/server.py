@@ -294,8 +294,7 @@ if __name__ == "__main__":
 
         try:
             subprocess.Popen(
-                " ".join(cmd),
-                shell=True,
+                cmd,
                 stdout=subprocess.DEVNULL,
                 stderr=subprocess.DEVNULL,
             )

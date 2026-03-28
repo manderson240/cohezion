@@ -17,7 +17,15 @@ from pathlib import Path
 from string import Template
 from typing import Any
 
-from templates import gemm_cached_template, gemm_template, mla_template, moe_template
+from templates import (
+    gemm_cached_template,
+    gemm_fused_template,
+    gemm_template,
+    mla_flash_template,
+    mla_template,
+    moe_template,
+    moe_triton_template,
+)
 
 
 log = logging.getLogger("generator")
@@ -27,16 +35,22 @@ last_source: str = "template"
 
 TEMPLATES = {
     "moe": moe_template.TEMPLATE,
+    "moe_triton": moe_triton_template.TEMPLATE,
     "gemm": gemm_template.TEMPLATE,
     "gemm_cached": gemm_cached_template.TEMPLATE,
+    "gemm_fused": gemm_fused_template.TEMPLATE,
     "mla": mla_template.TEMPLATE,
+    "mla_flash": mla_flash_template.TEMPLATE,
 }
 
 DEFAULTS = {
     "moe": moe_template.DEFAULT_PARAMS,
+    "moe_triton": moe_triton_template.DEFAULT_PARAMS,
     "gemm": gemm_template.DEFAULT_PARAMS,
     "gemm_cached": gemm_cached_template.DEFAULT_PARAMS,
+    "gemm_fused": gemm_fused_template.DEFAULT_PARAMS,
     "mla": mla_template.DEFAULT_PARAMS,
+    "mla_flash": mla_flash_template.DEFAULT_PARAMS,
 }
 
 

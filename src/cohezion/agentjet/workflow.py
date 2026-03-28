@@ -9,10 +9,13 @@ from __future__ import annotations
 
 import asyncio
 import logging
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
-from cohezion.compound.executor import CompoundExecutor
 from cohezion.compound.journey_tracker import JourneyTracker
+
+
+if TYPE_CHECKING:
+    from cohezion.compound.executor import CompoundExecutor
 
 
 logger = logging.getLogger(__name__)
@@ -130,9 +133,7 @@ class CohezionWorkflow:
             phi_score: float = float(trajectory_point.metadata.get("phi_score", 0.0))
             coherence: float = float(trajectory_point.coherence)
         except Exception as exc:
-            logger.warning(
-                "Journey tracking failed (non-blocking): %s", exc, exc_info=True
-            )
+            logger.warning("Journey tracking failed (non-blocking): %s", exc, exc_info=True)
             phi_score = float(result.metrics.get("coherence", 0.0))
             coherence = phi_score
 

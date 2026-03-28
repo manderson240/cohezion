@@ -18,8 +18,11 @@ from cohezion.universe.spatial_phonons import SpatialPhononsEngine
 
 
 # Configure logging
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+)
 logger = logging.getLogger("PhononSprint")
+
 
 async def run_phonon_sprint():
     """Run a multi-session phonon research sprint."""
@@ -49,16 +52,19 @@ async def run_phonon_sprint():
     # Create or resume journey
     journey_id = initial_state.get("journey_id") if initial_state else None
     if not journey_id:
-        journey = await engine.start_journey(agent_name="PhononScout", intent="Optimize dark energy viscosity")
+        journey = await engine.start_journey(
+            agent_name="PhononScout", intent="Optimize dark energy viscosity"
+        )
         journey_id = journey.id
     else:
         # In a real app we'd load journey from DB, here we simulate
         from cohezion.universe.engine import UniverseJourney
+
         journey = UniverseJourney(
             id=journey_id,
             agent_name="PhononScout",
             intent="Optimize dark energy viscosity",
-            initial_axiomatic=AxiomaticState()
+            initial_axiomatic=AxiomaticState(),
         )
 
     # Run up to 20 steps per session to stay within context guards
@@ -75,7 +81,7 @@ async def run_phonon_sprint():
         await engine.evolve_trajectory(
             journey,
             action=f"Simulating dark energy expansion (Step {task.steps_completed})",
-            phi_score=0.85
+            phi_score=0.85,
         )
 
         steps_this_session += 1
@@ -87,7 +93,9 @@ async def run_phonon_sprint():
         json.dump(checkpoint, f)
 
     if task.steps_completed < task.total_steps_estimated:
-        logger.info(f"Session complete. Progress: {task.progress_percent:.1f}%. Run again to continue.")
+        logger.info(
+            f"Session complete. Progress: {task.progress_percent:.1f}%. Run again to continue."
+        )
         return
 
     # 4. Final Analysis & Recursive Optimization (Target reached)
@@ -101,16 +109,20 @@ async def run_phonon_sprint():
 
     # Simulate the Challenger finding an opportunity to optimize coupling
     if final_coherence < 0.9:
-        logger.info("Challenger identified optimization: Coupling factor is sub-optimal for HIHO stability.")
+        logger.info(
+            "Challenger identified optimization: Coupling factor is sub-optimal for HIHO stability."
+        )
         # In a real run, this would surgically update PhononParameters default or log a patch
 
     # 5. Export to 3D Cockpit (Next Frontier)
     logger.info("🔭 Projecting 12D trajectory to 3D Cockpit...")
     from cohezion.universe.viz_bridge import VisualizationBridge
+
     viz = VisualizationBridge()
     viz.export_journey(journey)
 
     logger.info("✅ Phonon Research Sprint Complete.")
+
 
 if __name__ == "__main__":
     asyncio.run(run_phonon_sprint())

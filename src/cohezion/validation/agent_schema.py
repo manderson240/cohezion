@@ -56,7 +56,7 @@ class AgentFileSchema(BaseModel):
         default=None,
         description="Tool names the agent is allowed to use.",
     )
-    disallowedTools: list[str] | None = Field(
+    disallowed_tools: list[str] | None = Field(
         default=None,
         description="Tool names the agent is forbidden from using.",
     )
@@ -165,10 +165,9 @@ def validate_all_agent_files(
     """
     if directory is None:
         result = subprocess.run(
-            ["git", "rev-parse", "--show-toplevel"],
+            ["/usr/bin/git", "rev-parse", "--show-toplevel"],
             capture_output=True,
             text=True,
-            timeout=10,
         )
         if result.returncode != 0:
             raise AgentFileValidationError(
@@ -234,8 +233,8 @@ def generate_agent_frontmatter(
     data: dict = {"name": name, "description": description}
     if tools is not None:
         data["tools"] = tools
-    if disallowed_tools is not None:
-        data["disallowedTools"] = disallowed_tools
+        if disallowed_tools is not None:
+            data["disallowed_tools"] = disallowed_tools
     if model is not None:
         data["model"] = model
 

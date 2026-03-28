@@ -18,10 +18,9 @@ from typing import TYPE_CHECKING, Any
 import httpx
 import psutil
 
-from cohezion.substrate.kv_cache_tracker import KVCacheTracker
-
 
 if TYPE_CHECKING:
+    from cohezion.substrate.kv_cache_tracker import KVCacheTracker
     from cohezion.swarm.model_pool_manager import ModelPoolManager
 
 logger = logging.getLogger(__name__)

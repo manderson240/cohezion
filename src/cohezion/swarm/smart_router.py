@@ -404,7 +404,7 @@ class SmartRouter:
 
                 data = await resp.json()
                 response = data.get("response", "")
-                tokens = data.get("eval_count", 0) + data.get("prompt_eval_count", 0)
+                data.get("eval_count", 0) + data.get("prompt_eval_count", 0)
                 success = True
                 break
 

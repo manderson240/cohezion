@@ -38,6 +38,12 @@ class CachePersistence:
         count = 0
         try:
             with path.open("w", encoding="utf-8") as f:
+                def _json_default(obj: Any) -> Any:
+                    if hasattr(obj, "model_dump"): return obj.model_dump()
+                    if hasattr(obj, "to_dict"): return obj.to_dict()
+                    if hasattr(obj, "__dict__"): return vars(obj)
+                    return str(obj)
+
                 for key, value in cache_dict.items():
                     entry = {
                         "key": key,
@@ -45,7 +51,7 @@ class CachePersistence:
                         "timestamp": time.time(),
                         **(metadata or {}),
                     }
-                    f.write(json.dumps(entry) + "\n")
+                    f.write(json.dumps(entry, default=_json_default) + "\n")
                     count += 1
         except Exception:
             logger.exception("Failed to save cache")

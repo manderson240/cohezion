@@ -247,6 +247,11 @@ class OvernightDriver:
             f"Storage: {'SurrealDB' if self._db_connected else 'Filesystem (fallback)'}",
         )
 
+        try:
+            await self._run_research_sweep()
+        except Exception as e:
+            logger.error(f"Daily research sweep failed: {e}")
+
         while True:
             # Check time
             now = datetime.now()
@@ -275,6 +280,74 @@ class OvernightDriver:
             await asyncio.sleep(5)
 
         await self._send_final_report()
+
+    async def _run_research_sweep(self):
+        """Perform daily sweep of arXiv and HuggingFace to bootstrap agent knowledge."""
+        from cohezion.mcp.research_server import get_server
+
+        miner = get_server()
+
+        logger.info("Executing daily research sweep (arXiv & HuggingFace)...")
+        # Ensure non-blocking calls for external I/O
+        arxiv_results = await asyncio.to_thread(
+            miner.search_arxiv,
+            "artificial general intelligence OR LLM alignment OR epistemic humility",
+            5,
+        )
+        hf_results = await asyncio.to_thread(miner.get_hf_trending, 5)
+
+        # Store to SurrealDB if connected
+        if self._db_connected:
+            for p in arxiv_results:
+                if "error" in p:
+                    continue
+                node = UniverseNode(
+                    id=f"arxiv_{int(time.time())}_{random.randint(0, 999)}",
+                    content=f"Title: {p.get('title')}\nSummary: {p.get('summary')}\nURL: {p.get('url')}",
+                    node_type="research_paper",
+                    physics_state=PhysicsState(
+                        time=float(time.time()), coherence=1.0, stability=1.0, novelty=1.0
+                    ),
+                    metadata={"source": "arxiv", "title": p.get("title")},
+                )
+                await self.db_client.store_node(node)
+
+            for p in hf_results:
+                if "error" in p:
+                    continue
+                node = UniverseNode(
+                    id=f"hf_{int(time.time())}_{random.randint(0, 999)}",
+                    content=f"Title: {p.get('title')}\nSummary: {p.get('summary')}\nURL: {p.get('url')}",
+                    node_type="hf_trending",
+                    physics_state=PhysicsState(
+                        time=float(time.time()), coherence=1.0, stability=1.0, novelty=1.0
+                    ),
+                    metadata={"source": "huggingface", "title": p.get("title")},
+                )
+                await self.db_client.store_node(node)
+
+            logger.info("Stored daily research sweep results to SurrealDB.")
+
+        # Format the findings for email
+        report = "<h3>Daily Research Sweep</h3>"
+
+        report += "<h4>arXiv Hit Papers</h4><ul>"
+        for p in arxiv_results:
+            if "error" in p:
+                continue
+            report += f"<li><a href='{p.get('url')}'>{p.get('title')}</a></li>"
+        report += "</ul>"
+
+        report += "<h4>Hugging Face Trending</h4><ul>"
+        for p in hf_results:
+            if "error" in p:
+                continue
+            report += f"<li><a href='{p.get('url')}'>{p.get('title')}</a></li>"
+        report += "</ul>"
+
+        await self.notifier.send_email(
+            "🧠 Overnight Ops: Daily Research Sweep Complete", report, is_html=True
+        )
 
     async def _run_batch(self):
         """Run a batch of simulations with Pragmatic Scoring."""

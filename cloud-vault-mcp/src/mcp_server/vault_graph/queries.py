@@ -22,12 +22,16 @@ async def cluster(cluster_name: str, client: GraphClient | None = None) -> dict:
     return results[0] if results else {}
 
 
-async def hops(neuron_id: str, depth: int = 2, client: GraphClient | None = None) -> list:
+async def hops(
+    neuron_id: str, depth: int = 2, client: GraphClient | None = None
+) -> list:
     c = client or get_graph_client()
     return await c.query(f"SELECT * FROM fn::context_hops({neuron_id}, {depth});")
 
 
-async def bridges(cluster_a: str, cluster_b: str, client: GraphClient | None = None) -> list:
+async def bridges(
+    cluster_a: str, cluster_b: str, client: GraphClient | None = None
+) -> list:
     c = client or get_graph_client()
     a = cluster_a.replace("'", "\\'")
     b = cluster_b.replace("'", "\\'")

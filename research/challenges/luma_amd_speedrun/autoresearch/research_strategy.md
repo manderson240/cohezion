@@ -4,17 +4,21 @@ This file guides the LLM world model's optimization direction.
 Edit priorities and dead ends to steer overnight runs.
 The autoresearch loop reads this before each LLM call.
 
-## Current Focus
+## Current Focus — CUSTOM TRITON KERNELS (Parameter tuning exhausted)
 
-- **MoE** (50% budget): Try direct `moe_sorting_fwd` with `local_expert_mask` parameter.
-  Explore `fmoe_g1u1` for 256-expert shapes (NaN for 32-expert — do NOT try there).
-  KSPLIT adaptive strategy: KSPLIT=4 for sparse (>200 experts), KSPLIT=2 otherwise.
-- **GEMM** (30% budget): Explore `tritonblas.matmul_fp4` as alternative to `gemm_a4w4`.
-  Fused quant+GEMM is the only path below API ceiling (~33µs).
-  All tensors MUST be `torch.uint8` views for tritonblas. B layout is [N, K//2] row-major.
-- **MLA** (20% budget): At Python dispatch ceiling (~67.8µs vs leader 4.3µs, 15.8x gap).
-  Deprioritize unless custom Triton/CK kernel path opens up.
-  Three-regime routing (matmul + aiter a16w8 + aiter a8w8) with `fast_mode=False` is optimal.
+- **GEMM** (40% budget): **Fused quant+GEMM Triton** — eliminates ~16µs quant overhead.
+  Template: `gemm_fused_template.py`. Uses tl.dot_scaled with raw (un-shuffled) scales.
+  Pre-quant A with `dynamic_mxfp4_quant`, cache raw B scale from `quant_func(B, shuffle=False)`.
+  Triton GEMM with Group-M swizzle for XCD locality. No e8m0_shuffle needed.
+  **Critical constraints**: BLOCK_M≥16, BLOCK_K≥64, B_scale is [N, K//32] N-first layout.
+- **MoE** (40% budget): **Persistent-tile Triton MoE** with fused token permutation.
+  Template: `moe_triton_template.py`. Eliminates `moe_sorting_fwd` + per-expert dispatch.
+  Sort tokens in Python (torch.argsort), gather in-kernel via sorted_token_pos.
+  Stage 1: tl.dot_scaled MXFP4 GEMM for gate+up. SiLU in Python. Stage 2: bf16 matmul + scatter.
+  **Novel combination**: fused permutation + persistent tiles + tl.dot_scaled (none tried before).
+- **MLA** (20% budget): **Flash Attention Triton** — single-pass decode, eliminates 3-stage pipeline.
+  Template: `mla_flash_template.py`. FP8 KV cache, online softmax, one kernel per (batch, head).
+  **Challenge**: 576-dim QK padded to 1024 (44% register waste). Moonshot target.
 
 ## Dead Ends (Do NOT retry)
 
@@ -28,21 +32,21 @@ The autoresearch loop reads this before each LLM call.
 - `fast_mode=True` for MLA metadata: SLOWER on MI355X (verified Phase 17)
 - Origami XCD remapping for non-divisible tiles: creates non-bijective mapping (silent wrong results)
 
-## Leaderboard Gaps (Updated)
+## Leaderboard Gaps (Updated 2026-03-21)
 
-| Kernel | Our Best | Leader | Gap | Path Forward |
-|--------|----------|--------|-----|--------------|
-| MoE | ~155µs | 145µs | 1.07x | fused_moe tuning, direct CK dispatch |
-| GEMM | ~33µs | ~23µs | 1.45x | Fused quant+GEMM (requires custom Triton) |
-| MLA | ~67.8µs | 4.3µs | 15.8x | Single fused CK/ASM kernel (moonshot) |
+| Kernel | Ranked µs | Leader µs | Gap | Path Forward |
+|--------|-----------|-----------|-----|--------------|
+| MoE | 186.0 | 145 | 1.28x | Custom persistent-tile Triton (moe_triton_template) |
+| GEMM | 24.4 | 9.7 | 2.51x | Fused quant+GEMM Triton (gemm_fused_template) |
+| MLA | 90.1 | 4.3 | 20.9x | Flash Attention Triton (mla_flash_template) — moonshot |
 
 ## Exploration Priorities
 
-1. Any strategy that fuses quantization into the GEMM kernel
-2. **MoE: Custom Triton with fused permutation (Unsloth-inspired)** — see below
-3. MoE: direct `ck_moe_stage1`/`ck_moe_stage2` calling conventions
-4. GEMM: Triton `tl.dot_scaled` with correct scale layout [BLOCK_N, SCALE_PER_K]
-5. MLA: FlashAttention-style fused tiling (eliminates 3-stage pipeline overhead)
+1. **GEMM: gemm_fused_template** — Triton tl.dot_scaled with raw scales, no e8m0_shuffle
+2. **MoE: moe_triton_template** — fused permutation + persistent tiles + tl.dot_scaled
+3. **MLA: mla_flash_template** — single-pass Flash Attention, eliminates 3-stage overhead
+4. LLM synthesis: let code_synthesizer iterate on these templates as base code
+5. Per-shape dispatch: use custom Triton for shapes where it wins, aiter fallback otherwise
 
 ## Reference: Unsloth Grouped GEMM MoE Kernel (AGPL-3.0 — study only, do NOT copy code)
 

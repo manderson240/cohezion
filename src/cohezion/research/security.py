@@ -10,9 +10,13 @@ import ast
 import logging
 import re
 from dataclasses import dataclass
-from pathlib import Path
+from typing import TYPE_CHECKING
 
-from cohezion.security.pipeline import SecurityPipeline
+
+if TYPE_CHECKING:
+    from pathlib import Path
+
+    from cohezion.security.pipeline import SecurityPipeline
 
 
 logger = logging.getLogger(__name__)
@@ -253,7 +257,4 @@ class SimpleSecurity:
 
     def check(self, code: str) -> bool:
         """Quick security check."""
-        for pattern in self.forbidden:
-            if pattern in code:
-                return False
-        return True
+        return all(pattern not in code for pattern in self.forbidden)

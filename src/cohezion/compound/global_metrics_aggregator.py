@@ -14,9 +14,11 @@ import time
 from collections import defaultdict
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
-from cohezion.swarm.team_metrics import TeamCompoundMetrics
+
+if TYPE_CHECKING:
+    from cohezion.swarm.team_metrics import TeamCompoundMetrics
 
 
 logger = logging.getLogger(__name__)
