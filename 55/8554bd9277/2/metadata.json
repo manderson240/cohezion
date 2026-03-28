@@ -1,16 +1,13 @@
 {
   "cli_version": "0.5.1",
   "checkpoint_id": "558554bd9277",
+  "session_id": "7b42ffab-cb2c-417a-b4cd-9fddf3b78647",
   "strategy": "manual-commit",
+  "created_at": "2026-03-28T15:34:04.551366977Z",
   "branch": "challenge/nvidia-nemotron-reasoning",
-  "checkpoints_count": 4,
+  "checkpoints_count": 2,
   "files_touched": [
-    ".claude/hooks/branch-safety-warning.sh",
-    ".claude/scheduled_tasks.lock",
-    ".gemini/settings.json",
     "_bmad/_config/traceability/repo_health/health_report.md",
-    "_bmad/_config/traceability/repo_health/health_report_2026-03-27T00_40_08.707453.json",
-    "_bmad/_config/traceability/repo_health/health_report_2026-03-27T00_41_40.299912.json",
     "_bmad/_config/traceability/repo_health/health_report_2026-03-27T08_31_07.532344.json",
     "_bmad/_config/traceability/repo_health/health_report_2026-03-27T08_37_51.334829.json",
     "_bmad/_config/traceability/repo_health/health_report_2026-03-27T09_38_28.815339.json",
@@ -51,10 +48,8 @@
     "cache/swarm/acca095af12cef4761a77b6f20484a7ffdf0585354d812e7ddf12a255e800cfd.json",
     "cache/swarm/c68c897ff681adba82de83dd1ebd599ec71e7c6c52f472331ef823abfb9267a9.json",
     "cache/swarm/d7cd2b4b5255963d9f78e816f52e9113109ec5042bfa8acc849435fe4a8849d8.json",
-    "cloud-vault-mcp/vault/projects/_template.md",
     "data/compound/cache/token_cache.jsonl",
     "data/config-sync-logs/config_sync.jsonl",
-    "luma_speedrun/amd-mixed-mla/submission.py",
     "memory/MEMORY.md",
     "research/challenges/luma_amd_speedrun/SUBMISSION_LOCK.txt",
     "research/challenges/luma_amd_speedrun/autoresearch/tree/gemm_tree.json",
@@ -68,35 +63,29 @@
     "research/challenges/luma_amd_speedrun/kernels/mxfp4-mm/submission.py",
     "src/cohezion/agents/generated/skill_0_agent.py",
     "src/cohezion/agents/generated/skill_1_agent.py",
-    "src/cohezion/eval/__init__.py",
     "src/cohezion/skills/skill_registry.json",
     "tests/mycelium/generated_test_dummy.py"
   ],
-  "sessions": [
-    {
-      "metadata": "/55/8554bd9277/0/metadata.json",
-      "transcript": "/55/8554bd9277/0/full.jsonl",
-      "content_hash": "/55/8554bd9277/0/content_hash.txt",
-      "prompt": "/55/8554bd9277/0/prompt.txt"
-    },
-    {
-      "metadata": "/55/8554bd9277/1/metadata.json",
-      "transcript": "/55/8554bd9277/1/full.jsonl",
-      "content_hash": "/55/8554bd9277/1/content_hash.txt",
-      "prompt": "/55/8554bd9277/1/prompt.txt"
-    },
-    {
-      "metadata": "/55/8554bd9277/2/metadata.json",
-      "transcript": "/55/8554bd9277/2/full.jsonl",
-      "content_hash": "/55/8554bd9277/2/content_hash.txt",
-      "prompt": "/55/8554bd9277/2/prompt.txt"
-    }
-  ],
+  "agent": "Claude Code",
+  "model": "kimi-k2.5:cloud[1m]",
+  "turn_id": "8abc27ab4440",
   "token_usage": {
-    "input_tokens": 87471091,
-    "cache_creation_tokens": 14412317,
-    "cache_read_tokens": 263051453,
-    "output_tokens": 621793,
-    "api_call_count": 1532
+    "input_tokens": 87433027,
+    "cache_creation_tokens": 7993160,
+    "cache_read_tokens": 207636575,
+    "output_tokens": 516455,
+    "api_call_count": 1294
+  },
+  "session_metrics": {
+    "turn_count": 124
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-03-28T15:33:59.414349124Z",
+    "agent_lines": 67052,
+    "human_added": 67150,
+    "human_modified": 37,
+    "human_removed": 0,
+    "total_committed": 134239,
+    "agent_percentage": 49.94971655033187
   }
 }
