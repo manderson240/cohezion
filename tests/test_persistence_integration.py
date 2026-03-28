@@ -221,12 +221,13 @@ class TestAlignmentGatedExecution:
 
             manager = CompoundSessionManager()
 
-            async def execute():
+            async def execute(guidance):
                 return "test output"
 
             success, metrics = await manager.execute_aligned(
                 request="Generate a function",
                 execute_fn=execute,
+                use_executor=False,
             )
 
             assert success is True
@@ -267,6 +268,98 @@ class TestAlignmentGatedExecution:
             assert success is False
             assert "blocked_at" in metrics
             assert metrics["blocked_at"] == "alignment_gate"
+
+
+# ---------------------------------------------------------------------------
+# Executor wiring tests
+# ---------------------------------------------------------------------------
+
+
+class TestExecutorWiring:
+    """Verify CompoundSessionManager delegates to CompoundExecutor."""
+
+    @patch("cohezion.swarm.compound_client.get_compound_client")
+    @patch("cohezion.compound.session_manager.get_mcp_client")
+    def test_execute_aligned_uses_executor_pipeline(
+        self, mock_get_mcp: MagicMock, mock_get_client: MagicMock
+    ) -> None:
+        from cohezion.compound.executor import ExecutionResult
+        from cohezion.compound.session_manager import AlignmentResult
+
+        mock_get_client.return_value = MagicMock(_cache={}, _cache_max_size=512)
+        mock_get_mcp.return_value = MagicMock()
+
+        mock_executor = MagicMock(spec=["execute_task"])
+        mock_executor.execute_task.return_value = ExecutionResult(
+            success=True,
+            output="test output from executor",
+            metrics={"coherence": 0.85},
+            duration_seconds=0.5,
+        )
+
+        manager = CompoundSessionManager(executor=mock_executor)
+        manager.start_session()
+
+        with (
+            patch.object(manager, "check_alignment") as mock_align,
+            patch("cohezion.compound.executor.ExecutorFactory.create"),
+        ):
+            mock_align.return_value = AlignmentResult(
+                coherence=0.9, should_proceed=True, intent_match=0.9
+            )
+
+            def sync_execute(guidance):
+                return "sync result"
+
+            import asyncio
+
+            loop = asyncio.new_event_loop()
+            try:
+                success, _ = loop.run_until_complete(
+                    manager.execute_aligned(
+                        request="test request",
+                        execute_fn=sync_execute,
+                        skill_name="test_skill",
+                        use_executor=True,
+                    )
+                )
+            finally:
+                loop.close()
+
+        assert success is True
+        mock_executor.execute_task.assert_called_once()
+        call_kwargs = mock_executor.execute_task.call_args[1]
+        assert call_kwargs["skill_name"] == "test_skill"
+        assert call_kwargs["human_request"] == "test request"
+
+    @patch("cohezion.swarm.compound_client.get_compound_client")
+    @patch("cohezion.compound.session_manager.get_mcp_client")
+    def test_executor_lazy_creation(
+        self, mock_get_mcp: MagicMock, mock_get_client: MagicMock
+    ) -> None:
+        mock_get_client.return_value = MagicMock(_cache={}, _cache_max_size=512)
+        mock_get_mcp.return_value = MagicMock()
+
+        with patch("cohezion.compound.executor.ExecutorFactory.create") as mock_factory:
+            mock_executor = MagicMock()
+            mock_factory.return_value = mock_executor
+
+            manager = CompoundSessionManager()
+            executor_result = manager.executor
+
+            assert executor_result is mock_executor
+            mock_factory.assert_called_once()
+
+    @patch("cohezion.swarm.compound_client.get_compound_client")
+    def test_executor_passed_explicitly(self, mock_get_client: MagicMock) -> None:
+        mock_get_client.return_value = MagicMock(_cache={}, _cache_max_size=512)
+
+        mock_executor = MagicMock()
+
+        manager = CompoundSessionManager(executor=mock_executor)
+
+        assert manager._executor is mock_executor
+        assert manager.executor is mock_executor
 
 
 # ---------------------------------------------------------------------------
@@ -359,3 +452,57 @@ class TestExecutorWithPersistence:
 
         assert result.success is True
         assert result.output == "output"
+
+
+# ---------------------------------------------------------------------------
+# Integration tests
+# ---------------------------------------------------------------------------
+
+
+class TestIntegrationExecutor:
+    """Integration tests with real executor pipeline."""
+
+    @pytest.mark.skip(reason="Requires event loop isolation - use pytest-asyncio")
+    @pytest.mark.integration
+    @pytest.mark.asyncio
+    async def test_execute_aligned_real_executor(self) -> None:
+        """Integration test with real executor pipeline."""
+        from cohezion.compound.session_manager import CompoundSessionManager
+
+        with (
+            patch("cohezion.swarm.compound_client.get_compound_client") as mock_client,
+            patch("cohezion.compound.session_manager.get_mcp_client") as mock_mcp,
+            patch(
+                "cohezion.compound.request_alignment_analyzer.RequestAlignmentAnalyzerFactory"
+            ) as mock_factory,
+        ):
+            mock_client.return_value = MagicMock(_cache={}, _cache_max_size=512)
+            mock_mcp.return_value = MagicMock()
+            mock_mcp.return_value.vault_find_relevant_context.return_value = []
+            mock_mcp.return_value.vault_log_experiment.return_value = "experiments/test.md"
+
+            analyzer = MagicMock()
+            parsed = MagicMock()
+            parsed.intent_confidence = 0.9
+            parsed.intent = MagicMock(value="generate")
+            parsed.constraints = []
+            parsed.criteria = []
+            analyzer.parse_request.return_value = parsed
+            mock_factory.create.return_value = analyzer
+
+            mgr = CompoundSessionManager()
+            mgr.start_session()
+
+            def my_task(guidance):
+                return "Task completed with guidance"
+
+            success, result = await mgr.execute_aligned(
+                request="Test integration",
+                execute_fn=my_task,
+                skill_name="integration_test",
+                use_executor=True,
+            )
+
+            assert success is True
+            assert "output" in result
+            assert result.get("session_id", "").startswith("session_")

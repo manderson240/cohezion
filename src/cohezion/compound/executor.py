@@ -374,7 +374,7 @@ class CompoundExecutor(CompoundContextMixin):
             start_time=start_time,
             mcp_client=self.mcp_client,
         )
-        
+
         # Load context automatically if not already done (shoshen-minded automation)
         if not self._context_loaded:
             try:
@@ -408,6 +408,44 @@ class CompoundExecutor(CompoundContextMixin):
         guidance = self.get_experience_guidance(task_description, project, operation_type)
         logger.debug("Experience guidance: %s", guidance)
 
+        # Step 1.2: Context coherence check for token efficiency awareness
+        # Skip expensive operations if coherence is too low (HIHO threshold)
+        context_coherence_ok = True
+        context_state = self.get_context_state()
+        if not self._degradation_mode:  # Only check if not already in degradation mode
+            try:
+                context_coherence_ok = self.check_context_coherence(threshold=0.5)
+                current_coherence = (
+                    context_state.get("coherence_state", 0.0) if context_state else 0.0
+                )
+                context_tokens = context_state.get("token_usage", 0) if context_state else 0
+
+                logger.debug(
+                    "Context check: coherence=%.3f (threshold=0.5), tokens_used=%d",
+                    current_coherence,
+                    context_tokens,
+                )
+
+                if not context_coherence_ok:
+                    logger.warning(
+                        "Context coherence below HIHO threshold (%.3f), "
+                        "considering lightweight execution path. Context tokens: %d",
+                        current_coherence,
+                        context_tokens,
+                    )
+                    # We don't block execution but log for awareness
+            except Exception as e:
+                logger.debug("Context coherence check failed (non-blocking): %s", e)
+                context_coherence_ok = True  # Allow execution to proceed on check failure
+        else:
+            # Log context state even in degradation mode for tracking
+            if context_state:
+                logger.debug(
+                    "Context state in degradation mode: coherence=%.3f, tokens_used=%d",
+                    context_state.get("coherence_state", 0.0),
+                    context_state.get("token_usage", 0),
+                )
+
         # Step 1.5: Parse request for alignment analysis (if enabled)
         # Skip in degradation mode to conserve resources
         parsed_request = None
@@ -416,6 +454,7 @@ class CompoundExecutor(CompoundContextMixin):
             self._enable_alignment_analysis
             and self.alignment_analyzer
             and not self._degradation_mode
+            and context_coherence_ok  # Also skip if coherence is too low
         ):
             try:
                 request_text = human_request or task_description
@@ -692,32 +731,48 @@ class CompoundExecutor(CompoundContextMixin):
                 logger.debug("Retrospection failed (non-blocking): %s", e, exc_info=True)
 
         # Step 7: Refine skills based on execution results (non-blocking)
-        # Gated by retrospection: only refine when quadrature assessment warrants it
+        # Gated by retrospection and context coherence: only refine when warranted and context is suitable
+        context_coherence_ok = True
         if success and self.skill_refiner and should_refine:
             try:
-                # Create execution result dict for refiner
-                exec_result = {
-                    "success": success,
-                    "output": output,
-                    "metrics": metrics,
-                    "duration_seconds": duration_seconds,
-                    "token_metrics": token_metrics,
-                }
-
-                # Call skill refiner
-                refined_path = self.skill_refiner.refine(
-                    skill_name=skill_name,
-                    operation_type=operation_type,
-                    execution_result=exec_result,
-                    patterns_extracted=decision_paths,
-                )
-
-                if refined_path:
-                    logger.info(f"Skill refined: {refined_path}")
-                    decision_paths.append(refined_path)
-
+                # Check context coherence before skill refinement (HIHO threshold)
+                context_coherence_ok = self.check_context_coherence(
+                    threshold=0.4
+                )  # Lower threshold for refinement
+                if not context_coherence_ok:
+                    logger.debug(
+                        "Context coherence too low for skill refinement (%.3f), skipping",
+                        self.get_context_state().get("coherence_state", 0.0),
+                    )
             except Exception as e:
-                logger.debug("Skill refinement failed (non-blocking): %s", e, exc_info=True)
+                logger.debug("Context coherence check failed for refinement (non-blocking): %s", e)
+                context_coherence_ok = True  # Allow refinement to proceed on check failure
+
+            if context_coherence_ok:
+                try:
+                    # Create execution result dict for refiner
+                    exec_result = {
+                        "success": success,
+                        "output": output,
+                        "metrics": metrics,
+                        "duration_seconds": duration_seconds,
+                        "token_metrics": token_metrics,
+                    }
+
+                    # Call skill refiner
+                    refined_path = self.skill_refiner.refine(
+                        skill_name=skill_name,
+                        operation_type=operation_type,
+                        execution_result=exec_result,
+                        patterns_extracted=decision_paths,
+                    )
+
+                    if refined_path:
+                        logger.info(f"Skill refined: {refined_path}")
+                        decision_paths.append(refined_path)
+
+                except Exception as e:
+                    logger.debug("Skill refinement failed (non-blocking): %s", e, exc_info=True)
 
         # Step 7.5: Check for degradation and manage HIHO band (non-blocking)
         # Coherence within HIHO band [0.4, 0.6] -> exit degradation mode
@@ -809,13 +864,25 @@ class CompoundExecutor(CompoundContextMixin):
             try:
                 tokens_used = 0
                 model_used = ""
+                context_tokens = 0
                 if token_metrics:
                     tokens_used = token_metrics.get("tokens_used", 0)
                     model_used = token_metrics.get("model", "")
+
+                # Add context token usage to metrics for token efficiency awareness
+                context_state = self.get_context_state()
+                if context_state:
+                    context_tokens = context_state.get("token_usage", 0)
+                    total_tokens = tokens_used + context_tokens
+                else:
+                    total_tokens = tokens_used
+
                 self._metrics_collector.record_execution(
                     skill_name=skill_name,
                     success=success,
                     tokens_used=tokens_used,
+                    context_tokens=context_tokens,
+                    total_tokens=total_tokens,
                     duration_ms=duration_seconds * 1000,
                     model_used=model_used,
                 )

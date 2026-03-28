@@ -70,6 +70,8 @@ class CompoundMetricsCollector:
         tokens_used: int,
         duration_ms: float,
         model_used: str = "",
+        context_tokens: int = 0,
+        total_tokens: int = 0,
     ) -> None:
         """Record a compound execution."""
         with self._lock:
