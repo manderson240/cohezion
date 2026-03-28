@@ -4,6 +4,7 @@ Models: GeminiEmbeddingModel (cloud + SurrealDB cache), FlumeVAEEmbeddingModel (
 EmbeddingDistiller: knowledge distillation stub (Phase 2).
 EmbeddingOrchestrator: context-aware routing.
 """
+
 from __future__ import annotations
 
 import asyncio
@@ -30,10 +31,10 @@ logger = logging.getLogger(__name__)
 class EmbeddingResult:
     """Result of an embedding operation."""
 
-    vector: np.ndarray      # The embedding vector
-    model: str              # Which model produced it
-    cached: bool = False    # Whether this came from cache
-    dimension: int = 0      # Vector dimension (set from vector.shape[0])
+    vector: np.ndarray  # The embedding vector
+    model: str  # Which model produced it
+    cached: bool = False  # Whether this came from cache
+    dimension: int = 0  # Vector dimension (set from vector.shape[0])
 
     def __post_init__(self) -> None:
         self.dimension = len(self.vector)
@@ -42,10 +43,10 @@ class EmbeddingResult:
 class EmbeddingContext(Enum):
     """Routing context for embedding requests."""
 
-    VAULT_INDEXING = auto()   # Offline, one-time — use Gemini cloud
-    RUNTIME = auto()           # Online hot path — use local FLUME VAE
+    VAULT_INDEXING = auto()  # Offline, one-time — use Gemini cloud
+    RUNTIME = auto()  # Online hot path — use local FLUME VAE
     TRAINING_REWARD = auto()  # Offline for distillation — use Gemini cloud
-    FAST_ROUTING = auto()     # Hot path — use hash fallback
+    FAST_ROUTING = auto()  # Hot path — use hash fallback
 
 
 # ---------------------------------------------------------------------------
@@ -77,12 +78,13 @@ class FlumeVAEEmbeddingModel:
     def _get_encoder(self):  # type: ignore[return]
         if self._encoder is None:
             from cohezion.flume.vae_encoder import get_encoder
+
             self._encoder = get_encoder()
         return self._encoder
 
     async def encode(self, text: str) -> EmbeddingResult:
         """Encode text using FLUME VAE (runs in thread to avoid blocking loop)."""
-        loop = asyncio.get_event_loop()
+        loop = asyncio.get_running_loop()
         vector = await loop.run_in_executor(None, self._encode_blocking, text)
         return EmbeddingResult(vector=vector, model="flume-vae-256d")
 
@@ -119,8 +121,7 @@ class GeminiEmbeddingModel:
     """Gemini Embedding 2 with content-hash SurrealDB cache and FLUME VAE fallback."""
 
     GEMINI_API_URL = (
-        "https://generativelanguage.googleapis.com/v1beta/models"
-        "/text-embedding-004:embedContent"
+        "https://generativelanguage.googleapis.com/v1beta/models/text-embedding-004:embedContent"
     )
     DIMENSION = 768  # Gemini Embedding 2 output dimension
     _CIRCUIT_FAIL_LIMIT = 3
@@ -178,6 +179,7 @@ class GeminiEmbeddingModel:
             if loop.is_running():
                 # Called from within an async context — run in thread
                 import concurrent.futures
+
                 with concurrent.futures.ThreadPoolExecutor(max_workers=1) as pool:
                     future = pool.submit(asyncio.run, self.encode(text))
                     return future.result()
@@ -204,12 +206,13 @@ class GeminiEmbeddingModel:
         url = f"{self.GEMINI_API_URL}?key={self._api_key}"
         payload = {"model": "models/text-embedding-004", "content": {"parts": [{"text": text}]}}
 
-        async with aiohttp.ClientSession() as session:
-            async with session.post(url, json=payload, timeout=aiohttp.ClientTimeout(total=10)) as resp:
-                if resp.status != 200:
-                    body = await resp.text()
-                    raise RuntimeError(f"Gemini API {resp.status}: {body[:200]}")
-                data = await resp.json()
+        async with aiohttp.ClientSession() as session, session.post(
+            url, json=payload, timeout=aiohttp.ClientTimeout(total=10)
+        ) as resp:
+            if resp.status != 200:
+                body = await resp.text()
+                raise RuntimeError(f"Gemini API {resp.status}: {body[:200]}")
+            data = await resp.json()
 
         values = data["embedding"]["values"]
         vector = np.array(values, dtype=np.float32)
@@ -223,22 +226,24 @@ class GeminiEmbeddingModel:
         try:
             import aiohttp
 
-            url = f"http://localhost:8000/sql"
+            url = "http://localhost:8000/sql"
             query = f"SELECT vector FROM embedding_cache WHERE content_hash = '{key}' LIMIT 1;"
-            async with aiohttp.ClientSession() as session:
-                async with session.post(
-                    url,
-                    data=query,
-                    headers={"Accept": "application/json", "NS": "cohezion", "DB": "embeddings"},
-                    auth=aiohttp.BasicAuth("root", "root"),
-                    timeout=aiohttp.ClientTimeout(total=2),
-                ) as resp:
-                    if resp.status != 200:
-                        return None
-                    result = await resp.json()
-                    rows = result[0].get("result", []) if result else []
-                    if rows and rows[0].get("vector"):
-                        return np.array(rows[0]["vector"], dtype=np.float32)
+            async with aiohttp.ClientSession() as session, session.post(
+                url,
+                data=query,
+                headers={"Accept": "application/json", "NS": "cohezion", "DB": "embeddings"},
+                auth=aiohttp.BasicAuth(
+                    os.environ.get("SURREAL_USER", "root"),
+                    os.environ.get("SURREAL_PASS", "root"),
+                ),
+                timeout=aiohttp.ClientTimeout(total=2),
+            ) as resp:
+                if resp.status != 200:
+                    return None
+                result = await resp.json()
+                rows = result[0].get("result", []) if result else []
+                if rows and rows[0].get("vector"):
+                    return np.array(rows[0]["vector"], dtype=np.float32)
         except Exception as exc:
             logger.debug("Cache lookup skipped: %s", exc)
         return None
@@ -250,21 +255,21 @@ class GeminiEmbeddingModel:
 
             vector_list = vector.tolist()
             query = (
-                f"CREATE embedding_cache CONTENT {{"
-                f"content_hash: '{key}', vector: {vector_list}"
-                f"}};"
+                f"CREATE embedding_cache CONTENT {{content_hash: '{key}', vector: {vector_list}}};"
             )
             url = "http://localhost:8000/sql"
-            async with aiohttp.ClientSession() as session:
-                async with session.post(
-                    url,
-                    data=query,
-                    headers={"Accept": "application/json", "NS": "cohezion", "DB": "embeddings"},
-                    auth=aiohttp.BasicAuth("root", "root"),
-                    timeout=aiohttp.ClientTimeout(total=2),
-                ) as resp:
-                    if resp.status != 200:
-                        logger.debug("Cache store returned %d", resp.status)
+            async with aiohttp.ClientSession() as session, session.post(
+                url,
+                data=query,
+                headers={"Accept": "application/json", "NS": "cohezion", "DB": "embeddings"},
+                auth=aiohttp.BasicAuth(
+                    os.environ.get("SURREAL_USER", "root"),
+                    os.environ.get("SURREAL_PASS", "root"),
+                ),
+                timeout=aiohttp.ClientTimeout(total=2),
+            ) as resp:
+                if resp.status != 200:
+                    logger.debug("Cache store returned %d", resp.status)
         except Exception as exc:
             logger.debug("Cache store skipped (non-critical): %s", exc)
 

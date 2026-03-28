@@ -7,7 +7,7 @@
       "strategy": "Minimize MXFP4 GEMM geomean across 6 shapes",
       "parameters": {},
       "parent_id": null,
-      "priority": 0.7350918906249998,
+      "priority": 0.5688000922764596,
       "attempts": 0,
       "best_result_us": null,
       "stagnation_count": 0,
@@ -20,7 +20,8 @@
         "gemm_n4",
         "n_52ddecbc",
         "n_3793884f",
-        "n_4f423fa8"
+        "n_4f423fa8",
+        "n_0ed2a2ed"
       ],
       "notes": "",
       "attempt_history": []
@@ -57,7 +58,7 @@
         }
       },
       "parent_id": "root_gemm",
-      "priority": 0.6983372960937497,
+      "priority": 0.5403600876626365,
       "attempts": 0,
       "best_result_us": null,
       "stagnation_count": 0,
@@ -105,7 +106,7 @@
         }
       },
       "parent_id": "gemm_n1",
-      "priority": 0.5803357031249997,
+      "priority": 0.4490527044287838,
       "attempts": 1,
       "best_result_us": 188.54,
       "stagnation_count": 0,
@@ -183,7 +184,7 @@
         }
       },
       "parent_id": "gemm_n1",
-      "priority": 0.6108796874999998,
+      "priority": 0.47268705729345667,
       "attempts": 1,
       "best_result_us": 221.66,
       "stagnation_count": 0,
@@ -260,7 +261,7 @@
         }
       },
       "parent_id": "gemm_n1",
-      "priority": 0.5880735124999998,
+      "priority": 0.45504007382116773,
       "attempts": 0,
       "best_result_us": null,
       "stagnation_count": 0,
@@ -301,7 +302,7 @@
         }
       },
       "parent_id": "gemm_n1",
-      "priority": 0.5513189179687497,
+      "priority": 0.4266000692073446,
       "attempts": 0,
       "best_result_us": null,
       "stagnation_count": 0,
@@ -342,7 +343,7 @@
         }
       },
       "parent_id": "gemm_n1",
-      "priority": 0.5145643234374998,
+      "priority": 0.39816006459352166,
       "attempts": 0,
       "best_result_us": null,
       "stagnation_count": 0,
@@ -383,7 +384,7 @@
         }
       },
       "parent_id": "gemm_n1",
-      "priority": 0.4778097289062499,
+      "priority": 0.3697200599796988,
       "attempts": 0,
       "best_result_us": null,
       "stagnation_count": 0,
@@ -424,12 +425,22 @@
         }
       },
       "parent_id": "root_gemm",
-      "priority": 0.7387402505632658,
-      "attempts": 7,
-      "best_result_us": 157.36,
+      "priority": 0.40612499999999996,
+      "attempts": 11,
+      "best_result_us": 124.77,
       "stagnation_count": 0,
       "status": "active",
-      "children": [],
+      "children": [
+        "n_e65a342d",
+        "n_49318a2c",
+        "n_b6ffc93e",
+        "n_4165a12c",
+        "n_b85a009c",
+        "n_ddfbe999",
+        "n_f678d181",
+        "n_cdd7495a",
+        "n_2890dba5"
+      ],
       "notes": "All-ASM baseline \u2014 does ASM kernel exist and help universally?",
       "attempt_history": [
         {
@@ -662,6 +673,138 @@
           },
           "timestamp": "2026-03-20T16:11:01.603078",
           "source": "template"
+        },
+        {
+          "result_us": 150.6928543333719,
+          "parameters": {
+            "KERNEL_TABLE": {
+              "4_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "16_2112_7168": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_4096_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "64_7168_2048": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "256_3072_1536": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              }
+            }
+          },
+          "timestamp": "2026-03-20T16:11:25.599503",
+          "source": "template"
+        },
+        {
+          "result_us": 169.97964235336022,
+          "parameters": {
+            "KERNEL_TABLE": {
+              "4_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "16_2112_7168": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_4096_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "64_7168_2048": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "256_3072_1536": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              }
+            }
+          },
+          "timestamp": "2026-03-20T16:12:02.699882",
+          "source": "template"
+        },
+        {
+          "result_us": 139.92462458113013,
+          "parameters": {
+            "KERNEL_TABLE": {
+              "4_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "16_2112_7168": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_4096_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "64_7168_2048": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "256_3072_1536": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              }
+            }
+          },
+          "timestamp": "2026-03-20T16:12:32.501231",
+          "source": "template"
+        },
+        {
+          "result_us": 124.77141645326168,
+          "parameters": {
+            "KERNEL_TABLE": {
+              "4_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 1
+              },
+              "16_2112_7168": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_4096_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "32_2880_512": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "64_7168_2048": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              },
+              "256_3072_1536": {
+                "kernel": "gemm_a4w4_asm",
+                "log2_ks": 0
+              }
+            }
+          },
+          "timestamp": "2026-03-20T16:13:33.699953",
+          "source": "template"
         }
       ]
     },
@@ -697,7 +840,7 @@
         }
       },
       "parent_id": "root_gemm",
-      "priority": 0.4410551343749999,
+      "priority": 0.3412800553658758,
       "attempts": 0,
       "best_result_us": null,
       "stagnation_count": 0,
@@ -711,7 +854,7 @@
       "strategy": "Skip quant for pre-quantized B",
       "parameters": {},
       "parent_id": "root_gemm",
-      "priority": 0.3675459453124999,
+      "priority": 0.2844000461382298,
       "attempts": 0,
       "best_result_us": null,
       "stagnation_count": 0,
@@ -753,7 +896,7 @@
         }
       },
       "parent_id": "root_gemm",
-      "priority": 0.657713796875,
+      "priority": 0.508926398352622,
       "attempts": 5,
       "best_result_us": 176.4,
       "stagnation_count": 1,
@@ -936,7 +1079,7 @@
       "strategy": "Minimize MXFP4 GEMM geomean across 8 shapes (p=0.95, untested, 0 attempts)",
       "parameters": {},
       "parent_id": "root_gemm",
-      "priority": 0.46426856249999987,
+      "priority": 0.3592421635430272,
       "attempts": 0,
       "best_result_us": null,
       "stagnation_count": 0,
@@ -967,7 +1110,7 @@
         ]
       },
       "parent_id": "gemm_n0_cached",
-      "priority": 0.5029576093749999,
+      "priority": 0.38917901050494613,
       "attempts": 0,
       "best_result_us": null,
       "stagnation_count": 0,
@@ -989,7 +1132,7 @@
         "reuse_threshold": 0.9
       },
       "parent_id": "gemm_n0_cached",
-      "priority": 0.4487929437499998,
+      "priority": 0.3472674247582595,
       "attempts": 0,
       "best_result_us": null,
       "stagnation_count": 0,
@@ -1003,7 +1146,7 @@
       "strategy": "M=4,N=2880,K=512: sweep kernels+split-K with tuned wavefront_size=64 and workgroup_size=256",
       "parameters": {},
       "parent_id": "gemm_n1a",
-      "priority": 0.5029576093749999,
+      "priority": 0.38917901050494613,
       "attempts": 0,
       "best_result_us": null,
       "stagnation_count": 0,
@@ -1017,7 +1160,7 @@
       "strategy": "M=4,N=2880,K=512: benchmark tritonblas.matmul_fp4 vs gemm_a4w4_asm with same quant config",
       "parameters": {},
       "parent_id": "gemm_n1a",
-      "priority": 0.4797441812499999,
+      "priority": 0.3712169023277948,
       "attempts": 0,
       "best_result_us": null,
       "stagnation_count": 0,
@@ -1051,7 +1194,7 @@
         ]
       },
       "parent_id": "gemm_n1b",
-      "priority": 0.5294290624999999,
+      "priority": 0.409662116320996,
       "attempts": 0,
       "best_result_us": null,
       "stagnation_count": 0,
@@ -1074,7 +1217,7 @@
         "compare_with": "tritonblas.matmul_fp4"
       },
       "parent_id": "root_gemm",
-      "priority": 0.5864444999999999,
+      "priority": 0.45377957500171867,
       "attempts": 0,
       "best_result_us": null,
       "stagnation_count": 0,
@@ -1088,7 +1231,7 @@
       "strategy": "Beat 158.8\u00b5s (10% below 176.4\u00b5s plateau)",
       "parameters": {},
       "parent_id": "root_gemm",
-      "priority": 0.6174999999999999,
+      "priority": 0.4778097289062499,
       "attempts": 1,
       "best_result_us": 203.4,
       "stagnation_count": 0,
@@ -1134,7 +1277,7 @@
         ]
       },
       "parent_id": "n_4f423fa8",
-      "priority": 0.646,
+      "priority": 0.4998624856249999,
       "attempts": 0,
       "best_result_us": null,
       "stagnation_count": 0,
@@ -1153,7 +1296,636 @@
         "compare_with": "tritonblas.matmul_fp4"
       },
       "parent_id": "n_4f423fa8",
-      "priority": 0.6174999999999999,
+      "priority": 0.4778097289062499,
+      "attempts": 0,
+      "best_result_us": null,
+      "stagnation_count": 0,
+      "status": "active",
+      "children": [],
+      "notes": "[LLM-proposed]",
+      "attempt_history": []
+    },
+    "n_e65a342d": {
+      "id": "n_e65a342d",
+      "strategy": "gemm_a4w4_asm with block-sizes {64x32, 32x64} and wavefront_size=64-only layout on M=16,N=2112,K=7168",
+      "parameters": {
+        "block_sizes": [
+          "64x32",
+          "32x64"
+        ],
+        "wavefront_size": 64,
+        "layout": "single-wavefront"
+      },
+      "parent_id": "gemm_n2",
+      "priority": 0.25721249999999996,
+      "attempts": 1,
+      "best_result_us": 201.88,
+      "stagnation_count": 0,
+      "status": "active",
+      "children": [
+        "n_98584f22"
+      ],
+      "notes": "[LLM-proposed]",
+      "attempt_history": [
+        {
+          "result_us": 201.8804790885328,
+          "parameters": {
+            "block_sizes": [
+              "64x32",
+              "32x64"
+            ],
+            "wavefront_size": 64,
+            "layout": "single-wavefront"
+          },
+          "timestamp": "2026-03-20T16:14:26.899284",
+          "source": "template"
+        }
+      ]
+    },
+    "n_49318a2c": {
+      "id": "n_49318a2c",
+      "strategy": "gemm_a4w4_asm with hybrid 32/64-wavefront layout and K-split tuning (K_split \u2208 {1,2,4}) on M=16,N=2112,K=7168",
+      "parameters": {
+        "wavefront_size": "hybrid_32_64",
+        "k_split_range": [
+          1,
+          2,
+          4
+        ],
+        "shape": "M16_N2112_K7168"
+      },
+      "parent_id": "gemm_n2",
+      "priority": 0.5131389375,
+      "attempts": 0,
+      "best_result_us": null,
+      "stagnation_count": 0,
+      "status": "active",
+      "children": [],
+      "notes": "[LLM-proposed]",
+      "attempt_history": []
+    },
+    "n_b6ffc93e": {
+      "id": "n_b6ffc93e",
+      "strategy": "gemm_a4w4_asm with hybrid 32/64-wavefront layout and K-split tuning (K_split \u2208 {1,2,4}) on M=16,N=2112,K=7168",
+      "parameters": {
+        "block_sizes": [
+          [
+            32,
+            32
+          ],
+          [
+            64,
+            16
+          ],
+          [
+            16,
+            64
+          ]
+        ],
+        "wavefront_size": "hybrid_32_64",
+        "k_split": [
+          1,
+          2,
+          4
+        ]
+      },
+      "parent_id": "gemm_n2",
+      "priority": 0.45,
+      "attempts": 2,
+      "best_result_us": 192.93,
+      "stagnation_count": 0,
+      "status": "pruned",
+      "children": [
+        "n_426f865c"
+      ],
+      "notes": "[LLM-proposed] [STRATEGIC PRUNE: LLM world model]",
+      "attempt_history": [
+        {
+          "result_us": 218.07653330135435,
+          "parameters": {
+            "block_sizes": [
+              [
+                32,
+                32
+              ],
+              [
+                64,
+                16
+              ],
+              [
+                16,
+                64
+              ]
+            ],
+            "wavefront_size": "hybrid_32_64",
+            "k_split": [
+              1,
+              2,
+              4
+            ]
+          },
+          "timestamp": "2026-03-20T16:15:07.766425",
+          "source": "template"
+        },
+        {
+          "result_us": 192.9270052489071,
+          "parameters": {
+            "block_sizes": [
+              [
+                32,
+                32
+              ],
+              [
+                64,
+                16
+              ],
+              [
+                16,
+                64
+              ]
+            ],
+            "wavefront_size": "hybrid_32_64",
+            "k_split": [
+              1,
+              2,
+              4
+            ]
+          },
+          "timestamp": "2026-03-20T16:15:38.600859",
+          "source": "template"
+        }
+      ]
+    },
+    "n_98584f22": {
+      "id": "n_98584f22",
+      "strategy": "fused quant+GEMM with pre-quantized A cached per-batch on M=16,N=2112,K=7168",
+      "parameters": {
+        "kernel": "gemm_a4w4_asm",
+        "quant_cache": true,
+        "block_sizes": [
+          [
+            32,
+            32
+          ],
+          [
+            64,
+            16
+          ],
+          [
+            16,
+            64
+          ]
+        ],
+        "wavefront_size": "hybrid_32_64"
+      },
+      "parent_id": "n_e65a342d",
+      "priority": 0.48012999999999995,
+      "attempts": 0,
+      "best_result_us": null,
+      "stagnation_count": 0,
+      "status": "active",
+      "children": [],
+      "notes": "[LLM-proposed]",
+      "attempt_history": []
+    },
+    "n_426f865c": {
+      "id": "n_426f865c",
+      "strategy": "gemm_a4w4_asm with hybrid 32/64-wavefront layout, K-split=4 only, and reduced block size (M_block=8, N_block=32) on M=16,N=2112,K=7168",
+      "parameters": {
+        "K_split": 4,
+        "M_block": 8,
+        "N_block": 32,
+        "wavefront_size": [
+          32,
+          64
+        ]
+      },
+      "parent_id": "n_b6ffc93e",
+      "priority": 0.2,
+      "attempts": 1,
+      "best_result_us": 227.86,
+      "stagnation_count": 0,
+      "status": "pruned",
+      "children": [],
+      "notes": "[LLM-proposed] [STRATEGIC PRUNE: parent n_b6ffc93e pruned]",
+      "attempt_history": [
+        {
+          "result_us": 227.8561094055901,
+          "parameters": {
+            "K_split": 4,
+            "M_block": 8,
+            "N_block": 32,
+            "wavefront_size": [
+              32,
+              64
+            ]
+          },
+          "timestamp": "2026-03-20T16:15:49.498966",
+          "source": "template"
+        }
+      ]
+    },
+    "n_0ed2a2ed": {
+      "id": "n_0ed2a2ed",
+      "strategy": "Benchmark tritonblas.matmul_fp4 with pre-quantized A cached per-batch on M=16,N=2112,K=7168",
+      "parameters": {
+        "use_cached_quant": true,
+        "batch_dim": 1
+      },
+      "parent_id": "root_gemm",
+      "priority": 0.40612499999999996,
+      "attempts": 1,
+      "best_result_us": 193.08,
+      "stagnation_count": 0,
+      "status": "active",
+      "children": [
+        "n_2bbb3c96",
+        "n_88b563a0"
+      ],
+      "notes": "[LLM-proposed]",
+      "attempt_history": [
+        {
+          "result_us": 193.08321639410184,
+          "parameters": {
+            "use_cached_quant": true,
+            "batch_dim": 1
+          },
+          "timestamp": "2026-03-20T16:16:51.399252",
+          "source": "template"
+        }
+      ]
+    },
+    "n_4165a12c": {
+      "id": "n_4165a12c",
+      "strategy": "gemm_a4w4_asm with hybrid 32/64-wavefront layout, K-split \u2208 {1,2}, and larger block sizes (M_block=16, N_block=64) on M=16,N=2112,K=7168",
+      "parameters": {},
+      "parent_id": "gemm_n2",
+      "priority": 0.72,
+      "attempts": 1,
+      "best_result_us": 197.82,
+      "stagnation_count": 0,
+      "status": "pruned",
+      "children": [
+        "n_6dca1f28"
+      ],
+      "notes": "[LLM-proposed] [STRATEGIC PRUNE: LLM world model]",
+      "attempt_history": [
+        {
+          "result_us": 197.82048898810797,
+          "parameters": {},
+          "timestamp": "2026-03-20T16:15:59.099759",
+          "source": "template"
+        }
+      ]
+    },
+    "n_b85a009c": {
+      "id": "n_b85a009c",
+      "strategy": "tritonblas.matmul_fp4 with pre-quantized A cached per-batch and explicit split-K tuning (K_split \u2208 {1,2}) on M=16,N=2112,K=7168",
+      "parameters": {},
+      "parent_id": "gemm_n2",
+      "priority": 0.285,
+      "attempts": 2,
+      "best_result_us": 175.02,
+      "stagnation_count": 0,
+      "status": "active",
+      "children": [],
+      "notes": "[LLM-proposed]",
+      "attempt_history": [
+        {
+          "result_us": 190.86531992261965,
+          "parameters": {},
+          "timestamp": "2026-03-20T16:17:24.177890",
+          "source": "template"
+        },
+        {
+          "result_us": 175.0211995505304,
+          "parameters": {},
+          "timestamp": "2026-03-20T16:17:43.000100",
+          "source": "template"
+        }
+      ]
+    },
+    "n_6dca1f28": {
+      "id": "n_6dca1f28",
+      "strategy": "gemm_a4w4_asm with hybrid 32/64-wavefront layout, K-split \u2208 {1,2,4}, and reduced N_block (N_block=32) on M=16,N=2112,K=7168",
+      "parameters": {
+        "N_block": 32,
+        "K_split": [
+          1,
+          2,
+          4
+        ]
+      },
+      "parent_id": "n_4165a12c",
+      "priority": 0.62,
+      "attempts": 0,
+      "best_result_us": null,
+      "stagnation_count": 0,
+      "status": "pruned",
+      "children": [],
+      "notes": "[LLM-proposed] [STRATEGIC PRUNE: parent n_4165a12c pruned]",
+      "attempt_history": []
+    },
+    "n_ddfbe999": {
+      "id": "n_ddfbe999",
+      "strategy": "tritonblas.matmul_fp4 with pre-quantized A cached per-batch and explicit split-K tuning (K_split \u2208 {1,2,4}) on M=16,N=2112,K=7168",
+      "parameters": {
+        "K_split": [
+          1,
+          2,
+          4
+        ],
+        "cache_A_quant": true
+      },
+      "parent_id": "gemm_n2",
+      "priority": 0.69,
+      "attempts": 1,
+      "best_result_us": 210.27,
+      "stagnation_count": 0,
+      "status": "pruned",
+      "children": [
+        "n_7974e6be"
+      ],
+      "notes": "[LLM-proposed] [STRATEGIC PRUNE: LLM world model]",
+      "attempt_history": [
+        {
+          "result_us": 210.2661928876753,
+          "parameters": {
+            "K_split": [
+              1,
+              2,
+              4
+            ],
+            "cache_A_quant": true
+          },
+          "timestamp": "2026-03-20T16:16:15.699438",
+          "source": "template"
+        }
+      ]
+    },
+    "n_7974e6be": {
+      "id": "n_7974e6be",
+      "strategy": "gemm_a4w4_asm with K_split=8 and reduced tile size (M=16,N=1056,K=1792) on M=16,N=2112,K=7168",
+      "parameters": {
+        "K_split": 8,
+        "tile_m": 16,
+        "tile_n": 1056,
+        "tile_k": 1792,
+        "wavefront_size": 64
+      },
+      "parent_id": "n_ddfbe999",
+      "priority": 0.55,
+      "attempts": 0,
+      "best_result_us": null,
+      "stagnation_count": 0,
+      "status": "pruned",
+      "children": [],
+      "notes": "[LLM-proposed] [STRATEGIC PRUNE: parent n_ddfbe999 pruned]",
+      "attempt_history": []
+    },
+    "n_f678d181": {
+      "id": "n_f678d181",
+      "strategy": "Tune gemm_a4w4_asm with hybrid 32/64-wavefront layout, K_split \u2208 {1,2,4,8}, and dynamic tile sizing for M=16,N=2112,K=7168",
+      "parameters": {
+        "K_split": [
+          1,
+          2,
+          4,
+          8
+        ],
+        "wavefront_size": [
+          32,
+          64
+        ],
+        "tile_m": [
+          16,
+          32
+        ],
+        "tile_n": [
+          64,
+          128,
+          256,
+          512,
+          1056
+        ],
+        "tile_k": [
+          256,
+          512,
+          1024,
+          1792
+        ]
+      },
+      "parent_id": "gemm_n2",
+      "priority": 0.4693,
+      "attempts": 0,
+      "best_result_us": null,
+      "stagnation_count": 0,
+      "status": "active",
+      "children": [],
+      "notes": "[LLM-proposed]",
+      "attempt_history": []
+    },
+    "n_2bbb3c96": {
+      "id": "n_2bbb3c96",
+      "strategy": "Tune tritonblas.matmul_fp4 with wavefront-aware workgroup layout (32/64 WF hybrid) and K_split \u2208 {1,2,4} on M=16,N=2112,K=7168",
+      "parameters": {
+        "wavefront_size": [
+          32,
+          64
+        ],
+        "workgroup_size": [
+          128,
+          256
+        ],
+        "K_split": [
+          1,
+          2,
+          4
+        ],
+        "tile_m": [
+          8,
+          16,
+          32
+        ],
+        "tile_n": [
+          256,
+          512
+        ],
+        "tile_k": [
+          64,
+          128
+        ]
+      },
+      "parent_id": "n_0ed2a2ed",
+      "priority": 0.5234499999999999,
+      "attempts": 0,
+      "best_result_us": null,
+      "stagnation_count": 0,
+      "status": "active",
+      "children": [],
+      "notes": "[LLM-proposed]",
+      "attempt_history": []
+    },
+    "n_88b563a0": {
+      "id": "n_88b563a0",
+      "strategy": "Benchmark cuBLAS GEMM (FP8/FP4 hybrid via CUDA Graphs) for M=16,N=2112,K=7168 as baseline",
+      "parameters": {
+        "handle": "cublasHandle_t",
+        "transa": "CUBLAS_OP_T",
+        "transb": "CUBLAS_OP_N",
+        "alpha": 1.0,
+        "beta": 0.0
+      },
+      "parent_id": "n_0ed2a2ed",
+      "priority": 0.4693,
+      "attempts": 0,
+      "best_result_us": null,
+      "stagnation_count": 0,
+      "status": "active",
+      "children": [],
+      "notes": "[LLM-proposed]",
+      "attempt_history": []
+    },
+    "n_cdd7495a": {
+      "id": "n_cdd7495a",
+      "strategy": "Tune tritonblas.matmul_fp4 with wavefront-aware workgroup layout (32/64 WF hybrid), K_split \u2208 {1,2,4}, and dynamic tile sizing for M=16,N=2112,K=7168",
+      "parameters": {
+        "wavefront_size": [
+          32,
+          64
+        ],
+        "workgroup_layout": "hybrid_32_64",
+        "K_split": [
+          1,
+          2,
+          4
+        ],
+        "tile_m": [
+          16,
+          32
+        ],
+        "tile_n": [
+          256,
+          512
+        ],
+        "tile_k": [
+          64,
+          128
+        ]
+      },
+      "parent_id": "gemm_n2",
+      "priority": 0.33249999999999996,
+      "attempts": 3,
+      "best_result_us": 162.11,
+      "stagnation_count": 1,
+      "status": "active",
+      "children": [],
+      "notes": "[LLM-proposed]",
+      "attempt_history": [
+        {
+          "result_us": 185.81966672925094,
+          "parameters": {
+            "wavefront_size": [
+              32,
+              64
+            ],
+            "workgroup_layout": "hybrid_32_64",
+            "K_split": [
+              1,
+              2,
+              4
+            ],
+            "tile_m": [
+              16,
+              32
+            ],
+            "tile_n": [
+              256,
+              512
+            ],
+            "tile_k": [
+              64,
+              128
+            ]
+          },
+          "timestamp": "2026-03-20T16:17:56.902772",
+          "source": "template"
+        },
+        {
+          "result_us": 162.1097701708027,
+          "parameters": {
+            "wavefront_size": [
+              32,
+              64
+            ],
+            "workgroup_layout": "hybrid_32_64",
+            "K_split": [
+              1,
+              2,
+              4
+            ],
+            "tile_m": [
+              16,
+              32
+            ],
+            "tile_n": [
+              256,
+              512
+            ],
+            "tile_k": [
+              64,
+              128
+            ]
+          },
+          "timestamp": "2026-03-20T16:18:12.200128",
+          "source": "template"
+        },
+        {
+          "result_us": 179.16661505386446,
+          "parameters": {
+            "wavefront_size": [
+              32,
+              64
+            ],
+            "workgroup_layout": "hybrid_32_64",
+            "K_split": [
+              1,
+              2,
+              4
+            ],
+            "tile_m": [
+              16,
+              32
+            ],
+            "tile_n": [
+              256,
+              512
+            ],
+            "tile_k": [
+              64,
+              128
+            ]
+          },
+          "timestamp": "2026-03-20T16:18:27.402037",
+          "source": "template"
+        }
+      ]
+    },
+    "n_2890dba5": {
+      "id": "n_2890dba5",
+      "strategy": "Benchmark fused quant+GEMM (gemm_a4w4_asm) with A-quantization cached per-batch and K_split=4 on M=16,N=2112,K=7168",
+      "parameters": {
+        "cache_quant_a": true,
+        "K_split": 4,
+        "wavefront_size": 64,
+        "workgroup_size": [
+          64,
+          1,
+          1
+        ]
+      },
+      "parent_id": "gemm_n2",
+      "priority": 0.5509999999999999,
       "attempts": 0,
       "best_result_us": null,
       "stagnation_count": 0,

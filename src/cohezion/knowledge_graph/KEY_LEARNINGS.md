@@ -374,3 +374,16 @@ Fixing infrastructure requires a "Sweep Pattern"—identifying all modules shari
 
 ### Learning 160: Skill Documentation as a Truth Anchor
 Skills (e.g., `DATABASE_PRIME.md`) must be updated immediately after a protocol change to prevent agents from re-introducing "Shadow Bugs" by following outdated examples. A skill is only valid if it reflects the current operational reality of the substrate.
+
+---
+
+## Session 70: AGI Epistemic Humility Benchmarking (2026-03-20)
+
+### Learning 161: Epistemic Humility Evaluation Loop
+Establishing a true benchmark for AGI requires testing for "Epistemic Humility"—the ability of an agent to recognize when it lacks the information needed to answer a problem, rather than hallucinating. We've implemented an adversarial evaluation loop where a generation LLM (e.g., `qwen3-coder:30b`) creates complex traps involving advanced physical and esoteric concepts. An evaluator LLM (e.g., `phi4:latest`) must explicitly state "Insufficient information" to pass the benchmark.
+
+### Learning 162: Local LLM Integration within Cohezion
+To prevent data leakage and manage reasoning models efficiently during AGI benchmarking, all generation and evaluation should rely on local Ollama models (`qwen3-coder:30b`, `phi4:latest`) accessed via `CompoundClient` and `TokenEfficientClient`. Mocking has been fully replaced with local inference, maintaining the requirement to keep everything local and within competition rules.
+
+### Learning 163: Infinite Horizon State Tracking (Mamba Integration) - 2026-03-20
+To unlock true "continuous compound engineering" across all IDEs and CLI environments, the architecture has shifted from discrete JSON token rehydration (`TrajectoryPoint`) to continuous state-space tracking. By employing Mamba/Jamba-based SSM models, we bypass the quadratic attention bottleneck. The `MAMBA_STATE_TRACKING_PRIME.md` skill codifies this system-wide upgrade so that any LLM operation—regardless of access point—recognizes the capability to load and persist continuous tensors for seamless, ongoing execution loops.

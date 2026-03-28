@@ -12,6 +12,7 @@ Usage:
     uv run python scripts/index_vault_embeddings.py --dry-run   # show counts, no API calls
     uv run python scripts/index_vault_embeddings.py --skills-only
 """
+
 from __future__ import annotations
 
 import argparse
@@ -19,6 +20,7 @@ import asyncio
 import logging
 import sys
 from pathlib import Path
+
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 logger = logging.getLogger(__name__)
@@ -37,15 +39,13 @@ def find_indexable_files(
     files: list[Path] = []
 
     if skills_path.exists():
-        files.extend(
-            p for p in skills_path.rglob("*.md")
-            if not p.name.startswith("_")
-        )
+        files.extend(p for p in skills_path.rglob("*.md") if not p.name.startswith("_"))
         logger.info(f"Found {len(files)} PRIME skills in {skills_path}")
 
     if not skills_only and vault_path.exists():
         vault_files = [
-            p for p in vault_path.rglob("*")
+            p
+            for p in vault_path.rglob("*")
             if p.suffix in SUPPORTED_EXTENSIONS and not p.name.startswith(".")
         ]
         logger.info(f"Found {len(vault_files)} vault files in {vault_path}")
@@ -56,7 +56,7 @@ def find_indexable_files(
 
 async def index_file(
     path: Path,
-    model: "GeminiEmbeddingModel",
+    model: GeminiEmbeddingModel,
     dry_run: bool = False,
 ) -> tuple[bool, bool]:
     """Index a single file. Returns (success, was_cached)."""
@@ -83,7 +83,7 @@ async def run_indexing(
     batch_size: int = 10,
 ) -> None:
     """Main indexing loop."""
-    from cohezion.agentjet.embeddings import GeminiEmbeddingModel, FlumeVAEEmbeddingModel
+    from cohezion.agentjet.embeddings import FlumeVAEEmbeddingModel, GeminiEmbeddingModel
 
     fallback = FlumeVAEEmbeddingModel()
     model = GeminiEmbeddingModel(fallback=fallback)

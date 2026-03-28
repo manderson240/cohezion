@@ -272,6 +272,12 @@ if snapshot:
 
 ## Project-Specific Patterns
 
+### Continuous Compound Engineering (Mamba State Tracking)
+All future AI agents must leverage continuous hidden state tracking rather than discrete JSON token re-hydration for infinite-horizon tasks (e.g., overnight simulations, AGI benchmarking).
+- Ensure alignment with `MAMBA_STATE_TRACKING_PRIME.md`.
+- Do NOT use localized context window truncation for continuous tasks; persist and load the Mamba state tensor directly via the Vault.
+
+
 ### Journey Tracking (Compound Loop)
 Track agent actions through 12D universe:
 ```python

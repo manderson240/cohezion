@@ -7,7 +7,7 @@
       "strategy": "Minimize MLA decode geomean across 8 shapes",
       "parameters": {},
       "parent_id": null,
-      "priority": 0.7350918906249998,
+      "priority": 0.5688000922764596,
       "attempts": 0,
       "best_result_us": null,
       "stagnation_count": 0,
@@ -39,7 +39,7 @@
         "DEFAULT_SPLITS": 16
       },
       "parent_id": "root_mla",
-      "priority": 0.6983372960937497,
+      "priority": 0.5403600876626365,
       "attempts": 0,
       "best_result_us": null,
       "stagnation_count": 0,
@@ -68,7 +68,7 @@
         "DEFAULT_SPLITS": 16
       },
       "parent_id": "mla_n1",
-      "priority": 0.30951237499999995,
+      "priority": 0.23949477569535144,
       "attempts": 5,
       "best_result_us": 161.53,
       "stagnation_count": 2,
@@ -169,7 +169,7 @@
         "DEFAULT_SPLITS": 16
       },
       "parent_id": "mla_n1",
-      "priority": 0.5029576093749999,
+      "priority": 0.38917901050494613,
       "attempts": 1,
       "best_result_us": 221.54,
       "stagnation_count": 0,
@@ -211,7 +211,7 @@
         "DEFAULT_SPLITS": 16
       },
       "parent_id": "mla_n1",
-      "priority": 0.5880735124999998,
+      "priority": 0.45504007382116773,
       "attempts": 0,
       "best_result_us": null,
       "stagnation_count": 0,
@@ -234,7 +234,7 @@
         "DEFAULT_SPLITS": 16
       },
       "parent_id": "mla_n1",
-      "priority": 0.5513189179687497,
+      "priority": 0.4266000692073446,
       "attempts": 0,
       "best_result_us": null,
       "stagnation_count": 0,
@@ -354,9 +354,9 @@
         "DEFAULT_SPLITS": 16
       },
       "parent_id": "root_mla",
-      "priority": 0.7097106920600498,
-      "attempts": 7,
-      "best_result_us": 192.5,
+      "priority": 0.5629349123751691,
+      "attempts": 12,
+      "best_result_us": 165.45,
       "stagnation_count": 0,
       "status": "active",
       "children": [],
@@ -473,6 +473,86 @@
           },
           "timestamp": "2026-03-20T16:10:33.799932",
           "source": "template"
+        },
+        {
+          "result_us": 203.02676594816057,
+          "parameters": {
+            "KV_FORMAT": "fp8",
+            "SPLITS_TABLE": {
+              "4_1024": 4,
+              "4_8192": 16,
+              "32_1024": 8,
+              "32_8192": 36,
+              "128_8192": 32
+            },
+            "DEFAULT_SPLITS": 16
+          },
+          "timestamp": "2026-03-20T16:11:56.002586",
+          "source": "template"
+        },
+        {
+          "result_us": 182.07859127622356,
+          "parameters": {
+            "KV_FORMAT": "fp8",
+            "SPLITS_TABLE": {
+              "4_1024": 4,
+              "4_8192": 16,
+              "32_1024": 8,
+              "32_8192": 32,
+              "128_8192": 28
+            },
+            "DEFAULT_SPLITS": 16
+          },
+          "timestamp": "2026-03-20T16:15:02.101927",
+          "source": "template"
+        },
+        {
+          "result_us": 201.72252931212128,
+          "parameters": {
+            "KV_FORMAT": "fp8",
+            "SPLITS_TABLE": {
+              "4_1024": 4,
+              "4_8192": 16,
+              "32_1024": 8,
+              "32_8192": 28,
+              "128_8192": 32
+            },
+            "DEFAULT_SPLITS": 16
+          },
+          "timestamp": "2026-03-20T16:15:33.100883",
+          "source": "template"
+        },
+        {
+          "result_us": 187.9047275323378,
+          "parameters": {
+            "KV_FORMAT": "fp8",
+            "SPLITS_TABLE": {
+              "4_1024": 4,
+              "4_8192": 16,
+              "32_1024": 8,
+              "32_8192": 28,
+              "128_8192": 32
+            },
+            "DEFAULT_SPLITS": 16
+          },
+          "timestamp": "2026-03-20T16:15:42.499972",
+          "source": "template"
+        },
+        {
+          "result_us": 165.4496795124056,
+          "parameters": {
+            "KV_FORMAT": "fp8",
+            "SPLITS_TABLE": {
+              "4_1024": 4,
+              "4_8192": 16,
+              "32_1024": 4,
+              "32_8192": 32,
+              "128_8192": 32
+            },
+            "DEFAULT_SPLITS": 16
+          },
+          "timestamp": "2026-03-20T16:18:47.000079",
+          "source": "template"
         }
       ]
     },
@@ -491,7 +571,7 @@
         "DEFAULT_SPLITS": 16
       },
       "parent_id": "root_mla",
-      "priority": 0.5145643234374998,
+      "priority": 0.39816006459352166,
       "attempts": 0,
       "best_result_us": null,
       "stagnation_count": 0,
@@ -515,7 +595,7 @@
         "DEFAULT_SPLITS": 16
       },
       "parent_id": "root_mla",
-      "priority": 0.4410551343749999,
+      "priority": 0.3412800553658758,
       "attempts": 0,
       "best_result_us": null,
       "stagnation_count": 0,
@@ -529,7 +609,7 @@
       "strategy": "Pre-compute metadata outside timed region",
       "parameters": {},
       "parent_id": "root_mla",
-      "priority": 0.3675459453124999,
+      "priority": 0.2844000461382298,
       "attempts": 0,
       "best_result_us": null,
       "stagnation_count": 0,
@@ -543,7 +623,7 @@
       "strategy": "Adaptive KV cache size",
       "parameters": {},
       "parent_id": "root_mla",
-      "priority": 0.46426856249999987,
+      "priority": 0.3592421635430272,
       "attempts": 0,
       "best_result_us": null,
       "stagnation_count": 0,
@@ -557,7 +637,7 @@
       "strategy": "Fused quant+GEMM for FP4",
       "parameters": {},
       "parent_id": "root_mla",
-      "priority": 0.38689046874999994,
+      "priority": 0.2993684696191893,
       "attempts": 0,
       "best_result_us": null,
       "stagnation_count": 0,
@@ -578,7 +658,7 @@
         "block_size": "dynamic"
       },
       "parent_id": "mla_n1a",
-      "priority": 0.6190247499999999,
+      "priority": 0.4789895513907029,
       "attempts": 0,
       "best_result_us": null,
       "stagnation_count": 0,
@@ -600,7 +680,7 @@
         "l2_block_size": 65536
       },
       "parent_id": "mla_n1",
-      "priority": 0.5029576093749999,
+      "priority": 0.38917901050494613,
       "attempts": 0,
       "best_result_us": null,
       "stagnation_count": 0,
@@ -624,7 +704,7 @@
         "split_k": 16
       },
       "parent_id": "mla_n1b",
-      "priority": 0.5803357031249997,
+      "priority": 0.4490527044287838,
       "attempts": 0,
       "best_result_us": null,
       "stagnation_count": 0,
@@ -648,7 +728,7 @@
         "split_k": 16
       },
       "parent_id": "mla_n1b",
-      "priority": 0.5029576093749999,
+      "priority": 0.38917901050494613,
       "attempts": 0,
       "best_result_us": null,
       "stagnation_count": 0,
@@ -662,7 +742,7 @@
       "strategy": "Beat 145.4\u00b5s (10% below 161.5\u00b5s plateau)",
       "parameters": {},
       "parent_id": "root_mla",
-      "priority": 0.4275,
+      "priority": 0.3307913507812499,
       "attempts": 1,
       "best_result_us": 198.54,
       "stagnation_count": 0,
@@ -693,7 +773,7 @@
         "num_kv_splits": 1
       },
       "parent_id": "n_ee6633bc",
-      "priority": 0.6174999999999999,
+      "priority": 0.4778097289062499,
       "attempts": 0,
       "best_result_us": null,
       "stagnation_count": 0,
@@ -713,7 +793,7 @@
         "max_split": 32
       },
       "parent_id": "n_ee6633bc",
-      "priority": 0.589,
+      "priority": 0.4557569721874999,
       "attempts": 0,
       "best_result_us": null,
       "stagnation_count": 0,

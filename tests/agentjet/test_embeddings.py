@@ -1,4 +1,5 @@
 """Tests for EmbeddingOrchestrator, GeminiEmbeddingModel, and FlumeVAEEmbeddingModel."""
+
 from __future__ import annotations
 
 from unittest.mock import AsyncMock, MagicMock, patch

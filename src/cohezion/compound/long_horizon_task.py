@@ -33,9 +33,11 @@ class LongHorizonTask:
 
     # Biologist: Ensure enough metabolic headroom for meaningful work
     CONTEXT_GUARDRAIL = 80.0
-    MIN_HEADROOM_PERCENT = 5.0 # Need at least 5% free context to attempt a step
+    MIN_HEADROOM_PERCENT = 5.0  # Need at least 5% free context to attempt a step
 
-    def __init__(self, task_id: str, budget_sessions: int = 5, initial_state: dict[str, Any] | None = None):
+    def __init__(
+        self, task_id: str, budget_sessions: int = 5, initial_state: dict[str, Any] | None = None
+    ):
         """Initialize a long horizon task.
 
         Args:
@@ -46,7 +48,7 @@ class LongHorizonTask:
         self.task_id = task_id
         self.budget_sessions = budget_sessions
         self.steps_completed = 0
-        self.total_steps_estimated = 5 # Default
+        self.total_steps_estimated = 5  # Default
 
         # Biologist: Track token overhead to adapt headroom
         self._recent_step_overhead: list[float] = []

@@ -71,7 +71,7 @@ class TokenEfficientCompoundExecutor(CompoundExecutor):
             if relevant_context:
                 overlay_parts.append(f"\n## EXPERIENCE OVERLAY (v{self._overlay_version})")
                 for i, item in enumerate(relevant_context[:3]):
-                    overlay_parts.append(f"\n[Pattern {i+1}]: {item}")
+                    overlay_parts.append(f"\n[Pattern {i + 1}]: {item}")
             self._anchored_overlay = "\n".join(overlay_parts)
 
         return self._anchored_base_prefix + "\n" + self._anchored_overlay

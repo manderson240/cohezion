@@ -1,4 +1,5 @@
 """Tests for AgentJetTrainer."""
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -86,16 +87,18 @@ async def test_oom_check_raises_when_memory_insufficient(
     trainer = AgentJetTrainer(context_manager=mock_context_manager)
 
     tasks = _make_tasks(3)
-    with patch.object(trainer.reader, "read", return_value=tasks):
-        with patch.object(
-            trainer,
-            "_safety_check",
-            new_callable=AsyncMock,
-            side_effect=RuntimeError("OOMRiskError: insufficient memory"),
-        ):
-            # _safety_check is called BEFORE the try block; exception propagates
-            with pytest.raises(RuntimeError, match="OOMRiskError"):
-                await trainer.train(target_model="big-model")
+    with patch.object(trainer.reader, "read", return_value=tasks), patch.object(
+        trainer,
+        "_safety_check",
+        new_callable=AsyncMock,
+        side_effect=RuntimeError("OOMRiskError: insufficient memory"),
+    ):
+        # _safety_check is now inside the try block; train() catches it and
+        # returns a failed TrainingResult rather than re-raising.
+        result = await trainer.train(target_model="big-model")
+        assert result.success is False
+        assert result.error is not None
+        assert "OOMRiskError" in result.error
 
 
 @pytest.mark.asyncio
@@ -132,9 +135,7 @@ async def test_reload_inference_models_called_after_success(
     tasks = _make_tasks(2)
     with patch.object(trainer.reader, "read", return_value=tasks):
         with patch.object(trainer, "_run_training", new_callable=AsyncMock, return_value=None):
-            with patch.object(
-                trainer, "_safety_check", new_callable=AsyncMock
-            ):
+            with patch.object(trainer, "_safety_check", new_callable=AsyncMock):
                 await trainer.train(target_model="phi3:mini", dry_run=False)
 
     mock_context_manager.reload_inference_models.assert_called_once()
@@ -145,15 +146,13 @@ async def test_reload_inference_models_called_even_on_error(
     trainer: AgentJetTrainer, mock_context_manager: MagicMock
 ) -> None:
     tasks = _make_tasks(2)
-    with patch.object(trainer.reader, "read", return_value=tasks):
-        with patch.object(
-            trainer,
-            "_run_training",
-            new_callable=AsyncMock,
-            side_effect=ValueError("training exploded"),
-        ):
-            with patch.object(trainer, "_safety_check", new_callable=AsyncMock):
-                result = await trainer.train(dry_run=False)
+    with patch.object(trainer.reader, "read", return_value=tasks), patch.object(
+        trainer,
+        "_run_training",
+        new_callable=AsyncMock,
+        side_effect=ValueError("training exploded"),
+    ), patch.object(trainer, "_safety_check", new_callable=AsyncMock):
+        result = await trainer.train(dry_run=False)
 
     # finally block should have run reload
     mock_context_manager.reload_inference_models.assert_called_once()

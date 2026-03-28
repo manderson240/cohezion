@@ -1,4 +1,5 @@
 """Tests for PhiScoreJudger reward mapping."""
+
 from __future__ import annotations
 
 import pytest

@@ -1,16 +1,21 @@
 """AgentJet RL training orchestrator for the CALL loop."""
+
 from __future__ import annotations
 
 import asyncio
 import logging
 import time
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from pathlib import Path
 from typing import TYPE_CHECKING, Literal
 
-from cohezion.agentjet.context_optimizer import OllamaContextManager
+from cohezion.agentjet.context_optimizer import MODEL_OLLAMA_KEY_MAP, OllamaContextManager
 from cohezion.agentjet.judger import PhiScoreJudger
 from cohezion.agentjet.task_reader import JourneyTaskReader
+
+_PROJECT_ROOT = Path(__file__).resolve().parents[3]
+_DATA_DIR = _PROJECT_ROOT / "data" / "training"
+
 
 if TYPE_CHECKING:
     from cohezion.agentjet.workflow import CohezionWorkflow
@@ -23,12 +28,12 @@ class TrainingResult:
     """Result of a single AgentJet CALL training cycle."""
 
     success: bool
-    model_name: str           # Final Ollama model name after training
-    base_model: str           # Model that was fine-tuned
+    model_name: str  # Final Ollama model name after training
+    base_model: str  # Model that was fine-tuned
     skill_domain: str | None  # Which skill domain was trained
     epochs_completed: int
     samples_used: int
-    avg_reward: float         # Average reward from PhiScoreJudger
+    avg_reward: float  # Average reward from PhiScoreJudger
     training_duration_s: float
     output_path: Path | None  # Path to GGUF or config script
     error: str | None = None  # Error message if success=False
@@ -77,7 +82,6 @@ class AgentJetTrainer:
             context_manager if context_manager is not None else OllamaContextManager()
         )
         self.backend: Literal["agentjet", "llamafactory"] = backend
-        self._training_lock: object | None = None  # TrainingLock from ResourceClient
 
     async def train(
         self,
@@ -114,8 +118,7 @@ class AgentJetTrainer:
         tasks = self.reader.read(skill_filter=skill_domain, min_phi=min_phi)
         if not tasks:
             logger.warning(
-                "AgentJetTrainer.train: no tasks matched filters "
-                "(skill_domain=%r, min_phi=%.2f)",
+                "AgentJetTrainer.train: no tasks matched filters (skill_domain=%r, min_phi=%.2f)",
                 skill_domain,
                 min_phi,
             )
@@ -133,11 +136,11 @@ class AgentJetTrainer:
                 dry_run=dry_run,
             )
 
-        # 2. OOM safety check — acquires lock or raises OOMRiskError
-        await self._safety_check(target_model)
-
+        training_lock: object | None = None
         output_path: Path | None = None
         try:
+            # 2. OOM safety check — acquires lock or raises OOMRiskError
+            training_lock = await self._safety_check(target_model)
             # 3. Unload all inference models before training
             if not dry_run:
                 logger.info("AgentJetTrainer: unloading inference models for training")
@@ -154,9 +157,7 @@ class AgentJetTrainer:
 
             # 5. Run training backend
             if not dry_run:
-                output_path = await self._run_training(
-                    target_model, tasks, skill_domain, epochs
-                )
+                output_path = await self._run_training(target_model, tasks, skill_domain, epochs)
 
             # 6. Build final model name
             domain = skill_domain or "general"
@@ -204,31 +205,33 @@ class AgentJetTrainer:
                 try:
                     await self.context_manager.reload_inference_models()
                 except Exception as reload_exc:
-                    logger.warning(
-                        "Inference model reload failed (non-fatal): %s", reload_exc
-                    )
+                    logger.warning("Inference model reload failed (non-fatal): %s", reload_exc)
 
             # Release training lock regardless of outcome
-            if self._training_lock is not None:
+            if training_lock is not None:
                 try:
                     from cohezion.platform.resource_manager import ResourceClient
 
                     client = ResourceClient()
-                    lock_id: str = self._training_lock.lock_id  # type: ignore[attr-defined]
+                    lock_id: str = training_lock.lock_id  # type: ignore[attr-defined]
                     await client.release_training_lock(lock_id)
                     logger.debug("AgentJetTrainer: released training lock %s", lock_id)
                 except Exception as lock_exc:
-                    logger.warning(
-                        "Training lock release failed (non-fatal): %s", lock_exc
-                    )
+                    logger.warning("Training lock release failed (non-fatal): %s", lock_exc)
                 finally:
-                    self._training_lock = None
+                    training_lock = None
 
-    async def _safety_check(self, model: str) -> None:
+    async def _safety_check(self, model: str) -> object | None:
         """OOM check before training begins.
 
         Tries the platform ResourceClient daemon first (cross-session coordination).
         Falls back to a local Ollama memory estimate when the daemon is unavailable.
+
+        Returns
+        -------
+        object | None
+            The acquired TrainingLock when the daemon is running, or None when
+            the local fallback path is used (no lock to release).
 
         Raises
         ------
@@ -249,25 +252,20 @@ class AgentJetTrainer:
 
             client = ResourceClient()
             if client.is_daemon_running():
-                lock = await client.acquire_training_lock(
-                    model, required_gb, timeout_s=30.0
-                )
+                lock = await client.acquire_training_lock(model, required_gb, timeout_s=30.0)
                 if lock is None:
                     raise ResourceUnavailableError(
                         f"Platform daemon denied training lock for {model} "
                         f"(need {required_gb:.1f} GiB)"
                     )
-                self._training_lock = lock
                 logger.info(
                     "AgentJetTrainer: acquired training lock %s (%.1f GiB reserved)",
                     lock.lock_id,
                     required_gb,
                 )
-                return
+                return lock
         except ImportError:
-            logger.debug(
-                "cohezion.platform.resource_manager unavailable; using local OOM check"
-            )
+            logger.debug("cohezion.platform.resource_manager unavailable; using local OOM check")
 
         # Fallback: local available memory estimate
         available = await self.context_manager.get_available_memory_gb()
@@ -293,6 +291,7 @@ class AgentJetTrainer:
             headroom_required,
             available,
         )
+        return None
 
     async def _run_training(
         self,
@@ -344,40 +343,26 @@ class AgentJetTrainer:
             from cohezion.flume.local_finetune_pipeline import LocalFinetuner
 
             output_name = f"cohezion_{skill_domain or 'general'}_v{int(time.time()) % 10000}"
-
-            # Map full Ollama model names to LocalFinetuner's known base keys
-            _MODEL_KEY_MAP = {
-                "qwen3.5:9b": "qwen3.5",
-                "qwen3.5": "qwen3.5",
-                "phi4": "phi4",
-                "phi4-mini-reasoning:latest": "phi4",
-                "phi3:mini": "qwen3-4b",
-                "qwen3-4b": "qwen3-4b",
-                "gemma3": "gemma3",
-            }
-            base_key = _MODEL_KEY_MAP.get(model, "qwen3.5")
-
+            base_key = MODEL_OLLAMA_KEY_MAP.get(model, "qwen3.5")
             finetuner = LocalFinetuner(base_model=base_key, output_name=output_name)
 
-            # Ensure training data directory and JSONL exist for LocalFinetuner
+            # Write tasks to training data directory for LocalFinetuner
             import json
 
-            data_dir = Path("data/training")
-            data_dir.mkdir(parents=True, exist_ok=True)
-            journey_path = data_dir / "finetune_journeys.jsonl"
+            _DATA_DIR.mkdir(parents=True, exist_ok=True)
+            journey_path = _DATA_DIR / "finetune_journeys.jsonl"
 
-            if not journey_path.exists():
-                logger.info(
-                    "AgentJetTrainer: writing %d tasks to %s for LocalFinetuner",
-                    len(tasks),
-                    journey_path,
-                )
-                with journey_path.open("w", encoding="utf-8") as fh:
-                    for task in tasks:
-                        fh.write(json.dumps(task) + "\n")
+            logger.info(
+                "AgentJetTrainer: writing %d tasks to %s for LocalFinetuner",
+                len(tasks),
+                journey_path,
+            )
+            with journey_path.open("w", encoding="utf-8") as fh:
+                for task in tasks:
+                    fh.write(json.dumps(task) + "\n")
 
             # Run in executor — LocalFinetuner is synchronous
-            loop = asyncio.get_event_loop()
+            loop = asyncio.get_running_loop()
             config_path: Path = await loop.run_in_executor(
                 None,
                 lambda: finetuner.run_qlora_training(epochs=epochs),

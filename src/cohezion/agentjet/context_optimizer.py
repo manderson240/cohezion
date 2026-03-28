@@ -1,11 +1,14 @@
 """Per-model context profiles and OOM-safe Ollama lifecycle management."""
+
 from __future__ import annotations
 
 import asyncio
 import logging
-from dataclasses import dataclass, field
+import time
+from dataclasses import dataclass
 
 import aiohttp
+
 
 logger = logging.getLogger(__name__)
 
@@ -31,8 +34,16 @@ class ModelContextProfile:
     size_gb: float = 0.0  # Approximate model size in GB (for OOM checks)
 
 
-def _mk(model_name: str, num_ctx: int, size_gb: float, flash_attention: bool = True, **kw: object) -> ModelContextProfile:
-    return ModelContextProfile(model_name=model_name, num_ctx=num_ctx, size_gb=size_gb, flash_attention=flash_attention, **kw)  # type: ignore[arg-type]
+def _mk(
+    model_name: str, num_ctx: int, size_gb: float, flash_attention: bool = True, **kw: object
+) -> ModelContextProfile:
+    return ModelContextProfile(
+        model_name=model_name,
+        num_ctx=num_ctx,
+        size_gb=size_gb,
+        flash_attention=flash_attention,
+        **kw,
+    )  # type: ignore[arg-type]
 
 
 def _training(base: ModelContextProfile) -> ModelContextProfile:
@@ -66,7 +77,9 @@ _BASE_PROFILES: list[ModelContextProfile] = [
     _mk("qwen3-coder-next", num_ctx=16384, size_gb=50.0, flash_attention=True),
     _mk("minimax-m2.7", num_ctx=16384, size_gb=25.0, flash_attention=True),
     # Deep reasoning (70B+): 8192 ctx
-    _mk("nemotron-3-super:120b", num_ctx=8192, size_gb=30.0, flash_attention=True),  # MoE, 12B active
+    _mk(
+        "nemotron-3-super:120b", num_ctx=8192, size_gb=30.0, flash_attention=True
+    ),  # MoE, 12B active
     _mk("glm-5", num_ctx=8192, size_gb=20.0, flash_attention=True),  # 40B active params
     _mk("openai/gpt-oss-20b", num_ctx=8192, size_gb=22.0, flash_attention=True),
     # Utility / fine-tuned domain
@@ -84,6 +97,18 @@ for _model_name in _TRAINING_VARIANTS:
     _key = f"{_model_name}:training"
     CONTEXT_PROFILES[_key] = _training(CONTEXT_PROFILES[_model_name])
 
+# Maps Ollama model identifiers to LocalFinetuner base_model keys.
+# Used by AgentJetTrainer and UnslothBridge to translate pull names → training keys.
+MODEL_OLLAMA_KEY_MAP: dict[str, str] = {
+    "qwen3.5:9b": "qwen3.5",
+    "qwen3.5": "qwen3.5",
+    "phi4": "phi4",
+    "phi4-mini-reasoning:latest": "phi4",
+    "phi3:mini": "qwen3-4b",
+    "qwen3-4b": "qwen3-4b",
+    "gemma3": "gemma3",
+}
+
 
 # ---------------------------------------------------------------------------
 # OllamaContextManager
@@ -95,7 +120,9 @@ class OllamaContextManager:
 
     def __init__(self, base_url: str = OLLAMA_BASE_URL) -> None:
         self._base_url = base_url.rstrip("/")
-        self._cached_available_gb: float = TOTAL_SYSTEM_MEMORY_GB - OS_OVERHEAD_GB - SAFETY_BUFFER_GB
+        self._cached_available_gb: float = (
+            TOTAL_SYSTEM_MEMORY_GB - OS_OVERHEAD_GB - SAFETY_BUFFER_GB
+        )
 
     # ------------------------------------------------------------------
     # Profile lookup
@@ -124,14 +151,14 @@ class OllamaContextManager:
         url = f"{self._base_url}/api/ps"
         try:
             async with aiohttp.ClientSession() as session:
-                async with asyncio.wait_for(session.get(url), timeout=10.0) as resp:
+                async with session.get(url, timeout=aiohttp.ClientTimeout(total=10.0)) as resp:
                     if resp.status != 200:
                         logger.warning("GET /api/ps returned HTTP %d", resp.status)
                         return []
                     data = await resp.json()
                     models: list[str] = [m["name"] for m in data.get("models", [])]
                     return models
-        except asyncio.TimeoutError:
+        except TimeoutError:
             logger.warning("Timeout querying Ollama /api/ps")
             return []
         except aiohttp.ClientError as exc:
@@ -144,14 +171,14 @@ class OllamaContextManager:
         payload = {"model": model, "keep_alive": 0}
         try:
             async with aiohttp.ClientSession() as session:
-                async with asyncio.wait_for(
-                    session.post(url, json=payload), timeout=30.0
+                async with session.post(
+                    url, json=payload, timeout=aiohttp.ClientTimeout(total=30.0)
                 ) as resp:
                     if resp.status not in (200, 404):
                         logger.warning("Unload of %s returned HTTP %d", model, resp.status)
                     else:
                         logger.info("Unloaded model: %s", model)
-        except asyncio.TimeoutError:
+        except TimeoutError:
             logger.warning("Timeout unloading model %s", model)
         except aiohttp.ClientError as exc:
             logger.warning("ClientError unloading model %s: %s", model, exc)
@@ -173,8 +200,8 @@ class OllamaContextManager:
         await asyncio.gather(*(self.unload_model(m) for m in loaded))
 
         # Poll until /api/ps is empty or timeout
-        deadline = asyncio.get_event_loop().time() + 60.0
-        while asyncio.get_event_loop().time() < deadline:
+        deadline = time.monotonic() + 60.0
+        while time.monotonic() < deadline:
             remaining = await self.get_loaded_models()
             if not remaining:
                 logger.info("All models unloaded; safe to begin training.")
@@ -183,7 +210,10 @@ class OllamaContextManager:
 
         remaining = await self.get_loaded_models()
         if remaining:
-            logger.warning("Training unload timeout; %d model(s) still loaded: %s", len(remaining), remaining)
+            raise RuntimeError(
+                f"Training unload timeout: {len(remaining)} model(s) still loaded after 60s: "
+                f"{remaining}. Cannot proceed — risk of OOM during training."
+            )
 
     async def reload_inference_models(self, hot_models: list[str] | None = None) -> None:
         """Restore hot-tier models after training completes.
@@ -197,14 +227,14 @@ class OllamaContextManager:
             payload = {"model": model, "prompt": "", "keep_alive": "5m", "stream": False}
             try:
                 async with aiohttp.ClientSession() as session:
-                    async with asyncio.wait_for(
-                        session.post(url, json=payload), timeout=60.0
+                    async with session.post(
+                        url, json=payload, timeout=aiohttp.ClientTimeout(total=60.0)
                     ) as resp:
                         if resp.status == 200:
                             logger.info("Reloaded inference model: %s", model)
                         else:
                             logger.warning("Reload of %s returned HTTP %d", model, resp.status)
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 logger.warning("Timeout reloading model %s", model)
             except aiohttp.ClientError as exc:
                 logger.warning("ClientError reloading model %s: %s", model, exc)
@@ -221,13 +251,13 @@ class OllamaContextManager:
         loaded_gb = 0.0
         try:
             async with aiohttp.ClientSession() as session:
-                async with asyncio.wait_for(session.get(url), timeout=10.0) as resp:
+                async with session.get(url, timeout=aiohttp.ClientTimeout(total=10.0)) as resp:
                     if resp.status == 200:
                         data = await resp.json()
                         for m in data.get("models", []):
                             size_bytes: int = m.get("size", 0)
                             loaded_gb += size_bytes / (1024**3)
-        except asyncio.TimeoutError:
+        except TimeoutError:
             logger.warning("Timeout querying Ollama /api/ps for memory estimate")
         except aiohttp.ClientError as exc:
             logger.warning("ClientError querying /api/ps for memory: %s", exc)

@@ -1,9 +1,11 @@
 """Cross-session model usage tracking for tier optimization."""
+
 from __future__ import annotations
 
 import logging
 import time
 from dataclasses import dataclass, field
+
 
 logger = logging.getLogger(__name__)
 
