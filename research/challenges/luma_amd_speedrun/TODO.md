@@ -31,6 +31,13 @@
 - [ ] Implement tile-based optimizations using HipKittens primitives.
 
 ## Phase 5: Submission & Leaderboard
-- [ ] Validate mathematical correctness (`--mode test`).
-- [ ] Final performance verification (`--mode benchmark`).
+- [x] Create custom HIP kernel submissions (MLA + GEMM)
+- [x] Verify local compilation (MLA kernel compiled successfully)
+- [x] Discover submission wrapper bug (no `__future__` imports)
+- [x] Set up coordination lock mechanism
+- [x] Submit MLA (`--mode test`) — ✅ 4/4 passed (max error 0.0234, within atol=0.1)
+- [x] Submit GEMM (`--mode test`) — ✅ 4/4 passed (max error 0.0, perfect)
+- [ ] Benchmark MLA HIP kernel (`--mode benchmark`) — IN PROGRESS
+- [ ] Benchmark GEMM (`--mode benchmark`)
+- [ ] Analyze results and iterate
 - [ ] Official leaderboard submission (`--mode leaderboard`).

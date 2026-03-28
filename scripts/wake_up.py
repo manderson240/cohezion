@@ -26,6 +26,19 @@ async def main():
         print(f"  [ {config['status'].upper():8} ] {name:15} on port {config['port']}")
 
     print("--------------------------------------------------")
+    print("🚀 Waking up Living Research Substrate (Marimo)...")
+    try:
+        import subprocess
+        marimo_script = Path(__file__).parent / "start_marimo.sh"
+        _ = subprocess.Popen([str(marimo_script)], 
+                            stdout=subprocess.DEVNULL, 
+                            stderr=subprocess.DEVNULL,
+                            start_new_session=True)
+        print("  [ RUNNING  ] marimo server on port 8081")
+    except Exception as e:
+        print(f"  [ ERROR    ] Failed to start marimo: {e}")
+
+    print("--------------------------------------------------")
     print("Cohezion services are waking up.")
     print("--------------------------------------------------")
 

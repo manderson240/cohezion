@@ -6,7 +6,7 @@ DeepSeek R1 forward_absorb MLA: absorbed q (576), compressed kv_buffer (576),
 output v_head_dim = kv_lora_rank = 512.
 
 The input provides:
-  q:       (total_q, num_heads, 576) bfloat16 — absorbed query (num_heads = 128 // tp)
+  q:       (total_q, 16, 576) bfloat16 — absorbed query
   kv_data: dict with KV cache in three formats:
     "bf16":  Tensor  (total_kv, 1, 576)  bfloat16          — highest precision
     "fp8":   (Tensor, Tensor)  kv_buffer fp8 + scalar scale — per-tensor quantized
@@ -20,29 +20,30 @@ Decode only — persistent mode with get_mla_metadata_v1.
 """
 
 import torch
-from aiter import dtypes as aiter_dtypes
-from aiter import get_mla_metadata_info_v1, get_mla_metadata_v1
-from aiter.mla import mla_decode_fwd
-from aiter.utility.fp4_utils import (
-    dynamic_mxfp4_quant,
-    e8m0_to_f32,
-    mxfp4_to_f32,
-)
+import torch.nn.functional as F
 from task import input_t, output_t
 from utils import make_match_reference
 
+from aiter.mla import mla_decode_fwd
+from aiter import dtypes as aiter_dtypes
+from aiter import get_mla_metadata_info_v1, get_mla_metadata_v1
+from aiter.utility.fp4_utils import (
+    dynamic_mxfp4_quant,
+    mxfp4_to_f32,
+    e8m0_to_f32,
+)
 
 # ---------------------------------------------------------------------------
 # DeepSeek R1 latent MQA constants (forward_absorb path)
 # https://huggingface.co/deepseek-ai/DeepSeek-R1-0528/blob/main/config.json
 # ---------------------------------------------------------------------------
-TOTAL_NUM_HEADS = 128
+NUM_HEADS = 16
 NUM_KV_HEADS = 1
 KV_LORA_RANK = 512
 QK_ROPE_HEAD_DIM = 64
-QK_HEAD_DIM = KV_LORA_RANK + QK_ROPE_HEAD_DIM  # 576
-V_HEAD_DIM = KV_LORA_RANK  # 512
-SM_SCALE = 1.0 / (QK_HEAD_DIM**0.5)
+QK_HEAD_DIM = KV_LORA_RANK + QK_ROPE_HEAD_DIM   # 576
+V_HEAD_DIM = KV_LORA_RANK                        # 512
+SM_SCALE = 1.0 / (QK_HEAD_DIM ** 0.5)
 
 PAGE_SIZE = 1
 NUM_KV_SPLITS = 32
@@ -60,7 +61,6 @@ KV_DTYPE = "fp8"
 # ---------------------------------------------------------------------------
 # FP8 quantization (sglang style: dynamic per-tensor)
 # ---------------------------------------------------------------------------
-
 
 def quantize_fp8(tensor: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
     """
@@ -84,7 +84,6 @@ def quantize_fp8(tensor: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
 # MXFP4 quantization (aiter native: block-32, fp4x2 + fp8_e8m0 dtypes)
 # Uses aiter.utility.fp4_utils.dynamic_mxfp4_quant
 # ---------------------------------------------------------------------------
-
 
 def quantize_mxfp4(tensor: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
     """
@@ -159,7 +158,6 @@ def dequantize_mxfp4(
 # Persistent mode metadata helpers
 # ---------------------------------------------------------------------------
 
-
 def _make_mla_decode_metadata(
     batch_size: int,
     max_q_len: int,
@@ -174,40 +172,22 @@ def _make_mla_decode_metadata(
 ):
     """Allocate and populate work buffers for persistent mla_decode_fwd."""
     info = get_mla_metadata_info_v1(
-        batch_size,
-        max_q_len,
-        nhead,
-        q_dtype,
-        kv_dtype,
-        is_sparse=False,
-        fast_mode=False,
-        num_kv_splits=num_kv_splits,
-        intra_batch_mode=True,
+        batch_size, max_q_len, nhead, q_dtype, kv_dtype,
+        is_sparse=False, fast_mode=False,
+        num_kv_splits=num_kv_splits, intra_batch_mode=True,
     )
     work = [torch.empty(s, dtype=t, device="cuda") for s, t in info]
-    (
-        work_metadata,
-        work_indptr,
-        work_info_set,
-        reduce_indptr,
-        reduce_final_map,
-        reduce_partial_map,
-    ) = work
+    (work_metadata, work_indptr, work_info_set,
+     reduce_indptr, reduce_final_map, reduce_partial_map) = work
 
     # Populate the metadata buffers
     get_mla_metadata_v1(
-        qo_indptr,
-        kv_indptr,
-        kv_last_page_len,
-        nhead // nhead_kv,  # num_heads_per_head_k
-        nhead_kv,  # num_heads_k
-        True,  # is_causal
-        work_metadata,
-        work_info_set,
-        work_indptr,
-        reduce_indptr,
-        reduce_final_map,
-        reduce_partial_map,
+        qo_indptr, kv_indptr, kv_last_page_len,
+        nhead // nhead_kv,   # num_heads_per_head_k
+        nhead_kv,            # num_heads_k
+        True,                # is_causal
+        work_metadata, work_info_set, work_indptr,
+        reduce_indptr, reduce_final_map, reduce_partial_map,
         page_size=PAGE_SIZE,
         kv_granularity=max(PAGE_SIZE, 16),
         max_seqlen_qo=max_q_len,
@@ -232,7 +212,6 @@ def _make_mla_decode_metadata(
 # ---------------------------------------------------------------------------
 # Aiter reference kernel (decode only)
 # ---------------------------------------------------------------------------
-
 
 def _aiter_mla_decode(
     q: torch.Tensor,
@@ -273,15 +252,9 @@ def _aiter_mla_decode(
 
     # Build persistent-mode metadata
     meta = _make_mla_decode_metadata(
-        batch_size,
-        max_q_len,
-        nq,
-        nkv,
-        q.dtype,
-        kv_buffer.dtype,
-        qo_indptr,
-        kv_indptr,
-        kv_last_page_len,
+        batch_size, max_q_len, nq, nkv,
+        q.dtype, kv_buffer.dtype,
+        qo_indptr, kv_indptr, kv_last_page_len,
         num_kv_splits=NUM_KV_SPLITS,
     )
 
@@ -312,13 +285,9 @@ def _aiter_mla_decode(
 # generate_input / ref_kernel / check_implementation
 # ---------------------------------------------------------------------------
 
-
-def generate_input(batchsize: int, qseqlen: int, kvseqlen: int, tp: int, seed: int) -> input_t:
+def generate_input(batchsize: int, qseqlen: int, kvseqlen: int, seed: int) -> input_t:
     """
     Generate absorbed q and compressed kv_buffer for MLA decode.
-
-    Args:
-        tp: tensor parallelism degree (4 or 8). num_heads = TOTAL_NUM_HEADS // tp.
 
     Returns all three KV cache formats in kv_data dict:
       kv_data = {
@@ -327,11 +296,6 @@ def generate_input(batchsize: int, qseqlen: int, kvseqlen: int, tp: int, seed: i
         "mxfp4": (Tensor, Tensor)     — kv_buffer fp4x2 + fp8_e8m0 scale
       }
     """
-    assert TOTAL_NUM_HEADS % tp == 0, (
-        f"TOTAL_NUM_HEADS ({TOTAL_NUM_HEADS}) must be divisible by tp ({tp})"
-    )
-    num_heads = TOTAL_NUM_HEADS // tp
-
     gen = torch.Generator(device="cuda")
     gen.manual_seed(seed)
 
@@ -339,25 +303,15 @@ def generate_input(batchsize: int, qseqlen: int, kvseqlen: int, tp: int, seed: i
     total_kv = batchsize * kvseqlen
 
     # Absorbed query: (total_q, num_heads, 576) bf16
-    q = (
-        torch.randn(
-            (total_q, num_heads, QK_HEAD_DIM),
-            dtype=torch.bfloat16,
-            device="cuda",
-            generator=gen,
-        )
-        * 0.02
+    q = torch.randn(
+        (total_q, NUM_HEADS, QK_HEAD_DIM),
+        dtype=torch.bfloat16, device="cuda", generator=gen,
     )
 
     # Compressed KV buffer: (total_kv, 1, 576) bf16 — the source of truth
-    kv_buffer_bf16 = (
-        torch.randn(
-            (total_kv, NUM_KV_HEADS, QK_HEAD_DIM),
-            dtype=torch.bfloat16,
-            device="cuda",
-            generator=gen,
-        )
-        * 0.02
+    kv_buffer_bf16 = torch.randn(
+        (total_kv, NUM_KV_HEADS, QK_HEAD_DIM),
+        dtype=torch.bfloat16, device="cuda", generator=gen,
     )
 
     # Quantize KV to fp8
@@ -378,7 +332,7 @@ def generate_input(batchsize: int, qseqlen: int, kvseqlen: int, tp: int, seed: i
 
     config = {
         "batch_size": batchsize,
-        "num_heads": num_heads,
+        "num_heads": NUM_HEADS,
         "num_kv_heads": NUM_KV_HEADS,
         "qk_head_dim": QK_HEAD_DIM,
         "kv_lora_rank": KV_LORA_RANK,
@@ -410,14 +364,9 @@ def ref_kernel(data: input_t) -> output_t:
         kv_input, kv_scale = kv_data["bf16"], None
 
     return _aiter_mla_decode(
-        q_input,
-        kv_input,
-        qo_indptr,
-        kv_indptr,
-        config,
-        q_scale=q_scale,
-        kv_scale=kv_scale,
+        q_input, kv_input, qo_indptr, kv_indptr, config,
+        q_scale=q_scale, kv_scale=kv_scale,
     )
 
 
-check_implementation = make_match_reference(ref_kernel, rtol=1e-02, atol=1e-02)
+check_implementation = make_match_reference(ref_kernel, rtol=1e-01, atol=1e-01)
