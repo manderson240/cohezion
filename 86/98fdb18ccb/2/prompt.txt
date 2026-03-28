@@ -238,3 +238,7 @@ Are contest/challenges part of the plan?
 ---
 
 Yes the competitions need to remain active
+
+---
+
+Proceed
