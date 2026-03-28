@@ -257,3 +257,7 @@ PRoceed
 <summary>Background command "Create tar archive for aimo-progress-prize-3" completed (exit code 0)</summary>
 </task-notification>
 Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/1ae19621-3b65-4788-9146-e07830adaab7/tasks/b1wafn06d.output
+
+---
+
+/retrospect
