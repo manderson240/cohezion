@@ -1,9 +1,18 @@
 """
-MXFP4 MoE — Phase 13c: KSPLIT=3 for ALL E>=200 shapes.
+MXFP4 MoE — Phase 12m: Force cktile for ALL shapes.
 
-Tests KSPLIT=3 as middle ground between KSPLIT=2 and KSPLIT=4.
-Phase 12j uses KSPLIT=4 for est_m<10 and KSPLIT=2 for est_m 10-49.
-This tests whether KSPLIT=3 is optimal for the E=257 bs=128/512 shapes.
+Hypothesis: CK path (CSV-tuned) isn't faster for dense shapes since
+CSV has no tuned entries for our competition shapes. The cktile path
+might be competitive even at estimated_m=124, and avoids the ~105s
+CK JIT build for module_moe_ck2stages.
+
+Routing:
+- m < 5:    KSPLIT=4 (very sparse)
+- 5 ≤ m < 20:  KSPLIT=2
+- 20 ≤ m < 80:  KSPLIT=1 (no split-K overhead)
+- m ≥ 80:   KSPLIT=1 (still cktile, not CK)
+
+All: doweight_stage1=False, AITER_BYPASS_TUNE_CONFIG=1.
 """
 import os
 from task import input_t, output_t
@@ -22,19 +31,19 @@ def custom_kernel(data: input_t) -> output_t:
 
     hidden_pad = config["d_hidden_pad"] - config["d_hidden"]
     intermediate_pad = config["d_expert_pad"] - config["d_expert"]
+
     num_experts = gate_up_weight_shuffled.shape[0]
     estimated_m = topk_ids.numel() // num_experts
 
-    if num_experts >= 200:
-        # ALL E=257 shapes: test KSPLIT=3
-        os.environ["AITER_BYPASS_TUNE_CONFIG"] = "1"
-        os.environ["AITER_KSPLIT"] = "3"
-    elif estimated_m >= 50:
-        os.environ.pop("AITER_BYPASS_TUNE_CONFIG", None)
-        os.environ.pop("AITER_KSPLIT", None)
-    else:
-        os.environ["AITER_BYPASS_TUNE_CONFIG"] = "1"
+    # Force cktile for ALL shapes
+    os.environ["AITER_BYPASS_TUNE_CONFIG"] = "1"
+
+    if estimated_m < 5:
+        os.environ["AITER_KSPLIT"] = "4"
+    elif estimated_m < 20:
         os.environ["AITER_KSPLIT"] = "2"
+    else:
+        os.environ["AITER_KSPLIT"] = "1"
 
     return fused_moe(
         hidden_states, gate_up_weight_shuffled, down_weight_shuffled,

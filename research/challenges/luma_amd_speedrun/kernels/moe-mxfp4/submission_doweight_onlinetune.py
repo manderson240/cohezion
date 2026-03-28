@@ -1,9 +1,14 @@
 """
-MXFP4 MoE — Phase 13c: KSPLIT=3 for ALL E>=200 shapes.
+MXFP4 MoE — Phase 12d: doweight_stage1 + online tune for sparse shapes.
 
-Tests KSPLIT=3 as middle ground between KSPLIT=2 and KSPLIT=4.
-Phase 12j uses KSPLIT=4 for est_m<10 and KSPLIT=2 for est_m 10-49.
-This tests whether KSPLIT=3 is optimal for the E=257 bs=128/512 shapes.
+Combines:
+1. doweight_stage1=True: fuses topk weight into stage1 GEMM (saves ~1-3us)
+2. AITER_ONLINE_TUNE=1 for sparse shapes: runtime autotuning may find
+   better CK configs for shapes not in tuned CSV (E=257, bs=16)
+3. Adaptive KSPLIT: dense->CSV-tuned, sparse->KSPLIT=4, moderate->KSPLIT=2
+
+For dense shapes: use CSV-tuned configs (already near-optimal)
+For sparse shapes: online tune + KSPLIT to explore better tile configs
 """
 import os
 from task import input_t, output_t
@@ -22,25 +27,31 @@ def custom_kernel(data: input_t) -> output_t:
 
     hidden_pad = config["d_hidden_pad"] - config["d_hidden"]
     intermediate_pad = config["d_expert_pad"] - config["d_expert"]
+
     num_experts = gate_up_weight_shuffled.shape[0]
     estimated_m = topk_ids.numel() // num_experts
 
-    if num_experts >= 200:
-        # ALL E=257 shapes: test KSPLIT=3
-        os.environ["AITER_BYPASS_TUNE_CONFIG"] = "1"
-        os.environ["AITER_KSPLIT"] = "3"
-    elif estimated_m >= 50:
+    if estimated_m >= 50:
+        # Dense: use CSV-tuned CK configs, no online tune overhead
         os.environ.pop("AITER_BYPASS_TUNE_CONFIG", None)
         os.environ.pop("AITER_KSPLIT", None)
+        os.environ.pop("AITER_ONLINE_TUNE", None)
+    elif num_experts >= 200 and estimated_m < 10:
+        # Very sparse (E=257, bs=16): online tune + KSPLIT=4
+        os.environ["AITER_BYPASS_TUNE_CONFIG"] = "1"
+        os.environ["AITER_KSPLIT"] = "4"
+        os.environ["AITER_ONLINE_TUNE"] = "1"
     else:
+        # Moderate sparse: KSPLIT=2, no online tune
         os.environ["AITER_BYPASS_TUNE_CONFIG"] = "1"
         os.environ["AITER_KSPLIT"] = "2"
+        os.environ.pop("AITER_ONLINE_TUNE", None)
 
     return fused_moe(
         hidden_states, gate_up_weight_shuffled, down_weight_shuffled,
         topk_weights, topk_ids, expert_mask=None,
         activation=ActivationType.Silu, quant_type=QuantType.per_1x32,
-        doweight_stage1=False,
+        doweight_stage1=True,
         w1_scale=gate_up_weight_scale_shuffled,
         w2_scale=down_weight_scale_shuffled,
         a1_scale=None, a2_scale=None,
