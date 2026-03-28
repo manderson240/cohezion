@@ -333,3 +333,19 @@ Autonomous loops must never be launched without a corresponding "Red" test phase
 
 ### Learning 148: SurrealDB 3.0 surrealkv Migration
 SurrealDB 3.0 requires the `surrealkv` prefix for file-based storage. Persistence failed until the datastore path was corrected to `surrealkv:/my/surreal/data` and the container was launched with explicit UID/GID (1000:1000) to match the host filesystem owner. This establishes the pattern for high-fidelity local logging.
+
+---
+
+## Session 67: In-Flight Analysis & The Full Hour of Autonomy (2026-03-10)
+
+### Learning 149: In-Flight Analysis Synchronicity
+The final gap in the autonomous loop is the ability to analyze *while* working. By correlating live 12D pulse telemetry with the Research Scout's feed every hour at :55, the system identifies "Research-to-Mission" opportunities (SIM_TWEAKs) in real-time, moving from static recording to active reasoning.
+
+### Learning 150: OpenAI-Compatible API Normalization (Qwen 3)
+Modern local LLMs (Qwen 3, Ministral) are more stable when using the standard `/api/chat` or `/v1/chat/completions` endpoints with message-based schemas. Legacy `/api/generate` payloads cause 404s and instability. Normalizing all clients (`TokenEfficientClient`, `SmartRouter`, `NgrokGateway`) to a unified "clean_base" URL ensures persistent connection stability.
+
+### Learning 151: Port Guarding & Background Persistence
+Background persistence for dashboards and swarms requires active port guarding. Using `fuser -k 7860/tcp` before launch prevents `OSError: Address already in use`, while `nohup` combined with disabling interactive login prompts (removing remote `space_id` in Trackio) ensures the system can "breathe" autonomously for long horizons.
+
+### Learning 152: The 360-Degree Autonomic Cycle
+A complete architectural evolution loop has been achieved within a single 60-minute window: **Sensing (:00) -> Optimization (:15) -> Refinement (:30) -> Manifestation (:35) -> Verification (:40) -> Auditing (:45) -> Scouting (:50) -> Analysis (:55).** This closed loop ensures that the platform is a self-optimizing engine of growth.
