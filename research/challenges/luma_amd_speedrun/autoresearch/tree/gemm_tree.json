@@ -8,10 +8,10 @@
       "parameters": {},
       "parent_id": null,
       "priority": 0.1009094861813066,
-      "attempts": 21,
+      "attempts": 23,
       "best_result_us": 118.11,
-      "stagnation_count": 0,
-      "status": "active",
+      "stagnation_count": 2,
+      "status": "pruned",
       "children": [
         "gemm_n0_cached",
         "gemm_n1",
@@ -26,7 +26,7 @@
         "n_66619a38",
         "n_139be188"
       ],
-      "notes": "",
+      "notes": " [PRUNED: Test failed: Exit code 1]",
       "attempt_history": [
         {
           "result_us": 201.69554288554713,
@@ -153,6 +153,18 @@
           "parameters": {},
           "timestamp": "2026-03-20T17:57:20.000423",
           "source": "template"
+        },
+        {
+          "result_us": Infinity,
+          "parameters": {},
+          "timestamp": "2026-03-27T17:17:23.020391",
+          "source": "llm"
+        },
+        {
+          "result_us": Infinity,
+          "parameters": {},
+          "timestamp": "2026-03-27T17:54:19.260448",
+          "source": "llm"
         }
       ]
     },

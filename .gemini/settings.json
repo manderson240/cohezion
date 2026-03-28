@@ -5,24 +5,54 @@
       "type": "http"
     },
     "cohezion-skills": {
-      "command": "PYTHONPATH=/home/mike-anderson/dev/cohezion/src /home/mike-anderson/dev/cohezion/.venv/bin/python -m cohezion.mcp.skills_server_mcp",
-      "args": []
+      "command": "/home/mike-anderson/dev/cohezion/.venv/bin/python",
+      "args": [
+        "-m",
+        "cohezion.mcp.skills_server_mcp"
+      ],
+      "env": {
+        "PYTHONPATH": "/home/mike-anderson/dev/cohezion/src"
+      }
     },
     "cohezion-research": {
-      "command": "PYTHONPATH=/home/mike-anderson/dev/cohezion/src /home/mike-anderson/dev/cohezion/.venv/bin/python -m cohezion.mcp.research_server_mcp",
-      "args": []
+      "command": "/home/mike-anderson/dev/cohezion/.venv/bin/python",
+      "args": [
+        "-m",
+        "cohezion.mcp.research_server_mcp"
+      ],
+      "env": {
+        "PYTHONPATH": "/home/mike-anderson/dev/cohezion/src"
+      }
     },
     "cohezion-surreal": {
-      "command": "PYTHONPATH=/home/mike-anderson/dev/cohezion/src /home/mike-anderson/dev/cohezion/.venv/bin/python -m cohezion.mcp.surreal_server_mcp",
-      "args": []
+      "command": "/home/mike-anderson/dev/cohezion/.venv/bin/python",
+      "args": [
+        "-m",
+        "cohezion.mcp.surreal_server_mcp"
+      ],
+      "env": {
+        "PYTHONPATH": "/home/mike-anderson/dev/cohezion/src"
+      }
     },
     "cohezion-swarm": {
-      "command": "PYTHONPATH=/home/mike-anderson/dev/cohezion/src /home/mike-anderson/dev/cohezion/.venv/bin/python -m cohezion.mcp.swarm_server_mcp",
-      "args": []
+      "command": "/home/mike-anderson/dev/cohezion/.venv/bin/python",
+      "args": [
+        "-m",
+        "cohezion.mcp.swarm_server_mcp"
+      ],
+      "env": {
+        "PYTHONPATH": "/home/mike-anderson/dev/cohezion/src"
+      }
     },
     "cohezion-knowledge": {
-      "command": "PYTHONPATH=/home/mike-anderson/dev/cohezion/src /home/mike-anderson/dev/cohezion/.venv/bin/python -m cohezion.mcp.knowledge_server_mcp",
-      "args": []
+      "command": "/home/mike-anderson/dev/cohezion/.venv/bin/python",
+      "args": [
+        "-m",
+        "cohezion.mcp.knowledge_server_mcp"
+      ],
+      "env": {
+        "PYTHONPATH": "/home/mike-anderson/dev/cohezion/src"
+      }
     }
   }
 }

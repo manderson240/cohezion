@@ -4,7 +4,9 @@
 # Status: COMPLETE - Ready to clear
 
 STATUS: COMPLETE
-KERNELS: MLA_REFERENCE, GEMM_A4W4
+KERNELS: GEMM_V18_HYBRID
+Session: Session 78
+Completed: 2026-03-27
 
 ## Results Summary
 

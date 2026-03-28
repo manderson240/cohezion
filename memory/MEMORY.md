@@ -64,16 +64,22 @@
 
 ---
 
-## Active Context (Session 15)
+## Active Context (Session 74, 2026-03-27)
 
-**Current Work**: Dev environment recovery + retrospective
-**Blockers**: SurrealDB auth failure (InvalidAuth) - requires manual credential fix
+**Current Work**: Session isolation via hooks + retrospective
+**Branch**: `challenge/nvidia-nemotron-reasoning` (should be on worktree — hooks now enforce this)
+**Recent**:
+- Session isolation: SessionStart hook + PreToolUse branch blocker + governance rule
+- Lint cleanup: F401 47→0, W293 25→0 (Session 73)
+- 82 new tests: FLUME geometry, debate consensus, cache warmer, SurrealDB repos
+- Kaggle Nemotron: G4 Blackwell training infrastructure (L161-172)
+**Test Suite**: 4,891 passing / 43 failing (99.1%)
 **Next Steps**:
-1. Fix SurrealDB auth (check config/secrets)
-2. Address linting: 168 E501 (line-length), 44 RUF012 (mutable class defaults - potential bugs), 13 RUF006 (asyncio dangling tasks - runtime risk)
-3. Investigate 4 failing tests: `tests/real_envs/` (2) and `tests/test_flume_training.py` (2)
+1. Register settings.json hook (blocked by branch protection — needs worktree)
+2. Clean up 12 stale worktrees
+3. Address 43 pre-existing test failures (universe/, swarm/r_zero)
 
-**Velocity**: 0.0 tasks/hr (maintenance mode)
+**Velocity**: High (hooks + lint + tests across 2 sessions)
 
 ---
 
@@ -120,4 +126,4 @@ vault_log_decision(
 
 ---
 
-**Token Budget**: This file is 188 lines (target <200). For full history, query `~/vaults/cohezion-vault/`.
+**Token Budget**: This file is ~125 lines (target <200). For full history, query `~/vaults/cohezion-vault/`.

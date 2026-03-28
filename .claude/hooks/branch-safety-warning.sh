@@ -3,6 +3,32 @@
 # Blocks edits on protected branches unless in an active worktree.
 # Uses PreToolUse JSON protocol: {"decision": "block"} to prevent edits.
 
+# Read stdin (hook JSON payload) to check file path
+HOOK_INPUT=$(cat)
+
+# Extract file_path from hook input (Edit or Write tool)
+FILE_PATH=$(echo "$HOOK_INPUT" | python3 -c "
+import sys, json
+try:
+    data = json.load(sys.stdin)
+    print(data.get('tool_input', {}).get('file_path', ''))
+except Exception:
+    print('')
+" 2>/dev/null)
+
+# If file is outside the git repo root, always allow
+if [ -n "$FILE_PATH" ]; then
+    REPO_ROOT=$(git rev-parse --show-toplevel 2>/dev/null)
+    if [ -n "$REPO_ROOT" ]; then
+        # Resolve to absolute path for comparison
+        ABS_FILE=$(python3 -c "import os; print(os.path.abspath('$FILE_PATH'))" 2>/dev/null)
+        case "$ABS_FILE" in
+            "$REPO_ROOT"/*) ;; # Inside repo, continue checks
+            *) exit 0 ;;       # Outside repo, allow unconditionally
+        esac
+    fi
+fi
+
 PROTECTED_PATTERNS=("main" "develop" "challenge/*" "release/*")
 
 branch=$(git branch --show-current 2>/dev/null || echo "")
