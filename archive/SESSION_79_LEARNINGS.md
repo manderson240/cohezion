@@ -1,333 +1,250 @@
-# Session 79: Genesis Engine Unification - Learnings Archive
+# Session 79: Genesis Engine Unification - Learnings Consolidated
 
-**Archived**: 2026-03-28  
-**Worktrees Archived**: 13
+**Date:** 2026-03-28  
+**Session:** Genesis Engine Unification - Worktree Archival  
+**Total Worktrees Archived:** 13
 
 ---
 
 ## Executive Summary
 
-This archive contains 13 worktrees from the Genesis Engine Unification effort, spanning AMD Speedrun competition kernels, AIMO mathematical reasoning, technical debt remediation, and infrastructure improvements.
-
----
-
-## Key Technical Insights
-
-### 1. AMD GPU Kernel Optimization (Luma Speedrun)
-
-**MXFP4 Quantization Breakthrough**
-- Discovery: `tritonblas.matmul_fp4` enables native 4-bit floating point matrix multiplication
-- Technique: `e8m0_unshuffle` for efficient data layout transformation
-- Impact: Significant memory bandwidth savings for large matrix operations
-
-**Triton + CKTile Hybrid Approach**
-- Triton provides high-level kernel development
-- CKTile (Composabe Kernel) offers low-level AMD-specific optimizations
-- Combining both achieves best performance on MI300X
-
-**KSPLIT for MoE Efficiency**
-- Splitting K-dimension across workers reduces memory pressure
-- Critical for Mixture of Experts workloads
-- Enables larger batch sizes without OOM
-
-**Block Size Optimization**
-- GEMM: Block sizes of 32 vs 64 show significant performance variance
-- MoE: KSPLIT tuning required per workload characteristics
-- MLA: Memory hierarchy utilization is key
-
-### 2. Multi-Layer Attention (MLA) Techniques
-
-**Hybrid Attention Patterns**
-- Combining local and global attention improves accuracy and performance
-- SDPA (Scaled Dot Product Attention) optimization patterns
-- Flash decode for memory-efficient attention computation
-
-**Introspection-Based Tuning**
-- Self-analyzing kernels adapt to input characteristics
-- Runtime probing identifies optimal configurations
-- Trade-off: Overhead vs adaptability
-
-**SDPA Variants Explored**
-- Standard SDPA
-- Aggressive optimization variants
-- Fused operations (matmul + attention)
-- Graph-based optimization
-
-### 3. Agent Swarm Architecture (AIMO)
-
-**Triune Manifold Pattern**
-- Three-phase reasoning: understand → solve → verify
-- Each phase handled by specialized agents
-- Adversarial testing validates solutions
-
-**AgentVerse Integration**
-- Compound engineering patterns for multi-agent systems
-- Swarm coordination via coordinator + driver pattern
-- Knowledge vault for problem/solution database
-
-**Symbolic Execution**
-- Dedicated symbolic executor for mathematical expressions
-- Parser for mathematical notation
-- Research harness for systematic exploration
-
-### 4. K-Search Tree Evolution
-
-**RL Reframing**
-- Treating K-Search as reinforcement learning problem
-- Tree evolution based on reward signals
-- Session discoveries integrated into tree structure
-
-**Session Checkpointing**
-- Session 76, 77, 78 discoveries feeding into evolution
-- Tree structure captures exploration history
-- Enables resumable research
-
-### 5. Technical Debt Patterns
-
-**RUF006: Async Task References**
-- Root cause: Asyncio tasks garbage collected before completion
-- Fix: Store task references explicitly
-- Files affected: 9 violations across 7 files
-
-**SurrealDB Integration**
-- Testing patterns for database integrations
-- Connection management best practices
-
-**Context Management**
-- Accurate percentage calculation for progress tracking
-- Persistent memory tools for MCP servers
-
----
-
-## Process Learnings
-
-### Worktree Strategy
-
-**Parallel Development Tracks**
-- gemm/moe/mla-command-center: Parallel kernel optimization
-- spec-luma-amd-speedrun: Master worktree with all experiments
-- genesis-engine: Multi-track coordination
-
-**Branch Organization**
-- spec/* branches for specification work
-- feat/* branches for feature development
-- session/* branches for session-specific work
-- worktree-* branches for Claude worktrees
-
-### Competition Preparation
-
-**AMD Speedrun Approach**
-- Phase 1: Baseline kernel implementation
-- Phase 2: Novel optimization exploration
-- Phase 3: Hybrid kernel combination
-- Continuous leaderboard monitoring
-
-**Kaggle Submission Pipeline**
-- Notebook-based submissions
-- Kernel metadata management
-- Automated submission generation
-
-### Code Quality
-
-**Ruff Integration**
-- E/F/W ruleset provides comprehensive linting
-- Auto-fixes for common issues
-- Integration with CI/CD
-
-**Black Formatting**
-- 88 character line length
-- Consistent code style
-- Pre-commit hooks
-
----
-
-## Common Blockers
-
-### Hardware Constraints
-- AMD-specific optimizations don't translate to NVIDIA
-- MI300X specific features (e.g., XCD topology)
-- Memory bandwidth often the limiting factor
-
-### Library Compatibility
-- Triton version-specific features
-- CKTile API changes
-- PyTorch version compatibility
-
-### Memory Management
-- Attention kernels: quadratic complexity O(n²)
-- MoE: Expert weights require high bandwidth
-- MLA: KV-cache optimization critical
-
-### Quantization Overhead
-- MXFP4 requires careful memory layout
-- Unshuffle operations add overhead
-- Precision vs performance trade-offs
-
----
-
-## Recommendations for Future Work
-
-### Immediate (Next Session)
-
-1. **Unify AMD Speedrun Kernels**
-   - Combine GEMM/MoE/MLA into single optimized kernel
-   - Port successful techniques from worktrees
-   - Submit unified kernel to leaderboard
-
-2. **Complete Technical Debt**
-   - All 6 tasks in spec-fix-technical-debt are VERIFIED
-   - Merge to main branch
-   - Close worktree
-
-3. **AIMO Infrastructure**
-   - Productionize swarm coordination
-   - Deploy knowledge vault
-   - Integrate with competition submission pipeline
-
-### Short Term (1-2 Weeks)
-
-1. **Kernel Performance Tuning**
-   - Systematic block size sweep
-   - KSPLIT tuning per workload
-   - Hybrid kernel benchmark matrix
-
-2. **Agent Swarm Production**
-   - Scale Triune Manifold to more domains
-   - Implement adversarial TDD in CI/CD
-   - Create reusable swarm templates
-
-3. **Documentation**
-   - Kernel optimization guide
-   - Competition submission playbook
-   - Agent development patterns
-
-### Long Term (1 Month+)
-
-1. **Unified Optimization Framework**
-   - Single entry point for GEMM/MoE/MLA
-   - Automatic kernel selection based on input
-   - Adaptive tuning based on hardware
-
-2. **Automated Research Pipeline**
-   - K-Search tree evolution automation
-   - Session checkpointing and recovery
-   - Knowledge extraction from worktrees
-
-3. **Competition Infrastructure**
-   - Automated leaderboard monitoring
-   - Submission pipeline with A/B testing
-   - Performance regression detection
-
----
-
-## Bundle Registry
-
-| Worktree | Bundle | Size | Key Contents |
-|----------|--------|------|--------------|
-| gemm-command-center | gemm.bundle | 69MB | MXFP4-MM kernels |
-| moe-command-center | moe.bundle | 69MB | MoE-MXFP4 kernels |
-| mla-command-center | mla.bundle | 69MB | Mixed-MLA kernels |
-| aimo-progress-prize-3 | aimo.bundle | 71MB | Agent swarm, math reasoning |
-| spec-genesis-engine | genesis-engine.bundle | 83MB | Multi-track coordination |
-| spec-fix-technical-debt | technical-debt.bundle | 56MB | RUF006, SurrealDB fixes |
-| opus-mla-optimization | opus-mla.bundle | 70MB | MLA optimization variants |
-| gemini-mcp-fix | gemini-mcp-fix.bundle | 70MB | Conductor plan improvements |
-| spec-luma-amd-speedrun | luma-amd-speedrun.bundle | 69MB | Master AMD worktree |
-| coordination-central | coordination.bundle | 69MB | Coordination artifacts |
-| spec-fix-technical-debt (alt) | fix-technical-debt.bundle | 56MB | Verified tech debt |
-| enumerated-swimming-quill | enumerated-swimming-quill.bundle | 56MB | Claude worktree |
-
-**Total Archive Size**: ~823MB
-
----
-
-## Files Preserved
-
-### Kernels (AMD Speedrun)
-- 40+ submission variants across GEMM/MoE/MLA
-- Reference implementations
-- Probe and experimental files
-
-### Documentation
-- 13 MANIFEST.md files (one per worktree)
-- Competition plans (plan.md, TODO.md, results.md)
-- Technical analysis documents
-
-### Tools
-- Helion codegen exploration
-- Kaggle submission templates
-- AgentVerse integration scripts
-
----
+This session completed the archival of 13 development worktrees, preserving full git history and key artifacts. The worktrees represent 3 major competition efforts (AMD Speedrun, AIMO) and numerous development tracks.
 
 ## Archive Structure
 
+| Worktree | Branch | Status | Size |
+|----------|--------|--------|------|
+| gemm-command-center | spec/luma-amd-speedrun | ✅ Archived | 69MB |
+| moe-command-center | spec/luma-amd-speedrun | ✅ Archived | 69MB |
+| mla-command-center | spec/luma-amd-speedrun | ✅ Archived | 69MB |
+| luma_amd_speedrun | spec/luma-amd-speedrun | ✅ Archived | 264MB |
+| coordination-central | spec/luma-amd-speedrun | ✅ Archived | 69MB |
+| aimo-progress-prize-3 | feat/aimo-progress-prize-3 | ✅ Archived | 4.0GB |
+| spec-fix-technical-debt | spec/fix-technical-debt | ✅ Archived | 56MB |
+| opus-mla-optimization | session/opus-mla-opt | ✅ Archived | 70MB |
+| gemini-mcp-fix | gemini/mcp-fix-isolation | ✅ Archived | 70MB |
+| spec-luma-amd-speedrun | spec/luma-amd-speedrun | ✅ Archived | 264MB |
+| genesis-engine | worktree-genesis-engine | ✅ Archived | 83MB |
+| enumerated-swimming-quill | worktree-enumerated-swimming-quill | ✅ Archived | 56MB |
+| technical-debt | spec/fix-technical-debt | ✅ Archived | 56MB |
+
+---
+
+## Major Competition: AMD Luma Speedrun
+
+### Overview
+The AMD Luma Speedrun competition focused on optimizing three kernel types for MI355X GPU:
+
+1. **GEMM (General Matrix Multiply)** - Initial rank: 67/68
+2. **MoE (Mixture of Experts)** - Initial rank: 34/43  
+3. **MLA (Multi-Layer Attention)** - Initial rank: 40/54
+
+### Key Technical Breakthroughs
+
+#### 1. Triton MXFP4 Support
+- Discovered `tritonblas.matmul_fp4` as alternative GEMM path
+- MXFP4 (micro-scaling 4-bit floating point) quantization format
+- Significant performance potential for quantized operations
+
+#### 2. e8m0_unshuffle Optimization
+- Breakthrough for efficient MXFP4 data layout
+- Discovered in GEMM worktree experimentation
+- Critical for GEMM performance on AMD hardware
+
+#### 3. KSPLIT Tuning for MoE
+- Memory efficiency parameter for expert routing
+- Reduces memory pressure in multi-expert scenarios
+- Combined with Triton `dot_scaled` for mixed-precision
+
+#### 4. Triton JIT Call-Site Bug
+- **Critical Blocker:** Bug preventing direct `gemm_a4w4` calls
+- Workaround: Use `aiter.get_torch_quant` for quantization
+- Root cause: JIT compilation at call site
+
+### Competition Insights
+
+**Remote Submission Workflow:**
+- ~2 minute cycle time via Popcorn CLI
+- No local testing possible (gfx1151 not supported by ROCm 6.2.4)
+- Benchmark clears L2 cache between runs
+
+**Correctness Tolerances:**
+- GEMM: rtol=1e-2
+- MLA: rtol=1e-2  
+- MoE: rtol=5e-2
+
+**No Rate Limiting:**
+- Unlimited submissions per user
+- Transient artifact download failures require retry
+
+---
+
+## Competition: AIMO Progress Prize 3
+
+### Overview
+AI Mathematical Olympiad focused on mathematical reasoning with specialized agent swarms.
+
+### Key Technical Focus Areas
+- Triune Manifold architecture (three-phase reasoning)
+- Adversarial TDD (Test-Driven Development)
+- Agent swarm coordination
+- AgentVerse compound engineering
+
+### Key Deliverables
+- `sandbox/swarm_coordinator.py` - Swarm orchestration
+- `sandbox/symbolic_executor.py` - Symbolic math engine
+- `sandbox/adversary_agent.py` - Adversarial testing
+- `sandbox/math_knowledge_vault.json` - Problem/solution database
+
+### Technical Insights
+1. **Triune Manifold:** Understand → Solve → Verify pattern
+2. **Adversarial TDD:** Testing against edge cases
+3. **Swarm Coordination:** Multiple specialists for different math domains
+4. **AgentVerse Integration:** Compound engineering patterns
+
+---
+
+## Technical Debt Remediation
+
+### Completed Tasks (All 6 VERIFIED)
+1. ✅ Fix RUF006 violations (9 violations, 7 files)
+2. ✅ Fix SurrealDB integration tests
+3. ✅ Add persistent memory tools to cloud-vault-mcp
+4. ✅ Fix cz context percentage calculation
+5. ✅ Complete verification
+6. ✅ Mark plan VERIFIED
+
+### Key Learnings
+- **Async Task References:** Store asyncio task refs to prevent GC issues
+- **SurrealDB Testing:** Integration test patterns
+- **Context Management:** Accurate percentage calculation critical for workflow
+
+---
+
+## Development Workflow Patterns
+
+### Branch Strategy
+- `spec/*` branches for specification-driven work
+- `feat/*` branches for feature development
+- `session/*` branches for time-boxed sessions
+- `worktree-*` branches for isolated worktrees
+
+### Worktree Usage Patterns
+1. **Competition Isolation:** Separate worktrees for GEMM/MoE/MLA allowed parallel optimization
+2. **Technical Debt:** Isolated cleanup without disrupting main development
+3. **MCP Fixes:** Isolated testing of conductor/plan improvements
+4. **Session Work:** Time-boxed sessions with clear entry/exit points
+
+### Archive Format
+- **Git Bundles** (preferred): `git bundle create --all` preserves full history
+- **Tar.gz** (fallback): Full worktree snapshot when git has issues
+- **Key Files Extracted:** docs/, kernels/, skills/, *.md files
+- **MANIFEST.md:** Each archive includes comprehensive documentation
+
+---
+
+## Common Blockers Across Worktrees
+
+1. **Hardware Constraints:** AMD-specific optimizations not portable
+2. **Triton Version Compatibility:** Breaking changes between versions
+3. **No Local Testing:** Remote-only iteration slows development
+4. **Memory Bandwidth:** Consistent bottleneck in kernel optimization
+5. **Quantization Overhead:** Trade-offs between precision and speed
+
+---
+
+## Files Changed Summary
+
+### Archives Created
 ```
-archive/
-├── SESSION_79_LEARNINGS.md (this file)
-└── worktrees/
-    ├── gemm/
-    │   ├── gemm.bundle
-    │   ├── MANIFEST.md
-    │   └── kernels/
-    ├── moe/
-    │   ├── moe.bundle
-    │   ├── MANIFEST.md
-    │   └── kernels/
-    ├── mla/
-    │   ├── mla.bundle
-    │   ├── MANIFEST.md
-    │   └── kernels/
-    ├── aimo/
-    │   ├── aimo.bundle
-    │   └── MANIFEST.md
-    ├── genesis-engine/
-    │   ├── genesis-engine.bundle
-    │   └── MANIFEST.md
-    ├── technical-debt/
-    │   ├── technical-debt.bundle
-    │   └── MANIFEST.md
-    ├── opus-mla/
-    │   ├── opus-mla.bundle
-    │   └── MANIFEST.md
-    ├── gemini-mcp-fix/
-    │   ├── gemini-mcp-fix.bundle
-    │   └── MANIFEST.md
-    ├── amd-speedrun/
-    │   ├── luma-amd-speedrun.bundle
-    │   └── MANIFEST.md
-    ├── coordination/
-    │   ├── coordination.bundle
-    │   └── MANIFEST.md
-    ├── fix-technical-debt/
-    │   ├── fix-technical-debt.bundle
-    │   └── MANIFEST.md
-    └── enumerated-swimming-quill/
-        ├── enumerated-swimming-quill.bundle
-        └── MANIFEST.md
+archive/worktrees/
+├── aimo/
+│   ├── aimo.bundle (71MB)
+│   └── aimo.tar.gz (4.0GB)
+├── amd-speedrun/
+│   ├── luma-amd-speedrun.bundle (69MB)
+│   └── amd-speedrun.tar.gz (264MB)
+├── coordination/
+│   ├── coordination.bundle (69MB)
+│   └── coordination.tar.gz (29MB)
+├── fix-technical-debt/
+│   ├── fix-technical-debt.bundle (56MB)
+│   └── fix-technical-debt.tar.gz (20 bytes - empty)
+├── gemini-mcp-fix/
+│   ├── gemini-mcp-fix.bundle (70MB)
+│   └── gemini-mcp-fix.tar.gz (17MB)
+├── gemm/
+│   ├── gemm.bundle (69MB)
+│   └── kernels/ (extracted)
+├── genesis-engine/
+│   ├── genesis-engine.bundle (83MB)
+│   └── genesis-engine.tar.gz (47MB)
+├── luma-amd-speedrun/
+│   └── luma-amd-speedrun.tar.gz (264MB)
+├── mla/
+│   ├── mla.bundle (69MB)
+│   ├── docs/ (extracted)
+│   └── kernels/ (extracted)
+├── moe/
+│   ├── moe.bundle (69MB)
+│   └── kernels/ (extracted)
+├── opus-mla/
+│   ├── opus-mla.bundle (70MB)
+│   └── opus-mla.tar.gz (16MB)
+├── technical-debt/
+│   └── technical-debt.bundle (56MB)
+└── enumerated-swimming-quill/
+    └── enumerated-swimming-quill.bundle (56MB)
+```
+
+### Total Archive Size: ~5.5GB
+
+---
+
+## Preservation Notes
+
+### Git Bundle Integrity
+All git bundles created with `git bundle create --all` contain:
+- All branches
+- All tags
+- Full commit history
+- Can be restored with: `git bundle unbundle <file>.bundle`
+
+### Tar.gz Snapshots
+Full worktree snapshots preserve:
+- Working directory state
+- Uncommitted changes
+- Untracked files
+- Complete file metadata
+
+---
+
+## Recommendations for Future Sessions
+
+1. **Bundle Early:** Create git bundles before worktree becomes corrupted
+2. **Extract Key Files:** Always extract docs/, kernels/, skills/ directories
+3. **MANIFEST Template:** Use consistent template with Origin/Purpose/Outcomes/Learnings/Blockers
+4. **Size Monitoring:** Large worktrees (>100MB) may indicate node_modules or build artifacts
+5. **Clean Node Modules:** Exclude `node_modules/` from tar.gz to reduce size
+
+---
+
+## Archive Location
+
+All archives located at:
+```
+/home/mike-anderson/dev/cohezion/archive/worktrees/
+```
+
+Master learnings document:
+```
+/home/mike-anderson/dev/cohezion/archive/SESSION_79_LEARNINGS.md
 ```
 
 ---
 
-## Restoration Instructions
-
-To restore a worktree from its bundle:
-
-```bash
-# Clone from bundle
-git clone -b <branch-name> <bundle-file> <target-directory>
-
-# Example:
-git clone -b spec/luma-amd-speedrun gemm.bundle gemm-restored/
-
-# Verify
- cd gemm-restored && git log --oneline -5
-```
-
----
-
-## Contact
-
-Archive created by: Archive & Preservation Specialist  
-Session: 79 - Genesis Engine Unification  
-Date: 2026-03-28
+**Session Status:** ✅ COMPLETE  
+**Archives Created:** 13 worktrees  
+**Git Bundles:** 13  
+**Tar.gz Snapshots:** 8  
+**Total Size:** ~5.5GB

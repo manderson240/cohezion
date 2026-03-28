@@ -7,12 +7,19 @@
 
 ### Current Submissions (Popcorn CLI Verified)
 
-| Kernel | File | Tests | Submission ID | Geomean µs |
-|---------|------|-------|--------------|-------------|
-| GEMM | `submission.py` | PASSED (4/4) | 642253 | ~21.9 |
-| MLA | `submission.py` | PASSED | 641967 | [secret] |
-| MoE | `submission.py` | PASSED | 642045 | [secret] |
-| MoE | `submission_cktile_direct.py` | PASSED | 641031 | [secret] |
+| Kernel | File | Tests | Benchmark | Leaderboard | Submission ID |
+|--------|------|-------|-----------|-------------|--------------|
+| GEMM | `submission.py` | ✅ PASSED | ✅ | ✅ | 651818 |
+| GEMM | `submission_compound.py` | ✅ PASSED | ✅ | pending | 656756 |
+| MLA | `submission.py` | ✅ PASSED | ✅ | ✅ | 641967 |
+| MLA | `submission_compound.py` | ✅ PASSED | pending | pending | 656707 |
+| MoE | `submission.py` | ✅ PASSED | ✅ | ✅ | 651404 |
+| MoE | `submission_compound.py` | ✅ PASSED | pending | pending | 656674 |
+
+### Leaderboard Names (Confirmed)
+- GEMM: `amd-mxfp4-mm`
+- MLA: `amd-mixed-mla`
+- MoE: `amd-moe-mxfp4`
 
 ### GEMM Benchmark Results (Latest)
 | Shape | Best µs | Mean µs |

@@ -1,19 +1,9 @@
 {
   "$schema": "https://zed.dev/schema/settings.json",
-  
-  // =============================================
-  // COHEZION QUANTUM-AWARE ZED CONFIGURATION v1.1.48
-  // Optimized for AMD Ryzen AI MAX+ 395 with 125GB DDR5
-  // =============================================
-  
   "theme": "One Dark",
   "ui_font_size": 14,
   "buffer_font_size": 13,
   "buffer_font_family": "Cascadia Code PL",
-  
-  // =============================================
-  // PROJECT-SPECIFIC WORKSPACE CONFIGURATION
-  // =============================================
   "project_panel": {
     "folder_icons": true,
     "git_status": true,
@@ -28,10 +18,6 @@
       ".archive"
     ]
   },
-  
-  // =============================================
-  // PYTHON LSP & DYNAMIC ROUTING INTEGRATION
-  // =============================================
   "languages": {
     "Python": {
       "language_servers": ["pylsp", "ruff", "dynamic_router"],
@@ -41,13 +27,9 @@
       "preferred_line_length": 88,
       "tab_size": 4,
       "soft_wrap": "preferred_line_length",
-      
-      // COHEZION-SPECIFIC PYTHON ENHANCEMENTS
       "prettier": {
-        "enabled": false  // Use ruff instead
+        "enabled": false
       },
-      
-      // Dynamic routing for Python completion
       "completion": {
         "provider": "dynamic_router",
         "preferred_models": ["phi4:latest", "qwen2.5-coder-14b-256k:latest"],
@@ -55,7 +37,6 @@
         "cache_size": 1000
       }
     },
-    
     "TypeScript": {
       "language_servers": ["typescript-language-server", "eslint", "dynamic_router"],
       "format_on_save": {
@@ -64,23 +45,17 @@
       "preferred_line_length": 100,
       "tab_size": 2
     },
-    
     "JSON": {
       "format_on_save": {
         "language_server": "prettier"
       }
     },
-    
     "Markdown": {
       "soft_wrap": "preferred_line_length",
       "preferred_line_length": 80,
       "spell_check": true
     }
   },
-  
-  // =============================================
-  // LANGUAGE SERVER CONFIGURATION
-  // =============================================
   "lsp": {
     "pylsp": {
       "command": "pylsp",
@@ -101,7 +76,6 @@
         }
       }
     },
-    
     "ruff": {
       "command": "ruff",
       "args": ["server"],
@@ -117,10 +91,6 @@
         }
       }
     },
-    
-    // =============================================
-    // COHEZION DYNAMIC ROUTER LSP INTEGRATION
-    // =============================================
     "dynamic_router": {
       "command": "python",
       "args": [
@@ -130,10 +100,8 @@
       "environment": {
         "OLLAMA_HOST": "localhost:11434",
         "COHEZION_ROUTER_MODE": "zed_priority",
-        "IDE_PRIORITY": "2"  // ZED priority level
+        "IDE_PRIORITY": "2"
       },
-      
-      // Connection to our routing system
       "settings": {
         "routing_strategy": "balanced",
         "preferred_models": ["phi4:latest", "qwen2.5-coder-14b-256k:latest"],
@@ -144,10 +112,6 @@
       }
     }
   },
-  
-  // =============================================
-  // TERMINAL & OLLAMA INTEGRATION
-  // =============================================
   "terminal": {
     "font_family": "Cascadia Code PL",
     "font_size": 12,
@@ -157,29 +121,19 @@
       "program": "/bin/bash",
       "args": ["--login"]
     },
-    
-    // Quick access to Ollama management
     "environment": {
-      "OLLAMA_NUM_THREADS": "16",  // 50% of 32 threads for ZED
+      "OLLAMA_NUM_THREADS": "16",
       "OLLAMA_NUM_PARALLEL": "4",
       "OLLAMA_MAX_LOADED_MODELS": "2",
       "OLLAMA_KEEP_ALIVE": "10m"
     }
   },
-  
-  // =============================================
-  // TROUBLESHOOTING & PERFORMANCE MONITORING
-  // =============================================
   "telemetry": {
     "metrics": {
       "enabled": true,
       "collection_level": "detailed"
     }
   },
-  
-  // =============================================
-  // ZED-SPECIFIC TASK CONFIGURATION
-  // =============================================
   "tasks": {
     "version": "2",
     "tasks": [
@@ -192,7 +146,6 @@
           "OLLAMA_KEEP_ALIVE": "10m"
         }
       },
-      
       {
         "label": "Load Preferred Models",
         "command": "bash",
@@ -201,7 +154,6 @@
           "ollama pull phi4:latest && ollama pull qwen2.5-coder-14b-256k:latest && ollama pull qwen3:8b"
         ]
       },
-      
       {
         "label": "Run Dynamic Router Test",
         "command": "python",
@@ -210,7 +162,6 @@
           "--test-mode"
         ]
       },
-      
       {
         "label": "Project Test Suite",
         "command": "python",
@@ -219,14 +170,12 @@
           "PYTHONPATH": "/home/mike-anderson/dev/cohezion/src"
         }
       },
-      
       {
         "label": "Code Quality Check",
         "command": "ruff",
         "args": ["check", "src/", "--fix"],
         "depends_on": ["format_code"]
       },
-      
       {
         "label": "Format Code", 
         "command": "ruff",
@@ -235,29 +184,19 @@
       }
     ]
   },
-  
-  // =============================================
-  // AUTO-COMPLETION & INTELLISENSE
-  // =============================================
   "auto_completion": true,
   "hover_popover_character_count": 800,
   "confirm_on_suggest_completion": false,
   "accept_on_suggestion": true,
-  
-  // =============================================
-  // COHEZION PROJECT-SPECIFIC CONFIGURATION
-  // =============================================
   "file_types": {
     "Python File": {
       "tab_size": 4,
       "soft_wrap": "none"
     },
-    
     "Configuration": {
       "extensions": [".toml", ".yaml", ".yml", ".json"],
       "tab_size": 2
     },
-    
     "COHEZION Special": {
       "extensions": [".prime", ".ascended", ".infinity"],
       "language": "Python",
@@ -270,10 +209,6 @@
       ]
     }
   },
-  
-  // =============================================
-  // AUTO-SAVE & BACKUP
-  // =============================================
   "autosave": {
     "enabled": true,
     "after_delay": {
@@ -282,10 +217,6 @@
     "on_focus_change": true,
     "on_window_change": true
   },
-  
-  // =============================================
-  // MINIMAP & VISUAL ENHANCEMENTS  
-  // =============================================
   "scrollbar": {
     "show": "auto",
     "cursors": true,
@@ -293,31 +224,33 @@
     "search_results": true,
     "selected_text": true
   },
-  
   "minimap": {
     "show": true,
     "scrollbar_indicator": true,
     "mini_map_render": "text"
   },
-  
-  // =============================================
-  // SEARCH & NAVIGATION
-  // =============================================
   "search": {
+    "exclude": {
+      "**/node_modules": true,
+      "src/cohezion/knowledge_graph/universe_nodes": true,
+      "data": true,
+      "logs": true,
+      "cache": true,
+      ".archive": true,
+      "apps/webapp/dist": true,
+      "**/*.log": true,
+      "**/output_*.json": true,
+      "**/cache/**": true
+    },
     "case_sensitive": false,
     "whole_word": false,
     "regex": false,
     "include_context_lines": true
   },
-  
   "outline": {
     "show_definitions": true,
     "show_outline": true
   },
-  
-  // =============================================
-  // INTEGRATION EXCLUSIONS (COHEZION-SPECIFIC)
-  // =============================================
   "files": {
     "exclude": {
       "**/__pycache__": true,
@@ -330,8 +263,6 @@
       ".archive": true,
       "apps/webapp/dist": true,
       "apps/webapp/node_modules": true,
-      
-      // COHEZION-SPECIFIC EXCLUSIONS
       "**/*.log": true,
       "**/.venv": true,
       "**/venv": true,
@@ -343,27 +274,6 @@
       "storage/**": true
     }
   },
-  
-  "search": {
-    "exclude": {
-      "**/node_modules": true,
-      "src/cohezion/knowledge_graph/universe_nodes": true,
-      "data": true,
-      "logs": true,
-      "cache": true,
-      ".archive": true,
-      "apps/webapp/dist": true,
-      
-      // COHEZION-SPECIFIC SEARCH EXCLUSIONS
-      "**/*.log": true,
-      "**/output_*.json": true,
-      "**/cache/**": true
-    }
-  },
-  
-  // =============================================
-  // GIT INTEGRATION
-  // =============================================
   "git": {
     "git_gutter": {
       "enabled": true,

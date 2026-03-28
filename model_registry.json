@@ -1,5 +1,3 @@
-# Model Registry for Compound Engineering
-
 {
   "models": {
     "qwen3-coder-next:q8_0": {

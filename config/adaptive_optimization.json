@@ -14,11 +14,11 @@
   
   "adaptive_modes": {
     "available_modes": [
-      "conservative",    # Low resource usage, maximum stability
-      "performance",     # High throughput, moderate resource usage
-      "efficiency",      # Balanced performance/resource optimization
-      "multimodal",     # Visual and processing focus
-      "enterprise"       # Maximum capability, high resource usage
+      "conservative",
+      "performance",
+      "efficiency",
+      "multimodal",
+      "enterprise"
     ],
     "auto_switching": {
       "enabled": true,
@@ -51,7 +51,7 @@
     },
     "auto_tuning": {
       "enabled": true,
-      "tuning_interval_seconds": 900,  # 15 minutes
+      "tuning_interval_seconds": 900,
       "performance_targets": {
         "cpu_utilization_max": 0.8,
         "memory_utilization_max": 0.85,
