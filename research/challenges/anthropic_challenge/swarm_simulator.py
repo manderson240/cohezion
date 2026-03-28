@@ -7,7 +7,7 @@ import random
 import sys
 import time
 from dataclasses import asdict, dataclass
-from typing import Any, Dict, List
+from typing import Any
 
 # Add src to path to import cohezion modules
 sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), "../src"))

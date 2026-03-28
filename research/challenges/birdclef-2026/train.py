@@ -3,7 +3,6 @@ Training script for BirdCLEF 2026 baseline
 """
 
 import os
-import json
 import numpy as np
 import pandas as pd
 import torch

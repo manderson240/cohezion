@@ -1,6 +1,4 @@
-import os
 import sys
-import aiter
 
 def custom_kernel(data):
     target_file = "/home/runner/aiter/aiter/mla.py"

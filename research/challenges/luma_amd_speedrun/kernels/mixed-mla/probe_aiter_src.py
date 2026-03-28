@@ -1,7 +1,6 @@
 import os
 import sys
 import aiter
-import inspect
 
 def custom_kernel(data):
     print("--- aiter Location ---", file=sys.stderr)

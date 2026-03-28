@@ -82,7 +82,7 @@ unsloth = [
 ]
 
 [tool.ruff]
-target-version = "py311"
+target-version = "py313"
 line-length = 100  # Extended from 88 to accommodate f-strings and comprehensions (Retrospective Session 14)
 
 # Linting configuration

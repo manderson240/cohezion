@@ -28,7 +28,7 @@ import sys
 
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
-from cohezion.compound.executor import CompoundExecutor, ExecutionResult
+from cohezion.compound.executor import ExecutionResult
 from cohezion.compound.session_manager import CompoundSessionManager
 
 logging.basicConfig(level=logging.INFO)

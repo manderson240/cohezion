@@ -33,7 +33,7 @@ def run_janitor():
             logger.warning(
                 f"⚠️ Repository degradation detected: {status.status}. Triggering autonomous cleanup."
             )
-            subprocess.run(["python3", str(JANITOR_SCRIPT)], cwd=REPO_ROOT, check=True)
+            subprocess.run([sys.executable, str(JANITOR_SCRIPT)], cwd=REPO_ROOT, check=True)
 
             # Database pruning
             logger.info("🧹 Performing autonomous database pruning...")

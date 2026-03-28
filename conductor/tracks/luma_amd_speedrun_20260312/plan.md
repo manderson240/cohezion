@@ -15,15 +15,10 @@
     - [x] Sub-task: Record benchmark results in SurrealDB.
 - [x] Task: Conductor - User Manual Verification 'Phase 2: MLA Optimization' (Protocol in workflow.md)
 
-## Phase 3: MXFP4 MoE Optimization (Fusion Sprint)
-- [ ] Task: Implement Inter-stage Fusion.
-    - [ ] Sub-task: Fuse SwiGLU activation and quantization into the primary GEMM.
-    - [ ] Sub-task: Validate correctness via `popcorn-cli`.
-- [ ] Task: Shared Expert Specialization.
-    - [ ] Sub-task: Optimize the non-routed expert path for UMA architecture.
-- [ ] Task: Conductor - User Manual Verification 'Phase 3: MoE Optimization' (Protocol in workflow.md)
-
-## Phase 4: Final Benchmarking & Submission
-- [ ] Task: Perform system-wide verification of all three kernels.
-- [ ] Task: Execute official submission using `popcorn-cli submit --mode leaderboard`.
-- [ ] Task: Conductor - User Manual Verification 'Phase 4: Final Submission' (Protocol in workflow.md)
+## Phase 3: Parallel Breakthrough Execution (Multi-Agent Swarm)
+- [~] Task: Spawn specialized agent teams for all 3 kernels concurrently using the `generalist` sub-agent.
+    - [ ] Sub-task: Deploy specialist for `amd-mxfp4-mm` (Target: 1.000µs, Approach: Helion JIT Warmup + Persistent Cache).
+    - [ ] Sub-task: Deploy specialist for `amd-mixed-mla` (Target: 26.812µs, Approach: Helion + Single-kernel Flash-MLA from fav3).
+    - [ ] Sub-task: Deploy specialist for `amd-moe-mxfp4` (Target: 109.793µs, Approach: Helion + Fused Silu/Quantization).
+- [ ] Task: Evaluate specialized submissions via `popcorn-cli submit --mode leaderboard`.
+- [ ] Task: Conductor - Final Submission & Verification (Protocol in workflow.md)

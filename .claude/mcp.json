@@ -2,8 +2,13 @@
   "mcpServers": {
     "bmad": {
       "name": "BMAD Method",
-      "type": "streamable-http",
-      "url": "http://localhost:8361",
+      "type": "stdio",
+      "command": "/home/mike-anderson/dev/cohezion/.venv/bin/python",
+      "args": ["-m", "cohezion.mcp.bmad_server"],
+      "env": {
+        "PYTHONPATH": "/home/mike-anderson/dev/cohezion/src",
+        "MCP_TRANSPORT": "stdio"
+      },
       "description": "108 BMAD commands for agile AI-driven development"
     },
     "cohezion-compound": {

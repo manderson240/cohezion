@@ -6,7 +6,7 @@ by bridging latent intent to physical code changes.
 
 import asyncio
 import logging
-from typing import Any, Dict
+from typing import Any
 
 from cohezion.agents.base import BaseAgent
 from cohezion.swarm.swarm_types import SwarmConfig

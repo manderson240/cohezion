@@ -11,7 +11,6 @@ DeepSeek R1 MLA parameters:
 import torch
 import triton
 import triton.language as tl
-from aiter import dtypes as aiter_dtypes
 from task import input_t, output_t
 
 
