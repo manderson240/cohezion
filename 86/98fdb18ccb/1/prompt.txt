@@ -1,0 +1,9 @@
+Can you fix ~/dev/cohezion
+  ⎿  SessionStart:startup hook error
+  ⎿  SessionStart:startup hook error                                                                                                                                                                          
+  ⎿  SessionStart:startup says: 
+                                                                                                                                                                                                              
+     Powered by Entire:                                                                                                                                                                                     
+       This conversation will be linked to your next commit.                                                                                                                                                
+       2 other active conversation(s) in this workspace will also be included.
+       Use 'entire status' for more information?
