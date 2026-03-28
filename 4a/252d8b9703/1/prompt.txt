@@ -1,0 +1,259 @@
+<task-notification>
+<task-id>bfd6kd0jo</task-id>
+<tool-use-id>functions.Bash:11</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/1ae19621-3b65-4788-9146-e07830adaab7/tasks/bfd6kd0jo.output</output-file>
+<status>killed</status>
+<summary>Background command "Search for kbench files in home" was stopped</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/1ae19621-3b65-4788-9146-e07830adaab7/tasks/bfd6kd0jo.output
+
+---
+
+<task-notification>
+<task-id>bb4cgmc7o</task-id>
+<tool-use-id>functions.Bash:34</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/1ae19621-3b65-4788-9146-e07830adaab7/tasks/bb4cgmc7o.output</output-file>
+<status>completed</status>
+<summary>Background command "Test GEMM submission with popcorn-cli" completed (exit code 0)</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/1ae19621-3b65-4788-9146-e07830adaab7/tasks/bb4cgmc7o.output
+
+---
+
+<task-notification>
+<task-id>b92t65fzf</task-id>
+<tool-use-id>functions.Bash:71</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/1ae19621-3b65-4788-9146-e07830adaab7/tasks/b92t65fzf.output</output-file>
+<status>completed</status>
+<summary>Background command "Wait 7+ min and test GEMM" completed (exit code 0)</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/1ae19621-3b65-4788-9146-e07830adaab7/tasks/b92t65fzf.output
+
+---
+
+we should have already had API token satisfied in .env
+
+---
+
+/home/mike-anderson/dev/cohezion/.env
+
+---
+
+<task-notification>
+<task-id>beu9eg5xl</task-id>
+<tool-use-id>functions.Bash:82</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/1ae19621-3b65-4788-9146-e07830adaab7/tasks/beu9eg5xl.output</output-file>
+<status>completed</status>
+<summary>Background command "Find Kaggle credential files" completed (exit code 0)</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/1ae19621-3b65-4788-9146-e07830adaab7/tasks/beu9eg5xl.output
+
+---
+
+<task-notification>
+<task-id>bxhveuu4g</task-id>
+<tool-use-id>functions.Bash:0</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/1ae19621-3b65-4788-9146-e07830adaab7/tasks/bxhveuu4g.output</output-file>
+<status>completed</status>
+<summary>Background command "Search for recently downloaded kaggle.json" completed (exit code 0)</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/1ae19621-3b65-4788-9146-e07830adaab7/tasks/bxhveuu4g.output
+
+---
+
+<task-notification>
+<task-id>b6nolyi7q</task-id>
+<tool-use-id>functions.Bash:59</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/1ae19621-3b65-4788-9146-e07830adaab7/tasks/b6nolyi7q.output</output-file>
+<status>completed</status>
+<summary>Background command "Benchmark MoE submission" completed (exit code 0)</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/1ae19621-3b65-4788-9146-e07830adaab7/tasks/b6nolyi7q.output
+
+---
+
+<task-notification>
+<task-id>bm947h4to</task-id>
+<tool-use-id>functions.Bash:64</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/1ae19621-3b65-4788-9146-e07830adaab7/tasks/bm947h4to.output</output-file>
+<status>completed</status>
+<summary>Background command "Submit MoE to leaderboard" completed (exit code 0)</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/1ae19621-3b65-4788-9146-e07830adaab7/tasks/bm947h4to.output
+
+---
+
+Refine plan for another series of long horizon tasks.
+
+---
+
+## Project Overview: AMD × GPU MODE Speedrun (Phase 1)
+**Goal:** Become a finalist in the E2E Model Speedrun (March 2026).
+**Focus:** High-performance kernel optimization for DeepSeek-R1 (MLA/MoE) and Kimi-V3.
+**Role:** Lead Developer (Background: Data Quality Engineering & Autonomous Agent Systems - Cohezion).
+
+## Technical Environment
+* **Target Hardware:** AMD Instinct MI355X (CDNA 4 architecture) via ROCm 6.3+.
+* **Local Development:** Framework Desktop (128GB RAM) for logic validation and CPU-side orchestration.
+* **Remote Environment:** Shared ROCm runners with **zero administrative control**.
+* **Primary Constraints:** 1. No access to hardware counters (`rocprof`, `ncu`, `omnitrace`).
+    2. High jitter/noisy-neighbor environment on evaluation nodes.
+    3. Ephemeral filesystems (need persistent `TRITON_CACHE_DIR` strategies).
+
+## Development Stack
+* **Language Choice:** Deciding between raw **Triton (`@triton.jit`)** for maximum control and **Helion (Tiled PyTorch)** for rapid fusion prototyping and automated autotuning.
+* **Kernel Targets:** - Multi-head Latent Attention (MLA) fusion (Up-projection + Attention).
+    - MoE (Mixture of Experts) router and GEMM optimization.
+    - FP8 / MXFP4 precision implementations.
+
+## Optimization Strategy (Phase 1)
+* **Synthetic Profiling:** Relying on robust `torch.cuda.Event` timing loops and arithmetic intensity calculations (Throughput vs. HBM bandwidth) rather than direct hardware telemetry.
+* **Fusion-First:** Minimizing HBM round-trips by fusing activation/normalization directly into the main compute kernels.
+* **Precision:** Prioritizing numerical parity ($1e^{-3}$ tolerance) while pushing the limits of the CDNA 4 instruction set.
+
+## Prompting Instructions
+When suggesting code or architectural changes:
+1. Prioritize **Triton kernel fusion** logic.
+2. Assume a senior engineering level—skip the basics of CUDA/ROCm.
+3. Focus on "AMD-friendly" tiling (CDNA 4 specifics like matrix core utilization).
+4. Suggest **autotuning search spaces** suitable for Helion.
+
+---
+
+Refine plan
+
+---
+
+Find out where Context overflow at 77398% is defined?  It's obviously wrong.
+
+---
+
+model-aware
+
+---
+
+2 and ollama models as well
+
+---
+
+Fix the contxt limit and make sure the AMD plan is part of session 79
+
+---
+
+Context Fix: Applied and verified (77398% → 16220%) is still broken.
+
+---
+
+What else is out there like hipkittens?
+
+---
+
+and are we using TDD?
+
+---
+
+That's why were in the genesis branch.  Lookat all the work we've done.  We need to build on what we've already created and not start over from scratch each time.
+
+---
+
+We need to collect all phases and unify them into one vision
+
+---
+
+<task-notification>
+<task-id>bdqiaeui0</task-id>
+<tool-use-id>functions.Bash:50</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/1ae19621-3b65-4788-9146-e07830adaab7/tasks/bdqiaeui0.output</output-file>
+<status>completed</status>
+<summary>Background command "Run tests excluding broken ones" completed (exit code 0)</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/1ae19621-3b65-4788-9146-e07830adaab7/tasks/bdqiaeui0.output
+
+---
+
+Look deeper
+
+---
+
+<task-notification>
+<task-id>bxt6o86mk</task-id>
+<tool-use-id>functions.Bash:53</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/1ae19621-3b65-4788-9146-e07830adaab7/tasks/bxt6o86mk.output</output-file>
+<status>killed</status>
+<summary>Background command "Run tests directly" was stopped</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/1ae19621-3b65-4788-9146-e07830adaab7/tasks/bxt6o86mk.output
+
+---
+
+<task-notification>
+<task-id>bdlam5jbg</task-id>
+<tool-use-id>functions.Bash:73</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/1ae19621-3b65-4788-9146-e07830adaab7/tasks/bdlam5jbg.output</output-file>
+<status>completed</status>
+<summary>Background command "Run tests excluding broken ones" completed (exit code 0)</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/1ae19621-3b65-4788-9146-e07830adaab7/tasks/bdlam5jbg.output
+
+---
+
+as above so below
+
+---
+
+Continue
+
+---
+
+Proceed
+
+---
+
+We need to mine everything that is there and put it in the right place
+
+---
+
+We need dynamic modularity
+
+---
+
+And we need to integrate Anthropic Claude code best practices and new developments daily.
+
+---
+
+and we need to leverage all of our bmad methodology
+
+---
+
+Refine plan
+
+---
+
+Review plan
+
+---
+
+Are contest/challenges part of the plan?
+
+---
+
+Yes the competitions need to remain active
+
+---
+
+Proceed
+
+---
+
+PRoceed
+
+---
+
+<task-notification>
+<task-id>b1wafn06d</task-id>
+<tool-use-id>functions.Bash:41</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/1ae19621-3b65-4788-9146-e07830adaab7/tasks/b1wafn06d.output</output-file>
+<status>completed</status>
+<summary>Background command "Create tar archive for aimo-progress-prize-3" completed (exit code 0)</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/1ae19621-3b65-4788-9146-e07830adaab7/tasks/b1wafn06d.output
