@@ -1,16 +1,10 @@
 """Compound engineering system for iterative AI refinement.
 
 Integrates skill execution, knowledge persistence (vault), and experience-guided loops.
-Phase 1: Compatibility layer with simplified internals
 """
 
-# ============================================================================
-# Compatibility Layer (Phase 1) - Preserves old API
-# ============================================================================
+from __future__ import annotations
 
-# ============================================================================
-# New Simplified Analytics (Phase 1)
-# ============================================================================
 from cohezion.compound.analytics.engine import (
     AnalysisConfig,
     ExecutionAnalyzer,
@@ -21,23 +15,20 @@ from cohezion.compound.analytics.metrics import (
     MetricsSnapshot,
     SimpleMetrics,
 )
+from cohezion.compound.batch_executor import (
+    BatchableExecutor,
+    BatchExecutorFactory,
+)
 from cohezion.compound.compat import (
     CompoundCycleReport,
     CompoundCycleResult,
     CompoundExecutor,
     ExecutionResult,
-    ExecutorFactory,
-)
-from cohezion.compound.compat import (
-    ExecutionResult as LegacyExecutionResult,
 )
 from cohezion.compound.core.batch_processor import (
     BatchProcessor,
     BatchResult,
     SimpleBatch,
-)
-from cohezion.compound.core.executor import (
-    CompoundExecutor as NewCompoundExecutor,
 )
 from cohezion.compound.core.executor import (
     ExecutionConfig,
@@ -100,10 +91,6 @@ from cohezion.compound.model_quality_classifier import (
     QualityPredictor,
     RecommendedAction,
 )
-
-# ============================================================================
-# New Simplified Core (Phase 1) - Clean implementations
-# ============================================================================
 from cohezion.compound.models import (
     AnalysisReport,
     BatchConfig,
@@ -115,10 +102,6 @@ from cohezion.compound.models import (
     ExecutionStatus,
     Task,
 )
-
-# ============================================================================
-# New Simplified Persistence (Phase 1)
-# ============================================================================
 from cohezion.compound.persistence.vault import (
     PersistenceConfig,
     SessionPersister,
@@ -137,13 +120,6 @@ from cohezion.compound.request_alignment_analyzer import (
     IntentType,
     SuccessCriterion,
 )
-from cohezion.compound.request_alignment_analyzer import (
-    ExecutionResult as LegacyExecutionResult,
-)
-
-# ============================================================================
-# New Simplified Skills (Phase 1)
-# ============================================================================
 from cohezion.compound.skills.selector import (
     SimpleSkills,
     SkillMatch,
@@ -152,110 +128,91 @@ from cohezion.compound.skills.selector import (
 )
 
 
-# ============================================================================
-# New Simplified Analytics (Phase 1)
-# ============================================================================
+try:
+    from cohezion.compound.executor import ExecutorFactory
+except ImportError:
+    ExecutorFactory = None  # type: ignore[assignment]
 
+try:
+    from cohezion.compound.core.executor import CompoundExecutor as NewCompoundExecutor
+except ImportError:
+    NewCompoundExecutor = None  # type: ignore[assignment]
 
-
-# ============================================================================
-# New Simplified Skills (Phase 1)
-# ============================================================================
-
-
-# ============================================================================
-# New Simplified Persistence (Phase 1)
-# ============================================================================
-
-
-
-# ============================================================================
-# Version Info
-# ============================================================================
-
-__version__ = "2.0.0-simplified"
+__version__ = "2.0.0"
 
 
 def get_version() -> str:
-    """Get compound module version."""
     return __version__
 
-
-# ============================================================================
-# Exports
-# ============================================================================
-
-# ============================================================================
-# Version Info
-# ============================================================================
-
-__version__ = "2.0.0-simplified"
-
-
-def get_version() -> str:
-    """Get compound module version."""
-    return __version__
-
-
-# ============================================================================
-# Exports
-# ============================================================================
 
 __all__ = [
-    # New analytics
     "AnalysisConfig",
-    # New models
     "AnalysisReport",
     "BatchConfig",
     "BatchProcessor",
     "BatchResult",
-    # Compatibility layer (old API)
     "CompoundCycleReport",
     "CompoundCycleResult",
     "CompoundExecutor",
+    "CompoundMetricsCollector",
     "ConstraintType",
     "ConstraintViolation",
     "CriterionFailure",
     "DriftSignal",
-    "EvolutionDirective",
-    "EvolutionRoundResult",
-    "EvolutionTrainingConfig",
-    "EvolutionTrainingExporter",
-    "EvolutionTrainingPipeline",
-    "EvolutionTrainingSignalGenerator",
-    "EvolutionTrajectory",
     "ExecutionAlignment",
     "ExecutionAnalyzer",
     "ExecutionConfig",
     "ExecutionConstraint",
     "ExecutionContext",
     "ExecutionMetrics",
+    "ExecutionRecord",
     "ExecutionResult",
     "ExecutionStatus",
+    "ExecutorFactory",
+    "FeedbackLoopResult",
+    "GlobalMetricsAggregator",
+    "HardwareMetrics",
+    "HardwareMonitor",
     "HumanRequest",
+    "InflectionDetector",
+    "InflectionDetectorFactory",
+    "IntentClassifier",
     "IntentType",
-    "LegacyExecutionResult",
+    "Journey",
+    "JourneyPersistence",
+    "JourneyTracker",
+    "JourneyTrackerFactory",
     "MetricsCollector",
     "MetricsSnapshot",
-    # New core
+    "ModelQualityClassifier",
     "NewCompoundExecutor",
-    # New persistence
-    "PersistenceConfig",
-    "SessionPersister",
+    "OperationType",
+    "PromptOptimizer",
+    "QualityForecast",
+    "RecommendedAction",
+    "RetryAttempt",
+    "RetryStrategy",
+    "Severity",
     "SimpleAnalyzer",
     "SimpleBatch",
     "SimpleMetrics",
     "SimplePersistence",
     "SimpleSkills",
-    # New skills
     "SkillMatch",
     "SkillRefiner",
     "SkillSelector",
     "SuccessCriterion",
     "Task",
+    "TimeWindowMetrics",
+    "TrajectoryPoint",
+    "VaultLogger",
     "VaultPersister",
-    # Version
     "__version__",
     "execute_simple",
+    "get_collector",
+    "get_global_aggregator",
+    "get_hardware_monitor",
     "get_version",
+    "reset_collector",
+    "reset_global_aggregator",
 ]

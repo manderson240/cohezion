@@ -14,10 +14,6 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 
 
-if TYPE_CHECKING:
-    from pathlib import Path
-
-
 @pytest.fixture
 def mock_ollama():
     """Patch httpx calls to Ollama, returning a canned JSON response."""
@@ -121,7 +117,11 @@ def reset_singletons():
     import logging
 
     from cohezion.compound.batch_executor import BatchableExecutor
-    from cohezion.compound.executor import ExecutorFactory
+
+    try:
+        from cohezion.compound.executor import ExecutorFactory
+    except ImportError:
+        ExecutorFactory = None
     from cohezion.concurrency.ollama_gate import reset_gate
     from cohezion.cost_optimization.budget_enforcer import BudgetEnforcer
     from cohezion.cost_optimization.cost_tracker import SessionCostTracker
@@ -131,7 +131,8 @@ def reset_singletons():
     # Reset before test
     reset_gate()  # Reset OllamaGate singleton
     reset_pool_manager()  # Reset ModelPoolManager singleton
-    ExecutorFactory.reset_singleton()
+    if ExecutorFactory is not None:
+        ExecutorFactory.reset_singleton()
     if hasattr(BatchableExecutor, "reset_singleton"):
         BatchableExecutor.reset_singleton()
     if hasattr(CostAwareRouter, "reset_singleton"):
@@ -156,6 +157,7 @@ def reset_singletons():
 
     # Reset JourneyTracker singleton to prevent trajectory/cache pollution
     import cohezion.compound.journey_tracker as jt_module
+
     jt_module._journey_tracker_instance = None
 
     # Clear ALL logger handlers and filters to prevent test pollution.
@@ -176,7 +178,8 @@ def reset_singletons():
     # Reset after test
     reset_gate()  # Reset OllamaGate singleton
     reset_pool_manager()  # Reset ModelPoolManager singleton
-    ExecutorFactory.reset_singleton()
+    if ExecutorFactory is not None:
+        ExecutorFactory.reset_singleton()
     if hasattr(BatchableExecutor, "reset_singleton"):
         BatchableExecutor.reset_singleton()
     if hasattr(CostAwareRouter, "reset_singleton"):
