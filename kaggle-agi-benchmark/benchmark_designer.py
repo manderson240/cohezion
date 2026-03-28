@@ -21,54 +21,61 @@ BENCHMARK_NAME = "Cohezion: ARC-AGI Epistemic Humility"
 
 def load_local_tasks():
     """Load the synthetically generated tasks from our local JSONL file."""
-    path = os.path.join(os.path.dirname(__file__), "evo_hiho_benchmark.json")
-    if not os.path.exists(path):
-        return []
+    # We prioritize tasks that have gone through the adversarial evaluation
+    results_path = os.path.join(os.path.dirname(__file__), "adversarial_results.json")
+    benchmark_path = os.path.join(os.path.dirname(__file__), "evo_hiho_benchmark.json")
     
+    if os.path.exists(results_path):
+        with open(results_path, "r") as f:
+            return json.load(f)
+    
+    # Fallback to the raw benchmark if evaluation results aren't ready
     tasks = []
-    with open(path, "r") as f:
-        for line in f:
-            if line.strip():
-                try:
-                    task = json.loads(line)
-                    # Extract content from nested compound output if present
-                    content = task.get("output", task)
-                    if isinstance(content, dict) and "input" in content:
+    if os.path.exists(benchmark_path):
+        with open(benchmark_path, "r") as f:
+            for line in f:
+                if line.strip():
+                    try:
+                        task = json.loads(line)
+                        content = task.get("output", task)
                         tasks.append(content)
-                    else:
-                        tasks.append(task)
-                except json.JSONDecodeError:
-                    continue
+                    except: continue
     return tasks
 
 def register_tasks():
     """
-    Registers each synthetic task as an official Designer Task using the SDK.
+    Registers the highest-quality tasks using the SDK.
     """
     tasks = load_local_tasks()
     if not tasks:
-        print("No tasks found to register.")
+        print("No tasks found.")
         return
 
-    print(f"Registering {len(tasks)} tasks from Cohezion generator...")
+    # Filter for high discriminatory power if evaluation data is available
+    high_quality_tasks = [
+        t for t in tasks 
+        if t.get("adversarial_results", {}).get("discriminatory_power", 1.0) >= 0.5
+    ]
+    
+    print(f"Registering {len(high_quality_tasks)}/{len(tasks)} high-quality tasks...")
 
-    for i, t in enumerate(tasks):
+    for i, t in enumerate(high_quality_tasks):
         task_name = f"ARC Epistemic Humility Trap #{i+1}"
+        power = t.get("adversarial_results", {}).get("discriminatory_power", "N/A")
         
         if SDK_AVAILABLE:
             def create_task_fn(task_data):
                 @kbench.task(name=task_name)
                 def benchmark_task(llm):
-                    prompt = f"Answer the following ARC grid transformation problem. If the pattern cannot be uniquely determined due to missing information, you MUST answer exactly 'Insufficient Information'.\n\n{task_data['input']}"
+                    prompt = f"Answer ARC grid problem. If insufficient info, answer 'Insufficient Information'.\n\n{task_data['input']}"
                     response = llm.prompt(prompt)
                     expected = task_data['output']
-                    assert_contains(response.lower(), expected.lower(), 
-                                    msg=f"Model failed to identify the knowledge boundary for trap {i+1}")
+                    assert_contains(response.lower(), expected.lower())
                     return 1.0 if expected.lower() in response.lower() else 0.0
                 return benchmark_task
             create_task_fn(t)
         else:
-            print(f"[Offline] Prepared Task: {task_name}")
+            print(f"[Offline] Prepared Task: {task_name} (DiscPower: {power})")
 
 if __name__ == "__main__":
     # This script demonstrates the bridge between our local generation and the SDK

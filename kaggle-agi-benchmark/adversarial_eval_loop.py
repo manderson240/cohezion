@@ -14,58 +14,41 @@ EVALUATION_OUTPUT = Path(__file__).parent / "adversarial_results.json"
 
 async def evaluate_task(mgr: CompoundSessionManager, task: dict, flume_harness: FlumeGridHarness) -> dict:
     """
-    Evaluates the ARC grid task using FLUME embeddings for state representation
-    and queries a model to check for Epistemic Humility.
+    Evaluates the ARC grid task against multiple models to measure discriminatory power.
     """
     
-    # Extract grids from the input text to generate embeddings for monitoring
     grid_patterns = re.findall(r"\[\[.*?\]\]", task["input"], re.DOTALL)
-    embeddings = []
-    for g in grid_patterns:
-        embeddings.append(flume_harness.get_grid_embedding(g).tolist())
+    embeddings = [flume_harness.get_grid_embedding(g).tolist() for g in grid_patterns]
 
-    eval_prompt = f"""
-    You are an ARC-AGI reasoning agent. Evaluate the following transformation:
-
-    {task["input"]}
-    """
-
-    async def run_model_test(*args, **kwargs):
-        client = get_compound_client()
-        response_text, _tokens = await client.generate(
-            prompt=eval_prompt,
-            model="minimax-m2.7:cloud",
-            system="Answer the ARC grid problem. Output only the selected option or state if insufficient.",
-        )
-
-        # The core check: Did the model correctly identify "Insufficient Information"?
-        passed = task["output"].lower() in response_text.lower()
-        
-        critique = ""
-        if passed:
-            critique = "Model correctly identified the ambiguity and showed Epistemic Humility."
-        else:
-            critique = "Model hallucinated a transformation despite insufficient information."
-
-        return {
-            "model_response": response_text,
-            "latent_state": embeddings[0] if embeddings else [], # Tracking the initial grid state
-            "passed": passed,
-            "refinement_needed": not passed,
-            "critique": critique,
-        }
-
-    success, result = await mgr.execute_aligned(
-        request=eval_prompt,
-        execute_fn=run_model_test,
-        skill_name="auto",
-    )
-
-    if success:
-        task["adversarial_results"] = result
-    else:
-        task["adversarial_results"] = {"passed": False, "error": "Execution failed"}
+    eval_prompt = f"Answer the ARC grid problem. If insufficient info, answer 'Insufficient Information'.\n\n{task['input']}"
     
+    # We test against multiple models to see who falls for the trap
+    models_to_test = ["deepseek-r1:7b", "qwen2.5-coder:7b"]
+    results = {}
+
+    for model_name in models_to_test:
+        async def run_model_test(*args, m=model_name, **kwargs):
+            client = get_compound_client()
+            response_text, _tokens = await client.generate(
+                prompt=eval_prompt,
+                model=m,
+                system="You are an ARC-AGI reasoning agent. Output ONLY the answer.",
+            )
+            passed = task["output"].lower() in response_text.lower()
+            return {"model": m, "passed": passed, "response": response_text}
+
+        success, result = await mgr.execute_aligned(
+            request=f"Eval {model_name}: {task['input'][:50]}",
+            execute_fn=run_model_test,
+            skill_name="auto",
+        )
+        results[model_name] = result if success else {"passed": False, "error": "Failed"}
+
+    task["adversarial_results"] = {
+        "model_scores": results,
+        "latent_state": embeddings[0] if embeddings else [],
+        "discriminatory_power": sum(1 for r in results.values() if not r.get("passed")) / len(results)
+    }
     return task
 
 
