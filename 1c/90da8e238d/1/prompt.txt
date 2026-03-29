@@ -1,0 +1,12 @@
+<task-notification>
+<task-id>b1n039u13</task-id>
+<tool-use-id>toolu_01KKuch56E8gzRz88XUigoRH</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/7811d063-f780-4a33-bf06-f7fd845739f9/tasks/b1n039u13.output</output-file>
+<status>killed</status>
+<summary>Background command "uv run pytest tests/ -q --tb=no 2&gt;&amp;1 | tail -20" was stopped</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/7811d063-f780-4a33-bf06-f7fd845739f9/tasks/b1n039u13.output
+
+---
+
+/retrospect
