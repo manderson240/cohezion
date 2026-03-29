@@ -22,7 +22,9 @@ async def ingest_recovery():
 
     # scan for json files
     # We focus on the 'responses.json' and 'results.json' files which seem to contain the meat
-    files = list(RECOVERY_DIR.glob("**/responses.json")) + list(RECOVERY_DIR.glob("**/results.json"))
+    files = list(RECOVERY_DIR.glob("**/responses.json")) + list(
+        RECOVERY_DIR.glob("**/results.json")
+    )
 
     logger.info(f"Found {len(files)} primary data files.")
 

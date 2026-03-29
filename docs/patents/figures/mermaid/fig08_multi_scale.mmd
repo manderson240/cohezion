@@ -1,0 +1,21 @@
+graph TD
+    Start([Start]) --> Task[Task: Natural Language]
+    
+    subgraph MultiScale["Multi-Scale Operation"]
+        Knower["Knower Scale (2048D)<br/>Exhaustive Search"]
+        Thinker["Thinker Scale (512D)<br/>Trajectory Prediction"]
+        Doer["Doer Scale (12D)<br/>Physical Grounding"]
+    end
+    
+    Task --> Knower
+    Knower --> Thinker
+    Thinker --> Doer
+    
+    Doer --> Merge{{Merge}}
+    Merge --> Coherence["Coherence Check (0.5)"]
+    Coherence --> End([End])
+    
+    style Knower fill:aliceblue,stroke:blue,stroke-width:2px
+    style Thinker fill:lightgreen,stroke:green,stroke-width:2px
+    style Doer fill:lightcoral,stroke:red,stroke-width:2px
+    style Coherence fill:yellow,stroke:orange,stroke-width:2px

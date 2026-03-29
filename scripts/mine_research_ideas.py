@@ -8,20 +8,19 @@ from pathlib import Path
 sys.path.append(str(Path.cwd() / "src"))
 
 from cohezion.swarm.agents.inbox_miner import InboxMiner
-
 from cohezion.swarm.swarm_types import SwarmConfig
 
 
 async def main():
     logging.basicConfig(level=logging.INFO)
-    logging.getLogger("EmailResearch")
+    logger = logging.getLogger("EmailResearch")
 
     # Ensure environment variables are loaded if not already
     from dotenv import load_dotenv
 
     load_dotenv()
 
-    SwarmConfig()
+    config = SwarmConfig()
     miner = InboxMiner(model_name="mistral:7b")  # Use mistral for mining
 
     print("\n--- Mining Inbox for Cohezion Research Ideas ---")

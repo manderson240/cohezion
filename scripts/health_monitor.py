@@ -53,9 +53,7 @@ def run_janitor():
 
             # Auto-checkpoint if on a task branch
             branch = subprocess.run(
-                ["git", "rev-parse", "--abbrev-ref", "HEAD"],
-                capture_output=True,
-                text=True,
+                ["git", "rev-parse", "--abbrev-ref", "HEAD"], capture_output=True, text=True
             ).stdout.strip()
             if branch != "main" and branch != "master":
                 logger.info(f"Autonomous checkpointing for branch: {branch}")

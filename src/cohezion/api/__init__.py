@@ -11,16 +11,13 @@ import re
 from pathlib import Path
 from typing import Any
 
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import Depends, FastAPI, Header, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
 
-from cohezion.api.services.anima import anima_router
-from cohezion.api.services.architecture import architecture_router
-from cohezion.api.services.brand import brand_router
-from cohezion.api.services.universe import universe_router
+from cohezion.api.telemetry import router as telemetry_router
 from cohezion.mcp.knowledge_server import get_server as get_knowledge_server
 from cohezion.mcp.registry import get_registry
 from cohezion.mcp.swarm_server import get_server as get_swarm_server
@@ -31,12 +28,14 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # Allowed CORS origins from environment, default to localhost only
-_CORS_ORIGINS = os.environ.get("COHEZION_CORS_ORIGINS", "http://localhost:3000,http://localhost:8080").split(",")
+_CORS_ORIGINS = os.environ.get(
+    "COHEZION_CORS_ORIGINS", "http://localhost:3000,http://localhost:8080"
+).split(",")
 
 app = FastAPI(
     title="Cohezion API",
     description="AI Research Lab API - Swarm workflows and MCP tools",
-    version="1.0.2",
+    version="0.1.0",
     docs_url="/docs" if os.environ.get("COHEZION_ENV") != "production" else None,
     redoc_url="/redoc" if os.environ.get("COHEZION_ENV") != "production" else None,
 )
@@ -78,13 +77,6 @@ if static_dir.exists():
     app.mount("/static", StaticFiles(directory=static_dir, html=True), name="static")
 
 
-# Universe physics API (real HIHO engine state for the Anima Dashboard)
-app.include_router(anima_router, prefix="/api/anima")
-app.include_router(architecture_router, prefix="/api/architecture")
-app.include_router(brand_router, prefix="/api/brand")
-app.include_router(universe_router, prefix="/api/universe")
-
-
 # Root redirect to UI
 @app.get("/")
 async def root():
@@ -120,7 +112,11 @@ async def health():
 async def list_servers():
     """List all available MCP servers."""
     registry = get_registry()
-    return {"servers": [{"name": s.name, "type": s.type, "status": s.status} for s in registry.list_servers()]}
+    return {
+        "servers": [
+            {"name": s.name, "type": s.type, "status": s.status} for s in registry.list_servers()
+        ]
+    }
 
 
 @app.get("/mcp/tools")
@@ -376,6 +372,19 @@ class FlumeInterpolateResponse(BaseModel):
     mu_b: list[float]
 
 
+class FlumeLatentSpaceRequest(BaseModel):
+    n_samples: int = 100  # Number of random samples to generate
+    seed: int | None = None  # Optional random seed for reproducibility
+
+
+class FlumeLatentSpaceResponse(BaseModel):
+    latent_dim: int
+    samples: list[list[float]]  # List of latent vectors
+    samples_3d: list[list[float]]  # PCA-reduced to 3D for visualization
+    variance_explained: list[float]  # Variance explained by each PC
+    coherence_scores: list[float]  # Coherence for each sample
+
+
 class RLTrainRequest(BaseModel):
     n_episodes: int = 100
     max_steps: int = 200
@@ -612,6 +621,102 @@ async def flume_interpolate(request: FlumeInterpolateRequest):
     )
 
 
+@app.post("/flume/latent-space", response_model=FlumeLatentSpaceResponse)
+async def flume_latent_space(request: FlumeLatentSpaceRequest):
+    """Sample the VAE latent space and return PCA-reduced 3D coordinates for visualization."""
+    import asyncio
+    import time
+
+    import numpy as np
+    import torch
+    from sklearn.decomposition import PCA
+
+    # Validate parameters (prevent DOS, invalid inputs)
+    if request.n_samples <= 0:
+        raise HTTPException(
+            status_code=422,
+            detail="n_samples must be positive",
+        )
+    if request.n_samples > 1000:
+        raise HTTPException(
+            status_code=422,
+            detail="n_samples must be ≤1000 (performance limit)",
+        )
+
+    # Get VAE with explicit error handling (sanitize error messages - Issue #4)
+    try:
+        vae = _get_vae()
+    except FileNotFoundError:
+        raise HTTPException(
+            status_code=500,
+            detail="FLUME VAE checkpoint not found. Train the model first using /flume/train",
+        )
+    except Exception as e:
+        # Sanitize error message to prevent path leakage
+        error_type = type(e).__name__
+        raise HTTPException(
+            status_code=500,
+            detail=f"FLUME VAE not available ({error_type}). Check server logs",
+        )
+
+    z_dim = vae.config.z_dim
+
+    # Set seed for reproducibility (Issue #3: add randomization option)
+    if request.seed is not None:
+        torch.manual_seed(request.seed)
+        np.random.seed(request.seed)
+    else:
+        # Default: use random seed for exploration
+        seed = int(time.time() * 1000) % (2**32)
+        torch.manual_seed(seed)
+        np.random.seed(seed)
+
+    # Sample from standard normal distribution in latent space
+    with torch.no_grad():
+        z_samples = torch.randn(request.n_samples, z_dim, device=vae.device)
+        z_samples_np = z_samples.cpu().numpy()
+
+    # Compute PCA for 3D visualization with timeout (Issue #2: prevent hang)
+    try:
+        async with asyncio.timeout(10.0):  # 10 second timeout
+            # Run PCA in thread pool to avoid blocking event loop
+            loop = asyncio.get_event_loop()
+            n_components = min(3, z_dim, request.n_samples)
+            pca = PCA(n_components=n_components)
+            samples_3d = await loop.run_in_executor(None, pca.fit_transform, z_samples_np)
+    except TimeoutError:
+        raise HTTPException(
+            status_code=504,
+            detail="PCA computation timed out. Try reducing n_samples",
+        )
+
+    # Validate PCA output (Issue #7: catch NaN from degenerate data)
+    if np.isnan(samples_3d).any() or np.isnan(pca.explained_variance_ratio_).any():
+        raise HTTPException(
+            status_code=500,
+            detail="PCA produced invalid results (NaN). VAE may not be properly trained",
+        )
+
+    # Pad with zeros if we have fewer than 3 components
+    if samples_3d.shape[1] < 3:
+        padding = np.zeros((samples_3d.shape[0], 3 - samples_3d.shape[1]))
+        samples_3d = np.hstack([samples_3d, padding])
+
+    # Compute coherence scores (Issue #1: still uses list comp, but optimized access)
+    # Note: Full vectorization requires refactoring _compute_coherence to accept arrays
+    coherence_scores = [
+        _compute_coherence(z_samples_np[i].tolist(), z_dim) for i in range(len(z_samples_np))
+    ]
+
+    return FlumeLatentSpaceResponse(
+        latent_dim=z_dim,
+        samples=[],  # Issue #8: omit redundant full samples to reduce response size
+        samples_3d=samples_3d.tolist(),
+        variance_explained=pca.explained_variance_ratio_.tolist() if n_components > 0 else [],
+        coherence_scores=coherence_scores,
+    )
+
+
 @app.post("/templates/parse", response_model=TemplateParseResponse)
 async def parse_template(request: TemplateParseRequest):
     """Parse a PRIME skill definition and return structured spec + generated code."""
@@ -800,7 +905,7 @@ async def rl_episode():
     import gymnasium as gym
     import numpy as np
 
-    import cohezion.rl.environment
+    import cohezion.rl.environment  # noqa: F401 — registers Gymnasium env
 
     policy = _get_rl_policy()
     env = gym.make("cohezion/FlumeNav-v0", max_steps=200)
@@ -1388,7 +1493,9 @@ async def compound_execute(request: CompoundExecuteRequest):
             model=request.model,
         )
     except KeyError as exc:
-        raise HTTPException(status_code=404, detail=f"Skill not found: {request.skill_name}") from exc
+        raise HTTPException(
+            status_code=404, detail=f"Skill not found: {request.skill_name}"
+        ) from exc
     except Exception as exc:
         logger.exception("Compound execution failed: %s", request.skill_name)
         raise HTTPException(status_code=500, detail="Execution failed") from exc
@@ -1469,7 +1576,9 @@ async def compound_feedback(request: CompoundFeedbackRequest):
                 patterns=result.patterns,
             )
     except KeyError as exc:
-        raise HTTPException(status_code=404, detail=f"Skill not found: {request.skill_name}") from exc
+        raise HTTPException(
+            status_code=404, detail=f"Skill not found: {request.skill_name}"
+        ) from exc
     except Exception as exc:
         logger.exception("Compound feedback failed: %s", request.skill_name)
         raise HTTPException(status_code=500, detail="Feedback cycle failed") from exc
@@ -1534,3 +1643,400 @@ try:
     app.include_router(universe_router, prefix="/api/universe")
 except ImportError:
     pass  # universe module not available
+
+# Register Genesis Engine endpoints (grounded physics layer)
+try:
+    from cohezion.api.services.genesis import genesis_router
+
+    app.include_router(genesis_router, prefix="/api")
+except ImportError:
+    pass  # genesis module not available
+
+# Register World Model endpoints (JEPA predictor)
+try:
+    from cohezion.api.services.world_model import world_model_router
+
+    app.include_router(world_model_router, prefix="/api")
+except ImportError:
+    pass  # world_model module not available
+
+# Register extended physics endpoints (bioelectric, natural-capital, cosmogony chain)
+try:
+    from cohezion.api.services.physics_extended import physics_ext_router
+
+    app.include_router(physics_ext_router, prefix="/api")
+except ImportError:
+    pass  # physics_extended module not available
+
+# Register Worldview Explorer endpoints (indigenous cosmologies)
+try:
+    from cohezion.api.services.worldviews import worldviews_router
+
+    app.include_router(worldviews_router, prefix="/api")
+except ImportError:
+    pass  # worldviews module not available
+
+# Register journey analysis endpoints
+try:
+    from cohezion.api.journeys import router as journeys_router
+
+    app.include_router(journeys_router, prefix="/api/journeys")
+except ImportError:
+    pass  # journeys module not available
+
+# Register Ouroboros self-healing endpoints
+try:
+    from cohezion.api.services.ouroboros_api import ouroboros_router
+
+    app.include_router(ouroboros_router, prefix="/api")
+except ImportError:
+    pass  # ouroboros module not available
+
+# Register Mycelium knowledge network endpoints
+try:
+    from cohezion.api.services.mycelium_api import mycelium_router
+
+    app.include_router(mycelium_router, prefix="/api")
+except ImportError:
+    pass  # mycelium module not available
+
+# Register disconnected modules API (M24)
+try:
+    from cohezion.api.services.modules_api import modules_router
+
+    app.include_router(modules_router, prefix="/api")
+except ImportError:
+    pass  # modules API not available
+
+# Register telemetry websocket
+app.include_router(telemetry_router)
+
+
+# ─── AgentJet CALL endpoints ───────────────────────────────────────────────
+
+
+class TrainRequest(BaseModel):
+    target_model: str = "qwen3.5:9b"
+    skill_domain: str | None = None
+    epochs: int = 3
+    min_phi: float = 0.7
+    dry_run: bool = False
+
+
+class TrainResponse(BaseModel):
+    success: bool
+    model_name: str
+    base_model: str
+    skill_domain: str | None
+    epochs_completed: int
+    samples_used: int
+    avg_reward: float
+    training_duration_s: float
+    dry_run: bool
+    error: str | None = None
+
+
+@app.post("/agentjet/train")
+async def agentjet_train(request: TrainRequest) -> TrainResponse:
+    """Start an AgentJet CALL training cycle."""
+    try:
+        from cohezion.agentjet.trainer import AgentJetTrainer
+
+        trainer = AgentJetTrainer()
+        result = await trainer.train(
+            target_model=request.target_model,
+            skill_domain=request.skill_domain,
+            epochs=request.epochs,
+            min_phi=request.min_phi,
+            dry_run=request.dry_run,
+        )
+        return TrainResponse(
+            success=result.success,
+            model_name=result.model_name,
+            base_model=result.base_model,
+            skill_domain=result.skill_domain,
+            epochs_completed=result.epochs_completed,
+            samples_used=result.samples_used,
+            avg_reward=result.avg_reward,
+            training_duration_s=result.training_duration_s,
+            dry_run=result.dry_run,
+            error=result.error,
+        )
+    except Exception as e:
+        _oom_names = ("OOMRiskError", "ResourceUnavailableError")
+        if type(e).__name__ in _oom_names:
+            from fastapi import HTTPException
+
+            raise HTTPException(status_code=503, detail=str(e)) from e
+        return TrainResponse(
+            success=False,
+            model_name="",
+            base_model=request.target_model,
+            skill_domain=request.skill_domain,
+            epochs_completed=0,
+            samples_used=0,
+            avg_reward=0.0,
+            training_duration_s=0.0,
+            dry_run=request.dry_run,
+            error=str(e),
+        )
+
+
+@app.get("/agentjet/status")
+async def agentjet_status() -> dict:
+    """Get AgentJet CALL system status."""
+    try:
+        from cohezion.agentjet.context_optimizer import OllamaContextManager
+
+        mgr = OllamaContextManager()
+        available_gb = await mgr.get_available_memory_gb()
+        loaded_models = await mgr.get_loaded_models()
+        return {
+            "status": "ready",
+            "available_memory_gb": available_gb,
+            "loaded_models": loaded_models,
+            "backend": "llamafactory",  # Phase 1 default
+        }
+    except Exception as e:
+        return {"status": "error", "error": str(e)}
+
+
+@app.get("/agentjet/models")
+async def agentjet_models() -> dict:
+    """List available training target models."""
+    from cohezion.agentjet.context_optimizer import CONTEXT_PROFILES
+
+    targets = [
+        {"model": k, "size_gb": v.size_gb, "num_ctx": v.num_ctx}
+        for k, v in CONTEXT_PROFILES.items()
+        if not k.endswith(":training") and k != "default"
+    ]
+    return {
+        "training_targets": targets,
+        "recommended": ["qwen3.5:9b", "nemotron-3-nano:30b", "phi3:mini"],
+    }
+
+
+# ============================================================================
+# A2A Protocol Endpoints (Agent-to-Agent v1.0)
+# ============================================================================
+# Implements Google's A2A protocol for multi-agent collaboration.
+# Reference: https://github.com/a2a-protocol/a2a
+# ============================================================================
+
+from cohezion.mcp.manager.auth import validate_token
+from cohezion.protocols.a2a_server import A2AServer, AgentCard
+
+
+# Initialize A2A server (singleton at module level)
+_a2a_server = A2AServer(
+    agent_card=AgentCard(
+        name="Cohezion Portfolio Agent",
+        description="FLUME VAE latent space navigation, Compound Loop engineering, Universe Simulation, Swarm Orchestration, and Evaluation Infrastructure",
+        url=os.getenv("PUBLIC_API_URL", "http://localhost:8080"),
+        version="1.0.2",
+        capabilities=[
+            "simulation",
+            "synthesis",
+            "routing",
+            "analysis",
+            "flume-vae",
+            "compound-loop",
+        ],
+    )
+)
+
+
+# Authentication dependency for A2A endpoints
+async def verify_a2a_token(x_cohezion_key: str | None = Header(None)) -> str:
+    """
+    Validate X-Cohezion-Key header for A2A endpoints.
+
+    Uses ephemeral token from ~/.cohezion/auth.token for localhost security.
+
+    Parameters
+    ----------
+    x_cohezion_key : str or None
+        API key from X-Cohezion-Key header
+
+    Returns
+    -------
+    str
+        Validated API key
+
+    Raises
+    ------
+    HTTPException
+        401 if header missing, 403 if token invalid
+    """
+    if not x_cohezion_key:
+        raise HTTPException(
+            status_code=401,
+            detail="Missing X-Cohezion-Key header. Obtain token from ~/.cohezion/auth.token",
+        )
+
+    if not validate_token(x_cohezion_key):
+        raise HTTPException(status_code=403, detail="Invalid API key")
+
+    return x_cohezion_key
+
+
+@app.get("/.well-known/agent.json")
+async def get_agent_card():
+    """
+    A2A Protocol: Agent discovery endpoint.
+
+    Returns the Agent Card describing this agent's capabilities, skills,
+    and authentication requirements per A2A v1.0 specification.
+
+    Returns
+    -------
+    dict
+        Agent Card JSON with name, description, capabilities, skills, authentication
+    """
+    return _a2a_server.get_agent_card()
+
+
+class A2AMessageModel(BaseModel):
+    """A2A message format with size validation."""
+
+    role: str
+    parts: list[dict[str, Any]]
+
+    @field_validator("parts")
+    @classmethod
+    def validate_parts_size(cls, parts: list[dict[str, Any]]) -> list[dict[str, Any]]:
+        """Limit message parts to 1MB total to prevent DOS attacks."""
+        import json
+
+        # Estimate size by serializing to JSON
+        serialized = json.dumps(parts)
+        size_bytes = len(serialized.encode("utf-8"))
+        max_size = 1_048_576  # 1 MB
+
+        if size_bytes > max_size:
+            raise ValueError(
+                f"Message parts exceed maximum size of {max_size} bytes (got {size_bytes} bytes)"
+            )
+
+        return parts
+
+
+class A2ASendTaskRequest(BaseModel):
+    """Request body for POST /tasks/send."""
+
+    message: A2AMessageModel
+    task_id: str | None = None
+
+
+@app.post("/tasks/send")
+async def send_a2a_task(request: A2ASendTaskRequest, api_key: str = Depends(verify_a2a_token)):
+    """
+    A2A Protocol: Task submission endpoint.
+
+    Creates a new task or continues an existing task. Routes the message
+    through Cohezion's CompoundExecutor for processing.
+
+    Parameters
+    ----------
+    request : A2ASendTaskRequest
+        Message with role='user' and text parts, optional task_id for continuation
+    api_key : str
+        Validated API key from X-Cohezion-Key header
+
+    Returns
+    -------
+    dict
+        Task object with id, state, messages, updated_at
+
+    Raises
+    ------
+    HTTPException
+        400 if message is invalid, 401 if auth missing, 403 if auth invalid
+    """
+    # Validate message has content
+    if not request.message.parts:
+        raise HTTPException(status_code=400, detail="Message parts cannot be empty")
+
+    # Route through A2A server
+    task = await _a2a_server.send_task(
+        message={"role": request.message.role, "parts": request.message.parts},
+        task_id=request.task_id,
+    )
+
+    return {
+        "id": task.id,
+        "state": task.state,
+        "messages": [{"role": m.role, "parts": m.parts} for m in task.messages],
+        "updated_at": task.updated_at,
+    }
+
+
+@app.get("/tasks/{task_id}")
+async def get_a2a_task(task_id: str, api_key: str = Depends(verify_a2a_token)):
+    """
+    A2A Protocol: Task status endpoint.
+
+    Retrieves the current state and message history for a task.
+
+    Parameters
+    ----------
+    task_id : str
+        Task ID returned from POST /tasks/send
+    api_key : str
+        Validated API key from X-Cohezion-Key header
+
+    Returns
+    -------
+    dict
+        Task object with id, state, messages, updated_at
+
+    Raises
+    ------
+    HTTPException
+        401 if auth missing, 403 if auth invalid, 404 if task not found
+    """
+    task = await _a2a_server.get_task(task_id)
+    if not task:
+        raise HTTPException(status_code=404, detail=f"Task {task_id} not found")
+
+    return {
+        "id": task.id,
+        "state": task.state,
+        "messages": [{"role": m.role, "parts": m.parts} for m in task.messages],
+        "updated_at": task.updated_at,
+    }
+
+
+@app.post("/tasks/{task_id}/cancel")
+async def cancel_a2a_task(task_id: str, api_key: str = Depends(verify_a2a_token)):
+    """
+    A2A Protocol: Task cancellation endpoint.
+
+    Attempts to cancel a running task. Only tasks in 'working' state can be canceled.
+
+    Parameters
+    ----------
+    task_id : str
+        Task ID to cancel
+    api_key : str
+        Validated API key from X-Cohezion-Key header
+
+    Returns
+    -------
+    dict
+        {canceled: bool, state: str} - canceled=True if task was canceled
+
+    Raises
+    ------
+    HTTPException
+        401 if auth missing, 403 if auth invalid, 404 if task not found
+    """
+    success = await _a2a_server.cancel_task(task_id)
+
+    # Check if task exists
+    task = await _a2a_server.get_task(task_id)
+    if not task:
+        raise HTTPException(status_code=404, detail=f"Task {task_id} not found")
+
+    return {"canceled": success, "state": task.state}

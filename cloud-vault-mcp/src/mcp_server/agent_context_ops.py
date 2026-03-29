@@ -42,7 +42,9 @@ class AgentContextOps:
         self.auth = (username, password)
         self.client = httpx.Client(timeout=30.0)
 
-        logger.info(f"Initialized AgentContextOps: {surrealdb_url}/{namespace}/{database}")
+        logger.info(
+            f"Initialized AgentContextOps: {surrealdb_url}/{namespace}/{database}"
+        )
 
     def _execute_query(self, query: str) -> list[dict[str, Any]]:
         """Execute SurrealDB SQL query.
@@ -119,7 +121,7 @@ class AgentContextOps:
         """
 
         try:
-            self._execute_query(query)
+            result = self._execute_query(query)
             logger.info(f"Created session: {session_id}")
             return session_id
         except Exception as e:
@@ -177,7 +179,7 @@ class AgentContextOps:
         """
 
         try:
-            self._execute_query(query)
+            result = self._execute_query(query)
             logger.info(f"Created decision: {decision_id} in session {session_id}")
             return decision_id
         except Exception as e:
@@ -237,8 +239,10 @@ class AgentContextOps:
         """
 
         try:
-            self._execute_query(query)
-            logger.info(f"Created action: {action_id} ({tool_name}) in session {session_id}")
+            result = self._execute_query(query)
+            logger.info(
+                f"Created action: {action_id} ({tool_name}) in session {session_id}"
+            )
             return action_id
         except Exception as e:
             logger.error(f"Failed to record action: {e}")
@@ -292,7 +296,7 @@ class AgentContextOps:
         """
 
         try:
-            self._execute_query(query)
+            result = self._execute_query(query)
             logger.info(f"Created outcome: {outcome_id} for session {session_id}")
             return outcome_id
         except Exception as e:
@@ -323,7 +327,11 @@ class AgentContextOps:
         """
         lesson_id = f"lesson:{str(uuid4())[:8]}"
 
-        linked_clause = f", linked_lesson_path = {json.dumps(linked_lesson_path)}" if linked_lesson_path else ""
+        linked_clause = (
+            f", linked_lesson_path = {json.dumps(linked_lesson_path)}"
+            if linked_lesson_path
+            else ""
+        )
 
         query = f"""
         USE NS {self.namespace};
@@ -341,7 +349,7 @@ class AgentContextOps:
         """
 
         try:
-            self._execute_query(query)
+            result = self._execute_query(query)
             logger.info(f"Created lesson: {lesson_id} for session {session_id}")
             return lesson_id
         except Exception as e:

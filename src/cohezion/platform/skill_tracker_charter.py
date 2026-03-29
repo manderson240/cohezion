@@ -3,6 +3,7 @@ Charter-aligned skill tracking with HIHO stability measurement.
 Integrates Phase 0 infrastructure for 100% Charter compliance.
 """
 
+import logging
 import uuid
 from datetime import datetime
 
@@ -42,9 +43,7 @@ class CharterAlignedSkillTracker:
         self.journey_logger = get_journey_logger()
         self.vae = get_encoder()
 
-    async def log_skill_usage(
-        self, event: SkillUsageEvent, journey_id: str | None = None
-    ):
+    async def log_skill_usage(self, event: SkillUsageEvent, journey_id: str | None = None):
         """
         Log skill usage with Charter-compliant tracking.
 

@@ -61,9 +61,10 @@ async def __(re, np):
             # Extract metrics from content if ps is empty (fallback)
             content = n.get("content", "")
             stability = ps.get("dim_10_stability", 0.0)
+            zpe = 0.0
             zpe_match = re.search(r"\*\*ZPE Balance\*\*:\s*([\d\.]+)", content)
             if zpe_match:
-                float(zpe_match.group(1))
+                zpe = float(zpe_match.group(1))
 
             # 12D dimensions
             dims = {
@@ -82,7 +83,7 @@ async def __(re, np):
             }
 
             # Vector for PCA
-            vec = list(dims.values())
+            vec = [v for v in dims.values()]
 
             entries.append(
                 {
@@ -126,7 +127,9 @@ def __(df, mo, px):
                 "complexity": "#FFD93D",
             },
         )
-        fig_line.add_hline(y=0.5, line_dash="dash", line_color="gold", annotation_text="HIHO Threshold")
+        fig_line.add_hline(
+            y=0.5, line_dash="dash", line_color="gold", annotation_text="HIHO Threshold"
+        )
         mo.ui.plotly(fig_line)
     return (fig_line,)
 
@@ -194,15 +197,11 @@ def __(df, go, mo):
         fig = go.Figure()
         fig.add_trace(
             go.Scatterpolar(
-                r=values,
-                theta=categories,
-                fill="toself",
-                name=f"Step {idx}",
-                line_color="#4ECDC4",
+                r=values, theta=categories, fill="toself", name=f"Step {idx}", line_color="#4ECDC4"
             )
         )
         fig.update_layout(
-            polar={"radialaxis": {"visible": True, "range": [0, 1]}},
+            polar=dict(radialaxis=dict(visible=True, range=[0, 1])),
             showlegend=False,
             template="plotly_dark",
             title=f"Inference Dynamics: {row['Timestamp']}",
@@ -230,7 +229,9 @@ def __(df, mo, selected_idx):
         if row["complexity"] > 0.8:
             highlights.append("🧠 **Inference Density Spike**: Complexity is peaking.")
         if row["novelty"] > 0.7:
-            highlights.append("✨ **Novelty Breakthrough**: A high-novelty thought has been imprinted.")
+            highlights.append(
+                "✨ **Novelty Breakthrough**: A high-novelty thought has been imprinted."
+            )
 
         narrative = (
             "\n\n".join(highlights)

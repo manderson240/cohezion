@@ -87,13 +87,9 @@ class HardwareMonitor:
             thermal_path = Path("/sys/class/thermal")
             if thermal_path.exists():
                 self._hardware_available = True
-                logger.debug(
-                    f"Hardware metrics available: found thermal_path={thermal_path}"
-                )
+                logger.debug(f"Hardware metrics available: found thermal_path={thermal_path}")
             else:
-                logger.debug(
-                    "Hardware metrics unavailable: no /sys/class/thermal found"
-                )
+                logger.debug("Hardware metrics unavailable: no /sys/class/thermal found")
         except Exception as e:
             logger.debug(f"Hardware detection error: {e}")
             self._hardware_available = False

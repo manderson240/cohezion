@@ -75,7 +75,9 @@ class TriuneConsensus:
         # Maximum divergence from centroid
         distances = [float(np.linalg.norm(s - centroid)) for s in states]
         max_divergence = max(distances)
-        is_consensus = max_divergence <= self.consensus_threshold
+        quorum = len(proposals) >= 2  # Minimum 2 of 3 agents needed for quorum
+        # HIHO behavioral contract: consensus requires both quorum AND convergence
+        is_consensus = quorum and (max_divergence <= self.consensus_threshold)
 
         equilibrium = GeometricEquilibrium(
             centroid_12d=centroid.tolist(),
@@ -85,8 +87,6 @@ class TriuneConsensus:
 
         # KL Divergence: compare confidence distributions
         kl_div = self._compute_kl_divergence([p.confidence for p in proposals])
-
-        quorum = len(proposals) >= 2  # Minimum 2 of 3 agents needed for quorum
         report = ConsensusReport(
             equilibrium=equilibrium,
             kl_divergence=round(kl_div, 4),

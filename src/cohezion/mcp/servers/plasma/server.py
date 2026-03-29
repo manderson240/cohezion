@@ -49,13 +49,14 @@ async def index(request: web.Request) -> web.Response:
     return web.json_response(
         {
             "name": "Plasma Physics MCP Server",
-            "version": "1.0.0",
+            "version": "2.0.0",
             "port": MCP_PORT,
             "physics": [
                 "Particle-in-Cell (PIC)",
                 "Exotic Vacuum Objects",
                 "HIHO Operations",
                 "Quantum Vacuum Effects",
+                "Kordylewsky Semantic Lagrange Points",
             ],
             "tools": [
                 "plasma_create_simulation",
@@ -65,6 +66,8 @@ async def index(request: web.Request) -> web.Response:
                 "plasma_get_hiho_agents",
                 "plasma_get_field",
                 "plasma_400_year_unification",
+                "plasma_find_semantic_lagrange_points",
+                "plasma_park_context_in_cloud",
             ],
         }
     )

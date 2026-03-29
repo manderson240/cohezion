@@ -297,6 +297,40 @@ if alignment.coherence < 0.5:
     logger.warning(f"Low alignment: {alignment.issues}")
 ```
 
+### AgentVerse Integration (Autonomous Benchmarking)
+
+**LLMExecutor** - Execute tasks via Ollama cloud with coherence scoring:
+```python
+from cohezion.integrations.agentverse import LLMExecutor
+
+executor = LLMExecutor(model="qwen3.5:cloud")
+result = await executor.execute_task(task="Write factorial", skill="python_PRIME")
+# result.coherence: 0.0-1.0
+```
+
+**AutonomousCompoundLoop** - Self-improving benchmark system:
+```python
+from cohezion.integrations.agentverse import AutonomousCompoundLoop
+
+loop = AutonomousCompoundLoop(
+    skills_dir=Path("src/cohezion/skills"),
+    mcp_client=mcp_client,
+    llm_executor=executor,
+    weak_threshold=0.4,
+)
+skills = loop.discover_skills()
+results = await loop.benchmark_all()
+# Weak skills auto-refined, results persist to vault
+```
+
+**CLI**:
+```bash
+uv run python -m cohezion.integrations.agentverse.cli autonomous \
+    --skills-dir src/cohezion/skills \
+    --limit 10 \
+    --model qwen3.5:cloud
+```
+
 ### Cost-Aware Routing
 Optimize for cost without sacrificing quality:
 ```python
@@ -313,6 +347,7 @@ model = router.select_model(task_complexity=0.7, budget_remaining=0.50)
 | Path | Purpose |
 |------|---------|
 | `src/cohezion/compound/` | Executor, SkillRefiner, RetrospectionEngine |
+| `src/cohezion/integrations/agentverse/` | AgentVerse integration (LLMExecutor, AutonomousCompoundLoop) |
 | `src/cohezion/swarm/` | Team orchestration, cost routing |
 | `src/cohezion/cache/` | L1/L2/L3 semantic cache |
 | `src/cohezion/skills/` | PRIME skill definitions (*.md) |

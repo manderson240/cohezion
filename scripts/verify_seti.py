@@ -5,7 +5,6 @@ from pathlib import Path
 
 from cohezion.seti.array import get_exogenic_array
 from cohezion.swarm.agents.seti_agent import SETIAgent
-
 from cohezion.swarm.swarm_types import SwarmConfig
 
 
@@ -15,11 +14,11 @@ sys.path.append(str(Path.cwd() / "src"))
 
 async def main():
     logging.basicConfig(level=logging.INFO)
-    logging.getLogger("SETIVerify")
+    logger = logging.getLogger("SETIVerify")
 
     config = SwarmConfig()
     agent = SETIAgent(config=config)
-    get_exogenic_array()
+    array = get_exogenic_array()
 
     print("\n--- 👽 Test 1: Background Scan ---")
     response_1 = await agent.process("Listening to the void.")

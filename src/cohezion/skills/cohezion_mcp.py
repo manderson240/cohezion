@@ -45,7 +45,8 @@ class CohezionMCP:
         )
         self.knowledge_graph_path = "/home/mike-anderson/dev/cohezion/src/cohezion/knowledge_graph"
         self.model_registry_path = (
-            os.environ.get("COHEZION_ROOT", "/home/mike-anderson/dev/cohezion") + "/model_registry.json"
+            os.environ.get("COHEZION_ROOT", "/home/mike-anderson/dev/cohezion")
+            + "/model_registry.json"
         )
         self.compound_config_path = "/home/mike-anderson/.config/opencode/compound_engineering.json"
 
@@ -88,10 +89,7 @@ class CohezionMCP:
         base_tools = [
             {
                 "name": "elite_ocr_analysis",
-                "description": (
-                    "State-of-the-art OCR with GLM-OCR (94.62% OmniDocBench"
-                    " accuracy) for complex document understanding"
-                ),
+                "description": "State-of-the-art OCR with GLM-OCR (94.62% OmniDocBench accuracy) for complex document understanding",
                 "inputSchema": {
                     "type": "object",
                     "properties": {
@@ -123,10 +121,7 @@ class CohezionMCP:
             },
             {
                 "name": "agentic_coding_workflow",
-                "description": (
-                    "Elite coding workflow with Qwen3-Coder-Next (70.6%"
-                    " SWE-Bench) for complex software engineering tasks"
-                ),
+                "description": "Elite coding workflow with Qwen3-Coder-Next (70.6% SWE-Bench) for complex software engineering tasks",
                 "inputSchema": {
                     "type": "object",
                     "properties": {
@@ -166,9 +161,7 @@ class CohezionMCP:
             },
             {
                 "name": "compound_engineering_orchestrator",
-                "description": (
-                    "Orchestrate compound engineering workflows using elite models with optimal resource allocation"
-                ),
+                "description": "Orchestrate compound engineering workflows using elite models with optimal resource allocation",
                 "inputSchema": {
                     "type": "object",
                     "properties": {
@@ -426,9 +419,7 @@ class CohezionMCP:
             },
             {
                 "name": "compound_engineering_orchestrator",
-                "description": (
-                    "Orchestrate multiple elite models for compound engineering workflows with 96% token efficiency"
-                ),
+                "description": "Orchestrate multiple elite models for compound engineering workflows with 96% token efficiency",
                 "inputSchema": {
                     "type": "object",
                     "properties": {
@@ -531,11 +522,7 @@ class CohezionMCP:
                         },
                         "voice": {
                             "type": "string",
-                            "description": (
-                                "Voice model (alba, marius, javert, jean,"
-                                " fantine, cosette, eponine, azelma, or"
-                                " custom path)"
-                            ),
+                            "description": "Voice model (alba, marius, javert, jean, fantine, cosette, eponine, azelma, or custom path)",
                         },
                         "output_path": {
                             "type": "string",
@@ -669,15 +656,9 @@ class CohezionMCP:
             # Construct OCR prompt based on analysis type
             ocr_prompts = {
                 "text-recognition": "Extract all text from this image with high accuracy.",
-                "table-recognition": (
-                    "Extract and structure table data from this image, maintaining row/column relationships."
-                ),
-                "formula-recognition": (
-                    "Recognize and transcribe mathematical formulas and equations from this image."
-                ),
-                "document-analysis": (
-                    "Perform comprehensive document analysis: extract text, identify structure, and summarize content."
-                ),
+                "table-recognition": "Extract and structure table data from this image, maintaining row/column relationships.",
+                "formula-recognition": "Recognize and transcribe mathematical formulas and equations from this image.",
+                "document-analysis": "Perform comprehensive document analysis: extract text, identify structure, and summarize content.",
                 "handwriting": "Extract handwritten text from this image with best effort interpretation.",
             }
 
@@ -753,7 +734,9 @@ class CohezionMCP:
             output_type = args.get("output_type", "full-solution")
 
             if not task_description:
-                return {"content": [{"type": "text", "text": "Error: task_description is required"}]}
+                return {
+                    "content": [{"type": "text", "text": "Error: task_description is required"}]
+                }
 
             # Select optimal model based on complexity
             model_mapping = {
@@ -768,9 +751,7 @@ class CohezionMCP:
             # Build comprehensive coding prompt
             coding_prompts = {
                 "code-only": "Generate only the code solution for the following task. No explanations.",
-                "with-explanation": (
-                    "Generate the code solution with detailed explanations of the approach and key decisions."
-                ),
+                "with-explanation": "Generate the code solution with detailed explanations of the approach and key decisions.",
                 "with-tests": "Generate the code solution along with comprehensive unit tests.",
                 "full-solution": "Generate a complete solution including code, explanations, tests, and documentation.",
             }
@@ -932,11 +913,7 @@ Generate production-ready, maintainable code that follows industry standards.
                     "content": [
                         {
                             "type": "text",
-                            "text": (
-                                f"Insufficient memory for {workflow_type}."
-                                f" Required: {workflow['memory_required']}GB,"
-                                f" Available: {max_memory}GB"
-                            ),
+                            "text": f"Insufficient memory for {workflow_type}. Required: {workflow['memory_required']}GB, Available: {max_memory}GB",
                         }
                     ]
                 }
@@ -957,7 +934,9 @@ Generate production-ready, maintainable code that follows industry standards.
                 },
             }
 
-            return {"content": [{"type": "text", "text": json.dumps(orchestration_result, indent=2)}]}
+            return {
+                "content": [{"type": "text", "text": json.dumps(orchestration_result, indent=2)}]
+            }
 
         except Exception as e:
             return {
@@ -1149,7 +1128,9 @@ Generate production-ready, maintainable code that follows industry standards.
         except Exception as e:
             return {"content": [{"type": "text", "text": f"Offload execution failed: {e}"}]}
 
-    def batch_offload(self, tasks: list[dict[str, Any]], model: str | None = None) -> dict[str, Any]:
+    def batch_offload(
+        self, tasks: list[dict[str, Any]], model: str | None = None
+    ) -> dict[str, Any]:
         from cohezion.reliability.batch_manager import BatchManager
         from cohezion.reliability.context_harness import ContextHarness
 
@@ -1241,12 +1222,7 @@ Generate production-ready, maintainable code that follows industry standards.
                 "content": [
                     {
                         "type": "text",
-                        "text": (
-                            f"Successfully generated speech using Pocket TTS\n"
-                            f"Voice: {voice}\nOutput: {output_path}\n"
-                            f"Duration: {len(audio) / tts_model.sample_rate:.2f}s\n"
-                            f"Size: {len(audio) * 2 / 1024 / 1024:.2f}MB"
-                        ),
+                        "text": f"Successfully generated speech using Pocket TTS\nVoice: {voice}\nOutput: {output_path}\nDuration: {len(audio) / tts_model.sample_rate:.2f}s\nSize: {len(audio) * 2 / 1024 / 1024:.2f}MB",
                     }
                 ]
             }
@@ -1337,7 +1313,9 @@ Generate production-ready, maintainable code that follows industry standards.
                 if base_id in installed_models:
                     candidates.append((base_id, m_info))
                 else:
-                    sys.stderr.write(f"Warning: Specialist model {base_id} not installed in Ollama.\n")
+                    sys.stderr.write(
+                        f"Warning: Specialist model {base_id} not installed in Ollama.\n"
+                    )
 
         if candidates:
             candidates.sort(key=lambda x: x[1].get("priority", 99))
@@ -1365,6 +1343,50 @@ Generate production-ready, maintainable code that follows industry standards.
                         },
                         indent=2,
                     ),
+                }
+            ]
+        }
+
+    def get_truth_anchors(self, arguments: dict[str, Any]) -> dict[str, Any]:
+        from cohezion.reliability.residency_awareness import ResidencyAnchorBase
+
+        return {
+            "content": [
+                {
+                    "type": "text",
+                    "text": ResidencyAnchorBase.get_context_block(),
+                }
+            ]
+        }
+
+    def remember_fact(self, arguments: dict[str, Any]) -> dict[str, Any]:
+        from cohezion.reliability.memory_manager import MemoryManager
+
+        fact = arguments.get("fact")
+        category = arguments.get("category", "general")
+        mgr = MemoryManager()
+        res = mgr.add(fact, metadata={"category": category})
+        return {
+            "content": [
+                {
+                    "type": "text",
+                    "text": f"Fact remembered successfully. Result: {res}",
+                }
+            ]
+        }
+
+    def recall_context(self, arguments: dict[str, Any]) -> dict[str, Any]:
+        from cohezion.reliability.memory_manager import MemoryManager
+
+        query = arguments.get("query")
+        limit = arguments.get("limit", 5)
+        mgr = MemoryManager()
+        results = mgr.search(query, limit=limit)
+        return {
+            "content": [
+                {
+                    "type": "text",
+                    "text": json.dumps(results, indent=2),
                 }
             ]
         }

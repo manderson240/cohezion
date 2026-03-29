@@ -234,9 +234,7 @@ async def flume_decode_service(request: FlumeDecodeRequest) -> FlumeDecodeRespon
     return FlumeDecodeResponse(reconstruction=recon_list, coherence=coherence)
 
 
-async def flume_interpolate_service(
-    request: FlumeInterpolateRequest,
-) -> FlumeInterpolateResponse:
+async def flume_interpolate_service(request: FlumeInterpolateRequest) -> FlumeInterpolateResponse:
     """Interpolate between two 256D vectors in latent space."""
     import torch
 

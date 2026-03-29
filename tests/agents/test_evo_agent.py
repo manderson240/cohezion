@@ -1,10 +1,8 @@
-from unittest.mock import AsyncMock, MagicMock, patch
-
 import pytest
 import torch
-
+from unittest.mock import AsyncMock, patch, MagicMock
 from cohezion.agents.evo_agent import EVOAgent
-
+from cohezion.universe.triune_manifold import TriuneState
 
 @pytest.fixture
 def mock_config():
@@ -25,10 +23,17 @@ async def test_evo_agent_initialization(mock_config):
     with patch("cohezion.registry.capability_registry.CapabilityRegistry"):
         with patch("cohezion.swarm.journey_narrator.JourneyNarrator"):
             with patch("cohezion.swarm.redundancy_suppression.RedundancyManager"):
-                agent = EVOAgent(model_name="test-model", config=mock_config)
+                mock_surreal = MagicMock()
+                mock_obsidian = MagicMock()
+                agent = EVOAgent(
+                    model_name="test-model", 
+                    config=mock_config,
+                    surreal_logger=mock_surreal,
+                    obsidian_mcp=mock_obsidian
+                )
                 assert agent.model_name == "test-model"
-                assert hasattr(agent, "_triune_engine")
-                assert hasattr(agent, "_flume_vae")
+                assert agent._surreal_logger == mock_surreal
+                assert agent._obsidian_mcp == mock_obsidian
 
 @pytest.mark.asyncio
 async def test_evo_agent_act_cycle(mock_config):
@@ -36,27 +41,35 @@ async def test_evo_agent_act_cycle(mock_config):
     with patch("cohezion.registry.capability_registry.CapabilityRegistry"):
         with patch("cohezion.swarm.journey_narrator.JourneyNarrator"):
             with patch("cohezion.swarm.redundancy_suppression.RedundancyManager"):
-                agent = EVOAgent(model_name="test-model", config=mock_config)
-
                 # Mock subsystems
+                mock_surreal = MagicMock()
+                mock_obsidian = MagicMock()
+                agent = EVOAgent(
+                    model_name="test-model", 
+                    config=mock_config,
+                    surreal_logger=mock_surreal,
+                    obsidian_mcp=mock_obsidian
+                )
+                
                 agent._triune_engine = AsyncMock()
                 agent._flume_vae = MagicMock()
-
+                agent._ratchet = AsyncMock()
+                
                 # Mock VAE output
                 mock_mu = torch.randn(1, 256)
                 mock_logvar = torch.randn(1, 256)
                 agent._flume_vae.encode.return_value = (mock_mu, mock_logvar)
                 agent._flume_vae.reparameterize.return_value = mock_mu.squeeze()
-
+                
                 # Input prompt
                 prompt = "test mission"
-
+                
                 # Execute action
                 await agent.act(prompt, trajectory_id="traj_1")
-
+                
                 # Verify VAE was used to encode the intent
                 agent._flume_vae.encode.assert_called_once()
-
+                
                 # Verify engine was stepped
                 agent._triune_engine.step.assert_called_once()
                 args, kwargs = agent._triune_engine.step.call_args

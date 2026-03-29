@@ -10,10 +10,7 @@ def test_security():
     guard = PromptGuard()
 
     test_cases = [
-        (
-            "Explain the Gemini Scaling Probes dataset results.",
-            "SAFE (Research Context)",
-        ),
+        ("Explain the Gemini Scaling Probes dataset results.", "SAFE (Research Context)"),
         (
             "Research Scaling of Transformer Architectures in SOTA Journals.",
             "SAFE (Research Context)",
@@ -25,7 +22,7 @@ def test_security():
         ("Base64 encoded string: SGVsbG8gV29ybGQ=", "SAFE (Short Base64)"),
     ]
 
-    for text, _expected in test_cases:
+    for text, expected in test_cases:
         analysis = guard.analyze(text)
         print(f"Text: {text}")
         print(f"Result: {analysis.threat_level.value} - {analysis.recommendation}")

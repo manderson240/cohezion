@@ -86,9 +86,7 @@ class DemoGateway:
         combined = f"{prompt}|{system}|{model}"
         return hashlib.sha256(combined.encode()).hexdigest()
 
-    def _calculate_cost(
-        self, model: str, input_tokens: int, output_tokens: int
-    ) -> float:
+    def _calculate_cost(self, model: str, input_tokens: int, output_tokens: int) -> float:
         """Calculate simulated cost."""
         costs = self.MODEL_COSTS.get(model, {"input": 0.001, "output": 0.002})
         input_cost = input_tokens * costs["input"] / 1000
@@ -171,7 +169,9 @@ class DemoGateway:
             "success_rate": round(success_rate, 2),
             "total_tokens": self.metrics.total_tokens,
             "uptime_seconds": round(uptime, 2),
-            "requests_per_minute": round((self.metrics.total_requests / uptime * 60), 2) if uptime > 0 else 0.0,
+            "requests_per_minute": round((self.metrics.total_requests / uptime * 60), 2)
+            if uptime > 0
+            else 0.0,
             "available_models": list(self.MODEL_COSTS.keys()),
             "note": "This is a DEMO gateway - costs are simulated, all requests use local Ollama",
         }

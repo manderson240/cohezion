@@ -1,0 +1,105 @@
+"""Cohezion Compound Engineering System.
+
+from __future__ import annotations
+
+# Universal initialization - activates in ANY Cohezion usage (Claude Code, Gemini CLI, Zed IDE, Antigravity, Opencode, OpenClaw, Hermes Agent, terminals, APIs, etc.)
+try:
+    from .universal.init import initialize_cohezion_environment
+    # The function call above already executed initialization due to the call at the end of the module
+except Exception:
+    # Fail silently to never break Cohezion operation
+    pass
+
+
+"""Compound engineering system for iterative AI refinement.
+
+Integrates skill execution, knowledge persistence (vault), and experience-guided loops.
+Phase 1: Compatibility layer with preserves old API
+"""
+
+# ============================================================================
+# Compatibility Layer (Phase 1) - Preserves old API
+# ============================================================================
+
+from cohezion.compound.analytics.engine import (
+    AnalysisConfig,
+    ExecutionAnalyzer,
+    SimpleAnalyzer,
+)
+from cohezion.compound.analytics.metrics import (
+    MetricsCollector,
+    MetricsSnapshot,
+)
+from cohezion.compound.batch_executor import BatchExecutor
+from cohezion.compound.batch_sizer = BatchSizer
+from cohezion.compound.cache_persistence = CachePersistence
+from cohezion.compound.compat = Compat
+from cohezion.compound.config = Config
+from cohezion.compound.context_integration = ContextIntegration
+from cohezion.compound.core = Core
+from cohezion.compound.degradation_detector = DegradationDetector
+from cohezion.compound.executor = Executor
+from cohezion.compound.exp_persistence = ExpPersistence
+from cohezion.compound.feedback_loop = FeedbackLoop
+from cohezion.compound.global_metrics_aggregator = GlobalMetricsAggregator
+from cohezion.compound.guidance_enhancer = GuidanceEnhancer
+from cohezion.compound.hardware_monitor = HardwareMonitor
+from cohezion.compound.health = Health
+from cohezion.compound.inflection_detector = InflectionDetector
+from cohezion.compound.intake_specialist = IntakeSpecialist
+from cohezion.compound.intent_classifier = IntentClassifier
+from cohezion.compound.journey_tracker = JourneyTracker
+from cohezion.compound.long_horizon_task = LongHorizonTask
+from cohezion.compound.metrics = CompoundMetrics
+from cohezion.compound.metrics_persistence = MetricsPersistence
+from cohezion.compound.models = Models
+from cohezion.compound.persistence = Persistence
+from cohezion.compound.plasma_theosophy_synthesizer = PlasmaTheosophySynthesizer
+from cohezion.compound.prompt_optimizer = PromptOptimizer
+from cohezion.compound.recursive_challenger = RecursiveChallenger
+from cohezion.compound.request_alignment_analyzer = RequestAlignmentAnalyzer
+from cohezion.compound.request_cache = RequestCache
+from cohezion.compound.retrospection_summary = RetrospectionSummary
+from cohezion.compound.routing_feedback_loop = RoutingFeedbackLoop
+from cohezion.compound.session_manager = SessionManager
+from cohezion.compound.skill_consensus_voter = SkillConsensusVoter
+from cohezion.compound.skill_evolution_diff = SkillEvolutionDiff
+from cohezion.compound.skill_refiner = SkillRefiner
+from cohezion.compound.skill_selector = SkillSelector
+from cohezion.compound.task_queue = TaskQueue
+from cohezion.compound.team_executor = TeamExecutor
+from cohezion.compound.thermal_history_persistence = ThermalHistoryPersistence
+from cohezion.compound.thermal_predictor = ThermalPredictor
+from cohezion.compound.thermal_trend_predictor = ThermalTrendPredictor
+from cohezion.compound.thermodynamic_metrics = ThermodynamicMetrics
+from cohezion.compound.token_efficient_executor = TokenEfficientExecutor
+from cohezion.compound.topological_persistence = TopologicalPersistence
+from cohezion.compound.trajectory_search = TrajectorySearch
+from cohezion.compound.universe_bridge = UniverseBridge
+from cohezion.compound.vault_search_executor = VaultSearchExecutor
+from cohezion.compound.vector_pruning = VectorPruning
+
+# TDD and Adversarial Review System
+from cohezion.compound.tdd_adversarial.adversarial_review import (
+    AdversarialReviewSystem,
+    ReviewPerspective,
+    ReviewFinding,
+    PerspectiveState,
+    ReviewSession,
+    get_adversarial_review_system
+)
+
+from cohezion.compound.tdd_adversarial.tdd_integration import (
+    TDDIntegration,
+    TestStatus,
+    TestType,
+    TestResult,
+    TDDState,
+    get_tdd_integration
+)
+
+from cohezion.compound.tdd_adervatorial.coordinator import (
+    TDDAdversarialCoordinator,
+    TDDAdversonalState,
+    get_tdt_adversarial_coordinator
+)

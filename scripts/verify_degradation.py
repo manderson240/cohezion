@@ -7,15 +7,14 @@ from pathlib import Path
 # Add src to path
 sys.path.append(str(Path(__name__).parent / "src"))
 
-from cohezion.swarm.agents.analyst import AnalystAgent
-
 from cohezion.core.credit_manager import get_credit_manager
+from cohezion.swarm.agents.analyst import AnalystAgent
 from cohezion.swarm.swarm_types import Perspective, SwarmConfig
 
 
 async def main():
     logging.basicConfig(level=logging.INFO)
-    logging.getLogger("DegradationVerification")
+    logger = logging.getLogger("DegradationVerification")
 
     # 1. Test Model Fallback (CREDITS)
     credit_manager = get_credit_manager()

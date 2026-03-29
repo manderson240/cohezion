@@ -415,8 +415,12 @@ class CoherenceAggregator:
 
         if total_agents > 0:
             # Weighted average by agent count
-            global_coherence = sum(m.avg_coherence * m.num_agents for m in shard_metrics) / total_agents
-            global_spin = sum(m.avg_spin_coherence * m.num_agents for m in shard_metrics) / total_agents
+            global_coherence = (
+                sum(m.avg_coherence * m.num_agents for m in shard_metrics) / total_agents
+            )
+            global_spin = (
+                sum(m.avg_spin_coherence * m.num_agents for m in shard_metrics) / total_agents
+            )
         else:
             global_coherence = HIHO
             global_spin = 0.0
@@ -502,7 +506,9 @@ class ShardedUniverse:
         self.shard_specs = compute_shard_layout(grid_size, num_shards)
 
         # Create workers
-        self.workers = [ShardWorker(spec, rng_seed=seed + spec.shard_id) for spec in self.shard_specs]
+        self.workers = [
+            ShardWorker(spec, rng_seed=seed + spec.shard_id) for spec in self.shard_specs
+        ]
 
         # Create and distribute agents
         for i in range(num_agents):
@@ -617,8 +623,7 @@ class ShardedUniverse:
 
                 if metrics.precipitation_events > 0:
                     logger.info(
-                        "PRECIPITATION EVENT at step %d (HIHO convergence + SPIN alignment)",
-                        i + 1,
+                        "PRECIPITATION EVENT at step %d (HIHO convergence + SPIN alignment)", i + 1
                     )
 
         return history

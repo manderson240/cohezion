@@ -156,9 +156,7 @@ class LRUPersistentTokenCache(dict):
             # and remove entries that aren't in LRU store
             if len(self) > len(self.lru_store.memory_cache):
                 # Sync memory dict with LRU store
-                keys_to_remove = [
-                    k for k in self.keys() if k not in self.lru_store.memory_cache
-                ]
+                keys_to_remove = [k for k in self.keys() if k not in self.lru_store.memory_cache]
                 for k in keys_to_remove:
                     super().__delitem__(k)
 

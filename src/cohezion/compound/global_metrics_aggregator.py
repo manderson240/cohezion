@@ -14,11 +14,9 @@ import time
 from collections import defaultdict
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
-
-if TYPE_CHECKING:
-    from cohezion.swarm.team_metrics import TeamCompoundMetrics
+from cohezion.swarm.team_metrics import TeamCompoundMetrics
 
 
 logger = logging.getLogger(__name__)
@@ -153,9 +151,7 @@ class GlobalMetricsAggregator:
         if self._data_dir:
             self._data_dir.mkdir(parents=True, exist_ok=True)
 
-    def record_instance_metrics(
-        self, instance_id: str, metrics: InstanceMetrics
-    ) -> None:
+    def record_instance_metrics(self, instance_id: str, metrics: InstanceMetrics) -> None:
         """Record metrics from a single instance.
 
         Parameters
@@ -179,7 +175,9 @@ class GlobalMetricsAggregator:
                 metrics.execution_count,
             )
 
-    def record_team_metrics(self, team_id: str, instance_id: str, metrics: TeamCompoundMetrics) -> None:
+    def record_team_metrics(
+        self, team_id: str, instance_id: str, metrics: TeamCompoundMetrics
+    ) -> None:
         """Record team-level metrics from an instance.
 
         Parameters
@@ -195,9 +193,7 @@ class GlobalMetricsAggregator:
         total_executions = metrics.total_tasks
         total_successes = sum(w.successes for w in metrics.waves)
 
-        avg_duration = (
-            metrics.total_duration_ms / len(metrics.waves) if metrics.waves else 0.0
-        )
+        avg_duration = metrics.total_duration_ms / len(metrics.waves) if metrics.waves else 0.0
 
         instance_metrics = InstanceMetrics(
             instance_id=instance_id,
@@ -210,10 +206,7 @@ class GlobalMetricsAggregator:
             cache_hit_rate=0.0,  # Would be populated by executor
             skill_diversity=len(metrics.model_usage),
             model_usage=metrics.model_usage,
-            metadata={
-                "team_id": team_id,
-                "parallel_efficiency": metrics.parallel_efficiency,
-            },
+            metadata={"team_id": team_id, "parallel_efficiency": metrics.parallel_efficiency},
         )
 
         self.record_instance_metrics(instance_id, instance_metrics)
@@ -276,7 +269,9 @@ class GlobalMetricsAggregator:
             p99_latency = self._calculate_percentile(all_latencies, 0.99)
 
             # Calculate means
-            avg_coherence = sum(coherence_scores) / len(coherence_scores) if coherence_scores else 0.0
+            avg_coherence = (
+                sum(coherence_scores) / len(coherence_scores) if coherence_scores else 0.0
+            )
             cache_hit_mean = sum(cache_hit_rates) / len(cache_hit_rates) if cache_hit_rates else 0.0
 
             # Normalize model distribution
@@ -307,10 +302,7 @@ class GlobalMetricsAggregator:
             return agg
 
     def query_by_agent(
-        self,
-        agent_id: str,
-        start_time: float | None = None,
-        end_time: float | None = None,
+        self, agent_id: str, start_time: float | None = None, end_time: float | None = None
     ) -> list[InstanceMetrics]:
         """Query metrics for a specific agent.
 
@@ -343,10 +335,7 @@ class GlobalMetricsAggregator:
             return list(metrics_list)
 
     def query_by_skill(
-        self,
-        skill_name: str,
-        start_time: float | None = None,
-        end_time: float | None = None,
+        self, skill_name: str, start_time: float | None = None, end_time: float | None = None
     ) -> SkillMetrics | None:
         """Query aggregated metrics for a specific skill.
 
@@ -420,7 +409,11 @@ class GlobalMetricsAggregator:
         """Get list of active instances (updated in last 5 minutes)."""
         cutoff = time.time() - 300  # 5 minutes
         with self._lock:
-            return [instance_id for instance_id, last_update in self._last_update.items() if last_update > cutoff]
+            return [
+                instance_id
+                for instance_id, last_update in self._last_update.items()
+                if last_update > cutoff
+            ]
 
     def get_dashboard_snapshot(self) -> dict[str, Any]:
         """Get real-time dashboard snapshot (updated every 5 seconds).
@@ -451,7 +444,11 @@ class GlobalMetricsAggregator:
                     "skill": name,
                     "executions": m.execution_count,
                     "success_rate": m.success_rate,
-                    "avg_coherence": (sum(m.coherence_trend) / len(m.coherence_trend) if m.coherence_trend else 0.0),
+                    "avg_coherence": (
+                        sum(m.coherence_trend) / len(m.coherence_trend)
+                        if m.coherence_trend
+                        else 0.0
+                    ),
                 }
                 for name, m in list(self._skill_metrics.items())[:20]  # Top 20 skills
             ]
@@ -610,7 +607,9 @@ _global_aggregator: GlobalMetricsAggregator | None = None
 _aggregator_lock = threading.Lock()
 
 
-def get_global_aggregator(data_dir: Path | None = None, window_size_sec: int = 60) -> GlobalMetricsAggregator:
+def get_global_aggregator(
+    data_dir: Path | None = None, window_size_sec: int = 60
+) -> GlobalMetricsAggregator:
     """Get or create the global metrics aggregator singleton.
 
     Parameters

@@ -21,7 +21,7 @@ MEMORY_FILE = PROJECT_ROOT / "memory/session_snapshot.md"
 RESEARCH_FILE = PROJECT_ROOT / "src/cohezion/knowledge_graph/RESEARCH_FEED.md"
 INSIGHTS_FILE = PROJECT_ROOT / "src/cohezion/knowledge_graph/LIVE_INSIGHTS.md"
 
-# SurrealDB Client for Logs (kept for backward-compat imports; connect is per-call)
+# SurrealDB Client for Logs
 log_client = SurrealClient(url="ws://localhost:8000/rpc", namespace="cohezion", database="logs")
 
 

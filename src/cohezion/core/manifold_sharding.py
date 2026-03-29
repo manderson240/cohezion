@@ -42,6 +42,11 @@ class HolographicCoherenceReport:
     coherence_score: float  # 0.0-1.0, 1.0 = perfectly coherent
     pointer_flips: int
 
+    @property
+    def boundary_coherence(self) -> float:
+        """Alias for coherence_score — boundary coherence across shard partitions."""
+        return self.coherence_score
+
     def to_dict(self) -> dict:
         return {
             "shard_count": self.shard_count,
@@ -54,8 +59,16 @@ class HolographicCoherenceReport:
 class DistributedManifold:
     """2048D latent space with optional distributed sharding."""
 
-    def __init__(self, shard_count: int = 8) -> None:
-        self._shard_count = shard_count
+    def __init__(
+        self,
+        shard_count: int = 8,
+        num_shards: int | None = None,
+        total_dims: int | None = None,
+    ) -> None:
+        # Accept num_shards as alias for shard_count (test interface)
+        self._shard_count = num_shards if num_shards is not None else shard_count
+        # total_dims overrides SOUL_DIM when provided
+        self._total_dims = total_dims if total_dims is not None else SOUL_DIM
         self._mode = PulseMode.LOCAL
         self._shards: list[ManifoldShard] = []
         self._lock = threading.Lock()
@@ -63,7 +76,7 @@ class DistributedManifold:
 
     def enable_distributed_pulse(self) -> list[ManifoldShard]:
         """Partition latent space into addressable shards."""
-        dims_per_shard = SOUL_DIM // self._shard_count
+        dims_per_shard = self._total_dims // self._shard_count
         shards = []
 
         for i in range(self._shard_count):
@@ -88,8 +101,11 @@ class DistributedManifold:
 
         return shards
 
-    def atomic_flip(self, shard_id: str, new_data: list[float]) -> None:
+    def atomic_flip(self, shard_id: str | int, new_data: list[float]) -> None:
         """Atomically update a shard's data (Pointer-Flipping protocol)."""
+        # Accept int shard_id (e.g. 0) as alias for the string form (e.g. "shard-00")
+        if isinstance(shard_id, int):
+            shard_id = f"shard-{shard_id:02d}"
         with self._lock:
             for shard in self._shards:
                 if shard.shard_id == shard_id:
@@ -112,6 +128,7 @@ class DistributedManifold:
         #   diff=0   → 0.697 (tight boundary, near HIHO_HIGH)
         #   diff=0.5 → 0.500 (moderate tension, HIHO equilibrium)
         #   diff=1.0 → 0.302 (high tension, near HIHO_LOW)
+        import math as _math
 
         boundary_coherence = []
         for i in range(len(self._shards) - 1):
@@ -120,7 +137,9 @@ class DistributedManifold:
             if shard_a.data and shard_b.data:
                 # Boundary coherence: last dim of A ~ first dim of B
                 diff = abs(shard_a.data[-1] - shard_b.data[0])
-                boundary_coherence.append(1.0 / (1.0 + diff))
+                # HIHO sigmoid: maps [0,1] diff into [0.3, 0.7] coherence band
+                coherence = 0.3 + 0.4 * (1.0 / (1.0 + _math.exp((diff - 0.5) * 5)))
+                boundary_coherence.append(coherence)
 
         score = sum(boundary_coherence) / len(boundary_coherence) if boundary_coherence else 1.0
         return HolographicCoherenceReport(

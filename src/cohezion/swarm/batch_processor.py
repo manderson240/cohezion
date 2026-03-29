@@ -67,12 +67,16 @@ class BatchResult:
     @property
     def tokens_saved(self) -> int:
         """Tokens saved from caching."""
-        return sum(item.cache_entry.tokens_used for item in self.items if item.cached and item.cache_entry)
+        return sum(
+            item.cache_entry.tokens_used for item in self.items if item.cached and item.cache_entry
+        )
 
     @property
     def avg_semantic_confidence(self) -> float:
         """Average confidence of semantic cache hits."""
-        confidences = [item.semantic_confidence for item in self.items if item.semantic_confidence is not None]
+        confidences = [
+            item.semantic_confidence for item in self.items if item.semantic_confidence is not None
+        ]
         return sum(confidences) / len(confidences) if confidences else 0.0
 
 
@@ -170,9 +174,7 @@ class BatchProcessor:
             and hasattr(self.token_client, "semantic_cache")
             and self.token_client.semantic_cache
         ):
-            logger.info(
-                "Phase 1.5: Checking L2 semantic cache for %d misses", cache_misses
-            )
+            logger.info("Phase 1.5: Checking L2 semantic cache for %d misses", cache_misses)
             remaining_misses = []
 
             for item, key in cache_misses_list:
@@ -199,9 +201,7 @@ class BatchProcessor:
                     else:
                         remaining_misses.append((item, key))
                 except Exception as e:
-                    logger.debug(
-                        f"L2 semantic cache lookup failed for {item.id}, continuing: {e}"
-                    )
+                    logger.debug(f"L2 semantic cache lookup failed for {item.id}, continuing: {e}")
                     remaining_misses.append((item, key))
 
             cache_misses_list = remaining_misses
@@ -240,20 +240,18 @@ class BatchProcessor:
             # Create fresh semaphore with dynamic concurrency level
             self._concurrency_semaphore = asyncio.Semaphore(actual_concurrency)
 
-            tasks = [self._execute_with_concurrency(item, key, execute_fn) for item, key in unique_misses]
+            tasks = [
+                self._execute_with_concurrency(item, key, execute_fn) for item, key in unique_misses
+            ]
 
             results = await asyncio.gather(*tasks, return_exceptions=True)
 
             # Phase 2.5: Replicate results to all duplicates
-            for (representative_item, key), result in zip(
-                unique_misses, results, strict=False
-            ):
+            for (representative_item, key), result in zip(unique_misses, results, strict=False):
                 if isinstance(result, BaseException):
                     representative_item.error = str(result)
                     representative_item.tokens_used = 0
-                    logger.error(
-                        "Execution failed for %s: %s", representative_item.id, result
-                    )
+                    logger.error("Execution failed for %s: %s", representative_item.id, result)
                 else:
                     output, tokens = result
                     representative_item.result = output

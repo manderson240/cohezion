@@ -100,7 +100,9 @@ class SemanticCacheStore:
         union = len(tokens1 | tokens2)
         return intersection / union if union > 0 else 0.0
 
-    def get(self, prompt: str, system: str | None = None, model: str | None = None) -> tuple[str | None, bool]:
+    def get(
+        self, prompt: str, system: str | None = None, model: str | None = None
+    ) -> tuple[str | None, bool]:
         """Get cached response with exact or semantic matching.
 
         Returns
@@ -167,9 +169,7 @@ class SemanticCacheStore:
         if not self._entries:
             return
 
-        lru_key = min(
-            self._entries.keys(), key=lambda k: self._entries[k].last_accessed
-        )
+        lru_key = min(self._entries.keys(), key=lambda k: self._entries[k].last_accessed)
         del self._entries[lru_key]
         del self._embeddings[lru_key]
         self._stats["evictions"] += 1
@@ -286,7 +286,9 @@ class ContextPoolManager:
 
         pool = self._pools[template_key]
         old_eff = pool.effectiveness
-        pool.effectiveness = ((old_eff * (pool.usage_count - 1)) + (1.0 if was_useful else 0.0)) / pool.usage_count
+        pool.effectiveness = (
+            (old_eff * (pool.usage_count - 1)) + (1.0 if was_useful else 0.0)
+        ) / pool.usage_count
 
     def get_stats(self) -> dict[str, Any]:
         """Get pool statistics."""
@@ -367,7 +369,11 @@ class KVCacheOptimizer:
         list[str]
             Model names needing defragmentation (fragmentation > 30%)
         """
-        return [model for model, metrics in self._model_metrics.items() if metrics.fragmentation_percent > 30.0]
+        return [
+            model
+            for model, metrics in self._model_metrics.items()
+            if metrics.fragmentation_percent > 30.0
+        ]
 
     def recommend_reallocation(self, available_vram_mb: int) -> dict[str, int]:
         """Recommend KV-cache reallocation based on performance.
@@ -491,10 +497,11 @@ class MultiLayerCache:
                     for key, entry_data in data.items():
                         entry = CacheEntry(**entry_data)
                         self._semantic_cache._entries[key] = entry
-                        self._semantic_cache._embeddings[key] = self._semantic_cache._text_to_tokens(entry.key)
+                        self._semantic_cache._embeddings[key] = (
+                            self._semantic_cache._text_to_tokens(entry.key)
+                        )
                 logger.info(
-                    "Loaded semantic cache with %d entries",
-                    len(self._semantic_cache._entries),
+                    "Loaded semantic cache with %d entries", len(self._semantic_cache._entries)
                 )
         except Exception as e:
             logger.warning("Failed to load cache: %s", e)
@@ -525,10 +532,7 @@ class MultiLayerCache:
             with semantic_file.open("w", encoding="utf-8") as f:
                 json.dump(data, f, indent=2)
 
-            logger.debug(
-                "Saved semantic cache with %d entries",
-                len(self._semantic_cache._entries),
-            )
+            logger.debug("Saved semantic cache with %d entries", len(self._semantic_cache._entries))
         except Exception as e:
             logger.warning("Failed to save cache: %s", e)
 

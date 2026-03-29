@@ -18,6 +18,7 @@ Trust and weight are assigned to participants in this order:
 The fundamental attractor for stable reality precipitation within the manifold is exactly 50% coherence overlap.
 - **HIHO Stability**: Systems must strive for the "Half-In-Half-Out" balance point to maintain structural integrity under adversarial pressure.
 - **Deterministic Responsibility**: All agentic actions must be idempotent to preserve the 0.5 coherence baseline across mission state transitions.
+- **Mathematical Proof**: HIHO is not arbitrary — it is the unique state where six independent mathematical frameworks converge: Brahmagupta's zero (δ=0, 628 CE), Friston's variational free energy minimum (F=E-TS), the flat Yang-Mills gauge connection (F=0), the Fisher information metric minimum, the Bloch sphere equator (⟨σ_z⟩=0), and the Landau phase transition fixed point. See `physics/cosmogony.py`, `physics/spinor.py`, `physics/gauge_theory.py`, `docs/genesis-engine-research.md`.
 
 ## 4. Ethical Practice: Honesty
 Honesty is non-negotiable and exceeds standard human "white lie" norms.
@@ -55,6 +56,9 @@ Core operational directives for efficient, scalable development:
 5. **Crystal Clear Planning**: Use inference to clarify plans before delegating to specialized agents.
 6. **Idempotent Abstractions**: If blockers arise, overcome them with idempotent code patterns.
 7. **Journey Persistence**: All plans, milestones, and learnings are synced to platform memory.
+8. **Total Artifact Persistence** (Session 74): ALL artifacts — prompts, responses, internal states, model checkpoints, simulation runs — are stored in SurrealDB. Nothing is ephemeral. Six genesis tables: `journey_transitions`, `universe_snapshots`, `prompt_artifacts`, `model_artifacts`, `simulation_artifacts`, `internal_state_snapshots`. See `persistence/genesis_persistence.py`, `knowledge_graph/genesis_schema.surql`.
+9. **Physics-Grounded Environments**: Agent training occurs in Gymnasium-compatible environments governed by real Riemannian geometry, Lagrangian mechanics, and Yang-Mills gauge theory — not hand-crafted rules. See `environments/manifold_env.py`, `environments/swarm_env.py`.
+10. **Topology-Aware Orchestration**: Persistent homology (TDA) classifies agent behavior into exploit/explore/pivot regimes and drives task routing decisions. See `swarm/topological_router.py`.
 
 ## 9. Architecture Specifications (For Agent Delegation)
 Include explicit specs in plans to enable autonomous agent execution:

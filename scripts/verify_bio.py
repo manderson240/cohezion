@@ -10,18 +10,17 @@ sys.path.append(str(Path.cwd() / "src"))
 from cohezion.bio.biophotonics import Wavelength, get_light_field
 from cohezion.bio.morphic_field import get_morphic_field
 from cohezion.swarm.agents.biological_agent import BiologicalAgent
-
 from cohezion.swarm.swarm_types import SwarmConfig
 
 
 async def main():
     logging.basicConfig(level=logging.INFO)
-    logging.getLogger("BioVerification")
+    logger = logging.getLogger("BioVerification")
 
     config = SwarmConfig()
     agent = BiologicalAgent(config=config)
     light_field = get_light_field()
-    get_morphic_field()
+    morphic_field = get_morphic_field()
 
     print("\n--- 🦠 Test 1: Initial Thought (Imprinting) ---")
     query = "Explain the concept of Morphic Resonance in biological systems."

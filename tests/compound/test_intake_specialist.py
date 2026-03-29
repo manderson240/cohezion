@@ -417,7 +417,9 @@ class TestIntakeSpecialist:
 
         for request, expected_op in operations.items():
             task = await self.intake.process_request(request)
-            assert task.operation_type == expected_op, f"Expected {expected_op}, got {task.operation_type}"
+            assert task.operation_type == expected_op, (
+                f"Expected {expected_op}, got {task.operation_type}"
+            )
 
     @pytest.mark.asyncio
     async def test_prompt_optimization(self):
@@ -505,13 +507,13 @@ class TestIntakeSpecialistIntegration:
         intake = IntakeSpecialist(self.mcp_client)
 
         # Process several requests
-        for _i in range(5):
+        for i in range(5):
             request = "Generate ideas"
             task = await intake.process_request(request)
             intake.log_success(request, task)
 
             # Repeat request (should hit cache)
-            await intake.process_request(request)
+            task2 = await intake.process_request(request)
 
         stats = intake.get_session_stats()
         cache_stats = stats["cache_stats"]

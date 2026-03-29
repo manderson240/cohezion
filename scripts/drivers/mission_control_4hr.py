@@ -47,9 +47,7 @@ class MissionControl:
             try:
                 # Use uv run for environment consistency
                 p = subprocess.Popen(
-                    ["uv", "run", script],
-                    stdout=subprocess.DEVNULL,
-                    stderr=subprocess.DEVNULL,
+                    ["uv", "run", script], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL
                 )
                 self.processes.append((script, p))
                 logger.info(f"✅ Launched {script} (PID: {p.pid})")

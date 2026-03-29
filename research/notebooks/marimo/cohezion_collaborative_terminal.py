@@ -24,12 +24,11 @@ import marimo as mo
 # Add src to path
 sys.path.append(str(Path.cwd() / "src"))
 
+from cohezion.core.credit_manager import get_credit_manager
 from cohezion.swarm.agents.analyst import AnalystAgent
 from cohezion.swarm.agents.architect_agent import ArchitectAgent
 from cohezion.swarm.agents.hypothesis_agent import HypothesisAgent
 from cohezion.swarm.agents.memory_agent import MemoryAgent
-
-from cohezion.core.credit_manager import get_credit_manager
 from cohezion.swarm.swarm_types import Perspective, SwarmConfig
 
 
@@ -125,6 +124,7 @@ mo.md(f"""
 # Cell 5: Vector Manifold & Light Field
 import numpy as np
 import plotly.graph_objects as go
+
 from cohezion.bio.biophotonics import get_light_field
 
 
@@ -140,18 +140,15 @@ def generate_visuals():
                 y=points[:, 1],
                 z=points[:, 2],
                 mode="markers",
-                marker={
-                    "size": 4,
-                    "color": np.linspace(0, 1, n_points),
-                    "colorscale": "Viridis",
-                    "opacity": 0.8,
-                },
+                marker=dict(
+                    size=4, color=np.linspace(0, 1, n_points), colorscale="Viridis", opacity=0.8
+                ),
             )
         ]
     )
     fig_manifold.update_layout(
         title="12D Thought Manifold (3D Projection)",
-        margin={"l": 0, "r": 0, "b": 0, "t": 30},
+        margin=dict(l=0, r=0, b=0, t=30),
         template="plotly_dark",
         height=400,
     )
@@ -167,14 +164,14 @@ def generate_visuals():
             go.Bar(
                 x=list(summary.keys()),
                 y=list(summary.values()),
-                marker_color=[colors.get(k, "white") for k in summary],
+                marker_color=[colors.get(k, "white") for k in summary.keys()],
             )
         ]
     )
     fig_light.update_layout(
         title="Biophotonic Spectrum (Last 5s)",
-        yaxis={"range": [0, 1], "title": "Intensity"},
-        margin={"l": 0, "r": 0, "b": 0, "t": 30},
+        yaxis=dict(range=[0, 1], title="Intensity"),
+        margin=dict(l=0, r=0, b=0, t=30),
         template="plotly_dark",
         height=400,
     )

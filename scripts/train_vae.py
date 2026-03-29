@@ -30,10 +30,7 @@ def main() -> int:
         help="Directory containing training data (default: data/mass_sim/artifacts)",
     )
     parser.add_argument(
-        "--epochs",
-        type=int,
-        default=100,
-        help="Number of training epochs (default: 100)",
+        "--epochs", type=int, default=100, help="Number of training epochs (default: 100)"
     )
     parser.add_argument(
         "--checkpoint-dir",
@@ -46,7 +43,9 @@ def main() -> int:
         default=10,
         help="Log metrics every N epochs (default: 10)",
     )
-    parser.add_argument("--batch-size", type=int, default=64, help="Training batch size (default: 64)")
+    parser.add_argument(
+        "--batch-size", type=int, default=64, help="Training batch size (default: 64)"
+    )
     parser.add_argument("--lr", type=float, default=1e-3, help="Learning rate (default: 1e-3)")
     parser.add_argument(
         "--resume",

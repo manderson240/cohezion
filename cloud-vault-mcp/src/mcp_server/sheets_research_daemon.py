@@ -324,7 +324,7 @@ class AgentCoordinator:
                 try:
                     creds_data = json_lib.loads(creds_path.read_text())
                     auth_token = creds_data.get("claudeAiOauth", {}).get("accessToken")
-                except Exception:
+                except (FileNotFoundError, json_lib.JSONDecodeError, KeyError):
                     pass
 
                 # Fall back to API key
@@ -543,7 +543,8 @@ class SheetsResearchDaemon:
             # Process pending rows in batches
             while True:
                 pending = self.work_queue.get_pending_rows(
-                    self.config.sheets_research_batch_size * self.config.sheets_research_max_concurrent_agents
+                    self.config.sheets_research_batch_size
+                    * self.config.sheets_research_max_concurrent_agents
                 )
 
                 if not pending:
@@ -559,7 +560,9 @@ class SheetsResearchDaemon:
         """Process batch of rows using parallel agents."""
         # Split into sub-batches for parallel agent spawn
         batch_size = self.config.sheets_research_batch_size
-        sub_batches = [rows[i : i + batch_size] for i in range(0, len(rows), batch_size)]
+        sub_batches = [
+            rows[i : i + batch_size] for i in range(0, len(rows), batch_size)
+        ]
 
         logger.info(f"Spawning {len(sub_batches)} agents")
 
@@ -601,7 +604,9 @@ class SheetsResearchDaemon:
                         row["link"],
                         f"No result from agent after {retry_count} attempts",
                     )
-                    logger.warning(f"Row {row['row']} moved to DLQ after {retry_count} attempts")
+                    logger.warning(
+                        f"Row {row['row']} moved to DLQ after {retry_count} attempts"
+                    )
             return
 
         # Prepare batch update data
@@ -640,7 +645,9 @@ class SheetsResearchDaemon:
                         row["link"],
                         f"No result from agent after {retry_count} attempts",
                     )
-                    logger.warning(f"Row {row_num} moved to DLQ after {retry_count} attempts")
+                    logger.warning(
+                        f"Row {row_num} moved to DLQ after {retry_count} attempts"
+                    )
                 failed.append((row_num, "No result from agent"))
 
         # Apply batch update to sheet
@@ -657,10 +664,14 @@ class SheetsResearchDaemon:
             try:
                 await self._generate_vault_note(result)
             except Exception:
-                logger.exception(f"Failed to generate vault note for row {result['row']}")
+                logger.exception(
+                    f"Failed to generate vault note for row {result['row']}"
+                )
 
         self.rows_processed_today += len(successful)
-        logger.info(f"Processed {len(successful)} rows successfully, {len(failed)} failed")
+        logger.info(
+            f"Processed {len(successful)} rows successfully, {len(failed)} failed"
+        )
 
         if failed:
             logger.warning(f"Failed rows: {failed}")
@@ -673,7 +684,9 @@ class SheetsResearchDaemon:
     async def _generate_vault_note(self, result: dict):
         """Generate vault note for researched row."""
         # Create filename from abstractions (first 50 chars)
-        title_slug = result["abstractions"][:50].lower().replace(" ", "-").replace("/", "-")
+        title_slug = (
+            result["abstractions"][:50].lower().replace(" ", "-").replace("/", "-")
+        )
         filename = f"papers/{result['row']}-{title_slug}.md"
         filepath = Path(self.vault.vault_path) / filename
 

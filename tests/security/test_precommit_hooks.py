@@ -9,12 +9,12 @@ This test suite validates Task #4 of Phase 2 Security Hardening:
 """
 
 import json
+import os
 from pathlib import Path
 
 import pytest
 
 
-# Project root resolved from test file location (tests/security/test_precommit_hooks.py)
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 
 
@@ -49,7 +49,9 @@ class TestPrecommitInstallation:
                 config = yaml.safe_load(f)
 
             repos = [repo.get("repo", "") for repo in config.get("repos", [])]
-            assert any("detect-secrets" in repo for repo in repos), "detect-secrets repo not configured"
+            assert any("detect-secrets" in repo for repo in repos), (
+                "detect-secrets repo not configured"
+            )
         except ImportError:
             pytest.skip("PyYAML not available")
 
@@ -73,7 +75,9 @@ class TestPrecommitInstallation:
         with open(config_path) as f:
             content = f.read()
         # Accept both old (commit) and new (pre-commit) stage naming
-        assert "stages: [commit]" in content or "stages: [pre-commit]" in content, "No commit stage hooks configured"
+        assert "stages: [commit]" in content or "stages: [pre-commit]" in content, (
+            "No commit stage hooks configured"
+        )
 
     def test_precommit_config_has_push_stage(self):
         """Verify pre-commit has push stage hooks."""
@@ -81,7 +85,9 @@ class TestPrecommitInstallation:
         with open(config_path) as f:
             content = f.read()
         # Accept both old (push) and new (pre-push) stage naming
-        assert "stages: [push]" in content or "stages: [pre-push]" in content, "No push stage hooks configured"
+        assert "stages: [push]" in content or "stages: [pre-push]" in content, (
+            "No push stage hooks configured"
+        )
 
 
 class TestDetectSecretsConfiguration:
@@ -153,10 +159,6 @@ class TestDetectSecretsConfiguration:
         assert isinstance(results, dict), "Results should be a dictionary"
 
 
-@pytest.mark.skipif(
-    not (Path(__file__).resolve().parents[2] / ".git/hooks/pre-commit").exists(),
-    reason="pre-commit hooks not installed (run: pre-commit install)",
-)
 class TestGitHooksInstallation:
     """Test git hook installation."""
 
@@ -166,7 +168,7 @@ class TestGitHooksInstallation:
     )
     def test_pre_commit_hook_exists(self):
         """Verify .git/hooks/pre-commit exists."""
-        hook_path = PROJECT_ROOT / ".git/hooks/pre-commit"
+        hook_path = PROJECT_ROOT / ".git" / "hooks" / "pre-commit"
         assert hook_path.exists(), f"Pre-commit hook not found at {hook_path}"
 
     @pytest.mark.skipif(
@@ -175,7 +177,7 @@ class TestGitHooksInstallation:
     )
     def test_pre_push_hook_exists(self):
         """Verify .git/hooks/pre-push exists."""
-        hook_path = PROJECT_ROOT / ".git/hooks/pre-push"
+        hook_path = PROJECT_ROOT / ".git" / "hooks" / "pre-push"
         assert hook_path.exists(), f"Pre-push hook not found at {hook_path}"
 
     @pytest.mark.skipif(
@@ -184,9 +186,7 @@ class TestGitHooksInstallation:
     )
     def test_pre_commit_hook_is_executable(self):
         """Verify .git/hooks/pre-commit is executable."""
-        import os
-
-        hook_path = PROJECT_ROOT / ".git/hooks/pre-commit"
+        hook_path = PROJECT_ROOT / ".git" / "hooks" / "pre-commit"
         assert os.access(hook_path, os.X_OK), "Pre-commit hook is not executable"
 
     @pytest.mark.skipif(
@@ -195,9 +195,7 @@ class TestGitHooksInstallation:
     )
     def test_pre_push_hook_is_executable(self):
         """Verify .git/hooks/pre-push is executable."""
-        import os
-
-        hook_path = PROJECT_ROOT / ".git/hooks/pre-push"
+        hook_path = PROJECT_ROOT / ".git" / "hooks" / "pre-push"
         assert os.access(hook_path, os.X_OK), "Pre-push hook is not executable"
 
     @pytest.mark.skipif(
@@ -206,10 +204,12 @@ class TestGitHooksInstallation:
     )
     def test_pre_commit_hook_references_framework(self):
         """Verify .git/hooks/pre-commit references pre-commit framework."""
-        hook_path = PROJECT_ROOT / ".git/hooks/pre-commit"
+        hook_path = PROJECT_ROOT / ".git" / "hooks" / "pre-commit"
         with open(hook_path) as f:
             content = f.read()
-        assert "pre-commit" in content.lower(), "Pre-commit hook should reference pre-commit framework"
+        assert "pre-commit" in content.lower(), (
+            "Pre-commit hook should reference pre-commit framework"
+        )
 
 
 class TestSecurityToolsInstallation:
@@ -217,29 +217,27 @@ class TestSecurityToolsInstallation:
 
     def test_install_script_is_executable(self):
         """Verify install_security_tools.sh exists and is executable."""
-        import os
-
-        script_path = PROJECT_ROOT / "scripts/setup/install_security_tools.sh"
+        script_path = PROJECT_ROOT / "scripts" / "setup" / "install_security_tools.sh"
         assert script_path.exists(), f"Script not found at {script_path}"
         assert os.access(script_path, os.X_OK), f"Script is not executable: {script_path}"
 
     def test_install_script_creates_baseline(self):
         """Verify install script creates secrets baseline."""
-        script_path = PROJECT_ROOT / "scripts/setup/install_security_tools.sh"
+        script_path = PROJECT_ROOT / "scripts" / "setup" / "install_security_tools.sh"
         with open(script_path) as f:
             content = f.read()
         assert ".secrets.baseline" in content, "Install script should handle .secrets.baseline"
 
     def test_install_script_installs_hooks(self):
         """Verify install script installs pre-commit hooks."""
-        script_path = PROJECT_ROOT / "scripts/setup/install_security_tools.sh"
+        script_path = PROJECT_ROOT / "scripts" / "setup" / "install_security_tools.sh"
         with open(script_path) as f:
             content = f.read()
         assert "pre-commit install" in content, "Install script should run pre-commit install"
 
     def test_install_script_documents_usage(self):
         """Verify install script documents setup and usage."""
-        script_path = PROJECT_ROOT / "scripts/setup/install_security_tools.sh"
+        script_path = PROJECT_ROOT / "scripts" / "setup" / "install_security_tools.sh"
         with open(script_path) as f:
             content = f.read()
 
@@ -325,8 +323,8 @@ class TestPrecommitIntegration:
     def test_setup_scripts_complete(self):
         """Verify all necessary setup scripts exist."""
         scripts = [
-            str(PROJECT_ROOT / "scripts/setup/generate_tls_certificates.sh"),
-            str(PROJECT_ROOT / "scripts/setup/install_security_tools.sh"),
+            PROJECT_ROOT / "scripts" / "setup" / "generate_tls_certificates.sh",
+            PROJECT_ROOT / "scripts" / "setup" / "install_security_tools.sh",
         ]
 
         for script in scripts:

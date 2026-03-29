@@ -138,9 +138,7 @@ async def test_batch_concurrency_limiting(mock_token_client):
     assert processor._concurrency_semaphore._value == 2
     assert processor.config.batch.parallel_tasks == 2
 
-    items = [
-        BatchItem(id=str(i), prompt=f"p{i}", system="s", model="m") for i in range(3)
-    ]
+    items = [BatchItem(id=str(i), prompt=f"p{i}", system="s", model="m") for i in range(3)]
 
     async def dummy_execute(item: BatchItem):
         await asyncio.sleep(0.01)
@@ -262,9 +260,7 @@ async def test_batch_result_total_tokens(batch_processor):
 @pytest.mark.asyncio
 async def test_batch_timing(batch_processor):
     """Test batch execution timing is better with parallelism."""
-    items = [
-        BatchItem(id=str(i), prompt=f"p{i}", system="s", model="m") for i in range(3)
-    ]
+    items = [BatchItem(id=str(i), prompt=f"p{i}", system="s", model="m") for i in range(3)]
 
     async def dummy_execute(item: BatchItem):
         await asyncio.sleep(0.02)  # 20ms per item

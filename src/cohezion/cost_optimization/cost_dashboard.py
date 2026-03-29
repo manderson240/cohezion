@@ -14,14 +14,11 @@ from __future__ import annotations
 import logging
 import time
 from dataclasses import asdict, dataclass, field
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
+from cohezion.compound.global_metrics_aggregator import GlobalMetricsAggregator
 from cohezion.cost_optimization.budget_enforcer import BudgetEnforcer
 from cohezion.cost_optimization.cost_tracker import SessionCostTracker
-
-
-if TYPE_CHECKING:
-    from cohezion.compound.global_metrics_aggregator import GlobalMetricsAggregator
 
 
 logger = logging.getLogger(__name__)
@@ -209,7 +206,9 @@ class CostDashboard:
         spend_rate = self.get_spend_rate()
         remaining_budget = max(0, budget_usd - spent_usd)
         hours_remaining = (
-            remaining_budget / spend_rate.spend_per_hour_usd if spend_rate.spend_per_hour_usd > 0 else float("inf")
+            remaining_budget / spend_rate.spend_per_hour_usd
+            if spend_rate.spend_per_hour_usd > 0
+            else float("inf")
         )
 
         return BudgetStatus(

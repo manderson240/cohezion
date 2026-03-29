@@ -62,7 +62,9 @@ class SemanticCache:
         except Exception as e:
             logger.warning("Failed to persist semantic cache to disk: %s", e)
 
-    async def search(self, query_vec: np.ndarray, query_text: str | None = None) -> dict[str, Any] | None:
+    async def search(
+        self, query_vec: np.ndarray, query_text: str | None = None
+    ) -> dict[str, Any] | None:
         """
         Perform semantic similarity search with Redis L1 tier.
 
@@ -116,11 +118,7 @@ class SemanticCache:
                 if guidance and guidance.get("relevant_context"):
                     logger.debug(f"📜 Vault L3 Hit for query: {query_text[:20]}...")
                     return {
-                        "response": (
-                            f"VAULT GUIDANCE:\n{guidance.get('guidance', '')}"
-                            f"\n\nCONTEXT:\n"
-                            f"{json.dumps(guidance.get('relevant_context', []), indent=2)}"
-                        ),
+                        "response": f"VAULT GUIDANCE:\n{guidance.get('guidance', '')}\n\nCONTEXT:\n{json.dumps(guidance.get('relevant_context', []), indent=2)}",
                         "semantic_score": 0.5,  # Qualitative hit
                         "source": "vault",
                     }
@@ -144,7 +142,9 @@ class SemanticCache:
                 self.metadata[idx] = {
                     **m,
                     **metadata,
-                    "timestamp": os.path.getmtime(self.index_path) if self.index_path.exists() else 0,
+                    "timestamp": os.path.getmtime(self.index_path)
+                    if self.index_path.exists()
+                    else 0,
                 }
                 return
 

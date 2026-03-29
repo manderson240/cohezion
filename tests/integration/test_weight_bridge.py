@@ -89,14 +89,14 @@ class TestLoadPolicyNetwork:
 
     def test_roundtrip(self, policy_checkpoint):
         """Load a saved checkpoint and verify it produces a working PolicyNetwork."""
-        ckpt_path, state_dim, _hidden_dim, action_dim = policy_checkpoint
+        ckpt_path, state_dim, hidden_dim, action_dim = policy_checkpoint
         policy = WeightBridge.load_policy_network(ckpt_path)
 
         assert isinstance(policy, PolicyNetwork)
 
         # Verify forward pass works
         state = np.random.randn(state_dim).astype(np.float32)
-        action, _log_prob = policy.get_action(state)
+        action, log_prob = policy.get_action(state)
         assert action.shape == (action_dim,)
         assert np.all(np.isfinite(action))
 
@@ -177,14 +177,9 @@ class TestPolicyToFlumePhysics:
     def test_raises_when_rust_unavailable(self, policy_checkpoint):
         """Raises RuntimeError when cohezion_core_rs is not importable."""
         ckpt_path, *_ = policy_checkpoint
-        with (
-            patch(
-                "cohezion.pipeline.weight_bridge._import_flume_physics",
-                return_value=None,
-            ),
-            pytest.raises(RuntimeError, match="cohezion_core_rs not available"),
-        ):
-            WeightBridge.policy_to_flume_physics(ckpt_path)
+        with patch("cohezion.pipeline.weight_bridge._import_flume_physics", return_value=None):
+            with pytest.raises(RuntimeError, match="cohezion_core_rs not available"):
+                WeightBridge.policy_to_flume_physics(ckpt_path)
 
     def test_creates_physics_with_mock(self, policy_checkpoint):
         """Full pipeline constructs FlumePhysics with collapsed weights."""
@@ -197,7 +192,9 @@ class TestPolicyToFlumePhysics:
             "cohezion.pipeline.weight_bridge._import_flume_physics",
             return_value=mock_cls,
         ):
-            result = WeightBridge.policy_to_flume_physics(ckpt_path, delta_scale=0.02, hiho_damping=0.03)
+            result = WeightBridge.policy_to_flume_physics(
+                ckpt_path, delta_scale=0.02, hiho_damping=0.03
+            )
 
         assert result is mock_instance
         mock_cls.assert_called_once()

@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any
+from pathlib import Path
+from typing import Any
 from unittest.mock import AsyncMock
 
 import pytest
@@ -11,10 +12,6 @@ from cohezion.compound.executor import CompoundExecutionResult, CompoundExecutor
 from cohezion.compound.feedback_loop import CompoundFeedbackLoop
 from cohezion.compound.models import CompoundCycleReport, CompoundCycleResult
 from cohezion.compound.persistence import CompoundPersistence
-
-
-if TYPE_CHECKING:
-    from pathlib import Path
 
 
 # ---------------------------------------------------------------------------
@@ -264,7 +261,9 @@ class TestFeedbackLoop:
         assert mock_executor.execute_skill.await_count == 3
 
     @pytest.mark.asyncio()
-    async def test_no_refinements_case(self, mock_executor: CompoundExecutor, tmp_path: Path) -> None:
+    async def test_no_refinements_case(
+        self, mock_executor: CompoundExecutor, tmp_path: Path
+    ) -> None:
         """When all tasks succeed and no patterns trigger refinements."""
         exec_result = _make_mock_exec_result(tokens=50)
         mock_executor.execute_skill = AsyncMock(return_value=exec_result)
@@ -286,7 +285,9 @@ class TestFeedbackLoop:
 
     @pytest.mark.asyncio()
     @pytest.mark.usefixtures("_reset_metrics")
-    async def test_feedback_loop_with_metrics(self, mock_executor: CompoundExecutor, tmp_path: Path) -> None:
+    async def test_feedback_loop_with_metrics(
+        self, mock_executor: CompoundExecutor, tmp_path: Path
+    ) -> None:
         """Verify that metrics collector gets called during a cycle."""
         exec_result = _make_mock_exec_result()
         mock_executor.execute_skill = AsyncMock(return_value=exec_result)
@@ -309,7 +310,9 @@ class TestFeedbackLoop:
         assert collector.total_tokens() == 50
 
     @pytest.mark.asyncio()
-    async def test_cycle_persists_to_jsonl(self, mock_executor: CompoundExecutor, tmp_path: Path) -> None:
+    async def test_cycle_persists_to_jsonl(
+        self, mock_executor: CompoundExecutor, tmp_path: Path
+    ) -> None:
         """Verify that cycle results are persisted to JSONL."""
         exec_result = _make_mock_exec_result()
         mock_executor.execute_skill = AsyncMock(return_value=exec_result)
@@ -330,7 +333,9 @@ class TestFeedbackLoop:
         assert history[0]["execution_tokens"] == 50
 
     @pytest.mark.asyncio()
-    async def test_multi_cycle_feeds_output_forward(self, mock_executor: CompoundExecutor, tmp_path: Path) -> None:
+    async def test_multi_cycle_feeds_output_forward(
+        self, mock_executor: CompoundExecutor, tmp_path: Path
+    ) -> None:
         """Verify that each cycle's output becomes the next cycle's input."""
         call_count = 0
 

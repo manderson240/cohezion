@@ -75,11 +75,15 @@ if __name__ == "__main__":
         logger.info(f"Tensor count before SWAP: {len(psi.tensors)}")
 
         psi.gate_(SWAP_mat, (1, 2), max_bond=1024, contract=True)  # Force contract
-        logger.info(f"After SWAP(1, 2): Max Bond Dim: {psi.max_bond()}. Tensor Count: {len(psi.tensors)}")
+        logger.info(
+            f"After SWAP(1, 2): Max Bond Dim: {psi.max_bond()}. Tensor Count: {len(psi.tensors)}"
+        )
 
         logger.info("Applying CNOT on sites (0, 1)...")
         psi.gate_(qg.CNOT, (0, 1), max_bond=1024, contract=True)  # Force contract
-        logger.info(f"After CNOT(sites 0,1): Max Bond Dim: {psi.max_bond()}. Tensor Count: {len(psi.tensors)}")
+        logger.info(
+            f"After CNOT(sites 0,1): Max Bond Dim: {psi.max_bond()}. Tensor Count: {len(psi.tensors)}"
+        )
 
     except Exception as e:
         logger.error(f"Failed to apply manual SWAP with contract=True: {e}")

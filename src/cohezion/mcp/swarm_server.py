@@ -59,7 +59,9 @@ class SwarmMCP:
 
         # Parse perspectives
         if perspectives:
-            persp_enums = [Perspective[p.upper()] for p in perspectives if p.upper() in Perspective.__members__]
+            persp_enums = [
+                Perspective[p.upper()] for p in perspectives if p.upper() in Perspective.__members__
+            ]
             workflow = DebateWorkflow(
                 config=self.config,
                 perspectives=persp_enums,

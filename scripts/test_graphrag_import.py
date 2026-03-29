@@ -59,7 +59,10 @@ async def test_import():
                 for doc in docs[:3]:  # Show first 3
                     has_emb = "✅" if doc.get("has_embedding", 0) > 0 else "❌"
                     print(f"   {has_emb} {doc['title'][:50]}")
-                    print(f"      Model: {doc.get('embedding_model', 'N/A')}, Dim: {doc.get('embedding_dim', 0)}")
+                    print(
+                        f"      Model: {doc.get('embedding_model', 'N/A')}, "
+                        f"Dim: {doc.get('embedding_dim', 0)}"
+                    )
 
         # Test 3: Count graph edges
         print("\n3️⃣  Checking graph edges...")

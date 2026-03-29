@@ -94,7 +94,7 @@ class LinguisticDriver:
                     mutation += char
 
             # Calculate Intelligibility (Simulated Levenshtein mostly)
-            match_count = sum(1 for a, b in zip(base_word, mutation, strict=False) if a == b)
+            match_count = sum(1 for a, b in zip(base_word, mutation) if a == b)
             intelligibility = match_count / len(base_word)
 
             # Memetic Spread
@@ -119,7 +119,9 @@ class LinguisticDriver:
 
         inputs = [f"Simulate Lang {i}" for i in range(BATCH_SIZE)]
 
-        chunk_result = await asyncio.to_thread(self.simulator.run_custom_chunk, int(time.time()), inputs, process_sim)
+        chunk_result = await asyncio.to_thread(
+            self.simulator.run_custom_chunk, int(time.time()), inputs, process_sim
+        )
 
         # Update State
         scores = [r["final_coherence"] for r in chunk_result.raw_results if isinstance(r, dict)]

@@ -5,9 +5,8 @@ import logging
 from datetime import datetime, timedelta
 from pathlib import Path
 
-from cohezion.swarm.agents.base import BaseAgent  # Reuse BaseAgent for summary
-
 from cohezion.core.persistence.surreal_client import UniverseNode
+from cohezion.swarm.agents.base import BaseAgent  # Reuse BaseAgent for summary
 
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - [COMPRESSOR] - %(message)s")
@@ -75,7 +74,9 @@ class SemanticCompressor(BaseAgent):
                 temperature=0.3,
             )
 
-            summary_markdown = f"**[SEMANTICALLY COMPRESSED]**\n\n{summary}\n\n*(Original Archived)*"
+            summary_markdown = (
+                f"**[SEMANTICALLY COMPRESSED]**\n\n{summary}\n\n*(Original Archived)*"
+            )
 
             # B. Archive Original
             archive_path = ARCHIVE_DIR / f"{node.id.replace(':', '_')}.json.gz"

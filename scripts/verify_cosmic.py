@@ -12,13 +12,12 @@ sys.path.append(str(Path.cwd() / "src"))
 from cohezion.cosmic.plasma import get_plasma_filaments
 from cohezion.cosmic.reality import get_reality_stabilizer
 from cohezion.swarm.agents.cosmic_agent import CosmicAgent
-
 from cohezion.swarm.swarm_types import SwarmConfig
 
 
 async def main():
     logging.basicConfig(level=logging.INFO)
-    logging.getLogger("CosmicVerification")
+    logger = logging.getLogger("CosmicVerification")
 
     config = SwarmConfig()
     agent = CosmicAgent(config=config)

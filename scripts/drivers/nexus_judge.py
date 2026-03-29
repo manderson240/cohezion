@@ -3,9 +3,8 @@ import json
 import logging
 from pathlib import Path
 
-from cohezion.swarm.agents.base import BaseAgent
-
 from cohezion.core.time_keeper import get_time_keeper
+from cohezion.swarm.agents.base import BaseAgent
 
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - [NEXUS_JUDGE] - %(message)s")
@@ -21,7 +20,9 @@ class NexusJudge(BaseAgent):
         # Mistral is often better at reasoning/following format than Phi3-mini
         super().__init__(model_name="mistral")
         self.constitution = (
-            Path(".agent/CONSTITUTION.md").read_text() if Path(".agent/CONSTITUTION.md").exists() else "Be Helpful."
+            Path(".agent/CONSTITUTION.md").read_text()
+            if Path(".agent/CONSTITUTION.md").exists()
+            else "Be Helpful."
         )
 
     async def run_loop(self):

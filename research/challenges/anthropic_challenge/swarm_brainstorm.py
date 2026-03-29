@@ -2,7 +2,9 @@ import requests
 import logging
 
 # Configure logging
-logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
+)
 
 # Configuration
 OLLAMA_API = "http://localhost:11434/api/generate"
@@ -64,6 +66,7 @@ def run_roundtable():
     history = INITIAL_PROMPT
     context = None
 
+    rounds = 2
     conversation = []
 
     # Round 1: Architect (DeepSeek)

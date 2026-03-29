@@ -9,13 +9,12 @@ sys.path.append(str(Path(__name__).parent / "src"))
 
 from cohezion.swarm.agents.analyst import AnalystAgent
 from cohezion.swarm.agents.memory_agent import MemoryAgent
-
 from cohezion.swarm.swarm_types import Perspective, SwarmConfig
 
 
 async def main():
     logging.basicConfig(level=logging.INFO)
-    logging.getLogger("MemoryVerification")
+    logger = logging.getLogger("MemoryVerification")
 
     config = SwarmConfig()
     analyst = AnalystAgent(Perspective.TECHNICAL, config=config)

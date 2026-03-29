@@ -21,7 +21,7 @@ from pathlib import Path
 class VaultReferenceAnalyzer:
     """Analyze cross-document references and dependencies"""
 
-    def __init__(self, vault_path: str | None = None):
+    def __init__(self, vault_path: str = None):
         if vault_path is None:
             vault_path = Path.cwd() / "cloud-vault-mcp" / "vault"
         self.vault_path = Path(vault_path)
@@ -127,7 +127,10 @@ class VaultReferenceAnalyzer:
                     found = True
                 else:
                     # Try with .md extension
-                    candidate = target if target.endswith(".md") else target + ".md"
+                    if target.endswith(".md"):
+                        candidate = target
+                    else:
+                        candidate = target + ".md"
 
                     if candidate in all_files:
                         found = True
@@ -146,7 +149,7 @@ class VaultReferenceAnalyzer:
         """Detect documents with no incoming references"""
         orphaned = []
 
-        for doc in self.documents:
+        for doc in self.documents.keys():
             # Skip templates and index files
             if "_template" in doc or "README" in doc or "INDEX" in doc:
                 continue
@@ -176,19 +179,19 @@ class VaultReferenceAnalyzer:
                     continue
 
                 if neighbor not in visited:
-                    if dfs(neighbor, [*path, neighbor]):
+                    if dfs(neighbor, path + [neighbor]):
                         return True
                 elif neighbor in rec_stack:
                     # Cycle detected
                     cycle_start = path.index(neighbor) if neighbor in path else 0
-                    cycle = [*path[cycle_start:], neighbor]
+                    cycle = path[cycle_start:] + [neighbor]
                     cycles.append(cycle)
                     return True
 
             rec_stack.remove(node)
             return False
 
-        for node in self.documents:
+        for node in self.documents.keys():
             if node not in visited:
                 dfs(node, [node])
 
@@ -201,7 +204,7 @@ class VaultReferenceAnalyzer:
         """Validate naming conventions"""
         issues = []
 
-        for doc_path in self.documents:
+        for doc_path in self.documents.keys():
             # Skip special files
             if "_template" in doc_path or doc_path == "README.md":
                 continue
@@ -228,7 +231,9 @@ class VaultReferenceAnalyzer:
                 source: list(targets) for source, targets in self.missing_targets.items() if targets
             },
             "orphaned_documents": [
-                doc for doc in self.documents if doc not in self.inverse_refs or len(self.inverse_refs[doc]) == 0
+                doc
+                for doc in self.documents.keys()
+                if doc not in self.inverse_refs or len(self.inverse_refs[doc]) == 0
             ],
             "high_connectivity": self._find_hubs(),
             "issues": self.issues,
@@ -261,11 +266,15 @@ class VaultReferenceAnalyzer:
 
     def _find_hubs(self) -> list[tuple[str, int]]:
         """Find well-connected hub documents"""
-        hubs = [(doc, len(self.inverse_refs[doc])) for doc in self.documents if self.inverse_refs[doc]]
+        hubs = [
+            (doc, len(self.inverse_refs[doc]))
+            for doc in self.documents.keys()
+            if self.inverse_refs[doc]
+        ]
         hubs.sort(key=lambda x: x[1], reverse=True)
         return hubs[:10]
 
-    def export_report(self, output_path: str | None = None) -> dict:
+    def export_report(self, output_path: str = None) -> dict:
         """Export detailed reference report"""
         if output_path is None:
             output_path = self.vault_path.parent / "vault_reference_report.json"

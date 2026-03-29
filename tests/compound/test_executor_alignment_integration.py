@@ -7,9 +7,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from cohezion.compound.executor import (
-    ExecutorFactory,
-)
+from cohezion.compound.executor import ExecutorFactory
 from cohezion.compound.request_alignment_analyzer import RequestAlignmentAnalyzer
 
 
@@ -26,7 +24,9 @@ class MockMCPClient:
         self.vault_queries.append({"query": query, "project": project})
         return [{"path": "patterns/alignment.md", "content": "test"}]
 
-    def vault_log_decision(self, project: str, title: str, context: str, decision: str, rationale: str) -> str:
+    def vault_log_decision(
+        self, project: str, title: str, context: str, decision: str, rationale: str
+    ) -> str:
         """Mock decision logging."""
         self.vault_logs.append({"type": "decision", "project": project, "title": title})
         return "decisions/alignment-test.md"
@@ -194,7 +194,7 @@ class TestExecutorAlignmentIntegration:
         )
 
         # Check if decision was logged for high misalignment
-        [log for log in self.mcp_client.vault_logs if log["type"] == "decision"]
+        decision_logs = [log for log in self.mcp_client.vault_logs if log["type"] == "decision"]
         # High misalignment > 0.3, so should trigger vault logging
         if result.metrics["alignment"]["misalignment_score"] > 0.5:
             # May be logged as decision
@@ -319,9 +319,7 @@ class TestAlignmentNonBlocking:
 
         # Mock alignment analyzer to raise exception
         with patch.object(
-            RequestAlignmentAnalyzer,
-            "analyze_alignment",
-            side_effect=Exception("Test error"),
+            RequestAlignmentAnalyzer, "analyze_alignment", side_effect=Exception("Test error")
         ):
             executor = ExecutorFactory.create(mcp_client, enable_alignment_analysis=True)
 

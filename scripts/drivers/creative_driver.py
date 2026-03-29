@@ -120,7 +120,9 @@ class CreativeDriver:
 
         inputs = [f"Simulate Civ {i}" for i in range(BATCH_SIZE)]
 
-        chunk_result = await asyncio.to_thread(self.simulator.run_custom_chunk, int(time.time()), inputs, process_sim)
+        chunk_result = await asyncio.to_thread(
+            self.simulator.run_custom_chunk, int(time.time()), inputs, process_sim
+        )
 
         # Update State
         u_scores = [r["final_coherence"] for r in chunk_result.raw_results if isinstance(r, dict)]
@@ -132,7 +134,6 @@ class CreativeDriver:
         logger.info(
             f"[CREATIVE] Batch completed. Total: {self.total_completed}. Crisis: {crisis['name']}"
         )
-
 
 
 if __name__ == "__main__":

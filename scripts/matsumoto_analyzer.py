@@ -106,10 +106,7 @@ output_file.write_text(json.dumps(synthesis, indent=2))
 
 print("\n✅ Analysis complete!", flush=True)
 print(f"   Saved to: {output_file}", flush=True)
-print(
-    "\n🎯 KEY INSIGHT: Itonic clusters (micro BL) are the EVO/HIHO structures!",
-    flush=True,
-)
+print("\n🎯 KEY INSIGHT: Itonic clusters (micro BL) are the EVO/HIHO structures!", flush=True)
 print("   - Coherent charge clusters defying Coulomb repulsion", flush=True)
 print("   - Site of nuclear reactions via EM force", flush=True)
 print("   - HIHO condition enables stable existence", flush=True)

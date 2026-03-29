@@ -4,5 +4,17 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ---
 
-- [x] **Track: Implement Sovereign EVO Agents & The Reward/Ratchet System**
-  *Link: [./tracks/evo_agents_20260311/](./tracks/evo_agents_20260311/)*
+- [ ] **Track: Autonomous Challenge Execution: Luma AMD Speedrun - Phase 1 Kernels**
+  *Link: [./tracks/luma_amd_speedrun_20260312/](./tracks/luma_amd_speedrun_20260312/)*
+
+---
+
+- [~] **Track: NVIDIA Nemotron Model Reasoning Challenge** (Executing - G4 Blackwell Blackwell Training)
+    *Link: [./tracks/nemotron_reasoning_20260322/](./tracks/nemotron_reasoning_20260322/)*
+    *Status: G4 Blackwell (NVIDIA RTX 6000 Blackwell) training notebook RUNNING - Monitoring for completion*
+
+---
+
+- [ ] **Track: Measuring Progress Toward AGI - Cognitive Abilities Kaggle Competition**
+  *Link: [./tracks/kaggle_cognitive_agi_20260324/](./tracks/kaggle_cognitive_agi_20260324/)*
+  *Status: IN PROGRESS - Phase 5: Leaderboard Optimization & Iterative Refinement*

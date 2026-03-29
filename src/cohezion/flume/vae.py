@@ -11,6 +11,7 @@ class FlumeVAEConfig(PretrainedConfig):
     """
     Configuration for FLUME Variational Autoencoder.
     """
+
     model_type = "flume_vae"
 
     def __init__(
@@ -36,10 +37,12 @@ class FlumeVAEConfig(PretrainedConfig):
         self.dropout = dropout
         self.pad_token_id = kwargs.get("pad_token_id", -100)
 
+
 class ThoughtVector(BaseModel):
     """
     Data model representing a 256D thought vector in the 'Thinker' manifold.
     """
+
     vector: torch.Tensor
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
@@ -53,10 +56,11 @@ class ThoughtVector(BaseModel):
             raise ValueError(f"vector must be 256D, got shape {v.shape}")
         return v
 
+
 class FlumeVAE(nn.Module):
     """
     Variational Autoencoder for Fluid Latent Understanding.
-    
+
     Architecture:
     - Encoder: Transformer → Mu & LogVar heads (256D)
     - Reparameterization: z = mu + std * eps
@@ -103,7 +107,9 @@ class FlumeVAE(nn.Module):
         eps = torch.randn_like(std)
         return mu + std * eps
 
-    def encode(self, input_ids: torch.Tensor, attention_mask: torch.Tensor | None = None) -> tuple[torch.Tensor, torch.Tensor]:
+    def encode(
+        self, input_ids: torch.Tensor, attention_mask: torch.Tensor | None = None
+    ) -> tuple[torch.Tensor, torch.Tensor]:
         """Encode tokens to mu and log_var."""
         _batch_size, seq_len = input_ids.shape
         positions = torch.arange(seq_len, device=input_ids.device).unsqueeze(0)
@@ -140,9 +146,7 @@ class FlumeVAE(nn.Module):
         return self.to_logits(x)
 
     def forward(
-        self,
-        input_ids: torch.Tensor,
-        attention_mask: torch.Tensor | None = None
+        self, input_ids: torch.Tensor, attention_mask: torch.Tensor | None = None
     ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
         """Full VAE forward pass."""
         mu, log_var = self.encode(input_ids, attention_mask)
@@ -156,7 +160,7 @@ class FlumeVAE(nn.Module):
         recon_logits: torch.Tensor,
         mu: torch.Tensor,
         log_var: torch.Tensor,
-        kl_weight: float = 0.1
+        kl_weight: float = 0.1,
     ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
         """
         Computes VAE loss: Reconstruction (CrossEntropy) + KL-Divergence.
@@ -168,7 +172,7 @@ class FlumeVAE(nn.Module):
         recon_loss = F.cross_entropy(
             shift_logits.view(-1, self.config.vocab_size),
             shift_labels.view(-1),
-            ignore_index=self.config.pad_token_id if hasattr(self.config, "pad_token_id") else -100
+            ignore_index=self.config.pad_token_id if hasattr(self.config, "pad_token_id") else -100,
         )
 
         # KL Divergence: -0.5 * sum(1 + log_var - mu^2 - exp(log_var))

@@ -2063,5 +2063,78 @@
     "template_version": "v0.1",
     "generated_from": "skill.md",
     "last_updated": ""
+  },
+  "MOE_HYBRID_ENGINEERING_PRIME": {
+    "name": "MOE_HYBRID_ENGINEERING_PRIME",
+    "description": "Expertise in Hybrid Mixture-of-Experts (MoE) Architectures (Mamba2-Transformer). Optimizes fine-tuning and inference for interleaved SSM, Sparse Expert routing, and GQA layers.",
+    "path": "src/cohezion/skills/MOE_HYBRID_ENGINEERING_PRIME.md",
+    "version": "1.0.0",
+    "keywords": [
+      "A3B",
+      "mamba2",
+      "moe",
+      "top-k routing",
+      "expert_balance",
+      "hybrid_architecture"
+    ],
+    "last_updated": "2026-03-25T22:23:53.899067"
+  },
+  "BLACKWELL_HARDWARE_OPTIMIZATION_PRIME": {
+    "name": "BLACKWELL_HARDWARE_OPTIMIZATION_PRIME",
+    "description": "Specialized optimization for NVIDIA Blackwell (sm_120) architecture. Leverages 5th-gen Tensor Cores, Transformer Engine 2.0, and GDDR7 bandwidth for maximum throughput.",
+    "path": "src/cohezion/skills/BLACKWELL_HARDWARE_OPTIMIZATION_PRIME.md",
+    "version": "1.1.0",
+    "keywords": [
+      "blackwell",
+      "sm_120",
+      "fp4",
+      "rtx_6000",
+      "triton_blackwell",
+      "ptxas-blackwell"
+    ],
+    "last_updated": "2026-03-25T22:23:53.899075"
+  },
+  "RALPH_LOOP_PRIME": {
+    "name": "RALPH_LOOP_PRIME",
+    "description": "Autonomous Self-Verification and Refinement specialist. Implements recursive [Benchmark -> Gate -> Propose -> Apply -> Verify] cycles to achieve HIHO coherence.",
+    "path": "src/cohezion/skills/RALPH_LOOP_PRIME.md",
+    "version": "1.0.0",
+    "keywords": [
+      "ralph_loop",
+      "hiho_coherence",
+      "self_verification",
+      "recursive_refinement",
+      "witness_plate"
+    ],
+    "last_updated": "2026-03-25T22:23:53.899076"
+  },
+  "TRANSFORMER_ENGINE_FP4_OPTIMIZATION_PRIME": {
+    "name": "TRANSFORMER_ENGINE_FP4_OPTIMIZATION_PRIME",
+    "description": "Mastery of NVIDIA Transformer Engine (TE) and native FP4 precision training using micro-tensor scaling on Blackwell hardware.",
+    "path": "src/cohezion/skills/TRANSFORMER_ENGINE_FP4_OPTIMIZATION_PRIME.md",
+    "version": "1.0.0",
+    "keywords": [
+      "transformer_engine",
+      "fp4",
+      "micro_tensor_scaling",
+      "nvfp4",
+      "te_autocast"
+    ],
+    "last_updated": "2026-03-25T22:23:53.899077"
+  },
+  "KAGLLE_BLACKWELL_RUNNER_PRIME": {
+    "name": "KAGLLE_BLACKWELL_RUNNER_PRIME",
+    "description": "Expertise in Kaggle G4 Blackwell Execution Environment. Ensures compatibility with sm_120 architecture, Triton ptxas-blackwell binary pathing, and non-interactive model authorization.",
+    "path": "src/cohezion/skills/KAGLLE_BLACKWELL_RUNNER_PRIME.md",
+    "version": "1.0.0",
+    "keywords": [
+      "kaggle",
+      "blackwell",
+      "sm_120",
+      "triton_patch",
+      "model_sources",
+      "ptxas-blackwell"
+    ],
+    "last_updated": "2026-03-25T22:57:36.660428"
   }
 }

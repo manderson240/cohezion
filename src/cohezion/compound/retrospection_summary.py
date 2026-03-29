@@ -52,6 +52,52 @@ class RetrospectionSummary:
         }
 
 
+@dataclass
+class StrategyTracker:
+    """Tracks consecutive failures and improvement plateaus per skill.
+
+    Used by RetrospectionEngine to detect when an approach should be
+    abandoned in favor of a fundamentally different strategy.
+    """
+
+    pivot_threshold: int = 3
+    improvement_threshold: float = 0.05  # 5%
+    _failure_counts: dict[str, int] = field(default_factory=dict)
+    _improvement_history: dict[str, list[float]] = field(default_factory=dict)
+
+    def record_outcome(self, skill_name: str, success: bool, metric_delta: float) -> str | None:
+        """Record outcome. Returns pivot recommendation if threshold hit."""
+        if not success:
+            self._failure_counts[skill_name] = self._failure_counts.get(skill_name, 0) + 1
+        else:
+            self._failure_counts[skill_name] = 0
+
+        history = self._improvement_history.setdefault(skill_name, [])
+        history.append(metric_delta)
+
+        # Check plateau: N attempts with <threshold improvement
+        if len(history) >= self.pivot_threshold:
+            recent = history[-self.pivot_threshold :]
+            if all(abs(d) < self.improvement_threshold for d in recent):
+                return (
+                    f"PIVOT RECOMMENDED: {skill_name} has plateaued "
+                    f"({self.pivot_threshold} attempts, "
+                    f"<{self.improvement_threshold:.0%} improvement each)"
+                )
+
+        # Check consecutive failures
+        count = self._failure_counts.get(skill_name, 0)
+        if count >= self.pivot_threshold:
+            return f"PIVOT RECOMMENDED: {skill_name} has failed {count} consecutive times"
+
+        return None
+
+    def reset(self, skill_name: str) -> None:
+        """Reset tracking for a skill after a successful pivot."""
+        self._failure_counts.pop(skill_name, None)
+        self._improvement_history.pop(skill_name, None)
+
+
 class RetrospectionEngine:
     """Generates retrospection summaries after compound cycles.
 
@@ -61,6 +107,7 @@ class RetrospectionEngine:
 
     def __init__(self) -> None:
         self._summaries: list[RetrospectionSummary] = []
+        self._strategy_tracker = StrategyTracker()
 
     @property
     def summaries(self) -> list[RetrospectionSummary]:
@@ -74,6 +121,14 @@ class RetrospectionEngine:
         # Generate first-person narrative
         narrative = self._generate_narrative(metrics, coherence_delta, direction)
         insights = self._extract_insights(metrics, coherence_delta)
+
+        # Check for strategy pivot recommendation
+        pivot = self._strategy_tracker.record_outcome(
+            metrics.skill_name, metrics.success, coherence_delta
+        )
+        if pivot:
+            insights.append(pivot)
+            logger.warning("Strategy pivot recommended for %s", metrics.skill_name)
 
         summary = RetrospectionSummary(
             cycle_id=cycle_id,
@@ -129,48 +184,3 @@ class RetrospectionEngine:
     def get_recent(self, n: int = 5) -> list[dict]:
         """Get the N most recent summaries."""
         return [s.to_dict() for s in self._summaries[-n:]]
-
-    def get_checkpoint_context(self, n: int = 5) -> list[dict]:
-        """Get recent Entire.io checkpoint context for cross-session memory.
-
-        Parses `entire explain --short` output to extract intent and outcome
-        from prior session checkpoints. Non-blocking: returns empty list
-        if Entire is not installed or fails.
-        """
-        try:
-            import subprocess
-
-            result = subprocess.run(
-                ["entire", "explain", "--short"],
-                capture_output=True,
-                text=True,
-                timeout=10,
-            )
-            if result.returncode != 0:
-                return []
-
-            checkpoints = []
-            current: dict[str, str] = {}
-            for line in result.stdout.splitlines():
-                line = line.strip()
-                if line.startswith("[") and "]" in line:
-                    if current:
-                        checkpoints.append(current)
-                    current = {"id": line.split("]")[0].lstrip("[")}
-                elif line.startswith("Intent:"):
-                    current["intent"] = line[len("Intent:"):].strip()
-                elif line.startswith("Outcome:"):
-                    current["outcome"] = line[len("Outcome:"):].strip()
-                elif "(" in line and line[0].isdigit():
-                    # Commit line like "03-25 15:01 (66f5668) description"
-                    parts = line.split(")", 1)
-                    if len(parts) > 1:
-                        current.setdefault("commits", []).append(parts[1].strip())
-
-            if current:
-                checkpoints.append(current)
-
-            return checkpoints[:n]
-        except Exception:
-            logger.debug("Entire checkpoint context unavailable (non-blocking)")
-            return []

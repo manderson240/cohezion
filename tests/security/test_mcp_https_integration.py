@@ -257,7 +257,9 @@ class TestMCPHTTPSIntegration:
         for header, expected_value in required_headers.items():
             assert header in response.headers, f"Missing header: {header}"
             if expected_value:
-                assert expected_value in response.headers[header], f"Header {header} missing expected value"
+                assert expected_value in response.headers[header], (
+                    f"Header {header} missing expected value"
+                )
 
 
 class TestMCPEnvironmentConfiguration:

@@ -1,261 +1,71 @@
-"""Compound engineering system for iterative AI refinement.
+"""Cohezion Compound Engineering System."""
 
-Integrates skill execution, knowledge persistence (vault), and experience-guided loops.
-Phase 1: Compatibility layer with simplified internals
-"""
+from __future__ import annotations
 
-# ============================================================================
-# Compatibility Layer (Phase 1) - Preserves old API
-# ============================================================================
 
-# ============================================================================
-# New Simplified Analytics (Phase 1)
-# ============================================================================
+# Universal initialization
+try:
+    from .universal.init import (
+        initialize_cohezion_environment as initialize_cohezion_environment,
+    )
+except Exception:
+    pass
+
 from cohezion.compound.analytics.engine import (
-    AnalysisConfig,
-    ExecutionAnalyzer,
-    SimpleAnalyzer,
+    ExecutionAnalyzer as ExecutionAnalyzer,
+    SimpleAnalyzer as SimpleAnalyzer,
 )
-from cohezion.compound.analytics.metrics import (
-    MetricsCollector,
-    MetricsSnapshot,
-    SimpleMetrics,
-)
-from cohezion.compound.compat import (
-    CompoundCycleReport,
-    CompoundCycleResult,
-    CompoundExecutor,
-    ExecutionResult,
-    ExecutorFactory,
-)
-from cohezion.compound.compat import (
-    ExecutionResult as LegacyExecutionResult,
-)
-from cohezion.compound.core.batch_processor import (
-    BatchProcessor,
-    BatchResult,
-    SimpleBatch,
-)
-from cohezion.compound.core.executor import (
-    CompoundExecutor as NewCompoundExecutor,
-)
-from cohezion.compound.core.executor import (
-    ExecutionConfig,
-    execute_simple,
-)
-from cohezion.compound.exp_persistence.journey import JourneyPersistence
-from cohezion.compound.exp_persistence.vault import (
-    ExecutionContext,
-    VaultLogger,
-)
-from cohezion.compound.feedback_loop import (
-    CompoundFeedbackLoop,
-    CompoundFeedbackLoopFactory,
-    FeedbackLoopResult,
-    RetryAttempt,
-    RetryStrategy,
-)
-from cohezion.compound.global_metrics_aggregator import (
-    GlobalMetricsAggregator,
-    InstanceMetrics,
-    SkillMetrics,
-    TimeWindowMetrics,
-    get_global_aggregator,
-    reset_global_aggregator,
-)
-from cohezion.compound.hardware_monitor import (
-    HardwareMetrics,
-    HardwareMonitor,
-    get_hardware_monitor,
-)
-from cohezion.compound.inflection_detector import (
-    InflectionDetector,
-    InflectionDetectorFactory,
-    Severity,
-)
-from cohezion.compound.intake_specialist import (
-    IntakeGreeting,
-    IntakeSpecialist,
-)
-from cohezion.compound.intent_classifier import IntentClassifier
-from cohezion.compound.journey_tracker import (
-    Journey,
-    JourneyTracker,
-    JourneyTrackerFactory,
-    OperationType,
-    TrajectoryPoint,
-)
-from cohezion.compound.metrics import (
-    CompoundMetricsCollector,
-    get_collector,
-    reset_collector,
-)
-from cohezion.compound.metrics_persistence import MetricsPersistence
-from cohezion.compound.model_quality_classifier import (
-    ActionRecommendation,
-    ExecutionRecord,
-    FailureMode,
-    ModelQualityClassifier,
-    QualityForecast,
-    QualityPredictor,
-    RecommendedAction,
-)
+from cohezion.compound.analytics.metrics import MetricsCollector as MetricsCollector
 
-# ============================================================================
-# New Simplified Core (Phase 1) - Clean implementations
-# ============================================================================
+# Legacy API (Selective Compatibility)
+from cohezion.compound.batch_executor import (
+    BatchableExecutor as BatchableExecutor,
+    BatchExecutorFactory as BatchExecutorFactory,
+)
+from cohezion.compound.config import CompoundConfig as Config  # noqa: F401
+from cohezion.compound.core.batch_processor import BatchProcessor as BatchProcessor
+from cohezion.compound.core.executor import (
+    CompoundExecutor as CompoundExecutor,
+    execute_simple as execute_simple,
+)
+from cohezion.compound.executor import CompoundExecutor as LegacyCompoundExecutor  # noqa: F401
+from cohezion.compound.executor import ExecutorFactory as CompoundExecutorFactory  # noqa: F401
+
+# New Simplified API
 from cohezion.compound.models import (
-    AnalysisReport,
-    BatchConfig,
-    CompoundCycleReport,
-    CompoundCycleResult,
-    ExecutionContext,
-    ExecutionMetrics,
-    ExecutionResult,
-    ExecutionStatus,
-    Task,
+    AnalysisReport as AnalysisReport,
+    ExecutionContext as ExecutionContext,
+    ExecutionMetrics as ExecutionMetrics,
+    ExecutionResult as ExecutionResult,
+    ExecutionStatus as ExecutionStatus,
+    IntentType as IntentType,
+    Task as Task,
 )
-
-# ============================================================================
-# New Simplified Persistence (Phase 1)
-# ============================================================================
 from cohezion.compound.persistence.vault import (
-    PersistenceConfig,
-    SessionPersister,
-    SimplePersistence,
-    VaultPersister,
+    SessionPersister as SessionPersister,
+    VaultPersister as VaultPersister,
 )
-from cohezion.compound.prompt_optimizer import PromptOptimizer
-from cohezion.compound.request_alignment_analyzer import (
-    ConstraintType,
-    ConstraintViolation,
-    CriterionFailure,
-    DriftSignal,
-    ExecutionAlignment,
-    ExecutionConstraint,
-    HumanRequest,
-    IntentType,
-    SuccessCriterion,
+from cohezion.compound.skills.selector import SkillSelector as SkillSelector
+
+# TDD and Adversarial Review System
+from cohezion.compound.tdd_adversarial.adversarial_review import (
+    AdversarialReviewSystem as AdversarialReviewSystem,
+    PerspectiveState as PerspectiveState,
+    ReviewFinding as ReviewFinding,
+    ReviewPerspective as ReviewPerspective,
+    ReviewSession as ReviewSession,
+    get_adversarial_review_system as get_adversarial_review_system,
 )
-from cohezion.compound.request_alignment_analyzer import (
-    ExecutionResult as LegacyExecutionResult,
+from cohezion.compound.tdd_adversarial.coordinator import (
+    TDDAdversarialCoordinator as TDDAdversarialCoordinator,
+    TDDAdversarialState as TDDAdversarialState,
+    get_tdd_adversarial_coordinator as get_tdd_adversarial_coordinator,
 )
-
-# ============================================================================
-# New Simplified Skills (Phase 1)
-# ============================================================================
-from cohezion.compound.skills.selector import (
-    SimpleSkills,
-    SkillMatch,
-    SkillRefiner,
-    SkillSelector,
+from cohezion.compound.tdd_adversarial.tdd_integration import (
+    TDDIntegration as TDDIntegration,
+    TDDState as TDDState,
+    TestResult as TestResult,
+    TestStatus as TestStatus,
+    TestType as TestType,
+    get_tdd_integration as get_tdd_integration,
 )
-
-
-# ============================================================================
-# New Simplified Analytics (Phase 1)
-# ============================================================================
-
-
-
-# ============================================================================
-# New Simplified Skills (Phase 1)
-# ============================================================================
-
-
-# ============================================================================
-# New Simplified Persistence (Phase 1)
-# ============================================================================
-
-
-
-# ============================================================================
-# Version Info
-# ============================================================================
-
-__version__ = "2.0.0-simplified"
-
-
-def get_version() -> str:
-    """Get compound module version."""
-    return __version__
-
-
-# ============================================================================
-# Exports
-# ============================================================================
-
-# ============================================================================
-# Version Info
-# ============================================================================
-
-__version__ = "2.0.0-simplified"
-
-
-def get_version() -> str:
-    """Get compound module version."""
-    return __version__
-
-
-# ============================================================================
-# Exports
-# ============================================================================
-
-__all__ = [
-    # New analytics
-    "AnalysisConfig",
-    # New models
-    "AnalysisReport",
-    "BatchConfig",
-    "BatchProcessor",
-    "BatchResult",
-    # Compatibility layer (old API)
-    "CompoundCycleReport",
-    "CompoundCycleResult",
-    "CompoundExecutor",
-    "ConstraintType",
-    "ConstraintViolation",
-    "CriterionFailure",
-    "DriftSignal",
-    "EvolutionDirective",
-    "EvolutionRoundResult",
-    "EvolutionTrainingConfig",
-    "EvolutionTrainingExporter",
-    "EvolutionTrainingPipeline",
-    "EvolutionTrainingSignalGenerator",
-    "EvolutionTrajectory",
-    "ExecutionAlignment",
-    "ExecutionAnalyzer",
-    "ExecutionConfig",
-    "ExecutionConstraint",
-    "ExecutionContext",
-    "ExecutionMetrics",
-    "ExecutionResult",
-    "ExecutionStatus",
-    "HumanRequest",
-    "IntentType",
-    "LegacyExecutionResult",
-    "MetricsCollector",
-    "MetricsSnapshot",
-    # New core
-    "NewCompoundExecutor",
-    # New persistence
-    "PersistenceConfig",
-    "SessionPersister",
-    "SimpleAnalyzer",
-    "SimpleBatch",
-    "SimpleMetrics",
-    "SimplePersistence",
-    "SimpleSkills",
-    # New skills
-    "SkillMatch",
-    "SkillRefiner",
-    "SkillSelector",
-    "SuccessCriterion",
-    "Task",
-    "VaultPersister",
-    # Version
-    "__version__",
-    "execute_simple",
-    "get_version",
-]

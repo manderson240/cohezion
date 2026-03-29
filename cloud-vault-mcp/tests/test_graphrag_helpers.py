@@ -56,13 +56,31 @@ def test_detect_document_type():
     """Test document type detection"""
     vault_path = Path("/vaults/cohezion-vault")
 
-    assert detect_document_type(Path("/vaults/cohezion-vault/decisions/test.md"), vault_path) == "decision"
+    assert (
+        detect_document_type(
+            Path("/vaults/cohezion-vault/decisions/test.md"), vault_path
+        )
+        == "decision"
+    )
 
-    assert detect_document_type(Path("/vaults/cohezion-vault/patterns/test.md"), vault_path) == "pattern"
+    assert (
+        detect_document_type(
+            Path("/vaults/cohezion-vault/patterns/test.md"), vault_path
+        )
+        == "pattern"
+    )
 
-    assert detect_document_type(Path("/vaults/cohezion-vault/experiments/test.md"), vault_path) == "experiment"
+    assert (
+        detect_document_type(
+            Path("/vaults/cohezion-vault/experiments/test.md"), vault_path
+        )
+        == "experiment"
+    )
 
-    assert detect_document_type(Path("/vaults/cohezion-vault/other/test.md"), vault_path) == "document"
+    assert (
+        detect_document_type(Path("/vaults/cohezion-vault/other/test.md"), vault_path)
+        == "document"
+    )
 
 
 def test_parse_frontmatter():

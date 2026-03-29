@@ -11,10 +11,6 @@ _IN_CI = os.environ.get("CI") == "true"
 _SKIP_REASON = "Requires Ollama/SurrealDB — unavailable in CI"
 
 
-_IN_CI = os.environ.get("CI") == "true"
-_SKIP_REASON = "Requires Ollama/SurrealDB — unavailable in CI"
-
-
 @pytest.mark.asyncio
 @pytest.mark.skipif(_IN_CI, reason=_SKIP_REASON)
 async def test_semantic_search():

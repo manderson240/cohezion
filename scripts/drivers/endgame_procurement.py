@@ -19,7 +19,6 @@ CREDIT_REPORT_PATH = (
 )
 
 
-
 def load_credit_profile():
     if not os.path.exists(CREDIT_REPORT_PATH):
         print("[!] Missing credit profile. Run loan_qualification_sim.py first.")

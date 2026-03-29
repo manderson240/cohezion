@@ -13,8 +13,8 @@ from pathlib import Path
 
 
 # Force unbuffered output
-sys.stdout = open(sys.stdout.fileno(), "w", buffering=1)  # noqa: SIM115
-sys.stderr = open(sys.stderr.fileno(), "w", buffering=1)  # noqa: SIM115
+sys.stdout = open(sys.stdout.fileno(), "w", buffering=1)
+sys.stderr = open(sys.stderr.fileno(), "w", buffering=1)
 
 print(f"🌙 OVERNIGHT MISSION START: {datetime.now().strftime('%H:%M:%S')}", flush=True)
 print("   Target End: 08:31 EST (8 hours)", flush=True)

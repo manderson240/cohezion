@@ -1,0 +1,31 @@
+{
+  "name": "python_benchmark",
+  "description": "Python coding tasks for Cohezion skill benchmarking",
+  "tasks": [
+    {
+      "task": "Write a function to calculate the factorial of a number recursively",
+      "skill": "python_PRIME",
+      "difficulty": "easy"
+    },
+    {
+      "task": "Implement a class for a stack with push, pop, and peek methods",
+      "skill": "python_PRIME",
+      "difficulty": "medium"
+    },
+    {
+      "task": "Write a function that flattens a nested list of arbitrary depth",
+      "skill": "python_PRIME",
+      "difficulty": "medium"
+    },
+    {
+      "task": "Implement a context manager for timing code execution",
+      "skill": "python_PRIME",
+      "difficulty": "medium"
+    },
+    {
+      "task": "Write a decorator that retries a function on exception with exponential backoff",
+      "skill": "python_PRIME",
+      "difficulty": "hard"
+    }
+  ]
+}

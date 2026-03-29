@@ -33,13 +33,15 @@ except ImportError:
 
 # Import MassSimulator
 try:
-    from cohezion.swarm.mass_simulator import MassSimulator  # noqa: F401
+    from cohezion.swarm.mass_simulator import MassSimulator
 
     SIMULATOR_AVAILABLE = True
 except ImportError:
     SIMULATOR_AVAILABLE = False
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+)
 logger = logging.getLogger("flume_driver")
 
 
@@ -215,15 +217,7 @@ class QuadratureController:
                 "component",
                 "flow",
             ],
-            "engineer": [
-                "force",
-                "energy",
-                "momentum",
-                "field",
-                "particle",
-                "wave",
-                "tensor",
-            ],
+            "engineer": ["force", "energy", "momentum", "field", "particle", "wave", "tensor"],
             "biologist": [
                 "cell",
                 "organism",

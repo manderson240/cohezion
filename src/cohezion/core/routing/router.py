@@ -4,18 +4,6 @@ from typing import Any
 import httpx
 
 
-if TYPE_CHECKING:
-    from collections.abc import Sequence
-
-
-@runtime_checkable
-class HardwareProfile(Protocol):
-    """Protocol for hardware profile objects from the adaptive framework."""
-
-    tier: str
-    capabilities: "Sequence[str]"
-
-
 logger = logging.getLogger(__name__)
 
 # Import adaptive framework optimizer
@@ -105,8 +93,12 @@ class LocalExpertRouter:
             optimizer = get_adaptive_optimizer()
             hardware_profile = optimizer.get_current_profile()
             if hardware_profile:
-                logger.info(f"🧠 Using adaptive framework for {hardware_profile.tier} tier hardware")
-                model = self._select_optimal_model_adaptive(task_type, available_memory, hardware_profile)
+                logger.info(
+                    f"🧠 Using adaptive framework for {hardware_profile.tier} tier hardware"
+                )
+                model = self._select_optimal_model_adaptive(
+                    task_type, available_memory, hardware_profile
+                )
             else:
                 model = self._select_optimal_model(task_type, available_memory, dilation)
         else:
@@ -129,12 +121,16 @@ class LocalExpertRouter:
         if dilation < 1.0:
             original_ctx = final_ctx
             final_ctx = int(final_ctx * dilation)
-            logger.warning(f"📉 Memory Dilation Active ({dilation:.2f}): Scaling context {original_ctx} -> {final_ctx}")
+            logger.warning(
+                f"📉 Memory Dilation Active ({dilation:.2f}): Scaling context {original_ctx} -> {final_ctx}"
+            )
 
         # 5. Elite MoE Optimization for Qwen3-Coder-Next
         if "qwen3-coder-next" in model:
             final_ctx = max(final_ctx, 65536)  # Minimum context for MoE efficiency
-            logger.info(f"🧠 MoE Optimization: {model} using only 3B active params (3.75% of 80B total)")
+            logger.info(
+                f"🧠 MoE Optimization: {model} using only 3B active params (3.75% of 80B total)"
+            )
 
         # 6. OCR Optimization for GLM-OCR
         if "glm-ocr" in model:
@@ -144,7 +140,9 @@ class LocalExpertRouter:
         # Minimum safety floor
         final_ctx = max(final_ctx, 4096)
 
-        logger.info(f"🚀 [ELITE COHEZION] Routing {task_type} → {model} (ctx: {final_ctx}, mem: {available_memory}GB)")
+        logger.info(
+            f"🚀 [ELITE COHEZION] Routing {task_type} → {model} (ctx: {final_ctx}, mem: {available_memory}GB)"
+        )
 
         # 7. Build optimized options for v0.15.5-rc2
         options = {
@@ -201,13 +199,17 @@ class LocalExpertRouter:
         except ImportError:
             return 125.0  # Default from system analysis
 
-    def _select_optimal_model(self, task_type: str, available_memory: float, dilation: float = 1.0) -> str:
+    def _select_optimal_model(
+        self, task_type: str, available_memory: float, dilation: float = 1.0
+    ) -> str:
         """Select optimal model based on task type, memory, and VRAM pressure (dilation)"""
         primary_model = self.role_map.get(task_type, self.default_model)
 
         # Severe VRAM Pressure: Trigger mandatory downscaling to 8B/Mini models
         if dilation < 0.5:
-            logger.warning(f"📉 SEVERE VRAM PRESSURE ({dilation:.2f}): Downscaling {task_type} tasks.")
+            logger.warning(
+                f"📉 SEVERE VRAM PRESSURE ({dilation:.2f}): Downscaling {task_type} tasks."
+            )
             if task_type in ["reasoning", "routing"]:
                 return "deepseek-r1:7b"  # Chain-of-thought but lighter than 256k models
             elif task_type == "coding":
@@ -289,7 +291,9 @@ class LocalExpertRouter:
                 return self.role_map.get("light-reasoning", "phi3:mini")
             return self.role_map.get("light-coding", "phi3:mini")
 
-    async def _log_performance_metrics(self, task_type: str, model: str, context: int, memory: float):
+    async def _log_performance_metrics(
+        self, task_type: str, model: str, context: int, memory: float
+    ):
         """Log performance metrics for compound engineering optimization"""
         metrics = {
             "task_type": task_type,

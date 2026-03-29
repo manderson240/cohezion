@@ -35,7 +35,7 @@ fig.add_trace(
         y=thresholds,
         mode="lines",
         name="Required Threshold",
-        line={"color": "#e74c3c", "width": 3, "dash": "dash"},
+        line=dict(color="#e74c3c", width=3, dash="dash"),
         hovertemplate="Gateway %{x}<br>Threshold: %{y:.4f}<extra></extra>",
     )
 )
@@ -47,14 +47,14 @@ fig.add_trace(
         y=stabilities,
         mode="markers",
         name="Achieved Stability",
-        marker={
-            "size": 8,
-            "color": bright_spots,
-            "colorscale": "Viridis",
-            "showscale": True,
-            "colorbar": {"title": "Bright Spots"},
-            "line": {"width": 1, "color": "white"},
-        },
+        marker=dict(
+            size=8,
+            color=bright_spots,
+            colorscale="Viridis",
+            showscale=True,
+            colorbar=dict(title="Bright Spots"),
+            line=dict(width=1, color="white"),
+        ),
         hovertemplate="<b>Gateway %{x}</b><br>"
         + "Stability: %{y:.4f}<br>"
         + "Bright Spots: %{marker.color:,}<br>"
@@ -64,32 +64,19 @@ fig.add_trace(
 
 # Layout
 fig.update_layout(
-    title={
-        "text": "Gateway Progression: Infinite Advancement System",
-        "font": {"size": 20, "family": "Arial Black"},
-    },
-    xaxis={
-        "title": "Gateway Number",
-        "gridcolor": "rgba(128,128,128,0.2)",
-        "showgrid": True,
-    },
-    yaxis={
-        "title": "Mean Stability",
-        "gridcolor": "rgba(128,128,128,0.2)",
-        "showgrid": True,
-        "range": [0.84, 0.96],
-    },
+    title=dict(
+        text="Gateway Progression: Infinite Advancement System",
+        font=dict(size=20, family="Arial Black"),
+    ),
+    xaxis=dict(title="Gateway Number", gridcolor="rgba(128,128,128,0.2)", showgrid=True),
+    yaxis=dict(
+        title="Mean Stability", gridcolor="rgba(128,128,128,0.2)", showgrid=True, range=[0.84, 0.96]
+    ),
     hovermode="closest",
     plot_bgcolor="#f8f9fa",
     paper_bgcolor="white",
-    font={"family": "Arial", "size": 12},
-    legend={
-        "orientation": "h",
-        "yanchor": "bottom",
-        "y": 1.02,
-        "xanchor": "right",
-        "x": 1,
-    },
+    font=dict(family="Arial", size=12),
+    legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
     height=600,
     width=1000,
 )

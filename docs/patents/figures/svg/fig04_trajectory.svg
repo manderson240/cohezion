@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" width="800" height="600">
+  <title>FIG. 4: Continuous Trajectory Prediction in 512D Manifold</title>
+  
+  <!-- Manifold surface (curved) -->
+  <path d="M 100 300 Q 200 280, 300 300 T 500 300 T 700 300" 
+        fill="none" stroke="blue" stroke-width="2" opacity="0.3"/>
+  
+  <!-- Start point -->
+  <circle cx="200" cy="300" r="15" fill="green"/>
+  <text x="200" y="325" text-anchor="middle" font-size="14">Start</text>
+  
+  <!-- End point -->
+  <circle cx="600" cy="300" r="15" fill="red"/>
+  <text x="600" y="325" text-anchor="middle" font-size="14">Goal</text>
+  
+  <!-- Trajectory path -->
+  <path d="M 200 300 Q 300 280, 400 300 T 600 300" 
+        fill="none" stroke="green" stroke-width="3"/>
+  
+  <!-- Intermediate points -->
+  <circle cx="250" cy="290" r="5" fill="blue"/>
+  <circle cx="350" cy="310" r="5" fill="blue"/>
+  <circle cx="450" cy="290" r="5" fill="blue"/>
+  <circle cx="550" cy="310" r="5" fill="blue"/>
+  
+  <!-- Interpolation label -->
+  <rect x="250" y="100" width="300" height="60" fill="white" stroke="blue" stroke-width="2"/>
+  <text x="400" y="125" text-anchor="middle" font-size="14">Interpolation: z = α·z₁ + (1-α)·z₂</text>
+  <text x="400" y="145" text-anchor="middle" font-size="12" font-style="italic">Continuous navigation</text>
+  
+  <!-- Projection arrow -->
+  <line x1="400" y1="300" x2="400" y2="450" stroke="red" stroke-width="2" marker-end="url(#arrow)"/>
+  <text x="420" y="380" font-size="14">Project to 12D</text>
+  
+  <!-- 12D output box -->
+  <rect x="350" y="450" width="100" height="60" fill="lightcoral" stroke="red" stroke-width="2"/>
+  <text x="400" y="475" text-anchor="middle" font-size="12">12D</text>
+  <text x="400" y="495" text-anchor="middle" font-size="12">Observable</text>
+  
+  <!-- Arrow marker -->
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="red"/>
+    </marker>
+  </defs>
+  
+  <!-- Legend -->
+  <rect x="50" y="50" width="150" height="100" fill="white" stroke="black" stroke-width="1"/>
+  <line x1="60" y1="70" x2="100" y2="70" stroke="green" stroke-width="3"/>
+  <text x="110" y="75" font-size="12">Geodesic Trajectory</text>
+  <circle cx="80" cy="95" r="7" fill="green"/>
+  <text x="110" y="100" font-size="12">Start Latent</text>
+  <circle cx="80" cy="120" r="7" fill="red"/>
+  <text x="110" y="125" font-size="12">Goal Latent</text>
+</svg>

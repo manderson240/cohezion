@@ -5,12 +5,22 @@ Tracks agent sessions, decisions, and outcomes to enable research lineage querie
 
 import json
 import logging
+import re
 import uuid
 from datetime import UTC, datetime
 from typing import Any
 
 
 logger = logging.getLogger(__name__)
+
+_SURREAL_ID_RE = re.compile(r"^[a-zA-Z_][\w]*:[a-zA-Z0-9_\-]+$")
+
+
+def _validate_record_id(rid: str) -> str:
+    """Validate a SurrealDB record ID to prevent query injection."""
+    if not _SURREAL_ID_RE.match(rid):
+        raise ValueError(f"Invalid SurrealDB record ID: {rid!r}")
+    return rid
 
 
 class AgentContextOps:
@@ -64,7 +74,7 @@ class AgentContextOps:
 
             result = self.db._execute_query(query)
             if result and len(result) > 0:
-                result[0]
+                record = result[0]
                 logger.info(f"Created agent session: {session_id}")
                 return {
                     "success": True,
@@ -111,7 +121,10 @@ class AgentContextOps:
             now = datetime.now(UTC).isoformat()
 
             # Validate session exists
-            session_check = self.db._execute_query(f"SELECT id FROM {session_id} LIMIT 1")
+            _validate_record_id(session_id)
+            session_check = self.db._execute_query(
+                f"SELECT id FROM {session_id} LIMIT 1"
+            )
             if not session_check or len(session_check) == 0:
                 return {
                     "success": False,
@@ -151,7 +164,10 @@ class AgentContextOps:
                         paper_id = f"paper:{paper_id}"
 
                     # Check if paper exists
-                    paper_check = self.db._execute_query(f"SELECT id FROM {paper_id} LIMIT 1")
+                    _validate_record_id(paper_id)
+                    paper_check = self.db._execute_query(
+                        f"SELECT id FROM {paper_id} LIMIT 1"
+                    )
                     if not paper_check or len(paper_check) == 0:
                         paper_errors.append(f"Paper not found: {paper_id}")
                         continue
@@ -179,7 +195,9 @@ class AgentContextOps:
             except Exception as e:
                 logger.warning(f"Failed to update session tokens: {e}")
 
-            logger.info(f"Created decision {decision_id} with {links_created} paper links")
+            logger.info(
+                f"Created decision {decision_id} with {links_created} paper links"
+            )
 
             result_dict = {
                 "success": True,
@@ -209,7 +227,7 @@ class AgentContextOps:
         session_id: str,
         outcome_type: str,
         lessons_learned: list[str],
-        metrics: dict | None = None,
+        metrics: dict = None,
     ) -> dict[str, Any]:
         """Record session outcome and link to lessons.
 
@@ -228,7 +246,10 @@ class AgentContextOps:
             metrics = metrics or {}
 
             # Validate session exists
-            session_check = self.db._execute_query(f"SELECT id FROM {session_id} LIMIT 1")
+            _validate_record_id(session_id)
+            session_check = self.db._execute_query(
+                f"SELECT id FROM {session_id} LIMIT 1"
+            )
             if not session_check or len(session_check) == 0:
                 return {
                     "success": False,
@@ -262,7 +283,10 @@ class AgentContextOps:
             for lesson_id in lessons_learned:
                 try:
                     # Check if lesson exists
-                    lesson_check = self.db._execute_query(f"SELECT id FROM lesson:{lesson_id} LIMIT 1")
+                    _validate_record_id(f"lesson:{lesson_id}")
+                    lesson_check = self.db._execute_query(
+                        f"SELECT id FROM lesson:{lesson_id} LIMIT 1"
+                    )
                     if not lesson_check or len(lesson_check) == 0:
                         validation_errors.append(f"Lesson not found: {lesson_id}")
                         continue
@@ -279,7 +303,9 @@ class AgentContextOps:
                     if edge_result and len(edge_result) > 0:
                         validated_lessons += 1
                     else:
-                        validation_errors.append(f"Failed to validate lesson: {lesson_id}")
+                        validation_errors.append(
+                            f"Failed to validate lesson: {lesson_id}"
+                        )
 
                 except Exception as e:
                     validation_errors.append(f"Error validating {lesson_id}: {e!s}")
@@ -297,7 +323,9 @@ class AgentContextOps:
             except Exception as e:
                 logger.warning(f"Failed to update session completion: {e}")
 
-            logger.info(f"Created outcome {outcome_id} with {validated_lessons} lesson validations")
+            logger.info(
+                f"Created outcome {outcome_id} with {validated_lessons} lesson validations"
+            )
 
             result_dict = {
                 "success": True,

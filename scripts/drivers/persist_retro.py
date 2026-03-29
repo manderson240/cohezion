@@ -20,6 +20,7 @@ from cohezion.core.persistence.surreal_client import (
 )
 
 
+
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("PersistRetro")
 

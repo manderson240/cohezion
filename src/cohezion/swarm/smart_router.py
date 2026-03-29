@@ -150,6 +150,13 @@ LOCAL_MODELS = {
         speed_tier=3,
         quality_tier=4,
     ),
+    "gpt-oss:20b": ModelProfile(
+        name="gpt-oss:20b",
+        capabilities=[ModelCapability.ACCURATE, ModelCapability.LARGE_CONTEXT],
+        context_length=256000,
+        speed_tier=2,
+        quality_tier=4,
+    ),
     "deepseek-r1:7b": ModelProfile(
         name="deepseek-r1:7b",
         capabilities=[ModelCapability.ACCURATE, ModelCapability.CREATIVE],
@@ -175,6 +182,13 @@ LOCAL_MODELS = {
         name="gemma3-4b-256k:latest",
         capabilities=[ModelCapability.FAST, ModelCapability.LARGE_CONTEXT],
         context_length=256000,
+        speed_tier=1,
+        quality_tier=3,
+    ),
+    "alibayram/smollm3:latest": ModelProfile(
+        name="alibayram/smollm3:latest",
+        capabilities=[ModelCapability.FAST, ModelCapability.CODING, ModelCapability.LARGE_CONTEXT],
+        context_length=128000,
         speed_tier=1,
         quality_tier=3,
     ),
@@ -404,7 +418,7 @@ class SmartRouter:
 
                 data = await resp.json()
                 response = data.get("response", "")
-                tokens = data.get("eval_count", 0) + data.get("prompt_eval_count", 0)
+                data.get("eval_count", 0) + data.get("prompt_eval_count", 0)
                 success = True
                 break
 

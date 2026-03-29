@@ -1,5 +1,4 @@
 import asyncio
-import contextlib
 import json
 import logging
 import math
@@ -92,12 +91,16 @@ async def broadcast_loop():
 
         if CONNECTED_CLIENTS:
             for ws in list(CONNECTED_CLIENTS):
-                with contextlib.suppress(BaseException):
+                try:
                     await ws.send(msg)
+                except Exception:
+                    pass
 
         # Log occasionally
         if int(t) % 10 == 0:
-            logger.info(f"Broadcast: Clients={len(CONNECTED_CLIENTS)} | BBQ={bbq_active} | Coh={coherence:.3f}")
+            logger.info(
+                f"Broadcast: Clients={len(CONNECTED_CLIENTS)} | BBQ={bbq_active} | Coh={coherence:.3f}"
+            )
 
         await asyncio.sleep(0.1)  # 10Hz Update
 
@@ -108,5 +111,7 @@ async def main():
 
 
 if __name__ == "__main__":
-    with contextlib.suppress(KeyboardInterrupt):
+    try:
         asyncio.run(main())
+    except KeyboardInterrupt:
+        pass

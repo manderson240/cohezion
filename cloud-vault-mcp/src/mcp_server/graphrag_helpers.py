@@ -56,6 +56,7 @@ async def execute_surreal_async(
     database: str = "vault",
     auth: tuple = ("root", "root"),
     max_retries: int = 3,
+    url: str = "http://localhost:8001/sql",
 ) -> list[dict[str, Any]]:
     """Execute SurrealQL query with retry logic"""
 
@@ -65,7 +66,7 @@ async def execute_surreal_async(
     for attempt in range(max_retries):
         try:
             response = await client.post(
-                "http://localhost:8000/sql",
+                url,
                 headers={
                     "Content-Type": "text/plain",
                     "Accept": "application/json",
@@ -85,12 +86,16 @@ async def execute_surreal_async(
             error_detail = getattr(e.response, "text", str(e))
             logger.error(f"SurrealDB HTTP {e.response.status_code}: {error_detail}")
             if attempt == max_retries - 1:
-                raise GraphRAGError(f"Query failed after {max_retries} attempts: {error_detail}") from e
+                raise GraphRAGError(
+                    f"Query failed after {max_retries} attempts: {error_detail}"
+                )
             await asyncio.sleep(2**attempt)  # Exponential backoff
         except httpx.HTTPError as e:
             if attempt == max_retries - 1:
-                logger.error(f"SurrealDB query failed after {max_retries} attempts: {e}")
-                raise GraphRAGError(f"Query failed: {e}") from e
+                logger.error(
+                    f"SurrealDB query failed after {max_retries} attempts: {e}"
+                )
+                raise GraphRAGError(f"Query failed: {e}")
 
             # Exponential backoff
             await asyncio.sleep(0.1 * (2**attempt))

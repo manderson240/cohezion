@@ -5,9 +5,9 @@ import time
 from pathlib import Path
 
 import psutil
-from cohezion.swarm.agents.base import BaseAgent
 
 from cohezion.core.time_keeper import get_time_keeper
+from cohezion.swarm.agents.base import BaseAgent
 
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - [NEXUS_DAEMON] - %(message)s")
@@ -232,7 +232,9 @@ class NexusResearchDaemon(BaseAgent):
                 f"OUTPUT: Concise Markdown definition and logic."
             )
 
-            response = await self._call_ollama(prompt=full_prompt, model="phi3:mini", temperature=0.7)
+            response = await self._call_ollama(
+                prompt=full_prompt, model="phi3:mini", temperature=0.7
+            )
 
             # 3. Crystallize & Compress
             filename = f"LEARNING_{task.get('row', 0)}_{int(time.time())}.md"
@@ -257,7 +259,9 @@ class NexusResearchDaemon(BaseAgent):
             if old_id:
                 meta["previous_version"] = old_id
 
-            node = UniverseNode(id=new_id, content=content, node_type="research_paper", metadata=meta)
+            node = UniverseNode(
+                id=new_id, content=content, node_type="research_paper", metadata=meta
+            )
             # Use BaseAgent's db client
             await self._db.store_node(node)
 

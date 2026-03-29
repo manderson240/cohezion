@@ -78,3 +78,34 @@ class TriuneSimulationEngine:
         except Exception as e:
             logger.error(f"Engine persistence failure: {e}")
             raise
+
+    async def inject_patch(self, patch_proposal: str) -> None:
+        """
+        Injects a stabilization patch from Ouroboros into the engine.
+
+        Args:
+            patch_proposal: The semantic description of the patch.
+        """
+        logger.info(f"Engine received patch proposal: {patch_proposal}")
+
+        # Manifest the patch in the 'Thinker' layer (scaffold implementation)
+        # We record the patch event as a specific trajectory anchor
+        patch_id = f"patch_{int(torch.randint(0, 10000, (1,)).item())}"
+
+        # If the patch contains a number, let's nudge the thinker layer for verification
+        import re
+
+        matches = re.findall(r"[-+]?\d*\.\d+|\d+", patch_proposal)
+        if matches:
+            val = float(matches[0])
+            self.state.thinker[0] = val  # Nudge first element
+
+        # In a real system, this might modify engine parameters (stiffness, dt, etc.)
+        # For now, we anchor it in memory.
+        await self.obsidian_mcp.store_state_summary(
+            trajectory_id=patch_id,
+            state=self.state,
+            coherence=0.5,  # Forced stability target
+        )
+
+        logger.info(f"Patch {patch_id} successfully anchored in substrate.")

@@ -12,7 +12,6 @@ in the retrospective analysis and provides a secure foundation for production de
 import json
 import logging
 import os
-import time
 from pathlib import Path
 from typing import Any
 
@@ -472,7 +471,9 @@ wait
 
         # Check overall status
         all_valid = all(
-            result["valid"] for result in validation_results.values() if isinstance(result, dict) and "valid" in result
+            result["valid"]
+            for result in validation_results.values()
+            if isinstance(result, dict) and "valid" in result
         )
 
         if not all_valid:
@@ -566,7 +567,7 @@ wait
             return {"valid": False, "message": "IDE configs directory not found"}
 
         try:
-            for ide_name in self.ide_configs:
+            for ide_name in self.ide_configs.keys():
                 ide_file = ide_dir / f"{ide_name}.json"
                 if not ide_file.exists():
                     return {

@@ -14,6 +14,8 @@ import os
 from pathlib import Path
 from typing import Any
 
+from aiohttp import web
+
 
 logger = logging.getLogger(__name__)
 
@@ -131,7 +133,9 @@ class KnowledgeMCP:
 
     def list_skills(self) -> list[dict[str, str]]:
         """List all available skills."""
-        return [{"name": name, "summary": content[:80]} for name, content in self._skills_cache.items()]
+        return [
+            {"name": name, "summary": content[:80]} for name, content in self._skills_cache.items()
+        ]
 
     def get_entity(self, entity_id: str) -> dict[str, Any] | None:
         """Get entity from knowledge graph."""
@@ -157,8 +161,15 @@ class KnowledgeMCP:
         Get a specific chunk of context for a prompt.
         Inspired by the context7 pattern for high-fidelity doc retrieval.
         """
-        file_path = Path(path)
-        if not file_path.exists() or not str(file_path).startswith(str(Path(__file__).parent.parent)):
+        from cohezion.mcp.servers.safe_input import sanitize_path
+
+        project_root = Path(__file__).parent.parent
+        try:
+            file_path = sanitize_path(path, base_dir=project_root)
+        except ValueError:
+            return {"error": "Invalid or inaccessible path"}
+
+        if not file_path.exists():
             return {"error": "Invalid or inaccessible path"}
 
         content = file_path.read_text()

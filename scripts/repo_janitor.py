@@ -20,7 +20,7 @@ BATCH_SIZE_FILES = 1000  # Size for OS file operations
 def run_git_command(args, cwd=REPO_ROOT):
     """Run a git command and return the output."""
     try:
-        result = subprocess.run(["git", *args], cwd=cwd, capture_output=True, text=True, check=True)
+        result = subprocess.run(["git"] + args, cwd=cwd, capture_output=True, text=True, check=True)
         return result.stdout.strip()
     except subprocess.CalledProcessError as e:
         logger.error(f"Git command failed: {' '.join(args)} - {e.stderr}")
@@ -53,7 +53,7 @@ def purge_history_candidates(dry_run=True):
         batch_size = 50
         for i in range(0, len(files_to_remove), batch_size):
             batch = files_to_remove[i : i + batch_size]
-            run_git_command(["rm", "--cached", *batch])
+            run_git_command(["rm", "--cached"] + batch)
         logger.info("✅ Successfully removed files from index.")
 
 
@@ -119,7 +119,9 @@ def cleanup_artifacts():
                 except Exception as e:
                     logger.error(f"Failed to remove directory {p}: {e}")
 
-    logger.info(f"✅ Removed {removed_count} artifacts/dirs ({total_size / (1024 * 1024):.2f} MB saved).")
+    logger.info(
+        f"✅ Removed {removed_count} artifacts/dirs ({total_size / (1024 * 1024):.2f} MB saved)."
+    )
 
 
 def check_git_vitals(use_cache=False):
@@ -132,7 +134,9 @@ def check_git_vitals(use_cache=False):
         try:
             with open(CACHE_FILE) as f:
                 cached_data = json.load(f)
-                if (datetime.now().timestamp() - cached_data.get("timestamp", 0)) < 300:  # 5 min cache
+                if (
+                    datetime.now().timestamp() - cached_data.get("timestamp", 0)
+                ) < 300:  # 5 min cache
                     logger.info("Using cached git vitals.")
                     return cached_data
         except Exception:
@@ -183,10 +187,7 @@ def main():
 
     parser = argparse.ArgumentParser(description="Cohezion Repo Janitor")
     parser.add_argument(
-        "--dry-run",
-        action="store_true",
-        default=False,
-        help="Don't delete or uncache files",
+        "--dry-run", action="store_true", default=False, help="Don't delete or uncache files"
     )
     parser.add_argument("--no-cleanup", action="store_true", help="Skip artifact cleanup")
     parser.add_argument("--no-purge", action="store_true", help="Skip history purge candidates")
