@@ -1,0 +1,39 @@
+{
+  "cli_version": "0.5.1",
+  "checkpoint_id": "811521d7c9e5",
+  "session_id": "2df918cc-6005-460f-87c8-deecfc331194",
+  "strategy": "manual-commit",
+  "created_at": "2026-03-29T15:44:05.575071592Z",
+  "branch": "main",
+  "checkpoints_count": 6,
+  "files_touched": [
+    "src/web/anima_dashboard/package-lock.json",
+    "src/web/anima_dashboard/package.json",
+    "src/web/anima_dashboard/src/components/pkg/cohezion_core_rs.d.ts",
+    "src/web/anima_dashboard/src/components/pkg/cohezion_core_rs.js",
+    "src/web/anima_dashboard/src/pkg/cohezion_core_rs.d.ts",
+    "src/web/anima_dashboard/src/pkg/cohezion_core_rs.js"
+  ],
+  "agent": "Claude Code",
+  "model": "claude-opus-4-6[1m]",
+  "turn_id": "b1d1a015bced",
+  "token_usage": {
+    "input_tokens": 20085,
+    "cache_creation_tokens": 843263,
+    "cache_read_tokens": 30035183,
+    "output_tokens": 45737,
+    "api_call_count": 116
+  },
+  "session_metrics": {
+    "turn_count": 10
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-03-29T15:44:04.862232756Z",
+    "agent_lines": 139,
+    "human_added": 432,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 571,
+    "agent_percentage": 24.34325744308231
+  }
+}
