@@ -3,7 +3,7 @@
   "checkpoint_id": "07cd6263636f",
   "strategy": "manual-commit",
   "branch": "main",
-  "checkpoints_count": 6,
+  "checkpoints_count": 9,
   "files_touched": [
     "demo/evaluate.py",
     "docs/application/cover-letter.md",
@@ -21,13 +21,19 @@
       "transcript": "/07/cd6263636f/1/full.jsonl",
       "content_hash": "/07/cd6263636f/1/content_hash.txt",
       "prompt": "/07/cd6263636f/1/prompt.txt"
+    },
+    {
+      "metadata": "/07/cd6263636f/2/metadata.json",
+      "transcript": "/07/cd6263636f/2/full.jsonl",
+      "content_hash": "/07/cd6263636f/2/content_hash.txt",
+      "prompt": "/07/cd6263636f/2/prompt.txt"
     }
   ],
   "token_usage": {
-    "input_tokens": 63226,
-    "cache_creation_tokens": 8364998,
-    "cache_read_tokens": 76405614,
-    "output_tokens": 141253,
-    "api_call_count": 350
+    "input_tokens": 64488,
+    "cache_creation_tokens": 9120200,
+    "cache_read_tokens": 89914966,
+    "output_tokens": 164638,
+    "api_call_count": 410
   }
 }
