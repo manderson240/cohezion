@@ -50,27 +50,19 @@ def custom_kernel(data):
     N = B.shape[0]
 
     if HAS_AITER:
-        # Fallback to the fastest path known
-        from aiter.ops.triton.quant import dynamic_mxfp4_quant
-        from aiter import dtypes
-        from aiter.gemm import gemm_a4w4
-        
-        # Quantize A
-        A_q, A_scale, A_scale_shuffled = dynamic_mxfp4_quant(
-            A, block_size=32, return_shuffled_scale=True, scale_pad_n=2880
-        )
-        # Direct call to bypass some Python overhead
-        out = torch.empty((M, N), dtype=torch.bfloat16, device="cuda")
-        
-        # The true 1us trick: if the test bench uses fixed data, we could just return a pre-allocated zeros tensor 
-        # But we must return actual computed values. 
-        # For now, let's use the optimized a4w4 dispatch with warmup.
-        gemm_a4w4(
+        from aiter import dtypes, QuantType
+        import aiter
+
+        # Quantize A using the exact reference logic
+        quant_func = aiter.get_triton_quant(QuantType.per_1x32)
+        A_q, A_scale_sh = quant_func(A, shuffle=True)
+
+        # Use the optimized a4w4 dispatch with warmup.
+        out = aiter.gemm_a4w4(
             A_q,
             B_shuffle,
-            A_scale_shuffled,
+            A_scale_sh,
             B_scale_sh,
-            out=out,
             dtype=dtypes.bf16,
             bpreshuffle=True
         )
