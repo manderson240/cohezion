@@ -211,3 +211,40 @@ Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderso
 <usage><total_tokens>102318</total_tokens><tool_uses>46</tool_uses><duration_ms>377736</duration_ms></usage>
 </task-notification>
 Full transcript available at: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/2df918cc-6005-460f-87c8-deecfc331194/tasks/aa1c729475009e0ba.output
+
+---
+
+<task-notification>
+<task-id>a4c53b730e7a48116</task-id>
+<tool-use-id>toolu_01CHoBLgMCxtjJ77Zm9JQ57a</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/2df918cc-6005-460f-87c8-deecfc331194/tasks/a4c53b730e7a48116.output</output-file>
+<status>completed</status>
+<summary>Agent "Create demo quickstart scripts" completed</summary>
+<result>All files created and verified. Here is a summary of what was done:
+
+---
+
+**Created 4 files in `/home/mike-anderson/dev/cohezion/demo/`:**
+
+1. **`demo/README.md`** -- Quick start instructions showing the 3-command workflow, explains each metric, and documents the architecture.
+
+2. **`demo/quickstart.py`** -- Trains an agent on ManifoldEnv-v0 (Gymnasium-compatible) for 50 episodes. Uses a lightweight "coherence-gradient" policy that learns which action directions improve HIHO coherence. Prints per-episode metrics (coherence, reward, charge polarity, Yang-Mills action) and saves all trajectory data to `data/trajectories.json`. Runs in ~67 seconds on CPU.
+
+3. **`demo/evaluate.py`** -- Computes 6 FLUME capability metrics with bootstrap 95% confidence intervals (10,000 resamples):
+   - Coherence Amplitude, Phase Locking Rate, Exotic Charge Lifetime, Orbit Quality, TRIUNE Balance Index, Recovery Basin Radius
+   - Generates a matplotlib radar chart to `data/capability_radar.png` (gracefully skips if matplotlib unavailable)
+   - Saves JSON metrics to `data/metrics.json`
+
+4. **`demo/export_dataset.py`** -- Converts trajectories to 3 LLM training formats using the existing `llm_training_bridge` module (with standalone fallback):
+   - `preferences.jsonl` -- DPO preference pairs ranked by HIHO alignment
+   - `rewards.jsonl` -- Scalar reward labels for RLHF reward modeling
+   - `judgments.jsonl` -- Per-decision assessments (4,950 records from 50 episodes)
+
+**Robustness features:**
+- All scripts handle import failures gracefully with helpful error messages
+- `export_dataset.py` has a complete standalone implementation as fallback when `cohezion` is not importable
+- `evaluate.py` works without matplotlib (text-only mode)
+- `quickstart.py` tries `gymnasium.make()` first, falls back to direct import</result>
+<usage><total_tokens>109432</total_tokens><tool_uses>28</tool_uses><duration_ms>491527</duration_ms></usage>
+</task-notification>
+Full transcript available at: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/2df918cc-6005-460f-87c8-deecfc331194/tasks/a4c53b730e7a48116.output
