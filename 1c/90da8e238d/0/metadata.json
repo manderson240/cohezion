@@ -1,0 +1,44 @@
+{
+  "cli_version": "0.5.1",
+  "checkpoint_id": "1c90da8e238d",
+  "session_id": "0e827bda-d662-451e-95d0-882cbec81a9e",
+  "strategy": "manual-commit",
+  "created_at": "2026-03-29T01:54:58.586580722Z",
+  "branch": "challenge/nvidia-nemotron-reasoning",
+  "checkpoints_count": 2,
+  "files_touched": [
+    "data/config-sync-logs/config_sync.jsonl",
+    "luma_speedrun/amd-mixed-mla/submission_triton_cdna4_v2.py",
+    "luma_speedrun/amd-mixed-mla/submission_triton_v3.py",
+    "luma_speedrun/amd-mixed-mla/submission_ultra.py",
+    "memory/MEMORY.md",
+    "src/cohezion/agentjet/embeddings.py",
+    "src/cohezion/hookify/validator.py",
+    "src/cohezion/knowledge_graph/KEY_LEARNINGS.md",
+    "src/cohezion/knowledge_graph/MISSION_JOURNAL.md",
+    "src/cohezion/mcp/hookify_server.py",
+    "tests/ouroboros/test_monitor.py"
+  ],
+  "agent": "Claude Code",
+  "model": "claude-opus-4-6[1m]",
+  "turn_id": "aa75ba822a8d",
+  "token_usage": {
+    "input_tokens": 43207,
+    "cache_creation_tokens": 7435069,
+    "cache_read_tokens": 64436555,
+    "output_tokens": 112488,
+    "api_call_count": 289
+  },
+  "session_metrics": {
+    "turn_count": 12
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-03-29T01:54:57.212411062Z",
+    "agent_lines": 746,
+    "human_added": 16772,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 17518,
+    "agent_percentage": 4.2584769950907635
+  }
+}
