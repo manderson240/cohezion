@@ -1,0 +1,35 @@
+{
+  "cli_version": "0.5.1",
+  "checkpoint_id": "1c90da8e238d",
+  "strategy": "manual-commit",
+  "branch": "challenge/nvidia-nemotron-reasoning",
+  "checkpoints_count": 2,
+  "files_touched": [
+    "data/config-sync-logs/config_sync.jsonl",
+    "luma_speedrun/amd-mixed-mla/submission_triton_cdna4_v2.py",
+    "luma_speedrun/amd-mixed-mla/submission_triton_v3.py",
+    "luma_speedrun/amd-mixed-mla/submission_ultra.py",
+    "memory/MEMORY.md",
+    "src/cohezion/agentjet/embeddings.py",
+    "src/cohezion/hookify/validator.py",
+    "src/cohezion/knowledge_graph/KEY_LEARNINGS.md",
+    "src/cohezion/knowledge_graph/MISSION_JOURNAL.md",
+    "src/cohezion/mcp/hookify_server.py",
+    "tests/ouroboros/test_monitor.py"
+  ],
+  "sessions": [
+    {
+      "metadata": "/1c/90da8e238d/0/metadata.json",
+      "transcript": "/1c/90da8e238d/0/full.jsonl",
+      "content_hash": "/1c/90da8e238d/0/content_hash.txt",
+      "prompt": "/1c/90da8e238d/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 43207,
+    "cache_creation_tokens": 7435069,
+    "cache_read_tokens": 64436555,
+    "output_tokens": 112488,
+    "api_call_count": 289
+  }
+}
