@@ -1,20 +1,20 @@
 # Luma AMD Speedrun - Session Coordination
 
 ## Status
-- **Last Updated**: 2026-03-26 UTC
-- **Active Sessions**: Parallel optimization
-- **Competition Deadline**: March 30, 2026 (4 days remaining)
+- **Last Updated**: 2026-03-28 UTC
+- **Active Sessions**: Compound engineering optimization
+- **Competition Deadline**: March 30, 2026 (2 days remaining)
 
-### Current Submissions (Popcorn CLI Verified)
+### Current Best Submissions
 
-| Kernel | File | Tests | Submission ID | Geomean µs |
-|---------|------|-------|--------------|-------------|
-| GEMM | `submission.py` | PASSED (4/4) | 642253 | ~21.9 |
-| MLA | `submission.py` | PASSED | 641967 | [secret] |
-| MoE | `submission.py` | PASSED | 642045 | [secret] |
-| MoE | `submission_cktile_direct.py` | PASSED | 641031 | [secret] |
+| Kernel | File | Submission ID | Status |
+|--------|------|-------------|--------|
+| GEMM | `submission.py` | 658920 | ✅ Leaderboard |
+| MoE | `submission.py` | 658968 | ✅ Leaderboard |
+| MLA | `submission.py` | pending | rate limited |
 
-### GEMM Benchmark Results (Latest)
+### GEMM Benchmark Results (Best Working)
+
 | Shape | Best µs | Mean µs |
 |-------|----------|-----------|
 | M=4, N=2880, K=512 | 17.4 | 26.6 |
@@ -23,7 +23,13 @@
 | M=32, N=2880, K=512 | 17.6 | 18.7 |
 | M=64, N=7168, K=2048 | 23.3 | 24.2 |
 | M=256, N=3072, K=1536 | 22.2 | 23.0 |
-| **Geomean** | **21.9** | **~21.9** |
+| **Geomean** | **~21.9µs** | |
+
+### Compound Engineering Results
+
+**GEMM Compound (submission_compound.py)**: WORSE than baseline
+- HIP_ONLINE_TUNING=1 causes 8-20% regression
+- Reverted to baseline submission.py
 
 ### Leaderboard Names (Confirmed)
 - GEMM: `amd-mxfp4-mm` - Geomean ~21.9µs

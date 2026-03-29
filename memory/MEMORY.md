@@ -2,7 +2,7 @@
 
 **Auto-compiled from `~/vaults/cohezion-vault/` - Query vault for full context**
 
-**Last Updated**: 2026-02-20 (Session 15)
+**Last Updated**: 2026-03-28 (Session 77)
 
 ---
 
@@ -64,23 +64,26 @@
 
 ---
 
-## Active Context (Session 74, 2026-03-27)
+## Active Context (Session 77, 2026-03-28)
 
-**Current Work**: Session isolation via hooks + retrospective
-**Branch**: `challenge/nvidia-nemotron-reasoning` (should be on worktree — hooks now enforce this)
+**Current Work**: Full project health fix — MCP config, hooks, worktree cleanup
+**Branch**: `challenge/nvidia-nemotron-reasoning`
 **Recent**:
-- Session isolation: SessionStart hook + PreToolUse branch blocker + governance rule
-- Lint cleanup: F401 47→0, W293 25→0 (Session 73)
-- 82 new tests: FLUME geometry, debate consensus, cache warmer, SurrealDB repos
-- Kaggle Nemotron: G4 Blackwell training infrastructure (L161-172)
-**Test Suite**: 4,891 passing / 43 failing (99.1%)
+- Fixed BMAD MCP server config (streamable-http → stdio)
+- Fixed SurrealDB health check port (8000 → 8001)
+- Fixed branch-safety-warning hook false positive (allows writes outside repo)
+- Removed 3 stale empty dirs (flux, vibe, graph)
+- Fixed ruff target-version (py311 → py313)
+- Preserved 3 worktree WIP commits + 11 stashes → archive branches
+- Killed stale BMAD zombie process
+**Test Suite**: 5,001 collected (1 pre-existing failure in A2A endpoints)
+**Ruff**: ~5 auto-fixable violations (from py313 target change)
 **Next Steps**:
-1. Register settings.json hook (blocked by branch protection — needs worktree)
-2. Clean up 12 stale worktrees
-3. Address 43 pre-existing test failures (universe/, swarm/r_zero)
+1. Phase 2: Decompose monoliths (api/__init__.py, executor.py)
+2. Phase 3: Coverage 21%→40%, security lint audit
+3. Phase 4: CI hardening (coverage floor, type check gate)
 
-**Velocity**: High (hooks + lint + tests across 2 sessions)
-
+**Velocity**: Moderate (config fixes, cleanup, retrospective)
 ---
 
 ## Quick Reference Commands

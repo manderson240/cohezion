@@ -13,7 +13,7 @@ fi
 
 # Check SurrealDB (used by multiple MCP servers)
 if ! curl -sf --max-time 2 "http://localhost:8001/health" > /dev/null 2>&1; then
-    DEGRADED+=("surrealdb (http://localhost:8000)")
+    DEGRADED+=("surrealdb (http://localhost:8001)")
 fi
 
 # Check Ollama (used by compound engineering)

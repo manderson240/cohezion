@@ -33,7 +33,7 @@ async def main() -> int:
         logger.error("surrealdb package not installed: uv pip install surrealdb")
         return 1
 
-    async with AsyncSurreal("ws://localhost:8000/rpc") as db:
+    async with AsyncSurreal("ws://localhost:8001/rpc") as db:
         await db.signin({"username": "root", "password": "root"})
         await db.use("cohezion", "universe")
         logger.info("Connected to SurrealDB")

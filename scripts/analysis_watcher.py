@@ -310,7 +310,7 @@ async def connect_db():
     from cohezion.core.persistence.surreal_client import SurrealClient
 
     client = SurrealClient(
-        url="ws://localhost:8000/rpc",
+        url="ws://localhost:8001/rpc",
         namespace="cohezion",
         database="universe",
     )

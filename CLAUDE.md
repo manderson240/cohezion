@@ -84,8 +84,8 @@ See skill: `cohezion-vault-workflow` for vault API examples (log decisions, expe
 
 ### ⚡ Quick Reference
 - **Language**: Python 3.13+ | **Package Manager**: `uv` (never bare python)
-- **DB**: SurrealDB (ws://localhost:8000) | **API**: FastAPI :8080
-- **Tests**: 4,891 passing / 43 failing (99.1%) | **Coverage**: html report in `htmlcov/`
+- **DB**: SurrealDB (ws://localhost:8001) | **API**: FastAPI :8080
+- **Tests**: 5,001 collected, ~1 pre-existing failure | **Coverage**: html report in `htmlcov/`
 - **CI**: `make lint-check && uv run pytest` before commit
 - **Entry point**: `cohezion = "cohezion.__main__:main"`
 - **Vault**: `~/vaults/cohezion-vault/` — Query via `vault_find_relevant_context(query)`
@@ -122,14 +122,15 @@ Updated Skill (loop again)
 | `src/cohezion/compound/` | Executor, SkillRefiner, RetrospectionEngine, JourneyTracker | `executor.py` (11-step) |
 | `src/cohezion/swarm/` | Team orchestration, cost routing, model quality | `team_executor.py`, `cost_aware_router.py` |
 | `src/cohezion/cache/` | L1/L2/L3 semantic cache (95%+ hit rate) | `semantic_cache.py` |
-| `src/cohezion/skills/` | 124 PRIME skill definitions (*.md + *.py) | `skill_registry.json` |
+| `src/cohezion/skills/` | 80 PRIME skill definitions (*.md + *.py) | `skill_registry.json` |
 | `src/cohezion/persistence/` | SurrealDB, checkpoints, session recovery | `surreal_client.py` |
-| `src/cohezion/api/` | FastAPI backend (72 endpoints) | `__init__.py` (FastMCP patterns) |
+| `src/cohezion/api/` | FastAPI backend (55 endpoints) | `__init__.py` (FastMCP patterns) |
 | `src/cohezion/flume/` | FLUME VAE (256D latent space) | `flume_vae.py` |
 | `tests/conftest.py` | **CRITICAL**: Singleton reset for FLUME VAE, RL policy, loggers | **Read this first** |
 
 ## Coding Standards (Cohezion-Specific)
 
+- **Lint**: `ruff check src/` must exit 0. CI gates on lint. Security rules (S607/S603/S311) suppressed for Phase 3 audit. **Never use `--unsafe-fixes`** without auditing TC001 — it breaks Pydantic models and mock targets.
 - **Async**: All I/O must be `async/await` with timeouts. No blocking calls in executors
 - **Error handling**: Specific exceptions + circuit breakers (`cohezion.reliability.get_circuit()`)
 - **Validation**: Pydantic at boundaries (input/output). Fail fast with assertions

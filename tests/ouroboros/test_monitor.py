@@ -9,11 +9,11 @@ from cohezion.ouroboros.monitor import OuroborosMonitor
 async def test_monitor_initialization():
     """Test that OuroborosMonitor initializes with correct config."""
     monitor = OuroborosMonitor(
-        url="ws://localhost:8000/rpc",
+        url="ws://localhost:8001/rpc",
         namespace="test_ns",
         database="test_db"
     )
-    assert monitor.url == "ws://localhost:8000/rpc"
+    assert monitor.url == "ws://localhost:8001/rpc"
     assert monitor.namespace == "test_ns"
     assert monitor.database == "test_db"
 
