@@ -1,7 +1,6 @@
-from dataclasses import dataclass
-
 from problem import SCRATCH_SIZE, VLEN
-from optimizer import VLIWPacker
+from optimizer import VLIWPacker, KernelConfig
+from dataclasses import dataclass
 
 
 @dataclass
@@ -71,7 +70,13 @@ class SimpleKernelBuilder:
         v_n_nodes = self.alloc("v_n_nodes", VLEN)
         s_n_nodes = self.alloc("s_n_nodes")
         c_1 = self.get_const(1)
-        self.packer.add_slot("load", ("load", s_n_nodes, c_1), reads=(c_1,), writes=(s_n_nodes,), is_mem_read=True)
+        self.packer.add_slot(
+            "load",
+            ("load", s_n_nodes, c_1),
+            reads=(c_1,),
+            writes=(s_n_nodes,),
+            is_mem_read=True,
+        )
         self.packer.add_slot(
             "valu",
             ("vbroadcast", v_n_nodes, s_n_nodes),
@@ -85,17 +90,27 @@ class SimpleKernelBuilder:
         v_1 = self.alloc("v_1", VLEN)
         v_2 = self.alloc("v_2", VLEN)
         for c, v in [(c_0, v_0), (c_1, v_1), (c_2, v_2)]:
-            self.packer.add_slot("valu", ("vbroadcast", v, c), reads=(c,), writes=tuple(range(v, v + VLEN)))
+            self.packer.add_slot(
+                "valu",
+                ("vbroadcast", v, c),
+                reads=(c,),
+                writes=tuple(range(v, v + VLEN)),
+            )
 
         global_hash_vec_map = {}
         hash_consts = set()
-        for _op1, val1, _op2, _op3, val3 in hash_stages:
+        for op1, val1, op2, op3, val3 in hash_stages:
             hash_consts.add(val1)
             hash_consts.add(val3)
         for val in hash_consts:
             c = self.get_const(val)
             v = self.alloc(f"vc_{val}", VLEN)
-            self.packer.add_slot("valu", ("vbroadcast", v, c), reads=(c,), writes=tuple(range(v, v + VLEN)))
+            self.packer.add_slot(
+                "valu",
+                ("vbroadcast", v, c),
+                reads=(c,),
+                writes=tuple(range(v, v + VLEN)),
+            )
             global_hash_vec_map[val] = v
 
         num_batches = batch_size // VLEN
@@ -154,7 +169,7 @@ class SimpleKernelBuilder:
             )
 
         # 4. Computation Rounds
-        for _r in range(rounds):
+        for r in range(rounds):
             for b in range(num_batches):
                 s = batch_states[b]
                 v_idx, v_val = s["v_idx"], s["v_val"]
@@ -168,13 +183,18 @@ class SimpleKernelBuilder:
                         writes=(v_t1 + k,),
                     )
                     self.packer.add_slot(
-                        "load", ("load", v_t2 + k, v_t1 + k), reads=(v_t1 + k,), writes=(v_t2 + k,), is_mem_read=True
+                        "load",
+                        ("load", v_t2 + k, v_t1 + k),
+                        reads=(v_t1 + k,),
+                        writes=(v_t2 + k,),
+                        is_mem_read=True,
                     )
 
                 self.packer.add_slot(
                     "valu",
                     ("^", v_val, v_val, v_t2),
-                    reads=tuple(range(v_val, v_val + VLEN)) + tuple(range(v_t2, v_t2 + VLEN)),
+                    reads=tuple(range(v_val, v_val + VLEN))
+                    + tuple(range(v_t2, v_t2 + VLEN)),
                     writes=tuple(range(v_val, v_val + VLEN)),
                 )
                 for op1, val1, op2, op3, val3 in hash_stages:
@@ -182,19 +202,22 @@ class SimpleKernelBuilder:
                     self.packer.add_slot(
                         "valu",
                         (op1, v_t1, v_val, vc1),
-                        reads=tuple(range(v_val, v_val + VLEN)) + tuple(range(vc1, vc1 + VLEN)),
+                        reads=tuple(range(v_val, v_val + VLEN))
+                        + tuple(range(vc1, vc1 + VLEN)),
                         writes=tuple(range(v_t1, v_t1 + VLEN)),
                     )
                     self.packer.add_slot(
                         "valu",
                         (op3, v_t2, v_val, vc3),
-                        reads=tuple(range(v_val, v_val + VLEN)) + tuple(range(vc3, vc3 + VLEN)),
+                        reads=tuple(range(v_val, v_val + VLEN))
+                        + tuple(range(vc3, vc3 + VLEN)),
                         writes=tuple(range(v_t2, v_t2 + VLEN)),
                     )
                     self.packer.add_slot(
                         "valu",
                         (op2, v_val, v_t1, v_t2),
-                        reads=tuple(range(v_t1, v_t1 + VLEN)) + tuple(range(v_t2, v_t2 + VLEN)),
+                        reads=tuple(range(v_t1, v_t1 + VLEN))
+                        + tuple(range(v_t2, v_t2 + VLEN)),
                         writes=tuple(range(v_val, v_val + VLEN)),
                     )
 
@@ -209,13 +232,15 @@ class SimpleKernelBuilder:
                 self.packer.add_slot(
                     "valu",
                     ("&", v_t1, v_val, v_1),
-                    reads=tuple(range(v_val, v_val + VLEN)) + tuple(range(v_1, v_1 + VLEN)),
+                    reads=tuple(range(v_val, v_val + VLEN))
+                    + tuple(range(v_1, v_1 + VLEN)),
                     writes=tuple(range(v_t1, v_t1 + VLEN)),
                 )
                 self.packer.add_slot(
                     "valu",
                     ("+", v_idx, v_idx, v_t1),
-                    reads=tuple(range(v_idx, v_idx + VLEN)) + tuple(range(v_t1, v_t1 + VLEN)),
+                    reads=tuple(range(v_idx, v_idx + VLEN))
+                    + tuple(range(v_t1, v_t1 + VLEN)),
                     writes=tuple(range(v_idx, v_idx + VLEN)),
                 )
 
@@ -223,7 +248,8 @@ class SimpleKernelBuilder:
                 self.packer.add_slot(
                     "valu",
                     ("<", v_t2, v_idx, v_n_nodes),
-                    reads=tuple(range(v_idx, v_idx + VLEN)) + tuple(range(v_n_nodes, v_n_nodes + VLEN)),
+                    reads=tuple(range(v_idx, v_idx + VLEN))
+                    + tuple(range(v_n_nodes, v_n_nodes + VLEN)),
                     writes=tuple(range(v_t2, v_t2 + VLEN)),
                 )
                 self.packer.add_slot(

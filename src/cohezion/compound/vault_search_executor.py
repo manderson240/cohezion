@@ -73,9 +73,7 @@ class VaultSearchExecutor(CompoundExecutor):
         super().__init__(mcp_client, **kwargs)
         self.project = project
 
-    def search(
-        self, query: str, document_types: list[str] | None = None
-    ) -> SearchResult:
+    def search(self, query: str, document_types: list[str] | None = None) -> SearchResult:
         """Execute vault search with skill context.
 
         Implements Phase 4 (Execute) of compound pipeline:
@@ -102,7 +100,9 @@ class VaultSearchExecutor(CompoundExecutor):
         logger.info("Phase 1: Fetching vault context for query: %s", query)
 
         # Parse and validate early (Phase 2-3) before execution
-        parsed_query = self._parse_search_query(query, document_types or ["decisions", "experiments", "patterns"])
+        parsed_query = self._parse_search_query(
+            query, document_types or ["decisions", "experiments", "patterns"]
+        )
 
         # Phase 3: Validate search parameters (guardrails) - raises ValueError if invalid
         logger.info("Phase 3: Validating search parameters")
@@ -243,7 +243,9 @@ class VaultSearchExecutor(CompoundExecutor):
             logger.error("Search execution failed: %s", e)
             return []
 
-    def _calculate_relevance(self, document: dict[str, Any], query: SearchQuery, skill_context: list[str]) -> float:
+    def _calculate_relevance(
+        self, document: dict[str, Any], query: SearchQuery, skill_context: list[str]
+    ) -> float:
         """Calculate relevance score for document.
 
         Args:
@@ -257,7 +259,9 @@ class VaultSearchExecutor(CompoundExecutor):
         score = 0.0
 
         # Keyword matching
-        doc_text = json.dumps(document).lower() if isinstance(document, dict) else str(document).lower()
+        doc_text = (
+            json.dumps(document).lower() if isinstance(document, dict) else str(document).lower()
+        )
         matching_keywords = sum(1 for kw in query.keywords if kw in doc_text)
         score += (matching_keywords / len(query.keywords)) * 0.7
 
@@ -294,7 +298,9 @@ class VaultSearchExecutor(CompoundExecutor):
 
         return anomalies
 
-    def _analyze_search_patterns(self, documents: list[dict[str, Any]], skill_context: list[str]) -> dict[str, Any]:
+    def _analyze_search_patterns(
+        self, documents: list[dict[str, Any]], skill_context: list[str]
+    ) -> dict[str, Any]:
         """Phase 6: Analyze search patterns for optimization.
 
         Args:
@@ -350,9 +356,7 @@ class VaultSearchExecutor(CompoundExecutor):
                 "execution_time_ms": execution_time_ms,
                 "skill_context_size": len(skill_context),
                 "throughput_results_per_sec": (
-                    num_results / (execution_time_ms / 1000)
-                    if execution_time_ms > 0
-                    else 0
+                    num_results / (execution_time_ms / 1000) if execution_time_ms > 0 else 0
                 ),
             }
 

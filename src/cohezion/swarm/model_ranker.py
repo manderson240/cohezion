@@ -128,12 +128,13 @@ class ModelRanker:
         # Verify weights sum to approximately 1.0
         total_weight = sum([coherence_weight, cost_weight, latency_weight, freshness_weight])
         if not (0.9 <= total_weight <= 1.1):
-            logger.warning(f"Model ranking weights sum to {total_weight}, expected ~1.0. Scores will be normalized.")
+            logger.warning(
+                f"Model ranking weights sum to {total_weight}, expected ~1.0. "
+                f"Scores will be normalized."
+            )
 
         # Cache for coherence scores
-        self._coherence_cache: dict[
-            str, tuple[float, float]
-        ] = {}  # model -> (score, timestamp)
+        self._coherence_cache: dict[str, tuple[float, float]] = {}  # model -> (score, timestamp)
 
     def rank_models(
         self,
@@ -249,9 +250,7 @@ class ModelRanker:
         # Normalize latency (0.0-1.0 scale: lower latency = higher score)
         # Assume max acceptable latency is 500ms
         max_latency = 500.0
-        latency_score = (
-            max(0.0, 1.0 - (latency / max_latency)) if max_latency > 0 else 1.0
-        )
+        latency_score = max(0.0, 1.0 - (latency / max_latency)) if max_latency > 0 else 1.0
         latency_score = min(1.0, latency_score)  # Cap at 1.0
 
         # Apply strategy-specific weighting
@@ -306,9 +305,7 @@ class ModelRanker:
         # Fallback to default
         return self.DEFAULT_COHERENCE.get(model, 0.70)
 
-    def _query_vault_coherence(
-        self, model: str, task_description: str
-    ) -> float | None:
+    def _query_vault_coherence(self, model: str, task_description: str) -> float | None:
         """Query vault for model coherence on similar tasks.
 
         Args:
@@ -378,7 +375,9 @@ class ModelRanker:
         """
         return {model: self.DEFAULT_LATENCY.get(model, 100.0) for model in models}
 
-    def update_coherence_score(self, model: str, coherence_score: float, timestamp: float | None = None) -> None:
+    def update_coherence_score(
+        self, model: str, coherence_score: float, timestamp: float | None = None
+    ) -> None:
         """Update cached coherence score for a model.
 
         Args:

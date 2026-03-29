@@ -61,9 +61,7 @@ class PatternRepository:
     Uses a local write-buffer (.pattern_buffer.json) for reliability.
     """
 
-    def __init__(
-        self, client: SurrealClient, buffer_path: str = ".pattern_buffer.json"
-    ) -> None:
+    def __init__(self, client: SurrealClient, buffer_path: str = ".pattern_buffer.json") -> None:
         self.client = client
         self.buffer_path = Path(buffer_path)
         self._load_buffer()
@@ -128,17 +126,13 @@ class PatternRepository:
                     logger.info(f"Anti-pattern synced to SurrealDB: {anti_pattern_id}")
                     return anti_pattern_id
             else:
-                logger.warning(
-                    "SurrealDB offline. Anti-pattern stored in local buffer."
-                )
+                logger.warning("SurrealDB offline. Anti-pattern stored in local buffer.")
         except Exception as e:
             logger.error(f"Failed to sync anti-pattern to SurrealDB: {e}")
 
         return "buffered"
 
-    async def find_similar_patterns(
-        self, embedding: list[float], limit: int = 5
-    ) -> list[dict]:
+    async def find_similar_patterns(self, embedding: list[float], limit: int = 5) -> list[dict]:
         """Query SurrealDB for similar patterns."""
         if not await self.client.is_alive():
             return []

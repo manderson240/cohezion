@@ -26,8 +26,6 @@ logging.basicConfig(
 )
 logger = logging.getLogger("LabDriver")
 
-import contextlib
-
 import psutil
 
 
@@ -39,7 +37,9 @@ async def get_throttle_delay(base_delay: float = 60.0) -> float:
     # Scaling factor: if load is high, increase delay
     # Thresholds: > 70% CPU or > 80% RAM is "High Heat"
     if cpu_usage > 70 or ram_usage > 80:
-        logger.warning(f"🔥 High load detected (CPU: {cpu_usage}%, RAM: {ram_usage}%). Throttling...")
+        logger.warning(
+            f"🔥 High load detected (CPU: {cpu_usage}%, RAM: {ram_usage}%). Throttling..."
+        )
         return base_delay * 3  # Triple the delay
     elif cpu_usage > 40 or ram_usage > 60:
         logger.info(f"🌤 Moderate load (CPU: {cpu_usage}%, RAM: {ram_usage}%). Slight throttle.")
@@ -79,7 +79,9 @@ async def main():
             cpu_usage = psutil.cpu_percent(interval=1)
             ram_usage = psutil.virtual_memory().percent
             if cpu_usage > 90 or ram_usage > 95:
-                logger.warning(f"🚨 CRITICAL LOAD: CPU {cpu_usage}%, RAM {ram_usage}%. Skipping cycle.")
+                logger.warning(
+                    f"🚨 CRITICAL LOAD: CPU {cpu_usage}%, RAM {ram_usage}%. Skipping cycle."
+                )
                 await asyncio.sleep(300)  # Wait 5 mins
                 continue
 
@@ -95,7 +97,7 @@ async def main():
                         stdout=asyncio.subprocess.PIPE,
                         stderr=asyncio.subprocess.PIPE,
                     )
-                    _stdout, stderr = await verify_process.communicate()
+                    stdout, stderr = await verify_process.communicate()
                     if verify_process.returncode == 0:
                         logger.info("✅ Context Integrity Verified.")
                     else:
@@ -120,8 +122,10 @@ async def main():
             # 5. Autonomic Scaling: Dynamic wait based on system load
             delay = await get_throttle_delay(base_idle_delay)
             logger.info(f"Waiting for {delay:.1f}s (Autonomic Scaling)...")
-            with contextlib.suppress(TimeoutError):
+            try:
                 await asyncio.wait_for(stop_event.wait(), timeout=delay)
+            except TimeoutError:
+                pass
 
     except Exception as e:
         logger.error(f"Lab Driver CRASHED: {e}", exc_info=True)

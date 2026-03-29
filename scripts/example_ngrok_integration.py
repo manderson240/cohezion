@@ -90,9 +90,11 @@ async def example_2_cost_optimization():
         },
     ]
 
+    total_cost = 0.0
+
     for task in tasks:
         try:
-            _response, tokens = await client.generate(
+            response, tokens = await client.generate(
                 prompt=task["prompt"],
                 model=task["model"],
             )
@@ -125,7 +127,7 @@ async def example_3_failover_behavior():
     print("Failover enabled: ngrok → Ollama\n")
 
     try:
-        response, _tokens = await gateway.generate(
+        response, tokens = await gateway.generate(
             prompt="Test prompt",
             model="gpt-4o",
         )
@@ -152,7 +154,10 @@ async def example_4_feature_flags():
     print("Initial status:")
     status = manager.get_status()
     ngrok_flag = status.get("ngrok_ai_gateway")
-    print(f"  NGROK_AI_GATEWAY: enabled={ngrok_flag['enabled']}, rollout={ngrok_flag['rollout_percentage']}%\n")
+    print(
+        f"  NGROK_AI_GATEWAY: enabled={ngrok_flag['enabled']}, "
+        f"rollout={ngrok_flag['rollout_percentage']}%\n"
+    )
 
     # Enable canary (5%)
     manager.set_flag(FeatureFlag.NGROK_AI_GATEWAY, True)
@@ -160,28 +165,40 @@ async def example_4_feature_flags():
     print("After canary rollout (5%):")
     status = manager.get_status()
     ngrok_flag = status.get("ngrok_ai_gateway")
-    print(f"  NGROK_AI_GATEWAY: enabled={ngrok_flag['enabled']}, rollout={ngrok_flag['rollout_percentage']}%\n")
+    print(
+        f"  NGROK_AI_GATEWAY: enabled={ngrok_flag['enabled']}, "
+        f"rollout={ngrok_flag['rollout_percentage']}%\n"
+    )
 
     # Ramp up (25%)
     manager.ramp_up(FeatureFlag.NGROK_AI_GATEWAY, 25.0)
     print("After ramp up (25%):")
     status = manager.get_status()
     ngrok_flag = status.get("ngrok_ai_gateway")
-    print(f"  NGROK_AI_GATEWAY: enabled={ngrok_flag['enabled']}, rollout={ngrok_flag['rollout_percentage']}%\n")
+    print(
+        f"  NGROK_AI_GATEWAY: enabled={ngrok_flag['enabled']}, "
+        f"rollout={ngrok_flag['rollout_percentage']}%\n"
+    )
 
     # Full rollout (100%)
     manager.ramp_up(FeatureFlag.NGROK_AI_GATEWAY, 100.0)
     print("After full rollout (100%):")
     status = manager.get_status()
     ngrok_flag = status.get("ngrok_ai_gateway")
-    print(f"  NGROK_AI_GATEWAY: enabled={ngrok_flag['enabled']}, rollout={ngrok_flag['rollout_percentage']}%\n")
+    print(
+        f"  NGROK_AI_GATEWAY: enabled={ngrok_flag['enabled']}, "
+        f"rollout={ngrok_flag['rollout_percentage']}%\n"
+    )
 
     # Emergency rollback
     manager.rollback(FeatureFlag.NGROK_AI_GATEWAY)
     print("After emergency rollback:")
     status = manager.get_status()
     ngrok_flag = status.get("ngrok_ai_gateway")
-    print(f"  NGROK_AI_GATEWAY: enabled={ngrok_flag['enabled']}, rollout={ngrok_flag['rollout_percentage']}%\n")
+    print(
+        f"  NGROK_AI_GATEWAY: enabled={ngrok_flag['enabled']}, "
+        f"rollout={ngrok_flag['rollout_percentage']}%\n"
+    )
 
 
 async def example_5_metrics_monitoring():
@@ -253,7 +270,9 @@ async def example_6_batch_processing():
         result = await client.batch_generate(items)
 
         print("Batch result:")
-        print(f"  Items processed: {result.total_items if hasattr(result, 'total_items') else len(result.items)}")
+        print(
+            f"  Items processed: {result.total_items if hasattr(result, 'total_items') else len(result.items)}"
+        )
         print(f"  Total tokens:    {result.total_tokens}")
         print(f"  Cache hits:      {result.cache_hits}")
         print(f"  Duration:        {result.total_duration_ms:.1f}ms\n")

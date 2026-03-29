@@ -134,8 +134,8 @@ class BatchSimulationRunner:
             if len(checkpoints) % 5 == 0 or epochs_completed == total_epochs:
                 logger.info(
                     f"    {pct:.0f}% ({epochs_completed}/{total_epochs}) "
-                    f"coherence={stats.get('mean_coherence', 0):.3f} "
-                    f"within_bounds={stats.get('pct_within_bounds', 0):.1%}"
+                    f"coherence={float(stats.get('mean_coherence', 0)):.3f} "
+                    f"within_bounds={float(stats.get('pct_within_bounds', 0)):.1%}"
                 )
 
         # Final statistics

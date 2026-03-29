@@ -4,19 +4,19 @@ from cohezion.flume.vae_encoder import FlumeVAEEncoder
 
 
 __all__ = [
+    "DomainEncoder",
+    "EncodedTrajectoryPoint",
     "ExperienceDataset",
     "ExperienceEncoder",
     "ExperienceTrainingPipeline",
-    "FlumeVAE",
     "FlumeVAEEncoder",
-    "TemporalEncoder",
-    "VAEEvaluator",
-    "VAETrainer",
+    "capture_trajectory",
+    "get_encoder",
 ]
 
 
 def __getattr__(name: str):
-    """Lazy imports for pipeline classes."""
+    """Lazy imports for experience pipeline classes."""
     if name == "ExperienceEncoder":
         from cohezion.flume.experience_encoder import ExperienceEncoder
 
@@ -29,20 +29,20 @@ def __getattr__(name: str):
         from cohezion.flume.experience_pipeline import ExperienceTrainingPipeline
 
         return ExperienceTrainingPipeline
-    if name == "FlumeVAE":
-        from cohezion.flume.vae import FlumeVAE
+    if name == "DomainEncoder":
+        from cohezion.flume.domain_encoder import DomainEncoder
 
-        return FlumeVAE
-    if name == "VAETrainer":
-        from cohezion.flume.train_vae import VAETrainer
+        return DomainEncoder
+    if name == "EncodedTrajectoryPoint":
+        from cohezion.flume.domain_encoder import EncodedTrajectoryPoint
 
-        return VAETrainer
-    if name == "VAEEvaluator":
-        from cohezion.flume.evaluate_vae import VAEEvaluator
+        return EncodedTrajectoryPoint
+    if name == "get_encoder":
+        from cohezion.flume.domain_encoder import get_encoder
 
-        return VAEEvaluator
-    if name == "TemporalEncoder":
-        from cohezion.flume.temporal_encoder import TemporalEncoder
+        return get_encoder
+    if name == "capture_trajectory":
+        from cohezion.flume.trajectory_capture import capture_trajectory
 
-        return TemporalEncoder
+        return capture_trajectory
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")

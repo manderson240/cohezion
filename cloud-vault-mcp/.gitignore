@@ -25,3 +25,4 @@ deploy/nginx/certs/
 
 # OS
 .DS_Store
+.worktrees/

@@ -22,10 +22,10 @@ import asyncio
 from typing import Any
 
 import pytest
-from cohezion.deployment.deployment_config import DeploymentConfig, Environment, Region
 
 # Phase 1 imports
 from cohezion.compound.session_manager import InferenceSession, SessionConfig
+from cohezion.deployment.deployment_config import DeploymentConfig, Environment, Region
 
 # Phase 2 imports
 from cohezion.deployment.feature_flags import (
@@ -186,10 +186,10 @@ class TestPhase4CacheProductionFlow:
         await cache.put("quantum computing", "", "model", "QC response")
 
         # Query similar to first (should hit)
-        await cache.get("deep learning")
+        result_ml = await cache.get("deep learning")
 
         # Query similar to second (should hit different one or miss)
-        await cache.get("quantum mechanics")
+        result_qc = await cache.get("quantum mechanics")
 
         # Cache should have entries
         stats = cache.get_stats()
@@ -210,7 +210,9 @@ class TestPhase4SessionProductionFlow:
             return f"result {step}", {"tokens": 10}
 
         event_types = []
-        async for event in session.execute_with_checkpoints("test-skill", "input", slow_task, total_steps=2):
+        async for event in session.execute_with_checkpoints(
+            "test-skill", "input", slow_task, total_steps=2
+        ):
             event_types.append(event.get("type"))
 
         # Verify session generates expected events
@@ -268,7 +270,7 @@ class TestPhase4EndToEndProduction:
         # Initialize all components
         pipeline = create_default_pipeline()
         cache = SemanticCache(max_entries=100)
-        InferenceSession("e2e-test")
+        session = InferenceSession("e2e-test")
         collector = get_metrics_collector()
 
         # User request
@@ -293,7 +295,7 @@ class TestPhase4EndToEndProduction:
             await cache.put(user_input, "", "model", result)
 
         # 3. Output check
-        await pipeline.check_output(result)
+        output_check = await pipeline.check_output(result)
 
         # 4. Record metrics
         collector.record_execution(tokens=50, duration_ms=100.0, model="test")

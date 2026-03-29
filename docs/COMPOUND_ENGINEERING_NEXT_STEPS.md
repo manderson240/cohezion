@@ -44,100 +44,20 @@ tests/ (3,318 passing, 0 failing)
 
 ## Identified Improvement Targets (TDD-First)
 
-### Priority 1: RecursiveChallenger → self_healing Module
-**Goal**: Scale Session 68's RecursiveChallenger autonomous improvement loop to target `src/cohezion/healing/`.
+### Priority 1: RecursiveChallenger → self_healing Module ✅
+**Implemented: Session 69**. `RecursiveChallenger` now targets the `cohezion.healing` module and successfully identifies code duplication in `immune_system.py`. It surgically removes the duplication in a TDD-driven autonomous cycle.
 
-**TDD Spec**:
-```python
-# Red: Write tests FIRST
-def test_recursive_challenger_targets_healing_module():
-    """RecursiveChallenger must identify improvement opportunities in immune_system.py"""
-    challenger = RecursiveChallenger(target_module="cohezion.healing.immune_system")
-    opportunities = challenger.analyze()
-    assert len(opportunities) > 0
-    assert all(o.has_test_coverage for o in opportunities)
-
-def test_recursive_improvement_is_idempotent():
-    """Running improvement twice should not regress test suite"""
-    before = get_test_count()
-    challenger.execute_improvement_cycle()
-    challenger.execute_improvement_cycle()
-    assert get_test_count() >= before
-
-def test_improvement_logs_to_vault():
-    """Every improvement cycle must log decision to vault"""
-    with patch("vault_log_decision") as mock_vault:
-        challenger.execute_improvement_cycle()
-        mock_vault.assert_called_once()
-```
-
-**Architecture**:
-- `RecursiveChallenger.target_module` → drives `CompoundExecutor.execute_skill()`
-- Each cycle: analyze → generate improvement → write test → implement → verify → log
-- Context guard: check `pilot check-context --json` before each recursion layer
-
-### Priority 2: SurrealDB Auth Fix
-**Goal**: Restore SurrealDB connectivity (currently `InvalidAuth` → falls back to InMemoryStore).
-
-**TDD Spec**:
-```python
-def test_surrealdb_auth_succeeds():
-    """Should connect with valid credentials, not fall back to InMemoryStore"""
-    client = SurrealClient()
-    result = await client.connect()
-    assert result.backend == "surrealdb"  # NOT "in_memory"
-    assert result.is_authenticated
-
-def test_surrealdb_fallback_on_auth_failure():
-    """Graceful fallback must still work when auth fails"""
-    with patch_bad_credentials():
-        client = SurrealClient()
-        result = await client.connect()
-        assert result.backend == "in_memory"
-        assert result.is_degraded  # Signals degraded mode
-```
-
-**Investigation path**: Check `~/.surreal`, env vars `SURREAL_USER`/`SURREAL_PASS`, connection string in `pyproject.toml` or `.env`.
+### Priority 2: SurrealDB Auth Fix ✅
+**Implemented: Session 69**. The `AsyncSurreal` client now natively supports correct authentication and connecting without falling back.
 
 ### Priority 3: Lint Reduction (E501 Line Length)
 **Goal**: Reduce 831 → <200 lint errors by targeting the 173 E501 (line too long) violations.
 
 **Approach**: Run `ruff check src/cohezion/ --select E501 --output-format=json | jq '.[].filename' | sort | uniq -c | sort -rn | head -10` to find the 10 worst files. Auto-wrap with `ruff check --unsafe-fixes` for the subset that's safe.
 
-### Priority 4: Context-Aware Long Horizon Task Engine
-**Goal**: Multi-session compound engineering tasks that survive context boundaries.
+### Priority 4: Context-Aware Long Horizon Task Engine ✅
+**Implemented: Session 69**. `LongHorizonTask` engine checkpoints progress across session boundaries, respecting an 80% context utilization guardrail to avoid context degradation.
 
-**Architecture**:
-```
-LongHorizonTask
-  ├── task_spec.md (YAML frontmatter: id, goal, context_budget, progress)
-  ├── CompoundExecutor.execute_multi_session(spec)
-  │     ├── Check pilot check-context --json before each step
-  │     ├── Checkpoint after each sub-task to vault
-  │     └── Continue from checkpoint on restart
-  └── RetrospectionEngine.synthesize_cross_session(checkpoints)
-```
-
-**TDD Spec**:
-```python
-def test_long_horizon_task_checkpoints_progress():
-    task = LongHorizonTask("optimize-self-healing-module", budget_sessions=5)
-    task.execute_step()
-    checkpoint = task.save_checkpoint()
-
-    # Simulate new session
-    resumed = LongHorizonTask.from_checkpoint(checkpoint)
-    assert resumed.progress_percent > 0
-    assert resumed.steps_completed == task.steps_completed
-
-def test_context_guard_triggers_handoff():
-    """Task must halt and checkpoint at 80% context, not continue"""
-    with mock_context_at(85):
-        task = LongHorizonTask("big-task")
-        result = task.execute_step()
-        assert result.handoff_triggered
-        assert result.checkpoint_saved
-```
 
 ---
 
@@ -148,18 +68,19 @@ def test_context_guard_triggers_handoff():
 - Context guard at 80%: forces handoff
 - RequestAlignmentAnalyzer: estimates tokens before execution
 
-### Next: Semantic Prefix Caching
-**Insight from Session 70**: The vault `find_relevant_context()` queries are a natural prefix for compound tasks. If the first N tokens of a task's context are always the same vault query result, they can be cached at the API level.
+### Next: Semantic Prefix Caching ✅
+**Implemented: Session 69**. The `TokenEfficientCompoundExecutor` now segregates static context (vault + core instructions) into a `cacheable_prefix`. This leverages API-level prompt caching, dropping latency and cost for recursive compound tasks.
 
 ```python
-class TokenEfficientCompoundExecutor(CompoundExecutor):
-    """Prepend cached vault context to reduce per-call token cost."""
+from cohezion.compound.token_efficient_executor import TokenEfficientCompoundExecutor
 
-    def _build_context(self, task: str) -> tuple[str, str]:
-        # Returns (cached_prefix, dynamic_suffix)
-        # cached_prefix can use Anthropic's prompt caching
-        vault_context = self.vault.find_relevant_context(task, limit=5)
-        return vault_context, task
+executor = TokenEfficientCompoundExecutor(mcp_client, token_client=client)
+result = await executor.execute_task_efficient(
+    task_description="Refine this module",
+    skill_name="refiner",
+    operation_type="transform",
+    execute_fn=my_async_llm_call  # Receives (prefix, suffix)
+)
 ```
 
 ### Next: Embedding-Guided Skill Selection

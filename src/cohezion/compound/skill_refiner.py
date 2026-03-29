@@ -48,6 +48,16 @@ class LearningSignal:
     confidence: float
 
 
+@dataclass
+class SkillRefinementInput:
+    """Input for skill refinement from external systems (TDD, Adversarial)."""
+
+    skill_name: str
+    performance_metric: float
+    feedback: str
+    context: dict[str, Any]
+
+
 class SkillRefiner:
     """Refines PRIME skill definitions based on execution results."""
 
@@ -246,9 +256,7 @@ class SkillRefiner:
 
         return None
 
-    def _append_refinement(
-        self, prime_file: Path, signal: LearningSignal
-    ) -> Path | None:
+    def _append_refinement(self, prime_file: Path, signal: LearningSignal) -> Path | None:
         """Append learned refinement to PRIME file.
 
         Args:

@@ -14,9 +14,8 @@ import logging
 from datetime import datetime
 from pathlib import Path
 
-from cohezion.mcp.email_notifier import EmailNotifier
-
 from cohezion.core.persistence.surreal_client import SurrealClient
+from cohezion.mcp.email_notifier import EmailNotifier
 
 
 logging.basicConfig(level=logging.INFO)
@@ -104,7 +103,9 @@ Generated: {datetime.now().isoformat()}
         if learning_path.exists():
             with open(learning_path, "a") as f:
                 f.write("\n## Learning from Fractal Nexus (Recursion)\n")
-                f.write("Refinement: HIHO stability thresholds should include quadratic resonance at 0.5 overlap.\n")
+                f.write(
+                    "Refinement: HIHO stability thresholds should include quadratic resonance at 0.5 overlap.\n"
+                )
 
     def _generate_marimo_notebook(self, pulses, reports):
         """Create an interactive Marimo notebook for 12D exploration."""

@@ -16,6 +16,7 @@ def simple_probe():
     print("Running Pure Python FLUME Probe...")
 
     # Generate data
+    num_sequences = 1000
     rounds = 16
 
     try:
@@ -36,7 +37,7 @@ def simple_probe():
         c_val = vals[i]
 
         seq = []
-        for _r in range(rounds):
+        for r in range(rounds):
             if c_idx >= len(t.values):
                 c_idx = 0
             n_val = t.values[c_idx]

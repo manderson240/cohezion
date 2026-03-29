@@ -18,6 +18,14 @@ except Exception:
 # Resolve to basename for pattern matching
 BASE=$(basename "$FILE")
 
+# Blocked patterns - lock files (managed by package manager)
+case "$BASE" in
+    uv.lock|poetry.lock|package-lock.json|yarn.lock|pnpm-lock.yaml)
+        echo "[protect-files] BLOCKED: $BASE is a lock file managed by package manager. Use 'uv lock' instead."
+        exit 2
+        ;;
+esac
+
 # Blocked patterns - secrets and credentials
 case "$BASE" in
     .env|.env.*|*.key|*.pem|*.p12|*.pfx|*.secret|*.secrets)

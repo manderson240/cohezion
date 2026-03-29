@@ -55,8 +55,7 @@ class HourOfPowerDriver:
 
             if epoch != last_epoch:
                 await self.notifier.send_report(
-                    f"🌌 New Epoch: {epoch}",
-                    f"Simulation has evolved to the {epoch} phase.",
+                    f"🌌 New Epoch: {epoch}", f"Simulation has evolved to the {epoch} phase."
                 )
                 last_epoch = epoch
 
@@ -68,7 +67,9 @@ class HourOfPowerDriver:
 
         # Finalization
         logger.info("🏁 HOUR OF POWER: Simulation Concluded.")
-        await self.dispatcher.dispatch("Conclusion", "1-hour autonomous run complete. Review results/pulse.")
+        await self.dispatcher.dispatch(
+            "Conclusion", "1-hour autonomous run complete. Review results/pulse."
+        )
         await self.notifier.send_report(
             "🏁 Hour of Power: Concluded",
             "The 1-hour high-fidelity run has completed successfully.",

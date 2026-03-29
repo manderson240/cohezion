@@ -28,7 +28,9 @@ class MyceliumNetwork:
 
     def apply_reinforcement(self, successful_agent_id: str, reward_tier: int):
         """Reinforce the network based on Level 1 Reward data."""
-        logger.info(f"🍄 MYCELIUM PULSE: Reinforcing network based on Agent {successful_agent_id} (Rank {reward_tier})")
+        logger.info(
+            f"🍄 MYCELIUM PULSE: Reinforcing network based on Agent {successful_agent_id} (Rank {reward_tier})"
+        )
 
         # 'As Above, So Below': Micro-success reduces Macro-entropy
         reinforcement_strength = reward_tier * 0.05
@@ -47,8 +49,9 @@ class MyceliumNetwork:
     def verify_ascension(self):
         """Check if the system has reached a new fractal level."""
         avg_cohezion = sum(n.cohezion_index for n in self.nodes) / len(self.nodes)
-        return bool(avg_cohezion > 0.9 and self.system_entropy < 0.1)
-
+        if avg_cohezion > 0.9 and self.system_entropy < 0.1:
+            return True
+        return False
 
 
 def run_mycelium_verification():

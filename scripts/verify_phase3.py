@@ -7,16 +7,15 @@ from pathlib import Path
 # Add src to path
 sys.path.append(str(Path(__name__).parent / "src"))
 
+from cohezion.core.time_keeper import get_time_keeper
 from cohezion.swarm.agents.chronicle_agent import ChronicleAgent
 from cohezion.swarm.agents.healer_agent import HealerAgent
-
-from cohezion.core.time_keeper import get_time_keeper
 from cohezion.swarm.swarm_types import SwarmConfig
 
 
 async def main():
     logging.basicConfig(level=logging.INFO)
-    logging.getLogger("Phase3Verification")
+    logger = logging.getLogger("Phase3Verification")
 
     tk = get_time_keeper()
     config = SwarmConfig()

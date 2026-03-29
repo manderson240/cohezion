@@ -57,8 +57,9 @@ def _execute_batch(files):
 if __name__ == "__main__":
     if len(sys.argv) > 1:
         # Allow passing "unlock" to try removing lockfile
-        if sys.argv[1] == "unlock" and os.path.exists(".git/index.lock"):
-            print("Removing .git/index.lock...")
-            os.remove(".git/index.lock")
+        if sys.argv[1] == "unlock":
+            if os.path.exists(".git/index.lock"):
+                print("Removing .git/index.lock...")
+                os.remove(".git/index.lock")
 
     batch_prune()

@@ -65,7 +65,7 @@ class TestModelRankerBasics:
     def test_model_score_representation(self, ranker):
         """Test ModelScore string representation."""
         ranked = ranker.rank_models(available_models=["phi3:mini"])
-        _model, score = ranked[0]
+        model, score = ranked[0]
 
         repr_str = repr(score)
         assert "ModelScore" in repr_str
@@ -96,7 +96,7 @@ class TestRankingStrategies:
 
         assert len(ranked) == 3
         # All should have BALANCED strategy
-        for _model, score in ranked:
+        for model, score in ranked:
             assert score.strategy == "balanced"
 
     def test_cost_optimized_strategy(self, ranker):
@@ -109,7 +109,7 @@ class TestRankingStrategies:
 
         assert len(ranked) == 3
         # All should have COST_OPTIMIZED strategy
-        for _model, score in ranked:
+        for model, score in ranked:
             assert score.strategy == "cost_optimized"
 
     def test_quality_first_strategy(self, ranker):
@@ -122,7 +122,7 @@ class TestRankingStrategies:
 
         assert len(ranked) == 3
         # All should have QUALITY_FIRST strategy
-        for _model, score in ranked:
+        for model, score in ranked:
             assert score.strategy == "quality_first"
 
     def test_different_strategies_produce_different_rankings(self, ranker):
@@ -173,7 +173,7 @@ class TestCoherenceScoring:
         )
 
         assert len(ranked) == 1
-        _model, score = ranked[0]
+        model, score = ranked[0]
         # Should use default coherence
         assert score.coherence_score == 0.95
 
@@ -303,7 +303,7 @@ class TestMultiStrategyComparison:
             available_models=models,
         )
 
-        for _strategy, rankings in all_strategies.items():
+        for strategy, rankings in all_strategies.items():
             assert len(rankings) == 3
             assert all(isinstance(score, ModelScore) for _, score in rankings)
 
@@ -325,7 +325,7 @@ class TestMultiStrategyComparison:
         )
 
         # Should be identical
-        for (m1, s1), (m2, s2) in zip(ranking1, ranking2, strict=False):
+        for (m1, s1), (m2, s2) in zip(ranking1, ranking2):
             assert m1 == m2
             assert s1.composite_score == s2.composite_score
 
@@ -389,7 +389,7 @@ class TestCostAndLatencyNormalization:
         )
 
         # All should have valid scores despite zero cost
-        for _model, score in ranked:
+        for model, score in ranked:
             assert 0.0 <= score.composite_score <= 1.0
 
 
@@ -452,7 +452,7 @@ class TestUnknownModels:
         )
 
         assert len(ranked) == 1
-        _model, score = ranked[0]
+        model, score = ranked[0]
         # Should use default (0.70)
         assert score.coherence_score == 0.70
 
@@ -465,7 +465,7 @@ class TestUnknownModels:
 
         assert len(ranked) == 3
         # All should have valid scores
-        for _model, score in ranked:
+        for model, score in ranked:
             assert 0.0 <= score.composite_score <= 1.0
 
     def test_unknown_model_coherence_clipping(self):
@@ -563,9 +563,7 @@ class TestPerformanceAndEdgeCases:
 
         assert len(ranked) == 100
         # Should complete in < 100ms
-        assert elapsed < 0.1, (
-            f"Ranking 100 models took {elapsed * 1000:.1f}ms (target: <100ms)"
-        )
+        assert elapsed < 0.1, f"Ranking 100 models took {elapsed * 1000:.1f}ms (target: <100ms)"
 
     def test_duplicate_models_handled(self):
         """Test that duplicate models in list are ranked."""
@@ -577,7 +575,7 @@ class TestPerformanceAndEdgeCases:
         # Should have entries for each occurrence
         assert len(ranked) == 3
         # All entries should have valid scores
-        for _model, score in ranked:
+        for model, score in ranked:
             assert 0.0 <= score.composite_score <= 1.0
 
     def test_all_equal_models_ranking(self):
@@ -723,7 +721,7 @@ class TestRankingConsistency:
 
         # All should be identical
         for ranking in rankings[1:]:
-            for (m1, s1), (m2, s2) in zip(rankings[0], ranking, strict=False):
+            for (m1, s1), (m2, s2) in zip(rankings[0], ranking):
                 assert m1 == m2
                 assert abs(s1.composite_score - s2.composite_score) < 1e-10
 
@@ -812,10 +810,12 @@ class TestIntegrationWithGlobalMetrics:
         """Test that ranker scores are comparable with metrics."""
         ranker = ModelRanker()
 
-        ranked = ranker.rank_models(available_models=["phi3:mini", "qwen3-coder:32b", "deepseek-r1:8b"])
+        ranked = ranker.rank_models(
+            available_models=["phi3:mini", "qwen3-coder:32b", "deepseek-r1:8b"]
+        )
 
         # Scores should be in valid range for comparison
-        for _model, score in ranked:
+        for model, score in ranked:
             assert isinstance(score.coherence_score, float)
             assert isinstance(score.composite_score, float)
             assert 0.0 <= score.composite_score <= 1.0

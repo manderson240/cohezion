@@ -41,7 +41,7 @@ def _():
 def _(mo):
     mo.md("""
     # 🌙 Overnight Research Dashboard
-
+    
     Real-time monitoring of autonomous Cohezion research sprint.
     **Ask questions** and get live analysis from the SLM swarm.
     """)
@@ -51,7 +51,9 @@ def _(mo):
 @app.cell
 def _(Path, json):
     # Load latest simulation results
-    results_path = Path("/home/mike-anderson/dev/cohezion/src/cohezion/knowledge_graph/hiho_results.json")
+    results_path = Path(
+        "/home/mike-anderson/dev/cohezion/src/cohezion/knowledge_graph/hiho_results.json"
+    )
 
     def load_results():
         if results_path.exists():
@@ -66,7 +68,7 @@ def _(Path, json):
 def _(mo, results):
     mo.md(f"""
     ## 📊 Current Simulation Status
-
+    
     - **Total Rounds**: {results.get("num_rounds", 0):,}
     - **Bright Spots**: {results.get("bright_spot_count", 0):,}
     - **Mean Stability**: {results.get("mean_stability", 0):.4f}
@@ -98,17 +100,17 @@ def _(mo, question, ask_button):
         # In real implementation, route to DeepSeek-R1 or Qwen3
         response = f"""
         **DeepSeek-R1 Analysis:**
-
+        
         Your question: "{question.value}"
-
-        Based on current simulation results, I observe that the mean stability of 0.87
+        
+        Based on current simulation results, I observe that the mean stability of 0.87 
         suggests we haven't fully explored the parameter space around the HIHO threshold (0.5).
-
-        **Recommendation**:
+        
+        **Recommendation**: 
         1. Increase sampling density near coherence = 0.48-0.52
         2. Apply gradient descent from current bright spots
         3. Use rotation/precession alignment as a secondary optimization target
-
+        
         **Predicted Impact**: +15% bright spots, +0.08 mean stability
         """
 
@@ -175,7 +177,7 @@ def _(mo, Path):
 
     mo.md(f"""
     ## 🏥 System Health
-
+    
     ```
     {check_health()}
     ```
@@ -188,7 +190,7 @@ def _(mo, datetime):
     mo.md(f"""
     ---
     *Last updated: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")} EST*
-
+    
     **Refresh the page to see latest results**
     """)
     return

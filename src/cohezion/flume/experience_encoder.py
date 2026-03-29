@@ -98,7 +98,9 @@ class ExperienceEncoder:
 
         # --- Dims [29:256]: semantic fingerprint ---
         fingerprint_text = self._build_fingerprint_text(experience)
-        vec[_TRAJECTORY_DIM + _METRICS_DIM + _OP_TYPE_DIM :] = self._sha256_expand(fingerprint_text, _FINGERPRINT_DIM)
+        vec[_TRAJECTORY_DIM + _METRICS_DIM + _OP_TYPE_DIM :] = self._sha256_expand(
+            fingerprint_text, _FINGERPRINT_DIM
+        )
 
         return vec
 
@@ -116,7 +118,7 @@ class ExperienceEncoder:
     def _sha256_expand(text: str, dim: int) -> np.ndarray:
         """Deterministic hash expansion to ``dim`` floats in [0, 1].
 
-        Same approach as JourneyTracker.text_to_latent: SHA-256 bytes
+        Same approach as JourneyTracker._text_to_latent: SHA-256 bytes
         cycled with sine-wave modulation for smooth variation.
         """
         hash_bytes = hashlib.sha256(text.encode("utf-8")).digest()

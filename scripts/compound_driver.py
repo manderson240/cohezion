@@ -139,7 +139,9 @@ async def run_compound_cycle(
     orchestrator = ExecutionOrchestrator(token_client=token_client)
     exec_report = await orchestrator.execute(team_plan)
 
-    report["tasks_completed"] = sum(1 for tr in exec_report.task_results if tr.status == "completed")
+    report["tasks_completed"] = sum(
+        1 for tr in exec_report.task_results if tr.status == "completed"
+    )
     report["tasks_failed"] = sum(1 for tr in exec_report.task_results if tr.status == "failed")
     report["total_tokens"] = exec_report.total_tokens
     report["execution_duration_ms"] = round(exec_report.total_duration_ms, 1)
@@ -203,7 +205,9 @@ async def run_compound_cycle(
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     """Parse command-line arguments."""
-    parser = argparse.ArgumentParser(description="Run a compound engineering cycle across PRIME skills")
+    parser = argparse.ArgumentParser(
+        description="Run a compound engineering cycle across PRIME skills"
+    )
     parser.add_argument("--skills", type=int, default=5, help="Number of skills to process")
     parser.add_argument(
         "--threshold",

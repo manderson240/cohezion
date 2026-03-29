@@ -14,10 +14,7 @@ mcp_config = {
                 "SURREALDB_DB": "core",
             },
         },
-        "cohezion-skills": {
-            "command": "./.venv/bin/python3",
-            "args": ["cohezion_skill_mcp.py"],
-        },
+        "cohezion-skills": {"command": "./.venv/bin/python3", "args": ["cohezion_skill_mcp.py"]},
     }
 }
 

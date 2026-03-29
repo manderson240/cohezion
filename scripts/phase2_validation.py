@@ -83,7 +83,9 @@ class Phase2ValidationSuite:
 
             success = different_ok and similar_ok and identical_ok
 
-            logger.info(f"✓ Different topics (0.3-0.6): {different_ok} ({similarity_different:.3f})")
+            logger.info(
+                f"✓ Different topics (0.3-0.6): {different_ok} ({similarity_different:.3f})"
+            )
             logger.info(f"✓ Similar topics (0.85-1.0): {similar_ok} ({similarity_similar:.3f})")
             logger.info(f"✓ Identical text (>0.99): {identical_ok} ({similarity_identical:.3f})")
 
@@ -246,7 +248,8 @@ class Phase2ValidationSuite:
             ]
 
             cache_misses_list = [
-                (BatchItem(id=id_, prompt=p, system=s, model=m), f"{p}|{s}|{m}") for id_, p, s, m in items
+                (BatchItem(id=id_, prompt=p, system=s, model=m), f"{p}|{s}|{m}")
+                for id_, p, s, m in items
             ]
 
             unique, duplicates = processor._deduplicate_misses(cache_misses_list)
@@ -363,17 +366,11 @@ class Phase2ValidationSuite:
         logger.info("=" * 60)
 
         tests = [
-            (
-                "Semantic Encoder Discrimination",
-                self.test_semantic_encoder_discrimination,
-            ),
+            ("Semantic Encoder Discrimination", self.test_semantic_encoder_discrimination),
             ("Adaptive Threshold Tuning", self.test_adaptive_threshold_tuning),
             ("Batch Executor Structure", self.test_batch_executor_structure),
             ("Batch Deduplication", self.test_batch_deduplication),
-            (
-                "Feedback Loop Batch Integration",
-                self.test_feedback_loop_batch_integration,
-            ),
+            ("Feedback Loop Batch Integration", self.test_feedback_loop_batch_integration),
             ("Combined Phase 2 Improvements", self.test_combined_phase2_improvements),
         ]
 

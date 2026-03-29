@@ -152,7 +152,9 @@ class MCPClient:
                 raise MCPAuthenticationError("Invalid API key for MCP server") from e
             raise MCPConnectionError(f"Connection check failed: {e}") from e
         except httpx.RequestError as e:
-            raise MCPConnectionError(f"Failed to connect to MCP server at {self.config.server_url}: {e}") from e
+            raise MCPConnectionError(
+                f"Failed to connect to MCP server at {self.config.server_url}: {e}"
+            ) from e
 
     def close(self) -> None:
         """Close connection to MCP server."""
@@ -227,7 +229,8 @@ class MCPClient:
                 )
 
         raise MCPConnectionError(
-            f"Failed to call tool '{tool_name}' after {self.config.max_retries} attempts: {last_error}"
+            f"Failed to call tool '{tool_name}' after "
+            f"{self.config.max_retries} attempts: {last_error}"
         ) from last_error
 
     # ── Vault Operations ────────────────────────────────────────────────
@@ -464,10 +467,7 @@ class MCPClient:
         """
         if operation_type and domain and category:
             # Most specific: search exact path
-            folder = (
-                f"patterns/operations/{operation_type}"
-                f"/domains/{domain}/skills/{category}"
-            )
+            folder = f"patterns/operations/{operation_type}/domains/{domain}/skills/{category}"
             results = self.vault_search(query="", scope="folder", folder=folder)
             return results[:limit] if results else []
 
@@ -499,9 +499,7 @@ class MCPClient:
 
         # Fall back to general patterns search if no specific match
         if not all_results:
-            results = self.vault_search(
-                query="skill", scope="folder", folder="patterns"
-            )
+            results = self.vault_search(query="skill", scope="folder", folder="patterns")
             all_results = {result.get("path", ""): result for result in results}
 
         # Return limited results
@@ -560,7 +558,9 @@ class MCPClient:
             return []
         return result.strip().split("\n")
 
-    def vault_create_from_template(self, template_name: str, target_path: str, variables: dict[str, str]) -> str:
+    def vault_create_from_template(
+        self, template_name: str, target_path: str, variables: dict[str, str]
+    ) -> str:
         """Create a new note from a template with variable substitution.
 
         Available templates: decisions, experiments, patterns, papers, daily, projects
@@ -720,7 +720,9 @@ class MCPClient:
         Raises:
             MCPToolError: If search fails
         """
-        result = self._call_tool("vault_find_relevant_context", {"query": query, "project": project})
+        result = self._call_tool(
+            "vault_find_relevant_context", {"query": query, "project": project}
+        )
         if result == "No relevant prior context found.":
             return []
         return json.loads(result)  # type: ignore[no-any-return]

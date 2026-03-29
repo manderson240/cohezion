@@ -7,12 +7,8 @@ from __future__ import annotations
 
 import asyncio
 import logging
+from collections.abc import Callable
 from datetime import datetime
-from typing import TYPE_CHECKING
-
-
-if TYPE_CHECKING:
-    from collections.abc import Callable
 
 
 logger = logging.getLogger(__name__)
@@ -40,9 +36,7 @@ class CommitBatcher:
         """Queue a file for batched commit."""
         async with self._lock:
             self.pending_files.add(filename)
-            logger.debug(
-                f"Queued {filename} for batch commit. Pending: {len(self.pending_files)}"
-            )
+            logger.debug(f"Queued {filename} for batch commit. Pending: {len(self.pending_files)}")
 
     async def should_commit(self) -> bool:
         """Check if batch window exceeded and commit should happen."""

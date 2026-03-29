@@ -61,7 +61,9 @@ class TestSemanticCacheVaultLookup:
         }
         mcp_client.vault_data["cache_patterns/test.json"] = json.dumps(cache_pattern)
         # Vault search returns the path to this file
-        mcp_client.vault_search_results = [{"path": "cache_patterns/test.json", "context": "cache entry"}]
+        mcp_client.vault_search_results = [
+            {"path": "cache_patterns/test.json", "context": "cache entry"}
+        ]
 
         cache = SemanticCache(mcp_client=mcp_client)
         result = await cache._vault_lookup("test prompt")
@@ -129,7 +131,7 @@ class TestSemanticCacheVaultStore:
         assert len(mcp_client.vault_data) > 0
 
         # Check structure of written data
-        written_data = next(iter(mcp_client.vault_data.values()))
+        written_data = list(mcp_client.vault_data.values())[0]
         pattern = json.loads(written_data)
         assert pattern["prompt"] == "test prompt"
         assert pattern["response"] == "test response"
@@ -241,9 +243,7 @@ class TestSemanticCacheL3Integration:
             "response": "Response from vault that should be promoted to L1",
             "timestamp": 1234567890.0,
         }
-        mcp_client.vault_data["cache_patterns/vault_test.json"] = json.dumps(
-            cache_pattern
-        )
+        mcp_client.vault_data["cache_patterns/vault_test.json"] = json.dumps(cache_pattern)
         mcp_client.vault_search_results = [{"path": "cache_patterns/vault_test.json"}]
 
         cache = SemanticCache(mcp_client=mcp_client)

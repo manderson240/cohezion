@@ -83,26 +83,10 @@ class TestGradualRollout:
     def setup_method(self):
         """Set up rollout environment."""
         self.stages = {
-            "stage_1_10pct": {
-                "target_percentage": 10,
-                "cohort_size": 100,
-                "affected": 10,
-            },
-            "stage_2_25pct": {
-                "target_percentage": 25,
-                "cohort_size": 100,
-                "affected": 25,
-            },
-            "stage_3_50pct": {
-                "target_percentage": 50,
-                "cohort_size": 100,
-                "affected": 50,
-            },
-            "stage_4_100pct": {
-                "target_percentage": 100,
-                "cohort_size": 100,
-                "affected": 100,
-            },
+            "stage_1_10pct": {"target_percentage": 10, "cohort_size": 100, "affected": 10},
+            "stage_2_25pct": {"target_percentage": 25, "cohort_size": 100, "affected": 25},
+            "stage_3_50pct": {"target_percentage": 50, "cohort_size": 100, "affected": 50},
+            "stage_4_100pct": {"target_percentage": 100, "cohort_size": 100, "affected": 100},
         }
         self.metrics_per_stage = {}
 
@@ -144,7 +128,7 @@ class TestGradualRollout:
 
         # Verify metrics collected for all stages
         assert len(self.metrics_per_stage) == 4
-        for _stage_name, metrics in self.metrics_per_stage.items():
+        for stage_name, metrics in self.metrics_per_stage.items():
             assert "cost_reduction" in metrics
             assert "latency_change" in metrics
             assert "error_rate" in metrics
@@ -263,15 +247,12 @@ class TestMonitoringAndMetrics:
         }
 
         # Check alert conditions
-        should_warn_error = (
-            current_metrics["error_rate"] > alert_thresholds["error_rate_warning"]
-        )
+        should_warn_error = current_metrics["error_rate"] > alert_thresholds["error_rate_warning"]
         should_critical_error = (
             current_metrics["error_rate"] > alert_thresholds["error_rate_critical"]
         )
         should_warn_latency = (
-            current_metrics["latency_change"]
-            > alert_thresholds["latency_degradation_warning"]
+            current_metrics["latency_change"] > alert_thresholds["latency_degradation_warning"]
         )
 
         assert should_warn_error is False
@@ -345,7 +326,7 @@ class TestProductionReadiness:
             "anomaly_detector": {"ready": True, "status": "OPERATIONAL"},
         }
 
-        for _dep_name, dep_status in dependencies.items():
+        for dep_name, dep_status in dependencies.items():
             assert dep_status["ready"] is True
             assert dep_status["status"] == "OPERATIONAL"
 
@@ -418,9 +399,7 @@ class TestRollbackProcedures:
         self.system_state["version"] = "5.0.0"
 
         rollback_time_ms = (time.time() - start_time) * 1000
-        assert rollback_time_ms < 100, (
-            f"Rollback took {rollback_time_ms}ms, exceeds 100ms target"
-        )
+        assert rollback_time_ms < 100, f"Rollback took {rollback_time_ms}ms, exceeds 100ms target"
 
     def test_rollback_data_integrity(self):
         """Test data integrity maintained during rollback."""
@@ -467,7 +446,7 @@ class TestIntegrationHealthChecks:
             "model_quality_classifier": "HEALTHY",
         }
 
-        for _component, status in components_health.items():
+        for component, status in components_health.items():
             assert status == "HEALTHY"
 
     def test_inter_component_communication(self):
@@ -550,16 +529,11 @@ class TestProductionDeploymentChecklist:
             "phase_6_2_task_6_anomaly_detection": {"status": "COMPLETE", "tests": 35},
             "phase_6_3_task_7_chaos_testing": {"status": "COMPLETE", "tests": 31},
             "phase_6_3_task_8_edge_cases": {"status": "COMPLETE", "tests": 31},
-            "phase_6_3_task_9_deployment_validation": {
-                "status": "IN_PROGRESS",
-                "tests": 34,
-            },
+            "phase_6_3_task_9_deployment_validation": {"status": "IN_PROGRESS", "tests": 34},
         }
 
         total_tests = sum(task["tests"] for task in phase_6_tasks.values())
-        complete_tasks = sum(
-            1 for task in phase_6_tasks.values() if task["status"] == "COMPLETE"
-        )
+        complete_tasks = sum(1 for task in phase_6_tasks.values() if task["status"] == "COMPLETE")
 
         assert complete_tasks == 8
         assert total_tests == 302  # 49+25+47+25+25+35+31+31+34 = 302

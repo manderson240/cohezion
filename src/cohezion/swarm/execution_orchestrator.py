@@ -12,19 +12,11 @@ import logging
 import time
 import uuid
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
 from cohezion.core.instruction_expander import InstructionExpander
 from cohezion.core.plan_executor import ExecutionResult, PlanExecutor
-
-
-if TYPE_CHECKING:
-    from cohezion.swarm.team_orchestrator import TaskSpec, TeamPlan
-
-
-if TYPE_CHECKING:
-    from cohezion.flux.aggregator import FluxAggregator
-    from cohezion.graph.types import WorkflowSpec
+from cohezion.swarm.team_orchestrator import TaskSpec, TeamPlan
 
 
 logger = logging.getLogger(__name__)
@@ -126,11 +118,13 @@ def _topological_sort(tasks: list[TaskSpec]) -> list[list[TaskSpec]]:
 
     while remaining:
         # Find tasks whose dependencies are all satisfied
-        ready = [tid for tid in remaining if all(dep in completed for dep in task_map[tid].blocked_by)]
+        ready = [
+            tid for tid in remaining if all(dep in completed for dep in task_map[tid].blocked_by)
+        ]
         if not ready:
             # Break cycle: force remaining tasks into one wave
             logger.warning(
-                "Dependency cycle detected, forcing %s remaining tasks",
+                "Dependency cycle detected, forcing %d remaining tasks",
                 len(remaining),
             )
             ready = list(remaining)
@@ -223,7 +217,9 @@ class ExecutionOrchestrator:
 
         elapsed = (time.monotonic() - t0) * 1000.0
         report.total_duration_ms = elapsed
-        report.total_tokens = sum(tr.execution.total_tokens for tr in report.task_results if tr.execution)
+        report.total_tokens = sum(
+            tr.execution.total_tokens for tr in report.task_results if tr.execution
+        )
 
         # Determine overall status
         statuses = {tr.status for tr in report.task_results}
@@ -308,7 +304,9 @@ class ExecutionOrchestrator:
 
             if spec is None:
                 for skill_spec in engine._cache.values():
-                    if any(kw.lower() in task.subject.lower() for kw in skill_spec.name.split("_")[:3]):
+                    if any(
+                        kw.lower() in task.subject.lower() for kw in skill_spec.name.split("_")[:3]
+                    ):
                         spec = skill_spec
                         break
 
@@ -343,59 +341,6 @@ class ExecutionOrchestrator:
                 error=str(exc),
                 duration_ms=elapsed_ms,
             )
-
-    async def execute_graph(
-        self,
-        workflow: WorkflowSpec,
-        initial_input: dict[str, Any] | None = None,
-        flux_aggregator: FluxAggregator | None = None,
-    ) -> ExecutionReport:
-        """Execute a WorkflowSpec via the graph engine.
-
-        Bridges the graph execution model into the existing ExecutionReport
-        format for backward compatibility.
-        """
-        from cohezion.graph.engine import WorkflowEngine
-        from cohezion.graph.nodes import AgentNode, CustomNode, LogicSwitchNode, ToolNode
-
-        node_type_map = {
-            "agent": AgentNode,
-            "tool": ToolNode,
-            "logic_switch": LogicSwitchNode,
-            "custom": CustomNode,
-        }
-
-        engine = WorkflowEngine(flux_aggregator=flux_aggregator)
-        for node_spec in workflow.nodes:
-            node_cls = node_type_map.get(node_spec.node_type, CustomNode)
-            if node_cls is AgentNode:
-                engine.register_node(node_cls(node_spec, flux_aggregator=flux_aggregator))
-            else:
-                engine.register_node(node_cls(node_spec))
-
-        result = await engine.execute(workflow, initial_input or {})
-
-        task_results = [
-            TaskResult(
-                task_id=nr.node_id,
-                subject=nr.node_id,
-                status="completed" if nr.status.value == "completed" else nr.status.value,
-                duration_ms=nr.duration_ms,
-            )
-            for nr in result.node_results.values()
-        ]
-
-        report = ExecutionReport(
-            report_id=f"graph_{result.workflow_id}",
-            plan_name=workflow.name,
-            intent=workflow.attributes.get("intent", ""),
-            task_results=task_results,
-            total_tokens=result.total_tokens,
-            total_duration_ms=result.total_duration_ms,
-            status=result.status,
-        )
-        self._active_reports[report.report_id] = report
-        return report
 
     def get_report(self, report_id: str) -> ExecutionReport | None:
         """Retrieve a cached execution report by ID."""

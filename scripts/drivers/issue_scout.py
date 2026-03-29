@@ -24,21 +24,12 @@ class IssueScout:
     def __init__(self, root_dir: str = "."):
         self.root = Path(root_dir)
         self.db = SurrealClient()
-        self.excludes = {
-            ".git",
-            ".venv",
-            "venv",
-            "__pycache__",
-            "node_modules",
-            ".agent",
-            "brain",
-        }
+        self.excludes = {".git", ".venv", "venv", "__pycache__", "node_modules", ".agent", "brain"}
 
         self.patterns = {
             "TODO": re.compile(r"(TODO|FIXME|HACK|XXX):\s*(.*)", re.IGNORECASE),
             "NEXT_STEP": re.compile(
-                r"(?:##|\*\*|[\-\*])\s*(?:Proposed )?Next Steps?:?\s*(.*)",
-                re.IGNORECASE,
+                r"(?:##|\*\*|[\-\*])\s*(?:Proposed )?Next Steps?:?\s*(.*)", re.IGNORECASE
             ),
         }
 
@@ -105,7 +96,7 @@ class IssueScout:
                         if not line:
                             continue
 
-                        for _label, pattern in self.patterns.items():
+                        for label, pattern in self.patterns.items():
                             match = pattern.search(line)
                             if match:
                                 desc = match.group(2).strip()

@@ -20,28 +20,22 @@ from datetime import datetime, timedelta
 from pathlib import Path
 
 import psutil
+
+from cohezion.core.persistence.surreal_client import PhysicsState, SurrealClient, UniverseNode
 from cohezion.mcp.email_notifier import EmailNotifier
 from cohezion.monitoring.ratchet_monitor import RatchetMonitor
 from cohezion.swarm.agents.base import BaseAgent
-from cohezion.swarm.journey_tracker import (
-    AgentType,
-    JourneyMetrics,
-    get_journey_tracker,
-)
-
-from cohezion.core.persistence.surreal_client import (
-    PhysicsState,
-    SurrealClient,
-    UniverseNode,
-)
 
 # Core Cohezion Imports
 from cohezion.swarm.hiho_vector_engine import HihoVectorEngine
+from cohezion.swarm.journey_tracker import AgentType, JourneyMetrics, get_journey_tracker
 from cohezion.swarm.swarm_types import SwarmConfig
 
 
 # Setup Logging
-logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+)
 logger = logging.getLogger("FractalNexus")
 
 # Constants
@@ -110,7 +104,9 @@ class FractalNexusMission:
         # Thresholds relaxed for 128GB Framework 16
         if vitals.ram_percent < 65 and vitals.cpu_percent < 60 and self.num_rounds < MAX_NUM_ROUNDS:
             self.num_rounds = min(MAX_NUM_ROUNDS, int(self.num_rounds * 1.2))  # Reduced from 1.5x
-            logger.info(f"🚀 High inference headroom. Scaling UP dynamics: {self.num_rounds:,} rounds")
+            logger.info(
+                f"🚀 High inference headroom. Scaling UP dynamics: {self.num_rounds:,} rounds"
+            )
         # THROTTLE: Only if approaching critical
         elif vitals.needs_throttle():
             self.num_rounds = max(MIN_NUM_ROUNDS, int(self.num_rounds * 0.5))
@@ -126,7 +122,7 @@ class FractalNexusMission:
         logger.info(f"Iteration {self.batch_count}: Simulating {self.num_rounds:,} rounds...")
 
         # Start Journey Tracking for this iteration
-        self.tracker.start_journey(f"Fractal Nexus Iteration {self.batch_count}")
+        journey_id = self.tracker.start_journey(f"Fractal Nexus Iteration {self.batch_count}")
         start_time = time.perf_counter()
 
         # 1. Physics Simulation
@@ -142,7 +138,8 @@ class FractalNexusMission:
         metrics = JourneyMetrics(
             context_utilization=0.9,  # Simulated for now
             latent_coherence=results["mean_stability"],
-            capability_delta=results["mean_stability"] - (self.stability_history[-1] if self.stability_history else 0),
+            capability_delta=results["mean_stability"]
+            - (self.stability_history[-1] if self.stability_history else 0),
             latency_per_token_ms=duration_ms / self.num_rounds * 1000,
             safety_alignment_score=0.98,
             computational_relativity_factor=relativity_factor,
@@ -312,7 +309,9 @@ Address the "Black Box" concern: what is the underlying physics logic of this co
 
                 monitor = get_resource_monitor()
                 if monitor.critical_pressure:
-                    logger.error("🛑 EMERGENCY SYSTEM PRESSURE DETECTED. Pausing iteration for cooldown...")
+                    logger.error(
+                        "🛑 EMERGENCY SYSTEM PRESSURE DETECTED. Pausing iteration for cooldown..."
+                    )
                     await asyncio.sleep(120)  # 2 minute hard pause
                     continue
 
@@ -382,7 +381,9 @@ Address the "Black Box" concern: what is the underlying physics logic of this co
             if res and isinstance(res, list) and len(res) > 0:
                 result_item = res[0]
                 # Handle both raw list and {'result': [...]} format
-                records = result_item.get("result", []) if isinstance(result_item, dict) else result_item
+                records = (
+                    result_item.get("result", []) if isinstance(result_item, dict) else result_item
+                )
                 if records:
                     checkpoint = records[0]
                     logger.info("⚡ Resuming from SurrealDB checkpoint.")

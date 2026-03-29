@@ -9,13 +9,10 @@ from __future__ import annotations
 import hashlib
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import TYPE_CHECKING, Any
+from pathlib import Path
+from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field
-
-
-if TYPE_CHECKING:
-    from pathlib import Path
 
 
 @dataclass
@@ -96,9 +93,7 @@ class ChangeSet:
 
     def is_empty(self) -> bool:
         """Check if there are no changes."""
-        return (
-            not self.added and not self.modified and not self.deleted and not self.moved
-        )
+        return not self.added and not self.modified and not self.deleted and not self.moved
 
 
 @dataclass

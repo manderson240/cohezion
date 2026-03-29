@@ -11,13 +11,12 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 
 from cohezion.compound.batch_executor import (
-    BatchableExecutor,
-    BatchCompoundResult,
-    BatchExecutorFactory,
     CompoundTask,
+    BatchCompoundResult,
+    BatchableExecutor,
+    BatchExecutorFactory,
 )
 from cohezion.compound.executor import ExecutionResult
-
 
 class TestCompoundTask:
     """[P0] Unit tests for CompoundTask class."""
@@ -79,7 +78,7 @@ class TestBatchableExecutor:
             CompoundTask(task_id="t1", prompt="p1"),
             CompoundTask(task_id="t2", prompt="p2"),
         ]
-
+        
         mock_executor.execute_task = AsyncMock(return_value=ExecutionResult(
             success=True,
             output="test output",
@@ -104,7 +103,7 @@ class TestBatchableExecutor:
             CompoundTask(task_id="t1", prompt="identical"),
             CompoundTask(task_id="t2", prompt="identical"),
         ]
-
+        
         mock_executor.execute_task = AsyncMock(return_value=ExecutionResult(
             success=True,
             output="test output",
@@ -126,12 +125,12 @@ class TestBatchExecutorFactory:
         """[P0] Should create BatchableExecutor via factory."""
         mock_executor = MagicMock()
         mock_mcp_client = MagicMock()
-
+        
         with patch("cohezion.compound.batch_executor.get_batch_size_predictor"):
             executor = BatchExecutorFactory.create(
                 executor=mock_executor,
                 mcp_client=mock_mcp_client
             )
-
+        
         assert isinstance(executor, BatchableExecutor)
         assert executor.executor == mock_executor

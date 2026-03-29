@@ -29,7 +29,10 @@ async def verify_pulse():
 
         rows = []
         if isinstance(response, list) and len(response) > 0:
-            rows = response[0].get("result", response)
+            if "result" in response[0]:
+                rows = response[0]["result"]
+            else:
+                rows = response
 
         if not rows:
             logger.error("❌ No system_pulse records found!")
@@ -42,7 +45,9 @@ async def verify_pulse():
         logger.info(f"Software Vitals: {latest.get('software', {}).keys()}")
 
         # Validation
-        if "cpu_percent" in latest.get("hardware", {}) and "total_pending" in latest.get("software", {}):
+        if "cpu_percent" in latest.get("hardware", {}) and "total_pending" in latest.get(
+            "software", {}
+        ):
             logger.info("✅ Data Integrity Verified: Hardware and Software fusion successful.")
         else:
             logger.error("❌ Data Integrity Failed: Missing keys.")

@@ -158,7 +158,7 @@ class SurrealDBSync:
         Args:
             paper_path: Path to paper markdown file
         """
-        if paper_path.suffix != ".md":
+        if not paper_path.suffix == ".md":
             return
 
         try:
@@ -194,7 +194,10 @@ class SurrealDBSync:
             paper_id = relative_path.replace("/", "_").replace(".md", "")
 
             # Build date clause - use NONE for null, cast string to datetime
-            date_clause = f"<datetime> {json.dumps(date_iso)}" if date_iso else "NONE"
+            if date_iso:
+                date_clause = f"<datetime> {json.dumps(date_iso)}"
+            else:
+                date_clause = "NONE"
 
             # Truncate content to avoid huge queries
             content_truncated = body[:5000] if body else ""
@@ -230,7 +233,11 @@ class SurrealDBSync:
             wikilinks: List of concept names
         """
         # Filter for concept links (typically in concepts/ directory)
-        concept_links = [link for link in wikilinks if not link.startswith(("papers/", "patterns/", "decisions/"))]
+        concept_links = [
+            link
+            for link in wikilinks
+            if not link.startswith(("papers/", "patterns/", "decisions/"))
+        ]
 
         if not concept_links:
             return
@@ -280,7 +287,7 @@ class SurrealDBSync:
         Returns:
             Tuple of (success, paper_id or error_msg)
         """
-        if paper_path.suffix != ".md":
+        if not paper_path.suffix == ".md":
             return False, f"Skipped non-markdown: {paper_path}"
 
         try:
@@ -314,7 +321,10 @@ class SurrealDBSync:
             paper_id = relative_path.replace("/", "_").replace(".md", "")
 
             # Build date clause
-            date_clause = f"<datetime> {json.dumps(date_iso)}" if date_iso else "NONE"
+            if date_iso:
+                date_clause = f"<datetime> {json.dumps(date_iso)}"
+            else:
+                date_clause = "NONE"
 
             # Truncate content to avoid huge queries
             content_truncated = body[:5000] if body else ""
@@ -350,22 +360,12 @@ class SurrealDBSync:
         """Import all papers from vault/papers/ directory.
 
         Automatically uses parallel or sequential approach based on configuration.
-        Falls back to sequential when called from within a running event loop
-        (e.g. from an MCP server handler) to avoid 'asyncio.run() cannot be
-        called from a running event loop' errors.
 
         Returns:
             Count of papers imported
         """
         if self.parallel_enabled:
-            try:
-                asyncio.get_running_loop()
-                # Already inside an event loop — parallel path would deadlock.
-                # Use the synchronous sequential path instead.
-                logger.debug("bulk_import_papers: running loop detected, using sequential path")
-                return self._bulk_import_papers_sequential()
-            except RuntimeError:
-                return asyncio.run(self._bulk_import_papers_parallel())
+            return asyncio.run(self._bulk_import_papers_parallel())
         else:
             return self._bulk_import_papers_sequential()
 
@@ -375,13 +375,13 @@ class SurrealDBSync:
         Returns:
             Count of papers imported
         """
-        papers_dir = self.vault_path / "papers"
+        papers_dir = self.vault_path / "cortex"
         if not papers_dir.exists():
-            logger.warning(f"Papers directory not found: {papers_dir}")
+            logger.warning(f"Cortex directory not found: {papers_dir}")
             return 0
 
         paper_files = list(papers_dir.glob("*.md"))
-        logger.info(f"Starting sequential bulk import of {len(paper_files)} papers...")
+        logger.info(f"Starting sequential bulk import of {len(paper_files)} cortex notes...")
 
         count = 0
         for paper_path in paper_files:
@@ -404,14 +404,15 @@ class SurrealDBSync:
         Returns:
             Count of papers imported
         """
-        papers_dir = self.vault_path / "papers"
+        papers_dir = self.vault_path / "cortex"
         if not papers_dir.exists():
-            logger.warning(f"Papers directory not found: {papers_dir}")
+            logger.warning(f"Cortex directory not found: {papers_dir}")
             return 0
 
         paper_files = list(papers_dir.glob("*.md"))
         logger.info(
-            f"Starting parallel bulk import of {len(paper_files)} papers (max_concurrent={self.max_concurrent})..."
+            f"Starting parallel bulk import of {len(paper_files)} cortex notes "
+            f"(max_concurrent={self.max_concurrent})..."
         )
 
         # Create async client with connection pooling
@@ -447,7 +448,7 @@ class SurrealDBSync:
         Args:
             concept_path: Path to concept markdown file
         """
-        if concept_path.suffix != ".md":
+        if not concept_path.suffix == ".md":
             return
 
         try:
@@ -495,7 +496,7 @@ class SurrealDBSync:
         Returns:
             Tuple of (success, concept_id or error_msg)
         """
-        if concept_path.suffix != ".md":
+        if not concept_path.suffix == ".md":
             return False, f"Skipped non-markdown: {concept_path}"
 
         try:
@@ -538,22 +539,12 @@ class SurrealDBSync:
         """Import all concepts from vault/concepts/ directory.
 
         Automatically uses parallel or sequential approach based on configuration.
-        Falls back to sequential when called from within a running event loop
-        (e.g. from an MCP server handler) to avoid 'asyncio.run() cannot be
-        called from a running event loop' errors.
 
         Returns:
             Count of concepts imported
         """
         if self.parallel_enabled:
-            try:
-                asyncio.get_running_loop()
-                # Already inside an event loop — parallel path would deadlock.
-                # Use the synchronous sequential path instead.
-                logger.debug("bulk_import_concepts: running loop detected, using sequential path")
-                return self._bulk_import_concepts_sequential()
-            except RuntimeError:
-                return asyncio.run(self._bulk_import_concepts_parallel())
+            return asyncio.run(self._bulk_import_concepts_parallel())
         else:
             return self._bulk_import_concepts_sequential()
 
@@ -563,14 +554,14 @@ class SurrealDBSync:
         Returns:
             Count of concepts imported
         """
-        concepts_dir = self.vault_path / "concepts"
+        concepts_dir = self.vault_path / "cerebellum"
         if not concepts_dir.exists():
-            logger.warning(f"Concepts directory not found: {concepts_dir}")
+            logger.warning(f"Cerebellum directory not found: {concepts_dir}")
             return 0
 
         concept_files = list(concepts_dir.glob("*.md"))
         logger.info(
-            f"Starting sequential bulk import of {len(concept_files)} concepts..."
+            f"Starting sequential bulk import of {len(concept_files)} cerebellum notes..."
         )
 
         count = 0
@@ -594,14 +585,15 @@ class SurrealDBSync:
         Returns:
             Count of concepts imported
         """
-        concepts_dir = self.vault_path / "concepts"
+        concepts_dir = self.vault_path / "cerebellum"
         if not concepts_dir.exists():
-            logger.warning(f"Concepts directory not found: {concepts_dir}")
+            logger.warning(f"Cerebellum directory not found: {concepts_dir}")
             return 0
 
         concept_files = list(concepts_dir.glob("*.md"))
         logger.info(
-            f"Starting parallel bulk import of {len(concept_files)} concepts (max_concurrent={self.max_concurrent})..."
+            f"Starting parallel bulk import of {len(concept_files)} cerebellum notes "
+            f"(max_concurrent={self.max_concurrent})..."
         )
 
         # Create async client with connection pooling
@@ -643,7 +635,7 @@ class SurrealDBSync:
         self.observer = Observer()
 
         # Watch papers and concepts directories
-        for subdir in ["papers", "concepts", "patterns", "decisions"]:
+        for subdir in ["cortex", "cerebellum", "patterns", "decisions"]:
             watch_path = self.vault_path / subdir
             if watch_path.exists():
                 self.observer.schedule(event_handler, str(watch_path), recursive=False)

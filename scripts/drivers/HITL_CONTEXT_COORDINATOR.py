@@ -46,7 +46,9 @@ class HITLContextCoordinator:
         """Simulate adversarial swarms aligning with the new intent."""
         logger.info("🚧 SWARM ALIGNMENT: Agents are debating the implementation manifold...")
         await asyncio.sleep(1.0)  # Recursive Arbitration
-        logger.info("✅ ALIGNMENT ACHIEVED: Swarm logical trajectories are now centered on HITL intent.")
+        logger.info(
+            "✅ ALIGNMENT ACHIEVED: Swarm logical trajectories are now centered on HITL intent."
+        )
 
 
 async def demo_hitl_steering():
@@ -64,7 +66,6 @@ async def demo_hitl_steering():
     print(
         f"\n[SYSTEM PULSE]\nStatus: {result['status']}\nAlignment: {result['consensus_strength']}"
     )
-
 
 
 if __name__ == "__main__":

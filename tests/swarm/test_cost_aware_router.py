@@ -113,11 +113,7 @@ class TestQueryComplexityAnalyzer:
         assert stats["medium_pct"] >= 0  # May have medium
         # Don't require complex since it's keyword-dependent
         assert (
-            abs(
-                sum([stats["simple_pct"], stats["medium_pct"], stats["complex_pct"]])
-                - 100.0
-            )
-            < 0.1
+            abs(sum([stats["simple_pct"], stats["medium_pct"], stats["complex_pct"]]) - 100.0) < 0.1
         )
 
 
@@ -172,7 +168,7 @@ class TestCostAwareRouter:
     def test_max_cost_constraint(self, router):
         """Test max cost constraint blocks if exceeded."""
         # With local models all free, this should always pass
-        _decision, can_proceed = router.select_model(
+        decision, can_proceed = router.select_model(
             "What is AI?",
             max_cost_usd=0.0001,
         )
@@ -187,7 +183,7 @@ class TestCostAwareRouter:
 
         router = CostAwareRouter(cost_tracker=tracker, budget_enforcer=enforcer)
 
-        _decision, can_proceed = router.select_model("Design a system")
+        decision, can_proceed = router.select_model("Design a system")
 
         # Should still proceed since local model cost is 0
         assert can_proceed is True
@@ -195,9 +191,7 @@ class TestCostAwareRouter:
     def test_cost_tracking(self, router):
         """Test cost recording and aggregation."""
         router.record_execution("phi3:mini", actual_tokens=150, duration_ms=1000.0)
-        router.record_execution(
-            "qwen3-coder:32b", actual_tokens=300, duration_ms=2000.0
-        )
+        router.record_execution("qwen3-coder:32b", actual_tokens=300, duration_ms=2000.0)
         router.record_execution("deepseek-r1:8b", actual_tokens=600, duration_ms=5000.0)
 
         # All local models should have $0 cost
@@ -227,7 +221,7 @@ class TestCostAwareRouter:
             ),  # May optimize
         ]
 
-        for query, _expected_type, allowed_models in queries:
+        for query, expected_type, allowed_models in queries:
             decision, _ = router.select_model(query)
             assert decision.model in allowed_models, (
                 f"Query '{query}' routed to {decision.model}, expected one of {allowed_models}"
@@ -300,8 +294,7 @@ class TestCostAwareRouter:
         queries = [
             "What is Python?",  # simple (phi3 quality 0.6)
             "Write a Python function to process data",  # medium (may optimize to phi3 0.6 or use qwen 0.85)
-            # complex (may optimize to qwen 0.85 or deepseek 0.95)
-            "Design and implement a distributed system with production-grade performance",
+            "Design and implement a distributed system with production-grade performance",  # complex (may optimize to qwen 0.85 or deepseek 0.95)
         ]
 
         for query in queries:
@@ -310,10 +303,11 @@ class TestCostAwareRouter:
             assert decision.quality_score >= 0.6
 
         # Average quality with cost optimization should still be acceptable
-        # With cost/token optimization preferring cheaper models:
-        # phi3(0.6) + phi3/qwen(0.6-0.85) + qwen/deepseek(0.85-0.95)
+        # With cost/token optimization preferring cheaper models: phi3(0.6) + phi3/qwen(0.6-0.85) + qwen/deepseek(0.85-0.95)
         # Worst case: all phi3 (0.6), best case: mixed (0.7-0.8)
-        avg_quality = sum(d.quality_score for d in router.routing_decisions) / len(router.routing_decisions)
+        avg_quality = sum(d.quality_score for d in router.routing_decisions) / len(
+            router.routing_decisions
+        )
         assert avg_quality >= 0.65  # Slightly relaxed to account for cost optimization
 
     def test_reset_statistics(self, router):
@@ -345,7 +339,8 @@ class TestCostAwareRouterChaosTest:
         # Generate 100 random queries
 
         queries = [
-            f"Query {i}: {'What' if i % 3 == 0 else 'Design' if i % 3 == 1 else 'Write'} something" for i in range(100)
+            f"Query {i}: {'What' if i % 3 == 0 else 'Design' if i % 3 == 1 else 'Write'} something"
+            for i in range(100)
         ]
 
         for query in queries:
@@ -353,9 +348,7 @@ class TestCostAwareRouterChaosTest:
 
             if can_proceed:
                 # Simulate execution
-                router.record_execution(
-                    decision.model, decision.estimated_tokens, 100.0
-                )
+                router.record_execution(decision.model, decision.estimated_tokens, 100.0)
 
         # Check enforcer state
         budget_ok, _ = enforcer.check_budget(tracker.total_cost_usd)
@@ -363,11 +356,13 @@ class TestCostAwareRouterChaosTest:
 
     def test_cost_bounds_under_spike(self, router_with_tight_budget):
         """Test cost bounds hold during query spike."""
-        router, _tracker, enforcer = router_with_tight_budget
+        router, tracker, enforcer = router_with_tight_budget
 
         # Simulate spike: 50 complex queries
-        for _i in range(50):
-            decision, can_proceed = router.select_model("Design and implement a distributed system with consensus")
+        for i in range(50):
+            decision, can_proceed = router.select_model(
+                "Design and implement a distributed system with consensus"
+            )
             if can_proceed:
                 router.record_execution(decision.model, 500, 5000.0)
 
@@ -409,8 +404,8 @@ class TestCostAwareRouterChaosTest:
             # All routed models should be allowed
             invalid_count = sum(1 for m in models if m not in allowed)
             if invalid_count > 0:
-                raise AssertionError(
-                    f"Query '{query}' routed to unexpected models: { {m for m in models if m not in allowed} }"
+                assert False, (
+                    f"Query '{query}' routed to unexpected models: {set(m for m in models if m not in allowed)}"
                 )
 
             # At least 70% of routes should be to the same model (consistency check)
@@ -421,7 +416,8 @@ class TestCostAwareRouterChaosTest:
             max_count = max(model_counts.values()) if model_counts else 0
             consistency_ratio = max_count / len(models) if len(models) > 0 else 0.0
             assert consistency_ratio >= 0.70, (
-                f"Query '{query}' has low consistency: {consistency_ratio:.1%} (models: {model_counts})"
+                f"Query '{query}' has low consistency: {consistency_ratio:.1%} "
+                f"(models: {model_counts})"
             )
 
 
@@ -451,7 +447,7 @@ class TestCostAwareRouterIntegration:
 
         router = CostAwareRouter(cost_tracker=tracker)
 
-        _decision, can_proceed = router.select_model("Design a system")
+        decision, can_proceed = router.select_model("Design a system")
         assert can_proceed is True
 
     def test_routing_decision_structure(self):

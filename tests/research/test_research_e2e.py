@@ -29,7 +29,10 @@ def mock_mcp_client():
 @pytest.fixture
 def temp_research_dir():
     """Create temporary directory for research artifacts."""
-    with tempfile.TemporaryDirectory() as tmpdir:
+    import os
+
+    os.makedirs("data", exist_ok=True)
+    with tempfile.TemporaryDirectory(dir="data") as tmpdir:
         path = Path(tmpdir)
         yield path
 
@@ -111,8 +114,8 @@ class TestResearchAgentCompoundE2E:
 
         def improving_execute(task):
             experiment_count[0] += 1
-            # Simulating improving metrics
-            metric = 3.0 - (experiment_count[0] * 0.5)
+            # Simulating improving metrics (value computed for test realism)
+            _ = 3.0 - (experiment_count[0] * 0.5)
             return ExecutionResult(
                 success=True,
                 output=f"Experiment {experiment_count[0]}",
@@ -366,8 +369,8 @@ class TestResearchAgentCompoundIntegration:
                 checkpoint_dir=temp_research_dir / "checkpoints",
             )
 
-        # Invalid path traversal
-        with pytest.raises(ValueError, match="path traversal"):
+        # Invalid path traversal (fails data/ dir check first)
+        with pytest.raises(ValueError, match="experiment_log must be within data"):
             ResearchConfig(
                 experiment_log=Path("../../../etc/passwd"),
                 checkpoint_dir=temp_research_dir / "checkpoints",

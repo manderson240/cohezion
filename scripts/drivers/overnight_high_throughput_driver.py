@@ -6,17 +6,10 @@ from datetime import datetime, timedelta
 from pathlib import Path
 
 import psutil
-from cohezion.mcp.email_notifier import EmailNotifier
 
-from cohezion.core.persistence.surreal_client import (
-    PhysicsState,
-    SurrealClient,
-    UniverseNode,
-)
-from cohezion.simulation.enhanced_simulator import (
-    EnhancedSimulationResult,
-    EnhancedSimulator,
-)
+from cohezion.core.persistence.surreal_client import PhysicsState, SurrealClient, UniverseNode
+from cohezion.mcp.email_notifier import EmailNotifier
+from cohezion.simulation.enhanced_simulator import EnhancedSimulationResult, EnhancedSimulator
 
 
 logging.basicConfig(
@@ -94,18 +87,21 @@ class MissionController:
         ram_usage = psutil.virtual_memory().percent
 
         # Throttling thresholds (Strict for concurrent sessions)
-        return not (cpu_usage > 75 or ram_usage > 80)
+        if cpu_usage > 75 or ram_usage > 80:
+            return False
+        return True
 
     async def _run_mission_batch(self):
         """Executes a batch of simulations with unique starter conditions."""
         # Use existing simulator logic, but inject unique 'starter' seeds/params
-        for _i in range(self.batch_size):
+        for i in range(self.batch_size):
             # Select random scenario
             scenario = random.choice(self.simulator.STREAMS)
 
             # Evolutionary Seed Injection
+            seed_text = None
             if self.ancestral_strains and random.random() < 0.3:
-                random.choice(self.ancestral_strains)
+                seed_text = random.choice(self.ancestral_strains)
                 logger.debug(f"Injecting ancestral strain into {scenario} simulation.")
 
             result = await self.simulator.run_simulation(scenario)

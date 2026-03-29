@@ -123,3 +123,8 @@ development_status:
   7-5-ouroboros-version-healing: done  # OuroborosVersionHealer: auto-heal simple conflicts, VAE escalation, rollback+freeze-frame (NFR-OUROBOROS_VERSION_HEALING)
   7-6-version-traceability-gate: done  # VersionTraceabilityGate: semver contracts per story, epic gate, release impact report, incident <30s (NFR-AUTO_VERSION_HEALTH)
   epic-7-retrospective: optional
+
+  # Standalone Stories
+  mcp-compound-integration: done  # MCP Compound Engineering: 11 tools, adversarial review, autoresearch, token efficiency 12x
+
+  # Epic 8: MCP Integration and Token Efficiency

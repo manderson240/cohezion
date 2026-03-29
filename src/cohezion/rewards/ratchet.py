@@ -6,19 +6,16 @@ from cohezion.universe.triune_manifold import TriuneState
 
 logger = logging.getLogger(__name__)
 
+
 class RatchetMechanism:
     """
     Identifies and locks high-performing agent states into the Root of Trust.
     """
 
-    def __init__(
-        self,
-        obsidian_mcp: ObsidianMemoryMCP,
-        threshold: float = 0.85
-    ):
+    def __init__(self, obsidian_mcp: ObsidianMemoryMCP, threshold: float = 0.85):
         """
         Initializes the ratchet mechanism.
-        
+
         Args:
             obsidian_mcp: Client for visual/semantic persistence.
             threshold: The score threshold required to trigger a ratchet.
@@ -27,17 +24,13 @@ class RatchetMechanism:
         self.threshold = threshold
 
     async def evaluate_and_ratchet(
-        self,
-        trajectory_id: str,
-        state: TriuneState,
-        score: float,
-        coherence: float
+        self, trajectory_id: str, state: TriuneState, score: float, coherence: float
     ) -> bool:
         """
         Checks if the current performance warrants a ratchet event.
-        
+
         If score >= threshold, persists a permanent record to the Root of Trust.
-        
+
         Returns:
             bool: True if a ratchet event occurred.
         """
@@ -51,9 +44,7 @@ class RatchetMechanism:
 
         # Persist to Obsidian as a permanent 'Success' anchor
         await self.obsidian_mcp.store_state_summary(
-            trajectory_id=ratchet_id,
-            state=state,
-            coherence=coherence
+            trajectory_id=ratchet_id, state=state, coherence=coherence
         )
 
         return True

@@ -13,3 +13,7 @@ Steps:
 3. Compare against existing models in the project
 4. Rank by novelty and community sentiment
 5. Report top 3 candidates with parameter count, license, and reasoning
+6. **Write findings to graph**: For each top candidate, use `mcp__cohezion-vault__graph_annotate_neuron` or create a neuron via the graph_writer API:
+   - Create neuron: `neuron:model_{slugified_name}_md` in cluster `"scout"` with tags `["model-candidate", "scout", license]`
+   - If a related concept exists in cortex (e.g. `agentic-ai`, `code-generation`), create a latent synapse via `mcp__cohezion-vault__graph_write_latent_synapse` linking the model neuron to the concept
+   - This makes scout findings queryable via `graph_search("model candidate")` in future sessions

@@ -23,7 +23,7 @@ def _(mo):
     mo.md(
         r"""
         # 💓 The Pulse: 12D Cognitive Lattice
-
+        
         Real-time monitoring of Cohezion's evolutionary state.
         """
     )
@@ -71,7 +71,7 @@ def _(categories, get_state_vector, go, mo, time):
     # Reactive refresher
     refresh = mo.ui.refresh(label="Refresh Pulse", interval="2s")
 
-    _ = refresh
+    refresh
 
     # Generate data
     state = get_state_vector()
@@ -100,10 +100,10 @@ def _(categories, get_state_vector, go, mo, time):
     )
 
     fig.update_layout(
-        polar={"radialaxis": {"visible": True, "range": [0, 1]}},
+        polar=dict(radialaxis=dict(visible=True, range=[0, 1])),
         showlegend=True,
         template="plotly_dark",
-        margin={"l": 40, "r": 40, "t": 40, "b": 40},
+        margin=dict(l=40, r=40, t=40, b=40),
         height=500,
     )
 

@@ -51,7 +51,7 @@ async def wait_for_ingestion():
                 if results:
                     count = results[0].get("count", 0)
 
-            int(time.time() - start_time)
+            elapsed = int(time.time() - start_time)
             rate = (count - last_count) / CHECK_INTERVAL if last_count > 0 else 0
 
             logger.info(f"   - DB Count: {count:,} / {TARGET_COUNT:,} (Rate: {rate:.1f} rec/s)")
@@ -84,12 +84,7 @@ def archive_failsafes():
     try:
         # Tar the recovered files
         subprocess.run(
-            [
-                "tar",
-                "-czf",
-                "data/backup_recovered_sims.tar.gz",
-                "data/restored_simulations",
-            ],
+            ["tar", "-czf", "data/backup_recovered_sims.tar.gz", "data/restored_simulations"],
             cwd=REPO_ROOT,
             check=True,
         )

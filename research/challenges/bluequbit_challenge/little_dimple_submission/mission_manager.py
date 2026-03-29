@@ -42,11 +42,7 @@ def run_experiment(bond_dim, cutoff):
     # 2. Run the verifier
     try:
         result = subprocess.run(
-            [PYTHON_EXE, "verify_result.py"],
-            env=env,
-            capture_output=True,
-            text=True,
-            check=True,
+            [PYTHON_EXE, "verify_result.py"], env=env, capture_output=True, text=True, check=True
         )
         output = result.stdout
     except subprocess.CalledProcessError as e:
@@ -101,7 +97,7 @@ def main():
         try:
             with open(EXPERIMENT_LOG) as f:
                 results = json.load(f)
-        except Exception:
+        except (FileNotFoundError, json.JSONDecodeError):
             pass
 
     # Iterate through experiments

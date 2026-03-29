@@ -171,9 +171,7 @@ class ConfigSyncLogger:
     def export_to_json(self, output_path: Path | None = None) -> str:
         """Export all logs to JSON."""
         if output_path is None:
-            output_path = (
-                self.log_dir / f"export_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
-            )
+            output_path = self.log_dir / f"export_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
 
         data = {
             "exported_at": datetime.now().isoformat(),
@@ -213,5 +211,7 @@ class ConfigSyncLogger:
             "total_duration_ms": total_duration,
             "average_duration_ms": avg_duration,
             "failure_count": statuses.get("failed", 0),
-            "success_rate": (statuses.get("success", 0) / len(self._entries) * 100 if self._entries else 0),
+            "success_rate": (
+                statuses.get("success", 0) / len(self._entries) * 100 if self._entries else 0
+            ),
         }

@@ -5,7 +5,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from pathlib import Path
 
 import numpy as np
 import torch
@@ -17,16 +17,10 @@ from cohezion.flume.experience_encoder import (
 )
 
 
-if TYPE_CHECKING:
-    from pathlib import Path
-
-
 def _make_experience(**overrides: object) -> dict:
     """Create a minimal valid experience dict."""
     base: dict = {
-        "trajectory": np.random.default_rng(42)
-        .normal(0.5, 0.15, 12)
-        .astype(np.float32),
+        "trajectory": np.random.default_rng(42).normal(0.5, 0.15, 12).astype(np.float32),
         "mission_id": "test-mission-1",
         "agent_id": "test-agent",
         "skill_name": "research",
@@ -100,7 +94,8 @@ class TestExperienceCollector:
             parquet_dir=tmp_path / "nonexistent_parquet",
             vault_dir=tmp_path / "nonexistent_vault",
         )
-        # SurrealDB may be live; isolate this test to missing-dir behavior only
+        # Mock the SurrealDB tier to isolate from live data — this test only
+        # validates filesystem tier behavior when directories don't exist.
         with patch.object(collector, "_collect_surreal", return_value=[]):
             results = collector.collect_all()
         assert isinstance(results, list)

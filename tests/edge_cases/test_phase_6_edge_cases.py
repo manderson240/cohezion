@@ -27,9 +27,7 @@ class TestTokenCountingEdgeCases:
     def test_very_large_token_count_million_tokens(self):
         """Test with 1M token query."""
         router = CostAwareRouter()
-        decision, can_proceed = router.select_model(
-            query="x" * 10000
-        )  # Scaled down for test
+        decision, can_proceed = router.select_model(query="x" * 10000)  # Scaled down for test
         assert decision is not None or can_proceed is not None
 
     def test_zero_token_query(self):
@@ -104,15 +102,13 @@ class TestLongRunningExecutionEdgeCases:
 
     def test_extended_continuous_execution(self):
         """Simulate extended continuous execution."""
-        CostAwareRouter()
+        router = CostAwareRouter()
         reset_anomaly_detector()
         detector = get_anomaly_detector()
 
         for i in range(100):
             detector.detect_spike(
-                actual_cost=0.40 + (i % 5) * 0.02,
-                forecasted_cost=0.40,
-                model="continuous-test",
+                actual_cost=0.40 + (i % 5) * 0.02, forecasted_cost=0.40, model="continuous-test"
             )
 
         assert len(detector.recent_alerts) <= 1000
@@ -123,7 +119,7 @@ class TestLongRunningExecutionEdgeCases:
         models = [f"model-{i}" for i in range(50)]
 
         for _ in range(1000):
-            ranker.rank_models(available_models=models)
+            scores = ranker.rank_models(available_models=models)
 
         assert True  # If we got here without OOM, we passed
 
@@ -186,7 +182,7 @@ class TestConcurrencyEdgeCases:
         router = CostAwareRouter()
         results = []
         for _ in range(100):
-            decision, _can_proceed = router.select_model(query="concurrent")
+            decision, can_proceed = router.select_model(query="concurrent")
             results.append(decision)
 
         assert len(results) == 100
@@ -228,9 +224,7 @@ class TestDataConsistencyEdgeCases:
 
         for i in range(1000):
             detector.detect_spike(
-                actual_cost=0.40 + (i % 100) * 0.001,
-                forecasted_cost=0.40,
-                model="stress-test",
+                actual_cost=0.40 + (i % 100) * 0.001, forecasted_cost=0.40, model="stress-test"
             )
 
         assert len(detector.recent_alerts) <= 1000
@@ -253,7 +247,9 @@ class TestRoutingConsistencyEdgeCases:
         """Test routing with only one model (no fallback)."""
         fallback = ModelFallbackStrategy()
 
-        selected, _is_fallback = fallback.select_model(primary_model="only-model", available_models=["only-model"])
+        selected, is_fallback = fallback.select_model(
+            primary_model="only-model", available_models=["only-model"]
+        )
 
         assert selected == "only-model"
 
@@ -265,7 +261,7 @@ class TestRoutingConsistencyEdgeCases:
             for _ in range(10):
                 fallback.record_execution(f"model-{i}", success=False)
 
-        selected, _is_fallback = fallback.select_model(
+        selected, is_fallback = fallback.select_model(
             primary_model="model-0",
             available_models=["model-0", "model-1", "model-2", "model-3", "model-4"],
         )
@@ -289,9 +285,7 @@ class TestNumericalEdgeCases:
         reset_anomaly_detector()
         detector = get_anomaly_detector()
 
-        alert = detector.detect_spike(
-            actual_cost=1000.0, forecasted_cost=500.0, model="expensive"
-        )
+        alert = detector.detect_spike(actual_cost=1000.0, forecasted_cost=500.0, model="expensive")
 
         assert alert is not None or alert is None
 
@@ -300,9 +294,7 @@ class TestNumericalEdgeCases:
         reset_anomaly_detector()
         detector = get_anomaly_detector()
 
-        alert = detector.detect_spike(
-            actual_cost=0.00001, forecasted_cost=0.00001, model="cheap"
-        )
+        alert = detector.detect_spike(actual_cost=0.00001, forecasted_cost=0.00001, model="cheap")
 
         assert alert is not None or alert is None
 
@@ -323,9 +315,7 @@ class TestEmptyDataSetEdgeCases:
         reset_anomaly_detector()
         detector = get_anomaly_detector()
 
-        alert = detector.detect_spike(
-            actual_cost=0.50, forecasted_cost=0.40, model="new-model"
-        )
+        alert = detector.detect_spike(actual_cost=0.50, forecasted_cost=0.40, model="new-model")
 
         assert alert is not None or alert is None
 

@@ -65,7 +65,9 @@ def demo_mass_sim() -> None:
         coh = stats["mean_coherence"]
         pct = stats["pct_within_bounds"]
         marker = "OK" if 0.3 <= coh <= 0.7 else "!!"
-        print(f"  Universe {u}: coherence={coh:.3f} ({pct * 100:.0f}% in bounds) [{marker}] [{elapsed * 1000:.0f}ms]")
+        print(
+            f"  Universe {u}: coherence={coh:.3f} ({pct * 100:.0f}% in bounds) [{marker}] [{elapsed * 1000:.0f}ms]"
+        )
 
 
 def demo_hamiltonian() -> None:
@@ -126,11 +128,7 @@ def demo_flume_vae() -> None:
     from cohezion.flume.training import FlumeVAETrainer, TrainConfig
 
     config = TrainConfig(
-        epochs=5,
-        batch_size=32,
-        z_dim=64,
-        log_interval=5,
-        checkpoint_dir="/tmp/demo_flume",
+        epochs=5, batch_size=32, z_dim=64, log_interval=5, checkpoint_dir="/tmp/demo_flume"
     )
     trainer = FlumeVAETrainer(config)
     dataset = SyntheticFlumeDataset(n_samples=500, z_dim=64)
@@ -145,7 +143,7 @@ def demo_flume_vae() -> None:
 
     # Round-trip test
     sample = dataset[0].unsqueeze(0)
-    recon, _mu, _logvar = trainer._forward(sample)
+    recon, mu, logvar = trainer._forward(sample)
     recon_error = torch.nn.functional.mse_loss(recon, sample).item()
     print(f"  Single-sample reconstruction error: {recon_error:.4f}")
 
@@ -164,7 +162,7 @@ def demo_circuit_breaker() -> None:
     states.append(f"After success: {cb.state.value}")
 
     # Fail to threshold
-    for _i in range(3):
+    for i in range(3):
         cb.record_failure()
     states.append(f"After 3 failures: {cb.state.value}")
 

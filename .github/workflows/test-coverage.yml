@@ -91,7 +91,7 @@ jobs:
               MISSING=$((MISSING + 1))
             fi
           done
-
+          
           if [ $MISSING -gt 0 ]; then
             echo "Found $MISSING modules without tests"
             # Don't fail yet, just warn
@@ -124,12 +124,12 @@ jobs:
           for file in $(find src/cohezion -name "*.py" -type f | grep -v __pycache__ | grep -v __init__); do
             module=$(echo $file | sed 's|src/cohezion/||; s|\.py$||')
             test_path=$(echo $file | sed 's|src/cohezion|tests|; s|\.py$|_test.py|')
-
+            
             # Skip if test already exists
             if [ -f "${test_path%.py}.py" ]; then
               continue
             fi
-
+            
             # Generate test scaffold
             echo "Generating tests for $module..."
             uv run python -m cohezion.tools.test_generator \
@@ -138,19 +138,10 @@ jobs:
               --template minimal || true
           done
 
-      - name: Open PR with generated tests
+      - name: Commit generated tests
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-          BRANCH="auto-tests/$(date +%Y%m%d-%H%M%S)"
-          git checkout -b "$BRANCH"
           git add tests/
-          if git diff --staged --quiet; then
-            echo "No new test scaffolds generated, skipping PR."
-          else
-            git commit -m "Auto-generate test scaffolds for new modules [skip ci]"
-            git push origin "$BRANCH"
-            gh pr create               --title "Auto-generated test scaffolds"               --body "Automatically generated test scaffolds for modules missing coverage. Please review before merging."               --base main               --head "$BRANCH"
-          fi
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          git diff --staged --quiet || git commit -m "Auto-generate test scaffolds for new modules [skip ci]"
+          git push

@@ -55,10 +55,11 @@ def monitor_recovery():
                     start_time = time.time()  # Start recovery timer now
 
             # 2. Wait for Recovery
-            elif spiked and entropy < 0.3:
-                logger.info(f"✅ SYSTEM RECOVERED in {time.time() - start_time:.2f}s!")
-                recovered = True
-                break
+            elif spiked:
+                if entropy < 0.3:
+                    logger.info(f"✅ SYSTEM RECOVERED in {time.time() - start_time:.2f}s!")
+                    recovered = True
+                    break
 
         except Exception as e:
             logger.warning(f"Connection glitch: {e}")
@@ -78,7 +79,7 @@ if __name__ == "__main__":
     # Ensure Sim is running
     try:
         requests.get(f"{BASE_URL}/")
-    except Exception:
+    except requests.exceptions.ConnectionError:
         logger.error("Target DOWN. Start Diplomat first.")
         sys.exit(1)
 

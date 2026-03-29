@@ -67,7 +67,8 @@ def quickstart():
 
     console.print(
         Panel(
-            "[bold]Welcome to Cohezion![/bold]\n\nA self-evolving agentic sandbox for Anti-Fragile Agentic Reasoning.",
+            "[bold]Welcome to Cohezion![/bold]\n\n"
+            "A self-evolving agentic sandbox for Anti-Fragile Agentic Reasoning.",
             title="Quick Start",
             border_style="cyan",
         )
@@ -118,7 +119,8 @@ def hello(
     if colorful:
         console.print(
             Panel.fit(
-                f"[bold green]Hello, {name}![/bold green]\n\n[dim]Cohezion CLI is running successfully![/dim]",
+                f"[bold green]Hello, {name}![/bold green]\n\n"
+                f"[dim]Cohezion CLI is running successfully![/dim]",
                 title="✓ Cohezion Status",
                 border_style="green",
             )
@@ -169,8 +171,12 @@ async def get_swarm_service():
     repo_skill = SurrealSkillRepository(client._client)
 
     agent_service = AgentService(repo_journey, repo_universe)
-    await agent_service.register_agent(AgentConfig(name="analyst", agent_type="analyst", model_name="gemma3:4b"))
-    await agent_service.register_agent(AgentConfig(name="critic", agent_type="critic", model_name="phi3:mini"))
+    await agent_service.register_agent(
+        AgentConfig(name="analyst", agent_type="analyst", model_name="gemma3:4b")
+    )
+    await agent_service.register_agent(
+        AgentConfig(name="critic", agent_type="critic", model_name="phi3:mini")
+    )
     await agent_service.register_agent(
         AgentConfig(name="synthesizer", agent_type="synthesizer", model_name="mistral:7b")
     )
@@ -291,7 +297,10 @@ def swarm_simulate(
     """
     console.print(
         Panel(
-            f"[bold]Mass Simulation[/bold]\n\nIterations: {iterations}\nAgents: {agents}\nParallel: {parallel}",
+            f"[bold]Mass Simulation[/bold]\n\n"
+            f"Iterations: {iterations}\n"
+            f"Agents: {agents}\n"
+            f"Parallel: {parallel}",
             title="⚡ Simulation Parameters",
             border_style="cyan",
         )
@@ -424,7 +433,10 @@ def dashboard_start(
     """
     console.print(
         Panel(
-            f"[bold]Interactive Dashboard[/bold]\n\nHost: [cyan]{host}[/cyan]\nPort: {port}\nReload: {reload}",
+            f"[bold]Interactive Dashboard[/bold]\n\n"
+            f"Host: [cyan]{host}[/cyan]\n"
+            f"Port: {port}\n"
+            f"Reload: {reload}",
             title="📊 Dashboard Configuration",
             border_style="magenta",
         )
@@ -824,7 +836,8 @@ def ouroboros_status(
     """
     console.print(
         Panel(
-            "[bold green]✓ System Healthy[/bold green]\n\n[dim]All systems operational. No healing required.[/dim]",
+            "[bold green]✓ System Healthy[/bold green]\n\n"
+            "[dim]All systems operational. No healing required.[/dim]",
             title="🐍 Ouroboros Status",
             border_style="green",
         )
@@ -857,7 +870,8 @@ def ouroboros_heal(
     if dry_run:
         console.print(
             Panel(
-                "[yellow]Dry Run: Healing cycle simulated[/yellow]\n\n[dim]No changes made to system.[/dim]",
+                "[yellow]Dry Run: Healing cycle simulated[/yellow]\n\n"
+                "[dim]No changes made to system.[/dim]",
                 title="🐍 Ouroboros Heal",
                 border_style="yellow",
             )

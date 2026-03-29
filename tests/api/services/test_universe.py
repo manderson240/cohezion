@@ -6,12 +6,14 @@ Covers live universe simulation and physics state reporting.
 from __future__ import annotations
 
 import pytest
+from unittest.mock import MagicMock, patch
+import numpy as np
 
 from cohezion.api.services.universe import (
     UniverseStateService,
     get_universe_service,
+    PerturbRequest,
 )
-
 
 @pytest.fixture
 def universe_service():

@@ -31,9 +31,7 @@ class TemplateParseResponse(BaseModel):
 # --- Service Logic ---
 
 
-async def parse_template_service(
-    request: TemplateParseRequest,
-) -> TemplateParseResponse:
+async def parse_template_service(request: TemplateParseRequest) -> TemplateParseResponse:
     """Parse a PRIME skill definition and return structured spec."""
     from cohezion.core.config_templates import ConfigTemplateManager
 

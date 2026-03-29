@@ -93,7 +93,9 @@ class GraphRAGImporter:
             # Return None to allow import without embedding
             return None
 
-    async def import_document(self, file_path: Path, create_edges: bool = True) -> str | None:
+    async def import_document(
+        self, file_path: Path, create_edges: bool = True
+    ) -> str | None:
         """
         Import single document to SurrealDB
 
@@ -143,7 +145,10 @@ class GraphRAGImporter:
             """
 
             # Execute query (returns [DELETE result, CREATE result])
-            results = await execute_surreal_async(query, self.http_client, self.namespace, self.database)
+            results = await execute_surreal_async(
+                query, self.http_client, self.namespace, self.database,
+                url=self.surrealdb_url.rstrip("/") + "/sql",
+            )
 
             # Check CREATE result (index 1, after DELETE)
             if not results or len(results) < 2 or results[1].get("status") != "OK":
@@ -195,7 +200,9 @@ class GraphRAGImporter:
             )
             logger.info(f"Created {count}/{len(edges)} edges for {source_id}")
 
-    async def import_directory(self, directory: str, pattern: str = "*.md", recursive: bool = True) -> dict[str, int]:
+    async def import_directory(
+        self, directory: str, pattern: str = "*.md", recursive: bool = True
+    ) -> dict[str, int]:
         """
         Import all documents from directory
 
@@ -233,7 +240,9 @@ class GraphRAGImporter:
 
         # Phase 1: Import all documents (no edges yet)
         logger.info("Phase 1: Importing documents...")
-        results = await asyncio.gather(*[import_with_limit(f) for f in files], return_exceptions=True)
+        results = await asyncio.gather(
+            *[import_with_limit(f) for f in files], return_exceptions=True
+        )
 
         success_count = sum(1 for r in results if r and not isinstance(r, Exception))
 

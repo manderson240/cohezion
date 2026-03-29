@@ -1,10 +1,9 @@
 import asyncio
 import logging
 
-from cohezion.swarm.agents.universe_sim_agent import UniverseSimulationAgent
-
 from cohezion.core.persistence.surreal_client import SurrealClient
 from cohezion.core.persistence.surreal_client import UniverseNode as DBNode
+from cohezion.swarm.agents.universe_sim_agent import UniverseSimulationAgent
 
 
 logging.basicConfig(level=logging.INFO)

@@ -12,8 +12,8 @@ from pathlib import Path
 
 # Attempt to use local embedding for diversity, else fallback to coherence score
 try:
-    import numpy as np  # noqa: F401
-    from sklearn.metrics.pairwise import cosine_similarity  # noqa: F401
+    import numpy as np
+    from sklearn.metrics.pairwise import cosine_similarity
 
     SKLEARN_AVAILABLE = True
 except ImportError:

@@ -142,9 +142,7 @@ class ForecastEngine:
             return None
 
         # Use exponential smoothing for forecast
-        forecast_value = (
-            self.smoothed_level + (horizon_hours / 24.0) * self.smoothed_trend
-        )
+        forecast_value = self.smoothed_level + (horizon_hours / 24.0) * self.smoothed_trend
 
         # Confidence interval (simplified: ±10-20% depending on horizon)
         interval_width = forecast_value * (0.10 + 0.05 * math.log(horizon_hours + 1))

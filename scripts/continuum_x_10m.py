@@ -171,7 +171,9 @@ class ContinuumXSimulation:
                 )
 
         elapsed = time.time() - start_time
-        logger.info(f"Simulation complete in {elapsed:.1f}s ({self.total_cycles / elapsed:,.0f} cycles/s)")
+        logger.info(
+            f"Simulation complete in {elapsed:.1f}s ({self.total_cycles / elapsed:,.0f} cycles/s)"
+        )
 
     def mine_patterns(self) -> list[PatternDiscovery]:
         """
@@ -194,7 +196,9 @@ class ContinuumXSimulation:
                     frequency=len(high_stability_experiences),
                     avg_stability=np.mean([e.stability for e in high_stability_experiences]),
                     required_conditions={"min_cycles": 1000, "noise_level": 0.02},
-                    agent_representation=self._agent_represent_convergence(high_stability_experiences),
+                    agent_representation=self._agent_represent_convergence(
+                        high_stability_experiences
+                    ),
                 )
             )
 
@@ -216,7 +220,9 @@ class ContinuumXSimulation:
             )
 
         # Pattern 3: Well Attraction
-        most_visited_well = max(self.well_visits.items(), key=lambda x: x[1]) if self.well_visits else ("None", 0)
+        most_visited_well = (
+            max(self.well_visits.items(), key=lambda x: x[1]) if self.well_visits else ("None", 0)
+        )
         patterns.append(
             PatternDiscovery(
                 name="WELL_ATTRACTION",
@@ -341,7 +347,9 @@ State: Fluid, adaptive, evolving
         report_file = output_dir / "AGENT_EXPERIENCE_REPORT.md"
         with open(report_file, "w") as f:
             f.write("# Agent Experience Report: 10M Cycle Continuum-X\n\n")
-            f.write(f"> **COHEZION = 0.5 HIHO** | Generated: {datetime.now().strftime('%Y-%m-%d %H:%M')}\n\n")
+            f.write(
+                f"> **COHEZION = 0.5 HIHO** | Generated: {datetime.now().strftime('%Y-%m-%d %H:%M')}\n\n"
+            )
             f.write("## Summary\n")
             f.write(f"- **Total Cycles**: {self.total_cycles:,}\n")
             f.write(f"- **Final Stability**: {summary['final_stability']:.4f}\n")

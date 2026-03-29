@@ -154,13 +154,9 @@ def generate_narration(step: int, state: dict[str, Any], milestones: list[str]) 
 
     # Milestone narration (Primary)
     if "JOURNEY_START" in milestones:
-        return (
-            "Initiating Continuum-X. The 12D manifold is active. 3 Spatial, 1 Temporal, 8 Brane dimensions established."
-        )
+        return "Initiating Continuum-X. The 12D manifold is active. 3 Spatial, 1 Temporal, 8 Brane dimensions established."
     if "FIRST_HIHO" in milestones:
-        return (
-            "Resonance detected! The Dark Matter Manifold (L13) is anchoring the first quadrant. 0.5 Coherence reached."
-        )
+        return "Resonance detected! The Dark Matter Manifold (L13) is anchoring the first quadrant. 0.5 Coherence reached."
     if "HALF_COHERENCE" in milestones:
         return "S8 Tension resolving (L23). Neutrino-Dark Matter coupling is stabilizing the latent trajectory. Convergence 50%."
     if "FULL_COHERENCE" in milestones:
@@ -208,7 +204,9 @@ async def run_simulation(cycles: int, agents: list[str]) -> dict[str, Any]:
             # Progress report
             progress = i / cycles * 100
             if i % (batch_size * 10) == 0:
-                logger.info(f"📊 Progress: {progress:.1f}% | Coherence: {step_data['coherence']:.3f}")
+                logger.info(
+                    f"📊 Progress: {progress:.1f}% | Coherence: {step_data['coherence']:.3f}"
+                )
 
     # Track usage for all participating agents (PATTERN: USAGE_TRACKING)
     if REGISTRY:

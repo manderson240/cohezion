@@ -23,8 +23,7 @@ class DojoTrainer:
             logger.warning("Dataset not found.")
             return False
 
-        with open(DATASET_PATH) as f:
-            count = sum(1 for _ in f)
+        count = sum(1 for _ in open(DATASET_PATH))
         logger.info(f"Dataset Size: {count} samples.")
 
         if count < MIN_SAMPLES:

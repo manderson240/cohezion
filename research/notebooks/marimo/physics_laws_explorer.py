@@ -437,7 +437,9 @@ def _(mo, np, go, make_subplots, approach):
     if approach_key == "math":
         # Stable, symmetric oscillations (mathematical structure)
         trajectory[:, 0] = np.sin(np.linspace(0, 4 * np.pi, timesteps))  # Energy
-        trajectory[:, 1] = 0.8 + 0.1 * np.sin(np.linspace(0, 2 * np.pi, timesteps))  # Coherence high
+        trajectory[:, 1] = 0.8 + 0.1 * np.sin(
+            np.linspace(0, 2 * np.pi, timesteps)
+        )  # Coherence high
         trajectory[:, 2] = 0.9 * np.ones(timesteps)  # Very stable
         trajectory[:, 3] = 0.3 + 0.2 * np.cos(np.linspace(0, 4 * np.pi, timesteps))  # Low novelty
     elif approach_key == "anthropic":
@@ -482,9 +484,9 @@ def _(mo, np, go, make_subplots, approach):
                 y=trajectory[:, i],
                 mode="lines",
                 name=dim,
-                line={"color": colors[i], "width": 3},
+                line=dict(color=colors[i], width=3),
                 fill="tozeroy",
-                fillcolor=f"rgba{tuple([int(colors[i][j : j + 2], 16) for j in (1, 3, 5)] + [0.2])}",
+                fillcolor=f"rgba{tuple(list(int(colors[i][j : j + 2], 16) for j in (1, 3, 5)) + [0.2])}",
                 showlegend=True,
             ),
             row=row,
@@ -506,13 +508,7 @@ def _(mo, np, go, make_subplots, approach):
         title_text=f"Idea Evolution: {approach.value}",
         template="plotly_dark",
         showlegend=True,
-        legend={
-            "orientation": "h",
-            "yanchor": "bottom",
-            "y": 1.02,
-            "xanchor": "center",
-            "x": 0.5,
-        },
+        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="center", x=0.5),
     )
 
     fig
@@ -536,24 +532,24 @@ def _(mo, np, go, trajectory, dim_names):
                 y=trajectory[:, 1],
                 z=trajectory[:, 2],
                 mode="lines+markers",
-                marker={
-                    "size": 3,
-                    "color": np.arange(len(trajectory)),
-                    "colorscale": "Viridis",
-                    "showscale": True,
-                    "colorbar": {"title": "Time Step"},
-                },
-                line={"color": "rgba(100,100,255,0.5)", "width": 2},
+                marker=dict(
+                    size=3,
+                    color=np.arange(len(trajectory)),
+                    colorscale="Viridis",
+                    showscale=True,
+                    colorbar=dict(title="Time Step"),
+                ),
+                line=dict(color="rgba(100,100,255,0.5)", width=2),
             )
         ]
     )
 
     fig_3d.update_layout(
-        scene={
-            "xaxis_title": dim_names[0],
-            "yaxis_title": dim_names[1],
-            "zaxis_title": dim_names[2],
-        },
+        scene=dict(
+            xaxis_title=dim_names[0],
+            yaxis_title=dim_names[1],
+            zaxis_title=dim_names[2],
+        ),
         height=500,
         title="Trajectory Through Concept Space",
         template="plotly_dark",
@@ -578,7 +574,9 @@ def _(mo, np, json, datetime, hashlib):
     """)
 
     # Create FLUME journey record
-    journey_id = hashlib.sha256(f"physics_laws_{datetime.now().isoformat()}".encode()).hexdigest()[:16]
+    journey_id = hashlib.sha256(f"physics_laws_{datetime.now().isoformat()}".encode()).hexdigest()[
+        :16
+    ]
 
     # Simulated FLUME encoding (would use actual FlumeEncoder in production)
     journey_record = {

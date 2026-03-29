@@ -18,7 +18,11 @@ async def analyze():
         tables_res = await client.query("INFO FOR DB")
         # Handle both list and dict responses
         if isinstance(tables_res, list) and len(tables_res) > 0:
-            tables_info = tables_res[0].get("result", {}) if isinstance(tables_res[0], dict) else tables_res[0]
+            tables_info = (
+                tables_res[0].get("result", {})
+                if isinstance(tables_res[0], dict)
+                else tables_res[0]
+            )
         else:
             tables_info = tables_res
 

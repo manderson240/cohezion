@@ -5,7 +5,7 @@ Validates ExperienceDataset -> FlumeVAETrainer pipeline.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from pathlib import Path
 
 import numpy as np
 import torch
@@ -15,16 +15,10 @@ from cohezion.flume.experience_encoder import TOTAL_DIM, ExperienceEncoder
 from cohezion.flume.training import FlumeVAETrainer, TrainConfig
 
 
-if TYPE_CHECKING:
-    from pathlib import Path
-
-
 def _make_experience(**overrides) -> dict:
     """Create a minimal valid experience dict."""
     base = {
-        "trajectory": np.random.default_rng(42)
-        .normal(0.5, 0.15, 12)
-        .astype(np.float32),
+        "trajectory": np.random.default_rng(42).normal(0.5, 0.15, 12).astype(np.float32),
         "mission_id": "test-mission",
         "agent_id": "test-agent",
         "skill_name": "research",
@@ -61,13 +55,9 @@ class TestVAEExperienceTraining:
             vault_dir=tmp_path / "empty2",
         )
 
-        config = TrainConfig(
-            epochs=1, batch_size=32, checkpoint_dir=str(tmp_path / "ckpt")
-        )
+        config = TrainConfig(epochs=1, batch_size=32, checkpoint_dir=str(tmp_path / "ckpt"))
         trainer = FlumeVAETrainer(config)
-        metrics = trainer.train_from_experiences(
-            collector=collector, min_real_samples=5
-        )
+        metrics = trainer.train_from_experiences(collector=collector, min_real_samples=5)
 
         assert len(metrics) == 1  # 1 epoch
         assert "total" in metrics[0]
@@ -77,25 +67,21 @@ class TestVAEExperienceTraining:
         from cohezion.flume.experience_collector import ExperienceCollector
 
         # Create a collector with mock data via direct dataset
-        config = TrainConfig(
-            epochs=1, batch_size=16, checkpoint_dir=str(tmp_path / "ckpt")
-        )
+        config = TrainConfig(epochs=1, batch_size=16, checkpoint_dir=str(tmp_path / "ckpt"))
         trainer = FlumeVAETrainer(config)
 
         # Train with synthetic fallback (no real data)
-        collector = ExperienceCollector(
-            parquet_dir=tmp_path / "np", vault_dir=tmp_path / "nv"
-        )
-        metrics = trainer.train_from_experiences(
-            collector=collector, min_real_samples=1
-        )
+        collector = ExperienceCollector(parquet_dir=tmp_path / "np", vault_dir=tmp_path / "nv")
+        metrics = trainer.train_from_experiences(collector=collector, min_real_samples=1)
 
         assert len(metrics) == 1
         assert metrics[0]["total"] > 0
 
     def test_trained_vae_lower_mse_than_untrained(self):
         """Trained VAE has lower reconstruction MSE than untrained."""
-        experiences = [_make_experience(mission_id=f"m{i}", phi_score=0.5 + 0.01 * i) for i in range(200)]
+        experiences = [
+            _make_experience(mission_id=f"m{i}", phi_score=0.5 + 0.01 * i) for i in range(200)
+        ]
         ds = ExperienceDataset(experiences, seed=42)
 
         # Measure MSE before training
@@ -112,7 +98,7 @@ class TestVAEExperienceTraining:
                 mse_before = torch.nn.functional.mse_loss(recon_before, sample).item()
 
             # Train
-            trainer.train(dataset=ds)
+            metrics = trainer.train(dataset=ds)
 
             # Get post-training MSE
             with torch.no_grad():

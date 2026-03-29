@@ -72,9 +72,11 @@ class GraphRAGQuery:
 
         except Exception as e:
             logger.error(f"Query embedding generation failed: {e}")
-            raise GraphRAGError(f"Failed to generate embedding: {e}") from e
+            raise GraphRAGError(f"Failed to generate embedding: {e}")
 
-    async def semantic_search(self, query: str, top_k: int = 5, min_score: float = 0.3) -> list[dict[str, Any]]:
+    async def semantic_search(
+        self, query: str, top_k: int = 5, min_score: float = 0.3
+    ) -> list[dict[str, Any]]:
         """
         Semantic vector search
 
@@ -103,7 +105,9 @@ class GraphRAGQuery:
         LIMIT {top_k};
         """
 
-        results = await execute_surreal_async(search_query, self.http_client, self.namespace, self.database)
+        results = await execute_surreal_async(
+            search_query, self.http_client, self.namespace, self.database
+        )
 
         return results[0].get("result", [])
 
@@ -113,7 +117,7 @@ class GraphRAGQuery:
         top_k: int = 5,
         include_ancestry: bool = True,
         include_descendants: bool = True,
-        max_depth: int | None = None,
+        max_depth: int = None,
     ) -> list[dict[str, Any]]:
         """
         Hybrid semantic + graph search
@@ -138,10 +142,14 @@ class GraphRAGQuery:
 
         # Build hybrid query
         ancestry_clause = (
-            f"->informed_by[..{max_depth}]->vault_memory AS ancestors" if include_ancestry else "[] AS ancestors"
+            f"->informed_by[..{max_depth}]->vault_memory AS ancestors"
+            if include_ancestry
+            else "[] AS ancestors"
         )
         descendants_clause = (
-            f"<-led_to[..{max_depth}]<-vault_memory AS descendants" if include_descendants else "[] AS descendants"
+            f"<-led_to[..{max_depth}]<-vault_memory AS descendants"
+            if include_descendants
+            else "[] AS descendants"
         )
 
         hybrid_query = f"""
@@ -155,14 +163,16 @@ class GraphRAGQuery:
         LIMIT {top_k};
         """
 
-        results = await execute_surreal_async(hybrid_query, self.http_client, self.namespace, self.database)
+        results = await execute_surreal_async(
+            hybrid_query, self.http_client, self.namespace, self.database
+        )
 
         return results[0].get("result", [])
 
     async def find_related(
         self,
         doc_id: str,
-        max_depth: int | None = None,
+        max_depth: int = None,
         relation_types: list[str] | None = None,
     ) -> dict[str, Any]:
         """
@@ -197,7 +207,9 @@ class GraphRAGQuery:
         FROM {doc_id};
         """
 
-        results = await execute_surreal_async(query, self.http_client, self.namespace, self.database)
+        results = await execute_surreal_async(
+            query, self.http_client, self.namespace, self.database
+        )
 
         result_list = results[0].get("result", [])
         return result_list[0] if result_list else {}
@@ -217,7 +229,7 @@ async def cached_hybrid_search(
 ) -> list[dict[str, Any]]:
     """Cached hybrid search (use for frequent queries)"""
     # Check cache
-    _cache_key(
+    cache_key = _cache_key(
         query,
         top_k,
         kwargs.get("include_ancestry", True),

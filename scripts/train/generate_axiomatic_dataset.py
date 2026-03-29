@@ -51,7 +51,7 @@ def main():
                     "output": json.dumps(data, indent=2),
                 }
             )
-        except:
+        except Exception:
             continue
 
     # Write to JSONL

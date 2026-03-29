@@ -68,7 +68,9 @@ def swarm_debate():
 
     # Round 3: Synthesis (Final)
     prompt = "Role: Lead Architect (DeepSeek). Synthesize the final Sub-500 Blueprint based on the debate rounds. Focus on implementation-ready instructions."
-    final_resp = call_ollama(specialists["Architect"], prompt + "\nContext: " + str(journey)[-4000:])
+    final_resp = call_ollama(
+        specialists["Architect"], prompt + "\nContext: " + str(journey)[-4000:]
+    )
     journey.append({"round": 3, "role": "Final_Synthesis", "response": final_resp})
 
     # Persist to JSON

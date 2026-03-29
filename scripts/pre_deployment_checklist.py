@@ -48,10 +48,7 @@ def main():
 
     # 1. Python version check
     checks.append(
-        (
-            "Python 3.13+",
-            run_command(["python", "--version"], "Verify Python 3.13+ installed"),
-        )
+        ("Python 3.13+", run_command(["python", "--version"], "Verify Python 3.13+ installed"))
     )
 
     # 2. Framework import check
@@ -87,8 +84,7 @@ def main():
         (
             "Cache Tests",
             run_command(
-                ["uv", "run", "pytest", "tests/cache/", "-q", "--tb=no"],
-                "Run cache system tests",
+                ["uv", "run", "pytest", "tests/cache/", "-q", "--tb=no"], "Run cache system tests"
             ),
         )
     )
@@ -109,10 +105,7 @@ def main():
 
     # 7. Git status
     checks.append(
-        (
-            "Git Status",
-            run_command(["git", "status", "--short"], "Verify clean git state"),
-        )
+        ("Git Status", run_command(["git", "status", "--short"], "Verify clean git state"))
     )
 
     # 8. Configuration check
@@ -142,8 +135,7 @@ def main():
         (
             "Cache Config",
             run_command(
-                ["ls", "-la", "src/cohezion/cache/semantic_cache.py"],
-                "Verify cache configuration",
+                ["ls", "-la", "src/cohezion/cache/semantic_cache.py"], "Verify cache configuration"
             ),
         )
     )

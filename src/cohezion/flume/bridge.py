@@ -6,20 +6,18 @@ import torch.nn as nn
 
 logger = logging.getLogger(__name__)
 
+
 class HFEmbeddingBridge:
     """
     Bridge for converting Hugging Face embeddings to Flume input.
     """
 
     def __init__(
-        self,
-        model_name: str = "all-MiniLM-L6-v2",
-        target_dim: int | None = None,
-        seed: int = 42
+        self, model_name: str = "all-MiniLM-L6-v2", target_dim: int | None = None, seed: int = 42
     ):
         """
         Initializes the bridge with a sentence-transformer model.
-        
+
         Args:
             model_name: The name of the model on HF Hub.
             target_dim: Optional dimension to project the embeddings to.
@@ -32,6 +30,7 @@ class HFEmbeddingBridge:
 
         try:
             from sentence_transformers import SentenceTransformer
+
             self.model = SentenceTransformer(model_name)
 
             # If target_dim is provided and different from model dim,
@@ -51,10 +50,10 @@ class HFEmbeddingBridge:
     async def get_embeddings(self, texts: str | list[str]) -> torch.Tensor:
         """
         Fetches raw embeddings from the HF model.
-        
+
         Args:
             texts: A single string or list of strings.
-            
+
         Returns:
             torch.Tensor: The embeddings.
         """
@@ -69,10 +68,10 @@ class HFEmbeddingBridge:
     async def get_flume_input(self, text: str) -> torch.Tensor:
         """
         Gets text embeddings and projects them to Flume target dimension.
-        
+
         Args:
             text: Input text.
-            
+
         Returns:
             torch.Tensor: Projected embedding vector.
         """
