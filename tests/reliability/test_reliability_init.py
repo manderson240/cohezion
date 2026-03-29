@@ -30,12 +30,13 @@ def test_circuit_breaker_open_close():
     # Wait for recovery
     time.sleep(0.15)
     assert breaker.state == CircuitState.HALF_OPEN
-    assert breaker.allow_request() is True # First call in half-open
+    assert breaker.allow_request() is True  # First call in half-open
 
     # Success in half-open -> Closed
     breaker.record_success()
     assert breaker.state == CircuitState.CLOSED
     assert breaker.get_stats()["failures"] == 0
+
 
 def test_circuit_breaker_half_open_failure():
     """[P0] Should re-open if failure occurs in half-open state."""
@@ -48,6 +49,7 @@ def test_circuit_breaker_half_open_failure():
 
     breaker.record_failure()
     assert breaker.state == CircuitState.OPEN
+
 
 def test_get_circuit_singleton():
     """[P0] Should return same circuit instance."""

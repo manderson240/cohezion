@@ -5,21 +5,25 @@ Security, rate limiting, and production-ready features.
 
 from __future__ import annotations
 
+import contextlib
 import functools
 import hashlib
 import logging
 import secrets
 import time
-from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from fastapi import HTTPException, Request, Security
 from fastapi.security import APIKeyHeader, HTTPBearer
 
 from cohezion.security.credentials import get_credentials
+
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
 
 
 logger = logging.getLogger(__name__)
@@ -272,10 +276,8 @@ class APIKeyManager:
         self.keys_file.parent.mkdir(parents=True, exist_ok=True)
 
         # Security: Enforce strict directory permissions
-        try:
+        with contextlib.suppress(OSError):
             self.keys_file.parent.chmod(0o700)
-        except OSError:
-            pass
 
         self._master_key = self._get_or_create_master_key()
         self._keys: dict[str, dict[str, Any]] = {}
@@ -305,10 +307,8 @@ class APIKeyManager:
         logger.warning("⚠️ No master key in Vault Warden. Creating local temporary key.")
         key = secrets.token_bytes(32)
         key_file.write_bytes(key)
-        try:
+        with contextlib.suppress(OSError):
             key_file.chmod(0o600)
-        except OSError:
-            pass
         return key
 
     def _crypt(self, data: bytes) -> bytes:
@@ -350,10 +350,8 @@ class APIKeyManager:
             # We use a temporary file to ensure atomic write
             temp_file = self.keys_file.with_suffix(".tmp")
             temp_file.write_bytes(encrypted_data)
-            try:
+            with contextlib.suppress(OSError):
                 temp_file.chmod(0o600)
-            except OSError:
-                pass
             temp_file.replace(self.keys_file)
 
         except Exception as e:
@@ -634,7 +632,7 @@ def _check_disk_space() -> tuple[bool, str]:
     """Check available disk space."""
     import shutil
 
-    total, used, free = shutil.disk_usage("/")
+    _total, _used, free = shutil.disk_usage("/")
     free_gb = free / (1024**3)
     if free_gb < 1:
         return False, f"Low disk space: {free_gb:.1f}GB free"

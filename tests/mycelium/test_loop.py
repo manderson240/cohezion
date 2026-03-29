@@ -10,9 +10,11 @@ def mock_scripter():
     mock = AsyncMock()
     return mock
 
+
 @pytest.fixture
 def loop(mock_scripter):
     return CoverageLoop(scripter=mock_scripter)
+
 
 @pytest.mark.asyncio
 async def test_run_tests_and_get_coverage(loop):
@@ -30,6 +32,7 @@ TOTAL                                  10      2    80%
         coverage = loop.run_tests_and_get_coverage(file_path="src/cohezion/dummy.py")
         assert coverage == 80.0
 
+
 @pytest.mark.asyncio
 async def test_execute_loop_achieves_target(loop, mock_scripter):
     """Test the iterative loop logic."""
@@ -42,7 +45,7 @@ async def test_execute_loop_achieves_target(loop, mock_scripter):
             file_path="src/cohezion/dummy.py",
             code_context="code",
             target_coverage=100.0,
-            max_iterations=2
+            max_iterations=2,
         )
 
         assert final_coverage == 100.0

@@ -255,7 +255,7 @@ class TestLRUPersistentTokenCachePersistence:
         cache["test"] = entry
 
         # Check that no JSONL file was created
-        jsonl_files = list(temp_cache_dir.glob("*.jsonl"))
+        list(temp_cache_dir.glob("*.jsonl"))
         # With persistence_enabled=False, still creates cache but doesn't persist
         # Just verify the cache works
 
@@ -337,7 +337,7 @@ class TestLRUPersistentTokenCacheClear:
             bounded_cache[f"key{i}"] = entry
 
         # Verify some evictions occurred
-        eviction_stats_before = bounded_cache.get_eviction_stats()
+        bounded_cache.get_eviction_stats()
 
         # Clear cache
         bounded_cache.clear()

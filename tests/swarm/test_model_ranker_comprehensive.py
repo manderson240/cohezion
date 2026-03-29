@@ -65,7 +65,7 @@ class TestModelRankerBasics:
     def test_model_score_representation(self, ranker):
         """Test ModelScore string representation."""
         ranked = ranker.rank_models(available_models=["phi3:mini"])
-        model, score = ranked[0]
+        _model, score = ranked[0]
 
         repr_str = repr(score)
         assert "ModelScore" in repr_str
@@ -173,7 +173,7 @@ class TestCoherenceScoring:
         )
 
         assert len(ranked) == 1
-        model, score = ranked[0]
+        _model, score = ranked[0]
         # Should use default coherence
         assert score.coherence_score == 0.95
 
@@ -325,7 +325,7 @@ class TestMultiStrategyComparison:
         )
 
         # Should be identical
-        for (m1, s1), (m2, s2) in zip(ranking1, ranking2):
+        for (m1, s1), (m2, s2) in zip(ranking1, ranking2, strict=False):
             assert m1 == m2
             assert s1.composite_score == s2.composite_score
 
@@ -452,7 +452,7 @@ class TestUnknownModels:
         )
 
         assert len(ranked) == 1
-        model, score = ranked[0]
+        _model, score = ranked[0]
         # Should use default (0.70)
         assert score.coherence_score == 0.70
 
@@ -721,7 +721,7 @@ class TestRankingConsistency:
 
         # All should be identical
         for ranking in rankings[1:]:
-            for (m1, s1), (m2, s2) in zip(rankings[0], ranking):
+            for (m1, s1), (m2, s2) in zip(rankings[0], ranking, strict=False):
                 assert m1 == m2
                 assert abs(s1.composite_score - s2.composite_score) < 1e-10
 

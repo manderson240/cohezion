@@ -11,10 +11,12 @@ def test_thought_vector_initialization():
     assert torch.equal(tv.vector, data)
     assert tv.vector.shape == (256,)
 
+
 def test_thought_vector_invalid_shape():
     """Test that ThoughtVector raises validation error for incorrect shape."""
     with pytest.raises(ValueError, match="vector must be 256D"):
         ThoughtVector(vector=torch.randn(255))
+
 
 def test_flume_vae_initialization():
     """Test that FlumeVAE initializes with correct dimensions."""
@@ -22,6 +24,7 @@ def test_flume_vae_initialization():
     model = FlumeVAE(config)
     assert model.config.z_dim == 256
     assert model.config.embed_dim == 128
+
 
 def test_flume_vae_forward_pass():
     """Test the VAE forward pass (encode/decode)."""
@@ -38,6 +41,7 @@ def test_flume_vae_forward_pass():
     assert mu.shape == (batch_size, 256)
     assert log_var.shape == (batch_size, 256)
 
+
 def test_flume_vae_encode():
     """Test the VAE encode method returns mu and log_var."""
     config = FlumeVAEConfig(z_dim=256, vocab_size=100)
@@ -48,6 +52,7 @@ def test_flume_vae_encode():
 
     assert mu.shape == (2, 256)
     assert log_var.shape == (2, 256)
+
 
 def test_flume_vae_reparameterize():
     """Test the reparameterization trick."""
@@ -60,6 +65,7 @@ def test_flume_vae_reparameterize():
     z = model.reparameterize(mu, log_var)
     assert z.shape == (2, 256)
     # With 0 mu and 0 log_var (1 std), z should be random but shaped right
+
 
 def test_flume_vae_compute_loss():
     """Test the VAE loss calculation."""

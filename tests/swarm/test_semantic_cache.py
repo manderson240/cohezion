@@ -246,7 +246,7 @@ class TestLRUEviction:
         """Test eviction when max entries reached."""
         semantic_cache.max_entries = 3
 
-        embedding = [1.0] + [0.0] * 255
+        [1.0] + [0.0] * 255
 
         async def mock_encode(text):
             # Deterministic but different for each text

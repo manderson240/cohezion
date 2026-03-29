@@ -219,7 +219,7 @@ class TestMCPCompoundIntegrationFlow:
         }
 
         # Need to patch the global session_manager BEFORE importing functions
-        with patch("cohezion.mcp.compound_server.session_manager") as mock_mgr:
+        with patch("cohezion.mcp.compound_server.session_manager"):
             # Set up mock for start_session
             start_mock = MagicMock()
             start_mock.start_session.return_value = mock_summary

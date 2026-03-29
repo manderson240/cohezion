@@ -23,7 +23,7 @@ class TestAutonomousSkillRegistry:
     def test_version_conflict_increments(self):
         """Different content creates new version, not overwrite."""
         registry = AutonomousSkillRegistry()
-        s1, _ = registry.register("S1", "version 1")
+        _s1, _ = registry.register("S1", "version 1")
         s2, conflict = registry.register("S1", "version 2")
         assert s2.version == 2
         assert conflict is not None

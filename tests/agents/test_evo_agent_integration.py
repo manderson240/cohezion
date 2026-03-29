@@ -19,6 +19,7 @@ def mock_config():
     mock.semantic_cache_threshold = 0.9
     return mock
 
+
 @pytest.mark.asyncio
 async def test_evo_agent_full_cycle_integration(mock_config):
     """Test the complete flow from act() to reward and potential ratchet."""
@@ -46,6 +47,6 @@ async def test_evo_agent_full_cycle_integration(mock_config):
 
                 # Verify ratchet was evaluated
                 agent._ratchet.evaluate_and_ratchet.assert_called_once()
-                args, kwargs = agent._ratchet.evaluate_and_ratchet.call_args
+                _args, kwargs = agent._ratchet.evaluate_and_ratchet.call_args
                 assert kwargs["score"] == 0.95
                 assert kwargs["trajectory_id"] == "cycle_1"

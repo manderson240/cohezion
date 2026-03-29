@@ -11,8 +11,11 @@ import json
 import logging
 import time
 from pathlib import Path
+from typing import TYPE_CHECKING
 
-from cohezion.universe.sandbox_backends import BackendResult
+
+if TYPE_CHECKING:
+    from cohezion.universe.sandbox_backends import BackendResult
 
 
 logger = logging.getLogger(__name__)

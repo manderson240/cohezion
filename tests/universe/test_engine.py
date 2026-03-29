@@ -57,10 +57,10 @@ class TestAxiomaticState:
         """[P0] Should calculate total coherence."""
         # Perfect stability at 0.5
         state = AxiomaticState(
-            physics=0.5, biology=0.5, logic=0.5, quantum=0.5,
-            field=0.5, control=0.5, novelty=0.5
+            physics=0.5, biology=0.5, logic=0.5, quantum=0.5, field=0.5, control=0.5, novelty=0.5
         )
         assert state.coherence_score() >= 1.0
+
 
 class TestLatentState:
     """[P0] Unit tests for LatentState class."""
@@ -72,6 +72,7 @@ class TestLatentState:
         assert state.embedding[0] == 0.1
         assert state.embedding[2] == 0.0
 
+
 class TestUniverseSimulationEngine:
     """[P0] Unit tests for UniverseSimulationEngine."""
 
@@ -82,11 +83,15 @@ class TestUniverseSimulationEngine:
     @pytest.mark.asyncio
     async def test_start_journey(self, engine):
         """[P0] Should start new journey."""
-        with patch("cohezion.reliability.monitor.get_resource_monitor") as mock_mon, \
-             patch("cohezion_core.cohezion_core_rs.FlumePhysics") as mock_phys:
-
+        with (
+            patch("cohezion.reliability.monitor.get_resource_monitor") as mock_mon,
+            patch("cohezion_core.cohezion_core_rs.FlumePhysics") as mock_phys,
+        ):
             mock_mon.return_value.get_vitals.return_value = {
-                "cpu_percent": 10, "vram_percent": 20, "dilation_factor": 1.0, "memory_percent": 30
+                "cpu_percent": 10,
+                "vram_percent": 20,
+                "dilation_factor": 1.0,
+                "memory_percent": 30,
             }
             mock_phys.return_value.calculate_entropy.return_value = 4.0
             mock_phys.return_value.project_holographic.return_value = [0.0] * 12
@@ -103,11 +108,15 @@ class TestUniverseSimulationEngine:
         """[P0] Should evolve journey trajectory."""
         journey = UniverseJourney(id="j1", agent_name="A1", intent="test")
 
-        with patch("cohezion.reliability.monitor.get_resource_monitor") as mock_mon, \
-             patch("cohezion_core.cohezion_core_rs.FlumePhysics") as mock_phys:
-
+        with (
+            patch("cohezion.reliability.monitor.get_resource_monitor") as mock_mon,
+            patch("cohezion_core.cohezion_core_rs.FlumePhysics") as mock_phys,
+        ):
             mock_mon.return_value.get_vitals.return_value = {
-                "cpu_percent": 10, "vram_percent": 20, "dilation_factor": 1.0, "memory_percent": 30
+                "cpu_percent": 10,
+                "vram_percent": 20,
+                "dilation_factor": 1.0,
+                "memory_percent": 30,
             }
             mock_phys.return_value.calculate_entropy.return_value = 4.0
             mock_phys.return_value.project_holographic.return_value = [0.0] * 12

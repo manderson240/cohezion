@@ -11,7 +11,7 @@ from cohezion.rl.environment import FlumeNavEnv
 
 @pytest.fixture
 def env():
-    import cohezion.rl.environment  # noqa: F401
+    import cohezion.rl.environment
 
     e = gym.make("cohezion/FlumeNav-v0")
     yield e

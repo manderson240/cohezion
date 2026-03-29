@@ -19,6 +19,7 @@ import httpx
 
 if TYPE_CHECKING:
     from cohezion.swarm.token_client import TokenEfficientClient
+    from cohezion.swarm.token_client import TokenEfficientClient as _TC
 
 
 logger = logging.getLogger(__name__)
@@ -201,7 +202,6 @@ class DemocraticDebate:
         ollama_host: str = "http://localhost:11434",
         token_client: "TokenEfficientClient | None" = None,
     ):
-        from cohezion.swarm.token_client import TokenEfficientClient as _TC
 
         self.ollama_host = ollama_host
         self.personas = AGENT_PERSONAS
@@ -290,7 +290,7 @@ class DemocraticDebate:
             if proposals:
                 # Simple: use synthesizer's proposal as the integrated view
                 debate_round.winning_proposal = proposals.get(
-                    "synthesizer", list(proposals.values())[0]
+                    "synthesizer", next(iter(proposals.values()))
                 )
 
             session.rounds.append(debate_round)

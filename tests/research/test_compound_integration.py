@@ -8,12 +8,16 @@ from __future__ import annotations
 import shutil
 import uuid
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import pytest
 
 from cohezion.compound.core.executor import CompoundExecutor, ExecutionConfig
-from cohezion.compound.models import Task
 from cohezion.research import ResearchAgent, ResearchConfig
+
+
+if TYPE_CHECKING:
+    from cohezion.compound.models import Task
 
 
 # Valid keys for ExecutionMetrics (prompt_tokens, completion_tokens, total_tokens,

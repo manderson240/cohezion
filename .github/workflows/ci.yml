@@ -33,11 +33,9 @@ jobs:
 
       - name: Ruff format check
         run: uv run ruff format --check src/ tests/
-        continue-on-error: true
 
       - name: Ruff lint check
         run: uv run ruff check src/ tests/
-        continue-on-error: true
 
   # ── Validate ──────────────────────────────────────────────────
   validate:

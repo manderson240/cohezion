@@ -34,8 +34,8 @@ class HealerAgent(BaseAgent):
         ANOMALY REPORT DETECTED:
         {json.dumps(anomaly_report, indent=2)}
 
-        As the Ouroboros Healer, synthesize a specific patch proposal to stabilize 
-        the Cohezion Triune Manifold. Focus on coherence recovery toward the 0.5 
+        As the Ouroboros Healer, synthesize a specific patch proposal to stabilize
+        the Cohezion Triune Manifold. Focus on coherence recovery toward the 0.5
         HIHO stability point.
 
         Provide your response in the following format:

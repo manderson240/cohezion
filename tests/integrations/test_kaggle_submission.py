@@ -19,10 +19,11 @@ async def test_orchestrate_baseline_submission(tmp_path):
     notebook_path = data_dir / "training_notebook.ipynb"
 
     # Mock dependencies BEFORE instantiating the orchestrator
-    with patch("cohezion.integrations.kaggle_submission.KaggleAPI") as MockAPI, \
-         patch("cohezion.integrations.kaggle_submission.KaggleCurator") as MockCurator, \
-         patch("cohezion.integrations.kaggle_submission.KaggleTrainingManager") as MockManager:
-
+    with (
+        patch("cohezion.integrations.kaggle_submission.KaggleAPI") as MockAPI,
+        patch("cohezion.integrations.kaggle_submission.KaggleCurator") as MockCurator,
+        patch("cohezion.integrations.kaggle_submission.KaggleTrainingManager") as MockManager,
+    ):
         mock_api = MockAPI.return_value
         mock_curator = MockCurator.return_value
         mock_manager = MockManager.return_value
@@ -36,17 +37,19 @@ async def test_orchestrate_baseline_submission(tmp_path):
         async def side_effect(code, path):
             with open(path, "w") as f:
                 f.write(code)
+
         mock_manager.prepare_notebook.side_effect = side_effect
 
-        mock_api.push_notebook = AsyncMock(return_value={"status": "complete", "url": "http://kaggle.com/res"})
+        mock_api.push_notebook = AsyncMock(
+            return_value={"status": "complete", "url": "http://kaggle.com/res"}
+        )
 
         # Instantiate orchestrator
         orchestrator = KaggleSubmissionOrchestrator(username=username, key=key)
 
         # Run orchestration
         result = await orchestrator.run_baseline_flow(
-            dataset_name="nvidia/nemotron-challenge",
-            notebook_id="nemotron-lora-training"
+            dataset_name="nvidia/nemotron-challenge", notebook_id="nemotron-lora-training"
         )
 
         assert result["status"] == "complete"

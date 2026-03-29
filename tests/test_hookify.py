@@ -3,7 +3,6 @@ TDD Test Suite for Hookify Rule Engine
 Tests written BEFORE implementation (TDD approach)
 """
 
-
 import pytest
 
 from cohezion.hookify.validator import HookifyValidator, Rule

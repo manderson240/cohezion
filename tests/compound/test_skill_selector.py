@@ -237,7 +237,7 @@ class TestSkillScoreComputation:
 
     def test_composite_score_calculation(self, selector):
         """Test composite score calculation."""
-        score = SkillScore(
+        SkillScore(
             skill_name="test",
             coherence_score=0.5,
             token_efficiency=0.5,

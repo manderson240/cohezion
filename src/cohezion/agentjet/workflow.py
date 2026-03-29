@@ -9,10 +9,13 @@ from __future__ import annotations
 
 import asyncio
 import logging
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
-from cohezion.compound.executor import CompoundExecutor
 from cohezion.compound.journey_tracker import JourneyTracker
+
+
+if TYPE_CHECKING:
+    from cohezion.compound.executor import CompoundExecutor
 
 
 logger = logging.getLogger(__name__)

@@ -317,7 +317,7 @@ def run(
     vault_api_key: str,
     weak_threshold: float,
     improvement_threshold: float,
-    format: str,  # noqa: A002
+    format: str,
 ) -> None:
     """Run compound benchmark loop on tasks."""
     config = CLIConfig(

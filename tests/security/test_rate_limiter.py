@@ -18,6 +18,7 @@ def test_token_bucket_consume():
     assert bucket.consume(1) is True
     assert bucket.consume(1) is False
 
+
 def test_rate_limiter_basic():
     """[P0] Should limit requests by key."""
     limiter = RateLimiter()
@@ -31,6 +32,7 @@ def test_rate_limiter_basic():
 
     # Different user allowed
     assert limiter.check("user2", "test").allowed is True
+
 
 def test_rate_limiter_refill():
     """[P0] Should refill tokens over time."""

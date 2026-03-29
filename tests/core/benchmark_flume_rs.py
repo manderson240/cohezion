@@ -15,7 +15,6 @@ def benchmark():
     z_dim = 256
     hidden_dim = 512
     steps = 500
-    batch_size = 1  # We test single trajectory first
 
     predictor = TrajectoryPredictor(z_dim=z_dim, hidden_dim=hidden_dim)
     z = torch.randn(z_dim)

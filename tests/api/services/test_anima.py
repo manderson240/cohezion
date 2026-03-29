@@ -20,15 +20,18 @@ def mock_httpx_get():
         mock.return_value.status_code = 200
         yield mock
 
+
 @pytest.fixture
 def anima_service(mock_httpx_get):
     return AnimaService()
+
 
 def test_get_status(anima_service):
     """[P0] Should return service status."""
     status = anima_service.get_status()
     assert status.online is True
     assert status.tier in ["voice", "mcp", "template"]
+
 
 @pytest.mark.asyncio
 async def test_ask_template_fallback(anima_service):
@@ -39,6 +42,7 @@ async def test_ask_template_fallback(anima_service):
     result = await anima_service.ask("what is hiho?")
     assert result.tier == "template"
     assert "HIHO" in result.answer
+
 
 @pytest.mark.asyncio
 async def test_ask_mcp_success(anima_service):
@@ -54,6 +58,7 @@ async def test_ask_mcp_success(anima_service):
         assert result.tier == "mcp"
         assert "Grounded answer" in result.answer
         assert "test-vault" in result.sources
+
 
 @pytest.mark.asyncio
 async def test_speak_fallback(anima_service):

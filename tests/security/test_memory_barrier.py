@@ -50,7 +50,7 @@ class TestMemoryMappedBarrier:
 
     def test_multiple_independent_allocations(self):
         barrier = MemoryMappedBarrier()
-        a1 = barrier.allocate("p1", 4096)
+        barrier.allocate("p1", 4096)
         a2 = barrier.allocate("p2", 4096)
         # p1 reads inside p2's range → should be blocked
         with pytest.raises(BarrierViolationError):

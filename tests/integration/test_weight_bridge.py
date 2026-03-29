@@ -89,14 +89,14 @@ class TestLoadPolicyNetwork:
 
     def test_roundtrip(self, policy_checkpoint):
         """Load a saved checkpoint and verify it produces a working PolicyNetwork."""
-        ckpt_path, state_dim, hidden_dim, action_dim = policy_checkpoint
+        ckpt_path, state_dim, _hidden_dim, action_dim = policy_checkpoint
         policy = WeightBridge.load_policy_network(ckpt_path)
 
         assert isinstance(policy, PolicyNetwork)
 
         # Verify forward pass works
         state = np.random.randn(state_dim).astype(np.float32)
-        action, log_prob = policy.get_action(state)
+        action, _log_prob = policy.get_action(state)
         assert action.shape == (action_dim,)
         assert np.all(np.isfinite(action))
 

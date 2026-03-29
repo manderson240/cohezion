@@ -1,4 +1,5 @@
 """Tests for platform resource manager — ResourceClient and ResourceDaemon."""
+
 from __future__ import annotations
 
 import time
@@ -116,11 +117,13 @@ class TestResourceClientFallback:
     async def test_check_memory_falls_back_to_ollama(self) -> None:
         client = self._make_client_no_daemon()
         mock_response = MagicMock()
-        mock_response.json = AsyncMock(return_value={
-            "models": [
-                {"name": "phi4-mini", "size": 10 * 1024**3},
-            ]
-        })
+        mock_response.json = AsyncMock(
+            return_value={
+                "models": [
+                    {"name": "phi4-mini", "size": 10 * 1024**3},
+                ]
+            }
+        )
         mock_response.__aenter__ = AsyncMock(return_value=mock_response)
         mock_response.__aexit__ = AsyncMock(return_value=False)
 

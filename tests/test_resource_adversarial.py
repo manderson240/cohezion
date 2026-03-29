@@ -34,10 +34,10 @@ async def test_adversarial_flood():
             status_code=200, json=lambda: {"response": "Mocked stability response"}
         )
 
-        start = time.perf_counter()
+        time.perf_counter()
         tasks = [agent.process(f"query {i}") for i, agent in enumerate(agents)]
         await asyncio.gather(*tasks)
-        end = time.perf_counter()
+        time.perf_counter()
 
         # If concurrency works, 20 agents with 4 slots should take at least 5 'units' of time.
         # But since we mocked post, it's near instant.

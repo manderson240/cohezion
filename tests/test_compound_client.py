@@ -122,7 +122,7 @@ async def test_compound_client_caches():
     client.ollama.generate = AsyncMock(return_value=mock_response)
 
     # First call: cache miss
-    result1, tokens1 = await client.generate("test prompt", system="sys", model="phi3:mini")
+    result1, _tokens1 = await client.generate("test prompt", system="sys", model="phi3:mini")
     assert result1 == "This is a test response"
     # Check metrics via get_metrics()
     metrics = client.get_metrics()
@@ -130,7 +130,7 @@ async def test_compound_client_caches():
     assert metrics["total_cache_hits"] == 0
 
     # Second call: cache hit (same prompt + system + model)
-    result2, tokens2 = await client.generate("test prompt", system="sys", model="phi3:mini")
+    result2, _tokens2 = await client.generate("test prompt", system="sys", model="phi3:mini")
     assert result2 == "This is a test response"
     metrics = client.get_metrics()
     assert metrics["total_cache_hits"] == 1

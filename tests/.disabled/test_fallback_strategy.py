@@ -299,7 +299,7 @@ class TestModelFallbackStrategy:
         )
 
         assert len(strategy.fallback_history) > 0
-        primary, fallback, ts = strategy.fallback_history[-1]
+        primary, fallback, _ts = strategy.fallback_history[-1]
         assert primary == "deepseek-r1:8b"
         assert fallback in ["phi3:mini", "qwen3-coder:32b"]
 

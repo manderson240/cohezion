@@ -303,7 +303,7 @@ class TestCostControls:
         squad.cost_tracker.total_cost = 1.5
 
         # Check budget
-        within, status = squad.cost_tracker.check_budget()
+        within, _status = squad.cost_tracker.check_budget()
         assert within is False
 
     @pytest.mark.fast

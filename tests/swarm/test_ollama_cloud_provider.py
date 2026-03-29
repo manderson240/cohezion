@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 
-
 class TestOllamaCloudProvider:
     def test_init_without_url_uses_default(self, monkeypatch):
         monkeypatch.delenv("OLLAMA_CLOUD_URL", raising=False)

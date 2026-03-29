@@ -89,7 +89,7 @@ class TestFilesystemIsolation(unittest.TestCase):
 
         # Setup overlay
         isolation_id = "test-iso-001"
-        merged_path, mounts = self.fs_isolation.setup_cow_filesystem(
+        merged_path, _mounts = self.fs_isolation.setup_cow_filesystem(
             isolation_id, source_dir, backend="overlay"
         )
 
@@ -113,7 +113,7 @@ class TestFilesystemIsolation(unittest.TestCase):
 
         # Setup rsync
         isolation_id = "test-iso-rsync"
-        merged_path, mounts = self.fs_isolation.setup_cow_filesystem(
+        merged_path, _mounts = self.fs_isolation.setup_cow_filesystem(
             isolation_id, source_dir, backend="rsync"
         )
 
@@ -226,7 +226,7 @@ class TestFilesystemIsolation(unittest.TestCase):
         # Setup isolation
         isolation_id = "test-iso-large"
         start_time = time.time()
-        merged_path, mounts = self.fs_isolation.setup_cow_filesystem(
+        merged_path, _mounts = self.fs_isolation.setup_cow_filesystem(
             isolation_id, source_dir, backend="overlay"
         )
         duration = time.time() - start_time
@@ -251,7 +251,7 @@ class TestFilesystemIsolation(unittest.TestCase):
 
         # Setup isolation
         isolation_id = "test-iso-symlink"
-        merged_path, mounts = self.fs_isolation.setup_cow_filesystem(
+        merged_path, _mounts = self.fs_isolation.setup_cow_filesystem(
             isolation_id, source_dir, backend="rsync"
         )
 

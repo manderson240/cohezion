@@ -18,6 +18,7 @@ async def test_hf_bridge_initialization():
         assert bridge.model_name == "test-model"
         mock_st.assert_called_once_with("test-model")
 
+
 @pytest.mark.asyncio
 async def test_get_embeddings_success():
     """Test that the bridge returns torch tensors from HF model."""
@@ -34,6 +35,7 @@ async def test_get_embeddings_success():
         assert isinstance(embeddings, torch.Tensor)
         assert embeddings.shape == (2, 384)
         mock_model.encode.assert_called_once_with(texts, convert_to_numpy=True)
+
 
 @pytest.mark.asyncio
 async def test_bridge_to_flume_dims():

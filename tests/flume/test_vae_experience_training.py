@@ -5,7 +5,7 @@ Validates ExperienceDataset -> FlumeVAETrainer pipeline.
 
 from __future__ import annotations
 
-from pathlib import Path
+from typing import TYPE_CHECKING
 
 import numpy as np
 import torch
@@ -13,6 +13,10 @@ import torch
 from cohezion.flume.experience_dataset import ExperienceDataset
 from cohezion.flume.experience_encoder import TOTAL_DIM, ExperienceEncoder
 from cohezion.flume.training import FlumeVAETrainer, TrainConfig
+
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 
 def _make_experience(**overrides) -> dict:
@@ -98,7 +102,7 @@ class TestVAEExperienceTraining:
                 mse_before = torch.nn.functional.mse_loss(recon_before, sample).item()
 
             # Train
-            metrics = trainer.train(dataset=ds)
+            trainer.train(dataset=ds)
 
             # Get post-training MSE
             with torch.no_grad():

@@ -194,7 +194,7 @@ class TestExecutorAlignmentIntegration:
         )
 
         # Check if decision was logged for high misalignment
-        decision_logs = [log for log in self.mcp_client.vault_logs if log["type"] == "decision"]
+        [log for log in self.mcp_client.vault_logs if log["type"] == "decision"]
         # High misalignment > 0.3, so should trigger vault logging
         if result.metrics["alignment"]["misalignment_score"] > 0.5:
             # May be logged as decision

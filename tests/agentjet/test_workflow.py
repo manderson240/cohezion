@@ -1,4 +1,5 @@
 """Tests for CohezionWorkflow."""
+
 from __future__ import annotations
 
 from unittest.mock import MagicMock
@@ -112,7 +113,7 @@ async def test_run_output_is_string(workflow: CohezionWorkflow) -> None:
 async def test_run_empty_description_does_not_raise(workflow: CohezionWorkflow) -> None:
     task = {"description": ""}
     # Should not raise, just warn
-    output, metadata = await workflow.run(task)
+    output, _metadata = await workflow.run(task)
     assert isinstance(output, str)
 
 
@@ -123,7 +124,7 @@ async def test_run_tracker_failure_falls_back_gracefully(mock_executor: MagicMoc
     workflow = CohezionWorkflow(executor=mock_executor, tracker=broken_tracker)
 
     task = {"description": "Track this", "skill_name": "research"}
-    output, metadata = await workflow.run(task)
+    _output, metadata = await workflow.run(task)
 
     # Falls back to coherence from result metrics
     assert "phi_score" in metadata

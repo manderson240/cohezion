@@ -21,6 +21,7 @@ def test_lerp_basic():
     res = lerp(z1, z2, 1.0)
     assert torch.allclose(res, z2)
 
+
 def test_slerp_basic():
     """Test spherical linear interpolation."""
     # Two orthogonal unit vectors
@@ -29,12 +30,13 @@ def test_slerp_basic():
 
     # Midpoint should be at 45 degrees
     res = slerp(z1, z2, 0.5)
-    expected = torch.tensor([0.7071, 0.7071]) # 1/sqrt(2)
+    expected = torch.tensor([0.7071, 0.7071])  # 1/sqrt(2)
     assert torch.allclose(res, expected, atol=1e-4)
 
     # Start and end
     assert torch.allclose(slerp(z1, z2, 0.0), z1)
     assert torch.allclose(slerp(z1, z2, 1.0), z2)
+
 
 def test_slerp_identical_vectors():
     """Slerp between identical vectors should return the vector."""
@@ -42,11 +44,12 @@ def test_slerp_identical_vectors():
     res = slerp(z1, z1, 0.5)
     assert torch.allclose(res, z1)
 
+
 def test_similarity_score():
     """Test distance-based similarity metric."""
     z1 = torch.tensor([1.0, 0.0])
-    z2 = torch.tensor([1.0, 0.0]) # Identical
-    z3 = torch.tensor([-1.0, 0.0]) # Opposite
+    z2 = torch.tensor([1.0, 0.0])  # Identical
+    z3 = torch.tensor([-1.0, 0.0])  # Opposite
 
     # Identical should be 1.0
     assert similarity_score(z1, z2) == pytest.approx(1.0)

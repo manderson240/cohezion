@@ -26,6 +26,7 @@ def test_compute_coherence():
     z = [0.0] * 256
     assert compute_coherence(z) < 0.1
 
+
 @pytest.mark.asyncio
 async def test_flume_encode_service():
     """[P0] Should encode vector through VAE."""
@@ -34,6 +35,7 @@ async def test_flume_encode_service():
     mock_vae.device = "cpu"
 
     import torch
+
     mock_vae.encoder.return_value = torch.zeros((1, 128))
     mock_vae.mu_head.return_value = torch.full((1, 256), 0.5)
     mock_vae.logvar_head.return_value = torch.zeros((1, 256))

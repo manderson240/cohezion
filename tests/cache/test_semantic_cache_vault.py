@@ -131,7 +131,7 @@ class TestSemanticCacheVaultStore:
         assert len(mcp_client.vault_data) > 0
 
         # Check structure of written data
-        written_data = list(mcp_client.vault_data.values())[0]
+        written_data = next(iter(mcp_client.vault_data.values()))
         pattern = json.loads(written_data)
         assert pattern["prompt"] == "test prompt"
         assert pattern["response"] == "test response"

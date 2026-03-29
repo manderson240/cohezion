@@ -27,6 +27,7 @@ def test_topological_sort_independent():
     assert len(waves) == 1
     assert len(waves[0]) == 2
 
+
 def test_topological_sort_dependent():
     """[P0] Should split dependent tasks into waves."""
     tasks = [
@@ -37,6 +38,7 @@ def test_topological_sort_dependent():
     assert len(waves) == 2
     assert waves[0][0].id == "t1"
     assert waves[1][0].id == "t2"
+
 
 @pytest.mark.asyncio
 async def test_execution_orchestrator_parallel(monkeypatch):
@@ -58,7 +60,7 @@ async def test_execution_orchestrator_parallel(monkeypatch):
         tasks=[
             TaskSpec(id="t1", subject="s1", description="d1"),
             TaskSpec(id="t2", subject="s2", description="d2"),
-        ]
+        ],
     )
 
     report = await orch.execute(plan)
@@ -66,6 +68,7 @@ async def test_execution_orchestrator_parallel(monkeypatch):
     assert len(report.task_results) == 2
     # Check that they started nearly at the same time
     assert abs(execution_times[0] - execution_times[1]) < 0.05
+
 
 @pytest.mark.asyncio
 async def test_execution_orchestrator_sequential(monkeypatch):
@@ -85,7 +88,7 @@ async def test_execution_orchestrator_sequential(monkeypatch):
         tasks=[
             TaskSpec(id="t1", subject="s1", description="d1"),
             TaskSpec(id="t2", subject="s2", description="d2", blocked_by=["t1"]),
-        ]
+        ],
     )
 
     await orch.execute(plan)

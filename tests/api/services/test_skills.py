@@ -39,6 +39,7 @@ async def test_parse_template_service_success():
         assert result.name == "TEST_PRIME"
         assert result.agent_stub == "class TestAgent"
 
+
 @pytest.mark.asyncio
 async def test_parse_template_service_not_found():
     """[P0] Should raise 404 if skill not found."""

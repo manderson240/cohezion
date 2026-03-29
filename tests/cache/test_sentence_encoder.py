@@ -211,7 +211,7 @@ class TestSentenceTransformerEncoder:
             MockST.return_value = mock_model
 
             encoder = SentenceTransformerEncoder()
-            result = encoder.encode("test", normalize=True)
+            encoder.encode("test", normalize=True)
 
             # Check that normalize_embeddings=True was passed
             call_kwargs = mock_model.encode.call_args[1]

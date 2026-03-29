@@ -29,10 +29,12 @@ async def test_rl_step_service():
         assert len(result.action) == 256
         assert result.coherence is not None
 
+
 @pytest.mark.asyncio
 async def test_rl_step_service_invalid_dim():
     """[P0] Should raise 422 for invalid state dimension."""
     from fastapi import HTTPException
+
     req = RlStepRequest(state=[0.5] * 10)
     with pytest.raises(HTTPException) as exc:
         await rl_step_service(req)

@@ -11,11 +11,14 @@ import logging
 import subprocess
 import time
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import torch
 import torch.nn as nn
-from torch.utils.data import DataLoader
+
+
+if TYPE_CHECKING:
+    from torch.utils.data import DataLoader
 
 
 logger = logging.getLogger(__name__)

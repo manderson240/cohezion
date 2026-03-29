@@ -13,6 +13,7 @@ def mock_config():
     mock.strict_security = False
     return mock
 
+
 @pytest.mark.asyncio
 async def test_healer_agent_initialization(mock_config):
     """Test that HealerAgent initializes with correct role."""
@@ -22,6 +23,7 @@ async def test_healer_agent_initialization(mock_config):
                 agent = HealerAgent(model_name="test-model", config=mock_config)
                 assert agent.model_name == "test-model"
                 assert "healer" in agent.__class__.__name__.lower()
+
 
 @pytest.mark.asyncio
 async def test_healer_synthesize_patch_success(mock_config):
@@ -35,11 +37,7 @@ async def test_healer_synthesize_patch_success(mock_config):
                 mock_response = "PATCH Proposal: Adjust manifold stiffness to 0.15."
                 agent._call_ollama = AsyncMock(return_value=mock_response)
 
-                anomaly_report = {
-                    "is_degraded": True,
-                    "anomaly_count": 5,
-                    "total_count": 10
-                }
+                anomaly_report = {"is_degraded": True, "anomaly_count": 5, "total_count": 10}
 
                 patch_proposal = await agent.synthesize_patch(anomaly_report)
 
@@ -47,4 +45,4 @@ async def test_healer_synthesize_patch_success(mock_config):
                 agent._call_ollama.assert_called_once()
                 # Verify prompt contains anomaly details
                 prompt = agent._call_ollama.call_args[0][0]
-                assert "anomaly_count\": 5" in prompt
+                assert 'anomaly_count": 5' in prompt

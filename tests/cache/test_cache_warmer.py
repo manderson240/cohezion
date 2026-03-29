@@ -23,6 +23,7 @@ async def test_cache_warmer_disabled_without_client():
     assert loaded == 0
     mock_cache.put.assert_not_called()
 
+
 @pytest.mark.asyncio
 async def test_cache_warmer_success():
     """[P0] Should load patterns from vault into cache."""
@@ -43,6 +44,7 @@ async def test_cache_warmer_success():
     assert loaded == 2
     assert mock_cache.put.call_count == 2
     mock_cache.put.assert_any_call(prompt="p1", response="r1")
+
 
 @pytest.mark.asyncio
 async def test_analyze_cache_effectiveness():

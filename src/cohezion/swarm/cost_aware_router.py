@@ -187,6 +187,94 @@ class QueryComplexityAnalyzer:
 
         return complexity
 
+    # Domain keyword sets for detect_domain
+    MATH_KEYWORDS = {
+        "derivative",
+        "integral",
+        "equation",
+        "calculus",
+        "algebra",
+        "theorem",
+        "proof",
+        "matrix",
+        "vector",
+        "polynomial",
+        "trigonometry",
+        "geometry",
+        "statistics",
+        "probability",
+        "mathematical",
+        "math",
+        "compute",
+        "calculate",
+    }
+
+    CODE_KEYWORDS = {
+        "code",
+        "function",
+        "class",
+        "module",
+        "api",
+        "debug",
+        "implement",
+        "refactor",
+        "test",
+        "compile",
+        "syntax",
+        "programming",
+        "software",
+        "python",
+        "javascript",
+        "rust",
+        "typescript",
+        "java",
+        "bug",
+        "exception",
+        "error handling",
+    }
+
+    VISION_KEYWORDS = {
+        "image",
+        "picture",
+        "photo",
+        "visual",
+        "diagram",
+        "chart",
+        "screenshot",
+        "render",
+        "pixel",
+        "color",
+        "vision",
+        "ocr",
+        "recognize",
+        "detect object",
+    }
+
+    def detect_domain(self, query: str) -> str | None:
+        """Detect the domain of a query for specialist model routing.
+
+        Args:
+            query: User query string
+
+        Returns:
+            Domain string ('math', 'code', 'vision') or None for general
+        """
+        query_lower = query.lower()
+
+        math_matches = sum(1 for kw in self.MATH_KEYWORDS if kw in query_lower)
+        code_matches = sum(1 for kw in self.CODE_KEYWORDS if kw in query_lower)
+        vision_matches = sum(1 for kw in self.VISION_KEYWORDS if kw in query_lower)
+
+        # Return the domain with the most keyword matches, or None if no matches
+        if math_matches == 0 and code_matches == 0 and vision_matches == 0:
+            return None
+
+        best = max(
+            [("math", math_matches), ("code", code_matches), ("vision", vision_matches)],
+            key=lambda x: x[1],
+        )
+        return best[0] if best[1] > 0 else None
+
     def _estimate_tokens(self, query: str) -> int:
         """Rough token estimation (1 token ≈ 4 chars).
 

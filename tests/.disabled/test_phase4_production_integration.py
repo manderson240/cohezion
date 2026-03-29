@@ -186,10 +186,10 @@ class TestPhase4CacheProductionFlow:
         await cache.put("quantum computing", "", "model", "QC response")
 
         # Query similar to first (should hit)
-        result_ml = await cache.get("deep learning")
+        await cache.get("deep learning")
 
         # Query similar to second (should hit different one or miss)
-        result_qc = await cache.get("quantum mechanics")
+        await cache.get("quantum mechanics")
 
         # Cache should have entries
         stats = cache.get_stats()
@@ -270,7 +270,7 @@ class TestPhase4EndToEndProduction:
         # Initialize all components
         pipeline = create_default_pipeline()
         cache = SemanticCache(max_entries=100)
-        session = InferenceSession("e2e-test")
+        InferenceSession("e2e-test")
         collector = get_metrics_collector()
 
         # User request
@@ -295,7 +295,7 @@ class TestPhase4EndToEndProduction:
             await cache.put(user_input, "", "model", result)
 
         # 3. Output check
-        output_check = await pipeline.check_output(result)
+        await pipeline.check_output(result)
 
         # 4. Record metrics
         collector.record_execution(tokens=50, duration_ms=100.0, model="test")

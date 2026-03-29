@@ -437,7 +437,7 @@ class TestPredictionAccuracy:
             )
             predictor.record_sample(ts)
 
-        predicted, confidence = predictor.predict_temperature_ahead(30)
+        predicted, _confidence = predictor.predict_temperature_ahead(30)
 
         # Should predict ~70°C (constant)
         assert 68.0 < predicted < 72.0
@@ -457,7 +457,7 @@ class TestPredictionAccuracy:
             )
             predictor.record_sample(ts)
 
-        predicted, confidence = predictor.predict_temperature_ahead(30)
+        predicted, _confidence = predictor.predict_temperature_ahead(30)
 
         # Should predict higher temp (30°C increase in 30 min at 1°C/min)
         # But with damping, should be less
@@ -478,7 +478,7 @@ class TestPredictionAccuracy:
             )
             predictor.record_sample(ts)
 
-        predicted, confidence = predictor.predict_temperature_ahead(30)
+        predicted, _confidence = predictor.predict_temperature_ahead(30)
 
         # Should predict high temp
         assert predicted > 87.0

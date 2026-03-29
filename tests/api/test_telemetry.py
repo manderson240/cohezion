@@ -1,4 +1,3 @@
-
 import pytest
 import torch
 from fastapi.testclient import TestClient
@@ -14,6 +13,7 @@ async def test_telemetry_websocket_connection():
         # Initial connection should be successful
         assert websocket is not None
 
+
 @pytest.mark.asyncio
 async def test_telemetry_broadcast():
     """Test that the engine can broadcast state to the websocket."""
@@ -23,11 +23,7 @@ async def test_telemetry_broadcast():
     client = TestClient(app)
     with client.websocket_connect("/telemetry") as websocket:
         # Create a dummy state
-        state = TriuneState(
-            doer=torch.ones(12),
-            thinker=torch.zeros(512),
-            knower=torch.zeros(2048)
-        )
+        state = TriuneState(doer=torch.ones(12), thinker=torch.zeros(512), knower=torch.zeros(2048))
 
         # Manually trigger a broadcast for testing
         await broadcast_state(trajectory_id="test_1", state=state, coherence=0.5)

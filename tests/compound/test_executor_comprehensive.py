@@ -174,7 +174,7 @@ class TestCompoundExecutorPlugins:
             config=ExecutionConfig(enable_analysis=True),
         )
 
-        result = executor.execute(task)
+        executor.execute(task)
 
         analyzer.assert_called_once()
 
@@ -218,7 +218,7 @@ class TestCompoundExecutorPlugins:
             config=ExecutionConfig(enable_checkpointing=True),
         )
 
-        result = executor.execute(task)
+        executor.execute(task)
 
         persister.assert_called_once()
 

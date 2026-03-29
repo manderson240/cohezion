@@ -128,9 +128,9 @@ def train(config: TrainingConfig | None = None) -> list[EpisodeResult]:
 
         # Compute discounted returns
         returns: list[float] = []
-        G = 0.0  # noqa: N806 — standard RL notation for discounted return
+        G = 0.0
         for r in reversed(rewards):
-            G = r + config.gamma * G  # noqa: N806
+            G = r + config.gamma * G
             returns.insert(0, G)
 
         returns_t = torch.FloatTensor(returns)

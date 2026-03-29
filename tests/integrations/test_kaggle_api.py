@@ -14,6 +14,7 @@ def reset_circuits():
         circuit.reset()
     yield
 
+
 @pytest.mark.asyncio
 async def test_kaggle_api_initialization():
     """Test that KaggleAPI initializes correctly with circuit breaker and pool."""
@@ -22,6 +23,7 @@ async def test_kaggle_api_initialization():
     assert api.key == "testkey"
     assert api.circuit.name == "kaggle_api"
     assert api.pool.base_url == "https://www.kaggle.com/api/v1"
+
 
 @pytest.mark.asyncio
 async def test_download_dataset_success():
@@ -33,17 +35,17 @@ async def test_download_dataset_success():
     mock_response.status_code = 200
     mock_response.content = b"fake dataset content"
 
-    with patch.object(api.pool, 'get', new_callable=AsyncMock) as mock_get:
+    with patch.object(api.pool, "get", new_callable=AsyncMock) as mock_get:
         mock_get.return_value = mock_response
 
         result = await api.download_dataset(dataset_name)
 
         assert result == b"fake dataset content"
         mock_get.assert_called_once_with(
-            f"/datasets/download/{dataset_name}",
-            auth=("testuser", "testkey")
+            f"/datasets/download/{dataset_name}", auth=("testuser", "testkey")
         )
         assert api.circuit.state == CircuitState.CLOSED
+
 
 @pytest.mark.asyncio
 async def test_download_dataset_failure_opens_circuit():
@@ -58,7 +60,7 @@ async def test_download_dataset_failure_opens_circuit():
         "404 Not Found", request=MagicMock(), response=mock_response
     )
 
-    with patch.object(api.pool, 'get', new_callable=AsyncMock) as mock_get:
+    with patch.object(api.pool, "get", new_callable=AsyncMock) as mock_get:
         mock_get.return_value = mock_response
 
         # First failure
@@ -71,6 +73,7 @@ async def test_download_dataset_failure_opens_circuit():
             await api.download_dataset(dataset_name)
         assert api.circuit.state == CircuitState.OPEN
 
+
 @pytest.mark.asyncio
 async def test_push_notebook_success():
     """Test successful notebook push."""
@@ -80,9 +83,12 @@ async def test_push_notebook_success():
 
     mock_response = MagicMock(spec=httpx.Response)
     mock_response.status_code = 200
-    mock_response.json.return_value = {"status": "ok", "url": "https://kaggle.com/test/test-notebook"}
+    mock_response.json.return_value = {
+        "status": "ok",
+        "url": "https://kaggle.com/test/test-notebook",
+    }
 
-    with patch.object(api.pool, 'post', new_callable=AsyncMock) as mock_post:
+    with patch.object(api.pool, "post", new_callable=AsyncMock) as mock_post:
         mock_post.return_value = mock_response
 
         result = await api.push_notebook(notebook_id, code)

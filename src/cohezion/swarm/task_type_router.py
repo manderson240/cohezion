@@ -10,9 +10,11 @@ import logging
 import time
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
-from cohezion.swarm.providers.model_provider import GenerationResult, ModelProvider
+
+if TYPE_CHECKING:
+    from cohezion.swarm.providers.model_provider import GenerationResult, ModelProvider
 
 
 logger = logging.getLogger(__name__)

@@ -4,14 +4,17 @@ from __future__ import annotations
 
 import functools
 import threading
-from collections.abc import Callable
-from typing import Any, TypeVar
+from typing import TYPE_CHECKING, Any, TypeVar
+
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
 
 
 T = TypeVar("T")
 
 
-def safe_singleton(func: Callable[..., T]) -> Callable[..., T]:
+def safe_singleton[T](func: Callable[..., T]) -> Callable[..., T]:
     """Decorator that wraps a factory function with double-checked locking.
 
     The decorated function creates the instance on first call and returns

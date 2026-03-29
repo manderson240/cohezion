@@ -1,13 +1,18 @@
 """Tests for JourneyTaskReader."""
+
 from __future__ import annotations
 
 import json
-from pathlib import Path
+from typing import TYPE_CHECKING
 from unittest.mock import patch
 
 import pytest
 
 from cohezion.agentjet.task_reader import JourneyTaskReader
+
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 
 def _make_jsonl_record(skill: str, phi: float, instruction: str = "do task") -> dict:

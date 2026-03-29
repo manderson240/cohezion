@@ -20,6 +20,7 @@ def mock_redis():
         mock.return_value = client
         yield client
 
+
 @pytest.mark.asyncio
 async def test_redis_cache_l0_hit(mock_redis):
     """[P0] Should hit L0 (Redis) first."""
@@ -33,6 +34,7 @@ async def test_redis_cache_l0_hit(mock_redis):
     assert result == "redis response"
     assert cache.hits_l0 == 1
     mock_redis.get.assert_called_once()
+
 
 @pytest.mark.asyncio
 async def test_redis_cache_fallback_on_miss(mock_redis):
@@ -51,6 +53,7 @@ async def test_redis_cache_fallback_on_miss(mock_redis):
     assert cache.hits_l0 == 0
     assert cache.misses_l0 == 1
 
+
 @pytest.mark.asyncio
 async def test_redis_cache_put(mock_redis):
     """[P0] Should put to both L1 and L0."""
@@ -59,9 +62,10 @@ async def test_redis_cache_put(mock_redis):
 
     # Check Redis setex called
     mock_redis.setex.assert_called_once()
-    args, kwargs = mock_redis.setex.call_args
+    args, _kwargs = mock_redis.setex.call_args
     data = json.loads(args[2])
     assert data["response"] == "response"
+
 
 def test_redis_cache_health_check(mock_redis):
     """[P0] Should return Redis health status."""

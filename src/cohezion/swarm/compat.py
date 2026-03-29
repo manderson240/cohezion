@@ -5,9 +5,8 @@ Bridges old Swarm API to new simplified implementation.
 
 from __future__ import annotations
 
-from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from cohezion.swarm.orchestrator import (
     Agent as NewAgent,
@@ -23,6 +22,10 @@ from cohezion.swarm.orchestrator import (
 from cohezion.swarm.orchestrator import (
     Task as NewTask,
 )
+
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
 
 
 # ============================================================================

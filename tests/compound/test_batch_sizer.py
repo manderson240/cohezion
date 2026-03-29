@@ -170,7 +170,7 @@ class TestPredictOptimalSize:
         batch_sizes = [16, 32, 48, 64]
         throughputs = [100.0, 150.0, 140.0, 120.0]  # Peak at batch_size=32
 
-        for size, throughput in zip(batch_sizes, throughputs):
+        for size, throughput in zip(batch_sizes, throughputs, strict=False):
             metrics = BatchExecutionMetrics(
                 batch_size=size,
                 task_count=10,
@@ -233,7 +233,7 @@ class TestGetConfidence:
     def test_confidence_after_prediction(self, predictor, sample_metrics):
         """Test confidence after prediction."""
         predictor.record_execution(sample_metrics)
-        size, conf = predictor.predict_optimal_size("analyze", 10)
+        _size, conf = predictor.predict_optimal_size("analyze", 10)
 
         assert predictor.get_confidence() == conf
 
@@ -264,7 +264,7 @@ class TestGetConfidence:
                 )
             )
 
-        size, conf = predictor.predict_optimal_size("search", 10)
+        _size, conf = predictor.predict_optimal_size("search", 10)
 
         assert 0.0 <= conf <= 1.0
         assert conf <= 0.95  # Should be capped
@@ -362,7 +362,7 @@ class TestEdgeCases:
         predictor.record_execution(metrics)
 
         # Should use most common type (analyze)
-        size, conf = predictor.predict_optimal_size("analyze", 10)
+        size, _conf = predictor.predict_optimal_size("analyze", 10)
 
         assert size == 32
 
@@ -395,7 +395,7 @@ class TestEdgeCases:
         )
         predictor.record_execution(metrics)
 
-        size, conf = predictor.predict_optimal_size("search", 10)
+        size, _conf = predictor.predict_optimal_size("search", 10)
 
         assert isinstance(size, int)
         assert size > 0

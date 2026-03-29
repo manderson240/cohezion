@@ -56,6 +56,7 @@ class TestSpatialPhononsEngine:
         assert gain_target > gain_away
         assert gain_target == engine.params.phonon_coupling
 
+
 class TestUniverseEngineIntegration:
     @pytest.mark.asyncio
     async def test_evolve_trajectory_with_phonons(self):
@@ -65,20 +66,24 @@ class TestUniverseEngineIntegration:
             id="test-j",
             agent_name="test",
             intent="test",
-            initial_axiomatic=AxiomaticState(spatial_x=1.0)
+            initial_axiomatic=AxiomaticState(spatial_x=1.0),
         )
 
         # Mock encoder to avoid actual LLM calls
         from unittest.mock import AsyncMock
+
         mock_encoder = MagicMock()
-        mock_encoder.encode = AsyncMock(return_value=[0.0]*2048)
+        mock_encoder.encode = AsyncMock(return_value=[0.0] * 2048)
         engine._fallback_encoder = mock_encoder
 
         # We need to mock cohezion_core to trigger the Python fallback if not installed
         # and also mock monitor
         with patch("cohezion.reliability.monitor.get_resource_monitor") as mock_mon:
             mock_mon.return_value.get_vitals.return_value = {
-                "cpu_percent": 10, "vram_percent": 10, "dilation_factor": 1.0, "memory_percent": 10
+                "cpu_percent": 10,
+                "vram_percent": 10,
+                "dilation_factor": 1.0,
+                "memory_percent": 10,
             }
 
             point = await engine.evolve_trajectory(journey, action="test action")
@@ -86,4 +91,4 @@ class TestUniverseEngineIntegration:
             assert point.step_number == 0
             # Confirm spatial expansion occurred (default phonon step)
             assert point.axiomatic.spatial_x > 1.0
-            assert point.coherence > 0.5 # Should have gained from alignment
+            assert point.coherence > 0.5  # Should have gained from alignment

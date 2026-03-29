@@ -241,8 +241,8 @@ aspect: prefrontal
 
 # Lever Change Decision
 
-**Rule**: `{rule_id}`  
-**Lever**: `{lever_name}`  
+**Rule**: `{rule_id}`
+**Lever**: `{lever_name}`
 **Timestamp**: {timestamp}
 
 ## Change Details
@@ -329,8 +329,8 @@ Lever adjusted for:
         try:
             # Query graph for violations linked to this rule
             sql = f"""
-                SELECT * FROM synapse 
-                WHERE out = neuron:prefrontal_{rule_id} 
+                SELECT * FROM synapse
+                WHERE out = neuron:prefrontal_{rule_id}
                 AND link_type = 'latent';
             """
             result = client.query(sql)

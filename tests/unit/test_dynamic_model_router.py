@@ -190,7 +190,7 @@ class TestDynamicModelRouter:
         )
         request = {"task_type": "coding", "context_length": 1000, "ide_priority": 2}
         score_coder = router.calculate_model_score(coder_model, request, 0.2)
-        score_generic = router.calculate_model_score(generic_model, request, 0.2)
+        router.calculate_model_score(generic_model, request, 0.2)
         # Coder model should get the coding bonus
         assert score_coder > 0
 

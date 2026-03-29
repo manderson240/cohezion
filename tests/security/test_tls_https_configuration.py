@@ -434,7 +434,7 @@ class TestSecureCookieMiddleware:
         middleware = SecureCookieMiddleware(MagicMock(), config)
         request = MagicMock()
 
-        response = await middleware.dispatch(request, mock_next)
+        await middleware.dispatch(request, mock_next)
 
         # Verify that del was called on set-cookie
         response_obj.headers.__delitem__.assert_called_with("set-cookie")

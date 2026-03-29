@@ -246,7 +246,7 @@ class TestFallbackStrategyBasics:
         breaker.record_error()
 
         # Should fallback
-        selected, degraded, cost_saved = strategy.execute_with_fallback(
+        selected, degraded, _cost_saved = strategy.execute_with_fallback(
             primary_model="deepseek-r1:8b",
             available_models=["phi3:mini", "qwen3-coder:32b", "deepseek-r1:8b"],
         )
@@ -262,7 +262,7 @@ class TestFallbackStrategyBasics:
                 strategy._get_breaker(model).record_error()
 
         # Should try phi3 next
-        selected, degraded, cost_saved = strategy.execute_with_fallback(
+        selected, degraded, _cost_saved = strategy.execute_with_fallback(
             primary_model="deepseek-r1:8b",
             available_models=["phi3:mini", "qwen3-coder:32b", "deepseek-r1:8b"],
         )
@@ -275,7 +275,7 @@ class TestFallbackStrategyBasics:
         strategy.min_quality_loss = 0.05  # Max 5% quality loss
 
         # From phi3 (0.6) to qwen (0.82) is an improvement
-        selected, degraded, cost_saved = strategy.execute_with_fallback(
+        selected, degraded, _cost_saved = strategy.execute_with_fallback(
             primary_model="phi3:mini",
             available_models=["phi3:mini", "qwen3-coder:32b"],
         )
@@ -382,7 +382,7 @@ class TestCostPreservation:
             strategy._get_breaker("expensive").record_error()
             strategy._get_breaker("expensive").record_error()
 
-            selected, degraded, cost_saved = strategy.execute_with_fallback(
+            _selected, degraded, _cost_saved = strategy.execute_with_fallback(
                 primary_model="expensive",
                 available_models=["expensive", "cheap"],
                 model_costs=model_costs,
@@ -464,7 +464,7 @@ class TestFallbackChains:
             breaker.record_error()
 
         # Should still return something
-        selected, degraded, cost_saved = strategy.execute_with_fallback(
+        selected, degraded, _cost_saved = strategy.execute_with_fallback(
             primary_model="deepseek-r1:8b",
             available_models=["phi3:mini", "qwen3-coder:32b", "deepseek-r1:8b"],
         )
@@ -668,7 +668,7 @@ class TestEdgeCases:
                 breaker.record_error()
 
         # Should still select one
-        selected, degraded, cost_saved = strategy.execute_with_fallback(
+        selected, degraded, _cost_saved = strategy.execute_with_fallback(
             primary_model="deepseek-r1:8b",
             available_models=["phi3:mini", "qwen3-coder:32b", "deepseek-r1:8b"],
         )
@@ -680,7 +680,7 @@ class TestEdgeCases:
         """Test with only single model available."""
         strategy = FallbackStrategy()
 
-        selected, degraded, cost_saved = strategy.execute_with_fallback(
+        selected, degraded, _cost_saved = strategy.execute_with_fallback(
             primary_model="deepseek-r1:8b",
             available_models=["deepseek-r1:8b"],
         )
@@ -692,7 +692,7 @@ class TestEdgeCases:
         """Test when primary not in available models."""
         strategy = FallbackStrategy()
 
-        selected, degraded, cost_saved = strategy.execute_with_fallback(
+        selected, degraded, _cost_saved = strategy.execute_with_fallback(
             primary_model="deepseek-r1:8b",
             available_models=["phi3:mini", "qwen3-coder:32b"],
         )
@@ -706,7 +706,7 @@ class TestEdgeCases:
         """Test with empty available models (edge case)."""
         strategy = FallbackStrategy()
 
-        selected, degraded, cost_saved = strategy.execute_with_fallback(
+        selected, degraded, _cost_saved = strategy.execute_with_fallback(
             primary_model="deepseek-r1:8b",
             available_models=[],
         )
@@ -732,7 +732,7 @@ class TestEdgeCases:
         breaker.record_error()
         breaker.record_error()
 
-        selected, degraded, cost_saved = strategy.execute_with_fallback(
+        _selected, degraded, _cost_saved = strategy.execute_with_fallback(
             primary_model="primary",
             available_models=["primary", "fallback"],
             quality_scores=quality_scores,
@@ -755,7 +755,7 @@ class TestEdgeCases:
 
         results = []
         for primary, available in requests:
-            selected, degraded, cost_saved = strategy.execute_with_fallback(
+            selected, degraded, _cost_saved = strategy.execute_with_fallback(
                 primary_model=primary,
                 available_models=available,
             )

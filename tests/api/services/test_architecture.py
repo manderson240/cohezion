@@ -24,6 +24,7 @@ def test_scan_packages():
     assert "compound" in node_ids
     assert "swarm" in node_ids
 
+
 @pytest.mark.asyncio
 async def test_get_architecture_graph():
     """[P0] Should return architecture graph."""

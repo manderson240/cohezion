@@ -6,12 +6,16 @@ import asyncio
 import shutil
 import subprocess
 import uuid
-from collections.abc import Generator
 from pathlib import Path
-from types import ModuleType
+from typing import TYPE_CHECKING
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
+
+
+if TYPE_CHECKING:
+    from collections.abc import Generator
+    from types import ModuleType
 
 
 @pytest.fixture
@@ -59,12 +63,15 @@ def git_repo(tmp_path: Path) -> Path:
 
     Returns the repo root path.
     """
-    _run = lambda cmd: subprocess.run(
-        cmd,
-        cwd=tmp_path,
-        capture_output=True,
-        check=True,
-    )
+
+    def _run(cmd):
+        return subprocess.run(
+            cmd,
+            cwd=tmp_path,
+            capture_output=True,
+            check=True,
+        )
+
     _run(["git", "init"])
     _run(["git", "config", "user.email", "test@cohezion.dev"])
     _run(["git", "config", "user.name", "Test User"])
@@ -77,7 +84,7 @@ def git_repo(tmp_path: Path) -> Path:
 
 
 @pytest.fixture
-def data_temp_dir() -> Generator[Path, None, None]:
+def data_temp_dir() -> Generator[Path]:
     """Create temporary directory under data/ for security compliance.
 
     ResearchConfig requires paths within data/ directory (Issue #12).

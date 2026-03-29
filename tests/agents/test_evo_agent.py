@@ -19,6 +19,7 @@ def mock_config():
     mock.semantic_cache_threshold = 0.9
     return mock
 
+
 @pytest.mark.asyncio
 async def test_evo_agent_initialization(mock_config):
     """Test that EVOAgent initializes with all required subsystems."""
@@ -31,11 +32,12 @@ async def test_evo_agent_initialization(mock_config):
                     model_name="test-model",
                     config=mock_config,
                     surreal_logger=mock_surreal,
-                    obsidian_mcp=mock_obsidian
+                    obsidian_mcp=mock_obsidian,
                 )
                 assert agent.model_name == "test-model"
                 assert agent._surreal_logger == mock_surreal
                 assert agent._obsidian_mcp == mock_obsidian
+
 
 @pytest.mark.asyncio
 async def test_evo_agent_act_cycle(mock_config):
@@ -50,7 +52,7 @@ async def test_evo_agent_act_cycle(mock_config):
                     model_name="test-model",
                     config=mock_config,
                     surreal_logger=mock_surreal,
-                    obsidian_mcp=mock_obsidian
+                    obsidian_mcp=mock_obsidian,
                 )
 
                 agent._triune_engine = AsyncMock()
@@ -74,6 +76,6 @@ async def test_evo_agent_act_cycle(mock_config):
 
                 # Verify engine was stepped
                 agent._triune_engine.step.assert_called_once()
-                args, kwargs = agent._triune_engine.step.call_args
+                _args, kwargs = agent._triune_engine.step.call_args
                 assert kwargs["trajectory_id"] == "traj_1"
                 assert isinstance(kwargs["environment"], torch.Tensor)

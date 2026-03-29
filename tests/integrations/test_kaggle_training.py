@@ -15,13 +15,17 @@ def test_generate_lora_config():
     assert "x_proj" in config["target_modules"]
     assert config["peft_type"] == "LORA"
 
+
 def test_generate_adapter_config():
     """Test generating adapter_config.json."""
     manager = KaggleTrainingManager()
-    adapter_config = manager.generate_adapter_config(base_model_name="nvidia/Nemotron-3-Nano-30B-A3B")
+    adapter_config = manager.generate_adapter_config(
+        base_model_name="nvidia/Nemotron-3-Nano-30B-A3B"
+    )
 
     assert adapter_config["base_model_name_or_path"] == "nvidia/Nemotron-3-Nano-30B-A3B"
     assert "peft_type" in adapter_config
+
 
 @pytest.mark.asyncio
 async def test_prepare_kaggle_notebook(tmp_path):
@@ -29,10 +33,7 @@ async def test_prepare_kaggle_notebook(tmp_path):
     manager = KaggleTrainingManager()
     output_path = tmp_path / "training_notebook.ipynb"
 
-    await manager.prepare_notebook(
-        code="print('training...')",
-        output_path=output_path
-    )
+    await manager.prepare_notebook(code="print('training...')", output_path=output_path)
 
     assert output_path.exists()
     with open(output_path) as f:

@@ -19,6 +19,7 @@ def test_output_filter_clean():
     assert result.result == FilterResult.CLEAN
     assert result.content == "The weather is nice today."
 
+
 def test_output_filter_pii_redaction():
     """[P0] Should redact common PII."""
     filter_engine = OutputFilter(redact_pii=True)
@@ -30,6 +31,7 @@ def test_output_filter_pii_redaction():
     assert "[REDACTED_PHONE]" in result.content
     assert "email:1" in result.redactions
 
+
 def test_output_filter_toxic_block():
     """[P0] Should block toxic content."""
     filter_engine = OutputFilter(block_toxic=True)
@@ -39,6 +41,7 @@ def test_output_filter_toxic_block():
     assert result.result == FilterResult.TOXIC_DETECTED
     assert "[Content blocked" in result.content
 
+
 def test_insight_packet_generator():
     """[P0] Should generate anonymous insight packets."""
     gen = InsightPacketGenerator()
@@ -47,6 +50,6 @@ def test_insight_packet_generator():
 
     assert "packet_id" in packet
     assert len(packet["trajectory"]) == 12
-    assert "Nexus" in text # Input text had it
+    assert "Nexus" in text  # Input text had it
     # Result packet should not contain the raw sensitive string
     assert packet.get("content") is None

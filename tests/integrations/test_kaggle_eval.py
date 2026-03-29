@@ -12,11 +12,13 @@ def test_extract_boxed_answer_success():
     text_multiple = "Step 1: \\boxed{10}. Final answer: \\boxed{100}."
     assert evaluator.extract_answer(text_multiple) == "100"
 
+
 def test_extract_boxed_answer_none():
     """Test when no \boxed{} is present."""
     evaluator = KaggleEvaluator()
     text = "The answer is 42."
     assert evaluator.extract_answer(text) is None
+
 
 def test_score_answers():
     """Test accuracy scoring logic."""
@@ -28,6 +30,7 @@ def test_score_answers():
     assert metrics["accuracy"] == pytest.approx(0.666, 0.01)
     assert metrics["correct"] == 2
     assert metrics["total"] == 3
+
 
 def test_extract_complex_boxed():
     """Test extracting complex content from \boxed{}."""

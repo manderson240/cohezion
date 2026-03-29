@@ -29,6 +29,7 @@ class TestTaskSpec:
     def spec_cls(self):
         try:
             from cohezion.rl.task_generator import TaskSpec
+
             return TaskSpec
         except ImportError:
             pytest.skip("TaskGenerator not yet implemented")
@@ -93,6 +94,7 @@ class TestTaskGenerator:
     def gen_cls(self):
         try:
             from cohezion.rl.task_generator import TaskGenerator
+
             return TaskGenerator
         except ImportError:
             pytest.skip("TaskGenerator not yet implemented")
@@ -101,6 +103,7 @@ class TestTaskGenerator:
     def spec_cls(self):
         try:
             from cohezion.rl.task_generator import TaskSpec
+
             return TaskSpec
         except ImportError:
             pytest.skip("TaskGenerator not yet implemented")
@@ -219,6 +222,7 @@ class TestTaskArchetypes:
     def gen_cls(self):
         try:
             from cohezion.rl.task_generator import TaskGenerator
+
             return TaskGenerator
         except ImportError:
             pytest.skip("TaskGenerator not yet implemented")
@@ -247,8 +251,10 @@ class TestTaskArchetypes:
     def test_exotic_charge_tolerance_difficulty_scales_charge(self, gen_cls):
         """Exotic charge tolerance: higher difficulty = higher charge amplitude."""
         gen = gen_cls()
-        amps = [gen.generate("exotic_charge_tolerance", difficulty=d).exotic_charge_amplitude
-                for d in range(1, 5)]
+        amps = [
+            gen.generate("exotic_charge_tolerance", difficulty=d).exotic_charge_amplitude
+            for d in range(1, 5)
+        ]
         assert amps[3] >= amps[0]
 
     def test_kordylewski_orbit_has_l4_or_l5_cloud(self, gen_cls):

@@ -105,15 +105,73 @@ select = [
 ]
 
 ignore = [
-    # Add specific rules to ignore here if needed after initial run
+    # --- Style / formatting (not worth manual fixes) ---
+    "E501",    # line-too-long (244 instances; line-length=100 handles most)
+    "E402",    # module-import-not-at-top (12; often intentional conditional imports)
+    "E741",    # ambiguous-variable-name (1; context-dependent)
+
+    # --- Naming conventions (project uses non-PEP8 names intentionally) ---
+    "N806",    # non-lowercase-variable-in-function (18; matrix vars, constants)
+    "N812",    # lowercase-imported-as-non-lowercase (4)
+    "N814",    # camelcase-imported-as-constant (2)
+    "N815",    # mixed-case-variable-in-class-scope (1)
+
+    # --- Security: needs human audit (S-rules suppressed, not deleted) ---
+    "S102",    # exec-builtin (2)
+    "S104",    # hardcoded-bind-all-interfaces (42; 0.0.0.0 in dev servers)
+    "S107",    # hardcoded-password-default (4)
+    "S108",    # hardcoded-temp-file (17)
+    "S110",    # try-except-pass (19)
+    "S112",    # try-except-continue (8)
+    "S311",    # suspicious-non-cryptographic-random-usage (55)
+    "S324",    # hashlib-insecure-hash-function (1)
+    "S602",    # subprocess-popen-with-shell-equals-true (2)
+    "S603",    # subprocess-without-shell-equals-true (68)
+    "S606",    # start-process-with-no-shell (1)
+    "S607",    # start-process-with-partial-path (95)
+    "S608",    # hardcoded-sql-expression (25)
+    "S101",    # assert (1; used for runtime validation in rl_framework)
+
+    # --- Bugbear / simplify (low-risk, not blocking) ---
+    "B007",    # unused-loop-control-variable (4)
+    "B008",    # function-call-in-default-argument (1)
+    "B904",    # raise-without-from-inside-except (14; nice-to-have)
+    "A001",    # builtin-variable-shadowing (1)
+    "A002",    # builtin-argument-shadowing (10; e.g., type, id params)
+    "SIM102",  # collapsible-if (23; style preference)
+    "SIM103",  # needless-bool (4)
+    "SIM105",  # suppressible-exception (3)
+    "SIM108",  # if-else-block-instead-of-if-exp (5)
+    "SIM115",  # open-file-with-context-handler (5)
+    "SIM116",  # if-else-block-instead-of-dict-lookup (2)
+    "SIM117",  # multiple-with-statements (6)
+
+    # --- Type-checking imports (unsafe-fixes break Pydantic/dataclass/mock patterns) ---
+    "TC001",   # typing-only-first-party-import (unsafe-fix moves runtime-needed imports)
+    "TC003",   # typing-only-standard-library-import (Path used in Pydantic/dataclass at runtime)
+
+    # --- Ruff-specific (project conventions) ---
+    "RUF001",  # ambiguous-unicode-character-string (1)
+    "RUF002",  # ambiguous-unicode-character-docstring (40; em-dashes, arrows)
+    "RUF003",  # ambiguous-unicode-character-comment (45; em-dashes, arrows)
+    "RUF006",  # asyncio-dangling-task (13; intentional fire-and-forget)
+    "RUF012",  # mutable-class-default (88; Pydantic/dataclass fields)
+    "RUF034",  # useless-if-else (2)
 ]
 
 # Per-file customization
 [tool.ruff.lint.per-file-ignores]
 "tests/**/*.py" = [
-    "S101",  # Allow assert in tests
-    "S105",  # Allow hardcoded passwords in tests
-    "S106",  # Allow hardcoded passwords in tests
+    "S101",   # Allow assert in tests
+    "S105",   # Allow hardcoded passwords in tests
+    "S106",   # Allow hardcoded passwords in tests
+    "S113",   # request-without-timeout (2; test mocks)
+    "B017",   # assert-raises-exception (8; broad exception catches in tests)
+    "B018",   # useless-expression (2; test assertions)
+    "B023",   # function-uses-loop-variable (3; test parametrization)
+    "F401",   # unused-import (2; test fixtures)
+    "RUF043", # pytest-raises-ambiguous-pattern (4)
+    "RUF059", # unused-unpacked-variable (4; tuple unpacking in tests)
 ]
 # Import sorting configuration
 [tool.ruff.lint.isort]

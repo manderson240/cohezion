@@ -2,11 +2,16 @@
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 import numpy as np
-import pytest
 
 from cohezion.rl.reward_shaping import CompositeReward, HamiltonianReward
 from cohezion.rl.trainer import EpisodeResult, TrainingConfig, train
+
+
+if TYPE_CHECKING:
+    import pytest
 
 
 class TestHamiltonianReward:
@@ -133,7 +138,7 @@ class TestTrainingRuns:
         """Trained policy should achieve higher coherence than random actions."""
         import gymnasium as gym
 
-        import cohezion.rl.environment  # noqa: F401
+        import cohezion.rl.environment
 
         # Train for 50 episodes
         config = TrainingConfig(
@@ -157,7 +162,7 @@ class TestTrainingRuns:
             ep_coherences = []
             for _ in range(100):
                 action = env.action_space.sample()
-                obs, _, terminated, truncated, info = env.step(action)
+                _obs, _, terminated, truncated, info = env.step(action)
                 ep_coherences.append(info["coherence"])
                 if terminated or truncated:
                     break

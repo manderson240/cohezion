@@ -20,12 +20,15 @@ import logging
 import os
 import re
 from datetime import datetime
-from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from aiohttp import web
 
 from .scanner import SecurityChecklist, Vulnerability, build_severity_report
+
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 
 logging.basicConfig(
