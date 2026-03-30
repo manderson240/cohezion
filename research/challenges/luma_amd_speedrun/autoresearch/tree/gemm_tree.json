@@ -10,14 +10,60 @@
         "note": "Official template-hip.py at gpu-mode/reference-kernels proves load_inline WORKS!"
       },
       "parent_id": null,
-      "priority": 0.99,
-      "attempts": 0,
-      "best_result_us": null,
+      "priority": 0.95,
+      "attempts": 5,
+      "best_result_us": 150.55,
       "stagnation_count": 0,
       "status": "active",
       "children": [],
       "notes": "BREAKTHROUGH: load_inline custom HIP kernel works on Popcorn runners!",
-      "attempt_history": []
+      "attempt_history": [
+        {
+          "result_us": 184.2029684199879,
+          "parameters": {
+            "approach": "load_inline_hip",
+            "note": "Official template-hip.py at gpu-mode/reference-kernels proves load_inline WORKS!"
+          },
+          "timestamp": "2026-03-30T19:17:37.113110",
+          "source": "template"
+        },
+        {
+          "result_us": 193.8379914349776,
+          "parameters": {
+            "approach": "load_inline_hip",
+            "note": "Official template-hip.py at gpu-mode/reference-kernels proves load_inline WORKS!"
+          },
+          "timestamp": "2026-03-30T19:17:43.464983",
+          "source": "template"
+        },
+        {
+          "result_us": 204.97511771918602,
+          "parameters": {
+            "approach": "load_inline_hip",
+            "note": "Official template-hip.py at gpu-mode/reference-kernels proves load_inline WORKS!"
+          },
+          "timestamp": "2026-03-30T19:17:49.726644",
+          "source": "template"
+        },
+        {
+          "result_us": 158.03207104306074,
+          "parameters": {
+            "approach": "load_inline_hip",
+            "note": "Official template-hip.py at gpu-mode/reference-kernels proves load_inline WORKS!"
+          },
+          "timestamp": "2026-03-30T19:17:59.067369",
+          "source": "template"
+        },
+        {
+          "result_us": 150.54855531663029,
+          "parameters": {
+            "approach": "load_inline_hip",
+            "note": "Official template-hip.py at gpu-mode/reference-kernels proves load_inline WORKS!"
+          },
+          "timestamp": "2026-03-30T19:18:05.277987",
+          "source": "template"
+        }
+      ]
     },
     "gemm_loadinline_simple": {
       "id": "gemm_loadinline_simple",
@@ -27,7 +73,7 @@
         "note": "Based on official template-hip.py simple pattern"
       },
       "parent_id": "gemm_loadinline_root",
-      "priority": 0.95,
+      "priority": 0.9025,
       "attempts": 0,
       "best_result_us": null,
       "stagnation_count": 0,
@@ -44,7 +90,7 @@
         "note": "From arxiv 2506.20807 GPU Kernel Scientist paper"
       },
       "parent_id": "gemm_loadinline_root",
-      "priority": 0.9,
+      "priority": 0.855,
       "attempts": 0,
       "best_result_us": null,
       "stagnation_count": 0,

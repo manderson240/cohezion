@@ -10,6 +10,8 @@ The autoresearch loop reads this before each LLM call.
 
 This is how rank 1 achieves 1µs on GEMM - NOT using Python API at all!
 
+### Official Template Pattern (gpu-mode/reference-kernels)
+
 ```python
 from torch.utils.cpp_extension import load_inline
 
@@ -26,16 +28,31 @@ module = load_inline(
 
 1. **Block-wise GEMM with lifted scales**: Scales OUTSIDE inner loop
 2. **Pre-allocated output**: Write directly to `c` parameter
-3. **Native HIP types**: `__hip_fp8_e4m3_fnuz*`, `__hip_bfloat16*`
-4. **MFMA instructions**: AMD native INT8/FP8 matrix multiply
+3. **Native HIP types**: `__hip_fp8_e4m3_fnuz`, `__hip_bfloat16`
+4. **Simple grid**: `dim3(16, 16)` blocks work well
+
+### FP4 e2m1 Format Values
+
+From aiter fp4_utils.py:
+```python
+mxfp4_list = [0.0, 0.5, 1.0, 1.5, 2.0, 3.0, 4.0, 6.0,  # positive
+               -0.0, -0.5, -1.0, -1.5, -2.0, -3.0, -4.0, -6.0]  # negative
+```
+
+### E8M0 Scale Format
+
+```python
+def e8m0_to_f32(e8m0):
+    if e8m0 == 0: return 0.0f
+    return exp2f((float)(e8m0 - 127))
+```
 
 ## Current Focus (LLM MUST FOLLOW)
 
 - **GEMM** (HIGHEST PRIORITY): `load_inline` custom HIP kernel
   - Target: 1-5µs (rank 1 is 1.000µs!)
   - **CRITICAL**: You MUST use `from torch.utils.cpp_extension import load_inline`
-  - **CRITICAL**: Template pattern at `gpu-mode/reference-kernels/blob/main/problems/amd/fp8-mm/template-hip.py`
-  - Use block-wise GEMM with scales LIFTED outside inner loop
+  - **CRITICAL**: Use block-wise GEMM with scales LIFTED outside inner loop
   - Pre-allocate output tensor, write directly to `c` parameter
   - Use native HIP types: `__hip_fp8_e4m3_fnuz`, `__hip_bfloat16`
   - **DO NOT** use aiter Python API for GEMM - it has 26µs overhead!
