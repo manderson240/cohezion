@@ -110,23 +110,9 @@ export function useCosmogony(): CosmogonyControls {
   const [loading, setLoading] = useState(false);
   const prevSymmetryRef = useRef<string>("");
 
-  const setTemperature = useCallback(async (t: number) => {
-    try {
-      const resp = await fetch(`${API_BASE}/api/genesis/cosmogony/set-temperature`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ temperature: t }),
-      });
-      if (resp.ok) {
-        const data = await resp.json();
-        setState(data);
-      } else {
-        setState(computeLocalCosmogony(t));
-      }
-    } catch {
-      // Offline — run Landau math locally
-      setState(computeLocalCosmogony(t));
-    }
+  const setTemperature = useCallback((t: number) => {
+    // Local Landau math — no API needed
+    setState(computeLocalCosmogony(t));
   }, []);
 
   const cool = useCallback(async (dt: number) => {
