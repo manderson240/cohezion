@@ -35,6 +35,12 @@
       "transcript": "/a3/1746434750/2/full.jsonl",
       "content_hash": "/a3/1746434750/2/content_hash.txt",
       "prompt": "/a3/1746434750/2/prompt.txt"
+    },
+    {
+      "metadata": "/a3/1746434750/3/metadata.json",
+      "transcript": "/a3/1746434750/3/full.jsonl",
+      "content_hash": "/a3/1746434750/3/content_hash.txt",
+      "prompt": "/a3/1746434750/3/prompt.txt"
     }
   ],
   "token_usage": {
