@@ -37,6 +37,7 @@ export function useNarration(): NarrationControls {
   const [currentText, setCurrentText] = useState<string | null>(null);
   const [ttsAvailable, setTtsAvailable] = useState<boolean | null>(null);
   const [muted, setMuted] = useState(false);
+  const ttsTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const queueRef = useRef<string[]>([]);
 
@@ -69,9 +70,9 @@ export function useNarration(): NarrationControls {
           setPlaying(false);
         });
       } else {
-        // Text-only mode: show for 3 seconds per sentence
+        // Text-only mode: scale duration with text length for cinematic pacing
         setPlaying(true);
-        const duration = Math.max(3000, result.text.length * 50);
+        const duration = Math.max(4000, result.text.length * 80);
         setTimeout(() => {
           setPlaying(false);
           setCurrentText(null);
@@ -93,24 +94,56 @@ export function useNarration(): NarrationControls {
           await playAudio(result);
         }
       } catch {
-        // Offline fallback: display stage text
+        // Offline fallback: cinematic stage narrations
         const fallbackTexts: Record<string, string> = {
-          void: "In the beginning, there was nothing.",
-          "SO(12)": "Symmetry crystallized. Twelve dimensions.",
-          "SO(3)^4": "The fabrics separated.",
-          "U(1)^4": "Preferred directions emerged.",
-          "Z_2^4": "The discrete choice. Up or down.",
-          HIHO: "At the still point, the dance began.",
+          void: "In the beginning, there was nothing. Not even nothing.",
+          "SO(12)": "From the void, symmetry crystallizes. Twelve dimensions, indistinguishable. The first structure emerges.",
+          "SO(3)^4": "The fabrics separate. Space, Field, Control, Precipitation \u2014 four forces, four directions.",
+          "U(1)^4": "Each fabric finds its axis. Preferred directions emerge from perfect isotropy.",
+          "Z_2^4": "The discrete choice. Up or down. Rotation or precession. Brahmagupta\u2019s zero demands a decision.",
+          HIHO: "At the still point of the turning world. Half-In, Half-Out. The equilibrium where coherence lives.",
         };
-        setCurrentText(fallbackTexts[stage] ?? stage);
+        const text = fallbackTexts[stage] ?? stage;
+        setCurrentText(text);
         setPlaying(true);
-        setTimeout(() => {
+        const duration = Math.max(4000, text.length * 80);
+
+        // Browser Speech Synthesis TTS fallback
+        if (!muted && typeof window !== "undefined" && window.speechSynthesis) {
+          // Cancel any in-progress speech
+          window.speechSynthesis.cancel();
+          const utterance = new SpeechSynthesisUtterance(text);
+          utterance.rate = 0.85;
+          utterance.pitch = 0.9;
+          const voices = window.speechSynthesis.getVoices();
+          const preferred = voices.find(
+            (v) =>
+              v.name.includes("Daniel") ||
+              v.name.includes("Google UK English Male") ||
+              v.lang === "en-GB"
+          );
+          if (preferred) utterance.voice = preferred;
+          utterance.onend = () => {
+            setPlaying(false);
+            setCurrentText(null);
+            // Clear the text timer since speech ended naturally
+            if (ttsTimerRef.current) {
+              clearTimeout(ttsTimerRef.current);
+              ttsTimerRef.current = null;
+            }
+          };
+          window.speechSynthesis.speak(utterance);
+        }
+
+        // Text display timer (also serves as fallback if TTS is unavailable)
+        ttsTimerRef.current = setTimeout(() => {
           setPlaying(false);
           setCurrentText(null);
-        }, 4000);
+          ttsTimerRef.current = null;
+        }, duration);
       }
     },
-    [playAudio, ttsAvailable]
+    [playAudio, ttsAvailable, muted]
   );
 
   const narrateConcept = useCallback(
@@ -161,6 +194,14 @@ export function useNarration(): NarrationControls {
     if (audioRef.current) {
       audioRef.current.pause();
       audioRef.current = null;
+    }
+    // Cancel browser TTS if active
+    if (typeof window !== "undefined" && window.speechSynthesis) {
+      window.speechSynthesis.cancel();
+    }
+    if (ttsTimerRef.current) {
+      clearTimeout(ttsTimerRef.current);
+      ttsTimerRef.current = null;
     }
     queueRef.current = [];
     setPlaying(false);

@@ -184,14 +184,7 @@ export default function GenesisPage() {
         </div>
       </header>
 
-      {/* Narration bar */}
-      {narration.currentText && (
-        <div className="bg-black/80 border-b border-cyan-800/30 px-6 py-2 text-center">
-          <p className="text-sm text-cyan-300 font-mono italic">
-            &quot;{narration.currentText}&quot;
-          </p>
-        </div>
-      )}
+      {/* Cinematic narration overlay — removed from header, now rendered over the 3D scene below */}
 
       {/* Tab navigation */}
       <nav className="border-b border-gray-800 px-6">
@@ -218,17 +211,50 @@ export default function GenesisPage() {
       {/* Content */}
       <main className="p-6 max-w-[1920px] mx-auto">
         {tab === "cosmogony" && (
-          <div className="grid grid-cols-1 lg:grid-cols-[1fr_280px] gap-6">
-            <GenesisScene
-              onVoidStart={handleVoidStart}
-              onExplosion={handleExplosion}
-              onFabricSplit={handleFabricSplit}
-              onSettle={handleSettle}
-            />
-            <CosmogonyTimeline
-              currentStage={cosmogony.state?.stage ?? -1}
-              currentTemperature={cosmogony.state?.temperature ?? 200}
-            />
+          <div className="relative">
+            <div className="grid grid-cols-1 lg:grid-cols-[1fr_280px] gap-6">
+              <GenesisScene
+                onVoidStart={handleVoidStart}
+                onExplosion={handleExplosion}
+                onFabricSplit={handleFabricSplit}
+                onSettle={handleSettle}
+              />
+              <CosmogonyTimeline
+                currentStage={cosmogony.state?.stage ?? -1}
+                currentTemperature={cosmogony.state?.temperature ?? 200}
+              />
+            </div>
+
+            {/* Cinematic narration overlay — positioned over the 3D scene */}
+            {narration.currentText && (
+              <div
+                className="absolute left-0 right-0 flex justify-center pointer-events-none"
+                style={{ bottom: "12%", zIndex: 20 }}
+              >
+                <div
+                  className="narration-overlay max-w-[600px] px-[30px] py-[20px] rounded-lg text-center"
+                  style={{
+                    background: "rgba(0, 0, 0, 0.4)",
+                    backdropFilter: "blur(8px)",
+                    WebkitBackdropFilter: "blur(8px)",
+                    animation: "narrationFadeIn 0.5s ease-out",
+                  }}
+                >
+                  <p
+                    className="font-mono italic"
+                    style={{
+                      fontSize: "clamp(16px, 2vw, 20px)",
+                      letterSpacing: "0.05em",
+                      color: "rgba(255, 255, 255, 0.85)",
+                      textShadow: "0 0 12px rgba(0, 200, 255, 0.3), 0 0 4px rgba(0, 200, 255, 0.15)",
+                      lineHeight: 1.6,
+                    }}
+                  >
+                    &ldquo;{narration.currentText}&rdquo;
+                  </p>
+                </div>
+              </div>
+            )}
           </div>
         )}
         {tab === "bloch" && <BlochSphere />}
