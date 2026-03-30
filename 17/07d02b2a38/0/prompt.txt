@@ -546,3 +546,87 @@ Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderso
 ---
 
 But are they truly transformational and live up to the user experience we are striving for?
+
+---
+
+<task-notification>
+<task-id>a5d0212dc4d06f284</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/2df918cc-6005-460f-87c8-deecfc331194/tasks/a5d0212dc4d06f284.output</output-file>
+<status>completed</status>
+<summary>Agent "Cinematic Genesis cosmogony overhaul" completed</summary>
+<result>The page loads successfully with HTTP 200.
+
+Here is a summary of all changes made:
+
+---
+
+## Summary
+
+### Files Created
+
+**`/home/mike-anderson/dev/cohezion/src/web/anima_dashboard/src/components/genesis/ExplosionParticles.tsx`**
+- New component using `InstancedMesh` with 500 particles (`SphereGeometry`, radius 0.015 via scale)
+- Phase-driven animation: `idle` -> `exploding` -> `differentiating` -> `settling` -> `final`
+- Explosion: random velocity vectors (magnitude 3-8), 0.97 damping per frame, HIHO attractor pulling toward radius 2.0 shell
+- Differentiation: particles split into 4 fabric groups pulling toward their fabric centers (Space: [3,0,0], Field: [-2,2,0], Control: [0,-2,2], Precipitation: [-1,-1,-3])
+- Settling: orbital motion around fabric centers with tangential force
+- Color transitions: white -> gold (2s) -> fabric-specific color (3s)
+- Per-particle size variation (0.01-0.02)
+- All animation via `useFrame`, positions stored in `Float32Array` for performance
+
+### Files Modified
+
+**`/home/mike-anderson/dev/cohezion/src/web/anima_dashboard/src/components/genesis/GenesisScene.tsx`** (complete rewrite)
+
+*Part 1 - The Void:*
+- `VoidSphere`: barely visible pulsing sphere (scale 0.003-0.012), MeshBasicMaterial white, pointer cursor on hover
+- `VoidDust`: 100 dust particles via InstancedMesh (scale 0.002, opacity 0.08) drifting randomly within radius 5
+- `VoidQuote`: Html overlay with pulsing opacity (0.3-0.6), monospace, color #444
+- Stars hidden during void phase. OrbitControls disabled
+- Sidebar panels (Cosmogony, Equation) hidden until after settling
+
+*Part 2 - The Explosion:*
+- `CameraShake`: camera position noise for 0.5s (amplitude 0.05, frequency 20Hz)
+- Dynamic bloom: surges from 0.6 to 3.0 on click, eases back to 1.0 over 2s, settles to 0.8
+- `ChromaticAberration`: offset 0.003 during explosion, fades to 0 over 2s
+- `Vignette`: always on (offset 0.3, darkness 0.7)
+- Stars fade in after 1 second (0 to full opacity over 1s)
+
+*Part 3 - Fabric Differentiation:*
+- `FiberStrand`: Line components from center to each fabric center with catenary sag curves
+- Fiber brightness ramps from 0 at 3s to 1.0 at 10s
+
+*Part 4 - Settling:*
+- `FabricFragment`: dodecahedrons scale up from 0 to 1 (seconds 5-8) at fabric centers
+- `MiniBlochSphere`: wireframe spheres at fabric centers (scale 0 to 0.3, seconds 6-9)
+- `HIHOTorus`: golden torus at origin scales from 0 to 1 (seconds 6-9)
+- `CameraPullback`: camera.position.z lerps from 5 to 8 (seconds 5-10)
+- Temperature slider + sidebar panels fade in (seconds 8-10)
+- Bloom settles to 0.8
+
+*Architecture:*
+- New `GenesisSceneProps` interface with callbacks: `onVoidStart`, `onExplosion`, `onFabricSplit`, `onSettle`
+- All existing Landau math, cosmogony state management, API fallback, equation panel integration preserved unchanged
+- The `requestAnimationFrame` cooling loop preserved; now also tracks `animElapsed` for phase coordination
+
+**`/home/mike-anderson/dev/cohezion/src/web/anima_dashboard/src/hooks/useSonification.ts`**
+
+Added 4 new cinematic methods (backward compatible -- all existing API unchanged):
+- `startVoidDrone()`: quiet sine wave at C2, -40dB, starts on page load
+- `triggerExplosion()`: MembraneSynth C1 hit + sawtooth sweep C2->C4 over 2s, fades void drone
+- `startFabricChord()`: 4 triangle oscillators starting at unison E3, spreading to Em7 (E3, G3, B3, D4) over 2s
+- `settleToSustainedPad()`: lowers fabric chord volume, increases reverb wet, gentle tremolo
+
+**`/home/mike-anderson/dev/cohezion/src/web/anima_dashboard/src/app/genesis/page.tsx`**
+
+- Added 4 callback handlers wiring sonification cinematic methods to GenesisScene props
+- Passes `onVoidStart`, `onExplosion`, `onFabricSplit`, `onSettle` to the dynamically-imported GenesisScene
+
+### Build & Deploy
+
+- `npm run build` passes cleanly (TypeScript check, static generation, all 7 routes)
+- `cohezion-genesis` service restarted and serving on port 3000, HTTP 200 on `/genesis`</result>
+<usage><total_tokens>112604</total_tokens><tool_uses>47</tool_uses><duration_ms>447773</duration_ms></usage>
+</task-notification>
+Full transcript available at: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/2df918cc-6005-460f-87c8-deecfc331194/tasks/a5d0212dc4d06f284.output
