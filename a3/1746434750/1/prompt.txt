@@ -474,3 +474,60 @@ Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderso
 ---
 
 What about the other pages?
+
+---
+
+<task-notification>
+<task-id>a9ae0af54721955f6</task-id>
+<tool-use-id>toolu_018pgbTp5mV1AxSpHHWKwUxJ</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/2df918cc-6005-460f-87c8-deecfc331194/tasks/a9ae0af54721955f6.output</output-file>
+<status>completed</status>
+<summary>Agent "Fix all Genesis page issues" completed</summary>
+<result>All 5 fixes are applied, the build succeeds, and the service is running. Here is a summary of what was done:
+
+---
+
+## Fix 1: Portfolio page links
+**File:** `/home/mike-anderson/dev/cohezion/src/web/anima_dashboard/src/app/portfolio/page.tsx`
+- Changed 2 GitHub URLs from `mike-anderson/cohezion` to `manderson240/cohezion` (nav header + footer)
+- Changed email from `contact@cohezion.dev` to `manderson240@gmail.com`
+- Changed LinkedIn URL from `linkedin.com/in/mike-anderson-cohezion` to `linkedin.com/in/manderson240`
+
+## Fix 2: Thermo tab fallback
+**Files:** 
+- `/home/mike-anderson/dev/cohezion/src/web/anima_dashboard/src/components/genesis/ThermodynamicStateLive.tsx`
+- `/home/mike-anderson/dev/cohezion/src/web/anima_dashboard/src/components/genesis/FreeEnergyLandscape.tsx`
+
+Both components now:
+- Use a 2-second `AbortController` timeout on API fetch
+- Have a parallel 2-second `setTimeout` fallback timer that triggers local computation if data hasn't arrived
+- Compute Landau thermodynamic values locally: F = a*(T-Tc)*phi^2 + b*phi^4, order parameter, susceptibility, entropy
+- Show a mode badge ("Local Computation" / "Landau Model") when in fallback mode
+- FreeEnergyLandscape additionally renders a new F(phi) quartic SVG chart showing the HIHO well at the current temperature, with annotations for symmetric vs broken-symmetry phases
+
+## Fix 3: FLUME tab fallback scatter
+**File:** `/home/mike-anderson/dev/cohezion/src/web/anima_dashboard/src/components/genesis/FlumeLatentViz.tsx`
+- Replaced the old 3-cluster/60-point fallback with 4 clusters at [2,1,0], [-1,2,1], [0,-2,2], [1,0,-1]
+- Each cluster has 12-13 points (50 total) with Gaussian noise (sigma=0.5)
+- Coherence scores: cluster 1=0.9, cluster 2=0.7, cluster 3=0.4, cluster 4=0.6
+- Point count display now shows "50 points (simulated)" when using fallback data
+
+## Fix 4: Swarm tab visualization
+**File:** `/home/mike-anderson/dev/cohezion/src/web/anima_dashboard/src/components/genesis/SwarmTopologyViz.tsx`
+- Added a horizontal bar chart below "Regime Distribution" showing: Exploit 60% (24 agents, green #10b981), Explore 30% (12 agents, blue #3b82f6), Pivot 10% (4 agents, yellow #f59e0b)
+- Added a 300x300 SVG persistence diagram mock below the "Topology-Aware Routing" section with:
+  - 5 H0 points near the diagonal (short-lived) + 3 far from diagonal (persistent clusters)
+  - 4 H1 loop points in purple
+  - Birth=death diagonal reference line, legend, and explanatory text
+
+## Fix 5: Genesis click-to-begin animation
+**File:** `/home/mike-anderson/dev/cohezion/src/web/anima_dashboard/src/components/genesis/GenesisScene.tsx`
+- Replaced the single `setTemperature(99.0)` click handler with a `requestAnimationFrame` cooling animation
+- Temperature decreases exponentially from 200 to 0.01 over 10 seconds
+- Uses `T = 200 * (0.01/200)^progress` for smooth exponential cooling
+- Each symmetry breaking stage triggers naturally as temperature crosses Tc values: 100, 10, 1, 0.1, 0.01
+- The existing `computeLocalCosmogony` function updates the symmetry label and all visual elements automatically via the `useEffect` on temperature
+- Animation frame is properly cleaned up on unmount</result>
+<usage><total_tokens>90350</total_tokens><tool_uses>33</tool_uses><duration_ms>323165</duration_ms></usage>
+</task-notification>
+Full transcript available at: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/2df918cc-6005-460f-87c8-deecfc331194/tasks/a9ae0af54721955f6.output
