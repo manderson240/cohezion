@@ -37,7 +37,7 @@ of frontier AI models, inspired by the Abstraction and Reasoning Corpus (ARC-AGI
 **Output Format:**
 Respond ONLY with a valid JSON object matching this schema:
 {
-  "input": "Question:\\nExample 1: In [[...]] Out [[...]]\\nExample 2: In [[...]] Out [[...]]\\nTest Input: [[...]]\\n\\nOptions:\\n['[[...]]', '[[...]]', '[[...]]', 'Insufficient Information']\\n",
+  "input": "Question:\\nExample 1: In [[0,1],[0,0]] Out [[1,0],[0,0]]\\nExample 2: In [[0,0,1],[0,0,0],[0,0,0]] Out [[1,0,0],[0,0,0],[0,0,0]]\\nTest Input: [[0,0,0,1],[0,0,0,0],[0,0,0,0],[0,0,0,0]]\\n\\nOptions:\\n['[[1,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0]]', '[[0,0,0,0],[0,0,0,0],[0,0,0,0],[1,0,0,0]]', '[[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,1]]', 'Insufficient Information']\\n",
   "output": "Insufficient Information"
 }
 """
@@ -70,8 +70,9 @@ async def generate_batch(num_tasks: int = 5):
                 # Using reasoning model for task generation as per AGENTS.md
                 response = await client.generate(
                     prompt=GENERATION_PROMPT,
-                    task_type="complex_reasoning",
-                    system="You are an expert AGI benchmark architect. Output ONLY valid JSON.",
+                    task_type="coding", # Use coding to get Qwen3-Coder
+                    temperature=0.9, # Increase temperature for more novelty
+                    system="You are an expert AGI benchmark architect. Generate a TRULY UNIQUE and COMPLEX ARC-AGI task. DO NOT just copy the example. Output ONLY valid JSON.",
                 )
                 
                 # Check if response is a tuple or object

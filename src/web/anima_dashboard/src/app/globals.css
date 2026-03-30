@@ -97,3 +97,15 @@ body {
     clip-path: circle(100% at 50% 50%);
   }
 }
+
+/* Cinematic narration overlay animation */
+@keyframes narrationFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
