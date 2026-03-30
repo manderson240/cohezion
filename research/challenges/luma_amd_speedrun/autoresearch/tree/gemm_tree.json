@@ -4,13 +4,13 @@
   "nodes": {
     "gemm_loadinline_root": {
       "id": "gemm_loadinline_root",
-      "strategy": "load_inline custom HIP kernel - official template-hip.py pattern",
+      "strategy": "load_inline custom HIP kernel - MUST use torch.utils.cpp_extension.load_inline with block-wise GEMM and lifted scales",
       "parameters": {
         "approach": "load_inline_hip",
         "note": "Official template-hip.py at gpu-mode/reference-kernels proves load_inline WORKS!"
       },
       "parent_id": null,
-      "priority": 0.98,
+      "priority": 0.99,
       "attempts": 0,
       "best_result_us": null,
       "stagnation_count": 0,

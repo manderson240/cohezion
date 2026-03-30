@@ -29,11 +29,16 @@ module = load_inline(
 3. **Native HIP types**: `__hip_fp8_e4m3_fnuz*`, `__hip_bfloat16*`
 4. **MFMA instructions**: AMD native INT8/FP8 matrix multiply
 
-## Current Focus
+## Current Focus (LLM MUST FOLLOW)
 
 - **GEMM** (HIGHEST PRIORITY): `load_inline` custom HIP kernel
   - Target: 1-5µs (rank 1 is 1.000µs!)
-  - Use block-wise GEMM with lifted scales
+  - **CRITICAL**: You MUST use `from torch.utils.cpp_extension import load_inline`
+  - **CRITICAL**: Template pattern at `gpu-mode/reference-kernels/blob/main/problems/amd/fp8-mm/template-hip.py`
+  - Use block-wise GEMM with scales LIFTED outside inner loop
+  - Pre-allocate output tensor, write directly to `c` parameter
+  - Use native HIP types: `__hip_fp8_e4m3_fnuz`, `__hip_bfloat16`
+  - **DO NOT** use aiter Python API for GEMM - it has 26µs overhead!
   
 - **MLA** (HIGH PRIORITY): `load_inline` custom HIP kernel  
   - Target: 26-40µs (rank 1 is 26.812µs)
