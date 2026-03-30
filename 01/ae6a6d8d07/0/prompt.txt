@@ -1,0 +1,699 @@
+Examine the entire codebase, repository, chat history, obsidian vault, surrealdb.  Make sure you collect a full 1M context.  Devise a plan that provides me with the best chance to land the Research Engineer Universes Role at Anthropic: https://job-boards.greenhouse.io/anthropic/jobs/5061517008?gh_src=myjobs.greenhouse
+
+---
+
+Proceed with compound engineering solutions
+
+---
+
+<task-notification>
+<task-id>a6a343e45d58f87e0</task-id>
+<tool-use-id>toolu_01VTs5MJfkuJpUKMn7uUAqsU</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/2df918cc-6005-460f-87c8-deecfc331194/tasks/a6a343e45d58f87e0.output</output-file>
+<status>completed</status>
+<summary>Agent "Security audit for exposed tokens" completed</summary>
+<result>I now have all the information needed for a complete report. Here it is:
+
+---
+
+## Security Review: /home/mike-anderson/dev/cohezion — Secrets & Token Exposure Audit
+
+### Summary
+
+The repository has no live, high-entropy credentials (HuggingFace tokens, Anthropic API keys, Kaggle keys) committed to source. However, there are multiple medium-severity issues: hardcoded fallback API keys in production Python code, a real `.env.mcp` file inside a worktree path that is tracked by git, and GCP resource identifiers (project ID + spreadsheet ID) hardcoded as default values in committed source.
+
+---
+
+### Findings
+
+#### HIGH
+
+**1. `.claude/worktrees/genesis-engine/.env.mcp` — Real API key committed to git**
+
+`/home/mike-anderson/dev/cohezion/.claude/worktrees/genesis-engine/.env.mcp:22`
+
+The file contains:
+```
+REDACTED
+```
+
+The root `.gitignore` entry `.claude/worktrees/` (line 198) uses a bare directory pattern. Git only ignores that path if it appears at the repo root **and** the directory is untracked. If this file was ever added to the index before the ignore rule existed, it is tracked. The value `dev-key-change-in-production` is the same default fallback wired into production code (see HIGH finding #3 below), meaning anyone who clones the repo and runs the MCP server without setting `MCP_API_KEY` in their environment is running with a publicly known key. Verify with `git ls-files .claude/worktrees/` — if it returns output, this file is tracked and needs to be removed from history.
+
+Fix: Run `git rm --cached .claude/worktrees/genesis-engine/.env.mcp`, verify `.claude/worktrees/` is in `.gitignore`, and rotate the key if it has ever been used in a non-local context.
+
+---
+
+**2. `apps/webapp/.env` — No `.gitignore` coverage for this directory**
+
+`/home/mike-anderson/dev/cohezion/apps/webapp/.env`
+
+The root `.gitignore` has `.env` (line 92), but Git's `.gitignore` pattern `.env` only matches a file named exactly `.env` at any path **if it is not already tracked**. There is no `apps/` subdirectory `.gitignore`. The file currently contains only localhost URLs (no secrets), but the path is not protected from accidentally committing future secrets here. The `apps/webapp/` directory has no `.gitignore` of its own, unlike `src/web/anima_dashboard/` which has `.env*` covered.
+
+Fix: Add a `.gitignore` inside `apps/webapp/` that includes `.env*`, mirroring the pattern used in `src/web/anima_dashboard/.gitignore:34`.
+
+---
+
+**3. Hardcoded fallback API keys in production Python source**
+
+- `/home/mike-anderson/dev/cohezion/src/cohezion/core/mcp_client.py:751` — `api_key = os.getenv("CLOUD_VAULT_API_KEY", "cohezion-dev-key")`
+- `/home/mike-anderson/dev/cohezion/src/cohezion-archive/core/mcp_client.py:751` — same
+- `/home/mike-anderson/dev/cohezion/src/cohezion-archive/mcp/bmad_server.py:51` — `MCP_API_KEY = os.getenv("MCP_API_KEY", "dev-key-change-in-production")`
+
+These fallback strings are committed in source and are therefore publicly known. Any deployment that omits the environment variable silently uses a known-public key, defeating authentication entirely. The `bmad_server.py` fallback matches the value found in the committed `.env.mcp` file above (HIGH #1), confirming the default is the de facto "real" key in dev deployments.
+
+Fix: Remove the hardcoded fallback strings. Raise a `ValueError` or `RuntimeError` at startup if the environment variable is unset, forcing operators to configure the key explicitly.
+
+---
+
+#### MEDIUM
+
+**4. GCP Project ID and Google Sheets spreadsheet ID hardcoded as defaults in committed source**
+
+- `/home/mike-anderson/dev/cohezion/cloud-vault-mcp/src/mcp_server/config.py:43-48`
+- `/home/mike-anderson/dev/cohezion/cloud-vault-mcp/src/mcp_server/sheets_bridge.py:18-19`
+
+Both `REDACTED` (spreadsheet ID) and `cohezion-477604` (GCP project ID / quota project) are hardcoded as `os.environ.get(...)` default values. These identifiers are not secrets in the same sense as tokens, but exposing the spreadsheet ID publicly enables anyone to attempt direct API access to the sheet. The quota project ID ties billing to your GCP account for any unauthenticated quota abuse.
+
+These values appear in at least 20 committed files across `cloud-vault-mcp/vault/`, `.env.sheets-research.example`, and `scripts/deploy_cloud_run.sh`. This is widespread and intentional documentation, but the hardcoded defaults in `config.py` and `sheets_bridge.py` mean production code falls back to real infrastructure IDs rather than failing safely.
+
+Fix: Remove hardcoded defaults from `config.py` and `sheets_bridge.py`. Require `SHEETS_SPREADSHEET_ID` and `SHEETS_QUOTA_PROJECT` to be set explicitly. The vault documentation references are acceptable as documentation, but production code defaults should not embed live IDs.
+
+---
+
+**5. `scripts/monitor_nemotron_training.py:17` — Kaggle username hardcoded**
+
+`username = os.getenv("KAGGLE_USERNAME") or "manderson240"`
+
+The fallback to a literal Kaggle username means the script will silently execute under the real account if the environment variable is missing. This is a low-entropy but real identifier that will authenticate Kaggle API calls against the owner's account without any warning.
+
+Fix: Remove the string fallback. Fail with a clear error message if `KAGGLE_USERNAME` is unset.
+
+---
+
+#### LOW
+
+**6. `COMPLETION_SUMMARY.md:222` — Default key value documented inline**
+
+`/home/mike-anderson/dev/cohezion/COMPLETION_SUMMARY.md:222`
+
+The string `REDACTED` appears in a committed documentation file. This is the same value used as the production fallback (HIGH #3). While a markdown file is not executable, it confirms to any reader that the deployed default key is a known, guessable string.
+
+Fix: Replace with a placeholder like `MCP_API_KEY=<generate with: python -c "import secrets; print(secrets.token_hex(32))">` to signal this must be generated, not copied.
+
+---
+
+### .gitignore Status
+
+| File | Coverage | Notes |
+|---|---|---|
+| `.env` (root) | COVERED — line 92 | |
+| `.env.mcp` (root) | COVERED — line 93 | |
+| `.env.surrealdb` (root) | COVERED — line 188 | |
+| `apps/webapp/.env` | RISK — root `.env` pattern matches but no sub-gitignore protects this dir | No `apps/webapp/.gitignore` exists |
+| `src/web/anima_dashboard/.env.local` | COVERED — `.gitignore:34` in that directory uses `.env*` | |
+| `.claude/worktrees/genesis-engine/.env.mcp` | AMBIGUOUS — `.claude/worktrees/` is in root `.gitignore` line 198, but only effective if the file was never tracked | Must verify with `git ls-files` |
+
+`.env.local` and `.env.production` are NOT listed in the root `.gitignore`. They are covered for `src/web/anima_dashboard/` by the local `.gitignore`, but if a `.env.local` file were created at the repo root or in `apps/`, it would not be ignored.
+
+---
+
+### Attack Surface
+
+The external interfaces of concern are:
+- The MCP API server (cloud-vault-mcp), authenticated by `MCP_API_KEY` — its default value is publicly known from committed source
+- The Google Sheets integration, which uses ADC (Application Default Credentials) + a hardcoded quota project — the spreadsheet ID is publicly committed in source and documentation
+- Kaggle API calls in multiple scripts — credentials sourced from environment, but one script falls back to a hardcoded username
+- The SurrealDB connection (root/root credentials acceptable for local dev per project standards)
+
+No live high-entropy tokens (HuggingFace `hf_*`, Anthropic `sk-ant-*`, Kaggle API key values) were found in any committed source file, script, config, or YAML.
+
+---
+
+### Verdict
+
+NEEDS FIXES
+
+No tokens requiring immediate rotation were found. The critical action is auditing whether `.claude/worktrees/genesis-engine/.env.mcp` is tracked by git (`git ls-files .claude/worktrees/` will confirm), and removing hardcoded API key fallbacks from `/home/mike-anderson/dev/cohezion/src/cohezion/core/mcp_client.py` and `/home/mike-anderson/dev/cohezion/src/cohezion-archive/mcp/bmad_server.py` before any deployment beyond localhost.</result>
+<usage><total_tokens>36571</total_tokens><tool_uses>43</tool_uses><duration_ms>133737</duration_ms></usage>
+</task-notification>
+Full transcript available at: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/2df918cc-6005-460f-87c8-deecfc331194/tasks/a6a343e45d58f87e0.output
+
+---
+
+<task-notification>
+<task-id>af2f08f16d75520b9</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/2df918cc-6005-460f-87c8-deecfc331194/tasks/af2f08f16d75520b9.output</output-file>
+<status>completed</status>
+<summary>Agent "Set up Duck DNS webapp hosting" completed</summary>
+<result>Here is a summary of the research findings and the guide that was written.
+
+## Research Findings
+
+**What already exists:**
+- `cohezion.duckdns.org` is registered and currently resolves to your public IP (`68.175.143.201`) -- the DNS is working
+- `scripts/update_duckdns.sh` exists and is correctly written, but the `DUCKDNS_TOKEN` is not in `.env` and no cron job is running for it
+- Caddy v2.11.1 is installed at `~/.local/bin/caddy`, but its service is inactive and the Caddyfile is empty
+- `cloudflared` v2026.2.0 is installed, with prior deployment scripts at `scripts/deploy_tunnel.sh` and `docs/archive/TUNNEL_SETUP.md`, but no active tunnel exists
+- Tailscale Funnel is already active, proxying `localhost:8360` on `frameworkdesktop.tail54eb71.ts.net`
+- The Next.js app has a production build (BUILD_ID `T3s6BliT_UA-j4EDRuQqT`) and dependencies installed
+- No nginx or certbot installed; UFW firewall is inactive
+
+**Key gap:** The only missing pieces for Approach A (Caddy) are: (1) `DUCKDNS_TOKEN` in `.env`, (2) the cron job for IP updates, (3) a Caddyfile with the reverse proxy config, (4) a systemd service for Next.js, and (5) router port forwarding for 80/443.
+
+## Guide Written
+
+The hosting guide at `/home/mike-anderson/dev/cohezion/docs/application/hosting-guide.md` covers three approaches:
+
+1. **Approach A: Caddy + Duck DNS** (recommended) -- uses your existing Caddy install, auto-HTTPS via Let's Encrypt, systemd for Next.js, requires router port forwarding
+2. **Approach B: Tailscale Funnel** (fastest) -- zero config, no port forwarding, but the URL is `frameworkdesktop.tail54eb71.ts.net` instead of `cohezion.duckdns.org`
+3. **Approach C: Cloudflare Tunnel** (most robust, but incompatible with Duck DNS CNAME limitation) -- documented but noted that Duck DNS only supports A records
+
+The guide also includes: interview-day checklist, start/stop/restart commands, troubleshooting for DNS/HTTPS/Three.js/port forwarding issues, and appendices for standalone Next.js builds and Caddy DNS-01 challenge (for ISPs that block port 80).</result>
+<usage><total_tokens>64038</total_tokens><tool_uses>53</tool_uses><duration_ms>356126</duration_ms></usage>
+</task-notification>
+Full transcript available at: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/2df918cc-6005-460f-87c8-deecfc331194/tasks/af2f08f16d75520b9.output
+
+---
+
+<task-notification>
+<task-id>buamv5u7u</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/2df918cc-6005-460f-87c8-deecfc331194/tasks/buamv5u7u.output</output-file>
+<status>killed</status>
+<summary>Background command "Search for Duck DNS configuration files" was stopped</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/2df918cc-6005-460f-87c8-deecfc331194/tasks/buamv5u7u.output
+
+---
+
+<task-notification>
+<task-id>aa1c729475009e0ba</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/2df918cc-6005-460f-87c8-deecfc331194/tasks/aa1c729475009e0ba.output</output-file>
+<status>completed</status>
+<summary>Agent "Write application materials" completed</summary>
+<result>All four files are created and verified. Here is a summary of what was produced:
+
+---
+
+**Files created in `/home/mike-anderson/dev/cohezion/docs/application/`:**
+
+1. **`resume.md`** (7.9 KB) -- Two-page resume mapping every bullet to the JD: ManifoldEnv/SwarmEnv/ARCEnvironment for "construct agentic training environments"; 6-axis CapabilityScorecard with bootstrap CIs and Mann-Whitney U for "design rigorous evaluations"; PPO + TRIUNE + LLM Training Bridge for "RL environments"; VLIW 423x + AMD kernels + quantum for "debug across research/production ML"; multi-backend sandbox system for "sandboxing"; QuadratureNexus + CostAwareRouter for "distributed systems". All numbers verified against the codebase (5,919 tests collected, 2,696 commits across branches, actual class names and line references).
+
+2. **`cover-letter.md`** (3.6 KB) -- Three substantive paragraphs mapping to environments, evaluations, and debugging. Opens with "I have spent the past year building exactly what your Universes team builds." No fluff, all technical. References the repo and paper as concrete artifacts.
+
+3. **`technical-summary.md`** (8.2 KB) -- Titled "FLUME: Physics-Grounded Training Environments for Agentic AI." Includes an ASCII architecture diagram, the Fisher metric unification argument, the 12D manifold structure table, HIHO reward shaping details, evaluation metrics with statistical methods, and a preliminary results section. Links to the full paper.
+
+4. **`interview-prep.md`** (15.8 KB) -- Complete 15-minute code walkthrough outline (ManifoldEnv -> reward shaping -> evaluation metrics with specific file paths and line numbers). Four prepared technical answers (Why 12D, How does this scale, Design an interruption environment, Generate training data from env runs). Three behavioral answers (AMD kernel ceiling pivot, VLIW 423x systematic debugging, Cohezion built solo). Three questions for Anthropic. Includes a "potential weak spots" section and a key numbers cheat sheet.
+
+**Note**: The resume has an `[To be filled in by Mike]` placeholder for the Education section.</result>
+<usage><total_tokens>102318</total_tokens><tool_uses>46</tool_uses><duration_ms>377736</duration_ms></usage>
+</task-notification>
+Full transcript available at: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/2df918cc-6005-460f-87c8-deecfc331194/tasks/aa1c729475009e0ba.output
+
+---
+
+<task-notification>
+<task-id>a4c53b730e7a48116</task-id>
+<tool-use-id>toolu_01CHoBLgMCxtjJ77Zm9JQ57a</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/2df918cc-6005-460f-87c8-deecfc331194/tasks/a4c53b730e7a48116.output</output-file>
+<status>completed</status>
+<summary>Agent "Create demo quickstart scripts" completed</summary>
+<result>All files created and verified. Here is a summary of what was done:
+
+---
+
+**Created 4 files in `/home/mike-anderson/dev/cohezion/demo/`:**
+
+1. **`demo/README.md`** -- Quick start instructions showing the 3-command workflow, explains each metric, and documents the architecture.
+
+2. **`demo/quickstart.py`** -- Trains an agent on ManifoldEnv-v0 (Gymnasium-compatible) for 50 episodes. Uses a lightweight "coherence-gradient" policy that learns which action directions improve HIHO coherence. Prints per-episode metrics (coherence, reward, charge polarity, Yang-Mills action) and saves all trajectory data to `data/trajectories.json`. Runs in ~67 seconds on CPU.
+
+3. **`demo/evaluate.py`** -- Computes 6 FLUME capability metrics with bootstrap 95% confidence intervals (10,000 resamples):
+   - Coherence Amplitude, Phase Locking Rate, Exotic Charge Lifetime, Orbit Quality, TRIUNE Balance Index, Recovery Basin Radius
+   - Generates a matplotlib radar chart to `data/capability_radar.png` (gracefully skips if matplotlib unavailable)
+   - Saves JSON metrics to `data/metrics.json`
+
+4. **`demo/export_dataset.py`** -- Converts trajectories to 3 LLM training formats using the existing `llm_training_bridge` module (with standalone fallback):
+   - `preferences.jsonl` -- DPO preference pairs ranked by HIHO alignment
+   - `rewards.jsonl` -- Scalar reward labels for RLHF reward modeling
+   - `judgments.jsonl` -- Per-decision assessments (4,950 records from 50 episodes)
+
+**Robustness features:**
+- All scripts handle import failures gracefully with helpful error messages
+- `export_dataset.py` has a complete standalone implementation as fallback when `cohezion` is not importable
+- `evaluate.py` works without matplotlib (text-only mode)
+- `quickstart.py` tries `gymnasium.make()` first, falls back to direct import</result>
+<usage><total_tokens>109432</total_tokens><tool_uses>28</tool_uses><duration_ms>491527</duration_ms></usage>
+</task-notification>
+Full transcript available at: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/2df918cc-6005-460f-87c8-deecfc331194/tasks/a4c53b730e7a48116.output
+
+---
+
+Can you do the hosting part so I can look at the link.
+
+---
+
+<task-notification>
+<task-id>b52smi14u</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/2df918cc-6005-460f-87c8-deecfc331194/tasks/b52smi14u.output</output-file>
+<status>completed</status>
+<summary>Background command "Start Next.js production server on port 3000" completed (exit code 0)</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/2df918cc-6005-460f-87c8-deecfc331194/tasks/b52smi14u.output
+
+---
+
+<task-notification>
+<task-id>b2h7e3ium</task-id>
+<tool-use-id>toolu_01Ez58Gw4uv1iQjcyJuqHPJo</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/2df918cc-6005-460f-87c8-deecfc331194/tasks/b2h7e3ium.output</output-file>
+<status>completed</status>
+<summary>Background command "Start Next.js production server" completed (exit code 0)</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/2df918cc-6005-460f-87c8-deecfc331194/tasks/b2h7e3ium.output
+
+---
+
+Let's make it long term but why can't get call it cohezion right in the link?
+
+---
+
+Go ahead and do the port forwarding
+
+---
+
+can you email me the website links and final summery to manderson240@gmail.com when are you all done with everything provide me with directions for how I can continue development from another machine?
+
+---
+
+We already had a cohezion password created on January 17th and last used January 31st
+
+---
+
+Why can't we just use google Oauth?
+
+---
+
+Says bad request
+
+---
+
+says cloud platform
+
+---
+
+What shape is our repo in now?
+
+---
+
+Well our webapp is a little dissapointing. Did we properly simulate a human user with playwright?
+
+---
+
+cz context is wrong and not needed.
+
+---
+
+<task-notification>
+<task-id>acd3c0f2229ecc4b0</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/2df918cc-6005-460f-87c8-deecfc331194/tasks/acd3c0f2229ecc4b0.output</output-file>
+<status>completed</status>
+<summary>Agent "Create plan lifecycle hooks" completed</summary>
+<result>All four tasks are complete. Here is a summary:
+
+## Completed
+
+**Task 1: `.claude/hooks/archive-plan.sh`** (PreToolUse: Write)
+- Parses `file_path` from stdin JSON
+- Only acts on `*/.claude/plans/*.md` paths
+- Skips non-existent files and files < 50 bytes
+- Copies to `docs/plans/YYYY-MM-DD-<basename>.md`, skipping if already archived today
+- Outputs `{"systemMessage": "Archived previous plan to ..."}` on success
+
+**Task 2: `.claude/hooks/track-plan-files.sh`** (PostToolUse: Edit|Write)
+- Extracts `file_path` from `tool_input` (or `tool_response` fallback)
+- Skips `.claude/`, `node_modules/`, `.venv/`, `__pycache__/`, `.git/` paths
+- Calls `PlanGraph().record_file_touch_if_active()` via `uv run python`
+- Fails silently (`|| true`) if SurrealDB or PlanGraph is unreachable
+
+**Task 3: `.claude/hooks/track-plan-commits.sh`** (PostToolUse: Bash)
+- Extracts `command` from `tool_input`, only acts if it contains `git commit`
+- Tries to parse commit hash from tool_response (40-char hex or short hash in bracket format)
+- Falls back to `git log -1 --format=%H`
+- Calls `PlanGraph().record_commit_if_active()` via `uv run python`
+- Fails silently if SurrealDB or PlanGraph is unreachable
+
+**Task 4: `.claude/settings.json` updated**
+- Added `archive-plan.sh` as new PreToolUse Write entry (line 84-93) with `statusMessage`
+- Added `track-plan-files.sh` to existing PostToolUse `Edit|Write` entry (line 136-138) with `"async": true`
+- Added `track-plan-commits.sh` to existing PostToolUse `Bash` entry (line 160-162) with `"async": true`
+- All existing hooks preserved, no entries removed
+
+All scripts are executable (`chmod +x`) and pass smoke tests (exit 0 for both matching and non-matching inputs, including when PlanGraph module doesn't exist yet).</result>
+<usage><total_tokens>56524</total_tokens><tool_uses>35</tool_uses><duration_ms>172399</duration_ms></usage>
+</task-notification>
+Full transcript available at: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/2df918cc-6005-460f-87c8-deecfc331194/tasks/acd3c0f2229ecc4b0.output
+
+---
+
+<task-notification>
+<task-id>a27af23046ab2e16b</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/2df918cc-6005-460f-87c8-deecfc331194/tasks/a27af23046ab2e16b.output</output-file>
+<status>completed</status>
+<summary>Agent "Build SurrealDB schema + PlanGraph client" completed</summary>
+<result>The `plan_graph.py` is 347 lines, exceeding the 300 soft limit but staying well under the 500 hard limit. Given that it contains both the transport layer, mutations, queries, and helper functions for a single cohesive module, this is acceptable.
+
+Here is a summary of what was created:
+
+---
+
+**Task 1 -- SurrealDB Schema** (`/home/mike-anderson/dev/cohezion/src/cohezion/knowledge_graph/plan_traceability_schema.surql`):
+- 8 tables: `plan`, `task`, `file`, `commit` (data) + `plan_has_task`, `task_modifies`, `commit_implements`, `commit_touches` (edges)
+- 4 unique/status indexes
+- Uses `NS cohezion DB traceability`
+- Schema matches the plan spec exactly, including `ASSERT` constraints on status fields
+
+**Task 2 -- PlanGraph client** (`/home/mike-anderson/dev/cohezion/src/cohezion/traceability/plan_graph.py`):
+- Async client using `httpx` HTTP POST to `/sql` endpoint (not websocket)
+- URL failover: tries `localhost:8000` then `localhost:8001`
+- All methods from the spec: `initialize_schema`, `create_plan`, `update_plan_status`, `complete_task`, `record_file_touch`, `record_commit`, `plan_completeness`, `files_for_plan`, `plans_for_file`, `orphan_files`, `plan_graph`
+- Parameters use `LET $var = value` preambles for safe SurrealQL variable binding
+- Helper functions for SurrealQL literal escaping and response parsing
+
+**Task 3 -- register_plan CLI** (`/home/mike-anderson/dev/cohezion/src/cohezion/traceability/register_plan.py`):
+- Works as `uv run python -m cohezion.traceability.register_plan <plan.md>`
+- Parses `### Step N.N` headings and `- [ ] **N.N` checkbox items
+- Extracts title from `# Title` line, slug from filename (strips date prefix)
+- Handles letter suffixes in step numbers (e.g., `0.1b`)
+- Also importable: `from cohezion.traceability.register_plan import register_plan, parse_plan`
+
+**Additional change** (`/home/mike-anderson/dev/cohezion/pyproject.toml`):
+- Added `S608` suppression for `plan_graph.py` (SurrealQL record ID interpolation is controlled input, not user-facing SQL injection risk)
+
+All files pass `ruff check` and `ruff format`, and imports resolve correctly.</result>
+<usage><total_tokens>83359</total_tokens><tool_uses>35</tool_uses><duration_ms>400989</duration_ms></usage>
+</task-notification>
+Full transcript available at: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/2df918cc-6005-460f-87c8-deecfc331194/tasks/a27af23046ab2e16b.output
+
+---
+
+<task-notification>
+<task-id>aeb3b319df04a7338</task-id>
+<tool-use-id>toolu_01ViRypyQHfPFR3bVRBSQ3yg</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/2df918cc-6005-460f-87c8-deecfc331194/tasks/aeb3b319df04a7338.output</output-file>
+<status>completed</status>
+<summary>Agent "Fix webapp backend integration" completed</summary>
+<result>All tasks complete. Here is a summary of what was done:
+
+---
+
+## Summary
+
+### Task 1: Port Configuration
+- **File:** `/home/mike-anderson/dev/cohezion/src/web/anima_dashboard/.env.local`
+- Changed `NEXT_PUBLIC_API_URL` from port 8888 to 8080.
+
+### Task 2: Mount Missing API Routers
+- **File:** `/home/mike-anderson/dev/cohezion/src/cohezion/api/__init__.py`
+- Added `anima_router` (from `cohezion.api.services.anima`) at prefix `/api/anima`
+- Added `architecture_router` (from `cohezion.api.services.architecture`) at prefix `/api/architecture`
+- Both wrapped in try/except ImportError to match the existing pattern.
+
+### Task 3: FastAPI Systemd Service
+- **File:** `/etc/systemd/system/cohezion-api.service`
+- Created and enabled (but not started) the systemd service for the FastAPI backend on port 8080.
+
+### Task 4: Client-Side Fallback Physics
+
+**4a. `useUniverseStream.ts`** (`/home/mike-anderson/dev/cohezion/src/web/anima_dashboard/src/hooks/useUniverseStream.ts`):
+- Added `createFallbackTick()` function that generates local physics: coherence drift toward HIHO 0.5 with noise, simple CA grid with random cell flips, and 3-5 mock EVO states with wandering positions.
+- On SSE connection error, starts a 100ms interval running the local physics sim. Stops automatically when the real backend reconnects.
+
+**4b. `useAnima.ts`** (`/home/mike-anderson/dev/cohezion/src/web/anima_dashboard/src/hooks/useAnima.ts`):
+- On failed `/api/anima/status` fetch, sets status to `{ tier: "simulated", online: false, mcp_available: false, voice_available: false }`.
+
+**UI update** (`/home/mike-anderson/dev/cohezion/src/web/anima_dashboard/src/components/TriuneNav.tsx` and `/home/mike-anderson/dev/cohezion/src/web/anima_dashboard/src/app/page.tsx`):
+- Added `simulated` prop to TriuneNav. When disconnected but simulated, shows "SIMULATED" in green (#22cc66) instead of "OFFLINE" in red.
+
+**4c. Genesis Cosmogony** (`/home/mike-anderson/dev/cohezion/src/web/anima_dashboard/src/components/genesis/GenesisScene.tsx` and `/home/mike-anderson/dev/cohezion/src/web/anima_dashboard/src/hooks/useCosmogony.ts`):
+- Added full Landau free energy computation: `orderParameter = sqrt(a*(T_c - T)/(2*b))` when T < T_c, else 0.
+- Computes Fisher information eigenvalue (peaks near critical temperature), builds transition list, and populates all cosmogony fields.
+- Temperature slider wires directly to local state when API is unreachable.
+
+**4d. SPIN Lab** (`/home/mike-anderson/dev/cohezion/src/web/anima_dashboard/src/components/genesis/BlochSphere.tsx`):
+- Already had a try/catch with local Bloch vector computation in the `fetchSpinor` callback. No changes needed.
+
+### Task 5: Next.js Rebuild
+- Built successfully with `npm run build` (Turbopack, 7 static pages).
+- Restarted `cohezion-genesis` service (running and healthy).
+
+### Task 6: Reverse Proxy Configuration
+- Updated `/etc/caddy/Caddyfile` with `/api/*` proxy to `localhost:8080`.
+- Since Tailscale Serve/Funnel is the actual live reverse proxy (Caddy has a pre-existing port 443 conflict with Tailscale), also configured Tailscale Serve to proxy `/api` to `http://127.0.0.1:8080` alongside the existing `/` to `http://127.0.0.1:3000`.
+- Stopped the conflicting Caddy service.</result>
+<usage><total_tokens>109891</total_tokens><tool_uses>59</tool_uses><duration_ms>577269</duration_ms></usage>
+</task-notification>
+Full transcript available at: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/2df918cc-6005-460f-87c8-deecfc331194/tasks/aeb3b319df04a7338.output
+
+---
+
+<task-notification>
+<task-id>bpltx1qua</task-id>
+<tool-use-id>toolu_01H46Ngjr4AR1Wc4kG5fjkxo</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/2df918cc-6005-460f-87c8-deecfc331194/tasks/bpltx1qua.output</output-file>
+<status>completed</status>
+<summary>Background command "Commit all changes" completed (exit code 0)</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/2df918cc-6005-460f-87c8-deecfc331194/tasks/bpltx1qua.output
+
+---
+
+What about the other pages?
+
+---
+
+<task-notification>
+<task-id>a9ae0af54721955f6</task-id>
+<tool-use-id>toolu_018pgbTp5mV1AxSpHHWKwUxJ</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/2df918cc-6005-460f-87c8-deecfc331194/tasks/a9ae0af54721955f6.output</output-file>
+<status>completed</status>
+<summary>Agent "Fix all Genesis page issues" completed</summary>
+<result>All 5 fixes are applied, the build succeeds, and the service is running. Here is a summary of what was done:
+
+---
+
+## Fix 1: Portfolio page links
+**File:** `/home/mike-anderson/dev/cohezion/src/web/anima_dashboard/src/app/portfolio/page.tsx`
+- Changed 2 GitHub URLs from `mike-anderson/cohezion` to `manderson240/cohezion` (nav header + footer)
+- Changed email from `contact@cohezion.dev` to `manderson240@gmail.com`
+- Changed LinkedIn URL from `linkedin.com/in/mike-anderson-cohezion` to `linkedin.com/in/manderson240`
+
+## Fix 2: Thermo tab fallback
+**Files:** 
+- `/home/mike-anderson/dev/cohezion/src/web/anima_dashboard/src/components/genesis/ThermodynamicStateLive.tsx`
+- `/home/mike-anderson/dev/cohezion/src/web/anima_dashboard/src/components/genesis/FreeEnergyLandscape.tsx`
+
+Both components now:
+- Use a 2-second `AbortController` timeout on API fetch
+- Have a parallel 2-second `setTimeout` fallback timer that triggers local computation if data hasn't arrived
+- Compute Landau thermodynamic values locally: F = a*(T-Tc)*phi^2 + b*phi^4, order parameter, susceptibility, entropy
+- Show a mode badge ("Local Computation" / "Landau Model") when in fallback mode
+- FreeEnergyLandscape additionally renders a new F(phi) quartic SVG chart showing the HIHO well at the current temperature, with annotations for symmetric vs broken-symmetry phases
+
+## Fix 3: FLUME tab fallback scatter
+**File:** `/home/mike-anderson/dev/cohezion/src/web/anima_dashboard/src/components/genesis/FlumeLatentViz.tsx`
+- Replaced the old 3-cluster/60-point fallback with 4 clusters at [2,1,0], [-1,2,1], [0,-2,2], [1,0,-1]
+- Each cluster has 12-13 points (50 total) with Gaussian noise (sigma=0.5)
+- Coherence scores: cluster 1=0.9, cluster 2=0.7, cluster 3=0.4, cluster 4=0.6
+- Point count display now shows "50 points (simulated)" when using fallback data
+
+## Fix 4: Swarm tab visualization
+**File:** `/home/mike-anderson/dev/cohezion/src/web/anima_dashboard/src/components/genesis/SwarmTopologyViz.tsx`
+- Added a horizontal bar chart below "Regime Distribution" showing: Exploit 60% (24 agents, green #10b981), Explore 30% (12 agents, blue #3b82f6), Pivot 10% (4 agents, yellow #f59e0b)
+- Added a 300x300 SVG persistence diagram mock below the "Topology-Aware Routing" section with:
+  - 5 H0 points near the diagonal (short-lived) + 3 far from diagonal (persistent clusters)
+  - 4 H1 loop points in purple
+  - Birth=death diagonal reference line, legend, and explanatory text
+
+## Fix 5: Genesis click-to-begin animation
+**File:** `/home/mike-anderson/dev/cohezion/src/web/anima_dashboard/src/components/genesis/GenesisScene.tsx`
+- Replaced the single `setTemperature(99.0)` click handler with a `requestAnimationFrame` cooling animation
+- Temperature decreases exponentially from 200 to 0.01 over 10 seconds
+- Uses `T = 200 * (0.01/200)^progress` for smooth exponential cooling
+- Each symmetry breaking stage triggers naturally as temperature crosses Tc values: 100, 10, 1, 0.1, 0.01
+- The existing `computeLocalCosmogony` function updates the symmetry label and all visual elements automatically via the `useEffect` on temperature
+- Animation frame is properly cleaned up on unmount</result>
+<usage><total_tokens>90350</total_tokens><tool_uses>33</tool_uses><duration_ms>323165</duration_ms></usage>
+</task-notification>
+Full transcript available at: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/2df918cc-6005-460f-87c8-deecfc331194/tasks/a9ae0af54721955f6.output
+
+---
+
+<task-notification>
+<task-id>bj5d6sllp</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/2df918cc-6005-460f-87c8-deecfc331194/tasks/bj5d6sllp.output</output-file>
+<status>completed</status>
+<summary>Background command "Commit all Genesis page fixes" completed (exit code 0)</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/2df918cc-6005-460f-87c8-deecfc331194/tasks/bj5d6sllp.output
+
+---
+
+But are they truly transformational and live up to the user experience we are striving for?
+
+---
+
+<task-notification>
+<task-id>a5d0212dc4d06f284</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/2df918cc-6005-460f-87c8-deecfc331194/tasks/a5d0212dc4d06f284.output</output-file>
+<status>completed</status>
+<summary>Agent "Cinematic Genesis cosmogony overhaul" completed</summary>
+<result>The page loads successfully with HTTP 200.
+
+Here is a summary of all changes made:
+
+---
+
+## Summary
+
+### Files Created
+
+**`/home/mike-anderson/dev/cohezion/src/web/anima_dashboard/src/components/genesis/ExplosionParticles.tsx`**
+- New component using `InstancedMesh` with 500 particles (`SphereGeometry`, radius 0.015 via scale)
+- Phase-driven animation: `idle` -> `exploding` -> `differentiating` -> `settling` -> `final`
+- Explosion: random velocity vectors (magnitude 3-8), 0.97 damping per frame, HIHO attractor pulling toward radius 2.0 shell
+- Differentiation: particles split into 4 fabric groups pulling toward their fabric centers (Space: [3,0,0], Field: [-2,2,0], Control: [0,-2,2], Precipitation: [-1,-1,-3])
+- Settling: orbital motion around fabric centers with tangential force
+- Color transitions: white -> gold (2s) -> fabric-specific color (3s)
+- Per-particle size variation (0.01-0.02)
+- All animation via `useFrame`, positions stored in `Float32Array` for performance
+
+### Files Modified
+
+**`/home/mike-anderson/dev/cohezion/src/web/anima_dashboard/src/components/genesis/GenesisScene.tsx`** (complete rewrite)
+
+*Part 1 - The Void:*
+- `VoidSphere`: barely visible pulsing sphere (scale 0.003-0.012), MeshBasicMaterial white, pointer cursor on hover
+- `VoidDust`: 100 dust particles via InstancedMesh (scale 0.002, opacity 0.08) drifting randomly within radius 5
+- `VoidQuote`: Html overlay with pulsing opacity (0.3-0.6), monospace, color #444
+- Stars hidden during void phase. OrbitControls disabled
+- Sidebar panels (Cosmogony, Equation) hidden until after settling
+
+*Part 2 - The Explosion:*
+- `CameraShake`: camera position noise for 0.5s (amplitude 0.05, frequency 20Hz)
+- Dynamic bloom: surges from 0.6 to 3.0 on click, eases back to 1.0 over 2s, settles to 0.8
+- `ChromaticAberration`: offset 0.003 during explosion, fades to 0 over 2s
+- `Vignette`: always on (offset 0.3, darkness 0.7)
+- Stars fade in after 1 second (0 to full opacity over 1s)
+
+*Part 3 - Fabric Differentiation:*
+- `FiberStrand`: Line components from center to each fabric center with catenary sag curves
+- Fiber brightness ramps from 0 at 3s to 1.0 at 10s
+
+*Part 4 - Settling:*
+- `FabricFragment`: dodecahedrons scale up from 0 to 1 (seconds 5-8) at fabric centers
+- `MiniBlochSphere`: wireframe spheres at fabric centers (scale 0 to 0.3, seconds 6-9)
+- `HIHOTorus`: golden torus at origin scales from 0 to 1 (seconds 6-9)
+- `CameraPullback`: camera.position.z lerps from 5 to 8 (seconds 5-10)
+- Temperature slider + sidebar panels fade in (seconds 8-10)
+- Bloom settles to 0.8
+
+*Architecture:*
+- New `GenesisSceneProps` interface with callbacks: `onVoidStart`, `onExplosion`, `onFabricSplit`, `onSettle`
+- All existing Landau math, cosmogony state management, API fallback, equation panel integration preserved unchanged
+- The `requestAnimationFrame` cooling loop preserved; now also tracks `animElapsed` for phase coordination
+
+**`/home/mike-anderson/dev/cohezion/src/web/anima_dashboard/src/hooks/useSonification.ts`**
+
+Added 4 new cinematic methods (backward compatible -- all existing API unchanged):
+- `startVoidDrone()`: quiet sine wave at C2, -40dB, starts on page load
+- `triggerExplosion()`: MembraneSynth C1 hit + sawtooth sweep C2->C4 over 2s, fades void drone
+- `startFabricChord()`: 4 triangle oscillators starting at unison E3, spreading to Em7 (E3, G3, B3, D4) over 2s
+- `settleToSustainedPad()`: lowers fabric chord volume, increases reverb wet, gentle tremolo
+
+**`/home/mike-anderson/dev/cohezion/src/web/anima_dashboard/src/app/genesis/page.tsx`**
+
+- Added 4 callback handlers wiring sonification cinematic methods to GenesisScene props
+- Passes `onVoidStart`, `onExplosion`, `onFabricSplit`, `onSettle` to the dynamically-imported GenesisScene
+
+### Build & Deploy
+
+- `npm run build` passes cleanly (TypeScript check, static generation, all 7 routes)
+- `cohezion-genesis` service restarted and serving on port 3000, HTTP 200 on `/genesis`</result>
+<usage><total_tokens>112604</total_tokens><tool_uses>47</tool_uses><duration_ms>447773</duration_ms></usage>
+</task-notification>
+Full transcript available at: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/2df918cc-6005-460f-87c8-deecfc331194/tasks/a5d0212dc4d06f284.output
+
+---
+
+The fading quote is faint.  Where do I click?  Nothing seems to happen.
+
+---
+
+What happened to the narration and guide?
+
+---
+
+<task-notification>
+<task-id>a89551ed0de9d49c7</task-id>
+<tool-use-id>toolu_012YBswqYBY54f3gyoygTNxD</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/2df918cc-6005-460f-87c8-deecfc331194/tasks/a89551ed0de9d49c7.output</output-file>
+<status>completed</status>
+<summary>Agent "Cinematic narration overlay + browser TTS" completed</summary>
+<result>Service is active and running.
+
+Here is a summary of all changes made:
+
+**Files modified:**
+
+1. `/home/mike-anderson/dev/cohezion/src/web/anima_dashboard/src/hooks/useNarration.ts`
+   - Replaced short fallback narration texts with rich cinematic versions (e.g., "In the beginning, there was nothing. Not even nothing." instead of "In the beginning, there was nothing.")
+   - Increased text-only display duration from `Math.max(3000, length * 50)` to `Math.max(4000, length * 80)` for cinematic pacing
+   - Added browser Speech Synthesis TTS fallback in the `narrateStage` catch block -- when the API is unreachable and narration is not muted, it speaks the text using `SpeechSynthesisUtterance` with rate 0.85, pitch 0.9, and a preference for en-GB voices (Daniel, Google UK English Male)
+   - Added `ttsTimerRef` to coordinate the text display timer with TTS speech end events
+   - Updated `stop()` to cancel browser `speechSynthesis` and clear the TTS timer
+   - Added `muted` to the `narrateStage` dependency array since the catch block now references it
+
+2. `/home/mike-anderson/dev/cohezion/src/web/anima_dashboard/src/app/genesis/page.tsx`
+   - Removed the old narration bar (small `bg-black/80` strip between header and tabs)
+   - Added a cinematic overlay positioned over the 3D cosmogony scene at the bottom third (`bottom: 12%`), with:
+     - `z-index: 20` to float above the canvas
+     - `max-width: 600px`, centered, `padding: 20px 30px`, `border-radius: 8px`
+     - `rgba(0,0,0,0.4)` background with `backdrop-blur(8px)`
+     - Monospace italic font, `clamp(16px, 2vw, 20px)` size, `letter-spacing: 0.05em`
+     - `rgba(255,255,255,0.85)` color with cyan text-shadow glow
+     - `pointer-events-none` so it doesn't block 3D interaction
+     - `narrationFadeIn` CSS animation (0.5s ease-out)
+   - Wrapped the cosmogony tab content in a `relative` container to anchor the absolute overlay
+
+3. `/home/mike-anderson/dev/cohezion/src/web/anima_dashboard/src/app/globals.css`
+   - Added `@keyframes narrationFadeIn` animation (opacity 0 + translateY 8px -> opacity 1 + translateY 0)
+
+**Transformation 4 (narration default ON):** Already correct -- `useNarration` initializes `muted` to `false`, and the button correctly shows "Narration ON" in that state.
+
+Build passed cleanly. Service restarted and running on `http://localhost:3000`.</result>
+<usage><total_tokens>64900</total_tokens><tool_uses>18</tool_uses><duration_ms>131331</duration_ms></usage>
+</task-notification>
+Full transcript available at: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/2df918cc-6005-460f-87c8-deecfc331194/tasks/a89551ed0de9d49c7.output
+
+---
+
+Sound is not pleasant.  Narration is still broken.  Don't you have a way to test these components?  What happened to TDD?
+
+---
+
+<task-notification>
+<task-id>b53r3gi2h</task-id>
+<tool-use-id>toolu_015ezKpx1QLkj8zdG8pZjoSd</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/2df918cc-6005-460f-87c8-deecfc331194/tasks/b53r3gi2h.output</output-file>
+<status>completed</status>
+<summary>Background command "Commit and push continuation" completed (exit code 0)</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/2df918cc-6005-460f-87c8-deecfc331194/tasks/b53r3gi2h.output
