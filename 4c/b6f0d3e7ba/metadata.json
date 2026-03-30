@@ -1,0 +1,34 @@
+{
+  "cli_version": "0.5.1",
+  "checkpoint_id": "4cb6f0d3e7ba",
+  "strategy": "manual-commit",
+  "branch": "challenge/nvidia-nemotron-reasoning",
+  "checkpoints_count": 3,
+  "files_touched": [
+    "PR_SUMMARY.md",
+    "PR_SUMMARY_PHASE2.md",
+    "_bmad/_config/traceability/repo_health/health_report.md",
+    "_bmad/_config/traceability/repo_health/health_report_2026-03-30T16_28_28.939560.json",
+    "_bmad/_config/traceability/repo_health/health_report_2026-03-30T16_45_03.508350.json",
+    "_bmad/_config/traceability/repo_health/health_report_2026-03-30T16_52_31.527577.json",
+    "genesis-test-1.png",
+    "kaggle-agi-benchmark/evo_hiho_benchmark.json",
+    "kaggle-agi-benchmark/generate_evo_hiho_tasks.py",
+    "src/cohezion/compound/cache_persistence.py"
+  ],
+  "sessions": [
+    {
+      "metadata": "/4c/b6f0d3e7ba/0/metadata.json",
+      "transcript": "/4c/b6f0d3e7ba/0/full.jsonl",
+      "content_hash": "/4c/b6f0d3e7ba/0/content_hash.txt",
+      "prompt": "/4c/b6f0d3e7ba/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 20504,
+    "cache_creation_tokens": 10040444,
+    "cache_read_tokens": 112619642,
+    "output_tokens": 108002,
+    "api_call_count": 298
+  }
+}
