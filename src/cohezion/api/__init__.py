@@ -1708,6 +1708,22 @@ try:
 except ImportError:
     pass  # modules API not available
 
+# Register Anima (system voice) endpoints
+try:
+    from cohezion.api.services.anima import anima_router
+
+    app.include_router(anima_router, prefix="/api/anima")
+except ImportError:
+    pass  # anima module not available
+
+# Register Architecture Graph endpoints
+try:
+    from cohezion.api.services.architecture import architecture_router
+
+    app.include_router(architecture_router, prefix="/api/architecture")
+except ImportError:
+    pass  # architecture module not available
+
 # Register telemetry websocket
 app.include_router(telemetry_router)
 

@@ -8,6 +8,7 @@ interface TriuneNavProps {
   activeMode: TriuneMode;
   onModeChange: (mode: TriuneMode) => void;
   connected: boolean;
+  simulated?: boolean;
   onAnimaClick?: () => void;
 }
 
@@ -25,6 +26,7 @@ export default function TriuneNav({
   activeMode,
   onModeChange,
   connected,
+  simulated,
   onAnimaClick,
 }: TriuneNavProps) {
   return (
@@ -97,9 +99,15 @@ export default function TriuneNav({
         <div className="flex flex-col items-end">
           <span
             className="text-[10px] font-mono font-bold tracking-widest"
-            style={{ color: connected ? "var(--hiho-glow-color)" : "#FF3B3B" }}
+            style={{
+              color: connected
+                ? "var(--hiho-glow-color)"
+                : simulated
+                  ? "#22cc66"
+                  : "#FF3B3B",
+            }}
           >
-            {connected ? "ONLINE" : "OFFLINE"}
+            {connected ? "ONLINE" : simulated ? "SIMULATED" : "OFFLINE"}
           </span>
           <span className="text-[9px] text-gray-600 font-mono">ANIMA</span>
         </div>
