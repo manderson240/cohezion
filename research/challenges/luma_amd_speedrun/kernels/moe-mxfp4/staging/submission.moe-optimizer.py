@@ -33,14 +33,17 @@ runner = CompetitionRunner()
 def custom_kernel(data):
     (
         hidden_states,
+        gate_up_weight,
+        down_weight,
+        gate_up_weight_scale,
+        down_weight_scale,
         gate_up_weight_shuffled,
         down_weight_shuffled,
         gate_up_weight_scale_shuffled,
         down_weight_scale_shuffled,
         topk_weights,
         topk_ids,
-        hidden_pad,
-        intermediate_pad,
+        config,
     ) = data
 
     if HAS_AITER:
@@ -52,12 +55,13 @@ def custom_kernel(data):
         m = hidden_states.shape[0]
         n_experts = topk_weights.shape[1]
         
+        hidden_pad = config["d_hidden_pad"] - config["d_hidden"]
+        intermediate_pad = config["d_expert_pad"] - config["d_expert"]
+        
         ksplit = 4
-        if n_experts == 33:
-            if m <= 128:
-                ksplit = 2
-            else:
-                ksplit = 0
+        # We can't actually pass ksplit to fused_moe via standard API, 
+        # it's internal. But we can set env vars.
+        # os.environ["AITER_KSPLIT"] = str(ksplit) # Known to be ignored often
                 
         output = fused_moe(
             hidden_states,
