@@ -15,7 +15,7 @@
     "gemm_breakthrough_blockscale": {
       "id": "gemm_breakthrough_blockscale",
       "strategy": "gemm_a4w4_blockscale with tuned splitK - direct ASM path",
-      "priority": 0.9,
+      "priority": 0.7,
       "parameters": {
         "approach": "blockscale_tuned",
         "note": "Try different splitK values for dominant shape M=16/N=2112/K=7168",
@@ -33,6 +33,17 @@
         "status": "research"
       },
       "notes": "GEMM long shot: Write Triton kernel with inline MXFP4 quantization."
+    },
+    "gemm_breakthrough_loadinline": {
+      "id": "gemm_breakthrough_loadinline",
+      "strategy": "load_inline custom HIP kernel - BLOCKED by runner but official template-hip.py PROVES IT WORKS",
+      "priority": 0.98,
+      "parameters": {
+        "approach": "load_inline_hip",
+        "note": "Official template-hip.py at gpu-mode/reference-kernels shows load_inline WORKS on runners!",
+        "status": "active"
+      },
+      "notes": "GEMM BREAKTHROUGH: template-hip.py proves load_inline works. Block-wise GEMM with lifted scales. Target: 1-5\u00b5s"
     }
   },
   "root_id": null
