@@ -10,9 +10,9 @@
         "note": "Official template-hip.py at gpu-mode/reference-kernels proves load_inline WORKS!"
       },
       "parent_id": null,
-      "priority": 0.95,
-      "attempts": 5,
-      "best_result_us": 150.55,
+      "priority": 1.0,
+      "attempts": 6,
+      "best_result_us": 8.36,
       "stagnation_count": 0,
       "status": "active",
       "children": [],
@@ -62,6 +62,15 @@
           },
           "timestamp": "2026-03-30T19:18:05.277987",
           "source": "template"
+        },
+        {
+          "result_us": 8.36,
+          "parameters": {
+            "approach": "load_inline_hip",
+            "note": "Official template-hip.py at gpu-mode/reference-kernels proves load_inline WORKS!"
+          },
+          "timestamp": "2026-03-30T19:22:27.298120",
+          "source": "llm"
         }
       ]
     },
