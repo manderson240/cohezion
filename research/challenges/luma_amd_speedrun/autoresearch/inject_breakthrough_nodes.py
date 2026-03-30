@@ -35,9 +35,20 @@ BREAKTHROUGH_NODES = {
                 "notes": "GEMM breakthrough: 288-byte kernel arg layout found in asm_gemm_a4w4.cu. 35 .co files at /home/runner/aiter/hsa/gfx950/f4gemm/. Blocked by 'work on another stream' error.",
             },
             {
+                "id": "gemm_breakthrough_loadinline",
+                "strategy": "load_inline custom HIP kernel - BLOCKED by runner but official template-hip.py PROVES IT WORKS",
+                "priority": 0.98,
+                "parameters": {
+                    "approach": "load_inline_hip",
+                    "note": "Official template-hip.py at gpu-mode/reference-kernels shows load_inline WORKS on runners!",
+                    "status": "active",
+                },
+                "notes": "GEMM BREAKTHROUGH: template-hip.py proves load_inline works. Block-wise GEMM with lifted scales. Target: 1-5µs",
+            },
+            {
                 "id": "gemm_breakthrough_blockscale",
                 "strategy": "gemm_a4w4_blockscale with tuned splitK - direct ASM path",
-                "priority": 0.90,
+                "priority": 0.70,
                 "parameters": {
                     "approach": "blockscale_tuned",
                     "note": "Try different splitK values for dominant shape M=16/N=2112/K=7168",
