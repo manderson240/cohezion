@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8080";
 
@@ -13,6 +13,43 @@ interface ThermodynamicData {
   susceptibility: number;
   heat_capacity: number;
   order_parameter: number;
+}
+
+// Landau parameters
+const LANDAU_A = 1.0;
+const LANDAU_B = 1.0;
+const LANDAU_TC = 10.0;
+
+/**
+ * Compute thermodynamic state from cosmogony temperature using Landau theory.
+ * F = a*(T-Tc)*phi^2 + b*phi^4
+ * phi = sqrt(a*(Tc-T)/(2*b)) if T < Tc, else 0
+ * chi = 1/(2*a*|T-Tc|) (susceptibility)
+ * S = -dF/dT approximation
+ */
+function computeLocalThermo(T: number): ThermodynamicData {
+  const orderParameter = T < LANDAU_TC
+    ? Math.sqrt(LANDAU_A * (LANDAU_TC - T) / (2 * LANDAU_B))
+    : 0;
+  const phi = orderParameter;
+  const freeEnergy = LANDAU_A * (T - LANDAU_TC) * phi * phi + LANDAU_B * phi ** 4;
+  const deltaTc = Math.abs(T - LANDAU_TC);
+  const susceptibility = deltaTc > 0.001 ? 1 / (2 * LANDAU_A * deltaTc) : 500; // cap near Tc
+  // Entropy approximation: S = -dF/dT ~ -a*phi^2 (for T < Tc)
+  const entropy = T < LANDAU_TC ? LANDAU_A * phi * phi : 0;
+  // Heat capacity: Cv ~ T * dS/dT approximation
+  const heatCapacity = T < LANDAU_TC ? LANDAU_A / (2 * LANDAU_B) : 0;
+
+  return {
+    entropy,
+    energy: freeEnergy + T * entropy,
+    free_energy: freeEnergy,
+    temperature: T,
+    entropy_production_rate: T < LANDAU_TC ? 0.01 * susceptibility : 0,
+    susceptibility,
+    heat_capacity: heatCapacity,
+    order_parameter: phi,
+  };
 }
 
 function MetricCard({
@@ -47,10 +84,15 @@ interface ThermodynamicStateLiveProps {
 export default function ThermodynamicStateLive({ className = "" }: ThermodynamicStateLiveProps) {
   const [data, setData] = useState<ThermodynamicData | null>(null);
   const [history, setHistory] = useState<ThermodynamicData[]>([]);
+  const [mode, setMode] = useState<"api" | "local">("api");
+  const fallbackTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const fetchState = useCallback(async () => {
     try {
-      const resp = await fetch(`${API_BASE}/api/metrics/unified`);
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 2000);
+      const resp = await fetch(`${API_BASE}/api/metrics/unified`, { signal: controller.signal });
+      clearTimeout(timeout);
       if (resp.ok) {
         const unified = await resp.json();
         // Extract thermodynamic-like quantities from unified metrics
@@ -65,42 +107,57 @@ export default function ThermodynamicStateLive({ className = "" }: Thermodynamic
           order_parameter: unified.cache_metrics?.hit_rate ?? 0.5,
         };
         setData(thermo);
+        setMode("api");
         setHistory((prev) => [...prev.slice(-50), thermo]);
+        return;
       }
     } catch {
-      // Fallback data
-      const thermo: ThermodynamicData = {
-        entropy: 1.23,
-        energy: -0.45,
-        free_energy: -1.68,
-        temperature: 0.72,
-        entropy_production_rate: 0.034,
-        susceptibility: 2.15,
-        heat_capacity: 0.89,
-        order_parameter: 0.462,
-      };
-      setData(thermo);
-      setHistory((prev) => [...prev.slice(-50), thermo]);
+      // Fall through to local computation
     }
+    // Local computation mode (Landau theory, default T=200)
+    const thermo = computeLocalThermo(200);
+    setData(thermo);
+    setMode("local");
+    setHistory((prev) => [...prev.slice(-50), thermo]);
   }, []);
 
   useEffect(() => {
+    // Start a 2-second fallback timer — if fetch hasn't resolved, switch to local
+    fallbackTimer.current = setTimeout(() => {
+      if (!data) {
+        const thermo = computeLocalThermo(200);
+        setData(thermo);
+        setMode("local");
+        setHistory([thermo]);
+      }
+    }, 2000);
+
     fetchState();
     const interval = setInterval(fetchState, 5000);
-    return () => clearInterval(interval);
-  }, [fetchState]);
+    return () => {
+      clearInterval(interval);
+      if (fallbackTimer.current) clearTimeout(fallbackTimer.current);
+    };
+  }, [fetchState, data]);
 
   if (!data) {
     return (
       <div className={`bg-black/90 border border-gray-700 rounded-lg p-4 ${className}`}>
-        <div className="text-gray-500 text-xs font-mono animate-pulse">Loading thermodynamic state...</div>
+        <div className="text-gray-500 text-xs font-mono animate-pulse">Connecting to API... (local fallback in 2s)</div>
       </div>
     );
   }
 
   return (
     <div className={`bg-black/90 border border-gray-700 rounded-lg p-4 font-mono ${className}`}>
-      <h3 className="text-sm text-green-400 font-bold mb-3">Thermodynamic State (Live)</h3>
+      <div className="flex items-center justify-between mb-3">
+        <h3 className="text-sm text-green-400 font-bold">Thermodynamic State {mode === "local" ? "(Local Computation)" : "(Live)"}</h3>
+        {mode === "local" && (
+          <span className="text-[9px] px-2 py-0.5 bg-amber-500/20 text-amber-400 rounded border border-amber-500/30">
+            Landau Model (T={data.temperature.toFixed(0)})
+          </span>
+        )}
+      </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
         <MetricCard
@@ -108,7 +165,7 @@ export default function ThermodynamicStateLive({ className = "" }: Thermodynamic
           value={data.entropy}
           unit="nats"
           color="#22d3ee"
-          description="Shannon entropy of action distribution"
+          description={mode === "local" ? "S = -dF/dT (Landau)" : "Shannon entropy of action distribution"}
         />
         <MetricCard
           label="Free Energy F"

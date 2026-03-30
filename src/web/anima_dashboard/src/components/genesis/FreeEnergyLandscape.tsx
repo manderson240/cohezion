@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8080";
 
@@ -32,47 +32,105 @@ export default function FreeEnergyLandscape({
   className = "",
 }: FreeEnergyLandscapeProps) {
   const [data, setData] = useState<LandscapeData | null>(null);
+  const [mode, setMode] = useState<"api" | "local">("api");
+  const fallbackTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const generateLocalLandscape = useCallback((): LandscapeData => {
+    const n = 150;
+    const a = 1.0;
+    const b = 1.0;
+    const Tc = 10.0;
+    const temps = Array.from({ length: n }, (_, i) => 0.001 + (i / (n - 1)) * 200);
+    const freeEnergies = temps.map((T) => {
+      // Landau: F = a*(T-Tc)*phi^2 + b*phi^4, phi = sqrt(a*(Tc-T)/(2b)) for T<Tc
+      if (T < Tc) {
+        const phi = Math.sqrt(a * (Tc - T) / (2 * b));
+        return a * (T - Tc) * phi * phi + b * phi ** 4;
+      }
+      return 0;
+    });
+    const susceptibilities = temps.map((T) => {
+      const delta = Math.abs(T - Tc);
+      return delta > 0.001 ? 1 / (2 * a * delta) : 500;
+    });
+    return {
+      temperatures: temps,
+      free_energies: freeEnergies,
+      susceptibilities,
+      critical_temperatures: [100, 10, 1, 0.1, 0.01],
+    };
+  }, []);
 
   const fetchLandscape = useCallback(async () => {
     try {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 2000);
       const resp = await fetch(
-        `${API_BASE}/api/genesis/cosmogony/free-energy-landscape?n_points=150`
+        `${API_BASE}/api/genesis/cosmogony/free-energy-landscape?n_points=150`,
+        { signal: controller.signal }
       );
-      if (resp.ok) setData(await resp.json());
+      clearTimeout(timeout);
+      if (resp.ok) {
+        setData(await resp.json());
+        setMode("api");
+        return;
+      }
     } catch {
-      // Generate fallback data locally
-      const n = 150;
-      const temps = Array.from({ length: n }, (_, i) => 0.001 + (i / (n - 1)) * 200);
-      const freeEnergies = temps.map((T) => {
-        let F = 0;
-        for (const Tc of [100, 10, 1, 0.1, 0.01]) {
-          if (T < Tc) {
-            const phi = Math.sqrt(Math.max(Tc - T, 0));
-            F += -(Tc - T) * phi * phi + 0.5 * phi ** 4;
-          }
-        }
-        return F;
-      });
-      setData({
-        temperatures: temps,
-        free_energies: freeEnergies,
-        susceptibilities: temps.map(() => 0),
-        critical_temperatures: [100, 10, 1, 0.1, 0.01],
-      });
+      // Fall through to local computation
     }
-  }, []);
+    setData(generateLocalLandscape());
+    setMode("local");
+  }, [generateLocalLandscape]);
 
   useEffect(() => {
+    // 2-second fallback timer
+    fallbackTimer.current = setTimeout(() => {
+      if (!data) {
+        setData(generateLocalLandscape());
+        setMode("local");
+      }
+    }, 2000);
+
     fetchLandscape();
-  }, [fetchLandscape]);
+    return () => {
+      if (fallbackTimer.current) clearTimeout(fallbackTimer.current);
+    };
+  }, [fetchLandscape, generateLocalLandscape, data]);
 
   if (!data) {
     return (
       <div className={`bg-black/90 border border-gray-700 rounded-lg p-4 ${className}`}>
-        <div className="text-gray-500 text-xs font-mono animate-pulse">Loading landscape...</div>
+        <div className="text-gray-500 text-xs font-mono animate-pulse">Connecting to API... (local fallback in 2s)</div>
       </div>
     );
   }
+
+  // --- Free Energy F(phi) curve for current temperature (SVG) ---
+  const LANDAU_A = 1.0;
+  const LANDAU_B = 1.0;
+  const LANDAU_TC = 10.0;
+  const phiRange = 20; // -phiRange/2 to +phiRange/2
+  const nPhi = 100;
+  const fPhiPoints: { phi: number; F: number }[] = [];
+  for (let i = 0; i <= nPhi; i++) {
+    const phi = -phiRange / 2 + (i / nPhi) * phiRange;
+    const F = LANDAU_A * (currentTemperature - LANDAU_TC) * phi * phi + LANDAU_B * phi ** 4;
+    fPhiPoints.push({ phi, F });
+  }
+  // Scale for F(phi) SVG
+  const fPhiW = 300;
+  const fPhiH = 180;
+  const fPhiPad = 30;
+  const minPhi = -phiRange / 2;
+  const maxPhi = phiRange / 2;
+  const minFPhi = Math.min(...fPhiPoints.map((p) => p.F));
+  const maxFPhi = Math.max(...fPhiPoints.map((p) => p.F));
+  const rangeFPhi = maxFPhi - minFPhi || 1;
+  const toPhiX = (p: number) => fPhiPad + ((p - minPhi) / (maxPhi - minPhi)) * (fPhiW - 2 * fPhiPad);
+  const toPhiY = (f: number) => fPhiPad + (1 - (f - minFPhi) / rangeFPhi) * (fPhiH - 2 * fPhiPad);
+  const fPhiPath = fPhiPoints
+    .map((p, i) => `${i === 0 ? "M" : "L"} ${toPhiX(p.phi).toFixed(1)} ${toPhiY(p.F).toFixed(1)}`)
+    .join(" ");
 
   // SVG chart dimensions
   const W = 600;
@@ -112,7 +170,14 @@ export default function FreeEnergyLandscape({
 
   return (
     <div className={`bg-black/90 border border-gray-700 rounded-lg p-4 font-mono ${className}`}>
-      <h3 className="text-sm text-green-400 font-bold mb-2">Landau Free Energy F(T)</h3>
+      <div className="flex items-center justify-between mb-2">
+        <h3 className="text-sm text-green-400 font-bold">Landau Free Energy F(T)</h3>
+        {mode === "local" && (
+          <span className="text-[9px] px-2 py-0.5 bg-amber-500/20 text-amber-400 rounded border border-amber-500/30">
+            Local Computation
+          </span>
+        )}
+      </div>
 
       <svg viewBox={`0 0 ${W} ${H}`} className="w-full" preserveAspectRatio="xMidYMid meet">
         {/* Background */}
@@ -197,6 +262,42 @@ export default function FreeEnergyLandscape({
             )
           ]?.toFixed(4) ?? "—"
         }
+      </div>
+
+      {/* F(phi) quartic curve for current temperature */}
+      <div className="mt-4 pt-3 border-t border-gray-800">
+        <h4 className="text-[11px] text-cyan-400 font-bold mb-2">
+          F(phi) at T = {currentTemperature.toFixed(2)} — HIHO Well
+        </h4>
+        <svg viewBox={`0 0 ${fPhiW} ${fPhiH}`} className="w-full max-w-[400px]" preserveAspectRatio="xMidYMid meet">
+          <rect x={fPhiPad} y={fPhiPad} width={fPhiW - 2 * fPhiPad} height={fPhiH - 2 * fPhiPad} fill="#0a0a1a" rx={4} />
+          {/* Zero line */}
+          <line
+            x1={fPhiPad} y1={toPhiY(0)} x2={fPhiW - fPhiPad} y2={toPhiY(0)}
+            stroke="#333" strokeWidth={0.5} strokeDasharray="4,4"
+          />
+          {/* F(phi) curve */}
+          <path d={fPhiPath} fill="none" stroke="#10b981" strokeWidth={2} />
+          {/* phi=0 vertical marker */}
+          <line
+            x1={toPhiX(0)} y1={fPhiPad} x2={toPhiX(0)} y2={fPhiH - fPhiPad}
+            stroke="#555" strokeWidth={0.5} strokeDasharray="2,2"
+          />
+          {/* Axes labels */}
+          <text x={fPhiW / 2} y={fPhiH - 4} fill="#666" fontSize={9} textAnchor="middle">phi (order parameter)</text>
+          <text x={8} y={fPhiH / 2} fill="#666" fontSize={9} textAnchor="middle" transform={`rotate(-90, 8, ${fPhiH / 2})`}>F(phi)</text>
+          {/* HIHO annotation */}
+          {currentTemperature < LANDAU_TC && (
+            <text x={fPhiW / 2} y={fPhiPad + 12} fill="#10b981" fontSize={8} textAnchor="middle">
+              Double well: symmetry broken (T &lt; Tc={LANDAU_TC})
+            </text>
+          )}
+          {currentTemperature >= LANDAU_TC && (
+            <text x={fPhiW / 2} y={fPhiPad + 12} fill="#fbbf24" fontSize={8} textAnchor="middle">
+              Single well: symmetric phase (T &gt;= Tc={LANDAU_TC})
+            </text>
+          )}
+        </svg>
       </div>
     </div>
   );
