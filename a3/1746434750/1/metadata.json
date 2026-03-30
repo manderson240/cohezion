@@ -1,0 +1,45 @@
+{
+  "cli_version": "0.5.1",
+  "checkpoint_id": "a31746434750",
+  "session_id": "2df918cc-6005-460f-87c8-deecfc331194",
+  "strategy": "manual-commit",
+  "created_at": "2026-03-30T17:42:26.968785242Z",
+  "branch": "main",
+  "checkpoints_count": 3,
+  "files_touched": [
+    "_bmad/_config/traceability/repo_health/health_report.md",
+    "_bmad/_config/traceability/repo_health/health_report_2026-03-30T10_54_58.940159.json",
+    "docs/plans/2026-03-30-zazzy-snuggling-corbato.md",
+    "genesis-after-fix.png",
+    "genesis-compound.png",
+    "genesis-spin.png",
+    "genesis-swarm.png",
+    "genesis-thermo.png",
+    "portfolio.png",
+    "src/web/anima_dashboard/src/app/portfolio/page.tsx"
+  ],
+  "agent": "Claude Code",
+  "model": "claude-opus-4-6[1m]",
+  "turn_id": "45e4a70d996c",
+  "checkpoint_transcript_start": 1654,
+  "transcript_lines_at_start": 1654,
+  "token_usage": {
+    "input_tokens": 80,
+    "cache_creation_tokens": 1668092,
+    "cache_read_tokens": 14541657,
+    "output_tokens": 6083,
+    "api_call_count": 30
+  },
+  "session_metrics": {
+    "turn_count": 23
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-03-30T17:42:25.2859903Z",
+    "agent_lines": 3583,
+    "human_added": 340,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 3923,
+    "agent_percentage": 91.3331633953607
+  }
+}
