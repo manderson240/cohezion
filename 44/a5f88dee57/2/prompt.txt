@@ -1,0 +1,93 @@
+<task-notification>
+<task-id>b1n039u13</task-id>
+<tool-use-id>toolu_01KKuch56E8gzRz88XUigoRH</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/7811d063-f780-4a33-bf06-f7fd845739f9/tasks/b1n039u13.output</output-file>
+<status>killed</status>
+<summary>Background command "uv run pytest tests/ -q --tb=no 2&gt;&amp;1 | tail -20" was stopped</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/7811d063-f780-4a33-bf06-f7fd845739f9/tasks/b1n039u13.output
+
+---
+
+/retrospect
+
+---
+
+Let's fix everything
+
+---
+
+Where do go next?
+
+---
+
+<task-notification>
+<task-id>b2somg8ha</task-id>
+<tool-use-id>toolu_01GuXKaagh8hLefetsA2g4GE</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/7811d063-f780-4a33-bf06-f7fd845739f9/tasks/b2somg8ha.output</output-file>
+<status>killed</status>
+<summary>Background command "find src/cohezion -name "*.py" -not -name "__init__.py" -not -path "*__pycache__*" | while read f; do lines=$(wc -l &lt; "$f"); coverage=$(uv run pytest tests/ -q --cov=src --cov-report=term:skip-covered 2&gt;&amp;1 | grep -F "$f" | awk '{print $(NF-1)}' | head -1); [ -z "$coverage" ] &amp;&amp; coverage="0%" || true; echo "$lines $coverage $f"; done 2&gt;/dev/null | sort -rn | head -25" was stopped</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/7811d063-f780-4a33-bf06-f7fd845739f9/tasks/b2somg8ha.output
+
+---
+
+<task-notification>
+<task-id>bepbzg9tl</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/7811d063-f780-4a33-bf06-f7fd845739f9/tasks/bepbzg9tl.output</output-file>
+<status>killed</status>
+<summary>Background command "cat &gt; /tmp/analyze_coverage.py &lt;&lt; 'PYEOF'
+import subprocess
+import sys
+
+# Run pytest with coverage and capture output
+result = subprocess.run(
+    ["uv", "run", "pytest", "tests/", "-q", "--cov=src", "--cov-report=term-missing"],
+    capture_output=True,
+    text=True,
+    cwd="/home/mike-anderson/dev/cohezion"
+)
+
+lines = result.stdout.split('\n') + result.stderr.split('\n')
+
+# Parse coverage lines
+zero_coverage = []
+low_coverage = {}
+
+for line in lines:
+    if '/' in line and '%' in line:
+        parts = line.split()
+        if len(parts) &gt;= 3:
+            try:
+                # Format: path stmts miss coverage% ...
+                coverage_idx = -1
+                for i, p in enumerate(parts):
+                    if p.endswith('%'):
+                        coverage_idx = i
+                        pct = int(p.rstrip('%'))
+                        path = parts[0]
+                        if pct == 0:
+                            zero_coverage.append(path)
+                        elif pct &lt; 20:
+                            low_coverage[path] = pct
+                        break
+            except (ValueError, IndexError):
+                pass
+
+print("ZERO COVERAGE FILES:")
+for p in sorted(zero_coverage)[:20]:
+    print(f"  {p}")
+
+print(f"\nLOW COVERAGE (&lt;20%): {len(low_coverage)} files")
+for p, pct in sorted(low_coverage.items(), key=lambda x: x[1])[:20]:
+    print(f"  {p}: {pct}%")
+PYEOF
+python3 /tmp/analyze_coverage.py
+" was stopped</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/7811d063-f780-4a33-bf06-f7fd845739f9/tasks/bepbzg9tl.output
+
+---
+
+Finish all remaining tasks
