@@ -399,3 +399,63 @@ All files pass `ruff check` and `ruff format`, and imports resolve correctly.</r
 <usage><total_tokens>83359</total_tokens><tool_uses>35</tool_uses><duration_ms>400989</duration_ms></usage>
 </task-notification>
 Full transcript available at: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/2df918cc-6005-460f-87c8-deecfc331194/tasks/a27af23046ab2e16b.output
+
+---
+
+<task-notification>
+<task-id>aeb3b319df04a7338</task-id>
+<tool-use-id>toolu_01ViRypyQHfPFR3bVRBSQ3yg</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/2df918cc-6005-460f-87c8-deecfc331194/tasks/aeb3b319df04a7338.output</output-file>
+<status>completed</status>
+<summary>Agent "Fix webapp backend integration" completed</summary>
+<result>All tasks complete. Here is a summary of what was done:
+
+---
+
+## Summary
+
+### Task 1: Port Configuration
+- **File:** `/home/mike-anderson/dev/cohezion/src/web/anima_dashboard/.env.local`
+- Changed `NEXT_PUBLIC_API_URL` from port 8888 to 8080.
+
+### Task 2: Mount Missing API Routers
+- **File:** `/home/mike-anderson/dev/cohezion/src/cohezion/api/__init__.py`
+- Added `anima_router` (from `cohezion.api.services.anima`) at prefix `/api/anima`
+- Added `architecture_router` (from `cohezion.api.services.architecture`) at prefix `/api/architecture`
+- Both wrapped in try/except ImportError to match the existing pattern.
+
+### Task 3: FastAPI Systemd Service
+- **File:** `/etc/systemd/system/cohezion-api.service`
+- Created and enabled (but not started) the systemd service for the FastAPI backend on port 8080.
+
+### Task 4: Client-Side Fallback Physics
+
+**4a. `useUniverseStream.ts`** (`/home/mike-anderson/dev/cohezion/src/web/anima_dashboard/src/hooks/useUniverseStream.ts`):
+- Added `createFallbackTick()` function that generates local physics: coherence drift toward HIHO 0.5 with noise, simple CA grid with random cell flips, and 3-5 mock EVO states with wandering positions.
+- On SSE connection error, starts a 100ms interval running the local physics sim. Stops automatically when the real backend reconnects.
+
+**4b. `useAnima.ts`** (`/home/mike-anderson/dev/cohezion/src/web/anima_dashboard/src/hooks/useAnima.ts`):
+- On failed `/api/anima/status` fetch, sets status to `{ tier: "simulated", online: false, mcp_available: false, voice_available: false }`.
+
+**UI update** (`/home/mike-anderson/dev/cohezion/src/web/anima_dashboard/src/components/TriuneNav.tsx` and `/home/mike-anderson/dev/cohezion/src/web/anima_dashboard/src/app/page.tsx`):
+- Added `simulated` prop to TriuneNav. When disconnected but simulated, shows "SIMULATED" in green (#22cc66) instead of "OFFLINE" in red.
+
+**4c. Genesis Cosmogony** (`/home/mike-anderson/dev/cohezion/src/web/anima_dashboard/src/components/genesis/GenesisScene.tsx` and `/home/mike-anderson/dev/cohezion/src/web/anima_dashboard/src/hooks/useCosmogony.ts`):
+- Added full Landau free energy computation: `orderParameter = sqrt(a*(T_c - T)/(2*b))` when T < T_c, else 0.
+- Computes Fisher information eigenvalue (peaks near critical temperature), builds transition list, and populates all cosmogony fields.
+- Temperature slider wires directly to local state when API is unreachable.
+
+**4d. SPIN Lab** (`/home/mike-anderson/dev/cohezion/src/web/anima_dashboard/src/components/genesis/BlochSphere.tsx`):
+- Already had a try/catch with local Bloch vector computation in the `fetchSpinor` callback. No changes needed.
+
+### Task 5: Next.js Rebuild
+- Built successfully with `npm run build` (Turbopack, 7 static pages).
+- Restarted `cohezion-genesis` service (running and healthy).
+
+### Task 6: Reverse Proxy Configuration
+- Updated `/etc/caddy/Caddyfile` with `/api/*` proxy to `localhost:8080`.
+- Since Tailscale Serve/Funnel is the actual live reverse proxy (Caddy has a pre-existing port 443 conflict with Tailscale), also configured Tailscale Serve to proxy `/api` to `http://127.0.0.1:8080` alongside the existing `/` to `http://127.0.0.1:3000`.
+- Stopped the conflicting Caddy service.</result>
+<usage><total_tokens>109891</total_tokens><tool_uses>59</tool_uses><duration_ms>577269</duration_ms></usage>
+</task-notification>
+Full transcript available at: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/2df918cc-6005-460f-87c8-deecfc331194/tasks/aeb3b319df04a7338.output
