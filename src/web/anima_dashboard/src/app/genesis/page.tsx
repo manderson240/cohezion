@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import dynamic from "next/dynamic";
 import { useSonification, type PhysicsState } from "@/hooks/useSonification";
 import { useNarration } from "@/hooks/useNarration";
@@ -92,6 +92,23 @@ export default function GenesisPage() {
     }
     prevSymRef.current = s.symmetry;
   }, [cosmogony.state, sonification, narration]);
+
+  // --- Cinematic sonification callbacks for GenesisScene ---
+  const handleVoidStart = useCallback(() => {
+    sonification.startVoidDrone();
+  }, [sonification]);
+
+  const handleExplosion = useCallback(() => {
+    sonification.triggerExplosion();
+  }, [sonification]);
+
+  const handleFabricSplit = useCallback(() => {
+    sonification.startFabricChord();
+  }, [sonification]);
+
+  const handleSettle = useCallback(() => {
+    sonification.settleToSustainedPad();
+  }, [sonification]);
 
   const tabs: { key: GenesisTab; label: string; desc: string }[] = [
     { key: "cosmogony", label: "Genesis", desc: "From Nothing to Everything" },
@@ -202,7 +219,12 @@ export default function GenesisPage() {
       <main className="p-6 max-w-[1920px] mx-auto">
         {tab === "cosmogony" && (
           <div className="grid grid-cols-1 lg:grid-cols-[1fr_280px] gap-6">
-            <GenesisScene />
+            <GenesisScene
+              onVoidStart={handleVoidStart}
+              onExplosion={handleExplosion}
+              onFabricSplit={handleFabricSplit}
+              onSettle={handleSettle}
+            />
             <CosmogonyTimeline
               currentStage={cosmogony.state?.stage ?? -1}
               currentTemperature={cosmogony.state?.temperature ?? 200}
