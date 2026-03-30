@@ -63,6 +63,7 @@ export default function GenesisPage() {
   const sonification = useSonification();
   const narration = useNarration();
   const cosmogony = useCosmogony();
+  const [hasStarted, setHasStarted] = useState(false);
 
   // Wire cosmogony state changes into sonification
   const prevSymRef = React.useRef<string>("");
@@ -100,6 +101,7 @@ export default function GenesisPage() {
 
   const handleExplosion = useCallback(() => {
     sonification.triggerExplosion();
+    setHasStarted(true);
   }, [sonification]);
 
   const handleFabricSplit = useCallback(() => {
@@ -109,6 +111,19 @@ export default function GenesisPage() {
   const handleSettle = useCallback(() => {
     sonification.settleToSustainedPad();
   }, [sonification]);
+
+  // Trigger void narration when Genesis tab first loads
+  const voidNarratedRef = useRef(false);
+  useEffect(() => {
+    if (tab === "cosmogony" && !narration.muted && !voidNarratedRef.current) {
+      voidNarratedRef.current = true;
+      // Small delay to let the scene render first
+      const timer = setTimeout(() => {
+        narration.narrateStage("void");
+      }, 1500);
+      return () => clearTimeout(timer);
+    }
+  }, [tab, narration]);
 
   const tabs: { key: GenesisTab; label: string; desc: string }[] = [
     { key: "cosmogony", label: "Genesis", desc: "From Nothing to Everything" },
@@ -219,10 +234,18 @@ export default function GenesisPage() {
                 onFabricSplit={handleFabricSplit}
                 onSettle={handleSettle}
               />
-              <CosmogonyTimeline
-                currentStage={cosmogony.state?.stage ?? -1}
-                currentTemperature={cosmogony.state?.temperature ?? 200}
-              />
+              <div
+                style={{
+                  opacity: hasStarted ? 1 : 0,
+                  transition: "opacity 2s ease-in",
+                  pointerEvents: hasStarted ? "auto" : "none",
+                }}
+              >
+                <CosmogonyTimeline
+                  currentStage={cosmogony.state?.stage ?? -1}
+                  currentTemperature={cosmogony.state?.temperature ?? 200}
+                />
+              </div>
             </div>
 
             {/* Cinematic narration overlay — positioned over the 3D scene */}
