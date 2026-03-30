@@ -1,0 +1,23 @@
+{
+  "cli_version": "0.5.1",
+  "checkpoint_id": "d3d705d4f1ac",
+  "strategy": "manual-commit",
+  "branch": "challenge/nvidia-nemotron-reasoning",
+  "checkpoints_count": 1,
+  "files_touched": null,
+  "sessions": [
+    {
+      "metadata": "/d3/d705d4f1ac/0/metadata.json",
+      "transcript": "/d3/d705d4f1ac/0/full.jsonl",
+      "content_hash": "/d3/d705d4f1ac/0/content_hash.txt",
+      "prompt": "/d3/d705d4f1ac/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 3256,
+    "cache_creation_tokens": 1979930,
+    "cache_read_tokens": 27368538,
+    "output_tokens": 73688,
+    "api_call_count": 153
+  }
+}
