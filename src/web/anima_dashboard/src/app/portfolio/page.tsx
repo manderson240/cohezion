@@ -161,7 +161,7 @@ export default function PortfolioPage() {
               <Link href="#pillars" className="text-sm font-mono text-gray-400 hover:text-white transition-colors">
                 PORTFOLIO
               </Link>
-              <a href="https://github.com/mike-anderson/cohezion" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white transition-colors" title="GitHub Repository">
+              <a href="https://github.com/manderson240/cohezion" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white transition-colors" title="GitHub Repository">
                 <Github className="w-5 h-5" />
               </a>
             </div>
@@ -333,14 +333,14 @@ export default function PortfolioPage() {
 
               <div className="flex gap-6">
                 <a
-                  href="mailto:contact@cohezion.dev"
+                  href="mailto:manderson240@gmail.com"
                   className="flex items-center gap-2 px-6 py-3 bg-white/10 hover:bg-white/20 border border-white/20 rounded-xl transition-all"
                 >
                   <Mail className="w-5 h-5" />
                   <span className="font-mono text-sm">EMAIL</span>
                 </a>
                 <a
-                  href="https://linkedin.com/in/mike-anderson-cohezion"
+                  href="https://linkedin.com/in/manderson240"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center gap-2 px-6 py-3 bg-white/10 hover:bg-white/20 border border-white/20 rounded-xl transition-all"
@@ -349,7 +349,7 @@ export default function PortfolioPage() {
                   <span className="font-mono text-sm">LINKEDIN</span>
                 </a>
                 <a
-                  href="https://github.com/mike-anderson/cohezion"
+                  href="https://github.com/manderson240/cohezion"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center gap-2 px-6 py-3 bg-white/10 hover:bg-white/20 border border-white/20 rounded-xl transition-all"

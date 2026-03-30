@@ -348,13 +348,49 @@ export default function GenesisScene() {
     fetchState(200.0);
   }, [fetchState]);
 
+  // Animation state for the cosmogonic cooling sequence
+  const animFrameRef = useRef<number | null>(null);
+  const animStartRef = useRef<number>(0);
+  const ANIM_DURATION = 10000; // 10 seconds
+  const TEMP_START = 200;
+  const TEMP_END = 0.01;
+
   // The first interaction IS the first distinction — "It from Bit"
+  // On click, begin a 10-second cooling animation from T=200 down to T=0.01
   const handleFirstInteraction = useCallback(() => {
     if (!hasInteracted) {
       setHasInteracted(true);
-      setTemperature(99.0); // Drop below T_c0 to trigger void→SO(12)
+
+      // Start the animation loop
+      animStartRef.current = performance.now();
+
+      const animate = (now: number) => {
+        const elapsed = now - animStartRef.current;
+        const progress = Math.min(elapsed / ANIM_DURATION, 1.0);
+        // Exponential cooling: T = T_start * (T_end/T_start)^progress
+        // This gives more time at high T and rapid descent at low T
+        const newTemp = TEMP_START * Math.pow(TEMP_END / TEMP_START, progress);
+        setTemperature(newTemp);
+
+        if (progress < 1.0) {
+          animFrameRef.current = requestAnimationFrame(animate);
+        } else {
+          animFrameRef.current = null;
+        }
+      };
+
+      animFrameRef.current = requestAnimationFrame(animate);
     }
   }, [hasInteracted]);
+
+  // Cleanup animation on unmount
+  useEffect(() => {
+    return () => {
+      if (animFrameRef.current !== null) {
+        cancelAnimationFrame(animFrameRef.current);
+      }
+    };
+  }, []);
 
   const narrative = NARRATIVES[symmetry] ?? "";
 

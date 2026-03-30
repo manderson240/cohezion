@@ -29,6 +29,7 @@ interface FlumeLatentVizProps {
 export default function FlumeLatentViz({ className = "" }: FlumeLatentVizProps) {
   const [points, setPoints] = useState<LatentPoint[]>([]);
   const [infoContent, setInfoContent] = useState<number>(0);
+  const [isSimulated, setIsSimulated] = useState(false);
 
   const fetchLatentSpace = useCallback(async () => {
     try {
@@ -49,29 +50,40 @@ export default function FlumeLatentViz({ className = "" }: FlumeLatentVizProps) 
               label: `sample_${i}`,
             }))
           );
+          setIsSimulated(false);
         }
       }
     } catch {
-      // Generate synthetic latent points for demo
+      // Generate 50 synthetic 3D points across 4 clusters
       const rng = mulberry32(42);
+      const sigma = 0.5;
       const synth: LatentPoint[] = [];
-      // Three clusters in latent space
-      const centers = [
-        { x: -1, y: 0.5, z: 0 },
-        { x: 1, y: -0.5, z: 0.5 },
-        { x: 0, y: 0, z: -1 },
+      const clusters: { center: [number, number, number]; coherence: number; label: string }[] = [
+        { center: [2, 1, 0], coherence: 0.9, label: "exploit" },
+        { center: [-1, 2, 1], coherence: 0.7, label: "explore" },
+        { center: [0, -2, 2], coherence: 0.4, label: "pivot" },
+        { center: [1, 0, -1], coherence: 0.6, label: "mixed" },
       ];
-      for (let i = 0; i < 60; i++) {
-        const c = centers[i % 3];
-        synth.push({
-          x: c.x + (rng() - 0.5) * 0.6,
-          y: c.y + (rng() - 0.5) * 0.6,
-          z: c.z + (rng() - 0.5) * 0.6,
-          coherence: 0.3 + rng() * 0.7,
-          label: `journey_${i}`,
-        });
+      // 13 + 13 + 12 + 12 = 50 points
+      const perCluster = [13, 13, 12, 12];
+      for (let ci = 0; ci < clusters.length; ci++) {
+        const { center, coherence, label } = clusters[ci];
+        for (let j = 0; j < perCluster[ci]; j++) {
+          // Box-Muller approximation for Gaussian noise
+          const gx = (rng() + rng() + rng() - 1.5) * sigma * 1.15;
+          const gy = (rng() + rng() + rng() - 1.5) * sigma * 1.15;
+          const gz = (rng() + rng() + rng() - 1.5) * sigma * 1.15;
+          synth.push({
+            x: center[0] + gx,
+            y: center[1] + gy,
+            z: center[2] + gz,
+            coherence: Math.max(0, Math.min(1, coherence + (rng() - 0.5) * 0.1)),
+            label: `${label}_${j}`,
+          });
+        }
       }
       setPoints(synth);
+      setIsSimulated(true);
       setInfoContent(0.87);
     }
   }, []);
@@ -107,7 +119,9 @@ export default function FlumeLatentViz({ className = "" }: FlumeLatentVizProps) 
     <div className={`bg-black/90 border border-gray-700 rounded-lg p-4 font-mono ${className}`}>
       <div className="flex items-center justify-between mb-3">
         <h3 className="text-sm text-green-400 font-bold">FLUME Latent Space (256D → 3D)</h3>
-        <span className="text-[10px] text-gray-500">{points.length} points</span>
+        <span className="text-[10px] text-gray-500">
+          {points.length} points{isSimulated ? " (simulated)" : ""}
+        </span>
       </div>
 
       {/* SVG scatter plot */}
