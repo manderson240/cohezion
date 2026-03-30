@@ -68,11 +68,22 @@ async def generate_batch(num_tasks: int = 5):
             async def real_execute(*args, i=i, **kwargs):
                 client = get_compound_client()
                 # Using reasoning model for task generation as per AGENTS.md
-                response_text, _tokens = await client.generate(
+                response = await client.generate(
                     prompt=GENERATION_PROMPT,
-                    model="minimax-m2.7:cloud",
+                    task_type="complex_reasoning",
                     system="You are an expert AGI benchmark architect. Output ONLY valid JSON.",
                 )
+                
+                # Check if response is a tuple or object
+                if isinstance(response, tuple):
+                    response_text = response[0]
+                elif hasattr(response, "text"):
+                    response_text = response.text
+                else:
+                    response_text = str(response)
+                
+                print(f"DEBUG RAW RESPONSE: {response_text}")
+
                 try:
                     # Look for JSON block in markdown
                     match = re.search(r"```json\s*(.*?)\s*```", response_text, re.DOTALL)
