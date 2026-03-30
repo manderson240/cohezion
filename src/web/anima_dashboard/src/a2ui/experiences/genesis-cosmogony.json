@@ -1,0 +1,151 @@
+{
+  "$schema": "https://a2ui.org/specification/v0_9/experience_schema.json",
+  "experienceId": "genesis-cosmogony",
+  "version": "1.0.0",
+  "catalogRef": "../catalog.json",
+  "description": "The Genesis Cosmogony — from Brahmagupta's void to HIHO equilibrium via symmetry breaking",
+  "dataModel": {
+    "temperature": { "type": "number", "initial": 200 },
+    "symmetry": { "type": "string", "initial": "void" },
+    "stage": { "type": "integer", "initial": -1 },
+    "hasInteracted": { "type": "boolean", "initial": false },
+    "animElapsed": { "type": "number", "initial": 0 },
+    "coherence": { "type": "number", "initial": 0 },
+    "orderParameter": { "type": "number", "initial": 0 }
+  },
+  "scenes": [
+    {
+      "id": "void",
+      "description": "The primordial void — before the first distinction",
+      "duration": null,
+      "trigger": { "type": "click", "target": "void-sphere" },
+      "entryNarration": "In the beginning, there was nothing. Not even nothing.",
+      "components": [
+        {
+          "id": "void-sphere",
+          "component": "cohezion-void-sphere",
+          "scale": 0.055,
+          "dustCount": 100,
+          "showClickPrompt": true
+        },
+        {
+          "id": "void-narration",
+          "component": "cohezion-narration",
+          "text": "In the beginning, there was nothing. Not even nothing.",
+          "style": "cinematic",
+          "ttsEnabled": true
+        },
+        {
+          "id": "void-sound",
+          "component": "cohezion-sound-engine",
+          "phase": "void-drone",
+          "muted": true
+        }
+      ]
+    },
+    {
+      "id": "explosion",
+      "description": "The first distinction — SO(12) symmetric vacuum crystallizes",
+      "duration": 2000,
+      "transition": { "from": "void", "auto": true },
+      "entryNarration": "From the void, symmetry crystallizes. Twelve dimensions, all equivalent.",
+      "components": [
+        {
+          "id": "explosion-particles",
+          "component": "cohezion-explosion",
+          "phase": "exploding",
+          "particleCount": 500
+        },
+        {
+          "id": "explosion-sound",
+          "component": "cohezion-sound-engine",
+          "phase": "explosion"
+        },
+        {
+          "id": "explosion-narration",
+          "component": "cohezion-narration",
+          "text": "From the first observation, symmetry crystallized. Twelve dimensions, all equivalent."
+        }
+      ]
+    },
+    {
+      "id": "fabric-differentiation",
+      "description": "The four fabrics separate — SO(3)⁴",
+      "duration": 3000,
+      "transition": { "from": "explosion", "auto": true },
+      "entryNarration": "The fabrics separated. Space. Field. Control. Precipitation.",
+      "components": [
+        {
+          "id": "differentiating-particles",
+          "component": "cohezion-explosion",
+          "phase": "differentiating"
+        },
+        {
+          "id": "fabric-sound",
+          "component": "cohezion-sound-engine",
+          "phase": "fabric-chord"
+        }
+      ]
+    },
+    {
+      "id": "settling",
+      "description": "Axis selection and SPIN discretization — settling toward HIHO",
+      "duration": 5000,
+      "transition": { "from": "fabric-differentiation", "auto": true },
+      "entryNarration": "At the still point, the dance began. Half in, half out. The balance that creates.",
+      "components": [
+        {
+          "id": "settling-particles",
+          "component": "cohezion-explosion",
+          "phase": "settling"
+        },
+        {
+          "id": "settling-sound",
+          "component": "cohezion-sound-engine",
+          "phase": "settling-pad"
+        },
+        {
+          "id": "bloch-sphere",
+          "component": "cohezion-bloch-sphere",
+          "theta": 1.5708,
+          "phi": 0,
+          "coherence": 0.5
+        }
+      ]
+    },
+    {
+      "id": "hiho",
+      "description": "HIHO equilibrium — interactive exploration mode",
+      "duration": null,
+      "transition": { "from": "settling", "auto": true },
+      "components": [
+        {
+          "id": "final-particles",
+          "component": "cohezion-explosion",
+          "phase": "final"
+        },
+        {
+          "id": "final-sound",
+          "component": "cohezion-sound-engine",
+          "phase": "interactive"
+        },
+        {
+          "id": "timeline",
+          "component": "cohezion-cosmogony-timeline",
+          "currentStage": 5,
+          "currentTemperature": 0.01
+        },
+        {
+          "id": "equations",
+          "component": "cohezion-equation-panel",
+          "title": "Cosmogony"
+        },
+        {
+          "id": "temp-slider",
+          "component": "cohezion-temperature-slider",
+          "value": 0.01
+        }
+      ]
+    }
+  ]
+}
