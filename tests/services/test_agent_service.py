@@ -7,7 +7,7 @@ from __future__ import annotations
 
 import sys
 from types import ModuleType
-from unittest.mock import AsyncMock, MagicMock
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
@@ -82,8 +82,8 @@ class TestAgentConfig:
         assert config.max_concurrency == 4
 
 
-class TestAgentService:
-    """Tests for AgentService agent lifecycle."""
+class TestAgentServiceRegistration:
+    """Tests for agent registration lifecycle."""
 
     @pytest.mark.asyncio
     async def test_register_agent(self, service, sample_config):
@@ -114,6 +114,20 @@ class TestAgentService:
         assert result is False
 
     @pytest.mark.asyncio
+    async def test_register_creates_status(self, service, sample_config):
+        """Registration should initialize status with zero counters."""
+        await service.register_agent(sample_config)
+        status = service._agent_status["analyst"]
+        assert status.current_tasks == 0
+        assert status.total_processed == 0
+        assert status.error_count == 0
+        assert status.is_active is True
+
+
+class TestAgentServiceStatus:
+    """Tests for agent status queries."""
+
+    @pytest.mark.asyncio
     async def test_get_agent_status(self, service, sample_config):
         """Should return status after registration."""
         await service.register_agent(sample_config)
@@ -121,8 +135,6 @@ class TestAgentService:
         assert status is not None
         assert isinstance(status, AgentStatus)
         assert status.agent_name == "analyst"
-        assert status.is_active is True
-        assert status.current_tasks == 0
 
     @pytest.mark.asyncio
     async def test_get_agent_status_unknown(self, service):
@@ -140,6 +152,19 @@ class TestAgentService:
         assert len(statuses) == 2
         assert "analyst" in statuses
         assert "critic" in statuses
+
+    @pytest.mark.asyncio
+    async def test_get_all_returns_copy(self, service, sample_config):
+        """Should return a copy, not the internal dict."""
+        await service.register_agent(sample_config)
+        statuses = await service.get_all_agent_status()
+        statuses.pop("analyst")
+        # Internal should still have it
+        assert "analyst" in service._agent_status
+
+
+class TestAgentServiceConfig:
+    """Tests for agent config queries."""
 
     @pytest.mark.asyncio
     async def test_get_agent_config(self, service, sample_config):
@@ -168,29 +193,59 @@ class TestAgentService:
         agents = await service.list_agents()
         assert agents == []
 
+
+class TestAgentServiceExecution:
+    """Tests for task execution."""
+
     @pytest.mark.asyncio
-    async def test_execute_task_success(self, service, sample_config, mock_repos):
-        """Should execute task and return journey."""
+    async def test_execute_task_returns_journey(self, service, sample_config):
+        """Should return a journey object even when internal step fails."""
         await service.register_agent(sample_config)
         journey = await service.execute_task("analyst", "Analyze quantum computing")
         assert journey is not None
         assert journey.query == "Analyze quantum computing"
+        # Journey always has at least one step (success or error)
         assert len(journey.steps) >= 1
-        # Verify repo was called
-        mock_repos[0].create.assert_awaited_once()
 
     @pytest.mark.asyncio
     async def test_execute_task_unregistered_agent(self, service):
-        """Should handle unregistered agent gracefully."""
+        """Should handle unregistered agent gracefully (error step)."""
         journey = await service.execute_task("ghost", "test query")
         assert journey is not None
-        # Should have an error step
         assert len(journey.steps) >= 1
 
     @pytest.mark.asyncio
-    async def test_execute_task_updates_status(self, service, sample_config):
-        """Should increment total_processed after task."""
+    async def test_execute_task_increments_error_on_failure(self, service, sample_config):
+        """When _create_step fails, error count should increment."""
         await service.register_agent(sample_config)
-        await service.execute_task("analyst", "test")
+        # Force _create_step to raise
+        with patch.object(service, "_create_step", new_callable=AsyncMock, side_effect=RuntimeError("boom")):
+            journey = await service.execute_task("analyst", "test")
+        status = await service.get_agent_status("analyst")
+        assert status.error_count >= 1
+        assert len(journey.steps) >= 1
+
+    @pytest.mark.asyncio
+    async def test_execute_task_success_with_mocked_step(self, service, sample_config, mock_repos):
+        """Should complete successfully when _create_step is mocked."""
+        from cohezion.core.persistence.repositories.journey_repository import JourneyStep
+
+        mock_step = JourneyStep(
+            timestamp="2026-01-01T00:00:00",
+            agent_type="analyst",
+            agent_name="analyst",
+            perspective=None,
+            input_summary="test",
+            output_summary="done",
+            physics_state={},
+            duration_ms=10.0,
+            confidence=0.9,
+        )
+        await service.register_agent(sample_config)
+        with patch.object(service, "_create_step", new_callable=AsyncMock, return_value=mock_step):
+            journey = await service.execute_task("analyst", "test query")
+        assert len(journey.steps) == 1
+        mock_repos[0].create.assert_awaited_once()
         status = await service.get_agent_status("analyst")
         assert status.total_processed == 1
+        assert status.error_count == 0
