@@ -24,12 +24,20 @@ export function useAnima() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [loading, setLoading] = useState(false);
 
-  // Fetch status on mount
+  // Fetch status on mount — fallback to simulated mode when backend unreachable
   useEffect(() => {
     fetch(`${API_BASE}/api/anima/status`)
       .then((r) => (r.ok ? r.json() : null))
-      .then((data) => data && setStatus(data))
-      .catch(() => {});
+      .then((data) => {
+        if (data) {
+          setStatus(data);
+        } else {
+          setStatus({ tier: "simulated", online: false, mcp_available: false, voice_available: false });
+        }
+      })
+      .catch(() => {
+        setStatus({ tier: "simulated", online: false, mcp_available: false, voice_available: false });
+      });
   }, []);
 
   const ask = useCallback(async (question: string) => {

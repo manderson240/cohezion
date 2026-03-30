@@ -262,7 +262,63 @@ export default function GenesisScene() {
   const symmetry = cosmogonyData?.symmetry ?? "void";
   const stage = cosmogonyData?.stage ?? -1;
 
-  // Fetch cosmogony state from API
+  // Local Landau computation for offline mode
+  const computeLocalCosmogony = useCallback((temp: number): CosmogonyData => {
+    // Critical temperatures for each symmetry-breaking stage
+    const criticalTemps = [100, 10, 1.0, 0.1, 0.01];
+    const symmetries = ["void", "SO(12)", "SO(3)^4", "U(1)^4", "Z_2^4", "HIHO"];
+
+    // Determine stage by comparing temperature against critical thresholds
+    let stageIdx = 0;
+    for (let i = 0; i < criticalTemps.length; i++) {
+      if (temp < criticalTemps[i]) stageIdx = i + 1;
+    }
+    const sym = symmetries[stageIdx];
+    const stage = stageIdx - 1; // -1 for void, 0..4 for stages
+
+    // Landau free energy: F(phi) = a*(T - T_c)*phi^2 + b*phi^4
+    const a = 1.0;
+    const b = 0.5;
+    const criticalTemp = criticalTemps[Math.max(0, stageIdx - 1)] ?? 100;
+    const orderParameter =
+      temp < criticalTemp
+        ? Math.sqrt(a * (criticalTemp - temp) / (2 * b))
+        : 0;
+    const landauFreeEnergy =
+      orderParameter > 0
+        ? a * (temp - criticalTemp) * orderParameter ** 2 + b * orderParameter ** 4
+        : 0;
+
+    // Fisher information eigenvalue (peaks near critical point)
+    const closestTc = criticalTemps.reduce((closest, tc) =>
+      Math.abs(tc - temp) < Math.abs(closest - temp) ? tc : closest
+    );
+    const fisherEig =
+      closestTc > 0 ? 1 / (Math.abs(temp - closestTc) + 0.01) : 0;
+
+    // Build transitions list for completed transitions
+    const transitionNames = ["SO(12)", "SO(3)^4", "U(1)^4", "Z_2^4", "HIHO"];
+    const transitions = criticalTemps
+      .filter((tc) => temp < tc)
+      .map((tc, i) => ({
+        from: i === 0 ? "void" : transitionNames[i - 1],
+        to: transitionNames[i],
+        T_critical: tc,
+        stage: i,
+      }));
+
+    return {
+      temperature: temp,
+      symmetry: sym,
+      stage,
+      order_parameters: { fabric_differentiation: orderParameter },
+      transitions,
+      fisher_eigenvalue_max: fisherEig,
+      landau_free_energy: landauFreeEnergy,
+    };
+  }, []);
+
+  // Fetch cosmogony state from API, with local Landau fallback
   const fetchState = useCallback(async (temp: number) => {
     try {
       const resp = await fetch(`${API_BASE}/api/genesis/cosmogony/set-temperature`, {
@@ -273,23 +329,14 @@ export default function GenesisScene() {
       if (resp.ok) {
         const data = await resp.json();
         setCosmogonyData(data);
+      } else {
+        setCosmogonyData(computeLocalCosmogony(temp));
       }
     } catch {
-      // Offline fallback — basic state
-      const sym = temp > 100 ? "void" : temp > 10 ? "SO(12)" : temp > 1 ? "SO(3)^4"
-        : temp > 0.1 ? "U(1)^4" : temp > 0.01 ? "Z_2^4" : "HIHO";
-      setCosmogonyData({
-        temperature: temp,
-        symmetry: sym,
-        stage: sym === "void" ? -1 : sym === "SO(12)" ? 0 : sym === "SO(3)^4" ? 1
-          : sym === "U(1)^4" ? 2 : sym === "Z_2^4" ? 3 : 4,
-        order_parameters: {},
-        transitions: [],
-        fisher_eigenvalue_max: 0,
-        landau_free_energy: 0,
-      });
+      // Offline fallback — run Landau math locally
+      setCosmogonyData(computeLocalCosmogony(temp));
     }
-  }, []);
+  }, [computeLocalCosmogony]);
 
   useEffect(() => {
     const timer = setTimeout(() => fetchState(temperature), 100);

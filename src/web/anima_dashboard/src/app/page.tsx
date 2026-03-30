@@ -49,6 +49,7 @@ function AnimaDashboard() {
         activeMode={mode}
         onModeChange={setMode}
         connected={connected}
+        simulated={!connected}
         onAnimaClick={() => setChatOpen((p) => !p)}
       />
 
