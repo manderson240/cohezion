@@ -638,3 +638,47 @@ The fading quote is faint.  Where do I click?  Nothing seems to happen.
 ---
 
 What happened to the narration and guide?
+
+---
+
+<task-notification>
+<task-id>a89551ed0de9d49c7</task-id>
+<tool-use-id>toolu_012YBswqYBY54f3gyoygTNxD</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/2df918cc-6005-460f-87c8-deecfc331194/tasks/a89551ed0de9d49c7.output</output-file>
+<status>completed</status>
+<summary>Agent "Cinematic narration overlay + browser TTS" completed</summary>
+<result>Service is active and running.
+
+Here is a summary of all changes made:
+
+**Files modified:**
+
+1. `/home/mike-anderson/dev/cohezion/src/web/anima_dashboard/src/hooks/useNarration.ts`
+   - Replaced short fallback narration texts with rich cinematic versions (e.g., "In the beginning, there was nothing. Not even nothing." instead of "In the beginning, there was nothing.")
+   - Increased text-only display duration from `Math.max(3000, length * 50)` to `Math.max(4000, length * 80)` for cinematic pacing
+   - Added browser Speech Synthesis TTS fallback in the `narrateStage` catch block -- when the API is unreachable and narration is not muted, it speaks the text using `SpeechSynthesisUtterance` with rate 0.85, pitch 0.9, and a preference for en-GB voices (Daniel, Google UK English Male)
+   - Added `ttsTimerRef` to coordinate the text display timer with TTS speech end events
+   - Updated `stop()` to cancel browser `speechSynthesis` and clear the TTS timer
+   - Added `muted` to the `narrateStage` dependency array since the catch block now references it
+
+2. `/home/mike-anderson/dev/cohezion/src/web/anima_dashboard/src/app/genesis/page.tsx`
+   - Removed the old narration bar (small `bg-black/80` strip between header and tabs)
+   - Added a cinematic overlay positioned over the 3D cosmogony scene at the bottom third (`bottom: 12%`), with:
+     - `z-index: 20` to float above the canvas
+     - `max-width: 600px`, centered, `padding: 20px 30px`, `border-radius: 8px`
+     - `rgba(0,0,0,0.4)` background with `backdrop-blur(8px)`
+     - Monospace italic font, `clamp(16px, 2vw, 20px)` size, `letter-spacing: 0.05em`
+     - `rgba(255,255,255,0.85)` color with cyan text-shadow glow
+     - `pointer-events-none` so it doesn't block 3D interaction
+     - `narrationFadeIn` CSS animation (0.5s ease-out)
+   - Wrapped the cosmogony tab content in a `relative` container to anchor the absolute overlay
+
+3. `/home/mike-anderson/dev/cohezion/src/web/anima_dashboard/src/app/globals.css`
+   - Added `@keyframes narrationFadeIn` animation (opacity 0 + translateY 8px -> opacity 1 + translateY 0)
+
+**Transformation 4 (narration default ON):** Already correct -- `useNarration` initializes `muted` to `false`, and the button correctly shows "Narration ON" in that state.
+
+Build passed cleanly. Service restarted and running on `http://localhost:3000`.</result>
+<usage><total_tokens>64900</total_tokens><tool_uses>18</tool_uses><duration_ms>131331</duration_ms></usage>
+</task-notification>
+Full transcript available at: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/2df918cc-6005-460f-87c8-deecfc331194/tasks/a89551ed0de9d49c7.output
