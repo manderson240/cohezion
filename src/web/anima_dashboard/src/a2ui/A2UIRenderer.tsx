@@ -181,17 +181,20 @@ export default function A2UIRenderer({
   const handleAction = useCallback(
     (eventName: string, data?: unknown) => {
       // Check if this action triggers a scene transition
-      const nextScene = experience.scenes.find(
-        (s) => s.trigger?.target && eventName === `${s.trigger.target}_click`
+      // Match: event "void_click" against trigger target "void-sphere" (contains check)
+      // or exact match with _click suffix
+      const currentIdx = experience.scenes.findIndex(
+        (s) => s.id === state.currentSceneId
       );
-      if (nextScene) {
-        // Find the scene AFTER current in the sequence
-        const currentIdx = experience.scenes.findIndex(
-          (s) => s.id === state.currentSceneId
-        );
-        if (currentIdx < experience.scenes.length - 1) {
-          transitionTo(experience.scenes[currentIdx + 1].id);
-        }
+      const currentScene = experience.scenes[currentIdx];
+      const isClickTrigger =
+        currentScene?.trigger?.type === "click" &&
+        (eventName === `${currentScene.trigger.target}_click` ||
+         eventName === "void_click" ||
+         eventName.includes("click"));
+
+      if (isClickTrigger && currentIdx < experience.scenes.length - 1) {
+        transitionTo(experience.scenes[currentIdx + 1].id);
       }
       onAction?.(eventName, data);
     },

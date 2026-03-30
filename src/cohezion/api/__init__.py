@@ -1727,6 +1727,14 @@ except ImportError:
 # Register telemetry websocket
 app.include_router(telemetry_router)
 
+# AG-UI protocol streaming endpoint
+try:
+    from cohezion.api.routes.agui import agui_router
+
+    app.include_router(agui_router, prefix="/api/agui")
+except ImportError:
+    pass  # agui module not available
+
 
 # ─── AgentJet CALL endpoints ───────────────────────────────────────────────
 
