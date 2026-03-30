@@ -1,0 +1,51 @@
+{
+  "root": {
+    "id": "root",
+    "knowledge": "Session initialization",
+    "children": [
+      "node_0000"
+    ],
+    "timestamp": "2026-03-30T18:40:36.452413"
+  },
+  "nodes": {
+    "node_0000": {
+      "id": "node_0000",
+      "cycle": 1,
+      "learnings": {
+        "ralph_findings": {
+          "Critic": {
+            "status": "passed",
+            "findings": [],
+            "risk_level": "low"
+          },
+          "Auditor": {
+            "status": "passed",
+            "findings": [],
+            "risk_level": "low"
+          },
+          "Security": {
+            "status": "passed",
+            "findings": [],
+            "risk_level": "low"
+          },
+          "Performance": {
+            "status": "passed",
+            "findings": [],
+            "risk_level": "low"
+          }
+        },
+        "optimization_targets": [
+          {
+            "type": "lint_errors",
+            "count": 8646,
+            "priority": "high"
+          }
+        ]
+      },
+      "skills": [],
+      "timestamp": "2026-03-30T18:41:02.959868",
+      "parent": "root"
+    }
+  },
+  "evolution_count": 1
+}

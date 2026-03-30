@@ -28,20 +28,29 @@ class CachePersistence:
 
     def save_cache(
         self,
-        cache_dict: dict[str, str],
+        cache_dict: dict[str, Any],
         metadata: dict[str, Any] | None = None,
     ) -> int:
         """Persist cache entries to JSONL. Returns number of entries written."""
         self._cache_dir.mkdir(parents=True, exist_ok=True)
         path = self._cache_dir / "token_cache.jsonl"
 
+        from dataclasses import asdict, is_dataclass
+
         count = 0
         try:
             with path.open("w", encoding="utf-8") as f:
                 for key, value in cache_dict.items():
+                    # Handle CacheEntry objects or other complex values
+                    serializable_value = value
+                    if is_dataclass(value):
+                        serializable_value = asdict(value)
+                    elif hasattr(value, "to_dict"):
+                        serializable_value = value.to_dict()
+
                     entry = {
                         "key": key,
-                        "value": value,
+                        "value": serializable_value,
                         "timestamp": time.time(),
                         **(metadata or {}),
                     }
