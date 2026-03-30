@@ -103,21 +103,24 @@ class ResilientOllamaClient:
                 if clean_base.endswith("/v1"):
                     clean_base = clean_base[:-3]
 
-                # Using /api/generate for better legacy stability in high-load scenarios
+                # Using /api/chat for better compatibility with message structures
+                num_predict = kwargs.get("max_tokens", 2048)
                 response = requests.post(
-                    f"{clean_base}/api/generate",
+                    f"{clean_base}/api/chat",
                     json={
                         "model": model,
                         "messages": messages,
-                        "max_tokens": num_predict,
                         "stream": False,
+                        "options": {
+                            "num_predict": num_predict,
+                        },
                     },
                     timeout=self.timeout,
                 )
                 response.raise_for_status()
 
                 data = response.json()
-                content = data.get("response", "")
+                content = data.get("message", {}).get("content", "")
                 tokens = data.get("eval_count", 0) + data.get("prompt_eval_count", 0)
 
                 return content, tokens
