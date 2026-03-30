@@ -57,11 +57,11 @@ RESULTS_DIR = BASE_DIR / "results"
 KERNELS_DIR = BASE_DIR.parent / "kernels"
 
 # Priority weights for kernel rotation (higher = more likely to be selected)
-# Based on gap-to-leader: MoE 1.27x (closeable), GEMM 2.4x, MLA 15.6x
+# Based on gap-to-leader: GEMM 22x (BREAKTHROUGH: load_inline works!), MLA 2.6x, MoE ~1x
 KERNEL_WEIGHTS = {
-    "moe": 0.5,  # Closest to leader — highest ROI
-    "gemm": 0.3,  # Medium gap
-    "mla": 0.2,  # Largest gap — moonshot
+    "gemm": 0.5,  # HIGHEST - load_inline breakthrough discovered!
+    "mla": 0.3,  # Second - 2.6x gap
+    "moe": 0.2,  # Already competitive
 }
 
 CYCLE_SLEEP_SECONDS = 5  # Sleep between cycles
@@ -77,25 +77,29 @@ def _sync_to_graph(kernel: str, node, result_us: float | None) -> None:
         if result_us:
             content += f"\nLast: {result_us:.1f}µs (attempt #{node.attempts})"
 
-        asyncio.run(upsert_neuron(
-            neuron_id=node_id,
-            title=f"[{kernel.upper()}] {node.strategy[:60]}",
-            path=f"autoresearch/{kernel}/{node.id}",
-            cluster="autoresearch",
-            aspect="thinker",
-            tags=["autoresearch", kernel, "k-search"],
-            content=content,
-        ))
+        asyncio.run(
+            upsert_neuron(
+                neuron_id=node_id,
+                title=f"[{kernel.upper()}] {node.strategy[:60]}",
+                path=f"autoresearch/{kernel}/{node.id}",
+                cluster="autoresearch",
+                aspect="thinker",
+                tags=["autoresearch", kernel, "k-search"],
+                content=content,
+            )
+        )
 
         # Link to parent if exists
         if node.parent_id:
             parent_id = f"neuron:ksearch_{kernel}_{slugify(node.parent_id)}_md"
-            asyncio.run(create_synapse(
-                from_id=parent_id,
-                to_id=node_id,
-                link_type="k-search-child",
-                reason=f"Child strategy in {kernel} K-Search tree",
-            ))
+            asyncio.run(
+                create_synapse(
+                    from_id=parent_id,
+                    to_id=node_id,
+                    link_type="k-search-child",
+                    reason=f"Child strategy in {kernel} K-Search tree",
+                )
+            )
     except Exception as e:
         log.debug(f"Graph sync skipped (non-blocking): {e}")
 
@@ -374,12 +378,12 @@ def run_cycle(
 
     # If this is the best result AND leaderboard is available, consider submitting
     stats = tree.get_stats()
-    is_new_best = geomean is not None and stats["best_us"] is not None and abs(stats["best_us"] - geomean) < 0.001
-    if (
-        is_new_best
-        and analysis.improvement_pct > 0
-        and rate_limiter.can_submit(kernel)
-    ):
+    is_new_best = (
+        geomean is not None
+        and stats["best_us"] is not None
+        and abs(stats["best_us"] - geomean) < 0.001
+    )
+    if is_new_best and analysis.improvement_pct > 0 and rate_limiter.can_submit(kernel):
         log.info(f"[{kernel}] NEW BEST! Submitting to leaderboard...")
         lb_result = evaluate(submission_path, kernel, mode="leaderboard")
         if lb_result.success:
