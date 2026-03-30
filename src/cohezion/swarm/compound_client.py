@@ -98,7 +98,7 @@ def _create_task_type_router(ollama_host: str) -> Any:
     # Tier 3: Local Ollama (always available)
     router.register_provider(
         ProviderTier.LOCAL,
-        OllamaProvider(config={"base_url": ollama_host}),
+        OllamaProvider(config={"base_url": ollama_host, "timeout": 300}),
     )
 
     # Tier 2: Ollama Cloud (always available — uses default URL)
