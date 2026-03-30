@@ -56,7 +56,7 @@ const FABRIC_LABELS = ["Space", "Field", "Control", "Precipitation"];
 // Part 1: THE VOID (before click state)
 // ============================================================
 
-/** Barely visible pulsing sphere — the zero-point fluctuation */
+/** Pulsing sphere + large invisible click target + hover ring affordance */
 function VoidSphere({
   active,
   onClick,
@@ -64,39 +64,90 @@ function VoidSphere({
   active: boolean;
   onClick: () => void;
 }) {
-  const ref = useRef<THREE.Mesh>(null);
+  const glowRef = useRef<THREE.Mesh>(null);
+  const ringRef = useRef<THREE.Mesh>(null);
+  const [hovered, setHovered] = useState(false);
 
   useFrame((state) => {
-    if (!ref.current || !active) return;
+    if (!active) return;
     const t = state.clock.getElapsedTime();
-    // Scale oscillates between 0.003 and 0.012
-    const scale = 0.0075 + Math.sin(t * 0.5) * 0.0045;
-    ref.current.scale.setScalar(scale);
-    const mat = ref.current.material as THREE.MeshBasicMaterial;
-    mat.opacity = 0.15 + Math.sin(t * 0.7) * 0.1;
+    // Visible glow sphere — pulsing between 0.03 and 0.08
+    if (glowRef.current) {
+      const scale = 0.055 + Math.sin(t * 0.5) * 0.025;
+      glowRef.current.scale.setScalar(scale);
+      const mat = glowRef.current.material as THREE.MeshBasicMaterial;
+      mat.opacity = hovered ? 0.6 : 0.25 + Math.sin(t * 0.7) * 0.1;
+    }
+    // Hover ring — pulsing opacity
+    if (ringRef.current) {
+      const mat = ringRef.current.material as THREE.MeshBasicMaterial;
+      mat.opacity = hovered
+        ? 0.15 + Math.sin(t * 2) * 0.05
+        : 0.04 + Math.sin(t * 0.8) * 0.02;
+      ringRef.current.rotation.z = t * 0.1;
+    }
   });
 
   if (!active) return null;
 
   return (
-    <mesh
-      ref={ref}
-      onClick={onClick}
-      onPointerOver={() => {
-        document.body.style.cursor = "pointer";
-      }}
-      onPointerOut={() => {
-        document.body.style.cursor = "auto";
-      }}
-    >
-      <sphereGeometry args={[1, 32, 32]} />
-      <meshBasicMaterial
-        color="#ffffff"
-        transparent
-        opacity={0.15}
-        toneMapped={false}
-      />
-    </mesh>
+    <group>
+      {/* Large invisible click target — catches clicks near center */}
+      <mesh
+        onClick={onClick}
+        onPointerOver={() => {
+          setHovered(true);
+          document.body.style.cursor = "pointer";
+        }}
+        onPointerOut={() => {
+          setHovered(false);
+          document.body.style.cursor = "auto";
+        }}
+      >
+        <sphereGeometry args={[2, 16, 16]} />
+        <meshBasicMaterial transparent opacity={0} depthWrite={false} />
+      </mesh>
+
+      {/* Visible pulsing glow sphere */}
+      <mesh ref={glowRef}>
+        <sphereGeometry args={[1, 32, 32]} />
+        <meshBasicMaterial
+          color="#ffffff"
+          transparent
+          opacity={0.25}
+          toneMapped={false}
+        />
+      </mesh>
+
+      {/* Hover ring affordance */}
+      <mesh ref={ringRef} rotation={[Math.PI / 2, 0, 0]}>
+        <torusGeometry args={[0.8, 0.008, 16, 64]} />
+        <meshBasicMaterial
+          color="#ffffff"
+          transparent
+          opacity={0.04}
+          toneMapped={false}
+        />
+      </mesh>
+
+      {/* "click to begin" text below the void */}
+      <Html position={[0, -1.2, 0]} center>
+        <div
+          style={{
+            color: hovered ? "rgba(255,255,255,0.7)" : "rgba(255,255,255,0.3)",
+            fontFamily: "monospace",
+            fontSize: "12px",
+            letterSpacing: "0.2em",
+            textTransform: "uppercase",
+            transition: "color 0.3s",
+            userSelect: "none",
+            whiteSpace: "nowrap",
+          }}
+        >
+          click to begin
+        </div>
+      </Html>
+    </group>
   );
 }
 

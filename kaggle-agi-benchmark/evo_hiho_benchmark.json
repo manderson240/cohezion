@@ -5,22 +5,11 @@
         "input": "Question:\nExample 1: In [[...]] Out [[...]]\nExample 2: In [[...]] Out [[...]]\nTest Input: [[...]]\n\nOptions:\n['[[...]]', '[[...]]', '[[...]]', 'Insufficient Information']\n",
         "output": "Insufficient Information"
       },
-      "duration_seconds": 88.35702228546143,
+      "duration_seconds": 84.8095064163208,
       "coherence": 0.77,
       "intent_match": 0.5,
-      "session_id": "session_a9d759c9"
+      "session_id": "session_7919ce60"
     }
   ],
-  "test": [
-    {
-      "output": {
-        "input": "Question:\nExample 1: In [[...]] Out [[...]]\nExample 2: In [[...]] Out [[...]]\nTest Input: [[...]]\n\nOptions:\n['[[...]]', '[[...]]', '[[...]]', 'Insufficient Information']\n",
-        "output": "Insufficient Information"
-      },
-      "duration_seconds": 2.5987625122070312e-05,
-      "coherence": 0.77,
-      "intent_match": 0.5,
-      "session_id": "session_a9d759c9"
-    }
-  ]
+  "test": []
 }
