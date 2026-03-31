@@ -215,3 +215,7 @@ Full transcript available at: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/
 ---
 
 So why aren't we running everything through FLUME then?
+
+---
+
+/retrospect and then refine plan with learnings and skills
