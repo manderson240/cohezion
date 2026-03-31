@@ -5,6 +5,7 @@ import dynamic from "next/dynamic";
 import { useSonification, type PhysicsState } from "@/hooks/useSonification";
 import { useNarration } from "@/hooks/useNarration";
 import { useCosmogony } from "@/hooks/useCosmogony";
+import { useAGUIStream } from "@/hooks/useAGUIStream";
 
 // Dynamic imports for Three.js components (SSR-incompatible)
 const GenesisScene = dynamic(
@@ -63,6 +64,10 @@ export default function GenesisPage() {
   const sonification = useSonification();
   const narration = useNarration();
   const cosmogony = useCosmogony();
+  const agui = useAGUIStream();
+
+  // Wire 7: AG-UI mode — when connected, overlay AG-UI state on cosmogony
+  const isAGUIActive = agui.connected && agui.running;
   const [hasStarted, setHasStarted] = useState(false);
 
   // Wire cosmogony state changes into sonification
