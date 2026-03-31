@@ -1745,14 +1745,21 @@
       "strategy": "Fused quant+GEMM for FP4 with dynamic tiling: tile size sweep (32x32, 64x64, 128x128) + split=1/2 + vector width (1/2/4) for bs=4,kv=1024",
       "parameters": {},
       "parent_id": "n_81c6a22e",
-      "priority": 0.75,
-      "attempts": 0,
-      "best_result_us": null,
+      "priority": 0.85,
+      "attempts": 1,
+      "best_result_us": 82.33,
       "stagnation_count": 0,
       "status": "active",
       "children": [],
       "notes": "[LLM-proposed] [STRATEGIC PRUNE: parent n_81c6a22e pruned]",
-      "attempt_history": []
+      "attempt_history": [
+        {
+          "result_us": 82.33,
+          "parameters": {},
+          "timestamp": "2026-03-31T02:29:24.731404",
+          "source": "llm"
+        }
+      ]
     },
     "n_2c478fef": {
       "id": "n_2c478fef",
