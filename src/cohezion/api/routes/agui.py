@@ -171,7 +171,7 @@ async def stream_cosmogony():
             "Cache-Control": "no-cache",
             "Connection": "keep-alive",
             "X-Accel-Buffering": "no",
-            "Access-Control-Allow-Origin": "*",
+            # CORS handled by FastAPI middleware — do NOT set Access-Control-Allow-Origin here
         },
     )
 

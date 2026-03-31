@@ -187,11 +187,12 @@ export default function A2UIRenderer({
         (s) => s.id === state.currentSceneId
       );
       const currentScene = experience.scenes[currentIdx];
+      // Match click trigger: exact target match or known void_click event
+      const triggerTarget = currentScene?.trigger?.target;
       const isClickTrigger =
         currentScene?.trigger?.type === "click" &&
-        (eventName === `${currentScene.trigger.target}_click` ||
-         eventName === "void_click" ||
-         eventName.includes("click"));
+        (eventName === `${triggerTarget}_click` ||
+         eventName === "void_click");
 
       if (isClickTrigger && currentIdx < experience.scenes.length - 1) {
         transitionTo(experience.scenes[currentIdx + 1].id);
