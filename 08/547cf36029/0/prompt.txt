@@ -39,3 +39,7 @@ Proceed
 ---
 
 We need to make sure knowledge capture goes all the way through to obsidian vault and surrealdb graph
+
+---
+
+Do we have refined capabilities and skills as part of this persistent learnings?
