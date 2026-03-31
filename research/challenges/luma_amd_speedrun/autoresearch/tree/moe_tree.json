@@ -8,12 +8,20 @@
       "parameters": {},
       "parent_id": null,
       "priority": 0.9,
-      "attempts": 0,
+      "attempts": 1,
       "best_result_us": 9.48,
-      "stagnation_count": 0,
+      "stagnation_count": 1,
       "status": "active",
       "children": [],
-      "notes": "MoE is competitive at ~110\u00b5s. Focus on maintenance."
+      "notes": "MoE is competitive at ~110\u00b5s. Focus on maintenance.",
+      "attempt_history": [
+        {
+          "result_us": 68.95,
+          "parameters": {},
+          "timestamp": "2026-03-31T02:15:58.952988",
+          "source": "llm"
+        }
+      ]
     }
   }
 }
