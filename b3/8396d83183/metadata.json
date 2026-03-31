@@ -3,7 +3,7 @@
   "checkpoint_id": "b38396d83183",
   "strategy": "manual-commit",
   "branch": "main",
-  "checkpoints_count": 1,
+  "checkpoints_count": 3,
   "files_touched": [
     "src/cohezion/compound/degradation_detector.py",
     "src/cohezion/validation/constitutional.py"
@@ -20,13 +20,19 @@
       "transcript": "/b3/8396d83183/1/full.jsonl",
       "content_hash": "/b3/8396d83183/1/content_hash.txt",
       "prompt": "/b3/8396d83183/1/prompt.txt"
+    },
+    {
+      "metadata": "/b3/8396d83183/2/metadata.json",
+      "transcript": "/b3/8396d83183/2/full.jsonl",
+      "content_hash": "/b3/8396d83183/2/content_hash.txt",
+      "prompt": "/b3/8396d83183/2/prompt.txt"
     }
   ],
   "token_usage": {
-    "input_tokens": 39871,
-    "cache_creation_tokens": 12773461,
-    "cache_read_tokens": 204635488,
-    "output_tokens": 346130,
-    "api_call_count": 942
+    "input_tokens": 58503,
+    "cache_creation_tokens": 20963296,
+    "cache_read_tokens": 500388983,
+    "output_tokens": 681591,
+    "api_call_count": 1834
   }
 }
