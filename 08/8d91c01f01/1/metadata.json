@@ -1,0 +1,34 @@
+{
+  "cli_version": "0.5.1",
+  "checkpoint_id": "088d91c01f01",
+  "session_id": "7b42ffab-cb2c-417a-b4cd-9fddf3b78647",
+  "strategy": "manual-commit",
+  "created_at": "2026-03-31T04:25:20.76937942Z",
+  "branch": "challenge/nvidia-nemotron-reasoning",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "research/challenges/luma_amd_speedrun/autoresearch/tree/mla_tree.json"
+  ],
+  "agent": "Claude Code",
+  "model": "kimi-k2.5:cloud",
+  "turn_id": "9fc9769aa828",
+  "token_usage": {
+    "input_tokens": 111298898,
+    "cache_creation_tokens": 11085844,
+    "cache_read_tokens": 270578274,
+    "output_tokens": 603224,
+    "api_call_count": 1550
+  },
+  "session_metrics": {
+    "turn_count": 165
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-03-31T04:25:14.048417894Z",
+    "agent_lines": 25,
+    "human_added": 3822,
+    "human_modified": 3,
+    "human_removed": 0,
+    "total_committed": 3850,
+    "agent_percentage": 0.6493506493506493
+  }
+}
