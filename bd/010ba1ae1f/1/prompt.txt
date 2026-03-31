@@ -1,0 +1,136 @@
+<task-notification>
+<task-id>b9bzn2pzu</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/b64da2bf-bc43-4e98-92b9-9ef978ee0301/tasks/b9bzn2pzu.output</output-file>
+<status>completed</status>
+<summary>Background command "Clone A2UI repository" completed (exit code 0)</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/b64da2bf-bc43-4e98-92b9-9ef978ee0301/tasks/b9bzn2pzu.output
+
+---
+
+Did you implement TDD and multiperspective code review?
+
+---
+
+<task-notification>
+<task-id>a28d010da9272550f</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/b64da2bf-bc43-4e98-92b9-9ef978ee0301/tasks/a28d010da9272550f.output</output-file>
+<status>completed</status>
+<summary>Agent "Code review Genesis commits" completed</summary>
+<result>I now have enough information to produce a complete review. Let me compile the findings.
+
+## Code Review: feat/genesis-tdd-a2ui branch (6 commits beyond main)
+
+**Files reviewed:**
+- `/home/mike-anderson/dev/cohezion/.worktrees/genesis-tdd-a2ui/src/web/anima_dashboard/src/a2ui/A2UIRenderer.tsx`
+- `/home/mike-anderson/dev/cohezion/.worktrees/genesis-tdd-a2ui/src/web/anima_dashboard/src/a2ui/componentBindings.tsx`
+- `/home/mike-anderson/dev/cohezion/.worktrees/genesis-tdd-a2ui/src/web/anima_dashboard/src/app/a2ui-demo/page.tsx`
+- `/home/mike-anderson/dev/cohezion/.worktrees/genesis-tdd-a2ui/src/web/anima_dashboard/src/a2ui/catalog.json`
+- `/home/mike-anderson/dev/cohezion/.worktrees/genesis-tdd-a2ui/src/web/anima_dashboard/src/a2ui/experiences/genesis-cosmogony.json`
+- `/home/mike-anderson/dev/cohezion/.worktrees/genesis-tdd-a2ui/src/cohezion/api/agui_events.py`
+- `/home/mike-anderson/dev/cohezion/.worktrees/genesis-tdd-a2ui/src/cohezion/api/routes/agui.py`
+- `/home/mike-anderson/dev/cohezion/.worktrees/genesis-tdd-a2ui/src/web/anima_dashboard/src/components/AnimaNarrationBar.tsx`
+- `/home/mike-anderson/dev/cohezion/.worktrees/genesis-tdd-a2ui/src/web/anima_dashboard/src/hooks/useUniverseStream.ts`
+- `/home/mike-anderson/dev/cohezion/.worktrees/genesis-tdd-a2ui/src/web/anima_dashboard/src/context/UniverseProvider.tsx`
+- `/home/mike-anderson/dev/cohezion/.worktrees/genesis-tdd-a2ui/src/web/anima_dashboard/src/components/genesis/EquationPanel.tsx`
+- `/home/mike-anderson/dev/cohezion/.worktrees/genesis-tdd-a2ui/src/web/anima_dashboard/tests/e2e/a2ui-demo.spec.ts`
+
+---
+
+### Summary
+
+The A2UI catalog, renderer, and AG-UI SSE endpoint are well-structured and represent a clean implementation of the declarative rendering pipeline. The security posture on the rendering side is strong — no `dangerouslySetInnerHTML` or `eval` paths in the new A2UI code. Several issues require attention before this merges: a wildcard CORS header on a production streaming endpoint, a missing default `type` field on `TextMessageEvent` that will raise at runtime, an over-broad click trigger guard in the renderer, and a `useCallback`/`useEffect` dependency cycle in `useUniverseStream` that risks infinite reconnect loops.
+
+---
+
+### Findings
+
+#### CRITICAL
+
+- **`/home/mike-anderson/dev/cohezion/.worktrees/genesis-tdd-a2ui/src/cohezion/api/routes/agui.py:174`** — `"Access-Control-Allow-Origin": "*"` is set directly on the `/api/agui/stream` `StreamingResponse`. This bypasses any origin whitelist that the FastAPI CORS middleware enforces, because per-response headers override middleware. If this endpoint is reachable from a browser, any origin can read the SSE stream. Remove the manual CORS header and rely solely on the global CORS middleware, or scope it to a known-safe origin.
+
+- **`/home/mike-anderson/dev/cohezion/.worktrees/genesis-tdd-a2ui/src/cohezion/api/agui_events.py:97`** — `TextMessageEvent` inherits from `AGUIEvent` but provides no default value for the inherited `type: AGUIEventType` field. The base class `AGUIEvent` defines `type` without a default. Python dataclass inheritance requires that fields with defaults appear after fields without defaults. Since `TextMessageEvent` adds only defaulted fields (`message_id`, `role`, `delta`) while `type` is non-defaulted and comes first, instantiating `TextMessageEvent(type=AGUIEventType.TEXT_MESSAGE_START, ...)` works only because the caller passes `type` explicitly — but if any caller omits it (or a future subclass is added), it raises `TypeError` at runtime. The class contract should enforce this with a hard default: `type: AGUIEventType = AGUIEventType.TEXT_MESSAGE_START`. The same issue applies to `ToolCallEvent` — it has no default type either, meaning all three of its callers at lines 181, 186 must pass `type=` explicitly with no static enforcement that they match valid tool-call variants.
+
+---
+
+#### HIGH
+
+- **`/home/mike-anderson/dev/cohezion/.worktrees/genesis-tdd-a2ui/src/web/anima_dashboard/src/a2ui/A2UIRenderer.tsx:190-194`** — The `isClickTrigger` check has a dangerous over-broad fallback on line 194: `eventName.includes("click")`. Any component that fires an event whose name contains the substring "click" (e.g., `"double_click"`, `"right_click"`, `"unclickable_state_change"`) will trigger a scene transition regardless of the scene's configured trigger target. The intent is to match the specific trigger, but the fallback defeats the catalog-driven gating. This should be removed; the `eventName === "void_click"` branch is already a reasonable catch-all for the void scene, and general `includes("click")` is semantically incorrect.
+
+- **`/home/mike-anderson/dev/cohezion/.worktrees/genesis-tdd-a2ui/src/web/anima_dashboard/src/hooks/useUniverseStream.ts:145-198`** — The `connect` callback is declared with `useCallback([startFallback, stopFallback])`. The `onerror` handler inside `connect` captures `connect` itself via closure to schedule a reconnect (`setTimeout(connect, delay)`), which means every time `startFallback` or `stopFallback` identity changes, `connect` gets a new identity, which triggers the `useEffect([connect, stopFallback])` to re-run, which calls `connect()` again — a potential infinite reconnect loop on mount. The `startFallback` and `stopFallback` callbacks are themselves wrapped in `useCallback([])` with empty deps, so their identity is stable, which saves this from firing immediately — but the chain is fragile. Any future addition of a dep to `startFallback` or `stopFallback` will activate the infinite loop. This pattern should use a `useRef` for the `connect` function to break the circular dependency.
+
+- **`/home/mike-anderson/dev/cohezion/.worktrees/genesis-tdd-a2ui/src/cohezion/api/routes/agui.py:83-153`** — `cosmogony_stream()` has no error handling around `compute_cosmogony()` or the `await asyncio.sleep()` calls. If `compute_cosmogony` raises (e.g., a `ZeroDivisionError` in the Fisher eigenvalue calculation at `agui_events.py` line 68 when `closest_tc == 0`), the generator will raise an unhandled exception mid-stream. The client will receive a truncated SSE stream with no `RUN_FINISHED` or `RUN_ERROR` event, leaving it in an undefined state. Wrap the inner loop in a `try/except` and yield a `RunFinishedEvent` or a `RUN_ERROR` event before propagating.
+
+- **`/home/mike-anderson/dev/cohezion/.worktrees/genesis-tdd-a2ui/src/cohezion/api/agui_events.py:176-195`** — `phase_transition_event` emits `TOOL_CALL_START` followed immediately by `TOOL_CALL_RESULT`, skipping `TOOL_CALL_ARGS` and `TOOL_CALL_END`. The AG-UI protocol defines a strict sequence: START → ARGS → END, with RESULT as a separate lifecycle event. Jumping from START directly to RESULT without END will confuse any compliant AG-UI consumer (including the frontend hook that may be added later). Either follow the full sequence or document explicitly that this is an intentional deviation from the spec with the reason.
+
+- **`/home/mike-anderson/dev/cohezion/.worktrees/genesis-tdd-a2ui/src/web/anima_dashboard/src/context/UniverseProvider.tsx:41-53`** — The `perturb` function's `catch` block is completely silent. There is no logging, no state update, and no error propagation. If the perturbation POST fails, the caller has no way to know. The comment "Non-blocking — stream will show the result on next tick" is only valid if the request succeeded. A failed perturbation will silently do nothing, which is misleading to users and to agents monitoring the dashboard. At minimum, the error should be stored in a state variable or logged.
+
+---
+
+#### MEDIUM
+
+- **`/home/mike-anderson/dev/cohezion/.worktrees/genesis-tdd-a2ui/src/web/anima_dashboard/src/a2ui/A2UIRenderer.tsx:237`** — `validateExperience(experience)` is called inside the `onInspect` `useEffect` on every render where `currentScene` or `state` changes. This re-validates the entire experience script (iterating all scenes and components) on every tick. For the current experience script this is negligible, but `validateExperience` is O(scenes × components) and the tick rate is 100ms in fallback mode. This should be moved outside the effect and memoized with `useMemo` keyed on `experience`, since the experience object is static per renderer lifetime.
+
+- **`/home/mike-anderson/dev/cohezion/.worktrees/genesis-tdd-a2ui/src/web/anima_dashboard/src/a2ui/componentBindings.tsx:107-121`** — The `cohezion-temperature-slider` binding uses `defaultValue` instead of `value` for the controlled `<input type="range">`. This makes the slider uncontrolled — if the parent re-renders with a different `instance.value`, the slider will not update. This should use `value` with an `onChange` handler that manages state, or explicitly document that it is intentionally uncontrolled and the initial value is the only contract.
+
+- **`/home/mike-anderson/dev/cohezion/.worktrees/genesis-tdd-a2ui/src/web/anima_dashboard/src/a2ui/A2UIRenderer.tsx:154-158`** — `useState` initializes `sceneStartTime` with `Date.now()` at module evaluation time. This is safe for most purposes, but it means the elapsed timer starts from the moment the component first renders rather than from the time the scene becomes active. After a scene transition (line 168-177), `sceneStartTime` is correctly reset, so this only affects the initial scene. Worth a comment to explain the intent.
+
+- **`/home/mike-anderson/dev/cohezion/.worktrees/genesis-tdd-a2ui/src/cohezion/api/agui_events.py:55`** — `AGUIEvent.timestamp` uses `time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())` which produces second-precision timestamps. The AG-UI spec uses millisecond-precision ISO 8601 (`2026-03-30T12:00:00.000Z`). This will not break anything but may cause ordering ambiguity in consumers that rely on timestamp comparison within the same second.
+
+- **`/home/mike-anderson/dev/cohezion/.worktrees/genesis-tdd-a2ui/src/web/anima_dashboard/tests/e2e/a2ui-demo.spec.ts:7`** — The test uses `await page.waitForTimeout(3000)` as a substitute for an explicit element visibility assertion to wait for hydration. This is a timing-based wait that will flake on slower CI runners. Prefer `await page.waitForSelector('[data-a2ui-scene="void"]')` which targets the actual `data-a2ui-scene` attribute set by `A2UIRenderer` at line 253, giving a deterministic wait.
+
+- **`/home/mike-anderson/dev/cohezion/.worktrees/genesis-tdd-a2ui/src/web/anima_dashboard/src/a2ui/componentBindings.tsx`** — The comment at line 18 says "Full integration would import from `../components/genesis/` but those components are tightly coupled to the imperative scene graph." This is a design note that should be tracked as a known limitation, not left as an inline comment. It signals that the `A2UIRenderer` cannot currently render the real 3D components — it only shows HTML placeholder stubs. This divergence between what the catalog declares and what is actually rendered should be documented in the catalog itself or in a `README` alongside the `a2ui/` directory.
+
+---
+
+#### LOW
+
+- **`/home/mike-anderson/dev/cohezion/.worktrees/genesis-tdd-a2ui/src/web/anima_dashboard/src/hooks/useUniverseStream.ts:99`** — `const nEvos = prev?.evo_states?.length ?? 3 + Math.floor(Math.random() * 3)` — operator precedence means this evaluates as `prev?.evo_states?.length ?? (3 + Math.floor(...))`. When `prev?.evo_states?.length` is `0` (falsy but defined), the nullish coalescing still takes the left side, so `nEvos = 0` — which will produce an empty `evo_states` array, then the next tick will use `0` again, and so on. This is a pre-existing bug but the fallback was touched in this branch. The intent is likely `Math.floor(3 + Math.random() * 3)` as a fallback range of 3-5.
+
+- **`/home/mike-anderson/dev/cohezion/.worktrees/genesis-tdd-a2ui/src/cohezion/api/routes/agui.py:179-188`** — The `/catalog` endpoint does `import json` and `from pathlib import Path` inside the function body. These are standard-library imports that belong at the module top level.
+
+- **`/home/mike-anderson/dev/cohezion/.worktrees/genesis-tdd-a2ui/src/web/anima_dashboard/src/a2ui/A2UIRenderer.tsx:19-23`** — `A2UIComponentInstance` uses `[key: string]: unknown` as the index signature. This is technically correct but means TypeScript will not flag invalid property names on component instances when building experience scripts programmatically. A mapped type derived from the catalog schema would provide stronger guarantees, though the JSON-at-runtime catalog lookup provides runtime defense.
+
+---
+
+### Verdict
+
+**REQUEST CHANGES**
+
+The two CRITICAL issues (wildcard CORS override and `TextMessageEvent` missing default type) must be fixed before merge. The `isClickTrigger` over-broad match and the unhandled mid-stream error in `cosmogony_stream` are HIGH severity and should also be resolved. The remaining findings are lower risk but the AG-UI tool call sequence deviation in particular warrants a decision — either fix it or leave an explicit `# AG-UI deviation:` comment with the rationale so future implementors do not unknowingly break compliant consumers.</result>
+<usage><total_tokens>87796</total_tokens><tool_uses>37</tool_uses><duration_ms>159889</duration_ms></usage>
+</task-notification>
+Full transcript available at: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/b64da2bf-bc43-4e98-92b9-9ef978ee0301/tasks/a28d010da9272550f.output
+
+---
+
+Continue
+
+---
+
+The cz context measurement is wrong.  Let's just remove it, it's slowing us down.
+
+---
+
+<task-notification>
+<task-id>bkffmrzuf</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/b64da2bf-bc43-4e98-92b9-9ef978ee0301/tasks/bkffmrzuf.output</output-file>
+<status>completed</status>
+<summary>Background command "Clone OPH repository" completed (exit code 0)</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/b64da2bf-bc43-4e98-92b9-9ef978ee0301/tasks/bkffmrzuf.output
+
+---
+
+And are we fully utilizing our Obsidian Vault and SurrealDB?
+
+---
+
+How do we make it safely agentically autonomous and sovereign while still maintaining HIL?
+
+---
+
+And how can we avoid having to start from scratch in each session?  I think we need a concierge agent that greats the user and then interprets the prompt and finds the optimal path in the projects to direct it towards.
