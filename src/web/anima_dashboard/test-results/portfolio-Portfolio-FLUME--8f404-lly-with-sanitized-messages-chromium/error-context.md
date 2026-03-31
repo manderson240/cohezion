@@ -22,7 +22,10 @@
         - heading "FLUME VAE." [level=1] [ref=e20]
         - paragraph [ref=e21]: Navigate a 256-dimensional software state space through continuous latent embeddings. Trained on git commit histories to enable smooth interpolation between discrete code snapshots.
       - generic [ref=e22]:
-        - generic [ref=e25]: SAMPLING LATENT SPACE...
+        - generic [ref=e24]:
+          - generic [ref=e25]: ERROR
+          - generic [ref=e26]: Failed to fetch
+          - button "RETRY" [ref=e27]
         - generic [ref=e28]:
           - generic [ref=e29]:
             - generic [ref=e30]: 256D
@@ -59,7 +62,16 @@
               - generic [ref=e58]:
                 - strong [ref=e59]: "Click Points:"
                 - text: (Coming soon) Click individual points to see their latent coordinates and decode them back to 256D space.
-  - button "Open Next.js Dev Tools" [ref=e65] [cursor=pointer]:
-    - img [ref=e66]
-  - alert [ref=e69]
+  - generic [ref=e64] [cursor=pointer]:
+    - button "Open Next.js Dev Tools" [ref=e65]:
+      - img [ref=e66]
+    - generic [ref=e69]:
+      - button "Open issues overlay" [ref=e70]:
+        - generic [ref=e71]:
+          - generic [ref=e72]: "0"
+          - generic [ref=e73]: "1"
+        - generic [ref=e74]: Issue
+      - button "Collapse issues badge" [ref=e75]:
+        - img [ref=e76]
+  - alert [ref=e78]
 ```

@@ -97,6 +97,7 @@ class RunFinishedEvent(AGUIEvent):
 class TextMessageEvent(AGUIEvent):
     """Narration text streaming event."""
 
+    type: AGUIEventType = AGUIEventType.TEXT_MESSAGE_START
     message_id: str = field(default_factory=lambda: str(uuid.uuid4()))
     role: str = "assistant"
     delta: str = ""
@@ -112,6 +113,7 @@ class TextMessageEvent(AGUIEvent):
 class ToolCallEvent(AGUIEvent):
     """Phase transition event (mapped to AG-UI tool calls)."""
 
+    type: AGUIEventType = AGUIEventType.TOOL_CALL_START
     tool_call_id: str = field(default_factory=lambda: str(uuid.uuid4()))
     tool_call_name: str = ""
     content: Any = None
