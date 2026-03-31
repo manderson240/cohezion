@@ -8,6 +8,7 @@ from typing import Any
 from cohezion.core.instruction_expander import ExecutablePlan, PlanStep
 from cohezion.core.plan_executor import ExecutionResult, PlanExecutor
 
+
 _PLAN = ExecutablePlan(
     skill_name="SKILL_0_PRIME",
     steps=[

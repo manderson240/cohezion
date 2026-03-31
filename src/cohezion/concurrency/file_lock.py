@@ -140,7 +140,7 @@ class ConfigManager:
         self.lock_timeout = lock_timeout
 
     @contextmanager
-    def _read_with_lock(self) -> Generator[dict, None, None]:
+    def _read_with_lock(self) -> Generator[dict]:
         """Read config file with exclusive lock."""
         import json
 
@@ -155,7 +155,7 @@ class ConfigManager:
             yield data
 
     @contextmanager
-    def _write_with_lock(self) -> Generator[dict, None, None]:
+    def _write_with_lock(self) -> Generator[dict]:
         """Prepare to write config file with exclusive lock."""
         import json
 
@@ -335,7 +335,7 @@ class LockedFileOperation:
 def safe_file_access(
     filepath: str,
     timeout: float = 10.0,
-) -> Generator[None, None, None]:
+) -> Generator[None]:
     """Simple context manager for safe file access.
 
     Args:

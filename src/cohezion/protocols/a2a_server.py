@@ -187,7 +187,7 @@ class A2AServer:
                     parts=[
                         {
                             "type": "text",
-                            "text": f"Error: {e!s}",
+                            "text": f"Error: {type(e).__name__}: Task execution failed",
                         }
                     ],
                 )
