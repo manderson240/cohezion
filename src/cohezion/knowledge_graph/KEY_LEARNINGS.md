@@ -286,3 +286,12 @@ arXiv:2603.28430 (Mar 30, 2026): 4.5-4.7x mean kernel speedups over RotorQuant u
 
 ### Learning 229: Layered Governance Architecture — L1-L4 Maps to Constitution (2026-03-31)
 arXiv:2603.07191: 4-layer framework — L1 execution sandboxing, L2 intent verification (intercepts 93-98.5% malicious tool calls), L3 zero-trust inter-agent authorization, L4 immutable audit logging. Maps directly to Cohezion: L1=sandbox isolation, L2=RequestAlignmentAnalyzer, L3=TeamOrchestrator auth, L4=JourneyTracker audit trail. Also: AGENTSAFE (arXiv:2512.03180) adds semantic telemetry + anomaly detection patterns for DegradationDetector. OI-MAS (arXiv:2601.04861) provides joint role+scale routing — upgrade path for CostAwareRouter+DynamicModelRouter.
+
+### Learning 230: OI-MAS Confidence Scoring — Joint Role+Scale Routing (2026-03-31)
+Implemented 3-signal confidence scoring in CostAwareRouter: quality(30%) + historical_success_rate(40%) + complexity_alignment(30%) × degradation_factor. Small model for complex task = 0.5 confidence (auto-escalation). Degradation cooldown reduces all confidence by 20%. Closes the gap between four independent routers by sharing confidence as the common signal.
+
+### Learning 231: PolarQuant Angular Geometry Preserves Manifold Structure (2026-03-31)
+PolarQuant at 4 bits gives 2.7x compression with 0.16 mean error for FLUME 256D vectors — acceptable because manifold vectors have inherent angular structure (SU(2) spinors, Bloch sphere). QJL 1-bit sign projection gives 32x compression for cosine similarity with ~0.05 accuracy. Together: PolarQuant for reconstruction, QJL for similarity search. Module: `flume/compression.py`.
+
+### Learning 232: LatentMAS — SharedLatentMemory as Agent Communication Channel (2026-03-31)
+Implemented training-free latent communication: agents deposit 256D FLUME embeddings into SharedLatentMemory, others retrieve and use as execution context. Consensus embedding (mean of recent agent states) = "group understanding." Inter-agent coherence = pairwise cosine similarity of latest embeddings. 3 agents with mixed similarity gave 0.373 coherence (expected — architect+engineer aligned, researcher divergent). Module: `flume/latent_channel.py`.
