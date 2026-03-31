@@ -87,6 +87,9 @@ See skill: `cohezion-vault-workflow` for vault API examples (log decisions, expe
 | **Worldviews** | 16 indigenous traditions x 10 cosmogony steps, Worldview Explorer | `WorldviewExplorer` |
 | **Ouroboros** | Ouroboros bridge + Mycelium network wired into Genesis chain | `OuroborosBridge` |
 | **Environments** | ManifoldEnv (gymnasium, 19D obs), SwarmEnv (multi-agent gauge coupling) | `gym.make('Cohezion/ManifoldEnv-v0')` |
+| **Governance** | AutonomyEngine (cosmogonic tiers), ConciergeAgent, KnowledgeBridge, FlumeBridge | `AutonomyEngine` |
+| **Data Mesh** | DataProduct (typed SLA), MCP Registry (tier access control + call tracking) | `get_cohezion_data_products()` |
+| **Providers** | OllamaProvider (local), GeminiProvider (cloud: Flash-Lite/Flash/Pro) | `get_model_provider("gemini")` |
 | **Genesis UI** | 12 components across 8 tabs: BlochSphere, GenesisScene, FlumeLatentViz, SwarmTopologyViz, etc. | `/genesis` route |
 | **Knowledge** | Vault-First (decisions/patterns/experiments), auto-compiled MEMORY.md | `vault_find_relevant_context` |
 
@@ -171,6 +174,7 @@ Updated Skill (loop again)
 
 ## Coding Standards (Cohezion-Specific)
 
+- **FLUME-First**: New modules MUST encode/decode through FLUME. Start with `encode()` → latent reasoning → `decode()`. Don't retrofit — wire from the start (Learning 215)
 - **Async**: All I/O must be `async/await` with timeouts. No blocking calls in executors
 - **Error handling**: Specific exceptions + circuit breakers (`cohezion.reliability.get_circuit()`)
 - **Validation**: Pydantic at boundaries (input/output). Fail fast with assertions
