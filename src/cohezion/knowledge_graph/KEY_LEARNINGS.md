@@ -9,14 +9,8 @@ Packet-greedy scheduling + register windowing + SIMD vectorization achieved 423x
 ## Learnings 12-18: Manifold Physics & Agent Architecture (Compressed)
 12D manifold must be grounded in physical substrate (CPU/VRAM/RAM), not purely semantic. VLIW→cognition parallel: 2048D vectors as "instruction packets." Peaked quantum circuits compress to low-rank MPS (Bond 64-256) → 100x throughput. Barrier-locked manifolds ensure hardware cache coherence. Hierarchical agent topology (Scout/Strategist) outperforms monolithic models. Stability through mortality (apoptosis/mitosis) forces HIHO dynamic equilibrium.
 
-## Learning 19: The Specialist Roster Effectiveness
-Cognitive specialization > parameters. Routed swarm of domain experts (DeepSeek-R1-8B, Qwen2.5-Coder-7B, Phi4-Mini) outperforms generic 7B model.
-
-## Learning 20: VRAM Persistence & The Sudo Trap
-Automated recovery must never rely on `sudo`. Use direct Ollama `/api/generate` with `keep_alive: 0` and AMD `/sys` telemetry for non-privileged VRAM management.
-
-## Learning 22: Agentic Reasoning Paradigms
-Refinement over generation — agentic reasoning shifts from next-token prediction to state-machine planning with recursive verification, checkpointing, and Merkle indexing.
+## Learnings 19-22: Swarm & Operations (Compressed)
+Cognitive specialization > parameters — routed domain experts outperform generic 7B. Never rely on `sudo` for automated recovery (use Ollama API + AMD `/sys` telemetry). Agentic reasoning = state-machine planning with recursive verification, not next-token prediction.
 
 ## Learning 26: The Python Autoregression Bottleneck
 GIL limits autoregressive decoding to ~10Hz. Inference loops must move to compiled languages (Rust/C++) for 100Hz+ fluid behavior.
@@ -297,3 +291,6 @@ ModelProvider ABC + auto-registration pattern makes adding new cloud providers a
 
 ### Learning 223: TurboQuant — Extreme Compression for FLUME + Semantic Cache (2026-03-31)
 Google's TurboQuant (Mar 2026): PolarQuant (Cartesian→polar, fixed circular grid) + QJL (1-bit sign encoding via Johnson-Lindenstrauss). 6x KV memory reduction, 3-bit KV cache without training, 8x attention speedup. Direct Cohezion paths: (1) PolarQuant for FLUME 256D embeddings — manifold vectors are geometrically structured, polar quantization preserves structure; (2) QJL 1-bit for SemanticCache L2 cosine — 32x storage reduction; (3) Ollama KV cache — 6x memory means larger effective context on 128GB Strix Halo. QJL's sign-only quantization IS HIHO: half positive, half negative.
+
+### Learning 224: Compound Token Efficiency Pipeline (C1-C5) (2026-03-31)
+Five wired optimizations: (C1) ExecutorFactory auto-selects TokenEfficientCompoundExecutor for API prompt caching when token_client provided — 40-60% savings. (C2) Context-window guard in CostAwareRouter prevents overflow via auto-escalation chain (phi3→qwen→deepseek→smollm3→gemini). (C3) Cache hit rate→routing feedback — >90% hits downgrades to cheap models, <30% upgrades to better models. (C4) Template matching before execution — CacheWarmer.find_template_match() skips LLM entirely for >85% similar tasks (87-98% savings). (C5) Batch-aware concierge groups tasks by target for BatchableExecutor dedup.
