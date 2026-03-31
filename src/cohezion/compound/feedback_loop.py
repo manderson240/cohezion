@@ -102,6 +102,7 @@ class CompoundFeedbackLoop:
         max_retries: int = 3,
         critical_threshold: float = 0.5,
         enable_learning: bool = True,
+        model_router: Any | None = None,
     ):
         """Initialize compound feedback loop.
 
@@ -112,12 +113,16 @@ class CompoundFeedbackLoop:
             max_retries: Maximum retry attempts for critical anomalies
             critical_threshold: Score threshold for critical severity
             enable_learning: Whether to refine skills based on feedback
+            model_router: Optional TipOfTheSpearRouter for model escalation.
+                When provided, ESCALATE_MODEL strategy selects the next tier
+                model via HOT→WARM→COLD→CLOUD escalation chain.
         """
         self.executor = executor
         self.detector = detector or InflectionDetector()
         self.max_retries = max_retries
         self.critical_threshold = critical_threshold
         self.enable_learning = enable_learning
+        self.model_router = model_router
 
         # Track execution history for learning
         self.execution_history: list[RetryAttempt] = []
@@ -191,10 +196,11 @@ class CompoundFeedbackLoop:
             # Create retry attempt record
             attempt = RetryAttempt(
                 attempt_number=current_retry + 1,
-                strategy=self._select_retry_strategy(current_retry, anomaly, available_alternative_skills),
+                strategy=self._select_retry_strategy(
+                    current_retry, anomaly, available_alternative_skills
+                ),
                 skill_used=current_skill,
-                success=execution_result.success
-                and anomaly.score > self.critical_threshold,
+                success=execution_result.success and anomaly.score > self.critical_threshold,
                 anomaly_detected=anomaly,
                 execution_result=execution_result,
             )
@@ -360,10 +366,24 @@ class CompoundFeedbackLoop:
             return current_skill  # Original skill, execute_fn adjusts params
 
         if strategy == RetryStrategy.ESCALATE_MODEL:
-            # Add escalation marker (actual model selection handled by executor)
-            escalated = f"{current_skill}_escalated"
-            logger.info("Escalating to more capable model: %s", escalated)
-            return current_skill  # Executor handles escalation
+            # Use TipOfTheSpearRouter if available for tier-based escalation
+            if self.model_router and hasattr(self.model_router, "get_current_tier"):
+                try:
+                    current_tier = self.model_router.get_current_tier()
+                    next_tier = self.model_router._get_next_tier(current_tier)
+                    if next_tier:
+                        model = self.model_router._get_tier_model(next_tier, "general")
+                        logger.info(
+                            "Model escalation via TotS: %s → %s (model=%s)",
+                            current_tier.value,
+                            next_tier.value,
+                            model,
+                        )
+                except Exception:
+                    logger.debug("TotS escalation failed, using default", exc_info=True)
+            else:
+                logger.info("Escalating to more capable model (no router attached)")
+            return current_skill  # Skill unchanged, model escalation is metadata
 
         return current_skill
 
@@ -449,7 +469,9 @@ class CompoundFeedbackLoop:
             "average_retries": total_retries / total if total > 0 else 0,
         }
 
-    async def execute_batch_with_feedback(self, tasks: list[tuple[str, Callable]]) -> dict[str, Any]:
+    async def execute_batch_with_feedback(
+        self, tasks: list[tuple[str, Callable]]
+    ) -> dict[str, Any]:
         """Execute batch of tasks with feedback loop integration.
 
         Phase 2.5: Batch execution with cache warming from learned patterns.
@@ -519,7 +541,9 @@ class CompoundFeedbackLoop:
                     critical_failures.append((i, "Task failed after all retries"))
 
         # Cache successful retry results for future batch executions
-        logger.info(f"Batch cache warming: Found {len(cache_warming_opportunities)} successful retry patterns to cache")
+        logger.info(
+            f"Batch cache warming: Found {len(cache_warming_opportunities)} successful retry patterns to cache"
+        )
 
         # Extract and persist learning patterns
         learned_patterns = []
@@ -555,6 +579,7 @@ class CompoundFeedbackLoopFactory:
         max_retries: int = 3,
         critical_threshold: float = 0.5,
         enable_learning: bool = True,
+        model_router: Any | None = None,
     ) -> CompoundFeedbackLoop:
         """Create a compound feedback loop.
 
@@ -563,6 +588,7 @@ class CompoundFeedbackLoopFactory:
             max_retries: Maximum retry attempts
             critical_threshold: Score threshold for critical severity
             enable_learning: Whether to enable skill refinement
+            model_router: Optional TipOfTheSpearRouter for model escalation
 
         Returns:
             CompoundFeedbackLoop instance
@@ -574,4 +600,5 @@ class CompoundFeedbackLoopFactory:
             max_retries=max_retries,
             critical_threshold=critical_threshold,
             enable_learning=enable_learning,
+            model_router=model_router,
         )
