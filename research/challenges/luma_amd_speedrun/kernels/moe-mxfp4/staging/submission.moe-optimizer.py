@@ -1,22 +1,39 @@
-import os
-import torch
-import sys
+import os,torch,sys
+from task import input_t,output_t
+from aiter.fused_moe import fused_moe as fm
+from aiter import ActivationType as at,QuantType as qt
+from reference import ref_kernel
 
-_cache = {}
+# Set performance hints
+os.environ["AITER_USE_NT"] = "1"
+os.environ["AITER_BYPASS_TUNE_CONFIG"] = "1"
 
-def custom_kernel(data):
-    hidden_states = data[0]
+def custom_kernel(data:input_t)->output_t:
+    (
+        hs, w1, w2, w1s, w2s, 
+        w1sh, w2sh, w1ssh, w2ssh, 
+        tw, ti, cfg
+    ) = data
     
-    try:
-        key = (hidden_states.shape, hidden_states.data_ptr(), hidden_states[0, 0].item())
-    except Exception:
-        from reference import ref_kernel
-        return ref_kernel(data)
+    ne=w1sh.shape[0]
+    bs = cfg["bs"]
+    
+    estimated_m = bs / ne
+    if estimated_m < 10:
+        os.environ["AITER_KSPLIT"] = "4"
+    elif estimated_m < 30:
+        os.environ["AITER_KSPLIT"] = "2"
+    else:
+        os.environ["AITER_KSPLIT"] = "0"
         
-    if key in _cache:
-        return _cache[key]
-
-    from reference import ref_kernel
-    out = ref_kernel(data)
-    _cache[key] = out
-    return out
+    return fm(
+        hs, w1sh, w2sh, tw, ti,
+        expert_mask=None,
+        activation=at.Silu,
+        quant_type=qt.per_1x32,
+        doweight_stage1=False,
+        w1_scale=w1ssh,
+        w2_scale=w2ssh,
+        hidden_pad=cfg["d_hidden_pad"]-cfg["d_hidden"],
+        intermediate_pad=cfg["d_expert_pad"]-cfg["d_expert"]
+    )
