@@ -1,0 +1,59 @@
+{
+  "cycle": 320,
+  "start_time": "2026-03-31T00:24:42.493662",
+  "ralph_review": {
+    "cycle": 320,
+    "timestamp": "2026-03-31T00:24:42.632641",
+    "perspectives": {
+      "Critic": {
+        "status": "passed",
+        "findings": [],
+        "risk_level": "low"
+      },
+      "Auditor": {
+        "status": "passed",
+        "findings": [],
+        "risk_level": "low"
+      },
+      "Security": {
+        "status": "passed",
+        "findings": [],
+        "risk_level": "low"
+      },
+      "Performance": {
+        "status": "passed",
+        "findings": [],
+        "risk_level": "low"
+      }
+    },
+    "commits_reviewed": 319
+  },
+  "autoresearch": {
+    "cycle": 320,
+    "timestamp": "2026-03-31T00:25:12.843460",
+    "optimizations": [
+      {
+        "type": "lint_errors",
+        "count": 9412,
+        "priority": "high"
+      },
+      {
+        "type": "documentation",
+        "doc_count": 301,
+        "priority": "low"
+      }
+    ],
+    "recommendations": [
+      {
+        "type": "lint_errors",
+        "count": 9412,
+        "priority": "high"
+      }
+    ]
+  },
+  "ksearch_evolution": {
+    "node_id": "node_0320",
+    "tree_size": 321,
+    "evolution_count": 321
+  }
+}
