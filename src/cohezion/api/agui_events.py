@@ -176,8 +176,17 @@ def narration_event(text: str, stage: str) -> list[AGUIEvent]:
 
 
 def phase_transition_event(from_sym: str, to_sym: str, temperature: float) -> list[AGUIEvent]:
-    """Create a TOOL_CALL sequence for a symmetry breaking transition."""
+    """Create a full AG-UI TOOL_CALL sequence for a symmetry breaking transition.
+
+    Follows AG-UI spec: START → ARGS → END, then RESULT as separate lifecycle event.
+    """
     call_id = str(uuid.uuid4())
+    result_content = {
+        "from": from_sym,
+        "to": to_sym,
+        "temperature": temperature,
+        "stage": f"{from_sym} → {to_sym}",
+    }
     return [
         ToolCallEvent(
             type=AGUIEventType.TOOL_CALL_START,
@@ -185,15 +194,21 @@ def phase_transition_event(from_sym: str, to_sym: str, temperature: float) -> li
             tool_call_name="symmetry_breaking",
         ),
         ToolCallEvent(
+            type=AGUIEventType.TOOL_CALL_ARGS,
+            tool_call_id=call_id,
+            tool_call_name="symmetry_breaking",
+            content=json.dumps({"from_sym": from_sym, "to_sym": to_sym, "temperature": temperature}),
+        ),
+        ToolCallEvent(
+            type=AGUIEventType.TOOL_CALL_END,
+            tool_call_id=call_id,
+            tool_call_name="symmetry_breaking",
+        ),
+        ToolCallEvent(
             type=AGUIEventType.TOOL_CALL_RESULT,
             tool_call_id=call_id,
             tool_call_name="symmetry_breaking",
-            content={
-                "from": from_sym,
-                "to": to_sym,
-                "temperature": temperature,
-                "stage": f"{from_sym} → {to_sym}",
-            },
+            content=result_content,
         ),
     ]
 
