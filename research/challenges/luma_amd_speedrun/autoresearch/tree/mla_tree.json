@@ -22,7 +22,9 @@
         "n_d1bf5d70",
         "n_4158916a",
         "n_af36fd95",
-        "n_13201908"
+        "n_13201908",
+        "n_f2f2181b",
+        "n_876bcdbe"
       ],
       "notes": "Previously found but not fully explored. May bypass 3-stage dispatch.",
       "attempt_history": []
@@ -1898,14 +1900,26 @@
         "status": "CONFIRMED_EXISTS"
       },
       "parent_id": "root_mla",
-      "priority": 0.88,
-      "attempts": 0,
-      "best_result_us": null,
+      "priority": 0.3,
+      "attempts": 1,
+      "best_result_us": Infinity,
       "stagnation_count": 0,
       "status": "active",
       "children": [],
       "notes": "[Session 77] CONFIRMED EXISTS: FlashMHA v3 variable-length forward kernel. V3 is the latest generation -- likely optimized for CDNA4. Variable-length support handles ragged batches without padding waste.",
-      "attempt_history": []
+      "attempt_history": [
+        {
+          "result_us": Infinity,
+          "parameters": {
+            "api": "aiter.fmha_v3_varlen_fwd",
+            "type": "flash_mha_v3",
+            "variable_length": true,
+            "status": "CONFIRMED_EXISTS"
+          },
+          "timestamp": "2026-03-31T18:02:45.433546",
+          "source": "llm"
+        }
+      ]
     },
     "n_f37512a3": {
       "id": "n_f37512a3",
@@ -1972,9 +1986,9 @@
       "attempts": 0,
       "best_result_us": null,
       "stagnation_count": 0,
-      "status": "active",
+      "status": "pruned",
       "children": [],
-      "notes": "[Session 77] CONFIRMED EXISTS: Persistent streaming paged attention ASM kernel. Persistent kernels stay resident on CUs -- avoids launch overhead. Streaming variant processes KV cache incrementally. High priority for decode-heavy workloads.",
+      "notes": "[Session 77] CONFIRMED EXISTS: Persistent streaming paged attention ASM kernel. Persistent kernels stay resident on CUs -- avoids launch overhead. Streaming variant processes KV cache incrementally. High priority for decode-heavy workloads. [PRUNED: Test failed: Exit code 1]",
       "attempt_history": []
     },
     "n_4158916a": {
@@ -2045,6 +2059,34 @@
       "status": "active",
       "children": [],
       "notes": "[Session 77] 13 total attention APIs catalogued. Priority APIs for MLA: pa_ps_fwd_asm (persistent streaming), fmha_v3_varlen_fwd (latest gen), flash_attn_varlen_func (padded V approach). Lower-priority: fav3_sage variants, mla_decode_fwd_v2. This node tracks the landscape for systematic evaluation.",
+      "attempt_history": []
+    },
+    "n_f2f2181b": {
+      "id": "n_f2f2181b",
+      "strategy": "mla_decode_fwd with explicit work_meta_data pre-allocation for kvseqlen=8192",
+      "parameters": {},
+      "parent_id": "root_mla",
+      "priority": 0.85,
+      "attempts": 0,
+      "best_result_us": null,
+      "stagnation_count": 0,
+      "status": "active",
+      "children": [],
+      "notes": "[LLM-proposed]",
+      "attempt_history": []
+    },
+    "n_876bcdbe": {
+      "id": "n_876bcdbe",
+      "strategy": "Tune BLOCK_M \u00d7 KSPLIT for d_expert=2048 MoE GEMM (bs=64)",
+      "parameters": {},
+      "parent_id": "root_mla",
+      "priority": 0.8,
+      "attempts": 0,
+      "best_result_us": null,
+      "stagnation_count": 0,
+      "status": "active",
+      "children": [],
+      "notes": "[LLM-proposed]",
       "attempt_history": []
     }
   }
