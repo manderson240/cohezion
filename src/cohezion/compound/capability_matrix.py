@@ -513,3 +513,44 @@ class CapabilityMatrix:
         except Exception:
             logger.debug("Self-evaluation failed (non-blocking)", exc_info=True)
             return {"score": 0.0, "passed": True, "feedback": "Self-eval error"}
+
+    def enrich_from_data_mesh(self) -> int:
+        """Load data product metadata from data_mesh/ into capability entries.
+
+        Connects data_mesh/data_product.py to the unified assessment layer.
+        Each active data product becomes a capability entry representing
+        a data domain the system can access.
+
+        Returns:
+            Number of data products loaded
+        """
+        loaded = 0
+        try:
+            from cohezion.data_mesh.data_product import get_cohezion_data_products
+
+            products = get_cohezion_data_products()
+            for product in products:
+                if product.status.value != "active":
+                    continue
+                entry = CapabilityEntry(
+                    entity_type="data_product",
+                    entity_id=product.name,
+                    capabilities=["data-access", product.domain],
+                    quality_score={"gold": 1.0, "silver": 0.7, "bronze": 0.4}.get(
+                        product.quality_tier.value, 0.5
+                    ),
+                    speed_tier=2,
+                    success_rate=1.0,
+                    affinity={product.domain: 0.9},
+                    last_assessed=date.today().isoformat(),
+                    source="data-mesh",
+                    metadata={
+                        "owner": product.owner,
+                        "quality_tier": product.quality_tier.value,
+                    },
+                )
+                self._entries[f"data_product:{product.name}"] = entry
+                loaded += 1
+        except (ImportError, Exception):
+            logger.debug("Data mesh not available (non-blocking)", exc_info=True)
+        return loaded
