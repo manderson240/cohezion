@@ -24,7 +24,8 @@
         "n_af36fd95",
         "n_13201908",
         "n_f2f2181b",
-        "n_876bcdbe"
+        "n_876bcdbe",
+        "n_43620c20"
       ],
       "notes": "Previously found but not fully explored. May bypass 3-stage dispatch.",
       "attempt_history": []
@@ -2001,14 +2002,26 @@
         "status": "CONFIRMED_EXISTS"
       },
       "parent_id": "root_mla",
-      "priority": 0.88,
-      "attempts": 0,
-      "best_result_us": null,
+      "priority": 0.3,
+      "attempts": 1,
+      "best_result_us": 216.7,
       "stagnation_count": 0,
       "status": "active",
       "children": [],
       "notes": "[Session 77] CONFIRMED EXISTS: FlashMHA v3 variable-length forward kernel. V3 is the latest generation -- likely optimized for CDNA4. Variable-length support handles ragged batches without padding waste.",
-      "attempt_history": []
+      "attempt_history": [
+        {
+          "result_us": 216.70238395885582,
+          "parameters": {
+            "api": "aiter.fmha_v3_varlen_fwd",
+            "type": "flash_mha_v3",
+            "variable_length": true,
+            "status": "CONFIRMED_EXISTS"
+          },
+          "timestamp": "2026-03-31T19:14:03.148025",
+          "source": "template"
+        }
+      ]
     },
     "n_af36fd95": {
       "id": "n_af36fd95",
@@ -2081,6 +2094,20 @@
       "parameters": {},
       "parent_id": "root_mla",
       "priority": 0.8,
+      "attempts": 0,
+      "best_result_us": null,
+      "stagnation_count": 0,
+      "status": "active",
+      "children": [],
+      "notes": "[LLM-proposed]",
+      "attempt_history": []
+    },
+    "n_43620c20": {
+      "id": "n_43620c20",
+      "strategy": "mla_decode_fwd with explicit work_meta_data pre-allocation for kvseqlen=8192 + num_kv_splits=128",
+      "parameters": {},
+      "parent_id": "root_mla",
+      "priority": 0.75,
       "attempts": 0,
       "best_result_us": null,
       "stagnation_count": 0,
