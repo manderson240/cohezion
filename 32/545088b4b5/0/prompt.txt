@@ -35,3 +35,7 @@ Save what we've accomplished, extract reuseable skills, and refine plan going fo
 ---
 
 Proceed
+
+---
+
+We need to make sure knowledge capture goes all the way through to obsidian vault and surrealdb graph
