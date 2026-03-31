@@ -1,0 +1,37 @@
+{
+  "cli_version": "0.5.1",
+  "checkpoint_id": "088d91c01f01",
+  "session_id": "7811d063-f780-4a33-bf06-f7fd845739f9",
+  "strategy": "manual-commit",
+  "created_at": "2026-03-31T04:25:13.737709769Z",
+  "branch": "challenge/nvidia-nemotron-reasoning",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "luma_speedrun/amd-moe-mxfp4/submission.py",
+    "research/challenges/luma_amd_speedrun/autoresearch/tree/mla_tree.json"
+  ],
+  "agent": "Claude Code",
+  "model": "claude-opus-4-6[1m]",
+  "turn_id": "94aeb0b0abc5",
+  "checkpoint_transcript_start": 1469,
+  "transcript_lines_at_start": 1469,
+  "token_usage": {
+    "input_tokens": 1,
+    "cache_creation_tokens": 521,
+    "cache_read_tokens": 340413,
+    "output_tokens": 297,
+    "api_call_count": 1
+  },
+  "session_metrics": {
+    "turn_count": 10
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-03-31T04:25:13.152887553Z",
+    "agent_lines": 13,
+    "human_added": 3810,
+    "human_modified": 15,
+    "human_removed": 0,
+    "total_committed": 3838,
+    "agent_percentage": 0.33871808233454925
+  }
+}
