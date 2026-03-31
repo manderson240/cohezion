@@ -301,6 +301,26 @@ class DegradationDetector:
         except (ImportError, Exception):
             pass  # Non-blocking: validation module may not be available
 
+        # Ouroboros anomaly detection (non-blocking)
+        # Cross-validates coherence via the Ouroboros AnomalyDetector
+        try:
+            from cohezion.ouroboros.detector import AnomalyDetector
+
+            ouroboros = AnomalyDetector(coherence_threshold=0.1, target_coherence=0.5)
+            if ouroboros.is_anomaly(coherence):
+                ouro_alert = DegradationAlert(
+                    metric="ouroboros_anomaly",
+                    severity=AlertSeverity.WARNING,
+                    message=f"Ouroboros: coherence {coherence:.3f} deviates >0.1 from HIHO",
+                    current_value=coherence,
+                    baseline_value=0.5,
+                    threshold=0.1,
+                )
+                if self._should_emit_alert(ouro_alert):
+                    alerts.append(ouro_alert)
+        except (ImportError, Exception):
+            pass  # Non-blocking: ouroboros module may not be available
+
         # Run healing pipeline + resilience notification on alerts (non-blocking)
         if alerts and self._healing_enabled:
             self._run_healing_pipeline(alerts, metrics)

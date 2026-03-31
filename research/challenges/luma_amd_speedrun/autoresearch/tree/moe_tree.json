@@ -1883,16 +1883,16 @@
         "status": "CONFIRMED_WORKING"
       },
       "parent_id": "root_moe",
-      "priority": 0.5,
+      "priority": 0.4,
       "attempts": 1,
       "best_result_us": Infinity,
       "stagnation_count": 0,
-      "status": "active",
+      "status": "pruned",
       "children": [
         "n_28480acc",
         "n_668be083"
       ],
-      "notes": "[Session 77] CONFIRMED: CK_BLOCK_GEMM=1 passes ALL shapes at 182us without any KSPLIT. This is the new baseline to beat with KSPLIT tuning.",
+      "notes": "[Session 77] CONFIRMED: CK_BLOCK_GEMM=1 passes ALL shapes at 182us without any KSPLIT. This is the new baseline to beat with KSPLIT tuning. [STRATEGIC PRUNE: LLM world model]",
       "attempt_history": [
         {
           "result_us": Infinity,
@@ -1968,14 +1968,26 @@
         "status": "UNTESTED"
       },
       "parent_id": "root_moe",
-      "priority": 0.75,
-      "attempts": 0,
-      "best_result_us": null,
+      "priority": 0.85,
+      "attempts": 1,
+      "best_result_us": Infinity,
       "stagnation_count": 0,
       "status": "active",
       "children": [],
       "notes": "[Session 77] From OpenCode Kimi v16 submission. KSPLIT=6 when estimated M per expert is very small (<5 tokens). Rationale: small M needs more K-splits to keep CUs busy. UNTESTED on our shapes.",
-      "attempt_history": []
+      "attempt_history": [
+        {
+          "result_us": Infinity,
+          "parameters": {
+            "condition": "est_m < 5",
+            "KSPLIT": 6,
+            "source": "OpenCode Kimi v16",
+            "status": "UNTESTED"
+          },
+          "timestamp": "2026-03-31T18:00:40.983315",
+          "source": "llm"
+        }
+      ]
     },
     "n_a5649566": {
       "id": "n_a5649566",
@@ -2147,13 +2159,51 @@
       "strategy": "Direct torch.ops.aiter.fmoe with fmoe_g1u1 + local_expert_mask + KSPLIT=2 + OPUS sorting + warp_specialize + BLOCK_SIZE=64 + enable_tma + wave_quant=4 + smem_tile_reuse for E=257,d=256,bs=128 (valid for E>=200 only, skip E=32 due to NaN risk)",
       "parameters": {},
       "parent_id": "n_cae99d50",
-      "priority": 0.85,
+      "priority": 0.6,
+      "attempts": 1,
+      "best_result_us": 157.69,
+      "stagnation_count": 0,
+      "status": "pruned",
+      "children": [
+        "n_ad0dbbd3",
+        "n_c3527378"
+      ],
+      "notes": "[LLM-proposed] [STRATEGIC PRUNE: parent n_cae99d50 pruned]",
+      "attempt_history": [
+        {
+          "result_us": 157.69,
+          "parameters": {},
+          "timestamp": "2026-03-31T17:58:31.178984",
+          "source": "template"
+        }
+      ]
+    },
+    "n_ad0dbbd3": {
+      "id": "n_ad0dbbd3",
+      "strategy": "shape_6-specific: KSPLIT=8 + wave_quant=2 + BLOCK_SIZE=32 for E=257,d=256,bs=128 (high KSPLIT to reduce per-expert load on bottleneck shape)",
+      "parameters": {},
+      "parent_id": "n_668be083",
+      "priority": 0.8,
       "attempts": 0,
       "best_result_us": null,
       "stagnation_count": 0,
-      "status": "active",
+      "status": "pruned",
       "children": [],
-      "notes": "[LLM-proposed]",
+      "notes": "[LLM-proposed] [STRATEGIC PRUNE: parent n_668be083 pruned]",
+      "attempt_history": []
+    },
+    "n_c3527378": {
+      "id": "n_c3527378",
+      "strategy": "shape_6-specific: remove local_expert_mask + enable_tma only (eliminate mask overhead for sparse expert activation)",
+      "parameters": {},
+      "parent_id": "n_668be083",
+      "priority": 0.65,
+      "attempts": 0,
+      "best_result_us": null,
+      "stagnation_count": 0,
+      "status": "pruned",
+      "children": [],
+      "notes": "[LLM-proposed] [STRATEGIC PRUNE: parent n_668be083 pruned]",
       "attempt_history": []
     }
   }
