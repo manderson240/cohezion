@@ -315,3 +315,7 @@ Wires 5 and 6 are genuinely functional. Wire 3's fallback logic works but is bri
 <usage><total_tokens>68359</total_tokens><tool_uses>47</tool_uses><duration_ms>184357</duration_ms></usage>
 </task-notification>
 Full transcript available at: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/b64da2bf-bc43-4e98-92b9-9ef978ee0301/tasks/a43f891b52e8cfffe.output
+
+---
+
+Don't forget https://github.com/lucas-maes/le-wm I thought we had this awhile ago but it looks like it's missing here
