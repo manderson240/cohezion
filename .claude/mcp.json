@@ -4,7 +4,10 @@
       "name": "BMAD Method",
       "type": "stdio",
       "command": "/home/mike-anderson/dev/cohezion/.venv/bin/python",
-      "args": ["-m", "cohezion.mcp.bmad_server"],
+      "args": [
+        "-m",
+        "cohezion.mcp.bmad_server"
+      ],
       "env": {
         "PYTHONPATH": "/home/mike-anderson/dev/cohezion/src",
         "MCP_TRANSPORT": "stdio"
@@ -15,12 +18,24 @@
       "name": "Cohezion Compound Engineering",
       "type": "stdio",
       "command": "/home/mike-anderson/dev/cohezion/.venv/bin/python",
-      "args": ["-m", "cohezion.mcp.compound_server"],
+      "args": [
+        "-m",
+        "cohezion.mcp.compound_server"
+      ],
       "env": {
         "PYTHONPATH": "/home/mike-anderson/dev/cohezion/src",
         "REDIS_URL": "redis://localhost:6379"
       },
       "description": "Compound engineering MCP server for multi-session AI workflows"
+    },
+    "glance": {
+      "name": "Glance Browser Testing",
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "glance-mcp"
+      ],
+      "description": "MCP browser automation \u2014 30 tools for screenshots, testing, assertions, visual regression"
     }
   }
 }

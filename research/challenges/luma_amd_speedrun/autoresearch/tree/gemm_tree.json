@@ -10,13 +10,18 @@
         "note": "Official template-hip.py at gpu-mode/reference-kernels proves load_inline WORKS!"
       },
       "parent_id": null,
-      "priority": 1.0,
-      "attempts": 6,
-      "best_result_us": 8.36,
-      "stagnation_count": 0,
-      "status": "pruned",
-      "children": [],
-      "notes": "BREAKTHROUGH: load_inline custom HIP kernel works on Popcorn runners! [PRUNED: Test failed: Exit code 1]",
+      "priority": 0.475,
+      "attempts": 12,
+      "best_result_us": 7.2,
+      "stagnation_count": 1,
+      "status": "active",
+      "children": [
+        "n_469245a5",
+        "n_a6a3e4d8",
+        "n_3b4b156e",
+        "n_2094562e"
+      ],
+      "notes": "BREAKTHROUGH: load_inline custom HIP kernel works on Popcorn runners!",
       "attempt_history": [
         {
           "result_us": 184.2029684199879,
@@ -71,6 +76,60 @@
           },
           "timestamp": "2026-03-30T19:22:27.298120",
           "source": "llm"
+        },
+        {
+          "result_us": 8.756728787396472,
+          "parameters": {
+            "approach": "load_inline_hip",
+            "note": "Official template-hip.py at gpu-mode/reference-kernels proves load_inline WORKS!"
+          },
+          "timestamp": "2026-03-31T00:17:42.428881",
+          "source": "template"
+        },
+        {
+          "result_us": 8.822232128232248,
+          "parameters": {
+            "approach": "load_inline_hip",
+            "note": "Official template-hip.py at gpu-mode/reference-kernels proves load_inline WORKS!"
+          },
+          "timestamp": "2026-03-31T00:17:48.826154",
+          "source": "template"
+        },
+        {
+          "result_us": 8.668591689060344,
+          "parameters": {
+            "approach": "load_inline_hip",
+            "note": "Official template-hip.py at gpu-mode/reference-kernels proves load_inline WORKS!"
+          },
+          "timestamp": "2026-03-31T00:17:55.129377",
+          "source": "template"
+        },
+        {
+          "result_us": 7.518454411862909,
+          "parameters": {
+            "approach": "load_inline_hip",
+            "note": "Official template-hip.py at gpu-mode/reference-kernels proves load_inline WORKS!"
+          },
+          "timestamp": "2026-03-31T00:18:01.354235",
+          "source": "template"
+        },
+        {
+          "result_us": 7.197015372079475,
+          "parameters": {
+            "approach": "load_inline_hip",
+            "note": "Official template-hip.py at gpu-mode/reference-kernels proves load_inline WORKS!"
+          },
+          "timestamp": "2026-03-31T00:18:07.593922",
+          "source": "template"
+        },
+        {
+          "result_us": 7.512215233402999,
+          "parameters": {
+            "approach": "load_inline_hip",
+            "note": "Official template-hip.py at gpu-mode/reference-kernels proves load_inline WORKS!"
+          },
+          "timestamp": "2026-03-31T00:18:13.976858",
+          "source": "template"
         }
       ]
     },
@@ -82,14 +141,24 @@
         "note": "Based on official template-hip.py simple pattern"
       },
       "parent_id": "gemm_loadinline_root",
-      "priority": 0.9025,
-      "attempts": 0,
-      "best_result_us": null,
+      "priority": 0.1,
+      "attempts": 1,
+      "best_result_us": 198.7,
       "stagnation_count": 0,
-      "status": "active",
+      "status": "pruned",
       "children": [],
-      "notes": "Simple block-wise GEMM with lifted scales, BLOCK=16",
-      "attempt_history": []
+      "notes": "Simple block-wise GEMM with lifted scales, BLOCK=16 [STRATEGIC PRUNE: LLM world model]",
+      "attempt_history": [
+        {
+          "result_us": 198.70228056343538,
+          "parameters": {
+            "approach": "load_inline_simple",
+            "note": "Based on official template-hip.py simple pattern"
+          },
+          "timestamp": "2026-03-31T00:18:19.723060",
+          "source": "template"
+        }
+      ]
     },
     "gemm_loadinline_rocwmma": {
       "id": "gemm_loadinline_rocwmma",
@@ -99,13 +168,93 @@
         "note": "From arxiv 2506.20807 GPU Kernel Scientist paper"
       },
       "parent_id": "gemm_loadinline_root",
-      "priority": 0.855,
+      "priority": 0.3,
+      "attempts": 1,
+      "best_result_us": 187.03,
+      "stagnation_count": 0,
+      "status": "pruned",
+      "children": [],
+      "notes": "rocWMMA MFMA kernel with double-buffered LDS and scale caching [STRATEGIC PRUNE: LLM world model]",
+      "attempt_history": [
+        {
+          "result_us": 187.03420280312258,
+          "parameters": {
+            "approach": "load_inline_rocwmma",
+            "note": "From arxiv 2506.20807 GPU Kernel Scientist paper"
+          },
+          "timestamp": "2026-03-31T00:18:32.557149",
+          "source": "template"
+        }
+      ]
+    },
+    "n_469245a5": {
+      "id": "n_469245a5",
+      "strategy": "load_inline custom HIP kernel with rocWMMA MFMA and dynamic swizzling for MI355X",
+      "parameters": {},
+      "parent_id": "gemm_loadinline_root",
+      "priority": 0.19,
+      "attempts": 1,
+      "best_result_us": 183.42,
+      "stagnation_count": 0,
+      "status": "active",
+      "children": [],
+      "notes": "[LLM-proposed]",
+      "attempt_history": [
+        {
+          "result_us": 183.41851607649983,
+          "parameters": {},
+          "timestamp": "2026-03-31T00:18:26.107634",
+          "source": "template"
+        }
+      ]
+    },
+    "n_a6a3e4d8": {
+      "id": "n_a6a3e4d8",
+      "strategy": "load_inline custom HIP kernel - rocWMMA MFMA with static swizzling and fused scale application (no dynamic overhead)",
+      "parameters": {},
+      "parent_id": "gemm_loadinline_root",
+      "priority": 0.6649999999999999,
       "attempts": 0,
       "best_result_us": null,
       "stagnation_count": 0,
       "status": "active",
       "children": [],
-      "notes": "rocWMMA MFMA kernel with double-buffered LDS and scale caching",
+      "notes": "[LLM-proposed]",
+      "attempt_history": []
+    },
+    "n_3b4b156e": {
+      "id": "n_3b4b156e",
+      "strategy": "load_inline custom HIP kernel - block-wise GEMM with static swizzling, lifted scales, and fused FP8 dequant (no rocWMMA, pure SGEMM-like MFMA)",
+      "parameters": {},
+      "parent_id": "gemm_loadinline_root",
+      "priority": 0.3,
+      "attempts": 1,
+      "best_result_us": 182.99,
+      "stagnation_count": 0,
+      "status": "pruned",
+      "children": [],
+      "notes": "[LLM-proposed] [STRATEGIC PRUNE: LLM world model]",
+      "attempt_history": [
+        {
+          "result_us": 182.98626169071017,
+          "parameters": {},
+          "timestamp": "2026-03-31T00:18:39.750700",
+          "source": "template"
+        }
+      ]
+    },
+    "n_2094562e": {
+      "id": "n_2094562e",
+      "strategy": "load_inline custom HIP kernel - rocWMMA MFMA with dynamic swizzling and fused FP8 dequant (MI355X-specific tile sizes, no lifted scale overhead)",
+      "parameters": {},
+      "parent_id": "gemm_loadinline_root",
+      "priority": 0.7124999999999999,
+      "attempts": 0,
+      "best_result_us": null,
+      "stagnation_count": 0,
+      "status": "active",
+      "children": [],
+      "notes": "[LLM-proposed]",
       "attempt_history": []
     }
   }
