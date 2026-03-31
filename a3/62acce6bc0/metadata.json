@@ -3,7 +3,7 @@
   "checkpoint_id": "a362acce6bc0",
   "strategy": "manual-commit",
   "branch": "main",
-  "checkpoints_count": 0,
+  "checkpoints_count": 1,
   "files_touched": [
     "src/cohezion/swarm/cost_aware_router.py"
   ],
@@ -13,13 +13,19 @@
       "transcript": "/a3/62acce6bc0/0/full.jsonl",
       "content_hash": "/a3/62acce6bc0/0/content_hash.txt",
       "prompt": ""
+    },
+    {
+      "metadata": "/a3/62acce6bc0/1/metadata.json",
+      "transcript": "/a3/62acce6bc0/1/full.jsonl",
+      "content_hash": "/a3/62acce6bc0/1/content_hash.txt",
+      "prompt": "/a3/62acce6bc0/1/prompt.txt"
     }
   ],
   "token_usage": {
-    "input_tokens": 2,
-    "cache_creation_tokens": 2772,
-    "cache_read_tokens": 217589,
-    "output_tokens": 2006,
-    "api_call_count": 2
+    "input_tokens": 16748,
+    "cache_creation_tokens": 6377847,
+    "cache_read_tokens": 263343605,
+    "output_tokens": 311702,
+    "api_call_count": 814
   }
 }
