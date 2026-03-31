@@ -2,7 +2,7 @@
 
 **Auto-compiled from `~/vaults/cohezion-vault/` - Query vault for full context**
 
-**Last Updated**: 2026-03-28 (Session 77)
+**Last Updated**: 2026-03-31 (Session 78)
 
 ---
 
@@ -64,26 +64,26 @@
 
 ---
 
-## Active Context (Session 77, 2026-03-28)
+## Active Context (Session 78, 2026-03-31)
 
-**Current Work**: Full project health fix — MCP config, hooks, worktree cleanup
+**Current Work**: 3-hour autonomous improvement session complete
 **Branch**: `challenge/nvidia-nemotron-reasoning`
-**Recent**:
-- Fixed BMAD MCP server config (streamable-http → stdio)
-- Fixed SurrealDB health check port (8000 → 8001)
-- Fixed branch-safety-warning hook false positive (allows writes outside repo)
-- Removed 3 stale empty dirs (flux, vibe, graph)
-- Fixed ruff target-version (py311 → py313)
-- Preserved 3 worktree WIP commits + 11 stashes → archive branches
-- Killed stale BMAD zombie process
-**Test Suite**: 5,001 collected (1 pre-existing failure in A2A endpoints)
-**Ruff**: ~5 auto-fixable violations (from py313 target change)
+**Session Achievements**:
+- Health fix: BMAD MCP, SurrealDB port, branch-safety hook, worktree cleanup
+- Security: SQL injection, exec() sandbox, A2A error sanitization, 286 S-violations triaged
+- Coverage: 99 new tests (CLI, protocols, knowledge_graph, services, tools) — 21% to 23%
+- Dead code: 28 orphan files removed (5,563 lines)
+- Research: 5 Arxiv papers + HF trends identified (ERL, Interlat, MetaClaw, EverMemOS, Murakkab)
+- Retrospective: CLAUDE.md metrics corrected, KEY_LEARNINGS L181, MISSION_JOURNAL updated
+**Test Suite**: 5,100 collected (1 pre-existing failure)
+**Ruff**: 800 total (275 security suppressed, rest style)
+**Source Lines**: 141,827 (down from 147,390)
 **Next Steps**:
-1. Phase 2: Decompose monoliths (api/__init__.py, executor.py)
-2. Phase 3: Coverage 21%→40%, security lint audit
-3. Phase 4: CI hardening (coverage floor, type check gate)
-
-**Velocity**: Moderate (config fixes, cleanup, retrospective)
+1. Continue dead code triage (28/176 orphans removed)
+2. Split api/__init__.py (Phase 2 monolith decomposition)
+3. Upgrade Ollama to MoE models (Qwen3-Next-80B-A3B)
+4. Wire guardrail stubs or mark as explicit no-ops
+5. Prototype ERL heuristic pools in RetrospectionEngine
 ---
 
 ## Quick Reference Commands
