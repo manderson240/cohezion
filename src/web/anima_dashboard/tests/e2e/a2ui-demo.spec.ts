@@ -7,7 +7,7 @@ test.describe('A2UI Demo Page', () => {
     await page.waitForSelector('[data-a2ui-scene]', { timeout: 10000 });
 
     await expect(page.locator('text=Catalog validation: PASSED')).toBeVisible();
-    await expect(page.locator('text=Components: 8')).toBeVisible();
+    await expect(page.locator('text=Components: 9')).toBeVisible();
     await expect(page.locator('text=Scenes: 5')).toBeVisible();
   });
 
