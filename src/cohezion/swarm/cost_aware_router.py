@@ -423,6 +423,9 @@ class CostAwareRouter:
                     )
                     model = fallback
 
+        # Context-window guard: prevent overflow by escalating to larger-context model
+        model = self._check_context_window(model, estimated_tokens)
+
         # Calculate estimated cost
         cost_per_1k = self.MODEL_COSTS.get(model, 0.0)
         estimated_cost = (estimated_tokens / 1000.0) * cost_per_1k
@@ -465,6 +468,71 @@ class CostAwareRouter:
         )
 
         return decision, can_proceed
+
+    # Context window limits per model (tokens). Local models from Ollama metadata,
+    # cloud models from provider specs. Used by _check_context_window().
+    MODEL_CONTEXT_LIMITS = {
+        "phi3:mini": 4_096,
+        "qwen3-coder:32b": 32_768,
+        "deepseek-r1:8b": 64_000,
+        "alibayram/smollm3:latest": 128_000,
+        "gpt-oss:20b": 32_768,
+        "phi4:latest": 16_384,
+        "gemma3:4b": 8_192,
+        "gemini-2.0-flash-lite": 1_000_000,
+        "gemini-2.5-flash": 1_000_000,
+        "gemini-2.5-pro": 2_000_000,
+    }
+
+    # Escalation chain: when context is too large for current model, try these in order
+    CONTEXT_ESCALATION = [
+        "qwen3-coder:32b",  # 32K
+        "deepseek-r1:8b",  # 64K
+        "alibayram/smollm3:latest",  # 128K
+        "gemini-2.0-flash-lite",  # 1M (cloud, near-free)
+        "gemini-2.5-flash",  # 1M (cloud)
+    ]
+
+    def _check_context_window(self, model: str, estimated_tokens: int) -> str:
+        """Guard against context overflow by escalating to larger-context model.
+
+        If estimated tokens exceed 80% of the model's context window, escalate
+        to the next model in the chain that can fit the request.
+
+        Args:
+            model: Currently selected model
+            estimated_tokens: Estimated token count for this request
+
+        Returns:
+            Same model if it fits, or escalated model if context would overflow
+        """
+        limit = self.MODEL_CONTEXT_LIMITS.get(model, 32_768)
+        threshold = int(limit * 0.8)
+
+        if estimated_tokens <= threshold:
+            return model  # Fits fine
+
+        # Need a bigger model
+        for candidate in self.CONTEXT_ESCALATION:
+            candidate_limit = self.MODEL_CONTEXT_LIMITS.get(candidate, 32_768)
+            if estimated_tokens <= int(candidate_limit * 0.8):
+                logger.info(
+                    "Context guard: %s (%d tokens > %d limit×0.8) → escalating to %s (%d limit)",
+                    model,
+                    estimated_tokens,
+                    limit,
+                    candidate,
+                    candidate_limit,
+                )
+                return candidate
+
+        # Nothing fits — return original and let it fail gracefully
+        logger.warning(
+            "Context guard: %d tokens exceeds all model limits, proceeding with %s",
+            estimated_tokens,
+            model,
+        )
+        return model
 
     def _optimize_model_selection(
         self, primary_model: str, complexity: QueryComplexity, estimated_tokens: int
