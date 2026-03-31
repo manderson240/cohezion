@@ -43,6 +43,7 @@ logger = logging.getLogger(__name__)
 # FLUME semantic routing (falls back to keyword matching if unavailable)
 try:
     from cohezion.governance.flume_bridge import encode_prompt, flume_route_similarity
+
     # FLUME semantic routing is available but only activates when
     # historical routing data exists (prevents hash-fallback garbage)
     FLUME_AVAILABLE = True
@@ -190,7 +191,9 @@ class ConciergeAgent:
                             best_sim = sim
                             best_record = record
                 if best_record and best_sim > 0.7:
-                    hist_conf = self._historical_confidence(f"switch_worktree:{best_record.suggested_target}")
+                    hist_conf = self._historical_confidence(
+                        f"switch_worktree:{best_record.suggested_target}"
+                    )
                     confidence = min(0.95, best_sim * max(hist_conf, 0.6))
                     return RoutingSuggestion(
                         action="switch_worktree",
@@ -205,13 +208,13 @@ class ConciergeAgent:
             # Without history, fall through to keyword matching
             if self._history:  # Need some history to trust FLUME discrimination
                 worktree_descriptions = {
-                "feat/genesis-tdd-a2ui": "genesis webapp A2UI AG-UI protocol stack cosmogony",
-                "feat/genesis-testing": "playwright testing glance browser automation e2e",
-                "feat/genesis-physics": "observer patch holography spinor physics OPH",
-                "feat/genesis-rendering": "pretext WebGPU rendering three.js visualization",
-                "feat/genesis-data-mesh": "data mesh MCP registry governance products",
-                "challenge/nvidia-nemotron-reasoning": "nvidia kernel optimization AMD GPU GEMM MoE",
-            }
+                    "feat/genesis-tdd-a2ui": "genesis webapp A2UI AG-UI protocol stack cosmogony",
+                    "feat/genesis-testing": "playwright testing glance browser automation e2e",
+                    "feat/genesis-physics": "observer patch holography spinor physics OPH",
+                    "feat/genesis-rendering": "pretext WebGPU rendering three.js visualization",
+                    "feat/genesis-data-mesh": "data mesh MCP registry governance products",
+                    "challenge/nvidia-nemotron-reasoning": "nvidia kernel optimization AMD GPU GEMM MoE",
+                }
                 best_sim = 0.0
                 best_branch = ""
                 for branch, desc in worktree_descriptions.items():
@@ -260,15 +263,67 @@ class ConciergeAgent:
             autonomy_tier="SO(12)",
         )
 
+    def suggest_batch_execution(
+        self, tasks: list[str], briefing: SessionBriefing
+    ) -> dict[str, Any]:
+        """Check if multiple tasks can be batched for efficient execution.
+
+        Groups tasks by target worktree/context, identifies duplicates,
+        and returns batch recommendations.
+
+        Args:
+            tasks: List of task descriptions
+            briefing: Current session briefing
+
+        Returns:
+            Dict with batch groups, dedup count, and recommendation
+        """
+        if len(tasks) <= 1:
+            return {"batchable": False, "reason": "single task"}
+
+        # Route each task to get its target
+        groups: dict[str, list[str]] = {}
+        for task in tasks:
+            suggestion = self.route_prompt(task, briefing)
+            key = f"{suggestion.action}:{suggestion.target}"
+            groups.setdefault(key, []).append(task)
+
+        # Find batchable groups (2+ tasks with same target)
+        batchable_groups = {k: v for k, v in groups.items() if len(v) >= 2}
+
+        # Dedup: find tasks with very similar descriptions
+        dedup_count = 0
+        seen: list[str] = []
+        for task in tasks:
+            task_lower = task.lower().strip()
+            if any(task_lower == s for s in seen):
+                dedup_count += 1
+            else:
+                seen.append(task_lower)
+
+        return {
+            "batchable": bool(batchable_groups),
+            "groups": {k: len(v) for k, v in batchable_groups.items()},
+            "total_tasks": len(tasks),
+            "dedup_count": dedup_count,
+            "unique_tasks": len(tasks) - dedup_count,
+            "recommendation": (
+                f"Batch {sum(len(v) for v in batchable_groups.values())} tasks "
+                f"across {len(batchable_groups)} groups"
+                if batchable_groups
+                else "Execute individually"
+            ),
+        }
+
     def _historical_confidence(self, action_key: str) -> float:
         """Compute confidence from historical routing success."""
         # Match on full key (e.g., "switch_worktree:feat/genesis-tdd-a2ui")
         # or action prefix (e.g., "switch_worktree") for general confidence
         relevant = [
-            r for r in self._history
+            r
+            for r in self._history
             if r.suggested_action == action_key
-            or (r.suggested_action.startswith(action_key.split(":")[0])
-                and ":" not in action_key)
+            or (r.suggested_action.startswith(action_key.split(":")[0]) and ":" not in action_key)
         ]
         if not relevant:
             return 0.5  # HIHO — no history, uncertain
