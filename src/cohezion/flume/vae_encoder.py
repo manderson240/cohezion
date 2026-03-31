@@ -58,7 +58,7 @@ class SimpleEncoder(nn.Module):
 class FlumeVAEEncoder:
     """Production VAE encoder for semantic embeddings."""
 
-    DEFAULT_MODEL_PATH = Path("./data/flume/checkpoints/flume_vae_ep50.pt")
+    DEFAULT_MODEL_PATH = Path("./data/flume/checkpoints/flume_vae_ep2.pt")
     EMBEDDING_DIM = 256
 
     def __init__(
@@ -106,18 +106,31 @@ class FlumeVAEEncoder:
 
             # Create and load encoder
             # Encoder outputs 512D (hidden_size), not 256D
-            self.encoder = SimpleEncoder(input_size=256, hidden_size=512)
+            # Read dimensions from checkpoint to match architecture
+            first_weight = encoder_state.get("0.weight")
+            if first_weight is not None:
+                ckpt_input_dim = first_weight.shape[1]  # 64 for ep2 checkpoint
+                ckpt_hidden_dim = first_weight.shape[0]  # 128 for ep2 checkpoint
+            else:
+                ckpt_input_dim, ckpt_hidden_dim = 256, 512
+            self.encoder = SimpleEncoder(input_size=ckpt_input_dim, hidden_size=ckpt_hidden_dim)
             # The checkpoint stores the sequential module directly, not under "encoder"
             self.encoder.encoder.load_state_dict(encoder_state)
             self.encoder.to(self.device)
             self.encoder.eval()
 
             # Create and load mu_head (512 -> 256)
-            self.mu_head = nn.Linear(512, self.EMBEDDING_DIM)
+            # Match mu_head to checkpoint dimensions
+            mu_weight = mu_state.get("weight")
+            mu_out_dim = mu_weight.shape[0] if mu_weight is not None else self.EMBEDDING_DIM
+            mu_in_dim = mu_weight.shape[1] if mu_weight is not None else 512
+            self.mu_head = nn.Linear(mu_in_dim, mu_out_dim)
             self.mu_head.load_state_dict(mu_state)
             self.mu_head.to(self.device)
             self.mu_head.eval()
 
+            # Store actual latent dim from checkpoint
+            self._z_dim = mu_out_dim if "mu_out_dim" in dir() else self.EMBEDDING_DIM
             self.enabled = True
             logger.info(f"Loaded FLUME VAE encoder from {self.model_path}")
 
