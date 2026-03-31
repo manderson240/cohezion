@@ -319,3 +319,7 @@ Full transcript available at: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/
 ---
 
 Don't forget https://github.com/lucas-maes/le-wm I thought we had this awhile ago but it looks like it's missing here
+
+---
+
+We need to refine everything as a long horizon platform improvement.
