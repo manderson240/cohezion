@@ -97,8 +97,8 @@ See skill: `cohezion-vault-workflow` for vault API examples (log decisions, expe
 | **A2A** | Agent ↔ Agent discovery/coordination | **In Progress** (7 specialist agents with agent cards) |
 | **UCP** | Commerce lifecycle | N/A |
 | **AP2** | Payment authorization | N/A |
-| **A2UI** | Agent ↔ UI composition | **Partial** (Genesis webapp REST APIs) |
-| **AG-UI** | Event streaming transport | **Partial** (WebSocket endpoints) |
+| **A2UI** | Agent ↔ UI composition | **Strong** (8-component catalog, declarative experience scripts, A2UIRenderer) |
+| **AG-UI** | Event streaming transport | **Strong** (typed SSE events, /api/agui/stream, 15+ event types) |
 
 ### ⚡ Platform Coordination
 | Specialist | Role | Format |
@@ -233,6 +233,10 @@ See skill: `cohezion-worktree-workflow` — covers session scripts (start/end/li
 | `.claude/rules/git-workflow.md` | **GIT PATTERNS** | Conventional commits, branch naming, PR targets |
 | `.claude/rules/testing.md` | **TEST RULES** | Avoid `walk_packages`, mock at source, HIHO invariant |
 | `cloud-vault-mcp/` | **MCP TEMPLATE** | 40+ tools, FastMCP proven. Copy when building MCP servers |
+| `src/cohezion/physics/observer_patch.py` | **OPH BRIDGE** | Observer Patch Holography axioms → SPIN coherence. FloatingPragma (Apache 2.0) |
+| `src/cohezion/data_mesh/data_product.py` | **DATA MESH** | Typed data products with SLA for 17+ MCP servers. Dehghani (2022) |
+| `src/web/anima_dashboard/src/a2ui/` | **A2UI CATALOG** | 9 declarative components + experience scripts. Google A2UI v0.9 (Apache 2.0) |
+| `src/cohezion/api/agui_events.py` | **AG-UI EVENTS** | 15+ typed SSE event types. CopilotKit AG-UI (Apache 2.0) |
 
 ## Agent Journey Tracking & Request Alignment
 

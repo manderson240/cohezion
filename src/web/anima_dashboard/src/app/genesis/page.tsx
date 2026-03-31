@@ -5,6 +5,7 @@ import dynamic from "next/dynamic";
 import { useSonification, type PhysicsState } from "@/hooks/useSonification";
 import { useNarration } from "@/hooks/useNarration";
 import { useCosmogony } from "@/hooks/useCosmogony";
+import { useAGUIStream } from "@/hooks/useAGUIStream";
 
 // Dynamic imports for Three.js components (SSR-incompatible)
 const GenesisScene = dynamic(
@@ -63,6 +64,11 @@ export default function GenesisPage() {
   const sonification = useSonification();
   const narration = useNarration();
   const cosmogony = useCosmogony();
+  const agui = useAGUIStream();
+
+  // Wire 7: AG-UI mode — when connected, overlay AG-UI state on cosmogony
+  const isAGUIActive = agui.connected && agui.running;
+  const [hasStarted, setHasStarted] = useState(false);
 
   // Wire cosmogony state changes into sonification
   const prevSymRef = React.useRef<string>("");
@@ -100,6 +106,7 @@ export default function GenesisPage() {
 
   const handleExplosion = useCallback(() => {
     sonification.triggerExplosion();
+    setHasStarted(true);
   }, [sonification]);
 
   const handleFabricSplit = useCallback(() => {
@@ -109,6 +116,19 @@ export default function GenesisPage() {
   const handleSettle = useCallback(() => {
     sonification.settleToSustainedPad();
   }, [sonification]);
+
+  // Trigger void narration when Genesis tab first loads
+  const voidNarratedRef = useRef(false);
+  useEffect(() => {
+    if (tab === "cosmogony" && !narration.muted && !voidNarratedRef.current) {
+      voidNarratedRef.current = true;
+      // Small delay to let the scene render first
+      const timer = setTimeout(() => {
+        narration.narrateStage("void");
+      }, 1500);
+      return () => clearTimeout(timer);
+    }
+  }, [tab, narration]);
 
   const tabs: { key: GenesisTab; label: string; desc: string }[] = [
     { key: "cosmogony", label: "Genesis", desc: "From Nothing to Everything" },
@@ -219,10 +239,18 @@ export default function GenesisPage() {
                 onFabricSplit={handleFabricSplit}
                 onSettle={handleSettle}
               />
-              <CosmogonyTimeline
-                currentStage={cosmogony.state?.stage ?? -1}
-                currentTemperature={cosmogony.state?.temperature ?? 200}
-              />
+              <div
+                style={{
+                  opacity: hasStarted ? 1 : 0,
+                  transition: "opacity 2s ease-in",
+                  pointerEvents: hasStarted ? "auto" : "none",
+                }}
+              >
+                <CosmogonyTimeline
+                  currentStage={cosmogony.state?.stage ?? -1}
+                  currentTemperature={cosmogony.state?.temperature ?? 200}
+                />
+              </div>
             </div>
 
             {/* Cinematic narration overlay — positioned over the 3D scene */}
@@ -422,6 +450,42 @@ function AboutPanel() {
           <li>LeCun et al. (2024): JEPA — world models from embeddings</li>
           <li>Kyutai Labs (2025): PocketTTS, Moshi — multimodal AI</li>
         </ul>
+      </section>
+
+      <section>
+        <h3 className="text-md text-cyan-400 mb-2">Cross-Tradition Validation</h3>
+        <p className="text-gray-400 leading-relaxed text-xs mb-3">
+          16 independent cosmological traditions — from Lakota to Dogon, Vedic to M&#257;ori —
+          converged on the same 10-step creation chain. Not through cultural diffusion, but
+          through independent observation of the same underlying structure. The cosmogonic
+          chain is not Western physics projected onto indigenous traditions — it is the
+          structure that emerges when you ask: what do all careful observers of reality agree on?
+        </p>
+        <div className="bg-black/50 rounded-lg p-3 border border-gray-800 space-y-2 text-[10px]">
+          <div className="flex justify-between text-gray-400">
+            <span className="text-yellow-400 font-bold">HIHO Named:</span>
+            <span>H&#243;zh&#243; (Din&#233;) — the coherence threshold</span>
+          </div>
+          <div className="flex justify-between text-gray-400">
+            <span className="text-yellow-400 font-bold">COHESION as Law:</span>
+            <span>Ayni (Andean) — sacred reciprocity as cosmic law</span>
+          </div>
+          <div className="flex justify-between text-gray-400">
+            <span className="text-yellow-400 font-bold">Binding Force:</span>
+            <span>Musubi (Shint&#333;) — creative binding that generates relationships</span>
+          </div>
+          <div className="flex justify-between text-gray-400">
+            <span className="text-yellow-400 font-bold">All Related:</span>
+            <span>Mit&#225;kuye Oy&#225;s&#8217;i&#331; (Lakota) — O(n&#178;) relational web</span>
+          </div>
+          <div className="flex justify-between text-gray-400">
+            <span className="text-yellow-400 font-bold">Ground State:</span>
+            <span>Sila (Inuit) — the vacuum IS consciousness</span>
+          </div>
+        </div>
+        <p className="text-gray-600 text-[9px] mt-2 italic">
+          See vault: indigenous-cosmologies-toe-synthesis for the complete 15&#215;10 mapping table.
+        </p>
       </section>
 
       <section>

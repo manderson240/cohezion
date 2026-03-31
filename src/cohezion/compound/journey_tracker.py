@@ -437,6 +437,7 @@ class JourneyTracker:
                 "phi_score": phi_score,
                 "success": execution_result.success,
                 "output_length": len(execution_result.output),
+                "observer_consistency": self._compute_observer_consistency(axiomatic_12d),
             },
         )
 
@@ -466,6 +467,41 @@ class JourneyTracker:
         """Return the number of points in the recent trajectory buffer."""
         return len(self._recent_points)
 
+    def _compute_observer_consistency(self, current_12d: np.ndarray) -> float:
+        """Compute observer consistency between current execution and previous.
+
+        Uses OPH Axiom 2: overlapping observer patches must agree.
+        Returns consistency score [0, 1] where 1 = perfect alignment.
+
+        Wire 3: Observer Patch → JourneyTracker.
+        """
+        if len(self._recent_points) < 1:
+            return 0.5  # HIHO default — no history to compare
+
+        try:
+            from cohezion.physics.spinor import SpinorState
+            from cohezion.physics.observer_patch import evo_observer_consistency
+            from cohezion.governance.flume_bridge import agent_state_to_patch_center
+
+            # Current agent's Bloch sphere position from 12D state
+            theta_curr, phi_curr = agent_state_to_patch_center(current_12d)
+            spinor_curr = SpinorState.from_bloch(theta_curr, phi_curr)
+
+            # Previous agent's position
+            prev_12d = self._recent_points[-1].dimensions
+            theta_prev, phi_prev = agent_state_to_patch_center(prev_12d)
+            spinor_prev = SpinorState.from_bloch(theta_prev, phi_prev)
+
+            # Compute OPH overlap consistency
+            result = evo_observer_consistency(
+                "current", spinor_curr, "previous", spinor_prev
+            )
+            return result.consistency_score
+
+        except (ImportError, ValueError, TypeError):
+            return 0.5  # Fallback to HIHO if physics modules unavailable
+
+    
     def compute_trajectory_quality(
         self,
         points: list[TrajectoryPoint],
