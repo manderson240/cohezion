@@ -25,8 +25,11 @@ class ConstitutionalShield:
     """
 
     def __init__(self, teacher_model: str = "claude-3-5-sonnet"):
-        self.constitution_path = "/home/mike-anderson/dev/cohezion/.agent/CONSTITUTION.md"
-        self.charter_path = "/home/mike-anderson/dev/cohezion/.agent/COHEZION_CHARTER.md"
+        from pathlib import Path
+
+        project_root = Path(__file__).resolve().parents[2]
+        self.constitution_path = str(project_root / ".agent" / "CONSTITUTION.md")
+        self.charter_path = str(project_root / ".agent" / "COHEZION_CHARTER.md")
         self.teacher_model = teacher_model
         self.db = SurrealClient()
         self._constitution_cache: str | None = None
@@ -44,7 +47,9 @@ class ConstitutionalShield:
                 return "Always act with integrity and technical excellence."
         return f"{self._constitution_cache}\n\n{self._charter_cache}"
 
-    async def audit_output(self, agent_id: str, content: str, context: dict | None = None) -> dict[str, Any]:
+    async def audit_output(
+        self, agent_id: str, content: str, context: dict | None = None
+    ) -> dict[str, Any]:
         """
         Audit agent-generated content against constitutional principles and the charter.
         Returns a 'Veracity Score' and 'Alignment Verdict'.
@@ -133,6 +138,8 @@ if __name__ == "__main__":
         # Test 2: Equilibrium Check
         mock_state = AxiomaticState(logic=0.51, physics=0.49)  # Near attractor
         stability = equilibrium.verify_stability(mock_state)
-        print(f"Manifold Status: {stability['status']} (Dist: {stability['dist_from_attractor']:.4f})")
+        print(
+            f"Manifold Status: {stability['status']} (Dist: {stability['dist_from_attractor']:.4f})"
+        )
 
     asyncio.run(test())
