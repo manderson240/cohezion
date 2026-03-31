@@ -423,9 +423,9 @@
       "attempts": 0,
       "best_result_us": null,
       "stagnation_count": 0,
-      "status": "active",
+      "status": "pruned",
       "children": [],
-      "notes": " [PRUNED: bs=64/256 not in benchmark shapes]",
+      "notes": " [PRUNED: bs=64/256 not in benchmark shapes] [PRUNED: Test failed: Exit code 1]",
       "attempt_history": []
     },
     "mla_n1f": {
@@ -1749,9 +1749,9 @@
       "attempts": 2,
       "best_result_us": 82.33,
       "stagnation_count": 1,
-      "status": "active",
+      "status": "pruned",
       "children": [],
-      "notes": "[LLM-proposed] [STRATEGIC PRUNE: parent n_81c6a22e pruned]",
+      "notes": "[LLM-proposed] [STRATEGIC PRUNE: parent n_81c6a22e pruned] [PRUNED: Test failed: Exit code 1]",
       "attempt_history": [
         {
           "result_us": 82.33,
@@ -1974,9 +1974,9 @@
       "attempts": 0,
       "best_result_us": null,
       "stagnation_count": 0,
-      "status": "active",
+      "status": "pruned",
       "children": [],
-      "notes": "[LLM-proposed] [STRATEGIC PRUNE: parent mla_n2 pruned]",
+      "notes": "[LLM-proposed] [STRATEGIC PRUNE: parent mla_n2 pruned] [PRUNED: Test failed: Exit code 1]",
       "attempt_history": []
     }
   }
