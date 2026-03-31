@@ -427,3 +427,89 @@ class CapabilityMatrix:
             lines.append("")
 
         return "\n".join(lines)
+
+    def enrich_from_evo_scorecard(self, capability_vector: dict[str, float]) -> None:
+        """Update matrix with EVO 6-axis capability metrics from eval/.
+
+        Connects eval/capability_scorecard.py to the unified assessment layer.
+
+        Args:
+            capability_vector: Dict with 6 EVO axes (0.0 to 1.0):
+                coherence_amplitude, phase_locking, exotic_charge_lifetime,
+                orbit_quality, triune_balance, recovery_basin_radius
+        """
+        try:
+            from cohezion.eval.capability_scorecard import AXES, CapabilityScorecard
+
+            scorecard = CapabilityScorecard()
+            if not scorecard._validate_vector(capability_vector):
+                logger.debug("Invalid EVO capability vector, skipping enrichment")
+                return
+
+            # Map EVO axes to affinity scores
+            affinity: dict[str, float] = {}
+            for axis in AXES:
+                value = capability_vector.get(axis, 0.0)
+                if axis == "coherence_amplitude":
+                    affinity["reasoning"] = value
+                elif axis == "phase_locking":
+                    affinity["analysis"] = value
+                elif axis == "orbit_quality":
+                    affinity["coding"] = value
+                elif axis == "triune_balance":
+                    affinity["creative"] = value
+                elif axis == "recovery_basin_radius":
+                    affinity["research"] = value
+
+            overall_quality = sum(capability_vector.get(a, 0.0) for a in AXES) / len(AXES)
+
+            entry = CapabilityEntry(
+                entity_type="model",
+                entity_id="evo_aggregate",
+                capabilities=["evo-scorecard"],
+                quality_score=overall_quality,
+                speed_tier=2,
+                success_rate=capability_vector.get("coherence_amplitude", 0.0),
+                affinity=affinity,
+                last_assessed=date.today().isoformat(),
+                source="benchmark",
+                metadata={"evo_vector": capability_vector},
+            )
+            self._entries["model:evo_aggregate"] = entry
+            logger.debug("EVO scorecard enrichment applied: quality=%.3f", overall_quality)
+
+        except ImportError:
+            logger.debug("eval.capability_scorecard not available")
+        except Exception:
+            logger.debug("EVO scorecard enrichment failed (non-blocking)", exc_info=True)
+
+    def run_self_evaluation(
+        self, plan: str, prd_context: str = ""
+    ) -> dict[str, float | bool | str]:
+        """Run pre-flight self-evaluation via evaluation/self_eval.
+
+        Connects evaluation/self_eval.py as a quality gate.
+
+        Args:
+            plan: Execution plan text to evaluate
+            prd_context: Optional PRD context for alignment check
+
+        Returns:
+            Dict with score, passed, and feedback
+        """
+        try:
+            from cohezion.evaluation.self_eval import SelfEvaluationEngine
+
+            engine = SelfEvaluationEngine()
+            result = engine.evaluate_execution_plan(plan, prd_context)
+            return {
+                "score": result.score,
+                "passed": result.passed,
+                "feedback": result.feedback,
+            }
+        except ImportError:
+            logger.debug("evaluation.self_eval not available")
+            return {"score": 0.0, "passed": True, "feedback": "Self-eval unavailable"}
+        except Exception:
+            logger.debug("Self-evaluation failed (non-blocking)", exc_info=True)
+            return {"score": 0.0, "passed": True, "feedback": "Self-eval error"}

@@ -146,7 +146,22 @@ class DegradationDetector:
         self._last_alert_time: dict[str, float] = {}
         self._alert_cooldown_seconds = 60.0  # Don't repeat same alert within 60s
 
+        # Healing pipeline integration (non-blocking)
+        self._healing_enabled = True
+
+        # Routing feedback callback (wired by CompoundExecutor)
+        self._routing_callback: Any = None
+
         logger.debug("DegradationDetector initialized with thresholds")
+
+    def set_routing_callback(self, callback: Any) -> None:
+        """Set callback for routing feedback on degradation alerts.
+
+        Called by CompoundExecutor to wire DegradationDetector → CostAwareRouter.
+        The callback receives the list of DegradationAlert objects.
+        """
+        self._routing_callback = callback
+        logger.debug("Routing feedback callback registered")
 
     def check_degradation(self, metrics: dict[str, Any]) -> list[DegradationAlert]:
         """Check if metrics show degradation compared to baseline.
@@ -286,6 +301,18 @@ class DegradationDetector:
         except (ImportError, Exception):
             pass  # Non-blocking: validation module may not be available
 
+        # Run healing pipeline + resilience notification on alerts (non-blocking)
+        if alerts and self._healing_enabled:
+            self._run_healing_pipeline(alerts, metrics)
+            self._notify_resilience_manager(alerts)
+
+        # Route degradation feedback to CostAwareRouter (non-blocking)
+        if alerts and self._routing_callback is not None:
+            try:
+                self._routing_callback(alerts)
+            except Exception:
+                logger.debug("Routing callback failed (non-blocking)", exc_info=True)
+
         return alerts
 
     def _should_emit_alert(self, alert: DegradationAlert) -> bool:
@@ -306,6 +333,80 @@ class DegradationDetector:
             return True
 
         return False
+
+    def _run_healing_pipeline(
+        self, alerts: list[DegradationAlert], metrics: dict[str, Any]
+    ) -> None:
+        """Route degradation alerts through healing's Diagnostician + Corrector.
+
+        Non-blocking: all healing ops wrapped in try/except.
+        Connects healing/ module to the compound monitoring pipeline.
+        """
+        try:
+            from cohezion.healing import (
+                Corrector,
+                Diagnostician,
+                DriftDetector,
+                HealthStatus,
+            )
+
+            diagnostician = Diagnostician()
+            corrector = Corrector()
+            drift_detector = DriftDetector()
+
+            for alert in alerts:
+                # Map DegradationAlert → HealthStatus for healing pipeline
+                health_status = HealthStatus(
+                    component="compound",
+                    status="failing" if alert.severity == AlertSeverity.CRITICAL else "degraded",
+                    metric=alert.metric,
+                    current_value=alert.current_value,
+                    threshold=alert.threshold,
+                )
+
+                # Update drift baselines
+                drift_detector.set_baseline("compound", alert.metric, alert.baseline_value)
+                drift_detector.check("compound", alert.metric, alert.current_value)
+
+                # Diagnose and log
+                diagnosis = diagnostician.diagnose(health_status)
+                logger.info(
+                    "Healing diagnosis for %s: %s (confidence=%.2f, action=%s)",
+                    alert.metric,
+                    diagnosis.issue,
+                    diagnosis.confidence,
+                    diagnosis.recommended_action,
+                )
+
+        except ImportError:
+            logger.debug("Healing module not available, skipping pipeline")
+        except Exception:
+            logger.debug("Healing pipeline error (non-blocking)", exc_info=True)
+
+    def _notify_resilience_manager(self, alerts: list[DegradationAlert]) -> None:
+        """Notify RAH AutonomicManager about degradation alerts.
+
+        Non-blocking: resilience module may not be available.
+        Connects resilience/ module to the compound monitoring pipeline.
+        """
+        try:
+            from cohezion.resilience.manager import get_rah_manager
+
+            manager = get_rah_manager()
+            # If manager is running, it will pick up vitals on its next loop
+            # Log alert summary so the manager can correlate
+            for alert in alerts:
+                logger.info(
+                    "RAH notified: %s %s (current=%.4f, baseline=%.4f)",
+                    alert.severity.value,
+                    alert.metric,
+                    alert.current_value,
+                    alert.baseline_value,
+                )
+        except ImportError:
+            pass  # Non-blocking: resilience module not available
+        except Exception:
+            logger.debug("RAH notification error (non-blocking)", exc_info=True)
 
     def get_baseline_stats(self) -> dict[str, Any]:
         """Get current baseline statistics for all metrics.

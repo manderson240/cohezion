@@ -1883,16 +1883,31 @@
         "status": "CONFIRMED_WORKING"
       },
       "parent_id": "root_moe",
-      "priority": 0.95,
-      "attempts": 0,
-      "best_result_us": null,
+      "priority": 0.5,
+      "attempts": 1,
+      "best_result_us": Infinity,
       "stagnation_count": 0,
       "status": "active",
       "children": [
-        "n_28480acc"
+        "n_28480acc",
+        "n_668be083"
       ],
       "notes": "[Session 77] CONFIRMED: CK_BLOCK_GEMM=1 passes ALL shapes at 182us without any KSPLIT. This is the new baseline to beat with KSPLIT tuning.",
-      "attempt_history": []
+      "attempt_history": [
+        {
+          "result_us": Infinity,
+          "parameters": {
+            "env": {
+              "CK_BLOCK_GEMM": "1"
+            },
+            "KSPLIT": 0,
+            "result_baseline_us": 182.0,
+            "status": "CONFIRMED_WORKING"
+          },
+          "timestamp": "2026-03-31T16:22:17.132270",
+          "source": "llm"
+        }
+      ]
     },
     "n_28480acc": {
       "id": "n_28480acc",
@@ -1913,14 +1928,35 @@
         "status": "UNTESTED"
       },
       "parent_id": "n_cae99d50",
-      "priority": 0.93,
-      "attempts": 0,
-      "best_result_us": null,
+      "priority": 0.5,
+      "attempts": 1,
+      "best_result_us": Infinity,
       "stagnation_count": 0,
-      "status": "active",
+      "status": "pruned",
       "children": [],
-      "notes": "[Session 77] UNTESTED: CK_BLOCK_GEMM=1 confirmed at 182us baseline. Adding adaptive KSPLIT on top may push below 182us. High priority -- best previous MoE result was 88.68us with OPUS+KSPLIT.",
-      "attempt_history": []
+      "notes": "[Session 77] UNTESTED: CK_BLOCK_GEMM=1 confirmed at 182us baseline. Adding adaptive KSPLIT on top may push below 182us. High priority -- best previous MoE result was 88.68us with OPUS+KSPLIT. [STRATEGIC PRUNE: LLM world model]",
+      "attempt_history": [
+        {
+          "result_us": Infinity,
+          "parameters": {
+            "env": {
+              "CK_BLOCK_GEMM": "1"
+            },
+            "KSPLIT_TABLE": {
+              "257_256_16": 4,
+              "257_256_128": 4,
+              "257_256_512": 0,
+              "33_512_16": 2,
+              "33_512_128": 2,
+              "33_512_512": 0,
+              "33_2048_512": 0
+            },
+            "status": "UNTESTED"
+          },
+          "timestamp": "2026-03-31T15:07:05.986918",
+          "source": "llm"
+        }
+      ]
     },
     "n_3f63927a": {
       "id": "n_3f63927a",
@@ -1990,7 +2026,7 @@
         "status": "CONFIRMED_WORKING"
       },
       "parent_id": "root_moe",
-      "priority": 0.95,
+      "priority": 0.7,
       "attempts": 0,
       "best_result_us": null,
       "stagnation_count": 0,
@@ -2020,14 +2056,35 @@
         "status": "UNTESTED"
       },
       "parent_id": "n_54cbb901",
-      "priority": 0.93,
-      "attempts": 0,
-      "best_result_us": null,
+      "priority": 0.3,
+      "attempts": 1,
+      "best_result_us": Infinity,
       "stagnation_count": 0,
-      "status": "active",
+      "status": "pruned",
       "children": [],
-      "notes": "[Session 77] UNTESTED: CK_BLOCK_GEMM=1 confirmed at 182us baseline. Adding adaptive KSPLIT on top may push below 182us. High priority -- best previous MoE result was 88.68us with OPUS+KSPLIT.",
-      "attempt_history": []
+      "notes": "[Session 77] UNTESTED: CK_BLOCK_GEMM=1 confirmed at 182us baseline. Adding adaptive KSPLIT on top may push below 182us. High priority -- best previous MoE result was 88.68us with OPUS+KSPLIT. [STRATEGIC PRUNE: LLM world model]",
+      "attempt_history": [
+        {
+          "result_us": Infinity,
+          "parameters": {
+            "env": {
+              "CK_BLOCK_GEMM": "1"
+            },
+            "KSPLIT_TABLE": {
+              "257_256_16": 4,
+              "257_256_128": 4,
+              "257_256_512": 0,
+              "33_512_16": 2,
+              "33_512_128": 2,
+              "33_512_512": 0,
+              "33_2048_512": 0
+            },
+            "status": "UNTESTED"
+          },
+          "timestamp": "2026-03-31T17:28:28.129726",
+          "source": "llm"
+        }
+      ]
     },
     "n_79e3b208": {
       "id": "n_79e3b208",
@@ -2083,6 +2140,20 @@
       "status": "active",
       "children": [],
       "notes": "[Session 77] CONFIRMED: Setting AITER_BYPASS_TUNE_CONFIG=1 eliminates CSV config file lookup overhead. Combine with CK_BLOCK_GEMM=1 for reduced dispatch latency.",
+      "attempt_history": []
+    },
+    "n_668be083": {
+      "id": "n_668be083",
+      "strategy": "Direct torch.ops.aiter.fmoe with fmoe_g1u1 + local_expert_mask + KSPLIT=2 + OPUS sorting + warp_specialize + BLOCK_SIZE=64 + enable_tma + wave_quant=4 + smem_tile_reuse for E=257,d=256,bs=128 (valid for E>=200 only, skip E=32 due to NaN risk)",
+      "parameters": {},
+      "parent_id": "n_cae99d50",
+      "priority": 0.85,
+      "attempts": 0,
+      "best_result_us": null,
+      "stagnation_count": 0,
+      "status": "active",
+      "children": [],
+      "notes": "[LLM-proposed]",
       "attempt_history": []
     }
   }

@@ -12,39 +12,16 @@ Packet-greedy scheduling + register windowing + SIMD vectorization achieved 423x
 ## Learnings 19-22: Swarm & Operations (Compressed)
 Cognitive specialization > parameters — routed domain experts outperform generic 7B. Never rely on `sudo` for automated recovery (use Ollama API + AMD `/sys` telemetry). Agentic reasoning = state-machine planning with recursive verification, not next-token prediction.
 
-## Learning 26: The Python Autoregression Bottleneck
-GIL limits autoregressive decoding to ~10Hz. Inference loops must move to compiled languages (Rust/C++) for 100Hz+ fluid behavior.
-
-## Learning 27: Rust FFI Bridge Success
-PyO3 + maturin + uv provides seamless Rust-Python bridge. Critical: ensure LD_LIBRARY_PATH/PYTHONPATH for shared object linking during testing.
-
-## Learning 28: FFI Overhead & The Batching Pivot
-Naive 1:1 FFI calls = 0.2x speedup (regression). Moving iteration inside Rust with rayon = 29.1x speedup (20.45s → 0.70s for 10k items).
-
-## Learning 29: Semantic Proprioception
-Intent over vitals — projecting system state into 12D latent manifold detects "Logic Drift" that simple thresholding misses. 0.63 coherence alignment achieved.
-
-## Learning 30: The 3-Beat Actuation Law
-Require 3 consecutive low-coherence beats before triggering repair. Single-point anomalies are noise.
+## Learnings 26-30: Performance & Self-Healing (Compressed)
+GIL limits autoregressive decoding to ~10Hz — inference loops must move to compiled languages. PyO3+maturin+uv = seamless Rust-Python bridge, but batch inside Rust (rayon 29.1x) not 1:1 FFI calls (0.2x regression). Semantic proprioception: project system state into 12D manifold to detect "Logic Drift" that simple thresholding misses. 3-Beat Actuation Law: require 3 consecutive low-coherence beats before repair — single-point anomalies are noise.
 
 ## Learnings 41-95: Infrastructure & Hardware (Compressed)
 Key patterns: (1) Filesystem entropy limit at >1M files — use `.archive/` + SurrealDB (L41,81). (2) ZFS: ZVOL swap + arc_max cap at 12.5% RAM (L42-43). (3) Strix Halo: monitor GTT not VRAM, vendor 0x1002 = AMD, GTT ≈ system RAM = UMA (L60,89,91,92). (4) HIHO convergence at 25M cycles: C(t) = 0.5 + A·e^(-kt)·sin(ωt) (L63). (5) Context Guard: novelty-prioritized 20k-char limit (L77). (6) Hermetic: micro-stability → macro-coherence (L78). (7) Connection pooling + circuit breaker prevents cascade (L88). (8) Lazy imports as dependency firewall (L94). (9) End-to-end pipeline: 4-subsystem chain needs 5-stage integration tests (L95).
 
 ---
 
-## Phase 1-2 Milestones (2026-02-06)
-
-### FLUME VAE Trained on Real Data
-Mass sim exported 10 universes × 100 agents × 500 epochs → 61 .npy files, 11K vectors. VAE retrained: MSE 0.0225→0.1322 (5.9x harder real data), KL 0.0313→0.4329 (13.8x richer latent). Real distributions are far more complex than synthetic.
-
-### RL REINFORCE Trained
-200 episodes, average coherence 0.991. Environment "too easy" — Hamiltonian naturally attracts to target. Need adversarial perturbations and larger action_scale for meaningful policy learning.
-
-### Mass Sim → .npy Export Pipeline
-End-to-end pipeline: mass sim → SurrealDB → .npy artifacts in 8.2s. 61 files covering agent states, epoch checkpoints, and universe summaries.
-
-### API Endpoints + Integration Tests
-6 new endpoints: /flume/encode, /flume/decode, /flume/interpolate, /rl/step, /rl/episode, /rl/policy-info. 19 integration tests all passing. Total test suite: 131 tests in 3.1s.
+## Phase 1-2 Milestones (2026-02-06, Compressed)
+FLUME VAE retrained on real data (11K vectors, MSE 5.9x harder, KL 13.8x richer). RL REINFORCE: 0.991 coherence but environment "too easy." Mass sim→.npy export (8.2s, 61 files). 6 API endpoints (/flume/*, /rl/*), 19 integration tests.
 
 ## Learning 96: Agent File Validation as Compound Defense (2026-02-06)
 Missing YAML frontmatter in `.claude/agents/*.md` files was only caught by `claude doctor` after the fact. Fix: single Pydantic schema (`validation/agent_schema.py`) shared by pre-commit hook, PostToolUse hook, unit tests, and `/new-agent` scaffolding command. Layered defense = catch at commit time, warn in real-time, scaffold valid by default. Compound engineering: each layer reuses the same schema.
@@ -294,3 +271,18 @@ Google's TurboQuant (Mar 2026): PolarQuant (Cartesian→polar, fixed circular gr
 
 ### Learning 224: Compound Token Efficiency Pipeline (C1-C5) (2026-03-31)
 Five wired optimizations: (C1) ExecutorFactory auto-selects TokenEfficientCompoundExecutor for API prompt caching when token_client provided — 40-60% savings. (C2) Context-window guard in CostAwareRouter prevents overflow via auto-escalation chain (phi3→qwen→deepseek→smollm3→gemini). (C3) Cache hit rate→routing feedback — >90% hits downgrades to cheap models, <30% upgrades to better models. (C4) Template matching before execution — CacheWarmer.find_template_match() skips LLM entirely for >85% similar tasks (87-98% savings). (C5) Batch-aware concierge groups tasks by target for BatchableExecutor dedup.
+
+### Learning 225: Meta-Harness Pattern — Filesystem > Prompt for Execution History (2026-03-31)
+Stanford arXiv:2603.28052 shows exposing execution traces as browsable files (grep/cat) outperforms cramming into prompts. +7.7 points text classification, 4x fewer tokens. CompoundExecutor IS a harness. Integration: `execution_traces/` alongside vault — SkillRefiner browses traces instead of reading summaries. Validates vault-first approach.
+
+### Learning 226: LatentMAS — Agents Communicate via KV Cache, Not Text (2026-03-31)
+arXiv:2511.20639 shows training-free multi-agent collaboration via latent space KV cache transfer. 24x latency reduction vs text communication. FLUME 256D embeddings ARE the communication channel. Integration: agent-to-agent routing via FLUME vectors instead of serialized text. Interlat (arXiv:2511.09149) confirms pattern. DeepMind KV alignment (arXiv:2601.06123) provides multi-model coherence foundation.
+
+### Learning 227: Build-Then-Forget Anti-Pattern — 41 Orphaned Modules (2026-03-31)
+Internal sweep revealed 8 completely orphaned modules + 33 partially connected across Sessions 74-80. Root cause: modules built without wiring targets. Fix: every new module MUST have a Hookify rule or CompoundExecutor integration point at creation time. DegradationDetector is the natural bridge — healing/ and resilience/ now flow through it. CapabilityMatrix is the assessment bridge — eval/ and evaluation/ flow through it.
+
+### Learning 228: IsoQuant — SO(4) Quaternion KV Compression Connects to SPIN (2026-03-31)
+arXiv:2603.28430 (Mar 30, 2026): 4.5-4.7x mean kernel speedups over RotorQuant using isoclinic rotations via quaternion algebra. The SO(4)/quaternion math has a natural connection to Cohezion's SPIN coherence model (Rotation + Precession). Could unify KV cache compression with FLUME's latent space representation. Combined with TurboQuant (L223), IsoQuant provides the geometric compression while PolarQuant provides the coordinate-space compression. Also: VQKV achieves 82.8% compression training-free, applicable to Ollama models immediately.
+
+### Learning 229: Layered Governance Architecture — L1-L4 Maps to Constitution (2026-03-31)
+arXiv:2603.07191: 4-layer framework — L1 execution sandboxing, L2 intent verification (intercepts 93-98.5% malicious tool calls), L3 zero-trust inter-agent authorization, L4 immutable audit logging. Maps directly to Cohezion: L1=sandbox isolation, L2=RequestAlignmentAnalyzer, L3=TeamOrchestrator auth, L4=JourneyTracker audit trail. Also: AGENTSAFE (arXiv:2512.03180) adds semantic telemetry + anomaly detection patterns for DegradationDetector. OI-MAS (arXiv:2601.04861) provides joint role+scale routing — upgrade path for CostAwareRouter+DynamicModelRouter.

@@ -441,6 +441,35 @@ class JourneyTracker:
             },
         )
 
+        # Enrich with JEPA surprise scoring (non-blocking)
+        if len(self._recent_points) >= 1:
+            try:
+                from cohezion.world_model.jepa_world_model import JEPAWorldModel
+
+                # Use API singleton for trained model access
+                from cohezion.api.services.world_model import _get_model
+
+                jepa = _get_model()
+                if jepa._trained:
+                    prev = self._recent_points[-1].dimensions
+                    action = axiomatic_12d - prev
+                    surprise = jepa.surprise_score(prev, action, axiomatic_12d)
+                    point.metadata["jepa_surprise"] = float(surprise)
+            except (ImportError, Exception):
+                pass
+
+        # Enrich with bioelectric percolation (non-blocking)
+        try:
+            from cohezion.physics.bioelectric_model import BioelectricNetwork
+
+            bio = BioelectricNetwork(n_cells=8)
+            bio.set_uniform_conductance(coherence)
+            percolation = bio.percolation_analysis()
+            point.metadata["bioelectric_percolated"] = percolation.is_percolated
+            point.metadata["bioelectric_clusters"] = percolation.cluster_count
+        except (ImportError, Exception):
+            pass
+
         # Maintain recent points buffer (capped at window size)
         self._recent_points.append(point)
         if len(self._recent_points) > self.TRAJECTORY_WINDOW:
@@ -493,15 +522,12 @@ class JourneyTracker:
             spinor_prev = SpinorState.from_bloch(theta_prev, phi_prev)
 
             # Compute OPH overlap consistency
-            result = evo_observer_consistency(
-                "current", spinor_curr, "previous", spinor_prev
-            )
+            result = evo_observer_consistency("current", spinor_curr, "previous", spinor_prev)
             return result.consistency_score
 
         except (ImportError, ValueError, TypeError):
             return 0.5  # Fallback to HIHO if physics modules unavailable
 
-    
     def compute_trajectory_quality(
         self,
         points: list[TrajectoryPoint],

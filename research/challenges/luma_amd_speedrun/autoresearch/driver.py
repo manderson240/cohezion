@@ -64,7 +64,7 @@ KERNEL_WEIGHTS = {
     "mla": 0.2,  # Largest gap — moonshot
 }
 
-CYCLE_SLEEP_SECONDS = 5  # Sleep between cycles
+CYCLE_SLEEP_SECONDS = 60  # Sleep between cycles
 
 
 def _sync_to_graph(kernel: str, node, result_us: float | None) -> None:

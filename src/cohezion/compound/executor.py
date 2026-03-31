@@ -593,6 +593,19 @@ class CompoundExecutor(CompoundContextMixin):
             metrics=metrics,
         )
 
+        # Step 4.5: Log execution trace (Meta-Harness L225 pattern)
+        # Structured trace for filesystem browsing instead of prompt summaries
+        try:
+            self.logger.log_execution_trace(
+                ctx=ctx,
+                success=success,
+                output=output[:500],
+                metrics=metrics,
+                token_metrics=token_metrics,
+            )
+        except Exception:
+            pass  # Non-blocking: trace logging failure is not critical
+
         # Step 5: Detect anomalies (non-blocking)
         decision_paths = []
         try:
@@ -708,6 +721,29 @@ class CompoundExecutor(CompoundContextMixin):
         if alignment_data := metrics.get("alignment", {}):
             cohesion_components.append(alignment_data.get("intent_match", 0.5))
         metrics["coherence"] = sum(cohesion_components) / len(cohesion_components)
+
+        # Step 5.9: Natural capital valuation (non-blocking)
+        # Maps HIHO proximity to habitat quality via InVEST-inspired model
+        try:
+            import numpy as np
+            from cohezion.physics.natural_capital import NaturalCapitalValuation
+
+            ncv = NaturalCapitalValuation()
+            coherence_val_nc = metrics.get("coherence", 0.5)
+            state_12d = np.full(12, coherence_val_nc)
+            nc_metrics = ncv.evaluate(
+                state_12d=state_12d,
+                coherence=coherence_val_nc,
+                connectivity=0.5,
+                gauge_curvature=0.0,
+                spore_density=0.5,
+            )
+            metrics["natural_capital"] = nc_metrics.total_natural_capital
+            metrics["habitat_quality"] = nc_metrics.habitat_quality
+            # Blend natural capital into coherence (10% weight)
+            metrics["coherence"] = metrics["coherence"] * 0.9 + nc_metrics.habitat_quality * 0.1
+        except (ImportError, Exception):
+            pass  # Non-blocking: natural_capital module may not be available
 
         # Step 6: If successful, extract patterns (skip in degradation mode)
         if success and experiment_path and not self._degradation_mode:
@@ -866,6 +902,24 @@ class CompoundExecutor(CompoundContextMixin):
                             )
             except Exception as e:
                 logger.debug("Degradation detection failed (non-blocking): %s", e)
+
+        # Step 7.6: Bioelectric coherence monitoring (non-blocking)
+        # Maps execution coherence to Levin bioelectric network state
+        try:
+            import numpy as np
+            from cohezion.physics.bioelectric_model import BioelectricNetwork
+
+            bio_net = BioelectricNetwork(n_cells=8)
+            bio_net.set_uniform_conductance(0.3)
+            # Map coherence [0,1] to membrane potentials [-1,1]
+            bio_net.v_mem = np.full(8, coherence_val * 2 - 1)
+            bio_net.simulate(n_steps=10, dt=0.01)
+            bio_coherence = bio_net.coherence()
+            metrics["bioelectric_coherence"] = float(bio_coherence)
+            percolation = bio_net.percolation_analysis()
+            metrics["bioelectric_percolated"] = percolation.is_percolated
+        except (ImportError, Exception):
+            pass  # Non-blocking: bioelectric_model may not be available
 
         # Step 7.7: Record model quality (non-blocking)
         if self._model_quality_classifier:

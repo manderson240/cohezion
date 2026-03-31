@@ -234,3 +234,15 @@ class SwarmEnv:
 
 
 __all__ = ["SwarmEnv"]
+
+# Register with Gymnasium for discoverability (matching ManifoldEnv pattern)
+try:
+    import gymnasium as gym
+
+    gym.register(
+        id="Cohezion/SwarmEnv-v0",
+        entry_point="cohezion.environments.swarm_env:SwarmEnv",
+        max_episode_steps=500,
+    )
+except ImportError:
+    pass  # gymnasium not installed
