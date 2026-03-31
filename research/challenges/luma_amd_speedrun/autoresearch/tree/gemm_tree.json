@@ -10,10 +10,10 @@
         "note": "Official template-hip.py at gpu-mode/reference-kernels proves load_inline WORKS!"
       },
       "parent_id": null,
-      "priority": 0.45125,
-      "attempts": 12,
-      "best_result_us": 7.2,
-      "stagnation_count": 1,
+      "priority": 0.4447585848831292,
+      "attempts": 16,
+      "best_result_us": 6.07,
+      "stagnation_count": 0,
       "status": "active",
       "children": [
         "n_469245a5",
@@ -135,6 +135,42 @@
             "note": "Official template-hip.py at gpu-mode/reference-kernels proves load_inline WORKS!"
           },
           "timestamp": "2026-03-31T00:18:13.976858",
+          "source": "template"
+        },
+        {
+          "result_us": 7.047982719838431,
+          "parameters": {
+            "approach": "load_inline_hip",
+            "note": "Official template-hip.py at gpu-mode/reference-kernels proves load_inline WORKS!"
+          },
+          "timestamp": "2026-03-31T00:22:03.993207",
+          "source": "template"
+        },
+        {
+          "result_us": 6.828542389770348,
+          "parameters": {
+            "approach": "load_inline_hip",
+            "note": "Official template-hip.py at gpu-mode/reference-kernels proves load_inline WORKS!"
+          },
+          "timestamp": "2026-03-31T00:22:13.451442",
+          "source": "template"
+        },
+        {
+          "result_us": 6.973824319943506,
+          "parameters": {
+            "approach": "load_inline_hip",
+            "note": "Official template-hip.py at gpu-mode/reference-kernels proves load_inline WORKS!"
+          },
+          "timestamp": "2026-03-31T00:22:24.316201",
+          "source": "template"
+        },
+        {
+          "result_us": 6.070305999153075,
+          "parameters": {
+            "approach": "load_inline_hip",
+            "note": "Official template-hip.py at gpu-mode/reference-kernels proves load_inline WORKS!"
+          },
+          "timestamp": "2026-03-31T00:22:32.641764",
           "source": "template"
         }
       ]
