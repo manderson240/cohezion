@@ -1,0 +1,333 @@
+<task-notification>
+<task-id>b9bzn2pzu</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/b64da2bf-bc43-4e98-92b9-9ef978ee0301/tasks/b9bzn2pzu.output</output-file>
+<status>completed</status>
+<summary>Background command "Clone A2UI repository" completed (exit code 0)</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/b64da2bf-bc43-4e98-92b9-9ef978ee0301/tasks/b9bzn2pzu.output
+
+---
+
+Did you implement TDD and multiperspective code review?
+
+---
+
+<task-notification>
+<task-id>a28d010da9272550f</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/b64da2bf-bc43-4e98-92b9-9ef978ee0301/tasks/a28d010da9272550f.output</output-file>
+<status>completed</status>
+<summary>Agent "Code review Genesis commits" completed</summary>
+<result>I now have enough information to produce a complete review. Let me compile the findings.
+
+## Code Review: feat/genesis-tdd-a2ui branch (6 commits beyond main)
+
+**Files reviewed:**
+- `/home/mike-anderson/dev/cohezion/.worktrees/genesis-tdd-a2ui/src/web/anima_dashboard/src/a2ui/A2UIRenderer.tsx`
+- `/home/mike-anderson/dev/cohezion/.worktrees/genesis-tdd-a2ui/src/web/anima_dashboard/src/a2ui/componentBindings.tsx`
+- `/home/mike-anderson/dev/cohezion/.worktrees/genesis-tdd-a2ui/src/web/anima_dashboard/src/app/a2ui-demo/page.tsx`
+- `/home/mike-anderson/dev/cohezion/.worktrees/genesis-tdd-a2ui/src/web/anima_dashboard/src/a2ui/catalog.json`
+- `/home/mike-anderson/dev/cohezion/.worktrees/genesis-tdd-a2ui/src/web/anima_dashboard/src/a2ui/experiences/genesis-cosmogony.json`
+- `/home/mike-anderson/dev/cohezion/.worktrees/genesis-tdd-a2ui/src/cohezion/api/agui_events.py`
+- `/home/mike-anderson/dev/cohezion/.worktrees/genesis-tdd-a2ui/src/cohezion/api/routes/agui.py`
+- `/home/mike-anderson/dev/cohezion/.worktrees/genesis-tdd-a2ui/src/web/anima_dashboard/src/components/AnimaNarrationBar.tsx`
+- `/home/mike-anderson/dev/cohezion/.worktrees/genesis-tdd-a2ui/src/web/anima_dashboard/src/hooks/useUniverseStream.ts`
+- `/home/mike-anderson/dev/cohezion/.worktrees/genesis-tdd-a2ui/src/web/anima_dashboard/src/context/UniverseProvider.tsx`
+- `/home/mike-anderson/dev/cohezion/.worktrees/genesis-tdd-a2ui/src/web/anima_dashboard/src/components/genesis/EquationPanel.tsx`
+- `/home/mike-anderson/dev/cohezion/.worktrees/genesis-tdd-a2ui/src/web/anima_dashboard/tests/e2e/a2ui-demo.spec.ts`
+
+---
+
+### Summary
+
+The A2UI catalog, renderer, and AG-UI SSE endpoint are well-structured and represent a clean implementation of the declarative rendering pipeline. The security posture on the rendering side is strong — no `dangerouslySetInnerHTML` or `eval` paths in the new A2UI code. Several issues require attention before this merges: a wildcard CORS header on a production streaming endpoint, a missing default `type` field on `TextMessageEvent` that will raise at runtime, an over-broad click trigger guard in the renderer, and a `useCallback`/`useEffect` dependency cycle in `useUniverseStream` that risks infinite reconnect loops.
+
+---
+
+### Findings
+
+#### CRITICAL
+
+- **`/home/mike-anderson/dev/cohezion/.worktrees/genesis-tdd-a2ui/src/cohezion/api/routes/agui.py:174`** — `"Access-Control-Allow-Origin": "*"` is set directly on the `/api/agui/stream` `StreamingResponse`. This bypasses any origin whitelist that the FastAPI CORS middleware enforces, because per-response headers override middleware. If this endpoint is reachable from a browser, any origin can read the SSE stream. Remove the manual CORS header and rely solely on the global CORS middleware, or scope it to a known-safe origin.
+
+- **`/home/mike-anderson/dev/cohezion/.worktrees/genesis-tdd-a2ui/src/cohezion/api/agui_events.py:97`** — `TextMessageEvent` inherits from `AGUIEvent` but provides no default value for the inherited `type: AGUIEventType` field. The base class `AGUIEvent` defines `type` without a default. Python dataclass inheritance requires that fields with defaults appear after fields without defaults. Since `TextMessageEvent` adds only defaulted fields (`message_id`, `role`, `delta`) while `type` is non-defaulted and comes first, instantiating `TextMessageEvent(type=AGUIEventType.TEXT_MESSAGE_START, ...)` works only because the caller passes `type` explicitly — but if any caller omits it (or a future subclass is added), it raises `TypeError` at runtime. The class contract should enforce this with a hard default: `type: AGUIEventType = AGUIEventType.TEXT_MESSAGE_START`. The same issue applies to `ToolCallEvent` — it has no default type either, meaning all three of its callers at lines 181, 186 must pass `type=` explicitly with no static enforcement that they match valid tool-call variants.
+
+---
+
+#### HIGH
+
+- **`/home/mike-anderson/dev/cohezion/.worktrees/genesis-tdd-a2ui/src/web/anima_dashboard/src/a2ui/A2UIRenderer.tsx:190-194`** — The `isClickTrigger` check has a dangerous over-broad fallback on line 194: `eventName.includes("click")`. Any component that fires an event whose name contains the substring "click" (e.g., `"double_click"`, `"right_click"`, `"unclickable_state_change"`) will trigger a scene transition regardless of the scene's configured trigger target. The intent is to match the specific trigger, but the fallback defeats the catalog-driven gating. This should be removed; the `eventName === "void_click"` branch is already a reasonable catch-all for the void scene, and general `includes("click")` is semantically incorrect.
+
+- **`/home/mike-anderson/dev/cohezion/.worktrees/genesis-tdd-a2ui/src/web/anima_dashboard/src/hooks/useUniverseStream.ts:145-198`** — The `connect` callback is declared with `useCallback([startFallback, stopFallback])`. The `onerror` handler inside `connect` captures `connect` itself via closure to schedule a reconnect (`setTimeout(connect, delay)`), which means every time `startFallback` or `stopFallback` identity changes, `connect` gets a new identity, which triggers the `useEffect([connect, stopFallback])` to re-run, which calls `connect()` again — a potential infinite reconnect loop on mount. The `startFallback` and `stopFallback` callbacks are themselves wrapped in `useCallback([])` with empty deps, so their identity is stable, which saves this from firing immediately — but the chain is fragile. Any future addition of a dep to `startFallback` or `stopFallback` will activate the infinite loop. This pattern should use a `useRef` for the `connect` function to break the circular dependency.
+
+- **`/home/mike-anderson/dev/cohezion/.worktrees/genesis-tdd-a2ui/src/cohezion/api/routes/agui.py:83-153`** — `cosmogony_stream()` has no error handling around `compute_cosmogony()` or the `await asyncio.sleep()` calls. If `compute_cosmogony` raises (e.g., a `ZeroDivisionError` in the Fisher eigenvalue calculation at `agui_events.py` line 68 when `closest_tc == 0`), the generator will raise an unhandled exception mid-stream. The client will receive a truncated SSE stream with no `RUN_FINISHED` or `RUN_ERROR` event, leaving it in an undefined state. Wrap the inner loop in a `try/except` and yield a `RunFinishedEvent` or a `RUN_ERROR` event before propagating.
+
+- **`/home/mike-anderson/dev/cohezion/.worktrees/genesis-tdd-a2ui/src/cohezion/api/agui_events.py:176-195`** — `phase_transition_event` emits `TOOL_CALL_START` followed immediately by `TOOL_CALL_RESULT`, skipping `TOOL_CALL_ARGS` and `TOOL_CALL_END`. The AG-UI protocol defines a strict sequence: START → ARGS → END, with RESULT as a separate lifecycle event. Jumping from START directly to RESULT without END will confuse any compliant AG-UI consumer (including the frontend hook that may be added later). Either follow the full sequence or document explicitly that this is an intentional deviation from the spec with the reason.
+
+- **`/home/mike-anderson/dev/cohezion/.worktrees/genesis-tdd-a2ui/src/web/anima_dashboard/src/context/UniverseProvider.tsx:41-53`** — The `perturb` function's `catch` block is completely silent. There is no logging, no state update, and no error propagation. If the perturbation POST fails, the caller has no way to know. The comment "Non-blocking — stream will show the result on next tick" is only valid if the request succeeded. A failed perturbation will silently do nothing, which is misleading to users and to agents monitoring the dashboard. At minimum, the error should be stored in a state variable or logged.
+
+---
+
+#### MEDIUM
+
+- **`/home/mike-anderson/dev/cohezion/.worktrees/genesis-tdd-a2ui/src/web/anima_dashboard/src/a2ui/A2UIRenderer.tsx:237`** — `validateExperience(experience)` is called inside the `onInspect` `useEffect` on every render where `currentScene` or `state` changes. This re-validates the entire experience script (iterating all scenes and components) on every tick. For the current experience script this is negligible, but `validateExperience` is O(scenes × components) and the tick rate is 100ms in fallback mode. This should be moved outside the effect and memoized with `useMemo` keyed on `experience`, since the experience object is static per renderer lifetime.
+
+- **`/home/mike-anderson/dev/cohezion/.worktrees/genesis-tdd-a2ui/src/web/anima_dashboard/src/a2ui/componentBindings.tsx:107-121`** — The `cohezion-temperature-slider` binding uses `defaultValue` instead of `value` for the controlled `<input type="range">`. This makes the slider uncontrolled — if the parent re-renders with a different `instance.value`, the slider will not update. This should use `value` with an `onChange` handler that manages state, or explicitly document that it is intentionally uncontrolled and the initial value is the only contract.
+
+- **`/home/mike-anderson/dev/cohezion/.worktrees/genesis-tdd-a2ui/src/web/anima_dashboard/src/a2ui/A2UIRenderer.tsx:154-158`** — `useState` initializes `sceneStartTime` with `Date.now()` at module evaluation time. This is safe for most purposes, but it means the elapsed timer starts from the moment the component first renders rather than from the time the scene becomes active. After a scene transition (line 168-177), `sceneStartTime` is correctly reset, so this only affects the initial scene. Worth a comment to explain the intent.
+
+- **`/home/mike-anderson/dev/cohezion/.worktrees/genesis-tdd-a2ui/src/cohezion/api/agui_events.py:55`** — `AGUIEvent.timestamp` uses `time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())` which produces second-precision timestamps. The AG-UI spec uses millisecond-precision ISO 8601 (`2026-03-30T12:00:00.000Z`). This will not break anything but may cause ordering ambiguity in consumers that rely on timestamp comparison within the same second.
+
+- **`/home/mike-anderson/dev/cohezion/.worktrees/genesis-tdd-a2ui/src/web/anima_dashboard/tests/e2e/a2ui-demo.spec.ts:7`** — The test uses `await page.waitForTimeout(3000)` as a substitute for an explicit element visibility assertion to wait for hydration. This is a timing-based wait that will flake on slower CI runners. Prefer `await page.waitForSelector('[data-a2ui-scene="void"]')` which targets the actual `data-a2ui-scene` attribute set by `A2UIRenderer` at line 253, giving a deterministic wait.
+
+- **`/home/mike-anderson/dev/cohezion/.worktrees/genesis-tdd-a2ui/src/web/anima_dashboard/src/a2ui/componentBindings.tsx`** — The comment at line 18 says "Full integration would import from `../components/genesis/` but those components are tightly coupled to the imperative scene graph." This is a design note that should be tracked as a known limitation, not left as an inline comment. It signals that the `A2UIRenderer` cannot currently render the real 3D components — it only shows HTML placeholder stubs. This divergence between what the catalog declares and what is actually rendered should be documented in the catalog itself or in a `README` alongside the `a2ui/` directory.
+
+---
+
+#### LOW
+
+- **`/home/mike-anderson/dev/cohezion/.worktrees/genesis-tdd-a2ui/src/web/anima_dashboard/src/hooks/useUniverseStream.ts:99`** — `const nEvos = prev?.evo_states?.length ?? 3 + Math.floor(Math.random() * 3)` — operator precedence means this evaluates as `prev?.evo_states?.length ?? (3 + Math.floor(...))`. When `prev?.evo_states?.length` is `0` (falsy but defined), the nullish coalescing still takes the left side, so `nEvos = 0` — which will produce an empty `evo_states` array, then the next tick will use `0` again, and so on. This is a pre-existing bug but the fallback was touched in this branch. The intent is likely `Math.floor(3 + Math.random() * 3)` as a fallback range of 3-5.
+
+- **`/home/mike-anderson/dev/cohezion/.worktrees/genesis-tdd-a2ui/src/cohezion/api/routes/agui.py:179-188`** — The `/catalog` endpoint does `import json` and `from pathlib import Path` inside the function body. These are standard-library imports that belong at the module top level.
+
+- **`/home/mike-anderson/dev/cohezion/.worktrees/genesis-tdd-a2ui/src/web/anima_dashboard/src/a2ui/A2UIRenderer.tsx:19-23`** — `A2UIComponentInstance` uses `[key: string]: unknown` as the index signature. This is technically correct but means TypeScript will not flag invalid property names on component instances when building experience scripts programmatically. A mapped type derived from the catalog schema would provide stronger guarantees, though the JSON-at-runtime catalog lookup provides runtime defense.
+
+---
+
+### Verdict
+
+**REQUEST CHANGES**
+
+The two CRITICAL issues (wildcard CORS override and `TextMessageEvent` missing default type) must be fixed before merge. The `isClickTrigger` over-broad match and the unhandled mid-stream error in `cosmogony_stream` are HIGH severity and should also be resolved. The remaining findings are lower risk but the AG-UI tool call sequence deviation in particular warrants a decision — either fix it or leave an explicit `# AG-UI deviation:` comment with the rationale so future implementors do not unknowingly break compliant consumers.</result>
+<usage><total_tokens>87796</total_tokens><tool_uses>37</tool_uses><duration_ms>159889</duration_ms></usage>
+</task-notification>
+Full transcript available at: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/b64da2bf-bc43-4e98-92b9-9ef978ee0301/tasks/a28d010da9272550f.output
+
+---
+
+Continue
+
+---
+
+The cz context measurement is wrong.  Let's just remove it, it's slowing us down.
+
+---
+
+<task-notification>
+<task-id>bkffmrzuf</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/b64da2bf-bc43-4e98-92b9-9ef978ee0301/tasks/bkffmrzuf.output</output-file>
+<status>completed</status>
+<summary>Background command "Clone OPH repository" completed (exit code 0)</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/b64da2bf-bc43-4e98-92b9-9ef978ee0301/tasks/bkffmrzuf.output
+
+---
+
+And are we fully utilizing our Obsidian Vault and SurrealDB?
+
+---
+
+How do we make it safely agentically autonomous and sovereign while still maintaining HIL?
+
+---
+
+And how can we avoid having to start from scratch in each session?  I think we need a concierge agent that greats the user and then interprets the prompt and finds the optimal path in the projects to direct it towards.
+
+---
+
+<task-notification>
+<task-id>ac867428adb49f3df</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/b64da2bf-bc43-4e98-92b9-9ef978ee0301/tasks/ac867428adb49f3df.output</output-file>
+<status>completed</status>
+<summary>Agent "Code review full branch" completed</summary>
+<result>I now have all the information needed for a thorough review.
+
+---
+
+## Code Review: `src/cohezion/governance/concierge.py`, `src/cohezion/physics/observer_patch.py`, `src/cohezion/data_mesh/data_product.py` + corresponding tests
+
+### Summary
+
+Three well-scoped modules landed in the last 4 commits. The design intent is clear and documented throughout, and the tests are lean and focused. There are no security issues and no broken imports. A handful of specific correctness and standards violations need addressing before these modules are production-safe.
+
+---
+
+### Findings
+
+#### HIGH
+
+- **`src/cohezion/governance/concierge.py:109`** — Bare `except Exception:` swallows all errors from history loading. Per project standards, catch specific exceptions (`json.JSONDecodeError`, `KeyError`, `OSError`) and log the specific error type and path. As written, a `MemoryError` or `PermissionError` on the history file would silently produce an agent with no learned history and no diagnostic output.
+
+- **`src/cohezion/governance/concierge.py:97-116`** — All I/O (`read_text`, `open().write()`) is synchronous/blocking with no timeout, violating the project's "all I/O must be async/await" standard. `gather_briefing` and `_save_record` touch the filesystem inline. On a slow NFS path or a large `routing_history.jsonl`, this blocks the event loop. At minimum, `_save_record` should be called in a `try/except OSError` block with a note that async refactor is needed.
+
+- **`src/cohezion/governance/concierge.py:90`** — `ConciergeAgent` does not inherit from `cohezion.agents.base.BaseAgent`, which is a hard architectural requirement per CLAUDE.md: "Agents must inherit from `cohezion.agents.base.BaseAgent`." The agent docstring also lacks the required TF-IDF-indexable one-sentence purpose as the first line — it starts with "Session concierge with dynamic learning" which is fine, but this inheritance gap means it won't be discovered by the skill registry or governed by the base class lifecycle.
+
+- **`src/cohezion/governance/concierge.py:166`** — The f-string `f"switch_worktree"` has no interpolation — it is just `"switch_worktree"`. This is harmless at runtime but signals the confidence key does not distinguish between different worktree targets. All worktree routes share one confidence bucket, meaning poor acceptance of one branch degrades routing confidence for all branches. This makes the learning mechanism systematically less useful for the most common routing action.
+
+#### MEDIUM
+
+- **`src/cohezion/physics/observer_patch.py:88-92`** — The containment branch in `overlap_fraction` returns `smaller_solid_angle / larger_solid_angle`, which is the ratio of the solid angles of the two spherical caps, not the fractional overlap. The correct overlap fraction for containment is `1.0` from the contained patch's perspective (it is completely within the larger patch), or `smaller/larger` from the larger patch's perspective. The current code collapses both cases into one value, which is geometrically ambiguous. The docstring says the return represents how much of the patches' combined area is shared, but containment is not the same as partial overlap. The test suite does not cover this case explicitly, so the incorrect value goes undetected.
+
+- **`src/cohezion/data_mesh/data_product.py:57`** — `DataProduct` is a mutable `@dataclass` but its SLA-tracking fields (`access_count`, `error_count`, `last_accessed`) accumulate state via `record_access`. This is intentional, but `created_at` is also mutable. The pre-defined `COHEZION_DATA_PRODUCTS` dict at line 141 uses module-level mutable `DataProduct` instances — this means `access_count` and `error_count` are shared state across the process lifetime and across tests. Tests that call `record_access` on `COHEZION_DATA_PRODUCTS["vault-entry"]` will pollute other tests. The pre-defined products should be factories (`def make_vault_entry_product() -> DataProduct`) or use `copy.copy()` at access time.
+
+- **`src/cohezion/physics/observer_patch.py:98-101`** — `ConsistencyResult` is referenced before its definition. The class is defined at line 150, but `verify_observer_consistency` at line 98 already references it in its return type annotation. Python's `from __future__ import annotations` at line 23 makes this work at runtime, but mypy `--strict` will still flag it as a forward reference issue in older configurations. This is a minor ordering nit but worth noting for traceability.
+
+- **`tests/test_data_product.py:67`** — `test_six_products_defined` hardcodes the count `6`. Per `testing.md` rule: "Never commit tests that depend on specific file counts." Adding a seventh data product will silently break this test. Replace with `assert len(COHEZION_DATA_PRODUCTS) >= 6` or simply remove the count assertion and rely on the other tests to verify product properties.
+
+- **`tests/test_observer_patch.py:79`** — `test_no_overlap_has_zero_fidelity` asserts `result.fidelity == 0.0`. This works only because `ConsistencyResult` has `fidelity: float = 0.0` as default and the no-overlap early-return path at line 118 creates the result without providing `fidelity`. This is a valid test of the early-return, but it is coupling to the default field value rather than testing behavior explicitly. Low risk but fragile.
+
+#### LOW
+
+- **`src/cohezion/governance/concierge.py:43-45`** — The three path constants `SESSIONS_DIR`, `VAULT_DIR`, `ROUTING_HISTORY_PATH` are module-level globals using `Path.home()`, which is evaluated at import time. `VAULT_DIR` is imported but unused anywhere in the file. Remove it or use it.
+
+- **`src/cohezion/governance/concierge.py:156-163`** — `worktree_map` is rebuilt on every call to `route_prompt`. This is a minor inefficiency; it could be a class constant. Not a correctness issue.
+
+- **`src/cohezion/data_mesh/data_product.py:88`** — `max_latency_ms: int = 5000` in the default but the test `test_gold_products_have_low_latency` asserts `<= 5000`. The default *is* 5000, so the assertion is vacuously true for any gold product that didn't set a stricter value. The test provides no actual protection against regressions.
+
+---
+
+### Compound Score: 7 / 10
+
+**What earns it high marks:** Each module is genuinely reusable. `ObserverPatch` + `overlap_fraction` can slot into any multi-agent coordination check. `DataProduct` establishes a clean first-class data contract that all 17 MCP servers can adopt — the schema, lineage, and SLA fields are exactly the right vocabulary. The concierge's `RoutingRecord` + JSONL persistence is the right pattern for low-friction learning that survives restarts.
+
+**What holds it back:**
+
+1. The learning mechanism in `ConciergeAgent._historical_confidence` collapses all worktree routes into a single `"switch_worktree"` key. As the system grows (more worktrees, more branches), this erodes the compound value — the model can't distinguish which specific branch the user prefers. Keying on `f"switch_worktree:{action_key}"` would make the learning compound properly.
+
+2. `COHEZION_DATA_PRODUCTS` as a module-level mutable dict is a shared-state trap. Every future caller that wants to record accesses will need to know not to mutate the global. A registry pattern (class with a `get(product_id) -> DataProduct` factory) would have been better and would compound more cleanly.
+
+3. `ConciergeAgent` not inheriting `BaseAgent` means it sits outside the skill registry, TF-IDF indexing, and lifecycle management. That is the core compound loop — staying outside it limits how much the system can self-improve around this agent.
+
+---
+
+### Verdict
+
+**REQUEST CHANGES**
+
+The bare `except Exception` (HIGH), missing `BaseAgent` inheritance (HIGH), and the mutable module-level `COHEZION_DATA_PRODUCTS` shared-state issue (MEDIUM) need to be addressed before merging. The overlap containment approximation (MEDIUM) should at minimum be documented as a deliberate simplification if the exact spherical cap intersection formula is considered over-engineering for the current use.</result>
+<usage><total_tokens>58354</total_tokens><tool_uses>25</tool_uses><duration_ms>114925</duration_ms></usage>
+</task-notification>
+Full transcript available at: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/b64da2bf-bc43-4e98-92b9-9ef978ee0301/tasks/ac867428adb49f3df.output
+
+---
+
+So why aren't we running everything through FLUME then?
+
+---
+
+/retrospect and then refine plan with learnings and skills
+
+---
+
+/retrospect
+
+---
+
+we need to maximize what we already have
+
+---
+
+Another internal code sweep and external tip of the spear research on hugging face, arkiv, and github.  Don't forget the other intergration points from this session.
+
+---
+
+<task-notification>
+<task-id>a43f891b52e8cfffe</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/b64da2bf-bc43-4e98-92b9-9ef978ee0301/tasks/a43f891b52e8cfffe.output</output-file>
+<status>completed</status>
+<summary>Agent "Internal code sweep of session work" completed</summary>
+<result>I now have everything I need for a complete review. Let me compile the findings.
+
+---
+
+## Code Review: feat/genesis-tdd-a2ui — Wiring Integrity Review
+
+**Files reviewed:** `src/cohezion/governance/flume_bridge.py`, `src/cohezion/governance/concierge.py`, `src/cohezion/physics/observer_patch.py`, `src/cohezion/mycelium/observer.py`, `src/cohezion/flume/vae_encoder.py`, `src/cohezion/physics/spinor.py`, `tests/test_concierge.py`, `tests/test_observer_patch.py`, `tests/mycelium/test_observer.py`, `.claude/hooks/session-concierge.sh`, `.claude/agents/concierge.md`
+
+---
+
+### Summary
+
+The three new wiring modules are structurally sound and imports resolve correctly at runtime. However, there are significant gaps: three of the five public functions in `flume_bridge.py` have zero tests and zero callers outside the module, one bare `except` silently swallows the only thing distinguishing "FLUME is working" from "FLUME is broken", and the hash fallback in `flume_bridge.py` duplicates logic already in `FlumeVAEEncoder._hash_encode`. The `ChangeObserver` in `mycelium/observer.py` is an entirely separate, unrelated class that shares nothing with the new `ObserverPatch` physics system — "observer patch" in the review prompt refers to the physics module only.
+
+---
+
+### Findings
+
+#### HIGH
+
+- **`src/cohezion/governance/flume_bridge.py:62`** — Bare `except Exception: pass` silently swallows all FLUME encoding failures. If the VAE encoder is loaded but produces incorrect output (wrong tensor shape, NaN, etc.), this silently falls through to the hash fallback with no log line. The standard in CLAUDE.md is "specific exceptions + circuit breakers". At minimum this should be `except (RuntimeError, ValueError) as exc: logger.warning(...)`. The silent swallow makes it impossible to detect VAE regressions in production.
+
+- **`src/cohezion/governance/flume_bridge.py:65–70`** — The hash fallback in `flume_bridge.py` is a near-duplicate of `FlumeVAEEncoder._hash_encode` in `vae_encoder.py`. Both use SHA-256 cyclic expansion. The difference is `flume_bridge` uses `h * 8` byte repetition while `vae_encoder` uses modular indexing — producing different vectors for the same string. This means: when `FLUME_AVAILABLE=True` but the encoder call fails and silences (HIGH above), the fallback vector is not the same as the one `FlumeVAEEncoder` would produce in its own fallback path. Semantic similarity comparisons between a concierge-path fallback and a direct-vae-encoder fallback will be garbage. Should delegate to `FlumeVAEEncoder._hash_encode` or share a single implementation.
+
+- **`src/cohezion/governance/flume_bridge.py:26–29`** — All four `TYPE_CHECKING` imports (`RoutingRecord`, `RoutingSuggestion`, `SessionBriefing`, `ObserverPatch`, `SpinorState`) are declared under `TYPE_CHECKING` but are **never referenced in any function signature or annotation in the module body**. They are completely unused — not in parameter types, not in return types, not in docstrings. This is dead import noise and makes the module's dependency surface misleading. The `agent_state_to_patch_center` function signature uses `np.ndarray` input and `tuple[float, float]` return — no `ObserverPatch` or `SpinorState` reference anywhere.
+
+- **`src/cohezion/governance/flume_bridge.py`** — `agent_state_to_patch_center`, `encode_data_product_description`, and `data_product_similarity` have **zero callers** anywhere in the codebase. A grep across all `.py` files confirms these three public functions are only defined, never imported or called. They are dead code. Wire 2 (observer patch center) and Wire 4 (data product discovery) exist only in `flume_bridge.py` and are not wired into `observer_patch.py`, any data mesh module, or any test. The wiring is described but not connected.
+
+- **`src/cohezion/flume/vae_encoder.py:33`** — `class SimpleEncoder(nn.Module)` is defined at module level, outside the `TORCH_AVAILABLE` guard. When PyTorch is not installed, importing `vae_encoder` fails at class definition with `NameError: name 'nn' is not defined`. The `try/except ImportError` block sets `TORCH_AVAILABLE = False` and sets `nn = None` implicitly, so `nn.Module` on line 33 will crash at import time on a system without torch. This is a **runtime crash on import**, not just a graceful fallback.
+
+#### MEDIUM
+
+- **`src/cohezion/governance/concierge.py:177`** — FLUME semantic routing only activates when `FLUME_AVAILABLE and self._history`. On a cold-start system (no routing history yet), it always falls back to keyword matching regardless of whether FLUME is available. The FLUME routing capability is therefore completely inaccessible until at least one routing record has been saved. This is a chicken-and-egg problem: the system never tries FLUME routes until it has learned routes, but it can only learn FLUME routes by using them. A fresh install is permanently stuck in keyword mode.
+
+- **`src/cohezion/governance/concierge.py:189`** — The confidence computation `min(0.95, best_sim * self._historical_confidence(...))` multiplies semantic similarity by historical acceptance rate. If there is exactly one historical record for a target with acceptance=1.0, `_historical_confidence` returns `1.0 + duration_bonus`. `best_sim * 1.0+` = `best_sim`. But if `best_sim = 0.71` (just above the 0.7 threshold), confidence will be `0.71` — which falls into the "uncertain/HIHO" range (0.5–0.8), not the "strong match" range (>0.8). A near-perfect semantic match gets presented as uncertain. The threshold logic and the confidence calculation are misaligned.
+
+- **`src/cohezion/physics/observer_patch.py:1`** — The module is missing a module-level `__init__.py` export. `observer_patch` is not listed in `src/cohezion/physics/__init__.py` exports (`__all__`). `ObserverPatch`, `overlap_fraction`, `verify_observer_consistency`, and `evo_observer_consistency` are unreachable via `from cohezion.physics import ObserverPatch` — callers must know the internal path. Given the CLAUDE.md rule "Every `src/` dir MUST have `__init__.py`" (exists) and the architecture docs that reference this file by public name, it should be in `__all__`.
+
+- **`src/cohezion/mycelium/observer.py`** — The naming is confusing: `ChangeObserver` (a git-diff file scanner) and the physics `ObserverPatch` are both called "observers" but are completely unrelated systems. The review asked about "observer patch" — this is not it, but the name collision will cause confusion for future contributors. No action needed beyond awareness.
+
+- **`tests/test_concierge.py`** — There are zero tests for FLUME-path routing. All tests exercise the keyword fallback path. The FLUME semantic routing branch at line 177–196 of `concierge.py` has no test coverage — neither for the happy path (FLUME match above 0.7) nor the edge cases (FLUME available but no history, FLUME available + history but similarity below threshold). This is Wire 1 (FLUME→concierge) with no test coverage.
+
+- **`tests/`** — No test file exists for `flume_bridge.py` at all (`test_flume_bridge.py` does not exist). Wire 2 (`agent_state_to_patch_center`), Wire 3 (`encode_prompt` hash fallback vs. VAE path), and Wire 4 (`data_product_similarity`) are completely untested. The only indirectly tested path is `encode_prompt` being called inside `route_prompt`, but only through the keyword-fallback branch that doesn't even call `encode_prompt`.
+
+- **`src/cohezion/governance/flume_bridge.py:37`** — `FINGERPRINT_DIMS = slice(29, 256)` — the comment says "semantic fingerprint" but the slice starts at 29, not 24. The preceding slice is `METRICS_DIMS = slice(12, 24)`. Dims 24–28 are unaccounted for (5 dimensions with no label). These constants are defined but never used in the module body, so this is a documentation/dead-code issue, but it suggests the dim layout was copied partially and then not completed.
+
+#### LOW
+
+- **`src/cohezion/governance/flume_bridge.py:50`** — `encode_prompt` has no type hint on the return (`-> np.ndarray` is missing). All public functions must have type hints per project standards. The other functions in the file have return hints.
+
+- **`.claude/hooks/session-concierge.sh:29`** — `ls docs/plans/*.md ~/.claude/plans/*.md 2>/dev/null | wc -l` will print `0` even if there are no plans (because `wc -l` counts lines from the `ls` output, but `ls` with `2>/dev/null` won't error, it just produces empty output). This is correct behavior. However, it will also count the error lines suppressed by `2>/dev/null` as 0 when both paths don't exist — fine. Minor: this doesn't validate the plan count matches actual PENDING plans (it counts all `.md` files).
+
+- **`src/cohezion/governance/concierge.py:103`** — `ConciergeAgent.__init__` calls `self._load_history()` which performs synchronous file I/O. The module docstring notes `_save_record` uses synchronous I/O "acceptable for concierge (runs once per session)" — but `__init__` doing I/O at construction time violates the async-everywhere rule in CLAUDE.md. Acceptable given it's a session-start utility, but worth noting.
+
+---
+
+### Wiring Integrity Score: **5/10**
+
+| Wire | Description | Status | Score |
+|------|-------------|--------|-------|
+| 1 | Concierge → FLUME routing (semantic match) | Wired but only activates with pre-existing history; no test coverage for FLUME path | Partial |
+| 2 | Agent state → FLUME → ObserverPatch center | Defined in flume_bridge but never called; not connected to observer_patch.py | Dead |
+| 3 | FLUME VAE unavailable → hash fallback | Fallback exists but bare except silences failures; hash impl diverges from vae_encoder fallback | Fragile |
+| 4 | Data product discovery via FLUME | Defined in flume_bridge but never called anywhere | Dead |
+| 5 | ObserverPatch ↔ SpinorState (physics) | Fully wired, tests pass, `fidelity` method exists on SpinorState | Complete |
+| 6 | Session hook → ConciergeAgent | Hook exists and outputs the right JSON fields; concierge agent definition matches; Python class matches expected behavior | Complete |
+
+Wires 5 and 6 are genuinely functional. Wire 3's fallback logic works but is brittle. Wires 2 and 4 are documented, implemented, and completely disconnected — they exist only inside `flume_bridge.py` with no callers. The `vae_encoder.py` import-crash bug (HIGH) means the FLUME path may never be exercised at all on a torch-less system.
+
+### Verdict
+
+**REQUEST CHANGES** — The two dead wires (2 and 4), the bare `except` on the most critical path, the divergent hash fallbacks, and the `SimpleEncoder` import-time crash on torch-less systems must be resolved before this is production-ready. The observer patch physics system itself (Wire 5) is well-implemented.</result>
+<usage><total_tokens>68359</total_tokens><tool_uses>47</tool_uses><duration_ms>184357</duration_ms></usage>
+</task-notification>
+Full transcript available at: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/b64da2bf-bc43-4e98-92b9-9ef978ee0301/tasks/a43f891b52e8cfffe.output
+
+---
+
+Don't forget https://github.com/lucas-maes/le-wm I thought we had this awhile ago but it looks like it's missing here
+
+---
+
+We need to refine everything as a long horizon platform improvement.
+
+---
+
+Autonomous Repository management needs to be part of ths as well
+
+---
+
+And do we have our theory of everything with physics and firstnations worldviews?
