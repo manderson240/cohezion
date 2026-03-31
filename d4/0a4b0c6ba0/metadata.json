@@ -1,0 +1,45 @@
+{
+  "cli_version": "0.5.1",
+  "checkpoint_id": "d40a4b0c6ba0",
+  "strategy": "manual-commit",
+  "branch": "main",
+  "checkpoints_count": 0,
+  "files_touched": [
+    "CLAUDE.md",
+    "_bmad/_config/traceability/repo_health/health_report.md",
+    "_bmad/_config/traceability/repo_health/health_report_2026-03-31T17_42_24.460264.json",
+    "research/challenges/luma_amd_speedrun/autoresearch/research_strategy.md",
+    "research/challenges/luma_amd_speedrun/autoresearch/tree/gemm_tree.json",
+    "research/challenges/luma_amd_speedrun/autoresearch/tree/mla_tree.json",
+    "research/challenges/luma_amd_speedrun/autoresearch/tree/moe_tree.json",
+    "research/challenges/luma_amd_speedrun/kernels/mixed-mla/probe_graph.py",
+    "research/challenges/luma_amd_speedrun/kernels/mixed-mla/probe_graph_src.py",
+    "research/challenges/luma_amd_speedrun/kernels/mixed-mla/staging/submission.autoresearch.20260331_180059.py",
+    "research/challenges/luma_amd_speedrun/kernels/mixed-mla/staging/submission.autoresearch.20260331_180112.py",
+    "research/challenges/luma_amd_speedrun/kernels/mixed-mla/staging/submission.backup.20260331_180059.py",
+    "research/challenges/luma_amd_speedrun/kernels/mixed-mla/staging/submission.backup.20260331_180112.py",
+    "research/challenges/luma_amd_speedrun/kernels/moe-mxfp4/staging/submission.autoresearch.20260331_174924.py",
+    "research/challenges/luma_amd_speedrun/kernels/moe-mxfp4/staging/submission.autoresearch.20260331_175911.py",
+    "research/challenges/luma_amd_speedrun/kernels/moe-mxfp4/staging/submission.backup.20260331_174924.py",
+    "research/challenges/luma_amd_speedrun/kernels/moe-mxfp4/staging/submission.backup.20260331_175911.py",
+    "research/challenges/luma_amd_speedrun/kernels/mxfp4-mm/staging/submission.autoresearch.20260331_174541.py",
+    "research/challenges/luma_amd_speedrun/kernels/mxfp4-mm/staging/submission.backup.20260331_174541.py",
+    "research/challenges/luma_amd_speedrun/kernels/mxfp4-mm/submission_loadinline_direct.py",
+    "src/cohezion/compound/degradation_detector.py"
+  ],
+  "sessions": [
+    {
+      "metadata": "/d4/0a4b0c6ba0/0/metadata.json",
+      "transcript": "/d4/0a4b0c6ba0/0/full.jsonl",
+      "content_hash": "/d4/0a4b0c6ba0/0/content_hash.txt",
+      "prompt": ""
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 0,
+    "cache_creation_tokens": 0,
+    "cache_read_tokens": 0,
+    "output_tokens": 0,
+    "api_call_count": 0
+  }
+}
