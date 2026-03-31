@@ -1,0 +1,528 @@
+<task-notification>
+<task-id>b1n039u13</task-id>
+<tool-use-id>toolu_01KKuch56E8gzRz88XUigoRH</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/7811d063-f780-4a33-bf06-f7fd845739f9/tasks/b1n039u13.output</output-file>
+<status>killed</status>
+<summary>Background command "uv run pytest tests/ -q --tb=no 2&gt;&amp;1 | tail -20" was stopped</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/7811d063-f780-4a33-bf06-f7fd845739f9/tasks/b1n039u13.output
+
+---
+
+/retrospect
+
+---
+
+Let's fix everything
+
+---
+
+Where do go next?
+
+---
+
+<task-notification>
+<task-id>b2somg8ha</task-id>
+<tool-use-id>toolu_01GuXKaagh8hLefetsA2g4GE</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/7811d063-f780-4a33-bf06-f7fd845739f9/tasks/b2somg8ha.output</output-file>
+<status>killed</status>
+<summary>Background command "find src/cohezion -name "*.py" -not -name "__init__.py" -not -path "*__pycache__*" | while read f; do lines=$(wc -l &lt; "$f"); coverage=$(uv run pytest tests/ -q --cov=src --cov-report=term:skip-covered 2&gt;&amp;1 | grep -F "$f" | awk '{print $(NF-1)}' | head -1); [ -z "$coverage" ] &amp;&amp; coverage="0%" || true; echo "$lines $coverage $f"; done 2&gt;/dev/null | sort -rn | head -25" was stopped</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/7811d063-f780-4a33-bf06-f7fd845739f9/tasks/b2somg8ha.output
+
+---
+
+<task-notification>
+<task-id>bepbzg9tl</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/7811d063-f780-4a33-bf06-f7fd845739f9/tasks/bepbzg9tl.output</output-file>
+<status>killed</status>
+<summary>Background command "cat &gt; /tmp/analyze_coverage.py &lt;&lt; 'PYEOF'
+import subprocess
+import sys
+
+# Run pytest with coverage and capture output
+result = subprocess.run(
+    ["uv", "run", "pytest", "tests/", "-q", "--cov=src", "--cov-report=term-missing"],
+    capture_output=True,
+    text=True,
+    cwd="/home/mike-anderson/dev/cohezion"
+)
+
+lines = result.stdout.split('\n') + result.stderr.split('\n')
+
+# Parse coverage lines
+zero_coverage = []
+low_coverage = {}
+
+for line in lines:
+    if '/' in line and '%' in line:
+        parts = line.split()
+        if len(parts) &gt;= 3:
+            try:
+                # Format: path stmts miss coverage% ...
+                coverage_idx = -1
+                for i, p in enumerate(parts):
+                    if p.endswith('%'):
+                        coverage_idx = i
+                        pct = int(p.rstrip('%'))
+                        path = parts[0]
+                        if pct == 0:
+                            zero_coverage.append(path)
+                        elif pct &lt; 20:
+                            low_coverage[path] = pct
+                        break
+            except (ValueError, IndexError):
+                pass
+
+print("ZERO COVERAGE FILES:")
+for p in sorted(zero_coverage)[:20]:
+    print(f"  {p}")
+
+print(f"\nLOW COVERAGE (&lt;20%): {len(low_coverage)} files")
+for p, pct in sorted(low_coverage.items(), key=lambda x: x[1])[:20]:
+    print(f"  {p}: {pct}%")
+PYEOF
+python3 /tmp/analyze_coverage.py
+" was stopped</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/7811d063-f780-4a33-bf06-f7fd845739f9/tasks/bepbzg9tl.output
+
+---
+
+Finish all remaining tasks
+
+---
+
+Keep going then do research on hugging face and arkive and internal code sweeps to find out where else we need to improve.
+
+---
+
+<task-notification>
+<task-id>ae1afe58c2152c804</task-id>
+<tool-use-id>toolu_01VC9CWZQZ25EJq4Tuu2Smqr</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/7811d063-f780-4a33-bf06-f7fd845739f9/tasks/ae1afe58c2152c804.output</output-file>
+<status>completed</status>
+<summary>Agent "Internal code sweep for improvements" completed</summary>
+<result>Here is the comprehensive code sweep report.
+
+---
+
+## Code Sweep Report: `/home/mike-anderson/dev/cohezion`
+
+**Summary**: 672 Python source files, 147,390 total lines in `src/cohezion/`.
+
+---
+
+### 1. CRITICAL (Fix Now)
+
+#### 1a. Oversized Files -- 55 files exceed the 500-line hard limit
+
+The worst offenders (top 15):
+
+| Lines | File |
+|------:|------|
+| 1,986 | `src/cohezion/api/__init__.py` |
+| 1,474 | `src/cohezion/skills/cohezion_mcp.py` |
+| 1,154 | `src/cohezion/compound/executor.py` |
+| 1,065 | `src/cohezion/security/attack_patterns.py` |
+| 962 | `src/cohezion/compound/request_alignment_analyzer.py` |
+| 949 | `src/cohezion/compound/journey_analyzer.py` |
+| 920 | `src/cohezion/cli/main.py` |
+| 913 | `src/cohezion/reliability/quantum_performance_monitor.py` |
+| 913 | `src/cohezion/agents/base.py` |
+| 905 | `src/cohezion/core/persistence/surreal_client.py` |
+| 890 | `src/cohezion/sandbox/isolation.py` |
+| 888 | `src/cohezion/sandbox/rollback.py` |
+| 867 | `src/cohezion/platform/daily_health_digest.py` |
+| 863 | `src/cohezion/__main__.py` |
+| 850 | `src/cohezion/universe/engine.py` |
+
+An additional 120 files sit in the 300-500 line soft-limit zone. The `api/__init__.py` at nearly 2,000 lines is the single most urgent refactor target -- it should be split into route modules.
+
+#### 1b. Massive Dead Code Burden -- 176 orphan files, ~39,400 lines (26.7% of codebase)
+
+176 files (excluding `__init__.py` and `__main__.py`) have zero imports from any other module in the codebase. None of the top orphans are re-exported via `__init__.py` either. These represent ~39,400 lines of unreachable code.
+
+Top orphans by size:
+
+| Lines | File |
+|------:|------|
+| 1,474 | `src/cohezion/skills/cohezion_mcp.py` |
+| 913 | `src/cohezion/reliability/quantum_performance_monitor.py` |
+| 888 | `src/cohezion/sandbox/rollback.py` |
+| 736 | `src/cohezion/research/security_api.py` |
+| 706 | `src/cohezion/swarm/fallback_strategy.py` |
+| 676 | `src/cohezion/simulation/enhanced_simulator.py` |
+| 656 | `src/cohezion/simulation/distributed.py` |
+| 636 | `src/cohezion/rl/ppo_trainer.py` |
+| 565 | `src/cohezion/simulation/rl_framework.py` |
+| 560 | `src/cohezion/compound/skill_consensus_voter.py` |
+| 552 | `src/cohezion/mcp/hookify_server.py` |
+| 542 | `src/cohezion/compound/thermal_autoresearch_executor.py` |
+| 511 | `src/cohezion/knowledge_graph/bidirectional_linker.py` |
+| 507 | `src/cohezion/swarm/quadrature_nexus.py` |
+| 492 | `src/cohezion/security/adversarial_tester.py` |
+
+Note: `__main__.py` (863 lines) is the CLI entry point, so it is not truly orphaned -- but it is still oversized.
+
+#### 1c. Silent Exception Swallowing
+
+These locations catch exceptions and silently discard them (pass/continue/return None), violating the "no silent failures" coding standard:
+
+| File | Line | Pattern |
+|------|------|---------|
+| `src/cohezion/core/mcp_client.py` | 363, 374 | `except Exception: pass` |
+| `src/cohezion/mcp/hookify_server.py` | 291 | `except Exception: pass` |
+| `src/cohezion/mcp/compound_unified.py` | 268, 278, 332 | `except Exception:` (logs warning but suppresses) |
+| `src/cohezion/knowledge_graph/query_engine.py` | 73, 132 | `except Exception:` (silent) |
+| `src/cohezion/core/compound/skill_refiner.py` | 206 | `except Exception:` (silent) |
+| `src/cohezion/mass_sim/system_monitor.py` | 51, 67, 76 | `except (OSError, ValueError): pass` |
+| `src/cohezion/mcp/servers/skills/client.py` | 192 | `except Exception:` (silent) |
+
+The `hookify_server.py` and `mcp_client.py` cases are the most dangerous -- they silently swallow errors in server/client code paths where failures should propagate or at minimum be logged.
+
+---
+
+### 2. IMPORTANT (Fix Soon)
+
+#### 2a. Circular Import Risk: compound <-> swarm
+
+Bidirectional imports exist between the two largest packages:
+- **compound -> swarm**: 8 imports (capability_matrix, session_manager, plasma_theosophy_synthesizer, global_metrics_aggregator, thermal_autoresearch_executor)
+- **swarm -> compound**: 5 imports (autoresearch_executor, team_execution, dynamic_concurrency_gate, r_zero_evolver)
+
+Some use lazy imports (inside functions) which mitigates runtime circular import errors, but this is a fragile pattern. The `compound` and `swarm` packages are tightly coupled and should define shared interfaces in a neutral location (e.g., `core.interfaces` or `core.protocols`).
+
+#### 2b. Dependency Hotspots
+
+The most-imported modules are single points of failure for breaking changes:
+
+| Import Count | Module |
+|-------------:|--------|
+| 27 | `core.persistence.surreal_client` |
+| 25 | `core.mcp_client` |
+| 21 | `compound.models` |
+| 16 | `mcp.shared.auth` |
+| 16 | `compound.executor` |
+| 15 | `reliability.monitor` |
+| 15 | `mcp.servers.safe_input` |
+| 14 | `universe.engine` |
+| 14 | `agents.base` |
+
+Any change to `surreal_client` or `mcp_client` signatures will cascade through 25-27 consumers. These should have stable, well-tested interfaces.
+
+#### 2c. TODO/FIXME Inventory -- 31 items
+
+Key clusters:
+- **Unimplemented SurrealDB repositories** (10 TODOs across `surreal_universe_repository.py` and `surreal_skill_repository.py`) -- these are complete stubs with no real implementation
+- **Unwired security guardrails** (3 TODOs in `guardrail_adapters.py` and 1 in `guardrail_factory.py`) -- `ConstitutionalGuard`, `ResourceGuard`, and `RateLimitGuard` are stubs that return hardcoded safe results
+- **Cache warmer** (2 TODOs in `cache_warmer.py`) -- vault queries not implemented
+- **Streaming API** (1 TODO in `api/streaming.py`) -- skill execution not wired
+
+The guardrail stubs are particularly concerning because the security infrastructure appears functional from the outside but does nothing internally.
+
+#### 2d. Test Coverage Gaps
+
+Source directories with no corresponding test directory:
+
+| Directory | Source Files | Tests Found Elsewhere? |
+|-----------|-------------|----------------------|
+| `cli` | 2 | Partial (agentverse CLI integration only) |
+| `cost_optimization` | 4 | Yes (tests/swarm, tests/research) |
+| `knowledge_graph` | 4 | No |
+| `pipeline` | 4 | Partial (integration test) |
+| `protocols` | 2 | No |
+| `services` | 4 | No |
+| `reporting` | 1 | No |
+| `storage` | 1 | No |
+| `real_envs` | 1 | No |
+| `tools` | 1 | No |
+| `evaluation` | 1 | Partial (platform tests) |
+
+`knowledge_graph` (4 files), `services` (4 files), and `protocols` (2 files) have zero test coverage anywhere.
+
+---
+
+### 3. NICE TO HAVE
+
+#### 3a. Duplicate Basenames -- 32 filename collisions
+
+32 basenames appear in multiple locations (e.g., `executor.py` in 3 places, `config.py` in 4 places, `models.py` in 3 places). While Python's module system handles this correctly, it creates confusion for developers. The most notable:
+
+- `executor.py` -- `sandbox/`, `compound/core/`, `compound/`
+- `config.py` -- `core/`, `mass_sim/`, `research/`, `compound/`
+- `main.py` -- `cli/`, (and `__main__.py` at root)
+
+#### 3b. Soft-Limit Zone
+
+120 files between 300-500 lines. Not urgent, but these should be watched during future changes to avoid creeping past the hard limit.
+
+---
+
+### Recommended Prioritization
+
+1. **Triage the 176 orphan files** -- Verify which are genuinely dead vs. used by external entry points (CLI commands, MCP servers, scheduled jobs). The 39,400 lines of potential dead code is the single biggest maintainability drag. Even if half are needed, removing the other half would cut the codebase by ~13%.
+
+2. **Split `api/__init__.py`** (1,986 lines) -- This is nearly 4x the hard limit. Extract route groups into separate modules.
+
+3. **Add logging to all `except Exception: pass` blocks** -- 10+ silent exception handlers that violate the coding standard.
+
+4. **Wire or remove security guardrail stubs** -- `ConstitutionalGuard`, `ResourceGuard`, and `RateLimitGuard` in `guardrail_adapters.py` currently do nothing but return "safe." Either implement them or explicitly document they are no-ops.
+
+5. **Extract shared interfaces** for the compound/swarm bidirectional dependency to prevent circular import breakage.</result>
+<usage><total_tokens>51763</total_tokens><tool_uses>24</tool_uses><duration_ms>158360</duration_ms></usage>
+</task-notification>
+Full transcript available at: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/7811d063-f780-4a33-bf06-f7fd845739f9/tasks/ae1afe58c2152c804.output
+
+---
+
+<task-notification>
+<task-id>a10ce7fc229256198</task-id>
+<tool-use-id>toolu_01PApUWUqHiiWhT8h4Pzmzcf</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/7811d063-f780-4a33-bf06-f7fd845739f9/tasks/a10ce7fc229256198.output</output-file>
+<status>completed</status>
+<summary>Agent "Research HF trends + Arxiv for Cohezion" completed</summary>
+<result>I now have comprehensive data across all research areas. Here is the structured report.
+
+---
+
+# Cohezion Research Report: HF Trends, Arxiv Papers & Actionable Opportunities (March 2026)
+
+---
+
+## 1. Hugging Face Trending -- Top Relevant Models/Libraries
+
+### 1.1 Smolagents (HuggingFace)
+HuggingFace's own multi-agent framework, now at 26k+ GitHub stars. Core agent logic in ~1,000 lines. Supports CodeAgent (writes/executes Python) and ToolCallingAgent (JSON tool calling). Has native MCP server integration and multi-modal support (vision, video, audio). Active roadmap includes enhanced multi-agent orchestration and MCP interop.
+- [Smolagents overview](https://www.decisioncrafters.com/smolagents-build-powerful-ai-agents-in-1-000-lines-of-code-with-26-3k-github-stars/)
+
+### 1.2 Qwen3-Coder-Next (80B-A3B MoE)
+The best local coding model of March 2026. MoE architecture with only 3B active parameters out of 80B total -- runs fast on modest hardware while outperforming much larger models. Dominates leaderboards at nearly every size tier. Native 32K context, extensible to 131K with YaRN.
+- [Best local coding models March 2026](https://localaimaster.com/models/best-local-ai-coding-models)
+
+### 1.3 EverMemOS
+Self-organizing memory operating system for LLMs. Engram-inspired lifecycle: episodic traces -> semantic consolidation -> reconstructive recollection. Achieves 92.3% on LoCoMo benchmark. Directly relevant to Cohezion's session persistence and cross-session memory.
+- [EverMemOS on HF Papers](https://huggingface.co/papers/2601.02163)
+
+### 1.4 Llama 4 (Scout / Maverick)
+Meta's latest multimodal family, now on Ollama (`ollama run llama4:scout`). Scout is a 17B active / 109B total MoE model with a 10M token context window. Maverick is 17B active / 400B total. Both support multimodal input natively.
+- [Ollama Llama 4](https://ollama.com/library)
+
+### 1.5 Gemma 3 27B (Google)
+Strong vision-capable chat model. 4-bit quantization loads at ~16.5GB. Validated by Red Hat AI for enterprise use. Efficient and safety-conscious -- useful as a fast triage/routing model in Cohezion's cost-aware router.
+- [Red Hat AI validated models March 2026](https://huggingface.co/collections/RedHatAI/red-hat-ai-validated-models-march-2026)
+
+---
+
+## 2. Arxiv Papers -- Top Relevant Research
+
+### 2.1 SAGE: Reinforcement Learning for Self-Improving Agent with Skill Library
+**arXiv: 2512.17102** (updated March 2026)
+
+Proposes SAGE (Skill Augmented GRPO for self-Evolution), an RL framework that systematically incorporates skills into learning. Directly maps to Cohezion's SkillRefiner and RetrospectionEngine. Key insight: RL-based skill incorporation outperforms pure LLM-prompting approaches for skill library management.
+- [Paper](https://arxiv.org/abs/2512.17102)
+
+### 2.2 MetaClaw: Continual Meta-Learning for LLM Agents
+**arXiv (March 17, 2026)**
+
+Jointly evolves a base LLM policy and a library of reusable behavioral skills. Two mechanisms: (1) skill-driven fast adaptation via failure trajectory analysis, (2) opportunistic policy optimization during idle periods. The skill versioning and idle-window training concepts map directly to Cohezion's compound engineering loop.
+- [MetaClaw review](https://liner.com/review/metaclaw-just-talk-agent-that-metalearns-and-evolves-in-wild)
+
+### 2.3 Experiential Reflective Learning (ERL) for Self-Improving LLM Agents
+**arXiv: 2603.24639** (March 2026)
+
+Builds a pool of reusable heuristics by reflecting on past experience trajectories. For each new task, an LLM scores stored heuristics for relevance and injects top candidates into context. +8.3% on Execution, +10.6% on Search tasks. This is essentially what Cohezion's RetrospectionEngine does -- ERL provides a validated methodology for it.
+- [Paper](https://arxiv.org/pdf/2603.24639)
+
+### 2.4 Interlat: Agents Communicating Entirely in Latent Space
+**arXiv: 2511.09149**
+
+Eliminates natural language as inter-agent communication medium. Agents exchange compressed latent representations (as few as 8 tokens) instead of verbose text messages. Results show more exploratory behavior and higher success rates on long-horizon ALFWorld tasks. Directly relevant to Cohezion's FLUME VAE and multi-agent swarm communication.
+- [Paper](https://arxiv.org/html/2511.09149v1)
+
+### 2.5 Towards Resource-Efficient Compound AI Systems (Murakkab)
+**arXiv: 2501.16634**
+
+Proposes declarative workflow programming + adaptive runtime for compound AI systems. Achieves ~4.5x higher energy efficiency through dynamic scheduling and resource-aware decision-making. The declarative approach could improve Cohezion's CompoundExecutor pipeline.
+- [Paper](https://arxiv.org/html/2501.16634)
+
+### Honorable Mentions:
+- **EverMemOS** (arXiv: 2601.02163) -- Memory OS for long-horizon reasoning, 92.3% LoCoMo. [Paper](https://arxiv.org/abs/2601.02163)
+- **Agent Skills for LLMs** (arXiv: 2602.12430) -- Taxonomy of skill acquisition methods 2025-2026, security analysis (26.1% of skills contain vulnerabilities). [Paper](https://arxiv.org/pdf/2602.12430)
+- **Multi-Agent Collaboration via Evolving Orchestration** (arXiv: 2505.19591) -- RL-trained orchestrator for adaptive agent sequencing. [Paper](https://arxiv.gg/abs/2505.19591)
+- **HierSpec** (arXiv: 2505.22179) -- Speculative decoding + quantization framework, 2.78x speedup for 4-bit 70B models. [Paper](https://arxiv.org/abs/2505.22179)
+
+---
+
+## 3. Actionable Opportunities for Cohezion
+
+### 3.1 Adopt ERL-style Heuristic Pools in RetrospectionEngine
+The ERL paper (2603.24639) validates exactly what Cohezion's RetrospectionEngine aims to do but provides a concrete, benchmarked methodology: extract heuristics from trajectories, score them for relevance, inject top-k into context. Cohezion should formalize its retrospection output into scored heuristic objects with relevance scoring at retrieval time, matching ERL's architecture.
+
+### 3.2 Implement Latent-Space Inter-Agent Communication via FLUME
+Interlat and LatentMAS demonstrate that latent-space agent communication outperforms text-based messaging on long-horizon tasks while compressing to as few as 8 tokens. Cohezion already has the FLUME VAE (256D latent space) -- the next step is to use it as the inter-agent communication channel instead of serialized text, reducing token costs and improving coordination fidelity in the TeamOrchestrator.
+
+### 3.3 Integrate EverMemOS Patterns into SessionPersistence
+EverMemOS's three-stage memory lifecycle (episodic traces -> semantic consolidation -> reconstructive recollection) achieves 92.3% on memory benchmarks. Cohezion's SessionPersistence currently uses JSONL + vault. Adopting the MemCell/MemScene abstraction for session state would improve cross-session continuity and multi-hop reasoning over historical context.
+
+### 3.4 Add Idle-Window Skill Optimization (MetaClaw Pattern)
+MetaClaw's Opportunistic Meta-Learning Scheduler triggers weight updates during user-inactive periods. Cohezion could implement a similar pattern: when the system detects idle time, run the SkillRefiner loop to analyze recent failure trajectories and synthesize/update skills without blocking active inference.
+
+### 3.5 Evaluate MCP Streamable HTTP for Remote Agent Communication
+The 2026 MCP roadmap prioritizes stateless horizontal scaling via Streamable HTTP transport. Cohezion's agent swarm could expose agents as MCP servers, enabling external tools and other systems to interact with individual agents through a standardized protocol. This also opens integration with the growing ecosystem (Atlassian, Amplitude, Chroma, etc.).
+- [MCP 2026 Roadmap](http://blog.modelcontextprotocol.io/posts/2026-mcp-roadmap/)
+
+---
+
+## 4. Model Upgrade Candidates for the Ollama Stack
+
+Current stack: `deepseek-r1:70b`, `qwen3-coder:30b`, `phi3:mini`
+
+### Recommended Upgrades:
+
+| Role | Current | Recommended | Rationale |
+|------|---------|-------------|-----------|
+| **Reasoning** | deepseek-r1:70b | **Qwen3-Next-80B-A3B** (Q4) | MoE with only 3B active params. Fits in 128GB at Q4. Faster inference than dense 70B while matching/exceeding benchmark scores. |
+| **Coding** | qwen3-coder:30b | **Qwen3-Coder-Next** (80B-A3B) | Same MoE architecture, best coding model of March 2026. HumanEval leader. 3B active means similar speed to the current 30B dense model. |
+| **Fast/Triage** | phi3:mini | **Gemma 3 4B** or **Qwen3 4B** | Both outperform phi3:mini on benchmarks. Gemma 3 adds vision capability useful for multimodal triage. Loads at ~2.5GB Q4. |
+| **New: Vision** | (none) | **Gemma 3 27B** (Q4, ~16.5GB) | Vision-capable chat model for multimodal agent tasks. Fits easily in 128GB alongside other models. |
+| **New: Long-context** | (none) | **Llama 4 Scout** (17B active, 10M context) | MoE model with massive context window. Useful for long-horizon planning and document analysis tasks. |
+
+### Key Considerations for AMD Hardware:
+- ROCm 7.2 now officially supports RDNA consumer GPUs. The Radeon 8060S (RDNA 3.5) should work with Ollama's llama.cpp ROCm backend.
+- RDNA 4 doubled AI throughput per compute unit; RDNA 3.5 in Strix Halo still benefits from unified memory (128GB accessible to both CPU and iGPU).
+- Flash Attention and KV cache quantization (Q8_0 or Q4_0) are the two highest-impact optimizations for local inference on constrained VRAM.
+- AMD published a [guide to running trillion-parameter models on Ryzen AI Max+ clusters](https://www.amd.com/en/developer/resources/technical-articles/2026/how-to-run-a-one-trillion-parameter-llm-locally-an-amd.html), which validates the hardware platform.
+
+### MoE Advantage:
+The MoE models (Qwen3-Next-80B-A3B, Llama 4 Scout) are the best fit for Cohezion's hardware. With 128GB unified RAM, you can load the full model weights but only activate 3-17B parameters per inference -- this gives you large-model quality at small-model speed, which is ideal for the compound engineering loop where multiple model calls happen per cycle.
+
+---
+
+## Summary
+
+The research landscape in March 2026 strongly validates Cohezion's architectural choices (compound AI, skill refinement loops, multi-agent swarms). The most impactful near-term actions are:
+
+1. **Upgrade the Ollama stack to MoE models** (Qwen3-Next-80B-A3B) -- highest ROI change, better quality at similar speed.
+2. **Formalize retrospection into ERL-style scored heuristic pools** -- validated by arxiv:2603.24639.
+3. **Prototype latent-space agent communication through FLUME** -- validated by Interlat/LatentMAS papers.
+4. **Adopt EverMemOS's MemCell/MemScene patterns** for session persistence.
+5. **Expose agents as MCP servers** using Streamable HTTP transport for ecosystem interoperability.
+
+Sources:
+- [HF Trending Papers](https://huggingface.co/papers/trending)
+- [HF State of Open Source Spring 2026](https://huggingface.co/blog/huggingface/state-of-os-hf-spring-2026)
+- [Smolagents](https://www.decisioncrafters.com/smolagents-build-powerful-ai-agents-in-1-000-lines-of-code-with-26-3k-github-stars/)
+- [AMD ROCm 2026 Guide](https://dev.to/kunal_d6a8fea2309e1571ee7/amd-rocm-on-consumer-gpus-the-open-source-cuda-alternative-that-actually-works-now-2026-guide-1cn5)
+- [AMD Ryzen AI Halo Analysis](https://reading.torqsoftware.com/notes/hardware/ai/2026-01-21-amd-ryzen-ai-halo-local-llm-inference-platform/)
+- [Trillion-Parameter LLM on AMD](https://www.amd.com/en/developer/resources/technical-articles/2026/how-to-run-a-one-trillion-parameter-llm-locally-an-amd.html)
+- [MCP 2026 Roadmap](http://blog.modelcontextprotocol.io/posts/2026-mcp-roadmap/)
+- [MCP Servers GitHub](https://github.com/modelcontextprotocol/servers)
+- [Best Local Coding Models March 2026](https://localaimaster.com/models/best-local-ai-coding-models)
+- [Ollama VRAM Guide](https://localllm.in/blog/ollama-vram-requirements-for-local-llms)
+- [Best Local LLM Models 2026](https://www.sitepoint.com/best-local-llm-models-2026/)
+- [SAGE (arXiv:2512.17102)](https://arxiv.org/abs/2512.17102)
+- [ERL (arXiv:2603.24639)](https://arxiv.org/pdf/2603.24639)
+- [Interlat (arXiv:2511.09149)](https://arxiv.org/html/2511.09149v1)
+- [EverMemOS (arXiv:2601.02163)](https://arxiv.org/abs/2601.02163)
+- [Murakkab (arXiv:2501.16634)](https://arxiv.org/html/2501.16634)
+- [Agent Skills for LLMs (arXiv:2602.12430)](https://arxiv.org/pdf/2602.12430)
+- [Multi-Agent Evolving Orchestration (arXiv:2505.19591)](https://arxiv.gg/abs/2505.19591)
+- [HierSpec (arXiv:2505.22179)](https://arxiv.org/abs/2505.22179)
+- [MetaClaw Review](https://liner.com/review/metaclaw-just-talk-agent-that-metalearns-and-evolves-in-wild)
+- [Multi-Agent Frameworks 2026](https://gurusup.com/blog/best-multi-agent-frameworks-2026)
+- [Awesome AI Agents 2026](https://github.com/caramaschiHG/awesome-ai-agents-2026)</result>
+<usage><total_tokens>56060</total_tokens><tool_uses>11</tool_uses><duration_ms>226298</duration_ms></usage>
+</task-notification>
+Full transcript available at: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/7811d063-f780-4a33-bf06-f7fd845739f9/tasks/a10ce7fc229256198.output
+
+---
+
+Refine for long horizon with ralph loop, autoresearch, and k-search to keep improving for the next real 3 real hours using a timer.
+
+---
+
+<task-notification>
+<task-id>a83f5e9742f178df6</task-id>
+<tool-use-id>toolu_015adJnK6Kc5TvyTnMv4AArJ</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/7811d063-f780-4a33-bf06-f7fd845739f9/tasks/a83f5e9742f178df6.output</output-file>
+<status>completed</status>
+<summary>Agent "Generate tests for 5 zero-coverage modules" completed</summary>
+<result>Here is the summary of what was done:
+
+## Phase 3c Coverage Push -- 99 New Tests Across 5 Modules
+
+### Tests Created
+
+| # | Module | Test File | Tests |
+|---|--------|-----------|-------|
+| 1 | **CLI** (`src/cohezion/cli/main.py`) | `tests/cli/test_main.py` | 21 |
+| 2 | **A2A Protocol** (`src/cohezion/protocols/a2a_server.py`) | `tests/protocols/test_a2a_server.py` | 22 |
+| 3 | **Knowledge Graph** (`src/cohezion/knowledge_graph/bidirectional_linker.py`) | `tests/knowledge_graph/test_bidirectional_linker.py` | 23 |
+| 4 | **Agent Service** (`src/cohezion/services/agent_service.py`) | `tests/services/test_agent_service.py` | 19 |
+| 5 | **Test Generator** (`src/cohezion/tools/test_generator.py`) | `tests/tools/test_test_generator.py` | 14 |
+| | **Total new** | | **99** |
+
+### Key Decisions
+
+- **Vanguard replaced with Agent Service**: The vanguard module already had 236 lines of tests across 4 files. Substituted `services/agent_service.py` (zero coverage, 310 lines, rich async API) for better coverage impact.
+
+- **Import chain issue**: Both CLI and services modules hit `ModuleNotFoundError: No module named 'cohezion.models'` (missing module). Solved by pre-mocking `cohezion.models` and `cohezion.models.model_registry` in `sys.modules` before importing the module under test.
+
+- **KnowledgeGraph `client` attribute**: The `connect()` method sets `self.client` but `__init__` does not. Fixed by setting `graph.client = None` in the fixture to simulate in-memory-only mode.
+
+- **AgentService `_create_step` failure**: The internal `PhysicsState` constructor has a signature mismatch (extra kwargs like `mass`). Tests that exercise `execute_task` success path mock `_create_step` to bypass this.
+
+### Total Test Count
+
+**5,100 tests collected** (up from ~5,001 before, +99 new tests). All 99 new tests pass.
+
+### Files Created
+
+- `/home/mike-anderson/dev/cohezion/tests/cli/__init__.py`
+- `/home/mike-anderson/dev/cohezion/tests/cli/test_main.py`
+- `/home/mike-anderson/dev/cohezion/tests/protocols/__init__.py`
+- `/home/mike-anderson/dev/cohezion/tests/protocols/test_a2a_server.py`
+- `/home/mike-anderson/dev/cohezion/tests/knowledge_graph/__init__.py`
+- `/home/mike-anderson/dev/cohezion/tests/knowledge_graph/test_bidirectional_linker.py`
+- `/home/mike-anderson/dev/cohezion/tests/services/__init__.py`
+- `/home/mike-anderson/dev/cohezion/tests/services/test_agent_service.py`
+- `/home/mike-anderson/dev/cohezion/tests/tools/__init__.py`
+- `/home/mike-anderson/dev/cohezion/tests/tools/test_test_generator.py`</result>
+<usage><total_tokens>113590</total_tokens><tool_uses>46</tool_uses><duration_ms>747991</duration_ms></usage>
+</task-notification>
+Full transcript available at: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/7811d063-f780-4a33-bf06-f7fd845739f9/tasks/a83f5e9742f178df6.output
+
+---
+
+3-HOUR SESSION COMPLETE. Time to shut down gracefully:
+1. Stop the Ralph Loop if running (/ralph-loop cancel)
+2. Capture final metrics: uv run ruff check src/cohezion/ --statistics | tail -1 && uv run pytest tests/ --co -q 2>&1 | tail -3
+3. Compare against baseline: 554 ruff violations, 5,100 tests, 56 oversized files, 147K total lines
+4. Write continuation file with remaining improvement queue items
+5. Update MEMORY.md active context with session results
+6. Report final summary to user
+
+---
+
+IMPROVEMENT CYCLE: Continue the 3-hour autonomous codebase improvement session. Pick the next task from the priority queue, execute it, verify no regressions, and score. Tier 1: dead code removal and ruff fixes. Tier 2: file splits and test generation. Tier 3: guardrail wiring and model config upgrades. Use Bash for edits. Always run pytest after changes.
+
+---
+
+<task-notification>
+<task-id>birizm3n5</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/7811d063-f780-4a33-bf06-f7fd845739f9/tasks/birizm3n5.output</output-file>
+<status>completed</status>
+<summary>Background command "Verify full suite + report Cycle 2 score" completed (exit code 0)</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/7811d063-f780-4a33-bf06-f7fd845739f9/tasks/birizm3n5.output
+
+---
+
+/retrospect
+
+---
+
+Continue
