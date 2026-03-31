@@ -3,7 +3,7 @@
   "checkpoint_id": "e9f25d775bdc",
   "strategy": "manual-commit",
   "branch": "main",
-  "checkpoints_count": 0,
+  "checkpoints_count": 2,
   "files_touched": [
     "src/cohezion/cache/cache_warmer.py",
     "src/cohezion/compound/executor.py"
@@ -14,13 +14,19 @@
       "transcript": "/e9/f25d775bdc/0/full.jsonl",
       "content_hash": "/e9/f25d775bdc/0/content_hash.txt",
       "prompt": ""
+    },
+    {
+      "metadata": "/e9/f25d775bdc/1/metadata.json",
+      "transcript": "/e9/f25d775bdc/1/full.jsonl",
+      "content_hash": "/e9/f25d775bdc/1/content_hash.txt",
+      "prompt": "/e9/f25d775bdc/1/prompt.txt"
     }
   ],
   "token_usage": {
-    "input_tokens": 0,
-    "cache_creation_tokens": 0,
-    "cache_read_tokens": 0,
-    "output_tokens": 0,
-    "api_call_count": 0
+    "input_tokens": 16762,
+    "cache_creation_tokens": 6789147,
+    "cache_read_tokens": 268450891,
+    "output_tokens": 313779,
+    "api_call_count": 826
   }
 }
