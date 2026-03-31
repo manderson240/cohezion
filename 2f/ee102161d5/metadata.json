@@ -1,0 +1,25 @@
+{
+  "cli_version": "0.5.1",
+  "checkpoint_id": "2fee102161d5",
+  "strategy": "manual-commit",
+  "branch": "main",
+  "checkpoints_count": 2,
+  "files_touched": [
+    "research/challenges/luma_amd_speedrun/autoresearch/tree/mla_tree.json"
+  ],
+  "sessions": [
+    {
+      "metadata": "/2f/ee102161d5/0/metadata.json",
+      "transcript": "/2f/ee102161d5/0/full.jsonl",
+      "content_hash": "/2f/ee102161d5/0/content_hash.txt",
+      "prompt": "/2f/ee102161d5/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 4568,
+    "cache_creation_tokens": 3670730,
+    "cache_read_tokens": 39377761,
+    "output_tokens": 87288,
+    "api_call_count": 193
+  }
+}
