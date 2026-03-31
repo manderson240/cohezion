@@ -877,7 +877,11 @@ class CostAwareRouter:
         elif complexity == QueryComplexity.SIMPLE and model == "deepseek-r1:8b":
             alignment = 0.8  # Overkill but not harmful
 
-        confidence = quality * 0.3 + success_rate * 0.4 + alignment * 0.3
+        # Degradation-aware confidence reduction
+        # Active degradation cooldown indicates PIVOT-like behavior
+        degradation_factor = 0.8 if self._degradation_cooldown > 0 else 1.0
+
+        confidence = (quality * 0.3 + success_rate * 0.4 + alignment * 0.3) * degradation_factor
         return min(1.0, max(0.0, confidence))
 
     def _get_r_zero(self) -> Any:
