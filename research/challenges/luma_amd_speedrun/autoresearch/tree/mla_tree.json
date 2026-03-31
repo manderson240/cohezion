@@ -7,9 +7,9 @@
       "strategy": "Minimize MLA decode geomean across 8 shapes",
       "parameters": {},
       "parent_id": null,
-      "priority": 0.05875264928278027,
-      "attempts": 10,
-      "best_result_us": 139.69,
+      "priority": 0.08298423296314177,
+      "attempts": 15,
+      "best_result_us": 103.17,
       "stagnation_count": 0,
       "status": "active",
       "children": [
@@ -83,6 +83,36 @@
           "result_us": 139.68904719297387,
           "parameters": {},
           "timestamp": "2026-03-20T17:56:59.306134",
+          "source": "template"
+        },
+        {
+          "result_us": 119.32285324776176,
+          "parameters": {},
+          "timestamp": "2026-03-31T00:23:14.377847",
+          "source": "template"
+        },
+        {
+          "result_us": 125.03381587363904,
+          "parameters": {},
+          "timestamp": "2026-03-31T00:23:22.429498",
+          "source": "template"
+        },
+        {
+          "result_us": 112.11346018825445,
+          "parameters": {},
+          "timestamp": "2026-03-31T00:23:33.118002",
+          "source": "template"
+        },
+        {
+          "result_us": 115.07922711588952,
+          "parameters": {},
+          "timestamp": "2026-03-31T00:23:41.849498",
+          "source": "template"
+        },
+        {
+          "result_us": 103.16749522418552,
+          "parameters": {},
+          "timestamp": "2026-03-31T00:23:52.649209",
           "source": "template"
         }
       ]
