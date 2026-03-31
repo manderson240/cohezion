@@ -233,6 +233,10 @@ See skill: `cohezion-worktree-workflow` — covers session scripts (start/end/li
 | `.claude/rules/git-workflow.md` | **GIT PATTERNS** | Conventional commits, branch naming, PR targets |
 | `.claude/rules/testing.md` | **TEST RULES** | Avoid `walk_packages`, mock at source, HIHO invariant |
 | `cloud-vault-mcp/` | **MCP TEMPLATE** | 40+ tools, FastMCP proven. Copy when building MCP servers |
+| `src/cohezion/physics/observer_patch.py` | **OPH BRIDGE** | Observer Patch Holography axioms → SPIN coherence. FloatingPragma (Apache 2.0) |
+| `src/cohezion/data_mesh/data_product.py` | **DATA MESH** | Typed data products with SLA for 17+ MCP servers. Dehghani (2022) |
+| `src/web/anima_dashboard/src/a2ui/` | **A2UI CATALOG** | 9 declarative components + experience scripts. Google A2UI v0.9 (Apache 2.0) |
+| `src/cohezion/api/agui_events.py` | **AG-UI EVENTS** | 15+ typed SSE event types. CopilotKit AG-UI (Apache 2.0) |
 
 ## Agent Journey Tracking & Request Alignment
 
