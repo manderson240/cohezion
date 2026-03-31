@@ -1746,9 +1746,9 @@
       "parameters": {},
       "parent_id": "n_81c6a22e",
       "priority": 0.85,
-      "attempts": 1,
+      "attempts": 2,
       "best_result_us": 82.33,
-      "stagnation_count": 0,
+      "stagnation_count": 1,
       "status": "active",
       "children": [],
       "notes": "[LLM-proposed] [STRATEGIC PRUNE: parent n_81c6a22e pruned]",
@@ -1757,6 +1757,12 @@
           "result_us": 82.33,
           "parameters": {},
           "timestamp": "2026-03-31T02:29:24.731404",
+          "source": "llm"
+        },
+        {
+          "result_us": 105.16,
+          "parameters": {},
+          "timestamp": "2026-03-31T02:45:10.938759",
           "source": "llm"
         }
       ]
