@@ -126,3 +126,7 @@ Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderso
 ---
 
 And are we fully utilizing our Obsidian Vault and SurrealDB?
+
+---
+
+How do we make it safely agentically autonomous and sovereign while still maintaining HIL?
