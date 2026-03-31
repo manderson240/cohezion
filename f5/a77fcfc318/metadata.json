@@ -3,7 +3,7 @@
   "checkpoint_id": "f5a77fcfc318",
   "strategy": "manual-commit",
   "branch": "main",
-  "checkpoints_count": 0,
+  "checkpoints_count": 4,
   "files_touched": [
     "src/cohezion/compound/executor.py"
   ],
@@ -19,13 +19,19 @@
       "transcript": "/f5/a77fcfc318/1/full.jsonl",
       "content_hash": "/f5/a77fcfc318/1/content_hash.txt",
       "prompt": "/f5/a77fcfc318/1/prompt.txt"
+    },
+    {
+      "metadata": "/f5/a77fcfc318/2/metadata.json",
+      "transcript": "/f5/a77fcfc318/2/full.jsonl",
+      "content_hash": "/f5/a77fcfc318/2/content_hash.txt",
+      "prompt": "/f5/a77fcfc318/2/prompt.txt"
     }
   ],
   "token_usage": {
-    "input_tokens": 3735,
-    "cache_creation_tokens": 108186,
-    "cache_read_tokens": 661865,
-    "output_tokens": 6396,
-    "api_call_count": 8
+    "input_tokens": 20473,
+    "cache_creation_tokens": 6479432,
+    "cache_read_tokens": 260561513,
+    "output_tokens": 313912,
+    "api_call_count": 812
   }
 }
