@@ -53,7 +53,12 @@ class QueryComplexity(Enum):
 
 @dataclass
 class ModelRoutingDecision:
-    """Decision output from router."""
+    """Decision output from router.
+
+    OI-MAS confidence scoring (arXiv:2601.04861): the confidence field
+    represents how well the selected model matches the task requirements.
+    Low confidence (<0.7) triggers automatic escalation to a higher-tier model.
+    """
 
     model: str
     complexity: QueryComplexity
@@ -61,6 +66,7 @@ class ModelRoutingDecision:
     estimated_cost_usd: float
     reason: str
     quality_score: float  # 0.0-1.0
+    confidence: float = 1.0  # OI-MAS: joint role+scale confidence (0.0-1.0)
 
 
 @dataclass
