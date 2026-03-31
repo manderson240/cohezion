@@ -19,22 +19,13 @@ from __future__ import annotations
 
 import logging
 import math
-from typing import TYPE_CHECKING
 
 import numpy as np
 
-if TYPE_CHECKING:
-    from cohezion.governance.concierge import RoutingRecord, RoutingSuggestion, SessionBriefing
-    from cohezion.physics.observer_patch import ObserverPatch
-    from cohezion.physics.spinor import SpinorState
-
 logger = logging.getLogger(__name__)
 
-# FLUME dimension layout (from experience_encoder.py)
+# FLUME dimension layout
 FLUME_DIM = 256
-TRAJECTORY_DIMS = slice(0, 12)  # 12D axiomatic state
-METRICS_DIMS = slice(12, 24)  # execution metrics
-FINGERPRINT_DIMS = slice(29, 256)  # semantic fingerprint
 
 
 def _get_encoder():
@@ -59,15 +50,19 @@ def encode_prompt(prompt: str) -> np.ndarray:
     if encoder is not None:
         try:
             return encoder.encode(prompt)
-        except Exception:
-            pass
+        except (RuntimeError, ValueError, TypeError) as exc:
+            logger.warning("FLUME encode failed, using hash fallback: %s", exc)
 
-    # Hash fallback: deterministic 256D from prompt text
-    import hashlib
-    h = hashlib.sha256(prompt.encode()).digest()
-    # Expand 32 bytes to 256 floats via cyclic repetition + normalization
-    expanded = np.frombuffer(h * 8, dtype=np.uint8)[:FLUME_DIM].astype(np.float32)
-    return expanded / (np.linalg.norm(expanded) + 1e-10)
+    # Delegate to VAE encoder's hash fallback for consistency
+    try:
+        from cohezion.flume.vae_encoder import FlumeVAEEncoder
+        return FlumeVAEEncoder._hash_encode(prompt)
+    except (ImportError, AttributeError):
+        # Last resort: deterministic 256D hash expansion
+        import hashlib
+        h = hashlib.sha256(prompt.encode()).digest()
+        expanded = np.frombuffer(h * 8, dtype=np.uint8)[:FLUME_DIM].astype(np.float32)
+        return expanded / (np.linalg.norm(expanded) + 1e-10)
 
 
 def flume_route_similarity(prompt_embedding: np.ndarray, history_prompt: str) -> float:
