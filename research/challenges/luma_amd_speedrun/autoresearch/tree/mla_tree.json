@@ -2079,14 +2079,23 @@
       "strategy": "mla_decode_fwd with explicit work_meta_data pre-allocation for kvseqlen=8192",
       "parameters": {},
       "parent_id": "root_mla",
-      "priority": 0.85,
-      "attempts": 0,
-      "best_result_us": null,
+      "priority": 0.4,
+      "attempts": 1,
+      "best_result_us": 219.84,
       "stagnation_count": 0,
       "status": "active",
-      "children": [],
+      "children": [
+        "n_209ec7fe"
+      ],
       "notes": "[LLM-proposed]",
-      "attempt_history": []
+      "attempt_history": [
+        {
+          "result_us": 219.83834174309388,
+          "parameters": {},
+          "timestamp": "2026-03-31T19:19:04.212179",
+          "source": "template"
+        }
+      ]
     },
     "n_876bcdbe": {
       "id": "n_876bcdbe",
@@ -2108,6 +2117,20 @@
       "parameters": {},
       "parent_id": "root_mla",
       "priority": 0.75,
+      "attempts": 0,
+      "best_result_us": null,
+      "stagnation_count": 0,
+      "status": "active",
+      "children": [],
+      "notes": "[LLM-proposed]",
+      "attempt_history": []
+    },
+    "n_209ec7fe": {
+      "id": "n_209ec7fe",
+      "strategy": "mla_decode_fwd with explicit work_meta_data pre-allocation + num_kv_splits sweep [64,128,256] for kvseqlen=8192",
+      "parameters": {},
+      "parent_id": "n_f2f2181b",
+      "priority": 0.9,
       "attempts": 0,
       "best_result_us": null,
       "stagnation_count": 0,
