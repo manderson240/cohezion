@@ -8,29 +8,29 @@
 
 ## Recent Decisions (Last 7 Days)
 
-### 2026-02-20: Self-Healing Protocol Validation
-- **Context**: Ruff linting errors at 1,058, missing `__init__.py` files across 18 directories
-- **Decision**: Execute `/heal` command to trigger autonomic diagnostics and auto-fix
-- **Outcome**: Reduced errors to 1,003 (-5.2%), created missing package files, validated graceful degradation
-- **Rationale**: Systematic cleanup via orchestrated tooling > manual fixes. Compound engineering principle.
+### 2026-03-31: Tip-of-the-Spear Integration Roadmap
+- **Context**: Genesis webapp live but 5 bugs; Google A2UI+AG-UI protocols available
+- **Decision**: Fix bugs + implement A2UI catalog, AG-UI events, OPH bridge, Data Mesh, Concierge
+- **Outcome**: 18 commits on feat/genesis-tdd-a2ui, 35 tests passing, 9 components, 15+ event types
+- **Rationale**: Compound engineering — each integration makes future integrations easier
 
-### 2026-02-20: README Metrics Correction
-- **Context**: README.md claimed 134 PRIME skills, actual count 74; claimed 351 Python files, actual 401
-- **Decision**: Update README with verified metrics from live codebase scan
-- **Outcome**: Adversarial verification restored - all claims now match reality
-- **Rationale**: Honesty is non-negotiable (Constitution §4). False metrics undermine trust.
+### 2026-03-31: FLUME-First Principle (Learning 215)
+- **Context**: Built 5 new modules without FLUME, then retrofitted with flume_bridge.py
+- **Decision**: All new modules MUST encode/decode through FLUME from the start
+- **Outcome**: flume_bridge.py provides semantic routing, observer grounding, data product discovery
+- **Rationale**: FLUME is the connective tissue — building without it wastes compound value
 
-### 2026-02-10: API God Object Decoupling (Learning 119)
-- **Context**: Monolithic `api/__init__.py` contained VAE/RL training logic
-- **Decision**: Extract to dedicated services (flume.py, rl.py, skills.py)
-- **Outcome**: Reduced coupling, enabled independent scaling, safer unit testing
-- **Rationale**: God objects are architectural contagion - violate single responsibility
+### 2026-03-31: Cosmogonic Autonomy Tiers (Learning 217)
+- **Context**: Need safe agentic autonomy with human-in-the-loop
+- **Decision**: Map ∅→SO(12)→SO(3)⁴→U(1)⁴→Z₂⁴→HIHO to escalating autonomy levels
+- **Outcome**: concierge.py + observer_patch.py implement tiered governance grounded in physics
+- **Rationale**: OPH Axiom 2 (overlap consistency) IS the mathematical HIL mechanism
 
-### 2026-02-10: Soft Schema Enforcement (Learning 120)
-- **Context**: LLM JSON outputs caused KeyError crashes in PatternScout
-- **Decision**: Implement `.get()` with intelligent defaults before Pydantic validation
-- **Outcome**: Prevented catastrophic swarm failures during semantic scouting
-- **Rationale**: First line of defense for non-deterministic outputs - fail gracefully
+### 2026-03-31: Concierge Agent for Session Continuity (Learning 216)
+- **Context**: Every session starts cold despite 8,087 vault files and 7 worktrees
+- **Decision**: Build concierge agent with 7-source state synthesis + dynamic learning
+- **Outcome**: ConciergeAgent routes prompts with HIHO-threshold confidence scoring
+- **Rationale**: Look inward (FLUME encode) to excel outward (optimal routing)
 
 ---
 
