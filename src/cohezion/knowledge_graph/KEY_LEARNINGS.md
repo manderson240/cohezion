@@ -294,3 +294,6 @@ lucas-maes/le-wm is the first stable end-to-end JEPA from raw pixels using only 
 
 ### Learning 222: GeminiProvider + Multi-Tier Cloud Routing (2026-03-31)
 ModelProvider ABC + auto-registration pattern makes adding new cloud providers a single-file operation (~200 lines). GeminiProvider implements generate/list_models/health_check/close. Cost tiers in CostAwareRouter: Flash-Lite ($0.075/M, 70% simple), Flash ($0.30/M, 20% medium), Pro ($2.00/M, 10% hard). TipOfTheSpearRouter CLOUD tier now routes to Gemini Pro (code) / Flash (general) instead of placeholder. The 70/20/10 split from CLAUDE.md is now concretely wired.
+
+### Learning 223: TurboQuant — Extreme Compression for FLUME + Semantic Cache (2026-03-31)
+Google's TurboQuant (Mar 2026): PolarQuant (Cartesian→polar, fixed circular grid) + QJL (1-bit sign encoding via Johnson-Lindenstrauss). 6x KV memory reduction, 3-bit KV cache without training, 8x attention speedup. Direct Cohezion paths: (1) PolarQuant for FLUME 256D embeddings — manifold vectors are geometrically structured, polar quantization preserves structure; (2) QJL 1-bit for SemanticCache L2 cosine — 32x storage reduction; (3) Ollama KV cache — 6x memory means larger effective context on 128GB Strix Halo. QJL's sign-only quantization IS HIHO: half positive, half negative.
