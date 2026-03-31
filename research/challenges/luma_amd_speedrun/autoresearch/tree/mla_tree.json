@@ -165,7 +165,7 @@
       "attempts": 0,
       "best_result_us": null,
       "stagnation_count": 0,
-      "status": "pruned",
+      "status": "active",
       "children": [
         "mla_n1a",
         "mla_n1b",
@@ -194,7 +194,7 @@
       "attempts": 5,
       "best_result_us": 161.53,
       "stagnation_count": 2,
-      "status": "pruned",
+      "status": "active",
       "children": [
         "n_11afa32a",
         "n_bf3808a3"
@@ -296,7 +296,7 @@
       "attempts": 1,
       "best_result_us": 221.54,
       "stagnation_count": 0,
-      "status": "pruned",
+      "status": "active",
       "children": [
         "n_ee469d9f",
         "n_8f02bee6",
@@ -340,7 +340,7 @@
       "attempts": 1,
       "best_result_us": 190.05,
       "stagnation_count": 0,
-      "status": "pruned",
+      "status": "active",
       "children": [
         "n_313286f1"
       ],
@@ -381,7 +381,7 @@
       "attempts": 1,
       "best_result_us": 208.77,
       "stagnation_count": 0,
-      "status": "pruned",
+      "status": "active",
       "children": [
         "n_4c934f7a"
       ],
@@ -423,7 +423,7 @@
       "attempts": 0,
       "best_result_us": null,
       "stagnation_count": 0,
-      "status": "pruned",
+      "status": "active",
       "children": [],
       "notes": " [PRUNED: bs=64/256 not in benchmark shapes]",
       "attempt_history": []
@@ -447,7 +447,7 @@
       "attempts": 0,
       "best_result_us": null,
       "stagnation_count": 0,
-      "status": "pruned",
+      "status": "active",
       "children": [],
       "notes": " [PRUNED: bs=64/256 not in benchmark shapes]",
       "attempt_history": []
@@ -471,7 +471,7 @@
       "attempts": 0,
       "best_result_us": null,
       "stagnation_count": 0,
-      "status": "pruned",
+      "status": "active",
       "children": [],
       "notes": "Large batch \u2014 need many splits to keep CUs busy [PRUNED: bs=64/256 not in benchmark shapes]",
       "attempt_history": []
@@ -495,7 +495,7 @@
       "attempts": 0,
       "best_result_us": null,
       "stagnation_count": 0,
-      "status": "pruned",
+      "status": "active",
       "children": [],
       "notes": "Largest workload \u2014 upper limit for splits [PRUNED: bs=64/256 not in benchmark shapes]",
       "attempt_history": []
@@ -519,7 +519,7 @@
       "attempts": 19,
       "best_result_us": 139.55,
       "stagnation_count": 3,
-      "status": "pruned",
+      "status": "active",
       "children": [
         "n_e598d2a3",
         "n_9de8d0b9",
@@ -856,7 +856,7 @@
       "attempts": 1,
       "best_result_us": 201.29,
       "stagnation_count": 0,
-      "status": "pruned",
+      "status": "active",
       "children": [
         "n_68584ac2"
       ],
@@ -899,7 +899,7 @@
       "attempts": 1,
       "best_result_us": 176.25,
       "stagnation_count": 0,
-      "status": "pruned",
+      "status": "active",
       "children": [
         "n_dcc244d3",
         "n_6954981b",
@@ -945,7 +945,7 @@
       "attempts": 1,
       "best_result_us": 188.7,
       "stagnation_count": 0,
-      "status": "pruned",
+      "status": "active",
       "children": [
         "n_6741e992"
       ],
@@ -968,7 +968,7 @@
       "attempts": 1,
       "best_result_us": 200.69,
       "stagnation_count": 0,
-      "status": "pruned",
+      "status": "active",
       "children": [],
       "notes": "[LLM-proposed] [STRATEGIC PRUNE: LLM world model]",
       "attempt_history": [
@@ -989,7 +989,7 @@
       "attempts": 1,
       "best_result_us": 223.27,
       "stagnation_count": 0,
-      "status": "pruned",
+      "status": "active",
       "children": [
         "n_68c6d2e4",
         "n_2c478fef"
@@ -1020,7 +1020,7 @@
       "attempts": 1,
       "best_result_us": 182.16,
       "stagnation_count": 0,
-      "status": "pruned",
+      "status": "active",
       "children": [],
       "notes": "[LLM-proposed] [STRATEGIC PRUNE: LLM world model]",
       "attempt_history": [
@@ -1056,7 +1056,7 @@
       "attempts": 0,
       "best_result_us": null,
       "stagnation_count": 0,
-      "status": "pruned",
+      "status": "active",
       "children": [],
       "notes": "[LLM-proposed] [STRATEGIC PRUNE: parent mla_n1 pruned]",
       "attempt_history": []
@@ -1080,7 +1080,7 @@
       "attempts": 1,
       "best_result_us": 193.35,
       "stagnation_count": 0,
-      "status": "pruned",
+      "status": "active",
       "children": [],
       "notes": "[LLM-proposed] [STRATEGIC PRUNE: parent mla_n1b pruned]",
       "attempt_history": [
@@ -1121,7 +1121,7 @@
       "attempts": 0,
       "best_result_us": null,
       "stagnation_count": 0,
-      "status": "pruned",
+      "status": "active",
       "children": [],
       "notes": "[LLM-proposed] [STRATEGIC PRUNE: parent mla_n1b pruned]",
       "attempt_history": []
@@ -1135,7 +1135,7 @@
       "attempts": 1,
       "best_result_us": 198.54,
       "stagnation_count": 0,
-      "status": "pruned",
+      "status": "active",
       "children": [
         "n_3f4640c9",
         "n_53dcf987"
@@ -1166,7 +1166,7 @@
       "attempts": 1,
       "best_result_us": 216.62,
       "stagnation_count": 0,
-      "status": "pruned",
+      "status": "active",
       "children": [
         "n_ed3ae0ce"
       ],
@@ -1202,7 +1202,7 @@
       "attempts": 0,
       "best_result_us": null,
       "stagnation_count": 0,
-      "status": "pruned",
+      "status": "active",
       "children": [],
       "notes": "[LLM-proposed] [STRATEGIC PRUNE: parent n_ee6633bc pruned]",
       "attempt_history": []
@@ -1216,7 +1216,7 @@
       "attempts": 3,
       "best_result_us": 182.49,
       "stagnation_count": 0,
-      "status": "pruned",
+      "status": "active",
       "children": [],
       "notes": "[LLM-proposed] [STRATEGIC PRUNE: LLM world model]",
       "attempt_history": [
@@ -1249,7 +1249,7 @@
       "attempts": 1,
       "best_result_us": 217.03,
       "stagnation_count": 0,
-      "status": "pruned",
+      "status": "active",
       "children": [],
       "notes": "[R-Zero challenger] [STRATEGIC PRUNE: LLM world model]",
       "attempt_history": [
@@ -1270,7 +1270,7 @@
       "attempts": 1,
       "best_result_us": 176.79,
       "stagnation_count": 0,
-      "status": "pruned",
+      "status": "active",
       "children": [],
       "notes": "[LLM-proposed] [STRATEGIC PRUNE: parent mla_n1a pruned]",
       "attempt_history": [
@@ -1291,7 +1291,7 @@
       "attempts": 1,
       "best_result_us": 228.57,
       "stagnation_count": 0,
-      "status": "pruned",
+      "status": "active",
       "children": [
         "n_ff65a26b"
       ],
@@ -1314,7 +1314,7 @@
       "attempts": 1,
       "best_result_us": 179.86,
       "stagnation_count": 0,
-      "status": "pruned",
+      "status": "active",
       "children": [],
       "notes": "[LLM-proposed] [STRATEGIC PRUNE: parent n_ed3ae0ce pruned]",
       "attempt_history": [
@@ -1335,7 +1335,7 @@
       "attempts": 1,
       "best_result_us": 206.21,
       "stagnation_count": 0,
-      "status": "pruned",
+      "status": "active",
       "children": [],
       "notes": "[LLM-proposed] [STRATEGIC PRUNE: LLM world model]",
       "attempt_history": [
@@ -1356,7 +1356,7 @@
       "attempts": 1,
       "best_result_us": 181.77,
       "stagnation_count": 0,
-      "status": "pruned",
+      "status": "active",
       "children": [],
       "notes": "[LLM-proposed] [STRATEGIC PRUNE: parent mla_n1b pruned]",
       "attempt_history": [
@@ -1377,7 +1377,7 @@
       "attempts": 1,
       "best_result_us": 195.34,
       "stagnation_count": 0,
-      "status": "pruned",
+      "status": "active",
       "children": [],
       "notes": "[LLM-proposed] [STRATEGIC PRUNE: parent mla_n1b pruned]",
       "attempt_history": [
@@ -1398,7 +1398,7 @@
       "attempts": 0,
       "best_result_us": null,
       "stagnation_count": 0,
-      "status": "pruned",
+      "status": "active",
       "children": [],
       "notes": "[LLM-proposed] [STRATEGIC PRUNE: parent mla_n1d pruned]",
       "attempt_history": []
@@ -1412,7 +1412,7 @@
       "attempts": 0,
       "best_result_us": null,
       "stagnation_count": 0,
-      "status": "pruned",
+      "status": "active",
       "children": [],
       "notes": "[LLM-proposed] [STRATEGIC PRUNE: parent mla_n3 pruned]",
       "attempt_history": []
@@ -1426,7 +1426,7 @@
       "attempts": 1,
       "best_result_us": 188.73,
       "stagnation_count": 0,
-      "status": "pruned",
+      "status": "active",
       "children": [],
       "notes": "[LLM-proposed] [STRATEGIC PRUNE: parent mla_n4 pruned]",
       "attempt_history": [
@@ -1447,7 +1447,7 @@
       "attempts": 1,
       "best_result_us": 195.82,
       "stagnation_count": 0,
-      "status": "pruned",
+      "status": "active",
       "children": [],
       "notes": "[LLM-proposed] [STRATEGIC PRUNE: LLM world model]",
       "attempt_history": [
@@ -1468,7 +1468,7 @@
       "attempts": 1,
       "best_result_us": 220.09,
       "stagnation_count": 0,
-      "status": "pruned",
+      "status": "active",
       "children": [],
       "notes": "[LLM-proposed] [STRATEGIC PRUNE: parent mla_n4 pruned]",
       "attempt_history": [
@@ -1489,7 +1489,7 @@
       "attempts": 1,
       "best_result_us": 217.75,
       "stagnation_count": 0,
-      "status": "pruned",
+      "status": "active",
       "children": [],
       "notes": "[LLM-proposed] [STRATEGIC PRUNE: LLM world model]",
       "attempt_history": [
@@ -1510,7 +1510,7 @@
       "attempts": 1,
       "best_result_us": 203.85,
       "stagnation_count": 0,
-      "status": "pruned",
+      "status": "active",
       "children": [],
       "notes": "[LLM-proposed] [STRATEGIC PRUNE: LLM world model]",
       "attempt_history": [
@@ -1531,7 +1531,7 @@
       "attempts": 1,
       "best_result_us": 218.61,
       "stagnation_count": 0,
-      "status": "pruned",
+      "status": "active",
       "children": [],
       "notes": "[LLM-proposed] [STRATEGIC PRUNE: LLM world model]",
       "attempt_history": [
@@ -1552,7 +1552,7 @@
       "attempts": 1,
       "best_result_us": 219.93,
       "stagnation_count": 0,
-      "status": "pruned",
+      "status": "active",
       "children": [],
       "notes": "[LLM-proposed] [STRATEGIC PRUNE: LLM world model]",
       "attempt_history": [
@@ -1573,7 +1573,7 @@
       "attempts": 1,
       "best_result_us": 206.68,
       "stagnation_count": 0,
-      "status": "pruned",
+      "status": "active",
       "children": [],
       "notes": "[LLM-proposed] [STRATEGIC PRUNE: LLM world model]",
       "attempt_history": [
@@ -1594,7 +1594,7 @@
       "attempts": 1,
       "best_result_us": 176.09,
       "stagnation_count": 0,
-      "status": "pruned",
+      "status": "active",
       "children": [],
       "notes": "[LLM-proposed] [STRATEGIC PRUNE: LLM world model]",
       "attempt_history": [
@@ -1615,7 +1615,7 @@
       "attempts": 1,
       "best_result_us": 197.66,
       "stagnation_count": 0,
-      "status": "pruned",
+      "status": "active",
       "children": [],
       "notes": "[LLM-proposed] [STRATEGIC PRUNE: parent mla_n4 pruned]",
       "attempt_history": [
@@ -1636,7 +1636,7 @@
       "attempts": 1,
       "best_result_us": 184.12,
       "stagnation_count": 0,
-      "status": "pruned",
+      "status": "active",
       "children": [
         "n_bb0410f0"
       ],
@@ -1659,7 +1659,7 @@
       "attempts": 1,
       "best_result_us": 214.33,
       "stagnation_count": 0,
-      "status": "pruned",
+      "status": "active",
       "children": [],
       "notes": "[LLM-proposed] [STRATEGIC PRUNE: parent n_0480a1bc pruned]",
       "attempt_history": [
@@ -1680,7 +1680,7 @@
       "attempts": 1,
       "best_result_us": 211.18,
       "stagnation_count": 0,
-      "status": "pruned",
+      "status": "active",
       "children": [],
       "notes": "[LLM-proposed] [STRATEGIC PRUNE: LLM world model]",
       "attempt_history": [
@@ -1701,7 +1701,7 @@
       "attempts": 1,
       "best_result_us": 222.96,
       "stagnation_count": 0,
-      "status": "pruned",
+      "status": "active",
       "children": [],
       "notes": "[LLM-proposed] [STRATEGIC PRUNE: LLM world model]",
       "attempt_history": [
@@ -1722,7 +1722,7 @@
       "attempts": 2,
       "best_result_us": 160.81,
       "stagnation_count": 0,
-      "status": "pruned",
+      "status": "active",
       "children": [],
       "notes": "[LLM-proposed] [STRATEGIC PRUNE: parent mla_n4 pruned]",
       "attempt_history": [
@@ -1749,7 +1749,7 @@
       "attempts": 0,
       "best_result_us": null,
       "stagnation_count": 0,
-      "status": "pruned",
+      "status": "active",
       "children": [],
       "notes": "[LLM-proposed] [STRATEGIC PRUNE: parent n_81c6a22e pruned]",
       "attempt_history": []
@@ -1763,7 +1763,7 @@
       "attempts": 0,
       "best_result_us": null,
       "stagnation_count": 0,
-      "status": "pruned",
+      "status": "active",
       "children": [],
       "notes": "[LLM-proposed] [STRATEGIC PRUNE: parent n_81c6a22e pruned]",
       "attempt_history": []
@@ -1777,7 +1777,7 @@
       "attempts": 2,
       "best_result_us": 197.31,
       "stagnation_count": 1,
-      "status": "pruned",
+      "status": "active",
       "children": [],
       "notes": "[LLM-proposed] [STRATEGIC PRUNE: parent mla_n5 pruned]",
       "attempt_history": [
@@ -1804,7 +1804,7 @@
       "attempts": 1,
       "best_result_us": 204.43,
       "stagnation_count": 0,
-      "status": "pruned",
+      "status": "active",
       "children": [
         "n_3d172003"
       ],
@@ -1827,7 +1827,7 @@
       "attempts": 1,
       "best_result_us": 186.74,
       "stagnation_count": 0,
-      "status": "pruned",
+      "status": "active",
       "children": [],
       "notes": "[LLM-proposed] [STRATEGIC PRUNE: LLM world model]",
       "attempt_history": [
@@ -1848,7 +1848,7 @@
       "attempts": 1,
       "best_result_us": 223.12,
       "stagnation_count": 0,
-      "status": "pruned",
+      "status": "active",
       "children": [
         "n_81a401a6"
       ],
@@ -1871,7 +1871,7 @@
       "attempts": 1,
       "best_result_us": 188.92,
       "stagnation_count": 0,
-      "status": "pruned",
+      "status": "active",
       "children": [],
       "notes": "[LLM-proposed] [STRATEGIC PRUNE: parent n_3d172003 pruned]",
       "attempt_history": [
@@ -1892,7 +1892,7 @@
       "attempts": 2,
       "best_result_us": 189.18,
       "stagnation_count": 1,
-      "status": "pruned",
+      "status": "active",
       "children": [],
       "notes": "[LLM-proposed] [STRATEGIC PRUNE: LLM world model]",
       "attempt_history": [
@@ -1919,7 +1919,7 @@
       "attempts": 1,
       "best_result_us": 220.75,
       "stagnation_count": 0,
-      "status": "pruned",
+      "status": "active",
       "children": [],
       "notes": "[LLM-proposed] [STRATEGIC PRUNE: LLM world model]",
       "attempt_history": [
@@ -1940,7 +1940,7 @@
       "attempts": 1,
       "best_result_us": 229.58,
       "stagnation_count": 0,
-      "status": "pruned",
+      "status": "active",
       "children": [],
       "notes": "[LLM-proposed] [STRATEGIC PRUNE: LLM world model]",
       "attempt_history": [
@@ -1961,7 +1961,7 @@
       "attempts": 0,
       "best_result_us": null,
       "stagnation_count": 0,
-      "status": "pruned",
+      "status": "active",
       "children": [],
       "notes": "[LLM-proposed] [STRATEGIC PRUNE: parent mla_n2 pruned]",
       "attempt_history": []

@@ -322,7 +322,7 @@
       "attempts": 1,
       "best_result_us": 198.7,
       "stagnation_count": 0,
-      "status": "pruned",
+      "status": "active",
       "children": [],
       "notes": "Simple block-wise GEMM with lifted scales, BLOCK=16 [STRATEGIC PRUNE: LLM world model]",
       "attempt_history": [
@@ -349,7 +349,7 @@
       "attempts": 1,
       "best_result_us": 187.03,
       "stagnation_count": 0,
-      "status": "pruned",
+      "status": "active",
       "children": [],
       "notes": "rocWMMA MFMA kernel with double-buffered LDS and scale caching [STRATEGIC PRUNE: LLM world model]",
       "attempt_history": [
@@ -373,7 +373,7 @@
       "attempts": 2,
       "best_result_us": 183.42,
       "stagnation_count": 1,
-      "status": "pruned",
+      "status": "active",
       "children": [],
       "notes": "[LLM-proposed] [STRATEGIC PRUNE: LLM world model]",
       "attempt_history": [
@@ -400,7 +400,7 @@
       "attempts": 1,
       "best_result_us": 227.65,
       "stagnation_count": 0,
-      "status": "pruned",
+      "status": "active",
       "children": [],
       "notes": "[LLM-proposed] [STRATEGIC PRUNE: LLM world model]",
       "attempt_history": [
@@ -421,7 +421,7 @@
       "attempts": 1,
       "best_result_us": 182.99,
       "stagnation_count": 0,
-      "status": "pruned",
+      "status": "active",
       "children": [],
       "notes": "[LLM-proposed] [STRATEGIC PRUNE: LLM world model]",
       "attempt_history": [
@@ -442,7 +442,7 @@
       "attempts": 1,
       "best_result_us": 221.46,
       "stagnation_count": 0,
-      "status": "pruned",
+      "status": "active",
       "children": [],
       "notes": "[LLM-proposed] [STRATEGIC PRUNE: LLM world model]",
       "attempt_history": [
@@ -463,7 +463,7 @@
       "attempts": 1,
       "best_result_us": 222.44,
       "stagnation_count": 0,
-      "status": "pruned",
+      "status": "active",
       "children": [],
       "notes": "[LLM-proposed] [STRATEGIC PRUNE: LLM world model]",
       "attempt_history": [
@@ -484,7 +484,7 @@
       "attempts": 3,
       "best_result_us": 150.97,
       "stagnation_count": 1,
-      "status": "pruned",
+      "status": "active",
       "children": [],
       "notes": "[LLM-proposed] [STRATEGIC PRUNE: LLM world model]",
       "attempt_history": [
@@ -517,7 +517,7 @@
       "attempts": 1,
       "best_result_us": 217.2,
       "stagnation_count": 0,
-      "status": "pruned",
+      "status": "active",
       "children": [
         "n_6d311e5c"
       ],
@@ -540,7 +540,7 @@
       "attempts": 1,
       "best_result_us": 216.97,
       "stagnation_count": 0,
-      "status": "pruned",
+      "status": "active",
       "children": [],
       "notes": "[LLM-proposed] [STRATEGIC PRUNE: parent n_3258e3a1 pruned]",
       "attempt_history": [
@@ -561,7 +561,7 @@
       "attempts": 2,
       "best_result_us": 190.38,
       "stagnation_count": 0,
-      "status": "pruned",
+      "status": "active",
       "children": [],
       "notes": "[LLM-proposed] [STRATEGIC PRUNE: LLM world model]",
       "attempt_history": [
@@ -588,7 +588,7 @@
       "attempts": 1,
       "best_result_us": 172.65,
       "stagnation_count": 0,
-      "status": "pruned",
+      "status": "active",
       "children": [
         "n_469be2db",
         "n_663e6c8f"
@@ -612,7 +612,7 @@
       "attempts": 1,
       "best_result_us": 186.65,
       "stagnation_count": 0,
-      "status": "pruned",
+      "status": "active",
       "children": [],
       "notes": "[LLM-proposed] [STRATEGIC PRUNE: LLM world model]",
       "attempt_history": [
@@ -633,7 +633,7 @@
       "attempts": 2,
       "best_result_us": 193.61,
       "stagnation_count": 1,
-      "status": "pruned",
+      "status": "active",
       "children": [
         "n_4aef3deb"
       ],
@@ -662,7 +662,7 @@
       "attempts": 2,
       "best_result_us": 182.66,
       "stagnation_count": 1,
-      "status": "pruned",
+      "status": "active",
       "children": [
         "n_6fdd5f01",
         "n_af52f525"
@@ -692,7 +692,7 @@
       "attempts": 1,
       "best_result_us": 228.53,
       "stagnation_count": 0,
-      "status": "pruned",
+      "status": "active",
       "children": [],
       "notes": "[LLM-proposed] [STRATEGIC PRUNE: LLM world model]",
       "attempt_history": [
@@ -713,7 +713,7 @@
       "attempts": 0,
       "best_result_us": null,
       "stagnation_count": 0,
-      "status": "pruned",
+      "status": "active",
       "children": [],
       "notes": "[LLM-proposed] [STRATEGIC PRUNE: parent n_93b2d534 pruned]",
       "attempt_history": []
@@ -727,7 +727,7 @@
       "attempts": 0,
       "best_result_us": null,
       "stagnation_count": 0,
-      "status": "pruned",
+      "status": "active",
       "children": [],
       "notes": "[LLM-proposed] [STRATEGIC PRUNE: parent n_663e6c8f pruned]",
       "attempt_history": []
