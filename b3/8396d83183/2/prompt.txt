@@ -67,3 +67,11 @@ Continue with C4 and the rest of the plan
 ---
 
 Retrospective, internal code sweep (find additional infrastructure we've build but don't have wired), external research on huggingface, arkiv, github, and the internet at large.  Save completed work and then make a new plan to continue unifinished work and extend with additional findings.
+
+---
+
+Proceed with all oustanding tasks
+
+---
+
+Continue
