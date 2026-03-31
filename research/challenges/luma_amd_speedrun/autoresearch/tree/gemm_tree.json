@@ -432,9 +432,9 @@
       "attempts": 1,
       "best_result_us": 182.99,
       "stagnation_count": 0,
-      "status": "active",
+      "status": "pruned",
       "children": [],
-      "notes": "[LLM-proposed] [STRATEGIC PRUNE: LLM world model]",
+      "notes": "[LLM-proposed] [STRATEGIC PRUNE: LLM world model] [PRUNED: Test failed: Exit code 1]",
       "attempt_history": [
         {
           "result_us": 182.98626169071017,
@@ -798,9 +798,9 @@
       "attempts": 0,
       "best_result_us": null,
       "stagnation_count": 0,
-      "status": "active",
+      "status": "pruned",
       "children": [],
-      "notes": "[LLM-proposed]",
+      "notes": "[LLM-proposed] [PRUNED: Test failed: Exit code 1]",
       "attempt_history": []
     }
   }
