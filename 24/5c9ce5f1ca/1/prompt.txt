@@ -1,0 +1,12 @@
+<task-notification>
+<task-id>b9bzn2pzu</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/b64da2bf-bc43-4e98-92b9-9ef978ee0301/tasks/b9bzn2pzu.output</output-file>
+<status>completed</status>
+<summary>Background command "Clone A2UI repository" completed (exit code 0)</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/b64da2bf-bc43-4e98-92b9-9ef978ee0301/tasks/b9bzn2pzu.output
+
+---
+
+Did you implement TDD and multiperspective code review?
