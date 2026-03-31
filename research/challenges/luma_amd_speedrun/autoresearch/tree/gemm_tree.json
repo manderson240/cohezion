@@ -658,7 +658,7 @@
       "strategy": "load_inline custom HIP kernel - rocWMMA MFMA with static swizzling, lifted scales, fused FP8 dequant, and MI355X-optimized tile sizes (32x32x256), with explicit SGPR-based loop control and no dynamic dispatch overhead",
       "parameters": {},
       "parent_id": "gemm_loadinline_root",
-      "priority": 0.1,
+      "priority": 0.15,
       "attempts": 2,
       "best_result_us": 182.66,
       "stagnation_count": 1,
@@ -709,14 +709,23 @@
       "strategy": "load_inline custom HIP kernel - rocWMMA MFMA with static swizzling, lifted scales, fused FP8 dequant, MI355X-optimized tile sizes (32x32x256), with vectorized load/store (`float8x2`/`float16x2`), 32-wave occupancy, and SGPR reduction via `__builtin_amdgcn_readexecmask`, but with *dynamic loop unrolling* guided by runtime profiling (e.g., `perf_event_open` feedback) to adapt unroll factors per kernel launch",
       "parameters": {},
       "parent_id": "n_93b2d534",
-      "priority": 0.6,
-      "attempts": 0,
-      "best_result_us": null,
+      "priority": 0.05,
+      "attempts": 1,
+      "best_result_us": 94.88,
       "stagnation_count": 0,
-      "status": "active",
-      "children": [],
-      "notes": "[LLM-proposed] [STRATEGIC PRUNE: parent n_93b2d534 pruned]",
-      "attempt_history": []
+      "status": "pruned",
+      "children": [
+        "n_545b14bb"
+      ],
+      "notes": "[LLM-proposed] [STRATEGIC PRUNE: parent n_93b2d534 pruned] [STRATEGIC PRUNE: LLM world model]",
+      "attempt_history": [
+        {
+          "result_us": 94.88,
+          "parameters": {},
+          "timestamp": "2026-03-31T01:34:16.823968",
+          "source": "llm"
+        }
+      ]
     },
     "n_4aef3deb": {
       "id": "n_4aef3deb",
@@ -753,6 +762,20 @@
       "status": "pruned",
       "children": [],
       "notes": "[LLM-proposed] [STRATEGIC PRUNE: parent n_4aef3deb pruned]",
+      "attempt_history": []
+    },
+    "n_545b14bb": {
+      "id": "n_545b14bb",
+      "strategy": "load_inline custom HIP kernel - rocWMMA MFMA with static swizzling, lifted scales, fused FP8 dequant, MI355X tile sizes (32x32x256), vectorized load/store, 32-wave occupancy, SGPR reduction via `__builtin_amdgcn_readexecmask`, but with *static* unroll factors tuned for shape_1 (64.0\u00b5s) via compile-time heuristics (no runtime profiling overhead)",
+      "parameters": {},
+      "parent_id": "n_af52f525",
+      "priority": 0.75,
+      "attempts": 0,
+      "best_result_us": null,
+      "stagnation_count": 0,
+      "status": "pruned",
+      "children": [],
+      "notes": "[LLM-proposed] [STRATEGIC PRUNE: parent n_af52f525 pruned]",
       "attempt_history": []
     }
   }
