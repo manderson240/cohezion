@@ -440,3 +440,56 @@ Full transcript available at: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/
 ---
 
 Refine for long horizon with ralph loop, autoresearch, and k-search to keep improving for the next real 3 real hours using a timer.
+
+---
+
+<task-notification>
+<task-id>a83f5e9742f178df6</task-id>
+<tool-use-id>toolu_015adJnK6Kc5TvyTnMv4AArJ</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/7811d063-f780-4a33-bf06-f7fd845739f9/tasks/a83f5e9742f178df6.output</output-file>
+<status>completed</status>
+<summary>Agent "Generate tests for 5 zero-coverage modules" completed</summary>
+<result>Here is the summary of what was done:
+
+## Phase 3c Coverage Push -- 99 New Tests Across 5 Modules
+
+### Tests Created
+
+| # | Module | Test File | Tests |
+|---|--------|-----------|-------|
+| 1 | **CLI** (`src/cohezion/cli/main.py`) | `tests/cli/test_main.py` | 21 |
+| 2 | **A2A Protocol** (`src/cohezion/protocols/a2a_server.py`) | `tests/protocols/test_a2a_server.py` | 22 |
+| 3 | **Knowledge Graph** (`src/cohezion/knowledge_graph/bidirectional_linker.py`) | `tests/knowledge_graph/test_bidirectional_linker.py` | 23 |
+| 4 | **Agent Service** (`src/cohezion/services/agent_service.py`) | `tests/services/test_agent_service.py` | 19 |
+| 5 | **Test Generator** (`src/cohezion/tools/test_generator.py`) | `tests/tools/test_test_generator.py` | 14 |
+| | **Total new** | | **99** |
+
+### Key Decisions
+
+- **Vanguard replaced with Agent Service**: The vanguard module already had 236 lines of tests across 4 files. Substituted `services/agent_service.py` (zero coverage, 310 lines, rich async API) for better coverage impact.
+
+- **Import chain issue**: Both CLI and services modules hit `ModuleNotFoundError: No module named 'cohezion.models'` (missing module). Solved by pre-mocking `cohezion.models` and `cohezion.models.model_registry` in `sys.modules` before importing the module under test.
+
+- **KnowledgeGraph `client` attribute**: The `connect()` method sets `self.client` but `__init__` does not. Fixed by setting `graph.client = None` in the fixture to simulate in-memory-only mode.
+
+- **AgentService `_create_step` failure**: The internal `PhysicsState` constructor has a signature mismatch (extra kwargs like `mass`). Tests that exercise `execute_task` success path mock `_create_step` to bypass this.
+
+### Total Test Count
+
+**5,100 tests collected** (up from ~5,001 before, +99 new tests). All 99 new tests pass.
+
+### Files Created
+
+- `/home/mike-anderson/dev/cohezion/tests/cli/__init__.py`
+- `/home/mike-anderson/dev/cohezion/tests/cli/test_main.py`
+- `/home/mike-anderson/dev/cohezion/tests/protocols/__init__.py`
+- `/home/mike-anderson/dev/cohezion/tests/protocols/test_a2a_server.py`
+- `/home/mike-anderson/dev/cohezion/tests/knowledge_graph/__init__.py`
+- `/home/mike-anderson/dev/cohezion/tests/knowledge_graph/test_bidirectional_linker.py`
+- `/home/mike-anderson/dev/cohezion/tests/services/__init__.py`
+- `/home/mike-anderson/dev/cohezion/tests/services/test_agent_service.py`
+- `/home/mike-anderson/dev/cohezion/tests/tools/__init__.py`
+- `/home/mike-anderson/dev/cohezion/tests/tools/test_test_generator.py`</result>
+<usage><total_tokens>113590</total_tokens><tool_uses>46</tool_uses><duration_ms>747991</duration_ms></usage>
+</task-notification>
+Full transcript available at: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/7811d063-f780-4a33-bf06-f7fd845739f9/tasks/a83f5e9742f178df6.output
