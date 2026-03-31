@@ -493,10 +493,15 @@ class CostAwareRouter:
             if not enforcer_ok:
                 can_proceed = False
 
+        # Compute OI-MAS confidence (joint role+scale scoring)
+        confidence = self._compute_routing_confidence(model, complexity)
+
         # Build decision
         reason = f"Routed {complexity.value} query to {model}"
         if model != primary_model:
             reason += f" (optimized from {primary_model})"
+        if confidence < 0.7:
+            reason += f" (low confidence: {confidence:.2f})"
 
         decision = ModelRoutingDecision(
             model=model,
@@ -505,6 +510,7 @@ class CostAwareRouter:
             estimated_cost_usd=estimated_cost,
             reason=reason,
             quality_score=self.MODEL_QUALITY.get(model, 0.5),
+            confidence=confidence,
         )
 
         # Record decision
@@ -838,6 +844,41 @@ class CostAwareRouter:
             # Reduce latency threshold tolerance
             if self.latency_threshold > 100.0:
                 self.latency_threshold = max(100.0, self.latency_threshold - 5.0)
+
+    def _compute_routing_confidence(self, model: str, complexity: QueryComplexity) -> float:
+        """Compute OI-MAS joint role+scale confidence for a routing decision.
+
+        Based on arXiv:2601.04861 — confidence reflects how well the selected
+        model (scale) matches the task requirements (role). Combines:
+        - Model quality score (from MODEL_QUALITY)
+        - Historical success rate (from execution tracking)
+        - Complexity-model alignment (simple→small, complex→large)
+
+        Returns:
+            Confidence score 0.0-1.0
+        """
+        # Base confidence from model quality
+        quality = self.MODEL_QUALITY.get(model, 0.5)
+
+        # Historical success rate from execution tracking
+        total_queries = self.query_count_per_model.get(model, 0)
+        success_rate = 1.0  # Assume success if no history
+        if total_queries > 5:
+            # Use phi3/qwen success counters as proxy
+            if model == "phi3:mini":
+                success_rate = self._phi3_success_count / max(1, total_queries)
+            elif model == "qwen3-coder:32b":
+                success_rate = self._qwen_success_count / max(1, total_queries)
+
+        # Complexity-model alignment penalty
+        alignment = 1.0
+        if complexity == QueryComplexity.COMPLEX and model == "phi3:mini":
+            alignment = 0.5  # Small model for complex task = low confidence
+        elif complexity == QueryComplexity.SIMPLE and model == "deepseek-r1:8b":
+            alignment = 0.8  # Overkill but not harmful
+
+        confidence = quality * 0.3 + success_rate * 0.4 + alignment * 0.3
+        return min(1.0, max(0.0, confidence))
 
     def _get_r_zero(self) -> Any:
         """Lazy-load R-Zero LocalModelOptimizer (non-blocking)."""
