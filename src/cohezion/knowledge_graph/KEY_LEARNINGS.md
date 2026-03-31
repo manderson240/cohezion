@@ -6,26 +6,8 @@ Packet-greedy scheduling + register windowing + SIMD vectorization achieved 423x
 
 ---
 
-## Learning 12: Kineticization of the 12D Manifold (2026-02-05)
-A 12D manifold must be grounded in the physical substrate (CPU pressure, VRAM density, dilation factor, RAM-weighted semantic intent) to avoid being a purely semantic "Potemkin Universe."
-
-## Learning 13: VLIW-to-Cognition Abstraction (2026-02-05)
-VLIW architecture parallels biological reasoning — processing 2048D vectors as "instruction packets" for deterministic, slot-based execution of thought. Implemented in `flume_physics.rs`.
-
-## Learning 14: The Organic Modularity Axiom
-Aesthetically bridging high-performance silicon heritage with ecological branding. "Inspired Motifs" maintain legal sovereignty while honoring lineage, increasing user trust.
-
-## Learning 15: The Peaked Manifold Approximation
-In peaked quantum circuits, state compresses to a low-rank MPS (Bond 64-256) without losing the signal. Manual SWAP routing maintains 1D topology; eager SVD contraction prevents tensor network explosion. 16x bond reduction → 100x throughput with 1e-5 vs 1e-11 signal separation.
-
-## Learning 16: VLIW Latent Alignment & Temporal Stability
-Instruction stability in VLIW is a latent manifold problem. Barrier-locked manifolds + VLEN=8 alignment ensure hardware cache coherence.
-
-## Learning 17: Subagent Delegation Topology
-Hierarchical agent topology (Scout/Strategist) outperforms monolithic models. Scouts (Qwen-Coder 30b) do high-speed sensing; Strategists (DeepSeek-R1 70b) do deep reasoning.
-
-## Learning 18: Biological Recursion in Silico
-Stability through mortality — introducing apoptosis and mitosis forces dynamic equilibrium (HIHO state). Immortal agents stagnate.
+## Learnings 12-18: Manifold Physics & Agent Architecture (Compressed)
+12D manifold must be grounded in physical substrate (CPU/VRAM/RAM), not purely semantic. VLIW→cognition parallel: 2048D vectors as "instruction packets." Peaked quantum circuits compress to low-rank MPS (Bond 64-256) → 100x throughput. Barrier-locked manifolds ensure hardware cache coherence. Hierarchical agent topology (Scout/Strategist) outperforms monolithic models. Stability through mortality (apoptosis/mitosis) forces HIHO dynamic equilibrium.
 
 ## Learning 19: The Specialist Roster Effectiveness
 Cognitive specialization > parameters. Routed swarm of domain experts (DeepSeek-R1-8B, Qwen2.5-Coder-7B, Phi4-Mini) outperforms generic 7B model.
@@ -309,3 +291,6 @@ Observer Patch Holography's Axiom 2 (overlap consistency) is the mathematical fo
 Component catalog (JSON) + experience scripts replace opaque WebGL testing. Agent validates the data structure, not the pixels. 9 Playwright e2e tests + 26 pytest tests. Data-attribute selectors (data-a2ui-component) are the most reliable Playwright selectors for dynamic UIs.
 ### Learning 221: LeWM — Missing JEPA World Model Upgrade (2026-03-31)
 lucas-maes/le-wm is the first stable end-to-end JEPA from raw pixels using only 2 loss terms (next-embedding prediction + Gaussian regularizer). 15M params, single GPU, trains in hours, plans 48x faster than foundation models. Latent space encodes physical structure and detects implausible events. Direct upgrade path for Cohezion's 86K-param JEPAWorldModel. Connection: FLUME encode → LeWM predict → prediction error = free energy gradient. See: [[cerebellum/2026-03-31-session-wiring-retrospective]]
+
+### Learning 222: GeminiProvider + Multi-Tier Cloud Routing (2026-03-31)
+ModelProvider ABC + auto-registration pattern makes adding new cloud providers a single-file operation (~200 lines). GeminiProvider implements generate/list_models/health_check/close. Cost tiers in CostAwareRouter: Flash-Lite ($0.075/M, 70% simple), Flash ($0.30/M, 20% medium), Pro ($2.00/M, 10% hard). TipOfTheSpearRouter CLOUD tier now routes to Gemini Pro (code) / Flash (general) instead of placeholder. The 70/20/10 split from CLAUDE.md is now concretely wired.
