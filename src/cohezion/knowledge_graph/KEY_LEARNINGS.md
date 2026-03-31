@@ -21,9 +21,6 @@ Cognitive specialization > parameters. Routed swarm of domain experts (DeepSeek-
 ## Learning 20: VRAM Persistence & The Sudo Trap
 Automated recovery must never rely on `sudo`. Use direct Ollama `/api/generate` with `keep_alive: 0` and AMD `/sys` telemetry for non-privileged VRAM management.
 
-## Learning 22: Agentic Reasoning Paradigms
-Refinement over generation — agentic reasoning shifts from next-token prediction to state-machine planning with recursive verification, checkpointing, and Merkle indexing.
-
 ## Learning 26: The Python Autoregression Bottleneck
 GIL limits autoregressive decoding to ~10Hz. Inference loops must move to compiled languages (Rust/C++) for 100Hz+ fluid behavior.
 
@@ -293,3 +290,9 @@ Swarm module 12 failures mapped to 4 categories: (1) Missing implementation — 
 ### Learning 181: PreToolUse Hook File-Path Filtering (2026-03-28)
 `branch-safety-warning.sh` blocked ALL Edit/Write on protected branches, including writes to `~/.claude/plans/` (outside the repo). Root cause: the hook never parsed `tool_input.file_path` from the PreToolUse JSON stdin. Fix: extract file_path, compare against `git rev-parse --show-toplevel`, allow writes outside repo unconditionally. Related pattern: `git commit-tree` creates commits from stash trees without apply/conflict risk — used to preserve 11 stashes as `archive/stash/*` branches before clearing.
 
+
+### Learning 182: K-Search for Codebase Improvement (2026-03-31)
+The K-Search tree evolution pattern (SELECT→SYNTHESIZE→TEST→BENCHMARK→UPDATE) designed for GPU kernel optimization works equally well for codebase improvement. Replace "kernel" with "improvement task," use the same stagnation detection (K=7, Δ<0.02), and pivot between tiers (Tier 1: dead code removal, Tier 2: file splits, Tier 3: architecture changes). 28 orphan files (5,563 lines) removed in 3 cycles with zero regressions. Key: the stagnation detector forces tier pivots when low-hanging fruit is exhausted.
+
+### Learning 183: Security Triage — SurrealQL vs SQL Injection (2026-03-31)
+286 ruff S-rule violations triaged to 3 categories: (1) Real vulnerabilities (SQL injection in embeddings.py via raw HTTP POST — FIXED), (2) SurrealQL false positives (S608 on client.query() calls — safe, suppressed), (3) Non-crypto random (S311 — suppressed globally). Key insight: ruff's `noqa: S608` doesn't work on multi-line f-strings (the comment ends up inside the string literal). Fix: use pyproject.toml per-file-ignores for multi-line cases. The 1 real injection was distinguished by its transport: raw HTTP POST vs surrealdb-py client.

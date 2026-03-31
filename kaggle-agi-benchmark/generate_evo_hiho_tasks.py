@@ -53,26 +53,27 @@ async def generate_batch(num_tasks: int = 5):
 
             async def real_execute(*args, i=i, **kwargs):
                 client = get_compound_client()
-                # Use simple_qa for maximum speed (phi3:mini)
+                # Use creative task type (deepseek-r1:7b)
                 if hasattr(client, "route_and_execute"):
                     result = await client.route_and_execute(
                         prompt=GENERATION_PROMPT,
-                        task_type="simple_qa", 
+                        task_type="creative", 
                         temperature=0.9, 
                         system="You are an expert AGI benchmark architect. Output ONLY valid JSON.",
                     )
-                    response_text = result.text
+                    # TaskTypeRouter returns a result object where text is in 'response'
+                    response_text = result.response
                 else:
                     response = await client.generate(
                         prompt=GENERATION_PROMPT,
-                        task_type="simple_qa",
+                        task_type="creative",
                         temperature=0.9,
                         system="You are an expert AGI benchmark architect. Output ONLY valid JSON.",
                     )
                     if isinstance(response, tuple):
                         response_text = response[0]
-                    elif hasattr(response, "text"):
-                        response_text = response.text
+                    elif hasattr(response, "response"):
+                        response_text = response.response
                     else:
                         response_text = str(response)
 
