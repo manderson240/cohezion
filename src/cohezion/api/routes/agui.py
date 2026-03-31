@@ -165,6 +165,15 @@ async def cosmogony_stream() -> AsyncIterator[str]:
 
 @agui_router.get("/stream")
 async def stream_cosmogony():
+    # Wire 6: Track data product access for SLA enforcement
+    try:
+        from cohezion.data_mesh.data_product import get_cohezion_data_products
+        products = get_cohezion_data_products()
+        agui_product = products.get("agui-event-stream")
+        if agui_product:
+            agui_product.record_access(success=True)
+    except (ImportError, KeyError):
+        pass  # Data mesh not available
     """
     Stream the Genesis cosmogony as AG-UI typed SSE events.
 
