@@ -17,6 +17,8 @@ from fastapi import APIRouter
 from fastapi.responses import StreamingResponse
 
 from cohezion.api.agui_events import (
+    AGUIEventType,
+    AGUIEvent,
     CustomEvent,
     RunFinishedEvent,
     RunStartedEvent,
@@ -106,37 +108,46 @@ async def cosmogony_stream() -> AsyncIterator[str]:
     tick_interval = 0.1  # 100ms per tick
     prev_symmetry = "void"
 
-    for i in range(num_ticks):
-        progress = (i + 1) / num_ticks
-        # Exponential cooling: T = T_start * (T_end/T_start)^progress
-        temperature = t_start * (t_end / t_start) ** progress
+    try:
+        for i in range(num_ticks):
+            progress = (i + 1) / num_ticks
+            # Exponential cooling: T = T_start * (T_end/T_start)^progress
+            temperature = t_start * (t_end / t_start) ** progress
 
-        state = compute_cosmogony(temperature)
+            state = compute_cosmogony(temperature)
 
-        # Emit state delta
-        yield universe_tick_event(
-            temperature=state["temperature"],
-            symmetry=state["symmetry"],
-            coherence=state["coherence"],
-            order_parameter=state["orderParameter"],
-            landau_free_energy=state["landauFreeEnergy"],
-        ).to_sse()
+            # Emit state delta
+            yield universe_tick_event(
+                temperature=state["temperature"],
+                symmetry=state["symmetry"],
+                coherence=state["coherence"],
+                order_parameter=state["orderParameter"],
+                landau_free_energy=state["landauFreeEnergy"],
+            ).to_sse()
 
-        # Check for phase transition
-        if state["symmetry"] != prev_symmetry:
-            # Emit phase transition tool call
-            for event in phase_transition_event(prev_symmetry, state["symmetry"], temperature):
-                yield event.to_sse()
-
-            # Emit narration for new phase
-            narration = NARRATIONS.get(state["symmetry"], "")
-            if narration:
-                for event in narration_event(narration, state["symmetry"]):
+            # Check for phase transition
+            if state["symmetry"] != prev_symmetry:
+                # Emit phase transition tool call
+                for event in phase_transition_event(prev_symmetry, state["symmetry"], temperature):
                     yield event.to_sse()
 
-            prev_symmetry = state["symmetry"]
+                # Emit narration for new phase
+                narration = NARRATIONS.get(state["symmetry"], "")
+                if narration:
+                    for event in narration_event(narration, state["symmetry"]):
+                        yield event.to_sse()
 
-        await asyncio.sleep(tick_interval)
+                prev_symmetry = state["symmetry"]
+
+            await asyncio.sleep(tick_interval)
+    except Exception as exc:
+        # Emit RUN_ERROR so the client knows the stream terminated abnormally
+        import json as _json
+        error_event = AGUIEvent(type=AGUIEventType.RUN_ERROR)
+        yield f"data: {_json.dumps({{'type': 'RUN_ERROR', 'message': str(exc), 'timestamp': error_event.timestamp}})}
+
+"
+        return
 
     # --- HIHO coherence event ---
     yield CustomEvent(
