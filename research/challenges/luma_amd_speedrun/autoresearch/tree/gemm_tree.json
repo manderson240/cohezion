@@ -154,14 +154,27 @@
       "strategy": "load_inline with rocWMMA MFMA tile 32x32x32 for MI355X (double K-dimension vs current 32x32x16)",
       "parameters": {},
       "parent_id": "gemm_root",
-      "priority": 0.7,
-      "attempts": 0,
-      "best_result_us": null,
+      "priority": 0.4,
+      "attempts": 2,
+      "best_result_us": 205.52,
       "stagnation_count": 0,
-      "status": "active",
+      "status": "pruned",
       "children": [],
-      "notes": "[LLM-proposed]",
-      "attempt_history": []
+      "notes": "[LLM-proposed] [STRATEGIC PRUNE: LLM world model]",
+      "attempt_history": [
+        {
+          "result_us": 211.9580447855912,
+          "parameters": {},
+          "timestamp": "2026-03-31T19:17:56.926269",
+          "source": "template"
+        },
+        {
+          "result_us": 205.51837104179313,
+          "parameters": {},
+          "timestamp": "2026-03-31T19:17:58.857410",
+          "source": "template"
+        }
+      ]
     }
   }
 }
