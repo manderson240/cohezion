@@ -2,108 +2,304 @@
   "$schema": "https://a2ui.org/specification/v0_9/catalog_schema.json",
   "catalogId": "cohezion-genesis-v1",
   "version": "1.0.0",
-  "description": "A2UI component catalog for the Cohezion Genesis Engine — maps physics-grounded 3D components to declarative A2UI format",
+  "description": "A2UI component catalog for the Cohezion Genesis Engine \u2014 maps physics-grounded 3D components to declarative A2UI format",
   "components": {
     "cohezion-void-sphere": {
-      "description": "Pulsing void sphere with click target and hover ring — the initial state before the first distinction",
+      "description": "Pulsing void sphere with click target and hover ring \u2014 the initial state before the first distinction",
       "category": "three-scene",
       "properties": {
-        "scale": { "type": "number", "default": 0.055, "description": "Sphere pulse scale" },
-        "glowIntensity": { "type": "number", "default": 0.25, "description": "Glow opacity [0,1]" },
-        "dustCount": { "type": "integer", "default": 100, "description": "Number of void dust particles" },
-        "showClickPrompt": { "type": "boolean", "default": true, "description": "Show 'click to begin' text" }
+        "scale": {
+          "type": "number",
+          "default": 0.055,
+          "description": "Sphere pulse scale"
+        },
+        "glowIntensity": {
+          "type": "number",
+          "default": 0.25,
+          "description": "Glow opacity [0,1]"
+        },
+        "dustCount": {
+          "type": "integer",
+          "default": 100,
+          "description": "Number of void dust particles"
+        },
+        "showClickPrompt": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show 'click to begin' text"
+        }
       },
       "actions": {
-        "onClick": { "event": { "name": "void_click" }, "description": "User clicks the void — triggers the first distinction" }
+        "onClick": {
+          "event": {
+            "name": "void_click"
+          },
+          "description": "User clicks the void \u2014 triggers the first distinction"
+        }
       }
     },
     "cohezion-explosion": {
-      "description": "Particle explosion with fabric differentiation and settling — the cosmogonic animation",
+      "description": "Particle explosion with fabric differentiation and settling \u2014 the cosmogonic animation",
       "category": "three-particles",
       "properties": {
-        "phase": { "type": "string", "enum": ["idle", "exploding", "differentiating", "settling", "final"], "default": "idle" },
-        "particleCount": { "type": "integer", "default": 500 },
+        "phase": {
+          "type": "string",
+          "enum": [
+            "idle",
+            "exploding",
+            "differentiating",
+            "settling",
+            "final"
+          ],
+          "default": "idle"
+        },
+        "particleCount": {
+          "type": "integer",
+          "default": 500
+        },
         "fabricColors": {
           "type": "array",
-          "default": ["#3b82f6", "#f59e0b", "#10b981", "#a855f7"],
+          "default": [
+            "#3b82f6",
+            "#f59e0b",
+            "#10b981",
+            "#a855f7"
+          ],
           "description": "Colors for Space, Field, Control, Precipitation fabrics"
         },
-        "elapsed": { "type": "number", "default": 0, "description": "Seconds since explosion start" }
+        "elapsed": {
+          "type": "number",
+          "default": 0,
+          "description": "Seconds since explosion start"
+        }
       },
       "actions": {
-        "onPhaseChange": { "event": { "name": "phase_change" }, "description": "Phase transition detected" }
+        "onPhaseChange": {
+          "event": {
+            "name": "phase_change"
+          },
+          "description": "Phase transition detected"
+        }
       }
     },
     "cohezion-bloch-sphere": {
       "description": "Interactive Bloch sphere with SPIN state visualization",
       "category": "three-interactive",
       "properties": {
-        "theta": { "type": "number", "default": 1.5708, "description": "Polar angle [0, π]" },
-        "phi": { "type": "number", "default": 0, "description": "Azimuthal angle [0, 2π]" },
-        "showTrail": { "type": "boolean", "default": true },
-        "coherence": { "type": "number", "default": 0.5 }
+        "theta": {
+          "type": "number",
+          "default": 1.5708,
+          "description": "Polar angle [0, \u03c0]"
+        },
+        "phi": {
+          "type": "number",
+          "default": 0,
+          "description": "Azimuthal angle [0, 2\u03c0]"
+        },
+        "showTrail": {
+          "type": "boolean",
+          "default": true
+        },
+        "coherence": {
+          "type": "number",
+          "default": 0.5
+        }
       },
       "actions": {
-        "onDrag": { "event": { "name": "bloch_drag" } },
-        "onRelease": { "event": { "name": "bloch_release" } }
+        "onDrag": {
+          "event": {
+            "name": "bloch_drag"
+          }
+        },
+        "onRelease": {
+          "event": {
+            "name": "bloch_release"
+          }
+        }
       }
     },
     "cohezion-narration": {
-      "description": "Cinematic narration overlay with optional TTS — displays physics narrative text",
+      "description": "Cinematic narration overlay with optional TTS \u2014 displays physics narrative text",
       "category": "overlay",
       "properties": {
-        "text": { "type": "string", "default": "" },
-        "duration": { "type": "number", "default": 4000, "description": "Display duration in ms" },
-        "ttsEnabled": { "type": "boolean", "default": true },
-        "style": { "type": "string", "enum": ["cinematic", "caption", "tooltip"], "default": "cinematic" }
+        "text": {
+          "type": "string",
+          "default": ""
+        },
+        "duration": {
+          "type": "number",
+          "default": 4000,
+          "description": "Display duration in ms"
+        },
+        "ttsEnabled": {
+          "type": "boolean",
+          "default": true
+        },
+        "style": {
+          "type": "string",
+          "enum": [
+            "cinematic",
+            "caption",
+            "tooltip"
+          ],
+          "default": "cinematic"
+        }
       },
       "actions": {
-        "onComplete": { "event": { "name": "narration_complete" } }
+        "onComplete": {
+          "event": {
+            "name": "narration_complete"
+          }
+        }
       }
     },
     "cohezion-sound-engine": {
-      "description": "Physics-to-audio sonification engine — maps coherence, entropy, temperature to sound",
+      "description": "Physics-to-audio sonification engine \u2014 maps coherence, entropy, temperature to sound",
       "category": "audio",
       "properties": {
-        "phase": { "type": "string", "enum": ["silent", "void-drone", "explosion", "fabric-chord", "settling-pad", "interactive"] },
-        "coherence": { "type": "number", "default": 0.5, "description": "Maps to pitch (HIHO=C4)" },
-        "temperature": { "type": "number", "default": 200, "description": "Maps to amplitude" },
-        "muted": { "type": "boolean", "default": true },
-        "masterGain": { "type": "number", "default": 0.15 }
+        "phase": {
+          "type": "string",
+          "enum": [
+            "silent",
+            "void-drone",
+            "explosion",
+            "fabric-chord",
+            "settling-pad",
+            "interactive"
+          ]
+        },
+        "coherence": {
+          "type": "number",
+          "default": 0.5,
+          "description": "Maps to pitch (HIHO=C4)"
+        },
+        "temperature": {
+          "type": "number",
+          "default": 200,
+          "description": "Maps to amplitude"
+        },
+        "muted": {
+          "type": "boolean",
+          "default": true
+        },
+        "masterGain": {
+          "type": "number",
+          "default": 0.15
+        }
       },
       "actions": {
-        "onPhaseTransition": { "event": { "name": "sound_phase_transition" } }
+        "onPhaseTransition": {
+          "event": {
+            "name": "sound_phase_transition"
+          }
+        }
       }
     },
     "cohezion-cosmogony-timeline": {
-      "description": "Symmetry breaking timeline showing the cosmogonic chain ∅ → SO(12) → SO(3)⁴ → U(1)⁴ → Z₂⁴ → HIHO",
+      "description": "Symmetry breaking timeline showing the cosmogonic chain \u2205 \u2192 SO(12) \u2192 SO(3)\u2074 \u2192 U(1)\u2074 \u2192 Z\u2082\u2074 \u2192 HIHO",
       "category": "data-display",
       "properties": {
-        "currentStage": { "type": "integer", "default": -1 },
-        "currentTemperature": { "type": "number", "default": 200 },
-        "transitions": { "type": "array", "default": [] }
+        "currentStage": {
+          "type": "integer",
+          "default": -1
+        },
+        "currentTemperature": {
+          "type": "number",
+          "default": 200
+        },
+        "transitions": {
+          "type": "array",
+          "default": []
+        }
       }
     },
     "cohezion-equation-panel": {
       "description": "Collapsible panel showing live Landau free energy, Fisher metric, and order parameter equations",
       "category": "data-display",
       "properties": {
-        "title": { "type": "string", "default": "Cosmogony" },
-        "equations": { "type": "array", "default": [] },
-        "collapsed": { "type": "boolean", "default": false }
+        "title": {
+          "type": "string",
+          "default": "Cosmogony"
+        },
+        "equations": {
+          "type": "array",
+          "default": []
+        },
+        "collapsed": {
+          "type": "boolean",
+          "default": false
+        }
       }
     },
     "cohezion-temperature-slider": {
       "description": "Temperature slider with critical temperature markers",
       "category": "input",
       "properties": {
-        "value": { "type": "number", "default": 200, "description": "Current temperature" },
-        "min": { "type": "number", "default": 0.005 },
-        "max": { "type": "number", "default": 200 },
-        "criticalTemps": { "type": "array", "default": [0.01, 0.1, 1.0, 10.0, 100.0] }
+        "value": {
+          "type": "number",
+          "default": 200,
+          "description": "Current temperature"
+        },
+        "min": {
+          "type": "number",
+          "default": 0.005
+        },
+        "max": {
+          "type": "number",
+          "default": 200
+        },
+        "criticalTemps": {
+          "type": "array",
+          "default": [
+            0.01,
+            0.1,
+            1.0,
+            10.0,
+            100.0
+          ]
+        }
       },
       "actions": {
-        "onChange": { "event": { "name": "temperature_change" } }
+        "onChange": {
+          "event": {
+            "name": "temperature_change"
+          }
+        }
+      }
+    },
+    "cohezion-observer-patch": {
+      "description": "Observer patch visualization on the Bloch sphere \u2014 shows overlapping agent perspectives and consistency regions (OPH Axiom 2)",
+      "category": "three-interactive",
+      "properties": {
+        "patches": {
+          "type": "array",
+          "default": [],
+          "description": "Array of {agentId, theta, phi, angularRadius} objects"
+        },
+        "showOverlap": {
+          "type": "boolean",
+          "default": true,
+          "description": "Highlight overlap regions with consistency coloring"
+        },
+        "consistencyThreshold": {
+          "type": "number",
+          "default": 0.5,
+          "description": "HIHO threshold for coherent/decoherent coloring"
+        }
+      },
+      "actions": {
+        "onPatchClick": {
+          "event": {
+            "name": "patch_click"
+          },
+          "description": "User clicks an observer patch"
+        },
+        "onConsistencyChange": {
+          "event": {
+            "name": "consistency_change"
+          },
+          "description": "Consistency score changes (overlap/fidelity update)"
+        }
       }
     }
   }
