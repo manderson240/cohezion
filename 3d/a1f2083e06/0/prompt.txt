@@ -231,3 +231,87 @@ we need to maximize what we already have
 ---
 
 Another internal code sweep and external tip of the spear research on hugging face, arkiv, and github.  Don't forget the other intergration points from this session.
+
+---
+
+<task-notification>
+<task-id>a43f891b52e8cfffe</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/b64da2bf-bc43-4e98-92b9-9ef978ee0301/tasks/a43f891b52e8cfffe.output</output-file>
+<status>completed</status>
+<summary>Agent "Internal code sweep of session work" completed</summary>
+<result>I now have everything I need for a complete review. Let me compile the findings.
+
+---
+
+## Code Review: feat/genesis-tdd-a2ui — Wiring Integrity Review
+
+**Files reviewed:** `src/cohezion/governance/flume_bridge.py`, `src/cohezion/governance/concierge.py`, `src/cohezion/physics/observer_patch.py`, `src/cohezion/mycelium/observer.py`, `src/cohezion/flume/vae_encoder.py`, `src/cohezion/physics/spinor.py`, `tests/test_concierge.py`, `tests/test_observer_patch.py`, `tests/mycelium/test_observer.py`, `.claude/hooks/session-concierge.sh`, `.claude/agents/concierge.md`
+
+---
+
+### Summary
+
+The three new wiring modules are structurally sound and imports resolve correctly at runtime. However, there are significant gaps: three of the five public functions in `flume_bridge.py` have zero tests and zero callers outside the module, one bare `except` silently swallows the only thing distinguishing "FLUME is working" from "FLUME is broken", and the hash fallback in `flume_bridge.py` duplicates logic already in `FlumeVAEEncoder._hash_encode`. The `ChangeObserver` in `mycelium/observer.py` is an entirely separate, unrelated class that shares nothing with the new `ObserverPatch` physics system — "observer patch" in the review prompt refers to the physics module only.
+
+---
+
+### Findings
+
+#### HIGH
+
+- **`src/cohezion/governance/flume_bridge.py:62`** — Bare `except Exception: pass` silently swallows all FLUME encoding failures. If the VAE encoder is loaded but produces incorrect output (wrong tensor shape, NaN, etc.), this silently falls through to the hash fallback with no log line. The standard in CLAUDE.md is "specific exceptions + circuit breakers". At minimum this should be `except (RuntimeError, ValueError) as exc: logger.warning(...)`. The silent swallow makes it impossible to detect VAE regressions in production.
+
+- **`src/cohezion/governance/flume_bridge.py:65–70`** — The hash fallback in `flume_bridge.py` is a near-duplicate of `FlumeVAEEncoder._hash_encode` in `vae_encoder.py`. Both use SHA-256 cyclic expansion. The difference is `flume_bridge` uses `h * 8` byte repetition while `vae_encoder` uses modular indexing — producing different vectors for the same string. This means: when `FLUME_AVAILABLE=True` but the encoder call fails and silences (HIGH above), the fallback vector is not the same as the one `FlumeVAEEncoder` would produce in its own fallback path. Semantic similarity comparisons between a concierge-path fallback and a direct-vae-encoder fallback will be garbage. Should delegate to `FlumeVAEEncoder._hash_encode` or share a single implementation.
+
+- **`src/cohezion/governance/flume_bridge.py:26–29`** — All four `TYPE_CHECKING` imports (`RoutingRecord`, `RoutingSuggestion`, `SessionBriefing`, `ObserverPatch`, `SpinorState`) are declared under `TYPE_CHECKING` but are **never referenced in any function signature or annotation in the module body**. They are completely unused — not in parameter types, not in return types, not in docstrings. This is dead import noise and makes the module's dependency surface misleading. The `agent_state_to_patch_center` function signature uses `np.ndarray` input and `tuple[float, float]` return — no `ObserverPatch` or `SpinorState` reference anywhere.
+
+- **`src/cohezion/governance/flume_bridge.py`** — `agent_state_to_patch_center`, `encode_data_product_description`, and `data_product_similarity` have **zero callers** anywhere in the codebase. A grep across all `.py` files confirms these three public functions are only defined, never imported or called. They are dead code. Wire 2 (observer patch center) and Wire 4 (data product discovery) exist only in `flume_bridge.py` and are not wired into `observer_patch.py`, any data mesh module, or any test. The wiring is described but not connected.
+
+- **`src/cohezion/flume/vae_encoder.py:33`** — `class SimpleEncoder(nn.Module)` is defined at module level, outside the `TORCH_AVAILABLE` guard. When PyTorch is not installed, importing `vae_encoder` fails at class definition with `NameError: name 'nn' is not defined`. The `try/except ImportError` block sets `TORCH_AVAILABLE = False` and sets `nn = None` implicitly, so `nn.Module` on line 33 will crash at import time on a system without torch. This is a **runtime crash on import**, not just a graceful fallback.
+
+#### MEDIUM
+
+- **`src/cohezion/governance/concierge.py:177`** — FLUME semantic routing only activates when `FLUME_AVAILABLE and self._history`. On a cold-start system (no routing history yet), it always falls back to keyword matching regardless of whether FLUME is available. The FLUME routing capability is therefore completely inaccessible until at least one routing record has been saved. This is a chicken-and-egg problem: the system never tries FLUME routes until it has learned routes, but it can only learn FLUME routes by using them. A fresh install is permanently stuck in keyword mode.
+
+- **`src/cohezion/governance/concierge.py:189`** — The confidence computation `min(0.95, best_sim * self._historical_confidence(...))` multiplies semantic similarity by historical acceptance rate. If there is exactly one historical record for a target with acceptance=1.0, `_historical_confidence` returns `1.0 + duration_bonus`. `best_sim * 1.0+` = `best_sim`. But if `best_sim = 0.71` (just above the 0.7 threshold), confidence will be `0.71` — which falls into the "uncertain/HIHO" range (0.5–0.8), not the "strong match" range (>0.8). A near-perfect semantic match gets presented as uncertain. The threshold logic and the confidence calculation are misaligned.
+
+- **`src/cohezion/physics/observer_patch.py:1`** — The module is missing a module-level `__init__.py` export. `observer_patch` is not listed in `src/cohezion/physics/__init__.py` exports (`__all__`). `ObserverPatch`, `overlap_fraction`, `verify_observer_consistency`, and `evo_observer_consistency` are unreachable via `from cohezion.physics import ObserverPatch` — callers must know the internal path. Given the CLAUDE.md rule "Every `src/` dir MUST have `__init__.py`" (exists) and the architecture docs that reference this file by public name, it should be in `__all__`.
+
+- **`src/cohezion/mycelium/observer.py`** — The naming is confusing: `ChangeObserver` (a git-diff file scanner) and the physics `ObserverPatch` are both called "observers" but are completely unrelated systems. The review asked about "observer patch" — this is not it, but the name collision will cause confusion for future contributors. No action needed beyond awareness.
+
+- **`tests/test_concierge.py`** — There are zero tests for FLUME-path routing. All tests exercise the keyword fallback path. The FLUME semantic routing branch at line 177–196 of `concierge.py` has no test coverage — neither for the happy path (FLUME match above 0.7) nor the edge cases (FLUME available but no history, FLUME available + history but similarity below threshold). This is Wire 1 (FLUME→concierge) with no test coverage.
+
+- **`tests/`** — No test file exists for `flume_bridge.py` at all (`test_flume_bridge.py` does not exist). Wire 2 (`agent_state_to_patch_center`), Wire 3 (`encode_prompt` hash fallback vs. VAE path), and Wire 4 (`data_product_similarity`) are completely untested. The only indirectly tested path is `encode_prompt` being called inside `route_prompt`, but only through the keyword-fallback branch that doesn't even call `encode_prompt`.
+
+- **`src/cohezion/governance/flume_bridge.py:37`** — `FINGERPRINT_DIMS = slice(29, 256)` — the comment says "semantic fingerprint" but the slice starts at 29, not 24. The preceding slice is `METRICS_DIMS = slice(12, 24)`. Dims 24–28 are unaccounted for (5 dimensions with no label). These constants are defined but never used in the module body, so this is a documentation/dead-code issue, but it suggests the dim layout was copied partially and then not completed.
+
+#### LOW
+
+- **`src/cohezion/governance/flume_bridge.py:50`** — `encode_prompt` has no type hint on the return (`-> np.ndarray` is missing). All public functions must have type hints per project standards. The other functions in the file have return hints.
+
+- **`.claude/hooks/session-concierge.sh:29`** — `ls docs/plans/*.md ~/.claude/plans/*.md 2>/dev/null | wc -l` will print `0` even if there are no plans (because `wc -l` counts lines from the `ls` output, but `ls` with `2>/dev/null` won't error, it just produces empty output). This is correct behavior. However, it will also count the error lines suppressed by `2>/dev/null` as 0 when both paths don't exist — fine. Minor: this doesn't validate the plan count matches actual PENDING plans (it counts all `.md` files).
+
+- **`src/cohezion/governance/concierge.py:103`** — `ConciergeAgent.__init__` calls `self._load_history()` which performs synchronous file I/O. The module docstring notes `_save_record` uses synchronous I/O "acceptable for concierge (runs once per session)" — but `__init__` doing I/O at construction time violates the async-everywhere rule in CLAUDE.md. Acceptable given it's a session-start utility, but worth noting.
+
+---
+
+### Wiring Integrity Score: **5/10**
+
+| Wire | Description | Status | Score |
+|------|-------------|--------|-------|
+| 1 | Concierge → FLUME routing (semantic match) | Wired but only activates with pre-existing history; no test coverage for FLUME path | Partial |
+| 2 | Agent state → FLUME → ObserverPatch center | Defined in flume_bridge but never called; not connected to observer_patch.py | Dead |
+| 3 | FLUME VAE unavailable → hash fallback | Fallback exists but bare except silences failures; hash impl diverges from vae_encoder fallback | Fragile |
+| 4 | Data product discovery via FLUME | Defined in flume_bridge but never called anywhere | Dead |
+| 5 | ObserverPatch ↔ SpinorState (physics) | Fully wired, tests pass, `fidelity` method exists on SpinorState | Complete |
+| 6 | Session hook → ConciergeAgent | Hook exists and outputs the right JSON fields; concierge agent definition matches; Python class matches expected behavior | Complete |
+
+Wires 5 and 6 are genuinely functional. Wire 3's fallback logic works but is brittle. Wires 2 and 4 are documented, implemented, and completely disconnected — they exist only inside `flume_bridge.py` with no callers. The `vae_encoder.py` import-crash bug (HIGH) means the FLUME path may never be exercised at all on a torch-less system.
+
+### Verdict
+
+**REQUEST CHANGES** — The two dead wires (2 and 4), the bare `except` on the most critical path, the divergent hash fallbacks, and the `SimpleEncoder` import-time crash on torch-less systems must be resolved before this is production-ready. The observer patch physics system itself (Wire 5) is well-implemented.</result>
+<usage><total_tokens>68359</total_tokens><tool_uses>47</tool_uses><duration_ms>184357</duration_ms></usage>
+</task-notification>
+Full transcript available at: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/b64da2bf-bc43-4e98-92b9-9ef978ee0301/tasks/a43f891b52e8cfffe.output
