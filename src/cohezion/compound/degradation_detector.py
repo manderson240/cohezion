@@ -170,7 +170,10 @@ class DegradationDetector:
         # Then add samples after all checks are done
 
         # Check cache hit rate
-        if self._baselines["cache_hit_rate"].is_established and cache_hit_rate < self.cache_hit_rate_threshold:
+        if (
+            self._baselines["cache_hit_rate"].is_established
+            and cache_hit_rate < self.cache_hit_rate_threshold
+        ):
             alert = DegradationAlert(
                 metric="cache_hit_rate",
                 severity=AlertSeverity.WARNING,
@@ -196,8 +199,7 @@ class DegradationDetector:
                         f"({tokens_per_sec:.0f} vs baseline {baseline_tok_sec:.0f} tok/sec)",
                         current_value=tokens_per_sec,
                         baseline_value=baseline_tok_sec,
-                        threshold=baseline_tok_sec
-                        * (1 - self.token_efficiency_drop_threshold),
+                        threshold=baseline_tok_sec * (1 - self.token_efficiency_drop_threshold),
                     )
                     if self._should_emit_alert(alert):
                         alerts.append(alert)
@@ -228,8 +230,7 @@ class DegradationDetector:
                         f"({duration:.2f}s vs baseline {baseline_duration:.2f}s)",
                         current_value=duration,
                         baseline_value=baseline_duration,
-                        threshold=baseline_duration
-                        * (1 + self.duration_slowdown_threshold),
+                        threshold=baseline_duration * (1 + self.duration_slowdown_threshold),
                     )
                     if self._should_emit_alert(alert):
                         alerts.append(alert)
@@ -256,6 +257,34 @@ class DegradationDetector:
         self._baselines["coherence"].add_sample(coherence)
         self._baselines["duration_seconds"].add_sample(duration)
         self._baselines["success_rate"].add_sample(success_rate)
+
+        # Constitutional equilibrium check (non-blocking)
+        # Validates HIHO attractor convergence via ManifoldEquilibrium
+        try:
+            from cohezion.validation.constitutional import ManifoldEquilibrium
+
+            equilibrium = ManifoldEquilibrium()
+            # Build a minimal axiomatic state from metrics
+            from cohezion.universe.engine import AxiomaticState
+
+            state = AxiomaticState(logic=coherence, physics=1.0 - coherence)
+            stability = equilibrium.verify_stability(state)
+            if not stability["is_stable"]:
+                eq_alert = DegradationAlert(
+                    metric="constitutional_equilibrium",
+                    severity=AlertSeverity.WARNING,
+                    message=(
+                        f"HIHO equilibrium unstable: coherence={coherence:.3f}, "
+                        f"dist={stability['dist_from_attractor']:.4f}"
+                    ),
+                    current_value=coherence,
+                    baseline_value=0.5,
+                    threshold=0.05,
+                )
+                if self._should_emit_alert(eq_alert):
+                    alerts.append(eq_alert)
+        except (ImportError, Exception):
+            pass  # Non-blocking: validation module may not be available
 
         return alerts
 
