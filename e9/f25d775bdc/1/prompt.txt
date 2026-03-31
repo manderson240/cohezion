@@ -59,3 +59,7 @@ Continue
 ---
 
 You can just develop here.  You actually have plenty of context. /home/mike-anderson/.cohezion-engine/sessions/pid-675692/continuation.md
+
+---
+
+Continue with C4 and the rest of the plan
