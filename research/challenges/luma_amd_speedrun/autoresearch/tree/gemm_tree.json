@@ -10,7 +10,7 @@
         "note": "Official template-hip.py at gpu-mode/reference-kernels proves load_inline WORKS!"
       },
       "parent_id": null,
-      "priority": 0.475,
+      "priority": 0.5,
       "attempts": 12,
       "best_result_us": 7.2,
       "stagnation_count": 1,
@@ -19,7 +19,10 @@
         "n_469245a5",
         "n_a6a3e4d8",
         "n_3b4b156e",
-        "n_2094562e"
+        "n_2094562e",
+        "n_cb785296",
+        "n_f2cdfede",
+        "n_3258e3a1"
       ],
       "notes": "BREAKTHROUGH: load_inline custom HIP kernel works on Popcorn runners!",
       "attempt_history": [
@@ -248,7 +251,93 @@
       "strategy": "load_inline custom HIP kernel - rocWMMA MFMA with dynamic swizzling and fused FP8 dequant (MI355X-specific tile sizes, no lifted scale overhead)",
       "parameters": {},
       "parent_id": "gemm_loadinline_root",
-      "priority": 0.7124999999999999,
+      "priority": 0.05,
+      "attempts": 1,
+      "best_result_us": 221.46,
+      "stagnation_count": 0,
+      "status": "pruned",
+      "children": [],
+      "notes": "[LLM-proposed] [STRATEGIC PRUNE: LLM world model]",
+      "attempt_history": [
+        {
+          "result_us": 221.46149275411537,
+          "parameters": {},
+          "timestamp": "2026-03-31T00:19:29.263188",
+          "source": "template"
+        }
+      ]
+    },
+    "n_cb785296": {
+      "id": "n_cb785296",
+      "strategy": "load_inline custom HIP kernel - rocWMMA MFMA with static swizzling, fused FP8 dequant, and MI355X-optimized tile sizes (no dynamic overhead)",
+      "parameters": {},
+      "parent_id": "gemm_loadinline_root",
+      "priority": 0.15,
+      "attempts": 1,
+      "best_result_us": 222.44,
+      "stagnation_count": 0,
+      "status": "pruned",
+      "children": [],
+      "notes": "[LLM-proposed] [STRATEGIC PRUNE: LLM world model]",
+      "attempt_history": [
+        {
+          "result_us": 222.4418763283716,
+          "parameters": {},
+          "timestamp": "2026-03-31T00:19:36.421653",
+          "source": "template"
+        }
+      ]
+    },
+    "n_f2cdfede": {
+      "id": "n_f2cdfede",
+      "strategy": "load_inline custom HIP kernel - MFMA tile unrolling with explicit loop fusion, no dynamic dispatch, FP8 dequant fused in MFMA pipeline",
+      "parameters": {},
+      "parent_id": "gemm_loadinline_root",
+      "priority": 0.4,
+      "attempts": 1,
+      "best_result_us": 176.7,
+      "stagnation_count": 0,
+      "status": "active",
+      "children": [],
+      "notes": "[LLM-proposed]",
+      "attempt_history": [
+        {
+          "result_us": 176.69542183383564,
+          "parameters": {},
+          "timestamp": "2026-03-31T00:19:43.615253",
+          "source": "template"
+        }
+      ]
+    },
+    "n_3258e3a1": {
+      "id": "n_3258e3a1",
+      "strategy": "load_inline custom HIP kernel - rocWMMA MFMA with static swizzling, lifted scales, and fused FP8 dequant (MI355X tile sizes, no dynamic dispatch)",
+      "parameters": {},
+      "parent_id": "gemm_loadinline_root",
+      "priority": 0.1,
+      "attempts": 1,
+      "best_result_us": 217.2,
+      "stagnation_count": 0,
+      "status": "active",
+      "children": [
+        "n_6d311e5c"
+      ],
+      "notes": "[LLM-proposed]",
+      "attempt_history": [
+        {
+          "result_us": 217.19549318031807,
+          "parameters": {},
+          "timestamp": "2026-03-31T00:19:50.867256",
+          "source": "template"
+        }
+      ]
+    },
+    "n_6d311e5c": {
+      "id": "n_6d311e5c",
+      "strategy": "load_inline custom HIP kernel - rocWMMA MFMA with static swizzling, lifted scales, fused FP8 dequant, and MI355X-optimized wavefront occupancy (32 waves/WG, tuned register usage)",
+      "parameters": {},
+      "parent_id": "n_3258e3a1",
+      "priority": 0.6,
       "attempts": 0,
       "best_result_us": null,
       "stagnation_count": 0,
