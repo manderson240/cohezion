@@ -181,7 +181,10 @@ All agent execution runs in isolation with resource governance:
 | [`worldviews/`](src/cohezion/worldviews/) | 16 indigenous traditions × 10 cosmogony steps | `WorldviewExplorer` |
 | [`ouroboros/`](src/cohezion/ouroboros/) | Self-referential loop closure, mycelium network | `OuroborosBridge` |
 | [`environments/`](src/cohezion/environments/) | ManifoldEnv (gymnasium), SwarmEnv (multi-agent) | `gym.make('Cohezion/ManifoldEnv-v0')` |
-| [`api/`](src/cohezion/api/) | FastAPI server (55+ endpoints) | `app` |
+| [`api/`](src/cohezion/api/) | FastAPI server (55+ endpoints), AG-UI SSE streaming | `app` |
+| [`governance/`](src/cohezion/governance/) | Concierge agent, autonomy engine, FLUME bridge, knowledge bridge | `ConciergeAgent` |
+| [`data_mesh/`](src/cohezion/data_mesh/) | Typed data products with SLA, schema, and ownership | `DataProduct` |
+| [`mcp/`](src/cohezion/mcp/) | 18 MCP servers + registry with tier-based governance | `MCPRegistry` |
 
 ---
 
@@ -250,6 +253,31 @@ async def main():
 
 asyncio.run(main())
 ```
+
+
+### Agent Protocol Stack
+
+| Protocol | Status | Implementation |
+|----------|--------|---------------|
+| **MCP** | Strong | 18 servers, 41+ tools via cloud-vault-mcp, compound-mcp, bmad |
+| **A2A** | In Progress | 19 agent definitions with agent cards |
+| **A2UI** | Strong | 9-component declarative catalog, experience scripts, A2UIRenderer |
+| **AG-UI** | Strong | 15+ typed SSE events, `/api/agui/stream` endpoint |
+
+### Physics-Grounded Governance
+
+Agents earn autonomy through the cosmogonic chain — each symmetry breaking grants more freedom:
+
+| Tier | Symmetry | Agent Can... |
+|------|----------|-------------|
+| Void | ∅ | Nothing (full human control) |
+| Observe | SO(12) | Read, search, analyze |
+| Edit | SO(3)⁴ | Edit files, run tests, create branches |
+| Commit | U(1)⁴ | Commit, push to feature branches |
+| Deploy | Z₂⁴ | Deploy, merge to main |
+| Sovereign | HIHO | Full autonomous within constitutional bounds |
+
+Safety is an attractor, not a constraint. HIHO (0.5 coherence) is the mathematical fixed point where 6 independent frameworks converge. 16 indigenous traditions independently validated the same cosmogonic structure.
 
 ### Compound Execution Loop
 
