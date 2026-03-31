@@ -119,6 +119,10 @@ class SkillRefiner:
 
             if refined_path:
                 logger.info(f"Refined skill {skill_name}: {signal.key_insight}")
+
+                # Persist refinement to vault + SurrealDB (non-blocking)
+                self._persist_refinement_to_vault(skill_name, operation_type, signal, metrics)
+
                 return str(refined_path)
 
             return None
@@ -127,6 +131,41 @@ class SkillRefiner:
             # Non-blocking: log and continue
             logger.debug(f"Skill refinement failed (non-blocking): {e}")
             return None
+
+    def _persist_refinement_to_vault(
+        self,
+        skill_name: str,
+        operation_type: str,
+        signal: Any,
+        metrics: Any,
+    ) -> None:
+        """Persist skill refinement to vault + SurrealDB via knowledge_bridge."""
+        try:
+            import time
+
+            from cohezion.governance.knowledge_bridge import Learning, persist_learning
+
+            content = (
+                f"Skill '{skill_name}' refined after {operation_type} execution. "
+                f"Insight: {signal.key_insight}. "
+                f"Coherence: {getattr(metrics, 'coherence', 'N/A')}, "
+                f"Quality: {getattr(metrics, 'quality_score', 'N/A')}."
+            )
+
+            learning = Learning(
+                number=0,
+                title=f"Skill refinement: {skill_name}",
+                content=content,
+                date=time.strftime("%Y-%m-%d"),
+                tags=["skill-refinement", skill_name, operation_type],
+                propagate_to=f"PRIME skill: {skill_name}",
+            )
+
+            persist_learning(learning)
+            logger.info("Knowledge bridge: persisted skill refinement for %s", skill_name)
+
+        except Exception:
+            logger.debug("Skill refinement vault persistence failed (non-blocking)", exc_info=True)
 
     def _extract_metrics(self, execution_result: dict[str, Any]) -> ExecutionMetrics:
         """Extract metrics from execution result.

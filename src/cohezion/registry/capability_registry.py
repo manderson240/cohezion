@@ -206,7 +206,11 @@ class CapabilityRegistry:
                             if stripped.startswith('"""'):
                                 # Check for single-line docstring: """text"""
                                 if stripped.count('"""') >= 2:
-                                    desc = stripped.removeprefix('"""').removesuffix('"""').strip()[:200]
+                                    desc = (
+                                        stripped.removeprefix('"""')
+                                        .removesuffix('"""')
+                                        .strip()[:200]
+                                    )
                                     break
                                 # Multi-line docstring starts
                                 in_docstring = True
@@ -354,6 +358,45 @@ class CapabilityRegistry:
                 cap.usage_count = self._usage_cache[cap.name].get("count", 0)
                 cap.last_used = self._usage_cache[cap.name].get("last_used", "")
 
+    def persist_capability_snapshot(self, reason: str = "periodic") -> dict:
+        """Persist current capability state to vault + SurrealDB.
+
+        Writes a summary of all capabilities, their scores, usage counts, and
+        compound impact to the knowledge persistence pipeline.
+
+        Args:
+            reason: Why this snapshot is being taken (e.g., "periodic", "capability-change")
+
+        Returns:
+            Dict with persistence results from knowledge_bridge.
+        """
+        try:
+            from cohezion.governance.knowledge_bridge import Learning, persist_learning
+
+            top_caps = sorted(self.capabilities, key=lambda c: c.usage_count, reverse=True)[:10]
+            cap_summary = "\n".join(
+                f"- {c.name} ({c.type}): score={c.score:.2f}, usage={c.usage_count}"
+                for c in top_caps
+            )
+
+            learning = Learning(
+                number=0,
+                title=f"Capability snapshot ({reason})",
+                content=(
+                    f"Registry contains {len(self.capabilities)} capabilities. "
+                    f"Top 10 by usage:\n{cap_summary}"
+                ),
+                date=datetime.now().strftime("%Y-%m-%d"),
+                tags=["capability", "snapshot", reason],
+                propagate_to="Capability registry evolution",
+            )
+
+            return persist_learning(learning)
+
+        except Exception as e:
+            logger.debug("Capability snapshot persistence failed: %s", e)
+            return {"error": str(e)}
+
 
 if __name__ == "__main__":
     # Test Run
@@ -371,4 +414,6 @@ if __name__ == "__main__":
     for q in test_queries:
         print(f"\nQUERY: '{q}'")
         for res in reg.find(q, top_k=3):
-            print(f"  - [{res.type.upper()}] {res.name}: {res.description[:50]}... ({res.score:.2f})")
+            print(
+                f"  - [{res.type.upper()}] {res.name}: {res.description[:50]}... ({res.score:.2f})"
+            )
