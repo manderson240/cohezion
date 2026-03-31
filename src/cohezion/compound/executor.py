@@ -234,6 +234,37 @@ class CompoundExecutor(CompoundContextMixin):
 
         return self._alignment_analyzer
 
+    def _try_template_match(self, task_description: str) -> dict[str, Any] | None:
+        """Check cache for a template match before LLM execution.
+
+        Uses CacheWarmer.find_template_match() if available. Returns cached
+        response dict if match found (>0.85 similarity), None otherwise.
+        Non-blocking: returns None on any error.
+        """
+        try:
+            from cohezion.cache.cache_warmer import CacheWarmer
+            from cohezion.cache.semantic_cache import SemanticCache
+
+            cache = SemanticCache.get_instance() if hasattr(SemanticCache, "get_instance") else None
+            if cache is None:
+                return None
+
+            warmer = CacheWarmer(cache)
+            # Sync wrapper — find_template_match is async but we need sync here
+            import asyncio
+
+            try:
+                loop = asyncio.get_running_loop()
+                # Already in async context — can't block
+                return None
+            except RuntimeError:
+                # No running loop — safe to run
+                return asyncio.run(warmer.find_template_match(task_description))
+
+        except Exception:
+            logger.debug("Template matching failed (non-blocking)", exc_info=True)
+            return None
+
     def get_experience_guidance(
         self, task_description: str, project: str = "cohezion", operation_type: str = "generate"
     ) -> dict[str, Any]:
@@ -416,6 +447,30 @@ class CompoundExecutor(CompoundContextMixin):
         # Step 1: Get experience guidance (enhanced with trajectory search)
         guidance = self.get_experience_guidance(task_description, project, operation_type)
         logger.debug("Experience guidance: %s", guidance)
+
+        # Step 1.3: Template matching — check cache for similar completed task
+        # If a high-similarity match exists, skip the LLM call entirely
+        template_match = self._try_template_match(task_description)
+        if template_match is not None:
+            logger.info(
+                "Template hit (%.0f%% sim, source=%s) — skipping LLM, saved ~%d tokens",
+                template_match["similarity"] * 100,
+                template_match["source"],
+                template_match.get("tokens_saved", 0),
+            )
+            return ExecutionResult(
+                success=True,
+                output=template_match["response"],
+                metrics={
+                    "template_match": True,
+                    "similarity": template_match["similarity"],
+                    "source": template_match["source"],
+                    "tokens_saved": template_match.get("tokens_saved", 0),
+                },
+                duration_seconds=time.time() - start_seconds,
+                vault_experiment_path=None,
+                token_metrics={"template_hit": True, "tokens_used": 0},
+            )
 
         # Step 1.5: Parse request for alignment analysis (if enabled)
         # Skip in degradation mode to conserve resources

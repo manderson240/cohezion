@@ -80,6 +80,66 @@ class CacheWarmer:
             logger.debug(f"Cache warming from vault failed: {e}")
             return 0
 
+    async def find_template_match(
+        self,
+        task_description: str,
+        similarity_threshold: float = 0.85,
+    ) -> dict[str, Any] | None:
+        """Query cache for a template match before executing an LLM call.
+
+        If a sufficiently similar task has been completed before, return the
+        cached response. This skips the LLM entirely for known patterns.
+
+        Args:
+            task_description: The task to match against
+            similarity_threshold: Minimum cosine similarity (default 0.85)
+
+        Returns:
+            Dict with {response, similarity, source} if match found, None otherwise
+        """
+        # Try L1 exact match first (fastest)
+        l1_result = await self.cache.get(task_description)
+        if l1_result:
+            logger.info("Template match: L1 exact hit for '%s'", task_description[:50])
+            return {
+                "response": l1_result,
+                "similarity": 1.0,
+                "source": "L1_exact",
+                "tokens_saved": len(task_description.split()) * 4,  # rough estimate
+            }
+
+        # Try L2 semantic match (cosine similarity)
+        if hasattr(self.cache, "_l2_cache") and self.cache._l2_cache:
+            try:
+                embedding = self.cache._embed(task_description)
+                if embedding is not None:
+                    best_match = None
+                    best_sim = 0.0
+
+                    for entry in self.cache._l2_cache.values():
+                        if entry.embedding is not None:
+                            sim = self.cache._cosine_similarity(embedding, entry.embedding)
+                            if sim > best_sim:
+                                best_sim = sim
+                                best_match = entry
+
+                    if best_match and best_sim >= similarity_threshold:
+                        logger.info(
+                            "Template match: L2 semantic hit (%.2f similarity) for '%s'",
+                            best_sim,
+                            task_description[:50],
+                        )
+                        return {
+                            "response": best_match.response,
+                            "similarity": best_sim,
+                            "source": "L2_semantic",
+                            "tokens_saved": len(task_description.split()) * 4,
+                        }
+            except Exception as e:
+                logger.debug("L2 template search failed: %s", e)
+
+        return None
+
     async def warm_from_history(self, skill_name: str) -> int:
         """Warm cache for specific skill from execution history.
 
