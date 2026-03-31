@@ -307,3 +307,5 @@ Observer Patch Holography's Axiom 2 (overlap consistency) is the mathematical fo
 
 ### Learning 220: A2UI Makes Agent Testing Structural (2026-03-31)
 Component catalog (JSON) + experience scripts replace opaque WebGL testing. Agent validates the data structure, not the pixels. 9 Playwright e2e tests + 26 pytest tests. Data-attribute selectors (data-a2ui-component) are the most reliable Playwright selectors for dynamic UIs.
+### Learning 221: LeWM — Missing JEPA World Model Upgrade (2026-03-31)
+lucas-maes/le-wm is the first stable end-to-end JEPA from raw pixels using only 2 loss terms (next-embedding prediction + Gaussian regularizer). 15M params, single GPU, trains in hours, plans 48x faster than foundation models. Latent space encodes physical structure and detects implausible events. Direct upgrade path for Cohezion's 86K-param JEPAWorldModel. Connection: FLUME encode → LeWM predict → prediction error = free energy gradient. See: [[cerebellum/2026-03-31-session-wiring-retrospective]]
