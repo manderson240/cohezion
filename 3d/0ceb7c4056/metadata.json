@@ -25,6 +25,7 @@
     "cache/swarm/acca095af12cef4761a77b6f20484a7ffdf0585354d812e7ddf12a255e800cfd.json",
     "cache/swarm/c68c897ff681adba82de83dd1ebd599ec71e7c6c52f472331ef823abfb9267a9.json",
     "cache/swarm/d7cd2b4b5255963d9f78e816f52e9113109ec5042bfa8acc849435fe4a8849d8.json",
+    "research/challenges/luma_amd_speedrun/autoresearch/tree/moe_tree.json",
     "src/cohezion/skills/skill_registry.json"
   ],
   "sessions": [
@@ -39,6 +40,12 @@
       "transcript": "/3d/0ceb7c4056/1/full.jsonl",
       "content_hash": "/3d/0ceb7c4056/1/content_hash.txt",
       "prompt": "/3d/0ceb7c4056/1/prompt.txt"
+    },
+    {
+      "metadata": "/3d/0ceb7c4056/2/metadata.json",
+      "transcript": "/3d/0ceb7c4056/2/full.jsonl",
+      "content_hash": "/3d/0ceb7c4056/2/content_hash.txt",
+      "prompt": "/3d/0ceb7c4056/2/prompt.txt"
     }
   ],
   "token_usage": {
