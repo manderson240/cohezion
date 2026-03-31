@@ -1061,9 +1061,25 @@ class ExecutorFactory:
             skill_health_tracker: Optional SkillHealthTracker
 
         Returns:
-            CompoundExecutor instance
+            CompoundExecutor (or TokenEfficientCompoundExecutor when token_client provided)
         """
-        return CompoundExecutor(
+        # When token_client is available, use TokenEfficientCompoundExecutor
+        # for automatic API prompt caching (static prefix/dynamic suffix separation)
+        executor_class = CompoundExecutor
+        if token_client is not None:
+            try:
+                from cohezion.compound.token_efficient_executor import (
+                    TokenEfficientCompoundExecutor,
+                )
+
+                executor_class = TokenEfficientCompoundExecutor
+                logger.info(
+                    "ExecutorFactory: using TokenEfficientCompoundExecutor (token_client provided)"
+                )
+            except ImportError:
+                logger.debug("TokenEfficientCompoundExecutor not available, using base executor")
+
+        return executor_class(
             mcp_client,
             token_client,
             guardrail_pipeline,
@@ -1127,14 +1143,14 @@ class ExecutorFactory:
             Singleton CompoundExecutor instance
         """
         if ExecutorFactory._instance is None:
-            ExecutorFactory._instance = CompoundExecutor(
-                mcp_client,
-                token_client,
-                guardrail_pipeline,
-                enable_guardrails,
-                inflection_detector,
-                skill_refiner,
-                enable_skill_refinement,
+            ExecutorFactory._instance = ExecutorFactory.create(
+                mcp_client=mcp_client,
+                token_client=token_client,
+                guardrail_pipeline=guardrail_pipeline,
+                enable_guardrails=enable_guardrails,
+                inflection_detector=inflection_detector,
+                skill_refiner=skill_refiner,
+                enable_skill_refinement=enable_skill_refinement,
                 metrics_collector=metrics_collector,
                 journey_tracker=journey_tracker,
                 journey_persistence=journey_persistence,
