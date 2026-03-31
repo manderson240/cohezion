@@ -1,0 +1,119 @@
+{
+  "$schema": "https://schemas.google.com/a2a/agent-card/v1",
+  "name": "Cohezion Platform",
+  "description": "Physics-grounded universe for training safe AI agents. 12D manifold with FLUME VAE, compound engineering, cosmogonic autonomy tiers.",
+  "url": "http://localhost:8080",
+  "version": "0.80.0",
+  "capabilities": {
+    "streaming": true,
+    "pushNotifications": false,
+    "stateTransitionHistory": true
+  },
+  "defaultInputModes": ["text/plain"],
+  "defaultOutputModes": ["text/plain", "application/json"],
+  "skills": [
+    {
+      "id": "compound-execute",
+      "name": "Compound Execution",
+      "description": "Execute tasks with vault-guided experience, automatic retry/escalation, and skill refinement. Uses TipOfTheSpearRouter for HOT→WARM→COLD→CLOUD model escalation.",
+      "tags": ["execution", "compound", "orchestration"],
+      "examples": ["Execute a code review with compound feedback loop", "Run skill refinement on research task"]
+    },
+    {
+      "id": "flume-encode",
+      "name": "FLUME Encoding",
+      "description": "Encode prompts, states, or experiences as 256D latent vectors via FLUME VAE. Supports semantic routing, similarity search, and manifold projection.",
+      "tags": ["encoding", "flume", "semantic"],
+      "examples": ["Encode this prompt for semantic routing", "Compute cosine similarity between two concepts"]
+    },
+    {
+      "id": "journey-track",
+      "name": "Journey Tracking",
+      "description": "Record agent trajectories as 12D state transitions with observer consistency. Supports checkpoints, rollback, and FLUME-grounded trajectory analysis.",
+      "tags": ["journey", "trajectory", "monitoring"],
+      "examples": ["Start a new journey for deployment task", "Save checkpoint at current state"]
+    },
+    {
+      "id": "governance-check",
+      "name": "Autonomy Governance",
+      "description": "Check agent autonomy tier (∅→SO(12)→SO(3)⁴→U(1)⁴→Z₂⁴→HIHO) and enforce tool-level permissions via MCP Registry. Physics-grounded safety.",
+      "tags": ["governance", "autonomy", "safety"],
+      "examples": ["Can agent X perform a git push?", "Record coherence measurement for agent Y"]
+    },
+    {
+      "id": "concierge-route",
+      "name": "Session Routing",
+      "description": "Route new sessions to optimal context using 7-source state synthesis (continuations, worktrees, plans, git, SurrealDB, vault, MEMORY). Dynamic learning via JSONL history.",
+      "tags": ["routing", "concierge", "session"],
+      "examples": ["Route user prompt to best worktree", "Get session briefing"]
+    },
+    {
+      "id": "observer-consistency",
+      "name": "Observer Consistency",
+      "description": "Compute OPH Axiom 2 overlap consistency between agent observer patches on S². Used for human-in-the-loop governance and multi-agent coherence.",
+      "tags": ["physics", "observer", "coherence"],
+      "examples": ["Check overlap between human and agent patches", "Verify HIHO coherence for agent pair"]
+    },
+    {
+      "id": "data-product-sla",
+      "name": "Data Product SLA",
+      "description": "Track and enforce SLA compliance for 18 MCP server data products. Bronze/Silver/Gold quality tiers with latency, freshness, and completeness checks.",
+      "tags": ["data-mesh", "sla", "governance"],
+      "examples": ["Check SLA for journey-checkpoint product", "Record access to agui-event-stream"]
+    }
+  ],
+  "agents": [
+    {
+      "id": "vault-keeper",
+      "name": "Vault Keeper",
+      "description": "Vault health monitoring, orphan detection, frontmatter enforcement, brain-architecture navigation.",
+      "skills": ["journey-track", "data-product-sla"]
+    },
+    {
+      "id": "surreal-dba",
+      "name": "SurrealDB DBA",
+      "description": "Schema validation, index optimization, graph health, neuron table management.",
+      "skills": ["data-product-sla"]
+    },
+    {
+      "id": "claude-specialist",
+      "name": "Claude Specialist",
+      "description": "Claude Code/API optimization, agent teams, MCP server configuration, hook management.",
+      "skills": ["compound-execute", "governance-check"]
+    },
+    {
+      "id": "gemini-specialist",
+      "name": "Gemini Specialist",
+      "description": "Gemini CLI, Google ADK, A2A protocol, Flash-Lite/Flash/Pro cost routing.",
+      "skills": ["compound-execute", "governance-check"]
+    },
+    {
+      "id": "ollama-specialist",
+      "name": "Ollama Specialist",
+      "description": "Local model lifecycle, VRAM management, DynamicModelRouter, benchmarking, auto-swap.",
+      "skills": ["compound-execute", "governance-check"]
+    },
+    {
+      "id": "mcp-specialist",
+      "name": "MCP Specialist",
+      "description": "MCP server lifecycle, tool schemas, health monitoring, registry governance for 18 servers.",
+      "skills": ["data-product-sla", "governance-check"]
+    },
+    {
+      "id": "platform-coordinator",
+      "name": "Platform Coordinator",
+      "description": "Cross-platform routing (Ollama→Gemini→Claude), cost tiers, fallback chains, provider health aggregation.",
+      "skills": ["compound-execute", "flume-encode", "governance-check"]
+    }
+  ],
+  "provider": {
+    "organization": "Cohezion",
+    "url": "https://github.com/cohezion"
+  },
+  "securitySchemes": {
+    "autonomyTier": {
+      "type": "custom",
+      "description": "Cosmogonic autonomy tier (∅, SO(12), SO(3)^4, U(1)^4, Z_2^4, HIHO). Agents must earn higher tiers through sustained HIHO coherence."
+    }
+  }
+}
