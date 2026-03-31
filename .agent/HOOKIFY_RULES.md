@@ -27,6 +27,21 @@
   - test_hiho_convergence
   - test_stability_boundary
 
+## Rule: knowledge_persist
+- **ID**: knowledge_persist
+- **Trigger**: post_execute
+- **Condition**: should_persist_learning == true OR retrospection_generated == true
+- **Action**: hookify_vault_writer.write_session_learning
+- **Levers**:
+  - persist_to_vault: true
+  - persist_to_surrealdb: true
+  - embed_with_flume: true
+  - max_content_length: 500
+- **Adversarial Tests**:
+  - test_vault_file_created
+  - test_surrealdb_neuron_inserted
+  - test_flume_embedding_non_empty
+
 ## Rule: akashic_commit
 - **ID**: akashic_commit
 - **Trigger**: post_execute

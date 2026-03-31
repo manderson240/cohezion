@@ -223,6 +223,10 @@ class CompoundFeedbackLoop:
                         attempts,
                         execution_result,
                     )
+                    # Persist to vault + SurrealDB via knowledge_bridge
+                    self._persist_learning_to_vault(
+                        task_description, skill_name, attempts, current_retry
+                    )
 
                 return FeedbackLoopResult(
                     task_description=task_description,
@@ -437,6 +441,48 @@ class CompoundFeedbackLoop:
 
         except Exception as e:
             logger.debug("Error logging learning insights: %s", e)
+
+    def _persist_learning_to_vault(
+        self,
+        task_description: str,
+        skill_name: str,
+        attempts: list[RetryAttempt],
+        retries: int,
+    ) -> None:
+        """Persist retry learning to Obsidian vault + SurrealDB via knowledge_bridge.
+
+        Non-blocking: failures here never break the execution pipeline.
+        """
+        try:
+            from cohezion.governance.knowledge_bridge import Learning, persist_learning
+
+            strategies = [str(a.strategy) for a in attempts if a.success]
+            issues: list[str] = []
+            for a in attempts:
+                if a.anomaly_detected:
+                    issues.extend(a.anomaly_detected.issues[:3])
+
+            content = (
+                f"Task '{task_description}' succeeded after {retries} retries "
+                f"using skill '{skill_name}'. "
+                f"Successful strategies: {', '.join(strategies) or 'none'}. "
+                f"Issues encountered: {', '.join(issues[:5]) or 'none'}."
+            )
+
+            learning = Learning(
+                number=0,
+                title=f"Retry success: {task_description[:50]}",
+                content=content,
+                date=time.strftime("%Y-%m-%d"),
+                tags=["compound", "retry", "learning", skill_name],
+                propagate_to="Compound engineering patterns",
+            )
+
+            result = persist_learning(learning)
+            logger.info("Knowledge bridge: persisted retry learning → %s", result)
+
+        except Exception:
+            logger.debug("Knowledge bridge persistence failed (non-blocking)", exc_info=True)
 
     def reset(self) -> None:
         """Reset execution history and detector state."""

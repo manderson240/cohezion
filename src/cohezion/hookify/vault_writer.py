@@ -372,6 +372,53 @@ This changelog serves as the **permanent witness** of this cosmological computat
 
         return filepath
 
+    def write_session_learning(
+        self,
+        session_id: str,
+        learning_title: str,
+        learning_content: str,
+        tags: list[str] | None = None,
+        learning_number: int = 0,
+    ) -> dict[str, Any]:
+        """Orchestrate full learning persistence: vault + SurrealDB + KEY_LEARNINGS.
+
+        This is the single entry point for all knowledge capture. It calls
+        knowledge_bridge.persist_learning() for the 3-layer write, then writes
+        a Hookify learning summary to cerebellum/hookify-patterns/.
+
+        Returns dict with paths/status for each persistence layer.
+        """
+        from cohezion.governance.knowledge_bridge import Learning, persist_learning
+
+        learning = Learning(
+            number=learning_number,
+            title=learning_title,
+            content=learning_content,
+            date=datetime.now().strftime("%Y-%m-%d"),
+            tags=tags or ["session", "learning"],
+            propagate_to="Compound engineering patterns",
+        )
+
+        # 3-layer persistence via knowledge_bridge
+        bridge_result = persist_learning(learning)
+
+        # Also write Hookify-formatted summary to cerebellum/hookify-patterns/
+        try:
+            self.write_rule_learning_summary(
+                rule_id="knowledge_persist",
+                period=f"session-{session_id}",
+                statistics={
+                    "vault_written": bool(bridge_result.get("vault")),
+                    "surrealdb_written": bridge_result.get("surrealdb", False),
+                    "learning_number": learning_number,
+                },
+                recommendations=[f"Learning: {learning_title}"],
+            )
+        except Exception as e:
+            logger.warning("Hookify summary write failed (non-blocking): %s", e)
+
+        return bridge_result
+
     def create_rule_neuron_in_graph(self, rule_id: str, surrealdb_client: Any):
         """
         Create a neuron in SurrealDB graph for this rule

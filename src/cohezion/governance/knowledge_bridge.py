@@ -24,6 +24,7 @@ from __future__ import annotations
 
 import json
 import logging
+import os
 import time
 from dataclasses import dataclass
 from pathlib import Path
@@ -32,7 +33,7 @@ logger = logging.getLogger(__name__)
 
 VAULT_DIR = Path.home() / "vaults" / "cohezion-vault"
 CEREBELLUM_DIR = VAULT_DIR / "cerebellum"
-SURREAL_URL = "http://localhost:8001"
+SURREAL_URL = os.environ.get("SURREALDB_URL", "http://localhost:8000")
 
 
 @dataclass
@@ -153,6 +154,8 @@ def persist_to_surrealdb(learning: Learning) -> bool:
         safe_content = learning.content[:200].replace("'", "")
         slug = learning.title.lower().replace(" ", "-").replace(":", "")[:60]
         vault_path = f"cerebellum/{learning.date}-{slug}.md"
+        # Include FLUME embedding for semantic search (first 64 dims for balance)
+        embedding_json = json.dumps(embedding_list[:64]) if embedding_list else "[]"
         direct_surql = (
             f"CREATE neuron SET "
             f"title = 'L{learning.number}: {safe_title}', "
@@ -161,6 +164,7 @@ def persist_to_surrealdb(learning: Learning) -> bool:
             f"stage = 'mature', "
             f"tags = {json.dumps(learning.tags)}, "
             f"word_count = {len(learning.content.split())}, "
+            f"embedding = {embedding_json}, "
             f"created = time::now();"
         )
 
