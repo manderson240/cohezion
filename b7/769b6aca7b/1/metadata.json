@@ -1,0 +1,36 @@
+{
+  "cli_version": "0.5.1",
+  "checkpoint_id": "b7769b6aca7b",
+  "session_id": "b64da2bf-bc43-4e98-92b9-9ef978ee0301",
+  "strategy": "manual-commit",
+  "created_at": "2026-03-31T23:16:14.697709067Z",
+  "branch": "main",
+  "checkpoints_count": 0,
+  "files_touched": [
+    "research/challenges/luma_amd_speedrun/kernels/mxfp4-mm/submission.py"
+  ],
+  "agent": "Claude Code",
+  "model": "claude-opus-4-6[1m]",
+  "turn_id": "1c9427419640",
+  "checkpoint_transcript_start": 7374,
+  "transcript_lines_at_start": 7374,
+  "token_usage": {
+    "input_tokens": 0,
+    "cache_creation_tokens": 0,
+    "cache_read_tokens": 0,
+    "output_tokens": 0,
+    "api_call_count": 0
+  },
+  "session_metrics": {
+    "turn_count": 95
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-03-31T23:16:09.695605475Z",
+    "agent_lines": 0,
+    "human_added": 4091,
+    "human_modified": 41,
+    "human_removed": 0,
+    "total_committed": 4091,
+    "agent_percentage": 0
+  }
+}
