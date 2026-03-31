@@ -107,3 +107,7 @@ Full transcript available at: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/
 ---
 
 Continue
+
+---
+
+The cz context measurement is wrong.  Let's just remove it, it's slowing us down.
