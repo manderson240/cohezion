@@ -134,3 +134,80 @@ How do we make it safely agentically autonomous and sovereign while still mainta
 ---
 
 And how can we avoid having to start from scratch in each session?  I think we need a concierge agent that greats the user and then interprets the prompt and finds the optimal path in the projects to direct it towards.
+
+---
+
+<task-notification>
+<task-id>ac867428adb49f3df</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/b64da2bf-bc43-4e98-92b9-9ef978ee0301/tasks/ac867428adb49f3df.output</output-file>
+<status>completed</status>
+<summary>Agent "Code review full branch" completed</summary>
+<result>I now have all the information needed for a thorough review.
+
+---
+
+## Code Review: `src/cohezion/governance/concierge.py`, `src/cohezion/physics/observer_patch.py`, `src/cohezion/data_mesh/data_product.py` + corresponding tests
+
+### Summary
+
+Three well-scoped modules landed in the last 4 commits. The design intent is clear and documented throughout, and the tests are lean and focused. There are no security issues and no broken imports. A handful of specific correctness and standards violations need addressing before these modules are production-safe.
+
+---
+
+### Findings
+
+#### HIGH
+
+- **`src/cohezion/governance/concierge.py:109`** — Bare `except Exception:` swallows all errors from history loading. Per project standards, catch specific exceptions (`json.JSONDecodeError`, `KeyError`, `OSError`) and log the specific error type and path. As written, a `MemoryError` or `PermissionError` on the history file would silently produce an agent with no learned history and no diagnostic output.
+
+- **`src/cohezion/governance/concierge.py:97-116`** — All I/O (`read_text`, `open().write()`) is synchronous/blocking with no timeout, violating the project's "all I/O must be async/await" standard. `gather_briefing` and `_save_record` touch the filesystem inline. On a slow NFS path or a large `routing_history.jsonl`, this blocks the event loop. At minimum, `_save_record` should be called in a `try/except OSError` block with a note that async refactor is needed.
+
+- **`src/cohezion/governance/concierge.py:90`** — `ConciergeAgent` does not inherit from `cohezion.agents.base.BaseAgent`, which is a hard architectural requirement per CLAUDE.md: "Agents must inherit from `cohezion.agents.base.BaseAgent`." The agent docstring also lacks the required TF-IDF-indexable one-sentence purpose as the first line — it starts with "Session concierge with dynamic learning" which is fine, but this inheritance gap means it won't be discovered by the skill registry or governed by the base class lifecycle.
+
+- **`src/cohezion/governance/concierge.py:166`** — The f-string `f"switch_worktree"` has no interpolation — it is just `"switch_worktree"`. This is harmless at runtime but signals the confidence key does not distinguish between different worktree targets. All worktree routes share one confidence bucket, meaning poor acceptance of one branch degrades routing confidence for all branches. This makes the learning mechanism systematically less useful for the most common routing action.
+
+#### MEDIUM
+
+- **`src/cohezion/physics/observer_patch.py:88-92`** — The containment branch in `overlap_fraction` returns `smaller_solid_angle / larger_solid_angle`, which is the ratio of the solid angles of the two spherical caps, not the fractional overlap. The correct overlap fraction for containment is `1.0` from the contained patch's perspective (it is completely within the larger patch), or `smaller/larger` from the larger patch's perspective. The current code collapses both cases into one value, which is geometrically ambiguous. The docstring says the return represents how much of the patches' combined area is shared, but containment is not the same as partial overlap. The test suite does not cover this case explicitly, so the incorrect value goes undetected.
+
+- **`src/cohezion/data_mesh/data_product.py:57`** — `DataProduct` is a mutable `@dataclass` but its SLA-tracking fields (`access_count`, `error_count`, `last_accessed`) accumulate state via `record_access`. This is intentional, but `created_at` is also mutable. The pre-defined `COHEZION_DATA_PRODUCTS` dict at line 141 uses module-level mutable `DataProduct` instances — this means `access_count` and `error_count` are shared state across the process lifetime and across tests. Tests that call `record_access` on `COHEZION_DATA_PRODUCTS["vault-entry"]` will pollute other tests. The pre-defined products should be factories (`def make_vault_entry_product() -> DataProduct`) or use `copy.copy()` at access time.
+
+- **`src/cohezion/physics/observer_patch.py:98-101`** — `ConsistencyResult` is referenced before its definition. The class is defined at line 150, but `verify_observer_consistency` at line 98 already references it in its return type annotation. Python's `from __future__ import annotations` at line 23 makes this work at runtime, but mypy `--strict` will still flag it as a forward reference issue in older configurations. This is a minor ordering nit but worth noting for traceability.
+
+- **`tests/test_data_product.py:67`** — `test_six_products_defined` hardcodes the count `6`. Per `testing.md` rule: "Never commit tests that depend on specific file counts." Adding a seventh data product will silently break this test. Replace with `assert len(COHEZION_DATA_PRODUCTS) >= 6` or simply remove the count assertion and rely on the other tests to verify product properties.
+
+- **`tests/test_observer_patch.py:79`** — `test_no_overlap_has_zero_fidelity` asserts `result.fidelity == 0.0`. This works only because `ConsistencyResult` has `fidelity: float = 0.0` as default and the no-overlap early-return path at line 118 creates the result without providing `fidelity`. This is a valid test of the early-return, but it is coupling to the default field value rather than testing behavior explicitly. Low risk but fragile.
+
+#### LOW
+
+- **`src/cohezion/governance/concierge.py:43-45`** — The three path constants `SESSIONS_DIR`, `VAULT_DIR`, `ROUTING_HISTORY_PATH` are module-level globals using `Path.home()`, which is evaluated at import time. `VAULT_DIR` is imported but unused anywhere in the file. Remove it or use it.
+
+- **`src/cohezion/governance/concierge.py:156-163`** — `worktree_map` is rebuilt on every call to `route_prompt`. This is a minor inefficiency; it could be a class constant. Not a correctness issue.
+
+- **`src/cohezion/data_mesh/data_product.py:88`** — `max_latency_ms: int = 5000` in the default but the test `test_gold_products_have_low_latency` asserts `<= 5000`. The default *is* 5000, so the assertion is vacuously true for any gold product that didn't set a stricter value. The test provides no actual protection against regressions.
+
+---
+
+### Compound Score: 7 / 10
+
+**What earns it high marks:** Each module is genuinely reusable. `ObserverPatch` + `overlap_fraction` can slot into any multi-agent coordination check. `DataProduct` establishes a clean first-class data contract that all 17 MCP servers can adopt — the schema, lineage, and SLA fields are exactly the right vocabulary. The concierge's `RoutingRecord` + JSONL persistence is the right pattern for low-friction learning that survives restarts.
+
+**What holds it back:**
+
+1. The learning mechanism in `ConciergeAgent._historical_confidence` collapses all worktree routes into a single `"switch_worktree"` key. As the system grows (more worktrees, more branches), this erodes the compound value — the model can't distinguish which specific branch the user prefers. Keying on `f"switch_worktree:{action_key}"` would make the learning compound properly.
+
+2. `COHEZION_DATA_PRODUCTS` as a module-level mutable dict is a shared-state trap. Every future caller that wants to record accesses will need to know not to mutate the global. A registry pattern (class with a `get(product_id) -> DataProduct` factory) would have been better and would compound more cleanly.
+
+3. `ConciergeAgent` not inheriting `BaseAgent` means it sits outside the skill registry, TF-IDF indexing, and lifecycle management. That is the core compound loop — staying outside it limits how much the system can self-improve around this agent.
+
+---
+
+### Verdict
+
+**REQUEST CHANGES**
+
+The bare `except Exception` (HIGH), missing `BaseAgent` inheritance (HIGH), and the mutable module-level `COHEZION_DATA_PRODUCTS` shared-state issue (MEDIUM) need to be addressed before merging. The overlap containment approximation (MEDIUM) should at minimum be documented as a deliberate simplification if the exact spherical cap intersection formula is considered over-engineering for the current use.</result>
+<usage><total_tokens>58354</total_tokens><tool_uses>25</tool_uses><duration_ms>114925</duration_ms></usage>
+</task-notification>
+Full transcript available at: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/b64da2bf-bc43-4e98-92b9-9ef978ee0301/tasks/ac867428adb49f3df.output
