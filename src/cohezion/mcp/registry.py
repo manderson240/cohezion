@@ -1,7 +1,17 @@
 """
 MCP Registry - Manage internal and external MCP servers.
 
-Provides discovery, status tracking, and tool invocation.
+Provides discovery, status tracking, tool invocation, and governance enforcement.
+
+Extended with:
+  - Per-tool autonomy tier requirements (cosmogonic chain governance)
+  - Call tracking for SLA observability
+  - Tier-based access control (can_access)
+
+References:
+  - InfoWorld (2026): How to Build an Enterprise-Grade MCP Registry
+  - arXiv:2601.08687: Data Product MCP
+  - Zhamak Dehghani: Data Mesh (O'Reilly, 2022)
 """
 
 import json
@@ -145,6 +155,65 @@ class MCPRegistry:
                 for name, rels in self._relationships.items()
                 for rel in rels
             ],
+        }
+
+    # --- Governance extensions (Wire 5 / Horizon 3) ---
+
+    # Tool-level autonomy tier requirements
+    _tool_tiers: dict[str, str] = {
+        # Read-only tools: SO(12) (observe)
+        "skill_get_definition": "SO(12)",
+        "vault_find_relevant_context": "SO(12)",
+        "journey_get_trajectory": "SO(12)",
+        "security_scan": "SO(12)",
+        # Write tools: SO(3)^4 (edit)
+        "vault_write": "SO(3)^4",
+        "journey_save_checkpoint": "SO(3)^4",
+        # Execution tools: U(1)^4 (commit)
+        "compound_execute": "U(1)^4",
+        "bmad_execute_workflow": "U(1)^4",
+        "skill_refine": "U(1)^4",
+    }
+
+    _tier_levels = {
+        "void": 0,
+        "SO(12)": 1,
+        "SO(3)^4": 2,
+        "U(1)^4": 3,
+        "Z_2^4": 4,
+        "HIHO": 5,
+    }
+
+    # Call tracking for observability
+    _call_counts: dict[str, int] = {}
+    _error_counts: dict[str, int] = {}
+
+    def can_access(self, agent_tier: str, tool_name: str) -> bool:
+        """Check if an agent at a given tier can access a tool.
+
+        Governance enforcement: "Without enforcement, all you're doing is cataloging risk."
+        """
+        agent_level = self._tier_levels.get(agent_tier, 0)
+        required_tier = self._tool_tiers.get(tool_name, "SO(12)")
+        required_level = self._tier_levels.get(required_tier, 1)
+        return agent_level >= required_level
+
+    def record_tool_call(self, tool_name: str, success: bool = True) -> None:
+        """Record a tool call for SLA observability."""
+        self._call_counts[tool_name] = self._call_counts.get(tool_name, 0) + 1
+        if not success:
+            self._error_counts[tool_name] = self._error_counts.get(tool_name, 0) + 1
+
+    def get_tool_health(self, tool_name: str) -> dict[str, Any]:
+        """Get health metrics for a tool."""
+        calls = self._call_counts.get(tool_name, 0)
+        errors = self._error_counts.get(tool_name, 0)
+        return {
+            "tool": tool_name,
+            "calls": calls,
+            "errors": errors,
+            "error_rate": errors / calls if calls > 0 else 0.0,
+            "required_tier": self._tool_tiers.get(tool_name, "SO(12)"),
         }
 
 
