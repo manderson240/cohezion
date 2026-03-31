@@ -41,7 +41,6 @@ from pathlib import Path
 logger = logging.getLogger(__name__)
 
 SESSIONS_DIR = Path.home() / ".cohezion-engine" / "sessions"
-VAULT_DIR = Path.home() / "vaults" / "cohezion-vault"
 ROUTING_HISTORY_PATH = Path.home() / ".cohezion-engine" / "routing_history.jsonl"
 
 
@@ -106,14 +105,20 @@ class ConciergeAgent:
                 for line in lines[-100:]:
                     record = json.loads(line)
                     self._history.append(RoutingRecord(**record))
-            except Exception:
-                logger.warning("Could not load routing history")
+            except (json.JSONDecodeError, KeyError, OSError) as exc:
+                logger.warning("Could not load routing history: %s", exc)
 
     def _save_record(self, record: RoutingRecord) -> None:
-        """Append a routing record to the history file."""
-        ROUTING_HISTORY_PATH.parent.mkdir(parents=True, exist_ok=True)
-        with ROUTING_HISTORY_PATH.open("a") as f:
-            f.write(json.dumps(record.__dict__) + "\n")
+        """Append a routing record to the history file.
+
+        Note: synchronous I/O — acceptable for concierge (runs once per session).
+        """
+        try:
+            ROUTING_HISTORY_PATH.parent.mkdir(parents=True, exist_ok=True)
+            with ROUTING_HISTORY_PATH.open("a") as f:
+                f.write(json.dumps(record.__dict__) + "\n")
+        except OSError as exc:
+            logger.warning("Could not save routing record: %s", exc)
         self._history.append(record)
 
     def gather_briefing(self) -> SessionBriefing:
@@ -163,7 +168,7 @@ class ConciergeAgent:
         }
         for keyword, branch in worktree_map.items():
             if keyword in prompt_lower:
-                confidence = self._historical_confidence(f"switch_worktree")
+                confidence = self._historical_confidence(f"switch_worktree:{branch}")
                 return RoutingSuggestion(
                     action="switch_worktree",
                     target=branch,
@@ -194,7 +199,14 @@ class ConciergeAgent:
 
     def _historical_confidence(self, action_key: str) -> float:
         """Compute confidence from historical routing success."""
-        relevant = [r for r in self._history if r.suggested_action == action_key]
+        # Match on full key (e.g., "switch_worktree:feat/genesis-tdd-a2ui")
+        # or action prefix (e.g., "switch_worktree") for general confidence
+        relevant = [
+            r for r in self._history
+            if r.suggested_action == action_key
+            or (r.suggested_action.startswith(action_key.split(":")[0])
+                and ":" not in action_key)
+        ]
         if not relevant:
             return 0.5  # HIHO — no history, uncertain
 

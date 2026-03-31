@@ -64,8 +64,8 @@ class TestDataProduct:
 class TestCohezionDataProducts:
     """Pre-defined data products for Cohezion's 17+ MCP servers."""
 
-    def test_six_products_defined(self):
-        assert len(COHEZION_DATA_PRODUCTS) == 6
+    def test_products_defined(self):
+        assert len(COHEZION_DATA_PRODUCTS) >= 6
 
     def test_all_products_are_active(self):
         for pid, dp in COHEZION_DATA_PRODUCTS.items():

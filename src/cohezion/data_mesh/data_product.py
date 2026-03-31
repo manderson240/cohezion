@@ -138,7 +138,10 @@ class DataProduct:
 
 # --- Pre-defined data products for Cohezion's 17+ MCP servers ---
 
-COHEZION_DATA_PRODUCTS = {
+
+def get_cohezion_data_products() -> dict[str, "DataProduct"]:
+    """Factory: returns fresh DataProduct instances to avoid shared mutable state."""
+    return {
     "bmad-workflow": DataProduct(
         product_id="bmad-workflow",
         name="BMAD Workflow Artifacts",
@@ -200,4 +203,8 @@ COHEZION_DATA_PRODUCTS = {
         status=DataProductStatus.ACTIVE,
         mcp_tool_name=None,
     ),
-}
+    }
+
+
+# Convenience alias — NOTE: each call returns fresh instances
+COHEZION_DATA_PRODUCTS = get_cohezion_data_products()
