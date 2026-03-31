@@ -3,7 +3,7 @@
   "checkpoint_id": "94ac898e5eb9",
   "strategy": "manual-commit",
   "branch": "challenge/nvidia-nemotron-reasoning",
-  "checkpoints_count": 1,
+  "checkpoints_count": 2,
   "files_touched": [
     "src/cohezion/compound/thermal_checkpoint_manager.py"
   ],
@@ -13,13 +13,19 @@
       "transcript": "/94/ac898e5eb9/0/full.jsonl",
       "content_hash": "/94/ac898e5eb9/0/content_hash.txt",
       "prompt": "/94/ac898e5eb9/0/prompt.txt"
+    },
+    {
+      "metadata": "/94/ac898e5eb9/1/metadata.json",
+      "transcript": "/94/ac898e5eb9/1/full.jsonl",
+      "content_hash": "/94/ac898e5eb9/1/content_hash.txt",
+      "prompt": "/94/ac898e5eb9/1/prompt.txt"
     }
   ],
   "token_usage": {
-    "input_tokens": 43213,
-    "cache_creation_tokens": 7885208,
-    "cache_read_tokens": 65335514,
-    "output_tokens": 114281,
-    "api_call_count": 296
+    "input_tokens": 46491,
+    "cache_creation_tokens": 10830450,
+    "cache_read_tokens": 97752780,
+    "output_tokens": 193314,
+    "api_call_count": 467
   }
 }
