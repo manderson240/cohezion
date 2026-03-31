@@ -223,3 +223,7 @@ So why aren't we running everything through FLUME then?
 ---
 
 /retrospect
+
+---
+
+we need to maximize what we already have
