@@ -116,14 +116,21 @@
       "strategy": "load_inline with rocWMMA MFMA tile 16x16x32 for MI355X (reverse tile orientation vs current 32x32x16)",
       "parameters": {},
       "parent_id": "gemm_root",
-      "priority": 0.7,
-      "attempts": 0,
-      "best_result_us": null,
+      "priority": 0.4,
+      "attempts": 1,
+      "best_result_us": 209.94,
       "stagnation_count": 0,
       "status": "active",
       "children": [],
       "notes": "[LLM-proposed]",
-      "attempt_history": []
+      "attempt_history": [
+        {
+          "result_us": 209.93688510948144,
+          "parameters": {},
+          "timestamp": "2026-03-31T19:12:57.844725",
+          "source": "template"
+        }
+      ]
     }
   }
 }
