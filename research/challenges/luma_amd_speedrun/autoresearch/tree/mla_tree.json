@@ -2079,7 +2079,7 @@
       "strategy": "mla_decode_fwd with explicit work_meta_data pre-allocation for kvseqlen=8192",
       "parameters": {},
       "parent_id": "root_mla",
-      "priority": 0.4,
+      "priority": 0.35,
       "attempts": 1,
       "best_result_us": 219.84,
       "stagnation_count": 0,
@@ -2130,7 +2130,30 @@
       "strategy": "mla_decode_fwd with explicit work_meta_data pre-allocation + num_kv_splits sweep [64,128,256] for kvseqlen=8192",
       "parameters": {},
       "parent_id": "n_f2f2181b",
-      "priority": 0.9,
+      "priority": 0.55,
+      "attempts": 1,
+      "best_result_us": 222.53,
+      "stagnation_count": 0,
+      "status": "active",
+      "children": [
+        "n_b332572f"
+      ],
+      "notes": "[LLM-proposed]",
+      "attempt_history": [
+        {
+          "result_us": 222.53250428900105,
+          "parameters": {},
+          "timestamp": "2026-03-31T19:20:06.566486",
+          "source": "template"
+        }
+      ]
+    },
+    "n_b332572f": {
+      "id": "n_b332572f",
+      "strategy": "mla_decode_fwd with explicit work_meta_data pre-allocation + num_kv_splits sweep [512,1024] for kvseqlen=8192",
+      "parameters": {},
+      "parent_id": "n_209ec7fe",
+      "priority": 0.65,
       "attempts": 0,
       "best_result_us": null,
       "stagnation_count": 0,
