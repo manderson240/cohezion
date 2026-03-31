@@ -102,7 +102,7 @@ function noteToFreq(note: string): number {
 
 export function useSonification(): SonificationControls {
   const [playing, setPlaying] = useState(false);
-  const [volume, setVolumeState] = useState(0.5);
+  const [volume, setVolumeState] = useState(0.3);
 
   // Audio nodes (refs to persist across renders)
   const synthRef = useRef<Tone.Synth | null>(null);
@@ -126,7 +126,7 @@ export function useSonification(): SonificationControls {
     if (initializedRef.current) return;
 
     // Master gain
-    const gain = new Tone.Gain(0.5).toDestination();
+    const gain = new Tone.Gain(0.15).toDestination();
     gainRef.current = gain;
 
     // Reverb (gauge curvature -> depth)
@@ -146,12 +146,12 @@ export function useSonification(): SonificationControls {
     // Main synth (coherence -> pitch, continuous tone)
     const synth = new Tone.Synth({
       oscillator: { type: "sine" },
-      envelope: { attack: 0.5, decay: 0.2, sustain: 0.8, release: 1.0 },
+      envelope: { attack: 1.5, decay: 0.5, sustain: 0.6, release: 2.0 },
     }).connect(tremolo);
     synthRef.current = synth;
 
     // Noise (entropy -> texture)
-    const noise = new Tone.Noise({ type: "pink", volume: -30 }).connect(
+    const noise = new Tone.Noise({ type: "pink", volume: -40 }).connect(
       panner
     );
     noiseRef.current = noise;
@@ -177,8 +177,8 @@ export function useSonification(): SonificationControls {
 
     // Sweep synth for explosion rising glissando
     const sweep = new Tone.Synth({
-      oscillator: { type: "sawtooth" },
-      envelope: { attack: 0.01, decay: 0.1, sustain: 0.8, release: 1.0 },
+      oscillator: { type: "triangle" },
+      envelope: { attack: 0.3, decay: 0.2, sustain: 0.6, release: 2.0 },
     }).connect(gain);
     sweepSynthRef.current = sweep;
 
@@ -288,13 +288,19 @@ export function useSonification(): SonificationControls {
 
   // --- Cinematic: Void drone ---
   const startVoidDrone = useCallback(async () => {
-    await Tone.start();
-    initAudio();
+    try {
+      await Tone.start();
+      initAudio();
 
-    if (voidDroneRef.current && voidDroneGainRef.current) {
-      // -40dB is ~ 0.01 gain
-      voidDroneGainRef.current.gain.rampTo(0.01, 0.5);
-      voidDroneRef.current.triggerAttack(noteToFreq("C2"));
+      if (voidDroneRef.current && voidDroneGainRef.current) {
+        // -40dB is ~ 0.01 gain
+        voidDroneGainRef.current.gain.rampTo(0.01, 0.5);
+        // Schedule slightly in the future to avoid "start time" race
+        const now = Tone.now();
+        voidDroneRef.current.triggerAttack(noteToFreq("C2"), now + 0.1);
+      }
+    } catch {
+      // AudioContext not ready yet (no user gesture) — silently skip
     }
   }, [initAudio]);
 
@@ -336,7 +342,7 @@ export function useSonification(): SonificationControls {
     const startFreq = noteToFreq("E3"); // All start at unison E3
 
     if (fabricGainRef.current) {
-      fabricGainRef.current.gain.rampTo(0.06, 1.0);
+      fabricGainRef.current.gain.rampTo(0.03, 1.0);
     }
 
     fabricSynthsRef.current.forEach((synth, i) => {
@@ -350,7 +356,7 @@ export function useSonification(): SonificationControls {
   const settleToSustainedPad = useCallback(() => {
     // Fabric chord is already playing; just lower volume and add warmth
     if (fabricGainRef.current) {
-      fabricGainRef.current.gain.rampTo(0.04, 3.0);
+      fabricGainRef.current.gain.rampTo(0.02, 3.0);
     }
 
     // If tremolo is active, sync to gentle rate (HIHO coherence)

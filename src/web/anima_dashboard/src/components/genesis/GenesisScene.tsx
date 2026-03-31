@@ -225,7 +225,7 @@ function VoidQuote({ active }: { active: boolean }) {
   if (!active) return null;
 
   return (
-    <Html position={[0, -1.5, 0]} center>
+    <Html position={[0, 1.5, 0]} center>
       <div
         className="font-mono text-sm text-center select-none max-w-xs"
         style={{
@@ -791,27 +791,10 @@ export default function GenesisScene({
     };
   }, []);
 
-  // Fetch cosmogony state from API, with local Landau fallback
+  // Compute cosmogony state locally (Landau math, no API needed)
   const fetchState = useCallback(
-    async (temp: number) => {
-      try {
-        const resp = await fetch(
-          `${API_BASE}/api/genesis/cosmogony/set-temperature`,
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ temperature: temp }),
-          }
-        );
-        if (resp.ok) {
-          const data = await resp.json();
-          setCosmogonyData(data);
-        } else {
-          setCosmogonyData(computeLocalCosmogony(temp));
-        }
-      } catch {
-        setCosmogonyData(computeLocalCosmogony(temp));
-      }
+    (temp: number) => {
+      setCosmogonyData(computeLocalCosmogony(temp));
     },
     [computeLocalCosmogony]
   );
