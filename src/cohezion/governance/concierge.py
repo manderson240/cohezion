@@ -40,6 +40,13 @@ from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
+# FLUME semantic routing (falls back to keyword matching if unavailable)
+try:
+    from cohezion.governance.flume_bridge import encode_prompt, flume_route_similarity
+    FLUME_AVAILABLE = True
+except ImportError:
+    FLUME_AVAILABLE = False
+
 SESSIONS_DIR = Path.home() / ".cohezion-engine" / "sessions"
 ROUTING_HISTORY_PATH = Path.home() / ".cohezion-engine" / "routing_history.jsonl"
 
@@ -157,7 +164,7 @@ class ConciergeAgent:
                     autonomy_tier="U(1)^4",
                 )
 
-        # Worktree keywords
+        # Worktree routing: FLUME semantic matching with keyword fallback
         worktree_map = {
             "genesis": "feat/genesis-tdd-a2ui",
             "testing": "feat/genesis-testing",
@@ -166,6 +173,29 @@ class ConciergeAgent:
             "data mesh": "feat/genesis-data-mesh",
             "kernel": "challenge/nvidia-nemotron-reasoning",
         }
+
+        if FLUME_AVAILABLE and self._history:
+            # Semantic routing: find best-matching historical route via FLUME cosine similarity
+            prompt_embedding = encode_prompt(user_prompt)
+            best_sim = 0.0
+            best_record = None
+            for record in reversed(self._history[-50:]):
+                if record.accepted and record.suggested_action == "switch_worktree":
+                    sim = flume_route_similarity(prompt_embedding, record.user_prompt)
+                    if sim > best_sim:
+                        best_sim = sim
+                        best_record = record
+            if best_record and best_sim > 0.7:
+                confidence = min(0.95, best_sim * self._historical_confidence(f"switch_worktree:{best_record.suggested_target}"))
+                return RoutingSuggestion(
+                    action="switch_worktree",
+                    target=best_record.suggested_target,
+                    confidence=confidence,
+                    reason=f"FLUME semantic match (sim={best_sim:.2f}) to '{best_record.user_prompt[:40]}'",
+                    autonomy_tier="SO(3)^4",
+                )
+
+        # Keyword fallback
         for keyword, branch in worktree_map.items():
             if keyword in prompt_lower:
                 confidence = self._historical_confidence(f"switch_worktree:{branch}")
@@ -173,7 +203,7 @@ class ConciergeAgent:
                     action="switch_worktree",
                     target=branch,
                     confidence=confidence,
-                    reason=f"Routing to {branch} (matched '{keyword}')",
+                    reason=f"Routing to {branch} (keyword '{keyword}')",
                     autonomy_tier="SO(3)^4",
                 )
 
