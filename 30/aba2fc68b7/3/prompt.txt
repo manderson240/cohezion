@@ -1,0 +1,2390 @@
+Restrospective for /home/mike-anderson/.cohezion-engine/sessions/pid-3855572/continuation.md and then refine plan with learnings and insights
+
+---
+
+<task-notification>
+<task-id>bg7p924ab</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/7b42ffab-cb2c-417a-b4cd-9fddf3b78647/tasks/bg7p924ab.output</output-file>
+<status>completed</status>
+<summary>Background command "Submit MLA flash_attn probe" completed (exit code 0)</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/7b42ffab-cb2c-417a-b4cd-9fddf3b78647/tasks/bg7p924ab.output
+
+---
+
+<task-notification>
+<task-id>bnoud2ug8</task-id>
+<tool-use-id>toolu_01Rr4ZU1i9XTP2YTsV9MoyPp</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/7b42ffab-cb2c-417a-b4cd-9fddf3b78647/tasks/bnoud2ug8.output</output-file>
+<status>completed</status>
+<summary>Background command "Test AIMO3 problem with local qwen2-math:7b" completed (exit code 0)</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/7b42ffab-cb2c-417a-b4cd-9fddf3b78647/tasks/bnoud2ug8.output
+
+---
+
+<task-notification>
+<task-id>afb64dcde43c62d11</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/7b42ffab-cb2c-417a-b4cd-9fddf3b78647/tasks/afb64dcde43c62d11.output</output-file>
+<status>completed</status>
+<summary>Agent "Internal codebase sweep: Gemini + OpenCode" completed</summary>
+<result>Now I have a comprehensive picture. Let me compile the findings.
+
+---
+
+## DEEP SWEEP REPORT: Untapped Kernel Optimization Discoveries
+
+### 1. GEMINI CONDUCTOR SESSIONS
+
+Found three Gemini-connected worktrees:
+- `/home/mike-anderson/dev/cohezion/.worktrees/gemm-command-center/` -- Has full GitHub Actions workflows for `gemini-plan-execute`, `gemini-dispatch`, `gemini-triage`, `gemini-review`, `gemini-invoke`, `gemini-scheduled-triage`. Also has a `.gemini_security/FINAL_SECURITY_REPORT.md`. This is infrastructure for Gemini-orchestrated kernel optimization but appears to be setup only (March 14 snapshot), never executed against the competition.
+- `/home/mike-anderson/dev/cohezion/.worktrees/moe-command-center/` -- Same Gemini workflow infrastructure, also at March 14 snapshot.
+- `/home/mike-anderson/dev/cohezion/.worktrees/gemini-mcp-fix/` -- Contains a `production_scheduler.py`, hourly email summaries, and security dependency scans. Appears to be a Cohezion production MCP issue fix, not kernel-related.
+
+**Untapped discovery**: The command center worktrees were never executed. The Gemini plan-execute workflow could potentially orchestrate automated kernel submission sweeps if activated.
+
+### 2. OPENCODE SESSIONS
+
+Two distinct OpenCode sessions found:
+
+**a) OpenCode Kimi-K2.5 Cloud** (`/home/mike-anderson/dev/cohezion/research/challenges/luma_amd_speedrun/opencode_kimi-k2.5_cloud/`):
+- GEMM: 3 submissions (v15 aggressive, v17 conservative, v18 hybrid). The v18 hybrid uses adaptive kernel selection with **three tile sizes** (32x128 for M<=8 with log2_ks=3, 32x128 for M<=32 with log2_ks=2, 192x128 for M>32 with log2_ks=0). **UNTAPPED**: The 192x128 tile kernel was identified but the current production GEMM submission only uses 32x128. The 192x128 tile (`REDACTED`) could be better for M=64 and M=256 shapes.
+- MoE: v16 ultra-aggressive uses `AITER_BYPASS_TUNE_CONFIG=1` and `KSPLIT=6` for very sparse cases. **UNTAPPED**: The `AITER_BYPASS_TUNE_CONFIG=1` environment variable has never been tested in the production submission but could eliminate config lookup overhead.
+- MLA: v10 aggressive and v11 conservative. v10 uses 64-way splits for very large sequences, which current production caps at 16.
+
+**b) OpenCode Infinity** (`/home/mike-anderson/dev/cohezion/research/challenges/luma_amd_speedrun/opencode_infinity/`):
+- Has an MLA build directory with a Makefile -- suggesting a **compiled HIP kernel approach** was being explored. This is a fundamentally different path from the Python/aiter wrappers.
+- Team Gamma Agent G2 handoff document provides a crucial timing breakdown for MoE:
+  - Token Sorting: 7us (4%)
+  - Quantization Stage 1: 15us (10%)
+  - GEMM1 Compute: 40us (26%)
+  - SiLU Activation: 5us (3%)
+  - Re-quantization: 12us (8%)
+  - GEMM2 Compute: 35us (23%)
+  - Python Dispatch: 12us (8%)
+  - **TOTAL: ~126us for shape S1**
+  - **The 12us Python dispatch overhead is the easiest win** and is NOT addressed in current submission.
+
+### 3. AMD KERNEL RESEARCH -- WHAT WAS TRIED, WHAT WORKED, WHAT FAILED
+
+**GEMM (mxfp4-mm)** -- 103 nodes in K-search tree, all pruned except 1 active root:
+- **Best result**: 4.1us (node gemm_n2: `gemm_a4w4_asm` vs `gemm_a4w4` per shape). This seems anomalously low -- may be a single-shape result not geomean.
+- **Current production**: Uses `gemm_a4w4_asm` with single kernel name `REDACTED` and `log2_k_split=0`.
+- **Direct CK dispatch** (`submission.gemm-specialist.breakthrough.20260324.py`): Full 288-byte struct packing with `hipModuleLaunchKernel`. Catalogs 35 pre-compiled `.co` files. **This is the most advanced GEMM approach attempted** but appears to have failed at the `hipModuleLaunchKernel` dispatch level (field offset calculation or torch.cuda.synchronize() timing penalty).
+- **Failed paths**: `tritonblas.matmul_fp4` tried (26us on runner but 137.9us in tree -- likely cold JIT), `gemm_afp4wfp4` (KeyError), `torch.compile` on ROCm blocked.
+
+**MoE (moe-mxfp4)** -- 55 nodes, best result 88.7us (node moe_n2: "OPUS sorting + KSPLIT combo"):
+- **Current production**: `fused_moe` with `AITER_USE_NT=1`, adaptive KSPLIT table, `doweight_stage1=False`.
+- **Best finding**: 88.7us from OPUS sorting is significantly better than the 155us documented elsewhere. This may be a partial shape measurement.
+- **Custom Triton MoE** was specced out in extraordinary detail (`probes/custom_triton_moe_spec.md` -- 29KB specification). Phase 2 MXFP4 conversion guide exists. Template code exists. **But it was never successfully run** -- previous attempt was 68% slower than CK ASM.
+- **Unexplored root nodes**: "Speculate experts" (arxiv 2603.19289), `CK_BLOCK_GEMM=1`, `fused_dynamic_mxfp4_quant_moe_sort`, direct `ck_moe_stage1+stage2` with pre-warmed JIT.
+
+**MLA (mixed-mla)** -- 59 nodes, best result 139.6us (node mla_n2: FP8 KV cache):
+- **Current production**: Three-regime dispatch (einsum bf16 for small, a16w8 ASM for medium, a8w8 ASM for large), persistent mode, metadata caching. ~67.8us geomean.
+- **Leader is 4.3us** -- a 15.8x gap. This is the biggest gap by far.
+- **Custom HIP kernel** (`submission_top10_mla.py`): A full hand-written HIP C kernel with `__builtin` wave shuffle intrinsics, LDS shared memory for Q, MXFP4 LUT dequantization, and persistent kernels. **This was attempted but blocked by runner source scanning** (the competition runner rejects inline HIP compilation).
+- **Unexplored root nodes**: `flash_attn_func` (17.19x documented speedup for Qwen-VL), `paged_attention_fwd`, `fav3_sage_attn_fwd`.
+
+### 4. REFERENCE KERNELS REPO
+
+`/home/mike-anderson/dev/reference-kernels/problems/nvidia/` contains NVIDIA competition kernels:
+- `nvfp4_dual_gemm/submission.py` -- **CUTLASS CuTe kernel** using `cutlass.Float4E2M1FN`, TMA descriptors, 128-thread CTAs, UMMA pipeline. This is the Blackwell (SM100) approach with tensor memory and fused SiLU epilogue.
+- `nvfp4_group_gemm/submission.py` -- **Grouped GEMM** with CuTe and per-group delinearization. Key pattern: group_idx computation via linear scan over CTA tiles.
+- `nvfp4_gemv/template_cute.py` -- GEMV template.
+
+**Transferable patterns for AMD**:
+1. The **fused SiLU epilogue** pattern from `nvfp4_dual_gemm` (epilogue_op lambda with fastmath exp) could be adapted for MoE Stage 1 + activation fusion.
+2. The **grouped GEMM CTA delinearization** from `nvfp4_group_gemm` is exactly the pattern needed for persistent-tile MoE on AMD.
+
+### 5. VAULT ENTRIES
+
+Key vault entries at `/home/mike-anderson/vaults/cohezion-vault/`:
+- `cortex/MOC-amd-gpu-kernel-dev.md` -- Comprehensive map of content linking hardware specifics (MFMA, LDS swizzle, 8-wave ping-pong) to optimization patterns. Documents the **8-wave ping-pong pattern** (`sched_barrier` + `s_setprio`), **direct Global->LDS 128-bit loads** (`llvm.amdgcn.raw.buffer.load.lds`), and **XOR swizzle for 64-bank conflict avoidance**.
+- `research/challenges/luma_amd_speedrun/technical_analysis.md` -- Proposes **HipKittens tiles** for MXFP4 dequantization in shared memory and **native a4w4 MLA decode kernel**. Neither has been implemented.
+- `cortex/machine-learning-optimization.md` -- Contains broader ML context.
+- `cortex/capability-assessment-2026-03-24.md` -- Capability assessment mentioning AMD work.
+
+### 6. K-SEARCH TREE STATE
+
+All three trees have been heavily pruned (most nodes "STRATEGIC PRUNE: LLM world model"). Each has exactly 1 active unexplored root:
+
+| Kernel | Active Root | Description | Priority |
+|--------|------------|-------------|----------|
+| GEMM | `root_gemm` | `VLLM_USE_AITER_BLOCK_GEMM=1` | 0.7 |
+| MoE | `root_moe` | Speculative expert pre-dispatch | 0.6 |
+| MLA | `root_mla` | `fav3_sage_attn_fwd` SAGE attention | 0.7 |
+
+The `evolve_trees_session76.py` script injected novel strategies but they haven't been executed.
+
+---
+
+## ACTIONABLE INSIGHTS BY KERNEL
+
+### GEMM -- Closing the 1.45x gap (33us vs 23us leader)
+
+1. **Per-shape kernel selection with larger tiles** (HIGH confidence, UNTAPPED): Current submission uses only `32x128` tile. The OpenCode v18 hybrid and the breakthrough submission catalog 35 pre-compiled `.co` files including `64x256`, `96x384`, `128x256`, `192x128`, `256x256`. For M=64 (shape `64_7168_2048`) and M=256 (shape `256_3072_1536`), larger tiles should reduce tile launch overhead. Specifically: try `64x256` for M=64 and `128x256` or `256x256` for M=256.
+
+2. **split-K for small-M shapes** (MEDIUM confidence): The tree explored `log2_k_split` up to 3 (8-way split). The OpenCode v18 uses `log2_ks=3` for M<=8. Current production uses `log2_k_split=0` always. Adding `log2_k_split=2` for M<=16 shapes could help.
+
+3. **`VLLM_USE_AITER_BLOCK_GEMM=1`** (UNEXPLORED, tree root): Never tested. Single env var change.
+
+4. **`tuned_gemm.tgemm.mm()`** (UNEXPLORED, from evolve_trees_session76): Completely different API path from `gemm_a4w4_asm`. Could bypass the quantization bottleneck if it handles MXFP4 internally.
+
+5. **Fused quant+GEMM via `tritonblas.matmul_fp4`** (HIGHEST leverage, documented as "only path below API ceiling"): The quantization step costs as much as the GEMM itself (~33us). Fusing them is the only path to the leader's ~23us. `tritonblas.matmul_fp4` worked at 26us on the runner but had JIT cold start issues.
+
+### MoE -- Closing the 1.07x gap (155us vs 145us leader)
+
+1. **`AITER_BYPASS_TUNE_CONFIG=1`** (UNTAPPED from OpenCode v16): Eliminates CSV config lookup. The competition shapes have ZERO matches in the CSV, so this lookup is pure overhead.
+
+2. **`fused_dynamic_mxfp4_quant_moe_sort`** (UNEXPLORED, confirmed callable): Fuses the quantization and sorting into one call, eliminating one memory round-trip. This saves ~15us (quantization) + ~7us (sorting) = ~22us potential.
+
+3. **`CK_BLOCK_GEMM=1` environment variable** (UNEXPLORED, from AITER blog March 2026): Changes internal MoE dispatch to CK block GEMM path. Never tested for fp4 MoE.
+
+4. **Custom Triton MoE with persistent tiles + fused permutation** (FULLY SPECCED but never run): The 29KB specification and Triton template exist. Key risk: previous Triton attempt was 68% slower. But that attempt lacked (a) fused permutation, (b) `tl.dot_scaled` for native MXFP4, (c) persistent-tile scheduling. All three combined might close the gap.
+
+5. **Direct `ck_moe_stage1` + `ck_moe_stage2` dispatch** (UNEXPLORED, 18-arg signatures confirmed): Bypasses `fused_moe` Python wrapper entirely. Previously timed out due to JIT cold start -- needs retry during off-peak.
+
+6. **OPUS sorting + KSPLIT combo** (best tree result 88.7us): Need to verify this is geomean, not single shape. If real, this approach should be the production submission.
+
+### MLA -- Closing the 15.8x gap (67.8us vs 4.3us leader)
+
+This is the moonshot kernel. The gap is architectural, not parametric.
+
+1. **`flash_attn_func` from AITER** (HIGHEST priority, UNEXPLORED): Documented 17.19x speedup for Qwen-VL attention. Must handle MLA fused KV format (576 dims for K, 512 for V). This is the single most promising unexplored API.
+
+2. **`paged_attention_fwd`** (UNEXPLORED): Production-grade attention API used in inference servers. May have lower overhead than `mla_decode_fwd`.
+
+3. **`fav3_sage_attn_fwd`** (UNEXPLORED, tree root): SAGE attention variant with MXFP4 KV cache support. Could bypass the 3-stage dispatch pipeline.
+
+4. **MXFP4 KV cache attention** (specced in vault technical_analysis.md, never implemented): 4x bandwidth savings over bf16, 2x over fp8. Two strategies documented: (A) fuse dequant with attention, (B) quantize Q to match KV for full fp4xfp4 compute.
+
+5. **Custom HIP kernel with wave-shuffle MLA** (`submission_top10_mla.py`): Attempted but blocked by runner source scanning. If there's a way to pre-compile and load the `.co` file (similar to the GEMM direct dispatch approach), this could work.
+
+6. **Regime 1 (einsum) optimization**: Current einsum path is used for bs<=4 OR total_kv<=32768. Consider using `torch.baddbmm` or `torch.scaled_dot_product_attention` (SDPA) which may have a faster AMD backend.
+
+### CROSS-CUTTING INSIGHTS
+
+1. **The biggest untapped discovery across all sessions is `flash_attn_func`** from AITER (17.19x speedup documented). This is the MLA moonshot path.
+
+2. **`AITER_BYPASS_TUNE_CONFIG=1`** is a zero-effort environment variable that could help both MoE and GEMM by eliminating wasted config lookup.
+
+3. **The OpenCode Infinity MLA HIP build** (`/home/mike-anderson/dev/cohezion/research/challenges/luma_amd_speedrun/opencode_infinity/mla/build/`) suggests someone was trying to compile a custom HIP kernel. This path was abandoned but the Makefile and object files exist.
+
+4. **Session 76 evolve_trees script** injected 9 new root strategies across all three trees but **none have been executed**. Running them through the autoresearch loop would be the systematic approach.
+
+5. **The 88.7us MoE result** ("OPUS sorting + KSPLIT combo") is dramatically better than the documented 155us. This needs immediate verification -- if real, it should become the production submission.</result>
+<usage><total_tokens>145374</total_tokens><tool_uses>41</tool_uses><duration_ms>213935</duration_ms></usage>
+</task-notification>
+Full transcript available at: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/7b42ffab-cb2c-417a-b4cd-9fddf3b78647/tasks/afb64dcde43c62d11.output
+
+---
+
+<task-notification>
+<task-id>bjl9c8tcn</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/7b42ffab-cb2c-417a-b4cd-9fddf3b78647/tasks/bjl9c8tcn.output</output-file>
+<status>completed</status>
+<summary>Background command "Submit GEMM blockscale v2 (novel path)" completed (exit code 0)</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/7b42ffab-cb2c-417a-b4cd-9fddf3b78647/tasks/bjl9c8tcn.output
+
+---
+
+<task-notification>
+<task-id>bx6bsaz7f</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/7b42ffab-cb2c-417a-b4cd-9fddf3b78647/tasks/bx6bsaz7f.output</output-file>
+<status>completed</status>
+<summary>Background command "Submit MoE CK_BLOCK_GEMM BENCHMARK (timing!)" completed (exit code 0)</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/7b42ffab-cb2c-417a-b4cd-9fddf3b78647/tasks/bx6bsaz7f.output
+
+---
+
+<task-notification>
+<task-id>ae4be63ea8ae19fbc</task-id>
+<tool-use-id>toolu_011m8rGg7h4vVMbn7Srgi1WN</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/7b42ffab-cb2c-417a-b4cd-9fddf3b78647/tasks/ae4be63ea8ae19fbc.output</output-file>
+<status>completed</status>
+<summary>Agent "External research: AMD MI355X kernel optimization" completed</summary>
+<result>Now I have comprehensive findings. Let me compile the full research report.
+
+---
+
+# AMD MI355X (gfx950) GPU Kernel Optimization Research Report
+
+## 1. HipKittens (HazyResearch)
+
+**What:** Tile-based C++ DSL for writing high-performance AMD AI kernels, the AMD counterpart to ThunderKittens (NVIDIA). Now officially an AITER backend.
+
+**Where:** [GitHub - HazyResearch/HipKittens](https://github.com/HazyResearch/HipKittens) | [Paper (arXiv)](https://arxiv.org/html/2511.08083v1) | [Dev-Open repo](https://github.com/HazyResearch/HipKittens-Dev-Open/blob/main/README.md)
+
+**Key findings:**
+- Validated on both CDNA3 and **CDNA4 (gfx950)** platforms. Docker image: `rocm/7.0-preview:rocm7.0_preview_pytorch_training_mi35x_beta`
+- BF16 GEMM reaches ~2.5 PFLOPS, matching hand-tuned AITER assembly. **FP8 reaches 5.0 PFLOPS**.
+- Outperforms Triton by 1.3x-3.0x on GEMM, 1.0-2.1x on attention forward over AITER
+- **Critical architectural insight:** Wave specialization (the dominant NVIDIA pattern) **underperforms on AMD** due to static register allocation. Use **8-wave ping-pong** or **4-wave interleave** scheduling instead.
+- Chiplet-aware scheduling improves performance 19% over naive row-major on MI355X (8 chiplets)
+- **No explicit MXFP4 GEMM examples found yet** -- current focus is BF16 and FP8. ThunderKittens 2.0 (NVIDIA) has MXFP8/NVFP4 but the AMD port may lag.
+
+**Applicability:** HIGH for attention and BF16/FP8 GEMM. MEDIUM for MXFP4 (likely needs extension). The tile DSL patterns and scheduling strategies are directly relevant.
+
+**Code patterns:**
+- Register tiles: `r<dtype, M, N, layout, mfma_shape>` mapping directly to MFMA instructions
+- Bulk compute: `mma(A, B, C)` exposing MFMA directly
+- Global-to-shared loads: auto-selects `buffer_load_dwordx4`/`dwordx3` based on dtype
+
+**Effort:** Medium (2-4 days to port an existing HK kernel to MXFP4 if you extend the primitives, or 1-2 days to use their BF16/FP8 kernels as-is)
+
+---
+
+## 2. CK-Tile FlatMM Examples (MXFP4 GEMM on gfx950)
+
+**What:** AMD's Composable Kernel library with a FlatMM (weight-preshuffled GEMM) pipeline specifically optimized for MXFP4 on gfx950.
+
+**Where:** [CK GitHub](https://github.com/ROCm/composable_kernel) | [DeepWiki: MFMA Optimizations](https://deepwiki.com/ROCm/composable_kernel/6.2-hardware-specific-optimizations-and-mfma) | [DeepWiki: MoE FlatMM](https://deepwiki.com/ROCm/composable_kernel/4.4-convolution-operations) | [CK-Tile GEMM Blog](https://rocm.blogs.amd.com/software-tools-optimization/building-efficient-gemm-kernels-with-ck-tile-vendo/README.html)
+
+**Key findings:**
+- **Hardware-accelerated MXFP4 via dedicated instructions:**
+  - `mfma_f32_32x32x64_f8f6f4` -- FP4/FP6/FP8 MFMA instruction
+  - `mfma_scale_f32_32x32x64` -- hardware scaling with E8M0 scale factors
+  - `pk_fp4_t` -- packed data type (2 FP4 values per byte)
+- The `mfma_scale_*` instructions perform dequantization AND matrix multiply in a single operation: `C += dequantize(A, scale_A) * dequantize(B, scale_B)`
+- MoE FlatMM extends standard FlatMM with expert routing, gating, fused activation functions
+- **Requires weight pre-shuffling** (offline transformation before kernel execution)
+- gfx950 has increased LDS capacity enabling larger tile sizes and more aggressive blocking
+
+**Example code locations:**
+- `example/ck_tile/18_flatmm/` -- main FlatMM examples
+- `example/ck_tile/18_flatmm/flatmm_basic.hpp` -- gfx942 and gfx950 configs
+- `example/ck_tile/18_flatmm/mixed_prec/a16w4_flatmm.hpp` -- A16W4 mixed precision
+- `example/ck_tile/18_flatmm/mixed_prec/a16w4_moe_flatmm.cpp` -- MoE FlatMM with MXFP4
+- `include/ck_tile/ops/flatmm/kernel/flatmm_kernel.hpp`
+- Build with: `-D GPU_TARGETS="gfx950"`
+
+**IREE optimization insight:** K tile size picking was suboptimal, yielding 32 MFMAs per workgroup. Fixing this gave a **5x throughput increase** ([IREE issue #22309](https://github.com/iree-org/iree/issues/22309)).
+
+**Applicability:** VERY HIGH -- this is the reference implementation for MXFP4 GEMM on gfx950. Directly targets the competition's MXFP4 GEMM and MXFP4 MoE problems.
+
+**Effort:** Medium (1-3 days to build, benchmark, and adapt CK FlatMM examples for competition problem shapes)
+
+---
+
+## 3. AMD AITER Library Updates
+
+**What:** AI Tensor Engine for ROCm -- AMD's centralized high-performance operator library, now the primary kernel backend for vLLM/SGLang on AMD.
+
+**Where:** [GitHub - ROCm/aiter](https://github.com/ROCm/aiter) | [Releases](https://github.com/ROCm/aiter/releases) | [vLLM ROCm Blog (Feb 2026)](https://blog.vllm.ai/2026/02/27/rocm-attention-backend.html) | [ROCm 7.0 Blog](https://rocm.blogs.amd.com/ecosystems-and-partners/rocm-7.0-blog/README.html)
+
+**Key findings:**
+- Recent releases include **MXFP4 enablement for gfx950** (GEMM, MoE, per1x32 Quant)
+- **A4W4 asm_moe kernel** added (assembly-level MoE for MXFP4)
+- FusedMoE supports **FlyDSL-based kernels** for mixed-precision MoE (A4W4)
+- AITER MHA/MLA backends deliver **1.2-4.4x higher throughput** vs legacy on MI300X/MI325X/MI355X
+- ROCM_AITER_FA delivers **2.8-4.6x faster TPOT** across MI series
+- On gfx950, **ROCM_AITER_MLA matches or beats Triton MLA** (uses assembly MHA prefill)
+- Multi-GPU tuning, FP8 all-reduce included
+- HipKittens is now officially an AITER backend
+
+**Applicability:** VERY HIGH -- AITER is the production-grade kernel library for all three competition problems. The A4W4 asm_moe and MLA backends are direct targets.
+
+**Code patterns:**
+- `VLLM_ROCM_USE_AITER_FP4BMM=True` for MXFP4 GEMM dispatch
+- FlyDSL fallback when CK is unavailable
+- Pre-tuned kernel dispatch based on problem shape
+
+**Effort:** Low (1-2 days to profile existing AITER kernels on competition problem shapes and identify gaps)
+
+---
+
+## 4. K-Search for Kernel Optimization
+
+**What:** LLM-guided kernel optimization via co-evolving world model. Decouples high-level algorithmic planning from low-level code generation.
+
+**Where:** [arXiv:2602.19128](https://arxiv.org/abs/2602.19128) | [HuggingFace Paper Page](https://huggingface.co/papers/2602.19128)
+
+**Key findings:**
+- Achieves **2.10x average improvement**, up to **14.3x on complex MoE kernels**
+- Evaluated on FlashInfer kernels: GQA, MLA, and MoE on H100 and B200
+- Outperforms OpenEvolve and ShinkaEvolve
+- On GPUMode TriMul task, achieves SOTA on H100 (1030us), surpassing both evolution and human solutions
+- Core idea: replaces static search heuristics with a co-evolving world model that uses LLM domain knowledge to guide search, prune dead ends, and navigate non-monotonic optimization paths
+
+**Applicability:** HIGH conceptually, MEDIUM practically. The method was tested on NVIDIA hardware with FlashInfer, but the approach (world-model-guided evolutionary search) could be adapted for AMD kernels. Would need our own evaluation harness.
+
+**Effort:** High (1-2 weeks to build an evaluation harness and run K-Search style optimization on our AMD kernels)
+
+---
+
+## 5. Triton ROCm gfx950 / tl.dot_scaled
+
+**What:** Triton compiler with CDNA4 (gfx950) support including scaled dot product operations for MXFP4.
+
+**Where:** [Triton Block-Scaled MatMul Tutorial](https://triton-lang.org/main/getting-started/tutorials/10-block-scaled-matmul.html) | [Triton Releases](https://github.com/triton-lang/triton/releases) | [ROCm Triton Dev Tutorial](https://rocm.docs.amd.com/projects/ai-developer-hub/en/latest/notebooks/gpu_dev_optimize/triton_kernel_dev.html)
+
+**Key findings:**
+- **Official Triton tutorial for block-scaled matmul** with a dedicated `block_scaled_matmul_kernel_cdna4` function
+- Supports OCP microscaling formats: **mxfp4 and mxfp8 on AMD GPUs**
+- Run with: `python 10-block-scaled-matmul.py --format mxfp4 --K_range 512 8192 --bench`
+- Compiler improvements for gfx950:
+  - Scaled Dot Decomposition (PR #7839) -- f16 x mxfp scaled dot decomposition
+  - Permlane Swap (#7947) for layout conversions between dot operations
+  - Padded Shared with AsyncCopy (#8365) on gfx950 when pipelining
+  - LDS Layout Selection Redesign (#8053)
+  - `ds_read_tr` with linear layout
+- **FlyDSL** is emerging as an alternative to Triton for gfx950, compiling through MLIR passes to optimized binaries
+
+**Applicability:** HIGH -- the Triton block-scaled matmul tutorial is a direct starting point for MXFP4 GEMM kernels. However, note that the out-of-the-box Triton MoE kernel "requires significant additional tuning to reach peak performance on MI300X" per AMD's own blog.
+
+**Code pattern:**
+```python
+# From the tutorial -- CDNA4 specific kernel
+block_scaled_matmul_kernel_cdna4[grid](
+    A, B, C, scale_A, scale_B,
+    M, N, K,
+    # strides...
+    BLOCK_M=block_m, BLOCK_N=block_n, BLOCK_K=block_k,
+    mfma_nonkdim=mfma_nonkdim
+)
+```
+
+**Effort:** Low-Medium (1-2 days to adapt the tutorial kernel to competition shapes, then iterate on tiling/scheduling)
+
+---
+
+## 6. FlashAttention on AMD / MLA
+
+**What:** FlashAttention-2 with CK and Triton backends on AMD, plus AITER MLA backends for DeepSeek-style Multi-head Latent Attention.
+
+**Where:** [FlashAttention ROCm](https://github.com/dao-ailab/flash-attention) | [vLLM ROCm Attention Blog](https://blog.vllm.ai/2026/02/27/rocm-attention-backend.html) | [FlashMLA by DeepSeek](https://github.com/deepseek-ai/FlashMLA) | [FlashAttention Issue #1483](https://github.com/Dao-AILab/flash-attention/issues/1483)
+
+**Key findings:**
+- FlashAttention-2 CK backend supports MI200x/MI250x/MI300x/**MI355x**
+- Triton backend supports fp16, bf16, fp32, and **FP8 via FlashAttention v3 interface**
+- vLLM provides **7 attention backends on AMD ROCm** for MI355X
+- **AITER MLA backends deliver 1.2-1.6x faster TPOT** vs Triton MLA across MI series
+- On gfx950 specifically: **ROCM_AITER_MLA** is the fastest, using assembly MHA prefill
+- For MLA decode: the assembly decode kernel is shared across MI300X/MI325X/MI355X
+- For extending FlashAttention to large HeadDim (>512): enables **fully fused MLA** in prefill stage
+
+**Applicability:** VERY HIGH for the MLA Decode competition problem. The AITER assembly MLA backend is the production baseline to beat.
+
+**Effort:** Medium (2-3 days to profile the AITER MLA decode kernel, identify bottlenecks, and attempt optimization)
+
+---
+
+## 7. MoE Kernel Optimization
+
+**What:** Fused Mixture-of-Experts kernels for AMD GPUs with MXFP4 quantization.
+
+**Where:** [CK MoE FlatMM](https://deepwiki.com/ROCm/composable_kernel/4.4-convolution-operations) | [vLLM MoE Kernel Features](https://docs.vllm.ai/en/latest/design/moe_kernel_features/) | [AMD Align & Sort Blog](https://www.amd.com/en/blogs/2025/revolutionizing-mixture-of-experts-performance-10.html) | [Kimi-K2.5 FlyDSL Blog](https://rocm.blogs.amd.com/artificial-intelligence/kimi-k2.5-optimize/README.html)
+
+**Key findings:**
+- **CK MoE FlatMM**: Fuses sorting + Group GEMM, using SGLang team approach with CK pipeliner
+- Fusion of `per_group_token_quant` (online fp8 quantization) + MoE sorting + Group GEMM is possible
+- **AMD CDNA3/4 lacks on-chip shuffling** (unlike NVIDIA H100/B200 SM-to-SM). Data layout adaptation across blocks is the key bottleneck.
+- vLLM fused MoE supports **mxfp4, nvfp4, int4, int8, fp8** with dispatcher selecting backend by type/shape/quantization
+- FlyDSL-based MoE kernels support A4W4 (MXFP4 activations + MXFP4 weights)
+- **AMD Align & Sort optimization**: 10x speedup on MoE sorting on AMD Instinct GPUs
+
+**Key challenge for competition:** The lack of on-chip shuffling on AMD means sorting tokens to experts is expensive. The winners will likely have the best sort-GEMM fusion or avoid sorting entirely.
+
+**Applicability:** VERY HIGH for the MXFP4 MoE competition problem.
+
+**Effort:** High (3-5 days to build a competitive fused MoE kernel, likely starting from AITER FlyDSL or CK FlatMM)
+
+---
+
+## 8. GPU Kernel Scientist / Automated Optimization Agents
+
+**What:** LLM-driven frameworks for iterative GPU kernel optimization.
+
+**Where:**
+- [GPU Kernel Scientist (arXiv:2506.20807)](https://arxiv.org/abs/2506.20807) -- targets AMD MI300
+- [KernelEvolve by Meta (arXiv:2512.23236)](https://arxiv.org/abs/2512.23236) -- targets NVIDIA + AMD + MTIA
+- [Astra (Stanford)](https://cs.stanford.edu/~anjiang/papers/Astra.pdf) -- SGLang kernel optimization, 1.32x avg speedup
+- [SwizzlePerf](https://arxiv.org/html/2508.20258v1) -- automated swizzling patterns, finds in 5 min what took engineers 2 weeks
+- [K-Search](https://arxiv.org/abs/2602.19128) -- 2.10x average, up to 14.3x on MoE
+
+**Key findings:**
+- **GPU Kernel Scientist specifically targets AMD MI300 HIP kernels**, making it the most directly relevant
+- KernelEvolve uses Triton as primary target (60% growth), supports cross-platform NVIDIA/AMD/MTIA
+- KernelEvolve achieves 100% correctness on KernelBench (250 problems)
+- K-Search achieves SOTA on GPUMode TriMul task, **directly relevant to competition leaderboard**
+- Common approach: evolutionary search with LLM-generated mutations, profiling feedback loop
+
+**Applicability:** HIGH -- these systems could be used to auto-optimize our competition kernels. K-Search and GPU Kernel Scientist are the most directly applicable.
+
+**Effort:** High (1-2 weeks to set up a proper eval harness, but could yield breakthrough improvements)
+
+---
+
+## 9. Popcorn / AMD x GPU MODE Competition Details
+
+**What:** The $1.1M AMD x GPU MODE E2E Model Speedrun competition.
+
+**Where:** [Luma Event Page](https://luma.com/cqq4mojz) | [AMD Developer Article](https://www.amd.com/en/developer/resources/technical-articles/2026/new-gpumode-virtual-hackathon--e2e-model-speedrun.html) | [Popcorn CLI](https://github.com/gpu-mode/popcorn-cli) | [GPU MODE Leaderboard](https://www.gpumode.com/leaderboard/565)
+
+**Key findings:**
+- **Phase 1 (Qualifiers): March 6 - April 6, 2026** -- optimize 3 kernels:
+  1. **MXFP4 GEMM**
+  2. **MLA Decode**
+  3. **MXFP4 MoE**
+- Top 10 advance to Finals ($10K each), then compete for $1.1M across two tracks (DeepSeek-R1 and Kimi K2.5 on MI355X)
+- Submissions via `popcorn-cli submit submission.py --leaderboard <name> --gpu AMD`
+- Scoring: execution time in seconds (lower is better)
+- **MXFP4 GEMMs account for ~62% of end-to-end compute cost** in Llama2-70B
+- MI355X shows **2.7x improvement over MI325X** due to architecture + MXFP4
+
+**Applicability:** This IS the competition. All research above targets these three kernels.
+
+**Effort:** N/A (this is the competition framework itself)
+
+---
+
+## 10. MXFP4 Quantization Fusion (bf16 to fp4 in GEMM)
+
+**What:** Fusing the quantization step into GEMM kernels to avoid costly precision round-trips.
+
+**Where:** [AMD MXFP4/MXFP6 Blog](https://rocm.blogs.amd.com/software-tools-optimization/mxfp4-mxfp6-quantization/README.html) | [AMD Advanced MXFP4 Blog](https://rocm.blogs.amd.com/software-tools-optimization/mxfp4-online-rotation/README.html) | [MR-GPTQ (ICLR 2026)](https://openreview.net/pdf?id=zCBGe9AqJZ) | [Hybrid MXFP4 Training](https://arxiv.org/html/2603.02731) | [FP4 All the Way](https://arxiv.org/pdf/2505.19115) | [Training LLMs with MXFP4 (Amazon)](https://assets.amazon.science/cf/c0/835ed90b4fef88f6c5ed6f6494c7/training-llms-with-mxfp4.pdf)
+
+**Key findings:**
+- **Direct FP8-to-FP4 quantization** without BF16 intermediates (bitwise conversion with hierarchical scale alignment) -- reduces memory + inter-GPU traffic by >50%
+- **MR-GPTQ** (ICLR 2026): rotation fusion into weights + fast online activation computation. 3.6x layer-wise speedup on B200, 6x on RTX5090
+- AMD approach: MXFP4 GEMMs dispatched to pre-tuned CK and Triton kernels from a tuned AITER
+- AMD Quark + online rotation recovers 45-55% of accuracy drop, retaining >98% of BF16 accuracy
+- MXFP4 format: 4-bit FP (e2m1), power-of-two scale per 32 values, 2 FP4 values packed per byte
+- Key insight: `per_group_token_quant` can be **fused into the MoE GEMM kernel** (CK FlatMM pipeline does this)
+
+**Applicability:** HIGH -- fusing quantization into GEMM avoids a separate kernel launch and memory round-trip. This is potentially the difference between top-10 and winning.
+
+**Effort:** Medium-High (3-5 days to implement online quantization fusion if not already in CK/AITER baseline)
+
+---
+
+## Prioritized Action Plan
+
+Based on the research, here is the recommended priority order:
+
+| Priority | Action | Expected Gain | Effort |
+|----------|--------|---------------|--------|
+| 1 | Profile AITER baselines on all 3 competition problems | Establishes baseline | 1 day |
+| 2 | Adapt Triton block-scaled matmul tutorial for MXFP4 GEMM problem | Working submission | 1-2 days |
+| 3 | Study CK FlatMM `example/ck_tile/18_flatmm/` for MXFP4 patterns | Better GEMM + MoE | 2-3 days |
+| 4 | Apply HipKittens scheduling insights (8-wave ping-pong, chiplet-aware) | 19%+ improvement | 2-3 days |
+| 5 | Fix K tile sizing (IREE insight -- potentially 5x on some shapes) | Major for large K | 1 day |
+| 6 | Explore FlyDSL for fused MoE (A4W4 path in AITER) | Better MoE kernel | 3-5 days |
+| 7 | Set up K-Search or GPU Kernel Scientist eval loop | Automated optimization | 1-2 weeks |
+
+Sources:
+- [HipKittens GitHub](https://github.com/HazyResearch/HipKittens)
+- [HipKittens Paper](https://arxiv.org/html/2511.08083v1)
+- [CK GitHub](https://github.com/ROCm/composable_kernel)
+- [CK MFMA Optimizations (DeepWiki)](https://deepwiki.com/ROCm/composable_kernel/6.2-hardware-specific-optimizations-and-mfma)
+- [CK MoE FlatMM (DeepWiki)](https://deepwiki.com/ROCm/composable_kernel/4.4-convolution-operations)
+- [CK-Tile GEMM Blog](https://rocm.blogs.amd.com/software-tools-optimization/building-efficient-gemm-kernels-with-ck-tile-vendo/README.html)
+- [AITER GitHub](https://github.com/ROCm/aiter)
+- [AITER Releases](https://github.com/ROCm/aiter/releases)
+- [vLLM ROCm Attention Blog](https://blog.vllm.ai/2026/02/27/rocm-attention-backend.html)
+- [K-Search Paper](https://arxiv.org/abs/2602.19128)
+- [Triton Block-Scaled MatMul Tutorial](https://triton-lang.org/main/getting-started/tutorials/10-block-scaled-matmul.html)
+- [Triton Releases](https://github.com/triton-lang/triton/releases)
+- [FlashAttention ROCm](https://github.com/dao-ailab/flash-attention)
+- [FlashMLA](https://github.com/deepseek-ai/FlashMLA)
+- [GPU Kernel Scientist](https://arxiv.org/abs/2506.20807)
+- [KernelEvolve](https://arxiv.org/abs/2512.23236)
+- [Astra](https://cs.stanford.edu/~anjiang/papers/Astra.pdf)
+- [SwizzlePerf](https://arxiv.org/html/2508.20258v1)
+- [AMD Competition (Luma)](https://luma.com/cqq4mojz)
+- [AMD Competition Article](https://www.amd.com/en/developer/resources/technical-articles/2026/new-gpumode-virtual-hackathon--e2e-model-speedrun.html)
+- [Popcorn CLI](https://github.com/gpu-mode/popcorn-cli)
+- [GPU MODE Leaderboard](https://www.gpumode.com/leaderboard/565)
+- [AMD MXFP4/MXFP6 Blog](https://rocm.blogs.amd.com/software-tools-optimization/mxfp4-mxfp6-quantization/README.html)
+- [AMD Advanced MXFP4 Blog](https://rocm.blogs.amd.com/software-tools-optimization/mxfp4-online-rotation/README.html)
+- [MR-GPTQ (ICLR 2026)](https://openreview.net/pdf?id=zCBGe9AqJZ)
+- [Kimi-K2.5 FlyDSL Blog](https://rocm.blogs.amd.com/artificial-intelligence/kimi-k2.5-optimize/README.html)
+- [AMD Align & Sort Blog](https://www.amd.com/en/blogs/2025/revolutionizing-mixture-of-experts-performance-10.html)
+- [IREE MXFP4 K Tile Issue](https://github.com/iree-org/iree/issues/22309)
+- [ROCm 7.0 Blog](https://rocm.blogs.amd.com/ecosystems-and-partners/rocm-7.0-blog/README.html)
+- [ROCm 7.2 Blog](https://rocm.blogs.amd.com/software-tools-optimization/rocm7.2/README.html)
+- [AMD Inference Performance Article](https://www.amd.com/en/developer/resources/technical-articles/2026/inference-performance-on-amd-gpus.html)</result>
+<usage><total_tokens>69724</total_tokens><tool_uses>16</tool_uses><duration_ms>389182</duration_ms></usage>
+</task-notification>
+Full transcript available at: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/7b42ffab-cb2c-417a-b4cd-9fddf3b78647/tasks/ae4be63ea8ae19fbc.output
+
+---
+
+<task-notification>
+<task-id>acce0acc570f730f5</task-id>
+<tool-use-id>toolu_01TZMe7kkjCMzp4ww1kawyyV</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/7b42ffab-cb2c-417a-b4cd-9fddf3b78647/tasks/acce0acc570f730f5.output</output-file>
+<status>completed</status>
+<summary>Agent "Continuation file update with sweep results" completed</summary>
+<result>Here is the report:
+
+---
+
+## 1. Continuation File Summary
+
+The continuation at `/home/mike-anderson/.cohezion-engine/sessions/pid-3855572/continuation.md` is a comprehensive Session 76 handoff document for the Cohezion Genesis Engine. It covers:
+
+- **System state**: SurrealDB (port 8001), Ollama (46 models), Vault (8,070 notes), cloud-vault-mcp (41+ tools) -- all ONLINE
+- **Branch**: `spec/genesis-engine` in worktree `.worktrees/spec-genesis-engine-395e48851`
+- **Session 76 delivered**: 15 commits, 7 specialist agents, 7 PRIME skills, maintenance-mcp (6 tools), Nemotron on leaderboard (0.51), AIMO3 SC-TIR kernel written, 12 AMD kernel probes
+- **Tests**: 5,160 pass / 47 fail (98.5%)
+- **Git**: 30 modified (cache churn) files, last commits ending at `654f63f09`
+
+---
+
+## 2. Track Status: In Progress vs Completed
+
+### Completed
+- Phase A: Core retrospective
+- Phase B: Graph architecture (maintenance-mcp, vault-keeper, surreal-dba)
+- Phase C: Platform coordination (5 specialists + 5 PRIME skills)
+- System prep (services verified, models pulled, Kaggle restored)
+- Track 1 Nemotron: ON LEADERBOARD at 0.51
+- Track 5 Genesis M24: 14/14 COMPLETE
+- Capability maps: fully updated (125+ endpoints, 178 skills)
+- 3 sweep+research cycles with 11 actionable breakthroughs
+
+### In Progress
+- Track 2 AMD Speedrun: 12 probes submitted, API ceiling confirmed, MoE best at 1.41x gap
+- Track 3 AIMO3: SC-TIR kernel written (`submission_sc_tir.py`), needs local test + Kaggle submit
+- Licensing decision (CC BY 4.0 vs MIT-0) -- unresolved, blocks AIMO3 submission
+
+---
+
+## 3. Context Usage
+
+**0.0045%** -- effectively fresh. Status: `OK`. The velocity estimate shows ~5 turns remaining at current token rate, but given the near-zero usage, this session has full runway.
+
+---
+
+## 4. Stale/Missing Items That Need Updating
+
+Based on the items you flagged, here is what the continuation and plan do NOT cover:
+
+| Item | Present in Continuation? | Status |
+|------|--------------------------|--------|
+| **FlyDSL** (Python MLIR kernel DSL for AMD gfx950) | **Not mentioned at all.** If this is a new AMD kernel approach, it needs to be added to the AMD Speedrun track as an alternative to the Triton API-ceiling path. |
+| **a4w4_asm_moe** (dedicated ASM MoE kernel) | **Not mentioned.** The continuation only references Triton-based MoE at 155us. If a dedicated ASM approach exists, it could break through the 1.41x API ceiling documented as "exhausted." |
+| **pa_ps_asm** (paged attention persistent ASM for MLA) | **Not mentioned.** The MLA decode kernel is documented as "hardest kernel" with 2-16x gap and "architectural mismatch." A persistent ASM approach would be a significant strategy change worth documenting. |
+| **OpenCode Kimi-K2.5 sessions with 192x128 tile kernel** | **Not mentioned.** The continuation references OpenCode's `.opencode/` config (4-tier cost routing) but says nothing about Kimi-K2.5 sessions or the untapped 192x128 tile kernel. This could be a ready-made optimization sitting unused. |
+| **Gemini conductor worktrees** (setup only, never executed) | **Partially stale.** The continuation mentions Gemini CLI config (`.gemini/`, 6 MCP servers) and notes "12 active worktrees consuming 27GB+" with "7 stale (command-center variants)." But it does not specifically flag that conductor worktrees were set up but never executed -- this is actionable cleanup or execution work. |
+| **AIMO3 drift detection already working** | **Not reflected.** The continuation treats AIMO3 as "SC-TIR kernel written, needs local test + submit" but does not mention that drift detection is already functional. If this is operational, the remaining work may be smaller than documented. |
+
+### Recommendations
+
+1. **AMD Speedrun track** is the most stale section. Three new kernel approaches (FlyDSL, a4w4_asm_moe, pa_ps_asm) exist that could fundamentally change the "API ceiling confirmed" conclusion. The plan's stagnation gate ("3 cycles with <5% gain -> PIVOT") may have already been satisfied, and these are the pivots.
+
+2. **The 192x128 tile kernel from OpenCode/Kimi-K2.5** should be evaluated -- if it exists and works, it could be a quick win for the GEMM track (currently 2.35x gap, documented as "BEST ROI").
+
+3. **Gemini conductor worktrees** should either be executed or cleaned up. They are consuming disk space and adding to the "27GB stale worktrees" problem.
+
+4. **AIMO3 status** should be updated to reflect that drift detection is working, which reduces the remaining risk surface for submission.</result>
+<usage><total_tokens>50566</total_tokens><tool_uses>3</tool_uses><duration_ms>43233</duration_ms></usage>
+</task-notification>
+Full transcript available at: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/7b42ffab-cb2c-417a-b4cd-9fddf3b78647/tasks/acce0acc570f730f5.output
+
+---
+
+<task-notification>
+<task-id>a43c2b085e80e20d6</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/7b42ffab-cb2c-417a-b4cd-9fddf3b78647/tasks/a43c2b085e80e20d6.output</output-file>
+<status>completed</status>
+<summary>Agent "AIMO3 competition readiness check" completed</summary>
+<result>Here is my complete readiness assessment.
+
+---
+
+## AIMO3 Submission Readiness Report
+
+### 1. SC-TIR Kernel Status: DOES NOT EXIST
+
+The file `/home/mike-anderson/dev/cohezion/sandbox/aimo/kaggle_kernel/submission_sc_tir.py` does not exist. No files matching "sc_tir" or "Self-Consistency Tool-Integrated Reasoning" patterns exist anywhere in the AIMO sandbox. The SC-TIR approach has not been implemented.
+
+### 2. What DOES Exist: Baseline Submission Kernel
+
+The actual kernel is at `/home/mike-anderson/dev/cohezion/sandbox/aimo/kaggle_kernel/submission.py`.
+
+**Model:** Qwen2.5-Math-7B-Instruct (loaded from Kaggle dataset `gmhost/qwen2-5-math-7b-instruct`).
+
+**Architecture:**
+- Single-pass inference (no self-consistency, no tool integration, no multi-agent)
+- vLLM primary with Transformers fallback
+- Simple `\boxed{}` regex extraction, with fallback to last number in text
+- Single prompt template with chain-of-thought instruction
+- `max_model_len=4096`, `max_tokens=2048`, `temperature=0.2`
+
+**Current state: BROKEN.** The `auto_submit.log` shows the last Kaggle kernel run resulted in `KernelWorkerStatus.ERROR`. The kernel has never successfully submitted.
+
+### 3. Model Availability & Compliance
+
+| Criterion | Status |
+|-----------|--------|
+| Qwen2.5-Math-7B-Instruct is open-weight | YES -- compliant |
+| Released before March 15, 2026 cutoff | YES -- released in 2024 |
+| Available on Kaggle as dataset | YES -- `gmhost/qwen2-5-math-7b-instruct` is referenced in `kernel-metadata.json` |
+| Internet disabled during inference | YES -- `enable_internet: false` in metadata |
+
+### 4. Licensing Situation
+
+The rules at `/home/mike-anderson/dev/cohezion/conductor/tracks/aimo_progress_prize_3_20260319/RULES.md` require **CC-BY 4.0 or OSI-approved license** (MIT, Apache 2.0) for winning submissions. The spec at `spec.md` line 71 commits to CC-BY 4.0. No LICENSE file currently exists in the kernel directory. This only matters if the submission wins, but should be prepared.
+
+### 5. Key Risks (Priority Order)
+
+1. **Kernel is broken (CRITICAL).** Last run errored out. The error cause is unknown -- could be vLLM import failure, OOM, model path mismatch, or missing dependencies. This must be debugged before any submission attempt.
+
+2. **No SC-TIR / self-consistency (HIGH).** The current kernel does single-pass inference only. The competition scores with penalized accuracy across dual runs (same answer both times = 1.0, one correct = 0.5, both wrong = 0.0). Without self-consistency sampling, answers will be nondeterministic between runs, costing points.
+
+3. **7B model on IMO-level problems (HIGH).** The reference problems in `reference.csv` are IMO-level difficulty. Qwen2.5-Math-7B is a small model for this difficulty tier. The spec targets DeepSeek-R1-32B as lead reasoner, but the kernel uses the 7B model. Top competitors will use 70B+ models or ensembles.
+
+4. **Vault drift failures (MEDIUM).** Four drift-detection events logged on March 24: dual-run divergence on simple problems (divisor counting, algebraic identity). Even on basic problems, the local test harness using "qwen3.5:cloud" produced inconsistent answers.
+
+5. **No tool-integrated reasoning (MEDIUM).** No SymPy execution, no code generation+execution loop. The spec calls for symbolic executors and code verifiers but none are wired into the submission kernel.
+
+6. **Answer extraction brittleness (MEDIUM).** The `extract_answer` function falls back to "last number in the output" which is error-prone (the troubleshooting retro documents this exact failure mode -- extracting "180" from a timeout error string). The fix in `base_specialist.py` checks for "Error" prefix but the submission kernel does not have this guard.
+
+7. **No time budgeting (LOW-MEDIUM).** The 5-hour compute window is not managed. No per-problem timeout, no progress tracking, no fallback for slow problems.
+
+### 6. Timeline
+
+- **Today:** March 27, 2026
+- **Entry deadline from overview:** May 15, 2026 (not April 15)
+- **Final submission deadline:** May 22, 2026
+- **Model release cutoff:** March 15, 2026 (already passed)
+- **Submission limit:** 1 per day
+
+There is more time than the "April 15" deadline stated in the prompt. The official overview says May 15/22.
+
+### 7. Kaggle API Configuration
+
+Kaggle credentials are configured in `.env`:
+- Username: `manderson240`
+- API key format: `REDACTED`
+- Kernel slug: `manderson240/aimo-3-cohezion-baseline`
+
+Note: `auto_submit.py` hardcodes a different (likely stale) API token (`KGAT_ea8510...`).
+
+### 8. Recommended Next Steps (Priority Order)
+
+1. **Fix the broken kernel.** Push a minimal working kernel to Kaggle and verify it runs to completion (even returning all zeros). Debug the `KernelWorkerStatus.ERROR` -- test locally with the evaluation server first.
+
+2. **Upgrade the model.** Switch from Qwen2.5-Math-7B to a larger model available on Kaggle (e.g., DeepSeek-R1-Distill-Qwen-32B or QwQ-32B-Preview). The 7B model will not be competitive on IMO-level problems.
+
+3. **Add self-consistency.** Sample N times (e.g., 8-16) at higher temperature, take the majority vote. This directly addresses the dual-run scoring penalty and is the single highest-ROI technique.
+
+4. **Add tool-integrated reasoning.** Wire SymPy/Python code execution into the solve loop so the model can verify its algebraic manipulations programmatically.
+
+5. **Harden answer extraction.** Add the error-string guard, handle edge cases (negative numbers, fractions, multiple boxed values), and ensure mod 100000 is always applied.
+
+6. **Add per-problem timeouts.** Budget ~150s per problem with a hard cutoff that returns best-effort answer, preventing one hard problem from consuming the entire time budget.
+
+7. **Reconcile API tokens.** Update `auto_submit.py` to use the current token from `.env` rather than the hardcoded stale one.
+
+### Key Files Referenced
+
+- `/home/mike-anderson/dev/cohezion/sandbox/aimo/kaggle_kernel/submission.py` -- actual kernel (broken)
+- `/home/mike-anderson/dev/cohezion/sandbox/aimo/kaggle_kernel/kernel-metadata.json` -- Kaggle metadata
+- `/home/mike-anderson/dev/cohezion/sandbox/aimo/kaggle_kernel/auto_submit.log` -- error evidence
+- `/home/mike-anderson/dev/cohezion/sandbox/aimo/input/reference.csv` -- 10 reference problems
+- `/home/mike-anderson/dev/cohezion/conductor/tracks/aimo_progress_prize_3_20260319/RULES.md` -- full rules
+- `/home/mike-anderson/dev/cohezion/conductor/tracks/aimo_progress_prize_3_20260319/spec.md` -- architectural spec
+- `/home/mike-anderson/dev/cohezion/conductor/tracks/aimo_progress_prize_3_20260319/TROUBLESHOOTING_RETRO.md` -- known failure modes
+- `/home/mike-anderson/vaults/cohezion-vault/regions/cerebrum/failures/aimo/drift_detected/` -- 4 drift detection events</result>
+<usage><total_tokens>60435</total_tokens><tool_uses>35</tool_uses><duration_ms>104166</duration_ms></usage>
+</task-notification>
+Full transcript available at: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/7b42ffab-cb2c-417a-b4cd-9fddf3b78647/tasks/a43c2b085e80e20d6.output
+
+---
+
+<task-notification>
+<task-id>b56oc4322</task-id>
+<tool-use-id>toolu_01GTaKPP1w2eR9RUPNnH1sR3</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/7b42ffab-cb2c-417a-b4cd-9fddf3b78647/tasks/b56oc4322.output</output-file>
+<status>completed</status>
+<summary>Background command "Submit GEMM blockscale_v2 test" completed (exit code 0)</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/7b42ffab-cb2c-417a-b4cd-9fddf3b78647/tasks/b56oc4322.output
+
+---
+
+<task-notification>
+<task-id>b9lhwl7l2</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/7b42ffab-cb2c-417a-b4cd-9fddf3b78647/tasks/b9lhwl7l2.output</output-file>
+<status>completed</status>
+<summary>Background command "Submit MoE CK_BLOCK_GEMM benchmark" completed (exit code 0)</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/7b42ffab-cb2c-417a-b4cd-9fddf3b78647/tasks/b9lhwl7l2.output
+
+---
+
+<task-notification>
+<task-id>bc7zsisvd</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/7b42ffab-cb2c-417a-b4cd-9fddf3b78647/tasks/bc7zsisvd.output</output-file>
+<status>completed</status>
+<summary>Background command "Submit MLA flash_attn test" completed (exit code 0)</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/7b42ffab-cb2c-417a-b4cd-9fddf3b78647/tasks/bc7zsisvd.output
+
+---
+
+<task-notification>
+<task-id>aad79447fc0558e03</task-id>
+<tool-use-id>toolu_01UXgKU2M7ndzwHEYnYoUCAu</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/7b42ffab-cb2c-417a-b4cd-9fddf3b78647/tasks/aad79447fc0558e03.output</output-file>
+<status>completed</status>
+<summary>Agent "Nemotron competition iteration planning" completed</summary>
+<result>Now I have enough information. Let me compile the final comprehensive report.
+
+---
+
+## Nemotron Reasoning Competition Assessment
+
+### Current State
+
+**Branch:** `challenge/nvidia-nemotron-reasoning` (confirmed active)
+**Current Score:** 0.51 on the public leaderboard
+**Prize Pool:** $106K (per your statement; Kaggle page was not crawlable for direct confirmation)
+**Deadline:** June 15, 2026 (~80 days remaining)
+
+### What Model/Adapter Produced the 0.51 Score
+
+The submission that scored 0.51 is a **LoRA adapter on Nemotron-3-Nano-30B-A3B** (30B total params, 3B active; hybrid Mamba-Transformer MoE). Based on the v20 notebook and logs:
+
+- **Base model:** `metric/nemotron-3-nano-30b-a3b-bf16/transformers/default`
+- **LoRA config:** r=32, lora_alpha=16, target_modules=`["in_proj", "out_proj", "up_proj", "down_proj"]`, dropout=0.05
+- **Trainable parameters:** 880M (2.71% of 32.5B total)
+- **Training:** Untrained baseline adapter -- the v20 notebook loads the model, applies LoRA, saves the adapter, and zips it into `submission.zip` WITHOUT any actual training (no training loop, no gradient steps, just `model.save_pretrained()`). This is essentially a random LoRA adapter.
+- **Compute:** Attempted on both Kaggle G4 (Tesla P100-16GB) and Blackwell (RTX PRO 6000 95GB). The G4 runs failed because `mamba_ssm` cannot build on P100 (CUDA capability 6.0 vs. required 7.0+). The Blackwell v18 run got the model loaded and LoRA configured, but crashed during forward pass due to `ptxas-blackwell` permission denied errors on Triton compilation.
+
+**Critically: the 0.51 score is from an UNTRAINED adapter.** The Nemotron-3-Nano base model is already a capable reasoner, so even a random LoRA perturbation scores 0.51 because the base model does the heavy lifting.
+
+### Competition Mechanics (from the metric notebook)
+
+The evaluation pipeline works as follows:
+1. Kaggle loads `Nemotron-3-Nano-30B-A3B` with the participant's LoRA adapter via **vLLM**
+2. Each test prompt is appended with: `\nPlease put your final answer inside \boxed{}. For example: \boxed{your answer}`
+3. Chat template is applied with `enable_thinking=True`
+4. Inference parameters: `max_tokens=3584`, `temperature=1.0`, `top_p=1.0`, `max_model_len=4096`, `max_lora_rank=32`
+5. Answers are extracted from `\boxed{}` format, compared with ground truth (case-insensitive string match or 1e-2 numerical tolerance)
+6. Score = accuracy (fraction correct)
+
+**Key constraint:** max_lora_rank=32, so the adapter rank cannot exceed 32.
+
+### Training Data
+
+- **Train:** ~69,029 rows (id, prompt, answer) -- reasoning puzzles including bit manipulation, cryptography, math, word problems
+- **Test:** 34 rows
+- Prompts give examples of input-output patterns and ask the model to determine the output for a new input
+
+### What is Nemotron-3-Super and Could It Help?
+
+**Nemotron-3-Super** was released March 11, 2026. It is a 120B total / 12B active parameter model -- also hybrid Mamba-Transformer MoE with LatentMoE routing (512 experts, 22 active per token). Key features:
+- 25T token pretraining with NVFP4
+- 1M-token native context window
+- Multi-Token Prediction for speculative decoding
+- 2.2x throughput vs GPT-OSS-120B with comparable accuracy
+- 60.47% on SWE-Bench Verified (vs 41.90% for GPT-OSS)
+
+**However, Nemotron-3-Super likely CANNOT help this competition.** The evaluation metric notebook hardcodes `Nemotron-3-Nano-30B-A3B-BF16` as the base model and loads your LoRA adapter on top of it. You cannot swap the base model. The competition is specifically about making Nano better through LoRA fine-tuning + data curation.
+
+### LLM Comparison Leaderboard (from community notebook)
+
+A community notebook tested mainstream LLMs zero-shot on the same benchmark:
+
+| Model | Thinking | Score |
+|-------|----------|-------|
+| Gemini-3.1-Pro | Yes | **0.81** |
+| Claude-Opus-4.6 | Yes | **0.78** |
+| DeepSeek-V3.2 | Yes | **0.74** |
+| Kimi-K2.5 | Yes | 0.72 |
+| Qwen3-Max | Yes | 0.72 |
+| MiniMax-M2.5 | Yes | 0.66 |
+| Qwen3.5-Plus | Yes | 0.64 |
+| GLM-5 | Yes | 0.52 |
+| Claude-Sonnet-4.5 | No | 0.51 |
+| GPT-5.4 | No | 0.36 |
+
+**Your untrained adapter at 0.51 is roughly equivalent to Claude-Sonnet-4.5 zero-shot.** The ceiling for this competition appears to be around 0.81 (Gemini-3.1-Pro level). The top scores on the actual competition leaderboard are likely in the 0.65-0.75+ range from teams doing proper LoRA fine-tuning.
+
+### Recommended Iteration Strategy to Beat 0.51
+
+**Priority 1: Get actual training working (HIGH IMPACT, blocks everything)**
+
+The single biggest issue is that NO training has actually happened. All 20+ notebook versions crashed before training. The blockers:
+- **G4 (P100):** Cannot run Nemotron-3-Nano because `mamba_ssm` requires CUDA capability 7.0+ (P100 is 6.0)
+- **Blackwell (RTX PRO 6000):** Model loads, LoRA configures, but forward pass crashes on Triton `ptxas-blackwell` permission errors
+
+Fix for Blackwell: The Kaggle Blackwell Handshake in CLAUDE.md requires setting `TRITON_PTXAS_PATH` environment variable. The v18/v20 notebooks copy the utility script to `/tmp` and chmod the binaries, but the error shows Triton is looking at the SOURCE path (`/kaggle/usr/lib/...`) not the `/tmp` copy. The fix is to explicitly set:
+```python
+os.environ["TRITON_PTXAS_PATH"] = "/tmp/triton/backends/nvidia/bin/ptxas-blackwell"
+```
+BEFORE any model forward pass.
+
+**Priority 2: Knowledge distillation from stronger models (HIGHEST ROI)**
+
+Based on the AIMO-2 winning strategy (NemoSkills, 1st place):
+1. Use the 69K training examples as prompts
+2. Generate chain-of-thought reasoning traces from a strong teacher (DeepSeek-R1, Qwen3-Max, or Gemini via API)
+3. Fine-tune the LoRA adapter on these reasoning traces using standard SFT
+4. This is how the competition was designed to be won -- the training data provides the problems, you distill reasoning ability
+
+**Priority 3: Smart training data curation**
+
+Not all 69K examples are equally useful. Strategies:
+- Filter for problem types where Nano currently fails (identify via local eval)
+- Oversample harder problems
+- Use curriculum learning (easy to hard)
+
+**Priority 4: Inference-time improvements via adapter quality**
+
+Since inference params are fixed (temperature=1.0, top_p=1.0, max_tokens=3584):
+- Train the adapter to reliably produce `\boxed{}` formatted answers
+- Train for concise reasoning within the 3584 token budget
+- The chat template uses `enable_thinking=True`, so train with thinking tokens
+
+**What NOT to try:**
+- Switching base models (locked to Nemotron-3-Nano)
+- Increasing LoRA rank beyond 32 (hard limit in metric)
+- SmolLM3, DeepSeek-R1-Distill as base models (irrelevant -- only the adapter is submitted)
+
+### Key Files and Locations
+
+| File | Purpose |
+|------|---------|
+| `/home/mike-anderson/dev/cohezion/research/challenges/nvidia-nemotron-reasoning/` | Main competition directory |
+| `/home/mike-anderson/dev/cohezion/research/challenges/nvidia-nemotron-reasoning/data/train.csv` | Training data (69K rows) |
+| `/home/mike-anderson/dev/cohezion/research/challenges/nvidia-nemotron-reasoning/data/test.csv` | Test data (34 rows) |
+| `/home/mike-anderson/dev/cohezion/research/challenges/nvidia-nemotron-reasoning/PLAN.md` | Original project plan |
+| `/home/mike-anderson/dev/cohezion/.worktrees/spec-genesis-engine-395e48851/v20_meta/nemotron-lora-blackwell-v20.ipynb` | Latest Kaggle notebook (v20) |
+| `/home/mike-anderson/dev/cohezion/.worktrees/spec-genesis-engine-395e48851/v20_meta/kernel-metadata.json` | Kaggle metadata (Blackwell config) |
+| `/home/mike-anderson/dev/cohezion/data/temp_notebook_nemotron-lora-blackwell-v20/notebook.ipynb` | Local copy of v20 |
+| `/home/mike-anderson/dev/cohezion/nemotron-lora-blackwell-v18.log` | Most detailed training log (Blackwell, crashed at forward pass) |
+| `/home/mike-anderson/dev/cohezion/data/temp_kaggle/metric/nvidia-nemotron-metric.ipynb` | Official evaluation metric code |
+| `/home/mike-anderson/dev/cohezion/data/temp_kaggle/demo_notebook/nvidia-nemotron-submission-demo.ipynb` | Official submission demo |
+| `/home/mike-anderson/dev/cohezion/data/temp_kaggle/comp_notebook_2/nemotron-mainstream-llm-performance-comparison.ipynb` | Community LLM comparison notebook |
+| `/home/mike-anderson/dev/cohezion/scripts/check_nemotron_leaderboard.py` | Leaderboard checker script |
+| `/home/mike-anderson/dev/cohezion/scripts/submit_nemotron_adapter.py` | Adapter submission script |
+
+### Summary
+
+The 0.51 score is an untrained baseline -- there is significant headroom. The critical blocker is getting training to actually execute on Kaggle Blackwell GPUs (fix the `TRITON_PTXAS_PATH` environment variable). Once training works, knowledge distillation from a strong teacher model on the 69K training examples is the highest-ROI strategy based on prior Kaggle competition winners. Nemotron-3-Super is irrelevant here since the base model is locked to Nano. A realistic target with proper LoRA fine-tuning is 0.65-0.75.
+
+Sources:
+- [NVIDIA Nemotron Model Reasoning Challenge](https://www.kaggle.com/competitions/nvidia-nemotron-model-reasoning-challenge)
+- [Introducing Nemotron 3 Super](https://developer.nvidia.com/blog/introducing-nemotron-3-super-an-open-hybrid-mamba-transformer-moe-for-agentic-reasoning/)
+- [NVIDIA NemoSkills 1st Place Solution (AIMO-2)](https://www.kaggle.com/competitions/ai-mathematical-olympiad-progress-prize-2/writeups/nemoskills-1st-place-solution-nemoskills)
+- [Inside NVIDIA Nemotron 3](https://developer.nvidia.com/blog/inside-nvidia-nemotron-3-techniques-tools-and-data-that-make-it-efficient-and-accurate/)
+- [NVIDIA Nemotron 3 Super Model Card](https://build.nvidia.com/nvidia/nemotron-3-super-120b-a12b/modelcard)
+- [Train a Reasoning-Capable LLM in One Weekend](https://developer.nvidia.com/blog/train-a-reasoning-capable-llm-in-one-weekend-with-nvidia-nemo/)</result>
+<usage><total_tokens>120657</total_tokens><tool_uses>45</tool_uses><duration_ms>394839</duration_ms></usage>
+</task-notification>
+Full transcript available at: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/7b42ffab-cb2c-417a-b4cd-9fddf3b78647/tasks/aad79447fc0558e03.output
+
+---
+
+<task-notification>
+<task-id>b6cfl5wl9</task-id>
+<tool-use-id>toolu_01PttrnnueGGDVX1peSMP61i</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/7b42ffab-cb2c-417a-b4cd-9fddf3b78647/tasks/b6cfl5wl9.output</output-file>
+<status>completed</status>
+<summary>Background command "Submit MoE ASM probe (test mode)" completed (exit code 0)</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/7b42ffab-cb2c-417a-b4cd-9fddf3b78647/tasks/b6cfl5wl9.output
+
+---
+
+<task-notification>
+<task-id>bqemlqwd7</task-id>
+<tool-use-id>toolu_01SJ8AmN1Qq6L8vwFCFCTkCZ</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/7b42ffab-cb2c-417a-b4cd-9fddf3b78647/tasks/bqemlqwd7.output</output-file>
+<status>completed</status>
+<summary>Background command "Submit MLA PA_PS probe (test mode)" completed (exit code 0)</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/7b42ffab-cb2c-417a-b4cd-9fddf3b78647/tasks/bqemlqwd7.output
+
+---
+
+AGI was definitely started. Check in gemini coordinator and opencode sessions.  If we could find improvements there it would help all of Cohezion.
+
+---
+
+Assign teams of specialist agents wherever possible
+
+---
+
+<task-notification>
+<task-id>af809b252042d802a</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/7b42ffab-cb2c-417a-b4cd-9fddf3b78647/tasks/af809b252042d802a.output</output-file>
+<status>completed</status>
+<summary>Agent "Nemotron training fix and distillation" completed</summary>
+<result>The public test only has 3 rows (the real evaluation uses a hidden test set). Now I have everything I need for the comprehensive report.
+
+---
+
+## Nemotron Training Pipeline Assessment Report
+
+### 1. Exact Crash Error
+
+**File:** `/home/mike-anderson/dev/cohezion/nemotron-lora-blackwell-v18.log` (line 223)
+
+```
+PermissionError: [Errno 13] Permission denied: '/kaggle/usr/lib/notebooks/ryanholbrook/nvidia_utility_script/triton/backends/nvidia/bin/ptxas-blackwell'
+```
+
+**Root cause chain:** The forward pass triggers Triton kernel compilation (Mamba SSM `mamba_chunk_scan_combined` -> `_chunk_cumsum_fwd_kernel`). Triton's compiler calls `get_ptxas(arch)` which, for Blackwell (arch >= 100), returns `knobs.nvidia.ptxas_blackwell`. This knob reads the `TRITON_PTXAS_PATH` environment variable. Since it is **not set**, Triton falls back to the binary at its **original** location (`/kaggle/usr/lib/notebooks/ryanholbrook/nvidia_utility_script/triton/backends/nvidia/bin/ptxas-blackwell`), which is **not executable** (the notebook copies it to `/tmp` and chmod's it there, but Triton doesn't know to look in `/tmp`).
+
+The notebook at v20 copies the utility script to `/tmp` and sets `chmod +x` on the binaries, but **never sets `os.environ["TRITON_PTXAS_PATH"]`**. The Blackwell GPU (NVIDIA RTX PRO 6000, arch 100+) requires the `ptxas-blackwell` binary for Triton kernel compilation.
+
+### 2. Where TRITON_PTXAS_PATH Must Be Set
+
+In `/home/mike-anderson/dev/cohezion/.worktrees/spec-genesis-engine-395e48851/v20_meta/nemotron-lora-blackwell-v20.ipynb`, cell-0, the fix must go **immediately after** the chmod block and **before** any model loading or forward pass. Specifically, insert after line:
+
+```python
+        print("Blackwell utility script initialized in /tmp")
+```
+
+And before:
+
+```python
+    # 2. Verify hardware
+    import torch
+```
+
+The required addition:
+
+```python
+    # CRITICAL: Set TRITON_PTXAS_PATH for Blackwell GPU Triton compilation
+    os.environ["TRITON_PTXAS_PATH"] = "/tmp/triton/backends/nvidia/bin/ptxas-blackwell"
+    print(f"TRITON_PTXAS_PATH set to: {os.environ['TRITON_PTXAS_PATH']}")
+```
+
+Note: The official metric notebook (`/home/mike-anderson/dev/cohezion/data/temp_kaggle/metric/nvidia-nemotron-metric.ipynb`) also sets this path -- it uses `os.environ['TRITON_PTXAS_PATH'] = '/tmp/triton/backends/nvidia/bin/ptxas'` (without the `-blackwell` suffix), which works because the metric runs on the evaluation infrastructure that may have a different Triton version. For the **training** notebook on Blackwell, the `-blackwell` variant is required since the arch >= 100 path is triggered.
+
+### 3. Training Data Format and Quality Assessment
+
+**File:** `/home/mike-anderson/dev/cohezion/research/challenges/nvidia-nemotron-reasoning/data/train.csv`
+
+| Metric | Value |
+|--------|-------|
+| Total samples | 9,500 |
+| Columns | `id`, `prompt`, `answer` |
+| Problem types | Encryption/cipher (83.1%), Bit manipulation (16.9%) |
+| Answer types | Text/symbolic (42.3%), Numeric (40.5%), 8-bit binary (16.9%), Other binary (0.3%) |
+| Avg prompt length | ~50 words (~300 chars) |
+| Avg answer length | ~1 word (~8 chars) |
+| Answer length range | 1-39 characters |
+
+**Quality assessment:**
+- **Highly structured data** -- every problem follows the "Alice's Wonderland" pattern with examples of a hidden transformation rule, then asks for the output of a new input
+- **Pattern recognition tasks** -- not general reasoning. The model must learn to: (a) identify the hidden rule from few examples, (b) apply it to the test input
+- **Short answers** -- answers are compact (binary strings, short text, numbers). This is good for training efficiency.
+- **No chain-of-thought in training data** -- only final answers are provided, no reasoning traces. This is the key gap for knowledge distillation.
+
+### 4. Knowledge Distillation Plan
+
+**The core problem:** The training data contains only `(prompt, answer)` pairs with no reasoning traces. The model needs to learn **how** to deduce the hidden rule, not just memorize mappings. Knowledge distillation from a stronger teacher can generate chain-of-thought traces.
+
+**Recommended teacher models (in priority order):**
+
+1. **DeepSeek-R1 or Qwen3-235B** (via API) -- Best reasoning capability for pattern recognition tasks. These excel at chain-of-thought reasoning for novel puzzles.
+2. **Claude 3.5 Sonnet / GPT-4o** (via API) -- Strong alternative teachers with excellent few-shot pattern recognition.
+3. **Local: Qwen3-coder:30b via Ollama** -- Available on the Strix Halo machine, free, but lower quality traces.
+
+**Distillation workflow:**
+
+```
+For each (prompt, answer) in train.csv:
+  1. Send to teacher: "Think step by step. [prompt]"
+  2. Collect reasoning trace + final answer
+  3. Verify teacher answer matches ground truth
+  4. Format as: <thinking>{trace}</thinking>\boxed{answer}
+  5. Filter: keep only correct traces (~70-85% expected match rate)
+```
+
+**Training data format after distillation:**
+
+```
+User: {prompt}\nPlease put your final answer inside \boxed{}. For example: \boxed{your answer}
+Assistant: <thinking>Looking at the examples...
+[step-by-step reasoning]
+</thinking>
+The answer is \boxed{answer}
+```
+
+**Estimated distillation budget:**
+- 9,500 samples x ~500 input tokens + ~1000 output tokens = ~14M tokens
+- At DeepSeek-R1 API rates (~$0.55/M input, $2.19/M output): ~$25-30 total
+- At Claude Sonnet rates: ~$45-60 total
+- Expected usable traces (teacher matches ground truth): ~7,000-8,000 samples
+
+### 5. Estimated Training Time and Compute Requirements
+
+**Current notebook configuration:**
+- Model: Nemotron-3-Nano-30B-A3B (30B params, ~3B active due to MoE)
+- LoRA: r=32, lora_alpha=16, trainable params = 880M (2.7% of total)
+- GPU: NVIDIA RTX PRO 6000 Blackwell (95 GB VRAM)
+- BF16 precision
+
+**Training estimates on Blackwell RTX PRO 6000:**
+
+| Config | Batch Size | Seq Len | Time/Epoch | Total (3 epochs) |
+|--------|-----------|---------|------------|-------------------|
+| Without distillation (short answers) | 4 | 512 | ~15 min | ~45 min |
+| With distillation (long traces) | 2 | 2048 | ~2-3 hrs | ~6-9 hrs |
+| With distillation + gradient accumulation | 1 (accum=8) | 4096 | ~4-6 hrs | ~12-18 hrs |
+
+**Kaggle notebook time limit:** 12 hours per session. This is tight for distilled training. Strategy: use 2048 max seq length with truncation, 2-3 epochs max.
+
+**Memory budget:**
+- Model in BF16: ~60 GB
+- LoRA adapters + optimizer states: ~5-8 GB
+- Activations (seq_len=2048, batch=2): ~10-15 GB
+- Total: ~75-83 GB of 95 GB available. Feasible.
+
+### 6. Target Score Assessment
+
+**Current state:** 0.51 with an UNTRAINED adapter (random LoRA weights = essentially base model performance).
+
+**Scoring mechanism (from metric notebook):**
+- vLLM inference with `enable_thinking=True`, temperature=1.0, top_p=1.0, max_tokens=3584
+- Answer extracted via `\boxed{}` regex, falls back to "Final answer is:" patterns, then last number
+- Verification: `math.isclose(stored, predicted, rel_tol=1e-2)` for numbers, exact match (case-insensitive) for strings
+- Final score = proportion of correct answers (accuracy)
+
+**Score projections:**
+
+| Scenario | Expected Score | Rationale |
+|----------|---------------|-----------|
+| Fix crash + train on raw data (no CoT) | 0.55-0.60 | Model learns some patterns but struggles with novel rules |
+| Train on distilled CoT traces | 0.62-0.70 | Chain-of-thought helps systematic rule deduction |
+| Distilled + curriculum learning + answer format tuning | 0.65-0.75 | Better generalization, reliable \boxed{} formatting |
+| Distilled + ensemble (self-consistency, k=5) | 0.70-0.78 | Multiple attempts, majority vote (but not allowed -- single adapter) |
+
+**Realistic target: 0.65-0.75** with distilled training data and proper training. The ceiling depends on:
+1. Whether Nemotron-3-Nano can learn to generalize pattern rules from few examples (its Mamba/MoE architecture is efficient but may struggle with novel combinatorial patterns)
+2. Quality of the distillation traces
+3. Whether the hidden test set has similar distribution to training data
+
+**Key risks:**
+- The evaluation uses `temperature=1.0` (not 0), introducing randomness in outputs
+- Max tokens = 3584 with thinking enabled means the model gets substantial budget for reasoning, but only if trained to use it
+- Pattern recognition tasks are adversarial by design -- each problem has a unique hidden rule, so memorization has limited value
+- The `max_lora_rank=32` constraint matches our config, so that's good
+
+### 7. Additional Critical Findings
+
+**The v20 notebook has no actual training loop.** It loads the model, applies LoRA, does a forward pass test, then immediately saves the adapter and creates submission.zip. This means the 0.51 score is from a **completely untrained** LoRA adapter -- the base model alone. The notebook needs an entire training section added between LoRA configuration and adapter saving.
+
+**The metric notebook uses `enable_thinking=True`** in the chat template. This means Nemotron-3-Nano supports an internal thinking mode. Training should leverage this by formatting distilled traces to match the thinking format the model expects.
+
+**The metric notebook also reveals the tokenizer uses `apply_chat_template` with `enable_thinking=True`** -- this is critical. The model's thinking tokens must be part of the training supervision, not just the final answer.</result>
+<usage><total_tokens>74719</total_tokens><tool_uses>20</tool_uses><duration_ms>143860</duration_ms></usage>
+</task-notification>
+Full transcript available at: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/7b42ffab-cb2c-417a-b4cd-9fddf3b78647/tasks/af809b252042d802a.output
+
+---
+
+<task-notification>
+<task-id>a11ae8f18e1112f5a</task-id>
+<tool-use-id>toolu_01MhaUSt4romcXTSEATyx1hg</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/7b42ffab-cb2c-417a-b4cd-9fddf3b78647/tasks/a11ae8f18e1112f5a.output</output-file>
+<status>completed</status>
+<summary>Agent "Measuring AGI Phase 5 execution" completed</summary>
+<result>I now have a comprehensive picture. Here is the full research report.
+
+---
+
+## Phase 5 Research Report: Kaggle "Measuring Progress Toward AGI" Competition
+
+### 1. Task Count
+
+**Critically low.** Current data across all files:
+
+| File | Train | Test | Quality |
+|------|-------|------|---------|
+| `evo_hiho_benchmark.json` | 1 task | 1 task | **Placeholder** -- grids are `[[...]]` literal strings, not actual matrices |
+| `evo_hiho_benchmark.jsonl` | 4 train | 1 test | **Placeholder** -- same `[Describe the ARC grid examples...]` text |
+| `submission.json` | 1 task | 1 task | Extracted from above, still placeholder |
+| `submission.jsonl` | 5 lines | -- | **Empty fields** -- all `question: ""`, `options: []`, `answer: ""` |
+| `kaggle_benchmark.json` | 4 train | 1 test | **Null outputs** -- `"output": null` throughout |
+| `adversarial_results.json` | -- | 2 evaluated | Trivial grids (`[[1,1],[1,1]]`, `[[2,2],[2,2]]`), both passed |
+| `adversarial_results.jsonl` | -- | 5 evaluated | All identical "complex physics scenario..." placeholders, all FAILED |
+
+**Total usable, real tasks: 0.** Every file contains either placeholder text, null fields, or trivially simple grids. There are no genuine, well-formed benchmark tasks anywhere in the pipeline.
+
+### 2. Kaggle Submission Format (Critical Finding)
+
+**The current pipeline is built on a completely wrong submission model.** This is the single biggest blocker.
+
+This competition is NOT a traditional Kaggle submission where you upload a `submission.json`. It is a **hackathon** using the **Kaggle Community Benchmarks platform** and the `kaggle-benchmarks` SDK (`kbench`).
+
+**What participants actually submit:**
+1. **A Kaggle Benchmark** -- built using the `@kbench.task` decorator in a Kaggle notebook, testing frontier models (Gemini, Claude, etc.) via `kbench.llm`
+2. **A 1,500-word writeup** -- on the Kaggle platform with a project link to the benchmark
+3. **A public notebook** -- the code that defines and runs the benchmark
+4. **A cover image**
+
+**The correct workflow is:**
+```python
+import kaggle_benchmarks as kbench
+
+@kbench.task(name="epistemic_humility_grid_trap")
+def test_epistemic_humility(llm, question: str, options: list, expected: str):
+    response = llm.prompt(question)
+    kbench.assertions.assert_contains_regex(
+        r"(?i)insufficient information",
+        response,
+        expectation="Model should recognize ambiguity"
+    )
+
+# Run against frontier models on Kaggle's infrastructure
+test_epistemic_humility.run(
+    llm=kbench.llm,
+    question="...",
+    options=[...],
+    expected="Insufficient Information"
+)
+```
+
+The `format_kaggle_submission.py`, `kaggle_formatter.py`, `check_leaderboard.py`, and the `submission.json`/`submission.jsonl` pipeline are all based on the wrong submission paradigm. The `kernel-metadata.json` pointing to a standard Kaggle competition kernel is also outdated.
+
+### 3. Models Configured for Evaluation
+
+**In the codebase (`prompts.py` TRACK_REGISTRY):**
+| Track | Model | Status |
+|-------|-------|--------|
+| Learning | `nemotron:latest` (30B) | Available locally as `nemotron-3-nano:30b` |
+| Metacognition | `qwq:32b` | **NOT installed** locally |
+| Attention | `qwen2.5:32b` | **NOT installed** locally |
+| Executive Function | `deepseek-r1:14b` | **NOT installed** (only 7b available) |
+| Social Cognition | `llama3.1:8b` | **NOT installed** locally |
+
+**In the generation/eval scripts:** Both `generate_evo_hiho_tasks.py` and `adversarial_eval_loop.py` use `minimax-m2.7:cloud`, which IS available.
+
+**On Kaggle (the correct target):** The competition provides free quota ($50/day, $500/month) to test against frontier models including Google Gemini, Anthropic Claude, and DeepSeek via `kbench.llm` and `kbench.llms["model_id"]`.
+
+### 4. Scaling to 100+ Tasks
+
+The current generation approach will not scale for several reasons:
+
+- **Task quality is the bottleneck, not quantity.** The LLM generation produces placeholder text and poorly-formed grids. The `GENERATION_PROMPT` in `generate_evo_hiho_tasks.py` asks for actual 2D matrices but the model returns `[[...]]` literal strings.
+- **The competition scores BENCHMARK QUALITY, not task count.** Judges evaluate novelty, cognitive alignment, and whether the benchmark reveals new insights about model behavior. A focused set of 20-50 well-crafted, diverse tasks across the 5 tracks would be far more competitive than 100+ low-quality ones.
+- **The `prompts.py` TRACK_REGISTRY** already has good prompt templates for all 5 tracks. These need to be converted to `@kbench.task` functions rather than local Ollama generation.
+- **The generation loop uses CompoundSessionManager** with HIHO alignment checks, which adds overhead. For Kaggle submission, tasks can be authored directly or generated offline and hand-curated.
+
+### 5. Task Quality Assessment
+
+**Current quality: UNUSABLE for competition.**
+
+- `evo_hiho_benchmark.json`: Tasks contain literal `[[...]]` placeholder strings instead of actual grid matrices. The model never produced real ARC-style grids.
+- `adversarial_results.json`: Two tasks have actual tiny grids (`[[1,1],[1,1]]`) but these are trivially simple -- a 2x2 uniform grid tells us nothing about cognitive abilities.
+- `adversarial_results.jsonl`: All 5 entries contain the same "complex physics scenario..." placeholder with empty `model_response` fields and all marked `passed: false`.
+- The `adversarial_eval_loop.py` has a syntax bug: there is a duplicate function definition header at line 89 (`async def run_adversarial_loop():` appears twice, the second inside the docstring of the first).
+- The FLUME latent state embeddings ARE being captured (256D vectors visible in `adversarial_results.json`), which is a genuine differentiator, but the underlying tasks are worthless.
+
+### 6. Blockers
+
+| Blocker | Severity | Detail |
+|---------|----------|--------|
+| **Wrong submission paradigm** | CRITICAL | Entire pipeline assumes `submission.json` upload. Must be rewritten for `kbench` SDK |
+| **`kaggle-benchmarks` not installed** | HIGH | Need `pip install kaggle-benchmarks` or run in Kaggle notebook |
+| **Zero real tasks** | HIGH | All tasks are placeholders. Need hand-crafted or properly generated tasks |
+| **Missing local models** | MEDIUM | 3 of 5 track models not installed. But irrelevant if we use Kaggle's frontier models |
+| **Syntax bug in eval loop** | LOW | Duplicate function def in `adversarial_eval_loop.py` line 89 |
+| **Kaggle API auth** | RESOLVED | `~/.kaggle/kaggle.json` exists |
+| **No writeup** | MEDIUM | `kaggle_writeup.md` exists but needs rewrite for the actual submission format (1,500 word limit) |
+
+### 7. Cohezion FLUME/HIHO Integration and Mutual Benefits
+
+**What works well and is a genuine differentiator:**
+- The `ARCGridEncoder` in `/home/mike-anderson/dev/cohezion/src/cohezion/flume/grid_encoder.py` maps ARC grids to 256D FLUME latent space. This is real, functioning code.
+- The HIHO coherence checks (0.5 threshold) in the generation loop provide a principled way to filter bad tasks.
+- The `FlumeGridHarness` can track model reasoning trajectories through latent space, detecting when models diverge from the "Insufficient Information" attractor into confabulated states.
+
+**What would benefit Cohezion:**
+- A functioning benchmark of 50+ high-quality cognitive tasks across 5 tracks would serve as a validation suite for Cohezion's own agents.
+- The FLUME trajectory tracking during benchmark evaluation could feed back into Cohezion's `DegradationDetector` and `RetrospectionEngine` to identify when models are overconfident.
+- The `prompts.py` TRACK_REGISTRY maps cleanly to Cohezion's Expert Domain Lattice concept -- each track could be handled by a specialist agent.
+
+**What needs to change for mutual benefit:**
+- The benchmark tasks need to work with the `kbench` SDK, not just local Ollama. The FLUME embedding layer can still run inside the Kaggle notebook (it's bundled in `evaluator.ipynb`'s `COHEZION_BUNDLE`).
+- The HIHO coherence scoring could be presented as a novel evaluation metric in the writeup -- measuring whether a model's confidence calibration matches the information available.
+
+### Recommended Next Steps (Priority Order)
+
+1. **Pivot the submission to use `kaggle-benchmarks` SDK.** Create a new notebook with `@kbench.task` decorators for each of the 5 cognitive tracks.
+2. **Hand-craft 10-15 high-quality tasks per track** (50-75 total). Use the prompts in `prompts.py` as starting points but author the actual content manually or with careful curation.
+3. **Bundle the FLUME grid encoder** into the Kaggle notebook (pattern already in `evaluator.ipynb`) as a differentiating analysis layer.
+4. **Write the 1,500-word submission writeup** covering the FLUME/HIHO methodology as a novel cognitive evaluation framework.
+5. **Run the benchmark on Kaggle** against frontier models using the free quota.
+
+### Key Files
+
+- `/home/mike-anderson/dev/cohezion/kaggle-agi-benchmark/generate_evo_hiho_tasks.py` -- task generator (wrong paradigm)
+- `/home/mike-anderson/dev/cohezion/kaggle-agi-benchmark/adversarial_eval_loop.py` -- eval loop (wrong paradigm, syntax bug)
+- `/home/mike-anderson/dev/cohezion/kaggle-agi-benchmark/prompts.py` -- 5-track prompt registry (good foundation, needs conversion to kbench)
+- `/home/mike-anderson/dev/cohezion/kaggle-agi-benchmark/evaluator.ipynb` -- Kaggle notebook (needs complete rewrite for kbench)
+- `/home/mike-anderson/dev/cohezion/kaggle-agi-benchmark/pipeline.ipynb` -- pipeline notebook (needs complete rewrite)
+- `/home/mike-anderson/dev/cohezion/kaggle-agi-benchmark/kaggle_writeup.md` -- writeup (good conceptual foundation, needs rewrite)
+- `/home/mike-anderson/dev/cohezion/src/cohezion/flume/grid_encoder.py` -- FLUME grid encoder (solid, reusable)
+- `/home/mike-anderson/dev/cohezion/kaggle-agi-benchmark/kernel-metadata.json` -- Kaggle config (needs update)
+
+Sources:
+- [Kaggle Measuring AGI Competition](https://www.kaggle.com/competitions/kaggle-measuring-agi)
+- [Google DeepMind Cognitive Framework Blog Post](https://blog.google/innovation-and-ai/models-and-research/google-deepmind/measuring-agi-cognitive-framework/)
+- [Google DeepMind AGI Hackathon Details](https://creati.ai/ai-news/2026-03-18/google-deepmind-cognitive-framework-measure-agi-progress-kaggle-hackathon/)
+- [Kaggle Community Benchmarks Platform](https://blog.google/innovation-and-ai/technology/developers-tools/kaggle-community-benchmarks/)
+- [kaggle-benchmarks GitHub Repository](https://github.com/Kaggle/kaggle-benchmarks)
+- [kaggle-benchmarks SDK Deep Wiki](https://deepwiki.com/Kaggle/kaggle-benchmarks/6-tools-and-code-execution)
+- [Competition Overview Reference](https://github.com/rurusasu/kaggle-comp-measuring-agi/blob/main/docs/overview.md)
+- [EdTech Innovation Hub Coverage](https://www.edtechinnovationhub.com/news/google-deepmind-and-kaggle-open-agi-benchmark-contest-with-200000-prize-pool)</result>
+<usage><total_tokens>88088</total_tokens><tool_uses>42</tool_uses><duration_ms>340359</duration_ms></usage>
+</task-notification>
+Full transcript available at: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/7b42ffab-cb2c-417a-b4cd-9fddf3b78647/tasks/a11ae8f18e1112f5a.output
+
+---
+
+<task-notification>
+<task-id>a63e40291c04df978</task-id>
+<tool-use-id>toolu_01FB4kDQBKb2UvBwZ68rZCQk</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/7b42ffab-cb2c-417a-b4cd-9fddf3b78647/tasks/a63e40291c04df978.output</output-file>
+<status>completed</status>
+<summary>Agent "AIMO3 kernel fix and upgrade" completed</summary>
+<result>Now I have all the information I need. Here is the comprehensive report.
+
+---
+
+## AIMO3 Kernel Assessment Report
+
+### 1. Root Cause of the Kernel Error
+
+The kernel at `/home/mike-anderson/dev/cohezion/sandbox/aimo/kaggle_kernel/submission.py` failed with `KernelWorkerStatus.ERROR` (logged in `/home/mike-anderson/dev/cohezion/sandbox/aimo/kaggle_kernel/auto_submit.log`).
+
+The most likely root causes, in order of probability:
+
+**A. Model too weak / wrong model for the task.** The kernel uses `Qwen2.5-Math-7B-Instruct` (a 7B parameter model), loaded from the Kaggle dataset `gmhost/qwen2-5-math-7b-instruct`. This model is far too small for IMO-level problems. However, this would cause bad answers (score 0.0), not necessarily a kernel *error*.
+
+**B. vLLM version incompatibility with Kaggle environment.** There is a [documented vLLM issue](https://github.com/vllm-project/vllm/issues/27132) where vLLM versions above v0.10 fail on Kaggle due to NumPy/SciPy dependency conflicts. The kernel tries vLLM first (line 25-36) and falls back to Transformers. If the vLLM import partially succeeds but initialization crashes (e.g., GPU memory misconfiguration with `max_model_len=4096` and `gpu_memory_utilization=0.95`), it could produce an unrecoverable error.
+
+**C. `enable_gpu: true` gives the wrong GPU type.** The `kernel-metadata.json` sets `"enable_gpu": "true"` but does not specify a GPU type. AIMO3 provides H100 GPUs, but the generic `enable_gpu` flag may allocate a T4 or P100 instead. If the Kaggle environment assigns a non-H100 GPU that doesn't support bf16 properly, the model loading could fail.
+
+**D. Missing or incorrect Kaggle evaluation API path.** The kernel appends `/kaggle/input/ai-mathematical-olympiad-progress-prize-3` to `sys.path` and imports `kaggle_evaluation.aimo_3_inference_server`. If the competition data package changed or the API module isn't at that path, the kernel would crash immediately on import.
+
+### 2. What Needs to Change
+
+**Model upgrade** -- The 7B model is inadequate for IMO-level math. Key changes needed:
+
+| Current | Required |
+|---------|----------|
+| Model: `Qwen2.5-Math-7B-Instruct` (7B) | Model: `DeepSeek-R1-Distill-Qwen-32B` or AWQ variant |
+| Dataset source: `gmhost/qwen2-5-math-7b-instruct` | Model source: `deepseek-ai/deepseek-r1/transformers/deepseek-r1-distill-qwen-32b/1` (official Kaggle Models hub) or dataset: `mirzamilanfarabi/deepseek-r1-distill-qwen-32b-awq-casperhansen` |
+| `max_model_len=4096` | `max_model_len=32768` (or 16384 minimum) |
+| `temperature=0.2` | `temperature=0.6` (DeepSeek recommends 0.5-0.7) |
+| `max_tokens=2048` | `max_tokens=32768` (long chain-of-thought reasoning) |
+| System prompt used | No system prompt (DeepSeek recommendation) |
+| Single generation per problem | Self-Consistency (SC) with multiple samples + majority voting |
+| No code execution | Tool-Integrated Reasoning (TIR) with Python code execution |
+
+**Infrastructure fixes:**
+
+- Pin vLLM version or add NumPy constraint: `pip install vllm "numpy<2.3"`
+- Set proper `tensor_parallel_size` (2 for bf16 32B, or 1 for AWQ quantized)
+- Remove `enforce_eager=True` limitation (or keep it only if needed for compatibility)
+- The `extract_answer` regex needs to handle DeepSeek's `<think>...</think>` reasoning format
+
+### 3. Best Available 32B Model on Kaggle
+
+**Primary recommendation: DeepSeek-R1-Distill-Qwen-32B** (official, on [Kaggle Models hub](https://www.kaggle.com/models/deepseek-ai/deepseek-r1/transformers/deepseek-r1-distill-qwen-32b))
+- Slug for `model_sources`: `"deepseek-ai/deepseek-r1/transformers/deepseek-r1-distill-qwen-32b/1"`
+- Full bf16 precision, requires ~64GB VRAM, fits on 1x H100 80GB (tight) or 2x H100 comfortably
+- Benchmarks: AIME 2024 72.6%, MATH-500 94.3%
+
+**Alternative: DeepSeek-R1-Distill-Qwen-32B-AWQ** (quantized, on [Kaggle Datasets](https://www.kaggle.com/datasets/mirzamilanfarabi/deepseek-r1-distill-qwen-32b-awq-casperhansen))
+- Slug for `dataset_sources`: `"mirzamilanfarabi/deepseek-r1-distill-qwen-32b-awq-casperhansen"`
+- Int4 AWQ quantization, ~17GB, fits easily on 1x H100 with room for large context
+- MIT license, based on CasperHansen's quantization
+- Slightly lower quality but allows more room for long context and multiple samples
+
+There is also a [user-uploaded full-precision dataset](https://www.kaggle.com/datasets/yannan90/deepseek-r1-distill-qwen-32b) at `yannan90/deepseek-r1-distill-qwen-32b`.
+
+### 4. Licensing Compliance
+
+**Status: COMPLIANT.**
+
+- **DeepSeek-R1-Distill-Qwen-32B**: Licensed under MIT License. Supports commercial use, modifications, and derivative works including distillation. The base model (Qwen-2.5) is Apache 2.0.
+- **AIMO3 competition**: Requires open-source code and publicly available model weights. Winners must share training data, training scripts, and final model weights. The competition does NOT appear to mandate CC BY 4.0 specifically -- the [AIMO FAQ](https://aimoprize.com/updates/2023-12-19-frequently-asked-questions) states the committee will "determine the licences under which AI models would need to be shared" and references open-source for non-commercial use with royalty-basis for commercial.
+- MIT and Apache 2.0 are both compatible with open-source sharing requirements.
+
+### 5. `submission_sc_tir.py` Search Result
+
+No file named `submission_sc_tir.py` exists anywhere in the repository. No references to "sc_tir", "SC-TIR", or "tool-integrated reasoning" were found in the codebase. This would need to be created from scratch. The AIMO1 winner (Project Numina) used SC-TIR (Self-Consistency with Tool-Integrated Reasoning) in their [winning solution](https://github.com/project-numina/aimo-progress-prize).
+
+### 6. Step-by-Step Fix Plan
+
+**Phase 1: Fix the kernel crash (get it running)**
+
+1. Update `kernel-metadata.json`:
+   - Change `dataset_sources` from `["gmhost/qwen2-5-math-7b-instruct"]` to `["mirzamilanfarabi/deepseek-r1-distill-qwen-32b-awq-casperhansen"]` (AWQ version -- fits easily on H100, leaves room for long context)
+   - OR add to `model_sources`: `["deepseek-ai/deepseek-r1/transformers/deepseek-r1-distill-qwen-32b/1"]` (official full-precision model from Kaggle Models hub)
+   - Keep `competition_sources` as is
+
+2. Update `MODEL_PATH` in `submission.py` to match the new data source path (e.g., `/kaggle/input/deepseek-r1-distill-qwen-32b-awq-casperhansen`)
+
+3. Fix vLLM initialization:
+   - Add `!pip install "numpy<2.3"` at the top if using vLLM
+   - Set `tensor_parallel_size=1` for AWQ (or `=2` for bf16 full-precision)
+   - Set `max_model_len=16384` or `32768`
+   - Set `gpu_memory_utilization=0.90`
+   - Remove `enforce_eager=True` (or keep for safety)
+
+**Phase 2: Improve mathematical reasoning**
+
+4. Update sampling parameters:
+   - `temperature=0.6` (DeepSeek recommendation, 0.5-0.7 range)
+   - `max_tokens=32768` (allow long chain-of-thought)
+   - `top_p=0.95`
+   - Remove system prompt -- put all instructions in user prompt (DeepSeek recommendation)
+
+5. Implement Self-Consistency (SC):
+   - Generate N=8-16 samples per problem
+   - Extract answer from each
+   - Return majority vote answer
+
+6. Update `extract_answer()` to handle DeepSeek's `<think>...</think>` reasoning block format and find `\boxed{}` in the final response portion
+
+**Phase 3: Advanced (optional but high-impact)**
+
+7. Add Tool-Integrated Reasoning (TIR): Execute Python code blocks from model output for verification
+8. Add problem classification to adjust prompting strategy per math domain
+
+### Key Reference Files
+
+- `/home/mike-anderson/dev/cohezion/sandbox/aimo/kaggle_kernel/submission.py` -- Current broken kernel
+- `/home/mike-anderson/dev/cohezion/sandbox/aimo/kaggle_kernel/kernel-metadata.json` -- Metadata (needs model source update)
+- `/home/mike-anderson/dev/cohezion/sandbox/aimo/kaggle_kernel/auto_submit.log` -- Error log
+- `/home/mike-anderson/dev/cohezion/sandbox/aimo/kaggle_kernel/auto_submit.py` -- Auto-submit script
+- `/home/mike-anderson/dev/cohezion/sandbox/aimo/input/reference.csv` -- Reference problems (IMO-level, 5-digit answers)
+- `/home/mike-anderson/dev/cohezion/conductor/tracks/aimo_progress_prize_3_20260319/TROUBLESHOOTING_RETRO.md` -- Prior debugging retrospective
+
+### Key Online Resources
+
+Sources:
+- [Kaggle AIMO Progress Prize 3 Competition](https://www.kaggle.com/competitions/ai-mathematical-olympiad-progress-prize-3)
+- [AIMO3 Launch Announcement](https://aimoprize.com/updates/2025-11-19-third-progress-prize-launched)
+- [DeepSeek-R1-Distill-Qwen-32B on Kaggle Models](https://www.kaggle.com/models/deepseek-ai/deepseek-r1/transformers/deepseek-r1-distill-qwen-32b)
+- [DeepSeek-R1-Distill-Qwen-32B-AWQ Dataset on Kaggle](https://www.kaggle.com/datasets/mirzamilanfarabi/deepseek-r1-distill-qwen-32b-awq-casperhansen)
+- [DeepSeek-R1-Distill-Qwen-32B on HuggingFace](https://huggingface.co/deepseek-ai/DeepSeek-R1-Distill-Qwen-32B)
+- [vLLM Kaggle compatibility issue](https://github.com/vllm-project/vllm/issues/27132)
+- [AIMO Prize FAQ (licensing)](https://aimoprize.com/updates/2023-12-19-frequently-asked-questions)
+- [Project Numina AIMO1 Winner (SC-TIR reference)](https://github.com/project-numina/aimo-progress-prize)
+- [AIMO3 GPT-OSS-120B on H100 example notebook](https://www.kaggle.com/code/seshurajup/aimo-3-gpt-oss-120b-3hours-wow-h100)
+- [Kaggle Kernel Metadata specification](https://github.com/Kaggle/kaggle-api/blob/main/docs/kernels_metadata.md)</result>
+<usage><total_tokens>86028</total_tokens><tool_uses>41</tool_uses><duration_ms>567144</duration_ms></usage>
+</task-notification>
+Full transcript available at: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/7b42ffab-cb2c-417a-b4cd-9fddf3b78647/tasks/a63e40291c04df978.output
+
+---
+
+<task-notification>
+<task-id>bk1rso0cn</task-id>
+<tool-use-id>toolu_01GXTqHezimgRRqo3DptCxNH</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/7b42ffab-cb2c-417a-b4cd-9fddf3b78647/tasks/bk1rso0cn.output</output-file>
+<status>completed</status>
+<summary>Background command "Submit GEMM v18 hybrid in test mode to amd-mxfp4-mm" completed (exit code 0)</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/7b42ffab-cb2c-417a-b4cd-9fddf3b78647/tasks/bk1rso0cn.output
+
+---
+
+<task-notification>
+<task-id>b8dhj5bo9</task-id>
+<tool-use-id>toolu_01YJcRWcGBUi5fdtdvGub2iw</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/7b42ffab-cb2c-417a-b4cd-9fddf3b78647/tasks/b8dhj5bo9.output</output-file>
+<status>completed</status>
+<summary>Background command "Submit MoE CK block clean in benchmark mode to amd-moe-mxfp4" completed (exit code 0)</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/7b42ffab-cb2c-417a-b4cd-9fddf3b78647/tasks/b8dhj5bo9.output
+
+---
+
+<task-notification>
+<task-id>a0f06793246990c24</task-id>
+<tool-use-id>toolu_01N6nrcWAqDHsot6Pd2K3HPZ</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/7b42ffab-cb2c-417a-b4cd-9fddf3b78647/tasks/a0f06793246990c24.output</output-file>
+<status>completed</status>
+<summary>Agent "AMD GEMM v18 + clean MoE submission" completed</summary>
+<result>Both submissions completed successfully. Here is the summary:
+
+---
+
+**Files written:**
+- `/home/mike-anderson/dev/cohezion/.worktrees/spec-genesis-engine-395e48851/research/challenges/luma_amd_speedrun/kernels/mxfp4-mm/submission_v18_hybrid.py`
+- `/home/mike-anderson/dev/cohezion/.worktrees/spec-genesis-engine-395e48851/research/challenges/luma_amd_speedrun/kernels/moe-mxfp4/submission_ck_block_clean.py`
+
+**Submission 1: GEMM v18 Hybrid (test mode, `amd-mxfp4-mm`)**
+- **Result: PASSED 4/4 tests**, all with maximum error 0.0
+- Both kernels loaded successfully on the runner: 32x128 and 192x128 ASM tiles
+- Adaptive selection: M<=8 -> 32x128 + log2_ks=3, M<=32 -> 32x128 + log2_ks=2, M>32 -> 192x128 + log2_ks=0
+- Clean output, no probe stderr
+
+**Submission 2: MoE CK_BLOCK_GEMM Clean (benchmark mode, `amd-moe-mxfp4`)**
+- **Result: PASSED, benchmark successful**
+- Benchmark timings (vs AITER reference):
+
+| Shape (bs, E, d_expert) | Our time | Reference | Delta |
+|--------------------------|----------|-----------|-------|
+| 16, 257, 256 | 137 us | 152.7 us | **-10.3%** |
+| 128, 257, 256 | 217 us | 239.0 us | **-9.2%** |
+| 512, 257, 256 | 249 us | 336.5 us | **-26.0%** |
+| 16, 33, 512 | 93.2 us | 106.2 us | **-12.2%** |
+| 128, 33, 512 | 128 us | 141.1 us | **-9.3%** |
+| 512, 33, 512 | 213 us | 225.0 us | **-5.3%** |
+| 512, 33, 2048 | 350 us | 380.4 us | **-8.0%** |
+
+The MoE CK_BLOCK_GEMM clean submission beats the AITER reference across all 7 benchmark shapes, with improvements ranging from 5.3% to 26.0%.</result>
+<usage><total_tokens>88479</total_tokens><tool_uses>40</tool_uses><duration_ms>1097684</duration_ms></usage>
+</task-notification>
+Full transcript available at: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/7b42ffab-cb2c-417a-b4cd-9fddf3b78647/tasks/a0f06793246990c24.output
+
+---
+
+<task-notification>
+<task-id>bb6ww5q8r</task-id>
+<tool-use-id>toolu_011PWZ9R3mR1u2w8ExCN51hm</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/7b42ffab-cb2c-417a-b4cd-9fddf3b78647/tasks/bb6ww5q8r.output</output-file>
+<status>failed</status>
+<summary>Background command "Submit pa_ps_fwd_asm probe to test runner" failed with exit code 1</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/7b42ffab-cb2c-417a-b4cd-9fddf3b78647/tasks/bb6ww5q8r.output
+
+---
+
+Refine plan with learnings, do another internal codebase sweep, and external research.  Make sure we are leveraging Ralph Loop and Autoresearch to keep going and increase knowledge while we proceed
+
+---
+
+<task-notification>
+<task-id>bnv0mg0md</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/7b42ffab-cb2c-417a-b4cd-9fddf3b78647/tasks/bnv0mg0md.output</output-file>
+<status>completed</status>
+<summary>Background command "Submit lean probe to test runner" completed (exit code 0)</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/7b42ffab-cb2c-417a-b4cd-9fddf3b78647/tasks/bnv0mg0md.output
+
+---
+
+<task-notification>
+<task-id>b4owka516</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/7b42ffab-cb2c-417a-b4cd-9fddf3b78647/tasks/b4owka516.output</output-file>
+<status>completed</status>
+<summary>Background command "Submit GEMM v18 hybrid BENCHMARK mode" completed (exit code 0)</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/7b42ffab-cb2c-417a-b4cd-9fddf3b78647/tasks/b4owka516.output
+
+---
+
+<task-notification>
+<task-id>brw8bbee5</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/7b42ffab-cb2c-417a-b4cd-9fddf3b78647/tasks/brw8bbee5.output</output-file>
+<status>completed</status>
+<summary>Background command "Submit flash_attn_varlen submission to test runner" completed (exit code 0)</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/7b42ffab-cb2c-417a-b4cd-9fddf3b78647/tasks/brw8bbee5.output
+
+---
+
+<task-notification>
+<task-id>ba9x4zc7n</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/7b42ffab-cb2c-417a-b4cd-9fddf3b78647/tasks/ba9x4zc7n.output</output-file>
+<status>completed</status>
+<summary>Background command "Retry MLA flash_varlen submission (test mode)" completed (exit code 0)</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/7b42ffab-cb2c-417a-b4cd-9fddf3b78647/tasks/ba9x4zc7n.output
+
+---
+
+<task-notification>
+<task-id>a75b56482348a4168</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/7b42ffab-cb2c-417a-b4cd-9fddf3b78647/tasks/a75b56482348a4168.output</output-file>
+<status>completed</status>
+<summary>Agent "AMD MLA pa_ps_fwd_asm submission" completed</summary>
+<result>Here is a summary of what was accomplished and the findings:
+
+## Completed
+
+**Two submission files were written** to the target directory:
+
+1. **`submission_pa_ps_probe.py`** -- Lean API probe that dumps source code of `pa_ps_fwd_asm`, `gen_pa_ps_fwd_asm`, `pa_persistent_fwd`, `flash_attn_varlen_func`, `fmha_v3_varlen_fwd`, and `pa_decode_gluon`. Falls back to `ref_kernel` for correctness. **Submitted and passed 4/4 tests.**
+
+2. **`submission_flash_varlen.py`** -- Attempts `flash_attn_varlen_func` with padded V (576 dims) and truncated K (512 dims), then `flash_attn_func` as fallback. **Submitted, but all flash strategies failed.** Tests passed via ref_kernel fallback.
+
+## Critical Findings from Probes
+
+**`pa_ps_fwd_asm`** takes separate K and V tensors (not fused KV like `mla_decode_fwd`), making it theoretically suitable for MLA's asymmetric K=576/V=512 dims. However, `pa_persistent_fwd` expects K/V in **5D blocked format**: `[num_blocks, kv_heads, head_dim/x, block_size, x]`.
+
+**`flash_attn_varlen_func`** has two blockers:
+- Wrong keyword was used (`cu_seqlens_kv` should be `cu_seqlens_k`)
+- Even with correct keyword, **CK only supports head_dim <= 256** -- MLA's 576-dim heads are blocked. Truncating to 512 (dropping RoPE) is possible but may fail accuracy checks.
+
+**`pa_persistent_fwd`** is the most promising path -- it wraps `pa_ps_fwd_asm` + `pa_reduce_v1` (2-stage vs MLA's current 3-stage), handles buffer allocation internally, and accepts separate K/V. The challenge is constructing the correct 5D blocked format and metadata buffers.
+
+## Next Steps (4 implementation paths)
+
+1. Fix `flash_attn_varlen_func` with correct `cu_seqlens_k` keyword + 512-dim truncated K -- quick test
+2. Call `pa_ps_fwd_asm` directly via `torch.ops.aiter.pa_ps_fwd_asm` with plain 3D K/V tensors  
+3. Use `pa_persistent_fwd` with 5D blocked K/V format and shared metadata from `get_mla_metadata_v1`
+4. Keep current 67us 3-regime approach as baseline
+
+The plan file is at `/home/mike-anderson/.claude/plans/stateless-giggling-creek-agent-a75b56482348a4168.md`.</result>
+<usage><total_tokens>117636</total_tokens><tool_uses>39</tool_uses><duration_ms>2482990</duration_ms></usage>
+</task-notification>
+Full transcript available at: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/7b42ffab-cb2c-417a-b4cd-9fddf3b78647/tasks/a75b56482348a4168.output
+
+---
+
+<task-notification>
+<task-id>ad4f1198d5a731273</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/7b42ffab-cb2c-417a-b4cd-9fddf3b78647/tasks/ad4f1198d5a731273.output</output-file>
+<status>completed</status>
+<summary>Agent "Evolve K-Search trees with Session 77 discoveries" completed</summary>
+<result>Evolution complete. Here is the summary:
+
+**Script written:** `/home/mike-anderson/dev/cohezion/.worktrees/spec-genesis-engine-395e48851/research/challenges/luma_amd_speedrun/autoresearch/evolve_trees_session77.py` (355 lines)
+
+**Trees evolved successfully:**
+
+**GEMM Tree** (103 -> 106 nodes, 4 active):
+- `n_a4edca94` (p=0.92): 192x128 tile kernel for M>32 -- CONFIRMED 4/4 pass
+- `n_95a6b4c6` (p=0.88): gen_gemm_a4w4_blockscale_fake_tensors at aiter level
+- `n_2d539333` (p=0.80): Triton block_scaled_matmul tutorial (official MXFP4 CDNA4)
+
+**MoE Tree** (54 -> 60 nodes, 6 active):
+- `n_cae99d50` (p=0.95): CK_BLOCK_GEMM=1 without KSPLIT -- CONFIRMED 182us baseline
+- `n_28480acc` (p=0.93): CK_BLOCK_GEMM=1 + adaptive KSPLIT -- UNTESTED child of above
+- `n_3f63927a` (p=0.75): KSPLIT=6 for est_m<5 (Kimi v16 heuristic)
+- `n_a5649566` (p=0.65): FlyDSL Pipeline -- CONFIRMED available
+- `n_ab0f5fab` (p=0.70): AITER_BYPASS_TUNE_CONFIG=1 -- CONFIRMED working
+
+**MLA Tree** (59 -> 63 nodes, 5 active):
+- `n_ba9c3d48` (p=0.90): pa_ps_fwd_asm persistent streaming paged attention -- CONFIRMED EXISTS
+- `n_9b8c87ec` (p=0.88): fmha_v3_varlen_fwd FlashMHA v3 variable length -- CONFIRMED EXISTS
+- `n_f37512a3` (p=0.82): flash_attn_varlen_func with padded V -- WRITTEN, untested
+- `n_7d7701aa` (p=0.50): 13 attention APIs landscape node
+
+The CK_BLOCK_GEMM=1 + adaptive KSPLIT node (p=0.93) is the highest-priority untested combination in MoE, sitting as a child of the confirmed CK_BLOCK_GEMM=1 baseline node. The `select_best()` method will pick it first since it's a leaf with the highest priority among active nodes.</result>
+<usage><total_tokens>129665</total_tokens><tool_uses>17</tool_uses><duration_ms>195186</duration_ms></usage>
+</task-notification>
+Full transcript available at: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/7b42ffab-cb2c-417a-b4cd-9fddf3b78647/tasks/ad4f1198d5a731273.output
+
+---
+
+<task-notification>
+<task-id>ae345128454931b8f</task-id>
+<tool-use-id>toolu_012hVtf5WRnu7uzMg3HA15KT</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/7b42ffab-cb2c-417a-b4cd-9fddf3b78647/tasks/ae345128454931b8f.output</output-file>
+<status>completed</status>
+<summary>Agent "Update continuation.md with Session 77 findings" completed</summary>
+<result>Continuation file updated successfully at `/home/mike-anderson/.cohezion-engine/sessions/pid-3855572/continuation.md` (270 lines, up from 195).
+
+**Key structural changes:**
+
+1. **New Section 2 — Critical Corrections table** surfaces all 5 Session 77 corrections (AIMO3 deadline, SC-TIR kernel, Nemotron adapter, Measuring AGI paradigm, licensing) as the first thing after system state, so the next session cannot proceed on stale assumptions.
+
+2. **Orientation line updated** — "Start here" now points to AMD GEMM (0.94us from Rank 1) and Ralph Loop readiness instead of the nonexistent SC-TIR kernel.
+
+3. **Priority queue restructured** — GEMM K-Search exploitation and Nemotron PTXAS fix are now items 1-2. AIMO3 moved to "Before Deadline" section with corrected May 15/22 date. Measuring AGI flagged as needing kbench pivot.
+
+4. **New Section 4 — AMD Speedrun detailed state** with per-kernel tables (GEMM/MoE/MLA), all Session 77 discoveries (FlyDSL, pa_ps_fwd_asm, fmha_v3_varlen_fwd, 192x128 tile, CK_BLOCK_GEMM=1 result, K-Search tree status), and Ralph Loop readiness.
+
+5. **Competition portfolio table** (Section 5) shows corrected deadlines, honest status (SC-TIR "does not exist", Nemotron "untrained adapter"), and critical paths.
+
+6. **Vault health subsection** added with 8,070 entries, 1,607 missing frontmatter, 552 broken links, HIHO 0.3.
+
+7. **Session 77 entry** in history captures all corrections and discoveries for the audit trail.</result>
+<usage><total_tokens>55758</total_tokens><tool_uses>5</tool_uses><duration_ms>216757</duration_ms></usage>
+</task-notification>
+Full transcript available at: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/7b42ffab-cb2c-417a-b4cd-9fddf3b78647/tasks/ae345128454931b8f.output
+
+---
+
+<task-notification>
+<task-id>b47khcecg</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/7b42ffab-cb2c-417a-b4cd-9fddf3b78647/tasks/b47khcecg.output</output-file>
+<status>completed</status>
+<summary>Background command "Submit pa_ps_lean to popcorn leaderboard for test run on MI355X" completed (exit code 0)</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/7b42ffab-cb2c-417a-b4cd-9fddf3b78647/tasks/b47khcecg.output
+
+---
+
+<task-notification>
+<task-id>ad3f7fdc00fb3feaa</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/7b42ffab-cb2c-417a-b4cd-9fddf3b78647/tasks/ad3f7fdc00fb3feaa.output</output-file>
+<status>completed</status>
+<summary>Agent "Nemotron 1-line fix + training loop" completed</summary>
+<result>All validations pass. Here is a summary of what was done.
+
+---
+
+**Files created:**
+
+1. `/home/mike-anderson/dev/cohezion/.worktrees/spec-genesis-engine-395e48851/v20_meta/nemotron-lora-blackwell-v21.ipynb` -- the fixed notebook
+2. `/home/mike-anderson/dev/cohezion/.worktrees/spec-genesis-engine-395e48851/v20_meta/kernel-metadata-v21.json` -- updated metadata
+
+**Changes from v20 to v21:**
+
+1. **TRITON_PTXAS_PATH fix (the 1-liner)** -- Added `os.environ["TRITON_PTXAS_PATH"] = "/tmp/triton/backends/nvidia/bin/ptxas-blackwell"` in cell 0, immediately after the chmod block and before any model loading. This is the critical Blackwell handshake step that was missing.
+
+2. **Bug fix: `model_id` undefined variable** -- v20 referenced `model_id` when saving the tokenizer (cell 0, line ~100), but the variable was `model_path`. v21 uses `model_path` consistently throughout.
+
+3. **Added SFT training loop (cells 3-4):**
+   - Loads `train.csv` from `/kaggle/input/nvidia-nemotron-model-reasoning-challenge/train.csv`
+   - Formats as chat messages with `enable_thinking=True` via `apply_chat_template`
+   - System prompt instructs thinking in `<think>...</think>` tags
+   - Custom `SFTDataset` class with `MAX_SEQ_LEN=2048`
+   - 1 epoch training with: batch_size=1, gradient accumulation=8 (effective batch 8), lr=2e-5, OneCycleLR scheduler, gradient clipping at 1.0
+
+4. **Kaggle metadata additions:**
+   - Added `dockerImageVersionId: 31287` to notebook-level kaggle metadata (required by Blackwell handshake)
+   - kernel-metadata-v21.json points to the new notebook file
+
+5. **Structure: 7 cells** (was 1 monolithic cell):
+   - Cell 0: Blackwell setup + TRITON fix
+   - Cell 1: Hardware/dependency verification
+   - Cell 2: Model + tokenizer + LoRA (r=32, same target modules)
+   - Cell 3: Dataset loading + chat formatting
+   - Cell 4: SFT training loop (1 epoch)
+   - Cell 5: Save adapter + tokenizer
+   - Cell 6: Package submission.zip</result>
+<usage><total_tokens>62050</total_tokens><tool_uses>18</tool_uses><duration_ms>164238</duration_ms></usage>
+</task-notification>
+Full transcript available at: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/7b42ffab-cb2c-417a-b4cd-9fddf3b78647/tasks/ad3f7fdc00fb3feaa.output
+
+---
+
+<task-notification>
+<task-id>a1f4b522cda7deddd</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/7b42ffab-cb2c-417a-b4cd-9fddf3b78647/tasks/a1f4b522cda7deddd.output</output-file>
+<status>completed</status>
+<summary>Agent "AGI Benchmark kbench SDK pivot research" completed</summary>
+<result>Now I have all the information needed. Here is the comprehensive research report.
+
+---
+
+## Research Report: kbench SDK and Measuring AGI Pivot
+
+### 1. Exact kbench SDK API
+
+**Package:** `kaggle_benchmarks` (aliased as `kbench`)
+
+**Installation:**
+- On Kaggle notebooks: pre-installed, no setup needed
+- Locally: `git clone https://github.com/Kaggle/kaggle-benchmarks.git && uv pip install -e .`
+- Local env vars: `MODEL_PROXY_URL`, `MODEL_PROXY_API_KEY`, `LLM_DEFAULT`, `LLM_DEFAULT_EVAL`
+
+**Core API surface:**
+
+```python
+import kaggle_benchmarks as kbench
+
+# --- Define a task ---
+@kbench.task(name="my_task_name")
+def my_task(llm, param1: str, param2: str):
+    response = llm.prompt("Your prompt here")
+    kbench.assertions.assert_contains_regex(r"(?i)expected", response, expectation="...")
+
+# --- Run a single task ---
+my_task.run(llm=kbench.llm, param1="value1", param2="value2")
+
+# --- Run across a dataset ---
+import pandas as pd
+df = pd.DataFrame([{"param1": "a", "param2": "b"}, ...])
+results = my_task.evaluate(llm=[kbench.llm], evaluation_data=df)
+
+# --- Multi-model comparison ---
+models = [kbench.llms["google/gemini-2.5-flash"], kbench.llms["meta/llama-3.1-70b"]]
+results = my_task.evaluate(llm=models, evaluation_data=df)
+
+# --- Structured output ---
+from dataclasses import dataclass
+@dataclass
+class MyOutput:
+    answer: str
+    confidence: float
+
+response = llm.prompt("...", schema=MyOutput)
+
+# --- Judge-based evaluation ---
+assessment = kbench.assertions.assess_response_with_judge(
+    criteria=["criterion 1", "criterion 2"],
+    response_text=response,
+    judge_llm=llm,
+    output_schema=CustomSchema
+)
+
+# --- Multi-turn conversations ---
+with kbench.chats.new("context_name"):
+    llm.prompt("turn 1")
+    llm.prompt("turn 2")  # maintains history
+
+# --- Image inputs ---
+from kaggle_benchmarks import images
+img = images.from_url("https://...")
+response = llm.prompt("Describe this", image=img)
+
+# --- Publish to leaderboard ---
+# In final cell: %choose my_task_name
+```
+
+**Return type annotations control scoring:**
+- `-> bool`: pass/fail
+- `-> float` / `-> int`: numerical score
+- `-> tuple[int, int]`: ratio (e.g., 8/10)
+- No return + assertions only: pass when all assertions pass
+
+**Key assertions:** `assert_contains_regex`, `assess_response_with_judge`, custom via `@assertion_handler`
+
+### 2. How to Convert Existing prompts.py to @kbench.task Functions
+
+The current `prompts.py` at `/home/mike-anderson/dev/cohezion/kaggle-agi-benchmark/prompts.py` has a `TRACK_REGISTRY` dict with 5 tracks (learning, metacognition, attention, executive_function, social_cognition). Each entry has a prompt template that generates MCQ tasks with `question`, `options`, and `correct_answer`.
+
+**Conversion pattern for each track:**
+
+```python
+import kaggle_benchmarks as kbench
+import pandas as pd
+
+@kbench.task(name="metacognition_epistemic_humility")
+def metacognition_task(llm, question: str, options: str, correct_answer: str):
+    """Test if model recognizes insufficient information."""
+    prompt = f"{question}\n\nOptions: {options}\nAnswer with the exact text of the correct option."
+    response = llm.prompt(prompt)
+    kbench.assertions.assert_contains_regex(
+        rf"(?i){correct_answer}", response,
+        expectation=f"Model should answer: {correct_answer}"
+    )
+
+# Pre-generate dataset rows offline (using existing generate_evo_hiho_tasks.py logic)
+# Then load as DataFrame for .evaluate()
+df = pd.read_json("generated_tasks.json")
+results = metacognition_task.evaluate(llm=[kbench.llm], evaluation_data=df)
+```
+
+**Key differences from current approach:**
+- Current code uses local Ollama models (nemotron, qwq, qwen2.5, deepseek-r1, llama3.1) -- kbench uses Kaggle-hosted models via `kbench.llm` / `kbench.llms["model/name"]`
+- Current code generates tasks dynamically via Cohezion CompoundSessionManager -- kbench tasks should test pre-generated datasets, not generate them on-the-fly
+- Current validation functions (`validate_metacognition`, etc.) map directly to `kbench.assertions` calls
+- The `evaluator.ipynb` currently loads HuggingFace models locally -- kbench handles model loading entirely, you just call `llm.prompt()`
+
+**Recommended architecture for the pivot:**
+1. Pre-generate the task dataset offline (keep `generate_evo_hiho_tasks.py` or write a new generator)
+2. Store as a Kaggle Dataset (JSON/CSV with columns: question, options, correct_answer, track)
+3. Write one `@kbench.task` per track (5 tasks total)
+4. Group into one `@kbench.benchmark` for the leaderboard
+5. Notebook structure: imports, task definitions, dataset load, `.evaluate()` calls, `%choose`
+
+### 3. What the 1,500-Word Writeup Should Cover
+
+The writeup template structure per competition rules:
+
+| Section | Content |
+|---------|---------|
+| **Project Name** | e.g., "FLUME-AGI: Cognitive Trap Benchmarks via Latent Manifold Tracking" |
+| **Your Team** | Team Cohezion |
+| **Problem Statement** | Why current benchmarks fail at the chosen track(s). Gap between recall and genuine cognition. |
+| **Task & Benchmark Construction** | How tasks are generated (R-Zero evolving loop, adversarial traps). The "trap" design: KalshiBench overconfidence, HumbleBench false-option rejection, sycophancy traps. |
+| **Dataset** | Structure, size, generation methodology, quality controls. Must be author-created. |
+| **Technical Details** | FLUME grid encoder integration (256D latent space), how embeddings track model reasoning trajectories, assertion logic. |
+| **Results/Insights/Conclusions** | Model performance differences across tracks, what the benchmark reveals about model behavior that existing benchmarks cannot. |
+| **Organizational Affiliations** | As applicable |
+| **References & Citations** | ARC-AGI, KalshiBench, HumbleBench, arXiv:2411.15287, DeepMind cognitive framework paper |
+
+The existing writeup at `/home/mike-anderson/dev/cohezion/kaggle-agi-benchmark/kaggle_writeup.md` is a solid starting draft (~270 words) but needs expansion to the full 1,500-word structure and must be adapted to use kbench SDK terminology rather than the old Cohezion-internal pipeline.
+
+**Critical:** You must select ONE track for the writeup. The existing work focuses on Metacognition (Epistemic Humility). However, the `TRACK_REGISTRY` covers all 5 tracks. Pick the strongest track or submit up to 5 writeups (one per track).
+
+### 4. Whether FLUME Grid Encoder Can Be Bundled in a Kaggle Notebook
+
+**Yes, it can be bundled.** The existing `evaluator.ipynb` already demonstrates this pattern: cell 2 creates a `COHEZION_BUNDLE` dict that inline-writes `grid_encoder.py` and `__init__.py` into a local `cohezion/` package at runtime.
+
+**What `ARCGridEncoder` depends on** (from `/home/mike-anderson/dev/cohezion/src/cohezion/flume/grid_encoder.py`):
+- `numpy` -- pre-installed on Kaggle
+- `torch` + `torch.nn` -- pre-installed on Kaggle
+- `json` -- stdlib
+- No Cohezion-internal dependencies (no SurrealDB, no CompoundSessionManager)
+
+**The encoder is self-contained at 105 lines.** It can be copy-pasted into a notebook cell or bundled as a Kaggle Dataset artifact. The `FlumeGridHarness` wrapper is also standalone.
+
+**However:** For the kbench pivot, the FLUME encoder's role changes. Instead of being part of the evaluation loop, it becomes part of the *benchmark design story* -- you can use it to generate grid embeddings for analysis/visualization in the writeup, or as part of task construction. The actual model evaluation in kbench is done by `llm.prompt()` and `kbench.assertions`, not by running torch models.
+
+### 5. Current State Assessment
+
+The existing benchmark at `/home/mike-anderson/dev/cohezion/kaggle-agi-benchmark/` has significant issues:
+
+- **`kaggle_benchmark.json`** is empty placeholder data (all questions are blank, all outputs are null)
+- **`evo_hiho_benchmark.json`** likely has the same issue (generated via `generate_evo_hiho_tasks.py` which depends on live Cohezion CompoundSessionManager + Ollama)
+- **`evaluator.ipynb`** uses HuggingFace `transformers` directly instead of kbench SDK
+- **`adversarial_eval_loop.py`** depends on Cohezion internals that won't exist on Kaggle
+- **`prompts.py`** has good prompt templates but targets local Ollama models, not kbench
+
+### 6. Estimated Effort to Complete the Pivot
+
+| Work Item | Hours | Complexity |
+|-----------|-------|------------|
+| **1. Generate real task dataset** (offline, using existing prompts + local models) | 2-3h | Medium |
+| **2. Write kbench task notebook** (5 `@kbench.task` functions, dataset loading, assertions) | 3-4h | Medium |
+| **3. Create Kaggle Dataset** (upload generated tasks as a Kaggle Dataset) | 0.5h | Low |
+| **4. Test on Kaggle** (run notebook against Kaggle-hosted models, debug) | 2-3h | Medium |
+| **5. Expand writeup to 1,500 words** (adapt existing draft, add results) | 2-3h | Medium |
+| **6. Create benchmark on Kaggle** (link tasks to benchmark, verify leaderboard) | 1h | Low |
+| **7. Polish + cover image** | 1h | Low |
+| **Total** | **12-17 hours** | ~2-3 days of focused work |
+
+**Critical path risks:**
+- Task dataset quality -- if local Ollama models produce poor traps, you need manual curation
+- Kaggle model availability -- $50/day quota may limit iteration speed
+- Competition deadline is **April 16, 2026** (~20 days from now)
+- The benchmark must be initially **private** until submission
+
+**Recommended approach:** Focus on ONE track (Metacognition/Epistemic Humility, where you have the strongest existing material), get a minimal viable benchmark live on Kaggle within 1 day, then iterate on quality.
+
+Sources:
+- [Kaggle/kaggle-benchmarks GitHub](https://github.com/Kaggle/kaggle-benchmarks)
+- [Cookbook](https://github.com/Kaggle/kaggle-benchmarks/blob/ci/cookbook.md)
+- [AGENTS.md](https://github.com/Kaggle/kaggle-benchmarks/blob/ci/AGENTS.md)
+- [Local Development Guide](https://github.com/Kaggle/kaggle-benchmarks/blob/ci/local_development.md)
+- [Measuring Progress Toward AGI Competition](https://www.kaggle.com/competitions/kaggle-measuring-agi)
+- [Google Blog: Community Benchmarks](https://blog.google/innovation-and-ai/technology/developers-tools/kaggle-community-benchmarks/)
+- [Google Blog: Cognitive Framework](https://blog.google/innovation-and-ai/models-and-research/google-deepmind/measuring-agi-cognitive-framework/)
+- [Competition Overview (community mirror)](https://github.com/rurusasu/kaggle-comp-measuring-agi/blob/main/docs/overview.md)
+- [Kaggle Docs: Benchmarks](https://www.kaggle.com/docs/benchmarks)</result>
+<usage><total_tokens>61809</total_tokens><tool_uses>18</tool_uses><duration_ms>187425</duration_ms></usage>
+</task-notification>
+Full transcript available at: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/7b42ffab-cb2c-417a-b4cd-9fddf3b78647/tasks/a1f4b522cda7deddd.output
+
+---
+
+Shouldn't we be using polars instead of pandas?  Speaking of which I thought we were supposed to be polyglot.  We need to use the right programming language for the right task.  We might want to explore rust, typescript, assembly, even binary if it leads to breakthroughs.  What do you think?
+
+---
+
+<task-notification>
+<task-id>b5hwdb18k</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/7b42ffab-cb2c-417a-b4cd-9fddf3b78647/tasks/b5hwdb18k.output</output-file>
+<status>completed</status>
+<summary>Background command "Submit v2 to popcorn for test" completed (exit code 0)</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/7b42ffab-cb2c-417a-b4cd-9fddf3b78647/tasks/b5hwdb18k.output
+
+---
+
+<task-notification>
+<task-id>bdn5dgxqq</task-id>
+<tool-use-id>toolu_01JuKoeeZ5bzsk47GsapCks4</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/7b42ffab-cb2c-417a-b4cd-9fddf3b78647/tasks/bdn5dgxqq.output</output-file>
+<status>completed</status>
+<summary>Background command "Submit CK_BLOCK_GEMM + adaptive KSPLIT combo kernel in benchmark mode" completed (exit code 0)</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/7b42ffab-cb2c-417a-b4cd-9fddf3b78647/tasks/bdn5dgxqq.output
+
+---
+
+<task-notification>
+<task-id>byjh7yx26</task-id>
+<tool-use-id>toolu_014cn6n71jCD1ouReDfBKy1S</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/7b42ffab-cb2c-417a-b4cd-9fddf3b78647/tasks/byjh7yx26.output</output-file>
+<status>completed</status>
+<summary>Background command "Wait 10 minutes for JIT + execution, then check results" completed (exit code 0)</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/7b42ffab-cb2c-417a-b4cd-9fddf3b78647/tasks/byjh7yx26.output
+
+---
+
+Are we using helion?  https://github.com/pytorch/helion?
+
+---
+
+Are we leveraging https://github.com/karpathy/autoresearch?
+
+---
+
+<task-notification>
+<task-id>ae67966bb84cef482</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/7b42ffab-cb2c-417a-b4cd-9fddf3b78647/tasks/ae67966bb84cef482.output</output-file>
+<status>completed</status>
+<summary>Agent "AMD MLA lean pa_ps_fwd_asm probe" completed</summary>
+<result>Very interesting results. Key observations:
+
+1. **No PA error messages printed** -- meaning `gen_pa_ps_fwd_asm` was never imported (no `PA_LOAD` error), OR the `_pa_fn` was loaded but no PA patterns printed. Wait -- the function was loaded but none of the patterns printed errors either. Let me look more carefully...
+
+Actually, looking at the test results:
+- Test 1 (bs=4, kv=1024): **PASSED** -- einsum path (bs<=4)
+- Test 2 (bs=32, kv=1024): **PASSED** -- einsum path (total_kv=32768 <= 32768)
+- Test 3 (bs=64, kv=8192): **FAILED with garbage values** (8.74e+21) -- this went through `_try_pa` and returned garbage, OR PA silently returned a result that was wrong
+- Test 4 (bs=256, kv=8192): **PASSED** with small mismatch -- ref_kernel fallback
+
+The problem is test 3: PA apparently returned something (no error printed) but it was garbage. This means one of the PA patterns "succeeded" without throwing an exception but produced wrong results. Since no PA error messages were printed, the very first pattern (PA1) must have succeeded -- `gen_pa_ps_fwd_asm` accepted the 2D K,V tensors and returned a result, but the result was numerically garbage.
+
+This is actually a great finding -- `gen_pa_ps_fwd_asm` is callable with these arguments but the tensor layouts aren't quite right. The issue might be that PA expects paged KV in a specific layout (4D), or the K/V dimensions need to match, or MLA's fused KV is incompatible with standard PA.
+
+Let me examine: test 4 (bs=256, kv=8192) passed with small mismatch -- that likely hit `ref_kernel` fallback because test 3's PA failure set `_pa_failed`. But wait, `_pa_failed` is only set on import failure, not on PA call pattern failure. And there's no stderr from PA patterns, meaning PA1 "succeeded" on test 3 but returned garbage.
+
+The safe fix: verify the PA output against a quick reference check before returning it. But for this probe, I should just disable the PA path for now to understand the issue better, OR add a sanity check. But the real goal is to probe the API. Let me check if `gen_pa_ps_fwd_asm` is actually a different function than what I think.
+
+Looking at stderr: no `PA_LOAD` message, no `PA1:...` error. This confirms `gen_pa_ps_fwd_asm` was loaded and PA1 call succeeded (returned without exception). But the output was wrong for test 3.
+
+This is a valuable finding. The submission file is written and submitted. Here is a summary:
+
+---
+
+**File written:** `/home/mike-anderson/dev/cohezion/.worktrees/spec-genesis-engine-395e48851/research/challenges/luma_amd_speedrun/kernels/mixed-mla/submission_pa_ps_lean.py`
+
+**Submission results (v2):**
+
+- 3/4 tests passed, 1 failed (test 3: bs=64, kv=8192)
+- Test 3 failure: `gen_pa_ps_fwd_asm(Q, K_2d, V_2d, kv_indptr, kv_page_indices, context_lens, SM_SCALE)` **executed without error** but produced garbage output (values like 8.74e+21 vs expected -0.047)
+- Tests 1-2 used einsum small-batch path (correct)
+- Test 4 (bs=256, kv=8192) passed -- likely hit ref_kernel fallback after PA produced garbage on test 3 (but the fallback logic only triggers on `None` return, so test 4 also used PA but happened to pass within the tolerance threshold)
+
+**Key findings from both submissions:**
+
+1. **v1 finding:** `gen_pa_ps_fwd_asm` is NOT a factory/generator -- it IS the kernel function directly. Calling `gen_pa_ps_fwd_asm()` with no args fails with "missing 7 required positional arguments: 'Q', 'K', 'V', 'kv_indptr', 'kv_page_indices', 'context_len...'"
+
+2. **v2 finding:** `gen_pa_ps_fwd_asm(Q, K_2d, V_2d, kv_indptr, kv_page_indices, context_lens, softmax_scale)` accepts 2D K,V tensors without throwing, but produces **numerically wrong results** for at least some shapes. The tensor layout mapping from MLA's fused KV to PA's separate K/V is not correct with simple squeeze/slice.
+
+3. **JIT budget confirmed:** ~229s total (enum 7.6s + metadata 31s + asm 21s + reduce 169s), leaving ~791s for execution within the 17-min timeout.</result>
+<usage><total_tokens>100578</total_tokens><tool_uses>26</tool_uses><duration_ms>1580003</duration_ms></usage>
+</task-notification>
+Full transcript available at: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/7b42ffab-cb2c-417a-b4cd-9fddf3b78647/tasks/ae67966bb84cef482.output
+
+---
+
+<task-notification>
+<task-id>a843b2cf630e1651b</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/7b42ffab-cb2c-417a-b4cd-9fddf3b78647/tasks/a843b2cf630e1651b.output</output-file>
+<status>completed</status>
+<summary>Agent "Direct .co binary dispatch for MLA" completed</summary>
+<result>You've hit your limit · resets 4pm (America/New_York)</result>
+<usage><total_tokens>12</total_tokens><tool_uses>6</tool_uses><duration_ms>93798</duration_ms></usage>
+</task-notification>
+Full transcript available at: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/7b42ffab-cb2c-417a-b4cd-9fddf3b78647/tasks/a843b2cf630e1651b.output
+
+---
+
+<task-notification>
+<task-id>a2d2b9311dc3efcf3</task-id>
+<tool-use-id>toolu_01Lt6twnN2tHC5J1kDZWN75S</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/7b42ffab-cb2c-417a-b4cd-9fddf3b78647/tasks/a2d2b9311dc3efcf3.output</output-file>
+<status>completed</status>
+<summary>Agent "FlyDSL MoE kernel exploration" completed</summary>
+<result>You've hit your limit · resets 4pm (America/New_York)</result>
+<usage><total_tokens>26</total_tokens><tool_uses>16</tool_uses><duration_ms>104452</duration_ms></usage>
+</task-notification>
+Full transcript available at: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/7b42ffab-cb2c-417a-b4cd-9fddf3b78647/tasks/a2d2b9311dc3efcf3.output
+
+---
+
+<task-notification>
+<task-id>a7a53c336dcbc23b7</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/7b42ffab-cb2c-417a-b4cd-9fddf3b78647/tasks/a7a53c336dcbc23b7.output</output-file>
+<status>completed</status>
+<summary>Agent "Polars migration + polyglot assessment" completed</summary>
+<result>I now have a comprehensive picture. Here is the complete assessment.
+
+---
+
+## Polyglot Engineering Assessment: Cohezion Competition Tracks
+
+### 1. ALL PANDAS USAGE THAT SHOULD BE POLARS
+
+**Category A: Competition code (Nemotron) -- HIGH PRIORITY for migration**
+
+These 4 files in `/home/mike-anderson/dev/cohezion/research/challenges/nvidia-nemotron-reasoning/` use pandas for CSV I/O and DataFrame construction. All are simple `read_csv` / `DataFrame()` / `to_csv` / `iterrows()` patterns that map 1:1 to Polars:
+
+| File | Lines | Pandas Operations | Migration Effort |
+|------|-------|-------------------|-----------------|
+| `robust_submission.py` | 346 | `pd.read_csv`, `pd.DataFrame`, `.to_csv` | Low |
+| `baseline_evaluation.py` | 494 | `pd.read_csv` x2, `df.shape` | Low |
+| `quick_baseline.py` | 431 | `pd.read_csv` x2, `df.shape` | Low |
+| `generate_submission.py` | 206 | `pd.read_csv`, `pd.DataFrame`, `.to_csv`, `.iterrows()` | Low (replace `iterrows` with `iter_rows`) |
+
+Key wins: Polars `read_csv` is 5-10x faster on the CSVs these files process, and `.iterrows()` in `generate_submission.py:105` is notoriously slow -- Polars `iter_rows()` or better yet vectorized operations would be faster.
+
+**Category B: Core Cohezion engine -- MEDIUM PRIORITY**
+
+| File | Pandas Usage | Notes |
+|------|-------------|-------|
+| `src/cohezion/simulation/simulation_logger.py` | `pd.DataFrame(self.current_buffer)` for HF Dataset creation | Intermediate step before `Dataset.from_pandas()` -- could use `from_dict()` instead, eliminating pandas entirely |
+| `src/cohezion/compound/exp_persistence/journey.py` | Same pattern as above | Same fix: `Dataset.from_dict()` |
+| `src/cohezion/simulation/analysis_prime.py` | `pd.DataFrame` for plotting with matplotlib `groupby` | Polars `.group_by().agg()` works, but matplotlib integration requires `.to_pandas()` anyway |
+| `src/cohezion/simulation/simulation_validator.py` | Import at line 342 (lazy) | Minimal usage, likely removable |
+
+**Category C: Visualization/scripts -- LOW PRIORITY**
+
+| File | Notes |
+|------|-------|
+| `flume_journey_visualizer.py` | Streamlit app, pd.DataFrame for `st.dataframe()` display |
+| `flume_viz_simple.py` | Same pattern |
+| `scripts/mission_finalizer.py` | One-off script |
+| `scripts/analyze_interim_data.py` | Analysis script |
+| `scripts/drivers/marimo_simulation_dashboard.py` | Marimo dashboard |
+| `research/notebooks/marimo/*.py` (5 files) | Marimo explorers -- pandas is natural for interactive use |
+
+**Category D: Already using Polars -- NO ACTION NEEDED**
+
+The `sandbox/aim/` and `sandbox/aimo/` directories (AIMO3 competition code) are **already fully migrated to Polars**. The Kaggle evaluation SDK (`input/kaggle_evaluation/core/`) supports both Polars and pandas natively (dual `pl.DataFrame | pd.DataFrame` type unions). The custom submission code uses `pl.read_csv`, `pl.DataFrame`, `pl.col()` throughout.
+
+---
+
+### 2. LANGUAGE RECOMMENDATIONS PER COMPETITION TRACK
+
+**AMD Speedrun (Luma)**
+- **Current:** Python orchestration + HIP C++ kernels (6 `.hip` files) + Triton Python DSL
+- **Optimal:** This is already correct. HIP C++ for the hot-path GPU kernels (mxfp4-mm GEMM, mixed-MLA attention, MoE dispatch), Python/Triton for the orchestration layer.
+- **Opportunity:** The `.hip` kernels could benefit from inline assembly (`__asm__`) for MFMA instruction-level optimization on MI300X, which is already being explored (see `kernel_vmfma_tuned.hip`).
+- **Rust/TypeScript:** Not applicable. Popcorn runner executes Python + hipcc-compiled code only.
+
+**Measuring AGI (kaggle-agi-benchmark)**
+- **Current:** Pure Python (evaluator, task generation, submission formatting)
+- **Optimal:** Python is correct for the kbench SDK integration.
+- **Opportunity:** TypeScript for web-based visualization of AGI benchmark results (not competition-critical, low priority).
+
+**AIMO3 (sandbox/aim, sandbox/aimo)**
+- **Current:** Python + Polars (already migrated)
+- **Optimal:** This is already correct. Kaggle kernels must be Python. Polars is used for all data operations.
+- **Rust for answer extraction:** Theoretically possible (compile to `.so`, load via ctypes in Kaggle kernel), but the bottleneck is LLM inference time, not text parsing. Not worth the complexity.
+
+**Nemotron Reasoning**
+- **Current:** Python + pandas
+- **Optimal:** Python + Polars for data prep; PyTorch/transformers for model inference
+- **Opportunity:** Migrate the 4 pandas files to Polars (see Category A above). The data volumes are small CSVs, so the speedup is modest, but it reduces the dependency footprint and aligns with the rest of the codebase.
+
+---
+
+### 3. EXISTING POLYGLOT INFRASTRUCTURE
+
+**Rust (PyO3 native extension)**
+- `/home/mike-anderson/dev/cohezion/src/cohezion-physics-core/` -- A compiled Rust PyO3 module providing:
+  - `evolve_ca_simd()` -- Cellular Automata SIMD evolution
+  - `apply_mhd_forces_simd()` -- MHD physics forces with vectorized math
+- Dependencies: `pyo3 0.28.2`, `numpy 0.28.0`, `ndarray 0.17.2`
+- Edition: Rust 2024, crate type `cdylib`
+- Status: Functional, exists in main and multiple worktrees
+
+**TypeScript/React (Next.js web dashboard)**
+- `/home/mike-anderson/dev/cohezion/src/web/anima_dashboard/` -- Full Next.js application with:
+  - 18+ custom `.tsx` components (AnimaChatPanel, FlumeNavigator, HIHOBridge, TensorBeamVisualizer, etc.)
+  - React Three Fiber for 3D visualization (postprocessing effects)
+  - App router layout (`src/app/layout.tsx`, `src/app/page.tsx`, `src/app/portfolio/`)
+  - Context providers (`UniverseProvider.tsx`)
+  - Full `node_modules` with TypeScript ESLint, React types, etc.
+
+**HIP C++ (GPU kernels)**
+- 6 `.hip` kernel files across `research/challenges/luma_amd_speedrun/kernels/` and `hip-kernels-kimi-k2-5/src/`:
+  - `mla_top10.hip`, `mla_top10_fp8.hip`, `attention_kernel.hip` (MLA kernels)
+  - `gemm_final.hip` (GEMM kernel)
+  - `kernel_vdirect_lds.hip`, `kernel_vfinal.hip`, `kernel_vmfma_tuned.hip` (MXFP4 matrix multiply)
+
+**Go:** Only `node_modules/flatted/golang/` -- not Cohezion-authored code. No Go infrastructure.
+
+**C#:** None found.
+
+---
+
+### 4. QUICK WINS: IMPACT vs. EFFORT RANKING
+
+| Rank | Migration | Effort | Impact | Rationale |
+|------|-----------|--------|--------|-----------|
+| 1 | **Nemotron `generate_submission.py`** -- replace `pd.iterrows()` with Polars | 15 min | Medium | `iterrows()` is the single slowest pandas pattern; Polars eliminates it |
+| 2 | **Nemotron 4 files** -- `import pandas as pd` to `import polars as pl` | 30 min | Medium | Aligns with AIMO3 codebase, drops pandas dependency from competition code |
+| 3 | **simulation_logger.py + journey.py** -- `Dataset.from_dict()` instead of `Dataset.from_pandas(pd.DataFrame(...))` | 15 min | Low-Medium | Eliminates pandas from the core engine hot path; one fewer dependency |
+| 4 | **analysis_prime.py** -- Polars groupby | 20 min | Low | Still needs `.to_pandas()` for matplotlib; partial win |
+| 5 | **Marimo notebooks** -- Polars migration | 1 hr | Low | Interactive/exploratory; pandas is fine here |
+| 6 | **Streamlit visualizers** -- Polars migration | 1 hr | Low | `st.dataframe()` works with Polars natively now, but these are internal tools |
+
+---
+
+### 5. RUST/TYPESCRIPT FEASIBILITY ON COMPETITION PLATFORMS
+
+**Rust on Kaggle:**
+- Kaggle kernels do NOT ship `rustc`/`cargo` in the standard Python Docker image. You would need to:
+  1. Pre-compile a `.so` on a matching Linux/glibc and include it as a dataset attachment, OR
+  2. Use `maturin` to build a wheel offline and upload it.
+- Verdict: **Feasible but high friction.** The AIMO3 bottleneck is LLM inference, not data parsing. Not recommended.
+
+**Rust on Popcorn (AMD Speedrun):**
+- Popcorn runners use a custom Docker image with ROCm + Python + hipcc. Rust is not confirmed available.
+- The competition evaluates `.py` submission files that may shell out to `hipcc`. Rust compilation would need `rustc` in the image.
+- Verdict: **Not feasible** unless confirmed in the Docker image. The HIP C++ path is already optimal for GPU kernels.
+
+**TypeScript on Kaggle:**
+- Kaggle has no TypeScript/Node.js runtime in Python kernels.
+- Verdict: **Not feasible** for competition submissions. Only useful for local visualization tools.
+
+**TypeScript for Cohezion (already established):**
+- The `anima_dashboard` Next.js app with 18+ React components is already a substantial TypeScript codebase. This is the right place for any web visualization work (AGI benchmark dashboards, competition leaderboard tracking, etc.).
+
+---
+
+### SUMMARY
+
+The codebase is already quite polyglot: **Python** (primary), **Rust/PyO3** (physics core), **TypeScript/React** (web dashboard), **HIP C++** (GPU kernels). The main gap is the **4 Nemotron files still using pandas** when the rest of the competition code (AIMO3) has already migrated to Polars. That is the highest-value, lowest-effort migration. The core engine's 2 pandas usages in `simulation_logger.py` and `journey.py` can be eliminated by using `Dataset.from_dict()` directly, bypassing pandas entirely. The visualization/notebook pandas usage is low priority and can stay as-is.</result>
+<usage><total_tokens>88623</total_tokens><tool_uses>38</tool_uses><duration_ms>130136</duration_ms></usage>
+</task-notification>
+Full transcript available at: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/7b42ffab-cb2c-417a-b4cd-9fddf3b78647/tasks/a7a53c336dcbc23b7.output
+
+---
+
+<task-notification>
+<task-id>a724c789676b5d8dc</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/7b42ffab-cb2c-417a-b4cd-9fddf3b78647/tasks/a724c789676b5d8dc.output</output-file>
+<status>completed</status>
+<summary>Agent "MoE CK_BLOCK_GEMM + adaptive KSPLIT combo" completed</summary>
+<result>You've hit your limit · resets 4pm (America/New_York)</result>
+<usage><total_tokens>279</total_tokens><tool_uses>13</tool_uses><duration_ms>850872</duration_ms></usage>
+</task-notification>
+Full transcript available at: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/7b42ffab-cb2c-417a-b4cd-9fddf3b78647/tasks/a724c789676b5d8dc.output
+
+---
+
+Review plan and make sure you know where we are and what we need to do.
+
+---
+
+Get on the proper branch and then resume plan
+
+---
+
+<task-notification>
+<task-id>bl5je1f6x</task-id>
+<tool-use-id>functions.Bash:76</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/1ae19621-3b65-4788-9146-e07830adaab7/tasks/bl5je1f6x.output</output-file>
+<status>completed</status>
+<summary>Background command "Test Ralph Loop after fixing imports" completed (exit code 0)</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/1ae19621-3b65-4788-9146-e07830adaab7/tasks/bl5je1f6x.output
+
+---
+
+Fix the benchmark parsing and re-run
+
+---
+
+3
+
+---
+
+All of the above.
+
+---
+
+Continue
+
+---
+
+Fix the cz limit.  Get rid of it.
+
+---
+
+/retrospect and then refine plan with insights and learnings
+
+---
+
+Avoid the API error and continue in another way
+
+---
+
+What is causing the API error?
+
+---
+
+Yes and modfy to include     SymPy, SageMath, Maxima
+
+---
+
+Refine plan High-Performance Physics Simulation on 128GB Framework (2026)
+
+This guide provides the setup instructions, optimization flags, and repository links for MHD, Plasma Physics, and Particle Physics simulations tailored for the AMD Ryzen™ AI Max+ 395 and its Unified Memory Architecture.
+
+🚀 1. Hardware-Specific Optimizations
+
+Your Framework has a unique 256GB/s memory bandwidth and 128GB Unified RAM. To prevent the OS from bottlenecking your simulations:
+
+Linux Kernel Parameters (/etc/default/grub)
+
+Add these to your GRUB_CMDLINE_LINUX_DEFAULT to ensure the GPU can access the full memory pool:
+
+amdgpu.gttsize=98304 (Allocates ~96GB for GPU addressable space)
+
+transparent_hugepage=always (Speeds up large memory access for MHD grids)
+
+Compiler Flags (GCC/Clang)
+
+When compiling these C++/Fortran codes, use:
+
+export CXXFLAGS="-O3 -march=native -mtune=native -ffast-math -fopenmp"
+export LDFLAGS="-Wl,-O1 -Wl,--as-needed"
+
+
+🌊 2. Magnetohydrodynamics (MHD)
+
+Focus: Fluid-Magnetic interactions and Solar Physics.
+
+MPI-AMRVAC
+
+Description: Parallel Grid-Adaptive MHD.
+
+Best For: Solar flares, stellar winds, and atmospheric MHD.
+
+Interactive Tool: Pair with Pylbo for real-time eigenvalue analysis.
+
+Repository: https://github.com/amrvac/amrvac
+
+Framework Tip: Use the HDF5 output format; your NVMe drive and 128GB RAM allow for massive uncompressed snapshots.
+
+Athena++
+
+Description: Task-based execution for General Relativistic MHD.
+
+Repository: https://github.com/PrincetonUniversity/athena-public-version
+
+Visualization: Use the KOKKOS backend to leverage your 8060S GPU cores.
+
+⚡ 3. Plasma Physics (Kinetic/PIC)
+
+Focus: Particle-in-Cell (PIC) and fusion dynamics.
+
+Watching Plasma Think (PIC-Viz)
+
+Description: 2026's breakthrough for "Observability." A 3D PIC code with an integrated OpenGL live-renderer.
+
+Key Feature: Interactive "Field Manipulators" to warp magnetic fields during the sim.
+
+Setup:
+
+git clone [https://github.com/arkabanerjee/watching-plasma-think](https://github.com/arkabanerjee/watching-plasma-think)
+cd watching-plasma-think && mkdir build && cd build
+cmake .. -DUSE_GPU=ON -DINTERACTIVE_VIZ=ON
+make -j16
+
+
+WarpX
+
+Description: Exascale-capable PIC code.
+
+Repository: https://github.com/ECP-WarpX/WarpX
+
+Framework Tip: Run with WarpX_COMP=STRI_HALO (if available in your 2026 build) to optimize for the Ryzen AI Max cache structure.
+
+⚛️ 4. Particle Physics & Colliders
+
+Focus: Tracking, decay, and event displays.
+
+Quantum Collider Sandbox
+
+Description: Real-time particle decay visualization with a full PDG database.
+
+Interactive Viz: Supports VR and high-refresh 3D displays.
+
+Repository: https://github.com/ml3m/quantum-collider
+
+Geant4 + SHINE
+
+Description: The industry standard for particle-matter interaction.
+
+Interactive Mode: Use the G4UI_USE_QT flag for a local GUI.
+
+Installation (via Spack):
+
+spack install geant4 +qt +opengl +x11
+
+---
+
+AAnd we hit another rate limit?
+
+---
+
+Retrospective and then continue with all outstanding tasks.  Feel free to modify plan.
+
+---
+
+<task-notification>
+<task-id>bbp35w8ts</task-id>
+<tool-use-id>toolu_01VPuEFKMnWUzhQ4K145No9f</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/7b42ffab-cb2c-417a-b4cd-9fddf3b78647/tasks/bbp35w8ts.output</output-file>
+<status>failed</status>
+<summary>Background command "Submit MoE to leaderboard" failed with exit code 1</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/7b42ffab-cb2c-417a-b4cd-9fddf3b78647/tasks/bbp35w8ts.output
+
+---
+
+<task-notification>
+<task-id>b5bk2m2gz</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/7b42ffab-cb2c-417a-b4cd-9fddf3b78647/tasks/b5bk2m2gz.output</output-file>
+<status>failed</status>
+<summary>Background command "Submit GEMM to leaderboard" failed with exit code 1</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/7b42ffab-cb2c-417a-b4cd-9fddf3b78647/tasks/b5bk2m2gz.output
+
+---
+
+<task-notification>
+<task-id>b673001kk</task-id>
+<tool-use-id>toolu_01UTZvkV3DWDD1jQFugfiSDP</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/7b42ffab-cb2c-417a-b4cd-9fddf3b78647/tasks/b673001kk.output</output-file>
+<status>failed</status>
+<summary>Background command "Retry MoE leaderboard submission" failed with exit code 1</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/7b42ffab-cb2c-417a-b4cd-9fddf3b78647/tasks/b673001kk.output
+
+---
+
+kaggle credentials are not expired.  They've beenc reated over and over again.  Just need to find the right ones.
+
+---
+
+Incorporate key learnings and insights to refine plan
+
+---
+
+<task-notification>
+<task-id>bn9an4jq1</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/7b42ffab-cb2c-417a-b4cd-9fddf3b78647/tasks/bn9an4jq1.output</output-file>
+<status>failed</status>
+<summary>Background command "Find ALL Kaggle credential files everywhere" failed with exit code 1</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/7b42ffab-cb2c-417a-b4cd-9fddf3b78647/tasks/bn9an4jq1.output
+
+---
+
+I guess me need to make a more narrow plan
+
+---
+
+1 and 2
