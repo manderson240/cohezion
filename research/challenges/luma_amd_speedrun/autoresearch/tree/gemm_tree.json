@@ -14,9 +14,9 @@
       "attempts": 6,
       "best_result_us": 8.36,
       "stagnation_count": 0,
-      "status": "active",
+      "status": "pruned",
       "children": [],
-      "notes": "BREAKTHROUGH: load_inline custom HIP kernel works on Popcorn runners!",
+      "notes": "BREAKTHROUGH: load_inline custom HIP kernel works on Popcorn runners! [PRUNED: Test failed: Exit code 1]",
       "attempt_history": [
         {
           "result_us": 184.2029684199879,
