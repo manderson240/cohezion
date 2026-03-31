@@ -453,6 +453,42 @@ function AboutPanel() {
       </section>
 
       <section>
+        <h3 className="text-md text-cyan-400 mb-2">Cross-Tradition Validation</h3>
+        <p className="text-gray-400 leading-relaxed text-xs mb-3">
+          16 independent cosmological traditions — from Lakota to Dogon, Vedic to M&#257;ori —
+          converged on the same 10-step creation chain. Not through cultural diffusion, but
+          through independent observation of the same underlying structure. The cosmogonic
+          chain is not Western physics projected onto indigenous traditions — it is the
+          structure that emerges when you ask: what do all careful observers of reality agree on?
+        </p>
+        <div className="bg-black/50 rounded-lg p-3 border border-gray-800 space-y-2 text-[10px]">
+          <div className="flex justify-between text-gray-400">
+            <span className="text-yellow-400 font-bold">HIHO Named:</span>
+            <span>H&#243;zh&#243; (Din&#233;) — the coherence threshold</span>
+          </div>
+          <div className="flex justify-between text-gray-400">
+            <span className="text-yellow-400 font-bold">COHESION as Law:</span>
+            <span>Ayni (Andean) — sacred reciprocity as cosmic law</span>
+          </div>
+          <div className="flex justify-between text-gray-400">
+            <span className="text-yellow-400 font-bold">Binding Force:</span>
+            <span>Musubi (Shint&#333;) — creative binding that generates relationships</span>
+          </div>
+          <div className="flex justify-between text-gray-400">
+            <span className="text-yellow-400 font-bold">All Related:</span>
+            <span>Mit&#225;kuye Oy&#225;s&#8217;i&#331; (Lakota) — O(n&#178;) relational web</span>
+          </div>
+          <div className="flex justify-between text-gray-400">
+            <span className="text-yellow-400 font-bold">Ground State:</span>
+            <span>Sila (Inuit) — the vacuum IS consciousness</span>
+          </div>
+        </div>
+        <p className="text-gray-600 text-[9px] mt-2 italic">
+          See vault: indigenous-cosmologies-toe-synthesis for the complete 15&#215;10 mapping table.
+        </p>
+      </section>
+
+      <section>
         <h3 className="text-md text-cyan-400 mb-2">Inspiration</h3>
         <p className="text-gray-500 text-xs italic">
           &quot;At the still point of the turning world. Neither flesh nor fleshless;
