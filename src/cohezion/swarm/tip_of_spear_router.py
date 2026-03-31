@@ -490,8 +490,13 @@ class TipOfTheSpearRouter:
                 return "phi4:latest"
 
         else:  # CLOUD
-            # CLOUD tier: Latest cloud models
-            return "qwen3.5:cloud"
+            # CLOUD tier: Gemini fallback chain (cost-optimized)
+            # Primary: Gemini Pro (2M context, best quality)
+            # Fallback: Gemini Flash (1M context, 7x cheaper)
+            if domain == "code":
+                return "gemini-2.5-pro"
+            else:
+                return "gemini-2.5-flash"
 
     def _get_next_tier(self, current_tier: ModelTier) -> ModelTier | None:
         """Get next tier in escalation path.

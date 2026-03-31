@@ -34,18 +34,21 @@ from cohezion.swarm.providers.model_provider import (
     get_model_provider,
     register_model_provider,
 )
-from cohezion.swarm.providers.ui_generation_provider import (
-    UIGenerationProvider,
-    get_ui_provider,
-    register_ui_provider,
-)
+
+try:
+    from cohezion.swarm.providers.ui_generation_provider import (
+        UIGenerationProvider,
+        get_ui_provider,
+        register_ui_provider,
+    )
+except ImportError:
+    UIGenerationProvider = None  # type: ignore[assignment, misc]
+    get_ui_provider = None  # type: ignore[assignment]
+    register_ui_provider = None  # type: ignore[assignment]
 
 
 __all__ = [
     "ModelProvider",
-    "UIGenerationProvider",
     "get_model_provider",
-    "get_ui_provider",
     "register_model_provider",
-    "register_ui_provider",
 ]

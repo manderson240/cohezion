@@ -253,7 +253,7 @@ class CostAwareRouter:
     - Non-blocking vault persistence for routing decisions
     """
 
-    # Model costs per 1K tokens (local models = $0.00)
+    # Model costs per 1K tokens (local models = $0.00, cloud = priced)
     MODEL_COSTS = {
         "phi3:mini": 0.0,  # Local, 100x cheaper than deepseek
         "qwen3-coder:32b": 0.0,  # Local
@@ -262,6 +262,10 @@ class CostAwareRouter:
         "gpt-oss:20b": 0.0,  # Local
         "phi4:latest": 0.0,  # Local
         "gemma3:4b": 0.0,  # Local
+        # Gemini cloud fallback tiers (cost per 1K tokens)
+        "gemini-2.0-flash-lite": 0.000075,  # $0.075/M = near-free (70% simple)
+        "gemini-2.5-flash": 0.0003,  # $0.30/M (20% medium)
+        "gemini-2.5-pro": 0.002,  # $2.00/M (10% hard)
     }
 
     # Expected token counts by complexity (refined estimates)
@@ -280,6 +284,10 @@ class CostAwareRouter:
         "gpt-oss:20b": 0.88,  # Large accurate model
         "phi4:latest": 0.82,  # Strong reasoning
         "gemma3:4b": 0.65,  # Fast baseline
+        # Gemini cloud models
+        "gemini-2.0-flash-lite": 0.70,  # Cloud, fast, basic
+        "gemini-2.5-flash": 0.88,  # Cloud, balanced
+        "gemini-2.5-pro": 0.97,  # Cloud, best quality + 2M context
     }
 
     # TPS (tokens per second) for cost-time tradeoff
@@ -291,6 +299,10 @@ class CostAwareRouter:
         "gpt-oss:20b": 5.0,  # Large model, slower
         "phi4:latest": 10.0,  # Medium speed
         "gemma3:4b": 14.0,  # Fast, small model
+        # Gemini cloud models (TPS varies with load, API latency)
+        "gemini-2.0-flash-lite": 50.0,  # Cloud, very fast
+        "gemini-2.5-flash": 40.0,  # Cloud, fast
+        "gemini-2.5-pro": 20.0,  # Cloud, moderate
     }
 
     # Expected latency (ms) by model
