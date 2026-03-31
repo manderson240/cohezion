@@ -78,7 +78,7 @@ See skill: `cohezion-vault-workflow` for vault API examples (log decisions, expe
 | **Swarm** | TeamOrchestrator, ExecutionOrchestrator, DynamicModelRouter | `TeamExecutor` |
 | **Cache** | SemanticCache (L1 hash + L2 cosine + L3 vault, 95%+ hit rate) | `SemanticCache` |
 | **Cost Opt** | CostAwareRouter (27.3% savings), BudgetEnforcer, ModelQualityClassifier | `CostAwareRouter` |
-| **Persistence** | SessionPersistence (vault + JSONL), MetricsCollector, DegradationDetector | `SessionManager` |
+| **Persistence** | SessionPersistence (vault + JSONL), MetricsCollector, DegradationDetector, ExecutionTraces (Meta-Harness L225) | `SessionManager` |
 | **Physics** | SU(2) Spinors, Riemannian/Lagrangian, FiberBundle, GaugeTheory, Fisher metric | `SpinorState` |
 | **World Model** | JEPA predictor (86K params, causal masking), Cosmogony, SymmetryBreaking | `JEPAWorldModel` |
 | **Bioelectric** | Levin bioelectric network, gap junction percolation, HIHO phase transition | `BioelectricNetwork` |
@@ -136,8 +136,8 @@ PlanExecutor (tactical plan)
 ExecutionOrchestrator (execute with 11-step pipeline)
   ├─ RequestAlignmentAnalyzer (coherence check)
   ├─ GlobalMetricsAggregator (record instance metrics)
-  ├─ DegradationDetector (thermal, quality thresholds)
-  └─ JourneyTracker (12D universe position)
+  ├─ DegradationDetector (thermal, quality thresholds) → healing/ + resilience/ + CostAwareRouter feedback
+  └─ JourneyTracker (12D universe position) + JEPA surprise + bioelectric percolation
   ↓
 RetrospectionEngine (extract learnings, flag anomalies, pivot detection)
   ↓
@@ -156,10 +156,10 @@ Updated Skill (loop again)
 | `src/cohezion/compound/` | Executor, SkillRefiner, RetrospectionEngine, JourneyTracker | `executor.py` (11-step) |
 | `src/cohezion/swarm/` | Team orchestration, cost routing, model quality | `team_executor.py`, `cost_aware_router.py` |
 | `src/cohezion/cache/` | L1/L2/L3 semantic cache (95%+ hit rate) | `semantic_cache.py` |
-| `src/cohezion/skills/` | 178 PRIME skill definitions (*.md + *.py) | `skill_registry.json` |
+| `src/cohezion/skills/` | 183 PRIME skill definitions (*.md + *.py) | `skill_registry.json` |
 | `src/cohezion/persistence/` | SurrealDB, checkpoints, session recovery | `surreal_client.py` |
 | `src/cohezion/environments/` | Gymnasium RL envs: ManifoldEnv (single), SwarmEnv (multi-agent) | `manifold_env.py`, `swarm_env.py` |
-| `src/cohezion/api/` | FastAPI backend (125+ endpoints) | `__init__.py`, `services/genesis.py` |
+| `src/cohezion/api/` | FastAPI backend (190+ endpoints) | `__init__.py`, `services/genesis.py` |
 | `src/cohezion/flume/` | FLUME VAE (256D latent space) | `flume_vae.py` |
 | `src/cohezion/physics/` | **Genesis Engine**: SU(2) spinors, Riemannian, Lagrangian, fiber bundles, gauge theory, Fisher metric, cosmogony | `spinor.py`, `cosmogony.py` |
 | `src/cohezion/world_model/` | JEPA world model (86K params, causal masking, CPU-trainable) | `jepa_world_model.py` |
@@ -175,6 +175,7 @@ Updated Skill (loop again)
 ## Coding Standards (Cohezion-Specific)
 
 - **FLUME-First**: New modules MUST encode/decode through FLUME. Start with `encode()` → latent reasoning → `decode()`. Don't retrofit — wire from the start (Learning 215)
+- **Wire-at-Creation**: New modules MUST declare a wiring target (DegradationDetector, CapabilityMatrix, CompoundExecutor step, or Hookify rule) at creation time. Build-then-forget = 41 orphaned modules (Learning 227)
 - **Async**: All I/O must be `async/await` with timeouts. No blocking calls in executors
 - **Error handling**: Specific exceptions + circuit breakers (`cohezion.reliability.get_circuit()`)
 - **Validation**: Pydantic at boundaries (input/output). Fail fast with assertions

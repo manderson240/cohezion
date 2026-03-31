@@ -11,20 +11,21 @@
         }
       },
       "parent_id": null,
-      "priority": 0.7,
+      "priority": 0.5,
       "attempts": 0,
       "best_result_us": null,
       "stagnation_count": 0,
-      "status": "active",
+      "status": "pruned",
       "children": [
         "n_a4edca94",
         "n_95a6b4c6",
         "n_2d539333",
         "n_fff0ebcd",
         "n_a1771f4c",
-        "n_1deb3216"
+        "n_1deb3216",
+        "n_c0fe9a48"
       ],
-      "notes": "From AITER blog. Unknown if compatible with MXFP4.",
+      "notes": "From AITER blog. Unknown if compatible with MXFP4. [STRATEGIC PRUNE: LLM world model]",
       "attempt_history": []
     },
     "gemm_n1": {
@@ -7042,14 +7043,30 @@
         "status": "CONFIRMED_WORKING"
       },
       "parent_id": "root_gemm",
-      "priority": 0.92,
-      "attempts": 0,
-      "best_result_us": null,
+      "priority": 0.3,
+      "attempts": 1,
+      "best_result_us": Infinity,
       "stagnation_count": 0,
-      "status": "active",
+      "status": "pruned",
       "children": [],
-      "notes": "[Session 77] CONFIRMED: 4/4 shapes pass with 192x128 tile. Use for M>32 shapes where larger tile improves occupancy.",
-      "attempt_history": []
+      "notes": "[Session 77] CONFIRMED: 4/4 shapes pass with 192x128 tile. Use for M>32 shapes where larger tile improves occupancy. [STRATEGIC PRUNE: LLM world model]",
+      "attempt_history": [
+        {
+          "result_us": Infinity,
+          "parameters": {
+            "kernel": "gen_gemm_a4w4",
+            "tile": "192x128",
+            "condition": "M > 32",
+            "confirmed_shapes": [
+              "64_7168_2048",
+              "256_3072_1536"
+            ],
+            "status": "CONFIRMED_WORKING"
+          },
+          "timestamp": "2026-03-31T15:03:33.564358",
+          "source": "llm"
+        }
+      ]
     },
     "n_95a6b4c6": {
       "id": "n_95a6b4c6",
@@ -7060,14 +7077,35 @@
         "blockscale": true
       },
       "parent_id": "root_gemm",
-      "priority": 0.88,
-      "attempts": 0,
-      "best_result_us": null,
-      "stagnation_count": 0,
-      "status": "active",
+      "priority": 0.1,
+      "attempts": 2,
+      "best_result_us": Infinity,
+      "stagnation_count": 1,
+      "status": "pruned",
       "children": [],
-      "notes": "[Session 77] Discovered at aiter top-level, distinct from tuned_gemm.tgemm.mm(). Block-scale variant may handle MXFP4 natively without separate quant step.",
-      "attempt_history": []
+      "notes": "[Session 77] Discovered at aiter top-level, distinct from tuned_gemm.tgemm.mm(). Block-scale variant may handle MXFP4 natively without separate quant step. [STRATEGIC PRUNE: LLM world model]",
+      "attempt_history": [
+        {
+          "result_us": Infinity,
+          "parameters": {
+            "api": "aiter.gen_gemm_a4w4_blockscale_fake_tensors",
+            "note": "Found at aiter level, not inside tuned_gemm module",
+            "blockscale": true
+          },
+          "timestamp": "2026-03-31T17:25:35.714646",
+          "source": "llm"
+        },
+        {
+          "result_us": Infinity,
+          "parameters": {
+            "api": "aiter.gen_gemm_a4w4_blockscale_fake_tensors",
+            "note": "Found at aiter level, not inside tuned_gemm module",
+            "blockscale": true
+          },
+          "timestamp": "2026-03-31T17:41:13.240950",
+          "source": "template"
+        }
+      ]
     },
     "n_2d539333": {
       "id": "n_2d539333",
@@ -7083,9 +7121,9 @@
       "attempts": 0,
       "best_result_us": null,
       "stagnation_count": 0,
-      "status": "active",
+      "status": "pruned",
       "children": [],
-      "notes": "[Session 77] Official Triton tutorial for block-scaled matmul on CDNA4. Reference implementation for MXFP4 -- may be tunable beyond default params.",
+      "notes": "[Session 77] Official Triton tutorial for block-scaled matmul on CDNA4. Reference implementation for MXFP4 -- may be tunable beyond default params. [STRATEGIC PRUNE: parent root_gemm pruned]",
       "attempt_history": []
     },
     "n_fff0ebcd": {
@@ -7102,14 +7140,32 @@
         "status": "CONFIRMED_WORKING"
       },
       "parent_id": "root_gemm",
-      "priority": 0.92,
-      "attempts": 0,
-      "best_result_us": null,
+      "priority": 0.5,
+      "attempts": 1,
+      "best_result_us": Infinity,
       "stagnation_count": 0,
-      "status": "active",
-      "children": [],
-      "notes": "[Session 77] CONFIRMED: 4/4 shapes pass with 192x128 tile. Use for M>32 shapes where larger tile improves occupancy.",
-      "attempt_history": []
+      "status": "pruned",
+      "children": [
+        "n_49023753"
+      ],
+      "notes": "[Session 77] CONFIRMED: 4/4 shapes pass with 192x128 tile. Use for M>32 shapes where larger tile improves occupancy. [STRATEGIC PRUNE: LLM world model]",
+      "attempt_history": [
+        {
+          "result_us": Infinity,
+          "parameters": {
+            "kernel": "gen_gemm_a4w4",
+            "tile": "192x128",
+            "condition": "M > 32",
+            "confirmed_shapes": [
+              "64_7168_2048",
+              "256_3072_1536"
+            ],
+            "status": "CONFIRMED_WORKING"
+          },
+          "timestamp": "2026-03-31T16:18:23.300890",
+          "source": "llm"
+        }
+      ]
     },
     "n_a1771f4c": {
       "id": "n_a1771f4c",
@@ -7124,9 +7180,9 @@
       "attempts": 0,
       "best_result_us": null,
       "stagnation_count": 0,
-      "status": "active",
+      "status": "pruned",
       "children": [],
-      "notes": "[Session 77] Discovered at aiter top-level, distinct from tuned_gemm.tgemm.mm(). Block-scale variant may handle MXFP4 natively without separate quant step.",
+      "notes": "[Session 77] Discovered at aiter top-level, distinct from tuned_gemm.tgemm.mm(). Block-scale variant may handle MXFP4 natively without separate quant step. [STRATEGIC PRUNE: parent root_gemm pruned]",
       "attempt_history": []
     },
     "n_1deb3216": {
@@ -7143,9 +7199,37 @@
       "attempts": 0,
       "best_result_us": null,
       "stagnation_count": 0,
-      "status": "active",
+      "status": "pruned",
       "children": [],
-      "notes": "[Session 77] Official Triton tutorial for block-scaled matmul on CDNA4. Reference implementation for MXFP4 -- may be tunable beyond default params.",
+      "notes": "[Session 77] Official Triton tutorial for block-scaled matmul on CDNA4. Reference implementation for MXFP4 -- may be tunable beyond default params. [STRATEGIC PRUNE: parent root_gemm pruned]",
+      "attempt_history": []
+    },
+    "n_c0fe9a48": {
+      "id": "n_c0fe9a48",
+      "strategy": "Tune gemm_a4w4_asm with 64x64 tile + 32-wavefront mode + pre-quantized B + split-K=1/2 on M=16,N=2112,K=7168: prioritize LDS occupancy > register pressure, target 1.5x speedup over baseline 192x128",
+      "parameters": {},
+      "parent_id": "root_gemm",
+      "priority": 0.65,
+      "attempts": 0,
+      "best_result_us": null,
+      "stagnation_count": 0,
+      "status": "pruned",
+      "children": [],
+      "notes": "[LLM-proposed] [STRATEGIC PRUNE: parent root_gemm pruned]",
+      "attempt_history": []
+    },
+    "n_49023753": {
+      "id": "n_49023753",
+      "strategy": "gemm_a4w4_asm with 64x64 tile + 32-wavefront mode + pre-quantized B + split-K=2 + unroll=4 + LDS occupancy profiling on M=16,N=2112,K=7168",
+      "parameters": {},
+      "parent_id": "n_fff0ebcd",
+      "priority": 0.65,
+      "attempts": 0,
+      "best_result_us": null,
+      "stagnation_count": 0,
+      "status": "pruned",
+      "children": [],
+      "notes": "[LLM-proposed] [STRATEGIC PRUNE: parent n_fff0ebcd pruned]",
       "attempt_history": []
     }
   }

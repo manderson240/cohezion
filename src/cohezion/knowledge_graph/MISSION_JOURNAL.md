@@ -1,3 +1,17 @@
+### [2026-03-31] SESSION 82: COMPOUND LOOP WIRING PHASE 2 + ROUTING FEEDBACK
+- **Scope**: 8 tasks, 3 phases. 1087 compound tests passing, 0 regressions. +901 lines across 12 source files.
+- **Phase 1 (Routing Feedback)**: optimization/r_zero → CostAwareRouter (success rate adjusts model quality), DegradationDetector → CostAwareRouter (CRITICAL alerts force model tier upgrade for 5 queries), SwarmEnv gym.register(), NightlyReporter → Hookify vault.
+- **Phase 2 (Physics Wiring)**: BioelectricNetwork → executor Step 7.6 + JourneyTracker percolation metadata, NaturalCapitalValuation → executor Step 5.9 (10% coherence blend), JEPA WorldModel auto-train on first API request + surprise scoring in trajectories.
+- **Phase 3 (Meta-Harness)**: execution_traces/ directory with VaultLogger.log_execution_trace(), pruning (100 per skill), browse_recent_traces() for SkillRefiner.
+- **Architecture**: Closed backward feedback loop — DegradationDetector alerts now flow to CostAwareRouter via callback, adjusting future model selection. MAPE-K loop complete at routing level.
+- **Learnings**: L228 (IsoQuant SO(4) quaternion→SPIN), L229 (Layered Governance L1-L4→Constitution).
+
+### [2026-03-31] SESSION 81: ORPHAN MODULE WIRING + SKILL EXTRACTION
+- **Scope**: 4 modules wired, 5 learnings extracted, 4 PRIME skills created. 1064 compound tests passing.
+- **Wiring**: healing/→DegradationDetector, resilience/→DegradationDetector, eval/→CapabilityMatrix, evaluation/→CapabilityMatrix.
+- **Skills**: ORPHAN_MODULE_INTEGRATION_PRIME, API_ERROR_RESILIENCE_PRIME, META_HARNESS_TRACES_PRIME, CROSS_PLATFORM_SKILL_FORMAT_PRIME.
+- **Learnings**: L225-L229.
+
 ### [2026-03-31] SESSION 80: COMPOUND ENGINEERING + MULTI-PROVIDER ROUTING
 - **Scope**: 15 commits, 87 tests verified. GeminiProvider, knowledge capture end-to-end, token efficiency pipeline.
 - **Delivered**: GeminiProvider (Flash-Lite/Flash/Pro), A2A agent cards, TotS→compound feedback loop, knowledge bridge (vault+SurrealDB+Hookify), SkillRefiner→vault persistence, CapabilityRegistry→vault persistence, FLUME VAE retrained z_dim=256, context-window guard, cache→routing feedback, template matching (C4), batch-aware concierge (C5).
@@ -63,39 +77,8 @@
 - **Skills Registered**: Created `MOE_HYBRID_ENGINEERING_PRIME.md` and `BLACKWELL_HARDWARE_OPTIMIZATION_PRIME.md`.
 - **Status**: Baseline v19/v20 successfully completed training on Blackwell hardware. Packaging `submission.zip` for leaderboard attempt.
 
-### [2026-02-20] PHASE 19: DEV ENVIRONMENT RECOVERY & RETROSPECTIVE (Session 15)
-- **Claude Code fix**: Resolved native vs npm install conflict. Removed leftover npm global (`npm -g uninstall @anthropic-ai/claude-code`), restored `autoUpdates: true` in `~/.claude.json`, updated from 2.1.42 → 2.1.49.
-- **Context7 MCP**: Added via `claude mcp add --scope user` (correct path: `~/.claude.json`). Reverted incorrect edit to `~/.claude/mcp.json` (Pilot's config, not Claude Code's).
-- **Retrospective**: Tests 3,214 passing / 4 failing (real_envs + flume training). Linting: 756 errors (down from 1,003). API endpoints: 72 (was documented as 46). PRIME skills: 74 (in sync with registry). 0 missing `__init__.py`.
-- **Learnings**: Added L127 (Claude Code install/MCP scope disambiguation). Updated CLAUDE.md and README.md metrics.
-
-### [2026-02-20] PHASE 18: RETROSPECTIVE & HEALING REFINEMENT (Session 14)
-- **Retrospective**: Audited knowledge graph (KEY_LEARNINGS: 219 lines, MISSION_JOURNAL: 122 lines), verified README metrics, identified discrepancies (PRIME skills: 74 actual vs 134 claimed, Python files: 401 vs 351 claimed).
-- **Healing Protocol**: Re-executed `/heal` - created 18 missing `__init__.py` files, auto-fixed 47 linting errors (unused imports/variables, whitespace), reduced total errors from 1,058 → 1,003 (-5.2%).
-- **SurrealDB**: Persistent auth failure (InvalidAuth) → graceful fallback to InMemoryStore confirmed. Requires manual auth fix.
-- **Learnings**: Added Learning 121 (Autonomic Self-Healing Protocol), propagated metrics corrections to README.md.
-- **Next**: Address line-length violations (432) and security patterns (192 S-prefixed errors).
-
-### [2026-02-10] PHASE 17: AUTONOMIC HEALING (Session 13)
-- **Protocol**: Autonomic Self-Healing (/heal) executed via `uv run` orchestration.
-- **Diagnostics**: `immune_system.py` triggered self-diagnosis due to demo velocity threshold (0.0 < 100).
-- **Persistence**: Identified SurrealDB authentication drift; system correctly fell back to `InMemoryStore` to preserve stability.
-- **Status**: System healthy. No mechanical drift detected in core components (Ollama, SurrealDB connectivity verified).
-- **Actions**: Verified `SelfHealingSystem` actuator path and logic coherence.
-
-
-### [2026-02-10] PHASE 15: SAFE MODE SWARM (Session 11)
-- **Protocol**: Safe Mode v3 implemented. Sequential LLM locking, 2s cooldowns, and `ResourceGuard` throttling (load avg < 12.0).
-- **Infrastructure**: `BaseScout` (throttled), `QualityScout` (static), `Architecture/Pattern/AntiPattern` scouts (7b models).
-- **Persistence**: `PatternRepository` with local write-buffer (`cache/cohezion_burst_buffer.json`) + SurrealDB dual-write.
-- **Verification**: Extracted Repository Pattern from `persistence` module while under 16.0 CPU load, proving stability guards.
-- **Learnings**: 116-118 codified regarding VRAM limits, lock sequentialism, and scoped caching.
-
-### [2026-02-10] PHASE 16: INFRASTRUCTURE HARDENING & DECOUPLING (Session 12)
-- **Service Decoupling**: Refactored monolithic `api/__init__.py` into dedicated services: `flume.py` (VAE), `rl.py` (Policy), and `skills.py` (PRIME templates).
-- **Hardening**: Fixed `PatternScout` KeyError via soft schema enforcement (Learning 120).
-- **Skill Promotion**: Registered `THROTTLED_SCOUT_PRIME` and `RELIABILITY_FALLBACK_PRIME` to formalize hardware-safe orchestration and HA persistence.
-- **Synthesis**: Produced `pillar_deep_dives.md` covering the core Cohezion architectural anchors.
+### [2026-02-10 to 2026-02-20] PHASES 15-19: HEALING, HARDENING, RECOVERY (Sessions 11-15, compressed)
+Safe Mode v3 (sequential LLM locking, ResourceGuard). Service decoupling (api→flume.py+rl.py+skills.py). Autonomic healing (/heal 6-stage). SurrealDB auth drift → InMemoryStore fallback. Dev environment recovery (Claude Code native install fix, Context7 MCP). Tests 3,214 passing / 4 failing. Linting 1,003→756 errors. L116-L127.
 
 ### [2026-02-06] PHASES 8.5-14 (Sessions 9-10, summarized)
 - Compound engineering system built: CompoundExecutor, FeedbackLoop, SkillRefiner, TeamOrchestrator (8 files, 80+ tests).

@@ -4,8 +4,9 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ---
 
-- [ ] **Track: Autonomous Challenge Execution: Luma AMD Speedrun - Phase 1 Kernels**
+- [~] **Track: Autonomous Challenge Execution: Luma AMD Speedrun - Phase 1 Kernels**
   *Link: [./tracks/luma_amd_speedrun_20260312/](./tracks/luma_amd_speedrun_20260312/)*
+  *Status: IN PROGRESS - Phase 3: Parallel Breakthrough Execution (Executing final leaderboard pushes)*
 
 ---
 
@@ -15,6 +16,6 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ---
 
-- [ ] **Track: Measuring Progress Toward AGI - Cognitive Abilities Kaggle Competition**
+- [~] **Track: Measuring Progress Toward AGI - Cognitive Abilities Kaggle Competition**
   *Link: [./tracks/kaggle_cognitive_agi_20260324/](./tracks/kaggle_cognitive_agi_20260324/)*
   *Status: IN PROGRESS - Phase 5: Leaderboard Optimization & Iterative Refinement*

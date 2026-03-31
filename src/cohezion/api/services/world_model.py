@@ -30,14 +30,33 @@ _MODEL = None
 
 
 def _get_model():
+    """Get or create the singleton JEPA world model.
+
+    Auto-trains on first access with 200 synthetic samples if untrained,
+    so predictions are meaningful from the first API call.
+    """
     global _MODEL
     if _MODEL is None:
         from cohezion.world_model.jepa_world_model import JEPAWorldModel
+
         _MODEL = JEPAWorldModel(state_dim=12, action_dim=12, embed_dim=64)
+
+    # Lazy auto-train: train on synthetic data if never trained
+    if not _MODEL._trained:
+        try:
+            from cohezion.world_model.jepa_world_model import generate_synthetic_training_data
+
+            data = generate_synthetic_training_data(n_samples=200)
+            _MODEL.train_epoch(data, batch_size=32)
+            logger.info("JEPA world model auto-trained on 200 synthetic samples")
+        except Exception as e:
+            logger.debug("JEPA auto-train failed (non-blocking): %s", e)
+
     return _MODEL
 
 
 # --- Request/Response Models ---
+
 
 class TrainRequest(BaseModel):
     n_samples: int = Field(500, ge=50, le=10000, description="Number of synthetic training samples")
@@ -62,6 +81,7 @@ class SurpriseRequest(BaseModel):
 
 
 # --- Endpoints ---
+
 
 @world_model_router.get("/status")
 async def get_status() -> dict[str, Any]:
@@ -88,7 +108,9 @@ async def train_model(req: TrainRequest) -> dict[str, Any]:
         all_metrics.append({"epoch": epoch + 1, **metrics})
         logger.info(
             "World model epoch %d: pred=%.6f kl=%.4f",
-            epoch + 1, metrics["prediction_loss"], metrics["kl_loss"],
+            epoch + 1,
+            metrics["prediction_loss"],
+            metrics["kl_loss"],
         )
 
     return {
@@ -147,5 +169,9 @@ async def compute_surprise(req: SurpriseRequest) -> dict:
     score = model.surprise_score(state, action, observed)
     return {
         "surprise_score": score,
-        "interpretation": "expected" if score < 0.1 else "surprising" if score < 1.0 else "anomalous",
+        "interpretation": "expected"
+        if score < 0.1
+        else "surprising"
+        if score < 1.0
+        else "anomalous",
     }

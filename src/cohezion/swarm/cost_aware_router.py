@@ -31,7 +31,7 @@ import re
 import time
 from dataclasses import dataclass
 from enum import Enum
-from typing import Optional
+from typing import Any, Optional
 
 from cohezion.cost_optimization.budget_enforcer import BudgetEnforcer
 from cohezion.cost_optimization.cost_tracker import SessionCostTracker
@@ -364,6 +364,14 @@ class CostAwareRouter:
         self._qwen_success_count = 0  # Track successful qwen completions
         self._cumulative_latency_ms = 0.0  # Track cumulative latency for tuning
 
+        # R-Zero optimization integration (non-blocking)
+        self._r_zero_optimizer: Any = None
+        self._r_zero_loaded = False
+
+        # Degradation feedback (wired via callback from DegradationDetector)
+        self._degradation_cooldown: int = 0
+        self._degradation_upgrade_model: str | None = None
+
     @classmethod
     def get_default(cls) -> "CostAwareRouter":
         """Get or create singleton instance."""
@@ -449,6 +457,18 @@ class CostAwareRouter:
 
         # Context-window guard: prevent overflow by escalating to larger-context model
         model = self._check_context_window(model, estimated_tokens)
+
+        # R-Zero adjustment: escalate if local models underperforming
+        model = self._apply_r_zero_adjustment(model)
+
+        # Degradation override: force upgraded model if in cooldown period
+        if self._degradation_cooldown > 0 and self._degradation_upgrade_model:
+            logger.info(
+                "Degradation override: forcing %s (cooldown=%d remaining)",
+                self._degradation_upgrade_model,
+                self._degradation_cooldown,
+            )
+            model = self._degradation_upgrade_model
 
         # Calculate estimated cost
         cost_per_1k = self.MODEL_COSTS.get(model, 0.0)
@@ -758,6 +778,21 @@ class CostAwareRouter:
         if self.dynamic_threshold_tuning:
             self._tune_thresholds_based_on_success()
 
+        # Feed R-Zero optimizer (non-blocking)
+        try:
+            r_zero = self._get_r_zero()
+            if r_zero is not None:
+                r_zero.record_execution(model, success, 1)
+        except Exception:
+            pass
+
+        # Decrement degradation cooldown
+        if self._degradation_cooldown > 0:
+            self._degradation_cooldown -= 1
+            if self._degradation_cooldown == 0:
+                self._degradation_upgrade_model = None
+                logger.info("Degradation routing cooldown expired, resuming normal routing")
+
         logger.debug(
             f"Recorded execution: {model} {actual_tokens} tokens, "
             f"${cost_usd:.6f}, {duration_ms:.1f}ms, success={success}"
@@ -797,6 +832,82 @@ class CostAwareRouter:
             # Reduce latency threshold tolerance
             if self.latency_threshold > 100.0:
                 self.latency_threshold = max(100.0, self.latency_threshold - 5.0)
+
+    def _get_r_zero(self) -> Any:
+        """Lazy-load R-Zero LocalModelOptimizer (non-blocking)."""
+        if not self._r_zero_loaded:
+            self._r_zero_loaded = True
+            try:
+                from cohezion.optimization.r_zero import LocalModelOptimizer
+
+                self._r_zero_optimizer = LocalModelOptimizer()
+            except ImportError:
+                pass
+        return self._r_zero_optimizer
+
+    def _apply_r_zero_adjustment(self, model: str) -> str:
+        """Adjust model selection based on R-Zero success rate history.
+
+        When local model success rate drops below 80%, R-Zero returns 0.8
+        multiplier, indicating we should escalate to a higher-quality model.
+        """
+        try:
+            r_zero = self._get_r_zero()
+            if r_zero is None:
+                return model
+
+            multiplier = r_zero.get_current_multiplier()
+            if multiplier < 1.0 and model in ("phi3:mini", "qwen3-coder:32b"):
+                # Local models underperforming — escalate one tier
+                if model == "phi3:mini":
+                    logger.info(
+                        "R-Zero: phi3 underperforming (mult=%.1f), upgrading to qwen3", multiplier
+                    )
+                    return "qwen3-coder:32b"
+                if model == "qwen3-coder:32b":
+                    logger.info(
+                        "R-Zero: qwen3 underperforming (mult=%.1f), upgrading to deepseek",
+                        multiplier,
+                    )
+                    return "deepseek-r1:8b"
+        except Exception:
+            pass
+        return model
+
+    def apply_degradation_feedback(self, alerts: list) -> None:
+        """Receive degradation alerts and adjust routing for next N queries.
+
+        Called by DegradationDetector via callback. CRITICAL alerts force
+        higher-tier model routing for the next 5 queries.
+
+        Args:
+            alerts: List of DegradationAlert objects
+        """
+        try:
+            for alert in alerts:
+                severity = getattr(alert, "severity", None)
+                metric = getattr(alert, "metric", "")
+                severity_value = getattr(severity, "value", "") if severity else ""
+
+                if severity_value == "CRITICAL":
+                    if metric in ("success_rate", "coherence"):
+                        self._degradation_cooldown = 5
+                        self._degradation_upgrade_model = "deepseek-r1:8b"
+                        logger.warning(
+                            "Degradation feedback: CRITICAL %s → forcing %s for next 5 queries",
+                            metric,
+                            self._degradation_upgrade_model,
+                        )
+                    elif metric == "token_efficiency":
+                        self._degradation_cooldown = 3
+                        self._degradation_upgrade_model = "qwen3-coder:32b"
+                        logger.warning(
+                            "Degradation feedback: CRITICAL %s → upgrading to %s for next 3 queries",
+                            metric,
+                            self._degradation_upgrade_model,
+                        )
+        except Exception:
+            logger.debug("Degradation feedback processing failed (non-blocking)", exc_info=True)
 
     def get_statistics(self) -> RoutingStatistics:
         """Get routing statistics.

@@ -1,87 +1,52 @@
-"""MLA submission template.
-
-Parameters (JSON):
-  splits_table: dict mapping "bs_kvseqlen_nh" -> num_kv_splits (int)
-                e.g. {"4_1024_32": 4, "4_8192_32": 16, "32_1024_16": 8, ...}
-                Falls back to "bs_kvseqlen" keys for compatibility.
-  default_splits: int, fallback num_kv_splits (default 16)
-  kv_format: "mxfp4" | "fp8" — which KV cache format to use
-  fast_mode: bool — aiter fast_mode metadata flag (default False)
-  kv_granularity: int — granularity for metadata (default 16)
-  use_persistent: bool — use ASM persistent kernel (default True)
-"""
+"""MLA submission template."""
 
 TEMPLATE = """\
-import os,torch,ctypes
+import os,torch,ctypes,sys
 from task import input_t,output_t
 from aiter import dtypes as dt
 import aiter
+from reference import ref_kernel
 
 os.environ["AITER_MLA_USE_PERSISTENT"]="1"
 os.environ["AITER_USE_NT"]="1"
-os.environ["AITER_BYPASS_TUNE_CONFIG"]="1"
 
 _splits_table=$SPLITS_TABLE
 _default_splits=$DEFAULT_SPLITS
 _fast_mode=$FAST_MODE
 _kv_gran=$KV_GRANULARITY
 _kv_format="$KV_FORMAT"
-_c,_o,_f1,_f2={},{},None,None
+_c={}
 
-def _ea():
-    global _f1,_f2
-    if _f1:return
-    try:
-        from aiter.mla import mla_decode_stage1_asm_fwd as f1,mla_reduce_v1 as f2
-        _f1,_f2=f1,f2
-    except:
-        import aiter as a
-        _f1,_f2=getattr(a,"mla_decode_stage1_asm_fwd",None),getattr(a,"mla_reduce_v1",None)
-
-def _bm(b,q,n,qd,kd,qi,ki,ns):
+def _bm(b,q,n,qd,kd,qi,ki,kl,ns):
     from aiter import get_mla_metadata_info_v1 as gi,get_mla_metadata_v1 as gv
     i=gi(b,q,n,qd,kd,is_sparse=False,fast_mode=_fast_mode,num_kv_splits=ns,intra_batch_mode=True)
     w=[torch.empty(s,dtype=t,device="cuda") for s,t in i]
     wm,wi,ws,ri,rf,rp=w
-    kl=(ki[1:]-ki[:-1]).to(torch.int32)
     gv(qi,ki,kl,n,1,True,wm,ws,wi,ri,rf,rp,page_size=1,kv_granularity=_kv_gran,max_seqlen_qo=q,uni_seqlen_qo=q,fast_mode=_fast_mode,max_split_per_batch=ns,intra_batch_mode=True,dtype_q=qd,dtype_kv=kd)
-    return {"wm":wm,"wi":wi,"ws":ws,"ri":ri,"rf":rf,"rp":rp,"kl":kl,"ns":ns}
+    return {"wm":wm,"wi":wi,"ws":ws,"ri":ri,"rf":rf,"rp":rp,"ns":ns}
 
 def custom_kernel(data:input_t)->output_t:
     q,kd,qi,ki,cfg=data
     b,sl,nh=cfg["batch_size"],cfg["kv_seq_len"],cfg["num_heads"]
-    _ea()
-    # Cache key includes bs, kvseqlen, num_heads (TP-aware) — prevents collision
-    # (e.g., bs=4,kv=8192 and bs=32,kv=1024 both hashed to 32768 before)
-    key=f"{b}_{sl}_{nh}"
-    if key not in _c:
-        # Try TP-aware key first, then fall back to bs_kvseqlen
+    qsl=cfg["q_seq_len"]
+    
+    # Metadata cache (STATIC ONLY)
+    mkey = (qi.data_ptr(), ki.data_ptr(), b, sl, nh, qsl)
+    if mkey not in _c:
         ns=_splits_table.get(f"{b}_{sl}_{nh}", _splits_table.get(f"{b}_{sl}", _default_splits))
+        kl=(ki[1:]-ki[:-1]).to(torch.int32)
         kv_dt=dt.fp4x2 if _kv_format=="mxfp4" else torch.float8_e4m3fnuz
-        # ASM kernel only supports single-query decode (q=1)
-        _c[key]=_bm(b,1,nh,torch.bfloat16,kv_dt,qi,ki,ns)
-    m=_c[key]
-    ok=(b*nh,512)
-    if ok not in _o:
-        _o[ok]=torch.empty((b,nh,512),dtype=torch.bfloat16,device="cuda")
-    ot=_o[ok]
-    ns=m["ns"]
-    # ASM kernel assumes minimum 16 splits in buffer — prevent underallocation
-    buf_ns=max(ns,16)
-    if _kv_format=="mxfp4":
-        kf,ks=kd["mxfp4"]
-        k4=kf.view(kf.shape[0],1,1,288)
-    else:
-        kf,ks=kd["fp8"]
-        k4=kf.view(kf.shape[0],1,1,576)
-    if _f1 and _f2:
-        sd=torch.empty((b,buf_ns,nh,520),dtype=torch.float32,device="cuda")
-        sl_=torch.empty((b,buf_ns,nh),dtype=torch.float32,device="cuda")
-        _f1(q.view(b,nh,576),k4,qi,ki,torch.arange(b*sl,dtype=torch.int32,device="cuda"),m["kl"],None,m["wm"],m["wi"],m["ws"],1,1,1,1.0/(576**.5),sd,sl_,ot,q_scale=None,kv_scale=ks)
-        _f2(sd,sl_,m["ri"],m["rf"],m["rp"],1,ot)
-        return ot
+        _c[mkey]={"meta":_bm(b,qsl,nh,torch.bfloat16,kv_dt,qi,ki,kl,ns),"kl":kl,"idx":torch.arange(int(ki[-1].item()),dtype=torch.int32,device="cuda")}
+    
+    m=_c[mkey]
+    mt=m["meta"]
+    
+    kf,ks=kd["mxfp4"] if _kv_format=="mxfp4" else kd["fp8"]
+    k4=kf.view(kf.shape[0],1,1,kf.shape[-1])
+    
     from aiter.mla import mla_decode_fwd as mf
-    return mf(q,k4,ot,qi,ki,page_size=1,nhead_kv=1,sm_scale=1.0/(576**.5),q_scale=None,kv_scale=ks,num_kv_splits=ns,intra_batch_mode=True)
+    ot=torch.empty((q.shape[0],nh,512),dtype=torch.bfloat16,device="cuda")
+    return mf(q.view(-1,nh,576),k4,ot,qi,ki,m["idx"],m["kl"],qsl,page_size=1,nhead_kv=1,sm_scale=1.0/(576**.5),q_scale=None,kv_scale=ks,num_kv_splits=mt["ns"],intra_batch_mode=True,work_meta_data=mt["wm"],work_indptr=mt["wi"],work_info_set=mt["ws"],reduce_indptr=mt["ri"],reduce_final_map=mt["rf"],reduce_partial_map=mt["rp"])
 """
 
 DEFAULT_PARAMS = {
@@ -97,15 +62,3 @@ DEFAULT_PARAMS = {
     "KV_GRANULARITY": 16,
     "KV_FORMAT": "mxfp4",
 }
-
-# Benchmark shapes from task.yml
-SHAPES = [
-    {"bs": 4, "qseqlen": 1, "kvseqlen": 1024, "tp": 4},
-    {"bs": 4, "qseqlen": 4, "kvseqlen": 8192, "tp": 4},
-    {"bs": 32, "qseqlen": 1, "kvseqlen": 8192, "tp": 8},
-    {"bs": 32, "qseqlen": 4, "kvseqlen": 1024, "tp": 8},
-    {"bs": 32, "qseqlen": 1, "kvseqlen": 1024, "tp": 4},
-    {"bs": 32, "qseqlen": 4, "kvseqlen": 8192, "tp": 4},
-    {"bs": 128, "qseqlen": 1, "kvseqlen": 8192, "tp": 8},
-    {"bs": 128, "qseqlen": 4, "kvseqlen": 8192, "tp": 8},
-]

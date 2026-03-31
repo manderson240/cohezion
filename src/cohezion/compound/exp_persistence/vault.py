@@ -152,6 +152,108 @@ class VaultLogger:
             logger.error(f"Failed to log decision point to Vault: {e}")
             return ""
 
+    # ── Execution Traces (Meta-Harness L225 Pattern) ─────────────────
+
+    def log_execution_trace(
+        self,
+        ctx: ExecutionContext,
+        success: bool,
+        output: str,
+        metrics: dict[str, Any],
+        token_metrics: dict[str, Any] | None = None,
+    ) -> str:
+        """Log structured execution trace to execution_traces/ directory.
+
+        Meta-Harness pattern (arXiv:2603.28052): expose execution history as
+        browsable filesystem files (grep/cat) rather than cramming into prompts.
+        SkillRefiner browses these traces instead of reading summaries.
+
+        Directory structure:
+            execution_traces/{skill_name}/{timestamp}_{operation}.json
+
+        Returns:
+            Trace file path, or empty string on failure
+        """
+        try:
+            timestamp = int(datetime.now().timestamp())
+            trace_path = f"execution_traces/{ctx.skill_name}/{timestamp}_{ctx.operation_type}.json"
+            trace_data = {
+                "project": ctx.project,
+                "skill_name": ctx.skill_name,
+                "task_description": ctx.task_description,
+                "operation_type": ctx.operation_type,
+                "start_time": ctx.start_time.isoformat(),
+                "end_time": datetime.now().isoformat(),
+                "success": success,
+                "output_summary": output[:500] if output else "",
+                "metrics": {
+                    k: v for k, v in metrics.items() if isinstance(v, (int, float, str, bool))
+                },
+                "token_metrics": token_metrics or {},
+                "coherence": metrics.get("coherence", 0.0),
+                "anomaly_score": metrics.get("anomaly_score", 0.0),
+                "natural_capital": metrics.get("natural_capital", 0.0),
+                "bioelectric_coherence": metrics.get("bioelectric_coherence", 0.0),
+            }
+            self.mcp.vault_write(trace_path, json.dumps(trace_data, indent=2))
+
+            # Prune old traces (keep last 100 per skill)
+            self._prune_traces(ctx.skill_name)
+
+            return trace_path
+        except Exception as e:
+            logger.debug("Failed to log execution trace: %s", e)
+            return ""
+
+    def _prune_traces(self, skill_name: str, max_traces: int = 100) -> None:
+        """Keep only the last N traces per skill (non-blocking)."""
+        try:
+            # List traces for this skill
+            traces = self.mcp.vault_search(f"execution_traces/{skill_name}/")
+            if isinstance(traces, list) and len(traces) > max_traces:
+                # Sort by name (timestamp-based) and remove oldest
+                sorted_traces = sorted(traces)
+                to_remove = sorted_traces[: len(sorted_traces) - max_traces]
+                for trace_path in to_remove:
+                    try:
+                        self.mcp.vault_delete(trace_path)
+                    except Exception:
+                        pass
+        except Exception:
+            pass  # Non-blocking: pruning failure is not critical
+
+    def browse_recent_traces(self, skill_name: str, n: int = 5) -> list[dict[str, Any]]:
+        """Browse recent execution traces for a skill.
+
+        Used by SkillRefiner to find relevant prior executions
+        via filesystem instead of prompt summaries.
+
+        Args:
+            skill_name: Skill to browse traces for
+            n: Number of recent traces to return
+
+        Returns:
+            List of trace data dicts, most recent first
+        """
+        results: list[dict[str, Any]] = []
+        try:
+            traces = self.mcp.vault_search(f"execution_traces/{skill_name}/")
+            if not isinstance(traces, list):
+                return results
+
+            # Get most recent N traces
+            recent = sorted(traces, reverse=True)[:n]
+            for trace_path in recent:
+                try:
+                    content = self.mcp.vault_read(trace_path)
+                    data = json.loads(content)
+                    results.append(data)
+                except Exception:
+                    continue
+        except Exception:
+            pass
+        return results
+
     # ── Obsidian Mission Retrospectives ────────────────────────────────
 
     async def log_batch(self, batch: list[dict[str, Any]]):
