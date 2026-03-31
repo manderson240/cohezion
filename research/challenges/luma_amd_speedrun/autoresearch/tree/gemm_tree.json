@@ -10,7 +10,7 @@
         "note": "Official template-hip.py at gpu-mode/reference-kernels proves load_inline WORKS!"
       },
       "parent_id": null,
-      "priority": 0.42634781973301145,
+      "priority": 0.2,
       "attempts": 31,
       "best_result_us": 3.62,
       "stagnation_count": 0,
@@ -345,12 +345,14 @@
         "note": "From arxiv 2506.20807 GPU Kernel Scientist paper"
       },
       "parent_id": "gemm_loadinline_root",
-      "priority": 0.3,
-      "attempts": 1,
-      "best_result_us": 187.03,
+      "priority": 0.1,
+      "attempts": 2,
+      "best_result_us": 54.54,
       "stagnation_count": 0,
       "status": "active",
-      "children": [],
+      "children": [
+        "n_81db8d10"
+      ],
       "notes": "rocWMMA MFMA kernel with double-buffered LDS and scale caching [STRATEGIC PRUNE: LLM world model]",
       "attempt_history": [
         {
@@ -361,6 +363,15 @@
           },
           "timestamp": "2026-03-31T00:18:32.557149",
           "source": "template"
+        },
+        {
+          "result_us": 54.54,
+          "parameters": {
+            "approach": "load_inline_rocwmma",
+            "note": "From arxiv 2506.20807 GPU Kernel Scientist paper"
+          },
+          "timestamp": "2026-03-31T01:56:21.238268",
+          "source": "llm"
         }
       ]
     },
@@ -776,6 +787,20 @@
       "status": "pruned",
       "children": [],
       "notes": "[LLM-proposed] [STRATEGIC PRUNE: parent n_af52f525 pruned]",
+      "attempt_history": []
+    },
+    "n_81db8d10": {
+      "id": "n_81db8d10",
+      "strategy": "load_inline custom HIP kernel - rocWMMA MFMA with static swizzling, lifted scales, fused FP8 dequant, MI355X tile sizes (32x32x256), vectorized load/store (`float8x2`/`float16x2`), 32-wave occupancy, SGPR pressure reduction via `__builtin_amdgcn_readexecmask`, and *compile-time shape_1-specialized unroll factors* (tuned for 64.0\u00b5s target, no runtime profiling)",
+      "parameters": {},
+      "parent_id": "gemm_loadinline_rocwmma",
+      "priority": 0.75,
+      "attempts": 0,
+      "best_result_us": null,
+      "stagnation_count": 0,
+      "status": "active",
+      "children": [],
+      "notes": "[LLM-proposed]",
       "attempt_history": []
     }
   }
