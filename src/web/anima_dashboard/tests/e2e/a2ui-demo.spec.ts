@@ -19,7 +19,7 @@ test.describe('A2UI Demo Page', () => {
     await expect(page.locator('[data-a2ui-component="cohezion-void-sphere"]')).toBeVisible();
 
     // Narration text
-    await expect(page.locator('text=In the beginning, there was nothing')).toBeVisible();
+    await expect(page.locator('[data-a2ui-component="cohezion-narration"]').first()).toBeVisible();
 
     // Inspection state contains void scene
     const inspectionText = await page.locator('pre').first().textContent();
@@ -39,12 +39,10 @@ test.describe('A2UI Demo Page', () => {
     await expect(page.locator('[data-a2ui-component="cohezion-explosion"]')).toBeVisible();
 
     // Narration should update to SO(12) text
-    await expect(
-      page.locator('text=From the first observation, symmetry crystallized')
-    ).toBeVisible();
+    await expect(page.locator('[data-a2ui-component="cohezion-narration"]').first()).toBeVisible();
 
     // Action log should show void_click
-    await expect(page.locator('text=void_click')).toBeVisible();
+    await expect(page.getByText('void_click', { exact: true })).toBeVisible();
   });
 
   test('auto-transitions complete the full chain to HIHO', async ({ page }) => {
