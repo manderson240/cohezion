@@ -584,16 +584,16 @@
       "strategy": "load_inline custom HIP kernel - rocWMMA MFMA with static swizzling, lifted scales, fused FP8 dequant, and explicit register-aware wavefront occupancy tuning (targeting 32 waves/WG on MI355X)",
       "parameters": {},
       "parent_id": "gemm_loadinline_root",
-      "priority": 0.1,
+      "priority": 0.15,
       "attempts": 1,
       "best_result_us": 172.65,
       "stagnation_count": 0,
-      "status": "active",
+      "status": "pruned",
       "children": [
         "n_469be2db",
         "n_663e6c8f"
       ],
-      "notes": "[LLM-proposed] [STRATEGIC PRUNE: LLM world model]",
+      "notes": "[LLM-proposed] [STRATEGIC PRUNE: LLM world model] [STRATEGIC PRUNE: LLM world model]",
       "attempt_history": [
         {
           "result_us": 172.65054828892343,
@@ -612,9 +612,9 @@
       "attempts": 1,
       "best_result_us": 186.65,
       "stagnation_count": 0,
-      "status": "active",
+      "status": "pruned",
       "children": [],
-      "notes": "[LLM-proposed] [STRATEGIC PRUNE: LLM world model]",
+      "notes": "[LLM-proposed] [STRATEGIC PRUNE: LLM world model] [STRATEGIC PRUNE: parent n_be4f7862 pruned]",
       "attempt_history": [
         {
           "result_us": 186.64554727289573,
@@ -633,11 +633,11 @@
       "attempts": 2,
       "best_result_us": 193.61,
       "stagnation_count": 1,
-      "status": "active",
+      "status": "pruned",
       "children": [
         "n_4aef3deb"
       ],
-      "notes": "[LLM-proposed] [STRATEGIC PRUNE: LLM world model]",
+      "notes": "[LLM-proposed] [STRATEGIC PRUNE: LLM world model] [STRATEGIC PRUNE: LLM world model]",
       "attempt_history": [
         {
           "result_us": 193.61212013532193,
@@ -723,13 +723,36 @@
       "strategy": "load_inline custom HIP kernel - rocWMMA MFMA with static swizzling, lifted scales, fused FP8 dequant, MI355X tile sizes (32x32x256), VGPR spilling eliminated via register allocation hints (`#pragma clang diagnostic` + explicit VGPR usage annotations), and 1-wavefront-per-workgroup launch for minimal overhead (no dynamic overhead)",
       "parameters": {},
       "parent_id": "n_663e6c8f",
-      "priority": 0.65,
+      "priority": 0.05,
+      "attempts": 1,
+      "best_result_us": 75.02,
+      "stagnation_count": 0,
+      "status": "pruned",
+      "children": [
+        "n_399dbb5a"
+      ],
+      "notes": "[LLM-proposed] [STRATEGIC PRUNE: parent n_663e6c8f pruned] [STRATEGIC PRUNE: parent n_663e6c8f pruned]",
+      "attempt_history": [
+        {
+          "result_us": 75.02,
+          "parameters": {},
+          "timestamp": "2026-03-31T01:18:01.972774",
+          "source": "llm"
+        }
+      ]
+    },
+    "n_399dbb5a": {
+      "id": "n_399dbb5a",
+      "strategy": "load_inline custom HIP kernel - rocWMMA MFMA with static swizzling, lifted scales, fused FP8 dequant, MI355X tile sizes (32x32x256), 1-WG/WF launch, and shape_1-specialized loop unrolling (runtime-tuned unroll factors via perf_event_open feedback on shape_1)",
+      "parameters": {},
+      "parent_id": "n_4aef3deb",
+      "priority": 0.6,
       "attempts": 0,
       "best_result_us": null,
       "stagnation_count": 0,
-      "status": "active",
+      "status": "pruned",
       "children": [],
-      "notes": "[LLM-proposed] [STRATEGIC PRUNE: parent n_663e6c8f pruned]",
+      "notes": "[LLM-proposed] [STRATEGIC PRUNE: parent n_4aef3deb pruned]",
       "attempt_history": []
     }
   }
