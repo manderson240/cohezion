@@ -377,13 +377,19 @@ class CostAwareRouter:
         cls._instance = None
 
     def select_model(
-        self, query: str, max_cost_usd: float | None = None
+        self,
+        query: str,
+        max_cost_usd: float | None = None,
+        cache_hit_rate: float | None = None,
     ) -> tuple[ModelRoutingDecision, bool]:
         """Select optimal model for query with cost/token optimization.
 
         Args:
             query: User query
             max_cost_usd: Maximum allowed cost (optional)
+            cache_hit_rate: Current cache hit rate from DegradationDetector (0.0-1.0).
+                When >0.9, bias toward cheaper/faster models (cache handles quality).
+                When <0.5, bias toward larger-context models (more cache-friendly).
 
         Returns:
             Tuple of (decision, can_proceed)
@@ -393,6 +399,24 @@ class CostAwareRouter:
         # Analyze complexity
         complexity = self.complexity_analyzer.analyze(query)
         estimated_tokens = self.EXPECTED_TOKENS[complexity]
+
+        # Cache-aware complexity adjustment
+        if cache_hit_rate is not None:
+            if cache_hit_rate > 0.9 and complexity != QueryComplexity.SIMPLE:
+                # High cache hits → cache is handling quality, downgrade to cheaper model
+                logger.info(
+                    "Cache feedback: %.0f%% hit rate → downgrading %s to SIMPLE routing",
+                    cache_hit_rate * 100,
+                    complexity.value,
+                )
+                complexity = QueryComplexity.SIMPLE
+            elif cache_hit_rate < 0.3 and complexity == QueryComplexity.SIMPLE:
+                # Very low cache hits → need better model for cache-miss handling
+                logger.info(
+                    "Cache feedback: %.0f%% hit rate → upgrading SIMPLE to MEDIUM routing",
+                    cache_hit_rate * 100,
+                )
+                complexity = QueryComplexity.MEDIUM
 
         # Select model by complexity
         if complexity == QueryComplexity.SIMPLE:
