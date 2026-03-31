@@ -10,10 +10,10 @@
         "note": "Official template-hip.py at gpu-mode/reference-kernels proves load_inline WORKS!"
       },
       "parent_id": null,
-      "priority": 0.4447585848831292,
-      "attempts": 16,
-      "best_result_us": 6.07,
-      "stagnation_count": 0,
+      "priority": 0.45799475958991054,
+      "attempts": 19,
+      "best_result_us": 5.29,
+      "stagnation_count": 1,
       "status": "active",
       "children": [
         "n_469245a5",
@@ -171,6 +171,33 @@
             "note": "Official template-hip.py at gpu-mode/reference-kernels proves load_inline WORKS!"
           },
           "timestamp": "2026-03-31T00:22:32.641764",
+          "source": "template"
+        },
+        {
+          "result_us": 5.526145592921474,
+          "parameters": {
+            "approach": "load_inline_hip",
+            "note": "Official template-hip.py at gpu-mode/reference-kernels proves load_inline WORKS!"
+          },
+          "timestamp": "2026-03-31T00:26:43.193149",
+          "source": "template"
+        },
+        {
+          "result_us": 5.289284146340616,
+          "parameters": {
+            "approach": "load_inline_hip",
+            "note": "Official template-hip.py at gpu-mode/reference-kernels proves load_inline WORKS!"
+          },
+          "timestamp": "2026-03-31T00:26:55.680241",
+          "source": "template"
+        },
+        {
+          "result_us": 6.01907335240013,
+          "parameters": {
+            "approach": "load_inline_hip",
+            "note": "Official template-hip.py at gpu-mode/reference-kernels proves load_inline WORKS!"
+          },
+          "timestamp": "2026-03-31T00:27:05.303025",
           "source": "template"
         }
       ]
