@@ -43,6 +43,8 @@ logger = logging.getLogger(__name__)
 # FLUME semantic routing (falls back to keyword matching if unavailable)
 try:
     from cohezion.governance.flume_bridge import encode_prompt, flume_route_similarity
+    # FLUME semantic routing is available but only activates when
+    # historical routing data exists (prevents hash-fallback garbage)
     FLUME_AVAILABLE = True
 except ImportError:
     FLUME_AVAILABLE = False
@@ -174,26 +176,57 @@ class ConciergeAgent:
             "kernel": "challenge/nvidia-nemotron-reasoning",
         }
 
-        if FLUME_AVAILABLE and self._history:
-            # Semantic routing: find best-matching historical route via FLUME cosine similarity
+        if FLUME_AVAILABLE:
             prompt_embedding = encode_prompt(user_prompt)
-            best_sim = 0.0
-            best_record = None
-            for record in reversed(self._history[-50:]):
-                if record.accepted and record.suggested_action == "switch_worktree":
-                    sim = flume_route_similarity(prompt_embedding, record.user_prompt)
+
+            # First: check against historical routes (learned preferences)
+            if self._history:
+                best_sim = 0.0
+                best_record = None
+                for record in reversed(self._history[-50:]):
+                    if record.accepted and record.suggested_action == "switch_worktree":
+                        sim = flume_route_similarity(prompt_embedding, record.user_prompt)
+                        if sim > best_sim:
+                            best_sim = sim
+                            best_record = record
+                if best_record and best_sim > 0.7:
+                    hist_conf = self._historical_confidence(f"switch_worktree:{best_record.suggested_target}")
+                    confidence = min(0.95, best_sim * max(hist_conf, 0.6))
+                    return RoutingSuggestion(
+                        action="switch_worktree",
+                        target=best_record.suggested_target,
+                        confidence=confidence,
+                        reason=f"FLUME semantic match (sim={best_sim:.2f}) to '{best_record.user_prompt[:40]}'",
+                        autonomy_tier="SO(3)^4",
+                    )
+
+            # Second: FLUME match against worktree descriptions
+            # Only use this path when we have history (hash fallback can't discriminate)
+            # Without history, fall through to keyword matching
+            if self._history:  # Need some history to trust FLUME discrimination
+                worktree_descriptions = {
+                "feat/genesis-tdd-a2ui": "genesis webapp A2UI AG-UI protocol stack cosmogony",
+                "feat/genesis-testing": "playwright testing glance browser automation e2e",
+                "feat/genesis-physics": "observer patch holography spinor physics OPH",
+                "feat/genesis-rendering": "pretext WebGPU rendering three.js visualization",
+                "feat/genesis-data-mesh": "data mesh MCP registry governance products",
+                "challenge/nvidia-nemotron-reasoning": "nvidia kernel optimization AMD GPU GEMM MoE",
+            }
+                best_sim = 0.0
+                best_branch = ""
+                for branch, desc in worktree_descriptions.items():
+                    sim = flume_route_similarity(prompt_embedding, desc)
                     if sim > best_sim:
                         best_sim = sim
-                        best_record = record
-            if best_record and best_sim > 0.7:
-                confidence = min(0.95, best_sim * self._historical_confidence(f"switch_worktree:{best_record.suggested_target}"))
-                return RoutingSuggestion(
-                    action="switch_worktree",
-                    target=best_record.suggested_target,
-                    confidence=confidence,
-                    reason=f"FLUME semantic match (sim={best_sim:.2f}) to '{best_record.user_prompt[:40]}'",
-                    autonomy_tier="SO(3)^4",
-                )
+                        best_branch = branch
+                if best_sim > 0.75 and best_branch:  # Higher threshold for description matching
+                    return RoutingSuggestion(
+                        action="switch_worktree",
+                        target=best_branch,
+                        confidence=min(0.8, best_sim),
+                        reason=f"FLUME match to {best_branch} description (sim={best_sim:.2f})",
+                        autonomy_tier="SO(3)^4",
+                    )
 
         # Keyword fallback
         for keyword, branch in worktree_map.items():
