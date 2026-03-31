@@ -1,0 +1,34 @@
+{
+  "cli_version": "0.5.1",
+  "checkpoint_id": "e7e306ce0850",
+  "session_id": "b64da2bf-bc43-4e98-92b9-9ef978ee0301",
+  "strategy": "manual-commit",
+  "created_at": "2026-03-31T15:49:55.394895261Z",
+  "branch": "main",
+  "checkpoints_count": 2,
+  "files_touched": [
+    "src/cohezion/swarm/cost_aware_router.py"
+  ],
+  "agent": "Claude Code",
+  "model": "claude-opus-4-6[1m]",
+  "turn_id": "3603567f8648",
+  "token_usage": {
+    "input_tokens": 16715,
+    "cache_creation_tokens": 5965906,
+    "cache_read_tokens": 253576589,
+    "output_tokens": 302657,
+    "api_call_count": 787
+  },
+  "session_metrics": {
+    "turn_count": 83
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-03-31T15:49:52.529370599Z",
+    "agent_lines": 0,
+    "human_added": 68,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 68,
+    "agent_percentage": 0
+  }
+}
