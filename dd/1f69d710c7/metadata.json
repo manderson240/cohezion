@@ -3,7 +3,7 @@
   "checkpoint_id": "dd1f69d710c7",
   "strategy": "manual-commit",
   "branch": "main",
-  "checkpoints_count": 0,
+  "checkpoints_count": 1,
   "files_touched": [
     "_bmad/_config/traceability/cycles_v2/cycle_0011.json",
     "_bmad/_config/traceability/repo_health/health_report.md",
@@ -16,13 +16,19 @@
       "transcript": "/dd/1f69d710c7/0/full.jsonl",
       "content_hash": "/dd/1f69d710c7/0/content_hash.txt",
       "prompt": ""
+    },
+    {
+      "metadata": "/dd/1f69d710c7/1/metadata.json",
+      "transcript": "/dd/1f69d710c7/1/full.jsonl",
+      "content_hash": "/dd/1f69d710c7/1/content_hash.txt",
+      "prompt": "/dd/1f69d710c7/1/prompt.txt"
     }
   ],
   "token_usage": {
-    "input_tokens": 0,
-    "cache_creation_tokens": 0,
-    "cache_read_tokens": 0,
-    "output_tokens": 0,
-    "api_call_count": 0
+    "input_tokens": 32464,
+    "cache_creation_tokens": 11085520,
+    "cache_read_tokens": 344716460,
+    "output_tokens": 409277,
+    "api_call_count": 1101
   }
 }
