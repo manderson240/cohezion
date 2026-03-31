@@ -130,3 +130,7 @@ And are we fully utilizing our Obsidian Vault and SurrealDB?
 ---
 
 How do we make it safely agentically autonomous and sovereign while still maintaining HIL?
+
+---
+
+And how can we avoid having to start from scratch in each session?  I think we need a concierge agent that greats the user and then interprets the prompt and finds the optimal path in the projects to direct it towards.
