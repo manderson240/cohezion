@@ -11,7 +11,7 @@
       "attempts": 20,
       "best_result_us": 93.67,
       "stagnation_count": 3,
-      "status": "active",
+      "status": "blocked",
       "children": [
         "mla_n1",
         "mla_n2",

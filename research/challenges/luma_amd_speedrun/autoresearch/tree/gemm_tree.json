@@ -14,7 +14,7 @@
       "attempts": 31,
       "best_result_us": 3.62,
       "stagnation_count": 0,
-      "status": "active",
+      "status": "blocked",
       "children": [
         "n_469245a5",
         "n_a6a3e4d8",
