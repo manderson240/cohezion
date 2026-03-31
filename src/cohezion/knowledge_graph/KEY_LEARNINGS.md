@@ -409,17 +409,23 @@ Cohezion operates across 3 AI platforms simultaneously: `.claude/` (41+ MCP tool
 ### Learning 209: Competition Licensing Conflict (CC BY 4.0 vs MIT-0)
 ARC Prize requires CC0/MIT-0 (public domain). AIMO/Nemotron require CC BY 4.0 (attribution). These conflict — CC BY 4.0 disqualifies from ARC ($-2M). Solution: MIT-0 for all (most permissive, accepted everywhere) or dual licensing per competition. Must decide before first AIMO submission.
 
-### Learning 210: GEMM Quant Ceiling Confirmed — No Faster Standalone Quant Exists
-All "new" quant APIs (fused_mxfp4_quant, fused_rms_mxfp4_quant, fused_flatten_mxfp4_quant) are fused with OTHER operations (RMSNorm, flatten, MoE sort) — none can replace `dynamic_mxfp4_quant` for standalone GEMM. The 33-39µs A-quant + 7-10µs ASM GEMM = ~24µs geomean is the absolute Python-dispatch floor. Leader's 9.7µs requires a single fused kernel not creatable on this runner.
+### Learnings 210-214: AMD Kernel Competition Results (Compressed)
+GEMM/MoE/MLA kernel optimization on MI355X hit API ceiling. Key findings: (1) standalone MXFP4 quant at ~24µs is the Python-dispatch floor, leader's 9.7µs needs custom fused kernel; (2) aiter 0.1.11 has 26 MoE functions, only 5 were previously known; (3) GenSelect beats majority voting +8-15% for math (arXiv:2504.16891); (4) V-JEPA 2.1 (2B params, Mar 2026) is the upgrade path for Cohezion's 86K JEPA; (5) fmoe_g1u1_a16 requires bf16 weights, not fp4.
 
-### Learning 211: MoE Has 26 Functions — 21 Untested
-aiter 0.1.11 exposes 26 MoE-related functions (vs 5 previously known). Key untested: `fmoe_g1u1_a16` (bf16 activation), `fused_dynamic_mxfp4_quant_moe_sort` (fuses quant+sort), `moe_stage1_g1u1` (direct stage1 CK). All are thin wrappers around `torch.ops.aiter.<name>` JIT kernels.
+### Learning 215: FLUME-First Principle (2026-03-31)
+All new modules MUST encode/decode through FLUME. The `flume_bridge.py` retrofit pattern (build module → add FLUME bridge later) wastes compound value. Start with `encode()` → latent reasoning → `decode()`. Currently only 3 of 10 core systems use FLUME despite 13 encoders being available.
 
-### Learning 212: GenSelect > Majority Voting for Math Competitions
-AIMO2 winner approach: instead of majority voting (pick most common answer from N samples), train a GRADING layer that evaluates solution quality ("Grade these N solutions 1-10"), then selects the highest-graded answer verified by tool execution. Expected +8-15% over pure majority voting. Paper: arxiv.org/pdf/2504.16891.
+### Learning 216: Concierge Agent Pattern (2026-03-31)
+7-source state synthesis (continuations, worktrees, plans, git, SurrealDB, vault, MEMORY.md) + JSONL-based learning eliminates cold starts. Confidence scoring via HIHO threshold: >0.8 suggest, ~0.5 ask, <0.3 fresh start. Routing history persists across sessions.
 
-### Learning 213: V-JEPA 2.1 — Temporal World Model Breakthrough (Mar 2026)
-Meta V-JEPA 2.1 (released Mar 16, 2026) solves temporal consistency via dense predictive loss + deep self-supervision. 2B params, trained on 163M images + 1M hours video. This is a direct upgrade path for Cohezion's 86K-param JEPA world model — same architecture family, production-validated. Source: ai.meta.com/blog/v-jepa-2-world-model-benchmarks.
+### Learning 217: Cosmogonic Autonomy Tiers (2026-03-31)
+Maps symmetry breaking chain to agent autonomy levels: ∅(none)→SO(12)(observe)→SO(3)⁴(edit)→U(1)⁴(commit)→Z₂⁴(deploy)→HIHO(sovereign with kill switch). Agents earn higher tiers by demonstrating sustained HIHO coherence. Novel governance model grounded in physics.
 
-### Learning 214: fmoe_g1u1_a16 Requires bf16 Weights — Not fp4
-`fmoe_g1u1_a16` is a single fused MoE kernel (sort → gate_up GEMM → SiLU → down GEMM → reduce) but rejects fp4x2 weights: "Unsupported gate dtype". The `_a16` means A16W16 or A16W8, not fp4. Our competition inputs are fp4x2 — this path is closed. The 2-stage `fused_moe` CK pipeline IS the ceiling for fp4 weights.
+### Learning 218: OPH Overlap = HIL Mechanism (2026-03-31)
+Observer Patch Holography's Axiom 2 (overlap consistency) is the mathematical foundation for human-in-the-loop governance. The human is an observer patch on the same holographic screen as the agent. Where they overlap, they must agree. High overlap → defer to human. Zero overlap → agent is sovereign in its domain.
+
+### Learning 219: Data Mesh × MCP Registry (2026-03-31)
+17+ MCP servers = 17 data domains. DataProduct type with schema, SLA, lineage, and ownership turns tools into governed data products. Factory pattern (get_cohezion_data_products()) prevents shared mutable state. MCP Registry is the self-serve platform layer of Data Mesh.
+
+### Learning 220: A2UI Makes Agent Testing Structural (2026-03-31)
+Component catalog (JSON) + experience scripts replace opaque WebGL testing. Agent validates the data structure, not the pixels. 9 Playwright e2e tests + 26 pytest tests. Data-attribute selectors (data-a2ui-component) are the most reliable Playwright selectors for dynamic UIs.
