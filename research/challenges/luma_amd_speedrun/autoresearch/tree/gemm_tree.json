@@ -10,7 +10,7 @@
         "note": "Official template-hip.py at gpu-mode/reference-kernels proves load_inline WORKS!"
       },
       "parent_id": null,
-      "priority": 0.475,
+      "priority": 0.45125,
       "attempts": 12,
       "best_result_us": 7.2,
       "stagnation_count": 1,
@@ -24,7 +24,8 @@
         "n_f2cdfede",
         "n_3258e3a1",
         "n_6548b100",
-        "n_be4f7862"
+        "n_be4f7862",
+        "n_93b2d534"
       ],
       "notes": "BREAKTHROUGH: load_inline custom HIP kernel works on Popcorn runners!",
       "attempt_history": [
@@ -412,16 +413,16 @@
       "strategy": "load_inline custom HIP kernel - rocWMMA MFMA with static swizzling, lifted scales, fused FP8 dequant, and explicit register-aware wavefront occupancy tuning (targeting 32 waves/WG on MI355X)",
       "parameters": {},
       "parent_id": "gemm_loadinline_root",
-      "priority": 0.5,
+      "priority": 0.1,
       "attempts": 1,
       "best_result_us": 172.65,
       "stagnation_count": 0,
-      "status": "active",
+      "status": "pruned",
       "children": [
         "n_469be2db",
         "n_663e6c8f"
       ],
-      "notes": "[LLM-proposed]",
+      "notes": "[LLM-proposed] [STRATEGIC PRUNE: LLM world model]",
       "attempt_history": [
         {
           "result_us": 172.65054828892343,
@@ -457,13 +458,107 @@
       "strategy": "load_inline custom HIP kernel - rocWMMA MFMA with static swizzling, lifted scales, fused FP8 dequant, and 32-wave wavefront occupancy (MI355X-optimized), with VGPR spilling reduction via operand reuse and loop tiling unrolling",
       "parameters": {},
       "parent_id": "n_be4f7862",
-      "priority": 0.7,
+      "priority": 0.15,
+      "attempts": 2,
+      "best_result_us": 193.61,
+      "stagnation_count": 1,
+      "status": "pruned",
+      "children": [
+        "n_4aef3deb"
+      ],
+      "notes": "[LLM-proposed] [STRATEGIC PRUNE: LLM world model]",
+      "attempt_history": [
+        {
+          "result_us": 193.61212013532193,
+          "parameters": {},
+          "timestamp": "2026-03-31T00:21:10.468154",
+          "source": "template"
+        },
+        {
+          "result_us": 194.6482748974928,
+          "parameters": {},
+          "timestamp": "2026-03-31T00:21:56.524772",
+          "source": "template"
+        }
+      ]
+    },
+    "n_93b2d534": {
+      "id": "n_93b2d534",
+      "strategy": "load_inline custom HIP kernel - rocWMMA MFMA with static swizzling, lifted scales, fused FP8 dequant, and MI355X-optimized tile sizes (32x32x256), with explicit SGPR-based loop control and no dynamic dispatch overhead",
+      "parameters": {},
+      "parent_id": "gemm_loadinline_root",
+      "priority": 0.1,
+      "attempts": 2,
+      "best_result_us": 182.66,
+      "stagnation_count": 1,
+      "status": "pruned",
+      "children": [
+        "n_6fdd5f01",
+        "n_af52f525"
+      ],
+      "notes": "[LLM-proposed] [STRATEGIC PRUNE: LLM world model]",
+      "attempt_history": [
+        {
+          "result_us": 182.659125271441,
+          "parameters": {},
+          "timestamp": "2026-03-31T00:21:18.885228",
+          "source": "template"
+        },
+        {
+          "result_us": 197.60849351177131,
+          "parameters": {},
+          "timestamp": "2026-03-31T00:21:39.722979",
+          "source": "template"
+        }
+      ]
+    },
+    "n_6fdd5f01": {
+      "id": "n_6fdd5f01",
+      "strategy": "load_inline custom HIP kernel - rocWMMA MFMA with static swizzling, lifted scales, fused FP8 dequant, and MI355X-optimized tile sizes (32x32x256), with vectorized load/store (e.g., `float8x2`, `float16x2`) and unroll-factor tuned for 32-wave occupancy, SGPR pressure reduced via `__builtin_amdgcn_readexecmask`-based control flow",
+      "parameters": {},
+      "parent_id": "n_93b2d534",
+      "priority": 0.05,
+      "attempts": 1,
+      "best_result_us": 228.53,
+      "stagnation_count": 0,
+      "status": "pruned",
+      "children": [],
+      "notes": "[LLM-proposed] [STRATEGIC PRUNE: LLM world model]",
+      "attempt_history": [
+        {
+          "result_us": 228.52782987086218,
+          "parameters": {},
+          "timestamp": "2026-03-31T00:21:47.971885",
+          "source": "template"
+        }
+      ]
+    },
+    "n_af52f525": {
+      "id": "n_af52f525",
+      "strategy": "load_inline custom HIP kernel - rocWMMA MFMA with static swizzling, lifted scales, fused FP8 dequant, MI355X-optimized tile sizes (32x32x256), with vectorized load/store (`float8x2`/`float16x2`), 32-wave occupancy, and SGPR reduction via `__builtin_amdgcn_readexecmask`, but with *dynamic loop unrolling* guided by runtime profiling (e.g., `perf_event_open` feedback) to adapt unroll factors per kernel launch",
+      "parameters": {},
+      "parent_id": "n_93b2d534",
+      "priority": 0.6,
       "attempts": 0,
       "best_result_us": null,
       "stagnation_count": 0,
-      "status": "active",
+      "status": "pruned",
       "children": [],
-      "notes": "[LLM-proposed]",
+      "notes": "[LLM-proposed] [STRATEGIC PRUNE: parent n_93b2d534 pruned]",
+      "attempt_history": []
+    },
+    "n_4aef3deb": {
+      "id": "n_4aef3deb",
+      "strategy": "load_inline custom HIP kernel - rocWMMA MFMA with static swizzling, lifted scales, fused FP8 dequant, MI355X tile sizes (32x32x256), VGPR spilling eliminated via register allocation hints (`#pragma clang diagnostic` + explicit VGPR usage annotations), and 1-wavefront-per-workgroup launch for minimal overhead (no dynamic overhead)",
+      "parameters": {},
+      "parent_id": "n_663e6c8f",
+      "priority": 0.65,
+      "attempts": 0,
+      "best_result_us": null,
+      "stagnation_count": 0,
+      "status": "pruned",
+      "children": [],
+      "notes": "[LLM-proposed] [STRATEGIC PRUNE: parent n_663e6c8f pruned]",
       "attempt_history": []
     }
   }
