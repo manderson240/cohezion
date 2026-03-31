@@ -1,0 +1,54 @@
+{
+  "cli_version": "0.5.1",
+  "checkpoint_id": "3d0ceb7c4056",
+  "session_id": "0e827bda-d662-451e-95d0-882cbec81a9e",
+  "strategy": "manual-commit",
+  "created_at": "2026-03-31T04:27:18.034108072Z",
+  "branch": "challenge/nvidia-nemotron-reasoning",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "cache/swarm/0802d3ae1bb15ef3807829a81460e20f643c23bc84576b4cf75908f0132def36.json",
+    "cache/swarm/1ca8d220f4002fc1c24897b5fc14d2f1135aa451790b249223b9fca93c265171.json",
+    "cache/swarm/2c8f24f07278edafddee4ee1493826015fab2a906e243f286168cdea5451da24.json",
+    "cache/swarm/3f7e674b420e80fc111cd41aa3b437f550102471f3344827c0e0f05441d61b67.json",
+    "cache/swarm/45f5d3121e1ceefb8f267663faec2af30bcd2d9b2ef069431dd3f4fc07148018.json",
+    "cache/swarm/4ab5805582137a95720e1eecd643a175f7719c3c2002046fa0b5318ed1c71de3.json",
+    "cache/swarm/4cd7120882f7323f6900c3e46b997934ff69bf2c4b9a7eb80109abc1f4af6e0e.json",
+    "cache/swarm/54046dbd1471a094ca3484150c2f26b008dc5a0085c09ebf418b5b6b8bac3e18.json",
+    "cache/swarm/5ea1d15f759ed674bd4c069df323e0bd88d44a679b0fbb26096220836bf3b189.json",
+    "cache/swarm/652e9d624c6afa2fe71f1e57c2d517a6d9f7768c61fc522cd9c52d779c1e0bed.json",
+    "cache/swarm/72cf9a375d165a899415d35e4a49c3f5d1432f2195fb2262eb835fe5a71c1255.json",
+    "cache/swarm/7a2bcb54741f8ba1fcc3822b72e5db05ef8ddf965678e463671790587035d461.json",
+    "cache/swarm/88373a9952f005b75d62d1fa5ecc5d363d527fc61517341481a329414beec913.json",
+    "cache/swarm/965c7d8f7f277c20dc5509f7ed6031a9e2cb37d185eb40c5aba2c44ecd7da2a9.json",
+    "cache/swarm/9dabb14700b32ae6cca90a65de13e5533c9c9cb519c7d31bb63f8c967b8e6a03.json",
+    "cache/swarm/a5c6d07b27b7a644809020071339e42bcdce0c4048ddbeb51f58e9d20b7a95f6.json",
+    "cache/swarm/a9209b0b908d0cb5fd3d96bff31b225d494bad8ca71d454f876c201bbb0e048b.json",
+    "cache/swarm/acca095af12cef4761a77b6f20484a7ffdf0585354d812e7ddf12a255e800cfd.json",
+    "cache/swarm/c68c897ff681adba82de83dd1ebd599ec71e7c6c52f472331ef823abfb9267a9.json",
+    "cache/swarm/d7cd2b4b5255963d9f78e816f52e9113109ec5042bfa8acc849435fe4a8849d8.json",
+    "src/cohezion/skills/skill_registry.json"
+  ],
+  "agent": "Claude Code",
+  "model": "claude-opus-4-6[1m]",
+  "turn_id": "aa75ba822a8d",
+  "token_usage": {
+    "input_tokens": 43213,
+    "cache_creation_tokens": 7885208,
+    "cache_read_tokens": 65335514,
+    "output_tokens": 114281,
+    "api_call_count": 296
+  },
+  "session_metrics": {
+    "turn_count": 12
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-03-31T04:27:16.606708588Z",
+    "agent_lines": 22,
+    "human_added": 18521,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 18543,
+    "agent_percentage": 0.11864315375074153
+  }
+}
