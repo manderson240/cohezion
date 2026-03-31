@@ -1,0 +1,26 @@
+{
+  "cli_version": "0.5.1",
+  "checkpoint_id": "e9f25d775bdc",
+  "strategy": "manual-commit",
+  "branch": "main",
+  "checkpoints_count": 0,
+  "files_touched": [
+    "src/cohezion/cache/cache_warmer.py",
+    "src/cohezion/compound/executor.py"
+  ],
+  "sessions": [
+    {
+      "metadata": "/e9/f25d775bdc/0/metadata.json",
+      "transcript": "/e9/f25d775bdc/0/full.jsonl",
+      "content_hash": "/e9/f25d775bdc/0/content_hash.txt",
+      "prompt": ""
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 0,
+    "cache_creation_tokens": 0,
+    "cache_read_tokens": 0,
+    "output_tokens": 0,
+    "api_call_count": 0
+  }
+}
