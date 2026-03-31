@@ -17,7 +17,8 @@
       "children": [
         "gemm_loadinline_rocwmma",
         "gemm_loadinline_simple_block",
-        "n_e5bda1bc"
+        "n_e5bda1bc",
+        "n_8b5b3c22"
       ],
       "notes": "BREAKTHROUGH: Official template-hip.py proves load_inline works!",
       "attempt_history": [
@@ -93,9 +94,9 @@
         "block": 64
       },
       "parent_id": "gemm_root",
-      "priority": 0.5013475208233396,
-      "attempts": 2,
-      "best_result_us": 226.22,
+      "priority": 0.3,
+      "attempts": 3,
+      "best_result_us": 215.88,
       "stagnation_count": 0,
       "status": "active",
       "children": [],
@@ -115,6 +116,14 @@
             "block": 64
           },
           "timestamp": "2026-03-31T19:15:52.227822",
+          "source": "template"
+        },
+        {
+          "result_us": 215.88161201383863,
+          "parameters": {
+            "block": 64
+          },
+          "timestamp": "2026-03-31T19:16:54.213103",
           "source": "template"
         }
       ]
@@ -139,6 +148,20 @@
           "source": "template"
         }
       ]
+    },
+    "n_8b5b3c22": {
+      "id": "n_8b5b3c22",
+      "strategy": "load_inline with rocWMMA MFMA tile 32x32x32 for MI355X (double K-dimension vs current 32x32x16)",
+      "parameters": {},
+      "parent_id": "gemm_root",
+      "priority": 0.7,
+      "attempts": 0,
+      "best_result_us": null,
+      "stagnation_count": 0,
+      "status": "active",
+      "children": [],
+      "notes": "[LLM-proposed]",
+      "attempt_history": []
     }
   }
 }
