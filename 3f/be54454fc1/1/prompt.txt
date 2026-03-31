@@ -211,3 +211,7 @@ The bare `except Exception` (HIGH), missing `BaseAgent` inheritance (HIGH), and 
 <usage><total_tokens>58354</total_tokens><tool_uses>25</tool_uses><duration_ms>114925</duration_ms></usage>
 </task-notification>
 Full transcript available at: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/b64da2bf-bc43-4e98-92b9-9ef978ee0301/tasks/ac867428adb49f3df.output
+
+---
+
+So why aren't we running everything through FLUME then?
