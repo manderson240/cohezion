@@ -5,15 +5,16 @@ Covers FLUME VAE encoding, decoding, and interpolation.
 
 from __future__ import annotations
 
-import pytest
 from unittest.mock import MagicMock, patch
-import numpy as np
+
+import pytest
 
 from cohezion.api.services.flume import (
-    flume_encode_service,
     FlumeEncodeRequest,
     compute_coherence,
+    flume_encode_service,
 )
+
 
 def test_compute_coherence():
     """[P0] Should compute coherence correctly."""

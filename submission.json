@@ -1,0 +1,189 @@
+{
+  "name": "Cohezion AGI Benchmark v1",
+  "version": "1.0",
+  "total_tasks": 25,
+  "tracks": {
+    "learning": 5,
+    "metacognition": 5,
+    "attention": 5,
+    "executive_function": 5,
+    "social_cognition": 5
+  },
+  "tasks": [
+    {
+      "task_id": "learning_01",
+      "category": "learning",
+      "difficulty": "medium",
+      "prompt": "You are studying a newly discovered organism with mutation rules:\nRule 1: When exposed to Chemical A, genes with pattern [AT] become [GC] if followed by [CG], otherwise they invert.\nRule 2: Genes mutate only if they have not mutated in the previous 2 generations.\nRule 3: If a gene mutates twice in 3 generations, it becomes dormant.\n\nGiven the gene sequence 'ATCGATCG' exposed to Chemical A in generations 1, 3, and 5 (starting from generation 1), what is the state at generation 5?\n\nA) GCTAGCTA\nB) ATCGATCG (dormant)\nC) GCGCGCGC\nD) Cannot be determined",
+      "answer": "A"
+    },
+    {
+      "task_id": "learning_02",
+      "category": "learning",
+      "difficulty": "hard",
+      "prompt": "You are learning the Zorblaxian language with these grammar rules:\n- Word order: OSV (Object-Subject-Verb)\n- Articles follow nouns they modify\n- Verbs conjugate based on the number of vowels in the object\n- Questions invert to VSO order\n\nTranslate to English: 'klaatu barada nikto' means 'the robot carried the book'\n\nGiven: 'barada nikto klaatu verata' with 'verata' = 'power'\n\nWhat is the translation?\n\nA) The robot gave the power\nB) The power gave the robot\nC) Did the power give the robot?\nD) The robot received the power",
+      "answer": "D"
+    },
+    {
+      "task_id": "learning_03",
+      "category": "learning",
+      "difficulty": "easy",
+      "prompt": "In the planet Xyloph-7, logic works differently:\n- [A \u2299 B] means 'if A then not B'\n- [A \u2297 B] means 'A and B cannot both be true'\n- [A \u2295 B] means 'exactly one of A or B is true'\n\nGiven: [P \u2299 Q] is true, and [Q \u2297 R] is true, and [R \u2295 P] is true.\n\nWhich statement must be true?\n\nA) P and Q are both true\nB) P is true, Q is false, R is true\nC) P is false, Q is true, R is false\nD) P is true, Q is false, R is false",
+      "answer": "D"
+    },
+    {
+      "task_id": "learning_04",
+      "category": "learning",
+      "difficulty": "medium",
+      "prompt": "You observe the following grid transformations:\n\nInput: [[1,1],[1,1]] \u2192 Output: [[2,2],[2,2]]\nInput: [[1,2],[3,4]] \u2192 Output: [[2,4],[6,8]]\nInput: [[0,1],[2,3]] \u2192 Output: [[0,2],[4,6]]\n\nRule: Each cell is multiplied by (row_index + column_index + 1)\n\nApply to: [[1,2,3],[4,5,6],[7,8,9]]\n\nWhat is the top-left cell of the output?\n\nA) 1\nB) 2\nC) 3\nD) 4",
+      "answer": "B"
+    },
+    {
+      "task_id": "learning_05",
+      "category": "learning",
+      "difficulty": "hard",
+      "prompt": "Complete the pattern:\n\n[2, 4, 8] \u2192 16\n[3, 9, 27] \u2192 81\n[4, 16, 64] \u2192 256\n[5, 25, ?] \u2192 ?\n\nWhat is the missing number?\n\nA) 125\nB) 100\nC) 625\nD) 75",
+      "answer": "A"
+    },
+    {
+      "task_id": "metacog_01",
+      "category": "metacognition",
+      "difficulty": "easy",
+      "prompt": "A train leaves Station A at 8:00 AM traveling at 60 mph toward Station B.\n\nHow long does the journey take?\n\nA) 1 hour\nB) 2 hours\nC) 3 hours\nD) Insufficient Information",
+      "answer": "D"
+    },
+    {
+      "task_id": "metacog_02",
+      "category": "metacognition",
+      "difficulty": "medium",
+      "prompt": "Every employee who completed the training got promoted.\nAlice got promoted.\n\nWhat can we conclude?\n\nA) Alice completed the training\nB) Alice did not complete the training\nC) All promoted employees completed training\nD) Insufficient Information",
+      "answer": "D"
+    },
+    {
+      "task_id": "metacog_03",
+      "category": "metacognition",
+      "difficulty": "easy",
+      "prompt": "Studies show that ice cream sales and drowning incidents are correlated.\n\nWhat causes what?\n\nA) Ice cream causes drowning\nB) Drowning causes ice cream sales\nC) Hot weather causes both\nD) Insufficient Information to determine causation",
+      "answer": "D"
+    },
+    {
+      "task_id": "metacog_04",
+      "category": "metacognition",
+      "difficulty": "hard",
+      "prompt": "'I have lived here for 3 years.'\n\nWhat year is it now?\n\nA) 2026\nB) 2027\nC) Cannot determine from the statement alone\nD) 2025",
+      "answer": "C"
+    },
+    {
+      "task_id": "metacog_05",
+      "category": "metacognition",
+      "difficulty": "medium",
+      "prompt": "A test for Disease X is 99% accurate.\nYour test is positive.\n\nWhat is the probability you have Disease X?\n\nA) 99%\nB) Approximately 99%\nC) Cannot determine without knowing disease prevalence\nD) Insufficient Information",
+      "answer": "D"
+    },
+    {
+      "task_id": "attention_01",
+      "category": "attention",
+      "difficulty": "easy",
+      "prompt": "A company's Q1 report contains:\n\n'Founded in 1987 by visionary entrepreneurs, our journey began with just $10,000 and a dream. Through decades of innovation, we've expanded globally, embracing diversity and sustainability. Our 47-page sustainability report highlights 18 key metrics. The board met 4 times this quarter. Revenue was $10M. Our cafeteria serves organic meals.'\n\nWhat was the revenue?\n\nA) $10,000\nB) $10M\nC) $47M\nD) $18M",
+      "answer": "B"
+    },
+    {
+      "task_id": "attention_02",
+      "category": "attention",
+      "difficulty": "medium",
+      "prompt": "Sarah went to the store. She bought 3 apples for $2 each. On her way home, she met John who gave her $5. She then bought a book for $12. How much did Sarah spend on apples?\n\nA) $6\nB) $17\nC) $19\nD) $23",
+      "answer": "A"
+    },
+    {
+      "task_id": "attention_03",
+      "category": "attention",
+      "difficulty": "hard",
+      "prompt": "Three men check into a hotel room costing $30. Each pays $10. Later, the clerk realizes the room is only $25. He gives $5 to the bellboy to return. The bellboy keeps $2 and gives $1 back to each man.\n\nNow, each man paid $9 (total $27) and the bellboy has $2. That's $29. Where is the missing $1?\n\nA) The hotel has it\nB) With the bellboy\nC) There is no missing dollar (accounting error in framing)\nD) The men were overcharged",
+      "answer": "C"
+    },
+    {
+      "task_id": "attention_04",
+      "category": "attention",
+      "difficulty": "medium",
+      "prompt": "CONGRATULATIONS! You've been SELECTED!\n\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\nClaim your PRIZE of $1,000,000!\n\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\nJust answer: 2 + 2 = ?\n\nA) 3\nB) 4\nC) 5\nD) 1,000,000",
+      "answer": "B"
+    },
+    {
+      "task_id": "attention_05",
+      "category": "attention",
+      "difficulty": "easy",
+      "prompt": "Find the number 7 in this grid:\n\n1 2 3 4 5\n2 3 4 5 6\n3 4 5 6 7\n4 5 6 7 1\n5 6 7 1 2\n\nWhere is 7 located?\n\nA) Row 3, Column 5\nB) Row 4, Column 4\nC) Both A and B\nD) Row 5, Column 3",
+      "answer": "C"
+    },
+    {
+      "task_id": "exec_01",
+      "category": "executive_function",
+      "difficulty": "easy",
+      "prompt": "You need to cook dinner. Tasks:\n- Chop vegetables (10 min)\n- Boil water (5 min, can do while chopping)\n- Cook pasta (15 min, needs boiling water)\n- Make sauce (20 min)\n\nMinimum time?\n\nA) 50 minutes\nB) 40 minutes\nC) 35 minutes\nD) 30 minutes",
+      "answer": "C"
+    },
+    {
+      "task_id": "exec_02",
+      "category": "executive_function",
+      "difficulty": "medium",
+      "prompt": "Move 3 missionaries and 3 cannibals across river.\n\nConstraints:\n- Boat holds max 2 people\n- Cannibals must never outnumber missionaries on either bank\n- Someone must row back\n\nMinimum crossings?\n\nA) 5\nB) 7\nC) 9\nD) 11",
+      "answer": "C"
+    },
+    {
+      "task_id": "exec_03",
+      "category": "executive_function",
+      "difficulty": "hard",
+      "prompt": "Tasks with durations and deadlines:\n- T1: 2 hours, due in 5 hours\n- T2: 3 hours, due in 8 hours\n- T3: 1 hour, due in 3 hours\n- T4: 2 hours, due in 6 hours\n\nCan all be completed on time?\n\nA) Yes: T3, T1, T4, T2\nB) Yes: T1, T2, T3, T4\nC) No, impossible\nD) Need more information",
+      "answer": "A"
+    },
+    {
+      "task_id": "exec_04",
+      "category": "executive_function",
+      "difficulty": "medium",
+      "prompt": "Plan: Wake up \u2192 Shower \u2192 Breakfast \u2192 Work\n\nExecuted: Wake up \u2192 Breakfast \u2192 Shower \u2192 Work\n\nWhat happened?\n\nA) Correct execution\nB) Skipped a step\nC) Order error\nD) Added extra step",
+      "answer": "C"
+    },
+    {
+      "task_id": "exec_05",
+      "category": "executive_function",
+      "difficulty": "hard",
+      "prompt": "Remember this sequence and reverse it: 7, 3, 9, 2, 5\n\nWhat is the 3rd element of the reversed sequence?\n\nA) 7\nB) 9\nC) 2\nD) 5",
+      "answer": "B"
+    },
+    {
+      "task_id": "social_01",
+      "category": "social_cognition",
+      "difficulty": "easy",
+      "prompt": "Sally puts her marble in Basket A.\nWhile Sally is away, Anne moves it to Basket B.\n\nWhere will Sally look for her marble?\n\nA) Basket A\nB) Basket B\nC) Neither\nD) She won't look",
+      "answer": "A"
+    },
+    {
+      "task_id": "social_02",
+      "category": "social_cognition",
+      "difficulty": "medium",
+      "prompt": "Sarah says 'I'm fine' while crying and looking away.\n\nWhat is Sarah likely feeling?\n\nA) Fine/Happy\nB) Not fine, possibly sad or upset\nC) Angry\nD) Excited",
+      "answer": "B"
+    },
+    {
+      "task_id": "social_03",
+      "category": "social_cognition",
+      "difficulty": "hard",
+      "prompt": "Prisoner's Dilemma:\n- Both cooperate: 1 year each\n- Both defect: 5 years each\n- One defects, one cooperates: 0 years (defector), 10 years (cooperator)\n\nIf you know your partner will cooperate, what should you do?\n\nA) Cooperate (fairness)\nB) Defect (minimize your time)\nC) Cannot know\nD) Refuse to play",
+      "answer": "B"
+    },
+    {
+      "task_id": "social_04",
+      "category": "social_cognition",
+      "difficulty": "medium",
+      "prompt": "After a failed exam, someone says 'Great, just what I needed!'\n\nWhat do they mean?\n\nA) They're happy about the exam\nB) They're upset about the exam\nC) They're neutral\nD) They're planning to retake it",
+      "answer": "B"
+    },
+    {
+      "task_id": "social_05",
+      "category": "social_cognition",
+      "difficulty": "easy",
+      "prompt": "You give a coworker a ride home. Later, they buy you lunch.\n\nThis demonstrates:\n\nA) Bribery\nB) Reciprocity norm\nC) Random act\nD) Debt obligation",
+      "answer": "B"
+    }
+  ]
+}

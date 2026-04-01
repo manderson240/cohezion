@@ -444,10 +444,9 @@ class JourneyTracker:
         # Enrich with JEPA surprise scoring (non-blocking)
         if len(self._recent_points) >= 1:
             try:
-                from cohezion.world_model.jepa_world_model import JEPAWorldModel
-
                 # Use API singleton for trained model access
                 from cohezion.api.services.world_model import _get_model
+                from cohezion.world_model.jepa_world_model import JEPAWorldModel
 
                 jepa = _get_model()
                 if jepa._trained:
@@ -508,9 +507,9 @@ class JourneyTracker:
             return 0.5  # HIHO default — no history to compare
 
         try:
-            from cohezion.physics.spinor import SpinorState
-            from cohezion.physics.observer_patch import evo_observer_consistency
             from cohezion.governance.flume_bridge import agent_state_to_patch_center
+            from cohezion.physics.observer_patch import evo_observer_consistency
+            from cohezion.physics.spinor import SpinorState
 
             # Current agent's Bloch sphere position from 12D state
             theta_curr, phi_curr = agent_state_to_patch_center(current_12d)

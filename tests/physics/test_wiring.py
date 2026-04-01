@@ -11,6 +11,7 @@ from fastapi.testclient import TestClient
 
 from cohezion.api import app
 
+
 client = TestClient(app)
 
 

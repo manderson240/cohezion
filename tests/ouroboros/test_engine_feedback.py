@@ -1,8 +1,11 @@
+from unittest.mock import AsyncMock
+
 import pytest
 import torch
-from unittest.mock import AsyncMock, MagicMock
+
 from cohezion.universe.triune_engine import TriuneSimulationEngine
 from cohezion.universe.triune_manifold import TriuneState
+
 
 @pytest.fixture
 def initial_state():

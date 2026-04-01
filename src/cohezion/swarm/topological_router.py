@@ -36,13 +36,12 @@ from dataclasses import dataclass
 from enum import Enum
 
 import numpy as np
-
 from scipy.spatial.distance import pdist, squareform
 
 from cohezion.compound.topological_persistence import (
-    TopologicalPersistence,
     trajectory_persistence_summary,
 )
+
 
 logger = logging.getLogger(__name__)
 

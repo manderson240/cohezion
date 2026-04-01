@@ -5,6 +5,7 @@ import os
 import sys
 from pathlib import Path
 
+
 def is_cohezion_environment() -> bool:
     """
     Detect if we're in a Cohezion environment using multiple signals.

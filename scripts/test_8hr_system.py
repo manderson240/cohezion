@@ -15,16 +15,16 @@ import asyncio
 import sys
 from pathlib import Path
 
+
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
-from cohezion.compound.thermal_checkpoint_manager import (
-    ThermalCheckpointManager,
-    ThermalConfig,
-)
 from cohezion.compound.tdp_budget_tracker import TDPBudgetTracker, TDPConfig, TDPEnvelope
 from cohezion.compound.thermal_autoresearch_executor import (
     ThermalAutoresearchExecutor,
-    EightHourConfig,
+)
+from cohezion.compound.thermal_checkpoint_manager import (
+    ThermalCheckpointManager,
+    ThermalConfig,
 )
 
 

@@ -1,8 +1,9 @@
 import pytest
-import json
-from fastapi.testclient import TestClient
-from cohezion.api import app
 import torch
+from fastapi.testclient import TestClient
+
+from cohezion.api import app
+
 
 @pytest.mark.asyncio
 async def test_telemetry_websocket_connection():

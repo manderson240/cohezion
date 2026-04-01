@@ -7,6 +7,7 @@ edge case with BLOCK_M=64. This forces M=64 into 2 tiles.
 Falls back to aiter gemm_a4w4 if Triton fails (retains 24.3us baseline).
 """
 import sys
+
 import torch
 import triton
 import triton.language as tl
@@ -89,8 +90,8 @@ def _mxfp4_gemm_kernel(
 
 def _aiter_fallback(data: input_t) -> output_t:
     """Fallback to aiter gemm_a4w4 (24.3us baseline)."""
-    from aiter import dtypes
     import aiter
+    from aiter import dtypes
     from aiter.ops.triton.quant import dynamic_mxfp4_quant
     from aiter.utility.fp4_utils import e8m0_shuffle
 

@@ -4,11 +4,11 @@ TDD: Validates routing logic, confidence scoring, and learning mechanism.
 """
 
 import pytest
+
 from cohezion.governance.concierge import (
     ConciergeAgent,
-    SessionBriefing,
-    RoutingSuggestion,
     RoutingRecord,
+    SessionBriefing,
 )
 
 

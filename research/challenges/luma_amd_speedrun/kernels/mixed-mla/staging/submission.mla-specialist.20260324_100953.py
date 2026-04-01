@@ -23,10 +23,12 @@ DeepSeek R1 forward_absorb MLA config:
 """
 
 import os
+
 import torch
-from task import input_t, output_t
 from aiter import dtypes as aiter_dtypes
 from aiter import get_mla_metadata_info_v1, get_mla_metadata_v1
+from task import input_t, output_t
+
 
 os.environ["AITER_MLA_USE_PERSISTENT"] = "1"
 

@@ -1,15 +1,16 @@
 import asyncio
-import os
 import sys
 from pathlib import Path
+
 
 # Add src to path
 sys.path.append(str(Path(__file__).parent.parent.parent / "src"))
 
 from cohezion.knowledge_graph.bidirectional_linker import (
-    get_knowledge_graph,
     LinkType,
+    get_knowledge_graph,
 )
+
 
 async def register_breakthroughs():
     kg = get_knowledge_graph()

@@ -9,7 +9,6 @@ import numpy as np
 import pytest
 
 from cohezion.physics.cosmogony import (
-    CosmogonyState,
     SymmetryBreaking,
     SymmetryGroup,
     ZeroAlgebra,

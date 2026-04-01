@@ -18,6 +18,7 @@ import sys
 import torch
 from task import input_t, output_t
 
+
 # ── Probe: Read codegen.py (generates the ASM dispatch logic) ──
 _codegen_path = "/home/runner/aiter/hsa/codegen.py"
 if os.path.exists(_codegen_path):
@@ -82,6 +83,8 @@ for path in _asm_paths:
 
 # ── Probe: Find all Python files in aiter that reference hipModuleLaunchKernel ──
 import glob
+
+
 _aiter_py_files = glob.glob("/home/runner/aiter/**/*.py", recursive=True)
 for pyf in _aiter_py_files:
     try:
@@ -125,6 +128,7 @@ from aiter import (
     get_mla_metadata_v1,
     mla_reduce_v1,
 )
+
 
 NUM_HEADS = 16
 NUM_KV_HEADS = 1

@@ -8,8 +8,6 @@ Tests validate:
 """
 
 import pytest
-from pathlib import Path
-import json
 
 
 class TestAdversarialReview:

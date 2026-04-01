@@ -5,14 +5,16 @@ Covers RL policy info and step execution.
 
 from __future__ import annotations
 
-import pytest
 from unittest.mock import MagicMock, patch
+
 import numpy as np
+import pytest
 
 from cohezion.api.services.rl import (
-    rl_step_service,
     RlStepRequest,
+    rl_step_service,
 )
+
 
 @pytest.mark.asyncio
 async def test_rl_step_service():

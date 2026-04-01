@@ -1,6 +1,5 @@
-import os
 import sys
-import aiter
+
 
 def custom_kernel(data):
     target_file = "/home/runner/aiter/aiter/ops/triton/attention/fav3_sage_attention_mxfp4_wrapper.py"

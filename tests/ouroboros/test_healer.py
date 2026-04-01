@@ -1,7 +1,9 @@
+from unittest.mock import AsyncMock, MagicMock, patch
+
 import pytest
-import torch
-from unittest.mock import AsyncMock, patch, MagicMock
+
 from cohezion.ouroboros.healer import HealerAgent
+
 
 @pytest.fixture
 def mock_config():

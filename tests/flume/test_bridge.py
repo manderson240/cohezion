@@ -1,8 +1,11 @@
+from unittest.mock import MagicMock, patch
+
+import numpy as np
 import pytest
 import torch
-import numpy as np
-from unittest.mock import MagicMock, patch
+
 from cohezion.flume.bridge import HFEmbeddingBridge
+
 
 @pytest.mark.asyncio
 async def test_hf_bridge_initialization():

@@ -14,20 +14,20 @@ Monitors repository health across multiple dimensions:
 from __future__ import annotations
 
 import json
-import subprocess
 import re
 import sys
-from dataclasses import dataclass, field, asdict
+from dataclasses import asdict, dataclass, field
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
+from typing import List, Optional, Tuple
+
 
 # Add traceability directory to path for both module and script execution
 TRACEABILITY_DIR = Path(__file__).parent.parent
 if str(TRACEABILITY_DIR) not in sys.path:
     sys.path.insert(0, str(TRACEABILITY_DIR))
 
-from base_engine import BaseEngine, EngineConfig
+from base_engine import EngineConfig
 
 
 @dataclass

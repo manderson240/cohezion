@@ -6,9 +6,7 @@ Uses evolutionary selector + LLM kernel writer + timing feedback.
 For AMD MI355X (gfx950) CDNA 4 architecture.
 """
 
-import json
 import random
-import time
 from pathlib import Path
 from typing import Any
 

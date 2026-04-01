@@ -5,11 +5,11 @@ Profiles execution time per problem and enforces time budgeting.
 Target: ≤165s per problem for 110 problems within 5 hours.
 """
 
-import time
 import json
-from typing import Dict, Any, List
+import time
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Any, Dict, List
 
 
 @dataclass

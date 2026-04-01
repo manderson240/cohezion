@@ -1,12 +1,13 @@
-from perf_takehome import (
-    Tree,
-    Input,
-    build_mem_image,
-    Machine,
-    N_CORES,
-)
-from optimizer import OptimizedKernelBuilder, KernelConfig
 import random
+
+from optimizer import KernelConfig, OptimizedKernelBuilder
+from perf_takehome import (
+    N_CORES,
+    Input,
+    Machine,
+    Tree,
+    build_mem_image,
+)
 
 
 def debug_trace():

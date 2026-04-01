@@ -26,6 +26,7 @@ from dataclasses import dataclass
 
 import numpy as np
 
+
 logger = logging.getLogger(__name__)
 
 

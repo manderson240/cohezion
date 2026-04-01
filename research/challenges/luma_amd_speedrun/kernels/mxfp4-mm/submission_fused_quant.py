@@ -7,17 +7,18 @@ Also probes its signature and output format.
 
 from __future__ import annotations
 
+import inspect
 import os
 import sys
-import inspect
+
 
 os.environ["HIP_ONLINE_TUNING"] = "1"
 
-from task import input_t, output_t
-from reference import ref_kernel
-from aiter import dtypes
 import aiter
+from aiter import dtypes
 from aiter.utility.fp4_utils import e8m0_shuffle
+from reference import ref_kernel
+from task import input_t, output_t
 
 
 KERNEL_NAME_32X128 = "_ZN5aiter41f4gemm_bf16_per1x32Fp4_BpreShuffle_32x128E"

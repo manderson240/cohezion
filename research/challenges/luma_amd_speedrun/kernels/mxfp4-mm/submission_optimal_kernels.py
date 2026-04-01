@@ -9,16 +9,17 @@ from __future__ import annotations
 import os
 import sys
 
+
 # Enable HIP online tuning BEFORE importing aiter
 os.environ["HIP_ONLINE_TUNING"] = "1"
 
-from task import input_t, output_t
-from aiter import dtypes, QuantType
 import aiter
+import torch
+from aiter import QuantType, dtypes
+from aiter.ops.shuffle import shuffle_weight
 from aiter.ops.triton.quant import dynamic_mxfp4_quant
 from aiter.utility.fp4_utils import e8m0_shuffle
-from aiter.ops.shuffle import shuffle_weight
-import torch
+from task import input_t, output_t
 
 
 # Kernel names based on shape analysis

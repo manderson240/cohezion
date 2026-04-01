@@ -22,6 +22,7 @@ CRITICAL constraints (§7, §10):
 import os
 import sys
 
+
 # aiter JIT module path fix for runner environments
 _AITER_JIT_BUILD = "/home/runner/aiter/aiter/jit/build"
 for _mod in (
@@ -38,12 +39,12 @@ import torch
 import torch.nn.functional as F
 import triton
 import triton.language as tl
-
 from aiter import ActivationType as at
 from aiter import QuantType as qt
 from aiter.fused_moe import fused_moe as fm
 from aiter.utility import fp4_utils
 from task import input_t, output_t
+
 
 # ---------------------------------------------------------------------------
 # Toggle: set USE_CUSTOM_TRITON=0 in environment to fall back to aiter

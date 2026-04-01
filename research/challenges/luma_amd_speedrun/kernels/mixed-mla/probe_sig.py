@@ -1,7 +1,8 @@
-import aiter
-from aiter.mla import mla_decode_fwd
 import inspect
 import sys
+
+from aiter.mla import mla_decode_fwd
+
 
 def custom_kernel(data):
     print("--- mla_decode_fwd Signature ---", file=sys.stderr)

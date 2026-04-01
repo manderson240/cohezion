@@ -12,10 +12,10 @@ Reduces redundant LLM calls by 60-80%.
 import hashlib
 import json
 import time
-from pathlib import Path
-from typing import Any, Dict, List, Optional
-from dataclasses import dataclass, field
 from collections import OrderedDict
+from dataclasses import dataclass
+from pathlib import Path
+from typing import Any, Dict, Optional
 
 
 @dataclass

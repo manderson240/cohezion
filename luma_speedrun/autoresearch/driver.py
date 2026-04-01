@@ -14,11 +14,11 @@ from typing import Any
 
 from luma_speedrun.autoresearch.code_synthesizer import synthesize_kernel
 from luma_speedrun.autoresearch.popcorn import (
-    SubmitResult,
     get_submission_path,
     submit,
     write_submission,
 )
+
 
 BASE_DIR = Path(__file__).parent
 STATE_DIR = BASE_DIR / "state"

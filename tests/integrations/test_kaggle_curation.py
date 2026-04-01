@@ -1,9 +1,11 @@
-import pytest
 import json
+from unittest.mock import patch
+
 import numpy as np
-from pathlib import Path
-from unittest.mock import MagicMock, patch
+import pytest
+
 from cohezion.integrations.kaggle_curation import KaggleCurator
+
 
 @pytest.fixture
 def mock_dataset(tmp_path):

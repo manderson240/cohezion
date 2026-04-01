@@ -1,11 +1,12 @@
 """MLA Probe: Dump runner state for MLA decode optimization paths."""
 
 from __future__ import annotations
-import sys
-import inspect
 
-from task import input_t, output_t
+import inspect
+import sys
+
 from reference import ref_kernel
+from task import input_t, output_t
 
 
 def custom_kernel(data: input_t) -> output_t:

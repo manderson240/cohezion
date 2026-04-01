@@ -8,12 +8,13 @@ Validates:
 
 from __future__ import annotations
 
-import pytest
 from unittest.mock import MagicMock, patch
-import numpy as np
 
-from cohezion.universe.spatial_phonons import SpatialPhononsEngine, PhononParameters
-from cohezion.universe.engine import AxiomaticState, UniverseSimulationEngine, UniverseJourney
+import pytest
+
+from cohezion.universe.engine import AxiomaticState, UniverseJourney, UniverseSimulationEngine
+from cohezion.universe.spatial_phonons import PhononParameters, SpatialPhononsEngine
+
 
 class TestSpatialPhononsEngine:
     def test_evolve_state_expansion(self):

@@ -10,8 +10,8 @@ import logging
 from fastapi import APIRouter
 from pydantic import BaseModel
 
-from cohezion.learning.ouroboros import OuroborosEngine
 from cohezion.physics.ouroboros_bridge import OuroborosBridge
+
 
 logger = logging.getLogger(__name__)
 

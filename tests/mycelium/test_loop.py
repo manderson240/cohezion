@@ -1,6 +1,9 @@
+from unittest.mock import AsyncMock, patch
+
 import pytest
-from unittest.mock import MagicMock, patch, AsyncMock
+
 from cohezion.mycelium.loop import CoverageLoop
+
 
 @pytest.fixture
 def mock_scripter():

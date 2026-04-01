@@ -1,8 +1,8 @@
-import json
 import os
 import subprocess
 import time
 from pathlib import Path
+
 
 # Load .env file
 def load_env():

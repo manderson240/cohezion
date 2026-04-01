@@ -1,6 +1,8 @@
 import pytest
 import torch
-from cohezion.flume.navigation import lerp, slerp, similarity_score
+
+from cohezion.flume.navigation import lerp, similarity_score, slerp
+
 
 def test_lerp_basic():
     """Test linear interpolation."""

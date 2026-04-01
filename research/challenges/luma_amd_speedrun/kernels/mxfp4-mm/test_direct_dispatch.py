@@ -62,10 +62,9 @@ Layout info from CSV (kernel configs for gfx950):
 """
 
 import ctypes
-import struct
-import os
 import glob
-from typing import Tuple
+import os
+
 
 # Constants
 HIP_SUCCESS = 0

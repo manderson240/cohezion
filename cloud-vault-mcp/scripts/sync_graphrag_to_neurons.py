@@ -18,6 +18,7 @@ from datetime import date
 
 import httpx
 
+
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(message)s",

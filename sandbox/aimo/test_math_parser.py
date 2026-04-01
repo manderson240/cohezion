@@ -1,6 +1,7 @@
 import unittest
-import numpy as np
-from math_parser import MathParser, MathProblemState
+
+from math_parser import MathParser
+
 
 class TestMathParser(unittest.TestCase):
     def setUp(self):

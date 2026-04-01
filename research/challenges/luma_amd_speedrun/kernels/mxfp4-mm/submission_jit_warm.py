@@ -12,6 +12,7 @@ from __future__ import annotations
 import os
 import sys
 
+
 # Enable HIP online tuning BEFORE importing aiter
 os.environ["HIP_ONLINE_TUNING"] = "1"
 
@@ -33,12 +34,12 @@ TEST_SHAPES = [
     (256, 2880, 512),
 ]
 
-from task import input_t, output_t
-from aiter import dtypes
 import aiter
+import torch
+from aiter import dtypes
 from aiter.ops.triton.quant import dynamic_mxfp4_quant
 from aiter.utility.fp4_utils import e8m0_shuffle
-import torch
+from task import input_t, output_t
 
 
 def warm_jit_cache():

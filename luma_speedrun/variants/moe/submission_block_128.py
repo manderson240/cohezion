@@ -1,6 +1,8 @@
 """MXFP4 MoE — BLOCK_SIZE_M=128 sweep variant."""
 
-import os, sys
+import os
+import sys
+
 
 os.environ.setdefault("AITER_JIT_DIR", "/tmp/aiter_jit_cache")
 _AITER_JIT_DIR = "/home/runner/aiter/aiter/jit"
@@ -10,6 +12,7 @@ if _AITER_JIT_DIR not in sys.path:
 from aiter import ActivationType, QuantType
 from aiter.fused_moe import fused_moe
 from task import input_t, output_t
+
 
 # BLOCK_SIZE sweep: try 128
 BLOCK_SIZE_M = 128

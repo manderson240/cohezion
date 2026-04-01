@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import numpy as np
 
+
 def verify_su2_algebra() -> bool:
     """Verify basic SU(2) algebraic properties for integration testing."""
     # Identity

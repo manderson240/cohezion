@@ -6,15 +6,16 @@ Covers parallel execution of team plans with dependency tracking.
 from __future__ import annotations
 
 import asyncio
+
 import pytest
-from unittest.mock import AsyncMock, MagicMock, patch
+
 from cohezion.swarm.execution_orchestrator import (
     ExecutionOrchestrator,
     TaskResult,
-    ExecutionReport,
     _topological_sort,
 )
 from cohezion.swarm.team_orchestrator import TaskSpec, TeamPlan
+
 
 def test_topological_sort_independent():
     """[P0] Should group independent tasks in one wave."""

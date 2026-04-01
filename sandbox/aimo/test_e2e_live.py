@@ -12,10 +12,11 @@ Validates:
 
 import json
 import time
-from swarm_coordinator import SwarmCoordinator
+
 from base_specialist import BaseSpecialist
-from knower_auditor import KnowerAuditor
 from flume_navigator import FLUMEProfilerNavigator
+from knower_auditor import KnowerAuditor
+from swarm_coordinator import SwarmCoordinator
 
 
 def run_single_problem(problem: dict, timeout_per_call: int = 60) -> dict:

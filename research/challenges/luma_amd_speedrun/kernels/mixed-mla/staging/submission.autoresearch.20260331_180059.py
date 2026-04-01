@@ -1,12 +1,8 @@
 import torch
 from aiter import dtypes as aiter_dtypes
 from aiter.mla import mla_decode_fwd
-from aiter.utility.fp4_utils import (
-    dynamic_mxfp4_quant,
-    e8m0_to_f32,
-    mxfp4_to_f32,
-)
 from task import input_t, output_t
+
 
 # DeepSeek R1 MLA constants (forward_absorb path)
 TOTAL_NUM_HEADS = 128

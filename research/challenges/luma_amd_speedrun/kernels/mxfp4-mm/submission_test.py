@@ -3,11 +3,11 @@ MXFP4 GEMM baseline - No HIP_ONLINE_TUNING.
 """
 from __future__ import annotations
 
-from task import input_t, output_t
-from aiter import dtypes
 import aiter
+from aiter import dtypes
 from aiter.ops.triton.quant import dynamic_mxfp4_quant
 from aiter.utility.fp4_utils import e8m0_shuffle
+from task import input_t, output_t
 
 
 def custom_kernel(data: input_t) -> output_t:

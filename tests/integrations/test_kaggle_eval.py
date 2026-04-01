@@ -1,5 +1,7 @@
 import pytest
+
 from cohezion.integrations.kaggle_eval import KaggleEvaluator
+
 
 def test_extract_boxed_answer_success():
     """Test extracting answer from LaTeX \boxed{}."""

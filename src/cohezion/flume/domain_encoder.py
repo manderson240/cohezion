@@ -21,6 +21,7 @@ from dataclasses import asdict, dataclass, field
 
 import numpy as np
 
+
 # Shared constant from the FLUME manifold (JourneyTracker.AXIOMATIC_DIMS)
 MANIFOLD_DIM = 12
 

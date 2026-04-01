@@ -27,6 +27,7 @@ from typing import Callable
 import numpy as np
 from scipy.integrate import solve_ivp
 
+
 logger = logging.getLogger(__name__)
 
 

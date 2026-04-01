@@ -17,6 +17,7 @@ from __future__ import annotations
 
 import os
 
+
 # Enable Non-Temporal hint for GPU memory transfers (178µs improvement)
 os.environ["AITER_USE_NT"] = "1"
 

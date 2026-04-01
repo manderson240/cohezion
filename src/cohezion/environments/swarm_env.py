@@ -26,7 +26,6 @@ References:
 from __future__ import annotations
 
 import logging
-from typing import Any
 
 import numpy as np
 
@@ -35,6 +34,7 @@ from cohezion.physics.gauge_theory import FourFabricGauge
 from cohezion.physics.lagrangian import LagrangianDynamics, hiho_potential
 from cohezion.physics.riemannian_metric import fabric_block_metric
 from cohezion.physics.spinor import SpinorState
+
 
 logger = logging.getLogger(__name__)
 

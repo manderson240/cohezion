@@ -27,6 +27,7 @@ from uuid import uuid4
 
 from cohezion.flume.domain_encoder import EncodedTrajectoryPoint, get_encoder
 
+
 logger = logging.getLogger(__name__)
 
 

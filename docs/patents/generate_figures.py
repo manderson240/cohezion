@@ -15,11 +15,12 @@ Generates formal patent drawings for FLUME provisional application:
 Output: PNG files in docs/patents/figures/
 """
 
-import matplotlib.pyplot as plt
-import matplotlib.patches as patches
-from matplotlib.patches import Rectangle, FancyBboxPatch, Circle, Arrow
-import numpy as np
 from pathlib import Path
+
+import matplotlib.pyplot as plt
+import numpy as np
+from matplotlib.patches import Circle, FancyBboxPatch, Rectangle
+
 
 # Create output directory
 FIGURE_DIR = Path("/home/mike-anderson/dev/cohezion/docs/patents/figures")

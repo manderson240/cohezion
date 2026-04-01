@@ -1,7 +1,8 @@
 import pytest
 import torch
-from pydantic import ValidationError
-from cohezion.flume.vae import FlumeVAE, ThoughtVector, FlumeVAEConfig
+
+from cohezion.flume.vae import FlumeVAE, FlumeVAEConfig, ThoughtVector
+
 
 def test_thought_vector_initialization():
     """Test that ThoughtVector initializes correctly with proper shape."""

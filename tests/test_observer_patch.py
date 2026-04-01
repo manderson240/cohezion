@@ -4,15 +4,15 @@ TDD: These tests validate OPH axiom mappings to SPIN coherence.
 """
 
 import math
+
 import pytest
-from cohezion.physics.spinor import SpinorState
+
 from cohezion.physics.observer_patch import (
     ObserverPatch,
-    overlap_fraction,
-    verify_observer_consistency,
     evo_observer_consistency,
-    ConsistencyResult,
+    overlap_fraction,
 )
+from cohezion.physics.spinor import SpinorState
 
 
 class TestOverlapFraction:

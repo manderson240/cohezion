@@ -33,6 +33,7 @@ import numpy as np
 
 from cohezion.physics.fiber_bundle import FABRIC_NAMES, FABRIC_SLICES
 
+
 logger = logging.getLogger(__name__)
 
 # SO(3) Lie algebra generators (antisymmetric 3x3 matrices)

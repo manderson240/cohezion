@@ -5,13 +5,13 @@ Covers input/output validation rules and safety checks.
 
 from __future__ import annotations
 
-import pytest
 from cohezion.security.validators import (
-    validate_input,
-    sanitize_text,
-    validate_json_field,
     ValidationResult,
+    sanitize_text,
+    validate_input,
+    validate_json_field,
 )
+
 
 def test_validate_input_basic():
     """[P0] Should allow clean input."""

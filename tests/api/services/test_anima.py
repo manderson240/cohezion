@@ -5,14 +5,14 @@ Covers Anima 3-tier intelligence service.
 
 from __future__ import annotations
 
+from unittest.mock import MagicMock, patch
+
 import pytest
-from unittest.mock import AsyncMock, MagicMock, patch
 
 from cohezion.api.services.anima import (
     AnimaService,
-    AskRequest,
-    SpeakRequest,
 )
+
 
 @pytest.fixture
 def mock_httpx_get():

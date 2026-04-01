@@ -20,6 +20,7 @@ from __future__ import annotations
 
 import os
 
+
 # Enable Non-Temporal hint for GPU memory transfers
 os.environ["AITER_USE_NT"] = "1"
 

@@ -4,11 +4,11 @@ Verifies the four remaining disconnected modules are correctly wired
 into the Genesis Engine API and the ManifoldEnv dynamics toggle works.
 """
 
-import numpy as np
 import pytest
 from fastapi.testclient import TestClient
 
 from cohezion.api import app
+
 
 client = TestClient(app)
 

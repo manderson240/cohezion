@@ -8,15 +8,17 @@ Verify actual end-to-end functionality:
 - Verify health scores are reasonable
 """
 
-import pytest
-from pathlib import Path
 import sys
+from pathlib import Path
+
+import pytest
+
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from traceability_engine import TraceabilityEngine
-from repo_health.repo_health_engine import RepoHealthEngine
 from base_engine import EngineConfig
+from repo_health.repo_health_engine import RepoHealthEngine
+from traceability_engine import TraceabilityEngine
 
 
 PROJECT_ROOT = Path("/home/mike-anderson/dev/cohezion")

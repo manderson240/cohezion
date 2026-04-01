@@ -7,7 +7,7 @@ Symmetry Breaking -> SPIN -> HIHO -> COHESION -> Reality Precipitates
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 
 
 # The 10-step Theory of Everything chain

@@ -5,9 +5,10 @@ Covers failure thresholding and state transitions.
 
 from __future__ import annotations
 
-import pytest
 import time
+
 from cohezion.reliability import CircuitBreaker, CircuitState, get_circuit
+
 
 def test_circuit_breaker_open_close():
     """[P0] Should open circuit after failures and close on success."""

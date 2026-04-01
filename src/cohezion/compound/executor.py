@@ -726,6 +726,7 @@ class CompoundExecutor(CompoundContextMixin):
         # Maps HIHO proximity to habitat quality via InVEST-inspired model
         try:
             import numpy as np
+
             from cohezion.physics.natural_capital import NaturalCapitalValuation
 
             ncv = NaturalCapitalValuation()
@@ -907,6 +908,7 @@ class CompoundExecutor(CompoundContextMixin):
         # Maps execution coherence to Levin bioelectric network state
         try:
             import numpy as np
+
             from cohezion.physics.bioelectric_model import BioelectricNetwork
 
             bio_net = BioelectricNetwork(n_cells=8)

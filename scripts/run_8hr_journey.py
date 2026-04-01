@@ -39,22 +39,20 @@ import json
 import logging
 import signal
 import sys
-import time
 from pathlib import Path
 from typing import Any
+
 
 # Add src to path
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
+from cohezion.compound.tdp_budget_tracker import PowerProfile, TDPConfig
 from cohezion.compound.thermal_autoresearch_executor import (
-    ThermalAutoresearchExecutor,
-    EightHourConfig,
     DomainConfig,
-    run_8hour_autoresearch_journey,
+    EightHourConfig,
+    ThermalAutoresearchExecutor,
 )
-from cohezion.compound.thermal_checkpoint_manager import ThermalCheckpointManager, ThermalConfig
-from cohezion.compound.tdp_budget_tracker import TDPBudgetTracker, TDPConfig, PowerProfile
-from cohezion.core.mcp_client import get_mcp_client
+from cohezion.compound.thermal_checkpoint_manager import ThermalConfig
 
 
 logger = logging.getLogger(__name__)

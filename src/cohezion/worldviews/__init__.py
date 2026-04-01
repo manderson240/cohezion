@@ -19,6 +19,7 @@ from cohezion.worldviews.vault_graph import (
     parse_cortex,
 )
 
+
 __all__ = [
     "TOE_STEPS",
     "Convergence",

@@ -14,7 +14,6 @@ from cohezion.physics.lagrangian import (
     hiho_potential,
 )
 from cohezion.physics.riemannian_metric import (
-    RiemannianMetric,
     euclidean_metric,
     fabric_block_metric,
     hiho_metric,

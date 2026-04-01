@@ -11,6 +11,7 @@ import logging
 from fastapi import APIRouter
 from pydantic import BaseModel, Field
 
+
 logger = logging.getLogger(__name__)
 
 physics_ext_router = APIRouter(prefix="/physics", tags=["physics-extended"])
@@ -164,7 +165,6 @@ async def get_natural_capital(
     and sediment retention for the given manifold parameters.  Includes
     a Seventh Generation sustainability projection.
     """
-    import numpy as np
 
     from cohezion.physics.cosmogony import get_cosmogony
     from cohezion.physics.natural_capital import NaturalCapitalValuation

@@ -23,6 +23,7 @@ import statistics
 import time
 from dataclasses import dataclass, field
 
+
 logger = logging.getLogger(__name__)
 
 # Coherence baseline — below this is "noise", above is "binding energy"

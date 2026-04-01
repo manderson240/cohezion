@@ -1,9 +1,9 @@
 import json
-import pytest
-from unittest.mock import patch, mock_open, AsyncMock, MagicMock
-from pathlib import Path
+from unittest.mock import AsyncMock, MagicMock, mock_open, patch
 
 import adversarial_eval_loop
+import pytest
+
 
 @pytest.mark.asyncio
 async def test_evaluate_task_passes():

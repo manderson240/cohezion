@@ -1,4 +1,3 @@
-import torch
 import aiter
 from aiter import QuantType, dtypes
 from aiter.ops.shuffle import shuffle_weight

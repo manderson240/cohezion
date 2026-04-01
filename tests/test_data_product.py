@@ -4,12 +4,12 @@ TDD: Validates data product lifecycle, SLA compliance, and registry serializatio
 """
 
 import pytest
+
 from cohezion.data_mesh.data_product import (
+    COHEZION_DATA_PRODUCTS,
     DataProduct,
-    DataProductSchema,
     DataProductStatus,
     DataQualityTier,
-    COHEZION_DATA_PRODUCTS,
 )
 
 

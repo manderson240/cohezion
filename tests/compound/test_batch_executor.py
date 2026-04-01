@@ -11,12 +11,13 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 
 from cohezion.compound.batch_executor import (
-    CompoundTask,
-    BatchCompoundResult,
     BatchableExecutor,
+    BatchCompoundResult,
     BatchExecutorFactory,
+    CompoundTask,
 )
 from cohezion.compound.executor import ExecutionResult
+
 
 class TestCompoundTask:
     """[P0] Unit tests for CompoundTask class."""

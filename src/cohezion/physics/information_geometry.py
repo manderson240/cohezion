@@ -29,6 +29,7 @@ import numpy as np
 
 from cohezion.physics.riemannian_metric import RiemannianMetric
 
+
 logger = logging.getLogger(__name__)
 
 

@@ -13,6 +13,7 @@ from pydantic import BaseModel
 from cohezion.learning.mycelium_network import MyceliumNetwork
 from cohezion.learning.mycelium_registry import MyceliumRegistry
 
+
 logger = logging.getLogger(__name__)
 
 mycelium_router = APIRouter(prefix="/mycelium", tags=["mycelium"])

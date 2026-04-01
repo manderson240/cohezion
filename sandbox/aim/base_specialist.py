@@ -1,9 +1,10 @@
 import json
 import re
+from typing import Dict, Optional
+
 import requests
-from typing import Optional, Dict, Any
-from symbolic_executor import SymbolicExecutor
 from adversary_agent import AdversaryAgent
+from symbolic_executor import SymbolicExecutor
 
 
 class BaseSpecialist:

@@ -1,7 +1,8 @@
 """Tests for GeminiProvider — Google Gemini model provider implementation."""
 
-import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
+
+import pytest
 
 from cohezion.swarm.providers.model_provider import (
     GenerationResult,

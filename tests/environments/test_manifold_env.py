@@ -2,7 +2,6 @@
 
 import gymnasium as gym
 import numpy as np
-import pytest
 
 from cohezion.environments.manifold_env import ManifoldEnv
 

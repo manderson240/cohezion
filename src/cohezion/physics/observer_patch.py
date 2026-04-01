@@ -24,11 +24,12 @@ from __future__ import annotations
 
 import logging
 import math
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 
 import numpy as np
 
 from cohezion.physics.spinor import SpinorState
+
 
 logger = logging.getLogger(__name__)
 

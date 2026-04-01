@@ -1,7 +1,6 @@
 """Tests for TDA-driven topological router."""
 
 import numpy as np
-import pytest
 
 from cohezion.swarm.topological_router import (
     TopologicalRegime,

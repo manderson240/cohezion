@@ -16,11 +16,14 @@ FP4 e2m1 values: 0, 0.5, 1.0, 1.5, 2.0, 3.0, 4.0, 6.0 (positive and negative)
 """
 
 import os
+
 from torch.utils.cpp_extension import load_inline
+
 
 os.environ["PYTORCH_ROCM_ARCH"] = "gfx950"
 
 from task import input_t, output_t
+
 
 CPP_WRAPPER = """
 void mxfp4_gemm(

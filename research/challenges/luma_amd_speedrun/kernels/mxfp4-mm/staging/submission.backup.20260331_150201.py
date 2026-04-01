@@ -1,9 +1,8 @@
-import torch
 import aiter
-from aiter import QuantType, dtypes
-from aiter.ops.shuffle import shuffle_weight
+import torch
+from aiter import QuantType
 from task import input_t, output_t
-from utils import make_match_reference
+
 
 SCALE_GROUP_SIZE = 32
 

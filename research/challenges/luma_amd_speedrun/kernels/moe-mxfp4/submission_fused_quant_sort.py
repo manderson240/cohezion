@@ -7,19 +7,19 @@ If this works, it eliminates separate quant + sort kernel launches.
 
 from __future__ import annotations
 
+import inspect
 import os
 import sys
-import inspect
+
 
 os.environ["AITER_USE_NT"] = "1"
 
-from task import input_t, output_t
 from reference import ref_kernel
+from task import input_t, output_t
 
 
 def custom_kernel(data: input_t) -> output_t:
     import aiter
-    import torch
 
     # === 1. Probe the full source and signature ===
     try:

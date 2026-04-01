@@ -19,13 +19,13 @@ import inspect
 import os
 import sys
 
+
 os.environ.setdefault("AITER_JIT_DIR", "/tmp/aiter_jit_cache")
 
-import aiter
-import torch
 from aiter import ActivationType, QuantType
 from aiter.fused_moe import fused_moe
 from task import input_t, output_t
+
 
 # Fix JIT paths
 _AITER_JIT_BUILD = "/home/runner/aiter/aiter/jit/build"

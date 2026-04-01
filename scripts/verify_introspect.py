@@ -4,7 +4,6 @@ import sys
 from pathlib import Path
 
 from cohezion.swarm.agents.introspect_agent import IntrospectAgent
-
 from cohezion.swarm.swarm_types import SwarmConfig
 
 

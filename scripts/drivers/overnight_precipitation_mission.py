@@ -38,9 +38,8 @@ mock_package("transformers")
 # Add src to path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))
 
-from cohezion.mcp.email_notifier import EmailNotifier, NotificationConfig
-
 from cohezion.core.persistence.surreal_client import get_surreal_client
+from cohezion.mcp.email_notifier import EmailNotifier, NotificationConfig
 from cohezion.reliability.monitor import get_resource_monitor
 from cohezion.simulation.fractal_universe import FractalSimulator
 from cohezion.universe.engine import AxiomaticState, UniverseSimulationEngine

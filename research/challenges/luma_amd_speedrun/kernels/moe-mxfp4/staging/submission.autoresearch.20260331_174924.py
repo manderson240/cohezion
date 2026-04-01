@@ -1,8 +1,10 @@
-import os,torch,sys
-from task import input_t,output_t
+import os
+
+from aiter import ActivationType as at
+from aiter import QuantType as qt
 from aiter.fused_moe import fused_moe as fm
-from aiter import ActivationType as at,QuantType as qt
-from reference import ref_kernel
+from task import input_t, output_t
+
 
 os.environ["AITER_USE_NT"]="1"
 _ks_table={"257_256_16": 4, "257_256_128": 2, "257_256_512": 0, "33_512_16": 2, "33_512_128": 2, "33_512_512": 0, "33_2048_512": 0}

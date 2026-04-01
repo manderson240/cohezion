@@ -1,8 +1,9 @@
 import json
-import pytest
-from unittest.mock import patch, mock_open, AsyncMock, MagicMock
+from unittest.mock import AsyncMock, MagicMock, mock_open, patch
 
 import generate_evo_hiho_tasks
+import pytest
+
 
 @pytest.mark.asyncio
 async def test_generate_batch_output_schema():

@@ -5,6 +5,7 @@ and capability-based filtering.
 """
 
 import pytest
+
 from cohezion.models.model_info import ModelInfo
 from cohezion.models.model_registry import ModelRegistry
 

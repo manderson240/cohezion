@@ -5,14 +5,15 @@ Also probe fused_flatten_mxfp4_quant and fused_rms_mxfp4_quant.
 
 from __future__ import annotations
 
+import inspect
 import os
 import sys
-import inspect
+
 
 os.environ["HIP_ONLINE_TUNING"] = "1"
 
-from task import input_t, output_t
 from reference import ref_kernel
+from task import input_t, output_t
 
 
 def custom_kernel(data: input_t) -> output_t:
@@ -67,8 +68,9 @@ def custom_kernel(data: input_t) -> output_t:
 
     # === 5. List ALL .py files in aiter.ops.triton.quant ===
     try:
-        import aiter.ops.triton.quant as qpkg
         import pathlib
+
+        import aiter.ops.triton.quant as qpkg
 
         quant_dir = pathlib.Path(qpkg.__path__[0])
         py_files = sorted(quant_dir.glob("*.py"))

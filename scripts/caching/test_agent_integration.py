@@ -8,7 +8,6 @@ from unittest.mock import MagicMock
 sys.path.append(os.path.abspath("src"))
 
 from cohezion.swarm.agents.base import BaseAgent
-
 from cohezion.swarm.swarm_types import SwarmConfig
 
 

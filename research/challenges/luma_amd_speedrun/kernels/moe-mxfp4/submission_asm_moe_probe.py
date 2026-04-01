@@ -7,12 +7,12 @@ Also probing: FlyDSL (ROCm/FlyDSL) — MLIR-backed Python kernel DSL.
 """
 from __future__ import annotations
 
-import sys
 import inspect
+import sys
 
-from task import input_t, output_t
-from reference import ref_kernel
 import aiter
+from reference import ref_kernel
+from task import input_t, output_t
 
 
 def custom_kernel(data: input_t) -> output_t:

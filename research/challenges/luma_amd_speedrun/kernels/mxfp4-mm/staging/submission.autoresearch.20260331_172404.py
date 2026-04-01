@@ -1,7 +1,6 @@
-import torch
 import aiter
+import torch
 from aiter import QuantType, dtypes
-from aiter.ops.shuffle import shuffle_weight
 from task import input_t, output_t
 
 

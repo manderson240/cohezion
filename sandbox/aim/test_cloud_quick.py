@@ -2,7 +2,9 @@
 """Quick validation with cloud models before full benchmark."""
 
 import time
+
 from base_specialist import BaseSpecialist
+
 
 TEST_PROBLEMS = [
     ("test_1", "What is 1-1?", 0),

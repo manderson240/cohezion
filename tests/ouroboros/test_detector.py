@@ -1,5 +1,5 @@
-import pytest
 from cohezion.ouroboros.detector import AnomalyDetector
+
 
 def test_detector_initialization():
     """Test that AnomalyDetector initializes with correct thresholds."""

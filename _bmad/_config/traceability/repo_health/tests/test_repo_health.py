@@ -10,10 +10,11 @@ Tests verify:
 - Health score calculation
 """
 
-import pytest
 import sys
 from pathlib import Path
-from unittest.mock import patch, MagicMock
+
+import pytest
+
 
 # Add project root to path for imports
 PROJECT_ROOT = Path(__file__).parent.parent.parent.parent.parent
@@ -22,9 +23,6 @@ sys.path.insert(0, str(PROJECT_ROOT))
 from _bmad._config.traceability.repo_health.repo_health_engine import (
     RepoHealthEngine,
     RepoHealthReport,
-    CodeQualityMetrics,
-    TestHealthMetrics,
-    TechDebtMetrics,
 )
 
 

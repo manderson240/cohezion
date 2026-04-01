@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
 """Test streaming fix for Ollama timeout."""
 
-from base_specialist import BaseSpecialist
 import time
+
+from base_specialist import BaseSpecialist
+
 
 def test_simple_problem():
     specialist = BaseSpecialist('Algebraist', model_name='qwen2-math:1.5b', timeout=600)

@@ -2,9 +2,9 @@
 
 from __future__ import annotations
 
+from unittest.mock import MagicMock, patch
+
 import pytest
-from unittest.mock import patch, MagicMock
-from pathlib import Path
 
 from cohezion.compound.capability_matrix import (
     CapabilityEntry,
@@ -14,10 +14,9 @@ from cohezion.compound.capability_matrix import (
 )
 from cohezion.compound.workflow_manager import (
     FinetuneResult,
-    WorkflowManager,
-    OnboardingResult,
     GapReport,
     ReassessmentReport,
+    WorkflowManager,
 )
 
 

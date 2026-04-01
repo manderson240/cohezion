@@ -1,8 +1,10 @@
 # tests/test_vault_graph_queries.py
-import pytest
-from unittest.mock import AsyncMock, patch
-import sys
 import os
+import sys
+from unittest.mock import AsyncMock, patch
+
+import pytest
+
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../src"))
 
