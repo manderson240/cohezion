@@ -3,8 +3,18 @@
   "checkpoint_id": "088b1747043d",
   "strategy": "manual-commit",
   "branch": "main",
-  "checkpoints_count": 2,
+  "checkpoints_count": 3,
   "files_touched": [
+    ".claude/settings.json",
+    "_bmad/_config/traceability/repo_health/health_report.md",
+    "_bmad/_config/traceability/repo_health/health_report_2026-04-01T08_52_28.949106.json",
+    "_bmad/_config/traceability/repo_health/health_report_2026-04-01T08_54_58.399574.json",
+    "conductor/tracks.md",
+    "conductor/tracks/birdclef_2026_20260401/index.md",
+    "conductor/tracks/birdclef_2026_20260401/metadata.json",
+    "conductor/tracks/birdclef_2026_20260401/plan.md",
+    "conductor/tracks/birdclef_2026_20260401/spec.md",
+    "data/compound/cache/token_cache.jsonl",
     "src/cohezion/knowledge_graph/KEY_LEARNINGS.md",
     "src/cohezion/physics/hamiltonian.py"
   ],
@@ -20,13 +30,19 @@
       "transcript": "/08/8b1747043d/1/full.jsonl",
       "content_hash": "/08/8b1747043d/1/content_hash.txt",
       "prompt": "/08/8b1747043d/1/prompt.txt"
+    },
+    {
+      "metadata": "/08/8b1747043d/2/metadata.json",
+      "transcript": "/08/8b1747043d/2/full.jsonl",
+      "content_hash": "/08/8b1747043d/2/content_hash.txt",
+      "prompt": "/08/8b1747043d/2/prompt.txt"
     }
   ],
   "token_usage": {
-    "input_tokens": 115353439,
-    "cache_creation_tokens": 21234197,
-    "cache_read_tokens": 355898262,
-    "output_tokens": 758236,
-    "api_call_count": 1934
+    "input_tokens": 115387611,
+    "cache_creation_tokens": 38426107,
+    "cache_read_tokens": 796172283,
+    "output_tokens": 1252187,
+    "api_call_count": 3253
   }
 }
