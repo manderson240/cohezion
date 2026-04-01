@@ -87,7 +87,9 @@ class ObservableActionProposer:
             flume_state = flume_state.tolist()
 
         # Estimate coherence impact
-        coherence_impact = await self._estimate_coherence_impact(action_type, description, current_coherence.coherence)
+        coherence_impact = await self._estimate_coherence_impact(
+            action_type, description, current_coherence.coherence
+        )
 
         # Create proposal
         proposal = ActionProposal(
@@ -101,7 +103,9 @@ class ObservableActionProposer:
             risks=risks or [],
             benefits=benefits or [],
             reversible=reversible,
-            auto_approvable=(confidence > 0.9 and reversible and abs(coherence_impact) < 0.1),  # Small impact
+            auto_approvable=(
+                confidence > 0.9 and reversible and abs(coherence_impact) < 0.1
+            ),  # Small impact
         )
 
         # Display proposal (Observable AI)
@@ -147,8 +151,16 @@ class ObservableActionProposer:
         hiho_status = "HIHO Stable" if current_coherence.hiho_stable else "Outside HIHO"
         reversible = "Yes" if proposal.reversible else "No"
         new_coh = current_coherence.coherence + proposal.coherence_impact
-        risks = chr(10).join("- " + r for r in proposal.risks) if proposal.risks else "- None identified"
-        benefits = chr(10).join("- " + b for b in proposal.benefits) if proposal.benefits else "- None specified"
+        risks = (
+            chr(10).join("- " + r for r in proposal.risks)
+            if proposal.risks
+            else "- None identified"
+        )
+        benefits = (
+            chr(10).join("- " + b for b in proposal.benefits)
+            if proposal.benefits
+            else "- None specified"
+        )
         decision = (
             "AUTO-APPROVABLE (high confidence, reversible, low impact)"
             if proposal.auto_approvable
@@ -201,7 +213,9 @@ DECISION:
             # Non-interactive environment (e.g., tests)
             return False
 
-    async def _estimate_coherence_impact(self, action_type: str, description: str, current_coherence: float) -> float:
+    async def _estimate_coherence_impact(
+        self, action_type: str, description: str, current_coherence: float
+    ) -> float:
         """Estimate impact on system coherence."""
 
         # Simplified heuristic

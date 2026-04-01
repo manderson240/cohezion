@@ -110,9 +110,13 @@ class GuardrailPipeline:
         self.guardrails = guardrails or []
         self.fail_closed = fail_closed
         self.audit_callback = audit_callback
-        self.stats: dict[str, GuardrailStats] = {name: GuardrailStats() for name, _ in self.guardrails}
+        self.stats: dict[str, GuardrailStats] = {
+            name: GuardrailStats() for name, _ in self.guardrails
+        }
 
-    async def check_input(self, text: str, context: dict[str, Any] | None = None) -> GuardrailResult:
+    async def check_input(
+        self, text: str, context: dict[str, Any] | None = None
+    ) -> GuardrailResult:
         """Check input through all guardrails.
 
         Runs guardrails in sequence, short-circuits on BLOCK.
@@ -190,7 +194,9 @@ class GuardrailPipeline:
         await self._audit({"action": "allow", "guards": len(self.guardrails)})
         return final_result
 
-    async def check_output(self, text: str, context: dict[str, Any] | None = None) -> GuardrailResult:
+    async def check_output(
+        self, text: str, context: dict[str, Any] | None = None
+    ) -> GuardrailResult:
         """Check output through guardrails.
 
         Simplified flow for response validation (no sanitization).
@@ -247,8 +253,17 @@ class GuardrailPipeline:
                 "total_latency_ms": self.stats[name].total_latency_ms,
                 "avg_latency_ms": (
                     self.stats[name].total_latency_ms
-                    / (self.stats[name].allowed + self.stats[name].blocked + self.stats[name].sanitized)
-                    if (self.stats[name].allowed + self.stats[name].blocked + self.stats[name].sanitized) > 0
+                    / (
+                        self.stats[name].allowed
+                        + self.stats[name].blocked
+                        + self.stats[name].sanitized
+                    )
+                    if (
+                        self.stats[name].allowed
+                        + self.stats[name].blocked
+                        + self.stats[name].sanitized
+                    )
+                    > 0
                     else 0
                 ),
             }

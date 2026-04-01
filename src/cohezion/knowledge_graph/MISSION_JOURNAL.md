@@ -1,3 +1,16 @@
+### [2026-04-01] SESSION 86: CODEBASE COHERENCE + MAKEFILE TARGETS
+- **Scope**: Cruft cleanup, reproducible workflows, .gitignore hardening.
+- **Cleanup**: Removed 867 tracked traceability/temp files via `git rm --cached`. Added .gitignore patterns for cycles_continuous/, repo_health/, results/training/*.zip.
+- **Makefile**: Added train (20K PPO), evaluate (model vs baselines), benchmark (100K full), demo (5K quick) targets.
+- **Learnings**: L243 (codebase cruft compounds, .gitignore as defense).
+
+### [2026-04-01] SESSION 85: PPO TRAINING + TRIPLE BENCHMARK
+- **Scope**: 4-iteration training diagnostic loop. Party mode strategic review.
+- **Training**: Run 1 (0% convergence, oscillation incentive) → Run 2 (+proximity reward, large actions fail) → Run 3 (small actions BREAKTHROUGH: 0.915 coherence) → Run 4 (100K steps, PPO +17% reward, +9% stability vs random).
+- **Key Discovery**: Action scale must match dynamics timescale. Lagrangian attractor = structural safety.
+- **Benchmarks**: UniverseEvaluator bootstrap CIs, 3 baseline policies. Safety-Gymnasium metric mapping. Reward hacking resistance analysis.
+- **Learnings**: L233-L242 (curriculum reward, evaluator, routing orchestrator, TDD+review loop, reward alignment, small actions, structural safety, Safety-Gymnasium, diagnostic loop, ERL metric).
+
 ### [2026-03-31] SESSION 83: ADVANCED INTEGRATION + RESEARCH SWEEP
 - **Scope**: 4 phases, all complete. OI-MAS confidence routing, TurboQuant/IsoQuant compression, LatentMAS communication, code sweep.
 - **Phase 1 (Sweep)**: Wired ouroboros/→DegradationDetector (anomaly cross-validation), data_mesh/→CapabilityMatrix (data product entries). Vault: 8,094 notes, brain-region structure intact.
@@ -104,50 +117,8 @@ Safe Mode v3 (sequential LLM locking, ResourceGuard). Service decoupling (api→
 - FLUME VAE retrained on real data (11K vectors), RL REINFORCE (0.991 coherence), 6 new API endpoints.
 - Tests grew: 131 → 357 → 556 → 634 across these phases.
 
-### [2026-03-08] PLASMA v2.0: SEMANTIC LAGRANGE POINTS
-- **Status**: Mission Successful.
-- **Physics Integration**: Mapped Kordylewsky Plasma Cloud dynamics to the 12D semantic manifold.
-- **Key Implementation**:
-    - `SemanticLagrangeFinder`: Implemented Restricted Three-Topic Problem solver.
-    - `plasma_find_semantic_lagrange_points`: New tool to locate stable semantic gravity wells (L4/L5).
-    - `plasma_park_context_in_cloud`: New tool to offload context into "dusty plasma" clouds, reducing active memory pressure.
-- **Significance**: Provides a physical substrate for long-term memory that remains semantically accessible without active computational tension.
+### [2026-03-08] PLASMA + RAH + SPATIAL PHONONS (Sessions 60-67, compressed)
+- Semantic Lagrange Points (L4/L5 stable memory parking), MAPE-K autonomic healing (ResourceMonitor→strategies), viscoelastic dilation (Maxwellian relaxation prevents lockups). RAH module: resilience/manager.py + strategies.py.
 
-### [2026-03-08] RAH PHASE 2 & SPATIAL PHONONS SYNTHESIS
-- **RAH Persistence**: Integrated `AutonomicManager` with SurrealDB. Decisions now logged as `rah_decision` nodes with 12D physics state mapping.
-- **Research**: Synthesized ArXiv [2512.00056] ("Spatial Phonons"). Mapped "viscous dark energy" to latent manifold dynamics.
-- **Critical Implementation — Viscoelastic Dilation**:
-    - Upgraded `ResourceMonitor` (Gateway 33) with Maxwellian Relaxation.
-    - System now proactively dilates simulation time based on the **rate of change** of CPU/RAM/VRAM pressure.
-    - Prevents "Manifold Snap" (system lockups) during rapid multi-agent scaling.
-- **Artifacts**:
-    - `_bmad/rah/agents/rah-specialist.md`: New specialist persona.
-    - `_bmad/rah/epics/EPICS.md`: Agile implementation plan.
-    - `research/2512.00056_spatial_phonons.md`: Research synthesis.
-
-### [2026-03-08] RAH MODULE IMPLEMENTATION (PROACTIVE HEALING)
-- **Status**: Core Infrastructure Implemented.
-- **Components**:
-    - `src/cohezion/resilience/manager.py`: Implements MAPE-K control loop.
-    - `src/cohezion/resilience/strategies.py`: Implements Model Swap, Context Reduction, and System Restart.
-    - `_bmad/rah/prds/PRD.md`: Formal requirements documented.
-- **Verification**: `tests/resilience/test_rah_loop.py` passed (2/2 tests).
-- **Skill Usage**: Integrated Research (arXiv), Swarm Reasoning (Architecture design), BMAD (PRD/Indexing), and Coding (MAPE-K implementation).
-- **Next Step**: Connect RAH to SurrealDB for persistent decision logging and effectiveness analysis.
-
-### [2026-03-06] SESSION INITIALIZATION & ENVIRONMENT AUDIT
-- Initial MCP server audit: 5 active cloud extensions, 8 offline local services (ports 8360-8381). Environment established.
-
-### [2026-02-05] PHASE 8: OLLAMA-OPS INTEGRATION & COMPOUND ENGINEERING
-- Multi-agent team (3 agents). 14,042 lines deleted, 114 files cleaned. GTT carveout illusion fixed (512MB→128GB), AMD iGPU detection, JSON comment stripping, lazy import firewall. 25 models, 140 tests, elite routing confirmed.
-
-### [2026-02-02] PHASE 7: RESILIENCE & SCALE
-- Unified Connection Pooling and Circuit Breaker protocols.
-- 100% connection reuse and graceful fallback under simulated failure.
-
-### [2026-02-02] PHASE 6: EDL & MRP
-- Expert Domain Lattice (5 streams) + Manifold Memory with 0.85 consensus.
-- Real-time Experience Replay from semantically similar past journeys.
-
-### [2026-01-19 to 2026-01-30] FOUNDATION + CRYSTALLIZATION (summarized)
-- 25M cycle simulation: HIHO verified (0.49999999999999994). VLIW 423x speedup. 40M round sims. EDL 5-stream. AMD iGPU monitoring. 40+ SOTA resources. BlueQubit 36-qubit.
+### [2026-01-19 to 2026-02-20] FOUNDATION → PHASE 8 (Sessions 1-15, compressed)
+- HIHO verified at 25M cycles. VLIW 423x speedup. EDL 5-stream. Compound engineering built. Ollama-ops (14K lines deleted). Connection pooling + circuit breakers. Safe Mode v3. 3,214 tests passing.

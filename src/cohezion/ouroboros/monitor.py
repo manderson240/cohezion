@@ -15,9 +15,9 @@ class OuroborosMonitor:
 
     def __init__(
         self,
-        url: str = "ws://localhost:8000/rpc",
+        url: str = "ws://localhost:8001/rpc",
         namespace: str = "cohezion",
-        database: str = "core",
+        database: str = "cohezion",
     ):
         self.url = url
         self.namespace = namespace
@@ -35,6 +35,7 @@ class OuroborosMonitor:
         """
         async with AsyncSurreal(self.url) as db:
             try:
+                await db.connect()
                 await db.use(self.namespace, self.database)
 
                 user = os.getenv("SURREAL_USER", "root")

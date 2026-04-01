@@ -89,7 +89,9 @@ def text_to_latent(
         try:
             flume_256d = flume_encoder.encode(text)
             latent = np.tile(flume_256d, HASH_DIMS // len(flume_256d))
-            latent = 2.0 * (latent - np.min(latent)) / (np.max(latent) - np.min(latent) + 1e-8) - 1.0
+            latent = (
+                2.0 * (latent - np.min(latent)) / (np.max(latent) - np.min(latent) + 1e-8) - 1.0
+            )
             return latent
         except Exception as e:
             logger.debug("FLUME encoder failed, falling back to hash: %s", e)
@@ -101,7 +103,9 @@ def text_to_latent(
     for i in range(HASH_DIMS):
         byte_idx = i % len(hash_bytes)
         phase = (2.0 * np.pi * i) / HASH_DIMS
-        latent[i] = (hash_bytes[byte_idx] / 255.0) * 0.5 + 0.25 * np.sin(phase) + 0.25 * np.cos(phase * 2)
+        latent[i] = (
+            (hash_bytes[byte_idx] / 255.0) * 0.5 + 0.25 * np.sin(phase) + 0.25 * np.cos(phase * 2)
+        )
 
     latent = 2.0 * (latent - np.min(latent)) / (np.max(latent) - np.min(latent) + 1e-8) - 1.0
     return latent
@@ -188,7 +192,9 @@ def holographic_project(
     indices = np.linspace(0, len(chunk_means) - 1, AXIOMATIC_DIMS)
     result_12d = np.interp(indices, np.arange(len(chunk_means)), chunk_means)
 
-    result_12d = (result_12d - np.min(result_12d)) / (np.max(result_12d) - np.min(result_12d) + 1e-8)
+    result_12d = (result_12d - np.min(result_12d)) / (
+        np.max(result_12d) - np.min(result_12d) + 1e-8
+    )
 
     if projection_cache is not None:
         if len(projection_cache) >= MAX_CACHE_SIZE:

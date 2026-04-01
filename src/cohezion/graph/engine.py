@@ -167,8 +167,7 @@ class WorkflowEngine:
                             # returned by this node (e.g. LogicSwitchNode).
                             if edge.condition is not None:
                                 route_matches = any(
-                                    v == edge.condition
-                                    for v in result.output.values()
+                                    v == edge.condition for v in result.output.values()
                                 )
                                 if not route_matches:
                                     continue

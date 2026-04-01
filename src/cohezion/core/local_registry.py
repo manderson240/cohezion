@@ -37,7 +37,9 @@ class LocalRegistry:
                 # Parse output (skip header)
                 lines = result.stdout.strip().split("\n")[1:]
                 self.available_models = {line.split()[0] for line in lines}
-                logger.info(f"🛡️ Local Registry Refreshed: {len(self.available_models)} models found.")
+                logger.info(
+                    f"🛡️ Local Registry Refreshed: {len(self.available_models)} models found."
+                )
                 logger.debug(f"Available: {self.available_models}")
             else:
                 logger.warning("Failed to list Ollama models.")

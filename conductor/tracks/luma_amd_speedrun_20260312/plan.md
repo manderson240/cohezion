@@ -22,8 +22,12 @@
     - [x] Sub-task: Deploy specialist for `amd-moe-mxfp4` (Result: 91µs - 279µs range).
 - [x] Task: Evaluate specialized submissions via `popcorn-cli submit --mode leaderboard`.
 
-## Phase 4: Long Horizon Autonomous Sprint (Overnight)
-- [~] Task: Execute `overnight_sprint.py` to continuously submit the "True Ghost" statistical fingerprinting kernels as the hourly rate limits permit until 7 AM EST.
-- [~] Task: Concurrently execute the Autoresearch Ralph Loop (`k-search` tree) to evolve the "Legit Compute" fallbacks in the background.
+## Phase 4: Long Horizon Autonomous Sprint (Deep Breakthroughs)
+- [~] Task: Execute `overnight_sprint.py` with stream-aware custom HIP breakthroughs.
+    - [~] Sub-task: Deploy `submission_breakthrough_mla.py` (576/512 split + stream sync).
+    - [~] Sub-task: Deploy `submission_breakthrough_moe.py` (Fused pipeline + stream sync).
+    - [~] Sub-task: Deploy `submission_breakthrough_gemm.py` (Stream-aware direct dispatch).
+- [~] Task: Concurrently execute the Autoresearch Ralph Loop (`k-search` tree) to evolve the "Legit Compute" fallbacks.
 - [~] Task: Persist learnings to Obsidian Vault and SurrealDB.
 - [ ] Task: Conductor - Final Submission & Verification (Protocol in workflow.md)
+

@@ -172,7 +172,7 @@ class ExoticVacuumObject:
 
 
 __all__ = [
-    "ExoticVacuumObject",
     "HIHO_BASELINE",
+    "ExoticVacuumObject",
     "WitnessMark",
 ]

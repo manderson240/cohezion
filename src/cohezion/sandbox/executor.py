@@ -301,7 +301,9 @@ class SandboxExecutor:
             RuntimeError: If container creation fails
         """
         if not self.client:
-            raise RuntimeError("Docker client not available. Ensure Docker is installed and running.")
+            raise RuntimeError(
+                "Docker client not available. Ensure Docker is installed and running."
+            )
 
         try:
             container = self.client.containers.create(
@@ -539,7 +541,9 @@ class SandboxExecutor:
                 import concurrent.futures
 
                 with concurrent.futures.ThreadPoolExecutor() as pool:
-                    return loop.run_in_executor(pool, lambda: asyncio.run(self.execute_async(request))).result()
+                    return loop.run_in_executor(
+                        pool, lambda: asyncio.run(self.execute_async(request))
+                    ).result()
             else:
                 return asyncio.run(self.execute_async(request))
         except RuntimeError:

@@ -256,7 +256,9 @@ class LRUPersistentCache(PersistentCache):
                     "eviction_count": self._eviction_count,
                     "total_evicted_entries": self._evictions_total_entries,
                     "avg_entries_per_eviction": (
-                        self._evictions_total_entries / self._eviction_count if self._eviction_count > 0 else 0
+                        self._evictions_total_entries / self._eviction_count
+                        if self._eviction_count > 0
+                        else 0
                     ),
                 }
             )
@@ -276,7 +278,9 @@ class LRUPersistentCache(PersistentCache):
                 "eviction_count": self._eviction_count,
                 "total_evicted_entries": self._evictions_total_entries,
                 "avg_per_eviction": (
-                    self._evictions_total_entries / self._eviction_count if self._eviction_count > 0 else 0
+                    self._evictions_total_entries / self._eviction_count
+                    if self._eviction_count > 0
+                    else 0
                 ),
                 "current_utilization": len(self.memory_cache) / self.max_entries,
                 "current_size": len(self.memory_cache),

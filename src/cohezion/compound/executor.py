@@ -1040,6 +1040,53 @@ class CompoundExecutor(CompoundContextMixin):
             except Exception as e:
                 logger.debug("Universe bridge completion failed (non-blocking): %s", e)
 
+        # Step 10.5: OuroborosBridge physics check (non-blocking)
+        # Cross-validate coherence via physics layer and trigger healing if anomalous
+        try:
+            from cohezion.physics.ouroboros_bridge import OuroborosBridge
+
+            if not hasattr(self, "_ouroboros_bridge_instance"):
+                self._ouroboros_bridge_instance = OuroborosBridge()
+            coherence_val = metrics.get("coherence", 0.5)
+            coherence_drop = abs(coherence_val - 0.5)
+            if coherence_drop > 0.3:
+                import asyncio
+
+                try:
+                    loop = asyncio.get_event_loop()
+                    if loop.is_running():
+                        logger.debug(
+                            "Ouroboros: coherence drop %.3f (async deferred)", coherence_drop
+                        )
+                    else:
+                        loop.run_until_complete(
+                            self._ouroboros_bridge_instance.check_coherence(
+                                coherence_drop, task_id=skill_name
+                            )
+                        )
+                except RuntimeError:
+                    logger.debug("Ouroboros: no event loop, skipping async check")
+        except (ImportError, Exception):
+            pass  # Non-blocking: ouroboros bridge may not be available
+
+        # Step 10.6: Mycelium learning capture (non-blocking)
+        # Auto-capture execution results into MyceliumRegistry for skill synthesis
+        try:
+            if success:
+                from cohezion.learning.mycelium_registry import JournalEntry, MyceliumRegistry
+
+                if not hasattr(self, "_mycelium_registry"):
+                    self._mycelium_registry = MyceliumRegistry()
+                entry = JournalEntry(
+                    entry_id=f"exec_{int(time.time())}_{skill_name}",
+                    content=f"Executed {skill_name}: {task_description[:200]}",
+                    domain="pattern",
+                )
+                self._mycelium_registry.ingest_entry(entry)
+                logger.debug("Mycelium: captured execution as pattern entry")
+        except (ImportError, Exception):
+            pass  # Non-blocking: mycelium may not be available
+
         return ExecutionResult(
             success=success,
             output=output,

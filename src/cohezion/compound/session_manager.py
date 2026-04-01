@@ -198,7 +198,8 @@ class InferenceSession:
                     # Checkpoint if needed
                     if (step_idx + 1) % self.config.checkpoint_interval_steps == 0:
                         should_checkpoint = (
-                            time.time() - self.state.last_checkpoint_time > self.config.checkpoint_timeout_sec
+                            time.time() - self.state.last_checkpoint_time
+                            > self.config.checkpoint_timeout_sec
                         )
                         if should_checkpoint:
                             await _vault_checkpoint_manager.save(self.state)
@@ -374,7 +375,9 @@ _vault_checkpoint_manager = VaultCheckpointManager()
 _sessions: dict[str, InferenceSession] = {}
 
 
-def create_session(session_id: str | None = None, config: SessionConfig | None = None) -> InferenceSession:
+def create_session(
+    session_id: str | None = None, config: SessionConfig | None = None
+) -> InferenceSession:
     """Create and register new session.
 
     Args:

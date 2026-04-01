@@ -122,7 +122,8 @@ OPERATION_KEYWORDS: dict[str, list[str]] = {
 
 # Pre-compile word-boundary patterns for each keyword.
 _KEYWORD_PATTERNS: dict[str, list[re.Pattern[str]]] = {
-    op: [re.compile(rf"\b{kw}\b", re.IGNORECASE) for kw in keywords] for op, keywords in OPERATION_KEYWORDS.items()
+    op: [re.compile(rf"\b{kw}\b", re.IGNORECASE) for kw in keywords]
+    for op, keywords in OPERATION_KEYWORDS.items()
 }
 
 

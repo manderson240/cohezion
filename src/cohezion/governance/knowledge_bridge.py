@@ -113,7 +113,7 @@ def persist_to_surrealdb(learning: Learning) -> bool:
             embedding_list = []
 
         # Build SurrealQL
-        surql = f"""
+        surql = """
         CREATE neuron SET
             name = $name,
             content = $content,

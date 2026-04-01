@@ -52,7 +52,9 @@ class AGUIEvent:
     """Base AG-UI event following the protocol specification."""
 
     type: AGUIEventType
-    timestamp: str = field(default_factory=lambda: time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()))
+    timestamp: str = field(
+        default_factory=lambda: time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
+    )
 
     def to_sse(self) -> str:
         """Format as SSE (Server-Sent Events) data line."""
@@ -169,7 +171,9 @@ def narration_event(text: str, stage: str) -> list[AGUIEvent]:
     """Create a TEXT_MESSAGE sequence for a narration stage."""
     msg_id = str(uuid.uuid4())
     return [
-        TextMessageEvent(type=AGUIEventType.TEXT_MESSAGE_START, message_id=msg_id, role="assistant"),
+        TextMessageEvent(
+            type=AGUIEventType.TEXT_MESSAGE_START, message_id=msg_id, role="assistant"
+        ),
         TextMessageEvent(type=AGUIEventType.TEXT_MESSAGE_CONTENT, message_id=msg_id, delta=text),
         TextMessageEvent(type=AGUIEventType.TEXT_MESSAGE_END, message_id=msg_id),
     ]
@@ -197,7 +201,9 @@ def phase_transition_event(from_sym: str, to_sym: str, temperature: float) -> li
             type=AGUIEventType.TOOL_CALL_ARGS,
             tool_call_id=call_id,
             tool_call_name="symmetry_breaking",
-            content=json.dumps({"from_sym": from_sym, "to_sym": to_sym, "temperature": temperature}),
+            content=json.dumps(
+                {"from_sym": from_sym, "to_sym": to_sym, "temperature": temperature}
+            ),
         ),
         ToolCallEvent(
             type=AGUIEventType.TOOL_CALL_END,

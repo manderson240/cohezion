@@ -173,14 +173,18 @@ class FlumeEncoder(PreTrainedModel):
         if isinstance(module, nn.Linear):
             module.weight.data.normal_(
                 mean=0.0,
-                std=self.config.initializer_range if hasattr(self.config, "initializer_range") else 0.02,
+                std=self.config.initializer_range
+                if hasattr(self.config, "initializer_range")
+                else 0.02,
             )
             if module.bias is not None:
                 module.bias.data.zero_()
         elif isinstance(module, nn.Embedding):
             module.weight.data.normal_(
                 mean=0.0,
-                std=self.config.initializer_range if hasattr(self.config, "initializer_range") else 0.02,
+                std=self.config.initializer_range
+                if hasattr(self.config, "initializer_range")
+                else 0.02,
             )
             if module.padding_idx is not None:
                 module.weight.data[module.padding_idx].zero_()
@@ -194,7 +198,9 @@ class FlumeEncoder(PreTrainedModel):
         if isinstance(text, str):
             text = [text]
 
-        inputs = self.tokenizer(text, padding=True, truncation=True, max_length=max_len, return_tensors="pt")
+        inputs = self.tokenizer(
+            text, padding=True, truncation=True, max_length=max_len, return_tensors="pt"
+        )
         inputs = {k: v.to(self.device) for k, v in inputs.items()}
 
         with torch.no_grad():

@@ -33,6 +33,7 @@ def _get_encoder():
     """Lazy-load the FLUME encoder to avoid import-time overhead."""
     try:
         from cohezion.flume.vae_encoder import get_encoder
+
         return get_encoder()
     except ImportError:
         logger.debug("FLUME VAE encoder not available, using hash fallback")
@@ -57,10 +58,12 @@ def encode_prompt(prompt: str) -> np.ndarray:
     # Delegate to VAE encoder's hash fallback for consistency
     try:
         from cohezion.flume.vae_encoder import FlumeVAEEncoder
+
         return FlumeVAEEncoder._hash_encode(prompt)
     except (ImportError, AttributeError):
         # Last resort: deterministic 256D hash expansion
         import hashlib
+
         h = hashlib.sha256(prompt.encode()).digest()
         expanded = np.frombuffer(h * 8, dtype=np.uint8)[:FLUME_DIM].astype(np.float32)
         return expanded / (np.linalg.norm(expanded) + 1e-10)

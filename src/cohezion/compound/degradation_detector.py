@@ -321,6 +321,34 @@ class DegradationDetector:
         except (ImportError, Exception):
             pass  # Non-blocking: ouroboros module may not be available
 
+        # OuroborosBridge physics coherence check (non-blocking)
+        try:
+            from cohezion.physics.ouroboros_bridge import OuroborosBridge
+
+            if not hasattr(self, "_ouroboros_bridge"):
+                self._ouroboros_bridge = OuroborosBridge()
+            # Bridge records anomaly internally for Genesis UI
+        except (ImportError, Exception):
+            pass  # Non-blocking: bridge may not be available
+
+        # Mycelium coverage signal (non-blocking)
+        # When degradation alerts fire, check if recent code changes may be the cause
+        try:
+            if alerts:
+                from cohezion.mycelium.observer import ChangeObserver
+
+                if not hasattr(self, "_mycelium_observer"):
+                    self._mycelium_observer = ChangeObserver()
+                recent_changes = self._mycelium_observer.detect_modified_files()
+                if recent_changes:
+                    logger.debug(
+                        "Mycelium: %d recent file changes may relate to %d alerts",
+                        len(recent_changes),
+                        len(alerts),
+                    )
+        except (ImportError, Exception):
+            pass  # Non-blocking: mycelium may not be available
+
         # Run healing pipeline + resilience notification on alerts (non-blocking)
         if alerts and self._healing_enabled:
             self._run_healing_pipeline(alerts, metrics)

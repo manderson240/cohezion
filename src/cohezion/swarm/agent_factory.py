@@ -231,7 +231,11 @@ class AgentFactory:
         Returns:
             List of (agent_name, config) tuples
         """
-        return [(name, config) for name, config in cls._metadata.items() if capability in config.capabilities]
+        return [
+            (name, config)
+            for name, config in cls._metadata.items()
+            if capability in config.capabilities
+        ]
 
     @classmethod
     def is_registered(cls, agent_name: str) -> bool:

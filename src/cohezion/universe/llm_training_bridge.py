@@ -148,7 +148,11 @@ class TrajectoryToReward:
         # 3. Tempic stability (low change = stable)
         tempic_score = max(0.0, 1.0 - step.tempic_field * 2.0)
 
-        return self.hiho_weight * hiho_score + self.spin_weight * spin_score + self.tempic_weight * tempic_score
+        return (
+            self.hiho_weight * hiho_score
+            + self.spin_weight * spin_score
+            + self.tempic_weight * tempic_score
+        )
 
     def compute_trajectory_reward(self, trajectory: AgentTrajectory) -> float:
         """Compute aggregate reward for a complete trajectory."""
@@ -168,7 +172,11 @@ class TrajectoryToReward:
         # Precipitation bonus
         precipitation = 1.0 if trajectory.precipitation_achieved else 0.0
 
-        total = avg_step_reward + self.consistency_weight * consistency + self.precipitation_weight * precipitation
+        total = (
+            avg_step_reward
+            + self.consistency_weight * consistency
+            + self.precipitation_weight * precipitation
+        )
 
         return min(1.0, max(0.0, total))
 
@@ -387,7 +395,9 @@ class ExperienceDataset:
                     "final_coherence": traj.final_coherence,
                     "num_steps": len(traj.steps),
                     "precipitation": traj.precipitation_achieved,
-                    "step_rewards": [self._reward_computer.compute_step_reward(s) for s in traj.steps],
+                    "step_rewards": [
+                        self._reward_computer.compute_step_reward(s) for s in traj.steps
+                    ],
                 }
                 f.write(json.dumps(record) + "\n")
 

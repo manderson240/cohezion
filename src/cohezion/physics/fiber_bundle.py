@@ -229,7 +229,7 @@ class FiberBundle:
         """
         n = len(trajectory_12d)
         if n < 2:
-            return {name: 0.0 for name in FABRIC_NAMES}
+            return dict.fromkeys(FABRIC_NAMES, 0.0)
 
         curvatures = {}
         for i, name in enumerate(FABRIC_NAMES):

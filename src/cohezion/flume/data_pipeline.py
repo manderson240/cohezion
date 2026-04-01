@@ -40,7 +40,11 @@ _TASK_TEMPLATES: dict[str, list[list[str]]] = {
     ],
     "analyze": [
         ["analyze code quality", "assess code quality", "evaluate code quality"],
-        ["analyze performance bottlenecks", "identify performance issues", "find performance problems"],
+        [
+            "analyze performance bottlenecks",
+            "identify performance issues",
+            "find performance problems",
+        ],
         ["review pull request changes", "analyze PR diff", "evaluate pull request"],
         ["analyze test coverage", "assess test coverage", "evaluate test coverage gaps"],
         ["analyze error patterns", "investigate error trends", "examine failure patterns"],
@@ -59,7 +63,11 @@ _TASK_TEMPLATES: dict[str, list[list[str]]] = {
         ["search for configuration keys", "find environment variables", "locate config settings"],
     ],
     "transform": [
-        ["refactor the authentication module", "restructure auth module", "reorganize authentication code"],
+        [
+            "refactor the authentication module",
+            "restructure auth module",
+            "reorganize authentication code",
+        ],
         ["transform data format to JSON", "convert data to JSON", "serialize data as JSON"],
         ["migrate database schema", "update database schema", "transform DB schema"],
         ["transform config to YAML", "convert configuration to YAML", "reformat config as YAML"],
@@ -205,7 +213,9 @@ class TrainingDataPipeline:
                 data = np.load(cache_path)
                 cached_emb = data["embeddings"]
                 if cached_emb.shape[0] == len(texts):
-                    logger.info("Loaded cached embeddings from %s (%d samples)", cache_path, len(texts))
+                    logger.info(
+                        "Loaded cached embeddings from %s (%d samples)", cache_path, len(texts)
+                    )
                     return cached_emb
                 logger.warning("Cache shape mismatch, re-embedding")
 
@@ -216,7 +226,11 @@ class TrainingDataPipeline:
             emb = self._provider.embed_batch(batch)
             all_embeddings.append(emb)
             if (i // batch_size) % 5 == 0:
-                logger.info("Embedded batch %d/%d", i // batch_size + 1, (len(texts) + batch_size - 1) // batch_size)
+                logger.info(
+                    "Embedded batch %d/%d",
+                    i // batch_size + 1,
+                    (len(texts) + batch_size - 1) // batch_size,
+                )
 
         embeddings = np.concatenate(all_embeddings, axis=0)
 

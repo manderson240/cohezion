@@ -27,8 +27,6 @@ if TYPE_CHECKING:
     from cohezion.universe.sandbox_profiles import SandboxProfile
 
 
-
-
 logger = logging.getLogger(__name__)
 
 
@@ -175,7 +173,9 @@ class SystemdRunBackend:
             )
 
             try:
-                stdout_bytes, stderr_bytes = await asyncio.wait_for(proc.communicate(), timeout=profile.timeout_seconds)
+                stdout_bytes, stderr_bytes = await asyncio.wait_for(
+                    proc.communicate(), timeout=profile.timeout_seconds
+                )
             except TimeoutError:
                 proc.kill()
                 await proc.wait()

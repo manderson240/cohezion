@@ -20,14 +20,42 @@ from aiter.utility.fp4_utils import e8m0_shuffle
 from task import input_t, output_t
 
 
+def _choose_log2_k_split(m: int, n: int, k: int) -> int:
+    """Optimal log2_k_split for MI355X (gfx950) from skill data."""
+    if m <= 32:
+        return 3  # High split for low occupancy
+    if m <= 128:
+        return 2
+    if m <= 512:
+        return 1
+    return 0
+
+
 def custom_kernel(data: input_t) -> output_t:
     A, B, B_q, B_shuffle, B_scale_sh = data
+    m, k = A.shape
+    n = B.shape[0]
+
     # Quantize A to MXFP4 with shuffled E8M0 scales
+    # Direct usage of aiter.ops.triton.quant.dynamic_mxfp4_quant is fastest
     A_q, A_scale_e8m0 = dynamic_mxfp4_quant(A.contiguous())
     A_scale_sh = e8m0_shuffle(A_scale_e8m0).view(dtypes.fp8_e8m0)
     A_q = A_q.view(dtypes.fp4x2)
-    # ASM GEMM — uses pre-compiled .co kernels on MI355X
-    return aiter.gemm_a4w4(
-        A_q, B_shuffle, A_scale_sh, B_scale_sh,
-        dtype=dtypes.bf16, bpreshuffle=True,
-    )
+
+    # Use aiter.gemm_a4w4_asm with dynamic k_split
+    # This bypasses the higher-level gemm_a4w4 wrapper and provides direct control
+    try:
+        from aiter import gemm_a4w4_asm
+        log2_k_split = _choose_log2_k_split(m, n, k)
+        return gemm_a4w4_asm(
+            A_q, B_shuffle, A_scale_sh, B_scale_sh,
+            dtype=dtypes.bf16, bpreshuffle=True,
+            log2_k_split=log2_k_split,
+        )
+    except (ImportError, NameError):
+        # Fallback to standard gemm_a4w4 if asm interface not exposed
+        return aiter.gemm_a4w4(
+            A_q, B_shuffle, A_scale_sh, B_scale_sh,
+            dtype=dtypes.bf16, bpreshuffle=True,
+        )
+

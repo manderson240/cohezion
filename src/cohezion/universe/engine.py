@@ -18,6 +18,11 @@ import json
 import logging
 import time
 from dataclasses import dataclass, field
+from typing import TYPE_CHECKING
+
+
+if TYPE_CHECKING:
+    from cohezion.physics.spinor import SpinorState
 from datetime import datetime
 from pathlib import Path
 from typing import Any, ClassVar, Protocol
@@ -103,7 +108,7 @@ class AxiomaticState:
 
     # --- SPIN Physics (Grounded in SU(2) spinor algebra) ---
 
-    def to_spinor(self) -> "SpinorState":
+    def to_spinor(self) -> SpinorState:
         """Convert to proper SU(2) spinor state on the Bloch sphere.
 
         Maps the logic (rotation) and quantum (precession) dimensions to a

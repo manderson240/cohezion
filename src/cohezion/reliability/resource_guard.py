@@ -65,9 +65,7 @@ class ResourceGuard:
 
         return True, "System healthy"
 
-    async def wait_for_stability(
-        self, timeout_seconds: int = 300, check_interval: int = 5
-    ) -> bool:
+    async def wait_for_stability(self, timeout_seconds: int = 300, check_interval: int = 5) -> bool:
         """Wait until system stabilizes or timeout occurs."""
         start_time = asyncio.get_event_loop().time()
 

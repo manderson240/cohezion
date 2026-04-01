@@ -106,7 +106,9 @@ class PersistentCache:
                             logger.warning(f"Skipping invalid JSON on line {line_num}: {e}")
 
                 self._stats["loaded"] = entries_loaded
-                logger.info(f"Session recovery: loaded {entries_loaded} cache entries from {self.cache_file}")
+                logger.info(
+                    f"Session recovery: loaded {entries_loaded} cache entries from {self.cache_file}"
+                )
 
         except Exception as e:
             logger.warning(f"Failed to load cache from disk: {e}")

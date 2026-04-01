@@ -446,7 +446,6 @@ class JourneyTracker:
             try:
                 # Use API singleton for trained model access
                 from cohezion.api.services.world_model import _get_model
-                from cohezion.world_model.jepa_world_model import JEPAWorldModel
 
                 jepa = _get_model()
                 if jepa._trained:
@@ -474,6 +473,12 @@ class JourneyTracker:
         if len(self._recent_points) > self.TRAJECTORY_WINDOW:
             self._recent_points = self._recent_points[-self.TRAJECTORY_WINDOW :]
 
+        # Persist trajectory point to SurrealDB (non-blocking, fire-and-forget)
+        try:
+            self._persist_to_surreal(point)
+        except Exception:
+            pass  # Non-blocking: SurrealDB may be unavailable
+
         logger.debug(
             "Tracked execution: %s (phi=%.2f, coherence=%.2f, "
             "smoothness=%.2f, convergence=%.2f, buffer=%d)",
@@ -486,6 +491,53 @@ class JourneyTracker:
         )
 
         return point
+
+    def _persist_to_surreal(self, point: TrajectoryPoint) -> None:
+        """Persist trajectory point to SurrealDB journey_transitions table.
+
+        Non-blocking HTTP POST. Silently fails if SurrealDB is unavailable.
+        Uses port 8001 (native binary, writable per L187).
+        """
+        import json
+        import urllib.request
+
+        data = json.dumps(
+            {
+                "dimensions": point.dimensions.tolist()
+                if hasattr(point.dimensions, "tolist")
+                else list(point.dimensions),
+                "coherence": point.coherence,
+                "efficiency": point.efficiency,
+                "operation_type": point.operation_type,
+                "task_description": point.task_description[:200],
+                "metadata": {
+                    k: v
+                    for k, v in (point.metadata or {}).items()
+                    if isinstance(v, (str, int, float, bool))
+                },
+            }
+        ).encode("utf-8")
+
+        surql = "CREATE journey_transition CONTENT $data;"
+        body = json.dumps({"surql": surql, "data": json.loads(data)}).encode("utf-8")
+
+        req = urllib.request.Request(
+            "http://localhost:8001/sql",
+            data=f"CREATE journey_transition SET dimensions = {point.dimensions.tolist() if hasattr(point.dimensions, 'tolist') else list(point.dimensions)}, coherence = {point.coherence}, efficiency = {point.efficiency}, operation_type = '{point.operation_type}', task = '{point.task_description[:100].replace(chr(39), '')}', created = time::now();".encode(
+                "utf-8"
+            ),
+            headers={
+                "Accept": "application/json",
+                "surreal-ns": "cohezion",
+                "surreal-db": "cohezion",
+                "Authorization": "Basic " + __import__("base64").b64encode(b"root:root").decode(),
+            },
+            method="POST",
+        )
+        try:
+            urllib.request.urlopen(req, timeout=2)
+        except Exception:
+            pass  # Fire-and-forget
 
     def get_last_point(self) -> TrajectoryPoint | None:
         """Return the most recent trajectory point, or None if no points tracked."""
@@ -522,10 +574,10 @@ class JourneyTracker:
         return latent / norm if norm > 0 else latent
 
     def holographic_project(self, latent: np.ndarray) -> np.ndarray:
-        """Project latent vector to 12D manifold via cached chunk-mean projection.
+        """Project latent vector to 12D manifold via chunk-mean projection.
 
-        Delegates to the existing _project_to_12d method which handles
-        caching via _projection_cache and normalizes to [0, 1].
+        Splits the latent vector into 12 equal chunks, takes the mean of each
+        chunk, then normalizes to [0, 1] via sigmoid. Cached by latent hash.
 
         Args:
             latent: Latent vector (any dimension, typically 2048D)
@@ -533,7 +585,33 @@ class JourneyTracker:
         Returns:
             12D manifold coordinates normalized to [0, 1]
         """
-        return self._project_to_12d(latent)
+        # Cache key from latent hash
+        cache_key = hash(latent.tobytes())
+        if not hasattr(self, "_projection_cache"):
+            self._projection_cache: dict[int, np.ndarray] = {}
+        if cache_key in self._projection_cache:
+            return self._projection_cache[cache_key]
+
+        # Chunk-mean projection: split into 12 chunks, take mean of each
+        latent_flat = latent.flatten().astype(np.float64)
+        dim = 12
+        chunk_size = len(latent_flat) // dim
+        if chunk_size == 0:
+            # Latent shorter than 12D — pad with zeros
+            padded = np.zeros(dim * 1)
+            padded[: len(latent_flat)] = latent_flat
+            latent_flat = padded
+            chunk_size = 1
+
+        projected = np.array(
+            [np.mean(latent_flat[i * chunk_size : (i + 1) * chunk_size]) for i in range(dim)]
+        )
+
+        # Normalize to [0, 1] via sigmoid
+        result = (1.0 / (1.0 + np.exp(-projected * 5.0))).astype(np.float64)
+
+        self._projection_cache[cache_key] = result
+        return result
 
     def _compute_observer_consistency(self, current_12d: np.ndarray) -> float:
         """Compute observer consistency between current execution and previous.

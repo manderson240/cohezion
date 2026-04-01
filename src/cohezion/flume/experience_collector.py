@@ -147,7 +147,9 @@ class ExperienceCollector:
     @staticmethod
     def _normalize_parquet_row(row: dict) -> dict:
         """Convert a parquet row into the canonical experience schema."""
-        trajectory, smoothness, convergence = ExperienceCollector._compute_trajectory_stats(row.get("state_trajectory"))
+        trajectory, smoothness, convergence = ExperienceCollector._compute_trajectory_stats(
+            row.get("state_trajectory")
+        )
 
         return {
             "trajectory": trajectory,
@@ -208,7 +210,9 @@ class ExperienceCollector:
     @staticmethod
     def _normalize_surreal_row(row: dict) -> dict:
         """Normalize a SurrealDB mission_journey record."""
-        trajectory, smoothness, convergence = ExperienceCollector._compute_trajectory_stats(row.get("state_trajectory"))
+        trajectory, smoothness, convergence = ExperienceCollector._compute_trajectory_stats(
+            row.get("state_trajectory")
+        )
 
         return {
             "trajectory": trajectory,
@@ -243,9 +247,7 @@ class ExperienceCollector:
                 elif isinstance(data, list):
                     for item in data:
                         if isinstance(item, dict) and len(records) < max_samples:
-                            records.append(
-                                self._normalize_vault_record(item, json_path.stem)
-                            )
+                            records.append(self._normalize_vault_record(item, json_path.stem))
             except Exception as e:
                 logger.debug("Skipping vault file %s: %s", json_path, e)
 

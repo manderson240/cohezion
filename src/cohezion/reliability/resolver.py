@@ -30,7 +30,9 @@ class HallucinationResolver:
             # but if the agent CLAIMS specs optimized for it without checking, it's a flag.
             pass
 
-        if ("NVIDIA" in text or "H100" in text or "A100" in text) and "AMD" in self.ground_truth.get("gpu", ""):
+        if (
+            "NVIDIA" in text or "H100" in text or "A100" in text
+        ) and "AMD" in self.ground_truth.get("gpu", ""):
             issues.append("Claimed NVIDIA hardware on an AMD system.")
             corrections["gpu"] = self.ground_truth["gpu"]
 

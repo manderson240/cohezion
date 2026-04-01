@@ -329,7 +329,7 @@ class SymmetryBreaking:
         # Check each transition in order
         new_transitions = []
         for stage, T_c, from_sym, to_sym, a, b, desc in _TRANSITIONS:
-            if T <= T_c and self._state.current_symmetry == from_sym:
+            if T_c >= T and self._state.current_symmetry == from_sym:
                 # Phase transition!
                 op_value = self._compute_order_parameter(T, T_c, a, b)
 
@@ -473,7 +473,7 @@ class SymmetryBreaking:
         Below T_c, the minimum shifts to:
         φ = ±√(a(T_c - T) / (2b))
         """
-        if T >= T_c:
+        if T_c <= T:
             return 0.0
         return float(np.sqrt(a * (T_c - T) / (2.0 * b)))
 
@@ -518,7 +518,7 @@ class SymmetryBreaking:
         rises — the moment awareness becomes aware of something.
         """
         T_quadrature = 150.0
-        if T >= T_quadrature:
+        if T_quadrature <= T:
             self._state.fisher_eigenvalue_max = 0.001 * self._rng.random()
         else:
             self._state.fisher_eigenvalue_max = float(np.sqrt(T_quadrature - T) * 0.08)
@@ -547,7 +547,7 @@ class SymmetryBreaking:
 
         # Find the nearest critical temperature below current T
         for _stage, T_c, _from_sym, _to_sym, a, _b, _desc in _TRANSITIONS:
-            if T > T_c:
+            if T_c < T:
                 denominator = 2.0 * a * abs(T - T_c)
                 if denominator < 1e-10:
                     return 1e10  # Divergence at T_c

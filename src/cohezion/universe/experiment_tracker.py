@@ -310,7 +310,10 @@ class ExperimentTracker:
 
         logger.info(
             "Created experiment run: %s (%s), seed=%d, config=%s",
-            run_id, name, config.seed, config.config_hash,
+            run_id,
+            name,
+            config.seed,
+            config.config_hash,
         )
 
         return run
@@ -583,16 +586,18 @@ class ExperimentTracker:
             se = ((a_std**2 / max(len(a_values), 1)) + (b_std**2 / max(len(b_values), 1))) ** 0.5
             significant = abs(delta) / max(se, 1e-8) > 1.96  # 95% confidence
 
-            comparisons.append(MetricComparison(
-                metric_name=metric_name,
-                run_a_mean=a_mean,
-                run_b_mean=b_mean,
-                run_a_std=a_std,
-                run_b_std=b_std,
-                delta=delta,
-                delta_percent=delta_pct,
-                significant=significant,
-            ))
+            comparisons.append(
+                MetricComparison(
+                    metric_name=metric_name,
+                    run_a_mean=a_mean,
+                    run_b_mean=b_mean,
+                    run_a_std=a_std,
+                    run_b_std=b_std,
+                    delta=delta,
+                    delta_percent=delta_pct,
+                    significant=significant,
+                )
+            )
 
         summary_lines = [
             f"Comparing {run_a.name} ({run_a_id}) vs {run_b.name} ({run_b_id})",
@@ -800,9 +805,7 @@ def tracked_training_run(
                 action, log_prob, value = agent.select_action(state)
                 next_state, reward, done, info = env.step(action)
 
-                agent.store_transition(
-                    state, action, reward, next_state, done, log_prob, value
-                )
+                agent.store_transition(state, action, reward, next_state, done, log_prob, value)
 
                 state = next_state
                 episode_reward += reward

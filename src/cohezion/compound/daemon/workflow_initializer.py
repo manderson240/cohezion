@@ -245,7 +245,6 @@ class CompoundEngineeringWorkflowInitializer:
                 "original_branch": current_branch,
                 "original_commit": current_commit,
                 "worktree_branch": branch_name,
-                "worktree_path": str(worktree_path),
             }
 
         except Exception as e:

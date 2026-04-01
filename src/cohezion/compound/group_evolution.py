@@ -332,15 +332,11 @@ class GroupExperiencePool:
             len(self.traces),
         )
 
-    def get_traces_by_type(
-        self, trace_type: ExperienceTraceType
-    ) -> list[ExperienceTrace]:
+    def get_traces_by_type(self, trace_type: ExperienceTraceType) -> list[ExperienceTrace]:
         """Filter traces by type."""
         return [t for t in self.traces if t.trace_type == trace_type]
 
-    def get_high_quality_traces(
-        self, min_quality: float = 0.5
-    ) -> list[ExperienceTrace]:
+    def get_high_quality_traces(self, min_quality: float = 0.5) -> list[ExperienceTrace]:
         """Get traces above a quality threshold.
 
         This addresses GEA's noted limitation about experience filtering:
@@ -542,18 +538,12 @@ class GroupEvolutionEngine:
         Returns:
             Shared GroupExperiencePool accessible by all offspring.
         """
-        pool = GroupExperiencePool(
-            parent_agent_ids=[p.agent_id for p in parent_group]
-        )
+        pool = GroupExperiencePool(parent_agent_ids=[p.agent_id for p in parent_group])
 
         for parent in parent_group:
             traces = trace_sources.get(parent.agent_id, [])
             # Quality filter (addresses GEA limitation)
-            filtered = [
-                t
-                for t in traces
-                if t.quality_score >= self.quality_filter_threshold
-            ]
+            filtered = [t for t in traces if t.quality_score >= self.quality_filter_threshold]
             pool.add_traces(parent.agent_id, filtered)
 
         logger.info(
@@ -588,12 +578,8 @@ class GroupEvolutionEngine:
         directives: list[EvolutionDirective] = []
 
         # Analyze success patterns from peer agents
-        peer_traces = [
-            t for t in pool.traces if t.agent_id != target_agent_id
-        ]
-        own_traces = [
-            t for t in pool.traces if t.agent_id == target_agent_id
-        ]
+        peer_traces = [t for t in pool.traces if t.agent_id != target_agent_id]
+        own_traces = [t for t in pool.traces if t.agent_id == target_agent_id]
 
         # Find high-quality peer traces in areas where target struggles
         successful_peers = pool.get_high_quality_traces(min_quality=0.7)
@@ -621,9 +607,7 @@ class GroupEvolutionEngine:
                 EvolutionDirective(
                     agent_id=target_agent_id,
                     target_area=_infer_target_area(trace),
-                    description=(
-                        f"Address failure: {trace.content.get('error', 'unknown')}"
-                    ),
+                    description=(f"Address failure: {trace.content.get('error', 'unknown')}"),
                     source_traces=[trace.agent_id],
                     confidence=0.3,
                 )
@@ -662,9 +646,7 @@ class GroupEvolutionEngine:
         """
         performance = success_vector.solve_rate
         archive_vectors = [e.success_vector for e in self.archive]
-        novelty = self.novelty_scorer.compute_novelty(
-            success_vector, archive_vectors
-        )
+        novelty = self.novelty_scorer.compute_novelty(success_vector, archive_vectors)
         gea_score = performance * math.sqrt(max(novelty, 0.0))
 
         # Count unique ancestors
@@ -698,8 +680,7 @@ class GroupEvolutionEngine:
             logger.info("Pruned archive to %d entries", len(self.archive))
 
         logger.info(
-            "Added %s to archive (gen=%d, perf=%.2f, nov=%.2f, "
-            "gea=%.2f, ancestors=%d)",
+            "Added %s to archive (gen=%d, perf=%.2f, nov=%.2f, gea=%.2f, ancestors=%d)",
             agent_id,
             entry.generation,
             performance,

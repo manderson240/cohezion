@@ -59,9 +59,15 @@ def custom_kernel(data: input_t) -> output_t:
         config,
     ) = data
 
+    # Ensure inputs are contiguous to prevent internal re-allocation in AITER
+    if not hidden_states.is_contiguous():
+        hidden_states = hidden_states.contiguous()
+
     hidden_pad = config["d_hidden_pad"] - config["d_hidden"]
     intermediate_pad = config["d_expert_pad"] - config["d_expert"]
 
+    # Using QuantType.per_1x32 (standard for MXFP4 in AITER)
+    # Testing if doweight_stage1=False is still the only stable path
     return fused_moe(
         hidden_states,
         gate_up_weight_shuffled,
@@ -78,4 +84,6 @@ def custom_kernel(data: input_t) -> output_t:
         a2_scale=None,
         hidden_pad=hidden_pad,
         intermediate_pad=intermediate_pad,
+        # Potentially add more hints for the compiler if AITER supports them
     )
+

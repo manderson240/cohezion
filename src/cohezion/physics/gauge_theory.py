@@ -251,8 +251,8 @@ class FourFabricGauge:
 
 __all__ = [
     "DEFAULT_COUPLINGS",
+    "SO3_GENERATORS",
     "FieldStrength",
     "FourFabricGauge",
     "GaugeConnection",
-    "SO3_GENERATORS",
 ]

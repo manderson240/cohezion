@@ -14,7 +14,7 @@ if TYPE_CHECKING:
 T = TypeVar("T")
 
 
-def safe_singleton[T](func: Callable[..., T]) -> Callable[..., T]:
+def safe_singleton(func: Callable[..., T]) -> Callable[..., T]:
     """Decorator that wraps a factory function with double-checked locking.
 
     The decorated function creates the instance on first call and returns

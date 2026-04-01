@@ -13,7 +13,8 @@ class FlumeTokenizer(PreTrainedTokenizer):
 
     def __init__(
         self,
-        chars: str | None = " abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.,!?;:'\"()-\n",
+        chars: str
+        | None = " abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.,!?;:'\"()-\n",
         bos_token="<BOS>",
         eos_token="<EOS>",
         unk_token="<UNK>",
@@ -62,7 +63,9 @@ class FlumeTokenizer(PreTrainedTokenizer):
     def convert_tokens_to_string(self, tokens: list[str]) -> str:
         return "".join(tokens)
 
-    def save_vocabulary(self, save_directory: str, filename_prefix: str | None = None) -> tuple[str]:
+    def save_vocabulary(
+        self, save_directory: str, filename_prefix: str | None = None
+    ) -> tuple[str]:
         import os
 
         vocab_file = os.path.join(save_directory, (filename_prefix or "") + "vocab.json")

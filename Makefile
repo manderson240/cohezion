@@ -1,4 +1,4 @@
-.PHONY: help format lint lint-check type-check test all clean train evaluate benchmark demo
+.PHONY: help format lint lint-check type-check test all clean train evaluate benchmark demo validate
 
 help:  ## Show this help message
 	@echo "Available targets:"
@@ -48,6 +48,11 @@ ci:  ## Run CI checks locally
 	mypy --ignore-missing-imports bmad/ || true
 	pytest tests/
 	@echo "✓ All CI checks passed"
+
+# Compound Loop Validation
+validate:  ## Validate compound engineering loop end-to-end (23 checks, ~18s)
+	.venv/bin/python scripts/validate_compound_loop.py
+	@echo "✓ Compound loop validated"
 
 # RL Training + Evaluation targets
 train:  ## Train PPO on ManifoldEnv (quick: 20K steps, ~5 min)

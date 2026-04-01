@@ -98,7 +98,10 @@ class UniverseFactory:
     @staticmethod
     def create_batch(seeds: list[int], z_dim: int = 256, hidden_dim: int = 512) -> list:
         """Create multiple universe physics engines."""
-        return [UniverseFactory.create(UniverseSpec(f"universe_{s}", s, z_dim, hidden_dim)) for s in seeds]
+        return [
+            UniverseFactory.create(UniverseSpec(f"universe_{s}", s, z_dim, hidden_dim))
+            for s in seeds
+        ]
 
     @staticmethod
     def weight_fingerprint(spec: UniverseSpec) -> dict:

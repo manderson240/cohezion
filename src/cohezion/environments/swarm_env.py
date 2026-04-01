@@ -153,8 +153,8 @@ class SwarmEnv:
         global_deviation = self._compute_global_hiho_deviation()
         all_at_hiho = global_deviation < 0.02
 
-        terminateds = {a: all_at_hiho for a in self.agents}
-        truncateds = {a: self._step_count >= self.max_steps for a in self.agents}
+        terminateds = dict.fromkeys(self.agents, all_at_hiho)
+        truncateds = dict.fromkeys(self.agents, self._step_count >= self.max_steps)
 
         return (
             self._get_all_obs(),

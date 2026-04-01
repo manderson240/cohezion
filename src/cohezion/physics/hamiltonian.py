@@ -15,6 +15,7 @@ from enum import Enum
 
 import numpy as np
 
+
 try:
     import sympy as sp
 
@@ -227,7 +228,8 @@ class HamiltonianDynamics:
         potentials["double_well"] = {
             "V": dw_V,
             "grad_V": sp.diff(dw_V, x),
-            "x": x, "target": t,
+            "x": x,
+            "target": t,
             "critical_points": sp.solve(sp.diff(dw_V, x), x),
         }
 
@@ -236,17 +238,19 @@ class HamiltonianDynamics:
         potentials["harmonic"] = {
             "V": harm_V,
             "grad_V": sp.diff(harm_V, x),
-            "x": x, "target": t,
+            "x": x,
+            "target": t,
             "critical_points": sp.solve(sp.diff(harm_V, x), x),
         }
 
         # HIHO well: V = -exp(-(x-t)^2/sigma^2) + 0.1*(x-t)^2
         hiho_u = x - t
-        hiho_V = -sp.exp(-hiho_u**2 / sigma_sq) + sp.Rational(1, 10) * hiho_u**2
+        hiho_V = -sp.exp(-(hiho_u**2) / sigma_sq) + sp.Rational(1, 10) * hiho_u**2
         potentials["hiho_well"] = {
             "V": hiho_V,
             "grad_V": sp.diff(hiho_V, x),
-            "x": x, "target": t,
+            "x": x,
+            "target": t,
             "critical_points": sp.solve(sp.diff(hiho_V, x), x),
         }
 

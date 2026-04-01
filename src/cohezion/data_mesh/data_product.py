@@ -139,70 +139,87 @@ class DataProduct:
 # --- Pre-defined data products for Cohezion's 17+ MCP servers ---
 
 
-def get_cohezion_data_products() -> dict[str, "DataProduct"]:
+def get_cohezion_data_products() -> dict[str, DataProduct]:
     """Factory: returns fresh DataProduct instances to avoid shared mutable state."""
     return {
-    "bmad-workflow": DataProduct(
-        product_id="bmad-workflow",
-        name="BMAD Workflow Artifacts",
-        description="Agile workflow outputs: specs, stories, sprint plans",
-        owner_domain="bmad",
-        schema=DataProductSchema(fields={"workflow_id": "str", "status": "str", "artifacts": "list"}),
-        quality_tier=DataQualityTier.SILVER,
-        status=DataProductStatus.ACTIVE,
-        mcp_tool_name="bmad_execute_workflow",
-    ),
-    "skill-definition": DataProduct(
-        product_id="skill-definition",
-        name="PRIME Skill Definitions",
-        description="Skill markdown + metadata from the skill registry",
-        owner_domain="skills",
-        schema=DataProductSchema(fields={"skill_name": "str", "content": "str", "metrics": "dict"}),
-        quality_tier=DataQualityTier.GOLD,
-        status=DataProductStatus.ACTIVE,
-        mcp_tool_name="skill_get_definition",
-    ),
-    "journey-checkpoint": DataProduct(
-        product_id="journey-checkpoint",
-        name="Agent Journey Checkpoints",
-        description="12D state snapshots from JourneyTracker",
-        owner_domain="journey",
-        schema=DataProductSchema(fields={"agent_id": "str", "state_12d": "list[float]", "coherence": "float"}),
-        quality_tier=DataQualityTier.GOLD,
-        status=DataProductStatus.ACTIVE,
-        mcp_tool_name="journey_save_checkpoint",
-    ),
-    "vault-entry": DataProduct(
-        product_id="vault-entry",
-        name="Vault Knowledge Entries",
-        description="Decisions, patterns, experiments from the knowledge vault",
-        owner_domain="memory",
-        schema=DataProductSchema(fields={"entry_id": "str", "category": "str", "content": "str"}),
-        quality_tier=DataQualityTier.GOLD,
-        status=DataProductStatus.ACTIVE,
-        mcp_tool_name="vault_find_relevant_context",
-    ),
-    "agui-event-stream": DataProduct(
-        product_id="agui-event-stream",
-        name="AG-UI Event Stream",
-        description="Typed SSE events for Genesis cosmogony",
-        owner_domain="api",
-        schema=DataProductSchema(fields={"type": "AGUIEventType", "timestamp": "str", "payload": "dict"}),
-        output_format="sse",
-        quality_tier=DataQualityTier.SILVER,
-        status=DataProductStatus.ACTIVE,
-        mcp_tool_name=None,  # Direct HTTP endpoint, not MCP tool
-    ),
-    "observer-consistency": DataProduct(
-        product_id="observer-consistency",
-        name="OPH Observer Consistency Scores",
-        description="Overlap consistency between agent observer patches on S²",
-        owner_domain="physics",
-        schema=DataProductSchema(fields={"agent_a": "str", "agent_b": "str", "consistency": "float", "coherent": "bool"}),
-        quality_tier=DataQualityTier.SILVER,
-        status=DataProductStatus.ACTIVE,
-        mcp_tool_name=None,
-    ),
+        "bmad-workflow": DataProduct(
+            product_id="bmad-workflow",
+            name="BMAD Workflow Artifacts",
+            description="Agile workflow outputs: specs, stories, sprint plans",
+            owner_domain="bmad",
+            schema=DataProductSchema(
+                fields={"workflow_id": "str", "status": "str", "artifacts": "list"}
+            ),
+            quality_tier=DataQualityTier.SILVER,
+            status=DataProductStatus.ACTIVE,
+            mcp_tool_name="bmad_execute_workflow",
+        ),
+        "skill-definition": DataProduct(
+            product_id="skill-definition",
+            name="PRIME Skill Definitions",
+            description="Skill markdown + metadata from the skill registry",
+            owner_domain="skills",
+            schema=DataProductSchema(
+                fields={"skill_name": "str", "content": "str", "metrics": "dict"}
+            ),
+            quality_tier=DataQualityTier.GOLD,
+            status=DataProductStatus.ACTIVE,
+            mcp_tool_name="skill_get_definition",
+        ),
+        "journey-checkpoint": DataProduct(
+            product_id="journey-checkpoint",
+            name="Agent Journey Checkpoints",
+            description="12D state snapshots from JourneyTracker",
+            owner_domain="journey",
+            schema=DataProductSchema(
+                fields={"agent_id": "str", "state_12d": "list[float]", "coherence": "float"}
+            ),
+            quality_tier=DataQualityTier.GOLD,
+            status=DataProductStatus.ACTIVE,
+            mcp_tool_name="journey_save_checkpoint",
+        ),
+        "vault-entry": DataProduct(
+            product_id="vault-entry",
+            name="Vault Knowledge Entries",
+            description="Decisions, patterns, experiments from the knowledge vault",
+            owner_domain="memory",
+            schema=DataProductSchema(
+                fields={"entry_id": "str", "category": "str", "content": "str"}
+            ),
+            quality_tier=DataQualityTier.GOLD,
+            status=DataProductStatus.ACTIVE,
+            mcp_tool_name="vault_find_relevant_context",
+        ),
+        "agui-event-stream": DataProduct(
+            product_id="agui-event-stream",
+            name="AG-UI Event Stream",
+            description="Typed SSE events for Genesis cosmogony",
+            owner_domain="api",
+            schema=DataProductSchema(
+                fields={"type": "AGUIEventType", "timestamp": "str", "payload": "dict"}
+            ),
+            output_format="sse",
+            quality_tier=DataQualityTier.SILVER,
+            status=DataProductStatus.ACTIVE,
+            mcp_tool_name=None,  # Direct HTTP endpoint, not MCP tool
+        ),
+        "observer-consistency": DataProduct(
+            product_id="observer-consistency",
+            name="OPH Observer Consistency Scores",
+            description="Overlap consistency between agent observer patches on S²",
+            owner_domain="physics",
+            schema=DataProductSchema(
+                fields={
+                    "agent_a": "str",
+                    "agent_b": "str",
+                    "consistency": "float",
+                    "coherent": "bool",
+                }
+            ),
+            quality_tier=DataQualityTier.SILVER,
+            status=DataProductStatus.ACTIVE,
+            mcp_tool_name=None,
+        ),
     }
 
 

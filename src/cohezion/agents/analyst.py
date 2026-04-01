@@ -70,7 +70,9 @@ class AnalystAgent(BaseAgent):
             config=config,
         )
         self.perspective = perspective
-        self.system_prompt = PERSPECTIVE_PROMPTS.get(perspective, PERSPECTIVE_PROMPTS[Perspective.TECHNICAL])
+        self.system_prompt = PERSPECTIVE_PROMPTS.get(
+            perspective, PERSPECTIVE_PROMPTS[Perspective.TECHNICAL]
+        )
 
     async def process(self, query: str, **kwargs: Any) -> ThoughtVector:
         """

@@ -426,7 +426,9 @@ class ProcessIsolation:
                 logger.debug(f"Creating namespaces: {namespace_id}")
                 # Actual namespace creation would happen via unshare() in container
             else:
-                logger.debug(f"Non-root process, namespace creation deferred to container: {namespace_id}")
+                logger.debug(
+                    f"Non-root process, namespace creation deferred to container: {namespace_id}"
+                )
 
         except Exception as e:
             logger.warning(f"Could not verify namespace capability: {e}")

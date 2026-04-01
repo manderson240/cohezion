@@ -255,7 +255,7 @@ def get_narrator() -> CosmoNarrator:
 
 __all__ = [
     "CONCEPT_NARRATIONS",
-    "CosmoNarrator",
     "STAGE_NARRATIONS",
+    "CosmoNarrator",
     "get_narrator",
 ]

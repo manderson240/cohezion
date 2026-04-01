@@ -337,7 +337,9 @@ class RetrospectionEngine:
                 f"Execution of '{plan_name}' completed {completed}/{total} tasks",
                 f"Token usage: {sum(tokens_by_task.values())} across {total} tasks",
             ],
-            "suggested_refinements": [{"skill": r.skill_name, "reason": r.reason} for r in suggestions],
+            "suggested_refinements": [
+                {"skill": r.skill_name, "reason": r.reason} for r in suggestions
+            ],
         }
 
         logger.info(
@@ -421,9 +423,7 @@ class RetrospectionEngine:
         # Compound score: weighted quality signal
         compound_score = 0.0
         if success:
-            compound_score = (
-                coherence * 0.5 + (1.0 - anomaly_score) * 0.3 + phi_score * 0.2
-            )
+            compound_score = coherence * 0.5 + (1.0 - anomaly_score) * 0.3 + phi_score * 0.2
 
         if should_refine:
             recommendation = f"Refine {skill_name} with cohesion={coherence:.2f}"

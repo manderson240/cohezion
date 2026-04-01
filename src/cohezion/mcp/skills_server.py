@@ -168,7 +168,10 @@ class SkillsMCP:
 
     def list_all(self) -> list[dict[str, str]]:
         """List all registered skills."""
-        return [{"name": s["name"], "description": s.get("description", "")} for s in self._registry.get("skills", [])]
+        return [
+            {"name": s["name"], "description": s.get("description", "")}
+            for s in self._registry.get("skills", [])
+        ]
 
 
 TOOLS = [

@@ -23,69 +23,21 @@ Key patterns: (1) Filesystem entropy limit at >1M files — use `.archive/` + Su
 ## Phase 1-2 Milestones (2026-02-06, Compressed)
 FLUME VAE retrained on real data (11K vectors, MSE 5.9x harder, KL 13.8x richer). RL REINFORCE: 0.991 coherence but environment "too easy." Mass sim→.npy export (8.2s, 61 files). 6 API endpoints (/flume/*, /rl/*), 19 integration tests.
 
-## Learning 96: Agent File Validation as Compound Defense (2026-02-06)
-Missing YAML frontmatter in `.claude/agents/*.md` files was only caught by `claude doctor` after the fact. Fix: single Pydantic schema (`validation/agent_schema.py`) shared by pre-commit hook, PostToolUse hook, unit tests, and `/new-agent` scaffolding command. Layered defense = catch at commit time, warn in real-time, scaffold valid by default. Compound engineering: each layer reuses the same schema.
-
----
-
-## Learnings 97-101: Specialist Pipeline (Compressed)
-Weight bridge collapse via matrix multiply for Rust FFI (L97). Ruff hook fights: use type annotation to keep conditional imports (L98). Deterministic mean action for stable mass sim (L99). DemocraticDebate regex extraction + bounds clamping for LLM params (L100). 9-step pipeline with graceful Ollama fallback (L101).
-
----
-
-## Learnings 102-104: Runaway Files Incident (Compressed)
-Autonomous overnight sims generated 8.6M files — IDE froze, git bloated to 50MB. Fix: pre-commit `check-file-count.sh` blocks >1000 untracked, .gitignore all output dirs. Cleanup is never one-pass — budget 2-3 passes. GPU hang pattern: kill -9 + AMDGPU reset.
-Total system freeze during concurrent web apps + LLM swarm. Root cause chain: (1) VRAM saturation from unthrottled concurrent model loads, (2) `amdgpu` ring reset failure, (3) kernel coredump stall under resource pressure. Required REISUB recovery. Fix: direct sysfs GPU/VRAM monitoring, aggressive PID kill in RED alert, `tune_system.sh` to disable panic-on-oom, prevention of giant coredumps. Key insight: **VRAM is the bottleneck, not RAM. Swarms must be sacrificial; system integrity is primary.**
-
-### Learning 105: The Untrack & Mine Protocol
-Operational procedure invented during ops/hygiene: (1) identify tracked files that shouldn't be, (2) mine them for knowledge before removal, (3) add to .gitignore, (4) `git rm --cached`, (5) verify git status clean. Critical rule: NEVER delete without reading first. This protocol prevented knowledge loss during the 8.6M file cleanup.
-
-### Learning 106: .gitignore Layered Defense Pattern
-The .gitignore evolved through 4 iterations across these branches, each adding a new defense layer: (1) output directories (`data/`, `results/`, `renders/`), (2) build artifacts (`assets/`, `*.safetensors`), (3) binary patterns (`*.pt`, `*.pdf`, `*.so`, `*.mp3`), (4) negation rules to protect source (`!src/**/*.py`, `!scripts/**/*.py`). The final pattern: block everything risky at category level, then whitelist specific safe patterns. Order matters — negations must come after the block rule.
-
-### Learning 107: OMEGA Distiller — Skill Extraction from Success Logs
-Auto-skill-generation concept: parse "MISSION SUCCESS" logs, strip noise/timestamps/paths, extract the "trick" (specific insight that turned failure into success), generalize into PRIME skill format. Template: domain expertise → key concepts → step-by-step instruction → patterns/antipatterns table. Never hardcode variable names from specific missions.
+## Learnings 96-107: Agent Validation, Specialist Pipeline, Runaway Files (Compressed)
+L96: Single Pydantic schema shared by pre-commit + PostToolUse + unit tests + scaffolding = layered agent validation defense. L97-101: Rust FFI weight bridge, ruff hook type annotations, deterministic mean action, DemocraticDebate regex+clamping, 9-step pipeline with Ollama fallback. L102-104: 8.6M runaway files → pre-commit check-file-count.sh + .gitignore layered defense; VRAM (not RAM) is bottleneck; swarms must be sacrificial. L105: Untrack-and-Mine protocol (read→mine→.gitignore→git rm --cached). L106: .gitignore layered defense (category blocks → negation whitelists). L107: OMEGA Distiller auto-skill-generation from success logs.
 
 ## Learnings 108-126: Compound Engineering & Autonomic Systems (Compressed)
 Key patterns: (1) Temporal dilation factor (0.1-1.0) throttles sims under pressure (L108). (2) Mock at source module, not import site: `patch("cohezion.swarm.compound_client.get_compound_client")` (L110). (3) 4 CI validators as layered defense (L112). (4) Connectivity Squad: `lsof`/`ss` for dynamic truth anchors (L113). (5) Decentralized memory: SurrealDB + Vault = Interface Sovereignty (L115). (6) God object decoupling: extract ML from api/__init__.py (L119). (7) Soft schema `.get()` before Pydantic validation for LLM outputs (L120). (8) `/heal` 6-stage autonomic diagnostics (L121). (9) Integration Theater detection: `assert hasattr(Class, 'field')` (L122). (10) Lazy imports for circular dependency resolution (L123). (11) HIHO consistency: always use shared engine, never inline physics (L124). (12) 5-Essential-Tests pattern: happy, empty, max, error, integration → ship (L126).
 
 ---
 
-## Session 59: Dev Environment Recovery (2026-02-20)
-
-### Learning 127: Claude Code Native Install vs npm Conflict Resolution
-When `claude update` warns "Running native installation but config install method is 'npm'": (1) remove leftover npm global: `npm -g uninstall @anthropic-ai/claude-code`, (2) re-run `claude update` which self-corrects `installMethod` in `~/.claude.json`. Root cause of lost auto-updates: `"autoUpdates": false` in `~/.claude.json` — fix by setting `true`. For user-scope MCP servers (e.g., context7): use `claude mcp add --scope user --transport stdio name -- command` which writes to `~/.claude.json` under `mcpServers`. Do NOT edit `~/.claude/mcp.json` for Claude Code MCP — that file is Pilot's config and serves a different system. The two files must not be conflated.
-
-### Learning 128: Autonomic MAPE-K Control Loop Bridge
-Implemented in Session 60 (2026-03-08). A semantic control loop (Monitor-Analyze-Plan-Execute) successfully bridges reactive hardware monitoring (ResourceMonitor) with proactive healing strategies (ModelSwap, ContextReduction). By decoupling the **Analysis** (interpreting vitals into severity tiers) from the **Planning** (selecting the strategy), the system gains the ability to make hardware-optimized decisions (e.g., AMD-specific memory rebalancing) without hardcoding logic into the monitoring layer.
-
-### Learning 129: Polyglot Dependency Automation (2026-03-08)
-Automating security audits across multiple ecosystems requires leveraging native tooling (`uv audit`, `npm audit`) within a fail-safe Bash wrapper (`set -uo pipefail`). Wrapping these commands with `|| true` is critical; otherwise, the presence of a vulnerability causes the tool to return a non-zero exit code, crashing the entire cron job before all ecosystems are scanned. Reports must be saved as Markdown artifacts to allow subsequent ingestion by LLM agents.
+## Learnings 127-151: Dev Recovery, MAPE-K, Research Synthesis (Sessions 59-67, Compressed)
+L127: Claude Code native install vs npm — remove npm global, set autoUpdates:true, MCP scope:user. L128: MAPE-K control loop bridges reactive monitoring with proactive healing via decoupled Analysis→Planning. L129: Polyglot security audits need `|| true` wrapping. L130-151 (Research Sprint): Doc-to-LoRA context compression (L130), skill curation > generation (L137), KV compaction 30-50x (L139/L145), multi-tier caching 30s→0.02s (L144), viscoelastic dilation (L149), semantic Lagrange points μ<0.0385 (L150), Gram-Schmidt for 12D vectors (L151).
 
 ---
 
-## Research Synthesis Sessions 61-67 (2026-03-08, summarized)
-
-Key theoretical insights from deep research sprint: Doc-to-LoRA context compression shifts context entropy from token-limit to weight-loading optimization (L130). Self-generated skills often provide zero benefit — curation over generation (L137, arXiv:2602.12670). KV cache compaction achieves 30-50x memory reduction via task-aware pruning (L139/L145). Multi-tier caching: Tier 1 semantic (>95%) + Tier 2 retrieval (>70%) reduces latency from 30s to 0.02s (L144). Viscoelastic control loop (Maxwell relaxation) enables proactive dilation before lockups (L149). Semantic Lagrange Points: L4/L5 stable memory parking at $\mu < 0.0385$ (L150). Gram-Schmidt orthogonalization required for 12D manifold vectors — 2D rotation collapses in high dimensions (L151).
-
----
-
-## Session 68: Secure-by-Default Substrate & The 360-Degree Autonomic Cycle (2026-03-10)
-
-### Learning 152: The 360-Degree Autonomic Cycle
-A complete architectural evolution loop has been achieved within a single 60-minute window: **Sensing (:00) -> Optimization (:15) -> Refinement (:30) -> Manifestation (:35) -> Verification (:40) -> Auditing (:45) -> Scouting (:50) -> Analysis (:55).** This closed loop ensures that the platform is a self-optimizing engine of growth.
-
-### Learning 153: Unified Authentication Middleware
-Platform-wide security is best enforced via a centralized middleware layer rather than per-server logic. By injecting `api_key_middleware` into the `aiohttp.Application` of all MCP servers, we establish a consistent security perimeter that rejects all unauthenticated traffic while allowing internal health checks via a shared `MCP_API_KEY`.
-
-### Learning 154: Recursive Path Sanitization (CWD-Bounding)
-Path traversal vulnerabilities in multi-agent systems are critically dangerous as agents often have broad filesystem access. The `sanitize_path` utility must be used with a strict `base_dir=Path.cwd()` bound for all tool-exposed file operations (indexing, scanning, reading). This prevents agents (or attackers hijacking them) from escaping the project workspace.
-
-### Learning 155: API Response Redaction (Secret Scrubbing)
-Management endpoints that return system status must recursively scrub environment variables. Identifying keys matching `["token", "key", "secret", "password"]` and replacing them with `***REDACTED***` prevents the accidental leakage of high-privilege credentials (e.g., `HF_TOKEN`, `GITHUB_TOKEN`) through administrative APIs.
-
-### Learning 156: CI/CD Prompt Injection Defense (HITL + Isolation)
-GitHub Action workflows that grant LLMs write access to the repository are high-value targets. Effective defense requires a multi-layered approach: 1) Explicit `system_instruction` warning the agent about injection, 2) XML-style delimiters (`<USER_INPUT>`) to segregate untrusted metadata from instructions, and 3) Environment variable passing for inputs to prevent shell command injection.
+## Learnings 152-156: Secure-by-Default Substrate (Session 68, Compressed)
+L152: 360-Degree Autonomic Cycle — 8-stage closed loop (sense→optimize→refine→manifest→verify→audit→scout→analyze) in 60min window. L153-156: Unified auth middleware (centralized api_key_middleware), recursive path sanitization (CWD-bounding), API secret scrubbing (regex key matching → REDACTED), CI/CD prompt injection defense (system_instruction + XML delimiters + env vars).
 
 ---
 
@@ -296,5 +248,35 @@ PolarQuant at 4 bits gives 2.7x compression with 0.16 mean error for FLUME 256D 
 ### Learning 232: LatentMAS — SharedLatentMemory as Agent Communication Channel (2026-03-31)
 Implemented training-free latent communication: agents deposit 256D FLUME embeddings into SharedLatentMemory, others retrieve and use as execution context. Consensus embedding (mean of recent agent states) = "group understanding." Inter-agent coherence = pairwise cosine similarity of latest embeddings. 3 agents with mixed similarity gave 0.373 coherence (expected — architect+engineer aligned, researcher divergent). Module: `flume/latent_channel.py`.
 
+### Learning 233: ManifoldEnv Curriculum Reward — 3-Stage Reach→Maintain→Optimize (2026-04-01)
+3-stage curriculum reward in ManifoldEnv: Stage 1 (reach HIHO band) rewards coherence gain + entry bonus, Stage 2 (maintain stability) rewards band persistence + low energy, Stage 3 (energy efficiency) strongly penalizes energy while maintaining HIHO. Proximity base reward (-deviation * 0.5) is always active across all stages, preventing drift. Module: `environments/manifold_env.py`.
+
+### Learning 234: UniverseEvaluator — Bootstrap CI Evaluation (2026-04-01)
+Unified evaluation framework with bootstrap confidence intervals distinguishes genuine capability from noise. EpisodeMetrics tracks convergence_rate, hiho_stability_duration, energy_efficiency. PolicyComparison computes effect sizes and p-values. 3 built-in baselines: random_policy, greedy_hiho_policy, noisy_greedy_policy. Key: random baseline as sanity check — if random > trained, reward is broken. Module: `eval/universe_evaluator.py`.
+
+### Learning 235: RoutingOrchestrator — Unified Entry for 4 Routing Systems (2026-04-01)
+Single UnifiedRoutingDecision combining SmartRouter (affinity), CostAwareRouter (complexity→model), TipOfTheSpearRouter (constitutional), DynamicModelRouter (health). Confidence flows through all routers as common signal. Lazy initialization prevents import cascades. Module: `swarm/routing_orchestrator.py`.
+
+### Learning 236: TDD + Code Review Compound Loop (2026-04-01)
+TDD catches behavioral correctness but misses cross-cutting concerns. Multi-perspective code review agent catches type safety (vault_experiment_path=None vs str=""), format string bugs (%.1%% → %.1f%%), and missing __all__ exports. Pattern: run code review in background while coding next feature — zero idle time, catches 2 CRITICAL bugs per session.
+
 ### Learning 237: Reward Alignment Must Match Physics Grounding (2026-04-01)
 First PPO training on ManifoldEnv: 0% convergence (mean coherence 0.272) vs 60% convergence for RANDOM POLICY. Root cause: differential-only reward (coherence_gain * 2.0) creates oscillation incentive — agent maximizes rate of change by dropping then recovering coherence. Fix: proximity base reward (-deviation * 0.5, always active) aligns reward with Lagrangian attractor. The physics grounding is so strong that natural dynamics guide 60% of random trajectories to HIHO — the reward must align with the physics, not create perverse incentives against it. Deeper insight: reward hacking in physics-grounded environments takes the form of fighting the dynamics, not exploiting them.
+
+### Learning 238: Small Actions Cooperate With Physics — Action Scale = Dynamics Timescale (2026-04-01)
+PPO Run 2 with large actions [-0.5, 0.5] failed despite proximity reward fix (reward -67.68). PPO Run 3 with small actions [-0.1, 0.1] breakthrough: coherence 0.915, reward 12.04, stability 79 steps. The Lagrangian attractor is strong enough to guide dynamics — large actions fight it, small actions cooperate. General principle: when physics grounding provides a strong attractor, action scale must be proportional to dynamics timescale (dt=0.01 → action ~0.1). This is structural safety — the environment's physics prevents reward hacking by constraining the action manifold.
+
+### Learning 239: Structural Safety via Lagrangian Dynamics (2026-04-01)
+ManifoldEnv's Lagrangian dynamics provide structural safety guarantees that learned safety constraints cannot: (1) energy conservation bounds agent behavior, (2) Christoffel symbols create "natural corridors" in state space, (3) HIHO attractor is a physical equilibrium, not a learned policy artifact, (4) random agents achieve 60% convergence because the physics itself guides trajectories toward HIHO. This contrasts with standard RL environments where safety requires learned constraints that can be gamed.
+
+### Learning 240: Safety-Gymnasium Compatibility Mapping (2026-04-01)
+ManifoldEnv safety metrics map to Safety-Gymnasium: cost_rate = Lagrangian action per step, constraint_satisfaction = % time in HIHO band [0.4, 0.6], safe_return = reward only counting safe-region steps. Key difference from standard safety envs: ManifoldEnv's constraints are physical (Lagrangian), not learned (penalty functions). This makes constraint violations physically impossible rather than merely penalized.
+
+### Learning 241: 4-Iteration Training Diagnostic Loop (2026-04-01)
+Pattern: train→diagnose failure→hypothesize fix→retrain→verify. Run 1: differential reward → oscillation incentive. Run 2: +proximity reward → still fails (large actions). Run 3: +small actions → breakthrough (0.915 coherence). Run 4: 100K steps → PPO outperforms random on reward (+17%) and stability (+9%). Each iteration was hypothesis-driven with a single variable change. Persist every run to SurrealDB for knowledge accumulation.
+
+### Learning 242: ERL — Empirical Reward Landscape as Safety Metric (2026-04-01)
+Proposed benchmark: probe reward function with adversarial actions to map the empirical reward landscape. In ManifoldEnv, physics prevents reward hacking — large velocity perturbations reduce reward because Lagrangian penalizes energy. In standard CartPole, same perturbation can be exploited. The ratio of "hackable" to "total" reward landscape area is a quantitative safety metric.
+
+### Learning 243: Codebase Cruft Compounds — .gitignore Is Defense (2026-04-01)
+867 traceability/temp files accumulated silently across Sessions 74-85 because .gitignore didn't cover cycles_continuous/*.json and repo_health/*.json patterns. `git rm --cached` cleaned without deleting. Makefile targets (train/evaluate/benchmark/demo) make validated workflows reproducible. Key: autonomous cycles generate files without cleanup rules — .gitignore patterns must be part of the feature, not an afterthought. Branch cleanup also needed: 1,128 stale branches.

@@ -110,7 +110,9 @@ class EventBus:
     def __init__(self, max_queue_size: int = 10000):
         self._handlers: dict[EventType, list[EventHandler]] = defaultdict(list)
         self._wildcard_handlers: list[EventHandler] = []
-        self._queue: asyncio.PriorityQueue[tuple[int, Event]] = asyncio.PriorityQueue(maxsize=max_queue_size)
+        self._queue: asyncio.PriorityQueue[tuple[int, Event]] = asyncio.PriorityQueue(
+            maxsize=max_queue_size
+        )
         self._processor_task: asyncio.Task | None = None
         self._running = False
         self._metrics = {
@@ -138,7 +140,9 @@ class EventBus:
                 await self._processor_task
         logger.info(f"EventBus stopped. Metrics: {self._metrics}")
 
-    def subscribe(self, event_type: EventType | None = None) -> Callable[[EventHandler], EventHandler]:
+    def subscribe(
+        self, event_type: EventType | None = None
+    ) -> Callable[[EventHandler], EventHandler]:
         """Decorator to subscribe to events.
 
         @bus.subscribe(EventType.LLM_CALL)
@@ -206,7 +210,9 @@ class EventBus:
             return
 
         # Execute all handlers concurrently
-        results = await asyncio.gather(*[self._safe_handle(h, event) for h in handlers], return_exceptions=True)
+        results = await asyncio.gather(
+            *[self._safe_handle(h, event) for h in handlers], return_exceptions=True
+        )
 
         delivered = sum(1 for r in results if r is None)
         self._metrics["delivered"] += delivered

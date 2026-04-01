@@ -28,6 +28,7 @@ forge_router = APIRouter(prefix="/forge", tags=["forge"])
 
 # --- Request/Response Models ---
 
+
 class HardwareTelemetry(BaseModel):
     cpu_temp: float = Field(..., description="CPU temperature in °C")
     gpu_temp: float = Field(..., description="GPU temperature in °C")
@@ -56,12 +57,13 @@ class BenchmarkResponse(BaseModel):
 
 # --- Endpoints ---
 
+
 @forge_router.get("/telemetry", response_model=HardwareTelemetry)
 async def get_telemetry() -> HardwareTelemetry:
     """Get real-time hardware metrics from the Strix Halo substrate."""
     monitor = get_hardware_monitor()
     stats = monitor.get_stats()
-    
+
     return HardwareTelemetry(
         cpu_temp=stats["current_cpu_temp_c"],
         gpu_temp=stats["current_gpu_temp_c"],
@@ -69,7 +71,7 @@ async def get_telemetry() -> HardwareTelemetry:
         gpu_power=stats["current_gpu_power_w"],
         memory_used_gb=stats["current_memory_used_gb"],
         gpu_clock_mhz=stats["gpu_clock_mhz"],
-        timestamp=time.time()
+        timestamp=time.time(),
     )
 
 
@@ -79,42 +81,40 @@ async def run_benchmark(req: BenchmarkRequest) -> BenchmarkResponse:
     # Find the submission file in the luma_speedrun directory
     # For now, we assume it's in a known location relative to the project root
     from pathlib import Path
-    
+
     project_root = Path.cwd()
     luma_dir = project_root / "luma_speedrun"
-    
+
     # Map kernel names to submission files
     submission_files = {
         "gemm": "amd-mxfp4-mm/submission.py",
         "moe": "amd-moe-mxfp4/submission.py",
         "mla": "amd-mixed-mla/submission.py",
     }
-    
+
     submission_rel_path = submission_files.get(req.kernel)
     if not submission_rel_path:
         raise HTTPException(status_code=400, detail=f"Unsupported kernel: {req.kernel}")
-        
+
     submission_path = luma_dir / submission_rel_path
-    
+
     if not submission_path.exists():
         # Try finding it in the worktree if we're in a dev environment
-        worktree_path = Path("/home/mike-anderson/dev/cohezion/.worktrees/spec-genesis-engine-395e48851")
+        worktree_path = Path(
+            "/home/mike-anderson/dev/cohezion/.worktrees/spec-genesis-engine-395e48851"
+        )
         submission_path = worktree_path / "luma_speedrun" / submission_rel_path
-        
+
     if not submission_path.exists():
         raise HTTPException(
-            status_code=404, 
-            detail=f"Submission file not found for {req.kernel} at {submission_path}"
+            status_code=404,
+            detail=f"Submission file not found for {req.kernel} at {submission_path}",
         )
 
     logger.info(f"Running {req.mode} for {req.kernel} using {submission_path}")
-    
-    result = popcorn.submit(
-        kernel=req.kernel,
-        submission_path=submission_path,
-        mode=req.mode
-    )
-    
+
+    result = popcorn.submit(kernel=req.kernel, submission_path=submission_path, mode=req.mode)
+
     return BenchmarkResponse(
         passed=result.passed,
         score_us=result.score,
@@ -123,15 +123,27 @@ async def run_benchmark(req: BenchmarkRequest) -> BenchmarkResponse:
         elapsed_s=result.elapsed_s,
         error=result.error if not result.passed else None,
         stdout=result.stdout,
-        stderr=result.stderr
+        stderr=result.stderr,
     )
 
 
 @forge_router.get("/leaderboard")
-async def get_local_leaderboard(kernel: str = Query("gemm", enum=["gemm", "moe", "mla"])) -> list[dict[str, Any]]:
+async def get_local_leaderboard(
+    kernel: str = Query("gemm", enum=["gemm", "moe", "mla"]),
+) -> list[dict[str, Any]]:
     """Get local benchmark history (mocked for now)."""
     # In a real implementation, this would query SurrealDB for past BenchmarkResponse objects
     return [
-        {"timestamp": time.time() - 3600, "user": "mike-anderson", "score_us": 142.5, "passed": True},
-        {"timestamp": time.time() - 7200, "user": "mike-anderson", "score_us": 145.2, "passed": True},
+        {
+            "timestamp": time.time() - 3600,
+            "user": "mike-anderson",
+            "score_us": 142.5,
+            "passed": True,
+        },
+        {
+            "timestamp": time.time() - 7200,
+            "user": "mike-anderson",
+            "score_us": 145.2,
+            "passed": True,
+        },
     ]

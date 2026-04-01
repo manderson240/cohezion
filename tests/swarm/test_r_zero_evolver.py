@@ -18,13 +18,9 @@ class TestRZeroEvolver:
 
     @pytest.fixture
     def evolver(self, tmp_path):
-        with patch.dict(
-            "cohezion.swarm.r_zero_evolver.TRACK_REGISTRY",
-            {"test_track": {"prompt": "test prompt", "name": "Test Track"}},
-        ):
-            ev = RZeroEvolver(track_name="test_track", target_success_count=1)
-            ev.dataset_path = tmp_path / "test_submission.jsonl"
-            return ev
+        ev = RZeroEvolver(target_success_count=1)
+        ev.dataset_path = tmp_path / "test_submission.jsonl"
+        return ev
 
     @pytest.mark.fast
     @pytest.mark.asyncio
@@ -34,11 +30,9 @@ class TestRZeroEvolver:
         mock_mgr.execute_aligned.return_value = (
             True,
             {
-                "output": {
-                    "question": "Q",
-                    "options": ["A", "B"],
-                    "correct_answer": "Insufficient Information",
-                }
+                "question": "Q",
+                "options": ["A", "B"],
+                "correct_answer": "Insufficient Information",
             },
         )
 

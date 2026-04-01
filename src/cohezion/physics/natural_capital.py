@@ -214,8 +214,8 @@ class NaturalCapitalValuation:
 
 
 __all__ = [
+    "SEVENTH_GENERATION_HORIZON",
     "EcosystemServiceMetrics",
     "NaturalCapitalValuation",
     "SeventhGenerationProjection",
-    "SEVENTH_GENERATION_HORIZON",
 ]

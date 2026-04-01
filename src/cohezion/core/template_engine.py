@@ -244,7 +244,11 @@ class TemplateEngine:
         """
         class_name = _skill_name_to_class(spec.name) + "Agent"
         # Truncate domain for docstring (first sentence)
-        domain_short = spec.domain_expertise.split("\n")[0][:200] if spec.domain_expertise else "No domain specified."
+        domain_short = (
+            spec.domain_expertise.split("\n")[0][:200]
+            if spec.domain_expertise
+            else "No domain specified."
+        )
         # Escape any triple quotes in domain text
         domain_escaped = domain_short.replace('"""', '\\"\\"\\"')
         system_prompt = domain_escaped.replace('"', '\\"')
@@ -292,7 +296,11 @@ class {class_name}(BaseAgent):
             Python source code for the executable agent class.
         """
         class_name = _skill_name_to_class(spec.name) + "Agent"
-        domain_short = spec.domain_expertise.split("\n")[0][:200] if spec.domain_expertise else "No domain specified."
+        domain_short = (
+            spec.domain_expertise.split("\n")[0][:200]
+            if spec.domain_expertise
+            else "No domain specified."
+        )
         system_prompt = domain_short.replace('"', '\\"')
 
         # Pre-expand instructions into plan steps for the constant
