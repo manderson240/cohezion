@@ -15,6 +15,13 @@ from enum import Enum
 
 import numpy as np
 
+try:
+    import sympy as sp
+
+    _HAS_SYMPY = True
+except ImportError:
+    _HAS_SYMPY = False
+
 
 logger = logging.getLogger(__name__)
 
@@ -190,3 +197,85 @@ class HamiltonianDynamics:
         energy = -gauss + 0.1 * x * x  # Gaussian well + soft walls
         gradient = 2.0 * x * gauss / sigma_sq + 0.2 * x
         return energy, gradient
+
+    # ── SymPy symbolic verification ──────────────────────────────────
+
+    @staticmethod
+    def symbolic_potentials() -> dict:
+        """Return symbolic expressions for all potentials using SymPy.
+
+        Enables: auto-derived gradients, Maxima cross-verification,
+        and symbolic analysis (critical points, stability, Hessian).
+
+        Returns dict[name] → {V, grad_V, x, target, params}.
+        Requires SymPy (graceful no-op if not installed).
+        """
+        if not _HAS_SYMPY:
+            logger.warning("SymPy not installed — symbolic_potentials unavailable")
+            return {}
+
+        x, t = sp.symbols("x t", real=True)
+        a_sq = sp.Rational(9, 100)  # 0.09
+        sigma_sq = sp.Rational(1, 10)  # 0.1
+        k = sp.Integer(1)
+
+        potentials = {}
+
+        # Double well: V = (x-t)^2 * ((x-t)^2 - a^2)
+        dw_u = x - t
+        dw_V = dw_u**2 * (dw_u**2 - a_sq)
+        potentials["double_well"] = {
+            "V": dw_V,
+            "grad_V": sp.diff(dw_V, x),
+            "x": x, "target": t,
+            "critical_points": sp.solve(sp.diff(dw_V, x), x),
+        }
+
+        # Harmonic: V = k/2 * (x-t)^2
+        harm_V = k / 2 * (x - t) ** 2
+        potentials["harmonic"] = {
+            "V": harm_V,
+            "grad_V": sp.diff(harm_V, x),
+            "x": x, "target": t,
+            "critical_points": sp.solve(sp.diff(harm_V, x), x),
+        }
+
+        # HIHO well: V = -exp(-(x-t)^2/sigma^2) + 0.1*(x-t)^2
+        hiho_u = x - t
+        hiho_V = -sp.exp(-hiho_u**2 / sigma_sq) + sp.Rational(1, 10) * hiho_u**2
+        potentials["hiho_well"] = {
+            "V": hiho_V,
+            "grad_V": sp.diff(hiho_V, x),
+            "x": x, "target": t,
+            "critical_points": sp.solve(sp.diff(hiho_V, x), x),
+        }
+
+        return potentials
+
+    def verify_gradient(self, potential_name: str, test_point: float = 0.3) -> dict:
+        """Verify numerical gradient matches symbolic derivative at a point.
+
+        Returns dict with symbolic, numerical, and error values.
+        """
+        if not _HAS_SYMPY:
+            return {"error": "SymPy not installed"}
+
+        potentials = self.symbolic_potentials()
+        if potential_name not in potentials:
+            return {"error": f"Unknown potential: {potential_name}"}
+
+        p = potentials[potential_name]
+        sym_grad = float(p["grad_V"].subs([(p["x"], test_point), (p["target"], self.target)]))
+
+        z = np.array([test_point], dtype=np.float32)
+        _, num_grad = self._potential_fn(z)
+        num_val = float(num_grad[0])
+
+        return {
+            "potential": potential_name,
+            "test_point": test_point,
+            "symbolic_gradient": sym_grad,
+            "numerical_gradient": num_val,
+            "absolute_error": abs(sym_grad - num_val),
+            "match": abs(sym_grad - num_val) < 1e-5,
+        }
