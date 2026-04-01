@@ -1177,3 +1177,327 @@ Can we do additional research while we're waiting?
 ---
 
 Can we do addtionalr esearch while we're waiting?
+
+---
+
+<task-notification>
+<task-id>a921dec9ad1ea1c3a</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/b64da2bf-bc43-4e98-92b9-9ef978ee0301/tasks/a921dec9ad1ea1c3a.output</output-file>
+<status>completed</status>
+<summary>Agent "Research physics-grounded RL + safety" completed</summary>
+<result>## Summary: Cutting-Edge Research on Cohezion PPO Training Topics
+
+I found relevant recent research across all six topics. Here's the structured findings:
+
+---
+
+### 1. **Action Scale in Physics-Grounded RL**
+
+**Key Finding:** Action scaling through curriculum learning is a recognized optimization strategy in physics simulation RL. The research shows that agents benefit from progressively growing action spaces rather than fixed ranges.
+
+**Direct Connection to Your Results:** Your observation that PPO fails with large actions but succeeds with small actions aligns with literature on window scaling and adaptive sampling techniques that accelerate learning in high-dimensional continuous control. The physics tasks (cartpole, dexterous manipulation, legged locomotion) referenced in studies use deterministic policy gradient methods that, like your PPO implementation, require careful action space specification.
+
+**Sources:**
+- [Advising reinforcement learning toward scaling agents in continuous control environments with sparse rewards](https://www.sciencedirect.com/science/article/abs/pii/S0952197620300269)
+- [Learning in continuous action space for developing high dimensional potential energy models](https://www.nature.com/articles/s41467-021-27849-6)
+- [Physics control tasks with Deep Reinforcement Learning](https://blog.paperspace.com/physics-control-tasks-with-deep-reinforcement-learning/)
+- [Continuous Control With Deep Reinforcement Learning](https://neptune.ai/blog/continuous-control-with-deep-reinforcement-learning)
+
+---
+
+### 2. **Attractor Dynamics in RL Environments**
+
+**Key Finding:** Recent research (2021-2026) shows that:
+- RL spontaneously discovers hybrid attractor architectures that balance fixed-point stability with oscillatory flexibility
+- Dynamical systems frameworks (Lyapunov exponents, Lagrangian coherent structures) can analyze learned policy mechanisms
+- Ring attractors improve learning speed by encoding the action space explicitly
+
+**Direct Connection to Your Results:** Your HIHO attractor environment where random policy achieves 60% convergence is a recognized structure in the literature. The fact that natural dynamics guide toward a target is precisely what researchers study via attractor selection in nonlinear dynamics. Your 60% baseline suggests the attractor itself provides strong inductive bias—exactly what the literature predicts.
+
+**Sources:**
+- [Constrained Attractor Selection Using Deep Reinforcement Learning](https://journals.sagepub.com/doi/full/10.1177/1077546320930144)
+- [A Dynamical Systems Framework for Reinforcement Learning Safety and Robustness Verification](https://arxiv.org/html/2508.15588)
+- [Emergence of hybrid computational dynamics through reinforcement learning](https://arxiv.org/html/2510.11162)
+- [Spatial-Aware Decision-Making with Ring Attractors in Reinforcement Learning Systems](https://arxiv.org/html/2410.03119)
+
+---
+
+### 3. **Safety from Structure vs Safety from Reward**
+
+**Key Finding:** Recent research (2025-2026) distinguishes between:
+- **Reward-based safety:** Penalizing constraint violations in scalar reward functions (often insufficient for physics-hard constraints)
+- **Structural safety:** Embedding temporal logic, omega-regular constraints, and physical constraints directly into the policy architecture
+
+The research shows that safety-critical systems (power systems, robotics) succeed when constraints are structural, not reward-shaped.
+
+**Direct Connection to Your Results:** Your finding that "physics conservation laws prevent reward exploitation" maps directly to structural safety literature. Conservation of energy, momentum, and phase space structure in your Lagrangian environment are hard constraints that cannot be violated regardless of reward signals. This is precisely the argument for physics-grounded design: the structure itself is the safety mechanism.
+
+**Sources:**
+- [Detecting and Mitigating Reward Hacking in Reinforcement Learning Systems: A Comprehensive Empirical Study](https://arxiv.org/html/2507.05619v1)
+- [A Review of Safe Reinforcement Learning Methods for Modern Power Systems](https://arxiv.org/html/2407.00304v2)
+- [Reinforcement Learning with ω-Regular Objectives and Constraints](https://arxiv.org/abs/2511.19849)
+- [Reward hacking - Wikipedia](https://en.wikipedia.org/wiki/Reward_hacking)
+
+---
+
+### 4. **Marimo Notebooks for ML Research**
+
+**Key Finding:** Marimo (released ~2023, widely adopted 2025-2026) is a reactive Python notebook system used by Cloudflare, Shopify, BlackRock, and research labs. Key features:
+- Automatic dataflow dependency tracking (AST-based)
+- Git-friendly (stored as pure Python, not JSON)
+- Reactive execution (change one cell → dependent cells auto-update)
+- Deployable as scripts or apps
+
+**Direct Connection to Your Results:** For documenting PPO training experiments, marimo eliminates Jupyter's reproducibility pain. You could parametrize action scale, attractor stiffness, and network architecture in cells, then reactive updates propagate through metrics/plots automatically. Version control is trivial since marimo notebooks are Python text files.
+
+**Sources:**
+- [marimo | a next-generation Python notebook](https://marimo.io/)
+- [Python notebooks as dataflow graphs: reactive, reproducible, and reusable](https://marimo.io/blog/dataflow)
+- [Marimo Notebooks: Reactive Python for the AI Builder](https://medium.com/data-science-collective/marimo-notebooks-reactive-python-for-the-ai-builder-fbbd76d499fa)
+- [marimo as a Jupyter alternative](https://marimo.io/features/vs-jupyter-alternative)
+- [Marimo: A Reactive, Reproducible Notebook – Real Python](https://realpython.com/marimo-notebook/)
+
+---
+
+### 5. **Quarto + Python for Reproducible ML Papers**
+
+**Key Finding:** Quarto (2022-2026) is a multi-language literate programming framework supporting Python, R, Julia. For ML research:
+- Embed training code directly in paper (Python cells execute during render)
+- Auto-generate tables/figures from training runs
+- Parametrize reports (re-run entire analysis with different hyperparameters)
+- Output to HTML, PDF, Word, ePub
+
+**Direct Connection to Your Results:** You could write a Quarto document: "PPO in Lagrangian Attractors: Action Scale Sensitivity." Each section embeds the training code, hyperparameter sweep, and plots. Push new data → click "render" → paper regenerates with fresh results. This ensures reproducibility and eliminates manual copy-paste errors.
+
+**Sources:**
+- [Quarto](https://quarto.org/)
+- [Technical Writing and Publishing Data-Rich Articles with Quarto](https://towardsdatascience.com/technical-writing-and-publishing-data-rich-articles-with-quarto-d61a56bcaa64/)
+- [Reproducible publishing and literate programming with Quarto](https://csoneson.github.io/ReproduciblePublishing2024/IntroToQuarto/quarto.html)
+- [Working with Quarto](https://nbisweden.github.io/workshop-reproducible-research/pages/quarto.html)
+- [Reproducible Research with Quarto](https://acer.uic.edu/events/reproducible-research-with-r-markdown_12-8-2022/)
+
+---
+
+### 6. **Anthropic Safety Research (April 2026)**
+
+**Key Finding:** Anthropic's latest safety research (2026):
+- **Automated Alignment Agent (A3):** Framework for automatic mitigation of safety failures with minimal human intervention
+- **AuditBench:** 56-model benchmark with hidden behaviors for evaluating alignment auditing
+- **Claude safety performance:** Haiku 4.5 and Opus 4.6 show strong alignment across behavioral, reasoning, and internal state assessments
+- **AI Safety Fellowship:** New cohorts (May/July 2026) focusing on scalable oversight, adversarial robustness, AI control, model organisms, mechanistic interpretability
+
+**Direct Connection to Your Results:** The research on "behavioral patterns and propensities" in aligned models parallels your approach: you're studying how structural constraints in environments shape learned behavior. Anthropic's work on internal state validation aligns with your interest in interpretable PPO policies constrained by physics.
+
+**Sources:**
+- [Alignment Science Blog](https://alignment.anthropic.com/)
+- [Findings from a pilot Anthropic–OpenAI alignment evaluation exercise](https://openai.com/index/openai-anthropic-safety-evaluation/)
+- [Anthropic's Frontier Safety Roadmap](https://www.anthropic.com/responsible-scaling-policy/roadmap)
+- [Anthropic's Transparency Hub](https://www.anthropic.com/transparency)
+- [Anthropic Fellows Program for AI safety research: applications open for May & July 2026](https://alignment.anthropic.com/2025/anthropic-fellows-program-2026/)
+- [Claude Opus 4.6 Sabotage Risk Report](https://anthropic.com/claude-opus-4-6-risk-report)
+
+---
+
+## Cross-Cutting Insights
+
+1. **Action Scale Problem is Known:** Physics RL literature explicitly addresses action scaling via curriculum and adaptive techniques—your finding is reproducible and publishable.
+
+2. **Attractor Theory Validates Your Setup:** The 60% random baseline in HIHO is a feature, not a bug. Natural attractor dynamics provide structure that PPO can leverage.
+
+3. **Structural Safety is the Frontier:** Recent research shows physics constraints are more reliable than reward shaping for safety—your conservation law approach is aligned with 2025-2026 thinking.
+
+4. **Tooling (Marimo + Quarto) is Ready:** You have first-class reactive notebooks and reproducible paper generation. Combine them for a publication-ready workflow.
+
+5. **Anthropic's April 2026 Focus:** Alignment auditing, internal state validation, and behavioral characterization—all directly applicable to understanding why small-action PPO succeeds where large-action fails.
+
+Sources:
+- [Advising reinforcement learning toward scaling agents in continuous control environments with sparse rewards](https://www.sciencedirect.com/science/article/abs/pii/S0952197620300269)
+- [Learning in continuous action space for developing high dimensional potential energy models](https://www.nature.com/articles/s41467-021-27849-6)
+- [Physics control tasks with Deep Reinforcement Learning](https://blog.paperspace.com/physics-control-tasks-with-deep-reinforcement-learning/)
+- [Continuous Control With Deep Reinforcement Learning](https://neptune.ai/blog/continuous-control-with-deep-reinforcement-learning)
+- [Constrained Attractor Selection Using Deep Reinforcement Learning](https://journals.sagepub.com/doi/full/10.1177/1077546320930144)
+- [A Dynamical Systems Framework for Reinforcement Learning Safety and Robustness Verification](https://arxiv.org/html/2508.15588)
+- [Emergence of hybrid computational dynamics through reinforcement learning](https://arxiv.org/html/2510.11162)
+- [Spatial-Aware Decision-Making with Ring Attractors in Reinforcement Learning Systems](https://arxiv.org/html/2410.03119)
+- [Detecting and Mitigating Reward Hacking in Reinforcement Learning Systems](https://arxiv.org/html/2507.05619v1)
+- [A Review of Safe Reinforcement Learning Methods for Modern Power Systems](https://arxiv.org/html/2407.00304v2)
+- [Reinforcement Learning with ω-Regular Objectives and Constraints](https://arxiv.org/abs/2511.19849)
+- [Reward hacking - Wikipedia](https://en.wikipedia.org/wiki/Reward_hacking)
+- [marimo | a next-generation Python notebook](https://marimo.io/)
+- [Python notebooks as dataflow graphs: reactive, reproducible, and reusable](https://marimo.io/blog/dataflow)
+- [Marimo Notebooks: Reactive Python for the AI Builder](https://medium.com/data-science-collective/marimo-notebooks-reactive-python-for-the-ai-builder-fbbd76d499fa)
+- [marimo as a Jupyter alternative](https://marimo.io/features/vs-jupyter-alternative)
+- [Marimo: A Reactive, Reproducible Notebook – Real Python](https://realpython.com/marimo-notebook/)
+- [Quarto](https://quarto.org/)
+- [Technical Writing and Publishing Data-Rich Articles with Quarto](https://towardsdatascience.com/technical-writing-and-publishing-data-rich-articles-with-quarto-d61a56bcaa64/)
+- [Reproducible publishing and literate programming with Quarto](https://csoneson.github.io/ReproduciblePublishing2024/IntroToQuarto/quarto.html)
+- [Working with Quarto](https://nbisweden.github.io/workshop-reproducible-research/pages/quarto.html)
+- [Alignment Science Blog](https://alignment.anthropic.com/)
+- [Findings from a pilot Anthropic–OpenAI alignment evaluation exercise](https://openai.com/index/openai-anthropic-safety-evaluation/)
+- [Anthropic's Frontier Safety Roadmap](https://www.anthropic.com/responsible-scaling-policy/roadmap)
+- [Anthropic's Transparency Hub](https://www.anthropic.com/transparency)
+- [Anthropic Fellows Program for AI safety research: applications open for May & July 2026](https://alignment.anthropic.com/2025/anthropic-fellows-program-2026/)
+- [Claude Opus 4.6 Sabotage Risk Report](https://anthropic.com/claude-opus-4-6-risk-report)</result>
+<usage><total_tokens>48197</total_tokens><tool_uses>6</tool_uses><duration_ms>44458</duration_ms></usage>
+</task-notification>
+Full transcript available at: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/b64da2bf-bc43-4e98-92b9-9ef978ee0301/tasks/a921dec9ad1ea1c3a.output
+
+---
+
+<task-notification>
+<task-id>a7509fa8f1f4505e3</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/b64da2bf-bc43-4e98-92b9-9ef978ee0301/tasks/a7509fa8f1f4505e3.output</output-file>
+<status>completed</status>
+<summary>Agent "Research compound AI self-improvement" completed</summary>
+<result>Excellent. Here's a comprehensive summary of the latest research on self-improving AI systems and compound engineering, organized by topic:
+
+---
+
+## 1. Self-Improving Training Environments
+
+**Key Finding**: The feedback loop where training diagnostics feed back into reward design is validated by 2026 research.
+
+**Top Papers**:
+- [Self-Improving AI Agents: RL and Continual Learning (Technology.org, 2026)](https://www.technology.org/2026/03/02/self-improving-ai-agents-reinforcement-continual-learning/) - Overview of self-improving frameworks in 2026
+- [Experiential Reflective Learning for Self-Improving LLM Agents (arXiv 2603.24639)](https://arxiv.org/html/2603.24639) - Agents accumulate experiences and reflect on success/failure patterns to generate structured heuristics
+- [Toward Self-Evolving Systems of LLM Agents through Exploration and Iterative Feedback (OpenReview)](https://openreview.net/forum?id=uO3gGxzu8k) - Closed-loop data generation where agents evaluate peer performance
+- [Agent-R1: Training Powerful LLM Agents with End-to-End Reinforcement Learning (arXiv 2511.14460v1)](https://arxiv.org/html/2511.14460v1) - End-to-end RL for autonomous agents
+- [Reinforcement Learning for Self-Improving Agent with Skill Library (arXiv 2512.17102)](https://arxiv.org/html/2512.17102) - Tool-using agents with structured skill libraries
+
+**Cohezion Connection**: Your compound loop (ExecutionOrchestrator → RetrospectionEngine → SkillRefiner → SkillConsensusVoter) directly implements this pattern. The "skill library" approach matches Cohezion's 178+ PRIME skill definitions that improve iteratively.
+
+---
+
+## 2. Experiment Tracking for RL with SurrealDB
+
+**Key Finding**: SurrealDB is validated as a multi-model database for AI-intensive applications, with graph traversal, vector search, and real-time capabilities.
+
+**Top Resources**:
+- [SurrealDB: The context layer for AI agents (surrealdb.com)](https://surrealdb.com) - Official positioning as AI context layer
+- [Using SurrealDB as a Graph Database (surrealdb.com/docs)](https://surrealdb.com/docs/surrealdb/models/graph) - Graph model documentation
+- [Enhancing Retrieval-Augmented Generation with SurrealDB (Blog)](https://surrealdb.com/blog/enhancing-retrieval-augmented-generation-with-surrealdb) - GraphRAG patterns
+- [Data Analysis Using Graph Traversal, Recursion, and Shortest Path (SurrealDB Blog)](https://surrealdb.com/blog/data-analysis-using-graph-traversal-recursion-and-shortest-path) - Advanced query patterns
+
+**Cohezion Connection**: Your SurrealDB integration (SessionPersistence, MetricsCollector) is perfectly aligned with this research. The graph capabilities enable JourneyTracker checkpoint storage and experiment relationship tracking that pure key-value stores cannot provide.
+
+---
+
+## 3. Literate Programming & Observable ML Notebooks
+
+**Key Finding**: Observable notebooks and literate programming are used in ML contexts, but no single "canonical" paper combines all four elements (Observable + ML paper + literate programming + RL).
+
+**Top Resources**:
+- [Literate Programming Mode Forum Discussion (Observable)](https://talk.observablehq.com/t/literate-programming-mode/221) - Community interest in Observable literate mode
+- [RL Labs Notebooks (GitHub)](https://github.com/osigaud/rl_labs_notebooks) - Notebook-based RL tutorials
+- [Programmatically Interpretable Reinforcement Learning (MLPRISE, Verma et al. 2018)](https://proceedings.mlr.press/v80/verma18a/verma18a.pdf) - RL with interpretability focus
+- [POPGym: Benchmarking Partially Observable Reinforcement Learning (arXiv 2303.01859)](https://arxiv.org/abs/2303.01859) - 15 partially observable environments + 13 memory model baselines
+
+**Cohezion Connection**: Your Genesis UI combines this vision partially (8-component catalog, declarative experience scripts). The gap Cohezion can fill: Observable + Marimo + Quarto integration for reactive skill development notebooks where reward engineering happens live alongside code execution.
+
+---
+
+## 4. Multi-Agent RL Scaling & Cooperative Learning
+
+**Key Finding**: MAPPO (Multi-Agent PPO) with centralized training and decentralized execution is the validated scaling pattern for cooperative MARL.
+
+**Top Papers**:
+- [Multi-Agent Reinforcement Learning for Resources Allocation Optimization (Springer, 2025)](https://link.springer.com/article/10.1007/s10462-025-11340-5) - MARL survey with decentralized training insights
+- [LLM Collaboration With Multi-Agent Reinforcement Learning (arXiv 2508.04652v1)](https://arxiv.org/html/2508.04652v1) - Multi-agent LLM cooperation patterns
+- [Multi-Agent RL Guide: Cooperative and Competitive Learning (TildAlice)](https://tildalice.io/multi-agent-reinforcement-learning-guide/) - Comparative patterns
+- [Gymnasium: A Standard Interface for Reinforcement Learning Environments (arXiv 2407.17032v4)](https://arxiv.org/html/2407.17032v4) - Gymnasium ecosystem paper
+- [Robust Gymnasium: A Unified Modular Benchmark (arXiv 2502.19652v1)](https://arxiv.org/html/2502.19652v1) - Robustness benchmarking
+
+**Cohezion Connection**: Your SwarmEnv (multi-agent gauge coupling) uses this pattern. Your TeamOrchestrator with ExecutionOrchestrator implements centralized coordination. Research validates: use MAPPO-style value function sharing across agents, which your expert domain lattice (Architect, Engineer, Biologist agents) could leverage for faster convergence.
+
+---
+
+## 5. Custom Gymnasium Environment Registration
+
+**Key Finding**: The registry pattern is well-documented. Custom environments follow: (namespace)/(env_name)-v(version).
+
+**Top Resources**:
+- [Create a Custom Environment (Gymnasium Docs)](https://gymnasium.farama.org/introduction/create_custom_env/) - Official how-to
+- [Make and Register (Gymnasium Docs)](https://gymnasium.farama.org/api/registry/) - Registry API reference
+- [Make Your Own Custom Environment (Gymnasium Tutorials)](https://gymnasium.farama.org/tutorials/gymnasium_basics/environment_creation/) - Step-by-step guide
+- [Safety-Gymnasium (PyPI)](https://pypi.org/project/safety-gymnasium/) - Example published custom environment with 20K+ weekly downloads
+- [Gymnasium-Robotics (PyPI)](https://pypi.org/project/gymnasium-robotics/) - MuJoCo robotics environments (proven pattern)
+
+**Cohezion Connection**: Your ManifoldEnv and SwarmEnv need registration as community packages. Pattern to follow: `cohezion-environments` on PyPI with `/Cohezion/ManifoldEnv-v0` and `/Cohezion/SwarmEnv-v0` namespacing. Safety-Gymnasium's approach (unified safety-enhanced benchmark) mirrors your vision for domain-organized environments.
+
+---
+
+## 6. Claude Code Autonomous Development (Overnight Work)
+
+**Key Finding**: Claude Opus 4.6 achieves ~14.5 hour time horizon at 50% task completion for unattended work. Task scheduling (`/loop` for recurring, `/schedule` for one-time) enables true autonomous overnight execution.
+
+**Top Resources**:
+- [Long-Running Claude for Scientific Computing (Anthropic Research)](https://www.anthropic.com/research/long-running-Claude) - Extended time horizon research
+- [Effective Harnesses for Long-Running Agents (Anthropic Engineering)](https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents) - Production patterns
+- [Claude Code Overview (Code Docs)](https://code.claude.com/docs/en/overview) - Official documentation
+- [Claude Code Handbook (FreeCodeCamp)](https://www.freecodecamp.org/news/claude-code-handbook/) - Professional guide
+- [Claude Code Scheduled Tasks & Autonomous Agents 2026 (PopularAITools)](https://popularaitools.ai/blog/claude-code-scheduled-tasks-autonomous-agents-2026) - 2026-specific features
+
+**Cohezion Connection**: Your overnight compound cycles (driven by compound_cycle.py) align perfectly with this research. Key takeaway: Claude Code Channels (Telegram/Discord messaging) + task scheduling unlocks asynchronous skill refinement loops that continue while you sleep. Your PRIME skill definitions are ripe for overnight SkillRefiner execution.
+
+---
+
+## Cross-Cutting Insights for Compound Engineering
+
+| Research Area | 2026 Validation | Cohezion Implementation |
+|---|---|---|
+| **Feedback loops** | Experiential Reflective Learning (ERL) proves iterative feedback improves agents | CompoundExecutor's 11-step pipeline with RetrospectionEngine |
+| **Multi-model persistence** | SurrealDB graph + vector capabilities validated for AI context | SessionPersistence with JourneyTracker checkpoint graph |
+| **Cooperative scaling** | MAPPO decentralized training + centralized value proven for MARL | TeamOrchestrator + expert domain lattice routing |
+| **Custom RL envs** | Safety-Gymnasium and Gymnasium-Robotics patterns established | ManifoldEnv/SwarmEnv ready for PyPI registration |
+| **Autonomous execution** | Claude Opus 4.6 achieves 14.5hr horizon; /schedule enables overnight runs | compound_cycle.py + PRIME skill iteration while idle |
+| **Observable development** | Literate programming + notebooks research active; no canonical solution yet | **Gap**: Opportunity to build Observable + Marimo + Quarto bridge for skill development |
+
+---
+
+## Recommended Next Steps (Ranked by Impact)
+
+1. **Publish custom environments** (2-3 days): Register ManifoldEnv and SwarmEnv on PyPI under `cohezion-environments` namespace, following Safety-Gymnasium pattern.
+2. **Enable overnight skill refinement** (1-2 days): Integrate Claude Code `/schedule` with compound_cycle.py to enable true autonomous overnight SkillRefiner runs.
+3. **Validate MAPPO scaling** (3-5 days): Add centralized value function to SwarmEnv agents (currently fully decentralized); benchmark convergence speed vs. independent training.
+4. **Literate skill notebooks** (5-10 days): Build Observable + Marimo bridge where reward engineering happens interactively alongside PRIME skill development.
+5. **SurrealDB graph optimization** (2-3 days): Leverage graph traversal for experiment relationship tracking in MetricsCollector (currently JSONL-based).
+
+---
+
+Sources:
+- [Self-Improving AI Agents: RL and Continual Learning](https://www.technology.org/2026/03/02/self-improving-ai-agents-reinforcement-continual-learning/)
+- [Experiential Reflective Learning for Self-Improving LLM Agents](https://arxiv.org/html/2603.24639)
+- [Toward Self-Evolving Systems of LLM Agents through Exploration and Iterative Feedback](https://openreview.net/forum?id=uO3gGxzu8k)
+- [Agent-R1: Training Powerful LLM Agents with End-to-End Reinforcement Learning](https://arxiv.org/html/2511.14460v1)
+- [Reinforcement Learning for Self-Improving Agent with Skill Library](https://arxiv.org/html/2512.17102)
+- [SurrealDB: The context layer for AI agents](https://surrealdb.com)
+- [Using SurrealDB as a Graph Database](https://surrealdb.com/docs/surrealdb/models/graph)
+- [Enhancing Retrieval-Augmented Generation with SurrealDB](https://surrealdb.com/blog/enhancing-retrieval-augmented-generation-with-surrealdb)
+- [Multi-Agent Reinforcement Learning for Resources Allocation Optimization](https://link.springer.com/article/10.1007/s10462-025-11340-5)
+- [LLM Collaboration With Multi-Agent Reinforcement Learning](https://arxiv.org/html/2508.04652v1)
+- [Gymnasium: A Standard Interface for Reinforcement Learning Environments](https://arxiv.org/html/2407.17032v4)
+- [Robust Gymnasium: A Unified Modular Benchmark](https://arxiv.org/html/2502.19652v1)
+- [Create a Custom Environment - Gymnasium Documentation](https://gymnasium.farama.org/introduction/create_custom_env/)
+- [Make and Register - Gymnasium Documentation](https://gymnasium.farama.org/api/registry/)
+- [Safety-Gymnasium (PyPI)](https://pypi.org/project/safety-gymnasium/)
+- [Gymnasium-Robotics (PyPI)](https://pypi.org/project/gymnasium-robotics/)
+- [Long-Running Claude for Scientific Computing](https://www.anthropic.com/research/long-running-Claude)
+- [Effective Harnesses for Long-Running Agents](https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents)
+- [Claude Code Overview](https://code.claude.com/docs/en/overview)
+- [Claude Code Handbook](https://www.freecodecamp.org/news/claude-code-handbook/)</result>
+<usage><total_tokens>48012</total_tokens><tool_uses>6</tool_uses><duration_ms>44775</duration_ms></usage>
+</task-notification>
+Full transcript available at: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/b64da2bf-bc43-4e98-92b9-9ef978ee0301/tasks/a7509fa8f1f4505e3.output
+
+---
+
+<task-notification>
+<task-id>bi726nrtz</task-id>
+<tool-use-id>toolu_018fmVi1vdvdNe2ddnvBF7iM</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/b64da2bf-bc43-4e98-92b9-9ef978ee0301/tasks/bi726nrtz.output</output-file>
+<status>completed</status>
+<summary>Background command "100K training with small actions + error handling" completed (exit code 0)</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/b64da2bf-bc43-4e98-92b9-9ef978ee0301/tasks/bi726nrtz.output
