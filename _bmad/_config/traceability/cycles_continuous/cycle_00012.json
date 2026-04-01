@@ -1,0 +1,27 @@
+{
+  "cycle": 12,
+  "timestamp": "2026-03-31T22:29:55.243629",
+  "work": {
+    "item": {
+      "id": "RUF059_222932",
+      "type": "lint_batch",
+      "category": "RUF059",
+      "description": "Fix unused-variables (1105 errors)",
+      "command": [
+        "ruff",
+        "check",
+        ".",
+        "--select",
+        "RUF059",
+        "--fix"
+      ],
+      "estimated_count": 1105,
+      "priority": "medium"
+    },
+    "result": {
+      "status": "partial",
+      "returncode": 1,
+      "stdout": "invalid-syntax: Expected `except` or `finally` after `try` block\n   --> _bmad/_config/traceability/cohezion/cohezion_traceability_engine.py:278:9\n    |\n276 |                 coverage.append(cov)\n277 |\n278 |         self.test_coverage = coverage\n    |         ^\n279 |         return coverage\n    |\n\nRUF059 Unpacked variable `stderr` is never used\n   --> _bmad/_config/traceability/repo_health/repo_health_engine.py:214:29\n    |\n213 |         # Run mypy\n214 |         returncode, stdout, stderr = self.run_command(\n    |                             ^^^^^^\n215 |             [\"uv\", \"run\", \"mypy\", \"src/cohezion\", \"--no-error-summary\"]\n216 |         )\n    |\nhelp: Prefix it with an underscore or any other dummy variable pattern\n\nRUF059 Unpacked variable `returncode` is never used\n   --> _bmad/_config/traceability/repo_health/repo_health_engine.py:251:13\n    |\n250 |             # Get coverage (slow - optional)\n251 |             returncode, stdout, stderr = self.run_command(\n    |             ^^^^^^^"
+    }
+  }
+}
