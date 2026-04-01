@@ -1,0 +1,39 @@
+{
+  "cli_version": "0.5.1",
+  "checkpoint_id": "ebd58830aaba",
+  "session_id": "93b66342-a8a3-4e87-b0be-4c0dcf07fa6a",
+  "strategy": "manual-commit",
+  "created_at": "2026-04-01T00:10:18.100464383Z",
+  "branch": "main",
+  "checkpoints_count": 0,
+  "files_touched": [
+    "cloud-vault-mcp/scripts/sync_graphrag_to_neurons.py",
+    "cloud-vault-mcp/src/mcp_server/graph_writer.py",
+    "cloud-vault-mcp/tests/test_graph_writer.py",
+    "tests/compound/test_capability_matrix.py",
+    "tests/compound/test_skill_health_tracker.py"
+  ],
+  "agent": "Claude Code",
+  "turn_id": "34b4da1d1976",
+  "checkpoint_transcript_start": 7439,
+  "transcript_lines_at_start": 7439,
+  "token_usage": {
+    "input_tokens": 0,
+    "cache_creation_tokens": 0,
+    "cache_read_tokens": 0,
+    "output_tokens": 0,
+    "api_call_count": 0
+  },
+  "session_metrics": {
+    "turn_count": 2
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-04-01T00:10:14.303346196Z",
+    "agent_lines": 9,
+    "human_added": 202044,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 202053,
+    "agent_percentage": 0.004454276848153702
+  }
+}

@@ -486,6 +486,12 @@
       "transcript": "/eb/d58830aaba/2/full.jsonl",
       "content_hash": "/eb/d58830aaba/2/content_hash.txt",
       "prompt": ""
+    },
+    {
+      "metadata": "/eb/d58830aaba/3/metadata.json",
+      "transcript": "/eb/d58830aaba/3/full.jsonl",
+      "content_hash": "/eb/d58830aaba/3/content_hash.txt",
+      "prompt": "/eb/d58830aaba/3/prompt.txt"
     }
   ],
   "token_usage": {
