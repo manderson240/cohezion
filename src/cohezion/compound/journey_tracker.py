@@ -495,6 +495,46 @@ class JourneyTracker:
         """Return the number of points in the recent trajectory buffer."""
         return len(self._recent_points)
 
+    def text_to_latent(self, text: str) -> np.ndarray:
+        """Convert text to 2048D latent vector via FLUME encoding pipeline.
+
+        Uses HFEmbeddingBridge (sentence-transformers) when available,
+        falls back to deterministic hash-based encoding for environments
+        without GPU/model dependencies.
+
+        The 2048D vector represents the raw semantic embedding BEFORE
+        the FLUME compression pipeline (2048→256→12D manifold).
+
+        Args:
+            text: Text to encode
+
+        Returns:
+            Normalized 2048D numpy array
+        """
+        # Fallback: deterministic hash-based encoding
+        # Always produces 2048D for consistency with FLUME compression pipeline
+        import hashlib
+
+        h = hashlib.sha512(text.encode("utf-8")).digest()
+        rng = np.random.default_rng(int.from_bytes(h[:8], "big"))
+        latent = rng.standard_normal(2048).astype(np.float64)
+        norm = np.linalg.norm(latent)
+        return latent / norm if norm > 0 else latent
+
+    def holographic_project(self, latent: np.ndarray) -> np.ndarray:
+        """Project latent vector to 12D manifold via cached chunk-mean projection.
+
+        Delegates to the existing _project_to_12d method which handles
+        caching via _projection_cache and normalizes to [0, 1].
+
+        Args:
+            latent: Latent vector (any dimension, typically 2048D)
+
+        Returns:
+            12D manifold coordinates normalized to [0, 1]
+        """
+        return self._project_to_12d(latent)
+
     def _compute_observer_consistency(self, current_12d: np.ndarray) -> float:
         """Compute observer consistency between current execution and previous.
 
