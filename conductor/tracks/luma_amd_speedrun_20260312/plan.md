@@ -29,5 +29,13 @@
     - [~] Sub-task: Deploy `submission_breakthrough_gemm.py` (Stream-aware direct dispatch).
 - [~] Task: Concurrently execute the Autoresearch Ralph Loop (`k-search` tree) to evolve the "Legit Compute" fallbacks.
 - [~] Task: Persist learnings to Obsidian Vault and SurrealDB.
+
+## Phase 5: Deep Saturation (Runner Maximization)
+- [ ] Task: Implement full 304 CU occupancy strategies.
+    - [ ] Sub-task: Deploy MLA Multi-Split-K (608+ workgroups) for 100% saturation.
+    - [ ] Sub-task: Deploy MoE Expert-Parallel Fusion (multi-workgroup per expert).
+    - [ ] Sub-task: Deploy GEMM Group-M Swizzling & Adaptive Split-K for low M shapes.
+- [ ] Task: Implement XCD-Aware Scheduling for L2 locality across 8 chiplets.
+- [ ] Task: Deepen Instruction-Level Pipelining (MFMA throughput via sched_barrier/s_setprio).
 - [ ] Task: Conductor - Final Submission & Verification (Protocol in workflow.md)
 
