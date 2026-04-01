@@ -1,0 +1,24 @@
+{
+  "timestamp": "2026-04-01T17:42:46.188036",
+  "test_type": "adversarial",
+  "summary": {
+    "total_tests": 19,
+    "passed": 16,
+    "failed": 3,
+    "pass_rate": 0.8421052631578947,
+    "adversarial_score": "NEEDS_IMPROVEMENT"
+  },
+  "perspectives_tested": [
+    "Correctness",
+    "Robustness",
+    "Security",
+    "Performance",
+    "Failures"
+  ],
+  "recommendations": [
+    "Several edge cases need attention",
+    "Review all failed tests before hackathon",
+    "Continue monitoring in production",
+    "Add circuit-specific tests once challenge is known"
+  ]
+}

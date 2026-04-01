@@ -15,24 +15,25 @@ import json
 from pathlib import Path
 from datetime import datetime
 
-# Breakthrough variants to evolve
+# Breakthrough variants to evolve (Updated with latest bests)
 VARIANTS = {
     "mixed-mla": {
         "path": "luma_speedrun/amd-mixed-mla/submission_breakthrough_mla.py",
-        "best_time_us": 67.0,  # Current best
-        "target_us": 33.0      # Leader
+        "best_time_us": 69.745,  # manderson240 Best
+        "target_us": 12.685      # Rank 1
     },
     "moe-mxfp4": {
         "path": "luma_speedrun/amd-moe-mxfp4/submission_breakthrough_moe.py",
-        "best_time_us": 154.0,
-        "target_us": 109.8
+        "best_time_us": 154.183, # manderson240 Best
+        "target_us": 107.345     # Rank 1
     },
     "mxfp4-mm": {
         "path": "luma_speedrun/amd-mxfp4-mm/submission_breakthrough_gemm.py",
-        "best_time_us": 13.4,
-        "target_us": 4.3
+        "best_time_us": 13.425,  # manderson240 Best
+        "target_us": 1.000       # Rank 1 (Statistical Ghost Target)
     }
 }
+
 
 RATE_LIMIT = 610  # 10 minutes + 10s buffer
 STATE_FILE = Path("luma_speedrun/evolution_state.json")

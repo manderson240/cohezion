@@ -2,6 +2,8 @@ from pathlib import Path
 
 import pytest
 
+pytest.importorskip("trackio", reason="trackio not installed")
+
 from cohezion.core.persistence.surreal_client import SurrealClient
 from cohezion.simulation.enhanced_simulator import EnhancedSimulator
 from scripts.jobs.elegance_engine import manifest_elegance
