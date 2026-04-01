@@ -104,6 +104,7 @@ class ManifoldEnv(gym.Env):
         hiho_stability_window: int = 10,
         reward_coherence_weight: float = 1.0,
         reward_energy_weight: float = 0.1,
+        reward_mode: str = "curriculum",
         render_mode: str | None = None,
         seed: int | None = None,
         dynamics_engine: str = "lagrangian",
@@ -118,6 +119,7 @@ class ManifoldEnv(gym.Env):
         self.hiho_stability_window = hiho_stability_window
         self.reward_coherence_weight = reward_coherence_weight
         self.reward_energy_weight = reward_energy_weight
+        self.reward_mode = reward_mode  # "curriculum" (default) or "dense"
         self.render_mode = render_mode
 
         # Observation: 12D state + 3D Bloch + 4D fiber base = 19D
@@ -308,37 +310,45 @@ class ManifoldEnv(gym.Env):
         return float(np.mean(np.abs(brane_dims - 0.5)))
 
     def _compute_reward(self, coherence: float) -> float:
-        """Compute curriculum reward with 3 stages.
+        """Compute reward based on selected mode.
 
-        Stage 1 (reach HIHO band): Reward coherence improvement toward [0.4, 0.6]
-        Stage 2 (maintain stability): Reward staying in HIHO band + low energy
-        Stage 3 (energy efficiency): Reward minimizing energy while maintaining HIHO
+        Modes:
+            "curriculum" (default): 3-stage reach→maintain→optimize (L233)
+            "dense": Simple proximity + coherence, works better with SAC entropy
 
-        The curriculum automatically advances based on hiho_streak.
+        The curriculum mode automatically advances based on hiho_streak.
         """
         deviation = self._compute_hiho_deviation()
         in_hiho_band = deviation < 0.1  # [0.4, 0.6] band
         energy = self._potential.evaluate(self._position.astype(np.float64))
 
-        # Base reward: proximity to HIHO (always active, prevents drift)
-        # This is the key insight: reward absolute proximity, not just improvement
-        proximity_reward = -deviation * 0.5  # Closer to HIHO = less penalty
-
-        # Stage detection based on streak
-        if self._hiho_streak < 5:
-            # Stage 1: Reach HIHO band — proximity + coherence gain
-            coherence_gain = coherence - self._prev_coherence
-            reward = proximity_reward + coherence_gain * self.reward_coherence_weight
+        if self.reward_mode == "dense":
+            # Dense mode: simple, stable reward signal for entropy-based algorithms
+            # Works better with SAC because it doesn't create complex curriculum
+            # transitions that confuse the Q-function during early training
+            reward = -deviation  # Direct proximity signal
+            reward += coherence * 0.3  # Coherence bonus
+            reward -= abs(energy) * self.reward_energy_weight  # Energy penalty
             if in_hiho_band:
-                reward += 0.3  # First-entry bonus
-        elif self._hiho_streak < 20:
-            # Stage 2: Maintain stability — reward staying in band + low energy
-            reward = proximity_reward + (0.1 if in_hiho_band else -0.05)
-            reward -= abs(energy) * self.reward_energy_weight * 0.5
+                reward += 0.2  # Band bonus
         else:
-            # Stage 3: Energy efficiency — minimize energy while maintaining
-            reward = proximity_reward + (0.05 if in_hiho_band else -0.1)
-            reward -= abs(energy) * self.reward_energy_weight * 2.0
+            # Curriculum mode (default): 3-stage reach→maintain→optimize
+            proximity_reward = -deviation * 0.5
+
+            if self._hiho_streak < 5:
+                # Stage 1: Reach HIHO band
+                coherence_gain = coherence - self._prev_coherence
+                reward = proximity_reward + coherence_gain * self.reward_coherence_weight
+                if in_hiho_band:
+                    reward += 0.3
+            elif self._hiho_streak < 20:
+                # Stage 2: Maintain stability
+                reward = proximity_reward + (0.1 if in_hiho_band else -0.05)
+                reward -= abs(energy) * self.reward_energy_weight * 0.5
+            else:
+                # Stage 3: Energy efficiency
+                reward = proximity_reward + (0.05 if in_hiho_band else -0.1)
+                reward -= abs(energy) * self.reward_energy_weight * 2.0
 
         # Track episode statistics
         self._episode_coherence_sum += coherence
