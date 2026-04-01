@@ -2182,3 +2182,7 @@ Full transcript available at: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/
 ---
 
 Proceed
+
+---
+
+Continue with all of the above
