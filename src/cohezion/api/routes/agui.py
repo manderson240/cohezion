@@ -17,8 +17,8 @@ from fastapi import APIRouter
 from fastapi.responses import StreamingResponse
 
 from cohezion.api.agui_events import (
-    AGUIEventType,
     AGUIEvent,
+    AGUIEventType,
     CustomEvent,
     RunFinishedEvent,
     RunStartedEvent,
@@ -27,6 +27,7 @@ from cohezion.api.agui_events import (
     phase_transition_event,
     universe_tick_event,
 )
+
 
 agui_router = APIRouter(tags=["ag-ui"])
 
