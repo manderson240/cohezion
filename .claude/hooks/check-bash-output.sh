@@ -3,8 +3,6 @@
 # Detects common silent failure patterns in Bash output.
 # Non-blocking: always exits 0.
 
-set -euo pipefail
-
 INPUT=$(cat)
 
 # Parse exit code and stderr from tool result

@@ -3,8 +3,6 @@
 # Warns when creating NEW files in src/ (possible infrastructure drift).
 # Non-blocking: always exits 0.
 
-set -euo pipefail
-
 INPUT=$(cat)
 
 FILE=$(echo "$INPUT" | python3 -c "

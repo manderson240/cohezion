@@ -5,8 +5,9 @@ import asyncio
 import json
 import subprocess
 import sys
-from datetime import datetime, timedelta
+from datetime import datetime
 from pathlib import Path
+
 
 TARGET = datetime(2026, 4, 1, 7, 0)  # 7 AM EST April 1
 PID_FILE = Path("/tmp/autonomous_watchdog.pid")
