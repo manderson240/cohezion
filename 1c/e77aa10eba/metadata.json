@@ -3,7 +3,7 @@
   "checkpoint_id": "1ce77aa10eba",
   "strategy": "manual-commit",
   "branch": "main",
-  "checkpoints_count": 0,
+  "checkpoints_count": 2,
   "files_touched": [
     ".claude/skills/amd-load-inline-hip-kernel/SKILL.md",
     "_bmad/_config/traceability/cycles_continuous/cycle_00001.json",
@@ -83,13 +83,19 @@
       "transcript": "/1c/e77aa10eba/0/full.jsonl",
       "content_hash": "/1c/e77aa10eba/0/content_hash.txt",
       "prompt": ""
+    },
+    {
+      "metadata": "/1c/e77aa10eba/1/metadata.json",
+      "transcript": "/1c/e77aa10eba/1/full.jsonl",
+      "content_hash": "/1c/e77aa10eba/1/content_hash.txt",
+      "prompt": "/1c/e77aa10eba/1/prompt.txt"
     }
   ],
   "token_usage": {
-    "input_tokens": 0,
-    "cache_creation_tokens": 0,
-    "cache_read_tokens": 0,
-    "output_tokens": 0,
-    "api_call_count": 0
+    "input_tokens": 33992,
+    "cache_creation_tokens": 12782510,
+    "cache_read_tokens": 365139312,
+    "output_tokens": 430978,
+    "api_call_count": 1161
   }
 }
