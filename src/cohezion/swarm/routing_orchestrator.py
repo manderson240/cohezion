@@ -18,6 +18,7 @@ import logging
 from dataclasses import dataclass
 from typing import Any
 
+
 logger = logging.getLogger(__name__)
 
 
@@ -113,11 +114,15 @@ class RoutingOrchestrator:
         router = self._get_cost_router()
         if router is not None:
             try:
-                from cohezion.swarm.cost_aware_router import QueryComplexity
-
                 complexity = router.complexity_analyzer.analyze(task_description)
                 return router._compute_routing_confidence(model, complexity)
             except Exception:
                 pass
 
         return 0.5  # Default moderate confidence
+
+
+__all__ = [
+    "RoutingOrchestrator",
+    "UnifiedRoutingDecision",
+]

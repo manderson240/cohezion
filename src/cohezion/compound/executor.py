@@ -468,7 +468,7 @@ class CompoundExecutor(CompoundContextMixin):
                     "tokens_saved": template_match.get("tokens_saved", 0),
                 },
                 duration_seconds=time.time() - start_seconds,
-                vault_experiment_path=None,
+                vault_experiment_path="",
                 token_metrics={"template_hit": True, "tokens_used": 0},
             )
 
@@ -604,7 +604,7 @@ class CompoundExecutor(CompoundContextMixin):
                 token_metrics=token_metrics,
             )
         except Exception:
-            pass  # Non-blocking: trace logging failure is not critical
+            logger.debug("Execution trace logging failed (non-blocking)", exc_info=True)
 
         # Step 5: Detect anomalies (non-blocking)
         decision_paths = []
@@ -1140,11 +1140,22 @@ class CompoundExecutor(CompoundContextMixin):
             from cohezion.vibe.orchestrator import VibeOrchestrator
 
             orchestrator = VibeOrchestrator()
-            # Compile without executing — return spec for inspection
             import asyncio
 
-            spec = asyncio.run(orchestrator.vibe(nl_text, execute=False))
-            return spec
+            # Handle both sync and async contexts
+            try:
+                loop = asyncio.get_running_loop()
+                # Already in async context — create task
+                import concurrent.futures
+
+                with concurrent.futures.ThreadPoolExecutor() as pool:
+                    spec = loop.run_in_executor(
+                        pool, lambda: asyncio.run(orchestrator.vibe(nl_text, execute=False))
+                    )
+                return spec
+            except RuntimeError:
+                # No running loop — safe to use asyncio.run()
+                return asyncio.run(orchestrator.vibe(nl_text, execute=False))
         except ImportError:
             logger.debug("vibe/ module not available for NL compilation")
             return None
