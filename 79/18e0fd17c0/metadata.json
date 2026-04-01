@@ -3,8 +3,9 @@
   "checkpoint_id": "7918e0fd17c0",
   "strategy": "manual-commit",
   "branch": "main",
-  "checkpoints_count": 2,
+  "checkpoints_count": 8,
   "files_touched": [
+    "README.md",
     "src/cohezion/agentjet/embeddings.py",
     "src/cohezion/compound/daemon/workflow_initializer.py",
     "src/cohezion/concurrency/safe_singleton.py",
@@ -12,6 +13,8 @@
     "src/cohezion/core/instruction_expander.py",
     "src/cohezion/core/task_manager.py",
     "src/cohezion/flume/tokenizer.py",
+    "src/cohezion/knowledge_graph/KEY_LEARNINGS.md",
+    "src/cohezion/knowledge_graph/MISSION_JOURNAL.md",
     "src/cohezion/mass_sim/artifacts.py",
     "src/cohezion/mass_sim/persistence.py",
     "src/cohezion/universe/sandbox_backends.py",
@@ -30,13 +33,19 @@
       "transcript": "/79/18e0fd17c0/1/full.jsonl",
       "content_hash": "/79/18e0fd17c0/1/content_hash.txt",
       "prompt": "/79/18e0fd17c0/1/prompt.txt"
+    },
+    {
+      "metadata": "/79/18e0fd17c0/2/metadata.json",
+      "transcript": "/79/18e0fd17c0/2/full.jsonl",
+      "content_hash": "/79/18e0fd17c0/2/content_hash.txt",
+      "prompt": "/79/18e0fd17c0/2/prompt.txt"
     }
   ],
   "token_usage": {
-    "input_tokens": 47788,
-    "cache_creation_tokens": 11952382,
-    "cache_read_tokens": 106280548,
-    "output_tokens": 204093,
-    "api_call_count": 494
+    "input_tokens": 115879638,
+    "cache_creation_tokens": 27789448,
+    "cache_read_tokens": 426251756,
+    "output_tokens": 892413,
+    "api_call_count": 2251
   }
 }
