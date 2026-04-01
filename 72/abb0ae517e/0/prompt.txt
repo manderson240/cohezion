@@ -3812,3 +3812,7 @@ Looks like an internal issue again that we need to fix:   ⎿  PostToolUse:Bash
 ---
 
 Don't forget https://github.com/HazyResearch/HipKittens
+
+---
+
+Let's now get back ont ask with the luma speedrun with our new insight
