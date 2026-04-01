@@ -1,0 +1,892 @@
+Continue
+
+---
+
+Status update?
+
+---
+
+Looks like we have hook errors?
+
+---
+
+Continue
+
+---
+
+Continue
+
+---
+
+Complete all outstanding work
+
+---
+
+We should fix it
+
+---
+
+Continue
+
+---
+
+Save what we've accomplished, extract reuseable skills, and refine plan going forward with https://research.google/blog/turboquant-redefining-ai-efficiency-with-extreme-compression/
+
+---
+
+Proceed
+
+---
+
+We need to make sure knowledge capture goes all the way through to obsidian vault and surrealdb graph
+
+---
+
+Do we have refined capabilities and skills as part of this persistent learnings?
+
+---
+
+Refine plan for continued compound engineering solutions that enhance context awareness and minimize token burn with batching and caching.
+
+---
+
+What's next?
+
+---
+
+Continue
+
+---
+
+You can just develop here.  You actually have plenty of context. /home/mike-anderson/.cohezion-engine/sessions/pid-675692/continuation.md
+
+---
+
+Continue with C4 and the rest of the plan
+
+---
+
+Retrospective, internal code sweep (find additional infrastructure we've build but don't have wired), external research on huggingface, arkiv, github, and the internet at large.  Save completed work and then make a new plan to continue unifinished work and extend with additional findings.
+
+---
+
+Proceed with all oustanding tasks
+
+---
+
+Continue
+
+---
+
+<task-notification>
+<task-id>a286c5c87a083b03d</task-id>
+<tool-use-id>toolu_01MonjfC3UrKEF16bN7P1oW3</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/b64da2bf-bc43-4e98-92b9-9ef978ee0301/tasks/a286c5c87a083b03d.output</output-file>
+<status>completed</status>
+<summary>Agent "External research sweep" completed</summary>
+<result>Now I have comprehensive research across all the requested areas. Let me compile the findings into a structured report.
+
+---
+
+# Cohezion-Relevant Developments: March 2026 Research Sweep
+
+## 1. HuggingFace: Agent Frameworks & Evaluation
+
+### Community Evals (Feb 2026)
+- **What:** Decentralized benchmark leaderboards on the Hub using `eval.yaml` specs based on the Inspect AI format. Datasets auto-collect evaluation results from model repos.
+- **Cohezion connection:** Could be used to publish Cohezion agent benchmarks (HIHO stability, coherence tracking) as community-hosted leaderboards.
+- **Source:** [HuggingFace Community Evals](https://www.infoq.com/news/2026/02/hugging-face-evals/)
+
+### ScreenSuite -- GUI Agent Evaluation
+- **What:** Largest benchmarking suite for GUI agents using **smolagents** as the framework layer, vision-only stack (no accessibility trees).
+- **Cohezion connection:** ScreenSuite's evaluation methodology could inform how Cohezion measures agent performance in physical-world UI tasks.
+- **Source:** [ScreenSuite Blog](https://huggingface.co/blog/screensuite)
+
+### GLM-5 (Open Source)
+- **What:** Best-in-class open-source model for reasoning, coding, and agentic tasks, closing the gap with frontier models.
+- **Cohezion connection:** Potential local model candidate for Ollama deployment alongside deepseek-r1:70b and qwen3-coder:30b.
+- **Source:** [GLM-5 on HuggingFace](https://huggingface.co/zai-org/GLM-5)
+
+### V-JEPA 2.1 (March 2026)
+- **What:** Meta's latest world model iteration. Bridges the gap between global video dynamics and fine-grained local spatial details. Improvements to robotic grasping, autonomous navigation, predicting object interactions, and 3D depth estimation. Uses 3D Rotary Position Embeddings (3D-RoPE) and self-supervised JEPA training predicting in latent space.
+- **Cohezion connection:** Directly relevant to FLUME VAE. V-JEPA 2.1's approach of predicting abstract representations in latent space (not pixel-level) mirrors Cohezion's FLUME architecture. The hierarchical multi-scale planning direction Meta is pursuing aligns with Cohezion's 12D universe layers.
+- **Source:** [V-JEPA 2.1 TechTalks](https://bdtechtalks.com/2026/03/23/v-jepa-2-1/), [Meta V-JEPA 2 Blog](https://ai.meta.com/blog/v-jepa-2-world-model-benchmarks/)
+
+### NVIDIA Cosmos Reason 2 + Predict 2.5
+- **What:** #1 open model on Physical AI Bench for visual understanding. Unifies Text2World, Image2World, Video2World generation. Enables synthetic data generation, policy evaluation, and closed-loop simulation for robotics.
+- **Cohezion connection:** Cosmos's approach to physical reasoning benchmarks could inform how Cohezion evaluates its physics-grounded universe. The closed-loop simulation pattern is analogous to Cohezion's compound engineering loop.
+- **Source:** [NVIDIA Cosmos Reason 2](https://huggingface.co/blog/nvidia/nvidia-cosmos-reason-2-brings-advanced-reasoning)
+
+---
+
+## 2. arXiv: Agent Governance & Safety
+
+### Layered Governance Architecture (LGA) -- arXiv:2603.07191 (March 2026)
+- **What:** Four-layer framework: L1 execution sandboxing, L2 intent verification, L3 zero-trust inter-agent authorization, L4 immutable audit logging. Tested on 1,081 tool-call samples covering prompt injection, RAG poisoning, malicious skill plugins. L2 intercepts 93-98.5% of malicious tool calls.
+- **Cohezion connection:** **Directly actionable.** Maps cleanly to Cohezion's Constitution/Charter enforcement. L1 = Cohezion's execution sandboxing, L2 = RequestAlignmentAnalyzer, L3 = inter-agent authorization in TeamOrchestrator, L4 = JourneyTracker audit trail. The bilingual benchmark methodology could be adapted for testing Cohezion's own governance.
+- **Source:** [arXiv:2603.07191](https://arxiv.org/abs/2603.07191)
+
+### AGENTSAFE -- arXiv:2512.03180
+- **What:** Unified governance framework with semantic telemetry, dynamic authorization, anomaly detection, interruptibility, and cryptographic tracing. Operationalizes the AI Risk Repository into design/runtime/audit controls.
+- **Cohezion connection:** The semantic telemetry and anomaly detection patterns could enhance Cohezion's DegradationDetector and GlobalMetricsAggregator.
+- **Source:** [arXiv:2512.03180](https://arxiv.org/abs/2512.03180)
+
+### Autonomy Certificates -- arXiv:2506.12469
+- **What:** Digital documents prescribing maximum autonomy levels for agents, analogous to safety cases. Issued by third-party governing bodies to communicate behavioral characteristics.
+- **Cohezion connection:** Could be implemented as part of Cohezion's skill metadata. Each PRIME skill could carry an autonomy certificate specifying its operational boundaries.
+- **Source:** [arXiv:2506.12469](https://arxiv.org/html/2506.12469v1)
+
+---
+
+## 3. arXiv: Multi-Agent Orchestration
+
+### Orchestration of Multi-Agent Systems -- arXiv:2601.13671 (Jan 2026)
+- **What:** Unified architectural framework integrating planning, policy enforcement, state management, and quality operations. Formalizes MCP (agent-to-tool) and A2A (agent-to-agent) protocols as complementary communication layers.
+- **Cohezion connection:** Validates Cohezion's architecture of separating tool access (MCP) from inter-agent coordination. The state management patterns could inform Cohezion's SessionPersistence layer.
+- **Source:** [arXiv:2601.13671](https://arxiv.org/abs/2601.13671)
+
+### Confidence-Aware Routing (OI-MAS) -- arXiv:2601.04861 (Jan 2026)
+- **What:** First system to jointly decide both who should act (agent role) AND how much power they need (model scale) per step. Like a symphony conductor assigning instruments and dynamics.
+- **Cohezion connection:** **Highly relevant** to Cohezion's CostAwareRouter and TaskTypeRouter. OI-MAS's joint role+scale decision could enhance Cohezion's DynamicModelRouter to simultaneously select the agent specialization and model tier.
+- **Source:** [arXiv:2601.04861](https://arxiv.org/html/2601.04861v1)
+
+### Agentic Self-Learning (ASL) -- ICLR 2026
+- **What:** Multi-role closed-loop RL framework: Prompt Generator + Policy Model + Generative Reward Model co-evolve through iterative reinforcement. No human supervision needed.
+- **Cohezion connection:** **Directly maps** to Cohezion's compound engineering loop (SkillRefiner + RetrospectionEngine + SkillConsensusVoter). ASL's three-role co-evolution is essentially what Cohezion's loop does with skill refinement.
+- **Source:** [arXiv:2510.14253 (ICLR 2026)](https://www.arxiv.org/pdf/2510.14253v1)
+
+---
+
+## 4. arXiv: KV Cache Compression (TurboQuant-Related)
+
+### TurboQuant at ICLR 2026
+- **What:** Combines PolarQuant + QJL into a deployment-ready pipeline. Error approaching Shannon information-theoretic lower bound. 4-bit sweet spot where quality is nearly indistinguishable from FP16 on models 3B+.
+- **Cohezion connection:** Directly relevant to Cohezion's inference optimization. At 4-bit KV cache, local Ollama models (deepseek-r1:70b) could handle much longer contexts within the 128GB LPDDR5X budget.
+- **Source:** [TurboQuant Analysis](https://www.revolutioninai.com/2026/03/%20google-turboquant-kv-cache-compression-polarquant-qjl-explained-2026.html)
+
+### IsoQuant -- arXiv:2603.28430 (March 30, 2026)
+- **What:** SO(4) isoclinic rotations using quaternion algebra for KV cache compression. 4.5-4.7x mean kernel speedups over RotorQuant with comparable reconstruction error. Peak speedups above 6x.
+- **Cohezion connection:** The quaternion-based rotation framework has an elegant mathematical connection to Cohezion's SPIN coherence model (rotation + precession). Could potentially unify the KV cache compression math with FLUME's latent space representation.
+- **Source:** [arXiv:2603.28430](https://arxiv.org/abs/2603.28430)
+
+### KVSculpt -- arXiv:2603.27819 (March 29, 2026)
+- **What:** Optimizes KV pairs in continuous embedding space via L-BFGS (keys) and least-squares (values). 3.5-4.1x KL divergence reduction vs Select+Fit.
+- **Cohezion connection:** The continuous optimization approach could be applied to Cohezion's SemanticCache L2 layer for better compressed key representations.
+- **Source:** [arXiv:2603.27819](https://arxiv.org/abs/2603.27819)
+
+### VQKV -- Vector Quantization for KV Cache
+- **What:** Training-free vector quantization achieving 82.8% compression while retaining 98.6% baseline performance and enabling 4.3x longer generation.
+- **Cohezion connection:** Training-free is key -- could be applied to Cohezion's local Ollama models without retraining.
+- **Source:** [VQKV Paper](https://arxiv.org/html/2603.16435)
+
+---
+
+## 5. arXiv: VAE/Latent Space for Agent Reasoning
+
+### Reasoning Palette (Dec 2025)
+- **What:** VAE-learned latent space of reasoning strategies. Shifts exploration from token-level randomness to strategy-level diversity by sampling from a latent space.
+- **Cohezion connection:** **Core alignment with FLUME VAE.** Reasoning Palette's concept of encoding distinct reasoning contexts as latent variables mirrors FLUME's 256D latent space for agent state representation.
+- **Source:** [Reasoning Palette](https://arxiv.org/html/2512.17206)
+
+### DAAO: Difficulty-Aware Agentic Orchestration (ACM Web Conf 2026)
+- **What:** VAE for difficulty estimation + modular operator allocator + cost/performance-aware LLM router. Self-adjusting policy updates difficulty estimates based on workflow success.
+- **Cohezion connection:** **Directly integrable.** The VAE-for-difficulty-estimation pattern could enhance Cohezion's TaskTypeRouter with learned task complexity scoring rather than heuristic classification.
+- **Source:** [DAAO Paper](https://arxiv.org/html/2509.11079)
+
+### LaDiR: Latent Diffusion for Reasoning (Feb 2026)
+- **What:** VAE encodes reasoning steps into "blocks of thought tokens" -- compact but expressive. Latent diffusion then iteratively refines these representations.
+- **Cohezion connection:** The "blocks of thought tokens" concept could extend FLUME VAE's latent space to encode not just agent state but reasoning trajectories.
+- **Source:** [LaDiR Paper](https://arxiv.org/html/2510.04573)
+
+---
+
+## 6. Agent Skill Evolution
+
+### Agent Skills Survey -- arXiv:2602.12430 (Feb 2026)
+- **What:** Traces evolution through three paradigms: prompt engineering (2022-23) -> tool use/function calling (2023-24) -> skill engineering (2025+). Skills defined as bundles of instructions + workflow guidance + executable scripts + reference docs + metadata.
+- **Cohezion connection:** Validates Cohezion's PRIME skill architecture. Cohezion's 80 skill definitions with markdown + Python follow the exact "skill engineering" paradigm this survey identifies as the current state of the art.
+- **Source:** [arXiv:2602.12430](https://arxiv.org/html/2602.12430v3)
+
+### SkillRL -- arXiv:2602.08234 (Feb 2026)
+- **What:** Recursive skill-augmented RL where agents acquire and refine reusable skills over time. Notes that saving raw trajectories is redundant; better to distill core principles.
+- **Cohezion connection:** Mirrors Cohezion's RetrospectionEngine -> SkillRefiner pipeline. The insight about distilling principles rather than saving raw trajectories validates Cohezion's approach.
+- **Source:** [arXiv:2602.08234](https://arxiv.org/html/2602.08234)
+
+---
+
+## 7. Protocol Ecosystem
+
+### Agentic AI Foundation (AAIF) -- December 2025
+- **What:** Linux Foundation umbrella for MCP, AGENTS.md, and goose. Co-founded by Anthropic, OpenAI, Google, Microsoft, AWS, Block. MCP now has 97M monthly SDK downloads.
+- **Cohezion connection:** MCP is now permanent open infrastructure. Cohezion's MCP integrations (cloud-vault-mcp) are building on stable ground.
+- **Source:** [AAIF Announcement](https://www.linuxfoundation.org/press/linux-foundation-announces-the-formation-of-the-agentic-ai-foundation)
+
+### A2UI Protocol (Google, Feb 2026)
+- **What:** Declarative generative UI protocol. Agents generate JSON describing UI components; clients render using pre-approved widget catalogs. Security-first (no arbitrary code execution). v0.8 public preview. Apache 2.0.
+- **Cohezion connection:** **Actionable for the genesis-tdd-a2ui worktree** (visible in the working directory). A2UI's flat-list-with-ID-references format is LLM-friendly and could be how Cohezion agents present results to users.
+- **Source:** [A2UI.org](https://a2ui.org/), [GitHub google/A2UI](https://github.com/google/A2UI/)
+
+### Full Protocol Stack in 2026
+- **MCP** = agent-to-tool (Anthropic, now AAIF)
+- **A2A** = agent-to-agent (Google, Linux Foundation)
+- **AG-UI** = agent-to-frontend streaming (CopilotKit)
+- **A2UI** = generative UI spec (Google)
+- **MCP Apps** = embedded tool UI in conversations (Jan 2026)
+- **UCP** = Universal Commerce Protocol (Google, agent payments)
+- **ANP** = Agent Network Protocol (peer-to-peer, W3C DID)
+- **Source:** [Protocol Comparison](https://medium.com/google-cloud/agent-protocols-mcp-a2a-a2ui-ag-ui-3ed8b356f1bc), [Ecosystem Map](https://www.digitalapplied.com/blog/ai-agent-protocol-ecosystem-map-2026-mcp-a2a-acp-ucp)
+
+---
+
+## 8. Google ADK -- Multi-Language 1.0 Releases (March 2026)
+
+- **Java 1.0.0** (March 30): Native A2A support, HITL via ToolConfirmation, session/memory services
+- **Go 1.0.0** (March 31): OpenTelemetry integration, YAML agent config, multi-agent orchestration (Sequential/Parallel/Loop agents)
+- **TypeScript 1.0**: Code-first agent development, Gemini 3 Pro/Flash support
+- **Cohezion connection:** ADK's multi-language ecosystem + A2A native support validates the direction of building agents that communicate via open protocols. The LoopAgent pattern in ADK Go mirrors Cohezion's compound engineering loop.
+- **Source:** [ADK Java 1.0](https://developers.googleblog.com/announcing-adk-for-java-100-building-the-future-of-ai-agents-in-java/), [ADK Go 1.0](https://developers.googleblog.com/adk-go-10-arrives/)
+
+---
+
+## 9. Triton/AMD Kernel Tools
+
+### ROCm/Iris -- Multi-GPU Triton Framework
+- **What:** AMD's official multi-GPU Triton framework. **Explicitly supports MI355X** alongside MI300X and MI350X. Plans for RDMA multi-node support.
+- **Cohezion connection:** **Directly relevant** for Cohezion's Kaggle Blackwell/AMD workloads. Iris is the bridge between Cohezion's Triton kernels and the MI355X hardware target.
+- **Source:** [GitHub ROCm/iris](https://github.com/ROCm/iris)
+
+### GEAK -- AI-Generated Triton Kernels (AMD)
+- **What:** Agentic framework using frontier LLMs to generate optimized Triton kernels from natural language descriptions. Up to 2.59x speedup on MI300 GPUs.
+- **Cohezion connection:** Could be integrated into Cohezion's compound loop -- an agent generates and optimizes Triton kernels as part of the skill refinement cycle.
+- **Source:** [GEAK Blog](https://rocm.blogs.amd.com/software-tools-optimization/triton-kernel-ai/README.html)
+
+### autokernel (RightNow-AI)
+- **What:** Give it any PyTorch model, wake up to optimized Triton kernels. Supports MI300X, MI325X. KernelBench integration with 250+ standardized GPU kernel problems.
+- **Source:** [GitHub RightNow-AI/autokernel](https://github.com/RightNow-AI/autokernel)
+
+---
+
+## 10. Claude Code Ecosystem
+
+### Claude Code Plugin System
+- **What:** Full plugin architecture with Skills, Subagents, MCP Servers, and Hooks bundled as installable units. Official marketplace at `claude-plugins-official`. 2,300+ skills and 770+ MCP servers across marketplaces.
+- **Source:** [Claude Code Plugins Docs](https://code.claude.com/docs/en/plugins), [Anthropic Plugins GitHub](https://github.com/anthropics/claude-plugins-official)
+
+### MCP Tool Search / Lazy Loading
+- **What:** Reduces context usage by up to 95% through lazy loading of MCP server tools. Only loads tool descriptions when relevant.
+- **Cohezion connection:** Critical for Cohezion's MCP server density. With lazy loading, Cohezion can run cloud-vault-mcp + multiple service connectors without context pressure.
+- **Source:** [MCP Extensions Guide](https://systemprompt.io/guides/claude-code-mcp-servers-extensions)
+
+### Claude Peers MCP
+- **What:** Lets multiple Claude Code instances discover each other and communicate via a broker daemon (localhost:7899, SQLite). Messages arrive instantly via `claude/channel` protocol.
+- **Cohezion connection:** Could enable Cohezion's multi-worktree sessions to communicate. Different Claude Code sessions working on different `/spec` tasks could coordinate.
+- **Source:** [GitHub louislva/claude-peers-mcp](https://github.com/louislva/claude-peers-mcp)
+
+---
+
+## 11. Anthropic Research
+
+### Measuring Agent Autonomy in Practice (Feb 2026)
+- **What:** Analyzed millions of Claude Code and API interactions. 99.9th percentile sessions nearly doubled from <25 min to >45 min between Oct 2025 and Jan 2026. First empirical measurement of real-world agent autonomy levels.
+- **Cohezion connection:** Provides empirical baselines for what "safe autonomy" looks like in practice. Cohezion's own autonomy levels (per the Constitution) could be calibrated against these real-world distributions.
+- **Source:** [Anthropic: Measuring Agent Autonomy](https://www.anthropic.com/research/measuring-agent-autonomy)
+
+### Frontier Safety Roadmap
+- **What:** By April 1, 2026, Anthropic will have selected 1-3 projects with concrete goals and 6-month timelines. Finding: reasoning models don't always accurately verbalize their reasoning, casting doubt on CoT monitoring for safety.
+- **Cohezion connection:** The finding that CoT monitoring is insufficient validates Cohezion's approach of using structural invariants (HIHO stability, coherence metrics) rather than relying solely on reasoning traces.
+- **Source:** [Frontier Safety Roadmap](https://www.anthropic.com/responsible-scaling-policy/roadmap), [Alignment Blog](https://alignment.anthropic.com/)
+
+---
+
+## Priority Integration Candidates (Ranked)
+
+1. **A2UI Protocol** -- Already have a worktree for this (`genesis-tdd-a2ui`). Google's spec is at v0.8, Apache 2.0, with renderer implementations available.
+
+2. **Layered Governance Architecture** -- Maps directly to Cohezion's Constitution enforcement. The L1-L4 framework gives a testable structure for what Cohezion already does informally.
+
+3. **IsoQuant quaternion KV compression** -- The SO(4)/quaternion math has a natural connection to SPIN coherence. Could unify cache compression with FLUME latent space.
+
+4. **OI-MAS confidence-aware routing** -- Joint role+scale decision for every agent step. Direct upgrade path for CostAwareRouter + DynamicModelRouter.
+
+5. **DAAO VAE difficulty estimation** -- Drop-in enhancement for TaskTypeRouter using learned task complexity rather than heuristics.
+
+6. **ROCm/Iris** -- Only framework with explicit MI355X support for multi-GPU Triton work.
+
+7. **Claude Peers MCP** -- Multi-session agent communication for Cohezion's worktree-based development workflow.
+
+8. **VQKV training-free KV compression** -- 82.8% compression, no retraining needed, applicable to local Ollama models immediately.</result>
+<usage><total_tokens>70950</total_tokens><tool_uses>18</tool_uses><duration_ms>1130942</duration_ms></usage>
+</task-notification>
+Full transcript available at: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/b64da2bf-bc43-4e98-92b9-9ef978ee0301/tasks/a286c5c87a083b03d.output
+
+---
+
+<task-notification>
+<task-id>bc0x63lgj</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/b64da2bf-bc43-4e98-92b9-9ef978ee0301/tasks/bc0x63lgj.output</output-file>
+<status>completed</status>
+<summary>Background command "Run all compound tests" completed (exit code 0)</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/b64da2bf-bc43-4e98-92b9-9ef978ee0301/tasks/bc0x63lgj.output
+
+---
+
+Great work!  Let's use our skills to keep improving with the next priorities.
+
+---
+
+<task-notification>
+<task-id>bik9d8dq8</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/b64da2bf-bc43-4e98-92b9-9ef978ee0301/tasks/bik9d8dq8.output</output-file>
+<status>completed</status>
+<summary>Background command "Run compound + router tests" completed (exit code 0)</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/b64da2bf-bc43-4e98-92b9-9ef978ee0301/tasks/bik9d8dq8.output
+
+---
+
+Let's refine and compound
+
+---
+
+<task-notification>
+<task-id>bi3nvq873</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/b64da2bf-bc43-4e98-92b9-9ef978ee0301/tasks/bi3nvq873.output</output-file>
+<status>completed</status>
+<summary>Background command "Run full test suite" completed (exit code 0)</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/b64da2bf-bc43-4e98-92b9-9ef978ee0301/tasks/bi3nvq873.output
+
+---
+
+<task-notification>
+<task-id>b8gr7o38q</task-id>
+<tool-use-id>toolu_017FejFdho5J556RjYTpsF1b</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/b64da2bf-bc43-4e98-92b9-9ef978ee0301/tasks/b8gr7o38q.output</output-file>
+<status>completed</status>
+<summary>Background command "Run full test suite with proper config" completed (exit code 0)</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/b64da2bf-bc43-4e98-92b9-9ef978ee0301/tasks/b8gr7o38q.output
+
+---
+
+<task-notification>
+<task-id>bpwubnprg</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/b64da2bf-bc43-4e98-92b9-9ef978ee0301/tasks/bpwubnprg.output</output-file>
+<status>completed</status>
+<summary>Background command "Run full test suite without coverage" completed (exit code 0)</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/b64da2bf-bc43-4e98-92b9-9ef978ee0301/tasks/bpwubnprg.output
+
+---
+
+<task-notification>
+<task-id>bvhf4njyv</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/b64da2bf-bc43-4e98-92b9-9ef978ee0301/tasks/bvhf4njyv.output</output-file>
+<status>completed</status>
+<summary>Background command "Run full test suite excluding known collection errors" completed (exit code 0)</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/b64da2bf-bc43-4e98-92b9-9ef978ee0301/tasks/bvhf4njyv.output
+
+---
+
+How do you think we should proceed?  Have we accomplished everything from all of the plans?
+
+---
+
+<task-notification>
+<task-id>a55767d1e054439f6</task-id>
+<tool-use-id>toolu_01WtfBL912CQAm6xiQnZuxeo</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/b64da2bf-bc43-4e98-92b9-9ef978ee0301/tasks/a55767d1e054439f6.output</output-file>
+<status>completed</status>
+<summary>Agent "External research sweep March 2026" completed</summary>
+<result>Perfect. Now I have comprehensive data across all areas. Let me compile the findings into a well-organized report.
+
+---
+
+## Web Search Report: March 2026 Developments for Cohezion Platform
+
+Based on thorough research across specialized areas, here are the latest developments relevant to the Cohezion platform:
+
+---
+
+## 1. OI-MAS / Confidence-Aware Multi-Agent Routing
+
+### Primary Research
+**[Orchestrating Intelligence: Confidence-Aware Routing for Efficient Multi-Agent Collaboration across Multi-Scale Models](https://arxiv.org/abs/2601.04861)** (arXiv:2601.04861, January 8, 2026)
+
+**Key Innovation:**
+OI-MAS introduces a state-dependent routing mechanism that dynamically selects agent roles AND model scales throughout reasoning. The confidence-aware mechanism reduces reliance on large models by routing simple tasks to smaller, faster models while escalating complex tasks to larger ones.
+
+**Performance Metrics:**
+- Up to 12.88% accuracy improvement over baseline multi-agent systems
+- Up to 79.78% cost reduction
+- Acts as a "conductor" selecting both roles and instrument sizes dynamically
+
+**Cohezion Integration Path:**
+This directly parallels Cohezion's `CostAwareRouter` (27.3% savings documented). OI-MAS could enhance the router by adding explicit confidence scoring per agent for finer granularity. Implementation: measure task confidence at request alignment stage, then use confidence + coherence to select model tier.
+
+---
+
+## 2. KV Cache Compression (TurboQuant, IsoQuant, RotorQuant)
+
+### 2a. TurboQuant: Google's Baseline (ICLR 2026, March 2026)
+**[TurboQuant: Redefining AI efficiency with extreme compression](https://research.google/blog/turboquant-redefining-ai-efficiency-with-extreme-compression/)**
+
+**Technical Approach:**
+Online quantization: rotation + table lookup. Achieves 3-bit KV cache without training or fine-tuning.
+
+**Performance:**
+- 6x+ memory compression
+- 8x attention speedup on H100
+- 3-bit zero-loss on Gemma, Mistral
+
+**Community Implementations:**
+- [tonbistudio/turboquant-pytorch](https://github.com/tonbistudio/turboquant-pytorch): From-scratch PyTorch (ICLR 2026)
+- [0xSero/turboquant](https://github.com/0xSero/turboquant): Triton kernels + vLLM integration
+- [RecursiveIntell/turbo-quant](https://github.com/RecursiveIntell/turbo-quant): Rust implementation with PolarQuant/QJL
+
+**Cohezion Integration:**
+TurboQuant could reduce memory footprint for Cohezion's FLUME VAE latent space storage (256D × batch). Implement at inference layer after KV accumulation.
+
+### 2b. IsoQuant: Hardware-Optimized (arXiv:2603.28430, March 30, 2026)
+**[IsoQuant: Hardware-Aligned SO(4) Isoclinic Rotations](https://arxiv.org/abs/2603.28430)**
+
+**Technical Approach:**
+Uses quaternion algebra and SO(4) isoclinic decomposition. Each 4D block = quaternion, applies closed-form transform T(v)=q_L v q̄_R.
+
+**Performance vs. RotorQuant:**
+- 4.5x–4.7x mean speedup over RotorQuant
+- Peak speedups >6x (fused CUDA)
+- Reduces rotation overhead from 2,408 FMAs (RotorQuant) to 512 (Fast variant)
+- For 7B model: 57 MB (TurboQuant) → 0.5 MB (IsoQuant) for rotation matrices
+
+**Cohezion Integration:**
+IsoQuant is superior for Cohezion's inference tier. The quaternion-based approach aligns well with Cohezion's physics layer (SU(2) spinors in spinor.py). Direct integration: use IsoQuant for KV compression in compound executor's latent reasoning phase.
+
+### 2c. RotorQuant: Clifford Algebra (Scrya, March 2026)
+**[RotorQuant: Clifford Algebra Vector Quantization](https://github.com/scrya-com/rotorquant)**
+
+**Technical Approach:**
+Replaces TurboQuant's d×d dense matrix with Clifford rotors in Cl(3,0). Chunks vector into 3D groups, rotates each with 4-parameter rotor via sandwich product R v R̃.
+
+**Performance:**
+- 10-19x speedup over TurboQuant (CUDA)
+- 9-31x speedup on Apple Silicon (Metal)
+- 44x fewer parameters (372 vs 16,399 for d=128)
+- 5x KV compression, 99.0% attention fidelity
+
+**Cohezion Integration:**
+RotorQuant's geometric algebra foundation aligns with Cohezion's existing SU(2) spinor physics. Less overhead than TurboQuant/IsoQuant. Good for edge deployment (Apple Silicon mentioned aligns with Strix Halo iGPU).
+
+### 2d. PolarQuant & QJL (AISTATS 2026 forthcoming)
+**[TurboQuant Technical Deep Dive](https://gemilab.net/en/articles/gemini-advanced/turboquant-polarquant-qjl-technical-deep-dive)**
+
+- **PolarQuant:** Converts vectors to polar coordinates (separates direction from magnitude)
+- **QJL (Quantized Johnson-Lindenstrauss):** Preserves distances in high-dimensional data, reduces to ±1 bits, eliminates bias
+
+Both are sub-components of TurboQuant's multi-stage pipeline.
+
+---
+
+## 3. Latent Space Agent Communication (LatentMAS, Interlat)
+
+### 3a. LatentMAS (Princeton/Stanford/UIUC, November 2025)
+**[Latent Collaboration in Multi-Agent Systems](https://arxiv.org/abs/2511.20639)** | **[GitHub](https://github.com/Gen-Verse/LatentMAS)**
+
+**Core Innovation:**
+End-to-end training-free framework. Agents generate auto-regressive latent thoughts through last-layer hidden embeddings. Shared latent working memory preserves and transfers internal representations (lossless).
+
+**Performance:**
+- 14.6% higher accuracy (across 9 benchmarks)
+- 70.8%-83.7% output token reduction
+- 4x-4.3x faster end-to-end inference
+- No fine-tuning required
+
+**Cohezion Integration Path:**
+LatentMAS directly addresses Cohezion's compound executor challenge: instead of agents exchanging text summaries, share latent KV cache representations. Implementation: modify ExecutionOrchestrator to pass hidden states between specialist agents (vault-keeper → surreal-dba → claude-specialist) via shared latent working memory. Skip tokenization round-trips.
+
+### 3b. Interlat (November 2025)
+**[Enabling Agents to Communicate Entirely in Latent Space](https://arxiv.org/abs/2511.09149)**
+
+**Core Mechanism:**
+Inter-agent latent space communication. Transmits last-layer hidden states directly (not decoded tokens). Further compression via information-preserving mechanism accelerates inference 24x while maintaining performance.
+
+**Key Insight:**
+Natural language downsamples rich internal latent states into discrete tokens, losing nuance. Interlat transfers full last-layer hidden embeddings for each generated token.
+
+**Cohezion Integration Path:**
+Complementary to LatentMAS. Use Interlat for Cohezion's specialist agent team (6 agents in platform-coordinator role). Skip tokenization entirely in compound executor phase 3 (request alignment). Direct hidden-state handoff could reduce compound cycle latency by 40%.
+
+---
+
+## 4. MCP Server Ecosystem (March 2026 Updates)
+
+### 4a. MCP v2 Launch (March 26, 2026)
+**[MCP Transport Protocols Comparison](https://mcpcat.io/guides/comparing-stdio-sse-streamablehttp/)**
+
+**Major Changes:**
+- **Streamable HTTP Transport:** New standard for remote deployments (replaces SSE)
+- **OAuth 2.1 Authorization Framework:** Comprehensive security model
+- **STDIO remains:** Local, subprocess-based, zero-overhead
+
+**Deprecation Timeline:**
+Atlassian Rovo MCP: HTTP+SSE deprecated, Streamable HTTP at `https://mcp.atlassian.com/v1/mcp`. Legacy SSE support ends June 30, 2026.
+
+**Cohezion Integration Path:**
+Cohezion's 41+ tools (cloud-vault-mcp, compound-mcp, etc.) should:
+1. Dual-transport: Support both STDIO (local) + StreamableHTTP (cloud)
+2. Separate routes for dev/prod
+3. Gradual client migration (log deprecation warnings)
+
+### 4b. HashiCorp Vault MCP Servers
+**[HashiCorp Vault MCP Server](https://developer.hashicorp.com/vault/docs/mcp-server/overview)** | **[GitHub](https://github.com/hashicorp/vault-mcp-server)**
+
+Open-source MCP servers for Terraform + Vault. Wraps KV v2 API. Both STDIO + StreamableHTTP support. Reference implementation for Cohezion pattern.
+
+---
+
+## 5. HuggingFace & Compound AI Ecosystem (Spring 2026)
+
+### 5a. ServiceNow EVA Framework (March 24, 2026)
+**[A New Framework for Evaluating Voice Agents](https://huggingface.co/blog/ServiceNow-AI/eva)**
+
+Addresses evaluation of conversational voice agents balancing accuracy + conversational experience. Relevant for Cohezion's audio narrator (PocketTTS integration).
+
+### 5b. Smolagents Growth (26K+ stars, March 2026)
+**[Smolagents on GitHub](https://www.decisioncrafters.com/smolagents-build-powerful-ai-agents-in-1-000-lines-of-code-with-26-3k-github-stars/)**
+
+- 1,000 lines of core logic
+- 207 contributors
+- Latest commits March 29, 2026
+- Emphasis on open-source interoperability
+
+**Cohezion Parallel:** Cohezion's compound executor (4,400 lines) vs. smolagents (1,000). Opportunity: refactor execution loop for modularity (phase 2: learn).
+
+### 5c. Compound AI Systems Architectural Blueprint (2026)
+**[Orchestrating Agents and Data for Enterprise](https://arxiv.org/abs/2504.08148)** | **[Awesome Compound AI Systems](https://github.com/outerport/awesome-compound-ai-systems)**
+
+Key frameworks: LangGraph, AutoGen, Semantic Kernel. Shift from monolithic LLMs to modular, extensible CAIS architectures.
+
+**Cohezion Alignment:** Cohezion is already built on CAIS principles (specialist agents + compound executor). ACM CAIS 2026 conference invitation signals mainstream adoption.
+
+---
+
+## 6. FLUME VAE & Latent Space Agent Reasoning (March 2026)
+
+### 6a. HiVAE: Hierarchical Latent Variables (February 2026)
+**[HiVAE: Hierarchical Latent Variables for Scalable Theory of Mind](https://arxiv.org/html/2602.16826)**
+
+**Architecture:**
+Three-level VAE hierarchy: Beliefs → Desires → Intentions (BDI structure). Operates on trajectory + graph encodings.
+
+**Limitation:**
+Learned representations lack explicit grounding to actual mental states. Proposes self-supervised alignment strategies.
+
+**Cohezion Integration:**
+Cohezion's FLUME VAE (256D latent) could adopt BDI hierarchy for agent state. Encode (beliefs=request context, desires=agent role, intentions=execution plan) → 256D → decode. JourneyTracker could track belief→desire→intention transitions (12D universe coordinates).
+
+### 6b. Latent Reasoning Rules in Language VAEs (2025)
+**[Learning to Disentangle Latent Reasoning Rules with Language VAEs](https://arxiv.org/html/2506.19418)**
+
+VAE architecture captures coarse-grained reasoning patterns while remaining sensitive to lexical semantics. Rules encoded as explicit latent factors.
+
+**Cohezion Path:** Retrospection engine could extract reasoning rules from latent space (e.g., "when confidence < 0.5, escalate to Sonnet").
+
+---
+
+## 7. Dynamic Model Selection & Cost Routing (2026)
+
+### 7a. Multi-Model Routing & Cost Efficiency
+**[Microsoft Foundry Model Router](https://techcommunity.microsoft.com/blog/educatordeveloperblog/microsoft-foundry-model-router-a-developers-guide-to-smarter-ai-routing/4502133)** | **[Not-Diamond/awesome-ai-model-routing](https://github.com/Not-Diamond/awesome-ai-model-routing)**
+
+**Industry Data:**
+- 37% of enterprises use 5+ models in production (2026)
+- By 2028: 70% of top enterprises will use dynamic multi-tool routing
+- Cost savings: 40%-85% via intelligent routing
+
+**Cohezion Alignment:** CostAwareRouter achieves 27.3% savings already. Microsoft's approach adds prompt-complexity scoring. Refinement: integrate TextAnalyzer (prompt complexity) → route Haiku vs. Sonnet vs. Opus.
+
+---
+
+## 8. Semantic Caching with Multi-Tier Architecture (March 2026)
+
+### 8a. L1/L2/L3 Tiered Cache
+**[Semantic Caching for AI Agents](https://devkanisk.com/blog/2026/semantic-caching-for-ai-agents/)** | **[From Exact Hits to Close Enough](https://arxiv.org/abs/2603.03301)**
+
+**Architecture:**
+- **L1 (In-Memory):** Redis (hot data, immediate access)
+- **L2 (Distributed):** Memcached / DynamoDB (broader storage)
+- **L3 (Persistent/Vector):** Pinecone / SurrealDB (vector embeddings, semantic matching)
+
+**Semantic Hit Logic:**
+Cache hit when embeddings are "close enough" (L2 norm or cosine similarity threshold).
+
+**Cohezion Status:**
+Cohezion's SemanticCache already implements L1 (hash) + L2 (cosine) + L3 (vault). 95%+ hit rate documented. No changes needed; validates architecture.
+
+---
+
+## Summary: Integration Opportunities for Cohezion
+
+| Area | Technology | Cohezion Component | Priority | Effort |
+|------|-----------|-------------------|----------|--------|
+| **Agent Routing** | OI-MAS confidence scoring | CostAwareRouter + RequestAlignmentAnalyzer | HIGH | Medium (add confidence signal) |
+| **KV Compression** | IsoQuant (quaternion-aligned) | Compound executor latent phase | HIGH | Medium (integrate at inference) |
+| **Latent Comms** | LatentMAS / Interlat | ExecutionOrchestrator inter-agent handoff | CRITICAL | High (refactor phase 3) |
+| **MCP Evolution** | Streamable HTTP + STDIO | cloud-vault-mcp + compound-mcp | MEDIUM | Low (dual-transport support) |
+| **Latent State** | HiVAE BDI hierarchy | FLUME VAE encoding (beliefs/desires/intentions) | MEDIUM | Medium (add structure to latent) |
+| **Model Selection** | Dynamic confidence routing | CostAwareRouter + TextAnalyzer | MEDIUM | Low (existing foundation) |
+| **Semantic Cache** | L1/L2/L3 architecture | Already implemented (95%+ hit rate) | LOW | None (validate coverage) |
+
+---
+
+## Most Critical Finding
+
+**LatentMAS (4.3x faster) + Interlat (24x compression) enable Cohezion's compound executor to skip tokenization between specialist agents.** Current architecture exchanges text summaries; direct latent-space handoff (hidden states → shared working memory → next agent) could reduce compound cycle latency 40-50% while improving accuracy 14.6%. This is a **CRITICAL** architecture opportunity for Q2 2026 optimization.
+
+---
+
+Sources:
+- [Orchestrating Intelligence: Confidence-Aware Routing](https://arxiv.org/abs/2601.04861)
+- [TurboQuant: Google Research](https://research.google/blog/turboquant-redefining-ai-efficiency-with-extreme-compression/)
+- [IsoQuant arXiv:2603.28430](https://arxiv.org/abs/2603.28430)
+- [RotorQuant GitHub](https://github.com/scrya-com/rotorquant)
+- [LatentMAS](https://github.com/Gen-Verse/LatentMAS)
+- [Interlat arXiv:2511.09149](https://arxiv.org/abs/2511.09149)
+- [MCP v2 Protocols](https://mcpcat.io/guides/comparing-stdio-sse-streamablehttp/)
+- [HuggingFace Spring 2026](https://huggingface.co/blog/huggingface/state-of-os-hf-spring-2026)
+- [Compound AI Blueprint](https://arxiv.org/abs/2504.08148)
+- [HiVAE arXiv:2602.16826](https://arxiv.org/abs/2602.16826)
+- [ModelRouter Cost Efficiency](https://www.swfte.com/blog/intelligent-llm-routing-multi-model-ai)
+- [Semantic Caching L1/L2/L3](https://devkanisk.com/blog/2026/semantic-caching-for-ai-agents/)</result>
+<usage><total_tokens>60016</total_tokens><tool_uses>16</tool_uses><duration_ms>96990</duration_ms></usage>
+</task-notification>
+Full transcript available at: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/b64da2bf-bc43-4e98-92b9-9ef978ee0301/tasks/a55767d1e054439f6.output
+
+---
+
+<task-notification>
+<task-id>ae94654212f3b89b4</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/b64da2bf-bc43-4e98-92b9-9ef978ee0301/tasks/ae94654212f3b89b4.output</output-file>
+<status>completed</status>
+<summary>Agent "Internal code sweep + vault audit" completed</summary>
+<result>Perfect! Now let me provide the final comprehensive report to the user:
+
+---
+
+## COHEZION INTERNAL CODE SWEEP - COMPREHENSIVE FINDINGS REPORT
+
+I've completed a thorough internal code sweep of the Cohezion codebase. Here are the findings across all five categories:
+
+### 1. ORPHANED/UNWIRED MODULES
+
+**Critical Issues: 2 Complete Orphans Found**
+
+1. **`src/cohezion/vanguard/`** - COMPLETE ORPHAN
+   - Files: attribution.py, connectors.py, source_connector.py, sandbox_validation.py (4 files, ~20 KB)
+   - Status: Zero external imports. Never called from anywhere in the codebase.
+   - Appears to be an incomplete/experimental source attribution system
+   - Recommendation: **Delete immediately** (LOW effort, HIGH benefit)
+
+2. **`src/cohezion/vibe/`** - COMPLETE ORPHAN
+   - Files: compiler.py, orchestrator.py, parser.py, specifier.py, types.py, _vocab.py (6 files, ~40 KB)
+   - Status: Zero external imports. All internal to the module.
+   - Appears to be a discontinued/experimental experience specification system
+   - Recommendation: **Delete immediately** (LOW effort, HIGH benefit)
+
+**Partial Issues:**
+
+3. **`src/cohezion/pipelines/`** - STUB DIRECTORY
+   - Files: empty __init__.py + 1.6KB traceability.py
+   - Status: Unused, but there's also `src/cohezion/pipeline/` (singular) with actual content
+   - Recommendation: **Consolidate or remove** (MEDIUM effort)
+   - Note: Naming confusion with pipeline/ (singular) which is active
+
+4. **`src/cohezion/data_mesh/`** - SPARSE WIRING
+   - Files: data_product.py (8 KB) + __init__.py
+   - Status: Only wired to api/routes/agui.py via try/except import
+   - **NOT** integrated into CompoundExecutor main loop
+   - Recommendation: Either expand usage or consolidate (MEDIUM effort)
+
+**Properly Wired Modules (Session 82 work verified):**
+- ✓ ouroboros/ (via physics/ouroboros_bridge.py and api/services/ouroboros_api.py)
+- ✓ pipeline/ (weight_bridge.py, hyperparameter_debate.py in active use)
+- ✓ learning/ (OuroborosEngine integrated)
+- ✓ physics/ (all core modules wired)
+
+**Conclusion:** Session 82 achieved 92% completion. Only vanguard/ and vibe/ remain as dead code.
+
+---
+
+### 2. VAULT HEALTH AUDIT
+
+**Status: HEALTHY ✓**
+
+**Metrics:**
+- Total markdown files: 8,094
+- Latest updates: 2026-03-31 (today—active)
+- Primary directory: cerebellum/ (104 files, regularly updated)
+- Checkpoint system: Working (checkpoints/ directory populated)
+
+**Structure:**
+- Uses single flat hierarchy (cerebellum/) organized by topic
+- Does NOT match stated "brain-region model" (prefrontal/cerebellum/hippocampus) in CLAUDE.md
+- This is acceptable—pragmatic flat structure works well
+- Recent entries: wiring retrospectives (2026-03-31-session-wiring-retrospective.md) and skill refinement logs
+- No orphan notes detected
+
+**Issues:**
+- Minor: Brain-region hierarchy mentioned in CLAUDE.md not implemented in practice
+- This is documentation debt, not a functional issue
+
+**Recommendation:** Update CLAUDE.md to reflect actual vault structure, or restructure vault to match stated model (LOW priority).
+
+---
+
+### 3. SURREALDB CONNECTION STATUS
+
+**Status: OFFLINE ⚠️**
+
+**Configuration Found:**
+- Default connection URL: `ws://localhost:8000/rpc`
+- Namespace: cohezion
+- Database: cohezion.core
+- Config file: src/cohezion/persistence/surreal_logger.py
+
+**Health Check Results:**
+- Curl to localhost:8000/health: No response
+- Curl to localhost:8001/health: No response
+- **SurrealDB daemon is NOT running**
+
+**Dependent Modules:**
+- surreal_logger.py: Expects trajectories table
+- genesis_persistence.py: Will use SurrealDB for state storage
+- Any test using real SurrealDB will fail
+
+**Recommendation:**
+- Add pytest fixtures to mock SurrealDB for tests (MEDIUM effort, 1-2 hours)
+- Document SurrealDB startup requirement for local development
+- Alternative: Implement fallback to in-memory store for tests
+- **Current risk:** Acceptable if not running live server, but should be documented
+
+---
+
+### 4. TEST COLLECTION ERRORS - ROOT CAUSE ANALYSIS
+
+**Identified: 2 Critical Import Errors Out of 7 Test Files Examined**
+
+**VALID TESTS** (ready to run once dependencies available):
+1. test_api_integration.py ✓ - imports from cohezion.api
+2. test_api_phase2.py ✓ - imports from cohezion.api
+3. test_observability.py ✓ - KnowledgeGraphQueryEngine exists
+4. tests/physics/test_wiring.py ✓ - app import valid
+5. tests/physics/test_wiring_batch2.py ✓ - same pattern
+6. tests/physics/test_wiring_batch3.py ✓ - same pattern
+7. tests/security/test_sse_queue_bounds.py ✓ - sse_queue_bounds.py exists at correct path
+
+**BROKEN TESTS** (2 critical errors):
+
+**Problem #1: `tests/core/test_context_engineering.py` [CRITICAL]**
+```python
+from bmad.core.context_engineering import ContextEngineeringInfrastructure
+```
+- Issue: `bmad.core` module does not exist in Python path
+- BMAD exists in ~/vaults/cohezion-vault/bmad/ but is not an installed package
+- **Recommended fix:** DELETE this test (28 lines, tests external bmad not cohezion code)
+- **Effort:** LOW (5 minutes)
+
+**Problem #2: `tests/research/test_api_endpoints_tdd.py` [CRITICAL]**
+```python
+from cohezion.api.main import app  # WRONG
+```
+- Issue: cohezion.api.main doesn't exist. The app is in cohezion/api/__init__.py
+- **Correct fix:** Change to `from cohezion.api import app`
+- **Effort:** LOW (1 minute, one-line change)
+
+**Summary:** Only 2 tests have actual problems. Both are easy fixes. The 15 collection errors mentioned earlier may refer to dependent import chains—the root causes are these 2 files.
+
+---
+
+### 5. MCP SERVER INVENTORY
+
+**Status: HEALTHY ✓**
+
+**Registered in `.claude/mcp.json`:**
+1. **bmad** - HTTP streamable (localhost:8361, 108 BMAD commands)
+2. **cohezion-compound** - Stdio (Python -m cohezion.mcp.compound_server)
+
+**Internal MCP Servers Present:**
+| Server | Status | Integration |
+|--------|--------|-------------|
+| compound_server.py | ✓ | Registered, core compound loop |
+| knowledge_server.py | ✓ | Integrated (used by API) |
+| research_server.py | ✓ | Present and functional |
+| skills_server.py | ✓ | Present and functional |
+| swarm_server.py | ✓ | Integrated (used by API) |
+| surreal_server.py | ✓ | Present and functional |
+| bmad_server.py | ✓ | Provides HTTP server |
+| hookify_server.py | ✓ | Present and functional |
+
+**External MCP Servers:**
+- cloud-vault-mcp/ ✓ (integrated for vault operations)
+- ollama-mcp/ ✓ (local model interface)
+- cohezion-maintenance-mcp/ ✓ (maintenance tools)
+- .playwright-mcp/ ✓ (browser automation)
+
+**Assessment:** Excellent coverage. No orphaned servers. All critical domains (compound, knowledge, swarm) properly served.
+
+---
+
+## QUICK ACTION SUMMARY - 15 MINUTES OF CLEANUP
+
+| Action | Effort | Impact |
+|--------|--------|--------|
+| Delete vanguard/ | 5 min | Remove 20 KB dead code |
+| Delete vibe/ | 5 min | Remove 40 KB dead code |
+| Fix test_api_endpoints_tdd.py line 14 | 1 min | Fix import error |
+| Delete test_context_engineering.py | 3 min | Remove out-of-scope test |
+| **TOTAL** | **14 min** | **60 KB dead code removed + 2 test fixes** |
+
+---
+
+## WIRING VERIFICATION - SESSION 82 COMPLETION
+
+**Verified wired into CompoundExecutor:**
+- ✓ DegradationDetector (monitoring coherence/thermal)
+- ✓ JourneyTracker (12D FLUME trajectory tracking)
+- ✓ RequestAlignmentAnalyzer (pre-execution validation)
+- ✓ CostAwareRouter (model selection via swarm)
+- ✓ SkillRefiner (auto-learning from execution)
+- ✓ OuroborosBridge (healing/anomaly integration)
+- ✓ Knowledge graph integration (vault queries)
+
+**Partially wired:**
+- ⚠ data_mesh (only via AGUI routes)
+- ⚠ pipeline modules (active but not in core compound loop)
+
+**Not wired:**
+- ✗ vanguard (orphaned)
+- ✗ vibe (orphaned)
+
+**Conclusion:** Session 82 work was **92% complete**. Only 2 orphaned modules (vanguard, vibe) need cleanup.</result>
+<usage><total_tokens>88237</total_tokens><tool_uses>54</tool_uses><duration_ms>276072</duration_ms></usage>
+</task-notification>
+Full transcript available at: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/b64da2bf-bc43-4e98-92b9-9ef978ee0301/tasks/ae94654212f3b89b4.output
+
+---
+
+<task-notification>
+<task-id>b6le29yy3</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/b64da2bf-bc43-4e98-92b9-9ef978ee0301/tasks/b6le29yy3.output</output-file>
+<status>killed</status>
+<summary>Background command "find /home/mike-anderson -path "*bmad*" -name "context_engineering.py" 2&gt;/dev/null" was stopped</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/b64da2bf-bc43-4e98-92b9-9ef978ee0301/tasks/b6le29yy3.output
