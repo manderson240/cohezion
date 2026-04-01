@@ -29,14 +29,25 @@ from task import input_t, output_t
 
 # Adaptive KSPLIT table from tree search
 # Format: "{E_total}_{d_expert}_{bs}" -> ksplit value
+# Based on: estimated_m = bs / E_total
+# KSPLIT=4: very sparse (est_m < 10)
+# KSPLIT=2: moderately sparse (est_m < 30)
+# KSPLIT=0: dense (est_m >= 30)
 KSPLIT_TABLE = {
+    # 257 expert shapes
     "257_256_16": 4,
     "257_256_128": 4,
     "257_256_512": 0,
+    # 33 expert shapes
     "33_512_16": 2,
     "33_512_128": 2,
     "33_512_512": 0,
     "33_2048_512": 0,
+    # Additional shapes discovered via K-search
+    "257_256_32": 4,
+    "257_256_64": 2,
+    "33_512_64": 2,
+    "33_512_256": 0,
 }
 
 
@@ -52,28 +63,28 @@ def _get_ksplit_key(config: dict) -> str:
 def _choose_ksplit(config: dict) -> int:
     """
     Adaptive KSPLIT selection based on shape characteristics.
-    
+
     Uses estimated_m = total_tokens / num_experts to determine:
     - KSPLIT=4: Very sparse (estimated_m < 10)
-    - KSPLIT=2: Moderately sparse (estimated_m < 30)  
+    - KSPLIT=2: Moderately sparse (estimated_m < 30)
     - KSPLIT=0: Dense (estimated_m >= 30)
     """
     # First try exact match in table
     key = _get_ksplit_key(config)
     if key in KSPLIT_TABLE:
         return KSPLIT_TABLE[key]
-    
+
     # Fallback: compute estimated_m
     n_routed = config.get("n_routed_experts", 0)
     n_shared = config.get("n_shared_experts", 0)
     bs = config.get("bs", 0)
     E_total = n_routed + n_shared
-    
+
     if E_total == 0 or bs == 0:
         return 0
-    
+
     estimated_m = bs / E_total
-    
+
     if estimated_m < 10:
         return 4
     elif estimated_m < 30:
