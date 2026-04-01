@@ -1,0 +1,25 @@
+{
+  "cli_version": "0.5.1",
+  "checkpoint_id": "106d4ec27d65",
+  "strategy": "manual-commit",
+  "branch": "main",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "_bmad/_config/traceability/watchdog_state.json"
+  ],
+  "sessions": [
+    {
+      "metadata": "/10/6d4ec27d65/0/metadata.json",
+      "transcript": "/10/6d4ec27d65/0/full.jsonl",
+      "content_hash": "/10/6d4ec27d65/0/content_hash.txt",
+      "prompt": "/10/6d4ec27d65/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 34121,
+    "cache_creation_tokens": 14292666,
+    "cache_read_tokens": 417766422,
+    "output_tokens": 474439,
+    "api_call_count": 1274
+  }
+}
