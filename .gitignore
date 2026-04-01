@@ -233,3 +233,14 @@ data/
 
 .gemini/
 gha-creds-*.json
+
+# Autonomous cycle traceability (too many files for git)
+_bmad/_config/traceability/cycles_continuous/
+_bmad/_config/traceability/repo_health/*.json
+
+# Training artifacts (too large for git)
+results/training/*.zip
+results/training/*.pt
+results/training/*.png
+
+# Misplaced root scripts (move to scripts/)
