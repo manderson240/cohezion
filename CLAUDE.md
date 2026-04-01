@@ -13,6 +13,7 @@ COHEZION: 12D agentic universe with FLUME VAE, compound engineering, multi-agent
 uv run pytest tests/ -q              # Full test suite (5,200+ tests)
 uv run pytest tests/compound/ -v     # Run module tests
 uv run pytest tests/test_*.py::name  # Single test
+make validate                         # Compound loop validation (23 checks, ~18s)
 make format && make lint && make all # Check → fix → verify
 ```
 
@@ -119,7 +120,7 @@ See skill: `cohezion-vault-workflow` for vault API examples (log decisions, expe
 ### ⚡ Quick Reference
 - **Language**: Python 3.13+ | **Package Manager**: `uv` (never bare python)
 - **DB**: SurrealDB (ws://localhost:8000) | **API**: FastAPI :8080
-- **Tests**: 5,200+ passing (1,895 core verified 2026-03-31, 285 genesis, remainder in broader suite) | **Coverage**: html report in `htmlcov/`
+- **Tests**: 5,200+ passing (2,040+ core verified 2026-04-01, 285 genesis, remainder in broader suite) | **Coverage**: html report in `htmlcov/`
 - **CI**: `make lint-check && uv run pytest` before commit
 - **Entry point**: `cohezion = "cohezion.__main__:main"`
 - **Vault**: `~/vaults/cohezion-vault/` — Query via `vault_find_relevant_context(query)`
@@ -137,7 +138,9 @@ ExecutionOrchestrator (execute with 11-step pipeline)
   ├─ RequestAlignmentAnalyzer (coherence check)
   ├─ GlobalMetricsAggregator (record instance metrics)
   ├─ DegradationDetector (thermal, quality thresholds) → healing/ + resilience/ + CostAwareRouter feedback
-  └─ JourneyTracker (12D universe position) + JEPA surprise + bioelectric percolation
+  ├─ JourneyTracker (12D universe position) + JEPA surprise + bioelectric percolation → SurrealDB
+  ├─ OuroborosBridge (physics coherence check) + Mycelium (change correlation)
+  └─ MyceliumRegistry (auto-capture execution patterns for skill synthesis)
   ↓
 RetrospectionEngine (extract learnings, flag anomalies, pivot detection)
   ↓
@@ -156,7 +159,7 @@ Updated Skill (loop again)
 | `src/cohezion/compound/` | Executor, SkillRefiner, RetrospectionEngine, JourneyTracker | `executor.py` (11-step) |
 | `src/cohezion/swarm/` | Team orchestration, cost routing, model quality | `team_executor.py`, `cost_aware_router.py` |
 | `src/cohezion/cache/` | L1/L2/L3 semantic cache (95%+ hit rate) | `semantic_cache.py` |
-| `src/cohezion/skills/` | 183 PRIME skill definitions (*.md + *.py) | `skill_registry.json` |
+| `src/cohezion/skills/` | 190 skill definitions (126 PRIME) (*.md + *.py) | `skill_registry.json` |
 | `src/cohezion/persistence/` | SurrealDB, checkpoints, session recovery | `surreal_client.py` |
 | `src/cohezion/environments/` | Gymnasium RL envs: ManifoldEnv (single), SwarmEnv (multi-agent) | `manifold_env.py`, `swarm_env.py` |
 | `src/cohezion/api/` | FastAPI backend (190+ endpoints) | `__init__.py`, `services/genesis.py` |
