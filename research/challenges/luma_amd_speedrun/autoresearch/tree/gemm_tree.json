@@ -95,10 +95,10 @@
         "block": 64
       },
       "parent_id": "gemm_root",
-      "priority": 0.2200283239115045,
-      "attempts": 7,
-      "best_result_us": 133.75,
-      "stagnation_count": 0,
+      "priority": 0.22775916503299984,
+      "attempts": 9,
+      "best_result_us": 123.41,
+      "stagnation_count": 1,
       "status": "active",
       "children": [],
       "notes": "Larger block for more parallelism",
@@ -157,6 +157,22 @@
             "block": 64
           },
           "timestamp": "2026-03-31T22:41:41.125556",
+          "source": "template"
+        },
+        {
+          "result_us": 123.40885211300687,
+          "parameters": {
+            "block": 64
+          },
+          "timestamp": "2026-03-31T23:14:13.293907",
+          "source": "template"
+        },
+        {
+          "result_us": 127.2662107459561,
+          "parameters": {
+            "block": 64
+          },
+          "timestamp": "2026-03-31T23:15:21.967749",
           "source": "template"
         }
       ]

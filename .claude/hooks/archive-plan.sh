@@ -4,8 +4,6 @@
 # Copies to docs/plans/YYYY-MM-DD-<basename>.md if not already archived today.
 # Non-blocking: always exits 0.
 
-set -euo pipefail
-
 INPUT=$(cat)
 
 FILE=$(echo "$INPUT" | python3 -c "

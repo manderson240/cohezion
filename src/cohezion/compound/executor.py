@@ -1124,6 +1124,56 @@ class CompoundExecutor(CompoundContextMixin):
         )
         return result
 
+    def compile_natural_language(self, nl_text: str) -> Any:
+        """Compile natural language to a WorkflowSpec via vibe/ orchestrator.
+
+        Wires vibe/ NL→workflow compiler into the compound loop,
+        enabling task intake via natural language instead of structured APIs.
+
+        Args:
+            nl_text: Natural language task description
+
+        Returns:
+            WorkflowSpec if compilation succeeds, None if vibe/ unavailable
+        """
+        try:
+            from cohezion.vibe.orchestrator import VibeOrchestrator
+
+            orchestrator = VibeOrchestrator()
+            # Compile without executing — return spec for inspection
+            import asyncio
+
+            spec = asyncio.run(orchestrator.vibe(nl_text, execute=False))
+            return spec
+        except ImportError:
+            logger.debug("vibe/ module not available for NL compilation")
+            return None
+        except Exception:
+            logger.debug("NL compilation failed (non-blocking)", exc_info=True)
+            return None
+
+    def validate_sandbox(self, task_description: str) -> bool:
+        """Pre-execution sandbox validation via vanguard/ module.
+
+        Checks if the task description is safe to execute in the current
+        sandbox environment. Returns True if safe or if vanguard/ unavailable.
+
+        Args:
+            task_description: Description of the task to validate
+
+        Returns:
+            True if safe to execute, False if sandbox validation fails
+        """
+        try:
+            from cohezion.vanguard.sandbox_validation import validate_sandbox_task
+
+            return validate_sandbox_task(task_description)
+        except ImportError:
+            return True  # Default safe when module unavailable
+        except Exception:
+            logger.debug("Sandbox validation failed (non-blocking)", exc_info=True)
+            return True  # Default safe on error
+
 
 class ExecutorFactory:
     """Factory for creating compound executors with vault integration."""

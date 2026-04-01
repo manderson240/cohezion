@@ -3,8 +3,6 @@
 # Runs the nearest test file when a src/cohezion/ Python file is edited.
 # Non-blocking: always exits 0. Only prints warnings on regression.
 
-set -euo pipefail
-
 INPUT=$(cat)
 
 FILE=$(echo "$INPUT" | python3 -c "
