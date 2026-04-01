@@ -1,0 +1,56 @@
+Where do we go from here?
+
+---
+
+/retrospect
+
+---
+
+/insights
+
+---
+
+Let's review the insight and create an initiate an improvement plan to address all the shortcomings and make the strengths more persistent.
+
+---
+
+Yes
+
+---
+
+Now we need a retrospective of what we've accomplished in this session
+
+---
+
+<task-notification>
+<task-id>b56gdb2e4</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/1b386f53-abcd-44ae-90a5-bbeb7c93c33e/tasks/b56gdb2e4.output</output-file>
+<status>completed</status>
+<summary>Background command "Get fresh test count" completed (exit code 0)</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/1b386f53-abcd-44ae-90a5-bbeb7c93c33e/tasks/b56gdb2e4.output
+
+---
+
+Yes
+
+---
+
+Now how can we extend our workflows by delegating to a mixute of ollama cloud and local models?
+
+---
+
+Make it so
+
+---
+
+it's the defualt ollama cloud url.  I don't want to use anthropic api key.  Can't we just use it here in claude code?
+
+---
+
+/retrospect
+
+---
+
+SurrealDB is just on a different port
