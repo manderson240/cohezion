@@ -61,7 +61,7 @@ Physics Layer (Genesis Engine)
     |-- 10-step cosmogony chain (symmetry breaking cascade)
 
 RL Environments
-    |-- ManifoldEnv (19D obs, 12D action, 3-stage curriculum reward)
+    |-- ManifoldEnv (19D obs, 12D action, curriculum/dense reward modes)
     |-- SwarmEnv (N agents with gauge field coupling)
     |-- Registered: gym.make('Cohezion/ManifoldEnv-v0')
 
@@ -73,14 +73,18 @@ Evaluation
 
 ## Training Results
 
-4-iteration diagnostic loop discovering action scale must match dynamics timescale:
+6-run diagnostic loop across PPO and SAC, discovering that action scale and entropy must cooperate with physics:
 
-| Run | Change | Coherence | Reward | Result |
-|-----|--------|-----------|--------|--------|
-| 1 | Differential-only reward | 0.272 | -1.48 | Random outperforms (oscillation incentive) |
-| 2 | + Proximity base reward | 0.866 | -67.68 | Better coherence, still negative reward |
-| 3 | + Small actions [-0.1, 0.1] | **0.915** | **12.04** | Breakthrough: cooperates with physics |
-| 4 | 100K steps | 0.920 | 14.23 | PPO +17% reward, +9% stability vs random |
+| Run | Algorithm | Steps | Change | Reward | vs Random |
+|-----|-----------|-------|--------|--------|-----------|
+| 1 | PPO | 20K | Differential-only reward | -1.48 | Worse (oscillation) |
+| 2 | PPO | 20K | + Proximity base reward | -67.68 | Worse (large actions) |
+| 3 | PPO | 20K | + Small actions [-0.1, 0.1] | **12.04** | **+18.0** |
+| 4 | PPO | 100K | Scale up | 14.23 | +7.51 |
+| 5 | SAC | 20K | Default entropy | 1.38 | -5.34 (entropy too high) |
+| 6 | SAC | 100K | ent_coef=0.05 | **10.91** | **+8.59** |
+
+**Key insight**: Physics-grounded environments require algorithms that *cooperate* with the attractor. PPO with small actions works because it doesn't fight the Lagrangian dynamics. SAC needs reduced entropy (0.05 vs auto) to stop exploring against the physics.
 
 ## Key Modules
 
