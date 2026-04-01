@@ -3,9 +3,10 @@
   "checkpoint_id": "f12d071d7294",
   "strategy": "manual-commit",
   "branch": "main",
-  "checkpoints_count": 1,
+  "checkpoints_count": 2,
   "files_touched": [
-    "_bmad/_config/traceability/watchdog_state.json"
+    "_bmad/_config/traceability/watchdog_state.json",
+    "src/cohezion/knowledge_graph/MISSION_JOURNAL.md"
   ],
   "sessions": [
     {
@@ -13,13 +14,19 @@
       "transcript": "/f1/2d071d7294/0/full.jsonl",
       "content_hash": "/f1/2d071d7294/0/content_hash.txt",
       "prompt": ""
+    },
+    {
+      "metadata": "/f1/2d071d7294/1/metadata.json",
+      "transcript": "/f1/2d071d7294/1/full.jsonl",
+      "content_hash": "/f1/2d071d7294/1/content_hash.txt",
+      "prompt": "/f1/2d071d7294/1/prompt.txt"
     }
   ],
   "token_usage": {
-    "input_tokens": 3963,
-    "cache_creation_tokens": 372358,
-    "cache_read_tokens": 4135786,
-    "output_tokens": 14554,
-    "api_call_count": 38
+    "input_tokens": 38055,
+    "cache_creation_tokens": 14121401,
+    "cache_read_tokens": 409299881,
+    "output_tokens": 477898,
+    "api_call_count": 1287
   }
 }
