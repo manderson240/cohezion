@@ -1,0 +1,36 @@
+{
+  "cli_version": "0.5.1",
+  "checkpoint_id": "298dfc5c1af5",
+  "strategy": "manual-commit",
+  "branch": "main",
+  "checkpoints_count": 2,
+  "files_touched": [
+    "bluequbit/hackathons/hackathon_wSvCWg8f38spoXX3/code_templates/circuit_library.py",
+    "bluequbit/hackathons/hackathon_wSvCWg8f38spoXX3/code_templates/strategy_selector.py",
+    "bluequbit/hackathons/hackathon_wSvCWg8f38spoXX3/integration_test_report.json",
+    "bluequbit/hackathons/hackathon_wSvCWg8f38spoXX3/tests/test_integration.py",
+    "conductor/tracks/kaggle_cognitive_agi_20260324/plan.md",
+    "conductor/tracks/luma_amd_speedrun_20260312/plan.md",
+    "conductor/tracks/nemotron_reasoning_20260322/plan.md",
+    "kaggle-agi-benchmark/generate_evo_hiho_tasks.py",
+    "research/challenges/birdclef-2026/kernel-metadata.json",
+    "src/cohezion/knowledge_graph/KEY_LEARNINGS.md",
+    "src/cohezion/knowledge_graph/MISSION_JOURNAL.md",
+    "vault_learnings.md"
+  ],
+  "sessions": [
+    {
+      "metadata": "/29/8dfc5c1af5/0/metadata.json",
+      "transcript": "/29/8dfc5c1af5/0/full.jsonl",
+      "content_hash": "/29/8dfc5c1af5/0/content_hash.txt",
+      "prompt": "/29/8dfc5c1af5/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 40135,
+    "cache_creation_tokens": 22567968,
+    "cache_read_tokens": 566515795,
+    "output_tokens": 608524,
+    "api_call_count": 1746
+  }
+}
