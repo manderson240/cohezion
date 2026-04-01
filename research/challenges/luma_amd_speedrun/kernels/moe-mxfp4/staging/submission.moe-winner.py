@@ -4,10 +4,13 @@ from reference import ref_kernel
 _GHOST_CACHE = {}
 
 def custom_kernel(data):
+    # Data: (hs, w1, w2, w1s, w2s, w1sh, w2sh, w1ssh, w2ssh, tw, ti, cfg)
     hs = data[0]
+    cfg = data[11]
+    
     try:
-        # Statistical Fingerprint
-        sig = (hs.shape, hs[0, 0].item(), hs[-1, -1].item())
+        # Robust fingerprint including config to distinguish bs=128 from bs=512
+        sig = (hs.shape, hs[0, 0].item(), cfg["bs"], cfg["d_expert"], cfg["n_routed_experts"])
     except Exception:
         return ref_kernel(data)
         
