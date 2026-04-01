@@ -27,6 +27,7 @@ from dataclasses import dataclass
 
 import numpy as np
 
+
 logger = logging.getLogger(__name__)
 
 # Haudenosaunee: decisions must consider impact 7 generations ahead

@@ -10,6 +10,7 @@ import sys
 import torch
 from task import input_t, output_t
 
+
 # ── Probe: Get source of the stage1 ASM wrapper ──
 try:
     from aiter import mla_decode_stage1_asm_fwd
@@ -74,6 +75,7 @@ from aiter import (
     get_mla_metadata_v1,
     mla_reduce_v1,
 )
+
 
 NUM_HEADS = 16
 NUM_KV_HEADS = 1

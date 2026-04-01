@@ -35,6 +35,7 @@ from cohezion.swarm.providers.model_provider import (
     register_model_provider,
 )
 
+
 try:
     from cohezion.swarm.providers.ui_generation_provider import (
         UIGenerationProvider,

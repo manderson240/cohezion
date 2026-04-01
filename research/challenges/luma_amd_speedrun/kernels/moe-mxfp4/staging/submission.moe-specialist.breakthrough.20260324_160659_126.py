@@ -35,15 +35,13 @@ from __future__ import annotations
 
 import os
 
+
 # Enable Non-Temporal hint for GPU memory transfers
 os.environ["AITER_USE_NT"] = "1"
 
-from aiter import ActivationType, QuantType, dtypes
+from aiter import ActivationType, QuantType
 from aiter.fused_moe import fused_moe
-from aiter.ops.moe_op import moe_cktile2stages_gemm1, moe_cktile2stages_gemm2
-from aiter.utility import fp4_utils
 from task import input_t, output_t
-import torch
 
 
 def build_kernel_name(stage: int, block_m: int, has_bias: bool = True, 

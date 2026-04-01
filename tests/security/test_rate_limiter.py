@@ -6,8 +6,9 @@ Covers token bucket rate limiting logic.
 from __future__ import annotations
 
 import time
-import pytest
+
 from cohezion.security.rate_limiter import RateLimiter, TokenBucket
+
 
 def test_token_bucket_consume():
     """[P0] Should consume tokens and deny when empty."""

@@ -8,10 +8,11 @@ find stable proof trajectories.
 Inspired by Cohezion's FLUME methodology and 12D triune manifold.
 """
 
-import numpy as np
-from dataclasses import dataclass
-from typing import List, Optional
 import re
+from dataclasses import dataclass
+from typing import List
+
+import numpy as np
 
 
 @dataclass

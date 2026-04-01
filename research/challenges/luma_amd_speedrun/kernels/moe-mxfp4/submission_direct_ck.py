@@ -18,13 +18,14 @@ from __future__ import annotations
 import os
 import sys
 
+
 os.environ["AITER_USE_NT"] = "1"
 
-import torch
-from task import input_t, output_t
-from reference import ref_kernel
 import aiter
+import torch
 from aiter import ActivationType, QuantType
+from reference import ref_kernel
+from task import input_t, output_t
 
 
 def custom_kernel(data: input_t) -> output_t:

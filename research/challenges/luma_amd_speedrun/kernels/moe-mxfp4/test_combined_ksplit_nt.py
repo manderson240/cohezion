@@ -11,10 +11,7 @@ Note: These tests work WITHOUT aiter module by parsing the source directly.
 The actual popcorn tests verify correctness against the reference.
 """
 
-import ast
-import os
 import re
-import sys
 from pathlib import Path
 
 

@@ -1,9 +1,7 @@
 """Tests for M24 disconnected modules API integration."""
 
-import math
 
 import numpy as np
-import pytest
 
 from cohezion.physics.hamiltonian import HamiltonianDynamics, PotentialType
 from cohezion.physics.manifold_utils import SemanticLagrangeFinder

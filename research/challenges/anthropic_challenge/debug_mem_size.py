@@ -1,4 +1,4 @@
-from problem import Tree, Input, build_mem_image
+from problem import Input, Tree, build_mem_image
 
 
 def debug_mem():

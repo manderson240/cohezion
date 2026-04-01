@@ -5,14 +5,16 @@ Covers PRIME skill parsing and spec generation.
 
 from __future__ import annotations
 
-import pytest
 from unittest.mock import MagicMock, patch
+
+import pytest
 from fastapi import HTTPException
 
 from cohezion.api.services.skills import (
-    parse_template_service,
     TemplateParseRequest,
+    parse_template_service,
 )
+
 
 @pytest.mark.asyncio
 async def test_parse_template_service_success():

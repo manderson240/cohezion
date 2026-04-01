@@ -1,6 +1,7 @@
 import os
-import sys
+
 from dotenv import load_dotenv
+
 
 def test_auth():
     load_dotenv()

@@ -1,8 +1,11 @@
-import pytest
+from unittest.mock import AsyncMock, MagicMock, patch
+
 import httpx
-from unittest.mock import AsyncMock, patch, MagicMock
+import pytest
+
 from cohezion.integrations.kaggle_api import KaggleAPI
 from cohezion.reliability import CircuitState, _circuits
+
 
 @pytest.fixture(autouse=True)
 def reset_circuits():

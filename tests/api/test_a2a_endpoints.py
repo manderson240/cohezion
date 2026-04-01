@@ -7,11 +7,10 @@ Covers agent discovery, task lifecycle, and error handling.
 Reference: https://github.com/a2a-protocol/a2a
 """
 
+from unittest.mock import AsyncMock, patch
+
 import pytest
 from fastapi.testclient import TestClient
-from unittest.mock import AsyncMock, patch, mock_open
-import json
-from pathlib import Path
 
 
 @pytest.fixture

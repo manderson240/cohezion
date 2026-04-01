@@ -1,5 +1,7 @@
 import os
+
 from dotenv import load_dotenv
+
 
 # MUST be first to ensure Kaggle libs find credentials
 load_dotenv()
@@ -16,7 +18,9 @@ if api_token:
 
 import asyncio
 import logging
+
 from cohezion.integrations.kaggle_api import KaggleAPI
+
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)

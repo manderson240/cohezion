@@ -13,6 +13,7 @@ import numpy as np
 from fastapi import APIRouter, Query
 from pydantic import BaseModel, Field
 
+
 logger = logging.getLogger(__name__)
 
 modules_router = APIRouter(prefix="/modules", tags=["modules"])

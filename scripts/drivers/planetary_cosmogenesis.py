@@ -9,10 +9,10 @@ import logging
 import time
 
 import numpy as np
-from cohezion.physics.substrate_loom import LoomConfig, SubstrateLoom
-from cohezion.physics.xla_bridge import XlaPhysicsEngine
 
 from cohezion.core.persistence.surreal_client import get_surreal_client
+from cohezion.physics.substrate_loom import LoomConfig, SubstrateLoom
+from cohezion.physics.xla_bridge import XlaPhysicsEngine
 
 
 logging.basicConfig(level=logging.INFO)

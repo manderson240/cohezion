@@ -10,16 +10,15 @@ NOTE: This test may fail if the kernel names are not registered in the lookup ta
 
 import os
 import sys
-import torch
-import numpy as np
+
 
 # Add aiter to path if available
 try:
     import aiter
     from aiter import ActivationType, QuantType, dtypes
     from aiter.ops.moe_op import moe_cktile2stages_gemm1, moe_cktile2stages_gemm2
-    from aiter.utility import fp4_utils
     from aiter.ops.shuffle import shuffle_weight
+    from aiter.utility import fp4_utils
     HAS_AITER = True
 except ImportError as e:
     print(f"aiter not available: {e}")
@@ -29,7 +28,6 @@ except ImportError as e:
 KERNEL_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, KERNEL_DIR)
 
-from task import input_t, output_t
 import reference
 
 

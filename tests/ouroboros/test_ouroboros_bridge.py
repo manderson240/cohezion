@@ -6,7 +6,6 @@ from cohezion.learning.ouroboros import OuroborosEngine
 from cohezion.learning.ouroboros_trigger import OuroborosTrigger, TriggerState
 from cohezion.physics.ouroboros_bridge import (
     COHERENCE_DROP_THRESHOLD,
-    JEPA_ERROR_THRESHOLD,
     HealingEvent,
     HealingPhase,
     OuroborosBridge,

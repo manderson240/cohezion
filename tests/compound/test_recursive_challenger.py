@@ -9,11 +9,13 @@ Covers:
 
 from __future__ import annotations
 
-import pytest
 from unittest.mock import MagicMock, patch
 
-from cohezion.compound.recursive_challenger import RecursiveChallenger, ImprovementOpportunity
+import pytest
+
 from cohezion.compound.long_horizon_task import LongHorizonTask
+from cohezion.compound.recursive_challenger import ImprovementOpportunity, RecursiveChallenger
+
 
 @pytest.fixture
 def mock_vault():

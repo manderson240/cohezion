@@ -20,6 +20,7 @@ from pydantic import BaseModel, Field
 
 from cohezion.substrate import get_hardware_monitor, popcorn
 
+
 logger = logging.getLogger(__name__)
 
 forge_router = APIRouter(prefix="/forge", tags=["forge"])
@@ -77,7 +78,6 @@ async def run_benchmark(req: BenchmarkRequest) -> BenchmarkResponse:
     """Run an MXFP4 kernel benchmark on the local hardware."""
     # Find the submission file in the luma_speedrun directory
     # For now, we assume it's in a known location relative to the project root
-    import os
     from pathlib import Path
     
     project_root = Path.cwd()

@@ -4,9 +4,11 @@ FIG. 6: Training Loss Convergence with Coherence Regularization
 Output: PNG + SVG for patent application
 """
 
+from pathlib import Path
+
 import matplotlib.pyplot as plt
 import numpy as np
-from pathlib import Path
+
 
 # Set publication quality
 plt.rcParams["figure.dpi"] = 300
@@ -38,6 +40,7 @@ ax.text(45, 0.64, "0.63 (mean coherence)", ha="right", fontsize=9, color="red")
 
 # Final values box
 from matplotlib.patches import FancyBboxPatch
+
 
 box = FancyBboxPatch(
     (25, 0.8),

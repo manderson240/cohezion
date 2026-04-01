@@ -4,9 +4,9 @@ import numpy as np
 import pytest
 
 from cohezion.physics.gauge_theory import (
+    SO3_GENERATORS,
     FourFabricGauge,
     GaugeConnection,
-    SO3_GENERATORS,
 )
 
 

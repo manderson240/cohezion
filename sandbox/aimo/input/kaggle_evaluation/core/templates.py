@@ -13,6 +13,7 @@ import polars as pl
 import kaggle_evaluation.core.base_gateway
 import kaggle_evaluation.core.relay
 
+
 _initial_import_time = time.time()
 _issued_startup_time_warning = False
 

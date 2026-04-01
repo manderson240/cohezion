@@ -4,6 +4,7 @@ from aiter.mla import mla_decode_fwd
 from aiter.utility.fp4_utils import dynamic_mxfp4_quant
 from task import input_t, output_t
 
+
 # DeepSeek R1 MLA constants (forward_absorb path)
 TOTAL_NUM_HEADS = 128
 NUM_KV_HEADS = 1

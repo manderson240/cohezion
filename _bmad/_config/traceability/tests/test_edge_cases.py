@@ -9,18 +9,18 @@ Tests error handling and edge cases:
 - Unicode in paths
 """
 
-import pytest
-from pathlib import Path
-from unittest.mock import patch, MagicMock
-import tempfile
 import os
-
 import sys
+import tempfile
+from pathlib import Path
+
+import pytest
+
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from traceability_engine import TraceabilityEngine
 from base_engine import EngineConfig
+from traceability_engine import TraceabilityEngine
 
 
 PROJECT_ROOT = Path("/home/mike-anderson/dev/cohezion")

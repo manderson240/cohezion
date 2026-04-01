@@ -20,6 +20,7 @@ import logging
 import sys
 from pathlib import Path
 
+
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 logger = logging.getLogger(__name__)
 
@@ -83,7 +84,7 @@ async def run_indexing(
     batch_size: int = 10,
 ) -> None:
     """Main indexing loop."""
-    from cohezion.agentjet.embeddings import GeminiEmbeddingModel, FlumeVAEEmbeddingModel
+    from cohezion.agentjet.embeddings import FlumeVAEEmbeddingModel, GeminiEmbeddingModel
 
     fallback = FlumeVAEEmbeddingModel()
     model = GeminiEmbeddingModel(fallback=fallback)

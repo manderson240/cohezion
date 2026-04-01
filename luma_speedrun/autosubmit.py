@@ -4,12 +4,12 @@
 Runs until 7 AM EST, submitting parameter sweep variants with rate limiting.
 """
 
+import json
 import subprocess
 import time
-import json
-from pathlib import Path
 from datetime import datetime
-import sys
+from pathlib import Path
+
 
 END_HOUR = 7  # 7 AM EST
 RATE_LIMIT_SECONDS = 610  # 10 min + buffer

@@ -5,9 +5,9 @@ Check leaderboard position for NVIDIA Nemotron Model Reasoning Challenge.
 
 import asyncio
 import os
-from datetime import datetime
-from pathlib import Path
+
 from dotenv import load_dotenv
+
 
 # Load environment variables from .env
 load_dotenv()
@@ -24,7 +24,6 @@ if username:
 if api_token:
     os.environ["KAGGLE_KEY"] = api_token
 
-from cohezion.integrations.kaggle_api import KaggleAPI
 from kaggle.api.kaggle_api_extended import KaggleApi
 
 

@@ -1,13 +1,16 @@
 import os
 import re
 import sys
-import torch
-import polars as pl
 from typing import Optional
+
+import polars as pl
+import torch
+
 
 # Setup path for Kaggle evaluation API
 sys.path.append('/kaggle/input/ai-mathematical-olympiad-progress-prize-3')
 import kaggle_evaluation.aimo_3_inference_server
+
 
 MODEL_PATH = "/kaggle/input/qwen2-5-math-7b-instruct"
 

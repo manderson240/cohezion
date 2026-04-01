@@ -1,12 +1,13 @@
 # tests/test_vault_graph_affinity.py
-import pytest
-import numpy as np
-import sys
 import os
+import sys
+
+import numpy as np
+
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../src"))
 
-from mcp_server.vault_graph.affinity import project_to_12d, normalize_l2
+from mcp_server.vault_graph.affinity import normalize_l2, project_to_12d
 
 
 def test_project_to_12d_shape():

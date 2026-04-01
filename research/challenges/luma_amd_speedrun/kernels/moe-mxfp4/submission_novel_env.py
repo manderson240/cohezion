@@ -12,19 +12,20 @@ And: fused_dynamic_mxfp4_quant_moe_sort integration with fused_moe.
 
 from __future__ import annotations
 
+import inspect
 import os
 import sys
-import inspect
+
 
 # Novel env vars from AITER blog — NOT previously tested
 os.environ["AITER_USE_NT"] = "1"
 os.environ["CK_BLOCK_GEMM"] = "1"
 
-from task import input_t, output_t
-from reference import ref_kernel
 import aiter
 from aiter import ActivationType, QuantType
 from aiter.fused_moe import fused_moe
+from reference import ref_kernel
+from task import input_t, output_t
 
 
 def custom_kernel(data: input_t) -> output_t:

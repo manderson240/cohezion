@@ -6,9 +6,12 @@ Covers proactive cache warming from vault.
 from __future__ import annotations
 
 import json
+from unittest.mock import AsyncMock, MagicMock
+
 import pytest
-from unittest.mock import MagicMock, AsyncMock, patch
+
 from cohezion.cache.cache_warmer import CacheWarmer
+
 
 @pytest.mark.asyncio
 async def test_cache_warmer_disabled_without_client():

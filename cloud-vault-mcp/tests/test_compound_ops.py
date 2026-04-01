@@ -1,11 +1,12 @@
 """Tests for compound engineering operations."""
 
-import sys
 import os
+import sys
 from datetime import datetime, timedelta, timezone
 from unittest.mock import MagicMock, patch
 
 import pytest
+
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../src"))
 
@@ -174,7 +175,6 @@ class TestRelevanceScore:
         assert score > 0
 
     def test_zero_access_count_boost_floors_at_one(self):
-        import math
 
         score = relevance_score(5, datetime.now(timezone.utc).isoformat(), 0)
         # log1p(0)=0 → boost clamped to 1.0, decay≈1.0 when fresh

@@ -1,7 +1,8 @@
 import asyncio
 import os
-import httpx
+
 from cohezion.integrations.kaggle_api import KaggleAPI
+
 
 async def check_leaderboard():
     username = "manderson240"

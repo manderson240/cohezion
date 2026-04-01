@@ -17,12 +17,13 @@ instead of going through Python pybind11 wrapper.
 """
 
 import ctypes
+import glob
 import os
 import sys
-import glob
 
 import torch
 from task import input_t, output_t
+
 
 # ── Load HIP runtime ──
 hip = ctypes.CDLL("libamdhip64.so")
@@ -149,6 +150,7 @@ from aiter import (
     mla_decode_stage1_asm_fwd,
     mla_reduce_v1,
 )
+
 
 NUM_HEADS = 16
 NUM_KV_HEADS = 1

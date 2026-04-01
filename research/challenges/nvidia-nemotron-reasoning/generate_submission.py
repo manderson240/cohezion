@@ -4,13 +4,15 @@ Generate submission file for NVIDIA Nemotron Model Reasoning Challenge
 Loads trained model and creates predictions for test data.
 """
 
-import os
-import torch
-import pandas as pd
-from transformers import AutoTokenizer, AutoModelForCausalLM
-from peft import PeftModel, PeftConfig
 import logging
+import os
+
+import pandas as pd
+import torch
+from peft import PeftModel
 from tqdm.auto import tqdm
+from transformers import AutoModelForCausalLM, AutoTokenizer
+
 
 # Set up logging
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")

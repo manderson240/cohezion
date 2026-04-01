@@ -14,6 +14,7 @@ from pathlib import Path
 
 import yaml
 
+
 logger = logging.getLogger(__name__)
 
 # Match Obsidian-style wikilinks: [[target]] or [[target|alias]]

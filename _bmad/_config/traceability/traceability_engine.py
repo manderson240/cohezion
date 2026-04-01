@@ -17,12 +17,12 @@ Refactored to use BaseEngine for DRY compliance and dependency injection.
 from __future__ import annotations
 
 import csv
-import logging
 import re
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Dict, List, Optional, Set, Tuple
+from typing import Dict, List, Optional, Tuple
 from xml.etree import ElementTree as ET
+
 
 try:
     from .base_engine import BaseEngine, EngineConfig
@@ -675,8 +675,8 @@ class TraceabilityEngine(BaseEngine):
 
 def main():
     """Main entry point."""
-    import sys
     import os
+    import sys
 
     # Support hardcoded path from env var or use default
     project_root = Path(os.environ.get("PROJECT_ROOT", "/home/mike-anderson/dev/cohezion"))

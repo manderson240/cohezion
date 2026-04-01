@@ -10,6 +10,7 @@ from cohezion.reliability.residency_awareness import (
     get_residency_anchors,
 )
 
+
 def test_get_anchors():
     """[P0] Should return correct hardware anchors."""
     anchors = get_residency_anchors()

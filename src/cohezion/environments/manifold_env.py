@@ -60,6 +60,7 @@ from cohezion.physics.lagrangian import LagrangianDynamics, hiho_potential
 from cohezion.physics.riemannian_metric import fabric_block_metric
 from cohezion.physics.spinor import SpinorState
 
+
 # Valid dynamics engine choices
 DYNAMICS_ENGINES = ("lagrangian", "hamiltonian")
 

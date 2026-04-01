@@ -9,14 +9,12 @@ from __future__ import annotations
 
 import os
 
+
 os.environ["HIP_ONLINE_TUNING"] = "1"
 
-from task import input_t, output_t
-from aiter import dtypes, QuantType
 import aiter
-from aiter.ops.shuffle import shuffle_weight
-
-from aiter.utility.fp4_utils import e8m0_shuffle
+from aiter import QuantType, dtypes
+from task import input_t, output_t
 
 
 def custom_kernel(data: input_t) -> output_t:

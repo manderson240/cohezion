@@ -13,7 +13,6 @@ from __future__ import annotations
 
 import subprocess
 import sys
-from datetime import datetime
 from pathlib import Path
 
 from traceability_engine import TraceabilityEngine

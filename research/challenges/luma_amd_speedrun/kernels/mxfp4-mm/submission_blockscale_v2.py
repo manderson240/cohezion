@@ -17,17 +17,17 @@ from __future__ import annotations
 
 import os
 import sys
-import inspect
+
 
 os.environ["HIP_ONLINE_TUNING"] = "1"
 
-import torch
-from task import input_t, output_t
-from reference import ref_kernel
 import aiter
+import torch
 from aiter import dtypes
 from aiter.ops.triton.quant import dynamic_mxfp4_quant
 from aiter.utility.fp4_utils import e8m0_shuffle
+from reference import ref_kernel
+from task import input_t, output_t
 
 
 def custom_kernel(data: input_t) -> output_t:

@@ -11,13 +11,13 @@ import json
 import time
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, Any, List
+from typing import Any, Dict, List
 
-from swarm_coordinator import SwarmCoordinator
 from base_specialist import BaseSpecialist
+from flume_navigator import FLUMEProfilerNavigator
 from knower_auditor import KnowerAuditor
 from performance_profiler import PerformanceProfiler
-from flume_navigator import FLUMEProfilerNavigator
+from swarm_coordinator import SwarmCoordinator
 
 
 @dataclass

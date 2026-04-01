@@ -8,7 +8,6 @@ from pathlib import Path
 sys.path.append(str(Path(__name__).parent / "src"))
 
 from cohezion.swarm.agents.analyst import AnalystAgent
-
 from cohezion.swarm.swarm_types import Perspective, SwarmConfig
 
 

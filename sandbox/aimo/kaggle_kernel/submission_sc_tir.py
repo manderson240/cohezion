@@ -14,15 +14,17 @@ Constraint: Must produce SAME answer in two independent runs (deterministic scor
 
 import os
 import re
-import sys
 import subprocess
-import torch
-import polars as pl
+import sys
 from collections import Counter
 from typing import Optional
 
+import polars as pl
+
+
 sys.path.append("/kaggle/input/ai-mathematical-olympiad-progress-prize-3")
 import kaggle_evaluation.aimo_3_inference_server
+
 
 # Model selection: DeepSeek-R1-Distill-Qwen-32B-AWQ (best open-weight reasoning)
 # Fallback: Qwen2.5-Math-7B if 32B doesn't fit

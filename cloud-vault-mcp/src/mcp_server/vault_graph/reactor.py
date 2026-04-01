@@ -10,6 +10,7 @@ from typing import Any
 
 import networkx as nx
 
+
 LAMBDA_DECAY = 0.05
 
 

@@ -20,6 +20,7 @@ import polars as pl
 
 import kaggle_evaluation.core.relay
 
+
 _DATAFRAME_LIKE_TYPES = (pl.DataFrame, pl.Series, pd.DataFrame, pd.Series)
 _VALID_ROW_ID_SCALAR_TYPES = (str, int)
 _VALID_ROW_ID_TYPES = _VALID_ROW_ID_SCALAR_TYPES + _DATAFRAME_LIKE_TYPES

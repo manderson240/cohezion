@@ -7,6 +7,7 @@ from pathlib import Path
 
 import numpy as np
 
+
 # VAULT_PCA_MATRIX_PATH env var overrides in production and tests.
 # Default falls back to the standard vault layout for local dev only.
 _default = (

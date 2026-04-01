@@ -25,6 +25,7 @@ import logging
 from pathlib import Path
 from typing import Any
 
+
 logger = logging.getLogger(__name__)
 
 # Pre-written narration scripts for each cosmogonic stage

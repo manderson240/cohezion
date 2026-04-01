@@ -20,6 +20,7 @@ from cohezion.worldviews.tradition_data import (
 )
 from cohezion.worldviews.vault_graph import get_vault_graph
 
+
 logger = logging.getLogger(__name__)
 
 worldviews_router = APIRouter(prefix="/worldviews", tags=["worldviews"])

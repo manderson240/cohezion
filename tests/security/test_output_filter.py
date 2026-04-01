@@ -5,12 +5,12 @@ Covers PII redaction and toxic content filtering.
 
 from __future__ import annotations
 
-import pytest
 from cohezion.security.output_filter import (
-    OutputFilter,
     FilterResult,
     InsightPacketGenerator,
+    OutputFilter,
 )
+
 
 def test_output_filter_clean():
     """[P0] Should allow clean output."""

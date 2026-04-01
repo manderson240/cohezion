@@ -9,6 +9,7 @@ Target: Get submission file ready within 1 hour.
 import argparse
 import time
 from pathlib import Path
+
 import polars as pl
 from base_specialist import BaseSpecialist
 

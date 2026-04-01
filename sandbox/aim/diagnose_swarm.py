@@ -1,6 +1,7 @@
 from base_specialist import BaseSpecialist
 from math_parser import MathParser
 
+
 def diagnose():
     parser = MathParser()
     problem = "Let $n = 3^3 \\cdot 11^3$. Find the number of distinct positive divisors of $n$."

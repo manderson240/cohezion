@@ -28,6 +28,7 @@ from dataclasses import dataclass
 
 import numpy as np
 
+
 logger = logging.getLogger(__name__)
 
 # Fabric indices: which 3 of the 12 dimensions belong to each fabric

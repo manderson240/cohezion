@@ -15,6 +15,7 @@ from enum import Enum
 from cohezion.learning.ouroboros import ExecutionExhaust, OuroborosEngine
 from cohezion.learning.ouroboros_trigger import OuroborosTrigger, TriggerState
 
+
 logger = logging.getLogger(__name__)
 
 COHERENCE_DROP_THRESHOLD = 0.3

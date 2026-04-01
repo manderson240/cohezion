@@ -12,6 +12,7 @@ import time
 from dataclasses import dataclass
 from pathlib import Path
 
+
 logger = logging.getLogger(__name__)
 
 POPCORN_CLI = Path.home() / ".local" / "bin" / "popcorn-cli"

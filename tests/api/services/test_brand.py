@@ -6,7 +6,9 @@ Covers brand theme and identity metadata.
 from __future__ import annotations
 
 import pytest
+
 from cohezion.api.services.brand import get_brand_theme
+
 
 @pytest.mark.asyncio
 async def test_get_brand_theme():

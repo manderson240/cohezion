@@ -4,6 +4,7 @@
 import re
 from pathlib import Path
 
+
 TEST_FILE = Path(__file__).parent.parent / "tests/api/test_a2a_endpoints.py"
 
 def add_auth_to_tests():

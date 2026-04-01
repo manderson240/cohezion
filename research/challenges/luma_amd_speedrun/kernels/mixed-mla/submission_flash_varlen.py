@@ -17,8 +17,10 @@ Three-regime routing:
 from __future__ import annotations
 
 import sys
+
 import torch
 from task import input_t, output_t
+
 
 SM_SCALE = 1.0 / (576 ** 0.5)
 V_HEAD_DIM = 512

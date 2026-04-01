@@ -11,12 +11,13 @@ Uses gemm_a4w4_asm directly for maximum control over kernel dispatch.
 
 from __future__ import annotations
 
-from task import input_t, output_t
-from aiter import dtypes
 import aiter
+import torch
+from aiter import dtypes
 from aiter.ops.triton.quant import dynamic_mxfp4_quant
 from aiter.utility.fp4_utils import e8m0_shuffle
-import torch
+from task import input_t, output_t
+
 
 KERNEL_32X128 = "_ZN5aiter41f4gemm_bf16_per1x32Fp4_BpreShuffle_32x128E"
 KERNEL_192X128 = "_ZN5aiter42f4gemm_bf16_per1x32Fp4_BpreShuffle_192x128E"

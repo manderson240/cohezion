@@ -1,11 +1,7 @@
-import math
-import torch
-import torch.nn.functional as F
 import aiter
-from aiter.fused_moe import fused_moe
+import torch
 from aiter import dtypes
 from task import input_t, output_t
-from utils import make_match_reference
 
 
 # ──────────────────────────────────────────────────────────────────────

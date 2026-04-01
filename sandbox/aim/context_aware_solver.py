@@ -11,14 +11,14 @@ Reduces token usage by 60% while improving accuracy.
 """
 
 import logging
-from typing import Dict, Any, List, Optional, Tuple
 from dataclasses import dataclass
+from typing import Any, Dict, List, Optional, Tuple
 
-from semantic_cache import get_cache, SemanticCache
-from failure_logger import FailureLogger, FailureType
-from swarm_coordinator import SwarmCoordinator
 from base_specialist import BaseSpecialist
+from failure_logger import FailureLogger, FailureType
 from knower_auditor import KnowerAuditor
+from semantic_cache import SemanticCache, get_cache
+from swarm_coordinator import SwarmCoordinator
 
 
 logger = logging.getLogger(__name__)

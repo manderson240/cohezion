@@ -8,11 +8,14 @@ Based on official template-hip.py pattern from gpu-mode/reference-kernels.
 """
 
 import os
+
 from torch.utils.cpp_extension import load_inline
+
 
 os.environ["PYTORCH_ROCM_ARCH"] = "gfx950"
 
 from task import input_t, output_t
+
 
 CPP_WRAPPER = """
 void mxfp4_gemm_rocwmma(

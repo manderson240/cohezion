@@ -5,8 +5,10 @@ Covers 12D/2048D manifold states and simulation engine.
 
 from __future__ import annotations
 
-import pytest
 from unittest.mock import AsyncMock, MagicMock, patch, sys
+
+import pytest
+
 
 # Mock cohezion_core and multimodal_bridge before they're imported
 mock_cc = MagicMock()
@@ -17,17 +19,14 @@ mock_mb = MagicMock()
 mock_mb.LOCAL_MULTIMODAL_BRIDGE = MagicMock()
 mock_mb.LOCAL_MULTIMODAL_BRIDGE.schedule_asset = AsyncMock()
 sys.modules["cohezion.core.multimodal_bridge"] = mock_mb
-import numpy as np
-from datetime import datetime
 
 from cohezion.universe.engine import (
     AxiomaticState,
     LatentState,
-    TrajectoryPoint,
     UniverseJourney,
     UniverseSimulationEngine,
-    SimpleEncoder,
 )
+
 
 class TestAxiomaticState:
     """[P0] Unit tests for AxiomaticState class."""

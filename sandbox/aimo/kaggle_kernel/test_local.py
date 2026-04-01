@@ -1,10 +1,10 @@
 """Local test for SC-TIR kernel logic without vLLM/Kaggle dependencies."""
 
 import os
-import sys
 import re
+import sys
 from collections import Counter
-from typing import Optional
+
 
 # Add parent directory for imports
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))

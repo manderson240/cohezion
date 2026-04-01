@@ -23,9 +23,8 @@ import signal
 import subprocess
 import sys
 import time
-from datetime import datetime
 from pathlib import Path
-from typing import Optional
+
 
 # Try to import schedule, fallback to simple loop if not available
 try:

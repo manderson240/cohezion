@@ -8,7 +8,6 @@ from pathlib import Path
 sys.path.append(str(Path(__file__).parent.parent.parent / "src"))
 
 from cohezion.evaluation.benchmarks import CohezionEvaluator
-
 from cohezion.reliability.monitor import get_resource_monitor
 from cohezion.universe.engine import UniverseSimulationEngine
 

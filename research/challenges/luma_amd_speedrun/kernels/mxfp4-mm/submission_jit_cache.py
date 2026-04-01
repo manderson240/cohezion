@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import os
 
+
 # Set JIT cache directory BEFORE importing aiter
 os.environ["AITER_JIT_DIR"] = "/tmp/aiter_jit_cache"
 os.makedirs("/tmp/aiter_jit_cache", exist_ok=True)
@@ -16,11 +17,11 @@ os.makedirs("/tmp/aiter_jit_cache", exist_ok=True)
 # Enable HIP online tuning
 os.environ["HIP_ONLINE_TUNING"] = "1"
 
-from task import input_t, output_t
-from aiter import dtypes
 import aiter
+from aiter import dtypes
 from aiter.ops.triton.quant import dynamic_mxfp4_quant
 from aiter.utility.fp4_utils import e8m0_shuffle
+from task import input_t, output_t
 
 
 def custom_kernel(data: input_t) -> output_t:

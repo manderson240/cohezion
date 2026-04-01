@@ -1,7 +1,7 @@
-import json
+from typing import Any, Dict
+
 import requests
-import re
-from typing import Dict, Any, Optional
+
 
 class AdversaryAgent:
     """

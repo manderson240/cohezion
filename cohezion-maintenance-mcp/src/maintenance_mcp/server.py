@@ -11,6 +11,7 @@ from mcp.server.fastmcp import FastMCP
 
 from .graph_health import classify_health, compute_graph_hiho
 
+
 logger = logging.getLogger(__name__)
 
 SURREAL_URL = os.environ.get("SURREAL_URL", "ws://localhost:8000")

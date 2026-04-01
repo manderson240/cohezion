@@ -26,6 +26,7 @@ from aiter import (
 )
 from task import input_t, output_t
 
+
 # ── DeepSeek R1 MLA constants ──
 NUM_HEADS = 16
 NUM_KV_HEADS = 1

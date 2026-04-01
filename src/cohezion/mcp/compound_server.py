@@ -395,6 +395,7 @@ async def skill_refinement_apply(skill_name: str, refinement_type: str) -> dict[
 async def check_redis_health() -> dict[str, Any]:
     """Check Redis connection health on startup."""
     import os
+
     import redis.asyncio as redis
 
     redis_url = os.environ.get("REDIS_URL", "redis://localhost:6379")

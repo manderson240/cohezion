@@ -4,9 +4,10 @@ Identifies conceptual gaps in the project and autonomously precipitates fixes
 by bridging latent intent to physical code changes.
 """
 
-import logging
 import asyncio
+import logging
 from typing import Any, Dict
+
 from cohezion.agents.base import BaseAgent
 from cohezion.swarm.swarm_types import SwarmConfig
 from cohezion.universe.engine import UniverseSimulationEngine

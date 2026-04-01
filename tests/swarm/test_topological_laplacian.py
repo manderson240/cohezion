@@ -9,10 +9,8 @@ References:
 """
 
 import numpy as np
-import pytest
 
 from cohezion.swarm.topological_router import (
-    SpectralFeatures,
     TopologicalRegime,
     TopologicalRouter,
 )

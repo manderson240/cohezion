@@ -1,18 +1,19 @@
 import os
 import sys
-import json
 import time
+
 import polars as pl
-from typing import Dict, Any
+
 
 # Add official classes to path
 sys.path.insert(0, os.path.join(os.getcwd(), "input"))
+from base_specialist import BaseSpecialist
 from kaggle_evaluation.aimo_3_inference_server import AIMO3InferenceServer
+from knower_auditor import KnowerAuditor
 
 # Import our local components
 from swarm_coordinator import SwarmCoordinator
-from base_specialist import BaseSpecialist
-from knower_auditor import KnowerAuditor
+
 
 # Global state for production swarm
 _coordinator = None

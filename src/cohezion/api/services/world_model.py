@@ -21,6 +21,7 @@ import numpy as np
 from fastapi import APIRouter
 from pydantic import BaseModel, Field
 
+
 logger = logging.getLogger(__name__)
 
 world_model_router = APIRouter(prefix="/world-model", tags=["world-model"])

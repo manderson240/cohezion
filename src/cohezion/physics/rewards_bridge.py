@@ -14,6 +14,7 @@ import logging
 
 from cohezion.rewards.calculator import RewardCalculator
 
+
 logger = logging.getLogger(__name__)
 
 

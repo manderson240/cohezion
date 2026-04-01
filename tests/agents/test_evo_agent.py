@@ -1,8 +1,10 @@
+from unittest.mock import AsyncMock, MagicMock, patch
+
 import pytest
 import torch
-from unittest.mock import AsyncMock, patch, MagicMock
+
 from cohezion.agents.evo_agent import EVOAgent
-from cohezion.universe.triune_manifold import TriuneState
+
 
 @pytest.fixture
 def mock_config():

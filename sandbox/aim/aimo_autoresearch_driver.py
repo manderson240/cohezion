@@ -12,17 +12,14 @@ Features:
 - Thermal protection for long runs
 """
 
-import json
-import time
 import logging
-from pathlib import Path
-from typing import Dict, Any, List, Optional
 from dataclasses import dataclass
+from typing import Any, Dict, List, Optional
 
-from swarm_coordinator import SwarmCoordinator
-from base_specialist import BaseSpecialist
+from failure_logger import FailureLogger
 from knower_auditor import KnowerAuditor
-from failure_logger import FailureLogger, FailureType
+from swarm_coordinator import SwarmCoordinator
+
 
 logger = logging.getLogger(__name__)
 

@@ -1,10 +1,8 @@
-import math
 
 import torch
 import torch.nn.functional as F
-from aiter import ActivationType, QuantType, dtypes
+from aiter import ActivationType, QuantType
 from aiter.fused_moe import fused_moe
-from aiter.ops.shuffle import shuffle_weight
 from aiter.utility import fp4_utils
 from task import input_t, output_t
 

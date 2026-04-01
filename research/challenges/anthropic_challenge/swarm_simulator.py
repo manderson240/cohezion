@@ -1,21 +1,21 @@
-import multiprocessing
+import asyncio
 import json
-import time
 import logging
+import multiprocessing
+import os
 import random
 import sys
-import os
-import asyncio
-from dataclasses import dataclass, asdict
-from typing import Dict, Any, List
+import time
+from dataclasses import asdict, dataclass
+from typing import Any, Dict, List
 
 # Add src to path to import cohezion modules
 sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), "../src"))
 
 from cohezion.core.persistence.surreal_client import (
+    PhysicsState,
     SurrealClient,
     UniverseNode,
-    PhysicsState,
 )
 
 # Configure logging

@@ -6,13 +6,12 @@ Covers live architecture graph generation.
 from __future__ import annotations
 
 import pytest
-from unittest.mock import MagicMock, patch
-from pathlib import Path
 
 from cohezion.api.services.architecture import (
-    get_architecture_graph,
     _scan_packages,
+    get_architecture_graph,
 )
+
 
 def test_scan_packages():
     """[P0] Should scan packages and build graph."""

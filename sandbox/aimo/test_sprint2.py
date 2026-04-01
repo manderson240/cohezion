@@ -8,10 +8,9 @@ Tests:
 """
 
 import pytest
-from swarm_coordinator import SwarmCoordinator
 from flume_navigator import FLUMEProfilerNavigator
 from knower_auditor import KnowerAuditor
-from math_parser import MathParser
+from swarm_coordinator import SwarmCoordinator
 
 
 class TestStory21SpecialistRouting:

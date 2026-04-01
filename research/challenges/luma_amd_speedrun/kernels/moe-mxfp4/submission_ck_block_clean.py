@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import os
 
+
 os.environ["CK_BLOCK_GEMM"] = "1"
 os.environ["AITER_USE_NT"] = "1"
 

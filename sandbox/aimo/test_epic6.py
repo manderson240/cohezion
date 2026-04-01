@@ -9,16 +9,15 @@ Validates:
 - Tie-breaker logic
 """
 
-import pytest
 import json
-import time
 from pathlib import Path
-from unittest.mock import Mock, patch, MagicMock
+from unittest.mock import Mock, patch
 
-from swarm_coordinator import SwarmCoordinator
+import pytest
+from flume_navigator import FLUMEProfilerNavigator
 from knower_auditor import KnowerAuditor
 from performance_profiler import PerformanceProfiler
-from flume_navigator import FLUMEProfilerNavigator
+from swarm_coordinator import SwarmCoordinator
 
 
 class TestEpic6Pipeline:
@@ -133,7 +132,7 @@ class TestEpic6Pipeline:
     @pytest.mark.fast
     def test_summary_computation(self):
         """Test summary metrics computation."""
-        from epic6_benchmark_runner import Epic6BenchmarkRunner, BenchmarkResult
+        from epic6_benchmark_runner import BenchmarkResult, Epic6BenchmarkRunner
 
         runner = Epic6BenchmarkRunner.__new__(Epic6BenchmarkRunner)
         runner.results = [
@@ -155,7 +154,7 @@ class TestEpic6Pipeline:
     @pytest.mark.fast
     def test_all_targets_met(self):
         """Test all targets met computation."""
-        from epic6_benchmark_runner import Epic6BenchmarkRunner, BenchmarkResult
+        from epic6_benchmark_runner import BenchmarkResult, Epic6BenchmarkRunner
 
         runner = Epic6BenchmarkRunner.__new__(Epic6BenchmarkRunner)
         runner.results = [
@@ -173,7 +172,7 @@ class TestEpic6Pipeline:
     @pytest.mark.fast
     def test_save_results(self):
         """Test saving results to JSON."""
-        from epic6_benchmark_runner import Epic6BenchmarkRunner, BenchmarkResult
+        from epic6_benchmark_runner import BenchmarkResult, Epic6BenchmarkRunner
 
         runner = Epic6BenchmarkRunner.__new__(Epic6BenchmarkRunner)
         runner.results = [

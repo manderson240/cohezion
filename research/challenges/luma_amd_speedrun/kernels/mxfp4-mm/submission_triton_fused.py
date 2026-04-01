@@ -9,7 +9,6 @@ from __future__ import annotations
 import torch
 import triton
 import triton.language as tl
-
 from task import input_t, output_t
 
 

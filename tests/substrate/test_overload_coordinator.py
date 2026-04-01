@@ -5,16 +5,18 @@ Covers graduated overload protection and memory pressure handling.
 
 from __future__ import annotations
 
-import pytest
-from unittest.mock import AsyncMock, MagicMock, patch
 import time
+from unittest.mock import MagicMock, patch
+
+import pytest
 
 from cohezion.substrate.overload_coordinator import (
     OverloadCoordinator,
-    ProtectionLevel,
-    ProtectionConfig,
     OverloadError,
+    ProtectionConfig,
+    ProtectionLevel,
 )
+
 
 @pytest.fixture
 def coordinator():

@@ -1,6 +1,8 @@
 import asyncio
 import os
+
 from cohezion.integrations.kaggle_api import KaggleAPI
+
 
 async def list_competitions():
     username = "manderson240"

@@ -1,6 +1,7 @@
-import os
 import sys
+
 import aiter
+
 
 def custom_kernel(data):
     print("--- Probing aiter for Graph/Capture utilities ---", file=sys.stderr)

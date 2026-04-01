@@ -6,9 +6,12 @@ Covers 4-tier distributed semantic cache with Redis L0.
 from __future__ import annotations
 
 import json
-import pytest
 from unittest.mock import MagicMock, patch
+
+import pytest
+
 from cohezion.cache.redis_cache import RedisSemanticCache
+
 
 @pytest.fixture
 def mock_redis():

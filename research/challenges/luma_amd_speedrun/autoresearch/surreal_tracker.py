@@ -14,6 +14,7 @@ import sys
 from datetime import datetime
 from typing import Any, Optional
 
+
 logging.basicConfig(level=logging.INFO)
 log = logging.getLogger("surreal_tracker")
 

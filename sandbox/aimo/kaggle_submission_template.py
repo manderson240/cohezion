@@ -1,10 +1,7 @@
-import os
 import re
-import json
-import time
-import polars as pl
+from typing import Any, Dict
+
 import sympy
-from typing import Optional, Dict, Any
 
 
 # --- TOOL: Symbolic Executor ---

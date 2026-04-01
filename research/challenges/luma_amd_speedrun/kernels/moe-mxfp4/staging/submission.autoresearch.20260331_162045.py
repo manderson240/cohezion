@@ -1,7 +1,6 @@
 import torch
-import aiter
+from aiter import ActivationType, QuantType
 from aiter.fused_moe import fused_moe
-from aiter import ActivationType, QuantType, dtypes
 from task import input_t, output_t
 
 

@@ -28,10 +28,9 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
-from cohezion.compound.journey_persistence import JourneyPersistence
-
 from cohezion.compound.executor import CompoundExecutor
 from cohezion.compound.inflection_detector import InflectionDetector
+from cohezion.compound.journey_persistence import JourneyPersistence
 from cohezion.compound.metrics import reset_collector
 from cohezion.core.template_engine import TemplateEngine
 

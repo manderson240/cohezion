@@ -1,8 +1,11 @@
+from unittest.mock import AsyncMock
+
 import pytest
-from unittest.mock import AsyncMock, patch, MagicMock
+import torch
+
 from cohezion.rewards.ratchet import RatchetMechanism
 from cohezion.universe.triune_manifold import TriuneState
-import torch
+
 
 @pytest.fixture
 def triune_state():

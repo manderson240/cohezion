@@ -14,20 +14,18 @@ Usage:
 """
 
 import argparse
-import asyncio
 import json
 import logging
 import time
 from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, Any, List, Optional
+from typing import Any, Dict, List, Optional
 
-from swarm_coordinator import SwarmCoordinator
-from base_specialist import BaseSpecialist
-from knower_auditor import KnowerAuditor
 from failure_logger import FailureLogger, FailureType
+from knower_auditor import KnowerAuditor
 from performance_profiler import PerformanceProfiler
+from swarm_coordinator import SwarmCoordinator
 
 
 logger = logging.getLogger(__name__)

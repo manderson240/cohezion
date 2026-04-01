@@ -15,14 +15,13 @@ Breakthrough: Direct kernel dispatch eliminates aiter's ~2-3µs Python overhead.
 from __future__ import annotations
 
 import ctypes
-import os
 import struct
 from pathlib import Path
 from typing import Any
 
 import torch
-
 from task import input_t, output_t
+
 
 # =============================================================================
 # Constants
@@ -382,7 +381,6 @@ def custom_kernel(data: input_t) -> output_t:
 
     Output: bf16 [M, N]
     """
-    import aiter
     from aiter import dtypes
     from aiter.ops.triton.quant import dynamic_mxfp4_quant
     from aiter.utility.fp4_utils import e8m0_shuffle

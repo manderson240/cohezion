@@ -12,16 +12,17 @@ The weights are MXFP4 but the kernel may need FP8 — we'd need to re-quantize.
 """
 
 import inspect
-import sys
 import os
+import sys
+
 
 os.environ.setdefault("AITER_JIT_DIR", "/tmp/aiter_jit_cache")
 
 import aiter
-import torch
-from aiter import ActivationType, QuantType, dtypes
+from aiter import ActivationType, QuantType
 from aiter.fused_moe import fused_moe
 from task import input_t, output_t
+
 
 # Discovery: find fmoe_fp8_blockscale_g1u1
 _DISCOVERED = False

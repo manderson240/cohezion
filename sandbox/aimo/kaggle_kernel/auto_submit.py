@@ -1,7 +1,7 @@
 import os
-import time
 import subprocess
-import json
+import time
+
 
 def get_kernel_status():
     result = subprocess.run(

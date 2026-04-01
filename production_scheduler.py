@@ -25,9 +25,11 @@ from typing import Any
 
 import yaml
 
+
 sys.path.insert(0, "/home/mike-anderson/dev/cohezion/src")
 
 from cohezion.research.token_efficient_squad import TokenEfficientSquad
+
 
 logging.basicConfig(
     level=logging.INFO,

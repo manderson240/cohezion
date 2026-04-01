@@ -19,6 +19,7 @@ from pydantic import BaseModel, Field
 
 from cohezion.physics.spinor import SpinorState
 
+
 logger = logging.getLogger(__name__)
 
 genesis_router = APIRouter(prefix="/genesis", tags=["genesis"])

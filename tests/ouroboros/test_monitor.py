@@ -1,6 +1,9 @@
+from unittest.mock import AsyncMock, patch
+
 import pytest
-from unittest.mock import AsyncMock, patch, MagicMock
+
 from cohezion.ouroboros.monitor import OuroborosMonitor
+
 
 @pytest.mark.asyncio
 async def test_monitor_initialization():

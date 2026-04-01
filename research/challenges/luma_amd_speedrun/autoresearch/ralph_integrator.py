@@ -19,10 +19,11 @@ import json
 import logging
 import math
 import time
-from dataclasses import asdict, dataclass
+from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Optional
+
 
 logger = logging.getLogger("ralph_integrator")
 

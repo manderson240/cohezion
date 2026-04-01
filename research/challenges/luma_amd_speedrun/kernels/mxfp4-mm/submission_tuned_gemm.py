@@ -10,19 +10,17 @@ Also test: VLLM_USE_AITER_BLOCK_GEMM=1 environment variable.
 
 from __future__ import annotations
 
+import inspect
 import os
 import sys
-import inspect
+
 
 os.environ["HIP_ONLINE_TUNING"] = "1"
 os.environ["VLLM_USE_AITER_BLOCK_GEMM"] = "1"
 
-from task import input_t, output_t
-from reference import ref_kernel
 import aiter
-from aiter import dtypes
-from aiter.ops.triton.quant import dynamic_mxfp4_quant
-from aiter.utility.fp4_utils import e8m0_shuffle
+from reference import ref_kernel
+from task import input_t, output_t
 
 
 def custom_kernel(data: input_t) -> output_t:

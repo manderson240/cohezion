@@ -1,6 +1,7 @@
 import json
 from pathlib import Path
 
+
 # Paths
 BASE_DIR = Path(__file__).parent.parent
 SRC_DIR = BASE_DIR / "src" / "cohezion"

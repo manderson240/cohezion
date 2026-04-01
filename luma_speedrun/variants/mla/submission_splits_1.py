@@ -8,7 +8,7 @@ from aiter import (
     mla_decode_stage1_asm_fwd,
     mla_reduce_v1,
 )
-from task import input_t, output_t
+
 
 NUM_HEADS, NUM_KV_HEADS = 16, 1
 KV_LORA_RANK, QK_HEAD_DIM, V_HEAD_DIM = 512, 576, 512
