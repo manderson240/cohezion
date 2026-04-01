@@ -320,21 +320,25 @@ class ManifoldEnv(gym.Env):
         in_hiho_band = deviation < 0.1  # [0.4, 0.6] band
         energy = self._potential.evaluate(self._position.astype(np.float64))
 
+        # Base reward: proximity to HIHO (always active, prevents drift)
+        # This is the key insight: reward absolute proximity, not just improvement
+        proximity_reward = -deviation * 0.5  # Closer to HIHO = less penalty
+
         # Stage detection based on streak
         if self._hiho_streak < 5:
-            # Stage 1: Reach HIHO band — reward coherence gain heavily
+            # Stage 1: Reach HIHO band — proximity + coherence gain
             coherence_gain = coherence - self._prev_coherence
-            reward = coherence_gain * self.reward_coherence_weight * 2.0
+            reward = proximity_reward + coherence_gain * self.reward_coherence_weight
             if in_hiho_band:
-                reward += 0.2  # First-entry bonus
+                reward += 0.3  # First-entry bonus
         elif self._hiho_streak < 20:
-            # Stage 2: Maintain stability — reward staying in band
-            reward = 0.1 if in_hiho_band else -0.1
+            # Stage 2: Maintain stability — reward staying in band + low energy
+            reward = proximity_reward + (0.1 if in_hiho_band else -0.05)
             reward -= abs(energy) * self.reward_energy_weight * 0.5
         else:
             # Stage 3: Energy efficiency — minimize energy while maintaining
-            reward = 0.05 if in_hiho_band else -0.2  # Higher penalty for leaving
-            reward -= abs(energy) * self.reward_energy_weight * 2.0  # Strong energy pressure
+            reward = proximity_reward + (0.05 if in_hiho_band else -0.1)
+            reward -= abs(energy) * self.reward_energy_weight * 2.0
 
         # Track episode statistics
         self._episode_coherence_sum += coherence
