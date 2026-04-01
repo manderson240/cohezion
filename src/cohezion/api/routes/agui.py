@@ -143,10 +143,12 @@ async def cosmogony_stream() -> AsyncIterator[str]:
     except Exception as exc:
         # Emit RUN_ERROR so the client knows the stream terminated abnormally
         import json as _json
-        error_event = AGUIEvent(type=AGUIEventType.RUN_ERROR)
-        yield f"data: {_json.dumps({{'type': 'RUN_ERROR', 'message': str(exc), 'timestamp': error_event.timestamp}})}
 
-"
+        error_event = AGUIEvent(type=AGUIEventType.RUN_ERROR)
+        error_data = _json.dumps(
+            {"type": "RUN_ERROR", "message": str(exc), "timestamp": error_event.timestamp}
+        )
+        yield f"data: {error_data}\n\n"
         return
 
     # --- HIHO coherence event ---
@@ -168,6 +170,7 @@ async def stream_cosmogony():
     # Wire 6: Track data product access for SLA enforcement
     try:
         from cohezion.data_mesh.data_product import get_cohezion_data_products
+
         products = get_cohezion_data_products()
         agui_product = products.get("agui-event-stream")
         if agui_product:
@@ -202,7 +205,14 @@ async def get_a2ui_catalog():
     import json
     from pathlib import Path
 
-    catalog_path = Path(__file__).parent.parent.parent.parent / "web" / "anima_dashboard" / "src" / "a2ui" / "catalog.json"
+    catalog_path = (
+        Path(__file__).parent.parent.parent.parent
+        / "web"
+        / "anima_dashboard"
+        / "src"
+        / "a2ui"
+        / "catalog.json"
+    )
     if catalog_path.exists():
         return json.loads(catalog_path.read_text())
     return {"error": "Catalog not found", "path": str(catalog_path)}
