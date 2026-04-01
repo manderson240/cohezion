@@ -1,0 +1,44 @@
+{
+  "cli_version": "0.5.1",
+  "checkpoint_id": "088b1747043d",
+  "session_id": "b64da2bf-bc43-4e98-92b9-9ef978ee0301",
+  "strategy": "manual-commit",
+  "created_at": "2026-04-01T14:02:18.544532211Z",
+  "branch": "main",
+  "checkpoints_count": 1,
+  "files_touched": [
+    ".claude/settings.json",
+    "_bmad/_config/traceability/repo_health/health_report.md",
+    "_bmad/_config/traceability/repo_health/health_report_2026-04-01T08_52_28.949106.json",
+    "_bmad/_config/traceability/repo_health/health_report_2026-04-01T08_54_58.399574.json",
+    "conductor/tracks.md",
+    "conductor/tracks/birdclef_2026_20260401/index.md",
+    "conductor/tracks/birdclef_2026_20260401/metadata.json",
+    "conductor/tracks/birdclef_2026_20260401/plan.md",
+    "conductor/tracks/birdclef_2026_20260401/spec.md",
+    "data/compound/cache/token_cache.jsonl",
+    "src/cohezion/knowledge_graph/KEY_LEARNINGS.md"
+  ],
+  "agent": "Claude Code",
+  "model": "claude-opus-4-6[1m]",
+  "turn_id": "3193754b4ca5",
+  "token_usage": {
+    "input_tokens": 34172,
+    "cache_creation_tokens": 17191910,
+    "cache_read_tokens": 440274021,
+    "output_tokens": 493951,
+    "api_call_count": 1319
+  },
+  "session_metrics": {
+    "turn_count": 104
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-04-01T14:02:12.733245632Z",
+    "agent_lines": 7480,
+    "human_added": 58476,
+    "human_modified": 5,
+    "human_removed": 0,
+    "total_committed": 65961,
+    "agent_percentage": 11.340034262670367
+  }
+}
