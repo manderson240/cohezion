@@ -1,3 +1,10 @@
+### [2026-04-01] SESSION 87: DEEP BREAKTHROUGHS & CONTINUOUS EVOLUTION (Luma AMD Speedrun)
+- **Deep Breakthroughs**: Implemented stream-aware custom HIP kernels for MLA (576/512 split), MoE (fused pipeline), and GEMM (direct dispatch) to bypass "work on another stream" errors.
+- **Continuous Evolution**: Launched `continuous_evolution.py` implementing a Benchmark-Driven Conditional Submission loop.
+- **Research Integration**: Incorporated arXiv:2603.08713 (OAS/MBS) and CDNA4 tiling strategies for gfx950 maximization.
+- **Saturation Strategy**: Formalized Phase 5 plan for 304 CU occupancy, XCD-aware scheduling, and instruction-level MFMA pipelining.
+- **Status**: Automated 5-day evolutionary sprint active on MI355X runner. Best known times: MLA 67µs, MoE 154µs, GEMM 13.4µs. Targets: <20µs, <110µs, <10µs.
+
 ### [2026-04-01] SESSION 86: CODEBASE COHERENCE + MAKEFILE TARGETS
 - **Scope**: Cruft cleanup, reproducible workflows, .gitignore hardening.
 - **Cleanup**: Removed 867 tracked traceability/temp files via `git rm --cached`. Added .gitignore patterns for cycles_continuous/, repo_health/, results/training/*.zip.

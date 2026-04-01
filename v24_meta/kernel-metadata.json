@@ -1,0 +1,17 @@
+{
+  "id": "manderson240/nemotron-moe-router-collapse-analysis",
+  "title": "nemotron-moe-router-collapse-analysis",
+  "code_file": "nemotron_router_analysis.ipynb",
+  "language": "python",
+  "kernel_type": "notebook",
+  "is_private": true,
+  "enable_gpu": true,
+  "enable_internet": true,
+  "dataset_sources": [],
+  "kernel_sources": [],
+  "competition_sources": [],
+  "model_sources": [
+    "metric/nemotron-3-nano-30b-a3b-bf16/transformers/default/1"
+  ],
+  "docker_image_pinning_type": "original"
+}

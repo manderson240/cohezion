@@ -93,3 +93,9 @@
 3. Submit MLA (test mode)
 4. Submit GEMM (test mode)
 5. Iterate based on results
+
+## [2026-04-01] NEMOTRON-3 MOE ROUTER COLLAPSE
+- **Architecture**: 30B total, 3.5B active. 128 routed experts + 1 shared expert.
+- **Routing Strategy**: Top-5 routing per token.
+- **Expert Collapse Risk**: Router becomes biased toward a small subset of experts, causing uniform routing logits or stagnant reasoning performance.
+- **Mitigation (Phase 6 Strategy)**: Evaluate expert utilization histograms and pairwise cosine similarity of FFN weights in LoRA adapters. Freeze routing weights if collapse is detected during downstream SFT.

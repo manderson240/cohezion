@@ -43,7 +43,8 @@
 - [ ] Task: Conductor - User Manual Verification 'Execution & Monitoring' (Protocol in workflow.md)
 
 ## Phase 6: MoE-Specific Optimization (Research & Refinement)
-- [ ] Task: Analyze Router Weights Influence
+- [~] Task: Analyze Router Weights Influence
+    - [x] Implement: Push analysis Kaggle kernel to check MoE gate variance and entropy.
     - [ ] Implement: Propose a LoRA configuration that targets the learned MLP router to prevent expert collapse on reasoning tasks.
 - [ ] Task: Mixed-Architecture Benchmarking
     - [ ] Implement: Run internal benchmarks comparing Mamba-2 layer performance vs. GQA layer performance for math reasoning.

@@ -67,17 +67,19 @@ async def generate_batch(num_tasks: int = 5):
 
             async def real_execute(*args, i=i, **kwargs):
                 client = get_compound_client()
-                # Using reasoning model for task generation as per AGENTS.md
+                # Bypass routing and use the cloud model directly via Ollama
                 response = await client.generate(
                     prompt=GENERATION_PROMPT,
-                    task_type="coding", # Use coding to get Qwen3-Coder
-                    temperature=0.9, # Increase temperature for more novelty
+                    model="minimax-m2.7:cloud",
+                    temperature=0.9,
                     system="You are an expert AGI benchmark architect. Generate a TRULY UNIQUE and COMPLEX ARC-AGI task. DO NOT just copy the example. Output ONLY valid JSON.",
                 )
                 
                 # Check if response is a tuple or object
                 if isinstance(response, tuple):
                     response_text = response[0]
+                elif hasattr(response, "response"):
+                    response_text = response.response
                 elif hasattr(response, "text"):
                     response_text = response.text
                 else:

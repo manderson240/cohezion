@@ -1,6 +1,6 @@
 {
-  "id": "cohezion/birdclef-2026-baseline",
-  "title": "BirdCLEF 2026 Baseline - EfficientNet Transfer Learning",
+  "id": "manderson240/birdclef-2026-baseline",
+  "title": "birdclef-2026-baseline",
   "code_file": "submission.py",
   "language": "python",
   "kernel_type": "script",
