@@ -3,7 +3,7 @@
   "checkpoint_id": "308c18236ccf",
   "strategy": "manual-commit",
   "branch": "main",
-  "checkpoints_count": 1,
+  "checkpoints_count": 2,
   "files_touched": [
     ".claude/hooks/archive-plan.sh",
     ".claude/hooks/check-bash-output.sh",
@@ -28,13 +28,19 @@
       "transcript": "/30/8c18236ccf/1/full.jsonl",
       "content_hash": "/30/8c18236ccf/1/content_hash.txt",
       "prompt": "/30/8c18236ccf/1/prompt.txt"
+    },
+    {
+      "metadata": "/30/8c18236ccf/2/metadata.json",
+      "transcript": "/30/8c18236ccf/2/full.jsonl",
+      "content_hash": "/30/8c18236ccf/2/content_hash.txt",
+      "prompt": "/30/8c18236ccf/2/prompt.txt"
     }
   ],
   "token_usage": {
-    "input_tokens": 47,
-    "cache_creation_tokens": 142114,
-    "cache_read_tokens": 1406008,
-    "output_tokens": 2090,
-    "api_call_count": 11
+    "input_tokens": 34102,
+    "cache_creation_tokens": 13381426,
+    "cache_read_tokens": 391610684,
+    "output_tokens": 455258,
+    "api_call_count": 1229
   }
 }
