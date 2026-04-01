@@ -161,7 +161,7 @@ class UniverseEvaluator:
         evaluation.wall_time_seconds = time.time() - start_time
 
         logger.info(
-            "Evaluated %s: conv_rate=%.1%%, mean_reward=%.3f, mean_coherence=%.3f (%d episodes in %.1fs)",
+            "Evaluated %s: conv_rate=%.1f%%, mean_reward=%.3f, mean_coherence=%.3f (%d episodes in %.1fs)",
             policy_name,
             evaluation.convergence_rate * 100,
             evaluation.mean_reward,

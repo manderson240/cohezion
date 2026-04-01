@@ -181,3 +181,10 @@ def get_shared_latent_memory() -> SharedLatentMemory:
     if _shared_memory is None:
         _shared_memory = SharedLatentMemory()
     return _shared_memory
+
+
+__all__ = [
+    "LatentMessage",
+    "SharedLatentMemory",
+    "get_shared_latent_memory",
+]
