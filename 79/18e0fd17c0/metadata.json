@@ -8,6 +8,7 @@
     "README.md",
     "src/cohezion/agentjet/embeddings.py",
     "src/cohezion/compound/daemon/workflow_initializer.py",
+    "src/cohezion/compound/model_quality_classifier.py",
     "src/cohezion/concurrency/safe_singleton.py",
     "src/cohezion/core/compound/skill_refiner.py",
     "src/cohezion/core/instruction_expander.py",
@@ -39,6 +40,12 @@
       "transcript": "/79/18e0fd17c0/2/full.jsonl",
       "content_hash": "/79/18e0fd17c0/2/content_hash.txt",
       "prompt": "/79/18e0fd17c0/2/prompt.txt"
+    },
+    {
+      "metadata": "/79/18e0fd17c0/3/metadata.json",
+      "transcript": "/79/18e0fd17c0/3/full.jsonl",
+      "content_hash": "/79/18e0fd17c0/3/content_hash.txt",
+      "prompt": "/79/18e0fd17c0/3/prompt.txt"
     }
   ],
   "token_usage": {

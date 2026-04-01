@@ -1,0 +1,36 @@
+{
+  "cli_version": "0.5.1",
+  "checkpoint_id": "7918e0fd17c0",
+  "session_id": "93b66342-a8a3-4e87-b0be-4c0dcf07fa6a",
+  "strategy": "manual-commit",
+  "created_at": "2026-04-01T19:10:38.358358957Z",
+  "branch": "main",
+  "checkpoints_count": 0,
+  "files_touched": [
+    "src/cohezion/compound/daemon/workflow_initializer.py",
+    "src/cohezion/compound/model_quality_classifier.py"
+  ],
+  "agent": "Claude Code",
+  "turn_id": "34b4da1d1976",
+  "checkpoint_transcript_start": 7439,
+  "transcript_lines_at_start": 7439,
+  "token_usage": {
+    "input_tokens": 0,
+    "cache_creation_tokens": 0,
+    "cache_read_tokens": 0,
+    "output_tokens": 0,
+    "api_call_count": 0
+  },
+  "session_metrics": {
+    "turn_count": 2
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-04-01T19:10:34.567414733Z",
+    "agent_lines": 7,
+    "human_added": 115346,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 115353,
+    "agent_percentage": 0.006068329388919231
+  }
+}
