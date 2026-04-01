@@ -1,0 +1,35 @@
+{
+  "cli_version": "0.5.1",
+  "checkpoint_id": "ebd58830aaba",
+  "session_id": "7b42ffab-cb2c-417a-b4cd-9fddf3b78647",
+  "strategy": "manual-commit",
+  "created_at": "2026-04-01T00:10:14.000400624Z",
+  "branch": "main",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "research/challenges/luma_amd_speedrun/autoresearch/ralph_main.py",
+    "src/cohezion/compound/__init__.py"
+  ],
+  "agent": "Claude Code",
+  "model": "kimi-k2.5:cloud",
+  "turn_id": "9fc9769aa828",
+  "token_usage": {
+    "input_tokens": 111298903,
+    "cache_creation_tokens": 11715810,
+    "cache_read_tokens": 271808379,
+    "output_tokens": 603733,
+    "api_call_count": 1553
+  },
+  "session_metrics": {
+    "turn_count": 165
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-04-01T00:10:08.231563565Z",
+    "agent_lines": 49,
+    "human_added": 270818,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 270867,
+    "agent_percentage": 0.01809005895882481
+  }
+}
