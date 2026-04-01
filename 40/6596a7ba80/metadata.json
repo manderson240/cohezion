@@ -1,0 +1,35 @@
+{
+  "cli_version": "0.5.1",
+  "checkpoint_id": "406596a7ba80",
+  "strategy": "manual-commit",
+  "branch": "main",
+  "checkpoints_count": 0,
+  "files_touched": [
+    "_bmad/_config/traceability/cycles_continuous/cycle_00081.json",
+    "_bmad/_config/traceability/cycles_continuous/cycle_00082.json",
+    "_bmad/_config/traceability/cycles_continuous/cycle_00083.json",
+    "_bmad/_config/traceability/cycles_continuous/cycle_00084.json",
+    "_bmad/_config/traceability/cycles_continuous/cycle_00085.json",
+    "_bmad/_config/traceability/cycles_continuous/cycle_00086.json",
+    "_bmad/_config/traceability/repo_health/health_report.md",
+    "_bmad/_config/traceability/repo_health/health_report_2026-03-31T23_08_12.792550.json",
+    "data/compound/cache/token_cache.jsonl",
+    "scripts/continuous_watchdog.py",
+    "src/cohezion/api/routes/agui.py"
+  ],
+  "sessions": [
+    {
+      "metadata": "/40/6596a7ba80/0/metadata.json",
+      "transcript": "/40/6596a7ba80/0/full.jsonl",
+      "content_hash": "/40/6596a7ba80/0/content_hash.txt",
+      "prompt": ""
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 0,
+    "cache_creation_tokens": 0,
+    "cache_read_tokens": 0,
+    "output_tokens": 0,
+    "api_call_count": 0
+  }
+}
