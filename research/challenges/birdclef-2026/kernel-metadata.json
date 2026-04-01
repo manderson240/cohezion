@@ -1,0 +1,14 @@
+{
+  "id": "cohezion/birdclef-2026-baseline",
+  "title": "BirdCLEF 2026 Baseline - EfficientNet Transfer Learning",
+  "code_file": "submission.py",
+  "language": "python",
+  "kernel_type": "script",
+  "is_private": true,
+  "enable_gpu": true,
+  "enable_internet": false,
+  "dataset_sources": [],
+  "competition_sources": ["birdclef-2026"],
+  "kernel_sources": [],
+  "model_sources": []
+}

@@ -2,7 +2,7 @@
 
 **Auto-compiled from `~/vaults/cohezion-vault/` - Query vault for full context**
 
-**Last Updated**: 2026-02-20 (Session 15)
+**Last Updated**: 2026-04-01 (Session 86)
 
 ---
 
@@ -64,19 +64,28 @@
 
 ---
 
-## Active Context (2026-03-25)
+## Active Context (Session 86, 2026-04-01)
 
-**Current Work**: 4-workstream contribution completed
-**Recent**: 82 new tests (FLUME geometry, debate consensus, cache warmer, SurrealDB repos). Vote parsing bug fixed. Broken compound/__init__.py import chain fixed.
-**Test Suite**: 4,375 passing / 154 pre-existing failures / 16 pre-existing collection errors
-**Blockers**: Pre-existing broken imports in api/ tests (`web` undefined), compound/test_executor.py
+**Branch**: `main` (16 commits ahead of origin)
+**Recent Sessions (79-85)**:
+- S79: 32 commits merged to main (Genesis TDD, A2UI, AG-UI, Observer Patch, Concierge, Data Mesh)
+- S80: GeminiProvider, CostAwareRouter Gemini tiers, A2A agent cards, knowledge capture E2E, FLUME retrained
+- S81: Internal sweep (41 disconnected modules found), LatentMAS/DeltaKV/SALS research
+- S83-84: Autonomous overnight operation (52 cycles), OI-MAS routing, TurboQuant, LatentMAS channel, orphan wiring
+- S85: PPO training breakthrough — small actions cooperate with physics (HIHO thesis validated!)
+- TDD: RoutingOrchestrator, CapabilityMatrix gap detection, ManifoldEnv curriculum reward
+- Research paper draft: Physics-Grounded Training Universes
+**Test Suite**: 6,000 collected
+**Source Lines**: 172,644
+**Ruff**: 33 fixable (down from 800+)
+**Coverage**: ~23%
 **Next Steps**:
-1. Fix vote parsing bug in democratic_debate.py (longest-match-first pattern)
-2. Fix pre-existing api/ test import errors (`web` module reference)
-3. Address compound/__init__.py duplicate imports and stale re-exports
-
-**Velocity**: High (82 tests in one session via team parallelism)
-
+1. Wire validation/constitutional → CompoundExecutor runtime enforcement
+2. Consolidate healing/ + resilience/ → single AutonomicManager
+3. Wire MCP HTTP→stdio for top 4 servers
+4. LatentMAS integration — FLUME vectors as agent-to-agent communication
+5. Register ManifoldEnv/SwarmEnv with Gymnasium
+6. Delete confirmed dead code (evaluation/, pipelines/, storage/)
 ---
 
 ## Quick Reference Commands
