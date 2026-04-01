@@ -23,7 +23,8 @@
         "n_54cbb901",
         "n_79e3b208",
         "n_657c494e",
-        "n_f76f3940"
+        "n_f76f3940",
+        "n_de25355c"
       ],
       "notes": "From research: speculating experts accelerates MoE inference.",
       "attempt_history": []
@@ -1968,13 +1969,13 @@
         "status": "UNTESTED"
       },
       "parent_id": "root_moe",
-      "priority": 0.85,
-      "attempts": 1,
+      "priority": 0.4,
+      "attempts": 2,
       "best_result_us": Infinity,
-      "stagnation_count": 0,
-      "status": "active",
+      "stagnation_count": 1,
+      "status": "pruned",
       "children": [],
-      "notes": "[Session 77] From OpenCode Kimi v16 submission. KSPLIT=6 when estimated M per expert is very small (<5 tokens). Rationale: small M needs more K-splits to keep CUs busy. UNTESTED on our shapes.",
+      "notes": "[Session 77] From OpenCode Kimi v16 submission. KSPLIT=6 when estimated M per expert is very small (<5 tokens). Rationale: small M needs more K-splits to keep CUs busy. UNTESTED on our shapes. [STRATEGIC PRUNE: LLM world model]",
       "attempt_history": [
         {
           "result_us": Infinity,
@@ -1986,6 +1987,17 @@
           },
           "timestamp": "2026-03-31T18:00:40.983315",
           "source": "llm"
+        },
+        {
+          "result_us": Infinity,
+          "parameters": {
+            "condition": "est_m < 5",
+            "KSPLIT": 6,
+            "source": "OpenCode Kimi v16",
+            "status": "UNTESTED"
+          },
+          "timestamp": "2026-03-31T22:26:36.927286",
+          "source": "template"
         }
       ]
     },
@@ -2108,14 +2120,28 @@
         "status": "UNTESTED"
       },
       "parent_id": "root_moe",
-      "priority": 0.75,
-      "attempts": 0,
-      "best_result_us": null,
+      "priority": 0.5,
+      "attempts": 1,
+      "best_result_us": 224.14,
       "stagnation_count": 0,
       "status": "active",
-      "children": [],
+      "children": [
+        "n_d80402e9"
+      ],
       "notes": "[Session 77] From OpenCode Kimi v16 submission. KSPLIT=6 when estimated M per expert is very small (<5 tokens). Rationale: small M needs more K-splits to keep CUs busy. UNTESTED on our shapes.",
-      "attempt_history": []
+      "attempt_history": [
+        {
+          "result_us": 224.14297205012676,
+          "parameters": {
+            "condition": "est_m < 5",
+            "KSPLIT": 6,
+            "source": "OpenCode Kimi v16",
+            "status": "UNTESTED"
+          },
+          "timestamp": "2026-03-31T22:27:39.215753",
+          "source": "template"
+        }
+      ]
     },
     "n_657c494e": {
       "id": "n_657c494e",
@@ -2204,6 +2230,79 @@
       "status": "pruned",
       "children": [],
       "notes": "[LLM-proposed] [STRATEGIC PRUNE: parent n_668be083 pruned]",
+      "attempt_history": []
+    },
+    "n_de25355c": {
+      "id": "n_de25355c",
+      "strategy": "E=257,d=256,bs=16: Block GEMM tiling + KSPLIT=6 + wave_quant=2 + smem_tile_reuse + OPUS sorting (target bottleneck: high expert count + small batch)",
+      "parameters": {},
+      "parent_id": "root_moe",
+      "priority": 0.55,
+      "attempts": 1,
+      "best_result_us": 186.23,
+      "stagnation_count": 0,
+      "status": "pruned",
+      "children": [
+        "n_c340287d",
+        "n_ed090754"
+      ],
+      "notes": "[LLM-proposed] [STRATEGIC PRUNE: LLM world model]",
+      "attempt_history": [
+        {
+          "result_us": 186.23288161988287,
+          "parameters": {},
+          "timestamp": "2026-03-31T22:37:11.651366",
+          "source": "template"
+        }
+      ]
+    },
+    "n_d80402e9": {
+      "id": "n_d80402e9",
+      "strategy": "E=257,d=256,bs=16: KSPLIT=2 + wave_quant=2 + OPUS sorting + warp_specialize + BLOCK_SIZE=128 + enable_tma + smem_tile_reuse (lower KSPLIT to increase per-expert parallelism for small batch)",
+      "parameters": {},
+      "parent_id": "n_79e3b208",
+      "priority": 0.72,
+      "attempts": 0,
+      "best_result_us": null,
+      "stagnation_count": 0,
+      "status": "active",
+      "children": [],
+      "notes": "[LLM-proposed]",
+      "attempt_history": []
+    },
+    "n_c340287d": {
+      "id": "n_c340287d",
+      "strategy": "E=257,d=256,bs=16: Block GEMM tiling + KSPLIT=2 + wave_quant=4 + OPUS sorting + warp_specialize + BLOCK_SIZE=128 + enable_tma + smem_tile_reuse (increase KSPLIT reduction for higher per-expert parallelism on small batch)",
+      "parameters": {},
+      "parent_id": "n_de25355c",
+      "priority": 0.5,
+      "attempts": 1,
+      "best_result_us": 226.83,
+      "stagnation_count": 0,
+      "status": "pruned",
+      "children": [],
+      "notes": "[LLM-proposed] [STRATEGIC PRUNE: parent n_de25355c pruned]",
+      "attempt_history": [
+        {
+          "result_us": 226.8337164712567,
+          "parameters": {},
+          "timestamp": "2026-03-31T22:38:14.542048",
+          "source": "template"
+        }
+      ]
+    },
+    "n_ed090754": {
+      "id": "n_ed090754",
+      "strategy": "E=257,d=256,bs=16: Block GEMM tiling + KSPLIT=4 + wave_quant=2 + OPUS sorting + warp_specialize + BLOCK_SIZE=96 + enable_tma + smem_tile_reuse (mid KSPLIT with balanced wave_quant and block size for small batch)",
+      "parameters": {},
+      "parent_id": "n_de25355c",
+      "priority": 0.65,
+      "attempts": 0,
+      "best_result_us": null,
+      "stagnation_count": 0,
+      "status": "pruned",
+      "children": [],
+      "notes": "[LLM-proposed] [STRATEGIC PRUNE: parent n_de25355c pruned]",
       "attempt_history": []
     }
   }

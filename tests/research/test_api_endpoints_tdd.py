@@ -11,7 +11,7 @@ from unittest.mock import patch
 from fastapi.testclient import TestClient
 
 # Import the FastAPI app - this will fail initially if not set up
-from cohezion.api.main import app
+from cohezion.api import app
 
 
 # Create test client

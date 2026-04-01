@@ -18,12 +18,12 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
-import subprocess
 import sys
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Any
+
 
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
