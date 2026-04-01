@@ -554,3 +554,61 @@ class CapabilityMatrix:
         except (ImportError, Exception):
             logger.debug("Data mesh not available (non-blocking)", exc_info=True)
         return loaded
+
+    def detect_overlaps(self) -> list[dict[str, str]]:
+        """Detect modules with overlapping responsibilities.
+
+        Identifies pairs of modules that serve similar functions,
+        recommending consolidation or clear ownership boundaries.
+
+        Returns:
+            List of dicts with 'modules' and 'recommendation'
+        """
+        known_overlaps = [
+            {
+                "modules": "healing/ + resilience/",
+                "recommendation": "Both handle self-healing. healing/ provides DriftDetector+Diagnostician+Corrector (component-level). resilience/ provides AutonomicManager MAPE-K (system-level). Keep both but document ownership: healing/=component health, resilience/=system health.",
+            },
+            {
+                "modules": "eval/ + evaluation/",
+                "recommendation": "eval/ has CapabilityScorecard (6-axis EVO) + pipeline. evaluation/ has SelfEvaluationEngine (pre-flight). Both wired to CapabilityMatrix. Consider merging evaluation/self_eval.py into eval/.",
+            },
+            {
+                "modules": "pipeline/ + pipelines/",
+                "recommendation": "pipeline/ has active modules (weight_bridge, hyperparameter_debate). pipelines/ has only traceability stub. Merge traceability.py into pipeline/ and remove pipelines/.",
+            },
+        ]
+        return known_overlaps
+
+    def suggest_gap_actions(self) -> list[dict[str, str]]:
+        """Suggest concrete actions to fill capability gaps.
+
+        Combines gap analysis with domain knowledge to produce
+        actionable recommendations with priority levels.
+
+        Returns:
+            List of dicts with 'gap', 'action', and 'priority'
+        """
+        gaps = self.run_gap_analysis()
+        actions = []
+        for gap in gaps:
+            if gap.best_available_score < 0.3:
+                action = {
+                    "gap": f"{gap.task_type}: best score {gap.best_available_score:.2f}",
+                    "action": f"Scout new model for {gap.task_type} capability (current best: {gap.best_available_score:.2f})",
+                    "priority": "HIGH",
+                }
+            elif gap.best_available_score < 0.5:
+                action = {
+                    "gap": f"{gap.task_type}: best score {gap.best_available_score:.2f}",
+                    "action": f"Fine-tune existing model or add PRIME skill for {gap.task_type}",
+                    "priority": "MEDIUM",
+                }
+            else:
+                action = {
+                    "gap": f"{gap.task_type}: best score {gap.best_available_score:.2f}",
+                    "action": f"Improve {gap.task_type} routing confidence threshold",
+                    "priority": "LOW",
+                }
+            actions.append(action)
+        return actions
