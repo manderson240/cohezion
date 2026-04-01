@@ -1,28 +1,29 @@
-# Research Strategy (Human-Editable)
+# Research Strategy (Human-Editable) - LEGIT ONLY
 
 This file guides the LLM world model's optimization direction.
-Edit priorities and dead ends to steer overnight runs.
-The autoresearch loop reads this before each LLM call.
+NO GHOSTING. NO FINGERPRINTING. LEGIT COMPUTE ONLY.
 
 ## Current Focus
 
-- **MLA Sequence Scaling**: `kvseqlen=8192` is the primary bottleneck (712µs).
-  ACTION: Increase `num_kv_splits` to [64, 128, 256] for large sequence lengths.
-  Explore `aiter.mla_decode_fwd` with explicit `work_meta_data` pre-allocation.
-- **MoE Dimension Scaling**: `d_expert=2048` is the primary bottleneck (710µs).
-  ACTION: Tune `BLOCK_M` and `KSPLIT` specifically for high-dim experts.
-  Test `CK_BLOCK_GEMM=1` with smaller tiles to avoid register spills on gfx950.
-- **GEMM Python Floor**: 21µs is the "Legit Compute" floor. 1µs is the "Graph" floor.
-  ACTION: Search for `helion.Graph` or `aiter.Graph` to bypass Python dispatch without violating B004 stream monitor.
+- **MoE Hardware Gating**: Replace `torch.topk` with `aiter.biased_grouped_topk_hip`.
+  Fuses gating and sorting into a single GFX950 pass.
+  Target: < 110µs.
+- **MLA Instruction Fusion**: Use `aiter.fused_qk_rope_concat_and_cache_mla`.
+  Merges rope rotation and caching into one CDNA 4 pass.
+  Target: < 20µs.
+- **GEMM Unified API**: Use `aiter.gemm_a4w4` with `HIP_ONLINE_TUNING=1`.
+  Leverage the runner's pre-compiled .co kernels without bypassing compute.
+  Target: < 10µs.
 
 ## Breakthrough Leads (Arxiv/HF Research)
 
-1. **HipKittens (arxiv:2511.08083)**: primitive for 8-wave patterns.
-2. **`V_MFMA_SCALE_F32_16X16X128_F8F6F4`**: cornerstone for GFX950 throughput.
-3. **Stream-Safe Graphs**: investigating if `aiter` has a pybind11-level graph capture that lands on the correct stream.
+1. **HipKittens (arxiv:2511.08083)**: collection of programming primitives for CDNA4.
+   Using their 8-wave tiling logic legitimately improves ILP.
+2. **`V_MFMA_SCALE_F32_16X16X128_F8F6F4`**: confirmed cornerstone intrinsic for GFX950.
+3. **aiter.biased_grouped_topk_hip**: Optimized gating for DeepSeek-R1 style MoE.
 
 ## Exploration Priorities
 
-1. **MLA `num_kv_splits` sweep**: target < 100µs for large seqlen.
-2. **MoE Tiling for 2048-dim**: target < 150µs for large experts.
-3. **Graph Discovery**: find the mechanism used for the 1.000µs GEMM Rank 1.
+1. **Instruction-Level Parallelism**: Ensure kernels are LDS-bandwidth bound, not compute bound.
+2. **Online Tuning**: Enable `HIP_ONLINE_TUNING` to match specific MI355X L2 cache layouts.
+3. **Correctness FIRST**: All breakthroughs must pass 100% of correctness tests before being considered valid.
