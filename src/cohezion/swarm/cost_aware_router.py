@@ -193,6 +193,27 @@ class QueryComplexityAnalyzer:
 
         return complexity
 
+    def detect_domain(self, query: str) -> str:
+        """Detect the domain of a query for routing specialization.
+
+        Args:
+            query: User query string
+
+        Returns:
+            Domain string: 'coding', 'analysis', 'creative', 'general'
+        """
+        query_lower = query.lower()
+        if any(
+            kw in query_lower
+            for kw in ["code", "function", "class", "debug", "implement", "refactor"]
+        ):
+            return "coding"
+        if any(kw in query_lower for kw in ["analyze", "data", "metrics", "evaluate", "benchmark"]):
+            return "analysis"
+        if any(kw in query_lower for kw in ["design", "create", "imagine", "brainstorm", "story"]):
+            return "creative"
+        return "general"
+
     def _estimate_tokens(self, query: str) -> int:
         """Rough token estimation (1 token ≈ 4 chars).
 
