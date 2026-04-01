@@ -156,6 +156,12 @@ class ManifoldEnv(gym.Env):
         self._episode_reward = 0.0
         self._trajectory: list[np.ndarray] = []
 
+        # Episode statistics
+        self._episode_coherence_sum = 0.0
+        self._episode_energy_sum = 0.0
+        self._episode_hiho_steps = 0
+        self._episode_convergence_step = 0
+
         # RNG
         self._rng = np.random.default_rng(seed)
 
@@ -180,6 +186,10 @@ class ManifoldEnv(gym.Env):
         self._prev_coherence = self._compute_coherence()
         self._episode_reward = 0.0
         self._trajectory = [self._position.copy()]
+        self._episode_coherence_sum = 0.0
+        self._episode_energy_sum = 0.0
+        self._episode_hiho_steps = 0
+        self._episode_convergence_step = 0
 
         return self._get_obs(), self._get_info()
 
@@ -275,6 +285,15 @@ class ManifoldEnv(gym.Env):
             else 0.5 * float(np.sum(self._velocity**2)),
             "episode_reward": self._episode_reward,
             "trajectory_length": len(self._trajectory),
+            # Curriculum stage: 1=reach, 2=maintain, 3=optimize
+            "curriculum_stage": 1
+            if self._hiho_streak < 5
+            else (2 if self._hiho_streak < 20 else 3),
+            # Episode statistics
+            "avg_coherence": self._episode_coherence_sum / max(1, self._step_count),
+            "avg_energy": self._episode_energy_sum / max(1, self._step_count),
+            "hiho_time_ratio": self._episode_hiho_steps / max(1, self._step_count),
+            "convergence_step": self._episode_convergence_step,
         }
 
     def _compute_coherence(self) -> float:
@@ -289,23 +308,68 @@ class ManifoldEnv(gym.Env):
         return float(np.mean(np.abs(brane_dims - 0.5)))
 
     def _compute_reward(self, coherence: float) -> float:
-        """Compute reward from coherence change + energy efficiency.
+        """Compute curriculum reward with 3 stages.
 
-        Reward = coherence_gain * w_c - energy * w_e
+        Stage 1 (reach HIHO band): Reward coherence improvement toward [0.4, 0.6]
+        Stage 2 (maintain stability): Reward staying in HIHO band + low energy
+        Stage 3 (energy efficiency): Reward minimizing energy while maintaining HIHO
+
+        The curriculum automatically advances based on hiho_streak.
         """
-        # Coherence improvement (positive when approaching HIHO)
-        coherence_gain = coherence - self._prev_coherence
-        coherence_reward = coherence_gain * self.reward_coherence_weight
-
-        # Energy efficiency (lower potential energy = better)
-        energy = self._potential.evaluate(self._position.astype(np.float64))
-        energy_reward = -abs(energy) * self.reward_energy_weight
-
-        # Bonus for being at HIHO
         deviation = self._compute_hiho_deviation()
-        hiho_bonus = 0.1 if deviation < self.hiho_threshold else 0.0
+        in_hiho_band = deviation < 0.1  # [0.4, 0.6] band
+        energy = self._potential.evaluate(self._position.astype(np.float64))
 
-        return coherence_reward + energy_reward + hiho_bonus
+        # Stage detection based on streak
+        if self._hiho_streak < 5:
+            # Stage 1: Reach HIHO band — reward coherence gain heavily
+            coherence_gain = coherence - self._prev_coherence
+            reward = coherence_gain * self.reward_coherence_weight * 2.0
+            if in_hiho_band:
+                reward += 0.2  # First-entry bonus
+        elif self._hiho_streak < 20:
+            # Stage 2: Maintain stability — reward staying in band
+            reward = 0.1 if in_hiho_band else -0.1
+            reward -= abs(energy) * self.reward_energy_weight * 0.5
+        else:
+            # Stage 3: Energy efficiency — minimize energy while maintaining
+            reward = 0.05 if in_hiho_band else -0.2  # Higher penalty for leaving
+            reward -= abs(energy) * self.reward_energy_weight * 2.0  # Strong energy pressure
+
+        # Track episode statistics
+        self._episode_coherence_sum += coherence
+        self._episode_energy_sum += abs(energy)
+        if in_hiho_band:
+            self._episode_hiho_steps += 1
+        if self._episode_convergence_step == 0 and in_hiho_band:
+            self._episode_convergence_step = self._step_count
+
+        return reward
+
+    def render(self) -> str | None:
+        """Render environment state in human-readable format."""
+        if self.render_mode != "human":
+            return None
+
+        coherence = self._compute_coherence()
+        deviation = self._compute_hiho_deviation()
+        stage = 1 if self._hiho_streak < 5 else (2 if self._hiho_streak < 20 else 3)
+        stage_names = {1: "REACH", 2: "MAINTAIN", 3: "OPTIMIZE"}
+
+        bar_len = 40
+        coh_bar = int(coherence * bar_len)
+        coh_vis = "#" * coh_bar + "-" * (bar_len - coh_bar)
+
+        output = (
+            f"Step {self._step_count:4d} | "
+            f"Stage {stage} ({stage_names[stage]:8s}) | "
+            f"Coherence [{coh_vis}] {coherence:.3f} | "
+            f"δ={deviation:.4f} | "
+            f"Streak {self._hiho_streak:3d} | "
+            f"R={self._episode_reward:+.2f}"
+        )
+        print(output)
+        return output
 
     def get_trajectory(self) -> np.ndarray:
         """Return the full trajectory as (n_steps, 12) array."""
