@@ -3,9 +3,16 @@
   "checkpoint_id": "af4425950c53",
   "strategy": "manual-commit",
   "branch": "main",
-  "checkpoints_count": 1,
+  "checkpoints_count": 2,
   "files_touched": [
-    "_bmad/_config/traceability/watchdog_state.json"
+    "_bmad/_config/traceability/cycles_continuous/cycle_00748.json",
+    "_bmad/_config/traceability/repo_health/health_report.md",
+    "_bmad/_config/traceability/watchdog_state.json",
+    "data/compound/cache/token_cache.jsonl",
+    "src/cohezion/compound/executor.py",
+    "src/cohezion/eval/universe_evaluator.py",
+    "src/cohezion/flume/latent_channel.py",
+    "src/cohezion/swarm/routing_orchestrator.py"
   ],
   "sessions": [
     {
@@ -13,13 +20,19 @@
       "transcript": "/af/4425950c53/0/full.jsonl",
       "content_hash": "/af/4425950c53/0/content_hash.txt",
       "prompt": ""
+    },
+    {
+      "metadata": "/af/4425950c53/1/metadata.json",
+      "transcript": "/af/4425950c53/1/full.jsonl",
+      "content_hash": "/af/4425950c53/1/content_hash.txt",
+      "prompt": "/af/4425950c53/1/prompt.txt"
     }
   ],
   "token_usage": {
-    "input_tokens": 3963,
-    "cache_creation_tokens": 372358,
-    "cache_read_tokens": 4135786,
-    "output_tokens": 14554,
-    "api_call_count": 38
+    "input_tokens": 38053,
+    "cache_creation_tokens": 14119458,
+    "cache_read_tokens": 408284859,
+    "output_tokens": 476919,
+    "api_call_count": 1285
   }
 }
