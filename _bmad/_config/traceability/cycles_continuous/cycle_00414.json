@@ -1,0 +1,25 @@
+{
+  "cycle": 414,
+  "timestamp": "2026-04-01T02:26:53.299822",
+  "work": {
+    "item": {
+      "id": "test_run_022642",
+      "type": "test_run",
+      "description": "Run test suite (6396 tests)",
+      "command": [
+        "uv",
+        "run",
+        "pytest",
+        "-x",
+        "-q"
+      ],
+      "estimated_count": 6396,
+      "priority": "low"
+    },
+    "result": {
+      "status": "partial",
+      "returncode": 1,
+      "stdout": "============================= test session starts ==============================\nplatform linux -- Python 3.13.11, pytest-9.0.2, pluggy-1.6.0\nrootdir: /home/mike-anderson/dev/cohezion\nconfigfile: pytest.ini (WARNING: ignoring pytest config in pyproject.toml!)\ntestpaths: tests\nplugins: asyncio-1.3.0, cov-7.1.0, anyio-4.12.1\nasyncio: mode=Mode.STRICT, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function\ncollected 5962 items\n\ntests/agentjet/test_context_optimizer.py ...........                     [  0%]\ntests/agentjet/test_embeddings.py .............                          [  0%]\ntests/agentjet/test_judger.py .............                              [  0%]\ntests/agentjet/test_task_reader.py .......                               [  0%]\ntests/agentjet/test_trainer.py ........                                  [  0%]\ntests/agentjet/test_workflow.py .........                                [  1%]\ntests/agents/test_evo_agent.py ..                  "
+    }
+  }
+}

@@ -4,316 +4,36 @@
   "nodes": {
     "gemm_root": {
       "id": "gemm_root",
-      "strategy": "load_inline custom HIP kernel following official template-hip.py pattern with block-wise GEMM and lifted scales",
-      "parameters": {
-        "approach": "load_inline"
-      },
+      "strategy": "Minimize gemm geomean - load_inline custom HIP kernel",
+      "parameters": {},
       "parent_id": null,
       "priority": 1.0,
       "attempts": 3,
-      "best_result_us": 196.11,
-      "stagnation_count": 0,
-      "status": "active",
-      "children": [
-        "gemm_loadinline_rocwmma",
-        "gemm_loadinline_simple_block",
-        "n_e5bda1bc",
-        "n_8b5b3c22",
-        "n_1b68a7ea"
-      ],
-      "notes": "BREAKTHROUGH: Official template-hip.py proves load_inline works!",
-      "attempt_history": [
-        {
-          "result_us": 219.96803676594573,
-          "parameters": {
-            "approach": "load_inline"
-          },
-          "timestamp": "2026-03-31T17:44:08.646043",
-          "source": "template"
-        },
-        {
-          "result_us": 220.85235314791817,
-          "parameters": {
-            "approach": "load_inline"
-          },
-          "timestamp": "2026-03-31T17:45:59.338509",
-          "source": "template"
-        },
-        {
-          "result_us": 196.10860339743942,
-          "parameters": {
-            "approach": "load_inline"
-          },
-          "timestamp": "2026-03-31T17:47:06.417162",
-          "source": "template"
-        }
-      ]
-    },
-    "gemm_loadinline_rocwmma": {
-      "id": "gemm_loadinline_rocwmma",
-      "strategy": "load_inline with rocWMMA MFMA tile sizes 32x32x16 for MI355X",
-      "parameters": {
-        "tile_m": 32,
-        "tile_n": 32,
-        "tile_k": 16
-      },
-      "parent_id": "gemm_root",
-      "priority": 0.6,
-      "attempts": 2,
-      "best_result_us": 225.09,
-      "stagnation_count": 1,
-      "status": "pruned",
-      "children": [],
-      "notes": "Use rocWMMA for native MFMA instructions [STRATEGIC PRUNE: LLM world model]",
-      "attempt_history": [
-        {
-          "result_us": 225.09219859338438,
-          "parameters": {
-            "tile_m": 32,
-            "tile_n": 32,
-            "tile_k": 16
-          },
-          "timestamp": "2026-03-31T17:47:53.210970",
-          "source": "template"
-        },
-        {
-          "result_us": 234.62025656302714,
-          "parameters": {
-            "tile_m": 32,
-            "tile_n": 32,
-            "tile_k": 16
-          },
-          "timestamp": "2026-03-31T17:48:54.929290",
-          "source": "template"
-        }
-      ]
-    },
-    "gemm_loadinline_simple_block": {
-      "id": "gemm_loadinline_simple_block",
-      "strategy": "Simple block 64x64 with BLOCK=64 threads",
-      "parameters": {
-        "block": 64
-      },
-      "parent_id": "gemm_root",
-      "priority": 0.22775916503299984,
-      "attempts": 9,
-      "best_result_us": 123.41,
-      "stagnation_count": 1,
-      "status": "active",
-      "children": [],
-      "notes": "Larger block for more parallelism",
-      "attempt_history": [
-        {
-          "result_us": 229.3081565699791,
-          "parameters": {
-            "block": 64
-          },
-          "timestamp": "2026-03-31T19:11:55.534603",
-          "source": "template"
-        },
-        {
-          "result_us": 226.21760256167204,
-          "parameters": {
-            "block": 64
-          },
-          "timestamp": "2026-03-31T19:15:52.227822",
-          "source": "template"
-        },
-        {
-          "result_us": 215.88161201383863,
-          "parameters": {
-            "block": 64
-          },
-          "timestamp": "2026-03-31T19:16:54.213103",
-          "source": "template"
-        },
-        {
-          "result_us": 186.85722660382103,
-          "parameters": {
-            "block": 64
-          },
-          "timestamp": "2026-03-31T22:35:25.910682",
-          "source": "template"
-        },
-        {
-          "result_us": 165.17679421796993,
-          "parameters": {
-            "block": 64
-          },
-          "timestamp": "2026-03-31T22:36:28.358497",
-          "source": "template"
-        },
-        {
-          "result_us": 149.41501292317292,
-          "parameters": {
-            "block": 64
-          },
-          "timestamp": "2026-03-31T22:40:38.335342",
-          "source": "template"
-        },
-        {
-          "result_us": 133.74988176348458,
-          "parameters": {
-            "block": 64
-          },
-          "timestamp": "2026-03-31T22:41:41.125556",
-          "source": "template"
-        },
-        {
-          "result_us": 123.40885211300687,
-          "parameters": {
-            "block": 64
-          },
-          "timestamp": "2026-03-31T23:14:13.293907",
-          "source": "template"
-        },
-        {
-          "result_us": 127.2662107459561,
-          "parameters": {
-            "block": 64
-          },
-          "timestamp": "2026-03-31T23:15:21.967749",
-          "source": "template"
-        }
-      ]
-    },
-    "n_e5bda1bc": {
-      "id": "n_e5bda1bc",
-      "strategy": "load_inline with rocWMMA MFMA tile 16x16x32 for MI355X (reverse tile orientation vs current 32x32x16)",
-      "parameters": {},
-      "parent_id": "gemm_root",
-      "priority": 0.1,
-      "attempts": 4,
-      "best_result_us": 185.9,
-      "stagnation_count": 2,
-      "status": "pruned",
-      "children": [
-        "n_c15e17a6"
-      ],
-      "notes": "[LLM-proposed] [STRATEGIC PRUNE: LLM world model]",
-      "attempt_history": [
-        {
-          "result_us": 209.93688510948144,
-          "parameters": {},
-          "timestamp": "2026-03-31T19:12:57.844725",
-          "source": "template"
-        },
-        {
-          "result_us": 185.90024844982457,
-          "parameters": {},
-          "timestamp": "2026-03-31T22:22:13.123695",
-          "source": "template"
-        },
-        {
-          "result_us": 190.79487444196968,
-          "parameters": {},
-          "timestamp": "2026-03-31T22:23:15.176689",
-          "source": "template"
-        },
-        {
-          "result_us": 198.30944962076444,
-          "parameters": {},
-          "timestamp": "2026-03-31T22:39:36.302849",
-          "source": "template"
-        }
-      ]
-    },
-    "n_8b5b3c22": {
-      "id": "n_8b5b3c22",
-      "strategy": "load_inline with rocWMMA MFMA tile 32x32x32 for MI355X (double K-dimension vs current 32x32x16)",
-      "parameters": {},
-      "parent_id": "gemm_root",
-      "priority": 0.4,
-      "attempts": 2,
-      "best_result_us": 205.52,
-      "stagnation_count": 0,
-      "status": "pruned",
-      "children": [],
-      "notes": "[LLM-proposed] [STRATEGIC PRUNE: LLM world model]",
-      "attempt_history": [
-        {
-          "result_us": 211.9580447855912,
-          "parameters": {},
-          "timestamp": "2026-03-31T19:17:56.926269",
-          "source": "template"
-        },
-        {
-          "result_us": 205.51837104179313,
-          "parameters": {},
-          "timestamp": "2026-03-31T19:17:58.857410",
-          "source": "template"
-        }
-      ]
-    },
-    "n_1b68a7ea": {
-      "id": "n_1b68a7ea",
-      "strategy": "load_inline with rocWMMA MFMA tile 32x32x16 + unroll K=2 + register tiling 8x8x4 for MI355X",
-      "parameters": {},
-      "parent_id": "gemm_root",
-      "priority": 0.5,
-      "attempts": 3,
-      "best_result_us": 158.88,
-      "stagnation_count": 0,
-      "status": "active",
-      "children": [
-        "n_bfe6f731"
-      ],
-      "notes": "[LLM-proposed]",
-      "attempt_history": [
-        {
-          "result_us": 178.2755419835859,
-          "parameters": {},
-          "timestamp": "2026-03-31T22:29:06.684354",
-          "source": "template"
-        },
-        {
-          "result_us": 161.09746529799136,
-          "parameters": {},
-          "timestamp": "2026-03-31T22:30:08.291319",
-          "source": "template"
-        },
-        {
-          "result_us": 158.8836687455394,
-          "parameters": {},
-          "timestamp": "2026-03-31T22:31:21.112923",
-          "source": "template"
-        }
-      ]
-    },
-    "n_bfe6f731": {
-      "id": "n_bfe6f731",
-      "strategy": "load_inline with rocWMMA MFMA tile 32x32x16 + unroll K=4 + register tiling 16x8x2 for MI355X (increase K-unroll and asymmetric register tiling)",
-      "parameters": {},
-      "parent_id": "n_1b68a7ea",
-      "priority": 0.2,
-      "attempts": 1,
-      "best_result_us": 212.73,
+      "best_result_us": 192.74,
       "stagnation_count": 0,
       "status": "active",
       "children": [],
-      "notes": "[LLM-proposed]",
+      "notes": "FRESH START - Focus on load_inline for GEMM, pa_ps_fwd_asm for MLA",
       "attempt_history": [
         {
-          "result_us": 212.72829649486846,
+          "result_us": 214.8525861094931,
           "parameters": {},
-          "timestamp": "2026-03-31T22:32:23.447753",
+          "timestamp": "2026-03-31T23:40:30.428094",
+          "source": "template"
+        },
+        {
+          "result_us": 235.66500723345806,
+          "parameters": {},
+          "timestamp": "2026-03-31T23:41:40.922999",
+          "source": "template"
+        },
+        {
+          "result_us": 192.74467037941332,
+          "parameters": {},
+          "timestamp": "2026-03-31T23:42:42.329800",
           "source": "template"
         }
       ]
-    },
-    "n_c15e17a6": {
-      "id": "n_c15e17a6",
-      "strategy": "load_inline with rocWMMA MFMA tile 32x32x16 + unroll K=3 + register tiling 12x6x3 for MI355X (asymmetric mid-point tuning between existing 8x8x4 and 16x8x2)",
-      "parameters": {},
-      "parent_id": "n_e5bda1bc",
-      "priority": 0.5,
-      "attempts": 0,
-      "best_result_us": null,
-      "stagnation_count": 0,
-      "status": "pruned",
-      "children": [],
-      "notes": "[LLM-proposed] [STRATEGIC PRUNE: parent n_e5bda1bc pruned]",
-      "attempt_history": []
     }
   }
 }

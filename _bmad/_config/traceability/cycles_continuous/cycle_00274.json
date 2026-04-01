@@ -1,0 +1,27 @@
+{
+  "cycle": 274,
+  "timestamp": "2026-04-01T01:03:12.920851",
+  "work": {
+    "item": {
+      "id": "N806_010236",
+      "type": "lint_batch",
+      "category": "N806",
+      "description": "Fix variable-naming (2002 errors)",
+      "command": [
+        "ruff",
+        "check",
+        ".",
+        "--select",
+        "N806",
+        "--fix"
+      ],
+      "estimated_count": 2002,
+      "priority": "medium"
+    },
+    "result": {
+      "status": "partial",
+      "returncode": 1,
+      "stdout": "invalid-syntax: Expected `except` or `finally` after `try` block\n   --> _bmad/_config/traceability/cohezion/cohezion_traceability_engine.py:278:9\n    |\n276 |                 coverage.append(cov)\n277 |\n278 |         self.test_coverage = coverage\n    |         ^\n279 |         return coverage\n    |\n\nN806 Variable `P` in function should be lowercase\n  --> anthropic-delivery/src/cohezion/flume/vliw_latent_alignment.py:42:5\n   |\n40 |     # 3. Simulate 7D Collapse (Dimensionality Reduction)\n41 |     # We represent this via a projection matrix P.\n42 |     P = torch.randn(7, 768)\n   |     ^\n43 |\n44 |     v7_greedy = torch.matmul(P, z_greedy)\n   |\n\nN806 Variable `ALLOWED_TYPES` in function should be lowercase\n   --> cloud-vault-mcp/src/mcp_server/graph_writer.py:199:5\n    |\n197 |     \"\"\"\n198 |     # Map non-schema types to 'latent' (closest semantic match for inferred connections)\n199 |     ALLOWED_TYPES = {\"explicit\", \"latent\", \"dream\", \"songline\"}\n    |     ^^^^^^^^^^^^^\n200 |     actual_type "
+    }
+  }
+}
