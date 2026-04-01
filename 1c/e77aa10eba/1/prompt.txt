@@ -894,3 +894,7 @@ Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderso
 ---
 
 Continue
+
+---
+
+Capture learnings and make sure they persist obsidian vault and surrealdb.  Refine plan as a long horizon autonomous task that can run overnight until 7am est.  Keep doing internal code sweeps and external research.  Use all of our skills and improve Cohezion to make it coherent and give us an even better chance of landing https://job-boards.greenhouse.io/anthropic/jobs/5061517008?gh_src=myjobs.greenhouse.  Think deeply.
