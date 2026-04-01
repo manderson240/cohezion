@@ -902,3 +902,7 @@ Capture learnings and make sure they persist obsidian vault and surrealdb.  Refi
 ---
 
 We are supposed to be test driven development with multiperspective code review
+
+---
+
+Think deeper and keep going
