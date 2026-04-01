@@ -3,21 +3,29 @@
   "checkpoint_id": "72abb0ae517e",
   "strategy": "manual-commit",
   "branch": "main",
-  "checkpoints_count": 2,
-  "files_touched": null,
+  "checkpoints_count": 4,
+  "files_touched": [
+    "src/cohezion/environments/manifold_env.py"
+  ],
   "sessions": [
     {
       "metadata": "/72/abb0ae517e/0/metadata.json",
       "transcript": "/72/abb0ae517e/0/full.jsonl",
       "content_hash": "/72/abb0ae517e/0/content_hash.txt",
       "prompt": "/72/abb0ae517e/0/prompt.txt"
+    },
+    {
+      "metadata": "/72/abb0ae517e/1/metadata.json",
+      "transcript": "/72/abb0ae517e/1/full.jsonl",
+      "content_hash": "/72/abb0ae517e/1/content_hash.txt",
+      "prompt": "/72/abb0ae517e/1/prompt.txt"
     }
   ],
   "token_usage": {
-    "input_tokens": 26339038,
-    "cache_creation_tokens": 1410522,
-    "cache_read_tokens": 9469127,
-    "output_tokens": 66060,
-    "api_call_count": 173
+    "input_tokens": 26373197,
+    "cache_creation_tokens": 18012679,
+    "cache_read_tokens": 442771439,
+    "output_tokens": 555866,
+    "api_call_count": 1479
   }
 }
