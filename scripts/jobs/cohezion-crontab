@@ -1,0 +1,28 @@
+# Cohezion Proactive Improvement Cron Jobs
+# Install: crontab scripts/jobs/cohezion-crontab
+# Or append: crontab -l | cat - scripts/jobs/cohezion-crontab | crontab -
+
+COHEZION_DIR=/home/mike-anderson/dev/cohezion
+SHELL=/bin/bash
+PATH=/home/mike-anderson/.local/bin:/usr/local/bin:/usr/bin:/bin
+
+# === Ouroboros Healing (1x daily, 2am) ===
+3 2 * * * $COHEZION_DIR/scripts/jobs/ouroboros_cron.sh
+
+# === Compound Training (3x daily: 6am, noon, 6pm) ===
+7 6 * * * $COHEZION_DIR/scripts/jobs/compound_train_cron.sh
+7 12 * * * $COHEZION_DIR/scripts/jobs/compound_train_cron.sh
+7 18 * * * $COHEZION_DIR/scripts/jobs/compound_train_cron.sh
+
+# === Health Validation (4x daily: midnight, 6am, noon, 6pm) ===
+13 0 * * * $COHEZION_DIR/scripts/jobs/health_check_cron.sh
+13 6 * * * $COHEZION_DIR/scripts/jobs/health_check_cron.sh
+13 12 * * * $COHEZION_DIR/scripts/jobs/health_check_cron.sh
+13 18 * * * $COHEZION_DIR/scripts/jobs/health_check_cron.sh
+
+# === Research Scout (1x daily, 7am) ===
+17 7 * * * $COHEZION_DIR/scripts/jobs/research_scout_cron.sh
+
+# === Retrospection (2x daily: 8am, 8pm) ===
+23 8 * * * $COHEZION_DIR/scripts/jobs/retrospection_cron.sh
+23 20 * * * $COHEZION_DIR/scripts/jobs/retrospection_cron.sh
