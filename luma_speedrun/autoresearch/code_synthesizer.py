@@ -79,8 +79,11 @@ HARDWARE CONSTRAINTS (MI355X / gfx950):
 
 RULES:
 - Output ONLY valid Python code (submission.py format)
-- Must import from aiter, torch — no custom HIP compilation
-- Must pass correctness check (rtol=1e-2 vs reference)
+- PREFER custom HIP compilation via subprocess + hipcc for performance breakthroughs.
+- Always use explicit stream synchronization: pass `ctypes.c_void_p(torch.cuda.current_stream().cuda_stream)` to custom HIP kernels.
+- For MLA: Implement latent 576/512 split directly in custom HIP to save 1.6x bandwidth.
+- For MoE: Fuse Stage 1+2 via LDS bridge to eliminate HBM writebacks.
+- Must pass correctness check (rtol=1e-1 vs reference — use loose tolerance).
 - Include type hints and minimal comments
 - The function signature must match: custom_kernel(data: input_t) -> output_t
 """

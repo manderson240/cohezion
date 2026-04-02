@@ -50,7 +50,7 @@ ci:  ## Run CI checks locally
 	@echo "✓ All CI checks passed"
 
 # Compound Loop Validation
-validate:  ## Validate compound engineering loop end-to-end (23 checks, ~18s)
+validate:  ## Validate compound engineering loop end-to-end (25 checks, ~18s)
 	.venv/bin/python scripts/validate_compound_loop.py
 	@echo "✓ Compound loop validated"
 

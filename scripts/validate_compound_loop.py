@@ -66,7 +66,7 @@ class ValidationResult:
 
 def validate_physics_environment(result: ValidationResult) -> None:
     """Step 1: Validate ManifoldEnv physics simulation."""
-    logger.info("\n[1/9] ManifoldEnv Physics Simulation")
+    logger.info("\n[1/10] ManifoldEnv Physics Simulation")
 
     try:
         from cohezion.environments.manifold_env import ManifoldEnv
@@ -109,7 +109,7 @@ def validate_physics_environment(result: ValidationResult) -> None:
 
 def validate_evaluation_framework(result: ValidationResult) -> None:
     """Step 2: Validate UniverseEvaluator with baselines."""
-    logger.info("\n[2/9] UniverseEvaluator Benchmark")
+    logger.info("\n[2/10] UniverseEvaluator Benchmark")
 
     try:
         from cohezion.environments.manifold_env import ManifoldEnv
@@ -152,7 +152,7 @@ def validate_evaluation_framework(result: ValidationResult) -> None:
 
 def validate_compound_executor(result: ValidationResult) -> None:
     """Step 3: Validate CompoundExecutor task execution."""
-    logger.info("\n[3/9] CompoundExecutor Pipeline")
+    logger.info("\n[3/10] CompoundExecutor Pipeline")
 
     try:
         from cohezion.compound.executor import CompoundExecutor
@@ -187,7 +187,7 @@ def validate_compound_executor(result: ValidationResult) -> None:
 
 def validate_degradation_monitoring(result: ValidationResult) -> None:
     """Step 4: Validate DegradationDetector and routing feedback."""
-    logger.info("\n[4/9] Degradation Monitoring + Routing Feedback")
+    logger.info("\n[4/10] Degradation Monitoring + Routing Feedback")
 
     try:
         from cohezion.compound.degradation_detector import DegradationDetector
@@ -221,7 +221,7 @@ def validate_degradation_monitoring(result: ValidationResult) -> None:
 
 def validate_ouroboros_mycelium(result: ValidationResult) -> None:
     """Step 5: Validate Ouroboros + Mycelium integration."""
-    logger.info("\n[5/9] Ouroboros + Mycelium Integration")
+    logger.info("\n[5/10] Ouroboros + Mycelium Integration")
 
     try:
         from cohezion.ouroboros.detector import AnomalyDetector
@@ -263,9 +263,42 @@ def validate_ouroboros_mycelium(result: ValidationResult) -> None:
         result.record("Mycelium ChangeObserver", False, str(e))
 
 
+def validate_swarm_env(result: ValidationResult) -> None:
+    """Step 6: Validate SwarmEnv multi-agent environment."""
+    logger.info("\n[6/10] SwarmEnv Multi-Agent")
+
+    try:
+        from cohezion.environments.swarm_env import SwarmEnv
+
+        env = SwarmEnv(n_agents=2, max_steps=20, seed=42)
+        obs, infos = env.reset()
+
+        result.record(
+            "SwarmEnv creation (2 agents)",
+            len(obs) == 2 and "agent_0" in obs,
+            f"agents={list(obs.keys())}",
+        )
+
+        # Run 10 steps
+        import numpy as np
+
+        for _ in range(10):
+            actions = {a: np.random.uniform(-0.1, 0.1, size=(12,)).astype(np.float32) for a in obs}
+            obs, rewards, terms, truncs, infos = env.step(actions)
+
+        dev = infos["agent_0"].get("global_hiho_deviation", -1)
+        result.record(
+            "SwarmEnv gauge coupling",
+            0 < dev < 1.0,
+            f"global_hiho_deviation={dev:.3f}",
+        )
+    except Exception as e:
+        result.record("SwarmEnv", False, str(e))
+
+
 def validate_skill_persistence(result: ValidationResult) -> None:
-    """Step 6: Validate SkillRefiner and knowledge persistence."""
-    logger.info("\n[6/9] Skill Refinement + Knowledge Persistence")
+    """Step 7: Validate SkillRefiner and knowledge persistence."""
+    logger.info("\n[7/10] Skill Refinement + Knowledge Persistence")
 
     try:
         from cohezion.compound.skill_refiner import SkillRefiner
@@ -287,7 +320,7 @@ def validate_skill_persistence(result: ValidationResult) -> None:
 
 def validate_persistence_backends(result: ValidationResult) -> None:
     """Step 7: Validate SurrealDB + vault persistence."""
-    logger.info("\n[7/9] SurrealDB + Vault Persistence")
+    logger.info("\n[8/10] SurrealDB + Vault Persistence")
 
     import urllib.request
 
@@ -310,7 +343,7 @@ def validate_persistence_backends(result: ValidationResult) -> None:
 
 def validate_routing_orchestrator(result: ValidationResult) -> None:
     """Step 8: Validate RoutingOrchestrator unified entry."""
-    logger.info("\n[8/9] Routing Orchestrator (Unified Entry)")
+    logger.info("\n[9/10] Routing Orchestrator (Unified Entry)")
 
     try:
         from cohezion.swarm.routing_orchestrator import RoutingOrchestrator
@@ -345,6 +378,7 @@ def main() -> None:
     validate_compound_executor(result)
     validate_degradation_monitoring(result)
     validate_ouroboros_mycelium(result)
+    validate_swarm_env(result)
     validate_skill_persistence(result)
     validate_persistence_backends(result)
     validate_routing_orchestrator(result)
