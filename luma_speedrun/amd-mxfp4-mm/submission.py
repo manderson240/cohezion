@@ -42,20 +42,9 @@ def custom_kernel(data: input_t) -> output_t:
     A_scale_sh = e8m0_shuffle(A_scale_e8m0).view(dtypes.fp8_e8m0)
     A_q = A_q.view(dtypes.fp4x2)
 
-    # Use aiter.gemm_a4w4_asm with dynamic k_split
-    # This bypasses the higher-level gemm_a4w4 wrapper and provides direct control
-    try:
-        from aiter import gemm_a4w4_asm
-        log2_k_split = _choose_log2_k_split(m, n, k)
-        return gemm_a4w4_asm(
-            A_q, B_shuffle, A_scale_sh, B_scale_sh,
-            dtype=dtypes.bf16, bpreshuffle=True,
-            log2_k_split=log2_k_split,
-        )
-    except (ImportError, NameError):
-        # Fallback to standard gemm_a4w4 if asm interface not exposed
-        return aiter.gemm_a4w4(
-            A_q, B_shuffle, A_scale_sh, B_scale_sh,
-            dtype=dtypes.bf16, bpreshuffle=True,
-        )
+    # Use aiter.gemm_a4w4 high-level API (gemm_a4w4_asm API changed on runner)
+    return aiter.gemm_a4w4(
+        A_q, B_shuffle, A_scale_sh, B_scale_sh,
+        dtype=dtypes.bf16, bpreshuffle=True,
+    )
 
