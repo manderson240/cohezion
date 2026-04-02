@@ -1,0 +1,25 @@
+{
+  "cli_version": "0.5.1",
+  "checkpoint_id": "1a28ff09aa75",
+  "strategy": "manual-commit",
+  "branch": "main",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "luma_speedrun/amd-mxfp4-mm/.claude/ralph-loop.local.md"
+  ],
+  "sessions": [
+    {
+      "metadata": "/1a/28ff09aa75/0/metadata.json",
+      "transcript": "/1a/28ff09aa75/0/full.jsonl",
+      "content_hash": "/1a/28ff09aa75/0/content_hash.txt",
+      "prompt": "/1a/28ff09aa75/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 44821,
+    "cache_creation_tokens": 34928169,
+    "cache_read_tokens": 1083834602,
+    "output_tokens": 834780,
+    "api_call_count": 3083
+  }
+}
