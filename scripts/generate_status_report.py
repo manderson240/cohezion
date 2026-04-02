@@ -16,7 +16,6 @@ import argparse
 import json
 import os
 import smtplib
-import sys
 import urllib.request
 from base64 import b64encode
 from datetime import datetime

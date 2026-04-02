@@ -29,7 +29,6 @@ for _mod in (
     if _p not in sys.path:
         sys.path.insert(0, _p)
 
-import torch
 from torch.utils.cpp_extension import load_inline
 
 from aiter import ActivationType, QuantType

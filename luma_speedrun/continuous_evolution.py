@@ -150,7 +150,7 @@ def apply_mutations():
 
 
 def continuous_loop():
-    print(f"Starting Continuous Evolution Pipeline...")
+    print("Starting Continuous Evolution Pipeline...")
     state = load_state()
 
     while True:

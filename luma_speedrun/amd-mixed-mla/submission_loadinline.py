@@ -15,7 +15,6 @@ Target: <50us (eliminate 20-30us of Python dispatch overhead)
 import torch
 from torch.utils.cpp_extension import load_inline
 
-import aiter
 from aiter import dtypes as aiter_dtypes
 from aiter import (
     get_mla_metadata_info_v1,
