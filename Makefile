@@ -1,4 +1,4 @@
-.PHONY: help format lint lint-check type-check test all clean train evaluate benchmark demo validate compound-train training-history
+.PHONY: help format lint lint-check type-check test all clean train evaluate benchmark demo validate compound-train training-history kernel-status kernel-cycle
 
 help:  ## Show this help message
 	@echo "Available targets:"
@@ -61,6 +61,13 @@ compound-train:  ## Run compound training cycle (SAC dense 100K, auto-persist to
 
 training-history:  ## Show training run history from SurrealDB
 	@.venv/bin/python scripts/compound_training_cycle.py --history
+
+# Kernel Optimization (Luma AMD Speedrun)
+kernel-status:  ## Show Luma kernel optimization status (GEMM/MLA/MoE)
+	@.venv/bin/python scripts/compound_kernel_cycle.py --kernel all --history
+
+kernel-cycle:  ## Run compound kernel optimization cycle
+	.venv/bin/python scripts/compound_kernel_cycle.py --kernel all --benchmark
 
 # RL Training + Evaluation targets
 train:  ## Train PPO on ManifoldEnv (quick: 20K steps, ~5 min)
