@@ -3265,3 +3265,7 @@ Full transcript available at: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/
 ---
 
 Well capture the patterns and antipatterns.  See if there's a reuseable skill or skill refinement opportunity.  Make sure learnings persist in Obsidian vault and surreal db and feedback into the plan for refinement.
+
+---
+
+Let's refine Session 89 for long horizon task that actually achieves what it's setting out to?
