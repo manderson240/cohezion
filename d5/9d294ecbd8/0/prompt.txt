@@ -3261,3 +3261,7 @@ Sources:
 <usage><total_tokens>111391</total_tokens><tool_uses>69</tool_uses><duration_ms>876878</duration_ms></usage>
 </task-notification>
 Full transcript available at: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/b64da2bf-bc43-4e98-92b9-9ef978ee0301/tasks/a117b56bee7d2237f.output
+
+---
+
+Well capture the patterns and antipatterns.  See if there's a reuseable skill or skill refinement opportunity.  Make sure learnings persist in Obsidian vault and surreal db and feedback into the plan for refinement.
