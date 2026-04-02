@@ -1,0 +1,46 @@
+{
+  "cli_version": "0.5.1",
+  "checkpoint_id": "86fe6dbf5204",
+  "strategy": "manual-commit",
+  "branch": "main",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "bluequbit/execution/retry_p7.py",
+    "bluequbit/hackathons/KNOWLEDGE_EXTRACTION_SYSTEM.md",
+    "bluequbit/hackathons/compound_100_round_extractor.py",
+    "bluequbit/hackathons/hackathon_oEOtLSSrPSVH60Ah/FREE_TIER_BASELINE.md",
+    "bluequbit/hackathons/hackathon_oEOtLSSrPSVH60Ah/FREE_TIER_TEST_PLAN.md",
+    "bluequbit/hackathons/hackathon_oEOtLSSrPSVH60Ah/RESEARCH_FUNDING_REQUEST.md",
+    "bluequbit/hackathons/hackathon_oEOtLSSrPSVH60Ah/research/PEAKED_CIRCUIT_RESEARCH_SUMMARY.md",
+    "bluequbit/hackathons/hackathon_oEOtLSSrPSVH60Ah/solutions/P4_golden_mountain.md",
+    "bluequbit/hackathons/hackathon_oEOtLSSrPSVH60Ah/solutions/P7_heavy_hex_1275.md",
+    "bluequbit/hackathons/hackathon_wSvCWg8f38spoXX3/EXTERNAL_RESEARCH_SUMMARY.md",
+    "bluequbit/hackathons/hackathon_wSvCWg8f38spoXX3/LESSONS_LEARNED_PLAYBOOK.md",
+    "bluequbit/hackathons/hackathon_wSvCWg8f38spoXX3/PREPARATION_PLAN.md",
+    "bluequbit/hackathons/knowledge_extractor.py",
+    "bluequbit/retry_p7.py",
+    "bluequbit/retry_p7_system.py",
+    "check_db_tables.py",
+    "check_ns.py",
+    "check_root.py",
+    "check_status_8001.py",
+    "list_tables.py",
+    "luma_speedrun/amd-mixed-mla/submission.py",
+    "research/challenges/luma_amd_speedrun/autoresearch/probes/hipkittens_mxfp4_gemm_spec.md"
+  ],
+  "sessions": [
+    {
+      "metadata": "/86/fe6dbf5204/0/metadata.json",
+      "transcript": "/86/fe6dbf5204/0/full.jsonl",
+      "content_hash": "/86/fe6dbf5204/0/content_hash.txt",
+      "prompt": "/86/fe6dbf5204/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 44821,
+    "cache_creation_tokens": 34928169,
+    "cache_read_tokens": 1083834602,
+    "output_tokens": 834780,
+    "api_call_count": 3085
+  }
+}
