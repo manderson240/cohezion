@@ -1,0 +1,9 @@
+{
+  "name": "coherence-guard",
+  "version": "1.0.0",
+  "description": "Pre-build script to fix toFixed null checks",
+  "scripts": {
+    "fix-toFixed": "node fix_toFixed.js",
+    "prebuild": "npm run fix-toFixed"
+  }
+}

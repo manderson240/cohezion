@@ -29,7 +29,7 @@ export default function OuroborosControlRoom() {
                         GLOBAL COHERENCE
                     </div>
                     <div className={`text-4xl font-black tracking-tighter relative z-10 drop-shadow-md ${coherence >= 0.85 ? 'text-emerald-400' : coherence >= 0.5 ? 'text-amber-400' : 'text-red-500'}`}>
-                        {coherence.toFixed(3)}
+                        {(coherence ?? 0).toFixed(3)}
                     </div>
                     <div className="mt-5 w-full bg-gray-900 rounded-full h-1.5 overflow-hidden relative z-10">
                         <div
@@ -77,7 +77,7 @@ export default function OuroborosControlRoom() {
             <div className="mt-8 p-5 bg-[#050505]/80 rounded-xl font-mono text-[11px] leading-relaxed text-emerald-400/80 h-36 overflow-y-auto border border-white/5 shadow-inner relative z-10 backdrop-blur-md">
                 <div className="opacity-50 hover:opacity-100 transition-opacity">[SYSTEM] Mycelium network synced across {evoCount} nodes. VLIW state nominal.</div>
                 <div className="opacity-75 hover:opacity-100 transition-opacity">[OUROBOROS] Execution exhaust analyzed. Refining 12D manifold alignment prompts.</div>
-                <div className="text-emerald-300 drop-shadow-[0_0_2px_rgba(110,231,183,1)]">[HIHO] Fabric stability nominal. Coherence at {coherence.toFixed(4)}. Tensor Beam active.</div>
+                <div className="text-emerald-300 drop-shadow-[0_0_2px_rgba(110,231,183,1)]">[HIHO] Fabric stability nominal. Coherence at {(coherence ?? 0).toFixed(4)}. Tensor Beam active.</div>
                 {state?.evo_states.map((evo, i) => (
                     <div key={i} className="opacity-60 hover:opacity-100 transition-opacity">
                         [EVO-{i}] charge={(evo.charge_density ?? 0).toFixed(3)} helicity={(evo.magnetic_helicity ?? 0).toFixed(3)} toroidal={(evo.toroidal_moment ?? 0).toFixed(3)} C={(evo.coherence ?? 0).toFixed(4)}

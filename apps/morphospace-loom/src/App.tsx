@@ -1226,7 +1226,7 @@ export default function App() {
             projected3d: [s[0] * 2, s[1] * 2, s[2] * 2],
             coherentDims: coherentCount,
             pattern: 'emergent' as any,
-            narration: `Pulse detected: Stability ${telemetry.stability?.toFixed(2) || '0.00'} | Coherence ${telemetry.coherence?.toFixed(2) || '0.00'}`,
+            narration: `Pulse detected: Stability ${(telemetry.stability ?? 0).toFixed(2) || '0.00'} | Coherence ${(telemetry.coherence ?? 0).toFixed(2) || '0.00'}`,
         };
     }, [isLive, telemetry]);
 

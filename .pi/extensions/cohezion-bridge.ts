@@ -412,7 +412,7 @@ Issue: ${result.issues?.join("; ") ?? "None"}`;
         coherence,
       }) as { hiho_score: number; is_optimal: boolean; stability_band: string };
 
-      return `Input coherence: ${coherence.toFixed(3)}
+      return `Input coherence: ${(coherence ?? 0).toFixed(3)}
 HIHO stability: ${(result.hiho_score ?? 0).toFixed(3)}
 Optimal: ${result.is_optimal ? "YES" : "NO"}
 Band: ${result.stability_band}`;
