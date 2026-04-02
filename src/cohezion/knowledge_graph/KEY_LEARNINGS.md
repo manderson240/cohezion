@@ -309,3 +309,12 @@ ADRC-Lagrangian (arXiv:2601.18142): Treats all uncertainty as lumped disturbance
 
 ### Learning 257: Causal-JEPA — Object-Level Masking for Causal World Models (2026-04-02)
 Causal-JEPA (arXiv:2602.11389, code: github.com/galilai-group/cjepa): Object-level masking as latent intervention. Forces model to reason about object interactions, not just spatial patterns. 20% improvement in counterfactual reasoning, 8x faster planning (1% of tokens). 128D latent slots, single GPU training. Applicable to Cohezion JEPA: mask agent slots in multi-agent scenarios.
+
+### Learning 261: Ralph Loop Anti-Pattern — Infinite Loop Without Exit Condition (2026-04-02)
+Ralph Loop MUST have --completion-promise or --max-iterations. Session 88B: 8 productive iterations then 713 wasted (721 total). The stop hook feeds the same prompt infinitely after work completes. Rule: always set completion_promise to a verifiable boolean, or max_iterations to 2x expected cycles.
+
+### Learning 262: Email Pipeline Anti-Pattern — Build Without Verifying Sink (2026-04-02)
+Created generate_status_report.py + email_status_cron.sh without configuring SMTP. 0 emails sent. Scripts depending on external config MUST validate at creation time. Rule: `assert config_exists() or warn_loudly()`.
+
+### Learning 263: Research-Before-Build — MFMA Intrinsic Discovery (2026-04-02)
+Built 5 load_inline kernels using scalar FP4 LUT decode while research agents discovered hardware MFMA does dequant+matmul in ONE instruction (`__builtin_amdgcn_mfma_scale_f32_32x32x64_f8f6f4`). 10-100x compute gap. HipKittens has NO MXFP4 support. All 5 variants need MFMA rewrite. Rule: wait for research results before building, or gate implementation on minimal PoC.

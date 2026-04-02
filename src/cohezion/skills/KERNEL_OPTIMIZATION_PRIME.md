@@ -28,16 +28,24 @@ You are a GPU Kernel Optimization Engineer for AMD MI355X (gfx950) with 304 CUs 
 ## KERNEL-SPECIFIC GUIDANCE
 
 ### GEMM (amd-mxfp4-mm)
-- Gap: 5.3x (22.8us vs leader 4.3us)
-- Path: load_inline + MFMA tiling + fused quantization
-- Key: Quantization (26us) dominates compute (7us). Fuse quant into GEMM kernel.
-- CK-Tile MX FP4 scale MFMA eliminates separate quant pass.
-- **ROCm blog proof (March 2026)**: 8-wave ping-pong at HIP level achieves 97.5% of hipBLASLt.
+- Gap: 5.3x (22.8us vs leader ~4.4us). Leaderboard cluster at ~8us.
+- **CRITICAL (L263)**: All existing load_inline kernels use SCALAR FP4 LUT decode. Hardware MFMA does dequant+matmul in ONE instruction. 10-100x compute gap.
+- **THE PATH**: Use `__builtin_amdgcn_mfma_scale_f32_32x32x64_f8f6f4` via `#include <hip/hip_ext_ocp.h>`:
+  ```cpp
+  v16f32 c = __builtin_amdgcn_mfma_scale_f32_32x32x64_f8f6f4(
+      a_reg, b_reg, c,
+      4, 4,           // Atype=4 (E2M1/MXFP4), Btype=4
+      0, scale_a,     // E8M0 scale byte (2^(val-127))
+      0, scale_b
+  );
+  ```
+- **HipKittens has NO MXFP4 support** — only BF16/FP8. Cannot be used directly.
+- **Scheduling**: 8-wave ping-pong from ROCm CDNA4 blog (97.5% of hipBLASLt):
   - 256×256 output tiles, K=128, 512 threads, double-buffered LDS
-  - LDS XOR swizzle: `col ^ ((row>>1 & 7) ^ (((row>>1&7)>>1) ^ ((row>>1&7)>>2)) & 1) << 4`
+  - LDS XOR swizzle for bank conflict elimination
   - Wave scheduling: `__builtin_amdgcn_s_barrier`, `s_setprio`, `sched_barrier`
-  - V_MFMA_SCALE_F32_16X16X128_F8F6F4 for block-scaled MXFP4
-- **4 load_inline variants**: v2 tiled, v3 MFMA, autoresearch direct, autoresearch clean
+  - Chiplet-aware block ordering: 79% L2 hit rate vs 36% naive
+- **Existing variants (ALL need MFMA rewrite)**: v2 tiled, v3 MFMA fallback, v4 ping-pong, autoresearch direct/clean
 
 ### MLA (amd-mixed-mla)
 - Gap: 2.1x (69.7us vs leader 33us)
