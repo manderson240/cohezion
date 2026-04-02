@@ -297,3 +297,6 @@ GEMM v2 tiled kernel: BLOCK_K=32 FP4 elements = exactly 1 E8M0 scale group. Each
 
 ### Learning 252: Continuous Benchmark Learning Loop for GPU Kernel Optimization (2026-04-02)
 `kernel_learning_loop.py`: 12 benchmarks/hour × 3 kernels = 36 data points/hour. Over 5 days: 4,320 runs vs 50 current (86× more data). Every result persisted to SurrealDB (even failures — they signal which mutations are dead). Round-robin variant selection with conditional leaderboard submission. Pattern: the same compound loop (train→evaluate→persist→compare→refine) applies to both RL training and kernel optimization.
+
+### Learning 253: ROCm CDNA4 FP8 GEMM — 8-Wave Ping-Pong at HIP Level (2026-04-02)
+ROCm blog (March 2026): 8-wave ping-pong achieves 2680-3204 TFLOPS/s (within 2.5% of hipBLASLt) using HIP/C++ NOT assembly. Key techniques: 256×256 output tiles, K=128, 512 threads, double-buffered LDS, LDS XOR swizzle for bank conflict elimination, `__builtin_amdgcn_s_barrier`/`s_setprio`/`sched_barrier` for wave scheduling. V_MFMA_SCALE_F32_16X16X128_F8F6F4 confirmed for block-scaled MXFP4. This proves high-performance kernels are achievable from HIP C++ via load_inline. Source: https://rocm.blogs.amd.com/software-tools-optimization/cdna4-gemm-kernels/README.html

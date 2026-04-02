@@ -29,9 +29,15 @@ You are a GPU Kernel Optimization Engineer for AMD MI355X (gfx950) with 304 CUs 
 
 ### GEMM (amd-mxfp4-mm)
 - Gap: 5.3x (22.8us vs leader 4.3us)
-- Path: load_inline + HipKittens MFMA tiling + fused quantization
+- Path: load_inline + MFMA tiling + fused quantization
 - Key: Quantization (26us) dominates compute (7us). Fuse quant into GEMM kernel.
 - CK-Tile MX FP4 scale MFMA eliminates separate quant pass.
+- **ROCm blog proof (March 2026)**: 8-wave ping-pong at HIP level achieves 97.5% of hipBLASLt.
+  - 256×256 output tiles, K=128, 512 threads, double-buffered LDS
+  - LDS XOR swizzle: `col ^ ((row>>1 & 7) ^ (((row>>1&7)>>1) ^ ((row>>1&7)>>2)) & 1) << 4`
+  - Wave scheduling: `__builtin_amdgcn_s_barrier`, `s_setprio`, `sched_barrier`
+  - V_MFMA_SCALE_F32_16X16X128_F8F6F4 for block-scaled MXFP4
+- **4 load_inline variants**: v2 tiled, v3 MFMA, autoresearch direct, autoresearch clean
 
 ### MLA (amd-mixed-mla)
 - Gap: 2.1x (69.7us vs leader 33us)
