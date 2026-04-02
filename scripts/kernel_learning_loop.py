@@ -61,6 +61,7 @@ KERNELS = {
         "submissions": [
             "submission.py",
             "submission_loadinline.py",
+            "submission_mfma_v3.py",
             "submission_tritonblas.py",
         ],
     },
