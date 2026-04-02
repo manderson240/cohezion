@@ -291,3 +291,9 @@ Probe reward with adversarial actions → map hackable surface. ManifoldEnv: lar
 
 ### Learning 249: Compound Training Cycle — Train→Evaluate→Persist→Compare→Refine (2026-04-01)
 `compound_training_cycle.py` closes the loop: auto-selects reward mode from L248 matrix, trains, evaluates against baselines, persists to SurrealDB, compares against historical best, flags if skill update needed. The script IS the compound loop applied to RL — each run compounds on prior runs' knowledge.
+
+### Learning 251: Scale-Aligned Tiling for MXFP4 GEMM via load_inline (2026-04-02)
+GEMM v2 tiled kernel: BLOCK_K=32 FP4 elements = exactly 1 E8M0 scale group. Each scale loaded once per tile, zero redundant lookups. 256 threads × 4×4 sub-tiles = 64×64 output. Constant memory FP4 LUT (broadcast to all threads) vs per-thread static arrays. Cooperative tile loading: 256 threads share work on 1024-byte A/B tiles. Key insight: aligning tile boundaries with quantization scale groups is the architectural advantage of load_inline over library APIs.
+
+### Learning 252: Continuous Benchmark Learning Loop for GPU Kernel Optimization (2026-04-02)
+`kernel_learning_loop.py`: 12 benchmarks/hour × 3 kernels = 36 data points/hour. Over 5 days: 4,320 runs vs 50 current (86× more data). Every result persisted to SurrealDB (even failures — they signal which mutations are dead). Round-robin variant selection with conditional leaderboard submission. Pattern: the same compound loop (train→evaluate→persist→compare→refine) applies to both RL training and kernel optimization.

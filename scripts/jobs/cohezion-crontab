@@ -26,3 +26,9 @@ PATH=/home/mike-anderson/.local/bin:/usr/local/bin:/usr/bin:/bin
 # === Retrospection (2x daily: 8am, 8pm) ===
 23 8 * * * $COHEZION_DIR/scripts/jobs/retrospection_cron.sh
 23 20 * * * $COHEZION_DIR/scripts/jobs/retrospection_cron.sh
+
+# === Kernel Submission (every 30 min during competition: Apr 1-6, 2026) ===
+*/30 * 1-6 4 * $COHEZION_DIR/scripts/jobs/kernel_submit_cron.sh
+
+# === Status Email (hourly during competition: Apr 1-6, 2026) ===
+47 * 1-6 4 * $COHEZION_DIR/scripts/jobs/email_status_cron.sh
