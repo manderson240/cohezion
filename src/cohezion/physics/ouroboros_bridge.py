@@ -174,6 +174,40 @@ class OuroborosBridge:
         )
         self._healing_events.append(event)
 
+    async def verify_healing(self, task_id: str, current_coherence: float) -> HealingPhase:
+        """Verify whether a previous healing action restored coherence.
+
+        Called after a healing patch has been applied. Checks if coherence
+        recovered to acceptable levels. Completes the detect→heal→verify cycle.
+
+        Returns the final HealingPhase (VERIFICATION if recovering, STABLE if healed).
+        """
+        deviation = abs(current_coherence - 0.5)
+        if deviation < self._coherence_threshold:
+            phase = HealingPhase.STABLE
+            interpretation = "manifold_equilibrium_restored"
+        elif deviation < self._coherence_threshold * 2:
+            phase = HealingPhase.VERIFICATION
+            interpretation = "coherence_recovering"
+        else:
+            phase = HealingPhase.DETECTION
+            interpretation = "healing_insufficient_redetecting"
+
+        event = HealingEvent(
+            task_id=task_id,
+            phase=phase,
+            triggered_rewrite=False,
+            cosmogony_interpretation=interpretation,
+        )
+        self._healing_events.append(event)
+        logger.info(
+            "Ouroboros verify: task=%s phase=%s coherence=%.3f",
+            task_id,
+            phase.value,
+            current_coherence,
+        )
+        return phase
+
     def get_health_summary(self) -> dict:
         """Summarize the current health state for the API."""
         recent_anomalies = self._anomalies[-10:]

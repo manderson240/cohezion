@@ -329,6 +329,33 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
             )
             result = base_guidance
 
+        # Step 3: Query SurrealDB for recent retrospection decisions (closes feedback loop)
+        try:
+            import json
+            import urllib.request
+            from base64 import b64encode
+
+            req = urllib.request.Request(
+                "http://localhost:8001/sql",
+                data=b"SELECT skill, should_refine, compound_score, recommendation FROM retrospection ORDER BY created DESC LIMIT 3;",
+                headers={
+                    "Accept": "application/json",
+                    "surreal-ns": "cohezion",
+                    "surreal-db": "cohezion",
+                    "Authorization": "Basic " + b64encode(b"root:root").decode(),
+                },
+                method="POST",
+            )
+            resp = urllib.request.urlopen(req, timeout=2)
+            data = json.loads(resp.read())
+            if data and data[0].get("status") == "OK" and data[0]["result"]:
+                result["recent_retrospections"] = data[0]["result"]
+                logger.debug(
+                    "Guidance enriched with %d recent retrospections", len(data[0]["result"])
+                )
+        except Exception:
+            pass  # Non-blocking: SurrealDB may be unavailable
+
         return result
 
     def suggest_skills(

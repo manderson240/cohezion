@@ -111,7 +111,8 @@ def continuous_loop():
             new_time = submit(kernel, path, mode="benchmark")
             
             if new_time is None:
-                print(f"[{datetime.now().isoformat()}] Submission for {kernel} failed (Server Error). Retrying next kernel immediately.")
+                print(f"[{datetime.now().isoformat()}] Submission for {kernel} failed (Server Error). Waiting 60s backoff...")
+                time.sleep(60)
                 continue
 
             print(f"Waiting {RATE_LIMIT}s for rate limit...")

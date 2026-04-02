@@ -438,7 +438,7 @@ class RetrospectionEngine:
             coherence,
         )
 
-        return {
+        analysis = {
             "should_refine": should_refine,
             "insights": insights,
             "compound_score": compound_score,
@@ -448,3 +448,35 @@ class RetrospectionEngine:
             "phi_score": phi_score,
             "degraded": degraded,
         }
+
+        # Persist retrospection decision to SurrealDB (non-blocking, closes middle loop)
+        try:
+            import json
+            import urllib.request
+            from base64 import b64encode
+
+            sql = (
+                f"CREATE retrospection SET "
+                f"skill = '{skill_name}', "
+                f"should_refine = {str(should_refine).lower()}, "
+                f"compound_score = {compound_score:.3f}, "
+                f"coherence = {coherence:.3f}, "
+                f"recommendation = '{recommendation[:200]}', "
+                f"created = time::now();"
+            )
+            req = urllib.request.Request(
+                "http://localhost:8001/sql",
+                data=sql.encode(),
+                headers={
+                    "Accept": "application/json",
+                    "surreal-ns": "cohezion",
+                    "surreal-db": "cohezion",
+                    "Authorization": "Basic " + b64encode(b"root:root").decode(),
+                },
+                method="POST",
+            )
+            urllib.request.urlopen(req, timeout=2)
+        except Exception:
+            pass  # Fire-and-forget
+
+        return analysis
