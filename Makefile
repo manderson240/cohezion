@@ -1,4 +1,4 @@
-.PHONY: help format lint lint-check type-check test all clean train evaluate benchmark demo validate compound-train training-history kernel-status kernel-cycle
+.PHONY: help format lint lint-check type-check test all clean train evaluate benchmark demo validate compound-train training-history kernel-status kernel-cycle kernel-loop kernel-loop-dry kernel-report
 
 help:  ## Show this help message
 	@echo "Available targets:"
@@ -68,6 +68,15 @@ kernel-status:  ## Show Luma kernel optimization status (GEMM/MLA/MoE)
 
 kernel-cycle:  ## Run compound kernel optimization cycle
 	.venv/bin/python scripts/compound_kernel_cycle.py --kernel all --benchmark
+
+kernel-loop:  ## Start continuous kernel benchmark loop (5-min cycles)
+	.venv/bin/python scripts/kernel_learning_loop.py --kernel all --interval 300
+
+kernel-loop-dry:  ## Dry-run kernel learning loop (no popcorn, records to SurrealDB)
+	.venv/bin/python scripts/kernel_learning_loop.py --kernel all --dry-run --max-iterations 3
+
+kernel-report:  ## Generate kernel status report
+	@.venv/bin/python scripts/generate_status_report.py
 
 # RL Training + Evaluation targets
 train:  ## Train PPO on ManifoldEnv (quick: 20K steps, ~5 min)
