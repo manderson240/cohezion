@@ -262,7 +262,18 @@ def main():
     print_report(run)
 
     if is_new_best:
-        print(">>> NEW BEST RUN — compound loop should update RL_ENVIRONMENT_DESIGN_PRIME")
+        print(">>> NEW BEST RUN — triggering SkillRefiner to update RL_ENVIRONMENT_DESIGN_PRIME")
+        try:
+            from cohezion.compound.skill_refiner import SkillRefiner
+
+            sr = SkillRefiner()
+            result = sr.refine_from_training_runs()
+            if result:
+                print(f">>> Skill refined: {result}")
+            else:
+                print(">>> Skill already up to date")
+        except Exception as e:
+            print(f">>> Skill refinement failed (non-blocking): {e}")
 
 
 if __name__ == "__main__":

@@ -55,6 +55,19 @@ class ExecutorFactory:
             except ImportError:
                 logger.debug("RetrospectionEngine not available")
 
+        # Wire DegradationDetector → CostAwareRouter feedback callback (closes routing loop)
+        if degradation_detector is not None:
+            try:
+                from cohezion.swarm.cost_aware_router import CostAwareRouter
+
+                router = CostAwareRouter()
+                degradation_detector.set_routing_callback(router.apply_degradation_feedback)
+                logger.debug(
+                    "ExecutorFactory: wired DegradationDetector → CostAwareRouter callback"
+                )
+            except (ImportError, Exception):
+                logger.debug("CostAwareRouter callback wiring failed (non-blocking)")
+
         executor_class = CompoundExecutor
         if token_client is not None:
             try:

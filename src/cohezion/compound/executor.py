@@ -1084,6 +1084,19 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
                     domain="pattern",
                 )
                 self._mycelium_registry.ingest_entry(entry)
+                # Trigger audit every 10 entries to synthesize new skills
+                if (
+                    hasattr(self._mycelium_registry, "_entries")
+                    and len(self._mycelium_registry._entries) % 10 == 0
+                ):
+                    try:
+                        report = self._mycelium_registry.run_audit()
+                        logger.info(
+                            "Mycelium audit: %d skills synthesized",
+                            getattr(report, "skills_synthesized", 0) if report else 0,
+                        )
+                    except Exception:
+                        logger.debug("Mycelium audit failed (non-blocking)")
                 logger.debug("Mycelium: captured execution as pattern entry")
         except (ImportError, Exception):
             pass  # Non-blocking: mycelium may not be available
