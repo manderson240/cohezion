@@ -7,11 +7,11 @@
       "strategy": "Minimize MLA decode geomean across 8 shapes",
       "parameters": {},
       "parent_id": null,
-      "priority": 0.05875264928278027,
-      "attempts": 10,
-      "best_result_us": 139.69,
+      "priority": 0.13417150108494663,
+      "attempts": 15,
+      "best_result_us": 42.39,
       "stagnation_count": 0,
-      "status": "active",
+      "status": "pruned",
       "children": [
         "mla_n1",
         "mla_n2",
@@ -23,7 +23,7 @@
         "n_ee6633bc",
         "n_b3879422"
       ],
-      "notes": "",
+      "notes": " [PRUNED: Test failed: Exit code 1]",
       "attempt_history": [
         {
           "result_us": 212.57656385814226,
@@ -84,6 +84,36 @@
           "parameters": {},
           "timestamp": "2026-03-20T17:56:59.306134",
           "source": "template"
+        },
+        {
+          "result_us": 46.26,
+          "parameters": {},
+          "timestamp": "2026-03-31T23:24:17.403168",
+          "source": "llm"
+        },
+        {
+          "result_us": 44.81,
+          "parameters": {},
+          "timestamp": "2026-03-31T23:27:30.140537",
+          "source": "llm"
+        },
+        {
+          "result_us": 46.99,
+          "parameters": {},
+          "timestamp": "2026-03-31T23:34:34.372881",
+          "source": "llm"
+        },
+        {
+          "result_us": 46.34,
+          "parameters": {},
+          "timestamp": "2026-03-31T23:36:27.543691",
+          "source": "llm"
+        },
+        {
+          "result_us": 42.39,
+          "parameters": {},
+          "timestamp": "2026-03-31T23:44:12.128037",
+          "source": "llm"
         }
       ]
     },
