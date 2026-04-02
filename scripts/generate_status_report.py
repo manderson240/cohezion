@@ -50,7 +50,7 @@ def get_kernel_summary() -> str:
     for kernel, leader in KERNEL_LEADERS.items():
         results = surreal_query(
             f"SELECT math::min(time_us) as best, count() as total "
-            f"FROM kernel_run WHERE kernel = '{kernel}' GROUP ALL;"
+            f"FROM kernel_run WHERE kernel = '{kernel}' AND status = 'success' AND time_us > 0 GROUP ALL;"
         )
         best = 999999.0
         total = 0
