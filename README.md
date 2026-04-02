@@ -73,19 +73,26 @@ Evaluation
 
 ## Training Results
 
-6-run diagnostic loop across PPO and SAC, discovering that action scale and entropy must cooperate with physics:
+8-run diagnostic loop completing the 2x2 algorithm-reward matrix (PPO/SAC x curriculum/dense):
 
-| Run | Algorithm | Steps | Change | Reward | vs Random |
-|-----|-----------|-------|--------|--------|-----------|
-| 1 | PPO | 20K | Differential-only reward | -1.48 | Worse (oscillation) |
-| 2 | PPO | 20K | + Proximity base reward | -67.68 | Worse (large actions) |
-| 3 | PPO | 20K | + Small actions [-0.1, 0.1] | **12.04** | **+18.0** |
-| 4 | PPO | 100K | Scale up | 14.23 | +7.51 |
-| 5 | SAC | 20K | Default entropy | 1.38 | -5.34 (entropy too high) |
-| 6 | SAC | 100K | ent_coef=0.05 | **10.91** | **+8.59** |
-| 7 | SAC | 100K | + dense reward mode | **40.77** | +3.40 (only **1.20 behind greedy**) |
+| Run | Algorithm | Reward Mode | Steps | Reward | vs Random | vs Greedy |
+|-----|-----------|-------------|-------|--------|-----------|-----------|
+| 1 | PPO | curriculum (broken) | 20K | -1.48 | Worse | — |
+| 2 | PPO | curriculum (fixed) | 20K | -67.68 | Worse | — |
+| 3 | PPO | curriculum + small actions | 20K | **12.04** | **+18.0** | — |
+| 4 | PPO | curriculum | 100K | 14.23 | +7.51 | +1.34 |
+| 5 | SAC | curriculum | 20K | 1.38 | -5.34 | — |
+| 6 | SAC | curriculum (ent=0.05) | 100K | 10.91 | +8.59 | -1.98 |
+| 7 | **SAC** | **dense (ent=0.05)** | 100K | **40.77** | +3.40 | **-1.20** |
+| 8 | PPO | dense | 100K | 38.95 | -1.79 | **+3.73** |
 
-**Key insight**: Physics-grounded environments require algorithms that *cooperate* with the attractor. PPO with small actions works because it doesn't fight the Lagrangian dynamics. SAC needs reduced entropy (0.05 vs auto) and dense rewards (not curriculum) to cooperate with the physics. Run 7 nearly matches the greedy baseline — the agent has learned the environment's physics.
+**2x2 Matrix** (best pairing per algorithm):
+- **PPO + curriculum** = best on-policy (reward 14.23, +7.51 vs random)
+- **SAC + dense** = best off-policy (reward 40.77, only 1.20 from greedy)
+- PPO + dense inverts hierarchy: beats greedy but loses to random
+- SAC + curriculum works but dense is strictly better
+
+**Key insight**: The reward structure must match the algorithm's learning dynamics. On-policy (PPO) benefits from structured curriculum. Off-policy (SAC) needs simpler gradients. Both require small actions that cooperate with the Lagrangian attractor.
 
 ## Key Modules
 
