@@ -45,6 +45,16 @@ class ExecutorFactory:
         When token_client is provided, attempts to use TokenEfficientCompoundExecutor
         for automatic API prompt caching (40-60% token savings).
         """
+        # Auto-create RetrospectionEngine if not provided (closes middle loop)
+        if retrospection_engine is None:
+            try:
+                from cohezion.core.compound.retrospection import RetrospectionEngine
+
+                retrospection_engine = RetrospectionEngine()
+                logger.debug("ExecutorFactory: auto-created RetrospectionEngine (middle loop)")
+            except ImportError:
+                logger.debug("RetrospectionEngine not available")
+
         executor_class = CompoundExecutor
         if token_client is not None:
             try:
