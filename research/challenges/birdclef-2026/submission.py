@@ -28,11 +28,11 @@ CONFIG = {
 class BirdCLEFDataset(Dataset):
     """Dataset for BirdCLEF audio files using AST Feature Extractor."""
 
-    def __init__(self, audio_paths, labels=None, config=None):
+    def __init__(self, audio_paths, feature_extractor, labels=None, config=None):
         self.audio_paths = audio_paths
         self.labels = labels
         self.config = config or CONFIG
-        self.feature_extractor = ASTFeatureExtractor.from_pretrained(self.config['model_name'])
+        self.feature_extractor = feature_extractor
 
     def __len__(self):
         return len(self.audio_paths)
@@ -66,12 +66,10 @@ class BirdCLEFDataset(Dataset):
 class BirdASTModel(nn.Module):
     """AST-based bird sound classifier."""
 
-    def __init__(self, num_classes=207, model_name=None):
+    def __init__(self, ast_model, num_classes=207):
         super().__init__()
-        model_name = model_name or CONFIG['model_name']
-        
-        # Load pre-trained AST
-        self.ast = ASTForAudioClassification.from_pretrained(model_name)
+        # Use provided pre-loaded AST
+        self.ast = ast_model
         
         # Replace the classifier head
         # AST has a 'classifier' attribute which is a Dense layer
@@ -88,8 +86,13 @@ def predict(test_audio_path, model_path=None, config=None):
     config = config or CONFIG
     device = config['device']
 
+    # Load components once
+    print(f"Loading pre-trained AST components from {config['model_name']}...")
+    feature_extractor = ASTFeatureExtractor.from_pretrained(config['model_name'])
+    ast_base = ASTForAudioClassification.from_pretrained(config['model_name'])
+
     # Load model
-    model = BirdASTModel(num_classes=config['num_classes'])
+    model = BirdASTModel(ast_base, num_classes=config['num_classes'])
     if model_path and os.path.exists(model_path):
         model.load_state_dict(torch.load(model_path, map_location=device))
     model.to(device)
@@ -109,7 +112,7 @@ def predict(test_audio_path, model_path=None, config=None):
 
     with torch.no_grad():
         for audio_file in test_files:
-            dataset = BirdCLEFDataset([str(audio_file)], config=config)
+            dataset = BirdCLEFDataset([str(audio_file)], feature_extractor, config=config)
             loader = DataLoader(dataset, batch_size=1, shuffle=False)
 
             for batch in loader:
@@ -128,7 +131,11 @@ if __name__ == '__main__':
     print(f"Device: {CONFIG['device']}")
     
     # Simple check
-    model = BirdASTModel(num_classes=CONFIG['num_classes'])
+    print(f"Loading pre-trained AST components from {CONFIG['model_name']}...")
+    feature_extractor = ASTFeatureExtractor.from_pretrained(CONFIG['model_name'])
+    ast_base = ASTForAudioClassification.from_pretrained(CONFIG['model_name'])
+    
+    model = BirdASTModel(ast_base, num_classes=CONFIG['num_classes'])
     print("Model initialized successfully.")
     
     # Test with dummy data

@@ -185,3 +185,66 @@ def create_embedding_provider(
         provider = CachedEmbeddingProvider(provider, max_size=cache_size)
 
     return provider
+
+import asyncio
+
+import httpx
+
+
+class AsyncOllamaEmbeddingProvider:
+    """Async-enabled Ollama embedding provider using httpx.
+    
+    Use this in async contexts to avoid blocking I/O.
+    Sync code should continue using OllamaEmbeddingProvider.
+    """
+
+    def __init__(
+        self,
+        model: str = "nomic-embed-text",
+        base_url: str = "http://localhost:11434",
+        timeout: float = 300.0,
+    ) -> None:
+        self.model = model
+        self.base_url = base_url.rstrip("/")
+        self.timeout = timeout
+
+    @property
+    def embedding_dim(self) -> int:
+        return 768
+
+    async def embed(self, text: str) -> np.ndarray:
+        """Embed single text to 768D normalized vector (async)."""
+        try:
+            async with httpx.AsyncClient(timeout=self.timeout) as client:
+                resp = await client.post(
+                    f"{self.base_url}/api/embed",
+                    json={"model": self.model, "input": text},
+                )
+                resp.raise_for_status()
+                data = resp.json()
+                vec = np.array(data["embeddings"][0], dtype=np.float32)
+                norm = np.linalg.norm(vec)
+                if norm > 0:
+                    vec /= norm
+                return vec
+        except Exception as e:
+            raise ConnectionError(f"Ollama embedding failed: {e}") from e
+
+    async def embed_batch(self, texts: list[str]) -> np.ndarray:
+        """Embed batch of texts. Falls back to one-at-a-time on timeout (async)."""
+        try:
+            async with httpx.AsyncClient(timeout=self.timeout) as client:
+                resp = await client.post(
+                    f"{self.base_url}/api/embed",
+                    json={"model": self.model, "input": texts},
+                )
+                resp.raise_for_status()
+                data = resp.json()
+                vecs = np.array(data["embeddings"], dtype=np.float32)
+                norms = np.linalg.norm(vecs, axis=1, keepdims=True)
+                norms = np.where(norms > 0, norms, 1.0)
+                return vecs / norms
+        except Exception:
+            # Batch too large or timeout — fall back to one-at-a-time
+            logger.info("Batch embed failed, falling back to sequential (%d texts)", len(texts))
+            return np.stack([await self.embed(t) for t in texts])

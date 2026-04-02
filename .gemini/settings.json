@@ -4,6 +4,11 @@
       "url": "http://127.0.0.1:8361/mcp",
       "type": "http"
     },
+    "cohezion-coherence": {
+      "command": "PYTHONPATH=/home/mike-anderson/dev/cohezion/src /home/mike-anderson/dev/cohezion/.venv/bin/python -m cohezion.mcp.coherence_server",
+      "args": [],
+      "description": "HIHO coherence calculation and FLUME journey tracking"
+    },
     "cohezion-skills": {
       "command": "PYTHONPATH=/home/mike-anderson/dev/cohezion/src /home/mike-anderson/dev/cohezion/.venv/bin/python -m cohezion.mcp.skills_server_mcp",
       "args": []

@@ -53,7 +53,7 @@ export default function PersistenceDiagram({ topology }: { topology: TopologyDat
         <div className="flex gap-3 text-[9px] font-mono text-gray-500">
           <span>H0: {topology.n_clusters} clusters</span>
           <span>H1: {topology.n_loops} loops</span>
-          <span>entropy: {topology.entropy.toFixed(3)}</span>
+          <span>entropy: {(topology.entropy ?? 0).toFixed(3)}</span>
         </div>
       </div>
 

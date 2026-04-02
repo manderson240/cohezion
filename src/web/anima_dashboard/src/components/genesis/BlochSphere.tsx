@@ -199,13 +199,13 @@ function InfoPanel({ data, isHiho }: { data: SpinorData; isHiho: boolean }) {
         <div className="flex justify-between">
           <span>Coherence |r|:</span>
           <span className={data.coherence > 0.99 ? "text-green-400" : ""}>
-            {data.coherence.toFixed(4)}
+            {data.coherence?.toFixed(4) ?? '0.0000'}
           </span>
         </div>
         <div className="flex justify-between">
           <span>HIHO Deviation:</span>
           <span className={data.hiho_deviation < 0.01 ? "text-green-400" : "text-yellow-400"}>
-            {data.hiho_deviation.toFixed(4)}
+            {data.hiho_deviation?.toFixed(4) ?? '0.0000'}
           </span>
         </div>
       </div>

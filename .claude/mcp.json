@@ -16,6 +16,16 @@
         "REDIS_URL": "redis://localhost:6379"
       },
       "description": "Compound engineering MCP server for multi-session AI workflows"
+    },
+    "cohezion-coherence": {
+      "name": "Cohezion Coherence Engine",
+      "type": "stdio",
+      "command": "/home/mike-anderson/dev/cohezion/.venv/bin/python",
+      "args": ["-m", "cohezion.mcp.coherence_server"],
+      "env": {
+        "PYTHONPATH": "/home/mike-anderson/dev/cohezion/src"
+      },
+      "description": "HIHO coherence calculation, FLUME journey tracking, pattern extraction"
     }
   }
 }

@@ -1,23 +1,30 @@
 import sys
 import os
+import argparse
 from pathlib import Path
 
 # Add project root and challenge dir to path
 sys.path.append(os.getcwd())
 sys.path.append(str(Path("research/challenges/birdclef-2026")))
 
-import torch
-from submission import predict, CONFIG
+try:
+    import torch
+    from submission import predict, CONFIG
+except ImportError as e:
+    print(f"Import error: {e}")
+    sys.exit(1)
 
-def test_birdclef_baseline(audio_path):
-    print(f"Testing BirdCLEF baseline with: {audio_path}")
+def test_birdclef_baseline(audio_path, device=None):
+    print(f"Testing BirdCLEF baseline with: {audio_path} on {device or 'default device'}")
     
-    # Update config for testing (97 classes in baseline script)
-    # The actual competition might have more, but we'll use the baseline value for now.
+    # Update config for testing
+    config = CONFIG.copy()
+    if device:
+        config['device'] = device
     
     # Run prediction
     try:
-        results = predict(audio_path)
+        results = predict(audio_path, config=config)
         print(f"Prediction successful!")
         print(f"Number of files processed: {len(results)}")
         for file_id, scores in results.items():
@@ -33,9 +40,26 @@ def test_birdclef_baseline(audio_path):
         traceback.print_exc()
 
 if __name__ == "__main__":
-    audio_file = "data/birdclef-2026/train_audio/1161364/iNat1216197.ogg"
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--audio", type=str, default="data/birdclef-2026/train_audio/1161364/iNat1216197.ogg")
+    parser.add_argument("--device", type=str, default=None)
+    args = parser.parse_args()
+
+    audio_file = args.audio
     if not Path(audio_file).exists():
-        print(f"Audio file not found: {audio_file}")
-        exit(1)
+        # Try to find any audio file if default doesn't exist
+        print(f"Audio file not found: {audio_file}. Searching for alternatives...")
+        train_audio_root = Path("data/birdclef-2026/train_audio")
+        if train_audio_root.exists():
+            found_files = list(train_audio_root.glob("**/*.ogg"))
+            if found_files:
+                audio_file = str(found_files[0])
+                print(f"Using alternative audio: {audio_file}")
+            else:
+                print("No .ogg files found in data/birdclef-2026/train_audio")
+                exit(1)
+        else:
+            print("data/birdclef-2026/train_audio does not exist")
+            exit(1)
         
-    test_birdclef_baseline(audio_file)
+    test_birdclef_baseline(audio_file, args.device)

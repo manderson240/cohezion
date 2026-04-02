@@ -45,7 +45,7 @@ async def run_g4():
     try:
         # Define competition and notebook details
         competition_id = "nvidia-nemotron-model-reasoning-challenge"
-        notebook_id = f"nemotron-lora-blackwell-v20"
+        notebook_id = f"nemotron-lora-blackwell-v26"
 
         # Execute the full flow
         # This will use the updated KaggleAPI which defaults to NvidiaRtxPro6000

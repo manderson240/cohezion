@@ -1,0 +1,3110 @@
+{
+  "meta": {
+    "count": 194,
+    "generated_at": "2026-04-02 14:48:09,074"
+  },
+  "by_name": {
+    "self-healing": {
+      "hash": "19b1c5b219be4c24",
+      "file": "src/cohezion/skills/SELF_HEALING_PRIME.md",
+      "description": "Self-healing AI system patterns for detecting performance drift, diagnosing failures, and applying autonomous corrections. Use when setting up health monitoring, implementing auto-recovery, or when us...",
+      "version": "0.1",
+      "fitness": 0.6900000000000001,
+      "patterns": 0,
+      "citations": 3
+    },
+    "SWARM_PLANNER": {
+      "hash": "1caab267e6f57a30",
+      "file": "src/cohezion/skills/SWARM_PLANNER_PRIME.md",
+      "description": "",
+      "version": "0.1",
+      "fitness": 0.56,
+      "patterns": 0,
+      "citations": 0
+    },
+    "token-efficiency": {
+      "hash": "87f741f16ab8911d",
+      "file": "src/cohezion/skills/TOKEN_EFFICIENCY_PRIME.md",
+      "description": "Token consumption tracking, analysis, and optimization across the agent swarm. Reduces waste through batching, caching, context pruning, and adaptive model selection. Use when optimizing token costs, ...",
+      "version": "1.0",
+      "fitness": 0.58,
+      "patterns": 0,
+      "citations": 0
+    },
+    "CLAUDE_SPECIALIST": {
+      "hash": "eccffc6eb91c9f6f",
+      "file": "src/cohezion/skills/CLAUDE_SPECIALIST_PRIME.md",
+      "description": "",
+      "version": "0.1",
+      "fitness": 0.5,
+      "patterns": 3,
+      "citations": 0
+    },
+    "RL_ENVIRONMENT_DESIGN": {
+      "hash": "83dfecd2aaaa9cf6",
+      "file": "src/cohezion/skills/RL_ENVIRONMENT_DESIGN_PRIME.md",
+      "description": "",
+      "version": "0.1",
+      "fitness": 0.5,
+      "patterns": 0,
+      "citations": 0
+    },
+    "GEMINI_SPECIALIST": {
+      "hash": "3e1f2390c9151faa",
+      "file": "src/cohezion/skills/GEMINI_SPECIALIST_PRIME.md",
+      "description": "",
+      "version": "0.1",
+      "fitness": 0.5,
+      "patterns": 2,
+      "citations": 0
+    },
+    "ORPHAN_MODULE_INTEGRATION": {
+      "hash": "ccf80887100c3eec",
+      "file": "src/cohezion/skills/ORPHAN_MODULE_INTEGRATION_PRIME.md",
+      "description": "",
+      "version": "0.1",
+      "fitness": 0.5,
+      "patterns": 0,
+      "citations": 0
+    },
+    "swarm_orchestration": {
+      "hash": "76761b619f7ad5b3",
+      "file": "src/cohezion/skills/swarm_orchestration.md",
+      "description": "",
+      "version": "0.1",
+      "fitness": 0.56,
+      "patterns": 0,
+      "citations": 0
+    },
+    "MCP_SPECIALIST": {
+      "hash": "a87cd75aac29a83c",
+      "file": "src/cohezion/skills/MCP_SPECIALIST_PRIME.md",
+      "description": "",
+      "version": "0.1",
+      "fitness": 0.52,
+      "patterns": 4,
+      "citations": 0
+    },
+    "hiho_reality_sim": {
+      "hash": "35cd7445fe909c2b",
+      "file": "src/cohezion/skills/hiho_reality_sim.md",
+      "description": "",
+      "version": "0.1",
+      "fitness": 0.6,
+      "patterns": 0,
+      "citations": 0
+    },
+    "ANTI_PATTERN_DEFENSE": {
+      "hash": "5ba9d4da8561a67c",
+      "file": "src/cohezion/skills/ANTI_PATTERN_DEFENSE_PRIME.md",
+      "description": "",
+      "version": "0.1",
+      "fitness": 0.54,
+      "patterns": 0,
+      "citations": 0
+    },
+    "universe_physics": {
+      "hash": "9428ffee5907a764",
+      "file": "src/cohezion/skills/universe_physics.md",
+      "description": "",
+      "version": "0.1",
+      "fitness": 0.54,
+      "patterns": 0,
+      "citations": 0
+    },
+    "TRAINING_DATA_CAPTURE": {
+      "hash": "b06974014bfe09f1",
+      "file": "src/cohezion/skills/TRAINING_DATA_CAPTURE_PRIME.md",
+      "description": "",
+      "version": "0.1",
+      "fitness": 0.56,
+      "patterns": 0,
+      "citations": 0
+    },
+    "gateway_architecture": {
+      "hash": "7e57c9dba4d9694a",
+      "file": "src/cohezion/skills/gateway_architecture.md",
+      "description": "",
+      "version": "0.1",
+      "fitness": 0.56,
+      "patterns": 0,
+      "citations": 0
+    },
+    "plasma_theosophy": {
+      "hash": "fce1e83eb5d24e08",
+      "file": "src/cohezion/skills/plasma_theosophy.md",
+      "description": "",
+      "version": "0.1",
+      "fitness": 0.5,
+      "patterns": 0,
+      "citations": 0
+    },
+    "MYCELIUM": {
+      "hash": "992f8a34244b3960",
+      "file": "src/cohezion/skills/MYCELIUM_PRIME.md",
+      "description": "",
+      "version": "0.1",
+      "fitness": 0.54,
+      "patterns": 0,
+      "citations": 0
+    },
+    "SHOWREEL_GENERATION": {
+      "hash": "d3116da187c725c6",
+      "file": "src/cohezion/skills/SHOWREEL_GENERATION_PRIME.md",
+      "description": "",
+      "version": "0.1",
+      "fitness": 0.54,
+      "patterns": 0,
+      "citations": 0
+    },
+    "QUADRATURE": {
+      "hash": "54b8a999e23ffd4c",
+      "file": "src/cohezion/skills/QUADRATURE_PRIME.md",
+      "description": "",
+      "version": "0.1",
+      "fitness": 0.5,
+      "patterns": 0,
+      "citations": 0
+    },
+    "SURREALDB_MCP": {
+      "hash": "d4463f087c7cb00a",
+      "file": "src/cohezion/skills/SURREALDB_MCP_PRIME.md",
+      "description": "",
+      "version": "0.1",
+      "fitness": 0.56,
+      "patterns": 0,
+      "citations": 0
+    },
+    "meta_skill": {
+      "hash": "a7ea7e306f537dc7",
+      "file": "src/cohezion/skills/meta_skill.md",
+      "description": "",
+      "version": "0.1",
+      "fitness": 0.5,
+      "patterns": 0,
+      "citations": 0
+    },
+    "HOLOGRAPHIC_FLUME": {
+      "hash": "1f930cb79611d035",
+      "file": "src/cohezion/skills/HOLOGRAPHIC_FLUME_PRIME.md",
+      "description": "",
+      "version": "0.1",
+      "fitness": 0.6,
+      "patterns": 0,
+      "citations": 0
+    },
+    "sandboxed_simulation": {
+      "hash": "1b5074894ea9a04b",
+      "file": "src/cohezion/skills/sandboxed_simulation.md",
+      "description": "",
+      "version": "0.1",
+      "fitness": 0.5,
+      "patterns": 0,
+      "citations": 0
+    },
+    "ELEGANT_SIMPLICITY": {
+      "hash": "d8bc5af22870f8bd",
+      "file": "src/cohezion/skills/ELEGANT_SIMPLICITY_PRIME.md",
+      "description": "",
+      "version": "0.1",
+      "fitness": 0.54,
+      "patterns": 0,
+      "citations": 0
+    },
+    "HALLUCINATION_RESOLVER": {
+      "hash": "a6ba3a60c7f690a4",
+      "file": "src/cohezion/skills/HALLUCINATION_RESOLVER_PRIME.md",
+      "description": "",
+      "version": "0.1",
+      "fitness": 0.56,
+      "patterns": 0,
+      "citations": 0
+    },
+    "BATCHING_PROTOCOL": {
+      "hash": "5076f687d62ad0d3",
+      "file": "src/cohezion/skills/BATCHING_PROTOCOL_PRIME.md",
+      "description": "",
+      "version": "0.1",
+      "fitness": 0.56,
+      "patterns": 0,
+      "citations": 0
+    },
+    "api_patterns": {
+      "hash": "1115e2902a524a0c",
+      "file": "src/cohezion/skills/api_patterns.md",
+      "description": "",
+      "version": "0.1",
+      "fitness": 0.54,
+      "patterns": 0,
+      "citations": 0
+    },
+    "EXTRACTED_BLOCK_D41D8CD9": {
+      "hash": "adfe38899145d44b",
+      "file": "src/cohezion/skills/EXTRACTED_BLOCK_D41D8CD9.md",
+      "description": "",
+      "version": "0.1",
+      "fitness": 0.5,
+      "patterns": 0,
+      "citations": 0
+    },
+    "semantic_analysis": {
+      "hash": "47574546a374fec0",
+      "file": "src/cohezion/skills/semantic_analysis.md",
+      "description": "",
+      "version": "0.1",
+      "fitness": 0.56,
+      "patterns": 0,
+      "citations": 0
+    },
+    "OLLAMA_SPECIALIST": {
+      "hash": "d9af42f299fedd5e",
+      "file": "src/cohezion/skills/OLLAMA_SPECIALIST_PRIME.md",
+      "description": "",
+      "version": "0.1",
+      "fitness": 0.52,
+      "patterns": 3,
+      "citations": 0
+    },
+    "HIHO_STABILITY": {
+      "hash": "1f30d029aa34306e",
+      "file": "src/cohezion/skills/HIHO_STABILITY_PRIME.md",
+      "description": "",
+      "version": "0.1",
+      "fitness": 0.6,
+      "patterns": 0,
+      "citations": 0
+    },
+    "gmail_mcp": {
+      "hash": "e7194678ccb689d6",
+      "file": "src/cohezion/skills/gmail_mcp.md",
+      "description": "",
+      "version": "0.1",
+      "fitness": 0.56,
+      "patterns": 0,
+      "citations": 0
+    },
+    "TEMPORAL_PRECISION": {
+      "hash": "abb7531d490c21d3",
+      "file": "src/cohezion/skills/TEMPORAL_PRECISION_PRIME.md",
+      "description": "",
+      "version": "0.1",
+      "fitness": 0.54,
+      "patterns": 0,
+      "citations": 0
+    },
+    "FAIL_FAST": {
+      "hash": "10f4d4b6b629d1ae",
+      "file": "src/cohezion/skills/FAIL_FAST_PRIME.md",
+      "description": "",
+      "version": "0.1",
+      "fitness": 0.52,
+      "patterns": 0,
+      "citations": 0
+    },
+    "3d_rendering": {
+      "hash": "5f12b2f82954ea22",
+      "file": "src/cohezion/skills/3d_rendering.md",
+      "description": "",
+      "version": "0.1",
+      "fitness": 0.56,
+      "patterns": 0,
+      "citations": 0
+    },
+    "DREAM_LOGIC": {
+      "hash": "6feb4c6b2fe3bef1",
+      "file": "src/cohezion/skills/DREAM_LOGIC_PRIME.md",
+      "description": "",
+      "version": "0.1",
+      "fitness": 0.54,
+      "patterns": 0,
+      "citations": 0
+    },
+    "team-orchestration": {
+      "hash": "2753e46fc57beb0b",
+      "file": "src/cohezion/skills/TEAM_ORCHESTRATION_PRIME.md",
+      "description": "Multi-agent team planning and orchestration that converts PRIME skills into agent specifications with dependency-tracked task plans. Use when creating agent teams, decomposing tasks for swarm executio...",
+      "version": "1.0.0",
+      "fitness": 0.58,
+      "patterns": 0,
+      "citations": 0
+    },
+    "CONNECTIVITY_MANAGEMENT": {
+      "hash": "9a50bae6a9ae10da",
+      "file": "src/cohezion/skills/CONNECTIVITY_MANAGEMENT_PRIME.md",
+      "description": "",
+      "version": "0.1",
+      "fitness": 0.5,
+      "patterns": 0,
+      "citations": 0
+    },
+    "self_evaluation": {
+      "hash": "b515315473495acc",
+      "file": "src/cohezion/skills/self_evaluation.md",
+      "description": "",
+      "version": "0.1",
+      "fitness": 0.58,
+      "patterns": 0,
+      "citations": 0
+    },
+    "smart_routing": {
+      "hash": "4df69a46caddf80c",
+      "file": "src/cohezion/skills/smart_routing.md",
+      "description": "",
+      "version": "0.1",
+      "fitness": 0.56,
+      "patterns": 0,
+      "citations": 0
+    },
+    "mass_simulation": {
+      "hash": "d6bcb759f9c7062a",
+      "file": "src/cohezion/skills/mass_simulation.md",
+      "description": "",
+      "version": "0.1",
+      "fitness": 0.56,
+      "patterns": 0,
+      "citations": 0
+    },
+    "QUANTUM_MPS_ROUTING": {
+      "hash": "969edd7336352b61",
+      "file": "src/cohezion/skills/QUANTUM_MPS_ROUTING_PRIME.md",
+      "description": "",
+      "version": "0.1",
+      "fitness": 0.54,
+      "patterns": 0,
+      "citations": 0
+    },
+    "JOURNEY_DASHBOARD": {
+      "hash": "d9c1f80363272c20",
+      "file": "src/cohezion/skills/JOURNEY_DASHBOARD_PRIME.md",
+      "description": "",
+      "version": "0.1",
+      "fitness": 0.56,
+      "patterns": 0,
+      "citations": 0
+    },
+    "USAGE_ANALYTICS": {
+      "hash": "aceb8c61f7a5e6ec",
+      "file": "src/cohezion/skills/USAGE_ANALYTICS_PRIME.md",
+      "description": "",
+      "version": "0.1",
+      "fitness": 0.54,
+      "patterns": 0,
+      "citations": 0
+    },
+    "SYSTEM_DEFINITION": {
+      "hash": "5a17d0f843d343ef",
+      "file": "src/cohezion/skills/SYSTEM_DEFINITION_PRIME.md",
+      "description": "",
+      "version": "0.1",
+      "fitness": 0.58,
+      "patterns": 0,
+      "citations": 0
+    },
+    "TRAINING_DIAGNOSTIC_LOOP": {
+      "hash": "743be82bae0ba3f8",
+      "file": "src/cohezion/skills/TRAINING_DIAGNOSTIC_LOOP_PRIME.md",
+      "description": "",
+      "version": "0.1",
+      "fitness": 0.5,
+      "patterns": 0,
+      "citations": 0
+    },
+    "enhanced_simulation": {
+      "hash": "a1404eb0f11b42ee",
+      "file": "src/cohezion/skills/enhanced_simulation.md",
+      "description": "",
+      "version": "0.1",
+      "fitness": 0.58,
+      "patterns": 0,
+      "citations": 0
+    },
+    "KAGLLE_BLACKWELL_RUNNER": {
+      "hash": "9bff9b54e81fe045",
+      "file": "src/cohezion/skills/KAGLLE_BLACKWELL_RUNNER_PRIME.md",
+      "description": "",
+      "version": "0.1",
+      "fitness": 0.54,
+      "patterns": 0,
+      "citations": 0
+    },
+    "MOE_HYBRID_ENGINEERING": {
+      "hash": "7b353094b6f2c1c7",
+      "file": "src/cohezion/skills/MOE_HYBRID_ENGINEERING_PRIME.md",
+      "description": "",
+      "version": "0.1",
+      "fitness": 0.54,
+      "patterns": 0,
+      "citations": 0
+    },
+    "multimodal_experience": {
+      "hash": "f5ca0ad4f2a8b59f",
+      "file": "src/cohezion/skills/multimodal_experience.md",
+      "description": "",
+      "version": "0.1",
+      "fitness": 0.56,
+      "patterns": 0,
+      "citations": 0
+    },
+    "product_management": {
+      "hash": "7479432abcbc6225",
+      "file": "src/cohezion/skills/product_management.md",
+      "description": "",
+      "version": "0.1",
+      "fitness": 0.56,
+      "patterns": 0,
+      "citations": 0
+    },
+    "adaptive_template_engine": {
+      "hash": "4a9ab92faea20a6e",
+      "file": "src/cohezion/skills/adaptive_template_engine.md",
+      "description": "",
+      "version": "0.1",
+      "fitness": 0.56,
+      "patterns": 0,
+      "citations": 0
+    },
+    "REDUCER": {
+      "hash": "da3c5128c71bfb39",
+      "file": "src/cohezion/skills/REDUCER_PRIME.md",
+      "description": "",
+      "version": "0.1",
+      "fitness": 0.52,
+      "patterns": 0,
+      "citations": 0
+    },
+    "code_standards": {
+      "hash": "b532144a5b9b08dd",
+      "file": "src/cohezion/skills/code_standards.md",
+      "description": "",
+      "version": "0.1",
+      "fitness": 0.58,
+      "patterns": 0,
+      "citations": 0
+    },
+    "reliability": {
+      "hash": "ffeb0b3284dec6a7",
+      "file": "src/cohezion/skills/RELIABILITY_PRIME.md",
+      "description": "System reliability patterns including circuit breakers, connection pooling, and graceful degradation for AI services. Use when implementing fault tolerance, handling cascading failures, or when user m...",
+      "version": "1.0",
+      "fitness": 0.52,
+      "patterns": 0,
+      "citations": 0
+    },
+    "PHYSICS_LINEAGE": {
+      "hash": "cdd39ca5a5431ec3",
+      "file": "src/cohezion/skills/PHYSICS_LINEAGE_PRIME.md",
+      "description": "",
+      "version": "0.1",
+      "fitness": 0.6,
+      "patterns": 0,
+      "citations": 0
+    },
+    "model-routing": {
+      "hash": "e5771e78f432a22b",
+      "file": "src/cohezion/skills/MODEL_ROUTING_PRIME.md",
+      "description": "Local LLM orchestration using Ollama with memory-aware scheduling, task classification, and parallel dispatch. Use when configuring model selection, optimizing RAM allocation for models, or when user ...",
+      "version": "0.1",
+      "fitness": 0.58,
+      "patterns": 0,
+      "citations": 0
+    },
+    "animations": {
+      "hash": "bc9684a3a3070b6e",
+      "file": "src/cohezion/skills/animations.md",
+      "description": "",
+      "version": "0.1",
+      "fitness": 0.56,
+      "patterns": 0,
+      "citations": 0
+    },
+    "SURREAL_DBA": {
+      "hash": "edd12ac2ba2e3ed0",
+      "file": "src/cohezion/skills/SURREAL_DBA_PRIME.md",
+      "description": "",
+      "version": "0.1",
+      "fitness": 0.52,
+      "patterns": 4,
+      "citations": 0
+    },
+    "JOURNEY_TRACKING": {
+      "hash": "c8c58c7ccf706632",
+      "file": "src/cohezion/skills/JOURNEY_TRACKING_PRIME.md",
+      "description": "",
+      "version": "0.1",
+      "fitness": 0.54,
+      "patterns": 0,
+      "citations": 0
+    },
+    "metaphysics": {
+      "hash": "bbb43a341505d48e",
+      "file": "src/cohezion/skills/metaphysics.md",
+      "description": "",
+      "version": "0.1",
+      "fitness": 0.5,
+      "patterns": 0,
+      "citations": 0
+    },
+    "research_synthesis": {
+      "hash": "a6602af348e121fb",
+      "file": "src/cohezion/skills/research_synthesis.md",
+      "description": "",
+      "version": "0.1",
+      "fitness": 0.54,
+      "patterns": 0,
+      "citations": 0
+    },
+    "interactive_ui": {
+      "hash": "9e9317f00fec2fdb",
+      "file": "src/cohezion/skills/interactive_ui.md",
+      "description": "",
+      "version": "0.1",
+      "fitness": 0.56,
+      "patterns": 0,
+      "citations": 0
+    },
+    "flume_comparison": {
+      "hash": "60cc25bced544a8e",
+      "file": "src/cohezion/skills/flume_comparison.md",
+      "description": "",
+      "version": "0.1",
+      "fitness": 0.54,
+      "patterns": 0,
+      "citations": 0
+    },
+    "VAULT_KEEPER": {
+      "hash": "f7df455075279e89",
+      "file": "src/cohezion/skills/VAULT_KEEPER_PRIME.md",
+      "description": "",
+      "version": "0.1",
+      "fitness": 0.52,
+      "patterns": 3,
+      "citations": 0
+    },
+    "MEMORY_MCP": {
+      "hash": "355127ed955f76dd",
+      "file": "src/cohezion/skills/MEMORY_MCP_PRIME.md",
+      "description": "",
+      "version": "0.1",
+      "fitness": 0.54,
+      "patterns": 0,
+      "citations": 0
+    },
+    "enterprise_ai_server_mastery": {
+      "hash": "445f80ba55938f6f",
+      "file": "src/cohezion/skills/enterprise_ai_server_mastery.md",
+      "description": "",
+      "version": "0.1",
+      "fitness": 0.56,
+      "patterns": 0,
+      "citations": 0
+    },
+    "BLACKWELL_HARDWARE_OPTIMIZATION": {
+      "hash": "15e6745f328a9f69",
+      "file": "src/cohezion/skills/BLACKWELL_HARDWARE_OPTIMIZATION_PRIME.md",
+      "description": "",
+      "version": "0.1",
+      "fitness": 0.54,
+      "patterns": 0,
+      "citations": 0
+    },
+    "compound_engineering": {
+      "hash": "cc79bfb6cec1625a",
+      "file": "src/cohezion/skills/compound_engineering.md",
+      "description": "",
+      "version": "0.1",
+      "fitness": 0.56,
+      "patterns": 0,
+      "citations": 0
+    },
+    "async_workflow": {
+      "hash": "394330d801490a57",
+      "file": "src/cohezion/skills/async_workflow.md",
+      "description": "",
+      "version": "0.1",
+      "fitness": 0.56,
+      "patterns": 0,
+      "citations": 0
+    },
+    "semantic_algebra": {
+      "hash": "fb6c22a782645599",
+      "file": "src/cohezion/skills/semantic_algebra.md",
+      "description": "",
+      "version": "0.1",
+      "fitness": 0.56,
+      "patterns": 0,
+      "citations": 0
+    },
+    "MAMBA_STATE_TRACKING": {
+      "hash": "590e06ee1d716898",
+      "file": "src/cohezion/skills/MAMBA_STATE_TRACKING_PRIME.md",
+      "description": "",
+      "version": "0.1",
+      "fitness": 0.56,
+      "patterns": 0,
+      "citations": 0
+    },
+    "PERSISTENT_UNIVERSE": {
+      "hash": "a73b9624b5e9ef15",
+      "file": "src/cohezion/skills/PERSISTENT_UNIVERSE_PRIME.md",
+      "description": "",
+      "version": "0.1",
+      "fitness": 0.56,
+      "patterns": 0,
+      "citations": 0
+    },
+    "PLATFORM_COORDINATOR": {
+      "hash": "6d300dbc7f37c6d7",
+      "file": "src/cohezion/skills/PLATFORM_COORDINATOR_PRIME.md",
+      "description": "",
+      "version": "0.1",
+      "fitness": 0.52,
+      "patterns": 3,
+      "citations": 0
+    },
+    "META_HARNESS_TRACES": {
+      "hash": "eb8bd28ce50ae42e",
+      "file": "src/cohezion/skills/META_HARNESS_TRACES_PRIME.md",
+      "description": "",
+      "version": "0.1",
+      "fitness": 0.5,
+      "patterns": 0,
+      "citations": 0
+    },
+    "AUTONOMIC_ANALYST": {
+      "hash": "498bca78333cfa69",
+      "file": "src/cohezion/skills/AUTONOMIC_ANALYST_PRIME.md",
+      "description": "",
+      "version": "0.1",
+      "fitness": 0.56,
+      "patterns": 0,
+      "citations": 0
+    },
+    "KNOWLEDGE_HARVESTING": {
+      "hash": "9808960d8cfea7ba",
+      "file": "src/cohezion/skills/KNOWLEDGE_HARVESTING_PRIME.md",
+      "description": "",
+      "version": "0.1",
+      "fitness": 0.54,
+      "patterns": 0,
+      "citations": 0
+    },
+    "UNIVERSE_SIMULATION_PERSISTENCE": {
+      "hash": "ee37147b507df3ae",
+      "file": "src/cohezion/skills/UNIVERSE_SIMULATION_PERSISTENCE_PRIME.md",
+      "description": "",
+      "version": "0.1",
+      "fitness": 0.5,
+      "patterns": 0,
+      "citations": 0
+    },
+    "physics_explainability": {
+      "hash": "84266f1ec49b4ebb",
+      "file": "src/cohezion/skills/physics_explainability.md",
+      "description": "",
+      "version": "0.1",
+      "fitness": 0.52,
+      "patterns": 0,
+      "citations": 0
+    },
+    "AMD_MLA_DECODE": {
+      "hash": "d5962bd216cd8138",
+      "file": "src/cohezion/skills/AMD_MLA_DECODE_PRIME.md",
+      "description": "",
+      "version": "0.1",
+      "fitness": 0.5,
+      "patterns": 0,
+      "citations": 0
+    },
+    "SYSTEM_MONITORING": {
+      "hash": "232000368282fd81",
+      "file": "src/cohezion/skills/SYSTEM_MONITORING_PRIME.md",
+      "description": "",
+      "version": "0.1",
+      "fitness": 0.58,
+      "patterns": 0,
+      "citations": 0
+    },
+    "DISSIPATIVE_STRUCTURES": {
+      "hash": "779538097a0a4890",
+      "file": "src/cohezion/skills/DISSIPATIVE_STRUCTURES_PRIME.md",
+      "description": "",
+      "version": "0.1",
+      "fitness": 0.6,
+      "patterns": 0,
+      "citations": 0
+    },
+    "REPO_HYGIENE": {
+      "hash": "13103e199aad64d7",
+      "file": "src/cohezion/skills/REPO_HYGIENE_PRIME.md",
+      "description": "",
+      "version": "0.1",
+      "fitness": 0.5,
+      "patterns": 0,
+      "citations": 0
+    },
+    "LOCAL_OFFLOAD": {
+      "hash": "18031a94ddd64e82",
+      "file": "src/cohezion/skills/LOCAL_OFFLOAD_PRIME.md",
+      "description": "",
+      "version": "0.1",
+      "fitness": 0.56,
+      "patterns": 0,
+      "citations": 0
+    },
+    "IDE_OPTIMIZATION": {
+      "hash": "fdf1e98527b0e7c0",
+      "file": "src/cohezion/skills/IDE_OPTIMIZATION_PRIME.md",
+      "description": "",
+      "version": "0.1",
+      "fitness": 0.56,
+      "patterns": 0,
+      "citations": 0
+    },
+    "marimo_notebooks": {
+      "hash": "86bd3ef637856c7d",
+      "file": "src/cohezion/skills/marimo_notebooks.md",
+      "description": "",
+      "version": "0.1",
+      "fitness": 0.56,
+      "patterns": 0,
+      "citations": 0
+    },
+    "SURREALDB_OPERATIONS": {
+      "hash": "cd2be2647b02cbd9",
+      "file": "src/cohezion/skills/SURREALDB_OPERATIONS_PRIME.md",
+      "description": "",
+      "version": "0.1",
+      "fitness": 0.5,
+      "patterns": 0,
+      "citations": 0
+    },
+    "anti-pattern-guardian": {
+      "hash": "7177f850921d7110",
+      "file": "src/cohezion/skills/ANTI_PATTERN_GUARDIAN_PRIME.md",
+      "description": "Automated detection and remediation of codebase anti-patterns. Scans for AGENTS.md documented issues including mock isolation, async blocking, singleton pollution, and bare exception handlers. Use whe...",
+      "version": "0.1",
+      "fitness": 0.6599999999999999,
+      "patterns": 3,
+      "citations": 2
+    },
+    "RESEARCH_SQUAD": {
+      "hash": "48ee239215b31d73",
+      "file": "src/cohezion/skills/RESEARCH_SQUAD_PRIME.md",
+      "description": "",
+      "version": "0.1",
+      "fitness": 0.5,
+      "patterns": 0,
+      "citations": 0
+    },
+    "GROUP_EVOLVING_AGENTS": {
+      "hash": "1392cf402111d650",
+      "file": "src/cohezion/skills/GROUP_EVOLVING_AGENTS_PRIME.md",
+      "description": "",
+      "version": "0.1",
+      "fitness": 0.58,
+      "patterns": 0,
+      "citations": 0
+    },
+    "MULTI_PERSPECTIVE_REVIEW": {
+      "hash": "c84ca4c71b0b656e",
+      "file": "src/cohezion/skills/MULTI_PERSPECTIVE_REVIEW_PRIME.md",
+      "description": "",
+      "version": "0.1",
+      "fitness": 0.5,
+      "patterns": 0,
+      "citations": 0
+    },
+    "AGENT_SOVEREIGNTY_ETHICS": {
+      "hash": "2df0d88d443dff71",
+      "file": "src/cohezion/skills/AGENT_SOVEREIGNTY_ETHICS_PRIME.md",
+      "description": "",
+      "version": "0.1",
+      "fitness": 0.5,
+      "patterns": 0,
+      "citations": 0
+    },
+    "security-guardrails": {
+      "hash": "fb75fed938dca1fc",
+      "file": "src/cohezion/skills/SECURITY_GUARDRAILS_PRIME.md",
+      "description": "AI security guardrail implementation including input validation, rate limiting, authentication, prompt injection defense, output filtering, and audit logging. Use when implementing auth flows, reviewi...",
+      "version": "0.1",
+      "fitness": 0.64,
+      "patterns": 0,
+      "citations": 2
+    },
+    "hookify-rule-engine": {
+      "hash": "565b07f2cad8cb66",
+      "file": "src/cohezion/skills/HOOKIFY_PRIME.md",
+      "description": "Universal Hookify Rule Engine with MCP bridge for cross-platform (Opencode, Claude Code, Gemini CLI) support. Implements persistent rules with configurable levers, three-tier persistence, and recursiv...",
+      "version": "1.0.0",
+      "fitness": 0.6,
+      "patterns": 0,
+      "citations": 0
+    },
+    "common_codebase_health": {
+      "hash": "9b75e2c86e51d213",
+      "file": "src/cohezion/skills/common_codebase_health.md",
+      "description": "",
+      "version": "0.1",
+      "fitness": 0.56,
+      "patterns": 0,
+      "citations": 0
+    },
+    "SMALL_MODEL_SPECIALIST": {
+      "hash": "549538856ed34972",
+      "file": "src/cohezion/skills/SMALL_MODEL_SPECIALIST_PRIME.md",
+      "description": "",
+      "version": "0.1",
+      "fitness": 0.5,
+      "patterns": 0,
+      "citations": 0
+    },
+    "resource_management": {
+      "hash": "62d17ada820f765e",
+      "file": "src/cohezion/skills/resource_management.md",
+      "description": "",
+      "version": "0.1",
+      "fitness": 0.56,
+      "patterns": 0,
+      "citations": 0
+    },
+    "ADVERSARIAL_TDD": {
+      "hash": "3fd30c0928f9e4cc",
+      "file": "src/cohezion/skills/ADVERSARIAL_TDD_PRIME.md",
+      "description": "",
+      "version": "0.1",
+      "fitness": 0.54,
+      "patterns": 0,
+      "citations": 0
+    },
+    "AUTONOMOUS_RESILIENCE": {
+      "hash": "deab0636455a00c2",
+      "file": "src/cohezion/skills/AUTONOMOUS_RESILIENCE_PRIME.md",
+      "description": "",
+      "version": "0.1",
+      "fitness": 0.54,
+      "patterns": 0,
+      "citations": 0
+    },
+    "CONTEXT_ENTROPY_MANAGEMENT": {
+      "hash": "5e6a4be85450da2a",
+      "file": "src/cohezion/skills/CONTEXT_ENTROPY_MANAGEMENT_PRIME.md",
+      "description": "",
+      "version": "0.1",
+      "fitness": 0.56,
+      "patterns": 0,
+      "citations": 0
+    },
+    "ASCENSION_SKILL": {
+      "hash": "4b4bd86dfdf51128",
+      "file": "src/cohezion/skills/ASCENSION_SKILL_PRIME.md",
+      "description": "",
+      "version": "0.1",
+      "fitness": 0.56,
+      "patterns": 0,
+      "citations": 0
+    },
+    "bmad_workflow": {
+      "hash": "ca9a84f1ec8477c1",
+      "file": "src/cohezion/skills/bmad_workflow.md",
+      "description": "",
+      "version": "0.1",
+      "fitness": 0.54,
+      "patterns": 0,
+      "citations": 0
+    },
+    "ADAPTIVE_TEMPLATE": {
+      "hash": "a849d6a31409910f",
+      "file": "src/cohezion/skills/ADAPTIVE_TEMPLATE_PRIME.md",
+      "description": "",
+      "version": "0.1",
+      "fitness": 0.58,
+      "patterns": 0,
+      "citations": 0
+    },
+    "EXPERIENCE_VAE_TRAINING": {
+      "hash": "cfc050782d49d3c2",
+      "file": "src/cohezion/skills/EXPERIENCE_VAE_TRAINING_PRIME.md",
+      "description": "",
+      "version": "0.1",
+      "fitness": 0.5,
+      "patterns": 0,
+      "citations": 0
+    },
+    "DEPENDENCY_AUTOMATION": {
+      "hash": "b002182ee6ef87bd",
+      "file": "src/cohezion/skills/DEPENDENCY_AUTOMATION_PRIME.md",
+      "description": "",
+      "version": "0.1",
+      "fitness": 0.54,
+      "patterns": 0,
+      "citations": 0
+    },
+    "RETROSPECTIVE_SKILL": {
+      "hash": "abbd9b82c1888787",
+      "file": "src/cohezion/skills/RETROSPECTIVE_SKILL.md",
+      "description": "",
+      "version": "0.1",
+      "fitness": 0.6,
+      "patterns": 0,
+      "citations": 0
+    },
+    "MATH_REASONING_SWARM": {
+      "hash": "ca26ba7ff96a6ffd",
+      "file": "src/cohezion/skills/MATH_REASONING_SWARM_PRIME.md",
+      "description": "",
+      "version": "0.1",
+      "fitness": 0.54,
+      "patterns": 0,
+      "citations": 0
+    },
+    "observable_ai": {
+      "hash": "c6b1833acb46e22e",
+      "file": "src/cohezion/skills/observable_ai.md",
+      "description": "",
+      "version": "0.1",
+      "fitness": 0.56,
+      "patterns": 0,
+      "citations": 0
+    },
+    "allostatica_prime": {
+      "hash": "2712529b4b01a82c",
+      "file": "src/cohezion/skills/allostatica_prime.md",
+      "description": "",
+      "version": "0.1",
+      "fitness": 0.52,
+      "patterns": 0,
+      "citations": 0
+    },
+    "controller_agent": {
+      "hash": "9e516ced9967872a",
+      "file": "src/cohezion/skills/controller_agent.md",
+      "description": "",
+      "version": "0.1",
+      "fitness": 0.56,
+      "patterns": 0,
+      "citations": 0
+    },
+    "RESEARCH_PATTERNS": {
+      "hash": "f27cc77d2b7812c1",
+      "file": "src/cohezion/skills/RESEARCH_PATTERNS_PRIME.md",
+      "description": "",
+      "version": "0.1",
+      "fitness": 0.56,
+      "patterns": 0,
+      "citations": 0
+    },
+    "learning": {
+      "hash": "11a986f7ee667221",
+      "file": "src/cohezion/skills/learning.md",
+      "description": "",
+      "version": "0.1",
+      "fitness": 0.56,
+      "patterns": 0,
+      "citations": 0
+    },
+    "MODEL_POOL_MANAGEMENT": {
+      "hash": "2d2b0663dd5fc596",
+      "file": "src/cohezion/skills/MODEL_POOL_MANAGEMENT_PRIME.md",
+      "description": "",
+      "version": "0.1",
+      "fitness": 0.5,
+      "patterns": 0,
+      "citations": 0
+    },
+    "SYSTEM_GUARDRAILS": {
+      "hash": "99a99be48d16819a",
+      "file": "src/cohezion/skills/SYSTEM_GUARDRAILS_PRIME.md",
+      "description": "",
+      "version": "0.1",
+      "fitness": 0.5,
+      "patterns": 0,
+      "citations": 0
+    },
+    "CROSS_PLATFORM_SKILL_FORMAT": {
+      "hash": "9802756163e92324",
+      "file": "src/cohezion/skills/CROSS_PLATFORM_SKILL_FORMAT_PRIME.md",
+      "description": "",
+      "version": "0.1",
+      "fitness": 0.5,
+      "patterns": 0,
+      "citations": 0
+    },
+    "POLYGLOT_DELEGATION": {
+      "hash": "77aece56fcf09f38",
+      "file": "src/cohezion/skills/POLYGLOT_DELEGATION_PRIME.md",
+      "description": "",
+      "version": "0.1",
+      "fitness": 0.54,
+      "patterns": 0,
+      "citations": 0
+    },
+    "ANTHROPIC_SKILL_BUILDER": {
+      "hash": "25498f5a9e71c20f",
+      "file": "src/cohezion/skills/ANTHROPIC_SKILL_BUILDER_PRIME.md",
+      "description": "",
+      "version": "0.1",
+      "fitness": 0.56,
+      "patterns": 0,
+      "citations": 0
+    },
+    "DATABASE": {
+      "hash": "8fb475bb41d9306b",
+      "file": "src/cohezion/skills/DATABASE_PRIME.md",
+      "description": "",
+      "version": "0.1",
+      "fitness": 0.56,
+      "patterns": 0,
+      "citations": 0
+    },
+    "QUARTER_ON_A_STRING": {
+      "hash": "45f8d15670cd159f",
+      "file": "src/cohezion/skills/QUARTER_ON_A_STRING_PRIME.md",
+      "description": "",
+      "version": "0.1",
+      "fitness": 0.54,
+      "patterns": 0,
+      "citations": 0
+    },
+    "semantic-caching": {
+      "hash": "c5163cbc3ffcef78",
+      "file": "src/cohezion/skills/SEMANTIC_CACHING_PRIME.md",
+      "description": "Semantic caching using vector similarity to serve cached responses for semantically equivalent queries. Use when implementing cache layers, optimizing LLM call costs, or when user mentions \"semantic c...",
+      "version": "1.0",
+      "fitness": 0.5,
+      "patterns": 0,
+      "citations": 0
+    },
+    "alignment_verification": {
+      "hash": "e44254504b1700c9",
+      "file": "src/cohezion/skills/alignment_verification.md",
+      "description": "",
+      "version": "0.1",
+      "fitness": 0.56,
+      "patterns": 0,
+      "citations": 0
+    },
+    "THROTTLED_SCOUT": {
+      "hash": "a7b520aeb2d8808c",
+      "file": "src/cohezion/skills/THROTTLED_SCOUT_PRIME.md",
+      "description": "",
+      "version": "0.1",
+      "fitness": 0.56,
+      "patterns": 0,
+      "citations": 0
+    },
+    "parallel_orchestration": {
+      "hash": "db1c974d38f44027",
+      "file": "src/cohezion/skills/parallel_orchestration.md",
+      "description": "",
+      "version": "0.1",
+      "fitness": 0.56,
+      "patterns": 0,
+      "citations": 0
+    },
+    "RECOVERY": {
+      "hash": "249de2f6196a368b",
+      "file": "src/cohezion/skills/RECOVERY_PRIME.md",
+      "description": "",
+      "version": "0.1",
+      "fitness": 0.54,
+      "patterns": 0,
+      "citations": 0
+    },
+    "COMPOUND_SELF_IMPROVEMENT": {
+      "hash": "890923f859a7d82c",
+      "file": "src/cohezion/skills/COMPOUND_SELF_IMPROVEMENT_PRIME.md",
+      "description": "",
+      "version": "0.1",
+      "fitness": 0.5,
+      "patterns": 0,
+      "citations": 0
+    },
+    "AUTONOMIC_RESEARCH": {
+      "hash": "9b60d5199a2ca8eb",
+      "file": "src/cohezion/skills/AUTONOMIC_RESEARCH_PRIME.md",
+      "description": "",
+      "version": "0.1",
+      "fitness": 0.56,
+      "patterns": 0,
+      "citations": 0
+    },
+    "matsumoto_hiho_synthesis": {
+      "hash": "97d88d584a3035ed",
+      "file": "src/cohezion/skills/matsumoto_hiho_synthesis.md",
+      "description": "",
+      "version": "0.1",
+      "fitness": 0.6,
+      "patterns": 0,
+      "citations": 0
+    },
+    "SANDBOX_ISOLATION": {
+      "hash": "4814c6e71971ebe5",
+      "file": "src/cohezion/skills/SANDBOX_ISOLATION_PRIME.md",
+      "description": "",
+      "version": "0.1",
+      "fitness": 0.56,
+      "patterns": 0,
+      "citations": 0
+    },
+    "KERNEL_OPTIMIZATION": {
+      "hash": "e9cf65ae4a28a499",
+      "file": "src/cohezion/skills/KERNEL_OPTIMIZATION_PRIME.md",
+      "description": "",
+      "version": "0.1",
+      "fitness": 0.5,
+      "patterns": 0,
+      "citations": 0
+    },
+    "pi-integration": {
+      "hash": "aff63a2d34714b09",
+      "file": "src/cohezion/skills/PI_INTEGRATION_PRIME.md",
+      "description": "Integrate pi coding harness with Cohezion compound loop. Non-destructive code assistance using 12D journey tracking, pattern emergence, and skill genome refinement. Use when pi needs to query concept ...",
+      "version": "0.1",
+      "fitness": 0.7999999999999999,
+      "patterns": 4,
+      "citations": 5
+    },
+    "CITATIONS": {
+      "hash": "746852199a459960",
+      "file": "src/cohezion/skills/CITATIONS_PRIME.md",
+      "description": "",
+      "version": "0.1",
+      "fitness": 0.5,
+      "patterns": 0,
+      "citations": 0
+    },
+    "VLIW_COG_BRIDGE": {
+      "hash": "d9f22ce4c85a2332",
+      "file": "src/cohezion/skills/VLIW_COG_BRIDGE_PRIME.md",
+      "description": "",
+      "version": "0.1",
+      "fitness": 0.54,
+      "patterns": 0,
+      "citations": 0
+    },
+    "REMOTE_ORCHESTRATION": {
+      "hash": "6bb2f562c40b4642",
+      "file": "src/cohezion/skills/REMOTE_ORCHESTRATION_PRIME.md",
+      "description": "",
+      "version": "0.1",
+      "fitness": 0.6,
+      "patterns": 0,
+      "citations": 0
+    },
+    "visual_validation": {
+      "hash": "5b95088641c428b1",
+      "file": "src/cohezion/skills/visual_validation.md",
+      "description": "",
+      "version": "0.1",
+      "fitness": 0.54,
+      "patterns": 0,
+      "citations": 0
+    },
+    "caching": {
+      "hash": "f1420919a13adf7e",
+      "file": "src/cohezion/skills/caching.md",
+      "description": "",
+      "version": "0.1",
+      "fitness": 0.56,
+      "patterns": 0,
+      "citations": 0
+    },
+    "SPATIAL_PHONONS": {
+      "hash": "57b03c1c46dceb38",
+      "file": "src/cohezion/skills/SPATIAL_PHONONS_PRIME.md",
+      "description": "",
+      "version": "0.1",
+      "fitness": 0.54,
+      "patterns": 0,
+      "citations": 0
+    },
+    "AGENTIC_DESIGN": {
+      "hash": "a745ccb1e81de9c9",
+      "file": "src/cohezion/skills/AGENTIC_DESIGN_PRIME.md",
+      "description": "",
+      "version": "0.1",
+      "fitness": 0.54,
+      "patterns": 0,
+      "citations": 0
+    },
+    "DOC_TO_LORA_COMPRESSION": {
+      "hash": "fb7d79e108921395",
+      "file": "src/cohezion/skills/DOC_TO_LORA_COMPRESSION_PRIME.md",
+      "description": "",
+      "version": "0.1",
+      "fitness": 0.56,
+      "patterns": 0,
+      "citations": 0
+    },
+    "AMD_GEMM_MXFP4": {
+      "hash": "ced55d415a0a44bf",
+      "file": "src/cohezion/skills/AMD_GEMM_MXFP4_PRIME.md",
+      "description": "",
+      "version": "0.1",
+      "fitness": 0.5,
+      "patterns": 0,
+      "citations": 0
+    },
+    "INTERPRETABILITY": {
+      "hash": "6892bea985742b94",
+      "file": "src/cohezion/skills/INTERPRETABILITY_PRIME.md",
+      "description": "",
+      "version": "0.1",
+      "fitness": 0.54,
+      "patterns": 0,
+      "citations": 0
+    },
+    "physics_informed_prediction": {
+      "hash": "22470e79a5e9386c",
+      "file": "src/cohezion/skills/physics_informed_prediction.md",
+      "description": "",
+      "version": "0.1",
+      "fitness": 0.56,
+      "patterns": 0,
+      "citations": 0
+    },
+    "API_ERROR_RESILIENCE": {
+      "hash": "2027dac2305f0bb5",
+      "file": "src/cohezion/skills/API_ERROR_RESILIENCE_PRIME.md",
+      "description": "",
+      "version": "0.1",
+      "fitness": 0.5,
+      "patterns": 0,
+      "citations": 0
+    },
+    "AMD_MOE_MXFP4": {
+      "hash": "6dda7f1dd5e6396b",
+      "file": "src/cohezion/skills/AMD_MOE_MXFP4_PRIME.md",
+      "description": "",
+      "version": "0.1",
+      "fitness": 0.5,
+      "patterns": 0,
+      "citations": 0
+    },
+    "FRONTEND_DESIGN": {
+      "hash": "d8e17de668654d96",
+      "file": "src/cohezion/skills/FRONTEND_DESIGN_PRIME.md",
+      "description": "",
+      "version": "0.1",
+      "fitness": 0.54,
+      "patterns": 0,
+      "citations": 0
+    },
+    "TEMPLATE_DRIVEN_DEVELOPMENT": {
+      "hash": "a481935f9b473ab8",
+      "file": "src/cohezion/skills/TEMPLATE_DRIVEN_DEVELOPMENT_PRIME.md",
+      "description": "",
+      "version": "0.1",
+      "fitness": 0.58,
+      "patterns": 0,
+      "citations": 0
+    },
+    "knowledge_mining": {
+      "hash": "2ad8cb96f3564c6f",
+      "file": "src/cohezion/skills/knowledge_mining.md",
+      "description": "",
+      "version": "0.1",
+      "fitness": 0.54,
+      "patterns": 0,
+      "citations": 0
+    },
+    "CAPABILITY_REGISTRY": {
+      "hash": "e978a4edcb9f717f",
+      "file": "src/cohezion/skills/CAPABILITY_REGISTRY_PRIME.md",
+      "description": "Capability Registry Prime: The Unified Natural Language Discovery Engine.",
+      "version": "0.1",
+      "fitness": 0.5,
+      "patterns": 0,
+      "citations": 0
+    },
+    "PROACTIVE_PERSISTENCE": {
+      "hash": "8df3e2ba68e1e714",
+      "file": "src/cohezion/skills/PROACTIVE_PERSISTENCE_PRIME.md",
+      "description": "",
+      "version": "0.1",
+      "fitness": 0.5,
+      "patterns": 0,
+      "citations": 0
+    },
+    "SURREALDB_OPTIMIZER": {
+      "hash": "e3d7234d46e39e4e",
+      "file": "src/cohezion/skills/SURREALDB_OPTIMIZER_PRIME.md",
+      "description": "",
+      "version": "0.1",
+      "fitness": 0.52,
+      "patterns": 0,
+      "citations": 0
+    },
+    "SIMULATION_PROFILES": {
+      "hash": "1bdfb9d04e94536a",
+      "file": "src/cohezion/skills/SIMULATION_PROFILES_PRIME.md",
+      "description": "",
+      "version": "0.1",
+      "fitness": 0.56,
+      "patterns": 0,
+      "citations": 0
+    },
+    "test_automation": {
+      "hash": "561584538c6f90b8",
+      "file": "src/cohezion/skills/test_automation.md",
+      "description": "",
+      "version": "0.1",
+      "fitness": 0.5,
+      "patterns": 0,
+      "citations": 0
+    },
+    "AUTONOMIC_QUALITY_GUARD": {
+      "hash": "e1e1bf3cc2bcbdc5",
+      "file": "src/cohezion/skills/AUTONOMIC_QUALITY_GUARD_PRIME.md",
+      "description": "",
+      "version": "0.1",
+      "fitness": 0.56,
+      "patterns": 0,
+      "citations": 0
+    },
+    "VECTOR_STORE": {
+      "hash": "ca9ec01ef4e42f82",
+      "file": "src/cohezion/skills/VECTOR_STORE_PRIME.md",
+      "description": "",
+      "version": "0.1",
+      "fitness": 0.56,
+      "patterns": 0,
+      "citations": 0
+    },
+    "ADVERSARIAL_TESTING": {
+      "hash": "27f4223104154c25",
+      "file": "src/cohezion/skills/ADVERSARIAL_TESTING_PRIME.md",
+      "description": "",
+      "version": "0.1",
+      "fitness": 0.56,
+      "patterns": 0,
+      "citations": 0
+    },
+    "RIGOROUS_EVALUATION": {
+      "hash": "30ae12a3f00f0e07",
+      "file": "src/cohezion/skills/RIGOROUS_EVALUATION_PRIME.md",
+      "description": "",
+      "version": "0.1",
+      "fitness": 0.56,
+      "patterns": 0,
+      "citations": 0
+    },
+    "agentjet": {
+      "hash": "d11e5ff4484fa234",
+      "file": "src/cohezion/skills/AGENTJET_PRIME.md",
+      "description": "Cohezion Autonomous Learning Loop (CALL) \u2014 closes the learning loop from runtime experiences to training signal to improved local models. Use when implementing RL fine-tuning of local Ollama models, c...",
+      "version": "1.0",
+      "fitness": 0.6,
+      "patterns": 0,
+      "citations": 0
+    },
+    "QUANTUM_LINK": {
+      "hash": "4ca7ae8334a6e315",
+      "file": "src/cohezion/skills/QUANTUM_LINK_PRIME.md",
+      "description": "",
+      "version": "0.1",
+      "fitness": 0.54,
+      "patterns": 0,
+      "citations": 0
+    },
+    "flume-methodology": {
+      "hash": "89dda2396a613f99",
+      "file": "src/cohezion/skills/FLUME_METHODOLOGY_PRIME.md",
+      "description": "FLUME (Fluid Latent Understanding through Manifold Encoding) implementation for thought vector compression, trajectory prediction, and semantic interpolation. Use when working with FLUME encoders, tra...",
+      "version": "1.0",
+      "fitness": 0.56,
+      "patterns": 0,
+      "citations": 0
+    },
+    "RELIABILITY_FALLBACK": {
+      "hash": "8a263a85ff5a4387",
+      "file": "src/cohezion/skills/RELIABILITY_FALLBACK_PRIME.md",
+      "description": "",
+      "version": "0.1",
+      "fitness": 0.56,
+      "patterns": 0,
+      "citations": 0
+    },
+    "physics": {
+      "hash": "aa27e892ecb2bc73",
+      "file": "src/cohezion/skills/physics.md",
+      "description": "",
+      "version": "0.1",
+      "fitness": 0.6,
+      "patterns": 0,
+      "citations": 0
+    },
+    "marimo_development": {
+      "hash": "8231bd7959c55900",
+      "file": "src/cohezion/skills/marimo_development.md",
+      "description": "",
+      "version": "0.1",
+      "fitness": 0.56,
+      "patterns": 0,
+      "citations": 0
+    },
+    "REDUNDANCY_SUPPRESSION": {
+      "hash": "146189ce7bbc0384",
+      "file": "src/cohezion/skills/REDUNDANCY_SUPPRESSION_PRIME.md",
+      "description": "",
+      "version": "0.1",
+      "fitness": 0.52,
+      "patterns": 0,
+      "citations": 0
+    },
+    "pre_flight_validation": {
+      "hash": "9544688bf58c4189",
+      "file": "src/cohezion/skills/pre_flight_validation.md",
+      "description": "",
+      "version": "0.1",
+      "fitness": 0.56,
+      "patterns": 0,
+      "citations": 0
+    },
+    "TYPESCRIPT_ADVANCED_TYPES": {
+      "hash": "5806b0e96ffd10c8",
+      "file": "src/cohezion/skills/TYPESCRIPT_ADVANCED_TYPES_PRIME.md",
+      "description": "",
+      "version": "0.1",
+      "fitness": 0.52,
+      "patterns": 0,
+      "citations": 0
+    },
+    "LONG_RUNNING_INFERENCE": {
+      "hash": "4298ed4b18e24355",
+      "file": "src/cohezion/skills/LONG_RUNNING_INFERENCE_PRIME.md",
+      "description": "",
+      "version": "0.1",
+      "fitness": 0.5,
+      "patterns": 0,
+      "citations": 0
+    },
+    "CONSTITUTION": {
+      "hash": "efa154362d40cc5e",
+      "file": "src/cohezion/skills/CONSTITUTION_PRIME.md",
+      "description": "",
+      "version": "0.1",
+      "fitness": 0.54,
+      "patterns": 0,
+      "citations": 0
+    },
+    "multimodal_visualization": {
+      "hash": "3654c402889aee25",
+      "file": "src/cohezion/skills/multimodal_visualization.md",
+      "description": "",
+      "version": "0.1",
+      "fitness": 0.58,
+      "patterns": 0,
+      "citations": 0
+    },
+    "REPOSITORY_HEALTH": {
+      "hash": "7aa91aa7b25bdbde",
+      "file": "src/cohezion/skills/REPOSITORY_HEALTH_PRIME.md",
+      "description": "",
+      "version": "0.1",
+      "fitness": 0.6,
+      "patterns": 0,
+      "citations": 0
+    },
+    "MATH_COMMAND": {
+      "hash": "521756eb4c77e5ff",
+      "file": "src/cohezion/skills/MATH_COMMAND_PRIME.md",
+      "description": "",
+      "version": "0.1",
+      "fitness": 0.54,
+      "patterns": 0,
+      "citations": 0
+    },
+    "testing": {
+      "hash": "750ffcae954f9817",
+      "file": "src/cohezion/skills/TESTING_PRIME.md",
+      "description": "Python testing methodology with pytest patterns, fixture design, parametrization, and adversarial security testing. Use when writing tests, debugging flaky test suites, setting up test isolation, or w...",
+      "version": "1.0",
+      "fitness": 0.52,
+      "patterns": 0,
+      "citations": 0
+    },
+    "EXTERNAL_RESEARCH": {
+      "hash": "c5e2017b04be4126",
+      "file": "src/cohezion/skills/EXTERNAL_RESEARCH_PRIME.md",
+      "description": "",
+      "version": "0.1",
+      "fitness": 0.56,
+      "patterns": 0,
+      "citations": 0
+    },
+    "SYMBIOTIC_FILE": {
+      "hash": "ecd8a2532730a548",
+      "file": "src/cohezion/skills/SYMBIOTIC_FILE_PRIME.md",
+      "description": "",
+      "version": "0.1",
+      "fitness": 0.54,
+      "patterns": 0,
+      "citations": 0
+    },
+    "swarm_synthesis": {
+      "hash": "9d417d4c3f6bf582",
+      "file": "src/cohezion/skills/swarm_synthesis.md",
+      "description": "",
+      "version": "0.1",
+      "fitness": 0.5,
+      "patterns": 0,
+      "citations": 0
+    },
+    "ollama_management": {
+      "hash": "cb08754b9b807755",
+      "file": "src/cohezion/skills/ollama_management.md",
+      "description": "",
+      "version": "0.1",
+      "fitness": 0.54,
+      "patterns": 0,
+      "citations": 0
+    },
+    "skill_generator": {
+      "hash": "e7748283a7ccd16d",
+      "file": "src/cohezion/skills/skill_generator.md",
+      "description": "",
+      "version": "0.1",
+      "fitness": 0.54,
+      "patterns": 0,
+      "citations": 0
+    },
+    "EXPANSION": {
+      "hash": "ed59a8e0af966e56",
+      "file": "src/cohezion/skills/EXPANSION_PRIME.md",
+      "description": "",
+      "version": "0.1",
+      "fitness": 0.5,
+      "patterns": 0,
+      "citations": 0
+    },
+    "high_d_physics_visualization": {
+      "hash": "cc677ef5a4694231",
+      "file": "src/cohezion/skills/high_d_physics_visualization.md",
+      "description": "",
+      "version": "0.1",
+      "fitness": 0.56,
+      "patterns": 0,
+      "citations": 0
+    },
+    "KNOWLEDGE_GRAPH_INTEGRATION": {
+      "hash": "cc60d223b82860f7",
+      "file": "src/cohezion/skills/KNOWLEDGE_GRAPH_INTEGRATION_PRIME.md",
+      "description": "",
+      "version": "0.1",
+      "fitness": 0.58,
+      "patterns": 0,
+      "citations": 0
+    },
+    "TRANSFORMER_ENGINE_FP4_OPTIMIZATION": {
+      "hash": "78cfd5d66d44e381",
+      "file": "src/cohezion/skills/TRANSFORMER_ENGINE_FP4_OPTIMIZATION_PRIME.md",
+      "description": "",
+      "version": "0.1",
+      "fitness": 0.56,
+      "patterns": 0,
+      "citations": 0
+    },
+    "compound-engineering": {
+      "hash": "76fefa8b5b3a2435",
+      "file": "src/cohezion/skills/COMPOUND_ENGINEERING_PRIME.md",
+      "description": "Compound AI orchestration methodology for multi-agent coordination, local model optimization, and hallucination mitigation. Use when implementing compound features, debugging coherence drift, setting ...",
+      "version": "1.0",
+      "fitness": 0.58,
+      "patterns": 0,
+      "citations": 0
+    },
+    "AUTONOMIC_EVOLUTION": {
+      "hash": "27a7a46f478d1646",
+      "file": "src/cohezion/skills/AUTONOMIC_EVOLUTION_PRIME.md",
+      "description": "",
+      "version": "0.1",
+      "fitness": 0.56,
+      "patterns": 0,
+      "citations": 0
+    },
+    "COMPUTATIONAL_RELATIVITY": {
+      "hash": "b7a77813278c225a",
+      "file": "src/cohezion/skills/COMPUTATIONAL_RELATIVITY_PRIME.md",
+      "description": "",
+      "version": "0.1",
+      "fitness": 0.6,
+      "patterns": 0,
+      "citations": 0
+    },
+    "embedding_strategy": {
+      "hash": "3f3b5ff10db31192",
+      "file": "src/cohezion/skills/embedding_strategy.md",
+      "description": "",
+      "version": "0.1",
+      "fitness": 0.56,
+      "patterns": 0,
+      "citations": 0
+    },
+    "AMBIENT_SONIFICATION": {
+      "hash": "d3e0b83e9f30577f",
+      "file": "src/cohezion/skills/AMBIENT_SONIFICATION_PRIME.md",
+      "description": "",
+      "version": "0.1",
+      "fitness": 0.54,
+      "patterns": 0,
+      "citations": 0
+    },
+    "advanced_physics_simulation": {
+      "hash": "4883ec06bf8cbbf1",
+      "file": "src/cohezion/skills/advanced_physics_simulation.md",
+      "description": "",
+      "version": "0.1",
+      "fitness": 0.56,
+      "patterns": 0,
+      "citations": 0
+    },
+    "RALPH_LOOP": {
+      "hash": "61a4ac195eb1c315",
+      "file": "src/cohezion/skills/RALPH_LOOP_PRIME.md",
+      "description": "",
+      "version": "0.1",
+      "fitness": 0.58,
+      "patterns": 0,
+      "citations": 0
+    },
+    "COMPOUND_TRAINING_CYCLE": {
+      "hash": "03d3296bf4aef37a",
+      "file": "src/cohezion/skills/COMPOUND_TRAINING_CYCLE_PRIME.md",
+      "description": "",
+      "version": "0.1",
+      "fitness": 0.5,
+      "patterns": 0,
+      "citations": 0
+    },
+    "compound_prompt": {
+      "hash": "e58fed932c13b56b",
+      "file": "src/cohezion/skills/compound_prompt.md",
+      "description": "",
+      "version": "0.1",
+      "fitness": 0.58,
+      "patterns": 0,
+      "citations": 0
+    },
+    "VISUALIZATION": {
+      "hash": "2a3869de0945173e",
+      "file": "src/cohezion/skills/VISUALIZATION_PRIME.md",
+      "description": "",
+      "version": "0.1",
+      "fitness": 0.52,
+      "patterns": 0,
+      "citations": 0
+    },
+    "democratic_debate": {
+      "hash": "9de7a2b4e84a2b12",
+      "file": "src/cohezion/skills/democratic_debate.md",
+      "description": "",
+      "version": "0.1",
+      "fitness": 0.56,
+      "patterns": 0,
+      "citations": 0
+    },
+    "CODEBASE_COHERENCE": {
+      "hash": "c49f9b7509833e37",
+      "file": "src/cohezion/skills/CODEBASE_COHERENCE_PRIME.md",
+      "description": "",
+      "version": "0.1",
+      "fitness": 0.5,
+      "patterns": 0,
+      "citations": 0
+    },
+    "OVERNIGHT_AUTONOMOUS": {
+      "hash": "b7769e8f3b7dee38",
+      "file": "src/cohezion/skills/OVERNIGHT_AUTONOMOUS_PRIME.md",
+      "description": "",
+      "version": "0.1",
+      "fitness": 0.5,
+      "patterns": 0,
+      "citations": 0
+    },
+    "project_management": {
+      "hash": "35acf31f0b72cf02",
+      "file": "src/cohezion/skills/project_management.md",
+      "description": "Project Management Prime: Managing Chaos with R-Zero Methodology.",
+      "version": "0.1",
+      "fitness": 0.5,
+      "patterns": 0,
+      "citations": 0
+    },
+    "code_simplification": {
+      "hash": "4e1532dcef724fd1",
+      "file": "src/cohezion/skills/code_simplification.md",
+      "description": "",
+      "version": "0.1",
+      "fitness": 0.52,
+      "patterns": 0,
+      "citations": 0
+    },
+    "NOETHER_CONSERVATION": {
+      "hash": "672d0d86587982cc",
+      "file": "src/cohezion/skills/NOETHER_CONSERVATION_PRIME.md",
+      "description": "",
+      "version": "0.1",
+      "fitness": 0.6,
+      "patterns": 0,
+      "citations": 0
+    }
+  },
+  "by_category": {
+    "SELF": [
+      "self-healing"
+    ],
+    "SWARM": [
+      "SWARM_PLANNER"
+    ],
+    "TOKEN": [
+      "token-efficiency"
+    ],
+    "CLAUDE": [
+      "CLAUDE_SPECIALIST"
+    ],
+    "RL": [
+      "RL_ENVIRONMENT_DESIGN"
+    ],
+    "GEMINI": [
+      "GEMINI_SPECIALIST"
+    ],
+    "ORPHAN": [
+      "ORPHAN_MODULE_INTEGRATION"
+    ],
+    "swarm": [
+      "swarm_orchestration",
+      "swarm_synthesis"
+    ],
+    "MCP": [
+      "MCP_SPECIALIST"
+    ],
+    "hiho": [
+      "hiho_reality_sim"
+    ],
+    "ANTI": [
+      "ANTI_PATTERN_DEFENSE",
+      "anti-pattern-guardian"
+    ],
+    "universe": [
+      "universe_physics"
+    ],
+    "TRAINING": [
+      "TRAINING_DATA_CAPTURE",
+      "TRAINING_DIAGNOSTIC_LOOP"
+    ],
+    "gateway": [
+      "gateway_architecture"
+    ],
+    "plasma": [
+      "plasma_theosophy"
+    ],
+    "MYCELIUM": [
+      "MYCELIUM"
+    ],
+    "SHOWREEL": [
+      "SHOWREEL_GENERATION"
+    ],
+    "QUADRATURE": [
+      "QUADRATURE"
+    ],
+    "SURREALDB": [
+      "SURREALDB_MCP",
+      "SURREALDB_OPERATIONS",
+      "SURREALDB_OPTIMIZER"
+    ],
+    "meta": [
+      "meta_skill"
+    ],
+    "HOLOGRAPHIC": [
+      "HOLOGRAPHIC_FLUME"
+    ],
+    "sandboxed": [
+      "sandboxed_simulation"
+    ],
+    "ELEGANT": [
+      "ELEGANT_SIMPLICITY"
+    ],
+    "HALLUCINATION": [
+      "HALLUCINATION_RESOLVER"
+    ],
+    "BATCHING": [
+      "BATCHING_PROTOCOL"
+    ],
+    "api": [
+      "api_patterns"
+    ],
+    "EXTRACTED": [
+      "EXTRACTED_BLOCK_D41D8CD9"
+    ],
+    "semantic": [
+      "semantic_analysis",
+      "semantic_algebra"
+    ],
+    "OLLAMA": [
+      "OLLAMA_SPECIALIST"
+    ],
+    "HIHO": [
+      "HIHO_STABILITY"
+    ],
+    "gmail": [
+      "gmail_mcp"
+    ],
+    "TEMPORAL": [
+      "TEMPORAL_PRECISION"
+    ],
+    "FAIL": [
+      "FAIL_FAST"
+    ],
+    "3d": [
+      "3d_rendering"
+    ],
+    "DREAM": [
+      "DREAM_LOGIC"
+    ],
+    "TEAM": [
+      "team-orchestration"
+    ],
+    "CONNECTIVITY": [
+      "CONNECTIVITY_MANAGEMENT"
+    ],
+    "self": [
+      "self_evaluation"
+    ],
+    "smart": [
+      "smart_routing"
+    ],
+    "mass": [
+      "mass_simulation"
+    ],
+    "QUANTUM": [
+      "QUANTUM_MPS_ROUTING",
+      "QUANTUM_LINK"
+    ],
+    "JOURNEY": [
+      "JOURNEY_DASHBOARD",
+      "JOURNEY_TRACKING"
+    ],
+    "USAGE": [
+      "USAGE_ANALYTICS"
+    ],
+    "SYSTEM": [
+      "SYSTEM_DEFINITION",
+      "SYSTEM_MONITORING",
+      "SYSTEM_GUARDRAILS"
+    ],
+    "enhanced": [
+      "enhanced_simulation"
+    ],
+    "KAGLLE": [
+      "KAGLLE_BLACKWELL_RUNNER"
+    ],
+    "MOE": [
+      "MOE_HYBRID_ENGINEERING"
+    ],
+    "multimodal": [
+      "multimodal_experience",
+      "multimodal_visualization"
+    ],
+    "product": [
+      "product_management"
+    ],
+    "adaptive": [
+      "adaptive_template_engine"
+    ],
+    "REDUCER": [
+      "REDUCER"
+    ],
+    "code": [
+      "code_standards",
+      "code_simplification"
+    ],
+    "RELIABILITY": [
+      "reliability",
+      "RELIABILITY_FALLBACK"
+    ],
+    "PHYSICS": [
+      "PHYSICS_LINEAGE"
+    ],
+    "MODEL": [
+      "model-routing",
+      "MODEL_POOL_MANAGEMENT"
+    ],
+    "animations": [
+      "animations"
+    ],
+    "SURREAL": [
+      "SURREAL_DBA"
+    ],
+    "metaphysics": [
+      "metaphysics"
+    ],
+    "research": [
+      "research_synthesis"
+    ],
+    "interactive": [
+      "interactive_ui"
+    ],
+    "flume": [
+      "flume_comparison"
+    ],
+    "VAULT": [
+      "VAULT_KEEPER"
+    ],
+    "MEMORY": [
+      "MEMORY_MCP"
+    ],
+    "enterprise": [
+      "enterprise_ai_server_mastery"
+    ],
+    "BLACKWELL": [
+      "BLACKWELL_HARDWARE_OPTIMIZATION"
+    ],
+    "compound": [
+      "compound_engineering",
+      "compound_prompt"
+    ],
+    "async": [
+      "async_workflow"
+    ],
+    "MAMBA": [
+      "MAMBA_STATE_TRACKING"
+    ],
+    "PERSISTENT": [
+      "PERSISTENT_UNIVERSE"
+    ],
+    "PLATFORM": [
+      "PLATFORM_COORDINATOR"
+    ],
+    "META": [
+      "META_HARNESS_TRACES"
+    ],
+    "AUTONOMIC": [
+      "AUTONOMIC_ANALYST",
+      "AUTONOMIC_RESEARCH",
+      "AUTONOMIC_QUALITY_GUARD",
+      "AUTONOMIC_EVOLUTION"
+    ],
+    "KNOWLEDGE": [
+      "KNOWLEDGE_HARVESTING",
+      "KNOWLEDGE_GRAPH_INTEGRATION"
+    ],
+    "UNIVERSE": [
+      "UNIVERSE_SIMULATION_PERSISTENCE"
+    ],
+    "physics": [
+      "physics_explainability",
+      "physics_informed_prediction",
+      "physics"
+    ],
+    "AMD": [
+      "AMD_MLA_DECODE",
+      "AMD_GEMM_MXFP4",
+      "AMD_MOE_MXFP4"
+    ],
+    "DISSIPATIVE": [
+      "DISSIPATIVE_STRUCTURES"
+    ],
+    "REPO": [
+      "REPO_HYGIENE"
+    ],
+    "LOCAL": [
+      "LOCAL_OFFLOAD"
+    ],
+    "IDE": [
+      "IDE_OPTIMIZATION"
+    ],
+    "marimo": [
+      "marimo_notebooks",
+      "marimo_development"
+    ],
+    "RESEARCH": [
+      "RESEARCH_SQUAD",
+      "RESEARCH_PATTERNS"
+    ],
+    "GROUP": [
+      "GROUP_EVOLVING_AGENTS"
+    ],
+    "MULTI": [
+      "MULTI_PERSPECTIVE_REVIEW"
+    ],
+    "AGENT": [
+      "AGENT_SOVEREIGNTY_ETHICS"
+    ],
+    "SECURITY": [
+      "security-guardrails"
+    ],
+    "HOOKIFY": [
+      "hookify-rule-engine"
+    ],
+    "common": [
+      "common_codebase_health"
+    ],
+    "SMALL": [
+      "SMALL_MODEL_SPECIALIST"
+    ],
+    "resource": [
+      "resource_management"
+    ],
+    "ADVERSARIAL": [
+      "ADVERSARIAL_TDD",
+      "ADVERSARIAL_TESTING"
+    ],
+    "AUTONOMOUS": [
+      "AUTONOMOUS_RESILIENCE"
+    ],
+    "CONTEXT": [
+      "CONTEXT_ENTROPY_MANAGEMENT"
+    ],
+    "ASCENSION": [
+      "ASCENSION_SKILL"
+    ],
+    "bmad": [
+      "bmad_workflow"
+    ],
+    "ADAPTIVE": [
+      "ADAPTIVE_TEMPLATE"
+    ],
+    "EXPERIENCE": [
+      "EXPERIENCE_VAE_TRAINING"
+    ],
+    "DEPENDENCY": [
+      "DEPENDENCY_AUTOMATION"
+    ],
+    "RETROSPECTIVE": [
+      "RETROSPECTIVE_SKILL"
+    ],
+    "MATH": [
+      "MATH_REASONING_SWARM",
+      "MATH_COMMAND"
+    ],
+    "observable": [
+      "observable_ai"
+    ],
+    "allostatica": [
+      "allostatica_prime"
+    ],
+    "controller": [
+      "controller_agent"
+    ],
+    "learning": [
+      "learning"
+    ],
+    "CROSS": [
+      "CROSS_PLATFORM_SKILL_FORMAT"
+    ],
+    "POLYGLOT": [
+      "POLYGLOT_DELEGATION"
+    ],
+    "ANTHROPIC": [
+      "ANTHROPIC_SKILL_BUILDER"
+    ],
+    "DATABASE": [
+      "DATABASE"
+    ],
+    "QUARTER": [
+      "QUARTER_ON_A_STRING"
+    ],
+    "SEMANTIC": [
+      "semantic-caching"
+    ],
+    "alignment": [
+      "alignment_verification"
+    ],
+    "THROTTLED": [
+      "THROTTLED_SCOUT"
+    ],
+    "parallel": [
+      "parallel_orchestration"
+    ],
+    "RECOVERY": [
+      "RECOVERY"
+    ],
+    "COMPOUND": [
+      "COMPOUND_SELF_IMPROVEMENT",
+      "compound-engineering",
+      "COMPOUND_TRAINING_CYCLE"
+    ],
+    "matsumoto": [
+      "matsumoto_hiho_synthesis"
+    ],
+    "SANDBOX": [
+      "SANDBOX_ISOLATION"
+    ],
+    "KERNEL": [
+      "KERNEL_OPTIMIZATION"
+    ],
+    "PI": [
+      "pi-integration"
+    ],
+    "CITATIONS": [
+      "CITATIONS"
+    ],
+    "VLIW": [
+      "VLIW_COG_BRIDGE"
+    ],
+    "REMOTE": [
+      "REMOTE_ORCHESTRATION"
+    ],
+    "visual": [
+      "visual_validation"
+    ],
+    "caching": [
+      "caching"
+    ],
+    "SPATIAL": [
+      "SPATIAL_PHONONS"
+    ],
+    "AGENTIC": [
+      "AGENTIC_DESIGN"
+    ],
+    "DOC": [
+      "DOC_TO_LORA_COMPRESSION"
+    ],
+    "INTERPRETABILITY": [
+      "INTERPRETABILITY"
+    ],
+    "API": [
+      "API_ERROR_RESILIENCE"
+    ],
+    "FRONTEND": [
+      "FRONTEND_DESIGN"
+    ],
+    "TEMPLATE": [
+      "TEMPLATE_DRIVEN_DEVELOPMENT"
+    ],
+    "knowledge": [
+      "knowledge_mining"
+    ],
+    "CAPABILITY": [
+      "CAPABILITY_REGISTRY"
+    ],
+    "PROACTIVE": [
+      "PROACTIVE_PERSISTENCE"
+    ],
+    "SIMULATION": [
+      "SIMULATION_PROFILES"
+    ],
+    "test": [
+      "test_automation"
+    ],
+    "VECTOR": [
+      "VECTOR_STORE"
+    ],
+    "RIGOROUS": [
+      "RIGOROUS_EVALUATION"
+    ],
+    "AGENTJET": [
+      "agentjet"
+    ],
+    "FLUME": [
+      "flume-methodology"
+    ],
+    "REDUNDANCY": [
+      "REDUNDANCY_SUPPRESSION"
+    ],
+    "pre": [
+      "pre_flight_validation"
+    ],
+    "TYPESCRIPT": [
+      "TYPESCRIPT_ADVANCED_TYPES"
+    ],
+    "LONG": [
+      "LONG_RUNNING_INFERENCE"
+    ],
+    "CONSTITUTION": [
+      "CONSTITUTION"
+    ],
+    "REPOSITORY": [
+      "REPOSITORY_HEALTH"
+    ],
+    "TESTING": [
+      "testing"
+    ],
+    "EXTERNAL": [
+      "EXTERNAL_RESEARCH"
+    ],
+    "SYMBIOTIC": [
+      "SYMBIOTIC_FILE"
+    ],
+    "ollama": [
+      "ollama_management"
+    ],
+    "skill": [
+      "skill_generator"
+    ],
+    "EXPANSION": [
+      "EXPANSION"
+    ],
+    "high": [
+      "high_d_physics_visualization"
+    ],
+    "TRANSFORMER": [
+      "TRANSFORMER_ENGINE_FP4_OPTIMIZATION"
+    ],
+    "COMPUTATIONAL": [
+      "COMPUTATIONAL_RELATIVITY"
+    ],
+    "embedding": [
+      "embedding_strategy"
+    ],
+    "AMBIENT": [
+      "AMBIENT_SONIFICATION"
+    ],
+    "advanced": [
+      "advanced_physics_simulation"
+    ],
+    "RALPH": [
+      "RALPH_LOOP"
+    ],
+    "VISUALIZATION": [
+      "VISUALIZATION"
+    ],
+    "democratic": [
+      "democratic_debate"
+    ],
+    "CODEBASE": [
+      "CODEBASE_COHERENCE"
+    ],
+    "OVERNIGHT": [
+      "OVERNIGHT_AUTONOMOUS"
+    ],
+    "project": [
+      "project_management"
+    ],
+    "NOETHER": [
+      "NOETHER_CONSERVATION"
+    ]
+  },
+  "by_version": {
+    "0.1": [
+      "self-healing",
+      "SWARM_PLANNER",
+      "CLAUDE_SPECIALIST",
+      "RL_ENVIRONMENT_DESIGN",
+      "GEMINI_SPECIALIST",
+      "ORPHAN_MODULE_INTEGRATION",
+      "swarm_orchestration",
+      "MCP_SPECIALIST",
+      "hiho_reality_sim",
+      "ANTI_PATTERN_DEFENSE",
+      "universe_physics",
+      "TRAINING_DATA_CAPTURE",
+      "gateway_architecture",
+      "plasma_theosophy",
+      "MYCELIUM",
+      "SHOWREEL_GENERATION",
+      "QUADRATURE",
+      "SURREALDB_MCP",
+      "meta_skill",
+      "HOLOGRAPHIC_FLUME",
+      "sandboxed_simulation",
+      "ELEGANT_SIMPLICITY",
+      "HALLUCINATION_RESOLVER",
+      "BATCHING_PROTOCOL",
+      "api_patterns",
+      "EXTRACTED_BLOCK_D41D8CD9",
+      "semantic_analysis",
+      "OLLAMA_SPECIALIST",
+      "HIHO_STABILITY",
+      "gmail_mcp",
+      "TEMPORAL_PRECISION",
+      "FAIL_FAST",
+      "3d_rendering",
+      "DREAM_LOGIC",
+      "CONNECTIVITY_MANAGEMENT",
+      "self_evaluation",
+      "smart_routing",
+      "mass_simulation",
+      "QUANTUM_MPS_ROUTING",
+      "JOURNEY_DASHBOARD",
+      "USAGE_ANALYTICS",
+      "SYSTEM_DEFINITION",
+      "TRAINING_DIAGNOSTIC_LOOP",
+      "enhanced_simulation",
+      "KAGLLE_BLACKWELL_RUNNER",
+      "MOE_HYBRID_ENGINEERING",
+      "multimodal_experience",
+      "product_management",
+      "adaptive_template_engine",
+      "REDUCER",
+      "code_standards",
+      "PHYSICS_LINEAGE",
+      "model-routing",
+      "animations",
+      "SURREAL_DBA",
+      "JOURNEY_TRACKING",
+      "metaphysics",
+      "research_synthesis",
+      "interactive_ui",
+      "flume_comparison",
+      "VAULT_KEEPER",
+      "MEMORY_MCP",
+      "enterprise_ai_server_mastery",
+      "BLACKWELL_HARDWARE_OPTIMIZATION",
+      "compound_engineering",
+      "async_workflow",
+      "semantic_algebra",
+      "MAMBA_STATE_TRACKING",
+      "PERSISTENT_UNIVERSE",
+      "PLATFORM_COORDINATOR",
+      "META_HARNESS_TRACES",
+      "AUTONOMIC_ANALYST",
+      "KNOWLEDGE_HARVESTING",
+      "UNIVERSE_SIMULATION_PERSISTENCE",
+      "physics_explainability",
+      "AMD_MLA_DECODE",
+      "SYSTEM_MONITORING",
+      "DISSIPATIVE_STRUCTURES",
+      "REPO_HYGIENE",
+      "LOCAL_OFFLOAD",
+      "IDE_OPTIMIZATION",
+      "marimo_notebooks",
+      "SURREALDB_OPERATIONS",
+      "anti-pattern-guardian",
+      "RESEARCH_SQUAD",
+      "GROUP_EVOLVING_AGENTS",
+      "MULTI_PERSPECTIVE_REVIEW",
+      "AGENT_SOVEREIGNTY_ETHICS",
+      "security-guardrails",
+      "common_codebase_health",
+      "SMALL_MODEL_SPECIALIST",
+      "resource_management",
+      "ADVERSARIAL_TDD",
+      "AUTONOMOUS_RESILIENCE",
+      "CONTEXT_ENTROPY_MANAGEMENT",
+      "ASCENSION_SKILL",
+      "bmad_workflow",
+      "ADAPTIVE_TEMPLATE",
+      "EXPERIENCE_VAE_TRAINING",
+      "DEPENDENCY_AUTOMATION",
+      "RETROSPECTIVE_SKILL",
+      "MATH_REASONING_SWARM",
+      "observable_ai",
+      "allostatica_prime",
+      "controller_agent",
+      "RESEARCH_PATTERNS",
+      "learning",
+      "MODEL_POOL_MANAGEMENT",
+      "SYSTEM_GUARDRAILS",
+      "CROSS_PLATFORM_SKILL_FORMAT",
+      "POLYGLOT_DELEGATION",
+      "ANTHROPIC_SKILL_BUILDER",
+      "DATABASE",
+      "QUARTER_ON_A_STRING",
+      "alignment_verification",
+      "THROTTLED_SCOUT",
+      "parallel_orchestration",
+      "RECOVERY",
+      "COMPOUND_SELF_IMPROVEMENT",
+      "AUTONOMIC_RESEARCH",
+      "matsumoto_hiho_synthesis",
+      "SANDBOX_ISOLATION",
+      "KERNEL_OPTIMIZATION",
+      "pi-integration",
+      "CITATIONS",
+      "VLIW_COG_BRIDGE",
+      "REMOTE_ORCHESTRATION",
+      "visual_validation",
+      "caching",
+      "SPATIAL_PHONONS",
+      "AGENTIC_DESIGN",
+      "DOC_TO_LORA_COMPRESSION",
+      "AMD_GEMM_MXFP4",
+      "INTERPRETABILITY",
+      "physics_informed_prediction",
+      "API_ERROR_RESILIENCE",
+      "AMD_MOE_MXFP4",
+      "FRONTEND_DESIGN",
+      "TEMPLATE_DRIVEN_DEVELOPMENT",
+      "knowledge_mining",
+      "CAPABILITY_REGISTRY",
+      "PROACTIVE_PERSISTENCE",
+      "SURREALDB_OPTIMIZER",
+      "SIMULATION_PROFILES",
+      "test_automation",
+      "AUTONOMIC_QUALITY_GUARD",
+      "VECTOR_STORE",
+      "ADVERSARIAL_TESTING",
+      "RIGOROUS_EVALUATION",
+      "QUANTUM_LINK",
+      "RELIABILITY_FALLBACK",
+      "physics",
+      "marimo_development",
+      "REDUNDANCY_SUPPRESSION",
+      "pre_flight_validation",
+      "TYPESCRIPT_ADVANCED_TYPES",
+      "LONG_RUNNING_INFERENCE",
+      "CONSTITUTION",
+      "multimodal_visualization",
+      "REPOSITORY_HEALTH",
+      "MATH_COMMAND",
+      "EXTERNAL_RESEARCH",
+      "SYMBIOTIC_FILE",
+      "swarm_synthesis",
+      "ollama_management",
+      "skill_generator",
+      "EXPANSION",
+      "high_d_physics_visualization",
+      "KNOWLEDGE_GRAPH_INTEGRATION",
+      "TRANSFORMER_ENGINE_FP4_OPTIMIZATION",
+      "AUTONOMIC_EVOLUTION",
+      "COMPUTATIONAL_RELATIVITY",
+      "embedding_strategy",
+      "AMBIENT_SONIFICATION",
+      "advanced_physics_simulation",
+      "RALPH_LOOP",
+      "COMPOUND_TRAINING_CYCLE",
+      "compound_prompt",
+      "VISUALIZATION",
+      "democratic_debate",
+      "CODEBASE_COHERENCE",
+      "OVERNIGHT_AUTONOMOUS",
+      "project_management",
+      "code_simplification",
+      "NOETHER_CONSERVATION"
+    ],
+    "1.0": [
+      "token-efficiency",
+      "reliability",
+      "semantic-caching",
+      "agentjet",
+      "flume-methodology",
+      "testing",
+      "compound-engineering"
+    ],
+    "1.0.0": [
+      "team-orchestration",
+      "hookify-rule-engine"
+    ]
+  },
+  "high_fitness": [],
+  "dependencies": {
+    "self-healing": [
+      "SWARM_ORCHESTRATION",
+      "OLLAMA_MANAGEMENT"
+    ],
+    "SWARM_PLANNER": [
+      "TEAM_ORCHESTRATION",
+      "MODEL_ROUTING",
+      "ANTHROPIC_SKILL_BUILDER"
+    ],
+    "token-efficiency": [
+      "BATCHING_PROTOCOL",
+      "COMPOUND_ENGINEERING",
+      "LOCAL_OFFLOAD"
+    ],
+    "swarm_orchestration": [
+      "MODEL_ROUTING",
+      "PARALLEL_ORCHESTRATION",
+      "CALM_ABSTRACTION"
+    ],
+    "hiho_reality_sim": [
+      "PHYSICS_LINEAGE",
+      "NOETHER_CONSERVATION",
+      "HIHO_STABILITY",
+      "DISSIPATIVE_STRUCTURES",
+      "ADVANCED_PHYSICS_SIMULATION",
+      "FLUME_ORCHESTRATION"
+    ],
+    "ANTI_PATTERN_DEFENSE": [
+      "SYSTEM_MONITORING",
+      "RELIABILITY_FALLBACK"
+    ],
+    "universe_physics": [
+      "CALM_ABSTRACTION",
+      "UNIVERSE_VISUALIZATION"
+    ],
+    "TRAINING_DATA_CAPTURE": [
+      "FLUME_METHODOLOGY",
+      "MASS_SIMULATION",
+      "SEMANTIC_ANALYSIS"
+    ],
+    "gateway_architecture": [
+      "FLUME_METHODOLOGY",
+      "CONTROLLER_AGENT",
+      "UNIVERSE_VISUALIZATION"
+    ],
+    "MYCELIUM": [
+      "REPO_HYGIENE",
+      "ADVERSARIAL_TESTING"
+    ],
+    "SHOWREEL_GENERATION": [
+      "GALLERY_AGENT",
+      "SONIFICATION"
+    ],
+    "SURREALDB_MCP": [
+      "KNOWLEDGE_GRAPH_INTEGRATION",
+      "EMBEDDING_STRATEGY",
+      "MCP_SERVER"
+    ],
+    "HOLOGRAPHIC_FLUME": [
+      "PHYSICS_LINEAGE",
+      "FLUME_METHODOLOGY",
+      "HIHO_STABILITY",
+      "NOETHER_CONSERVATION"
+    ],
+    "ELEGANT_SIMPLICITY": [
+      "CONTEXT_ENTROPY_MANAGEMENT",
+      "AUTONOMIC_EVOLUTION"
+    ],
+    "HALLUCINATION_RESOLVER": [
+      "REPO_HYGIENE",
+      "PERSISTENT_QUALITY",
+      "COHEZION_BRIDGE"
+    ],
+    "BATCHING_PROTOCOL": [
+      "LOCAL_OFFLOAD",
+      "COMPOUND_ENGINEERING",
+      "SEMANTIC_CACHING"
+    ],
+    "api_patterns": [
+      "MCP_SERVER",
+      "SECURITY_GUARDRAILS"
+    ],
+    "semantic_analysis": [
+      "EMBEDDING_STRATEGY",
+      "FLUME_METHODOLOGY",
+      "KNOWLEDGE_MINING"
+    ],
+    "HIHO_STABILITY": [
+      "PHYSICS_LINEAGE",
+      "DISSIPATIVE_STRUCTURES",
+      "NOETHER_CONSERVATION",
+      "SWARM_ORCHESTRATION",
+      "FLUME_NAVIGATOR"
+    ],
+    "gmail_mcp": [
+      "GATEWAY_ARCHITECTURE",
+      "REPO_HYGIENE",
+      "MCP_SERVER"
+    ],
+    "TEMPORAL_PRECISION": [
+      "RESOURCE_MANAGEMENT",
+      "INTERPRETABILITY"
+    ],
+    "3d_rendering": [
+      "12D_PLOTS",
+      "ANIMATIONS",
+      "UNIVERSE_VISUALIZATION"
+    ],
+    "team-orchestration": [
+      "COMPOUND_ENGINEERING",
+      "SWARM_ORCHESTRATION",
+      "MODEL_ROUTING"
+    ],
+    "self_evaluation": [
+      "COMPOUND_PROMPT",
+      "EMBEDDING_STRATEGY",
+      "SKILL_GENERATOR"
+    ],
+    "smart_routing": [
+      "MODEL_ROUTING",
+      "SWARM_ORCHESTRATION",
+      "RELIABILITY"
+    ],
+    "mass_simulation": [
+      "R_ZERO_CHALLENGER",
+      "PARALLEL_ORCHESTRATION",
+      "FLUME_METHODOLOGY"
+    ],
+    "QUANTUM_MPS_ROUTING": [
+      "PERSISTENT_QUALITY",
+      "FLUME_ENCODER"
+    ],
+    "JOURNEY_DASHBOARD": [
+      "JOURNEY_TRACKING",
+      "VISUALIZATION",
+      "HIHO_STABILITY"
+    ],
+    "USAGE_ANALYTICS": [
+      "CAPABILITY_REGISTRY",
+      "RESOURCE_MONITOR"
+    ],
+    "SYSTEM_DEFINITION": [
+      "SELF_EVALUATION",
+      "CODE_STANDARDS",
+      "COMPOUND_ENGINEERING"
+    ],
+    "enhanced_simulation": [
+      "FLUME_METHODOLOGY",
+      "R_ZERO_CHALLENGER",
+      "MASS_SIMULATION",
+      "TRAINING_DATA_CAPTURE"
+    ],
+    "KAGLLE_BLACKWELL_RUNNER": [
+      "BLACKWELL_HARDWARE_OPTIMIZATION",
+      "MOE_HYBRID_ENGINEERING"
+    ],
+    "MOE_HYBRID_ENGINEERING": [
+      "RALPH_LOOP",
+      "EMBEDDING_STRATEGY"
+    ],
+    "multimodal_experience": [
+      "MARIMO_NOTEBOOKS",
+      "FLUME_METHODOLOGY",
+      "SWARM_ORCHESTRATION"
+    ],
+    "product_management": [
+      "PROJECT_MANAGEMENT",
+      "R_ZERO_CHALLENGER",
+      "DEMOCRATIC_DEBATE"
+    ],
+    "adaptive_template_engine": [
+      "TEMPLATE_DRIVEN_DEVELOPMENT",
+      "COMPOUND_ENGINEERING",
+      "ADAPTIVE_TEMPLATE"
+    ],
+    "code_standards": [
+      "MODEL_ROUTING",
+      "PARALLEL_ORCHESTRATION",
+      "SYSTEM_MONITORING"
+    ],
+    "reliability": [
+      "SELF_HEALING"
+    ],
+    "PHYSICS_LINEAGE": [
+      "HIHO_STABILITY",
+      "NOETHER_CONSERVATION",
+      "DISSIPATIVE_STRUCTURES",
+      "HOLOGRAPHIC_FLUME",
+      "COMPUTATIONAL_RELATIVITY"
+    ],
+    "model-routing": [
+      "EMBEDDING_STRATEGY",
+      "VECTOR_STORE",
+      "PARALLEL_ORCHESTRATION",
+      "CODE_STANDARDS"
+    ],
+    "animations": [
+      "3D_RENDERING",
+      "UNIVERSE_VISUALIZATION",
+      "FLUME_METHODOLOGY"
+    ],
+    "JOURNEY_TRACKING": [
+      "UNIVERSE_PHYSICS",
+      "UNIVERSE_VISUALIZATION"
+    ],
+    "research_synthesis": [
+      "KNOWLEDGE_MINING",
+      "CALM_ABSTRACTION"
+    ],
+    "interactive_ui": [
+      "MARIMO_NOTEBOOKS",
+      "3D_RENDERING",
+      "UNIVERSE_VISUALIZATION"
+    ],
+    "flume_comparison": [
+      "CALM_ABSTRACTION",
+      "JOURNEY_TRACKING"
+    ],
+    "enterprise_ai_server_mastery": [
+      "HIGH_D_PHYSICS_VISUALIZATION",
+      "COMMON_CODEBASE_HEALTH",
+      "SURREALDB_MCP"
+    ],
+    "BLACKWELL_HARDWARE_OPTIMIZATION": [
+      "MOE_HYBRID_ENGINEERING",
+      "RALPH_LOOP"
+    ],
+    "compound_engineering": [
+      "METAPHYSICS",
+      "PHYSICS"
+    ],
+    "semantic_algebra": [
+      "FLUME_METHODOLOGY",
+      "GATEWAY_ARCHITECTURE",
+      "CROSS_MODAL_EMBEDDING"
+    ],
+    "MAMBA_STATE_TRACKING": [
+      "HARDWARE_PROFILE",
+      "SELF_EVALUATION",
+      "JOURNEY_TRACKING"
+    ],
+    "PERSISTENT_UNIVERSE": [
+      "GATEWAY_ARCHITECTURE",
+      "OBSERVABLE_AI",
+      "PHYSICS_INFORMED_PREDICTION"
+    ],
+    "AUTONOMIC_ANALYST": [
+      "AUTONOMIC_RESEARCH",
+      "JOURNEY_DASHBOARD",
+      "AUTONOMIC_QUALITY_GUARD"
+    ],
+    "KNOWLEDGE_HARVESTING": [
+      "SYSTEM_HARDENING"
+    ],
+    "SYSTEM_MONITORING": [
+      "MODEL_ROUTING",
+      "PARALLEL_ORCHESTRATION",
+      "CODE_STANDARDS"
+    ],
+    "DISSIPATIVE_STRUCTURES": [
+      "PHYSICS_LINEAGE",
+      "HIHO_STABILITY",
+      "THROTTLED_SCOUT",
+      "COMPOUND_ENGINEERING"
+    ],
+    "LOCAL_OFFLOAD": [
+      "HALLUCINATION_RESOLVER",
+      "PERSISTENT_QUALITY",
+      "COHEZION_BRIDGE"
+    ],
+    "IDE_OPTIMIZATION": [
+      "PERSISTENT_QUALITY",
+      "SELF_HEALING",
+      "SURREALDB_MCP"
+    ],
+    "marimo_notebooks": [
+      "INTERACTIVE_UI",
+      "3D_RENDERING",
+      "FLUME_METHODOLOGY"
+    ],
+    "anti-pattern-guardian": [
+      "PI_INTEGRATION",
+      "TESTING",
+      "RELIABILITY"
+    ],
+    "GROUP_EVOLVING_AGENTS": [
+      "COMPOUND_ENGINEERING",
+      "HIHO_STABILITY",
+      "TEAM_ORCHESTRATION",
+      "EXPERIENCE_VAE_TRAINING"
+    ],
+    "security-guardrails": [
+      "MCP_SERVER",
+      "SELF_HEALING"
+    ],
+    "common_codebase_health": [
+      "PRODUCT_MANAGEMENT",
+      "COMPOUND_ENGINEERING",
+      "SURREALDB_MCP"
+    ],
+    "resource_management": [
+      "SYSTEM_MONITORING",
+      "RELIABILITY",
+      "MODEL_ROUTING"
+    ],
+    "ADVERSARIAL_TDD": [
+      "MATH_REASONING_SWARM",
+      "HALLUCINATION_RESOLVER"
+    ],
+    "CONTEXT_ENTROPY_MANAGEMENT": [
+      "MEMORY_MCP",
+      "KNOWLEDGE_HARVESTING",
+      "REPO_HYGIENE"
+    ],
+    "ASCENSION_SKILL": [
+      "REWARD_AND_RATCHET",
+      "FLUME_DYNAMICS",
+      "12D_STATE_STABILITY"
+    ],
+    "bmad_workflow": [
+      "SWARM_ORCHESTRATION",
+      "MCP_SERVER"
+    ],
+    "ADAPTIVE_TEMPLATE": [
+      "TEMPLATE_DRIVEN_DEVELOPMENT",
+      "SKILL_GENERATOR",
+      "COMPOUND_ENGINEERING"
+    ],
+    "DEPENDENCY_AUTOMATION": [
+      "SECURITY_SCALING"
+    ],
+    "RETROSPECTIVE_SKILL": [
+      "METAPHYSICS",
+      "PHYSICS"
+    ],
+    "MATH_REASONING_SWARM": [
+      "FLUME_ENCODING",
+      "HIHO_STABILITY"
+    ],
+    "observable_ai": [
+      "GATEWAY_ARCHITECTURE",
+      "UNIVERSE_VISUALIZATION",
+      "FLUME_METHODOLOGY"
+    ],
+    "controller_agent": [
+      "SWARM_ORCHESTRATION",
+      "DEMOCRATIC_DEBATE"
+    ],
+    "RESEARCH_PATTERNS": [
+      "FLUME_METHODOLOGY",
+      "IDE_OPTIMIZATION",
+      "HIHO_STABILITY"
+    ],
+    "learning": [
+      "FLUME_METHODOLOGY",
+      "EMBEDDING_STRATEGY",
+      "MODEL_ROUTING"
+    ],
+    "POLYGLOT_DELEGATION": [
+      "SWARM_PLANNER",
+      "HARDWARE_PROFILE"
+    ],
+    "ANTHROPIC_SKILL_BUILDER": [
+      "SKILL_GENERATOR",
+      "COMPOUND_ENGINEERING"
+    ],
+    "DATABASE": [
+      "VECTOR_STORE",
+      "KNOWLEDGE_GRAPH_INTEGRATION",
+      "CACHING"
+    ],
+    "QUARTER_ON_A_STRING": [
+      "COMPOUND_ENGINEERING",
+      "MODEL_ROUTING"
+    ],
+    "alignment_verification": [
+      "OBSERVABLE_AI",
+      "PHYSICS_INFORMED_PREDICTION",
+      "GATEWAY_ARCHITECTURE"
+    ],
+    "THROTTLED_SCOUT": [
+      "RESOURCE_MANAGEMENT",
+      "SYSTEM_MONITORING",
+      "AGENTIC_DESIGN"
+    ],
+    "parallel_orchestration": [
+      "MODEL_ROUTING",
+      "CODE_STANDARDS",
+      "EMBEDDING_STRATEGY"
+    ],
+    "RECOVERY": [
+      "SWARM_ORCHESTRATION",
+      "PERSISTENT_UNIVERSE"
+    ],
+    "AUTONOMIC_RESEARCH": [
+      "COMPOUND_ENGINEERING",
+      "AUTONOMIC_EVOLUTION",
+      "TRACKIO_METRICS"
+    ],
+    "matsumoto_hiho_synthesis": [
+      "HIHO_REALITY_SIM",
+      "R_ZERO"
+    ],
+    "SANDBOX_ISOLATION": [
+      "SIMULATION_PROFILES",
+      "SECURITY_GUARDRAILS",
+      "ADVERSARIAL_TESTING"
+    ],
+    "VLIW_COG_BRIDGE": [
+      "FLUME_METHODOLOGY",
+      "HIHO_STABILITY"
+    ],
+    "REMOTE_ORCHESTRATION": [
+      "TEAM_ORCHESTRATION",
+      "AUTONOMOUS_RESILIENCE",
+      "KNOWLEDGE_HARVESTING",
+      "COMPOUND_ENGINEERING",
+      "SESSION_PERSISTENCE"
+    ],
+    "visual_validation": [
+      "TESTING",
+      "API_PATTERNS"
+    ],
+    "caching": [
+      "DATABASE",
+      "RELIABILITY",
+      "VECTOR_STORE"
+    ],
+    "SPATIAL_PHONONS": [
+      "PERSISTENT_UNIVERSE",
+      "HIHO_STABILITY"
+    ],
+    "AGENTIC_DESIGN": [
+      "VLIW_COG_BRIDGE",
+      "COMPOUND_ENGINEERING"
+    ],
+    "DOC_TO_LORA_COMPRESSION": [
+      "CONTEXT_ENTROPY_MANAGEMENT",
+      "AUTONOMIC_EVOLUTION",
+      "SWARM_ORCHESTRATION"
+    ],
+    "INTERPRETABILITY": [
+      "RECOVERY",
+      "SWARM_ORCHESTRATION"
+    ],
+    "physics_informed_prediction": [
+      "GATEWAY_ARCHITECTURE",
+      "FLUME_METHODOLOGY",
+      "SEMANTIC_ALGEBRA"
+    ],
+    "FRONTEND_DESIGN": [
+      "TYPESCRIPT_ADVANCED_TYPES",
+      "SHOWREEL_GENERATION"
+    ],
+    "TEMPLATE_DRIVEN_DEVELOPMENT": [
+      "SKILL_GENERATOR",
+      "COMPOUND_ENGINEERING",
+      "RIGOROUS_EVALUATION"
+    ],
+    "knowledge_mining": [
+      "COMPOUND_ENGINEERING"
+    ],
+    "SIMULATION_PROFILES": [
+      "SANDBOX_ISOLATION",
+      "SECURITY_GUARDRAILS",
+      "ADVERSARIAL_TESTING"
+    ],
+    "AUTONOMIC_QUALITY_GUARD": [
+      "AUTONOMIC_EVOLUTION",
+      "CONTEXT_ENTROPY_MANAGEMENT"
+    ],
+    "VECTOR_STORE": [
+      "EMBEDDING_STRATEGY",
+      "COMPOUND_ENGINEERING",
+      "SKILL_GENERATOR"
+    ],
+    "ADVERSARIAL_TESTING": [
+      "SECURITY_GUARDRAILS",
+      "CODE_STANDARDS",
+      "SELF_HEALING"
+    ],
+    "RIGOROUS_EVALUATION": [
+      "ADVERSARIAL_TESTING",
+      "SECURITY_GUARDRAILS",
+      "SYSTEM_HARDENING"
+    ],
+    "agentjet": [
+      "MODEL_ROUTING",
+      "MODEL_POOL_MANAGEMENT",
+      "COMPOUND_ENGINEERING",
+      "JOURNEY_TRACKING",
+      "HIHO_STABILITY",
+      "LOCAL_OFFLOAD"
+    ],
+    "flume-methodology": [
+      "SWARM_ORCHESTRATION",
+      "EMBEDDING_STRATEGY",
+      "R_ZERO_CHALLENGER"
+    ],
+    "RELIABILITY_FALLBACK": [
+      "SURREALDB_MCP",
+      "AUTONOMOUS_RESILIENCE",
+      "RECOVERY"
+    ],
+    "physics": [
+      "PHYSICS_LINEAGE"
+    ],
+    "marimo_development": [
+      "FLUME_METHODOLOGY",
+      "OBSERVABLE_AI",
+      "UNIVERSE_PHYSICS"
+    ],
+    "pre_flight_validation": [
+      "FAIL_FAST",
+      "PERSISTENT_QUALITY",
+      "R_ZERO"
+    ],
+    "TYPESCRIPT_ADVANCED_TYPES": [
+      "FRONTEND_DESIGN"
+    ],
+    "CONSTITUTION": [
+      "FLUME_METHODOLOGY",
+      "PHYSICS_EXPLAINABILITY"
+    ],
+    "multimodal_visualization": [
+      "MARIMO_NOTEBOOKS",
+      "3D_RENDERING",
+      "ANIMATIONS",
+      "MULTIMODAL_EXPERIENCE"
+    ],
+    "REPOSITORY_HEALTH": [
+      "GIT_HYGIENE",
+      "PRE_COMMIT_HOOKS",
+      "CICD_MONITORING",
+      "GIT_LFS_MIGRATION",
+      "CHARTER_COMPLIANCE"
+    ],
+    "MATH_COMMAND": [
+      "MATH_REASONING_SWARM",
+      "SYMBOLIC_EXECUTION"
+    ],
+    "testing": [
+      "SECURITY_GUARDRAILS"
+    ],
+    "EXTERNAL_RESEARCH": [
+      "KNOWLEDGE_MINING",
+      "RESEARCH_SYNTHESIS",
+      "RELIABILITY"
+    ],
+    "SYMBIOTIC_FILE": [
+      "REPO_HYGIENE"
+    ],
+    "ollama_management": [
+      "SWARM_ORCHESTRATION",
+      "SELF_HEALING"
+    ],
+    "skill_generator": [
+      "COMPOUND_ENGINEERING"
+    ],
+    "high_d_physics_visualization": [
+      "FLUME_METHODOLOGY",
+      "PHYSICS",
+      "EMBEDDING_STRATEGY"
+    ],
+    "KNOWLEDGE_GRAPH_INTEGRATION": [
+      "EMBEDDING_STRATEGY",
+      "VECTOR_STORE",
+      "COMPOUND_ENGINEERING"
+    ],
+    "TRANSFORMER_ENGINE_FP4_OPTIMIZATION": [
+      "BLACKWELL_HARDWARE_OPTIMIZATION",
+      "MOE_HYBRID_ENGINEERING",
+      "KAGLLE_BLACKWELL_RUNNER"
+    ],
+    "compound-engineering": [
+      "PERSISTENT_QUALITY",
+      "HALLUCINATION_RESOLVER",
+      "LOCAL_OFFLOAD",
+      "COHEZION_BRIDGE"
+    ],
+    "AUTONOMIC_EVOLUTION": [
+      "MYCELIUM",
+      "ANTI_PATTERN_DEFENSE"
+    ],
+    "COMPUTATIONAL_RELATIVITY": [
+      "PHYSICS_LINEAGE",
+      "TEMPORAL_PRECISION",
+      "PHYSICS_INFORMED_PREDICTION",
+      "HIHO_STABILITY"
+    ],
+    "embedding_strategy": [
+      "COMPOUND_ENGINEERING",
+      "SKILL_GENERATOR",
+      "VECTOR_STORE"
+    ],
+    "AMBIENT_SONIFICATION": [
+      "HOLOGRAPHIC_VISUALIZATION",
+      "QUARK_GLUON_PLASMA_SIM"
+    ],
+    "advanced_physics_simulation": [
+      "R_ZERO_CHALLENGER",
+      "GATEWAY_ARCHITECTURE"
+    ],
+    "RALPH_LOOP": [
+      "HOOKIFY",
+      "RIGOROUS_EVALUATION",
+      "HALLUCINATION_RESOLVER"
+    ],
+    "compound_prompt": [
+      "METAPHYSICS",
+      "PHYSICS",
+      "COMPOUND_ENGINEERING"
+    ],
+    "democratic_debate": [
+      "R_ZERO_CHALLENGER",
+      "SWARM_ORCHESTRATION",
+      "PARALLEL_ORCHESTRATION"
+    ],
+    "code_simplification": [
+      "CODE_STANDARDS"
+    ],
+    "NOETHER_CONSERVATION": [
+      "PHYSICS_LINEAGE",
+      "HIHO_STABILITY"
+    ]
+  }
+}

@@ -91,189 +91,187 @@ class KaggleTrainingManager:
     def get_training_script_template(self) -> str:
         """
         Returns the core training script template to be run on Kaggle.
-        Improved version with better error handling and debugging.
+        Improved version with Blackwell fix and teacher distillation.
         """
         return r"""
 import os
 import subprocess
 import sys
 import traceback
+import json
+import gc
 
-print("=" * 50)
-print("STARTING NEMOTRON LORA TRAINING")
-print("=" * 50)
+print("=" * 60)
+print("NEMOTRON LORA TRAINING WITH SFT")
+print("Knowledge Distillation from Teacher Model + Blackwell Optimization")
+print("=" * 60)
 
 try:
     # 1. Blackwell Environment Setup
-    print("Setting up Blackwell environment...")
+    print("\n[1/8] Setting up Blackwell environment...")
     UTILITY_PATH = "/kaggle/usr/lib/notebooks/ryanholbrook/nvidia_utility_script"
     if os.path.exists(UTILITY_PATH):
-        # Copy to /tmp to make binaries executable
         subprocess.run(f"tar -cf - -C {UTILITY_PATH} . | tar -xf - -C /tmp", shell=True, check=True)
-        # Set permissions
         for binary in ["ptxas", "ptxas-blackwell"]:
             bin_path = f"/tmp/triton/backends/nvidia/bin/{binary}"
             if os.path.exists(bin_path):
                 subprocess.run(f"chmod +x {bin_path}", shell=True, check=True)
-                print(f"Set execution permission on {binary}")
-        # Insert /tmp into path
+        os.environ["TRITON_PTXAS_PATH"] = "/tmp/triton/backends/nvidia/bin/ptxas-blackwell"
         sys.path.insert(0, "/tmp")
-        print("Blackwell utility script initialized in /tmp")
+        print("Blackwell environment initialized")
     else:
-        print(f"WARNING: Utility script not found at {UTILITY_PATH}")
+        print(f"WARNING: Utility script not found")
 
-    # 2. Verify hardware
+    # 2. Imports & Dependencies
+    print("\n[2/8] Loading dependencies...")
+    MANDATORY_PACKAGES = ["trl", "peft", "bitsandbytes", "accelerate", "nvidia-cutlass", "mamba_ssm", "causal_conv1d"]
+    for pkg in MANDATORY_PACKAGES:
+        try:
+            __import__(pkg.replace("-", "_"))
+            print(f"  {pkg} already installed")
+        except ImportError:
+            print(f"  Installing {pkg}...")
+            # Try standard install first
+            try:
+                subprocess.check_call([sys.executable, "-m", "pip", "install", "-q", pkg])
+            except:
+                print(f"  Standard install failed for {pkg}, trying with --no-build-isolation...")
+                subprocess.check_call([sys.executable, "-m", "pip", "install", "-q", "--no-build-isolation", pkg])
+
     import torch
-    print(f"PyTorch version: {torch.__version__}")
-    print(f"CUDA available: {torch.cuda.is_available()}")
+    import pandas as pd
+    from transformers import AutoModelForCausalLM, AutoTokenizer, TrainingArguments, BitsAndBytesConfig
+    from peft import LoraConfig, get_peft_model, prepare_model_for_kbit_training
+    from datasets import Dataset
+    from trl import SFTTrainer
+    import kagglehub
+
+    # 3. Hardware check
+    print(f"\n[3/8] Hardware configuration:")
     if torch.cuda.is_available():
         for i in range(torch.cuda.device_count()):
             prop = torch.cuda.get_device_properties(i)
-            cap = torch.cuda.get_device_capability(i)
-            print(f"GPU {i}: {prop.name} (Total Memory: {prop.total_memory / 1024**3:.2f} GB)")
-            print(f"  Compute Capability: {cap[0]}.{cap[1]} (sm_{cap[0]}{cap[1]})")
+            print(f"  GPU {i}: {prop.name} ({prop.total_memory / 1024**3:.1f} GB)")
 
-    # Check for mandatory dependencies
-    print("Verifying mandatory dependencies...")
-    try:
-        import mamba_ssm
-        import causal_conv1d
-        import peft
-        import bitsandbytes
-        import cutlass
-        print("All mandatory dependencies are pre-installed!")
-    except ImportError as e:
-        print(f"MISSING DEPENDENCY: {e}")
-        print("Attempting to install missing dependency (requires internet)...")
-        # Fallback only for missing items
-        pkg_msg = str(e)
-        if "cutlass" in pkg_msg:
-            pkg = "nvidia-cutlass"
-        else:
-            pkg = pkg_msg.split("'")[-2]
-        subprocess.check_call([sys.executable, "-m", "pip", "install", "-q", pkg])
-
-    from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
-    from peft import LoraConfig, get_peft_model, prepare_model_for_kbit_training
-    from datasets import load_dataset
-
-    # 2. Configuration
-    import kagglehub
-    print("Downloading model from kagglehub...")
-    model_path = kagglehub.model_download("metric/nemotron-3-nano-30b-a3b-bf16/transformers/default")
-    print(f"Model path: {model_path}")
-
-    # The competition data is attached via the competitionId in metadata
+    # 4. Load competition data
+    print("\n[4/8] Loading training data...")
     competition_id = "nvidia-nemotron-model-reasoning-challenge"
-
-    print(f"Looking for dataset...")
     train_file = None
-
-    # Check common paths
-    possible_paths = [
-        f"/kaggle/input/{competition_id}",
-        f"/kaggle/input/competitions/{competition_id}",
-        "/kaggle/input"
-    ]
-
-    for base_path in possible_paths:
+    for base_path in [f"/kaggle/input/{competition_id}", "/kaggle/input"]:
         if os.path.exists(base_path):
-            print(f"Checking {base_path}...")
-            # Recursive search for train file
             for root, dirs, files in os.walk(base_path):
                 for f in files:
-                    if f.startswith('train') and (f.endswith('.csv') or f.endswith('.jsonl') or f.endswith('.json')):
+                    if 'train' in f.lower() and f.endswith('.csv'):
                         train_file = os.path.join(root, f)
-                        print(f"Found training file: {train_file}")
                         break
-                if train_file:
-                    break
-        if train_file:
-            break
+                if train_file: break
+        if train_file: break
 
     if not train_file:
-        print(f"ERROR: Could not find training data in any standard Kaggle input path.")
+        print("ERROR: Training data not found")
         sys.exit(1)
 
-    print(f"Using dataset file: {train_file}")
+    df = pd.read_csv(train_file)
+    print(f"  Columns: {list(df.columns)}")
+    
+    # Map columns correctly (Competition uses 'prompt' and 'answer')
+    PROMPT_COL = 'prompt' if 'prompt' in df.columns else ('question' if 'question' in df.columns else 'problem')
+    ANSWER_COL = 'answer'
 
-    # 3. Load model in BF16 natively
-    print("Loading model in BF16...")
+    # 5. Teacher trace generation (knowledge distillation)
+    print("\n[5/8] Generating teacher traces for distillation...")
+    teacher_model_name = "deepseek-ai/deepseek-r1-distill-qwen-32b"
+    
     try:
-        model = AutoModelForCausalLM.from_pretrained(
-            model_path,
+        print(f"  Loading teacher: {teacher_model_name}")
+        teacher_tokenizer = AutoTokenizer.from_pretrained(teacher_model_name, trust_remote_code=True)
+        teacher_model = AutoModelForCausalLM.from_pretrained(
+            teacher_model_name,
+            torch_dtype=torch.bfloat16,
             device_map="auto",
-            trust_remote_code=True,
-            torch_dtype=torch.bfloat16
+            trust_remote_code=True
         )
-        print("Model loaded successfully!")
 
-        # Diagnostic: Print a few module names to verify target_modules
-        print("Sample module names:")
-        for i, (name, _) in enumerate(model.named_modules()):
-            if i < 20 or any(x in name for x in ["in_proj", "out_proj"]):
-                print(f"  {name}")
-            if i > 500: # Don't print everything
-                break
+        def generate_teacher_trace(row):
+            prompt = f"Solve this step by step and put your final answer in \\boxed{{}}.\n\nProblem: {row[PROMPT_COL]}\n\nLet's think through this carefully:"
+            inputs = teacher_tokenizer(prompt, return_tensors="pt").to(teacher_model.device)
+            with torch.no_grad():
+                outputs = teacher_model.generate(**inputs, max_new_tokens=512, temperature=0.7, do_sample=True)
+            response = teacher_tokenizer.decode(outputs[0], skip_special_tokens=True)
+            return response[len(prompt):].strip()
+
+        sample_size = min(50, len(df))
+        print(f"  Generating traces for {sample_size} samples...")
+        filtered_data = []
+        for idx in range(sample_size):
+            row = df.iloc[idx]
+            trace = generate_teacher_trace(row)
+            filtered_data.append({
+                'prompt': row[PROMPT_COL],
+                'answer': row[ANSWER_COL],
+                'teacher_trace': trace
+            })
+            if (idx + 1) % 10 == 0: print(f"    Generated {idx + 1}/{sample_size}")
+
+        del teacher_model
+        gc.collect()
+        torch.cuda.empty_cache()
     except Exception as e:
-        print(f"ERROR loading model: {e}")
-        traceback.print_exc()
-        sys.exit(1)
+        print(f"  Teacher generation failed: {e}. Falling back to ground truth.")
+        filtered_data = [{'prompt': row[PROMPT_COL], 'answer': row[ANSWER_COL], 'teacher_trace': ''} for _, row in df.head(100).iterrows()]
 
-    # 4. Configure LoRA
-    print("Configuring LoRA...")
-    # Use a simpler list-based matching which is more robust than complex regex
-    # PEFT will match these names as suffixes
-    target_modules = ["in_proj", "out_proj", "up_proj", "down_proj"]
-
-    print(f"Targeting modules: {target_modules}")
+    # 6. Load student model
+    print("\n[6/8] Loading student model...")
+    model_path = kagglehub.model_download("metric/nemotron-3-nano-30b-a3b-bf16/transformers/default")
+    tokenizer = AutoTokenizer.from_pretrained(model_path, trust_remote_code=True)
+    if tokenizer.pad_token is None: tokenizer.pad_token = tokenizer.eos_token
+    
+    model = AutoModelForCausalLM.from_pretrained(model_path, device_map="auto", trust_remote_code=True, torch_dtype=torch.bfloat16)
+    
     lora_config = LoraConfig(
-        r=32,
-        lora_alpha=16,
-        target_modules=target_modules,
-        lora_dropout=0.05,
-        bias="none",
-        task_type="CAUSAL_LM"
+        r=32, lora_alpha=16, 
+        target_modules=["in_proj", "out_proj", "up_proj", "down_proj"],
+        lora_dropout=0.05, bias="none", task_type="CAUSAL_LM"
+    )
+    model = get_peft_model(model, lora_config)
+
+    # 7. Prepare dataset
+    print("\n[7/8] Preparing dataset...")
+    def format_example(example):
+        if example['teacher_trace']:
+            text = f"Problem: {example['prompt']}\n\nSolution:\n{example['teacher_trace']}"
+        else:
+            text = f"Problem: {example['prompt']}\n\nAnswer: {example['answer']}"
+        return {"text": text}
+
+    dataset = Dataset.from_list(filtered_data).map(format_example)
+    dataset = dataset.train_test_split(test_size=0.1)
+
+    # 8. Training
+    print("\n[8/8] Starting SFT training...")
+    training_args = TrainingArguments(
+        output_dir="./nemotron_lora_adapter",
+        num_train_epochs=1,
+        per_device_train_batch_size=1,
+        gradient_accumulation_steps=8,
+        learning_rate=1e-4,
+        bf16=True,
+        gradient_checkpointing=True,
+        logging_steps=5,
+        report_to="none"
     )
 
-    model = get_peft_model(model, lora_config)
-    print("LoRA configured successfully!")
-    model.print_trainable_parameters()
+    trainer = SFTTrainer(model=model, tokenizer=tokenizer, train_dataset=dataset['train'], eval_dataset=dataset['test'], args=training_args, max_seq_length=1024)
+    trainer.train()
 
-    # 5. Simple test to make sure everything works
-    print("Performing forward pass test...")
-    dummy_input = torch.randint(0, model.config.vocab_size, (1, 10)).to(next(model.parameters()).device)
-    with torch.no_grad():
-        output = model(dummy_input)
-    print(f"Forward pass successful! Output shape: {output.logits.shape}")
-
-    # 6. Save baseline adapter
-    print("Saving baseline LoRA adapter...")
-    adapter_path = "nemotron_lora_adapter"
-    model.save_pretrained(adapter_path)
-
-    # Also save the tokenizer for completeness
-    try:
-        tokenizer = AutoTokenizer.from_pretrained(model_id, trust_remote_code=True)
-        tokenizer.save_pretrained(adapter_path)
-        print("Tokenizer saved successfully!")
-    except Exception as e:
-        print(f"Warning: Could not save tokenizer: {e}")
-
-    print("Baseline adapter saved successfully!")
-
-    # 7. Package submission
-    print("Packaging submission.zip...")
-    # Change to adapter directory and zip contents to ensure flat structure
-    subprocess.run(f"cd {adapter_path} && zip -r ../submission.zip ./*", shell=True, check=True)
-    print("submission.zip created successfully!")
-
-    print("=" * 50)
-    print("TRAINING COMPLETED SUCCESSFULLY")
-    print("=" * 50)
+    # Save
+    trainer.save_model("./nemotron_lora_adapter")
+    tokenizer.save_pretrained("./nemotron_lora_adapter")
+    subprocess.run("cd nemotron_lora_adapter && zip -r ../submission.zip ./*", shell=True, check=True)
+    print("\n" + "=" * 60 + "\nSUBMISSION READY: submission.zip\n" + "=" * 60)
 
 except Exception as e:
-    print(f"ERROR IN TRAINING: {e}")
+    print(f"\nERROR: {e}")
     traceback.print_exc()
     sys.exit(1)
 """

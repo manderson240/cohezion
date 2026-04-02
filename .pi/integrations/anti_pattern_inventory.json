@@ -1,0 +1,1372 @@
+{
+  "anti_patterns": [
+    {
+      "name": "Blocking I/O in Async Function",
+      "category": "async-pattern",
+      "description": "Using blocking calls (requests, open) in async context",
+      "file_paths": [
+        "src/cohezion-archive/mcp/research_server.py",
+        "src/cohezion/gateway/demo_gateway.py",
+        "src/cohezion/flume/autoencoder.py",
+        "src/cohezion-archive/swarm/token_client.py",
+        "src/cohezion/mcp/research_server.py",
+        "src/cohezion/gateway/ngrok_adapter.py",
+        "src/cohezion/swarm/token_client.py",
+        "src/cohezion/flume/embedding_provider.py"
+      ],
+      "severity": "critical",
+      "risk_level": 5,
+      "remediation": "Use httpx.AsyncClient or asyncio.to_thread for blocking calls",
+      "code_example": "requests.get(url).json()",
+      "frequency": 10,
+      "confidence": 0.7,
+      "first_seen": "2026-04-02",
+      "last_seen": "2026-04-02",
+      "instances": [
+        {
+          "file": "src/cohezion-archive/mcp/research_server.py",
+          "line": 69,
+          "content": "resp = requests.get(self.sources[\"hf\"], timeout=10)",
+          "context": "        time.sleep(1.0 + random.random())\n\n        try:\n            resp = requests.get(self.sources[\"hf\"], timeout=10)\n            if resp.status_code == 200:\n                papers = resp.json()\n                results = []"
+        },
+        {
+          "file": "src/cohezion-archive/swarm/token_client.py",
+          "line": 97,
+          "content": "response = requests.post(",
+          "context": "        \"\"\"\n        for attempt in range(self.max_retries):\n            try:\n                response = requests.post(\n                    f\"{self.base_url}/api/generate\",\n                    json={\n                        \"model\": model,"
+        },
+        {
+          "file": "src/cohezion/mcp/research_server.py",
+          "line": 69,
+          "content": "resp = requests.get(self.sources[\"hf\"], timeout=10)",
+          "context": "        time.sleep(1.0 + random.random())\n\n        try:\n            resp = requests.get(self.sources[\"hf\"], timeout=10)\n            if resp.status_code == 200:\n                papers = resp.json()\n                results = []"
+        },
+        {
+          "file": "src/cohezion/swarm/token_client.py",
+          "line": 108,
+          "content": "response = requests.post(",
+          "context": "\n                # Using /api/chat for better compatibility with message structures\n                num_predict = kwargs.get(\"max_tokens\", 2048)\n                response = requests.post(\n                    f\"{clean_base}/api/chat\",\n                    json={\n                        \"model\": model,"
+        },
+        {
+          "file": "src/cohezion/gateway/ngrok_adapter.py",
+          "line": 298,
+          "content": "response = requests.post(",
+          "context": "\n        for attempt in range(self.max_retries):\n            try:\n                response = requests.post(\n                    f\"{self.ngrok_endpoint}/chat/completions\",\n                    json=payload,\n                    headers=headers,"
+        },
+        {
+          "file": "src/cohezion/gateway/ngrok_adapter.py",
+          "line": 354,
+          "content": "response = requests.post(",
+          "context": "        \"\"\"\n        for attempt in range(self.max_retries):\n            try:\n                response = requests.post(\n                    f\"{self.fallback_ollama_url}/api/generate\",\n                    json={\n                        \"model\": model,"
+        },
+        {
+          "file": "src/cohezion/gateway/demo_gateway.py",
+          "line": 124,
+          "content": "response = requests.post(",
+          "context": "\n        # Call Ollama\n        try:\n            response = requests.post(\n                f\"{self.ollama_url}/api/generate\",\n                json={\n                    \"model\": model,"
+        },
+        {
+          "file": "src/cohezion/flume/embedding_provider.py",
+          "line": 54,
+          "content": "resp = requests.post(",
+          "context": "    def embed(self, text: str) -> np.ndarray:\n        \"\"\"Embed single text to 768D normalized vector.\"\"\"\n        try:\n            resp = requests.post(\n                f\"{self.base_url}/api/embed\",\n                json={\"model\": self.model, \"input\": text},\n                timeout=self.timeout,"
+        },
+        {
+          "file": "src/cohezion/flume/embedding_provider.py",
+          "line": 72,
+          "content": "resp = requests.post(",
+          "context": "    def embed_batch(self, texts: list[str]) -> np.ndarray:\n        \"\"\"Embed batch of texts. Falls back to one-at-a-time on timeout.\"\"\"\n        try:\n            resp = requests.post(\n                f\"{self.base_url}/api/embed\",\n                json={\"model\": self.model, \"input\": texts},\n                timeout=self.timeout,"
+        },
+        {
+          "file": "src/cohezion/flume/autoencoder.py",
+          "line": 293,
+          "content": "response = requests.post(",
+          "context": "        try:\n            import requests\n\n            response = requests.post(\n                \"http://localhost:11434/api/embeddings\",\n                json={\"model\": \"nomic-embed-text\", \"prompt\": text},\n                timeout=30,"
+        }
+      ]
+    },
+    {
+      "name": "Bare pip Install",
+      "category": "dependency-management",
+      "description": "Using pip directly instead of uv",
+      "file_paths": [
+        "FLUME_VISUALIZER_SUMMARY.md",
+        "SUBMISSION_CHECKLIST.md",
+        "launch_flume_viz.sh",
+        "DEPLOYMENT_GUIDE.md",
+        "EXTERNAL_BENCHMARK_SUBMISSION_PLAN.md",
+        "SECURITY.md"
+      ],
+      "severity": "medium",
+      "risk_level": 3,
+      "remediation": "Use uv for all Python package operations",
+      "code_example": "pip install",
+      "frequency": 7,
+      "confidence": 0.7,
+      "first_seen": "2026-04-02",
+      "last_seen": "2026-04-02",
+      "instances": [
+        {
+          "file": "DEPLOYMENT_GUIDE.md",
+          "line": 161,
+          "content": "pip install huggingface_hub",
+          "context": "\n```bash\n# Install Hugging Face CLI\npip install huggingface_hub\n\n# Login\nhuggingface-cli login"
+        },
+        {
+          "file": "EXTERNAL_BENCHMARK_SUBMISSION_PLAN.md",
+          "line": 277,
+          "content": "pip install cohezion gymnasium stable-baselines3",
+          "context": "\n```bash\n# Install dependencies\npip install cohezion gymnasium stable-baselines3\n\n# Train agent\npython scripts/train_flume_nav.py --timesteps 100000"
+        },
+        {
+          "file": "EXTERNAL_BENCHMARK_SUBMISSION_PLAN.md",
+          "line": 381,
+          "content": "pip install huggingface_hub",
+          "context": "\n```bash\n# Install HuggingFace CLI\npip install huggingface_hub\n\n# Login\nhuggingface-cli login"
+        },
+        {
+          "file": "FLUME_VISUALIZER_SUMMARY.md",
+          "line": 104,
+          "content": "pip install streamlit plotly pandas numpy",
+          "context": "#### For Development:\n```bash\n# Install dependencies (if needed)\npip install streamlit plotly pandas numpy\n\n# Run the demonstration\npython demo_flume_journey.py"
+        },
+        {
+          "file": "SECURITY.md",
+          "line": 83,
+          "content": "pip install bandit detect-secrets safety",
+          "context": "\n```bash\n# Install security tools\npip install bandit detect-secrets safety\n\n# Run security scans\nbandit -r src/"
+        },
+        {
+          "file": "SUBMISSION_CHECKLIST.md",
+          "line": 290,
+          "content": "pip install grip",
+          "context": "**Preview locally**:\n```bash\n# Install grip (GitHub Flavored Markdown previewer)\npip install grip\n\n# Preview README\ngrip README.md"
+        },
+        {
+          "file": "launch_flume_viz.sh",
+          "line": 17,
+          "content": "pip install -r requirements_flume_viz.txt --quiet",
+          "context": "\n# Install requirements if needed\necho \"\ud83d\udce6 Checking dependencies...\"\npip install -r requirements_flume_viz.txt --quiet\n\n# Launch the Streamlit app\necho \"\ud83c\udf10 Starting web application...\""
+        }
+      ]
+    },
+    {
+      "name": "Bare Exception Handler",
+      "category": "error-handling",
+      "description": "Using bare except: or except Exception without specific types",
+      "file_paths": [
+        "src/cohezion/api/services/anima.py",
+        "src/cohezion-archive/core/plan_executor.py",
+        "src/cohezion/mcp/manager/auth.py",
+        "src/cohezion-archive/swarm/team_execution.py",
+        "src/cohezion/swarm/providers/ollama_provider.py",
+        "src/cohezion/mcp/servers/skills/client.py",
+        "src/cohezion-archive/mcp/manager/server_manager.py",
+        "src/cohezion/flume/embedding_provider.py",
+        "src/cohezion/core/template_engine.py",
+        "src/cohezion-archive/core/template_engine.py",
+        "src/cohezion/core/plan_executor.py",
+        "src/cohezion-archive/mcp/compound_unified.py",
+        "src/cohezion/swarm/model_adapter.py",
+        "src/cohezion/vibe/parser.py",
+        "src/cohezion/reliability/memory_manager.py",
+        "src/cohezion/compound/request_cache.py",
+        "src/cohezion/compound/hardware_monitor.py",
+        "src/cohezion/core/compound/skill_refiner.py",
+        "src/web/anima_dashboard/node_modules/flatted/python/flatted.py",
+        "src/cohezion-archive/core/persistence/surreal_client.py",
+        "src/cohezion/healing/platform_audit.py",
+        "src/cohezion/core/compound/retrospection.py",
+        "src/cohezion/universe/sandbox_backends.py",
+        "src/cohezion/graph/engine.py",
+        "src/cohezion/swarm/team_execution.py",
+        "src/cohezion/mcp/hookify_server.py",
+        "src/cohezion/compound/executor_integration.py",
+        "src/cohezion/flume/grid_encoder.py",
+        "src/cohezion-archive/mcp/shared/session.py",
+        "src/cohezion/mcp/servers/security/server.py",
+        "src/cohezion/reliability/semantic_cache.py",
+        "src/cohezion/mcp/manager/server_manager.py",
+        "src/cohezion/platform/edl_router.py",
+        "src/cohezion/reliability/__init__.py",
+        "src/cohezion/traceability/plan_graph.py",
+        "src/cohezion/compound/degradation_detector.py",
+        "src/cohezion/vibe/specifier.py",
+        "src/cohezion/platform/daily_health_digest.py",
+        "src/cohezion/flux/providers/surreal_flux.py",
+        "src/cohezion/flux/providers/tool_flux.py",
+        "src/cohezion/platform/observable_action.py",
+        "src/cohezion/protocols/ucp_capability_handler.py",
+        "src/cohezion/graph/nodes.py",
+        "src/cohezion-archive/core/vault_subscription.py",
+        "src/cohezion/mcp/shared/session.py",
+        "src/cohezion/security/vault.py",
+        "src/cohezion/flux/providers/vault_flux.py",
+        "src/cohezion-archive/mcp/servers/security/server.py",
+        "src/cohezion/compound/daemon/workflow_initializer.py",
+        "src/cohezion/research/training.py",
+        "src/cohezion/compound/capability_matrix.py",
+        "src/cohezion/mcp/servers/skills/cache.py",
+        "src/cohezion-archive/mcp/webmcp_bridge.py",
+        "src/cohezion/compound/journey_tracker.py",
+        "src/cohezion/core/vault_subscription.py",
+        "src/cohezion/compound/autoresearch.py",
+        "src/cohezion-archive/swarm/agents/base_scout.py",
+        "src/cohezion/core/persistence/surreal_client.py",
+        "src/cohezion/compound/persistence.py",
+        "src/cohezion/flux/providers/cache_flux.py",
+        "src/cohezion/compound/metrics_persistence.py",
+        "src/cohezion/compound/__init__.py",
+        "src/cohezion/world_model/surprise_explorer.py",
+        "src/cohezion/compound/universal/init.py",
+        "src/cohezion/compound/executor.py",
+        "src/cohezion-archive/core/compound/skill_refiner.py",
+        "src/cohezion/universe/sandbox.py",
+        "src/cohezion/physics/quantum/peaked_solver.py",
+        "src/cohezion-archive/mcp/servers/skills/client.py",
+        "src/cohezion/swarm/routing_orchestrator.py",
+        "src/cohezion/security/attack_patterns.py",
+        "src/cohezion-archive/security/vault.py",
+        "src/cohezion-archive/swarm/model_adapter.py",
+        "src/cohezion/swarm/providers/gemini_provider.py",
+        "src/cohezion/knowledge_graph/query_engine.py",
+        "src/cohezion/compound/skill_refiner.py",
+        "src/cohezion/reliability/pool.py",
+        "src/cohezion-archive/mcp/servers/doc/indexer.py",
+        "src/cohezion/reliability/monitor.py",
+        "src/cohezion/api/services/universe.py",
+        "src/cohezion/mcp/servers/doc/indexer.py",
+        "src/cohezion/security/guardrail_pipeline.py",
+        "src/cohezion/substrate/hardware_monitor.py",
+        "src/cohezion/mcp/webmcp_bridge.py",
+        "src/cohezion/compound/cache_persistence.py",
+        "src/cohezion/healing/__init__.py",
+        "src/cohezion-archive/security/guardrail_pipeline.py",
+        "src/cohezion/compound/feedback_loop.py",
+        "src/cohezion/reliability/sync.py",
+        "src/cohezion/agents/factory.py",
+        "src/cohezion/flux/aggregator.py",
+        "src/cohezion/hookify/validator.py",
+        "src/cohezion/mcp/compound_unified.py",
+        "src/cohezion/flume/trajectory_capture.py",
+        "src/cohezion/swarm/agents/base_scout.py",
+        "src/cohezion/benchmarks/benchmark_suite.py",
+        "src/cohezion/swarm/cost_aware_router.py",
+        "src/cohezion/compound/session_manager.py",
+        "src/cohezion/compound/thermal_trend_predictor.py",
+        "src/cohezion/compound/exp_persistence/vault.py",
+        "src/cohezion-archive/core/mcp_client.py",
+        "src/cohezion-archive/security/attack_patterns.py",
+        "src/cohezion/core/mcp_client.py",
+        "src/cohezion/api/__init__.py"
+      ],
+      "severity": "high",
+      "risk_level": 3,
+      "remediation": "Use specific exception types with circuit breakers",
+      "code_example": "except:",
+      "frequency": 181,
+      "confidence": 0.7,
+      "first_seen": "2026-04-02",
+      "last_seen": "2026-04-02",
+      "instances": [
+        {
+          "file": "src/web/anima_dashboard/node_modules/flatted/python/flatted.py",
+          "line": 81,
+          "content": "except:",
+          "context": "    if _is_string(value) or _is_array(value) or _is_object(value):\n        try:\n            return known.value[known.key.index(value)]\n        except:\n            return _index(known, input, value)\n\n    return value"
+        },
+        {
+          "file": "src/cohezion-archive/mcp/compound_unified.py",
+          "line": 268,
+          "content": "except Exception:",
+          "context": "                \"relation_count\": 0,\n                \"last_entity\": \"\",\n            }\n        except Exception:\n            return {}\n\n    async def _checkpoint_sequential(self) -> dict:"
+        },
+        {
+          "file": "src/cohezion-archive/mcp/compound_unified.py",
+          "line": 278,
+          "content": "except Exception:",
+          "context": "                \"active_sessions\": [],\n                \"total_thoughts\": 0,\n            }\n        except Exception:\n            return {}\n\n    async def _checkpoint_doc_retriever(self) -> dict:"
+        },
+        {
+          "file": "src/cohezion-archive/mcp/compound_unified.py",
+          "line": 332,
+          "content": "except Exception:",
+          "context": "            path = f\"compound-sessions/{self.session_id}.json\"\n            content = mcp.vault_read(path)\n            return json.loads(content)\n        except Exception:\n            return None\n\n    async def _save_checkpoint(self, checkpoint: UnifiedSessionCheckpoint) -> None:"
+        },
+        {
+          "file": "src/cohezion-archive/mcp/webmcp_bridge.py",
+          "line": 158,
+          "content": "except Exception:",
+          "context": "\n                srv = get_server()\n                return getattr(srv, tool_name, None)\n        except Exception:\n            logger.warning(\"Failed to resolve handler for %s.%s\", server_name, tool_name)\n        return None\n"
+        },
+        {
+          "file": "src/cohezion-archive/mcp/servers/skills/client.py",
+          "line": 192,
+          "content": "except Exception:",
+          "context": "                async with session.get(url, timeout=aiohttp.ClientTimeout(total=10)) as response:\n                    if response.status == 200:\n                        return await response.text()\n            except Exception:\n                continue\n\n        return None"
+        },
+        {
+          "file": "src/cohezion-archive/mcp/servers/doc/indexer.py",
+          "line": 176,
+          "content": "except Exception:",
+          "context": "            async with httpx.AsyncClient() as client:\n                resp = await client.get(f\"{self.base_url}/api/tags\", timeout=2.0)\n                self._available = resp.status_code == 200\n        except Exception:\n            self._available = False\n\n        return self._available"
+        },
+        {
+          "file": "src/cohezion-archive/mcp/servers/security/server.py",
+          "line": 109,
+          "content": "except Exception:",
+          "context": "        if content is None:\n            try:\n                content = file_path.read_text()\n            except Exception:\n                return findings\n\n        # Secret detection"
+        },
+        {
+          "file": "src/cohezion-archive/mcp/manager/server_manager.py",
+          "line": 328,
+          "content": "except Exception:",
+          "context": "                if healthy:\n                    config.status = \"running\"\n                return healthy\n        except Exception:\n            # Server not responding\n            return False\n"
+        },
+        {
+          "file": "src/cohezion-archive/mcp/shared/session.py",
+          "line": 151,
+          "content": "except Exception:",
+          "context": "            redis_client = await self._get_redis()\n            await redis_client.ping()\n            return True\n        except Exception:\n            return False\n\n    async def close(self) -> None:"
+        },
+        {
+          "file": "src/cohezion-archive/security/attack_patterns.py",
+          "line": 1012,
+          "content": "except Exception:",
+          "context": "    mutation = random.choice(mutations)\n    try:\n        return mutation(text)\n    except Exception:\n        return text\n\n"
+        },
+        {
+          "file": "src/cohezion-archive/security/guardrail_pipeline.py",
+          "line": 227,
+          "content": "except Exception:",
+          "context": "                    )\n                    return result\n\n            except Exception:\n                logger.exception(f\"Output guardrail {guard_name} raised exception\")\n                if self.fail_closed:\n                    return GuardrailResult("
+        },
+        {
+          "file": "src/cohezion-archive/security/guardrail_pipeline.py",
+          "line": 243,
+          "content": "except Exception:",
+          "context": "        if self.audit_callback:\n            try:\n                await self.audit_callback(event)\n            except Exception:\n                logger.exception(\"Audit callback failed\")\n\n    def get_stats(self) -> dict[str, dict[str, Any]]:"
+        },
+        {
+          "file": "src/cohezion-archive/security/vault.py",
+          "line": 25,
+          "content": "except Exception:",
+          "context": "            )\n            status = json.loads(result.stdout)\n            return status.get(\"status\") == \"locked\"\n        except Exception:\n            return True\n\n    def get_secret(self, name: str) -> str | None:"
+        },
+        {
+          "file": "src/cohezion-archive/core/template_engine.py",
+          "line": 228,
+          "content": "except Exception:",
+          "context": "            try:\n                spec = self.parse_skill(md_file)\n                specs.append(spec)\n            except Exception:\n                logger.exception(\"Failed to parse skill: %s\", md_file)\n        return specs\n"
+        },
+        {
+          "file": "src/cohezion-archive/core/mcp_client.py",
+          "line": 363,
+          "content": "except Exception:",
+          "context": "            results = self.vault_search(query=\"\", scope=\"folder\", folder=folder)\n            if results:\n                return results[:limit]\n        except Exception:\n            pass  # Fall through to full-text search\n\n        # Fall back to full-text search if hierarchical structure doesn't exist"
+        },
+        {
+          "file": "src/cohezion-archive/core/mcp_client.py",
+          "line": 374,
+          "content": "except Exception:",
+          "context": "                folder=\"\",\n            )\n            return results[:limit] if results else []\n        except Exception:\n            return []\n\n    def vault_search_by_domain(self, domain: str, limit: int = 20) -> list[dict]:"
+        },
+        {
+          "file": "src/cohezion-archive/core/vault_subscription.py",
+          "line": 144,
+          "content": "except Exception:",
+          "context": "        for callback in self._callbacks.get(event.event_type, []):\n            try:\n                await callback(event)\n            except Exception:\n                logger.debug(\"Callback error for %s event\", event.event_type, exc_info=True)\n\n        # Global callbacks"
+        },
+        {
+          "file": "src/cohezion-archive/core/vault_subscription.py",
+          "line": 151,
+          "content": "except Exception:",
+          "context": "        for callback in self._global_callbacks:\n            try:\n                await callback(event)\n            except Exception:\n                logger.debug(\"Global callback error\", exc_info=True)\n"
+        },
+        {
+          "file": "src/cohezion-archive/core/plan_executor.py",
+          "line": 195,
+          "content": "except Exception:",
+          "context": "                # Rough token estimate: ~4 chars per token\n                tokens = max(1, len(output) // 4)\n                return output, tokens\n            except Exception:\n                logger.exception(\n                    \"Token client failed for step %r; using placeholder\",\n                    step.description,"
+        },
+        {
+          "file": "src/cohezion-archive/core/plan_executor.py",
+          "line": 214,
+          "content": "except Exception:",
+          "context": "            if results:\n                lines = [f\"- {cap.name} ({cap.type}): {cap.description[:80]}\" for cap in results]\n                return \"\\n\".join(lines), 0\n        except Exception:\n            logger.debug(\"CapabilityRegistry unavailable; returning input\")\n\n        return context, 0"
+        },
+        {
+          "file": "src/cohezion-archive/core/compound/skill_refiner.py",
+          "line": 159,
+          "content": "except Exception:",
+          "context": "                manager.generate_and_register(skill_name)\n                result.code_regenerated = True\n                logger.info(\"Regenerated code for %s\", skill_name)\n            except Exception:\n                logger.exception(\"Failed to regenerate code for %s\", skill_name)\n\n        return result"
+        },
+        {
+          "file": "src/cohezion-archive/core/compound/skill_refiner.py",
+          "line": 206,
+          "content": "except Exception:",
+          "context": "                    first_lines = md_file.read_text(encoding=\"utf-8\")[:500]\n                    if skill_name.upper() in first_lines.upper():\n                        return md_file\n                except Exception:\n                    continue\n        return None\n"
+        },
+        {
+          "file": "src/cohezion-archive/core/persistence/surreal_client.py",
+          "line": 78,
+          "content": "except Exception:",
+          "context": "        if hasattr(np, \"array\"):  # Check if it's a real numpy\n            try:\n                return np.array(data, dtype=np.float32)\n            except Exception:\n                return data\n        return data\n"
+        },
+        {
+          "file": "src/cohezion-archive/core/persistence/surreal_client.py",
+          "line": 222,
+          "content": "except Exception:",
+          "context": "            async with httpx.AsyncClient(timeout=1.0) as client:\n                response = await client.get(health_url)\n                return response.status_code == 200\n        except Exception:\n            return False\n\n    async def ensure_active(self, timeout: int = 30) -> bool:"
+        },
+        {
+          "file": "src/cohezion-archive/core/persistence/surreal_client.py",
+          "line": 749,
+          "content": "except Exception:",
+          "context": "        if \"packed_physics\" in data:\n            try:\n                physics_state = PhysicsState.unpack(data[\"packed_physics\"])\n            except Exception:\n                physics_state = self._parse_physics_dict(physics_data)\n        else:\n            physics_state = self._parse_physics_dict(physics_data)"
+        },
+        {
+          "file": "src/cohezion-archive/swarm/team_execution.py",
+          "line": 170,
+          "content": "except Exception:",
+          "context": "                auto_regenerate=False,\n            )\n            await loop.run_cycle(skill_name, input_text)\n        except Exception:\n            logger.debug(\"Feedback cycle failed for %s (non-critical)\", skill_name)\n\n    def create_metrics_aggregator(self, plan_name: str) -> TeamMetricsAggregator:"
+        },
+        {
+          "file": "src/cohezion-archive/swarm/model_adapter.py",
+          "line": 89,
+          "content": "except Exception:",
+          "context": "        if not self._router.available_models:\n            try:\n                await self._router.refresh_models()\n            except Exception:\n                logger.warning(\"SmartRouter refresh_models failed; using static fallback\")\n\n        decision = self._router.route(task_type)"
+        },
+        {
+          "file": "src/cohezion-archive/swarm/agents/base_scout.py",
+          "line": 75,
+          "content": "except Exception:",
+          "context": "        if self.cache_path.exists():\n            try:\n                self.cache = json.loads(self.cache_path.read_text())\n            except Exception:\n                self.cache = {}\n        else:\n            self.cache = {}"
+        },
+        {
+          "file": "src/cohezion/core/plan_executor.py",
+          "line": 197,
+          "content": "except Exception:",
+          "context": "                # Rough token estimate: ~4 chars per token\n                tokens = max(1, len(output) // 4)\n                return output, tokens\n            except Exception:\n                logger.exception(\n                    \"Token client failed for step %r; using placeholder\",\n                    step.description,"
+        },
+        {
+          "file": "src/cohezion/core/plan_executor.py",
+          "line": 216,
+          "content": "except Exception:",
+          "context": "            if results:\n                lines = [f\"- {cap.name} ({cap.type}): {cap.description[:80]}\" for cap in results]\n                return \"\\n\".join(lines), 0\n        except Exception:\n            logger.debug(\"CapabilityRegistry unavailable; returning input\")\n\n        return context, 0"
+        },
+        {
+          "file": "src/cohezion/core/mcp_client.py",
+          "line": 363,
+          "content": "except Exception:",
+          "context": "            results = self.vault_search(query=\"\", scope=\"folder\", folder=folder)\n            if results:\n                return results[:limit]\n        except Exception:\n            pass  # Fall through to full-text search\n\n        # Fall back to full-text search if hierarchical structure doesn't exist"
+        },
+        {
+          "file": "src/cohezion/core/mcp_client.py",
+          "line": 374,
+          "content": "except Exception:",
+          "context": "                folder=\"\",\n            )\n            return results[:limit] if results else []\n        except Exception:\n            return []\n\n    def vault_search_by_domain(self, domain: str, limit: int = 20) -> list[dict]:"
+        },
+        {
+          "file": "src/cohezion/core/template_engine.py",
+          "line": 228,
+          "content": "except Exception:",
+          "context": "            try:\n                spec = self.parse_skill(md_file)\n                specs.append(spec)\n            except Exception:\n                logger.exception(\"Failed to parse skill: %s\", md_file)\n        return specs\n"
+        },
+        {
+          "file": "src/cohezion/core/vault_subscription.py",
+          "line": 144,
+          "content": "except Exception:",
+          "context": "        for callback in self._callbacks.get(event.event_type, []):\n            try:\n                await callback(event)\n            except Exception:\n                logger.debug(\"Callback error for %s event\", event.event_type, exc_info=True)\n\n        # Global callbacks"
+        },
+        {
+          "file": "src/cohezion/core/vault_subscription.py",
+          "line": 151,
+          "content": "except Exception:",
+          "context": "        for callback in self._global_callbacks:\n            try:\n                await callback(event)\n            except Exception:\n                logger.debug(\"Global callback error\", exc_info=True)\n"
+        },
+        {
+          "file": "src/cohezion/core/compound/retrospection.py",
+          "line": 479,
+          "content": "except Exception:",
+          "context": "                method=\"POST\",\n            )\n            urllib.request.urlopen(req, timeout=2)\n        except Exception:\n            pass  # Fire-and-forget\n\n        return analysis"
+        },
+        {
+          "file": "src/cohezion/core/compound/skill_refiner.py",
+          "line": 159,
+          "content": "except Exception:",
+          "context": "                manager.generate_and_register(skill_name)\n                result.code_regenerated = True\n                logger.info(\"Regenerated code for %s\", skill_name)\n            except Exception:\n                logger.exception(\"Failed to regenerate code for %s\", skill_name)\n\n        return result"
+        },
+        {
+          "file": "src/cohezion/core/compound/skill_refiner.py",
+          "line": 206,
+          "content": "except Exception:",
+          "context": "                    first_lines = md_file.read_text(encoding=\"utf-8\")[:500]\n                    if skill_name.upper() in first_lines.upper():\n                        return md_file\n                except Exception:\n                    continue\n        return None\n"
+        },
+        {
+          "file": "src/cohezion/core/persistence/surreal_client.py",
+          "line": 78,
+          "content": "except Exception:",
+          "context": "        if hasattr(np, \"array\"):  # Check if it's a real numpy\n            try:\n                return np.array(data, dtype=np.float32)\n            except Exception:\n                return data\n        return data\n"
+        },
+        {
+          "file": "src/cohezion/core/persistence/surreal_client.py",
+          "line": 222,
+          "content": "except Exception:",
+          "context": "            async with httpx.AsyncClient(timeout=1.0) as client:\n                response = await client.get(health_url)\n                return response.status_code == 200\n        except Exception:\n            return False\n\n    async def ensure_active(self, timeout: int = 30) -> bool:"
+        },
+        {
+          "file": "src/cohezion/core/persistence/surreal_client.py",
+          "line": 749,
+          "content": "except Exception:",
+          "context": "        if \"packed_physics\" in data:\n            try:\n                physics_state = PhysicsState.unpack(data[\"packed_physics\"])\n            except Exception:\n                physics_state = self._parse_physics_dict(physics_data)\n        else:\n            physics_state = self._parse_physics_dict(physics_data)"
+        },
+        {
+          "file": "src/cohezion/universe/sandbox.py",
+          "line": 188,
+          "content": "except Exception:",
+          "context": "                                name = name.split(\"/\", 1)[1]\n                            output_files[name] = extracted.read()\n            return output_files if output_files else None\n        except Exception:\n            # No output directory or extraction failed \u2014 not an error\n            return None\n"
+        },
+        {
+          "file": "src/cohezion/universe/sandbox_backends.py",
+          "line": 218,
+          "content": "except Exception:",
+          "context": "                timeout=5,\n            )\n            return result.returncode == 0\n        except Exception:\n            return False\n\n"
+        },
+        {
+          "file": "src/cohezion/agents/factory.py",
+          "line": 148,
+          "content": "except Exception:",
+          "context": "\n                    pipeline = TemplatePipeline()\n                    pipeline.regenerate_for_skill(skill_name)\n            except Exception:\n                logger.debug(\"Auto-regeneration check failed for %s\", skill_name)\n\n        # Check for pre-generated executable agent"
+        },
+        {
+          "file": "src/cohezion/agents/factory.py",
+          "line": 204,
+          "content": "except Exception:",
+          "context": "            try:\n                manager.generate_executable_and_register(spec.name)\n                generated.append(spec.name)\n            except Exception:\n                logger.exception(\"Failed to generate agent for %s\", spec.name)\n\n        return generated"
+        },
+        {
+          "file": "src/cohezion/agents/factory.py",
+          "line": 244,
+          "content": "except Exception:",
+          "context": "            module = importlib.import_module(f\"cohezion.agents.generated.{snake_name}_agent\")\n            class_name = \"\".join(w.capitalize() for w in base.split(\"_\")) + \"Agent\"\n            return getattr(module, class_name, None)  # type: ignore[return-value]\n        except Exception:\n            logger.debug(\"Failed to load generated agent for %s\", skill_name)\n            return None\n"
+        },
+        {
+          "file": "src/cohezion/agents/factory.py",
+          "line": 312,
+          "content": "except Exception:",
+          "context": "            fake_mod = types.ModuleType(\"cohezion.agents.base\")\n            fake_mod.BaseAgent = BaseAgent  # type: ignore[attr-defined]\n            namespace[\"cohezion\"] = types.ModuleType(\"cohezion\")\n        except Exception:\n            logger.debug(\"BaseAgent import failed; using _StubAgent fallback\")\n            # Rewrite the source to use _StubAgent instead\n            source = source.replace("
+        },
+        {
+          "file": "src/cohezion/substrate/hardware_monitor.py",
+          "line": 238,
+          "content": "except Exception:",
+          "context": "            used = total - available\n\n            return max(self.DEFAULT_MEMORY_USED, min(total, used))\n        except Exception:\n            return self.DEFAULT_MEMORY_USED\n\n    def get_stats(self) -> dict:"
+        },
+        {
+          "file": "src/cohezion/healing/platform_audit.py",
+          "line": 134,
+          "content": "except Exception:",
+          "context": "                details=\"API responding\" if api_healthy else \"API down\",\n            )\n        )\n    except Exception:\n        checks.append(\n            AuditResult(\n                name=\"api_health\","
+        },
+        {
+          "file": "src/cohezion/healing/__init__.py",
+          "line": 240,
+          "content": "except Exception:",
+          "context": "            async with httpx.AsyncClient(timeout=5.0) as client:\n                resp = await client.get(\"http://localhost:11434/api/tags\")\n                ollama_healthy = resp.status_code == 200\n        except Exception:\n            ollama_healthy = False\n\n        status = self.detector.check(\"ollama\", \"available\", 1.0 if ollama_healthy else 0.0, 0.1)"
+        },
+        {
+          "file": "src/cohezion/healing/__init__.py",
+          "line": 254,
+          "content": "except Exception:",
+          "context": "            async with httpx.AsyncClient(timeout=5.0) as client:\n                resp = await client.get(\"http://localhost:8000/health\")\n                surreal_healthy = resp.status_code == 200\n        except Exception:\n            surreal_healthy = False\n\n        status = self.detector.check(\"surrealdb\", \"available\", 1.0 if surreal_healthy else 0.0, 0.1)"
+        },
+        {
+          "file": "src/cohezion/flux/aggregator.py",
+          "line": 114,
+          "content": "except Exception:",
+          "context": "        \"\"\"Query a provider with non-blocking error handling.\"\"\"\n        try:\n            return await provider.get_context(query, top_k=top_k)\n        except Exception:\n            logger.debug(\n                \"FLUX provider %s failed (non-blocking)\",\n                provider.source.value,"
+        },
+        {
+          "file": "src/cohezion/flux/providers/vault_flux.py",
+          "line": 31,
+          "content": "except Exception:",
+          "context": "    ) -> list[FluxBlock]:\n        try:\n            guidance = self._vault.get_experience_guidance(query)\n        except Exception:\n            logger.debug(\"Vault guidance query failed (non-blocking)\")\n            return []\n"
+        },
+        {
+          "file": "src/cohezion/flux/providers/tool_flux.py",
+          "line": 31,
+          "content": "except Exception:",
+          "context": "    ) -> list[FluxBlock]:\n        try:\n            capabilities = self._registry.find(query, top_k=top_k)\n        except Exception:\n            logger.debug(\"CapabilityRegistry query failed (non-blocking)\")\n            return []\n"
+        },
+        {
+          "file": "src/cohezion/flux/providers/cache_flux.py",
+          "line": 34,
+          "content": "except Exception:",
+          "context": "\n        try:\n            results = self._cache.search_l2(query, top_k=top_k)\n        except Exception:\n            logger.debug(\"SemanticCache L2 search failed (non-blocking)\")\n            return []\n"
+        },
+        {
+          "file": "src/cohezion/flux/providers/surreal_flux.py",
+          "line": 31,
+          "content": "except Exception:",
+          "context": "    ) -> list[FluxBlock]:\n        try:\n            results = await self._client.query_similar(query, limit=top_k)\n        except Exception:\n            logger.debug(\"SurrealDB query failed (non-blocking)\")\n            return []\n"
+        },
+        {
+          "file": "src/cohezion/traceability/plan_graph.py",
+          "line": 68,
+          "content": "except Exception:",
+          "context": "                    if r.status_code == 200:\n                        self._base_url = url\n                        return url\n            except Exception:\n                logger.debug(\"SurrealDB not reachable at %s, trying next.\", url)\n                continue\n        # Fall back to the first URL even if unreachable"
+        },
+        {
+          "file": "src/cohezion/vibe/specifier.py",
+          "line": 259,
+          "content": "except Exception:",
+          "context": "                    cap = cap_list[i]\n                    # Preserve the role/agent_role from template, just log capability found\n                    logger.debug(\"Matched capability %s to node %s\", cap.name, node.name)\n        except Exception:\n            logger.debug(\"CapabilityRegistry query failed (non-blocking)\")\n        return nodes\n"
+        },
+        {
+          "file": "src/cohezion/vibe/specifier.py",
+          "line": 277,
+          "content": "except Exception:",
+          "context": "                if template_used is None:\n                    template_used = meta.get(\"template_name\")\n            return similar, template_used\n        except Exception:\n            logger.debug(\"FLUX workflow search failed (non-blocking)\")\n            return [], None\n"
+        },
+        {
+          "file": "src/cohezion/vibe/parser.py",
+          "line": 160,
+          "content": "except Exception:",
+          "context": "                for kw in extra:\n                    if kw not in existing_keywords:\n                        existing_keywords.append(kw)\n        except Exception:\n            logger.debug(\"FLUX enrichment failed (non-blocking)\")\n        return existing_keywords\n"
+        },
+        {
+          "file": "src/cohezion/physics/quantum/peaked_solver.py",
+          "line": 315,
+          "content": "except Exception:",
+          "context": "                            cutoff=1e-5,\n                            inplace=True,\n                        )\n                except Exception:\n                    logger.error(\n                        f\"Gate application failed at step {i} (Gate {name}). Target sites: {target_sites}\"\n                    )"
+        },
+        {
+          "file": "src/cohezion/knowledge_graph/query_engine.py",
+          "line": 73,
+          "content": "except Exception:",
+          "context": "            try:\n                data = json.loads(path.read_text())\n                records.append(data)\n            except Exception:\n                continue\n        return records\n"
+        },
+        {
+          "file": "src/cohezion/knowledge_graph/query_engine.py",
+          "line": 132,
+          "content": "except Exception:",
+          "context": "        for md_path in self._knowledge_dir.glob(\"*.md\"):\n            try:\n                text = md_path.read_text(encoding=\"utf-8\")\n            except Exception:\n                continue\n\n            text_lower = text.lower()"
+        },
+        {
+          "file": "src/cohezion/mcp/webmcp_bridge.py",
+          "line": 158,
+          "content": "except Exception:",
+          "context": "\n                srv = get_server()\n                return getattr(srv, tool_name, None)\n        except Exception:\n            logger.warning(\"Failed to resolve handler for %s.%s\", server_name, tool_name)\n        return None\n"
+        },
+        {
+          "file": "src/cohezion/mcp/compound_unified.py",
+          "line": 268,
+          "content": "except Exception:",
+          "context": "                \"relation_count\": 0,\n                \"last_entity\": \"\",\n            }\n        except Exception:\n            return {}\n\n    async def _checkpoint_sequential(self) -> dict:"
+        },
+        {
+          "file": "src/cohezion/mcp/compound_unified.py",
+          "line": 278,
+          "content": "except Exception:",
+          "context": "                \"active_sessions\": [],\n                \"total_thoughts\": 0,\n            }\n        except Exception:\n            return {}\n\n    async def _checkpoint_doc_retriever(self) -> dict:"
+        },
+        {
+          "file": "src/cohezion/mcp/compound_unified.py",
+          "line": 332,
+          "content": "except Exception:",
+          "context": "            path = f\"compound-sessions/{self.session_id}.json\"\n            content = mcp.vault_read(path)\n            return json.loads(content)\n        except Exception:\n            return None\n\n    async def _save_checkpoint(self, checkpoint: UnifiedSessionCheckpoint) -> None:"
+        },
+        {
+          "file": "src/cohezion/mcp/hookify_server.py",
+          "line": 291,
+          "content": "except Exception:",
+          "context": "            result = client.query(sql)\n            if result and len(result) > 0:\n                return result[0].get(\"lever_overrides\", {})\n        except Exception:\n            pass\n\n        return {}"
+        },
+        {
+          "file": "src/cohezion/mcp/shared/session.py",
+          "line": 169,
+          "content": "except Exception:",
+          "context": "            redis_client = await self._get_redis()\n            await redis_client.ping()\n            return True\n        except Exception:\n            return False\n\n    async def close(self) -> None:"
+        },
+        {
+          "file": "src/cohezion/mcp/servers/security/server.py",
+          "line": 78,
+          "content": "except Exception:",
+          "context": "        if content is None:\n            try:\n                content = file_path.read_text()\n            except Exception:\n                return findings\n\n        # Secret detection"
+        },
+        {
+          "file": "src/cohezion/mcp/servers/skills/cache.py",
+          "line": 51,
+          "content": "except Exception:",
+          "context": "            logger.debug(\"Cache miss: %s\", skill_id.replace(\"\\n\", \" \"))\n            return None\n\n        except Exception:\n            logger.exception(\"Error getting from cache\")\n            return None\n"
+        },
+        {
+          "file": "src/cohezion/mcp/servers/skills/client.py",
+          "line": 192,
+          "content": "except Exception:",
+          "context": "                async with session.get(url, timeout=aiohttp.ClientTimeout(total=10)) as response:\n                    if response.status == 200:\n                        return await response.text()\n            except Exception:\n                continue\n\n        return None"
+        },
+        {
+          "file": "src/cohezion/mcp/servers/doc/indexer.py",
+          "line": 176,
+          "content": "except Exception:",
+          "context": "            async with httpx.AsyncClient() as client:\n                resp = await client.get(f\"{self.base_url}/api/tags\", timeout=2.0)\n                self._available = resp.status_code == 200\n        except Exception:\n            self._available = False\n\n        return self._available"
+        },
+        {
+          "file": "src/cohezion/mcp/manager/server_manager.py",
+          "line": 137,
+          "content": "except Exception:",
+          "context": "                logger.error(\"Server '%s' failed to start\", sanitize_log(name))\n                return False\n\n        except Exception:\n            logger.exception(\"Error starting server '%s'\", sanitize_log(name))\n            config.status = \"failed\"\n            return False"
+        },
+        {
+          "file": "src/cohezion/mcp/manager/server_manager.py",
+          "line": 177,
+          "content": "except Exception:",
+          "context": "            logger.info(\"Stopped server '%s'\", sanitize_log(name))\n            return True\n\n        except Exception:\n            logger.exception(\"Error stopping server '%s'\", sanitize_log(name))\n            return False\n"
+        },
+        {
+          "file": "src/cohezion/mcp/manager/server_manager.py",
+          "line": 219,
+          "content": "except Exception:",
+          "context": "                if healthy:\n                    config.status = \"running\"\n                return healthy\n        except Exception:\n            return False\n\n    async def health_check_loop(self) -> None:"
+        },
+        {
+          "file": "src/cohezion/mcp/manager/auth.py",
+          "line": 40,
+          "content": "except Exception:",
+          "context": "\n    try:\n        return AUTH_TOKEN_PATH.read_text().strip()\n    except Exception:\n        return None\n\n"
+        },
+        {
+          "file": "src/cohezion/swarm/cost_aware_router.py",
+          "line": 819,
+          "content": "except Exception:",
+          "context": "            r_zero = self._get_r_zero()\n            if r_zero is not None:\n                r_zero.record_execution(model, success, 1)\n        except Exception:\n            pass\n\n        # Decrement degradation cooldown"
+        },
+        {
+          "file": "src/cohezion/swarm/cost_aware_router.py",
+          "line": 945,
+          "content": "except Exception:",
+          "context": "                        multiplier,\n                    )\n                    return \"deepseek-r1:8b\"\n        except Exception:\n            pass\n        return model\n"
+        },
+        {
+          "file": "src/cohezion/swarm/cost_aware_router.py",
+          "line": 981,
+          "content": "except Exception:",
+          "context": "                            metric,\n                            self._degradation_upgrade_model,\n                        )\n        except Exception:\n            logger.debug(\"Degradation feedback processing failed (non-blocking)\", exc_info=True)\n\n    def get_statistics(self) -> RoutingStatistics:"
+        },
+        {
+          "file": "src/cohezion/swarm/model_adapter.py",
+          "line": 89,
+          "content": "except Exception:",
+          "context": "        if not self._router.available_models:\n            try:\n                await self._router.refresh_models()\n            except Exception:\n                logger.warning(\"SmartRouter refresh_models failed; using static fallback\")\n\n        decision = self._router.route(task_type)"
+        },
+        {
+          "file": "src/cohezion/swarm/team_execution.py",
+          "line": 173,
+          "content": "except Exception:",
+          "context": "                auto_regenerate=False,\n            )\n            await loop.run_cycle(skill_name, input_text)\n        except Exception:\n            logger.debug(\"Feedback cycle failed for %s (non-critical)\", skill_name)\n\n    def create_metrics_aggregator(self, plan_name: str) -> TeamMetricsAggregator:"
+        },
+        {
+          "file": "src/cohezion/swarm/routing_orchestrator.py",
+          "line": 58,
+          "content": "except Exception:",
+          "context": "                from cohezion.swarm.cost_aware_router import CostAwareRouter\n\n                self._cost_router = CostAwareRouter()\n            except Exception:\n                logger.debug(\"CostAwareRouter not available\")\n        return self._cost_router\n"
+        },
+        {
+          "file": "src/cohezion/swarm/routing_orchestrator.py",
+          "line": 119,
+          "content": "except Exception:",
+          "context": "            try:\n                complexity = router.complexity_analyzer.analyze(task_description)\n                return router._compute_routing_confidence(model, complexity)\n            except Exception:\n                pass\n\n        return 0.5  # Default moderate confidence"
+        },
+        {
+          "file": "src/cohezion/swarm/agents/base_scout.py",
+          "line": 75,
+          "content": "except Exception:",
+          "context": "        if self.cache_path.exists():\n            try:\n                self.cache = json.loads(self.cache_path.read_text())\n            except Exception:\n                self.cache = {}\n        else:\n            self.cache = {}"
+        },
+        {
+          "file": "src/cohezion/swarm/providers/ollama_provider.py",
+          "line": 159,
+          "content": "except Exception:",
+          "context": "                # Extract model names\n                return [m.get(\"name\", \"\") for m in models if m.get(\"name\")]\n\n        except Exception:\n            logger.exception(\"Failed to list Ollama models\")\n            return []\n"
+        },
+        {
+          "file": "src/cohezion/swarm/providers/gemini_provider.py",
+          "line": 212,
+          "content": "except Exception:",
+          "context": "                    if \"generateContent\" in str(m.get(\"supportedGenerationMethods\", []))\n                ]\n\n        except Exception:\n            logger.exception(\"Failed to list Gemini models\")\n            return list(GEMINI_COST_PER_M_TOKENS.keys())\n"
+        },
+        {
+          "file": "src/cohezion/security/vault.py",
+          "line": 25,
+          "content": "except Exception:",
+          "context": "            )\n            status = json.loads(result.stdout)\n            return status.get(\"status\") == \"locked\"\n        except Exception:\n            return True\n\n    def get_secret(self, name: str) -> str | None:"
+        },
+        {
+          "file": "src/cohezion/security/guardrail_pipeline.py",
+          "line": 227,
+          "content": "except Exception:",
+          "context": "                    )\n                    return result\n\n            except Exception:\n                logger.exception(f\"Output guardrail {guard_name} raised exception\")\n                if self.fail_closed:\n                    return GuardrailResult("
+        },
+        {
+          "file": "src/cohezion/security/guardrail_pipeline.py",
+          "line": 243,
+          "content": "except Exception:",
+          "context": "        if self.audit_callback:\n            try:\n                await self.audit_callback(event)\n            except Exception:\n                logger.exception(\"Audit callback failed\")\n\n    def get_stats(self) -> dict[str, dict[str, Any]]:"
+        },
+        {
+          "file": "src/cohezion/security/attack_patterns.py",
+          "line": 1012,
+          "content": "except Exception:",
+          "context": "    mutation = random.choice(mutations)\n    try:\n        return mutation(text)\n    except Exception:\n        return text\n\n"
+        },
+        {
+          "file": "src/cohezion/platform/observable_action.py",
+          "line": 133,
+          "content": "except Exception:",
+          "context": "                        decision=description,\n                        rationale=rationale,\n                    )\n                except Exception:\n                    # Non-blocking if journey doesn't exist\n                    pass\n"
+        },
+        {
+          "file": "src/cohezion/platform/daily_health_digest.py",
+          "line": 255,
+          "content": "except Exception:",
+          "context": "                pack_count=pack_count,\n            )\n\n        except Exception:\n            # Fallback metrics on error\n            return RepositoryMetrics(\n                size_gb=0.0,"
+        },
+        {
+          "file": "src/cohezion/platform/edl_router.py",
+          "line": 137,
+          "content": "except Exception:",
+          "context": "        # Parse response\n        try:\n            response = json.loads(result[\"result\"])\n        except Exception:\n            # Fallback if JSON parsing fails\n            response = {\n                \"approve\": \"conditional\","
+        },
+        {
+          "file": "src/cohezion/benchmarks/benchmark_suite.py",
+          "line": 263,
+          "content": "except Exception:",
+          "context": "            fractions = [a.population_fraction for a in archetypes]\n            # Ideal balance: equal distribution (std = 0.2 for 5 archetypes)\n            archetype_balance = 1.0 - min(statistics.stdev(fractions) / 0.2, 1.0)\n        except Exception:\n            archetype_balance = 0.5\n\n        # 5. Journey Smoothness"
+        },
+        {
+          "file": "src/cohezion/reliability/memory_manager.py",
+          "line": 43,
+          "content": "except Exception:",
+          "context": "        # Ensure collection exists with correct dimensions (nomic-embed-text is 768)\n        try:\n            self.qdrant.get_collection(self.COLLECTION_NAME)\n        except Exception:\n            self.qdrant.create_collection(\n                collection_name=self.COLLECTION_NAME,\n                vectors_config=VectorParams(size=768, distance=Distance.COSINE),"
+        },
+        {
+          "file": "src/cohezion/reliability/__init__.py",
+          "line": 48,
+          "content": "except Exception:",
+          "context": "            try:\n                result = make_request()\n                breaker.record_success()\n            except Exception:\n                breaker.record_failure()\n    \"\"\"\n"
+        },
+        {
+          "file": "src/cohezion/reliability/sync.py",
+          "line": 96,
+          "content": "except Exception:",
+          "context": "                os.fsync(tmp.fileno())  # Ensure data is on disk\n                os.replace(self.temp_path, self.target_path)\n                logger.debug(f\"Atomic update completed for {self.target_path}\")\n            except Exception:\n                if self.temp_path and self.temp_path.exists():\n                    self.temp_path.unlink()\n                raise"
+        },
+        {
+          "file": "src/cohezion/reliability/pool.py",
+          "line": 53,
+          "content": "except Exception:",
+          "context": "        self._stats[\"requests\"] += 1\n        try:\n            return await self._client.get(path, **kwargs)\n        except Exception:\n            self._stats[\"errors\"] += 1\n            raise\n"
+        },
+        {
+          "file": "src/cohezion/reliability/pool.py",
+          "line": 62,
+          "content": "except Exception:",
+          "context": "        self._stats[\"requests\"] += 1\n        try:\n            return await self._client.post(path, **kwargs)\n        except Exception:\n            self._stats[\"errors\"] += 1\n            raise\n"
+        },
+        {
+          "file": "src/cohezion/reliability/monitor.py",
+          "line": 379,
+          "content": "except Exception:",
+          "context": "                stdout, _ = await asyncio.wait_for(proc.communicate(), timeout=1.0)\n                status = stdout.decode().strip()\n                self.service_health[name] = \"UP\" if status in (\"200\", \"404\") else \"DOWN\"\n            except Exception:\n                self.service_health[name] = \"LOST\"\n\n        # Run checks in parallel to maintain heartbeat timing"
+        },
+        {
+          "file": "src/cohezion/reliability/semantic_cache.py",
+          "line": 49,
+          "content": "except Exception:",
+          "context": "                self.metadata = json.loads(self.index_path.read_text())\n                raw_vectors = np.load(self.vectors_path)\n                self.vectors = list(raw_vectors)\n            except Exception:\n                # If loading fails, start fresh to avoid corruption\n                self.metadata = []\n                self.vectors = []"
+        },
+        {
+          "file": "src/cohezion/research/training.py",
+          "line": 251,
+          "content": "except Exception:",
+          "context": "                    json_str = line.split(\"METRICS:\")[1]\n                    parsed = json.loads(json_str)\n                    metrics.update(parsed)\n                except Exception:\n                    pass\n\n        return metrics"
+        },
+        {
+          "file": "src/cohezion/flume/embedding_provider.py",
+          "line": 83,
+          "content": "except Exception:",
+          "context": "            norms = np.linalg.norm(vecs, axis=1, keepdims=True)\n            norms = np.where(norms > 0, norms, 1.0)\n            return vecs / norms\n        except Exception:\n            # Batch too large or timeout \u2014 fall back to one-at-a-time\n            logger.info(\"Batch embed failed, falling back to sequential (%d texts)\", len(texts))\n            return np.stack([self.embed(t) for t in texts])"
+        },
+        {
+          "file": "src/cohezion/flume/embedding_provider.py",
+          "line": 180,
+          "content": "except Exception:",
+          "context": "            ollama.embed(\"test\")\n            provider = ollama\n            logger.info(\"Using Ollama nomic-embed-text (768D)\")\n        except Exception:\n            provider = HashFallbackProvider()\n            logger.info(\"Ollama unavailable, using hash fallback (256D)\")\n"
+        },
+        {
+          "file": "src/cohezion/flume/embedding_provider.py",
+          "line": 247,
+          "content": "except Exception:",
+          "context": "                norms = np.linalg.norm(vecs, axis=1, keepdims=True)\n                norms = np.where(norms > 0, norms, 1.0)\n                return vecs / norms\n        except Exception:\n            # Batch too large or timeout \u2014 fall back to one-at-a-time\n            logger.info(\"Batch embed failed, falling back to sequential (%d texts)\", len(texts))\n            return np.stack([await self.embed(t) for t in texts])"
+        },
+        {
+          "file": "src/cohezion/flume/trajectory_capture.py",
+          "line": 95,
+          "content": "except Exception:",
+          "context": "        # No event loop -- run synchronously in a fresh loop\n        try:\n            asyncio.run(_async_persist(recorder))\n        except Exception:\n            logger.debug(\n                \"Trajectory persistence skipped (no async runtime): %s\",\n                recorder.trajectory_id,"
+        },
+        {
+          "file": "src/cohezion/flume/trajectory_capture.py",
+          "line": 126,
+          "content": "except Exception:",
+          "context": "            len(recorder.points),\n            recorder.trajectory_id,\n        )\n    except Exception:\n        logger.debug(\n            \"Trajectory persistence failed for %s (SurrealDB unavailable)\",\n            recorder.trajectory_id,"
+        },
+        {
+          "file": "src/cohezion/flume/grid_encoder.py",
+          "line": 100,
+          "content": "except Exception:",
+          "context": "            with torch.no_grad():\n                z = self.model.encode(grid)\n                return z.squeeze(0).cpu().numpy()\n        except Exception:\n            # Fallback to zero vector or hash if parsing fails\n            return np.zeros(256, dtype=np.float32)\n"
+        },
+        {
+          "file": "src/cohezion/graph/nodes.py",
+          "line": 100,
+          "content": "except Exception:",
+          "context": "                for block in ctx.blocks\n                if block.relevance_score >= self._FLUX_MIN_RELEVANCE\n            ]\n        except Exception:\n            logger.debug(\"FLUX context injection failed for node '%s' (non-blocking)\", self.spec.id)\n            return []\n"
+        },
+        {
+          "file": "src/cohezion/graph/engine.py",
+          "line": 287,
+          "content": "except Exception:",
+          "context": "                    \"duration_ms\": result.duration_ms,\n                },\n            )\n        except Exception:\n            logger.warning(\n                \"FLUX history recording failed for node '%s' (non-blocking)\",\n                node_id,"
+        },
+        {
+          "file": "src/cohezion/protocols/ucp_capability_handler.py",
+          "line": 116,
+          "content": "except Exception:",
+          "context": "                        if remaining:\n                            description = remaining[0].strip()\n                        break\n            except Exception:\n                logger.debug(\"Failed to parse SKILL.md for %s\", name)\n\n            cap = UCPCapability("
+        },
+        {
+          "file": "src/cohezion/compound/feedback_loop.py",
+          "line": 386,
+          "content": "except Exception:",
+          "context": "                            next_tier.value,\n                            model,\n                        )\n                except Exception:\n                    logger.debug(\"TotS escalation failed, using default\", exc_info=True)\n            else:\n                logger.info(\"Escalating to more capable model (no router attached)\")"
+        },
+        {
+          "file": "src/cohezion/compound/feedback_loop.py",
+          "line": 484,
+          "content": "except Exception:",
+          "context": "            result = persist_learning(learning)\n            logger.info(\"Knowledge bridge: persisted retry learning \u2192 %s\", result)\n\n        except Exception:\n            logger.debug(\"Knowledge bridge persistence failed (non-blocking)\", exc_info=True)\n\n    def reset(self) -> None:"
+        },
+        {
+          "file": "src/cohezion/compound/capability_matrix.py",
+          "line": 163,
+          "content": "except Exception:",
+          "context": "                )\n                self._entries[f\"skill:{name}\"] = entry\n\n        except Exception:\n            logger.debug(\"SkillHealthTracker not available\")\n\n    def _load_static_agents(self) -> None:"
+        },
+        {
+          "file": "src/cohezion/compound/capability_matrix.py",
+          "line": 234,
+          "content": "except Exception:",
+          "context": "                    entry.source = \"execution-history\"\n                    entry.last_assessed = date.today().isoformat()\n                    updated += 1\n        except Exception:\n            pass\n        return updated\n"
+        },
+        {
+          "file": "src/cohezion/compound/capability_matrix.py",
+          "line": 322,
+          "content": "except Exception:",
+          "context": "            for f in training_data_path.glob(\"*.jsonl\"):\n                try:\n                    data_count += sum(1 for _ in f.open())\n                except Exception:\n                    pass\n\n        for gap in gaps:"
+        },
+        {
+          "file": "src/cohezion/compound/capability_matrix.py",
+          "line": 483,
+          "content": "except Exception:",
+          "context": "\n        except ImportError:\n            logger.debug(\"eval.capability_scorecard not available\")\n        except Exception:\n            logger.debug(\"EVO scorecard enrichment failed (non-blocking)\", exc_info=True)\n\n    def run_self_evaluation("
+        },
+        {
+          "file": "src/cohezion/compound/capability_matrix.py",
+          "line": 513,
+          "content": "except Exception:",
+          "context": "        except ImportError:\n            logger.debug(\"evaluation.self_eval not available\")\n            return {\"score\": 0.0, \"passed\": True, \"feedback\": \"Self-eval unavailable\"}\n        except Exception:\n            logger.debug(\"Self-evaluation failed (non-blocking)\", exc_info=True)\n            return {\"score\": 0.0, \"passed\": True, \"feedback\": \"Self-eval error\"}\n"
+        },
+        {
+          "file": "src/cohezion/compound/autoresearch.py",
+          "line": 251,
+          "content": "except Exception:",
+          "context": "            try:\n                data = json.loads(Path(path).read_text())\n                all_lessons.extend(data.get(\"lessons\", []))\n            except Exception:\n                continue\n\n        # Identify recurring patterns"
+        },
+        {
+          "file": "src/cohezion/compound/hardware_monitor.py",
+          "line": 302,
+          "content": "except Exception:",
+          "context": "            used = total - available\n\n            return max(self.DEFAULT_MEMORY_USED, min(total, used))\n        except Exception:\n            return self.DEFAULT_MEMORY_USED\n\n    def is_thermal_throttling(self) -> bool:"
+        },
+        {
+          "file": "src/cohezion/compound/hardware_monitor.py",
+          "line": 321,
+          "content": "except Exception:",
+          "context": "            throttle_threshold = metrics.gpu_max_clock_mhz * 0.95\n\n            return metrics.gpu_clock_mhz < throttle_threshold\n        except Exception:\n            return False\n\n    def get_throttle_percentage(self) -> float:"
+        },
+        {
+          "file": "src/cohezion/compound/hardware_monitor.py",
+          "line": 341,
+          "content": "except Exception:",
+          "context": "            throttle_pct = max(0.0, 100.0 * (1.0 - clock_ratio))\n\n            return min(100.0, throttle_pct)\n        except Exception:\n            return 0.0\n\n    def get_stats(self) -> dict:"
+        },
+        {
+          "file": "src/cohezion/compound/request_cache.py",
+          "line": 376,
+          "content": "except Exception:",
+          "context": "            # Check if result contains key intake-related terms\n            text = str(result).lower()\n            return any(term in text for term in [\"request\", \"task\", \"operation\", \"intent\"])\n        except Exception:\n            return False\n\n    def _parse_pattern(self, result: Any) -> tuple[str | None, AgentTask | None]:"
+        },
+        {
+          "file": "src/cohezion/compound/metrics_persistence.py",
+          "line": 52,
+          "content": "except Exception:",
+          "context": "        try:\n            path.write_text(json.dumps(snapshot, indent=2), encoding=\"utf-8\")\n            logger.info(\"Saved metrics snapshot to %s\", path)\n        except Exception:\n            logger.exception(\"Failed to save metrics snapshot\")\n            return \"\"\n"
+        },
+        {
+          "file": "src/cohezion/compound/metrics_persistence.py",
+          "line": 107,
+          "content": "except Exception:",
+          "context": "                for score in scores:\n                    f.write(json.dumps(score) + \"\\n\")\n                    count += 1\n        except Exception:\n            logger.exception(\"Failed to save compound scores\")\n\n        return count"
+        },
+        {
+          "file": "src/cohezion/compound/thermal_trend_predictor.py",
+          "line": 300,
+          "content": "except Exception:",
+          "context": "\n            combined = 0.6 * sample_confidence + 0.4 * r_squared_confidence\n            return max(0.3, combined)  # Minimum 30% confidence\n        except Exception:\n            return 0.5\n\n    def _calculate_confidence_heuristic(self) -> float:"
+        },
+        {
+          "file": "src/cohezion/compound/cache_persistence.py",
+          "line": 50,
+          "content": "except Exception:",
+          "context": "                    }\n                    f.write(json.dumps(entry) + \"\\n\")\n                    count += 1\n        except Exception:\n            logger.exception(\"Failed to save cache\")\n\n        logger.info(\"Saved %d cache entries to %s\", count, path)"
+        },
+        {
+          "file": "src/cohezion/compound/session_manager.py",
+          "line": 295,
+          "content": "except Exception:",
+          "context": "                json.dump(asdict(state), f, indent=2)\n            logger.debug(f\"Checkpoint saved to {checkpoint_file}\")\n            return True\n        except Exception:\n            logger.exception(\"Checkpoint save failed\")\n            return False\n"
+        },
+        {
+          "file": "src/cohezion/compound/session_manager.py",
+          "line": 329,
+          "content": "except Exception:",
+          "context": "                state = SessionState(**data)\n                logger.debug(f\"Checkpoint loaded from {checkpoint_file}\")\n                return state\n        except Exception:\n            logger.exception(\"Checkpoint load failed\")\n\n        return None"
+        },
+        {
+          "file": "src/cohezion/compound/session_manager.py",
+          "line": 363,
+          "content": "except Exception:",
+          "context": "                checkpoint_file.unlink()\n                logger.debug(f\"Checkpoint deleted: {checkpoint_file}\")\n                local_deleted = True\n        except Exception:\n            logger.exception(\"Checkpoint delete failed\")\n\n        # Return True if deleted from either location"
+        },
+        {
+          "file": "src/cohezion/compound/session_manager.py",
+          "line": 485,
+          "content": "except Exception:",
+          "context": "            client = get_compound_client()\n            loader = WarmCacheLoader()\n            self._cache_loaded = loader.warm_client(client, max_cache_entries)\n        except Exception:\n            logger.debug(\"Cache warm failed (non-critical)\")\n            self._cache_loaded = 0\n"
+        },
+        {
+          "file": "src/cohezion/compound/session_manager.py",
+          "line": 501,
+          "content": "except Exception:",
+          "context": "            if snapshot:\n                collector.load_from_snapshot(snapshot)\n                self._metrics_restored = True\n        except Exception:\n            logger.debug(\"Metrics restore failed (non-critical)\")\n\n        return SessionSummary("
+        },
+        {
+          "file": "src/cohezion/compound/session_manager.py",
+          "line": 522,
+          "content": "except Exception:",
+          "context": "            client = get_compound_client()\n            cp = CachePersistence()\n            cache_saved = cp.save_cache(client._cache)\n        except Exception:\n            logger.debug(\"Cache save failed (non-critical)\")\n\n        # Save metrics"
+        },
+        {
+          "file": "src/cohezion/compound/session_manager.py",
+          "line": 540,
+          "content": "except Exception:",
+          "context": "            metrics_saved = True\n            total_executions = collector.total_executions\n            total_tokens = collector.total_tokens()\n        except Exception:\n            logger.debug(\"Metrics save failed (non-critical)\")\n\n        return SessionSummary("
+        },
+        {
+          "file": "src/cohezion/compound/skill_refiner.py",
+          "line": 167,
+          "content": "except Exception:",
+          "context": "            persist_learning(learning)\n            logger.info(\"Knowledge bridge: persisted skill refinement for %s\", skill_name)\n\n        except Exception:\n            logger.debug(\"Skill refinement vault persistence failed (non-blocking)\", exc_info=True)\n\n    def _extract_metrics(self, execution_result: dict[str, Any]) -> ExecutionMetrics:"
+        },
+        {
+          "file": "src/cohezion/compound/executor_integration.py",
+          "line": 98,
+          "content": "except Exception:",
+          "context": "        except ImportError:\n            logger.debug(\"vibe/ module not available for NL compilation\")\n            return None\n        except Exception:\n            logger.debug(\"NL compilation failed (non-blocking)\", exc_info=True)\n            return None\n"
+        },
+        {
+          "file": "src/cohezion/compound/executor_integration.py",
+          "line": 110,
+          "content": "except Exception:",
+          "context": "            return validate_sandbox_task(task_description)\n        except ImportError:\n            return True\n        except Exception:\n            logger.debug(\"Sandbox validation failed (non-blocking)\", exc_info=True)\n            return True\n"
+        },
+        {
+          "file": "src/cohezion/compound/executor.py",
+          "line": 265,
+          "content": "except Exception:",
+          "context": "                # No running loop \u2014 safe to run\n                return asyncio.run(warmer.find_template_match(task_description))\n\n        except Exception:\n            logger.debug(\"Template matching failed (non-blocking)\", exc_info=True)\n            return None\n"
+        },
+        {
+          "file": "src/cohezion/compound/executor.py",
+          "line": 356,
+          "content": "except Exception:",
+          "context": "                logger.debug(\n                    \"Guidance enriched with %d recent retrospections\", len(data[0][\"result\"])\n                )\n        except Exception:\n            pass  # Non-blocking: SurrealDB may be unavailable\n\n        return result"
+        },
+        {
+          "file": "src/cohezion/compound/executor.py",
+          "line": 634,
+          "content": "except Exception:",
+          "context": "                metrics=metrics,\n                token_metrics=token_metrics,\n            )\n        except Exception:\n            logger.debug(\"Execution trace logging failed (non-blocking)\", exc_info=True)\n\n        # Step 5: Detect anomalies (non-blocking)"
+        },
+        {
+          "file": "src/cohezion/compound/executor.py",
+          "line": 1125,
+          "content": "except Exception:",
+          "context": "                            \"Mycelium audit: %d skills synthesized\",\n                            getattr(report, \"skills_synthesized\", 0) if report else 0,\n                        )\n                    except Exception:\n                        logger.debug(\"Mycelium audit failed (non-blocking)\")\n                logger.debug(\"Mycelium: captured execution as pattern entry\")\n        except (ImportError, Exception):"
+        },
+        {
+          "file": "src/cohezion/compound/__init__.py",
+          "line": 11,
+          "content": "except Exception:",
+          "context": "    from .universal.init import (\n        initialize_cohezion_environment as initialize_cohezion_environment,\n    )\nexcept Exception:\n    pass\n\nfrom cohezion.compound.analytics.engine import ("
+        },
+        {
+          "file": "src/cohezion/compound/persistence.py",
+          "line": 56,
+          "content": "except Exception:",
+          "context": "        if await self._check_surreal():\n            try:\n                return await self._save_to_surreal(skill_name, cycle_data)\n            except Exception:\n                logger.warning(\"SurrealDB save failed, falling back to JSONL\")\n\n        # Tier 3: JSONL (Local Fallback)"
+        },
+        {
+          "file": "src/cohezion/compound/persistence.py",
+          "line": 89,
+          "content": "except Exception:",
+          "context": "        if await self._check_surreal():\n            try:\n                return await self._load_from_surreal(skill_name, limit)\n            except Exception:\n                logger.warning(\"SurrealDB load failed, falling back to JSONL\")\n\n        # Tier 3: JSONL"
+        },
+        {
+          "file": "src/cohezion/compound/persistence.py",
+          "line": 104,
+          "content": "except Exception:",
+          "context": "                async with httpx.AsyncClient(timeout=2.0) as client:\n                    resp = await client.get(\"http://localhost:8000/health\")\n                    self._surreal_available = resp.status_code == 200\n            except Exception:\n                self._surreal_available = False\n        return self._surreal_available\n"
+        },
+        {
+          "file": "src/cohezion/compound/persistence.py",
+          "line": 157,
+          "content": "except Exception:",
+          "context": "                content = mcp.vault_read(filepath)\n                records.append(json.loads(content))\n            return records\n        except Exception:\n            return []\n\n    def _save_to_jsonl(self, skill_name: str, cycle_data: dict[str, Any]) -> str:"
+        },
+        {
+          "file": "src/cohezion/compound/degradation_detector.py",
+          "line": 361,
+          "content": "except Exception:",
+          "context": "        if alerts and self._routing_callback is not None:\n            try:\n                self._routing_callback(alerts)\n            except Exception:\n                logger.debug(\"Routing callback failed (non-blocking)\", exc_info=True)\n\n        return alerts"
+        },
+        {
+          "file": "src/cohezion/compound/degradation_detector.py",
+          "line": 431,
+          "content": "except Exception:",
+          "context": "\n        except ImportError:\n            logger.debug(\"Healing module not available, skipping pipeline\")\n        except Exception:\n            logger.debug(\"Healing pipeline error (non-blocking)\", exc_info=True)\n\n    def _notify_resilience_manager(self, alerts: list[DegradationAlert]) -> None:"
+        },
+        {
+          "file": "src/cohezion/compound/degradation_detector.py",
+          "line": 456,
+          "content": "except Exception:",
+          "context": "                )\n        except ImportError:\n            pass  # Non-blocking: resilience module not available\n        except Exception:\n            logger.debug(\"RAH notification error (non-blocking)\", exc_info=True)\n\n    def get_baseline_stats(self) -> dict[str, Any]:"
+        },
+        {
+          "file": "src/cohezion/compound/journey_tracker.py",
+          "line": 479,
+          "content": "except Exception:",
+          "context": "        # Persist trajectory point to SurrealDB (non-blocking, fire-and-forget)\n        try:\n            self._persist_to_surreal(point)\n        except Exception:\n            pass  # Non-blocking: SurrealDB may be unavailable\n\n        logger.debug("
+        },
+        {
+          "file": "src/cohezion/compound/journey_tracker.py",
+          "line": 539,
+          "content": "except Exception:",
+          "context": "        )\n        try:\n            urllib.request.urlopen(req, timeout=2)\n        except Exception:\n            pass  # Fire-and-forget\n\n    def get_last_point(self) -> TrajectoryPoint | None:"
+        },
+        {
+          "file": "src/cohezion/compound/exp_persistence/vault.py",
+          "line": 220,
+          "content": "except Exception:",
+          "context": "                for trace_path in to_remove:\n                    try:\n                        self.mcp.vault_delete(trace_path)\n                    except Exception:\n                        pass\n        except Exception:\n            pass  # Non-blocking: pruning failure is not critical"
+        },
+        {
+          "file": "src/cohezion/compound/exp_persistence/vault.py",
+          "line": 222,
+          "content": "except Exception:",
+          "context": "                        self.mcp.vault_delete(trace_path)\n                    except Exception:\n                        pass\n        except Exception:\n            pass  # Non-blocking: pruning failure is not critical\n\n    def browse_recent_traces(self, skill_name: str, n: int = 5) -> list[dict[str, Any]]:"
+        },
+        {
+          "file": "src/cohezion/compound/exp_persistence/vault.py",
+          "line": 251,
+          "content": "except Exception:",
+          "context": "                    content = self.mcp.vault_read(trace_path)\n                    data = json.loads(content)\n                    results.append(data)\n                except Exception:\n                    continue\n        except Exception:\n            pass"
+        },
+        {
+          "file": "src/cohezion/compound/exp_persistence/vault.py",
+          "line": 253,
+          "content": "except Exception:",
+          "context": "                    results.append(data)\n                except Exception:\n                    continue\n        except Exception:\n            pass\n        return results\n"
+        },
+        {
+          "file": "src/cohezion/compound/universal/init.py",
+          "line": 25,
+          "content": "except Exception:",
+          "context": "            if \"cohezion\" in frame.f_code.co_filename:\n                return True\n            frame = frame.f_back\n    except Exception:\n        pass  # Continue with other detection methods\n\n    # Signal 2: Check working directory for Cohezion markers"
+        },
+        {
+          "file": "src/cohezion/compound/universal/init.py",
+          "line": 43,
+          "content": "except Exception:",
+          "context": "        marker_count = sum(1 for marker in cohezion_markers if (cwd / marker).exists())\n        if marker_count >= 3:  # Require multiple markers to reduce false positives\n            return True\n    except Exception:\n        pass  # Continue with other detection methods\n\n    # Signal 3: Check for Cohezion-specific environment variables"
+        },
+        {
+          "file": "src/cohezion/compound/universal/init.py",
+          "line": 103,
+          "content": "except Exception:",
+          "context": "                        (cwd / marker).exists() for marker in [\"src/cohezion\", \"pyproject.toml\"]\n                    ):\n                        return True\n                except Exception:\n                    pass  # Continue with other signals\n    except ImportError:\n        pass  # psutil not available, continue with other signals"
+        },
+        {
+          "file": "src/cohezion/compound/universal/init.py",
+          "line": 107,
+          "content": "except Exception:",
+          "context": "                    pass  # Continue with other signals\n    except ImportError:\n        pass  # psutil not available, continue with other signals\n    except Exception:\n        pass  # Other errors, continue with other signals\n\n    # Signal 5: Check for Cohezion-specific files in parent directories"
+        },
+        {
+          "file": "src/cohezion/compound/universal/init.py",
+          "line": 127,
+          "content": "except Exception:",
+          "context": "                )\n                if marker_count >= 2:\n                    return True\n    except Exception:\n        pass  # Continue with other detection methods\n\n    return False"
+        },
+        {
+          "file": "src/cohezion/compound/universal/init.py",
+          "line": 174,
+          "content": "except Exception:",
+          "context": "                else:\n                    # Couldn't find Cohezion root, use current directory as best effort\n                    pass\n        except Exception:\n            project_root = Path.cwd()  # Fallback to current directory\n\n        # Initialize systems"
+        },
+        {
+          "file": "src/cohezion/compound/universal/init.py",
+          "line": 183,
+          "content": "except Exception:",
+          "context": "            tdd_system = get_tdd_integration(project_root)\n            review_system = get_adversarial_review_system(project_root)\n            coordinator = get_tdt_adversarial_coordinator(project_root)\n        except Exception:\n            # If we can't initialize systems, fail gracefully\n            # Don't break Cohezion - just skip initialization\n            return True  # Consider it \"initialized\" by skipping"
+        },
+        {
+          "file": "src/cohezion/compound/universal/init.py",
+          "line": 209,
+          "content": "except Exception:",
+          "context": "            )\n            worktree_created = init_result.get(\"success\", False)\n            initialization_details.update(init_result)\n        except Exception:\n            # Fallback: continue without worktree (current directory work)\n            # This is fine for many environments (APIs, batch jobs, etc.)\n            pass"
+        },
+        {
+          "file": "src/cohezion/compound/universal/init.py",
+          "line": 219,
+          "content": "except Exception:",
+          "context": "            # Quick test that TDD system is working\n            _ = tdd_system.get_tdd_metrics(f\"init_test_{session_id}\")\n            tdd_ready = True\n        except Exception:\n            # TDD system failed to initialize - continue anyway\n            pass\n"
+        },
+        {
+          "file": "src/cohezion/compound/universal/init.py",
+          "line": 227,
+          "content": "except Exception:",
+          "context": "            # Quick test that review system is working\n            _ = review_system.get_adversarial_metrics(f\"init_test_{session_id}\")\n            review_ready = True\n        except Exception:\n            # Review system failed to initialize - continue anyway\n            pass\n"
+        },
+        {
+          "file": "src/cohezion/compound/universal/init.py",
+          "line": 235,
+          "content": "except Exception:",
+          "context": "            # Quick test that coordinator is working\n            _ = coordinator.get_integration_metrics(f\"init_test_{session_id}\")\n            coordinator_ready = True\n        except Exception:\n            # Coordinator system failed to initialize - continue anyway\n            pass\n"
+        },
+        {
+          "file": "src/cohezion/compound/universal/init.py",
+          "line": 262,
+          "content": "except Exception:",
+          "context": "            log_dir.mkdir(parents=True, exist_ok=True)\n            with open(log_dir / \"universal_init.log\", \"a\") as f:\n                f.write(f\"{init_msg}\\n\")\n        except Exception:\n            # Final fallback to stdout (visible in most environments)\n            # Only print if we're likely in an interactive environment\n            try:"
+        },
+        {
+          "file": "src/cohezion/compound/universal/init.py",
+          "line": 268,
+          "content": "except Exception:",
+          "context": "            try:\n                if not os.environ.get(\"COHEZION_NON_INTERACTIVE\"):\n                    print(init_msg)\n            except Exception:\n                pass  # Even error reporting failed, continue silently\n\n        return True"
+        },
+        {
+          "file": "src/cohezion/compound/universal/init.py",
+          "line": 282,
+          "content": "except Exception:",
+          "context": "            try:\n                if not os.environ.get(\"COHEZION_NON_INTERACTIVE\"):\n                    print(error_msg)\n            except Exception:\n                pass  # Even error reporting failed, continue silently\n        except Exception:\n            pass  # Even error reporting failed, continue silently"
+        },
+        {
+          "file": "src/cohezion/compound/universal/init.py",
+          "line": 284,
+          "content": "except Exception:",
+          "context": "                    print(error_msg)\n            except Exception:\n                pass  # Even error reporting failed, continue silently\n        except Exception:\n            pass  # Even error reporting failed, continue silently\n        return False  # Indicate initialization was attempted but failed\n"
+        },
+        {
+          "file": "src/cohezion/compound/daemon/workflow_initializer.py",
+          "line": 346,
+          "content": "except Exception:",
+          "context": "                cwd=str(Path.cwd()),\n            )\n            return result.returncode == 0\n        except Exception:\n            return False\n\n"
+        },
+        {
+          "file": "src/cohezion/world_model/surprise_explorer.py",
+          "line": 116,
+          "content": "except Exception:",
+          "context": "\n            try:\n                surprise = self._world_model.surprise_score(probe, action, next_state)\n            except Exception:\n                surprise = 0.0\n\n            surprises.append((probe, action, next_state, surprise))"
+        },
+        {
+          "file": "src/cohezion/hookify/validator.py",
+          "line": 76,
+          "content": "except Exception:",
+          "context": "                rule = self._parse_rule_section(section)\n                if rule:\n                    rules.append(rule)\n            except Exception:\n                # Invalid rule format - skip gracefully\n                continue\n"
+        },
+        {
+          "file": "src/cohezion/hookify/validator.py",
+          "line": 463,
+          "content": "except Exception:",
+          "context": "                result = self._db.query(f\"SELECT * FROM hookify_rules WHERE rule_id = '{rule_id}'\")\n                if result and len(result) > 0:\n                    return result[0].get(\"lever_overrides\", {})\n            except Exception:\n                pass\n\n        return {}"
+        },
+        {
+          "file": "src/cohezion/api/__init__.py",
+          "line": 1212,
+          "content": "except Exception:",
+          "context": "                \"checkpoint\": str(flume_ckpt) if flume_ckpt.exists() else None,\n                \"metrics\": data if isinstance(data, dict) else {\"epoch_data\": data[-3:]},\n            }\n        except Exception:\n            flume_info = {\"status\": \"checkpoint_found\", \"path\": str(flume_metrics)}\n    elif flume_ckpt.exists():\n        flume_info = {\"status\": \"checkpoint_found\", \"path\": str(flume_ckpt)}"
+        },
+        {
+          "file": "src/cohezion/api/__init__.py",
+          "line": 1229,
+          "content": "except Exception:",
+          "context": "                \"checkpoint\": str(rl_ckpt) if rl_ckpt.exists() else None,\n                \"metrics\": data if isinstance(data, dict) else {\"episode_data\": data[-3:]},\n            }\n        except Exception:\n            rl_info = {\"status\": \"checkpoint_found\", \"path\": str(rl_metrics)}\n    elif rl_ckpt.exists():\n        rl_info = {\"status\": \"checkpoint_found\", \"path\": str(rl_ckpt)}"
+        },
+        {
+          "file": "src/cohezion/api/services/universe.py",
+          "line": 334,
+          "content": "except Exception:",
+          "context": "                n_clusters=dgm.n_significant_features(0, threshold=0.01),\n                n_loops=dgm.n_significant_features(1, threshold=0.01),\n            )\n        except Exception:\n            logger.debug(\"Topology computation failed\", exc_info=True)\n            return None\n"
+        },
+        {
+          "file": "src/cohezion/api/services/anima.py",
+          "line": 69,
+          "content": "except Exception:",
+          "context": "\n            resp = httpx.get(\"http://localhost:8371/health\", timeout=2.0)\n            self._mcp_available = resp.status_code == 200\n        except Exception:\n            self._mcp_available = False\n\n        # Tier 3: Check if pocket-tts model is available"
+        },
+        {
+          "file": "src/cohezion/api/services/anima.py",
+          "line": 75,
+          "content": "except Exception:",
+          "context": "        # Tier 3: Check if pocket-tts model is available\n        try:\n            self._voice_available = True\n        except Exception:\n            self._voice_available = False\n\n    @property"
+        }
+      ]
+    }
+  ],
+  "scan_metadata": {
+    "timestamp": "2026-04-02T14:45:00Z",
+    "scanned_files": 2921,
+    "summary": {
+      "critical": 1,
+      "high": 1,
+      "medium": 1,
+      "total_instances": 198,
+      "unique_anti_patterns": 3
+    }
+  }
+}

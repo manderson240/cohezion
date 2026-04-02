@@ -1,0 +1,14 @@
+{
+  "extensions": [
+    ".pi/extensions/cohezion-bridge.ts"
+  ],
+  "cohezion": {
+    "skillsDir": "src/cohezion/skills",
+    "vaultEnabled": true,
+    "patternBufferPath": ".pattern_buffer.json",
+    "archiveDir": ".pi/archive",
+    "trajectoryDir": ".pi/trajectories"
+  },
+  "theme": "dark",
+  "thinking": "medium"
+}

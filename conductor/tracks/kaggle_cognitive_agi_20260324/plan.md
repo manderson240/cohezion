@@ -32,6 +32,9 @@
 ## Phase 5: Leaderboard Optimization & Iterative Refinement
 - [~] Task: Execute full-scale synthetic generation (100+ tasks) using `generate_evo_hiho_tasks.py` (Running autonomously in background).
 - [x] Task: Create an automated Kaggle submission and leaderboard polling script (`check_leaderboard.py`).
+- [ ] Task: Fix `generate_evo_hiho_tasks.py` placeholder output issue.
+    - [ ] Sub-task: Refine the `GENERATION_PROMPT` to enforce strict grid arrays instead of string placeholders (`[[...]]`).
+    - [ ] Sub-task: Implement a JSON schema validation check before saving tasks to `evo_hiho_benchmark.json`.
 - [ ] Task: Run the evaluation notebook on top Kaggle models (e.g., Qwen 2.5 72B, Llama 3) to establish a baseline score.
 - [ ] Task: Analyze model failure modes and refine the `GENERATION_PROMPT` to increase trap difficulty without violating logical soundness.
 - [ ] Task: Repeat Generation -> Evaluation -> Submission loop until leaderboard target is achieved.

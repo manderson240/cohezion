@@ -18,9 +18,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnter }) => {
     useEffect(() => {
         const interval = setInterval(() => {
             const messages = [
-                { text: `Coherence pulse: ${ouroboros.coherence.toFixed(3)}`, type: 'info' as const },
+                { text: `Coherence pulse: ${(ouroboros.coherence ?? 0).toFixed(3)}`, type: 'info' as const },
                 { text: `Active agents: ${ouroboros.active_agents}`, type: 'info' as const },
-                { text: `Entropy drift: ${ouroboros.entropy.toFixed(4)}`, type: 'warning' as const },
+                { text: `Entropy drift: ${(ouroboros.entropy ?? 0).toFixed(4)}`, type: 'warning' as const },
             ];
             const msg = messages[Math.floor(Math.random() * messages.length)];
             setLogs(prev => [...prev.slice(-20), { id: Date.now().toString(), ...msg }]);
@@ -40,7 +40,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnter }) => {
             </div>
 
             <CommandCenter
-                coherence={ouroboros.coherence.toFixed(3)}
+                coherence={(ouroboros.coherence ?? 0).toFixed(3)}
                 isOnline={ouroboros.stability > 0.5}
                 logs={logs}
             >

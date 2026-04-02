@@ -154,7 +154,7 @@ export default function FlumeLatentViz({ className = "" }: FlumeLatentVizProps) 
             fill={coherenceColor(p.coherence)}
             opacity={0.7}
           >
-            <title>{`${p.label}: coherence=${p.coherence.toFixed(2)}`}</title>
+            <title>{`${p.label}: coherence=${(p.coherence ?? 0).toFixed(2)}`}</title>
           </circle>
         ))}
 

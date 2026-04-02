@@ -108,7 +108,7 @@ export default function ObservatoryMode() {
           <div className="space-y-5">
             {[
               { label: "Active EVOs", value: String(evoCount), source: "EVOInitializationFactory.create_evo()" },
-              { label: "Mean Coherence", value: coherence.toFixed(4), source: "HIHOStabilizationEngine.apply_hiho_loop()" },
+              { label: "Mean Coherence", value: (coherence ?? 0).toFixed(4), source: "HIHOStabilizationEngine.apply_hiho_loop()" },
               {
                 label: "CA Fabric Density",
                 value: `${(caGridDensity * 100).toFixed(1)}%`,
@@ -225,7 +225,7 @@ export default function ObservatoryMode() {
                       }`}
                     >
                       {evo.charge_status.toUpperCase()}{" "}
-                      {evo.charge_density.toFixed(3)}
+                      {(evo.charge_density ?? 0).toFixed(3)}
                     </div>
                   </div>
                 ))}

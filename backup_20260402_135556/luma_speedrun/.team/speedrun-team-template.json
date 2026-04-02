@@ -1,0 +1,142 @@
+{
+  "_comment": "Reusable team template for Luma AMD Speedrun optimization sessions. Strip session-specific fields before use. Reconstitute with: TeamCreate(team_name='speedrun-sN') + Agent(subagent_type=..., name=..., prompt=...).",
+  "_usage": "1. TeamCreate({team_name: 'speedrun-sN', description: '...'}) 2. TaskCreate for each task below 3. Agent for each member below (knowledge-curator in background, kernel-researcher foreground)",
+
+  "team_structure": {
+    "description": "Luma AMD Speedrun optimization — Direct CK dispatch breakthrough team",
+    "lead": "coordinator (main Claude session)",
+    "members": [
+      {
+        "name": "knowledge-curator",
+        "subagent_type": "general-purpose",
+        "model": "claude-opus-4-6",
+        "run_in_background": true,
+        "description": "Bootstrap luma-speedrun knowledge graph",
+        "role": "Populates SurrealDB + Obsidian vault with all session findings. Runs in background — independent of other agents."
+      },
+      {
+        "name": "kernel-researcher",
+        "subagent_type": "kernel-researcher",
+        "model": "claude-sonnet-4-6",
+        "run_in_background": false,
+        "description": "Discover MLA kernel argument layout from aiter source",
+        "role": "Clones aiter repo, traces C++ dispatch layer, extracts kernel argument struct. Critical path — dispatch engineer depends on this."
+      },
+      {
+        "name": "dispatch-engineer",
+        "subagent_type": "kernel-writer",
+        "model": "claude-sonnet-4-6",
+        "run_in_background": false,
+        "description": "Implement direct CK dispatch submission",
+        "role": "Implements hipModuleLaunchKernel-based submission.py. Spawned AFTER kernel-researcher returns arg layout. Runs popcorn-cli test then benchmark."
+      }
+    ]
+  },
+
+  "task_template": [
+    {
+      "id": "A.1",
+      "subject": "Populate SurrealDB knowledge graph with all session findings",
+      "owner": "knowledge-curator",
+      "blocked_by": [],
+      "blocks": ["A.2"]
+    },
+    {
+      "id": "A.2",
+      "subject": "Create Obsidian vault notes with wikilinks for luma-speedrun knowledge base",
+      "owner": "knowledge-curator",
+      "blocked_by": ["A.1"],
+      "blocks": []
+    },
+    {
+      "id": "B.1-B.3",
+      "subject": "Discover MLA stage1 kernel argument layout from aiter C++ source",
+      "owner": "kernel-researcher",
+      "blocked_by": [],
+      "blocks": ["C.1"]
+    },
+    {
+      "id": "C.1",
+      "subject": "Implement MLA direct CK dispatch submission (hipModuleLaunchKernel)",
+      "owner": "dispatch-engineer",
+      "blocked_by": ["B.1-B.3"],
+      "blocks": ["C.2", "C.3"]
+    },
+    {
+      "id": "C.2",
+      "subject": "Fuse MLA stage1 + reduce with direct dispatch (if C.1 correct)",
+      "owner": "dispatch-engineer",
+      "blocked_by": ["C.1"],
+      "blocks": []
+    },
+    {
+      "id": "C.3",
+      "subject": "MoE direct dispatch via fmoe_2stages kernels (if MLA validates approach)",
+      "owner": "dispatch-engineer",
+      "blocked_by": ["C.1"],
+      "blocks": []
+    }
+  ],
+
+  "agent_prompts": {
+    "knowledge_curator": {
+      "summary": "Store all N experiments, M blockers, and their bidirectional edges in SurrealDB + create Obsidian vault notes at ~/vaults/cohezion-vault/luma-speedrun/. Each experiment node: {kernel, approach, session, status, score_us, finding, evidence}. Each blocker node: {description, resolved, resolution}. Create README.md as entry point with [[wikilinks]] graph. Create per-experiment notes in experiments/, per-blocker notes in blockers/, discovery notes in discoveries/, approach notes in approaches/.",
+      "template_note": "Update experiment list + blocker list each session before spawning. The vault README format and wikilink structure stays constant."
+    },
+    "kernel_researcher": {
+      "summary": "Check ~/dev/aiter exists. If not: git clone https://github.com/ROCm/aiter ~/dev/aiter --depth=1. Search csrc/ for hipModuleLaunchKernel + target kernel name. Read C++ binding to extract: (1) GRID dims, (2) BLOCK dims, (3) SHARED_MEM size, (4) exact argument order + types. Also find reduce kernel .co filename. Write spec to luma_speedrun/amd-mixed-mla/probes/kernel_arg_spec.md and ~/vaults/cohezion-vault/luma-speedrun/discoveries/D004-mla-stage1-arg-layout.md. Return full spec in response.",
+      "template_note": "Per-session: update target kernel name + Python call signature. The research methodology (clone → grep csrc → read binding) stays constant."
+    },
+    "dispatch_engineer": {
+      "summary": "Given kernel arg spec from kernel-researcher: implement submission_direct_ck.py. Pre-load hip module + function handle at module import time (outside custom_kernel). In hot path: build ctypes void** arg array matching spec exactly. Use torch.cuda.current_stream().cuda_stream for HIP stream. Run popcorn-cli --mode test FIRST, then --mode benchmark only if test passes. Submit --mode leaderboard only if >5% improvement over baseline.",
+      "template_note": "Per-session: update arg array construction from spec. The overall pattern (pre-load → build args → launch) stays constant."
+    }
+  },
+
+  "knowledge_graph_schema": {
+    "surreal_tables": ["experiment", "blocker", "discovery"],
+    "surreal_edges": ["failed_because", "resolved_by", "enables", "contradicts", "based_on"],
+    "vault_structure": {
+      "README.md": "Entry point with status table + dead ends + wikilink graph",
+      "experiments/": "One note per experiment: {status, finding, evidence, links}",
+      "blockers/": "Active and resolved blockers with resolution path",
+      "discoveries/": "Confirmed findings that enable future approaches",
+      "approaches/": "High-level strategies with prerequisite checklist"
+    }
+  },
+
+  "known_dead_ends": [
+    {"approach": "expert_mask in fused_moe", "reason": "30624 mismatches for 256-expert padding shapes", "session": 2},
+    {"approach": "SDPA fusion for MLA", "reason": "K!=V dims (576 vs 512) forces 1542µs slow path on gfx950", "session": 2},
+    {"approach": "warmup removal (MoE)", "reason": "CK cache is shape-keyed, no collision between 8-expert warmup and 256-expert production", "session": 2},
+    {"approach": "filesystem glob on runner", "reason": "Runner sandbox blocks aiter source reads via glob/inspect", "session": 2},
+    {"approach": "tritonblas.matmul_fp4", "reason": "Same timing as aiter (~22us), quantization is the real bottleneck", "session": 2},
+    {"approach": "gemm_a4w4_asm k_split sweep", "reason": "No improvement over default k_split", "session": 2},
+    {"approach": "ctypes hipModuleLaunchKernel (MLA-006)", "reason": "Runner profiling-level stream monitor blocks any kernel launched on non-harness hipStream_t. torch.cuda.current_stream().cuda_stream is NOT the harness stream.", "session": 3},
+    {"approach": "torch.cuda.CUDAGraph capture/replay (MLA-007)", "reason": "torch.cuda.graph() creates internal side stream during capture — same 'work on another stream' violation. CUDA graph capture is blocked even though individual aiter calls are fine.", "session": 3}
+  ],
+
+  "_stream_detection_note": "Session 3 discovery (D005): The harness stream handle is NEVER exposed to user code. Any GPU dispatch that bypasses PyTorch's standard kernel dispatch machinery (ctypes, CUDA graphs, manual HIP streams) will fail. Only torch.* and aiter.* calls correctly target the harness timing stream via PyTorch's C++ dispatch layer.",
+
+  "current_best_scores": {
+    "note": "Update each session before spawning",
+    "mla_us": 70,
+    "moe_us": 180,
+    "gemm_us": 13.4,
+    "mla_leader_us": 33,
+    "moe_leader_us": 110,
+    "gemm_leader_us": 4.3
+  },
+
+  "runner_environment": {
+    "gpu": "AMD MI355X (gfx950)",
+    "hip_lib": "libamdhip64.so",
+    "co_kernel_dir": "/home/runner/aiter/hsa/gfx950/",
+    "jit_dir": "/home/runner/aiter/aiter/jit/",
+    "submission_constraint": "Single submission.py file only — no multi-file, no HIP compilation",
+    "python_dispatch_overhead_us": "20-25 per torch op call",
+    "mla_tolerance": "rtol=0.1, atol=0.1 (loose)",
+    "moe_tolerance": "strict (zero mismatches required)",
+    "gemm_tolerance": "exact match required"
+  }
+}

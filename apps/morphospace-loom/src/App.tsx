@@ -797,7 +797,7 @@ function StateCard12D({ state12d, style }: { state12d: number[]; style?: React.C
                                     color: atHIHO ? NEXUS_GREEN : 'white',
                                     fontWeight: atHIHO ? 'bold' : 'normal',
                                 }}>
-                                    {value.toFixed(2)} {atHIHO ? '✓' : ''}
+                                    {(value ?? 0).toFixed(2)} {atHIHO ? '✓' : ''}
                                 </span>
                             </div>
                             <div style={{ fontSize: 8, color: 'rgba(255,255,255,0.5)', marginTop: 2 }}>
@@ -997,7 +997,7 @@ function EntanglementPulse({ d1, d12, style }: { d1: number; d12: number; style?
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 20 }}>
                 <div style={{ textAlign: 'center' }}>
                     <div style={{ fontSize: 12, color: NEXUS_GREEN }}>D1</div>
-                    <div style={{ fontSize: 16, fontFamily: 'monospace', color: 'white' }}>{d1.toFixed(2)}</div>
+                    <div style={{ fontSize: 16, fontFamily: 'monospace', color: 'white' }}>{(d1 ?? 0).toFixed(2)}</div>
                 </div>
                 <div style={{
                     width: 60,
@@ -1008,7 +1008,7 @@ function EntanglementPulse({ d1, d12, style }: { d1: number; d12: number; style?
                 }} />
                 <div style={{ textAlign: 'center' }}>
                     <div style={{ fontSize: 12, color: '#C792EA' }}>D12</div>
-                    <div style={{ fontSize: 16, fontFamily: 'monospace', color: 'white' }}>{d12.toFixed(2)}</div>
+                    <div style={{ fontSize: 16, fontFamily: 'monospace', color: 'white' }}>{(d12 ?? 0).toFixed(2)}</div>
                 </div>
             </div>
             <div style={{ textAlign: 'center', marginTop: 8, fontSize: 10, color: 'rgba(255,255,255,0.5)' }}>

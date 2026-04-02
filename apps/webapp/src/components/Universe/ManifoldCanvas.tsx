@@ -83,10 +83,10 @@ export const ManifoldCanvas = () => {
                 {latestPoint ? (
                     <div className="space-y-1">
                         <div className="text-white">Trajectory: <span className="text-nexus-green">{latestPoint.trajectory_id}</span></div>
-                        <div className="text-white">Coherence: <span className={latestPoint.coherence > 0.45 && latestPoint.coherence < 0.55 ? "text-nexus-green" : "text-red-400"}>
-                            {latestPoint.coherence.toFixed(4)}
+                        <div className="text-white">Coherence: <span className={latestPoint.coherence && latestPoint.coherence > 0.45 && latestPoint.coherence < 0.55 ? "text-nexus-green" : "text-red-400"}>
+                            {latestPoint.coherence?.toFixed(4) ?? '0.0000'}
                         </span></div>
-                        <div className="text-white opacity-60">Doer [12D]: {latestPoint.doer.slice(0, 3).map(v => v.toFixed(2)).join(', ')}...</div>
+                        <div className="text-white opacity-60">Doer [12D]: {latestPoint.doer.slice(0, 3).map(v => (v ?? 0).toFixed(2)).join(', ')}...</div>
                     </div>
                 ) : (
                     <div className="text-white animate-pulse">Awaiting connection...</div>

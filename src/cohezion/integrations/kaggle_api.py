@@ -85,6 +85,7 @@ class KaggleAPI:
             "language": "python",
             "sourceType": "notebook",
             "isGpuEnabled": True,
+            "dockerImageVersionId": 31287,
         }
 
         script_path = temp_dir / "notebook.ipynb"
