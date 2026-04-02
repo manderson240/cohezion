@@ -42,8 +42,11 @@ answer = raw[::-1]  # REVERSE for submission
 - **Best bitstring (reversed):** `01000010100011110101010111101000010101010010`
 - **Status:** ✅ Complete
 
+## Submission Text
+Ran circuit on BlueQubit mps.cpu with 100k shots using bond_dim=32 for 44 qubits. Bitstring '01000010100011110101010111101000010101010010' (reversed from raw measurement) had highest probability count. Heavy hex peaked circuit characterized using tutorial_breaking_peaked_quantum_circuits_classically.ipynb heavy output detection method. Note: Required smaller bond_dim=32 for 44 qubits on free tier.
+
 ## Submission
-Submit: `01000010100011110101010111101000010101010010`
+**Answer:** `01000010100011110101010111101000010101010010`
 
 ## Files Used
 - Circuit: `../problems/P5_granite_summit.qasm`
