@@ -109,6 +109,11 @@ def continuous_loop():
             
             # Step 1: Benchmark
             new_time = submit(kernel, path, mode="benchmark")
+            
+            if new_time is None:
+                print(f"[{datetime.now().isoformat()}] Submission for {kernel} failed (Server Error). Retrying next kernel immediately.")
+                continue
+
             print(f"Waiting {RATE_LIMIT}s for rate limit...")
             time.sleep(RATE_LIMIT)
             

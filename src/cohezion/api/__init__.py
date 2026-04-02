@@ -1736,6 +1736,14 @@ except ImportError:
     pass  # agui module not available
 
 
+# Training history (compound training loop data from SurrealDB)
+try:
+    from cohezion.api.routes.training import training_router
+
+    app.include_router(training_router)
+except ImportError:
+    pass  # training routes not available
+
 # ─── AgentJet CALL endpoints ───────────────────────────────────────────────
 
 

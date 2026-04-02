@@ -1,4 +1,4 @@
-.PHONY: help format lint lint-check type-check test all clean train evaluate benchmark demo validate
+.PHONY: help format lint lint-check type-check test all clean train evaluate benchmark demo validate compound-train training-history
 
 help:  ## Show this help message
 	@echo "Available targets:"
@@ -53,6 +53,14 @@ ci:  ## Run CI checks locally
 validate:  ## Validate compound engineering loop end-to-end (25 checks, ~18s)
 	.venv/bin/python scripts/validate_compound_loop.py
 	@echo "✓ Compound loop validated"
+
+# Compound Training Cycle (train → evaluate → persist → compare → refine)
+compound-train:  ## Run compound training cycle (SAC dense 100K, auto-persist to SurrealDB)
+	.venv/bin/python scripts/compound_training_cycle.py --algo SAC --steps 100000
+	@echo "✓ Compound training cycle complete"
+
+training-history:  ## Show training run history from SurrealDB
+	@.venv/bin/python scripts/compound_training_cycle.py --history
 
 # RL Training + Evaluation targets
 train:  ## Train PPO on ManifoldEnv (quick: 20K steps, ~5 min)

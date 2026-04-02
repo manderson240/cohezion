@@ -394,6 +394,74 @@ class SkillRefiner:
         except (ValueError, IndexError):
             return version
 
+    def refine_from_training_runs(self) -> str | None:
+        """Query SurrealDB for training runs and refine RL skills based on results.
+
+        Compares the best training run against the RL_ENVIRONMENT_DESIGN_PRIME
+        skill's documented expectations. If the best run uses a config not yet
+        documented in the skill, appends a refinement note.
+
+        Returns:
+            Path to refined skill file, or None if no refinement needed.
+        """
+        try:
+            import json
+            import urllib.request
+            from base64 import b64encode
+
+            req = urllib.request.Request(
+                "http://localhost:8001/sql",
+                data=b"SELECT algorithm, reward_mode, reward, convergence_rate, diagnostic FROM training_run ORDER BY reward DESC LIMIT 1;",
+                headers={
+                    "Accept": "application/json",
+                    "surreal-ns": "cohezion",
+                    "surreal-db": "cohezion",
+                    "Authorization": "Basic " + b64encode(b"root:root").decode(),
+                },
+                method="POST",
+            )
+            resp = urllib.request.urlopen(req, timeout=5)
+            data = json.loads(resp.read())
+
+            if not data or data[0].get("status") != "OK" or not data[0]["result"]:
+                logger.debug("No training runs in SurrealDB")
+                return None
+
+            best = data[0]["result"][0]
+            algo = best.get("algorithm", "?")
+            mode = best.get("reward_mode", "?")
+            reward = best.get("reward", 0)
+
+            # Check if RL skill already documents this config
+            rl_skill = self.SKILLS_DIR / "RL_ENVIRONMENT_DESIGN_PRIME.md"
+            if not rl_skill.exists():
+                return None
+
+            content = rl_skill.read_text()
+            config_key = f"{algo}+{mode}"
+
+            if config_key.lower() in content.lower():
+                logger.debug("RL skill already documents %s (reward=%.2f)", config_key, reward)
+                return None
+
+            # Append refinement
+            import time
+
+            refinement = (
+                f"\n- v{time.strftime('%Y%m%d')}: Training data shows {algo}+{mode} "
+                f"achieves reward={reward:.2f}. {best.get('diagnostic', '')[:100]}\n"
+            )
+
+            with open(rl_skill, "a") as f:
+                f.write(refinement)
+
+            logger.info("Refined RL skill from training data: %s reward=%.2f", config_key, reward)
+            return str(rl_skill)
+
+        except Exception as e:
+            logger.debug("Training run refinement failed (non-blocking): %s", e)
+            return None
+
 
 class SkillRefinerFactory:
     """Factory for creating skill refiner instances."""

@@ -44,3 +44,5 @@ Match reward structure to algorithm learning dynamics:
 
 ## VERSION
 v1.1.0
+
+- v20260401: Training data shows SAC+dense achieves reward=40.77. SAC Dense closes gap to greedy: only 1.20 reward behind (40.77 vs 41.97). 20% convergence. Dense mod

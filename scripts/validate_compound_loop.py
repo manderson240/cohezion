@@ -66,7 +66,7 @@ class ValidationResult:
 
 def validate_physics_environment(result: ValidationResult) -> None:
     """Step 1: Validate ManifoldEnv physics simulation."""
-    logger.info("\n[1/10] ManifoldEnv Physics Simulation")
+    logger.info("\n[1/11] ManifoldEnv Physics Simulation")
 
     try:
         from cohezion.environments.manifold_env import ManifoldEnv
@@ -109,7 +109,7 @@ def validate_physics_environment(result: ValidationResult) -> None:
 
 def validate_evaluation_framework(result: ValidationResult) -> None:
     """Step 2: Validate UniverseEvaluator with baselines."""
-    logger.info("\n[2/10] UniverseEvaluator Benchmark")
+    logger.info("\n[2/11] UniverseEvaluator Benchmark")
 
     try:
         from cohezion.environments.manifold_env import ManifoldEnv
@@ -152,7 +152,7 @@ def validate_evaluation_framework(result: ValidationResult) -> None:
 
 def validate_compound_executor(result: ValidationResult) -> None:
     """Step 3: Validate CompoundExecutor task execution."""
-    logger.info("\n[3/10] CompoundExecutor Pipeline")
+    logger.info("\n[3/11] CompoundExecutor Pipeline")
 
     try:
         from cohezion.compound.executor import CompoundExecutor
@@ -187,7 +187,7 @@ def validate_compound_executor(result: ValidationResult) -> None:
 
 def validate_degradation_monitoring(result: ValidationResult) -> None:
     """Step 4: Validate DegradationDetector and routing feedback."""
-    logger.info("\n[4/10] Degradation Monitoring + Routing Feedback")
+    logger.info("\n[4/11] Degradation Monitoring + Routing Feedback")
 
     try:
         from cohezion.compound.degradation_detector import DegradationDetector
@@ -221,7 +221,7 @@ def validate_degradation_monitoring(result: ValidationResult) -> None:
 
 def validate_ouroboros_mycelium(result: ValidationResult) -> None:
     """Step 5: Validate Ouroboros + Mycelium integration."""
-    logger.info("\n[5/10] Ouroboros + Mycelium Integration")
+    logger.info("\n[5/11] Ouroboros + Mycelium Integration")
 
     try:
         from cohezion.ouroboros.detector import AnomalyDetector
@@ -265,7 +265,7 @@ def validate_ouroboros_mycelium(result: ValidationResult) -> None:
 
 def validate_swarm_env(result: ValidationResult) -> None:
     """Step 6: Validate SwarmEnv multi-agent environment."""
-    logger.info("\n[6/10] SwarmEnv Multi-Agent")
+    logger.info("\n[6/11] SwarmEnv Multi-Agent")
 
     try:
         from cohezion.environments.swarm_env import SwarmEnv
@@ -298,7 +298,7 @@ def validate_swarm_env(result: ValidationResult) -> None:
 
 def validate_skill_persistence(result: ValidationResult) -> None:
     """Step 7: Validate SkillRefiner and knowledge persistence."""
-    logger.info("\n[7/10] Skill Refinement + Knowledge Persistence")
+    logger.info("\n[7/11] Skill Refinement + Knowledge Persistence")
 
     try:
         from cohezion.compound.skill_refiner import SkillRefiner
@@ -320,7 +320,7 @@ def validate_skill_persistence(result: ValidationResult) -> None:
 
 def validate_persistence_backends(result: ValidationResult) -> None:
     """Step 7: Validate SurrealDB + vault persistence."""
-    logger.info("\n[8/10] SurrealDB + Vault Persistence")
+    logger.info("\n[8/11] SurrealDB + Vault Persistence")
 
     import urllib.request
 
@@ -341,9 +341,48 @@ def validate_persistence_backends(result: ValidationResult) -> None:
     )
 
 
+def validate_compound_training(result: ValidationResult) -> None:
+    """Step 9: Validate compound training cycle infrastructure."""
+    logger.info("\n[9/11] Compound Training Cycle")
+
+    try:
+        import json
+        import urllib.request
+        from base64 import b64encode
+
+        req = urllib.request.Request(
+            "http://localhost:8001/sql",
+            data=b"SELECT count() FROM training_run GROUP ALL;",
+            headers={
+                "Accept": "application/json",
+                "surreal-ns": "cohezion",
+                "surreal-db": "cohezion",
+                "Authorization": "Basic " + b64encode(b"root:root").decode(),
+            },
+            method="POST",
+        )
+        resp = urllib.request.urlopen(req, timeout=5)
+        data = json.loads(resp.read())
+        count = data[0]["result"][0]["count"] if data and data[0].get("status") == "OK" else 0
+        result.record("SurrealDB training runs", count >= 4, f"{count} runs persisted")
+    except Exception as e:
+        result.record("Training run persistence", False, str(e))
+
+    try:
+        from cohezion.compound.skill_refiner import SkillRefiner
+
+        sr = SkillRefiner()
+        result.record(
+            "SkillRefiner training consumption",
+            hasattr(sr, "refine_from_training_runs"),
+        )
+    except Exception as e:
+        result.record("SkillRefiner training wiring", False, str(e))
+
+
 def validate_routing_orchestrator(result: ValidationResult) -> None:
-    """Step 8: Validate RoutingOrchestrator unified entry."""
-    logger.info("\n[9/10] Routing Orchestrator (Unified Entry)")
+    """Step 10: Validate RoutingOrchestrator unified entry."""
+    logger.info("\n[10/11] Routing Orchestrator (Unified Entry)")
 
     try:
         from cohezion.swarm.routing_orchestrator import RoutingOrchestrator
@@ -381,6 +420,7 @@ def main() -> None:
     validate_swarm_env(result)
     validate_skill_persistence(result)
     validate_persistence_backends(result)
+    validate_compound_training(result)
     validate_routing_orchestrator(result)
 
     elapsed = time.time() - start
