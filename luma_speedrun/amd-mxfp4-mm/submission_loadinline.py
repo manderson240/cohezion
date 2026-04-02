@@ -262,20 +262,19 @@ def custom_kernel(data: input_t) -> output_t:
 
     # Quantize A to MXFP4 (same path as submission.py)
     A_q, A_scale_e8m0 = dynamic_mxfp4_quant(A.contiguous())
-    A_q = A_q.view(torch.uint8)
-    A_scale = A_scale_e8m0.view(torch.uint8)
+    A_q_bytes = A_q.view(torch.uint8)
+    K_scale = K // 32
+    A_scale_bytes = A_scale_e8m0[:M, :K_scale].contiguous().view(torch.uint8)
 
-    # B_q is already [N, K/2] packed FP4, B_scale_sh is shuffled E8M0
-    # For our kernel we need un-shuffled B and B_scale
-    # Use the raw B_q (not B_shuffle) and un-shuffled scale
-    B_packed = B_q.view(torch.uint8)
+    # B is pre-quantized by generate_input — use B_q directly
+    # B_q is [N, K/2] in fp4x2 format, need un-shuffled scale
+    B_q_bytes = B_q.view(torch.uint8)
 
-    # Re-quantize B to get un-shuffled scale for our kernel
-    B_q_raw, B_scale_e8m0 = dynamic_mxfp4_quant(B.contiguous())
-    B_packed = B_q_raw.view(torch.uint8)
-    B_scale = B_scale_e8m0.view(torch.uint8)
+    # Re-quantize B to get un-shuffled scale matching our kernel's sequential access
+    _, B_scale_e8m0 = dynamic_mxfp4_quant(B.contiguous())
+    B_scale_bytes = B_scale_e8m0[:N, :K_scale].contiguous().view(torch.uint8)
 
-    return _module.mxfp4_gemm_hip(A_q, B_packed, A_scale, B_scale, M, N, K)
+    return _module.mxfp4_gemm_hip(A_q_bytes, B_q_bytes, A_scale_bytes, B_scale_bytes, M, N, K)
 
 
 def ref_kernel(data: input_t) -> output_t:
