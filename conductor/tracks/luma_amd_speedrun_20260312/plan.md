@@ -32,9 +32,10 @@
 
 ## Phase 5: Deep Saturation & Continuous Evolution
 - [~] Task: Execute `continuous_evolution.py` for automated mutation and testing.
-    - [~] Sub-task: Auto-research Hugging Face/arXiv for CDNA4/MXFP4 optimizations.
+    - [x] Sub-task: Auto-research Hugging Face/arXiv for CDNA4/MXFP4 optimizations.
     - [~] Sub-task: Benchmark locally via `popcorn-cli --mode benchmark`.
     - [~] Sub-task: Conditionally submit to leaderboard only on verified improvement.
+- [ ] Task: **CRITICAL FIX**: Convert all `submission_breakthrough_*.py` custom HIP kernels from `subprocess.run(["hipcc"])` to `torch.utils.cpp_extension.load_inline()`. The Popcorn runner sandbox is crashing with a 500 server error when `subprocess` is called. `load_inline` is a proven, safe path on the runner.
 - [ ] Task: Implement full 304 CU occupancy strategies (Multi-Split-K, Expert-Parallel).
 - [ ] Task: Implement XCD-Aware Scheduling for L2 locality across 8 chiplets.
 - [ ] Task: Deepen Instruction-Level Pipelining (MFMA throughput via sched_barrier/s_setprio).
