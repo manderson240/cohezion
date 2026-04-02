@@ -2941,3 +2941,7 @@ Full transcript available at: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/
 <usage><total_tokens>85147</total_tokens><tool_uses>24</tool_uses><duration_ms>421104</duration_ms></usage>
 </task-notification>
 Full transcript available at: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/b64da2bf-bc43-4e98-92b9-9ef978ee0301/tasks/ae28bb4479fd95a07.output
+
+---
+
+Continue
