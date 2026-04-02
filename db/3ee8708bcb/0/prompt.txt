@@ -3284,3 +3284,7 @@ Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderso
 ---
 
 Continue.  Extend the ralph loop.
+
+---
+
+Keep going, dig deeper.  Use the loop.
