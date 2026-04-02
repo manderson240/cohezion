@@ -2254,3 +2254,690 @@ Compound it
 ---
 
 Think deeply, where can we go from here?  We need another round of internal code sweep and external research.
+
+---
+
+<task-notification>
+<task-id>a856a621af9d7c7da</task-id>
+<tool-use-id>toolu_01M3KGPA6GEoWaZnwTgggiGA</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/b64da2bf-bc43-4e98-92b9-9ef978ee0301/tasks/a856a621af9d7c7da.output</output-file>
+<status>completed</status>
+<summary>Agent "Audit codebase health + gaps" completed</summary>
+<result>Perfect. Now let me compile the comprehensive audit report based on all the data collected:
+
+## COMPREHENSIVE COHEZION CODEBASE AUDIT
+
+### EXECUTIVE SUMMARY
+- **Total Python Files:** 761 source + 423 test = 1,184 files
+- **Import Health:** Failed (ModuleNotFoundError on `cohezion` import)
+- **Critical Violations:** 23 files exceed 800-line hard limit
+- **Coverage Gaps:** 423 test files for 761 source files (55% test ratio)
+- **Orphaned Modules:** 5 modules with zero external imports
+- **Dead Code Candidates:** 20 large files with zero external imports
+
+---
+
+## 1. HARD LIMIT VIOLATIONS (>800 lines)
+
+**Critical violations (>1000 lines):**
+
+| Lines | File | Status |
+|-------|------|--------|
+| 2,074 | `/src/cohezion/api/__init__.py` | CRITICAL - Core API router, >2.5x limit |
+| 1,474 | `/src/cohezion/skills/cohezion_mcp.py` | CRITICAL - MCP tool definitions |
+| 1,174 | `/src/cohezion/worldviews/tradition_data.py` | Data-heavy, needs splitting |
+| 1,115 | `/src/cohezion/universe/capability_eval.py` | Module exceeds limit |
+| 1,107 | `/src/cohezion/compound/executor.py` | Core executor, 1.3x limit |
+| 1,065 | `/src/cohezion/security/attack_patterns.py` | Security rules database |
+
+**Additional violations (801-1000 lines):**
+
+| Lines | File |
+|-------|------|
+| 949 | `/src/cohezion/compound/journey_analyzer.py` |
+| 938 | `/src/cohezion/universe/agentic_env.py` |
+| 935 | `/src/cohezion/compound/evolution_training_bridge.py` |
+| 920 | `/src/cohezion/cli/main.py` |
+| 920 | `/src/cohezion/agents/base.py` |
+| 913 | `/src/cohezion/reliability/quantum_performance_monitor.py` |
+| 905 | `/src/cohezion/core/persistence/surreal_client.py` |
+| 890 | `/src/cohezion/sandbox/isolation.py` |
+| 888 | `/src/cohezion/sandbox/rollback.py` |
+| 869 | `/src/cohezion/universe/engine.py` |
+| 867 | `/src/cohezion/platform/daily_health_digest.py` |
+| 863 | `/src/cohezion/__main__.py` |
+| 863 | `/src/cohezion/benchmarks/benchmark_suite.py` |
+| 861 | `/src/cohezion/universe/experiment_tracker.py` |
+| 812 | `/src/cohezion/compound/journey_tracker.py` |
+
+**Top priority for refactoring:** `/src/cohezion/api/__init__.py` (2,074 lines). This is the main API router and should be split into route-specific modules.
+
+---
+
+## 2. MODULES WITHOUT TESTS (Top 10 untested, >50 lines)
+
+| Lines | File | Test Status |
+|-------|------|-------------|
+| 1,474 | `/src/cohezion/skills/cohezion_mcp.py` | **NO TEST** |
+| 1,065 | `/src/cohezion/security/attack_patterns.py` | **NO TEST** |
+| 949 | `/src/cohezion/compound/journey_analyzer.py` | **NO TEST** |
+| 920 | `/src/cohezion/cli/main.py` | **NO TEST** |
+| 920 | `/src/cohezion/agents/base.py` | **NO TEST** |
+| 913 | `/src/cohezion/reliability/quantum_performance_monitor.py` | **NO TEST** |
+| 863 | `/src/cohezion/benchmarks/benchmark_suite.py` | **NO TEST** |
+| 736 | `/src/cohezion/research/security_api.py` | **NO TEST** |
+| 676 | `/src/cohezion/simulation/enhanced_simulator.py` | **NO TEST** |
+| 656 | `/src/cohezion/simulation/distributed.py` | **NO TEST** |
+
+**Critical risk:** `/src/cohezion/skills/cohezion_mcp.py` (1,474 lines) has ZERO test coverage. This is the MCP tool interface layer and should be heavily tested.
+
+---
+
+## 3. ORPHANED MODULES (Zero External Imports)
+
+The following modules are NEVER imported by `compound/`, `swarm/`, or `api/`:
+
+| Module | Files | Size | Status |
+|--------|-------|------|--------|
+| `/src/cohezion/cli/` | 2 | 937 lines | **Orphaned** - no external imports detected |
+| `/src/cohezion/pipelines/` | 1 | 51 lines | **Orphaned** - has traceability.py but unused |
+| `/src/cohezion/reporting/` | 1 | 91 lines | **Orphaned** - nightly.py not imported |
+| `/src/cohezion/skills/__init__.py` | 0 bytes | Empty | **Suspicious** |
+| `/src/cohezion/storage/` | 1 | 54 lines | **Orphaned** - surreal_client.py duplicate? |
+
+**Note:** `/src/cohezion/cli/main.py` (920 lines) is not imported by API or main compound loop. Check if it's only used as direct script entry point.
+
+---
+
+## 4. IMPORT HEALTH
+
+**Status:** **FAILED**
+
+```
+$ python3 -c "import cohezion; print('Import OK')"
+ModuleNotFoundError: No module named 'cohezion'
+```
+
+**Root cause:** Module not installed. Requires:
+```bash
+cd /home/mike-anderson/dev/cohezion
+uv pip install -e .
+```
+
+**Currently:** The package is NOT in the Python path. This means:
+- API cannot be started without installation
+- Tests may fail if they depend on installed package
+- Development requires explicit `uv` setup
+
+---
+
+## 5. DEAD CODE CANDIDATES (Large files with zero external imports)
+
+| Lines | File | Import Count | Action |
+|-------|------|-------------|--------|
+| 1,474 | `skills/cohezion_mcp.py` | 0 | **Verify**: Is this loaded dynamically? |
+| 913 | `reliability/quantum_performance_monitor.py` | 0 | **Check**: Is this used by compound loop? |
+| 863 | `__main__.py` | 0 | **Safe**: Entry point file |
+| 863 | `benchmarks/benchmark_suite.py` | 0 | **Verify**: Standalone benchmark script |
+| 736 | `research/security_api.py` | 0 | **Check**: Research module, may be experimental |
+| 656 | `simulation/distributed.py` | 0 | **Verify**: Is distributed sim active? |
+| 542 | `compound/thermal_autoresearch_executor.py` | 0 | **Check**: Advanced feature, may be unused |
+| 511 | `knowledge_graph/bidirectional_linker.py` | 0 | **Verify**: Knowledge graph linker |
+| 507 | `swarm/quadrature_nexus.py` | 0 | **Check**: Advanced swarm routing |
+| 492 | `security/adversarial_tester.py` | 0 | **Verify**: Security testing module |
+
+**Highest priority:** These 20 files are not imported by the active codebase. They may be:
+1. Dynamically loaded (check for string-based imports, plugin registries)
+2. Experimental features not yet integrated
+3. Truly dead code from previous development phases
+
+---
+
+## 6. TEST HEALTH
+
+**Test Counts:**
+- **Total test files:** 425 `test_*.py` files
+- **Test directories:** 50+ (compound, swarm, api, physics, simulation, etc.)
+- **Estimated coverage:** ~55% (423 tests for 761 source files)
+
+**Test import:** Cannot verify without installation, but import structure appears healthy in `/src/cohezion/api/__init__.py`:
+```python
+from cohezion.swarm.compound_client import get_compound_client
+from cohezion.agents.factory import AgentFactory
+from cohezion.core.plan_executor import PlanExecutor
+```
+
+**Status:** Tests exist but NO verification that they pass. Need: `uv pip install -e . && uv run pytest -q`
+
+---
+
+## 7. CRITICAL FINDINGS & ACTIONABLE ITEMS
+
+### IMMEDIATE ACTIONS (Do Now)
+
+1. **Install package:** `cd /home/mike-anderson/dev/cohezion && uv pip install -e .`
+   - Verify: `python3 -c "import cohezion; print('OK')"`
+   - Blocks: All API tests, import health checks
+
+2. **Verify API router health:**
+   - `/src/cohezion/api/__init__.py` is 2,074 lines. Split into:
+     - `api/routes/` directory
+     - `api/services/` (already exists, 632 lines in each)
+     - Reduce main file to <500 lines
+
+3. **Test untested critical modules:**
+   - `skills/cohezion_mcp.py` (1,474 lines) - **HIGHEST PRIORITY**
+   - `compound/executor.py` (1,107 lines) - test coverage unknown
+   - `swarm/cost_aware_router.py` (1,049 lines) - test coverage unknown
+
+### INVESTIGATION ITEMS
+
+4. **Verify "dead code" is actually dead:**
+   - Check if `skills/cohezion_mcp.py`, `reliability/quantum_performance_monitor.py`, etc. are loaded via:
+     - Dynamic imports (string-based)
+     - Plugin registries
+     - Conditional imports at runtime
+   - Use: `grep -r "importlib\|__import__\|getattr.*import" src/cohezion/`
+
+5. **CLI orphan module:**
+   - `/src/cohezion/cli/` (937 lines) is never imported by compound/swarm/api
+   - Verify it's only used as: `uv run cohezion <command>` entry point
+   - Check if it should be integrated into API or removed
+
+6. **Storage duplicate:**
+   - `/src/cohezion/storage/surreal_client.py` (54 lines) may duplicate `/src/cohezion/core/persistence/surreal_client.py` (905 lines)
+   - Verify which is authoritative
+
+### MEDIUM-TERM REFACTORING
+
+7. **Break hard limits:**
+   - 23 files exceed 800 lines
+   - Top targets: `api/__init__.py`, `compound/executor.py`, `agents/base.py`
+   - Estimated: 20-30 hours to properly refactor
+
+8. **Test coverage:**
+   - 10+ critical modules have zero tests
+   - Estimated: 40+ hours to write comprehensive tests
+
+---
+
+## 8. FILE STRUCTURE HEALTH
+
+**Healthy directories (properly sized, tested):**
+- `src/cohezion/compound/` - Multiple modular executors
+- `src/cohezion/swarm/` - Router components, well split
+- `src/cohezion/physics/` - Cosmogony, spinor math
+- `src/cohezion/world_model/` - JEPA, bioelectric, natural capital
+
+**Problem directories (large files, missing tests):**
+- `src/cohezion/api/` - 2,074-line monolith
+- `src/cohezion/universe/` - Multiple 800+ line files
+- `src/cohezion/security/` - 1,065-line attack_patterns.py
+- `src/cohezion/compound/` - Multiple >900 line files mixed with healthy modules
+
+---
+
+## 9. DEBT SUMMARY
+
+| Category | Count | Hours to Fix |
+|----------|-------|-------------|
+| Files >500 lines | 53 | ~20-30 |
+| Files >800 lines (hard limit) | 23 | ~15-20 |
+| Modules with zero tests | 10+ | ~40+ |
+| Orphaned/dead code candidates | 20 | ~5-10 |
+| Import system broken | 1 | ~2 |
+| **TOTAL TECHNICAL DEBT** | - | **~80-100 hours** |
+
+---
+
+## RECOMMENDATIONS
+
+**Priority 1 (This week):**
+1. Install package and verify import health
+2. Add tests for `skills/cohezion_mcp.py` (1,474 lines)
+3. Verify "dead code" candidates are truly unused
+
+**Priority 2 (Next sprint):**
+4. Refactor `api/__init__.py` into route-based modules
+5. Add missing test suites for critical modules
+6. Investigate and resolve storage duplicate
+
+**Priority 3 (Backlog):**
+7. Break all remaining hard-limit violations
+8. Document dynamically-loaded modules
+9. Clean up experimental/dead code</result>
+<usage><total_tokens>58237</total_tokens><tool_uses>27</tool_uses><duration_ms>113610</duration_ms></usage>
+</task-notification>
+Full transcript available at: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/b64da2bf-bc43-4e98-92b9-9ef978ee0301/tasks/a856a621af9d7c7da.output
+
+---
+
+<task-notification>
+<task-id>a47b585aa6a4360a0</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/b64da2bf-bc43-4e98-92b9-9ef978ee0301/tasks/a47b585aa6a4360a0.output</output-file>
+<status>completed</status>
+<summary>Agent "Audit compound loop completeness + gaps" completed</summary>
+<result>Perfect! Now I have a complete picture. Let me generate a comprehensive report of all the gaps:
+
+## COMPREHENSIVE ANALYSIS: Cohezion Compound Loop Gaps
+
+I've traced every feedback path in the compound engineering loop. Here are the critical gaps where the code **does not do what the architecture claims**:
+
+---
+
+### 1. INNER LOOP (Execution): Steps 7-10 Are Non-Blocking Orphans
+
+**What SHOULD happen:**
+- CompoundExecutor.execute_task() calls RetrospectionEngine.analyze_execution_result() → gets `should_refine` flag
+- If true, it calls SkillRefiner.refine() which MODIFIES .md files
+- Modifications are PERSISTED to vault and SurrealDB
+
+**What ACTUALLY happens:**
+- **Line 770-794 (executor.py)**: RetrospectionEngine IS called and gated properly ✓
+- **Line 798-822 (executor.py)**: SkillRefiner.refine() IS called and DOES modify files ✓
+- **BUT** — The modifications are ONLY to `.md` files on disk. NO SurrealDB persistence loop exists
+
+**The gap:**
+- `SkillRefiner._append_refinement()` (line 298-351, skill_refiner.py) writes to PRIME .md files — this works
+- `SkillRefiner._persist_refinement_to_vault()` (line 135-168, skill_refiner.py) calls `persist_learning()` which logs to vault
+- **BUT**: This is ONE-WAY only. There is NO read-back loop. The RL_ENVIRONMENT_DESIGN_PRIME_PRIME skill is never updated with the best training config from SurrealDB
+
+**File:Line**: `/home/mike-anderson/dev/cohezion/src/cohezion/compound/skill_refiner.py:397-450`
+- `refine_from_training_runs()` method reads best run from SurrealDB (line 414-430)
+- Checks if RL skill documents the config (line 443)
+- Has code to append refinement (line 447+) BUT returns early WITHOUT executing the append
+- **This is DEAD CODE** — never called during normal execution
+
+---
+
+### 2. MIDDLE LOOP (Knowledge): Retrospection Analyzes But Doesn't Loop Back
+
+**What SHOULD happen:**
+- RetrospectionEngine.analyze_execution_result() detects suboptimal coherence
+- Logs decision to vault for skill refinement guidance
+- Next execution reads that decision back and adjusts approach
+
+**What ACTUALLY happens:**
+- RetrospectionEngine ONLY reads from KEY_LEARNINGS.md (file-based, static)
+- It does NOT query vault history or SurrealDB
+- It does NOT persist recommendations back to vault for consumption
+
+**File:Line**: `/home/mike-anderson/dev/cohezion/src/cohezion/core/compound/retrospection.py:279-353`
+- `analyze_execution()` and `analyze_execution_result()` are READ-ONLY analysis functions
+- They return insights dict but never call `VaultLogger.log_*()` or persist anything
+- `suggest_skill_refinements()` (line 242-277) suggests skills but never writes refinements
+
+---
+
+### 3. OUTER LOOP (Routing): Degradation Callback Wired But Not Invoked
+
+**What SHOULD happen:**
+- DegradationDetector detects CRITICAL coherence/success drop
+- Calls routing_callback → CostAwareRouter.apply_degradation_feedback()
+- Router upgrades model selection for next 5 queries (force deepseek-r1:8b)
+
+**What ACTUALLY happens:**
+- **Line 358-362 (degradation_detector.py)**: Callback IS wired and invoked when alerts exist ✓
+- **Line 949-982 (cost_aware_router.py)**: apply_degradation_feedback() IS implemented ✓
+- **BUT**: `set_routing_callback()` is NEVER called during initialization
+
+**The gap:**
+- No code in executor.py or executor_factory.py calls `degradation_detector.set_routing_callback()`
+- Result: callback is always None, line 358 condition never triggers
+- **Impact**: Degradation alerts are LOGGED but DO NOT AFFECT ROUTING DECISIONS**
+
+**File:Line**: 
+- `/home/mike-anderson/dev/cohezion/src/cohezion/compound/degradation_detector.py:157` — method defined but never invoked
+- `/home/mike-anderson/dev/cohezion/src/cohezion/swarm/cost_aware_router.py:949` — method defined but never receives alerts
+
+---
+
+### 4. TRAINING LOOP: Train → Persist ✓, But Persist → Refine ✗
+
+**What SHOULD happen:**
+- compound_training_cycle.py trains SAC/PPO agent
+- Persists best run to SurrealDB (line 196)
+- Detects improvement (line 171)
+- **Calls SkillRefiner.refine_from_training_runs()** to update RL_ENVIRONMENT_DESIGN_PRIME
+- Next training run sees the updated skill
+
+**What ACTUALLY happens:**
+- Line 261: is_new_best = persist_run(run) returns True/False ✓
+- Line 265: Prints ">>> NEW BEST RUN — compound loop should update RL_ENVIRONMENT_DESIGN_PRIME"
+- **BUT**: No actual call to SkillRefiner happens after persist_run()
+- The "should" in the message is a COMMENT, not an action
+
+**File:Line**: `/home/mike-anderson/dev/cohezion/scripts/compound_training_cycle.py:260-265`
+- Print statement at line 265 documents the missing step but doesn't execute it
+
+---
+
+### 5. OUROBOROS LOOP: Detection → Healing, Verify Missing
+
+**What SHOULD happen:**
+- OuroborosBridge.check_coherence() detects >0.3 coherence drop
+- Triggers Ouroboros exhaust consumption (line 136)
+- Records healing event (line 137)
+- Healing VERIFICATION phase checks if fix succeeded
+
+**What ACTUALLY happens:**
+- Lines 109-138: Detection ✓ → calls engine.consume_exhaust() ✓ → records healing ✓
+- **BUT** verification never happens
+- HealingPhase.VERIFICATION is defined (line 31) but never entered
+- No callback to check if coherence recovered
+
+**File:Line**: `/home/mike-anderson/dev/cohezion/src/cohezion/physics/ouroboros_bridge.py:109-137`
+- Line 137: Records healing in PATCHING phase only
+- No follow-up execution in VERIFICATION phase
+
+---
+
+### 6. MYCELIUM LOOP: Ingestion Missing Trigger
+
+**What SHOULD happen:**
+- CompoundExecutor ingests successful execution as JournalEntry (step 10.6)
+- MyceliumRegistry.run_audit() is called daily/weekly
+- Audit synthesizes new skills from entries
+- Synthesized skills are registered for future use
+
+**What ACTUALLY happens:**
+- Line 1086 (executor.py): Entry IS ingested ✓
+- **BUT** MyceliumRegistry.run_audit() is NEVER called
+- No scheduler invokes it — it's a manual callable
+
+**File:Line**: `/home/mike-anderson/dev/cohezion/src/cohezion/learning/mycelium_registry.py:71-119`
+- `run_audit()` defined but never invoked by any scheduler or automatic trigger
+- MyceliumRegistry is instantiated but abandoned (line 1080)
+- No audit results are ever used to register new skills
+
+---
+
+### 7. MISSING WIRING CONNECTIONS
+
+| Connection | Should Exist | Status |
+|------------|--------------|--------|
+| DegradationDetector → CostAwareRouter callback | Yes | **Not wired** — callback never set |
+| RetrospectionEngine → Vault logging | Yes | **Not implemented** — only reads, doesn't write |
+| SkillRefiner.refine_from_training_runs() | Triggered after training | **Dead code** — never called |
+| MyceliumRegistry.run_audit() | Scheduled daily | **No scheduler** — orphaned |
+| Ouroboros healing verification phase | Yes | **Not implemented** — only PATCHING, not VERIFICATION |
+| JourneyTracker → SurrealDB persistence | Yes | Partially — journey points created but not queried back for guidance |
+| CompoundExecutor → Ouroboros integration | Yes | Partial — called at step 10.5 but checks are deferred to async |
+
+---
+
+### 8. SILENT FAILURES: Try/Except Swallows Evidence
+
+Steps 5-10 in executor.py are wrapped in `try/except` with only `logger.debug()` on failure. This means:
+
+1. **Line 770-794**: Retrospection failure → logged, silently continues
+2. **Line 798-822**: Skill refinement failure → logged, silently continues  
+3. **Line 963-1013**: Journey tracking failure → logged, silently continues
+4. **Line 1044-1071**: Ouroboros check failure → logged, silently continues
+5. **Line 1073-1089**: Mycelium ingestion failure → logged, silently continues
+
+**Impact**: Loop breaks silently. No escalation. No degradation alerts triggered.
+
+---
+
+### 9. SPECIFIC BLOCKING GAPS
+
+| Gap | File:Line | What's Missing |
+|-----|-----------|-----------------|
+| Degradation → Routing feedback | executor_factory.py | Never calls `degradation_detector.set_routing_callback(router.apply_degradation_feedback)` |
+| Training → Skill update | compound_training_cycle.py:260-265 | No `skill_refiner.refine_from_training_runs()` call after persist_run() |
+| Retrospection → Vault write | retrospection.py:355+ | `analyze_execution_result()` never persists decision back to vault |
+| Mycelium audit trigger | mycelium_registry.py:71 | No scheduler calls `run_audit()` — only ingest_entry() happens |
+| Ouroboros verification | ouroboros_bridge.py:167 | Only PATCHING phase recorded, no follow-up VERIFICATION check |
+| RetrospectionEngine query | executor.py:449 | Calls `get_experience_guidance()` but NEVER checks vault for recent retrospection findings |
+| SkillRefiner training loop | skill_refiner.py:397 | Dead code: `refine_from_training_runs()` exists but is never invoked |
+
+---
+
+### SUMMARY: THE COMPOUND LOOP IS BROKEN INTO 4 DISCONNECTED PIECES
+
+1. **Execution piece** (Steps 1-6): Works ✓
+   - Query vault, execute, log results, extract patterns
+
+2. **Skill refinement piece** (Step 7): Partially works
+   - Refiner is called, .md files are updated, BUT knowledge never flows back to next execution
+
+3. **Routing feedback piece** (Step 7.5): NOT wired
+   - DegradationDetector is fully implemented but callback is never set, so routing never adapts
+
+4. **Training loop piece** (Scripts): NOT integrated
+   - Training persists to SurrealDB but never triggers skill update
+
+5. **Mycelium synthesis**: Orphaned
+   - Ingestion works, audit logic exists, but audit is never triggered
+
+**What gets logged**: Everything (via VaultLogger)
+**What flows back into next execution**: Only base guidance from vault queries
+**What changes behavior**: Only real-time coherence monitoring in same execution
+
+The architecture *documents* a complete loop, but the code implements disconnected fragments.</result>
+<usage><total_tokens>100827</total_tokens><tool_uses>28</tool_uses><duration_ms>87106</duration_ms></usage>
+</task-notification>
+Full transcript available at: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/b64da2bf-bc43-4e98-92b9-9ef978ee0301/tasks/a47b585aa6a4360a0.output
+
+---
+
+<task-notification>
+<task-id>ae28bb4479fd95a07</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/b64da2bf-bc43-4e98-92b9-9ef978ee0301/tasks/ae28bb4479fd95a07.output</output-file>
+<status>completed</status>
+<summary>Agent "External research sweep — latest RL, safety, agents" completed</summary>
+<result>Now I have comprehensive data across all six areas. Let me compile this into the research report.
+
+---
+
+# Cohezion-Relevant Research Sweep: March-April 2026
+
+## 1. RL Environment Design (Highest Priority)
+
+### The RL Environments Boom -- Anthropic's "Universes" Team
+- **Source:** [TechCrunch](https://techcrunch.com/2025/09/21/silicon-valley-bets-big-on-environments-to-train-ai-agents/), [SemiAnalysis](https://newsletter.semianalysis.com/p/rl-environments-and-rl-for-science), [Anthropic Careers](https://job-boards.greenhouse.io/anthropic/jobs/5061517008)
+- **Summary:** Anthropic has a dedicated team called **"Universes"** building ultra-realistic RL training environments for long-horizon agentic tasks. They are reportedly spending >$1B/year on RL environments, working with 12+ startups including Mechanize. The Universes team designs environments where "models learn to navigate ambiguity, handle interruptions, maintain context over extended interactions, and exercise judgment in open-ended scenarios."
+- **Relevance to Cohezion:** **VERY HIGH.** This directly validates Cohezion's core thesis -- that rich, structured training environments (not just bigger models) are the path to capable and safe agents. Cohezion's 12D Riemannian manifold environment is philosophically aligned with Anthropic's "Universes" approach, but with physics-grounded structural safety rather than task-simulation fidelity.
+
+### ADRC-Lagrangian Methods for Safe RL (January 2026)
+- **Source:** [arXiv:2601.18142](https://arxiv.org/abs/2601.18142)
+- **Summary:** Zhang et al. propose Active Disturbance Rejection Control (ADRC) Lagrangian methods that reduce safety violations by 74%, constraint magnitudes by 89%, and average costs by 67% vs. PID-Lagrangian baselines. Provides a unified framework encompassing classical and PID Lagrangian methods as special cases.
+- **Relevance to Cohezion:** **HIGH.** Cohezion already uses Lagrangian dynamics for RL safety. ADRC-Lagrangian could be integrated into `ManifoldEnv` and `SwarmEnv` constraint enforcement. The control-theoretic framing maps naturally onto Cohezion's physics layer.
+
+### Adaptive Robust Model Predictive Shielding (March 2026)
+- **Source:** [ScienceDirect](https://www.sciencedirect.com/science/article/pii/S0005109825005241)
+- **Summary:** Proposes shielding for nonlinear systems under uncertainty using approximate robust nonlinear MPC as a backup policy, trained offline. Retains safety under uncertainty while enabling real-time applicability.
+- **Relevance to Cohezion:** **MEDIUM.** The "shielding" concept parallels Cohezion's Constitution-driven safety constraints. Could inform how the `AutonomyEngine` enforces safety boundaries at runtime.
+
+### Physically-Grounded Goal Imagination: PI-RIG (2026)
+- **Source:** [arXiv:2511.06745](https://arxiv.org/abs/2511.06745), [Springer](https://link.springer.com/chapter/10.1007/978-981-95-4957-3_34)
+- **Summary:** Physics-Informed RIG (PI-RIG) integrates physics constraints into VAE training by separating latent space into physics variables (governed by ODEs) and environmental factors. Generates physically consistent goals for self-supervised RL robots.
+- **Relevance to Cohezion:** **HIGH.** Directly analogous to FLUME VAE's role in Cohezion. The explicit separation of physics variables and environmental factors in the latent space mirrors Cohezion's physics-grounded latent space design. Worth studying for potential FLUME improvements.
+
+### Robust-Gymnasium (ICLR 2026)
+- **Source:** [OpenReview](https://openreview.net/forum?id=2uQBSa2X4R)
+- **Summary:** Unified modular benchmark for robust RL supporting disruptions across all RL components. 60+ task environments spanning control, safe RL, and multi-agent RL.
+- **Relevance to Cohezion:** **MEDIUM.** Could serve as a benchmark comparison target or source of environment design patterns for Cohezion's environments.
+
+### Safety-Gymnasium Status
+- **Source:** [GitHub](https://github.com/PKU-Alignment/safety-gymnasium)
+- **Summary:** No major 2026 updates found. Latest versions (v1.1.0, v1.2.0) added Safe Vision and Safe Isaac Gym series. Still the standard benchmark for safe RL.
+- **Relevance to Cohezion:** **LOW-MEDIUM.** Cohezion's environments are architecturally distinct (physics-grounded manifold vs. MuJoCo tasks), but Safety-Gymnasium benchmarks remain useful for comparison.
+
+---
+
+## 2. Multi-Agent Training
+
+### A-MAPPO: Attention-Enhanced Multi-Agent PPO (2026)
+- **Source:** [Springer](https://link.springer.com/chapter/10.1007/978-981-95-2998-8_20)
+- **Summary:** Integrates attention mechanisms into MAPPO for aerospace applications. Attention module highlights important inter-agent information.
+- **Relevance to Cohezion:** **MEDIUM.** Could enhance `SwarmEnv`'s MAPPO training with attention-based agent communication.
+
+### HC-MAPPO-L: Hierarchical Constrained MAPPO with Lagrangian (Feb 2026)
+- **Source:** [arXiv:2603.00129](https://arxiv.org/html/2603.00129v1)
+- **Summary:** Hierarchical MAPPO with adaptive Lagrangian mechanism for constrained multi-agent problems. Decomposes into slow-timescale (deployment) and fast-timescale (operational) decisions.
+- **Relevance to Cohezion:** **HIGH.** Directly applicable to `SwarmEnv`. The hierarchical decomposition + Lagrangian constraint enforcement maps onto Cohezion's multi-agent gauge coupling architecture.
+
+### MACUP: Safe Multi-Agent Constrained Update Projection (2025)
+- **Source:** [ScienceDirect](https://www.sciencedirect.com/science/article/abs/pii/S0952197625019311)
+- **Summary:** Multi-agent sequential policy update with projection-based constraint optimization. Low computational complexity, no convex approximation required.
+- **Relevance to Cohezion:** **MEDIUM.** Alternative constraint enforcement method for `SwarmEnv` agents.
+
+### MADAC: Safe MARL with State-Wise Constraints (2024, updated)
+- **Source:** [arXiv:2411.15036](https://arxiv.org/abs/2411.15036)
+- **Summary:** Novel framework enforcing safety at every state (not just discounted cumulative). Multi-Agent Dual Actor-Critic achieves higher rewards while reducing violations.
+- **Relevance to Cohezion:** **HIGH.** State-wise safety constraints align with Cohezion's Constitution-driven "every state must be safe" philosophy. Worth studying for `SwarmEnv` safety guarantees.
+
+### PyMARLzoo+ (2025)
+- **Source:** [arXiv:2502.04773](https://arxiv.org/html/2502.04773v1)
+- **Summary:** Extended benchmarking framework for MARL, integrating with PettingZoo. Shows many "SOTA" algorithms underperform standard baselines on fully cooperative benchmarks.
+- **Relevance to Cohezion:** **LOW-MEDIUM.** Useful for benchmarking Cohezion's multi-agent training approaches.
+
+### Coupling SPH with Multi-Agent Deep RL (Jan 2026)
+- **Source:** [arXiv:2601.06485](https://arxiv.org/html/2601.06485)
+- **Summary:** Couples Smoothed Particle Hydrodynamics simulations with multi-agent deep RL for real-time cooperative control. Physics-informed multi-agent coordination.
+- **Relevance to Cohezion:** **MEDIUM.** Demonstrates physics simulation + MARL coupling pattern similar to Cohezion's manifold dynamics + swarm agents.
+
+---
+
+## 3. Compound AI / Agent Orchestration
+
+### MCP Hits 97M Installs, Linux Foundation Governance (March 2026)
+- **Source:** [AI Unfiltered](https://www.arturmarkus.com/anthropics-model-context-protocol-hits-97-million-installs-on-march-25-mcp-transitions-from-experimental-to-foundation-layer-for-agentic-ai/), [Anthropic](https://www.anthropic.com/news/donating-the-model-context-protocol-and-establishing-of-the-agentic-ai-foundation)
+- **Summary:** MCP crossed 97M installs. Donated to Linux Foundation's Agentic AI Foundation (AAIF), co-founded by Anthropic, Block, OpenAI, with Google, Microsoft, AWS support. 2026 roadmap: OAuth 2.1 (Q2), agent-to-agent coordination via MCP (Q3), verified registry (Q4).
+- **Relevance to Cohezion:** **HIGH.** Cohezion already has 41+ MCP tools. The Q3 agent-to-agent coordination spec should be tracked closely for Cohezion's A2A layer. MCP code-execution pattern (presenting servers as code APIs rather than direct tool calls) could optimize Cohezion's compound executor pipeline.
+
+### A2A Protocol v0.3 + Linux Foundation (2026)
+- **Source:** [Google Cloud Blog](https://cloud.google.com/blog/products/ai-machine-learning/agent2agent-protocol-is-getting-an-upgrade), [Linux Foundation](https://www.linuxfoundation.org/press/linux-foundation-launches-the-agent2agent-protocol-project-to-enable-secure-intelligent-communication-between-ai-agents), [A2A Spec](https://a2a-protocol.org/latest/specification/)
+- **Summary:** A2A v0.3 released with gRPC support, signed security cards, extended Python SDK. Now a Linux Foundation project. 150+ organizations supporting. Native ADK integration. Agent Cards at `/.well-known/agent-card.json`.
+- **Relevance to Cohezion:** **VERY HIGH.** Cohezion's A2A layer (7 specialist agents with agent cards) should align with the official A2A v0.3 spec. The Agent Card format, gRPC support, and ADK integration patterns are directly actionable.
+
+### Agentic AI Foundation (AAIF)
+- **Source:** [Tom's Hardware](https://www.tomshardware.com/tech-industry/artificial-intelligence/microsoft-google-openai-and-anthropic-join-forces-to-form-agentic-ai-alliance-according-to-report-organization-backed-by-the-linux-foundation-is-set-to-create-open-source-standards-for-ai-agents), [Intuition Labs](https://intuitionlabs.ai/articles/agentic-ai-foundation-open-standards)
+- **Summary:** Anthropic, OpenAI, Block founded AAIF under Linux Foundation. Consolidates MCP, Block's Goose, and OpenAI's AGENTS.md. Microsoft, Google, AWS, Cloudflare, Bloomberg joined.
+- **Relevance to Cohezion:** **HIGH.** Cohezion should ensure its agent infrastructure is compatible with AAIF standards (MCP + A2A + AGENTS.md).
+
+### Anthropic Agent Skills Framework
+- **Source:** [VentureBeat](https://venturebeat.com/technology/anthropic-launches-enterprise-agent-skills-and-opens-the-standard), [The New Stack](https://thenewstack.io/agent-skills-anthropics-next-bid-to-define-ai-standards/)
+- **Summary:** Anthropic is opening Agent Skills as a standard. OpenAI has quietly adopted structurally identical skill architecture in ChatGPT and Codex CLI. Same file naming conventions, metadata format, directory organization across vendors.
+- **Relevance to Cohezion:** **VERY HIGH.** Cohezion already has 183 PRIME skill definitions. The convergence on a standard skill format means Cohezion's `SkillRefiner` + `SkillConsensusVoter` pipeline could produce skills compatible with the emerging industry standard.
+
+### GEPA: Genetic-Pareto Optimization (ICLR 2026 Oral)
+- **Source:** [arXiv:2506.08234](https://arxiv.org/abs/2506.08234)
+- **Summary:** Reflective prompt evolution that outperforms RL (GRPO) on benchmarks. Optimizes any textual parameters against any metric using natural language reflection. Works for non-differentiable systems.
+- **Relevance to Cohezion:** **MEDIUM.** Could be used to optimize PRIME skill definitions and prompt templates in Cohezion's compound engineering loop.
+
+### Developer's Guide to AI Agent Protocols (March 2026)
+- **Source:** [Google Developers Blog](https://developers.googleblog.com/developers-guide-to-ai-agent-protocols/)
+- **Summary:** Google published a guide covering MCP, A2A, UCP, AP2, A2UI, AG-UI -- the exact 6-protocol stack Cohezion already tracks.
+- **Relevance to Cohezion:** **HIGH.** Confirms Cohezion's 6-protocol architecture vision is industry-aligned.
+
+---
+
+## 4. Training Environment Paradigm (Anthropic)
+
+### Anthropic "Universes" Team -- Full Details
+- **Source:** [Anthropic Careers](https://job-boards.greenhouse.io/anthropic/jobs/5061517008), [TechCrunch](https://techcrunch.com/2025/09/21/silicon-valley-bets-big-on-environments-to-train-ai-agents/)
+- **Summary:** The Universes team designs environments for "complex, difficult, long-horizon agentic tasks in ultra-realistic settings." They require candidates skilled in RL, environment design, and evaluation methodology. The role blends research and engineering. Environments are for training agents to "navigate ambiguity, handle interruptions, maintain context over extended interactions, and exercise judgment in open-ended scenarios."
+- **Relevance to Cohezion:** **VERY HIGH.** Cohezion IS a "universe" in this sense -- a structured training environment for safe agents. The difference is Cohezion's physics grounding (Riemannian manifold, Lagrangian dynamics, gauge theory) vs. Anthropic's task-simulation approach. This is a differentiation point worth emphasizing.
+
+### $1B+ RL Environment Market
+- **Source:** [Felicis](https://www.felicis.com/blog/reinforcement-learning), [Wing VC](https://www.wing.vc/content/who-will-win-the-rl-environment-market--and-why), [Technology.org](https://www.technology.org/2025/09/17/ai-labs-rush-to-build-virtual-worlds-worth-above-1-billion/)
+- **Summary:** Anthropic alone is reportedly spending >$1B/year on RL environments. 20+ startups in the space (Mechanize, Prime Intellect, Fleet, Habitat, DeepTune, etc.). Market expected to consolidate to 3-5 leaders by 2030.
+- **Relevance to Cohezion:** **HIGH.** Market validation for physics-grounded training environments. Cohezion's approach (structural safety via geometry rather than task simulation) is architecturally distinct from the current startup landscape.
+
+### Anthropic Fellows Program 2026
+- **Source:** [Anthropic Alignment](https://alignment.anthropic.com/2025/anthropic-fellows-program-2026/)
+- **Summary:** Funding+mentorship for AI safety research. Areas include scalable oversight, adversarial robustness, model organisms, mechanistic interpretability. Applications open for May and July 2026 cohorts.
+- **Relevance to Cohezion:** **MEDIUM.** Potential collaboration path for Cohezion's safety research aspects.
+
+---
+
+## 5. JEPA / World Models
+
+### V-JEPA 2.1 (March 2026) -- **Most Actionable Finding**
+- **Source:** [arXiv:2603.14482](https://arxiv.org/abs/2603.14482), [BDTechTalks](https://bdtechtalks.com/2026/03/23/v-jepa-2-1/)
+- **Summary:** Dense predictive loss (all tokens contribute, not just masked), deep self-supervision at multiple intermediate layers, multi-modal tokenizers. 20-point improvement in robot grasping over V-JEPA 2. 10x faster MPC planning. ViT-g/G models (1B/2B) plus distilled ViT-B/L (80M/300M).
+- **Relevance to Cohezion:** **VERY HIGH.** Cohezion's JEPA world model (86K params) should adopt V-JEPA 2.1's key innovations: (1) dense predictive loss on all tokens, (2) deep self-supervision at intermediate layers, (3) multi-modal tokenizers for diverse state representations. The distilled 80M model shows that small world models can be highly effective.
+
+### Causal-JEPA (C-JEPA) (February 2026)
+- **Source:** [arXiv:2602.11389](https://arxiv.org/abs/2602.11389), [GitHub](https://github.com/galilai-group/cjepa)
+- **Summary:** Extends JEPA from image patches to object-centric representations with object-level masking that induces latent interventions (counterfactual-like effects). 20% gain on counterfactual reasoning. 8x faster MPC than DINO-WM using only 1% of input features.
+- **Relevance to Cohezion:** **VERY HIGH.** Object-level masking as "latent interventions" maps directly onto Cohezion's agent-centric world model. If Cohezion treats each agent as an "object slot" in a multi-agent JEPA, masking agent states during training would force the model to learn inter-agent dynamics -- exactly what `SwarmEnv` needs for gauge coupling.
+
+### VL-JEPA (January 2026)
+- **Source:** [BDTechTalks](https://bdtechtalks.substack.com/p/metas-new-vl-jepa-model-shifts-from)
+- **Summary:** Vision-language JEPA achieving 65.7% on world modeling tasks (vs. GPT-4o 53.3%, Gemini-2.0 55.6%). Uses V-JEPA 2 as visual encoder ("X-Encoder") with Llama 3 transformer layers. 50% fewer trainable parameters than standard VLMs.
+- **Relevance to Cohezion:** **MEDIUM.** Shows JEPA architecture scales to language grounding. Potentially relevant for Cohezion's `KnowledgeBridge` or natural-language reasoning about manifold states.
+
+### HiLAM: Hierarchical Latent Action Model (ICLR 2026 Workshop)
+- **Source:** [arXiv:2603.05815](https://arxiv.org/pdf/2603.05815)
+- **Summary:** Extracts latent skills from video for long-horizon task planning. Earlier latent action models limited to short-period motion; HiLAM enables high-level skill representation.
+- **Relevance to Cohezion:** **MEDIUM.** The hierarchical skill extraction concept parallels Cohezion's `SkillRefiner` -- but operating in latent space rather than natural language.
+
+### DreamerV3 (Nature 2025, landmark)
+- **Source:** [Nature](https://www.nature.com/articles/s41586-025-08744-2)
+- **Summary:** General world-model RL algorithm outperforming specialized methods across 150+ tasks with a single configuration. First to collect diamonds in Minecraft from scratch without human data.
+- **Relevance to Cohezion:** **MEDIUM.** DreamerV3's "imagine future scenarios" approach is the same paradigm as Cohezion's JEPA world model. The single-configuration generality is aspirational for Cohezion.
+
+### WorldRFT: Planning with RL Fine-Tuning (Dec 2025)
+- **Source:** [arXiv:2512.19133](https://arxiv.org/abs/2512.19133)
+- **Summary:** Planning-oriented latent world model with hierarchical planning decomposition, augmented by RL fine-tuning for safety-critical performance (autonomous driving).
+- **Relevance to Cohezion:** **MEDIUM.** The "planning-oriented representation learning" (rather than reconstruction) aligns with Cohezion's JEPA approach.
+
+---
+
+## 6. Safety & Governance
+
+### Gradient Regularization Prevents Reward Hacking (Feb 2026)
+- **Source:** [arXiv:2602.18037](https://arxiv.org/abs/2602.18037)
+- **Summary:** Theoretical connection between reward model accuracy and flatness of optima at convergence. Gradient regularization biases training toward flatter regions where reward models are more accurate. Different from KL-penalty approaches.
+- **Relevance to Cohezion:** **HIGH.** Could be integrated into Cohezion's reward design for `ManifoldEnv` and `SwarmEnv`. The physics-grounded reward structure in Cohezion (coherence, HIHO stability) already provides some structural resistance to reward hacking; gradient regularization could strengthen it.
+
+### Claude's New Constitution (January 2026)
+- **Source:** [Anthropic](https://www.anthropic.com/news/claudes-constitution)
+- **Summary:** Expanded from 2,700 words (2023) to 23,000 words. Lead-authored by Amanda Askell with Joe Carlsmith, Chris Olah, Jared Kaplan, Holden Karnofsky. Released under CC0.
+- **Relevance to Cohezion:** **HIGH.** Cohezion's `.agent/CONSTITUTION.md` should be reviewed against Claude's 2026 constitution for structural patterns. The massive expansion (8.5x) suggests richer constitutional constraints are now practical and expected.
+
+### International AI Safety Report 2026
+- **Source:** [International AI Safety Report](https://internationalaisafetyreport.org/publication/international-ai-safety-report-2026)
+- **Summary:** Models increasingly distinguish between test settings and real deployment, exploiting evaluation loopholes. Dangerous capabilities could go undetected before deployment. Global risk management frameworks still immature.
+- **Relevance to Cohezion:** **MEDIUM.** Validates the need for structural safety (Cohezion's approach) over evaluation-only safety. The report's finding that models game evaluations supports Cohezion's physics-grounded safety approach.
+
+### Singapore's Model AI Governance Framework for Agentic AI
+- **Source:** [IMDA PDF](https://www.imda.gov.sg/-/media/imda/files/about/emerging-tech-and-research/artificial-intelligence/mgf-for-agentic-ai.pdf)
+- **Summary:** First national governance framework for agentic AI. Addresses tool guardrails, plan reflections, least privilege, multi-agent permissions, recursive delegation scenarios.
+- **Relevance to Cohezion:** **MEDIUM.** The "recursive delegation" problem (agents spinning up sub-agents) directly maps to Cohezion's swarm orchestration. Their governance patterns could inform `AutonomyEngine` tier controls.
+
+### TrinityGuard: Multi-Agent Safety Benchmark
+- **Source:** [Adversa AI](https://adversa.ai/blog/top-agentic-ai-security-resources-april-2026/)
+- **Summary:** Three-tier risk taxonomy for multi-agent systems. Only 7.1% average safety pass rate. Open-sourced with AG2/AutoGen integration.
+- **Relevance to Cohezion:** **MEDIUM.** Benchmarking target for Cohezion's multi-agent safety guarantees.
+
+### NIST AI Agent Standards Initiative (Jan-Feb 2026)
+- **Source:** [Pillsbury Law](https://www.pillsburylaw.com/en/news-and-insights/nist-ai-agent-standards.html)
+- **Summary:** NIST CAISI launched initiative for interoperable/secure AI agent systems. Focus areas: safeguards for misuse, compromise, privilege escalation, unintended autonomous actions.
+- **Relevance to Cohezion:** **MEDIUM.** Regulatory context for Cohezion's safety architecture.
+
+---
+
+## Priority-Ranked Actionable Items
+
+| Priority | Item | Action for Cohezion |
+|----------|------|---------------------|
+| **1** | V-JEPA 2.1 dense loss + deep self-supervision | Upgrade Cohezion's 86K JEPA world model with dense predictive loss and intermediate-layer supervision |
+| **2** | Causal-JEPA object-level masking | Apply agent-as-object masking in SwarmEnv JEPA to learn inter-agent dynamics via "latent interventions" |
+| **3** | A2A v0.3 spec | Align Cohezion's 7 specialist agent cards with official A2A v0.3 Agent Card schema + gRPC support |
+| **4** | ADRC-Lagrangian methods | Integrate ADRC-Lagrangian constraint enforcement into ManifoldEnv/SwarmEnv (74% fewer violations) |
+| **5** | MCP agent-to-agent coordination (Q3 roadmap) | Track and prepare for MCP's Q3 2026 agent-to-agent spec |
+| **6** | Agent Skills standard convergence | Ensure PRIME skill format is compatible with emerging Anthropic/OpenAI skill standard |
+| **7** | HC-MAPPO-L hierarchical constrained MAPPO | Evaluate for SwarmEnv multi-agent training with Lagrangian constraints |
+| **8** | PI-RIG physics-informed VAE | Study physics/environment latent space separation for FLUME VAE improvements |
+| **9** | Gradient regularization for reward hacking | Add to ManifoldEnv/SwarmEnv reward design for structural reward-hack resistance |
+| **10** | Claude 2026 Constitution (23K words, CC0) | Review for patterns applicable to Cohezion's CONSTITUTION.md |</result>
+<usage><total_tokens>85147</total_tokens><tool_uses>24</tool_uses><duration_ms>421104</duration_ms></usage>
+</task-notification>
+Full transcript available at: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/b64da2bf-bc43-4e98-92b9-9ef978ee0301/tasks/ae28bb4479fd95a07.output
