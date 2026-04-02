@@ -1,0 +1,25 @@
+{
+  "cli_version": "0.5.1",
+  "checkpoint_id": "aaee6e710713",
+  "strategy": "manual-commit",
+  "branch": "main",
+  "checkpoints_count": 2,
+  "files_touched": [
+    "bluequbit/execution/README.md"
+  ],
+  "sessions": [
+    {
+      "metadata": "/aa/ee6e710713/0/metadata.json",
+      "transcript": "/aa/ee6e710713/0/full.jsonl",
+      "content_hash": "/aa/ee6e710713/0/content_hash.txt",
+      "prompt": "/aa/ee6e710713/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 40438,
+    "cache_creation_tokens": 29192632,
+    "cache_read_tokens": 677957623,
+    "output_tokens": 697879,
+    "api_call_count": 2015
+  }
+}
