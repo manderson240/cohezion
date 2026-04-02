@@ -1,0 +1,34 @@
+{
+  "cli_version": "0.5.1",
+  "checkpoint_id": "6b33e490d459",
+  "session_id": "b64da2bf-bc43-4e98-92b9-9ef978ee0301",
+  "strategy": "manual-commit",
+  "created_at": "2026-04-02T02:30:18.5863496Z",
+  "branch": "main",
+  "checkpoints_count": 2,
+  "files_touched": [
+    "src/cohezion/compound/skill_refiner.py"
+  ],
+  "agent": "Claude Code",
+  "model": "claude-opus-4-6[1m]",
+  "turn_id": "34cd6854d837",
+  "token_usage": {
+    "input_tokens": 40309,
+    "cache_creation_tokens": 25231551,
+    "cache_read_tokens": 626068175,
+    "output_tokens": 651813,
+    "api_call_count": 1908
+  },
+  "session_metrics": {
+    "turn_count": 122
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-04-02T02:30:10.747350247Z",
+    "agent_lines": 0,
+    "human_added": 3615,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 3615,
+    "agent_percentage": 0
+  }
+}
