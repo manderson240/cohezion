@@ -79,7 +79,7 @@ HARDWARE CONSTRAINTS (MI355X / gfx950):
 
 RULES:
 - Output ONLY valid Python code (submission.py format)
-- Must import from aiter, torch — no custom HIP compilation
+- PREFER custom HIP compilation via torch.utils.cpp_extension.load_inline() for performance breakthroughs (MANDATORY for sandbox compatibility).
 - Must pass correctness check (rtol=1e-2 vs reference)
 - Include type hints and minimal comments
 - The function signature must match: custom_kernel(data: input_t) -> output_t
