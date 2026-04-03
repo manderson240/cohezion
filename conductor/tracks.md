@@ -25,3 +25,9 @@ This file tracks all major tracks for the project. Each track has its own detail
 - [ ] **Track: BirdCLEF 2026: Bioacoustic Monitoring Challenge**
   *Link: [./tracks/birdclef_2026_20260401/](./tracks/birdclef_2026_20260401/)*
   *Status: NOT STARTED - Phase 1: Research & Setup*
+
+---
+
+- [ ] **Track: Gemma 4 Integration & EcoResilience Synthesis**
+  *Link: [./tracks/gemma4_hackathon_20260402/](./tracks/gemma4_hackathon_20260402/)*
+  *Status: NOT STARTED - Phase 1: Foundation & Provider Implementation*
