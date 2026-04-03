@@ -1,0 +1,1 @@
+How do we assess the health of the obsidian vault and surrealdb?
