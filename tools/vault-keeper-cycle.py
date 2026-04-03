@@ -98,6 +98,95 @@ def ollama_generate(prompt: str, temperature: float = 0.8, timeout: int = 120) -
     return resp.json().get("response", "")
 
 
+# ── HIHO Metrics ───────────────────────────────────────────────────────────────
+def compute_hiho_metrics(n_neurons: int, n_synapses: int) -> dict:
+    """Calculate HIHO-weighted graph health metrics.
+
+    Weights: connectivity 0.3, reciprocity 0.2, freshness 0.2, anti-orphan 0.3
+    Target: 0.5 +/- 0.15 (HIHO equilibrium)
+    """
+    if n_neurons == 0:
+        return {
+            "hiho_score": 0.0,
+            "status": "critical",
+            "neurons": 0,
+            "synapses": 0,
+            "orphans": 0,
+            "orphan_ratio": 1.0,
+            "connectivity": 0.0,
+            "reciprocity": 0.0,
+            "freshness": 0.0,
+        }
+
+    # Connected nodes (have at least one synapse)
+    try:
+        connected = get_results(
+            surql(
+                "SELECT count() FROM neuron WHERE ->synapse = true OR <-synapse = true GROUP ALL;"
+            )
+        )
+        n_connected = connected[0].get("count", 0) if connected else 0
+    except Exception:
+        n_connected = n_synapses  # Fallback: assume each synapse connects at least one node
+
+    # Orphan ratio
+    orphans = n_neurons - n_connected
+    orphan_ratio = orphans / n_neurons
+
+    # Connectivity (nodes with 2+ backlinks)
+    try:
+        well_connected = get_results(
+            surql("SELECT count() FROM neuron WHERE count(<-synapse) >= 2 GROUP ALL;")
+        )
+        n_well_connected = well_connected[0].get("count", 0) if well_connected else 0
+        connectivity = n_well_connected / n_neurons
+    except Exception:
+        connectivity = n_connected / n_neurons if n_neurons > 0 else 0.0
+
+    # Reciprocity (bidirectional links - approximate)
+    try:
+        bidirectional = get_results(
+            surql("SELECT count() FROM synapse WHERE out -> synapse -> in = true GROUP ALL;")
+        )
+        n_bidirectional = bidirectional[0].get("count", 0) if bidirectional else 0
+        reciprocity = n_bidirectional / n_synapses if n_synapses > 0 else 0.0
+    except Exception:
+        reciprocity = 0.0
+
+    # Freshness (notes updated <30 days - use created as proxy)
+    try:
+        recent = get_results(
+            surql("SELECT count() FROM neuron WHERE created > time::now() - 30d GROUP ALL;")
+        )
+        n_recent = recent[0].get("count", 0) if recent else 0
+        freshness = n_recent / n_neurons
+    except Exception:
+        freshness = 0.0
+
+    # HIHO score (target: 0.5 +/- 0.15)
+    hiho = 0.3 * connectivity + 0.2 * reciprocity + 0.2 * freshness + 0.3 * (1 - orphan_ratio)
+
+    # Status classification
+    if 0.35 <= hiho <= 0.65:
+        status = "healthy"
+    elif 0.2 <= hiho <= 0.8:
+        status = "degraded"
+    else:
+        status = "critical"
+
+    return {
+        "hiho_score": round(hiho, 3),
+        "status": status,
+        "neurons": n_neurons,
+        "synapses": n_synapses,
+        "orphans": orphans,
+        "orphan_ratio": round(orphan_ratio, 3),
+        "connectivity": round(connectivity, 3),
+        "reciprocity": round(reciprocity, 3),
+        "freshness": round(freshness, 3),
+    }
+
+
 # ── Mode 1: Health ────────────────────────────────────────────────────────────
 def run_health() -> dict:
     logger.info("=== HEALTH CHECK ===")
@@ -141,6 +230,29 @@ def run_health() -> dict:
         if pct > 10:
             report["issues"].append(f"{len(orphans)} isolated neurons ({pct}%)")
     report["orphans"] = orphans
+
+    # HIHO-weighted graph health metrics
+    try:
+        hiho_metrics = compute_hiho_metrics(n_neurons, n_synapses)
+        report["hiho"] = hiho_metrics
+        status_emoji = {"healthy": "✅", "degraded": "⚠️", "critical": "🔴"}.get(
+            hiho_metrics["status"], "❓"
+        )
+        logger.info(
+            "HIHO Score: %.3f %s (connectivity=%.2f, reciprocity=%.2f, freshness=%.2f, orphan_ratio=%.2f)",
+            hiho_metrics["hiho_score"],
+            status_emoji,
+            hiho_metrics["connectivity"],
+            hiho_metrics["reciprocity"],
+            hiho_metrics["freshness"],
+            hiho_metrics["orphan_ratio"],
+        )
+        if hiho_metrics["status"] != "healthy":
+            report["issues"].append(
+                f"HIHO {hiho_metrics['status']} ({hiho_metrics['hiho_score']:.3f})"
+            )
+    except Exception as e:
+        logger.warning("Failed to compute HIHO metrics: %s", e)
 
     # Concept/paper sync
     try:
