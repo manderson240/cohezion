@@ -35,6 +35,13 @@ from cohezion.swarm.providers.model_provider import (
     register_model_provider,
 )
 
+# Auto-register local providers
+try:
+    import cohezion.swarm.providers.ollama_provider
+    import cohezion.swarm.providers.gemini_provider
+    import cohezion.swarm.providers.gemma4_provider
+except ImportError:
+    pass
 
 try:
     from cohezion.swarm.providers.ui_generation_provider import (

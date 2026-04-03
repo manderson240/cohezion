@@ -1,17 +1,17 @@
 # Implementation Plan: Gemma 4 Integration & EcoResilience Synthesis
 
 ## Phase 1: Foundation & Provider Implementation
-- [ ] **Task: Gemma4Provider Development**
-    - [ ] Create `tests/providers/test_gemma4_provider.py` with failing unit tests for the new provider.
-    - [ ] Implement `Gemma4Provider` in `src/cohezion/providers/gemma4.py` (inheriting from `ModelProvider`).
-    - [ ] Add support for Gemma 4 Thinking Mode and context window configuration.
-    - [ ] Ensure tests pass (Green Phase).
-    - [ ] Refactor and verify 100% coverage.
-- [ ] **Task: Provider Factory Integration**
-    - [ ] Update `src/cohezion/providers/factory.py` (or equivalent) to register `Gemma4Provider`.
-    - [ ] Write integration tests for the factory to resolve Gemma 4 models.
-    - [ ] Verify coverage.
-- [ ] **Task: Conductor - User Manual Verification 'Phase 1: Foundation & Provider Implementation' (Protocol in workflow.md)**
+- [x] **Task: Gemma4Provider Development**
+    - [x] Create `tests/providers/test_gemma4_provider.py` with failing unit tests for the new provider.
+    - [x] Implement `Gemma4Provider` in `src/cohezion/providers/gemma4.py` (inheriting from `ModelProvider`).
+    - [x] Add support for Gemma 4 Thinking Mode and context window configuration.
+    - [x] Ensure tests pass (Green Phase).
+    - [x] Refactor and verify 100% coverage.
+- [x] **Task: Provider Factory Integration**
+    - [x] Update `src/cohezion/providers/factory.py` (or equivalent) to register `Gemma4Provider`.
+    - [x] Write integration tests for the factory to resolve Gemma 4 models.
+    - [x] Verify coverage.
+- [x] **Task: Conductor - User Manual Verification 'Phase 1: Foundation & Provider Implementation' (Protocol in workflow.md)**
 
 ## Phase 2: Benchmarking & Optimization
 - [ ] **Task: Local Benchmarking Suite**
