@@ -6,7 +6,7 @@
 | Kernel | File | Strategy | Status |
 |--------|------|----------|--------|
 | GEMM | `variants/gemm/submission_fused_quant.py` | Env vars + skip contiguous | ⏳ |
-| GEMM | `variants/gemm/submission_loadinline_mfma.py` | Custom HIP MFMA kernel | ⏳ |
+| GEMM | `variants/gemm/submission_loadinline_mfma.py` | Custom HIP fused kernel (EXPERIMENTAL - may fail correctness) | ⏳ |
 | MLA | `variants/mla/submission_persistent.py` | Persistent env vars + 3-regime | ⏳ |
 | MLA | `variants/mla/submission_api_probe.py` | Probe untested APIs | ⏳ |
 | MoE | `variants/moe/submission_envtuned.py` | USE_NT + BYPASS + EXPL_SCHED | ⏳ |
