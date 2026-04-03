@@ -1,0 +1,23 @@
+{
+  "cli_version": "0.5.1",
+  "checkpoint_id": "34e2939c9e3a",
+  "session_id": "7263ffce-182a-4b17-bc58-347e76b784b5",
+  "strategy": "manual-commit",
+  "created_at": "2026-04-03T22:47:47.781202451Z",
+  "branch": "feat/claw-code-rust-integration",
+  "checkpoints_count": 1,
+  "files_touched": [],
+  "agent": "Claude Code",
+  "model": "claude-opus-4-6[1m]",
+  "turn_id": "dacbd69babc6",
+  "token_usage": {
+    "input_tokens": 16443,
+    "cache_creation_tokens": 879863,
+    "cache_read_tokens": 33505644,
+    "output_tokens": 124735,
+    "api_call_count": 127
+  },
+  "session_metrics": {
+    "turn_count": 1
+  }
+}
