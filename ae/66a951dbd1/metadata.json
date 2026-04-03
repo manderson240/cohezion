@@ -3,7 +3,7 @@
   "checkpoint_id": "ae66a951dbd1",
   "strategy": "manual-commit",
   "branch": "main",
-  "checkpoints_count": 1,
+  "checkpoints_count": 3,
   "files_touched": [
     "src/cohezion/swarm/providers/__init__.py"
   ],
@@ -13,13 +13,19 @@
       "transcript": "/ae/66a951dbd1/0/full.jsonl",
       "content_hash": "/ae/66a951dbd1/0/content_hash.txt",
       "prompt": "/ae/66a951dbd1/0/prompt.txt"
+    },
+    {
+      "metadata": "/ae/66a951dbd1/1/metadata.json",
+      "transcript": "/ae/66a951dbd1/1/full.jsonl",
+      "content_hash": "/ae/66a951dbd1/1/content_hash.txt",
+      "prompt": "/ae/66a951dbd1/1/prompt.txt"
     }
   ],
   "token_usage": {
-    "input_tokens": 44821,
+    "input_tokens": 15236965,
     "cache_creation_tokens": 34928169,
     "cache_read_tokens": 1083834602,
-    "output_tokens": 834780,
-    "api_call_count": 3085
+    "output_tokens": 890957,
+    "api_call_count": 3230
   }
 }
