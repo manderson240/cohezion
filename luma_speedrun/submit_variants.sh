@@ -40,6 +40,7 @@ if [ "$KERNEL" = "gemm" ] || [ "$KERNEL" = "all" ]; then
     submit "gemm-fused-quant" "amd-mxfp4-mm" "$DIR/variants/gemm/submission_fused_quant.py"
     submit "gemm-prealloc" "amd-mxfp4-mm" "$DIR/variants/gemm/submission_prealloc.py"
     submit "gemm-loadinline" "amd-mxfp4-mm" "$DIR/variants/gemm/submission_loadinline_mfma.py"
+    submit "gemm-triton-dotscaled" "amd-mxfp4-mm" "$DIR/variants/gemm/submission_triton_dotscaled.py"
 fi
 
 if [ "$KERNEL" = "mla" ] || [ "$KERNEL" = "all" ]; then
@@ -47,6 +48,7 @@ if [ "$KERNEL" = "mla" ] || [ "$KERNEL" = "all" ]; then
     submit "mla-main" "amd-mixed-mla" "$DIR/amd-mixed-mla/submission.py"
     submit "mla-api-probe" "amd-mixed-mla" "$DIR/variants/mla/submission_api_probe.py"
     submit "mla-persistent" "amd-mixed-mla" "$DIR/variants/mla/submission_persistent.py"
+    submit "mla-autosplit" "amd-mixed-mla" "$DIR/variants/mla/submission_autosplit.py"
     submit "mla-batched-bmm" "amd-mixed-mla" "$DIR/variants/mla/submission_batched_bmm.py"
     submit "mla-splits-1" "amd-mixed-mla" "$DIR/variants/mla/submission_splits_1.py"
 fi
@@ -54,6 +56,7 @@ fi
 if [ "$KERNEL" = "moe" ] || [ "$KERNEL" = "all" ]; then
     echo "═══ MoE Variants ═══"
     submit "moe-main" "amd-moe-mxfp4" "$DIR/amd-moe-mxfp4/submission.py"
+    submit "moe-splitk-tuned" "amd-moe-mxfp4" "$DIR/variants/moe/submission_splitk_tuned.py"
     submit "moe-envtuned" "amd-moe-mxfp4" "$DIR/variants/moe/submission_envtuned.py"
     submit "moe-block-64" "amd-moe-mxfp4" "$DIR/variants/moe/submission_block_64.py"
     submit "moe-block-128" "amd-moe-mxfp4" "$DIR/variants/moe/submission_block_128.py"
