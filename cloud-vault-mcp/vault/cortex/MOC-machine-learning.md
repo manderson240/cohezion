@@ -86,6 +86,8 @@ Machine learning is the computational engine behind Cohezion's agent intelligenc
 ## Competition & Optimization Campaigns
 
 - [[luma-amd-speedrun-strategy|Luma AMD Speedrun Strategy]] — Competition tactics for MI355X GPU kernel optimization ($650K prize pool)
+- [[amd-speedrun-submission-rankings-20260403|Submission Rankings (2026-04-03)]] — Power-ranked 20 kernel variants by win probability for Phase 1 finalist push
+- [[luma-amd-breakthroughs-20260323|Luma AMD Breakthroughs]] — Key breakthroughs: persistent MLA, active MoE masking, tl.dot_scaled GEMM
 - [[amd-hip-kernel-development|AMD HIP Kernel Development]] — Custom HIP C++ kernels for AMD MI355X (gfx950): MFMA, LDS swizzle, ping-pong scheduling
 - [[CENTRAL_COMMAND|Infinity Central Command]] — Multi-agent GPU optimization campaign coordination
 - [[RESEARCH_REPORT|Infinity Research Report]] — Research findings across alpha/beta/gamma teams
