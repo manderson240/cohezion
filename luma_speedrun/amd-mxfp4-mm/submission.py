@@ -1,144 +1,172 @@
 """
-GEMM Submission - 8-Wave Optimized (Conservative Version)
-Combines: Pre-allocated output buffer + Block scaling + Optimized splitK
-Based on: Historical 13.425µs approach
+MXFP4 GEMM — Pure load_inline custom HIP kernel.
 
-Note: Full 8-wave ping-pong requires CUDA/HIP kernel development.
-This submission uses optimized aiter dispatch with the lessons learned.
+Based on official template-hip.py from gpu-mode/reference-kernels.
+BREAKTHROUGH: load_inline WORKS on Popcorn runners!
+
+Key patterns:
+1. Block-wise GEMM with scales LIFTED outside inner loop
+2. FP4 e2m1 format: values = [0, 0.5, 1.0, 1.5, 2.0, 3.0, 4.0, 6.0] × ±1
+3. E8M0 scale: f32 = 2^(e8m0 - 127)
+4. dim3(16, 16) thread blocks
 """
 
-import torch
-import sys
-
-# Add aiter path
-sys.path.insert(0, '/app/aiter')
-sys.path.insert(0, '/app/aiter/aiter/build')
-
-from typing import Optional
 import os
 
+from torch.utils.cpp_extension import load_inline
 
-def gemm_mxfp4_8wave_optimized(
-    M: int = 4096,
-    N: int = 4096, 
-    K: int = 4096,
-    splitK: int = 0  # 0 = auto, based on problem size
-) -> torch.Tensor:
-    """
-    Optimized GEMM using lessons from 8-wave ping-pong research.
-    
-    Key optimizations:
-    1. Pre-allocate output buffer (avoids allocation overhead)
-    2. Use gemm_a4w4_blockscale when available (bypasses dispatch overhead)
-    3. Optimal splitK selection (0 = let AITER choose)
-    4. Non-temporal hints for large problems
-    """
-    
-    # Import aiter
-    import aiter
-    
-    device = torch.device('cuda')
-    
-    # Create MXFP4 inputs
-    # A: [M, K] in MXFP4 format
-    # B: [K, N] in MXFP4 format (with shuffle)
-    
-    # For actual submission, we receive these from the system
-    # Here we'll generate as the submission expects
-    
-    def create_mxfp4_tensor(rows: int, cols: int) -> torch.Tensor:
-        """Create random MXFP4 data."""
-        # MXFP4 is 4-bit: using int8 for simulation
-        return torch.randint(
-            0, 16, (rows, cols),
-            dtype=torch.int8,
-            device=device
-        )
-    
-    # Create inputs
-    A_q = create_mxfp4_tensor(M, K)
-    B_q = create_mxfp4_tensor(K, N)
-    
-    # Apply shuffle to B (MXFP4 requirement)
-    B_shuffle = aiter.shuffle_weight(B_q, layout="weight_format::as_is")
-    
-    # Block scales (2 floats per 32 values in MXFP4 with block size 32)
-    A_scale = torch.ones(M, K // 32, dtype=torch.float32, device=device)
-    B_scale = torch.ones(N, K // 32, dtype=torch.float32, device=device)
-    
-    # Shuffle scales to match expected format
-    A_scale_sh = aiter.shuffle_weight(A_scale, layout="weight_format::as_is")
-    B_scale_sh = aiter.shuffle_weight(B_scale, layout="weight_format::as_is")
-    
-    # === CRITICAL: Pre-allocate output buffer ===
-    # This is the key lesson from 8-wave research:
-    # Pre-allocation avoids stream synchronization and allocation overhead
-    # Similar to allocating persistent LDS in kernels
-    Out = torch.empty(M, N, dtype=torch.bfloat16, device=device)
-    
-    # Run GEMM with block scaling
-    # splitK=0 lets AITER choose optimal split (usually based on problem size)
-    # Based on ROCm docs: splitK helps hide memory latency by computing partial results
-    C = aiter.gemm_a4w4_blockscale(
-        A_q,
-        B_shuffle,
-        A_scale_sh,
-        B_scale_sh,
-        Out,  # Pre-allocated output
-        splitK=splitK  # 0 = auto
-    )
-    
+
+os.environ["PYTORCH_ROCM_ARCH"] = "gfx950"
+
+from task import input_t, output_t
+
+
+CPP_WRAPPER = """
+void mxfp4_gemm(
+    torch::Tensor A_packed,
+    torch::Tensor B_packed,
+    torch::Tensor A_scale,
+    torch::Tensor B_scale,
+    torch::Tensor C
+);
+"""
+
+HIP_SRC = r"""
+#include <hip/hip_runtime.h>
+#include <hip/amd_detail/amd_hip_fp8.h>
+#include <hip/amd_detail/amd_hip_bf16.h>
+
+constexpr int BLOCK = 16;
+
+__device__ inline float fp4_to_f32(uint8_t v) {
+    float vals[16] = {
+        0.0f, 0.5f, 1.0f, 1.5f, 2.0f, 3.0f, 4.0f, 6.0f,
+        -0.0f, -0.5f, -1.0f, -1.5f, -2.0f, -3.0f, -4.0f, -6.0f
+    };
+    return vals[v & 0xF];
+}
+
+__device__ inline float unpack_fp4(uint8_t packed, int idx) {
+    uint8_t nibble = (idx == 0) ? (packed & 0xF) : ((packed >> 4) & 0xF);
+    return fp4_to_f32(nibble);
+}
+
+__device__ inline float e8m0_to_f32(uint8_t e8m0) {
+    if (e8m0 == 0) return 0.0f;
+    if (e8m0 == 255) return 0.0f;
+    return exp2f((float)((int)e8m0 - 127));
+}
+
+__global__ void mxfp4_kernel(
+    const uint8_t* A,
+    const uint8_t* B,
+    const uint8_t* As,
+    const uint8_t* Bs,
+    __hip_bfloat16* C,
+    int M, int N, int K
+) {
+    int bx = blockIdx.x;
+    int by = blockIdx.y;
+    int tx = threadIdx.x;
+    int ty = threadIdx.y;
+
+    int row = bx * BLOCK + tx;
+    int col = by * BLOCK + ty;
+
+    if (row >= M || col >= N) return;
+
+    int k_blocks = K / 32;
+    int k_packed = K / 2;
+
+    float result = 0.0f;
+
+    for (int kb = 0; kb < k_blocks; kb++) {
+        float block_result = 0.0f;
+
+        for (int kk = 0; kk < 32; kk++) {
+            int k_idx = kb * 32 + kk;
+
+            int a_packed_idx = row * k_packed + k_idx / 2;
+            float a_val = unpack_fp4(A[a_packed_idx], k_idx % 2);
+
+            int b_packed_idx = col * k_packed + k_idx / 2;
+            float b_val = unpack_fp4(B[b_packed_idx], k_idx % 2);
+
+            block_result += a_val * b_val;
+        }
+
+        float a_scale = e8m0_to_f32(As[row * k_blocks + kb]);
+        float b_scale = e8m0_to_f32(Bs[col * k_blocks + kb]);
+
+        result += block_result * a_scale * b_scale;
+    }
+
+    C[row * N + col] = (__hip_bfloat16)result;
+}
+
+void mxfp4_gemm(
+    torch::Tensor A_packed,
+    torch::Tensor B_packed,
+    torch::Tensor A_scale,
+    torch::Tensor B_scale,
+    torch::Tensor C
+) {
+    int M = A_packed.size(0);
+    int K = A_packed.size(1) * 2;
+    int N = B_packed.size(0);
+
+    dim3 blocks((M + BLOCK - 1) / BLOCK, (N + BLOCK - 1) / BLOCK);
+    dim3 threads(BLOCK, BLOCK);
+
+    mxfp4_kernel<<<blocks, threads>>>(
+        (const uint8_t*)A_packed.data_ptr(),
+        (const uint8_t*)B_packed.data_ptr(),
+        (const uint8_t*)A_scale.data_ptr(),
+        (const uint8_t*)B_scale.data_ptr(),
+        (__hip_bfloat16*)C.data_ptr(),
+        M, N, K
+    );
+}
+"""
+
+os.environ["CXX"] = "clang++"
+
+module = load_inline(
+    name="mxfp4_gemm",
+    cpp_sources=[CPP_WRAPPER],
+    cuda_sources=[HIP_SRC],
+    functions=["mxfp4_gemm"],
+    verbose=False,
+    extra_cuda_cflags=["--offload-arch=gfx950", "-std=c++20", "-O3"],
+)
+
+
+def custom_kernel(data: input_t) -> output_t:
+    """MXFP4 GEMM using pure load_inline HIP kernel."""
+    import torch
+    from aiter import dtypes
+    from aiter.ops.triton.quant import dynamic_mxfp4_quant
+    from aiter.utility.fp4_utils import e8m0_shuffle
+
+    A, B, B_q, B_shuffle, B_scale_sh = data
+
+    M, K = A.shape
+    N = B.shape[0]
+    k_scale_groups = K // 32
+
+    A_fp4, A_scale = dynamic_mxfp4_quant(A.contiguous())
+
+    k_scale_valid = k_scale_groups
+    A_scale_bytes = A_scale[:M, :k_scale_valid].contiguous().view(torch.uint8)
+    A_scale_sh = e8m0_shuffle(A_scale_bytes.view(dtypes.fp8_e8m0))
+    A_scale_sh_bytes = A_scale_sh.view(torch.uint8)
+
+    A_packed = A_fp4.view(torch.uint8)
+    B_packed = B_shuffle.view(torch.uint8)
+    B_scale_bytes = B_scale_sh.view(torch.uint8)
+
+    C = torch.empty((M, N), dtype=torch.bfloat16, device=A.device)
+
+    module.mxfp4_gemm(A_packed, B_packed, A_scale_sh_bytes, B_scale_bytes, C)
+
     return C
-
-
-# For direct submission
-def main():
-    """Submission entry point."""
-    # Standard shapes from leaderboard
-    shapes = [
-        (4096, 4096, 4096),
-        (8192, 8192, 8192),
-        (16384, 4096, 4096),
-    ]
-    
-    results = []
-    for M, N, K in shapes:
-        # Warmup
-        C = gemm_mxfp4_8wave_optimized(M, N, K, splitK=0)
-        torch.cuda.synchronize()
-        
-        # Benchmark
-        import time
-        niter = 100
-        start = time.perf_counter()
-        for _ in range(niter):
-            C = gemm_mxfp4_8wave_optimized(M, N, K, splitK=0)
-        torch.cuda.synchronize()
-        elapsed = time.perf_counter() - start
-        
-        avg_ms = elapsed / niter * 1000
-        tflops = 2 * M * N * K / (avg_ms / 1000) / 1e12
-        
-        results.append({
-            'shape': (M, N, K),
-            'time_ms': avg_ms,
-            'tflops': tflops
-        })
-    
-    print(f"GEMM Results (8-Wave Optimized):")
-    for r in results:
-        print(f"  {r['shape']}: {r['time_ms']:.2f} ms = {r['tflops']:.1f} TFLOPS")
-    
-    return results
-
-
-if __name__ == '__main__':
-    main()
-
-    # Return output for leaderboard
-    try:
-        M, N, K = 4096, 4096, 4096
-        result = gemm_mxfp4_8wave_optimized(M, N, K)
-        print(result)
-    except Exception as e:
-        print(f"Error: {e}")
