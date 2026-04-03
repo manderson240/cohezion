@@ -1,0 +1,31 @@
+{
+  "cli_version": "0.5.1",
+  "checkpoint_id": "20f258975ee6",
+  "strategy": "manual-commit",
+  "branch": "main",
+  "checkpoints_count": 2,
+  "files_touched": [
+    ".gemini/settings.json",
+    "mcp_servers.json",
+    "scripts/jobs/vault_keeper_monitor.sh",
+    "start-mcp-servers.sh",
+    "tools/dream_quality_report.py",
+    "tools/dream_toe_bridge.py",
+    "tools/vault-keeper-cycle.py"
+  ],
+  "sessions": [
+    {
+      "metadata": "/20/f258975ee6/0/metadata.json",
+      "transcript": "/20/f258975ee6/0/full.jsonl",
+      "content_hash": "/20/f258975ee6/0/content_hash.txt",
+      "prompt": "/20/f258975ee6/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 12205039,
+    "cache_creation_tokens": 0,
+    "cache_read_tokens": 0,
+    "output_tokens": 31318,
+    "api_call_count": 120
+  }
+}
