@@ -62,7 +62,10 @@ def run_server_sync(name: str, transport: str = "stdio", port: int | None = None
                 module.main()
         elif hasattr(module, "app"):
             # FastMCP app.run() will start its own loop
-            module.app.run(transport=transport)
+            if transport == "http" and port:
+                module.app.run(transport=transport, host="0.0.0.0", port=port)
+            else:
+                module.app.run(transport=transport)
     except Exception as e:
         logger.exception(f"Failed to start {name}")
 

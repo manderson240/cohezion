@@ -1,6 +1,6 @@
 # Implementation Plan: Gemma 4 Integration & EcoResilience Synthesis
 
-## Phase 1: Foundation & Provider Implementation
+## Phase 1: Foundation & Provider Implementation (Commit: eecaeefbe)
 - [x] **Task: Gemma4Provider Development**
     - [x] Create `tests/providers/test_gemma4_provider.py` with failing unit tests for the new provider.
     - [x] Implement `Gemma4Provider` in `src/cohezion/providers/gemma4.py` (inheriting from `ModelProvider`).
@@ -14,15 +14,15 @@
 - [x] **Task: Conductor - User Manual Verification 'Phase 1: Foundation & Provider Implementation' (Protocol in workflow.md)**
 
 ## Phase 2: Benchmarking & Optimization
-- [ ] **Task: Local Benchmarking Suite**
-    - [ ] Create `scripts/benchmarks/gemma4_benchmark.py`.
-    - [ ] Benchmark latency, throughput, and reasoning quality (thinking mode) for 31B, 26B, 4B, and 2B models.
-    - [ ] Log results to a markdown report in `docs/benchmarks/gemma4_hardware_eval.md`.
-- [ ] **Task: Prompt & Routing Optimization**
-    - [ ] Implement token-efficient routing logic for Gemma 4 (preferring E2B/E4B for lightweight tasks).
-    - [ ] Test the routing logic with mock agent tasks.
-    - [ ] Refactor for performance and clarity.
-- [ ] **Task: Conductor - User Manual Verification 'Phase 2: Benchmarking & Optimization' (Protocol in workflow.md)**
+- [x] **Task: Local Benchmarking Suite**
+    - [x] Create `scripts/benchmarks/gemma4_benchmark.py`.
+    - [x] Benchmark latency, throughput, and reasoning quality (thinking mode) for 31B, 26B, 4B, and 2B models.
+    - [x] Log results to a markdown report in `docs/benchmarks/gemma4_hardware_eval.md`.
+- [x] **Task: Prompt & Routing Optimization**
+    - [x] Implement token-efficient routing logic for Gemma 4 (preferring E2B/E4B for lightweight tasks).
+    - [x] Test the routing logic with mock agent tasks.
+    - [x] Refactor for performance and clarity.
+- [x] **Task: Conductor - User Manual Verification 'Phase 2: Benchmarking & Optimization' (Protocol in workflow.md)**
 
 ## Phase 3: EcoResilience Synthesis & Prototype
 - [ ] **Task: TEK + Physics Prompt Engineering**
