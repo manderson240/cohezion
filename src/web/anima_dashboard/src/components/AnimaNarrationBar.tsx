@@ -24,7 +24,7 @@ export default function AnimaNarrationBar() {
         const stability = report?.hiho_status.stability ?? (
           Math.abs(coherence - 0.5) < 0.1 ? "STABLE" : Math.abs(coherence - 0.5) < 0.3 ? "WARNING" : "CRITICAL"
         );
-        return `HIHO ${typeof stability === "string" ? stability.toUpperCase() : stability}: ${coherence.toFixed(4)} coherence. CA Rule 30: ${caActive}/${caTotal} active. ${nominalCount}/${evoCount} EVOs nominal. [tick ${state.tick}]`;
+        return `HIHO ${typeof stability === "string" ? stability.toUpperCase() : stability}: ${(coherence ?? 0).toFixed(4)} coherence. CA Rule 30: ${caActive}/${caTotal} active. ${nominalCount}/${evoCount} EVOs nominal. [tick ${state.tick}]`;
       })()
     : "";
 

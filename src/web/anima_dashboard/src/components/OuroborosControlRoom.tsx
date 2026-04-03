@@ -80,7 +80,7 @@ export default function OuroborosControlRoom() {
                 <div className="text-emerald-300 drop-shadow-[0_0_2px_rgba(110,231,183,1)]">[HIHO] Fabric stability nominal. Coherence at {coherence.toFixed(4)}. Tensor Beam active.</div>
                 {state?.evo_states.map((evo, i) => (
                     <div key={i} className="opacity-60 hover:opacity-100 transition-opacity">
-                        [EVO-{i}] charge={evo.charge_density.toFixed(3)} helicity={evo.magnetic_helicity.toFixed(3)} toroidal={evo.toroidal_moment.toFixed(3)} C={evo.coherence.toFixed(4)}
+                        [EVO-{i}] charge={(evo.charge_density ?? 0).toFixed(3)} helicity={(evo.magnetic_helicity ?? 0).toFixed(3)} toroidal={(evo.toroidal_moment ?? 0).toFixed(3)} C={(evo.coherence ?? 0).toFixed(4)}
                     </div>
                 ))}
             </div>

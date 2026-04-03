@@ -153,7 +153,7 @@ export const HologramField = () => {
         const interval = setInterval(() => {
             if (nodes.length > 0) {
                 const randomNode = nodes[Math.floor(Math.random() * nodes.length)];
-                setNarrative(`PRECIPITATING: ${randomNode.agent_name || 'Agent'} is navigating ${randomNode.intent || 'the manifold'}. Coherence: ${randomNode.coherence?.toFixed(3)}`);
+                setNarrative(`PRECIPITATING: ${randomNode.agent_name || 'Agent'} is navigating ${randomNode.intent || 'the manifold'}. Coherence: ${(randomNode.coherence ?? 0).toFixed(3)}`);
             }
         }, 5000);
         return () => clearInterval(interval);

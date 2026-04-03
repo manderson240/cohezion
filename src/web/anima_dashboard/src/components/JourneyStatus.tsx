@@ -144,7 +144,7 @@ export default function JourneyStatus({
           <div className={`text-2xl font-bold font-mono ${
             displayData.coherence >= 0.5 ? 'text-emerald-400' : 'text-amber-400'
           }`}>
-            {displayData.coherence.toFixed(2)}
+            {(displayData.coherence ?? 0).toFixed(2)}
           </div>
           <div className="text-xs text-gray-600 font-mono mt-1">
             {displayData.coherence >= 0.5 ? 'ABOVE THRESHOLD' : 'BELOW THRESHOLD'}

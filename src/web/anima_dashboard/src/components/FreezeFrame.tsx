@@ -18,7 +18,7 @@ export default function FreezeFrame() {
   const handleSave = async () => {
     if (!state) return;
     const decision = {
-      question: `Save freeze-frame: Tick ${state.tick}, coherence ${state.coherence.toFixed(4)}. Annotation: ${annotation}`,
+      question: `Save freeze-frame: Tick ${state.tick}, coherence ${(state.coherence ?? 0).toFixed(4)}. Annotation: ${annotation}`,
     };
     try {
       await fetch(`${API_BASE}/api/anima/ask`, {
