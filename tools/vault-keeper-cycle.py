@@ -13,6 +13,7 @@ from datetime import UTC, date, datetime
 from pathlib import Path
 
 import httpx
+import numpy as np
 
 
 # ── Config ──────────────────────────────────────────────────────────────────
@@ -72,6 +73,31 @@ def first_count(rows: list[dict]) -> int:
     if results and "count" in results[0]:
         return results[0]["count"]
     return len(results)
+
+
+# ── Embedding helpers ─────────────────────────────────────────────────────────
+def cosine_similarity(a: np.ndarray, b: np.ndarray) -> float:
+    """Compute cosine similarity between two normalized vectors."""
+    return float(np.dot(a, b))
+
+
+def get_embedding(text: str) -> np.ndarray | None:
+    """Get embedding via Ollama nomic-embed-text."""
+    try:
+        resp = httpx.post(
+            f"{OLLAMA_URL}/api/embed",
+            json={"model": "nomic-embed-text", "input": text},
+            timeout=30,
+        )
+        resp.raise_for_status()
+        data = resp.json()
+        vec = np.array(data["embeddings"][0], dtype=np.float32)
+        norm = np.linalg.norm(vec)
+        if norm > 0:
+            vec /= norm
+        return vec
+    except Exception:
+        return None
 
 
 # ── Ollama helpers ─────────────────────────────────────────────────────────────
@@ -340,29 +366,99 @@ def run_dreaming() -> int:
         logger.info("Ollama unavailable, skipping dream session")
         return 0
 
-    # Sample neurons from the graph
-    neurons = get_results(surql("SELECT id, title FROM neuron ORDER BY rand() LIMIT 20;"))
-    if len(neurons) < 4:
-        logger.info("Too few neurons for dreaming (%d)", len(neurons))
-        return 0
+    # Get physics and indigenous concept nodes for TOE dreaming
+    physics_concepts = get_results(
+        surql(
+            "SELECT id, title FROM neuron WHERE "
+            "(string::lowercase(title) CONTAINS 'physics') OR "
+            "(string::lowercase(title) CONTAINS 'quantum') OR "
+            "(string::lowercase(title) CONTAINS 'entropy') OR "
+            "(string::lowercase(title) CONTAINS 'field') OR "
+            "(string::lowercase(title) CONTAINS 'symmetry') OR "
+            "(string::lowercase(title) CONTAINS 'spacetime') OR "
+            "(string::lowercase(title) CONTAINS 'tensor') OR "
+            "(string::lowercase(title) CONTAINS 'manifold') OR "
+            "(string::lowercase(title) CONTAINS 'gauge') OR "
+            "(string::lowercase(title) CONTAINS 'energy') OR "
+            "(string::lowercase(title) CONTAINS 'cosmology') "
+            "LIMIT 15;"
+        )
+    )
 
-    # Split into two random groups
-    mid = len(neurons) // 2
-    group_a = neurons[:mid]
-    group_b = neurons[mid:]
+    indigenous_concepts = get_results(
+        surql(
+            "SELECT id, title FROM neuron WHERE "
+            "(string::lowercase(title) CONTAINS 'dreaming') OR "
+            "(string::lowercase(title) CONTAINS 'songline') OR "
+            "(string::lowercase(title) CONTAINS 'country') OR "
+            "(string::lowercase(title) CONTAINS 'aboriginal') OR "
+            "(string::lowercase(title) CONTAINS 'indigenous') OR "
+            "(string::lowercase(title) CONTAINS 'first nations') OR "
+            "(string::lowercase(title) CONTAINS 'ancestor') OR "
+            "(string::lowercase(title) CONTAINS 'creation') OR "
+            "(string::lowercase(title) CONTAINS 'mob') "
+            "LIMIT 15;"
+        )
+    )
+
+    # Fall back to random sampling if domain concepts insufficient
+    if len(physics_concepts) < 3 or len(indigenous_concepts) < 3:
+        logger.info("Insufficient domain concepts, falling back to random sampling")
+        neurons = get_results(surql("SELECT id, title FROM neuron ORDER BY rand() LIMIT 20;"))
+        if len(neurons) < 4:
+            logger.info("Too few neurons for dreaming (%d)", len(neurons))
+            return 0
+        mid = len(neurons) // 2
+        group_a = neurons[:mid]
+        group_b = neurons[mid:]
+    else:
+        logger.info(
+            "TOE dreaming mode: %d physics × %d indigenous concepts",
+            len(physics_concepts),
+            len(indigenous_concepts),
+        )
+        group_a = physics_concepts[:10]
+        group_b = indigenous_concepts[:10]
 
     written = 0
-    attempts = 0
     max_attempts = min(5, len(group_a) * len(group_b))
 
     import random
 
+    # Generate all cross-group pairs
     pairs = [(a, b) for a in group_a for b in group_b if a["id"] != b["id"]]
-    random.shuffle(pairs)
 
-    for neuron_a, neuron_b in pairs[:max_attempts]:
+    # Calculate embeddings and find resonant pairs
+    resonant_pairs = []
+    for neuron_a, neuron_b in pairs:
+        title_a = neuron_a.get("title", "")
+        title_b = neuron_b.get("title", "")
+
+        emb_a = get_embedding(title_a)
+        emb_b = get_embedding(title_b)
+
+        if emb_a is not None and emb_b is not None:
+            similarity = cosine_similarity(emb_a, emb_b)
+            if similarity > 0.5:  # Structural resonance threshold
+                resonant_pairs.append((neuron_a, neuron_b, similarity))
+
+    # Sort by similarity (highest first) and limit attempts
+    resonant_pairs.sort(key=lambda x: x[2], reverse=True)
+    selected_pairs = (
+        resonant_pairs[:max_attempts]
+        if resonant_pairs
+        else random.sample(pairs, min(max_attempts, len(pairs)))
+    )
+
+    for item in selected_pairs:
         if written >= MAX_DREAM_SYNAPSES:
             break
+
+        if len(item) == 3:
+            neuron_a, neuron_b, similarity = item
+        else:
+            neuron_a, neuron_b = item
+            similarity = None
 
         nid_a, title_a = neuron_a["id"], neuron_a.get("title", "?")
         nid_b, title_b = neuron_b["id"], neuron_b.get("title", "?")
@@ -376,10 +472,23 @@ def run_dreaming() -> int:
         if existing:
             continue
 
+        # TOE-specific prompt asking for testable predictions
+        domain_context = ""
+        if similarity:
+            domain_context = f"\n    These concepts show structural resonance (similarity: {similarity:.2f}) in latent space."
+
         prompt = textwrap.dedent(f"""
-            Given concept A: '{title_a}' and concept B: '{title_b}', describe any non-obvious structural or mechanistic resonances between them.
-            What specific mechanism transfers between these domains? Give one concrete example of how knowing this connection would be useful.
-            Be precise — no vague analogies. Respond in 2-3 sentences maximum.
+            Physics/First Nations TOE Bridge:
+            Concept A: '{title_a}'
+            Concept B: '{title_b}'{domain_context}
+
+            These traditions may share deep structural resonance. Your task:
+            1. What specific mechanism transfers between these domains?
+            2. What structural pattern connects them?
+            3. What testable observation or prediction validates this resonance?
+
+            Be precise — no vague analogies. Frame as: "If this resonance is real, then observing X should reveal Y."
+            Respond in 2-3 sentences maximum.
         """).strip()
 
         try:
@@ -391,12 +500,18 @@ def run_dreaming() -> int:
         if not response or len(response) < 30:
             continue
 
-        # Score dream quality (0.0-1.0)
+        # Score dream quality (0.0-1.0) with TOE-specific weighting
         quality_score = 0.0
         specificity_words = ["because", "when", "mechanism", "pattern", "structural", "transfer"]
         quality_score += sum(0.08 for w in specificity_words if w in response.lower())
         if "example" in response.lower() or "for instance" in response.lower():
             quality_score += 0.2
+        if (
+            "observing" in response.lower()
+            or "prediction" in response.lower()
+            or "testable" in response.lower()
+        ):
+            quality_score += 0.15  # Bonus for testable predictions
         word_count = len(response.split())
         if 30 <= word_count <= 150:
             quality_score += 0.2
@@ -413,14 +528,21 @@ def run_dreaming() -> int:
         try:
             surql(
                 f"RELATE {nid_a}->synapse->{nid_b} SET link_type = 'dream', "
-                f"resonance = '{resonance}', quality_score = {quality_score}, created = time::now();"
+                f"resonance = '{resonance}', quality_score = {quality_score}, "
+                f"similarity = {similarity or 0.0}, created = time::now();"
             )
-            logger.info("Dream synapse: %s × %s (score=%.2f)", title_a, title_b, quality_score)
+            logger.info(
+                "TOE dream synapse: %s × %s (score=%.2f, sim=%.2f)",
+                title_a,
+                title_b,
+                quality_score,
+                similarity or 0.0,
+            )
             written += 1
         except Exception as e:
             logger.warning("Failed to write dream synapse: %s", e)
 
-    logger.info("Dreaming: wrote %d dream synapses", written)
+    logger.info("Dreaming: wrote %d TOE dream synapses", written)
     return written
 
 
