@@ -1,0 +1,1 @@
+Yes it should be started automatically as part of the MCP fleet
