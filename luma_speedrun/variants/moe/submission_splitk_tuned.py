@@ -1,23 +1,23 @@
-"""MXFP4 MoE submission — splitk + block_size_M tuned for MI355X (gfx950).
+"""MXFP4 MoE submission — splitk + block_size_M tuned for MI355X.
 
-Optimizations from aiter source code analysis:
-1. Pass splitk directly to fused_moe (shape-dependent, max 3 for precision)
-2. Pass block_size_M explicitly (32/64/128 based on tokens-per-expert)
-3. AITER_USE_NT=1: Non-transposed weight access (proven 10% improvement)
-4. AITER_BYPASS_TUNE_CONFIG=1: Skip CSV config lookup overhead
-5. AITER_GFX950_EXPL_SCHED=1: Explicit XCD scheduling for CDNA4
+Key optimizations from aiter source analysis:
+1. Pass `splitk` directly to fused_moe (avoids env var indirection)
+2. Pass `block_size_M` explicitly for shape-dependent tiling
+3. All env var tuning (USE_NT, BYPASS, EXPL_SCHED)
+4. Shape-dependent parameter selection based on expert count and batch size
 
-Key rules (from 18+ phases + aiter source analysis):
-- NEVER use doweight_stage1=True (GPU fault or 82% mismatch)
-- NEVER use expert_mask (CK crash)
-- splitk max=3 (hardcoded in aiter for precision)
-- block_size_M from [32, 64, 128] based on CU utilization
+From aiter/fused_moe.py source:
+- get_ksplit: only activates when token * topk <= expert (decode scenario)
+- use_nt: True when (token * topk // e) < 64
+- block_size_M: selected from [32, 64, 128] based on CU utilization
+
+MoE tolerance: rtol=5e-2, atol=5e-2 (5% — quite loose)
 """
 
 import os
 import sys
 
-# ── Environment tuning (must be set BEFORE importing aiter) ──
+# Environment tuning (before imports)
 os.environ["AITER_JIT_DIR"] = "/tmp/aiter_jit_cache"
 os.environ["AITER_USE_NT"] = "1"
 os.environ["AITER_BYPASS_TUNE_CONFIG"] = "1"
@@ -41,23 +41,37 @@ from aiter.fused_moe import fused_moe
 from task import input_t, output_t
 
 
-def _select_params(num_experts: int, bs: int) -> tuple[int, int]:
+def _select_params(num_experts: int, bs: int, d_expert: int) -> tuple[int, int]:
     """Select optimal splitk and block_size_M based on shape.
 
-    From aiter source: splitk max=3 for precision, only helps in decode
-    scenarios where token*topk <= num_experts.
+    Based on aiter's get_ksplit() and get_block_size_M() heuristics:
+    - splitk: 0 (auto), 1, 2, or 3 (max for precision)
+    - block_size_M: 32, 64, or 128
+
+    Key insight: splitk only helps in decode scenarios where
+    token_count * topk <= num_experts (few tokens per expert).
     """
-    topk = 8  # DeepSeek R1 top-8
+    # Estimate tokens per expert
+    topk = 8  # DeepSeek R1 uses top-8
     est_m = max(1, (bs * topk) // num_experts)
 
+    # splitk: helps when est_m is small (decode-like)
     if est_m <= 2:
-        splitk, block_m = 3, 32
+        splitk = 3  # max split for very sparse
     elif est_m <= 8:
-        splitk, block_m = 2, 32
+        splitk = 2
     elif est_m <= 16:
-        splitk, block_m = 1, 64
+        splitk = 1
     else:
-        splitk, block_m = 0, 128
+        splitk = 0  # no split needed, enough work per expert
+
+    # block_size_M: smaller blocks for sparse, larger for dense
+    if est_m <= 4:
+        block_m = 32
+    elif est_m <= 32:
+        block_m = 64
+    else:
+        block_m = 128
 
     return splitk, block_m
 
@@ -83,7 +97,7 @@ def custom_kernel(data: input_t) -> output_t:
     num_experts = gate_up_weight_shuffled.shape[0]
     bs = hidden_states.shape[0]
 
-    splitk, block_m = _select_params(num_experts, bs)
+    splitk, block_m = _select_params(num_experts, bs, config["d_expert"])
 
     return fused_moe(
         hidden_states,
