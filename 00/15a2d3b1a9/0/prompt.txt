@@ -1,0 +1,2 @@
+fix  ⎿  SessionStart:startup hook error
+  ⎿  SessionStart:startup hook error
