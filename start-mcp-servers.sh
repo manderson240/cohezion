@@ -51,8 +51,8 @@ start_server() {
     
     echo -e "${GREEN}🔧 Starting $name MCP Server on port $port...${NC}"
     
-    # Start in background using uv
-    MCP_PORT=$port uv run python -m "$module" &
+    # Start in background using .venv python
+    PYTHONPATH="$SCRIPT_DIR/src" MCP_PORT=$port "$SCRIPT_DIR/.venv/bin/python" -m "$module" &
     local pid=$!
     
     # Wait a moment for server to start

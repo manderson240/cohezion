@@ -40,6 +40,7 @@ logging.basicConfig(
 )
 logger = logging.getLogger("vault-keeper")
 
+
 # ── SurrealDB helpers ─────────────────────────────────────────────────────────
 def surql(query: str, timeout: int = 30) -> list[dict]:
     resp = httpx.post(
@@ -85,7 +86,12 @@ def ollama_available() -> bool:
 def ollama_generate(prompt: str, temperature: float = 0.8, timeout: int = 120) -> str:
     resp = httpx.post(
         f"{OLLAMA_URL}/api/generate",
-        json={"model": DREAM_MODEL, "prompt": prompt, "stream": False, "options": {"temperature": temperature}},
+        json={
+            "model": DREAM_MODEL,
+            "prompt": prompt,
+            "stream": False,
+            "options": {"temperature": temperature},
+        },
         timeout=timeout,
     )
     resp.raise_for_status()
@@ -108,7 +114,9 @@ def run_health() -> dict:
         return report
 
     # Graph counts
-    counts = get_results(surql("SELECT count() FROM neuron GROUP ALL; SELECT count() FROM synapse GROUP ALL;"))
+    counts = get_results(
+        surql("SELECT count() FROM neuron GROUP ALL; SELECT count() FROM synapse GROUP ALL;")
+    )
     n_neurons = counts[0].get("count", 0) if counts else 0
     n_synapses = counts[1].get("count", 0) if len(counts) > 1 else 0
     ratio = round(n_synapses / n_neurons, 2) if n_neurons else 0
@@ -116,14 +124,20 @@ def run_health() -> dict:
     report.update({"neurons": n_neurons, "synapses": n_synapses, "ratio": ratio})
 
     # Orphan detection
-    orphans = get_results(surql(
-        "SELECT id, title FROM neuron "
-        "WHERE ->(synapse WHERE true) = [] AND <-(synapse WHERE true) = [] LIMIT 20;"
-    ))
+    orphans = get_results(
+        surql(
+            "SELECT id, title FROM neuron "
+            "WHERE ->(synapse WHERE true) = [] AND <-(synapse WHERE true) = [] LIMIT 20;"
+        )
+    )
     if orphans:
         pct = round(len(orphans) / n_neurons * 100, 1) if n_neurons else 0
-        logger.info("Orphan neurons: %d (%.1f%%): %s", len(orphans), pct,
-                    [n.get("title", n.get("id")) for n in orphans[:5]])
+        logger.info(
+            "Orphan neurons: %d (%.1f%%): %s",
+            len(orphans),
+            pct,
+            [n.get("title", n.get("id")) for n in orphans[:5]],
+        )
         if pct > 10:
             report["issues"].append(f"{len(orphans)} isolated neurons ({pct}%)")
     report["orphans"] = orphans
@@ -133,6 +147,7 @@ def run_health() -> dict:
         if CLOUD_VAULT_SRC not in sys.path:
             sys.path.insert(0, str(CLOUD_VAULT_SRC))
         from mcp_server.surrealdb_sync import SurrealDBSync
+
         sync = SurrealDBSync(
             vault_path=str(VAULT_PATH),
             surrealdb_url=SURREALDB_URL,
@@ -174,26 +189,28 @@ def run_waking(orphans: list[dict]) -> int:
             continue
 
         # Look for neurons whose titles contain overlapping keywords
-        candidates = get_results(surql(
-            f"SELECT id, title FROM neuron WHERE id != {nid} "
-            f"AND (string::lowercase(title) CONTAINS '{keywords[0]}') LIMIT 3;"
-        ))
+        candidates = get_results(
+            surql(
+                f"SELECT id, title FROM neuron WHERE id != {nid} "
+                f"AND (string::lowercase(title) CONTAINS '{keywords[0]}') LIMIT 3;"
+            )
+        )
 
         for candidate in candidates:
             cid = candidate.get("id")
             if not cid or cid not in existing_ids:
                 continue
             # Check no synapse already exists
-            existing = get_results(surql(
-                f"SELECT id FROM synapse WHERE in = {nid} AND out = {cid};"
-            ))
+            existing = get_results(
+                surql(f"SELECT id FROM synapse WHERE in = {nid} AND out = {cid};")
+            )
             if existing:
                 continue
             reason = f"Both '{title}' and '{candidate.get('title', cid)}' share thematic overlap — connected via vault-keeper waking mode"
             try:
                 surql(
                     f"RELATE {nid}->synapse->{cid} SET link_type = 'latent', "
-                    f"reason = '{reason.replace(chr(39), chr(92)+chr(39))}', created = time::now();"
+                    f"reason = '{reason.replace(chr(39), chr(92) + chr(39))}', created = time::now();"
                 )
                 logger.info("Latent synapse: %s -> %s", nid, cid)
                 written += 1
@@ -212,9 +229,7 @@ def run_dreaming() -> int:
         return 0
 
     # Sample neurons from the graph
-    neurons = get_results(surql(
-        "SELECT id, title FROM neuron ORDER BY rand() LIMIT 20;"
-    ))
+    neurons = get_results(surql("SELECT id, title FROM neuron ORDER BY rand() LIMIT 20;"))
     if len(neurons) < 4:
         logger.info("Too few neurons for dreaming (%d)", len(neurons))
         return 0
@@ -229,6 +244,7 @@ def run_dreaming() -> int:
     max_attempts = min(5, len(group_a) * len(group_b))
 
     import random
+
     pairs = [(a, b) for a in group_a for b in group_b if a["id"] != b["id"]]
     random.shuffle(pairs)
 
@@ -240,9 +256,11 @@ def run_dreaming() -> int:
         nid_b, title_b = neuron_b["id"], neuron_b.get("title", "?")
 
         # Skip if already connected
-        existing = get_results(surql(
-            f"SELECT id FROM synapse WHERE (in = {nid_a} AND out = {nid_b}) OR (in = {nid_b} AND out = {nid_a});"
-        ))
+        existing = get_results(
+            surql(
+                f"SELECT id FROM synapse WHERE (in = {nid_a} AND out = {nid_b}) OR (in = {nid_b} AND out = {nid_a});"
+            )
+        )
         if existing:
             continue
 
@@ -261,19 +279,31 @@ def run_dreaming() -> int:
         if not response or len(response) < 30:
             continue
 
-        # Score: only write if response is specific enough (contains "because", "when", mechanism words)
-        specificity_words = ["because", "when", "mechanism", "pattern", "both", "similar", "like"]
-        if not any(w in response.lower() for w in specificity_words):
-            logger.debug("Skipping weak resonance: %s", response[:80])
+        # Score dream quality (0.0-1.0)
+        quality_score = 0.0
+        specificity_words = ["because", "when", "mechanism", "pattern", "structural", "transfer"]
+        quality_score += sum(0.08 for w in specificity_words if w in response.lower())
+        if "example" in response.lower() or "for instance" in response.lower():
+            quality_score += 0.2
+        word_count = len(response.split())
+        if 30 <= word_count <= 150:
+            quality_score += 0.2
+        quality_score = min(quality_score, 1.0)
+
+        # Only write if quality is sufficient
+        if quality_score < 0.3:
+            logger.debug(
+                "Skipping low quality dream (score=%.2f): %s", quality_score, response[:80]
+            )
             continue
 
         resonance = response[:500].replace("'", "\\'")
         try:
             surql(
                 f"RELATE {nid_a}->synapse->{nid_b} SET link_type = 'dream', "
-                f"resonance = '{resonance}', created = time::now();"
+                f"resonance = '{resonance}', quality_score = {quality_score}, created = time::now();"
             )
-            logger.info("Dream synapse: %s × %s", title_a, title_b)
+            logger.info("Dream synapse: %s × %s (score=%.2f)", title_a, title_b, quality_score)
             written += 1
         except Exception as e:
             logger.warning("Failed to write dream synapse: %s", e)
