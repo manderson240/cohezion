@@ -76,8 +76,7 @@ class TriuneSimulationEngine:
 
             logger.info(f"Engine step complete for {trajectory_id}. Coherence: {coherence:.4f}")
         except Exception as e:
-            logger.error(f"Engine persistence failure: {e}")
-            raise
+            logger.warning(f"Engine persistence failure (non-fatal): {e}")
 
     async def inject_patch(self, patch_proposal: str) -> None:
         """

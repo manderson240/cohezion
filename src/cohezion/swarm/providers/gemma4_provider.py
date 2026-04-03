@@ -42,7 +42,7 @@ class Gemma4Provider(OllamaProvider):
         """
         # Default Gemma 4 config
         gemma_config = {
-            "timeout": 120,
+            "timeout": 300,
             "thinking_mode": True,
             "context_window": 256000,
         }
@@ -62,24 +62,26 @@ class Gemma4Provider(OllamaProvider):
         temperature: float = 0.7,
         **kwargs,
     ) -> GenerationResult:
-        """Generate response using Gemma 4 via Ollama.
+        """Generate response using Gemma 4 via Ollama Chat API.
 
         Specialized for Gemma 4's reasoning and multimodal capabilities.
         """
         session = await self._get_session()
         start_time = time.time()
 
-        # Prepare payload
+        # Prepare payload for Chat API
         payload = {
             "model": model,
-            "prompt": prompt,
+            "messages": [
+                {"role": "user", "content": prompt}
+            ],
             "stream": False,
-            "format": kwargs.get("format", ""),  # Support structured JSON
+            "format": kwargs.get("format", ""),
             "options": {
                 "num_predict": max_tokens,
                 "temperature": temperature,
                 "num_ctx": self.context_window,
-                "thinking": self.thinking_mode,  # Gemma 4 reasoning mode
+                "thinking": self.thinking_mode,
                 **kwargs.get("options", {}),
             },
         }
@@ -90,7 +92,7 @@ class Gemma4Provider(OllamaProvider):
 
         try:
             async with session.post(
-                f"{self.base_url}/api/generate",
+                f"{self.base_url}/api/chat",
                 json=payload,
                 timeout=aiohttp.ClientTimeout(total=self.timeout),
             ) as response:
@@ -100,13 +102,18 @@ class Gemma4Provider(OllamaProvider):
 
                 data = await response.json()
 
-                # Extract response
-                response_text = data.get("response", "")
+                # Extract message content
+                message = data.get("message", {})
+                response_text = message.get("content", "")
+                
+                # Check for thinking field
+                thinking_text = message.get("thinking", "") or data.get("thinking", "")
+                if thinking_text:
+                    response_text = f"<thought>\n{thinking_text}\n</thought>\n\n{response_text}"
+
                 tokens_used = data.get("eval_count", 0) + data.get("prompt_eval_count", 0)
                 latency_ms = (time.time() - start_time) * 1000
 
-                # Heuristic confidence based on thinking mode duration
-                # Thinking mode typically implies higher confidence in logic
                 confidence = 0.95 if self.thinking_mode else 0.85
 
                 return GenerationResult(
@@ -118,9 +125,6 @@ class Gemma4Provider(OllamaProvider):
                     latency_ms=latency_ms,
                     metadata={
                         "total_duration": data.get("total_duration", 0),
-                        "load_duration": data.get("load_duration", 0),
-                        "prompt_eval_count": data.get("prompt_eval_count", 0),
-                        "eval_count": data.get("eval_count", 0),
                         "thinking_enabled": self.thinking_mode,
                         "context_window": self.context_window,
                     },

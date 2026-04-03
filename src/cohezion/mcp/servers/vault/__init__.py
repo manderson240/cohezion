@@ -19,5 +19,15 @@ def run_server():
     main()
 
 
+def run_stdio_server():
+    """Entry point for stdio-based MCP communication."""
+    from mcp_server.config import ServerConfig
+    from mcp_server.server import create_server
+
+    config = ServerConfig.from_env()
+    mcp = create_server(config)
+    mcp.run()
+
+
 if __name__ == "__main__":
     run_server()

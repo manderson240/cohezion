@@ -154,6 +154,24 @@ class ServerConfig:
             os.environ.get("VAULT_SEARCH_CACHE_TTL_SECONDS", "60")
         )
     )
+    googlesql_url: str = field(
+        default_factory=lambda: os.environ.get("GOOGLESQL_URL", "http://localhost:8081")
+    )
+    sheets_enabled: bool = field(
+        default_factory=lambda: os.environ.get("SHEETS_ENABLED", "true").lower() == "true"
+    )
+    surrealdb_enabled: bool = field(
+        default_factory=lambda: os.environ.get("SURREALDB_ENABLED", "true").lower() == "true"
+    )
+    googlesql_enabled: bool = field(
+        default_factory=lambda: os.environ.get("GOOGLESQL_ENABLED", "true").lower() == "true"
+    )
+    teleport_enabled: bool = field(
+        default_factory=lambda: os.environ.get("TELEPORT_ENABLED", "true").lower() == "true"
+    )
+    memory_bridge_enabled: bool = field(
+        default_factory=lambda: os.environ.get("MEMORY_BRIDGE_ENABLED", "true").lower() == "true"
+    )
 
     @classmethod
     def from_env(cls) -> "ServerConfig":

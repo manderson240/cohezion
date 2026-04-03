@@ -41,9 +41,9 @@ class EcoResilienceAgent(EVOAgent):
         # Step the triune engine using the base EVOAgent method to record the trajectory
         await self.act(prompt, trajectory_id)
         
-        # Use Gemma 4 to perform the actual reasoning analysis
+        # Use Gemma 4 provider
         result = await self.provider.generate(
-            model="gemma4:31b", # Defaulting to deep reasoning model for analysis
+            model="gemma4:31b", # Restore 31B Dense for high-fidelity reasoning
             prompt=prompt,
             max_tokens=2000,
         )

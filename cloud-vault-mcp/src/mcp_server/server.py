@@ -11,6 +11,13 @@ from .googlesql_client import GoogleSqlConfig
 from .googlesql_ops import GoogleSqlOps
 from .obsidian_ops import ObsidianOps
 from .vault_ops import VaultOps
+from .sheets_bridge import SheetsBridge
+from .surrealdb_sync import SurrealDBSync
+from .teleport import CloudTeleportProtocol
+from .memory_bridge import VaultMemoryBridge
+from .agent_context import AgentContextOps
+from .ollama_client import OllamaClient
+from .health import HealthChecker
 
 logger = logging.getLogger(__name__)
 
@@ -20,7 +27,42 @@ def create_server(config: ServerConfig) -> FastMCP:
     vault = VaultOps(config.vault_path)
     obsidian = ObsidianOps(vault)
     compound = CompoundOps(vault, obsidian)
-    googlesql = GoogleSqlOps(GoogleSqlConfig(base_url=config.googlesql_url))
+    
+    googlesql = None
+    if config.googlesql_enabled:
+        googlesql = GoogleSqlOps(GoogleSqlConfig(base_url=config.googlesql_url))
+    
+    sheets = None
+    if config.sheets_enabled:
+        sheets = SheetsBridge()
+        
+    surrealdb = None
+    if config.surrealdb_enabled:
+        surrealdb = SurrealDBSync(vault_path=config.vault_path)
+
+    teleport = None
+    if config.teleport_enabled:
+        teleport = CloudTeleportProtocol(vault)
+
+    memory_bridge = None
+    if config.memory_bridge_enabled:
+        memory_bridge = VaultMemoryBridge(vault)
+
+    agent_context = None
+    if config.surrealdb_enabled:
+        agent_context = AgentContextOps(surrealdb)
+
+    ollama_client = None
+    if config.ollama_enabled:
+        ollama_client = OllamaClient(base_url=config.ollama_url, timeout=config.ollama_timeout)
+
+    health_checker = None
+    if config.health_check_enabled:
+        health_checker = HealthChecker(
+            vault_path=config.vault_path,
+            surrealdb_url=config.surrealdb_url,
+            ollama_url=config.ollama_url,
+        )
 
     mcp = FastMCP(
         "Cloud Vault",
@@ -380,10 +422,10 @@ def create_server(config: ServerConfig) -> FastMCP:
         Args:
             sql: SQL statement to extract column references from
         """
-        path = memory_bridge.push_session_state(
-            branch, test_status, phase, active_tasks, last_commit
-        )
-        return f"Session state pushed to: {path}"
+        try:
+            return googlesql.extract_columns(sql)
+        except ConnectionError:
+            return "Error: GoogleSQL Analyzer service is not available."
 
     @mcp.tool()
     def vault_push_memory(memory_content: str) -> str:
@@ -397,6 +439,8 @@ def create_server(config: ServerConfig) -> FastMCP:
         Args:
             memory_content: Full content of MEMORY.md
         """
+        if not memory_bridge:
+            return "Error: Memory Bridge not enabled."
         result = memory_bridge.push_memory(memory_content)
         return json.dumps(result, indent=2)
 
@@ -407,6 +451,8 @@ def create_server(config: ServerConfig) -> FastMCP:
         Reads recent session notes to build cross-instance context.
         Returns the latest branch, phase, test status, and recent sessions.
         """
+        if not memory_bridge:
+            return "Error: Memory Bridge not enabled."
         context = memory_bridge.pull_session_context()
         return json.dumps(context, indent=2, default=str)
 
@@ -583,13 +629,6 @@ def create_server(config: ServerConfig) -> FastMCP:
                 return f"Error executing query: {e}"
 
     # ── Ollama Integration ────────────────────────────────────────────
-
-    if config.ollama_enabled:
-        # Import Ollama client for direct integration
-        try:
-            return googlesql.extract_columns(sql)
-        except ConnectionError:
-            return "Error: GoogleSQL Analyzer service is not available."
 
     @mcp.tool()
     def sql_format(sql: str) -> str:
