@@ -1,0 +1,34 @@
+{
+  "cli_version": "0.5.1",
+  "checkpoint_id": "155e88e57d2f",
+  "session_id": "e8e77c46-efa0-44e6-b448-f034e0eb0c3c",
+  "strategy": "manual-commit",
+  "created_at": "2026-04-03T02:26:47.951984775Z",
+  "branch": "main",
+  "checkpoints_count": 3,
+  "files_touched": [
+    "TRUE_BREAKTHROUGH_ANALYSIS.md"
+  ],
+  "agent": "Claude Code",
+  "model": "kimi-k2.5:cloud",
+  "turn_id": "50ed0f9a9e03",
+  "token_usage": {
+    "input_tokens": 7084679,
+    "cache_creation_tokens": 0,
+    "cache_read_tokens": 0,
+    "output_tokens": 13538,
+    "api_call_count": 73
+  },
+  "session_metrics": {
+    "turn_count": 4
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-04-03T02:26:47.659933012Z",
+    "agent_lines": 155,
+    "human_added": 194,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 349,
+    "agent_percentage": 44.412607449856736
+  }
+}
