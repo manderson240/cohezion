@@ -1,0 +1,32 @@
+{
+  "cli_version": "0.5.1",
+  "checkpoint_id": "ca334b127af7",
+  "strategy": "manual-commit",
+  "branch": "main",
+  "checkpoints_count": 3,
+  "files_touched": [
+    "conductor/tracks/gemma4_hackathon_20260402/plan.md",
+    "scripts/jobs/mcp_health_hourly.py",
+    "scripts/jobs/weekly_health_digest.sh",
+    "src/cohezion/mcp/fleet.py",
+    "tools/data_lineage_impact.py",
+    "tools/data_product_health.py",
+    "tools/graph_health_dashboard.py",
+    "tools/unified_health_dashboard.py"
+  ],
+  "sessions": [
+    {
+      "metadata": "/ca/334b127af7/0/metadata.json",
+      "transcript": "/ca/334b127af7/0/full.jsonl",
+      "content_hash": "/ca/334b127af7/0/content_hash.txt",
+      "prompt": "/ca/334b127af7/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 16462506,
+    "cache_creation_tokens": 0,
+    "cache_read_tokens": 0,
+    "output_tokens": 61100,
+    "api_call_count": 155
+  }
+}
