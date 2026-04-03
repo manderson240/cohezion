@@ -1,0 +1,23 @@
+{
+  "cli_version": "0.5.1",
+  "checkpoint_id": "cfb6a9e4201e",
+  "strategy": "manual-commit",
+  "branch": "feat/claw-code-rust-integration",
+  "checkpoints_count": 1,
+  "files_touched": null,
+  "sessions": [
+    {
+      "metadata": "/cf/b6a9e4201e/0/metadata.json",
+      "transcript": "/cf/b6a9e4201e/0/full.jsonl",
+      "content_hash": "/cf/b6a9e4201e/0/content_hash.txt",
+      "prompt": "/cf/b6a9e4201e/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 16400,
+    "cache_creation_tokens": 494097,
+    "cache_read_tokens": 18839197,
+    "output_tokens": 88422,
+    "api_call_count": 84
+  }
+}
