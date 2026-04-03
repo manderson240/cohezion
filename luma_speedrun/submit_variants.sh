@@ -48,6 +48,7 @@ if [ "$KERNEL" = "mla" ] || [ "$KERNEL" = "all" ]; then
     submit "mla-main" "amd-mixed-mla" "$DIR/amd-mixed-mla/submission.py"
     submit "mla-api-probe" "amd-mixed-mla" "$DIR/variants/mla/submission_api_probe.py"
     submit "mla-persistent" "amd-mixed-mla" "$DIR/variants/mla/submission_persistent.py"
+    submit "mla-fmha-v3" "amd-mixed-mla" "$DIR/variants/mla/submission_fmha_v3.py"
     submit "mla-autosplit" "amd-mixed-mla" "$DIR/variants/mla/submission_autosplit.py"
     submit "mla-batched-bmm" "amd-mixed-mla" "$DIR/variants/mla/submission_batched_bmm.py"
     submit "mla-splits-1" "amd-mixed-mla" "$DIR/variants/mla/submission_splits_1.py"
