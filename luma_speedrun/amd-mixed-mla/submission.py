@@ -1,14 +1,13 @@
-"""MLA decode — persistent + env-var optimized for MI355X.
+"""MLA decode — matches official reference API for MI355X.
 
-Combines three strategies:
-1. Matmul path for small shapes (bs<=8 OR total_kv<=65536) — proven fast
-2. mla_decode_fwd (high-level API) with persistent env vars — potentially faster
-3. Fallback to two-stage ASM (our current best) if high-level fails
+Uses the EXACT same mla_decode_fwd API as the official reference kernel,
+with optimizations:
+1. Matmul path for small shapes (faster than kernel dispatch)
+2. Persistent env vars for larger shapes
+3. Dynamic num_heads from config (handles tp=4 and tp=8)
+4. Adaptive num_kv_splits based on total_kv
 
-Key env vars:
-- AITER_MLA_USE_PERSISTENT=1: Enable persistent kernel scheduling
-- AITER_USE_NT=1: Non-transposed memory access
-- AITER_BYPASS_TUNE_CONFIG=1: Skip CSV config lookup overhead
+Key fix: uses config["num_heads"] instead of hardcoded 16 (handles tp=4 → 32 heads).
 """
 
 import os
@@ -19,53 +18,21 @@ os.environ["AITER_BYPASS_TUNE_CONFIG"] = "1"
 
 import torch
 from aiter import dtypes as aiter_dtypes
-from aiter import (
-    get_mla_metadata_info_v1,
-    get_mla_metadata_v1,
-    mla_decode_stage1_asm_fwd,
-    mla_reduce_v1,
-)
+from aiter import get_mla_metadata_info_v1, get_mla_metadata_v1
+from aiter.mla import mla_decode_fwd
 from task import input_t, output_t
 
-
-NUM_HEADS = 16
 NUM_KV_HEADS = 1
-KV_LORA_RANK = 512
 QK_HEAD_DIM = 576
 V_HEAD_DIM = 512
 SM_SCALE = 1.0 / (QK_HEAD_DIM**0.5)
 PAGE_SIZE = 1
 FP8_DTYPE = aiter_dtypes.fp8
 
-# Aggressive regime boundaries — matmul is fastest for small shapes
 MATMUL_MAX_BS = 8
 MATMUL_MAX_TOTAL_KV = 65536
-A16W8_THRESHOLD = 262144
 
-# Try importing high-level mla_decode_fwd
-_mla_fwd = None
-_mla_fwd_failed = False
-try:
-    from aiter.mla import mla_decode_fwd
-
-    _mla_fwd = mla_decode_fwd
-except Exception:
-    _mla_fwd_failed = True
-
-# Metadata cache
-_cache: dict = {}
-
-
-def _choose_splits(total_kv: int) -> int:
-    if total_kv <= 2048:
-        return 1
-    if total_kv <= 16384:
-        return 4
-    if total_kv <= 65536:
-        return 8
-    if total_kv <= 262144:
-        return 16
-    return 32
+_meta_cache: dict = {}
 
 
 def _quantize_fp8(t: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
@@ -76,19 +43,32 @@ def _quantize_fp8(t: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
     return fp8, scale.to(torch.float32).reshape(1)
 
 
-def _get_meta(bs, qsl, kvsl, qdt, kvdt, qo_ind, kv_ind, splits):
-    key = (bs, qsl, kvsl, qdt, kvdt, splits)
-    if key in _cache:
-        return _cache[key]
+def _choose_splits(total_kv: int) -> int:
+    """Match reference: use 32 splits for large KV, fewer for small."""
+    if total_kv <= 2048:
+        return 4
+    if total_kv <= 16384:
+        return 8
+    if total_kv <= 65536:
+        return 16
+    return 32
 
-    nq, nkv = NUM_HEADS, NUM_KV_HEADS
-    kv_last = (kv_ind[1:] - kv_ind[:-1]).to(torch.int32)
+
+def _build_meta(bs, qsl, nq, q_dtype, kv_dtype, qo_indptr, kv_indptr, splits):
+    """Build persistent-mode metadata buffers (cached)."""
+    key = (bs, qsl, nq, q_dtype, kv_dtype, splits)
+    if key in _meta_cache:
+        return _meta_cache[key]
+
+    nkv = NUM_KV_HEADS
+    kv_last = (kv_indptr[1:] - kv_indptr[:-1]).to(torch.int32)
+
     info = get_mla_metadata_info_v1(
         bs,
         qsl,
         nq,
-        qdt,
-        kvdt,
+        q_dtype,
+        kv_dtype,
         is_sparse=False,
         fast_mode=False,
         num_kv_splits=splits,
@@ -96,9 +76,10 @@ def _get_meta(bs, qsl, kvsl, qdt, kvdt, qo_ind, kv_ind, splits):
     )
     work = [torch.empty(s, dtype=t, device="cuda") for s, t in info]
     wm, wi, wis, ri, rfm, rpm = work
+
     get_mla_metadata_v1(
-        qo_ind,
-        kv_ind,
+        qo_indptr,
+        kv_indptr,
         kv_last,
         nq // nkv,
         nkv,
@@ -116,110 +97,78 @@ def _get_meta(bs, qsl, kvsl, qdt, kvdt, qo_ind, kv_ind, splits):
         fast_mode=False,
         max_split_per_batch=splits,
         intra_batch_mode=True,
-        dtype_q=qdt,
-        dtype_kv=kvdt,
+        dtype_q=q_dtype,
+        dtype_kv=kv_dtype,
     )
-    tq = bs * qsl
-    tkv = int(kv_ind[-1].item())
+
+    total_kv_len = int(kv_indptr[-1].item())
     meta = {
-        "wm": wm,
-        "wi": wi,
-        "wis": wis,
-        "ri": ri,
-        "rfm": rfm,
-        "rpm": rpm,
-        "kvi": torch.arange(tkv, dtype=torch.int32, device="cuda"),
-        "kvl": kv_last,
-        "logits": torch.empty((splits, tq, nq, V_HEAD_DIM), dtype=torch.float32, device="cuda"),
-        "lse": torch.empty((splits, tq, nq), dtype=torch.float32, device="cuda"),
-        "out": torch.empty((tq, nq, V_HEAD_DIM), dtype=torch.bfloat16, device="cuda"),
+        "work_meta_data": wm,
+        "work_indptr": wi,
+        "work_info_set": wis,
+        "reduce_indptr": ri,
+        "reduce_final_map": rfm,
+        "reduce_partial_map": rpm,
+        "kv_indices": torch.arange(total_kv_len, dtype=torch.int32, device="cuda"),
+        "kv_last": kv_last,
     }
-    _cache[key] = meta
+    _meta_cache[key] = meta
     return meta
 
 
 def custom_kernel(data: input_t) -> output_t:
     q, kv_data, qo_indptr, kv_indptr, config = data
     bs = config["batch_size"]
+    nq = config["num_heads"]  # Dynamic! 16 for tp=8, 32 for tp=4
     qsl = config["q_seq_len"]
     kvsl = config["kv_seq_len"]
     total_kv = bs * kvsl
 
-    # ── Regime 1: matmul (aggressive boundary) ──
+    # ── Regime 1: matmul for small shapes ──
     if bs <= MATMUL_MAX_BS or total_kv <= MATMUL_MAX_TOTAL_KV:
         kv = kv_data["bf16"]
-        q3 = q.view(bs, NUM_HEADS, QK_HEAD_DIM)
+        q3 = q.view(bs, nq, QK_HEAD_DIM)
         kv_b = kv.view(bs, kvsl, QK_HEAD_DIM)
         scores = torch.matmul(q3, kv_b.transpose(1, 2)).mul_(SM_SCALE)
         weights = torch.softmax(scores, dim=-1)
         v_b = kv_b[:, :, :V_HEAD_DIM]
-        return torch.matmul(weights, v_b).view(bs * qsl, NUM_HEADS, V_HEAD_DIM)
+        return torch.matmul(weights, v_b).view(bs * qsl, nq, V_HEAD_DIM)
 
-    # ── Regime 2: Try high-level mla_decode_fwd (with persistent) ──
-    if _mla_fwd is not None:
-        try:
-            kv_fp8, kv_scale = kv_data["fp8"]
-            out = torch.empty(
-                (bs * qsl, NUM_HEADS, V_HEAD_DIM), dtype=torch.bfloat16, device="cuda"
-            )
-            splits = _choose_splits(total_kv)
-            result = _mla_fwd(
-                q,
-                kv_fp8,
-                out,
-                qo_indptr,
-                kv_indptr,
-                page_size=PAGE_SIZE,
-                nhead_kv=NUM_KV_HEADS,
-                sm_scale=SM_SCALE,
-                q_scale=None,
-                kv_scale=kv_scale,
-                num_kv_splits=splits,
-                intra_batch_mode=True,
-            )
-            if result is not None:
-                return result
-            return out
-        except Exception:
-            pass  # Fall through to two-stage ASM
-
-    # ── Regime 3: Two-stage ASM (proven path) ──
+    # ── Regime 2: mla_decode_fwd with persistent mode (matches reference API) ──
     kv_fp8, kv_scale = kv_data["fp8"]
     q_fp8, q_scale = _quantize_fp8(q)
+
     splits = _choose_splits(total_kv)
+
+    # Reshape KV to 4D: (total_kv, page_size, nhead_kv, dim)
     kv_4d = kv_fp8.view(kv_fp8.shape[0], PAGE_SIZE, NUM_KV_HEADS, QK_HEAD_DIM)
 
-    m = _get_meta(bs, qsl, kvsl, q_fp8.dtype, kv_fp8.dtype, qo_indptr, kv_indptr, splits)
+    meta = _build_meta(bs, qsl, nq, q_fp8.dtype, kv_fp8.dtype, qo_indptr, kv_indptr, splits)
 
-    mla_decode_stage1_asm_fwd(
-        q_fp8.view(-1, NUM_HEADS, QK_HEAD_DIM),
+    o = torch.empty((q.shape[0], nq, V_HEAD_DIM), dtype=torch.bfloat16, device="cuda")
+
+    mla_decode_fwd(
+        q_fp8.view(-1, nq, QK_HEAD_DIM),
         kv_4d,
+        o,
         qo_indptr,
         kv_indptr,
-        m["kvi"],
-        m["kvl"],
-        None,
-        m["wm"],
-        m["wi"],
-        m["wis"],
+        meta["kv_indices"],
+        meta["kv_last"],
         qsl,
-        PAGE_SIZE,
-        NUM_KV_HEADS,
-        SM_SCALE,
-        m["logits"],
-        m["lse"],
-        m["out"],
-        q_scale,
-        kv_scale,
+        page_size=PAGE_SIZE,
+        nhead_kv=NUM_KV_HEADS,
+        sm_scale=SM_SCALE,
+        logit_cap=0.0,
+        num_kv_splits=splits,
+        q_scale=q_scale,
+        kv_scale=kv_scale,
+        intra_batch_mode=True,
+        work_meta_data=meta["work_meta_data"],
+        work_indptr=meta["work_indptr"],
+        work_info_set=meta["work_info_set"],
+        reduce_indptr=meta["reduce_indptr"],
+        reduce_final_map=meta["reduce_final_map"],
+        reduce_partial_map=meta["reduce_partial_map"],
     )
-    mla_reduce_v1(
-        m["logits"],
-        m["lse"],
-        m["ri"],
-        m["rfm"],
-        m["rpm"],
-        qsl,
-        m["out"],
-        None,
-    )
-    return m["out"]
+    return o
