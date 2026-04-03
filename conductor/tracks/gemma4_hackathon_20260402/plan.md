@@ -13,7 +13,7 @@
     - [x] Verify coverage.
 - [x] **Task: Conductor - User Manual Verification 'Phase 1: Foundation & Provider Implementation' (Protocol in workflow.md)**
 
-## Phase 2: Benchmarking & Optimization
+## Phase 2: Benchmarking & Optimization (Commit: 9e30e7d)
 - [x] **Task: Local Benchmarking Suite**
     - [x] Create `scripts/benchmarks/gemma4_benchmark.py`.
     - [x] Benchmark latency, throughput, and reasoning quality (thinking mode) for 31B, 26B, 4B, and 2B models.
@@ -25,20 +25,20 @@
 - [x] **Task: Conductor - User Manual Verification 'Phase 2: Benchmarking & Optimization' (Protocol in workflow.md)**
 
 ## Phase 3: EcoResilience Synthesis & Prototype
-- [ ] **Task: TEK + Physics Prompt Engineering**
-    - [ ] Research and draft system prompts for the EcoResilience agent.
-    - [ ] Conduct multi-perspective adversarial review of the prompts.
-    - [ ] Refine prompts based on review.
-- [ ] **Task: EcoResilience Specialist Agent Implementation**
-    - [ ] Write `tests/agents/test_ecoresilience_agent.py`.
-    - [ ] Implement `EcoResilienceAgent` class synthesizing TEK and Unified Physics.
-    - [ ] Integrate with the Cohezion swarm execution loop.
-    - [ ] Verify 100% coverage.
-- [ ] **Task: Initial Simulation Run & Validation**
-    - [ ] Execute an ecosystem resilience simulation using the prototype.
-    - [ ] Document the 12D state trajectories of the simulation.
-    - [ ] Use Mycelium (ShadowScripter) to grow regression tests around the simulation results.
-- [ ] **Task: Conductor - User Manual Verification 'Phase 3: EcoResilience Synthesis & Prototype' (Protocol in workflow.md)**
+- [x] **Task: TEK + Physics Prompt Engineering**
+    - [x] Research and draft system prompts for the EcoResilience agent.
+    - [x] Conduct multi-perspective adversarial review of the prompts.
+    - [x] Refine prompts based on review.
+- [x] **Task: EcoResilience Specialist Agent Implementation**
+    - [x] Write `tests/agents/test_ecoresilience_agent.py`.
+    - [x] Implement `EcoResilienceAgent` class synthesizing TEK and Unified Physics.
+    - [x] Integrate with the Cohezion swarm execution loop.
+    - [x] Verify 100% coverage.
+- [x] **Task: Initial Simulation Run & Validation**
+    - [x] Execute an ecosystem resilience simulation using the prototype.
+    - [x] Document the 12D state trajectories of the simulation.
+    - [x] Use Mycelium (ShadowScripter) to grow regression tests around the simulation results.
+- [x] **Task: Conductor - User Manual Verification 'Phase 3: EcoResilience Synthesis & Prototype' (Protocol in workflow.md)**
 
 ## Phase 4: Documentation & Finalization
 - [ ] **Task: Obsidian Knowledge Vault Update**
