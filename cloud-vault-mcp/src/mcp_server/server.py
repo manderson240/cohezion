@@ -164,7 +164,9 @@ def create_server(config: ServerConfig) -> FastMCP:
             return f"Error: {e}"
 
     @mcp.tool()
-    def vault_create_from_template(template_name: str, target_path: str, variables: dict[str, str]) -> str:
+    def vault_create_from_template(
+        template_name: str, target_path: str, variables: dict[str, str]
+    ) -> str:
         """Create a new note from a template with variable substitution.
 
         Available templates: decisions, experiments, patterns, papers, daily, projects
@@ -203,7 +205,9 @@ def create_server(config: ServerConfig) -> FastMCP:
             rationale: Why this option was chosen
             alternatives_considered: Other options that were evaluated
         """
-        return compound.log_decision(project, title, context, decision, rationale, alternatives_considered)
+        return compound.log_decision(
+            project, title, context, decision, rationale, alternatives_considered
+        )
 
     @mcp.tool()
     def vault_log_experiment(
@@ -227,7 +231,9 @@ def create_server(config: ServerConfig) -> FastMCP:
             learnings: Key takeaways (can be filled in later)
             title: Optional title (defaults to truncated hypothesis)
         """
-        return compound.log_experiment(project, hypothesis, method, result, learnings, title)
+        return compound.log_experiment(
+            project, hypothesis, method, result, learnings, title
+        )
 
     @mcp.tool()
     def vault_extract_pattern(
@@ -248,7 +254,9 @@ def create_server(config: ServerConfig) -> FastMCP:
             code_example: Optional code example
             domain: Domain tag (e.g. 'rl', 'ml', 'devops', 'general')
         """
-        return compound.extract_pattern(source_path, pattern_name, description, code_example, domain)
+        return compound.extract_pattern(
+            source_path, pattern_name, description, code_example, domain
+        )
 
     @mcp.tool()
     def vault_find_relevant_context(query: str, project: str = "") -> str:
@@ -283,7 +291,9 @@ def create_server(config: ServerConfig) -> FastMCP:
             expected_output: What the result should look like
             priority: low, medium, high, or critical
         """
-        result = teleport.create_task(title, description, context, expected_output, priority)
+        result = teleport.create_task(
+            title, description, context, expected_output, priority
+        )
         return json.dumps(result, indent=2)
 
     @mcp.tool()
@@ -370,7 +380,9 @@ def create_server(config: ServerConfig) -> FastMCP:
         Args:
             sql: SQL statement to extract column references from
         """
-        path = memory_bridge.push_session_state(branch, test_status, phase, active_tasks, last_commit)
+        path = memory_bridge.push_session_state(
+            branch, test_status, phase, active_tasks, last_commit
+        )
         return f"Session state pushed to: {path}"
 
     @mcp.tool()
@@ -446,7 +458,9 @@ def create_server(config: ServerConfig) -> FastMCP:
                 integration_point: Relevant Cohezion module
             """
             try:
-                result = sheets.update_row(row_num, status, abstractions, domain, integration_point)
+                result = sheets.update_row(
+                    row_num, status, abstractions, domain, integration_point
+                )
                 return json.dumps(result, indent=2)
             except Exception as e:
                 return f"Error: {e}"
@@ -591,50 +605,64 @@ def create_server(config: ServerConfig) -> FastMCP:
         except ConnectionError:
             return "Error: GoogleSQL Analyzer service is not available."
 
-                Returns:
-                    Generated text response from the model
-                """
-                try:
-                    response = await ollama_client.query(prompt, model, temperature)
-                    return response or "Empty response from Ollama"
-                except Exception as e:
-                    logger.error(f"Ollama query failed: {e}")
-                    return f"Error: {e}"
+    @mcp.tool()
+    async def ollama_generate(
+        prompt: str,
+        model: str = "qwen3-coder:30b",
+        temperature: float = 0.7,
+    ) -> str:
+        """Generate text using a local Ollama model.
 
-            @mcp.tool()
-            async def ollama_embed(
-                texts: list[str],
-                model: str = "nomic-embed-text:latest",
-            ) -> str:
-                """Generate embeddings for texts.
+        Args:
+            prompt: The prompt to send to the model
+            model: Name of the Ollama model to use
+            temperature: Sampling temperature (0.0-1.0)
 
-                Args:
-                    texts: List of text strings to embed
-                    model: Embedding model to use
+        Returns:
+            Generated text response from the model
+        """
+        try:
+            response = await ollama_client.query(prompt, model, temperature)
+            return response or "Empty response from Ollama"
+        except Exception as e:
+            logger.error(f"Ollama query failed: {e}")
+            return f"Error: {e}"
 
-                Returns:
-                    List of embedding vectors as JSON
-                """
-                try:
-                    embeddings = await ollama_client.embed(texts, model)
-                    return json.dumps(embeddings)
-                except Exception as e:
-                    logger.error(f"Ollama embed failed: {e}")
-                    return f"Error: {e}"
+    @mcp.tool()
+    @mcp.tool()
+    async def ollama_embed(
+        texts: list[str],
+        model: str = "nomic-embed-text:latest",
+    ) -> str:
+        """Generate embeddings for texts.
 
-            @mcp.tool()
-            async def ollama_status() -> str:
-                """Get Ollama service status and available models.
+        Args:
+            texts: List of text strings to embed
+            model: Embedding model to use
 
-                Returns:
-                    Status information including loaded models
-                """
-                try:
-                    status = await ollama_client.status()
-                    return json.dumps(status)
-                except Exception as e:
-                    logger.error(f"Ollama status check failed: {e}")
-                    return f"Error: {e}"
+        Returns:
+            List of embedding vectors as JSON
+        """
+        try:
+            embeddings = await ollama_client.embed(texts, model)
+            return json.dumps(embeddings)
+        except Exception as e:
+            logger.error(f"Ollama embed failed: {e}")
+            return f"Error: {e}"
+
+    @mcp.tool()
+    async def ollama_status() -> str:
+        """Get Ollama service status and available models.
+
+        Returns:
+            Status information including loaded models
+        """
+        try:
+            status = await ollama_client.status()
+            return json.dumps(status)
+        except Exception as e:
+            logger.error(f"Ollama status check failed: {e}")
+            return f"Error: {e}"
 
         except ImportError:
             logger.warning("Ollama client not available for direct integration")
@@ -765,7 +793,9 @@ def create_server(config: ServerConfig) -> FastMCP:
                 validation_errors for missing lessons on partial failures
             """
             try:
-                result = agent_context.record_outcome(session_id, outcome_type, lessons_learned, metrics)
+                result = agent_context.record_outcome(
+                    session_id, outcome_type, lessons_learned, metrics
+                )
                 return json.dumps(result, indent=2)
             except Exception as e:
                 logger.error(f"Error recording outcome: {e}")
@@ -795,6 +825,7 @@ def create_server(config: ServerConfig) -> FastMCP:
         logger.warning("Pocket TTS not available (pip install pocket-tts)")
 
     from .vault_graph.tools import register_read_tools, register_write_tools
+
     register_read_tools(mcp)
     if config.surrealdb_enabled:
         register_write_tools(mcp)

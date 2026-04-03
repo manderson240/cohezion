@@ -15,6 +15,21 @@ def init_default_servers() -> None:
     """Register default MCP servers."""
     manager = get_manager()
 
+    # Register Vault MCP Server (Port 8360) - Cloud Vault for compound engineering
+    manager.register_server(
+        name="vault",
+        entry_point="cohezion.mcp.servers.vault:run_server",
+        preferred_port=8360,
+        auto_restart=True,
+        env_vars={
+            "VAULT_PATH": os.environ.get("VAULT_PATH", "/vault"),
+            "MCP_API_KEY": os.environ.get("MCP_API_KEY", ""),
+            "LOG_LEVEL": "INFO",
+            "WATCHER_ENABLED": "true",
+            "HEALTH_CHECK_ENABLED": "true",
+        },
+    )
+
     # Register BMAD server (Port 8361)
     manager.register_server(
         name="bmad",

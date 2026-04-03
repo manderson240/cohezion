@@ -54,6 +54,7 @@ dependencies = [
     "fastmcp>=3.1.0",
     "pyjwt>=2.11.0",
     "kagglehub>=1.0.0",
+    "cloud-vault-mcp",
 ]
 
 [[tool.uv.index]]
@@ -65,6 +66,7 @@ explicit = true
 torch = { index = "pytorch-rocm" }
 torchvision = { index = "pytorch-rocm" }
 torchaudio = { index = "pytorch-rocm" }
+cloud-vault-mcp = { path = "cloud-vault-mcp", editable = true }
 
 [project.urls]
 Repository = "https://github.com/manderson240/cohezion"
