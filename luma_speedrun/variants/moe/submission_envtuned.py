@@ -1,15 +1,14 @@
 """MXFP4 MoE submission — env-var tuned for MI355X (gfx950).
 
-Optimizations over reference:
+Optimizations over current submission:
 1. AITER_USE_NT=1: Non-transposed weight access (proven 10% improvement)
 2. AITER_BYPASS_TUNE_CONFIG=1: Skip CSV config lookup overhead
 3. AITER_GFX950_EXPL_SCHED=1: Explicit XCD scheduling for CDNA4
 4. sys.path fix for JIT build dirs
 5. AITER_JIT_DIR for cache persistence
-6. No warmup — prevents CK autotuning cache poisoning
 
-Key rules (from 18+ phases of experimentation):
-- NEVER use doweight_stage1=True (GPU fault or 82% mismatch)
+Key rules (from 18+ phases):
+- NEVER use doweight_stage1=True (GPU fault)
 - NEVER use expert_mask (CK crash)
 - AITER_KSPLIT env var is NOT honored by aiter (computes internally)
 """

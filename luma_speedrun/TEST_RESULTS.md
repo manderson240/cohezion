@@ -1,5 +1,25 @@
 # AMD Speedrun Test Results Summary
 
+## Session: 2026-04-03 (Final Sprint)
+
+### New Variants Created
+| Kernel | File | Strategy | Status |
+|--------|------|----------|--------|
+| GEMM | `variants/gemm/submission_fused_quant.py` | Env vars + skip contiguous | ⏳ |
+| GEMM | `variants/gemm/submission_loadinline_mfma.py` | Custom HIP MFMA kernel | ⏳ |
+| MLA | `variants/mla/submission_persistent.py` | Persistent env vars + 3-regime | ⏳ |
+| MLA | `variants/mla/submission_api_probe.py` | Probe untested APIs | ⏳ |
+| MoE | `variants/moe/submission_envtuned.py` | USE_NT + BYPASS + EXPL_SCHED | ⏳ |
+
+### Main Submissions Updated
+- `amd-mxfp4-mm/submission.py` ← env vars added (USE_NT, BYPASS, EXPL_SCHED)
+- `amd-mixed-mla/submission.py` ← persistent variant (env vars + mla_decode_fwd + fallback)
+- `amd-moe-mxfp4/submission.py` ← env-tuned (USE_NT, BYPASS, EXPL_SCHED)
+
+---
+
+## Previous Results
+
 ## MLA (amd-mixed-mla)
 
 ### Working Variants (Status: done)
