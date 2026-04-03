@@ -1,0 +1,15 @@
+Where do we stand with luma speedrun?
+
+---
+
+What about actual breakthroughs?  We only have a few days left and haven't improved in many days.  Where we're tying to get to
+Leaderboard Rank 1:
+amd-mxfp4-mm: 1.000μs
+amd-moe-mxfp4: 107.345μs
+amd-mixed-mla: 12.685μs
+
+Where we currently stand
+manderson240 Best:
+amd-mxfp4-mm: 13.425μs 
+amd-moe-mxfp4: 154.183μs 
+amd-mixed-mla: 69.745μs
