@@ -14,7 +14,7 @@ We utilize the right language for the right task to maximize Cohezion, ensuring 
   - **Anthropic Claude Suite**: Utilizing Claude Code with the newest Opus, Sonnet, and Haiku models via our existing subscription for heavy architectural reasoning, BMAD-METHOD orchestration, and code generation.
   - **Google Gemini 3.0+**: Leveraged via existing subscriptions for multimodal context, advanced reasoning, and CLI orchestration.
 - **Execution & Simulation (Dynamic Roster)**:
-  - **Local SOTA SLMs**: Rapid adoption and fine-tuning of the latest sub-30B models (e.g., Llama 4 Scout, Qwen3-Coder) to maximize performance on our specific UMA hardware for localized agentic (EVO) execution.
+  - **Local SOTA SLMs**: Rapid adoption and fine-tuning of the latest sub-35B models (e.g., **Gemma 4 31B Dense/26B MoE/E4B/E2B**, Llama 4 Scout, Qwen3-Coder) to maximize performance on our specific UMA hardware (AMD Ryzen with 128GB Unified RAM) for localized agentic (EVO) execution.
   - **Ollama Cloud Models**: Utilizing open-weight models hosted on Ollama Cloud (via existing subscription) for scalable, parallel execution tasks and the "Thinker" layer of the Triune Manifold.
 - **Frameworks**: 
   - **PyTorch**: Primary framework for the FLUME VAE (256D continuous thought vectors), custom embedding generation, and local fine-tuning pipelines.
