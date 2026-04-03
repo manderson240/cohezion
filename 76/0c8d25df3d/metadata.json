@@ -3,21 +3,29 @@
   "checkpoint_id": "760c8d25df3d",
   "strategy": "manual-commit",
   "branch": "main",
-  "checkpoints_count": 1,
-  "files_touched": null,
+  "checkpoints_count": 4,
+  "files_touched": [
+    "src/cohezion/mcp/servers/vault/__init__.py"
+  ],
   "sessions": [
     {
       "metadata": "/76/0c8d25df3d/0/metadata.json",
       "transcript": "/76/0c8d25df3d/0/full.jsonl",
       "content_hash": "/76/0c8d25df3d/0/content_hash.txt",
       "prompt": "/76/0c8d25df3d/0/prompt.txt"
+    },
+    {
+      "metadata": "/76/0c8d25df3d/1/metadata.json",
+      "transcript": "/76/0c8d25df3d/1/full.jsonl",
+      "content_hash": "/76/0c8d25df3d/1/content_hash.txt",
+      "prompt": "/76/0c8d25df3d/1/prompt.txt"
     }
   ],
   "token_usage": {
-    "input_tokens": 6198,
+    "input_tokens": 32808100,
     "cache_creation_tokens": 185249,
     "cache_read_tokens": 3243876,
-    "output_tokens": 37992,
-    "api_call_count": 24
+    "output_tokens": 139123,
+    "api_call_count": 310
   }
 }
