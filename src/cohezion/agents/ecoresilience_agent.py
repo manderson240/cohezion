@@ -86,7 +86,12 @@ class EcoResilienceAgent(EVOAgent):
         
         # 4. Simulate Causal-JEPA Trajectory
         logger.info("Step 4: Simulating Causal-JEPA Trajectory...")
-        trajectory = self.jepa.simulate_trajectory(current_state, [intervention_action] * 5)
+        actions = [intervention_action] * 5
+        trajectory = self.jepa.simulate_trajectory(current_state, actions)
+        latent_trajectory = self.jepa.simulate_latent_trajectory(current_state, actions)
+        
+        # Calculate Le-WM transformational metrics
+        curvature = self.jepa.measure_temporal_straightening(latent_trajectory)
         
         # Calculate coherence shift (distance from 0.5)
         initial_coherence = float(np.mean(np.abs(trajectory[0] - 0.5)))
@@ -99,5 +104,7 @@ class EcoResilienceAgent(EVOAgent):
             "initial_state": current_state.tolist(),
             "trajectory": [t.tolist() for t in trajectory],
             "coherence_shift": shift,
+            "temporal_curvature": curvature,
+            "straightening_achieved": curvature < 0.1,
             "healing": shift > 0
         }
