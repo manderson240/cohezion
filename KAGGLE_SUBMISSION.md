@@ -1,4 +1,6 @@
 # GEMMA 4 GOOD: The Holographic TEK Observer
+
+> *Gemma is a trademark of Google LLC. This project is an independent model variant built using Gemma 4 open weights.*
 **A Sovereign AI Partner for Planetary Healing**
 
 > *License: MIT-0 (Public Domain Equivalent) — Free for all indigenous communities and ecological restoration efforts globally.*
