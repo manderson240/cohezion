@@ -1,7 +1,5 @@
 {
-  "extensions": [
-    ".pi/extensions/cohezion-bridge.ts"
-  ],
+  "extensions": [],
   "cohezion": {
     "skillsDir": "src/cohezion/skills",
     "vaultEnabled": true,
