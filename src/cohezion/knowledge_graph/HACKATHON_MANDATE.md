@@ -17,11 +17,9 @@
 - **Branding**: Prohibited use of Google colors/marks that imply official endorsement.
 - **Safety**: Must comply with the broader Gemma Prohibited Use Policy.
 
-## 3. Technical Integration: Cactus Compute & Tunix
-- **Optimization (Cactus Compute)**: 
+## 3. Architectural Reference: Cactus Compute (Learnings)
+ - **Learnings from Cactus Compute**: 
     - Leverage `.cact` format for edge deployment.
-    - Use INT8/INT4 mixed-precision quantization.
-    - ARMv8.6 i8mm kernel optimization for 30-80 tok/s on local mobile/edge hardware.
 - **Fine-Tuning (Tunix)**:
     - JAX-native library (Tune-in-JAX) for SFT and QLoRA.
     - Recommended for "Technical Depth" points.
