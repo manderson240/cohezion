@@ -56,16 +56,11 @@
     - [x] Update `Gemma4Provider` to handle image and audio inputs via Ollama/Gemma 4 native endpoints.
     - [x] Create `src/cohezion/universe/multimodal_mapper.py` to translate Gemma 4's analysis of an image/audio file into a FLUME 256D latent vector.
     - [x] Project the 256D vector onto the 12D manifold to set the initial state.
-- [ ] **Task: Causal-JEPA World Model Integration**
+- [x] **Task: Causal-JEPA World Model Integration**
     - [ ] Wire the `EcoResilienceAgent`s proposed TEK intervention as an 'action into the `jepa_world_model.py`.
     - [ ] Predict the future 12D trajectory over N timesteps.
     - [ ] Calculate the shift toward or away from 0.5 Coherence.
     - [ ] Add integration tests for the full pipeline.
-- [ ] **Task: Edge Optimization via Cactus Compute**
-    - [ ] Install Cactus CLI and Tunix SFT library.
-    - [ ] Convert Gemma 4 weights to `.cact` format for local AMD UMA optimization.
-    - [ ] Benchmark "intelligence-per-watt" for the final technical writeup.
-- [ ] **Task: Conductor - User Manual Verification 'Phase 5: The Holographic TEK Observer (Multimodal Digital Twin)' (Protocol in workflow.md)
 
 ## Phase 6: Genesis Dashboard & Kaggle Submission (Commit: 58fc5ee)
 - [x] **Task: Interactive Visualization**
