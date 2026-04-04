@@ -57,10 +57,10 @@
     - [x] Create `src/cohezion/universe/multimodal_mapper.py` to translate Gemma 4's analysis of an image/audio file into a FLUME 256D latent vector.
     - [x] Project the 256D vector onto the 12D manifold to set the initial state.
 - [x] **Task: Causal-JEPA World Model Integration**
-    - [ ] Wire the `EcoResilienceAgent`s proposed TEK intervention as an 'action into the `jepa_world_model.py`.
-    - [ ] Predict the future 12D trajectory over N timesteps.
-    - [ ] Calculate the shift toward or away from 0.5 Coherence.
-    - [ ] Add integration tests for the full pipeline.
+    - [x] Wire the `EcoResilienceAgent`s proposed TEK intervention as an 'action into the `jepa_world_model.py`.
+    - [x] Predict the future 12D trajectory over N timesteps.
+    - [x] Calculate the shift toward or away from 0.5 Coherence.
+    - [x] Add integration tests for the full pipeline.
 
 ## Phase 6: Genesis Dashboard & Kaggle Submission (Commit: 58fc5ee)
 - [x] **Task: Interactive Visualization**
