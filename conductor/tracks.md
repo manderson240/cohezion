@@ -31,3 +31,9 @@ This file tracks all major tracks for the project. Each track has its own detail
 - [x] **Track: Gemma 4 Integration & EcoResilience Synthesis**
   *Link: [./tracks/gemma4_hackathon_20260402/](./tracks/gemma4_hackathon_20260402/)*
   *Status: COMPLETED - All Phases Finished*
+
+---
+
+- [ ] **Track: Yale Peaked Hackathon 2026 - Solving P1-P10 peaked circuits using MPS on BlueQubit with a $20 budget.**
+*Link: [./tracks/yale_peaked_20260404/](./tracks/yale_peaked_20260404/)*
+
