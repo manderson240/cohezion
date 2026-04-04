@@ -33,6 +33,10 @@ async def run_simulation():
         # Note: In YOLO/testing mode without Ollama running, this will fail gracefully.
         response = await agent.analyze_ecosystem(scenario, trajectory_id)
         logger.info(f"Agent Response:\n{response}")
+        logger.info(f"--- Le-WM Metrics ---")
+        logger.info(f"Coherence Shift: {response['coherence_shift']:.4f}")
+        logger.info(f"Temporal Curvature: {response['temporal_curvature']:.4f}")
+        logger.info(f"Path Straightening Achieved: {response['straightening_achieved']}")
     except Exception as e:
         logger.warning(f"Simulation execution failed (expected if Ollama/Gemma 4 is not active): {e}")
         
