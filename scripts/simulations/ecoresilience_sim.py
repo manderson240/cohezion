@@ -31,7 +31,7 @@ async def run_simulation():
     
     try:
         # Note: In YOLO/testing mode without Ollama running, this will fail gracefully.
-        response = await agent.analyze_ecosystem(scenario, trajectory_id)
+        response = await agent.analyze_and_simulate(scenario, trajectory_id)
         logger.info(f"Agent Response:\n{response}")
         logger.info(f"--- Le-WM Metrics ---")
         logger.info(f"Coherence Shift: {response['coherence_shift']:.4f}")
