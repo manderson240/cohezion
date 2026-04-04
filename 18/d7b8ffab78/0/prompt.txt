@@ -1,0 +1,6 @@
+Are we using the newest version of claude code?
+
+---
+
+We also have:   ⎿  SessionStart:startup hook error
+  ⎿  SessionStart:startup hook error
