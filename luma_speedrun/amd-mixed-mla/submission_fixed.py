@@ -46,11 +46,14 @@ def custom_kernel(data: input_t) -> output_t:
     PAGE_SIZE = 1
     NUM_KV_SPLITS = 32
     
-    # Get metadata
+    # Get metadata - FIX: Added required arguments q_dtype, kv_dtype, is_sparse
     meta = get_mla_metadata_info_v1(
         kv_indptr,
         None,  # scheduler_metadata
         NUM_KV_SPLITS,
+        q_fp8.dtype,  # q_dtype - REQUIRED
+        kv_buffer.dtype,  # kv_dtype - REQUIRED
+        False,  # is_sparse - REQUIRED
     )
     
     # Run MLA decode
