@@ -68,6 +68,31 @@ SAMPLING_DEFAULTS = {
     "top_k": 64,
 }
 
+# Context window limits by model (to prevent OOM on unified memory)
+# Based on Ollama research: https://ollama.com/library/gemma4
+# Memory scales roughly: Model Size + (Context Length × Hidden Dim × Layers × 2 bytes)
+MODEL_CONTEXT_LIMITS = {
+    # Edge models - 128K native context
+    "gemma4:e2b": 131072,      # 7.2GB - Can use full 128K
+    "gemma4:e4b": 131072,      # 9.6GB - Can use full 128K
+    
+    # Workstation models - 256K native, but limit for memory safety
+    "gemma4:26b": 32768,       # 18GB MoE - Limit to 32K (MoE is memory efficient)
+    "gemma4:31b": 32768,       # 20GB Dense - Limit to 32K (more memory intensive)
+    
+    # Cloud model - no local memory limits
+    "gemma4:31b-cloud": 262144,  # Runs on cloud, full 256K
+    
+    # Fast model - efficient
+    "phi3:mini": 131072,       # 2.2GB - Can use full 128K
+    
+    # Default
+    "default": 32768,          # Safe default for unified memory
+}
+
+# Default context (safe for unified memory - prevents OOM)
+DEFAULT_NUM_CTX = 32768
+
 
 class Handler(BaseHTTPRequestHandler):
     protocol_version = "HTTP/1.1"
@@ -132,12 +157,26 @@ class Handler(BaseHTTPRequestHandler):
             # Build Ollama request with Gemma 4 optimized settings
             max_tokens = request.get("max_tokens", 4096)
             
+            # Get context window size - prioritize from request, then model limits, then default
+            # This prevents OOM on unified memory systems
+            requested_ctx = request.get("metadata", {}).get("num_ctx")
+            model_ctx_limit = MODEL_CONTEXT_LIMITS.get(model, MODEL_CONTEXT_LIMITS["default"])
+            
+            if requested_ctx:
+                # Client specified context - enforce model limit
+                num_ctx = min(requested_ctx, model_ctx_limit)
+                print(f"Context: {num_ctx} (requested: {requested_ctx}, limit: {model_ctx_limit})", flush=True)
+            else:
+                # Use safe default for model
+                num_ctx = min(DEFAULT_NUM_CTX, model_ctx_limit)
+            
             ollama_request = {
                 "model": model,
                 "prompt": prompt,
                 "stream": False,
                 "options": {
                     "num_predict": max_tokens,
+                    "num_ctx": num_ctx,
                     "temperature": SAMPLING_DEFAULTS["temperature"],
                     "top_p": SAMPLING_DEFAULTS["top_p"],
                     "top_k": SAMPLING_DEFAULTS["top_k"],

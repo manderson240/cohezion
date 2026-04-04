@@ -37,28 +37,35 @@ ANTHROPIC_BASE_URL=http://localhost:8082 ANTHROPIC_API_KEY=unused \
 
 ## System Configuration
 
-### AMD GPU Optimization
+### AMD GPU with Unified Memory (128GB)
 
-This system uses AMD ROCm with GTT (Graphics Translation Table) for memory:
-- **Total GTT**: 137GB (shared system memory)
-- **VRAM**: 512MB (GPU local memory)
-- **Architecture**: gfx1151 (Radeon Pro)
+This system uses AMD ROCm with unified memory:
+- **Total Memory**: 128GB shared
+- **Architecture**: gfx1151 (Radeon Pro W7900)
 
-### Ollama Settings for Large Models
+### Ollama Settings for Unified Memory
 
 Create/edit `~/.ollama/ollama.env`:
 
 ```bash
-# For systems with 128GB+ RAM
-OLLAMA_MAX_LOADED_MODELS=2
+# For unified memory systems (128GB)
+# Only ONE model at a time to prevent OOM
+OLLAMA_MAX_LOADED_MODELS=1
+
+# Single inference at a time
 OLLAMA_NUM_PARALLEL=1
+
+# Reasonable queue depth
 OLLAMA_MAX_QUEUE=10
 
-# Keep models loaded longer
+# Keep models loaded 30 minutes
 OLLAMA_KEEP_ALIVE=30m
 
-# Flash attention for faster inference
+# Flash attention - CRITICAL for Gemma 4
 OLLAMA_FLASH_ATTENTION=1
+
+# Default context (32K safe for most use)
+OLLAMA_CONTEXT_LENGTH=32768
 ```
 
 ### Memory Management
@@ -67,11 +74,14 @@ OLLAMA_FLASH_ATTENTION=1
 # Check available memory before running large models
 free -h
 
+# Check what models are loaded
+ollama ps
+
 # Stop all running models to free memory
-ollama stop $(ollama ps --format json | jq -r '.[].name')
+ollama stop $(ollama ps --format json 2>/dev/null | jq -r '.[].name') 2>/dev/null
 
 # Run with specific context size
-OLLAMA_CONTEXT_WINDOW=8192 ollama run gemma4:26b
+OLLAMA_CONTEXT_LENGTH=8192 ollama run gemma4:26b
 ```
 
 ## Available Commands
