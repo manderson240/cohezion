@@ -70,11 +70,15 @@ class Gemma4Provider(OllamaProvider):
         start_time = time.time()
 
         # Prepare payload for Chat API
+        message_content = {"role": "user", "content": prompt}
+        
+        # Support multimodal inputs (base64 encoded images)
+        if "images" in kwargs:
+            message_content["images"] = kwargs["images"]
+
         payload = {
             "model": model,
-            "messages": [
-                {"role": "user", "content": prompt}
-            ],
+            "messages": [message_content],
             "stream": False,
             "format": kwargs.get("format", ""),
             "options": {

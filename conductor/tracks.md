@@ -26,8 +26,3 @@ This file tracks all major tracks for the project. Each track has its own detail
   *Link: [./tracks/birdclef_2026_20260401/](./tracks/birdclef_2026_20260401/)*
   *Status: NOT STARTED - Phase 1: Research & Setup*
 
----
-
-- [x] **Track: Gemma 4 Integration & EcoResilience Synthesis**
-  *Link: [./tracks/gemma4_hackathon_20260402/](./tracks/gemma4_hackathon_20260402/)*
-  *Status: COMPLETED - All Phases Finished*

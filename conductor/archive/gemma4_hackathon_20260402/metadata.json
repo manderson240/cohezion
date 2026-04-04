@@ -1,0 +1,8 @@
+{
+  "track_id": "gemma4_hackathon_20260402",
+  "type": "feature",
+  "status": "new",
+  "created_at": "2026-04-02T16:45:00Z",
+  "updated_at": "2026-04-02T16:45:00Z",
+  "description": "https://www.kaggle.com/competitions/gemma-4-good-hackathon Already pulled all gemma4 models with ollama. Need help configuring them so they work well and we can use them for the hackathon. Look at our Cohezion project and identify some opportunities we can explore to win it."
+}

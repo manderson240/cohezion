@@ -22,6 +22,7 @@ Furthermore, the platform acts as an elite mentor, generating **interactive walk
 
 ## Key Features
 - **12D/512D/2048D Triune Manifold Simulation**: A universe engine utilizing Percival's Triune Self architecture. It maps the 12D observable state (The Doer), the 512D reasoning and interpolation space (The Thinker), and the 2048D deep semantic intent (The Knower) to enrich simulation possibilities and trajectory tracking.
+- **Multimodal Digital Twins (Holographic TEK Observer)**: The integration of native multimodal ingestion (audio/vision) with the FLUME VAE and Causal-JEPA World Models. This enables the creation of living, predictive ecosystem models that synthesize Traditional Ecological Knowledge (TEK) with Unified Physics to visualize healing trajectories toward HIHO Stability.
 - **Living Research via Marimo & Quarto**: Utilization of reactive Marimo notebooks and Quarto to create dynamic, living research documents. These are deeply integrated with our locally fine-tuned SLMs to provide humans with an interactive, SOTA-driven educational experience.
 - **Autonomous Repo Management (BMAD-METHOD)**: The platform handles the full lifecycle of development, taking human intent and independently determining the most robust, efficient path to production using the BMAD-METHOD framework.
 - **Polyglot Execution & Strict TDD**: Utilitizing the optimal language for every task under rigorous Test-Driven Development (Red, Green, Refactor) to guarantee zero-defect evolution.
