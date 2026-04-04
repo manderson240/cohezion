@@ -1,0 +1,37 @@
+{
+  "cli_version": "0.5.3",
+  "checkpoint_id": "18d7b8ffab78",
+  "session_id": "e8e77c46-efa0-44e6-b448-f034e0eb0c3c",
+  "strategy": "manual-commit",
+  "created_at": "2026-04-04T19:47:35.181070059Z",
+  "branch": "main",
+  "checkpoints_count": 21,
+  "files_touched": [
+    ".claude/settings.json"
+  ],
+  "agent": "Claude Code",
+  "model": "kimi-k2.5:cloud",
+  "turn_id": "533fe1a2468c",
+  "token_usage": {
+    "input_tokens": 109196705,
+    "cache_creation_tokens": 0,
+    "cache_read_tokens": 0,
+    "output_tokens": 286724,
+    "api_call_count": 929
+  },
+  "session_metrics": {
+    "turn_count": 21
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-04-04T19:47:29.841182469Z",
+    "agent_lines": 6,
+    "agent_removed": 6,
+    "human_added": 33907,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 33913,
+    "total_lines_changed": 34389,
+    "agent_percentage": 0.034894879176480854,
+    "metric_version": 2
+  }
+}
