@@ -1,0 +1,41 @@
+{
+  "cli_version": "0.5.3",
+  "checkpoint_id": "8b8f551f1fd9",
+  "session_id": "7fd9a358-7947-4be4-ad5d-d426437500c1",
+  "strategy": "manual-commit",
+  "created_at": "2026-04-07T04:13:36.883563453Z",
+  "branch": "feature/2026-tip-of-the-spear",
+  "checkpoints_count": 2,
+  "files_touched": [
+    "luma_speedrun/autoresearch/state/gemm_tree.json",
+    "luma_speedrun/autoresearch/state/moe_tree.json",
+    "research/challenges/luma_amd_speedrun/kernels/mxfp4-mm/submission.py",
+    "vendor/kaggle-skill"
+  ],
+  "agent": "Claude Code",
+  "turn_id": "6562a76f1a5a",
+  "checkpoint_transcript_start": 1359,
+  "transcript_lines_at_start": 1359,
+  "token_usage": {
+    "input_tokens": 18,
+    "cache_creation_tokens": 490140,
+    "cache_read_tokens": 6220696,
+    "output_tokens": 2136,
+    "api_call_count": 14
+  },
+  "session_metrics": {
+    "turn_count": 28
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-04-07T04:13:36.019719428Z",
+    "agent_lines": 0,
+    "agent_removed": 0,
+    "human_added": 345558,
+    "human_modified": 121,
+    "human_removed": 0,
+    "total_committed": 345679,
+    "total_lines_changed": 350471,
+    "agent_percentage": 0,
+    "metric_version": 2
+  }
+}
