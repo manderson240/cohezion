@@ -1,0 +1,1611 @@
+★ Insight ─────────────────────────────────────
+  Session 96 starts with:
+  - 20+ correct custom kernels ready to iterate on
+  - Every AMD CDNA4 intrinsic verified compiling on runner
+  - The exact leader pattern identified (v78_splitk0.py)
+  - A 338-line leader analysis document
+  - Complete 67-kernel runner inventory
+  - 5 skills capturing every hard-won constraint
+  - GEAK installed for automated Ollama cloud iteration
+  - The pingpong_small.py file needing just a 1-line LDS cast fix
+
+  The path: Fix pingpong_small → test → benchmark → iterate tile sizes → submit winners to leaderboard.
+
+---
+
+Work o session 96
+
+---
+
+<task-notification>
+<task-id>btlw3gyca</task-id>
+<tool-use-id>toolu_01T156k1tP7xs3x7cQto3sex</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/2290a242-3e60-4758-a1c1-cb0440fbfda6/tasks/btlw3gyca.output</output-file>
+<status>failed</status>
+<summary>Background command "Test MoE dispatch_policy kernel correctness" failed with exit code 2</summary>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>bhsk03s0d</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/2290a242-3e60-4758-a1c1-cb0440fbfda6/tasks/bhsk03s0d.output</output-file>
+<status>failed</status>
+<summary>Background command "Test GEMM baseline kernel correctness" failed with exit code 2</summary>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>bc39sgnbq</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/2290a242-3e60-4758-a1c1-cb0440fbfda6/tasks/bc39sgnbq.output</output-file>
+<status>failed</status>
+<summary>Background command "Test MLA fast_mode kernel correctness" failed with exit code 2</summary>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>bkx6f8s1m</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/2290a242-3e60-4758-a1c1-cb0440fbfda6/tasks/bkx6f8s1m.output</output-file>
+<status>failed</status>
+<summary>Background command "Test GEMM leader pattern kernel correctness" failed with exit code 2</summary>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>b20q88dap</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/2290a242-3e60-4758-a1c1-cb0440fbfda6/tasks/b20q88dap.output</output-file>
+<status>failed</status>
+<summary>Background command "Test GEMM direct ASM dispatch variant" failed with exit code 2</summary>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>b6jcx7r1x</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/2290a242-3e60-4758-a1c1-cb0440fbfda6/tasks/b6jcx7r1x.output</output-file>
+<status>failed</status>
+<summary>Background command "Test MoE dispatch1+ksplit variant" failed with exit code 2</summary>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>bd79gwm8t</task-id>
+<tool-use-id>toolu_01Wvr5oMDaKSf31N7Hc1W5DD</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/2290a242-3e60-4758-a1c1-cb0440fbfda6/tasks/bd79gwm8t.output</output-file>
+<status>failed</status>
+<summary>Background command "Test MoE dispatch_policy correctness" failed with exit code 1</summary>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>b80bx4pmr</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/2290a242-3e60-4758-a1c1-cb0440fbfda6/tasks/b80bx4pmr.output</output-file>
+<status>failed</status>
+<summary>Background command "Test GEMM baseline correctness" failed with exit code 1</summary>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>br16c2dwy</task-id>
+<tool-use-id>toolu_01Gen2kk4AkG919E1ZA6iN1t</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/2290a242-3e60-4758-a1c1-cb0440fbfda6/tasks/br16c2dwy.output</output-file>
+<status>failed</status>
+<summary>Background command "Test MLA fastmode correctness" failed with exit code 1</summary>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>bdqa755uc</task-id>
+<tool-use-id>toolu_01NrMbkZ93KUuhxaac32aX2Z</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/2290a242-3e60-4758-a1c1-cb0440fbfda6/tasks/bdqa755uc.output</output-file>
+<status>failed</status>
+<summary>Background command "Test GEMM leader pattern correctness" failed with exit code 1</summary>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>b7xnejwph</task-id>
+<tool-use-id>toolu_011kx1yVBMHjKdxgaNqkRKXS</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/2290a242-3e60-4758-a1c1-cb0440fbfda6/tasks/b7xnejwph.output</output-file>
+<status>failed</status>
+<summary>Background command "Test GEMM direct ASM correctness" failed with exit code 1</summary>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>b3n2fxk21</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/2290a242-3e60-4758-a1c1-cb0440fbfda6/tasks/b3n2fxk21.output</output-file>
+<status>failed</status>
+<summary>Background command "Test MoE dispatch1+ksplit correctness" failed with exit code 1</summary>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>bizwvnfo8</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/2290a242-3e60-4758-a1c1-cb0440fbfda6/tasks/bizwvnfo8.output</output-file>
+<status>failed</status>
+<summary>Background command "Test MLA baseline (fast_mode=False) correctness" failed with exit code 1</summary>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>bo4n7saxy</task-id>
+<tool-use-id>toolu_01Q6jxxLpeazthjZi1GLyJuu</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/2290a242-3e60-4758-a1c1-cb0440fbfda6/tasks/bo4n7saxy.output</output-file>
+<status>completed</status>
+<summary>Background command "Test GEMM direct ASM correctness (fixed syntax)" completed (exit code 0)</summary>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>bkpmy7wwe</task-id>
+<tool-use-id>toolu_01LoUJr2jCp1CaTSe4sCbpU2</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/2290a242-3e60-4758-a1c1-cb0440fbfda6/tasks/bkpmy7wwe.output</output-file>
+<status>completed</status>
+<summary>Background command "Test GEMM leader pattern correctness (fixed syntax)" completed (exit code 0)</summary>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>b6meq54mo</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/2290a242-3e60-4758-a1c1-cb0440fbfda6/tasks/b6meq54mo.output</output-file>
+<status>completed</status>
+<summary>Background command "Test MoE dispatch_policy correctness (fixed syntax)" completed (exit code 0)</summary>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>bcg7d61f7</task-id>
+<tool-use-id>toolu_019npfh89pF4NFG4PwdneM1t</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/2290a242-3e60-4758-a1c1-cb0440fbfda6/tasks/bcg7d61f7.output</output-file>
+<status>completed</status>
+<summary>Background command "Test MoE dispatch1+ksplit correctness (fixed syntax)" completed (exit code 0)</summary>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>b68nd78uy</task-id>
+<tool-use-id>toolu_014LniMykiV2Fv3Q4pMp2QhB</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/2290a242-3e60-4758-a1c1-cb0440fbfda6/tasks/b68nd78uy.output</output-file>
+<status>completed</status>
+<summary>Background command "Test MLA baseline correctness (fixed syntax)" completed (exit code 0)</summary>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>b5ldq1lyw</task-id>
+<tool-use-id>toolu_01Ty34ab5y8tSmWWU4oaDtQP</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/2290a242-3e60-4758-a1c1-cb0440fbfda6/tasks/b5ldq1lyw.output</output-file>
+<status>completed</status>
+<summary>Background command "Retest fixed GEMM direct ASM" completed (exit code 0)</summary>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>bdpwnw3mm</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/2290a242-3e60-4758-a1c1-cb0440fbfda6/tasks/bdpwnw3mm.output</output-file>
+<status>failed</status>
+<summary>Background command "Benchmark MoE dispatch_policy" failed with exit code 1</summary>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>bpnnzqryd</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/2290a242-3e60-4758-a1c1-cb0440fbfda6/tasks/bpnnzqryd.output</output-file>
+<status>failed</status>
+<summary>Background command "Benchmark MoE dispatch1+ksplit" failed with exit code 1</summary>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>b2tugs52m</task-id>
+<tool-use-id>toolu_01YHp1vLZVr7FyHFTM6bHma6</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/2290a242-3e60-4758-a1c1-cb0440fbfda6/tasks/b2tugs52m.output</output-file>
+<status>completed</status>
+<summary>Background command "Test GEMM hip_quant(shuffle=False) variant" completed (exit code 0)</summary>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>b9dg9udwv</task-id>
+<tool-use-id>toolu_01PqgwZqvRJY56XoiZjFhY59</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/2290a242-3e60-4758-a1c1-cb0440fbfda6/tasks/b9dg9udwv.output</output-file>
+<status>completed</status>
+<summary>Background command "Test GEMM Triton baseline" completed (exit code 0)</summary>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>b4hrueg0d</task-id>
+<tool-use-id>toolu_01WSxNHQcqmRuic69ttjCorv</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/2290a242-3e60-4758-a1c1-cb0440fbfda6/tasks/b4hrueg0d.output</output-file>
+<status>completed</status>
+<summary>Background command "Benchmark MLA baseline" completed (exit code 0)</summary>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>b1u336n8o</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/2290a242-3e60-4758-a1c1-cb0440fbfda6/tasks/b1u336n8o.output</output-file>
+<status>failed</status>
+<summary>Background command "Submit MoE dispatch_policy to leaderboard" failed with exit code 1</summary>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>bl429fdy1</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/2290a242-3e60-4758-a1c1-cb0440fbfda6/tasks/bl429fdy1.output</output-file>
+<status>completed</status>
+<summary>Background command "Submit GEMM clean baseline to leaderboard" completed (exit code 0)</summary>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>bykwadq1q</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/2290a242-3e60-4758-a1c1-cb0440fbfda6/tasks/bykwadq1q.output</output-file>
+<status>failed</status>
+<summary>Background command "Retry MoE leaderboard submission" failed with exit code 1</summary>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>bywtu7b3z</task-id>
+<tool-use-id>toolu_017JtwzSfzbgw1SwZfDm9MUG</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/2290a242-3e60-4758-a1c1-cb0440fbfda6/tasks/bywtu7b3z.output</output-file>
+<status>completed</status>
+<summary>Background command "Submit MLA baseline to leaderboard" completed (exit code 0)</summary>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>bz55gibka</task-id>
+<tool-use-id>toolu_01JNNfFAFUoaR8Kct4ZTB71L</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/2290a242-3e60-4758-a1c1-cb0440fbfda6/tasks/bz55gibka.output</output-file>
+<status>failed</status>
+<summary>Background command "Submit MoE to leaderboard (after rate limit reset)" failed with exit code 1</summary>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>brb8a5c4p</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/2290a242-3e60-4758-a1c1-cb0440fbfda6/tasks/brb8a5c4p.output</output-file>
+<status>failed</status>
+<summary>Background command "Retry MoE leaderboard submission" failed with exit code 1</summary>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>bfzodsqch</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/2290a242-3e60-4758-a1c1-cb0440fbfda6/tasks/bfzodsqch.output</output-file>
+<status>completed</status>
+<summary>Background command "Test MLA best_final (three-regime) variant" completed (exit code 0)</summary>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>br80nacop</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/2290a242-3e60-4758-a1c1-cb0440fbfda6/tasks/br80nacop.output</output-file>
+<status>completed</status>
+<summary>Background command "Test current MoE submission.py baseline" completed (exit code 0)</summary>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>b2s78hc1e</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/2290a242-3e60-4758-a1c1-cb0440fbfda6/tasks/b2s78hc1e.output</output-file>
+<status>completed</status>
+<summary>Background command "Benchmark MoE submission.py baseline" completed (exit code 0)</summary>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>bp5me1juw</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/2290a242-3e60-4758-a1c1-cb0440fbfda6/tasks/bp5me1juw.output</output-file>
+<status>completed</status>
+<summary>Background command "Benchmark MLA best_final (three-regime)" completed (exit code 0)</summary>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>bej8zlvsl</task-id>
+<tool-use-id>toolu_0158J7Yr73a9ZNQCurMQ52Cp</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/2290a242-3e60-4758-a1c1-cb0440fbfda6/tasks/bej8zlvsl.output</output-file>
+<status>failed</status>
+<summary>Background command "Submit MoE dispatch1+ksplit to leaderboard" failed with exit code 1</summary>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>b51e348uz</task-id>
+<tool-use-id>toolu_016fwRznd5Q65njaaXYBQt98</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/2290a242-3e60-4758-a1c1-cb0440fbfda6/tasks/b51e348uz.output</output-file>
+<status>completed</status>
+<summary>Background command "Wait 10 min then try MoE dispatch1+ksplit leaderboard" completed (exit code 0)</summary>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>bvlsprdr0</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/2290a242-3e60-4758-a1c1-cb0440fbfda6/tasks/bvlsprdr0.output</output-file>
+<status>completed</status>
+<summary>Background command "Wait for rate limit reset then submit MoE" completed (exit code 0)</summary>
+</task-notification>
+
+---
+
+I thought we had succesful load_inline custom HIP kernels.
+
+---
+
+<task-notification>
+<task-id>btch9xclj</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/2290a242-3e60-4758-a1c1-cb0440fbfda6/tasks/btch9xclj.output</output-file>
+<status>completed</status>
+<summary>Background command "Submit GEMM 8-wave ping-pong to leaderboard" completed (exit code 0)</summary>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>bwsyxg2n6</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/2290a242-3e60-4758-a1c1-cb0440fbfda6/tasks/bwsyxg2n6.output</output-file>
+<status>completed</status>
+<summary>Background command "Submit MLA Split-K GEMV load_inline to leaderboard" completed (exit code 0)</summary>
+</task-notification>
+
+---
+
+Contest is over
+
+---
+
+/retrospect
+
+---
+
+<task-notification>
+<task-id>b0em5fj57</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/2290a242-3e60-4758-a1c1-cb0440fbfda6/tasks/b0em5fj57.output</output-file>
+<status>completed</status>
+<summary>Background command "Find MXFP4 API limitations skill anywhere" completed (exit code 0)</summary>
+</task-notification>
+
+---
+
+Looks like we still have more time Ends 2026-04-07 07:59 UTC and do you have all of this info: """amd-mixed-mla
+Ends 2026-04-07 07:59 UTC
+
+Description
+Implement a custom MLA (Multi-head Latent Attention) decode kernel optimized for MI355X.
+
+This is the inner attention kernel from DeepSeek R1's forward_absorb MLA path. The absorbed query and compressed KV cache are provided directly — you only need to implement the attention computation with variable-length batching (indptr).
+
+The reference uses aiter a8w8 MLA decode kernel (mla_decode_fwd, fp8 Q + fp8 KV, persistent mode), which is ~2-3x faster than bf16 on MI355X.
+
+DeepSeek R1 forward_absorb MLA config:
+
+num_heads = 16 (query heads, after TP split)
+num_kv_heads = 1 (shared latent KV head)
+kv_lora_rank = 512
+qk_rope_head_dim = 64
+qk_head_dim = 576 (kv_lora_rank + qk_rope_head_dim, absorbed q/k dim)
+v_head_dim = 512 (= kv_lora_rank, output dim)
+sm_scale = 1/sqrt(576)
+dtype: q=bfloat16
+decode only (q_seq_len=1, kv_seq_len up to 8k)
+KV buffer format (forward_absorb):
+
+Full 576 dims are used as keys (for Q@K^T score computation)
+First 512 dims (kv_lora_rank) are used as values (for output computation)
+Input tuple: (q, kv_data, qo_indptr, kv_indptr, config)
+
+q: (total_q, 16, 576) bfloat16 — absorbed query
+kv_data: dict with three KV cache formats: kv_data["bf16"] — Tensor (total_kv, 1, 576) bfloat16 kv_data["fp8"] — (Tensor, Tensor): kv_buffer fp8 + scalar scale kv_data["mxfp4"] — (Tensor, Tensor): kv_buffer fp4x2 + fp8_e8m0 scale
+qo_indptr: (batch_size+1,) int32 — query segment pointers
+kv_indptr: (batch_size+1,) int32 — KV segment pointers
+config: dict with MLA parameters
+Return:
+
+attention output: (total_q, 16, 512) bfloat16
+Key optimization opportunities:
+
+Use mxfp4 KV cache for even lower memory bandwidth (4x savings over bf16)
+Fuse dequantization with attention to skip bf16 materialization
+Custom kernel with tighter memory access patterns
+MQA: 1 KV head shared across 16 query heads — minimize redundant memory loads
+Decode: q_seq_len=1, kv_seq_len up to 8k — memory-bound workload
+Variable-length batching: indptr-based segmented attention
+Split K/V from buffer: full 576 dims for keys, first 512 dims for values
+The ranking criteria is the geometric mean of the benchmark results.
+
+Benchmark Shapes
+{"batchsize":4,"kvseqlen":1024,"qseqlen":1}
+{"batchsize":4,"kvseqlen":8192,"qseqlen":1}
+{"batchsize":32,"kvseqlen":1024,"qseqlen":1}
+{"batchsize":32,"kvseqlen":8192,"qseqlen":1}
+{"batchsize":64,"kvseqlen":1024,"qseqlen":1}
+{"batchsize":64,"kvseqlen":8192,"qseqlen":1}
+{"batchsize":256,"kvseqlen":1024,"qseqlen":1}
+{"batchsize":256,"kvseqlen":8192,"qseqlen":1}""", """"""
+Reference implementation for MLA (Multi-head Latent Attention) decode kernel.
+
+Uses aiter MLA kernels (mla_decode_fwd) as the reference.
+DeepSeek R1 forward_absorb MLA: absorbed q (576), compressed kv_buffer (576),
+output v_head_dim = kv_lora_rank = 512.
+
+The input provides:
+  q:       (total_q, 16, 576) bfloat16 — absorbed query
+  kv_data: dict with KV cache in three formats:
+    "bf16":  Tensor  (total_kv, 1, 576)  bfloat16          — highest precision
+    "fp8":   (Tensor, Tensor)  kv_buffer fp8 + scalar scale — per-tensor quantized
+    "mxfp4": (Tensor, Tensor)  kv_buffer fp4x2 + fp8_e8m0  — block-32 quantized
+  The reference quantizes Q to fp8 on-the-fly inside ref_kernel.
+
+The reference kernel quantizes Q to fp8 on-the-fly and uses fp8 KV (a8w8 kernel),
+which is ~2-3x faster than bf16 on MI355X with negligible accuracy loss.
+
+Decode only — persistent mode with get_mla_metadata_v1.
+"""
+
+import torch
+import torch.nn.functional as F
+from task import input_t, output_t
+from utils import make_match_reference
+
+from aiter.mla import mla_decode_fwd
+from aiter import dtypes as aiter_dtypes
+from aiter import get_mla_metadata_info_v1, get_mla_metadata_v1
+from aiter.utility.fp4_utils import (
+    dynamic_mxfp4_quant,
+    mxfp4_to_f32,
+    e8m0_to_f32,
+)
+
+# ---------------------------------------------------------------------------
+# DeepSeek R1 latent MQA constants (forward_absorb path)
+# https://huggingface.co/deepseek-ai/DeepSeek-R1-0528/blob/main/config.json
+# ---------------------------------------------------------------------------
+NUM_HEADS = 16
+NUM_KV_HEADS = 1
+KV_LORA_RANK = 512
+QK_ROPE_HEAD_DIM = 64
+QK_HEAD_DIM = KV_LORA_RANK + QK_ROPE_HEAD_DIM   # 576
+V_HEAD_DIM = KV_LORA_RANK                        # 512
+SM_SCALE = 1.0 / (QK_HEAD_DIM ** 0.5)
+
+PAGE_SIZE = 1
+NUM_KV_SPLITS = 32
+
+# FP8 dtype (platform-specific via aiter)
+FP8_DTYPE = aiter_dtypes.fp8
+
+# Query dtype for the reference kernel: "fp8" or "bf16"
+Q_DTYPE = "fp8"
+
+# KV cache dtype for the reference kernel: "fp8" or "bf16"
+KV_DTYPE = "fp8"
+
+
+# ---------------------------------------------------------------------------
+# FP8 quantization (sglang style: dynamic per-tensor)
+# ---------------------------------------------------------------------------
+
+def quantize_fp8(tensor: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
+    """
+    Dynamic per-tensor FP8 quantization (following sglang scaled_fp8_quant).
+
+    Args:
+        tensor: bf16 tensor to quantize
+
+    Returns:
+        (fp8_tensor, scale) where scale is a scalar float32 tensor.
+        Dequantize: fp8_tensor.to(bf16) * scale
+    """
+    finfo = torch.finfo(FP8_DTYPE)
+    amax = tensor.abs().amax().clamp(min=1e-12)
+    scale = amax / finfo.max
+    fp8_tensor = (tensor / scale).clamp(min=finfo.min, max=finfo.max).to(FP8_DTYPE)
+    return fp8_tensor, scale.to(torch.float32).reshape(1)
+
+
+# ---------------------------------------------------------------------------
+# MXFP4 quantization (aiter native: block-32, fp4x2 + fp8_e8m0 dtypes)
+# Uses aiter.utility.fp4_utils.dynamic_mxfp4_quant
+# ---------------------------------------------------------------------------
+
+def quantize_mxfp4(tensor: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
+    """
+    MXFP4 block-wise quantization using aiter's dynamic_mxfp4_quant.
+
+    Block size = 32. Each block gets an E8M0 scale factor.
+    Two FP4 E2M1 values are packed per byte.
+
+    Args:
+        tensor: bf16 tensor of shape [B, M, N] (N must be divisible by 32)
+
+    Returns:
+        (fp4_data, scale_e8m0)
+        - fp4_data:   shape [B, M, N//2] in aiter_dtypes.fp4x2
+        - scale_e8m0: shape [B*M, ceil(N/32)] padded, in aiter_dtypes.fp8_e8m0
+    """
+    orig_shape = tensor.shape  # (B, M, N)
+    B, M, N = orig_shape
+
+    # dynamic_mxfp4_quant expects 2D: (B*M, N)
+    tensor_2d = tensor.reshape(B * M, N)
+    fp4_data_2d, scale_e8m0 = dynamic_mxfp4_quant(tensor_2d)
+
+    # Reshape fp4_data back to 3D: (B, M, N//2)
+    fp4_data = fp4_data_2d.view(B, M, N // 2)
+
+    return fp4_data, scale_e8m0
+
+
+def dequantize_mxfp4(
+    fp4_data: torch.Tensor,
+    scale_e8m0: torch.Tensor,
+    orig_shape: tuple,
+    dtype: torch.dtype = torch.bfloat16,
+) -> torch.Tensor:
+    """
+    Dequantize MXFP4 tensor using aiter utilities.
+
+    Note: dynamic_mxfp4_quant may pad both row and block dimensions in scale_e8m0.
+    We trim scales to match the actual data dimensions.
+
+    Args:
+        fp4_data:   packed FP4 data, shape [B, M, N//2] in fp4x2 or uint8
+        scale_e8m0: E8M0 block scale factors (possibly padded) in fp8_e8m0
+        orig_shape: original (B, M, N) for reshaping
+        dtype:      output dtype
+
+    Returns:
+        Dequantized tensor of shape orig_shape.
+    """
+    B, M, N = orig_shape
+    num_rows = B * M
+    block_size = 32
+    num_blocks = N // block_size  # actual blocks needed (e.g. 576/32 = 18)
+
+    # Unpack FP4 to float32: mxfp4_to_f32 expects (..., N//2) -> (..., N)
+    fp4_data_2d = fp4_data.reshape(num_rows, N // 2)
+    float_vals = mxfp4_to_f32(fp4_data_2d)  # (num_rows, N)
+
+    # Convert E8M0 scales to float32 and trim padded dimensions
+    scale_f32 = e8m0_to_f32(scale_e8m0)  # (padded_rows, padded_blocks)
+    scale_f32 = scale_f32[:num_rows, :num_blocks]  # (num_rows, num_blocks)
+
+    # Apply block scales
+    float_vals_blocked = float_vals.view(num_rows, num_blocks, block_size)
+    scaled = float_vals_blocked * scale_f32.unsqueeze(-1)
+
+    return scaled.view(B, M, N).to(dtype)
+
+
+# ---------------------------------------------------------------------------
+# Persistent mode metadata helpers
+# ---------------------------------------------------------------------------
+
+def _make_mla_decode_metadata(
+    batch_size: int,
+    max_q_len: int,
+    nhead: int,
+    nhead_kv: int,
+    q_dtype: torch.dtype,
+    kv_dtype: torch.dtype,
+    qo_indptr: torch.Tensor,
+    kv_indptr: torch.Tensor,
+    kv_last_page_len: torch.Tensor,
+    num_kv_splits: int = NUM_KV_SPLITS,
+):
+    """Allocate and populate work buffers for persistent mla_decode_fwd."""
+    info = get_mla_metadata_info_v1(
+        batch_size, max_q_len, nhead, q_dtype, kv_dtype,
+        is_sparse=False, fast_mode=False,
+        num_kv_splits=num_kv_splits, intra_batch_mode=True,
+    )
+    work = [torch.empty(s, dtype=t, device="cuda") for s, t in info]
+    (work_metadata, work_indptr, work_info_set,
+     reduce_indptr, reduce_final_map, reduce_partial_map) = work
+
+    # Populate the metadata buffers
+    get_mla_metadata_v1(
+        qo_indptr, kv_indptr, kv_last_page_len,
+        nhead // nhead_kv,   # num_heads_per_head_k
+        nhead_kv,            # num_heads_k
+        True,                # is_causal
+        work_metadata, work_info_set, work_indptr,
+        reduce_indptr, reduce_final_map, reduce_partial_map,
+        page_size=PAGE_SIZE,
+        kv_granularity=max(PAGE_SIZE, 16),
+        max_seqlen_qo=max_q_len,
+        uni_seqlen_qo=max_q_len,
+        fast_mode=False,
+        max_split_per_batch=num_kv_splits,
+        intra_batch_mode=True,
+        dtype_q=q_dtype,
+        dtype_kv=kv_dtype,
+    )
+
+    return {
+        "work_meta_data": work_metadata,
+        "work_indptr": work_indptr,
+        "work_info_set": work_info_set,
+        "reduce_indptr": reduce_indptr,
+        "reduce_final_map": reduce_final_map,
+        "reduce_partial_map": reduce_partial_map,
+    }
+
+
+# ---------------------------------------------------------------------------
+# Aiter reference kernel (decode only)
+# ---------------------------------------------------------------------------
+
+def _aiter_mla_decode(
+    q: torch.Tensor,
+    kv_buffer: torch.Tensor,
+    qo_indptr: torch.Tensor,
+    kv_indptr: torch.Tensor,
+    config: dict,
+    q_scale: torch.Tensor | None = None,
+    kv_scale: torch.Tensor | None = None,
+) -> torch.Tensor:
+    """
+    MLA decode attention using aiter persistent-mode kernel.
+
+    Supports multiple Q/KV dtype combinations:
+      - Q_DTYPE="fp8":  fp8 Q + fp8 KV (a8w8) — fastest on MI355X
+      - Q_DTYPE="bf16": bf16 Q + bf16 KV (a16w16) — highest precision
+
+    q:          (total_q, num_heads, 576)  fp8 or bf16
+    kv_buffer:  (total_kv, 1, 576)         fp8 or bf16
+    q_scale:    scalar float32 (required for fp8 Q, None for bf16)
+    kv_scale:   scalar float32 (required for fp8 KV, None for bf16)
+    """
+    batch_size = config["batch_size"]
+    nq = config["num_heads"]
+    nkv = config["num_kv_heads"]
+    dq = config["qk_head_dim"]
+    dv = config["v_head_dim"]
+    q_seq_len = config["q_seq_len"]
+
+    total_kv_len = int(kv_indptr[-1].item())
+    kv_indices = torch.arange(total_kv_len, dtype=torch.int32, device="cuda")
+
+    # Reshape kv_buffer to 4D for aiter: (total_kv, page_size, nhead_kv, dim)
+    kv_buffer_4d = kv_buffer.view(kv_buffer.shape[0], PAGE_SIZE, nkv, kv_buffer.shape[-1])
+
+    max_q_len = q_seq_len
+    kv_last_page_len = (kv_indptr[1:] - kv_indptr[:-1]).to(torch.int32)
+
+    # Build persistent-mode metadata
+    meta = _make_mla_decode_metadata(
+        batch_size, max_q_len, nq, nkv,
+        q.dtype, kv_buffer.dtype,
+        qo_indptr, kv_indptr, kv_last_page_len,
+        num_kv_splits=NUM_KV_SPLITS,
+    )
+
+    o = torch.empty((q.shape[0], nq, dv), dtype=torch.bfloat16, device="cuda")
+    mla_decode_fwd(
+        q.view(-1, nq, dq),
+        kv_buffer_4d,
+        o,
+        qo_indptr,
+        kv_indptr,
+        kv_indices,
+        kv_last_page_len,
+        max_q_len,
+        page_size=PAGE_SIZE,
+        nhead_kv=nkv,
+        sm_scale=SM_SCALE,
+        logit_cap=0.0,
+        num_kv_splits=NUM_KV_SPLITS,
+        q_scale=q_scale,
+        kv_scale=kv_scale,
+        intra_batch_mode=True,
+        **meta,
+    )
+    return o
+
+
+# ---------------------------------------------------------------------------
+# generate_input / ref_kernel / check_implementation
+# ---------------------------------------------------------------------------
+
+def generate_input(batchsize: int, qseqlen: int, kvseqlen: int, seed: int) -> input_t:
+    """
+    Generate absorbed q and compressed kv_buffer for MLA decode.
+
+    Returns all three KV cache formats in kv_data dict:
+      kv_data = {
+        "bf16":  Tensor               — (total_kv, 1, 576) bfloat16
+        "fp8":   (Tensor, Tensor)     — kv_buffer fp8 + scalar scale
+        "mxfp4": (Tensor, Tensor)     — kv_buffer fp4x2 + fp8_e8m0 scale
+      }
+    """
+    gen = torch.Generator(device="cuda")
+    gen.manual_seed(seed)
+
+    total_q = batchsize * qseqlen
+    total_kv = batchsize * kvseqlen
+
+    # Absorbed query: (total_q, num_heads, 576) bf16
+    q = torch.randn(
+        (total_q, NUM_HEADS, QK_HEAD_DIM),
+        dtype=torch.bfloat16, device="cuda", generator=gen,
+    )
+
+    # Compressed KV buffer: (total_kv, 1, 576) bf16 — the source of truth
+    kv_buffer_bf16 = torch.randn(
+        (total_kv, NUM_KV_HEADS, QK_HEAD_DIM),
+        dtype=torch.bfloat16, device="cuda", generator=gen,
+    )
+
+    # Quantize KV to fp8
+    kv_buffer_fp8, kv_scale_fp8 = quantize_fp8(kv_buffer_bf16)
+
+    # Quantize KV to mxfp4
+    kv_buffer_mxfp4, kv_scale_mxfp4 = quantize_mxfp4(kv_buffer_bf16)
+
+    # All three KV formats: bf16 is a Tensor, fp8/mxfp4 are (Tensor, Tensor) tuples
+    kv_data = {
+        "bf16": kv_buffer_bf16,
+        "fp8": (kv_buffer_fp8, kv_scale_fp8),
+        "mxfp4": (kv_buffer_mxfp4, kv_scale_mxfp4),
+    }
+
+    qo_indptr = torch.arange(0, batchsize + 1, dtype=torch.int32, device="cuda") * qseqlen
+    kv_indptr = torch.arange(0, batchsize + 1, dtype=torch.int32, device="cuda") * kvseqlen
+
+    config = {
+        "batch_size": batchsize,
+        "num_heads": NUM_HEADS,
+        "num_kv_heads": NUM_KV_HEADS,
+        "qk_head_dim": QK_HEAD_DIM,
+        "kv_lora_rank": KV_LORA_RANK,
+        "qk_rope_head_dim": QK_ROPE_HEAD_DIM,
+        "v_head_dim": V_HEAD_DIM,
+        "q_seq_len": qseqlen,
+        "kv_seq_len": kvseqlen,
+        "sm_scale": SM_SCALE,
+    }
+
+    return (q, kv_data, qo_indptr, kv_indptr, config)
+
+
+def ref_kernel(data: input_t) -> output_t:
+    """Reference MLA decode attention. Uses Q_DTYPE and KV_DTYPE to select kernel variant."""
+    q, kv_data, qo_indptr, kv_indptr, config = data
+
+    # Resolve Q
+    if Q_DTYPE == "fp8":
+        q_input, q_scale = quantize_fp8(q)
+    else:
+        q_input, q_scale = q, None
+
+    # Resolve KV
+    if KV_DTYPE == "fp8":
+        kv_buffer_fp8, kv_scale = kv_data["fp8"]
+        kv_input = kv_buffer_fp8
+    else:
+        kv_input, kv_scale = kv_data["bf16"], None
+
+    return _aiter_mla_decode(
+        q_input, kv_input, qo_indptr, kv_indptr, config,
+        q_scale=q_scale, kv_scale=kv_scale,
+    )
+
+
+check_implementation = make_match_reference(ref_kernel, rtol=1e-01, atol=1e-01)
+""", """amd-moe-mxfp4
+Ends 2026-04-07 07:59 UTC
+
+Description
+You will implement a DeepSeek-R1 style MXFP4 Mixture-of-Experts (MoE) fused kernel optimized for AMD Instinct MI355X GPU.
+
+To be explicit, you will be given a tuple of tensors:
+
+(hidden_states,
+ gate_up_weight, down_weight,                                         # fp4x2 raw
+ gate_up_weight_scale, down_weight_scale,                             # e8m0  raw
+ gate_up_weight_shuffled, down_weight_shuffled,                       # fp4x2 pre-shuffled
+ gate_up_weight_scale_shuffled, down_weight_scale_shuffled,           # e8m0  pre-shuffled
+ topk_weights, topk_ids,
+ config)
+where:
+
+hidden_states is M x d_hidden in bfloat16 (the input activations, M = batch of tokens)
+gate_up_weight is [E, 2*d_expert_pad, d_hidden_pad//2] in MXFP4 (fp4x2), raw layout. Fused gate + up projection weights for each expert. E = number of local experts.
+down_weight is [E, d_hidden_pad, d_expert_pad//2] in MXFP4 (fp4x2), raw layout. Down projection weights for each expert.
+gate_up_weight_scale is [E, 2*d_expert_pad, d_hidden_pad//32] in E8M0, raw layout. Block scales (block_size=32) for gate_up_weight.
+down_weight_scale is [E, d_hidden_pad, d_expert_pad//32] in E8M0, raw layout. Block scales for down_weight.
+gate_up_weight_shuffled / down_weight_shuffled are the same weights shuffled to (16,16) tile-coalesced layout for the CK kernel.
+gate_up_weight_scale_shuffled / down_weight_scale_shuffled are the scales after e8m0_shuffle, flattened to [padded, flat].
+topk_weights is [M, total_top_k] float32: routing weights (routed experts + shared experts).
+topk_ids is [M, total_top_k] int32: expert indices. First nexpertspertoken columns are routed expert ids (0..n_routed-1), last nsharedexperts columns are shared expert ids (n_routed..n_routed+n_shared-1). Shared experts are always selected with weight=1.0.
+config is a dict with: d_hidden, d_expert, d_hidden_pad, d_expert_pad, n_routed_experts, n_shared_experts, n_experts_per_token, total_top_k, bs.
+Then, the fused_moe kernel flow is: (1) Quant activations to MXFP4: aiter per-1x32 dynamic quantization of hidden_states. (2) Stage 1 GEMM + activation (per token i, per assigned expert j): - gate = x_i @ W_gate_j.T # [d_hidden] x [d_expert, d_hidden].T -> [d_expert] - up = x_i @ W_up_j.T # [d_hidden] x [d_expert, d_hidden].T -> [d_expert] - intermediate = SiLU(gate) * up # SwiGLU activation, -> [d_expert] (W_gate and W_up are fused as gate_up_weight, so this is one a4w4 GEMM + fused activation) (3) Stage 2 GEMM: - expert_out = intermediate @ W_down_j.T # [d_expert] x [d_hidden, d_expert].T -> [d_hidden] (4) Weighted reduction: - output_i += w_ij * expert_out # accumulate across top_k experts All weight GEMMs are a4w4 (MXFP4 activations x MXFP4 weights, per-1x32 block scaling). The AITER CK kernel fuses all of the above into a 2-stage pipeline across all tokens and experts.
+
+DeepSeek-R1 MoE specs:
+
+hidden_size = 7168, moe_intermediate_size = 2048
+256 routed experts + 1 shared expert (total 257), top-8 routed + 1 shared = 9 per token
+58 MoE layers (layer 3-60)
+The shared expert processes ALL tokens unconditionally (weight=1.0)
+d_hidden_pad and d_expert_pad are the dimensions padded to 256-alignment for the CK kernel.
+
+The ranking criteria is the geometric mean of the benchmark results.
+
+The AITER reference performance is (E includes shared expert, top_k = routed + shared):
+  bs     E  d_hidden  d_expert  top_k  time[us]
+  16   257      7168       256      9    152.7
+ 128   257      7168       256      9    239.0
+ 512   257      7168       256      9    336.5
+  16    33      7168       512      9    106.2
+ 128    33      7168       512      9    141.1
+ 512    33      7168       512      9    225.0
+ 512    33      7168      2048      9    380.4
+Input:
+
+hidden_states: [M, d_hidden] bf16
+gate_up_weight: [E, 2*d_expert_pad, d_hidden_pad//2] fp4x2 (raw, before shuffle)
+down_weight: [E, d_hidden_pad, d_expert_pad//2] fp4x2 (raw, before shuffle)
+gate_up_weight_scale: [E, 2*d_expert_pad, d_hidden_pad//32] e8m0 (raw, before shuffle)
+down_weight_scale: [E, d_hidden_pad, d_expert_pad//32] e8m0 (raw, before shuffle)
+gate_up_weight_shuffled: [E, 2*d_expert_pad, d_hidden_pad//2] fp4x2 (pre-shuffled for CK)
+down_weight_shuffled: [E, d_hidden_pad, d_expert_pad//2] fp4x2 (pre-shuffled for CK)
+gate_up_weight_scale_shuffled: [padded, flat] e8m0 (pre-shuffled for CK)
+down_weight_scale_shuffled: [padded, flat] e8m0 (pre-shuffled for CK)
+topk_weights: [M, total_top_k] float32
+topk_ids: [M, total_top_k] int32
+config: dict with dimensions
+Output:
+
+output: [M, d_hidden] bf16
+Benchmark Shapes
+{"bs":16,"dexpert":256,"dhidden":7168,"nexpertspertoken":8,"nroutedexperts":256,"nsharedexperts":1}
+{"bs":128,"dexpert":256,"dhidden":7168,"nexpertspertoken":8,"nroutedexperts":256,"nsharedexperts":1}
+{"bs":512,"dexpert":256,"dhidden":7168,"nexpertspertoken":8,"nroutedexperts":256,"nsharedexperts":1}
+{"bs":16,"dexpert":512,"dhidden":7168,"nexpertspertoken":8,"nroutedexperts":32,"nsharedexperts":1}
+{"bs":128,"dexpert":512,"dhidden":7168,"nexpertspertoken":8,"nroutedexperts":32,"nsharedexperts":1}
+{"bs":512,"dexpert":512,"dhidden":7168,"nexpertspertoken":8,"nroutedexperts":32,"nsharedexperts":1}
+{"bs":512,"dexpert":2048,"dhidden":7168,"nexpertspertoken":8,"nroutedexperts":32,"nsharedexperts":1}""", """from utils import make_match_reference
+from task import input_t, output_t
+import torch
+import torch.nn.functional as F
+from typing import Dict, Tuple, Optional
+import math
+
+import aiter
+from aiter import ActivationType, QuantType, dtypes
+from aiter.fused_moe import fused_moe
+from aiter.utility import fp4_utils
+from aiter.ops.shuffle import shuffle_weight
+
+
+# ──────────────────────────────────────────────────────────────────────
+# Constants
+# ──────────────────────────────────────────────────────────────────────
+MXFP4_BLOCK_SIZE = 32
+PAD_ALIGN = 256
+
+
+def _pad_to(x: int, align: int) -> int:
+    return (x + align - 1) // align * align
+
+
+# ──────────────────────────────────────────────────────────────────────
+# generate_input: produce all tensors needed by ref_kernel
+#
+# Models DeepSeek-R1 MoE layer shapes:
+#   - d_hidden = 7168
+#   - d_expert = moe_intermediate_size (full=2048, or TP-split)
+#   - E_total = n_routed_experts + n_shared_experts (257 or 33)
+#   - top_k_total = nexpertspertoken + nsharedexperts (8+1=9)
+#
+# ──────────────────────────────────────────────────────────────────────
+def generate_input(
+    dhidden: int,
+    dexpert: int,
+    nroutedexperts: int,
+    nexpertspertoken: int,
+    nsharedexperts: int,
+    bs: int,
+    seed: int,
+) -> input_t:
+    d_hidden = dhidden
+    d_expert = dexpert
+    n_routed_experts = nroutedexperts
+    n_shared_experts = nsharedexperts
+    routed_top_k = nexpertspertoken
+    total_top_k = routed_top_k + n_shared_experts   # e.g. 8 + 1 = 9
+    E_total = n_routed_experts + n_shared_experts    # e.g. 256 + 1 = 257
+    M = bs  # number of tokens
+
+    # Padded dimensions (AITER MXFP4 requires 256-alignment)
+    d_hidden_pad = _pad_to(d_hidden, PAD_ALIGN)
+    d_expert_pad = _pad_to(d_expert, PAD_ALIGN)
+
+    config = {
+        "d_hidden": d_hidden,
+        "d_expert": d_expert,
+        "d_hidden_pad": d_hidden_pad,
+        "d_expert_pad": d_expert_pad,
+        "n_routed_experts": n_routed_experts,
+        "n_shared_experts": n_shared_experts,
+        "n_experts_per_token": routed_top_k,
+        "total_top_k": total_top_k,
+        "bs": M,
+    }
+
+    gen = torch.Generator(device='cuda')
+    gen.manual_seed(seed)
+
+    # ── hidden_states [M, d_hidden] ──
+    hidden_states = torch.randn(
+        (M, d_hidden), device='cuda', dtype=torch.bfloat16, generator=gen,
+    )
+
+    # ── Router: softmax top-k (routed experts only) ──
+    router_weight = torch.randn(
+        (n_routed_experts, d_hidden), device='cuda', dtype=torch.bfloat16, generator=gen,
+    ) / math.sqrt(d_hidden)
+    router_logits = F.linear(hidden_states, router_weight)  # [M, n_routed_experts]
+    scores = router_logits.softmax(dim=-1)
+    routed_weights, routed_ids = torch.topk(
+        scores, k=routed_top_k, dim=-1, sorted=False
+    )
+    routed_weights = routed_weights.to(torch.float32)
+    routed_ids = routed_ids.to(torch.int32)
+
+    # ── Append shared expert(s): always selected, weight = 1.0 ──
+    # Shared experts are indexed as n_routed_experts, n_routed_experts+1, ...
+    shared_ids = torch.arange(
+        n_routed_experts, E_total, device='cuda', dtype=torch.int32
+    ).unsqueeze(0).expand(M, -1)                               # [M, n_shared_experts]
+    shared_weights = torch.ones(
+        (M, n_shared_experts), device='cuda', dtype=torch.float32
+    )
+
+    topk_ids = torch.cat([routed_ids, shared_ids], dim=-1)        # [M, total_top_k]
+    topk_weights = torch.cat([routed_weights, shared_weights], dim=-1)  # [M, total_top_k]
+
+    gate_up_bf16 = torch.randn(
+        (E_total, 2 * d_expert_pad, d_hidden_pad), device='cuda', dtype=torch.bfloat16, generator=gen,
+    ) / math.sqrt(d_hidden)
+    down_bf16 = torch.randn(
+        (E_total, d_hidden_pad, d_expert_pad), device='cuda', dtype=torch.bfloat16, generator=gen,
+    ) / math.sqrt(d_expert)
+
+    torch_quant = aiter.get_torch_quant(QuantType.per_1x32)
+    gate_up_weight, gate_up_weight_scale = torch_quant(gate_up_bf16, quant_dtype=dtypes.fp4x2)
+    down_weight, down_weight_scale = torch_quant(down_bf16, quant_dtype=dtypes.fp4x2)
+    gate_up_weight = gate_up_weight.view(E_total, 2 * d_expert_pad, d_hidden_pad // 2)
+    down_weight = down_weight.view(E_total, d_hidden_pad, d_expert_pad // 2)
+
+    gate_up_weight_shuffled = shuffle_weight(gate_up_weight, layout=(16, 16))
+    down_weight_shuffled = shuffle_weight(down_weight, layout=(16, 16))
+    gate_up_weight_scale_shuffled = fp4_utils.e8m0_shuffle(gate_up_weight_scale)
+    down_weight_scale_shuffled = fp4_utils.e8m0_shuffle(down_weight_scale)
+
+    return (
+        hidden_states,                  # [M, d_hidden]                              bf16
+        gate_up_weight,                 # [E_total, 2*d_expert_pad, d_hidden_pad//2] fp4x2  (raw)
+        down_weight,                    # [E_total, d_hidden_pad, d_expert_pad//2]   fp4x2  (raw)
+        gate_up_weight_scale,           # [E_total, 2*d_expert_pad, scale_K]         e8m0   (raw)
+        down_weight_scale,              # [E_total, d_hidden_pad, scale_K]           e8m0   (raw)
+        gate_up_weight_shuffled,        # [E_total, 2*d_expert_pad, d_hidden_pad//2] fp4x2  (pre-shuffled)
+        down_weight_shuffled,           # [E_total, d_hidden_pad, d_expert_pad//2]   fp4x2  (pre-shuffled)
+        gate_up_weight_scale_shuffled,  # [padded, flat]                             e8m0   (pre-shuffled)
+        down_weight_scale_shuffled,     # [padded, flat]                             e8m0   (pre-shuffled)
+        topk_weights,                   # [M, total_top_k]                           float32
+        topk_ids,                       # [M, total_top_k]                           int32
+        config,
+    )
+
+
+
+
+# ──────────────────────────────────────────────────────────────────────
+# ref_kernel_pytorch: pure PyTorch implementation (dequant + matmul)
+# ──────────────────────────────────────────────────────────────────────
+def _dequant_mxfp4(weight_fp4, scale_e8m0):
+    """
+    Dequantize MXFP4 weight to float32.
+
+    weight_fp4:  [N, K//2]  fp4x2  (raw, not shuffled)
+    scale_e8m0:  [padded_N, ceil(K/32)] e8m0   (M-dim padded to 256-align by dynamic_mxfp4_quant)
+
+    Returns: [N, K] float32
+    """
+    # fp4x2 -> float32 lookup: [N, K]
+    w_f32 = fp4_utils.mxfp4_to_f32(weight_fp4)            # [N, K]
+    # e8m0 -> float32 power-of-2 scale: [padded_N, scale_K]
+    s_f32 = fp4_utils.e8m0_to_f32(scale_e8m0)             # [padded_N, scale_K]
+    N, K = w_f32.shape
+    # Trim scale rows to match weight rows (scale M-dim is padded to 256)
+    s_f32 = s_f32[:N, :]
+    # Broadcast scale across block_size=32 columns
+    s_f32 = s_f32.repeat_interleave(MXFP4_BLOCK_SIZE, dim=-1)[:, :K]  # [N, K]
+    return w_f32 * s_f32
+
+# ──────────────────────────────────────────────────────────────────────
+# ref_kernel_pytorch: pure PyTorch implementation (dequant + matmul)
+# will not run. only for reference
+# ──────────────────────────────────────────────────────────────────────
+def ref_kernel_pytorch(data: input_t) -> output_t:
+    """
+    Pure PyTorch reference: dequantize MXFP4 weights -> bf16 matmul -> SwiGLU -> matmul.
+    Uses the raw (un-shuffled) weights.
+    """
+    (
+        hidden_states,             # [M, d_hidden]          bf16
+        gate_up_weight,            # [E, 2*d_expert_pad, d_hidden_pad//2]  fp4x2
+        down_weight,               # [E, d_hidden_pad, d_expert_pad//2]    fp4x2
+        gate_up_weight_scale,      # [E, 2*d_expert_pad, scale_K]          e8m0
+        down_weight_scale,         # [E, d_hidden_pad, scale_K]            e8m0
+        gate_up_weight_shuffled,
+        down_weight_shuffled,
+        gate_up_weight_scale_shuffled,
+        down_weight_scale_shuffled,
+        topk_weights,              # [M, top_k]  float32
+        topk_ids,                  # [M, top_k]  int32
+        config,
+    ) = data
+
+    d_hidden = config["d_hidden"]
+    d_expert = config["d_expert"]
+    d_hidden_pad = config["d_hidden_pad"]
+    d_expert_pad = config["d_expert_pad"]
+    M = hidden_states.shape[0]
+    top_k = topk_ids.shape[1]
+    E = gate_up_weight.shape[0]
+
+    # Dequantize all expert weights to float32
+    # gate_up: [E, 2*d_expert_pad, d_hidden_pad] -> trim to [E, 2*d_expert, d_hidden]
+    # down:    [E, d_hidden_pad, d_expert_pad]    -> trim to [E, d_hidden, d_expert]
+    gate_up_dq = torch.stack([
+        _dequant_mxfp4(gate_up_weight[e], gate_up_weight_scale[e])
+        for e in range(E)
+    ])  # [E, 2*d_expert_pad, d_hidden_pad]
+    gate_up_dq = gate_up_dq[:, :2 * d_expert, :d_hidden].to(torch.bfloat16)
+
+    down_dq = torch.stack([
+        _dequant_mxfp4(down_weight[e], down_weight_scale[e])
+        for e in range(E)
+    ])  # [E, d_hidden_pad, d_expert_pad]
+    down_dq = down_dq[:, :d_hidden, :d_expert].to(torch.bfloat16)
+
+    # Split gate_up -> gate [E, d_expert, d_hidden], up [E, d_expert, d_hidden]
+    gate_w, up_w = gate_up_dq.chunk(2, dim=1)  # each [E, d_expert, d_hidden]
+
+    # Per-token MoE forward
+    output = torch.zeros((M, d_hidden), dtype=torch.bfloat16, device=hidden_states.device)
+
+    for i in range(M):
+        x = hidden_states[i]  # [d_hidden]
+        for k in range(top_k):
+            eid = topk_ids[i, k].item()
+            w = topk_weights[i, k].item()
+
+            # Stage 1: gate_proj + up_proj + SwiGLU
+            gate_out = F.silu(x @ gate_w[eid].T)     # [d_expert]
+            up_out = x @ up_w[eid].T                  # [d_expert]
+            intermediate = gate_out * up_out           # [d_expert]
+
+            # Stage 2: down_proj
+            # down_dq[eid] is [d_hidden, d_expert], .T is [d_expert, d_hidden]
+            expert_out = intermediate @ down_dq[eid].T  # [d_hidden]
+
+            output[i] += w * expert_out
+
+    return output
+
+
+
+# ──────────────────────────────────────────────────────────────────────
+# ref_kernel: calls AITER fused_moe with MXFP4 quantized weights
+# ──────────────────────────────────────────────────────────────────────
+def ref_kernel(data: input_t) -> output_t:
+    """
+    Reference implementation using AITER's fused_moe kernel with MXFP4 quantized weights.
+
+    Input data tuple (E = n_routed_experts + n_shared_experts, total_top_k = routed + shared):
+        hidden_states:                [M, d_hidden]                           bf16
+        gate_up_weight:               [E, 2*d_expert_pad, d_hidden_pad//2]    fp4x2  (raw, before shuffle)
+        down_weight:                  [E, d_hidden_pad, d_expert_pad//2]      fp4x2  (raw, before shuffle)
+        gate_up_weight_scale:         [E, 2*d_expert_pad, scale_K]            e8m0   (raw, before shuffle)
+        down_weight_scale:            [E, d_hidden_pad, scale_K]              e8m0   (raw, before shuffle)
+        gate_up_weight_shuffled:      [E, 2*d_expert_pad, d_hidden_pad//2]    fp4x2  (pre-shuffled)
+        down_weight_shuffled:         [E, d_hidden_pad, d_expert_pad//2]      fp4x2  (pre-shuffled)
+        gate_up_weight_scale_shuffled:[padded, flat]                          e8m0   (pre-shuffled)
+        down_weight_scale_shuffled:   [padded, flat]                          e8m0   (pre-shuffled)
+        topk_weights:                 [M, total_top_k]                        float32
+        topk_ids:                     [M, total_top_k]                        int32
+        config:                       dict
+
+    Returns:
+        output: [M, d_hidden] bf16
+    """
+    (
+        hidden_states,
+        gate_up_weight,
+        down_weight,
+        gate_up_weight_scale,
+        down_weight_scale,
+        gate_up_weight_shuffled,
+        down_weight_shuffled,
+        gate_up_weight_scale_shuffled,
+        down_weight_scale_shuffled,
+        topk_weights,
+        topk_ids,
+        config,
+    ) = data
+
+    hidden_pad = config["d_hidden_pad"] - config["d_hidden"]
+    intermediate_pad = config["d_expert_pad"] - config["d_expert"]
+
+    output = fused_moe(
+        hidden_states,
+        gate_up_weight_shuffled,
+        down_weight_shuffled,
+        topk_weights,
+        topk_ids,
+        expert_mask=None,
+        activation=ActivationType.Silu,
+        quant_type=QuantType.per_1x32,  # MXFP4 uses per_1x32 block scaling
+        doweight_stage1=False,
+        w1_scale=gate_up_weight_scale_shuffled,
+        w2_scale=down_weight_scale_shuffled,
+        a1_scale=None,
+        a2_scale=None,
+        hidden_pad=hidden_pad,
+        intermediate_pad=intermediate_pad,
+    )
+
+    return output
+
+
+
+check_implementation = make_match_reference(ref_kernel, rtol=5e-2, atol=5e-2)
+""", """amd-mxfp4-mm
+Ends 2026-04-07 07:59 UTC
+
+Description
+You will implement a quantize func and block scaled MXFP4 matrix-matrix multiplication kernel optimized for AMD Instinct MI355X GPU. To be explicit, you will be given a tuple of tensors:
+
+(A, B, B_q, B_shuffle, B_scale_sh)
+where:
+
+A is M x K in K-major order in bfloat16
+B is N x K in K-major order in bfloat16
+B_q is N x K/2 in K-major order in MXFP4
+B_shuffle is N x K/2 in shuffled order in MXFP4, shuffled to (16,16) tile coalesced
+B_scale_sh is * x K/32 in E8M0, * means it will be padded.
+Then, the kernel flow is bf16 A, MXFP4 B -> MXFP4 per-1x32 quant A -> gemm_a4w4 -> BF16 C [m,n]. To be specific, the invocation flow is: (1) Quant A to MXFP4: aiter.get_triton_quant(QuantType.per_1x32). (2) GEMM: aiter.gemm_a4w4. m, n divisible by 64; k divisible by 64.
+
+The ranking criteria is the geometric mean of the benchmark results. Pls note that this is the elimination round, whoever rank top5 are selected into the next round, e2e optimization for deepseek-R1-MXFP4 and GPTOSS-MXFP4 mdoel
+
+The aiter performance is:
+M   N    K   time[us]
+  4 2880   512  8.198
+ 16 2112  7168 20.873
+ 32 4096   512  9.462
+ 32 2880   512  9.173
+ 64 7168  2048 12.738
+256 3072  1536 12.219
+Benchmark Shapes
+{"k":512,"m":4,"n":2880}
+{"k":7168,"m":16,"n":2112}
+{"k":512,"m":32,"n":4096}
+{"k":512,"m":32,"n":2880}
+{"k":2048,"m":64,"n":7168}
+{"k":1536,"m":256,"n":3072}""", """"""
+FP4 quant + FP4 GEMM reference: bf16 A, MXFP4 B -> MXFP4 per-1x32 quant A -> gemm_a4w4 -> bf16 C.
+Quant logic follows aiter op_tests/test_gemm_a4w4.py (get_triton_quant(QuantType.per_1x32)).
+
+NOTE: Explicitly uses dynamic_mxfp4_quant from aiter.ops.triton.quant (patched in #975)
+      rather than going through aiter.get_triton_quant, which may dispatch to the
+      unpatched fp4_utils.py kernel. See ROCm/aiter#974, ROCm/aiter#975.
+"""
+import torch
+from task import input_t, output_t
+from utils import make_match_reference
+from aiter import QuantType,dtypes
+import aiter
+from aiter.ops.shuffle import shuffle_weight
+from aiter.ops.triton.quant import dynamic_mxfp4_quant  # #975-patched kernel
+from aiter.utility.fp4_utils import e8m0_shuffle
+# K must be divisible by 64 (scale group 32 and fp4 pack 2)
+SCALE_GROUP_SIZE = 32
+
+def _quant_mxfp4(x, shuffle=True):
+    x_fp4, bs_e8m0 = dynamic_mxfp4_quant(x)
+    if shuffle:
+        bs_e8m0 = e8m0_shuffle(bs_e8m0)
+    return x_fp4.view(dtypes.fp4x2), bs_e8m0.view(dtypes.fp8_e8m0)
+
+def generate_input(m: int, n: int, k: int, seed: int):# -> input_t:
+    """
+    Generate random bf16 inputs A [m, k], B [n, k] and quantized MXFP4 B, shuffled B and B_scale.
+
+    Returns:
+        Tuple of (A, B), both bf16 on cuda.
+    """
+    assert k % 64 == 0, "k must be divisible by 64 (scale group 32 and fp4 pack 2)"
+    gen = torch.Generator(device="cuda")
+    gen.manual_seed(seed)
+    A = torch.randn((m, k), dtype=torch.bfloat16, device="cuda", generator=gen)
+    B = torch.randn((n, k), dtype=torch.bfloat16, device="cuda", generator=gen)
+    B_q, B_scale_sh = _quant_mxfp4(B, shuffle=True)
+    # shuffle B(weight) to (16,16) tile coalesced
+    B_shuffle = shuffle_weight(B_q, layout=(16, 16))
+    return (A, B, B_q, B_shuffle, B_scale_sh)
+
+def run_torch_fp4_mm(
+    x: torch.Tensor,
+    w: torch.Tensor,
+    x_scales: torch.Tensor,
+    w_scales: torch.Tensor,
+    dtype: torch.dtype = torch.bfloat16,
+) -> torch.Tensor:
+    """
+    PyTorch reference: dequant MXFP4 + E8M0 scale -> f32 -> mm -> dtype.
+    Same logic as aiter op_tests/test_gemm_a4w4.run_torch.
+    x: [m, k//2] fp4 packed, w: [n, k//2] fp4 packed
+    x_scales: [m, k//32] E8M0, w_scales: [n, k//32] E8M0
+    Returns: [m, n] in dtype
+    """
+    from aiter.utility import fp4_utils
+
+    m, _ = x.shape
+    n, _ = w.shape
+    # fp4 packed -> f32
+    x_f32 = fp4_utils.mxfp4_to_f32(x)
+    w_f32 = fp4_utils.mxfp4_to_f32(w)
+    # E8M0 scale: [*, k//32] -> repeat 32 along k -> f32
+    x_scales = x_scales[:m].repeat_interleave(SCALE_GROUP_SIZE, dim=1)
+    x_scales_f32 = fp4_utils.e8m0_to_f32(x_scales)
+    x_f32 = x_f32 * x_scales_f32
+    w_scales = w_scales[:n].repeat_interleave(SCALE_GROUP_SIZE, dim=1)
+    w_scales_f32 = fp4_utils.e8m0_to_f32(w_scales)
+    w_f32 = w_f32 * w_scales_f32
+    return torch.mm(x_f32, w_f32.T).to(dtype)[:m, :n]
+
+
+def ref_kernel(data: input_t) -> output_t:
+    """
+    Reference: MXFP4 per-1x32 quant on A and B; both PyTorch ref and gemm_a4w4 are given.
+    Returns gemm_a4w4 for check_implementation.
+    """
+    A, B, B_q, B_shuffle, B_scale_sh = data
+    A = A.contiguous()
+    B = B.contiguous()
+    m, k = A.shape
+    n, _ = B.shape
+    
+    # 1) PyTorch impl just for your reference: dequant fp4 + e8m0 -> f32 -> mm -> bf16
+    # Per-1x32 MXFP4 quant
+    # A_q, A_scale = _quant_mxfp4(A, shuffle=False)
+    # B_q, B_scale = _quant_mxfp4(B, shuffle=False)
+
+    # gemm_a4w4 expects A [M,K/2], B [N,K/2] as dtypes.fp4x2; A_scale/B_scale [*,K/32] E8M0
+    # quant_func returns scale as dtypes.fp8_e8m0; gemm_a4w4 accepts E8M0, no view to uint8 needed
+    # slice to exact shapes [m,k_scale] / [n,k_scale] (quant may return padded scale)
+    
+    # k_scale = k // SCALE_GROUP_SIZE
+    # A_scale = A_scale[:m, :k_scale].contiguous()
+    # B_scale = B_scale[:n, :k_scale].contiguous()
+    # out_torch = run_torch_fp4_mm(A_q, B_q, A_scale, B_scale, torch.bfloat16)
+
+    # 2) aiter.gemm_a4w4 path: needs shuffled B_q and shuffled scales (see test_gemm_a4w4.py:102-105)
+    A_q, A_scale_sh = _quant_mxfp4(A, shuffle=True)
+    # to be noted, aiter also has other a4w4 implements using triton, https://github.com/ROCm/aiter/blob/main/aiter/ops/triton/gemm/basic/gemm_afp4wfp4.py
+    out_gemm = aiter.gemm_a4w4(
+        A_q,
+        B_shuffle,
+        A_scale_sh,
+        B_scale_sh,
+        dtype=dtypes.bf16,
+        bpreshuffle=True,
+    )
+    return out_gemm
+
+check_implementation = make_match_reference(ref_kernel, rtol=1e-02, atol=1e-02)""" and claude code is at 84% usage
+
+---
+
+<task-notification>
+<task-id>b60rlf8m0</task-id>
+<tool-use-id>toolu_01XoAMMyakM8PX9tQzpmCK6U</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/2290a242-3e60-4758-a1c1-cb0440fbfda6/tasks/b60rlf8m0.output</output-file>
+<status>completed</status>
+<summary>Background command "Submit MoE dispatch_policy to leaderboard" completed (exit code 0)</summary>
+</task-notification>
+
+---
+
+Why are we not making custom kernels yet?
+
+---
+
+<task-notification>
+<task-id>bszo0plnz</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/2290a242-3e60-4758-a1c1-cb0440fbfda6/tasks/bszo0plnz.output</output-file>
+<status>failed</status>
+<summary>Background command "Test fused quant+GEMM kernel correctness" failed with exit code 1</summary>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>b7dss7wpx</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/2290a242-3e60-4758-a1c1-cb0440fbfda6/tasks/b7dss7wpx.output</output-file>
+<status>completed</status>
+<summary>Background command "Test MLA mla_decode_fwd direct variant" completed (exit code 0)</summary>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>b9jwy46oc</task-id>
+<tool-use-id>toolu_01H9gLCW8brScyJbJbtUNuEm</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/2290a242-3e60-4758-a1c1-cb0440fbfda6/tasks/b9jwy46oc.output</output-file>
+<status>failed</status>
+<summary>Background command "Submit MLA decode_fwd direct to leaderboard" failed with exit code 1</summary>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>btrmhy4n3</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/2290a242-3e60-4758-a1c1-cb0440fbfda6/tasks/btrmhy4n3.output</output-file>
+<status>failed</status>
+<summary>Background command "Retry fused GEMM without explicit stream" failed with exit code 1</summary>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>bqkn613ls</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/2290a242-3e60-4758-a1c1-cb0440fbfda6/tasks/bqkn613ls.output</output-file>
+<status>failed</status>
+<summary>Background command "Benchmark MLA decode_fwd direct" failed with exit code 1</summary>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>b6v1s8am8</task-id>
+<tool-use-id>toolu_01CkG9nn5nChUqd5HNho4Fnu</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/2290a242-3e60-4758-a1c1-cb0440fbfda6/tasks/b6v1s8am8.output</output-file>
+<status>failed</status>
+<summary>Background command "Test Triton FP4 GEMM variant" failed with exit code 1</summary>
+</task-notification>
+
+---
+
+Use all of our skills, knowledge, and experience and https://github.com/flagos-ai/awesome-LLM-driven-kernel-generation
+
+---
+
+<task-notification>
+<task-id>b3cjs50r6</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/2290a242-3e60-4758-a1c1-cb0440fbfda6/tasks/b3cjs50r6.output</output-file>
+<status>failed</status>
+<summary>Background command "Test small-tile MFMA GEMM" failed with exit code 1</summary>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>a221d5b7c8d1ea168</task-id>
+<tool-use-id>toolu_01JDVRu461LSLRWxQjU6gMqL</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/2290a242-3e60-4758-a1c1-cb0440fbfda6/tasks/a221d5b7c8d1ea168.output</output-file>
+<status>completed</status>
+<summary>Agent "Iterate MLA kernel variants" completed</summary>
+<result>API Error: 529 {"type":"error","error":{"type":"overloaded_error","message":"Overloaded"},"request_id":"req_011CZoDAM2dvY8TSWMYxJ1cp"}</result>
+<usage><total_tokens>516</total_tokens><tool_uses>25</tool_uses><duration_ms>1976755</duration_ms></usage>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>b7yzfb6r7</task-id>
+<tool-use-id>toolu_01V96FaqHCqs4cXgKocoVJEK</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/2290a242-3e60-4758-a1c1-cb0440fbfda6/tasks/b7yzfb6r7.output</output-file>
+<status>failed</status>
+<summary>Background command "Submit MLA aggressive splits to leaderboard" failed with exit code 1</summary>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>beuu1qjvh</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/2290a242-3e60-4758-a1c1-cb0440fbfda6/tasks/beuu1qjvh.output</output-file>
+<status>failed</status>
+<summary>Background command "Retry smalltile GEMM test" failed with exit code 1</summary>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>a0ced185e6f81e705</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/2290a242-3e60-4758-a1c1-cb0440fbfda6/tasks/a0ced185e6f81e705.output</output-file>
+<status>completed</status>
+<summary>Agent "Generate GEMM kernel variants" completed</summary>
+<result>Both files pass all structural checks. The runner timeouts were purely due to queue saturation on the competition deadline day.
+
+Here is the full summary:
+
+---
+
+## Summary
+
+Both submission files were created and submitted for testing. The runner was heavily overloaded (competition deadline is 2026-04-07 07:59 UTC) — all test attempts timed out with "Workflow cancelled - exceeded 12 minute timeout", meaning the submissions never got a GPU slot to execute. The timeouts are queue failures, not correctness failures.
+
+### Files Created
+
+**`/home/mike-anderson/dev/cohezion/luma_speedrun/amd-mxfp4-mm/submission_tile32x128.py`**
+- BLOCK_M=32, BLOCK_N=128, 4 waves (256 threads)
+- Wave decomposition: each of 4 waves owns 1 MFMA 32×32 output tile (N-column slice), wave 0 is load master
+- Targets M=4,16,32 shapes — creates ceil(M/32)×ceil(N/128) blocks vs the v2's ceil(M/128)×ceil(N/256)
+- For M=16, N=2112: 1×17=17 blocks vs 1×9=9 blocks in v2 (better CU utilization)
+- Falls back to aiter on compile failure
+
+**`/home/mike-anderson/dev/cohezion/luma_speedrun/amd-mxfp4-mm/submission_shape_dispatch.py`**
+- Two separate load_inline kernels compiled at startup:
+  - Kernel A (32×128, 4 waves): dispatched when M≤32
+  - Kernel B (128×256, 8 waves): the proven v2 blog kernel, dispatched when M&gt;32
+- Expected routing: all 4 small-M shapes (M=4,16,32) → Kernel A; M=64,256 → Kernel B
+- Either kernel failing falls back to aiter independently
+
+### Structural Validation
+Both files pass: valid Python syntax, correct `#!POPCORN` headers, `custom_kernel` function, `load_inline`, `__builtin_amdgcn_mfma_scale_f32_32x32x64_f8f6f4` MFMA intrinsic, `dynamic_mxfp4_quant` + `e8m0_shuffle` for A quantization, and `_aiter_fallback`.
+
+### Test Results
+- **submission_tile32x128.py**: Submitted (ID 752979, status "done") but timed out 3 times due to runner saturation. No correctness verdict yet.
+- **submission_shape_dispatch.py**: First attempt rate-limited (5/5 per hour), second attempt timed out at 12 minutes. No correctness verdict yet.
+- Runner saturation will likely ease overnight. Recommend re-running both with `popcorn submit &lt;file&gt; --mode test --leaderboard amd-mxfp4-mm --no-tui` when the queue clears.
+
+### Key Design Decision
+The `tile32x128` uses a single load wave (wave 0 issues all prefetch loads; waves 1-3 stall at a barrier). This is simpler than the v2's 2-group ping-pong but sufficient for 4 waves — there are only 64 threads doing loads vs 512 in the v2, which is appropriate since the LDS sizes are 5× smaller (10 KB vs 48 KB).</result>
+<usage><total_tokens>116596</total_tokens><tool_uses>59</tool_uses><duration_ms>5874033</duration_ms></usage>
+</task-notification>
+
+---
+
+Can't we do any TDD and adversarial review?  How do we have no idea what we are doing after all this time?
+
+---
+
+Keep improving
+
+---
+
+<task-notification>
+<task-id>bfbz9jvo4</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/2290a242-3e60-4758-a1c1-cb0440fbfda6/tasks/bfbz9jvo4.output</output-file>
+<status>failed</status>
+<summary>Background command "Retry tile32x128 test (queue may have cleared)" failed with exit code 1</summary>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>b03enrk6z</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/2290a242-3e60-4758-a1c1-cb0440fbfda6/tasks/b03enrk6z.output</output-file>
+<status>failed</status>
+<summary>Background command "Test shape_dispatch kernel" failed with exit code 1</summary>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>bw80qo9dx</task-id>
+<tool-use-id>toolu_01AuwztsYQQQA7Kb23TpYsCG</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/2290a242-3e60-4758-a1c1-cb0440fbfda6/tasks/bw80qo9dx.output</output-file>
+<status>failed</status>
+<summary>Background command "Submit shape_dispatch to leaderboard" failed with exit code 1</summary>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>bykkqewnf</task-id>
+<tool-use-id>toolu_0178HRhwhVaPfu86jhv58kfi</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/2290a242-3e60-4758-a1c1-cb0440fbfda6/tasks/bykkqewnf.output</output-file>
+<status>completed</status>
+<summary>Background command "Submit MoE dispatch1+ksplit to leaderboard" completed (exit code 0)</summary>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>blj8n2a56</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/2290a242-3e60-4758-a1c1-cb0440fbfda6/tasks/blj8n2a56.output</output-file>
+<status>completed</status>
+<summary>Background command "Submit improved tile32x128 to leaderboard" completed (exit code 0)</summary>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>bi6qx6o3l</task-id>
+<tool-use-id>toolu_01NGg2huAVjdGfcgPFquXeBj</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/2290a242-3e60-4758-a1c1-cb0440fbfda6/tasks/bi6qx6o3l.output</output-file>
+<status>failed</status>
+<summary>Background command "Submit shape_dispatch to leaderboard (background)" failed with exit code 1</summary>
+</task-notification>
+
+---
+
+Are we using what makes Cohezion special to tackle these challenges?
