@@ -1,0 +1,1274 @@
+Where do we stand with luma speedrun?
+
+---
+
+What about actual breakthroughs?  We only have a few days left and haven't improved in many days.  Where we're tying to get to
+Leaderboard Rank 1:
+amd-mxfp4-mm: 1.000μs
+amd-moe-mxfp4: 107.345μs
+amd-mixed-mla: 12.685μs
+
+Where we currently stand
+manderson240 Best:
+amd-mxfp4-mm: 13.425μs 
+amd-moe-mxfp4: 154.183μs 
+amd-mixed-mla: 69.745μs
+
+---
+
+Continue
+
+---
+
+<task-notification>
+<task-id>b5tzoiy8d</task-id>
+<tool-use-id>toolu_01UEbSSZM22MvYKqUpdcvXFY</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/39fab44e-e845-4874-bdb0-46d029178216/tasks/b5tzoiy8d.output</output-file>
+<status>completed</status>
+<summary>Background command "Test ASM-only MLA submission" completed (exit code 0)</summary>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>bw6x3xst4</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/39fab44e-e845-4874-bdb0-46d029178216/tasks/bw6x3xst4.output</output-file>
+<status>completed</status>
+<summary>Background command "Benchmark ASM-only MLA" completed (exit code 0)</summary>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>b2k8qv1l6</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/39fab44e-e845-4874-bdb0-46d029178216/tasks/b2k8qv1l6.output</output-file>
+<status>completed</status>
+<summary>Background command "Benchmark MLA with mla_decode_fwd wrapper" completed (exit code 0)</summary>
+</task-notification>
+
+---
+
+Continue
+
+---
+
+Can we do additional researcH for breakthroughs?
+
+---
+
+<task-notification>
+<task-id>aee086bc6bf06ed72</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/39fab44e-e845-4874-bdb0-46d029178216/tasks/aee086bc6bf06ed72.output</output-file>
+<status>completed</status>
+<summary>Agent "Research amd_202602 template directory" completed</summary>
+<result>Now let me create the final comprehensive report:
+
+Based on my thorough exploration of the `/home/mike-anderson/dev/cohezion/luma_speedrun` directory, here is a comprehensive inventory of optimization techniques and patterns discovered:
+
+## COMPREHENSIVE OPTIMIZATION TECHNIQUES INVENTORY
+
+### DIRECTORY STRUCTURE
+- **amd-mxfp4-mm/**: 46 submission files (GEMM optimization attempts)
+- **amd-mixed-mla/**: 14 submission files + 4 probe files (MLA optimization)
+- **amd-moe-mxfp4/**: 13 submission files + 3 probe files (MoE optimization)
+- **Documentation**: 4 major optimization reports detailing exhaustive approaches
+
+---
+
+## GEMM OPTIMIZATION TECHNIQUES (amd-mxfp4-mm) - 23.1µs Best
+
+### Currently Used:
+1. **FP4 MFMA Inline Quantization** (submission.py)
+   - Reads BF16 A directly, quantizes to FP4 E2M1 in registers
+   - Per-32-element E8M0 scale computation inline
+   - Uses `__builtin_amdgcn_mfma_scale_f32_32x32x64_f8f6f4` instruction
+   - Custom HIP kernel compiled via load_inline (fallback to aiter.gemm_a4w4_asm)
+
+2. **Adaptive Aiter API Parameter Tuning**
+   - `aiter.gemm_a4w4_asm()` with log2_k_split=0 (better than default)
+   - BYPASS_TUNE_CONFIG=1 to skip CSV lookup
+   - bpreshuffle=True for XCD-aware memory layout
+   - Kernel selection: "REDACTED"
+
+3. **HipKittens-Inspired Tile Optimization** (submission_hipkittens_gemm.py)
+   - 8-wave ping-pong scheduling
+   - XCD-aware memory layout (chiplet optimization)
+   - MFMA instruction fusion for FP4x2 weights
+   - Constants: HIPKITTENS_MFMA_TILE_M=16, TILE_N=16, TILE_K=64
+
+### NOT YET SUCCESSFULLY IMPLEMENTED (Blocked):
+1. **load_inline Custom HIP Kernels** - Runner sandbox blocks torch.utils.cpp_extension.load_inline()
+   - Tiled shared-memory implementation (submission_loadinline.py) - 10,744 lines
+   - Minimal load_inline variants tested but execution blocked
+   - Theoretical performance: &lt;10µs if enabled
+
+2. **Alternative Libraries** (Tested but slower)
+   - tritonblas.matmul_fp4: ~26µs (68% slower than aiter)
+   - DeepGEMM-style: no improvement
+   - Custom Triton kernels: 68% slower than ASM baseline
+
+3. **Direct Kernel Selection** (Bottleneck identified)
+   - M=16,N=2112,K=7168 shape lacks optimal 16x128 kernel
+   - Auto-tuner falls back to 32x128 (wastes 50% thread capacity)
+   - Requires either: aiter upstream 16x128 kernel OR load_inline permission
+
+### Environment Variables Explored:
+- `AITER_KSPLIT=0,1,2,3,4` - No improvement except log2_k_split=0
+- `AITER_PERSISTENT_BO=1` - No change
+- `AITER_BYPASS_TUNE_CONFIG=1` - Essential for consistency
+- `PYTORCH_ROCM_ARCH=gfx950` - Required
+- `CXX=clang++` - For compilation
+
+---
+
+## MLA OPTIMIZATION TECHNIQUES (amd-mixed-mla) - 70µs Best, 33µs Target
+
+### Currently Used:
+1. **Three-Regime Adaptive Routing** (submission.py)
+   - **Regime 1**: torch.einsum for bs≤4 or total_kv≤32,768
+   - **Regime 2**: mla_decode_fwd wrapper + mla_decode_stage1_asm_fwd
+   - **Regime 3**: mla_reduce_v1 for final reduction
+   - Aggressive metadata caching (per shape key)
+
+2. **Adaptive num_kv_splits Schedule**
+   - total_kv ≤ 1,024: 1 split
+   - total_kv ≤ 8,192: 4 splits
+   - total_kv ≤ 65,536: 8 splits
+   - total_kv ≤ 524,288: 16 splits
+   - Default: 32 splits
+
+3. **FP8 Quantization Pipeline**
+   - Dynamic per-tensor FP8 quantization for Q and KV
+   - amax clamping to avoid division by zero
+   - Scale stored as separate tensor
+
+4. **FlashAttention v3 with Padding** (submission_fmhav3_padded.py)
+   - Pads V from 512 to 576 dims to match K
+   - Uses `fmha_v3_varlen_fwd` with variable length support
+   - Fallback to einsum or standard MLA if incompatible
+
+5. **Ultra-Aggressive Matmul Thresholds** (submission_ultra_aggressive.py)
+   - Extends einsum path: bs≤16 or total_kv≤131,072
+   - Exploits rtol=0.1 tolerance for faster path selection
+
+### NOT YET SUCCESSFULLY IMPLEMENTED (Blocked):
+1. **CUDA Graph Capture** (submission_cudagraph.py)
+   - Attempted to capture stage1+reduce_v1 in single graph
+   - Blocked: CPU-GPU sync in aiter prevents graph recording
+   - Would save ~21-25µs on second+ calls if working
+
+2. **Direct CK Kernel Dispatch via ctypes** (submission_direct_ck.py)
+   - Attempted hipModuleLaunchKernel bypass
+   - Blocked: Stream isolation + sandbox restrictions
+   - Kernel loading fails at runtime
+
+3. **load_inline Fused Custom Kernel** (submission_loadinline.py)
+   - Partial implementation: FP8 quantization kernel works
+   - Full MLA kernel fusion blocked by sandbox
+
+4. **SDPA Fusion** (submission_sdpa.py)
+   - 4 ops → 1 dispatch for small batches
+   - Incompatible with K_dim(576) ≠ V_dim(512) constraint
+
+### Identified Python Dispatch Floor:
+- Q FP8 quantization: ~8-12µs
+- stage1_asm_fwd dispatch: ~12-15µs
+- Kernel execution: ~25-30µs
+- mla_reduce_v1 dispatch: ~12-15µs
+- Python overhead: ~5-8µs
+- **Minimum with Python: ~45-50µs vs. 33µs target**
+
+---
+
+## MoE OPTIMIZATION TECHNIQUES (amd-moe-mxfp4) - 154µs Best, 107µs Target
+
+### Currently Used:
+1. **Adaptive KSPLIT Based on Token Distribution** (submission.py)
+   - estimated_m &lt; 8: AITER_KSPLIT=1 (minimal split for tiny batches)
+   - 8 ≤ estimated_m &lt; 20: AITER_KSPLIT=2
+   - estimated_m ≥ 20: No KSPLIT (use default CK path)
+   - Avoids overflow on 32-expert shapes
+
+2. **load_inline Input Preparation** (Fused in submission.py)
+   - Fuses: contiguity checks + padding computation into single C++ dispatch
+   - HIP kernel: `prepare_moe_inputs()` with torch::Tensor operations
+   - Minimal performance gain (~1-2µs) but reduces Python overhead
+
+3. **Pre-shuffled Weights with per_1x32 Quantization**
+   - `shuffle_weight(layout=(16,16))` for memory layout optimization
+   - `QuantType.per_1x32` block-wise quantization
+   - E8M0 scale format
+   - `doweight_stage1=False` critical (True causes crashes)
+
+4. **Non-Temporal Load Hints** (submission.py)
+   - `AITER_USE_NT=1` environment variable
+   - Marginal improvement on large batch MoE
+   - No effect on small batch shapes
+
+5. **JIT Module Path Optimization** (submission.py)
+   - Pre-cache aiter JIT build paths in sys.path
+   - Avoids redundant module discovery on each call
+   - Expected gain: 5-10ms on first call
+
+### NOT YET SUCCESSFULLY IMPLEMENTED (Tested but Blocked):
+1. **Expert Masking for Sparse Dispatch** (submission_expert_mask.py - IN TESTING)
+   - Computes `torch.bincount(topk_ids.flatten())` to identify active experts
+   - Passes `expert_mask=(expert_counts&gt;0).int32` to fused_moe
+   - Expected gain: ~10-15µs (skip 200+ empty expert dispatches)
+   - Risk: MEDIUM (may crash or produce incorrect results)
+   - Status: Last tested as submission #725239
+
+2. **CK-Tile FlatMM Patterns** (submission_cktile_moe.py, submission_cktile_moe_v2.py)
+   - Uses naked MFMA instruction: `__builtin_amdgcn_mfma_scale_f32_32x32x64_f8f6f4`
+   - LDS-based Stage 1+2 fusion (intermediate stays in shared memory)
+   - 8-wave compute pipeline for occupancy saturation
+   - CDNA4 architecture constants: NUM_CUS=304, WAVES_PER_CU=8
+   - Blocked: load_inline requirement
+
+3. **ASM MoE Path** (submission_asm_moe.py)
+   - Uses aiter.asm_moe() hand-tuned assembly
+   - Claims "best performance on AMD platform"
+   - Tested but no improvement over fused_moe
+
+4. **FP8 Block Scaling** (submission_fp8_blockscale.py)
+   - Alternative quantization: per-block FP8 instead of per_1x32
+   - No performance improvement documented
+
+### CK-Tile Research Summary (CKTILE_RESEARCH_SUMMARY.md):
+Key patterns for MI355X optimization:
+- **FlatMM Architecture**: Global A/B with scales → Shared memory tiles → MFMA compute
+- **Scaled MFMA Coverage**: Each instruction processes 32x32x64 FP4 = 65,536 ops
+- **Expert-Parallel Saturation**: 304 CUs → 12+ waves per expert minimum
+- **Grid Config**: dim3 grid(min(304, num_experts)); dim3 block(256);
+
+---
+
+## CROSS-KERNEL PATTERNS &amp; UTILITIES NOT YET LEVERAGED
+
+### 1. **K-Search Autoresearch Framework**
+- **Files**: autoresearch/state/{gemm,mla,moe}_tree.json
+- **Status**: All attempts rate-limited or blocked
+- **Strategies Attempted**: random_tile_size, swap_memory_layout, fuse_adjacent_ops, unroll_factor_sweep, prefetch_distance_sweep
+- **Blockers**: Type hint mismatches in API mutations, rate limits (10/hour), compile errors
+
+### 2. **Probe/Experimental Kernels**
+- **GEMM probes**: submission_probe.py, submission_probe_quant.py, submission_probe_source.py (HIP kernel inspection)
+- **MLA probes**: probe_asm_source.py, probe_asm_source_v2.py, probe_direct_ck.py, probe_direct_ck_v2.py (kernel signature analysis)
+- **MoE probes**: probe_asm_moe.py, probe_fp8_blockscale.py, probe_moe_sorting_mask.py (expert dispatch variants)
+
+### 3. **Alternative Dispatch Methods (All Blocked)**
+- **hipRTC (Runtime Compilation)**: Sandbox restrictions
+- **torch.cuda._compile_kernel()**: ROCm doesn't implement
+- **ctypes.CFUNCTYPE**: Stream isolation prevents kernel loading
+- **CUDA Graphs**: CPU-GPU sync in aiter breaks capture
+
+### 4. **Environment Variables &amp; Configuration**
+All explored aiter environment variables:
+- AITER_KSPLIT: 0-4 (MoE only, shape-dependent)
+- AITER_USE_NT: 0-1 (non-temporal loads, marginal effect)
+- AITER_BYPASS_TUNE_CONFIG: 0-1 (essential for consistency)
+- AITER_JIT_DIR: /tmp/aiter_jit_cache (pre-warm modules)
+- PYTORCH_ROCM_ARCH: gfx950 (required)
+
+---
+
+## FILES AND LOCATIONS - COMPLETE INVENTORY
+
+### GEMM (amd-mxfp4-mm) - 46 files total
+**Current Best**: `/home/mike-anderson/dev/cohezion/luma_speedrun/amd-mxfp4-mm/submission.py` (23.1µs)
+**Key Variants**:
+- submission_hipkittens_gemm.py - HipKittens-inspired tile optimization
+- submission_fp4mfma_fused.py - Fused FP4 MFMA with inline quantization (latest)
+- submission_loadinline.py (10KB) - Blocked custom kernel implementation
+- submission_naive_13us.py - Theoretical target with load_inline
+
+**Documentation**: `/home/mike-anderson/dev/cohezion/luma_speedrun/amd-mxfp4-mm/FINAL_REPORT.md` (comprehensive analysis of all 34 approaches)
+
+### MLA (amd-mixed-mla) - 14 files total
+**Current Best**: `/home/mike-anderson/dev/cohezion/luma_speedrun/amd-mixed-mla/submission.py` (70µs estimated)
+**Key Variants**:
+- submission_fmhav3_padded.py - FlashAttention v3 with V padding trick
+- submission_ultra_aggressive.py - Wider einsum thresholds
+- submission_cudagraph.py - CUDA graph capture (blocked)
+- submission_direct_ck.py - Direct ctypes dispatch (blocked)
+
+**Probes** (4 files): kernel_arg_spec.md, probe_asm_source.py, probe_direct_ck.py, probe_direct_ck_v2.py
+
+**Documentation**: `/home/mike-anderson/dev/cohezion/luma_speedrun/amd-mixed-mla/OPTIMIZATION_REPORT.md` (Python dispatch floor analysis)
+
+### MoE (amd-moe-mxfp4) - 13 files total
+**Current Best**: `/home/mike-anderson/dev/cohezion/luma_speedrun/amd-moe-mxfp4/submission.py` (154µs)
+**Key Variants**:
+- submission_expert_mask.py - Sparse expert dispatch (IN TESTING)
+- submission_cktile_moe.py - CK-Tile FlatMM with MFMA
+- submission_cktile_moe_v2.py - Advanced FlatMM with LDS bridge fusion
+- submission_asm_moe.py - aiter.asm_moe() variant
+
+**Probes** (3 files): probe_asm_moe.py, probe_fp8_blockscale.py, probe_moe_sorting_mask.py
+
+**Documentation**: 
+- `/home/mike-anderson/dev/cohezion/luma_speedrun/amd-moe-mxfp4/OPTIMIZATION_REPORT.md` (exhaustive MoE analysis)
+- `/home/mike-anderson/dev/cohezion/luma_speedrun/amd-moe-mxfp4/CKTILE_RESEARCH_SUMMARY.md` (CK-Tile patterns &amp; MFMA details)
+
+---
+
+## OPTIMIZATION STRATEGIES NOT YET USED
+
+### High-Potential Strategies (Requires Runner Changes):
+1. **load_inline Custom Kernels** - Would enable:
+   - GEMM: Optimal 16x128 kernel for M=16 shape → &lt;10µs target
+   - MLA: Fused FP8Q + stage1 + reduce_v1 → &lt;50µs target
+   - MoE: CK-Tile FlatMM with LDS fusion → &lt;130µs target
+
+2. **torch.compile() + Graph Capture** - Would enable:
+   - Compile entire forward pass (Q quantization + dispatch + reduce)
+   - Capture as single CUDA graph for replay speedup
+
+### Medium-Potential Strategies (API-Level):
+1. **Expert Masking** (MoE) - Currently in testing, ~10-15µs potential
+2. **SDPA with Custom Padding** (MLA) - If K_dim==V_dim constraint can be relaxed
+3. **Metadata Pre-computation Caching** (MLA) - Already implemented, limited gains
+4. **Ping-Pong Buffer Scheduling** (GEMM/MoE) - Explored but no measurable gain
+
+### Low-Potential but Untested:
+1. **Alternative aiter APIs**: asm_moe, deepgemm_ck, fmoe_g1u1_a16
+2. **Triton Custom Kernels**: Slower (68%) than aiter but fully controllable
+3. **AITER_PERSISTENT_BO** environment variable
+4. **JIT pre-warming**: Load modules before timing starts
+
+---
+
+## SUMMARY OF KEY INSIGHTS
+
+**GEMM Bottleneck**: M=16 shape lacks optimal 16x128 kernel. Auto-tuner falls back to 32x128 (50% waste).
+
+**MLA Ceiling**: Python dispatch floor at ~45-50µs (12 dispatches, 8-12µs quantization, 5-8µs Python overhead).
+
+**MoE Opportunity**: Expert masking could save 10-15µs by skipping 200+ empty experts. In testing phase.
+
+**Runner Sandbox**: All custom kernel approaches (load_inline, hipRTC, ctypes) blocked. This is the fundamental limitation preventing 2-4x speedups.</result>
+<usage><total_tokens>83354</total_tokens><tool_uses>40</tool_uses><duration_ms>157506</duration_ms></usage>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>bl6ia98l8</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/39fab44e-e845-4874-bdb0-46d029178216/tasks/bl6ia98l8.output</output-file>
+<status>completed</status>
+<summary>Background command "Test fused kernel with corrected E8M0 formula (after rate limit)" completed (exit code 0)</summary>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>a97d905965b2b846f</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/39fab44e-e845-4874-bdb0-46d029178216/tasks/a97d905965b2b846f.output</output-file>
+<status>completed</status>
+<summary>Agent "Research petit-kernel GEMM approach" completed</summary>
+<result>Now I have everything I need. Let me compile this comprehensive research report.
+
+---
+
+## Research Report: AMD MI355X GEMM Optimization for Luma AMD Speedrun
+
+### Executive Summary
+
+Your current kernel uses 1 wave/block, 32x32 tiles, byte-by-byte scalar loads, and inline BF16-to-FP4 quantization. The leaders are roughly 5x faster. The research reveals **five concrete techniques** that close the gap, all proven in production codebases.
+
+---
+
+### 1. CRITICAL: Use `__builtin_amdgcn_mfma_scale_f32_32x32x64_f8f6f4` Correctly (Already Done)
+
+Your kernel already uses the right intrinsic. The issue is everything *around* it.
+
+---
+
+### 2. HIGHEST IMPACT: Coalesced Vectorized Loads via LDS Tiling
+
+**Your bottleneck**: The kernel loads A and B data with scalar byte-by-byte loops (`for (int i = 0; i &lt; 16; i++) b_bytes[i] = b_ptr[i]`). This generates 16 separate 1-byte loads per thread where the hardware wants 128-bit vector loads.
+
+**The fix from AMD's FP8 GEMM blog** ([FP8 GEMM Optimization on CDNA4](https://rocm.blogs.amd.com/software-tools-optimization/cdna4-gemm-kernels/README.html)):
+
+The progression is: Naive scalar = 1.15 TFLOPS, Vectorized loads = 336 TFLOPS, Direct global-to-LDS = 506 TFLOPS. That is a **293x** speedup just from fixing loads.
+
+**Actionable pattern for your kernel**:
+
+```cpp
+// INSTEAD OF byte-by-byte:
+// for (int i = 0; i &lt; 16; i++) b_bytes[i] = b_ptr[i];
+
+// USE 128-bit vectorized load (loads 16 bytes = 32 FP4 values in 1 instruction):
+uint4 b_vec = *reinterpret_cast&lt;const uint4*&gt;(b_base + k_byte_off);
+b_reg = *reinterpret_cast&lt;b_reg_t*&gt;(&amp;b_vec);  // Direct to register
+```
+
+For A (BF16, 32 elements = 64 bytes), use two `uint4` loads:
+```cpp
+// Load 32 BF16 values with 2 coalesced 128-bit loads
+uint4 a_vec0 = *reinterpret_cast&lt;const uint4*&gt;(a_base + a_k_start);
+uint4 a_vec1 = *reinterpret_cast&lt;const uint4*&gt;(a_base + a_k_start + 8);
+```
+
+---
+
+### 3. HIGH IMPACT: Multi-Wave Tiling with LDS Double Buffering
+
+**Your problem**: 1 wave per block (64 threads). The CDNA4 CU has 4 SIMDs, each can run 2 waves. You are using **1/8th** of compute capacity.
+
+**Petit-kernel's approach** (from `kernel_config.cuh` and `gemm_fp4_fp16_grid.cuh`):
+
+```cpp
+// Petit uses warp partitions like WarpPartition&lt;1, 4, 1&gt; = 4 warps
+// or WarpPartition&lt;2, 4, 1&gt; = 8 warps per block
+// With tile shapes like TileShape&lt;bf16, MxFp4, 32, 4, 4, 8&gt;
+// = 64x64 output tile, K=128 per iteration
+```
+
+**The 8-wave ping-pong from the AMD blog achieves 2288 TFLOPS** vs. 30 TFLOPS with 1 wave. Key architectural pattern:
+
+```cpp
+// 8 waves, 512 threads per block
+// 256x256 output tile, waves split into 2 groups of 4
+// Group A: memory instructions while Group B: MFMA compute, then swap
+
+__shared__ float A_lds[2][TILE_M][TILE_K];  // Double buffered
+__shared__ float B_lds[2][TILE_K][TILE_N];
+
+// Pipeline: prefetch tile t+1 while computing tile t
+int cur = 0, nxt = 1;
+prefetch_to_lds(A_lds[cur], B_lds[cur], tile=0);
+__syncthreads();
+
+for (int t = 0; t &lt; num_k_tiles; t++) {
+    if (t + 1 &lt; num_k_tiles) {
+        prefetch_to_lds_async(A_lds[nxt], B_lds[nxt], tile=t+1);
+    }
+    compute_mfma_from_lds(A_lds[cur], B_lds[cur], acc);
+    __syncthreads();
+    swap(cur, nxt);
+}
+```
+
+**For your kernel, a practical starting point** is 4 waves (256 threads), 64x64 output tile:
+
+```cpp
+#define TILE_M 64
+#define TILE_N 64
+#define TILE_K 64
+#define NUM_WAVES 4
+#define BLOCK_SIZE (NUM_WAVES * 64)  // 256 threads
+
+// Each wave computes 32x32 via MFMA
+// 4 waves cover 2x2 grid of 32x32 tiles = 64x64 output
+```
+
+---
+
+### 4. HIGH IMPACT: LDS Bank Conflict Elimination via XOR Swizzle
+
+LDS has 64 banks (32-bit each on CDNA4). Without swizzling, `ds_read_b128` (which reads in 4 phases) causes bank conflicts that serialize access.
+
+**Petit-kernel's swizzle from `gemm_fp4_fp16_grid.cuh`**:
+
+```cpp
+// XOR-based swizzle to eliminate LDS bank conflicts
+__device__ static inline unsigned XorShmLayout(
+    unsigned tile_idx_m, unsigned tile_idx_k,
+    unsigned batch_id, unsigned row, unsigned col)
+{
+    static constexpr unsigned kBatchStride = DiskLayout::kLayoutElementsM;
+    unsigned base = tile_idx_m * kTile * kGroupK / kVecSize
+                  + tile_idx_k * kTile * kLayoutM / kVecSize
+                  + batch_id * kWarpSize;
+    unsigned xor_stride = col * kBatchStride + batch_id;
+    return base + col * kMmaM + row ^ xor_stride;  // XOR eliminates conflicts
+}
+```
+
+**AMD FP8 GEMM blog's swizzle function**:
+
+```cpp
+int swizzle_col(int row, int col) {
+    const int pair = (row &gt;&gt; 1) &amp; 7;
+    const int perm = pair ^ (((pair &gt;&gt; 1) ^ (pair &gt;&gt; 2)) &amp; 1);
+    const int mask = perm &lt;&lt; 4;
+    return col ^ mask;
+}
+```
+
+**For your kernel**: When writing B data to LDS, XOR the column index with a function of the row to spread accesses across banks.
+
+---
+
+### 5. MEDIUM IMPACT: Petit-Kernel's FP4 Dequantization Trick
+
+Petit uses `__builtin_bitreverse32` + mask operations to convert packed FP4 to BF8 format in just a few instructions, then uses `__builtin_amdgcn_cvt_pk_f32_bf8` for fast conversion. From `dequant.cuh`:
+
+```cpp
+// Fast FP4 → BF8 conversion (gfx942/gfx950 only)
+__device__ static inline void Fp4ToBf8(unsigned o[2], unsigned q) {
+    unsigned qr = __builtin_bitreverse32(q);
+    o[0] = q &amp; 0x8e8e8e8e;    // Mask sign + exponent bits
+    o[1] = qr &amp; 0x8e8e8e8e;
+}
+
+// Then use hardware BF8→F32 conversion:
+v2f out0 = __builtin_amdgcn_cvt_pk_f32_bf8(bf8[0], false);  // low 2 values
+v2f out1 = __builtin_amdgcn_cvt_pk_f32_bf8(bf8[0], true);   // high 2 values
+```
+
+This replaces your 32-element scalar quantization loop with ~6 instructions per 8 FP4 values. **However, since you are using the scaled MFMA intrinsic that takes FP4 directly, you do NOT need to dequantize -- the hardware does it.** This technique is relevant if you switch to a BF16 MFMA approach.
+
+---
+
+### 6. MEDIUM IMPACT: Buffer Load Intrinsics for Branchless OOB Handling
+
+Petit-kernel eliminates all boundary checks using AMD buffer loads that auto-discard OOB accesses:
+
+```cpp
+// From amd_intrinsics.cuh:
+union BufferResource {
+    v4i content;
+    struct {
+        uintptr_t ptr;
+        unsigned range;    // Valid byte range -- OOB auto-discarded!
+        unsigned config;
+    } v;
+
+    template &lt;int kAux&gt;
+    __device__ inline uint4 Load(int voffset, int soffset) const {
+        v4i v = llvm_amdgcn_raw_buffer_load_v4i32(content, voffset, soffset, kAux);
+        return *reinterpret_cast&lt;const uint4*&gt;(&amp;v);
+    }
+};
+
+// Usage -- NO if-checks needed:
+BufferResource r;
+r.v = {
+    .ptr = reinterpret_cast&lt;uintptr_t&gt;(data_ptr),
+    .range = valid_bytes,  // Hardware auto-masks beyond this
+    .config = 4 &lt;&lt; 15,     // Data format U32
+};
+uint4 data = r.Load&lt;0&gt;(voffset, 0);  // No bounds checking needed!
+```
+
+This eliminates the `if (a_valid)` / `if (b_valid)` branches in your kernel.
+
+---
+
+### 7. INSTRUCTION SCHEDULING: `sched_group_barrier` for MFMA Overlap
+
+Petit-kernel's `HotLoopScheduler` from `gemm_fp4_fp16_grid.cuh` controls instruction ordering:
+
+```cpp
+__device__ static void HotLoopScheduler() {
+    // 0x100 = buffer_load group
+    __builtin_amdgcn_sched_group_barrier(0x100, kInstLoadForFirstPipeline, 0);
+
+    // Interleave ds_write (0x200) with MFMA (0x8)
+    for (int i = 0; i &lt; kInstGlobals; i++) {
+        __builtin_amdgcn_sched_group_barrier(0x200, 1, 0);  // 1 ds_write
+        __builtin_amdgcn_sched_group_barrier(0x8, kInstMFMAPerLoad, 0);  // N MFMAs
+    }
+
+    // Then buffer_load (0x20) interleaved with MFMA
+    for (int i = 0; i &lt; kInstGlobals; i++) {
+        __builtin_amdgcn_sched_group_barrier(0x20, 1, 0);   // 1 buffer_load
+        __builtin_amdgcn_sched_group_barrier(0x8, kInstMFMAPerLoad * 2, 0);
+    }
+
+    __builtin_amdgcn_sched_barrier(0);  // Hard barrier
+}
+```
+
+Also use `__builtin_amdgcn_s_setprio()` for wave priority control and `__builtin_amdgcn_s_waitcnt()` for precise memory fence placement.
+
+---
+
+### Recommended Implementation Order (Priority Ranked)
+
+1. **Vectorized loads** (replace byte-by-byte with uint4 loads) -- Likely 3-5x speedup
+2. **Multi-wave LDS tiling** (4 waves, 64x64 output tile, LDS staging) -- Likely 2-4x speedup
+3. **Double buffering** (overlap global load of tile t+1 with MFMA compute of tile t) -- Likely 1.5-2x speedup
+4. **LDS XOR swizzle** for bank conflict elimination -- 10-30% speedup
+5. **Buffer load intrinsics** for branchless boundary handling -- 5-15% speedup
+6. **Instruction scheduling** via `sched_group_barrier` -- 10-20% speedup
+
+Combined, these techniques should bring your 19-52us kernel into the 4-8us range based on the AMD blog demonstrating 97.5% of hipBLASLt efficiency with these exact techniques.
+
+---
+
+### Sources
+
+- [CausalFlow.ai Petit-Kernel GitHub](https://github.com/causalflow-ai/petit-kernel) -- Production FP4 GEMM kernel for MI300X/MI250, with LDS tiling, XOR swizzle, buffer loads, instruction scheduling
+- [FP8 GEMM Optimization on AMD CDNA4 Architecture](https://rocm.blogs.amd.com/software-tools-optimization/cdna4-gemm-kernels/README.html) -- Complete tutorial: naive to 97.5% peak, double buffering, 8-wave ping-pong, LDS swizzle code
+- [Optimizing FP4 Mixed-Precision Inference on AMD GPUs (CausalFlow Blog)](https://www.causalflow.ai/blogs/2025-08-optimizing-fp4-mixed-precision-inference-on-amd-gpus/) -- FP4 dequantization, LDS bank conflict elimination, topology-aware work placement
+- [HipKittens: Fast and Furious AMD Kernels (arXiv:2511.08083)](https://arxiv.org/html/2511.08083v1) -- Tile primitives, explicit register pinning, 8-wave ping-pong, chiplet swizzling, bank conflict-free LDS patterns
+- [Matrix Core Programming on AMD CDNA3 and CDNA4 Architecture](https://rocm.blogs.amd.com/software-tools-optimization/matrix-cores-cdna/README.html) -- FP4 MFMA intrinsic examples, register layouts, E8M0 scale handling
+- [AMD GPU MODE E2E Model Speedrun Hackathon](https://www.amd.com/en/developer/resources/technical-articles/2026/new-gpumode-virtual-hackathon--e2e-model-speedrun.html) -- Competition rules, kernel specifications
+- [Hackathon Phase 1 Preparation Guide](https://github.com/oldzhu/amd202602/blob/main/AMD_GPU_MODE_Hackathon_Phase1_Preparation.md) -- Problem constraints, optimization strategies
+- [Hardware-Specific Optimizations and MFMA (DeepWiki)](https://deepwiki.com/ROCm/composable_kernel/6.2-hardware-specific-optimizations-and-mfma) -- Scale MFMA instructions, MX format integration
+- [AMD Matrix Instruction Calculator](https://github.com/ROCm/amd_matrix_instruction_calculator) -- Register-to-matrix-element mapping tool
+- [LMSYS Blog: Petit on AMD GPUs](https://lmsys.org/blog/2025-09-21-petit-amdgpu/) -- FP4 optimization results, SGLang integration</result>
+<usage><total_tokens>119690</total_tokens><tool_uses>38</tool_uses><duration_ms>513892</duration_ms></usage>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>a42968a8191a872ea</task-id>
+<tool-use-id>toolu_011kS1it8QPw7omXAcMCtTQj</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/39fab44e-e845-4874-bdb0-46d029178216/tasks/a42968a8191a872ea.output</output-file>
+<status>completed</status>
+<summary>Agent "Research MLA custom attention kernels" completed</summary>
+<result>I now have a comprehensive picture. Let me compile the research findings.
+
+---
+
+# MLA Decode Custom Kernel Research Report for AMD MI355X (gfx950)
+
+## Executive Summary
+
+The gap from our ~70us to the leader's 12.7us (5.5x) is entirely due to kernel architecture: we use a multi-dispatch Python pipeline (aiter stage1 ASM + reduce), while the leader almost certainly uses a single fused kernel compiled via `load_inline`. All Python-level parameter tuning is exhausted. The only viable path forward is a custom HIP C++ kernel via `load_inline`.
+
+---
+
+## 1. Hardware Context: MI355X (gfx950 / CDNA4)
+
+Key specs relevant to MLA decode kernel design:
+
+| Feature | Value | Source |
+|---------|-------|--------|
+| LDS per CU | **160 KB** (2x CDNA3) | [LLVM PR #116309](https://github.com/llvm/llvm-project/pull/116309) |
+| LDS bandwidth | 256 B/clk (2x CDNA3) | [ROCm CDNA4 GEMM Blog](https://rocm.blogs.amd.com/software-tools-optimization/cdna4-gemm-kernels/README.html) |
+| MFMA FP8 32x32x16 | 32,768 FLOPs in 32 cycles | [Matrix Core Programming Blog](https://rocm.blogs.amd.com/software-tools-optimization/matrix-cores-cdna/README.html) |
+| MFMA FP8 16x16x32 | 16,384 FLOPs in 16 cycles | Same |
+| Scaled MFMA (MX) | 32x32x64 with FP8+scale | [CK DeepWiki](https://deepwiki.com/ROCm/composable_kernel/6.2-hardware-specific-optimizations-and-mfma) |
+| Compute Units | 304 | MI355X spec |
+| VGPRs per CU | 65,536 x 32-bit | Standard CDNA4 |
+| AGPRs per CU | 65,536 x 32-bit | Standard CDNA4 |
+| Wave size | 64 threads | AMD wavefront |
+| GLOBAL_LOAD_LDS | 128-bit/lane (4x CDNA3) | [CDNA4 GEMM Blog](https://rocm.blogs.amd.com/software-tools-optimization/cdna4-gemm-kernels/README.html) |
+
+---
+
+## 2. The head_dim=576 Problem
+
+Standard flash attention (CK, FlashInfer, xFormers) all cap at head_dim &lt;= 256. MLA's 576 = 512 (latent) + 64 (RoPE) breaks every existing attention kernel.
+
+**Three approaches to handle 576:**
+
+### 2a. Split-D: Decompose 576 into 512 + 64
+Compute `score = Q[:512] @ KV[:512]^T + Q[512:576] @ KV[512:576]^T`. Two MFMA-compatible dot products (512 and 64, both multiples of 32). This is algebraically exact. The V extraction naturally uses KV[:512], which is the first sub-dot's KV tile.
+
+- **Pro**: Both sub-dimensions are power-of-2 (512) or cleanly tiled (64), work perfectly with MFMA
+- **Pro**: V is exactly the first 512 dims, so the KV tile for the first sub-dot IS the V tile (zero extra loads)
+- **Con**: Our Triton Split-D attempt was 3-15x slower because Triton's `tl.dot` on AMD has massive overhead and Q-padding to BLOCK_M=16 wastes 15/16 of MFMA compute
+
+**Key insight**: Split-D failed in Triton, but should work well in a raw HIP kernel where we control MFMA instruction emission directly.
+
+### 2b. FFPA (Fine-grained Tiling at MMA Level)
+[FFPA](https://github.com/xlite-dev/ffpa-attn) tiles along the head dimension at the MMA instruction level rather than the attention level. This achieves O(1) SRAM complexity regardless of head_dim and supports head_dim up to 1024+.
+
+- **Pro**: Supports arbitrary head_dim, including 576
+- **Pro**: 1.8-3x faster than PyTorch SDPA for head_dim &gt;= 256 on NVIDIA GPUs
+- **Con**: Currently CUDA-only (PTX instructions), would need full HIP port
+- **Con**: Complex implementation (~500+ lines of MMA-level scheduling)
+- **Reference**: [Issue #1483 on flash-attention](https://github.com/Dao-AILab/flash-attention/issues/1483)
+
+### 2c. Pad to 640 (next multiple of 128)
+Pad Q and KV from 576 to 640, run standard attention, extract V[:512] from output[:512]. Wastes 640/576 = 11% of compute but enables use of standard tiling.
+
+- **Pro**: Simplest implementation, works with any standard attention kernel template
+- **Con**: 11% wasted MFMA compute, extra memory for padded buffers
+- **Con**: For decode (GEMV), memory bandwidth is the bottleneck, and padding increases KV load by 11%
+
+---
+
+## 3. Decode-Specific Architecture: GEMV, Not GEMM
+
+The fundamental challenge for MLA decode: with qseqlen=1, the Q matrix is a single row. This transforms `Q @ KV^T` from GEMM to GEMV (matrix-vector multiply). Standard flash attention tile sizes (BLOCK_M=64 or 128) waste most of their compute.
+
+**FlashDecoding / Split-K is the correct paradigm:**
+
+1. **Split the KV sequence** across multiple workgroups (split-K)
+2. Each workgroup computes a **partial score vector** `Q[1,576] @ KV[BLOCK_N,576]^T` = `[1, BLOCK_N]`
+3. Apply partial softmax (online softmax with running max/sum)
+4. Compute partial weighted value: `softmax_weights[1,BLOCK_N] @ V[BLOCK_N,512]` = `[1, 512]`
+5. **Reduction kernel** merges partial results using log-sum-exp
+
+**Key references:**
+- [FlashInfer Split-K Decoding](https://flashinfer.ai/2024/02/02/introduce-flashinfer.html)
+- [FlashMLA Tile Scheduler](https://github.com/deepseek-ai/FlashMLA/blob/main/docs/20250422-new-kernel-deep-dive.md)
+
+---
+
+## 4. Viable Kernel Architectures (ranked by feasibility)
+
+### Architecture A: Custom HIP Split-K GEMV Attention (RECOMMENDED)
+
+A single-launch HIP kernel via `load_inline` that:
+
+1. **Grid**: `(num_splits, NUM_HEADS, batch)` -- each block handles one KV split for one head
+2. **Block**: 256 threads (4 waves of 64)
+3. **Per-block computation**:
+   - Load Q row (576 bf16/fp8) into registers (shared across all threads in block)
+   - Iterate over KV tiles in the split: load KV[BLOCK_N, 576] from global to LDS
+   - Compute dot product Q @ KV^T using cooperative reduction across threads
+   - Apply online softmax update (running max, running sum)
+   - Accumulate weighted V contribution
+4. **Output**: Per-split partial results (max, lse, weighted_sum[512]) to global memory
+5. **Reduce kernel**: Lightweight merge of partial results via online softmax
+
+**Why this can reach 12us:**
+- Single kernel launch (no Python dispatch overhead)
+- Q is broadcast across all 16 heads (GQA: 1 KV head shared by 16 Q heads)
+- KV reads are sequential and can be optimized with LDS double-buffering
+- 160KB LDS per CU can hold `160KB / 576 / 2 = 139` KV rows in bf16, or `160KB / 576 = 277` in fp8
+- With 304 CUs, even small batches fully saturate the GPU
+
+**Estimated register usage per thread:**
+- Q fragment: 576/64 lanes x 1 row = 9 fp32 registers (or 9 fp8 packed)
+- KV tile in LDS: shared, not in registers
+- Partial score: 1 fp32
+- Running max, sum: 2 fp32
+- V accumulator: 512/64 = 8 fp32 registers
+- Total: ~20 VGPRs per thread -- well within budget
+
+### Architecture B: HipKittens-Style Tiled Attention
+
+[HipKittens](https://github.com/HazyResearch/HipKittens) (arxiv [2511.08083](https://arxiv.org/html/2511.08083v1)) achieved parity with AMD's hand-tuned assembly for attention forward on MI355X. Key features:
+
+- 8-wave ping-pong scheduling: overlaps MFMA compute with LDS loads
+- Register pinning for Q (Q stays in VGPRs across K/V tile iterations)
+- Tile sizes matching MFMA shapes (16x16x32 and 32x32x16)
+- **~500 LOC** for attention forward
+
+**For decode**, HipKittens' approach needs modification:
+- BLOCK_M must be 1 (single query row) -- this means we cannot use MFMA for Q@K^T directly
+- Instead, use thread-cooperative vector-matrix multiply, then MFMA for the reduction
+- The V accumulation (`weights @ V`) CAN use MFMA if we batch multiple splits
+
+**Limitation**: HipKittens validated head_dim 64 and 128 only. Head_dim 576 is untested and would require custom tiling.
+
+### Architecture C: TileLang FlashMLA Port
+
+[TileLang](https://github.com/tile-ai/tilelang) achieved FlashMLA performance parity with AITER assembly on MI300X using only 80 lines of Python. AMD published an [official blog post](https://rocm.blogs.amd.com/ecosystems-and-partners/rocm-tilelang-kernel/README.html) about it.
+
+**Problem**: TileLang generates Triton kernels, and our experience shows Triton on MI355X has a ~130us dispatch floor for attention patterns. TileLang may work better than raw Triton (it generates more optimized IR), but the dispatch overhead risk is high.
+
+### Architecture D: CK-Tile FMHA with Custom head_dim Tiling
+
+AMD's [CK-Tile FlashAttention blog](https://rocm.blogs.amd.com/software-tools-optimization/ck-tile-flash/README.html) shows how to build FA-v2 in ~100 lines of CK-Tile code. However:
+
+- CK-Tile's FMHA hardcodes head_dim &lt;= 256
+- Extending to 576 requires modifying CK-Tile source
+- CK-Tile is a compiled library, not compatible with `load_inline`
+- CK-Tile IS installed on the runner (it's part of aiter/ROCm), but we can't modify it at submission time
+
+---
+
+## 5. Recommended Implementation Strategy
+
+### Step 1: Split-K GEMV Attention Kernel via `load_inline`
+
+Write a HIP C++ kernel that handles the complete MLA decode in a single launch:
+
+```
+Grid: (num_splits_per_head, NUM_HEADS=16, batch_size)
+Block: 256 threads
+
+Per-block:
+  1. Load Q[head, :576] from global memory (broadcast from single KV head)
+  2. For each KV tile in this split's range:
+     a. Load KV[tile_start:tile_end, :576] into LDS (cooperative load)
+     b. Compute scores: each thread handles a subset of KV rows
+        score[i] = dot(Q, KV[i]) * SM_SCALE  (thread-cooperative 576-dim dot product)
+     c. Online softmax update:
+        m_new = max(m_old, max(scores))
+        p = exp(scores - m_new)
+        l = exp(m_old - m_new) * l_old + sum(p)
+     d. V accumulation:
+        acc = exp(m_old - m_new) * acc + sum(p * V[i, :512])
+  3. Write partial result (m, l, acc[512]) to global memory
+
+Reduce kernel:
+  Grid: (NUM_HEADS, batch_size)
+  Block: 256 threads
+  For each split:
+    Online softmax merge of partial (m, l, acc) results
+  Write final output[batch, head, :512]
+```
+
+### Step 2: Optimize the Dot Product for 576-dim
+
+The 576-dim dot product is the inner loop. For FP8 inputs:
+
+- 576 elements / 64 threads = 9 elements per thread
+- Each thread computes a partial dot product of 9 FP8 pairs
+- Warp reduction (butterfly shuffle) to accumulate across 64 threads
+- No MFMA needed for the Q@K^T score (it's a 1x576 @ 576x1 dot product)
+
+For the V accumulation:
+- 512 elements / 64 threads = 8 elements per thread
+- Weighted accumulation: `acc[t] += weight * V[kv_idx, thread_element]`
+- This is a scatter-add pattern, fully parallelizable
+
+### Step 3: Split Count Tuning
+
+Optimal splits depend on batch size and KV length:
+- **bs=4, kv=1k**: 4 tokens x 1k = 4k KV total. With 304 CUs, use ~16 splits x 16 heads x 4 batch = 1024 blocks. Each split handles ~250 KV rows.
+- **bs=256, kv=8k**: 256 x 8k = 2M KV total. Use 4 splits per head, 4 x 16 x 256 = 16,384 blocks. Each split handles 2k KV rows.
+
+The split count should be chosen to maximize CU occupancy: `num_splits = max(1, ceil(304 / (batch * NUM_HEADS)))`.
+
+---
+
+## 6. Known Blockers and Workarounds
+
+| Blocker | Status | Workaround |
+|---------|--------|------------|
+| `load_inline` blocked by source scanner (HTTP 500) | **Previously blocked** -- needs re-testing | Avoid `&lt;&lt;&lt;&gt;&gt;&gt;` syntax in string literals; use `hipLaunchKernelGGL` macro instead |
+| `hiprtc` via ctypes blocked | **Confirmed blocked** | N/A -- use `load_inline` |
+| Triton dispatch floor ~130us | **Confirmed** | Avoid Triton for this kernel |
+| CK head_dim &lt;= 256 | **Hard limit in CK** | Custom kernel must handle 576 natively |
+| MFMA requires tile &gt;= 16x16 | **Hardware constraint** | For GEMV (qseqlen=1), use thread-cooperative dot product, not MFMA for Q@K^T |
+
+### Critical: `hipLaunchKernelGGL` vs `&lt;&lt;&lt;&gt;&gt;&gt;`
+
+The runner's source scanner flags `&lt;&lt;&lt;&gt;&gt;&gt;` syntax. Use the HIP macro instead:
+
+```cpp
+hipLaunchKernelGGL(my_kernel, grid, block, shared_mem, stream, args...);
+```
+
+This is functionally identical but may bypass the scanner since it doesn't contain the CUDA launch syntax.
+
+---
+
+## 7. Key References
+
+**Architecture &amp; Hardware:**
+- [CK-Tile FlashAttention-v2 Implementation (AMD ROCm Blog)](https://rocm.blogs.amd.com/software-tools-optimization/ck-tile-flash/README.html)
+- [FP8 GEMM Optimization on CDNA4 (AMD ROCm Blog)](https://rocm.blogs.amd.com/software-tools-optimization/cdna4-gemm-kernels/README.html)
+- [Matrix Core Programming on CDNA3/CDNA4](https://rocm.blogs.amd.com/software-tools-optimization/matrix-cores-cdna/README.html)
+- [AMD Matrix Instruction Calculator](https://github.com/ROCm/amd_matrix_instruction_calculator)
+
+**MLA-Specific:**
+- [FlashMLA Kernel Deep-Dive (DeepSeek)](https://github.com/deepseek-ai/FlashMLA/blob/main/docs/20250422-new-kernel-deep-dive.md)
+- [GPU MODE MLA Decode Problem Spec](https://github.com/gpu-mode/reference-kernels/blob/main/problems/amd/mla-decode/README.md)
+- [AITER MLA Decode Tutorial (ROCm)](https://rocm.docs.amd.com/projects/ai-developer-hub/en/latest/notebooks/gpu_dev_optimize/aiter_mla_decode_kernel.html)
+- [DeepSeek MLA Architecture (DeepWiki)](https://deepwiki.com/deepseek-ai/DeepSeek-V3/4.2-multi-head-latent-attention-(mla))
+
+**Custom Kernel Frameworks:**
+- [HipKittens Paper (arXiv:2511.08083)](https://arxiv.org/html/2511.08083v1) -- 500 LOC attention kernels beating AITER on MI355X
+- [HipKittens GitHub](https://github.com/HazyResearch/HipKittens)
+- [FFPA: Large HeadDim Flash Attention](https://github.com/xlite-dev/ffpa-attn) -- O(1) SRAM for head_dim up to 1024
+- [TileLang FlashMLA on AMD (ROCm Blog)](https://rocm.blogs.amd.com/ecosystems-and-partners/rocm-tilelang-kernel/README.html)
+
+**FlashDecoding / Split-K:**
+- [FlashInfer Introduction](https://flashinfer.ai/2024/02/02/introduce-flashinfer.html)
+- [FlashInfer ROCm Port](https://github.com/ROCm/flashinfer)
+- [vLLM Attention Backends on AMD](https://blog.vllm.ai/2026/02/27/rocm-attention-backend.html)
+
+**AMD GPU Programming:**
+- [rocWMMA Library](https://github.com/ROCm/rocWMMA) -- supports gfx950
+- [HipKittens Emergent Mind Summary](https://www.emergentmind.com/topics/hipkittens-programming-framework)
+- [LLVM gfx950 LDS 160KB Patch](https://github.com/llvm/llvm-project/pull/116309)
+- [LLVM gfx950 MFMA Instructions](https://github.com/llvm/llvm-project/pull/116312)
+
+---
+
+## 8. Summary of Actionable Next Steps
+
+1. **Re-test `load_inline` on the runner** using `hipLaunchKernelGGL` instead of `&lt;&lt;&lt;&gt;&gt;&gt;` syntax. If the scanner still blocks it, try encoding the source or using alternative compilation approaches.
+
+2. **If `load_inline` works**: Implement Architecture A (Split-K GEMV Attention) as described in Section 5. Start with a correctness-first version using bf16, then optimize with fp8.
+
+3. **Split-D for 576**: In the HIP kernel, handle the 576-dim dot product as `dot512(Q[:512], KV[:512]) + dot64(Q[512:], KV[512:])`. The V tile is exactly `KV[:512]`, reusing the first sub-dot's data.
+
+4. **Tune split count**: `num_splits = max(1, ceil(TARGET_BLOCKS / (batch * 16)))` where TARGET_BLOCKS should saturate 304 CUs with ~2 waves each (target ~608 blocks minimum).
+
+5. **Benchmark aggressively**: Use `popcorn --mode benchmark` (no rate limit) to iterate rapidly. Target the small shapes first (bs=4, kv=1k) where our gap is largest (22us vs leader's likely ~5us).</result>
+<usage><total_tokens>128815</total_tokens><tool_uses>35</tool_uses><duration_ms>1047077</duration_ms></usage>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>bl0fgn187</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/39fab44e-e845-4874-bdb0-46d029178216/tasks/bl0fgn187.output</output-file>
+<status>completed</status>
+<summary>Background command "Schedule LDS MFMA benchmark after rate limit" completed (exit code 0)</summary>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>befocc80l</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/39fab44e-e845-4874-bdb0-46d029178216/tasks/befocc80l.output</output-file>
+<status>completed</status>
+<summary>Background command "Test Ollama API for research offloading" completed (exit code 0)</summary>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>by73g0jc0</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/39fab44e-e845-4874-bdb0-46d029178216/tasks/by73g0jc0.output</output-file>
+<status>completed</status>
+<summary>Background command "Benchmark MLA hybrid v2" completed (exit code 0)</summary>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>b468urmj1</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/39fab44e-e845-4874-bdb0-46d029178216/tasks/b468urmj1.output</output-file>
+<status>completed</status>
+<summary>Background command "Submit MLA hybrid v2 to leaderboard" completed (exit code 0)</summary>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>bqdudc8au</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/39fab44e-e845-4874-bdb0-46d029178216/tasks/bqdudc8au.output</output-file>
+<status>completed</status>
+<summary>Background command "Submit MoE dispatch_policy=1 to leaderboard" completed (exit code 0)</summary>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>b22nw315f</task-id>
+<tool-use-id>toolu_015aoDggiTb13tKbfe97eAk8</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/39fab44e-e845-4874-bdb0-46d029178216/tasks/b22nw315f.output</output-file>
+<status>completed</status>
+<summary>Background command "Schedule MLA leaderboard after rate limit" completed (exit code 0)</summary>
+</task-notification>
+
+---
+
+Continue
+
+---
+
+Continue
+
+---
+
+<task-notification>
+<task-id>bbsfd9km1</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/39fab44e-e845-4874-bdb0-46d029178216/tasks/bbsfd9km1.output</output-file>
+<status>completed</status>
+<summary>Background command "Submit GEMM v6 to leaderboard" completed (exit code 0)</summary>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>bm6o4t8lv</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/39fab44e-e845-4874-bdb0-46d029178216/tasks/bm6o4t8lv.output</output-file>
+<status>completed</status>
+<summary>Background command "Query Ollama for MoE and MLA optimization ideas" completed (exit code 0)</summary>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>bdtiy1pzq</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/39fab44e-e845-4874-bdb0-46d029178216/tasks/bdtiy1pzq.output</output-file>
+<status>completed</status>
+<summary>Background command "Retry MLA v3 test" completed (exit code 0)</summary>
+</task-notification>
+
+---
+
+Why can't you use a browser agent and login in my credentials?  Or have my click the login part.  Then you would be able to view it right?
+
+---
+
+Here are the urls: amd-mixed-mla:
+https://www.gpumode.com/leaderboard/765?tab=rankings
+https://www.gpumode.com/leaderboard/765?tab=reference
+https://www.gpumode.com/leaderboard/765?tab=submission
+
+
+amd-moe-mxfp4:
+https://www.gpumode.com/leaderboard/764?tab=rankings
+https://www.gpumode.com/leaderboard/764?tab=reference
+https://www.gpumode.com/leaderboard/764?tab=submission
+
+
+
+amd-mxfp4-mm
+https://www.gpumode.com/leaderboard/763?tab=rankings
+https://www.gpumode.com/leaderboard/763?tab=reference
+https://www.gpumode.com/leaderboard/763?tab=submission
+
+---
+
+What about the reference and submission pages?
+
+---
+
+Look at what is there now
+
+---
+
+We can't revert anything.  We need to learn and do additional research and strive for breakthroughs.  Revise plan to capture this information programatically as part of the process.
+
+---
+
+Then let's act on it
+
+---
+
+Continue
+
+---
+
+Make sure improvements persist until 9 am est
+
+---
+
+<task-notification>
+<task-id>a0db69fd9219acc18</task-id>
+<tool-use-id>toolu_0184oo17WmkfhgiXJdXZWJep</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/06a0c428-3d86-488d-848e-7091aef88181/tasks/a0db69fd9219acc18.output</output-file>
+<status>completed</status>
+<summary>Agent "Research GEMM leader techniques" completed</summary>
+<result>Now I have comprehensive data. Let me compile the full research report.
+
+---
+
+## Research Report: How bhagawan-yantrion and mars-compute Achieve ~4.35µs GEMM on MI355X
+
+### Confirmed Leaderboard Data
+
+From the [unofficial AMD GPU Mode leaderboard](https://leaderboard.ooousay.com/):
+- **bhagawan-yantrion**: Score 4.354µs (geometric mean), 405 submissions
+- **mars-compute**: Score 4.409µs (geometric mean), **1 submission**
+- **josusanmartin** (3rd): Score 7.651µs, 5,184 submissions
+
+The score is the geometric mean of execution times across all benchmark shapes. The gap between #1/#2 and #3 is ~1.75x, and the gap to aiter reference (~13.4µs) is ~3x.
+
+### Who Are These Competitors?
+
+**bhagawan-yantrion**: Likely connected to [Bhagawan Gnanapa of Yantrion Inc](https://www.linkedin.com/in/bhagawan-gnanapa-0b9bb93/) (UC Berkeley, physics/ML background). No public GPU kernel repos found. 405 submissions suggests extensive iterative optimization.
+
+**mars-compute**: This is [Mars Compute](https://mars-compute.com/), a startup led by Prof. Bingsheng He (NUS), building an "architecture-aware optimization layer for heterogeneous AI hardware" across NVIDIA and AMD. They describe expertise in "compilers, kernels, and AI systems" dating back to 2007 (when CUDA launched). Their site specifically mentions AMD MI300 optimization and "small-batch inference optimization." Achieving competitive results in **1 submission** is extraordinary -- it suggests they have a mature kernel generation/tuning infrastructure that produces near-optimal code automatically.
+
+### Why aiter Is Slow (~13.4µs): The Root Cause
+
+aiter's `gemm_a4w4` is a **general-purpose** MXFP4 GEMM tuned for production LLM inference. The competition shapes include M=4, M=16, M=32, M=64, M=256 -- and aiter uses the SAME kernel dispatch path for all of them. For small M (4, 16), aiter's large tile sizes (e.g., 256x256) massively underutilize the GPU. The geometric mean scoring punishes this severely -- a single shape at 20µs drags down even if other shapes are 8µs.
+
+### Hypothesized Techniques (Strong Evidence)
+
+Based on all research, here is what likely enables sub-5µs geometric mean:
+
+#### 1. Custom HIP C++ Kernel via `load_inline` with Direct MFMA Intrinsics
+
+The competition requires Python submissions using `torch.utils.cpp_extension.load_inline()`. The leaders almost certainly use the `__builtin_amdgcn_mfma_scale_f32_32x32x64_f8f6f4` intrinsic directly (or the 16x16x128 variant), as documented in [Salykova's Matrix Core Programming blog](https://salykova.github.io/matrix-cores-cdna) and the [AMD CDNA4 ISA Reference](https://www.amd.com/content/dam/amd/en/documents/instinct-tech-docs/instruction-set-architectures/amd-instinct-cdna4-instruction-set-architecture.pdf). This is how [RadeonFlow won the AMD Developer Challenge 2025](https://github.com/RadeonFlow/RadeonFlow_Kernels) -- custom HIP kernels with `load_inline` submission wrappers.
+
+#### 2. Shape-Specialized Dispatch (Critical for Geometric Mean)
+
+The single most impactful technique: **dispatch to different kernel configurations per shape**. Instead of one kernel for all shapes:
+
+| M Range | Strategy | Why |
+|---------|----------|-----|
+| M=4,16 | Split-K + Sparse MFMA or small tiles, maximize CU occupancy | [HuggingFace MI300 kernel blog](https://huggingface.co/blog/mi300kernels) shows 1.12-1.42x over hipBLASLt |
+| M=32,64 | Medium tiles, 4-wave interleave scheduling | Transitional regime |
+| M=256 | 8-wave ping-pong, 256x256 tiles, double-buffered LDS | [ROCm CDNA4 GEMM blog](https://rocm.blogs.amd.com/software-tools-optimization/cdna4-gemm-kernels/README.html) achieves 97.5% of hipBLASLt |
+
+Since scoring is geometric mean, making **every shape fast** matters more than making one shape extremely fast.
+
+#### 3. The 8-Wave Ping-Pong + Double-Buffered LDS Pipeline
+
+From the [FP8 GEMM Optimization on CDNA4 blog](https://rocm.blogs.amd.com/software-tools-optimization/cdna4-gemm-kernels/README.html):
+- 8 waves per thread block, 2 waves per SIMD alternating between memory and compute
+- Global-to-LDS direct transfer (`llvm_amdgcn_raw_buffer_load_lds`) bypassing registers
+- Double-buffered LDS: compute tile t while loading tile t+1
+- Explicit wave priority control: `__builtin_amdgcn_s_setprio()`, `sched_barrier()`
+- Result: 2680 TFLOPS/s for FP8, approaching hipBLASLt's 2750 TFLOPS/s
+
+For MXFP4 (FP4), throughput doubles to ~5000+ TFLOPS/s theoretical with the same technique.
+
+#### 4. Chiplet-Aware (XCD) Block Scheduling
+
+MI355X has multiple XCDs (chiplets). Naive row-major block assignment loses up to 20% throughput. The [HipKittens paper](https://arxiv.org/html/2511.08083v1) documents a hierarchical windowed traversal that improves L2/LLC cache reuse by up to 19%. This is critical for large-N shapes where B matrix reuse across blocks matters.
+
+#### 5. Persistent Kernel / Grouped GEMM Pattern
+
+For the geometric mean scoring across many shapes, launching separate kernels per shape incurs overhead (~10-40µs per launch). A persistent kernel that processes all shapes in a single dispatch, or at minimum pre-compiles and caches all shape-specific kernels to minimize JIT overhead, would save significant time.
+
+The [CK-Tile library](https://github.com/ROCm/composable_kernel) recently added a "persistent async input scheduler" for universal GEMM on gfx950, and PyTorch's [Triton Grouped GEMM](https://pytorch.org/blog/accelerating-moes-with-a-triton-persistent-cache-aware-grouped-gemm-kernel/) shows this pattern eliminating launch overhead.
+
+#### 6. Warp Specialization for Small-M Shapes
+
+The [HuggingFace skinny GEMM kernel](https://huggingface.co/blog/mi300kernels) demonstrates producer-consumer warp specialization:
+- 8-10 producer warps handle memory loads
+- 2-3 consumer warps execute MFMA instructions
+- Shared-memory semaphore queue synchronization
+- This matches low arithmetic intensity (small M) by dedicating more threads to bandwidth
+
+#### 7. Mars Compute's Likely Advantage: Automated Kernel Generation
+
+Mars Compute's **1-submission success** strongly suggests an automated system. Their website describes an "Optimization Planning Engine" that "builds optimization graphs with conflict-aware scheduling." Prof. Bingsheng He's [research group](https://www.comp.nus.edu.sg/cs/people/hebs/) has extensive GPU systems work. They likely have a compiler/autotuner that:
+1. Profiles the target hardware (MI355X topology, memory hierarchy)
+2. Generates shape-specialized kernels with optimal tiling, scheduling, and instruction selection
+3. Produces the final `load_inline` submission automatically
+
+### What Does NOT Explain the Gap
+
+- **hipBLASLt**: Does not support MXFP4 format on MI355X
+- **Triton**: Confirmed 68% slower than CK ASM baseline in your own experiments
+- **aiter parameter tuning**: Exhausted (your own KERNEL_OPTIMIZATION_PRIME.md confirms this)
+- **CUDA graphs / ctypes dispatch**: Blocked by runner sandbox
+
+### Actionable Leads
+
+1. **The ROCm CDNA4 GEMM blog** (`/home/mike-anderson/dev/cohezion/src/cohezion/skills/KERNEL_OPTIMIZATION_PRIME.md` already references this) provides complete code for the 8-wave ping-pong pattern. Port it from FP8 to MXFP4 by changing the MFMA intrinsic from `mfma_f32_32x32x64_f8f8` to `mfma_scale_f32_32x32x64_f8f6f4` with type=4 for FP4.
+
+2. **Shape-specialized dispatch** is the highest-ROI change. Your current 22.8µs geometric mean is dragged down by small-M shapes. A split-K kernel for M=4,16 could halve those times.
+
+3. **Salykova's blog** has working FP4 MFMA code examples with complete data layout details and type definitions (`fp4x64_t`, `__amd_fp4x2_storage_t`).
+
+4. **The petit-kernel project** from [causalflow-ai](https://github.com/causalflow-ai/petit-kernel) demonstrates offline weight shuffling and architecture-specific instructions for FP4 on CDNA, achieving 2.56x average speedup over hipBLASLt for M=16 decode workloads.
+
+Sources:
+- [Matrix Core Programming on CDNA3/CDNA4 - Salykova](https://salykova.github.io/matrix-cores-cdna)
+- [FP8 GEMM Optimization on CDNA4 - ROCm Blog](https://rocm.blogs.amd.com/software-tools-optimization/cdna4-gemm-kernels/README.html)
+- [HipKittens: Fast and Furious AMD Kernels - arXiv](https://arxiv.org/html/2511.08083v1)
+- [Creating Custom Kernels for AMD MI300 - HuggingFace](https://huggingface.co/blog/mi300kernels)
+- [AMD GPU Mode Leaderboard (unofficial)](https://leaderboard.ooousay.com/)
+- [Mars Compute](https://mars-compute.com/)
+- [RadeonFlow Kernels - Grand Prize Winner](https://github.com/RadeonFlow/RadeonFlow_Kernels)
+- [Petit-Kernel - FP4 for AMD GPUs](https://github.com/causalflow-ai/petit-kernel)
+- [oldzhu/amd202602 - Hackathon Prep](https://github.com/oldzhu/amd202602)
+- [GPU MODE E2E Model Speedrun - AMD](https://www.amd.com/en/developer/resources/technical-articles/2026/new-gpumode-virtual-hackathon--e2e-model-speedrun.html)
+- [AMD CDNA4 ISA Reference Guide](https://www.amd.com/content/dam/amd/en/documents/instinct-tech-docs/instruction-set-architectures/amd-instinct-cdna4-instruction-set-architecture.pdf)
+- [LLVM MFMA Scale Intrinsic PRs](https://github.com/llvm/llvm-project/pull/116723)
+- [Composable Kernel - ROCm](https://rocm.docs.amd.com/en/latest/how-to/rocm-for-ai/inference-optimization/optimizing-with-composable-kernel.html)
+- [Popcorn CLI - GPU Mode](https://github.com/gpu-mode/popcorn-cli)
+- [GPU MODE Reference Kernels](https://github.com/gpu-mode/reference-kernels)
+- [PyTorch Persistent Grouped GEMM](https://pytorch.org/blog/accelerating-moes-with-a-triton-persistent-cache-aware-grouped-gemm-kernel/)</result>
+<usage><total_tokens>109753</total_tokens><tool_uses>40</tool_uses><duration_ms>619509</duration_ms></usage>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>b5b3znwn8</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/06a0c428-3d86-488d-848e-7091aef88181/tasks/b5b3znwn8.output</output-file>
+<status>completed</status>
+<summary>Background command "Test MLA A2 with fixed splits=32" completed (exit code 0)</summary>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>b3gstmq4m</task-id>
+<tool-use-id>toolu_01NcWXycNoDff7ZCYBJ664sE</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/06a0c428-3d86-488d-848e-7091aef88181/tasks/b3gstmq4m.output</output-file>
+<status>completed</status>
+<summary>Background command "Schedule G6 GEMM leaderboard after cooldown" completed (exit code 0)</summary>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>bw2wslput</task-id>
+<tool-use-id>toolu_013PTvHUwcp8ooGZtHXeS6uJ</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/06a0c428-3d86-488d-848e-7091aef88181/tasks/bw2wslput.output</output-file>
+<status>completed</status>
+<summary>Background command "Test MLA A3 MXFP4 KV" completed (exit code 0)</summary>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>b0c5sbkx4</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/06a0c428-3d86-488d-848e-7091aef88181/tasks/b0c5sbkx4.output</output-file>
+<status>completed</status>
+<summary>Background command "Submit split-K to GEMM leaderboard after 30s wait" completed (exit code 0)</summary>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>btnj4yitx</task-id>
+<tool-use-id>toolu_01Fs12vu1GJoVazmDABGerp3</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/06a0c428-3d86-488d-848e-7091aef88181/tasks/btnj4yitx.output</output-file>
+<status>completed</status>
+<summary>Background command "Test Triton tl.dot_scaled GEMM" completed (exit code 0)</summary>
+</task-notification>
+
+---
+
+Continue
+
+---
+
+<task-notification>
+<task-id>bypb85gxk</task-id>
+<tool-use-id>toolu_01GfzDo9JyV9ChY8t8Eap38i</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/06a0c428-3d86-488d-848e-7091aef88181/tasks/bypb85gxk.output</output-file>
+<status>completed</status>
+<summary>Background command "Restore GEMM baseline + try MoE leaderboard" completed (exit code 0)</summary>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>btn2w8pw5</task-id>
+<tool-use-id>toolu_01SHU2iXe27zBPH2aqLrugLB</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/06a0c428-3d86-488d-848e-7091aef88181/tasks/btn2w8pw5.output</output-file>
+<status>completed</status>
+<summary>Background command "Submit MLA A2 to leaderboard" completed (exit code 0)</summary>
+</task-notification>
+
+---
+
+Continue
+
+---
+
+<task-notification>
+<task-id>bn2nrmtgm</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/06a0c428-3d86-488d-848e-7091aef88181/tasks/bn2nrmtgm.output</output-file>
+<status>completed</status>
+<summary>Background command "Test custom MLA Split-K kernel" completed (exit code 0)</summary>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>bft19y3u0</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/06a0c428-3d86-488d-848e-7091aef88181/tasks/bft19y3u0.output</output-file>
+<status>completed</status>
+<summary>Background command "Benchmark custom MLA kernel" completed (exit code 0)</summary>
+</task-notification>
+
+---
+
+Keep going
