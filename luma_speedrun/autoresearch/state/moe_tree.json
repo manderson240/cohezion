@@ -1,7 +1,7 @@
 {
   "kernel": "moe",
   "best_score": 0.0,
-  "generation": 15,
+  "generation": 18,
   "nodes": {
     "moe-mut-g1-0": {
       "node_id": "moe-mut-g1-0",
@@ -172,6 +172,60 @@
       "kernel": "moe",
       "strategy": "prefetch_distance_sweep",
       "status": "closed",
+      "score": 0.0,
+      "attempts": 0,
+      "children": [],
+      "metadata": {}
+    },
+    "moe-mut-g16-0": {
+      "node_id": "moe-mut-g16-0",
+      "kernel": "moe",
+      "strategy": "random_tile_size",
+      "status": "closed",
+      "score": 0.0,
+      "attempts": 1,
+      "children": [],
+      "metadata": {
+        "error": "Server processing error: Rate limit exceeded: 1/1 test submissions per hour. Try again in 2457s. (Status Code: 400)"
+      }
+    },
+    "moe-mut-g16-1": {
+      "node_id": "moe-mut-g16-1",
+      "kernel": "moe",
+      "strategy": "swap_memory_layout",
+      "status": "closed",
+      "score": 0.0,
+      "attempts": 1,
+      "children": [],
+      "metadata": {
+        "error": "Server processing error: Rate limit exceeded: 1/1 test submissions per hour. Try again in 2337s. (Status Code: 400)"
+      }
+    },
+    "moe-mut-g16-2": {
+      "node_id": "moe-mut-g16-2",
+      "kernel": "moe",
+      "strategy": "fuse_adjacent_ops",
+      "status": "open",
+      "score": 0.0,
+      "attempts": 0,
+      "children": [],
+      "metadata": {}
+    },
+    "moe-mut-g16-3": {
+      "node_id": "moe-mut-g16-3",
+      "kernel": "moe",
+      "strategy": "unroll_factor_sweep",
+      "status": "open",
+      "score": 0.0,
+      "attempts": 0,
+      "children": [],
+      "metadata": {}
+    },
+    "moe-mut-g16-4": {
+      "node_id": "moe-mut-g16-4",
+      "kernel": "moe",
+      "strategy": "prefetch_distance_sweep",
+      "status": "open",
       "score": 0.0,
       "attempts": 0,
       "children": [],

@@ -21,8 +21,8 @@ from urllib.request import Request, urlopen
 logger = logging.getLogger(__name__)
 
 OLLAMA_URL = "http://localhost:11434/api/generate"
-OLLAMA_MODEL = "deepseek-v3.2:cloud"  # Fast cloud model, no local load time
-OLLAMA_TIMEOUT_PER_CHUNK = 300  # seconds per streaming chunk (cloud models need more)
+OLLAMA_MODEL = "deepcoder:14b"  # Local 14B model, 61s generation, no cloud latency
+OLLAMA_TIMEOUT_PER_CHUNK = 180  # seconds per streaming chunk
 
 
 # ── MI355X Hardware Constants ──────────────────────────────────────────
@@ -79,13 +79,18 @@ HARDWARE CONSTRAINTS (MI355X / gfx950):
 
 RULES:
 - Output ONLY valid Python code (submission.py format)
-- PREFER custom HIP compilation via subprocess + hipcc for performance breakthroughs.
-- Always use explicit stream synchronization: pass `ctypes.c_void_p(torch.cuda.current_stream().cuda_stream)` to custom HIP kernels.
-- For MLA: Implement latent 576/512 split directly in custom HIP to save 1.6x bandwidth.
-- For MoE: Fuse Stage 1+2 via LDS bridge to eliminate HBM writebacks.
-- Must pass correctness check (rtol=1e-1 vs reference — use loose tolerance).
-- Include type hints and minimal comments
+- Use torch.utils.cpp_extension.load_inline() for custom HIP kernels (PROVEN WORKING on runner)
+- BANNED: subprocess, ctypes, hipModuleLaunchKernel, hiprtc (all blocked by runner scanner)
+- Launch kernels with <<<grid, threads>>> (no explicit stream argument)
+- Keep HIP source under 150 lines for fast JIT compilation (12-min runner timeout)
+- Fall back to aiter.gemm_a4w4 / aiter.fused_moe on any compile failure
+- Must pass correctness check vs reference
 - The function signature must match: custom_kernel(data: input_t) -> output_t
+- MUST start with EXACTLY these two lines (no changes):
+  For GEMM: #!POPCORN leaderboard amd-mxfp4-mm
+  For MoE:  #!POPCORN leaderboard amd-moe-mxfp4
+  For MLA:  #!POPCORN leaderboard amd-mixed-mla
+  Second line: #!POPCORN gpu MI355X
 """
 
 

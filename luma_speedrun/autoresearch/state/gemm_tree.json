@@ -1,7 +1,7 @@
 {
   "kernel": "gemm",
   "best_score": 0.0,
-  "generation": 19,
+  "generation": 20,
   "nodes": {
     "gemm-mut-g1-0": {
       "node_id": "gemm-mut-g1-0",
@@ -186,7 +186,7 @@
       "attempts": 1,
       "children": [],
       "metadata": {
-        "error": "r/aiter/aiter/jit/build/module_gemm_common\n[aiter] \u001b[32mfinish build [module_gemm_common], cost 19.7s \u001b[0m\n[aiter] import [module_gemm_common] under /home/runner/aiter/aiter/jit/module_gemm_common.so\n[aiter] type hints mismatch, override to --> get_padded_m(M: int | typing.SupportsIndex, N: int | typing.SupportsIndex, K: int | typing.SupportsIndex, gl: int | typing.SupportsIndex) -> int\n[aiter] shape is M:256, N:2880, K:512, not found tuned config in CKGEMM or asmGEMM, will use default config!\n\n"
+        "error": "Server processing error: Rate limit exceeded: 1/1 test submissions per hour. Try again in 3216s. (Status Code: 400)"
       }
     },
     "gemm-mut-g16-1": {
@@ -198,7 +198,7 @@
       "attempts": 1,
       "children": [],
       "metadata": {
-        "error": "Server processing error: Rate limit exceeded: 1/1 test submissions per hour. Try again in 3250s. (Status Code: 400)"
+        "error": "Server processing error: Rate limit exceeded: 1/1 test submissions per hour. Try again in 2904s. (Status Code: 400)"
       }
     },
     "gemm-mut-g16-2": {
@@ -210,18 +210,20 @@
       "attempts": 1,
       "children": [],
       "metadata": {
-        "error": "Server processing error: Rate limit exceeded: 1/1 test submissions per hour. Try again in 3129s. (Status Code: 400)"
+        "error": "Server processing error: Leaderboard name `amd-mxfp4-mm` specified in the command doesn't match the one in the submission script header `mi355x_fused_gemm`. (Status Code: 400)"
       }
     },
     "gemm-mut-g16-3": {
       "node_id": "gemm-mut-g16-3",
       "kernel": "gemm",
       "strategy": "unroll_factor_sweep",
-      "status": "open",
+      "status": "closed",
       "score": 0.0,
-      "attempts": 0,
+      "attempts": 1,
       "children": [],
-      "metadata": {}
+      "metadata": {
+        "error": "Server processing error: Rate limit exceeded: 1/1 test submissions per hour. Try again in 90s. (Status Code: 400)"
+      }
     },
     "gemm-mut-g16-4": {
       "node_id": "gemm-mut-g16-4",

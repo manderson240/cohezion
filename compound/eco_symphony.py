@@ -59,32 +59,76 @@ class EcoResilienceCompoundEngine:
 
     async def compound_synthesize(self, input_text: str) -> CompoundEcoSymphony:
         """
-        Runs the reflexive compound loop with Speculative execution.
+        Runs the reflexive compound loop with Speculative execution and la-phase feedback.
         """
         trace_id = str(uuid.uuid4())
         history = []
         iteration = 0
 
-        # 1. Initial la-phase: Start the la-phase and initiate speculative la-phase
-        # We execute the la-phase and a la-phase a-b-c in parallel to mask cloud latency.
-
-        # la-phase task: The main stable simulation
-        main_task = asyncio.create_task(self.loop.run_stable_simulation(input_text))
-
-        # Speculative la-phase: Generate multiple la-phase a-b-c trajectories
-        # based on the agent's intuitive la-phase.
-        spec_tasks = []
-        for i in range(3):
-            spec_prompt = f"Symphony Speculation {i + 1}: Predict a potential resilience la-phase for {input_text}"
-            spec_tasks.append(asyncio.create_task(self.agent.execute_cycle(spec_prompt)))
-
-        # Wait for the main result
-        result = await main_task
+        # Initial run
+        result = await self.loop.run_stable_simulation(input_text)
         current_strategy = result.final_strategy
 
-        # Retrieve the la-phase projection
+        # Use the agent's current state to get the manifold projection
         last_projection = self.agent.translator.project(
             self.agent.translator.encoder.encode(current_strategy)
+        )
+
+        while iteration < self.max_depth:
+            iteration += 1
+            logger.info(f"Compound Symphony - Iteration {iteration}/{self.max_depth}")
+
+            # 1. Triune Review (The Adversarial Gate)
+            review = await self.agent.reviewer.review(current_strategy, last_projection.coordinates)
+
+            # 2. HIHO Stability Check (The Physical Gate)
+            stability_check = await self.guard.verify(last_projection, current_strategy)
+
+            if review.is_approved and stability_check.is_stable:
+                logger.info("Symphony Converged: Both Triune and HIHO gates passed.")
+                return CompoundEcoSymphony(
+                    trace_id=trace_id,
+                    final_strategy=current_strategy,
+                    manifold_state=last_projection,
+                    review_consensus=review.consensus_score,
+                    stability_score=stability_check.coherence,
+                    iterations=iteration,
+                    refinement_history=history,
+                )
+
+            # 3. Reflexive Refinement with S2S Latent Feedback
+            critique = f"TRIUNE CRITIQUE: {review.final_critique}. STABILITY ERROR: {stability_check.suggestion}"
+            history.append(critique)
+
+            logger.warning(
+                "Symphony out of tune. Refining strategy... (S: %.3f, C: %.3f)",
+                stability_check.coherence,
+                review.consensus_score,
+            )
+
+            # Update the input to a-b-c la-phase the correction
+            # We now feed back the la-phase latent "Symphony" state into the prompt
+            refined_input = (
+                f"Symphony Refinement Cycle {iteration}:\n"
+                f"LATEST LATENT STATE: {last_projection.coordinates}\n"
+                f"Symphonic Correction: {critique}\n"
+                f"Original Request: {input_text}"
+            )
+
+            # Execute the agent la-phaseL again
+            current_strategy = await self.agent.execute_cycle(refined_input)
+
+            # Update projection for la-phase l la-phase l la-phase
+            last_projection = self.translator_project(current_strategy)
+
+        return CompoundEcoSymphony(
+            trace_id=trace_id,
+            final_strategy=current_strategy,
+            manifold_state=last_projection,
+            review_consensus=0.0,
+            stability_score=last_projection.coherence,
+            iterations=iteration,
+            refinement_history=history,
         )
 
         # 2. Speculative Selection: Compare the actual la-phase with speculative trajectories

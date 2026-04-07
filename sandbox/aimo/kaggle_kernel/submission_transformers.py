@@ -88,13 +88,13 @@ class BaseSpecialist:
 
     def solve(self, problem_text: str, context: str = "") -> str:
         system_prompt = self.prompts.get(self.name, "Think step by step. Final answer in \\boxed{X}.")
-        prompt = f"<|im_start|>system\n{system_prompt}<|im_end|>\n<|im_start|>user\n{context}\n\nProblem: {problem_text}<|im_end|>\n<|im_start|>assistant\n"
+        prompt = f"<|im_start|>system\n{system_prompt}<|im_end|>\n<|im_start|>user\n{context[:2000]}\n\nProblem: {problem_text}<|im_end|>\n<|im_start|>assistant\n"
         
         inputs = self.tokenizer(prompt, return_tensors="pt").to("cuda")
         with torch.no_grad():
             outputs = self.model.generate(
                 **inputs, 
-                max_new_tokens=2048, 
+                max_new_tokens=1536, 
                 temperature=0.7,
                 do_sample=True,
                 pad_token_id=self.tokenizer.eos_token_id
@@ -124,16 +124,21 @@ def load_model():
     global _model, _tokenizer
     path = find_path("qwen2-5-math-7b-instruct")
     if path:
-        print(f"Loading H100 Fortress v33 from {path}...")
+        print(f"Loading H100 Fortress v36 from {path}...")
         from transformers import AutoModelForCausalLM, AutoTokenizer
         _tokenizer = AutoTokenizer.from_pretrained(path)
         _model = AutoModelForCausalLM.from_pretrained(
-            path, torch_dtype=torch.float16, device_map="auto"
+            path, dtype=torch.float16, device_map="auto"
         )
         try:
             print("Compiling model for 2.5x speedup...")
             _model = torch.compile(_model, mode="reduce-overhead")
-        except: pass
+            print("Warming up compiler...")
+            dummy_in = _tokenizer("Solve: 2+2", return_tensors="pt").to("cuda")
+            _model.generate(**dummy_in, max_new_tokens=1)
+            print("Compilation complete.")
+        except Exception as e: 
+            print(f"Compilation warning: {e}")
 
 def predict(id_df: pl.DataFrame, problem_df: pl.DataFrame) -> pl.DataFrame:
     global _model, _tokenizer, _start_time, _problems_solved
@@ -161,13 +166,15 @@ def predict(id_df: pl.DataFrame, problem_df: pl.DataFrame) -> pl.DataFrame:
         # Phase 2: Adversarial Audit (Devil's Advocate)
         if budget > 200.0:
             advocate = BaseSpecialist("DevilAdvocate", _model, _tokenizer)
-            critique = advocate.solve(problem_text, context=f"PROPOSED SOLUTION: {proof}")
+            critique = advocate.solve(problem_text, context=f"PROPOSED SOLUTION: {proof[:1000]}")
             print(f"Critique: {critique[:200]}...")
             
             # Phase 3: Final Consensus
             final_spec = BaseSpecialist("Inductive", _model, _tokenizer)
-            final_proof = final_spec.solve(problem_text, context=f"PREVIOUS ATTEMPT: {proof}\n\nCRITIQUE: {critique}")
+            final_proof = final_spec.solve(problem_text, context=f"PREVIOUS ATTEMPT: {proof[:800]}\n\nCRITIQUE: {critique[:800]}")
             final_ans = final_spec.extract_answer(final_proof)
+            if final_ans == 0 and ans1 != 0:
+                final_ans = ans1
         else:
             final_ans = ans1
             
@@ -190,10 +197,9 @@ if __name__ == "__main__":
             p = find_path("test.csv") or find_path("reference.csv")
             if p: server.run_local_gateway((p,))
             else:
-                dummy_df = pl.DataFrame({"id": ["d0"], "problem": ["2+2=4?"]})
+                dummy_df = pl.DataFrame({"id": ["d0"], "problem": ["Find X: 2X = 8"]})
                 dummy_df.write_csv("dummy.csv")
-                server.run_local_gateway(("dummy.csv",))
-    else:
+                server.run_local_gateway(("dummy.csv",))    else:
         print("❌ Pre-flight failed. Emergency Shutdown.")
         # Create empty submission to satisfy competition
         pl.DataFrame({"id": [], "answer": []}).write_parquet("submission.parquet")

@@ -332,3 +332,18 @@ Built 5 load_inline kernels using scalar FP4 LUT decode while research agents di
 
 ### Learning 264: Quantum Peaked Circuits & Rigetti Ankaa-3 (2026-04-04)
 Classical MPS simulations (mps.cpu/gpu) hit an exponential wall around 700 gates for peaked circuits. For 50-69 qubit peaked circuits (e.g. P9 with 6771 gates), use Rigetti Ankaa-3 with Q-CTRL Fire Opal for autonomous error mitigation (up to 32x improvement). The 'Marginal Attack' (using single-qubit Z expectation values) fails for deep circuits, introducing bit-flips. However, the Pauli-Path Simulator can be used as a 'Zero-Cost Verifier' to confirm the true peak among QPU candidates by calculating top candidate probabilities and computing the SNR. BlueQubit charges a $0.30 base fee per job submission; batching multiple circuits into a single list submitted via `bq.run([circuits], device='quantum')` optimizes costs significantly.
+
+### Learning 265: per_1x32_f4_quant_hip Silent Incompatibility with gemm_a4w4 (2026-04-06)
+aiter's `per_1x32_f4_quant_hip` (HIP C++ quant kernel) produces FP4 values incompatible with `gemm_a4w4` CK ASM kernels. Both `shuffle=True` and `shuffle=False` fail silently — no exception, just wrong output values (small diffs like 165 vs 163). Only the Triton path (`dynamic_mxfp4_quant + e8m0_shuffle`) works. The HIP quant kernel uses different rounding/packing than what the ASM GEMM expects. Skill created: `aiter-hip-quant-gemm-incompatibility`.
+
+### Learning 266: Popcorn Runner 12-Minute Timeout as Architecture Constraint (2026-04-06)
+The Popcorn leaderboard pipeline (test + benchmark + ranked) has a hard 12-minute timeout. CK ASM kernels use pre-compiled `.co` files (zero JIT), while load_inline HIP and Triton autotuning consume 2-5 min of JIT each. MLA's 8 shapes consistently timeout on leaderboard mode. Architecture implication: only pre-compiled or very compact (<150 line) HIP kernels fit the timeout budget. The leader's 78-iteration approach (v78_splitk0.py) likely pre-compiles offline.
+
+### Learning 267: Fused Quant+GEMM Correctness Breakthrough (2026-04-07)
+`submission_fused_inline_quant.py` achieved 0.0 error on all 4 test shapes — proving inline BF16→FP4 quantization inside a HIP kernel produces correct results. However, scalar per-element quantization is 4-50x slower than the CK ASM + Triton pipeline. The path to competitive fused kernels requires MFMA-native vectorized quantization (using wave-level reductions for max_abs, not per-element loops).
+
+### Learning 268: K-Search Compound Loop — LLM Synthesis Works but Needs Quality (2026-04-07)
+The K-Search pipeline (Ollama synthesis → popcorn eval → tree learning) is operational. `deepcoder:14b` generates kernels in 60s but lacks MI355X MFMA knowledge (produces naive scalar GEMM). Cloud models (`deepseek-v3.2:cloud`) timeout on complex prompts. Key fix: use few-shot prompting with the WORKING tile32x128 kernel as an example, not zero-shot generation. Meta-prompts also had outdated instructions (subprocess/ctypes, both blocked).
+
+### Learning 269: TDD-First for GPU Kernels — Local Verification Saves Remote Submissions (2026-04-07)
+Verified e8m0_unshuffle roundtrip, MFMA 32x32 output layout (every cell written once), and A/B tile loading coverage (1024+4096 bytes) using pure Python before any remote submission. This prevented wasting rate-limited submissions on known-broken code. Rule: for GPU kernels where you can't run locally, verify ALL data flow components that CAN be tested locally (index math, permutations, coverage) before submitting.

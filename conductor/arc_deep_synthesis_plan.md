@@ -41,18 +41,18 @@ We will build `arc_cosmogony_synthesizer.py` that implements the following pipel
 ## Implementation Steps
 
 ### 1.1 Synthesizer Core (`arc_cosmogony_synthesizer.py`)
-- Create the temperature-stepped orchestrator.
-- Implement the Genetic Algorithm for AST generation (the "Poetiq-style" evolutionary loop).
+- [x] Create the temperature-stepped orchestrator.
+- [x] Implement the Genetic Algorithm for AST generation (the "Poetiq-style" evolutionary loop).
 
 ### 1.2 Primitive Operations Library (`arc_dsl.py`)
-- Define the Domain Specific Language (DSL) for ARC: `move()`, `rotate()`, `fill()`, `recolor()`, `crop()`, `intersect()`.
+- [x] Define the Domain Specific Language (DSL) for ARC: `move()`, `rotate()`, `fill()`, `recolor()`, `crop()`, `intersect()`.
 
 ### 1.3 ARC-AGI-2 Evaluation Pipeline (`evaluate_cosmogony.py`)
-- Run the synthesizer against the downloaded `arc-agi-2-repo` dataset.
-- Use the built-in `TDDIntegration` to ensure the DSL primitives work perfectly before launching the full evolutionary loop.
+- [x] Run the synthesizer against the downloaded `arc-agi-2-repo` dataset.
+- [x] Use the built-in `TDDIntegration` to ensure the DSL primitives work perfectly before launching the full evolutionary loop.
 
 ### 1.4 Paper Track Adaptation
-- Expand `paper_draft.md` to include "Cosmogonic Program Synthesis" as the primary driver, positioning it as a fundamental breakthrough in neuro-symbolic AI.
+- [x] Expand `paper_draft.md` to include "Cosmogonic Program Synthesis" as the primary driver, positioning it as a fundamental breakthrough in neuro-symbolic AI.
 
 ## Alternatives Considered
 - *Pure LLM Prompting (e.g., GPT-4o / Claude 3.5)*: Rejected. Research shows a hard ceiling at ~20-30% for pure LLM approaches on ARC without massive external scaffolding.

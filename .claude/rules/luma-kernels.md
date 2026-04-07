@@ -1,52 +1,35 @@
-# Luma AMD Speedrun — Kernel Optimization Rules
+# Luma AMD Speedrun — Post-Competition Reference (April 2026)
 
-## HARD CONSTRAINT: load_inline ONLY
+**Competition ended: April 7, 2026, 07:59 UTC**
 
-**ALL new kernel submissions MUST use `torch.utils.cpp_extension.load_inline()` for custom HIP C++ kernels.**
+## Final Results
 
-The Python API ceiling has been reached on all 3 kernels across 4 conductors and 200+ experiments:
-- aiter `gemm_a4w4` / `fused_moe` / `mla_decode_fwd` — **EXHAUSTED**
-- Parameter tuning (KSPLIT, block_size, sorting, thresholds) — **EXHAUSTED**
-- Triton custom kernels — 68% slower than CK ASM baseline
-- ctypes HIP dispatch — blocked by runner stream isolation
-- CUDA graphs — blocked by runner sandbox
+| Kernel | Our Best | Leader | Final Gap | Submissions |
+|--------|----------|--------|-----------|-------------|
+| GEMM | 13.4µs | 4.3µs | 3.1x | ~20 leaderboard |
+| MLA | 69.7µs | 19.5µs | 3.6x | ~8 leaderboard |
+| MoE | 154µs | 70.5µs | 2.2x | ~10 leaderboard |
 
-**The ONLY path to competitive times is `load_inline()`** — proven by Rank 1 (1us GEMM).
+## What Worked
 
-## Allowed Approaches
+1. **aiter API baseline** (gemm_a4w4, fused_moe, mla_decode_stage1_asm_fwd) — best ranked scores
+2. **load_inline custom MFMA kernels** — compile and pass correctness on MI355X runners
+3. **Fused quant+GEMM** — inline BF16→FP4 quantization proven correct (0.0 error)
+4. **K-Search compound loop** — Ollama synthesis → popcorn eval → tree learning (operational)
+5. **TDD for GPU kernels** — local verification of data flow before remote submission
 
-1. `torch.utils.cpp_extension.load_inline()` with HIP C++ kernels
-2. HipKittens tile primitives via load_inline
-3. CK-Tile composable primitives via load_inline
-4. Untested aiter APIs (pa_ps_fwd_asm, fmha_v3_varlen_fwd) — test first, document results
-5. K-Search (arXiv:2602.19128) guided mutations of load_inline kernels
+## What Didn't Work
 
-## BANNED Approaches (API Ceiling Reached)
+1. **per_1x32_f4_quant_hip** — silent incompatibility with gemm_a4w4 (L265)
+2. **Triton GEMM (gemm_afp4wfp4)** — autotuner exceeds 12-min runner timeout
+3. **Scalar FP4 quantization in fused kernel** — 4-50x slower than CK ASM pipeline
+4. **dispatch_policy=1 for MoE** — helped benchmark, hurt ranked (warm JIT caches)
+5. **MLA leaderboard submissions** — 8 shapes consistently exceed 12-min timeout
 
-- Tuning aiter API parameters (KSPLIT, block_size, sorting, thresholds)
-- Modifying fused_moe dispatch policy or weight stage
-- Adjusting mla_decode_fwd num_kv_splits or fast_mode
-- Any submission that only changes Python-level parameters
+## Key Architecture Lessons
 
-## Two Builders Pattern
-
-- **Correctness Anchor**: Keep baseline aiter API submissions as reference
-- **Performance Explorer**: All new work uses load_inline custom kernels
-- Never modify the anchor — only add new explorer variants
-
-## Benchmark-Driven Learning
-
-- `popcorn --mode test` (correctness) and `--mode benchmark` (performance) have NO rate limit
-- `popcorn --mode leaderboard` is limited to ~1/hour per kernel
-- Maximize benchmarks between submissions (12 per hour target)
-- Persist EVERY result to SurrealDB kernel_run table (even failures)
-
-## Current Best Times
-
-| Kernel | Our Best | Leader | Gap | Path |
-|--------|----------|--------|-----|------|
-| GEMM | 22.8us | 4.3us | 5.3x | load_inline + HipKittens/rocWMMA tiling |
-| MLA | 69.7us | 33.0us | 2.1x | Untested APIs + load_inline attention |
-| MoE | 154.2us | 109.8us | 1.4x | load_inline LDS bridge |
-
-## Deadline: April 6, 2026, 11:59 PM PST
+- **12-minute runner timeout** is the binding constraint for custom kernels (L266)
+- **Pre-compiled .co files** (CK ASM) have zero JIT overhead — hard to beat with JIT
+- **Ranked mode ≠ benchmark mode** — warm caches change everything
+- **Popcorn CLI**: `popcorn submit <file> --mode <mode> --leaderboard <name> --no-tui`
+- **Rate limits**: 1 leaderboard/hour, 1 test/hour per kernel (as of April 2026)

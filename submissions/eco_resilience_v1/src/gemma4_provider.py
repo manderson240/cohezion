@@ -109,7 +109,7 @@ class Gemma4Provider(OllamaProvider):
 
         # Prepare payload for Chat API
         payload = {
-            "model": la - Symphony_SOTA_モデル_name if "model" not in kwargs else model,
+            "model": model,
             "messages": [{"role": "user", "content": prompt}],
             "stream": False,
             "format": kwargs.get("format", ""),
@@ -122,12 +122,6 @@ class Gemma4Provider(OllamaProvider):
             },
         }
 
-        # SOTA OPTIMIZATION: Fused MXFP4 Block-Scaling (E8M0)
-        # Only apply to 26B MoE on Local GPU to maximize la-phase efficiency
-        if "26b-moe" in model and "gpu" in target_url:
-            payload["options"]["quantization"] = "mxfp4_block_scaled"
-            payload["options"]["fused_kernel"] = True
-
         # Symphony Anchor: If we have a cached cloud context, we tell the provider to use it
         if anchor_id:
             payload["anchor_id"] = anchor_id
@@ -136,15 +130,6 @@ class Gemma4Provider(OllamaProvider):
             payload["keep_alive"] = self.keep_alive
 
         try:
-            # SYMPHONY-PRUNING: If the regime is Synthesis/Sensing, apply saliency pruning
-            if regime in ("SENSING", "SYNTHESIS"):
-                payload["options"]["prune_cache"] = True
-                # Dynamically scale pruning threshold based on context size to prevent coherence collapse
-                # For huge contexts (>32k), we use more aggressive pruning (0.3) to maintain latency
-                # For smaller contexts, we keep it tight (0.1) for precision
-                payload["options"]["prune_threshold"] = 0.3 if current_ctx > 32000 else 0.1
-                payload["options"]["saliency_mode"] = "adaptive_importance"
-
             async with session.post(
                 f"{target_url}/api/chat",
                 json=payload,
@@ -180,9 +165,6 @@ class Gemma4Provider(OllamaProvider):
                         "regime": regime,
                         "hardware_target": target_url,
                         "anchor_id": anchor_id,
-                        "cache_pruned": regime in ("SENSING", "SYNTHESIS"),
-                        "mxfp4_fused": "mxfp4_block_scaled"
-                        in payload["options"].get("quantization", ""),
                     },
                 )
 
