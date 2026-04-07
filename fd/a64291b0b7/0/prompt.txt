@@ -1,0 +1,267 @@
+<task-notification>
+<task-id>bwwfpdtv5</task-id>
+<tool-use-id>toolu_01CfgPJLrkNt5oePffDHurdC</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/2290a242-3e60-4758-a1c1-cb0440fbfda6/tasks/bwwfpdtv5.output</output-file>
+<status>completed</status>
+<summary>Background command "Run K-Search for MLA (3 cycles)" completed (exit code 0)</summary>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>b3vwcdej3</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/2290a242-3e60-4758-a1c1-cb0440fbfda6/tasks/b3vwcdej3.output</output-file>
+<status>completed</status>
+<summary>Background command "Run K-Search driver LIVE for GEMM (3 cycles)" completed (exit code 0)</summary>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>a3826b7e5d3c573b7</task-id>
+<tool-use-id>toolu_01Y6nUerf1y9n3TZWFmZgWye</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/2290a242-3e60-4758-a1c1-cb0440fbfda6/tasks/a3826b7e5d3c573b7.output</output-file>
+<status>completed</status>
+<summary>Agent "Build fused quant+GEMM kernel" completed</summary>
+<result>Everything is consistent. The fix is complete and in place.
+
+**Summary of what was done:**
+
+Fixed the critical dispatch bug in `/home/mike-anderson/dev/cohezion/luma_speedrun/amd-mxfp4-mm/submission_fused_inline_quant.py` (lines 357-363). The old dispatch routed M&lt;=16 shapes through `mxfp4_gemm_fused_small` which performed sequential scalar global memory reads — catastrophically slow (15-74x slower than aiter baseline, as proven by the fused_parallel_v1 leaderboard result showing M=4→123µs vs 8.2µs baseline).
+
+The fix removes the `fused_small` branch entirely. All M values now go through `mxfp4_gemm_fused_inline` which uses cooperative vectorized loading (256 threads × uint4 = 16 bytes per thread, coalesced global→LDS transfers). The `fused_small` kernel remains defined but is unreachable dead code.
+
+Background submissions are still scheduled:
+- **12:31 AM EDT**: Test submission (correctness check) — will use the fixed file
+- **1:31 AM EDT**: Leaderboard submission — will use the fixed file</result>
+<usage><total_tokens>84216</total_tokens><tool_uses>308</tool_uses><duration_ms>11914750</duration_ms></usage>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>b49vd68rb</task-id>
+<tool-use-id>toolu_013KApLv7vnhpURYqqNDp5U8</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/2290a242-3e60-4758-a1c1-cb0440fbfda6/tasks/b49vd68rb.output</output-file>
+<status>completed</status>
+<summary>Background command "Run K-Search GEMM with fixed Ollama" completed (exit code 0)</summary>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>bx8aed2mw</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/2290a242-3e60-4758-a1c1-cb0440fbfda6/tasks/bx8aed2mw.output</output-file>
+<status>completed</status>
+<summary>Background command "Test synthesize_kernel directly" completed (exit code 0)</summary>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>b5m3jn34e</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/2290a242-3e60-4758-a1c1-cb0440fbfda6/tasks/b5m3jn34e.output</output-file>
+<status>failed</status>
+<summary>Background command "Test fused inline quant kernel" failed with exit code 1</summary>
+</task-notification>
+
+---
+
+Continue
+
+---
+
+<task-notification>
+<task-id>bb1aczku8</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/2290a242-3e60-4758-a1c1-cb0440fbfda6/tasks/bb1aczku8.output</output-file>
+<status>failed</status>
+<summary>Background command "Test fused inline quant kernel" failed with exit code 1</summary>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>baeuq1ud2</task-id>
+<tool-use-id>toolu_01FeciUuHSy7XCKKTSX5nZFU</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/2290a242-3e60-4758-a1c1-cb0440fbfda6/tasks/baeuq1ud2.output</output-file>
+<status>failed</status>
+<summary>Background command "Test MLA aggressive splits" failed with exit code 1</summary>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>b9qulmxrl</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/2290a242-3e60-4758-a1c1-cb0440fbfda6/tasks/b9qulmxrl.output</output-file>
+<status>failed</status>
+<summary>Background command "Submit shape_dispatch to leaderboard" failed with exit code 1</summary>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>btkzeusx7</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/2290a242-3e60-4758-a1c1-cb0440fbfda6/tasks/btkzeusx7.output</output-file>
+<status>failed</status>
+<summary>Background command "Test fixed synthesis pipeline" failed with exit code 143</summary>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>bjlmtvcqf</task-id>
+<tool-use-id>toolu_01FLLukWriarPQE2aJmiHxhi</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/2290a242-3e60-4758-a1c1-cb0440fbfda6/tasks/bjlmtvcqf.output</output-file>
+<status>completed</status>
+<summary>Background command "Run K-Search GEMM with local deepcoder:14b" completed (exit code 0)</summary>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>bn73b0mlt</task-id>
+<tool-use-id>toolu_01DZaAp8oH8K8CtvaCUDgu4R</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/2290a242-3e60-4758-a1c1-cb0440fbfda6/tasks/bn73b0mlt.output</output-file>
+<status>completed</status>
+<summary>Background command "Retry K-Search with fixed headers" completed (exit code 0)</summary>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>bwmka75q1</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/2290a242-3e60-4758-a1c1-cb0440fbfda6/tasks/bwmka75q1.output</output-file>
+<status>completed</status>
+<summary>Background command "Submit fused kernel test NOW" completed (exit code 0)</summary>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>bxgughuh8</task-id>
+<tool-use-id>toolu_01UdQi95ixA6AKniHCi5Y44m</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/2290a242-3e60-4758-a1c1-cb0440fbfda6/tasks/bxgughuh8.output</output-file>
+<status>completed</status>
+<summary>Background command "Wait 26 min then retry fused quant + MLA" completed (exit code 0)</summary>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>b5vloz6s9</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/2290a242-3e60-4758-a1c1-cb0440fbfda6/tasks/b5vloz6s9.output</output-file>
+<status>completed</status>
+<summary>Background command "SUBMIT FUSED QUANT GEMM TO LEADERBOARD" completed (exit code 0)</summary>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>bsizc2hvd</task-id>
+<tool-use-id>toolu_01QAdsoRvAmtNRq4TdMsTwgi</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/2290a242-3e60-4758-a1c1-cb0440fbfda6/tasks/bsizc2hvd.output</output-file>
+<status>failed</status>
+<summary>Background command "Submit shape_dispatch to leaderboard" failed with exit code 1</summary>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>bsrm4k332</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/2290a242-3e60-4758-a1c1-cb0440fbfda6/tasks/bsrm4k332.output</output-file>
+<status>failed</status>
+<summary>Background command "Submit MLA aggressive splits to leaderboard" failed with exit code 1</summary>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>bzghbv8vi</task-id>
+<tool-use-id>toolu_01MfH8CJerkvffacfJrzAUiC</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/2290a242-3e60-4758-a1c1-cb0440fbfda6/tasks/bzghbv8vi.output</output-file>
+<status>failed</status>
+<summary>Background command "Submit MoE baseline to leaderboard" failed with exit code 1</summary>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>btakbb9bp</task-id>
+<tool-use-id>toolu_01Gs7dQdZvYwxjoGiE1vgYm8</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/2290a242-3e60-4758-a1c1-cb0440fbfda6/tasks/btakbb9bp.output</output-file>
+<status>failed</status>
+<summary>Background command "Submit clean GEMM baseline to leaderboard" failed with exit code 1</summary>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>bn1z4j34u</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/2290a242-3e60-4758-a1c1-cb0440fbfda6/tasks/bn1z4j34u.output</output-file>
+<status>failed</status>
+<summary>Background command "Submit MoE dispatch_policy to leaderboard" failed with exit code 1</summary>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>bl8odgxsg</task-id>
+<tool-use-id>toolu_012XK4VqX1pQHhEyE5Xg1niR</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/2290a242-3e60-4758-a1c1-cb0440fbfda6/tasks/bl8odgxsg.output</output-file>
+<status>failed</status>
+<summary>Background command "Submit MLA baseline to leaderboard (proven to pass)" failed with exit code 1</summary>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>bjgcol9hy</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/2290a242-3e60-4758-a1c1-cb0440fbfda6/tasks/bjgcol9hy.output</output-file>
+<status>completed</status>
+<summary>Background command "Schedule submissions at ~05:52 UTC (after all rate limits reset)" completed (exit code 0)</summary>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>bgmeq1vi0</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/2290a242-3e60-4758-a1c1-cb0440fbfda6/tasks/bgmeq1vi0.output</output-file>
+<status>completed</status>
+<summary>Background command "Schedule final round at ~06:52 UTC" completed (exit code 0)</summary>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>bxj0w2xjq</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/2290a242-3e60-4758-a1c1-cb0440fbfda6/tasks/bxj0w2xjq.output</output-file>
+<status>failed</status>
+<summary>Background command "Final GEMM leaderboard submission" failed with exit code 1</summary>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>bsyc0x9am</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/2290a242-3e60-4758-a1c1-cb0440fbfda6/tasks/bsyc0x9am.output</output-file>
+<status>completed</status>
+<summary>Background command "Final GEMM submission at ~07:38 UTC" completed (exit code 0)</summary>
+</task-notification>
+
+---
+
+/retrospect
