@@ -61,8 +61,5 @@ Observe result → Update JEPA → Repeat
 Adapt Genesis Engine paper: "Interactive Reasoning via Physics-Grounded
 World Models: JEPA + Topological Routing for ARC-AGI-3"
 
-## Requirements
-- Open source: CC0 or MIT-0
-- No internet during evaluation
-- Hardware: P100 16GB or T4×2 (fits our 86K-param JEPA easily)
-- Must be reproducible
+## Phase: Review Fixes
+- [x] Task: Apply review suggestions bd3e453
