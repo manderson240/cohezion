@@ -1,40 +1,50 @@
-# Plan: MCP Stabilization & Unification (2026-04-02)
+# Track: AIMO Progress Prize 3 - Mathematical Reasoning Swarm (Refined 2026 SOTA Plan)
 
-## 1. Objective
-Unify the MCP infrastructure (legacy `aiohttp` servers vs. new `FastMCP` servers) into a single, `uv`-managed ecosystem. This ensures stability, standardizes the `stdio` transport for Gemini CLI, and resolves dependency conflicts (Python 3.14 vs. 3.12).
+## Background & Motivation
+To win the **AI Mathematical Olympiad (AIMO) Progress Prize 3** ($2,207,152 prize pool), we must overcome the physical constraints of Kaggle's 5-hour H100 (80GB) runtime limit and the competition's "Penalized Accuracy" scoring. Based on our deep-horizon April 2026 research, standard deployments fail due to "Reasoning Collapse," memory leaks, and over-confidence. 
 
-## 2. Key Files & Context
-- `pyproject.toml`: The single source of truth for dependencies.
-- `.python-version`: To lock `uv` to Python 3.12 for this project.
-- `src/cohezion/mcp/`: The target directory for unified server entry points.
-- `.gemini/settings.json`: The configuration for Gemini CLI tools.
-- `mcp_servers.json`: The configuration for external discovery.
+**CRITICAL FINDING (April 6, 2026):** We discovered the root cause of the `0` score submissions. The Kaggle AIMO API passes `id_df` and `problem_df` as `pl.Series` objects, not DataFrames. Indexing them with `[0, 0]` resulted in a stringified Polars table being injected into the LLM prompt (e.g., `shape: (2,) Series: ...`). The model was trying to solve a formatting error instead of a math problem!
 
-## 3. Implementation Steps
+## Scope & Impact
+This refined plan outlines the construction of the **"Fortress Swarm"** architecture with the critical **Polars Indexing Fix**. It transitions our pipeline from a fragile, standard LLM script to a resilient, compute-optimal, and self-verifying Triune Manifold.
 
-### Phase 1: Environment Stabilization (The Foundation)
-1.  **Lock Python Version**: Create `.python-version` with `3.12` to ensure `uv` always uses the compatible interpreter.
-2.  **Verify `uv` Sync**: Run `uv sync --all-extras` to ensure all `ml`, `audio`, and `dev` dependencies are correctly resolved in the local `.venv`.
-3.  **Clean Legacy State**: Stop any lingering Docker or Python processes from previous attempts (`pkill -f cohezion.mcp`).
+## Proposed Solution: The "Fortress" Architecture
+1. **The Polars Fix**: Update the inference loop to use `problem_df[0]` (scalar extraction) to ensure the LLM receives raw text.
+2. **Pre-Flight TDD Suite (Environment Lock)**: A diagnostic layer that verifies GPU presence, library imports (Transformers/vLLM), and Symbolic Execution before interacting with the Kaggle competition API.
+3. **Triune Manifold Roles**:
+   - **The Doer**: `SymbolicExecutor` utilizing SymPy in a sandboxed, time-limited environment.
+   - **The Thinker**: `BaseSpecialist` employing a **Diverse Prompt Mixer** (Algebraist, Inductive, Goal-Oriented, Devil's Advocate) to decorrelate errors across independent runs.
+   - **The Knower**: `KnowerAuditor` implementing **Weighted Entropy Voting** and **GenSelect** to analytically resolve divergent proofs.
+4. **Hardware Optimization**:
+   - **Hard VRAM Resets**: Explicit `gc.collect()` and `torch.cuda.empty_cache()` between problems to survive KV cache accumulation.
+   - **Compute-Optimal Scaling**: Dynamic time budgeting with a 30s "Safety Trigger" to return a safe default.
+   - **Transformers Native / Speculative Decoding**: Prioritizing `torch.compile` and `StaticCache` with Transformers for stability, or vLLM with a 1.5B Drafter model for 1.5x throughput.
 
-### Phase 2: Unified Server Architecture (The Structure)
-1.  **Audit Server Modules**: Map all existing servers in `src/cohezion/mcp/` and `src/cohezion/mcp/servers/`.
-2.  **Standardize `FastMCP`**: Update any legacy `aiohttp` servers to use the `FastMCP` decorator pattern if they aren't already. This provides built-in `stdio` and `http` support.
-3.  **Fleet Management**: Create `src/cohezion/mcp/fleet.py` as a central dispatcher that can start any server using `uv run python -m cohezion.mcp.fleet [server_name]`.
+## Alternatives Considered
+- **Monte Carlo Tree Search (MCTS) / Lean 4 Formalization**: Rejected due to the 5-hour compute limit. These methods are too slow to solve 50 hidden problems on a single H100.
+- **70B/72B 4-bit Quantized Models**: Rejected due to massive KV cache requirements leading to OOM. 32B/14B models with robust tool-integration provide better accuracy/stability ratios.
 
-### Phase 3: Configuration Synchronization (The Interface)
-1.  **Derive Configs**: Create a script `scripts/generate_mcp_configs.py` that generates both `.gemini/settings.json` and `mcp_servers.json` from the `src/cohezion/mcp/fleet.py` registry.
-2.  **Update `start-mcp-servers.sh`**: Refactor this script to be a simple wrapper around `uv run python -m cohezion.mcp.fleet --all`.
+## Phased Implementation Plan
 
-### Phase 4: Verification (The Proof)
-1.  **Health Check Script**: Create `tests/mcp/test_fleet_health.py` to programmatically verify each server starts and responds to a `list_tools` request via `stdio`.
-2.  **HIHO Coherence**: Use the `cohezion-coherence` server to verify the system's own alignment after the changes.
+### Phase 1: Environment Hardening & TDD
+- [x] Integrate `PreFlightJury` to test the Kaggle offline environment.
+- [x] Configure Kaggle metadata for H100 locking (`machine_shape: NvidiaH100`).
+- [ ] **Apply Polars Indexing Fix** (`problem_df[0]`) to resolve the prompt formatting corruption.
 
-## 4. Verification & Testing
-- `uv run pytest tests/mcp/test_fleet_health.py`
-- `uv run ruff check src/cohezion/mcp/`
-- `uv run mypy src/cohezion/mcp/`
+### Phase 2: Inference-Time Scaling
+- [x] Upgrade the Dual-Run protocol to an Adaptive Batched Swarm.
+- [x] Implement the Diverse Prompt Mixer to enforce cognitive diversity.
+- [ ] Refine the "Devil's Advocate" Adversarial Loop for continuous self-correction (Reflexion).
 
-## 5. Security & Safety
-- **No Secrets**: Ensure all `env` variables in generated configs use placeholders or system env vars, never hardcoded keys.
-- **Principle of Least Privilege**: Each MCP server will only have the `env` variables it strictly requires.
+### Phase 3: Symbolic Verification (SymCode)
+- [x] Sandbox the `SymbolicExecutor` to prevent runtime crashes during code execution.
+- [ ] Implement "Invariant-Aware Prompting" to force the model to generate testable mathematical properties before finalizing its answer.
+
+### Phase 4: Production Deployment
+- [x] Deploy "Safe-Mode" Transformers baseline (v24) as a guaranteed fallback.
+- [ ] Deploy final "Fortress Swarm" (v34) with the Polars bug fixed, ensuring the model finally receives the raw mathematical text.
+
+## Verification
+- **Prompt Integrity Test**: Verify that the text passed to the tokenizer is a pure string, not a Polars object representation.
+- **Fail-Safe Trigger**: Verify the system gracefully returns `0` and continues to the next problem if an OOM or logic crash occurs.
+- **Dummy Dataset Check**: Verify the script can run locally against a mock `test.csv` without timing out.

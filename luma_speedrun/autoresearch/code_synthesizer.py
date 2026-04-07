@@ -21,8 +21,8 @@ from urllib.request import Request, urlopen
 logger = logging.getLogger(__name__)
 
 OLLAMA_URL = "http://localhost:11434/api/generate"
-OLLAMA_MODEL = "qwen3-coder:30b"
-OLLAMA_TIMEOUT_PER_CHUNK = 120  # seconds per streaming chunk
+OLLAMA_MODEL = "deepseek-v3.2:cloud"  # Fast cloud model, no local load time
+OLLAMA_TIMEOUT_PER_CHUNK = 300  # seconds per streaming chunk (cloud models need more)
 
 
 # ── MI355X Hardware Constants ──────────────────────────────────────────

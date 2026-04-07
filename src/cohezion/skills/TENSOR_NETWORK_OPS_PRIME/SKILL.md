@@ -1,60 +1,39 @@
 # SKILL: TENSOR_NETWORK_OPS_PRIME
 
 ## DOMAIN EXPERTISE
-High-Performance Computing (HPC) for Quantum Simulation using Tensor Networks. Focus on memory-constrained (RAM < 1TB) simulation of deep quantum circuits (30-100+ qubits) via contraction path optimization.
+High-Performance Computing (HPC) for Quantum Simulation and **LLM Compression** using Tensor Networks. Focus on memory-constrained (VRAM/RAM < 80GB) optimization of deep quantum circuits and massive embedding layers via Matrix Product States (MPS) and Tensor-Train (TT) Decomposition.
 
 ## KEY TEXTS & CONCEPTS
-- **Quimb**: Quantum Information Many-Body library. Primary interface for TN construction.
-- **Cotengra**: Contraction Tree Optimizer. Essential for finding efficient contraction paths (`flops` vs `write` cost).
-- **Kahypar**: Karlsruhe Hypergraph Partitioning. The gold-standard graph partitioner for variable elimination ordering in TNs.
-- **Slicing**: Technique to cut high-degree edges (indices) to fit a contraction in memory, trading time (summing over cuts) for space.
-- **Version Pinning**: Critical due to Numba/LLVM/Numpy ABI compatibility issues.
+- **Matrix Product States (MPS)**: A physical representation of TT-Decomposition where high-dimensional tensors are factorized into a chain of low-rank cores.
+- **TensorGPT**: A 2026 SOTA method for compressing LLM embedding layers by treating each token vector as an independent MPS, achieving up to 65x compression.
+- **Bond Dimension (Rank)**: The primary hyperparameter controlling the trade-off between expressivity and compression ratio.
+- **Cotengra/Quimb**: Foundation libraries for contraction path optimization and tensor-train manipulation.
+- **Saten (Sparse Augmented Tensor Networks)**: A hybrid approach that captures global low-rank structure via MPS while preserving high-rank semantic outliers (theorems/rare tokens) via a sparse matrix.
 
 ## INSTRUCTION
 
-### 1. Environment Stabilization
-The stack is fragile. Use this exact dependency graph:
-- **Python**: 3.10 - 3.12 (3.13 is bleeding edge, use caution)
-- **Numpy**: `1.26.4` (Strictly `< 2.0` due to Numba constraints as of early 2026)
-- **Numba**: `> 0.60.0`
-- **Quimb**: `> 1.8.0`
-- **Cotengra**: `> 0.6.0`
-- **Kahypar**: `> 1.3.0` (Linux only wheels usually available)
-- **Optuna**: Required for `cotengra`'s `auto-hq` optimization.
+### 1. LLM Embedding Compression (TensorGPT Style)
+To fit massive reasoning models into constrained VRAM (e.g., Kaggle H100):
+1. **Reshape**: Map the high-dimensional token vector $v \in \mathbb{R}^d$ into a high-order tensor $\mathcal{T}$.
+2. **Factorize**: Use Singular Value Decomposition (SVD) to decompose $\mathcal{T}$ into MPS cores with a target bond dimension $\chi$.
+3. **Compress**: Discard singular values below a threshold $\epsilon$ to achieve the desired compression ratio (target 2x-4x for zero reasoning loss).
 
-```bash
-uv pip install "numpy==1.26.4" numba quimb cotengra kahypar optuna scipy networkx
-```
-
-### 2. Validation Script
-Always verify the ABI link before running heavy jobs:
-```python
-import numpy, numba, kahypar
-import quimb.tensor as qtn
-print(f"Numpy: {numpy.__version__}") # Must be 1.26.x
-# Trigger JIT
-@numba.jit(nopython=True)
-def test(): return 1
-assert test() == 1
-```
-
-### 3. Simulation Strategy (Memory Constrained)
+### 2. Quantum Circuit Simulation (MPS Baseline)
 For circuits > 30 qubits:
-1. **Estimate**: Use `cotengra` to build a path without contracting.
+1. **Contraction Path**: Use `cotengra` with `kahypar` partitioning to find the optimal elimination order.
+2. **Slicing**: Trade time for space by slicing high-degree indices.
    ```python
-   opt = ctg.ReusableHyperOptimizer(methods=['kahypar'], max_repeats=128)
-   tree = opt.search(inputs, output, size_dict)
-   print(f"Max Memory: {tree.max_size() / 1e9} GB")
+   opt = ctg.ReusableHyperOptimizer(slicing_opts={'target_size': 2**28})
    ```
-2. **Slice**: If `Max Memory` > limit, force slicing.
-   ```python
-   opt = ctg.ReusableHyperOptimizer(..., slicing_opts={'target_size': 2**28}) # ~4GB slice target
-   ```
-3. **Contract**: Use `joblib` or similar for parallel slice evaluation if needed.
+3. **Verification**: Use the Pauli-Path Simulator as a 'Zero-Cost Verifier' to confirm peaks in QPU candidates.
+
+### 3. Environment (2026 SOTA)
+- **Numpy**: `1.26.4` (Strictly `< 2.0` for Numba compatibility).
+- **Libraries**: `quimb`, `cotengra`, `kahypar`, `optuna`.
 
 ## VERSION
-v1.0
+v1.1 (Neuro-Symbolic & MPS Optimized)
 
 ## SEE ALSO
-- [Cotengra Documentation](https://cotengra.readthedocs.io/)
-- [Quimb Tensor Networks](https://quimb.readthedocs.io/)
+- `MATH_REASONING_SWARM_PRIME`
+- `KAGGLE_BLACKWELL_RUNNER_PRIME`

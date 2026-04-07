@@ -56,7 +56,7 @@ This guide walks you through deploying the Cohezion living portfolio in <10 minu
 
 ### Prerequisites
 
-- Python 3.13+ with `uv` installed
+- Python 3.11 with `uv` installed
 - Node.js 20+ (or bun 1.3+)
 - SurrealDB 3.0 (optional, for universe simulation features)
 

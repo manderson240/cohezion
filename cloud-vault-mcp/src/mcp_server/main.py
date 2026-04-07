@@ -60,8 +60,8 @@ def main():
         )
         logger.info("Health check enabled")
 
-    # FastMCP provides factory methods to build ASGI apps - call streamable_http_app()
-    mcp_app = mcp.streamable_http_app()
+    # FastMCP is an ASGI app directly - use it as mcp_app
+    mcp_app = mcp
 
     # Add TrustedHostMiddleware if not accepting all hosts
     if "*" not in config.allowed_hosts:

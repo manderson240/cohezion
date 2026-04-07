@@ -1,24 +1,20 @@
 {
-  "id": "manderson240/aimo-3-cohezion-baseline",
-  "title": "AIMO 3 Cohezion Baseline",
-  "code_file": "submission_sc_tir.py",
+  "id": "manderson240/aimo-3-mrs-swarm-transformers-v35",
+  "title": "AIMO 3 MRS Swarm Transformers v35",
+  "code_file": "submission_cohezion_v2.ipynb",
   "language": "python",
-  "kernel_type": "script",
+  "kernel_type": "notebook",
   "is_private": "true",
   "enable_gpu": "true",
   "enable_tpu": "false",
   "enable_internet": "false",
-  "machine_shape": "NvidiaRtxPro6000",
-  "dockerImageVersionId": 31287,
+  "machine_shape": "NvidiaH100",
   "dataset_sources": [
     "gmhost/qwen2-5-math-7b-instruct"
   ],
-  "model_sources": [
-    "deepseek-ai/deepseek-r1-distill-qwen-32b"
-  ],
+  "model_sources": [],
   "competition_sources": [
     "ai-mathematical-olympiad-progress-prize-3"
   ],
-  "kernel_sources": [],
-  "accelerator": "GPU"
+  "kernel_sources": []
 }

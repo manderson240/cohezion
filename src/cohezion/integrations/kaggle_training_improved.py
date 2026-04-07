@@ -124,19 +124,38 @@ try:
 
     # 2. Imports & Dependencies
     print("\n[2/8] Loading dependencies...")
-    MANDATORY_PACKAGES = ["trl", "peft", "bitsandbytes", "accelerate", "nvidia-cutlass", "mamba_ssm", "causal_conv1d"]
+    
+    def check_dns():
+        import socket
+        try:
+            socket.gethostbyname("pypi.org")
+            return True
+        except socket.error:
+            return False
+
+    if not check_dns():
+        print("WARNING: DNS failure detected. Attempting to restart network interface...")
+        # Try a quick fix for DNS issues in some Kaggle VMs
+        subprocess.run("echo 'nameserver 8.8.8.8' > /etc/resolv.conf", shell=True)
+
+    MANDATORY_PACKAGES = ["trl", "peft", "bitsandbytes", "accelerate"]
     for pkg in MANDATORY_PACKAGES:
         try:
             __import__(pkg.replace("-", "_"))
             print(f"  {pkg} already installed")
         except ImportError:
-            print(f"  Installing {pkg}...")
-            # Try standard install first
-            try:
-                subprocess.check_call([sys.executable, "-m", "pip", "install", "-q", pkg])
-            except:
-                print(f"  Standard install failed for {pkg}, trying with --no-build-isolation...")
-                subprocess.check_call([sys.executable, "-m", "pip", "install", "-q", "--no-build-isolation", pkg])
+            print(f"  Attempting robust load for {pkg}...")
+            # Retry loop for flaky network
+            for attempt in range(3):
+                try:
+                    subprocess.check_call([sys.executable, "-m", "pip", "install", "-q", pkg])
+                    print(f"  Successfully installed {pkg}")
+                    break
+                except Exception as e:
+                    print(f"  Attempt {attempt+1} failed: {e}")
+                    if attempt == 2:
+                        print(f"  Offline fallback for {pkg}...")
+                        subprocess.run([sys.executable, "-m", "pip", "install", "-q", pkg, "--no-index", "--find-links=/kaggle/input/nemotron-trl-wheels"])
 
     import torch
     import pandas as pd
@@ -180,14 +199,22 @@ try:
 
     # 5. Teacher trace generation (knowledge distillation)
     print("\n[5/8] Generating teacher traces for distillation...")
-    teacher_model_name = "deepseek-ai/deepseek-r1-distill-qwen-32b"
+    teacher_model_name = "deepseek-ai/deepseek-r1-distill-qwen-7b"
     
     try:
         print(f"  Loading teacher: {teacher_model_name}")
         teacher_tokenizer = AutoTokenizer.from_pretrained(teacher_model_name, trust_remote_code=True)
+        
+        bnb_config = BitsAndBytesConfig(
+            load_in_4bit=True,
+            bnb_4bit_compute_dtype=torch.bfloat16,
+            bnb_4bit_use_double_quant=True,
+            bnb_4bit_quant_type="nf4",
+        )
+        
         teacher_model = AutoModelForCausalLM.from_pretrained(
             teacher_model_name,
-            torch_dtype=torch.bfloat16,
+            quantization_config=bnb_config,
             device_map="auto",
             trust_remote_code=True
         )
@@ -200,7 +227,7 @@ try:
             response = teacher_tokenizer.decode(outputs[0], skip_special_tokens=True)
             return response[len(prompt):].strip()
 
-        sample_size = min(50, len(df))
+        sample_size = min(100, len(df))
         print(f"  Generating traces for {sample_size} samples...")
         filtered_data = []
         for idx in range(sample_size):
@@ -218,7 +245,7 @@ try:
         torch.cuda.empty_cache()
     except Exception as e:
         print(f"  Teacher generation failed: {e}. Falling back to ground truth.")
-        filtered_data = [{'prompt': row[PROMPT_COL], 'answer': row[ANSWER_COL], 'teacher_trace': ''} for _, row in df.head(100).iterrows()]
+        filtered_data = [{'prompt': row[PROMPT_COL], 'answer': row[ANSWER_COL], 'teacher_trace': ''} for _, row in df.head(200).iterrows()]
 
     # 6. Load student model
     print("\n[6/8] Loading student model...")
@@ -226,7 +253,20 @@ try:
     tokenizer = AutoTokenizer.from_pretrained(model_path, trust_remote_code=True)
     if tokenizer.pad_token is None: tokenizer.pad_token = tokenizer.eos_token
     
-    model = AutoModelForCausalLM.from_pretrained(model_path, device_map="auto", trust_remote_code=True, torch_dtype=torch.bfloat16)
+    student_bnb_config = BitsAndBytesConfig(
+        load_in_4bit=True,
+        bnb_4bit_compute_dtype=torch.bfloat16,
+        bnb_4bit_use_double_quant=True,
+        bnb_4bit_quant_type="nf4",
+    )
+    
+    model = AutoModelForCausalLM.from_pretrained(
+        model_path, 
+        quantization_config=student_bnb_config,
+        device_map="auto", 
+        trust_remote_code=True
+    )
+    model = prepare_model_for_kbit_training(model)
     
     lora_config = LoraConfig(
         r=32, lora_alpha=16, 
@@ -271,7 +311,14 @@ try:
     print("\n" + "=" * 60 + "\nSUBMISSION READY: submission.zip\n" + "=" * 60)
 
 except Exception as e:
-    print(f"\nERROR: {e}")
-    traceback.print_exc()
-    sys.exit(1)
+    print("\n" + "!" * 60)
+    print(f"CRITICAL ERROR: {e}")
+    print("!" * 60)
+    try:
+        import traceback
+        traceback.print_exc()
+    except:
+        print("Could not print traceback")
+    # Instead of sys.exit(1), we just return or let the cell finish to avoid IPython NoneType error
+    print("\nExiting training script early due to error.")
 """

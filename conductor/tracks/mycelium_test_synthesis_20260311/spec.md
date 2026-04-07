@@ -10,7 +10,7 @@ Mycelium (the ShadowScripter) is an autonomous, background layer of the Cohezion
 - **Integration**: Must run automatically as a post-action hook or asynchronous background process after an EVO Agent completes a generation task.
 
 ## 3. Technical Constraints
-- Language: Python 3.13+
+- Language: Python 3.11
 - Framework: Tight integration with `pytest` and `coverage`.
 - Strict TDD: 100% test coverage required for the Mycelium logic itself.
 - Code Style: Must adhere strictly to `conductor/code_styleguides/python.md`.

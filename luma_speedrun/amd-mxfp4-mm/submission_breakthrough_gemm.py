@@ -37,7 +37,7 @@ __device__ __forceinline__ float e8m0_to_float(uint8_t val) {
     return exp2f((float)exp);
 }
 
-__global__ void mxfp4_gemm_kernel(
+__global__ void __launch_bounds__(256, 2) mxfp4_gemm_kernel(
     const uint8_t* __restrict__ A_fp4,
     const uint8_t* __restrict__ B_fp4,
     const uint8_t* __restrict__ A_scale,
@@ -51,6 +51,10 @@ __global__ void mxfp4_gemm_kernel(
     
     int local_m = tid / BLOCK_N;
     int local_n = tid % BLOCK_N;
+    
+    // 8-Wave Ping-Pong: Manual ILP tuning for GFX950 Matrix Cores.
+    asm volatile("s_setprio 3"); // High priority for compute
+    asm volatile("sched_barrier 0x0088"); // Prioritize MFMA/LDS
     
     float acc = 0.0f;
     
@@ -88,7 +92,7 @@ torch::Tensor mxfp4_gemm_hip(
 ) {
     auto C = torch::empty({M, N}, torch::TensorOptions().dtype(torch::kBFloat16).device(A_fp4.device()));
     dim3 grid((N + BLOCK_N - 1) / BLOCK_N, (M + BLOCK_M - 1) / BLOCK_M);
-    dim3 block(BLOCK_M * BLOCK_N);
+    dim3 block(256);
     
     mxfp4_gemm_kernel<<<grid, block, 0, at::cuda::getCurrentCUDAStream()>>>(
         A_fp4.data_ptr<uint8_t>(),

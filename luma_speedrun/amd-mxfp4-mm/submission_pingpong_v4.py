@@ -54,7 +54,8 @@ __constant__ float FP4_LUT[16] = {
 };
 
 // E8M0 decode
-__device__ __forceinline__ float e8m0_to_float(uint8_t val) {
+__device__ __forceinline__ float e8m0_to_f32(uint8_t val) {
+    if (val == 0 || val == 255) return 0.0f;
     return exp2f((float)((int)val - 127));
 }
 
@@ -68,12 +69,12 @@ __device__ __forceinline__ int lds_swizzle(int row, int col16) {
 
 // ─── Double-Buffered Tiled GEMM ─────────────────────────────────────────
 __global__ __launch_bounds__(THREADS, 2)
-void mxfp4_gemm_pingpong(
+void mxfp4_gemm_pp_v4_kernel(
     const uint8_t* __restrict__ A_packed,   // [M, K/2]
     const uint8_t* __restrict__ B_packed,   // [N, K/2]
     const uint8_t* __restrict__ A_scale,    // [M, K/32]
     const uint8_t* __restrict__ B_scale,    // [N, K/32]
-    at::BFloat16* __restrict__ C,           // [M, N]
+    __hip_bfloat16* __restrict__ C,           // [M, N]
     int M, int N, int K
 ) {
     // Block coordinates
@@ -163,7 +164,7 @@ void mxfp4_gemm_pingpong(
                 int row_idx = ty * THREAD_M + mi;
                 if (bm + row_idx >= M) continue;
 
-                float sa = e8m0_to_float(A_scale[(bm + row_idx) * K_scale + scale_idx]);
+                float sa = e8m0_to_f32(A_scale[(bm + row_idx) * K_scale + scale_idx]);
 
                 // First N pass: columns [tx*4 .. tx*4+3]
                 #pragma unroll
@@ -171,7 +172,7 @@ void mxfp4_gemm_pingpong(
                     int col_idx = tx * THREAD_N + ni;
                     if (bn + col_idx >= N) continue;
 
-                    float sb = e8m0_to_float(B_scale[(bn + col_idx) * K_scale + scale_idx]);
+                    float sb = e8m0_to_f32(B_scale[(bn + col_idx) * K_scale + scale_idx]);
                     float dot = 0.0f;
 
                     #pragma unroll
@@ -200,13 +201,13 @@ void mxfp4_gemm_pingpong(
         for (int ni = 0; ni < THREAD_N; ni++) {
             int col = bn + tx * THREAD_N + ni;
             if (col >= N) continue;
-            C[row * N + col] = __float2bfloat16(acc[mi][ni]);
+            reinterpret_cast<__hip_bfloat16&>(C[row * N + col]) = __float2bfloat16(acc[mi][ni]);
         }
     }
 }
 
 // Python wrapper
-torch::Tensor mxfp4_gemm_hip(
+torch::Tensor mxfp4_gemm_pp_v4_hip(
     torch::Tensor A_packed,
     torch::Tensor B_packed,
     torch::Tensor A_scale,
@@ -220,41 +221,47 @@ torch::Tensor mxfp4_gemm_hip(
     dim3 block(THREADS);
     dim3 grid((N + BLOCK_N - 1) / BLOCK_N, (M + BLOCK_M - 1) / BLOCK_M);
 
-    mxfp4_gemm_pingpong<<<grid, block, 0, at::cuda::getCurrentCUDAStream()>>>(
+    mxfp4_gemm_pp_v4_kernel<<<grid, block, 0, 0>>>(
         A_packed.data_ptr<uint8_t>(),
         B_packed.data_ptr<uint8_t>(),
         A_scale.data_ptr<uint8_t>(),
         B_scale.data_ptr<uint8_t>(),
-        reinterpret_cast<at::BFloat16*>(C.data_ptr()),
+        reinterpret_cast<__hip_bfloat16*>(C.data_ptr()),
         M, N, K
     );
     return C;
 }
-
-PYBIND11_MODULE(TORCH_EXTENSION_NAME, m) {
-    m.def("mxfp4_gemm_hip", &mxfp4_gemm_hip, "MXFP4 GEMM 8-wave ping-pong v4");
-}
 """
 
-CPP_SOURCE = "torch::Tensor mxfp4_gemm_hip(torch::Tensor, torch::Tensor, torch::Tensor, torch::Tensor, int, int, int);"
+CPP_SOURCE = "torch::Tensor mxfp4_gemm_pp_v4_hip(torch::Tensor, torch::Tensor, torch::Tensor, torch::Tensor, int, int, int);"
 
-try:
-    _module = load_inline(
-        name="mxfp4_gemm_pp_v4",
-        cpp_sources=[CPP_SOURCE],
-        cuda_sources=[HIP_SOURCE],
-        functions=["mxfp4_gemm_hip"],
-        verbose=False,
-        extra_cuda_cflags=["-O3", "--offload-arch=gfx950"],
-    )
-    HAS_CUSTOM_KERNEL = True
-except Exception as e:
-    print(f"load_inline ping-pong v4 failed: {e}")
-    HAS_CUSTOM_KERNEL = False
+_module = None
+
+def get_module():
+    global _module
+    if _module is None:
+        try:
+            _module = load_inline(
+                name="mxfp4_gemm_pp_v4",
+                cpp_sources=[CPP_SOURCE],
+                cuda_sources=[HIP_SOURCE],
+                functions=["mxfp4_gemm_pp_v4_hip"],
+                verbose=False,
+                extra_cuda_cflags=["-O3", "--offload-arch=gfx950"],
+            )
+        except Exception as e:
+            print(f"load_inline ping-pong v4 failed: {e}")
+    return _module
 
 
 def custom_kernel(data: input_t) -> output_t:
     """8-wave ping-pong GEMM with double-buffered LDS."""
+    mod = get_module()
+    if mod is None:
+        print("[GEMM] Falling back to aiter reference")
+        return ref_kernel(data)
+
+    print("[GEMM] Running custom 8-wave ping-pong kernel")
     A, B, B_q, B_shuffle, B_scale_sh = data
     M, K = A.shape
     N = B.shape[0]
@@ -264,11 +271,10 @@ def custom_kernel(data: input_t) -> output_t:
     A_q_bytes = A_q.view(torch.uint8)
     A_scale_bytes = A_scale_e8m0[:M, :K_scale].contiguous().view(torch.uint8)
 
-    B_q_bytes = B_q.view(torch.uint8)
     _, B_scale_e8m0 = dynamic_mxfp4_quant(B.contiguous())
     B_scale_bytes = B_scale_e8m0[:N, :K_scale].contiguous().view(torch.uint8)
 
-    return _module.mxfp4_gemm_hip(A_q_bytes, B_q_bytes, A_scale_bytes, B_scale_bytes, M, N, K)
+    return mod.mxfp4_gemm_pp_v4_hip(A_q_bytes, B_q.view(torch.uint8), A_scale_bytes, B_scale_bytes, M, N, K)
 
 
 def ref_kernel(data: input_t) -> output_t:
@@ -288,7 +294,5 @@ def ref_kernel(data: input_t) -> output_t:
 
 
 def kernel(data: input_t) -> output_t:
-    """Two Builders: ping-pong v4 or reference."""
-    if HAS_CUSTOM_KERNEL:
-        return custom_kernel(data)
-    return ref_kernel(data)
+    """Entry point."""
+    return custom_kernel(data)

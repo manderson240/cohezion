@@ -41,10 +41,12 @@ class KaggleAPI:
     async def push_notebook(
         self,
         notebook_id: str,
-        code: str,
+        notebook_code: str,
         competition_id: str | None = None,
         model_sources: list[str] | None = None,
+        dataset_sources: list[str] | None = None,
     ) -> dict:
+
         """Push a notebook to Kaggle with the EXACT metadata required for Blackwell G4."""
         logger.info(f"Pushing notebook: {notebook_id}")
 
@@ -53,7 +55,7 @@ class KaggleAPI:
 
         # Parse or wrap the code
         try:
-            nb_json = json.loads(code)
+            nb_json = json.loads(notebook_code)
         except ValueError:
             # Wrap raw python script into notebook format
             nb_json = {
@@ -63,7 +65,7 @@ class KaggleAPI:
                         "execution_count": None,
                         "metadata": {"trusted": True},
                         "outputs": [],
-                        "source": [code],
+                        "source": [notebook_code],
                     }
                 ],
                 "metadata": {
@@ -103,10 +105,10 @@ class KaggleAPI:
             "enable_gpu": "true",
             "enable_tpu": "false",
             "enable_internet": "true",
-            "dataset_sources": [],
-            "competition_sources": ["nvidia-nemotron-model-reasoning-challenge"],
+            "dataset_sources": dataset_sources or [],
+            "competition_sources": [competition_id] if competition_id else [],
             "kernel_sources": ["ryanholbrook/nvidia-utility-script"],
-            "model_sources": ["metric/nemotron-3-nano-30b-a3b-bf16/transformers/default/1"],
+            "model_sources": model_sources or [],
             "docker_image": "gcr.io/kaggle-private-byod/python@sha256:9fa0da194fad2241d3f01a80581cbecbd3a258b4d1b695e2cbbbc62a0fd205ac",
             "machine_shape": "NvidiaRtxPro6000",
         }
@@ -150,10 +152,16 @@ class KaggleAPI:
     async def get_notebook_output(self, notebook_id: str) -> str:
         """Get the output/logs of a Kaggle notebook."""
         kernel_slug = f"{self.username}/{notebook_id}"
+        temp_log_dir = Path(f"data/logs_{notebook_id}")
+        temp_log_dir.mkdir(parents=True, exist_ok=True)
         try:
-            # We don't want to download files, just get the log
-            output_result = self.api.kernels_output(kernel_slug, path=f"data/logs_{notebook_id}")
-            return getattr(output_result, "log", "No logs found.")
+            # kernels_output requires a path to download results
+            self.api.kernels_output(kernel_slug, path=str(temp_log_dir))
+            # The log might be in a file if it's large
+            log_file = temp_log_dir / f"{notebook_id}.log"
+            if log_file.exists():
+                return log_file.read_text()
+            return "Log file not found after download."
         except Exception as e:
             logger.error(f"Failed to get notebook logs: {e}")
             return str(e)

@@ -81,6 +81,7 @@ class MCPRegistry:
                     type=server["type"],
                     description=server["description"],
                     url=server.get("url"),
+                    tools=server.get("tools", []),
                     status=server.get("status", "unknown"),
                 )
             )
@@ -127,10 +128,14 @@ class MCPRegistry:
     def list_tools(self, server_name: str | None = None) -> list[str]:
         """List all available tools."""
         tools = []
-        servers = self._internal if server_name is None else [self.get_server(server_name)]
-        for server in servers:
+        if server_name:
+            server = self.get_server(server_name)
             if server and server.tools:
                 tools.extend([f"{server.name}.{t}" for t in server.tools])
+        else:
+            for server in self._external + self._internal:
+                if server.tools:
+                    tools.extend([f"{server.name}.{t}" for t in server.tools])
         return tools
 
     def get_relationships(self, server_name: str) -> list[str]:

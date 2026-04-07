@@ -6,7 +6,7 @@
 
 ## 📋 Prerequisites
 
-- **Python**: 3.13+ (required)
+- **Python**: 3.11 (required)
 - **UV**: Package manager ([install](https://docs.astral.sh/uv/))
 - **Ollama**: Local LLM runtime ([install](https://ollama.ai/))
 - **SurrealDB**: Persistence layer (optional for basic usage)

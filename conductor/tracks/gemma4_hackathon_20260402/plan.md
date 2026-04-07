@@ -49,3 +49,61 @@
     - [x] Perform final full test suite run.
     - [x] Generate an interactive Marimo walkthrough for the EcoResilience agent.
 - [x] **Task: Conductor - User Manual Verification 'Phase 4: Documentation & Finalization' (Protocol in workflow.md)**
+
+## Phase 5: Advanced Resonance & Swarm Integration (Expansion)
+- [x] **Task: Multi-Agent Resonance Loop (Swarm)**
+    - [x] Create `tests/swarm/test_ecoresilience_swarm_loop.py` for collaborative tasks.
+    - [x] Implement a specialized `SwarmOrchestrator` sub-protocol where `EcoResilienceAgent` (Gemma 4) leads a trio with `PhysicsAgent` (Ollama) and `BiologistAgent` (Mistral).
+    - [x] Define the "Resonance Protocol" for cross-agent 12D state vector sharing.
+    - [x] Verify coherence with `HIHOStabilityResolver`.
+- [x] **Task: Real-world Data Grounding (Data)**
+    - [x] Design and implement `src/cohezion/mcp/env_data_mcp.py` to fetch real-time data from NOAA and Copernicus APIs.
+    - [x] Update `EcoResilienceAgent` to use this MCP server for "Ground Truth" grounding during simulations.
+    - [x] Write integration tests for data-driven agent reasoning.
+- [x] **Task: Anima Dashboard Genesis Integration (Visual)**
+    - [x] Create `src/web/anima_dashboard/components/EcoResilienceView.tsx` in the Next.js frontend.
+    - [x] Implement real-time Three.js visualization for 12D manifold trajectories and HIHO stability indicators.
+    - [x] Add SSE (Server-Sent Events) streaming from the `ecoresilience` API endpoint to the dashboard.
+- [x] **Task: Gemma 4 QLoRA Specialization (ML)**
+    - [x] Prepare a training dataset from the `cohezion/knowledge_graph/` and `cohezion/physics/` domains.
+    - [x] Set up a QLoRA fine-tuning script `scripts/ml/finetune_gemma4_cohezion.py` (compatible with the G4 Blackwell/AMD setup).
+    - [x] Evaluate the fine-tuned model against the baseline for "Unified Physics" reasoning and TEK synthesis.
+- [x] **Task: Conductor - User Manual Verification 'Phase 5: Advanced Resonance & Swarm Integration' (Protocol in workflow.md)**
+
+## Phase 6: Production Hardening & Deployment
+- [x] **Task: Performance Optimization (Latency)**
+    - [x] Profile the `SwarmOrchestrator` resonance loop for bottlenecks.
+    - [x] Implement parallel agent execution within the resonance protocol where possible.
+    - [x] Optimize Three.js rendering in `EcoResilienceView.tsx` using `InstancedMesh`.
+- [x] **Task: Automated Monitoring & Drift Detection**
+    - [x] Integrate `EcoResilienceAgent` with `cohezion.reliability.monitor.ResourceMonitor`.
+    - [x] Implement drift detection for 12D trajectories to identify simulation instability early.
+    - [x] Create a Slack/Discord notification hook for HIHO stability breaches.
+- [x] **Task: Production-Ready Scaling**
+    - [x] Containerize the `EnvDataMCP` server for Kubernetes deployment.
+    - [x] Set up a production-ready model routing fallback chain (Gemma 4 -> Gemini Flash).
+    - [x] Finalize the interactive Marimo dashboard for public presentation.
+- [x] **Task: Conductor - User Manual Verification 'Phase 6: Production Hardening & Deployment' (Protocol in workflow.md)**
+
+## Phase 7: Rich Multimodal Synthesis & Actual Testing
+- [x] **Task: Knowledge Graph Grounding (Gemma 4 Model Card)**
+    - [x] Create `src/cohezion/knowledge_graph/GEMMA4_MODEL_CARD.md` with extracted specs.
+    - [x] Update `MISSION_JOURNAL.md` to reference the new model card grounding.
+- [x] **Task: Gemma 4 Visual Component Synthesis**
+    - [x] Update `EcoResilienceAgent` to generate precise DALL-E/Stable Diffusion prompts for ecosystem "Resilience Maps".
+    - [x] Integrate with `nanobanana` to generate actual images during simulations.
+    - [x] Add a `generate_diagram` method to the agent using Mermaid.js syntax for ecosystem flowcharts.
+- [x] **Task: Sonification Parameter Generation**
+    - [x] Update `EcoResilienceAgent` to output `Tone.js` parameters based on 12D state transitions.
+    - [x] Connect the agent's output to the dashboard's audio engine for "Resonance Sonification".
+- [x] **Task: "Resonance Mission" Execution Script**
+    - [x] Create `scripts/test_resonance_mission.py` to run a full multi-agent scenario.
+    - [x] Generate real assets (Images, Diagrams, Audio Params) during the script execution.
+    - [x] Capture these assets in `src/web/anima_dashboard/public/generated/`.
+- [x] **Task: Final Multimodal Dashboard Validation**
+    - [x] Update `EcoResilienceView.tsx` to display generated images and diagrams.
+    - [x] Perform a full "Night Run" validation to ensure all components resonate.
+- [x] **Task: Conductor - User Manual Verification 'Phase 7: Rich Multimodal Synthesis' (Protocol in workflow.md)**
+
+
+

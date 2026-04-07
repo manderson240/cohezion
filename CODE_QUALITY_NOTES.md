@@ -71,18 +71,18 @@ check_untyped_defs = true
 - **Bandit**: Security scanning (severity: medium+)
 - **Large files**: 1MB maximum (larger files registered in artifact system)
 
-## Python 3.13 Migration Progress
+## Python 3.11 Pinned Environment (ROCm/Triton)
 
-### Completed (2026-03-20)
-- [x] Type annotation syntax: `Union[str, int]` → `str | int` (via ruff UP007)
-- [x] Redundant file modes: `"r"` → `""` (via ruff UP015)
-- [x] Modern comprehensions (via ruff SIM rules)
-- [x] Builtin warnings fixed (variable shadowing)
+### Status (2026-04-05)
+- [x] Pinned to Python 3.11 in `pyproject.toml`
+- [x] Updated `.python-version`
+- [x] Resolved ROCm/Triton dependency conflicts
+- [x] Updated system paths and scripts
 
-### Remaining
-- [ ] mypy `disallow_untyped_defs = true` (requires stub files for legacy code)
-- [ ] Full test coverage of type annotations
-- [ ] Pre-commit ruff scope expansion (commit stage)
+### Consistency Checks
+- [x] mypy `python_version = "3.11"`
+- [x] ruff `target-version = "py311"`
+- [x] CI/CD environment variables
 
 ## Code Quality Metrics
 
@@ -111,5 +111,7 @@ check_untyped_defs = true
 When adding intentional code quality exemptions:
 1. Document rationale in this file
 2. Add `# noqa: RULE_CODE` with explanation
+3. Consider alternative implementations
+4. Review with maintainers for long-term impacta: RULE_CODE` with explanation
 3. Consider alternative implementations
 4. Review with maintainers for long-term impact

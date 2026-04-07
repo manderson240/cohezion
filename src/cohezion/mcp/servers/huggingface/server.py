@@ -1,39 +1,30 @@
-"""Hugging Face MCP Server - Model discovery, inference, and dataset access.
+"""Hugging Face MCP Server - Model Context Protocol wrapper for Hugging Face Hub access.
 
-Port: 8365
-Features:
-- Search models, datasets, spaces
-- Model inference via API
-- Download and cache models
-- Dataset exploration
-- Space deployment info
+Provides: Search models, datasets, spaces, inference, and README access.
 """
 
 from __future__ import annotations
 
-import asyncio
 import logging
 import os
-import sys
 from typing import Any
 
 import aiohttp
-from aiohttp import web
+from fastmcp import FastMCP
 
 from cohezion.security.credentials import get_credentials
 
 
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
-    stream=sys.stderr,
-)
-logger = logging.getLogger(__name__)
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger("huggingface-mcp")
 
-MCP_PORT = int(os.getenv("MCP_PORT", "8365"))
-# Primary: Vault Warden, Fallback: Environment
+# Configuration
 HF_API_TOKEN = get_credentials().get_secret("COHEZION_HF_TOKEN", env_var="HF_API_TOKEN") or ""
 HF_API_BASE = "https://huggingface.co/api"
+
+# Initialize FastMCP server
+app = FastMCP("cohezion-huggingface")
 
 
 class HuggingFaceService:
@@ -223,11 +214,6 @@ class HuggingFaceService:
         except Exception as e:
             return f"Error fetching README: {e}"
 
-    async def close(self) -> None:
-        """Close HTTP session."""
-        if self._session and not self._session.closed:
-            await self._session.close()
-
 
 # Global service instance
 _service: HuggingFaceService | None = None
@@ -241,239 +227,92 @@ def get_service() -> HuggingFaceService:
     return _service
 
 
-routes = web.RouteTableDef()
+@app.tool()
+async def hf_search_models(
+    query: str = "", library: str | None = None, task: str | None = None, limit: int = 10
+) -> dict[str, Any]:
+    """Search Hugging Face models.
+
+    Args:
+        query: Search query
+        library: Filter by library (transformers, pytorch, etc.)
+        task: Filter by task (text-classification, image-segmentation, etc.)
+        limit: Max results
+    """
+    service = get_service()
+    models = await service.search_models(query, library, task, limit)
+    return {"count": len(models), "models": models}
 
 
-@routes.get("/health")
-async def health(request: web.Request) -> web.Response:
-    """Health check."""
-    return web.json_response(
-        {
-            "status": "healthy",
-            "server": "huggingface",
-            "port": MCP_PORT,
-            "authenticated": bool(HF_API_TOKEN),
-        }
-    )
+@app.tool()
+async def hf_get_model_info(model_id: str) -> dict[str, Any]:
+    """Get detailed model information.
+
+    Args:
+        model_id: Model identifier (e.g., 'meta-llama/Llama-2-7b')
+    """
+    service = get_service()
+    info = await service.get_model_info(model_id)
+    if not info:
+        return {"error": f"Model not found: {model_id}"}
+    return info
 
 
-@routes.get("/")
-async def index(request: web.Request) -> web.Response:
-    """Server info."""
-    return web.json_response(
-        {
-            "name": "Hugging Face MCP Server",
-            "version": "1.0.0",
-            "port": MCP_PORT,
-            "authenticated": bool(HF_API_TOKEN),
-            "tools": [
-                "hf_search_models",
-                "hf_get_model_info",
-                "hf_search_datasets",
-                "hf_search_spaces",
-                "hf_inference",
-                "hf_get_readme",
-            ],
-        }
-    )
+@app.tool()
+async def hf_search_datasets(query: str = "", limit: int = 10) -> dict[str, Any]:
+    """Search Hugging Face datasets.
+
+    Args:
+        query: Search query
+        limit: Max results
+    """
+    service = get_service()
+    datasets = await service.search_datasets(query, limit)
+    return {"count": len(datasets), "datasets": datasets}
 
 
-@routes.post("/tools/hf_search_models")
-async def tool_hf_search_models(request: web.Request) -> web.Response:
-    """Search Hugging Face models."""
-    try:
-        data = await request.json()
-        query = data.get("query", "")
-        library = data.get("library")  # e.g., "transformers", "pytorch"
-        task = data.get("task")  # e.g., "text-classification"
-        limit = data.get("limit", 10)
+@app.tool()
+async def hf_search_spaces(query: str = "", limit: int = 10) -> dict[str, Any]:
+    """Search Hugging Face Spaces.
 
-        service = get_service()
-        models = await service.search_models(query, library, task, limit)
-
-        return web.json_response(
-            {
-                "tool": "hf_search_models",
-                "query": query,
-                "library": library,
-                "task": task,
-                "count": len(models),
-                "models": models,
-            }
-        )
-    except Exception as e:
-        logger.exception("Error searching models")
-        return web.json_response({"error": str(e)}, status=500)
+    Args:
+        query: Search query
+        limit: Max results
+    """
+    service = get_service()
+    spaces = await service.search_spaces(query, limit)
+    return {"count": len(spaces), "spaces": spaces}
 
 
-@routes.post("/tools/hf_get_model_info")
-async def tool_hf_get_model_info(request: web.Request) -> web.Response:
-    """Get detailed model information."""
-    try:
-        data = await request.json()
-        model_id = data.get("model_id", "")
+@app.tool()
+async def hf_inference(model_id: str, inputs: str) -> dict[str, Any]:
+    """Run inference on a model.
 
-        if not model_id:
-            return web.json_response({"error": "model_id is required"}, status=400)
-
-        service = get_service()
-        info = await service.get_model_info(model_id)
-
-        if info:
-            return web.json_response(
-                {
-                    "tool": "hf_get_model_info",
-                    "model_id": model_id,
-                    "info": info,
-                }
-            )
-        else:
-            return web.json_response({"error": f"Model not found: {model_id}"}, status=404)
-    except Exception as e:
-        logger.exception("Error getting model info")
-        return web.json_response({"error": str(e)}, status=500)
+    Args:
+        model_id: Model identifier
+        inputs: Input data for the model
+    """
+    service = get_service()
+    return await service.get_inference_api(model_id, inputs)
 
 
-@routes.post("/tools/hf_search_datasets")
-async def tool_hf_search_datasets(request: web.Request) -> web.Response:
-    """Search Hugging Face datasets."""
-    try:
-        data = await request.json()
-        query = data.get("query", "")
-        limit = data.get("limit", 10)
+@app.tool()
+async def hf_get_readme(model_id: str) -> dict[str, Any]:
+    """Get model README.
 
-        service = get_service()
-        datasets = await service.search_datasets(query, limit)
-
-        return web.json_response(
-            {
-                "tool": "hf_search_datasets",
-                "query": query,
-                "count": len(datasets),
-                "datasets": datasets,
-            }
-        )
-    except Exception as e:
-        logger.exception("Error searching datasets")
-        return web.json_response({"error": str(e)}, status=500)
-
-
-@routes.post("/tools/hf_search_spaces")
-async def tool_hf_search_spaces(request: web.Request) -> web.Response:
-    """Search Hugging Face Spaces."""
-    try:
-        data = await request.json()
-        query = data.get("query", "")
-        limit = data.get("limit", 10)
-
-        service = get_service()
-        spaces = await service.search_spaces(query, limit)
-
-        return web.json_response(
-            {
-                "tool": "hf_search_spaces",
-                "query": query,
-                "count": len(spaces),
-                "spaces": spaces,
-            }
-        )
-    except Exception as e:
-        logger.exception("Error searching spaces")
-        return web.json_response({"error": str(e)}, status=500)
-
-
-@routes.post("/tools/hf_inference")
-async def tool_hf_inference(request: web.Request) -> web.Response:
-    """Run inference on a model."""
-    try:
-        data = await request.json()
-        model_id = data.get("model_id", "")
-        inputs = data.get("inputs", "")
-
-        if not model_id or not inputs:
-            return web.json_response({"error": "model_id and inputs are required"}, status=400)
-
-        if not HF_API_TOKEN:
-            return web.json_response(
-                {"error": "HF_API_TOKEN environment variable required for inference"}, status=401
-            )
-
-        service = get_service()
-        result = await service.get_inference_api(model_id, inputs)
-
-        return web.json_response(
-            {
-                "tool": "hf_inference",
-                "model_id": model_id,
-                "result": result,
-            }
-        )
-    except Exception as e:
-        logger.exception("Inference error")
-        return web.json_response({"error": str(e)}, status=500)
-
-
-@routes.post("/tools/hf_get_readme")
-async def tool_hf_get_readme(request: web.Request) -> web.Response:
-    """Get model README."""
-    try:
-        data = await request.json()
-        model_id = data.get("model_id", "")
-
-        if not model_id:
-            return web.json_response({"error": "model_id is required"}, status=400)
-
-        service = get_service()
-        readme = await service.get_model_readme(model_id)
-
-        return web.json_response(
-            {
-                "tool": "hf_get_readme",
-                "model_id": model_id,
-                "readme": readme[:5000] if len(readme) > 5000 else readme,
-                "truncated": len(readme) > 5000,
-            }
-        )
-    except Exception as e:
-        logger.exception("Error getting README")
-        return web.json_response({"error": str(e)}, status=500)
-
-
-def create_app() -> web.Application:
-    """Create the web application."""
-    from cohezion.mcp.shared.auth import api_key_middleware
-
-    app = web.Application(middlewares=[api_key_middleware])
-    app.add_routes(routes)
-    return app
-
-
-# Global app instance for import
-app = create_app()
-
-
-async def main():
-    """Run the Hugging Face MCP Server."""
-    get_service()
-
-    logger.info(f"Starting Hugging Face MCP Server on port {MCP_PORT}")
-    if not HF_API_TOKEN:
-        logger.warning("HF_API_TOKEN not set - inference will fail")
-
-    runner = web.AppRunner(app)
-    await runner.setup()
-    site = web.TCPSite(runner, "0.0.0.0", MCP_PORT)
-    await site.start()
-
-    logger.info(f"✅ HF MCP Server running on http://localhost:{MCP_PORT}")
-    logger.info("   API: https://huggingface.co/docs/api")
-
-    while True:
-        await asyncio.sleep(3600)
+    Args:
+        model_id: Model identifier
+    """
+    service = get_service()
+    readme = await service.get_model_readme(model_id)
+    return {
+        "model_id": model_id,
+        "readme": readme[:5000] if len(readme) > 5000 else readme,
+        "truncated": len(readme) > 5000,
+    }
 
 
 if __name__ == "__main__":
-    try:
-        asyncio.run(main())
-    except KeyboardInterrupt:
-        logger.info("HF MCP Server stopped")
+    if not HF_API_TOKEN:
+        logger.warning("HF_API_TOKEN not set - inference will fail")
+    app.run(transport="stdio")

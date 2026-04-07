@@ -32,24 +32,26 @@ Observe result → Update JEPA → Repeat
 ## Phased Development
 
 ### Phase 1: SDK Integration (Week 1 — by April 3)
-- [ ] Install arc-agi SDK: `pip install arc-agi`
-- [ ] Build ARC environment wrapper matching gymnasium API
-- [ ] Test with random agent on sample environments
-- [ ] Measure baseline score with random actions
+- [x] Install arc-agi SDK: `uv run --no-project --python 3.12 --with arc-agi>=0.9.3`
+- [x] Build ARC environment wrapper matching gymnasium API (`arc_gym_wrapper.py`)
+- [x] Test with random agent on sample environments (`test_random_agent.py`)
+- [x] Measure baseline score with random actions (Score: 0.0)
 
 ### Phase 2: JEPA Per-Game Training (Weeks 2-3)
-- [ ] Build CNN encoder for 64x64 grid → FLUME latent
-- [ ] Train JEPA online per-game (test-time training)
+- [x] Build CNN encoder for 64x64 grid → FLUME latent (`arc_jepa.py`)
+- [x] Train JEPA online per-game (test-time training) (`train_jepa_online.py`)
 - [ ] Implement surprise-driven action selection
 - [ ] Measure: score improvement over random baseline
 
 ### Phase 3: Topological Routing (Weeks 4-5)
-- [ ] Wire TopologicalRouter for game trajectory analysis
+- [x] Wire TopologicalRouter for game trajectory analysis (`arc_topology_navigation.py`)
+- [x] Detect behavioral regimes (EXPLOIT/EXPLORE/PIVOT) in latent space
 - [ ] Detect exploitation loops → auto-switch to exploration
 - [ ] Detect stagnation → pivot to completely new strategy
 - [ ] Target: Milestone #1 deadline June 30
 
-### Phase 4: Advanced Techniques (Weeks 6-12)
+### Phase 4: ARC-AGI-2 (Static) & Advanced Techniques (Weeks 6-12)
+- [x] Download ARC-AGI-2 dataset (cloned to `data/arc-agi-2-repo`)
 - [ ] BioelectricNetwork for grid cell pattern coupling
 - [ ] Cosmogony-inspired progressive structure discovery
 - [ ] Evolutionary program synthesis (Poetiq-style)

@@ -19,5 +19,5 @@ echo "🌐 Starting web application on http://localhost:8501"
 echo ""
 
 # Streamlit command with proper Python path
-PYTHONPATH="/home/mike-anderson/dev/cohezion/.venv/lib/python3.13/site-packages:/home/mike-anderson/dev/cohezion/src:$PYTHONPATH" \
+PYTHONPATH="/home/mike-anderson/dev/cohezion/.venv/lib/python3.11/site-packages:/home/mike-anderson/dev/cohezion/src:$PYTHONPATH" \
 streamlit run flume_viz_simple.py --server.port=8501 --server.address=localhost

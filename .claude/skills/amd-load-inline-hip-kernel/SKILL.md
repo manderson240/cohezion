@@ -1,3 +1,16 @@
+---
+name: amd-load-inline-hip-kernel
+description: |
+  AMD GPU load_inline Kernel Development Skill for MI355X (gfx950).
+  Use when: (1) writing custom HIP kernels via load_inline for Popcorn CLI competitions,
+  (2) the aiter API ceiling is reached and custom MFMA intrinsics are needed,
+  (3) someone says "load_inline is blocked" — it is NOT (ctypes dispatch is, load_inline works).
+  VERIFIED Session 95: load_inline compiles and runs on Popcorn runners with MFMA FP4 intrinsics.
+  CRITICAL: Use B_q (standard packed), NOT B_shuffle (CK-specific format).
+author: Claude Code
+version: 2.0.0
+---
+
 # AMD GPU load_inline Kernel Development Skill
 
 ## Purpose
@@ -8,8 +21,26 @@ Develop custom HIP kernels using `torch.utils.cpp_extension.load_inline` for AMD
 - Optimizing kernels beyond library API ceilings
 - Target is rank 1 or near-rank-1 performance
 
-## Key Insight
-Official `template-hip.py` from gpu-mode/reference-kernels **PROVES** load_inline works on Popcorn runners!
+## CRITICAL CORRECTION (Session 95, 2026-04-05)
+
+**load_inline IS NOT BLOCKED on Popcorn runners.**
+
+Previous sessions (89-90) declared it "blocked" but they tested `ctypes` HIP dispatch
+(hipModuleLaunchKernel) which IS blocked by stream isolation. `torch.utils.cpp_extension.load_inline()`
+is a completely different mechanism — it uses PyTorch's ROCm compilation pipeline.
+
+**Verified evidence:**
+- MFMA v1 kernel: 4/4 tests passed, max error 0.0
+- Compilation time: ~60-90s on runner (fits in benchmark timeout)
+- MFMA FP4 32x32x64 intrinsic produces correct results
+
+## Key Insights (Session 95)
+
+1. **Use B_q, NOT B_shuffle** — B_shuffle is CK-tile-coalesced (16x16 permutation), incompatible with MFMA lane mapping
+2. **Unshuffle B_scale** — Use `e8m0_unshuffle()` to convert B_scale_sh to linear [N, K/32]
+3. **Don't shuffle A_scale** — `dynamic_mxfp4_quant()` returns linear scales, no shuffle needed
+4. **LDS hurts for small M** — sync overhead dominates when M<32 (30.9µs vs 26.4µs without LDS)
+5. **Ollama can't write these** — 0/4 Ollama-generated MFMA kernels passed correctness
 
 ## Pattern
 

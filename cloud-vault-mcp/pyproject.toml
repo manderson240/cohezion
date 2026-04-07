@@ -6,7 +6,7 @@ build-backend = "hatchling.build"
 name = "cloud-vault-mcp"
 version = "0.1.0"
 description = "Cloud Obsidian Vault MCP Server for Compound Engineering"
-requires-python = ">=3.11"
+requires-python = "==3.11.*"
 dependencies = [
     "mcp[cli]>=1.2.0",
     "pyyaml>=6.0",

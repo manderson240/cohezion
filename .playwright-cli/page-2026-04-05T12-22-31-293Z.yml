@@ -1,0 +1,77 @@
+- generic [ref=e1]:
+  - generic [ref=e2]:
+    - button [ref=e3] [cursor=pointer]:
+      - img [ref=e4]
+    - generic [ref=e11]:
+      - generic [ref=e13]:
+        - img [ref=e18] [cursor=pointer]
+        - generic [ref=e25]:
+          - button [ref=e95] [cursor=pointer]: Log in
+          - button [ref=e96] [cursor=pointer]: Sign up for Free
+      - separator [ref=e30]
+      - generic [ref=e31]:
+        - generic [ref=e33]:
+          - menu [ref=e34]:
+            - menuitem [ref=e97] [cursor=pointer]:
+              - generic [ref=e36]:
+                - img [ref=e38]
+                - generic [ref=e40]: Home
+            - menuitem [ref=e98] [cursor=pointer]:
+              - generic [ref=e42]:
+                - img [ref=e44]
+                - generic [ref=e46]: Jobs
+            - menuitem [ref=e99] [cursor=pointer]:
+              - generic [ref=e48]:
+                - img [ref=e50]
+                - generic [ref=e52]: Docs
+            - menuitem [ref=e100] [cursor=pointer]:
+              - generic [ref=e54]:
+                - img [ref=e56]
+                - generic [ref=e58]: Hybrid
+            - menuitem [ref=e101] [cursor=pointer]:
+              - generic [ref=e60]:
+                - img [ref=e62]
+                - generic [ref=e64]: Tutorials
+            - menuitem [ref=e102] [cursor=pointer]:
+              - generic [ref=e66]:
+                - img [ref=e68]
+                - generic [ref=e73]: Playground
+            - menuitem [ref=e103] [cursor=pointer]:
+              - generic [ref=e75]:
+                - img [ref=e77]
+                - generic [ref=e82]: Hackathons
+          - button [ref=e104] [cursor=pointer]:
+            - img [ref=e85]
+        - generic [ref=e91]:
+          - heading [level=5] [ref=e105]: Page Not Found
+          - paragraph [ref=e93]: Sorry, we couldn’t find the page you’re looking for.
+          - button [ref=e106] [cursor=pointer]: Back to Home
+  - dialog [ref=e109]:
+    - button "close" [ref=e110] [cursor=pointer]:
+      - img [ref=e111]
+    - main [ref=e113]:
+      - generic [ref=e114]:
+        - heading "Login" [level=1] [ref=e115]
+        - button "Sign in with Google" [active] [ref=e116] [cursor=pointer]:
+          - img [ref=e117]
+          - paragraph [ref=e123]: Sign in with Google
+        - generic [ref=e124]:
+          - separator [ref=e125]:
+            - generic [ref=e126]: Or login with email
+          - generic [ref=e127]:
+            - generic [ref=e129]: Email
+            - generic [ref=e131]:
+              - textbox "Email" [ref=e132]
+              - group
+          - generic [ref=e133]:
+            - generic [ref=e135]: Password
+            - generic [ref=e137]:
+              - textbox "Password" [ref=e138]
+              - button "toggle password visibility" [ref=e140] [cursor=pointer]:
+                - img [ref=e141]
+              - group
+          - generic [ref=e144] [cursor=pointer]: Forgot password?
+          - button "Sign In" [ref=e145] [cursor=pointer]: Sign In
+          - generic [ref=e148]: New to BlueQubit? Sign Up
+  - iframe [ref=e149]:
+    

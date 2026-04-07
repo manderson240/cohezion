@@ -14,9 +14,14 @@ def run_server():
     Imports and runs the cloud-vault-mcp main function.
     The server_manager sets MCP_PORT env var before calling this.
     """
-    from mcp_server.main import main
+    from mcp_server.main import main as vault_main
 
-    main()
+    vault_main()
+
+
+def main():
+    """Alias for run_server to support fleet manager."""
+    run_server()
 
 
 def run_stdio_server():

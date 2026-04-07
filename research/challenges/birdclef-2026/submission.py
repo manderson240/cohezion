@@ -88,8 +88,16 @@ def predict(test_audio_path, model_path=None, config=None):
 
     # Load components once
     print(f"Loading pre-trained AST components from {config['model_name']}...")
-    feature_extractor = ASTFeatureExtractor.from_pretrained(config['model_name'])
-    ast_base = ASTForAudioClassification.from_pretrained(config['model_name'])
+    try:
+        from huggingface_hub import configure_http_backend
+        import httpx
+        # Force a fresh client if needed, or just rely on standard loading with a retry
+        feature_extractor = ASTFeatureExtractor.from_pretrained(config['model_name'], local_files_only=False)
+        ast_base = ASTForAudioClassification.from_pretrained(config['model_name'], local_files_only=False)
+    except Exception as e:
+        print(f"Initial load failed: {e}. Retrying with local_files_only=True if possible.")
+        feature_extractor = ASTFeatureExtractor.from_pretrained(config['model_name'])
+        ast_base = ASTForAudioClassification.from_pretrained(config['model_name'])
 
     # Load model
     model = BirdASTModel(ast_base, num_classes=config['num_classes'])

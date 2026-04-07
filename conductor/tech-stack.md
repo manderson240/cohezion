@@ -2,7 +2,7 @@
 
 ## 1. Core Languages: The Polyglot Mandate
 We utilize the right language for the right task to maximize Cohezion, ensuring zero-defect evolution through strict Test-Driven Development (TDD) and full structural traceability.
-- **Python (3.13+)**: The primary orchestration, logic, and ML language, strictly managed via `uv` for lightning-fast dependency resolution.
+- **Python (3.11)**: The primary orchestration, logic, and ML language, strictly managed via `uv` for lightning-fast dependency resolution.
 - **Rust (via PyO3)**: Integrated for compute-heavy, high-performance physical simulations (e.g., Magnetohydrodynamics, plasma physics, and 12D state calculations) to ensure maximum compute density and direct substrate integration.
 - **TypeScript**: Utilized for the immersive, multimodal frontend interfaces and complex state management in the browser.
 - **Go**: Reserved for high-concurrency microservices and routing logic where extreme throughput is required.

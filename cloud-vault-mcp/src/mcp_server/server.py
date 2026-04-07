@@ -327,6 +327,24 @@ def create_server(config: ServerConfig) -> FastMCP:
         before executing it. Catches syntax errors early.
 
         Args:
+            sql: SQL statement to validate
+        """
+        try:
+            return googlesql.validate(sql)
+        except Exception as e:
+            return f"Error: {e}"
+
+    @mcp.tool()
+    def teleport_create_task(
+        title: str,
+        description: str,
+        context: str = "",
+        expected_output: str = "",
+        priority: str = "medium",
+    ) -> str:
+        """Create a new teleport task for delegation.
+
+        Args:
             title: Short task title
             description: What needs to be done
             context: Background information for the task
@@ -360,9 +378,51 @@ def create_server(config: ServerConfig) -> FastMCP:
             assigned_to: Who is claiming it (e.g. 'cloud-claude', 'local-claude')
         """
         try:
-            return googlesql.validate(sql)
-        except ConnectionError:
-            return "Error: GoogleSQL Analyzer service is not available."
+            result = teleport.claim_task(task_id, assigned_to)
+            return json.dumps(result, indent=2)
+        except Exception as e:
+            return f"Error: {e}"
+
+    @mcp.tool()
+    def teleport_complete_task(task_id: str, result: str) -> str:
+        """Complete a teleport task and submit the result.
+
+        Args:
+            task_id: The task ID to complete
+            result: The final result or answer for the task
+        """
+        try:
+            outcome = teleport.complete_task(task_id, result)
+            return json.dumps(outcome, indent=2)
+        except Exception as e:
+            return f"Error: {e}"
+
+    @mcp.tool()
+    def teleport_fail_task(task_id: str, error: str) -> str:
+        """Mark a teleport task as failed.
+
+        Args:
+            task_id: The task ID to mark as failed
+            error: Description of the error or reason for failure
+        """
+        try:
+            outcome = teleport.fail_task(task_id, error)
+            return json.dumps(outcome, indent=2)
+        except Exception as e:
+            return f"Error: {e}"
+
+    @mcp.tool()
+    def teleport_get_result(task_id: str) -> str:
+        """Get the result of a completed teleport task.
+
+        Args:
+            task_id: The task ID to retrieve the result for
+        """
+        try:
+            result = teleport.get_result(task_id)
+            return json.dumps(result, indent=2)
+        except Exception as e:
+            return f"Error: {e}"
 
     @mcp.tool()
     def sql_parse(sql: str) -> str:
@@ -376,8 +436,8 @@ def create_server(config: ServerConfig) -> FastMCP:
         """
         try:
             return googlesql.parse(sql)
-        except ConnectionError:
-            return "Error: GoogleSQL Analyzer service is not available."
+        except Exception as e:
+            return f"Error: {e}"
 
     @mcp.tool()
     def sql_analyze(sql: str, catalog_json: str = "") -> str:
@@ -394,8 +454,8 @@ def create_server(config: ServerConfig) -> FastMCP:
         """
         try:
             return googlesql.analyze(sql, catalog_json)
-        except ConnectionError:
-            return "Error: GoogleSQL Analyzer service is not available."
+        except Exception as e:
+            return f"Error: {e}"
 
     @mcp.tool()
     def sql_extract_tables(sql: str) -> str:
@@ -409,8 +469,8 @@ def create_server(config: ServerConfig) -> FastMCP:
         """
         try:
             return googlesql.extract_tables(sql)
-        except ConnectionError:
-            return "Error: GoogleSQL Analyzer service is not available."
+        except Exception as e:
+            return f"Error: {e}"
 
     @mcp.tool()
     def sql_extract_columns(sql: str) -> str:
@@ -424,8 +484,8 @@ def create_server(config: ServerConfig) -> FastMCP:
         """
         try:
             return googlesql.extract_columns(sql)
-        except ConnectionError:
-            return "Error: GoogleSQL Analyzer service is not available."
+        except Exception as e:
+            return f"Error: {e}"
 
     @mcp.tool()
     def vault_push_memory(memory_content: str) -> str:
@@ -641,8 +701,8 @@ def create_server(config: ServerConfig) -> FastMCP:
         """
         try:
             return googlesql.format_sql(sql)
-        except ConnectionError:
-            return "Error: GoogleSQL Analyzer service is not available."
+        except Exception as e:
+            return f"Error: {e}"
 
     @mcp.tool()
     async def ollama_generate(
@@ -667,7 +727,6 @@ def create_server(config: ServerConfig) -> FastMCP:
             logger.error(f"Ollama query failed: {e}")
             return f"Error: {e}"
 
-    @mcp.tool()
     @mcp.tool()
     async def ollama_embed(
         texts: list[str],
@@ -702,9 +761,6 @@ def create_server(config: ServerConfig) -> FastMCP:
         except Exception as e:
             logger.error(f"Ollama status check failed: {e}")
             return f"Error: {e}"
-
-        except ImportError:
-            logger.warning("Ollama client not available for direct integration")
 
     # ── Health Check Operations ────────────────────────────────────────
 

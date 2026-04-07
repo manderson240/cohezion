@@ -10,7 +10,7 @@ Develop a high-performance bioacoustic monitoring system to identify bird specie
 - Integrate with Cohezion's latent manifold for feature extraction.
 
 ## Technical Stack
-- Python 3.13+ (uv)
+- Python 3.11 (uv)
 - PyTorch / Torchaudio
 - Cohezion Swarm (Multi-agent ensemble)
 - FastMCP for audio processing tools

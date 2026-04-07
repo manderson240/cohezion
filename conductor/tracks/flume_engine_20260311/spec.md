@@ -10,7 +10,7 @@ FLUME (Fluid Latent Understanding through Manifold Encoding) is the core reasoni
 - **Hugging Face Hub Bridge**: Integration with the `sentence-transformers` library to fetch and use state-of-the-art embedding models as the encoder's input source.
 
 ## 3. Technical Constraints
-- Language: Python 3.13+
+- Language: Python 3.11
 - Framework: PyTorch (latest stable)
 - Integration: Hugging Face `transformers` and `sentence-transformers`.
 - Strict TDD: 100% coverage required.

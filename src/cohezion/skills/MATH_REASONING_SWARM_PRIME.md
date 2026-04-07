@@ -5,31 +5,32 @@ This skill defines the architectural pattern for deploying sovereign reasoning s
 
 ## KEY TEXTS & CONCEPTS
 - **Triune Manifold Architecture**: Segregation of responsibilities into Doer (12D state), Thinker (512D reasoning), and Knower (2048D intent/validation).
-- **12D Mathematical State Vector**: Parsing LaTeX into structural depth, domain probabilities, and logic types to route problems efficiently.
-- **Sandboxed Symbolic Execution**: Using `SymPy` and `NumPy` within a restricted execution environment to deterministically verify logic steps.
-- **Dual-Run Stability (0.5 Coherence)**: Running reasoning chains independently and verifying agreement to ensure the final answer is a stable attractor, not a hallucination.
+- **Diverse Prompt Mixer (DPM)**: Using multiple cognitive strategies (Inductive, Goal-Oriented, Algebraist) to decorrelate errors across independent runs (arXiv:2603.27844v1).
+- **Weighted Entropy Voting**: Resolving ties using inference-time entropy metrics ($w = 1 + 1 / (\text{entropy} + 0.1)$) to favor confident reasoning chains over noisy outliers.
+- **Speculative Decoding**: Pairing a massive reasoning model (e.g., 32B/72B) with a tiny drafter (e.g., 1.5B) to achieve 1.5x-1.8x throughput on H100 hardware.
+- **Tool-Integrated Reasoning (TIR)**: Interleaving Chain-of-Thought (CoT) with Python/SymPy execution to ensure arithmetic and symbolic precision.
 
 ## INSTRUCTION
-1. **Perception (The Doer)**: Parse the incoming LaTeX problem string to extract equations, variables, and structural complexity. Generate a 12D state vector.
+1. **Perception (The Doer)**: Parse the LaTeX problem and route to specialists. Use **Speculative Decoding** at the LLM level to maximize token-per-second throughput.
+2. **Execution (The Thinker)**: Deploy the **Diverse Prompt Mixer**. Perform a Dual-Run where Run 1 uses a direct Proof approach and Run 2 uses Inductive Reasoning (small cases first).
    ```python
-   parser = MathParser()
-   state = parser.parse(latex_string) # Returns MathProblemState
+   # Example: Diverse Strategy Rotation
+   strategies = ["Algebraist", "InductiveReasoning", "GoalOriented"]
+   s1 = strategies[problem_id % len(strategies)]
+   s2 = strategies[(problem_id + 1) % len(strategies)]
    ```
-2. **Routing (The Thinker)**: Based on the 12D state vector, route the problem to the appropriate specialist agent (Algebraist, NumberTheorist, Geometer, Combinatorist).
+3. **Verification (The Knower)**: Audit the runs using **Weighted Entropy Voting**. Calculate entropy based on reasoning chain length and consistency.
    ```python
-   coordinator = SwarmCoordinator()
-   task = coordinator.plan_journey(problem_id, latex_string)
+   # arXiv:2603.27844v1 Entropy Weighting
+   weight = 1.0 + 1.0 / (approx_entropy + 0.1)
+   final_answer = resolve_tie(ans1, ans2, ans3, weights=[w1, w2, w3])
    ```
-3. **Execution & Verification**: The specialist agent must generate reasoning chains and offload deterministic calculations to a `SymbolicExecutor`.
-   ```python
-   executor = SymbolicExecutor()
-   result = executor.execute("ans = solve(Eq(x**2 - 4, 0), x)")
-   ```
-4. **Validation (The Knower)**: Perform a Dual-Run to ensure stability. If Run 1 and Run 2 disagree, trigger a tie-breaker or adversarial review to find the logical flaw.
+4. **Safety**: Implement a **30s Safety Trigger**. If the per-problem time budget drops below 30s, bypass the swarm and return a default fallback answer to avoid disqualification.
 
 ## VERSION
-v0.1
+v0.2 (AIMO-3 Optimized)
 
 ## SEE ALSO
 - `FLUME_ENCODING_PRIME`
+- `KAGGLE_BLACKWELL_RUNNER_PRIME`
 - `HIHO_STABILITY_PRIME`

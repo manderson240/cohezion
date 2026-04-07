@@ -1,0 +1,83 @@
+{
+  "P1": {
+    "bitstring": "1001",
+    "probability": 1.0,
+    "snr": 3.8729833462074166,
+    "num_heavy": 1,
+    "method": "CPU StateVector"
+  },
+  "P2": {
+    "bitstring": "111010100110",
+    "probability": 0.39665,
+    "snr": 25.37307248795489,
+    "num_heavy": 142,
+    "method": "CPU StateVector"
+  },
+  "P3": {
+    "bitstring": "001111100001011001010111011000",
+    "probability": 0.09888,
+    "snr": 3240.0998109912107,
+    "num_heavy": 20337,
+    "method": "heavy_output",
+    "majority_voted": "001111100001011001010111011000"
+  },
+  "P4": {
+    "bitstring": "0001001110100001100110110100001101110000",
+    "probability": 0.0055,
+    "snr": 5819.6,
+    "num_heavy": 1,
+    "method": "MPS CPU (Confirmed)"
+  },
+  "P5": {
+    "bitstring": "11001011111110001001111010100011110000011101111100",
+    "probability": 0.001,
+    "snr": 1125899906842.624,
+    "method": "Real Quantum Hardware (Optimized QASM)",
+    "job_id": "5wdbNeiZkOMobDqQ"
+  },
+  "P6": {
+    "bitstring": "101101001100010100010111110011100011101011100000000101100111",
+    "probability": 0.0002,
+    "snr": 214748.36479999908,
+    "num_heavy": 5000,
+    "method": "Statistical Majority Voting (Refined)",
+    "majority_voted": "101101001100010100010111110011100011101011100000000101100111",
+    "stability": 1.0
+  },
+  "P7": {
+    "bitstring": "111110100010100110100110001110010110110011",
+    "probability": 0.0002,
+    "snr": 419.43039952321055,
+    "num_heavy": 5000,
+    "method": "Statistical Majority Voting (Refined)",
+    "majority_voted": "111110100010100110100110001110010110110011",
+    "stability": 1.0
+  },
+  "P8": {
+    "bitstring": "1001000110111010010100001100000111111010101100001010010101",
+    "probability": 0.0002,
+    "snr": 107374.18239999814,
+    "num_heavy": 5000,
+    "method": "Statistical Majority Voting (Refined)",
+    "majority_voted": "1001000110111010010100001100000111111010101100001010010101",
+    "stability": 0.7
+  },
+  "P9": {
+    "bitstring": "011111011111100111001001010011110100111101000101110100010000010111000",
+    "probability": 0.0002,
+    "snr": 4859200.79996168,
+    "num_heavy": 5000,
+    "method": "Statistical Majority Voting (Refined)",
+    "majority_voted": "011111011111100111001001010011110100111101000101110100010000010111000",
+    "stability": 0.6
+  },
+  "P10": {
+    "bitstring": "11100110001111101100011001100001111010000111010111100011",
+    "probability": 0.0002,
+    "snr": 53687.09119999628,
+    "num_heavy": 5000,
+    "method": "Statistical Majority Voting (Refined)",
+    "majority_voted": "11100110001111101100011001100001111010000111010111100011",
+    "stability": 0.6
+  }
+}

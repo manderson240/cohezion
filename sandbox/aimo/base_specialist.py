@@ -20,6 +20,8 @@ class BaseSpecialist:
             "NumberTheorist": "qwen2-math:1.5b",
             "Geometer": "phi3:mini",
             "Combinatorist": "qwen2-math:1.5b",
+            "InductiveReasoning": "qwen2-math:1.5b",
+            "GoalOriented": "qwen2-math:1.5b",
             "Coordinator": "phi3:mini",
         }
         self.model_name = model_name or self.default_models.get(name, "qwen2-math:1.5b")
@@ -29,6 +31,7 @@ class BaseSpecialist:
         self.executor = SymbolicExecutor()
         self.adversary = AdversaryAgent()
         self.timeout = timeout  # 5 minutes for reasoning models (default 300)
+        self.temperature = 1.0 # High temperature per AIMO-3 paper (arXiv:2603.27844v1)
 
     def _load_prompts(self) -> Dict[str, str]:
         with open("specialist_prompts.json", "r") as f:
@@ -68,7 +71,7 @@ class BaseSpecialist:
                 "model": self.model_name,
                 "messages": messages,
                 "stream": False,
-                "options": {"temperature": 0.2, "num_ctx": 16384},
+                "options": {"temperature": self.temperature, "num_ctx": 16384},
             }
 
             try:
@@ -90,7 +93,7 @@ class BaseSpecialist:
             "messages": messages,
             "stream": False,
             "keep_alive": keep_alive,
-            "options": {"temperature": 0.2, "num_ctx": 8192, "num_thread": 16},
+            "options": {"temperature": self.temperature, "num_ctx": 8192, "num_thread": 16},
         }
 
         try:

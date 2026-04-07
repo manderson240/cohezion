@@ -10,7 +10,7 @@ This track implements the primary actors within the Cohezion ecosystem: Sovereig
 - **Execution Loop**: Integration of the EVO Agent with the `TriuneSimulationEngine` to step through a full task lifecycle.
 
 ## 3. Technical Constraints
-- Language: Python 3.13+
+- Language: Python 3.11
 - Framework: Tight integration with the existing `TriuneManifold` and `FlumeVAE` modules.
 - Strict TDD: 100% test coverage required for agent logic and reward calculations.
 - Code Style: Must adhere strictly to `conductor/code_styleguides/python.md`.

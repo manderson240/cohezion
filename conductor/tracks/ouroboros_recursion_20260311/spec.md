@@ -10,7 +10,7 @@ Ouroboros is the self-healing, recursive flight recorder for the Cohezion platfo
 - **Integration**: Must run asynchronously alongside the `TriuneSimulationEngine` without blocking agentic action.
 
 ## 3. Technical Constraints
-- Language: Python 3.13+
+- Language: Python 3.11
 - Framework: `asyncio` for non-blocking monitoring daemon.
 - Integration: Direct querying of SurrealDB 3.0 via the async client.
 - Strict TDD: 100% test coverage required for anomaly detection and healing logic.

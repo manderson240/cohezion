@@ -33,6 +33,13 @@ SERVER_MAP = {
     "surreal": "cohezion.mcp.surreal_server_mcp",
     "swarm": "cohezion.mcp.swarm_server_mcp",
     "knowledge": "cohezion.mcp.knowledge_server_mcp",
+    "compound": "cohezion.mcp.compound_server",
+    "rewards": "cohezion.mcp.servers.rewards.server",
+    "vault": "cohezion.mcp.servers.vault",
+    "security": "cohezion.mcp.servers.security.server",
+    "journey": "cohezion.mcp.servers.journey.server",
+    "github": "cohezion.mcp.servers.github.server",
+    "huggingface": "cohezion.mcp.servers.huggingface.server",
 }
 
 

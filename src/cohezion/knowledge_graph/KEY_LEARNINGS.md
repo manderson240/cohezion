@@ -23,6 +23,17 @@ GIL limits autoregressive decoding to ~10Hz — inference loops must move to com
 ## Learnings 41-95: Infrastructure & Hardware (Compressed)
 Key patterns: (1) Filesystem entropy limit at >1M files — use `.archive/` + SurrealDB (L41,81). (2) ZFS: ZVOL swap + arc_max cap at 12.5% RAM (L42-43). (3) Strix Halo: monitor GTT not VRAM, vendor 0x1002 = AMD, GTT ≈ system RAM = UMA (L60,89,91,92). (4) HIHO convergence at 25M cycles: C(t) = 0.5 + A·e^(-kt)·sin(ωt) (L63). (5) Context Guard: novelty-prioritized 20k-char limit (L77). (6) Hermetic: micro-stability → macro-coherence (L78). (7) Connection pooling + circuit breaker prevents cascade (L88). (8) Lazy imports as dependency firewall (L94). (9) End-to-end pipeline: 4-subsystem chain needs 5-stage integration tests (L95).
 
+## Session 90: AIMO 3 — Mathematical Reasoning Swarm & H100 Optimization (2026-04-05)
+
+### Learning 265: AIMO 3 "Winning Meta" — Inference-Time Scaling
+The transition from AIMO 2 to AIMO 3 (April 2026) codified the "Compute-to-Reason" meta. Success on the 110-problem IMO-level test set requires: (1) Diverse Prompt Mixer to decorrelate errors across independent runs, (2) Weighted Entropy Voting ($w = 1 + 1 / (\text{entropy} + 0.1)$) to allow confident attempts to override noise (arXiv:2603.27844v1), and (3) Speculative Decoding to bypass the 163s/problem compute bottleneck.
+
+### Learning 266: H100/Blackwell Handshake & vLLM Hard Resets
+ request H100 hardware on Kaggle via `machine_shape: NvidiaH100` (or `NvidiaRtxPro6000`) within a `.ipynb` Notebook context. To survive the 5-hour marathon and known vLLM 0.7+ memory leaks, implement "Hard VRAM Resets" (gc.collect + torch.cuda.empty_cache) every 10 problems. Pure Equal Division time budgeting with a 30s "Safety Trigger" (returning default 0) ensures a complete submission and prevents disqualification.
+
+### Learning 267: Speculative Decoding for Tool-Integrated Reasoning (TIR)
+Speculative Decoding (e.g., DeepSeek-R1-32B paired with Qwen2.5-1.5B drafter) provides a 1.5x-1.8x throughput multiplier. This is critical for TIR, as it allows the "Reasoning Swarm" to perform multiple code-execution and self-correction cycles within the 5-hour window. This "bought back" time is more valuable for accuracy than increasing the base model size to 70B+ which risks OOM via KV cache accumulation.
+
 ---
 
 ## Phase 1-2 Milestones (2026-02-06, Compressed)
@@ -318,3 +329,6 @@ Created generate_status_report.py + email_status_cron.sh without configuring SMT
 
 ### Learning 263: Research-Before-Build — MFMA Intrinsic Discovery (2026-04-02)
 Built 5 load_inline kernels using scalar FP4 LUT decode while research agents discovered hardware MFMA does dequant+matmul in ONE instruction (`__builtin_amdgcn_mfma_scale_f32_32x32x64_f8f6f4`). 10-100x compute gap. HipKittens has NO MXFP4 support. All 5 variants need MFMA rewrite. Rule: wait for research results before building, or gate implementation on minimal PoC.
+
+### Learning 264: Quantum Peaked Circuits & Rigetti Ankaa-3 (2026-04-04)
+Classical MPS simulations (mps.cpu/gpu) hit an exponential wall around 700 gates for peaked circuits. For 50-69 qubit peaked circuits (e.g. P9 with 6771 gates), use Rigetti Ankaa-3 with Q-CTRL Fire Opal for autonomous error mitigation (up to 32x improvement). The 'Marginal Attack' (using single-qubit Z expectation values) fails for deep circuits, introducing bit-flips. However, the Pauli-Path Simulator can be used as a 'Zero-Cost Verifier' to confirm the true peak among QPU candidates by calculating top candidate probabilities and computing the SNR. BlueQubit charges a $0.30 base fee per job submission; batching multiple circuits into a single list submitted via `bq.run([circuits], device='quantum')` optimizes costs significantly.

@@ -1,6 +1,181 @@
 {
   "kernel": "moe",
   "best_score": 0.0,
-  "generation": 0,
-  "nodes": {}
+  "generation": 15,
+  "nodes": {
+    "moe-mut-g1-0": {
+      "node_id": "moe-mut-g1-0",
+      "kernel": "moe",
+      "strategy": "random_tile_size",
+      "status": "closed",
+      "score": 0.0,
+      "attempts": 1,
+      "children": [],
+      "metadata": {
+        "error": "e default for (256, 32, 7168, 2048, 33, 9, 'ActivationType.Silu', 'torch.bfloat16', 'torch.float4_e2m1fn_x2', 'torch.float4_e2m1fn_x2', 'QuantType.per_1x32', True, False) \n[aiter] run_1stage = False, ksplit = 0 q_type = QuantType.per_1x32 block_m = 64 use_nt = True, estimated_m_per_expert = 13\n[aiter] [fused_moe] using 2stage default for (256, 128, 4096, 1536, 65, 7, 'ActivationType.Silu', 'torch.bfloat16', 'torch.float4_e2m1fn_x2', 'torch.float4_e2m1fn_x2', 'QuantType.per_1x32', True, False) \n\n"
+      }
+    },
+    "moe-mut-g1-1": {
+      "node_id": "moe-mut-g1-1",
+      "kernel": "moe",
+      "strategy": "swap_memory_layout",
+      "status": "closed",
+      "score": 0.0,
+      "attempts": 1,
+      "children": [],
+      "metadata": {
+        "error": "e default for (256, 32, 7168, 2048, 33, 9, 'ActivationType.Silu', 'torch.bfloat16', 'torch.float4_e2m1fn_x2', 'torch.float4_e2m1fn_x2', 'QuantType.per_1x32', True, False) \n[aiter] run_1stage = False, ksplit = 0 q_type = QuantType.per_1x32 block_m = 64 use_nt = True, estimated_m_per_expert = 13\n[aiter] [fused_moe] using 2stage default for (256, 128, 4096, 1536, 65, 7, 'ActivationType.Silu', 'torch.bfloat16', 'torch.float4_e2m1fn_x2', 'torch.float4_e2m1fn_x2', 'QuantType.per_1x32', True, False) \n\n"
+      }
+    },
+    "moe-mut-g1-2": {
+      "node_id": "moe-mut-g1-2",
+      "kernel": "moe",
+      "strategy": "fuse_adjacent_ops",
+      "status": "closed",
+      "score": 0.0,
+      "attempts": 1,
+      "children": [],
+      "metadata": {
+        "error": "e default for (256, 32, 7168, 2048, 33, 9, 'ActivationType.Silu', 'torch.bfloat16', 'torch.float4_e2m1fn_x2', 'torch.float4_e2m1fn_x2', 'QuantType.per_1x32', True, False) \n[aiter] run_1stage = False, ksplit = 0 q_type = QuantType.per_1x32 block_m = 64 use_nt = True, estimated_m_per_expert = 13\n[aiter] [fused_moe] using 2stage default for (256, 128, 4096, 1536, 65, 7, 'ActivationType.Silu', 'torch.bfloat16', 'torch.float4_e2m1fn_x2', 'torch.float4_e2m1fn_x2', 'QuantType.per_1x32', True, False) \n\n"
+      }
+    },
+    "moe-mut-g1-3": {
+      "node_id": "moe-mut-g1-3",
+      "kernel": "moe",
+      "strategy": "unroll_factor_sweep",
+      "status": "closed",
+      "score": 0.0,
+      "attempts": 1,
+      "children": [],
+      "metadata": {
+        "error": "e default for (256, 32, 7168, 2048, 33, 9, 'ActivationType.Silu', 'torch.bfloat16', 'torch.float4_e2m1fn_x2', 'torch.float4_e2m1fn_x2', 'QuantType.per_1x32', True, False) \n[aiter] run_1stage = False, ksplit = 4 q_type = QuantType.per_1x32 block_m = 64 use_nt = True, estimated_m_per_expert = 13\n[aiter] [fused_moe] using 2stage default for (256, 128, 4096, 1536, 65, 7, 'ActivationType.Silu', 'torch.bfloat16', 'torch.float4_e2m1fn_x2', 'torch.float4_e2m1fn_x2', 'QuantType.per_1x32', True, False) \n\n"
+      }
+    },
+    "moe-mut-g1-4": {
+      "node_id": "moe-mut-g1-4",
+      "kernel": "moe",
+      "strategy": "prefetch_distance_sweep",
+      "status": "closed",
+      "score": 0.0,
+      "attempts": 0,
+      "children": [],
+      "metadata": {}
+    },
+    "moe-mut-g6-0": {
+      "node_id": "moe-mut-g6-0",
+      "kernel": "moe",
+      "strategy": "random_tile_size",
+      "status": "closed",
+      "score": 0.0,
+      "attempts": 1,
+      "children": [],
+      "metadata": {
+        "error": "e default for (256, 32, 7168, 2048, 33, 9, 'ActivationType.Silu', 'torch.bfloat16', 'torch.float4_e2m1fn_x2', 'torch.float4_e2m1fn_x2', 'QuantType.per_1x32', True, False) \n[aiter] run_1stage = False, ksplit = 4 q_type = QuantType.per_1x32 block_m = 64 use_nt = True, estimated_m_per_expert = 13\n[aiter] [fused_moe] using 2stage default for (256, 128, 4096, 1536, 65, 7, 'ActivationType.Silu', 'torch.bfloat16', 'torch.float4_e2m1fn_x2', 'torch.float4_e2m1fn_x2', 'QuantType.per_1x32', True, False) \n\n"
+      }
+    },
+    "moe-mut-g6-1": {
+      "node_id": "moe-mut-g6-1",
+      "kernel": "moe",
+      "strategy": "swap_memory_layout",
+      "status": "closed",
+      "score": 0.0,
+      "attempts": 1,
+      "children": [],
+      "metadata": {
+        "error": "e default for (256, 32, 7168, 2048, 33, 9, 'ActivationType.Silu', 'torch.bfloat16', 'torch.float4_e2m1fn_x2', 'torch.float4_e2m1fn_x2', 'QuantType.per_1x32', True, False) \n[aiter] run_1stage = False, ksplit = 4 q_type = QuantType.per_1x32 block_m = 64 use_nt = True, estimated_m_per_expert = 13\n[aiter] [fused_moe] using 2stage default for (256, 128, 4096, 1536, 65, 7, 'ActivationType.Silu', 'torch.bfloat16', 'torch.float4_e2m1fn_x2', 'torch.float4_e2m1fn_x2', 'QuantType.per_1x32', True, False) \n\n"
+      }
+    },
+    "moe-mut-g6-2": {
+      "node_id": "moe-mut-g6-2",
+      "kernel": "moe",
+      "strategy": "fuse_adjacent_ops",
+      "status": "closed",
+      "score": 0.0,
+      "attempts": 1,
+      "children": [],
+      "metadata": {
+        "error": "e default for (256, 32, 7168, 2048, 33, 9, 'ActivationType.Silu', 'torch.bfloat16', 'torch.float4_e2m1fn_x2', 'torch.float4_e2m1fn_x2', 'QuantType.per_1x32', True, False) \n[aiter] run_1stage = False, ksplit = 4 q_type = QuantType.per_1x32 block_m = 64 use_nt = True, estimated_m_per_expert = 13\n[aiter] [fused_moe] using 2stage default for (256, 128, 4096, 1536, 65, 7, 'ActivationType.Silu', 'torch.bfloat16', 'torch.float4_e2m1fn_x2', 'torch.float4_e2m1fn_x2', 'QuantType.per_1x32', True, False) \n\n"
+      }
+    },
+    "moe-mut-g6-3": {
+      "node_id": "moe-mut-g6-3",
+      "kernel": "moe",
+      "strategy": "unroll_factor_sweep",
+      "status": "closed",
+      "score": 0.0,
+      "attempts": 1,
+      "children": [],
+      "metadata": {
+        "error": "e default for (256, 32, 7168, 2048, 33, 9, 'ActivationType.Silu', 'torch.bfloat16', 'torch.float4_e2m1fn_x2', 'torch.float4_e2m1fn_x2', 'QuantType.per_1x32', True, False) \n[aiter] run_1stage = False, ksplit = 4 q_type = QuantType.per_1x32 block_m = 64 use_nt = True, estimated_m_per_expert = 13\n[aiter] [fused_moe] using 2stage default for (256, 128, 4096, 1536, 65, 7, 'ActivationType.Silu', 'torch.bfloat16', 'torch.float4_e2m1fn_x2', 'torch.float4_e2m1fn_x2', 'QuantType.per_1x32', True, False) \n\n"
+      }
+    },
+    "moe-mut-g6-4": {
+      "node_id": "moe-mut-g6-4",
+      "kernel": "moe",
+      "strategy": "prefetch_distance_sweep",
+      "status": "closed",
+      "score": 0.0,
+      "attempts": 0,
+      "children": [],
+      "metadata": {}
+    },
+    "moe-mut-g11-0": {
+      "node_id": "moe-mut-g11-0",
+      "kernel": "moe",
+      "strategy": "random_tile_size",
+      "status": "closed",
+      "score": 0.0,
+      "attempts": 1,
+      "children": [],
+      "metadata": {
+        "error": "e default for (256, 32, 7168, 2048, 33, 9, 'ActivationType.Silu', 'torch.bfloat16', 'torch.float4_e2m1fn_x2', 'torch.float4_e2m1fn_x2', 'QuantType.per_1x32', True, False) \n[aiter] run_1stage = False, ksplit = 4 q_type = QuantType.per_1x32 block_m = 64 use_nt = True, estimated_m_per_expert = 13\n[aiter] [fused_moe] using 2stage default for (256, 128, 4096, 1536, 65, 7, 'ActivationType.Silu', 'torch.bfloat16', 'torch.float4_e2m1fn_x2', 'torch.float4_e2m1fn_x2', 'QuantType.per_1x32', True, False) \n\n"
+      }
+    },
+    "moe-mut-g11-1": {
+      "node_id": "moe-mut-g11-1",
+      "kernel": "moe",
+      "strategy": "swap_memory_layout",
+      "status": "closed",
+      "score": 0.0,
+      "attempts": 1,
+      "children": [],
+      "metadata": {
+        "error": "e default for (256, 32, 7168, 2048, 33, 9, 'ActivationType.Silu', 'torch.bfloat16', 'torch.float4_e2m1fn_x2', 'torch.float4_e2m1fn_x2', 'QuantType.per_1x32', True, False) \n[aiter] run_1stage = False, ksplit = 4 q_type = QuantType.per_1x32 block_m = 64 use_nt = True, estimated_m_per_expert = 13\n[aiter] [fused_moe] using 2stage default for (256, 128, 4096, 1536, 65, 7, 'ActivationType.Silu', 'torch.bfloat16', 'torch.float4_e2m1fn_x2', 'torch.float4_e2m1fn_x2', 'QuantType.per_1x32', True, False) \n\n"
+      }
+    },
+    "moe-mut-g11-2": {
+      "node_id": "moe-mut-g11-2",
+      "kernel": "moe",
+      "strategy": "fuse_adjacent_ops",
+      "status": "closed",
+      "score": 0.0,
+      "attempts": 1,
+      "children": [],
+      "metadata": {
+        "error": "e default for (256, 32, 7168, 2048, 33, 9, 'ActivationType.Silu', 'torch.bfloat16', 'torch.float4_e2m1fn_x2', 'torch.float4_e2m1fn_x2', 'QuantType.per_1x32', True, False) \n[aiter] run_1stage = False, ksplit = 4 q_type = QuantType.per_1x32 block_m = 64 use_nt = True, estimated_m_per_expert = 13\n[aiter] [fused_moe] using 2stage default for (256, 128, 4096, 1536, 65, 7, 'ActivationType.Silu', 'torch.bfloat16', 'torch.float4_e2m1fn_x2', 'torch.float4_e2m1fn_x2', 'QuantType.per_1x32', True, False) \n\n"
+      }
+    },
+    "moe-mut-g11-3": {
+      "node_id": "moe-mut-g11-3",
+      "kernel": "moe",
+      "strategy": "unroll_factor_sweep",
+      "status": "closed",
+      "score": 0.0,
+      "attempts": 1,
+      "children": [],
+      "metadata": {
+        "error": "Server returned status 500 Internal Server Error: Your code contains work on another stream. This is not allowed and may result in your disqualification. If you think this is a mistake, please contact us."
+      }
+    },
+    "moe-mut-g11-4": {
+      "node_id": "moe-mut-g11-4",
+      "kernel": "moe",
+      "strategy": "prefetch_distance_sweep",
+      "status": "closed",
+      "score": 0.0,
+      "attempts": 0,
+      "children": [],
+      "metadata": {}
+    }
+  }
 }

@@ -2136,5 +2136,21 @@
       "ptxas-blackwell"
     ],
     "last_updated": "2026-03-25T22:57:36.660428"
+  },
+  "kaggle": {
+    "name": "kaggle",
+    "description": "Unified Kaggle skill. Use when the user mentions kaggle, kaggle.com, Kaggle competitions, datasets, models, notebooks, GPUs, TPUs, badges, or anything Kaggle-related. Handles account setup, competition reports, dataset/model downloads, notebook execution, competition submissions, badge collection, and general Kaggle questions.",
+    "path": "src/cohezion/skills/kaggle/SKILL.md",
+    "version": "1.0.2",
+    "keywords": [
+      "kaggle",
+      "competitions",
+      "datasets",
+      "models",
+      "notebooks",
+      "badges",
+      "kllm"
+    ],
+    "last_updated": "2026-04-06T06:30:00"
   }
 }

@@ -396,7 +396,12 @@ class ResourceMonitor:
 
             # 1. Calculate Viscous Adjustment (Maxwellian Relaxation)
             viscous_correction = self.viscoelastic_controller.calculate_dilation_adjustment(
-                cpu, ram, vram
+                cpu,
+                ram,
+                vram,
+                active_calls=self.active_calls,
+                max_concurrency=self.max_concurrency,
+                total_agents=len(self._sandbox_registry),
             )
 
             # 2. Determine Base Dilation Factor (Tiered Thresholds)

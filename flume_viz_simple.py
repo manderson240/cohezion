@@ -8,7 +8,7 @@ import sys
 
 
 # Add the Cohezion environment to Python path
-cohezion_venv_path = "/home/mike-anderson/dev/cohezion/.venv/lib/python3.13/site-packages"
+cohezion_venv_path = "/home/mike-anderson/dev/cohezion/.venv/lib/python3.11/site-packages"
 if cohezion_venv_path not in sys.path:
     sys.path.insert(0, cohezion_venv_path)
 
