@@ -67,3 +67,7 @@ Background submissions are still scheduled:
 <status>failed</status>
 <summary>Background command "Test fused inline quant kernel" failed with exit code 1</summary>
 </task-notification>
+
+---
+
+Continue
