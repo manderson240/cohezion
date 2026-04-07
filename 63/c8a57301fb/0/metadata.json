@@ -1,0 +1,36 @@
+{
+  "cli_version": "0.5.3",
+  "checkpoint_id": "63c8a57301fb",
+  "session_id": "7fd9a358-7947-4be4-ad5d-d426437500c1",
+  "strategy": "manual-commit",
+  "created_at": "2026-04-07T13:44:11.046956485Z",
+  "branch": "feature/2026-tip-of-the-spear",
+  "checkpoints_count": 8,
+  "files_touched": [
+    "conductor/tracks.md"
+  ],
+  "agent": "Claude Code",
+  "turn_id": "054b0cbe1977",
+  "token_usage": {
+    "input_tokens": 3102,
+    "cache_creation_tokens": 13744942,
+    "cache_read_tokens": 117287187,
+    "output_tokens": 147136,
+    "api_call_count": 393
+  },
+  "session_metrics": {
+    "turn_count": 35
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-04-07T13:44:09.964282268Z",
+    "agent_lines": 1,
+    "agent_removed": 1,
+    "human_added": 100,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 101,
+    "total_lines_changed": 102,
+    "agent_percentage": 1.9607843137254901,
+    "metric_version": 2
+  }
+}
