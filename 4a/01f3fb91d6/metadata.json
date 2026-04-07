@@ -3,7 +3,7 @@
   "checkpoint_id": "4a01f3fb91d6",
   "strategy": "manual-commit",
   "branch": "feature/2026-tip-of-the-spear",
-  "checkpoints_count": 21,
+  "checkpoints_count": 22,
   "files_touched": [
     ".claude/skills/amd-moe-dispatch-policy/SKILL.md",
     ".claude/skills/gfx950-mfma-register-layouts/SKILL.md",
@@ -150,6 +150,8 @@
     "luma_speedrun/submit_all.sh",
     "mcp_servers.json",
     "pyproject.toml",
+    "research/challenges/luma_amd_speedrun/kernels/mxfp4-mm/submission.py",
+    "sandbox/aimo/kaggle_kernel/kernel-metadata.json",
     "scripts/ml/finetune_gemma4_cohezion.py",
     "scripts/ml/generate_finetuning_data.py",
     "scripts/test-proxy.sh",
@@ -184,13 +186,19 @@
       "transcript": "/4a/01f3fb91d6/0/full.jsonl",
       "content_hash": "/4a/01f3fb91d6/0/content_hash.txt",
       "prompt": "/4a/01f3fb91d6/0/prompt.txt"
+    },
+    {
+      "metadata": "/4a/01f3fb91d6/1/metadata.json",
+      "transcript": "/4a/01f3fb91d6/1/full.jsonl",
+      "content_hash": "/4a/01f3fb91d6/1/content_hash.txt",
+      "prompt": "/4a/01f3fb91d6/1/prompt.txt"
     }
   ],
   "token_usage": {
-    "input_tokens": 21803,
-    "cache_creation_tokens": 31879516,
-    "cache_read_tokens": 385749315,
-    "output_tokens": 614696,
-    "api_call_count": 1037
+    "input_tokens": 115853653,
+    "cache_creation_tokens": 47716582,
+    "cache_read_tokens": 705720523,
+    "output_tokens": 1303016,
+    "api_call_count": 2794
   }
 }

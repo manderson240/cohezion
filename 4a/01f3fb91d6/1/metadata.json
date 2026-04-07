@@ -1,0 +1,39 @@
+{
+  "cli_version": "0.5.3",
+  "checkpoint_id": "4a01f3fb91d6",
+  "session_id": "7b42ffab-cb2c-417a-b4cd-9fddf3b78647",
+  "strategy": "manual-commit",
+  "created_at": "2026-04-07T03:43:42.528537667Z",
+  "branch": "feature/2026-tip-of-the-spear",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "research/challenges/luma_amd_speedrun/kernels/mxfp4-mm/submission.py",
+    "sandbox/aimo/kaggle_kernel/kernel-metadata.json",
+    "src/cohezion/registry/skill_registry.json"
+  ],
+  "agent": "Claude Code",
+  "model": "claude-opus-4-6[1m]",
+  "turn_id": "270d4e1f60f0",
+  "token_usage": {
+    "input_tokens": 115831850,
+    "cache_creation_tokens": 15837066,
+    "cache_read_tokens": 319971208,
+    "output_tokens": 688320,
+    "api_call_count": 1757
+  },
+  "session_metrics": {
+    "turn_count": 172
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-04-07T03:43:30.40397797Z",
+    "agent_lines": 0,
+    "agent_removed": 0,
+    "human_added": 345941,
+    "human_modified": 169,
+    "human_removed": 0,
+    "total_committed": 345941,
+    "total_lines_changed": 350895,
+    "agent_percentage": 0,
+    "metric_version": 2
+  }
+}
