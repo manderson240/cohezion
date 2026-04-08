@@ -1,0 +1,6 @@
+{
+  "versionNumber": 1,
+  "name": "exec_time_management_14",
+  "description": "Manage time with interruptions.",
+  "definition": "@kbench.task(name=\"exec_time_management_14\")\ndef exec_time_management_14():\n    \"\"\"Manage time with interruptions.\"\"\"\n    prompt = \"\"\"Available: 2 hours\nTasks:\n- Report (45 min)\n- Email (15 min)\n- Meeting (30 min, interrupting at 1 hour mark)\n- Review (20 min)\n\nBest schedule?\n\nA) Report\u2192Meeting\u2192Email\u2192Review\nB) Email\u2192Report\u2192Meeting\u2192Review\nC) Meeting\u2192Report\u2192Email\u2192Review\nD) Cannot complete all\"\"\"\n    return prompt, \"B\"\n"
+}

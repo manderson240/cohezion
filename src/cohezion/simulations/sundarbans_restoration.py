@@ -14,6 +14,7 @@ from unittest.mock import MagicMock
 from cohezion.swarm.providers.gemma4_provider import Gemma4Provider, GenerationResult
 from cohezion.flume.manifolds.translator import ManifoldTranslator
 from cohezion.flume.vae_encoder import FlumeVAEEncoder
+from cohezion.flume.spectral_encoder import SpectralEncoder
 from cohezion.agents.specialists.ecoresilience_agent import EcoResilienceAgent
 from cohezion.compound.stability_guard import HIHOStabilityGuard
 from cohezion.compound.resilience_loop import EcoResilienceCompoundLoop
@@ -79,10 +80,14 @@ async def run_sundarbans_simulation():
     provider = MockRegimeProvider()
 
     encoder = FlumeVAEEncoder()
+    spectral_encoder = SpectralEncoder(encoder=encoder)
     translator = ManifoldTranslator(encoder=encoder)
 
     agent = EcoResilienceAgent(
-        provider=provider, translator=translator, model_name="gemma4:26b-moe"
+        provider=provider,
+        translator=translator,
+        spectral_encoder=spectral_encoder,
+        model_name="gemma4:26b-moe",
     )
 
     guard = HIHOStabilityGuard(threshold=0.5)

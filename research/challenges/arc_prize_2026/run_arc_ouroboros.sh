@@ -17,15 +17,18 @@ else
     echo "Ouroboros Daemon is already running."
 fi
 
-# Loop until 7:00 AM EST
+# Loop until 7:00 AM EST on April 8, 2026
 while true; do
     # Get current time in EST
+    CURRENT_DATE=$(TZ="America/New_York" date +%Y%m%d)
     CURRENT_TIME=$(TZ="America/New_York" date +%H%M)
     
-    # Check if we have reached 07:00 AM (0700)
-    if [ "$CURRENT_TIME" -ge "0700" ] && [ "$CURRENT_TIME" -lt "0800" ]; then
-        echo "Reached 7:00 AM EST. Terminating overnight loop."
-        break
+    # Check if we have reached April 8 at 07:00 AM
+    if [ "$CURRENT_DATE" -gt "20260407" ]; then
+        if [ "$CURRENT_TIME" -ge "0700" ]; then
+            echo "Reached 7:00 AM EST on April 8. Terminating overnight loop."
+            break
+        fi
     fi
     
     echo "Current time (EST): $(TZ="America/New_York" date +%H:%M:%S) - Continuing experiential loops..."

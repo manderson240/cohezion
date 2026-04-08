@@ -1,0 +1,6 @@
+{
+  "versionNumber": 1,
+  "name": "attention_pattern_interruption_13",
+  "description": "Detect pattern break amid distractors.",
+  "definition": "@kbench.task(name=\"attention_pattern_interruption_13\")\ndef attention_pattern_interruption_13():\n    \"\"\"Detect pattern break amid distractors.\"\"\"\n    prompt = \"\"\"Sequence: 2, 4, 6, 8, 10, 12, 14, 17, 18, 20\n\nWhat is wrong?\n\nA) Nothing\nB) 17 breaks the pattern\nC) Missing 16\nD) Both B and C\"\"\"\n    return prompt, \"D\"\n"
+}

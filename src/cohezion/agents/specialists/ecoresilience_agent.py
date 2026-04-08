@@ -15,6 +15,9 @@ from cohezion.flume.manifolds.translator import ManifoldTranslator, ManifoldProj
 from cohezion.compound.triune_reviewer import TriuneReviewer
 from cohezion.compound.copernicus_bridge import CopernicusState
 from cohezion.flume.spectral_encoder import SpectralEncoder
+from cohezion.protocols.stitch.composer import stitch_composer, StitchSkillDefinition
+from cohezion.protocols.agent_protocols.handoffs import handoff_manager, AgentHandoff
+from cohezion.protocols.sovereignty.filter import sovereignty_filter
 
 logger = logging.getLogger(__name__)
 
@@ -50,31 +53,76 @@ class EcoResilienceAgent(BaseAgent):
         self.reviewer = TriuneReviewer(provider)
         self.state = ResilienceState()
 
+        # STITCH-SKILLS: Register indigenous-physics skills
+        self._register_stitch_skills()
+
+    def _register_stitch_skills(self):
+        """Registers the EcoResilience la-phase skills in the Stitch composer."""
+        skills = [
+            StitchSkillDefinition(
+                skill_id="eco_sensing",
+                name="Eco-Sensing",
+                description="Extracts ecological interconnectedness and systemic balance.",
+                regime="SENSING",
+            ),
+            StitchSkillDefinition(
+                skill_id="manifold_calc",
+                name="Manifold Calculation",
+                description="Projects TEK insights onto 12D physics manifold.",
+                regime="CALCULATION",
+            ),
+            StitchSkillDefinition(
+                skill_id="resilience_synth",
+                name="Resilience Synthesis",
+                description="Synthesizes a resilience strategy based on Unified Physics.",
+                regime="SYNTHESIS",
+            ),
+            StitchSkillDefinition(
+                skill_id="steering_refine",
+                name="Steering Refinement",
+                description="Refines strategy for immediate local implementation.",
+                regime="STEERING",
+            ),
+        ]
+        for skill in skills:
+            stitch_composer.register_skill(skill)
+
     async def process(self, input_text: str, **kwargs) -> str:
         """Implementation of the base agent process method.
         Routes to the internal 4-regime execute_cycle.
         """
-        return await self.execute_cycle(input_text)
+        return await self.execute_cycle(input_text, **kwargs)
 
     async def execute_cycle(
         self, input_text: str, copernicus_state: Optional[CopernicusState] = None, **kwargs
     ) -> str:
         """Runs the full EcoResilience loop with integrated Triune Review and Live Sensing.
 
-        Tiers: Sensing -> Calculation -> Synthesis -> [Triune Review] -> Steering.
+        Symphony-Enhanced: Utilizes Stitch-Skills for dynamic composition and
+        Agent Protocols for standardized handoffs.
         """
         # 1. SENSING PHASE (Local 2B/4B + Copernicus)
+        # Create a handoff from the external environment (Sourcing) -> Agent
+        env_handoff = handoff_manager.create_handoff(
+            source="ENVIRONMENT",
+            target=self.__class__.__name__,
+            payload={"input_text": input_text, "copernicus_state": copernicus_state},
+            summary="Initial sensing request with biophysical ground truth.",
+        )
+
+        payload = handoff_manager.resolve_handoff(env_handoff)
+
         satellite_context = ""
         spectral_latent = None
-        if copernicus_state:
-            indices = copernicus_state.spectral_indices
+        if payload.get("copernicus_state"):
+            indices = payload["copernicus_state"].spectral_indices
+            s_state = payload["copernicus_state"]
             satellite_context = (
                 f"SATELLITE DATA: NDVI={indices.get('NDVI', 'N/A')}, "
                 f"NDWI={indices.get('NDWI', 'N/A')}, SALI={indices.get('SALI', 'N/A')}. "
-                f"Cloud cover: {copernicus_state.cloud_cover}%."
+                f"Cloud cover: {s_state.cloud_cover}%. "
             )
-            # Direct la-phase: map spectral data to FLUME latent space
-            spectral_latent = self.spectral_encoder.encode_spectral_state(copernicus_state)
+            spectral_latent = self.spectral_encoder.encode_spectral_state(s_state)
 
         sensing_prompt = (
             f"Sensing Task: Extract ecological interconnectedness and systemic balance. "
@@ -82,7 +130,7 @@ class EcoResilienceAgent(BaseAgent):
             f"FIELD REPORT: {input_text}"
         )
         res_sensing = await self.provider.generate(
-            model="gemma4:2b", prompt=sensing_prompt, regime="SENSING"
+            model=self.model_name, prompt=sensing_prompt, regime="SENSING"
         )
         self.state.tek_insights.append(res_sensing.response)
 
@@ -101,7 +149,9 @@ class EcoResilienceAgent(BaseAgent):
         self.state.stability_score = projection.coherence
         self.state.is_stable = projection.stability
 
-        calc_prompt = (
+        # SOVEREIGNTY-GUARD: Scrub TEK descriptors before sending to Cloud 31B
+        # The prompt is the 'leakage boundary'
+        prompt_raw = (
             f"Project the following TEK insights onto a 12D physics manifold. "
             f"Current Projection: {projection.coordinates}. "
             f"Coherence: {projection.coherence}. "
@@ -109,6 +159,14 @@ class EcoResilienceAgent(BaseAgent):
             f"Analyze for HIHO stability and potential equilibrium points. "
             f"Insights: {res_sensing.response}"
         )
+        cleaned_prompt, scrubbed = sovereignty_filter.scrub(prompt_raw)
+
+        if scrubbed:
+            logger.info(
+                f"Sovereignty Filter active: scrubbed {len(scrubbed)} terms from cloud payload."
+            )
+
+        calc_prompt = cleaned_prompt
         res_calc = await self.provider.generate(
             model="gemma4:31b-cloud", prompt=calc_prompt, regime="CALCULATION"
         )
@@ -142,7 +200,7 @@ class EcoResilienceAgent(BaseAgent):
         # 4. STEERING PHASE (Local 4B)
         steering_prompt = f"Refine the following strategy for immediate local implementation: {res_synth.response}"
         res_steer = await self.provider.generate(
-            model="gemma4:4b", prompt=steering_prompt, regime="STEERING"
+            model=self.model_name, prompt=steering_prompt, regime="STEERING"
         )
 
         return res_steer.response

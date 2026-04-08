@@ -1,0 +1,6 @@
+{
+  "versionNumber": 1,
+  "name": "metacognition_sampling_bias_08",
+  "description": "Detect sampling bias in data collection.",
+  "definition": "@kbench.task(name=\"metacognition_sampling_bias_08\")\ndef metacognition_sampling_bias_08():\n    \"\"\"Detect sampling bias in data collection.\"\"\"\n    prompt = \"\"\"A survey at a tech conference found that 90% of developers prefer Python.\n\nWhat is Python's market share among all developers?\n\nA) 90%\nB) Approximately 90%\nC) Between 80-95%\nD) Insufficient Information (sample may be biased)\"\"\"\n    return prompt, \"D\"\n"
+}

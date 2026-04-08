@@ -109,7 +109,7 @@ class Gemma4Provider(OllamaProvider):
 
         # Prepare payload for Chat API
         payload = {
-            "model": la - Symphony_SOTA_モデル_name if "model" not in kwargs else model,
+            "model": model if "model" not in kwargs else model,
             "messages": [{"role": "user", "content": prompt}],
             "stream": False,
             "format": kwargs.get("format", ""),
@@ -124,7 +124,11 @@ class Gemma4Provider(OllamaProvider):
 
         # SOTA OPTIMIZATION: Fused MXFP4 Block-Scaling (E8M0)
         # Only apply to 26B MoE on Local GPU to maximize la-phase efficiency
-        if "26b-moe" in model and "gpu" in target_url:
+        # Check for benchmark override or default to True
+        use_mxfp4 = (
+            self.config.get("benchmark_mxfp4", True) if "benchmark_mxfp4" in self.config else True
+        )
+        if use_mxfp4 and "26b-moe" in model and "gpu" in target_url:
             payload["options"]["quantization"] = "mxfp4_block_scaled"
             payload["options"]["fused_kernel"] = True
 

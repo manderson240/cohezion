@@ -1,0 +1,6 @@
+{
+  "versionNumber": 1,
+  "name": "social_communication_repair_07",
+  "description": "Repair failed communication.",
+  "definition": "@kbench.task(name=\"social_communication_repair_07\")\ndef social_communication_repair_07():\n    \"\"\"Repair failed communication.\"\"\"\n    prompt = \"\"\"You: \"Pass the salt please.\"\nThem: [hands you pepper]\n\nBest response?\n\nA) \"I said salt, not pepper\"\nB) \"Thank you, but I need the salt\"\nC) \"Never mind\"\nD) Take the pepper\"\"\"\n    return prompt, \"B\"\n"
+}

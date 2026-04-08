@@ -1,42 +1,52 @@
-# Track: AIMO Progress Prize 3 - Mathematical Reasoning Swarm
+# Track: AIMO Progress Prize 3 - Mathematical Reasoning Swarm (Refined 2026 SOTA Plan)
 
-## Objective
-To win the **AI Mathematical Olympiad (AIMO) Progress Prize 3** ($2,207,152 prize pool) by developing a high-fidelity **Mathematical Reasoning Swarm**. This swarm will leverage Cohezion's **FLUME methodology** and **12D triune manifold** to solve IMO-level LaTeX problems with high stability and penalized accuracy.
+## Background & Motivation
+To win the **AI Mathematical Olympiad (AIMO) Progress Prize 3** ($2,207,152 prize pool), we must overcome the physical constraints of Kaggle's 5-hour H100 (80GB) runtime limit and the competition's "Penalized Accuracy" scoring. Based on our deep-horizon April 2026 research, standard deployments fail due to "Reasoning Collapse," memory leaks, and over-confidence. 
 
-## Key Files & Context
-- **Competition Page**: [Kaggle AIMO Progress Prize 3](https://www.kaggle.com/competitions/ai-mathematical-olympiad-progress-prize-3)
-- **Problem Format**: LaTeX (Text-only).
-- **Target Models**: DeepSeek-R1 (70B/32B), GPT-OSS-120B.
-- **Cohezion Core**: `src/cohezion/flume/`, `src/cohezion/swarm/`, `src/cohezion/universe/`.
-- **New Track Root**: `conductor/tracks/aimo_progress_prize_3_20260319/`
+**CRITICAL FINDING (April 6, 2026):** We discovered the root cause of the `0` score submissions. The Kaggle AIMO API passes `id_df` and `problem_df` as `pl.Series` objects, not DataFrames. Indexing them with `[0, 0]` resulted in a stringified Polars table being injected into the LLM prompt (e.g., `shape: (2,) Series: ...`). The model was trying to solve a formatting error instead of a math problem!
 
-## Implementation Steps
-### Phase 1: Environment & API Integration
-- [ ] Set up the AIMO Python evaluation API in a local sandbox.
-- [ ] Create a "Math Problem Parser" to convert LaTeX into a multi-manifold state vector (12D).
-- [ ] Integrate the 10 reference problems for benchmarking.
+## Scope & Impact
+This refined plan outlines the construction of the **"Fortress Swarm"** architecture with the critical **Polars Indexing Fix**. It transitions our pipeline from a fragile, standard LLM script to a resilient, compute-optimal, and self-verifying Triune Manifold.
 
-### Phase 2: Reasoning Swarm Development
-- [ ] Implement the **Specialist Swarm**:
-    - **Algebraist**: Specialized in symbolic manipulation (SymPy).
-    - **Geometer**: Specialized in spatial reasoning without diagrams.
-    - **Number Theorist**: Specialized in modular arithmetic and prime theory.
-    - **Combinatorist**: Specialized in counting and probability.
-- [ ] Develop the **FLUME Proof Navigator**:
-    - Uses VAE-compressed "thought vectors" to interpolate between known mathematical identities.
-    - Identifies "stable proof trajectories" (HIHO Stability at 0.5 coherence).
+## Proposed Solution: The "Fortress" Architecture
+**Stability Standard**: [KAGGLE_STABILITY_PROTOCOL.md](KAGGLE_STABILITY_PROTOCOL.md) (Codified mitigations for OOM, Timeout, and Scoring Errors).
 
-### Phase 3: Verification & Stability
-- [ ] Implement **Dual-Run Verification**:
-    - Ensures the model produces the same integer (0-99,999) in two independent runs.
-    - Uses "Adversarial Review" agents to poke holes in proof logic.
-- [ ] Add **Python-based Simulation (Monte Carlo)** for probabilistic confirmation of answers.
+1. **The Polars Fix**: Update the inference loop to use `problem_df[0]` (scalar extraction) to ensure the LLM receives raw text.
+2. **Pre-Flight TDD Suite (Environment Lock)**: A diagnostic layer that verifies GPU presence, library imports (Transformers/vLLM), and Symbolic Execution before interacting with the Kaggle competition API.
+3. **Triune Manifold Roles**:
+   - **The Doer**: `SymbolicExecutor` utilizing SymPy in a sandboxed, time-limited environment.
+   - **The Thinker**: `BaseSpecialist` employing a **Diverse Prompt Mixer** (Algebraist, Inductive, Goal-Oriented, Devil's Advocate) to decorrelate errors across independent runs.
+   - **The Knower**: `KnowerAuditor` implementing **Weighted Entropy Voting** and **GenSelect** to analytically resolve divergent proofs.
+4. **Hardware Optimization**:
+   - **Hard VRAM Resets**: Explicit `gc.collect()` and `torch.cuda.empty_cache()` between problems to survive KV cache accumulation.
+   - **Compute-Optimal Scaling**: Dynamic time budgeting with a 30s "Safety Trigger" to return a safe default.
+   - **Transformers Native / Speculative Decoding**: Prioritizing `torch.compile` and `StaticCache` with Transformers for stability, or vLLM with a 1.5B Drafter model for 1.5x throughput.
 
-### Phase 4: Submission & Optimization
-- [ ] Optimize for the 5-hour H100 compute limit.
-- [ ] Fine-tune local SLMs for "Math Reasoning" to offload simpler sub-tasks.
+## Alternatives Considered
+- **Monte Carlo Tree Search (MCTS) / Lean 4 Formalization**: Rejected due to the 5-hour compute limit. These methods are too slow to solve 50 hidden problems on a single H100.
+- **70B/72B 4-bit Quantized Models**: Rejected due to massive KV cache requirements leading to OOM. 32B/14B models with robust tool-integration provide better accuracy/stability ratios.
 
-## Verification & Testing
-- **Internal Benchmark**: Solve 100% of the AIMO reference problems.
-- **Stability Test**: Achieve >90% consistency in dual-run integer output on AIME-level problems.
-- **Safety**: Ensure LaTeX rendering and Python execution are sandboxed.
+## Phased Implementation Plan
+
+### Phase 1: Environment Hardening & TDD
+- [x] Integrate `PreFlightJury` to test the Kaggle offline environment.
+- [x] Configure Kaggle metadata for H100 locking (`machine_shape: NvidiaH100`).
+- [ ] **Apply Polars Indexing Fix** (`problem_df[0]`) to resolve the prompt formatting corruption.
+
+### Phase 2: Inference-Time Scaling
+- [x] Upgrade the Dual-Run protocol to an Adaptive Batched Swarm.
+- [x] Implement the Diverse Prompt Mixer to enforce cognitive diversity.
+- [ ] Refine the "Devil's Advocate" Adversarial Loop for continuous self-correction (Reflexion).
+
+### Phase 3: Symbolic Verification (SymCode)
+- [x] Sandbox the `SymbolicExecutor` to prevent runtime crashes during code execution.
+- [ ] Implement "Invariant-Aware Prompting" to force the model to generate testable mathematical properties before finalizing its answer.
+
+### Phase 4: Production Deployment
+- [x] Deploy "Safe-Mode" Transformers baseline (v24) as a guaranteed fallback.
+- [ ] Deploy final "Fortress Swarm" (v34) with the Polars bug fixed, ensuring the model finally receives the raw mathematical text.
+
+## Verification
+- **Prompt Integrity Test**: Verify that the text passed to the tokenizer is a pure string, not a Polars object representation.
+- **Fail-Safe Trigger**: Verify the system gracefully returns `0` and continues to the next problem if an OOM or logic crash occurs.
+- **Dummy Dataset Check**: Verify the script can run locally against a mock `test.csv` without timing out.

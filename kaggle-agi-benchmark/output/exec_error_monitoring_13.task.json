@@ -1,0 +1,6 @@
+{
+  "versionNumber": 1,
+  "name": "exec_error_monitoring_13",
+  "description": "Detect and correct errors in plan execution.",
+  "definition": "@kbench.task(name=\"exec_error_monitoring_13\")\ndef exec_error_monitoring_13():\n    \"\"\"Detect and correct errors in plan execution.\"\"\"\n    prompt = \"\"\"Plan: Wake up \u2192 Shower \u2192 Breakfast \u2192 Work\n\nExecuted: Wake up \u2192 Breakfast \u2192 Shower \u2192 Work\n\nWhat happened?\n\nA) Correct execution\nB) Skipped a step\nC) Order error\nD) Added extra step\"\"\"\n    return prompt, \"C\"\n"
+}

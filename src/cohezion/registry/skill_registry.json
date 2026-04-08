@@ -59,7 +59,7 @@
   },
   "AGENTIC_DESIGN_PRIME": {
     "name": "AGENTIC_DESIGN_PRIME",
-    "description": "The art and science of \"Agentic Aesthetics\"\u2014creating high-fidelity, research-grade documentation (Resumes, Manifestos, Benchmarks) that communicates strategic system leadership and technical sovereignty.",
+    "description": "The art and science of \"Agentic Aesthetics\"—creating high-fidelity, research-grade documentation (Resumes, Manifestos, Benchmarks) that communicates strategic system leadership and technical sovereignty.",
     "path": "src/cohezion/skills/AGENTIC_DESIGN_PRIME.md",
     "version": "1.0.0",
     "keywords": [
@@ -408,7 +408,7 @@
   },
   "KNOWLEDGE_GRAPH_INTEGRATION_PRIME": {
     "name": "KNOWLEDGE_GRAPH_INTEGRATION_PRIME",
-    "description": "You are a systems architect who bridges the skill registry with a knowledge graph representation of Cohezion\u2019s concepts, dependencies, and execution flows. You understand graph data models (RDF/Property Graph), semantic linking, and how to keep the graph in sync with the markdown\u2011based skill defi...",
+    "description": "You are a systems architect who bridges the skill registry with a knowledge graph representation of Cohezion’s concepts, dependencies, and execution flows. You understand graph data models (RDF/Property Graph), semantic linking, and how to keep the graph in sync with the markdown‑based skill defi...",
     "path": "src/cohezion/skills/KNOWLEDGE_GRAPH_INTEGRATION_PRIME.md",
     "version": "1.0.0",
     "keywords": [
@@ -478,7 +478,7 @@
   },
   "MODEL_ROUTING_PRIME": {
     "name": "MODEL_ROUTING_PRIME",
-    "description": "You are a specialist in local LLM orchestration using Ollama. You understand the trade\u2011offs between model size, RAM consumption, latency, and token cost. You can programmatically select the optimal model for a given task, spin up or shut down model servers, and route requests through a LangChain\u2011...",
+    "description": "You are a specialist in local LLM orchestration using Ollama. You understand the trade‑offs between model size, RAM consumption, latency, and token cost. You can programmatically select the optimal model for a given task, spin up or shut down model servers, and route requests through a LangChain‑...",
     "path": "src/cohezion/skills/MODEL_ROUTING_PRIME.md",
     "version": "1.0.0",
     "keywords": [
@@ -486,7 +486,7 @@
       "code_standards",
       "embedding_strategy",
       "guardrails",
-      "memory\u2011aware scheduling",
+      "memory‑aware scheduling",
       "model",
       "ollama model catalog",
       "parallel execution",
@@ -696,7 +696,7 @@
     "keywords": [
       "automatic skill scaffold",
       "metaphysics",
-      "meta\u2011pattern library",
+      "meta‑pattern library",
       "physics",
       "retrospective",
       "retrospective_skill",
@@ -892,7 +892,7 @@
   },
   "SYSTEM_MONITORING_PRIME": {
     "name": "SYSTEM_MONITORING_PRIME",
-    "description": "You are a performance engineer specialized in real\u2011time system monitoring on a high\u2011end Framework desktop (AMD\u202fRyzen\u202fAI\u202fMAX+\u202f395, 32 logical cores, 125\u202fGiB RAM, 8\u202fGiB swap, 1.6\u202fTiB SSD). You understand how to use tools like htop, iostat, vmstat, and nvidia\u2011smi (if GPUs are present) to identify CP...",
+    "description": "You are a performance engineer specialized in real‑time system monitoring on a high‑end Framework desktop (AMD Ryzen AI MAX+ 395, 32 logical cores, 125 GiB RAM, 8 GiB swap, 1.6 TiB SSD). You understand how to use tools like htop, iostat, vmstat, and nvidia‑smi (if GPUs are present) to identify CP...",
     "path": "src/cohezion/skills/SYSTEM_MONITORING_PRIME.md",
     "version": "1.0.0",
     "keywords": [
@@ -905,7 +905,7 @@
       "model_routing",
       "monitoring",
       "parallel_orchestration",
-      "process\u2011level metrics",
+      "process‑level metrics",
       "retrospectives",
       "system",
       "visualization"
@@ -1003,7 +1003,7 @@
   },
   "VECTOR_STORE_PRIME": {
     "name": "VECTOR_STORE_PRIME",
-    "description": "You are an authority on persistent vector storage for semantic retrieval. You understand the operational, performance, and data\u2011integrity aspects of local and remote vector stores, including Mem0 MCP, FAISS, Chroma, and SQLite\u2011based embeddings.",
+    "description": "You are an authority on persistent vector storage for semantic retrieval. You understand the operational, performance, and data‑integrity aspects of local and remote vector stores, including Mem0 MCP, FAISS, Chroma, and SQLite‑based embeddings.",
     "path": "src/cohezion/skills/VECTOR_STORE_PRIME.md",
     "version": "1.0.0",
     "keywords": [
@@ -1199,7 +1199,7 @@
   },
   "code_standards": {
     "name": "code_standards",
-    "description": "You are a software craftsmanship authority who defines and enforces rigorous coding standards across the entire Cohezion codebase. You understand Python best practices, static analysis tooling, automated formatting, type checking, security hardening, and continuous\u2011integration pipelines. Your goa...",
+    "description": "You are a software craftsmanship authority who defines and enforces rigorous coding standards across the entire Cohezion codebase. You understand Python best practices, static analysis tooling, automated formatting, type checking, security hardening, and continuous‑integration pipelines. Your goa...",
     "path": "src/cohezion/skills/code_standards.md",
     "version": "1.0.0",
     "keywords": [
@@ -1213,8 +1213,8 @@
       "model_routing",
       "mypy",
       "parallel_orchestration",
-      "pep\u202f8",
-      "pre\u2011commit",
+      "pep 8",
+      "pre‑commit",
       "pytest",
       "retrospective_skill",
       "standards",
@@ -1239,7 +1239,7 @@
   },
   "compound_engineering": {
     "name": "compound_engineering",
-    "description": "You are a systems architect focused on building self\u2011extending engineering pipelines. You treat each feature as a reusable macro for the next.",
+    "description": "You are a systems architect focused on building self‑extending engineering pipelines. You treat each feature as a reusable macro for the next.",
     "path": "src/cohezion/skills/compound_engineering.md",
     "version": "1.0.0",
     "keywords": [
@@ -1247,7 +1247,7 @@
       "compound",
       "engineering",
       "metaphysics",
-      "meta\u2011pattern library",
+      "meta‑pattern library",
       "physics",
       "retrospective_skill",
       "skill tokens"
@@ -1256,7 +1256,7 @@
   },
   "compound_prompt": {
     "name": "compound_prompt",
-    "description": "You are a prompt architect who builds compound prompts that orchestrate multiple existing skills in a single, coherent request. You understand how to chain the outputs of one skill as the inputs to another, how to expose meta\u2011instructions, and how to embed retrieval cues that let a language model...",
+    "description": "You are a prompt architect who builds compound prompts that orchestrate multiple existing skills in a single, coherent request. You understand how to chain the outputs of one skill as the inputs to another, how to expose meta‑instructions, and how to embed retrieval cues that let a language model...",
     "path": "src/cohezion/skills/compound_prompt.md",
     "version": "1.0.0",
     "keywords": [
@@ -1269,7 +1269,7 @@
       "prompt",
       "prompt chaining",
       "retrospective_skill",
-      "self\u2011reference",
+      "self‑reference",
       "skill tags"
     ],
     "last_updated": "2026-02-05T00:00:00"
@@ -1318,17 +1318,17 @@
   },
   "embedding_strategy": {
     "name": "embedding_strategy",
-    "description": "You are a specialist in semantic representation for software\u2011engineered knowledge. You understand the trade\u2011offs between lightweight bag\u2011of\u2011words TF vectors, dense transformer\u2011based embeddings, and external vector stores. You can pick the right strategy for a given scale, latency, and resource bu...",
+    "description": "You are a specialist in semantic representation for software‑engineered knowledge. You understand the trade‑offs between lightweight bag‑of‑words TF vectors, dense transformer‑based embeddings, and external vector stores. You can pick the right strategy for a given scale, latency, and resource bu...",
     "path": "src/cohezion/skills/embedding_strategy.md",
     "version": "1.0.0",
     "keywords": [
       "compound_engineering",
       "embedding",
       "hybrid approach",
-      "mem0\u202fmcp / local vector stores",
-      "sentence\u2011transformers",
+      "mem0 mcp / local vector stores",
+      "sentence‑transformers",
       "skill_generator",
-      "sparse tf\u2011idf / count vectors",
+      "sparse tf‑idf / count vectors",
       "strategy",
       "vector_store"
     ],
@@ -1708,7 +1708,7 @@
   },
   "parallel_orchestration": {
     "name": "parallel_orchestration",
-    "description": "You are a systems engineer who designs parallel, memory\u2011aware orchestration for local LLM workloads. You understand process\u2011level concurrency, inter\u2011process communication, task queuing, and resource budgeting on a machine with 128\u202fGB of unified RAM. You can translate high\u2011level job descriptions i...",
+    "description": "You are a systems engineer who designs parallel, memory‑aware orchestration for local LLM workloads. You understand process‑level concurrency, inter‑process communication, task queuing, and resource budgeting on a machine with 128 GB of unified RAM. You can translate high‑level job descriptions i...",
     "path": "src/cohezion/skills/parallel_orchestration.md",
     "version": "1.0.0",
     "keywords": [
@@ -1878,7 +1878,7 @@
   },
   "self_evaluation": {
     "name": "self_evaluation",
-    "description": "You are a meta\u2011engineer who automatically evaluates the quality, completeness, and alignment of generated artefacts (prompts, skill specifications, code snippets) against a set of objective criteria. You can invoke other skills (e.g., RETROSPECTIVE_SKILL, COMPOUND_PROMPT_PRIME) to gather evidence...",
+    "description": "You are a meta‑engineer who automatically evaluates the quality, completeness, and alignment of generated artefacts (prompts, skill specifications, code snippets) against a set of objective criteria. You can invoke other skills (e.g., RETROSPECTIVE_SKILL, COMPOUND_PROMPT_PRIME) to gather evidence...",
     "path": "src/cohezion/skills/self_evaluation.md",
     "version": "1.0.0",
     "keywords": [
@@ -1891,7 +1891,7 @@
       "iterative improvement loop",
       "retrospective_skill",
       "self",
-      "self\u2011consistency",
+      "self‑consistency",
       "skill_generator"
     ],
     "last_updated": "2026-02-05T00:00:00"
@@ -1940,11 +1940,11 @@
   },
   "skill_generator": {
     "name": "skill_generator",
-    "description": "You are a meta\u2011engineer specializing in the automatic generation of new skills. You treat skill specifications as compressible data structures and provide a lightweight CLI\u2011style interface for scaffolding skill files from existing templates.",
+    "description": "You are a meta‑engineer specializing in the automatic generation of new skills. You treat skill specifications as compressible data structures and provide a lightweight CLI‑style interface for scaffolding skill files from existing templates.",
     "path": "src/cohezion/skills/skill_generator.md",
     "version": "1.0.0",
     "keywords": [
-      "cli pseudo\u2011command",
+      "cli pseudo‑command",
       "compound_engineering",
       "compression block",
       "generator",
@@ -2152,5 +2152,20 @@
       "kllm"
     ],
     "last_updated": "2026-04-06T06:30:00"
+  },
+  "MCP_OPTIMIZATION_PRIME": {
+    "description": "Optimizing MCP server startup, stdio protocol integrity, and Gemini CLI extension validation.",
+    "keywords": [
+      "mcp",
+      "performance",
+      "infrastructure",
+      "gemini-cli",
+      "optimization"
+    ],
+    "path": "src/cohezion/skills/MCP_OPTIMIZATION_PRIME.md",
+    "version": "0.1.0",
+    "template_version": "v0.1",
+    "generated_from": "skill.md",
+    "last_updated": ""
   }
 }

@@ -6,7 +6,6 @@ Provides: Search models, datasets, spaces, inference, and README access.
 from __future__ import annotations
 
 import logging
-import os
 from typing import Any
 
 import aiohttp

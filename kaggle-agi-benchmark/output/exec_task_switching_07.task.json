@@ -1,0 +1,6 @@
+{
+  "versionNumber": 1,
+  "name": "exec_task_switching_07",
+  "description": "Switch between tasks flexibly.",
+  "definition": "@kbench.task(name=\"exec_task_switching_07\")\ndef exec_task_switching_07():\n    \"\"\"Switch between tasks flexibly.\"\"\"\n    prompt = \"\"\"Alternating rules:\n- Odd rounds: Add 3 to the number\n- Even rounds: Multiply by 2\n\nRound 1: Start with 5 \u2192 8\nRound 2: 8 \u2192 16\nRound 3: 16 \u2192 ?\n\nResult?\n\nA) 32\nB) 19\nC) 48\nD) 13\"\"\"\n    return prompt, \"B\"\n"
+}

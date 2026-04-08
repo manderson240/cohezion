@@ -1,0 +1,6 @@
+{
+  "versionNumber": 1,
+  "name": "social_cooperation_08",
+  "description": "Cooperative game theory.",
+  "definition": "@kbench.task(name=\"social_cooperation_08\")\ndef social_cooperation_08():\n    \"\"\"Cooperative game theory.\"\"\"\n    prompt = \"\"\"Prisoner's Dilemma:\n- Both cooperate: 1 year each\n- Both defect: 5 years each\n- One defects, one cooperates: 0 years (defector), 10 years (cooperator)\n\nIf you know your partner will cooperate, what should you do?\n\nA) Cooperate (fairness)\nB) Defect (minimize your time)\nC) Cannot know\nD) Refuse to play\"\"\"\n    return prompt, \"B\"\n"
+}

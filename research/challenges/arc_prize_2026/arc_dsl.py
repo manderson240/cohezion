@@ -61,11 +61,42 @@ class ARCDSL:
         return new_grid
 
     @staticmethod
+    def crop_to_content(grid):
+        """Crops the grid to the smallest bounding box containing non-zero pixels."""
+        coords = np.argwhere(grid != 0)
+        if coords.size == 0:
+            return grid
+        y_min, x_min = coords.min(axis=0)
+        y_max, x_max = coords.max(axis=0) + 1
+        return grid[y_min:y_max, x_min:x_max]
+
+    @staticmethod
+    def symmetry_fill(grid, axis='h'):
+        """Fills the grid by mirroring existing content across an axis."""
+        new_grid = grid.copy()
+        h, w = grid.shape
+        if axis == 'h':
+            half_w = w // 2
+            new_grid[:, half_w:] = np.fliplr(new_grid[:, :half_w]) if w % 2 == 0 else np.fliplr(new_grid[:, :half_w+1])[:, 1:]
+        else:
+            half_h = h // 2
+            new_grid[half_h:, :] = np.flipud(new_grid[:half_h, :]) if h % 2 == 0 else np.flipud(new_grid[:half_h+1, :])[1:, :]
+        return new_grid
+
+    @staticmethod
+    def scale_grid(grid, factor=2):
+        """Scales the grid by a given integer factor (nearest neighbor)."""
+        return np.repeat(np.repeat(grid, factor, axis=0), factor, axis=1)
+
+    @staticmethod
     def get_all_ops():
         """Returns a list of all available DSL operations for the genetic algorithm."""
         return [
             ("rotate90", 0), ("rotate180", 0), ("rotate270", 0),
             ("flip_h", 0), ("flip_v", 0),
-            ("recolor", 2), # Requires 2 params: from_color, to_color
-            ("move_object", 3) # Requires 3 params: obj_id, dx, dy
+            ("recolor", 2), 
+            ("move_object", 3),
+            ("crop_to_content", 0),
+            ("symmetry_fill", 1), # axis: 'h' or 'v'
+            ("scale_grid", 1)     # factor
         ]

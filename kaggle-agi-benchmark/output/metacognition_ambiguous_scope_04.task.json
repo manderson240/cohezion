@@ -1,0 +1,6 @@
+{
+  "versionNumber": 1,
+  "name": "metacognition_ambiguous_scope_04",
+  "description": "Recognize ambiguous scope in statements.",
+  "definition": "@kbench.task(name=\"metacognition_ambiguous_scope_04\")\ndef metacognition_ambiguous_scope_04():\n    \"\"\"Recognize ambiguous scope in statements.\"\"\"\n    prompt = \"\"\"\"All students passed except those who didn't study.\"\"\n\nGiven: Maria studied for 2 hours.\n\nDid Maria pass?\n\nA) Yes\nB) No\nC) Cannot determine without knowing what \"didn't study\" means\nD) Insufficient Information\"\"\"\n    return prompt, \"D\"\n"
+}

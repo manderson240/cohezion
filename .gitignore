@@ -193,6 +193,17 @@ ruff_*.txt
 ruff_*.json
 mypy_*.txt
 f821_out.txt
+*.tar.gz
+*.bundle
+/archive/worktrees/
+node_modules/
+*.sst
+LOCK
+LOG
+MANIFEST-*
+OPTIONS-*
+*_pid.txt
+"\"\"*"
 
 # Claude worktrees (ephemeral)
 .claude/worktrees/

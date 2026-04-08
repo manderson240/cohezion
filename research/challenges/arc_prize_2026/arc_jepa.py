@@ -39,7 +39,7 @@ class ARCGameEncoder(nn.Module):
         Returns a concatenated Triune latent vector.
         
         Args:
-            x: Input grid tensor of shape (batch, 1, 64, 64)
+            x: Input grid tensor of shape (batch, 1, H, W)
             
         Returns:
             Latent vector where:
@@ -48,6 +48,10 @@ class ARCGameEncoder(nn.Module):
             [192:256]- Knower (State-aligned features)
         """
         x = x.float() / 15.0
+        # Ensure minimum size for backbone pooling (64x64)
+        if x.shape[-1] != 64 or x.shape[-2] != 64:
+            x = F.interpolate(x, size=(64, 64), mode='nearest')
+            
         feat = self.backbone(x)
         
         doer = self.doer_head(feat)

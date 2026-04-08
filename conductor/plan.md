@@ -1,50 +1,40 @@
-# Track: AIMO Progress Prize 3 - Mathematical Reasoning Swarm (Refined 2026 SOTA Plan)
+# Implementation Plan: Autonomous Research & Safety Unification
 
-## Background & Motivation
-To win the **AI Mathematical Olympiad (AIMO) Progress Prize 3** ($2,207,152 prize pool), we must overcome the physical constraints of Kaggle's 5-hour H100 (80GB) runtime limit and the competition's "Penalized Accuracy" scoring. Based on our deep-horizon April 2026 research, standard deployments fail due to "Reasoning Collapse," memory leaks, and over-confidence. 
+## Objective
+Integrate Karpathy's LLM-Wiki and Autoresearch patterns, combined with the AutoHarness safety verification framework, into the Cohezion ecosystem. This will create a closed-loop autonomous research swarm that compounds knowledge, optimizes experiments, and ensures execution reliability.
 
-**CRITICAL FINDING (April 6, 2026):** We discovered the root cause of the `0` score submissions. The Kaggle AIMO API passes `id_df` and `problem_df` as `pl.Series` objects, not DataFrames. Indexing them with `[0, 0]` resulted in a stringified Polars table being injected into the LLM prompt (e.g., `shape: (2,) Series: ...`). The model was trying to solve a formatting error instead of a math problem!
+## Key Files & Context
+- **Skills:** `src/cohezion/skills/*.md` (PRIME skill definitions)
+- **Knowledge Graph:** `src/cohezion/knowledge_graph/wiki/` (Structured memory)
+- **Swarm:** `src/cohezion/swarm/autoresearch/` (Optimization loops)
+- **Compound:** `src/cohezion/compound/harness.py` (Safety verification)
 
-## Scope & Impact
-This refined plan outlines the construction of the **"Fortress Swarm"** architecture with the critical **Polars Indexing Fix**. It transitions our pipeline from a fragile, standard LLM script to a resilient, compute-optimal, and self-verifying Triune Manifold.
+## Implementation Steps
 
-## Proposed Solution: The "Fortress" Architecture
-1. **The Polars Fix**: Update the inference loop to use `problem_df[0]` (scalar extraction) to ensure the LLM receives raw text.
-2. **Pre-Flight TDD Suite (Environment Lock)**: A diagnostic layer that verifies GPU presence, library imports (Transformers/vLLM), and Symbolic Execution before interacting with the Kaggle competition API.
-3. **Triune Manifold Roles**:
-   - **The Doer**: `SymbolicExecutor` utilizing SymPy in a sandboxed, time-limited environment.
-   - **The Thinker**: `BaseSpecialist` employing a **Diverse Prompt Mixer** (Algebraist, Inductive, Goal-Oriented, Devil's Advocate) to decorrelate errors across independent runs.
-   - **The Knower**: `KnowerAuditor` implementing **Weighted Entropy Voting** and **GenSelect** to analytically resolve divergent proofs.
-4. **Hardware Optimization**:
-   - **Hard VRAM Resets**: Explicit `gc.collect()` and `torch.cuda.empty_cache()` between problems to survive KV cache accumulation.
-   - **Compute-Optimal Scaling**: Dynamic time budgeting with a 30s "Safety Trigger" to return a safe default.
-   - **Transformers Native / Speculative Decoding**: Prioritizing `torch.compile` and `StaticCache` with Transformers for stability, or vLLM with a 1.5B Drafter model for 1.5x throughput.
+### Phase 1: Knowledge Layer (LLM-Wiki)
+1.  **Create Skill:** `src/cohezion/skills/LLM_WIKI_PRIME.md` defining the "Incremental Knowledge Compilation" pattern.
+2.  **Initialize Wiki:** Create `src/cohezion/knowledge_graph/wiki/` with:
+    -   `index.md`: Map of all entities and concepts.
+    -   `log.md`: Chronological log of ingestion and edits.
+    -   `entities/`: Directory for granular concept pages.
+3.  **Bootstrap Ingestion:** Create a prototype script `src/cohezion/knowledge_graph/wiki_manager.py` to ingest new research (like the AutoHarness paper) into the wiki format.
 
-## Alternatives Considered
-- **Monte Carlo Tree Search (MCTS) / Lean 4 Formalization**: Rejected due to the 5-hour compute limit. These methods are too slow to solve 50 hidden problems on a single H100.
-- **70B/72B 4-bit Quantized Models**: Rejected due to massive KV cache requirements leading to OOM. 32B/14B models with robust tool-integration provide better accuracy/stability ratios.
+### Phase 2: Experimentation Layer (Autoresearch)
+1.  **Create Skill:** `src/cohezion/skills/AUTORESEARCH_PRIME.md` defining the "Fixed-Budget Optimization Loop".
+2.  **Generalize Framework:** Create `src/cohezion/swarm/autoresearch/base.py` containing a `ResearchDriver` class that abstracts the `SELECT -> GENERATE -> EVAL -> UPDATE` loop used in the Luma speedrun.
+3.  **Pattern Migration:** Move common utilities (RateLimiter, KSearchTree) from the Luma-specific directory to the general `swarm/autoresearch/` package.
 
-## Phased Implementation Plan
+### Phase 3: Safety Layer (AutoHarness)
+1.  **Create Skill:** `src/cohezion/skills/AUTOHARNESS_PRIME.md` defining "Automatic Synthesis of Code Harnesses".
+2.  **Implement Synthesizer:** Create `src/cohezion/compound/harness.py` with a `HarnessSynthesizer` that uses an LLM to generate test harnesses for agent-proposed code.
+3.  **Executor Integration:** Update `CompoundExecutor` (or equivalent) to invoke the harness before applying critical code changes.
 
-### Phase 1: Environment Hardening & TDD
-- [x] Integrate `PreFlightJury` to test the Kaggle offline environment.
-- [x] Configure Kaggle metadata for H100 locking (`machine_shape: NvidiaH100`).
-- [ ] **Apply Polars Indexing Fix** (`problem_df[0]`) to resolve the prompt formatting corruption.
+## Verification & Testing
+- **Wiki Verification:** Confirm `wiki_manager.py` correctly populates `entities/` from a raw markdown source.
+- **Autoresearch Verification:** Run a dummy optimization loop (e.g., optimizing a simple math function) using the generalized `ResearchDriver`.
+- **Harness Verification:** Verify that the `HarnessSynthesizer` can detect a trivial OOM or SyntaxError in a proposed "optimization" script.
 
-### Phase 2: Inference-Time Scaling
-- [x] Upgrade the Dual-Run protocol to an Adaptive Batched Swarm.
-- [x] Implement the Diverse Prompt Mixer to enforce cognitive diversity.
-- [ ] Refine the "Devil's Advocate" Adversarial Loop for continuous self-correction (Reflexion).
-
-### Phase 3: Symbolic Verification (SymCode)
-- [x] Sandbox the `SymbolicExecutor` to prevent runtime crashes during code execution.
-- [ ] Implement "Invariant-Aware Prompting" to force the model to generate testable mathematical properties before finalizing its answer.
-
-### Phase 4: Production Deployment
-- [x] Deploy "Safe-Mode" Transformers baseline (v24) as a guaranteed fallback.
-- [ ] Deploy final "Fortress Swarm" (v34) with the Polars bug fixed, ensuring the model finally receives the raw mathematical text.
-
-## Verification
-- **Prompt Integrity Test**: Verify that the text passed to the tokenizer is a pure string, not a Polars object representation.
-- **Fail-Safe Trigger**: Verify the system gracefully returns `0` and continues to the next problem if an OOM or logic crash occurs.
-- **Dummy Dataset Check**: Verify the script can run locally against a mock `test.csv` without timing out.
+## Success Metrics
+- **Knowledge Compounding:** 100% of new research papers ingested into structured Wiki entities.
+- **Autonomous ROI:** 10-15% improvement in geomean performance metrics via autonomous loops.
+- **Zero-Failure Execution:** 100% detection of invalid agent-proposed code changes via AutoHarness before execution.

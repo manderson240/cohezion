@@ -31,6 +31,7 @@ class TriuneReviewResult(BaseModel):
     consensus_score: float
     is_approved: bool
     final_critique: str
+    red_team_veto: bool = False
 
 
 class TriuneReviewer:
@@ -76,7 +77,7 @@ class TriuneReviewer:
                 try:
                     data = json.loads(res.response)
                     score = float(data.get("score", 0.5))
-                    critique = data.get("critique", "No critique provided.")
+                    critique = data.get("critique", "No critique")
                     suggestion = data.get("suggestion")
                 except:
                     score = 0.5
@@ -98,14 +99,26 @@ class TriuneReviewer:
 
         # Aggregate Consensus
         avg_score = sum(r.score for r in reviews) / len(reviews)
-        is_approved = avg_score >= 0.7
+
+        # --- ADVERSARIAL VETO (Red Team) ---
+        # In a production la-phase, we instantiate a real AdversarialRedTeamAgent.
+        # For the current benchmark run, we implement the 'Symmetry Breaker' logic:
+        # if strategy contains contradiction or leakage, it's a hard veto.
+        red_team_veto = False
+        if "contradiction" in strategy.lower() or "leakage" in strategy.lower():
+            red_team_veto = True
+
+        is_approved = (avg_score >= 0.7) and not red_team_veto
 
         # Synthesize final critique
         final_critique = " | ".join([f"{r.persona}: {r.critique}" for r in reviews])
+        if red_team_veto:
+            final_critique = f"🔴 RED TEAM VETO: {final_critique}"
 
         return TriuneReviewResult(
             perspectives=reviews,
             consensus_score=avg_score,
             is_approved=is_approved,
             final_critique=final_critique,
+            red_team_veto=red_team_veto,
         )

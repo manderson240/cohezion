@@ -23,11 +23,19 @@ logger = logging.getLogger("bmad-mcp")
 
 app = FastMCP("bmad-method")
 
-BMAD_DATA_PATH = Path(os.getenv("BMAD_DATA_PATH", "_bmad"))
-REDIS_URL = (
-    get_credentials().get_secret("COHEZION_REDIS_URL", env_var="REDIS_URL")
-    or "redis://localhost:6379"
-)
+
+def get_bmad_data_path() -> Path:
+    """Get BMAD data path."""
+    return Path(os.getenv("BMAD_DATA_PATH", "_bmad"))
+
+
+def get_redis_url() -> str:
+    """Get Redis URL."""
+    return (
+        get_credentials().get_secret("COHEZION_REDIS_URL", env_var="REDIS_URL")
+        or "redis://localhost:6379"
+    )
+
 
 _engine: BMADEngine | None = None
 _session_manager: SessionManager | None = None
@@ -37,8 +45,9 @@ def get_engine() -> BMADEngine:
     """Get or create BMAD engine."""
     global _engine
     if _engine is None:
-        _engine = BMADEngine(BMAD_DATA_PATH)
-        logger.info(f"BMAD engine initialized with data from {BMAD_DATA_PATH}")
+        data_path = get_bmad_data_path()
+        _engine = BMADEngine(data_path)
+        logger.info(f"BMAD engine initialized with data from {data_path}")
     return _engine
 
 
@@ -46,6 +55,7 @@ def get_session_manager() -> SessionManager:
     """Get or create session manager."""
     global _session_manager
     if _session_manager is None:
-        _session_manager = SessionManager(REDIS_URL)
-        logger.info(f"Session manager initialized with Redis at {REDIS_URL}")
+        redis_url = get_redis_url()
+        _session_manager = SessionManager(redis_url)
+        logger.info(f"Session manager initialized with Redis at {redis_url}")
     return _session_manager

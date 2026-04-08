@@ -34,6 +34,9 @@ The transition from AIMO 2 to AIMO 3 (April 2026) codified the "Compute-to-Reaso
 ### Learning 267: Speculative Decoding for Tool-Integrated Reasoning (TIR)
 Speculative Decoding (e.g., DeepSeek-R1-32B paired with Qwen2.5-1.5B drafter) provides a 1.5x-1.8x throughput multiplier. This is critical for TIR, as it allows the "Reasoning Swarm" to perform multiple code-execution and self-correction cycles within the 5-hour window. This "bought back" time is more valuable for accuracy than increasing the base model size to 70B+ which risks OOM via KV cache accumulation.
 
+### Learning 268: Kaggle "Hidden Set" Debugging & Polars Series Pitfall
+Surviving the Kaggle Private Rerun requires a "Fortress" architecture where every problem is wrapped in resource guards. A critical discovery: the AIMO 3 API passes `pl.Series` objects to the `predict` function. Standard DataFrame indexing (e.g., `df[0, 0]`) on a Series returns a new Series containing duplicate data, which stringifies into a Polars ASCII table. This corrupts LLM prompts with metadata (e.g., `shape: (2,) Series: ...`). Scalar indexing (`df[0]`) is mandatory to ensure the LLM receives raw text. Reference: `KAGGLE_STABILITY_PROTOCOL.md`.
+
 ---
 
 ## Phase 1-2 Milestones (2026-02-06, Compressed)
@@ -347,3 +350,27 @@ The K-Search pipeline (Ollama synthesis → popcorn eval → tree learning) is o
 
 ### Learning 269: TDD-First for GPU Kernels — Local Verification Saves Remote Submissions (2026-04-07)
 Verified e8m0_unshuffle roundtrip, MFMA 32x32 output layout (every cell written once), and A/B tile loading coverage (1024+4096 bytes) using pure Python before any remote submission. This prevented wasting rate-limited submissions on known-broken code. Rule: for GPU kernels where you can't run locally, verify ALL data flow components that CAN be tested locally (index math, permutations, coverage) before submitting.
+
+---
+
+## Session 89: Repository Integrity & Health (2026-04-07)
+
+### Learning 270: Repository Health as a Thermodynamic Constraint
+Repository size bloat (13.47 GiB) acts as a high-entropy state that prevents "Work Precipitation" (Git push). uncompressed backups and stale archives are the primary drivers of this entropy. Manual cleanup of the checkout followed by history rewriting is necessary to restore structural stability (HIHO).
+
+### Learning 271: Structural Repair via History Rebuilding
+Structural corruption in tree objects (empty filenames) blocks standard Git traversal tools. This corruption is often a byproduct of improper worktree management or custom scripts. `git-filter-repo` is the mandated tool for repair, as it rebuilds the history DAG from the ground up, effectively bypassing or fixing structurally invalid objects.
+
+### Learning 272: Operational Log Recovery via "Mining"
+Typos in long-running system commands often result in the creation of files that silently capture execution state (e.g., JSON traces in `""nnround=0nwhile`). These artifacts should be "mined" for operational knowledge (e.g., active worktrees, system launch times) before being retired to the `.gitignore` layer.
+
+## Session 90: MCP Infrastructure & Extension Optimization (2026-04-07)
+
+### Learning 273: Mandatory YAML Frontmatter for Agents
+Agent Markdown files (`AGENTS.md`) in the Gemini CLI MUST start with valid YAML frontmatter containing `name` and `description`. Missing metadata triggers a validation error during extension loading, silencing the entire capability set. This is a "silent failure" at the tool-discovery level that prevents agents from knowing they have access to specific skills.
+
+### Learning 274: Lazy Configuration for MCP Servers (Handshake Timeout)
+MCP servers using `stdio` transport are sensitive to startup latency. Configuration lookups that involve slow external systems (e.g., Bitwarden vault checks) MUST be lazily initialized. If triggered at module import time, these checks can delay the initial handshake beyond the CLI's internal timeout, resulting in a "Disconnected" status in `gemini mcp list`. Pattern: use `get_config()` accessors instead of global constants.
+
+### Learning 275: Silent Stdout for stdio Transport
+The stdio MCP protocol uses `stdout` for messaging. Any extraneous output (e.g., logger.info at startup, `uv run` update checks) can corrupt the protocol stream. Servers MUST be silent on `stdout` during initialization. When adding Python servers via the CLI, use the direct virtualenv path (`.venv/bin/python`) or `uv -q run` to ensure a clean communication channel.

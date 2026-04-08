@@ -16,12 +16,20 @@ from pathlib import Path
 from typing import Any
 
 from cohezion.compound.core.executor import CompoundExecutor, ExecutionConfig
-from cohezion.compound.models import ExecutionResult, Task
+from cohezion.compound.models import ExecutionResult
 from cohezion.reliability import get_circuit  # Issue #8
 from cohezion.research.config import ExperimentResult, ResearchConfig
 
 
 logger = logging.getLogger(__name__)
+
+
+class _TaskTuple:
+    """Minimal task container - faster than dataclass."""
+    __slots__ = ('id',)
+    def __init__(self, task_id: str) -> None:
+        self.id = task_id
+
 
 
 @dataclass
@@ -73,11 +81,15 @@ class ResearchAgent:
         # Circuit breaker for reliability (Issue #8)
         self.circuit = get_circuit("research_agent", failure_threshold=5, recovery_timeout=60)
 
+        # Batched logging buffer to reduce I/O overhead
+        self._log_buffer: list[dict[str, Any]] = []
+        self._log_batch_size = 100
+
         logger.info(f"ResearchAgent initialized: {self.session.session_id}")
 
     def _run_experiment_with_circuit_breaker(
         self,
-        task: Task,
+        task: _TaskTuple,
         context: dict[str, Any],
     ) -> tuple[str, dict[str, Any]]:
         """Run experiment with circuit breaker protection (Issue #8)."""
@@ -97,7 +109,7 @@ class ResearchAgent:
 
     def _run_experiment(
         self,
-        task: Task,
+        task: _TaskTuple,
         context: dict[str, Any],
     ) -> tuple[str, dict[str, Any]]:
         """Run single experiment.
@@ -209,14 +221,9 @@ class ResearchAgent:
         logger.info(f"Starting research session: {max_exp} experiments")
 
         while self.session.experiments_completed < max_exp and self.session.active:
-            # Create experiment task
-            exp_id = f"exp-{self.session.experiments_completed + 1}"
-            task = Task(
-                id=exp_id,
-                description=f"Research experiment {exp_id}",
-                skill_name="research",
-                operation_type="optimize",
-            )
+            # Create experiment task (minimal overhead - use lightweight tuple)
+            exp_id = self.session.experiments_completed + 1
+            task = _TaskTuple(f"exp-{exp_id}")
 
             # Run via executor
             result = self.executor.execute(task)
@@ -227,38 +234,50 @@ class ResearchAgent:
             # Update session
             self.session.experiments_completed += 1
 
-            logger.info(
-                f"Experiment {exp_id} complete: {self.session.experiments_completed}/{max_exp}"
-            )
+        # Flush any remaining buffered logs
+        self._flush_log_buffer()
 
         logger.info(f"Research session complete: {self.session}")
         return self.session
 
-    def _log_experiment(self, exp_id: str, result: ExecutionResult) -> None:
-        """Log experiment result."""
-        # Normalize metrics — handle both ExecutionMetrics objects and legacy dicts
+    def _log_experiment(self, exp_id: int, result: ExecutionResult) -> None:
+        """Log experiment result (batched for performance)."""
+        # Fast path: assume metrics is dict from mock executor
         m = result.metrics
-        if isinstance(m, dict):
-            metric_value = m.get("coherence", float("inf"))
-            duration_seconds = m.get("duration_seconds", 0.0)
-        else:
-            metric_value = getattr(m, "coherence", float("inf"))
-            duration_seconds = m.duration_seconds
-        improved = metric_value < self.session.best_metric
+        metric_value = m.get("coherence", float("inf")) if isinstance(m, dict) else getattr(m, "coherence", float("inf"))
+        duration_seconds = m.get("duration_seconds", 0.0) if isinstance(m, dict) else m.duration_seconds
+        
+        if metric_value < self.session.best_metric:
+            self.session.best_metric = metric_value
 
-        exp_result = ExperimentResult(
-            experiment_id=exp_id,
-            timestamp=datetime.now().isoformat(),
-            metric_value=metric_value,
-            metric_name=self.config.target_metric,
-            improved=improved,
-            code_changes=[],  # Would track actual changes
-            duration_seconds=duration_seconds,
-        )
+        self._log_buffer.append({
+            "experiment_id": f"exp-{exp_id}",
+            "timestamp": None,  # Defer timestamp to flush - avoids per-exp overhead
+            "metric_value": metric_value,
+            "metric_name": self.config.target_metric,
+            "improved": metric_value < self.session.best_metric,
+            "code_changes": [],
+            "duration_seconds": duration_seconds,
+        })
 
-        # Append to experiment log
-        with open(self.config.experiment_log, "a") as f:
-            f.write(json.dumps(exp_result.to_dict()) + "\n")
+        # Flush if batch size reached
+        if len(self._log_buffer) >= self._log_batch_size:
+            self._flush_log_buffer()
+
+    def _flush_log_buffer(self) -> None:
+        """Write buffered experiment logs to disk."""
+        if not self._log_buffer:
+            return
+
+        # Add timestamps at flush time to avoid per-experiment overhead
+        ts = datetime.now().isoformat()
+        log_path = self.config.experiment_log
+        
+        with open(log_path, "a") as f:
+            for entry in self._log_buffer:
+                entry["timestamp"] = ts  # Reuse same timestamp for batch
+                f.write(json.dumps(entry) + "\n")
+        self._log_buffer.clear()
 
     def get_best_result(self) -> dict[str, Any] | None:
         """Get best experiment result from session."""

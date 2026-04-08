@@ -6,7 +6,7 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 - [x] **Track: Autonomous Challenge Execution: Luma AMD Speedrun - Phase 1 Kernels**
   *Link: [./tracks/luma_amd_speedrun_20260312/](./tracks/luma_amd_speedrun_20260312/)*
-  *Status: COMPLETED (OVER) - All Kernels Optimized (Swizzled Head-first, Turbo Grouped GEMM, and ILP Tuning implemented). Rank 1 Ready.*
+  *Status: COMPLETED (Did not qualify for Finals) - Successfully implemented XCD-aware kernels and ILP tuning. However, final submissions did not receive an official score on the leaderboard due to runner timeouts and JIT overhead. Did not reach the Top 10 threshold for the $1M Finals.*
 
 ---
 
@@ -18,7 +18,7 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 - [~] **Track: Measuring Progress Toward AGI - Cognitive Abilities Kaggle Competition**
   *Link: [./tracks/kaggle_cognitive_agi_20260324/](./tracks/kaggle_cognitive_agi_20260324/)*
-  *Status: IN PROGRESS - Phase 5: 37/50 high-fidelity tasks generated (No placeholders).*
+  *Status: IN PROGRESS - Phase 5: 52/50 high-fidelity tasks generated (No placeholders).*
 
 ---
 
@@ -43,10 +43,3 @@ This file tracks all major tracks for the project. Each track has its own detail
 - [x] **Track: Yale Peaked Hackathon 2026 - Solving P1-P10 peaked circuits using MPS on BlueQubit with a $20 budget.**
 *Link: [./tracks/yale_peaked_20260404/](./tracks/yale_peaked_20260404/)*
 *Status: COMPLETED - 10/10 Cracked (Hybrid Quantum/Statistical Refinement)*
-
----
-
-- [ ] **Track: Systemic Repository Size Optimization and Health Maintenance**
-*Link: [./tracks/repo_size_fix_20260407/](./tracks/repo_size_fix_20260407/)*
-*Status: NEW - Initial specification and plan generated.*
-

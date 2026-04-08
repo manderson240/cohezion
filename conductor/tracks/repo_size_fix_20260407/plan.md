@@ -1,19 +1,19 @@
 # Implementation Plan: repo_size_fix_20260407
 
 ## Phase 1: Audit and Analysis
-1.  - [ ] Task: Audit repository for large blobs and historical artifacts.
-    - [ ] Run `git rev-list --objects --all | git cat-file --batch-check='%(objecttype) %(objectname) %(objectsize) %(rest)' | awk '$3 > 10000000' | sort -nrk 3` to identify large objects.
-    - [ ] Document the findings in `research/repo_audit_20260407.md`.
-2.  - [ ] Task: Audit existing `.gitignore` against common large-file patterns.
-    - [ ] Compare current `.gitignore` with best practices for Python/ML/Node.js projects.
-    - [ ] Identify gaps (e.g., `*.bin`, `*.pt`, `*.onnx`, large `*.json` or `*.csv`).
-3.  - [ ] Task: Conductor - User Manual Verification 'Audit and Analysis' (Protocol in workflow.md).
+1.  - [x] Task: Audit repository for large blobs and historical artifacts.
+    - [x] Run `git rev-list --objects --all | git cat-file --batch-check='%(objecttype) %(objectname) %(objectsize) %(rest)' | awk '$3 > 10000000' | sort -nrk 3' to identify large objects.
+    - [x] Document the findings in `research/repo_audit_20260407.md`.
+2.  - [x] Task: Audit existing `.gitignore` against common large-file patterns.
+    - [x] Compare current `.gitignore` with best practices for Python/ML/Node.js projects.
+    - [x] Identify gaps (e.g., `*.bin`, `*.pt`, `*.onnx`, large `*.json` or `*.csv`).
+3.  - [x] Task: Conductor - User Manual Verification 'Audit and Analysis' (Protocol in workflow.md).
 
 ## Phase 2: Safety and Backup
-1.  - [ ] Task: Create a full local clone/backup of the current repository.
-    - [ ] `git clone --mirror . ../cohezion_backup_20260407`
-    - [ ] Verify the backup integrity.
-2.  - [ ] Task: Conductor - User Manual Verification 'Safety and Backup' (Protocol in workflow.md).
+1.  - [x] Task: Create a full local clone/backup of the current repository.
+    - [x] `git clone --mirror . ../cohezion_backup_20260407`
+    - [x] Verify the backup integrity. (Note: Pre-existing 'empty filename' tree errors detected in fsck).
+2.  - [x] Task: Conductor - User Manual Verification 'Safety and Backup' (Protocol in workflow.md).
 
 ## Phase 3: History Rewriting and Git LFS Migration
 1.  - [ ] Task: Implement TDD for history rewriting verification.

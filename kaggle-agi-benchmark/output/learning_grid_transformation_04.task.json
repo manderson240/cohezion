@@ -1,0 +1,6 @@
+{
+  "versionNumber": 1,
+  "name": "learning_grid_transformation_04",
+  "description": "Learn grid transformation rules and apply to new grid.",
+  "definition": "@kbench.task(name=\"learning_grid_transformation_04\")\ndef learning_grid_transformation_04():\n    \"\"\"Learn grid transformation rules and apply to new grid.\"\"\"\n    prompt = \"\"\"You observe the following grid transformations:\n\nInput: [[1,1],[1,1]] \u2192 Output: [[2,2],[2,2]]\nInput: [[1,2],[3,4]] \u2192 Output: [[2,4],[6,8]]\nInput: [[0,1],[2,3]] \u2192 Output: [[0,2],[4,6]]\n\nRule: Each cell is multiplied by (row_index + column_index + 1)\n\nApply to: [[1,2,3],[4,5,6],[7,8,9]]\n\nWhat is the top-left cell of the output?\n\nA) 1\nB) 2\nC) 3\nD) 4\"\"\"\n    return prompt, \"B\"\n"
+}

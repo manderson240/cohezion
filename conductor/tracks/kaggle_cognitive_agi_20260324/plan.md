@@ -29,12 +29,16 @@
 - [x] Task: Final end-to-end dry run of the evaluation loop and submission pipeline.
 - [x] Task: Conductor - User Manual Verification 'Final Deliverables & Documentation' (Protocol in workflow.md)
 
-## Phase 5: Leaderboard Optimization & Iterative Refinement
-- [~] Task: Execute full-scale synthetic generation (100+ tasks) using `generate_evo_hiho_tasks.py` (Running autonomously in background).
-- [x] Task: Create an automated Kaggle submission and leaderboard polling script (`check_leaderboard.py`).
-- [ ] Task: Fix `generate_evo_hiho_tasks.py` placeholder output issue.
-    - [ ] Sub-task: Refine the `GENERATION_PROMPT` to enforce strict grid arrays instead of string placeholders (`[[...]]`).
-    - [ ] Sub-task: Implement a JSON schema validation check before saving tasks to `evo_hiho_benchmark.json`.
-- [ ] Task: Run the evaluation notebook on top Kaggle models (e.g., Qwen 2.5 72B, Llama 3) to establish a baseline score.
-- [ ] Task: Analyze model failure modes and refine the `GENERATION_PROMPT` to increase trap difficulty without violating logical soundness.
-- [ ] Task: Repeat Generation -> Evaluation -> Submission loop until leaderboard target is achieved.
+## Phase 5: Leaderboard Optimization & kbench SDK Integration
+- [x] Task: Integrate Kaggle Benchmarks (`kbench`) SDK for high-fidelity evaluation.
+    - [x] Sub-task: Implement 75 tasks across 5 cognitive tracks (Learning, Metacognition, Attention, Executive Function, Social Cognition).
+    - [x] Sub-task: Verify `evaluator_kbench.py` and `evaluator_kbench.ipynb` structure.
+    - [x] Sub-task: Fix `kaggle_benchmarks` installation error in Kaggle environment (Standardized git install URL + `protobuf` upgrade to resolve version mismatch).
+- [x] Task: Draft compliant Kaggle Benchmark Writeup.
+    - [x] Sub-task: Create `KAG_BENCHMARK_WRITEUP.md` following standard format (Summary, Intro, Data, Model, Training, Evaluation).
+- [~] Task: Establish baseline scores using frontier models.
+    - [x] Sub-task: Run evaluation using `minimax-m2.7:cloud` (Initial verification complete).
+    - [~] Sub-task: Run full benchmark against `qwen3-coder:30b` locally.
+- [ ] Task: Final Submission to Kaggle.
+    - [ ] Sub-task: Upload benchmark to `https://www.kaggle.com/benchmarks/mike-anderson/measuring-progress-toward-agi`.
+    - [ ] Sub-task: Attach final writeup and repository link.

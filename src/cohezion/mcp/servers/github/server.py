@@ -6,7 +6,6 @@ Provides: Search repos, get repo info, create issues, manage PRs.
 from __future__ import annotations
 
 import logging
-import os
 from typing import Any
 
 import aiohttp

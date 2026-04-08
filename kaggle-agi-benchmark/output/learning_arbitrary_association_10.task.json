@@ -1,0 +1,6 @@
+{
+  "versionNumber": 1,
+  "name": "learning_arbitrary_association_10",
+  "description": "Test fluid intelligence via arbitrary, non-semantic symbol binding.",
+  "definition": "@kbench.task(name=\"learning_arbitrary_association_10\")\ndef learning_arbitrary_association_10():\n    \"\"\"Test fluid intelligence via arbitrary, non-semantic symbol binding.\"\"\"\n    prompt = \"\"\"In this task, words have been assigned arbitrary numerical 'valence' values that do not follow English semantics:\n\nBindings:\n- 'Glip' = 7\n- 'Blorp' = 3\n- 'Zazz' = 12\n- 'Moom' = 5\n\nOperators:\n- [X \u25ec Y] = (X * Y) - (X + Y)\n- [X \u25ff Y] = Max(X, Y) / Min(X, Y) (rounded down)\n\nEvaluate the expression: [['Zazz' \u25ec 'Blorp'] \u25ff 'Glip']\n\nA) 2\nB) 3\nC) 4\nD) 1\"\"\"\n    return prompt, \"B\"\n"
+}

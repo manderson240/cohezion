@@ -1,18 +1,5 @@
 {
   "mcpServers": {
-    "cohezion-bmad": {
-      "command": "/home/mike-anderson/dev/cohezion/.venv/bin/python",
-      "args": [
-        "-m",
-        "cohezion.mcp.bmad_server"
-      ],
-      "env": {
-        "PYTHONPATH": "/home/mike-anderson/dev/cohezion/src",
-        "MCP_TRANSPORT": "stdio",
-        "BMAD_DATA_PATH": "/home/mike-anderson/dev/cohezion/_bmad"
-      },
-      "description": "108 BMAD commands for agile AI-driven development"
-    },
     "cohezion-coherence": {
       "command": "/home/mike-anderson/dev/cohezion/.venv/bin/python",
       "args": [
@@ -90,6 +77,20 @@
         "BMAD_DATA_PATH": "/home/mike-anderson/dev/cohezion/_bmad"
       },
       "description": "RAG over library and skills knowledge base"
+    },
+    "cohezion-bmad": {
+      "command": "/home/mike-anderson/dev/cohezion/.venv/bin/python",
+      "args": [
+        "-m",
+        "cohezion.mcp.bmad_server"
+      ],
+      "env": {
+        "PYTHONPATH": "/home/mike-anderson/dev/cohezion/src",
+        "MCP_TRANSPORT": "stdio",
+        "BMAD_DATA_PATH": "/home/mike-anderson/dev/cohezion/_bmad"
+      },
+      "timeout": 60000,
+      "description": "108 BMAD commands for agile AI-driven development"
     }
   }
 }

@@ -1,0 +1,6 @@
+{
+  "versionNumber": 1,
+  "name": "learning_causal_reasoning_13",
+  "description": "Learn causal structure from observations.",
+  "definition": "@kbench.task(name=\"learning_causal_reasoning_13\")\ndef learning_causal_reasoning_13():\n    \"\"\"Learn causal structure from observations.\"\"\"\n    prompt = \"\"\"Observations of events A, B, C:\n\n1. A happens \u2192 B usually happens\n2. B happens \u2192 C always happens\n3. C happens \u2192 A never happens next\n4. A and C sometimes happen together\n\nWhich causal model fits?\n\nA) A causes B, B causes C\nB) Common cause X affects A and B, B causes C\nC) A causes B, C causes A\nD) Independent causes\"\"\"\n    return prompt, \"B\"\n"
+}
