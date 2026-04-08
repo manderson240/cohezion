@@ -91,6 +91,11 @@
       },
       "timeout": 60000,
       "description": "108 BMAD commands for agile AI-driven development"
+    },
+    "kaggle": {
+      "command": "uvx",
+      "args": ["kaggle-mcp"],
+      "description": "Direct interaction with Kaggle ecosystem: Notebooks, Competitions, Datasets, and Benchmarking"
     }
   }
 }
