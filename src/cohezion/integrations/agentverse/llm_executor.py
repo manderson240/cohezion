@@ -26,16 +26,16 @@ OLLAMA_BASE_URL = "http://localhost:11434"
 
 # Retry configuration with exponential backoff and jitter
 RETRY_BASE_DELAY = 1.0
-RETRY_MAX_DELAY = 30.0
+RETRY_MAX_DELAY = 60.0
 RETRY_BACKOFF_FACTOR = 2.0
-RETRY_JITTER_MAX = 1.0
+RETRY_JITTER_MAX = 2.0
 
 # HTTP status codes that warrant retry
 RETRYABLE_STATUS_CODES = {429, 500, 502, 503, 504}
 
-# Circuit breaker configuration
-CIRCUIT_BREAKER_THRESHOLD = 5
-CIRCUIT_BREAKER_RESET_TIMEOUT_S = 60.0
+# Circuit breaker configuration  
+CIRCUIT_BREAKER_THRESHOLD = 10  # More tolerant
+CIRCUIT_BREAKER_RESET_TIMEOUT_S = 120.0  # Longer recovery
 
 
 @dataclass
@@ -309,7 +309,7 @@ class LLMExecutor:
         last_error = None
         for attempt in range(max_retries):
             try:
-                response = await self._client.post(url, json=payload, timeout=30.0)
+                response = await self._client.post(url, json=payload, timeout=120.0)
 
                 if response.status_code == 200:
                     # Success - record and return
