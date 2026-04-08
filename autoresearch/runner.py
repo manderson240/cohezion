@@ -49,77 +49,24 @@ class AutoresearchRunner:
         
         while self.running and self.iteration < max_iterations:
             self.iteration += 1
-            iteration_start = datetime.now().isoformat()
             
             logger.info(f"\n{'='*70}")
             logger.info(f"ITERATION {self.iteration}")
             logger.info(f"{'='*70}")
             
             try:
-                # Phase 1: Benchmarks
-                if self.phase == 1:
-                    result = await self._run_phase_1_benchmarks()
-                    
-                # Phase 2: RL Infrastructure (at score > 0.3)
-                elif self.phase == 2:
-                    result = await self._run_phase_2_rl()
-                    
-                # Phase 3: Architecture (at score > 0.5)
-                elif self.phase == 3:
-                    result = await self._run_phase_3_architecture()
-                    
-                # Phase 4: Documentation (at score > 0.7)
-                elif self.phase == 4:
-                    result = await self._run_phase_4_documentation()
-                    
-                else:
-                    logger.info("All phases complete!")
-                    self.running = False
-                    break
-                    
-                # Evaluate result
-                score = self._evaluate_result(result)
-                self.results[f"iter_{self.iteration}"] = {
-                    "phase": self.phase,
-                    "score": score,
-                    "timestamp": datetime.now().isoformat(),
-                    "result": result
-                }
+                # Process one iteration at a time with delay
+                await self._process_single_iteration()
                 
-                if score > self.best_score:
-                    self.best_score = score
-                    logger.info(f"New best score: {score:.2%}")
-                    
-                    # Phase transition logic
-                    if score > 0.3 and self.phase == 1:
-                        self.phase = 2
-                        logger.info("Advancing to Phase 2: RL Infrastructure")
-                    elif score > 0.5 and self.phase == 2:
-                        self.phase = 3
-                        logger.info("Advancing to Phase 3: Architecture")
-                    elif score > 0.7 and self.phase == 3:
-                        self.phase = 4
-                        logger.info("Advancing to Phase 4: Documentation")
-                        
-                # Check for improvement
-                if result.get("status") == "keep":
-                    logger.info("Experiment kept - changes committed")
-                elif result.get("status") == "discard":
-                    logger.info("Experiment discarded - reverted")
-                    
                 # Checkpoint every 10 iterations
                 if self.iteration % 10 == 0:
                     await self._checkpoint()
                     
             except Exception as e:
                 logger.exception(f"Iteration {self.iteration} failed: {e}")
-                self.results[f"iter_{self.iteration}"] = {
-                    "error": str(e),
-                    "status": "crash"
-                }
                 
             # Brief pause between iterations
-            await asyncio.sleep(10)
+            await asyncio.sleep(2)
             
         # Final checkpoint
         await self._checkpoint()
@@ -127,6 +74,40 @@ class AutoresearchRunner:
         logger.info("AUTORESEARCH COMPLETE")
         logger.info(f"Final best score: {self.best_score:.2%}")
         logger.info("=" * 70)
+    
+    async def _process_single_iteration(self) -> None:
+        """Process a single iteration."""
+        if self.phase == 1:
+            result = await self._run_phase_1_benchmarks()
+        elif self.phase == 2:
+            result = await self._run_phase_2_rl()
+        elif self.phase == 3:
+            result = await self._run_phase_3_architecture()
+        elif self.phase == 4:
+            result = await self._run_phase_4_documentation()
+        else:
+            self.running = False
+            return
+            
+        # Evaluate result
+        score = self._evaluate_result(result)
+        self.results[f"iter_{self.iteration}"] = {
+            "phase": self.phase,
+            "score": score,
+            "timestamp": datetime.now().isoformat(),
+            "result": result
+        }
+        
+        if score > self.best_score:
+            self.best_score = score
+            
+        # Phase transition logic
+        if score > 0.3 and self.phase == 1:
+            self.phase = 2
+        elif score > 0.5 and self.phase == 2:
+            self.phase = 3
+        elif score > 0.7 and self.phase == 3:
+            self.phase = 4
         
     async def _run_phase_1_benchmarks(self) -> dict[str, Any]:
         """Phase 1: Create/run benchmarks."""
