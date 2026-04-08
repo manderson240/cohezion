@@ -43,9 +43,9 @@ async def run_specialist_delegation():
         logger.info(f"Delegating Task: {task.subject}")
         try:
             # We assume the first tag corresponds to a high-level skill category
-            result = cloud_executor.execute_task(task_description=task.description, skill_name=f"{task.tags[0]}_PRIME")
-            if hasattr(result, '__dict__'):
-                logger.info(f"Result Success: {result.success} | Coherence: {result.metrics.get('coherence', 'N/A')}")
+            result = await cloud_executor.execute_task(task=task.description, skill=f"{task.tags[0]}_PRIME")
+            if hasattr(result, 'coherence'):
+                logger.info(f"Result Success: {result.success} | Coherence: {result.coherence} | Duration: {result.duration_ms}ms")
             else:
                 logger.info(f"Result: {result}")
         except Exception as e:
