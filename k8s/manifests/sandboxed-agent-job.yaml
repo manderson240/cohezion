@@ -1,0 +1,47 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: sandboxed-agent-eval
+  namespace: cohezion-training
+spec:
+  template:
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        fsGroup: 2000
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+      - name: agent
+        image: cohezion/sandboxed-agent:latest
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+            - ALL
+        resources:
+          limits:
+            memory: "2Gi"
+            cpu: "1"
+            ephemeral-storage: "5Gi"
+        env:
+        - name: AGENT_TASK_ID
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        volumeMounts:
+        - name: tmp
+          mountPath: /tmp
+        - name: workspace
+          mountPath: /workspace
+          readOnly: true
+      volumes:
+      - name: tmp
+        emptyDir: {}
+      - name: workspace
+        configMap:
+          name: agent-task
+      restartPolicy: Never
+  backoffLimit: 0  # Don't retry - fail fast

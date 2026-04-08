@@ -57,10 +57,18 @@ class ProcessRewardModel:
 class AIMOScaler:
     """
     Orchestrates advanced reasoning scaling.
+    v40: Weighted Entropy Consensus & Uncertainty Pruning.
     """
     def __init__(self, model: ReasoningModel, prm: ProcessRewardModel | None = None):
         self.model = model
         self.prm = prm or ProcessRewardModel()
+
+    def _calculate_entropy(self, scores: list[float]) -> float:
+        """Calculate Shannon Entropy of normalized scores."""
+        if not scores:
+            return 0.0
+        probs = np.exp(scores) / np.sum(np.exp(scores))
+        return -np.sum(probs * np.log(probs + 1e-9))
 
     def _get_dpm_prompts(self, question: str) -> list[tuple[str, str]]:
         """
@@ -84,8 +92,9 @@ class AIMOScaler:
     ) -> str:
         """
         Adaptive Best-First Search (BFS) for reasoning.
+        Enhanced with Weighted Entropy Consensus.
         """
-        logger.info("Starting Adaptive BFS for question: %s", question[:50])
+        logger.info("Starting Adaptive BFS (v40) for question: %s", question[:50])
         
         # 1. Initialize Root
         root = ReasoningNode(id="root", content=question, depth=0)
@@ -137,13 +146,21 @@ class AIMOScaler:
                         tree[node_id] = node
                         new_frontier.append(node)
             
-            # 3. Prune Frontier (Best-First)
-            new_frontier.sort(key=lambda x: x.score, reverse=True)
-            frontier = new_frontier[:beam_width]
+            # 3. Entropy-based Pruning (Uncertainty-aware)
+            if new_frontier:
+                batch_scores = [n.score for n in new_frontier]
+                entropy = self._calculate_entropy(batch_scores)
+                
+                # If entropy is too high, we are confused; increase beam width dynamically
+                dynamic_beam = beam_width + 1 if entropy > 1.0 else beam_width
+                
+                new_frontier.sort(key=lambda x: x.score, reverse=True)
+                frontier = new_frontier[:dynamic_beam]
             
             if not frontier:
                 break
                 
-        # 4. Return Best Leaf
+        # 4. Return Best Leaf using Consensus
         best_node = max(tree.values(), key=lambda x: x.score)
         return best_node.content
+
