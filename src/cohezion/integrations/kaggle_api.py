@@ -109,7 +109,7 @@ class KaggleAPI:
             "competition_sources": [competition_id] if competition_id else [],
             "kernel_sources": ["ryanholbrook/nvidia-utility-script"],
             "model_sources": model_sources or [],
-            "docker_image": "gcr.io/kaggle-private-byod/python@sha256:9fa0da194fad2241d3f01a80581cbecbd3a258b4d1b695e2cbbbc62a0fd205ac",
+            "docker_image_pinning_type": "original",
             "machine_shape": "NvidiaRtxPro6000",
         }
 

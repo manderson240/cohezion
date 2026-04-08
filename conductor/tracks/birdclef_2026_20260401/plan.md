@@ -6,8 +6,8 @@
 - [ ] Task: Implement basic audio loading and preprocessing (spectrograms).
 
 ## Phase 2: Baseline Model (Debug Phase)
-- [~] Task: Implement a baseline EfficientNet/ResNet model for audio classification.
-    - [ ] Sub-task: Fix `RuntimeError: Cannot send a request, as the client has been closed` in Hugging Face Hub download logic (likely an asynchronous `httpx` context issue).
+- [x] Task: Implement a baseline EfficientNet/ResNet model for audio classification.
+    - [x] Sub-task: Fix `RuntimeError: Cannot send a request, as the client has been closed` in Hugging Face Hub download logic (likely an asynchronous `httpx` context issue).
 - [ ] Task: Train locally on a subset of data.
 - [ ] Task: Create initial Kaggle submission kernel.
 

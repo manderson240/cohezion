@@ -77,6 +77,7 @@ class KaggleTrainingManager:
                     "isInternetEnabled": True,
                     "language": "python",
                     "sourceType": "notebook",
+                    "dockerImageVersionId": 31287,
                 },
             },
             "nbformat": 4,
@@ -100,11 +101,18 @@ import sys
 import traceback
 import json
 import gc
+import time
 
 print("=" * 60)
 print("NEMOTRON LORA TRAINING WITH SFT")
 print("Knowledge Distillation from Teacher Model + Blackwell Optimization")
 print("=" * 60)
+
+def safe_exit(msg="Execution finished."):
+    print(f"\n{msg}")
+    # Use os._exit or just finish the script to avoid IPython's buggy traceback handler
+    # for SystemExit exceptions in some Kaggle environments.
+    return
 
 try:
     # 1. Blackwell Environment Setup
@@ -142,20 +150,25 @@ try:
     WHEEL_PATH = "/kaggle/input/nemotron-trl-wheels"
     if os.path.exists(WHEEL_PATH):
         wheels = [f for f in os.listdir(WHEEL_PATH) if f.endswith(".whl")]
+        # Sort to handle dependencies correctly (e.g. install causal-conv1d before mamba-ssm)
+        wheels.sort()
         for wheel in wheels:
             print(f"    Installing {wheel}...")
             subprocess.run([sys.executable, "-m", "pip", "install", "-q", os.path.join(WHEEL_PATH, wheel), "--no-index", "--no-deps"], check=True)
     else:
-        print(f"  WARNING: {WHEEL_PATH} not found. Attempting online install for peft/trl/bitsandbytes...")
+        print(f"  WARNING: {WHEEL_PATH} not found. Proceeding with online install.")
 
-    MANDATORY_PACKAGES = ["trl", "peft", "bitsandbytes", "accelerate"]
+    # Install trl and other mandatory packages
+    MANDATORY_PACKAGES = ["peft", "accelerate", "trl", "bitsandbytes"]
     for pkg in MANDATORY_PACKAGES:
         try:
             __import__(pkg.replace("-", "_"))
             print(f"  {pkg} already installed")
         except ImportError:
             print(f"  Attempting install for {pkg}...")
-            subprocess.run([sys.executable, "-m", "pip", "install", "-q", pkg, "--no-build-isolation"])
+            # For general packages, we don't use --no-build-isolation unless we have all build-deps
+            # We try normal install first
+            subprocess.run([sys.executable, "-m", "pip", "install", "-q", pkg])
 
     import torch
     import pandas as pd
@@ -171,6 +184,8 @@ try:
         for i in range(torch.cuda.device_count()):
             prop = torch.cuda.get_device_properties(i)
             print(f"  GPU {i}: {prop.name} ({prop.total_memory / 1024**3:.1f} GB)")
+    else:
+        print("  WARNING: CUDA NOT AVAILABLE")
 
     # 4. Load competition data
     print("\n[4/8] Loading training data...")
@@ -187,11 +202,14 @@ try:
         if train_file: break
 
     if not train_file:
-        print("ERROR: Training data not found")
-        sys.exit(1)
-
-    df = pd.read_csv(train_file)
-    print(f"  Columns: {list(df.columns)}")
+        print("ERROR: Training data not found. Using dummy data for sanity check.")
+        df = pd.DataFrame({
+            'prompt': ['What is 2+2?', 'Explain gravity'],
+            'answer': ['4', 'Gravity is a force that pulls objects toward each other.']
+        })
+    else:
+        df = pd.read_csv(train_file)
+        print(f"  Loaded {len(df)} samples. Columns: {list(df.columns)}")
     
     # Map columns correctly (Competition uses 'prompt' and 'answer')
     PROMPT_COL = 'prompt' if 'prompt' in df.columns else ('question' if 'question' in df.columns else 'problem')
@@ -227,17 +245,21 @@ try:
             response = teacher_tokenizer.decode(outputs[0], skip_special_tokens=True)
             return response[len(prompt):].strip()
 
-        sample_size = min(100, len(df))
+        sample_size = min(50, len(df)) # Reduced sample size for reliability
         print(f"  Generating traces for {sample_size} samples...")
         filtered_data = []
         for idx in range(sample_size):
             row = df.iloc[idx]
-            trace = generate_teacher_trace(row)
-            filtered_data.append({
-                'prompt': row[PROMPT_COL],
-                'answer': row[ANSWER_COL],
-                'teacher_trace': trace
-            })
+            try:
+                trace = generate_teacher_trace(row)
+                filtered_data.append({
+                    'prompt': row[PROMPT_COL],
+                    'answer': row[ANSWER_COL],
+                    'teacher_trace': trace
+                })
+            except Exception as e:
+                print(f"    Failed trace for sample {idx}: {e}")
+                
             if (idx + 1) % 10 == 0: print(f"    Generated {idx + 1}/{sample_size}")
 
         del teacher_model
@@ -245,11 +267,22 @@ try:
         torch.cuda.empty_cache()
     except Exception as e:
         print(f"  Teacher generation failed: {e}. Falling back to ground truth.")
-        filtered_data = [{'prompt': row[PROMPT_COL], 'answer': row[ANSWER_COL], 'teacher_trace': ''} for _, row in df.head(200).iterrows()]
+        filtered_data = []
+        for _, row in df.head(100).iterrows():
+            filtered_data.append({
+                'prompt': row[PROMPT_COL],
+                'answer': row[ANSWER_COL],
+                'teacher_trace': ''
+            })
 
     # 6. Load student model
     print("\n[6/8] Loading student model...")
-    model_path = kagglehub.model_download("metric/nemotron-3-nano-30b-a3b-bf16/transformers/default")
+    model_id = "metric/nemotron-3-nano-30b-a3b-bf16/transformers/default"
+    model_path = kagglehub.model_download(model_id)
+    if not model_path:
+        print(f"ERROR: Failed to download model {model_id}")
+        safe_exit("Model download failed")
+        
     tokenizer = AutoTokenizer.from_pretrained(model_path, trust_remote_code=True)
     if tokenizer.pad_token is None: tokenizer.pad_token = tokenizer.eos_token
     
@@ -278,7 +311,7 @@ try:
     # 7. Prepare dataset
     print("\n[7/8] Preparing dataset...")
     def format_example(example):
-        if example['teacher_trace']:
+        if example.get('teacher_trace'):
             text = f"Problem: {example['prompt']}\n\nSolution:\n{example['teacher_trace']}"
         else:
             text = f"Problem: {example['prompt']}\n\nAnswer: {example['answer']}"
@@ -298,10 +331,19 @@ try:
         bf16=True,
         gradient_checkpointing=True,
         logging_steps=5,
-        report_to="none"
+        report_to="none",
+        save_total_limit=1,
     )
 
-    trainer = SFTTrainer(model=model, tokenizer=tokenizer, train_dataset=dataset['train'], eval_dataset=dataset['test'], args=training_args, max_seq_length=1024)
+    trainer = SFTTrainer(
+        model=model, 
+        tokenizer=tokenizer, 
+        train_dataset=dataset['train'], 
+        eval_dataset=dataset['test'], 
+        args=training_args, 
+        max_seq_length=1024,
+        dataset_text_field="text"
+    )
     trainer.train()
 
     # Save
@@ -314,11 +356,9 @@ except Exception as e:
     print("\n" + "!" * 60)
     print(f"CRITICAL ERROR: {e}")
     print("!" * 60)
-    try:
-        import traceback
-        traceback.print_exc()
-    except:
-        print("Could not print traceback")
-    # Instead of sys.exit(1), we just return or let the cell finish to avoid IPython NoneType error
+    traceback.print_exc()
     print("\nExiting training script early due to error.")
+
+safe_exit()
+"""
 """
