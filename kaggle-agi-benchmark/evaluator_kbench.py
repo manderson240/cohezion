@@ -1477,19 +1477,6 @@ D) Both could be true"""
 # BUNDLE AND EXPORT
 # ============================================================================
 
-if __name__ == "__main__":
-    # Test that all tasks are loadable
-    import inspect
-    tasks = []
-    for name, obj in list(globals().items()):
-        if callable(obj) and hasattr(obj, '__wrapped__') and 'kbench' in str(type(obj)):
-            tasks.append(name)
-
-    print(f"Loaded {len(tasks)} kbench tasks")
-    print(f"Categories: learning, metacognition, attention, executive_function, social_cognition")
-    print(f"Total: 75 tasks (15 per category)")
-
-
 @kbench.task(name="agi_cognitive_framework_overall")
 def agi_cognitive_framework_overall(llm) -> float:
     """Overall benchmark score across all 5 cognitive tracks."""
@@ -1531,3 +1518,16 @@ def agi_cognitive_framework_overall(llm) -> float:
             print(f"Error running task {task}: {e}")
             
     return float(passed / len(tasks)) if tasks else 0.0
+
+
+if __name__ == "__main__":
+    # Test that all tasks are loadable
+    tasks = []
+    # Search for all decorated kbench tasks in globals
+    for name, obj in list(globals().items()):
+        if hasattr(obj, 'run') and callable(obj.run):
+            tasks.append(name)
+
+    print(f"Loaded {len(tasks)} kbench tasks")
+    print(f"Categories: learning, metacognition, attention, executive_function, social_cognition")
+    print(f"Total: 75 tasks (15 per category)")

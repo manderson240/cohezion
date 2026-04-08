@@ -82,19 +82,21 @@ class SurrealUniverseRepository(UniverseRepository):
 
     async def get_all(
         self,
-        limit: int = 100,
-        node_type: Optional[str] = None,
+        filter_params: Optional[UniverseRepositoryFilter] = None,
     ) -> List[UniverseNode]:
         """Retrieve universe nodes from SurrealDB with optional filtering.
 
         Args:
-            limit: Maximum number of nodes to return.
-            node_type: Optional filter by node type.
+            filter_params: Optional filter parameters for querying.
 
         Returns:
             List of UniverseNode objects.
         """
         try:
+            # Extract filter parameters
+            limit = filter_params.limit if filter_params else 100
+            node_type = filter_params.node_type if filter_params else None
+
             # Build query with optional filtering
             if node_type:
                 query = f"SELECT * FROM {self._table} WHERE node_type = $node_type LIMIT $limit"

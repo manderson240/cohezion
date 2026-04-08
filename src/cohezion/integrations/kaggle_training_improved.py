@@ -133,6 +133,11 @@ try:
     # 2. Imports & Dependencies
     print("\n[2/8] Loading dependencies...")
     
+    print("  Force-injecting DNS...")
+    subprocess.run("echo 'nameserver 8.8.8.8' > /etc/resolv.conf", shell=True)
+    subprocess.run("echo 'nameserver 8.8.4.4' >> /etc/resolv.conf", shell=True)
+    subprocess.run("echo 'nameserver 1.1.1.1' >> /etc/resolv.conf", shell=True)
+    
     def check_dns():
         import socket
         try:
@@ -142,8 +147,7 @@ try:
             return False
 
     if not check_dns():
-        print("WARNING: DNS failure detected. Attempting to restart network interface...")
-        subprocess.run("echo 'nameserver 8.8.8.8' > /etc/resolv.conf", shell=True)
+        print("WARNING: DNS failure still detected even after force-injecting.")
 
     # Blackwell-specific wheel installation for Mamba/SSM
     print("  Installing pre-built wheels for Mamba/SSM...")
@@ -159,36 +163,46 @@ try:
     all_wheels = find_wheels()
     if all_wheels:
         print(f"    Found {len(all_wheels)} wheels in /kaggle/input")
+        # Ensure we install to a writable directory to avoid Errno 30 Read-only file system
+        os.makedirs("/tmp/pip_packages", exist_ok=True)
+        sys.path.insert(0, "/tmp/pip_packages")
+        os.environ["PYTHONPATH"] = f"/tmp/pip_packages:{os.environ.get('PYTHONPATH', '')}"
+
         for wheel in all_wheels:
+            # Skip wheels that tend to conflict with Kaggle's core environment if they are already present
+            if "setuptools" in wheel or "six" in wheel or "urllib3" in wheel:
+                continue
             print(f"    Installing {os.path.basename(wheel)}...")
             try:
-                subprocess.run([sys.executable, "-m", "pip", "install", "-q", wheel, "--no-index", "--no-deps"], check=True)
+                subprocess.run([sys.executable, "-m", "pip", "install", "-q", wheel, "--no-index", "--no-deps", "--target", "/tmp/pip_packages"], check=True)
             except Exception as e:
                 print(f"    Failed to install {os.path.basename(wheel)}: {e}")
     else:
         print("    WARNING: No pre-built wheels found. Attempting online install.")
 
-    # Install trl and other mandatory packages
-    MANDATORY_PACKAGES = ["peft", "accelerate", "trl", "bitsandbytes"]
+    # Install trl, cutlass and other mandatory packages
+    MANDATORY_PACKAGES = ["peft", "accelerate", "trl", "bitsandbytes", "nvidia-cutlass", "cutlass"]
     for pkg in MANDATORY_PACKAGES:
         try:
-            __import__(pkg.replace("-", "_"))
+            # Some packages have different import names
+            import_name = pkg.replace("-", "_")
+            if pkg == "nvidia-cutlass": import_name = "cutlass"
+            __import__(import_name)
             print(f"  {pkg} already installed")
         except ImportError:
             print(f"  Attempting install for {pkg}...")
             # Try multiple times for network reliability
             for attempt in range(3):
                 try:
-                    subprocess.run([sys.executable, "-m", "pip", "install", "-q", pkg], check=True)
+                    subprocess.run([sys.executable, "-m", "pip", "install", "-q", pkg, "--target", "/tmp/pip_packages"], check=True)
                     print(f"  Successfully installed {pkg}")
                     break
                 except Exception:
                     print(f"  Install attempt {attempt+1} for {pkg} failed. Retrying...")
                     time.sleep(5)
                     if attempt == 1:
-                        print("  Force-injecting DNS...")
+                        print("  Force-injecting DNS again...")
                         subprocess.run("echo 'nameserver 8.8.8.8' > /etc/resolv.conf", shell=True)
-                        subprocess.run("echo 'nameserver 8.8.4.4' >> /etc/resolv.conf", shell=True)
 
     import torch
     import pandas as pd

@@ -193,7 +193,12 @@ class TestSurrealUniverseRepository:
         ]
 
         # Execute
-        result = await universe_repo.get_all(limit=10)
+        from cohezion.core.persistence.repositories.universe_repository import (
+            UniverseRepositoryFilter,
+        )
+
+        filter_params = UniverseRepositoryFilter(limit=10)
+        result = await universe_repo.get_all(filter_params)
 
         # Verify
         assert len(result) == 2
@@ -203,7 +208,9 @@ class TestSurrealUniverseRepository:
         assert result[1].content == "Second node"
         mock_surreal_client.query.assert_called_once()
         call_args = mock_surreal_client.query.call_args
-        assert "SELECT * FROM universe_nodes LIMIT 10" in call_args[0][0]
+        # Verify parameterized query (SQL injection prevention)
+        assert "SELECT * FROM universe_nodes LIMIT $limit" in call_args[0][0]
+        assert call_args[0][1]["limit"] == 10
 
     @pytest.mark.asyncio
     async def test_get_all_universe_nodes_with_filter(self, universe_repo, mock_surreal_client):
@@ -250,12 +257,13 @@ class TestSurrealUniverseRepository:
         assert result[0].node_type == "energy_snapshot"
         mock_surreal_client.query.assert_called_once()
         call_args = mock_surreal_client.query.call_args
+        # Verify parameterized query with filter
         assert (
             "SELECT * FROM universe_nodes WHERE node_type = $node_type LIMIT $limit"
             in call_args[0][0]
         )
-        assert call_args[1]["node_type"] == "energy_snapshot"
-        assert call_args[1]["limit"] == 10
+        assert call_args[0][1]["node_type"] == "energy_snapshot"
+        assert call_args[0][1]["limit"] == 10
 
     @pytest.mark.asyncio
     async def test_update_universe_node(
@@ -343,10 +351,11 @@ class TestSurrealUniverseRepository:
         assert result[0].embedding == [0.1, 0.2, 0.3]
         mock_surreal_client.query.assert_called_once()
         call_args = mock_surreal_client.query.call_args
+        # Verify vector similarity query with parameterized variables
         assert (
             "SELECT *, vector::similarity::cosine(embedding, $embedding) AS score"
             in call_args[0][0]
         )
-        assert call_args[1]["table"] == "universe_nodes"
-        assert call_args[1]["embedding"] == [0.1, 0.2, 0.3]
-        assert call_args[1]["limit"] == 5
+        assert call_args[0][1]["table"] == "universe_nodes"
+        assert call_args[0][1]["embedding"] == [0.1, 0.2, 0.3]
+        assert call_args[0][1]["limit"] == 5
