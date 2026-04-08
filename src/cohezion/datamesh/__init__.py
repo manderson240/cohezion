@@ -14,6 +14,18 @@ from cohezion.datamesh.schema import (
 from cohezion.datamesh.query import DatameshQuery, DatameshResult
 from cohezion.datamesh.ingestion import DatameshIngestion
 from cohezion.datamesh.federation import FederationLayer
+from cohezion.datamesh.bidirectional_linkage import (
+    BidirectionalLinkageManager,
+    BidirectionalLink,
+    LinkDirection,
+    LinkStatus,
+)
+from cohezion.datamesh.knowledge_graph_layer import (
+    KnowledgeGraphLayer,
+    KnowledgeNode,
+    KnowledgeEdge,
+    RelationType as KGRelationType,
+)
 
 __all__ = [
     "UnifiedRecord",
@@ -24,4 +36,12 @@ __all__ = [
     "DatameshResult",
     "DatameshIngestion",
     "FederationLayer",
+    "BidirectionalLinkageManager",
+    "BidirectionalLink",
+    "LinkDirection",
+    "LinkStatus",
+    "KnowledgeGraphLayer",
+    "KnowledgeNode",
+    "KnowledgeEdge",
+    "KGRelationType",
 ]
