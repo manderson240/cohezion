@@ -5,7 +5,8 @@
   "branch": "feature/2026-tip-of-the-spear",
   "checkpoints_count": 1,
   "files_touched": [
-    ".gemini/settings.json"
+    ".gemini/settings.json",
+    "kaggle-agi-benchmark/kernel-metadata.json"
   ],
   "sessions": [
     {
@@ -13,6 +14,12 @@
       "transcript": "/23/1d60f1a37a/0/full.jsonl",
       "content_hash": "/23/1d60f1a37a/0/content_hash.txt",
       "prompt": "/23/1d60f1a37a/0/prompt.txt"
+    },
+    {
+      "metadata": "/23/1d60f1a37a/1/metadata.json",
+      "transcript": "/23/1d60f1a37a/1/full.jsonl",
+      "content_hash": "/23/1d60f1a37a/1/content_hash.txt",
+      "prompt": "/23/1d60f1a37a/1/prompt.txt"
     }
   ],
   "token_usage": {

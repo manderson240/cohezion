@@ -1,0 +1,39 @@
+{
+  "cli_version": "0.5.3",
+  "checkpoint_id": "231d60f1a37a",
+  "session_id": "7b42ffab-cb2c-417a-b4cd-9fddf3b78647",
+  "strategy": "manual-commit",
+  "created_at": "2026-04-08T03:14:54.113245052Z",
+  "branch": "feature/2026-tip-of-the-spear",
+  "checkpoints_count": 0,
+  "files_touched": [
+    "kaggle-agi-benchmark/kernel-metadata.json"
+  ],
+  "agent": "Claude Code",
+  "model": "claude-opus-4-6[1m]",
+  "turn_id": "270d4e1f60f0",
+  "checkpoint_transcript_start": 14718,
+  "transcript_lines_at_start": 14718,
+  "token_usage": {
+    "input_tokens": 0,
+    "cache_creation_tokens": 0,
+    "cache_read_tokens": 0,
+    "output_tokens": 0,
+    "api_call_count": 0
+  },
+  "session_metrics": {
+    "turn_count": 172
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-04-08T03:14:41.8786144Z",
+    "agent_lines": 0,
+    "agent_removed": 0,
+    "human_added": 9891,
+    "human_modified": 5,
+    "human_removed": 0,
+    "total_committed": 9891,
+    "total_lines_changed": 12878,
+    "agent_percentage": 0,
+    "metric_version": 2
+  }
+}
