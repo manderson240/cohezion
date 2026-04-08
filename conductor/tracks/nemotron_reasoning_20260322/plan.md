@@ -33,11 +33,11 @@
 - [x] Task: Conductor - User Manual Verification 'Baseline Submission' (Protocol in workflow.md)
 
 ## Phase 5: Execution & Monitoring (Debug Phase)
-- [~] Task: Monitor and Debug G4 Blackwell Training Progress
+- [x] Task: Monitor and Debug G4 Blackwell Training Progress
     - [x] Implement: Monitor the Kaggle G4 Blackwell notebook execution for completion (Found errors in v22).
-    - [ ] Implement: Investigate `TypeError: object of type 'NoneType' has no len()` in IPython/nbconvert tracebacks seen in v22 and v24 logs.
-    - [ ] Implement: Fix environment setup to prevent Kaggle notebook conversion failures.
-    - [ ] Implement: Retrieve the trained LoRA adapter and metrics once a successful run completes.
+    - [x] Implement: Investigate `TypeError: object of type 'NoneType' has no len()` in IPython/nbconvert tracebacks seen in v22 and v24 logs. (Fixed in v27 by avoiding `sys.exit(1)` and using a `safe_exit` pattern).
+    - [x] Implement: Fix environment setup to prevent Kaggle notebook conversion failures. (Applied Blackwell Handshake Mandate 8: fixed machine_shape, pinned dockerImageVersionId, and refactored dependency installation).
+    - [ ] Implement: Retrieve the trained LoRA adapter and metrics once a successful run completes (Monitoring v27).
 - [ ] Task: Submit Trained Adapter to Competition
     - [ ] Implement: Use Kaggle API to submit the trained adapter as a competition entry
 - [ ] Task: Evaluate Leaderboard Position

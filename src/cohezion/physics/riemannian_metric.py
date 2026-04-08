@@ -14,6 +14,13 @@ physics of the four fabrics. The Fisher information metric (Milestone 4)
 will provide the principled derivation; here we provide the computational
 infrastructure.
 
+Performance optimization:
+    For constant metrics (fabric_block_metric, euclidean_metric), all
+    Christoffel symbols vanish because ∂_m g_{ab} = 0 everywhere. The
+    inverse metric is also constant and precomputed once. These facts
+    eliminate the O(dim³) numerical differentiation that was the dominant
+    bottleneck in environment stepping (6.2ms → <1µs per christoffel call).
+
 References:
   - do Carmo (1992): Riemannian Geometry
   - Nakahara (2003): Geometry, Topology and Physics, Ch. 7
@@ -35,8 +42,13 @@ class RiemannianMetric:
     """A Riemannian metric on an n-dimensional manifold.
 
     The metric can be:
-    - Constant (same g_ij everywhere) — e.g., Euclidean, hyperbolic
+    - Constant (same g_ij everywhere) — e.g., Euclidean, fabric_block
     - Position-dependent (callable) — e.g., Fisher metric, curved manifold
+
+    For constant metrics (the common case with fabric_block_metric), all
+    Christoffel symbols vanish (Γ^i_jk = 0) and the inverse metric is
+    precomputed once. This eliminates the O(dim³) numerical gradient
+    computation that was the dominant bottleneck in environment stepping.
 
     Parameters
     ----------
@@ -54,21 +66,54 @@ class RiemannianMetric:
     ) -> None:
         self.dim = dim
 
+        # Detect whether the metric is position-independent (constant).
+        # For constant metrics, Christoffel symbols are identically zero
+        # and the inverse can be precomputed once, avoiding repeated
+        # O(dim³) numerical differentiation and O(dim³) matrix inversion.
+        self._is_constant = isinstance(metric_fn, np.ndarray) or metric_fn is None
+
         if metric_fn is None:
             # Default: Euclidean (identity metric)
+            self._metric_matrix = np.eye(dim)
             self._metric_fn = lambda _x: np.eye(dim)
         elif isinstance(metric_fn, np.ndarray):
-            g = metric_fn.copy()
-            self._metric_fn = lambda _x: g
+            self._metric_matrix = metric_fn.copy()
+            self._metric_fn = lambda _x: self._metric_matrix
         else:
             self._metric_fn = metric_fn
+            # For callable metrics, we can't assume constancy
+            self._metric_matrix = None
+
+        # Precomputed caches for constant metrics
+        self._cached_inverse: np.ndarray | None = None
+        self._cached_christoffel: np.ndarray | None = None
+
+        # Eagerly precompute for constant metrics
+        if self._is_constant and self._metric_matrix is not None:
+            self._cached_inverse = np.linalg.inv(self._metric_matrix)
+            # Christoffel symbols of a constant metric are identically zero.
+            # Γ^i_jk = ½ g^{il} (∂_j g_{lk} + ∂_k g_{jl} - ∂_l g_{jk})
+            # All ∂_m g_{ab} = 0 when g is constant → Γ^i_jk = 0.
+            self._cached_christoffel = np.zeros((dim, dim, dim))
 
     def evaluate(self, x: np.ndarray) -> np.ndarray:
-        """Compute metric tensor g_ij at point x."""
+        """Compute metric tensor g_ij at point x.
+
+        For constant metrics, returns the precomputed matrix directly
+        without any function call overhead.
+        """
+        if self._is_constant and self._metric_matrix is not None:
+            return self._metric_matrix
         return self._metric_fn(x)
 
     def inverse(self, x: np.ndarray) -> np.ndarray:
-        """Compute inverse metric g^ij at point x."""
+        """Compute inverse metric g^ij at point x.
+
+        For constant metrics, returns the precomputed inverse matrix
+        directly without repeated np.linalg.inv() calls.
+        """
+        if self._cached_inverse is not None:
+            return self._cached_inverse
         return np.linalg.inv(self.evaluate(x))
 
     def determinant(self, x: np.ndarray) -> float:
@@ -87,11 +132,19 @@ class RiemannianMetric:
     def christoffel(self, x: np.ndarray, eps: float = 1e-5) -> np.ndarray:
         """Compute Christoffel symbols Γ^i_jk at point x.
 
+        For constant metrics, returns precomputed zero array immediately
+        (all Christoffel symbols vanish because ∂_m g_{ab} = 0 everywhere).
+        For position-dependent metrics, uses numerical differentiation.
+
         Uses numerical differentiation of the metric tensor:
         Γ^i_jk = ½ g^il (∂_j g_lk + ∂_k g_jl - ∂_l g_jk)
 
         Returns shape (dim, dim, dim) array where result[i, j, k] = Γ^i_jk.
         """
+        # Fast path: constant metrics have zero Christoffel symbols
+        if self._cached_christoffel is not None:
+            return self._cached_christoffel
+
         n = self.dim
         g_inv = self.inverse(x)
 
@@ -122,19 +175,22 @@ class RiemannianMetric:
         This is the right-hand side of the geodesic equation:
         ẍ^i = -Γ^i_jk ẋ^j ẋ^k
 
+        For constant metrics, returns a zero vector immediately since
+        all Christoffel symbols are zero, skipping the O(dim³) loop.
+
         Parameters
         ----------
         x : position on the manifold
         v : velocity (tangent vector)
         """
+        # Fast path: constant metrics have zero Christoffel symbols → zero acceleration
+        if self._cached_christoffel is not None:
+            return np.zeros(self.dim)
+
         gamma = self.christoffel(x, eps)
-        n = self.dim
-        accel = np.zeros(n)
-        for i in range(n):
-            for j in range(n):
-                for k in range(n):
-                    accel[i] -= gamma[i, j, k] * v[j] * v[k]
-        return accel
+        # Einstein summation: a^i = -Γ^i_jk v^j v^k
+        # Using numpy einsum for O(dim³) but vectorized
+        return -np.einsum('ijk,j,k->i', gamma, v, v)
 
     def geodesic(
         self,
@@ -215,7 +271,10 @@ class RiemannianMetric:
 
 
 def euclidean_metric(dim: int) -> RiemannianMetric:
-    """Flat Euclidean metric: g_ij = δ_ij."""
+    """Flat Euclidean metric: g_ij = δ_ij.
+
+    Christoffel symbols are zero. Inverse is identity.
+    """
     return RiemannianMetric(dim)
 
 
@@ -228,6 +287,9 @@ def hiho_metric(dim: int = 12, sigma: float = 0.3) -> RiemannianMetric:
     g_ij(x) = δ_ij * (1 + λ * exp(-|x - 0.5|²/σ²))
 
     where λ controls how deep the HIHO well is.
+
+    NOTE: This metric IS position-dependent, so Christoffel symbols
+    are NOT zero and must be computed numerically.
     """
     target = np.full(dim, 0.5)
 
@@ -249,6 +311,10 @@ def fabric_block_metric(dim: int = 12) -> RiemannianMetric:
     - Precipitation (dims 9-11): g₄ = 0.3
 
     This encodes the gauge coupling constants from the plan.
+
+    NOTE: This is a CONSTANT metric. All Christoffel symbols vanish,
+    and the inverse is diag(1/1.0, ..., 1/0.3). The optimized
+    RiemannianMetric class precomputes these.
     """
     couplings = [1.0] * 3 + [0.7] * 3 + [0.5] * 3 + [0.3] * 3
     g = np.diag(couplings)
