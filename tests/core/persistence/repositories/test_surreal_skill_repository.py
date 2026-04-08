@@ -73,7 +73,7 @@ class TestSurrealSkillRepository:
         mock_surreal_client.query.assert_called_once()
         call_args = mock_surreal_client.query.call_args
         assert "CREATE skills CONTENT" in call_args[0][0]
-        # For CREATE, SurrealDB returns the data nested under 'result' -> [0] -> 'data'
+        # For CREATE, SurrealDB returns the data nested under 'result' -> [0] -> actual data
         assert call_args[1]["data"]["name"] == "test_skill"
 
     @pytest.mark.asyncio
