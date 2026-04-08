@@ -310,9 +310,15 @@ class FourFabricGauge:
     def is_hiho(self, tol: float = 1e-10) -> bool:
         """Check if all connections are flat (system at HIHO).
 
-        Fast path: checks total deviation norm before computing field strength.
+        Fast path: checks total norm of all gauge potentials before
+        computing field strengths. If all A ≈ 0, all connections are flat.
         """
-        return all(conn.is_flat(tol) for conn in self.connections.values())
+        for conn in self.connections.values():
+            if np.sum(conn._A ** 2) > (tol * tol) * 9:
+                # Need full check for this connection
+                if not conn.is_flat(tol):
+                    return False
+        return True
 
     def covariant_tempic(self, state_before: np.ndarray, state_after: np.ndarray) -> np.ndarray:
         """Compute gauge-covariant Tempic field (replaces Euclidean displacement).

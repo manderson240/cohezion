@@ -241,7 +241,65 @@ class ManifoldEnv(gym.Env):
         terminated = self._hiho_streak >= self.hiho_stability_window
         truncated = self._step_count >= self.max_steps
 
-        return self._get_obs(), float(reward), terminated, truncated, self._get_info()
+        return self._get_obs_and_info(float(reward))
+
+    def _get_obs_and_info(self, reward: float) -> tuple[np.ndarray, float, bool, bool, dict[str, Any]]:
+        """Construct observation and info dict together, sharing computed values.
+
+        Performance: computes SpinorState and gauge state once, reuses
+        in both observation and info dict construction.
+        """
+        # Compute shared spinor state once
+        spinor = SpinorState.from_coherence_values(
+            float(np.clip(self._position[6], 0, 1)),  # logic
+            float(np.clip(self._position[7], 0, 1)),  # quantum
+        )
+        bloch = spinor.bloch_vector.astype(np.float32)
+
+        # Construct 19D observation
+        fiber_base = self._fiber_bundle.project_to_base(
+            self._position.astype(np.float64)
+        ).astype(np.float32)
+        obs = np.concatenate([self._position, bloch, fiber_base])
+
+        # Compute gauge state once (cached yang_mills)
+        pos_f64 = self._position.astype(np.float64)
+        self._gauge.set_from_12d_state_and_cache(pos_f64)
+
+        # Build info dict
+        info = {
+            "step": self._step_count,
+            "coherence": self._compute_coherence(),
+            "hiho_deviation": self._compute_hiho_deviation(),
+            "hiho_streak": self._hiho_streak,
+            "charge_polarity": spinor.charge_polarity,
+            "spin_rotation": spinor.spin_rotation,
+            "spin_precession": spinor.spin_precession,
+            "yang_mills_action": self._gauge.yang_mills_action(),
+            "is_hiho": self._gauge.is_hiho(tol=0.1),
+            "potential_energy": self._potential.evaluate(pos_f64),
+            "kinetic_energy": self._dynamics.kinetic_energy(
+                pos_f64,
+                self._velocity.astype(np.float64),
+            )
+            if self._dynamics is not None
+            else 0.5 * float(np.sum(self._velocity**2)),
+            "episode_reward": self._episode_reward,
+            "trajectory_length": len(self._trajectory),
+            # Curriculum stage: 1=reach, 2=maintain, 3=optimize
+            "curriculum_stage": 1
+            if self._hiho_streak < 5
+            else (2 if self._hiho_streak < 20 else 3),
+            # Episode statistics
+            "avg_coherence": self._episode_coherence_sum / max(1, self._step_count),
+            "avg_energy": self._episode_energy_sum / max(1, self._step_count),
+            "hiho_time_ratio": self._episode_hiho_steps / max(1, self._step_count),
+            "convergence_step": self._episode_convergence_step,
+        }
+
+        terminated = self._hiho_streak >= self.hiho_stability_window
+        truncated = self._step_count >= self.max_steps
+        return obs, reward, terminated, truncated, info
 
     def _get_obs(self) -> np.ndarray:
         """Construct 19D observation vector."""
@@ -262,8 +320,8 @@ class ManifoldEnv(gym.Env):
     def _get_info(self) -> dict[str, Any]:
         """Compute info dict with physics quantities.
 
-        Performance: uses set_from_12d_state_and_cache() to avoid
-        redundant yang_mills_action computation.
+        Prefer _get_obs_and_info() for step integration — this method
+        is retained for compatibility but recomputes spinor/gauge state.
         """
         spinor = SpinorState.from_coherence_values(
             float(np.clip(self._position[6], 0, 1)),
