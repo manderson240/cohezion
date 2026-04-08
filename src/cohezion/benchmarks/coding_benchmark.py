@@ -18,7 +18,12 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
 import aiohttp
-import git
+try:
+    import git
+    HAS_GIT = True
+except ImportError:
+    HAS_GIT = False
+    git = None  # type: ignore
 
 
 if TYPE_CHECKING:
@@ -195,6 +200,14 @@ class SWEBenchRunner:
     async def _setup_repo(self, task: CodeTask) -> Path:
         """Clone and checkout repository at specific commit."""
         repo_cache = self.cache_dir / task.repo.replace("/", "_")
+
+        if not HAS_GIT:
+            # Fallback: create directory and placeholder
+            repo_cache.mkdir(parents=True, exist_ok=True)
+            (repo_cache / "placeholder.txt").write_text(
+                f"Mock repo for {task.repo} at {task.base_commit}"
+            )
+            return repo_cache
 
         if not repo_cache.exists():
             logger.info(f"Cloning {task.repo}...")
