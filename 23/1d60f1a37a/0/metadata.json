@@ -1,0 +1,37 @@
+{
+  "cli_version": "0.5.3",
+  "checkpoint_id": "231d60f1a37a",
+  "session_id": "7263ffce-182a-4b17-bc58-347e76b784b5",
+  "strategy": "manual-commit",
+  "created_at": "2026-04-08T03:13:47.414550923Z",
+  "branch": "feature/2026-tip-of-the-spear",
+  "checkpoints_count": 1,
+  "files_touched": [
+    ".gemini/settings.json"
+  ],
+  "agent": "Claude Code",
+  "model": "claude-opus-4-6[1m]",
+  "turn_id": "3b13b2d6096c",
+  "token_usage": {
+    "input_tokens": 21803,
+    "cache_creation_tokens": 31879516,
+    "cache_read_tokens": 385749315,
+    "output_tokens": 614696,
+    "api_call_count": 1037
+  },
+  "session_metrics": {
+    "turn_count": 22
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-04-08T03:13:43.80158497Z",
+    "agent_lines": 14,
+    "agent_removed": 13,
+    "human_added": 9882,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 9896,
+    "total_lines_changed": 12883,
+    "agent_percentage": 0.2095785143211985,
+    "metric_version": 2
+  }
+}
