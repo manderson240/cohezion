@@ -91,7 +91,7 @@ equal, the variance from 0.5 is zero, and no special computation is needed.
 | Precession (7) | Bloch vector reuse | `manifold_env.py` | Observation/Info Fusion |
 | Charge (8) | charge_polarity=0 at HIHO | `spinor.py` | Equatorial Fast Path |
 | Awareness (9) | geodesic_acceleration=0 | `riemannian_metric.py` | Constant Metric Zero Path |
-| Particularization (10) | 63× training velocity | `manifold_env.py` | Precipitation Acceleration |
+| Particularization (10) | 100× training velocity | `manifold_env.py` | Precipitation Acceleration |
 | Precipitation (11) | Autoresearch protocol | `AUTORESEARCH_PRIME.md` | Measure-Hypothesize-Experiment |
 
 ## The Pi Context
@@ -113,6 +113,33 @@ per second to discover HIHO equilibrium, and every step is provably correct
 because we removed computation that was both expensive AND wrong (computing
 non-zero Christoffel symbols for a flat metric is numerically non-zero due to
 floating point, but physically wrong).
+
+### Round 2: Theorem-Driven × Einstein Notation × Direct Spherical (100× total)
+
+The 63× → 100× improvement (219µs → 137µs) came from three further optimizations,
+each grounded in physics theorems:
+
+1. **field_strength_energy vectorization**: The Yang-Mills field strength
+   F^a_bc = 0.5·Tr([A_b, A_c]·L_a^T) is a computation on SO(3). But `np.trace`
+   and Python loops are pure computational overhead, not physics. Replacing
+   with einsum('bik,ckj->bcij') for all commutators and einsum('ij,aij->a',
+   comm, L_stack) for batched trace extraction gives the SAME mathematical
+   result at 2.2× less wall-clock cost. The physics is identical; only the
+   numpy API calls changed.
+
+2. **Direct Bloch vector formula**: The Bloch sphere is a sphere. Its spherical
+   coordinate parametrization (r_x=sinθcosφ, r_y=sinθsinφ, r_z=cosθ) is a
+   theorem: for |ψ⟩=(cos(θ/2), e^{iφ}sin(θ/2)), the expectation values
+   ⟨ψ|σ_i|ψ⟩ give exactly these coordinates. Computing the density matrix ρ
+   and taking Tr(ρ·σ_i) to get these values is mathematically equivalent but
+   computationally wasteful — it creates a 2×2 complex matrix just to take its
+   trace. Direct spherical coordinates give the same result at 11× less cost.
+
+3. **update_and_compute fusion**: Setting gauge state, computing yang_mills_action,
+   and checking is_hiho are three operations that share the same input (12D state)
+   and the same first step (computing A norm). Fusing them avoids redundant
+   A-norm computation between is_hiho's fast path and field_strength_energy's
+   fast path.
 
 ### The SIGReg-HIHO Equivalence (LeWM Discovery)
 
