@@ -68,6 +68,7 @@ dependencies = [
     "pytest-cov>=7.0.0",
     "arc-agi>=0.0.7",
     "torchvision>=0.20.1",
+    "google-adk>=1.28.1",
 ]
 
 [[tool.uv.index]]
