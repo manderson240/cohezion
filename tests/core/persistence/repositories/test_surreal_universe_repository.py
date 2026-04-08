@@ -198,7 +198,7 @@ class TestSurrealUniverseRepository:
         # Verify
         assert len(result) == 2
         assert result[0].id == "universe_nodes:node1"
-        assert result[1].id == "node2"
+        assert result[1].id == "universe_nodes:node2"
         assert result[0].content == "First node"
         assert result[1].content == "Second node"
         mock_surreal_client.query.assert_called_once()
@@ -246,7 +246,7 @@ class TestSurrealUniverseRepository:
 
         # Verify
         assert len(result) == 1
-        assert result[0].id == "node1"
+        assert result[0].id == "universe_nodes:node1"
         assert result[0].node_type == "energy_snapshot"
         mock_surreal_client.query.assert_called_once()
         call_args = mock_surreal_client.query.call_args

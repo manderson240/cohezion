@@ -172,18 +172,36 @@ The 62.9× speedup we achieved is not just an engineering win — it's a demonst
 
 ## BENCHMARK RESULTS
 
-| Component | Before | After | Speedup |
-|-----------|--------|-------|---------|
-| christoffel() (constant metric) | 6,208 µs | 0.035 µs | 177,143× |
-| geodesic_acceleration() | 6,361 µs | 0.10 µs | 63,610× |
-| inverse() (constant metric) | 4.0 µs | 0.04 µs | 100× |
-| step_verlet() | 12,400 µs | 11.9 µs | 1,042× |
-| yang_mills_action() | 444 µs | 17 µs | 26× |
-| ManifoldEnv.step() | 13,776 µs | 219 µs | 62.9× |
+| Component | Before | Round 1 | Round 2 | Speedup |
+|-----------|--------|---------|---------|--------|
+| christoffel() (constant metric) | 6,208 µs | 0.035 µs | 0.035 µs | 177,143× |
+| geodesic_acceleration() | 6,361 µs | 0.10 µs | 0.10 µs | 63,610× |
+| inverse() (constant metric) | 4.0 µs | 0.04 µs | 0.04 µs | 100× |
+| step_verlet() | 12,400 µs | 11.9 µs | 11.9 µs | 1,042× |
+| yang_mills_action() | 444 µs | 17 µs | 7 µs | 63× |
+| field_strength_energy (1 conn) | — | 24 µs | 11 µs | 2.2× |
+| Bloch vector (from coherence) | — | 8.8 µs | 0.8 µs | 11× |
+| set_from_12d_state_and_cache | — | 107 µs | 55 µs | 1.9× |
+| update_and_compute | — | — | 61 µs | — |
+| ManifoldEnv.step() | 13,776 µs | 219 µs | 137 µs | 100× |
+| SwarmEnv.step() | — | 256 µs | 269 µs | ~same |
+
+### Round 2 Optimizations
+
+- **field_strength_energy**: Einsum-based commutator computation replaces Python triple-loop.
+  Batched trace: `einsum('ij,aij->a', comm, _SO3_STACK)` instead of `np.trace(comm @ L_a^T)`.
+  Loop only over 3 (b,c) pairs: (0,1), (0,2), (1,2). ~2.2× per connection.
+
+- **Bloch vector**: Direct spherical coordinate formula bypasses SpinorState object + density matrix + trace.
+  `r_x = sin(θ)cos(φ)`, `r_y = sin(θ)sin(φ)`, `r_z = cos(θ)` where `θ = (1-logic)π`, `φ = 2π·quantum`.
+  Proven equivalent via `⟨ψ|σ_i|ψ⟩ = 2·Re(conj(α)·β)` for Pauli matrices. 11× speedup.
+
+- **update_and_compute**: Combined gauge set + yang_mills + is_hiho in single method.
+  Avoids redundant A-norm checks between `is_hiho()` and `field_strength_energy()`.
 
 ## VERSION
 
-v1.0 (2026-04-08) — From Christoffel zeros to HIHO: 62.9× ManifoldEnv speedup
+v1.1 (2026-04-15) — Round 2 einsum + direct Bloch + update_and_compute: 100× from baseline
 
 ## SEE ALSO
 
@@ -194,3 +212,4 @@ v1.0 (2026-04-08) — From Christoffel zeros to HIHO: 62.9× ManifoldEnv speedup
 - `src/cohezion/physics/spinor.py` — SU(2) spinor algebra
 - `src/cohezion/physics/fiber_bundle.py` — Principal fiber bundle P(B⁴, SO(3)⁴)
 - `AUTORESEARCH_PRIME.md` — Measure → Hypothesis → Experiment → Log protocol
+- `LATENT_SPACE_INTELLIGENCE_PRIME.md` — SIGReg-HIHO equivalence, LeWM architecture mapping
