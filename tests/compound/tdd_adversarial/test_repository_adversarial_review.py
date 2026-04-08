@@ -24,6 +24,7 @@ from cohezion.compound.tdd_adversarial.adversarial_review import (
     ReviewPerspective,
 )
 from cohezion.compound.tdd_adversarial.coordinator import TDDAdversarialCoordinator
+from cohezion.core.persistence.repositories.base import BaseRepository
 from cohezion.core.persistence.repositories.surreal_skill_repository import (
     SurrealSkillRepository,
 )
@@ -252,6 +253,7 @@ class TestRepositoryBatchIntegration:
         universe_repo_file = Path(
             "src/cohezion/core/persistence/repositories/surreal_universe_repository.py"
         )
+        base_repo_file = Path("src/cohezion/core/persistence/repositories/base.py")
 
         for repo_file in [skill_repo_file, universe_repo_file]:
             if repo_file.exists():
@@ -263,3 +265,39 @@ class TestRepositoryBatchIntegration:
 
                 assert has_async, f"{repo_file.name} should have async methods"
                 assert has_return_types, f"{repo_file.name} should have return types"
+
+        # Verify base repository provides batch operations
+        if base_repo_file.exists():
+            content = base_repo_file.read_text()
+            assert "batch_create" in content, "BaseRepository should provide batch_create"
+            assert "batch_get" in content, "BaseRepository should provide batch_get"
+            assert "BatchOperationResult" in content, (
+                "BaseRepository should use BatchOperationResult"
+            )
+
+    @pytest.mark.asyncio
+    @pytest.mark.fast
+    async def test_repository_metrics_collection(self):
+        """Verify repositories collect metrics for compound engineering."""
+        base_repo_file = Path("src/cohezion/core/persistence/repositories/base.py")
+
+        if base_repo_file.exists():
+            content = base_repo_file.read_text()
+            # Check for metrics collection
+            assert "RepositoryMetrics" in content, "BaseRepository should have RepositoryMetrics"
+            assert "_record_metrics" in content, "BaseRepository should record metrics"
+            assert "get_metrics_summary" in content, "BaseRepository should provide metrics summary"
+
+    @pytest.mark.asyncio
+    @pytest.mark.fast
+    async def test_token_efficiency_patterns(self):
+        """Verify token efficiency patterns in repository layer."""
+        base_repo_file = Path("src/cohezion/core/persistence/repositories/base.py")
+
+        if base_repo_file.exists():
+            content = base_repo_file.read_text()
+            # Check for token efficiency patterns
+            assert "cache_hit" in content, "BaseRepository should track cache hits"
+            assert "cache_miss" in content, "BaseRepository should track cache misses"
+            # Metrics enable cache optimization decisions
+            assert "cache_hit_rate" in content, "BaseRepository should calculate cache hit rate"
