@@ -120,42 +120,43 @@ class SymbolicExecutor:
 
 # --- 3. Knower Auditor (Knower) ---
 class KnowerAuditor:
-    def audit_runs(self, run_results: list, reasoning_chains: list) -> dict:
-        r1 = run_results[0] if len(run_results) > 0 else None
-        r2 = run_results[1] if len(run_results) > 1 else None
-        is_consistent = (r1 == r2) and (r1 is not None)
+    def calculate_entropy(self, logprobs: List[Dict]) -> float:
+        """Calculate token-level entropy from vLLM logprobs."""
+        if not logprobs: return 0.5
+        # Avg entropy across tokens
+        total_ent = 0.0
+        for lp_dict in logprobs:
+            # lp_dict maps token_id to Logprob object
+            probs = [math.exp(lp.logprob) for lp in lp_dict.values()]
+            s = sum(probs)
+            if s > 0:
+                probs = [p/s for p in probs]
+                ent = -sum(p * math.log(p + 1e-9) for p in probs)
+                total_ent += ent
+        return total_ent / len(logprobs)
+
+    def audit_runs(self, run_results: list, reasoning_chains: list, entropies: list) -> dict:
+        if not run_results: return {"final_answer": 0, "action": "COMMIT"}
         
-        entropy = 0.0 if is_consistent else 0.5
-        if r1 is None or r2 is None: entropy += 0.25
-        weight = 1.0 + 1.0 / (entropy + 0.1)
-
-        final_answer = r1 if is_consistent else None
-        if r1 is None and r2 is None: final_answer = 0
-
-        return {
-            "consistent": is_consistent,
-            "entropy": entropy,
-            "weight": weight,
-            "final_answer": final_answer,
-            "action": "COMMIT" if is_consistent else "TIE_BREAKER",
-        }
-
-    def resolve_tie(self, r1, r2, r3, reasoning_chains=None) -> int:
-        if not reasoning_chains or len(reasoning_chains) < 3:
-            votes = [r1, r2, r3]
-            counts = {v: votes.count(v) for v in set(votes)}
-            return max(counts, key=counts.get)
-        
-        weights = []
-        for chain in reasoning_chains:
-            ent = 0.1 + (max(0, len(chain) - 5000) / 20000.0)
-            weights.append(1.0 + 1.0 / (ent + 0.1))
-            
+        # Weighted Voting: w = 1 + 1 / (entropy + 0.1)
         vote_scores = {}
-        for ans, w in zip([r1, r2, r3], weights):
-            if ans is not None:
-                vote_scores[ans] = vote_scores.get(ans, 0.0) + w
-        return max(vote_scores, key=vote_scores.get) if vote_scores else 0
+        for ans, ent in zip(run_results, entropies):
+            if ans is None: continue
+            w = 1.0 + 1.0 / (ent + 0.1)
+            vote_scores[ans] = vote_scores.get(ans, 0.0) + w
+            
+        if not vote_scores: return {"final_answer": 0, "action": "COMMIT"}
+        
+        best_ans = max(vote_scores, key=vote_scores.get)
+        # Confidence check: if best vote has > 70% of total weight or consistency
+        total_w = sum(vote_scores.values())
+        confidence = vote_scores[best_ans] / total_w
+        
+        return {
+            "final_answer": best_ans,
+            "confidence": confidence,
+            "action": "COMMIT" if confidence > 0.7 or len(run_results) >= 3 else "TIE_BREAKER"
+        }
 
 # --- 4. Specialist Swarm (Thinker) ---
 class BaseSpecialist:
@@ -172,16 +173,19 @@ class BaseSpecialist:
         }
         self.executor = SymbolicExecutor()
 
-    def solve(self, problem_text: str) -> str:
+    def solve(self, problem_text: str) -> Dict[str, Any]:
         system_prompt = self.prompts.get(self.name, "Think step by step. Final answer in \\boxed{X}.")
         prompt = f"<|im_start|>system\n{system_prompt}<|im_end|>\n<|im_start|>user\n{problem_text}<|im_end|>\n<|im_start|>assistant\n"
         
         if self.llm:
             try:
                 from vllm import SamplingParams
-                params = SamplingParams(temperature=1.0, max_tokens=8192, stop=["<|im_end|>"])
+                # Use logprobs for entropy calculation
+                params = SamplingParams(temperature=1.0, max_tokens=8192, stop=["<|im_end|>"], logprobs=5)
                 outputs = self.llm.generate([prompt], params, use_tqdm=False)
-                response = outputs[0].outputs[0].text
+                output = outputs[0].outputs[0]
+                response = output.text
+                ent = self._calc_ent(output.logprobs)
                 
                 code_match = re.search(r"```python\s*\n(.*?)```", response, re.DOTALL)
                 if code_match:
@@ -189,12 +193,28 @@ class BaseSpecialist:
                     if exec_res.get("success"):
                         prompt += response + f"\n\nExecution Result: {exec_res['results']}\n\nFinal Answer in \\boxed{{}}:"
                         outputs = self.llm.generate([prompt], params, use_tqdm=False)
-                        response += "\n" + outputs[0].outputs[0].text
-                return response
+                        output2 = outputs[0].outputs[0]
+                        response += "\n" + output2.text
+                        ent = (ent + self._calc_ent(output2.logprobs)) / 2.0
+                return {"text": response, "entropy": ent}
             except Exception as e:
                 print(f"LLM Solve Error: {e}")
-                return "\\boxed{0}"
-        return "\\boxed{0}"
+                return {"text": "\\boxed{0}", "entropy": 1.0}
+        return {"text": "\\boxed{0}", "entropy": 1.0}
+
+    def _calc_ent(self, logprobs) -> float:
+        if not logprobs: return 0.5
+        total_ent = 0.0
+        for lp_dict in logprobs:
+            if not lp_dict: continue
+            # vLLM 0.7+ logprobs structure: dict or list of dicts
+            probs = [math.exp(lp.logprob) for lp in lp_dict.values()]
+            s = sum(probs)
+            if s > 0:
+                probs = [p/s for p in probs]
+                ent = -sum(p * math.log(p + 1e-9) for p in probs)
+                total_ent += ent
+        return total_ent / len(logprobs)
 
     def extract_answer(self, text: str) -> int:
         match = re.search(r"\\boxed\{(\d+)\}", text)
@@ -227,20 +247,20 @@ def load_vllm():
         llm_kwargs = {
             "model": MODEL_PATH,
             "tensor_parallel_size": 1,
-            "gpu_memory_utilization": 0.85,
-            "enforce_eager": True,
+            "gpu_memory_utilization": 0.95,
+            "enforce_eager": False,
             "max_model_len": 8192,
             "trust_remote_code": True,
+            "enable_chunked_prefill": True,
             "quantization": "awq" if "awq" in MODEL_PATH.lower() else None
         }
         if torch and torch.cuda.device_count() > 1:
             llm_kwargs["tensor_parallel_size"] = torch.cuda.device_count()
-            llm_kwargs["gpu_memory_utilization"] = 0.90
             
         if DRAFTER_PATH:
             print(f"Enabling Speculative Decoding with Drafter: {DRAFTER_PATH}")
             llm_kwargs["speculative_model"] = DRAFTER_PATH
-            llm_kwargs["num_speculative_tokens"] = 5
+            llm_kwargs["num_speculative_tokens"] = 8
             
         try:
             _llm = LLM(**llm_kwargs)
@@ -258,8 +278,8 @@ def predict(id_df: pl.DataFrame, problem_df: pl.DataFrame) -> pl.DataFrame:
         gc.collect()
         if torch: torch.cuda.empty_cache()
 
-    problem_id = id_df[0, 0]
-    problem_text = problem_df[0, 0]
+    problem_id = id_df[0]
+    problem_text = problem_df[0]
 
     elapsed = time.time() - _start_time
     remaining_time = _total_time_limit - elapsed
@@ -276,23 +296,26 @@ def predict(id_df: pl.DataFrame, problem_df: pl.DataFrame) -> pl.DataFrame:
     s1 = strategies[_problems_solved % len(strategies)]
     s2 = strategies[(_problems_solved + 1) % len(strategies)]
 
-    # Dual Run
+    # Dual Run with Entropy
     spec1 = BaseSpecialist(s1, _llm)
-    r1 = spec1.solve(problem_text)
+    res1 = spec1.solve(problem_text)
+    r1, e1 = res1["text"], res1["entropy"]
     ans1 = spec1.extract_answer(r1)
 
     spec2 = BaseSpecialist(s2, _llm)
-    r2 = spec2.solve(problem_text)
+    res2 = spec2.solve(problem_text)
+    r2, e2 = res2["text"], res2["entropy"]
     ans2 = spec2.extract_answer(r2)
 
-    audit = _auditor.audit_runs([ans1, ans2], [r1, r2])
+    audit = _auditor.audit_runs([ans1, ans2], [r1, r2], [e1, e2])
     final_answer = audit["final_answer"]
 
     if audit["action"] == "TIE_BREAKER" and budget > 180.0:
-        print("Divergence. Tie-breaker run...")
+        print(f"Divergence (Conf: {audit.get('confidence', 0):.2f}). Tie-breaker run...")
         s3 = strategies[(_problems_solved + 2) % len(strategies)]
         spec3 = BaseSpecialist(s3, _llm)
-        r3 = spec3.solve(problem_text)
+        res3 = spec3.solve(problem_text)
+        r3, e3 = res3["text"], res3["entropy"]
         ans3 = spec3.extract_answer(r3)
         final_answer = _auditor.resolve_tie(ans1, ans2, ans3, [r1, r2, r3])
     elif final_answer is None:

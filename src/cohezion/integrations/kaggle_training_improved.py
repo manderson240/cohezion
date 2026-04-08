@@ -337,7 +337,12 @@ try:
     
     lora_config = LoraConfig(
         r=32, lora_alpha=16, 
-        target_modules=["in_proj", "out_proj", "up_proj", "down_proj"],
+        target_modules=[
+            "q_proj", "k_proj", "v_proj", "o_proj", # Attention
+            "in_proj", "out_proj", "x_proj", "dt_proj", # Mamba-2
+            "w1", "w2", "w3", # MoE Experts
+            "gate" # MoE Router
+        ],
         lora_dropout=0.05, bias="none", task_type="CAUSAL_LM"
     )
     model = get_peft_model(model, lora_config)
