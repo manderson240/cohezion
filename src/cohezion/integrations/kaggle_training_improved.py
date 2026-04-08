@@ -147,25 +147,26 @@ try:
 
     # Blackwell-specific wheel installation for Mamba/SSM
     print("  Installing pre-built wheels for Mamba/SSM...")
-    WHEEL_PATH = "/kaggle/input/nemotron-trl-wheels/offline_packages"
-    if os.path.exists(WHEEL_PATH):
-        # Find all wheels recursively if needed, but start with the flat directory
+    
+    def find_wheels(search_path="/kaggle/input"):
         wheels = []
-        for root, _, files in os.walk(WHEEL_PATH):
+        for root, _, files in os.walk(search_path):
             for f in files:
                 if f.endswith(".whl"):
                     wheels.append(os.path.join(root, f))
-        
-        if wheels:
-            # Sort to handle dependencies correctly (e.g. install causal-conv1d before mamba-ssm)
-            wheels.sort()
-            for wheel in wheels:
-                print(f"    Installing {os.path.basename(wheel)}...")
+        return sorted(wheels)
+
+    all_wheels = find_wheels()
+    if all_wheels:
+        print(f"    Found {len(all_wheels)} wheels in /kaggle/input")
+        for wheel in all_wheels:
+            print(f"    Installing {os.path.basename(wheel)}...")
+            try:
                 subprocess.run([sys.executable, "-m", "pip", "install", "-q", wheel, "--no-index", "--no-deps"], check=True)
-        else:
-            print(f"  WARNING: No wheels found in {WHEEL_PATH}")
+            except Exception as e:
+                print(f"    Failed to install {os.path.basename(wheel)}: {e}")
     else:
-        print(f"  WARNING: {WHEEL_PATH} not found. Proceeding with online install.")
+        print("    WARNING: No pre-built wheels found. Attempting online install.")
 
     # Install trl and other mandatory packages
     MANDATORY_PACKAGES = ["peft", "accelerate", "trl", "bitsandbytes"]
@@ -175,9 +176,19 @@ try:
             print(f"  {pkg} already installed")
         except ImportError:
             print(f"  Attempting install for {pkg}...")
-            # For general packages, we don't use --no-build-isolation unless we have all build-deps
-            # We try normal install first
-            subprocess.run([sys.executable, "-m", "pip", "install", "-q", pkg])
+            # Try multiple times for network reliability
+            for attempt in range(3):
+                try:
+                    subprocess.run([sys.executable, "-m", "pip", "install", "-q", pkg], check=True)
+                    print(f"  Successfully installed {pkg}")
+                    break
+                except Exception:
+                    print(f"  Install attempt {attempt+1} for {pkg} failed. Retrying...")
+                    time.sleep(5)
+                    if attempt == 1:
+                        print("  Force-injecting DNS...")
+                        subprocess.run("echo 'nameserver 8.8.8.8' > /etc/resolv.conf", shell=True)
+                        subprocess.run("echo 'nameserver 8.8.4.4' >> /etc/resolv.conf", shell=True)
 
     import torch
     import pandas as pd

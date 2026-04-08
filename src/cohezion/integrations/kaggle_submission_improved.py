@@ -68,7 +68,11 @@ class KaggleSubmissionOrchestrator:
             "metric/nemotron-3-nano-30b-a3b-bf16/Transformers/default/1",
             "deepseek-ai/deepseek-r1-distill-qwen-7b/PyTorch/default/1"
         ]
-        dataset_sources = ["prabhpreetsingh5/nemotron-trl-wheels"]
+        dataset_sources = [
+            "prabhpreetsingh5/nemotron-trl-wheels",
+            "ayodejiibrahimlateef/nemotron-causal-conv1d-1-6-1-mamba-ssm-2-3-1",
+            "naileafalcon/kanish-wheels-py312"
+        ]
         result = await self.api.push_notebook(
             notebook_id, notebook_code, 
             competition_id=competition_id, 

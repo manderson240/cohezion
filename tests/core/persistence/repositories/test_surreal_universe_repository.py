@@ -68,11 +68,11 @@ class TestSurrealUniverseRepository:
         result = await universe_repo.create(sample_universe_node)
 
         # Verify
-        assert result == "universe_nodes:test_node_1"
+        assert result == "test_node_1"
         mock_surreal_client.query.assert_called_once()
         call_args = mock_surreal_client.query.call_args
         assert "CREATE universe_nodes CONTENT" in call_args[0][0]
-        assert call_args[1]["data"]["content"] == "Test node content"
+        assert call_args[0][1]["data"]["content"] == "Test node content"
 
     @pytest.mark.asyncio
     async def test_get_universe_node_found(
@@ -197,8 +197,8 @@ class TestSurrealUniverseRepository:
 
         # Verify
         assert len(result) == 2
-        assert result[0].id == "universe_nodes:node1"
-        assert result[1].id == "universe_nodes:node2"
+        assert result[0].id == "node1"
+        assert result[1].id == "node2"
         assert result[0].content == "First node"
         assert result[1].content == "Second node"
         mock_surreal_client.query.assert_called_once()
@@ -246,7 +246,7 @@ class TestSurrealUniverseRepository:
 
         # Verify
         assert len(result) == 1
-        assert result[0].id == "universe_nodes:node1"
+        assert result[0].id == "node1"
         assert result[0].node_type == "energy_snapshot"
         mock_surreal_client.query.assert_called_once()
         call_args = mock_surreal_client.query.call_args

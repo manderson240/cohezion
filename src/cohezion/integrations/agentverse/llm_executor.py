@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import random
 import re
 import time
 from dataclasses import dataclass
@@ -23,6 +24,19 @@ DEFAULT_CLOUD_MODEL = "qwen3.5:cloud"
 DEFAULT_JUDGE_MODEL = "qwen3.5:cloud"
 OLLAMA_BASE_URL = "http://localhost:11434"
 
+# Retry configuration with exponential backoff and jitter
+RETRY_BASE_DELAY = 1.0
+RETRY_MAX_DELAY = 30.0
+RETRY_BACKOFF_FACTOR = 2.0
+RETRY_JITTER_MAX = 1.0
+
+# HTTP status codes that warrant retry
+RETRYABLE_STATUS_CODES = {429, 500, 502, 503, 504}
+
+# Circuit breaker configuration
+CIRCUIT_BREAKER_THRESHOLD = 5
+CIRCUIT_BREAKER_RESET_TIMEOUT_S = 60.0
+
 
 @dataclass
 class LLMExecutionResult:
@@ -37,11 +51,61 @@ class LLMExecutionResult:
     error: str | None = None
 
 
+class CircuitBreaker:
+    """Simple circuit breaker for transient failures.
+
+    Opens after threshold failures, preventing cascading failures.
+    Automatically resets after timeout.
+    """
+
+    def __init__(self, threshold: int = CIRCUIT_BREAKER_THRESHOLD, reset_timeout: float = CIRCUIT_BREAKER_RESET_TIMEOUT_S) -> None:
+        self.threshold = threshold
+        self.reset_timeout = reset_timeout
+        self.failure_count: dict[str, int] = {}
+        self.last_failure_time: dict[str, float] = {}
+        self.open_circuits: set[str] = set()
+
+    def record_failure(self, endpoint: str) -> None:
+        """Record a failure for an endpoint."""
+        now = time.monotonic()
+        self.failure_count[endpoint] = self.failure_count.get(endpoint, 0) + 1
+        self.last_failure_time[endpoint] = now
+
+        if self.failure_count[endpoint] >= self.threshold:
+            self.open_circuits.add(endpoint)
+            logger.warning(f"Circuit breaker OPEN for {endpoint} after {self.threshold} failures")
+
+    def record_success(self, endpoint: str) -> None:
+        """Record a success for an endpoint."""
+        if endpoint in self.open_circuits:
+            self.open_circuits.discard(endpoint)
+            self.failure_count[endpoint] = 0
+            logger.info(f"Circuit breaker CLOSED for {endpoint}")
+
+    def is_open(self, endpoint: str) -> bool:
+        """Check if circuit is open (failing)."""
+        if endpoint not in self.open_circuits:
+            return False
+
+        # Check if we should reset
+        last_fail = self.last_failure_time.get(endpoint, 0)
+        if time.monotonic() - last_fail > self.reset_timeout:
+            self.open_circuits.discard(endpoint)
+            self.failure_count[endpoint] = 0
+            logger.info(f"Circuit breaker RESET for {endpoint}")
+            return False
+
+        return True
+
+
 class LLMExecutor:
     """Execute benchmark tasks via Ollama cloud models.
 
     Uses cloud models (qwen3.5:cloud, minimax-m2.7:cloud, etc.)
     for task execution and coherence evaluation.
+
+    Includes circuit breaker and exponential backoff with jitter
+    for resilience against transient cloud failures.
 
     Parameters
     ----------
@@ -77,6 +141,7 @@ class LLMExecutor:
         self.ollama_base_url = ollama_base_url
         self.timeout = timeout
         self._client = httpx.AsyncClient(timeout=timeout)
+        self._circuit_breaker = CircuitBreaker()
 
     async def execute_task(
         self,
@@ -174,6 +239,23 @@ class LLMExecutor:
 
         return processed
 
+    def _calculate_retry_delay(self, attempt: int) -> float:
+        """Calculate exponential backoff delay with jitter.
+
+        Args:
+            attempt: Current attempt number (0-indexed)
+
+        Returns:
+            Delay in seconds
+        """
+        # Exponential backoff: base * factor^attempt
+        delay = RETRY_BASE_DELAY * (RETRY_BACKOFF_FACTOR**attempt)
+        # Cap at max delay
+        delay = min(delay, RETRY_MAX_DELAY)
+        # Add jitter to prevent thundering herd
+        jitter = random.uniform(0, RETRY_JITTER_MAX)
+        return delay + jitter
+
     async def _generate(
         self,
         prompt: str,
@@ -182,6 +264,9 @@ class LLMExecutor:
         max_retries: int = 3,
     ) -> str:
         """Generate response from Ollama model with retry.
+
+        Uses exponential backoff with jitter and circuit breaker pattern
+        to handle transient cloud failures gracefully.
 
         Parameters
         ----------
@@ -198,8 +283,18 @@ class LLMExecutor:
         -------
         str
             Model response
+
+        Raises
+        ------
+        RuntimeError
+            If all retries exhausted or circuit breaker is open
         """
         url = f"{self.ollama_base_url}/api/generate"
+        endpoint = f"{self.ollama_base_url}/{model}"
+
+        # Check circuit breaker first
+        if self._circuit_breaker.is_open(endpoint):
+            raise RuntimeError(f"Circuit breaker open for {endpoint}. Too many recent failures.")
 
         payload: dict[str, Any] = {
             "model": model,
@@ -215,43 +310,74 @@ class LLMExecutor:
         for attempt in range(max_retries):
             try:
                 response = await self._client.post(url, json=payload, timeout=30.0)
-                if response.status_code != 200:
-                    logger.warning(
-                        "Ollama returned %d on attempt %d", response.status_code, attempt + 1
-                    )
-                    if attempt < max_retries - 1:
-                        await asyncio.sleep(2**attempt)
-                        continue
-                    response.raise_for_status()
 
-                data = response.json()
-                return data.get("response", "")
+                if response.status_code == 200:
+                    # Success - record and return
+                    self._circuit_breaker.record_success(endpoint)
+                    data = response.json()
+                    return data.get("response", "")
+
+                # Handle non-200 status codes
+                error_text = await response.aread()
+                error_text_str = error_text.decode('utf-8', errors='replace') if isinstance(error_text, bytes) else error_text
+                error_ref_match = re.search(r'ref:\s*([a-f0-9-]+)', error_text_str)
+                error_ref = f" (ref: {error_ref_match.group(1)})" if error_ref_match else ""
+
+                is_retryable = response.status_code in RETRYABLE_STATUS_CODES
+
+                if not is_retryable or attempt == max_retries - 1:
+                    # Non-retryable or last attempt failed
+                    self._circuit_breaker.record_failure(endpoint)
+                    raise RuntimeError(
+                        f"Ollama API error {response.status_code}{error_ref}: {error_text[:200]}"
+                    )
+
+                # Retryable error - log and retry with backoff
+                delay = self._calculate_retry_delay(attempt)
+                logger.warning(
+                    "Ollama returned %d%s on attempt %d/%d, retrying in %.1fs",
+                    response.status_code,
+                    error_ref,
+                    attempt + 1,
+                    max_retries,
+                    delay,
+                )
+                self._circuit_breaker.record_failure(endpoint)
+                await asyncio.sleep(delay)
 
             except httpx.TimeoutException:
+                delay = self._calculate_retry_delay(attempt)
                 last_error = f"Timeout calling {model}"
-                logger.warning("Ollama timeout on attempt %d/%d", attempt + 1, max_retries)
-                if attempt < max_retries - 1:
-                    await asyncio.sleep(2**attempt)
-                else:
+                logger.warning(
+                    "Ollama timeout on attempt %d/%d, retrying in %.1fs",
+                    attempt + 1,
+                    max_retries,
+                    delay,
+                )
+                self._circuit_breaker.record_failure(endpoint)
+                if attempt == max_retries - 1:
                     raise RuntimeError(last_error)
+                await asyncio.sleep(delay)
 
             except httpx.HTTPStatusError as e:
+                delay = self._calculate_retry_delay(attempt)
                 last_error = f"HTTP error calling {model}: {e}"
                 logger.warning(
-                    "Ollama HTTP error on attempt %d/%d: %s", attempt + 1, max_retries, e
+                    "Ollama HTTP error on attempt %d/%d: %s, retrying in %.1fs",
+                    attempt + 1,
+                    max_retries,
+                    e,
+                    delay,
                 )
-                if attempt < max_retries - 1:
-                    await asyncio.sleep(2**attempt)
-                else:
+                self._circuit_breaker.record_failure(endpoint)
+                if attempt == max_retries - 1:
                     raise RuntimeError(last_error)
+                await asyncio.sleep(delay)
 
             except Exception as e:
-                last_error = f"Error calling {model}: {e}"
-                logger.warning("Ollama error on attempt %d/%d: %s", attempt + 1, max_retries, e)
-                if attempt < max_retries - 1:
-                    await asyncio.sleep(2**attempt)
-                else:
-                    raise RuntimeError(last_error)
+                # Non-retryable unexpected error
+                self._circuit_breaker.record_failure(endpoint)
+                raise RuntimeError(f"Unexpected error calling {model}: {e}")
 
         raise RuntimeError(last_error or f"Failed after {max_retries} attempts")
 

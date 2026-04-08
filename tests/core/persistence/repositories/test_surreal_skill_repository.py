@@ -74,7 +74,7 @@ class TestSurrealSkillRepository:
         call_args = mock_surreal_client.query.call_args
         assert "CREATE skills CONTENT" in call_args[0][0]
         # For CREATE, SurrealDB returns the data nested under 'result' -> [0] -> actual data
-        assert call_args[1]["data"]["name"] == "test_skill"
+        assert call_args[0][1]["data"]["name"] == "test_skill"
 
     @pytest.mark.asyncio
     async def test_get_skill_found(self, skill_repo, mock_surreal_client):
@@ -215,7 +215,7 @@ class TestSurrealSkillRepository:
         assert "UPDATE skills:" in call_args[0][0]
         assert "MERGE" in call_args[0][0]
         # For UPDATE, the data is passed directly in the data parameter
-        assert call_args[1]["data"]["description"] == "Updated test skill"
+        assert call_args[0][1]["data"]["description"] == "Updated test skill"
 
     @pytest.mark.asyncio
     async def test_delete_skill(self, skill_repo, mock_surreal_client):

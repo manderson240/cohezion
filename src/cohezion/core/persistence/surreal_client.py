@@ -401,6 +401,20 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
                     if data:
                         self._client.store(f"event_{int(time.time() * 1000)}", data)
                     return [data]
+                if "CREATE skills" in sql and "CONTENT" in sql:
+                    data = vars.get("data") if vars else vars
+                    if data:
+                        # Extract the bare ID from table:id if present
+                        bare_id = data["id"].split(":")[-1] if ":" in data["id"] else data["id"]
+                        self._client.store(bare_id, data)
+                    return [data]
+                if "CREATE universe_nodes" in sql and "CONTENT" in sql:
+                    data = vars.get("data") if vars else vars
+                    if data:
+                        # Extract the bare ID from table:id if present
+                        bare_id = data["id"].split(":")[-1] if ":" in data["id"] else data["id"]
+                        self._client.store(bare_id, data)
+                    return [data]
                 if "FROM missions" in sql or "FROM agent_journey" in sql:
                     mission_id = vars.get("id") if vars else None
                     if not mission_id:
