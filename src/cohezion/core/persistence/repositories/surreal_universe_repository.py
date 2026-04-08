@@ -1,8 +1,15 @@
-"""SurrealDB Universe Repository - Persistence layer for universe nodes."""
+"""SurrealDB Universe Repository - Persistence layer for universe nodes.
+
+Compound Engineering Features:
+- Inherits batch operations from BaseRepository
+- Automatic metrics collection
+- Token-efficient context patterns
+"""
 
 import logging
 from typing import Any, Dict, List, Optional
 
+from cohezion.core.persistence.repositories.base import BaseRepository
 from cohezion.core.persistence.repositories.universe_repository import (
     UniverseRepository,
     UniverseRepositoryFilter,
@@ -13,10 +20,13 @@ from cohezion.core.persistence.surreal_client import SurrealClient, UniverseNode
 logger = logging.getLogger(__name__)
 
 
-class SurrealUniverseRepository(UniverseRepository):
+class SurrealUniverseRepository(
+    UniverseRepository, BaseRepository[UniverseNode, UniverseRepositoryFilter]
+):
     """SurrealDB-backed repository for universe nodes."""
 
     def __init__(self, client: SurrealClient):
+        BaseRepository.__init__(self, table_name="universe_nodes")
         self._client = client
         self._table = "universe_nodes"
         logger.info("SurrealUniverseRepository initialized")

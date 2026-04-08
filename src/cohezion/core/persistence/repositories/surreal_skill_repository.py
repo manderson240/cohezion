@@ -1,8 +1,15 @@
-"""SurrealDB Skill Repository - Persistence layer for skill definitions."""
+"""SurrealDB Skill Repository - Persistence layer for skill definitions.
+
+Compound Engineering Features:
+- Inherits batch operations from BaseRepository
+- Automatic metrics collection
+- Token-efficient context patterns
+"""
 
 import logging
 from typing import Any, Dict, List, Optional
 
+from cohezion.core.persistence.repositories.base import BaseRepository
 from cohezion.core.persistence.repositories.skill_repository import Skill, SkillRepository
 from cohezion.core.persistence.surreal_client import SurrealClient
 
@@ -10,10 +17,11 @@ from cohezion.core.persistence.surreal_client import SurrealClient
 logger = logging.getLogger(__name__)
 
 
-class SurrealSkillRepository(SkillRepository):
+class SurrealSkillRepository(SkillRepository, BaseRepository[Skill, None]):
     """SurrealDB-backed repository for skill definitions."""
 
     def __init__(self, client: SurrealClient):
+        BaseRepository.__init__(self, table_name="skills")
         self._client = client
         self._table = "skills"
         logger.info("SurrealSkillRepository initialized")
