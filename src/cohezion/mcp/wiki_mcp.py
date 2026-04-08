@@ -82,10 +82,15 @@ class WikiMCP:
             )
             result["wiki_pages_created"].append(str(source_page.path))
 
-            # 4. Create entity pages
-            for entity in entities:
-                entity_page = await self._get_or_create_entity(entity)
-                result["entities_extracted"].append(entity)
+            # 4. Create entity pages - parallel
+            import asyncio
+            entity_tasks = [
+                self._get_or_create_entity(entity)
+                for entity in entities
+            ]
+            entity_pages = await asyncio.gather(*entity_tasks)
+            for entity_page in entity_pages:
+                result["entities_extracted"].append(entity_page.title)
                 result["wiki_pages_created"].append(str(entity_page.path))
 
             # 5. Update index
