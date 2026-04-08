@@ -23,22 +23,19 @@ async def run_specialist_delegation():
             id="arc-1",
             subject="ARC Prize - Phase 4 12D Manifold Transfer",
             description="Use DeepSeek-R1 logic to calculate 12D latent displacements for ARC-AGI-2 tasks.",
-            tags=["flume", "reasoning", "physics"],
-            dependencies=[]
+            tags=["flume", "reasoning", "physics"]
         ),
         TaskSpec(
             id="agi-1",
             subject="AGI Benchmark - Phase 5",
             description="Run full cognitive kbench benchmark for executive function.",
-            tags=["evaluation", "reasoning"],
-            dependencies=[]
+            tags=["evaluation", "reasoning"]
         ),
         TaskSpec(
             id="bird-1",
             subject="BirdCLEF 2026 - Feature Anomaly Detection",
             description="Project Mel-Spectrogram features into 12D manifold for anomaly detection.",
-            tags=["vision", "physics", "signal_processing"],
-            dependencies=[]
+            tags=["vision", "physics", "signal_processing"]
         )
     ]
     

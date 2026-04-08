@@ -147,14 +147,23 @@ try:
 
     # Blackwell-specific wheel installation for Mamba/SSM
     print("  Installing pre-built wheels for Mamba/SSM...")
-    WHEEL_PATH = "/kaggle/input/nemotron-trl-wheels"
+    WHEEL_PATH = "/kaggle/input/nemotron-trl-wheels/offline_packages"
     if os.path.exists(WHEEL_PATH):
-        wheels = [f for f in os.listdir(WHEEL_PATH) if f.endswith(".whl")]
-        # Sort to handle dependencies correctly (e.g. install causal-conv1d before mamba-ssm)
-        wheels.sort()
-        for wheel in wheels:
-            print(f"    Installing {wheel}...")
-            subprocess.run([sys.executable, "-m", "pip", "install", "-q", os.path.join(WHEEL_PATH, wheel), "--no-index", "--no-deps"], check=True)
+        # Find all wheels recursively if needed, but start with the flat directory
+        wheels = []
+        for root, _, files in os.walk(WHEEL_PATH):
+            for f in files:
+                if f.endswith(".whl"):
+                    wheels.append(os.path.join(root, f))
+        
+        if wheels:
+            # Sort to handle dependencies correctly (e.g. install causal-conv1d before mamba-ssm)
+            wheels.sort()
+            for wheel in wheels:
+                print(f"    Installing {os.path.basename(wheel)}...")
+                subprocess.run([sys.executable, "-m", "pip", "install", "-q", wheel, "--no-index", "--no-deps"], check=True)
+        else:
+            print(f"  WARNING: No wheels found in {WHEEL_PATH}")
     else:
         print(f"  WARNING: {WHEEL_PATH} not found. Proceeding with online install.")
 

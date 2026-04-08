@@ -1,0 +1,41 @@
+skill: manifold-physics-optimization
+description: Optimize the 12D Riemannian manifold physics engine for RL training speed
+created: 2026-04-08
+traced_from:
+  - source: "src/cohezion/physics/riemannian_metric.py"
+    commit: "3caaa2b34"
+    change: "Constant metric precomputation (Christoffel=0, cached inverse)"
+  - source: "src/cohezion/physics/gauge_theory.py"
+    commit: "3caaa2b34"
+    change: "Vectorized SO(3) field strength, yang_mills caching, fast is_hiho"
+  - source: "src/cohezion/environments/manifold_env.py"
+    commit: "1fca6efc3"
+    change: "Merged obs/info computation, shared SpinorState"
+coherence_threshold: 0.5
+---
+
+# Manifold Physics Optimization Context
+
+## What Changed (62.9× speedup: 13,776µs → 219µs per step)
+
+### The One-Liner
+For constant metrics (fabric_block_metric), Christoffel symbols are identically zero by differential geometry theorem. We stopped computing them.
+
+### The Deeper Truth
+The computational cost of physics IS proportional to deviation from HIHO equilibrium. At 0.5, all gauge potentials vanish (Yang-Mills action = 0). At chaos, computation costs more. **HIHO is the thermodynamic ground state of computation itself.**
+
+### Files Modified
+1. `riemannian_metric.py` — Precompute zero Christoffel symbols + cached inverse for constant metrics
+2. `gauge_theory.py` — Vectorized SO(3) commutators, energy-only fast path, yang_mills caching, A-norm is_hiho
+3. `manifold_env.py` — Merged _get_obs_and_info(), shared SpinorState
+
+### Performance Numbers
+- ManifoldEnv.step(): 13,776µs → 219µs (62.9×)
+- christoffel(): 6,208µs → 0.035µs (177,143×)
+- step_verlet(): 12,400µs → 11.9µs (1,042×)
+- yang_mills_action(): 444µs → 17µs (26×)
+
+## Quick Reference
+- Autoresearch experiment: "ManifoldEnv Physics Optimization" (5 runs logged)
+- Test: `PYTHONPATH=src python -c "from cohezion.environments.manifold_env import ManifoldEnv; ..."`
+- Skill PRIME doc: `src/cohezion/skills/MANIFOLD_PHYSICS_OPTIMIZATION_PRIME.md`
