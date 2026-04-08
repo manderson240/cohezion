@@ -13,6 +13,7 @@ from cohezion.swarm.providers.model_provider import (
     register_model_provider,
 )
 from cohezion.swarm.providers.ollama_provider import OllamaProvider
+from cohezion.knowledge.llm_wiki import LLMWiki
 
 
 logger = logging.getLogger(__name__)
@@ -45,6 +46,9 @@ class Gemma4Provider(OllamaProvider):
         self.thinking_mode = self.config.get("thinking_mode", True)
         self.context_window = self.config.get("context_window", 256000)
 
+        # Initialize LLM Wiki for latency data
+        self.wiki = LLMWiki()
+
         # Load Lemonade Hardware Mapping
         self.hw_config = self._load_hw_config()
 
@@ -58,6 +62,12 @@ class Gemma4Provider(OllamaProvider):
 
     def _get_target_url(self, model: str) -> str:
         """Routes a model to the correct silicon endpoint (NPU, GPU, or Cloud)."""
+        # Query wiki for latency data before routing
+        wiki_entry = self.wiki.query(f"{model}_latency")
+        if wiki_entry and wiki_entry.metadata.get("latency_ms"):
+            latency_ms = wiki_entry.metadata.get("latency_ms", 0)
+            logger.debug(f"Wiki latency data for {model}: {latency_ms}ms")
+
         affinity = self.hw_config.get("model_affinity", {}).get(model)
         if not affinity:
             return self.base_url  # Fallback to default

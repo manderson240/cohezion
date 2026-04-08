@@ -1,0 +1,411 @@
+{
+  "session_name": "datamesh_overnight",
+  "run_number": 50,
+  "best_metric": 2.51,
+  "experiments": [
+    {
+      "run": 1,
+      "timestamp": "2026-04-08T00:42:21.215557",
+      "metric": 2.51,
+      "status": "keep",
+      "hypothesis": "Embedding cache: LRU cache for 256D FLUME vectors",
+      "commit": "b96da01f8"
+    },
+    {
+      "run": 2,
+      "timestamp": "2026-04-08T00:42:25.914760",
+      "metric": 2.5,
+      "status": "discard",
+      "hypothesis": "Pre-computed paths: materialize common graph traversals",
+      "commit": "b96da01f8"
+    },
+    {
+      "run": 3,
+      "timestamp": "2026-04-08T00:42:30.581617",
+      "metric": 2.53,
+      "status": "discard",
+      "hypothesis": "Index HNSW: optimize vector similarity with HNSW index",
+      "commit": "b96da01f8"
+    },
+    {
+      "run": 4,
+      "timestamp": "2026-04-08T00:42:35.256134",
+      "metric": 2.52,
+      "status": "discard",
+      "hypothesis": "Connection pooling: reuse SurrealDB/async connections",
+      "commit": "b96da01f8"
+    },
+    {
+      "run": 5,
+      "timestamp": "2026-04-08T00:42:39.993371",
+      "metric": 2.5,
+      "status": "discard",
+      "hypothesis": "Lazy loading: defer field materialization until access",
+      "commit": "b96da01f8"
+    },
+    {
+      "run": 6,
+      "timestamp": "2026-04-08T00:42:44.741634",
+      "metric": 2.53,
+      "status": "discard",
+      "hypothesis": "Query batching: group small queries into transactions",
+      "commit": "b96da01f8"
+    },
+    {
+      "run": 7,
+      "timestamp": "2026-04-08T00:42:49.401855",
+      "metric": 2.51,
+      "status": "discard",
+      "hypothesis": "Result caching: memoize expensive compute results",
+      "commit": "b96da01f8"
+    },
+    {
+      "run": 8,
+      "timestamp": "2026-04-08T00:42:54.083896",
+      "metric": 2.5,
+      "status": "discard",
+      "hypothesis": "Parallel query dispatch: batch multiple queries across domains",
+      "commit": "b96da01f8"
+    },
+    {
+      "run": 9,
+      "timestamp": "2026-04-08T00:42:58.743358",
+      "metric": 2.52,
+      "status": "discard",
+      "hypothesis": "Embedding cache: LRU cache for 256D FLUME vectors",
+      "commit": "b96da01f8"
+    },
+    {
+      "run": 10,
+      "timestamp": "2026-04-08T00:43:03.413835",
+      "metric": 2.51,
+      "status": "discard",
+      "hypothesis": "Pre-computed paths: materialize common graph traversals",
+      "commit": "b96da01f8"
+    },
+    {
+      "run": 11,
+      "timestamp": "2026-04-08T00:43:08.101036",
+      "metric": 2.52,
+      "status": "discard",
+      "hypothesis": "Index HNSW: optimize vector similarity with HNSW index",
+      "commit": "b96da01f8"
+    },
+    {
+      "run": 12,
+      "timestamp": "2026-04-08T00:43:12.733912",
+      "metric": 2.51,
+      "status": "discard",
+      "hypothesis": "Connection pooling: reuse SurrealDB/async connections",
+      "commit": "b96da01f8"
+    },
+    {
+      "run": 13,
+      "timestamp": "2026-04-08T00:43:17.432792",
+      "metric": 2.51,
+      "status": "discard",
+      "hypothesis": "Lazy loading: defer field materialization until access",
+      "commit": "b96da01f8"
+    },
+    {
+      "run": 14,
+      "timestamp": "2026-04-08T00:43:22.110145",
+      "metric": 2.51,
+      "status": "discard",
+      "hypothesis": "Query batching: group small queries into transactions",
+      "commit": "b96da01f8"
+    },
+    {
+      "run": 15,
+      "timestamp": "2026-04-08T00:43:26.786106",
+      "metric": 2.5,
+      "status": "discard",
+      "hypothesis": "Result caching: memoize expensive compute results",
+      "commit": "b96da01f8"
+    },
+    {
+      "run": 16,
+      "timestamp": "2026-04-08T00:43:31.496222",
+      "metric": 2.63,
+      "status": "discard",
+      "hypothesis": "Parallel query dispatch: batch multiple queries across domains",
+      "commit": "b96da01f8"
+    },
+    {
+      "run": 17,
+      "timestamp": "2026-04-08T00:43:36.177904",
+      "metric": 2.51,
+      "status": "discard",
+      "hypothesis": "Embedding cache: LRU cache for 256D FLUME vectors",
+      "commit": "b96da01f8"
+    },
+    {
+      "run": 18,
+      "timestamp": "2026-04-08T00:43:40.896904",
+      "metric": 2.5,
+      "status": "discard",
+      "hypothesis": "Pre-computed paths: materialize common graph traversals",
+      "commit": "b96da01f8"
+    },
+    {
+      "run": 19,
+      "timestamp": "2026-04-08T00:43:45.546093",
+      "metric": 2.55,
+      "status": "discard",
+      "hypothesis": "Index HNSW: optimize vector similarity with HNSW index",
+      "commit": "b96da01f8"
+    },
+    {
+      "run": 20,
+      "timestamp": "2026-04-08T00:43:50.255721",
+      "metric": 2.52,
+      "status": "discard",
+      "hypothesis": "Connection pooling: reuse SurrealDB/async connections",
+      "commit": "b96da01f8"
+    },
+    {
+      "run": 21,
+      "timestamp": "2026-04-08T00:43:54.923648",
+      "metric": 2.51,
+      "status": "discard",
+      "hypothesis": "Lazy loading: defer field materialization until access",
+      "commit": "b96da01f8"
+    },
+    {
+      "run": 22,
+      "timestamp": "2026-04-08T00:43:59.593373",
+      "metric": 2.53,
+      "status": "discard",
+      "hypothesis": "Query batching: group small queries into transactions",
+      "commit": "b96da01f8"
+    },
+    {
+      "run": 23,
+      "timestamp": "2026-04-08T00:44:04.226818",
+      "metric": 2.51,
+      "status": "discard",
+      "hypothesis": "Result caching: memoize expensive compute results",
+      "commit": "b96da01f8"
+    },
+    {
+      "run": 24,
+      "timestamp": "2026-04-08T00:44:08.905419",
+      "metric": 2.51,
+      "status": "discard",
+      "hypothesis": "Parallel query dispatch: batch multiple queries across domains",
+      "commit": "b96da01f8"
+    },
+    {
+      "run": 25,
+      "timestamp": "2026-04-08T00:44:13.624508",
+      "metric": 2.51,
+      "status": "discard",
+      "hypothesis": "Embedding cache: LRU cache for 256D FLUME vectors",
+      "commit": "b96da01f8"
+    },
+    {
+      "run": 26,
+      "timestamp": "2026-04-08T00:44:18.324576",
+      "metric": 2.51,
+      "status": "discard",
+      "hypothesis": "Pre-computed paths: materialize common graph traversals",
+      "commit": "b96da01f8"
+    },
+    {
+      "run": 27,
+      "timestamp": "2026-04-08T00:44:23.065730",
+      "metric": 2.54,
+      "status": "discard",
+      "hypothesis": "Index HNSW: optimize vector similarity with HNSW index",
+      "commit": "b96da01f8"
+    },
+    {
+      "run": 28,
+      "timestamp": "2026-04-08T00:44:27.761141",
+      "metric": 2.51,
+      "status": "discard",
+      "hypothesis": "Connection pooling: reuse SurrealDB/async connections",
+      "commit": "b96da01f8"
+    },
+    {
+      "run": 29,
+      "timestamp": "2026-04-08T00:44:32.470795",
+      "metric": 2.52,
+      "status": "discard",
+      "hypothesis": "Lazy loading: defer field materialization until access",
+      "commit": "b96da01f8"
+    },
+    {
+      "run": 30,
+      "timestamp": "2026-04-08T00:44:37.132501",
+      "metric": 2.57,
+      "status": "discard",
+      "hypothesis": "Query batching: group small queries into transactions",
+      "commit": "b96da01f8"
+    },
+    {
+      "run": 31,
+      "timestamp": "2026-04-08T00:44:41.861151",
+      "metric": 2.52,
+      "status": "discard",
+      "hypothesis": "Result caching: memoize expensive compute results",
+      "commit": "b96da01f8"
+    },
+    {
+      "run": 32,
+      "timestamp": "2026-04-08T00:44:46.577370",
+      "metric": 2.51,
+      "status": "discard",
+      "hypothesis": "Parallel query dispatch: batch multiple queries across domains",
+      "commit": "b96da01f8"
+    },
+    {
+      "run": 33,
+      "timestamp": "2026-04-08T00:44:51.390938",
+      "metric": 2.54,
+      "status": "discard",
+      "hypothesis": "Embedding cache: LRU cache for 256D FLUME vectors",
+      "commit": "b96da01f8"
+    },
+    {
+      "run": 34,
+      "timestamp": "2026-04-08T00:44:56.088113",
+      "metric": 2.52,
+      "status": "discard",
+      "hypothesis": "Pre-computed paths: materialize common graph traversals",
+      "commit": "b96da01f8"
+    },
+    {
+      "run": 35,
+      "timestamp": "2026-04-08T00:45:00.754146",
+      "metric": 2.5,
+      "status": "discard",
+      "hypothesis": "Index HNSW: optimize vector similarity with HNSW index",
+      "commit": "b96da01f8"
+    },
+    {
+      "run": 36,
+      "timestamp": "2026-04-08T00:45:05.523775",
+      "metric": 2.51,
+      "status": "discard",
+      "hypothesis": "Connection pooling: reuse SurrealDB/async connections",
+      "commit": "b96da01f8"
+    },
+    {
+      "run": 37,
+      "timestamp": "2026-04-08T00:45:10.241199",
+      "metric": 2.52,
+      "status": "discard",
+      "hypothesis": "Lazy loading: defer field materialization until access",
+      "commit": "b96da01f8"
+    },
+    {
+      "run": 38,
+      "timestamp": "2026-04-08T00:45:14.850618",
+      "metric": 2.53,
+      "status": "discard",
+      "hypothesis": "Query batching: group small queries into transactions",
+      "commit": "b96da01f8"
+    },
+    {
+      "run": 39,
+      "timestamp": "2026-04-08T00:45:19.579537",
+      "metric": 2.53,
+      "status": "discard",
+      "hypothesis": "Result caching: memoize expensive compute results",
+      "commit": "b96da01f8"
+    },
+    {
+      "run": 40,
+      "timestamp": "2026-04-08T00:45:24.348015",
+      "metric": 2.51,
+      "status": "discard",
+      "hypothesis": "Parallel query dispatch: batch multiple queries across domains",
+      "commit": "b96da01f8"
+    },
+    {
+      "run": 41,
+      "timestamp": "2026-04-08T00:45:29.064222",
+      "metric": 2.5,
+      "status": "discard",
+      "hypothesis": "Embedding cache: LRU cache for 256D FLUME vectors",
+      "commit": "b96da01f8"
+    },
+    {
+      "run": 42,
+      "timestamp": "2026-04-08T00:45:33.814550",
+      "metric": 2.5,
+      "status": "discard",
+      "hypothesis": "Pre-computed paths: materialize common graph traversals",
+      "commit": "b96da01f8"
+    },
+    {
+      "run": 43,
+      "timestamp": "2026-04-08T00:45:38.463089",
+      "metric": 2.53,
+      "status": "discard",
+      "hypothesis": "Index HNSW: optimize vector similarity with HNSW index",
+      "commit": "b96da01f8"
+    },
+    {
+      "run": 44,
+      "timestamp": "2026-04-08T00:45:43.175117",
+      "metric": 2.51,
+      "status": "discard",
+      "hypothesis": "Connection pooling: reuse SurrealDB/async connections",
+      "commit": "b96da01f8"
+    },
+    {
+      "run": 45,
+      "timestamp": "2026-04-08T00:45:47.909261",
+      "metric": 2.55,
+      "status": "discard",
+      "hypothesis": "Lazy loading: defer field materialization until access",
+      "commit": "b96da01f8"
+    },
+    {
+      "run": 46,
+      "timestamp": "2026-04-08T00:45:52.605462",
+      "metric": 2.51,
+      "status": "discard",
+      "hypothesis": "Query batching: group small queries into transactions",
+      "commit": "b96da01f8"
+    },
+    {
+      "run": 47,
+      "timestamp": "2026-04-08T00:45:57.314504",
+      "metric": 2.5,
+      "status": "discard",
+      "hypothesis": "Result caching: memoize expensive compute results",
+      "commit": "b96da01f8"
+    },
+    {
+      "run": 48,
+      "timestamp": "2026-04-08T00:46:02.000910",
+      "metric": 2.51,
+      "status": "discard",
+      "hypothesis": "Parallel query dispatch: batch multiple queries across domains",
+      "commit": "b96da01f8"
+    },
+    {
+      "run": 49,
+      "timestamp": "2026-04-08T00:46:06.673173",
+      "metric": 2.52,
+      "status": "discard",
+      "hypothesis": "Embedding cache: LRU cache for 256D FLUME vectors",
+      "commit": "b96da01f8"
+    },
+    {
+      "run": 50,
+      "timestamp": "2026-04-08T00:46:11.345975",
+      "metric": 2.53,
+      "status": "discard",
+      "hypothesis": "Pre-computed paths: materialize common graph traversals",
+      "commit": "b96da01f8"
+    }
+  ],
+  "start_time": 1775623338.5321488,
+  "last_checkpoint": 1775623338.5321488,
+  "git_commit": "b96da01f8",
+  "status": "completed"
+}

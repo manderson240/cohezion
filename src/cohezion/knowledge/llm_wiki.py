@@ -5,8 +5,9 @@ from pathlib import Path
 from typing import Any, Dict, Optional
 from dataclasses import dataclass
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
+
 
 @dataclass
 class WikiEntry:
@@ -16,11 +17,13 @@ class WikiEntry:
     timestamp: str
     metadata: Dict[str, Any]
 
+
 class LLMWiki:
-    \"\"\"
+    """
     Structured knowledge base for LLM hardware benchmarks and capabilities.
     Grounds hardware claims in documented facts.
-    \"\"\"
+    """
+
     def __init__(self, wiki_path: Path = Path("data/llm_wiki")):
         self.wiki_path = wiki_path
         self.entries: Dict[str, WikiEntry] = {}
@@ -38,15 +41,15 @@ class LLMWiki:
                 logger.error(f"Failed to load wiki from {wiki_file}: {e}")
 
     def query(self, key: str) -> Optional[WikiEntry]:
-        \"\"\"
+        """
         Query the wiki for a specific benchmark or capability.
-        \"\"\"
+        """
         return self.entries.get(key)
 
     def update(self, entry: WikiEntry):
-        \"\"\"
+        """
         Updates the wiki with a new finding.
-        \"\"\"
+        """
         self.entries[entry.key] = entry
         self._persist()
 

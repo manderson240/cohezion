@@ -246,15 +246,21 @@ class ManifoldEnv(gym.Env):
     def _get_obs_and_info(self, reward: float) -> tuple[np.ndarray, float, bool, bool, dict[str, Any]]:
         """Construct observation and info dict together, sharing computed values.
 
-        Performance: computes SpinorState and gauge state once, reuses
-        in both observation and info dict construction.
+        Performance: computes gauge state once via update_and_compute(),
+        uses direct Bloch vector formula instead of SpinorState object,
+        and avoids redundant A-norm checks.
         """
-        # Compute shared spinor state once
-        spinor = SpinorState.from_coherence_values(
-            float(np.clip(self._position[6], 0, 1)),  # logic
-            float(np.clip(self._position[7], 0, 1)),  # quantum
-        )
-        bloch = spinor.bloch_vector.astype(np.float32)
+        # Compute Bloch vector directly via spherical coordinates
+        # (avoids SpinorState object creation + density matrix + trace)
+        # Bloch sphere: r_x = sin(θ)cos(φ), r_y = sin(θ)sin(φ), r_z = cos(θ)
+        # where θ = (1-logic)π, φ = 2π·quantum
+        logic = float(np.clip(self._position[6], 0, 1))
+        quantum = float(np.clip(self._position[7], 0, 1))
+        theta = (1.0 - logic) * np.pi
+        phi = quantum * 2.0 * np.pi
+        sin_theta = np.sin(theta)
+        cos_theta = np.cos(theta)
+        bloch = np.array([sin_theta * np.cos(phi), sin_theta * np.sin(phi), cos_theta], dtype=np.float32)
 
         # Construct 19D observation
         fiber_base = self._fiber_bundle.project_to_base(
@@ -262,9 +268,9 @@ class ManifoldEnv(gym.Env):
         ).astype(np.float32)
         obs = np.concatenate([self._position, bloch, fiber_base])
 
-        # Compute gauge state once (cached yang_mills)
+        # Compute gauge state + yang-mills action + HIHO check in one call
         pos_f64 = self._position.astype(np.float64)
-        self._gauge.set_from_12d_state_and_cache(pos_f64)
+        ym_action, is_hiho = self._gauge.update_and_compute(pos_f64)
 
         # Build info dict
         info = {
@@ -272,11 +278,11 @@ class ManifoldEnv(gym.Env):
             "coherence": self._compute_coherence(),
             "hiho_deviation": self._compute_hiho_deviation(),
             "hiho_streak": self._hiho_streak,
-            "charge_polarity": spinor.charge_polarity,
-            "spin_rotation": spinor.spin_rotation,
-            "spin_precession": spinor.spin_precession,
-            "yang_mills_action": self._gauge.yang_mills_action(),
-            "is_hiho": self._gauge.is_hiho(tol=0.1),
+            "charge_polarity": cos_theta,  # = r_z in Bloch sphere
+            "spin_rotation": sin_theta * np.cos(phi),  # = r_x
+            "spin_precession": sin_theta * np.sin(phi),  # = r_y
+            "yang_mills_action": ym_action,
+            "is_hiho": is_hiho,
             "potential_energy": self._potential.evaluate(pos_f64),
             "kinetic_energy": self._dynamics.kinetic_energy(
                 pos_f64,

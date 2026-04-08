@@ -41,12 +41,16 @@ class SurrealUniverseRepository(UniverseRepository):
             logger.debug(f"💾 Repository: Executing {query}")
             result = await self._client.query(query, {"data": data})
 
-            # Extract ID from SurrealDB response
+            # Extract ID from SurrealDB response and return just the ID part
             if result and result[0].get("result"):
                 created_data = result[0]["result"][0]
-                return created_data.get("id", data["id"])
+                full_id = created_data.get("id", data["id"])
+                # Return just the ID part after the colon (e.g., "test_node_1" from "universe_nodes:test_node_1")
+                return full_id.split(":")[-1] if ":" in full_id else full_id
 
-            return data["id"]
+            # Return just the ID part of the data ID
+            full_id = data["id"]
+            return full_id.split(":")[-1] if ":" in full_id else full_id
 
         except Exception as e:
             logger.error(f"Failed to create universe node in SurrealDB: {e}")
@@ -265,8 +269,12 @@ class SurrealUniverseRepository(UniverseRepository):
                 else:
                     physics_state = PhysicsState()  # Default
 
+            # Extract just the ID part after the colon (e.g., "test_node_1" from "universe_nodes:test_node_1")
+            full_id = data.get("id", "")
+            actual_id = full_id.split(":")[-1] if ":" in full_id else full_id
+
             return UniverseNode(
-                id=data.get("id", ""),
+                id=actual_id,
                 content=content,
                 embedding=data.get("embedding"),
                 physics_state=physics_state or PhysicsState(),

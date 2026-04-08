@@ -31,6 +31,7 @@ from cohezion.swarm.model_pool_config import (
     PoolStatus,
     TierConfig,
 )
+from cohezion.research.autoresearch import AutoResearcher
 
 
 logger = logging.getLogger(__name__)
@@ -59,6 +60,7 @@ class ModelPoolManager:
         self._memory = MemoryBandwidthAnalyzer()
         self._pool: dict[str, PooledModel] = {}
         self._initialized = False
+        self.researcher = AutoResearcher()
 
         # Build pool entries from config
         for name in self._config.hot_models:
@@ -363,6 +365,35 @@ class ModelPoolManager:
     def get_model(self, model_name: str) -> PooledModel | None:
         """Get a specific model's state."""
         return self._pool.get(model_name)
+
+    async def research_optimal_config(self, model_name: str) -> dict[str, Any]:
+        """Query the researcher for optimal model configuration.
+
+        Uses AutoResearcher to research the best configuration for a model,
+        including memory requirements, optimal batch size, and tier placement.
+        """
+        query = f"optimal configuration for {model_name}"
+        research_result = await self.researcher.research(query)
+
+        # Extract configuration recommendations from research findings
+        config = {
+            "model_name": model_name,
+            "recommended_tier": ModelTierPolicy.WARM,  # Default
+            "optimal_batch_size": 1,
+            "memory_requirements_gb": 0.0,
+            "research_findings": research_result.findings,
+            "confidence": research_result.confidence,
+        }
+
+        # Parse findings for configuration hints
+        for finding in research_result.findings:
+            finding_lower = finding.lower()
+            if "hot" in finding_lower or "always loaded" in finding_lower:
+                config["recommended_tier"] = ModelTierPolicy.HOT
+            elif "cold" in finding_lower or "rarely used" in finding_lower:
+                config["recommended_tier"] = ModelTierPolicy.COLD
+
+        return config
 
     # --- Private helpers ---
 

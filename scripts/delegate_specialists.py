@@ -41,8 +41,15 @@ async def run_specialist_delegation():
     
     for task in tasks:
         logger.info(f"Delegating Task: {task.subject}")
-        result = await team_executor.execute_task(task)
-        logger.info(f"Result Status: {result['status']} | Model Used: {result.get('model', 'N/A')}")
+        try:
+            # We assume the first tag corresponds to a high-level skill category
+            result = cloud_executor.execute_task(task_description=task.description, skill_name=f"{task.tags[0]}_PRIME")
+            if hasattr(result, '__dict__'):
+                logger.info(f"Result Success: {result.success} | Coherence: {result.metrics.get('coherence', 'N/A')}")
+            else:
+                logger.info(f"Result: {result}")
+        except Exception as e:
+            logger.error(f"Failed to execute task {task.id}: {e}")
         logger.info("-" * 40)
 
 if __name__ == "__main__":
