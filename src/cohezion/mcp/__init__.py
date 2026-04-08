@@ -1,19 +1,7 @@
-# Cohezion MCP Package
-"""
-Model Context Protocol servers for token-efficient tool access.
+"""Cohezion MCP servers."""
 
-External (configured via settings):
-- Mem0: Persistent AI memory
-- Context7: Up-to-date code documentation
+from __future__ import annotations
 
-Internal (custom):
-- Knowledge MCP: RAG over library/skills
-- Skills MCP: Direct skill invocation
-- SurrealDB MCP: Universe node tools
-- Swarm MCP: Debate workflow access
-"""
+from .wiki_mcp import WikiMCP
 
-from cohezion.mcp.registry import MCPRegistry
-
-
-__all__ = ["MCPRegistry"]
+__all__ = ["WikiMCP"]

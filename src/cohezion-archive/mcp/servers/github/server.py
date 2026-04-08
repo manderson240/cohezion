@@ -145,23 +145,33 @@ class GitHubService:
         """List issues in a repository."""
         session = await self._get_session()
         url = f"{GITHUB_API_BASE}/repos/{owner}/{repo}/issues"
-        params = {"state": state, "per_page": limit}
+        params = {"state": state, "per_page": min(limit, 100)}
 
         try:
             async with session.get(url, params=params) as resp:
                 if resp.status == 200:
                     data = await resp.json()
-                    return [
-                        {
+                    issues = []
+                    for item in data:
+                        if "pull_request" in item:
+                            continue
+                        labels = []
+                        for label in item.get("labels", []):
+                            if isinstance(label, dict) and "name" in label:
+                                labels.append(label["name"])
+                            elif isinstance(label, str):
+                                labels.append(label)
+                        issues.append({
                             "number": item["number"],
                             "title": item["title"],
                             "state": item["state"],
                             "url": item["html_url"],
                             "created_at": item["created_at"],
-                            "labels": [label["name"] for label in item.get("labels", [])],
-                        }
-                        for item in data[:limit]
-                    ]
+                            "labels": labels,
+                        })
+                        if len(issues) >= limit:
+                            break
+                    return issues
                 else:
                     return []
         except Exception as e:

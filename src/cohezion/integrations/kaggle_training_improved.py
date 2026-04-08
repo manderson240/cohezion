@@ -135,8 +135,18 @@ try:
 
     if not check_dns():
         print("WARNING: DNS failure detected. Attempting to restart network interface...")
-        # Try a quick fix for DNS issues in some Kaggle VMs
         subprocess.run("echo 'nameserver 8.8.8.8' > /etc/resolv.conf", shell=True)
+
+    # Blackwell-specific wheel installation for Mamba/SSM
+    print("  Installing pre-built wheels for Mamba/SSM...")
+    WHEEL_PATH = "/kaggle/input/nemotron-trl-wheels"
+    if os.path.exists(WHEEL_PATH):
+        wheels = [f for f in os.listdir(WHEEL_PATH) if f.endswith(".whl")]
+        for wheel in wheels:
+            print(f"    Installing {wheel}...")
+            subprocess.run([sys.executable, "-m", "pip", "install", "-q", os.path.join(WHEEL_PATH, wheel), "--no-index", "--no-deps"], check=True)
+    else:
+        print(f"  WARNING: {WHEEL_PATH} not found. Attempting online install for peft/trl/bitsandbytes...")
 
     MANDATORY_PACKAGES = ["trl", "peft", "bitsandbytes", "accelerate"]
     for pkg in MANDATORY_PACKAGES:
@@ -144,18 +154,8 @@ try:
             __import__(pkg.replace("-", "_"))
             print(f"  {pkg} already installed")
         except ImportError:
-            print(f"  Attempting robust load for {pkg}...")
-            # Retry loop for flaky network
-            for attempt in range(3):
-                try:
-                    subprocess.check_call([sys.executable, "-m", "pip", "install", "-q", pkg])
-                    print(f"  Successfully installed {pkg}")
-                    break
-                except Exception as e:
-                    print(f"  Attempt {attempt+1} failed: {e}")
-                    if attempt == 2:
-                        print(f"  Offline fallback for {pkg}...")
-                        subprocess.run([sys.executable, "-m", "pip", "install", "-q", pkg, "--no-index", "--find-links=/kaggle/input/nemotron-trl-wheels"])
+            print(f"  Attempting install for {pkg}...")
+            subprocess.run([sys.executable, "-m", "pip", "install", "-q", pkg, "--no-build-isolation"])
 
     import torch
     import pandas as pd
