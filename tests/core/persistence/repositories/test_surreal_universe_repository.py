@@ -279,8 +279,8 @@ class TestSurrealUniverseRepository:
         call_args = mock_surreal_client.query.call_args
         assert "UPDATE universe_nodes:" in call_args[0][0]
         assert "MERGE" in call_args[0][0]
-        assert call_args[1]["data"]["content"] == "Updated test node content"
-        assert call_args[1]["data"]["node_type"] == "energy_snapshot"
+        assert call_args[0][1]["data"]["content"] == "Updated test node content"
+        assert call_args[0][1]["data"]["node_type"] == "energy_snapshot"
 
     @pytest.mark.asyncio
     async def test_delete_universe_node(self, universe_repo, mock_surreal_client):
