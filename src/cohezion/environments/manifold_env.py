@@ -260,13 +260,18 @@ class ManifoldEnv(gym.Env):
         return np.concatenate([self._position, bloch, fiber_base])
 
     def _get_info(self) -> dict[str, Any]:
-        """Compute info dict with physics quantities."""
+        """Compute info dict with physics quantities.
+
+        Performance: uses set_from_12d_state_and_cache() to avoid
+        redundant yang_mills_action computation.
+        """
         spinor = SpinorState.from_coherence_values(
             float(np.clip(self._position[6], 0, 1)),
             float(np.clip(self._position[7], 0, 1)),
         )
 
-        self._gauge.set_from_12d_state(self._position.astype(np.float64))
+        # Use cached yang_mills computation for performance
+        self._gauge.set_from_12d_state_and_cache(self._position.astype(np.float64))
 
         return {
             "step": self._step_count,
