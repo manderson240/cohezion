@@ -1,0 +1,41 @@
+Whys is /buddy notworking?
+
+---
+
+Can you research the docs?
+
+---
+
+And we need to fix this Stop hook error: Failed with non-blocking status code: /bin/sh: 1: /home/mike-anderson/.claude/plugins/cache/claude-plugins-official/ralph-loop/unknown/hooks/stop-hook.sh: Permission denied
+
+---
+
+/retrospect
+
+---
+
+<task-notification>
+<task-id>bwrxx2hb2</task-id>
+<tool-use-id>toolu_013pt4rC4RLG65Rfu5EXUGyn</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/16c5f7d6-d532-4d96-b182-76c51602f485/tasks/bwrxx2hb2.output</output-file>
+<status>completed</status>
+<summary>Background command "Get overall test pass/fail counts" completed (exit code 0)</summary>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>bajz31hss</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/16c5f7d6-d532-4d96-b182-76c51602f485/tasks/bajz31hss.output</output-file>
+<status>completed</status>
+<summary>Background command "Run quick test pass/fail summary" completed (exit code 0)</summary>
+</task-notification>
+
+---
+
+/bmad-help Stale / Needs Manual Resolution
+
+  1. Full test suite segfaults — run module-scoped until root-cause fixed
+  2. Genesis schema drift — re-apply genesis_schema.surql to restore all 14 fields
+  3. Graph HIHO = 0.000 — systematic SurrealDB population never implemented; L183 ("total artifact persistence") is declared but not wired
