@@ -61,6 +61,7 @@ class CapabilityRegistry:
         self._scan_skills()
         self._scan_mcp()
         self._scan_agents()
+        self._scan_claude_agents()
         self._apply_usage_to_capabilities()
 
         if SKLEARN_AVAILABLE and self.capabilities:
@@ -261,6 +262,34 @@ class CapabilityRegistry:
                     )
                 except Exception as e:
                     logger.error(f"Failed to scan agent {py_file}: {e}")
+
+    def _scan_claude_agents(self) -> None:
+        """Scan .claude/agents/ for Claude Code markdown agent definitions."""
+        agents_dir = self.root_dir / ".claude" / "agents"
+        if not agents_dir.exists():
+            return
+        for md_file in agents_dir.glob("*.md"):
+            try:
+                text = md_file.read_text(errors="ignore")
+                parts = text.split("---")
+                if len(parts) < 3:
+                    continue
+                import yaml
+
+                meta = yaml.safe_load(parts[1])
+                if not isinstance(meta, dict):
+                    continue
+                self.capabilities.append(
+                    Capability(
+                        name=meta.get("name", md_file.stem),
+                        type="agent",
+                        description=meta.get("description", f"Specialist agent: {md_file.stem}"),
+                        path=str(md_file.relative_to(self.root_dir)),
+                        tags=["agent", "specialist"],
+                    )
+                )
+            except Exception as e:
+                logger.debug(f"Skipped .claude agent {md_file.name}: {e}")
 
     def _build_index(self):
         """Build TF-IDF tokens."""

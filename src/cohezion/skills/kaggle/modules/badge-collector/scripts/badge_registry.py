@@ -1,4 +1,6 @@
 from typing import Optional
+
+
 """Registry of all 59 Kaggle badges with metadata.
 
 Each badge has:
@@ -19,10 +21,10 @@ class Badge:
     id: str
     name: str
     category: str
-    phase: Optional[int]
+    phase: int | None
     description: str
     automatable: bool
-    tier: Optional[str] = None
+    tier: str | None = None
 
 
 # fmt: off
@@ -173,7 +175,7 @@ def get_automatable_badges() -> list[Badge]:
     return [b for b in ALL_BADGES if b.automatable]
 
 
-def get_badge_by_id(badge_id: str) -> Optional['Badge']:
+def get_badge_by_id(badge_id: str) -> Optional["Badge"]:
     """Look up a badge by ID."""
     for b in ALL_BADGES:
         if b.id == badge_id:

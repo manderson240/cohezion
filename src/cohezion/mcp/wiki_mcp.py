@@ -11,6 +11,7 @@ from typing import Any
 
 from cohezion.integrations.obsidian_wiki import ObsidianWiki
 
+
 logger = logging.getLogger(__name__)
 
 
@@ -84,10 +85,8 @@ class WikiMCP:
 
             # 4. Create entity pages - parallel
             import asyncio
-            entity_tasks = [
-                self._get_or_create_entity(entity)
-                for entity in entities
-            ]
+
+            entity_tasks = [self._get_or_create_entity(entity) for entity in entities]
             entity_pages = await asyncio.gather(*entity_tasks)
             for entity_page in entity_pages:
                 result["entities_extracted"].append(entity_page.title)
@@ -103,8 +102,7 @@ class WikiMCP:
 
         # 6. Log
         await self.wiki.append_log(
-            "ingest",
-            f"Ingested {source_type}: {title if auto_extract else 'unnamed'}"
+            "ingest", f"Ingested {source_type}: {title if auto_extract else 'unnamed'}"
         )
 
         return result
@@ -144,10 +142,7 @@ class WikiMCP:
         result["sources_consulted"].extend([str(p.path) for p in pages])
 
         # Step 3: Read relevant pages
-        context = "\n\n".join([
-            f"## {p.title}\n{p.content[:500]}" 
-            for p in pages
-        ])
+        context = "\n\n".join([f"## {p.title}\n{p.content[:500]}" for p in pages])
 
         # Step 4: Synthesize answer (simulated LLM)
         answer = self._synthesize_answer(query, context)
@@ -167,9 +162,8 @@ class WikiMCP:
         if file_back:
             synthesis = await self.wiki.create_wiki_page(
                 path=f"synthesis/questions/{query.replace(' ', '_')[:50]}.md",
-                content=f"# Q: {query}\n\n{answer}\n\n## Sources\n" + "\n".join(
-                    f"- [[{p}]]" for p in result["sources_consulted"]
-                ),
+                content=f"# Q: {query}\n\n{answer}\n\n## Sources\n"
+                + "\n".join(f"- [[{p}]]" for p in result["sources_consulted"]),
                 category="synthesis",
             )
             result["synthesis_path"] = str(synthesis.path)
@@ -235,20 +229,15 @@ class WikiMCP:
 
         # Generate suggestions
         if missing:
-            issues["suggested_sources"] = [
-                f"Search for: {m}" for m in list(missing)[:5]
-            ]
+            issues["suggested_sources"] = [f"Search for: {m}" for m in list(missing)[:5]]
 
         issues["total_issues"] = (
-            len(issues["orphans"]) +
-            len(issues["dead_links"]) +
-            len(issues["missing_concepts"])
+            len(issues["orphans"]) + len(issues["dead_links"]) + len(issues["missing_concepts"])
         )
 
         # Log the lint
         await self.wiki.append_log(
-            "lint",
-            f"Found {issues['total_issues']} issues, fixed {len(fixed)}"
+            "lint", f"Found {issues['total_issues']} issues, fixed {len(fixed)}"
         )
 
         return issues
@@ -297,16 +286,16 @@ class WikiMCP:
 
     def _extract_title(self, content: str) -> str:
         """Extract or generate title from content."""
-        lines = content.strip().split('\n')
-        if lines[0].startswith('# '):
+        lines = content.strip().split("\n")
+        if lines[0].startswith("# "):
             return lines[0][2:].strip()
         return "Untitled"
 
     def _generate_summary(self, content: str, max_length: int = 200) -> str:
         """Generate summary (placeholder for LLM)."""
         # Simple extraction - real implementation would use LLM
-        lines = [l for l in content.split('\n') if l.strip() and not l.startswith('#')]
-        summary = ' '.join(lines[:3])
+        lines = [l for l in content.split("\n") if l.strip() and not l.startswith("#")]
+        summary = " ".join(lines[:3])
         if len(summary) > max_length:
             summary = summary[:max_length] + "..."
         return summary
@@ -315,10 +304,11 @@ class WikiMCP:
         """Extract entities (placeholder for NER)."""
         # Simple pattern matching - real implementation would use LLM/NER
         import re
+
         # Match capitalized phrases (naive)
-        entities = re.findall(r'\b[A-Z][a-z]+ [A-Z][a-z]+\b', content)
+        entities = re.findall(r"\b[A-Z][a-z]+ [A-Z][a-z]+\b", content)
         # Also match [[wiki_links]]
-        entities += re.findall(r'\[\[([^\]]+)\]\]', content)
+        entities += re.findall(r"\[\[([^\]]+)\]\]", content)
         return list(set(entities))[:10]
 
     def _extract_concepts(self, content: str) -> list[str]:
@@ -348,7 +338,7 @@ class WikiMCP:
     def _synthesize_answer(self, query: str, context: str) -> str:
         """Synthesize answer from context (placeholder for LLM)."""
         # Placeholder - real implementation would use actual LLM
-        lines = context.split('\n')
+        lines = context.split("\n")
         if len(lines) > 3:
             return f"Based on {len(lines)} sources:\n\n" + context[:500] + "..."
         return "No relevant information found."
@@ -365,7 +355,10 @@ class WikiMCP:
                     "type": "object",
                     "properties": {
                         "source": {"type": "string", "description": "Content to ingest"},
-                        "source_type": {"type": "string", "enum": ["article", "book", "paper", "daily"]},
+                        "source_type": {
+                            "type": "string",
+                            "enum": ["article", "book", "paper", "daily"],
+                        },
                         "auto_extract": {"type": "boolean"},
                     },
                     "required": ["source"],

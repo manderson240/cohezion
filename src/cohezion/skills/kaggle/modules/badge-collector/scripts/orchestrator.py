@@ -15,11 +15,12 @@ import sys
 import traceback
 from pathlib import Path
 
+
 # Add scripts dir to path so imports work
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from badge_registry import get_badges_by_phase, get_automatable_badges
-from badge_tracker import print_status_table, load_progress, should_attempt
+from badge_registry import get_badges_by_phase
+from badge_tracker import load_progress, print_status_table, should_attempt
 from utils import check_credentials, get_username
 
 
@@ -48,9 +49,9 @@ def run_phase(phase: int, username: str) -> tuple[int, int]:
         print(f"\n  Phase {phase}: No badges to attempt (all earned/skipped)")
         return 0, 0
 
-    print(f"\n{'='*60}")
+    print(f"\n{'=' * 60}")
     print(f"  Phase {phase}: Attempting {len(actionable)} badge(s)")
-    print(f"{'='*60}\n")
+    print(f"{'=' * 60}\n")
 
     # Import the phase module (explicit imports for security auditability)
     if phase == 1:
@@ -74,14 +75,14 @@ def run_phase(phase: int, username: str) -> tuple[int, int]:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Kaggle Badge Collector")
-    parser.add_argument("--phase", type=str, default=None,
-                        help="Phase to run: 1-5, or 'all'")
-    parser.add_argument("--status", action="store_true",
-                        help="Show badge progress table")
-    parser.add_argument("--resume", action="store_true",
-                        help="Resume from last state (skip earned badges)")
-    parser.add_argument("--dry-run", action="store_true",
-                        help="Show planned actions without executing")
+    parser.add_argument("--phase", type=str, default=None, help="Phase to run: 1-5, or 'all'")
+    parser.add_argument("--status", action="store_true", help="Show badge progress table")
+    parser.add_argument(
+        "--resume", action="store_true", help="Resume from last state (skip earned badges)"
+    )
+    parser.add_argument(
+        "--dry-run", action="store_true", help="Show planned actions without executing"
+    )
 
     args = parser.parse_args()
 
@@ -143,9 +144,9 @@ def main() -> None:
             continue
 
     # Final summary
-    print(f"\n{'='*60}")
+    print(f"\n{'=' * 60}")
     print(f"  COMPLETE: {total_succeeded}/{total_attempted} badges earned")
-    print(f"{'='*60}")
+    print(f"{'=' * 60}")
     print_status_table()
 
 

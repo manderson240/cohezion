@@ -2,23 +2,26 @@
 
 from __future__ import annotations
 
-import logging
 import abc
+import logging
 from dataclasses import dataclass
-from pathlib import Path
 from typing import Any, Generic, TypeVar
+
 
 log = logging.getLogger("autoresearch")
 
 T = TypeVar("T")  # Result type
 
+
 @dataclass
 class ExperimentResult:
     """Standardized result for an autonomous experiment."""
+
     success: bool
     metric: float | None = None
     error: str | None = None
     metadata: dict[str, Any] = None
+
 
 class ResearchDriver(abc.ABC, Generic[T]):
     """Abstract base class for autonomous experimentation drivers."""
@@ -58,10 +61,10 @@ class ResearchDriver(abc.ABC, Generic[T]):
 
         log.info(f"Cycle {self.cycles}: Testing {node}")
         candidate = self.generate_candidate(node)
-        
+
         result = self.evaluate_candidate(candidate)
         self.update_model(node, result)
-        
+
         return result.success
 
     def run_continuous(self, max_cycles: int = 0):

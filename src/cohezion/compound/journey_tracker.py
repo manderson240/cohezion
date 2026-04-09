@@ -523,9 +523,7 @@ class JourneyTracker:
 
         req = urllib.request.Request(
             "http://localhost:8001/sql",
-            data=f"CREATE journey_transition SET dimensions = {point.dimensions.tolist() if hasattr(point.dimensions, 'tolist') else list(point.dimensions)}, coherence = {point.coherence}, efficiency = {point.efficiency}, operation_type = '{point.operation_type}', task = '{point.task_description[:100].replace(chr(39), '')}', created = time::now();".encode(
-                "utf-8"
-            ),
+            data=f"CREATE journey_transition SET dimensions = {point.dimensions.tolist() if hasattr(point.dimensions, 'tolist') else list(point.dimensions)}, coherence = {point.coherence}, efficiency = {point.efficiency}, operation_type = '{point.operation_type}', task = '{point.task_description[:100].replace(chr(39), '')}', created = time::now();".encode(),
             headers={
                 "Accept": "application/json",
                 "surreal-ns": "cohezion",

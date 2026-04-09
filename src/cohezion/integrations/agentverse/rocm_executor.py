@@ -28,7 +28,6 @@ import os
 import subprocess
 import time
 from dataclasses import dataclass
-from pathlib import Path
 from typing import Any
 
 import httpx
@@ -54,6 +53,7 @@ ROCM_CONFIG = {
 @dataclass
 class ROCmResult:
     """Result from ROCm-optimized execution."""
+
     success: bool
     output: str
     latency_ms: float
@@ -65,16 +65,16 @@ class ROCmResult:
 
 class ROCmExecutor:
     """ROCm-optimized LLM executor for AMD Ryzen AI MAX+ 395.
-    
+
     Leverages Unified Memory Architecture (UMA) for zero-copy
     GPU acceleration and 128GB LPDDR5X bandwidth.
-    
+
     Args:
         model: Ollama model name (default: llama3.2:3b)
         base_url: Ollama API endpoint
         enable_rocm: Force ROCm GPU usage
     """
-    
+
     def __init__(
         self,
         model: str = DEFAULT_ROCM_MODEL,
@@ -84,13 +84,13 @@ class ROCmExecutor:
         self.model = model
         self.base_url = base_url
         self.enable_rocm = enable_rocm
-        
+
         # Set ROCm environment
         if enable_rocm:
             self._configure_rocm()
-        
+
         self._session: httpx.AsyncClient | None = None
-        
+
     def _configure_rocm(self) -> None:
         """Configure ROCm environment for Strix Halo."""
         env_vars = {
@@ -100,13 +100,13 @@ class ROCmExecutor:
             "HSA_OVERRIDE_GFX_VERSION": "11.5.1",  # RDNA 3.5 gfx version
             "OLLAMA_KEEP_ALIVE": "5m",  # Keep model loaded
         }
-        
+
         for key, value in env_vars.items():
             os.environ[key] = value
             logger.debug(f"ROCm env: {key}={value}")
-            
+
         logger.info(f"ROCm configured for {self.model}")
-        
+
     async def _get_session(self) -> httpx.AsyncClient:
         """Get HTTP session with ROCm-optimized timeouts."""
         if self._session is None or self._session.is_closed:
@@ -116,17 +116,17 @@ class ROCmExecutor:
                 limits=httpx.Limits(max_connections=10, max_keepalive_connections=5),
             )
         return self._session
-    
+
     async def ensure_model(self) -> bool:
         """Ensure model is pulled and available."""
         try:
             session = await self._get_session()
             resp = await session.get(f"{self.base_url}/api/tags")
-            
+
             if resp.status_code == 200:
                 data = resp.json()
                 models = [m.get("name") for m in data.get("models", [])]
-                
+
                 if self.model in models:
                     logger.info(f"Model {self.model} available")
                     return True
@@ -136,11 +136,11 @@ class ROCmExecutor:
             else:
                 logger.error(f"Ollama API error: {resp.status_code}")
                 return False
-                
+
         except Exception as e:
             logger.error(f"Failed to check model: {e}")
             return False
-    
+
     async def execute(
         self,
         prompt: str,
@@ -150,22 +150,22 @@ class ROCmExecutor:
         stream: bool = False,
     ) -> ROCmResult:
         """Execute prompt on ROCm-optimized Ollama.
-        
+
         Args:
             prompt: User prompt
             system: System message
             max_tokens: Max tokens to generate
             temperature: Sampling temperature
             stream: Stream response (not implemented)
-            
+
         Returns:
             ROCmResult with performance metrics
         """
         start_time = time.monotonic()
-        
+
         try:
             session = await self._get_session()
-            
+
             payload = {
                 "model": self.model,
                 "prompt": prompt,
@@ -181,35 +181,35 @@ class ROCmExecutor:
                     "mmap": ROCM_CONFIG["mmap"],
                 },
             }
-            
+
             if system:
                 payload["system"] = system
-            
+
             resp = await session.post(
                 f"{self.base_url}/api/generate",
                 json=payload,
             )
-            
+
             resp.raise_for_status()
             data = resp.json()
-            
+
             elapsed = (time.monotonic() - start_time) * 1000
             output = data.get("response", "")
-            
+
             # Extract performance metrics
             eval_count = data.get("eval_count", 0)
             prompt_eval_count = data.get("prompt_eval_count", 0)
             total_tokens = eval_count + prompt_eval_count
-            
+
             tokens_per_sec = (total_tokens / (elapsed / 1000)) if elapsed > 0 else 0
-            
+
             return ROCmResult(
                 success=True,
                 output=output,
                 latency_ms=elapsed,
                 tokens_per_sec=tokens_per_sec,
             )
-            
+
         except Exception as e:
             elapsed = (time.monotonic() - start_time) * 1000
             logger.exception("ROCm execution failed")
@@ -220,36 +220,33 @@ class ROCmExecutor:
                 tokens_per_sec=0.0,
                 error=str(e),
             )
-    
+
     async def benchmark_throughput(
         self,
         num_requests: int = 10,
     ) -> dict[str, Any]:
         """Benchmark ROCm throughput with concurrent requests.
-        
+
         Args:
             num_requests: Number of parallel requests
-            
+
         Returns:
             Performance metrics
         """
         prompt = "Write a Python function to calculate fibonacci numbers."
-        
+
         start = time.monotonic()
-        
+
         # Launch concurrent requests
-        tasks = [
-            self.execute(prompt, max_tokens=256, temperature=0.7)
-            for _ in range(num_requests)
-        ]
-        
+        tasks = [self.execute(prompt, max_tokens=256, temperature=0.7) for _ in range(num_requests)]
+
         results = await asyncio.gather(*tasks)
-        
+
         elapsed = time.monotonic() - start
-        
+
         successful = [r for r in results if r.success]
         total_tokens = sum(len(r.output.split()) for r in successful)
-        
+
         return {
             "total_requests": num_requests,
             "successful": len(successful),
@@ -257,9 +254,11 @@ class ROCmExecutor:
             "requests_per_sec": num_requests / elapsed,
             "tokens_generated": total_tokens,
             "tokens_per_sec": total_tokens / elapsed if elapsed > 0 else 0,
-            "avg_latency_ms": sum(r.latency_ms for r in successful) / len(successful) if successful else 0,
+            "avg_latency_ms": sum(r.latency_ms for r in successful) / len(successful)
+            if successful
+            else 0,
         }
-    
+
     def get_hardware_info(self) -> dict[str, Any]:
         """Get ROCm hardware information."""
         info = {
@@ -269,7 +268,7 @@ class ROCmExecutor:
             "rocm_enabled": self.enable_rocm,
             "model": self.model,
         }
-        
+
         # Try to get actual GPU info
         try:
             result = subprocess.run(
@@ -282,7 +281,7 @@ class ROCmExecutor:
                 info["rocminfo_available"] = True
         except:
             info["rocminfo_available"] = False
-            
+
         return info
 
 
@@ -291,7 +290,7 @@ def create_rocm_executor(
     model: str = DEFAULT_ROCM_MODEL,
 ) -> ROCmExecutor:
     """Factory for ROCm-optimized executor.
-    
+
     Usage:
         executor = create_rocm_executor("llama3.2:3b")
         result = await executor.execute("Write a function...")
@@ -301,44 +300,43 @@ def create_rocm_executor(
 
 async def main():
     """Test ROCm executor."""
-    import sys
-    
+
     executor = create_rocm_executor()
-    
+
     # Check hardware
     print("Hardware Profile:")
     for key, value in executor.get_hardware_info().items():
         print(f"  {key}: {value}")
-    
+
     # Ensure model
     print("\nChecking model...")
     if not await executor.ensure_model():
         print(f"Model {executor.model} not available.")
         print(f"Run: ollama pull {executor.model}")
         return 1
-    
+
     # Test execution
     print("\nTest execution...")
     result = await executor.execute(
         prompt="Write a Python function to reverse a string.",
         max_tokens=256,
     )
-    
+
     if result.success:
-        print(f"✓ Success")
+        print("✓ Success")
         print(f"  Latency: {result.latency_ms:.1f}ms")
         print(f"  Throughput: {result.tokens_per_sec:.1f} tokens/s")
         print(f"\nOutput:\n{result.output[:200]}...")
     else:
         print(f"✗ Failed: {result.error}")
         return 1
-    
+
     # Benchmark
     print("\nBenchmark (10 concurrent requests)...")
     bench = await executor.benchmark_throughput(10)
     print(f"  Requests/sec: {bench['requests_per_sec']:.2f}")
     print(f"  Tokens/sec: {bench['tokens_per_sec']:.2f}")
-    
+
     return 0
 
 

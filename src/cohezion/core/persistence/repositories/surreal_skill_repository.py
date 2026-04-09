@@ -7,7 +7,7 @@ Compound Engineering Features:
 """
 
 import logging
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from cohezion.core.persistence.repositories.base import BaseRepository
 from cohezion.core.persistence.repositories.skill_repository import Skill, SkillRepository
@@ -54,7 +54,7 @@ class SurrealSkillRepository(SkillRepository, BaseRepository[Skill, None]):
             logger.error(f"Failed to create skill in SurrealDB: {e}")
             raise
 
-    async def get(self, skill_id: str) -> Optional[Skill]:
+    async def get(self, skill_id: str) -> Skill | None:
         """Retrieve a skill by ID from SurrealDB.
 
         Args:
@@ -78,7 +78,7 @@ class SurrealSkillRepository(SkillRepository, BaseRepository[Skill, None]):
             logger.error(f"Failed to get skill from SurrealDB: {e}")
             return None
 
-    async def get_by_name(self, name: str) -> Optional[Skill]:
+    async def get_by_name(self, name: str) -> Skill | None:
         """Retrieve a skill by name from SurrealDB.
 
         Args:
@@ -89,7 +89,7 @@ class SurrealSkillRepository(SkillRepository, BaseRepository[Skill, None]):
         """
         return await self.get(name)
 
-    async def get_all(self, limit: int = 100) -> List[Skill]:
+    async def get_all(self, limit: int = 100) -> list[Skill]:
         """Retrieve all skills from SurrealDB.
 
         Args:
@@ -165,7 +165,7 @@ class SurrealSkillRepository(SkillRepository, BaseRepository[Skill, None]):
             logger.error(f"Failed to delete skill from SurrealDB: {e}")
             return False
 
-    def _dict_to_skill(self, data: Dict[str, Any]) -> Optional[Skill]:
+    def _dict_to_skill(self, data: dict[str, Any]) -> Skill | None:
         """Helper to convert SurrealDB dict to Skill."""
         try:
             return Skill(

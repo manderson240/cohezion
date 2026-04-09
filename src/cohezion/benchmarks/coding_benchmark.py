@@ -11,15 +11,17 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
-import subprocess
 import tempfile
 from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
 import aiohttp
+
+
 try:
     import git
+
     HAS_GIT = True
 except ImportError:
     HAS_GIT = False
@@ -146,9 +148,7 @@ class SWEBenchRunner:
             repo_path = await self._setup_repo(task)
 
             # Generate solution
-            patch = await self._generate_solution(
-                task, executor, repo_path, timeout_minutes
-            )
+            patch = await self._generate_solution(task, executor, repo_path, timeout_minutes)
 
             if not patch:
                 return CodeResult(
@@ -304,9 +304,7 @@ Use tools to read files, search code, and run tests as needed.
             result["compiles"] = await self._check_compilation(repo_path, task.language)
 
             # Run tests
-            result["tests_pass"] = await self._run_test_patch(
-                repo_path, task.test_patch
-            )
+            result["tests_pass"] = await self._run_test_patch(repo_path, task.test_patch)
 
             # Lint score
             result["lint_score"] = await self._compute_lint_score(repo_path, patch)
@@ -348,9 +346,7 @@ Use tools to read files, search code, and run tests as needed.
 
         return True  # Assume success for other languages
 
-    async def _run_test_patch(
-        self, repo_path: Path, test_patch: str
-    ) -> bool:
+    async def _run_test_patch(self, repo_path: Path, test_patch: str) -> bool:
         """Apply and run test patch."""
         with tempfile.NamedTemporaryFile(mode="w", suffix=".patch") as f:
             f.write(test_patch)
@@ -392,15 +388,14 @@ Use tools to read files, search code, and run tests as needed.
         # Download from Hugging Face datasets
         url = "https://huggingface.co/datasets/princeton-nlp/SWE-bench_Verified/resolve/main/swe_bench_verified.json"
 
-        async with aiohttp.ClientSession() as session:
-            async with session.get(url) as response:
-                if response.status == 200:
-                    data = await response.text()
-                    self.dataset_path.parent.mkdir(parents=True, exist_ok=True)
-                    with open(self.dataset_path, "w") as f:
-                        f.write(data)
-                else:
-                    raise RuntimeError(f"Failed to download dataset: {response.status}")
+        async with aiohttp.ClientSession() as session, session.get(url) as response:
+            if response.status == 200:
+                data = await response.text()
+                self.dataset_path.parent.mkdir(parents=True, exist_ok=True)
+                with open(self.dataset_path, "w") as f:
+                    f.write(data)
+            else:
+                raise RuntimeError(f"Failed to download dataset: {response.status}")
 
 
 class CohezionCodeBenchmark:
@@ -451,9 +446,7 @@ class CohezionCodeBenchmark:
 
             self.results = await asyncio.gather(*[bounded_eval(t) for t in tasks])
         else:
-            self.results = [
-                await self.runner.evaluate_task(t, executor) for t in tasks
-            ]
+            self.results = [await self.runner.evaluate_task(t, executor) for t in tasks]
 
         return self._compute_summary()
 
@@ -512,17 +505,17 @@ class CohezionCodeBenchmark:
 
 ## Executive Summary
 
-- **Pass@1 Rate**: {summary['overall']['pass_at_1_percentage']:.1f}%
+- **Pass@1 Rate**: {summary["overall"]["pass_at_1_percentage"]:.1f}%
 - **Target**: 93.9% (Claude Mythos Preview)
-- **Tests Passed**: {summary['overall']['tests_passed_rate']*100:.1f}%
-- **Avg Time**: {summary['overall']['avg_time_seconds']:.0f}s
-- **Avg Tokens**: {summary['overall']['avg_tokens']:.0f}
+- **Tests Passed**: {summary["overall"]["tests_passed_rate"] * 100:.1f}%
+- **Avg Time**: {summary["overall"]["avg_time_seconds"]:.0f}s
+- **Avg Tokens**: {summary["overall"]["avg_tokens"]:.0f}
 
 ## By Difficulty
 
 """
         for diff, stats in summary.get("by_difficulty", {}).items():
-            report += f"- **{diff}**: {stats['success']}/{stats['total']} ({stats['pass_rate']*100:.1f}%)\n"
+            report += f"- **{diff}**: {stats['success']}/{stats['total']} ({stats['pass_rate'] * 100:.1f}%)\n"
 
         if output_path:
             output_path.write_text(report)

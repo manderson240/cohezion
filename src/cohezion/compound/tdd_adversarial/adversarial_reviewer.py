@@ -6,11 +6,13 @@ scrubbed TEK insights and the final physical synthesis.
 from __future__ import annotations
 
 import logging
-from typing import Any, Dict, List, Tuple
+from typing import Any
+
 from pydantic import BaseModel, Field
 
 from cohezion.agents.base import BaseAgent
-from cohezion.swarm.providers.gemma4_provider import Gemma4Provider, GenerationResult
+from cohezion.swarm.providers.gemma4_provider import Gemma4Provider
+
 
 logger = logging.getLogger(__name__)
 
@@ -37,7 +39,7 @@ class AdversarialRedTeamAgent(BaseAgent):
         self.provider = provider
 
     async def stress_test(
-        self, strategy: str, manifold_coords: Any, scrubbed_terms: List[str]
+        self, strategy: str, manifold_coords: Any, scrubbed_terms: list[str]
     ) -> AdversarialCritique:
         """
         Analyzes a strategy for structural failures.

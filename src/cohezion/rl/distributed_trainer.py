@@ -14,7 +14,6 @@ from __future__ import annotations
 
 import logging
 import os
-import tempfile
 from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
@@ -22,10 +21,10 @@ from typing import Any
 
 import torch
 import torch.distributed as dist
+import torch.multiprocessing as mp
 from torch.distributed.fsdp import FullyShardedDataParallel as FSDP
 from torch.distributed.fsdp.wrap import size_based_auto_wrap_policy
 from torch.nn.parallel import DistributedDataParallel as DDP
-import torch.multiprocessing as mp
 
 
 logger = logging.getLogger(__name__)
@@ -34,25 +33,25 @@ logger = logging.getLogger(__name__)
 @dataclass
 class DistributedConfig:
     """Configuration for distributed training."""
-    
+
     # World configuration
     world_size: int = 1  # Total GPUs across all nodes
     rank: int = 0  # Global rank (0 to world_size-1)
     local_rank: int = 0  # GPU index on this node
     master_addr: str = "localhost"
     master_port: str = "29500"
-    
+
     # Backend
     backend: str = "nccl"  # nccl for GPU, gloo for CPU
-    
+
     # Training config
     num_workers: int = 4  # DataLoader workers per rank
     gradient_accumulation_steps: int = 1
-    
+
     # Checkpointing
     checkpoint_dir: Path = field(default_factory=lambda: Path("checkpoints/distributed"))
     checkpoint_interval: int = 100  # Steps between checkpoints
-    
+
     # Fault tolerance
     max_restarts: int = 3
     elastic: bool = False  # Enable elastic training
@@ -61,6 +60,7 @@ class DistributedConfig:
 @dataclass
 class ScalingMetrics:
     """Metrics for distributed training scalability."""
+
     world_size: int
     global_step: int
     samples_per_second: float
@@ -71,57 +71,57 @@ class ScalingMetrics:
 
 class DistributedPPOTrainer:
     """PPO Trainer with distributed training support.
-    
+
     Supports:
     - Single-node multi-GPU (data parallelism)
     - Multi-node multi-GPU (distributed data parallelism)
     - FSDP (Fully Sharded Data Parallel) for large models
     - Checkpoint sharding and reconstruction
     """
-    
+
     def __init__(self, config: DistributedConfig):
         self.config = config
         self._setup_distributed()
-        
+
         # Model will be wrapped in DDP/FSDP after creation
         self.policy: torch.nn.Module | None = None
         self.value: torch.nn.Module | None = None
         self.optimizer: torch.optim.Optimizer | None = None
-        
+
         self.global_step = 0
         self.epoch = 0
-        
+
     def _setup_distributed(self) -> None:
         """Initialize distributed process group."""
         if not dist.is_available():
             logger.warning("torch.distributed not available, running single-GPU")
             return
-        
+
         # Set environment variables for process group
         os.environ.setdefault("MASTER_ADDR", self.config.master_addr)
         os.environ.setdefault("MASTER_PORT", self.config.master_port)
-        
+
         if not dist.is_initialized():
             dist.init_process_group(
                 backend=self.config.backend,
                 rank=self.config.rank,
                 world_size=self.config.world_size,
             )
-            
+
         torch.cuda.set_device(self.config.local_rank)
         logger.info(
             f"Initialized rank {self.config.rank}/{self.config.world_size} "
             f"on GPU {self.config.local_rank}"
         )
-    
+
     def wrap_models(self, policy: torch.nn.Module, value: torch.nn.Module) -> None:
         """Wrap models for distributed training."""
         device = torch.device(f"cuda:{self.config.local_rank}")
-        
+
         # Move to device
         policy = policy.to(device)
         value = value.to(device)
-        
+
         # Use FSDP for large models, DDP for smaller ones
         if hasattr(policy, "is_large_model") and policy.is_large_model:
             # FSDP: shards parameters across ranks
@@ -145,45 +145,47 @@ class DistributedPPOTrainer:
             )
             self.value = DDP(value, device_ids=[self.config.local_rank])
             logger.info("Using DDP for data parallelism")
-    
+
     def synchronize_gradients(self) -> None:
         """All-Reduce gradients across ranks (DDP does this automatically)."""
         # DDP handles gradient synchronization in backward pass
         # This method is for custom gradient aggregation if needed
         pass
-    
+
     def all_reduce_metrics(self, metrics: dict[str, float]) -> dict[str, float]:
         """Aggregate metrics across all ranks."""
         if not dist.is_initialized() or self.config.world_size == 1:
             return metrics
-        
+
         # Convert to tensor and all-reduce
         tensor = torch.tensor(
             list(metrics.values()),
             device=torch.device(f"cuda:{self.config.local_rank}"),
         )
         dist.all_reduce(tensor, op=dist.ReduceOp.AVG)
-        
+
         return {k: v.item() for k, v in zip(metrics.keys(), tensor)}
-    
+
     def save_checkpoint(self, tag: str = "latest") -> Path:
         """Save distributed checkpoint (rank 0 only)."""
         if self.config.rank != 0:
             return Path()  # Only rank 0 saves
-        
+
         self.config.checkpoint_dir.mkdir(parents=True, exist_ok=True)
         checkpoint_path = self.config.checkpoint_dir / f"checkpoint_{tag}.pt"
-        
+
         # Unwrap DDP/FSDP to get original model state
         policy_state = (
             self.policy.module.state_dict()
-            if hasattr(self.policy, "module") else self.policy.state_dict()
+            if hasattr(self.policy, "module")
+            else self.policy.state_dict()
         )
         value_state = (
             self.value.module.state_dict()
-            if hasattr(self.value, "module") else self.value.state_dict()
+            if hasattr(self.value, "module")
+            else self.value.state_dict()
         )
-        
+
         checkpoint = {
             "policy": policy_state,
             "value": value_state,
@@ -193,22 +195,22 @@ class DistributedPPOTrainer:
             "config": self.config,
             "timestamp": datetime.now().isoformat(),
         }
-        
+
         torch.save(checkpoint, checkpoint_path)
         logger.info(f"Checkpoint saved: {checkpoint_path}")
         return checkpoint_path
-    
+
     def load_checkpoint(self, checkpoint_path: Path) -> None:
         """Load distributed checkpoint to all ranks."""
         if not checkpoint_path.exists():
             raise FileNotFoundError(f"Checkpoint not found: {checkpoint_path}")
-        
+
         # All ranks load the same checkpoint
         checkpoint = torch.load(
             checkpoint_path,
             map_location=f"cuda:{self.config.local_rank}",
         )
-        
+
         # Load model states
         if self.policy:
             self.policy.module.load_state_dict(checkpoint["policy"])
@@ -216,20 +218,17 @@ class DistributedPPOTrainer:
             self.value.module.load_state_dict(checkpoint["value"])
         if self.optimizer and checkpoint["optimizer"]:
             self.optimizer.load_state_dict(checkpoint["optimizer"])
-        
+
         self.global_step = checkpoint["global_step"]
         self.epoch = checkpoint["epoch"]
-        
-        logger.info(
-            f"Loaded checkpoint from step {self.global_step} "
-            f"(rank {self.config.rank})"
-        )
-    
+
+        logger.info(f"Loaded checkpoint from step {self.global_step} (rank {self.config.rank})")
+
     def barrier(self) -> None:
         """Synchronization barrier across all ranks."""
         if dist.is_initialized() and self.config.world_size > 1:
             dist.barrier()
-    
+
     def cleanup(self) -> None:
         """Clean up distributed resources."""
         if dist.is_initialized():
@@ -239,16 +238,16 @@ class DistributedPPOTrainer:
 
 class DistributedLauncher:
     """Launcher for distributed training jobs.
-    
+
     Handles process spawning and environment setup for:
     - Single-node multi-GPU
     - Multi-node with SLURM/Kubernetes
     - Elastic training with dynamic membership
     """
-    
+
     def __init__(self, config: DistributedConfig):
         self.config = config
-    
+
     @staticmethod
     def _worker_process(
         rank: int,
@@ -260,16 +259,16 @@ class DistributedLauncher:
         # Set process-local config
         config.rank = rank
         config.local_rank = rank % torch.cuda.device_count()
-        
+
         # Initialize trainer
         trainer = DistributedPPOTrainer(config)
-        
+
         # Run training function
         try:
             train_fn(trainer)
         finally:
             trainer.cleanup()
-    
+
     def launch_single_node(
         self,
         train_fn: callable,
@@ -278,9 +277,9 @@ class DistributedLauncher:
         """Launch single-node multi-GPU training."""
         nproc = nproc_per_node or torch.cuda.device_count()
         self.config.world_size = nproc
-        
+
         logger.info(f"Launching {nproc} processes on single node")
-        
+
         # Spawn processes
         mp.spawn(
             self._worker_process,
@@ -288,7 +287,7 @@ class DistributedLauncher:
             nprocs=nproc,
             join=True,
         )
-    
+
     def launch_multi_node(
         self,
         train_fn: callable,
@@ -299,9 +298,9 @@ class DistributedLauncher:
         """Launch multi-node training (called on each node)."""
         world_size = num_nodes * nproc_per_node
         self.config.world_size = world_size
-        
+
         logger.info(f"Launching node {node_rank}/{num_nodes} with {nproc_per_node} GPUs")
-        
+
         # Each node spawns its local processes with global rank offsets
         mp.spawn(
             self._worker_process,
@@ -309,7 +308,7 @@ class DistributedLauncher:
             nprocs=nproc_per_node,
             join=True,
         )
-    
+
     @staticmethod
     def detect_slurm_config() -> dict[str, Any]:
         """Auto-detect SLURM environment for distributed launch."""
@@ -319,33 +318,33 @@ class DistributedLauncher:
             "local_rank": os.environ.get("SLURM_LOCALID"),
             "num_nodes": os.environ.get("SLURM_NNODES"),
         }
-        
+
         return {k: int(v) if v else None for k, v in slurm_vars.items()}
 
 
 class ScalingBenchmark:
     """Benchmark distributed training scaling efficiency."""
-    
+
     def __init__(self, trainer: DistributedPPOTrainer):
         self.trainer = trainer
-    
+
     def measure_throughput(self, n_steps: int = 100) -> ScalingMetrics:
         """Measure samples/second and GPU utilization."""
         import time
-        
+
         start = time.perf_counter()
-        
+
         # Run timed loop
         for _ in range(n_steps):
             # Forward pass (would be actual training step)
             pass
-        
+
         duration = time.perf_counter() - start
-        
+
         # Calculate metrics
         total_samples = n_steps * self.trainer.config.world_size
         samples_per_sec = total_samples / duration
-        
+
         return ScalingMetrics(
             world_size=self.trainer.config.world_size,
             global_step=self.trainer.global_step,
@@ -358,9 +357,9 @@ class ScalingBenchmark:
 
 # Convenience exports
 __all__ = [
-    "DistributedPPOTrainer",
     "DistributedConfig",
     "DistributedLauncher",
-    "ScalingMetrics",
+    "DistributedPPOTrainer",
     "ScalingBenchmark",
+    "ScalingMetrics",
 ]

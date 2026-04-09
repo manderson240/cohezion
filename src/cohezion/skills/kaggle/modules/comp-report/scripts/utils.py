@@ -3,10 +3,10 @@
 import json
 import os
 import shutil
-import subprocess
 import sys
 import time
 from pathlib import Path
+
 
 # Rate limiting: seconds between API calls
 API_DELAY = 3

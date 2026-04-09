@@ -204,3 +204,41 @@ MCP servers using `stdio` transport are sensitive to startup latency. Configurat
 
 ### Learning 275: Silent Stdout for stdio Transport
 The stdio MCP protocol uses `stdout` for messaging. Any extraneous output (e.g., logger.info at startup, `uv run` update checks) can corrupt the protocol stream. Servers MUST be silent on `stdout` during initialization. When adding Python servers via the CLI, use the direct virtualenv path (`.venv/bin/python`) or `uv -q run` to ensure a clean communication channel.
+
+---
+
+## Session 91: Infrastructure Hardening — Schema, Persistence, Test Suite (2026-04-08)
+
+### Learning 276: SurrealDB 3.0 Schema Migration Patterns
+`FLEXIBLE TYPE object` was removed in SurrealDB 3.0. Nullable object fields need `TYPE none | object`; non-nullable use `TYPE object`. Live views no longer support `ORDER BY` (sort at query time instead). The surrealdb-py client returns HTTP 200 even when SurrealDB rejects a record with a schema error — callers must check returned data, not just the status code. Rule: re-apply `genesis_schema.surql` after every SurrealDB version upgrade and verify row insertion end-to-end.
+
+### Learning 277: L183 Total Artifact Persistence — Wiring Pattern
+`persist_prompt_artifact()` and `persist_universe_snapshot()` in `genesis_persistence.py` were never called anywhere in the codebase (zero call sites). Wired into `CompoundExecutor.execute_task()` as Step 9.1 (universe snapshot, after JourneyTracker at line ~1036) and Step 10.7 (prompt artifact, before return at line ~1131). Async boundary: `execute_task()` is synchronous — use `asyncio.ensure_future()` when a loop is running, `asyncio.run()` otherwise. Both calls wrapped in `try/except Exception` (non-blocking). Result: 586 prompt_artifacts + 578 universe_snapshots populated in one session.
+
+### Learning 278: Test Suite Segfault — C Extension Load Order
+`tests/cache/test_sentence_encoder.py` caused a mid-suite segfault: importing `sentence_transformers` (which eagerly loads `torch._C`) into a process that already has `scipy`/`sklearn` C extensions loaded triggers a BLAS/LAPACK allocator conflict at the shared-library level. Fix: inject `sentence_transformers` as a `MagicMock` into `sys.modules` in `tests/cache/conftest.py` at collection time (before any import). The existing `patch("sentence_transformers.SentenceTransformer")` calls in tests still work — the mock package is already in `sys.modules` so no real import occurs.
+
+### Learning 279: anyio Event Loop Hang — ResourceMonitor Heartbeat Anti-Pattern
+`ResourceMonitor.__init__` calls `loop.create_task(self._heartbeat_loop())` when a running event loop is detected. anyio's test runner provides a live loop, so the heartbeat spawns. When anyio shuts down the loop at test end, the still-running heartbeat blocks `loop.run_until_complete()` indefinitely. Two fix patterns: (1) `async` autouse fixture calling `await monitor.stop()` after each test (for tests that own the monitor), (2) monkeypatch `_register_with_monitor` / `_deregister_from_monitor` to no-ops so the monitor is never instantiated (for tests that only incidentally touch it). Root fix (deferred): move heartbeat start to an explicit `start()` method — constructors must not spawn background tasks.
+
+### Learning 280: Two Separate Persistence Graphs — Genesis vs Knowledge
+`neurons` and `synapses` (what `compute_graph_hiho()` reads) are the vault-keeper's domain: Obsidian vault notes → SurrealDB graph nodes via the knowledge graph ontology. `prompt_artifacts` and `universe_snapshots` (what `persist_prompt_artifact()` writes) are the genesis execution graph. These are two distinct persistence systems. Wiring L183 populates genesis tables but does NOT raise Graph HIHO — that requires vault-keeper to run and populate `neurons`/`synapses` from vault content.
+
+---
+
+## Session 93: Stale Item Fix Sprint + Autoresearch Integration (2026-04-09)
+
+### Learning 281: JEPA SIGReg Rename — Grep Tests After Metric Refactors
+`TrainingMetrics.kl_loss` was renamed to `sigreg_loss` (Sketched Isotropic Gaussian Regularizer) during the SIGReg refactor but the test assertion was never updated. Rule: after any metric/attribute rename, `grep -r "old_name" tests/` before committing. 1-line fix restored 25/25 JEPA genesis tests.
+
+### Learning 282: Ruff "Missing Closing Quote" = Embedded Quote in Docstring
+`ruff format` reporting "missing closing quote" at a docstring line means there's an embedded double-quote inside the string creating ambiguous close: `"""...Question?""""` (4 trailing quotes). The formatter cannot auto-fix this. Locate via `ruff check --select E` + line number, then strip the inner quotes.
+
+### Learning 283: A2A Multi-Agent Discovery — Scan All Agent Definition Formats
+`CapabilityRegistry._scan_agents()` only scanned Python modules; `.claude/agents/*.md` markdown definitions were invisible. Fix: add `_scan_claude_agents()` that parses YAML frontmatter from markdown files, plus `GET /agents` FastAPI endpoint. Pattern: A2A discovery requires active scanning of every agent definition format in the project (Python + markdown + any future formats). All 7 specialist agents now discoverable.
+
+### Learning 284: SurrealDB CLI Path — ~/.surrealdb/surreal
+The `surreal` CLI binary lives at `~/.surrealdb/surreal`, not in `$PATH`. For schema operations use: `~/.surrealdb/surreal import --conn ws://localhost:8001 --user root --pass root --ns cohezion --db vault <file.surql>`. This is more reliable than Python split-execute (which can drop DEFINE TABLE statements when comment blocks precede them).
+
+### Learning 285: autoresearch UCB1 K-Search — Exploration-Exploitation for Hypothesis Selection
+UCB1 with C=sqrt(2) is the standard exploration-exploitation balance for hypothesis selection: `score = mean_reward + 1.414 * sqrt(log(total_trials) / node_trials)`. Unexplored nodes are always selected first. `AutoresearchDriver` wraps UCB1 with subprocess execution, stdout metric extraction (`metric: value` or `metric=value` regex), SurrealDB persistence, and `asyncio.ensure_future()` for non-blocking dispatch from `CompoundExecutor.execute_task()` Step 5.91. K-Search tree state persists at `~/.cohezion-research/ksearch/{target}.json`.

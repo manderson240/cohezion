@@ -40,10 +40,11 @@ class HFModelfileBuilder:
                                 f.write(chunk)
                 break  # Success, exit retry loop
             except (httpx.RuntimeError, httpx.RequestError) as e:
-                logger.error(f"HTTPX error on attempt {attempt+1}/{max_retries}: {e}")
+                logger.error(f"HTTPX error on attempt {attempt + 1}/{max_retries}: {e}")
                 if attempt == max_retries - 1:
                     raise
                 import asyncio
+
                 await asyncio.sleep(2)
 
         logger.info(f"Downloaded {filename} to {dest_path}")

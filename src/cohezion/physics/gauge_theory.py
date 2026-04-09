@@ -165,7 +165,7 @@ class GaugeConnection:
         # Vectorized field strength computation
         # Reconstruct all A_b matrices at once: shape (3, 3, 3) -> 3 matrices of 3x3
         # A_b[a, b, :] = A[a, b] * L_a  sum over a
-        Ab_all = np.einsum('ab,aij->bij', A.T, _SO3_STACK)  # (3, 3, 3) -> A_b for each b
+        Ab_all = np.einsum("ab,aij->bij", A.T, _SO3_STACK)  # (3, 3, 3) -> A_b for each b
 
         # Commutators: [A_b, A_c] = A_b @ A_c - A_c @ A_b
         # Vectorized: (3,3,3) @ (3,3,3) over last two dims
@@ -188,7 +188,7 @@ class GaugeConnection:
                 for c in range(b + 1, 3):
                     energy += F[a, b, c] ** 2
 
-        energy_density = energy / (2.0 * self.coupling ** 2) if self.coupling > 0 else 0.0
+        energy_density = energy / (2.0 * self.coupling**2) if self.coupling > 0 else 0.0
 
         return FieldStrength(
             tensor=F,
@@ -221,20 +221,20 @@ class GaugeConnection:
 
         # Vectorized computation:
         # 1. Compute all 3 A_b matrices: Ab[b] = Σ_a A^a_b · L_a
-        Ab_all = np.einsum('ab,aij->bij', A.T, _SO3_STACK)
+        Ab_all = np.einsum("ab,aij->bij", A.T, _SO3_STACK)
 
         # 2. Compute all 9 commutators: comm[b,c] = [A_b, A_c]
-        comm_all = np.einsum('bik,ckj->bcij', Ab_all, Ab_all)
+        comm_all = np.einsum("bik,ckj->bcij", Ab_all, Ab_all)
 
         # 3. Extract F^a_bc = 0.5 * Tr(comm_bc · L_a^T) for b < c pairs
-        coupling_sq = self.coupling ** 2
+        coupling_sq = self.coupling**2
         energy = 0.0
         # Only 3 pairs: (0,1), (0,2), (1,2)
         for b, c in ((0, 1), (0, 2), (1, 2)):
             comm = comm_all[b, c] - comm_all[c, b]
             # Batched trace: Tr(comm · L_a^T) for all 3 generators simultaneously
             # = einsum('ij,aij->a', comm, L_stack)
-            f_bc = 0.5 * np.einsum('ij,aij->a', comm, _SO3_STACK)
+            f_bc = 0.5 * np.einsum("ij,aij->a", comm, _SO3_STACK)
             energy += float(np.dot(f_bc, f_bc))  # Σ_a (F^a_bc)²
 
         return energy / (2.0 * coupling_sq) if self.coupling > 0 else 0.0
@@ -258,7 +258,7 @@ class GaugeConnection:
     def is_flat(self, tol: float = 1e-10) -> bool:
         """Check if this connection is flat (F = 0, i.e., at HIHO)."""
         # Fast path: check A norm before computing field strength
-        a_norm_sq = float(np.sum(self._A ** 2))
+        a_norm_sq = float(np.sum(self._A**2))
         if a_norm_sq < tol * tol:
             return True
         F = self.field_strength()
@@ -342,7 +342,7 @@ class FourFabricGauge:
         computing field strengths. If all A ≈ 0, all connections are flat.
         """
         for conn in self.connections.values():
-            if np.sum(conn._A ** 2) > (tol * tol) * 9:
+            if np.sum(conn._A**2) > (tol * tol) * 9:
                 # Need full check for this connection
                 if not conn.is_flat(tol):
                     return False

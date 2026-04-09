@@ -243,7 +243,9 @@ class ManifoldEnv(gym.Env):
 
         return self._get_obs_and_info(float(reward))
 
-    def _get_obs_and_info(self, reward: float) -> tuple[np.ndarray, float, bool, bool, dict[str, Any]]:
+    def _get_obs_and_info(
+        self, reward: float
+    ) -> tuple[np.ndarray, float, bool, bool, dict[str, Any]]:
         """Construct observation and info dict together, sharing computed values.
 
         Performance: computes gauge state once via update_and_compute(),
@@ -260,12 +262,14 @@ class ManifoldEnv(gym.Env):
         phi = quantum * 2.0 * np.pi
         sin_theta = np.sin(theta)
         cos_theta = np.cos(theta)
-        bloch = np.array([sin_theta * np.cos(phi), sin_theta * np.sin(phi), cos_theta], dtype=np.float32)
+        bloch = np.array(
+            [sin_theta * np.cos(phi), sin_theta * np.sin(phi), cos_theta], dtype=np.float32
+        )
 
         # Construct 19D observation
-        fiber_base = self._fiber_bundle.project_to_base(
-            self._position.astype(np.float64)
-        ).astype(np.float32)
+        fiber_base = self._fiber_bundle.project_to_base(self._position.astype(np.float64)).astype(
+            np.float32
+        )
         obs = np.concatenate([self._position, bloch, fiber_base])
 
         # Compute gauge state + yang-mills action + HIHO check in one call

@@ -208,7 +208,7 @@ class JEPAWorldModel:
         self.action_encoder = ActionEncoder(action_dim, embed_dim)
         self.predictor = Predictor(embed_dim)
         self.causal_mask = CausalMask(embed_dim, causal_mask_ratio)
-        
+
         # Le-WM transformational edge
         self.sigreg = SIGReg(embed_dim=embed_dim, num_projections=1024)
 
@@ -240,24 +240,24 @@ class JEPAWorldModel:
 
     def measure_temporal_straightening(self, trajectory: list[torch.Tensor]) -> float:
         """Measure the curvature of a latent trajectory (Le-WM).
-        
-        Lower values (approaching 0) indicate a straighter path, an emergent 
+
+        Lower values (approaching 0) indicate a straighter path, an emergent
         property of stable Le-WM manifolds.
         """
         if len(trajectory) < 3:
             return 0.0
-            
+
         curvatures = []
         for i in range(1, len(trajectory) - 1):
             # Velocity vectors
-            v1 = trajectory[i] - trajectory[i-1]
-            v2 = trajectory[i+1] - trajectory[i]
-            
+            v1 = trajectory[i] - trajectory[i - 1]
+            v2 = trajectory[i + 1] - trajectory[i]
+
             # Normalize to cosine similarity
             if torch.norm(v1) > 1e-6 and torch.norm(v2) > 1e-6:
                 cos_sim = nn.functional.cosine_similarity(v1.unsqueeze(0), v2.unsqueeze(0))
                 curvatures.append(1.0 - cos_sim.item())
-            
+
         return float(np.mean(curvatures)) if curvatures else 0.0
 
     def train_step(
@@ -281,10 +281,10 @@ class JEPAWorldModel:
             target_next_emb, _, _ = self.encoder(next_states)
 
         prediction_loss = nn.functional.mse_loss(predicted_next_emb, target_next_emb)
-        
+
         # Le-WM SIGReg loss: Anti-collapse using random 1D projections
         sigreg_loss = self.sigreg(state_emb)
-        
+
         total_loss = prediction_loss + self.sigreg_weight * sigreg_loss
 
         self.optimizer.zero_grad()
@@ -380,24 +380,24 @@ class JEPAWorldModel:
         self, initial_state: np.ndarray, actions: list[np.ndarray]
     ) -> list[torch.Tensor]:
         """Roll out N steps in latent space and return embeddings.
-        
+
         Used to measure Temporal Straightening (Le-WM).
         """
         self._set_inference_mode()
-        
+
         s = torch.tensor(initial_state, dtype=torch.float32).unsqueeze(0)
         z, _, _ = self.encoder(s)
-        
+
         trajectory_z = [z.squeeze(0)]
         curr_z = z
-        
+
         for action in actions:
             a = torch.tensor(action, dtype=torch.float32).unsqueeze(0)
             action_emb = self.action_encoder(a)
             next_z = self.predictor(curr_z, action_emb)
             trajectory_z.append(next_z.squeeze(0))
             curr_z = next_z
-            
+
         return trajectory_z
 
     @torch.no_grad()

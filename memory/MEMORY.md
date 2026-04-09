@@ -2,11 +2,23 @@
 
 **Auto-compiled from `~/vaults/cohezion-vault/` - Query vault for full context**
 
-**Last Updated**: 2026-04-08 (Session 91 retrospective)
+**Last Updated**: 2026-04-08 (Session 92 retrospective)
 
 ---
 
 ## Recent Decisions (Last 7 Days)
+
+### 2026-04-08: Infrastructure Hardening Sprint (L276-L280)
+- **Context**: Three stale items from Session 91 retrospective: schema drift, L183 persistence unwired, segfault/hang suite
+- **Decision**: Three teams of specialist agents (schema-fixer, persistence-wirer, segfault-hunter)
+- **Outcome**: (1) All 6 genesis tables restored + SurrealDB 3.0 syntax fixed in surql. (2) Steps 9.1+10.7 wired in executor.py — 586 prompt_artifacts + 578 universe_snapshots populated. (3) Segfault root cause found (torch._C + scipy BLAS conflict); anyio hangs fixed (ResourceMonitor heartbeat teardown). Full suite now runs to completion.
+- **Rationale**: Compound engineering — each fix unblocked the next. Schema before persistence before metrics.
+
+### 2026-04-08: neurons/synapses ≠ genesis persistence (L280)
+- **Context**: Graph HIHO = 0.000 even after L183 wiring
+- **Decision**: Document separation: `neurons`/`synapses` = vault-keeper domain; `prompt_artifacts`/`universe_snapshots` = genesis executor domain
+- **Outcome**: Graph HIHO requires vault-keeper to run and populate nodes from Obsidian vault — separate work item
+- **Rationale**: Two distinct SurrealDB graphs; conflating them prevents correct diagnosis
 
 ### 2026-04-07: MCP stdio Transport Rules (L273-L275)
 - **Context**: gemini mcp servers showing "Disconnected" status after plugin/config changes
@@ -82,28 +94,27 @@
 
 ---
 
-## Active Context (Session 91, 2026-04-08)
+## Active Context (Session 93, 2026-04-09)
 
 **Branch**: `main`
-**Recent Sessions (86-90)**:
-- S86: Cruft cleanup (867 tracked files removed), Makefile targets (train/evaluate/benchmark/demo), .gitignore hardening
-- S87: Luma AMD Speedrun deep breakthroughs — stream-aware HIP kernels, continuous evolution loop, K-Search operational
-- S88: AIMO 3 mathematical reasoning swarm (Diversity+Entropy Voting+Speculative Decoding), H100 Blackwell handshake
+**Recent Sessions (89-93)**:
 - S89: Repository size repair — git-filter-repo for structural corruption, 13.47 GiB bloat purged
 - S90: MCP infrastructure — YAML frontmatter mandatory for AGENTS.md, lazy config for stdio servers, silent stdout rule
-**Test Suite**: 6,109 collected
-**Genesis Physics/Env Tests**: 357 passing, 1 failing (TestTraining::test_training_updates_metrics in test_jepa_world_model.py)
-**Coverage**: ~21%
-**Ruff**: 3,378 errors (regression from new code in S87-90 — run `make format && make lint` to fix)
-**Known Issues**:
-- Full `pytest tests/` segfaults during execution (C extension crash in torch._C or scipy). Collect-only works (6,109 collected). Genesis-specific suite runs clean. Workaround: run module-scoped tests (`uv run pytest tests/physics/ tests/compound/ -q`)
-- SurrealDB genesis schema drift: `genesis_schema.surql` defines 14+ fields but live DB has only 7 (never re-applied after SurrealDB 3.0 migration). `prompt_artifacts` inserts fail on required `confidence` field.
+- S91: Infrastructure hardening — schema drift fixed, L183 persistence wired (586 artifacts), segfault root cause found
+- S92: Retrospective — L276-L280 extracted, MEMORY/MISSION_JOURNAL updated
+- S93: Stale item sprint (JEPA test, ruff lint, A2A discovery, neurons/synapses schema) + autoresearch integration (AutoresearchDriver, UCB1 K-Search, Step 5.91)
+**Test Suite**: 6,100+ collected (full suite runs to completion)
+**Genesis Physics/Env Tests**: 358 passing, 0 failing (JEPA kl_loss→sigreg_loss fixed in S93)
+**SurrealDB**: 617 prompt_artifacts; neurons/synapses schema created (`scripts/dba/knowledge_graph_schema.surql`)
+**Ruff**: Auto-fixed 1,874 errors in S93 (873 files formatted); causal_interpreter.py syntax error fixed
+**Autoresearch**: `src/cohezion/research/autoresearch_driver.py` + Step 5.91 in executor.py (13 tests passing)
+**A2A Discovery**: `GET /agents` returns all 7 specialist agents (CapabilityRegistry._scan_claude_agents())
+**SurrealDB CLI**: `~/.surrealdb/surreal` (not in PATH by default)
 
 **Next Steps**:
-1. Fix JEPA training metrics test failure (`test_jepa_world_model.py::TestTraining::test_training_updates_metrics`)
-2. Run `uv run ruff check src/cohezion/ --fix` to address 1,632 auto-fixable lint errors
-3. Re-apply genesis schema: `surreal import --conn ws://localhost:8001 --user root --pass root --ns cohezion --db genesis src/cohezion/knowledge_graph/genesis_schema.surql`
-4. A2A agent cards — zero agent discovery despite 7 specialist agents defined
+1. Populate vault neurons/synapses from Obsidian vault (vault-keeper cycle) to raise Graph HIHO above 0
+2. Register AUTORESEARCH_PRIME in `skill_registry.json` for CapabilityRegistry discovery
+3. Validate executor.py Step 5.91 in a real compound loop run
 ---
 
 ## Quick Reference Commands
@@ -149,4 +160,4 @@ vault_log_decision(
 
 ---
 
-**Token Budget**: This file is 188 lines (target <200). For full history, query `~/vaults/cohezion-vault/`.
+**Token Budget**: This file is ~170 lines (target <200). For full history, query `~/vaults/cohezion-vault/`.

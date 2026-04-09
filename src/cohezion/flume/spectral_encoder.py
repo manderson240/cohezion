@@ -6,12 +6,12 @@ directly into the FLUME latent space (R^256).
 from __future__ import annotations
 
 import logging
+
 import numpy as np
-from typing import Any, Dict, Tuple
-from pydantic import BaseModel
 
 from cohezion.compound.copernicus_bridge import CopernicusState
 from cohezion.flume.vae_encoder import FlumeVAEEncoder
+
 
 logger = logging.getLogger(__name__)
 

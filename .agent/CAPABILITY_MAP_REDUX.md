@@ -2,7 +2,7 @@
 
 A central registry of the swarm's **6-Dimensional Service Architecture**. Only "Prime" skills are listed here.
 
-**Last updated**: 2026-04-08 (Session 91 retrospective). **6,109 tests collected, 32 genesis physics modules, 11 frontend tsx components.**
+**Last updated**: 2026-04-09 (Session 93 retrospective). **6,100+ tests collected (full suite runs to completion), 35 genesis physics+world_model+env modules, 11 frontend tsx components. 358 genesis tests passing (0 failing). 617 prompt_artifacts in SurrealDB. Autoresearch (UCB1 K-Search + Step 5.91) wired. A2A GET /agents returns 7 specialist agents.**
 
 ## 1. PROPRIOCEPTION (Ouroboros Service)
 *The Nervous System: Health, Hygiene, and Self-Correction.*
@@ -52,6 +52,8 @@ A central registry of the swarm's **6-Dimensional Service Architecture**. Only "
 - **Intern-S1-mini**: 8B scientific reasoning model (pulled to Ollama). Part of 47-model local inventory.
 - **Specialist Agents (7)**: vault-keeper, surreal-dba, claude/gemini/ollama/mcp-specialist, platform-coordinator — A2A agent cards + PRIME skills.
 - **Cost Tiers**: 70% simple (Ollama/Flash-Lite, free) → 20% medium (Sonnet, $3/M) → 10% hard (Opus, $15/M).
+- **Autoresearch**: `AutoresearchDriver` (K-Search UCB1, subprocess eval, SurrealDB persist) at `research/autoresearch_driver.py`. Dispatched via Step 5.91 in `CompoundExecutor.execute_task()` on keywords: train/optimize/research/experiment/tune/improve loss. K-Search trees at `~/.cohezion-research/ksearch/{target}.json`. Targets: jepa/flume_vae/rl_ppo.
+- **A2A Discovery**: `GET /agents` returns all registered specialist agents via `CapabilityRegistry._scan_claude_agents()` (scans `.claude/agents/*.md` YAML frontmatter).
 
 ## 6. INFRASTRUCTURE (VLIW Service)
 *The Substrate: Hardware & Data.*

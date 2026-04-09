@@ -9,9 +9,7 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
-import time
 from collections.abc import AsyncIterator
-from typing import Any
 
 import websockets
 
@@ -48,9 +46,7 @@ class MoshiClient:
             self._ws = None
             logger.info("Disconnected from Moshi server")
 
-    async def converse(
-        self, audio_stream: AsyncIterator[bytes]
-    ) -> AsyncIterator[bytes | str]:
+    async def converse(self, audio_stream: AsyncIterator[bytes]) -> AsyncIterator[bytes | str]:
         """
         Full-duplex conversation loop.
         Sends audio chunks and yields response audio or text.
@@ -86,10 +82,10 @@ class MoshiClient:
         # Run both tasks
         # Note: This is a simplified version. A real implementation would
         # manage the concurrency more robustly.
-        
+
         # For this prototype, we yield from receiver while sender runs in background
         sender_task = asyncio.create_task(_sender())
-        
+
         try:
             async for item in _receiver():
                 yield item
@@ -107,12 +103,12 @@ class MoshiClient:
 
         # Send text as a prompt (if supported by server implementation)
         await self._ws.send(json.dumps({"text": text}))
-        
+
         # Wait for text response
         async for message in self._ws:
             if not isinstance(message, bytes):
                 data = json.loads(message)
                 if "text" in data:
                     return data["text"]
-        
+
         return ""

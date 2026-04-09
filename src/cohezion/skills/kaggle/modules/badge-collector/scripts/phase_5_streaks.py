@@ -64,7 +64,8 @@ def _run_today(kaggle_cli: str) -> bool:
     # 1. API activity (counts as login)
     result = subprocess.run(
         [kaggle_cli, "datasets", "list", "--page-size", "1"],
-        capture_output=True, text=True,
+        capture_output=True,
+        text=True,
     )
     if result.returncode == 0:
         print("    API login activity: OK")
@@ -75,11 +76,19 @@ def _run_today(kaggle_cli: str) -> bool:
     submission_file = TEMPLATES_DIR / "submission_titanic.csv"
     if submission_file.exists():
         result = subprocess.run(
-            [kaggle_cli, "competitions", "submit",
-             "-c", "titanic",
-             "-f", str(submission_file),
-             "-m", "Daily streak submission"],
-            capture_output=True, text=True,
+            [
+                kaggle_cli,
+                "competitions",
+                "submit",
+                "-c",
+                "titanic",
+                "-f",
+                str(submission_file),
+                "-m",
+                "Daily streak submission",
+            ],
+            capture_output=True,
+            text=True,
         )
         if result.returncode == 0:
             print("    Titanic submission: OK")
@@ -101,16 +110,16 @@ def _print_scheduling_instructions(script_path: Path) -> None:
 
     if system == "Darwin":
         print("  To schedule on macOS (launchd):")
-        print(f"    1. Create a plist at ~/Library/LaunchAgents/com.kaggle.streak.plist")
+        print("    1. Create a plist at ~/Library/LaunchAgents/com.kaggle.streak.plist")
         print(f"       with ProgramArguments pointing to: /bin/bash {script_path}")
-        print(f"    2. Load it: launchctl load ~/Library/LaunchAgents/com.kaggle.streak.plist")
+        print("    2. Load it: launchctl load ~/Library/LaunchAgents/com.kaggle.streak.plist")
         print()
         print("  Or use cron:")
-        print(f"    crontab -e   # then add:")
+        print("    crontab -e   # then add:")
         print(f"    0 10 * * * {script_path}")
     else:
         print("  To schedule on Linux (cron):")
-        print(f"    crontab -e   # then add:")
+        print("    crontab -e   # then add:")
         print(f"    0 10 * * * {script_path}")
 
     print()
@@ -150,6 +159,8 @@ def run(username: str) -> tuple[int, int]:
     _print_scheduling_instructions(script_path)
 
     for bid in actionable:
-        set_status(bid, "attempting", "today's actions done — schedule daily script for full streaks")
+        set_status(
+            bid, "attempting", "today's actions done — schedule daily script for full streaks"
+        )
 
     return len(actionable), len(actionable)

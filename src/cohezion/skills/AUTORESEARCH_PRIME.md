@@ -25,8 +25,45 @@ You are a specialist in **Autonomous Experimentation Loops**. Your role is to op
    - Use an LLM to "evolve the world model" based on the results, identifying bottlenecks and proposing new branches.
    - Sync findings to the Research Wiki.
 
+## COHEZION INTEGRATION (v0.2 — andyluo7/autoresearch wiring)
+
+`AutoresearchDriver` at `src/cohezion/research/autoresearch_driver.py` implements
+the full loop. Research program at `src/cohezion/research/program.md`.
+
+### Supported targets
+
+| Target | Metric | Direction |
+|--------|--------|-----------|
+| `jepa` | `total_loss` | minimize |
+| `flume_vae` | `val_loss` | minimize |
+| `rl_ppo` | `episode_reward` | maximize |
+
+### Usage
+
+```python
+from cohezion.research.autoresearch_driver import AutoresearchDriver
+
+driver = AutoresearchDriver(target="jepa", budget_seconds=300)
+results = await driver.run_loop(n_iterations=12)
+```
+
+### CompoundExecutor Step 5.91
+
+Research tasks dispatch automatically when task description contains:
+`train`, `optimize`, `research`, `experiment`, `improve loss`, `tune`
+
+### K-Search tree
+
+`~/.cohezion-research/ksearch/{target}.json` — UCB1 node selection (C=sqrt(2)).
+Reset with `rm ~/.cohezion-research/ksearch/{target}.json`.
+
+### SurrealDB persistence
+
+All results → `experiments` table in `cohezion:vault`.
+Query: `SELECT * FROM experiments WHERE type = 'autoresearch' LIMIT 20;`
+
 ## VERSION
-v0.1
+v0.2
 
 ## SEE ALSO
 - LLM_WIKI_PRIME.md

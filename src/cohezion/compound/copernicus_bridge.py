@@ -6,9 +6,10 @@ biophysical grounding for the EcoResilience swarm.
 from __future__ import annotations
 
 import logging
-import requests
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
+
 from pydantic import BaseModel, Field
+
 
 logger = logging.getLogger(__name__)
 
@@ -16,16 +17,16 @@ logger = logging.getLogger(__name__)
 class CopernicusState(BaseModel):
     """Represents the spectral and spatial state of a region from satellite data."""
 
-    coordinates: Tuple[
+    coordinates: tuple[
         float, float, float, float
     ]  # Bounding box (min_lon, min_lat, max_lon, max_lat)
-    time_range: Tuple[str, str]  # (start_date, end_date)
-    spectral_indices: Dict[str, float] = Field(
+    time_range: tuple[str, str]  # (start_date, end_date)
+    spectral_indices: dict[str, float] = Field(
         default_factory=dict, description="Calculated indices like NDVI, NDWI"
     )
     cloud_cover: float = 0.0
-    image_url: Optional[str] = None
-    raw_metadata: Dict[str, Any] = Field(default_factory=dict)
+    image_url: str | None = None
+    raw_metadata: dict[str, Any] = Field(default_factory=dict)
 
 
 class CopernicusBridge:
@@ -34,13 +35,13 @@ class CopernicusBridge:
     Utilizes OData and STAC APIs to provide ground-truth remote sensing.
     """
 
-    def __init__(self, api_key: Optional[str] = None):
+    def __init__(self, api_key: str | None = None):
         self.api_key = api_key
         self.base_url = "https://catalogue.dataspace.copernicus.eu/odata/v1"
         self.stac_url = "https://catalogue.dataspace.copernicus.eu/stac"
 
     async def fetch_region_state(
-        self, bbox: Tuple[float, float, float, float], date_range: Tuple[str, str]
+        self, bbox: tuple[float, float, float, float], date_range: tuple[str, str]
     ) -> CopernicusState:
         """
         Queries the CDSE for the most recent cloud-free Sentinel-2 image of a region.

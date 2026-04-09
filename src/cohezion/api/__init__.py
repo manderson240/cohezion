@@ -1929,6 +1929,33 @@ async def get_agent_card():
     return _a2a_server.get_agent_card()
 
 
+@app.get("/agents")
+async def list_agents() -> dict:
+    """
+    A2A multi-agent discovery: list all discoverable specialist agents.
+
+    Scans .claude/agents/ markdown definitions and Python agent classes,
+    returning a unified list for A2A agent-to-agent coordination.
+    """
+    from cohezion.registry.capability_registry import CapabilityRegistry
+
+    registry = CapabilityRegistry(root_dir=Path(__file__).parents[3])
+    agent_caps = [c for c in registry.capabilities if c.type == "agent"]
+    return {
+        "count": len(agent_caps),
+        "agents": [
+            {
+                "id": c.name,
+                "name": c.name,
+                "description": c.description,
+                "path": c.path,
+                "tags": c.tags,
+            }
+            for c in agent_caps
+        ],
+    }
+
+
 class A2AMessageModel(BaseModel):
     """A2A message format with size validation."""
 

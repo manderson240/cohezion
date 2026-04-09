@@ -46,7 +46,6 @@ class KaggleAPI:
         model_sources: list[str] | None = None,
         dataset_sources: list[str] | None = None,
     ) -> dict:
-
         """Push a notebook to Kaggle with the EXACT metadata required for Blackwell G4."""
         logger.info(f"Pushing notebook: {notebook_id}")
 

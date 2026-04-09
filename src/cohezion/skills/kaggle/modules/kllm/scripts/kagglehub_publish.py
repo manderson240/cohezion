@@ -50,7 +50,9 @@ if __name__ == "__main__":
     if len(sys.argv) < 4:
         print("Usage:")
         print("  python kagglehub_publish.py dataset <handle> <local-dir> [version-notes]")
-        print("  python kagglehub_publish.py model <handle> <local-dir> [version-notes] [license-name]")
+        print(
+            "  python kagglehub_publish.py model <handle> <local-dir> [version-notes] [license-name]"
+        )
         sys.exit(1)
 
     action = sys.argv[1]

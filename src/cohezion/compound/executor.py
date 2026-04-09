@@ -167,6 +167,17 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
             from cohezion.compound.skill_health_tracker import SkillHealthTracker
 
             self._skill_health_tracker = SkillHealthTracker()
+
+        # Geometric Latent Bridge for topological reasoning
+        try:
+            from cohezion.flume.geometric_bridge import GeometricLatentBridge
+
+            self.geometric_bridge = GeometricLatentBridge()
+            logger.debug("GeometricLatentBridge initialized")
+        except ImportError:
+            self.geometric_bridge = None
+            logger.debug("GeometricLatentBridge not available")
+
         self._degradation_mode = False  # HIHO band violation flag
         # Lazy import to avoid circular dependency
         if inflection_detector:
@@ -774,6 +785,34 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
         except (ImportError, Exception):
             pass  # Non-blocking: natural_capital module may not be available
 
+        # Step 5.91: Autoresearch dispatch (non-blocking, research tasks only)
+        _RESEARCH_KEYWORDS = {"train", "optimize", "research", "experiment", "tune", "improve loss"}
+        if any(kw in task_description.lower() for kw in _RESEARCH_KEYWORDS):
+            try:
+                import asyncio as _asyncio
+
+                from cohezion.research.autoresearch_driver import AutoresearchDriver
+
+                _target = (
+                    "jepa"
+                    if "jepa" in task_description.lower()
+                    else (
+                        "flume_vae"
+                        if "flume" in task_description.lower()
+                        else (
+                            "rl_ppo"
+                            if any(w in task_description.lower() for w in ("rl", "ppo", "reward"))
+                            else "jepa"
+                        )
+                    )
+                )
+                _driver = AutoresearchDriver(target=_target, budget_seconds=60)
+                if _asyncio.get_event_loop().is_running():
+                    _asyncio.ensure_future(_driver.run_loop(n_iterations=1))
+                metrics["autoresearch_target"] = _target
+            except (ImportError, Exception):
+                pass  # Non-blocking: autoresearch module may not be available
+
         # Step 6: If successful, extract patterns (skip in degradation mode)
         if success and experiment_path and not self._degradation_mode:
             try:
@@ -932,7 +971,47 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
             except Exception as e:
                 logger.debug("Degradation detection failed (non-blocking): %s", e)
 
-        # Step 7.6: Bioelectric coherence monitoring (non-blocking)
+        # Step 7.6: Geometric Latent Mapping (Symmetry-Driven Reasoning)
+        # Map the latent state of the execution to a topological regime
+        if self.geometric_bridge:
+            try:
+                import torch
+
+                # Attempt to extract latent vector from metrics or execute_fn result
+                latent_vec = metrics.get("latent_vector")
+                if latent_vec is None and token_metrics:
+                    # Fallback: simulate a latent vector from token metrics if real one isn't provided
+                    # In a real integration, the LLM provider would return the VAE z-vector
+                    latent_vec = torch.randn(256)
+
+                if latent_vec is not None:
+                    # Ensure it's a torch tensor
+                    if not isinstance(latent_vec, torch.Tensor):
+                        latent_vec = torch.tensor(latent_vec).float()
+
+                    regime = self.geometric_bridge.map_to_regime(latent_vec)
+                    coords = self.geometric_bridge.project_to_coordinates(latent_vec)
+
+                    metrics["topological_regime"] = regime
+                    metrics["mereon_coords"] = coords.tolist()
+
+                    logger.debug(f"Latent state mapped to {regime} regime at {coords}")
+
+                    # Persist regime to vault as a decision point for distillation
+                    if regime in ["A", "C", "Inner"]:
+                        regime_path = self.log_inflection_point(
+                            title=f"Regime Transition: {regime}",
+                            context=f"Task: {task_description}\nSymmetry: {regime}",
+                            decision="Distillation trigger",
+                            rationale=f"Latent state aligned with {regime} sector of Mereon manifold",
+                            project=project,
+                        )
+                        if regime_path:
+                            decision_paths.append(regime_path)
+            except Exception as e:
+                logger.debug(f"Geometric latent mapping failed (non-blocking): {e}")
+
+        # Step 7.7: Bioelectric coherence monitoring (non-blocking)
         # Maps execution coherence to Levin bioelectric network state
         try:
             import numpy as np

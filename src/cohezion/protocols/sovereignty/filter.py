@@ -7,8 +7,9 @@ from __future__ import annotations
 
 import logging
 import re
-from typing import Set, Tuple, Dict, List
+
 from pydantic import BaseModel, Field
+
 
 logger = logging.getLogger(__name__)
 
@@ -17,11 +18,11 @@ class SovereigntyConfig(BaseModel):
     """Configuration for the Sovereignty Filter."""
 
     # List of sacred entities/terms that must be scrubbed
-    protected_terms: Set[str] = Field(default_factory=set)
+    protected_terms: set[str] = Field(default_factory=set)
     # Mapping of sensitive terms to generic descriptors (e.g., "Sabu-Sabu" -> "Native Plant A")
-    replacement_map: Dict[str, str] = Field(default_factory=dict)
+    replacement_map: dict[str, str] = Field(default_factory=dict)
     # Patterns that indicate high-precision coordinates or ritual sites
-    sensitive_patterns: List[str] = Field(default_factory=list)
+    sensitive_patterns: list[str] = Field(default_factory=list)
 
 
 class SovereigntyFilter:
@@ -39,7 +40,7 @@ class SovereigntyFilter:
             else None
         )
 
-    def scrub(self, text: str) -> Tuple[str, List[str]]:
+    def scrub(self, text: str) -> tuple[str, list[str]]:
         """
         Scrubs sensitive TEK data from text.
         Returns the cleaned text and a list of the terms that were scrubbed.

@@ -60,6 +60,28 @@ Uses actual pi autoresearch infrastructure:
 - ✅ **0.5 Coherence**: HIHO checks every experiment
 - ✅ **Persistence**: No experiment lost
 
+## AMD LLM Training (andyluo7/autoresearch)
+
+Bridge to the AMD fork of Karpathy's autoresearch for autonomous LLM pretraining experiments.
+
+```bash
+# Setup (one-time)
+cd ~/dev/autoresearch-amd && uv sync && uv run prepare.py
+
+# Set up experiment branch
+python scripts/autoresearch/amd_bridge.py setup --tag apr9
+
+# Run single experiment (5-min time budget)
+python scripts/autoresearch/amd_bridge.py run --repo ~/dev/autoresearch-amd --description "baseline"
+
+# Parse existing run.log
+python scripts/autoresearch/amd_bridge.py parse --log ~/dev/autoresearch-amd/run.log
+```
+
+Results are logged to both `results.tsv` (upstream format) and `autoresearch.jsonl` (Cohezion compound tracking).
+
+Repo: `~/dev/autoresearch-amd` (clone of `andyluo7/autoresearch`)
+
 ## Troubleshooting
 
 **Q: Session interrupted?**  

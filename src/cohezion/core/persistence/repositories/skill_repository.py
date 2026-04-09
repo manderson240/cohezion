@@ -2,7 +2,6 @@
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from typing import List, Optional
 
 
 @dataclass
@@ -13,7 +12,7 @@ class Skill:
     description: str = ""
     path: str = ""
     version: str = "0.1.0"
-    keywords: List[str] = field(default_factory=list)
+    keywords: list[str] = field(default_factory=list)
     metadata: dict = field(default_factory=dict)
 
 
@@ -29,7 +28,7 @@ class SkillRepository(ABC):
         """
 
     @abstractmethod
-    async def get(self, skill_id: str) -> Optional[Skill]:
+    async def get(self, skill_id: str) -> Skill | None:
         """Retrieve a skill by ID.
 
         Returns:
@@ -37,7 +36,7 @@ class SkillRepository(ABC):
         """
 
     @abstractmethod
-    async def get_by_name(self, name: str) -> Optional[Skill]:
+    async def get_by_name(self, name: str) -> Skill | None:
         """Retrieve a skill by name.
 
         Returns:
@@ -45,7 +44,7 @@ class SkillRepository(ABC):
         """
 
     @abstractmethod
-    async def get_all(self, limit: int = 100) -> List[Skill]:
+    async def get_all(self, limit: int = 100) -> list[Skill]:
         """Retrieve all skills.
 
         Args:

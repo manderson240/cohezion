@@ -20,8 +20,10 @@ import os
 import sys
 from pathlib import Path
 
+
 try:
     from dotenv import load_dotenv
+
     load_dotenv()
 except ImportError:
     pass  # dotenv not installed; skip .env loading

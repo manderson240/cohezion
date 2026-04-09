@@ -1,9 +1,11 @@
 from __future__ import annotations
+
 import json
 import logging
-from pathlib import Path
-from typing import Any, Dict, Optional
 from dataclasses import dataclass
+from pathlib import Path
+from typing import Any
+
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
@@ -15,7 +17,7 @@ class WikiEntry:
     value: Any
     source: str
     timestamp: str
-    metadata: Dict[str, Any]
+    metadata: dict[str, Any]
 
 
 class LLMWiki:
@@ -26,21 +28,21 @@ class LLMWiki:
 
     def __init__(self, wiki_path: Path = Path("data/llm_wiki")):
         self.wiki_path = wiki_path
-        self.entries: Dict[str, WikiEntry] = {}
+        self.entries: dict[str, WikiEntry] = {}
         self._load()
 
     def _load(self):
         wiki_file = self.wiki_path / "wiki.json"
         if wiki_file.exists():
             try:
-                with open(wiki_file, "r") as f:
+                with open(wiki_file) as f:
                     data = json.load(f)
                     for k, v in data.items():
                         self.entries[k] = WikiEntry(**v)
             except Exception as e:
                 logger.error(f"Failed to load wiki from {wiki_file}: {e}")
 
-    def query(self, key: str) -> Optional[WikiEntry]:
+    def query(self, key: str) -> WikiEntry | None:
         """
         Query the wiki for a specific benchmark or capability.
         """
@@ -61,5 +63,5 @@ class LLMWiki:
         except Exception as e:
             logger.error(f"Failed to persist wiki to {wiki_file}: {e}")
 
-    def get_all_entries(self) -> Dict[str, WikiEntry]:
+    def get_all_entries(self) -> dict[str, WikiEntry]:
         return self.entries

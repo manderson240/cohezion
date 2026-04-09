@@ -18,7 +18,7 @@ from typing import Any
 from cohezion.compound.core.executor import CompoundExecutor, ExecutionConfig
 from cohezion.compound.models import ExecutionResult
 from cohezion.reliability import get_circuit  # Issue #8
-from cohezion.research.config import ExperimentResult, ResearchConfig
+from cohezion.research.config import ResearchConfig
 
 
 logger = logging.getLogger(__name__)
@@ -26,10 +26,11 @@ logger = logging.getLogger(__name__)
 
 class _TaskTuple:
     """Minimal task container - faster than dataclass."""
-    __slots__ = ('id',)
+
+    __slots__ = ("id",)
+
     def __init__(self, task_id: str) -> None:
         self.id = task_id
-
 
 
 @dataclass
@@ -244,21 +245,29 @@ class ResearchAgent:
         """Log experiment result (batched for performance)."""
         # Fast path: assume metrics is dict from mock executor
         m = result.metrics
-        metric_value = m.get("coherence", float("inf")) if isinstance(m, dict) else getattr(m, "coherence", float("inf"))
-        duration_seconds = m.get("duration_seconds", 0.0) if isinstance(m, dict) else m.duration_seconds
-        
+        metric_value = (
+            m.get("coherence", float("inf"))
+            if isinstance(m, dict)
+            else getattr(m, "coherence", float("inf"))
+        )
+        duration_seconds = (
+            m.get("duration_seconds", 0.0) if isinstance(m, dict) else m.duration_seconds
+        )
+
         if metric_value < self.session.best_metric:
             self.session.best_metric = metric_value
 
-        self._log_buffer.append({
-            "experiment_id": f"exp-{exp_id}",
-            "timestamp": None,  # Defer timestamp to flush - avoids per-exp overhead
-            "metric_value": metric_value,
-            "metric_name": self.config.target_metric,
-            "improved": metric_value < self.session.best_metric,
-            "code_changes": [],
-            "duration_seconds": duration_seconds,
-        })
+        self._log_buffer.append(
+            {
+                "experiment_id": f"exp-{exp_id}",
+                "timestamp": None,  # Defer timestamp to flush - avoids per-exp overhead
+                "metric_value": metric_value,
+                "metric_name": self.config.target_metric,
+                "improved": metric_value < self.session.best_metric,
+                "code_changes": [],
+                "duration_seconds": duration_seconds,
+            }
+        )
 
         # Flush if batch size reached
         if len(self._log_buffer) >= self._log_batch_size:
@@ -272,7 +281,7 @@ class ResearchAgent:
         # Add timestamps at flush time to avoid per-experiment overhead
         ts = datetime.now().isoformat()
         log_path = self.config.experiment_log
-        
+
         with open(log_path, "a") as f:
             for entry in self._log_buffer:
                 entry["timestamp"] = ts  # Reuse same timestamp for batch

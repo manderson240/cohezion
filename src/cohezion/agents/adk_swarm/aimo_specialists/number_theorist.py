@@ -1,9 +1,9 @@
-import os
 from google import adk
+
 
 class NumberTheoristAgent(adk.Agent):
     """Specialist in number theory, modular arithmetic, and prime properties."""
-    
+
     def __init__(self, **kwargs):
         super().__init__(
             name="NumberTheorist",
@@ -12,7 +12,8 @@ class NumberTheoristAgent(adk.Agent):
                 "Solve problems involving primes, divisibility, and integer properties. "
                 "Think step-by-step. Final answer in \\boxed{X} format."
             ),
-            **kwargs
+            **kwargs,
         )
+
 
 agent = NumberTheoristAgent()

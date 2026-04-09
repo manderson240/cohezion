@@ -1,4 +1,3 @@
-from typing import Optional
 """Badge progress tracker with JSON persistence.
 
 Tracks each badge's status: pending, attempting, earned, failed, skipped.
@@ -6,17 +5,17 @@ Persists to badge-progress.json at the repo root.
 """
 
 import json
-from datetime import datetime, timezone
-from pathlib import Path
+from datetime import UTC, datetime
 
-from badge_registry import ALL_BADGES, Badge, get_badge_by_id
+from badge_registry import ALL_BADGES
 from utils import SKILL_ROOT
+
 
 PROGRESS_FILE = SKILL_ROOT / "badge-progress.json"
 
 
 def _now() -> str:
-    return datetime.now(timezone.utc).isoformat()
+    return datetime.now(UTC).isoformat()
 
 
 def load_progress() -> dict:
@@ -41,7 +40,7 @@ def save_progress(data: dict) -> None:
     PROGRESS_FILE.write_text(json.dumps(data, indent=2) + "\n")
 
 
-def set_status(badge_id: str, status: str, details: Optional[str] = None) -> None:
+def set_status(badge_id: str, status: str, details: str | None = None) -> None:
     """Update a badge's status."""
     data = load_progress()
     if badge_id not in data:
@@ -83,15 +82,15 @@ def print_status_table() -> None:
     total = len(ALL_BADGES)
     earned = counts.get("earned", 0)
 
-    print(f"\n{'='*60}")
+    print(f"\n{'=' * 60}")
     print(f"  Badge Progress: {earned}/{total} earned")
-    print(f"{'='*60}")
+    print(f"{'=' * 60}")
     print(f"  Earned:     {counts.get('earned', 0)}")
     print(f"  Pending:    {counts.get('pending', 0)}")
     print(f"  Attempting: {counts.get('attempting', 0)}")
     print(f"  Failed:     {counts.get('failed', 0)}")
     print(f"  Skipped:    {counts.get('skipped', 0)}")
-    print(f"{'='*60}\n")
+    print(f"{'=' * 60}\n")
 
     # Group by phase
     for phase in [1, 2, 3, 4, 5, None]:

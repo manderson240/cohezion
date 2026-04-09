@@ -45,16 +45,16 @@ class CachePersistence:
                         serializable_value = vars(value)
                     elif hasattr(value, "to_dict"):
                         serializable_value = value.to_dict()
-                    
+
                     entry = {
                         "key": key,
                         "value": serializable_value,
                         "timestamp": time.time(),
                         **(metadata or {}),
                     }
-                    
+
                     def default_serializer(obj):
-                        if hasattr(obj, "tolist"): # Handle numpy arrays
+                        if hasattr(obj, "tolist"):  # Handle numpy arrays
                             return obj.tolist()
                         if hasattr(obj, "__dict__"):
                             return vars(obj)

@@ -8,9 +8,9 @@ from __future__ import annotations
 import logging
 import uuid
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional
-from fastapi import FastAPI, HTTPException, Request
+
 from pydantic import BaseModel
+
 
 logger = logging.getLogger(__name__)
 
@@ -25,7 +25,7 @@ class EdgeNode:
     endpoint: str
     status: str = "active"
     last_seen: float = 0.0
-    capabilities: List[str] = field(default_factory=list)
+    capabilities: list[str] = field(default_factory=list)
 
 
 class RegistrationRequest(BaseModel):
@@ -34,14 +34,14 @@ class RegistrationRequest(BaseModel):
     device_model: str
     model_name: str
     endpoint: str
-    capabilities: List[str] = []
+    capabilities: list[str] = []
 
 
 class EdgeGateway:
     """Manages a registry of mobile edge devices for distributed inference."""
 
     def __init__(self):
-        self._nodes: Dict[str, EdgeNode] = {}
+        self._nodes: dict[str, EdgeNode] = {}
 
     async def register_node(self, req: RegistrationRequest) -> str:
         """Registers a new edge node and returns a unique node_id."""
@@ -56,11 +56,11 @@ class EdgeGateway:
         logger.info("Registered edge node %s (%s) at %s", node_id, req.device_model, req.endpoint)
         return node_id
 
-    async def get_node(self, node_id: str) -> Optional[EdgeNode]:
+    async def get_node(self, node_id: str) -> EdgeNode | None:
         """Retrieve node state by ID."""
         return self._nodes.get(node_id)
 
-    async def list_active_nodes(self) -> List[EdgeNode]:
+    async def list_active_nodes(self) -> list[EdgeNode]:
         """Returns all currently active edge nodes."""
         return [n for n in self._nodes.values() if n.status == "active"]
 

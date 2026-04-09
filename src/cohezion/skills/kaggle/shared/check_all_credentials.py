@@ -30,8 +30,10 @@ import os
 import sys
 from pathlib import Path
 
+
 try:
     from dotenv import load_dotenv
+
     load_dotenv()
 except ImportError:
     pass
@@ -114,8 +116,10 @@ def check_all_credentials(output_json: bool = False) -> bool:
         source = "~/.kaggle/access_token" if access_token_file else "env"
         token_type = _detect_token_type(api_token)
         results["KAGGLE_API_TOKEN"] = {
-            "status": "OK", "value": _mask(api_token, 5),
-            "source": source, "type": token_type,
+            "status": "OK",
+            "value": _mask(api_token, 5),
+            "source": source,
+            "type": token_type,
         }
         print(f"[OK] API Token: {_mask(api_token, 5)} ({token_type}, from {source})")
         found_any = True
@@ -145,8 +149,10 @@ def check_all_credentials(output_json: bool = False) -> bool:
         source = "env" if os.getenv("KAGGLE_KEY") else "kaggle.json"
         token_type = _detect_token_type(key)
         results["KAGGLE_KEY"] = {
-            "status": "OK", "value": _mask(key),
-            "source": source, "type": token_type,
+            "status": "OK",
+            "value": _mask(key),
+            "source": source,
+            "type": token_type,
         }
         print(f"[OK] KAGGLE_KEY: {_mask(key)} ({token_type}, from {source})")
         found_any = True

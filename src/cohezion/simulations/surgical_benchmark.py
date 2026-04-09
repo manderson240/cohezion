@@ -1,9 +1,10 @@
 import asyncio
-import time
 import json
 import logging
+import time
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any
+
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
@@ -13,11 +14,11 @@ class SurgicalRegimeBenchmark:
     """Surgical benchmark that tests ONE regime at a time with shorter prompts."""
 
     def __init__(self):
-        self.results: Dict[str, Any] = {}
+        self.results: dict[str, Any] = {}
 
     async def benchmark_regime_atomic(
         self, regime: str, model: str, prompt: str, timeout: float = 60.0
-    ) -> Optional[Dict[str, Any]]:
+    ) -> dict[str, Any] | None:
         """Benchmark a single regime with timeout."""
         logger.info(f"🔬 Testing {regime} regime with {model}...")
 
@@ -50,7 +51,7 @@ class SurgicalRegimeBenchmark:
             logger.info(f"✅ {regime} completed: {latency:.3f}s, {tokens} tokens")
             return result
 
-        except asyncio.TimeoutError:
+        except TimeoutError:
             logger.error(f"❌ {regime} timed out after {timeout}s")
             return {
                 "regime": regime,
@@ -73,7 +74,7 @@ class SurgicalRegimeBenchmark:
                 "error": str(e),
             }
 
-    async def run_single(self, regime: str, model: str, prompt: str) -> Dict[str, Any]:
+    async def run_single(self, regime: str, model: str, prompt: str) -> dict[str, Any]:
         """Run a single regime benchmark."""
         logger.info(f"=== Testing {regime} Regime ===")
 
@@ -110,7 +111,7 @@ class SurgicalRegimeBenchmark:
 
         return results
 
-    def save_results(self, results: Dict[str, Any], output_path: Path):
+    def save_results(self, results: dict[str, Any], output_path: Path):
         """Save benchmark results to JSON."""
         output_path.parent.mkdir(parents=True, exist_ok=True)
 
@@ -129,7 +130,7 @@ class SurgicalRegimeBenchmark:
             b_latency = baseline.get("latency", 0) if baseline.get("success") else "FAILED"
             s_latency = sota.get("latency", 0) if sota.get("success") else "FAILED"
             status = "✅" if baseline.get("success") else "❌"
-            print(f"{regime:<15} | {status:<10} | {str(b_latency):<15} | {str(s_latency):<15}")
+            print(f"{regime:<15} | {status:<10} | {b_latency!s:<15} | {s_latency!s:<15}")
         print("═" * 70)
 
 

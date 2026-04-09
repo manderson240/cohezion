@@ -1,13 +1,12 @@
-import os
 from google import adk
-import numpy as np
+
 
 class ARCManifoldAgent(adk.Agent):
     """
-    Specialist in topological regime detection and 12D manifold-based 
+    Specialist in topological regime detection and 12D manifold-based
     grid transformations for ARC-AGI-3.
     """
-    
+
     def __init__(self, **kwargs):
         super().__init__(
             name="ManifoldSpecialist",
@@ -18,7 +17,7 @@ class ARCManifoldAgent(adk.Agent):
                 "3. Predict the transformation displacement in the manifold. "
                 "4. Synthesize a Python 'AutoHarness' to execute the transformation."
             ),
-            **kwargs
+            **kwargs,
         )
 
     @adk.tool
@@ -29,6 +28,7 @@ class ARCManifoldAgent(adk.Agent):
         """
         # Placeholder for real 12D manifold logic from cohezion.flume
         return [0.5] * 12
+
 
 # ADK entry point
 agent = ARCManifoldAgent()

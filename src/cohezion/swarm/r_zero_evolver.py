@@ -4,7 +4,6 @@ import json
 import logging
 import re
 import sys
-from collections import Counter
 from pathlib import Path
 from typing import Any
 
@@ -90,14 +89,14 @@ class RZeroEvolver:
         """Solver attacks the ARC-AGI task."""
         train_examples = trap.get("train", [])
         test_input = trap.get("test", [{}])[0].get("input", [])
-        
+
         prompt = "You are a master of ARC-AGI tasks. Solve the following puzzle.\n\n"
         for i, ex in enumerate(train_examples):
-            prompt += f"Example {i+1}:\nInput: {ex['input']}\nOutput: {ex['output']}\n\n"
-        
+            prompt += f"Example {i + 1}:\nInput: {ex['input']}\nOutput: {ex['output']}\n\n"
+
         prompt += f"Test Input: {test_input}\n\n"
         prompt += "Provide your detailed reasoning, identifying the rule, then output ONLY the resulting 2D integer array for the Test Input. Output the grid in [[...]] format."
-        
+
         client = get_compound_client()
         response_text, _ = await client.generate(
             prompt=prompt,
@@ -108,10 +107,12 @@ class RZeroEvolver:
 
     async def run_loop(self) -> None:
         # Load existing grounded benchmark
-        benchmark_path = prompt_path.replace("generate_evo_hiho_tasks.py", "evo_hiho_benchmark.json")
-        with open(benchmark_path, "r") as f:
+        benchmark_path = prompt_path.replace(
+            "generate_evo_hiho_tasks.py", "evo_hiho_benchmark.json"
+        )
+        with open(benchmark_path) as f:
             data = json.load(f)
-        
+
         # Handle both {"train": [...]} and [...] formats
         tasks = data.get("train", []) if isinstance(data, dict) else data
         print(f"Loaded {len(tasks)} tasks for evaluation.")
@@ -119,20 +120,20 @@ class RZeroEvolver:
         async with CompoundSessionManager() as mgr:
             mgr.start_session(max_cache_entries=256)
             for i, task in enumerate(tasks):
-                print(f"--- Evaluating Task {i+1}/{len(tasks)} ---")
+                print(f"--- Evaluating Task {i + 1}/{len(tasks)} ---")
                 # Handle nested output from my previous generationpass
                 actual_task = task.get("output") if "output" in task else task
                 if not actual_task or "train" not in actual_task:
-                    print(f"Skipping malformed task {i+1}")
+                    print(f"Skipping malformed task {i + 1}")
                     continue
-                
+
                 prediction = await self.solve_trap(actual_task, mgr)
-                print(f"Prediction for Task {i+1}:\n{prediction}\n")
-                
+                print(f"Prediction for Task {i + 1}:\n{prediction}\n")
+
                 # Validation logic (compare prediction vs ground truth)
                 ground_truth = actual_task.get("test", [{}])[0].get("output")
                 print(f"Ground Truth: {ground_truth}")
-                
+
             mgr.end_session()
 
 

@@ -1,4 +1,4 @@
-# Generated from SKILL_1_PRIME v1.0 at 2026-04-09T00:03:38
+# Generated from SKILL_1_PRIME v1.0 at 2026-04-09T00:39:55
 """Auto-generated executable agent for SKILL_1_PRIME."""
 
 from __future__ import annotations
@@ -8,10 +8,15 @@ from typing import Any
 from cohezion.core.instruction_expander import ExecutablePlan, PlanStep
 from cohezion.core.plan_executor import ExecutionResult, PlanExecutor
 
+
 _PLAN = ExecutablePlan(
     skill_name="SKILL_1_PRIME",
     steps=[
-        PlanStep(operation="search", params={'search_type': 'capability'}, description="Search for items in category 1"),
+        PlanStep(
+            operation="search",
+            params={"search_type": "capability"},
+            description="Search for items in category 1",
+        ),
         PlanStep(operation="generate", params={}, description="Generate a summary"),
     ],
     domain="Domain for skill 1.",

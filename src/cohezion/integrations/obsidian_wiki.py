@@ -7,7 +7,7 @@ import re
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
-from typing import Any
+
 
 logger = logging.getLogger(__name__)
 
@@ -15,6 +15,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class WikiPage:
     """Represents a wiki page."""
+
     path: Path
     title: str
     content: str
@@ -90,11 +91,11 @@ content_hash: {hash(content) & 0xFFFFFFFF}
         full_path = self.wiki_dir / path if isinstance(path, str) else path
         full_path.parent.mkdir(parents=True, exist_ok=True)
 
-        title = content.split('\n')[0].lstrip('# ').strip()
+        title = content.split("\n")[0].lstrip("# ").strip()
         now = datetime.now()
 
         # Extract wiki links [[...]]
-        backlinks = re.findall(r'\[\[([^\]]+)\]\]', content)
+        backlinks = re.findall(r"\[\[([^\]]+)\]\]", content)
 
         # YAML frontmatter
         frontmatter = f"""---
@@ -167,7 +168,7 @@ backlinks: {backlinks}
             if category_dir.is_dir():
                 for md_file in category_dir.rglob("*.md"):
                     content = md_file.read_text()
-                    if content.split('\n')[0].lstrip('# ').strip() == title:
+                    if content.split("\n")[0].lstrip("# ").strip() == title:
                         return self._parse_page(md_file)
         return None
 
@@ -213,8 +214,8 @@ backlinks: {backlinks}
         else:
             body = content
 
-        title = body.split('\n')[0].lstrip('# ').strip()
-        backlinks = re.findall(r'\[\[([^\]]+)\]\]', body)
+        title = body.split("\n")[0].lstrip("# ").strip()
+        backlinks = re.findall(r"\[\[([^\]]+)\]\]", body)
 
         return WikiPage(
             path=path,
@@ -223,8 +224,12 @@ backlinks: {backlinks}
             category=frontmatter.get("category", "unknown"),
             tags=eval(frontmatter.get("tags", "[]")),
             backlinks=backlinks,
-            created_at=datetime.fromisoformat(frontmatter.get("created_at", datetime.now().isoformat())),
-            updated_at=datetime.fromisoformat(frontmatter.get("updated_at", datetime.now().isoformat())),
+            created_at=datetime.fromisoformat(
+                frontmatter.get("created_at", datetime.now().isoformat())
+            ),
+            updated_at=datetime.fromisoformat(
+                frontmatter.get("updated_at", datetime.now().isoformat())
+            ),
             source_refs=eval(frontmatter.get("source_refs", "[]")),
         )
 

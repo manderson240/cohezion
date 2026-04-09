@@ -33,7 +33,7 @@ RETRY_JITTER_MAX = 2.0
 # HTTP status codes that warrant retry
 RETRYABLE_STATUS_CODES = {429, 500, 502, 503, 504}
 
-# Circuit breaker configuration  
+# Circuit breaker configuration
 CIRCUIT_BREAKER_THRESHOLD = 10  # More tolerant
 CIRCUIT_BREAKER_RESET_TIMEOUT_S = 120.0  # Longer recovery
 
@@ -58,7 +58,11 @@ class CircuitBreaker:
     Automatically resets after timeout.
     """
 
-    def __init__(self, threshold: int = CIRCUIT_BREAKER_THRESHOLD, reset_timeout: float = CIRCUIT_BREAKER_RESET_TIMEOUT_S) -> None:
+    def __init__(
+        self,
+        threshold: int = CIRCUIT_BREAKER_THRESHOLD,
+        reset_timeout: float = CIRCUIT_BREAKER_RESET_TIMEOUT_S,
+    ) -> None:
         self.threshold = threshold
         self.reset_timeout = reset_timeout
         self.failure_count: dict[str, int] = {}
@@ -319,8 +323,12 @@ class LLMExecutor:
 
                 # Handle non-200 status codes
                 error_text = await response.aread()
-                error_text_str = error_text.decode('utf-8', errors='replace') if isinstance(error_text, bytes) else error_text
-                error_ref_match = re.search(r'ref:\s*([a-f0-9-]+)', error_text_str)
+                error_text_str = (
+                    error_text.decode("utf-8", errors="replace")
+                    if isinstance(error_text, bytes)
+                    else error_text
+                )
+                error_ref_match = re.search(r"ref:\s*([a-f0-9-]+)", error_text_str)
                 error_ref = f" (ref: {error_ref_match.group(1)})" if error_ref_match else ""
 
                 is_retryable = response.status_code in RETRYABLE_STATUS_CODES

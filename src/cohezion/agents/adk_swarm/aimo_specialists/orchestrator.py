@@ -1,11 +1,12 @@
-import os
 from google import adk
+
 from .agent import agent as algebraist
 from .number_theorist import agent as number_theorist
 
+
 class AIMOOrchestrator(adk.Agent):
     """Main orchestrator for the AIMO Mathematical Reasoning Swarm."""
-    
+
     def __init__(self, **kwargs):
         super().__init__(
             name="AIMOOrchestrator",
@@ -18,7 +19,8 @@ class AIMOOrchestrator(adk.Agent):
             ),
             # ADK A2A: Register specialists as sub-agents
             agents=[algebraist, number_theorist],
-            **kwargs
+            **kwargs,
         )
+
 
 orchestrator = AIMOOrchestrator()

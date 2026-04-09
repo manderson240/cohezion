@@ -57,11 +57,13 @@ def run_server_sync(name: str, transport: str = "stdio", port: int | None = None
     os.environ["MCP_TRANSPORT"] = transport
 
     import importlib
+
     try:
         module = importlib.import_module(module_name)
         if hasattr(module, "main"):
             # If it's the old-style main that might be async, we need to handle it
             import asyncio
+
             if asyncio.iscoroutinefunction(module.main):
                 asyncio.run(module.main())
             else:
@@ -79,7 +81,9 @@ def run_server_sync(name: str, transport: str = "stdio", port: int | None = None
 def main():
     parser = argparse.ArgumentParser(description="Cohezion MCP Fleet Manager")
     parser.add_argument("server", choices=list(SERVER_MAP.keys()) + ["all"], help="Server to start")
-    parser.add_argument("--transport", choices=["stdio", "http"], default="stdio", help="Transport protocol")
+    parser.add_argument(
+        "--transport", choices=["stdio", "http"], default="stdio", help="Transport protocol"
+    )
     parser.add_argument("--port", type=int, help="Port for HTTP transport")
 
     args = parser.parse_args()

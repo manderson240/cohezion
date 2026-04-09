@@ -1,3 +1,19 @@
+### [2026-04-09] SESSION 93: STALE ITEM FIX SPRINT + AUTORESEARCH INTEGRATION
+- **A1 JEPA test**: Fixed `kl_loss` → `sigreg_loss` assertion. 358 genesis tests passing (0 failing).
+- **A2 Ruff lint**: Fixed syntax error in `causal_interpreter.py` (4 trailing quotes in docstring). 1,874 errors auto-fixed, 873 files formatted.
+- **A3 A2A Discovery**: Added `CapabilityRegistry._scan_claude_agents()` + `GET /agents` endpoint. All 7 specialist agents now discoverable.
+- **A4 Graph schema**: Created `scripts/dba/knowledge_graph_schema.surql` (neurons/synapses SCHEMAFULL). Applied to `cohezion:vault`. SurrealDB CLI found at `~/.surrealdb/surreal`.
+- **Part B autoresearch**: Created `src/cohezion/research/autoresearch_driver.py` (K-Search UCB1 + SurrealDB experiments table), `program.md`, extended `AUTORESEARCH_PRIME.md` to v0.2. Wired as Step 5.91 in `CompoundExecutor.execute_task()`. 13 tests passing.
+- **Learnings**: L281-L285.
+
+### [2026-04-08] SESSION 91: INFRASTRUCTURE HARDENING — SCHEMA, PERSISTENCE, TEST SUITE
+- **Schema Drift Fix**: Re-applied `genesis_schema.surql` to live SurrealDB 3.0 — restored all 6 genesis tables to full field counts. Fixed 3 SurrealDB 3.0 syntax regressions: FLEXIBLE TYPE object removed, nullable fields need `TYPE none | object`, views lost ORDER BY support.
+- **L183 Persistence Wiring**: `persist_prompt_artifact()` and `persist_universe_snapshot()` wired into `CompoundExecutor.execute_task()` at Steps 9.1 and 10.7. Pre-existing bug fixed: `persist_universe_snapshot()` was silently failing due to 7 missing SCHEMAFULL fields. Result: 586 prompt_artifacts + 578 universe_snapshots populated.
+- **Test Suite Segfault Fixed**: Root cause — torch._C + scipy BLAS allocator conflict from C extension load order. Fix: `sys.modules` mock for `sentence_transformers` in `tests/cache/conftest.py` at collection time.
+- **anyio Hang Fixed**: `ResourceMonitor._heartbeat_loop()` spawned inside anyio test loop blocked teardown. Fixed via `monitor.stop()` teardown fixture and `_register_with_monitor` monkeypatch.
+- **Graph HIHO Clarified**: `neurons`/`synapses` (Graph HIHO domain) ≠ `prompt_artifacts`/`universe_snapshots` (genesis persistence). L183 is complete; Graph HIHO requires vault-keeper to populate `neurons`.
+- **Learnings**: L276-L280.
+
 ### [2026-04-07] SESSION 89: REPOSITORY SIZE OPTIMIZATION & REPAIR
 - **Audit**: Identified 13.47 GiB pack size bloat primarily due to uncompressed backups (`luma_speedrun_BACKUP_...` - 9.7GB) and stale worktree archives (`aimo.tar.gz` - 4.2GB).
 - **Corruption**: Discovered structural corruption in historical tree objects (empty filenames), blocking standard Git history traversal.
@@ -7,11 +23,8 @@
 - **Cleanup**: Executed manual purge of root-level garbage (typo files, database artifacts, massive backups).
 - **Learnings**: L270 (Repository health as a thermodynamic constraint), L271 (Structural repair via history rebuilding), L272 (Operational log recovery via "Mining").
 
-### [2026-04-05] SESSION 88: GEMMA 4 MULTIMODAL EXPANSION & MODEL CARD GROUNDING
-- **Grounding**: Integrated technical specifications from the official Gemma 4 Model Card.
-- **Specs**: 256K context window, Thinking Mode, Hybrid Attention, Native Audio (E2B/E4B), PLE optimization.
-- **Integration**: Updated `EcoResilienceAgent` reasoning loop to utilize these specifications for high-fidelity synthesis of TEK and HIHO Physics.
-- **Reference**: `src/cohezion/knowledge_graph/GEMMA4_MODEL_CARD.md`.
+### [2026-04-05] SESSION 88: GEMMA 4 MODEL CARD INTEGRATION
+Ingested Gemma 4 specs (256K ctx, Thinking Mode, Hybrid Attn, Native Audio E2B/E4B) into EcoResilienceAgent reasoning loop. Reference: `knowledge_graph/GEMMA4_MODEL_CARD.md`.
 
 ### [2026-04-01] SESSION 87: DEEP BREAKTHROUGHS & CONTINUOUS EVOLUTION (Luma AMD Speedrun)
 - **Deep Breakthroughs**: Implemented stream-aware custom HIP kernels for MLA (576/512 split), MoE (fused pipeline), and GEMM (direct dispatch) to bypass "work on another stream" errors.

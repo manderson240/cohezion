@@ -1,17 +1,18 @@
-""""Cohezion third-party integrations."""
+""" "Cohezion third-party integrations."""
 
 from __future__ import annotations
 
 from .obsidian_wiki import ObsidianWiki, WikiPage
-from .ulogme_bridge import UlogmeBridge, ActivityEntry, FocusSession
-from .wiki_mirix_bridge import WikiMirixBridge, MemoryMapping
+from .ulogme_bridge import ActivityEntry, FocusSession, UlogmeBridge
+from .wiki_mirix_bridge import MemoryMapping, WikiMirixBridge
+
 
 __all__ = [
-    "ObsidianWiki",
-    "WikiPage", 
-    "UlogmeBridge",
     "ActivityEntry",
     "FocusSession",
-    "WikiMirixBridge",
     "MemoryMapping",
+    "ObsidianWiki",
+    "UlogmeBridge",
+    "WikiMirixBridge",
+    "WikiPage",
 ]

@@ -7,6 +7,7 @@ Usage:
 """
 
 import argparse
+
 import kagglehub
 
 
@@ -27,7 +28,9 @@ def download_model(handle: str) -> str:
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Download from Kaggle via kagglehub")
     parser.add_argument("--dataset", default=None, help="Dataset handle (owner/name)")
-    parser.add_argument("--model", default=None, help="Model handle (owner/name/framework/variation)")
+    parser.add_argument(
+        "--model", default=None, help="Model handle (owner/name/framework/variation)"
+    )
     args = parser.parse_args()
 
     if args.dataset:

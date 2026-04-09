@@ -23,6 +23,7 @@ from typing import Any
 
 import httpx
 
+from cohezion.research.autoresearch import AutoResearcher
 from cohezion.swarm.dynamic_model_router import MemoryBandwidthAnalyzer
 from cohezion.swarm.model_manager import OLLAMA_HOST
 from cohezion.swarm.model_pool_config import (
@@ -31,7 +32,6 @@ from cohezion.swarm.model_pool_config import (
     PoolStatus,
     TierConfig,
 )
-from cohezion.research.autoresearch import AutoResearcher
 
 
 logger = logging.getLogger(__name__)

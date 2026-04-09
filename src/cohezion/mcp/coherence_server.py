@@ -67,8 +67,7 @@ def get_detector() -> DegradationDetector:
     global _degradation_detector
     if _degradation_detector is None:
         _degradation_detector = DegradationDetector(
-            coherence_threshold=0.50,
-            cache_hit_rate_threshold=0.50
+            coherence_threshold=0.50, cache_hit_rate_threshold=0.50
         )
     return _degradation_detector
 
@@ -88,7 +87,10 @@ async def list_tools() -> list[Tool]:
                 "type": "object",
                 "properties": {
                     "intent": {"type": "string", "description": "User intent description"},
-                    "tool": {"type": "string", "description": "Tool being used (edit, write, bash, etc)"},
+                    "tool": {
+                        "type": "string",
+                        "description": "Tool being used (edit, write, bash, etc)",
+                    },
                     "context": {"type": "string", "description": "Additional context (optional)"},
                 },
                 "required": ["intent", "tool"],
@@ -101,7 +103,10 @@ async def list_tools() -> list[Tool]:
                 "type": "object",
                 "properties": {
                     "task_description": {"type": "string"},
-                    "operation_type": {"type": "string", "enum": ["generate", "analyze", "search", "transform", "persist"]},
+                    "operation_type": {
+                        "type": "string",
+                        "enum": ["generate", "analyze", "search", "transform", "persist"],
+                    },
                     "coherence": {"type": "number", "description": "Coherence score 0.0-1.0"},
                     "efficiency": {"type": "number", "description": "Token efficiency 0.0-1.0"},
                     "success": {"type": "boolean"},
@@ -116,7 +121,11 @@ async def list_tools() -> list[Tool]:
             inputSchema={
                 "type": "object",
                 "properties": {
-                    "window": {"type": "integer", "default": 10, "description": "Number of recent points"},
+                    "window": {
+                        "type": "integer",
+                        "default": 10,
+                        "description": "Number of recent points",
+                    },
                 },
             },
         ),
@@ -262,8 +271,7 @@ async def _check_alignment(arguments: dict[str, Any]) -> list[TextContent]:
     vault_score = 0.5
     try:
         vault_result = await asyncio.wait_for(
-            mcp.vault_find_relevant_context(f"{intent} using {tool}"),
-            timeout=2.0
+            mcp.vault_find_relevant_context(f"{intent} using {tool}"), timeout=2.0
         )
         if vault_result:
             vault_score = 0.7  # Prior success boosts confidence
@@ -335,10 +343,7 @@ async def _track_journey_step(arguments: dict[str, Any]) -> list[TextContent]:
             "task_description": point.task_description,
             "timestamp": point.timestamp,
         }
-        await asyncio.wait_for(
-            mcp.vault_create("journey", vault_entry),
-            timeout=3.0
-        )
+        await asyncio.wait_for(mcp.vault_create("journey", vault_entry), timeout=3.0)
     except Exception as e:
         logger.debug("Vault store failed (non-blocking): %s", e)
 
@@ -422,6 +427,7 @@ async def _extract_pattern(arguments: dict[str, Any]) -> list[TextContent]:
     embedding = None
     try:
         from cohezion.flume.autoencoder import FlumeEncoder
+
         encoder = FlumeEncoder()
         code = arguments.get("code", "")
         embedding = encoder.encode(code).tolist()
@@ -429,8 +435,9 @@ async def _extract_pattern(arguments: dict[str, Any]) -> list[TextContent]:
         logger.debug("FLUME encoding failed: %s", e)
         # Fallback: use deterministic hash-based encoding
         import hashlib
+
         code_hash = hashlib.sha256(arguments.get("code", "").encode()).hexdigest()
-        embedding = [int(code_hash[i:i+2], 16) / 255.0 for i in range(0, 64, 2)]
+        embedding = [int(code_hash[i : i + 2], 16) / 255.0 for i in range(0, 64, 2)]
 
     result = {
         "name": arguments.get("name"),
@@ -452,8 +459,7 @@ async def _query_patterns(arguments: dict[str, Any]) -> list[TextContent]:
     try:
         mcp = await get_mcp()
         patterns = await asyncio.wait_for(
-            mcp.vault_find_relevant_context(query, limit=limit),
-            timeout=3.0
+            mcp.vault_find_relevant_context(query, limit=limit), timeout=3.0
         )
 
         result = {
@@ -481,20 +487,24 @@ async def _refine_skill(arguments: dict[str, Any]) -> list[TextContent]:
             break
 
     if not skill_file:
-        return [TextContent(type="text", text=json.dumps({
-            "success": False,
-            "error": f"Skill '{skill_name}' not found in {skills_dir}"
-        }))]
+        return [
+            TextContent(
+                type="text",
+                text=json.dumps(
+                    {"success": False, "error": f"Skill '{skill_name}' not found in {skills_dir}"}
+                ),
+            )
+        ]
 
     # Append refinement
     refinement = f"""
 ## Refinement {asyncio.get_event_loop().time()}
-- Pattern: {pattern.get('name', 'unknown')}
-- Confidence: {pattern.get('confidence', 0.0):.2f}
-- Coherence: {pattern.get('coherence', 0.0):.2f}
+- Pattern: {pattern.get("name", "unknown")}
+- Confidence: {pattern.get("confidence", 0.0):.2f}
+- Coherence: {pattern.get("coherence", 0.0):.2f}
 
 ```
-{pattern.get('code_example', '')}
+{pattern.get("code_example", "")}
 ```
 
 """
@@ -519,11 +529,7 @@ async def main():
     from mcp.server.stdio import stdio_server
 
     async with stdio_server() as (read_stream, write_stream):
-        await app.run(
-            read_stream,
-            write_stream,
-            app.create_initialization_options()
-        )
+        await app.run(read_stream, write_stream, app.create_initialization_options())
 
 
 if __name__ == "__main__":

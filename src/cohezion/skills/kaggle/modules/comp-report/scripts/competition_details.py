@@ -7,7 +7,6 @@ Usage:
 import argparse
 import json
 import re
-import sys
 
 from utils import get_api, rate_limit, unwrap_response
 
@@ -38,10 +37,12 @@ def get_competition_files(api, slug: str) -> list[dict]:
         files = unwrap_response(raw, "files")
         result = []
         for f in files:
-            result.append({
-                "name": getattr(f, "name", str(f)),
-                "size": getattr(f, "totalBytes", getattr(f, "size", 0)),
-            })
+            result.append(
+                {
+                    "name": getattr(f, "name", str(f)),
+                    "size": getattr(f, "totalBytes", getattr(f, "size", 0)),
+                }
+            )
         return result
     except Exception as e:
         return [{"error": str(e)}]
@@ -56,15 +57,19 @@ def get_leaderboard(api, slug: str, top_n: int = 5) -> list[dict]:
             lb = unwrap_response(raw, "leaderboard")
         entries = []
         for i, entry in enumerate(lb[:top_n]):
-            team = (getattr(entry, "team_name", None)
-                    or getattr(entry, "teamName", None)
-                    or getattr(entry, "team_id", None)
-                    or getattr(entry, "teamId", ""))
-            entries.append({
-                "rank": i + 1,
-                "team": team or "",
-                "score": getattr(entry, "score", ""),
-            })
+            team = (
+                getattr(entry, "team_name", None)
+                or getattr(entry, "teamName", None)
+                or getattr(entry, "team_id", None)
+                or getattr(entry, "teamId", "")
+            )
+            entries.append(
+                {
+                    "rank": i + 1,
+                    "team": team or "",
+                    "score": getattr(entry, "score", ""),
+                }
+            )
         return entries
     except Exception as e:
         return [{"error": str(e)}]
@@ -79,13 +84,15 @@ def get_top_kernels(api, slug: str, page_size: int = 10) -> list[dict]:
         for k in kernels:
             title = getattr(k, "title", "")
             ref = getattr(k, "ref", "")
-            result.append({
-                "title": title,
-                "ref": ref,
-                "votes": getattr(k, "totalVotes", 0),
-                "url": f"https://www.kaggle.com/code/{ref}" if ref else "",
-                "is_writeup": is_writeup_kernel(title),
-            })
+            result.append(
+                {
+                    "title": title,
+                    "ref": ref,
+                    "votes": getattr(k, "totalVotes", 0),
+                    "url": f"https://www.kaggle.com/code/{ref}" if ref else "",
+                    "is_writeup": is_writeup_kernel(title),
+                }
+            )
         return result
     except Exception as e:
         return [{"error": str(e)}]
@@ -122,7 +129,9 @@ def get_details(slug: str, top_n: int = 5) -> dict:
 def main():
     parser = argparse.ArgumentParser(description="Get details for a Kaggle competition")
     parser.add_argument("--slug", required=True, help="Competition slug")
-    parser.add_argument("--top-n", type=int, default=5, help="Top N leaderboard entries (default: 5)")
+    parser.add_argument(
+        "--top-n", type=int, default=5, help="Top N leaderboard entries (default: 5)"
+    )
     args = parser.parse_args()
 
     details = get_details(args.slug, args.top_n)

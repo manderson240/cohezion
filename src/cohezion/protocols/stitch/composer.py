@@ -5,8 +5,10 @@ Implements dynamic skill discovery and composition following the Stitch protocol
 from __future__ import annotations
 
 import logging
-from typing import Any, Dict, List, Optional
-from pydantic import BaseModel, Field
+from typing import Any
+
+from pydantic import BaseModel
+
 
 logger = logging.getLogger(__name__)
 
@@ -18,15 +20,15 @@ class StitchSkillDefinition(BaseModel):
     name: str
     description: str
     regime: str  # Sensing, Calculation, Synthesis, Steering
-    parameters: Dict[str, Any] = {}
-    output_schema: Dict[str, Any] = {}
+    parameters: dict[str, Any] = {}
+    output_schema: dict[str, Any] = {}
 
 
 class StitchSkillComposer:
     """Composes a sequence of skills (a 'thread') to execute a complex task."""
 
     def __init__(self):
-        self.registry: Dict[str, StitchSkillDefinition] = {}
+        self.registry: dict[str, StitchSkillDefinition] = {}
 
     def register_skill(self, skill: StitchSkillDefinition):
         """Adds a skill to the local registry."""
@@ -34,8 +36,8 @@ class StitchSkillComposer:
         logger.info(f"Stitch-Skill registered: {skill.name} [{skill.regime}]")
 
     def compose_thread(
-        self, objective: str, available_regimes: List[str]
-    ) -> List[StitchSkillDefinition]:
+        self, objective: str, available_regimes: list[str]
+    ) -> list[StitchSkillDefinition]:
         """
         Dynamically composes a skill thread based on the objective.
         In the Symphony context, this maps the objective to the 4-regime sequence.

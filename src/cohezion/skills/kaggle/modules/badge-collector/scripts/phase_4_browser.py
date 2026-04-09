@@ -1,4 +1,3 @@
-from typing import Optional
 """Phase 4: Browser badges (~8 badges).
 
 Earns badges that require browser interaction via Playwright:
@@ -21,10 +20,9 @@ import time
 from pathlib import Path
 
 from badge_tracker import set_status, should_attempt
-from utils import get_username
 
 
-def _get_kaggle_cookies() -> Optional[dict]:
+def _get_kaggle_cookies() -> dict | None:
     """Try to get Kaggle session cookies from environment or kaggle.json."""
     username = os.getenv("KAGGLE_USERNAME", "")
     key = os.getenv("KAGGLE_KEY", "")
@@ -43,6 +41,7 @@ def _try_playwright() -> bool:
     """Check if Playwright is available."""
     try:
         from playwright.sync_api import sync_playwright
+
         return True
     except ImportError:
         return False
@@ -65,7 +64,7 @@ def _fill_profile(username: str) -> bool:
         _print_manual_instructions(
             "Stylish",
             "Go to https://www.kaggle.com/settings and fill out your bio, "
-            "location, occupation, and organization fields."
+            "location, occupation, and organization fields.",
         )
         set_status("stylish", "skipped", "Playwright not available — manual action needed")
         return False
@@ -97,8 +96,10 @@ def _fill_profile(username: str) -> bool:
                 # Fill bio
                 bio_field = page.query_selector('textarea[name="bio"]')
                 if bio_field:
-                    bio_field.fill("Data scientist and machine learning enthusiast. "
-                                   "Exploring Kaggle competitions and datasets.")
+                    bio_field.fill(
+                        "Data scientist and machine learning enthusiast. "
+                        "Exploring Kaggle competitions and datasets."
+                    )
 
                 # Fill location
                 location_field = page.query_selector('input[name="location"]')
@@ -136,8 +137,7 @@ def _dark_theme(username: str) -> bool:
 
     if not _try_playwright():
         _print_manual_instructions(
-            "Vampire",
-            "Go to https://www.kaggle.com/settings and switch to dark theme."
+            "Vampire", "Go to https://www.kaggle.com/settings and switch to dark theme."
         )
         set_status("vampire", "skipped", "Playwright not available — manual action needed")
         return False
@@ -190,7 +190,7 @@ def _bookmark(username: str) -> bool:
     if not _try_playwright():
         _print_manual_instructions(
             "Bookmarker",
-            "Go to any Kaggle notebook/dataset/competition and click the bookmark icon."
+            "Go to any Kaggle notebook/dataset/competition and click the bookmark icon.",
         )
         set_status("bookmarker", "skipped", "Playwright not available — manual action needed")
         return False
@@ -238,7 +238,7 @@ def _collector(username: str) -> bool:
     if not _try_playwright():
         _print_manual_instructions(
             "Collector",
-            "Go to any Kaggle notebook/dataset, click the '...' menu, and select 'Add to collection'."
+            "Go to any Kaggle notebook/dataset, click the '...' menu, and select 'Add to collection'.",
         )
         set_status("collector", "skipped", "Playwright not available — manual action needed")
         return False
@@ -246,7 +246,7 @@ def _collector(username: str) -> bool:
     # Collection creation is complex via browser automation
     _print_manual_instructions(
         "Collector",
-        "Go to any Kaggle notebook/dataset, click the '...' menu, and select 'Add to collection'."
+        "Go to any Kaggle notebook/dataset, click the '...' menu, and select 'Add to collection'.",
     )
     set_status("collector", "skipped", "complex browser interaction — manual action recommended")
     return False
@@ -260,7 +260,7 @@ def _github_coder(username: str) -> bool:
     set_status("github_coder", "attempting")
     _print_manual_instructions(
         "GitHub Coder",
-        "Create a notebook on Kaggle and link a GitHub repository to it via the notebook settings."
+        "Create a notebook on Kaggle and link a GitHub repository to it via the notebook settings.",
     )
     set_status("github_coder", "skipped", "requires GitHub linking via UI")
     return False
@@ -274,7 +274,7 @@ def _colab_coder(username: str) -> bool:
     set_status("colab_coder", "attempting")
     _print_manual_instructions(
         "Colab Coder",
-        "Go to any Kaggle notebook, click the '...' menu, and select 'Open in Google Colab'."
+        "Go to any Kaggle notebook, click the '...' menu, and select 'Open in Google Colab'.",
     )
     set_status("colab_coder", "skipped", "requires Colab action via UI")
     return False
@@ -289,7 +289,7 @@ def _linked_dataset(username: str) -> bool:
     _print_manual_instructions(
         "Linked Dataset Creator",
         "Go to https://www.kaggle.com/datasets/new and create a dataset by providing "
-        "a URL source instead of uploading files."
+        "a URL source instead of uploading files.",
     )
     set_status("linked_dataset_creator", "skipped", "requires URL-linked dataset via UI")
     return False
@@ -304,7 +304,7 @@ def _linked_model(username: str) -> bool:
     _print_manual_instructions(
         "Linked Model Creator",
         "Go to https://www.kaggle.com/models/new and create a model linked "
-        "to an external source (e.g., HuggingFace)."
+        "to an external source (e.g., HuggingFace).",
     )
     set_status("linked_model_creator", "skipped", "requires linked model via UI")
     return False

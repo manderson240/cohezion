@@ -4,11 +4,11 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass
-from datetime import datetime
 from pathlib import Path
 from typing import Any
 
 from cohezion.core.persistence.surreal_client import PhysicsState, SurrealClient, UniverseNode
+
 
 try:
     from mirix import MirixClient
@@ -21,6 +21,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class MemoryMapping:
     """Map wiki pages to MIRIX memory types."""
+
     wiki_path: str
     mirix_type: str  # core, episodic, semantic, procedural, resource, knowledge
     confidence: float
@@ -136,7 +137,12 @@ class WikiMirixBridge:
             self.mirix.add(
                 user_id="cohezion-user",
                 messages=[
-                    {"role": "user", "content": [{"type": "text", "text": f"Store in knowledge vault: {content}"}]},
+                    {
+                        "role": "user",
+                        "content": [
+                            {"type": "text", "text": f"Store in knowledge vault: {content}"}
+                        ],
+                    },
                 ],
             )
 
@@ -201,8 +207,7 @@ class WikiMirixBridge:
         # Query wiki (local files)
         wiki_pages = await self.wiki.query_pages(query, limit=5)
         results["wiki_results"] = [
-            {"title": p.title, "category": p.category, "path": str(p.path)}
-            for p in wiki_pages
+            {"title": p.title, "category": p.category, "path": str(p.path)} for p in wiki_pages
         ]
 
         # Query MIRIX (if available)

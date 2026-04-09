@@ -17,6 +17,7 @@ from fastapi.testclient import TestClient
 def client():
     """FastAPI test client with A2A endpoints."""
     from cohezion.api import app
+
     return TestClient(app)
 
 
@@ -30,6 +31,7 @@ def mock_auth_token(monkeypatch):
         return test_token
 
     from cohezion.mcp.manager import auth
+
     monkeypatch.setattr(auth, "get_current_token", mock_get_token)
 
     return test_token
@@ -51,12 +53,10 @@ class TestA2AAuthentication:
 
     def test_send_task_without_auth_header_fails(self, client):
         """Test: POST /tasks/send without X-Cohezion-Key returns 401"""
-        response = client.post("/tasks/send", json={
-            "message": {
-                "role": "user",
-                "parts": [{"type": "text", "text": "Test"}]
-            }
-        })
+        response = client.post(
+            "/tasks/send",
+            json={"message": {"role": "user", "parts": [{"type": "text", "text": "Test"}]}},
+        )
 
         assert response.status_code == 401
         assert "X-Cohezion-Key" in response.json()["detail"]
@@ -65,29 +65,21 @@ class TestA2AAuthentication:
         """Test: POST /tasks/send with invalid token returns 403"""
         response = client.post(
             "/tasks/send",
-            json={
-                "message": {
-                    "role": "user",
-                    "parts": [{"type": "text", "text": "Test"}]
-                }
-            },
-            headers={"X-Cohezion-Key": "invalid-token"}
+            json={"message": {"role": "user", "parts": [{"type": "text", "text": "Test"}]}},
+            headers={"X-Cohezion-Key": "invalid-token"},
         )
 
         assert response.status_code == 403
         assert "Invalid" in response.json()["detail"]
 
-    def test_send_task_with_valid_token_succeeds(self, client, mock_auth_token, mock_compound_executor):
+    def test_send_task_with_valid_token_succeeds(
+        self, client, mock_auth_token, mock_compound_executor
+    ):
         """Test: POST /tasks/send with valid token returns 200"""
         response = client.post(
             "/tasks/send",
-            json={
-                "message": {
-                    "role": "user",
-                    "parts": [{"type": "text", "text": "Test"}]
-                }
-            },
-            headers={"X-Cohezion-Key": mock_auth_token}
+            json={"message": {"role": "user", "parts": [{"type": "text", "text": "Test"}]}},
+            headers={"X-Cohezion-Key": mock_auth_token},
         )
 
         assert response.status_code == 200
@@ -171,10 +163,10 @@ class TestA2ATaskLifecycle:
             json={
                 "message": {
                     "role": "user",
-                    "parts": [{"type": "text", "text": "Run FLUME VAE with 100 samples"}]
+                    "parts": [{"type": "text", "text": "Run FLUME VAE with 100 samples"}],
                 }
             },
-            headers={"X-Cohezion-Key": mock_auth_token}
+            headers={"X-Cohezion-Key": mock_auth_token},
         )
 
         assert response.status_code == 200
@@ -190,17 +182,19 @@ class TestA2ATaskLifecycle:
         assert data["state"] in ["submitted", "working", "completed"]
         assert len(data["messages"]) >= 1
 
-    def test_send_task_routes_to_compound_executor(self, client, mock_auth_token, mock_compound_executor):
+    def test_send_task_routes_to_compound_executor(
+        self, client, mock_auth_token, mock_compound_executor
+    ):
         """Test 5/11: Task is routed to CompoundExecutor."""
         client.post(
             "/tasks/send",
             json={
                 "message": {
                     "role": "user",
-                    "parts": [{"type": "text", "text": "Analyze universe coherence"}]
+                    "parts": [{"type": "text", "text": "Analyze universe coherence"}],
                 }
             },
-            headers={"X-Cohezion-Key": mock_auth_token}
+            headers={"X-Cohezion-Key": mock_auth_token},
         )
 
         # Verify CompoundExecutor was called
@@ -208,18 +202,17 @@ class TestA2ATaskLifecycle:
         args = mock_compound_executor.execute.call_args[0]
         assert "Analyze universe coherence" in args[0]
 
-    def test_send_task_with_existing_task_id_continues_conversation(self, client, mock_auth_token, mock_compound_executor):
+    def test_send_task_with_existing_task_id_continues_conversation(
+        self, client, mock_auth_token, mock_compound_executor
+    ):
         """Test 6/11: Sending message with task_id continues existing task."""
         # Create initial task
         response1 = client.post(
             "/tasks/send",
             json={
-                "message": {
-                    "role": "user",
-                    "parts": [{"type": "text", "text": "What is FLUME?"}]
-                }
+                "message": {"role": "user", "parts": [{"type": "text", "text": "What is FLUME?"}]}
             },
-            headers={"X-Cohezion-Key": mock_auth_token}
+            headers={"X-Cohezion-Key": mock_auth_token},
         )
         task_id = response1.json()["id"]
 
@@ -230,10 +223,10 @@ class TestA2ATaskLifecycle:
                 "task_id": task_id,
                 "message": {
                     "role": "user",
-                    "parts": [{"type": "text", "text": "Show me an example"}]
-                }
+                    "parts": [{"type": "text", "text": "Show me an example"}],
+                },
             },
-            headers={"X-Cohezion-Key": mock_auth_token}
+            headers={"X-Cohezion-Key": mock_auth_token},
         )
 
         assert response2.status_code == 200
@@ -250,21 +243,13 @@ class TestA2ATaskLifecycle:
         # Create task
         create_response = client.post(
             "/tasks/send",
-            json={
-                "message": {
-                    "role": "user",
-                    "parts": [{"type": "text", "text": "Test task"}]
-                }
-            },
-            headers={"X-Cohezion-Key": mock_auth_token}
+            json={"message": {"role": "user", "parts": [{"type": "text", "text": "Test task"}]}},
+            headers={"X-Cohezion-Key": mock_auth_token},
         )
         task_id = create_response.json()["id"]
 
         # Get task status
-        response = client.get(
-            f"/tasks/{task_id}",
-            headers={"X-Cohezion-Key": mock_auth_token}
-        )
+        response = client.get(f"/tasks/{task_id}", headers={"X-Cohezion-Key": mock_auth_token})
 
         assert response.status_code == 200
         data = response.json()
@@ -277,34 +262,29 @@ class TestA2ATaskLifecycle:
     def test_get_task_nonexistent_returns_404(self, client, mock_auth_token):
         """Test 8/11: Getting nonexistent task returns 404."""
         response = client.get(
-            "/tasks/nonexistent-task-id-12345",
-            headers={"X-Cohezion-Key": mock_auth_token}
+            "/tasks/nonexistent-task-id-12345", headers={"X-Cohezion-Key": mock_auth_token}
         )
 
         assert response.status_code == 404
         assert "not found" in response.json()["detail"].lower()
 
-    def test_cancel_task_transitions_to_canceled(self, client, mock_auth_token, mock_compound_executor):
+    def test_cancel_task_transitions_to_canceled(
+        self, client, mock_auth_token, mock_compound_executor
+    ):
         """Test 9/11: POST /tasks/{id}/cancel returns correct structure."""
         # Note: Current A2A implementation executes tasks synchronously (awaits completion)
         # so tasks complete immediately. This test verifies cancel endpoint structure.
 
         create_response = client.post(
             "/tasks/send",
-            json={
-                "message": {
-                    "role": "user",
-                    "parts": [{"type": "text", "text": "Test task"}]
-                }
-            },
-            headers={"X-Cohezion-Key": mock_auth_token}
+            json={"message": {"role": "user", "parts": [{"type": "text", "text": "Test task"}]}},
+            headers={"X-Cohezion-Key": mock_auth_token},
         )
         task_id = create_response.json()["id"]
 
         # Try to cancel (task likely already completed)
         cancel_response = client.post(
-            f"/tasks/{task_id}/cancel",
-            headers={"X-Cohezion-Key": mock_auth_token}
+            f"/tasks/{task_id}/cancel", headers={"X-Cohezion-Key": mock_auth_token}
         )
 
         assert cancel_response.status_code == 200
@@ -316,26 +296,22 @@ class TestA2ATaskLifecycle:
         # Task is already completed, so canceled=False is expected
         assert isinstance(data["canceled"], bool)
 
-    def test_cancel_completed_task_returns_false(self, client, mock_auth_token, mock_compound_executor):
+    def test_cancel_completed_task_returns_false(
+        self, client, mock_auth_token, mock_compound_executor
+    ):
         """Test 10/11: Canceling already completed task returns false."""
         # Create and complete task
         create_response = client.post(
             "/tasks/send",
-            json={
-                "message": {
-                    "role": "user",
-                    "parts": [{"type": "text", "text": "Quick task"}]
-                }
-            },
-            headers={"X-Cohezion-Key": mock_auth_token}
+            json={"message": {"role": "user", "parts": [{"type": "text", "text": "Quick task"}]}},
+            headers={"X-Cohezion-Key": mock_auth_token},
         )
         task_id = create_response.json()["id"]
 
         # Task should be completed by now (mock returns immediately)
         # Try to cancel
         cancel_response = client.post(
-            f"/tasks/{task_id}/cancel",
-            headers={"X-Cohezion-Key": mock_auth_token}
+            f"/tasks/{task_id}/cancel", headers={"X-Cohezion-Key": mock_auth_token}
         )
 
         # Should return success=false or 409 conflict
@@ -352,10 +328,10 @@ class TestA2AErrorHandling:
             json={
                 "message": {
                     "role": "user",
-                    "parts": []  # Empty parts
+                    "parts": [],  # Empty parts
                 }
             },
-            headers={"X-Cohezion-Key": mock_auth_token}
+            headers={"X-Cohezion-Key": mock_auth_token},
         )
 
         assert response.status_code in [400, 422]
@@ -367,10 +343,10 @@ class TestA2AErrorHandling:
             json={
                 "message": {
                     "role": "hacker",  # Invalid role
-                    "parts": [{"type": "text", "text": "test"}]
+                    "parts": [{"type": "text", "text": "test"}],
                 }
             },
-            headers={"X-Cohezion-Key": mock_auth_token}
+            headers={"X-Cohezion-Key": mock_auth_token},
         )
 
         # Should validate or accept and normalize to 'user'
@@ -401,10 +377,10 @@ class TestA2AErrorHandling:
                 json={
                     "message": {
                         "role": "user",
-                        "parts": [{"type": "text", "text": "Fail this task"}]
+                        "parts": [{"type": "text", "text": "Fail this task"}],
                     }
                 },
-                headers={"X-Cohezion-Key": mock_auth_token}
+                headers={"X-Cohezion-Key": mock_auth_token},
             )
 
             assert response.status_code == 200
@@ -430,13 +406,8 @@ class TestA2AErrorHandling:
 
         response = client.post(
             "/tasks/send",
-            json={
-                "message": {
-                    "role": "user",
-                    "parts": [{"type": "text", "text": large_text}]
-                }
-            },
-            headers={"X-Cohezion-Key": mock_auth_token}
+            json={"message": {"role": "user", "parts": [{"type": "text", "text": large_text}]}},
+            headers={"X-Cohezion-Key": mock_auth_token},
         )
 
         # Should reject with 422 (Pydantic validation error)
@@ -445,3 +416,50 @@ class TestA2AErrorHandling:
 
         # Verify error mentions size limit
         assert any("size" in str(err).lower() or "1048576" in str(err) for err in error_detail)
+
+
+class TestA2AMultiAgentDiscovery:
+    """Test GET /agents — multi-agent discovery endpoint."""
+
+    EXPECTED_SPECIALISTS = [
+        "vault-keeper",
+        "surreal-dba",
+        "claude-specialist",
+        "gemini-specialist",
+        "ollama-specialist",
+        "mcp-specialist",
+        "platform-coordinator",
+    ]
+
+    def test_list_agents_returns_ok(self, client):
+        """GET /agents returns 200 with count and agents list."""
+        response = client.get("/agents")
+        assert response.status_code == 200
+        data = response.json()
+        assert "count" in data
+        assert "agents" in data
+        assert isinstance(data["agents"], list)
+
+    def test_list_agents_finds_all_7_specialists(self, client):
+        """All 7 .claude/agents/ markdown specialists appear in the list."""
+        response = client.get("/agents")
+        assert response.status_code == 200
+        names = {a["name"] for a in response.json()["agents"]}
+        for specialist in self.EXPECTED_SPECIALISTS:
+            assert specialist in names, f"Specialist '{specialist}' not discovered"
+
+    def test_list_agents_response_schema(self, client):
+        """Each agent entry has the required fields: id, name, description, path, tags."""
+        response = client.get("/agents")
+        for agent in response.json()["agents"]:
+            assert "id" in agent
+            assert "name" in agent
+            assert "description" in agent
+            assert "path" in agent
+            assert "tags" in agent
+            assert isinstance(agent["tags"], list)
+
+    def test_list_agents_count_matches_list_length(self, client):
+        """count field equals len(agents)."""
+        data = client.get("/agents").json()
+        assert data["count"] == len(data["agents"])

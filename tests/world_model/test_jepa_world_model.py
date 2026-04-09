@@ -68,7 +68,7 @@ class TestTraining:
         assert model.metrics.epoch == 1
         assert model.metrics.n_samples == 100
         assert model.metrics.prediction_loss >= 0
-        assert model.metrics.kl_loss >= 0
+        assert model.metrics.sigreg_loss >= 0
         assert len(model.metrics.history) == 1
 
     def test_empty_dataset_returns_zero_loss(self):

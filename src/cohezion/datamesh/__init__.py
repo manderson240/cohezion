@@ -5,43 +5,46 @@ Charter: Idempotent operations, 0.5 coherence via CQRS, full lineage tracking.
 
 from __future__ import annotations
 
-from cohezion.datamesh.schema import (
-    UnifiedRecord,
-    RecordType,
-    RelationType,
-    DataLineage,
-)
-from cohezion.datamesh.query import DatameshQuery, DatameshResult
-from cohezion.datamesh.ingestion import DatameshIngestion
-from cohezion.datamesh.federation import FederationLayer
 from cohezion.datamesh.bidirectional_linkage import (
-    BidirectionalLinkageManager,
     BidirectionalLink,
+    BidirectionalLinkageManager,
     LinkDirection,
     LinkStatus,
 )
+from cohezion.datamesh.federation import FederationLayer
+from cohezion.datamesh.ingestion import DatameshIngestion
 from cohezion.datamesh.knowledge_graph_layer import (
+    KnowledgeEdge,
     KnowledgeGraphLayer,
     KnowledgeNode,
-    KnowledgeEdge,
+)
+from cohezion.datamesh.knowledge_graph_layer import (
     RelationType as KGRelationType,
 )
+from cohezion.datamesh.query import DatameshQuery, DatameshResult
+from cohezion.datamesh.schema import (
+    DataLineage,
+    RecordType,
+    RelationType,
+    UnifiedRecord,
+)
+
 
 __all__ = [
-    "UnifiedRecord",
-    "RecordType",
-    "RelationType",
+    "BidirectionalLink",
+    "BidirectionalLinkageManager",
     "DataLineage",
+    "DatameshIngestion",
     "DatameshQuery",
     "DatameshResult",
-    "DatameshIngestion",
     "FederationLayer",
-    "BidirectionalLinkageManager",
-    "BidirectionalLink",
-    "LinkDirection",
-    "LinkStatus",
+    "KGRelationType",
+    "KnowledgeEdge",
     "KnowledgeGraphLayer",
     "KnowledgeNode",
-    "KnowledgeEdge",
-    "KGRelationType",
+    "LinkDirection",
+    "LinkStatus",
+    "RecordType",
+    "RelationType",
+    "UnifiedRecord",
 ]

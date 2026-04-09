@@ -1,4 +1,3 @@
-from typing import Optional
 """Phase 2: Competition badges (~7 badges).
 
 Earns badges by submitting to various competition types:
@@ -10,12 +9,9 @@ Uses pre-built submission_titanic.csv and finds active competitions via CLI.
 """
 
 import json
-import shutil
-from pathlib import Path
 
 from badge_tracker import set_status, should_attempt
 from utils import (
-    API_DELAY,
     TEMPLATES_DIR,
     make_temp_dir,
     resource_name,
@@ -23,7 +19,7 @@ from utils import (
 )
 
 
-def _find_competition_by_category(category: str) -> Optional[str]:
+def _find_competition_by_category(category: str) -> str | None:
     """Find an active competition by category.
 
     kaggle CLI v1.8+ outputs full URLs in the ref column:
@@ -77,12 +73,18 @@ def _submit_titanic(username: str) -> bool:
                 set_status(bid, "failed", "template missing")
             return False
 
-        run_kaggle_cli([
-            "competitions", "submit",
-            "-c", "titanic",
-            "-f", str(submission_file),
-            "-m", "Badge Collector automated submission",
-        ])
+        run_kaggle_cli(
+            [
+                "competitions",
+                "submit",
+                "-c",
+                "titanic",
+                "-f",
+                str(submission_file),
+                "-m",
+                "Badge Collector automated submission",
+            ]
+        )
         print("  [OK] Submitted to Titanic competition")
 
         for bid in actionable:
@@ -116,13 +118,20 @@ def _submit_playground(username: str) -> bool:
 
         # Download competition data to get sample_submission.csv
         tmp = make_temp_dir("-playground")
-        dl_result = run_kaggle_cli([
-            "competitions", "download", comp,
-            "--path", str(tmp),
-        ], check=False)
+        dl_result = run_kaggle_cli(
+            [
+                "competitions",
+                "download",
+                comp,
+                "--path",
+                str(tmp),
+            ],
+            check=False,
+        )
 
         # Find and unzip if needed
         import zipfile
+
         for zf in tmp.glob("*.zip"):
             with zipfile.ZipFile(zf, "r") as z:
                 z.extractall(tmp)
@@ -141,12 +150,19 @@ def _submit_playground(username: str) -> bool:
             set_status("playground_competitor", "skipped", f"no sample_submission for {comp}")
             return False
 
-        result = run_kaggle_cli([
-            "competitions", "submit",
-            "-c", comp,
-            "-f", str(submission_file),
-            "-m", "Badge Collector playground submission",
-        ], check=False)
+        result = run_kaggle_cli(
+            [
+                "competitions",
+                "submit",
+                "-c",
+                comp,
+                "-f",
+                str(submission_file),
+                "-m",
+                "Badge Collector playground submission",
+            ],
+            check=False,
+        )
 
         if result.returncode == 0:
             print(f"  [OK] Submitted to Playground: {comp}")
@@ -181,8 +197,11 @@ def _submit_community(username: str) -> bool:
         comp = _find_competition_by_category("research")
         if not comp:
             print("  [SKIP] No active research/community competition found")
-            set_status("community_competitor", "skipped",
-                       "no active research competition (CLI has no 'community' category)")
+            set_status(
+                "community_competitor",
+                "skipped",
+                "no active research competition (CLI has no 'community' category)",
+            )
             return False
 
         print(f"  Found research competition: {comp}")
@@ -192,6 +211,7 @@ def _submit_community(username: str) -> bool:
         run_kaggle_cli(["competitions", "download", comp, "--path", str(tmp)], check=False)
 
         import zipfile
+
         for zf in tmp.glob("*.zip"):
             with zipfile.ZipFile(zf, "r") as z:
                 z.extractall(tmp)
@@ -207,12 +227,19 @@ def _submit_community(username: str) -> bool:
             set_status("community_competitor", "skipped", f"no sample_submission for {comp}")
             return False
 
-        result = run_kaggle_cli([
-            "competitions", "submit",
-            "-c", comp,
-            "-f", str(submission_file),
-            "-m", "Badge Collector community/research submission",
-        ], check=False)
+        result = run_kaggle_cli(
+            [
+                "competitions",
+                "submit",
+                "-c",
+                comp,
+                "-f",
+                str(submission_file),
+                "-m",
+                "Badge Collector community/research submission",
+            ],
+            check=False,
+        )
 
         if result.returncode == 0:
             print(f"  [OK] Submitted to research competition: {comp}")

@@ -8,20 +8,19 @@ from __future__ import annotations
 import asyncio
 import logging
 import time
-from pathlib import Path
-from typing import Any, Dict
-import numpy as np
+from unittest.mock import MagicMock
+
 import aiohttp
 
-from cohezion.swarm.providers.gemma4_provider import Gemma4Provider
-from cohezion.flume.manifolds.translator import ManifoldTranslator
-from cohezion.flume.vae_encoder import FlumeVAEEncoder
-from cohezion.flume.spectral_encoder import SpectralEncoder
 from cohezion.agents.specialists.ecoresilience_agent import EcoResilienceAgent
-from cohezion.compound.stability_guard import HIHOStabilityGuard
-from cohezion.compound.resilience_loop import EcoResilienceCompoundLoop
 from cohezion.compound.executor import CompoundExecutor
-from unittest.mock import MagicMock
+from cohezion.compound.resilience_loop import EcoResilienceCompoundLoop
+from cohezion.compound.stability_guard import HIHOStabilityGuard
+from cohezion.flume.manifolds.translator import ManifoldTranslator
+from cohezion.flume.spectral_encoder import SpectralEncoder
+from cohezion.flume.vae_encoder import FlumeVAEEncoder
+from cohezion.swarm.providers.gemma4_provider import Gemma4Provider
+
 
 logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 logger = logging.getLogger(__name__)
@@ -73,12 +72,12 @@ class SymphonyMaxBenchmark:
         # Connectivity Guard
         connectivity = await self._check_connectivity()
         if not connectivity["GPU"]:
-            logger.error(f"❌ Critical Hardware Failure: GPU (11434) is offline. Cannot benchmark.")
+            logger.error("❌ Critical Hardware Failure: GPU (11434) is offline. Cannot benchmark.")
             return
 
         if not connectivity["NPU"]:
             logger.warning(
-                f"⚠️ NPU (11435) is offline. Falling back to GPU-SOTA mode for proxy data."
+                "⚠️ NPU (11435) is offline. Falling back to GPU-SOTA mode for proxy data."
             )
             logger.info("Note: Final submission must be validated on NPU for 'Symphony Max' claim.")
 

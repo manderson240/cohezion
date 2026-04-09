@@ -24,6 +24,7 @@ import os
 import sys
 from pathlib import Path
 
+
 try:
     from dotenv import load_dotenv
 
@@ -86,8 +87,8 @@ def check_credentials() -> bool:
     # 4. Check for common misconfiguration: KAGGLE_TOKEN instead of KAGGLE_KEY
     token = os.getenv("KAGGLE_TOKEN")
     if token and username:
-        print(f"[WARN] Found KAGGLE_TOKEN but tools expect KAGGLE_KEY or KAGGLE_API_TOKEN")
-        print(f"       Auto-mapping: KAGGLE_KEY=KAGGLE_TOKEN, KAGGLE_API_TOKEN=KAGGLE_TOKEN")
+        print("[WARN] Found KAGGLE_TOKEN but tools expect KAGGLE_KEY or KAGGLE_API_TOKEN")
+        print("       Auto-mapping: KAGGLE_KEY=KAGGLE_TOKEN, KAGGLE_API_TOKEN=KAGGLE_TOKEN")
         os.environ["KAGGLE_KEY"] = token
         os.environ["KAGGLE_API_TOKEN"] = token
         _ensure_kaggle_json(username, token)
@@ -95,8 +96,8 @@ def check_credentials() -> bool:
         print(f"[OK] Credentials configured (user: {username})")
         return True
     elif token and not username:
-        print(f"[WARN] Found KAGGLE_TOKEN but KAGGLE_USERNAME is not set")
-        print(f"       Set KAGGLE_USERNAME to use token-based auth")
+        print("[WARN] Found KAGGLE_TOKEN but KAGGLE_USERNAME is not set")
+        print("       Set KAGGLE_USERNAME to use token-based auth")
 
     # 5. Check ~/.kaggle/kaggle.json (legacy)
     kaggle_json = Path.home() / ".kaggle" / "kaggle.json"

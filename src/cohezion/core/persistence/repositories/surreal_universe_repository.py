@@ -7,7 +7,7 @@ Compound Engineering Features:
 """
 
 import logging
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from cohezion.core.persistence.repositories.base import BaseRepository
 from cohezion.core.persistence.repositories.universe_repository import (
@@ -66,7 +66,7 @@ class SurrealUniverseRepository(
             logger.error(f"Failed to create universe node in SurrealDB: {e}")
             raise
 
-    async def get(self, node_id: str) -> Optional[UniverseNode]:
+    async def get(self, node_id: str) -> UniverseNode | None:
         """Retrieve a universe node by ID from SurrealDB.
 
         Args:
@@ -92,8 +92,8 @@ class SurrealUniverseRepository(
 
     async def get_all(
         self,
-        filter_params: Optional[UniverseRepositoryFilter] = None,
-    ) -> List[UniverseNode]:
+        filter_params: UniverseRepositoryFilter | None = None,
+    ) -> list[UniverseNode]:
         """Retrieve universe nodes from SurrealDB with optional filtering.
 
         Args:
@@ -181,8 +181,8 @@ class SurrealUniverseRepository(
             return False
 
     async def search_by_embedding(
-        self, embedding: List[float], limit: int = 10
-    ) -> List[UniverseNode]:
+        self, embedding: list[float], limit: int = 10
+    ) -> list[UniverseNode]:
         """Search for nodes by vector similarity in SurrealDB.
 
         Args:
@@ -217,7 +217,7 @@ class SurrealUniverseRepository(
             logger.error(f"Failed to search universe nodes by embedding in SurrealDB: {e}")
             return []
 
-    def _dict_to_universe_node(self, data: Dict[str, Any]) -> Optional[UniverseNode]:
+    def _dict_to_universe_node(self, data: dict[str, Any]) -> UniverseNode | None:
         """Helper to convert SurrealDB dict to UniverseNode."""
         try:
             # Handle compressed content if present

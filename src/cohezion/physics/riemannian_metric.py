@@ -190,7 +190,7 @@ class RiemannianMetric:
         gamma = self.christoffel(x, eps)
         # Einstein summation: a^i = -Γ^i_jk v^j v^k
         # Using numpy einsum for O(dim³) but vectorized
-        return -np.einsum('ijk,j,k->i', gamma, v, v)
+        return -np.einsum("ijk,j,k->i", gamma, v, v)
 
     def geodesic(
         self,

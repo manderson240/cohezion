@@ -8,7 +8,9 @@ import tempfile
 from pathlib import Path
 from typing import Any
 
+
 log = logging.getLogger("autoharness")
+
 
 class HarnessSynthesizer:
     """Synthesizes and executes verification harnesses for proposed code changes."""
@@ -18,7 +20,7 @@ class HarnessSynthesizer:
 
     def generate_harness(self, proposed_code: str, target_module: str) -> str:
         """Use an LLM to synthesize a verification script.
-        
+
         In a real implementation, this would call the LLM provider.
         For now, we use a template-based approach or a simple generic harness.
         """
@@ -62,17 +64,14 @@ if __name__ == "__main__":
     def verify(self, proposed_code: str, target_module: str) -> tuple[bool, str]:
         """Synthesize and run the harness, returns (success, output)."""
         harness_code = self.generate_harness(proposed_code, target_module)
-        
+
         with tempfile.NamedTemporaryFile(suffix=".py", mode="w", delete=False) as tmp:
             tmp.write(harness_code)
             tmp_path = Path(tmp.name)
 
         try:
             result = subprocess.run(
-                ["python3", str(tmp_path)],
-                capture_output=True,
-                text=True,
-                timeout=60
+                ["python3", str(tmp_path)], capture_output=True, text=True, timeout=60
             )
             success = result.returncode == 0
             output = result.stdout + result.stderr

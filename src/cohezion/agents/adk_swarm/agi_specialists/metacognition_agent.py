@@ -1,9 +1,9 @@
-import os
 from google import adk
+
 
 class MetacognitionAgent(adk.Agent):
     """Specialist in identifying hidden assumptions and epistemic uncertainty."""
-    
+
     def __init__(self, **kwargs):
         super().__init__(
             name="MetacognitionSpecialist",
@@ -13,7 +13,8 @@ class MetacognitionAgent(adk.Agent):
                 "Analyze problems for hidden assumptions, missing variables, or vagueness. "
                 "Ensure the benchmark tasks you author are scientifically rigorous."
             ),
-            **kwargs
+            **kwargs,
         )
+
 
 agent = MetacognitionAgent()

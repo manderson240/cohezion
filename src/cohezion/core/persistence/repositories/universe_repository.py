@@ -2,16 +2,15 @@
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import List, Optional
 
-from cohezion.core.persistence.surreal_client import PhysicsState, UniverseNode
+from cohezion.core.persistence.surreal_client import UniverseNode
 
 
 @dataclass
 class UniverseRepositoryFilter:
     """Filter options for universe repository queries."""
 
-    node_type: Optional[str] = None
+    node_type: str | None = None
     limit: int = 100
     offset: int = 0
 
@@ -28,7 +27,7 @@ class UniverseRepository(ABC):
         """
 
     @abstractmethod
-    async def get(self, node_id: str) -> Optional[UniverseNode]:
+    async def get(self, node_id: str) -> UniverseNode | None:
         """Retrieve a universe node by ID.
 
         Returns:
@@ -36,7 +35,7 @@ class UniverseRepository(ABC):
         """
 
     @abstractmethod
-    async def get_all(self, filter_params: UniverseRepositoryFilter = None) -> List[UniverseNode]:
+    async def get_all(self, filter_params: UniverseRepositoryFilter = None) -> list[UniverseNode]:
         """Retrieve universe nodes with optional filtering.
 
         Args:
@@ -70,8 +69,8 @@ class UniverseRepository(ABC):
 
     @abstractmethod
     async def search_by_embedding(
-        self, embedding: List[float], limit: int = 10
-    ) -> List[UniverseNode]:
+        self, embedding: list[float], limit: int = 10
+    ) -> list[UniverseNode]:
         """Search for nodes by vector similarity.
 
         Args:

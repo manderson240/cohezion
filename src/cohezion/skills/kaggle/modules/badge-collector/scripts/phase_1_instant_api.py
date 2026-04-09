@@ -10,14 +10,11 @@ Earns badges via kagglehub and kaggle-cli in a single session:
 import json
 import shutil
 import time
-from pathlib import Path
 
 from badge_tracker import set_status, should_attempt
 from utils import (
     API_DELAY,
-    RESOURCE_PREFIX,
     TEMPLATES_DIR,
-    get_kaggle_cli,
     make_temp_dir,
     resource_name,
     run_kaggle_cli,
@@ -412,7 +409,9 @@ def _document_dataset(username: str) -> bool:
         # Create substantial data
         lines = ["id,name,score,grade,date\n"]
         for i in range(1, 21):
-            lines.append(f"{i},student_{i},{50+i},{'A' if i>15 else 'B' if i>10 else 'C'},2024-01-{i:02d}\n")
+            lines.append(
+                f"{i},student_{i},{50 + i},{'A' if i > 15 else 'B' if i > 10 else 'C'},2024-01-{i:02d}\n"
+            )
         (tmp / "data.csv").write_text("".join(lines))
 
         # Detailed README
@@ -452,8 +451,8 @@ Auto-generated sample data for testing and demonstration.
             "id": f"{username}/{ds_slug}",
             "subtitle": "Sample student performance data for demonstration",
             "description": "Well-documented sample dataset containing student performance records. "
-                           "Includes scores, grades, and dates for 20 students. "
-                           "Created by Kaggle Badge Collector for badge collection purposes.",
+            "Includes scores, grades, and dates for 20 students. "
+            "Created by Kaggle Badge Collector for badge collection purposes.",
             "licenses": [{"name": "CC0-1.0"}],
             "keywords": [
                 "badge-collector",
@@ -470,7 +469,11 @@ Auto-generated sample data for testing and demonstration.
                         "fields": [
                             {"name": "id", "type": "integer", "description": "Unique student ID"},
                             {"name": "name", "type": "string", "description": "Student name"},
-                            {"name": "score", "type": "integer", "description": "Test score (0-100)"},
+                            {
+                                "name": "score",
+                                "type": "integer",
+                                "description": "Test score (0-100)",
+                            },
                             {"name": "grade", "type": "string", "description": "Letter grade"},
                             {"name": "date", "type": "date", "description": "Record date"},
                         ]
@@ -576,10 +579,19 @@ def _create_model_variation(username: str) -> bool:
         (tmp / "model-instance-metadata.json").write_text(json.dumps(instance_meta, indent=2))
 
         handle = f"{username}/{model_slug}/other/default"
-        run_kaggle_cli([
-            "models", "instances", "versions", "create",
-            handle, "-p", str(tmp), "-n", "Initial version",
-        ])
+        run_kaggle_cli(
+            [
+                "models",
+                "instances",
+                "versions",
+                "create",
+                handle,
+                "-p",
+                str(tmp),
+                "-n",
+                "Initial version",
+            ]
+        )
         print(f"  [OK] Model variation created: {handle}")
         set_status("model_variation_creator", "earned", f"variation={handle}")
         return True
@@ -685,10 +697,19 @@ def _document_model(username: str) -> bool:
         (tmp / "model-instance-metadata.json").write_text(json.dumps(instance_meta, indent=2))
 
         handle = f"{username}/{model_slug}/other/default"
-        run_kaggle_cli([
-            "models", "instances", "versions", "create",
-            handle, "-p", str(tmp), "-n", "Documented initial version",
-        ])
+        run_kaggle_cli(
+            [
+                "models",
+                "instances",
+                "versions",
+                "create",
+                handle,
+                "-p",
+                str(tmp),
+                "-n",
+                "Documented initial version",
+            ]
+        )
 
         print(f"  [OK] Documented model created: {model_slug}")
         set_status("model_documenter", "earned", f"model={model_slug}")

@@ -1,97 +1,5 @@
 {
   "hooks": {
-    "SessionStart": [
-      {
-        "matcher": "all",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "entire hooks claude-code session-start"
-          }
-        ]
-      },
-      {
-        "matcher": "all",
-        "hooks": [
-          {
-            "type": "command",
-            "command": ".claude/hooks/mcp-health-check.sh"
-          }
-        ]
-      },
-      {
-        "matcher": "all",
-        "hooks": [
-          {
-            "type": "command",
-            "command": ".claude/hooks/session-concierge.sh"
-          }
-        ]
-      }
-    ],
-    "SessionEnd": [
-      {
-        "matcher": "all",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "entire hooks claude-code session-end"
-          }
-        ]
-      }
-    ],
-    "UserPromptSubmit": [
-      {
-        "matcher": "all",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "entire hooks claude-code user-prompt-submit"
-          }
-        ]
-      }
-    ],
-    "Stop": [
-      {
-        "matcher": "all",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "entire hooks claude-code stop"
-          }
-        ]
-      }
-    ],
-    "PreToolUse": [
-      {
-        "matcher": "Edit|Write",
-        "hooks": [
-          {
-            "type": "command",
-            "command": ".claude/hooks/branch-safety-warning.sh"
-          }
-        ]
-      },
-      {
-        "matcher": "Write",
-        "hooks": [
-          {
-            "type": "command",
-            "command": ".claude/hooks/drift-detection.sh"
-          }
-        ]
-      },
-      {
-        "matcher": "Write",
-        "hooks": [
-          {
-            "type": "command",
-            "command": ".claude/hooks/archive-plan.sh",
-            "statusMessage": "Archiving previous plan..."
-          }
-        ]
-      }
-    ],
     "PostToolUse": [
       {
         "matcher": "mcp__cohezion-vault__vault_write|mcp__cohezion-vault__vault_edit",
@@ -143,15 +51,137 @@
             "async": true
           }
         ]
+      },
+      {
+        "matcher": "Task",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "entire hooks claude-code post-task"
+          }
+        ]
+      },
+      {
+        "matcher": "TodoWrite",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "entire hooks claude-code post-todo"
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": ".claude/hooks/branch-safety-warning.sh"
+          }
+        ]
+      },
+      {
+        "matcher": "Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": ".claude/hooks/drift-detection.sh"
+          }
+        ]
+      },
+      {
+        "matcher": "Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": ".claude/hooks/archive-plan.sh",
+            "statusMessage": "Archiving previous plan..."
+          }
+        ]
+      },
+      {
+        "matcher": "Task",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "entire hooks claude-code pre-task"
+          }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "entire hooks claude-code session-end"
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "matcher": "all",
+        "hooks": [
+          {
+            "type": "command",
+            "command": ".claude/hooks/mcp-health-check.sh"
+          }
+        ]
+      },
+      {
+        "matcher": "all",
+        "hooks": [
+          {
+            "type": "command",
+            "command": ".claude/hooks/session-concierge.sh"
+          }
+        ]
+      },
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "entire hooks claude-code session-start"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "entire hooks claude-code stop"
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "entire hooks claude-code user-prompt-submit"
+          }
+        ]
       }
     ]
   },
+  "outputStyle": "Explanatory",
   "permissions": {
     "allow": [
       "Bash(python3:*)",
       "WebSearch",
       "WebFetch(domain:github.com)"
+    ],
+    "deny": [
+      "Read(./.entire/metadata/**)"
     ]
-  },
-  "outputStyle": "Explanatory"
+  }
 }

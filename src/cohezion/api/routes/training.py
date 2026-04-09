@@ -14,6 +14,7 @@ from typing import Any
 from fastapi import APIRouter
 from pydantic import BaseModel
 
+
 logger = logging.getLogger(__name__)
 
 training_router = APIRouter(prefix="/api/training", tags=["training"])

@@ -9,6 +9,7 @@ import tempfile
 import time
 from pathlib import Path
 
+
 try:
     from dotenv import load_dotenv
 
@@ -53,7 +54,9 @@ def get_kaggle_cli() -> str:
     return "kaggle"  # fallback, hope it's on PATH
 
 
-def run_kaggle_cli(args: list[str], check: bool = True, timeout: int = 120) -> subprocess.CompletedProcess:
+def run_kaggle_cli(
+    args: list[str], check: bool = True, timeout: int = 120
+) -> subprocess.CompletedProcess:
     """Run a kaggle CLI command with rate limiting."""
     cli = get_kaggle_cli()
     cmd = [cli] + args

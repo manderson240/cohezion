@@ -1,12 +1,10 @@
 from __future__ import annotations
+
 import asyncio
 import logging
-from pathlib import Path
-from typing import Any, Dict, List, Optional, Set
 from dataclasses import dataclass
+from typing import Any
 
-import httpx
-from cohezion.swarm.providers.gemma4_provider import Gemma4Provider
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
@@ -15,8 +13,8 @@ logger = logging.getLogger(__name__)
 @dataclass
 class ResearchResult:
     query: str
-    findings: List[str]
-    sources: List[str]
+    findings: list[str]
+    sources: list[str]
     confidence: float
     depth: int
 
@@ -33,8 +31,8 @@ class AutoResearcher:
         self.max_depth = max_depth
         self.threshold = convergence_threshold
         self.web_search = web_search_tool
-        self.visited: Set[str] = set()
-        self.memory: Dict[str, ResearchResult] = {}
+        self.visited: set[str] = set()
+        self.memory: dict[str, ResearchResult] = {}
 
     async def research(self, query: str, depth: int = 0) -> ResearchResult:
         """
@@ -59,7 +57,7 @@ class AutoResearcher:
 
         return final_result
 
-    async def _decompose(self, query: str) -> List[str]:
+    async def _decompose(self, query: str) -> list[str]:
         """
         Decomposes a complex query into smaller, researchable units.
         In a full implementation, this would use an LLM.
@@ -73,7 +71,7 @@ class AutoResearcher:
             ]
         return [f"{query} technical specs", f"{query} la-phase performance"]
 
-    async def _merge(self, query: str, results: List[ResearchResult]) -> ResearchResult:
+    async def _merge(self, query: str, results: list[ResearchResult]) -> ResearchResult:
         """
         Synthesizes multiple research results into a single coherent finding.
         """

@@ -54,7 +54,30 @@ class PreFlightJury:
             return len(res) == 2
         except: return False
 
-# --- 2. AutoHarness Specialized Verifiers ---
+# --- 2. Symbolic Verifier (Doer) ---
+class SymbolicVerifier:
+    def __init__(self):
+        self.namespace = {
+            "sympy": sympy, "np": np, "sp": sympy,
+            "sqrt": sympy.sqrt, "exp": sympy.exp, "log": sympy.log,
+            "pi": sympy.pi, "symbols": sympy.symbols,
+            "Eq": sympy.Eq, "solve": sympy.solve, "simplify": sympy.simplify
+        }
+    def verify(self, code_snippet: str, expected_ans: int) -> bool:
+        local_vars = {}
+        try:
+            # Extract code between triple backticks if present
+            code = re.search(r"```python\n(.*?)\n```", code_snippet, re.DOTALL)
+            code = code.group(1) if code else code_snippet
+            exec(code, self.namespace, local_vars)
+            # Find any variable that matches the expected answer
+            for v in local_vars.values():
+                if isinstance(v, (int, float, sympy.Integer, sympy.Float)):
+                    if abs(float(v) - expected_ans) < 1e-6: return True
+            return False
+        except: return False
+
+# --- 2.1 AutoHarness Specialized Verifiers ---
 class AutoHarnessVerifier:
     """Synthesized code verifiers for specific AIMO domains."""
     @staticmethod
@@ -94,7 +117,11 @@ class specialist_team:
         # Generate multiple candidates
         num_samples = 5 if budget > 350 else 3
         prompt = f"<|im_start|>system\n{self.specialists[strategy]}<|im_end|>\n<|im_start|>user\n{problem_text}<|im_end|>\n<|im_start|>assistant\n"
-        inputs = self.tokenizer(prompt, return_tensors="pt").to("cuda")
+        
+        inputs = self.tokenizer(prompt, return_tensors="pt")
+        # Robust device mapping
+        device = "cuda" if torch.cuda.is_available() and os.getenv("AIMO_FORCE_CPU") != "1" else "cpu"
+        inputs = {k: v.to(device) for k, v in inputs.items()}
         
         with torch.no_grad():
             outputs = self.model.generate(
@@ -119,6 +146,7 @@ class specialist_team:
                 if nums: answers.append(int(nums[-1]) % 1000)
 
         if not answers: return 0
+        # Choose most common, breaking ties with the first one
         return Counter(answers).most_common(1)[0][0]
 
 # --- 4. Global State & Driver ---
@@ -133,20 +161,31 @@ def find_path(name_part):
         if name_part.lower() in root.lower(): return root
     return None
 
-def load_model():
+def load_environment():
     global _model, _tokenizer
     path = find_path("qwen2-5-math-7b-instruct")
     if path:
         _tokenizer = AutoTokenizer.from_pretrained(path)
-        _model = AutoModelForCausalLM.from_pretrained(path, dtype=torch.bfloat16, device_map="auto")
+
+        # Decide device and dtype
+        if os.getenv("AIMO_FORCE_CPU") == "1" or not torch.cuda.is_available():
+            device_map = "cpu"
+            dtype = torch.float32 # H100 uses bfloat16, local CPU prefers float32
+        else:
+            device_map = "auto"
+            dtype = torch.bfloat16
+
+        _model = AutoModelForCausalLM.from_pretrained(path, dtype=dtype, device_map=device_map)
         try:
-            # H100 optimization
-            _model = torch.compile(_model)
+            # H100 optimization only on GPU
+            if device_map != "cpu":
+                _model = torch.compile(_model)
         except: pass
+
 
 def predict(id_df: pl.Series, problem_df: pl.Series) -> pl.DataFrame:
     global _model, _tokenizer, _start_time, _problems_solved
-    if _model is None: load_model()
+    if _model is None: load_environment()
     if _start_time is None: _start_time = time.time()
 
     gc.collect()
@@ -159,13 +198,17 @@ def predict(id_df: pl.Series, problem_df: pl.Series) -> pl.DataFrame:
     remaining_time = _total_time_limit - elapsed
     budget_per_prob = remaining_time / max(1, (50 - (_problems_solved % 50)))
     vram = torch.cuda.memory_allocated()/1e9
-    print(f"\n[Problem {problem_id}] Budget: {budget_per_prob:.1f}s | VRAM: {vram:.1f}GB")
-
-    swarm = specialist_team(_model, _tokenizer)
-    final_ans = swarm.run_swarm(problem_text, budget_per_prob)
+    final_ans = 0
+    try:
+        swarm = specialist_team(_model, _tokenizer)
+        final_ans = swarm.run_swarm(problem_text, budget_per_prob)
+    except Exception as e:
+        print(f"Safety Trigger: {e}")
+        final_ans = 0
 
     _problems_solved += 1
     return pl.DataFrame({"id": [problem_id], "answer": [int(final_ans) % 1000]})
+
 
 if __name__ == "__main__":
     if PreFlightJury.run_all():

@@ -4,11 +4,10 @@ from __future__ import annotations
 
 import argparse
 import json
-import sys
-from pathlib import Path
 
-from cohezion.knowledge_graph.query_engine import KnowledgeGraphQueryEngine
 from cohezion.core.compound.retrospection import RetrospectionEngine
+from cohezion.knowledge_graph.query_engine import KnowledgeGraphQueryEngine
+
 
 def main():
     parser = argparse.ArgumentParser(description="Cohezion KG CLI Bridge")
@@ -38,16 +37,19 @@ def main():
 
     if args.command == "search":
         import asyncio
+
         results = kg_engine.search_knowledge(args.query, top_k=args.top_k)
         print(json.dumps(results))
 
     elif args.command == "history":
         import asyncio
+
         results = asyncio.run(kg_engine.query_execution_history(limit=args.limit))
         print(json.dumps(results))
 
     elif args.command == "stats":
         import asyncio
+
         results = asyncio.run(kg_engine.get_pattern_summary())
         print(json.dumps(results))
 
@@ -55,6 +57,7 @@ def main():
         facts = json.loads(args.facts) if args.facts else {}
         report = retro_engine.generate_session_report(facts)
         print(report)
+
 
 if __name__ == "__main__":
     main()

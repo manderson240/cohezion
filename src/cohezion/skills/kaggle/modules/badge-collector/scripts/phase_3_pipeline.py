@@ -10,15 +10,10 @@ so there is a polling/waiting step.
 """
 
 import json
-import subprocess
 import time
-from pathlib import Path
 
 from badge_tracker import set_status, should_attempt
 from utils import (
-    API_DELAY,
-    KLLM_SCRIPTS,
-    TEMPLATES_DIR,
     make_temp_dir,
     resource_name,
     run_kaggle_cli,
@@ -125,10 +120,15 @@ def _dataset_pipeline(username: str) -> bool:
 
         # Download notebook output
         output_dir = make_temp_dir("-ds-pipeline-output")
-        run_kaggle_cli([
-            "kernels", "output", f"{username}/{nb_slug}",
-            "--path", str(output_dir),
-        ])
+        run_kaggle_cli(
+            [
+                "kernels",
+                "output",
+                f"{username}/{nb_slug}",
+                "--path",
+                str(output_dir),
+            ]
+        )
 
         # Create a dataset from the output
         ds_slug = resource_name("pipeline-dataset")
@@ -144,7 +144,9 @@ def _dataset_pipeline(username: str) -> bool:
 
         run_kaggle_cli(["datasets", "create", "-p", str(output_dir)])
         print(f"  [OK] Pipeline dataset created: {ds_slug}")
-        set_status("dataset_pipeline_creator", "earned", f"dataset={ds_slug} from notebook={nb_slug}")
+        set_status(
+            "dataset_pipeline_creator", "earned", f"dataset={ds_slug} from notebook={nb_slug}"
+        )
         return True
 
     except Exception as e:
@@ -232,10 +234,15 @@ def _model_pipeline(username: str) -> bool:
 
         # Download output
         output_dir = make_temp_dir("-model-pipeline-output")
-        run_kaggle_cli([
-            "kernels", "output", f"{username}/{nb_slug}",
-            "--path", str(output_dir),
-        ])
+        run_kaggle_cli(
+            [
+                "kernels",
+                "output",
+                f"{username}/{nb_slug}",
+                "--path",
+                str(output_dir),
+            ]
+        )
 
         # Create model from output
         model_slug = resource_name("pipeline-model")
@@ -253,7 +260,9 @@ def _model_pipeline(username: str) -> bool:
 
         run_kaggle_cli(["models", "create", "-p", str(output_dir)])
         print(f"  [OK] Pipeline model created: {model_slug}")
-        set_status("model_pipeline_creator", "earned", f"model={model_slug} from notebook={nb_slug}")
+        set_status(
+            "model_pipeline_creator", "earned", f"model={model_slug} from notebook={nb_slug}"
+        )
         return True
 
     except Exception as e:

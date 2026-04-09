@@ -23,7 +23,7 @@ logger = logging.getLogger(__name__)
 @mcp.tool()
 async def fetch_noaa_data(station_id: str = "GHCND:USW00094728") -> str:
     """Fetch current weather/climate data from NOAA for a specific station.
-    
+
     Args:
         station_id: NOAA Global Historical Climatology Network station ID.
     """
@@ -37,12 +37,8 @@ async def fetch_noaa_data(station_id: str = "GHCND:USW00094728") -> str:
             "PRCP": round(random.uniform(0.0, 50.0), 1),
             "AWND": round(random.uniform(2.0, 12.0), 1),
         },
-        "units": {
-            "temperature": "Celsius",
-            "precipitation": "mm",
-            "wind_speed": "m/s"
-        },
-        "source": "NOAA GHCN-Daily (Mocked)"
+        "units": {"temperature": "Celsius", "precipitation": "mm", "wind_speed": "m/s"},
+        "source": "NOAA GHCN-Daily (Mocked)",
     }
     return json.dumps(data, indent=2)
 
@@ -50,7 +46,7 @@ async def fetch_noaa_data(station_id: str = "GHCND:USW00094728") -> str:
 @mcp.tool()
 async def fetch_copernicus_data(region: str = "Amazon_Basin") -> str:
     """Fetch Earth Observation data from Copernicus (Sentinel-2/3) for a region.
-    
+
     Args:
         region: Geographic region name or bounding box coordinates.
     """
@@ -61,15 +57,15 @@ async def fetch_copernicus_data(region: str = "Amazon_Basin") -> str:
         "timestamp": datetime.now().isoformat(),
         "indices": {
             "NDVI": round(random.uniform(0.2, 0.9), 3),  # Vegetation health
-            "NDWI": round(random.uniform(-0.5, 0.5), 3), # Water index
-            "EVI": round(random.uniform(0.1, 0.8), 3),   # Enhanced vegetation
+            "NDWI": round(random.uniform(-0.5, 0.5), 3),  # Water index
+            "EVI": round(random.uniform(0.1, 0.8), 3),  # Enhanced vegetation
         },
         "land_cover_stats": {
             "forest_cover_pct": round(random.uniform(40.0, 85.0), 1),
             "urban_area_pct": round(random.uniform(1.0, 15.0), 1),
             "water_body_pct": round(random.uniform(5.0, 20.0), 1),
         },
-        "source": "Copernicus Hub (Mocked)"
+        "source": "Copernicus Hub (Mocked)",
     }
     return json.dumps(data, indent=2)
 
