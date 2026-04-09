@@ -32,7 +32,7 @@ import logging
 from collections.abc import Callable
 
 import numpy as np
-from scipy.integrate import solve_ivp
+# solve_ivp imported lazily inside geodesic_ode() — see L290 (Session 94)
 
 
 logger = logging.getLogger(__name__)
@@ -218,6 +218,8 @@ class RiemannianMetric:
 
         y0 = np.concatenate([x0, v0])
         t_eval = np.linspace(t_span[0], t_span[1], n_steps)
+
+        from scipy.integrate import solve_ivp  # lazy — avoids BLAS conflict (L290)
 
         sol = solve_ivp(ode_rhs, t_span, y0, t_eval=t_eval, method="RK45", rtol=1e-8)
 

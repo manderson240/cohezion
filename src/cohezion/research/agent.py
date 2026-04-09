@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import json
 import logging
+import re
 import subprocess
 import time
 from dataclasses import dataclass, field
@@ -243,13 +244,19 @@ class ResearchAgent:
 
     def _log_experiment(self, exp_id: int, result: ExecutionResult) -> None:
         """Log experiment result (batched for performance)."""
-        # Fast path: assume metrics is dict from mock executor
-        m = result.metrics
-        metric_value = (
-            m.get("coherence", float("inf"))
-            if isinstance(m, dict)
-            else getattr(m, "coherence", float("inf"))
+        # Extract research metric from output text (e.g. "val_bpb: 1.23").
+        # Coherence in ExecutionMetrics is a compound-execution quality metric,
+        # not the research optimization objective — don't conflate the two.
+        metric_value = float("inf")
+        output_text = getattr(result, "output", "") or ""
+        target = self.config.target_metric  # e.g. "val_bpb"
+        m_match = re.search(
+            rf"{re.escape(target)}[\s:=]+([0-9]+(?:\.[0-9]+)?(?:e[+-]?[0-9]+)?)", output_text
         )
+        if m_match:
+            metric_value = float(m_match.group(1))
+
+        m = result.metrics
         duration_seconds = (
             m.get("duration_seconds", 0.0) if isinstance(m, dict) else m.duration_seconds
         )

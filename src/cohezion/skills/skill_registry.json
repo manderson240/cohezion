@@ -53,6 +53,34 @@
     "see_also": [],
     "source": "src/cohezion/skills/AMBIENT_SONIFICATION_PRIME.md"
   },
+  "ANTHROPIC_SKILL_BUILDER_PRIME": {
+    "version": "v1.0.1",
+    "concepts": [
+      "Anthropic System Prompts",
+      "XML Tagging",
+      "Chain of Thought (CoT)",
+      "Pre-filling Claude's Response"
+    ],
+    "see_also": [
+      "SKILL_GENERATOR_PRIME.md",
+      "RETROSPECTIVE_SKILL.md"
+    ],
+    "source": "src/cohezion/skills/ANTHROPIC_SKILL_BUILDER_PRIME.md"
+  },
+  "ANTI_PATTERN_DEFENSE_PRIME": {
+    "version": "v1.0.1",
+    "concepts": [
+      "The Sudo Trap",
+      "GTT Carveout Illusion",
+      "Scope Collision",
+      "Silent Auth Drift"
+    ],
+    "see_also": [
+      "SYSTEM_MONITORING_PRIME",
+      "RELIABILITY_FALLBACK_PRIME"
+    ],
+    "source": "src/cohezion/skills/ANTI_PATTERN_DEFENSE_PRIME.md"
+  },
   "ASCENSION_SKILL_PRIME": {
     "version": "v1.6",
     "concepts": [
@@ -77,6 +105,21 @@
     ],
     "see_also": [],
     "source": "src/cohezion/skills/AUTONOMOUS_RESILIENCE_PRIME.md"
+  },
+  "AUTORESEARCH_PRIME": {
+    "version": "v0.2 (Session 93, 2026-04-09 — andyluo7/autoresearch integration)",
+    "concepts": [
+      "Autonomous Experimentation Loops",
+      "UCB1 K-Search Tree",
+      "Fixed-Budget Optimization",
+      "Recursive Hypothesis Search"
+    ],
+    "see_also": [
+      "COMPOUND_ENGINEERING_PRIME",
+      "RETROSPECTIVE_SKILL",
+      "AUTONOMOUS_RESILIENCE_PRIME"
+    ],
+    "source": "src/cohezion/skills/AUTORESEARCH_PRIME.md"
   },
   "BATCHING_PROTOCOL_PRIME": {
     "version": "v1.0",
@@ -230,6 +273,19 @@
     ],
     "see_also": [],
     "source": "src/cohezion/skills/FLUME_METHODOLOGY_PRIME.md"
+  },
+  "FRONTEND_DESIGN_PRIME": {
+    "version": "v1.0.1",
+    "concepts": [
+      "Premium Aesthetics",
+      "Micro-interactions",
+      "Component-Driven Design"
+    ],
+    "see_also": [
+      "TYPESCRIPT_ADVANCED_TYPES_PRIME.md",
+      "SHOWREEL_GENERATION_PRIME.md"
+    ],
+    "source": "src/cohezion/skills/FRONTEND_DESIGN_PRIME.md"
   },
   "HALLUCINATION_RESOLVER_PRIME": {
     "version": "v1.0",
@@ -391,6 +447,23 @@
     ],
     "see_also": [],
     "source": "src/cohezion/skills/PERSISTENT_UNIVERSE_PRIME.md"
+  },
+  "POLYGLOT_DELEGATION_PRIME": {
+    "version": "v1.0",
+    "concepts": [
+      "Language-Specific Delegation",
+      "Polyglot Interoperability",
+      "Rust VLIW Optimization",
+      "Go Multi-Agent Orchestration",
+      "TypeScript State Management",
+      "Task Delegation"
+    ],
+    "see_also": [
+      "COMPOUND_ENGINEERING_PRIME",
+      "TEAM_ORCHESTRATION_PRIME",
+      "SWARM_ORCHESTRATION_PRIME"
+    ],
+    "source": "src/cohezion/skills/POLYGLOT_DELEGATION_PRIME.md"
   },
   "QUADRATURE_PRIME": {
     "version": "v1.0 (Integration of The Will)",
@@ -625,6 +698,18 @@
     ],
     "source": "src/cohezion/skills/SIMULATION_PROFILES_PRIME.md"
   },
+  "SKILL_0_PRIME": {
+    "version": "1.0",
+    "concepts": [],
+    "see_also": [],
+    "source": "/tmp/pytest-of-mike-anderson/pytest-70/test_factory_generate_top_skil0/skills/SKILL_0_PRIME.md"
+  },
+  "SKILL_1_PRIME": {
+    "version": "1.0",
+    "concepts": [],
+    "see_also": [],
+    "source": "/tmp/pytest-of-mike-anderson/pytest-70/test_factory_generate_top_skil0/skills/SKILL_1_PRIME.md"
+  },
   "SURREALDB_MCP_PRIME": {
     "version": "v1.0 (New MCP Component)",
     "concepts": [],
@@ -642,6 +727,20 @@
     ],
     "see_also": [],
     "source": "src/cohezion/skills/SURREALDB_OPTIMIZER_PRIME.md"
+  },
+  "SWARM_PLANNER_PRIME": {
+    "version": "v1.0.1",
+    "concepts": [
+      "Ouroboros Improvement",
+      "Component Granularity",
+      "Specialized Tiers",
+      "Polyglot Harmony"
+    ],
+    "see_also": [
+      "TEAM_ORCHESTRATION_PRIME.md",
+      "MODEL_ROUTING_PRIME.md"
+    ],
+    "source": "src/cohezion/skills/SWARM_PLANNER_PRIME.md"
   },
   "SYMBIOTIC_FILE_PRIME": {
     "version": "v1.0 (Sovereign Era)",
@@ -740,6 +839,12 @@
     "see_also": [],
     "source": "src/cohezion/skills/TESTING_PRIME.md"
   },
+  "TEST_SKILL_PRIME": {
+    "version": "2.5",
+    "concepts": [],
+    "see_also": [],
+    "source": "/tmp/pytest-of-mike-anderson/pytest-70/test_version_header_in_generat0/skills/TEST_SKILL_PRIME.md"
+  },
   "THROTTLED_SCOUT_PRIME": {
     "version": "v1.0 (Safe Mode v3 Compatible)",
     "concepts": [
@@ -779,6 +884,18 @@
     ],
     "see_also": [],
     "source": "src/cohezion/skills/TRAINING_DATA_CAPTURE_PRIME.md"
+  },
+  "TYPESCRIPT_ADVANCED_TYPES_PRIME": {
+    "version": "v1.0.1",
+    "concepts": [
+      "Utility Types",
+      "Discriminated Unions",
+      "Generics"
+    ],
+    "see_also": [
+      "FRONTEND_DESIGN_PRIME.md"
+    ],
+    "source": "src/cohezion/skills/TYPESCRIPT_ADVANCED_TYPES_PRIME.md"
   },
   "UNIVERSE_SIMULATION_PERSISTENCE_PRIME": {
     "version": "1.0",
@@ -831,107 +948,5 @@
       "HIHO_STABILITY_PRIME"
     ],
     "source": "src/cohezion/skills/VLIW_COG_BRIDGE_PRIME.md"
-  },
-  "ANTI_PATTERN_DEFENSE_PRIME": {
-    "version": "v1.0.1",
-    "concepts": [
-      "The Sudo Trap",
-      "GTT Carveout Illusion",
-      "Scope Collision",
-      "Silent Auth Drift"
-    ],
-    "see_also": [
-      "SYSTEM_MONITORING_PRIME",
-      "RELIABILITY_FALLBACK_PRIME"
-    ],
-    "source": "src/cohezion/skills/ANTI_PATTERN_DEFENSE_PRIME.md"
-  },
-  "ANTHROPIC_SKILL_BUILDER_PRIME": {
-    "version": "v1.0.1",
-    "concepts": [
-      "Anthropic System Prompts",
-      "XML Tagging",
-      "Chain of Thought (CoT)",
-      "Pre-filling Claude's Response"
-    ],
-    "see_also": [
-      "SKILL_GENERATOR_PRIME.md",
-      "RETROSPECTIVE_SKILL.md"
-    ],
-    "source": "src/cohezion/skills/ANTHROPIC_SKILL_BUILDER_PRIME.md"
-  },
-  "FRONTEND_DESIGN_PRIME": {
-    "version": "v1.0.1",
-    "concepts": [
-      "Premium Aesthetics",
-      "Micro-interactions",
-      "Component-Driven Design"
-    ],
-    "see_also": [
-      "TYPESCRIPT_ADVANCED_TYPES_PRIME.md",
-      "SHOWREEL_GENERATION_PRIME.md"
-    ],
-    "source": "src/cohezion/skills/FRONTEND_DESIGN_PRIME.md"
-  },
-  "TYPESCRIPT_ADVANCED_TYPES_PRIME": {
-    "version": "v1.0.1",
-    "concepts": [
-      "Utility Types",
-      "Discriminated Unions",
-      "Generics"
-    ],
-    "see_also": [
-      "FRONTEND_DESIGN_PRIME.md"
-    ],
-    "source": "src/cohezion/skills/TYPESCRIPT_ADVANCED_TYPES_PRIME.md"
-  },
-  "SWARM_PLANNER_PRIME": {
-    "version": "v1.0.1",
-    "concepts": [
-      "Ouroboros Improvement",
-      "Component Granularity",
-      "Specialized Tiers",
-      "Polyglot Harmony"
-    ],
-    "see_also": [
-      "TEAM_ORCHESTRATION_PRIME.md",
-      "MODEL_ROUTING_PRIME.md"
-    ],
-    "source": "src/cohezion/skills/SWARM_PLANNER_PRIME.md"
-  },
-  "POLYGLOT_DELEGATION_PRIME": {
-    "version": "v1.0",
-    "concepts": [
-      "Language-Specific Delegation",
-      "Polyglot Interoperability",
-      "Rust VLIW Optimization",
-      "Go Multi-Agent Orchestration",
-      "TypeScript State Management",
-      "Task Delegation"
-    ],
-    "see_also": [
-      "COMPOUND_ENGINEERING_PRIME",
-      "TEAM_ORCHESTRATION_PRIME",
-      "SWARM_ORCHESTRATION_PRIME"
-    ],
-    "source": "src/cohezion/skills/POLYGLOT_DELEGATION_PRIME.md"
-  },
-  "SKILL_0_PRIME": {
-    "version": "1.0",
-    "concepts": [],
-    "see_also": [],
-    "source": "/tmp/pytest-of-mike-anderson/pytest-46/test_factory_generate_top_skil0/skills/SKILL_0_PRIME.md"
-  },
-  "SKILL_1_PRIME": {
-    "version": "1.0",
-    "concepts": [],
-    "see_also": [],
-    "source": "/tmp/pytest-of-mike-anderson/pytest-46/test_factory_generate_top_skil0/skills/SKILL_1_PRIME.md"
-  },
-  "TEST_SKILL_PRIME": {
-    "version": "2.5",
-    "concepts": [],
-    "see_also": [],
-    "source": "/tmp/pytest-of-mike-anderson/pytest-46/test_version_header_in_generat0/skills/TEST_SKILL_PRIME.md"
   }
 }

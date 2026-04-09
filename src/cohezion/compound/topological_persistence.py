@@ -45,7 +45,8 @@ from dataclasses import dataclass, field
 from typing import Any
 
 import numpy as np
-from scipy.spatial.distance import pdist, squareform
+# scipy imported lazily inside compute_persistence() — avoids BLAS allocator
+# conflict (SIGSEGV) when scipy C extensions load after torch._C. See L290 (Session 94).
 
 
 logger = logging.getLogger(__name__)
@@ -296,6 +297,8 @@ class TopologicalPersistence:
             raise ValueError(f"Need at least 2 points, got {n}")
 
         # Compute pairwise distance matrix
+        from scipy.spatial.distance import pdist, squareform  # lazy — avoids BLAS conflict (L290)
+
         dist_matrix = squareform(pdist(points))
 
         # Get sorted edges

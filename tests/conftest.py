@@ -14,16 +14,27 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-# Block sentence_transformers from loading torch._C into a process that may
-# already have scipy/sklearn C extensions loaded.  Mixing BLAS allocators from
-# those C extensions with torch._C causes a segfault.  This must run at
-# conftest import time (before any test module is collected) so it takes effect
-# even for tests outside tests/cache/ that happen to import the package.
-# See L278 (Session 91) for root cause analysis.
+# Block heavy ML libraries from loading their C extensions into this process at
+# import time.  sklearn (via transformers) and torch use different BLAS allocators;
+# loading them in the wrong order causes a SIGSEGV.  The segfault was traced to
+# tests/test_aimo_predict_tdd.py importing submission_transformers which does
+# `from transformers import ...` at module level — this loads sklearn C exts AFTER
+# torch._C is already loaded → BLAS conflict.  See L290 (Session 94).
+#
+# Mocking transformers here is safe because:
+#  - No pytest test file directly imports transformers
+#  - tests/test_aimo_predict_tdd.py overrides _model/_tokenizer with MagicMock anyway
+#  - The mock satisfies `from transformers import X` by returning MagicMock instances
 if "sentence_transformers" not in sys.modules:
     _mock_st = MagicMock()
     _mock_st.SentenceTransformer = MagicMock
     sys.modules["sentence_transformers"] = _mock_st
+
+if "transformers" not in sys.modules:
+    _mock_tr = MagicMock()
+    _mock_tr.AutoModelForCausalLM = MagicMock
+    _mock_tr.AutoTokenizer = MagicMock
+    sys.modules["transformers"] = _mock_tr
 
 
 @pytest.fixture

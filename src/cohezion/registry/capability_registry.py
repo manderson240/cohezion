@@ -3,21 +3,18 @@ Unified Capability Registry.
 Aggregates Skills, Agents, and MCP Servers into a single natural-language search index.
 """
 
+import importlib.util
 import json
 import logging
 from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
 
-
-# Scikit-Learn for TF-IDF (Lightweight Search)
-try:
-    from sklearn.feature_extraction.text import TfidfVectorizer
-    from sklearn.metrics.pairwise import cosine_similarity
-
-    SKLEARN_AVAILABLE = True
-except ImportError:
-    SKLEARN_AVAILABLE = False
+# Probe availability without loading C extensions.  Importing sklearn at
+# module level loads its BLAS allocator, which conflicts with torch._C's
+# allocator when both are in the same process → SIGSEGV (L287, Session 94).
+# TfidfVectorizer / cosine_similarity are imported lazily inside the methods.
+SKLEARN_AVAILABLE: bool = importlib.util.find_spec("sklearn") is not None
 
 logger = logging.getLogger(__name__)
 
@@ -300,6 +297,8 @@ class CapabilityRegistry:
             text = f"{c.name} {c.description} {' '.join(c.tags)} {c.path}"
             corpus.append(text)
 
+        from sklearn.feature_extraction.text import TfidfVectorizer  # lazy — avoids BLAS conflict
+
         self.vectorizer = TfidfVectorizer(stop_words="english")
         self.vectors = self.vectorizer.fit_transform(corpus)
 
@@ -315,6 +314,8 @@ class CapabilityRegistry:
             return results[:top_k]
 
         # TF-IDF Search
+        from sklearn.metrics.pairwise import cosine_similarity  # lazy — avoids BLAS conflict
+
         query_vec = self.vectorizer.transform([query])
         scores = cosine_similarity(query_vec, self.vectors).flatten()
 
