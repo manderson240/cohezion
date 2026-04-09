@@ -1,0 +1,5 @@
+Review /context and develop a plan to dynamically optimize this for every task
+
+---
+
+Looke you might need to create the template
