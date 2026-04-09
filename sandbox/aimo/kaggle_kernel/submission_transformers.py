@@ -27,7 +27,7 @@ from transformers import AutoModelForCausalLM, AutoTokenizer
 class PreFlightJury:
     @staticmethod
     def run_all():
-        print("=== 🛡️ INITIALIZING FORTRESS PRE-FLIGHT TESTS (v38) ===")
+        print("=== 🛡️ INITIALIZING FORTRESS PRE-FLIGHT TESTS (v42) ===")
         results = {"gpu": PreFlightJury.test_gpu(), "libs": PreFlightJury.test_libs(), "symbolic": PreFlightJury.test_symbolic()}
         print(f"Test Results: {results}")
         return all(results.values())
@@ -54,57 +54,72 @@ class PreFlightJury:
             return len(res) == 2
         except: return False
 
-# --- 2. Symbolic Executor (Doer) ---
-class SymbolicExecutor:
-    def __init__(self):
-        self.namespace = {
-            "sympy": sympy, "np": np, "sp": sympy,
-            "sqrt": sympy.sqrt, "exp": sympy.exp, "log": sympy.log,
-            "pi": sympy.pi, "symbols": sympy.symbols,
-            "Eq": sympy.Eq, "solve": sympy.solve, "simplify": sympy.simplify
-        }
-    def execute(self, code: str) -> dict:
-        local_vars = {}
+# --- 2. AutoHarness Specialized Verifiers ---
+class AutoHarnessVerifier:
+    """Synthesized code verifiers for specific AIMO domains."""
+    @staticmethod
+    def verify_modular(state, action):
+        # Auto-synthesized for modular congruence (v1)
         try:
-            exec(code, self.namespace, local_vars)
-            return {"success": True, "results": {k:v for k,v in local_vars.items() if not k.startswith("_")}}
-        except Exception as e:
-            return {"success": False, "error": str(e)}
+            return (int(action) % int(state['mod'])) == int(state['n'])
+        except: return False
 
-# --- 3. Specialist Swarm (Thinker) ---
-class BaseSpecialist:
-    def __init__(self, name: str, model, tokenizer):
-        self.name = name
+    @staticmethod
+    def verify_algebra(state, action):
+        # Auto-synthesized for symbolic consistency (v1)
+        try:
+            # We assume state has 'val' if it's a known constant
+            return abs(float(state.get('val', 0)) - float(action)) < 1e-6
+        except: return False
+
+# --- 3. Specialist Swarm (Triune Manifold) ---
+class specialist_team:
+    def __init__(self, model, tokenizer):
         self.model = model
         self.tokenizer = tokenizer
-        self.prompts = {
-            "Algebraist": "Solve using symbolic reasoning. Final answer in \\boxed{X}.",
-            "Inductive": "Test small cases first to find a pattern. Final answer in \\boxed{X}.",
-            "DevilAdvocate": "Critically review the following solution. Find exactly one error. Be concise."
+        self.specialists = {
+            "Algebraist": "Solve via SymPy and Python code. Final answer in \\boxed{X}.",
+            "NumberTheorist": "Solve using modular arithmetic and prime properties. Final answer in \\boxed{X}.",
+            "Inductive": "Find patterns from small cases (n=1,2,3). Final answer in \\boxed{X}."
         }
 
-    def solve(self, problem_text: str, context: str = "", num_samples: int = 1) -> list[str]:
-        system_prompt = self.prompts.get(self.name, "Think step by step. Final answer in \\boxed{X}.")
-        # SOTA 2026: Truncate context to protect context window (4096 cap)
-        prompt = f"<|im_start|>system\n{system_prompt}<|im_end|>\n<|im_start|>user\n{context[:1500]}\n\nProblem: {problem_text}<|im_end|>\n<|im_start|>assistant\n"
-        
+    def run_swarm(self, problem_text: str, budget: float) -> int:
+        # Determine strategy based on problem content
+        strategy = "Algebraist"
+        if any(w in problem_text.lower() for w in ["prime", "modulo", "divisible"]):
+            strategy = "NumberTheorist"
+        elif any(w in problem_text.lower() for w in ["sequence", "sum of"]):
+            strategy = "Inductive"
+
+        # Generate multiple candidates
+        num_samples = 5 if budget > 350 else 3
+        prompt = f"<|im_start|>system\n{self.specialists[strategy]}<|im_end|>\n<|im_start|>user\n{problem_text}<|im_end|>\n<|im_start|>assistant\n"
         inputs = self.tokenizer(prompt, return_tensors="pt").to("cuda")
+        
         with torch.no_grad():
             outputs = self.model.generate(
                 **inputs, 
-                max_new_tokens=2500, # Increased for v38 
-                temperature=0.9,
+                max_new_tokens=2500,
+                temperature=0.85,
                 do_sample=True,
                 num_return_sequences=num_samples,
                 pad_token_id=self.tokenizer.eos_token_id
             )
-        return [self.tokenizer.decode(out[inputs["input_ids"].shape[-1]:], skip_special_tokens=True) for out in outputs]
+        
+        proofs = [self.tokenizer.decode(o[inputs["input_ids"].shape[-1]:], skip_special_tokens=True) for o in outputs]
+        answers = []
+        for p in proofs:
+            # Answer extraction logic
+            match = re.search(r"\\boxed\{(\d+)\}", p)
+            if match:
+                ans = int(match.group(1)) % 1000
+                answers.append(ans)
+            else:
+                nums = re.findall(r"\d+", p)
+                if nums: answers.append(int(nums[-1]) % 1000)
 
-    def extract_answer(self, text: str) -> int:
-        match = re.search(r"\\boxed\{(\d+)\}", text)
-        if match: return int(match.group(1)) % 100000
-        nums = re.findall(r"\d+", text)
-        return int(nums[-1]) % 100000 if nums else 0
+        if not answers: return 0
+        return Counter(answers).most_common(1)[0][0]
 
 # --- 4. Global State & Driver ---
 _model = None
@@ -122,13 +137,11 @@ def load_model():
     global _model, _tokenizer
     path = find_path("qwen2-5-math-7b-instruct")
     if path:
-        from transformers import AutoModelForCausalLM, AutoTokenizer
         _tokenizer = AutoTokenizer.from_pretrained(path)
-        _model = AutoModelForCausalLM.from_pretrained(path, dtype=torch.float16, device_map="auto")
+        _model = AutoModelForCausalLM.from_pretrained(path, dtype=torch.bfloat16, device_map="auto")
         try:
-            _model = torch.compile(_model, mode="reduce-overhead")
-            dummy_in = _tokenizer("Solve: 2+2", return_tensors="pt").to("cuda")
-            _model.generate(**dummy_in, max_new_tokens=1)
+            # H100 optimization
+            _model = torch.compile(_model)
         except: pass
 
 def predict(id_df: pl.Series, problem_df: pl.Series) -> pl.DataFrame:
@@ -139,45 +152,20 @@ def predict(id_df: pl.Series, problem_df: pl.Series) -> pl.DataFrame:
     gc.collect()
     torch.cuda.empty_cache()
 
-    # CRITICAL: Robust scalar extraction
     problem_id = id_df[0]
     problem_text = problem_df[0]
     
     elapsed = time.time() - _start_time
-    budget = (_total_time_limit - elapsed) / max(1, (50 - (_problems_solved % 50)))
-    print(f"\n[Problem {problem_id}] Budget: {budget:.1f}s | VRAM: {torch.cuda.memory_allocated()/1e9:.1f}GB")
+    remaining_time = _total_time_limit - elapsed
+    budget_per_prob = remaining_time / max(1, (50 - (_problems_solved % 50)))
+    vram = torch.cuda.memory_allocated()/1e9
+    print(f"\n[Problem {problem_id}] Budget: {budget_per_prob:.1f}s | VRAM: {vram:.1f}GB")
 
-    final_ans = 0
-    try:
-        # Batched Run 1
-        num_samples = 4 if budget > 200.0 else 2
-        proposer = BaseSpecialist("Algebraist", _model, _tokenizer)
-        proofs = proposer.solve(problem_text, num_samples=num_samples)
-        answers = [proposer.extract_answer(p) for p in proofs]
-        
-        counts = Counter(answers)
-        if counts and counts.most_common(1)[0][1] >= num_samples * 0.5:
-            final_ans = counts.most_common(1)[0][0]
-        else:
-            final_ans = answers[0]
-            proof = proofs[0]
-            # Adversarial Refinement
-            if budget > 220.0:
-                advocate = BaseSpecialist("DevilAdvocate", _model, _tokenizer)
-                critique = advocate.solve(problem_text, context=f"PROPOSED SOLUTION: {proof[:1000]}")[0]
-                
-                final_spec = BaseSpecialist("Inductive", _model, _tokenizer)
-                final_proof = final_spec.solve(problem_text, context=f"PREVIOUS: {proof[:800]}\nCRITIQUE: {critique[:800]}")[0]
-                refined_ans = final_spec.extract_answer(final_proof)
-                
-                if refined_ans != 0: final_ans = refined_ans # Safety Net
-            
-    except Exception as e:
-        print(f"Safety Trigger: {e}")
-        final_ans = final_ans or 0
+    swarm = specialist_team(_model, _tokenizer)
+    final_ans = swarm.run_swarm(problem_text, budget_per_prob)
 
     _problems_solved += 1
-    return pl.DataFrame({"id": [problem_id], "answer": [int(final_ans) % 100000]})
+    return pl.DataFrame({"id": [problem_id], "answer": [int(final_ans) % 1000]})
 
 if __name__ == "__main__":
     if PreFlightJury.run_all():

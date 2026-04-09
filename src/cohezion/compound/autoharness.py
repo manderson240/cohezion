@@ -46,17 +46,22 @@ Environment:
             try:
                 response = await self.llm.execute_task(task=prompt, skill="coding_PRIME")
                 
-                # Extract text from response based on expected Cohezion structures
-                if hasattr(response, 'text'):
+                # Robust extraction from various response types
+                if hasattr(response, 'output'):
+                    response_text = response.output
+                elif hasattr(response, 'text'):
                     response_text = response.text
                 elif isinstance(response, str):
                     response_text = response
                 else:
                     response_text = str(response)
                 
-                # Extract python code
+                # Extract python code block
                 match = re.search(r"```python\n(.*?)\n```", response_text, re.DOTALL)
                 code = match.group(1) if match else response_text
+                # Fallback: if no code blocks but looks like pure code
+                if not match and "def " in code:
+                    pass # use as is
                 
                 # Test against the environment
                 success, feedback = dummy_env(code)

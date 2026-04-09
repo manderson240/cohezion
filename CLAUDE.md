@@ -10,7 +10,7 @@ COHEZION: 12D agentic universe with FLUME VAE, compound engineering, multi-agent
 
 ### ⚡ Core Commands
 ```bash
-uv run pytest tests/ -q              # Full test suite (5,200+ tests)
+uv run pytest tests/ -q              # Full test suite (6,100+ tests)
 uv run pytest tests/compound/ -v     # Run module tests
 uv run pytest tests/test_*.py::name  # Single test
 make validate                         # Compound loop validation (23 checks, ~18s)
@@ -29,6 +29,26 @@ uv venv && source .venv/bin/activate && uv pip install -e .  # New project setup
 
 # For sudo: configure passwordless sudo for automation OR run interactively
 # Do NOT attempt to parse .env for SUDO_PASSWORD - this is a security risk
+```
+
+### ⚡ MCP stdio Server Rules (L273-L275, Sessions 89-90)
+```python
+# MANDATORY: Agent MARKDOWN files (AGENTS.md) must start with valid YAML frontmatter
+# Missing `name` + `description` = silent failure — entire capability set goes dark
+# ---
+# name: my-server
+# description: What this server does
+# ---
+
+# MANDATORY: Config lookups in MCP servers must be LAZY (not at module import time)
+# Slow external checks (e.g., Bitwarden vault) at startup exceed CLI handshake timeout
+# WRONG:  SECRET = get_vault_secret()           # runs at import → timeout
+# RIGHT:  def get_secret(): return get_vault_secret()  # lazy, called on first use
+
+# MANDATORY: stdio MCP servers must be SILENT on stdout during initialization
+# stdout is the message channel — any debug output corrupts the protocol stream
+# Use: .venv/bin/python server.py   OR   uv -q run server.py  (suppress uv update msgs)
+# NEVER: logger.info("Starting...") at module scope, print() anywhere in init path
 ```
 
 ### ⚡ Critical Principles (Sessions 40-55)
@@ -120,7 +140,7 @@ See skill: `cohezion-vault-workflow` for vault API examples (log decisions, expe
 ### ⚡ Quick Reference
 - **Language**: Python 3.13+ | **Package Manager**: `uv` (never bare python)
 - **DB**: SurrealDB (ws://localhost:8000) | **API**: FastAPI :8080
-- **Tests**: 5,200+ passing (2,040+ core verified 2026-04-01, 285 genesis, remainder in broader suite) | **Coverage**: html report in `htmlcov/`
+- **Tests**: 6,109 collected (357 genesis passing, 1 failing: test_jepa_world_model.py::TestTraining::test_training_updates_metrics) | **Coverage**: html report in `htmlcov/`
 - **CI**: `make lint-check && uv run pytest` before commit
 - **Entry point**: `cohezion = "cohezion.__main__:main"`
 - **Vault**: `~/vaults/cohezion-vault/` — Query via `vault_find_relevant_context(query)`

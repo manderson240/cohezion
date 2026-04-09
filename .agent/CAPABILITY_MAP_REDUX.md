@@ -2,7 +2,7 @@
 
 A central registry of the swarm's **6-Dimensional Service Architecture**. Only "Prime" skills are listed here.
 
-**Last updated**: 2026-03-27 (Session 76). **702 Python files, 178 PRIME skills, 5,160 passing tests (98.5%).**
+**Last updated**: 2026-04-08 (Session 91 retrospective). **6,109 tests collected, 32 genesis physics modules, 11 frontend tsx components.**
 
 ## 1. PROPRIOCEPTION (Ouroboros Service)
 *The Nervous System: Health, Hygiene, and Self-Correction.*
@@ -60,10 +60,10 @@ A central registry of the swarm's **6-Dimensional Service Architecture**. Only "
 - **Security**: [SECURITY_GUARDRAILS_PRIME](file:///home/mike-anderson/dev/cohezion/src/cohezion/skills/SECURITY_GUARDRAILS_PRIME.md).
 
 ## 7. COMPETITION (Kaggle Arena)
-*Active competition tracks.*
-- **AMD Speedrun**: 3 kernels ranked; MoE closest to parity (1.41x gap); GEMM quant ceiling confirmed.
-- **Nemotron**: v20 adapter trained (LoRA r=32); submission uploading.
-- **AIMO3**: Sandbox exists; evaluation framework built; H100 compute available.
+*Competition archive + active tracks.*
+- **AMD Speedrun** (CLOSED 2026-04-07): Final gaps — GEMM 3.1x (13.4µs vs 4.3µs), MLA 3.6x (69.7µs vs 19.5µs), MoE 2.2x (154µs vs 70.5µs). Fused quant+GEMM correctness proven (0.0 error). K-Search compound loop operational. Key constraint: 12-min runner timeout blocks JIT kernels. See `.claude/rules/luma-kernels.md`.
+- **AIMO3**: H100 Blackwell handshake confirmed (`machine_shape: NvidiaRtxPro6000`). Diversity+Entropy Voting+Speculative Decoding framework built. Polars Series `.item()` indexing mandatory (not `[0,0]`). See `KAGGLE_STABILITY_PROTOCOL.md`.
+- **Nemotron**: v20 adapter trained (LoRA r=32 on Mamba in_proj/out_proj); baseline complete.
 - **Kaggle API**: Restored with KGAT_ token auth (`KAGGLE_API_TOKEN` env var).
 
 ## PREVIOUSLY DORMANT — NOW ACTIVE
