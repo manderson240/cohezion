@@ -3,7 +3,7 @@
   "checkpoint_id": "192c3fc1f15d",
   "strategy": "manual-commit",
   "branch": "feature/2026-tip-of-the-spear",
-  "checkpoints_count": 6,
+  "checkpoints_count": 13,
   "files_touched": [
     "_bmad/bmm/epics/proactive-bmad/COMPLETION_SUMMARY.md",
     "src/cohezion/core/persistence/repositories/__init__.py",
@@ -24,13 +24,19 @@
       "transcript": "/19/2c3fc1f15d/1/full.jsonl",
       "content_hash": "/19/2c3fc1f15d/1/content_hash.txt",
       "prompt": "/19/2c3fc1f15d/1/prompt.txt"
+    },
+    {
+      "metadata": "/19/2c3fc1f15d/2/metadata.json",
+      "transcript": "/19/2c3fc1f15d/2/full.jsonl",
+      "content_hash": "/19/2c3fc1f15d/2/content_hash.txt",
+      "prompt": "/19/2c3fc1f15d/2/prompt.txt"
     }
   ],
   "token_usage": {
-    "input_tokens": 1090965,
-    "cache_creation_tokens": 887663,
-    "cache_read_tokens": 14854599,
-    "output_tokens": 78914,
-    "api_call_count": 163
+    "input_tokens": 1093117,
+    "cache_creation_tokens": 2088935,
+    "cache_read_tokens": 48793668,
+    "output_tokens": 231579,
+    "api_call_count": 470
   }
 }
