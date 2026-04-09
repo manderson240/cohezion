@@ -1,0 +1,200 @@
+retrospective
+
+---
+
+Fix it all
+
+---
+
+<task-notification>
+<task-id>bct3wa7es</task-id>
+<tool-use-id>toolu_01LpP1SZJFJJ2nrLeLyiVtaP</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/16c5f7d6-d532-4d96-b182-76c51602f485/tasks/bct3wa7es.output</output-file>
+<status>completed</status>
+<summary>Background command "Search system-wide for surreal binary" completed (exit code 0)</summary>
+</task-notification>
+
+---
+
+/retrospect
+
+---
+
+<task-notification>
+<task-id>btkt5vbq1</task-id>
+<tool-use-id>toolu_01PcRW2sXzxRAcGA3J1PP5DF</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/16c5f7d6-d532-4d96-b182-76c51602f485/tasks/btkt5vbq1.output</output-file>
+<status>completed</status>
+<summary>Background command "Full test suite count" completed (exit code 0)</summary>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>bkwa2rwxz</task-id>
+<tool-use-id>toolu_014HwhQmt4wunutRXHFo4PPS</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/16c5f7d6-d532-4d96-b182-76c51602f485/tasks/bkwa2rwxz.output</output-file>
+<status>completed</status>
+<summary>Background command "Run full suite with standard options (no addopts override)" completed (exit code 0)</summary>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>begbadftz</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/16c5f7d6-d532-4d96-b182-76c51602f485/tasks/begbadftz.output</output-file>
+<status>completed</status>
+<summary>Background command "Commit the segfault fix and knowledge graph updates" completed (exit code 0)</summary>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>b5vtpw5ux</task-id>
+<tool-use-id>toolu_01XbYZENPZoLRaXrS2ynbnRY</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/16c5f7d6-d532-4d96-b182-76c51602f485/tasks/b5vtpw5ux.output</output-file>
+<status>completed</status>
+<summary>Background command "Verify full suite no longer segfaults" completed (exit code 0)</summary>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>byh0m3gpk</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/16c5f7d6-d532-4d96-b182-76c51602f485/tasks/byh0m3gpk.output</output-file>
+<status>completed</status>
+<summary>Background command "Test the high-risk modules that previously caused segfaults" completed (exit code 0)</summary>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>b6x9lokuc</task-id>
+<tool-use-id>toolu_01YJnPMFvfchYUY1pE7oKfCT</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/16c5f7d6-d532-4d96-b182-76c51602f485/tasks/b6x9lokuc.output</output-file>
+<status>failed</status>
+<summary>Background command "Run research tests synchronously to diagnose" failed with exit code 1</summary>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>b41ud34ua</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/16c5f7d6-d532-4d96-b182-76c51602f485/tasks/b41ud34ua.output</output-file>
+<status>completed</status>
+<summary>Background command "Run full test suite to verify segfault fix" completed (exit code 0)</summary>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>bi7hnnn4h</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/16c5f7d6-d532-4d96-b182-76c51602f485/tasks/bi7hnnn4h.output</output-file>
+<status>completed</status>
+<summary>Background command "Run full suite excluding research (already verified) to save time" completed (exit code 0)</summary>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>b9b8qe7j1</task-id>
+<tool-use-id>toolu_01XvbouiYCWtBYMiHKjnpR12</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/16c5f7d6-d532-4d96-b182-76c51602f485/tasks/b9b8qe7j1.output</output-file>
+<status>completed</status>
+<summary>Background command "Run full suite minus research and benchmarks to narrow segfault source" completed (exit code 0)</summary>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>bnb6q6kcw</task-id>
+<tool-use-id>toolu_0115AZJoi1vftxSsmVhgW3tM</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/16c5f7d6-d532-4d96-b182-76c51602f485/tasks/bnb6q6kcw.output</output-file>
+<status>completed</status>
+<summary>Background command "Run full test suite with the lazy sklearn fix" completed (exit code 0)</summary>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>b4gtdpjyq</task-id>
+<tool-use-id>toolu_01EtVC6eEySuxzbKDv8Y8zmS</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/16c5f7d6-d532-4d96-b182-76c51602f485/tasks/b4gtdpjyq.output</output-file>
+<status>completed</status>
+<summary>Background command "Run with -x to stop at first failure and look for which test triggers crash" completed (exit code 0)</summary>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>b9f2ehcg1</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/16c5f7d6-d532-4d96-b182-76c51602f485/tasks/b9f2ehcg1.output</output-file>
+<status>completed</status>
+<summary>Background command "Run with -v to see last test before crash" completed (exit code 0)</summary>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>bu7nm0acf</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/16c5f7d6-d532-4d96-b182-76c51602f485/tasks/bu7nm0acf.output</output-file>
+<status>completed</status>
+<summary>Background command "uv run pytest tests/ -q -o addopts="" 2&gt;&amp;1 | tail -20" completed (exit code 0)</summary>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>brvl4gn5b</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/16c5f7d6-d532-4d96-b182-76c51602f485/tasks/brvl4gn5b.output</output-file>
+<status>completed</status>
+<summary>Background command "uv run pytest tests/ -q -o addopts="" --tb=no 2&gt;&amp;1 | grep "^FAILED" | head -40" completed (exit code 0)</summary>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>bym8a2p4c</task-id>
+<tool-use-id>toolu_01SuFS4CJie6uSpxw9S9EjCz</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/16c5f7d6-d532-4d96-b182-76c51602f485/tasks/bym8a2p4c.output</output-file>
+<status>completed</status>
+<summary>Background command "git commit -m "fix: eliminate full-suite segfault via lazy C-extension imports (L290)
+
+Two root causes identified and fixed:
+
+1. BLAS allocator conflict (scipy/sklearn after torch._C):
+   - topological_persistence.py: move pdist/squareform import inside compute_persistence()
+   - riemannian_metric.py: move solve_ivp import inside geodesic() (already done)
+   - topological_router.py: move pdist/squareform inside spectral_features() (already done)
+   - capability_registry.py: replace module-level sklearn try-import with
+     importlib.util.find_spec() + lazy imports inside _build_index() and find()
+   - conftest.py: add transformers mock to block HuggingFace from loading sklearn at
+     module collection time
+
+2. AMD ROCm GPU page fault in test_consensus_logic:
+   - On this hardware (Radeon 8060S), torch.cuda.is_available() returns True (ROCm
+     presents as CUDA). specialist_team.run_swarm() calls v.to('cuda') which triggers
+     a GPU page fault (SIGSEGV).
+   - Fix: patch torch.cuda.is_available to return False in the test — correct because
+     the test is checking consensus voting logic, not GPU behavior.
+
+Also:
+   - research/agent.py: fix _log_experiment() to parse research metric from output text
+     instead of using ExecutionMetrics.coherence (which defaults to 0.0)
+   - skill_registry.json: register AUTORESEARCH_PRIME (81 total entries)
+   - KEY_LEARNINGS.md: add Learning 290 documenting the segfault pattern
+
+Result: full suite completes in 7:51 with no crash (5967 passed, 147 pre-existing
+failures, 28 skipped). Previously the suite crashed mid-run with SIGSEGV."" completed (exit code 0)</summary>
+</task-notification>
+
+---
+
+Create git safe handoffs.  We need to take a break and be able to resume work later.  Also make entries in the obsidian vault and surrealdb.
