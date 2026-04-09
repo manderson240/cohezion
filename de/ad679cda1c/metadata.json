@@ -3,7 +3,7 @@
   "checkpoint_id": "dead679cda1c",
   "strategy": "manual-commit",
   "branch": "feature/2026-tip-of-the-spear",
-  "checkpoints_count": 0,
+  "checkpoints_count": 1,
   "files_touched": [
     "PI_SETUP_OPTIMIZATION.md"
   ],
@@ -13,13 +13,19 @@
       "transcript": "/de/ad679cda1c/0/full.jsonl",
       "content_hash": "/de/ad679cda1c/0/content_hash.txt",
       "prompt": ""
+    },
+    {
+      "metadata": "/de/ad679cda1c/1/metadata.json",
+      "transcript": "/de/ad679cda1c/1/full.jsonl",
+      "content_hash": "/de/ad679cda1c/1/content_hash.txt",
+      "prompt": "/de/ad679cda1c/1/prompt.txt"
     }
   ],
   "token_usage": {
-    "input_tokens": 0,
-    "cache_creation_tokens": 0,
-    "cache_read_tokens": 0,
-    "output_tokens": 0,
-    "api_call_count": 0
+    "input_tokens": 1177,
+    "cache_creation_tokens": 142519,
+    "cache_read_tokens": 5025741,
+    "output_tokens": 21458,
+    "api_call_count": 46
   }
 }
