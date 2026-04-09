@@ -140,7 +140,7 @@ See skill: `cohezion-vault-workflow` for vault API examples (log decisions, expe
 ### ⚡ Quick Reference
 - **Language**: Python 3.13+ | **Package Manager**: `uv` (never bare python)
 - **DB**: SurrealDB (ws://localhost:8000) | **API**: FastAPI :8080
-- **Tests**: 6,100+ collected, full suite runs to completion (358 genesis passing, 0 failing) | **Coverage**: html report in `htmlcov/`
+- **Tests**: 6,142 collected, full suite completes without crash (5967 passing, 147 pre-existing failures, 28 skipped). Genesis: 358 passing. Segfault fixed L290 (Session 94). | **Coverage**: html report in `htmlcov/`
 - **SurrealDB Persistence**: L183 wired — 586 prompt_artifacts + 578 universe_snapshots populated. Graph HIHO = 0.000 (neurons/synapses empty — vault-keeper needed)
 - **CI**: `make lint-check && uv run pytest` before commit
 - **Entry point**: `cohezion = "cohezion.__main__:main"`
