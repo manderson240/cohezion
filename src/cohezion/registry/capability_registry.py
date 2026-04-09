@@ -10,6 +10,7 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
 
+
 # Probe availability without loading C extensions.  Importing sklearn at
 # module level loads its BLAS allocator, which conflicts with torch._C's
 # allocator when both are in the same process → SIGSEGV (L287, Session 94).

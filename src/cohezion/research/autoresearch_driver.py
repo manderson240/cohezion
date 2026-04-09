@@ -18,10 +18,11 @@ import math
 import re
 import subprocess
 import time
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
-from typing import Callable
+
 
 logger = logging.getLogger(__name__)
 

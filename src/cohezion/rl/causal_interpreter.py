@@ -11,8 +11,8 @@ from __future__ import annotations
 
 import logging
 from collections import defaultdict
+from collections.abc import Callable
 from dataclasses import dataclass, field
-from typing import Any, Callable
 
 import numpy as np
 import torch
@@ -388,8 +388,8 @@ safety properties of the trained policy.
 
 
 __all__ = [
-    "CausalInterventionTester",
     "ActivationPatcher",
-    "InterventionResult",
+    "CausalInterventionTester",
     "InterpretabilityReport",
+    "InterventionResult",
 ]

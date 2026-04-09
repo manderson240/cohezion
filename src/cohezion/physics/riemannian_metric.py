@@ -32,6 +32,8 @@ import logging
 from collections.abc import Callable
 
 import numpy as np
+
+
 # solve_ivp imported lazily inside geodesic_ode() — see L290 (Session 94)
 
 

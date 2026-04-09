@@ -143,6 +143,7 @@ class SelfEvolvingRefiner:
 
         try:
             import asyncio
+
             return await asyncio.to_thread(_mutate_file)
         except Exception as e:
             logger.debug(f"Mutation I/O failed: {e}")
@@ -169,13 +170,15 @@ class SelfEvolvingRefiner:
 ## Instructions:
 Initial generation based on context {lift.w:.4f}.
 """
+
         # Offload blocking I/O to thread pool
         def _write_skill():
             prime_path.write_text(content)
             return True
-            
+
         try:
             import asyncio
+
             await asyncio.to_thread(_write_skill)
         except Exception as e:
             logger.error(f"Skill discovery writing failed: {e}")

@@ -11,9 +11,10 @@ self-distillation and skill evolution.
 
 from __future__ import annotations
 
+from pathlib import Path
+
 import numpy as np
 import torch
-from pathlib import Path
 
 from cohezion.physics.mereon_projector import MereonProjector
 
@@ -77,7 +78,7 @@ class GeometricLatentBridge:
         """Maps latent vector to R3 coordinates via stereographic projection."""
         if latent_vec.ndim > 1:
             latent_vec = latent_vec.view(-1)[:256]
-            
+
         q = torch.matmul(self.projection_weight, latent_vec).squeeze()
         q_np = q.detach().cpu().numpy()
 

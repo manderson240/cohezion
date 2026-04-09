@@ -45,6 +45,8 @@ from dataclasses import dataclass, field
 from typing import Any
 
 import numpy as np
+
+
 # scipy imported lazily inside compute_persistence() — avoids BLAS allocator
 # conflict (SIGSEGV) when scipy C extensions load after torch._C. See L290 (Session 94).
 

@@ -702,13 +702,13 @@
     "version": "1.0",
     "concepts": [],
     "see_also": [],
-    "source": "/tmp/pytest-of-mike-anderson/pytest-70/test_factory_generate_top_skil0/skills/SKILL_0_PRIME.md"
+    "source": "/tmp/pytest-of-mike-anderson/pytest-76/test_factory_generate_top_skil0/skills/SKILL_0_PRIME.md"
   },
   "SKILL_1_PRIME": {
     "version": "1.0",
     "concepts": [],
     "see_also": [],
-    "source": "/tmp/pytest-of-mike-anderson/pytest-70/test_factory_generate_top_skil0/skills/SKILL_1_PRIME.md"
+    "source": "/tmp/pytest-of-mike-anderson/pytest-76/test_factory_generate_top_skil0/skills/SKILL_1_PRIME.md"
   },
   "SURREALDB_MCP_PRIME": {
     "version": "v1.0 (New MCP Component)",
@@ -843,7 +843,7 @@
     "version": "2.5",
     "concepts": [],
     "see_also": [],
-    "source": "/tmp/pytest-of-mike-anderson/pytest-70/test_version_header_in_generat0/skills/TEST_SKILL_PRIME.md"
+    "source": "/tmp/pytest-of-mike-anderson/pytest-76/test_version_header_in_generat0/skills/TEST_SKILL_PRIME.md"
   },
   "THROTTLED_SCOUT_PRIME": {
     "version": "v1.0 (Safe Mode v3 Compatible)",
