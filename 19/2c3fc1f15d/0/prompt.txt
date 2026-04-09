@@ -1,0 +1,29 @@
+retrospective
+
+---
+
+Fix it all
+
+---
+
+<task-notification>
+<task-id>bct3wa7es</task-id>
+<tool-use-id>toolu_01LpP1SZJFJJ2nrLeLyiVtaP</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/16c5f7d6-d532-4d96-b182-76c51602f485/tasks/bct3wa7es.output</output-file>
+<status>completed</status>
+<summary>Background command "Search system-wide for surreal binary" completed (exit code 0)</summary>
+</task-notification>
+
+---
+
+/retrospect
+
+---
+
+<task-notification>
+<task-id>btkt5vbq1</task-id>
+<tool-use-id>toolu_01PcRW2sXzxRAcGA3J1PP5DF</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/16c5f7d6-d532-4d96-b182-76c51602f485/tasks/btkt5vbq1.output</output-file>
+<status>completed</status>
+<summary>Background command "Full test suite count" completed (exit code 0)</summary>
+</task-notification>
