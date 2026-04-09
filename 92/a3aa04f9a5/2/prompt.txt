@@ -1,0 +1,86 @@
+Fix   ⎿  SessionStart:startup hook error
+  ⎿  SessionStart:startup hook error
+
+---
+
+Looks like this fix worked.  Now let's take autoresearch for a spin. You pick a topic that should be researched to improve Cohezion.
+
+---
+
+<task-notification>
+<task-id>bw22ahmt9</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/f195eae4-343d-4107-8d67-4ae1bfbd1269/tasks/bw22ahmt9.output</output-file>
+<status>completed</status>
+<summary>Background command "Wait for training to finish (241s remaining + buffer)" completed (exit code 0)</summary>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>b9pji6p2i</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/f195eae4-343d-4107-8d67-4ae1bfbd1269/tasks/b9pji6p2i.output</output-file>
+<status>completed</status>
+<summary>Background command "Check eval is still running after 5 min" completed (exit code 0)</summary>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>bikbcjea0</task-id>
+<tool-use-id>toolu_0138Tv1fQ9XccYxLEcYAnd85</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/f195eae4-343d-4107-8d67-4ae1bfbd1269/tasks/bikbcjea0.output</output-file>
+<status>completed</status>
+<summary>Background command "Check if eval finished after 10 more minutes" completed (exit code 0)</summary>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>bjt2687cu</task-id>
+<tool-use-id>toolu_01VkYFtjuSoBnmPKhJJfgLkY</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/f195eae4-343d-4107-8d67-4ae1bfbd1269/tasks/bjt2687cu.output</output-file>
+<status>completed</status>
+<summary>Background command "Wait for eval to complete then extract results" completed (exit code 0)</summary>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>bmrbf97fu</task-id>
+<tool-use-id>toolu_01AAkZ1yncBbK4L9q4GiqKbe</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/f195eae4-343d-4107-8d67-4ae1bfbd1269/tasks/bmrbf97fu.output</output-file>
+<status>completed</status>
+<summary>Background command "Check status in 15 minutes" completed (exit code 0)</summary>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>bxax0are4</task-id>
+<tool-use-id>toolu_01Ky4CCVCVG3Q1fy4KQDXUj8</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/f195eae4-343d-4107-8d67-4ae1bfbd1269/tasks/bxax0are4.output</output-file>
+<status>completed</status>
+<summary>Background command "Check exp2 training progress in 7 min" completed (exit code 0)</summary>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>bcjpm488z</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/f195eae4-343d-4107-8d67-4ae1bfbd1269/tasks/bcjpm488z.output</output-file>
+<status>completed</status>
+<summary>Background command "Wait for exp2 to complete" completed (exit code 0)</summary>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>b5qaeu5ap</task-id>
+<tool-use-id>toolu_01C3gcETZ5VnMukERgDnnEo5</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/f195eae4-343d-4107-8d67-4ae1bfbd1269/tasks/b5qaeu5ap.output</output-file>
+<status>failed</status>
+<summary>Background command "Wait 40 min then check final results" failed with exit code 1</summary>
+</task-notification>
