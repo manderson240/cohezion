@@ -1039,6 +1039,28 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
             except Exception as e:
                 logger.debug("Journey tracking failed (non-blocking): %s", e)
 
+        # Step 9.1: Persist universe snapshot (L183)
+        # Record a universe state snapshot to SurrealDB for world model training
+        try:
+            import asyncio
+
+            from cohezion.persistence.genesis_persistence import persist_universe_snapshot
+
+            _snap_coro = persist_universe_snapshot(
+                tick=int(time.time()),
+                global_coherence=metrics.get("coherence", 0.5),
+                symmetry_group="SU2",
+                temperature=float(metrics.get("temperature", 0.5)),
+                n_agents=1,
+            )
+            try:
+                asyncio.get_running_loop()
+                asyncio.ensure_future(_snap_coro)
+            except RuntimeError:
+                asyncio.run(_snap_coro)
+        except Exception as e:
+            logger.debug("Universe snapshot persistence failed (non-blocking): %s", e)
+
         # Step 9.5: Add trajectory point to universe bridge (non-blocking)
         # Only proceed if Step 9 succeeded to avoid stale data
         if self._universe_bridge and universe_journey_id and journey_point_tracked:
@@ -1127,6 +1149,28 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
                 logger.debug("Mycelium: captured execution as pattern entry")
         except (ImportError, Exception):
             pass  # Non-blocking: mycelium may not be available
+
+        # Step 10.7: Persist prompt artifact (L183)
+        # Record prompt/response pair to SurrealDB for retrospective analysis
+        try:
+            import asyncio
+
+            from cohezion.persistence.genesis_persistence import persist_prompt_artifact
+
+            _artifact_coro = persist_prompt_artifact(
+                prompt_text=task_description,
+                response_text=output[:2000],
+                model_id=token_metrics.get("model", "unknown") if token_metrics else "unknown",
+                confidence=metrics.get("coherence", 0.5),
+                latency_ms=metrics.get("duration_seconds", 0.0) * 1000,
+            )
+            try:
+                asyncio.get_running_loop()
+                asyncio.ensure_future(_artifact_coro)
+            except RuntimeError:
+                asyncio.run(_artifact_coro)
+        except Exception as e:
+            logger.debug("Prompt artifact persistence failed (non-blocking): %s", e)
 
         return ExecutionResult(
             success=success,

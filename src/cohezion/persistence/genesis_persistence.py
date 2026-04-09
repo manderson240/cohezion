@@ -135,18 +135,32 @@ async def persist_universe_snapshot(
     symmetry_group: str,
     temperature: float,
     n_agents: int,
+    global_entropy: float = 0.5,
+    global_free_energy: float = 0.0,
+    fisher_eigenvalue_max: float = 1.0,
+    cosmogony_stage: int = 0,
+    topology_summary: dict | None = None,
+    order_parameters: dict | None = None,
 ) -> bool:
     """Persist a periodic universe state snapshot."""
     snapshot_id = f"snap_{tick}_{uuid4().hex[:8]}"
+    topo = topology_summary or {}
+    order = order_parameters or {}
 
     query = (
         f"CREATE universe_snapshots SET "
         f"snapshot_id = {_to_surql_value(snapshot_id)}, "
         f"tick = {tick}, "
         f"global_coherence = {_to_surql_value(global_coherence)}, "
+        f"global_entropy = {_to_surql_value(global_entropy)}, "
+        f"global_free_energy = {_to_surql_value(global_free_energy)}, "
         f"symmetry_group = {_to_surql_value(symmetry_group)}, "
         f"temperature = {_to_surql_value(temperature)}, "
-        f"n_agents = {n_agents};"
+        f"n_agents = {n_agents}, "
+        f"topology_summary = {json.dumps(topo)}, "
+        f"fisher_eigenvalue_max = {_to_surql_value(fisher_eigenvalue_max)}, "
+        f"order_parameters = {json.dumps(order)}, "
+        f"cosmogony_stage = {cosmogony_stage};"
     )
 
     result = await _execute_surql(query)
