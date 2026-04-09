@@ -5,6 +5,7 @@ from __future__ import annotations
 import asyncio
 import shutil
 import subprocess
+import sys
 import uuid
 from collections.abc import Generator
 from pathlib import Path
@@ -12,6 +13,17 @@ from types import ModuleType
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
+
+# Block sentence_transformers from loading torch._C into a process that may
+# already have scipy/sklearn C extensions loaded.  Mixing BLAS allocators from
+# those C extensions with torch._C causes a segfault.  This must run at
+# conftest import time (before any test module is collected) so it takes effect
+# even for tests outside tests/cache/ that happen to import the package.
+# See L278 (Session 91) for root cause analysis.
+if "sentence_transformers" not in sys.modules:
+    _mock_st = MagicMock()
+    _mock_st.SentenceTransformer = MagicMock
+    sys.modules["sentence_transformers"] = _mock_st
 
 
 @pytest.fixture

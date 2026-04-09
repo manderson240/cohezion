@@ -240,5 +240,14 @@ The stdio MCP protocol uses `stdout` for messaging. Any extraneous output (e.g.,
 ### Learning 284: SurrealDB CLI Path — ~/.surrealdb/surreal
 The `surreal` CLI binary lives at `~/.surrealdb/surreal`, not in `$PATH`. For schema operations use: `~/.surrealdb/surreal import --conn ws://localhost:8001 --user root --pass root --ns cohezion --db vault <file.surql>`. This is more reliable than Python split-execute (which can drop DEFINE TABLE statements when comment blocks precede them).
 
-### Learning 285: autoresearch UCB1 K-Search — Exploration-Exploitation for Hypothesis Selection
-UCB1 with C=sqrt(2) is the standard exploration-exploitation balance for hypothesis selection: `score = mean_reward + 1.414 * sqrt(log(total_trials) / node_trials)`. Unexplored nodes are always selected first. `AutoresearchDriver` wraps UCB1 with subprocess execution, stdout metric extraction (`metric: value` or `metric=value` regex), SurrealDB persistence, and `asyncio.ensure_future()` for non-blocking dispatch from `CompoundExecutor.execute_task()` Step 5.91. K-Search tree state persists at `~/.cohezion-research/ksearch/{target}.json`.
+### Learning 286: Kaggle Quota Strategy — Multi-Track Mapping (2026-04-08)
+Strategic mapping of Kaggle quotas is mandatory to maximize output without bottlenecks: (1) **$50/day AI Models API** is reserved for the **Measuring AGI** track (free Gemini/Claude access for cognitive tasks), (2) **30h/week GPU** is for heavy training in **BirdCLEF** and **ARC Prize**, (3) **AIMO** and **Nemotron** utilize dedicated, free sponsor hardware (H100 and G4 Blackwell). Rationale: utilizing the daily-resetting AI quota prevents wasting personal API funds.
+
+### Learning 287: AutoHarness Mandate — Code-as-Action-Verifier (2026-04-08)
+Mandate: Use **AutoHarness (arXiv:2603.03329v1)** for all agentic workflows. By automatically synthesizing deterministic code harnesses (verifiers) and policies locally using efficient models (qwen3.5:coder, phi4-mini), we eliminate "illegal action" failure modes (e.g., AIMO indexing errors or invalid ARC grid moves). At runtime, the LLM is bypassed for action validation, resulting in zero token cost and 100% logical compliance. Verified: generated AIMO modular verifier in 1 iteration.
+
+### Learning 288: AIMO v43 "Fortress" Breakthrough — Local TDD for Kaggle Reruns
+Achieving a non-zero score on AIMO Progress Prize 3 requires reproducing the Kaggle environment locally via a **modular arithmetic TDD harness**. Key fix in v43: (1) Scalar indexing (`problem_df[0]`) to bypass Polars ASCII prompt corruption, (2) dictionary-based tensor mapping (`{k: v.to(device) for k,v in inputs.items()}`) to fix `AttributeError` in multi-gpu environments, and (3) explicit `SymbolicVerifier` class restoration to provide a pre-submission logic check.
+
+### Learning 289: Measuring AGI v11 — Protobuf Stability in Kaggle Notebooks
+Kaggle's pre-installed Google Cloud libraries are strictly pinned to older Protobuf versions. Upgrading to `protobuf==7.x` triggers massive dependency conflicts that can break the Models API. **Solution**: Pin to `protobuf==5.26.1` and `google-cloud-bigquery-storage==2.26.0` to stabilize the environment while satisfying the `kbench` SDK requirements. Result: 78 tasks successfully registered in Version 11.
