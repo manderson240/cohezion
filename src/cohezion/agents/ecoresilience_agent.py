@@ -8,6 +8,7 @@ import logging
 from typing import Any
 
 from cohezion.agents.evo_agent import EVOAgent
+from cohezion.swarm.gemma4_router import Gemma4Router
 from cohezion.swarm.providers.model_provider import get_model_provider
 
 try:
@@ -51,6 +52,7 @@ class EcoResilienceAgent(EVOAgent):
     def __init__(self, model_name: str = "gemma4", **kwargs):
         super().__init__(model_name=model_name, **kwargs)
         self.provider = get_model_provider(self.model_name)
+        self.router = Gemma4Router()  # Route to appropriate Gemma4 model based on complexity
         self.monitor = ResourceMonitor() if ResourceMonitor else None
         self.sim_monitor = SimulationMonitor()
 
@@ -79,10 +81,11 @@ class EcoResilienceAgent(EVOAgent):
         if self.sim_monitor.check_drift(mock_coherence):
             logger.info("Auto-correcting simulation parameters for HIHO stability...")
 
-        # 4. Use Gemma 4 provider
+        # 4. Route to appropriate Gemma 4 model based on complexity
         try:
+            decision = self.router.route(prompt)
             result = await self.provider.generate(
-                model="gemma4:e2b", 
+                model=decision.model_id,  # Routes to gemma4:31b for simulation complexity
                 prompt=prompt,
                 max_tokens=2000,
                 options={"num_ctx": 4096} # Smaller context for faster test runs
@@ -98,8 +101,9 @@ class EcoResilienceAgent(EVOAgent):
         prompt = f"Based on this synthesis report, generate: \n1. A precise prompt for an ecosystem resilience map (DALL-E style).\n2. A Mermaid.js diagram representing the systemic feedback loops.\n3. Sonification parameters (frequency, amplitude, duration) for Tone.js.\n\nReport:\n{synthesis_report}"
         
         try:
+            decision = self.router.route(prompt)
             result = await self.provider.generate(
-                model="gemma4:e2b",
+                model=decision.model_id,
                 prompt=prompt,
                 max_tokens=1000,
                 options={"num_ctx": 4096}
