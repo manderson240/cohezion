@@ -1,0 +1,202 @@
+<task-notification>
+<task-id>a94fd80a9e545fc00</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/16c5f7d6-d532-4d96-b182-76c51602f485/tasks/a94fd80a9e545fc00.output</output-file>
+<status>completed</status>
+<summary>Agent "Map CompoundExecutor pipeline for persistence wiring" completed</summary>
+<result>I now have all the information needed to produce the complete technical map. Here is the full structured report.
+
+---
+
+# CompoundExecutor / ExecutionOrchestrator Pipeline — Technical Map
+
+## Q1. The 11 Steps in `execute_task()` — File, Line, and Data Flow
+
+The pipeline lives entirely within `CompoundExecutor.execute_task()` in `/home/mike-anderson/dev/cohezion/src/cohezion/compound/executor.py`. The step labels in code comments use fractional numbering, not a simple 1–11. Here is the definitive enumerated list:
+
+| Step # | Code Comment Label | Lines | Method / Action | Consumes | Produces |
+|--------|--------------------|-------|-----------------|----------|----------|
+| 1 | Step 1 | 476–477 | `get_experience_guidance()` | `task_description`, `project`, `operation_type` | `guidance: dict` (vault context + trajectory recs + recent retrospections) |
+| 2 | Step 1.3 | 481–501 | `_try_template_match()` | `task_description` | `template_match: dict | None`; if hit, **returns early** with `ExecutionResult` |
+| 3 | Step 1.5 | 503–528 | `alignment_analyzer.parse_request()` + `query_alignment_patterns()` | `human_request or task_description` | `parsed_request`, `_alignment_patterns` |
+| 4 | Step 2 | 531 | `logger.log_execution_start(ctx)` | `ExecutionContext(project, skill_name, task_description, operation_type, start_time, mcp_client)` | `experiment_path: str` (vault path) |
+| 5 | Step 3 | 541–568 | `guardrail_pipeline.check_input()` | `task_description`, guardrail context dict | If BLOCK: returns early `ExecutionResult(success=False)` |
+| 6 | (unnamed) | 576 | `execute_fn(guidance)` | `guidance` dict | `output: str`, `metrics: dict` |
+| 7 | Step 4 | 617–622 | `logger.log_execution_result()` | `experiment_path`, `success`, `output`, `metrics` | Side effect: vault write |
+| 8 | Step 4.5 | 624–635 | `logger.log_execution_trace()` | `ctx`, `success`, `output[:500]`, `metrics`, `token_metrics` | Side effect: trace log |
+| 9 | Step 5 | 637–677 | `inflection_detector.detect_anomaly()` | `ExecutionResult` (temp) | `anomaly`; adds `metrics["anomaly_severity"]`, `metrics["anomaly_score"]` |
+| 10 | Step 5.5 | 680–738 | `alignment_analyzer.analyze_alignment()` | `parsed_request`, `ExecutionResult` (temp), `operation_type`, `anomaly_analysis` | `alignment`; adds `metrics["alignment"]` dict |
+| 11 | Step 5.8 | 740–751 | Inline coherence computation | `success`, `metrics["anomaly_score"]`, `metrics["alignment"]["intent_match"]` | `metrics["coherence"]: float` |
+| 12 | Step 5.9 | 753–775 | `NaturalCapitalValuation.evaluate()` | `metrics["coherence"]`, 12D state | `metrics["natural_capital"]`, `metrics["habitat_quality"]`, blended `metrics["coherence"]` |
+| 13 | Step 6 | 777–792 | `logger.extract_execution_pattern()` | `experiment_path`, `skill_name`, `operation_type`, task description, metrics | `pattern_path` appended to `decision_paths` |
+| 14 | Step 7.3 | 794–821 | `retrospection_engine.analyze_execution_result()` | `ExecutionResult` (temp), `skill_name` | `retrospection_context: dict`; `should_refine: bool`; adds `metrics["retrospection_insights"]` |
+| 15 | Step 7 | 823–849 | `skill_refiner.refine()` | `skill_name`, `operation_type`, exec result dict, `patterns_extracted` | `refined_path` appended to `decision_paths` |
+| 16 | Step 7.4 | 851–866 | `skill_health_tracker.record_usage()` | `skill_name`, `success`, `tokens_used`, `quality_score` | Side effect: health metrics |
+| 17 | Step 7.5 | 868–933 | `degradation_detector.check_degradation()` | coherence, cache hit rate, tokens/s, success rate | `alerts`; sets `self._degradation_mode`; adds `metrics["degradation_alerts"]` |
+| 18 | Step 7.6 | 935–952 | `BioelectricNetwork.simulate()` + `.coherence()` | coherence → membrane potentials | `metrics["bioelectric_coherence"]`, `metrics["bioelectric_percolated"]` |
+| 19 | Step 7.7 | 954–970 | `model_quality_classifier.add_execution()` | `model_name` from `token_metrics["model"]`, coherence, success, tokens, duration | Side effect: quality model update |
+| 20 | Step 8 | 972–988 | `metrics_collector.record_execution()` | `skill_name`, `success`, `tokens_used`, `duration_ms`, `model_used` | Side effect: metrics record |
+| 21 | Step 9 | 990–1040 | `journey_tracker.track_execution()` + `journey_persistence.save_trajectory_point()` | `ExecutionResult` (temp), `task_description`, `operation_type` | `TrajectoryPoint`; adds `metrics["phi_score"]`; persists to SurrealDB `journey_transition` table |
+| 22 | Step 9.5 | 1042–1056 | `universe_bridge.add_point()` | `universe_journey_id`, last trajectory point | Side effect: universe trajectory update |
+| 23 | Step 10 | 1058–1069 | `universe_bridge.complete_journey()` | `universe_journey_id`, `success`, `phi_score`, `output[:500]` | Side effect: universe journey closed |
+| 24 | Step 10.5 | 1071–1098 | `OuroborosBridge.check_coherence()` | `coherence_drop`, `task_id=skill_name` | Side effect: physics coherence healing if drop &gt; 0.3 |
+| 25 | Step 10.6 | 1100–1129 | `MyceliumRegistry.ingest_entry()` (+ periodic `run_audit()`) | `JournalEntry(exec_id, content, domain="pattern")` | Side effect: pattern synthesis |
+| 26 | Return | 1131–1139 | `return ExecutionResult(...)` | All accumulated state | `ExecutionResult` |
+
+Note: The CLAUDE.md describes "11 steps" but the actual code has 26 labeled sub-steps using fractional notation (1, 1.3, 1.5, 2, 3, 4, 4.5, 5, 5.5, 5.8, 5.9, 6, 7, 7.3, 7.4, 7.5, 7.6, 7.7, 8, 9, 9.5, 10, 10.5, 10.6). The "11 steps" referenced in CLAUDE.md maps to the `ExecutionOrchestrator` 11-step pipeline documented in the compound skill, which corresponds to the major steps enumerated above.
+
+---
+
+## Q2. Data Available at the Final Step for `persist_prompt_artifact()`
+
+The function signature at `/home/mike-anderson/dev/cohezion/src/cohezion/persistence/genesis_persistence.py:156` is:
+
+```python
+async def persist_prompt_artifact(
+    prompt_text: str,
+    response_text: str,
+    model_id: str,
+    token_count_prompt: int = 0,
+    token_count_completion: int = 0,
+    latency_ms: float = 0.0,
+    confidence: float = 0.5,
+) -&gt; bool:
+```
+
+Here is where each argument comes from at the point of return (line 1131):
+
+| Argument | Source in `execute_task()` | Notes |
+|----------|---------------------------|-------|
+| `prompt_text` | `task_description` parameter (line 409) — available from start | This is the prompt sent to the LLM |
+| `response_text` | `output` variable (line 535, set at line 576 by `execute_fn(guidance)`) | Raw string output from the execution function |
+| `model_id` | `token_metrics.get("model", "unknown")` (line 960) — `token_metrics` populated by `_compute_token_delta()` which copies `metrics_after["model"]` | Only available if `self.token_client` is set; otherwise `"unknown"` |
+| `confidence` | `metrics["coherence"]` (line 751) — computed at Step 5.8 | The coherence score is the closest analog to confidence |
+| `token_count_prompt` | Not tracked anywhere in `execute_task()` — only delta `tokens_used` is captured via `token_metrics["tokens_used"]` | Would need `execute_fn` to return prompt token count in `metrics`, or split delta computation |
+| `token_count_completion` | Same gap — not independently tracked | Same issue as above |
+| `latency_ms` | `duration_seconds * 1000` (line 613, `metrics["duration_seconds"]`) | Available as `duration_seconds` in scope |
+| `session_id` | **Not available in `execute_task()` at all** — no `session_id` field exists in `CompoundExecutor`, `ExecutionContext`, or `ExecutionResult` | Must be injected via constructor or derived from `skill_name + timestamp` pattern |
+
+Key gap: `session_id` is absent from the executor entirely. The closest surrogate is the `universe_journey_id` string constructed at line 467 as `f"exec_{int(time.time())}_{skill_name}"`, but that is not a stable session identifier.
+
+---
+
+## Q3. Existing Post-Execution Hook Pattern
+
+There is no post-execution hook pattern (decorator, callback list, or event emitter) in `CompoundExecutor` or its mixins.
+
+- `/home/mike-anderson/dev/cohezion/src/cohezion/compound/executor.py` — no `_hooks`, `_callbacks`, `register_hook()`, or decorator mechanism of any kind
+- `/home/mike-anderson/dev/cohezion/src/cohezion/compound/executor_integration.py` — no hook infrastructure
+- `/home/mike-anderson/dev/cohezion/src/cohezion/compound/context_integration.py` — no hook infrastructure
+
+The pipeline is an imperative sequence of guarded `try/except` blocks. Each step is wired inline. The pattern for adding new behavior is to insert a new guarded block at the appropriate line (all non-blocking calls follow the `try: ... except Exception: pass` pattern used throughout).
+
+---
+
+## Q4. `JourneyTracker.record_state()` Call Sites
+
+The method `record_state()` does not exist in `JourneyTracker`. The public tracking API is `track_execution()` (line 382). Searching `src/` for `record_state`, `record_transition`, and `save_checkpoint` (as named in the task brief) found:
+
+- `record_state` — zero matches in `src/`
+- `record_transition` — zero matches in `src/`
+- `save_checkpoint` on `JourneyTracker` — zero matches; `save_checkpoint` exists on unrelated classes: `ExperimentTracker` (`src/cohezion/universe/experiment_tracker.py:427`), `GrpoTrainer` (`src/cohezion/rl/grpo_trainer.py:333`), `LongHorizonTask` (`src/cohezion/compound/long_horizon_task.py:107`), and `_save_checkpoint` on `CompoundUnified` MCP (`src/cohezion/mcp/compound_unified.py:335`)
+
+The only `JourneyTracker` method called in the executor is `track_execution()` at executor.py:1001. The CLAUDE.md reference to `record_state()` / `record_transition()` / `save_checkpoint()` on JourneyTracker appears to document a planned or aspirational API that has not yet been implemented. The current interface is `track_execution()` only.
+
+---
+
+## Q5. What `compute_graph_hiho()` Reads from SurrealDB
+
+`compute_graph_hiho()` at `/home/mike-anderson/dev/cohezion/cohezion-maintenance-mcp/src/maintenance_mcp/graph_health.py:4` is a pure Python function that receives a pre-computed `metrics: dict`. It does not read from SurrealDB itself.
+
+The SurrealDB queries are executed in the `graph_health()` tool in `server.py`, which assembles the `metrics` dict before passing it to `compute_graph_hiho()`. The specific tables and fields read are:
+
+| Table | Fields / Query Pattern | Purpose |
+|-------|----------------------|---------|
+| `neurons` | `count()` | Total node count |
+| `neurons` | `updated_at` (compared against `time::now() - 30d`) | Freshness metric |
+| `synapses` | `count()`, `source`, `target` | Edge count, connectivity |
+| `synapses` | Graph traversal: `-&gt;synapses&lt;-&gt;(target)-&gt;synapses-&gt;(source)` | Reciprocity metric |
+
+The four fields `compute_graph_hiho()` reads from the dict are: `connectivity`, `reciprocity`, `freshness`, `orphan_ratio`. These are derived values, not raw table fields.
+
+The formula: `0.3 * connectivity + 0.2 * reciprocity + 0.2 * freshness + 0.3 * (1.0 - orphan_ratio)`.
+
+Neither `prompt_artifacts`, `universe_snapshots`, nor `journey_transitions` are referenced by `compute_graph_hiho()` or the `graph_health` tool. Those tables are written by `genesis_persistence.py` but the maintenance MCP has no awareness of them.
+
+---
+
+## Q6. Existing Calls to `persist_prompt_artifact()` or `persist_universe_snapshot()`
+
+Zero call sites exist anywhere in `src/`:
+
+- `persist_prompt_artifact` — found only at its definition (`genesis_persistence.py:156`) and `__all__` export (`genesis_persistence.py:215`)
+- `persist_universe_snapshot` — found only at its definition (`genesis_persistence.py:132`) and `__all__` export (`genesis_persistence.py:216`)
+
+These functions are defined but never called. They are greenfield wiring points.
+
+---
+
+## Q7. `CompoundExecutor` Return Type and Shape
+
+The return type is `ExecutionResult` (dataclass defined at executor.py:59):
+
+```python
+@dataclass
+class ExecutionResult:
+    success: bool                           # True if execute_fn succeeded and output passed guardrails
+    output: str                             # Raw string output from execute_fn
+    metrics: dict[str, Any]                 # Accumulated metrics dict (see below)
+    duration_seconds: float                 # Wall-clock duration of execute_fn
+    vault_experiment_path: str = ""         # Vault path where execution was logged
+    vault_decision_paths: list[str] | None = None  # Paths to decisions/patterns logged
+    token_metrics: dict[str, Any] | None = None    # Token delta if token_client is set
+```
+
+The `metrics` dict at return time contains (all keys are optional, added by the steps that succeed):
+
+- `duration_seconds: float`
+- `anomaly_severity: str`, `anomaly_score: float`
+- `alignment: dict` (misalignment_score, intent_match, constraint_satisfaction, criteria_satisfaction, violations_count, failures_count, issues_count, should_retry)
+- `coherence: float` (Step 5.8, blended with natural capital at Step 5.9)
+- `natural_capital: float`, `habitat_quality: float`
+- `retrospection_insights: list`
+- `degradation_alerts: int`, `execution_degraded: bool`
+- `bioelectric_coherence: float`, `bioelectric_percolated: bool`
+- `phi_score: float` (from JourneyTracker, propagated at line 1007)
+- Error keys: `error: str`, `blocked_by_guardrails: bool`, `output_blocked_by_guardrails: bool`, `output_sanitized_by_guardrails: bool`
+
+---
+
+## Architecture Observations for the Wiring Agent
+
+**Best hook point for `persist_prompt_artifact()`:** After Step 10.6 (Mycelium capture), before the `return` at line 1131. This is Step 10.6's exit — all data (`output`, `metrics["coherence"]`, `token_metrics`, `duration_seconds`, `task_description`) is finalized. Insert a new guarded block following the existing non-blocking pattern.
+
+**Best hook point for `persist_universe_snapshot()`:** Alongside or just after Step 9 (JourneyTracker) at line 990. The `global_coherence` maps to `metrics["coherence"]`; `n_agents` would need a convention (e.g., `1` for single-agent execution, or a parameter); `tick` can be derived from `int(time.time())`; `temperature` maps to thermodynamic state if available, else defaults.
+
+**`session_id` gap:** The executor has no session identity. The wiring agent must either (a) add `session_id: str | None = None` to `execute_task()` signature, or (b) derive it from the `universe_journey_id` already computed at line 467, or (c) inject it via the constructor.
+
+**`model_id` availability:** Only present if `self.token_client` is configured and `token_metrics["model"]` is populated. The fallback is `"unknown"`. This is the only upstream source.
+
+**Async boundary:** `persist_prompt_artifact()` and `persist_universe_snapshot()` are `async` functions. `execute_task()` is synchronous. The injection must use the same `asyncio.run()` / `asyncio.ensure_future()` pattern already used at lines 1019–1036 in the journey persistence block.
+
+---
+
+## Essential Files Reference
+
+- `/home/mike-anderson/dev/cohezion/src/cohezion/compound/executor.py` — pipeline implementation (26 steps, lines 408–1139)
+- `/home/mike-anderson/dev/cohezion/src/cohezion/persistence/genesis_persistence.py` — `persist_prompt_artifact()` (line 156), `persist_universe_snapshot()` (line 132), SurrealDB target tables: `prompt_artifacts`, `universe_snapshots`
+- `/home/mike-anderson/dev/cohezion/src/cohezion/compound/journey_tracker.py` — `JourneyTracker.track_execution()` (line 382), `_persist_to_surreal()` (line 495), SurrealDB target table: `journey_transition`
+- `/home/mike-anderson/dev/cohezion/cohezion-maintenance-mcp/src/maintenance_mcp/graph_health.py` — `compute_graph_hiho()` (line 4), pure function, no DB access
+- `/home/mike-anderson/dev/cohezion/cohezion-maintenance-mcp/src/maintenance_mcp/server.py` — `graph_health()` tool (line 74), SurrealDB queries against `neurons` and `synapses` tables
+- `/home/mike-anderson/dev/cohezion/src/cohezion/compound/executor_integration.py` — `ExecutorIntegrationMixin` (no hook infrastructure)
+- `/home/mike-anderson/dev/cohezion/src/cohezion/compound/context_integration.py` — `CompoundContextMixin` (no hook infrastructure)</result>
+<usage><total_tokens>66520</total_tokens><tool_uses>18</tool_uses><duration_ms>121430</duration_ms></usage>
+</task-notification>
+
+---
+
+Continue
+
+---
+
+Continue

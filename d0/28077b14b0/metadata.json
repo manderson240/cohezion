@@ -1,0 +1,26 @@
+{
+  "cli_version": "0.5.3",
+  "checkpoint_id": "d028077b14b0",
+  "strategy": "manual-commit",
+  "branch": "feature/2026-tip-of-the-spear",
+  "checkpoints_count": 2,
+  "files_touched": [
+    "_bmad/core/workflows/party-mode/steps/step-00-proactive-scan.md",
+    "tests/mcp/servers/bmad/test_party_proactive.py"
+  ],
+  "sessions": [
+    {
+      "metadata": "/d0/28077b14b0/0/metadata.json",
+      "transcript": "/d0/28077b14b0/0/full.jsonl",
+      "content_hash": "/d0/28077b14b0/0/content_hash.txt",
+      "prompt": "/d0/28077b14b0/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 8013,
+    "cache_creation_tokens": 751503,
+    "cache_read_tokens": 9375732,
+    "output_tokens": 57607,
+    "api_call_count": 104
+  }
+}
