@@ -1,0 +1,39 @@
+{
+  "cli_version": "0.5.3",
+  "checkpoint_id": "f33ed842ae97",
+  "session_id": "7b42ffab-cb2c-417a-b4cd-9fddf3b78647",
+  "strategy": "manual-commit",
+  "created_at": "2026-04-09T15:07:46.817935918Z",
+  "branch": "feature/2026-tip-of-the-spear",
+  "checkpoints_count": 0,
+  "files_touched": [
+    "tests/conftest.py"
+  ],
+  "agent": "Claude Code",
+  "model": "claude-opus-4-6[1m]",
+  "turn_id": "270d4e1f60f0",
+  "checkpoint_transcript_start": 14718,
+  "transcript_lines_at_start": 14718,
+  "token_usage": {
+    "input_tokens": 0,
+    "cache_creation_tokens": 0,
+    "cache_read_tokens": 0,
+    "output_tokens": 0,
+    "api_call_count": 0
+  },
+  "session_metrics": {
+    "turn_count": 172
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-04-09T15:07:34.537202603Z",
+    "agent_lines": 0,
+    "agent_removed": 0,
+    "human_added": 31,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 31,
+    "total_lines_changed": 40,
+    "agent_percentage": 0,
+    "metric_version": 2
+  }
+}
