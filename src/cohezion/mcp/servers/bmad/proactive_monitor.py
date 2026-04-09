@@ -17,13 +17,19 @@ Proactive Principles:
 from __future__ import annotations
 
 import asyncio
-import hashlib
 import json
 import logging
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any
+
+from cohezion.core.persistence.repositories.surreal_proactive_repository import (
+    PatternEffectiveness,
+    SuggestionAcceptance,
+    SurrealProactiveRepository,
+)
 
 
 logger = logging.getLogger(__name__)
@@ -75,16 +81,23 @@ class ProactiveMonitor:
                     await monitor.execute_suggestion(suggestion)
     """
 
-    def __init__(self, project_root: Path):
+    def __init__(self, project_root: Path, db: Any | None = None):
         """Initialize proactive monitor.
 
         Args:
             project_root: Root path of the project to monitor
+            db: Optional SurrealDB connection for learning system
         """
         self.project_root = project_root
         self.suggestions: list[ProactiveSuggestion] = []
         self.patterns: list[PatternMatch] = []
         self._last_scan_hash: str | None = None
+        self._repository: SurrealProactiveRepository | None = None
+
+        # Initialize learning system if database provided
+        if db is not None:
+            self._repository = SurrealProactiveRepository(db)
+            logger.info("proactive_monitor_learning_system_enabled")
 
         # Register detection patterns
         self._register_repository_patterns()
@@ -303,7 +316,7 @@ class ProactiveMonitor:
             return False
 
         if confirm:
-            print(f"\n🤖 BMad Proactive Suggestion:")
+            print("\n🤖 BMad Proactive Suggestion:")
             print(f"   {suggestion.title}")
             print(f"   Action: {suggestion.suggested_action}")
             response = input("\n   Execute? (y/n): ")
@@ -503,6 +516,145 @@ uv run pytest tests/compound/tdd_adversarial/ -v
         logger.info(f"Created quality gate at {quality_path}")
         return True
 
+    async def record_feedback(
+        self,
+        suggestion: ProactiveSuggestion,
+        accepted: bool,
+        execution_time_ms: float | None = None,
+        feedback: str | None = None,
+        user_id: str = "default",
+    ) -> SuggestionAcceptance:
+        """Record user feedback for a suggestion.
+
+        Args:
+            suggestion: The suggestion that was acted on
+            accepted: Whether the suggestion was accepted
+            execution_time_ms: Optional execution time in milliseconds
+            feedback: Optional user feedback text
+            user_id: User identifier
+
+        Returns:
+            The recorded acceptance record
+        """
+        if self._repository is None:
+            logger.warning("feedback_recording_skipped_no_repository")
+            raise RuntimeError("Learning system not initialized - provide db parameter")
+
+        acceptance = SuggestionAcceptance(
+            suggestion_id=suggestion.id,
+            pattern_id=suggestion.metadata.get("pattern_id", suggestion.category),
+            accepted=accepted,
+            execution_time_ms=execution_time_ms,
+            feedback=feedback,
+            user_id=user_id,
+            project_root=str(self.project_root),
+            confidence_at_decision=suggestion.confidence,
+        )
+
+        await self._repository.record_acceptance(acceptance)
+        logger.info(
+            "feedback_recorded",
+            suggestion_id=suggestion.id,
+            accepted=accepted,
+            feedback=feedback,
+        )
+        return acceptance
+
+    async def adjust_pattern_confidence(self, pattern_name: str) -> float:
+        """Adjust pattern confidence based on historical acceptance rates.
+
+        Uses exponential moving average with decay:
+        - High acceptance (>0.8): Increase confidence by 5%
+        - Medium acceptance (0.5-0.8): Maintain confidence
+        - Low acceptance (<0.5): Decrease confidence by 10%
+
+        Args:
+            pattern_name: The pattern to adjust
+
+        Returns:
+            New confidence value (0.0-1.0)
+        """
+        if self._repository is None:
+            logger.warning("confidence_adjustment_skipped_no_repository")
+            return 0.0
+
+        try:
+            effectiveness = await self._repository.get_pattern_effectiveness(pattern_name)
+
+            if effectiveness.total_suggestions < 5:
+                # Not enough data for adjustment
+                logger.debug(
+                    "confidence_adjustment_insufficient_data",
+                    pattern_name=pattern_name,
+                    samples=effectiveness.total_suggestions,
+                )
+                return 0.0
+
+            acceptance_rate = effectiveness.acceptance_rate
+            current_confidence = effectiveness.avg_confidence
+
+            # Exponential moving average adjustment
+            if acceptance_rate > 0.8:
+                # High acceptance - increase confidence
+                adjustment_factor = 0.05
+                new_confidence = min(1.0, current_confidence * (1 + adjustment_factor))
+            elif acceptance_rate < 0.5:
+                # Low acceptance - decrease confidence
+                adjustment_factor = 0.10
+                new_confidence = max(0.0, current_confidence * (1 - adjustment_factor))
+            else:
+                # Medium acceptance - maintain
+                new_confidence = current_confidence
+
+            logger.info(
+                "pattern_confidence_adjusted",
+                pattern_name=pattern_name,
+                old_confidence=current_confidence,
+                new_confidence=new_confidence,
+                acceptance_rate=acceptance_rate,
+            )
+            return new_confidence
+
+        except Exception as e:
+            logger.error("confidence_adjustment_failed", pattern_name=pattern_name, error=str(e))
+            return 0.0
+
+    async def get_pattern_effectiveness_report(self) -> list[PatternEffectiveness]:
+        """Get effectiveness report for all patterns.
+
+        Returns:
+            List of PatternEffectiveness sorted by effectiveness score
+        """
+        if self._repository is None:
+            logger.warning("effectiveness_report_skipped_no_repository")
+            raise RuntimeError("Learning system not initialized - provide db parameter")
+
+        effectiveness_list = await self._repository.get_all_pattern_effectiveness()
+        sorted_list = sorted(effectiveness_list, key=lambda x: x.effectiveness_score, reverse=True)
+
+        logger.info(
+            "effectiveness_report_generated",
+            patterns_count=len(sorted_list),
+        )
+        return sorted_list
+
+    async def cleanup_old_records(self, days_old: int = 90) -> int:
+        """Clean up old acceptance records.
+
+        Args:
+            days_old: Delete records older than this many days
+
+        Returns:
+            Number of records deleted
+        """
+        if self._repository is None:
+            logger.warning("cleanup_skipped_no_repository")
+            return 0
+
+        deleted = await self._repository.delete_old_records(days_old)
+        logger.info("old_records_cleaned_up", deleted_count=deleted)
+        return deleted
+
     def get_summary(self) -> dict[str, Any]:
         """Get summary of proactive monitoring state.
 
@@ -513,6 +665,7 @@ uv run pytest tests/compound/tdd_adversarial/ -v
             "total_patterns": len(self.patterns),
             "enabled_patterns": sum(1 for p in self.patterns if p.enabled),
             "active_suggestions": len(self.suggestions),
+            "learning_system_enabled": self._repository is not None,
             "by_priority": {
                 "critical": sum(1 for s in self.suggestions if s.priority == "critical"),
                 "high": sum(1 for s in self.suggestions if s.priority == "high"),

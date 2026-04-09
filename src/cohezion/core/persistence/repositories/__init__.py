@@ -30,6 +30,11 @@ from cohezion.core.persistence.repositories.skill_repository import (
 from cohezion.core.persistence.repositories.surreal_journey_repository import (
     SurrealJourneyRepository,
 )
+from cohezion.core.persistence.repositories.surreal_proactive_repository import (
+    PatternEffectiveness,
+    SuggestionAcceptance,
+    SurrealProactiveRepository,
+)
 from cohezion.core.persistence.repositories.surreal_skill_repository import (
     SurrealSkillRepository,
 )
@@ -64,4 +69,8 @@ __all__ = [
     "CodeAntiPattern",
     "CodePattern",
     "PatternRepository",
+    # Proactive
+    "SuggestionAcceptance",
+    "PatternEffectiveness",
+    "SurrealProactiveRepository",
 ]

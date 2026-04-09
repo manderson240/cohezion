@@ -11,7 +11,6 @@ from __future__ import annotations
 
 import logging
 from pathlib import Path
-from typing import Any
 
 from aiohttp import web
 
@@ -286,7 +285,6 @@ async def proactive_list_patterns(request: web.Request) -> web.Response:
 
 
 # Register routes with BMad MCP server using decorators
-from ._shared import routes
 
 
 @routes.post("/proactive/scan")
@@ -312,6 +310,217 @@ async def enable_pattern_route(request: web.Request) -> web.Response:
 @routes.get("/proactive/patterns")
 async def list_patterns_route(request: web.Request) -> web.Response:
     return await proactive_list_patterns(request)
+
+
+async def proactive_record_feedback(request: web.Request) -> web.Response:
+    """Record user feedback for a proactive suggestion.
+
+    Request:
+        POST /proactive/feedback
+        {
+            "suggestion_id": "repo-workflow-missing",
+            "accepted": true,
+            "execution_time_ms": 1250.5,
+            "feedback": "This was very helpful!",
+            "user_id": "default"
+        }
+
+    Response:
+        {
+            "success": true,
+            "acceptance_id": "acceptance_xxx",
+            "message": "Feedback recorded"
+        }
+    """
+    try:
+        from .proactive_monitor import ProactiveMonitor
+
+        data = await request.json()
+        suggestion_id = data.get("suggestion_id")
+        accepted = data.get("accepted", False)
+        execution_time_ms = data.get("execution_time_ms")
+        feedback = data.get("feedback")
+        user_id = data.get("user_id", "default")
+
+        if not suggestion_id:
+            return web.json_response(
+                {"error": "suggestion_id required"},
+                status=400,
+            )
+
+        project_root = Path(request.app.get("project_root", "."))
+        db = request.app.get("db")
+
+        if db is None:
+            return web.json_response(
+                {"error": "Learning system not initialized"},
+                status=503,
+            )
+
+        monitor = ProactiveMonitor(project_root, db=db)
+
+        # Create minimal suggestion object for feedback recording
+        from .proactive_monitor import ProactiveSuggestion
+
+        suggestion = ProactiveSuggestion(
+            id=suggestion_id,
+            title="",
+            description="",
+            priority="medium",
+            category="alignment",
+            suggested_action="",
+            confidence=0.5,
+            metadata={},
+        )
+
+        acceptance = await monitor.record_feedback(
+            suggestion=suggestion,
+            accepted=accepted,
+            execution_time_ms=execution_time_ms,
+            feedback=feedback,
+            user_id=user_id,
+        )
+
+        return web.json_response(
+            {
+                "success": True,
+                "acceptance_id": f"acceptance_{acceptance.suggestion_id}",
+                "message": "Feedback recorded",
+            }
+        )
+    except Exception as e:
+        logger.error(f"Proactive record feedback failed: {e}")
+        return web.json_response(
+            {"error": str(e)},
+            status=500,
+        )
+
+
+async def proactive_pattern_effectiveness(request: web.Request) -> web.Response:
+    """Get pattern effectiveness report.
+
+    Request:
+        GET /proactive/effectiveness
+
+    Response:
+        {
+            "patterns": [
+                {
+                    "pattern_id": "repository-workflow-gap",
+                    "pattern_name": "repository-workflow-gap",
+                    "total_suggestions": 25,
+                    "accepted": 20,
+                    "rejected": 5,
+                    "acceptance_rate": 0.8,
+                    "effectiveness_score": 0.85,
+                    "avg_confidence": 0.9
+                }
+            ]
+        }
+    """
+    try:
+        from .proactive_monitor import ProactiveMonitor
+
+        project_root = Path(request.app.get("project_root", "."))
+        db = request.app.get("db")
+
+        if db is None:
+            return web.json_response(
+                {"error": "Learning system not initialized"},
+                status=503,
+            )
+
+        monitor = ProactiveMonitor(project_root, db=db)
+        effectiveness_list = await monitor.get_pattern_effectiveness_report()
+
+        return web.json_response(
+            {
+                "patterns": [
+                    {
+                        "pattern_id": e.pattern_id,
+                        "pattern_name": e.pattern_name,
+                        "total_suggestions": e.total_suggestions,
+                        "accepted": e.accepted,
+                        "rejected": e.rejected,
+                        "acceptance_rate": e.acceptance_rate,
+                        "effectiveness_score": e.effectiveness_score,
+                        "avg_confidence": e.avg_confidence,
+                        "last_updated": e.last_updated,
+                    }
+                    for e in effectiveness_list
+                ],
+            }
+        )
+    except Exception as e:
+        logger.error(f"Proactive pattern effectiveness failed: {e}")
+        return web.json_response(
+            {"error": str(e)},
+            status=500,
+        )
+
+
+async def proactive_cleanup(request: web.Request) -> web.Response:
+    """Clean up old acceptance records.
+
+    Request:
+        POST /proactive/cleanup
+        {
+            "days_old": 90
+        }
+
+    Response:
+        {
+            "success": true,
+            "deleted_count": 150,
+            "message": "Cleaned up 150 records older than 90 days"
+        }
+    """
+    try:
+        from .proactive_monitor import ProactiveMonitor
+
+        data = await request.json()
+        days_old = data.get("days_old", 90)
+
+        project_root = Path(request.app.get("project_root", "."))
+        db = request.app.get("db")
+
+        if db is None:
+            return web.json_response(
+                {"error": "Learning system not initialized"},
+                status=503,
+            )
+
+        monitor = ProactiveMonitor(project_root, db=db)
+        deleted = await monitor.cleanup_old_records(days_old)
+
+        return web.json_response(
+            {
+                "success": True,
+                "deleted_count": deleted,
+                "message": f"Cleaned up {deleted} records older than {days_old} days",
+            }
+        )
+    except Exception as e:
+        logger.error(f"Proactive cleanup failed: {e}")
+        return web.json_response(
+            {"error": str(e)},
+            status=500,
+        )
+
+
+@routes.post("/proactive/feedback")
+async def record_feedback_route(request: web.Request) -> web.Response:
+    return await proactive_record_feedback(request)
+
+
+@routes.get("/proactive/effectiveness")
+async def pattern_effectiveness_route(request: web.Request) -> web.Response:
+    return await proactive_pattern_effectiveness(request)
+
+
+@routes.post("/proactive/cleanup")
+async def cleanup_route(request: web.Request) -> web.Response:
+    return await proactive_cleanup(request)
 
 
 logger.info("Proactive BMad routes registered")
