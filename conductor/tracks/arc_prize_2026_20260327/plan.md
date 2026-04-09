@@ -1,9 +1,11 @@
 # ARC Prize 2026 — Competition Plan
 
-## Strategy: Physics-Grounded Interactive World Modeling
+## Strategy: Physics-Grounded Interactive World Modeling & Cross-Track Transfer
 
-No competitor uses causal world models, topological regime detection, or symmetry-breaking
-structure discovery. This is blue ocean territory (best AI: 12.58%, humans: 100%).
+Our strategy leverages the synergy between three distinct ARC Prize tracks:
+1.  **ARC-AGI-2 (Static):** Use 400+ training tasks to synthesize a library of "AutoHarness" code verifiers. These act as the fundamental laws of grid physics.
+2.  **ARC-AGI-3 (Interactive):** Deploy our JEPA-based world model to navigate dynamic environments, using the AGI-2 verifiers to prune illegal actions and accelerate search in the 12D manifold.
+3.  **Paper Track:** Formalize our "Hermetic Compound Engineering" and 12D topological routing results into a SOTA research submission.
 
 ## Architecture
 
@@ -51,15 +53,19 @@ Observe result → Update JEPA → Repeat
 - [ ] Target: Milestone #1 deadline June 30
 
 ### Phase 4: ARC-AGI-2 (Static) & Advanced Techniques (Weeks 6-12)
-- [x] Download ARC-AGI-2 dataset (cloned to `data/arc-agi-2-repo`)
-- [ ] BioelectricNetwork for grid cell pattern coupling
-- [ ] Cosmogony-inspired progressive structure discovery
-- [ ] Evolutionary program synthesis (Poetiq-style)
-- [ ] Cross-game transfer via shared 12D manifold
+- [x] Task: Download ARC-AGI-2 dataset (cloned to `data/arc-agi-2-repo`).
+- [ ] Task: Apply AutoHarness to all 400+ AGI-2 training tasks to generate a deterministic "Grid Law" library.
+- [ ] Task: Implementation of Cross-game transfer via shared 12D manifold (Transfer knowledge from Static to Interactive).
+- [ ] Task: Evolutionary program synthesis (Poetiq-style) for complex AGI-2 patterns.
 
 ## Paper Track Submission
-Adapt Genesis Engine paper: "Interactive Reasoning via Physics-Grounded
-World Models: JEPA + Topological Routing for ARC-AGI-3"
+- **Title:** "Interactive Reasoning via Physics-Grounded World Models: JEPA + Topological Routing for ARC-AGI-3"
+- **Objective:** Submit by November 9, 2026.
+- **Key Sections:** 
+    - 12D Axiomatic Layer for Grid Representation.
+    - HIHO Stability (0.5 Coherence) in Latent Navigation.
+    - AutoHarness: Programmatic Pruning of the Search Space.
+    - Empirical results from AGI-2 and AGI-3 leaderboards.
 
 ## Phase: Review Fixes
 - [x] Task: Apply review suggestions bd3e453

@@ -4,6 +4,12 @@
 --
 -- Design Principle: Nothing is ephemeral. SurrealDB = Akashic Records.
 --
+-- SurrealDB 3.0 compatibility notes (migrated 2026-04-09):
+--   - FLEXIBLE TYPE object syntax removed; use TYPE object (schemaless within field)
+--   - Optional fields use TYPE none | <type> syntax (option<T> parses but doesn't override)
+--   - Re-applying existing fields requires DEFINE FIELD OVERWRITE
+--   - Live views (DEFINE TABLE AS SELECT) do not support ORDER BY; sort at query time
+--
 -- Tables:
 --   1. journey_transitions    — (state, action, next_state, reward) for world model training
 --   2. universe_snapshots     — Illustris-style periodic full-state captures
@@ -85,15 +91,15 @@ DEFINE FIELD step_id ON prompt_artifacts TYPE option<string>;
 DEFINE FIELD prompt_text ON prompt_artifacts TYPE string;
 DEFINE FIELD response_text ON prompt_artifacts TYPE string;
 DEFINE FIELD model_id ON prompt_artifacts TYPE string;
-DEFINE FIELD internal_state_before ON prompt_artifacts TYPE object;
-DEFINE FIELD internal_state_after ON prompt_artifacts TYPE object;
-DEFINE FIELD sampling_temperature ON prompt_artifacts TYPE float;
-DEFINE FIELD top_p ON prompt_artifacts TYPE float;
+DEFINE FIELD internal_state_before ON prompt_artifacts TYPE none | object;
+DEFINE FIELD internal_state_after ON prompt_artifacts TYPE none | object;
+DEFINE FIELD sampling_temperature ON prompt_artifacts TYPE none | float;
+DEFINE FIELD top_p ON prompt_artifacts TYPE none | float;
 DEFINE FIELD token_count_prompt ON prompt_artifacts TYPE int;
 DEFINE FIELD token_count_completion ON prompt_artifacts TYPE int;
 DEFINE FIELD latency_ms ON prompt_artifacts TYPE float;
 DEFINE FIELD confidence ON prompt_artifacts TYPE float;
-DEFINE FIELD reasoning_chain ON prompt_artifacts TYPE object;
+DEFINE FIELD reasoning_chain ON prompt_artifacts TYPE none | object;
 DEFINE FIELD timestamp ON prompt_artifacts TYPE datetime DEFAULT time::now();
 
 DEFINE INDEX idx_prompt_artifacts_journey ON prompt_artifacts FIELDS journey_id;

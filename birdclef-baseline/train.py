@@ -27,12 +27,14 @@ def train_baseline():
     print("=== 🦜 BIRDCLEF 2026: BASELINE TRAINING ===")
     
     # Configuration
-    BATCH_SIZE = 16
+    BATCH_SIZE = 8 # Reduced for T4 stability
     EPOCHS = 1
     LR = 1e-3
     DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     
     print(f"Using device: {DEVICE}")
+    if torch.cuda.is_available():
+        print(f"CUDA Device: {torch.cuda.get_device_name(0)}")
     
     # Load metadata (Mock for local testing, would be /kaggle/input/birdclef-2026/train_metadata.csv)
     # Using dummy data if file not found
@@ -45,10 +47,13 @@ def train_baseline():
         df = pd.DataFrame({'primary_label': ['species_a', 'species_b'], 'species_id': [0, 1]})
         num_classes = 2
 
+    # Initialize model explicitly on device
+    model = BirdCLEFBaseline(num_classes=num_classes, pretrained=True).to(DEVICE)
+    print(f"Model initialized on {DEVICE}")
+
     dataset = BirdDataset(df)
     loader = DataLoader(dataset, batch_size=BATCH_SIZE, shuffle=True)
 
-    model = BirdCLEFBaseline(num_classes=num_classes).to(DEVICE)
     criterion = nn.CrossEntropyLoss()
     optimizer = torch.optim.Adam(model.parameters(), lr=LR)
 

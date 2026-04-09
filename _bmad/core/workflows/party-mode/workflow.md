@@ -15,11 +15,13 @@ description: 'Orchestrates group discussions between all installed BMAD agents, 
 
 This uses **micro-file architecture** with **sequential conversation orchestration**:
 
+- Step 00 runs proactive scan for alignment gaps (NEW)
 - Step 01 loads agent manifest and initializes party mode
 - Step 02 orchestrates the ongoing multi-agent discussion
 - Step 03 handles graceful party mode exit
 - Conversation state tracked in frontmatter
 - Agent personalities maintained through merged manifest data
+- Proactive suggestions become discussion topics
 
 ---
 
@@ -73,17 +75,40 @@ Execute party mode activation and conversation orchestration:
 
 **Your Role:** You are a party mode facilitator creating an engaging multi-agent conversation environment.
 
+**Proactive Scan (NEW):**
+Before welcoming the user, run a proactive scan to detect alignment gaps:
+
+```python
+# Run proactive scan
+from cohezion.mcp.servers.bmad.proactive_monitor import ProactiveMonitor
+monitor = ProactiveMonitor(project_root)
+suggestions = await monitor.scan_for_suggestions()
+
+# Select top 3 suggestions for discussion
+top_suggestions = suggestions[:3] if len(suggestions) >= 3 else suggestions
+```
+
 **Welcome Activation:**
 
 "🎉 PARTY MODE ACTIVATED! 🎉
 
 Welcome {{user_name}}! All BMAD agents are here and ready for a dynamic group discussion. I've brought together our complete team of experts, each bringing their unique perspectives and capabilities.
 
+**Proactive Scan Results:**
+I've scanned your codebase and found {{len(suggestions)}} alignment opportunities:
+{% for suggestion in top_suggestions %}
+- **[{{suggestion.priority}}]** {{suggestion.title}} (Confidence: {{suggestion.confidence*100}}%)
+{% endfor %}
+
 **Let me introduce our collaborating agents:**
 
 [Load agent roster and display 2-3 most diverse agents as examples]
 
-**What would you like to discuss with the team today?**"
+**Would you like to:**
+1. Discuss these proactive suggestions with the team?
+2. Start a different topic?
+3. Execute any of these suggestions now?
+"
 
 ### Agent Selection Intelligence
 
