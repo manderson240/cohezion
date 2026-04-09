@@ -1,0 +1,42 @@
+{
+  "cli_version": "0.5.3",
+  "checkpoint_id": "f33ed842ae97",
+  "session_id": "178b56be-a92b-4605-88f6-b3ac3f28cca4",
+  "strategy": "manual-commit",
+  "created_at": "2026-04-09T15:07:07.909408952Z",
+  "branch": "feature/2026-tip-of-the-spear",
+  "checkpoints_count": 1,
+  "files_touched": [
+    ".pattern_buffer.json",
+    "_bmad/_config/traceability/repo_health/health_report.md",
+    "src/cohezion/knowledge_graph/KEY_LEARNINGS.md",
+    "tests/conftest.py"
+  ],
+  "agent": "Claude Code",
+  "model": "glm-5.1:cloud",
+  "turn_id": "98bd8be7bdbb",
+  "checkpoint_transcript_start": 69,
+  "transcript_lines_at_start": 69,
+  "token_usage": {
+    "input_tokens": 597307,
+    "cache_creation_tokens": 0,
+    "cache_read_tokens": 0,
+    "output_tokens": 3927,
+    "api_call_count": 6
+  },
+  "session_metrics": {
+    "turn_count": 1
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-04-09T15:06:45.435571004Z",
+    "agent_lines": 31,
+    "agent_removed": 9,
+    "human_added": 0,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 31,
+    "total_lines_changed": 40,
+    "agent_percentage": 100,
+    "metric_version": 2
+  }
+}
