@@ -20,3 +20,7 @@ I give you permissions to do all the git operations that are required
 ---
 
 /retrospect review /insights and create enforcement mechanisms that will prevent this disaster from happening again
+
+---
+
+Let's create some additional compound engineering solutions from first principals exrtrapolated from this experience across the rest of our claude code, gemini cli, and pi agent setups.
