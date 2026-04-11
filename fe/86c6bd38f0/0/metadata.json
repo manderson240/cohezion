@@ -1,0 +1,38 @@
+{
+  "cli_version": "0.5.3",
+  "checkpoint_id": "fe86c6bd38f0",
+  "session_id": "16c5f7d6-d532-4d96-b182-76c51602f485",
+  "strategy": "manual-commit",
+  "created_at": "2026-04-11T19:51:03.401918072Z",
+  "branch": "feature/2026-tip-of-the-spear",
+  "checkpoints_count": 3,
+  "files_touched": [
+    "data/compound/cache/token_cache.jsonl",
+    "memory/MEMORY.md"
+  ],
+  "agent": "Claude Code",
+  "model": "claude-sonnet-4-6",
+  "turn_id": "dad96b3c4f7c",
+  "token_usage": {
+    "input_tokens": 25470,
+    "cache_creation_tokens": 2979985,
+    "cache_read_tokens": 54562807,
+    "output_tokens": 247960,
+    "api_call_count": 549
+  },
+  "session_metrics": {
+    "turn_count": 20
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-04-11T19:49:43.795121176Z",
+    "agent_lines": 73,
+    "agent_removed": 76,
+    "human_added": 93814,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 93887,
+    "total_lines_changed": 105464,
+    "agent_percentage": 0.14128043692634454,
+    "metric_version": 2
+  }
+}
