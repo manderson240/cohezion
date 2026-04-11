@@ -1,0 +1,39 @@
+{
+  "taskVersion": {
+    "versionNumber": 1,
+    "name": "metacognition_counterfactual_10",
+    "description": "Recognize counterfactual reasoning limitations.",
+    "definition": "@kbench.task(name=\"metacognition_counterfactual_10\")\ndef metacognition_counterfactual_10(llm) -> bool:\n    \"\"\"Recognize counterfactual reasoning limitations.\"\"\"\n    prompt = \"\"\"If Alice had invested in Bitcoin in 2010, she would be a millionaire.\n\nDid Alice invest in Bitcoin in 2010?\n\nA) Yes\nB) No\nC) Cannot determine from counterfactual statement\nD) Insufficient Information\"\"\"\n    response = llm.prompt(prompt)\n    return bool(kbench.assertions.assert_true(\"C\" in response, expectation=\"Correct answer is C\"))\n"
+  },
+  "modelVersion": {},
+  "state": "BENCHMARK_TASK_RUN_STATE_COMPLETED",
+  "startTime": "2026-04-11T04:51:54.554284Z",
+  "endTime": "2026-04-11T04:52:02.278140Z",
+  "conversations": [
+    {
+      "id": "metacognition_counterfactual_10-11fc537e",
+      "metrics": {},
+      "modelVersionSlug": "model_version_slug for conversation is DEPRECATED"
+    }
+  ],
+  "results": [
+    {
+      "type": "AGGREGATED",
+      "booleanResult": true
+    }
+  ],
+  "assertions": [
+    {
+      "expectation": "Correct answer is C",
+      "status": "BENCHMARK_TASK_RUN_ASSERTION_STATUS_PASSED",
+      "lineNumber": 522,
+      "definition": "return bool(kbench.assertions.assert_true(\"C\" in response, expectation=\"Correct answer is C\"))",
+      "conversationRequestIds": [
+        {
+          "conversationId": "metacognition_counterfactual_10-11fc537e"
+        }
+      ]
+    }
+  ],
+  "pyRunId": "metacognition_counterfactual_10-Run #1"
+}

@@ -45,7 +45,9 @@ def scan_logs():
                         trigger_path = QUEUE_DIR / f"{basename}.crystallize"
                         if not trigger_path.exists():
                             with open(trigger_path, "w") as tf:
-                                tf.write(f"SOURCE={os.path.abspath(file_path)}\nDETECTED={time.time()}")
+                                tf.write(
+                                    f"SOURCE={os.path.abspath(file_path)}\nDETECTED={time.time()}"
+                                )
                             logging.info(f"Queued {basename} for crystallization.")
             except Exception as e:
                 logging.error(f"Error reading {file_path}: {e}")

@@ -1,7 +1,7 @@
 """MLA Breakthrough v3: Sandbox-Safe Latent 576/512 HIP Kernel.
 
 Target: 12.685µs (Rank 1)
-Strategy: Custom HIP kernel using load_inline to handle the 576/512 latent split 
+Strategy: Custom HIP kernel using load_inline to handle the 576/512 latent split
 directly on MXFP4 KV cache, with Multi-Split-K saturation for 304 CUs.
 """
 
@@ -11,7 +11,7 @@ from aiter import dtypes as aiter_dtypes
 from task import input_t, output_t
 
 # ─── HIP Kernel Source ─────────────────────────────────────────────────────────
-HIP_SOURCE = r'''
+HIP_SOURCE = r"""
 #include <torch/extension.h>
 #include <hip/hip_runtime.h>
 #include <hip/hip_bf16.h>
@@ -62,11 +62,12 @@ torch::Tensor launch_mla_v3(
     );
     return O;
 }
-'''
+"""
 
 CPP_SOURCE = "torch::Tensor launch_mla_v3(torch::Tensor, torch::Tensor, torch::Tensor, int, int, int, float, int);"
 
 _module = None
+
 
 def get_module():
     global _module
@@ -83,6 +84,7 @@ def get_module():
         except Exception:
             pass
     return _module
+
 
 def custom_kernel(data: input_t) -> output_t:
     q, kv_data, qo_indptr, kv_indptr, config = data
@@ -101,5 +103,8 @@ def custom_kernel(data: input_t) -> output_t:
 
     # Robust Fallback
     from aiter.mla import mla_decode_fwd
+
     kv_fp8, kv_scale = kv_data["fp8"]
-    return mla_decode_fwd(q, kv_fp8, None, qo_indptr, kv_indptr, 1, 1, sm_scale, q_scale=None, kv_scale=kv_scale)
+    return mla_decode_fwd(
+        q, kv_fp8, None, qo_indptr, kv_indptr, 1, 1, sm_scale, q_scale=None, kv_scale=kv_scale
+    )

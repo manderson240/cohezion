@@ -68,7 +68,9 @@ class TestRunConfig:
 class TestExperimentRun:
     def test_get_final_metrics(self):
         run = ExperimentRun(
-            run_id="r1", name="test", config=RunConfig(42, {}, {}, {}),
+            run_id="r1",
+            name="test",
+            config=RunConfig(42, {}, {}, {}),
         )
         run.metrics["reward"] = [
             MetricEntry(step=0, name="reward", value=1.0),
@@ -80,7 +82,9 @@ class TestExperimentRun:
 
     def test_get_metric_series(self):
         run = ExperimentRun(
-            run_id="r1", name="test", config=RunConfig(42, {}, {}, {}),
+            run_id="r1",
+            name="test",
+            config=RunConfig(42, {}, {}, {}),
         )
         run.metrics["loss"] = [
             MetricEntry(step=0, name="loss", value=1.0),
@@ -91,7 +95,9 @@ class TestExperimentRun:
 
     def test_summary(self):
         run = ExperimentRun(
-            run_id="r1", name="test", config=RunConfig(42, {}, {}, {}),
+            run_id="r1",
+            name="test",
+            config=RunConfig(42, {}, {}, {}),
             tags={"type": "baseline"},
         )
         s = run.summary()
@@ -205,8 +211,12 @@ class TestExperimentTracker:
 
         # Log metrics for both runs
         for i in range(20):
-            tracker.log_metric("coherence", 0.48 + np.random.normal(0, 0.02), step=i, run_id=r1.run_id)
-            tracker.log_metric("coherence", 0.52 + np.random.normal(0, 0.02), step=i, run_id=r2.run_id)
+            tracker.log_metric(
+                "coherence", 0.48 + np.random.normal(0, 0.02), step=i, run_id=r1.run_id
+            )
+            tracker.log_metric(
+                "coherence", 0.52 + np.random.normal(0, 0.02), step=i, run_id=r2.run_id
+            )
             tracker.log_metric("reward", float(i) * 0.1, step=i, run_id=r1.run_id)
             tracker.log_metric("reward", float(i) * 0.12, step=i, run_id=r2.run_id)
 

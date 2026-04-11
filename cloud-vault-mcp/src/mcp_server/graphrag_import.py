@@ -37,7 +37,7 @@ class GraphRAGImporter:
         self,
         vault_path: Path,
         ollama_url: str = "http://localhost:11434",
-        surrealdb_url: str = "http://localhost:8000",
+        surrealdb_url: str = "http://localhost:8001",
         namespace: str = "cohezion",
         database: str = "vault",
         embedding_model: str = "nomic-embed-text:latest",
@@ -146,7 +146,10 @@ class GraphRAGImporter:
 
             # Execute query (returns [DELETE result, CREATE result])
             results = await execute_surreal_async(
-                query, self.http_client, self.namespace, self.database,
+                query,
+                self.http_client,
+                self.namespace,
+                self.database,
                 url=self.surrealdb_url.rstrip("/") + "/sql",
             )
 
@@ -290,7 +293,7 @@ class GraphRAGImporter:
 async def import_vault_to_graphrag(
     vault_path: Path,
     ollama_url: str = "http://localhost:11434",
-    surrealdb_url: str = "http://localhost:8000",
+    surrealdb_url: str = "http://localhost:8001",
 ) -> dict[str, Any]:
     """
     Convenience function for full vault import

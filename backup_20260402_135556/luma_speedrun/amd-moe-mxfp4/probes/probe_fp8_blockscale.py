@@ -30,9 +30,13 @@ _FP8_BLOCKSCALE = None
 
 try:
     from aiter.moe_op import fmoe_fp8_blockscale_g1u1
+
     _FP8_BLOCKSCALE = fmoe_fp8_blockscale_g1u1
     _DISCOVERED = True
-    print(f"FOUND fmoe_fp8_blockscale_g1u1: {inspect.signature(fmoe_fp8_blockscale_g1u1)}", file=sys.stderr)
+    print(
+        f"FOUND fmoe_fp8_blockscale_g1u1: {inspect.signature(fmoe_fp8_blockscale_g1u1)}",
+        file=sys.stderr,
+    )
 except ImportError:
     pass
 
@@ -70,11 +74,18 @@ for _mod in (
 def custom_kernel(data: input_t) -> output_t:
     """Fallback to fused_moe if probe kernel unavailable."""
     (
-        hidden_states, gate_up_weight, down_weight,
-        gate_up_weight_scale, down_weight_scale,
-        gate_up_weight_shuffled, down_weight_shuffled,
-        gate_up_weight_scale_shuffled, down_weight_scale_shuffled,
-        topk_weights, topk_ids, config,
+        hidden_states,
+        gate_up_weight,
+        down_weight,
+        gate_up_weight_scale,
+        down_weight_scale,
+        gate_up_weight_shuffled,
+        down_weight_shuffled,
+        gate_up_weight_scale_shuffled,
+        down_weight_scale_shuffled,
+        topk_weights,
+        topk_ids,
+        config,
     ) = data
 
     hidden_pad = config["d_hidden_pad"] - config["d_hidden"]
@@ -83,15 +94,19 @@ def custom_kernel(data: input_t) -> output_t:
     # Always fall back to fused_moe — the probe is for DISCOVERY only
     # On the runner, stderr will show the discovered signatures
     return fused_moe(
-        hidden_states, gate_up_weight_shuffled, down_weight_shuffled,
-        topk_weights, topk_ids,
+        hidden_states,
+        gate_up_weight_shuffled,
+        down_weight_shuffled,
+        topk_weights,
+        topk_ids,
         expert_mask=None,
         activation=ActivationType.Silu,
         quant_type=QuantType.per_1x32,
         doweight_stage1=False,
         w1_scale=gate_up_weight_scale_shuffled,
         w2_scale=down_weight_scale_shuffled,
-        a1_scale=None, a2_scale=None,
+        a1_scale=None,
+        a2_scale=None,
         hidden_pad=hidden_pad,
         intermediate_pad=intermediate_pad,
     )

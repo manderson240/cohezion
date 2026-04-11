@@ -1,0 +1,39 @@
+{
+  "taskVersion": {
+    "versionNumber": 1,
+    "name": "learning_abstract_algebra_12",
+    "description": "Learn abstract algebraic structure.",
+    "definition": "@kbench.task(name=\"learning_abstract_algebra_12\")\ndef learning_abstract_algebra_12(llm) -> bool:\n    \"\"\"Learn abstract algebraic structure.\"\"\"\n    prompt = \"\"\"A magma (S, \u2218) has operation table:\n\n    \u2218 | a | b | c\n    a | b | c | a\n    b | c | a | b\n    c | a | b | c\n\nWhich is true?\n\nA) a \u2218 (b \u2218 c) = (a \u2218 b) \u2218 c\nB) a \u2218 a = a\nC) There is an identity element\nD) The operation is commutative\"\"\"\n    response = llm.prompt(prompt)\n    return bool(kbench.assertions.assert_true(\"D\" in response, expectation=\"Correct answer is D\"))\n"
+  },
+  "modelVersion": {},
+  "state": "BENCHMARK_TASK_RUN_STATE_COMPLETED",
+  "startTime": "2026-04-11T04:45:07.880414Z",
+  "endTime": "2026-04-11T04:46:07.353099Z",
+  "conversations": [
+    {
+      "id": "learning_abstract_algebra_12-fd7396cd",
+      "metrics": {},
+      "modelVersionSlug": "model_version_slug for conversation is DEPRECATED"
+    }
+  ],
+  "results": [
+    {
+      "type": "AGGREGATED",
+      "booleanResult": true
+    }
+  ],
+  "assertions": [
+    {
+      "expectation": "Correct answer is D",
+      "status": "BENCHMARK_TASK_RUN_ASSERTION_STATUS_PASSED",
+      "lineNumber": 303,
+      "definition": "return bool(kbench.assertions.assert_true(\"D\" in response, expectation=\"Correct answer is D\"))",
+      "conversationRequestIds": [
+        {
+          "conversationId": "learning_abstract_algebra_12-fd7396cd"
+        }
+      ]
+    }
+  ],
+  "pyRunId": "learning_abstract_algebra_12-Run #1"
+}

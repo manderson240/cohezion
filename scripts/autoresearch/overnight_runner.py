@@ -42,7 +42,7 @@ logger = logging.getLogger("overnight_runner")
 @dataclass
 class Checkpoint:
     """Autoresearch checkpoint state."""
-    
+
     session_name: str
     run_count: int
     best_metric: float
@@ -50,12 +50,12 @@ class Checkpoint:
     timestamp: str
     git_commit: str
     experiments_completed: list[int] = field(default_factory=list)
-    
+
     def save(self, path: Path) -> None:
         """Save checkpoint to disk."""
         path.write_text(json.dumps(self.__dict__, indent=2, default=str))
         logger.info(f"Checkpoint saved: {path}")
-    
+
     @classmethod
     def load(cls, path: Path) -> Optional[Checkpoint]:
         """Load checkpoint from disk."""
@@ -67,14 +67,14 @@ class Checkpoint:
 
 class OvernightRunner:
     """Manage overnight autoresearch experiments.
-    
+
     Strategy:
     1. Load checkpoint or start fresh
     2. Run experiments until max_runs or time limit
     3. Checkpoint every N runs
     4. On interrupt: save state, cleanup, exit gracefully
     """
-    
+
     def __init__(
         self,
         session_name: str = "overnight_datamesh",
@@ -86,21 +86,21 @@ class OvernightRunner:
         self.max_runs = max_runs
         self.checkpoint_interval = checkpoint_interval
         self.time_limit_seconds = time_limit_hours * 3600
-        
+
         self.checkpoint_path = Path(f".autoresearch_checkpoint_{session_name}.json")
         self.start_time = time.time()
         self._shutdown_requested = False
         self._current_run = 0
-        
+
         # Setup signal handlers
         signal.signal(signal.SIGTERM, self._signal_handler)
         signal.signal(signal.SIGINT, self._signal_handler)
-    
+
     def _signal_handler(self, signum, frame):
         """Handle shutdown signals gracefully."""
         logger.info(f"Received signal {signum}, requesting shutdown...")
         self._shutdown_requested = True
-    
+
     def _get_git_commit(self) -> str:
         """Get current git commit hash."""
         try:
@@ -114,16 +114,16 @@ class OvernightRunner:
         except Exception as e:
             logger.warning(f"Could not get git commit: {e}")
             return "unknown"
-    
+
     def _run_benchmark(self) -> tuple[float, dict[str, Any]]:
         """Run the benchmark and return metric + metadata.
-        
+
         This should be customized for the specific optimization target.
         """
         # Example: Datamesh query latency benchmark
         try:
             start = time.time()
-            
+
             # Run your benchmark command here
             result = subprocess.run(
                 ["python", "-m", "cohezion.benchmarks.datamesh_query"],
@@ -131,21 +131,21 @@ class OvernightRunner:
                 text=True,
                 timeout=60,
             )
-            
+
             # Parse metric from output
             # Expected format: "METRIC query_latency_ms=XX.XX"
             metric = 999.0  # Placeholder - would parse from output
             metadata = {}
-            
+
             elapsed = (time.time() - start) * 1000
             logger.info(f"Benchmark complete in {elapsed:.1f}ms")
-            
+
             return metric, metadata
-            
+
         except Exception as e:
             logger.error(f"Benchmark failed: {e}")
             return float("inf"), {"error": str(e)}
-    
+
     def _run_experiment(self, description: str, hypothesis: str) -> dict[str, Any]:
         """Run a single experiment using pi's run_experiment API."""
         # This would integrate with the actual pi autoresearch system
@@ -158,7 +158,7 @@ class OvernightRunner:
             "description": description,
             "asi": {"hypothesis": hypothesis},
         }
-    
+
     def _checkpoint(self) -> None:
         """Save current state to checkpoint file."""
         checkpoint = Checkpoint(
@@ -171,10 +171,10 @@ class OvernightRunner:
             experiments_completed=list(range(1, self._current_run + 1)),
         )
         checkpoint.save(self.checkpoint_path)
-    
+
     async def run(self) -> Checkpoint:
         """Main overnight run loop.
-        
+
         Returns final checkpoint state.
         """
         logger.info("=" * 60)
@@ -182,7 +182,7 @@ class OvernightRunner:
         logger.info(f"Target: {self.max_runs} runs, {self.checkpoint_interval} per checkpoint")
         logger.info(f"Time limit: {self.time_limit_seconds / 3600:.1f} hours")
         logger.info("=" * 60)
-        
+
         # Load checkpoint if exists
         checkpoint = Checkpoint.load(self.checkpoint_path)
         if checkpoint:
@@ -191,48 +191,48 @@ class OvernightRunner:
         else:
             logger.info("Starting fresh session")
             self._current_run = 0
-        
+
         results = []
-        
+
         while (
-            self._current_run < self.max_runs and
-            time.time() - self.start_time < self.time_limit_seconds and
-            not self._shutdown_requested
+            self._current_run < self.max_runs
+            and time.time() - self.start_time < self.time_limit_seconds
+            and not self._shutdown_requested
         ):
             self._current_run += 1
             run_start = time.time()
-            
+
             logger.info(f"\n--- Run {self._current_run}/{self.max_runs} ---")
-            
+
             # Generate experiment from previous learnings
             # This would use the kg_search to find patterns
             hypothesis = f"Optimization attempt {self._current_run}"
             description = f"Auto-generated experiment based on prior results"
-            
+
             try:
                 result = self._run_experiment(description, hypothesis)
                 results.append(result)
-                
+
                 # Log result
                 status = result.get("status", "unknown")
                 metric = result.get("metric", 0)
                 logger.info(f"Status: {status}, Metric: {metric:.4f}")
-                
+
                 # Checkpoint every N runs
                 if self._current_run % self.checkpoint_interval == 0:
                     self._checkpoint()
-                    
+
             except Exception as e:
                 logger.error(f"Experiment failed: {e}")
                 self._checkpoint()  # Save state on failure
                 raise
-            
+
             run_elapsed = time.time() - run_start
             logger.info(f"Run completed in {run_elapsed:.1f}s")
-            
+
             # Brief pause between runs
             await asyncio.sleep(1)
-        
+
         # Final checkpoint
         final_checkpoint = Checkpoint(
             session_name=self.session_name,
@@ -244,16 +244,16 @@ class OvernightRunner:
             experiments_completed=[r["run"] for r in results],
         )
         final_checkpoint.save(self.checkpoint_path)
-        
+
         # Generate summary report
         self._generate_report(results)
-        
+
         return final_checkpoint
-    
+
     def _generate_report(self, results: list[dict]) -> None:
         """Generate morning report."""
         report_path = Path(f"overnight_report_{self.session_name}_{datetime.now():%Y%m%d}.md")
-        
+
         report = f"""# Overnight Autoresearch Report
 
 **Session**: {self.session_name}  
@@ -274,10 +274,12 @@ class OvernightRunner:
 | Run | Status | Metric | Description |
 |-----|--------|--------|-------------|
 """
-        
+
         for r in results:
-            report += f"| {r['run']} | {r['status']} | {r['metric']:.4f} | {r['description'][:50]}... |\n"
-        
+            report += (
+                f"| {r['run']} | {r['status']} | {r['metric']:.4f} | {r['description'][:50]}... |\n"
+            )
+
         report_path.write_text(report)
         logger.info(f"Report saved: {report_path}")
 
@@ -290,7 +292,7 @@ def main():
         checkpoint_interval=5,
         time_limit_hours=8,
     )
-    
+
     try:
         checkpoint = asyncio.run(runner.run())
         logger.info(f"Complete. Checkpoint at run {checkpoint.run_count}")

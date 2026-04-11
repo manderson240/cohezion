@@ -27,12 +27,12 @@ def custom_kernel(data: input_t) -> output_t:
     A, B, B_q, B_shuffle, B_scale_sh = data
     m, k = A.shape
     n = B_shuffle.shape[0]
-    
+
     # Quantize A with MXFP4
     x_fp4, bs_e8m0 = dynamic_mxfp4_quant(A)
     A_q = x_fp4.view(dtypes.fp4x2)
     A_scale_sh = e8m0_shuffle(bs_e8m0).view(dtypes.fp8_e8m0)
-    
+
     # Try blockscale path first (CK kernels have better support for varied shapes)
     try:
         Out = torch.empty((m, n), dtype=dtypes.bf16, device=A.device)
@@ -47,6 +47,10 @@ def custom_kernel(data: input_t) -> output_t:
     except Exception as e:
         # Fallback to unified gemm_a4w4 if blockscale fails
         return aiter.gemm_a4w4(
-            A_q, B_shuffle, A_scale_sh, B_scale_sh,
-            dtype=dtypes.bf16, bpreshuffle=True,
+            A_q,
+            B_shuffle,
+            A_scale_sh,
+            B_scale_sh,
+            dtype=dtypes.bf16,
+            bpreshuffle=True,
         )

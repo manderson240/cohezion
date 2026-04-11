@@ -1,0 +1,39 @@
+{
+  "taskVersion": {
+    "versionNumber": 1,
+    "name": "social_group_dynamics_12",
+    "description": "Understand group behavior.",
+    "definition": "@kbench.task(name=\"social_group_dynamics_12\")\ndef social_group_dynamics_12(llm) -> bool:\n    \"\"\"Understand group behavior.\"\"\"\n    prompt = \"\"\"In a group decision, everyone privately thinks Plan B is better, but everyone publicly supports Plan A because they think others prefer it.\n\nThis is:\n\nA) Consensus\nB) Groupthink/Plurality ignorance\nC) Democracy\nD) Leadership\"\"\"\n    response = llm.prompt(prompt)\n    return bool(kbench.assertions.assert_true(\"B\" in response, expectation=\"Correct answer is B\"))\n"
+  },
+  "modelVersion": {},
+  "state": "BENCHMARK_TASK_RUN_STATE_COMPLETED",
+  "startTime": "2026-04-11T05:04:22.851568Z",
+  "endTime": "2026-04-11T05:04:41.511190Z",
+  "conversations": [
+    {
+      "id": "social_group_dynamics_12-0a25d8f2",
+      "metrics": {},
+      "modelVersionSlug": "model_version_slug for conversation is DEPRECATED"
+    }
+  ],
+  "results": [
+    {
+      "type": "AGGREGATED",
+      "booleanResult": true
+    }
+  ],
+  "assertions": [
+    {
+      "expectation": "Correct answer is B",
+      "status": "BENCHMARK_TASK_RUN_ASSERTION_STATUS_PASSED",
+      "lineNumber": 1343,
+      "definition": "return bool(kbench.assertions.assert_true(\"B\" in response, expectation=\"Correct answer is B\"))",
+      "conversationRequestIds": [
+        {
+          "conversationId": "social_group_dynamics_12-0a25d8f2"
+        }
+      ]
+    }
+  ],
+  "pyRunId": "social_group_dynamics_12-Run #1"
+}

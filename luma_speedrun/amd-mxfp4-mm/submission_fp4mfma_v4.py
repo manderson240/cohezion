@@ -8,6 +8,7 @@ e8m0_shuffle on the pre-computed B_scale_sh. Saves ~10-20µs per call.
 """
 
 import os
+
 os.environ["PYTORCH_ROCM_ARCH"] = "gfx950"
 os.environ["CXX"] = "clang++"
 
@@ -112,12 +113,17 @@ void launch(torch::Tensor A, torch::Tensor B,
 }
 """
 
-CPP_SOURCE = "void launch(torch::Tensor, torch::Tensor, torch::Tensor, torch::Tensor, torch::Tensor);"
+CPP_SOURCE = (
+    "void launch(torch::Tensor, torch::Tensor, torch::Tensor, torch::Tensor, torch::Tensor);"
+)
 
 try:
     _mod = load_inline(
-        name="fp4mfma_v4", cpp_sources=[CPP_SOURCE], cuda_sources=[HIP_SOURCE],
-        functions=["launch"], verbose=False,
+        name="fp4mfma_v4",
+        cpp_sources=[CPP_SOURCE],
+        cuda_sources=[HIP_SOURCE],
+        functions=["launch"],
+        verbose=False,
         extra_cuda_cflags=["--offload-arch=gfx950", "-std=c++20", "-O3"],
     )
     _OK = True
@@ -143,10 +149,12 @@ def custom_kernel(data: input_t) -> output_t:
 
     if not _OK:
         import aiter
+
         Aq, Asc = dynamic_mxfp4_quant(A.contiguous())
         Ash = e8m0_shuffle(Asc).view(dtypes.fp8_e8m0)
-        return aiter.gemm_a4w4(Aq.view(dtypes.fp4x2), B_shuffle, Ash, B_scale_sh,
-                               dtype=dtypes.bf16, bpreshuffle=True)
+        return aiter.gemm_a4w4(
+            Aq.view(dtypes.fp4x2), B_shuffle, Ash, B_scale_sh, dtype=dtypes.bf16, bpreshuffle=True
+        )
 
     # Quantize A (must do each call)
     Aq, Asc = dynamic_mxfp4_quant(A.contiguous())

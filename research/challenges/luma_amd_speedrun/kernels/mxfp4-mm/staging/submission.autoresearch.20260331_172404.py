@@ -24,7 +24,7 @@ def custom_kernel(data: input_t) -> output_t:
     # Quantize A to MXFP4 per-1x32 (same as reference)
     quant_func = aiter.get_triton_quant(QuantType.per_1x32)
     A_q, A_scale = quant_func(A, shuffle=False)
-    
+
     # Convert FP4x2 packed tensors to expected uint8 view for aiter.gemm_a4w4
     # aiter.gemm_a4w4 expects dtypes.fp4x2 input as torch.uint8 (view)
     A_q_uint8 = A_q.view(torch.uint8)
@@ -46,7 +46,7 @@ def custom_kernel(data: input_t) -> output_t:
         A_scale,
         B_scale_sh,
         dtype=torch.bfloat16,
-        block_scale=True  # Enable block-scale path (NOT tuned_gemm)
+        block_scale=True,  # Enable block-scale path (NOT tuned_gemm)
     )
 
     # Ensure output shape correctness (m x n)

@@ -8,6 +8,7 @@ from jsonschema import validate
 # entity extraction, and workflow suggestion. In a real-world scenario, these would
 # be calls to a dedicated language model API.
 
+
 def summarize_request(request: str) -> str:
     """
     Summarizes the user's request.
@@ -15,6 +16,7 @@ def summarize_request(request: str) -> str:
     # This is a simplified implementation. A real implementation would use a more
     # sophisticated summarization model.
     return f"The user wants to {request}"
+
 
 def extract_entities(request: str) -> list:
     """
@@ -32,6 +34,7 @@ def extract_entities(request: str) -> list:
         entities.append({"name": value, "type": "literal", "value": value})
     return entities
 
+
 def extract_keywords(request: str) -> list:
     """
     Extracts keywords from the user's request.
@@ -39,6 +42,7 @@ def extract_keywords(request: str) -> list:
     # This is a simplified implementation. A real implementation would use a more
     # sophisticated keyword extraction model.
     return request.lower().split()
+
 
 def suggest_workflow(request: str) -> str:
     """
@@ -52,6 +56,7 @@ def suggest_workflow(request: str) -> str:
         return "repository-management-workflow"
     else:
         return "default-workflow"
+
 
 def process_natural_language(request: str) -> str:
     """
@@ -84,6 +89,7 @@ def process_natural_language(request: str) -> str:
     validate(instance=output_data, schema=schema)
 
     return yaml.dump(output_data)
+
 
 if __name__ == "__main__":
     test_request = "Please create a new agent called 'Test Agent'"

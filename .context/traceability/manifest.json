@@ -51,6 +51,12 @@
       ]
     },
     {
+      "path": "policy/learned-budgets.md",
+      "token_budget": 50,
+      "coherence_threshold": 0.3,
+      "sources": [{"file": "src/cohezion/compound/context_policy.py", "sections": ["All"], "commit": "auto"}]
+    },
+    {
       "path": "compound/long_horizon_task.py",
       "token_budget": 150,
       "coherence_threshold": 0.8,

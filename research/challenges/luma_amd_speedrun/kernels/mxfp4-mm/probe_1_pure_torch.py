@@ -8,6 +8,7 @@ Tests if standard torch.matmul is allowed. (Expected: SUCCESS)
 import torch
 from task import input_t, output_t
 
+
 def custom_kernel(data: input_t) -> output_t:
     A, B, B_q, B_shuffle, B_scale_sh = data
     # Pure torch.matmul is the most 'blessed' path.

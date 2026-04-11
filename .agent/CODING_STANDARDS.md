@@ -12,6 +12,11 @@ This document establishes the technical baseline for all code contributions to t
 - **Manifestation Protocol**: All new features or logic blocks must be preceded by a formal Skill or Workflow template.
 - **As Above, So Below**: Implementation follows the structure established in the `_PRIME.md` definitions.
 
+## 1.2 Systems Engineering & The V-Model
+- **Agent Taxonomy**: All specialist agents must operate within a defined stage of the Systems Engineering V-Model (e.g., Requirements Analysis, System Architecture, Detailed Design, Implementation, Integration, Validation).
+- **AutoHarness Mandate**: All non-deterministic logic (e.g., LLM tools) MUST be wrapped in deterministic test harnesses (`tests/harnesses/`).
+- **Policy Distillation**: Validated non-deterministic behaviors must be distilled into deterministic Python policies in `src/cohezion/policies/` to minimize inference costs and guarantee reliability.
+
 ## 2. Type Safety & Documentation
 - **Type Hints**: Mandatory for all public function signatures (Mypy --strict compatible).
 - **Docstrings**: Use **NumPy-style** docstrings for all modules, classes, and functions.

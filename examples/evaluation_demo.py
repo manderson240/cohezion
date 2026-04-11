@@ -55,7 +55,9 @@ def main() -> None:
         points.append(point)
 
         print(f"  [{op_type:>10}] {description}")
-        print(f"             12D coords (first 4): [{', '.join(f'{d:.3f}' for d in point.dimensions[:4])}...]")
+        print(
+            f"             12D coords (first 4): [{', '.join(f'{d:.3f}' for d in point.dimensions[:4])}...]"
+        )
         print(f"             phi_score={point.metadata.get('phi_score', 0):.3f}")
         print()
 

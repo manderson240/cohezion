@@ -8,6 +8,7 @@ Solution: Pad V to match K, run attention, then unpad result.
 """
 
 import os
+
 os.environ["PYTORCH_ROCM_ARCH"] = "gfx950"
 
 import torch
@@ -52,7 +53,11 @@ def _einsum_attention(data) -> torch.Tensor:
     scores = torch.einsum("bqnh,bsh->bnqs", qr, kv_b).mul_(SM_SCALE)
     weights = torch.softmax(scores, dim=-1)
     v = kv_b[:, :, :V_HEAD_DIM]
-    return torch.einsum("bnqs,bsd->bqnd", weights, v).reshape(-1, nheads, V_HEAD_DIM).to(torch.bfloat16)
+    return (
+        torch.einsum("bnqs,bsd->bqnd", weights, v)
+        .reshape(-1, nheads, V_HEAD_DIM)
+        .to(torch.bfloat16)
+    )
 
 
 def _standard_mla(data) -> torch.Tensor:
@@ -74,23 +79,53 @@ def _standard_mla(data) -> torch.Tensor:
         nq, nkv = NUM_HEADS, NUM_KV_HEADS
         kvl = (kv_indptr[1:] - kv_indptr[:-1]).to(torch.int32)
         info = get_mla_metadata_info_v1(
-            bs, qseqlen, nq, q_fp8.dtype, kv_fp8.dtype,
-            is_sparse=False, fast_mode=False, num_kv_splits=num_splits, intra_batch_mode=True
+            bs,
+            qseqlen,
+            nq,
+            q_fp8.dtype,
+            kv_fp8.dtype,
+            is_sparse=False,
+            fast_mode=False,
+            num_kv_splits=num_splits,
+            intra_batch_mode=True,
         )
         work = [torch.empty(s, dtype=t, device="cuda") for s, t in info]
         wm, wi, wis, ri, rfm, rpm = work
         get_mla_metadata_v1(
-            qo_indptr, kv_indptr, kvl, nq//nkv, nkv, True, wm, wis, wi, ri, rfm, rpm,
-            page_size=PAGE_SIZE, kv_granularity=16, max_seqlen_qo=qseqlen, uni_seqlen_qo=qseqlen,
-            fast_mode=False, max_split_per_batch=num_splits, intra_batch_mode=True,
-            dtype_q=q_fp8.dtype, dtype_kv=kv_fp8.dtype
+            qo_indptr,
+            kv_indptr,
+            kvl,
+            nq // nkv,
+            nkv,
+            True,
+            wm,
+            wis,
+            wi,
+            ri,
+            rfm,
+            rpm,
+            page_size=PAGE_SIZE,
+            kv_granularity=16,
+            max_seqlen_qo=qseqlen,
+            uni_seqlen_qo=qseqlen,
+            fast_mode=False,
+            max_split_per_batch=num_splits,
+            intra_batch_mode=True,
+            dtype_q=q_fp8.dtype,
+            dtype_kv=kv_fp8.dtype,
         )
         tq = bs * qseqlen
         tkv = int(kv_indptr[-1].item())
         buf = max(num_splits, 16)
         _cache[key] = {
-            "wm": wm, "wi": wi, "wis": wis, "ri": ri, "rfm": rfm, "rpm": rpm,
-            "kvi": torch.arange(tkv, dtype=torch.int32, device="cuda"), "kvl": kvl,
+            "wm": wm,
+            "wi": wi,
+            "wis": wis,
+            "ri": ri,
+            "rfm": rfm,
+            "rpm": rpm,
+            "kvi": torch.arange(tkv, dtype=torch.int32, device="cuda"),
+            "kvl": kvl,
             "logits": torch.empty((buf, tq, nq, V_HEAD_DIM), dtype=torch.float32, device="cuda"),
             "lse": torch.empty((buf, tq, nq), dtype=torch.float32, device="cuda"),
             "out": torch.empty((tq, nq, V_HEAD_DIM), dtype=torch.bfloat16, device="cuda"),
@@ -99,10 +134,25 @@ def _standard_mla(data) -> torch.Tensor:
 
     mla_decode_stage1_asm_fwd = aiter.mla_decode_stage1_asm_fwd
     mla_decode_stage1_asm_fwd(
-        q_fp8.view(-1, NUM_HEADS, QK_HEAD_DIM), kv_4d, qo_indptr, kv_indptr,
-        m["kvi"], m["kvl"], None, m["wm"], m["wi"], m["wis"],
-        qseqlen, PAGE_SIZE, NUM_KV_HEADS, SM_SCALE, m["logits"], m["lse"], m["out"],
-        q_scale=q_scale, kv_scale=kv_scale
+        q_fp8.view(-1, NUM_HEADS, QK_HEAD_DIM),
+        kv_4d,
+        qo_indptr,
+        kv_indptr,
+        m["kvi"],
+        m["kvl"],
+        None,
+        m["wm"],
+        m["wi"],
+        m["wis"],
+        qseqlen,
+        PAGE_SIZE,
+        NUM_KV_HEADS,
+        SM_SCALE,
+        m["logits"],
+        m["lse"],
+        m["out"],
+        q_scale=q_scale,
+        kv_scale=kv_scale,
     )
     mla_reduce_v1(m["logits"], m["lse"], m["ri"], m["rfm"], m["rpm"], qseqlen, m["out"])
     return m["out"]
@@ -141,31 +191,31 @@ def _try_fmha_v3_padded(data) -> torch.Tensor | None:
         v_padded = torch.zeros(
             (kv_3d.shape[0], NUM_KV_HEADS, QK_HEAD_DIM),
             dtype=kv_buffer.dtype,
-            device=kv_buffer.device
+            device=kv_buffer.device,
         )
         # Copy first V_HEAD_DIM (512) values from kv_buffer
         v_padded[:, :, :V_HEAD_DIM] = kv_3d[:, :, :V_HEAD_DIM]
 
         # Call fmha_v3_varlen_fwd
         out_tuple = fmha_v3_varlen_fwd(
-            q_3d,                  # q [total_q, nheads, 576]
-            k_full,                # k [total_kv, nkv, 576]
-            v_padded,              # v [total_kv, nkv, 576] (padded from 512)
-            qo_indptr,             # cu_seqlens_q
-            kv_indptr,             # cu_seqlens_k
-            qseqlen,               # max_seqlen_q
-            kvseqlen,              # max_seqlen_k
-            1,                     # min_seqlen_q
-            0.0,                   # dropout_p
-            SM_SCALE,              # softmax_scale
-            0.0,                   # logits_soft_cap
-            False,                 # zero_tensors
-            False,                 # is_causal (decode = no causal mask)
-            -1,                    # window_size_left
-            -1,                    # window_size_right
-            False,                 # return_softmax_lse
-            False,                 # return_dropout_randval
-            0,                     # how_v3_bf16_cvt
+            q_3d,  # q [total_q, nheads, 576]
+            k_full,  # k [total_kv, nkv, 576]
+            v_padded,  # v [total_kv, nkv, 576] (padded from 512)
+            qo_indptr,  # cu_seqlens_q
+            kv_indptr,  # cu_seqlens_k
+            qseqlen,  # max_seqlen_q
+            kvseqlen,  # max_seqlen_k
+            1,  # min_seqlen_q
+            0.0,  # dropout_p
+            SM_SCALE,  # softmax_scale
+            0.0,  # logits_soft_cap
+            False,  # zero_tensors
+            False,  # is_causal (decode = no causal mask)
+            -1,  # window_size_left
+            -1,  # window_size_right
+            False,  # return_softmax_lse
+            False,  # return_dropout_randval
+            0,  # how_v3_bf16_cvt
         )
 
         # Result is [total_q, nheads, 576], trim back to [total_q, nheads, 512]

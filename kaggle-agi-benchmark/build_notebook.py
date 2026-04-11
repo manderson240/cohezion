@@ -31,8 +31,8 @@ notebook = {
                 "FLUME latent state tracking.\n\n",
                 "## Methodology\n",
                 "We test if models can identify 'Insufficient Information' in ambiguous "
-                "grid transformations."
-            ]
+                "grid transformations.",
+            ],
         },
         {
             "cell_type": "code",
@@ -49,8 +49,8 @@ notebook = {
                 "for path, content in COHEZION_BUNDLE.items():\n",
                 "    with open(f'cohezion/{{path}}', 'w') as f:\n",
                 "        f.write(content)\n\n",
-                "print('Cohezion bundle initialized.')"
-            ]
+                "print('Cohezion bundle initialized.')",
+            ],
         },
         {
             "cell_type": "code",
@@ -64,8 +64,8 @@ notebook = {
                 "    import numpy\n",
                 "    print('Found core ML libraries.')\n",
                 "except ImportError:\n",
-                "    !pip install -q torch numpy transformers accelerate"
-            ]
+                "    !pip install -q torch numpy transformers accelerate",
+            ],
         },
         {
             "cell_type": "code",
@@ -88,8 +88,8 @@ notebook = {
                 "        return json.load(f)\n\n",
                 "benchmark_data = load_benchmark()\n",
                 "tasks = benchmark_data.get('train', []) + benchmark_data.get('test', [])\n",
-                "print(f\"Loaded {{len(tasks)}} tasks.\")"
-            ]
+                'print(f"Loaded {{len(tasks)}} tasks.")',
+            ],
         },
         {
             "cell_type": "code",
@@ -98,7 +98,7 @@ notebook = {
             "outputs": [],
             "source": [
                 "def evaluate_model(model_id, model_name):\n",
-                "    print(f\"\\n--- Evaluating {{model_name}} ---\")\n",
+                '    print(f"\\n--- Evaluating {{model_name}} ---")\n',
                 "    \n",
                 "    tokenizer = AutoTokenizer.from_pretrained(model_id)\n",
                 "    model = AutoModelForCausalLM.from_pretrained(\n",
@@ -127,7 +127,7 @@ notebook = {
                 "                latent_states.append(embedding)\n",
                 "            except:\n",
                 "                continue\n\n",
-                "        prompt = (f\"Answer the ARC grid problem. Output only the selected option or \"\n",
+                '        prompt = (f"Answer the ARC grid problem. Output only the selected option or "\n',
                 "                  f\"state if insufficient.\\n\\n{{task['input']}}\")\n",
                 "        target = task['output']\n",
                 "        \n",
@@ -147,9 +147,9 @@ notebook = {
                 "            'num_grids': len(latent_states)\n",
                 "        })\n",
                 "            \n",
-                "    print(f\"Accuracy for {{model_name}}: {{correct}}/{{total}} ({{(correct/total)*100:.2f}}%)\")\n",
-                "    return correct / total"
-            ]
+                '    print(f"Accuracy for {{model_name}}: {{correct}}/{{total}} ({{(correct/total)*100:.2f}}%)")\n',
+                "    return correct / total",
+            ],
         },
         {
             "cell_type": "code",
@@ -158,39 +158,32 @@ notebook = {
             "outputs": [],
             "source": [
                 "# Example evaluation (Qwen 2.5 is strong on ARC)\n",
-                "# qwen_score = evaluate_model('Qwen/Qwen2.5-7B-Instruct', 'Qwen2.5-7B-Instruct')"
-            ]
-        }
+                "# qwen_score = evaluate_model('Qwen/Qwen2.5-7B-Instruct', 'Qwen2.5-7B-Instruct')",
+            ],
+        },
     ],
     "metadata": {
-        "kernelspec": {
-            "display_name": "Python 3",
-            "language": "python",
-            "name": "python3"
-        },
+        "kernelspec": {"display_name": "Python 3", "language": "python", "name": "python3"},
         "language_info": {
-            "codemirror_mode": {
-                "name": "ipython",
-                "version": 3
-            },
+            "codemirror_mode": {"name": "ipython", "version": 3},
             "file_extension": ".py",
             "mimetype": "text/x-python",
             "name": "python",
             "nbconvert_exporter": "python",
             "pygments_lexer": "ipython3",
-            "version": "3.10.12"
-        }
+            "version": "3.10.12",
+        },
     },
     "nbformat": 4,
-    "nbformat_minor": 5
+    "nbformat_minor": 5,
 }
 
-output_path = Path(__file__).parent / 'evaluator.ipynb'
-with open(output_path, 'w') as f:
+output_path = Path(__file__).parent / "evaluator.ipynb"
+with open(output_path, "w") as f:
     json.dump(notebook, f, indent=2)
-print(f'Notebook built at {output_path}')
+print(f"Notebook built at {output_path}")
 
-output_path = Path(__file__).parent / 'evaluator.ipynb'
-with open(output_path, 'w') as f:
+output_path = Path(__file__).parent / "evaluator.ipynb"
+with open(output_path, "w") as f:
     json.dump(notebook, f, indent=2)
-print(f'Notebook built at {output_path}')
+print(f"Notebook built at {output_path}")

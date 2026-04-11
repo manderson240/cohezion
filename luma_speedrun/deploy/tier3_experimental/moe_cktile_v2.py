@@ -32,7 +32,7 @@ from task import input_t, output_t
 
 # ─── Advanced HIP Kernel: FlatMM Pattern with LDS Bridge ───────────────────
 # Inspired by CK-Tile flatmm composable primitives
-HIP_SOURCE_FLATMM = r'''
+HIP_SOURCE_FLATMM = r"""
 #include <torch/extension.h>
 #include <hip/hip_runtime.h>
 #include <hip/hip_bf16.h>
@@ -452,9 +452,9 @@ torch::Tensor launch_moe_stage2_flatmm(
 
     return output;
 }
-'''
+"""
 
-CPP_SOURCE_V2 = R'''
+CPP_SOURCE_V2 = R"""
 torch::Tensor launch_moe_stage1_flatmm(
     torch::Tensor hidden, torch::Tensor w1, torch::Tensor w1_scale,
     torch::Tensor sorted_token_ids, torch::Tensor sorted_expert_ids,
@@ -468,7 +468,7 @@ torch::Tensor launch_moe_stage2_flatmm(
     int M, int D, int DI, int num_experts
 );
 torch::Tensor build_expert_offsets(torch::Tensor topk_ids, int num_experts);
-'''
+"""
 
 _module_v2 = None
 _HAS_FLATMM_KERNELS = False
@@ -486,7 +486,7 @@ def _get_flatmm_module():
                 functions=[
                     "launch_moe_stage1_flatmm",
                     "launch_moe_stage2_flatmm",
-                    "build_expert_offsets"
+                    "build_expert_offsets",
                 ],
                 verbose=False,
                 extra_cuda_cflags=[
@@ -556,7 +556,10 @@ def custom_kernel(data: input_t) -> output_t:
                 sorted_expert_ids,
                 sorted_weights,
                 expert_offsets,
-                M, D, DI, num_experts
+                M,
+                D,
+                DI,
+                num_experts,
             )
 
             # Stage 2: Down projection with FlatMM
@@ -568,7 +571,10 @@ def custom_kernel(data: input_t) -> output_t:
                 sorted_expert_ids,
                 sorted_weights,
                 expert_offsets,
-                M, D, DI, num_experts
+                M,
+                D,
+                DI,
+                num_experts,
             )
 
             return output

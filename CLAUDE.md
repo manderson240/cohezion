@@ -95,10 +95,10 @@ See skill: `cohezion-vault-workflow` for vault API examples (log decisions, expe
 ### ⚡ Architecture at a Glance
 | Layer | Components | Entry |
 |-------|-----------|-------|
-| **Compound** | Executor, SkillRefiner, RetrospectionEngine, JourneyTracker | `CompoundExecutor` |
+| **Compound** | Executor, SkillRefiner, RetrospectionEngine, JourneyTracker, DRRGenerator, TapeLogger | `CompoundExecutor` |
 | **Swarm** | TeamOrchestrator, ExecutionOrchestrator, DynamicModelRouter | `TeamExecutor` |
 | **Cache** | SemanticCache (L1 hash + L2 cosine + L3 vault, 95%+ hit rate) | `SemanticCache` |
-| **Cost Opt** | CostAwareRouter (27.3% savings), BudgetEnforcer, ModelQualityClassifier | `CostAwareRouter` |
+| **Cost Opt** | CostAwareRouter (Lemonade-first, YAML profiles, 45 models), BudgetEnforcer, ModelQualityClassifier | `CostAwareRouter` |
 | **Persistence** | SessionPersistence (vault + JSONL), MetricsCollector, DegradationDetector, ExecutionTraces (Meta-Harness L225) | `SessionManager` |
 | **Physics** | SU(2) Spinors, Riemannian/Lagrangian, FiberBundle, GaugeTheory, Fisher metric | `SpinorState` |
 | **World Model** | JEPA predictor (86K params, causal masking), Cosmogony, SymmetryBreaking | `JEPAWorldModel` |
@@ -107,12 +107,13 @@ See skill: `cohezion-vault-workflow` for vault API examples (log decisions, expe
 | **Evo Model** | Agents-as-EVOs physics, evolutionary dynamics on manifold | `EvoModel` |
 | **Worldviews** | 16 indigenous traditions x 10 cosmogony steps, Worldview Explorer | `WorldviewExplorer` |
 | **Ouroboros** | Ouroboros bridge + Mycelium network wired into Genesis chain | `OuroborosBridge` |
-| **Environments** | ManifoldEnv (gymnasium, 19D obs), SwarmEnv (multi-agent gauge coupling) | `gym.make('Cohezion/ManifoldEnv-v0')` |
+| **Environments** | ManifoldEnv (gymnasium, 19D obs, verifiable rewards), SwarmEnv (multi-agent gauge coupling) | `gym.make('Cohezion/ManifoldEnv-v0')` |
 | **Governance** | AutonomyEngine (cosmogonic tiers), ConciergeAgent, KnowledgeBridge, FlumeBridge | `AutonomyEngine` |
 | **Data Mesh** | DataProduct (typed SLA), MCP Registry (tier access control + call tracking) | `get_cohezion_data_products()` |
-| **Providers** | OllamaProvider (local), GeminiProvider (cloud: Flash-Lite/Flash/Pro) | `get_model_provider("gemini")` |
-| **Genesis UI** | 12 components across 8 tabs: BlochSphere, GenesisScene, FlumeLatentViz, SwarmTopologyViz, etc. | `/genesis` route |
+| **Providers** | LemonadeProvider (local 3-slot), OllamaCloudProvider ($20/mo), LemonadeAdapter (NPU/GPU/CPU hotswap) | `CostAwareRouter` |
+| **Genesis UI** | 11 components across 8 tabs: BlochSphere, GenesisScene, FlumeLatentViz, SwarmTopologyViz, etc. | `/genesis` route |
 | **Knowledge** | Vault-First (decisions/patterns/experiments), auto-compiled MEMORY.md | `vault_find_relevant_context` |
+| **Anthropic Intel** | 11-source monitor, version-watch hook, `/anthropic-scan`, risk-tiered auto-integration | `/anthropic-scan` |
 
 ### ⚡ Agent Protocol Stack (6-Protocol Architecture)
 | Protocol | Purpose | Cohezion Status |
@@ -139,9 +140,9 @@ See skill: `cohezion-vault-workflow` for vault API examples (log decisions, expe
 
 ### ⚡ Quick Reference
 - **Language**: Python 3.13+ | **Package Manager**: `uv` (never bare python)
-- **DB**: SurrealDB (ws://localhost:8000) | **API**: FastAPI :8080
-- **Tests**: 6,142 collected, full suite completes without crash (5967 passing, 147 pre-existing failures, 28 skipped). Genesis: 358 passing. Segfault fixed L290 (Session 94). | **Coverage**: html report in `htmlcov/`
-- **SurrealDB Persistence**: L183 wired — 586 prompt_artifacts + 578 universe_snapshots populated. Graph HIHO = 0.347 (431 neurons, 2413 synapses, vault-keeper seeded Session 94)
+- **DB**: SurrealDB (ws://localhost:8001) | **API**: FastAPI :8080
+- **Tests**: 6,356 collected, full suite completes without crash. Genesis: 348. Physics: 22 conservation + 15 invariant checker. LeWM JEPA: 9. GraphRAG: 12. DRR generator: 15. Constitutional enforcer: 13. Verifiable rewards: 4. | **Coverage**: html report in `htmlcov/`
+- **SurrealDB Persistence**: SurrealKV backend (migrated from RocksDB Session 96b) with `?versioned=true` for VERSION clause temporal queries. Port 8001, 127.0.0.1 only. Bi-temporal schemas (valid_from/valid_to) on neurons, agent_journey, universe_node. V-Model tables: vmodel_gate, traces, hash_chain, proof_obligation (Session 96b). Hash-chain audit trail in JourneyTracker (OLIF mitigation).
 - **CI**: `make lint-check && uv run pytest` before commit
 - **Entry point**: `cohezion = "cohezion.__main__:main"`
 - **Vault**: `~/vaults/cohezion-vault/` — Query via `vault_find_relevant_context(query)`
@@ -180,10 +181,10 @@ Updated Skill (loop again)
 | `src/cohezion/compound/` | Executor, SkillRefiner, RetrospectionEngine, JourneyTracker | `executor.py` (11-step) |
 | `src/cohezion/swarm/` | Team orchestration, cost routing, model quality | `team_executor.py`, `cost_aware_router.py` |
 | `src/cohezion/cache/` | L1/L2/L3 semantic cache (95%+ hit rate) | `semantic_cache.py` |
-| `src/cohezion/skills/` | 190 skill definitions (126 PRIME) (*.md + *.py) | `skill_registry.json` |
+| `src/cohezion/skills/` | 206 skill definitions (151 PRIME) (*.md + *.py) | `skill_registry.json` |
 | `src/cohezion/persistence/` | SurrealDB, checkpoints, session recovery | `surreal_client.py` |
 | `src/cohezion/environments/` | Gymnasium RL envs: ManifoldEnv (single), SwarmEnv (multi-agent) | `manifold_env.py`, `swarm_env.py` |
-| `src/cohezion/api/` | FastAPI backend (190+ endpoints) | `__init__.py`, `services/genesis.py` |
+| `src/cohezion/api/` | FastAPI backend (93 route handlers) | `__init__.py`, `services/genesis.py` |
 | `src/cohezion/flume/` | FLUME VAE (256D latent space) | `flume_vae.py` |
 | `src/cohezion/physics/` | **Genesis Engine**: SU(2) spinors, Riemannian, Lagrangian, fiber bundles, gauge theory, Fisher metric, cosmogony | `spinor.py`, `cosmogony.py` |
 | `src/cohezion/world_model/` | JEPA world model (86K params, causal masking, CPU-trainable) | `jepa_world_model.py` |
@@ -205,6 +206,7 @@ Updated Skill (loop again)
 - **Validation**: Pydantic at boundaries (input/output). Fail fast with assertions
 - **Every `src/` dir**: MUST have `__init__.py`. Enables vault skill discovery
 - **Observability**: Log state transitions (input → processing → output). Track coherence
+- **YAML Frontmatter Markdown**: Structured config/state files that humans may read MUST use YAML frontmatter `.md` (not JSON). Consistent with vault, skills, `.context/` conventions. JSON only for wire formats and machine-to-machine data
 
 ## Token Budgets (Conservative Estimates)
 
@@ -233,7 +235,7 @@ See skills: `cohezion-debugging-scenarios` for test isolation, singleton resets,
 
 - **CPU**: AMD Ryzen AI MAX+ 395 (16C/32T, AVX-512, AMX) | **GPU**: Radeon 8060S (iGPU, unified memory)
 - **RAM**: 128 GiB LPDDR5X | **Storage**: 2TB NVMe + 32GB swap (ZFS)
-- **Local Models**: Ollama (deepseek-r1:70b, qwen3-coder:30b, phi3:mini). **Global limit = 4 concurrent**
+- **Local Models**: Ollama (deepseek-r1:70b, qwen3-coder:30b, phi3:mini, internlm/intern-s1-mini). **Global limit = 4 concurrent**
 - **Cost**: Cloud Run = Free Tier only (no instances when idle). Prefer local Ollama over API calls
 - **Truth Anchor**: See `HARDWARE_PROFILE_PRIME.md` (never assume RTX/CUDA)
 
@@ -301,6 +303,8 @@ See skill: `cohezion-skill-routing` for the decision tree, keyword-to-skill rout
 | Find skill | `grep -r "skill_name" src/cohezion/skills/` | `skill_registry.json` |
 | Debug journeys | `JourneyTracker.get_journey(agent_id)` | `src/cohezion/compound/journey_tracker.py` |
 | Check alignment | `RequestAlignmentAnalyzer.analyze(...)` | `src/cohezion/compound/request_alignment_analyzer.py` |
+| Anthropic scan | `/anthropic-scan` | `~/.claude/commands/anthropic-scan.md` |
+| Config audit | Read `~/.claude/anthropic-intel/latest-digest.md` | `~/.claude/anthropic-intel/` |
 
 ## Kaggle Blackwell Handshake (Critical)
 When orchestrating jobs on Kaggle G4 (Blackwell) infrastructure, standard `accelerator` requests will fail. You MUST follow this handshake:

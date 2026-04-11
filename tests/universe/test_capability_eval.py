@@ -1,6 +1,5 @@
 """Tests for the Capability Evaluation Harness."""
 
-
 import pytest
 
 from cohezion.universe.capability_eval import (
@@ -85,8 +84,11 @@ class TestScoringCriterion:
 class TestEvalScorer:
     def test_exact_match_pass(self, scorer):
         task = EvalTask(
-            task_id="t1", domain=TaskDomain.REASONING, difficulty=Difficulty.EASY,
-            prompt="test", rubric=ScoringRubric(
+            task_id="t1",
+            domain=TaskDomain.REASONING,
+            difficulty=Difficulty.EASY,
+            prompt="test",
+            rubric=ScoringRubric(
                 criteria=[ScoringCriterion("exact", ScoringMethod.EXACT_MATCH, expected="hello")]
             ),
         )
@@ -96,8 +98,11 @@ class TestEvalScorer:
 
     def test_exact_match_fail(self, scorer):
         task = EvalTask(
-            task_id="t1", domain=TaskDomain.REASONING, difficulty=Difficulty.EASY,
-            prompt="test", rubric=ScoringRubric(
+            task_id="t1",
+            domain=TaskDomain.REASONING,
+            difficulty=Difficulty.EASY,
+            prompt="test",
+            rubric=ScoringRubric(
                 criteria=[ScoringCriterion("exact", ScoringMethod.EXACT_MATCH, expected="hello")]
             ),
         )
@@ -107,8 +112,11 @@ class TestEvalScorer:
 
     def test_contains_match(self, scorer):
         task = EvalTask(
-            task_id="t1", domain=TaskDomain.REASONING, difficulty=Difficulty.EASY,
-            prompt="test", rubric=ScoringRubric(
+            task_id="t1",
+            domain=TaskDomain.REASONING,
+            difficulty=Difficulty.EASY,
+            prompt="test",
+            rubric=ScoringRubric(
                 criteria=[ScoringCriterion("contains", ScoringMethod.CONTAINS, expected="world")]
             ),
         )
@@ -117,8 +125,11 @@ class TestEvalScorer:
 
     def test_regex_match(self, scorer):
         task = EvalTask(
-            task_id="t1", domain=TaskDomain.REASONING, difficulty=Difficulty.EASY,
-            prompt="test", rubric=ScoringRubric(
+            task_id="t1",
+            domain=TaskDomain.REASONING,
+            difficulty=Difficulty.EASY,
+            prompt="test",
+            rubric=ScoringRubric(
                 criteria=[ScoringCriterion("regex", ScoringMethod.REGEX, expected=r"\d{3}")]
             ),
         )
@@ -127,8 +138,11 @@ class TestEvalScorer:
 
     def test_regex_no_match(self, scorer):
         task = EvalTask(
-            task_id="t1", domain=TaskDomain.REASONING, difficulty=Difficulty.EASY,
-            prompt="test", rubric=ScoringRubric(
+            task_id="t1",
+            domain=TaskDomain.REASONING,
+            difficulty=Difficulty.EASY,
+            prompt="test",
+            rubric=ScoringRubric(
                 criteria=[ScoringCriterion("regex", ScoringMethod.REGEX, expected=r"\d{5}")]
             ),
         )
@@ -137,9 +151,14 @@ class TestEvalScorer:
 
     def test_numeric_closeness_exact(self, scorer):
         task = EvalTask(
-            task_id="t1", domain=TaskDomain.MATH, difficulty=Difficulty.EASY,
-            prompt="test", rubric=ScoringRubric(
-                criteria=[ScoringCriterion("numeric", ScoringMethod.NUMERIC_CLOSENESS, expected=42.0)]
+            task_id="t1",
+            domain=TaskDomain.MATH,
+            difficulty=Difficulty.EASY,
+            prompt="test",
+            rubric=ScoringRubric(
+                criteria=[
+                    ScoringCriterion("numeric", ScoringMethod.NUMERIC_CLOSENESS, expected=42.0)
+                ]
             ),
         )
         results = scorer.score_task(task, "The answer is 42.0")
@@ -147,9 +166,14 @@ class TestEvalScorer:
 
     def test_numeric_closeness_approximate(self, scorer):
         task = EvalTask(
-            task_id="t1", domain=TaskDomain.MATH, difficulty=Difficulty.EASY,
-            prompt="test", rubric=ScoringRubric(
-                criteria=[ScoringCriterion("numeric", ScoringMethod.NUMERIC_CLOSENESS, expected=100.0)]
+            task_id="t1",
+            domain=TaskDomain.MATH,
+            difficulty=Difficulty.EASY,
+            prompt="test",
+            rubric=ScoringRubric(
+                criteria=[
+                    ScoringCriterion("numeric", ScoringMethod.NUMERIC_CLOSENESS, expected=100.0)
+                ]
             ),
         )
         results = scorer.score_task(task, "Result: 95")
@@ -157,20 +181,22 @@ class TestEvalScorer:
 
     def test_code_execution_valid_python(self, scorer):
         task = EvalTask(
-            task_id="t1", domain=TaskDomain.CODE_GENERATION, difficulty=Difficulty.EASY,
-            prompt="test", rubric=ScoringRubric(
-                criteria=[ScoringCriterion("code", ScoringMethod.CODE_EXECUTION)]
-            ),
+            task_id="t1",
+            domain=TaskDomain.CODE_GENERATION,
+            difficulty=Difficulty.EASY,
+            prompt="test",
+            rubric=ScoringRubric(criteria=[ScoringCriterion("code", ScoringMethod.CODE_EXECUTION)]),
         )
         results = scorer.score_task(task, "def hello():\n    return 'world'")
         assert results[0].score == 0.8  # Valid Python
 
     def test_code_execution_invalid_python(self, scorer):
         task = EvalTask(
-            task_id="t1", domain=TaskDomain.CODE_GENERATION, difficulty=Difficulty.EASY,
-            prompt="test", rubric=ScoringRubric(
-                criteria=[ScoringCriterion("code", ScoringMethod.CODE_EXECUTION)]
-            ),
+            task_id="t1",
+            domain=TaskDomain.CODE_GENERATION,
+            difficulty=Difficulty.EASY,
+            prompt="test",
+            rubric=ScoringRubric(criteria=[ScoringCriterion("code", ScoringMethod.CODE_EXECUTION)]),
         )
         results = scorer.score_task(task, "This is not code at all")
         assert results[0].score == 0.0
@@ -192,9 +218,16 @@ class TestEvalScorer:
     def test_custom_scorer(self, scorer):
         custom_fn = lambda out, _: 1.0 if "special" in out else 0.0
         task = EvalTask(
-            task_id="t1", domain=TaskDomain.REASONING, difficulty=Difficulty.EASY,
-            prompt="test", rubric=ScoringRubric(
-                criteria=[ScoringCriterion("custom", ScoringMethod.CUSTOM, metadata={"scorer_fn": custom_fn})]
+            task_id="t1",
+            domain=TaskDomain.REASONING,
+            difficulty=Difficulty.EASY,
+            prompt="test",
+            rubric=ScoringRubric(
+                criteria=[
+                    ScoringCriterion(
+                        "custom", ScoringMethod.CUSTOM, metadata={"scorer_fn": custom_fn}
+                    )
+                ]
             ),
         )
         results = scorer.score_task(task, "this is special content")
@@ -202,8 +235,11 @@ class TestEvalScorer:
 
     def test_none_expected(self, scorer):
         task = EvalTask(
-            task_id="t1", domain=TaskDomain.REASONING, difficulty=Difficulty.EASY,
-            prompt="test", rubric=ScoringRubric(
+            task_id="t1",
+            domain=TaskDomain.REASONING,
+            difficulty=Difficulty.EASY,
+            prompt="test",
+            rubric=ScoringRubric(
                 criteria=[ScoringCriterion("exact", ScoringMethod.EXACT_MATCH, expected=None)]
             ),
         )
@@ -219,8 +255,11 @@ class TestEvalScorer:
 class TestEvalTask:
     def test_content_hash_deterministic(self):
         task = EvalTask(
-            task_id="t1", domain=TaskDomain.REASONING, difficulty=Difficulty.EASY,
-            prompt="test prompt", rubric=ScoringRubric(criteria=[]),
+            task_id="t1",
+            domain=TaskDomain.REASONING,
+            difficulty=Difficulty.EASY,
+            prompt="test prompt",
+            rubric=ScoringRubric(criteria=[]),
         )
         hash1 = task.content_hash
         hash2 = task.content_hash
@@ -229,12 +268,18 @@ class TestEvalTask:
 
     def test_content_hash_varies(self):
         task1 = EvalTask(
-            task_id="t1", domain=TaskDomain.REASONING, difficulty=Difficulty.EASY,
-            prompt="prompt A", rubric=ScoringRubric(criteria=[]),
+            task_id="t1",
+            domain=TaskDomain.REASONING,
+            difficulty=Difficulty.EASY,
+            prompt="prompt A",
+            rubric=ScoringRubric(criteria=[]),
         )
         task2 = EvalTask(
-            task_id="t2", domain=TaskDomain.REASONING, difficulty=Difficulty.EASY,
-            prompt="prompt B", rubric=ScoringRubric(criteria=[]),
+            task_id="t2",
+            domain=TaskDomain.REASONING,
+            difficulty=Difficulty.EASY,
+            prompt="prompt B",
+            rubric=ScoringRubric(criteria=[]),
         )
         assert task1.content_hash != task2.content_hash
 
@@ -282,11 +327,16 @@ class TestEvalRunner:
     @pytest.mark.asyncio
     async def test_run_saves_result(self, tmp_path):
         suite = TaskSuite(
-            suite_id="test_suite", name="Test", description="test",
+            suite_id="test_suite",
+            name="Test",
+            description="test",
             tasks=[
                 EvalTask(
-                    task_id="t1", domain=TaskDomain.REASONING, difficulty=Difficulty.EASY,
-                    prompt="What is 2+2?", rubric=ScoringRubric(
+                    task_id="t1",
+                    domain=TaskDomain.REASONING,
+                    difficulty=Difficulty.EASY,
+                    prompt="What is 2+2?",
+                    rubric=ScoringRubric(
                         criteria=[ScoringCriterion("ans", ScoringMethod.CONTAINS, expected="4")]
                     ),
                 )
@@ -307,11 +357,16 @@ class TestEvalRunner:
                 raise RuntimeError("Agent crashed")
 
         suite = TaskSuite(
-            suite_id="test", name="Test", description="test",
+            suite_id="test",
+            name="Test",
+            description="test",
             tasks=[
                 EvalTask(
-                    task_id="t1", domain=TaskDomain.REASONING, difficulty=Difficulty.EASY,
-                    prompt="test", rubric=ScoringRubric(criteria=[]),
+                    task_id="t1",
+                    domain=TaskDomain.REASONING,
+                    difficulty=Difficulty.EASY,
+                    prompt="test",
+                    rubric=ScoringRubric(criteria=[]),
                 )
             ],
         )
@@ -324,17 +379,25 @@ class TestEvalRunner:
     @pytest.mark.asyncio
     async def test_pass_rate(self, tmp_path):
         suite = TaskSuite(
-            suite_id="test", name="Test", description="test",
+            suite_id="test",
+            name="Test",
+            description="test",
             tasks=[
                 EvalTask(
-                    task_id="t1", domain=TaskDomain.REASONING, difficulty=Difficulty.EASY,
-                    prompt="test1", rubric=ScoringRubric(
+                    task_id="t1",
+                    domain=TaskDomain.REASONING,
+                    difficulty=Difficulty.EASY,
+                    prompt="test1",
+                    rubric=ScoringRubric(
                         criteria=[ScoringCriterion("c", ScoringMethod.CONTAINS, expected="yes")]
                     ),
                 ),
                 EvalTask(
-                    task_id="t2", domain=TaskDomain.REASONING, difficulty=Difficulty.EASY,
-                    prompt="test2", rubric=ScoringRubric(
+                    task_id="t2",
+                    domain=TaskDomain.REASONING,
+                    difficulty=Difficulty.EASY,
+                    prompt="test2",
+                    rubric=ScoringRubric(
                         criteria=[ScoringCriterion("c", ScoringMethod.CONTAINS, expected="yes")]
                     ),
                 ),
@@ -356,16 +419,30 @@ class TestEvalRunner:
 class TestRegressionDetector:
     def test_no_regression(self):
         baseline = SuiteResult(
-            suite_id="s", run_id="r1", model_id="m1",
-            task_results=[], started_at="", completed_at="",
-            total_tasks=10, passed_tasks=8, overall_score=0.8,
-            domain_scores={"code_generation": 0.9}, difficulty_scores={},
+            suite_id="s",
+            run_id="r1",
+            model_id="m1",
+            task_results=[],
+            started_at="",
+            completed_at="",
+            total_tasks=10,
+            passed_tasks=8,
+            overall_score=0.8,
+            domain_scores={"code_generation": 0.9},
+            difficulty_scores={},
         )
         current = SuiteResult(
-            suite_id="s", run_id="r2", model_id="m2",
-            task_results=[], started_at="", completed_at="",
-            total_tasks=10, passed_tasks=9, overall_score=0.85,
-            domain_scores={"code_generation": 0.92}, difficulty_scores={},
+            suite_id="s",
+            run_id="r2",
+            model_id="m2",
+            task_results=[],
+            started_at="",
+            completed_at="",
+            total_tasks=10,
+            passed_tasks=9,
+            overall_score=0.85,
+            domain_scores={"code_generation": 0.92},
+            difficulty_scores={},
         )
         detector = RegressionDetector()
         report = detector.compare(baseline, current)
@@ -375,16 +452,30 @@ class TestRegressionDetector:
 
     def test_detects_regression(self):
         baseline = SuiteResult(
-            suite_id="s", run_id="r1", model_id="m1",
-            task_results=[], started_at="", completed_at="",
-            total_tasks=10, passed_tasks=8, overall_score=0.8,
-            domain_scores={"code_generation": 0.9}, difficulty_scores={},
+            suite_id="s",
+            run_id="r1",
+            model_id="m1",
+            task_results=[],
+            started_at="",
+            completed_at="",
+            total_tasks=10,
+            passed_tasks=8,
+            overall_score=0.8,
+            domain_scores={"code_generation": 0.9},
+            difficulty_scores={},
         )
         current = SuiteResult(
-            suite_id="s", run_id="r2", model_id="m2",
-            task_results=[], started_at="", completed_at="",
-            total_tasks=10, passed_tasks=5, overall_score=0.5,
-            domain_scores={"code_generation": 0.4}, difficulty_scores={},
+            suite_id="s",
+            run_id="r2",
+            model_id="m2",
+            task_results=[],
+            started_at="",
+            completed_at="",
+            total_tasks=10,
+            passed_tasks=5,
+            overall_score=0.5,
+            domain_scores={"code_generation": 0.4},
+            difficulty_scores={},
         )
         detector = RegressionDetector()
         report = detector.compare(baseline, current)
@@ -394,16 +485,30 @@ class TestRegressionDetector:
 
     def test_small_delta_not_flagged(self):
         baseline = SuiteResult(
-            suite_id="s", run_id="r1", model_id="m1",
-            task_results=[], started_at="", completed_at="",
-            total_tasks=10, passed_tasks=8, overall_score=0.80,
-            domain_scores={"reasoning": 0.85}, difficulty_scores={},
+            suite_id="s",
+            run_id="r1",
+            model_id="m1",
+            task_results=[],
+            started_at="",
+            completed_at="",
+            total_tasks=10,
+            passed_tasks=8,
+            overall_score=0.80,
+            domain_scores={"reasoning": 0.85},
+            difficulty_scores={},
         )
         current = SuiteResult(
-            suite_id="s", run_id="r2", model_id="m2",
-            task_results=[], started_at="", completed_at="",
-            total_tasks=10, passed_tasks=8, overall_score=0.78,
-            domain_scores={"reasoning": 0.83}, difficulty_scores={},
+            suite_id="s",
+            run_id="r2",
+            model_id="m2",
+            task_results=[],
+            started_at="",
+            completed_at="",
+            total_tasks=10,
+            passed_tasks=8,
+            overall_score=0.78,
+            domain_scores={"reasoning": 0.83},
+            difficulty_scores={},
         )
         detector = RegressionDetector(significance_threshold=0.05)
         report = detector.compare(baseline, current)
@@ -413,16 +518,30 @@ class TestRegressionDetector:
 
     def test_report_summary_generated(self):
         baseline = SuiteResult(
-            suite_id="s", run_id="r1", model_id="baseline-v1",
-            task_results=[], started_at="", completed_at="",
-            total_tasks=10, passed_tasks=8, overall_score=0.8,
-            domain_scores={}, difficulty_scores={},
+            suite_id="s",
+            run_id="r1",
+            model_id="baseline-v1",
+            task_results=[],
+            started_at="",
+            completed_at="",
+            total_tasks=10,
+            passed_tasks=8,
+            overall_score=0.8,
+            domain_scores={},
+            difficulty_scores={},
         )
         current = SuiteResult(
-            suite_id="s", run_id="r2", model_id="current-v2",
-            task_results=[], started_at="", completed_at="",
-            total_tasks=10, passed_tasks=8, overall_score=0.85,
-            domain_scores={}, difficulty_scores={},
+            suite_id="s",
+            run_id="r2",
+            model_id="current-v2",
+            task_results=[],
+            started_at="",
+            completed_at="",
+            total_tasks=10,
+            passed_tasks=8,
+            overall_score=0.85,
+            domain_scores={},
+            difficulty_scores={},
         )
         detector = RegressionDetector()
         report = detector.compare(baseline, current)
@@ -431,10 +550,17 @@ class TestRegressionDetector:
 
     def test_suite_result_serialization(self):
         result = SuiteResult(
-            suite_id="s", run_id="r1", model_id="m1",
-            task_results=[], started_at="now", completed_at="later",
-            total_tasks=5, passed_tasks=3, overall_score=0.6,
-            domain_scores={"code_generation": 0.7}, difficulty_scores={"easy": 0.9},
+            suite_id="s",
+            run_id="r1",
+            model_id="m1",
+            task_results=[],
+            started_at="now",
+            completed_at="later",
+            total_tasks=5,
+            passed_tasks=3,
+            overall_score=0.6,
+            domain_scores={"code_generation": 0.7},
+            difficulty_scores={"easy": 0.9},
         )
         d = result.to_dict()
         assert d["suite_id"] == "s"

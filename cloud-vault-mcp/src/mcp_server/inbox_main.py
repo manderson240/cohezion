@@ -37,7 +37,9 @@ async def run_inbox_daemon(config: ServerConfig):
     try:
         import anthropic
     except ImportError:
-        logger.error("anthropic package required. Install with: pip install anthropic>=0.40.0")
+        logger.error(
+            "anthropic package required. Install with: pip install anthropic>=0.40.0"
+        )
         return
 
     # Try OAuth token first, fall back to API key
@@ -54,7 +56,9 @@ async def run_inbox_daemon(config: ServerConfig):
     processor = InboxProcessor(vault, compound, client, model=config.inbox_model)
 
     loop = asyncio.get_running_loop()
-    watcher = VaultFileWatcher(config.vault_path, loop, debounce_seconds=config.inbox_debounce_seconds)
+    watcher = VaultFileWatcher(
+        config.vault_path, loop, debounce_seconds=config.inbox_debounce_seconds
+    )
     queue = watcher.subscribe()
     watcher.start()
 

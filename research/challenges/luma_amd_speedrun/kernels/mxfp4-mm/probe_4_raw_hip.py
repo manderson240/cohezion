@@ -9,6 +9,7 @@ import torch
 import ctypes
 from task import input_t, output_t
 
+
 def custom_kernel(data: input_t) -> output_t:
     A, B, B_q, B_shuffle, B_scale_sh = data
     # Attempt to call a dummy HIP function or just initialize the HIP lib.

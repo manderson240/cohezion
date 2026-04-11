@@ -92,7 +92,7 @@ class TestGemma4ProviderGenerate:
         assert result.response == "Final answer after thinking."
         assert result.provider == "gemma4"
         assert result.model == "gemma4:31b"
-        
+
         # Verify thinking mode was sent in payload
         args, kwargs = mock_session.post.call_args
         payload = kwargs["json"]
@@ -131,7 +131,7 @@ class TestGemma4ProviderGenerate:
         )
 
         assert result.response == '{"result": "success"}'
-        
+
         # Verify format was sent in payload
         args, kwargs = mock_session.post.call_args
         payload = kwargs["json"]

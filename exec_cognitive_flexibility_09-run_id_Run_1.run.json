@@ -1,0 +1,39 @@
+{
+  "taskVersion": {
+    "versionNumber": 1,
+    "name": "exec_cognitive_flexibility_09",
+    "description": "Adapt strategy when rules change.",
+    "definition": "@kbench.task(name=\"exec_cognitive_flexibility_09\")\ndef exec_cognitive_flexibility_09(llm) -> bool:\n    \"\"\"Adapt strategy when rules change.\"\"\"\n    prompt = \"\"\"Game rules change:\n\nRounds 1-3: Score = sum of dice\nRounds 4-6: Score = product of dice\nRound 7+: Score = max die value\n\nYou rolled: 3, 4 (Round 5)\n\nScore?\n\nA) 7\nB) 12\nC) 4\nD) 3\"\"\"\n    response = llm.prompt(prompt)\n    return bool(kbench.assertions.assert_true(\"B\" in response, expectation=\"Correct answer is B\"))\n"
+  },
+  "modelVersion": {},
+  "state": "BENCHMARK_TASK_RUN_STATE_COMPLETED",
+  "startTime": "2026-04-11T05:00:29.043128Z",
+  "endTime": "2026-04-11T05:00:36.093762Z",
+  "conversations": [
+    {
+      "id": "exec_cognitive_flexibility_09-f0f67338",
+      "metrics": {},
+      "modelVersionSlug": "model_version_slug for conversation is DEPRECATED"
+    }
+  ],
+  "results": [
+    {
+      "type": "AGGREGATED",
+      "booleanResult": true
+    }
+  ],
+  "assertions": [
+    {
+      "expectation": "Correct answer is B",
+      "status": "BENCHMARK_TASK_RUN_ASSERTION_STATUS_PASSED",
+      "lineNumber": 1032,
+      "definition": "return bool(kbench.assertions.assert_true(\"B\" in response, expectation=\"Correct answer is B\"))",
+      "conversationRequestIds": [
+        {
+          "conversationId": "exec_cognitive_flexibility_09-f0f67338"
+        }
+      ]
+    }
+  ],
+  "pyRunId": "exec_cognitive_flexibility_09-Run #1"
+}

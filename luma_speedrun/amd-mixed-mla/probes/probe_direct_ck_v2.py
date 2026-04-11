@@ -41,6 +41,7 @@ print(f"PROBE v2: {len(_co_files)} .co files in {_CO_DIR}", file=sys.stderr)
 # the function name is "_ZN5aiter36mla_a8w8_qh16_qseqlen1_gqaratio16_psE"
 # where 36 = len("mla_a8w8_qh16_qseqlen1_gqaratio16_ps")
 
+
 def _mangle_kernel_name(basename: str) -> bytes:
     """Convert .co filename to C++ mangled kernel name."""
     name = basename.replace(".co", "")
@@ -54,8 +55,8 @@ _modules: dict[str, ctypes.c_void_p] = {}
 # Focus on the kernels that matter for decode (qseqlen1)
 _priority_patterns = [
     "mla_a8w8_qh16_qseqlen1",  # FP8 Q, FP8 KV, 16 heads, decode
-    "mla_a16w8_qh16",          # FP16 Q, FP8 KV
-    "mla_a16w16_qh16",         # FP16 Q, FP16 KV
+    "mla_a16w8_qh16",  # FP16 Q, FP8 KV
+    "mla_a16w16_qh16",  # FP16 Q, FP16 KV
 ]
 
 for co_path in _co_files:
@@ -137,7 +138,10 @@ for d in sorted(_hsa_dirs):
 print("\n" + "=" * 60, file=sys.stderr)
 print("PROBE v2 SUMMARY:", file=sys.stderr)
 print(f"  Kernel functions loaded: {len(_kernel_handles)}", file=sys.stderr)
-print(f"  hipModuleLaunchKernel: {'AVAILABLE' if hasattr(hip, 'hipModuleLaunchKernel') else 'MISSING'}", file=sys.stderr)
+print(
+    f"  hipModuleLaunchKernel: {'AVAILABLE' if hasattr(hip, 'hipModuleLaunchKernel') else 'MISSING'}",
+    file=sys.stderr,
+)
 print(f"  JIT .so direct load: {'OK' if _jit_lib else 'BLOCKED'}", file=sys.stderr)
 print("=" * 60, file=sys.stderr)
 
@@ -189,8 +193,14 @@ def _quantize_fp8(tensor: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
 
 
 def _get_cached_metadata(
-    bs, qseqlen, kvseqlen, q_dtype, kv_dtype,
-    qo_indptr, kv_indptr, num_kv_splits,
+    bs,
+    qseqlen,
+    kvseqlen,
+    q_dtype,
+    kv_dtype,
+    qo_indptr,
+    kv_indptr,
+    num_kv_splits,
 ):
     key = (bs, qseqlen, kvseqlen, q_dtype, kv_dtype, num_kv_splits)
     if key in _cache:
@@ -200,29 +210,57 @@ def _get_cached_metadata(
     kv_last_page_len = (kv_indptr[1:] - kv_indptr[:-1]).to(torch.int32)
 
     info = get_mla_metadata_info_v1(
-        bs, qseqlen, nq, q_dtype, kv_dtype,
-        is_sparse=False, fast_mode=False,
-        num_kv_splits=num_kv_splits, intra_batch_mode=True,
+        bs,
+        qseqlen,
+        nq,
+        q_dtype,
+        kv_dtype,
+        is_sparse=False,
+        fast_mode=False,
+        num_kv_splits=num_kv_splits,
+        intra_batch_mode=True,
     )
     work = [torch.empty(s, dtype=t, device="cuda") for s, t in info]
-    work_metadata, work_indptr, work_info_set, reduce_indptr, reduce_final_map, reduce_partial_map = work
+    (
+        work_metadata,
+        work_indptr,
+        work_info_set,
+        reduce_indptr,
+        reduce_final_map,
+        reduce_partial_map,
+    ) = work
 
     get_mla_metadata_v1(
-        qo_indptr, kv_indptr, kv_last_page_len,
-        nq // nkv, nkv, True,
-        work_metadata, work_info_set, work_indptr,
-        reduce_indptr, reduce_final_map, reduce_partial_map,
-        page_size=PAGE_SIZE, kv_granularity=max(PAGE_SIZE, 16),
-        max_seqlen_qo=qseqlen, uni_seqlen_qo=qseqlen,
-        fast_mode=False, max_split_per_batch=num_kv_splits,
-        intra_batch_mode=True, dtype_q=q_dtype, dtype_kv=kv_dtype,
+        qo_indptr,
+        kv_indptr,
+        kv_last_page_len,
+        nq // nkv,
+        nkv,
+        True,
+        work_metadata,
+        work_info_set,
+        work_indptr,
+        reduce_indptr,
+        reduce_final_map,
+        reduce_partial_map,
+        page_size=PAGE_SIZE,
+        kv_granularity=max(PAGE_SIZE, 16),
+        max_seqlen_qo=qseqlen,
+        uni_seqlen_qo=qseqlen,
+        fast_mode=False,
+        max_split_per_batch=num_kv_splits,
+        intra_batch_mode=True,
+        dtype_q=q_dtype,
+        dtype_kv=kv_dtype,
     )
 
     total_kv_len = int(kv_indptr[-1].item())
     kv_indices = torch.arange(total_kv_len, dtype=torch.int32, device="cuda")
 
     total_q = bs * qseqlen
-    logits = torch.empty((num_kv_splits, total_q, nq, V_HEAD_DIM), dtype=torch.float32, device="cuda")
+    logits = torch.empty(
+        (num_kv_splits, total_q, nq, V_HEAD_DIM), dtype=torch.float32, device="cuda"
+    )
     attn_lse = torch.empty((num_kv_splits, total_q, nq), dtype=torch.float32, device="cuda")
     output = torch.empty((total_q, nq, V_HEAD_DIM), dtype=torch.bfloat16, device="cuda")
 
@@ -269,9 +307,14 @@ def custom_kernel(data: input_t) -> output_t:
     kv_4d = kv_buffer_fp8.view(kv_buffer_fp8.shape[0], PAGE_SIZE, NUM_KV_HEADS, QK_HEAD_DIM)
 
     meta = _get_cached_metadata(
-        bs, qseqlen, kvseqlen,
-        q_fp8.dtype, kv_buffer_fp8.dtype,
-        qo_indptr, kv_indptr, num_kv_splits,
+        bs,
+        qseqlen,
+        kvseqlen,
+        q_fp8.dtype,
+        kv_buffer_fp8.dtype,
+        qo_indptr,
+        kv_indptr,
+        num_kv_splits,
     )
 
     output = meta["output"]
@@ -280,19 +323,35 @@ def custom_kernel(data: input_t) -> output_t:
 
     mla_decode_stage1_asm_fwd(
         q_fp8.view(-1, NUM_HEADS, QK_HEAD_DIM),
-        kv_4d, qo_indptr, kv_indptr,
-        meta["kv_indices"], meta["kv_last_page_len"],
+        kv_4d,
+        qo_indptr,
+        kv_indptr,
+        meta["kv_indices"],
+        meta["kv_last_page_len"],
         None,
-        meta["work_meta_data"], meta["work_indptr"], meta["work_info_set"],
-        qseqlen, PAGE_SIZE, NUM_KV_HEADS, SM_SCALE,
-        logits, attn_lse, output,
-        q_scale, kv_scale,
+        meta["work_meta_data"],
+        meta["work_indptr"],
+        meta["work_info_set"],
+        qseqlen,
+        PAGE_SIZE,
+        NUM_KV_HEADS,
+        SM_SCALE,
+        logits,
+        attn_lse,
+        output,
+        q_scale,
+        kv_scale,
     )
 
     mla_reduce_v1(
-        logits, attn_lse,
-        meta["reduce_indptr"], meta["reduce_final_map"], meta["reduce_partial_map"],
-        qseqlen, output, None,
+        logits,
+        attn_lse,
+        meta["reduce_indptr"],
+        meta["reduce_final_map"],
+        meta["reduce_partial_map"],
+        qseqlen,
+        output,
+        None,
     )
 
     return output

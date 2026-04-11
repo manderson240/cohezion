@@ -8,49 +8,55 @@ from cohezion.integrations.agentverse.llm_executor import LLMExecutor
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+
 async def run_specialist_delegation():
     print("=" * 60)
     print("DELEGATING SPECIALIST TEAMS (OLLAMA CLOUD MODELS)")
     print("=" * 60)
-    
+
     # Extend with Ollama cloud models via LLMExecutor
     cloud_executor = LLMExecutor(model="qwen3.5:cloud")
     team_executor = TeamCompoundExecutor(compound_executor=cloud_executor, auto_feedback=True)
     orchestrator = TeamOrchestrator()
-    
+
     tasks = [
         TaskSpec(
             id="arc-1",
             subject="ARC Prize - Phase 4 12D Manifold Transfer",
             description="Use DeepSeek-R1 logic to calculate 12D latent displacements for ARC-AGI-2 tasks.",
-            tags=["flume", "reasoning", "physics"]
+            tags=["flume", "reasoning", "physics"],
         ),
         TaskSpec(
             id="agi-1",
             subject="AGI Benchmark - Phase 5",
             description="Run full cognitive kbench benchmark for executive function.",
-            tags=["evaluation", "reasoning"]
+            tags=["evaluation", "reasoning"],
         ),
         TaskSpec(
             id="bird-1",
             subject="BirdCLEF 2026 - Feature Anomaly Detection",
             description="Project Mel-Spectrogram features into 12D manifold for anomaly detection.",
-            tags=["vision", "physics", "signal_processing"]
-        )
+            tags=["vision", "physics", "signal_processing"],
+        ),
     ]
-    
+
     for task in tasks:
         logger.info(f"Delegating Task: {task.subject}")
         try:
             # We assume the first tag corresponds to a high-level skill category
-            result = await cloud_executor.execute_task(task=task.description, skill=f"{task.tags[0]}_PRIME")
-            if hasattr(result, 'coherence'):
-                logger.info(f"Result Success: {result.success} | Coherence: {result.coherence} | Duration: {result.duration_ms}ms")
+            result = await cloud_executor.execute_task(
+                task=task.description, skill=f"{task.tags[0]}_PRIME"
+            )
+            if hasattr(result, "coherence"):
+                logger.info(
+                    f"Result Success: {result.success} | Coherence: {result.coherence} | Duration: {result.duration_ms}ms"
+                )
             else:
                 logger.info(f"Result: {result}")
         except Exception as e:
             logger.error(f"Failed to execute task {task.id}: {e}")
         logger.info("-" * 40)
+
 
 if __name__ == "__main__":
     asyncio.run(run_specialist_delegation())

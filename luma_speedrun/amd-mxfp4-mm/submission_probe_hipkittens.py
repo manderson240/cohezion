@@ -4,6 +4,7 @@
 """Probe: Check if HipKittens headers are available on the runner."""
 
 import os, subprocess
+
 os.environ["PYTORCH_ROCM_ARCH"] = "gfx950"
 os.environ["CXX"] = "clang++"
 
@@ -21,7 +22,8 @@ try:
     _probe = load_inline(
         name="hk_probe",
         cpp_sources=["void hk_test();"],
-        cuda_sources=[r"""
+        cuda_sources=[
+            r"""
 #include <hip/hip_runtime.h>
 // Try including HipKittens
 #if __has_include(<hipkittens/hipkittens.cuh>)
@@ -36,7 +38,8 @@ try:
 void hk_test() {
     printf("[PROBE] HipKittens available: %d\n", HK_FOUND);
 }
-"""],
+"""
+        ],
         functions=["hk_test"],
         verbose=True,
         extra_cuda_cflags=["--offload-arch=gfx950", "-std=c++20", "-O3"],
@@ -60,13 +63,16 @@ for path in ["/opt/rocm/include/hipkittens", "/home/runner/hipkittens", "/usr/in
 # Check ROCm version and include paths
 for path in ["/opt/rocm/include", "/opt/rocm/lib"]:
     if os.path.exists(path):
-        dirs = [d for d in os.listdir(path) if 'kit' in d.lower() or 'hip' in d.lower()][:10]
+        dirs = [d for d in os.listdir(path) if "kit" in d.lower() or "hip" in d.lower()][:10]
         if dirs:
             print(f"[PROBE] {path} hip-related: {dirs}")
+
 
 # Return correct GEMM result as fallback
 def custom_kernel(data: input_t) -> output_t:
     A, B, B_q, B_shuffle, B_scale_sh = data
     Aq, Asc = dynamic_mxfp4_quant(A.contiguous())
     Ash = e8m0_shuffle(Asc).view(dtypes.fp8_e8m0)
-    return aiter.gemm_a4w4(Aq.view(dtypes.fp4x2), B_shuffle, Ash, B_scale_sh, dtype=dtypes.bf16, bpreshuffle=True)
+    return aiter.gemm_a4w4(
+        Aq.view(dtypes.fp4x2), B_shuffle, Ash, B_scale_sh, dtype=dtypes.bf16, bpreshuffle=True
+    )

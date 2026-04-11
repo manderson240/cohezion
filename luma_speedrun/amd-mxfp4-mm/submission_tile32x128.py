@@ -381,9 +381,7 @@ def custom_kernel(data: input_t) -> output_t:
     if cache_key not in _bs_cache:
         _bs_cache.clear()
         _bs_cache[cache_key] = (
-            e8m0_unshuffle(B_scale_sh.view(torch.uint8), N, ks)
-            .contiguous()
-            .view(torch.uint8)
+            e8m0_unshuffle(B_scale_sh.view(torch.uint8), N, ks).contiguous().view(torch.uint8)
         )
     Bs_bytes = _bs_cache[cache_key]
 

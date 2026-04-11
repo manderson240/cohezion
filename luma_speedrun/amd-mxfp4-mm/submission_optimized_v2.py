@@ -10,6 +10,7 @@ Key optimizations:
 """
 
 import os
+
 os.environ["AITER_JIT_DIR"] = "/tmp/aiter_jit_cache"
 os.environ["AITER_BYPASS_TUNE_CONFIG"] = "1"
 os.environ["PYTORCH_ROCM_ARCH"] = "gfx950"
@@ -17,6 +18,7 @@ os.environ["PYTORCH_ROCM_ARCH"] = "gfx950"
 _AITER_JIT_DIR = "/home/runner/aiter/aiter/jit"
 if _AITER_JIT_DIR not in os.environ.get("PYTHONPATH", ""):
     import sys
+
     if _AITER_JIT_DIR not in sys.path:
         sys.path.insert(0, _AITER_JIT_DIR)
 

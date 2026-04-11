@@ -10,10 +10,10 @@ Runs continuous research cycles to discover:
 Usage:
     # Single research cycle
     uv run python scripts/research/run_compound_research.py
-    
+
     # Continuous mode (background research)
     uv run python scripts/research/run_compound_research.py --continuous --interval 3600
-    
+
     # Focus on specific gaps
     uv run python scripts/research/run_compound_research.py --topics "SWE-bench" "GRPO training" "multi-agent"
 """
@@ -34,10 +34,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))
 
 from cohezion.swarm.research_orchestrator import ResearchOrchestrator, run_research
 
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s [%(levelname)s] %(message)s"
-)
+logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 logger = logging.getLogger(__name__)
 
 
@@ -94,12 +91,12 @@ async def research_cycle(
     save_to_skills: bool = True,
 ) -> dict[str, Any]:
     """Execute single research cycle.
-    
+
     Args:
         focus_areas: Keys from COHEZION_RESEARCH_TOPICS (e.g., "mythos_coding")
         token_budget: Token budget for this cycle
         save_to_skills: Generate PRIME skill drafts
-        
+
     Returns:
         Research results with actionable insights
     """
@@ -114,15 +111,15 @@ async def research_cycle(
     else:
         # Default: cover all mythos gaps + compound engineering
         topics = (
-            COHEZION_RESEARCH_TOPICS["mythos_coding"][:3] +
-            COHEZION_RESEARCH_TOPICS["mythos_cyber"][:2] +
-            COHEZION_RESEARCH_TOPICS["compound_engineering"][:3]
+            COHEZION_RESEARCH_TOPICS["mythos_coding"][:3]
+            + COHEZION_RESEARCH_TOPICS["mythos_cyber"][:2]
+            + COHEZION_RESEARCH_TOPICS["compound_engineering"][:3]
         )
-    
+
     logger.info(f"Starting Cohezion research cycle")
     logger.info(f"Focus: {focus_areas or 'default (mythos + compound)'}")
     logger.info(f"Topics: {topics}")
-    
+
     # Run research
     orchestrator = ResearchOrchestrator(token_budget)
     results = await orchestrator.research_compound(
@@ -130,15 +127,15 @@ async def research_cycle(
         output_format="prime_skills" if save_to_skills else "synthesis_only",
         max_findings_per_source=12,  # Token-efficient
     )
-    
+
     # Log key insights
     logger.info(f"Cycle complete: {results['metadata']['total_findings']} findings")
     logger.info(f"Token efficiency: {results['metadata']['token_budget_used']:.1%}")
     logger.info(f"Top syntheses: {len(results['syntheses'])}")
-    
-    for synth in results['syntheses'][:3]:
+
+    for synth in results["syntheses"][:3]:
         logger.info(f"  - {synth['id']}: {synth['type']} (confidence: {synth['confidence']:.0%})")
-        
+
     return results
 
 
@@ -147,36 +144,36 @@ async def continuous_mode(
     token_budget_per_cycle: int = 50000,
 ) -> None:
     """Run continuous research cycles.
-    
+
     Rotates through focus areas to maintain broad coverage
     while staying within token budget.
     """
     cycle_count = 0
     focus_rotation = list(COHEZION_RESEARCH_TOPICS.keys())
-    
+
     while True:
         cycle_count += 1
         focus = [focus_rotation[cycle_count % len(focus_rotation)]]
-        
-        logger.info(f"\n{'='*60}")
+
+        logger.info(f"\n{'=' * 60}")
         logger.info(f"Research Cycle #{cycle_count} - Focus: {focus[0]}")
-        logger.info(f"{'='*60}")
-        
+        logger.info(f"{'=' * 60}")
+
         try:
             results = await research_cycle(
                 focus_areas=focus,
                 token_budget=token_budget_per_cycle,
             )
-            
+
             # Brief analysis
-            if results['syntheses']:
+            if results["syntheses"]:
                 logger.info(f"\n🔍 Top actionable insight:")
-                top = results['syntheses'][0]
+                top = results["syntheses"][0]
                 logger.info(f"   {top['id']}: {top['description'][:150]}...")
-                
+
         except Exception as e:
             logger.exception(f"Cycle {cycle_count} failed: {e}")
-            
+
         logger.info(f"\nSleeping {interval_seconds}s until next cycle...")
         await asyncio.sleep(interval_seconds)
 
@@ -185,21 +182,21 @@ def analyze_research_output(results_file: Path) -> None:
     """Analyze past research results for patterns."""
     with open(results_file) as f:
         data = json.load(f)
-        
+
     print(f"\n📊 Research Analysis: {results_file.name}")
     print(f"Date: {data['metadata']['timestamp']}")
     print(f"Topics: {', '.join(data['metadata']['topics'])}")
     print(f"Total findings: {data['metadata']['total_findings']}")
-    
+
     # Source breakdown
     print(f"\nSources:")
-    for source, findings in data['by_source'].items():
+    for source, findings in data["by_source"].items():
         print(f"  {source}: {len(findings)} items")
-        
+
     # Top synthesis
-    if data['syntheses']:
+    if data["syntheses"]:
         print(f"\n💡 Top insights:")
-        for s in data['syntheses'][:5]:
+        for s in data["syntheses"][:5]:
             print(f"  [{s['type'].upper()}] {s['id']}")
             print(f"      Confidence: {s['confidence']:.0%}")
             print(f"      Effort: {s['effort']}")
@@ -242,13 +239,13 @@ async def main():
         action="store_true",
         help="Skip PRIME skill generation",
     )
-    
+
     args = parser.parse_args()
-    
+
     if args.analyze:
         analyze_research_output(args.analyze)
         return 0
-    
+
     if args.continuous:
         await continuous_mode(
             interval_seconds=args.interval,
@@ -261,24 +258,24 @@ async def main():
             token_budget=args.token_budget,
             save_to_skills=not args.no_skills,
         )
-        
+
         # Show actionable summary
-        print(f"\n{'='*60}")
+        print(f"\n{'=' * 60}")
         print("RESEARCH CYCLE COMPLETE")
-        print(f"{'='*60}")
+        print(f"{'=' * 60}")
         print(f"Token efficiency: {results['metadata']['token_budget_used']:.1%}")
         print(f"Findings: {results['metadata']['total_findings']}")
         print(f"Compound insights: {len(results['syntheses'])}")
-        
-        if results['syntheses']:
+
+        if results["syntheses"]:
             print(f"\n🎯 Top actions for Cohezion:")
-            for i, s in enumerate(results['syntheses'][:3], 1):
+            for i, s in enumerate(results["syntheses"][:3], 1):
                 print(f"\n{i}. [{s['type'].upper()}] {s['id']}")
                 print(f"   Confidence: {s['confidence']:.0%} | Effort: {s['effort']}")
                 print(f"   {s['description'][:120]}...")
-                
+
         print(f"\n💾 Results saved to: data/research_orchestrator/")
-        
+
     return 0
 
 

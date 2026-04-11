@@ -121,7 +121,10 @@ class TestGlobalMetricsWithTeamAggregator:
 
             # Each team executes 2 waves
             for wave_idx in range(2):
-                task_results = [{"tokens": 400, "model": f"model_{team_idx}", "status": "completed"} for _ in range(4)]
+                task_results = [
+                    {"tokens": 400, "model": f"model_{team_idx}", "status": "completed"}
+                    for _ in range(4)
+                ]
                 team_agg.record_wave(wave_idx, task_results, 80.0 + wave_idx * 20)
 
             final = team_agg.finalize(160.0, 0.10 + team_idx * 0.02)

@@ -10,9 +10,7 @@ def do_full_verify():
 
     cfg = simple_builder.KernelConfig()
     okb = simple_builder.SimpleKernelBuilder(cfg)
-    instrs = okb.build_kernel(
-        forest.height, len(forest.values), len(inp.indices), 16, problem.HASH_STAGES
-    )
+    instrs = okb.build_kernel(forest.height, len(forest.values), len(inp.indices), 16, problem.HASH_STAGES)
 
     print(f"DEBUG: Rounds={mem[0]}, N_Nodes={mem[1]}, Batch={mem[2]}, Height={mem[3]}")
     print(f"DEBUG: ForestPtr={mem[4]}, IdxPtr={mem[5]}, ValPtr={mem[6]}")

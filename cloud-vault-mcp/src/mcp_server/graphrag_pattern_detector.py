@@ -58,7 +58,7 @@ class PatternDetector:
     def __init__(
         self,
         vault_path: Path,
-        surrealdb_url: str = "http://localhost:8000",
+        surrealdb_url: str = "http://localhost:8001",
         namespace: str = "cohezion",
         database: str = "vault",
     ):

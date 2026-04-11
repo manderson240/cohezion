@@ -74,7 +74,7 @@ def validate(model, loader, criterion, device):
 
 def main():
     """Main training function."""
-    device = CONFIG['device']
+    device = CONFIG["device"]
     print(f"Training on device: {device}")
 
     # Load metadata
@@ -90,12 +90,13 @@ def main():
 
     # Prepare file paths and labels
     # This is a placeholder - adjust based on actual data format
-    audio_paths = [f"/kaggle/input/birdclef-2026/train_audio/{row['filename']}"
-                   for _, row in df.iterrows()]
+    audio_paths = [
+        f"/kaggle/input/birdclef-2026/train_audio/{row['filename']}" for _, row in df.iterrows()
+    ]
 
     # Create dummy labels (placeholder)
     # In real scenario, load from taxonomy and create multi-hot encoding
-    num_classes = CONFIG['num_classes']
+    num_classes = CONFIG["num_classes"]
     labels = np.zeros((len(df), num_classes))
 
     # Cross-validation
@@ -108,9 +109,9 @@ def main():
     best_auc = 0
 
     for fold, (train_idx, val_idx) in enumerate(skf.split(audio_paths, stratify)):
-        print(f"\n{'='*50}")
+        print(f"\n{'=' * 50}")
         print(f"Fold {fold + 1}/{n_splits}")
-        print(f"{'='*50}")
+        print(f"{'=' * 50}")
 
         # Create datasets
         train_paths = [audio_paths[i] for i in train_idx]
@@ -118,20 +119,22 @@ def main():
         train_labels = labels[train_idx]
         val_labels = labels[val_idx]
 
-        train_dataset = BirdCLEFDataset(
-            train_paths, train_labels, config=CONFIG, augment=True
-        )
-        val_dataset = BirdCLEFDataset(
-            val_paths, val_labels, config=CONFIG, augment=False
-        )
+        train_dataset = BirdCLEFDataset(train_paths, train_labels, config=CONFIG, augment=True)
+        val_dataset = BirdCLEFDataset(val_paths, val_labels, config=CONFIG, augment=False)
 
         train_loader = DataLoader(
-            train_dataset, batch_size=CONFIG['batch_size'],
-            shuffle=True, num_workers=2, pin_memory=True
+            train_dataset,
+            batch_size=CONFIG["batch_size"],
+            shuffle=True,
+            num_workers=2,
+            pin_memory=True,
         )
         val_loader = DataLoader(
-            val_dataset, batch_size=CONFIG['batch_size'],
-            shuffle=False, num_workers=2, pin_memory=True
+            val_dataset,
+            batch_size=CONFIG["batch_size"],
+            shuffle=False,
+            num_workers=2,
+            pin_memory=True,
         )
 
         # Create model
@@ -142,7 +145,7 @@ def main():
         criterion = nn.BCEWithLogitsLoss()
         optimizer = torch.optim.AdamW(model.parameters(), lr=1e-3, weight_decay=1e-4)
         scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
-            optimizer, mode='max', factor=0.5, patience=3, verbose=True
+            optimizer, mode="max", factor=0.5, patience=3, verbose=True
         )
 
         # Training loop
@@ -155,7 +158,9 @@ def main():
             train_loss = train_epoch(model, train_loader, criterion, optimizer, device)
             val_loss, val_auc = validate(model, val_loader, criterion, device)
 
-            print(f"Train Loss: {train_loss:.4f} | Val Loss: {val_loss:.4f} | Val AUC: {val_auc:.4f}")
+            print(
+                f"Train Loss: {train_loss:.4f} | Val Loss: {val_loss:.4f} | Val AUC: {val_auc:.4f}"
+            )
 
             # Update learning rate
             scheduler.step(val_auc)
@@ -172,9 +177,9 @@ def main():
                 torch.save(model.state_dict(), "birdclef_model_best.pth")
                 print(f"New best model overall (AUC: {val_auc:.4f})")
 
-    print(f"\n{'='*50}")
+    print(f"\n{'=' * 50}")
     print(f"Training complete! Best AUC: {best_auc:.4f}")
-    print(f"{'='*50}")
+    print(f"{'=' * 50}")
 
 
 if __name__ == "__main__":

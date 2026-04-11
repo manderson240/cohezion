@@ -77,14 +77,14 @@ SURREALDB_URL = "http://localhost:8001"
 
 # Directories to import (order matters: import targets before sources for edges)
 DIRECTORIES = [
-    ("cortex", False),        # knowledge neurons (physics, ML, cosmologies, MOCs)
-    ("cerebellum", False),    # operational neurons (coordination patterns)
-    ("concepts", False),      # non-recursive
-    ("papers", False),        # non-recursive
-    ("decisions", False),     # non-recursive
+    ("cortex", False),  # knowledge neurons (physics, ML, cosmologies, MOCs)
+    ("cerebellum", False),  # operational neurons (coordination patterns)
+    ("concepts", False),  # non-recursive
+    ("papers", False),  # non-recursive
+    ("decisions", False),  # non-recursive
     ("patterns/lessons", False),  # lessons subdirectory
-    ("patterns", False),      # patterns root (non-recursive to avoid re-importing lessons)
-    ("experiments", False),   # non-recursive
+    ("patterns", False),  # patterns root (non-recursive to avoid re-importing lessons)
+    ("experiments", False),  # non-recursive
 ]
 
 

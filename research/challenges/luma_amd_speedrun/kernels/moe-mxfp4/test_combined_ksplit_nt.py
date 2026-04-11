@@ -26,89 +26,79 @@ class TestKSPLITTableSource:
     def _parse_submission(self) -> dict:
         """Parse submission.py and extract KSPLIT_TABLE and functions."""
         source = SUBMISSION_PATH.read_text()
-        
+
         # Extract KSPLIT_TABLE
-        ksplit_table_match = re.search(
-            r'KSPLIT_TABLE\s*=\s*\{([^}]+)\}',
-            source,
-            re.MULTILINE
-        )
+        ksplit_table_match = re.search(r"KSPLIT_TABLE\s*=\s*\{([^}]+)\}", source, re.MULTILINE)
         ksplit_table = {}
         if ksplit_table_match:
-            for line in ksplit_table_match.group(1).strip().split('\n'):
-                line = line.strip().rstrip(',')
-                if not line or line.startswith('#'):
+            for line in ksplit_table_match.group(1).strip().split("\n"):
+                line = line.strip().rstrip(",")
+                if not line or line.startswith("#"):
                     continue
-                key_val = line.split(':')
+                key_val = line.split(":")
                 if len(key_val) == 2:
                     key = key_val[0].strip().strip('"').strip("'")
                     val = int(key_val[1].strip())
                     ksplit_table[key] = val
-        
+
         # Extract _choose_ksplit function
         choose_ksplit_source = re.search(
-            r'def _choose_ksplit\(config: dict\) -> int:(.*?)(?=\ndef |\nclass |\Z)',
+            r"def _choose_ksplit\(config: dict\) -> int:(.*?)(?=\ndef |\nclass |\Z)",
             source,
-            re.DOTALL
+            re.DOTALL,
         )
-        
+
         return {
-            'ksplit_table': ksplit_table,
-            'choose_ksplit_source': choose_ksplit_source.group(1) if choose_ksplit_source else None,
-            'source': source
+            "ksplit_table": ksplit_table,
+            "choose_ksplit_source": choose_ksplit_source.group(1) if choose_ksplit_source else None,
+            "source": source,
         }
 
     def test_ksplit_table_exists(self):
         """KSPLIT_TABLE must be defined in submission.py."""
         parsed = self._parse_submission()
-        assert len(parsed['ksplit_table']) > 0, "KSPLIT_TABLE not found or empty"
+        assert len(parsed["ksplit_table"]) > 0, "KSPLIT_TABLE not found or empty"
 
     def test_ksplit_table_has_required_keys(self):
         """KSPLIT table must have all expected shape keys."""
         parsed = self._parse_submission()
         expected_keys = [
             "257_256_16",
-            "257_256_128", 
+            "257_256_128",
             "257_256_512",
             "33_512_16",
             "33_512_128",
             "33_512_512",
             "33_2048_512",
         ]
-        
+
         for key in expected_keys:
-            assert key in parsed['ksplit_table'], f"Missing key: {key}"
+            assert key in parsed["ksplit_table"], f"Missing key: {key}"
 
     def test_ksplit_table_values(self):
         """KSPLIT values should be 0, 2, or 4."""
         parsed = self._parse_submission()
         valid_values = {0, 1, 2, 4}
-        for key, value in parsed['ksplit_table'].items():
+        for key, value in parsed["ksplit_table"].items():
             assert value in valid_values, f"Invalid KSPLIT value {value} for key {key}"
 
     def test_ksplit_table_sparse_shapes(self):
         """257-expert (sparse) shapes should use KSPLIT=4 for low bs."""
         parsed = self._parse_submission()
-        
+
         # Low token count = sparse = higher split
-        assert parsed['ksplit_table'].get("257_256_16") == 4, \
-            "257_256_16 should have KSPLIT=4"
-        assert parsed['ksplit_table'].get("257_256_128") == 4, \
-            "257_256_128 should have KSPLIT=4"
-        # High token count = denser = lower split  
-        assert parsed['ksplit_table'].get("257_256_512") == 0, \
-            "257_256_512 should have KSPLIT=0"
+        assert parsed["ksplit_table"].get("257_256_16") == 4, "257_256_16 should have KSPLIT=4"
+        assert parsed["ksplit_table"].get("257_256_128") == 4, "257_256_128 should have KSPLIT=4"
+        # High token count = denser = lower split
+        assert parsed["ksplit_table"].get("257_256_512") == 0, "257_256_512 should have KSPLIT=0"
 
     def test_ksplit_table_dense_shapes(self):
         """33-expert (denser) shapes should use lower KSPLIT."""
         parsed = self._parse_submission()
-        
-        assert parsed['ksplit_table'].get("33_512_16") == 2, \
-            "33_512_16 should have KSPLIT=2"
-        assert parsed['ksplit_table'].get("33_512_128") == 2, \
-            "33_512_128 should have KSPLIT=2"
-        assert parsed['ksplit_table'].get("33_512_512") == 0, \
-            "33_512_512 should have KSPLIT=0"
+
+        assert parsed["ksplit_table"].get("33_512_16") == 2, "33_512_16 should have KSPLIT=2"
+        assert parsed["ksplit_table"].get("33_512_128") == 2, "33_512_128 should have KSPLIT=2"
+        assert parsed["ksplit_table"].get("33_512_512") == 0, "33_512_512 should have KSPLIT=0"
 
 
 class TestChooseKSplitLogic:
@@ -120,12 +110,12 @@ class TestChooseKSplitLogic:
         n_shared = config.get("n_shared_experts", 0)
         bs = config.get("bs", 0)
         E_total = n_routed + n_shared
-        
+
         if E_total == 0 or bs == 0:
             return 0
-        
+
         estimated_m = bs / E_total
-        
+
         if estimated_m < 10:
             return 4
         elif estimated_m < 30:
@@ -136,7 +126,7 @@ class TestChooseKSplitLogic:
     def test_exact_match_257_256_16(self):
         """Table lookup: 257_256_16 -> KSPLIT=4."""
         source = SUBMISSION_PATH.read_text()
-        
+
         # The function first checks exact match, so we verify table has it
         assert '"257_256_16": 4' in source or "'257_256_16': 4" in source
 
@@ -193,9 +183,10 @@ class TestEnvironmentVars:
     def test_use_nt_is_set_in_source(self):
         """AITER_USE_NT must be set to 1 in submission.py."""
         source = SUBMISSION_PATH.read_text()
-        assert 'os.environ["AITER_USE_NT"] = "1"' in source or \
-               "os.environ['AITER_USE_NT'] = '1'" in source, \
-               "USE_NT=1 not found in submission.py"
+        assert (
+            'os.environ["AITER_USE_NT"] = "1"' in source
+            or "os.environ['AITER_USE_NT'] = '1'" in source
+        ), "USE_NT=1 not found in submission.py"
 
 
 class TestSubmissionStructure:
@@ -208,8 +199,7 @@ class TestSubmissionStructure:
     def test_custom_kernel_exists(self):
         """custom_kernel function must be defined."""
         source = SUBMISSION_PATH.read_text()
-        assert "def custom_kernel(data: input_t)" in source, \
-            "custom_kernel function not found"
+        assert "def custom_kernel(data: input_t)" in source, "custom_kernel function not found"
 
     def test_fused_moe_call_exists(self):
         """fused_moe call must be present."""
@@ -219,11 +209,12 @@ class TestSubmissionStructure:
     def test_ksplit_environment_set(self):
         """AITER_KSPLIT must be set conditionally."""
         source = SUBMISSION_PATH.read_text()
-        assert 'os.environ["AITER_KSPLIT"]' in source or \
-               "os.environ['AITER_KSPLIT']" in source, \
-               "AITER_KSPLIT not being set in code"
+        assert 'os.environ["AITER_KSPLIT"]' in source or "os.environ['AITER_KSPLIT']" in source, (
+            "AITER_KSPLIT not being set in code"
+        )
 
 
 if __name__ == "__main__":
     import pytest
+
     pytest.main([__file__, "-v", "--tb=short"])

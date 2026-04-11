@@ -75,7 +75,9 @@ class WorkQueue:
         # Instead, we track processed commits and everything not processed is pending
         conn = sqlite3.connect(self.db_path)
         try:
-            cursor = conn.execute("SELECT COUNT(*) FROM processed_commits WHERE status = 'completed'")
+            cursor = conn.execute(
+                "SELECT COUNT(*) FROM processed_commits WHERE status = 'completed'"
+            )
             count = cursor.fetchone()[0]
             return count
         finally:
@@ -175,7 +177,9 @@ class DeadLetterQueue:
         """Remove a commit from DLQ for retry."""
         conn = sqlite3.connect(self.db_path)
         try:
-            conn.execute("DELETE FROM dead_letter_queue WHERE commit_hash = ?", (commit_hash,))
+            conn.execute(
+                "DELETE FROM dead_letter_queue WHERE commit_hash = ?", (commit_hash,)
+            )
             conn.commit()
         finally:
             conn.close()
@@ -238,7 +242,9 @@ class EntireSyncDaemon:
             self.last_sync_time = datetime.fromisoformat(since)
             logger.info(f"Starting with backfill from: {since}")
 
-        logger.info(f"Starting Entire.io sync daemon (poll interval: {self.poll_interval}s)")
+        logger.info(
+            f"Starting Entire.io sync daemon (poll interval: {self.poll_interval}s)"
+        )
         while True:
             try:
                 await self.poll_and_sync()
@@ -469,10 +475,14 @@ class EntireSyncDaemon:
                 metrics=commit_data.metrics or {},
             )
 
-            logger.info(f"Synced commit {commit_data.commit_hash[:8]} to SurrealDB (session={session_id})")
+            logger.info(
+                f"Synced commit {commit_data.commit_hash[:8]} to SurrealDB (session={session_id})"
+            )
 
         except Exception as e:
-            logger.warning(f"SurrealDB sync failed for {commit_data.commit_hash[:8]}, continuing without it: {e}")
+            logger.warning(
+                f"SurrealDB sync failed for {commit_data.commit_hash[:8]}, continuing without it: {e}"
+            )
 
     async def _create_vault_note(self, commit_data: CommitData) -> None:
         """Create a vault note for a commit.

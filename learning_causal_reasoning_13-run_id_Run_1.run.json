@@ -1,0 +1,39 @@
+{
+  "taskVersion": {
+    "versionNumber": 1,
+    "name": "learning_causal_reasoning_13",
+    "description": "Learn causal structure from observations.",
+    "definition": "@kbench.task(name=\"learning_causal_reasoning_13\")\ndef learning_causal_reasoning_13(llm) -> bool:\n    \"\"\"Learn causal structure from observations.\"\"\"\n    prompt = \"\"\"Observations of events A, B, C:\n\n1. A happens \u2192 B usually happens\n2. B happens \u2192 C always happens\n3. C happens \u2192 A never happens next\n4. A and C sometimes happen together\n\nWhich causal model fits?\n\nA) A causes B, B causes C\nB) Common cause X affects A and B, B causes C\nC) A causes B, C causes A\nD) Independent causes\"\"\"\n    response = llm.prompt(prompt)\n    return bool(kbench.assertions.assert_true(\"B\" in response, expectation=\"Correct answer is B\"))\n"
+  },
+  "modelVersion": {},
+  "state": "BENCHMARK_TASK_RUN_STATE_COMPLETED",
+  "startTime": "2026-04-11T04:46:07.354027Z",
+  "endTime": "2026-04-11T04:47:03.457430Z",
+  "conversations": [
+    {
+      "id": "learning_causal_reasoning_13-71575c7c",
+      "metrics": {},
+      "modelVersionSlug": "model_version_slug for conversation is DEPRECATED"
+    }
+  ],
+  "results": [
+    {
+      "type": "AGGREGATED",
+      "booleanResult": true
+    }
+  ],
+  "assertions": [
+    {
+      "expectation": "Correct answer is B",
+      "status": "BENCHMARK_TASK_RUN_ASSERTION_STATUS_PASSED",
+      "lineNumber": 323,
+      "definition": "return bool(kbench.assertions.assert_true(\"B\" in response, expectation=\"Correct answer is B\"))",
+      "conversationRequestIds": [
+        {
+          "conversationId": "learning_causal_reasoning_13-71575c7c"
+        }
+      ]
+    }
+  ],
+  "pyRunId": "learning_causal_reasoning_13-Run #1"
+}

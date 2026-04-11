@@ -1,0 +1,6 @@
+{
+  "versionNumber": 1,
+  "name": "attention_temporal_attention_10",
+  "description": "Track sequence amid temporal distractors.",
+  "definition": "@kbench.task(name=\"attention_temporal_attention_10\")\ndef attention_temporal_attention_10(llm) -> bool:\n    \"\"\"Track sequence amid temporal distractors.\"\"\"\n    prompt = \"\"\"Events in order:\n1. Wake up (7 AM)\n2. Eat breakfast (8 AM)\n3. [Distractor: Lunch is at 12 PM]\n4. Go to work (9 AM)\n5. [Distractor: Dinner at 7 PM]\n6. Return home (6 PM)\n\nWhat happened at 9 AM?\n\nA) Lunch\nB) Went to work\nC) Dinner\nD) Returned home\"\"\"\n    response = llm.prompt(prompt)\n    return bool(kbench.assertions.assert_true(\"B\" in response, expectation=\"Correct answer is B\"))\n"
+}

@@ -13,6 +13,7 @@ Strategy:
 """
 
 import os
+
 os.environ["PYTORCH_ROCM_ARCH"] = "gfx950"
 os.environ["CXX"] = "clang++"
 
@@ -174,8 +175,11 @@ void launch_splitk(torch::Tensor A, torch::Tensor B,
 
 try:
     _mod = load_inline(
-        name="fp4mfma_splitk", cpp_sources=[CPP_SOURCE], cuda_sources=[HIP_SOURCE],
-        functions=["launch_splitk"], verbose=False,
+        name="fp4mfma_splitk",
+        cpp_sources=[CPP_SOURCE],
+        cuda_sources=[HIP_SOURCE],
+        functions=["launch_splitk"],
+        verbose=False,
         extra_cuda_cflags=["--offload-arch=gfx950", "-std=c++20", "-O3"],
     )
     _OK = True
@@ -212,9 +216,9 @@ def custom_kernel(data: input_t) -> output_t:
         bs_key = (id(B_scale_sh), N, ks)
         if bs_key not in _bs_cache:
             _bs_cache.clear()
-            _bs_cache[bs_key] = e8m0_unshuffle(
-                B_scale_sh.view(torch.uint8), N, ks
-            ).contiguous().view(torch.uint8)
+            _bs_cache[bs_key] = (
+                e8m0_unshuffle(B_scale_sh.view(torch.uint8), N, ks).contiguous().view(torch.uint8)
+            )
         Bs_bytes = _bs_cache[bs_key]
 
         # Allocate partial buffer (float32) and output (bf16)
@@ -230,13 +234,16 @@ def custom_kernel(data: input_t) -> output_t:
         # Choose K splits: more splits = more parallelism for small M
         k_splits = 4 if K >= 4096 else 2
 
-        _mod.launch_splitk(A_bytes, B_bytes, As_bytes, Bs_bytes,
-                          C_partial, C, k_splits)
+        _mod.launch_splitk(A_bytes, B_bytes, As_bytes, Bs_bytes, C_partial, C, k_splits)
         return C
     else:
         # aiter for M>16 (already fast)
         Ash = e8m0_shuffle(Asc).view(dtypes.fp8_e8m0)
         return aiter.gemm_a4w4(
-            Aq.view(dtypes.fp4x2), B_shuffle, Ash, B_scale_sh,
-            dtype=dtypes.bf16, bpreshuffle=True,
+            Aq.view(dtypes.fp4x2),
+            B_shuffle,
+            Ash,
+            B_scale_sh,
+            dtype=dtypes.bf16,
+            bpreshuffle=True,
         )

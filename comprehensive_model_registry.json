@@ -1,0 +1,268 @@
+{
+  "metadata": {
+    "timestamp": "2026-04-11T01:12:41Z",
+    "total_models": 14,
+    "by_backend": {
+      "NPU": 12,
+      "GPU_VULKAN": 2
+    },
+    "by_source": {
+      "KNOWN_NPU": 12,
+      "VALIDATED": 2
+    },
+    "system_memory_percent": 45.7
+  },
+  "models": [
+    {
+      "name": "qwen3:4b",
+      "source": "KNOWN_NPU",
+      "backend": "NPU",
+      "backend_type": "FLM",
+      "size": "4B",
+      "category": "code",
+      "capabilities": [
+        "summarization",
+        "text_generation",
+        "code_completion",
+        "code_generation",
+        "syntax_check"
+      ],
+      "status": "validated",
+      "discovered_at": "2026-04-11T01:12:41Z",
+      "specialist": "CodeSpecialist",
+      "tps": 75.0,
+      "latency_ms": 13.0,
+      "context_window": 131072,
+      "memory_mb": 4096,
+      "power_watts": 15,
+      "validated": true
+    },
+    {
+      "name": "qwen3:7b",
+      "source": "KNOWN_NPU",
+      "backend": "NPU",
+      "backend_type": "FLM",
+      "size": "7B",
+      "category": "code",
+      "capabilities": [
+        "summarization",
+        "text_generation",
+        "code_completion",
+        "code_generation",
+        "syntax_check"
+      ],
+      "status": "likely_available",
+      "discovered_at": "2026-04-11T01:12:41Z"
+    },
+    {
+      "name": "qwen3:1.5b",
+      "source": "KNOWN_NPU",
+      "backend": "NPU",
+      "backend_type": "FLM",
+      "size": "1.5B",
+      "category": "code",
+      "capabilities": [
+        "summarization",
+        "text_generation",
+        "code_completion",
+        "code_generation",
+        "syntax_check"
+      ],
+      "status": "likely_available",
+      "discovered_at": "2026-04-11T01:12:41Z"
+    },
+    {
+      "name": "gemma3:4b",
+      "source": "KNOWN_NPU",
+      "backend": "NPU",
+      "backend_type": "FLM",
+      "size": "4B",
+      "category": "general",
+      "capabilities": [
+        "summarization",
+        "text_generation"
+      ],
+      "status": "likely_available",
+      "discovered_at": "2026-04-11T01:12:41Z"
+    },
+    {
+      "name": "gemma3:12b",
+      "source": "KNOWN_NPU",
+      "backend": "NPU",
+      "backend_type": "FLM",
+      "size": "12B",
+      "category": "general",
+      "capabilities": [
+        "summarization",
+        "text_generation"
+      ],
+      "status": "likely_available",
+      "discovered_at": "2026-04-11T01:12:41Z"
+    },
+    {
+      "name": "qwen3.5:0.8b",
+      "source": "KNOWN_NPU",
+      "backend": "NPU",
+      "backend_type": "FLM",
+      "size": "0.8B",
+      "category": "code",
+      "capabilities": [
+        "summarization",
+        "text_generation",
+        "code_completion",
+        "code_generation",
+        "syntax_check"
+      ],
+      "status": "likely_available",
+      "discovered_at": "2026-04-11T01:12:41Z"
+    },
+    {
+      "name": "qwen3.5:2b",
+      "source": "KNOWN_NPU",
+      "backend": "NPU",
+      "backend_type": "FLM",
+      "size": "2B",
+      "category": "code",
+      "capabilities": [
+        "summarization",
+        "text_generation",
+        "code_completion",
+        "code_generation",
+        "syntax_check"
+      ],
+      "status": "likely_available",
+      "discovered_at": "2026-04-11T01:12:41Z"
+    },
+    {
+      "name": "qwen3.5:4b",
+      "source": "KNOWN_NPU",
+      "backend": "NPU",
+      "backend_type": "FLM",
+      "size": "4B",
+      "category": "code",
+      "capabilities": [
+        "summarization",
+        "text_generation",
+        "code_completion",
+        "code_generation",
+        "syntax_check"
+      ],
+      "status": "likely_available",
+      "discovered_at": "2026-04-11T01:12:41Z"
+    },
+    {
+      "name": "qwen3.5:9b",
+      "source": "KNOWN_NPU",
+      "backend": "NPU",
+      "backend_type": "FLM",
+      "size": "9B",
+      "category": "code",
+      "capabilities": [
+        "summarization",
+        "text_generation",
+        "code_completion",
+        "code_generation",
+        "syntax_check"
+      ],
+      "status": "likely_available",
+      "discovered_at": "2026-04-11T01:12:41Z"
+    },
+    {
+      "name": "qwen3vl-it:4b",
+      "source": "KNOWN_NPU",
+      "backend": "NPU",
+      "backend_type": "FLM",
+      "size": "4B",
+      "category": "vision",
+      "capabilities": [
+        "summarization",
+        "text_generation",
+        "code_completion",
+        "image_description",
+        "code_generation",
+        "syntax_check",
+        "vision_understanding"
+      ],
+      "status": "likely_available",
+      "discovered_at": "2026-04-11T01:12:41Z"
+    },
+    {
+      "name": "translategemma:4b",
+      "source": "KNOWN_NPU",
+      "backend": "NPU",
+      "backend_type": "FLM",
+      "size": "4B",
+      "category": "translation",
+      "capabilities": [
+        "summarization",
+        "text_generation",
+        "translation"
+      ],
+      "status": "likely_available",
+      "discovered_at": "2026-04-11T01:12:41Z"
+    },
+    {
+      "name": "whisper-v3:turbo",
+      "source": "KNOWN_NPU",
+      "backend": "NPU",
+      "backend_type": "FLM",
+      "size": "turbo",
+      "category": "audio",
+      "capabilities": [
+        "audio_transcription",
+        "audio_speech",
+        "summarization",
+        "text_generation"
+      ],
+      "status": "likely_available",
+      "discovered_at": "2026-04-11T01:12:41Z"
+    },
+    {
+      "name": "Gemma-4-E2B-it-GGUF",
+      "specialist": "ReasoningSpecialist",
+      "backend": "GPU_VULKAN",
+      "backend_type": "llama.cpp",
+      "tps": 97.26,
+      "latency_ms": 10.3,
+      "context_window": 262144,
+      "memory_mb": 4096,
+      "power_watts": 25,
+      "validated": true,
+      "source": "VALIDATED",
+      "status": "validated",
+      "discovered_at": "2026-04-11T01:12:41Z"
+    },
+    {
+      "name": "Jan-v1-4B-GGUF",
+      "specialist": "NovelSpecialist",
+      "backend": "GPU_VULKAN",
+      "backend_type": "llama.cpp",
+      "tps": 76.18,
+      "latency_ms": 13.1,
+      "context_window": 4096,
+      "memory_mb": 4096,
+      "power_watts": 25,
+      "validated": true,
+      "source": "VALIDATED",
+      "status": "validated",
+      "discovered_at": "2026-04-11T01:12:41Z"
+    }
+  ],
+  "learnings": [
+    {
+      "category": "parsing",
+      "insight": "FLM list format: {model}:{size} \u23ec - parsed 0 models",
+      "timestamp": "2026-04-11T01:12:41Z"
+    },
+    {
+      "category": "capability_inference",
+      "insight": "Inferred capabilities from naming patterns: qwen=code, gemma=general, vl=vision, translate=translation, whisper=audio",
+      "timestamp": "2026-04-11T01:12:41Z"
+    },
+    {
+      "category": "validation",
+      "insight": "Validated performance metrics provide ground truth for TPS, latency, memory usage",
+      "timestamp": "2026-04-11T01:12:41Z"
+    }
+  ]
+}

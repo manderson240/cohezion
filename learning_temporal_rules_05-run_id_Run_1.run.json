@@ -1,0 +1,39 @@
+{
+  "taskVersion": {
+    "versionNumber": 1,
+    "name": "learning_temporal_rules_05",
+    "description": "Learn temporal event sequencing rules.",
+    "definition": "@kbench.task(name=\"learning_temporal_rules_05\")\ndef learning_temporal_rules_05(llm) -> bool:\n    \"\"\"Learn temporal event sequencing rules.\"\"\"\n    prompt = \"\"\"In a temporal logic system:\n\n- Event A precedes Event B: written as A \u227a B\n- Event A and B overlap: written as A \u25cb B\n- Event A contains Event B: written as A \u2290 B\n\nRules:\n1. If A \u227a B and B \u227a C, then A \u227a C\n2. If A \u25cb B and B \u2290 C, then A \u25cb C\n3. If A \u2290 B and B \u227a C, then A \u227a C or A \u25cb C\n\nGiven: X \u227a Y, Y \u25cb Z, Z \u2290 W\n\nWhich must be true?\n\nA) X \u25cb W\nB) X \u2290 W\nC) X \u227a W or X \u25cb W\nD) X \u227a W\"\"\"\n    response = llm.prompt(prompt)\n    return bool(kbench.assertions.assert_true(\"C\" in response, expectation=\"Correct answer is C\"))\n"
+  },
+  "modelVersion": {},
+  "state": "BENCHMARK_TASK_RUN_STATE_COMPLETED",
+  "startTime": "2026-04-11T04:38:47.983951Z",
+  "endTime": "2026-04-11T04:39:40.976357Z",
+  "conversations": [
+    {
+      "id": "learning_temporal_rules_05-f948de5c",
+      "metrics": {},
+      "modelVersionSlug": "model_version_slug for conversation is DEPRECATED"
+    }
+  ],
+  "results": [
+    {
+      "type": "AGGREGATED",
+      "booleanResult": true
+    }
+  ],
+  "assertions": [
+    {
+      "expectation": "Correct answer is C",
+      "status": "BENCHMARK_TASK_RUN_ASSERTION_STATUS_PASSED",
+      "lineNumber": 136,
+      "definition": "return bool(kbench.assertions.assert_true(\"C\" in response, expectation=\"Correct answer is C\"))",
+      "conversationRequestIds": [
+        {
+          "conversationId": "learning_temporal_rules_05-f948de5c"
+        }
+      ]
+    }
+  ],
+  "pyRunId": "learning_temporal_rules_05-Run #1"
+}

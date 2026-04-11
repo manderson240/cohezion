@@ -2,7 +2,7 @@
 
 ## SurrealDB (8000)
 ```bash
-curl -X GET "http://localhost:8000/rd"
+curl -X GET "http://localhost:8001/rd"
 ```
 
 ## Cloud Vault (8360)

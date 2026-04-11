@@ -42,14 +42,14 @@ Observe result → Update JEPA → Repeat
 ### Phase 2: JEPA Per-Game Training (Weeks 2-3)
 - [x] Build CNN encoder for 64x64 grid → FLUME latent (`arc_jepa.py`)
 - [x] Train JEPA online per-game (test-time training) (`train_jepa_online.py`)
-- [ ] Implement surprise-driven action selection
+- [x] Implement surprise-driven action selection (integrated with novelty in `arc_topology_navigation.py`)
 - [ ] Measure: score improvement over random baseline
 
 ### Phase 3: Topological Routing (Weeks 4-5)
 - [x] Wire TopologicalRouter for game trajectory analysis (`arc_topology_navigation.py`)
 - [x] Detect behavioral regimes (EXPLOIT/EXPLORE/PIVOT) in latent space
-- [ ] Detect exploitation loops → auto-switch to exploration
-- [ ] Detect stagnation → pivot to completely new strategy
+- [x] Detect exploitation loops → auto-switch to exploration (implemented in `arc_topology_navigation.py`)
+- [x] Detect stagnation → pivot to completely new strategy (PIVOT regime logic)
 - [ ] Target: Milestone #1 deadline June 30
 
 ### Phase 4: ARC-AGI-2 (Static) & Advanced Techniques (Weeks 6-12)

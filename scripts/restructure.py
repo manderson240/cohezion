@@ -215,7 +215,9 @@ class DirectoryRestructure:
         ]
 
         # Log plan
-        logger.info(f"   Directories to create: {len([s for s in plan['steps'] if s['action'] == 'create_directory'])}")
+        logger.info(
+            f"   Directories to create: {len([s for s in plan['steps'] if s['action'] == 'create_directory'])}"
+        )
         logger.info(f"   Files to move: {len(plan['files_to_move'])}")
         logger.info(f"   Import patterns to update: {len(plan['imports_to_update'])}")
 

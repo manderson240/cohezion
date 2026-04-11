@@ -3,6 +3,7 @@
 Tests the complete pipeline: CompoundExecutor → RetrospectionEngine →
 SkillRefiner → SkillConsensusVoter in sequence.
 """
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -101,7 +102,11 @@ class TestCompoundFullCycle:
         # Mock inflection detector so anomaly_score is deterministic (not vault-dependent).
         mock_detector = MagicMock()
         mock_detector.detect_anomaly.return_value = AnomalyDetection(
-            severity=Severity.INFO, score=0.05, issues=[], recommendations=[], should_reexecute=False
+            severity=Severity.INFO,
+            score=0.05,
+            issues=[],
+            recommendations=[],
+            should_reexecute=False,
         )
         executor = CompoundExecutor(
             mock_mcp_client,
@@ -263,9 +268,7 @@ class TestCompoundFullCycle:
         assert consensus.total_votes == 2
         assert consensus.consensus_skill is not None  # fallback still selects best
 
-    def test_full_cycle_metrics_propagate_through_all_stages(
-        self, mock_mcp_client: MagicMock
-    ):
+    def test_full_cycle_metrics_propagate_through_all_stages(self, mock_mcp_client: MagicMock):
         """Verify coherence and token counts flow correctly executor → retro → vote."""
         # Mock inflection detector so coherence is fully deterministic.
         # anomaly_score=0.1 → coherence = (0.7 + 0.9) / 2 = 0.8

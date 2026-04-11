@@ -162,7 +162,9 @@ def test_flume_latent_space_handles_no_vae_with_sanitized_error(client):
     - Error message explains VAE not available
     - Frontend can handle failure gracefully
     """
-    with patch("cohezion.api._get_vae", side_effect=FileNotFoundError("/secret/path/checkpoint.pt")):
+    with patch(
+        "cohezion.api._get_vae", side_effect=FileNotFoundError("/secret/path/checkpoint.pt")
+    ):
         response = client.post(
             "/flume/latent-space",
             json={"n_samples": 10, "seed": 42},
@@ -175,11 +177,14 @@ def test_flume_latent_space_handles_no_vae_with_sanitized_error(client):
     assert "/secret/path" not in detail
 
 
-@pytest.mark.parametrize("invalid_params,expected_error", [
-    ({"n_samples": 0}, "n_samples must be positive"),
-    ({"n_samples": -10}, "n_samples must be positive"),
-    ({"n_samples": 10000}, "n_samples must be ≤1000"),
-])
+@pytest.mark.parametrize(
+    "invalid_params,expected_error",
+    [
+        ({"n_samples": 0}, "n_samples must be positive"),
+        ({"n_samples": -10}, "n_samples must be positive"),
+        ({"n_samples": 10000}, "n_samples must be ≤1000"),
+    ],
+)
 def test_flume_latent_space_validates_parameters(client, mock_vae, invalid_params, expected_error):
     """
     Bonus Test: Parameter validation (edge cases).

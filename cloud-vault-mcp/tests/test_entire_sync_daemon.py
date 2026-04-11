@@ -453,13 +453,13 @@ class TestSurrealDBIntegration:
         """Test get_status reports SurrealDB as enabled when configured."""
         daemon = EntireSyncDaemon(
             vault_path=str(temp_vault),
-            surrealdb_url="http://localhost:8000",
+            surrealdb_url="http://localhost:8001",
         )
         # Force mock to simulate successful init
         daemon._agent_context_ops = MagicMock()
         status = asyncio.run(daemon.get_status())
         assert status["surrealdb_enabled"] is True
-        assert status["surrealdb_url"] == "http://localhost:8000"
+        assert status["surrealdb_url"] == "http://localhost:8001"
 
 
 class TestBackfill:

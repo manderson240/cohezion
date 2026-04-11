@@ -82,18 +82,14 @@ def analyze(filename):
             capacity = 1
 
         avg_util = total_slots[eng] / (max_cycle + 1)
-        print(
-            f"  {eng}: {total_slots[eng]} ops. Avg {avg_util:.2f}/cycle. (Cap {capacity})"
-        )
+        print(f"  {eng}: {total_slots[eng]} ops. Avg {avg_util:.2f}/cycle. (Cap {capacity})")
 
         # Saturation check
         saturated = 0
         for ts in range(max_cycle + 1):
             if cycle_stats[ts][eng] == capacity:
                 saturated += 1
-        print(
-            f"    Saturated cycles: {saturated} ({saturated / (max_cycle + 1) * 100:.1f}%)"
-        )
+        print(f"    Saturated cycles: {saturated} ({saturated / (max_cycle + 1) * 100:.1f}%)")
 
 
 if __name__ == "__main__":

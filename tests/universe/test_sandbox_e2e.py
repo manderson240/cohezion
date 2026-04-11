@@ -88,7 +88,9 @@ async def test_output_files_collected(backend: SubprocessBackend, profile: Sandb
 
 
 @pytest.mark.asyncio
-async def test_coherence_walk_output_files(backend: SubprocessBackend, profile: SandboxProfile) -> None:
+async def test_coherence_walk_output_files(
+    backend: SubprocessBackend, profile: SandboxProfile
+) -> None:
     """Verify coherence_walk produces both result.json and trajectory.json."""
     result = await backend.execute(COHERENCE_WALK, profile)
 

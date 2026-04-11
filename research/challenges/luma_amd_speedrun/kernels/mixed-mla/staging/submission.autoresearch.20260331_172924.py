@@ -25,18 +25,18 @@ def custom_kernel(data: input_t) -> output_t:
     """
     MLA decode kernel using aiter's mla_decode_fwd with persistent streaming
     and MXFP4 KV cache support. Optimized for MI355X (gfx950).
-    
+
     Uses fp8 quantization for Q (on-the-fly) and MXFP4 for KV to maximize
     throughput while maintaining accuracy (rtol=1e-2).
     """
     q = data["q"]  # (total_q, num_heads, 576) in bf16
     kv_data = data["kv_data"]
-    
+
     # Determine KV cache format
     kv_format = kv_data.get("format", "mxfp4") if isinstance(kv_data, dict) else "mxfp4"
     if isinstance(kv_data, dict):
         kv_data = kv_data["kv_buffer"] if "kv_buffer" in kv_data else kv_data.get("mxfp4")
-    
+
     # Convert Q to FP8 on-the-fly (following sglang style)
     if q.dtype != FP8_DTYPE:
         # Dynamic per-tensor FP8 quantization for Q
@@ -47,7 +47,7 @@ def custom_kernel(data: input_t) -> output_t:
     else:
         q_fp8 = q
         scale = torch.tensor([1.0], dtype=torch.float32, device=q.device)
-    
+
     # Prepare KV cache for MXFP4 format
     if kv_format == "mxfp4":
         # MXFP4 format: (fp4_tensor, scale_e8m0)
@@ -63,18 +63,14 @@ def custom_kernel(data: input_t) -> output_t:
         # Fallback to BF16 if not MXFP4
         kv_fp4 = kv_data.to(torch.bfloat16)
         kv_scale = None
-    
+
     # Get metadata for MLA decode (persistent mode)
     metadata = torch.empty(1024, dtype=torch.int32, device=q.device)
-    
+
     # Prepare output tensor
     batch_size, num_heads_q, _ = q.shape
-    out = torch.empty(
-        (batch_size, num_heads_q, V_HEAD_DIM), 
-        dtype=torch.bfloat16, 
-        device=q.device
-    )
-    
+    out = torch.empty((batch_size, num_heads_q, V_HEAD_DIM), dtype=torch.bfloat16, device=q.device)
+
     # Call aiter MLA decode kernel with persistent streaming
     mla_decode_fwd(
         q=q_fp8,
@@ -85,7 +81,7 @@ def custom_kernel(data: input_t) -> output_t:
         metadata=metadata,
         num_kv_splits=NUM_KV_SPLITS,
         page_size=PAGE_SIZE,
-        window_size=-1  # No sliding window
+        window_size=-1,  # No sliding window
     )
-    
+
     return out

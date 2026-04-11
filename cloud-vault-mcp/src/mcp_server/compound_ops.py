@@ -144,7 +144,9 @@ class CompoundOps:
             self.vault.write(path, content)
             return f"Created pattern: {path}"
 
-    def find_relevant_context(self, query: str, project: str | None = None) -> list[dict]:
+    def find_relevant_context(
+        self, query: str, project: str | None = None
+    ) -> list[dict]:
         """Search for prior decisions, patterns, and experiments.
 
         Searches across decisions/, patterns/, experiments/, and
@@ -227,7 +229,9 @@ class CompoundOps:
             from .vault_graph.client import get_graph_client
 
             client = get_graph_client()
-            placeholders = ", ".join(f"'{p.replace(chr(39), chr(92)+chr(39))}'" for p in paths)
+            placeholders = ", ".join(
+                f"'{p.replace(chr(39), chr(92) + chr(39))}'" for p in paths
+            )
             rows = await client.query(
                 f"SELECT path, last_accessed, access_count FROM neuron "
                 f"WHERE path IN [{placeholders}];"
@@ -294,24 +298,24 @@ class CompoundOps:
 
     def _build_decision_content(self, v: dict) -> str:
         return f"""---
-date: {v['date']}
-project: {v['project']}
+date: {v["date"]}
+project: {v["project"]}
 status: accepted
-tags: [decision, {v['project']}]
+tags: [decision, {v["project"]}]
 ---
-# {v['title']}
+# {v["title"]}
 
 ## Context
-{v['context']}
+{v["context"]}
 
 ## Decision
-{v['decision']}
+{v["decision"]}
 
 ## Rationale
-{v['rationale']}
+{v["rationale"]}
 
 ## Alternatives Considered
-{v['alternatives']}
+{v["alternatives"]}
 
 ## Consequences
 - ...
@@ -322,25 +326,25 @@ tags: [decision, {v['project']}]
 
     def _build_experiment_content(self, v: dict) -> str:
         return f"""---
-date: {v['date']}
-project: {v['project']}
+date: {v["date"]}
+project: {v["project"]}
 status: in-progress
 outcome: inconclusive
-tags: [experiment, {v['project']}]
+tags: [experiment, {v["project"]}]
 ---
-# {v['title']}
+# {v["title"]}
 
 ## Hypothesis
-{v['hypothesis']}
+{v["hypothesis"]}
 
 ## Method
-{v['method']}
+{v["method"]}
 
 ## Results
-{v['result']}
+{v["result"]}
 
 ## Learnings
-{v['learnings']}
+{v["learnings"]}
 
 ## Follow-up
 - ...
@@ -348,21 +352,21 @@ tags: [experiment, {v['project']}]
 
     def _build_pattern_content(self, v: dict) -> str:
         return f"""---
-date: {v['date']}
-source_project: {v['project']}
-tags: [pattern, {v['domain']}]
+date: {v["date"]}
+source_project: {v["project"]}
+tags: [pattern, {v["domain"]}]
 ---
-# {v['pattern_name']}
+# {v["pattern_name"]}
 
 ## Problem
 What recurring problem does this solve?
 
 ## Solution
-{v['description']}
+{v["description"]}
 
 ## Example
 ```
-{v['code_example']}
+{v["code_example"]}
 ```
 
 ## When to Use

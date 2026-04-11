@@ -23,7 +23,7 @@ _SCHEMA_PATH = (
 
 # SurrealDB connection defaults
 _DEFAULT_URLS = [
-    os.environ.get("SURREAL_URL", "http://localhost:8000"),
+    os.environ.get("SURREAL_URL", "http://localhost:8001"),
     "http://localhost:8001",
 ]
 _NS = "cohezion"

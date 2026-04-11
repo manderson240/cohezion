@@ -31,6 +31,7 @@ try:
     _USE_HIP_QUANT = True
 except AttributeError:
     from aiter.ops.triton.quant import dynamic_mxfp4_quant
+
     _quant = dynamic_mxfp4_quant
     _USE_HIP_QUANT = False
 
@@ -40,5 +41,4 @@ def custom_kernel(data: input_t) -> output_t:
 
     Aq, Asc = _quant(A.contiguous())
     Ash = _shuffle(Asc).view(_fp8_e8m0)
-    return _gemm(Aq.view(_fp4x2), B_shuffle, Ash, B_scale_sh,
-                 dtype=_bf16, bpreshuffle=True)
+    return _gemm(Aq.view(_fp4x2), B_shuffle, Ash, B_scale_sh, dtype=_bf16, bpreshuffle=True)

@@ -5,6 +5,7 @@ From AITER v0.1.5+ release notes: "add a4w4 asm_moe" (PR #482)
 Also: "A4w4_asm_pro" and "A4w4_asm_pro_max_v2" optimizations.
 Also probing: FlyDSL (ROCm/FlyDSL) — MLIR-backed Python kernel DSL.
 """
+
 from __future__ import annotations
 
 import inspect
@@ -30,12 +31,15 @@ def custom_kernel(data: input_t) -> output_t:
                 print(f"  {name}: {e}", file=sys.stderr)
 
     # === Probe 2: _asm_pro variants ===
-    pro_funcs = [a for a in dir(aiter) if "pro" in a.lower() and ("moe" in a.lower() or "gemm" in a.lower())]
+    pro_funcs = [
+        a for a in dir(aiter) if "pro" in a.lower() and ("moe" in a.lower() or "gemm" in a.lower())
+    ]
     print(f"Pro functions: {pro_funcs}", file=sys.stderr)
 
     # === Probe 3: FlyDSL availability ===
     try:
         import flydsl
+
         print("FlyDSL AVAILABLE!", file=sys.stderr)
         fly_attrs = [a for a in dir(flydsl) if not a.startswith("_")]
         print(f"FlyDSL attrs: {fly_attrs[:20]}", file=sys.stderr)
@@ -49,6 +53,7 @@ def custom_kernel(data: input_t) -> output_t:
     # === Probe 5: torch.ops.aiter MoE ops ===
     try:
         import torch
+
         moe_ops = [a for a in dir(torch.ops.aiter) if "moe" in a.lower() or "asm" in a.lower()]
         print(f"torch.ops.aiter MoE/ASM: {moe_ops}", file=sys.stderr)
     except Exception as e:
@@ -57,8 +62,9 @@ def custom_kernel(data: input_t) -> output_t:
     # === Probe 6: aiter.fused_moe internals — look for asm dispatch ===
     try:
         from aiter.fused_moe import fused_moe as fm
+
         src = inspect.getsource(fm)
-        asm_lines = [line.strip() for line in src.split('\n') if 'asm' in line.lower()]
+        asm_lines = [line.strip() for line in src.split("\n") if "asm" in line.lower()]
         print(f"fused_moe ASM references ({len(asm_lines)}):", file=sys.stderr)
         for line in asm_lines[:10]:
             print(f"  {line}", file=sys.stderr)

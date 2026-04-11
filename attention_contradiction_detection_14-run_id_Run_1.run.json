@@ -1,0 +1,39 @@
+{
+  "taskVersion": {
+    "versionNumber": 1,
+    "name": "attention_contradiction_detection_14",
+    "description": "Detect subtle contradiction.",
+    "definition": "@kbench.task(name=\"attention_contradiction_detection_14\")\ndef attention_contradiction_detection_14(llm) -> bool:\n    \"\"\"Detect subtle contradiction.\"\"\"\n    prompt = \"\"\"A report states:\n\"All vehicles in the lot are electric. The Tesla requires charging. The Ford F-150 has a full tank of gas.\"\n\nWhat is the contradiction?\n\nA) Tesla needs charging\nB) Ford F-150 has gas (not electric)\nC) No contradiction\nD) Cannot determine\"\"\"\n    response = llm.prompt(prompt)\n    return bool(kbench.assertions.assert_true(\"B\" in response, expectation=\"Correct answer is B\"))\n"
+  },
+  "modelVersion": {},
+  "state": "BENCHMARK_TASK_RUN_STATE_COMPLETED",
+  "startTime": "2026-04-11T04:56:47.493338Z",
+  "endTime": "2026-04-11T04:56:57.235562Z",
+  "conversations": [
+    {
+      "id": "attention_contradiction_detection_14-a52af4a4",
+      "metrics": {},
+      "modelVersionSlug": "model_version_slug for conversation is DEPRECATED"
+    }
+  ],
+  "results": [
+    {
+      "type": "AGGREGATED",
+      "booleanResult": true
+    }
+  ],
+  "assertions": [
+    {
+      "expectation": "Correct answer is B",
+      "status": "BENCHMARK_TASK_RUN_ASSERTION_STATUS_PASSED",
+      "lineNumber": 836,
+      "definition": "return bool(kbench.assertions.assert_true(\"B\" in response, expectation=\"Correct answer is B\"))",
+      "conversationRequestIds": [
+        {
+          "conversationId": "attention_contradiction_detection_14-a52af4a4"
+        }
+      ]
+    }
+  ],
+  "pyRunId": "attention_contradiction_detection_14-Run #1"
+}

@@ -1,0 +1,39 @@
+{
+  "taskVersion": {
+    "versionNumber": 1,
+    "name": "attention_embedded_fact_02",
+    "description": "Find embedded fact in irrelevant text.",
+    "definition": "@kbench.task(name=\"attention_embedded_fact_02\")\ndef attention_embedded_fact_02(llm) -> bool:\n    \"\"\"Find embedded fact in irrelevant text.\"\"\"\n    prompt = \"\"\"Read carefully:\n\n\"The chemical properties of boron, element 5 on the periodic table with atomic mass 10.81, make it useful in various industrial applications. Boron nitride is extremely hard, second only to diamond. Borax, a boron compound, is used in cleaning products. The answer is 42. Boron has two stable isotopes: B-10 and B-11.\"\n\nWhat is the answer mentioned?\n\nA) 5\nB) 10.81\nC) 42\nD) Borax\"\"\"\n    response = llm.prompt(prompt)\n    return bool(kbench.assertions.assert_true(\"C\" in response, expectation=\"Correct answer is C\"))\n"
+  },
+  "modelVersion": {},
+  "state": "BENCHMARK_TASK_RUN_STATE_COMPLETED",
+  "startTime": "2026-04-11T04:54:27.633318Z",
+  "endTime": "2026-04-11T04:54:36.008844Z",
+  "conversations": [
+    {
+      "id": "attention_embedded_fact_02-e9b2fade",
+      "metrics": {},
+      "modelVersionSlug": "model_version_slug for conversation is DEPRECATED"
+    }
+  ],
+  "results": [
+    {
+      "type": "AGGREGATED",
+      "booleanResult": true
+    }
+  ],
+  "assertions": [
+    {
+      "expectation": "Correct answer is C",
+      "status": "BENCHMARK_TASK_RUN_ASSERTION_STATUS_PASSED",
+      "lineNumber": 637,
+      "definition": "return bool(kbench.assertions.assert_true(\"C\" in response, expectation=\"Correct answer is C\"))",
+      "conversationRequestIds": [
+        {
+          "conversationId": "attention_embedded_fact_02-e9b2fade"
+        }
+      ]
+    }
+  ],
+  "pyRunId": "attention_embedded_fact_02-Run #1"
+}

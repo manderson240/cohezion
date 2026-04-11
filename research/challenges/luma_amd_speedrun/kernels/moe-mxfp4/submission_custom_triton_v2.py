@@ -67,10 +67,10 @@ def _dequant_fp4_weight_to_bf16(weight_fp4, scale_e8m0):
 
     Returns    : [N, K]  bf16
     """
-    w_f32 = fp4_utils.mxfp4_to_f32(weight_fp4)          # [N, K]   float32
-    s_f32 = fp4_utils.e8m0_to_f32(scale_e8m0)            # [N_pad, scale_K] float32
+    w_f32 = fp4_utils.mxfp4_to_f32(weight_fp4)  # [N, K]   float32
+    s_f32 = fp4_utils.e8m0_to_f32(scale_e8m0)  # [N_pad, scale_K] float32
     N, K = w_f32.shape
-    s_f32 = s_f32[:N, :]                                  # trim padded N rows
+    s_f32 = s_f32[:N, :]  # trim padded N rows
     s_f32 = s_f32.repeat_interleave(MXFP4_BLOCK_SIZE, dim=-1)[:, :K]  # [N, K]
     return (w_f32 * s_f32).to(torch.bfloat16)
 
@@ -104,31 +104,31 @@ def _dequant_all_experts_bf16(weight_fp4, scale_e8m0, E):
 @triton.jit
 def _moe_stage1_kernel(
     # --- input pointers ---
-    hs_ptr,           # [M, d_hidden]  bf16
-    w1_ptr,           # [E, 2*d_expert_pad, d_hidden_pad]  bf16
-    sorted_pos_ptr,   # [M*top_k]  int32  — original token index per sorted slot
-    expert_off_ptr,   # [E+1]  int32  — start offset per expert in sorted arrays
+    hs_ptr,  # [M, d_hidden]  bf16
+    w1_ptr,  # [E, 2*d_expert_pad, d_hidden_pad]  bf16
+    sorted_pos_ptr,  # [M*top_k]  int32  — original token index per sorted slot
+    expert_off_ptr,  # [E+1]  int32  — start offset per expert in sorted arrays
     # --- output pointer ---
-    out_ptr,          # [M*top_k, 2*d_expert_pad]  bf16
+    out_ptr,  # [M*top_k, 2*d_expert_pad]  bf16
     # --- scalars ---
-    M,                # number of tokens
-    E,                # number of experts
-    d_hidden,         # hidden dimension (actual, not padded)
-    d_hidden_pad,     # hidden dimension padded
-    d_expert_pad,     # expert intermediate dim padded (half of gate_up N axis)
-    total_sorted,     # M * top_k
+    M,  # number of tokens
+    E,  # number of experts
+    d_hidden,  # hidden dimension (actual, not padded)
+    d_hidden_pad,  # hidden dimension padded
+    d_expert_pad,  # expert intermediate dim padded (half of gate_up N axis)
+    total_sorted,  # M * top_k
     # --- strides ---
-    stride_hs_m,      # hidden_states row stride
-    stride_hs_k,      # hidden_states col stride (usually 1)
-    stride_w1_e,      # gate_up_weight expert stride
-    stride_w1_n,      # gate_up_weight row stride
-    stride_w1_k,      # gate_up_weight col stride (usually 1)
-    stride_out_m,     # output row stride
-    stride_out_n,     # output col stride (usually 1)
+    stride_hs_m,  # hidden_states row stride
+    stride_hs_k,  # hidden_states col stride (usually 1)
+    stride_w1_e,  # gate_up_weight expert stride
+    stride_w1_n,  # gate_up_weight row stride
+    stride_w1_k,  # gate_up_weight col stride (usually 1)
+    stride_out_m,  # output row stride
+    stride_out_n,  # output col stride (usually 1)
     # --- tile sizes (compile-time constants) ---
-    BLOCK_M: tl.constexpr,   # >= 16 (gfx950 minimum)
-    BLOCK_N: tl.constexpr,   # output tile rows (along 2*d_expert_pad axis)
-    BLOCK_K: tl.constexpr,   # K reduction tile
+    BLOCK_M: tl.constexpr,  # >= 16 (gfx950 minimum)
+    BLOCK_N: tl.constexpr,  # output tile rows (along 2*d_expert_pad axis)
+    BLOCK_K: tl.constexpr,  # K reduction tile
 ):
     """
     Persistent MoE Stage 1: gather tokens per expert, bf16 GEMM against gate_up weights.
@@ -181,7 +181,7 @@ def _moe_stage1_kernel(
             if _e >= E:
                 break
             e_start = tl.load(expert_off_ptr + _e).to(tl.int32)
-            e_end   = tl.load(expert_off_ptr + _e + 1).to(tl.int32)
+            e_end = tl.load(expert_off_ptr + _e + 1).to(tl.int32)
             count_e = e_end - e_start
             num_tiles_m_e = tl.cdiv(count_e, BLOCK_M)
             tiles_for_e = num_tiles_m_e * num_tiles_n
@@ -201,12 +201,12 @@ def _moe_stage1_kernel(
                 n_start = tile_n * BLOCK_N
 
                 # Build offset arrays
-                m_offs = tl.arange(0, BLOCK_M)       # [BLOCK_M]
-                n_offs = tl.arange(0, BLOCK_N)       # [BLOCK_N]
-                k_offs = tl.arange(0, BLOCK_K)       # [BLOCK_K]
+                m_offs = tl.arange(0, BLOCK_M)  # [BLOCK_M]
+                n_offs = tl.arange(0, BLOCK_N)  # [BLOCK_N]
+                k_offs = tl.arange(0, BLOCK_K)  # [BLOCK_K]
 
                 # --- Gather token indices ---
-                sort_idx = token_start + m_offs       # [BLOCK_M] positions in sorted_pos
+                sort_idx = token_start + m_offs  # [BLOCK_M] positions in sorted_pos
                 sort_mask = m_offs < m_size
 
                 # Load original token positions (int32) for each row in this tile
@@ -219,14 +219,13 @@ def _moe_stage1_kernel(
                 k_iters = tl.cdiv(d_hidden, BLOCK_K)
                 for k_tile in range(k_iters):
                     k_start = k_tile * BLOCK_K
-                    kk = k_start + k_offs             # [BLOCK_K] global K indices
+                    kk = k_start + k_offs  # [BLOCK_K] global K indices
                     k_mask = kk < d_hidden
 
                     # Load activation tile: [BLOCK_M, BLOCK_K] bf16
                     # Gather rows from hidden_states using orig_pos
                     a_offs = (
-                        orig_pos[:, None] * stride_hs_m
-                        + kk[None, :] * stride_hs_k
+                        orig_pos[:, None] * stride_hs_m + kk[None, :] * stride_hs_k
                     )  # [BLOCK_M, BLOCK_K]
                     a_mask = sort_mask[:, None] & k_mask[None, :]
                     a = tl.load(hs_ptr + a_offs, mask=a_mask, other=0.0).to(tl.bfloat16)
@@ -234,7 +233,7 @@ def _moe_stage1_kernel(
                     # Load weight tile: [BLOCK_N, BLOCK_K] bf16 (N-first, then K)
                     # w1 layout: [E, 2*d_expert_pad, d_hidden_pad]
                     # For expert _e, row n_start..n_start+BLOCK_N, col k_start..k_start+BLOCK_K
-                    n_global = n_start + n_offs       # [BLOCK_N] global N indices
+                    n_global = n_start + n_offs  # [BLOCK_N] global N indices
                     n_mask = n_global < (2 * d_expert_pad)
 
                     b_offs = (
@@ -255,16 +254,12 @@ def _moe_stage1_kernel(
                 # out layout: [M*top_k, 2*d_expert_pad]
                 # row = sort position = token_start + m_offs
                 # col = n_start + n_offs
-                out_row = token_start + m_offs        # [BLOCK_M]
-                out_col = n_start + n_offs             # [BLOCK_N]
+                out_row = token_start + m_offs  # [BLOCK_M]
+                out_col = n_start + n_offs  # [BLOCK_N]
                 out_offs = (
-                    out_row[:, None] * stride_out_m
-                    + out_col[None, :] * stride_out_n
+                    out_row[:, None] * stride_out_m + out_col[None, :] * stride_out_n
                 )  # [BLOCK_M, BLOCK_N]
-                out_mask = (
-                    sort_mask[:, None]
-                    & (out_col < 2 * d_expert_pad)[None, :]
-                )
+                out_mask = sort_mask[:, None] & (out_col < 2 * d_expert_pad)[None, :]
                 tl.store(out_ptr + out_offs, acc.to(tl.bfloat16), mask=out_mask)
 
                 found = True
@@ -293,19 +288,19 @@ def _moe_stage1_kernel(
 @triton.jit
 def _moe_stage2_kernel(
     # --- input pointers ---
-    inter_ptr,        # [M*top_k, d_expert_pad]  bf16
-    w2_ptr,           # [E, d_hidden_pad, d_expert_pad]  bf16
-    sorted_pos_ptr,   # [M*top_k]  int32
-    sorted_w_ptr,     # [M*top_k]  float32
-    expert_off_ptr,   # [E+1]  int32
+    inter_ptr,  # [M*top_k, d_expert_pad]  bf16
+    w2_ptr,  # [E, d_hidden_pad, d_expert_pad]  bf16
+    sorted_pos_ptr,  # [M*top_k]  int32
+    sorted_w_ptr,  # [M*top_k]  float32
+    expert_off_ptr,  # [E+1]  int32
     # --- output pointer ---
-    out_ptr,          # [M, d_hidden]  bf16  (zeroed before launch)
+    out_ptr,  # [M, d_hidden]  bf16  (zeroed before launch)
     # --- scalars ---
     M,
     E,
-    d_expert_pad,     # K axis of down_weight (expert intermediate dim)
-    d_hidden,         # N axis of down_weight (actual output hidden dim)
-    d_hidden_pad,     # N axis of down_weight (padded)
+    d_expert_pad,  # K axis of down_weight (expert intermediate dim)
+    d_hidden,  # N axis of down_weight (actual output hidden dim)
+    d_hidden_pad,  # N axis of down_weight (padded)
     total_sorted,
     # --- strides ---
     stride_inter_m,
@@ -316,9 +311,9 @@ def _moe_stage2_kernel(
     stride_out_m,
     stride_out_n,
     # --- tile sizes ---
-    BLOCK_M: tl.constexpr,   # >= 16
-    BLOCK_N: tl.constexpr,   # output hidden dim tile
-    BLOCK_K: tl.constexpr,   # K reduction tile (expert intermediate)
+    BLOCK_M: tl.constexpr,  # >= 16
+    BLOCK_N: tl.constexpr,  # output hidden dim tile
+    BLOCK_K: tl.constexpr,  # K reduction tile (expert intermediate)
 ):
     """
     Persistent MoE Stage 2: bf16 GEMM over down_weight, atomic-add to output.
@@ -341,7 +336,7 @@ def _moe_stage2_kernel(
             if _e >= E:
                 break
             e_start = tl.load(expert_off_ptr + _e).to(tl.int32)
-            e_end   = tl.load(expert_off_ptr + _e + 1).to(tl.int32)
+            e_end = tl.load(expert_off_ptr + _e + 1).to(tl.int32)
             count_e = e_end - e_start
             num_tiles_m_e = tl.cdiv(count_e, BLOCK_M)
             tiles_for_e = num_tiles_m_e * num_tiles_n
@@ -366,7 +361,7 @@ def _moe_stage2_kernel(
 
                 # Load original token positions and topk weights
                 orig_pos = tl.load(sorted_pos_ptr + sort_idx, mask=sort_mask, other=0)
-                weights  = tl.load(sorted_w_ptr  + sort_idx, mask=sort_mask, other=0.0)
+                weights = tl.load(sorted_w_ptr + sort_idx, mask=sort_mask, other=0.0)
                 # orig_pos: [BLOCK_M] int32, weights: [BLOCK_M] float32
 
                 # --- Accumulate GEMM over K (d_expert_pad) ---
@@ -380,10 +375,7 @@ def _moe_stage2_kernel(
 
                     # Load intermediate tile: [BLOCK_M, BLOCK_K] bf16
                     # Rows are sort positions (token_start + m_offs), not orig_pos
-                    a_offs = (
-                        sort_idx[:, None] * stride_inter_m
-                        + kk[None, :] * stride_inter_k
-                    )
+                    a_offs = sort_idx[:, None] * stride_inter_m + kk[None, :] * stride_inter_k
                     a_mask = sort_mask[:, None] & k_mask[None, :]
                     a = tl.load(inter_ptr + a_offs, mask=a_mask, other=0.0).to(tl.bfloat16)
 
@@ -412,10 +404,7 @@ def _moe_stage2_kernel(
                 for mi in range(BLOCK_M):
                     if mi < m_size:
                         row = orig_pos[mi]
-                        out_row_offs = (
-                            row * stride_out_m
-                            + n_global * stride_out_n
-                        )  # [BLOCK_N]
+                        out_row_offs = row * stride_out_m + n_global * stride_out_n  # [BLOCK_N]
                         tl.atomic_add(out_ptr + out_row_offs, scaled[mi, :], mask=n_mask_out)
 
                 found = True
@@ -448,15 +437,15 @@ def _sort_tokens_by_expert(topk_ids, topk_weights, E):
     device = topk_ids.device
     top_k = topk_ids.shape[1]
 
-    flat_ids     = topk_ids.view(-1).long()       # [M*top_k]
-    flat_weights = topk_weights.view(-1)           # [M*top_k]
+    flat_ids = topk_ids.view(-1).long()  # [M*top_k]
+    flat_weights = topk_weights.view(-1)  # [M*top_k]
 
     # Sort by expert ID — stable=True for reproducibility
-    sort_order = torch.argsort(flat_ids, stable=True)   # [M*top_k]  int64
+    sort_order = torch.argsort(flat_ids, stable=True)  # [M*top_k]  int64
 
     # Original token index = sort_order // top_k  (which token produced this slot)
-    sorted_token_pos = (sort_order // top_k).to(torch.int32)    # [M*top_k]
-    sorted_weights   = flat_weights[sort_order]                  # [M*top_k]
+    sorted_token_pos = (sort_order // top_k).to(torch.int32)  # [M*top_k]
+    sorted_weights = flat_weights[sort_order]  # [M*top_k]
 
     # Count tokens per expert and build prefix-sum offsets
     tokens_per_expert = torch.bincount(flat_ids, minlength=E).to(torch.int32)  # [E]
@@ -470,20 +459,20 @@ def _sort_tokens_by_expert(topk_ids, topk_weights, E):
 # Custom Triton MoE forward (Phase 1: bf16 GEMM)
 # ---------------------------------------------------------------------------
 def _custom_triton_moe(
-    hidden_states,      # [M, d_hidden]  bf16
-    gate_up_weight,     # [E, 2*d_expert_pad, d_hidden_pad//2]  fp4x2 (raw)
-    down_weight,        # [E, d_hidden_pad, d_expert_pad//2]    fp4x2 (raw)
-    gate_up_scale,      # [E, 2*d_expert_pad, scale_K]  e8m0 (raw)
-    down_scale,         # [E, d_hidden_pad, scale_K]    e8m0 (raw)
-    topk_weights,       # [M, top_k]  float32
-    topk_ids,           # [M, top_k]  int32
-    config,             # dict
+    hidden_states,  # [M, d_hidden]  bf16
+    gate_up_weight,  # [E, 2*d_expert_pad, d_hidden_pad//2]  fp4x2 (raw)
+    down_weight,  # [E, d_hidden_pad, d_expert_pad//2]    fp4x2 (raw)
+    gate_up_scale,  # [E, 2*d_expert_pad, scale_K]  e8m0 (raw)
+    down_scale,  # [E, d_hidden_pad, scale_K]    e8m0 (raw)
+    topk_weights,  # [M, top_k]  float32
+    topk_ids,  # [M, top_k]  int32
+    config,  # dict
 ):
     M, d_hidden = hidden_states.shape
     E = gate_up_weight.shape[0]
     d_expert_pad = config["d_expert_pad"]
     d_hidden_pad = config["d_hidden_pad"]
-    d_expert     = config["d_expert"]
+    d_expert = config["d_expert"]
     top_k = topk_ids.shape[1]
 
     device = hidden_states.device
@@ -536,17 +525,22 @@ def _custom_triton_moe(
         sorted_token_pos,
         expert_offsets,
         intermediate,
-        M, E,
+        M,
+        E,
         d_hidden,
         d_hidden_pad,
         d_expert_pad,
         total_sorted,
         # strides hidden_states
-        hs.stride(0), hs.stride(1),
+        hs.stride(0),
+        hs.stride(1),
         # strides w1
-        w1_bf16.stride(0), w1_bf16.stride(1), w1_bf16.stride(2),
+        w1_bf16.stride(0),
+        w1_bf16.stride(1),
+        w1_bf16.stride(2),
         # strides output
-        intermediate.stride(0), intermediate.stride(1),
+        intermediate.stride(0),
+        intermediate.stride(1),
         BLOCK_M=BLOCK_M,
         BLOCK_N=BLOCK_N,
         BLOCK_K=BLOCK_K,
@@ -558,9 +552,9 @@ def _custom_triton_moe(
     # Step 5: SiLU + multiply (in Python/torch — fused into Stage 1 in Phase 3)
     # intermediate layout: [:, :d_expert_pad] = gate, [:, d_expert_pad:] = up
     # ------------------------------------------------------------------
-    gate = intermediate[:, :d_expert_pad]          # [M*top_k, d_expert_pad]
-    up   = intermediate[:, d_expert_pad:]          # [M*top_k, d_expert_pad]
-    inter_silu = F.silu(gate) * up                 # [M*top_k, d_expert_pad]  bf16
+    gate = intermediate[:, :d_expert_pad]  # [M*top_k, d_expert_pad]
+    up = intermediate[:, d_expert_pad:]  # [M*top_k, d_expert_pad]
+    inter_silu = F.silu(gate) * up  # [M*top_k, d_expert_pad]  bf16
     inter_silu = inter_silu.contiguous()
 
     # ------------------------------------------------------------------
@@ -575,17 +569,22 @@ def _custom_triton_moe(
         sorted_weights_flat,
         expert_offsets,
         output,
-        M, E,
+        M,
+        E,
         d_expert_pad,
         d_hidden,
         d_hidden_pad,
         total_sorted,
         # strides intermediate
-        inter_silu.stride(0), inter_silu.stride(1),
+        inter_silu.stride(0),
+        inter_silu.stride(1),
         # strides w2
-        w2_bf16.stride(0), w2_bf16.stride(1), w2_bf16.stride(2),
+        w2_bf16.stride(0),
+        w2_bf16.stride(1),
+        w2_bf16.stride(2),
         # strides output
-        output.stride(0), output.stride(1),
+        output.stride(0),
+        output.stride(1),
         BLOCK_M=BLOCK_M,
         BLOCK_N=BLOCK_N,
         BLOCK_K=BLOCK_K,
@@ -610,18 +609,18 @@ def custom_kernel(data: input_t) -> output_t:
         USE_CUSTOM_TRITON=0  — fall back to aiter fused_moe (default: use custom)
     """
     (
-        hs,     # hidden_states              [M, d_hidden]  bf16
-        w1,     # gate_up_weight             [E, 2*d_expert_pad, d_hidden_pad//2]  fp4x2
-        w2,     # down_weight                [E, d_hidden_pad, d_expert_pad//2]    fp4x2
-        w1s,    # gate_up_weight_scale       [E, 2*d_expert_pad, scale_K]  e8m0
-        w2s,    # down_weight_scale          [E, d_hidden_pad, scale_K]    e8m0
-        w1sh,   # gate_up_weight_shuffled    (for aiter fallback)
-        w2sh,   # down_weight_shuffled       (for aiter fallback)
+        hs,  # hidden_states              [M, d_hidden]  bf16
+        w1,  # gate_up_weight             [E, 2*d_expert_pad, d_hidden_pad//2]  fp4x2
+        w2,  # down_weight                [E, d_hidden_pad, d_expert_pad//2]    fp4x2
+        w1s,  # gate_up_weight_scale       [E, 2*d_expert_pad, scale_K]  e8m0
+        w2s,  # down_weight_scale          [E, d_hidden_pad, scale_K]    e8m0
+        w1sh,  # gate_up_weight_shuffled    (for aiter fallback)
+        w2sh,  # down_weight_shuffled       (for aiter fallback)
         w1ssh,  # gate_up_weight_scale_shuffled  (for aiter fallback)
         w2ssh,  # down_weight_scale_shuffled     (for aiter fallback)
-        tw,     # topk_weights               [M, top_k]  float32
-        ti,     # topk_ids                   [M, top_k]  int32
-        cfg,    # config dict
+        tw,  # topk_weights               [M, top_k]  float32
+        ti,  # topk_ids                   [M, top_k]  int32
+        cfg,  # config dict
     ) = data
 
     if not USE_CUSTOM_TRITON:

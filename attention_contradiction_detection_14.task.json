@@ -1,0 +1,6 @@
+{
+  "versionNumber": 1,
+  "name": "attention_contradiction_detection_14",
+  "description": "Detect subtle contradiction.",
+  "definition": "@kbench.task(name=\"attention_contradiction_detection_14\")\ndef attention_contradiction_detection_14(llm) -> bool:\n    \"\"\"Detect subtle contradiction.\"\"\"\n    prompt = \"\"\"A report states:\n\"All vehicles in the lot are electric. The Tesla requires charging. The Ford F-150 has a full tank of gas.\"\n\nWhat is the contradiction?\n\nA) Tesla needs charging\nB) Ford F-150 has gas (not electric)\nC) No contradiction\nD) Cannot determine\"\"\"\n    response = llm.prompt(prompt)\n    return bool(kbench.assertions.assert_true(\"B\" in response, expectation=\"Correct answer is B\"))\n"
+}

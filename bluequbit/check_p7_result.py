@@ -24,7 +24,7 @@ if hasattr(result, "get_counts"):
     raw = top[0]
     answer = raw[::-1]
     prob = top[1] / 100000
-    
+
     print(f"\nJob ID: {job_id}")
     print(f"Raw bitstring: {raw}")
     print(f"Answer (reversed): {answer}")

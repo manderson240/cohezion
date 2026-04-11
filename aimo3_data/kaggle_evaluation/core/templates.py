@@ -53,7 +53,10 @@ class Gateway(kaggle_evaluation.core.base_gateway.BaseGateway, abc.ABC):
 
     @abc.abstractmethod
     def competition_specific_validation(
-        self, prediction_batch: Any, row_ids: Union[pl.DataFrame, pl.Series, pd.DataFrame, pd.Series], data_batch: Any
+        self,
+        prediction_batch: Any,
+        row_ids: Union[pl.DataFrame, pl.Series, pd.DataFrame, pd.Series],
+        data_batch: Any,
     ) -> None:
         """Competition specific checks should be added here. Typically you'll want to confirm the predictions are a valid data type at a minimum.
         Args:
@@ -73,13 +76,15 @@ class InferenceServer(abc.ABC):
 
     def __init__(self, *endpoint_listeners: FunctionType):
         self.server = kaggle_evaluation.core.relay.define_server(*endpoint_listeners)
-        self.client = None  # The inference_server can have a client but it isn't typically necessary.
+        self.client = (
+            None  # The inference_server can have a client but it isn't typically necessary.
+        )
         self._issued_startup_time_warning = False
         self._startup_limit_seconds = kaggle_evaluation.core.relay.STARTUP_LIMIT_SECONDS
 
     def serve(self) -> None:
         self.server.start()
-        if os.getenv('KAGGLE_IS_COMPETITION_RERUN') is not None:
+        if os.getenv("KAGGLE_IS_COMPETITION_RERUN") is not None:
             self.server.wait_for_termination()  # This will block all other code
 
     @abc.abstractmethod
@@ -87,11 +92,20 @@ class InferenceServer(abc.ABC):
         # Must return a version of the competition-specific gateway able to load data for unit tests.
         raise NotImplementedError
 
-    def run_local_gateway(self, data_paths: Optional[Tuple[str]] = None, file_share_dir: Optional[str] = None, *args, **kwargs) -> None:
+    def run_local_gateway(
+        self,
+        data_paths: Optional[Tuple[str]] = None,
+        file_share_dir: Optional[str] = None,
+        *args,
+        **kwargs,
+    ) -> None:
         """Construct a copy of the gateway that uses local file paths."""
         global _issued_startup_time_warning
         script_elapsed_seconds = time.time() - _initial_import_time
-        if script_elapsed_seconds > self._startup_limit_seconds and not _issued_startup_time_warning:
+        if (
+            script_elapsed_seconds > self._startup_limit_seconds
+            and not _issued_startup_time_warning
+        ):
             warnings.warn(
                 f"""{int(script_elapsed_seconds)} seconds elapsed before server startup.
                 This exceeds the startup time limit of {int(self._startup_limit_seconds)} seconds that the gateway will enforce

@@ -28,7 +28,7 @@ All actions are governed by two documents:
 
 - **Language**: Python 3.13+ | **Package Manager**: `uv`
 - **Formatter**: `ruff format` (88-char) | **Linter**: `ruff check`
-- **Database**: SurrealDB (ws://localhost:8000/rpc)
+- **Database**: SurrealDB (ws://localhost:8001/rpc)
 - **Local Models**: Ollama (deepseek-r1:70b, qwen3-coder:30b, phi3:mini)
 
 ## Latest Decisions (from vault)

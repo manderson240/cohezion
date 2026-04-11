@@ -45,9 +45,11 @@ MI355X = {
 
 # ── QiMeng-Style 5-Tuple Meta-Prompt Templates ────────────────────────
 
+
 @dataclass
 class MetaPrompt:
     """MI355X-specific structured meta-prompt for kernel generation."""
+
     kernel_type: str  # "gemm", "moe", "mla"
     tiling: str
     reordering: str
@@ -63,7 +65,7 @@ STRATEGY: {strategy}
 
 HARDWARE CONSTRAINTS (MI355X / gfx950):
 - 256 CUs, wave64 (64 threads per wave)
-- MFMA: {MI355X['fp4_mfma']} with scale MFMA for MXFP4
+- MFMA: {MI355X["fp4_mfma"]} with scale MFMA for MXFP4
 - 8 XCDs (cross-die clusters) — tile scheduling must be XCD-aware
 - HBM3 bandwidth: 8 TB/s, burst size: 256 bytes
 - LDS: 64 KB per CU, 512 VGPRs per CU
@@ -95,6 +97,7 @@ RULES:
 
 
 # ── Per-Kernel Meta-Prompt Factories ──────────────────────────────────
+
 
 def gemm_meta_prompt() -> MetaPrompt:
     return MetaPrompt(
@@ -200,14 +203,17 @@ META_PROMPTS = {
 
 # ── LLM Code Synthesis ────────────────────────────────────────────────
 
+
 def _call_ollama(prompt: str, max_tokens: int = 4096) -> str | None:
     """Call local Ollama with streaming to avoid timeout."""
-    payload = json.dumps({
-        "model": OLLAMA_MODEL,
-        "prompt": prompt,
-        "stream": True,
-        "options": {"num_predict": max_tokens, "temperature": 0.7},
-    }).encode()
+    payload = json.dumps(
+        {
+            "model": OLLAMA_MODEL,
+            "prompt": prompt,
+            "stream": True,
+            "options": {"num_predict": max_tokens, "temperature": 0.7},
+        }
+    ).encode()
 
     req = Request(OLLAMA_URL, data=payload, headers={"Content-Type": "application/json"})
     chunks: list[str] = []
@@ -266,7 +272,9 @@ def synthesize_kernel(
     elapsed = time.monotonic() - start
 
     if code:
-        logger.info("Synthesized %d chars in %.1fs for %s/%s", len(code), elapsed, kernel_type, strategy)
+        logger.info(
+            "Synthesized %d chars in %.1fs for %s/%s", len(code), elapsed, kernel_type, strategy
+        )
         return _extract_python(code)
 
     logger.warning("LLM synthesis failed, falling back to template for %s", kernel_type)
@@ -298,7 +306,7 @@ if __name__ == "__main__":
     for kt in ("gemm", "moe", "mla"):
         mp = get_meta_prompt_for_kernel(kt)
         if mp:
-            print(f"\n{'='*60}")
+            print(f"\n{'=' * 60}")
             print(f" {kt.upper()} Meta-Prompt")
-            print(f"{'='*60}")
+            print(f"{'=' * 60}")
             print(mp.render("example_strategy"))

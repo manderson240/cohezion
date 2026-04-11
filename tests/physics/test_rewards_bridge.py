@@ -1,7 +1,5 @@
 """Tests for the rewards bridge — HIHO Gaussian reward + coherence ratchet."""
 
-
-
 from cohezion.physics.rewards_bridge import CoherenceRatchet, RewardsBridge
 
 

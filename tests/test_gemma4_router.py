@@ -19,10 +19,14 @@ class TestGemma4Router:
 
     def test_routing_logic_complex(self):
         router = Gemma4Router()
-        decision = router.route("Please reason through this difficult math problem and explain your steps.")
+        decision = router.route(
+            "Please reason through this difficult math problem and explain your steps."
+        )
         assert decision.model_id == "gemma4:26b"
 
     def test_routing_logic_simulation(self):
         router = Gemma4Router()
-        decision = router.route("Simulate the 12D manifold trajectories for an EVO interacting with a QGP plasma.")
+        decision = router.route(
+            "Simulate the 12D manifold trajectories for an EVO interacting with a QGP plasma."
+        )
         assert decision.model_id == "gemma4:31b"

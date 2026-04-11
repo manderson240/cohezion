@@ -1,0 +1,6 @@
+{
+  "versionNumber": 1,
+  "name": "social_intention_inference_03",
+  "description": "Infer intentions from actions.",
+  "definition": "@kbench.task(name=\"social_intention_inference_03\")\ndef social_intention_inference_03(llm) -> bool:\n    \"\"\"Infer intentions from actions.\"\"\"\n    prompt = \"\"\"John waves at Mary across the street. Mary doesn't wave back.\n\nWhy might Mary not wave back?\n\nA) She's angry\nB) She didn't see John\nC) She doesn't like John\nD) Any of the above\"\"\"\n    response = llm.prompt(prompt)\n    return bool(kbench.assertions.assert_true(\"D\" in response, expectation=\"Correct answer is D\"))\n"
+}

@@ -1,0 +1,39 @@
+{
+  "taskVersion": {
+    "versionNumber": 1,
+    "name": "exec_time_management_14",
+    "description": "Manage time with interruptions.",
+    "definition": "@kbench.task(name=\"exec_time_management_14\")\ndef exec_time_management_14(llm) -> bool:\n    \"\"\"Manage time with interruptions.\"\"\"\n    prompt = \"\"\"Available: 2 hours\nTasks:\n- Report (45 min)\n- Email (15 min)\n- Meeting (30 min, interrupting at 1 hour mark)\n- Review (20 min)\n\nBest schedule?\n\nA) Report\u2192Meeting\u2192Email\u2192Review\nB) Email\u2192Report\u2192Meeting\u2192Review\nC) Meeting\u2192Report\u2192Email\u2192Review\nD) Cannot complete all\"\"\"\n    response = llm.prompt(prompt)\n    return bool(kbench.assertions.assert_true(\"B\" in response, expectation=\"Correct answer is B\"))\n"
+  },
+  "modelVersion": {},
+  "state": "BENCHMARK_TASK_RUN_STATE_COMPLETED",
+  "startTime": "2026-04-11T05:01:39.997795Z",
+  "endTime": "2026-04-11T05:02:12.185030Z",
+  "conversations": [
+    {
+      "id": "exec_time_management_14-b31fb765",
+      "metrics": {},
+      "modelVersionSlug": "model_version_slug for conversation is DEPRECATED"
+    }
+  ],
+  "results": [
+    {
+      "type": "AGGREGATED",
+      "booleanResult": true
+    }
+  ],
+  "assertions": [
+    {
+      "expectation": "Correct answer is B",
+      "status": "BENCHMARK_TASK_RUN_ASSERTION_STATUS_PASSED",
+      "lineNumber": 1129,
+      "definition": "return bool(kbench.assertions.assert_true(\"B\" in response, expectation=\"Correct answer is B\"))",
+      "conversationRequestIds": [
+        {
+          "conversationId": "exec_time_management_14-b31fb765"
+        }
+      ]
+    }
+  ],
+  "pyRunId": "exec_time_management_14-Run #1"
+}

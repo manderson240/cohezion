@@ -162,6 +162,7 @@ class TrainingMetrics:
     epoch: int = 0
     prediction_loss: float = 0.0
     sigreg_loss: float = 0.0
+    regularizer_loss: float = 0.0
     total_loss: float = 0.0
     temporal_curvature: float = 0.0
     n_samples: int = 0
@@ -173,6 +174,7 @@ class JEPAWorldModel:
 
     Upgraded with Le-WM (arxiv 2603.19312) features:
     - SIGReg (Sketched Isotropic Gaussian Regularizer) for anti-collapse.
+    - Gaussian KL regularizer (dual-loss): KL(q(z|x) || N(0,I)) on encoder mu/logvar.
     - Temporal Straightening monitoring.
 
     Parameters
@@ -187,6 +189,8 @@ class JEPAWorldModel:
         Learning rate (default: 1e-3).
     sigreg_weight : float
         Weight for the SIGReg regularizer (default: 0.1).
+    regularizer_lambda : float
+        Weight for the Gaussian KL regularizer. Set to 0 to disable (default: 0.1).
     """
 
     def __init__(
@@ -196,12 +200,14 @@ class JEPAWorldModel:
         embed_dim: int = 64,
         lr: float = 1e-3,
         sigreg_weight: float = 0.1,
+        regularizer_lambda: float = 0.1,
         causal_mask_ratio: float = 0.3,
     ) -> None:
         self.state_dim = state_dim
         self.action_dim = action_dim
         self.embed_dim = embed_dim
         self.sigreg_weight = sigreg_weight
+        self.regularizer_lambda = regularizer_lambda
         self.causal_mask_ratio = causal_mask_ratio
 
         self.encoder = ManifoldEncoder(state_dim, embed_dim)
@@ -260,18 +266,37 @@ class JEPAWorldModel:
 
         return float(np.mean(curvatures)) if curvatures else 0.0
 
+    def _compute_regularizer_loss(self, mu: torch.Tensor, logvar: torch.Tensor) -> torch.Tensor:
+        """Compute KL divergence from N(mu, sigma^2) to N(0, I).
+
+        Closed-form KL for diagonal Gaussian encoder (Le-WM dual-loss):
+            KL(q(z|x) || N(0,I)) = -0.5 * sum(1 + logvar - mu^2 - exp(logvar))
+
+        Normalised by batch size so the scale is independent of batch size.
+        Returns 0 when regularizer_lambda == 0 (no gradient cost).
+        """
+        if self.regularizer_lambda == 0.0:
+            return torch.tensor(0.0, device=mu.device)
+        kl = -0.5 * torch.sum(1.0 + logvar - mu.pow(2) - logvar.exp())
+        return kl / mu.size(0)
+
     def train_step(
         self,
         states: torch.Tensor,
         actions: torch.Tensor,
         next_states: torch.Tensor,
     ) -> dict[str, float]:
-        """One training step. Loss = MSE(predicted, target) + sigreg_weight * SIGReg."""
+        """One training step.
+
+        Loss = MSE(predicted, target)
+             + sigreg_weight * SIGReg(z)
+             + regularizer_lambda * KL(q(z|x) || N(0,I))
+        """
         self.encoder.train()
         self.action_encoder.train()
         self.predictor.train()
 
-        state_emb, _, _ = self.encoder(states)
+        state_emb, mu, logvar = self.encoder(states)
         # Apply causal masking during training (Causal-JEPA, arxiv 2602.11389)
         state_emb_masked = self.causal_mask(state_emb, training=True)
         action_emb = self.action_encoder(actions)
@@ -285,7 +310,14 @@ class JEPAWorldModel:
         # Le-WM SIGReg loss: Anti-collapse using random 1D projections
         sigreg_loss = self.sigreg(state_emb)
 
-        total_loss = prediction_loss + self.sigreg_weight * sigreg_loss
+        # Gaussian KL regularizer (dual-loss, Le-WM arxiv 2603.19312)
+        regularizer_loss = self._compute_regularizer_loss(mu, logvar)
+
+        total_loss = (
+            prediction_loss
+            + self.sigreg_weight * sigreg_loss
+            + self.regularizer_lambda * regularizer_loss
+        )
 
         self.optimizer.zero_grad()
         total_loss.backward()
@@ -294,6 +326,7 @@ class JEPAWorldModel:
         return {
             "prediction_loss": float(prediction_loss.item()),
             "sigreg_loss": float(sigreg_loss.item()),
+            "regularizer_loss": float(regularizer_loss.item()),
             "total_loss": float(total_loss.item()),
         }
 
@@ -304,13 +337,23 @@ class JEPAWorldModel:
     ) -> dict[str, float]:
         """Train one epoch on (state, action, next_state) tuples."""
         if not dataset:
-            return {"prediction_loss": 0, "sigreg_loss": 0, "total_loss": 0}
+            return {
+                "prediction_loss": 0,
+                "sigreg_loss": 0,
+                "regularizer_loss": 0,
+                "total_loss": 0,
+            }
 
         import random
 
         random.shuffle(dataset)
 
-        epoch_metrics = {"prediction_loss": 0.0, "sigreg_loss": 0.0, "total_loss": 0.0}
+        epoch_metrics = {
+            "prediction_loss": 0.0,
+            "sigreg_loss": 0.0,
+            "regularizer_loss": 0.0,
+            "total_loss": 0.0,
+        }
         n_batches = 0
 
         for i in range(0, len(dataset), batch_size):
@@ -331,6 +374,7 @@ class JEPAWorldModel:
         self.metrics.epoch += 1
         self.metrics.prediction_loss = epoch_metrics["prediction_loss"]
         self.metrics.sigreg_loss = epoch_metrics["sigreg_loss"]
+        self.metrics.regularizer_loss = epoch_metrics["regularizer_loss"]
         self.metrics.total_loss = epoch_metrics["total_loss"]
         self.metrics.n_samples = len(dataset)
         self.metrics.history.append(epoch_metrics)
@@ -501,6 +545,7 @@ class JEPAWorldModel:
                     "epoch": self.metrics.epoch,
                     "prediction_loss": self.metrics.prediction_loss,
                     "sigreg_loss": self.metrics.sigreg_loss,
+                    "regularizer_loss": self.metrics.regularizer_loss,
                     "total_loss": self.metrics.total_loss,
                     "n_samples": self.metrics.n_samples,
                     "history": self.metrics.history,
@@ -510,6 +555,7 @@ class JEPAWorldModel:
                     "action_dim": self.action_dim,
                     "embed_dim": self.embed_dim,
                     "sigreg_weight": self.sigreg_weight,
+                    "regularizer_lambda": self.regularizer_lambda,
                     "causal_mask_ratio": self.causal_mask_ratio,
                 },
             },
@@ -535,6 +581,7 @@ class JEPAWorldModel:
             epoch=metrics.get("epoch", 0),
             prediction_loss=metrics.get("prediction_loss", 0),
             sigreg_loss=metrics.get("sigreg_loss", 0),
+            regularizer_loss=metrics.get("regularizer_loss", 0),
             total_loss=metrics.get("total_loss", 0),
             n_samples=metrics.get("n_samples", 0),
             history=metrics.get("history", []),
@@ -550,11 +597,13 @@ class JEPAWorldModel:
             "epoch": self.metrics.epoch,
             "prediction_loss": self.metrics.prediction_loss,
             "sigreg_loss": self.metrics.sigreg_loss,
+            "regularizer_loss": self.metrics.regularizer_loss,
             "total_loss": self.metrics.total_loss,
             "n_samples": self.metrics.n_samples,
             "state_dim": self.state_dim,
             "action_dim": self.action_dim,
             "embed_dim": self.embed_dim,
+            "regularizer_lambda": self.regularizer_lambda,
         }
 
 

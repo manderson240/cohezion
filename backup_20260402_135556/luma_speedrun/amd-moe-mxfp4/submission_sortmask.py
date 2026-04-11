@@ -67,9 +67,9 @@ def _moe_sorting_masked(
     # Build local_expert_mask: which experts appear in this batch?
     # bincount is fast for small topk*M counts
     flat_ids = topk_ids.view(-1).long()
-    local_expert_mask = (
-        torch.bincount(flat_ids, minlength=num_experts) > 0
-    ).to(torch.int32, device=device)
+    local_expert_mask = (torch.bincount(flat_ids, minlength=num_experts) > 0).to(
+        torch.int32, device=device
+    )
 
     # Allocate sort buffers at full size (same as normal sort — CK requires this)
     max_num_tokens_padded = int(topk_ids.numel() + num_experts * block_size - topk)
@@ -91,9 +91,9 @@ def _moe_sorting_masked(
         moe_buf,
         num_experts,
         int(block_size),
-        local_expert_mask,   # <-- the key difference
-        None,                # num_local_tokens
-        0,                   # dispatch_policy
+        local_expert_mask,  # <-- the key difference
+        None,  # num_local_tokens
+        0,  # dispatch_policy
     )
 
     return sorted_ids, sorted_weights, sorted_expert_ids, num_valid_ids, moe_buf
@@ -137,7 +137,7 @@ def _fused_moe_masked(
         q_dtype_a,
         q_dtype_w,
         quant_type,
-        True,   # isG1U1 (gate+up fused)
+        True,  # isG1U1 (gate+up fused)
         activation,
         False,  # doweight_stage1
         hidden_pad,
@@ -148,10 +148,8 @@ def _fused_moe_masked(
     block_size_M = int(metadata.block_m)
 
     # ── Masked sort ──
-    sorted_ids, sorted_weights, sorted_expert_ids, num_valid_ids, moe_out = (
-        _moe_sorting_masked(
-            topk_ids, topk_weight, E, model_dim, dtype, block_size_M
-        )
+    sorted_ids, sorted_weights, sorted_expert_ids, num_valid_ids, moe_out = _moe_sorting_masked(
+        topk_ids, topk_weight, E, model_dim, dtype, block_size_M
     )
 
     # ── Activation quantization (matches fused_moe_2stages per_1x32 path) ──
@@ -170,6 +168,7 @@ def _fused_moe_masked(
         )
     else:
         from aiter import get_hip_quant
+
         quant_func = get_hip_quant(quant_type)
         a1, a1_scale = quant_func(
             hidden_states,
@@ -217,6 +216,7 @@ def _fused_moe_masked(
         )
     else:
         from aiter import get_hip_quant
+
         quant_func = get_hip_quant(quant_type)
         a2, a2_scale = quant_func(
             a2,

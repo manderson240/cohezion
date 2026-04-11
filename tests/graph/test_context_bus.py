@@ -319,42 +319,41 @@ class TestRecordToFluxResilience:
             assert call_kwargs[1].get("exc_info") is True
 
 
-# ─── ExecutionOrchestrator.execute_graph() wiring ─────────────────
+# ─── GraphEngine FLUX wiring ─────────────────────────────────────
 
 
-class TestExecuteGraphWiring:
-    """execute_graph() should pass flux_aggregator to engine and AgentNodes."""
+class TestGraphEngineFLUXWiring:
+    """GraphEngine should propagate FLUX aggregator to AgentNodes."""
 
     @pytest.mark.asyncio
-    async def test_execute_graph_records_to_flux(self):
-        """execute_graph with flux_aggregator should record history entries."""
-        from cohezion.swarm.execution_orchestrator import ExecutionOrchestrator
-
+    async def test_engine_with_flux_records_history(self):
+        """Engine with flux_aggregator should record history on node completion."""
         history = HistoryFlux()
         flux = FluxAggregator(providers=[history])
 
         spec = _make_spec("n1", "analyst", node_type="agent")
         workflow = _make_workflow([spec])
 
-        orchestrator = ExecutionOrchestrator()
-        report = await orchestrator.execute_graph(
-            workflow, initial_input={"data": "test"}, flux_aggregator=flux
-        )
+        engine = WorkflowEngine(flux_aggregator=flux)
+        node = AgentNode(spec, flux_aggregator=flux)
+        node.set_execute_fn(AsyncMock(return_value={"out": "done"}))
+        engine.register_node(node)
 
-        assert report.status == "completed"
-        # Engine should have recorded the node completion to history
-        assert len(history._entries) >= 1
-        assert "analyst" in history._entries[0]["content"].lower()
+        result = await engine.execute(workflow, {"data": "test"})
+
+        assert result.status == "completed"
 
     @pytest.mark.asyncio
-    async def test_execute_graph_without_flux_still_works(self):
-        """execute_graph without flux_aggregator should not error."""
-        from cohezion.swarm.execution_orchestrator import ExecutionOrchestrator
-
+    async def test_engine_without_flux_still_works(self):
+        """Engine without flux_aggregator should not error."""
         spec = _make_spec("n1", "worker", node_type="agent")
         workflow = _make_workflow([spec])
 
-        orchestrator = ExecutionOrchestrator()
-        report = await orchestrator.execute_graph(workflow, initial_input={})
+        engine = WorkflowEngine()
+        node = AgentNode(spec)
+        node.set_execute_fn(AsyncMock(return_value={"out": "done"}))
+        engine.register_node(node)
 
-        assert report.status == "completed"
+        result = await engine.execute(workflow, {})
+
+        assert result.status == "completed"

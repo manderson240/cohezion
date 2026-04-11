@@ -1,0 +1,39 @@
+{
+  "taskVersion": {
+    "versionNumber": 1,
+    "name": "exec_error_monitoring_13",
+    "description": "Detect and correct errors in plan execution.",
+    "definition": "@kbench.task(name=\"exec_error_monitoring_13\")\ndef exec_error_monitoring_13(llm) -> bool:\n    \"\"\"Detect and correct errors in plan execution.\"\"\"\n    prompt = \"\"\"Plan: Wake up \u2192 Shower \u2192 Breakfast \u2192 Work\n\nExecuted: Wake up \u2192 Breakfast \u2192 Shower \u2192 Work\n\nWhat happened?\n\nA) Correct execution\nB) Skipped a step\nC) Order error\nD) Added extra step\"\"\"\n    response = llm.prompt(prompt)\n    return bool(kbench.assertions.assert_true(\"C\" in response, expectation=\"Correct answer is C\"))\n"
+  },
+  "modelVersion": {},
+  "state": "BENCHMARK_TASK_RUN_STATE_COMPLETED",
+  "startTime": "2026-04-11T05:01:32.454725Z",
+  "endTime": "2026-04-11T05:01:39.996913Z",
+  "conversations": [
+    {
+      "id": "exec_error_monitoring_13-a24af767",
+      "metrics": {},
+      "modelVersionSlug": "model_version_slug for conversation is DEPRECATED"
+    }
+  ],
+  "results": [
+    {
+      "type": "AGGREGATED",
+      "booleanResult": true
+    }
+  ],
+  "assertions": [
+    {
+      "expectation": "Correct answer is C",
+      "status": "BENCHMARK_TASK_RUN_ASSERTION_STATUS_PASSED",
+      "lineNumber": 1109,
+      "definition": "return bool(kbench.assertions.assert_true(\"C\" in response, expectation=\"Correct answer is C\"))",
+      "conversationRequestIds": [
+        {
+          "conversationId": "exec_error_monitoring_13-a24af767"
+        }
+      ]
+    }
+  ],
+  "pyRunId": "exec_error_monitoring_13-Run #1"
+}

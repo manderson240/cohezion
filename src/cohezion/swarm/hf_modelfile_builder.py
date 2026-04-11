@@ -6,6 +6,7 @@ import logging
 import subprocess
 from pathlib import Path
 
+import aiofiles
 import httpx
 
 
@@ -35,9 +36,9 @@ class HFModelfileBuilder:
                 async with httpx.AsyncClient(follow_redirects=True, timeout=120.0) as client:
                     async with client.stream("GET", url) as response:
                         response.raise_for_status()
-                        with open(dest_path, "wb") as f:
+                        async with aiofiles.open(dest_path, "wb") as f:
                             async for chunk in response.aiter_bytes():
-                                f.write(chunk)
+                                await f.write(chunk)
                 break  # Success, exit retry loop
             except (httpx.RuntimeError, httpx.RequestError) as e:
                 logger.error(f"HTTPX error on attempt {attempt + 1}/{max_retries}: {e}")

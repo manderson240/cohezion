@@ -6,6 +6,7 @@ This might be a single-dispatch attention that eliminates the 2-dispatch overhea
 """
 
 import os
+
 os.environ["PYTORCH_ROCM_ARCH"] = "gfx950"
 
 import torch
@@ -25,6 +26,7 @@ MATMUL_MAX_BS = 4
 MATMUL_MAX_TOTAL_KV = 32768
 
 _cache = {}
+
 
 def _quantize_fp8(t):
     fi = torch.finfo(FP8_DTYPE)
@@ -79,31 +81,31 @@ def _try_fmha_v3(data):
         v_padded[:, :, :V_HEAD_DIM] = kv_buf[:, :, :V_HEAD_DIM]
 
         out_tuple = fmha_v3_varlen_fwd(
-            q_3d,                  # q [total_q, nheads, 576]
-            k_full,                # k [total_kv, nkv, 576]
-            v_padded,              # v [total_kv, nkv, 576] (padded)
-            qo_indptr,             # cu_seqlens_q
-            kv_indptr,             # cu_seqlens_k
-            qseqlen,               # max_seqlen_q
-            kvseqlen,              # max_seqlen_k
-            1,                     # min_seqlen_q
-            0.0,                   # dropout_p
-            SM_SCALE,              # softmax_scale
-            0.0,                   # logits_soft_cap
-            False,                 # zero_tensors
-            False,                 # is_causal (decode = no causal mask)
-            -1,                    # window_size_left
-            -1,                    # window_size_right
-            False,                 # return_softmax_lse
-            False,                 # return_dropout_randval
-            0,                     # how_v3_bf16_cvt
-            None,                  # out
-            None,                  # block_table
-            None,                  # bias
-            None,                  # alibi_slopes
-            q_scale,               # q_descale (FP8 scale)
-            kv_scale,              # k_descale (FP8 scale)
-            kv_scale,              # v_descale (FP8 scale, same as K)
+            q_3d,  # q [total_q, nheads, 576]
+            k_full,  # k [total_kv, nkv, 576]
+            v_padded,  # v [total_kv, nkv, 576] (padded)
+            qo_indptr,  # cu_seqlens_q
+            kv_indptr,  # cu_seqlens_k
+            qseqlen,  # max_seqlen_q
+            kvseqlen,  # max_seqlen_k
+            1,  # min_seqlen_q
+            0.0,  # dropout_p
+            SM_SCALE,  # softmax_scale
+            0.0,  # logits_soft_cap
+            False,  # zero_tensors
+            False,  # is_causal (decode = no causal mask)
+            -1,  # window_size_left
+            -1,  # window_size_right
+            False,  # return_softmax_lse
+            False,  # return_dropout_randval
+            0,  # how_v3_bf16_cvt
+            None,  # out
+            None,  # block_table
+            None,  # bias
+            None,  # alibi_slopes
+            q_scale,  # q_descale (FP8 scale)
+            kv_scale,  # k_descale (FP8 scale)
+            kv_scale,  # v_descale (FP8 scale, same as K)
         )
         # Result is tuple (out, ...), take first element and trim V padding
         out = out_tuple[0]  # [total_q, nheads, 576]
@@ -131,20 +133,54 @@ def _standard_mla(data):
     if key not in _cache:
         nq, nkv = NUM_HEADS, NUM_KV_HEADS
         kvl = (kv_indptr[1:] - kv_indptr[:-1]).to(torch.int32)
-        info = get_mla_metadata_info_v1(bs, qseqlen, nq, q_fp8.dtype, kv_fp8.dtype,
-            is_sparse=False, fast_mode=False, num_kv_splits=num_splits, intra_batch_mode=True)
+        info = get_mla_metadata_info_v1(
+            bs,
+            qseqlen,
+            nq,
+            q_fp8.dtype,
+            kv_fp8.dtype,
+            is_sparse=False,
+            fast_mode=False,
+            num_kv_splits=num_splits,
+            intra_batch_mode=True,
+        )
         work = [torch.empty(s, dtype=t, device="cuda") for s, t in info]
         wm, wi, wis, ri, rfm, rpm = work
-        get_mla_metadata_v1(qo_indptr, kv_indptr, kvl, nq//nkv, nkv, True, wm, wis, wi, ri, rfm, rpm,
-            page_size=PAGE_SIZE, kv_granularity=16, max_seqlen_qo=qseqlen, uni_seqlen_qo=qseqlen,
-            fast_mode=False, max_split_per_batch=num_splits, intra_batch_mode=True,
-            dtype_q=q_fp8.dtype, dtype_kv=kv_fp8.dtype)
+        get_mla_metadata_v1(
+            qo_indptr,
+            kv_indptr,
+            kvl,
+            nq // nkv,
+            nkv,
+            True,
+            wm,
+            wis,
+            wi,
+            ri,
+            rfm,
+            rpm,
+            page_size=PAGE_SIZE,
+            kv_granularity=16,
+            max_seqlen_qo=qseqlen,
+            uni_seqlen_qo=qseqlen,
+            fast_mode=False,
+            max_split_per_batch=num_splits,
+            intra_batch_mode=True,
+            dtype_q=q_fp8.dtype,
+            dtype_kv=kv_fp8.dtype,
+        )
         tq = bs * qseqlen
         tkv = int(kv_indptr[-1].item())
         buf = max(num_splits, 16)
         _cache[key] = {
-            "wm": wm, "wi": wi, "wis": wis, "ri": ri, "rfm": rfm, "rpm": rpm,
-            "kvi": torch.arange(tkv, dtype=torch.int32, device="cuda"), "kvl": kvl,
+            "wm": wm,
+            "wi": wi,
+            "wis": wis,
+            "ri": ri,
+            "rfm": rfm,
+            "rpm": rpm,
+            "kvi": torch.arange(tkv, dtype=torch.int32, device="cuda"),
+            "kvl": kvl,
             "logits": torch.empty((buf, tq, nq, V_HEAD_DIM), dtype=torch.float32, device="cuda"),
             "lse": torch.empty((buf, tq, nq), dtype=torch.float32, device="cuda"),
             "out": torch.empty((tq, nq, V_HEAD_DIM), dtype=torch.bfloat16, device="cuda"),
@@ -153,10 +189,26 @@ def _standard_mla(data):
 
     mla_decode_stage1_asm_fwd = aiter.mla_decode_stage1_asm_fwd  # top-level, not in aiter.mla
     mla_decode_stage1_asm_fwd(
-        q_fp8.view(-1, NUM_HEADS, QK_HEAD_DIM), kv_4d, qo_indptr, kv_indptr,
-        m["kvi"], m["kvl"], None, m["wm"], m["wi"], m["wis"],
-        qseqlen, PAGE_SIZE, NUM_KV_HEADS, SM_SCALE, m["logits"], m["lse"], m["out"],
-        q_scale=q_scale, kv_scale=kv_scale)
+        q_fp8.view(-1, NUM_HEADS, QK_HEAD_DIM),
+        kv_4d,
+        qo_indptr,
+        kv_indptr,
+        m["kvi"],
+        m["kvl"],
+        None,
+        m["wm"],
+        m["wi"],
+        m["wis"],
+        qseqlen,
+        PAGE_SIZE,
+        NUM_KV_HEADS,
+        SM_SCALE,
+        m["logits"],
+        m["lse"],
+        m["out"],
+        q_scale=q_scale,
+        kv_scale=kv_scale,
+    )
     mla_reduce_v1(m["logits"], m["lse"], m["ri"], m["rfm"], m["rpm"], qseqlen, m["out"])
     return m["out"]
 

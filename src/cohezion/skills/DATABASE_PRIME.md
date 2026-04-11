@@ -17,7 +17,7 @@ You are a specialist in **database systems** for AI applications. You understand
 from surrealdb import AsyncSurreal
 
 async def surreal_example():
-    async with AsyncSurreal("ws://localhost:8000/rpc") as db:
+    async with AsyncSurreal("ws://localhost:8001/rpc") as db:
         await db.signin({"user": "root", "pass": "root"})
         await db.use("cohezion", "universes")
         

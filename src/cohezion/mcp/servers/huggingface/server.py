@@ -18,8 +18,20 @@ from cohezion.security.credentials import get_credentials
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("huggingface-mcp")
 
-# Configuration
-HF_API_TOKEN = get_credentials().get_secret("COHEZION_HF_TOKEN", env_var="HF_API_TOKEN") or ""
+# Lazy accessor for HF_API_TOKEN to prevent startup latency
+_hf_api_token: str | None = None
+
+
+def get_hf_api_token() -> str:
+    """Get Hugging Face API token with lazy initialization."""
+    global _hf_api_token
+    if _hf_api_token is None:
+        _hf_api_token = (
+            get_credentials().get_secret("COHEZION_HF_TOKEN", env_var="HF_API_TOKEN") or ""
+        )
+    return _hf_api_token
+
+
 HF_API_BASE = "https://huggingface.co/api"
 
 # Initialize FastMCP server
@@ -30,7 +42,7 @@ class HuggingFaceService:
     """Hugging Face Hub API client."""
 
     def __init__(self, token: str | None = None):
-        self.token = token or HF_API_TOKEN
+        self.token = token or get_hf_api_token()
         self._session: aiohttp.ClientSession | None = None
 
     async def _get_session(self) -> aiohttp.ClientSession:
@@ -222,7 +234,7 @@ def get_service() -> HuggingFaceService:
     """Get or create HF service."""
     global _service
     if _service is None:
-        _service = HuggingFaceService(HF_API_TOKEN)
+        _service = HuggingFaceService(get_hf_api_token())
     return _service
 
 
@@ -312,6 +324,6 @@ async def hf_get_readme(model_id: str) -> dict[str, Any]:
 
 
 if __name__ == "__main__":
-    if not HF_API_TOKEN:
+    if not get_hf_api_token():
         logger.warning("HF_API_TOKEN not set - inference will fail")
     app.run(transport="stdio")

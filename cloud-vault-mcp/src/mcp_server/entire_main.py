@@ -100,7 +100,9 @@ def dlq(vault_path: str) -> None:
         click.echo("Dead Letter Queue")
         click.echo("=" * 80)
         for entry in entries:
-            click.echo(f"Commit: {entry['commit_hash'][:8]} - Failures: {entry['failure_count']}")
+            click.echo(
+                f"Commit: {entry['commit_hash'][:8]} - Failures: {entry['failure_count']}"
+            )
             click.echo(f"  Reason: {entry['failure_reason']}")
             click.echo(f"  Last attempt: {entry['last_attempt']}")
             click.echo()

@@ -4,6 +4,7 @@
 """Probe: Extract aiter's FP4 quantization details for matching in custom kernel."""
 
 import os
+
 os.environ["PYTORCH_ROCM_ARCH"] = "gfx950"
 os.environ["CXX"] = "clang++"
 
@@ -28,12 +29,46 @@ def custom_kernel(data: input_t) -> output_t:
         print(f"[PROBE] Cannot get source: {e}")
 
     # Probe 2: Test quantization on known values
-    test_vals = torch.tensor([
-        [0.0, 0.5, 1.0, 1.5, 2.0, 3.0, 4.0, 6.0,
-         -0.5, -1.0, -1.5, -2.0, -3.0, -4.0, -6.0, 0.25,
-         0.3, 0.7, 0.8, 1.2, 1.3, 1.7, 1.8, 2.4,
-         2.6, 3.4, 3.6, 4.9, 5.1, 7.0, 0.1, 0.0]
-    ], dtype=torch.bfloat16, device="cuda")
+    test_vals = torch.tensor(
+        [
+            [
+                0.0,
+                0.5,
+                1.0,
+                1.5,
+                2.0,
+                3.0,
+                4.0,
+                6.0,
+                -0.5,
+                -1.0,
+                -1.5,
+                -2.0,
+                -3.0,
+                -4.0,
+                -6.0,
+                0.25,
+                0.3,
+                0.7,
+                0.8,
+                1.2,
+                1.3,
+                1.7,
+                1.8,
+                2.4,
+                2.6,
+                3.4,
+                3.6,
+                4.9,
+                5.1,
+                7.0,
+                0.1,
+                0.0,
+            ]
+        ],
+        dtype=torch.bfloat16,
+        device="cuda",
+    )
 
     fp4_data, scale = dynamic_mxfp4_quant(test_vals)
     fp4_bytes = fp4_data.view(torch.uint8)
@@ -48,11 +83,13 @@ def custom_kernel(data: input_t) -> output_t:
         byte_val = fp4_bytes[0, i].item()
         lo = byte_val & 0xF
         hi = (byte_val >> 4) & 0xF
-        orig0 = test_vals[0, 2*i].item()
-        orig1 = test_vals[0, 2*i+1].item()
-        print(f"[PROBE] byte[{i}]=0x{byte_val:02x}: "
-              f"elem[{2*i}]={orig0:.4f}→{lo:04b}({lo}), "
-              f"elem[{2*i+1}]={orig1:.4f}→{hi:04b}({hi})")
+        orig0 = test_vals[0, 2 * i].item()
+        orig1 = test_vals[0, 2 * i + 1].item()
+        print(
+            f"[PROBE] byte[{i}]=0x{byte_val:02x}: "
+            f"elem[{2 * i}]={orig0:.4f}→{lo:04b}({lo}), "
+            f"elem[{2 * i + 1}]={orig1:.4f}→{hi:04b}({hi})"
+        )
 
     # Probe 4: Check E8M0 scale value
     print(f"[PROBE] E8M0 scale raw: {scale_bytes[0, 0].item()}")
@@ -66,13 +103,16 @@ def custom_kernel(data: input_t) -> output_t:
     # Probe 5: Check module path for Triton kernel source
     try:
         import aiter.ops.triton.quant as qmod
+
         print(f"[PROBE] quant module file: {qmod.__file__}")
     except Exception as e:
         print(f"[PROBE] Cannot find quant module: {e}")
 
     # Do the actual GEMM for the test to pass
     import aiter
+
     Aq, Asc = dynamic_mxfp4_quant(A.contiguous())
     Ash = e8m0_shuffle(Asc).view(dtypes.fp8_e8m0)
-    return aiter.gemm_a4w4(Aq.view(dtypes.fp4x2), B_shuffle, Ash, B_scale_sh,
-                           dtype=dtypes.bf16, bpreshuffle=True)
+    return aiter.gemm_a4w4(
+        Aq.view(dtypes.fp4x2), B_shuffle, Ash, B_scale_sh, dtype=dtypes.bf16, bpreshuffle=True
+    )

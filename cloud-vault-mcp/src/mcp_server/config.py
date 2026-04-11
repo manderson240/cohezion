@@ -79,7 +79,7 @@ class ServerConfig:
         )
     )
     surrealdb_url: str = field(
-        default_factory=lambda: os.environ.get("SURREALDB_URL", "http://localhost:8000")
+        default_factory=lambda: os.environ.get("SURREALDB_URL", "http://localhost:8001")
     )
     surrealdb_namespace: str = field(
         default_factory=lambda: os.environ.get("SURREALDB_NAMESPACE", "cohezion")
@@ -158,19 +158,29 @@ class ServerConfig:
         default_factory=lambda: os.environ.get("GOOGLESQL_URL", "http://localhost:8081")
     )
     sheets_enabled: bool = field(
-        default_factory=lambda: os.environ.get("SHEETS_ENABLED", "true").lower() == "true"
+        default_factory=lambda: (
+            os.environ.get("SHEETS_ENABLED", "true").lower() == "true"
+        )
     )
     surrealdb_enabled: bool = field(
-        default_factory=lambda: os.environ.get("SURREALDB_ENABLED", "true").lower() == "true"
+        default_factory=lambda: (
+            os.environ.get("SURREALDB_ENABLED", "true").lower() == "true"
+        )
     )
     googlesql_enabled: bool = field(
-        default_factory=lambda: os.environ.get("GOOGLESQL_ENABLED", "true").lower() == "true"
+        default_factory=lambda: (
+            os.environ.get("GOOGLESQL_ENABLED", "true").lower() == "true"
+        )
     )
     teleport_enabled: bool = field(
-        default_factory=lambda: os.environ.get("TELEPORT_ENABLED", "true").lower() == "true"
+        default_factory=lambda: (
+            os.environ.get("TELEPORT_ENABLED", "true").lower() == "true"
+        )
     )
     memory_bridge_enabled: bool = field(
-        default_factory=lambda: os.environ.get("MEMORY_BRIDGE_ENABLED", "true").lower() == "true"
+        default_factory=lambda: (
+            os.environ.get("MEMORY_BRIDGE_ENABLED", "true").lower() == "true"
+        )
     )
 
     @classmethod

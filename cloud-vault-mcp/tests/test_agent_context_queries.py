@@ -17,7 +17,7 @@ class TestAgentContextQueries:
     def queries(self):
         """Create query executor for tests."""
         return AgentContextQueries(
-            surrealdb_url="http://localhost:8000",
+            surrealdb_url="http://localhost:8001",
             namespace="cohezion",
             database="vault",
             username="root",

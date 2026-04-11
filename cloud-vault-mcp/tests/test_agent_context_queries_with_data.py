@@ -43,7 +43,7 @@ def create_sample_data():
     """
 
     response = client.post(
-        "http://localhost:8000/sql",
+        "http://localhost:8001/sql",
         headers=headers,
         auth=("root", "root"),
         content=session_query,
@@ -66,7 +66,7 @@ def create_sample_data():
     """
 
     response = client.post(
-        "http://localhost:8000/sql",
+        "http://localhost:8001/sql",
         headers=headers,
         auth=("root", "root"),
         content=decision_query,
@@ -89,7 +89,7 @@ def create_sample_data():
     """
 
     response = client.post(
-        "http://localhost:8000/sql",
+        "http://localhost:8001/sql",
         headers=headers,
         auth=("root", "root"),
         content=action_query,
@@ -112,7 +112,7 @@ def create_sample_data():
     """
 
     response = client.post(
-        "http://localhost:8000/sql",
+        "http://localhost:8001/sql",
         headers=headers,
         auth=("root", "root"),
         content=outcome_query,
@@ -134,7 +134,7 @@ def create_sample_data():
     """
 
     response = client.post(
-        "http://localhost:8000/sql",
+        "http://localhost:8001/sql",
         headers=headers,
         auth=("root", "root"),
         content=lesson_query,

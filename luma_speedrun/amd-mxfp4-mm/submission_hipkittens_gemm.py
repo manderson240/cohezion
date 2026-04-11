@@ -37,9 +37,9 @@ from task import input_t, output_t
 # HipKittens-inspired constants for MI355X (gfx950)
 # Based on CDNA4 architecture: 304 CUs, 8 XCDs
 HIPKITTENS_WAVES_PER_SIMD = 2  # 8 waves = 2 waves × 4 SIMDs per CU
-HIPKITTENS_MFMA_TILE_M = 16   # MFMA tile size M
-HIPKITTENS_MFMA_TILE_N = 16   # MFMA tile size N
-HIPKITTENS_MFMA_TILE_K = 64   # MFMA tile K for FP4 (64 elements)
+HIPKITTENS_MFMA_TILE_M = 16  # MFMA tile size M
+HIPKITTENS_MFMA_TILE_N = 16  # MFMA tile size N
+HIPKITTENS_MFMA_TILE_K = 64  # MFMA tile K for FP4 (64 elements)
 
 # E8M0 scale group alignment
 SCALE_GROUP_SIZE = 32
@@ -137,9 +137,7 @@ def kernel(data: input_t) -> output_t:
     # - 8-wave ping-pong scheduling (compute vs memory waves)
     # - Tile-based MFMA computation
     # - XCD-aware memory layout when bpreshuffle=True
-    result = _compute_gemm_with_hipkittens_style(
-        A_q, B_shuffle, A_scale_sh, B_scale_sh, M, N, K
-    )
+    result = _compute_gemm_with_hipkittens_style(A_q, B_shuffle, A_scale_sh, B_scale_sh, M, N, K)
 
     return result
 

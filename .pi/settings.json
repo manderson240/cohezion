@@ -10,8 +10,16 @@
     "archiveDir": ".pi/archive",
     "trajectoryDir": ".pi/trajectories"
   },
-  "tools": ["read", "bash", "edit", "write", "grep", "find", "ls"],
-  "models": "kimi-k2.5:cloud,minimax-m2.7:cloud,gemma4:31b-cloud,glm-5.1:cloud,glm-5:cloud",
+  "tools": [
+    "read",
+    "bash",
+    "edit",
+    "write",
+    "grep",
+    "find",
+    "ls"
+  ],
+  "models": "alibayram/smollm3:latest,deepcoder:14b,gemma3:4b,glm-4.7-flash:latest,glm-5,gpt-oss:20b,kimi-k2.5:cloud,lfm2.5-thinking:latest,minimax-m2.7,ministral-3:3b,moondream:latest,nemotron-3-nano:latest,nemotron-3-super:120b,nomic-embed-text:latest,openai/gpt-oss-20b,phi3:mini,phi4-mini-reasoning:latest,phi4:latest,qwen2-math:7b,qwen2.5-coder:7b,qwen3-coder-next,qwen3-coder:30b,qwen3.5:0.8b,qwen3.5:397b-cloud,qwen3.5:cloud",
   "theme": "dark",
   "thinking": "high"
 }

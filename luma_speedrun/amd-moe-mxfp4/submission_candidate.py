@@ -5,9 +5,42 @@ import os
 from typing import Tuple, Any
 import numpy as np
 
-def custom_kernel(data: Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]) -> torch.Tensor:
+
+def custom_kernel(
+    data: Tuple[
+        torch.Tensor,
+        torch.Tensor,
+        torch.Tensor,
+        torch.Tensor,
+        torch.Tensor,
+        torch.Tensor,
+        torch.Tensor,
+        torch.Tensor,
+        torch.Tensor,
+        torch.Tensor,
+        torch.Tensor,
+        torch.Tensor,
+        torch.Tensor,
+        torch.Tensor,
+    ],
+) -> torch.Tensor:
     # Unpack input tensors
-    hidden_states, w1, w2, scales, sorted_token_ids, sorted_expert_ids, num_valid_ids, local_expert_mask, gate_up_scale, down_scale, silu_scale, quant_a1_scale, quant_a2_scale, expert_weights = data
+    (
+        hidden_states,
+        w1,
+        w2,
+        scales,
+        sorted_token_ids,
+        sorted_expert_ids,
+        num_valid_ids,
+        local_expert_mask,
+        gate_up_scale,
+        down_scale,
+        silu_scale,
+        quant_a1_scale,
+        quant_a2_scale,
+        expert_weights,
+    ) = data
 
     # Prepare HIP kernel compilation
     kernel_code = """
@@ -173,23 +206,19 @@ extern "C" void launch_moe_kernel(
         f"{kernel_name}.o",
         "-x",
         "hip",
-        "-"
+        "-",
     ]
 
     try:
-        process = subprocess.Popen(hipcc_cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        process = subprocess.Popen(
+            hipcc_cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+        )
         stdout, stderr = process.communicate(input=kernel_code.encode())
         if process.returncode != 0:
             raise RuntimeError(f"Compilation failed: {stderr.decode()}")
 
         # Link object file
-        link_cmd = [
-            "hipcc",
-            "-shared",
-            "-o",
-            f"{kernel_name}.so",
-            f"{kernel_name}.o"
-        ]
+        link_cmd = ["hipcc", "-shared", "-o", f"{kernel_name}.so", f"{kernel_name}.o"]
         process = subprocess.Popen(link_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         stdout, stderr = process.communicate()
         if process.returncode != 0:
@@ -218,7 +247,7 @@ extern "C" void launch_moe_kernel(
             ctypes.c_int,
             ctypes.c_int,
             ctypes.c_int,
-            ctypes.c_int
+            ctypes.c_int,
         ]
 
         # Convert tensors to ctypes

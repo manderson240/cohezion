@@ -64,30 +64,30 @@ KERNEL_ARGS_SIZE = 288  # bytes, from sizeof(KernelArgs) in C++
 
 # Field offsets in the 288-byte packed struct
 OFFSETS = {
-    'ptr_D': 0,
-    'ptr_C': 16,
-    'ptr_A': 32,
-    'ptr_B': 48,
-    'alpha': 64,
-    'beta': 80,
-    'stride_D0': 96,
-    'stride_D1': 112,
-    'stride_C0': 128,
-    'stride_C1': 144,
-    'stride_A0': 160,
-    'stride_A1': 176,
-    'stride_B0': 192,
-    'stride_B1': 208,
-    'M': 224,
-    'N': 240,
-    'K': 256,
-    'ptr_ScaleA': 272,
-    'ptr_ScaleB': 280,
-    'stride_ScaleA0': 296,
-    'stride_ScaleA1': 312,
-    'stride_ScaleB0': 328,
-    'stride_ScaleB1': 344,
-    'log2_k_split': 364,
+    "ptr_D": 0,
+    "ptr_C": 16,
+    "ptr_A": 32,
+    "ptr_B": 48,
+    "alpha": 64,
+    "beta": 80,
+    "stride_D0": 96,
+    "stride_D1": 112,
+    "stride_C0": 128,
+    "stride_C1": 144,
+    "stride_A0": 160,
+    "stride_A1": 176,
+    "stride_B0": 192,
+    "stride_B1": 208,
+    "M": 224,
+    "N": 240,
+    "K": 256,
+    "ptr_ScaleA": 272,
+    "ptr_ScaleB": 280,
+    "stride_ScaleA0": 296,
+    "stride_ScaleA1": 312,
+    "stride_ScaleB0": 328,
+    "stride_ScaleB1": 344,
+    "log2_k_split": 364,
 }
 
 
@@ -132,12 +132,12 @@ class DirectKernelDispatch:
             self._hip.hipModuleLaunchKernel.restype = ctypes.c_int
             self._hip.hipModuleLaunchKernel.argtypes = [
                 ctypes.c_void_p,  # function
-                ctypes.c_uint,    # gridX
-                ctypes.c_uint,    # gridY
-                ctypes.c_uint,    # gridZ
-                ctypes.c_uint,    # blockX
-                ctypes.c_uint,    # blockY
-                ctypes.c_uint,    # blockZ
+                ctypes.c_uint,  # gridX
+                ctypes.c_uint,  # gridY
+                ctypes.c_uint,  # gridZ
+                ctypes.c_uint,  # blockX
+                ctypes.c_uint,  # blockY
+                ctypes.c_uint,  # blockZ
                 ctypes.c_size_t,  # sharedMem
                 ctypes.c_void_p,  # stream
                 ctypes.POINTER(ctypes.c_void_p),  # args
@@ -224,38 +224,38 @@ class DirectKernelDispatch:
         args_buf = bytearray(KERNEL_ARGS_SIZE)
 
         # Pack pointers as uint64 (little-endian)
-        struct.pack_into("<Q", args_buf, OFFSETS['ptr_D'], ptr_D)
-        struct.pack_into("<Q", args_buf, OFFSETS['ptr_C'], ptr_C)
-        struct.pack_into("<Q", args_buf, OFFSETS['ptr_A'], ptr_A)
-        struct.pack_into("<Q", args_buf, OFFSETS['ptr_B'], ptr_B)
-        struct.pack_into("<Q", args_buf, OFFSETS['ptr_ScaleA'], ptr_ScaleA)
-        struct.pack_into("<Q", args_buf, OFFSETS['ptr_ScaleB'], ptr_ScaleB)
+        struct.pack_into("<Q", args_buf, OFFSETS["ptr_D"], ptr_D)
+        struct.pack_into("<Q", args_buf, OFFSETS["ptr_C"], ptr_C)
+        struct.pack_into("<Q", args_buf, OFFSETS["ptr_A"], ptr_A)
+        struct.pack_into("<Q", args_buf, OFFSETS["ptr_B"], ptr_B)
+        struct.pack_into("<Q", args_buf, OFFSETS["ptr_ScaleA"], ptr_ScaleA)
+        struct.pack_into("<Q", args_buf, OFFSETS["ptr_ScaleB"], ptr_ScaleB)
 
         # Pack floats
-        struct.pack_into("<f", args_buf, OFFSETS['alpha'], alpha)
-        struct.pack_into("<f", args_buf, OFFSETS['beta'], beta)
+        struct.pack_into("<f", args_buf, OFFSETS["alpha"], alpha)
+        struct.pack_into("<f", args_buf, OFFSETS["beta"], beta)
 
         # Pack strides (uint32)
-        struct.pack_into("<I", args_buf, OFFSETS['stride_D0'], stride_D0)
-        struct.pack_into("<I", args_buf, OFFSETS['stride_D1'], 0)
-        struct.pack_into("<I", args_buf, OFFSETS['stride_C0'], stride_C0)
-        struct.pack_into("<I", args_buf, OFFSETS['stride_C1'], 0)
-        struct.pack_into("<I", args_buf, OFFSETS['stride_A0'], stride_A0)
-        struct.pack_into("<I", args_buf, OFFSETS['stride_A1'], 0)
-        struct.pack_into("<I", args_buf, OFFSETS['stride_B0'], stride_B0)
-        struct.pack_into("<I", args_buf, OFFSETS['stride_B1'], 0)
-        struct.pack_into("<I", args_buf, OFFSETS['stride_ScaleA0'], stride_ScaleA0)
-        struct.pack_into("<I", args_buf, OFFSETS['stride_ScaleA1'], 0)
-        struct.pack_into("<I", args_buf, OFFSETS['stride_ScaleB0'], stride_ScaleB0)
-        struct.pack_into("<I", args_buf, OFFSETS['stride_ScaleB1'], 0)
+        struct.pack_into("<I", args_buf, OFFSETS["stride_D0"], stride_D0)
+        struct.pack_into("<I", args_buf, OFFSETS["stride_D1"], 0)
+        struct.pack_into("<I", args_buf, OFFSETS["stride_C0"], stride_C0)
+        struct.pack_into("<I", args_buf, OFFSETS["stride_C1"], 0)
+        struct.pack_into("<I", args_buf, OFFSETS["stride_A0"], stride_A0)
+        struct.pack_into("<I", args_buf, OFFSETS["stride_A1"], 0)
+        struct.pack_into("<I", args_buf, OFFSETS["stride_B0"], stride_B0)
+        struct.pack_into("<I", args_buf, OFFSETS["stride_B1"], 0)
+        struct.pack_into("<I", args_buf, OFFSETS["stride_ScaleA0"], stride_ScaleA0)
+        struct.pack_into("<I", args_buf, OFFSETS["stride_ScaleA1"], 0)
+        struct.pack_into("<I", args_buf, OFFSETS["stride_ScaleB0"], stride_ScaleB0)
+        struct.pack_into("<I", args_buf, OFFSETS["stride_ScaleB1"], 0)
 
         # Pack dimensions (uint32)
-        struct.pack_into("<I", args_buf, OFFSETS['M'], M)
-        struct.pack_into("<I", args_buf, OFFSETS['N'], N)
-        struct.pack_into("<I", args_buf, OFFSETS['K'], K)
+        struct.pack_into("<I", args_buf, OFFSETS["M"], M)
+        struct.pack_into("<I", args_buf, OFFSETS["N"], N)
+        struct.pack_into("<I", args_buf, OFFSETS["K"], K)
 
         # Pack log2_k_split (int32, at offset 364)
-        struct.pack_into("<i", args_buf, OFFSETS['log2_k_split'], 0)
+        struct.pack_into("<i", args_buf, OFFSETS["log2_k_split"], 0)
 
         # Get kernel function
         func = self._get_function(kernel_name, co_name)
@@ -282,8 +282,12 @@ class DirectKernelDispatch:
         # Launch kernel
         result = self._hip.hipModuleLaunchKernel(
             func,
-            gdx, gdy, gdz,
-            bdx, bdy, bdz,
+            gdx,
+            gdy,
+            gdz,
+            bdx,
+            bdy,
+            bdz,
             0,  # shared memory
             None,  # default stream
             None,  # args
@@ -301,41 +305,286 @@ class DirectKernelDispatch:
 # CSV data: tile_M, tile_N, splitK, bpreshuffle, knl_name, co_name
 # We select based on M,N dimensions for best tile utilization
 KERNEL_CONFIGS = [
-    (256, 256, 0, 0, "_ZN5aiter44f4gemm_bf16_per1x32Fp4_noBpreShuffle_256x256E", "f4gemm_bf16_per1x32Fp4_noBpreShuffle_256x256.co"),
-    (256, 256, 1, 1, "_ZN5aiter42f4gemm_bf16_per1x32Fp4_BpreShuffle_256x256E", "f4gemm_bf16_per1x32Fp4_BpreShuffle_256x256.co"),
-    (128, 512, 1, 1, "_ZN5aiter42f4gemm_bf16_per1x32Fp4_BpreShuffle_128x512E", "f4gemm_bf16_per1x32Fp4_BpreShuffle_128x512.co"),
-    (192, 256, 0, 1, "_ZN5aiter42f4gemm_bf16_per1x32Fp4_BpreShuffle_192x256E", "f4gemm_bf16_per1x32Fp4_BpreShuffle_192x256.co"),
-    (224, 256, 0, 1, "_ZN5aiter42f4gemm_bf16_per1x32Fp4_BpreShuffle_224x256E", "f4gemm_bf16_per1x32Fp4_BpreShuffle_224x256.co"),
-    (128, 128, 0, 1, "_ZN5aiter42f4gemm_bf16_per1x32Fp4_BpreShuffle_128x128E", "f4gemm_bf16_per1x32Fp4_BpreShuffle_128x128.co"),
-    (128, 256, 0, 1, "_ZN5aiter42f4gemm_bf16_per1x32Fp4_BpreShuffle_128x256E", "f4gemm_bf16_per1x32Fp4_BpreShuffle_128x256.co"),
-    (128, 384, 0, 1, "_ZN5aiter42f4gemm_bf16_per1x32Fp4_BpreShuffle_128x384E", "f4gemm_bf16_per1x32Fp4_BpreShuffle_128x384.co"),
-    (160, 128, 0, 1, "_ZN5aiter42f4gemm_bf16_per1x32Fp4_BpreShuffle_160x128E", "f4gemm_bf16_per1x32Fp4_BpreShuffle_160x128.co"),
-    (160, 256, 0, 1, "_ZN5aiter42f4gemm_bf16_per1x32Fp4_BpreShuffle_160x256E", "f4gemm_bf16_per1x32Fp4_BpreShuffle_160x256.co"),
-    (160, 384, 0, 1, "_ZN5aiter42f4gemm_bf16_per1x32Fp4_BpreShuffle_160x384E", "f4gemm_bf16_per1x32Fp4_BpreShuffle_160x384.co"),
-    (192, 128, 0, 1, "_ZN5aiter42f4gemm_bf16_per1x32Fp4_BpreShuffle_192x128E", "f4gemm_bf16_per1x32Fp4_BpreShuffle_192x128.co"),
-    (224, 128, 0, 1, "_ZN5aiter42f4gemm_bf16_per1x32Fp4_BpreShuffle_224x128E", "f4gemm_bf16_per1x32Fp4_BpreShuffle_224x128.co"),
-    (256, 128, 0, 1, "_ZN5aiter42f4gemm_bf16_per1x32Fp4_BpreShuffle_256x128E", "f4gemm_bf16_per1x32Fp4_BpreShuffle_256x128.co"),
-    (32, 1024, 0, 1, "_ZN5aiter42f4gemm_bf16_per1x32Fp4_BpreShuffle_32x1024E", "f4gemm_bf16_per1x32Fp4_BpreShuffle_32x1024.co"),
-    (32, 128, 0, 1, "_ZN5aiter41f4gemm_bf16_per1x32Fp4_BpreShuffle_32x128E", "f4gemm_bf16_per1x32Fp4_BpreShuffle_32x128.co"),
-    (32, 256, 0, 1, "_ZN5aiter41f4gemm_bf16_per1x32Fp4_BpreShuffle_32x256E", "f4gemm_bf16_per1x32Fp4_BpreShuffle_32x256.co"),
-    (32, 384, 0, 1, "_ZN5aiter41f4gemm_bf16_per1x32Fp4_BpreShuffle_32x384E", "f4gemm_bf16_per1x32Fp4_BpreShuffle_32x384.co"),
-    (32, 512, 0, 1, "_ZN5aiter41f4gemm_bf16_per1x32Fp4_BpreShuffle_32x512E", "f4gemm_bf16_per1x32Fp4_BpreShuffle_32x512.co"),
-    (32, 640, 0, 1, "_ZN5aiter41f4gemm_bf16_per1x32Fp4_BpreShuffle_32x640E", "f4gemm_bf16_per1x32Fp4_BpreShuffle_32x640.co"),
-    (32, 768, 0, 1, "_ZN5aiter41f4gemm_bf16_per1x32Fp4_BpreShuffle_32x768E", "f4gemm_bf16_per1x32Fp4_BpreShuffle_32x768.co"),
-    (32, 896, 0, 1, "_ZN5aiter41f4gemm_bf16_per1x32Fp4_BpreShuffle_32x896E", "f4gemm_bf16_per1x32Fp4_BpreShuffle_32x896.co"),
-    (64, 1024, 0, 1, "_ZN5aiter42f4gemm_bf16_per1x32Fp4_BpreShuffle_64x1024E", "f4gemm_bf16_per1x32Fp4_BpreShuffle_64x1024.co"),
-    (64, 128, 0, 1, "_ZN5aiter41f4gemm_bf16_per1x32Fp4_BpreShuffle_64x128E", "f4gemm_bf16_per1x32Fp4_BpreShuffle_64x128.co"),
-    (64, 256, 0, 1, "_ZN5aiter41f4gemm_bf16_per1x32Fp4_BpreShuffle_64x256E", "f4gemm_bf16_per1x32Fp4_BpreShuffle_64x256.co"),
-    (64, 384, 0, 1, "_ZN5aiter41f4gemm_bf16_per1x32Fp4_BpreShuffle_64x384E", "f4gemm_bf16_per1x32Fp4_BpreShuffle_64x384.co"),
-    (64, 512, 0, 1, "_ZN5aiter41f4gemm_bf16_per1x32Fp4_BpreShuffle_64x512E", "f4gemm_bf16_per1x32Fp4_BpreShuffle_64x512.co"),
-    (64, 640, 0, 1, "_ZN5aiter41f4gemm_bf16_per1x32Fp4_BpreShuffle_64x640E", "f4gemm_bf16_per1x32Fp4_BpreShuffle_64x640.co"),
-    (64, 768, 0, 1, "_ZN5aiter41f4gemm_bf16_per1x32Fp4_BpreShuffle_64x768E", "f4gemm_bf16_per1x32Fp4_BpreShuffle_64x768.co"),
-    (64, 896, 0, 1, "_ZN5aiter41f4gemm_bf16_per1x32Fp4_BpreShuffle_64x896E", "f4gemm_bf16_per1x32Fp4_BpreShuffle_64x896.co"),
-    (96, 128, 0, 1, "_ZN5aiter41f4gemm_bf16_per1x32Fp4_BpreShuffle_96x128E", "f4gemm_bf16_per1x32Fp4_BpreShuffle_96x128.co"),
-    (96, 256, 0, 1, "_ZN5aiter41f4gemm_bf16_per1x32Fp4_BpreShuffle_96x256E", "f4gemm_bf16_per1x32Fp4_BpreShuffle_96x256.co"),
-    (96, 384, 0, 1, "_ZN5aiter41f4gemm_bf16_per1x32Fp4_BpreShuffle_96x384E", "f4gemm_bf16_per1x32Fp4_BpreShuffle_96x384.co"),
-    (96, 512, 0, 1, "_ZN5aiter41f4gemm_bf16_per1x32Fp4_BpreShuffle_96x512E", "f4gemm_bf16_per1x32Fp4_BpreShuffle_96x512.co"),
-    (96, 640, 0, 1, "_ZN5aiter41f4gemm_bf16_per1x32Fp4_BpreShuffle_96x640E", "f4gemm_bf16_per1x32Fp4_BpreShuffle_96x640.co"),
+    (
+        256,
+        256,
+        0,
+        0,
+        "_ZN5aiter44f4gemm_bf16_per1x32Fp4_noBpreShuffle_256x256E",
+        "f4gemm_bf16_per1x32Fp4_noBpreShuffle_256x256.co",
+    ),
+    (
+        256,
+        256,
+        1,
+        1,
+        "_ZN5aiter42f4gemm_bf16_per1x32Fp4_BpreShuffle_256x256E",
+        "f4gemm_bf16_per1x32Fp4_BpreShuffle_256x256.co",
+    ),
+    (
+        128,
+        512,
+        1,
+        1,
+        "_ZN5aiter42f4gemm_bf16_per1x32Fp4_BpreShuffle_128x512E",
+        "f4gemm_bf16_per1x32Fp4_BpreShuffle_128x512.co",
+    ),
+    (
+        192,
+        256,
+        0,
+        1,
+        "_ZN5aiter42f4gemm_bf16_per1x32Fp4_BpreShuffle_192x256E",
+        "f4gemm_bf16_per1x32Fp4_BpreShuffle_192x256.co",
+    ),
+    (
+        224,
+        256,
+        0,
+        1,
+        "_ZN5aiter42f4gemm_bf16_per1x32Fp4_BpreShuffle_224x256E",
+        "f4gemm_bf16_per1x32Fp4_BpreShuffle_224x256.co",
+    ),
+    (
+        128,
+        128,
+        0,
+        1,
+        "_ZN5aiter42f4gemm_bf16_per1x32Fp4_BpreShuffle_128x128E",
+        "f4gemm_bf16_per1x32Fp4_BpreShuffle_128x128.co",
+    ),
+    (
+        128,
+        256,
+        0,
+        1,
+        "_ZN5aiter42f4gemm_bf16_per1x32Fp4_BpreShuffle_128x256E",
+        "f4gemm_bf16_per1x32Fp4_BpreShuffle_128x256.co",
+    ),
+    (
+        128,
+        384,
+        0,
+        1,
+        "_ZN5aiter42f4gemm_bf16_per1x32Fp4_BpreShuffle_128x384E",
+        "f4gemm_bf16_per1x32Fp4_BpreShuffle_128x384.co",
+    ),
+    (
+        160,
+        128,
+        0,
+        1,
+        "_ZN5aiter42f4gemm_bf16_per1x32Fp4_BpreShuffle_160x128E",
+        "f4gemm_bf16_per1x32Fp4_BpreShuffle_160x128.co",
+    ),
+    (
+        160,
+        256,
+        0,
+        1,
+        "_ZN5aiter42f4gemm_bf16_per1x32Fp4_BpreShuffle_160x256E",
+        "f4gemm_bf16_per1x32Fp4_BpreShuffle_160x256.co",
+    ),
+    (
+        160,
+        384,
+        0,
+        1,
+        "_ZN5aiter42f4gemm_bf16_per1x32Fp4_BpreShuffle_160x384E",
+        "f4gemm_bf16_per1x32Fp4_BpreShuffle_160x384.co",
+    ),
+    (
+        192,
+        128,
+        0,
+        1,
+        "_ZN5aiter42f4gemm_bf16_per1x32Fp4_BpreShuffle_192x128E",
+        "f4gemm_bf16_per1x32Fp4_BpreShuffle_192x128.co",
+    ),
+    (
+        224,
+        128,
+        0,
+        1,
+        "_ZN5aiter42f4gemm_bf16_per1x32Fp4_BpreShuffle_224x128E",
+        "f4gemm_bf16_per1x32Fp4_BpreShuffle_224x128.co",
+    ),
+    (
+        256,
+        128,
+        0,
+        1,
+        "_ZN5aiter42f4gemm_bf16_per1x32Fp4_BpreShuffle_256x128E",
+        "f4gemm_bf16_per1x32Fp4_BpreShuffle_256x128.co",
+    ),
+    (
+        32,
+        1024,
+        0,
+        1,
+        "_ZN5aiter42f4gemm_bf16_per1x32Fp4_BpreShuffle_32x1024E",
+        "f4gemm_bf16_per1x32Fp4_BpreShuffle_32x1024.co",
+    ),
+    (
+        32,
+        128,
+        0,
+        1,
+        "_ZN5aiter41f4gemm_bf16_per1x32Fp4_BpreShuffle_32x128E",
+        "f4gemm_bf16_per1x32Fp4_BpreShuffle_32x128.co",
+    ),
+    (
+        32,
+        256,
+        0,
+        1,
+        "_ZN5aiter41f4gemm_bf16_per1x32Fp4_BpreShuffle_32x256E",
+        "f4gemm_bf16_per1x32Fp4_BpreShuffle_32x256.co",
+    ),
+    (
+        32,
+        384,
+        0,
+        1,
+        "_ZN5aiter41f4gemm_bf16_per1x32Fp4_BpreShuffle_32x384E",
+        "f4gemm_bf16_per1x32Fp4_BpreShuffle_32x384.co",
+    ),
+    (
+        32,
+        512,
+        0,
+        1,
+        "_ZN5aiter41f4gemm_bf16_per1x32Fp4_BpreShuffle_32x512E",
+        "f4gemm_bf16_per1x32Fp4_BpreShuffle_32x512.co",
+    ),
+    (
+        32,
+        640,
+        0,
+        1,
+        "_ZN5aiter41f4gemm_bf16_per1x32Fp4_BpreShuffle_32x640E",
+        "f4gemm_bf16_per1x32Fp4_BpreShuffle_32x640.co",
+    ),
+    (
+        32,
+        768,
+        0,
+        1,
+        "_ZN5aiter41f4gemm_bf16_per1x32Fp4_BpreShuffle_32x768E",
+        "f4gemm_bf16_per1x32Fp4_BpreShuffle_32x768.co",
+    ),
+    (
+        32,
+        896,
+        0,
+        1,
+        "_ZN5aiter41f4gemm_bf16_per1x32Fp4_BpreShuffle_32x896E",
+        "f4gemm_bf16_per1x32Fp4_BpreShuffle_32x896.co",
+    ),
+    (
+        64,
+        1024,
+        0,
+        1,
+        "_ZN5aiter42f4gemm_bf16_per1x32Fp4_BpreShuffle_64x1024E",
+        "f4gemm_bf16_per1x32Fp4_BpreShuffle_64x1024.co",
+    ),
+    (
+        64,
+        128,
+        0,
+        1,
+        "_ZN5aiter41f4gemm_bf16_per1x32Fp4_BpreShuffle_64x128E",
+        "f4gemm_bf16_per1x32Fp4_BpreShuffle_64x128.co",
+    ),
+    (
+        64,
+        256,
+        0,
+        1,
+        "_ZN5aiter41f4gemm_bf16_per1x32Fp4_BpreShuffle_64x256E",
+        "f4gemm_bf16_per1x32Fp4_BpreShuffle_64x256.co",
+    ),
+    (
+        64,
+        384,
+        0,
+        1,
+        "_ZN5aiter41f4gemm_bf16_per1x32Fp4_BpreShuffle_64x384E",
+        "f4gemm_bf16_per1x32Fp4_BpreShuffle_64x384.co",
+    ),
+    (
+        64,
+        512,
+        0,
+        1,
+        "_ZN5aiter41f4gemm_bf16_per1x32Fp4_BpreShuffle_64x512E",
+        "f4gemm_bf16_per1x32Fp4_BpreShuffle_64x512.co",
+    ),
+    (
+        64,
+        640,
+        0,
+        1,
+        "_ZN5aiter41f4gemm_bf16_per1x32Fp4_BpreShuffle_64x640E",
+        "f4gemm_bf16_per1x32Fp4_BpreShuffle_64x640.co",
+    ),
+    (
+        64,
+        768,
+        0,
+        1,
+        "_ZN5aiter41f4gemm_bf16_per1x32Fp4_BpreShuffle_64x768E",
+        "f4gemm_bf16_per1x32Fp4_BpreShuffle_64x768.co",
+    ),
+    (
+        64,
+        896,
+        0,
+        1,
+        "_ZN5aiter41f4gemm_bf16_per1x32Fp4_BpreShuffle_64x896E",
+        "f4gemm_bf16_per1x32Fp4_BpreShuffle_64x896.co",
+    ),
+    (
+        96,
+        128,
+        0,
+        1,
+        "_ZN5aiter41f4gemm_bf16_per1x32Fp4_BpreShuffle_96x128E",
+        "f4gemm_bf16_per1x32Fp4_BpreShuffle_96x128.co",
+    ),
+    (
+        96,
+        256,
+        0,
+        1,
+        "_ZN5aiter41f4gemm_bf16_per1x32Fp4_BpreShuffle_96x256E",
+        "f4gemm_bf16_per1x32Fp4_BpreShuffle_96x256.co",
+    ),
+    (
+        96,
+        384,
+        0,
+        1,
+        "_ZN5aiter41f4gemm_bf16_per1x32Fp4_BpreShuffle_96x384E",
+        "f4gemm_bf16_per1x32Fp4_BpreShuffle_96x384.co",
+    ),
+    (
+        96,
+        512,
+        0,
+        1,
+        "_ZN5aiter41f4gemm_bf16_per1x32Fp4_BpreShuffle_96x512E",
+        "f4gemm_bf16_per1x32Fp4_BpreShuffle_96x512.co",
+    ),
+    (
+        96,
+        640,
+        0,
+        1,
+        "_ZN5aiter41f4gemm_bf16_per1x32Fp4_BpreShuffle_96x640E",
+        "f4gemm_bf16_per1x32Fp4_BpreShuffle_96x640.co",
+    ),
 ]
 
 
@@ -367,6 +616,7 @@ def select_kernel(M: int, N: int) -> tuple[str, str]:
 # =============================================================================
 # Main Custom Kernel
 # =============================================================================
+
 
 def custom_kernel(data: input_t) -> output_t:
     """

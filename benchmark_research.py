@@ -51,4 +51,4 @@ if __name__ == "__main__":
     duration = benchmark_session(1000)
     print(f"METRIC session_duration_s={duration:.6f}")
     print(f"Session completed: 1000 experiments")
-    print(f"Per-experiment: {duration/1000*1e6:.2f} µs")
+    print(f"Per-experiment: {duration / 1000 * 1e6:.2f} µs")

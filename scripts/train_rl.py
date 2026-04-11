@@ -43,7 +43,9 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         default="data/rl/checkpoints",
         help="Directory for checkpoints and metrics",
     )
-    parser.add_argument("--log-interval", type=int, default=10, help="Episodes between log messages")
+    parser.add_argument(
+        "--log-interval", type=int, default=10, help="Episodes between log messages"
+    )
     parser.add_argument(
         "--save-interval",
         type=int,

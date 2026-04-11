@@ -12,6 +12,7 @@ NOT c_reg[j] → C[tid%16][(tid/16)*4 + j] (which was transposed!)
 """
 
 import os
+
 os.environ["PYTORCH_ROCM_ARCH"] = "gfx950"
 os.environ["CXX"] = "clang++"
 
@@ -206,8 +207,11 @@ CPP_SOURCE = "void mxfp4_gemm_launch(torch::Tensor, torch::Tensor, torch::Tensor
 
 try:
     _mod = load_inline(
-        name="bf16mfma_v2", cpp_sources=[CPP_SOURCE], cuda_sources=[HIP_SOURCE],
-        functions=["mxfp4_gemm_launch"], verbose=False,
+        name="bf16mfma_v2",
+        cpp_sources=[CPP_SOURCE],
+        cuda_sources=[HIP_SOURCE],
+        functions=["mxfp4_gemm_launch"],
+        verbose=False,
         extra_cuda_cflags=["--offload-arch=gfx950", "-std=c++20", "-O3"],
     )
     _OK = True
@@ -224,10 +228,12 @@ def custom_kernel(data: input_t) -> output_t:
 
     if not _OK:
         import aiter
+
         Aq, Asc = dynamic_mxfp4_quant(A.contiguous())
         Ash = e8m0_shuffle(Asc).view(dtypes.fp8_e8m0)
-        return aiter.gemm_a4w4(Aq.view(dtypes.fp4x2), B_shuffle, Ash, B_scale_sh,
-                               dtype=dtypes.bf16, bpreshuffle=True)
+        return aiter.gemm_a4w4(
+            Aq.view(dtypes.fp4x2), B_shuffle, Ash, B_scale_sh, dtype=dtypes.bf16, bpreshuffle=True
+        )
 
     Aq, Asc = dynamic_mxfp4_quant(A.contiguous())
     A_bytes = Aq.view(torch.uint8)

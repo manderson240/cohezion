@@ -27,15 +27,15 @@ def create_server(config: ServerConfig) -> FastMCP:
     vault = VaultOps(config.vault_path)
     obsidian = ObsidianOps(vault)
     compound = CompoundOps(vault, obsidian)
-    
+
     googlesql = None
     if config.googlesql_enabled:
         googlesql = GoogleSqlOps(GoogleSqlConfig(base_url=config.googlesql_url))
-    
+
     sheets = None
     if config.sheets_enabled:
         sheets = SheetsBridge()
-        
+
     surrealdb = None
     if config.surrealdb_enabled:
         surrealdb = SurrealDBSync(vault_path=config.vault_path)
@@ -54,7 +54,9 @@ def create_server(config: ServerConfig) -> FastMCP:
 
     ollama_client = None
     if config.ollama_enabled:
-        ollama_client = OllamaClient(base_url=config.ollama_url, timeout=config.ollama_timeout)
+        ollama_client = OllamaClient(
+            base_url=config.ollama_url, timeout=config.ollama_timeout
+        )
 
     health_checker = None
     if config.health_check_enabled:

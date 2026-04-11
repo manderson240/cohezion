@@ -23,6 +23,8 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any
 
+from cohezion.governance.autonomy_engine import AutonomyTier
+
 
 class DataProductStatus(str, Enum):
     """Lifecycle status of a data product."""
@@ -82,6 +84,7 @@ class DataProduct:
     # Quality (Data Mesh principle 3+4: self-serve + governance)
     quality_tier: DataQualityTier = DataQualityTier.BRONZE
     status: DataProductStatus = DataProductStatus.DRAFT
+    required_autonomy: AutonomyTier = AutonomyTier.SO12  # Min tier to produce this
 
     # SLA
     max_latency_ms: int = 5000  # Maximum response time
@@ -152,6 +155,7 @@ def get_cohezion_data_products() -> dict[str, DataProduct]:
             ),
             quality_tier=DataQualityTier.SILVER,
             status=DataProductStatus.ACTIVE,
+            required_autonomy=AutonomyTier.U1_4,
             mcp_tool_name="bmad_execute_workflow",
         ),
         "skill-definition": DataProduct(
@@ -164,6 +168,7 @@ def get_cohezion_data_products() -> dict[str, DataProduct]:
             ),
             quality_tier=DataQualityTier.GOLD,
             status=DataProductStatus.ACTIVE,
+            required_autonomy=AutonomyTier.Z2_4,
             mcp_tool_name="skill_get_definition",
         ),
         "journey-checkpoint": DataProduct(
@@ -176,6 +181,7 @@ def get_cohezion_data_products() -> dict[str, DataProduct]:
             ),
             quality_tier=DataQualityTier.GOLD,
             status=DataProductStatus.ACTIVE,
+            required_autonomy=AutonomyTier.HIHO,
             mcp_tool_name="journey_save_checkpoint",
         ),
         "vault-entry": DataProduct(
@@ -188,6 +194,7 @@ def get_cohezion_data_products() -> dict[str, DataProduct]:
             ),
             quality_tier=DataQualityTier.GOLD,
             status=DataProductStatus.ACTIVE,
+            required_autonomy=AutonomyTier.Z2_4,
             mcp_tool_name="vault_find_relevant_context",
         ),
         "agui-event-stream": DataProduct(
@@ -201,6 +208,7 @@ def get_cohezion_data_products() -> dict[str, DataProduct]:
             output_format="sse",
             quality_tier=DataQualityTier.SILVER,
             status=DataProductStatus.ACTIVE,
+            required_autonomy=AutonomyTier.SO3_4,
             mcp_tool_name=None,  # Direct HTTP endpoint, not MCP tool
         ),
         "observer-consistency": DataProduct(
@@ -218,6 +226,7 @@ def get_cohezion_data_products() -> dict[str, DataProduct]:
             ),
             quality_tier=DataQualityTier.SILVER,
             status=DataProductStatus.ACTIVE,
+            required_autonomy=AutonomyTier.SO3_4,
             mcp_tool_name=None,
         ),
     }

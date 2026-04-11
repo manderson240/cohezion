@@ -1,3 +1,29 @@
+### [2026-04-11] SESSION 96b: BLEEDING-EDGE ARCHITECTURE UPGRADE — ALL 7 SPRINTS COMPLETE
+- **7/7 sprints complete** in single extended session (planned 15-20 sessions). 6,356 tests (+172 new). 10 new modules. 36 genesis modules. 398 genesis tests passing.
+- **Weaknesses W1-W7 eliminated**: SkillRefinementValidator, RetrospectionValidator, TapeLogger, hash-chain audit, adapter stubs + LemonadeAdapter, thread safety, KEY_LEARNINGS dedup.
+- **V-Model lifecycle**: DRRGenerator (15 tests) + SurrealDB persistence + wired into CompoundExecutor Step 5.85 + DRR-gated skill refinement at Step 7. ConstitutionalEnforcer (13 tests) + GuardrailPipeline adapter.
+- **Physics**: 22 conservation tests + InvariantChecker (15 tests) wired into ManifoldEnv. Verifiable rewards (r_hiho, r_conservation, r_unitarity, r_gauge). Liouville theorem + metric positive-definiteness proofs.
+- **Compute fabric**: CostAwareRouter Lemonade-first (45 YAML profiles, $0 inference). LemonadeAdapter 3-slot hotswap (NPU/GPU/CPU) with httpx API wiring. SessionCostTracker updated.
+- **LeWM JEPA**: Dual-loss validated (9 tests). Gaussian KL regularizer prevents collapse, matches formula.
+- **GraphRAG**: Hybrid vector+graph+temporal engine (12 tests). SurrealQL with HNSW + REFERENCE + VERSION.
+- **SLR paper**: Full draft at docs/papers/slr-synthesis.md. H1 confirmed: 0/8 queries found 3+ components.
+- **Learnings**: L297-L309 (initial), L324-L329 (this retrospective).
+
+### [2026-04-10] SESSION 96: DYNAMIC CONTEXT POLICY — ADAPTIVE BREADTH/DEPTH
+- **ContextPolicy**: New module (`compound/context_policy.py`) classifies tasks into ROUTINE/FOCUSED/EXPLORATORY profiles, sets FLUX top_k/min_relevance/sources/token_budget per profile. Hybrid reactive: Tier 1 adjusts immediately (coherence/token crises), Tier 2 logs to vault (alignment drift).
+- **Cross-platform persistence**: `.context/policy/learned-budgets.md` (YAML frontmatter markdown) as offline-first source of truth. SurrealDB `context_policy` table for outcome history archive. MCP tools `get_context_policy`/`update_context_policy` on compound-mcp for structured access from Zed/Gemini/Antigravity.
+- **Coding standard**: Codified YAML frontmatter markdown > JSON for structured config files that humans read. Added to `common-coding-style.md` and `CLAUDE.md`.
+- **Singleton fix**: Instance-level `self._budgets` dict prevents module-level mutation across tests/instances.
+- **Tests**: 22 context policy tests (17 original + 5 persistence), 50/50 context suite pass (fixed 2 pre-existing graph failures). 6,184 total collected.
+- **Stale items resolved**: (1) Graph HIHO 0.000→0.482 (981 neurons, 5119 synapses from vault), (2) MISSION_JOURNAL compressed 157→123 lines, (3) ContextPolicy wired into executor Steps 0.5/1.7/10.9, (4) TestExecuteGraphWiring rewritten to use GraphEngine (14/14 pass).
+- **Learnings**: L292-L296.
+
+### [2026-04-10] SESSION 95: RETROSPECTIVE — METRICS RECONCILIATION + SURREALDB CONSOLIDATION
+- **SurrealDB topology**: Discovered port 8000 (cohezion-surreal.service) degraded — empty .env vars, no data path. Port 8001 (surrealdb.service) = working instance with 1,839 artifacts. Consolidated: disabled port 8000 service, updated 32 source files (24 main + 8 cloud-vault-mcp) from 8000→8001.
+- **Metrics reconciliation**: Skills 190→206 (151 PRIME), frontend 12→11 components, API 190+→93 endpoints, tests 6,142→6,162, genesis 358→348, SurrealDB 617→1,839 artifacts. Updated CLAUDE.md, CAPABILITY_MAP_REDUX.md, README.md.
+- **Knowledge graph audit**: KEY_LEARNINGS (290 lines, clean), MISSION_JOURNAL (160 lines), MEMORY.md (updated to S95 context).
+- **Learnings**: L291.
+
 ### [2026-04-09] SESSION 93: STALE ITEM FIX SPRINT + AUTORESEARCH INTEGRATION
 - **A1 JEPA test**: Fixed `kl_loss` → `sigreg_loss` assertion. 358 genesis tests passing (0 failing).
 - **A2 Ruff lint**: Fixed syntax error in `causal_interpreter.py` (4 trailing quotes in docstring). 1,874 errors auto-fixed, 873 files formatted.
@@ -40,48 +66,14 @@ Ingested Gemma 4 specs (256K ctx, Thinking Mode, Hybrid Attn, Native Audio E2B/E
 - **Learnings**: L243 (codebase cruft compounds, .gitignore as defense).
 
 ### [2026-04-01] SESSION 85: PPO TRAINING + TRIPLE BENCHMARK
-- **Scope**: 4-iteration training diagnostic loop. Party mode strategic review.
-- **Training**: Run 1 (0% convergence, oscillation incentive) → Run 2 (+proximity reward, large actions fail) → Run 3 (small actions BREAKTHROUGH: 0.915 coherence) → Run 4 (100K steps, PPO +17% reward, +9% stability vs random).
-- **Key Discovery**: Action scale must match dynamics timescale. Lagrangian attractor = structural safety.
-- **Benchmarks**: UniverseEvaluator bootstrap CIs, 3 baseline policies. Safety-Gymnasium metric mapping. Reward hacking resistance analysis.
-- **Learnings**: L233-L242 (curriculum reward, evaluator, routing orchestrator, TDD+review loop, reward alignment, small actions, structural safety, Safety-Gymnasium, diagnostic loop, ERL metric).
+- 4-iteration diagnostic loop: Run 1 (0% convergence) → Run 3 (small actions BREAKTHROUGH: 0.915 coherence) → Run 4 (PPO +17% reward vs random). Key: action scale must match dynamics timescale. UniverseEvaluator bootstrap CIs + Safety-Gymnasium mapping. L233-L242.
 
-### [2026-03-31] SESSION 83: ADVANCED INTEGRATION + RESEARCH SWEEP
-- **Scope**: 4 phases, all complete. OI-MAS confidence routing, TurboQuant/IsoQuant compression, LatentMAS communication, code sweep.
-- **Phase 1 (Sweep)**: Wired ouroboros/→DegradationDetector (anomaly cross-validation), data_mesh/→CapabilityMatrix (data product entries). Vault: 8,094 notes, brain-region structure intact.
-- **Phase 2 (OI-MAS)**: Confidence field added to ModelRoutingDecision. 3-signal scoring: quality(30%) + success_rate(40%) + alignment(30%) × degradation_factor. TopologicalRouter regime proxy via degradation cooldown.
-- **Phase 3 (TurboQuant)**: PolarQuantEncoder (2.7x compression, preserves angular structure), QJLProjector (32x compression for cosine similarity). Both verified with real data.
-- **Phase 4 (LatentMAS)**: SharedLatentMemory + LatentMessage channel. Agents exchange 256D FLUME vectors instead of text. Consensus embedding + inter-agent coherence scoring. Training-free.
-- **Learnings**: L230 (OI-MAS confidence scoring), L231 (PolarQuant angular geometry), L232 (LatentMAS FLUME channel).
-
-### [2026-04-01] SESSION 84: OVERNIGHT AUTONOMOUS — Anthropic Universes Portfolio
-- **Scope**: 8 commits, TDD + multi-perspective code review. ManifoldEnv curriculum reward, UniverseEvaluator, RoutingOrchestrator, research paper draft.
-- **Phase 1 (RL Polish)**: 3-stage curriculum reward (reach→maintain→optimize), episode statistics, human-readable render. UniverseEvaluator with bootstrap CIs, 3 baseline policies (greedy 20% convergence, random 0%).
-- **Phase 2 (Coherence)**: TDD vibe/→CompoundExecutor (NL→workflow), vanguard/→sandbox validation. RoutingOrchestrator unifying 4 router systems. agui.py SyntaxError fix recovered 50 tests.
-- **Phase 3 (Paper)**: "Physics-Grounded Training Universes" draft — 178 lines, 6 sections, 15 references. HIHO as convergence of 6 mathematical frameworks.
-- **Code Review**: Multi-perspective agent found 2 CRITICAL (type mismatch, format string), 3 HIGH (bare except, missing __all__, asyncio guard). All fixed + verified.
-- **Tests**: 1,960 core passing (up from 1,895). 8 new UniverseEvaluator tests. 0 regressions.
-
-### [2026-03-31] SESSION 82: COMPOUND LOOP WIRING PHASE 2 + ROUTING FEEDBACK
-- **Scope**: 8 tasks, 3 phases. 1087 compound tests passing, 0 regressions. +901 lines across 12 source files.
-- **Phase 1 (Routing Feedback)**: optimization/r_zero → CostAwareRouter (success rate adjusts model quality), DegradationDetector → CostAwareRouter (CRITICAL alerts force model tier upgrade for 5 queries), SwarmEnv gym.register(), NightlyReporter → Hookify vault.
-- **Phase 2 (Physics Wiring)**: BioelectricNetwork → executor Step 7.6 + JourneyTracker percolation metadata, NaturalCapitalValuation → executor Step 5.9 (10% coherence blend), JEPA WorldModel auto-train on first API request + surprise scoring in trajectories.
-- **Phase 3 (Meta-Harness)**: execution_traces/ directory with VaultLogger.log_execution_trace(), pruning (100 per skill), browse_recent_traces() for SkillRefiner.
-- **Architecture**: Closed backward feedback loop — DegradationDetector alerts now flow to CostAwareRouter via callback, adjusting future model selection. MAPE-K loop complete at routing level.
-- **Learnings**: L228 (IsoQuant SO(4) quaternion→SPIN), L229 (Layered Governance L1-L4→Constitution).
-
-### [2026-03-31] SESSION 81: ORPHAN MODULE WIRING + SKILL EXTRACTION
-- **Scope**: 4 modules wired, 5 learnings extracted, 4 PRIME skills created. 1064 compound tests passing.
-- **Wiring**: healing/→DegradationDetector, resilience/→DegradationDetector, eval/→CapabilityMatrix, evaluation/→CapabilityMatrix.
-- **Skills**: ORPHAN_MODULE_INTEGRATION_PRIME, API_ERROR_RESILIENCE_PRIME, META_HARNESS_TRACES_PRIME, CROSS_PLATFORM_SKILL_FORMAT_PRIME.
-- **Learnings**: L225-L229.
-
-### [2026-03-31] SESSION 80: COMPOUND ENGINEERING + MULTI-PROVIDER ROUTING
-- **Scope**: 15 commits, 87 tests verified. GeminiProvider, knowledge capture end-to-end, token efficiency pipeline.
-- **Delivered**: GeminiProvider (Flash-Lite/Flash/Pro), A2A agent cards, TotS→compound feedback loop, knowledge bridge (vault+SurrealDB+Hookify), SkillRefiner→vault persistence, CapabilityRegistry→vault persistence, FLUME VAE retrained z_dim=256, context-window guard, cache→routing feedback, template matching (C4), batch-aware concierge (C5).
-- **Infrastructure fixes**: Ralph-loop stop hook (stale state), `cz context` percentage (cache tokens), git gc disabled.
-- **Internal sweep**: Found 41 disconnected modules — 8 orphaned, 15 unregistered MCP servers, 4 physics modules unwired.
-- **Learnings**: L222-L224 (GeminiProvider, TurboQuant, C1-C5 token efficiency).
+### [2026-03-31 to 2026-04-01] SESSIONS 80-84 (Compound Loop Wiring + Genesis, compressed)
+- S80: GeminiProvider (Flash-Lite/Flash/Pro), knowledge bridge, C1-C5 token pipeline, 41 disconnected modules found. L222-L224.
+- S81: 4 orphan modules wired (healing→DegradationDetector, eval→CapabilityMatrix), 4 PRIME skills created. L225-L229.
+- S82: Routing feedback (DegradationDetector→CostAwareRouter), physics wiring (BioelectricNetwork→Step 7.6, NaturalCapital→Step 5.9), Meta-Harness execution traces. MAPE-K loop complete. L228-L229.
+- S83: OI-MAS confidence routing, TurboQuant (PolarQuant 2.7x + QJL 32x), LatentMAS (FLUME vectors as inter-agent comms). L230-L232.
+- S84: Overnight autonomous — ManifoldEnv curriculum reward, UniverseEvaluator, research paper draft, multi-perspective code review (2 CRITICAL found). 1,960 tests passing.
 
 ### [2026-03-31] SESSION 79: GOVERNANCE + A2UI/AG-UI + OBSERVER PATCH
 - **Scope**: 32 commits, 48 files, +3,950/-658 lines, 35 tests. Merged to main in Session 80.
@@ -122,24 +114,10 @@ Ingested Gemma 4 specs (256K ctx, Thinking Mode, Hybrid Attn, Native Audio E2B/E
 - **Key Insight**: "Planning is the key component to success" — user marked plan as EXEMPLARY
 
 ### [2026-03-25] SESSION 73: INSIGHTS-DRIVEN ENFORCEMENT UPGRADE
-- **Source**: Claude Code Insights report (63 sessions, 38 analyzed, 222h, 395 messages).
-- **Friction Reduction**: Added 4 new rule sections — Execution Priority (CLAUDE.md), Strategy Pivot Protocol (systematic-debugging.md), Correctness Gate (coding-standards.md), Drift Escalation Protocol (workflow-enforcement.md).
-- **Enforcement Hooks**: Created 3 procedural enforcement hooks — drift-detection.sh (PreToolUse: Write), test-on-edit.sh (PostToolUse: Edit|Write), check-bash-output.sh (PostToolUse: Bash). All non-blocking (exit 0).
-- **StrategyTracker**: Added to RetrospectionEngine — detects plateau/failure streaks, emits "PIVOT RECOMMENDED" after 3 attempts with <5% improvement. 5 tests passing.
-- **Systemd Timer**: Created cohezion-jobs.timer + run_jobs.sh to schedule 6 hourly job scripts.
-- **Key Insight**: Rules in markdown are suggestions; hooks are enforcement. The gap between declaring intent and enforcing it is the root cause of drift.
-- **Learnings**: L173 (Declarative-to-Procedural Enforcement), L174 (StrategyTracker Autonomous Pivot).
+- Enforcement hooks (drift-detection, test-on-edit, check-bash-output) + StrategyTracker pivot detection. 4 new rule sections from Claude Code Insights report (63 sessions analyzed). L173-L174.
 
-### [2026-03-24] SESSION 72: NVIDIA NEMOTRON CHALLENGE & BLACKWELL G4 ORCHESTRATION
-- **Goal**: Compete in Kaggle "NVIDIA Nemotron Model Reasoning Challenge" using Blackwell G4 infrastructure.
-- **Blackwell Breakthrough**: Identified definitive G4 hardware locking via `"machine_shape": "NvidiaRtxPro6000"` and private Docker image `gcr.io/kaggle-private-byod/...`. Resolved persistent P100 fallbacks.
-- **Architecture Deep Dive**:
-    - **Nemotron-3-Nano**: Ingested hybrid Mamba2-Transformer MoE dynamics (A3B: 31.6B total, 3.2B active parameters).
-    - **sm_120**: Mapped Blackwell compute capability requirements. Patched Triton `ptxas-blackwell` permissions and pathing.
-- **LoRA Optimization**: Confirmed Mamba-specific projection target modules (`in_proj`, `out_proj`) and max rank `r=32`.
-- **Protocol Integration**: Formalized "Ralph Loop & Autoresearch" mandate in root `GEMINI.md`. Recursive [Benchmark -> Gate -> Propose -> Apply -> Verify] cycle now standard for all high-stakes changes.
-- **Skills Registered**: Created `MOE_HYBRID_ENGINEERING_PRIME.md` and `BLACKWELL_HARDWARE_OPTIMIZATION_PRIME.md`.
-- **Status**: Baseline v19/v20 successfully completed training on Blackwell hardware. Packaging `submission.zip` for leaderboard attempt.
+### [2026-03-24] SESSION 72: NEMOTRON CHALLENGE & BLACKWELL G4
+- Blackwell G4 hardware locking (`NvidiaRtxPro6000`), Nemotron-3-Nano MoE dynamics, LoRA optimization (Mamba-specific modules). Ralph Loop & Autoresearch mandate formalized. v19/v20 trained on Blackwell. L170-L172.
 
 ### [2026-02-10 to 2026-02-20] PHASES 15-19: HEALING, HARDENING, RECOVERY (Sessions 11-15, compressed)
 Safe Mode v3 (sequential LLM locking, ResourceGuard). Service decoupling (api→flume.py+rl.py+skills.py). Autonomic healing (/heal 6-stage). SurrealDB auth drift → InMemoryStore fallback. Dev environment recovery (Claude Code native install fix, Context7 MCP). Tests 3,214 passing / 4 failing. Linting 1,003→756 errors. L116-L127.
@@ -148,9 +126,7 @@ Safe Mode v3 (sequential LLM locking, ResourceGuard). Service decoupling (api→
 - Compound engineering system built: CompoundExecutor, FeedbackLoop, SkillRefiner, TeamOrchestrator (8 files, 80+ tests).
 - Ollama specialist pipeline: 5-agent team, weight bridge, training CLI, CI pipeline.
 - Agent validation: Pydantic schema + pre-commit + PostToolUse hooks + `/new-agent` scaffolding.
-- Branch archaeology: Mined 8 learnings (102-109) from cleanup branches.
-- FLUME VAE retrained on real data (11K vectors), RL REINFORCE (0.991 coherence), 6 new API endpoints.
-- Tests grew: 131 → 357 → 556 → 634 across these phases.
+- Branch archaeology (L102-L109), FLUME VAE retrained (11K vectors), RL REINFORCE (0.991 coherence). Tests: 131→634.
 
 ### [2026-03-08] PLASMA + RAH + SPATIAL PHONONS (Sessions 60-67, compressed)
 - Semantic Lagrange Points (L4/L5 stable memory parking), MAPE-K autonomic healing (ResourceMonitor→strategies), viscoelastic dilation (Maxwellian relaxation prevents lockups). RAH module: resilience/manager.py + strategies.py.

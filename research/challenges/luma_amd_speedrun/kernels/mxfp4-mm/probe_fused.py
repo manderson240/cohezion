@@ -13,4 +13,5 @@ def custom_kernel(data):
                 print(os.path.join(root, f), file=sys.stderr)
 
     from reference import ref_kernel
+
     return ref_kernel(data)

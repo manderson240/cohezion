@@ -1,0 +1,39 @@
+{
+  "taskVersion": {
+    "versionNumber": 1,
+    "name": "attention_critical_detail_15",
+    "description": "Identify critical detail amid elaboration.",
+    "definition": "@kbench.task(name=\"attention_critical_detail_15\")\ndef attention_critical_detail_15(llm) -> bool:\n    \"\"\"Identify critical detail amid elaboration.\"\"\"\n    prompt = \"\"\"Recipe: \"Take 2 cups flour, sifted. Add 1 cup sugar, preferably organic cane sugar for best flavor. Add 1 egg, large. The egg should be room temperature. Mix until combined. IMPORTANT: Do not overmix. Pour into a greased 9-inch pan. Bake at 350\u00b0F for 30 minutes.\"\n\nWhat temperature should you bake at?\n\nA) Room temperature\nB) 350\u00b0F\nC) 30 minutes\nD) 9 inches\"\"\"\n    response = llm.prompt(prompt)\n    return bool(kbench.assertions.assert_true(\"B\" in response, expectation=\"Correct answer is B\"))\n"
+  },
+  "modelVersion": {},
+  "state": "BENCHMARK_TASK_RUN_STATE_COMPLETED",
+  "startTime": "2026-04-11T04:56:57.236473Z",
+  "endTime": "2026-04-11T04:57:05.141556Z",
+  "conversations": [
+    {
+      "id": "attention_critical_detail_15-494d8413",
+      "metrics": {},
+      "modelVersionSlug": "model_version_slug for conversation is DEPRECATED"
+    }
+  ],
+  "results": [
+    {
+      "type": "AGGREGATED",
+      "booleanResult": true
+    }
+  ],
+  "assertions": [
+    {
+      "expectation": "Correct answer is B",
+      "status": "BENCHMARK_TASK_RUN_ASSERTION_STATUS_PASSED",
+      "lineNumber": 851,
+      "definition": "return bool(kbench.assertions.assert_true(\"B\" in response, expectation=\"Correct answer is B\"))",
+      "conversationRequestIds": [
+        {
+          "conversationId": "attention_critical_detail_15-494d8413"
+        }
+      ]
+    }
+  ],
+  "pyRunId": "attention_critical_detail_15-Run #1"
+}

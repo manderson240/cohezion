@@ -2167,5 +2167,82 @@
     "template_version": "v0.1",
     "generated_from": "skill.md",
     "last_updated": ""
+  },
+  "HYBRID_SWARM_ORCHESTRATION": {
+    "description": "Orchestration of multi-provider AI swarms (Cloud + Local) with concurrency guards.",
+    "keywords": [
+      "swarm",
+      "orchestration",
+      "hybrid",
+      "gemini",
+      "ollama"
+    ],
+    "path": "src/cohezion/skills/HYBRID_SWARM_ORCHESTRATION_PRIME.md",
+    "version": "0.1.0",
+    "template_version": "v0.1",
+    "generated_from": "skill.md",
+    "last_updated": ""
+  },
+  "LEMONADE_EMBEDDABLE_INTEGRATION": {
+    "description": "Integration of private, portable Lemonade server instances for isolated hardware acceleration.",
+    "keywords": [
+      "lemonade",
+      "embeddable",
+      "hardware",
+      "acceleration",
+      "rocm"
+    ],
+    "path": "src/cohezion/skills/LEMONADE_EMBEDDABLE_INTEGRATION_PRIME.md",
+    "version": "0.1.0",
+    "template_version": "v0.1",
+    "generated_from": "skill.md",
+    "last_updated": ""
+  },
+  "ARC_TOPOLOGICAL_PIVOT": {
+    "description": "Navigation of 12D manifolds with loop detection and PIVOT regime logic.",
+    "keywords": [
+      "arc-prize",
+      "topology",
+      "homology",
+      "navigation",
+      "pivot"
+    ],
+    "path": "src/cohezion/skills/ARC_TOPOLOGICAL_PIVOT_PRIME.md",
+    "version": "0.1.0",
+    "template_version": "v0.1",
+    "generated_from": "skill.md",
+    "last_updated": ""
+  },
+  "SYSTEMS_ENGINEERING_V_MODEL": {
+    "description": "Integration of the Systems Engineering V-Model for AI swarm orchestration and verification.",
+    "keywords": [
+      "systems-engineering",
+      "v-model",
+      "verification",
+      "validation",
+      "workflow"
+    ],
+    "path": "src/cohezion/skills/SYSTEMS_ENGINEERING_V_MODEL_PRIME.md",
+    "version": "0.1.0",
+    "template_version": "v0.1",
+    "generated_from": "skill.md",
+    "last_updated": ""
+  },
+  "NVIDIA_HARDWARE_OPTIMIZATION": {
+    "description": "Maximizing performance on NVIDIA Hopper/Blackwell using AITune, NIM, and ChatRTX patterns.",
+    "keywords": [
+      "nvidia",
+      "hopper",
+      "blackwell",
+      "aitune",
+      "nim",
+      "chatrtx",
+      "optimization"
+    ],
+    "path": "src/cohezion/skills/NVIDIA_HARDWARE_OPTIMIZATION_PRIME.md",
+    "version": "0.1.0",
+    "template_version": "v0.1",
+    "generated_from": "skill.md",
+    "last_updated": ""
   }
 }

@@ -1,0 +1,6 @@
+{
+  "versionNumber": 1,
+  "name": "social_deception_recognition_04",
+  "description": "Recognize deception.",
+  "definition": "@kbench.task(name=\"social_deception_recognition_04\")\ndef social_deception_recognition_04(llm) -> bool:\n    \"\"\"Recognize deception.\"\"\"\n    prompt = \"\"\"A poker player bets aggressively after looking at their cards, then immediately checks on the next round when a good card appears for others.\n\nWhat might this indicate?\n\nA) Strong hand\nB) Weak hand, was bluffing\nC) Doesn't understand rules\nD) Both A and B possible\"\"\"\n    response = llm.prompt(prompt)\n    return bool(kbench.assertions.assert_true(\"B\" in response, expectation=\"Correct answer is B\"))\n"
+}

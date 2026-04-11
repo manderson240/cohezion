@@ -21,7 +21,7 @@ Parameters (JSON):
   kv_format: "fp8" or "bf16" — which KV cache to use
 """
 
-TEMPLATE = '''\
+TEMPLATE = """\
 import os
 import torch
 import triton
@@ -224,7 +224,7 @@ def custom_kernel(data: input_t) -> output_t:
     )
 
     return output
-'''
+"""
 
 DEFAULT_PARAMS = {
     "BLOCK_KV": 64,

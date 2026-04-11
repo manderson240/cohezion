@@ -27,7 +27,7 @@ class SurrealDBSync:
     def __init__(
         self,
         vault_path: str,
-        surrealdb_url: str = "http://localhost:8000",
+        surrealdb_url: str = "http://localhost:8001",
         namespace: str = "cohezion",
         database: str = "vault",
         username: str = "root",
@@ -381,7 +381,9 @@ class SurrealDBSync:
             return 0
 
         paper_files = list(papers_dir.glob("*.md"))
-        logger.info(f"Starting sequential bulk import of {len(paper_files)} cortex notes...")
+        logger.info(
+            f"Starting sequential bulk import of {len(paper_files)} cortex notes..."
+        )
 
         count = 0
         for paper_path in paper_files:

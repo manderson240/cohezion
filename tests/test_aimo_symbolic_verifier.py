@@ -5,9 +5,10 @@ import os
 # Ensure we can import from the kernel directory
 sys.path.append(os.path.join(os.getcwd(), "sandbox/aimo/kaggle_kernel"))
 
-# Note: We need to import the class directly from the file if possible, 
+# Note: We need to import the class directly from the file if possible,
 # but for now we'll test the one we just updated in submission_transformers.py
 import submission_transformers
+
 
 class TestSymbolicVerifier(unittest.TestCase):
     def setUp(self):
@@ -42,6 +43,7 @@ ans = max(res)
         code = "```python\nthis is not valid python\n```"
         # Should return False instead of crashing
         self.assertFalse(verifier.verify(code, 1))
+
 
 if __name__ == "__main__":
     unittest.main()

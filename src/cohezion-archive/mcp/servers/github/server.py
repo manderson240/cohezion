@@ -161,14 +161,16 @@ class GitHubService:
                                 labels.append(label["name"])
                             elif isinstance(label, str):
                                 labels.append(label)
-                        issues.append({
-                            "number": item["number"],
-                            "title": item["title"],
-                            "state": item["state"],
-                            "url": item["html_url"],
-                            "created_at": item["created_at"],
-                            "labels": labels,
-                        })
+                        issues.append(
+                            {
+                                "number": item["number"],
+                                "title": item["title"],
+                                "state": item["state"],
+                                "url": item["html_url"],
+                                "created_at": item["created_at"],
+                                "labels": labels,
+                            }
+                        )
                         if len(issues) >= limit:
                             break
                     return issues

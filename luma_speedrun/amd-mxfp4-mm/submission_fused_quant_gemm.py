@@ -16,6 +16,7 @@ Falls back to aiter baseline on compile failure.
 """
 
 import os
+
 os.environ["PYTORCH_ROCM_ARCH"] = "gfx950"
 os.environ["CXX"] = "clang++"
 
@@ -328,8 +329,12 @@ def custom_kernel(data: input_t) -> output_t:
             M, K = A.shape
             N = B_shuffle.shape[0]
             result = _custom_mod.fused_quant_gemm(
-                A.contiguous(), B_shuffle.view(torch.uint8), B_scale_sh.view(torch.uint8),
-                M, N, K,
+                A.contiguous(),
+                B_shuffle.view(torch.uint8),
+                B_scale_sh.view(torch.uint8),
+                M,
+                N,
+                K,
             )
             return result
         except Exception:
@@ -339,6 +344,10 @@ def custom_kernel(data: input_t) -> output_t:
     Aq, Asc = dynamic_mxfp4_quant(A.contiguous())
     Ash = e8m0_shuffle(Asc).view(_e8m0)
     return _gemm(
-        Aq.view(_fp4x2), B_shuffle, Ash, B_scale_sh,
-        dtype=_bf16, bpreshuffle=True,
+        Aq.view(_fp4x2),
+        B_shuffle,
+        Ash,
+        B_scale_sh,
+        dtype=_bf16,
+        bpreshuffle=True,
     )

@@ -26,6 +26,7 @@ revealing the exact mapping.
 """
 
 import os
+
 os.environ["PYTORCH_ROCM_ARCH"] = "gfx950"
 os.environ["CXX"] = "clang++"
 
@@ -104,8 +105,11 @@ CPP_SOURCE = "void mfma_diag_launch(torch::Tensor C, int M, int N);"
 
 try:
     _mod = load_inline(
-        name="mfma_diag", cpp_sources=[CPP_SOURCE], cuda_sources=[HIP_SOURCE],
-        functions=["mfma_diag_launch"], verbose=False,
+        name="mfma_diag",
+        cpp_sources=[CPP_SOURCE],
+        cuda_sources=[HIP_SOURCE],
+        functions=["mfma_diag_launch"],
+        verbose=False,
         extra_cuda_cflags=["--offload-arch=gfx950", "-std=c++20", "-O3"],
     )
     _OK = True
@@ -126,15 +130,20 @@ def custom_kernel(data: input_t) -> output_t:
         _mod.mfma_diag_launch(C, M, N)
         # Print the output pattern for debugging
         vals = C.float().cpu()
-        print(f"[DIAG] M={M} N={N} output[0,:8]={vals[0,:min(8,N)].tolist()}")
+        print(f"[DIAG] M={M} N={N} output[0,:8]={vals[0, : min(8, N)].tolist()}")
         if M > 1:
-            print(f"[DIAG] output[1,:8]={vals[1,:min(8,N)].tolist()}")
+            print(f"[DIAG] output[1,:8]={vals[1, : min(8, N)].tolist()}")
 
     # Always use reference for correctness
     import aiter
+
     A_q, A_scale = dynamic_mxfp4_quant(A.contiguous())
     A_scale_sh = e8m0_shuffle(A_scale).view(dtypes.fp8_e8m0)
     return aiter.gemm_a4w4(
-        A_q.view(dtypes.fp4x2), B_shuffle, A_scale_sh, B_scale_sh,
-        dtype=dtypes.bf16, bpreshuffle=True,
+        A_q.view(dtypes.fp4x2),
+        B_shuffle,
+        A_scale_sh,
+        B_scale_sh,
+        dtype=dtypes.bf16,
+        bpreshuffle=True,
     )

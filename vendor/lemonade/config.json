@@ -1,0 +1,50 @@
+{
+  "config_version": 1,
+  "ctx_size": 4096,
+  "disable_model_filtering": false,
+  "enable_dgpu_gtt": false,
+  "extra_models_dir": "./extra_models",
+  "flm": {
+    "args": ""
+  },
+  "global_timeout": 300,
+  "host": "localhost",
+  "kokoro": {
+    "cpu_bin": "builtin"
+  },
+  "llamacpp": {
+    "args": "-fa on",
+    "backend": "rocm",
+    "cpu_bin": "builtin",
+    "prefer_system": false,
+    "rocm_bin": "builtin",
+    "vulkan_bin": "builtin"
+  },
+  "log_level": "info",
+  "max_loaded_models": 1,
+  "models_dir": "./models",
+  "no_broadcast": true,
+  "offline": true,
+  "port": 13307,
+  "ryzenai": {
+    "server_bin": "builtin"
+  },
+  "sdcpp": {
+    "args": "",
+    "backend": "rocm",
+    "cfg_scale": 7.0,
+    "cpu_bin": "builtin",
+    "height": 1024,
+    "rocm_bin": "builtin",
+    "steps": 20,
+    "vulkan_bin": "builtin",
+    "width": 1024
+  },
+  "websocket_port": "auto",
+  "whispercpp": {
+    "args": "",
+    "backend": "auto",
+    "cpu_bin": "builtin",
+    "npu_bin": "builtin"
+  }
+}

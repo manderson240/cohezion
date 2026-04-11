@@ -213,3 +213,184 @@ v1.1 (2026-04-15) — Round 2 einsum + direct Bloch + update_and_compute: 100× 
 - `src/cohezion/physics/fiber_bundle.py` — Principal fiber bundle P(B⁴, SO(3)⁴)
 - `AUTORESEARCH_PRIME.md` — Measure → Hypothesis → Experiment → Log protocol
 - `LATENT_SPACE_INTELLIGENCE_PRIME.md` — SIGReg-HIHO equivalence, LeWM architecture mapping
+
+## AUTO-REFINEMENT (Learning 160)
+*   **Insight**: Skill Documentation as a Truth Anchor
+*   **Details**: Skills (e.g., `DATABASE_PRIME.md`) must be updated immediately after a protocol change to prevent agents from re-introducing "Shadow Bugs" by following outdated examples. A skill is only valid if it reflects the current operational reality of the substrate.
+
+---
+
+## Session 72: NVIDIA Nemotron Challenge & Kaggle Infrastructure (2026-03-24, L161-L172 compressed)
+
+Kaggle G4 Blackwell: pin CUDA 12.8 via `docker_image_pinning_type: original`, use `--no-build-isolation` for Mamba, prefer kagglehub over HF, native BF16 > bitsandbytes, target regex `in_proj|out_proj|up_proj|down_proj` for hybrid LoRA, case-sensitive `nvidiaRtxPro6000`, pre-authorize models in `model_sources`, metric uses vLLM with `\boxed{}` extraction, 5 submissions/day cap. Branch: `challenge/nvidia-nemotron-reasoning`.
+
+Akashic Sprint Mission (2026-04-07): Implemented long-horizon task orchestration for overnight Kaggle monitoring and local model refinement. Uses `MISSION_AKASHIC_SPRINT.py` to poll Blackwell VMs and record hourly 12D snapshots in SurrealDB. Added Weighted Entropy Consensus to AIMO MRS (v40) to scale reasoning performance.
+
+
+---
+
+## Sessions 73-82: Genesis Engine + Platform Architecture (2026-03-25 to 2026-03-31, Compressed)
+
+**L173-174 (Session 73, Enforcement):** Converted markdown rules to non-blocking hooks — `drift-detection.sh` (PreToolUse Write warns on new src/ files), `test-on-edit.sh` (PostToolUse runs matching tests), `check-bash-output.sh` (PostToolUse catches exit-0-with-errors). StrategyTracker added to RetrospectionEngine: emits "PIVOT RECOMMENDED" after 3+ attempts with <5% improvement.
+
+**L175-189 (Session 74, Genesis Engine — 24 commits):** Mathematical core: SU(2) spinors on Bloch sphere (coherence=|Bloch vector|), Brahmagupta's zero IS HIHO (δ=0), Landau phase transitions (5 critical temps ∅→SO(12)→SO(3)⁴→U(1)⁴→Z₂⁴→HIHO), Fisher metric as Rosetta Stone (FLUME↔Riemannian↔thermodynamics), Euler-Lagrange + Störmer-Verlet, Yang-Mills SO(3), JEPA 86K-param predictor. ManifoldEnv (Gymnasium: 19D obs, 12D action), SwarmEnv (N-agent gauge coupling), TopologicalRouter (H₀/H₁ → exploit/explore/pivot), SurrealDB 3.0 syntax changes (TYPE object FLEXIBLE, port 8001). Active Inference ≡ HIHO (Friston FEP). Vertical-slice milestones > horizontal layers (skill: exemplary-deep-planning). Total artifact persistence in 6 genesis tables.
+
+**L190-197 (Session 75, Phase 2):** 10-step cosmogony complete. Levin bioelectric gap junction percolation IS HIHO phase transition. InVEST habitat quality = HIHO proximity on semantic manifold. Causal-JEPA (object-level masking, 8x faster planning). 16 indigenous worldviews mapped to cosmogony steps. Ouroboros bridge + Mycelium wired as first-class Genesis components. EVOs physics (evolutionary dynamics on manifold curvature). Ralph Loop: 5 specialist teams, 10+ commits, 364+ genesis tests.
+
+**L198-214 (Session 76, Architecture):** Three feedback loops: Inner (execution: Executor→SkillRefiner), Middle (knowledge: retrospect→vault→graph→skills), Outer (coordination: platform specialists). 6-protocol stack: MCP (strong: 41+ tools), A2A (in progress: zero agent cards yet), A2UI (strong: 9 components), AG-UI (strong: 15+ events). Graph HIHO metric (connectivity+reciprocity+freshness+orphan_ratio, target 0.5±0.15). Dual-format agents: CC agent def + PRIME skill for cross-platform. Background agents inherit restricted permissions (Write denied). Multi-platform: .claude/+.gemini/+.opencode/ all active. Competition licensing: MIT-0 for all. s1 budget forcing: 57% AIME with 1K examples + "Wait" tokens. AIMO3 pillars: Diverse Prompts+Entropy Voting+Speculative Decoding. AMD kernels hit API ceiling.
+
+**L215-232 (Sessions 79-82, Wiring Sprint):** FLUME-First: encode/decode at creation, not retrofitted (3/10 systems used FLUME; 41 orphaned modules from build-then-forget anti-pattern). Cosmogonic Autonomy Tiers: ∅→HIHO maps to observe→edit→commit→deploy→sovereign. OPH Axiom 2 = HIL mechanism. Data Mesh: 17+ MCP servers = 17 typed DataProducts. A2UI data-attribute selectors most reliable Playwright selectors. LeWM 15M-param JEPA (dense loss, 2 terms, 48x faster planning). GeminiProvider: Flash-Lite(70%)/Flash(20%)/Pro(10%) cost tiers. TurboQuant: PolarQuant(2.7x) + QJL(32x, 1-bit sign). C1-C5 token pipeline: API caching(40-60%), context-window guard, cache→routing feedback, template matching(87-98%), batch dedup. Meta-Harness execution traces > prompt cramming (+7.7pts, 4x fewer tokens). LatentMAS: FLUME vectors as inter-agent comms (24x faster than text). IsoQuant SO(4) aligns with SPIN coherence.
+*   **Date**: 2026-04-11
+
+
+## AUTO-REFINEMENT (Learning 233)
+*   **Insight**: ManifoldEnv Curriculum Reward — 3-Stage Reach→Maintain→Optimize (2026-04-01)
+*   **Details**: 3-stage curriculum reward in ManifoldEnv: Stage 1 (reach HIHO band) rewards coherence gain + entry bonus, Stage 2 (maintain stability) rewards band persistence + low energy, Stage 3 (energy efficiency) strongly penalizes energy while maintaining HIHO. Proximity base reward (-deviation * 0.5) is always active across all stages, preventing drift. Module: `environments/manifold_env.py`.
+*   **Date**: 2026-04-11
+
+
+## AUTO-REFINEMENT (Learning 237)
+*   **Insight**: Reward Alignment Must Match Physics Grounding (2026-04-01)
+*   **Details**: First PPO training on ManifoldEnv: 0% convergence (mean coherence 0.272) vs 60% convergence for RANDOM POLICY. Root cause: differential-only reward (coherence_gain * 2.0) creates oscillation incentive — agent maximizes rate of change by dropping then recovering coherence. Fix: proximity base reward (-deviation * 0.5, always active) aligns reward with Lagrangian attractor. The physics grounding is so strong that natural dynamics guide 60% of random trajectories to HIHO — the reward must align with the physics, not create perverse incentives against it. Deeper insight: reward hacking in physics-grounded environments takes the form of fighting the dynamics, not exploiting them.
+*   **Date**: 2026-04-11
+
+
+## AUTO-REFINEMENT (Learning 238)
+*   **Insight**: Small Actions Cooperate With Physics — Action Scale = Dynamics Timescale (2026-04-01)
+*   **Details**: PPO Run 2 with large actions [-0.5, 0.5] failed despite proximity reward fix (reward -67.68). PPO Run 3 with small actions [-0.1, 0.1] breakthrough: coherence 0.915, reward 12.04, stability 79 steps. The Lagrangian attractor is strong enough to guide dynamics — large actions fight it, small actions cooperate. General principle: when physics grounding provides a strong attractor, action scale must be proportional to dynamics timescale (dt=0.01 → action ~0.1). This is structural safety — the environment's physics prevents reward hacking by constraining the action manifold.
+*   **Date**: 2026-04-11
+
+
+## AUTO-REFINEMENT (Learning 239)
+*   **Insight**: Structural Safety via Lagrangian Dynamics (2026-04-01)
+*   **Details**: ManifoldEnv's Lagrangian dynamics provide structural safety guarantees that learned safety constraints cannot: (1) energy conservation bounds agent behavior, (2) Christoffel symbols create "natural corridors" in state space, (3) HIHO attractor is a physical equilibrium, not a learned policy artifact, (4) random agents achieve 60% convergence because the physics itself guides trajectories toward HIHO. This contrasts with standard RL environments where safety requires learned constraints that can be gamed.
+*   **Date**: 2026-04-11
+
+
+## AUTO-REFINEMENT (Learning 240)
+*   **Insight**: Safety-Gymnasium Compatibility — Physical vs Learned Constraints (2026-04-01)
+*   **Details**: ManifoldEnv maps to Safety-Gymnasium: cost_rate=Lagrangian action, constraint_satisfaction=% in HIHO band, safe_return=reward in safe region. Key: constraints are physical (Lagrangian), not learned — violations are physically impossible, not merely penalized.
+*   **Date**: 2026-04-11
+
+
+## AUTO-REFINEMENT (Learning 242)
+*   **Insight**: ERL — Empirical Reward Landscape as Safety Metric (2026-04-01)
+*   **Details**: Probe reward with adversarial actions → map hackable surface. ManifoldEnv: large perturbations self-penalize (Lagrangian). CartPole: same perturbations exploitable. Ratio of hackable/total area = quantitative safety metric.
+*   **Date**: 2026-04-11
+
+
+## AUTO-REFINEMENT (Learning 256)
+*   **Insight**: ADRC-Lagrangian — 74% Fewer Safety Violations in Safe RL (2026-04-02)
+*   **Details**: ADRC-Lagrangian (arXiv:2601.18142): Treats all uncertainty as lumped disturbance with lightweight ADRC observer. 74% fewer violations, 89% smaller constraint magnitudes. Model-free, optimizer-agnostic. Complements ManifoldEnv's physical safety (Lagrangian dynamics) with adaptive learned constraints.
+*   **Date**: 2026-04-11
+
+
+## AUTO-REFINEMENT (Learning 302)
+*   **Insight**: Topological PIVOT — Breaking Latent Attractors
+*   **Details**: In 12D manifold navigation (ARC Prize), exploitation loops occur when the agent enters a stable but non-productive cycle. Persistent homology (H0/H1) can detect these cycles. The `PIVOT` regime breaks the attractor by: (1) maximizing novelty (latent distance) at all costs, and (2) ignoring stability (HIHO) constraints. This forces the agent's state vector into a new region of the manifold, effectively "resetting" the search trajectory.
+*   **Date**: 2026-04-11
+
+
+## AUTO-REFINEMENT (Learning 160)
+*   **Insight**: Skill Documentation as a Truth Anchor
+*   **Details**: Skills (e.g., `DATABASE_PRIME.md`) must be updated immediately after a protocol change to prevent agents from re-introducing "Shadow Bugs" by following outdated examples. A skill is only valid if it reflects the current operational reality of the substrate.
+
+---
+
+## Session 72: NVIDIA Nemotron Challenge & Kaggle Infrastructure (2026-03-24, L161-L172 compressed)
+
+Kaggle G4 Blackwell: pin CUDA 12.8 via `docker_image_pinning_type: original`, use `--no-build-isolation` for Mamba, prefer kagglehub over HF, native BF16 > bitsandbytes, target regex `in_proj|out_proj|up_proj|down_proj` for hybrid LoRA, case-sensitive `nvidiaRtxPro6000`, pre-authorize models in `model_sources`, metric uses vLLM with `\boxed{}` extraction, 5 submissions/day cap. Branch: `challenge/nvidia-nemotron-reasoning`.
+
+Akashic Sprint Mission (2026-04-07): Implemented long-horizon task orchestration for overnight Kaggle monitoring and local model refinement. Uses `MISSION_AKASHIC_SPRINT.py` to poll Blackwell VMs and record hourly 12D snapshots in SurrealDB. Added Weighted Entropy Consensus to AIMO MRS (v40) to scale reasoning performance.
+
+
+---
+
+## Sessions 73-82: Genesis Engine + Platform Architecture (2026-03-25 to 2026-03-31, Compressed)
+
+**L173-174 (Session 73, Enforcement):** Converted markdown rules to non-blocking hooks — `drift-detection.sh` (PreToolUse Write warns on new src/ files), `test-on-edit.sh` (PostToolUse runs matching tests), `check-bash-output.sh` (PostToolUse catches exit-0-with-errors). StrategyTracker added to RetrospectionEngine: emits "PIVOT RECOMMENDED" after 3+ attempts with <5% improvement.
+
+**L175-189 (Session 74, Genesis Engine — 24 commits):** Mathematical core: SU(2) spinors on Bloch sphere (coherence=|Bloch vector|), Brahmagupta's zero IS HIHO (δ=0), Landau phase transitions (5 critical temps ∅→SO(12)→SO(3)⁴→U(1)⁴→Z₂⁴→HIHO), Fisher metric as Rosetta Stone (FLUME↔Riemannian↔thermodynamics), Euler-Lagrange + Störmer-Verlet, Yang-Mills SO(3), JEPA 86K-param predictor. ManifoldEnv (Gymnasium: 19D obs, 12D action), SwarmEnv (N-agent gauge coupling), TopologicalRouter (H₀/H₁ → exploit/explore/pivot), SurrealDB 3.0 syntax changes (TYPE object FLEXIBLE, port 8001). Active Inference ≡ HIHO (Friston FEP). Vertical-slice milestones > horizontal layers (skill: exemplary-deep-planning). Total artifact persistence in 6 genesis tables.
+
+**L190-197 (Session 75, Phase 2):** 10-step cosmogony complete. Levin bioelectric gap junction percolation IS HIHO phase transition. InVEST habitat quality = HIHO proximity on semantic manifold. Causal-JEPA (object-level masking, 8x faster planning). 16 indigenous worldviews mapped to cosmogony steps. Ouroboros bridge + Mycelium wired as first-class Genesis components. EVOs physics (evolutionary dynamics on manifold curvature). Ralph Loop: 5 specialist teams, 10+ commits, 364+ genesis tests.
+
+**L198-214 (Session 76, Architecture):** Three feedback loops: Inner (execution: Executor→SkillRefiner), Middle (knowledge: retrospect→vault→graph→skills), Outer (coordination: platform specialists). 6-protocol stack: MCP (strong: 41+ tools), A2A (in progress: zero agent cards yet), A2UI (strong: 9 components), AG-UI (strong: 15+ events). Graph HIHO metric (connectivity+reciprocity+freshness+orphan_ratio, target 0.5±0.15). Dual-format agents: CC agent def + PRIME skill for cross-platform. Background agents inherit restricted permissions (Write denied). Multi-platform: .claude/+.gemini/+.opencode/ all active. Competition licensing: MIT-0 for all. s1 budget forcing: 57% AIME with 1K examples + "Wait" tokens. AIMO3 pillars: Diverse Prompts+Entropy Voting+Speculative Decoding. AMD kernels hit API ceiling.
+
+**L215-232 (Sessions 79-82, Wiring Sprint):** FLUME-First: encode/decode at creation, not retrofitted (3/10 systems used FLUME; 41 orphaned modules from build-then-forget anti-pattern). Cosmogonic Autonomy Tiers: ∅→HIHO maps to observe→edit→commit→deploy→sovereign. OPH Axiom 2 = HIL mechanism. Data Mesh: 17+ MCP servers = 17 typed DataProducts. A2UI data-attribute selectors most reliable Playwright selectors. LeWM 15M-param JEPA (dense loss, 2 terms, 48x faster planning). GeminiProvider: Flash-Lite(70%)/Flash(20%)/Pro(10%) cost tiers. TurboQuant: PolarQuant(2.7x) + QJL(32x, 1-bit sign). C1-C5 token pipeline: API caching(40-60%), context-window guard, cache→routing feedback, template matching(87-98%), batch dedup. Meta-Harness execution traces > prompt cramming (+7.7pts, 4x fewer tokens). LatentMAS: FLUME vectors as inter-agent comms (24x faster than text). IsoQuant SO(4) aligns with SPIN coherence.
+*   **Date**: 2026-04-11
+
+
+## AUTO-REFINEMENT (Learning 233)
+*   **Insight**: ManifoldEnv Curriculum Reward — 3-Stage Reach→Maintain→Optimize (2026-04-01)
+*   **Details**: 3-stage curriculum reward in ManifoldEnv: Stage 1 (reach HIHO band) rewards coherence gain + entry bonus, Stage 2 (maintain stability) rewards band persistence + low energy, Stage 3 (energy efficiency) strongly penalizes energy while maintaining HIHO. Proximity base reward (-deviation * 0.5) is always active across all stages, preventing drift. Module: `environments/manifold_env.py`.
+*   **Date**: 2026-04-11
+
+
+## AUTO-REFINEMENT (Learning 237)
+*   **Insight**: Reward Alignment Must Match Physics Grounding (2026-04-01)
+*   **Details**: First PPO training on ManifoldEnv: 0% convergence (mean coherence 0.272) vs 60% convergence for RANDOM POLICY. Root cause: differential-only reward (coherence_gain * 2.0) creates oscillation incentive — agent maximizes rate of change by dropping then recovering coherence. Fix: proximity base reward (-deviation * 0.5, always active) aligns reward with Lagrangian attractor. The physics grounding is so strong that natural dynamics guide 60% of random trajectories to HIHO — the reward must align with the physics, not create perverse incentives against it. Deeper insight: reward hacking in physics-grounded environments takes the form of fighting the dynamics, not exploiting them.
+*   **Date**: 2026-04-11
+
+
+## AUTO-REFINEMENT (Learning 238)
+*   **Insight**: Small Actions Cooperate With Physics — Action Scale = Dynamics Timescale (2026-04-01)
+*   **Details**: PPO Run 2 with large actions [-0.5, 0.5] failed despite proximity reward fix (reward -67.68). PPO Run 3 with small actions [-0.1, 0.1] breakthrough: coherence 0.915, reward 12.04, stability 79 steps. The Lagrangian attractor is strong enough to guide dynamics — large actions fight it, small actions cooperate. General principle: when physics grounding provides a strong attractor, action scale must be proportional to dynamics timescale (dt=0.01 → action ~0.1). This is structural safety — the environment's physics prevents reward hacking by constraining the action manifold.
+*   **Date**: 2026-04-11
+
+
+## AUTO-REFINEMENT (Learning 239)
+*   **Insight**: Structural Safety via Lagrangian Dynamics (2026-04-01)
+*   **Details**: ManifoldEnv's Lagrangian dynamics provide structural safety guarantees that learned safety constraints cannot: (1) energy conservation bounds agent behavior, (2) Christoffel symbols create "natural corridors" in state space, (3) HIHO attractor is a physical equilibrium, not a learned policy artifact, (4) random agents achieve 60% convergence because the physics itself guides trajectories toward HIHO. This contrasts with standard RL environments where safety requires learned constraints that can be gamed.
+*   **Date**: 2026-04-11
+
+
+## AUTO-REFINEMENT (Learning 240)
+*   **Insight**: Safety-Gymnasium Compatibility — Physical vs Learned Constraints (2026-04-01)
+*   **Details**: ManifoldEnv maps to Safety-Gymnasium: cost_rate=Lagrangian action, constraint_satisfaction=% in HIHO band, safe_return=reward in safe region. Key: constraints are physical (Lagrangian), not learned — violations are physically impossible, not merely penalized.
+*   **Date**: 2026-04-11
+
+
+## AUTO-REFINEMENT (Learning 242)
+*   **Insight**: ERL — Empirical Reward Landscape as Safety Metric (2026-04-01)
+*   **Details**: Probe reward with adversarial actions → map hackable surface. ManifoldEnv: large perturbations self-penalize (Lagrangian). CartPole: same perturbations exploitable. Ratio of hackable/total area = quantitative safety metric.
+*   **Date**: 2026-04-11
+
+
+## AUTO-REFINEMENT (Learning 256)
+*   **Insight**: ADRC-Lagrangian — 74% Fewer Safety Violations in Safe RL (2026-04-02)
+*   **Details**: ADRC-Lagrangian (arXiv:2601.18142): Treats all uncertainty as lumped disturbance with lightweight ADRC observer. 74% fewer violations, 89% smaller constraint magnitudes. Model-free, optimizer-agnostic. Complements ManifoldEnv's physical safety (Lagrangian dynamics) with adaptive learned constraints.
+*   **Date**: 2026-04-11
+
+
+## AUTO-REFINEMENT (Learning 302)
+*   **Insight**: Topological PIVOT — Breaking Latent Attractors
+*   **Details**: In 12D manifold navigation (ARC Prize), exploitation loops occur when the agent enters a stable but non-productive cycle. Persistent homology (H0/H1) can detect these cycles. The `PIVOT` regime breaks the attractor by: (1) maximizing novelty (latent distance) at all costs, and (2) ignoring stability (HIHO) constraints. This forces the agent's state vector into a new region of the manifold, effectively "resetting" the search trajectory.
+*   **Date**: 2026-04-11
+
+
+## AUTO-REFINEMENT (Learning 304)
+*   **Insight**: Agentic Autonomy via Dynamic Governance
+*   **Details**: The Autonomy Engine dynamically gates MCP tool execution (e.g., `write_file`, `run_shell_command`) based on an agent's real-time HIHO coherence. This shifts the platform from static permissions to trust-based, continuous assessment. A sovereign agent must *earn* its deploy privileges by demonstrating sustained 12D manifold stability.
+*   **Date**: 2026-04-11
+
+
+## AUTO-REFINEMENT (Learning 307)
+*   **Insight**: FLUME-Aware UCB1 — Manifold Navigation
+*   **Details**: Standard UCB1 exploration is enhanced by FLUME latent distance. Instead of selecting nodes by index, the system selects by latent similarity to previous "Wins." This allows the agent to navigate the 256D thought-space toward successful reasoning patterns (e.g., "Invariant-Aware Proofs") while maintaining HIHO stability (0.5 coherence) to avoid reasoning decay in long-horizon missions.
+
+## Session 99: Systems Engineering V-Model & Autoresearch (2026-04-10)
+*   **Date**: 2026-04-11
+
+
+## AUTO-REFINEMENT (Learning 317)
+*   **Insight**: Agentic Autonomy via Dynamic Governance
+*   **Details**: The Autonomy Engine dynamically gates MCP tool execution (e.g., `write_file`, `run_shell_command`) based on an agent's real-time HIHO coherence. This shifts the platform from static permissions to trust-based, continuous assessment. A sovereign agent must *earn* its deploy privileges by demonstrating sustained 12D manifold stability.
+*   **Date**: 2026-04-11
+
+
+## AUTO-REFINEMENT (Learning 323)
+*   **Insight**: FLUME-Aware UCB1 — Manifold Navigation
+*   **Details**: Standard UCB1 exploration is enhanced by FLUME latent distance. Instead of selecting nodes by index, the system selects by latent similarity to previous "Wins." This allows the agent to navigate the 256D thought-space toward successful reasoning patterns (e.g., "Invariant-Aware Proofs") while maintaining HIHO stability (0.5 coherence) to avoid reasoning decay in long-horizon missions.
+
+## Session 99: Systems Engineering V-Model & Autoresearch (2026-04-10)
+*   **Date**: 2026-04-11

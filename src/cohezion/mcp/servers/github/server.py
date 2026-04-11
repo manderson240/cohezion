@@ -18,8 +18,21 @@ from cohezion.security.credentials import get_credentials
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("github-mcp")
 
-# Configuration
-GITHUB_TOKEN = get_credentials().get_secret("COHEZION_GITHUB_TOKEN", env_var="GITHUB_TOKEN") or ""
+# Lazy accessor for GITHUB_TOKEN to prevent startup latency
+_github_token: str | None = None
+
+
+def get_github_token() -> str:
+    """Get GitHub token with lazy initialization."""
+    global _github_token
+    if _github_token is None:
+        _github_token = (
+            get_credentials().get_secret("COHEZION_GITHUB_TOKEN", env_var="GITHUB_TOKEN")
+            or ""
+        )
+    return _github_token
+
+
 GITHUB_API_BASE = "https://api.github.com"
 
 # Initialize FastMCP server
@@ -135,13 +148,47 @@ class GitHubService:
             logger.exception(f"Error creating issue: {e}")
             return {"error": str(e)}
 
+    async def create_issue_comment(
+        self, owner: str, repo: str, issue_number: int, body: str
+    ) -> dict[str, Any]:
+        """Create a comment on an issue."""
+        if not self.token:
+            return {"error": "GitHub token required for write operations"}
+
+        session = await self._get_session()
+        url = f"{GITHUB_API_BASE}/repos/{owner}/{repo}/issues/{issue_number}/comments"
+        payload = {"body": body}
+
+        try:
+            async with session.post(url, json=payload) as resp:
+                if resp.status == 201:
+                    data = await resp.json()
+                    return {
+                        "id": data["id"],
+                        "url": data["html_url"],
+                        "created_at": data["created_at"],
+                    }
+                else:
+                    text = await resp.text()
+                    return {"error": f"Failed to create comment: {resp.status}", "details": text}
+        except Exception as e:
+            logger.exception(f"Error creating comment: {e}")
+            return {"error": str(e)}
+
     async def list_issues(
-        self, owner: str, repo: str, state: str = "open", limit: int = 10
+        self,
+        owner: str,
+        repo: str,
+        state: str = "open",
+        labels: list[str] | None = None,
+        limit: int = 10,
     ) -> list[dict]:
         """List issues in a repository."""
         session = await self._get_session()
         url = f"{GITHUB_API_BASE}/repos/{owner}/{repo}/issues"
         params = {"state": state, "per_page": min(limit, 100)}
+        if labels:
+            params["labels"] = ",".join(labels)
 
         try:
             async with session.get(url, params=params) as resp:
@@ -210,7 +257,7 @@ def get_service() -> GitHubService:
     """Get or create GitHub service."""
     global _service
     if _service is None:
-        _service = GitHubService(GITHUB_TOKEN)
+        _service = GitHubService(get_github_token())
     return _service
 
 
@@ -261,8 +308,28 @@ async def github_create_issue(
 
 
 @app.tool()
+async def github_create_issue_comment(
+    owner: str, repo: str, issue_number: int, body: str
+) -> dict[str, Any]:
+    """Create a comment on an issue.
+
+    Args:
+        owner: Repository owner
+        repo: Repository name
+        issue_number: Issue number
+        body: Comment body
+    """
+    service = get_service()
+    return await service.create_issue_comment(owner, repo, issue_number, body)
+
+
+@app.tool()
 async def github_list_issues(
-    owner: str, repo: str, state: str = "open", limit: int = 10
+    owner: str,
+    repo: str,
+    state: str = "open",
+    labels: list[str] | None = None,
+    limit: int = 10,
 ) -> dict[str, Any]:
     """List issues in a repository.
 
@@ -270,11 +337,13 @@ async def github_list_issues(
         owner: Repository owner
         repo: Repository name
         state: Issue state (open, closed, all)
+        labels: Optional list of labels to filter by
         limit: Max results
     """
     service = get_service()
-    issues = await service.list_issues(owner, repo, state, limit)
-    return {"count": len(issues), "issues": issues}
+    issues = await service.list_issues(owner, repo, state, labels, limit)
+    return {"issues": issues}
+
 
 
 @app.tool()
@@ -292,6 +361,6 @@ async def github_get_user(username: str) -> dict[str, Any]:
 
 
 if __name__ == "__main__":
-    if not GITHUB_TOKEN:
+    if not get_github_token():
         logger.warning("GITHUB_TOKEN not set - write operations will fail")
     app.run(transport="stdio")

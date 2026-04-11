@@ -164,7 +164,7 @@ class TestRecordAction:
         action_id = agent_context_ops.record_action(
             session_id="session:abc123",
             tool_name="bash",
-            input_params={"command": "curl http://localhost:8000/sql"},
+            input_params={"command": "curl http://localhost:8001/sql"},
             output="",
             duration_ms=5000,
             status="timeout",

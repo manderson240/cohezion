@@ -13,6 +13,7 @@ D output: row = (r%4) + (r/4)*8 + (tid/32)*4, col = tid%32
 """
 
 import os
+
 os.environ["PYTORCH_ROCM_ARCH"] = "gfx950"
 os.environ["CXX"] = "clang++"
 
@@ -133,12 +134,17 @@ void launch(torch::Tensor A, torch::Tensor B,
 }
 """
 
-CPP_SOURCE = "void launch(torch::Tensor, torch::Tensor, torch::Tensor, torch::Tensor, torch::Tensor);"
+CPP_SOURCE = (
+    "void launch(torch::Tensor, torch::Tensor, torch::Tensor, torch::Tensor, torch::Tensor);"
+)
 
 try:
     _mod = load_inline(
-        name="fp4mfma_exact", cpp_sources=[CPP_SOURCE], cuda_sources=[HIP_SOURCE],
-        functions=["launch"], verbose=False,
+        name="fp4mfma_exact",
+        cpp_sources=[CPP_SOURCE],
+        cuda_sources=[HIP_SOURCE],
+        functions=["launch"],
+        verbose=False,
         extra_cuda_cflags=["--offload-arch=gfx950", "-std=c++20", "-O3"],
     )
     _OK = True
@@ -156,10 +162,12 @@ def custom_kernel(data: input_t) -> output_t:
     if not _OK:
         print("[GEMM] FALLBACK to aiter")
         import aiter
+
         Aq, Asc = dynamic_mxfp4_quant(A.contiguous())
         Ash = e8m0_shuffle(Asc).view(dtypes.fp8_e8m0)
-        return aiter.gemm_a4w4(Aq.view(dtypes.fp4x2), B_shuffle, Ash, B_scale_sh,
-                               dtype=dtypes.bf16, bpreshuffle=True)
+        return aiter.gemm_a4w4(
+            Aq.view(dtypes.fp4x2), B_shuffle, Ash, B_scale_sh, dtype=dtypes.bf16, bpreshuffle=True
+        )
 
     print("[GEMM] CUSTOM FP4 MFMA exact")
     Aq, Asc = dynamic_mxfp4_quant(A.contiguous())
@@ -170,7 +178,6 @@ def custom_kernel(data: input_t) -> output_t:
     B_bytes = B_q.view(torch.uint8)
     # B scale: use shuffled scale from harness
     Bs_bytes = B_scale_sh.view(torch.uint8)
-
 
     C = torch.empty((M, N), dtype=torch.bfloat16, device=A.device)
     _mod.launch(A_bytes, B_bytes, As_bytes, Bs_bytes, C)

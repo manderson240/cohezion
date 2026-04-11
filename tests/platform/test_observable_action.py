@@ -120,25 +120,33 @@ class TestObservableActionProposer:
     @pytest.mark.asyncio
     async def test_estimate_coherence_impact_update(self, observable_proposer):
         """Test coherence impact estimation for update actions."""
-        impact = await observable_proposer._estimate_coherence_impact("update", "Update database schema", 0.5)
+        impact = await observable_proposer._estimate_coherence_impact(
+            "update", "Update database schema", 0.5
+        )
         assert impact == 0.01
 
     @pytest.mark.asyncio
     async def test_estimate_coherence_impact_refactor(self, observable_proposer):
         """Test coherence impact estimation for refactor actions."""
-        impact = await observable_proposer._estimate_coherence_impact("refactor", "Refactor legacy code", 0.5)
+        impact = await observable_proposer._estimate_coherence_impact(
+            "refactor", "Refactor legacy code", 0.5
+        )
         assert impact == 0.05
 
     @pytest.mark.asyncio
     async def test_estimate_coherence_impact_delete(self, observable_proposer):
         """Test coherence impact estimation for delete actions."""
-        impact = await observable_proposer._estimate_coherence_impact("delete", "Delete unused files", 0.5)
+        impact = await observable_proposer._estimate_coherence_impact(
+            "delete", "Delete unused files", 0.5
+        )
         assert impact == -0.02
 
     @pytest.mark.asyncio
     async def test_estimate_coherence_impact_neutral(self, observable_proposer):
         """Test coherence impact estimation for neutral actions."""
-        impact = await observable_proposer._estimate_coherence_impact("read", "Read configuration", 0.5)
+        impact = await observable_proposer._estimate_coherence_impact(
+            "read", "Read configuration", 0.5
+        )
         assert impact == 0.0
 
     @pytest.mark.asyncio
@@ -165,7 +173,9 @@ class TestObservableActionProposer:
         mock_coherence_tracker.measure_system_coherence.assert_called_once()
 
     @pytest.mark.asyncio
-    async def test_propose_action_requires_approval(self, observable_proposer, mock_coherence_tracker):
+    async def test_propose_action_requires_approval(
+        self, observable_proposer, mock_coherence_tracker
+    ):
         """Test proposing action that requires approval."""
         action_executed = False
 
@@ -217,7 +227,9 @@ class TestObservableActionProposer:
         assert action_executed is False
 
     @pytest.mark.asyncio
-    async def test_propose_action_with_journey_logging(self, observable_proposer, mock_journey_logger):
+    async def test_propose_action_with_journey_logging(
+        self, observable_proposer, mock_journey_logger
+    ):
         """Test that approved actions are logged to journey."""
 
         async def test_action():
@@ -267,7 +279,9 @@ class TestObservableActionProposer:
         mock_journey_logger.log_decision.assert_not_called()
 
     @pytest.mark.asyncio
-    async def test_propose_action_with_risks_and_benefits(self, observable_proposer, mock_vae_encoder):
+    async def test_propose_action_with_risks_and_benefits(
+        self, observable_proposer, mock_vae_encoder
+    ):
         """Test proposing action with risks and benefits."""
 
         async def test_action():

@@ -1,5 +1,6 @@
--- SurrealDB 3.0 Schema: Universe State Space
+-- SurrealDB 3.0 Schema: Universe State Space (Bi-Temporal)
 -- 12D coherence universe for tracking agent state trajectories
+-- Bi-temporal: valid_from/valid_to (simulation time) + VERSION clause (system time)
 
 -- universe_node: Primary node type for 12D universe state vectors
 -- Each node represents a point in the multi-dimensional coherence space
@@ -44,11 +45,16 @@ DEFINE FIELD phi_score ON TABLE universe_node TYPE float DEFAULT 0.0
 DEFINE FIELD embedding ON TABLE universe_node TYPE option<array<float>>;
 DEFINE FIELD embedding[*] ON TABLE universe_node TYPE float;
 
+-- Bi-temporal: valid-time (when this state held in the simulated universe)
+DEFINE FIELD valid_from ON TABLE universe_node TYPE datetime DEFAULT time::now();
+DEFINE FIELD valid_to   ON TABLE universe_node TYPE option<datetime>;
+
 -- Flexible metadata
 DEFINE FIELD metadata ON TABLE universe_node TYPE object;
 
 -- Indexes
 DEFINE INDEX idx_unode_type ON TABLE universe_node COLUMNS node_type;
+DEFINE INDEX idx_unode_temporal ON TABLE universe_node COLUMNS valid_from, valid_to;
 DEFINE INDEX idx_unode_timestamp ON TABLE universe_node COLUMNS timestamp;
 DEFINE INDEX idx_unode_agent_id ON TABLE universe_node COLUMNS agent_id;
 DEFINE INDEX idx_unode_session_id ON TABLE universe_node COLUMNS session_id;

@@ -31,20 +31,27 @@ This refined plan outlines the construction of the **"Fortress Swarm"** architec
 ### Phase 1: Environment Hardening & TDD
 - [x] Integrate `PreFlightJury` to test the Kaggle offline environment.
 - [x] Configure Kaggle metadata for H100 locking (`machine_shape: NvidiaH100`).
-- [ ] **Apply Polars Indexing Fix** (`problem_df[0]`) to resolve the prompt formatting corruption.
+- [x] **Apply Polars Indexing Fix** (`problem_df[0]`) to resolve the prompt formatting corruption (Implemented in v43).
 
 ### Phase 2: Inference-Time Scaling
 - [x] Upgrade the Dual-Run protocol to an Adaptive Batched Swarm.
 - [x] Implement the Diverse Prompt Mixer to enforce cognitive diversity.
-- [ ] Refine the "Devil's Advocate" Adversarial Loop for continuous self-correction (Reflexion).
+- [x] Refine the "Devil's Advocate" Adversarial Loop for continuous self-correction (Reflexion) (Implemented in v43).
 
 ### Phase 3: Symbolic Verification (SymCode)
 - [x] Sandbox the `SymbolicExecutor` to prevent runtime crashes during code execution.
-- [ ] Implement "Invariant-Aware Prompting" to force the model to generate testable mathematical properties before finalizing its answer.
+- [x] Implement "Invariant-Aware Prompting" to force the model to generate testable mathematical properties before finalizing its answer (Implemented in v43).
 
 ### Phase 4: Production Deployment
 - [x] Deploy "Safe-Mode" Transformers baseline (v24) as a guaranteed fallback.
-- [ ] Deploy final "Fortress Swarm" (v34) with the Polars bug fixed, ensuring the model finally receives the raw mathematical text.
+- [x] Deploy final "Fortress Swarm" (v43) with the Polars bug fixed, ensuring the model finally receives the raw mathematical text.
+- [~] Monitor Private Rerun performance and iterate on prompt diversity if throughput allows.
+
+### Phase 5: Leaderboard Push (Target: 46+)
+- [x] Implement **Test-Time Scaling** (Dual-Path + Adversarial Critique).
+- [x] Implement **Robust Fallback** (Transformers loop if vLLM fails).
+- [ ] Implement **Consensus Ensemble** (N=10+ samples) for the final 24 hours of the competition.
+- [ ] Submit "Golden Version" to final Private Leaderboard.
 
 ## Verification
 - **Prompt Integrity Test**: Verify that the text passed to the tokenizer is a pure string, not a Polars object representation.

@@ -1,0 +1,39 @@
+{
+  "taskVersion": {
+    "versionNumber": 1,
+    "name": "learning_markov_process_11",
+    "description": "Learn Markov process transition probabilities.",
+    "definition": "@kbench.task(name=\"learning_markov_process_11\")\ndef learning_markov_process_11(llm) -> bool:\n    \"\"\"Learn Markov process transition probabilities.\"\"\"\n    prompt = \"\"\"A Markov chain has states {Sunny, Cloudy, Rainy} with transitions:\n\nFrom Sunny: 70% Sunny, 20% Cloudy, 10% Rainy\nFrom Cloudy: 30% Sunny, 40% Cloudy, 30% Rainy\nFrom Rainy: 20% Sunny, 50% Cloudy, 30% Rainy\n\nStarting Sunny, what is P(Cloudy on day 2)?\n\nA) 20%\nB) 26%\nC) 30%\nD) 34%\"\"\"\n    response = llm.prompt(prompt)\n    return bool(kbench.assertions.assert_true(\"B\" in response, expectation=\"Correct answer is B\"))\n"
+  },
+  "modelVersion": {},
+  "state": "BENCHMARK_TASK_RUN_STATE_COMPLETED",
+  "startTime": "2026-04-11T04:43:16.219081Z",
+  "endTime": "2026-04-11T04:45:07.879560Z",
+  "conversations": [
+    {
+      "id": "learning_markov_process_11-a8a398dd",
+      "metrics": {},
+      "modelVersionSlug": "model_version_slug for conversation is DEPRECATED"
+    }
+  ],
+  "results": [
+    {
+      "type": "AGGREGATED",
+      "booleanResult": true
+    }
+  ],
+  "assertions": [
+    {
+      "expectation": "Correct answer is B",
+      "status": "BENCHMARK_TASK_RUN_ASSERTION_STATUS_PASSED",
+      "lineNumber": 283,
+      "definition": "return bool(kbench.assertions.assert_true(\"B\" in response, expectation=\"Correct answer is B\"))",
+      "conversationRequestIds": [
+        {
+          "conversationId": "learning_markov_process_11-a8a398dd"
+        }
+      ]
+    }
+  ],
+  "pyRunId": "learning_markov_process_11-Run #1"
+}

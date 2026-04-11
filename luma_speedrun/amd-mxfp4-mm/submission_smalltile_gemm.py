@@ -16,6 +16,7 @@ Falls back to aiter baseline on compile failure.
 """
 
 import os
+
 os.environ["PYTORCH_ROCM_ARCH"] = "gfx950"
 os.environ["CXX"] = "clang++"
 
@@ -204,9 +205,13 @@ def custom_kernel(data: input_t) -> output_t:
             K = A.shape[1]
             N = B_shuffle.shape[0]
             result = _custom.run_smalltile_gemm(
-                Aq.view(torch.uint8), B_shuffle.view(torch.uint8),
-                Ash.view(torch.uint8), B_scale_sh.view(torch.uint8),
-                M, N, K,
+                Aq.view(torch.uint8),
+                B_shuffle.view(torch.uint8),
+                Ash.view(torch.uint8),
+                B_scale_sh.view(torch.uint8),
+                M,
+                N,
+                K,
             )
             return result
         except Exception:
@@ -214,6 +219,10 @@ def custom_kernel(data: input_t) -> output_t:
 
     # Fallback
     return _gemm(
-        Aq.view(_fp4x2), B_shuffle, Ash, B_scale_sh,
-        dtype=_bf16, bpreshuffle=True,
+        Aq.view(_fp4x2),
+        B_shuffle,
+        Ash,
+        B_scale_sh,
+        dtype=_bf16,
+        bpreshuffle=True,
     )

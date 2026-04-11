@@ -21,7 +21,7 @@ class AgentContextOps:
 
     def __init__(
         self,
-        surrealdb_url: str = "http://localhost:8000",
+        surrealdb_url: str = "http://localhost:8001",
         namespace: str = "cohezion",
         database: str = "vault",
         username: str = "root",

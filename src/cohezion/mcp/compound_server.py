@@ -392,6 +392,106 @@ async def skill_refinement_apply(skill_name: str, refinement_type: str) -> dict[
         return {"status": "error", "error": str(e)}
 
 
+@mcp.tool()
+async def get_context_policy() -> dict[str, Any]:
+    """Get current learned context policy budgets.
+
+    Returns the active profile budgets, task overrides, and outcome summary
+    from .context/policy/learned-budgets.md. Any MCP client (Claude Code,
+    Gemini CLI, Zed, Antigravity) can call this to read the shared policy.
+
+    Returns:
+        Policy data with profiles, task_overrides, and outcome_summary
+    """
+    from cohezion.compound.context_policy import ContextPolicy
+
+    try:
+        policy = ContextPolicy()
+        budgets = {}
+        for profile_name in ("focused", "exploratory", "routine"):
+            from cohezion.compound.context_policy import TaskProfile
+
+            profile = TaskProfile(profile_name)
+            b = policy.get_budget(profile)
+            budgets[profile_name] = {
+                "flux_top_k": b.flux_top_k,
+                "flux_min_relevance": b.flux_min_relevance,
+                "token_budget": b.token_budget,
+                "skill_overlay": b.skill_overlay,
+            }
+        return {
+            "status": "success",
+            "profiles": budgets,
+            "task_overrides": policy._task_overrides,
+            "outcome_summary": policy._outcome_summary,
+        }
+    except Exception as e:
+        logger.error("Failed to read context policy: %s", e)
+        return {"status": "error", "error": str(e)}
+
+
+@mcp.tool()
+async def update_context_policy(
+    profile: str,
+    flux_top_k: int | None = None,
+    flux_min_relevance: float | None = None,
+    token_budget: int | None = None,
+) -> dict[str, Any]:
+    """Update a context policy profile's budget parameters.
+
+    Writes to .context/policy/learned-budgets.md so all tools (Claude Code,
+    Gemini CLI, Zed, Antigravity, Pi) pick up the changes on next session.
+
+    Args:
+        profile: Profile to update (focused, exploratory, routine)
+        flux_top_k: New FLUX block count (breadth)
+        flux_min_relevance: New relevance floor (depth filter)
+        token_budget: New max tokens for injected context
+
+    Returns:
+        Updated budget values
+    """
+    from cohezion.compound.context_policy import ContextBudget, ContextPolicy, TaskProfile
+
+    try:
+        task_profile = TaskProfile(profile)
+    except ValueError:
+        return {
+            "status": "error",
+            "error": f"Invalid profile: {profile}. Use focused/exploratory/routine.",
+        }
+
+    try:
+        policy = ContextPolicy()
+        current = policy.get_budget(task_profile)
+
+        updated = ContextBudget(
+            flux_top_k=flux_top_k if flux_top_k is not None else current.flux_top_k,
+            flux_min_relevance=flux_min_relevance
+            if flux_min_relevance is not None
+            else current.flux_min_relevance,
+            flux_sources=current.flux_sources,
+            token_budget=token_budget if token_budget is not None else current.token_budget,
+            skill_overlay=current.skill_overlay,
+        )
+        policy._budgets[task_profile] = updated
+        policy.save_learned_budgets()
+
+        return {
+            "status": "success",
+            "profile": profile,
+            "budget": {
+                "flux_top_k": updated.flux_top_k,
+                "flux_min_relevance": updated.flux_min_relevance,
+                "token_budget": updated.token_budget,
+                "skill_overlay": updated.skill_overlay,
+            },
+        }
+    except Exception as e:
+        logger.error("Failed to update context policy: %s", e)
+        return {"status": "error", "error": str(e)}
+
+
 async def check_redis_health() -> dict[str, Any]:
     """Check Redis connection health on startup."""
     import os

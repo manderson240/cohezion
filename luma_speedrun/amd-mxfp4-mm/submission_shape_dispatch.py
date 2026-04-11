@@ -122,7 +122,9 @@ __device__ __forceinline__ void load_tile_to_lds(
 #   wave 2→[bn+64..95],       wave 3→[bn+96..127]
 # Wave 0 is the load wave; waves 1-3 stall at a barrier while it prefetches.
 # ============================================================================
-_KERNEL_A_HIP = _COMMON_HIP + r"""
+_KERNEL_A_HIP = (
+    _COMMON_HIP
+    + r"""
 #define BM_A  32
 #define BN_A  128
 #define THREADS_A  256
@@ -287,12 +289,15 @@ void launch_small_m(
         M, N, K);
 }
 """
+)
 
 # ============================================================================
 # Kernel B: BLOCK_M=128, BLOCK_N=256, 8 waves — targets M>32 (blog v2)
 # Identical to submission_amd_blog_v2.py but combined in one load_inline call.
 # ============================================================================
-_KERNEL_B_HIP = _COMMON_HIP + r"""
+_KERNEL_B_HIP = (
+    _COMMON_HIP
+    + r"""
 #define BM_B      128
 #define BN_B      256
 #define THREADS_B 512
@@ -491,6 +496,7 @@ void launch_large_m(
         M, N, K);
 }
 """
+)
 
 _CPP_SMALL = """
 void launch_small_m(
@@ -593,7 +599,7 @@ def custom_kernel(data: input_t) -> output_t:
     M, K = A.shape
     N = B.shape[0]
 
-    use_small = (M <= 32)
+    use_small = M <= 32
 
     if use_small and not _OK_SMALL:
         return _aiter_fallback(data)
@@ -611,9 +617,7 @@ def custom_kernel(data: input_t) -> output_t:
     if cache_key not in _bs_cache:
         _bs_cache.clear()
         _bs_cache[cache_key] = (
-            e8m0_unshuffle(B_scale_sh.view(torch.uint8), N, ks)
-            .contiguous()
-            .view(torch.uint8)
+            e8m0_unshuffle(B_scale_sh.view(torch.uint8), N, ks).contiguous().view(torch.uint8)
         )
     Bs_bytes = _bs_cache[cache_key]
 

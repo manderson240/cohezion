@@ -136,6 +136,15 @@
         "hooks": [
           {
             "type": "command",
+            "command": ".claude/hooks/pre-flight-rag.sh"
+          }
+        ]
+      },
+      {
+        "matcher": "all",
+        "hooks": [
+          {
+            "type": "command",
             "command": ".claude/hooks/session-concierge.sh"
           }
         ]
@@ -183,5 +192,6 @@
     "deny": [
       "Read(./.entire/metadata/**)"
     ]
-  }
+  },
+  "models": "alibayram/smollm3:latest,deepcoder:14b,gemma3:4b,glm-4.7-flash:latest,glm-5,gpt-oss:20b,kimi-k2.5:cloud,lfm2.5-thinking:latest,minimax-m2.7,ministral-3:3b,moondream:latest,nemotron-3-nano:latest,nemotron-3-super:120b,nomic-embed-text:latest,openai/gpt-oss-20b,phi3:mini,phi4-mini-reasoning:latest,phi4:latest,qwen2-math:7b,qwen2.5-coder:7b,qwen3-coder-next,qwen3-coder:30b,qwen3.5:0.8b,qwen3.5:397b-cloud,qwen3.5:cloud"
 }

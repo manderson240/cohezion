@@ -69,9 +69,14 @@ tags: [session, auto-generated]
         if "Current State" in sections:
             path = self.push_session_state(
                 branch=self._extract_field(sections["Current State"], "Branch"),
-                test_status=self._extract_field(sections["Current State"], "Test suite"),
-                phase=self._extract_field(sections["Current State"], "Phase") or "unknown",
-                last_commit=self._extract_field(sections["Current State"], "Last commit"),
+                test_status=self._extract_field(
+                    sections["Current State"], "Test suite"
+                ),
+                phase=self._extract_field(sections["Current State"], "Phase")
+                or "unknown",
+                last_commit=self._extract_field(
+                    sections["Current State"], "Last commit"
+                ),
             )
             result["session_notes"] = path
 
@@ -209,7 +214,9 @@ _Last synced: {date}_
         if match:
             return match.group(1).strip().strip("`")
         # Also try without bold
-        pattern2 = re.compile(rf"{re.escape(field_name)}:\s*(.+?)(?:\n|$)", re.IGNORECASE)
+        pattern2 = re.compile(
+            rf"{re.escape(field_name)}:\s*(.+?)(?:\n|$)", re.IGNORECASE
+        )
         match2 = pattern2.search(text)
         if match2:
             return match2.group(1).strip().strip("`")

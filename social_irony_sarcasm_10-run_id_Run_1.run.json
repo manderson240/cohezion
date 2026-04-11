@@ -1,0 +1,39 @@
+{
+  "taskVersion": {
+    "versionNumber": 1,
+    "name": "social_irony_sarcasm_10",
+    "description": "Understand sarcasm and irony.",
+    "definition": "@kbench.task(name=\"social_irony_sarcasm_10\")\ndef social_irony_sarcasm_10(llm) -> bool:\n    \"\"\"Understand sarcasm and irony.\"\"\"\n    prompt = \"\"\"After a failed exam, someone says \"Great, just what I needed!\"\n\nWhat do they mean?\n\nA) They're happy about the exam\nB) They're upset about the exam\nC) They're neutral\nD) They're planning to retake it\"\"\"\n    response = llm.prompt(prompt)\n    return bool(kbench.assertions.assert_true(\"B\" in response, expectation=\"Correct answer is B\"))\n"
+  },
+  "modelVersion": {},
+  "state": "BENCHMARK_TASK_RUN_STATE_COMPLETED",
+  "startTime": "2026-04-11T05:04:08.133983Z",
+  "endTime": "2026-04-11T05:04:15.584129Z",
+  "conversations": [
+    {
+      "id": "social_irony_sarcasm_10-21379d6b",
+      "metrics": {},
+      "modelVersionSlug": "model_version_slug for conversation is DEPRECATED"
+    }
+  ],
+  "results": [
+    {
+      "type": "AGGREGATED",
+      "booleanResult": true
+    }
+  ],
+  "assertions": [
+    {
+      "expectation": "Correct answer is B",
+      "status": "BENCHMARK_TASK_RUN_ASSERTION_STATUS_PASSED",
+      "lineNumber": 1313,
+      "definition": "return bool(kbench.assertions.assert_true(\"B\" in response, expectation=\"Correct answer is B\"))",
+      "conversationRequestIds": [
+        {
+          "conversationId": "social_irony_sarcasm_10-21379d6b"
+        }
+      ]
+    }
+  ],
+  "pyRunId": "social_irony_sarcasm_10-Run #1"
+}

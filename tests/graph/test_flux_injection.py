@@ -267,7 +267,9 @@ class TestTokenEfficiency:
                 attributes={"description": desc},
             )
             # Each node gets 3 targeted blocks (~50 chars each = ~37 tokens)
-            blocks = [_make_block(f"Relevant {name} context block {i}", 0.9 - i * 0.1) for i in range(3)]
+            blocks = [
+                _make_block(f"Relevant {name} context block {i}", 0.9 - i * 0.1) for i in range(3)
+            ]
             ctx = _make_flux_context(blocks, desc)
             total_scoped_tokens += ctx.total_tokens_estimated
 
@@ -329,13 +331,17 @@ class TestEffectivenessEvaluation:
                 _make_block("Research methodology: systematic literature review steps", 0.85),
             ],
             "analyse": [
-                _make_block("Common failure modes: split-brain, cascading timeout, thundering herd", 0.95),
+                _make_block(
+                    "Common failure modes: split-brain, cascading timeout, thundering herd", 0.95
+                ),
                 _make_block("Statistical pattern detection in distributed trace logs", 0.90),
                 _make_block("Root cause analysis framework for production incidents", 0.85),
             ],
             "synthesise": [
                 _make_block("Executive summary template for technical reports", 0.95),
-                _make_block("Prioritisation matrix: impact vs likelihood for recommendations", 0.90),
+                _make_block(
+                    "Prioritisation matrix: impact vs likelihood for recommendations", 0.90
+                ),
                 _make_block("Clear writing principles for actionable recommendations", 0.85),
             ],
             # Fallback for queries that don't match specific keywords
@@ -382,10 +388,7 @@ class TestEffectivenessEvaluation:
             context = captured.get("_flux_context", [])
             expected = expected_signals[spec.id]
             found = any(expected in block for block in context)
-            assert found, (
-                f"Node {spec.name} should have received '{expected}' "
-                f"but got: {context}"
-            )
+            assert found, f"Node {spec.name} should have received '{expected}' but got: {context}"
 
     @pytest.mark.asyncio
     async def test_no_cross_contamination(self, workflow_roles, role_specific_vault):
@@ -455,23 +458,27 @@ class TestEffectivenessEvaluation:
         scoped_scores: list[float] = []
         for desc in ["Gather background", "Analyse failure patterns", "Synthesise findings"]:
             spec = NodeSpec(
-                id="n", name="node", node_type="agent",
-                pull_keys=[], push_keys=[],
+                id="n",
+                name="node",
+                node_type="agent",
+                pull_keys=[],
+                push_keys=[],
                 attributes={"description": desc},
             )
             ctx = await role_specific_vault(desc, top_k=3)
             scoped_scores.extend(b.relevance_score for b in ctx.blocks)
 
         # Global: single query gets default (lower relevance) blocks
-        global_ctx = await role_specific_vault("distributed systems research analysis review", top_k=10)
+        global_ctx = await role_specific_vault(
+            "distributed systems research analysis review", top_k=10
+        )
         global_scores = [b.relevance_score for b in global_ctx.blocks]
 
         avg_scoped = sum(scoped_scores) / len(scoped_scores) if scoped_scores else 0
         avg_global = sum(global_scores) / len(global_scores) if global_scores else 0
 
         assert avg_scoped > avg_global, (
-            f"Scoped avg relevance ({avg_scoped:.2f}) should beat "
-            f"global avg ({avg_global:.2f})"
+            f"Scoped avg relevance ({avg_scoped:.2f}) should beat global avg ({avg_global:.2f})"
         )
 
 

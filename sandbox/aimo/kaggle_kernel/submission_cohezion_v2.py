@@ -26,6 +26,7 @@ except ImportError:
 HAS_VLLM = False
 HAS_INSTALLED = False
 
+
 def find_path(name_part):
     """Recursively search for a path in /kaggle/input."""
     for root, dirs, files in os.walk("/kaggle/input"):
@@ -33,29 +34,33 @@ def find_path(name_part):
             return root
     return None
 
+
 def install_dependencies():
     """Install vLLM from offline dataset if missing."""
     global HAS_VLLM, HAS_INSTALLED
-    
+
     import site
     import importlib
+
     user_site = site.getusersitepackages()
     if user_site not in sys.path:
         sys.path.insert(0, user_site)
-        
+
     try:
         from vllm import LLM, SamplingParams
+
         HAS_VLLM = True
         return
     except ImportError:
         pass
-        
+
     print("Searching for vLLM wheels...")
     dep_path = find_path("vllm-wheel-py3-12") or find_path("vllm-0-7-3-many")
-    
+
     if dep_path:
         print(f"Found dependencies at {dep_path}. Installing with --user...")
         import glob
+
         wheels = glob.glob(os.path.join(dep_path, "**/*.whl"), recursive=True)
         if wheels:
             wheels.sort(key=lambda x: "vllm" in x)
@@ -64,6 +69,7 @@ def install_dependencies():
         try:
             importlib.invalidate_caches()
             from vllm import LLM, SamplingParams
+
             HAS_VLLM = True
             print("vLLM installed successfully.")
             # Disk space hardening: clear pip cache
@@ -72,33 +78,60 @@ def install_dependencies():
             print(f"Failed to import vLLM after install: {e}")
     else:
         print("No dependency dataset found.")
-    
+
     HAS_INSTALLED = True
+
 
 # Path to Kaggle evaluation API
 sys.path.append("/kaggle/input/ai-mathematical-olympiad-progress-prize-3")
 try:
     from kaggle_evaluation.aimo_3_inference_server import AIMO3InferenceServer
 except ImportError:
+
     class AIMO3InferenceServer:
-        def __init__(self, predict_fn): self.predict = predict_fn
-        def serve(self): print("Serving...")
-        def run_local_gateway(self, paths): print(f"Mock gateway for {paths}")
+        def __init__(self, predict_fn):
+            self.predict = predict_fn
+
+        def serve(self):
+            print("Serving...")
+
+        def run_local_gateway(self, paths):
+            print(f"Mock gateway for {paths}")
+
 
 # --- 2. Symbolic Executor (Doer) ---
 class SymbolicExecutor:
     def __init__(self):
         self.namespace = {
-            "sympy": sympy, "np": np, "sp": sympy,
-            "sqrt": sympy.sqrt, "exp": sympy.exp, "log": sympy.log,
-            "sin": sympy.sin, "cos": sympy.cos, "tan": sympy.tan,
-            "pi": sympy.pi, "I": sympy.I, "symbols": sympy.symbols,
-            "Eq": sympy.Eq, "solve": sympy.solve, "nsolve": sympy.nsolve,
-            "simplify": sympy.simplify, "expand": sympy.expand, "factor": sympy.factor,
-            "limit": sympy.limit, "diff": sympy.diff, "integrate": sympy.integrate,
-            "Sum": sympy.Sum, "Product": sympy.Product, "oo": sympy.oo,
-            "isprime": sympy.isprime, "primerange": sympy.primerange,
-            "factorint": sympy.factorint, "gcd": sympy.gcd, "lcm": sympy.lcm,
+            "sympy": sympy,
+            "np": np,
+            "sp": sympy,
+            "sqrt": sympy.sqrt,
+            "exp": sympy.exp,
+            "log": sympy.log,
+            "sin": sympy.sin,
+            "cos": sympy.cos,
+            "tan": sympy.tan,
+            "pi": sympy.pi,
+            "I": sympy.I,
+            "symbols": sympy.symbols,
+            "Eq": sympy.Eq,
+            "solve": sympy.solve,
+            "nsolve": sympy.nsolve,
+            "simplify": sympy.simplify,
+            "expand": sympy.expand,
+            "factor": sympy.factor,
+            "limit": sympy.limit,
+            "diff": sympy.diff,
+            "integrate": sympy.integrate,
+            "Sum": sympy.Sum,
+            "Product": sympy.Product,
+            "oo": sympy.oo,
+            "isprime": sympy.isprime,
+            "primerange": sympy.primerange,
+            "factorint": sympy.factorint,
+            "gcd": sympy.gcd,
+            "lcm": sympy.lcm,
             "mod_inverse": sympy.mod_inverse,
         }
 
@@ -109,20 +142,26 @@ class SymbolicExecutor:
             exec(code, exec_globals, local_vars)
             clean_results = {}
             for k, v in local_vars.items():
-                if k.startswith("_"): continue
+                if k.startswith("_"):
+                    continue
                 if hasattr(v, "evalf"):
-                    try: clean_results[k] = float(v.evalf())
-                    except: clean_results[k] = str(v)
-                else: clean_results[k] = v
+                    try:
+                        clean_results[k] = float(v.evalf())
+                    except:
+                        clean_results[k] = str(v)
+                else:
+                    clean_results[k] = v
             return {"success": True, "results": clean_results}
         except Exception as e:
             return {"success": False, "error": str(e)}
+
 
 # --- 3. Knower Auditor (Knower) ---
 class KnowerAuditor:
     def calculate_entropy(self, logprobs: List[Dict]) -> float:
         """Calculate token-level entropy from vLLM logprobs."""
-        if not logprobs: return 0.5
+        if not logprobs:
+            return 0.5
         # Avg entropy across tokens
         total_ent = 0.0
         for lp_dict in logprobs:
@@ -130,33 +169,37 @@ class KnowerAuditor:
             probs = [math.exp(lp.logprob) for lp in lp_dict.values()]
             s = sum(probs)
             if s > 0:
-                probs = [p/s for p in probs]
+                probs = [p / s for p in probs]
                 ent = -sum(p * math.log(p + 1e-9) for p in probs)
                 total_ent += ent
         return total_ent / len(logprobs)
 
     def audit_runs(self, run_results: list, reasoning_chains: list, entropies: list) -> dict:
-        if not run_results: return {"final_answer": 0, "action": "COMMIT"}
-        
+        if not run_results:
+            return {"final_answer": 0, "action": "COMMIT"}
+
         # Weighted Voting: w = 1 + 1 / (entropy + 0.1)
         vote_scores = {}
         for ans, ent in zip(run_results, entropies):
-            if ans is None: continue
+            if ans is None:
+                continue
             w = 1.0 + 1.0 / (ent + 0.1)
             vote_scores[ans] = vote_scores.get(ans, 0.0) + w
-            
-        if not vote_scores: return {"final_answer": 0, "action": "COMMIT"}
-        
+
+        if not vote_scores:
+            return {"final_answer": 0, "action": "COMMIT"}
+
         best_ans = max(vote_scores, key=vote_scores.get)
         # Confidence check: if best vote has > 70% of total weight or consistency
         total_w = sum(vote_scores.values())
         confidence = vote_scores[best_ans] / total_w
-        
+
         return {
             "final_answer": best_ans,
             "confidence": confidence,
-            "action": "COMMIT" if confidence > 0.7 or len(run_results) >= 3 else "TIE_BREAKER"
+            "action": "COMMIT" if confidence > 0.7 or len(run_results) >= 3 else "TIE_BREAKER",
         }
+
 
 # --- 4. Specialist Swarm (Thinker) ---
 class BaseSpecialist:
@@ -169,29 +212,37 @@ class BaseSpecialist:
             "Geometer": "Convert geometry to algebraic constraints. Use Python/SymPy. Final answer in \\boxed{X}.",
             "Combinatorist": "Focus on counting. Use Python/SymPy. Final answer in \\boxed{X}.",
             "InductiveReasoning": "Test small cases first. Final answer in \\boxed{X}.",
-            "GoalOriented": "Work backwards from the goal. Final answer in \\boxed{X}."
+            "GoalOriented": "Work backwards from the goal. Final answer in \\boxed{X}.",
         }
         self.executor = SymbolicExecutor()
 
     def solve(self, problem_text: str) -> Dict[str, Any]:
-        system_prompt = self.prompts.get(self.name, "Think step by step. Final answer in \\boxed{X}.")
+        system_prompt = self.prompts.get(
+            self.name, "Think step by step. Final answer in \\boxed{X}."
+        )
         prompt = f"<|im_start|>system\n{system_prompt}<|im_end|>\n<|im_start|>user\n{problem_text}<|im_end|>\n<|im_start|>assistant\n"
-        
+
         if self.llm:
             try:
                 from vllm import SamplingParams
+
                 # Use logprobs for entropy calculation
-                params = SamplingParams(temperature=1.0, max_tokens=8192, stop=["<|im_end|>"], logprobs=5)
+                params = SamplingParams(
+                    temperature=1.0, max_tokens=8192, stop=["<|im_end|>"], logprobs=5
+                )
                 outputs = self.llm.generate([prompt], params, use_tqdm=False)
                 output = outputs[0].outputs[0]
                 response = output.text
                 ent = self._calc_ent(output.logprobs)
-                
+
                 code_match = re.search(r"```python\s*\n(.*?)```", response, re.DOTALL)
                 if code_match:
                     exec_res = self.executor.execute(code_match.group(1).strip())
                     if exec_res.get("success"):
-                        prompt += response + f"\n\nExecution Result: {exec_res['results']}\n\nFinal Answer in \\boxed{{}}:"
+                        prompt += (
+                            response
+                            + f"\n\nExecution Result: {exec_res['results']}\n\nFinal Answer in \\boxed{{}}:"
+                        )
                         outputs = self.llm.generate([prompt], params, use_tqdm=False)
                         output2 = outputs[0].outputs[0]
                         response += "\n" + output2.text
@@ -203,24 +254,28 @@ class BaseSpecialist:
         return {"text": "\\boxed{0}", "entropy": 1.0}
 
     def _calc_ent(self, logprobs) -> float:
-        if not logprobs: return 0.5
+        if not logprobs:
+            return 0.5
         total_ent = 0.0
         for lp_dict in logprobs:
-            if not lp_dict: continue
+            if not lp_dict:
+                continue
             # vLLM 0.7+ logprobs structure: dict or list of dicts
             probs = [math.exp(lp.logprob) for lp in lp_dict.values()]
             s = sum(probs)
             if s > 0:
-                probs = [p/s for p in probs]
+                probs = [p / s for p in probs]
                 ent = -sum(p * math.log(p + 1e-9) for p in probs)
                 total_ent += ent
         return total_ent / len(logprobs)
 
     def extract_answer(self, text: str) -> int:
         match = re.search(r"\\boxed\{(\d+)\}", text)
-        if match: return int(match.group(1)) % 100000
+        if match:
+            return int(match.group(1)) % 100000
         nums = re.findall(r"\d+", text)
         return int(nums[-1]) % 100000 if nums else 0
+
 
 # --- 5. Global State & Prediction ---
 _llm = None
@@ -230,20 +285,26 @@ _problems_solved = 0
 _total_time_limit = 5 * 3600
 _safety_threshold = 30.0
 
+
 def load_vllm():
     global _llm, HAS_VLLM, HAS_INSTALLED
     if not HAS_VLLM and not HAS_INSTALLED:
         install_dependencies()
-        
-    MODEL_PATH = find_path("qwen2-5-math-7b-instruct") or \
-                 find_path("deepseek-r1-distill-qwen-32b-awq-casperhansen") or \
-                 find_path("deepseek-r1-distill-qwen-32b")
-    
-    DRAFTER_PATH = find_path("qwen2-5-math-1-5b-instruct") or find_path("Qwen2.5-Math-1.5B-Instruct")
-                 
+
+    MODEL_PATH = (
+        find_path("qwen2-5-math-7b-instruct")
+        or find_path("deepseek-r1-distill-qwen-32b-awq-casperhansen")
+        or find_path("deepseek-r1-distill-qwen-32b")
+    )
+
+    DRAFTER_PATH = find_path("qwen2-5-math-1-5b-instruct") or find_path(
+        "Qwen2.5-Math-1.5B-Instruct"
+    )
+
     if HAS_VLLM and MODEL_PATH:
         print(f"Loading vLLM from {MODEL_PATH}...")
         from vllm import LLM
+
         llm_kwargs = {
             "model": MODEL_PATH,
             "tensor_parallel_size": 1,
@@ -252,16 +313,16 @@ def load_vllm():
             "max_model_len": 8192,
             "trust_remote_code": True,
             "enable_chunked_prefill": True,
-            "quantization": "awq" if "awq" in MODEL_PATH.lower() else None
+            "quantization": "awq" if "awq" in MODEL_PATH.lower() else None,
         }
         if torch and torch.cuda.device_count() > 1:
             llm_kwargs["tensor_parallel_size"] = torch.cuda.device_count()
-            
+
         if DRAFTER_PATH:
             print(f"Enabling Speculative Decoding with Drafter: {DRAFTER_PATH}")
             llm_kwargs["speculative_model"] = DRAFTER_PATH
             llm_kwargs["num_speculative_tokens"] = 8
-            
+
         try:
             _llm = LLM(**llm_kwargs)
         except Exception as e:
@@ -269,14 +330,18 @@ def load_vllm():
     else:
         print(f"Cannot load LLM. HAS_VLLM={HAS_VLLM}, MODEL_PATH={MODEL_PATH}")
 
+
 def predict(id_df: pl.DataFrame, problem_df: pl.DataFrame) -> pl.DataFrame:
     global _llm, _start_time, _problems_solved
-    if _llm is None: load_vllm()
-    if _start_time is None: _start_time = time.time()
+    if _llm is None:
+        load_vllm()
+    if _start_time is None:
+        _start_time = time.time()
 
     if _problems_solved > 0 and _problems_solved % 10 == 0:
         gc.collect()
-        if torch: torch.cuda.empty_cache()
+        if torch:
+            torch.cuda.empty_cache()
 
     problem_id = id_df[0]
     problem_text = problem_df[0]
@@ -324,11 +389,13 @@ def predict(id_df: pl.DataFrame, problem_df: pl.DataFrame) -> pl.DataFrame:
     _problems_solved += 1
     return pl.DataFrame({"id": [problem_id], "answer": [int(final_answer or 0) % 100000]})
 
+
 if __name__ == "__main__":
     if not HAS_VLLM and not HAS_INSTALLED:
         install_dependencies()
-        
+
     from kaggle_evaluation.aimo_3_inference_server import AIMO3InferenceServer
+
     server = AIMO3InferenceServer(predict)
     if os.getenv("KAGGLE_IS_COMPETITION_RERUN"):
         server.serve()
@@ -340,7 +407,7 @@ if __name__ == "__main__":
                 break
             if "reference.csv" in files:
                 found_path = os.path.join(root, "reference.csv")
-        
+
         if found_path:
             print(f"Running local gateway against: {found_path}")
             server.run_local_gateway((found_path,))

@@ -22,9 +22,7 @@ class VLIWPacker:
         self.last_mem_write = self.min_bundle_idx - 1
         self.last_mem_read = self.min_bundle_idx - 1
 
-    def add_slot(
-        self, engine, slot, reads=(), writes=(), is_mem_read=False, is_mem_write=False
-    ):
+    def add_slot(self, engine, slot, reads=(), writes=(), is_mem_read=False, is_mem_write=False):
         min_bundle_idx = self.min_bundle_idx - 1
         for r in reads:
             min_bundle_idx = max(min_bundle_idx, self.last_write[r])
@@ -35,9 +33,7 @@ class VLIWPacker:
         if is_mem_read:
             min_bundle_idx = max(min_bundle_idx, self.last_mem_write)
         if is_mem_write:
-            min_bundle_idx = max(
-                min_bundle_idx, self.last_mem_read, self.last_mem_write
-            )
+            min_bundle_idx = max(min_bundle_idx, self.last_mem_read, self.last_mem_write)
 
         start_idx = min_bundle_idx + 1
         bundle_idx = start_idx
@@ -91,9 +87,7 @@ class OptimizedKernelBuilder:
         addr = self.scratch_ptr
         self.scratch_ptr += size
         # print(f"ALLOC: {name} size={size} ptr={self.scratch_ptr}")
-        assert self.scratch_ptr <= SCRATCH_SIZE, (
-            f"Scratch overflow: {self.scratch_ptr} > {SCRATCH_SIZE}"
-        )
+        assert self.scratch_ptr <= SCRATCH_SIZE, f"Scratch overflow: {self.scratch_ptr} > {SCRATCH_SIZE}"
         self.scratch_names[addr] = name, size
         return addr
 
@@ -135,9 +129,7 @@ class OptimizedKernelBuilder:
                 writes=writes,
             )
         else:
-            self.packer.add_slot(
-                "valu", (op, dest, *args), reads=tuple(reads), writes=writes
-            )
+            self.packer.add_slot("valu", (op, dest, *args), reads=tuple(reads), writes=writes)
 
     def emit_valu_mux_sharded(self, dest, idx, nodes, win, scratch_map, s_mux_tmp):
         # Sharded Mux to use limited registers (v_tmp1, v_addr)
@@ -151,15 +143,11 @@ class OptimizedKernelBuilder:
 
         for i in range(0, len(sorted_nodes), shard_size):
             chunk = sorted_nodes[i : i + shard_size]
-            res_reg = self.emit_valu_mux_binary_internal(
-                idx, chunk, win, scratch_map, s_mux_tmp
-            )
+            res_reg = self.emit_valu_mux_binary_internal(idx, chunk, win, scratch_map, s_mux_tmp)
             # res_reg is v_addr (scratch). Accumulate.
             self.emit_op("+", dest, [dest, res_reg])
 
-    def emit_valu_mux_binary_internal(
-        self, idx, node_list, win, scratch_map, s_mux_tmp
-    ):
+    def emit_valu_mux_binary_internal(self, idx, node_list, win, scratch_map, s_mux_tmp):
         # Internal version returning result_reg
         # Uses independent temps [v_addr, v_tmp1] (passed via win['mux_tmps'])
         temps = win["mux_tmps"]
@@ -187,9 +175,7 @@ class OptimizedKernelBuilder:
 
                 # T0 = idx < node+1
                 # Load node+1 const
-                self.packer.add_slot(
-                    "load", ("const", s_mux_tmp, node + 1), writes=(s_mux_tmp,)
-                )
+                self.packer.add_slot("load", ("const", s_mux_tmp, node + 1), writes=(s_mux_tmp,))
                 # Broadcast node+1 to T1 (v_scratch)
                 self.packer.add_slot(
                     "valu",
@@ -202,9 +188,7 @@ class OptimizedKernelBuilder:
 
                 # T1 = idx < node
                 # Load node const
-                self.packer.add_slot(
-                    "load", ("const", s_mux_tmp, node), writes=(s_mux_tmp,)
-                )
+                self.packer.add_slot("load", ("const", s_mux_tmp, node), writes=(s_mux_tmp,))
                 # Broadcast node to T1 (v_scratch)
                 self.packer.add_slot(
                     "valu",
@@ -253,9 +237,7 @@ class OptimizedKernelBuilder:
             split_idx = right_nodes[0]
 
             # Optimization: load const split_idx into s_mux_tmp
-            self.packer.add_slot(
-                "load", ("const", s_mux_tmp, split_idx), writes=(s_mux_tmp,)
-            )
+            self.packer.add_slot("load", ("const", s_mux_tmp, split_idx), writes=(s_mux_tmp,))
             # Broadcast to v_cmp (temps[reg_offset+2])
             v_cmp = temps[reg_offset + 2]
             self.packer.add_slot(
@@ -319,13 +301,7 @@ class OptimizedKernelBuilder:
     def add_hash_hybrid(self, v_val, v_tmp1, v_tmp2, hash_stages):
         for i_stage, (op1, val1, op2, op3, val3) in enumerate(hash_stages):
             v_val1 = self.get_vconst(val1)
-            if (
-                i_stage == 0
-                and not self.config.disable_hash_opt
-                and op1 == "+"
-                and op2 == "+"
-                and op3 == "<<"
-            ):
+            if i_stage == 0 and not self.config.disable_hash_opt and op1 == "+" and op2 == "+" and op3 == "<<":
                 v_factor = self.get_vconst(1 + (1 << val3))
                 self.emit_op("multiply_add", v_val, [v_val, v_factor, v_val1])
             else:
@@ -356,9 +332,7 @@ class OptimizedKernelBuilder:
         p_idx_base = self.alloc("p_idx_base")
         p_val_base = self.alloc("p_val_base")
 
-        for i, addr in enumerate(
-            [None, s_n_nodes, s_batch_size, None, p_forest_base, p_idx_base, p_val_base]
-        ):
+        for i, addr in enumerate([None, s_n_nodes, s_batch_size, None, p_forest_base, p_idx_base, p_val_base]):
             if addr is not None:
                 tmp_c = self.get_const(i)
                 self.packer.add_slot(
@@ -496,9 +470,7 @@ class OptimizedKernelBuilder:
                             "valu",
                             ("vbroadcast", win["v_node_val"], s_root_node),
                             reads=(s_root_node,),
-                            writes=tuple(
-                                range(win["v_node_val"], win["v_node_val"] + VLEN)
-                            ),
+                            writes=tuple(range(win["v_node_val"], win["v_node_val"] + VLEN)),
                         )
                     else:
                         # 1. Calc Address (Base + idx)
@@ -520,15 +492,11 @@ class OptimizedKernelBuilder:
 
                     # 3. Hash
                     self.emit_op("^", win["v_val"], [win["v_val"], win["v_node_val"]])
-                    self.add_hash_hybrid(
-                        win["v_val"], win["v_tmp1"], win["v_addr"], hash_stages
-                    )
+                    self.add_hash_hybrid(win["v_val"], win["v_tmp1"], win["v_addr"], hash_stages)
 
                     # 4. Update Index
                     self.emit_op("&", win["v_tmp1"], [win["v_val"], g_vone])
-                    self.emit_op(
-                        "multiply_add", win["v_idx"], [win["v_idx"], g_vtwo, g_vone]
-                    )
+                    self.emit_op("multiply_add", win["v_idx"], [win["v_idx"], g_vtwo, g_vone])
                     self.emit_op("+", win["v_idx"], [win["v_idx"], win["v_tmp1"]])
 
                     # Wrap (Correct vselect logic)
@@ -563,8 +531,7 @@ class OptimizedKernelBuilder:
                 self.packer.add_slot(
                     "store",
                     ("vstore", s_tmp_addr, win["v_idx"]),
-                    reads=(s_tmp_addr,)
-                    + tuple(range(win["v_idx"], win["v_idx"] + VLEN)),
+                    reads=(s_tmp_addr,) + tuple(range(win["v_idx"], win["v_idx"] + VLEN)),
                     is_mem_write=True,
                 )
 
@@ -578,8 +545,7 @@ class OptimizedKernelBuilder:
                 self.packer.add_slot(
                     "store",
                     ("vstore", s_tmp_addr, win["v_val"]),
-                    reads=(s_tmp_addr,)
-                    + tuple(range(win["v_val"], win["v_val"] + VLEN)),
+                    reads=(s_tmp_addr,) + tuple(range(win["v_val"], win["v_val"] + VLEN)),
                     is_mem_write=True,
                 )
 

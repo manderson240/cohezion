@@ -20,7 +20,7 @@ class TestHealthChecker:
         """Create a health checker with temporary vault path."""
         return HealthChecker(
             vault_path=str(tmp_path),
-            surrealdb_url="http://localhost:8000",
+            surrealdb_url="http://localhost:8001",
             ollama_url="http://localhost:11434",
         )
 
@@ -31,7 +31,7 @@ class TestHealthChecker:
             pytest.skip("Requires local vault path — unavailable in CI")
         return HealthChecker(
             vault_path="/home/mike-anderson/vaults/cohezion-vault",
-            surrealdb_url="http://localhost:8000",
+            surrealdb_url="http://localhost:8001",
             ollama_url="http://localhost:11434",
         )
 

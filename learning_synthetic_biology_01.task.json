@@ -1,0 +1,6 @@
+{
+  "versionNumber": 1,
+  "name": "learning_synthetic_biology_01",
+  "description": "Learn and apply novel synthetic biology mutation rules.",
+  "definition": "@kbench.task(name=\"learning_synthetic_biology_01\")\ndef learning_synthetic_biology_01(llm) -> bool:\n    \"\"\"Learn and apply novel synthetic biology mutation rules.\"\"\"\n    prompt = \"\"\"You are studying a newly discovered organism with the following mutation rules:\n\nRule 1: When exposed to Chemical A, genes with pattern [AT] become [GC] if followed by [CG], otherwise they invert.\nRule 2: Genes mutate only if they have not mutated in the previous 2 generations.\nRule 3: If a gene mutates twice in 3 generations, it becomes dormant.\n\nGiven the gene sequence \"ATCGATCG\" exposed to Chemical A in generations 1, 3, and 5 (starting from generation 1), what is the state at generation 5?\n\nA) GCTAGCTA\nB) ATCGATCG (dormant)\nC) GCGCGCGC\nD) Cannot be determined\"\"\"\n    response = llm.prompt(prompt)\n    return bool(kbench.assertions.assert_true(\"A\" in response, expectation=\"Correct state is A\"))\n"
+}

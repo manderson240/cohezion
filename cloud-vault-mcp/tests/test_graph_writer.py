@@ -387,7 +387,9 @@ async def test_batch_upsert_empty_list_p1():
 @pytest.mark.asyncio
 async def test_batch_upsert_rejects_bad_id_p0():
     """[P0] batch_upsert_neurons raises ValueError on malicious neuron_id."""
-    neurons = [{"neuron_id": "neuron:ok", "title": "OK"},
-               {"neuron_id": "bad; DROP TABLE", "title": "Evil"}]
+    neurons = [
+        {"neuron_id": "neuron:ok", "title": "OK"},
+        {"neuron_id": "bad; DROP TABLE", "title": "Evil"},
+    ]
     with pytest.raises(ValueError, match="Invalid SurrealDB identifier"):
         await batch_upsert_neurons(neurons)

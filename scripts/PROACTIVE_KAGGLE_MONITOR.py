@@ -6,8 +6,9 @@ from datetime import datetime
 from pathlib import Path
 from kaggle.api.kaggle_api_extended import KaggleApi
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s [%(levelname)s] %(message)s')
+logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 logger = logging.getLogger("ProactiveMonitor")
+
 
 class KaggleProactiveMonitor:
     def __init__(self):
@@ -20,15 +21,18 @@ class KaggleProactiveMonitor:
     def check_submissions(self, competition_id):
         try:
             subs = self.api.competition_submissions(competition_id)
-            if not subs: return
-            
+            if not subs:
+                return
+
             latest = subs[0]
             status = str(latest.status)
             score = latest.publicScore
-            
+
             key = f"sub_{competition_id}"
             if self.last_status.get(key) != status:
-                logger.info(f"🔔 SUBMISSION CHANGE: {competition_id} | Status: {status} | Score: {score}")
+                logger.info(
+                    f"🔔 SUBMISSION CHANGE: {competition_id} | Status: {status} | Score: {score}"
+                )
                 self.log_event("submission", competition_id, status, score)
                 self.last_status[key] = status
         except Exception as e:
@@ -37,8 +41,8 @@ class KaggleProactiveMonitor:
     def check_kernel(self, kernel_id):
         try:
             status_data = self.api.kernel_status(kernel_id)
-            status = status_data.get('status')
-            
+            status = status_data.get("status")
+
             key = f"kernel_{kernel_id}"
             if self.last_status.get(key) != status:
                 logger.info(f"🔔 KERNEL CHANGE: {kernel_id} | Status: {status}")
@@ -53,30 +57,28 @@ class KaggleProactiveMonitor:
             "type": type,
             "id": identifier,
             "status": status,
-            "score": score
+            "score": score,
         }
         with open(self.log_file, "a") as f:
             f.write(json.dumps(event) + "\n")
 
     def run(self, interval=300):
         logger.info("🚀 Starting Proactive Kaggle Monitor...")
-        competitions = [
-            "ai-mathematical-olympiad-progress-prize-3",
-            "arc-prize-2026-arc-agi-3"
-        ]
+        competitions = ["ai-mathematical-olympiad-progress-prize-3", "arc-prize-2026-arc-agi-3"]
         kernels = [
             "manderson240/nemotron-lora-baseline-improved-manderson240",
             "manderson240/birdclef-2026-pytorch-baseline",
-            "manderson240/measuring-progress-toward-agi-cognitive-framework"
+            "manderson240/measuring-progress-toward-agi-cognitive-framework",
         ]
-        
+
         while True:
             for comp in competitions:
                 self.check_submissions(comp)
             for kernel in kernels:
                 self.check_kernel(kernel)
-            
+
             time.sleep(interval)
+
 
 if __name__ == "__main__":
     monitor = KaggleProactiveMonitor()

@@ -183,9 +183,6 @@ def custom_kernel(data: input_t) -> output_t:
     # Output
     C = torch.empty((M, N), dtype=torch.bfloat16, device=A.device)
 
-    module.mxfp4_mfma_gemm(
-        A_packed, B_packed, A_scale_bytes, B_scale_bytes, C,
-        M, N, K
-    )
+    module.mxfp4_mfma_gemm(A_packed, B_packed, A_scale_bytes, B_scale_bytes, C, M, N, K)
 
     return C

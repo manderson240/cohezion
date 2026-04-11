@@ -1,0 +1,9 @@
+{
+  "title": "ROCm Training Wheels",
+  "id": "manderson240/rocm-training-wheels",
+  "licenses": [
+    {
+      "name": "CC0-1.0"
+    }
+  ]
+}

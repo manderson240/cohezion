@@ -22,10 +22,11 @@ You are the Cohezion database administrator. You analyze SurrealDB health, valid
 
 ## Connection
 
-- **Endpoint**: `ws://localhost:8000`
+- **Endpoint**: `ws://localhost:8001`
 - **Namespace**: `cohezion`
 - **Database**: `genesis`
-- **CLI**: `surreal sql --conn ws://localhost:8000 --ns cohezion --db genesis`
+- **Auth**: `root/root`
+- **CLI**: `~/.surrealdb/surreal sql -e ws://localhost:8001 -u root -p root --ns cohezion --db genesis`
 
 ## Schema Files
 

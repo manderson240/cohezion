@@ -24,6 +24,10 @@ def custom_kernel(data: input_t) -> output_t:
 
     # aiter ASM path — fastest for all shapes
     return aiter.gemm_a4w4(
-        A_q, B_shuffle, A_scale_sh, B_scale_sh,
-        dtype=dtypes.bf16, bpreshuffle=True,
+        A_q,
+        B_shuffle,
+        A_scale_sh,
+        B_scale_sh,
+        dtype=dtypes.bf16,
+        bpreshuffle=True,
     )

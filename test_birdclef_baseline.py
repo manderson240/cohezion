@@ -14,14 +14,15 @@ except ImportError as e:
     print(f"Import error: {e}")
     sys.exit(1)
 
+
 def test_birdclef_baseline(audio_path, device=None):
     print(f"Testing BirdCLEF baseline with: {audio_path} on {device or 'default device'}")
-    
+
     # Update config for testing
     config = CONFIG.copy()
     if device:
-        config['device'] = device
-    
+        config["device"] = device
+
     # Run prediction
     try:
         results = predict(audio_path, config=config)
@@ -37,11 +38,15 @@ def test_birdclef_baseline(audio_path, device=None):
     except Exception as e:
         print(f"Prediction failed: {e}")
         import traceback
+
         traceback.print_exc()
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--audio", type=str, default="data/birdclef-2026/train_audio/1161364/iNat1216197.ogg")
+    parser.add_argument(
+        "--audio", type=str, default="data/birdclef-2026/train_audio/1161364/iNat1216197.ogg"
+    )
     parser.add_argument("--device", type=str, default=None)
     args = parser.parse_args()
 
@@ -61,5 +66,5 @@ if __name__ == "__main__":
         else:
             print("data/birdclef-2026/train_audio does not exist")
             exit(1)
-        
+
     test_birdclef_baseline(audio_file, args.device)

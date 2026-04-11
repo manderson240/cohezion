@@ -31,7 +31,10 @@ def test_parse_single_skill(engine: TemplateEngine) -> None:
     spec = engine.parse_skill(path)
 
     assert spec.name == "COMPOUND_ENGINEERING_PRIME"
-    assert "orchestration" in spec.domain_expertise.lower() or "engineering" in spec.domain_expertise.lower()
+    assert (
+        "orchestration" in spec.domain_expertise.lower()
+        or "engineering" in spec.domain_expertise.lower()
+    )
     assert len(spec.concepts) >= 3, f"Expected >= 3 concepts, got {spec.concepts}"
     assert len(spec.instructions) >= 3, f"Expected >= 3 instructions, got {spec.instructions}"
     assert spec.version != "unknown"

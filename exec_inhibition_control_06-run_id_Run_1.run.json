@@ -1,0 +1,39 @@
+{
+  "taskVersion": {
+    "versionNumber": 1,
+    "name": "exec_inhibition_control_06",
+    "description": "Inhibit prepotent response.",
+    "definition": "@kbench.task(name=\"exec_inhibition_control_06\")\ndef exec_inhibition_control_06(llm) -> bool:\n    \"\"\"Inhibit prepotent response.\"\"\"\n    prompt = \"\"\"Rules:\n- If the word is a color, say the word's TEXT color\n- If the word is a fruit, say the fruit name\n\nStimulus: \"BANANA\" written in red\n\nResponse?\n\nA) Red\nB) Banana\nC) Yellow\nD) Apple\"\"\"\n    response = llm.prompt(prompt)\n    return bool(kbench.assertions.assert_true(\"B\" in response, expectation=\"Correct answer is B\"))\n"
+  },
+  "modelVersion": {},
+  "state": "BENCHMARK_TASK_RUN_STATE_COMPLETED",
+  "startTime": "2026-04-11T04:59:58.504384Z",
+  "endTime": "2026-04-11T05:00:05.128994Z",
+  "conversations": [
+    {
+      "id": "exec_inhibition_control_06-cbd306f2",
+      "metrics": {},
+      "modelVersionSlug": "model_version_slug for conversation is DEPRECATED"
+    }
+  ],
+  "results": [
+    {
+      "type": "AGGREGATED",
+      "booleanResult": true
+    }
+  ],
+  "assertions": [
+    {
+      "expectation": "Correct answer is B",
+      "status": "BENCHMARK_TASK_RUN_ASSERTION_STATUS_PASSED",
+      "lineNumber": 975,
+      "definition": "return bool(kbench.assertions.assert_true(\"B\" in response, expectation=\"Correct answer is B\"))",
+      "conversationRequestIds": [
+        {
+          "conversationId": "exec_inhibition_control_06-cbd306f2"
+        }
+      ]
+    }
+  ],
+  "pyRunId": "exec_inhibition_control_06-Run #1"
+}

@@ -2,7 +2,7 @@
 
 A central registry of the swarm's **6-Dimensional Service Architecture**. Only "Prime" skills are listed here.
 
-**Last updated**: 2026-04-09 (Session 93 retrospective). **6,100+ tests collected (full suite runs to completion), 35 genesis physics+world_model+env modules, 11 frontend tsx components. 358 genesis tests passing (0 failing). 617 prompt_artifacts in SurrealDB. Autoresearch (UCB1 K-Search + Step 5.91) wired. A2A GET /agents returns 7 specialist agents.**
+**Last updated**: 2026-04-10 (Session 96b retrospective). **6,184 tests collected (full suite runs to completion), 35 genesis physics+world_model+env modules, 11 frontend tsx components. 348 genesis tests passing (0 failing). 1,839 prompt_artifacts + 1,822 universe_snapshots in SurrealDB (port 8001, consolidated). 206 skill definitions (151 PRIME). Autoresearch (UCB1 K-Search + Step 5.91) wired. A2A GET /agents returns 7 specialist agents. Anthropic Intelligence Feed: 11-source monitoring + auto-integration.**
 
 ## 1. PROPRIOCEPTION (Ouroboros Service)
 *The Nervous System: Health, Hygiene, and Self-Correction.*
@@ -37,8 +37,9 @@ A central registry of the swarm's **6-Dimensional Service Architecture**. Only "
 - **MHD/HIHO**: HIHOUnifiedEngine with 11 sub-engines (`universe/hiho_unified_engine.py`).
 - **Vis**: 8-tab webapp at `/genesis` (`web/anima_dashboard/`).
 - **Audio**: PocketTTS narration + Tone.js sonification (`audio/narrator.py`).
-- **Environments**: ManifoldEnv (gymnasium), SwarmEnv (multi-agent) (`environments/`).
-- **World Model**: JEPA 86K-param predictor + surprise explorer (`world_model/`).
+- **Environments**: ManifoldEnv (gymnasium, verifiable rewards: r_hiho/r_conservation/r_unitarity/r_gauge), SwarmEnv (multi-agent) (`environments/`).
+- **World Model**: JEPA 86K-param predictor + LeWM dual-loss (prediction + SIGReg + Gaussian KL) (`world_model/`).
+- **Invariant Checker**: Runtime proof obligations after every physics step — 5 checks (`physics/invariant_checker.py`).
 - **TDA Router**: TopologicalRouter — persistent homology drives swarm optimization (`swarm/topological_router.py`).
 - **Research**: [Paper draft](docs/papers/genesis-engine-paper.md) | [Research doc](docs/genesis-engine-research.md) | [Tutorials](docs/tutorials/).
 
@@ -50,10 +51,24 @@ A central registry of the swarm's **6-Dimensional Service Architecture**. Only "
 - **JEPA**: World model predicting manifold evolution (`world_model/jepa_world_model.py`).
 - **Research**: [EXTERNAL_RESEARCH_PRIME](file:///home/mike-anderson/dev/cohezion/src/cohezion/skills/EXTERNAL_RESEARCH_PRIME.md).
 - **Intern-S1-mini**: 8B scientific reasoning model (pulled to Ollama). Part of 47-model local inventory.
+- **GraphRAG**: Hybrid vector+graph+temporal queries in SurrealQL (`knowledge_graph/graphrag_engine.py`).
+- **Lemonade Router**: CostAwareRouter with 45 YAML profiles, Lemonade-first tier routing ($0 inference).
+
+## 5.5. VERIFICATION (V-Model Lifecycle)
+*The Immune System: Deterministic gates constraining nondeterministic work.*
+- **DRR Generator**: Design Review Reports at V-Model gates (DRR-0 through DRR-3) (`compound/design_review_report.py`).
+- **Constitutional Enforcer**: Deterministic hard constraint checker + GuardrailPipeline adapter (`security/constitutional_enforcer.py`).
+- **Hash-Chain Audit**: SHA-256 tamper-evident chain in JourneyTracker (OLIF mitigation).
+- **Skill Validator**: Blocks refinement mutations degrading metrics >5% (`compound/skill_refinement_validator.py`).
+- **Retrospection Validator**: Cross-checks summaries against SurrealDB traces (`compound/retrospection_validator.py`).
+- **Tape Logger**: JSONL deterministic replay (`compound/tape_logger.py`).
+- **SLR Evidence**: 0/8 queries found 3+ component systems — 5-component novelty confirmed (`docs/papers/slr-synthesis.md`).
 - **Specialist Agents (7)**: vault-keeper, surreal-dba, claude/gemini/ollama/mcp-specialist, platform-coordinator — A2A agent cards + PRIME skills.
 - **Cost Tiers**: 70% simple (Ollama/Flash-Lite, free) → 20% medium (Sonnet, $3/M) → 10% hard (Opus, $15/M).
 - **Autoresearch**: `AutoresearchDriver` (K-Search UCB1, subprocess eval, SurrealDB persist) at `research/autoresearch_driver.py`. Dispatched via Step 5.91 in `CompoundExecutor.execute_task()` on keywords: train/optimize/research/experiment/tune/improve loss. K-Search trees at `~/.cohezion-research/ksearch/{target}.json`. Targets: jepa/flume_vae/rl_ppo.
 - **A2A Discovery**: `GET /agents` returns all registered specialist agents via `CapabilityRegistry._scan_claude_agents()` (scans `.claude/agents/*.md` YAML frontmatter).
+- **Anthropic Intelligence Feed**: Autonomous monitoring of 11 Anthropic sources (CLI releases, API platform, research, alignment, system cards, deprecations, blog, help center, Glasswing, economic index). Components: `version-watch.sh` (SessionStart hook), `/anthropic-scan` (11-source scan command), `anthropic-intel-scan.md` (agentic background scan rule), risk-tiered auto-integration, `features-manifest.json` + `api-manifest.json` (feature registries), `change-log.md` (audit trail). Located at `~/.claude/anthropic-intel/`.
+- **ContextPolicy**: Adaptive context breadth/depth control (`compound/context_policy.py`). ROUTINE/FOCUSED/EXPLORATORY profiles, hybrid reactive adjustment, YAML frontmatter persistence.
 
 ## 6. INFRASTRUCTURE (VLIW Service)
 *The Substrate: Hardware & Data.*

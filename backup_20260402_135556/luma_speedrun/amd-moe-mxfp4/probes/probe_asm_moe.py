@@ -80,6 +80,7 @@ for name in ("asm_moe_tkw1", "ck_moe_2stages", "moe_sorting_ck", "moe_sorting_op
 # Discover fused_moe_dp_share_expert (DeepSeek-specific)
 try:
     from aiter.fused_moe_dp_shared_expert import fused_moe_dp_share_expert
+
     try:
         sig = str(inspect.signature(fused_moe_dp_share_expert))
     except (ValueError, TypeError):
@@ -91,6 +92,7 @@ except (ImportError, ModuleNotFoundError):
 # Check blockPerCu support in cktile
 try:
     from aiter.ops.moe_op import moe_cktile2stages_gemm1
+
     try:
         sig = str(inspect.signature(moe_cktile2stages_gemm1))
     except (ValueError, TypeError):
@@ -102,11 +104,18 @@ except (ImportError, ModuleNotFoundError):
 
 def custom_kernel(data: input_t) -> output_t:
     (
-        hidden_states, gate_up_weight, down_weight,
-        gate_up_weight_scale, down_weight_scale,
-        gate_up_weight_shuffled, down_weight_shuffled,
-        gate_up_weight_scale_shuffled, down_weight_scale_shuffled,
-        topk_weights, topk_ids, config,
+        hidden_states,
+        gate_up_weight,
+        down_weight,
+        gate_up_weight_scale,
+        down_weight_scale,
+        gate_up_weight_shuffled,
+        down_weight_shuffled,
+        gate_up_weight_scale_shuffled,
+        down_weight_scale_shuffled,
+        topk_weights,
+        topk_ids,
+        config,
     ) = data
 
     hidden_pad = config["d_hidden_pad"] - config["d_hidden"]
@@ -115,15 +124,19 @@ def custom_kernel(data: input_t) -> output_t:
     # Standard fused_moe — this probe is for DISCOVERY via stderr
     # A future submission would use asm_moe directly if compatible
     return fused_moe(
-        hidden_states, gate_up_weight_shuffled, down_weight_shuffled,
-        topk_weights, topk_ids,
+        hidden_states,
+        gate_up_weight_shuffled,
+        down_weight_shuffled,
+        topk_weights,
+        topk_ids,
         expert_mask=None,
         activation=ActivationType.Silu,
         quant_type=QuantType.per_1x32,
         doweight_stage1=False,
         w1_scale=gate_up_weight_scale_shuffled,
         w2_scale=down_weight_scale_shuffled,
-        a1_scale=None, a2_scale=None,
+        a1_scale=None,
+        a2_scale=None,
         hidden_pad=hidden_pad,
         intermediate_pad=intermediate_pad,
     )

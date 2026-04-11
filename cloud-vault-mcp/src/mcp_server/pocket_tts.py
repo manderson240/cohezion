@@ -35,13 +35,17 @@ class PocketTTSService:
         try:
             from pocket_tts import TTSModel
 
-            self.model = TTSModel.load_model(config="b6369a24", temp=0.7, eos_threshold=-4.0)
+            self.model = TTSModel.load_model(
+                config="b6369a24", temp=0.7, eos_threshold=-4.0
+            )
             self.sample_rate = self.model.sample_rate
             self._initialized = True
             logger.info("Pocket TTS model loaded on %s", self.model.device)
 
         except ImportError as e:
-            raise RuntimeError("pocket-tts not installed: pip install pocket-tts") from e
+            raise RuntimeError(
+                "pocket-tts not installed: pip install pocket-tts"
+            ) from e
         except Exception as e:
             raise RuntimeError(f"Failed to load TTS model: {e}") from e
 

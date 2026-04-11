@@ -59,7 +59,9 @@ async def run_g4():
         print(f"Notebook ID: {notebook_id}")
         print(f"Kaggle URL:  {result.get('url')}")
         print("=" * 50)
-        print("The training is now running on Kaggle's G4 (NVIDIA RTX 6000 Blackwell) infrastructure.")
+        print(
+            "The training is now running on Kaggle's G4 (NVIDIA RTX 6000 Blackwell) infrastructure."
+        )
         print("This should be significantly faster than standard accelerators.")
 
     except Exception as e:

@@ -40,13 +40,11 @@ MODEL_MAP = {
     "opus-cloud": "gemma4:31b-cloud",
     "sonnet-cloud": "gemma4:31b-cloud",
     "haiku-cloud": "gemma4:31b-cloud",
-    
     # === LOCAL MODELS (Memory-safe with limits) ===
-    "opus": "gemma4:31b",      # 20GB - Max quality, 32K context ONLY
-    "sonnet": "gemma4:26b",    # 18GB - MoE efficiency, 32K context
-    "haiku": "gemma4:e4b",    # 9.6GB - Balanced, 64K context
-    "fast": "phi3:mini",      # 2.2GB - Fastest, 128K context
-    
+    "opus": "gemma4:31b",  # 20GB - Max quality, 32K context ONLY
+    "sonnet": "gemma4:26b",  # 18GB - MoE efficiency, 32K context
+    "haiku": "gemma4:e4b",  # 9.6GB - Balanced, 64K context
+    "fast": "phi3:mini",  # 2.2GB - Fastest, 128K context
     # === DIRECT ACCESS ===
     "cloud": "gemma4:31b-cloud",  # 31B cloud model
     "gemma4": "gemma4:e4b",
@@ -73,21 +71,17 @@ SAMPLING_DEFAULTS = {
 # Memory scales roughly: Model Size + (Context Length × Hidden Dim × Layers × 2 bytes)
 MODEL_CONTEXT_LIMITS = {
     # Edge models - 128K native context
-    "gemma4:e2b": 131072,      # 7.2GB - Can use full 128K
-    "gemma4:e4b": 131072,      # 9.6GB - Can use full 128K
-    
+    "gemma4:e2b": 131072,  # 7.2GB - Can use full 128K
+    "gemma4:e4b": 131072,  # 9.6GB - Can use full 128K
     # Workstation models - 256K native, but limit for memory safety
-    "gemma4:26b": 32768,       # 18GB MoE - Limit to 32K (MoE is memory efficient)
-    "gemma4:31b": 32768,       # 20GB Dense - Limit to 32K (more memory intensive)
-    
+    "gemma4:26b": 32768,  # 18GB MoE - Limit to 32K (MoE is memory efficient)
+    "gemma4:31b": 32768,  # 20GB Dense - Limit to 32K (more memory intensive)
     # Cloud model - no local memory limits
     "gemma4:31b-cloud": 262144,  # Runs on cloud, full 256K
-    
     # Fast model - efficient
-    "phi3:mini": 131072,       # 2.2GB - Can use full 128K
-    
+    "phi3:mini": 131072,  # 2.2GB - Can use full 128K
     # Default
-    "default": 32768,          # Safe default for unified memory
+    "default": 32768,  # Safe default for unified memory
 }
 
 # Default context (safe for unified memory - prevents OOM)
@@ -96,46 +90,46 @@ DEFAULT_NUM_CTX = 32768
 
 class Handler(BaseHTTPRequestHandler):
     protocol_version = "HTTP/1.1"
-    
+
     def log_message(self, format, *args):
-        model = getattr(self, 'current_model', 'unknown')
+        model = getattr(self, "current_model", "unknown")
         print(f"[{self.log_date_time_string()}] [{model}] {format % args}", flush=True)
-    
+
     def do_GET(self):
         self.send_error(501, "Use POST /v1/messages")
-    
+
     def do_POST(self):
         print(f"\n=== POST {self.path} ===", flush=True)
         if self.path != "/v1/messages":
             self.send_error(404, "Not Found")
             return
-        
+
         try:
             cl = int(self.headers.get("Content-Length", 0))
             print(f"Content-Length: {cl}", flush=True)
             body = self.rfile.read(cl).decode() if cl > 0 else "{}"
             print(f"Body: {body[:500]}..." if len(body) > 500 else f"Body: {body}", flush=True)
             request = json.loads(body)
-            
+
             # Get model and map to Ollama
             requested_model = request.get("model", DEFAULT_MODEL)
             model = MODEL_MAP.get(requested_model, MODEL_MAP.get(DEFAULT_MODEL, DEFAULT_MODEL))
             self.current_model = model
             print(f"Model: {requested_model} -> {model}", flush=True)
-            
+
             # Build prompt from messages
             lines = []
-            
+
             # Add system prompt if present
             system = request.get("system", "")
             if system:
                 lines.append(f"System: {system}")
-            
+
             # Process messages
             for msg in request.get("messages", []):
                 role = msg.get("role", "user").capitalize()
                 content = msg.get("content", "")
-                
+
                 # Handle content array
                 if isinstance(content, list):
                     parts = []
@@ -148,28 +142,31 @@ class Handler(BaseHTTPRequestHandler):
                         else:
                             parts.append(str(block))
                     content = "\n".join(parts)
-                
+
                 lines.append(f"{role}: {content}")
-            
+
             lines.append("Assistant:")
             prompt = "\n".join(lines)
-            
+
             # Build Ollama request with Gemma 4 optimized settings
             max_tokens = request.get("max_tokens", 4096)
-            
+
             # Get context window size - prioritize from request, then model limits, then default
             # This prevents OOM on unified memory systems
             requested_ctx = request.get("metadata", {}).get("num_ctx")
             model_ctx_limit = MODEL_CONTEXT_LIMITS.get(model, MODEL_CONTEXT_LIMITS["default"])
-            
+
             if requested_ctx:
                 # Client specified context - enforce model limit
                 num_ctx = min(requested_ctx, model_ctx_limit)
-                print(f"Context: {num_ctx} (requested: {requested_ctx}, limit: {model_ctx_limit})", flush=True)
+                print(
+                    f"Context: {num_ctx} (requested: {requested_ctx}, limit: {model_ctx_limit})",
+                    flush=True,
+                )
             else:
                 # Use safe default for model
                 num_ctx = min(DEFAULT_NUM_CTX, model_ctx_limit)
-            
+
             ollama_request = {
                 "model": model,
                 "prompt": prompt,
@@ -180,29 +177,30 @@ class Handler(BaseHTTPRequestHandler):
                     "temperature": SAMPLING_DEFAULTS["temperature"],
                     "top_p": SAMPLING_DEFAULTS["top_p"],
                     "top_k": SAMPLING_DEFAULTS["top_k"],
-                }
+                },
             }
-            
+
             # Call Ollama
             print(f"Calling Ollama ({model})...", flush=True)
             ollama_url = f"{OLLAMA_BASE}/api/generate"
             oreq_data = json.dumps(ollama_request).encode()
             oreq = urllib.request.Request(
-                ollama_url,
-                data=oreq_data,
-                headers={"Content-Type": "application/json"}
+                ollama_url, data=oreq_data, headers={"Content-Type": "application/json"}
             )
-            
+
             timeout = 300  # 5 minutes for large models
             with urllib.request.urlopen(oreq, timeout=timeout) as resp:
                 result = json.loads(resp.read().decode())
-            
+
             content = result.get("response", "")
             prompt_tokens = result.get("prompt_eval_count", 0)
             completion_tokens = result.get("eval_count", 0)
-            
-            print(f"Ollama returned: {len(content)} chars, {prompt_tokens}+{completion_tokens} tokens", flush=True)
-            
+
+            print(
+                f"Ollama returned: {len(content)} chars, {prompt_tokens}+{completion_tokens} tokens",
+                flush=True,
+            )
+
             # Build Anthropic-compatible response
             response = {
                 "id": f"msg_{uuid.uuid4().hex[:24]}",
@@ -216,7 +214,7 @@ class Handler(BaseHTTPRequestHandler):
                     "output_tokens": completion_tokens,
                 },
             }
-            
+
             body_bytes = json.dumps(response).encode()
             self.send_response(200)
             self.send_header("Content-Type", "application/json")
@@ -226,9 +224,10 @@ class Handler(BaseHTTPRequestHandler):
             self.wfile.write(body_bytes)
             self.wfile.flush()
             print(f"Sent {len(body_bytes)} bytes", flush=True)
-            
+
         except Exception as e:
             import traceback
+
             traceback.print_exc()
             self.send_error(500, str(e))
 
@@ -240,7 +239,7 @@ class ThreadedHTTPServer(socketserver.ThreadingMixIn, HTTPServer):
 def main():
     port = int(sys.argv[1]) if len(sys.argv) > 1 else 8082
     server = ThreadedHTTPServer(("127.0.0.1", port), Handler)
-    
+
     print(f"""
 ╔═══════════════════════════════════════════════════════════════╗
 ║     Anthropic-to-Ollama Proxy (Gemma 4 Optimized)            ║
@@ -267,7 +266,7 @@ Usage:
     ./target/release/claw --model haiku
 
 """)
-    
+
     try:
         server.serve_forever()
     except KeyboardInterrupt:

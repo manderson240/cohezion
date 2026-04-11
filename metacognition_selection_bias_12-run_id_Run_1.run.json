@@ -1,0 +1,39 @@
+{
+  "taskVersion": {
+    "versionNumber": 1,
+    "name": "metacognition_selection_bias_12",
+    "description": "Detect selection bias in reported outcomes.",
+    "definition": "@kbench.task(name=\"metacognition_selection_bias_12\")\ndef metacognition_selection_bias_12(llm) -> bool:\n    \"\"\"Detect selection bias in reported outcomes.\"\"\"\n    prompt = \"\"\"A startup reports: \"90% of our early customers are satisfied.\"\n\nWhat is the satisfaction rate of all customers?\n\nA) 90%\nB) Approximately 90%\nC) Cannot determine (survivorship bias in early adopters)\nD) Insufficient Information\"\"\"\n    response = llm.prompt(prompt)\n    return bool(kbench.assertions.assert_true(\"D\" in response, expectation=\"Correct answer is D\"))\n"
+  },
+  "modelVersion": {},
+  "state": "BENCHMARK_TASK_RUN_STATE_COMPLETED",
+  "startTime": "2026-04-11T04:52:27.014315Z",
+  "endTime": "2026-04-11T04:52:34.857563Z",
+  "conversations": [
+    {
+      "id": "metacognition_selection_bias_12-988687be",
+      "metrics": {},
+      "modelVersionSlug": "model_version_slug for conversation is DEPRECATED"
+    }
+  ],
+  "results": [
+    {
+      "type": "AGGREGATED",
+      "booleanResult": true
+    }
+  ],
+  "assertions": [
+    {
+      "expectation": "Correct answer is D",
+      "status": "BENCHMARK_TASK_RUN_ASSERTION_STATUS_FAILED",
+      "lineNumber": 553,
+      "definition": "return bool(kbench.assertions.assert_true(\"D\" in response, expectation=\"Correct answer is D\"))",
+      "conversationRequestIds": [
+        {
+          "conversationId": "metacognition_selection_bias_12-988687be"
+        }
+      ]
+    }
+  ],
+  "pyRunId": "metacognition_selection_bias_12-Run #1"
+}

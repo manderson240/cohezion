@@ -13,9 +13,11 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 N_SAMPLES = 4
 CODE_TIMEOUT = 10
 
+
 def execute_python(code: str) -> str:
     """Execute Python code in a sandboxed subprocess."""
     import subprocess
+
     try:
         result = subprocess.run(
             [sys.executable, "-c", code],
@@ -33,10 +35,12 @@ def execute_python(code: str) -> str:
     except Exception as e:
         return f"Error: {str(e)[:200]}"
 
+
 def extract_code_blocks(text: str) -> list:
     """Extract Python code blocks from model output."""
     pattern = r"```python\s*\n(.*?)```"
     return re.findall(pattern, text, re.DOTALL)
+
 
 def extract_answer(text: str) -> int:
     """Extract integer answer from \boxed{} or last number."""
@@ -53,6 +57,7 @@ def extract_answer(text: str) -> int:
     if numbers:
         return int(numbers[-1]) % 100000
     return 0
+
 
 def test_code_execution():
     """Test the code execution functionality."""
@@ -81,6 +86,7 @@ def test_code_execution():
     assert "Error" in result, f"Expected error, got '{result}'"
     print("✓ Error handling works")
 
+
 def test_code_extraction():
     """Test extraction of Python code blocks."""
     print("\n" + "=" * 60)
@@ -107,6 +113,7 @@ print(result)
     print(f"Found {len(blocks)} code blocks")
     assert len(blocks) == 2, f"Expected 2 blocks, got {len(blocks)}"
     print("✓ Code extraction works")
+
 
 def test_answer_extraction():
     """Test answer extraction from text."""
@@ -146,6 +153,7 @@ def test_answer_extraction():
     assert result == -17 % 100000, f"Expected {-17 % 100000}, got {result}"
     print("✓ Negative number handling works")
 
+
 def test_majority_vote():
     """Test majority voting logic."""
     print("\n" + "=" * 60)
@@ -162,6 +170,7 @@ def test_majority_vote():
     assert most_common[1] == 3, f"Expected 3 votes, got {most_common[1]}"
     print("✓ Majority voting works")
 
+
 def test_reference_problems():
     """Test against reference problems (without actual model)."""
     print("\n" + "=" * 60)
@@ -169,28 +178,30 @@ def test_reference_problems():
     print("=" * 60)
 
     import csv
+
     ref_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "input", "reference.csv")
 
     if not os.path.exists(ref_path):
         print(f"⚠ Reference file not found at {ref_path}")
         return
 
-    with open(ref_path, 'r') as f:
+    with open(ref_path, "r") as f:
         reader = csv.DictReader(f)
         problems = list(reader)
 
     print(f"Found {len(problems)} reference problems")
 
     for i, prob in enumerate(problems[:3]):
-        print(f"\nProblem {i+1}: {prob['id']}")
+        print(f"\nProblem {i + 1}: {prob['id']}")
         print(f"  Question length: {len(prob['problem'])} chars")
         print(f"  Expected answer: {prob['answer']}")
 
         # Test extraction on expected answer format
-        answer = int(prob['answer'])
+        answer = int(prob["answer"])
         assert 0 <= answer < 100000 or answer >= 0, f"Answer out of expected range: {answer}"
 
     print("\n✓ Reference problems loaded successfully")
+
 
 def test_kernel_syntax():
     """Test that kernel file has valid Python syntax."""
@@ -200,23 +211,24 @@ def test_kernel_syntax():
 
     kernel_path = os.path.join(os.path.dirname(__file__), "submission_sc_tir.py")
 
-    with open(kernel_path, 'r') as f:
+    with open(kernel_path, "r") as f:
         code = f.read()
 
     try:
-        compile(code, kernel_path, 'exec')
+        compile(code, kernel_path, "exec")
         print("✓ Kernel has valid Python syntax")
     except SyntaxError as e:
         print(f"✗ Syntax error: {e}")
         return False
 
     # Check for required imports
-    required = ['vllm', 'torch', 'polars', 're', 'subprocess']
+    required = ["vllm", "torch", "polars", "re", "subprocess"]
     for module in required:
         if f"import {module}" in code or f"from {module}" in code:
             print(f"✓ Found import for {module}")
 
     return True
+
 
 def main():
     print("AIMO3 SC-TIR Kernel Local Tests")
@@ -248,8 +260,10 @@ def main():
     except Exception as e:
         print(f"\n✗ Unexpected error: {e}")
         import traceback
+
         traceback.print_exc()
         return 1
+
 
 if __name__ == "__main__":
     sys.exit(main())

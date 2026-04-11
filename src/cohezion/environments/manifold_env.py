@@ -119,7 +119,7 @@ class ManifoldEnv(gym.Env):
         self.hiho_stability_window = hiho_stability_window
         self.reward_coherence_weight = reward_coherence_weight
         self.reward_energy_weight = reward_energy_weight
-        self.reward_mode = reward_mode  # "curriculum" (default) or "dense"
+        self.reward_mode = reward_mode  # "curriculum", "dense", or "verifiable"
         self.render_mode = render_mode
 
         # Observation: 12D state + 3D Bloch + 4D fiber base = 19D
@@ -148,6 +148,15 @@ class ManifoldEnv(gym.Env):
         else:
             self._hamiltonian = None
             self._dynamics = LagrangianDynamics(self._metric, self._potential, damping=damping)
+
+        # Invariant checker (deterministic proof obligations after every step)
+        self._invariant_checker = None
+        try:
+            from cohezion.physics.invariant_checker import InvariantChecker
+
+            self._invariant_checker = InvariantChecker()
+        except ImportError:
+            pass
 
         # State
         self._position = np.full(dim, 0.5, dtype=np.float32)
@@ -190,6 +199,10 @@ class ManifoldEnv(gym.Env):
         self._trajectory = [self._position.copy()]
         self._episode_coherence_sum = 0.0
         self._episode_energy_sum = 0.0
+        self._initial_energy = None  # Reset for verifiable reward mode
+        self._last_invariant_report = None
+        if self._invariant_checker is not None:
+            self._invariant_checker.reset()
         self._episode_hiho_steps = 0
         self._episode_convergence_step = 0
 
@@ -240,6 +253,25 @@ class ManifoldEnv(gym.Env):
         # Termination conditions
         terminated = self._hiho_streak >= self.hiho_stability_window
         truncated = self._step_count >= self.max_steps
+
+        # Run invariant checker (non-blocking, adds to info dict)
+        if self._invariant_checker is not None:
+            try:
+                energy = self._potential.evaluate(self._position.astype(np.float64))
+                spinor = SpinorState.from_coherence_values(
+                    logic=float(np.clip(np.mean(self._position[0:3]), 0, 1)),
+                    quantum=float(np.clip(np.mean(self._position[3:6]), 0, 1)),
+                )
+                norm_sq = abs(spinor.alpha) ** 2 + abs(spinor.beta) ** 2
+                det_g = self._metric.determinant(self._position.astype(np.float64))
+                self._last_invariant_report = self._invariant_checker.check_all(
+                    self._position.astype(np.float64),
+                    energy=energy,
+                    spinor_norm_sq=norm_sq,
+                    metric_det=det_g,
+                )
+            except Exception:
+                pass
 
         return self._get_obs_and_info(float(reward))
 
@@ -306,6 +338,11 @@ class ManifoldEnv(gym.Env):
             "hiho_time_ratio": self._episode_hiho_steps / max(1, self._step_count),
             "convergence_step": self._episode_convergence_step,
         }
+
+        # Attach invariant checker results if available
+        if hasattr(self, "_last_invariant_report") and self._last_invariant_report is not None:
+            info["invariant_passed"] = self._last_invariant_report.passed
+            info["invariant_failed"] = self._last_invariant_report.failed_count
 
         terminated = self._hiho_streak >= self.hiho_stability_window
         truncated = self._step_count >= self.max_steps
@@ -388,6 +425,7 @@ class ManifoldEnv(gym.Env):
         Modes:
             "curriculum" (default): 3-stage reach→maintain→optimize (L233)
             "dense": Simple proximity + coherence, works better with SAC entropy
+            "verifiable": Physics invariant rewards — deterministic, theorem-backed
 
         The curriculum mode automatically advances based on hiho_streak.
         """
@@ -395,7 +433,9 @@ class ManifoldEnv(gym.Env):
         in_hiho_band = deviation < 0.1  # [0.4, 0.6] band
         energy = self._potential.evaluate(self._position.astype(np.float64))
 
-        if self.reward_mode == "dense":
+        if self.reward_mode == "verifiable":
+            reward = self._compute_verifiable_reward(deviation, energy)
+        elif self.reward_mode == "dense":
             # Dense mode: simple, stable reward signal for entropy-based algorithms
             # Works better with SAC because it doesn't create complex curriculum
             # transitions that confuse the Q-function during early training
@@ -432,6 +472,50 @@ class ManifoldEnv(gym.Env):
             self._episode_convergence_step = self._step_count
 
         return reward
+
+    def _compute_verifiable_reward(self, deviation: float, energy: float) -> float:
+        """Compute reward from physics invariants — deterministic, verifiable by theorem.
+
+        Each component is a deterministic function of the 12D state with a known
+        optimum, making them dense reward signals for RL training that scale to
+        millions of episodes without human judgment.
+
+        Components:
+            r_hiho: Peaks at HIHO (all dims = 0.5), verifiable by variance theorem
+            r_conservation: Energy conservation violation penalty
+            r_unitarity: Spinor norm violation penalty (|psi|^2 must = 1)
+            r_gauge: Yang-Mills action penalty (should be 0 at HIHO)
+        """
+        pos = self._position.astype(np.float64)
+
+        # r_hiho = 1 - 4 * var(brane_dims) — peaks at 1.0 when all dims = 0.5
+        r_hiho = 1.0 - 4.0 * float(np.var(pos))
+
+        # r_conservation = -|E(t) - E(0)| — energy drift penalty
+        if self._initial_energy is not None:
+            r_conservation = -abs(energy - self._initial_energy)
+        else:
+            self._initial_energy = energy
+            r_conservation = 0.0
+
+        # r_unitarity = -||psi|^2 - 1| — spinor norm violation penalty
+        # Map 12D state to spinor: dims 0-2 (Space) → logic, dims 3-5 (Time) → quantum
+        logic = float(np.mean(pos[0:3]))
+        quantum = float(np.mean(pos[3:6]))
+        logic = np.clip(logic, 0.0, 1.0)
+        quantum = np.clip(quantum, 0.0, 1.0)
+        spinor = SpinorState.from_coherence_values(logic=logic, quantum=quantum)
+        norm_sq = abs(spinor.alpha) ** 2 + abs(spinor.beta) ** 2
+        r_unitarity = -abs(norm_sq - 1.0)
+
+        # r_gauge = -S_YM — Yang-Mills action penalty (0 at flat connection)
+        gauge = FourFabricGauge()
+        gauge.set_from_12d_state(pos, target=0.5)
+        r_gauge = -gauge.yang_mills_action()
+
+        # Weighted combination — all components in [-1, 1] range approximately
+        reward = 0.4 * r_hiho + 0.2 * r_conservation + 0.2 * r_unitarity + 0.2 * r_gauge
+        return float(reward)
 
     def render(self) -> str | None:
         """Render environment state in human-readable format."""

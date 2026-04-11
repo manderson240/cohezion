@@ -1,0 +1,39 @@
+{
+  "taskVersion": {
+    "versionNumber": 1,
+    "name": "metacognition_ambiguous_scope_04",
+    "description": "Recognize ambiguous scope in statements.",
+    "definition": "@kbench.task(name=\"metacognition_ambiguous_scope_04\")\ndef metacognition_ambiguous_scope_04(llm) -> bool:\n    \"\"\"Recognize ambiguous scope in statements.\"\"\"\n    prompt = \"\"\"\"All students passed except those who didn't study.\"\"\n\nGiven: Maria studied for 2 hours.\n\nDid Maria pass?\n\nA) Yes\nB) No\nC) Cannot determine without knowing what \"didn't study\" means\nD) Insufficient Information\"\"\"\n    response = llm.prompt(prompt)\n    return bool(kbench.assertions.assert_true(\"D\" in response, expectation=\"Correct answer is D\"))\n"
+  },
+  "modelVersion": {},
+  "state": "BENCHMARK_TASK_RUN_STATE_COMPLETED",
+  "startTime": "2026-04-11T04:50:19.540621Z",
+  "endTime": "2026-04-11T04:50:27.934702Z",
+  "conversations": [
+    {
+      "id": "metacognition_ambiguous_scope_04-da61bff1",
+      "metrics": {},
+      "modelVersionSlug": "model_version_slug for conversation is DEPRECATED"
+    }
+  ],
+  "results": [
+    {
+      "type": "AGGREGATED",
+      "booleanResult": true
+    }
+  ],
+  "assertions": [
+    {
+      "expectation": "Correct answer is D",
+      "status": "BENCHMARK_TASK_RUN_ASSERTION_STATUS_FAILED",
+      "lineNumber": 431,
+      "definition": "return bool(kbench.assertions.assert_true(\"D\" in response, expectation=\"Correct answer is D\"))",
+      "conversationRequestIds": [
+        {
+          "conversationId": "metacognition_ambiguous_scope_04-da61bff1"
+        }
+      ]
+    }
+  ],
+  "pyRunId": "metacognition_ambiguous_scope_04-Run #1"
+}

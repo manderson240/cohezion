@@ -14,7 +14,7 @@ from aiter.utility.fp4_utils import e8m0_shuffle
 from task import input_t, output_t
 
 # ─── HIP Kernel Source ─────────────────────────────────────────────────────────
-HIP_SOURCE = r'''
+HIP_SOURCE = r"""
 #include <torch/extension.h>
 #include <hip/hip_runtime.h>
 #include <hip/hip_bf16.h>
@@ -100,12 +100,13 @@ torch::Tensor mxfp4_gemm_hip(
     );
     return C;
 }
-'''
+"""
 
 CPP_SOURCE = "torch::Tensor mxfp4_gemm_hip(torch::Tensor, torch::Tensor, torch::Tensor, torch::Tensor, int, int, int);"
 
 # Module global for persistence across calls in evaluation environment
 _module = None
+
 
 def get_module():
     global _module
@@ -124,6 +125,7 @@ def get_module():
             pass
     return _module
 
+
 def custom_kernel(data: input_t) -> output_t:
     A, B, B_q, B_shuffle, B_scale_sh = data
     M, K = A.shape
@@ -139,17 +141,23 @@ def custom_kernel(data: input_t) -> output_t:
     if mod:
         try:
             return mod.mxfp4_gemm_hip(
-                A_q.view(torch.uint8), 
-                B_shuffle.view(torch.uint8), 
-                A_scale_sh.view(torch.uint8), 
-                B_scale_sh.view(torch.uint8), 
-                M, N, K
+                A_q.view(torch.uint8),
+                B_shuffle.view(torch.uint8),
+                A_scale_sh.view(torch.uint8),
+                B_scale_sh.view(torch.uint8),
+                M,
+                N,
+                K,
             )
         except Exception:
             pass
 
     # Fallback to standard AITER
     return aiter.gemm_a4w4(
-        A_q, B_shuffle, A_scale_sh, B_scale_sh,
-        dtype=dtypes.bf16, bpreshuffle=True,
+        A_q,
+        B_shuffle,
+        A_scale_sh,
+        B_scale_sh,
+        dtype=dtypes.bf16,
+        bpreshuffle=True,
     )

@@ -22,9 +22,7 @@ class AIMO3Gateway(kaggle_evaluation.core.templates.Gateway):
 
     def unpack_data_paths(self):
         if not self.data_paths:
-            self.test_path = (
-                '/kaggle/input/ai-mathematical-olympiad-progress-prize-3/test.csv'
-            )
+            self.test_path = "/kaggle/input/ai-mathematical-olympiad-progress-prize-3/test.csv"
         else:
             self.test_path = self.data_paths[0]
 
@@ -32,29 +30,25 @@ class AIMO3Gateway(kaggle_evaluation.core.templates.Gateway):
         self,
     ) -> Generator[tuple[pl.DataFrame, pl.DataFrame], None, None]:
         # Generate a random seed from system entropy
-        random_seed = int.from_bytes(os.urandom(4), byteorder='big')
+        random_seed = int.from_bytes(os.urandom(4), byteorder="big")
 
         # Read the test set and shuffle
         test = pl.read_csv(self.test_path)
         if not USE_PRIVATE_SET:
-            test = test.sample(
-                fraction=1.0, shuffle=True, with_replacement=False, seed=random_seed
-            )
+            test = test.sample(fraction=1.0, shuffle=True, with_replacement=False, seed=random_seed)
 
         for row in test.iter_slices(n_rows=1):
             # Generate a problem instance and the validation id
-            yield row, row.select('id')
+            yield row, row.select("id")
 
-    def competition_specific_validation(
-        self, prediction_batch, row_ids, data_batch
-    ) -> None:
+    def competition_specific_validation(self, prediction_batch, row_ids, data_batch) -> None:
         pass
 
 
-if __name__ == '__main__':
-    if os.getenv('KAGGLE_IS_COMPETITION_RERUN'):
+if __name__ == "__main__":
+    if os.getenv("KAGGLE_IS_COMPETITION_RERUN"):
         gateway = AIMO3Gateway()
         # Relies on valid default data paths
         gateway.run()
     else:
-        print('Skipping run for now')
+        print("Skipping run for now")

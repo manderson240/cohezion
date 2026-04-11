@@ -1,3 +1,4 @@
+import aiofiles
 import asyncio
 import importlib.util
 import json
@@ -110,8 +111,8 @@ class RZeroEvolver:
         benchmark_path = prompt_path.replace(
             "generate_evo_hiho_tasks.py", "evo_hiho_benchmark.json"
         )
-        with open(benchmark_path) as f:
-            data = json.load(f)
+        async with aiofiles.open(benchmark_path) as f:
+            data = json.loads(await f.read())
 
         # Handle both {"train": [...]} and [...] formats
         tasks = data.get("train", []) if isinstance(data, dict) else data

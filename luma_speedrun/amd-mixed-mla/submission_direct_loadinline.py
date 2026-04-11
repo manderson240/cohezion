@@ -33,7 +33,8 @@ FP8_DTYPE = aiter_dtypes.fp8
 _CO_PATH = "/home/runner/aiter/hsa/gfx950/mla/mla_a8w8_qh16_qseqlen1_gqaratio16_ps.co"
 _KERNEL_SYMBOL = "_ZN5aiter36mla_a8w8_qh16_qseqlen1_gqaratio16_psE"
 
-HIP_SOURCE = r'''
+HIP_SOURCE = (
+    r'''
 #include <torch/extension.h>
 #include <hip/hip_runtime.h>
 #include <stdint.h>
@@ -67,8 +68,12 @@ static hipFunction_t g_mla_func = nullptr;
 
 void init_mla_module() {
     if (!g_mla_module) {
-        hipModuleLoad(&g_mla_module, "''' + _CO_PATH + r'''");
-        hipModuleGetFunction(&g_mla_func, g_mla_module, "''' + _KERNEL_SYMBOL + r'''");
+        hipModuleLoad(&g_mla_module, "'''
+    + _CO_PATH
+    + r'''");
+        hipModuleGetFunction(&g_mla_func, g_mla_module, "'''
+    + _KERNEL_SYMBOL
+    + r"""");
     }
 }
 
@@ -109,11 +114,14 @@ void launch_mla_direct(
 
     hipModuleLaunchKernel(g_mla_func, gdx, 1, 1, 256, 1, 1, 0, 0, nullptr, config);
 }
-'''
+"""
+)
 
 CPP_SOURCE = "void init_mla_module(); void launch_mla_direct(torch::Tensor, torch::Tensor, torch::Tensor, torch::Tensor, torch::Tensor, torch::Tensor, torch::Tensor, torch::Tensor, torch::Tensor, torch::Tensor, torch::Tensor, torch::Tensor, float, int, int);"
 
 _mod = None
+
+
 def get_mod():
     global _mod
     if _mod is None:
@@ -131,62 +139,145 @@ def get_mod():
             print(f"load_inline failed: {e}")
     return _mod
 
+
 _cache = {}
 
-def _get_cached_metadata(bs, qseqlen, kvseqlen, q_dtype, kv_dtype, qo_indptr, kv_indptr, num_kv_splits):
+
+def _get_cached_metadata(
+    bs, qseqlen, kvseqlen, q_dtype, kv_dtype, qo_indptr, kv_indptr, num_kv_splits
+):
     key = (bs, qseqlen, kvseqlen, q_dtype, kv_dtype, num_kv_splits)
-    if key in _cache: return _cache[key]
-    
+    if key in _cache:
+        return _cache[key]
+
     kv_last_page_len = (kv_indptr[1:] - kv_indptr[:-1]).to(torch.int32)
-    info = get_mla_metadata_info_v1(bs, qseqlen, NUM_HEADS, q_dtype, kv_dtype,
-                                    is_sparse=False, fast_mode=False,
-                                    num_kv_splits=num_kv_splits, intra_batch_mode=True)
+    info = get_mla_metadata_info_v1(
+        bs,
+        qseqlen,
+        NUM_HEADS,
+        q_dtype,
+        kv_dtype,
+        is_sparse=False,
+        fast_mode=False,
+        num_kv_splits=num_kv_splits,
+        intra_batch_mode=True,
+    )
     work = [torch.empty(s, dtype=t, device="cuda") for s, t in info]
-    work_metadata, work_indptr, work_info_set, reduce_indptr, reduce_final_map, reduce_partial_map = work
-    
-    get_mla_metadata_v1(qo_indptr, kv_indptr, kv_last_page_len, NUM_HEADS, NUM_KV_HEADS, True,
-                        work_metadata, work_info_set, work_indptr, reduce_indptr, reduce_final_map, reduce_partial_map,
-                        page_size=PAGE_SIZE, kv_granularity=max(PAGE_SIZE, 16),
-                        max_seqlen_qo=qseqlen, uni_seqlen_qo=qseqlen,
-                        fast_mode=False, max_split_per_batch=num_kv_splits,
-                        intra_batch_mode=True, dtype_q=q_dtype, dtype_kv=kv_dtype)
-    
+    (
+        work_metadata,
+        work_indptr,
+        work_info_set,
+        reduce_indptr,
+        reduce_final_map,
+        reduce_partial_map,
+    ) = work
+
+    get_mla_metadata_v1(
+        qo_indptr,
+        kv_indptr,
+        kv_last_page_len,
+        NUM_HEADS,
+        NUM_KV_HEADS,
+        True,
+        work_metadata,
+        work_info_set,
+        work_indptr,
+        reduce_indptr,
+        reduce_final_map,
+        reduce_partial_map,
+        page_size=PAGE_SIZE,
+        kv_granularity=max(PAGE_SIZE, 16),
+        max_seqlen_qo=qseqlen,
+        uni_seqlen_qo=qseqlen,
+        fast_mode=False,
+        max_split_per_batch=num_kv_splits,
+        intra_batch_mode=True,
+        dtype_q=q_dtype,
+        dtype_kv=kv_dtype,
+    )
+
     total_q = bs * qseqlen
     meta = {
-        "work_metadata": work_metadata, "work_indptr": work_indptr,
-        "reduce_indptr": reduce_indptr, "reduce_final_map": reduce_final_map, "reduce_partial_map": reduce_partial_map,
+        "work_metadata": work_metadata,
+        "work_indptr": work_indptr,
+        "reduce_indptr": reduce_indptr,
+        "reduce_final_map": reduce_final_map,
+        "reduce_partial_map": reduce_partial_map,
         "kv_indices": torch.arange(int(kv_indptr[-1].item()), dtype=torch.int32, device="cuda"),
         "kv_last_page_len": kv_last_page_len,
-        "logits": torch.empty((num_kv_splits, total_q, NUM_HEADS, V_HEAD_DIM), dtype=torch.float32, device="cuda"),
-        "attn_lse": torch.empty((num_kv_splits, total_q, NUM_HEADS), dtype=torch.float32, device="cuda"),
-        "output": torch.empty((total_q, NUM_HEADS, V_HEAD_DIM), dtype=torch.bfloat16, device="cuda"),
+        "logits": torch.empty(
+            (num_kv_splits, total_q, NUM_HEADS, V_HEAD_DIM), dtype=torch.float32, device="cuda"
+        ),
+        "attn_lse": torch.empty(
+            (num_kv_splits, total_q, NUM_HEADS), dtype=torch.float32, device="cuda"
+        ),
+        "output": torch.empty(
+            (total_q, NUM_HEADS, V_HEAD_DIM), dtype=torch.bfloat16, device="cuda"
+        ),
     }
     _cache[key] = meta
     return meta
 
+
 def _quantize_fp8(tensor):
     finfo = torch.finfo(FP8_DTYPE)
     scale = tensor.abs().amax().clamp(min=1e-12) / finfo.max
-    return (tensor / scale).clamp(min=finfo.min, max=finfo.max).to(FP8_DTYPE), scale.float().reshape(1)
+    return (tensor / scale).clamp(min=finfo.min, max=finfo.max).to(
+        FP8_DTYPE
+    ), scale.float().reshape(1)
+
 
 def custom_kernel(data: input_t) -> output_t:
     q, kv_data, qo_indptr, kv_indptr, config = data
     bs, qsl, kvsl = config["batch_size"], config["q_seq_len"], config["kv_seq_len"]
-    
+
     kv_fp8, kv_scale = kv_data["fp8"]
     q_fp8, q_scale = _quantize_fp8(q)
-    
-    num_kv_splits = 1 if bs*kvsl <= 2048 else 4
-    meta = _get_cached_metadata(bs, qsl, kvsl, q_fp8.dtype, kv_fp8.dtype, qo_indptr, kv_indptr, num_kv_splits)
-    
+
+    num_kv_splits = 1 if bs * kvsl <= 2048 else 4
+    meta = _get_cached_metadata(
+        bs, qsl, kvsl, q_fp8.dtype, kv_fp8.dtype, qo_indptr, kv_indptr, num_kv_splits
+    )
+
     mod = get_mod()
     if mod:
-        mod.launch_mla_direct(q_fp8, kv_fp8.view(-1, 1, 1, 576), qo_indptr, kv_indptr,
-                             meta["kv_indices"], meta["kv_last_page_len"], meta["work_metadata"],
-                             q_scale, kv_scale, meta["logits"], meta["attn_lse"], meta["output"],
-                             SM_SCALE, num_kv_splits, meta["work_indptr"].size(0) - 1)
-        
-        mla_reduce_v1(meta["logits"], meta["attn_lse"], meta["reduce_indptr"], meta["reduce_final_map"], meta["reduce_partial_map"], qsl, meta["output"], None)
+        mod.launch_mla_direct(
+            q_fp8,
+            kv_fp8.view(-1, 1, 1, 576),
+            qo_indptr,
+            kv_indptr,
+            meta["kv_indices"],
+            meta["kv_last_page_len"],
+            meta["work_metadata"],
+            q_scale,
+            kv_scale,
+            meta["logits"],
+            meta["attn_lse"],
+            meta["output"],
+            SM_SCALE,
+            num_kv_splits,
+            meta["work_indptr"].size(0) - 1,
+        )
+
+        mla_reduce_v1(
+            meta["logits"],
+            meta["attn_lse"],
+            meta["reduce_indptr"],
+            meta["reduce_final_map"],
+            meta["reduce_partial_map"],
+            qsl,
+            meta["output"],
+            None,
+        )
         return meta["output"]
-    
-    return mla_reduce_v1(meta["logits"], meta["attn_lse"], meta["reduce_indptr"], meta["reduce_final_map"], meta["reduce_partial_map"], qsl, meta["output"], None)
+
+    return mla_reduce_v1(
+        meta["logits"],
+        meta["attn_lse"],
+        meta["reduce_indptr"],
+        meta["reduce_final_map"],
+        meta["reduce_partial_map"],
+        qsl,
+        meta["output"],
+        None,
+    )

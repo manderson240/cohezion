@@ -104,9 +104,7 @@ class Machine:
         trace: bool = False,
         value_trace: dict[Any, int] = {},
     ):
-        self.cores = [
-            Core(id=i, scratch=[0] * scratch_size, trace_buf=[]) for i in range(n_cores)
-        ]
+        self.cores = [Core(id=i, scratch=[0] * scratch_size, trace_buf=[]) for i in range(n_cores)]
         self.mem = copy(mem_dump)
         self.program = program
         self.debug_info = debug_info
@@ -144,9 +142,7 @@ class Machine:
         return res
 
     def rewrite_slot(self, slot):
-        return tuple(
-            self.debug_info.scratch_map.get(s, (None, None))[0] or s for s in slot
-        )
+        return tuple(self.debug_info.scratch_map.get(s, (None, None))[0] or s for s in slot)
 
     def setup_trace(self):
         """
@@ -288,9 +284,7 @@ class Machine:
                     raise
             case ("load_offset", dest, addr, offset):
                 # Handy for treating vector dest and addr as a full block in the mini-compiler if you want
-                self.scratch_write[dest + offset] = self.mem[
-                    core.scratch[addr + offset]
-                ]
+                self.scratch_write[dest + offset] = self.mem[core.scratch[addr + offset]]
             case ("vload", dest, addr):  # addr is a scalar
                 addr = core.scratch[addr]
                 for vi in range(VLEN):
@@ -321,17 +315,13 @@ class Machine:
     def flow(self, core, *slot):
         match slot:
             case ("select", dest, cond, a, b):
-                self.scratch_write[dest] = (
-                    core.scratch[a] if core.scratch[cond] != 0 else core.scratch[b]
-                )
+                self.scratch_write[dest] = core.scratch[a] if core.scratch[cond] != 0 else core.scratch[b]
             case ("add_imm", dest, a, imm):
                 self.scratch_write[dest] = (core.scratch[a] + imm) % (2**32)
             case ("vselect", dest, cond, a, b):
                 for vi in range(VLEN):
                     self.scratch_write[dest + vi] = (
-                        core.scratch[a + vi]
-                        if core.scratch[cond + vi] != 0
-                        else core.scratch[b + vi]
+                        core.scratch[a + vi] if core.scratch[cond + vi] != 0 else core.scratch[b + vi]
                     )
             case ("halt",):
                 core.state = CoreState.STOPPED
@@ -380,11 +370,7 @@ class Machine:
             "load": self.load,
             "store": self.store,
             "flow": self.flow,
-            "debug": lambda core, *slot: (
-                core.trace_buf.append(core.scratch[slot[1]])
-                if slot[0] == "trace"
-                else None
-            ),
+            "debug": lambda core, *slot: core.trace_buf.append(core.scratch[slot[1]]) if slot[0] == "trace" else None,
         }
         self.scratch_write = {}
         self.mem_write = {}
@@ -402,9 +388,7 @@ class Machine:
                         loc, keys = slot[1], slot[2]
                         ref = [self.value_trace[key] for key in keys]
                         res = core.scratch[loc : loc + VLEN]
-                        assert res == ref, (
-                            f"{res} != {ref} for {keys} at pc={core.pc} loc={loc}"
-                        )
+                        assert res == ref, f"{res} != {ref} for {keys} at pc={core.pc} loc={loc}"
                 continue
             assert len(slots) <= SLOT_LIMITS[name]
             for i, slot in enumerate(slots):
@@ -516,9 +500,7 @@ def build_mem_image(t: Tree, inp: Input) -> list[int]:
     """
     header = 7
     extra_room = len(t.values) + len(inp.indices) * 2 + VLEN * 2 + 32
-    mem = [0] * (
-        header + len(t.values) + len(inp.indices) + len(inp.values) + extra_room
-    )
+    mem = [0] * (header + len(t.values) + len(inp.indices) + len(inp.values) + extra_room)
     forest_values_p = header
     inp_indices_p = forest_values_p + len(t.values)
     inp_values_p = inp_indices_p + len(inp.values)

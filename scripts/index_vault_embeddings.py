@@ -12,6 +12,7 @@ Usage:
     uv run python scripts/index_vault_embeddings.py --dry-run   # show counts, no API calls
     uv run python scripts/index_vault_embeddings.py --skills-only
 """
+
 from __future__ import annotations
 
 import argparse
@@ -38,15 +39,13 @@ def find_indexable_files(
     files: list[Path] = []
 
     if skills_path.exists():
-        files.extend(
-            p for p in skills_path.rglob("*.md")
-            if not p.name.startswith("_")
-        )
+        files.extend(p for p in skills_path.rglob("*.md") if not p.name.startswith("_"))
         logger.info(f"Found {len(files)} PRIME skills in {skills_path}")
 
     if not skills_only and vault_path.exists():
         vault_files = [
-            p for p in vault_path.rglob("*")
+            p
+            for p in vault_path.rglob("*")
             if p.suffix in SUPPORTED_EXTENSIONS and not p.name.startswith(".")
         ]
         logger.info(f"Found {len(vault_files)} vault files in {vault_path}")

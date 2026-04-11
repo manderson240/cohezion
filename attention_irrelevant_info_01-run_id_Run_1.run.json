@@ -1,0 +1,39 @@
+{
+  "taskVersion": {
+    "versionNumber": 1,
+    "name": "attention_irrelevant_info_01",
+    "description": "Focus on relevant information amid noise.",
+    "definition": "@kbench.task(name=\"attention_irrelevant_info_01\")\ndef attention_irrelevant_info_01(llm) -> bool:\n    \"\"\"Focus on relevant information amid noise.\"\"\"\n    prompt = \"\"\"A company's Q1 report contains:\n\n\"Founded in 1987 by visionary entrepreneurs, our journey began with just $10,000 and a dream. Through decades of innovation, we've expanded globally, embracing diversity and sustainability. Our 47-page sustainability report highlights 18 key metrics. The board met 4 times this quarter. Revenue was $10M. Our cafeteria serves organic meals.\"\n\nWhat was the revenue?\n\nA) $10,000\nB) $10M\nC) $47M\nD) $18M\"\"\"\n    response = llm.prompt(prompt)\n    return bool(kbench.assertions.assert_true(\"B\" in response, expectation=\"Correct answer is B\"))\n"
+  },
+  "modelVersion": {},
+  "state": "BENCHMARK_TASK_RUN_STATE_COMPLETED",
+  "startTime": "2026-04-11T04:54:21.532295Z",
+  "endTime": "2026-04-11T04:54:27.632391Z",
+  "conversations": [
+    {
+      "id": "attention_irrelevant_info_01-09f2a9c0",
+      "metrics": {},
+      "modelVersionSlug": "model_version_slug for conversation is DEPRECATED"
+    }
+  ],
+  "results": [
+    {
+      "type": "AGGREGATED",
+      "booleanResult": true
+    }
+  ],
+  "assertions": [
+    {
+      "expectation": "Correct answer is B",
+      "status": "BENCHMARK_TASK_RUN_ASSERTION_STATUS_PASSED",
+      "lineNumber": 620,
+      "definition": "return bool(kbench.assertions.assert_true(\"B\" in response, expectation=\"Correct answer is B\"))",
+      "conversationRequestIds": [
+        {
+          "conversationId": "attention_irrelevant_info_01-09f2a9c0"
+        }
+      ]
+    }
+  ],
+  "pyRunId": "attention_irrelevant_info_01-Run #1"
+}

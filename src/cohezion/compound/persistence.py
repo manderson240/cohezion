@@ -99,7 +99,7 @@ class CompoundPersistence:
                 import httpx
 
                 async with httpx.AsyncClient(timeout=2.0) as client:
-                    resp = await client.get("http://localhost:8000/health")
+                    resp = await client.get("http://localhost:8001/health")
                     self._surreal_available = resp.status_code == 200
             except Exception:
                 self._surreal_available = False

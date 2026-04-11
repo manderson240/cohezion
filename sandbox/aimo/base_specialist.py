@@ -31,7 +31,7 @@ class BaseSpecialist:
         self.executor = SymbolicExecutor()
         self.adversary = AdversaryAgent()
         self.timeout = timeout  # 5 minutes for reasoning models (default 300)
-        self.temperature = 1.0 # High temperature per AIMO-3 paper (arXiv:2603.27844v1)
+        self.temperature = 1.0  # High temperature per AIMO-3 paper (arXiv:2603.27844v1)
 
     def _load_prompts(self) -> Dict[str, str]:
         with open("specialist_prompts.json", "r") as f:

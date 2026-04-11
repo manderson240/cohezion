@@ -212,7 +212,7 @@ class SimpleSurrealStore:
     """Minimal SurrealDB wrapper for document chunks."""
 
     def __init__(
-        self, url: str = "ws://localhost:8000/rpc", namespace: str = "bmad", database: str = "docs"
+        self, url: str = "ws://localhost:8001/rpc", namespace: str = "bmad", database: str = "docs"
     ):
         self.url = url
         self.namespace = namespace

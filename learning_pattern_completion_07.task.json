@@ -1,0 +1,6 @@
+{
+  "versionNumber": 1,
+  "name": "learning_pattern_completion_07",
+  "description": "Complete pattern based on learned rules.",
+  "definition": "@kbench.task(name=\"learning_pattern_completion_07\")\ndef learning_pattern_completion_07(llm) -> bool:\n    \"\"\"Complete pattern based on learned rules.\"\"\"\n    prompt = \"\"\"Complete the pattern:\n\n[2, 4, 8] \u2192 16\n[3, 9, 27] \u2192 81\n[4, 16, 64] \u2192 256\n[5, 25, ?] \u2192 ?\n\nWhat is the missing number?\n\nA) 125\nB) 100\nC) 625\nD) 75\"\"\"\n    response = llm.prompt(prompt)\n    return bool(kbench.assertions.assert_true(\"A\" in response, expectation=\"Correct answer is A\"))\n"
+}

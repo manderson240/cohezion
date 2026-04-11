@@ -1,0 +1,39 @@
+{
+  "taskVersion": {
+    "versionNumber": 1,
+    "name": "metacognition_correlation_causation_07",
+    "description": "Distinguish correlation from causation.",
+    "definition": "@kbench.task(name=\"metacognition_correlation_causation_07\")\ndef metacognition_correlation_causation_07(llm) -> bool:\n    \"\"\"Distinguish correlation from causation.\"\"\"\n    prompt = \"\"\"Studies show that ice cream sales and drowning incidents are correlated.\n\nWhat causes what?\n\nA) Ice cream causes drowning\nB) Drowning causes ice cream sales\nC) Hot weather causes both\nD) Insufficient Information to determine causation\"\"\"\n    response = llm.prompt(prompt)\n    return bool(kbench.assertions.assert_true(\"D\" in response, expectation=\"Correct answer is D\"))\n"
+  },
+  "modelVersion": {},
+  "state": "BENCHMARK_TASK_RUN_STATE_COMPLETED",
+  "startTime": "2026-04-11T04:50:45.811829Z",
+  "endTime": "2026-04-11T04:50:56.724803Z",
+  "conversations": [
+    {
+      "id": "metacognition_correlation_causation_07-639b9a27",
+      "metrics": {},
+      "modelVersionSlug": "model_version_slug for conversation is DEPRECATED"
+    }
+  ],
+  "results": [
+    {
+      "type": "AGGREGATED",
+      "booleanResult": true
+    }
+  ],
+  "assertions": [
+    {
+      "expectation": "Correct answer is D",
+      "status": "BENCHMARK_TASK_RUN_ASSERTION_STATUS_FAILED",
+      "lineNumber": 476,
+      "definition": "return bool(kbench.assertions.assert_true(\"D\" in response, expectation=\"Correct answer is D\"))",
+      "conversationRequestIds": [
+        {
+          "conversationId": "metacognition_correlation_causation_07-639b9a27"
+        }
+      ]
+    }
+  ],
+  "pyRunId": "metacognition_correlation_causation_07-Run #1"
+}

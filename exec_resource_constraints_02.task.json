@@ -1,0 +1,6 @@
+{
+  "versionNumber": 1,
+  "name": "exec_resource_constraints_02",
+  "description": "Planning with resource constraints.",
+  "definition": "@kbench.task(name=\"exec_resource_constraints_02\")\ndef exec_resource_constraints_02(llm) -> bool:\n    \"\"\"Planning with resource constraints.\"\"\"\n    prompt = \"\"\"Move 3 missionaries and 3 cannibals across river.\n\nConstraints:\n- Boat holds max 2 people\n- Cannibals must never outnumber missionaries on either bank\n- Someone must row back\n\nMinimum crossings?\n\nA) 5\nB) 7\nC) 9\nD) 11\"\"\"\n    response = llm.prompt(prompt)\n    return bool(kbench.assertions.assert_true(\"C\" in response, expectation=\"Correct answer is C\"))\n"
+}

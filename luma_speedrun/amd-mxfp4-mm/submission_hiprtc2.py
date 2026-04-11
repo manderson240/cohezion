@@ -16,6 +16,7 @@ print(f"PROBE: has _C compile={hasattr(torch._C, '_cuda_compile_kernel')}", file
 # Check tritonblas for Triton-based FP4
 try:
     import tritonblas
+
     print(f"PROBE: tritonblas={dir(tritonblas)}", file=sys.stderr)
 except ImportError:
     print("PROBE: tritonblas NOT available", file=sys.stderr)
@@ -28,6 +29,10 @@ def custom_kernel(data: input_t) -> output_t:
     A_scale_sh = e8m0_shuffle(A_scale).view(dtypes.fp8_e8m0)
     A_q = A_q.view(dtypes.fp4x2)
     return aiter.gemm_a4w4(
-        A_q, B_shuffle, A_scale_sh, B_scale_sh,
-        dtype=dtypes.bf16, bpreshuffle=True,
+        A_q,
+        B_shuffle,
+        A_scale_sh,
+        B_scale_sh,
+        dtype=dtypes.bf16,
+        bpreshuffle=True,
     )

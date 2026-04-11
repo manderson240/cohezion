@@ -170,7 +170,9 @@ def save_private_key(private_key, output_path: Path):
 
 def main():
     """Main entry point."""
-    parser = argparse.ArgumentParser(description="Generate self-signed SSL/TLS certificates for development")
+    parser = argparse.ArgumentParser(
+        description="Generate self-signed SSL/TLS certificates for development"
+    )
     parser.add_argument(
         "--output-dir",
         type=Path,

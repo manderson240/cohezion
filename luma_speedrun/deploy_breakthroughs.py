@@ -18,22 +18,28 @@ BREAKTHROUGHS = [
 
 RATE_LIMIT = 610  # 10 minutes + 10s buffer
 
+
 def submit(kernel, path, mode="benchmark"):
     file_path = Path(path)
     if not file_path.exists():
         print(f"ERROR: {path} not found!")
         return False
-        
+
     print(f"Submitting breakthrough for {kernel} in {mode} mode...")
-    
+
     cmd = [
-        "popcorn-cli", "submit", str(file_path),
-        "--mode", mode,
-        "--gpu", "MI355X",
-        "--leaderboard", f"amd-{kernel}",
-        "--no-tui"
+        "popcorn-cli",
+        "submit",
+        str(file_path),
+        "--mode",
+        mode,
+        "--gpu",
+        "MI355X",
+        "--leaderboard",
+        f"amd-{kernel}",
+        "--no-tui",
     ]
-    
+
     try:
         res = subprocess.run(cmd, capture_output=True, text=True, timeout=300)
         if res.returncode == 0:
@@ -49,9 +55,10 @@ def submit(kernel, path, mode="benchmark"):
         print(f"! {kernel} {mode} EXCEPTION: {e}")
         return False
 
+
 def deploy():
     print(f"Starting Deep Breakthrough Deployment & Testing...")
-    
+
     # Phase 1: Benchmark all to verify performance and correctness
     print("\n--- PHASE 1: BENCHMARKING ---")
     results = {}
@@ -59,7 +66,7 @@ def deploy():
         results[kernel] = submit(kernel, path, mode="benchmark")
         print(f"Waiting {RATE_LIMIT}s for rate limit...")
         time.sleep(RATE_LIMIT)
-    
+
     # Phase 2: Official Leaderboard Submission for successful ones
     print("\n--- PHASE 2: LEADERBOARD SUBMISSION ---")
     for kernel, path in BREAKTHROUGHS:
@@ -70,6 +77,6 @@ def deploy():
         else:
             print(f"Skipping {kernel} due to benchmark failure.")
 
+
 if __name__ == "__main__":
     deploy()
-

@@ -18,11 +18,12 @@ def test_scan_packages():
     graph = _scan_packages()
     assert len(graph.nodes) > 0
     assert len(graph.edges) > 0
-    
+
     # Check for core packages
     node_ids = [n.id for n in graph.nodes]
     assert "compound" in node_ids
     assert "swarm" in node_ids
+
 
 @pytest.mark.asyncio
 async def test_get_architecture_graph():

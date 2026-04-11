@@ -7,6 +7,7 @@ Based on official template-hip.py from gpu-mode/reference-kernels.
 """
 
 import os
+
 os.environ["PYTORCH_ROCM_ARCH"] = "gfx950"
 
 from torch.utils.cpp_extension import load_inline

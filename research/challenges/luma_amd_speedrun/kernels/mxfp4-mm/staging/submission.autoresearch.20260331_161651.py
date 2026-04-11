@@ -28,15 +28,10 @@ def custom_kernel(data: input_t) -> output_t:
     if m > 32:
         # Use the optimized 192x128 tile kernel
         C = aiter.gemm_a4w4(
-            A_q, B_shuffle, A_scale, B_scale_sh,
-            m=m, n=n, k=k,
-            tile_m=192, tile_n=128
+            A_q, B_shuffle, A_scale, B_scale_sh, m=m, n=n, k=k, tile_m=192, tile_n=128
         )
     else:
         # Fallback to default tile for small M
-        C = aiter.gemm_a4w4(
-            A_q, B_shuffle, A_scale, B_scale_sh,
-            m=m, n=n, k=k
-        )
+        C = aiter.gemm_a4w4(A_q, B_shuffle, A_scale, B_scale_sh, m=m, n=n, k=k)
 
     return C

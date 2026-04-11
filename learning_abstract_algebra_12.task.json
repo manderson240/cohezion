@@ -1,0 +1,6 @@
+{
+  "versionNumber": 1,
+  "name": "learning_abstract_algebra_12",
+  "description": "Learn abstract algebraic structure.",
+  "definition": "@kbench.task(name=\"learning_abstract_algebra_12\")\ndef learning_abstract_algebra_12(llm) -> bool:\n    \"\"\"Learn abstract algebraic structure.\"\"\"\n    prompt = \"\"\"A magma (S, \u2218) has operation table:\n\n    \u2218 | a | b | c\n    a | b | c | a\n    b | c | a | b\n    c | a | b | c\n\nWhich is true?\n\nA) a \u2218 (b \u2218 c) = (a \u2218 b) \u2218 c\nB) a \u2218 a = a\nC) There is an identity element\nD) The operation is commutative\"\"\"\n    response = llm.prompt(prompt)\n    return bool(kbench.assertions.assert_true(\"D\" in response, expectation=\"Correct answer is D\"))\n"
+}

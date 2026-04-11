@@ -22,6 +22,7 @@ Usage:
 
 from __future__ import annotations
 
+import aiofiles
 import asyncio
 import hashlib
 import json
@@ -624,8 +625,8 @@ class ResearchOrchestrator:
 
         # Save results
         output_file = self.results_dir / f"research_{datetime.now():%Y%m%d_%H%M%S}.json"
-        with open(output_file, "w") as f:
-            json.dump(output, f, indent=2)
+        async with aiofiles.open(output_file, "w") as f:
+            await f.write(json.dumps(output, indent=2))
 
         logger.info(f"Research complete. Saved to {output_file}")
 
@@ -647,8 +648,8 @@ class ResearchOrchestrator:
             if synth.prime_skill_draft:
                 filename = f"RESEARCH_{synth.insight_id.upper()}.md"
                 filepath = skills_dir / filename
-                with open(filepath, "w") as f:
-                    f.write(synth.to_markdown())
+                async with aiofiles.open(filepath, "w") as f:
+                    await f.write(synth.to_markdown())
                 logger.info(f"Generated PRIME skill: {filepath}")
 
 

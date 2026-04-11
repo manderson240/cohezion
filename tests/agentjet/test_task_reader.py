@@ -1,4 +1,5 @@
 """Tests for JourneyTaskReader."""
+
 from __future__ import annotations
 
 import json

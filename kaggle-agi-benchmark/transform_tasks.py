@@ -1,8 +1,8 @@
 import re
 
-file_path = 'kaggle-agi-benchmark/evaluator_kbench.py'
+file_path = "kaggle-agi-benchmark/evaluator_kbench.py"
 
-with open(file_path, 'r') as f:
+with open(file_path, "r") as f:
     content = f.read()
 
 # Pattern to find tasks
@@ -12,15 +12,17 @@ with open(file_path, 'r') as f:
 #     prompt = """..."""
 #     return prompt, "X"
 
+
 def transform_task(match):
     task_header = match.group(1)
     task_func = match.group(2)
     docstring = match.group(3)
     prompt_content = match.group(4)
     answer = match.group(5)
-    
+
     new_task = f'{task_header}\ndef {task_func}(llm) -> bool:\n    {docstring}\n    prompt = """{prompt_content}"""\n    response = llm.prompt(prompt)\n    return kbench.assertions.assert_contains(response, "{answer}", expectation="Correct answer is {answer}")\n'
     return new_task
+
 
 # Regex explanation:
 # (@kbench\.task\(name="[^"]+"\))  -> Group 1: Decorator
@@ -78,7 +80,7 @@ def agi_cognitive_framework_overall(llm) -> float:
 
 new_content = re.sub(overall_task_pattern, overall_replacement, new_content, flags=re.DOTALL)
 
-with open(file_path, 'w') as f:
+with open(file_path, "w") as f:
     f.write(new_content)
 
 print("Successfully transformed tasks in evaluator_kbench.py")

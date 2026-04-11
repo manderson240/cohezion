@@ -82,7 +82,9 @@ class TestRetryLogic:
 
         mock_response_500 = MagicMock()
         mock_response_500.status_code = 500
-        mock_response_500.aread = AsyncMock(return_value=b'Error: 500 "Internal Server Error (ref: test-ref-123)"')
+        mock_response_500.aread = AsyncMock(
+            return_value=b'Error: 500 "Internal Server Error (ref: test-ref-123)"'
+        )
 
         mock_response_200 = MagicMock()
         mock_response_200.status_code = 200
@@ -149,7 +151,13 @@ class TestRetryLogic:
         with patch.object(
             executor._client,
             "post",
-            new=AsyncMock(side_effect=[httpx.TimeoutException("Timeout"), httpx.TimeoutException("Timeout"), httpx.TimeoutException("Timeout")]),
+            new=AsyncMock(
+                side_effect=[
+                    httpx.TimeoutException("Timeout"),
+                    httpx.TimeoutException("Timeout"),
+                    httpx.TimeoutException("Timeout"),
+                ]
+            ),
         ):
             with patch("asyncio.sleep", new=AsyncMock()):
                 with pytest.raises(RuntimeError) as exc_info:

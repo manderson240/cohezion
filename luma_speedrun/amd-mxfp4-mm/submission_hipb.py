@@ -46,6 +46,10 @@ def custom_kernel(data: input_t) -> output_t:
         print(f"[hipb_mm] Failed: {e}")
         # Fallback to standard gemm_a4w4
         return _gemm(
-            Aq.view(dtypes.fp4x2), B_shuffle, Ash, B_scale_sh,
-            dtype=dtypes.bf16, bpreshuffle=True,
+            Aq.view(dtypes.fp4x2),
+            B_shuffle,
+            Ash,
+            B_scale_sh,
+            dtype=dtypes.bf16,
+            bpreshuffle=True,
         )

@@ -70,6 +70,7 @@ dependencies = [
     "torchvision>=0.20.1",
     "google-adk>=1.28.1",
     "polars>=1.39.3",
+    "aiofiles>=25.1.0",
 ]
 
 [[tool.uv.index]]

@@ -471,7 +471,7 @@ class HookifyValidator:
             from surrealdb import Surreal
 
             # Initialize with connection URL (placeholder - actual URL would come from config)
-            db = Surreal("ws://localhost:8000")
+            db = Surreal("ws://localhost:8001")
             # Connection logic here - signin, use namespace, etc.
             return db
         except (ImportError, Exception):

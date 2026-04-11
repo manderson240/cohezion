@@ -237,6 +237,7 @@ CPP_SOURCE = "torch::Tensor mxfp4_gemm_pp_v4_hip(torch::Tensor, torch::Tensor, t
 
 _module = None
 
+
 def get_module():
     global _module
     if _module is None:
@@ -274,7 +275,9 @@ def custom_kernel(data: input_t) -> output_t:
     _, B_scale_e8m0 = dynamic_mxfp4_quant(B.contiguous())
     B_scale_bytes = B_scale_e8m0[:N, :K_scale].contiguous().view(torch.uint8)
 
-    return mod.mxfp4_gemm_pp_v4_hip(A_q_bytes, B_q.view(torch.uint8), A_scale_bytes, B_scale_bytes, M, N, K)
+    return mod.mxfp4_gemm_pp_v4_hip(
+        A_q_bytes, B_q.view(torch.uint8), A_scale_bytes, B_scale_bytes, M, N, K
+    )
 
 
 def ref_kernel(data: input_t) -> output_t:

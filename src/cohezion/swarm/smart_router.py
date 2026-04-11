@@ -18,6 +18,7 @@ from datetime import UTC, datetime
 from enum import Enum
 from pathlib import Path
 
+import aiofiles
 import httpx
 
 
@@ -453,8 +454,8 @@ class SmartRouter:
             return
 
         log_file = self.action_log_dir / f"actions_{int(time.time())}.json"
-        with open(log_file, "w") as f:
-            json.dump([a.to_dict() for a in self.action_log], f, indent=2)
+        async with aiofiles.open(log_file, "w") as f:
+            await f.write(json.dumps([a.to_dict() for a in self.action_log], indent=2))
 
         logger.info(f"Saved {len(self.action_log)} actions to {log_file}")
 

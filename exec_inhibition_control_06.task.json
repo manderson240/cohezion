@@ -1,0 +1,6 @@
+{
+  "versionNumber": 1,
+  "name": "exec_inhibition_control_06",
+  "description": "Inhibit prepotent response.",
+  "definition": "@kbench.task(name=\"exec_inhibition_control_06\")\ndef exec_inhibition_control_06(llm) -> bool:\n    \"\"\"Inhibit prepotent response.\"\"\"\n    prompt = \"\"\"Rules:\n- If the word is a color, say the word's TEXT color\n- If the word is a fruit, say the fruit name\n\nStimulus: \"BANANA\" written in red\n\nResponse?\n\nA) Red\nB) Banana\nC) Yellow\nD) Apple\"\"\"\n    response = llm.prompt(prompt)\n    return bool(kbench.assertions.assert_true(\"B\" in response, expectation=\"Correct answer is B\"))\n"
+}

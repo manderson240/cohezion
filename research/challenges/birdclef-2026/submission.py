@@ -13,17 +13,19 @@ from torch.utils.data import Dataset, DataLoader
 from pathlib import Path
 from transformers import ASTFeatureExtractor, ASTForAudioClassification, ASTConfig
 import warnings
-warnings.filterwarnings('ignore')
+
+warnings.filterwarnings("ignore")
 
 # Configuration
 CONFIG = {
-    'sample_rate': 16000, # AST expects 16kHz
-    'duration': 5.0,
-    'batch_size': 16,
-    'num_classes': 207, # Based on train.csv unique primary_labels
-    'model_name': "MIT/ast-finetuned-audioset-10-10-0.4593",
-    'device': 'cuda' if torch.cuda.is_available() else 'cpu'
+    "sample_rate": 16000,  # AST expects 16kHz
+    "duration": 5.0,
+    "batch_size": 16,
+    "num_classes": 207,  # Based on train.csv unique primary_labels
+    "model_name": "MIT/ast-finetuned-audioset-10-10-0.4593",
+    "device": "cuda" if torch.cuda.is_available() else "cpu",
 }
+
 
 class BirdCLEFDataset(Dataset):
     """Dataset for BirdCLEF audio files using AST Feature Extractor."""
@@ -42,13 +44,15 @@ class BirdCLEFDataset(Dataset):
         audio_path = self.audio_paths[idx]
         try:
             # Resample to 16kHz for AST
-            audio, sr = librosa.load(audio_path, sr=self.config['sample_rate'], duration=self.config['duration'])
+            audio, sr = librosa.load(
+                audio_path, sr=self.config["sample_rate"], duration=self.config["duration"]
+            )
         except:
-            audio = np.zeros(int(self.config['sample_rate'] * self.config['duration']))
-            sr = self.config['sample_rate']
+            audio = np.zeros(int(self.config["sample_rate"] * self.config["duration"]))
+            sr = self.config["sample_rate"]
 
         # Pad or trim
-        target_len = int(self.config['sample_rate'] * self.config['duration'])
+        target_len = int(self.config["sample_rate"] * self.config["duration"])
         if len(audio) < target_len:
             audio = np.pad(audio, (0, target_len - len(audio)))
         else:
@@ -63,6 +67,7 @@ class BirdCLEFDataset(Dataset):
             return input_values, torch.FloatTensor(self.labels[idx])
         return input_values
 
+
 class BirdASTModel(nn.Module):
     """AST-based bird sound classifier."""
 
@@ -70,7 +75,7 @@ class BirdASTModel(nn.Module):
         super().__init__()
         # Use provided pre-loaded AST
         self.ast = ast_model
-        
+
         # Replace the classifier head
         # AST has a 'classifier' attribute which is a Dense layer
         in_features = self.ast.classifier.dense.in_features
@@ -82,25 +87,31 @@ class BirdASTModel(nn.Module):
         # x shape: [batch, 1024, 128]
         return self.ast(x).logits
 
+
 def predict(test_audio_path, model_path=None, config=None):
     config = config or CONFIG
-    device = config['device']
+    device = config["device"]
 
     # Load components once
     print(f"Loading pre-trained AST components from {config['model_name']}...")
     try:
         from huggingface_hub import configure_http_backend
         import httpx
+
         # Force a fresh client if needed, or just rely on standard loading with a retry
-        feature_extractor = ASTFeatureExtractor.from_pretrained(config['model_name'], local_files_only=False)
-        ast_base = ASTForAudioClassification.from_pretrained(config['model_name'], local_files_only=False)
+        feature_extractor = ASTFeatureExtractor.from_pretrained(
+            config["model_name"], local_files_only=False
+        )
+        ast_base = ASTForAudioClassification.from_pretrained(
+            config["model_name"], local_files_only=False
+        )
     except Exception as e:
         print(f"Initial load failed: {e}. Retrying with local_files_only=True if possible.")
-        feature_extractor = ASTFeatureExtractor.from_pretrained(config['model_name'])
-        ast_base = ASTForAudioClassification.from_pretrained(config['model_name'])
+        feature_extractor = ASTFeatureExtractor.from_pretrained(config["model_name"])
+        ast_base = ASTForAudioClassification.from_pretrained(config["model_name"])
 
     # Load model
-    model = BirdASTModel(ast_base, num_classes=config['num_classes'])
+    model = BirdASTModel(ast_base, num_classes=config["num_classes"])
     if model_path and os.path.exists(model_path):
         model.load_state_dict(torch.load(model_path, map_location=device))
     model.to(device)
@@ -109,12 +120,16 @@ def predict(test_audio_path, model_path=None, config=None):
     # Get test files
     test_path = Path(test_audio_path)
     if test_path.is_dir():
-        test_files = list(test_path.glob('*.ogg')) + list(test_path.glob('*.wav')) + list(test_path.glob('*.mp3'))
+        test_files = (
+            list(test_path.glob("*.ogg"))
+            + list(test_path.glob("*.wav"))
+            + list(test_path.glob("*.mp3"))
+        )
     else:
         test_files = [test_path]
 
     # Species list
-    species_codes = [f'species_{i:03d}' for i in range(config['num_classes'])]
+    species_codes = [f"species_{i:03d}" for i in range(config["num_classes"])]
 
     results = {}
 
@@ -134,21 +149,22 @@ def predict(test_audio_path, model_path=None, config=None):
 
     return results
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     print("BirdCLEF 2026 AST Baseline")
     print(f"Device: {CONFIG['device']}")
-    
+
     # Simple check
     print(f"Loading pre-trained AST components from {CONFIG['model_name']}...")
-    feature_extractor = ASTFeatureExtractor.from_pretrained(CONFIG['model_name'])
-    ast_base = ASTForAudioClassification.from_pretrained(CONFIG['model_name'])
-    
-    model = BirdASTModel(ast_base, num_classes=CONFIG['num_classes'])
+    feature_extractor = ASTFeatureExtractor.from_pretrained(CONFIG["model_name"])
+    ast_base = ASTForAudioClassification.from_pretrained(CONFIG["model_name"])
+
+    model = BirdASTModel(ast_base, num_classes=CONFIG["num_classes"])
     print("Model initialized successfully.")
-    
+
     # Test with dummy data
-    dummy_input = torch.randn(1, 1024, 128).to(CONFIG['device'])
+    dummy_input = torch.randn(1, 1024, 128).to(CONFIG["device"])
     with torch.no_grad():
-        model.to(CONFIG['device'])
+        model.to(CONFIG["device"])
         output = model(dummy_input)
         print(f"Forward pass successful! Output shape: {output.shape}")

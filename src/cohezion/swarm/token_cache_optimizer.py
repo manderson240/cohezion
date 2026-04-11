@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 class CacheOptimizationConfig:
     """Configuration for token cache optimization."""
 
-    semantic_cache_size: int = 2048
+    semantic_cache_size: int = 4096
     context_pool_size: int = 128
     similarity_threshold: float = 0.65
     persistence_enabled: bool = True

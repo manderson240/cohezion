@@ -1,0 +1,221 @@
+{
+  "export_metadata": {
+    "timestamp": "2026-04-11T12:16:00Z",
+    "session_id": "session-2026-04-11-parallel",
+    "type": "hour0_metrics_and_learnings",
+    "version": "1.0",
+    "records_count": 12
+  },
+  "records": [
+    {
+      "table": "execution_metric",
+      "data": {
+        "id": "metric-hour0-npu-status",
+        "session_id": "session-2026-04-11-parallel",
+        "timestamp": "2026-04-11T12:16:00Z",
+        "metric_name": "npu_model_available",
+        "value": "qwen3:4b",
+        "value_type": "string",
+        "target": "operational",
+        "status": "achieved",
+        "category": "infrastructure",
+        "phase": "hour0",
+        "notes": "NPU via FLM ready for Lemonade workstream"
+      }
+    },
+    {
+      "table": "execution_metric",
+      "data": {
+        "id": "metric-hour0-gpu-status",
+        "session_id": "session-2026-04-11-parallel",
+        "timestamp": "2026-04-11T12:16:00Z",
+        "metric_name": "gpu_model_available",
+        "value": "Gemma-4-E2B",
+        "value_type": "string",
+        "target": "operational",
+        "status": "achieved",
+        "category": "infrastructure",
+        "phase": "hour0",
+        "notes": "GPU Vulkan via Lemonade ready for AGI workstream"
+      }
+    },
+    {
+      "table": "execution_metric",
+      "data": {
+        "id": "metric-hour0-combined-tps",
+        "session_id": "session-2026-04-11-parallel",
+        "timestamp": "2026-04-11T12:16:00Z",
+        "metric_name": "combined_tps",
+        "value": 248,
+        "value_type": "number",
+        "unit": "tokens_per_second",
+        "target": ">200",
+        "status": "achieved",
+        "category": "performance",
+        "phase": "hour0",
+        "calculation": "75 (qwen3) + 97 (Gemma-4) + 76 (Jan-v1)"
+      }
+    },
+    {
+      "table": "execution_metric",
+      "data": {
+        "id": "metric-hour0-external-calls",
+        "session_id": "session-2026-04-11-parallel",
+        "timestamp": "2026-04-11T12:16:00Z",
+        "metric_name": "external_api_calls",
+        "value": 0,
+        "value_type": "number",
+        "target": 0,
+        "status": "achieved",
+        "category": "cost",
+        "phase": "hour0",
+        "notes": "Quarter-on-a-string protocol enforced - zero external calls"
+      }
+    },
+    {
+      "table": "execution_metric",
+      "data": {
+        "id": "metric-hour0-agi-code",
+        "session_id": "session-2026-04-11-parallel",
+        "timestamp": "2026-04-11T12:16:00Z",
+        "metric_name": "metalearner_lines_written",
+        "value": 145,
+        "value_type": "number",
+        "unit": "lines_of_code",
+        "target": 200,
+        "status": "progress",
+        "category": "development",
+        "phase": "hour0",
+        "notes": "MetaLearner class, LearningStrategy, MetaLearningRecord complete"
+      }
+    },
+    {
+      "table": "execution_metric",
+      "data": {
+        "id": "metric-hour0-lemonade-code",
+        "session_id": "session-2026-04-11-parallel",
+        "timestamp": "2026-04-11T12:16:00Z",
+        "metric_name": "enhancer_lines_written",
+        "value": 540,
+        "value_type": "number",
+        "unit": "lines_of_code",
+        "target": 500,
+        "status": "achieved",
+        "category": "development",
+        "phase": "hour0",
+        "notes": "LemonadeModelEnhancer with multi-source discovery and capability patterns"
+      }
+    },
+    {
+      "table": "execution_metric",
+      "data": {
+        "id": "metric-hour0-strategies-defined",
+        "session_id": "session-2026-04-11-parallel",
+        "timestamp": "2026-04-11T12:16:00Z",
+        "metric_name": "learning_strategies_defined",
+        "value": 4,
+        "value_type": "number",
+        "target": 4,
+        "status": "achieved",
+        "category": "metalearning",
+        "phase": "hour0",
+        "notes": "pattern_matching, statistical_learning, adaptive_threshold, ensemble_learning"
+      }
+    },
+    {
+      "table": "execution_metric",
+      "data": {
+        "id": "metric-hour0-model-families",
+        "session_id": "session-2026-04-11-parallel",
+        "timestamp": "2026-04-11T12:16:00Z",
+        "metric_name": "model_families_mapped",
+        "value": 12,
+        "value_type": "number",
+        "target": 20,
+        "status": "progress",
+        "category": "model_mapping",
+        "phase": "hour0",
+        "notes": "qwen, gemma, llama, granite, phi, mistral, starcoder, tiny, whisper, vl, instruct, chat"
+      }
+    },
+    {
+      "table": "session_learning",
+      "data": {
+        "id": "learning-hour0-metalearner-validated",
+        "session_id": "session-2026-04-11-parallel",
+        "timestamp": "2026-04-11T12:16:00Z",
+        "hour": 0,
+        "category": "agi_development",
+        "statement": "MetaLearner successfully optimizes base learner strategies",
+        "evidence": "Demonstrated 12% expected improvement on mock base learner with 2 generated interventions",
+        "confidence": 0.90,
+        "applicability": ["recursive_systems", "self_improvement", "optimization", "metalearning"],
+        "tags": ["metalearner", "optimization", "learning_strategies", "hour0"],
+        "source_files": ["src/cohezion/swarm/meta_learner.py"],
+        "validation": "Demo completed successfully, strategy pool active"
+      }
+    },
+    {
+      "table": "session_learning",
+      "data": {
+        "id": "learning-hour0-multisource-discovery",
+        "session_id": "session-2026-04-11-parallel",
+        "timestamp": "2026-04-11T12:16:00Z",
+        "hour": 0,
+        "category": "model_mapping",
+        "statement": "Aggregating models from 4 sources provides comprehensive coverage",
+        "evidence": "LemonadeModelEnhancer discovered models from FLM CLI, local cache, running instances, and SDK registry",
+        "confidence": 0.85,
+        "applicability": ["model_discovery", "lemonade_sdk", "capability_mapping", "aggregation"],
+        "tags": ["discovery", "lemonade", "multi_source", "hour0"],
+        "source_files": ["src/cohezion/swarm/lemonade_model_enhancer.py"],
+        "validation": "Discovery completed, deduplication working, integration tests passing"
+      }
+    },
+    {
+      "table": "session_learning",
+      "data": {
+        "id": "learning-hour0-pattern-inference",
+        "session_id": "session-2026-04-11-parallel",
+        "timestamp": "2026-04-11T12:16:00Z",
+        "hour": 0,
+        "category": "model_mapping",
+        "statement": "Pattern-based capability inference with confidence scores enables automatic capability mapping",
+        "evidence": "12 model families mapped with confidence ranges 0.70-0.98, automatic backend inference working",
+        "confidence": 0.82,
+        "applicability": ["capability_inference", "model_registry", "automation", "pattern_matching"],
+        "tags": ["patterns", "inference", "capabilities", "confidence", "hour0"],
+        "source_files": ["src/cohezion/swarm/lemonade_model_enhancer.py"],
+        "validation": "MODEL_CAPABILITY_PATTERNS tested, threshold enforcement working"
+      }
+    },
+    {
+      "table": "session_learning",
+      "data": {
+        "id": "learning-hour0-initialization-critical",
+        "session_id": "session-2026-04-11-parallel",
+        "timestamp": "2026-04-11T12:16:00Z",
+        "hour": 0,
+        "category": "project_management",
+        "statement": "Proper initialization of both workstreams prevents blockers later",
+        "evidence": "Both AGI and Lemonade teams operational simultaneously within 1 hour with zero initialization errors",
+        "confidence": 0.95,
+        "applicability": ["project_management", "parallel_execution", "initialization", "setup"],
+        "tags": ["initialization", "parallel", "hour0", "planning"],
+        "source_files": ["HOUR0_STATUS.md"],
+        "validation": "All systems verified operational, all components loaded successfully"
+      }
+    }
+  ],
+  "summary": {
+    "total_metrics": 8,
+    "total_learnings": 4,
+    "metrics_achieved": 5,
+    "metrics_progress": 2,
+    "infrastructure_ready": true,
+    "agi_workstream_ready": true,
+    "lemonade_workstream_ready": true,
+    "next_sync_hour": 4,
+    "status": "operational"
+  }
+}

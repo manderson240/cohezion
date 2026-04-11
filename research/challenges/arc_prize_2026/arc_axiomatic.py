@@ -2,22 +2,20 @@ import torch
 import torch.nn as nn
 import numpy as np
 
+
 class ARCAxiomaticProjector(nn.Module):
     """
     Projects 256D ARC latents into the 12D Cohezion Axiomatic Manifold.
-    
+
     12D Vector Components:
     - [0:3] Spatial: Object count, average size, grid density.
     - [3]   Time: Normalized step count in interaction.
     - [4:12] Brane: Color distribution (8 primary colors excluding BG/Black).
     """
+
     def __init__(self, latent_dim=256):
         super().__init__()
-        self.projection = nn.Sequential(
-            nn.Linear(latent_dim, 64),
-            nn.ReLU(),
-            nn.Linear(64, 12)
-        )
+        self.projection = nn.Sequential(nn.Linear(latent_dim, 64), nn.ReLU(), nn.Linear(64, 12))
 
     def forward(self, z, step_normalized=0.0):
         """
@@ -32,6 +30,7 @@ class ARCAxiomaticProjector(nn.Module):
         axioms[:, 3] = step_normalized
         return axioms
 
+
 def compute_hiho_stability(axioms):
     """
     Calculates the HIHO stability score (0.0 to 1.0).
@@ -41,6 +40,7 @@ def compute_hiho_stability(axioms):
     coherence = torch.mean(torch.sigmoid(axioms))
     stability = 1.0 - 2.0 * torch.abs(coherence - 0.5)
     return stability.item()
+
 
 if __name__ == "__main__":
     projector = ARCAxiomaticProjector()

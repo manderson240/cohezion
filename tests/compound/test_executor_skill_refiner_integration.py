@@ -80,7 +80,9 @@ class TestSkillRefinerProperty:
 class TestExecutorSkillRefinement:
     """Test skill refinement during execution."""
 
-    def test_execute_task_calls_skill_refiner_on_success(self, executor_with_refiner, mock_mcp_client):
+    def test_execute_task_calls_skill_refiner_on_success(
+        self, executor_with_refiner, mock_mcp_client
+    ):
         """Test that skill refiner is called on successful execution."""
 
         def dummy_task(guidance):
@@ -194,7 +196,9 @@ class TestSkillRefinerNonBlocking:
 class TestSkillRefinementMetadata:
     """Test that skill refinement captures proper metadata."""
 
-    def test_execution_result_includes_refinement_paths(self, executor_with_refiner, mock_mcp_client):
+    def test_execution_result_includes_refinement_paths(
+        self, executor_with_refiner, mock_mcp_client
+    ):
         """Test that refined paths are included in execution result."""
 
         def dummy_task(guidance):

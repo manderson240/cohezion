@@ -354,7 +354,7 @@ class ResourceMonitor:
     async def _check_service_health(self):
         """Autonomic health check for core services (Connectivity Squad)."""
         services = {
-            "SurrealDB": "http://localhost:8000/health",
+            "SurrealDB": "http://localhost:8001/health",
             "Cloud Vault": "http://localhost:8360/health",
             "Ollama": "http://localhost:11434/api/tags",
             "Obsidian": "http://localhost:22360/",

@@ -12,10 +12,11 @@ from trl import SFTTrainer
 from transformers import TrainingArguments
 
 # Configuration
-MODEL_NAME = "unsloth/gemma-2-9b-it-bnb-4bit" # Base for specialized tuning
+MODEL_NAME = "unsloth/gemma-2-9b-it-bnb-4bit"  # Base for specialized tuning
 MAX_SEQ_LENGTH = 4096
 DATASET_PATH = "data/finetuning/gemma4/cohezion_physics_tek.jsonl"
 OUTPUT_DIR = "models/specialized/gemma4-cohezion-v1"
+
 
 def finetune():
     # 1. Load Model & Tokenizer
@@ -29,8 +30,15 @@ def finetune():
     model = FastLanguageModel.get_peft_model(
         model,
         r=16,
-        target_modules=["q_proj", "k_proj", "v_proj", "o_proj",
-                        "gate_proj", "up_proj", "down_proj",],
+        target_modules=[
+            "q_proj",
+            "k_proj",
+            "v_proj",
+            "o_proj",
+            "gate_proj",
+            "up_proj",
+            "down_proj",
+        ],
         lora_alpha=16,
         lora_dropout=0,
         bias="none",
@@ -56,7 +64,7 @@ def finetune():
             per_device_train_batch_size=2,
             gradient_accumulation_steps=4,
             warmup_steps=5,
-            max_steps=60, # Small run for demonstration/hackathon
+            max_steps=60,  # Small run for demonstration/hackathon
             learning_rate=2e-4,
             fp16=not torch.cuda.is_bf16_supported(),
             bf16=torch.cuda.is_bf16_supported(),
@@ -76,6 +84,7 @@ def finetune():
     model.save_pretrained(OUTPUT_DIR)
     tokenizer.save_pretrained(OUTPUT_DIR)
     print(f"Fine-tuning complete. Model saved to {OUTPUT_DIR}")
+
 
 if __name__ == "__main__":
     finetune()

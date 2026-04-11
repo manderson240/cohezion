@@ -363,3 +363,76 @@ model = router.select_model(task_complexity=0.7, budget_remaining=0.50)
 - `.agent/CONSTITUTION.md` - Hard constraints
 - `.agent/COHEZION_CHARTER.md` - Design theory
 - `HARDWARE_PROFILE_PRIME.md` - Hardware truth anchor
+
+---
+
+## Systems Engineering V-Model Standards
+
+### Overview
+
+Every significant system change follows the **Systems Engineering V-Model** lifecycle:
+
+```
+                    System Validation
+                           ∧
+                          ╱ ╲
+                         ╱   ╲
+                System Testing     ╲
+                       ╱            ╲
+                      ╱              ╲
+           Integration Testing          ╲
+                  ╱                       ╲
+                 ╱                         ╲
+       Unit Testing                         ╲
+           ╱                                    ╲
+  ┌───────┼───────────┬───────────┬───────────┼───────────┐
+  │       │           │           │           │           │
+Requirements → System Design → Architecture → Module Design → Implementation
+```
+
+### Required For
+- ✅ Parameter changes affecting system behavior
+- ✅ API changes with dependencies
+- ✅ Dynamic lever adjustments
+- ✅ Performance tuning with measurable goals
+
+### NOT Required For
+- ❌ Documentation updates
+- ❌ Logging level changes
+- ❌ Comment updates
+- ❌ Fix of obvious bugs with existing tests
+
+### Usage
+
+```python
+from cohezion.swarm.dynamic_levers import create_default_lever_system
+from cohezion.swarm.vmodel_engineering import VModelIntegratedLeverSystem
+
+lever_system = create_default_lever_system()
+vmodel = VModelIntegratedLeverSystem(lever_system)
+
+# Define requirements
+requirements = {
+    "goal": "Increase deterministic parsing coverage",
+    "target_value": 0.50,
+    "justification": "Improve reliability from 28% to 50%",
+    "constraints": ["must_be_positive", "backward_compatible"],
+    "acceptance_criteria": {"extraction_rate": 0.50}
+}
+
+# Execute full V-Model
+adj_id = vmodel.adjust_lever_vmodel(
+    lever_name="deterministic_ratio",
+    target_value=0.50,
+    requirements=requirements
+)
+
+# Track progress
+status = vmodel.ve_process.get_lifecycle_status(adj_id)
+print(f"Validated: {status['validated']}")
+```
+
+### See Full Documentation
+- **Skill**: `.pi/skills/systems-engineering-vmodel/SKILL.md`
+- **Code**: `src/cohezion/swarm/vmodel_engineering.py`
+- **Dynamic Levers**: `src/cohezion/swarm/dynamic_levers.py`

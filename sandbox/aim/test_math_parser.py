@@ -25,5 +25,6 @@ class TestMathParser(unittest.TestCase):
         s2 = self.parser.parse(complex_prob)
         self.assertGreater(s2.structural_depth, s1.structural_depth)
 
+
 if __name__ == "__main__":
     unittest.main()

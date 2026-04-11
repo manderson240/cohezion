@@ -134,7 +134,9 @@ def ram_is_safe() -> bool:
     """Check if enough RAM is available for Ollama inference."""
     available = get_available_ram_gb()
     if available < MIN_AVAILABLE_RAM_GB:
-        logger.warning(f"Low RAM: {available:.1f} GB available (need {MIN_AVAILABLE_RAM_GB} GB). Skipping Ollama call.")
+        logger.warning(
+            f"Low RAM: {available:.1f} GB available (need {MIN_AVAILABLE_RAM_GB} GB). Skipping Ollama call."
+        )
         return False
     return True
 
@@ -372,7 +374,9 @@ def _row_to_summary(row: dict) -> UniverseSummary | None:
     )
 
 
-async def fetch_new_summaries(db, run_id: str, seen_universe_ids: set[str]) -> list[UniverseSummary]:
+async def fetch_new_summaries(
+    db, run_id: str, seen_universe_ids: set[str]
+) -> list[UniverseSummary]:
     """Fetch universe summaries we haven't processed yet.
 
     Tries SurrealDB first, falls back to JSONL files if DB query fails

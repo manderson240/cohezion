@@ -6,6 +6,7 @@ Phase 17 best: ~67.8µs ranked geomean.
 2. Medium (total_kv<=262144): aiter a16w8 direct ASM, adaptive splits
 3. Large (total_kv>262144): aiter a8w8 direct ASM, high splits
 """
+
 import os
 
 import torch
@@ -16,7 +17,7 @@ from task import input_t, output_t
 
 os.environ["AITER_MLA_USE_PERSISTENT"] = "1"
 
-SM_SCALE = 1.0 / (576 ** 0.5)
+SM_SCALE = 1.0 / (576**0.5)
 V_HEAD_DIM = 512
 NUM_KV_HEADS = 1
 QK_HEAD_DIM = 576
@@ -38,9 +39,11 @@ def _ensure_asm():
         return
     try:
         from aiter.mla import mla_decode_stage1_asm_fwd, mla_reduce_v1
+
         _f1, _f2 = mla_decode_stage1_asm_fwd, mla_reduce_v1
     except ImportError:
         import aiter
+
         _f1 = getattr(aiter, "mla_decode_stage1_asm_fwd", None)
         _f2 = getattr(aiter, "mla_reduce_v1", None)
 
@@ -56,36 +59,58 @@ def _quantize_fp8(tensor):
 
 
 def _choose_splits(total_kv):
-    if total_kv <= 2048:    return 1
-    if total_kv <= 16384:   return 4
-    if total_kv <= 131072:  return 8
-    if total_kv <= 524288:  return 16
+    if total_kv <= 2048:
+        return 1
+    if total_kv <= 16384:
+        return 4
+    if total_kv <= 131072:
+        return 8
+    if total_kv <= 524288:
+        return 16
     return 32
 
 
-def _build_metadata(bs, qseqlen, nheads, q_dtype, kv_dtype, num_splits, qo_indptr, kv_indptr, kvseqlen):
+def _build_metadata(
+    bs, qseqlen, nheads, q_dtype, kv_dtype, num_splits, qo_indptr, kv_indptr, kvseqlen
+):
     total_kv = bs * kvseqlen
     kv_indices = torch.arange(total_kv, dtype=torch.int32, device="cuda")
     kv_last_page_len = (kv_indptr[1:] - kv_indptr[:-1]).to(torch.int32)
 
     info = get_mla_metadata_info_v1(
-        bs, qseqlen, nheads, q_dtype, kv_dtype,
-        is_sparse=False, fast_mode=False,
-        num_kv_splits=num_splits, intra_batch_mode=True,
+        bs,
+        qseqlen,
+        nheads,
+        q_dtype,
+        kv_dtype,
+        is_sparse=False,
+        fast_mode=False,
+        num_kv_splits=num_splits,
+        intra_batch_mode=True,
     )
-    wm, wi, wis, ri, rfm, rpm = [
-        torch.empty(s, dtype=t, device="cuda") for s, t in info
-    ]
+    wm, wi, wis, ri, rfm, rpm = [torch.empty(s, dtype=t, device="cuda") for s, t in info]
     get_mla_metadata_v1(
-        qo_indptr, kv_indptr, kv_last_page_len,
-        nheads // NUM_KV_HEADS, NUM_KV_HEADS, True,
-        wm, wis, wi, ri, rfm, rpm,
-        page_size=PAGE_SIZE, kv_granularity=16,
-        max_seqlen_qo=qseqlen, uni_seqlen_qo=qseqlen,
+        qo_indptr,
+        kv_indptr,
+        kv_last_page_len,
+        nheads // NUM_KV_HEADS,
+        NUM_KV_HEADS,
+        True,
+        wm,
+        wis,
+        wi,
+        ri,
+        rfm,
+        rpm,
+        page_size=PAGE_SIZE,
+        kv_granularity=16,
+        max_seqlen_qo=qseqlen,
+        uni_seqlen_qo=qseqlen,
         fast_mode=False,
         max_split_per_batch=num_splits,
         intra_batch_mode=True,
-        dtype_q=q_dtype, dtype_kv=kv_dtype,
+        dtype_q=q_dtype,
+        dtype_kv=kv_dtype,
     )
 
     buf_ns = max(num_splits, 16)
@@ -93,10 +118,16 @@ def _build_metadata(bs, qseqlen, nheads, q_dtype, kv_dtype, num_splits, qo_indpt
     attn_lse = torch.empty((bs, buf_ns, nheads), dtype=torch.float32, device="cuda")
 
     return {
-        "kv_indices": kv_indices, "kv_last_page_len": kv_last_page_len,
-        "wm": wm, "wi": wi, "wis": wis,
-        "ri": ri, "rfm": rfm, "rpm": rpm,
-        "logits": logits, "attn_lse": attn_lse,
+        "kv_indices": kv_indices,
+        "kv_last_page_len": kv_last_page_len,
+        "wm": wm,
+        "wi": wi,
+        "wis": wis,
+        "ri": ri,
+        "rfm": rfm,
+        "rpm": rpm,
+        "logits": logits,
+        "attn_lse": attn_lse,
         "num_splits": num_splits,
     }
 
@@ -142,44 +173,75 @@ def custom_kernel(data: input_t) -> output_t:
     key = (bs, qseqlen, kvseqlen, nheads, use_a16w8, num_splits)
     if key not in _cache:
         _cache[key] = _build_metadata(
-            bs, qseqlen, nheads, q_dtype, FP8_DTYPE,
-            num_splits, qo_indptr, kv_indptr, kvseqlen,
+            bs,
+            qseqlen,
+            nheads,
+            q_dtype,
+            FP8_DTYPE,
+            num_splits,
+            qo_indptr,
+            kv_indptr,
+            kvseqlen,
         )
     c = _cache[key]
 
     ok = (total_q, nheads)
     if ok not in _out_cache:
-        _out_cache[ok] = torch.empty((total_q, nheads, V_HEAD_DIM), dtype=torch.bfloat16, device="cuda")
+        _out_cache[ok] = torch.empty(
+            (total_q, nheads, V_HEAD_DIM), dtype=torch.bfloat16, device="cuda"
+        )
     o = _out_cache[ok]
 
     if _f1 and _f2:
         _f1(
-            q_input.view(-1, nheads, QK_HEAD_DIM), kv_4d,
-            qo_indptr, kv_indptr,
-            c["kv_indices"], c["kv_last_page_len"],
-            None, c["wm"], c["wi"], c["wis"],
-            qseqlen, PAGE_SIZE, NUM_KV_HEADS, SM_SCALE,
-            c["logits"], c["attn_lse"], o,
-            q_scale=q_scale, kv_scale=kv_scale,
+            q_input.view(-1, nheads, QK_HEAD_DIM),
+            kv_4d,
+            qo_indptr,
+            kv_indptr,
+            c["kv_indices"],
+            c["kv_last_page_len"],
+            None,
+            c["wm"],
+            c["wi"],
+            c["wis"],
+            qseqlen,
+            PAGE_SIZE,
+            NUM_KV_HEADS,
+            SM_SCALE,
+            c["logits"],
+            c["attn_lse"],
+            o,
+            q_scale=q_scale,
+            kv_scale=kv_scale,
         )
         _f2(c["logits"], c["attn_lse"], c["ri"], c["rfm"], c["rpm"], qseqlen, o)
         return o
 
     # Fallback: mla_decode_fwd wrapper
     from aiter.mla import mla_decode_fwd
+
     mla_decode_fwd(
-        q_input.view(-1, nheads, QK_HEAD_DIM), kv_4d, o,
-        qo_indptr, kv_indptr,
-        c["kv_indices"], c["kv_last_page_len"],
+        q_input.view(-1, nheads, QK_HEAD_DIM),
+        kv_4d,
+        o,
+        qo_indptr,
+        kv_indptr,
+        c["kv_indices"],
+        c["kv_last_page_len"],
         qseqlen,
-        page_size=PAGE_SIZE, nhead_kv=NUM_KV_HEADS,
-        sm_scale=SM_SCALE, logit_cap=0.0,
+        page_size=PAGE_SIZE,
+        nhead_kv=NUM_KV_HEADS,
+        sm_scale=SM_SCALE,
+        logit_cap=0.0,
         num_kv_splits=num_splits,
-        q_scale=q_scale, kv_scale=kv_scale,
+        q_scale=q_scale,
+        kv_scale=kv_scale,
         intra_batch_mode=True,
-        work_meta_data=c["wm"], work_indptr=c["wi"],
+        work_meta_data=c["wm"],
+        work_indptr=c["wi"],
         work_info_set=c["wis"],
-        reduce_indptr=c["ri"], reduce_final_map=c["rfm"],
+        reduce_indptr=c["ri"],
+        reduce_final_map=c["rfm"],
         reduce_partial_map=c["rpm"],
     )
     return o

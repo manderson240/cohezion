@@ -8,6 +8,7 @@ class AdversaryAgent:
     The 'Knower' layer's Adversarial Reviewer.
     Reviews reasoning and code for logical flaws and bugs.
     """
+
     def __init__(self, model_name: str = "phi4:latest"):
         self.model_name = model_name
         self.ollama_url = "http://localhost:11434/api/chat"
@@ -40,22 +41,18 @@ Critique the logic and code:"""
             "model": self.model_name,
             "messages": [
                 {"role": "system", "content": system_prompt},
-                {"role": "user", "content": user_prompt}
+                {"role": "user", "content": user_prompt},
             ],
             "stream": False,
-            "options": {"temperature": 0.1}
+            "options": {"temperature": 0.1},
         }
 
         try:
             response = requests.post(self.ollama_url, json=payload, timeout=60)
             response.raise_for_status()
             result = response.json().get("message", {}).get("content", "")
-            
+
             is_verified = "LOGIC VERIFIED" in result.upper()
-            return {
-                "success": True,
-                "verified": is_verified,
-                "critique": result
-            }
+            return {"success": True, "verified": is_verified, "critique": result}
         except Exception as e:
             return {"success": False, "error": str(e)}

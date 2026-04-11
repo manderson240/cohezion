@@ -39,9 +39,7 @@ class SimpleKernelBuilder:
         addr = self.scratch_ptr
         self.scratch_names[addr] = (name, size)
         self.scratch_ptr += size
-        assert self.scratch_ptr <= SCRATCH_SIZE, (
-            f"OOM: {self.scratch_ptr} > {SCRATCH_SIZE}"
-        )
+        assert self.scratch_ptr <= SCRATCH_SIZE, f"OOM: {self.scratch_ptr} > {SCRATCH_SIZE}"
         return addr
 
     def get_const(self, val):
@@ -51,9 +49,7 @@ class SimpleKernelBuilder:
             self.global_const_map[val] = addr
         return self.global_const_map[val]
 
-    def build_kernel(
-        self, forest_height, n_nodes, batch_size, rounds, hash_stages, forest=None
-    ):
+    def build_kernel(self, forest_height, n_nodes, batch_size, rounds, hash_stages, forest=None):
         # 1. Globals
         p_idx_base = self.alloc("p_idx_base")
         p_val_base = self.alloc("p_val_base")
@@ -134,9 +130,7 @@ class SimpleKernelBuilder:
             batch_states.append(s)
 
         # Barrier for Initial Pause: Read header pointers
-        self.packer.add_slot(
-            "flow", ("pause",), reads=(p_idx_base, p_val_base, p_forest_base)
-        )
+        self.packer.add_slot("flow", ("pause",), reads=(p_idx_base, p_val_base, p_forest_base))
         self.packer.barrier()
 
         # 3. Load Phase
@@ -194,8 +188,7 @@ class SimpleKernelBuilder:
                 self.packer.add_slot(
                     "valu",
                     ("^", v_val, v_val, v_t2),
-                    reads=tuple(range(v_val, v_val + VLEN))
-                    + tuple(range(v_t2, v_t2 + VLEN)),
+                    reads=tuple(range(v_val, v_val + VLEN)) + tuple(range(v_t2, v_t2 + VLEN)),
                     writes=tuple(range(v_val, v_val + VLEN)),
                 )
                 for op1, val1, op2, op3, val3 in hash_stages:
@@ -203,22 +196,19 @@ class SimpleKernelBuilder:
                     self.packer.add_slot(
                         "valu",
                         (op1, v_t1, v_val, vc1),
-                        reads=tuple(range(v_val, v_val + VLEN))
-                        + tuple(range(vc1, vc1 + VLEN)),
+                        reads=tuple(range(v_val, v_val + VLEN)) + tuple(range(vc1, vc1 + VLEN)),
                         writes=tuple(range(v_t1, v_t1 + VLEN)),
                     )
                     self.packer.add_slot(
                         "valu",
                         (op3, v_t2, v_val, vc3),
-                        reads=tuple(range(v_val, v_val + VLEN))
-                        + tuple(range(vc3, vc3 + VLEN)),
+                        reads=tuple(range(v_val, v_val + VLEN)) + tuple(range(vc3, vc3 + VLEN)),
                         writes=tuple(range(v_t2, v_t2 + VLEN)),
                     )
                     self.packer.add_slot(
                         "valu",
                         (op2, v_val, v_t1, v_t2),
-                        reads=tuple(range(v_t1, v_t1 + VLEN))
-                        + tuple(range(v_t2, v_t2 + VLEN)),
+                        reads=tuple(range(v_t1, v_t1 + VLEN)) + tuple(range(v_t2, v_t2 + VLEN)),
                         writes=tuple(range(v_val, v_val + VLEN)),
                     )
 
@@ -233,15 +223,13 @@ class SimpleKernelBuilder:
                 self.packer.add_slot(
                     "valu",
                     ("&", v_t1, v_val, v_1),
-                    reads=tuple(range(v_val, v_val + VLEN))
-                    + tuple(range(v_1, v_1 + VLEN)),
+                    reads=tuple(range(v_val, v_val + VLEN)) + tuple(range(v_1, v_1 + VLEN)),
                     writes=tuple(range(v_t1, v_t1 + VLEN)),
                 )
                 self.packer.add_slot(
                     "valu",
                     ("+", v_idx, v_idx, v_t1),
-                    reads=tuple(range(v_idx, v_idx + VLEN))
-                    + tuple(range(v_t1, v_t1 + VLEN)),
+                    reads=tuple(range(v_idx, v_idx + VLEN)) + tuple(range(v_t1, v_t1 + VLEN)),
                     writes=tuple(range(v_idx, v_idx + VLEN)),
                 )
 
@@ -249,8 +237,7 @@ class SimpleKernelBuilder:
                 self.packer.add_slot(
                     "valu",
                     ("<", v_t2, v_idx, v_n_nodes),
-                    reads=tuple(range(v_idx, v_idx + VLEN))
-                    + tuple(range(v_n_nodes, v_n_nodes + VLEN)),
+                    reads=tuple(range(v_idx, v_idx + VLEN)) + tuple(range(v_n_nodes, v_n_nodes + VLEN)),
                     writes=tuple(range(v_t2, v_t2 + VLEN)),
                 )
                 self.packer.add_slot(

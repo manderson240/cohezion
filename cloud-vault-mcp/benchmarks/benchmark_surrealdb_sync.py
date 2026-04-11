@@ -87,4 +87,6 @@ if __name__ == "__main__":
     result = run()
     paper_count = 84
     time_per_paper = result.mean_ms / paper_count if paper_count > 0 else 0
-    print(f"surrealdb_sync: {result.mean_ms:.1f}ms total ({time_per_paper:.2f}ms per paper)")
+    print(
+        f"surrealdb_sync: {result.mean_ms:.1f}ms total ({time_per_paper:.2f}ms per paper)"
+    )

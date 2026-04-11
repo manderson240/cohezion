@@ -13,6 +13,7 @@ All waves share A and B data from LDS.
 """
 
 import os
+
 os.environ["PYTORCH_ROCM_ARCH"] = "gfx950"
 os.environ["CXX"] = "clang++"
 
@@ -187,12 +188,17 @@ void launch(torch::Tensor A, torch::Tensor B,
 }
 """
 
-CPP_SOURCE = "void launch(torch::Tensor, torch::Tensor, torch::Tensor, torch::Tensor, torch::Tensor);"
+CPP_SOURCE = (
+    "void launch(torch::Tensor, torch::Tensor, torch::Tensor, torch::Tensor, torch::Tensor);"
+)
 
 try:
     _mod = load_inline(
-        name="mfma128", cpp_sources=[CPP_SOURCE], cuda_sources=[HIP_SOURCE],
-        functions=["launch"], verbose=False,
+        name="mfma128",
+        cpp_sources=[CPP_SOURCE],
+        cuda_sources=[HIP_SOURCE],
+        functions=["launch"],
+        verbose=False,
         extra_cuda_cflags=["--offload-arch=gfx950", "-std=c++20", "-O3"],
     )
     _OK = True
@@ -203,7 +209,12 @@ except Exception as e:
 
 def e8m0_unshuffle(s, m, n):
     sm, sn = s.shape
-    return s.view(sm//32, sn//8, 4, 16, 2, 2).permute(0,5,3,1,4,2).contiguous().view(sm, sn)[:m, :n]
+    return (
+        s.view(sm // 32, sn // 8, 4, 16, 2, 2)
+        .permute(0, 5, 3, 1, 4, 2)
+        .contiguous()
+        .view(sm, sn)[:m, :n]
+    )
 
 
 _bs_cache = {}
@@ -219,8 +230,9 @@ def custom_kernel(data: input_t) -> output_t:
 
     if not _OK:
         Ash = e8m0_shuffle(Asc).view(dtypes.fp8_e8m0)
-        return aiter.gemm_a4w4(Aq.view(dtypes.fp4x2), B_shuffle, Ash, B_scale_sh,
-                               dtype=dtypes.bf16, bpreshuffle=True)
+        return aiter.gemm_a4w4(
+            Aq.view(dtypes.fp4x2), B_shuffle, Ash, B_scale_sh, dtype=dtypes.bf16, bpreshuffle=True
+        )
 
     A_bytes = Aq.view(torch.uint8)
     As_bytes = Asc[:M, :ks].contiguous().view(torch.uint8)
@@ -229,7 +241,9 @@ def custom_kernel(data: input_t) -> output_t:
     bk = (id(B_scale_sh), N, ks)
     if bk not in _bs_cache:
         _bs_cache.clear()
-        _bs_cache[bk] = e8m0_unshuffle(B_scale_sh.view(torch.uint8), N, ks).contiguous().view(torch.uint8)
+        _bs_cache[bk] = (
+            e8m0_unshuffle(B_scale_sh.view(torch.uint8), N, ks).contiguous().view(torch.uint8)
+        )
 
     C = torch.empty((M, N), dtype=torch.bfloat16, device=A.device)
     _mod.launch(A_bytes, B_bytes, As_bytes, _bs_cache[bk], C)

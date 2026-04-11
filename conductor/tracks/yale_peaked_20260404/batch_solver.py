@@ -4,10 +4,12 @@ import hashlib
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from solve_peaked_circuit import solve_peaked_circuit
 
+
 class BatchSolver:
     """
     Handles parallel execution and SHA-256 caching of peaked circuit problems.
     """
+
     def __init__(self, max_workers=2, cache_dir="conductor/tracks/yale_peaked_20260404/cache"):
         self.max_workers = max_workers
         self.cache_dir = cache_dir
@@ -18,9 +20,9 @@ class BatchSolver:
         """
         Creates a SHA-256 hash of the problem's parameters and circuit content.
         """
-        with open(path, 'r') as f:
+        with open(path, "r") as f:
             content = f.read()
-        
+
         # Salt the hash with the parameters
         params = f"{content}|{shots}|{device}|{bond_dim}"
         return hashlib.sha256(params.encode()).hexdigest()
@@ -31,7 +33,7 @@ class BatchSolver:
         """
         cache_path = os.path.join(self.cache_dir, f"{h}.json")
         if os.path.exists(cache_path):
-            with open(cache_path, 'r') as f:
+            with open(cache_path, "r") as f:
                 return json.load(f)
         return None
 
@@ -40,7 +42,7 @@ class BatchSolver:
         Saves results to the cache.
         """
         cache_path = os.path.join(self.cache_dir, f"{h}.json")
-        with open(cache_path, 'w') as f:
+        with open(cache_path, "w") as f:
             json.dump(result, f, indent=2)
 
     def solve_all(self, problems, shots=100000, device="mps.cpu", bond_dim=None, allow_paid=False):
@@ -57,7 +59,7 @@ class BatchSolver:
             h = self._get_hash(path, shots, device, bond_dim)
             hashes[name] = h
             cached = self._get_cache(h)
-            
+
             if cached:
                 print(f"📦 Cache Hit: {name} ({h[:8]})")
                 results[name] = cached
@@ -68,14 +70,21 @@ class BatchSolver:
             return results
 
         print(f"🚀 Batch Executing {len(to_run)} problems on {device}...")
-        
+
         with ThreadPoolExecutor(max_workers=self.max_workers) as executor:
             # Map futures to problem names
             future_to_name = {
-                executor.submit(solve_peaked_circuit, path, shots=shots, bond_dim=bond_dim, device=device, allow_paid=allow_paid): name 
+                executor.submit(
+                    solve_peaked_circuit,
+                    path,
+                    shots=shots,
+                    bond_dim=bond_dim,
+                    device=device,
+                    allow_paid=allow_paid,
+                ): name
                 for name, path in to_run.items()
             }
-            
+
             for future in as_completed(future_to_name):
                 name = future_to_name[future]
                 h = hashes[name]
@@ -85,10 +94,12 @@ class BatchSolver:
                         results[name] = result
                         # Store in cache
                         self._set_cache(h, result)
-                        print(f"✅ Completed: {name} -> {result['bitstring']} (SNR: {result['snr']:.2f})")
+                        print(
+                            f"✅ Completed: {name} -> {result['bitstring']} (SNR: {result['snr']:.2f})"
+                        )
                     else:
                         print(f"❌ Failed: {name} (No result)")
                 except Exception as e:
                     print(f"❌ Error in {name}: {e}")
-                    
+
         return results

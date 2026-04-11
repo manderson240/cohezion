@@ -1,0 +1,39 @@
+{
+  "taskVersion": {
+    "versionNumber": 1,
+    "name": "exec_deadline_scheduling_05",
+    "description": "Schedule with deadlines.",
+    "definition": "@kbench.task(name=\"exec_deadline_scheduling_05\")\ndef exec_deadline_scheduling_05(llm) -> bool:\n    \"\"\"Schedule with deadlines.\"\"\"\n    prompt = \"\"\"Tasks with durations and deadlines:\n- T1: 2 hours, due in 5 hours\n- T2: 3 hours, due in 8 hours\n- T3: 1 hour, due in 3 hours\n- T4: 2 hours, due in 6 hours\n\nCan all be completed on time?\n\nA) Yes: T3, T1, T4, T2\nB) Yes: T1, T2, T3, T4\nC) No, impossible\nD) Need more information\"\"\"\n    response = llm.prompt(prompt)\n    return bool(kbench.assertions.assert_true(\"A\" in response, expectation=\"Correct answer is A\"))\n"
+  },
+  "modelVersion": {},
+  "state": "BENCHMARK_TASK_RUN_STATE_COMPLETED",
+  "startTime": "2026-04-11T04:59:28.393544Z",
+  "endTime": "2026-04-11T04:59:58.503479Z",
+  "conversations": [
+    {
+      "id": "exec_deadline_scheduling_05-a44f750d",
+      "metrics": {},
+      "modelVersionSlug": "model_version_slug for conversation is DEPRECATED"
+    }
+  ],
+  "results": [
+    {
+      "type": "AGGREGATED",
+      "booleanResult": true
+    }
+  ],
+  "assertions": [
+    {
+      "expectation": "Correct answer is A",
+      "status": "BENCHMARK_TASK_RUN_ASSERTION_STATUS_PASSED",
+      "lineNumber": 956,
+      "definition": "return bool(kbench.assertions.assert_true(\"A\" in response, expectation=\"Correct answer is A\"))",
+      "conversationRequestIds": [
+        {
+          "conversationId": "exec_deadline_scheduling_05-a44f750d"
+        }
+      ]
+    }
+  ],
+  "pyRunId": "exec_deadline_scheduling_05-Run #1"
+}

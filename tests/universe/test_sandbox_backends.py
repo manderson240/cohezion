@@ -20,6 +20,7 @@ def _systemd_user_available() -> bool:
     except Exception:
         return False
 
+
 from cohezion.universe.sandbox_backends import (
     BackendResult,
     DockerBackend,

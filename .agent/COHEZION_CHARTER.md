@@ -39,7 +39,22 @@ Ensure predictability in a complex agents-of-agents ecosystem.
 Enable a continuous growth loop for the swarm.
 - **Knowledge Assimilation**: Proactively apply abstractions to incorporate multi-domain discoveries into the knowledge graph.
 - **Skill Refinement**: Periodically review and refactor skills based on retrospective analysis, ensuring the swarm's capabilities evolve as the mission complexity increases.
+
 ## 8. Expert Domain Lattice (EDL)
 The primary reasoning engine for COHEZION is the **Expert Domain Lattice**, coordinated by the **Quadrature Nexus Orchestration**.
-- **The Expert Streams**: All complex problems must be routed through five specialized streams: Architect (Design), Engineer (Physics), Biologist (Life), Quantum Hardware (Hardware), and Quantum Algo (Compute).
-- **Consensus Stabilization**: Trajectories are considered stable only when consensus is reached across the MDL, adhering to the 0.5 Coherence Rule.
+- **The Expert Streams**: All complex problems must be routed through five specialized streams: Architect (Design), Engineer (Physics), Biologist (Life), Quantum Hardware (Hardware), and Quantum Algo (Compute). Each stream evaluates proposals independently, producing a `StreamRecommendation` with confidence and coherence scores.
+- **Consensus Stabilization**: Trajectories are considered stable only when consensus is reached across the EDL, adhering to the 0.5 Coherence Rule. The `EDLConsensus` model reports `hiho_stable: bool` (coherence within 0.4-0.6) and `consensus_strength` (1.0 = perfect HIHO alignment).
+- **Quadrature Nexus**: The 4-voice consensus mechanism (Architect, Engineer, Ethicist, Resource) gates all major swarm actions. Action is taken only when alignment exceeds 0.85. Grounded in Percival's Triune Self and Noether's theorem (consensus symmetry → action conservation).
+- **Triune Consensus**: The geometric equilibrium of Architect, Engineer, and Biologist proposals in 12D state space. KL Divergence validates the 512D→12D projection fidelity.
+- **Implementation**: `platform/edl_router.py` (5-stream routing), `swarm/quadrature_nexus.py` (4-voice governance), `swarm/triune_consensus.py` (geometric equilibrium).
+- **Consensus Mechanics**: Voting is weighted by domain relevance — Architect weighs more on design decisions, Engineer on physics, Biologist on adaptive systems. Tiebreaker defaults to Engineer stream (physics grounding principle), unless Ethicist exercises hard veto (constitutional constraint violation). The Resource stream evaluates compute budget, token cost, and latency SLA — it can veto expensive proposals that exceed the session's cost envelope.
+- **12D Projection**: Each stream's 512D recommendation is projected to 12D state space via the Fisher information metric (Section 3). Proposals are "in consensus" when pairwise KL divergence < 0.1 nats in the 12D projection. The 12D representation aligns with the FLUME manifold dimensions, ensuring consensus geometry matches the agent's trajectory space.
+- **Failure Modes**:
+  - *Stream Disagreement*: When 2+ streams produce conflicting recommendations (confidence divergence > 0.3), escalate to Quadrature Nexus for weighted arbitration. If arbitration alignment remains below 0.85, defer to the highest-confidence stream with a logged degradation event.
+  - *Consensus Timeout*: If alignment doesn't reach 0.85 within the task's token budget, fall back to highest-confidence single stream. The degradation is recorded for retrospective analysis.
+  - *Coherence Collapse*: If `hiho_stable` drops to false (coherence outside 0.4–0.6 band), freeze action, trigger Ouroboros self-healing (Section 7), and re-query streams after stabilization.
+  - *Lattice Imbalance*: If one stream overrides others in > 80% of decisions, flag as single-stream domination and force stream rotation to restore lattice diversity.
+- **Recovery Patterns**:
+  - *Re-query*: Retry with additional context injected from the disagreeing stream's reasoning, allowing cross-pollination.
+  - *Fallback*: Degrade to single-stream routing (highest confidence) with full logging for post-hoc review.
+  - *Escalate*: Surface to human when consensus fails 3 consecutive times on the same decision class — indicates a fundamental domain mismatch that the lattice cannot resolve autonomously.

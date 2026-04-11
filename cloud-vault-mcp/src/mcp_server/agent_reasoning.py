@@ -260,7 +260,9 @@ class AgentReasoningOps:
             now = datetime.now(UTC).isoformat()
 
             # Validate source decision exists
-            source_check = self.db._execute_query(f"SELECT id FROM {source_decision_id} LIMIT 1")
+            source_check = self.db._execute_query(
+                f"SELECT id FROM {source_decision_id} LIMIT 1"
+            )
             if not source_check or len(source_check) == 0:
                 return {
                     "success": False,
@@ -268,7 +270,9 @@ class AgentReasoningOps:
                 }
 
             # Validate dependent decision exists
-            dependent_check = self.db._execute_query(f"SELECT id FROM {dependent_decision_id} LIMIT 1")
+            dependent_check = self.db._execute_query(
+                f"SELECT id FROM {dependent_decision_id} LIMIT 1"
+            )
             if not dependent_check or len(dependent_check) == 0:
                 return {
                     "success": False,

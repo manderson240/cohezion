@@ -34,7 +34,7 @@ class HealthChecker:
     def __init__(
         self,
         vault_path: str,
-        surrealdb_url: str = "http://localhost:8000",
+        surrealdb_url: str = "http://localhost:8001",
         sheets_bridge=None,
         ollama_url: str = "http://localhost:11434",
         sheets_research_daemon=None,

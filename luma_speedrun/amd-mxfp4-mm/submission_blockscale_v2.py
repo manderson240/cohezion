@@ -4,6 +4,7 @@
 """GEMM: Try gemm_a4w4_blockscale API (discovered via probe, 1471-row tuning CSV)."""
 
 import os
+
 os.environ["PYTORCH_ROCM_ARCH"] = "gfx950"
 
 import torch
@@ -43,6 +44,10 @@ def custom_kernel(data: input_t) -> output_t:
 
     # Fallback to standard gemm_a4w4
     return aiter.gemm_a4w4(
-        A_q_fp4, B_shuffle, A_scale_sh, B_scale_sh,
-        dtype=dtypes.bf16, bpreshuffle=True,
+        A_q_fp4,
+        B_shuffle,
+        A_scale_sh,
+        B_scale_sh,
+        dtype=dtypes.bf16,
+        bpreshuffle=True,
     )

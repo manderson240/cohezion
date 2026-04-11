@@ -55,26 +55,26 @@ def parse_frontmatter(content: str) -> tuple[dict[str, Any], str]:
         if len(parts) >= 3:
             frontmatter_text = parts[1].strip()
             body = parts[2]
-            
+
             # Simple line-by-line parsing
             frontmatter = {}
             current_key = None
-            for line in frontmatter_text.split('\n'):
+            for line in frontmatter_text.split("\n"):
                 line = line.strip()
-                if not line or line.startswith('#'):
+                if not line or line.startswith("#"):
                     continue
-                
+
                 # Key: value
-                if ':' in line and not line.startswith('-'):
-                    key, value = line.split(':', 1)
+                if ":" in line and not line.startswith("-"):
+                    key, value = line.split(":", 1)
                     key = key.strip()
-                    value = value.strip().strip('"\'')
+                    value = value.strip().strip("\"'")
                     frontmatter[key] = value
                     current_key = key
                 # Continuation of multi-line
                 elif current_key and line:
-                    frontmatter[current_key] = frontmatter.get(current_key, '') + ' ' + line
-            
+                    frontmatter[current_key] = frontmatter.get(current_key, "") + " " + line
+
             return frontmatter, body
     return {}, content
 
@@ -134,7 +134,7 @@ def parse_skill_file(md_file: Path) -> SkillGenome | None:
 
         name = frontmatter.get("name", md_file.stem.replace("_PRIME", ""))
         description = frontmatter.get("description", "")
-        
+
         # Extract version from metadata string or frontmatter directly
         version = "0.1"
         if "version" in frontmatter:
@@ -150,9 +150,7 @@ def parse_skill_file(md_file: Path) -> SkillGenome | None:
         steps = re.findall(r"^\d+\.\s+(.+)$", instructions, re.MULTILINE)
 
         patterns = sections.get("PATTERNS", "")
-        pattern_list = [
-            p.strip() for p in patterns.split("\n") if p.strip().startswith("-")
-        ]
+        pattern_list = [p.strip() for p in patterns.split("\n") if p.strip().startswith("-")]
 
         citations = [
             c.strip("-")
@@ -191,7 +189,9 @@ def create_index(skills: list[SkillGenome]) -> dict[str, Any]:
     index = {
         "meta": {
             "count": len(skills),
-            "generated_at": logging.Formatter().formatTime(logging.LogRecord("", 0, "", 0, "", None, None)),
+            "generated_at": logging.Formatter().formatTime(
+                logging.LogRecord("", 0, "", 0, "", None, None)
+            ),
         },
         "by_name": {},
         "by_category": {},
@@ -204,7 +204,9 @@ def create_index(skills: list[SkillGenome]) -> dict[str, Any]:
         entry = {
             "hash": skill.content_hash,
             "file": str(skill.file_path),
-            "description": skill.description[:200] + "..." if len(skill.description) > 200 else skill.description,
+            "description": skill.description[:200] + "..."
+            if len(skill.description) > 200
+            else skill.description,
             "version": skill.version,
             "fitness": skill.fitness,
             "patterns": len(skill.patterns),
@@ -251,12 +253,14 @@ def create_embeddings(skills: list[SkillGenome]) -> list[dict]:
         text = f"{skill.name} {skill.description} {' '.join(skill.instructions)}"
         words = set(re.findall(r"\b\w+\b", text.lower()))
 
-        embeddings.append({
-            "hash": skill.content_hash,
-            "name": skill.name,
-            "keywords": list(words),
-            "fitness": skill.fitness,
-        })
+        embeddings.append(
+            {
+                "hash": skill.content_hash,
+                "name": skill.name,
+                "keywords": list(words),
+                "fitness": skill.fitness,
+            }
+        )
 
     return embeddings
 
@@ -267,30 +271,36 @@ def create_skill_graph(skills: list[SkillGenome]) -> dict[str, Any]:
     edges = []
 
     for skill in skills:
-        nodes.append({
-            "id": skill.name,
-            "label": skill.name,
-            "fitness": skill.fitness,
-            "version": skill.version,
-        })
+        nodes.append(
+            {
+                "id": skill.name,
+                "label": skill.name,
+                "fitness": skill.fitness,
+                "version": skill.version,
+            }
+        )
 
         for dep in skill.see_also:
             match = re.search(r"(\w+)_PRIME", dep)
             if match:
-                edges.append({
-                    "source": skill.name,
-                    "target": match.group(1),
-                    "type": "see_also",
-                })
+                edges.append(
+                    {
+                        "source": skill.name,
+                        "target": match.group(1),
+                        "type": "see_also",
+                    }
+                )
 
         for citation in skill.citations:
             match = re.search(r"(\w+)_PRIME", citation)
             if match:
-                edges.append({
-                    "source": skill.name,
-                    "target": match.group(1),
-                    "type": "cites",
-                })
+                edges.append(
+                    {
+                        "source": skill.name,
+                        "target": match.group(1),
+                        "type": "cites",
+                    }
+                )
 
     return {"nodes": nodes, "edges": edges}
 

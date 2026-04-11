@@ -45,8 +45,7 @@ class BackendConnection:
             "token": api_token,
             "main_endpoint": (
                 "https://app.bluequbit.io/api/v1"
-                if main_endpoint_from_local_env is None
-                or main_endpoint_from_local_env == ""
+                if main_endpoint_from_local_env is None or main_endpoint_from_local_env == ""
                 else main_endpoint_from_local_env
             ),
             "ssl_verify": (

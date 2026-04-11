@@ -1,0 +1,39 @@
+{
+  "taskVersion": {
+    "versionNumber": 1,
+    "name": "learning_alien_grammar_02",
+    "description": "Learn and apply alien language grammar rules.",
+    "definition": "@kbench.task(name=\"learning_alien_grammar_02\")\ndef learning_alien_grammar_02(llm) -> bool:\n    \"\"\"Learn and apply alien language grammar rules.\"\"\"\n    prompt = \"\"\"You are learning the Zorblaxian language with these grammar rules:\n\n- Word order: OSV (Object-Subject-Verb)\n- Articles follow nouns they modify\n- Verbs conjugate based on the number of vowels in the object\n- Questions invert to VSO order\n\nTranslate to English: \"klaatu barada nikto\" means \"the robot carried the book\"\n\nGiven: \"barada nikto klaatu verata\" with \"verata\" = \"power\"\n\nWhat is the translation?\n\nA) The robot gave the power\nB) The power gave the robot\nC) Did the power give the robot?\nD) The robot received the power\"\"\"\n    response = llm.prompt(prompt)\n    return bool(kbench.assertions.assert_true(\"D\" in response, expectation=\"Correct answer is D\"))\n"
+  },
+  "modelVersion": {},
+  "state": "BENCHMARK_TASK_RUN_STATE_COMPLETED",
+  "startTime": "2026-04-11T04:36:33.923027Z",
+  "endTime": "2026-04-11T04:37:16.094128Z",
+  "conversations": [
+    {
+      "id": "learning_alien_grammar_02-c98e2e99",
+      "metrics": {},
+      "modelVersionSlug": "model_version_slug for conversation is DEPRECATED"
+    }
+  ],
+  "results": [
+    {
+      "type": "AGGREGATED",
+      "booleanResult": true
+    }
+  ],
+  "assertions": [
+    {
+      "expectation": "Correct answer is D",
+      "status": "BENCHMARK_TASK_RUN_ASSERTION_STATUS_FAILED",
+      "lineNumber": 66,
+      "definition": "return bool(kbench.assertions.assert_true(\"D\" in response, expectation=\"Correct answer is D\"))",
+      "conversationRequestIds": [
+        {
+          "conversationId": "learning_alien_grammar_02-c98e2e99"
+        }
+      ]
+    }
+  ],
+  "pyRunId": "learning_alien_grammar_02-Run #1"
+}

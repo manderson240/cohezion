@@ -50,9 +50,7 @@ This is a test article about topic {i}. It discusses various concepts:
 """
             start = time.perf_counter()
             await self.mcp.wiki_ingest(
-                source=source_content,
-                source_type="article",
-                auto_extract=True
+                source=source_content, source_type="article", auto_extract=True
             )
             elapsed = (time.perf_counter() - start) * 1000  # ms
             times.append(elapsed)
@@ -95,7 +93,7 @@ This is a test article about topic {i}. It discusses various concepts:
             await self.wiki.create_wiki_page(
                 path=f"test/sync_test_{i}.md",
                 content=f"# Test Page {i}\n\nContent for page {i}.",
-                category="synthesis"
+                category="synthesis",
             )
 
         start = time.perf_counter()
@@ -116,8 +114,7 @@ This is a test article about topic {i}. It discusses various concepts:
 
             # Ingest
             await self.mcp.wiki_ingest(
-                source=f"Cycle {i}: New research about topic X and Y",
-                source_type="article"
+                source=f"Cycle {i}: New research about topic X and Y", source_type="article"
             )
 
             # Sync to SurrealDB

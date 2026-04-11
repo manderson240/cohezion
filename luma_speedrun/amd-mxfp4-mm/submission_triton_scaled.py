@@ -20,14 +20,24 @@ from task import input_t, output_t
 
 @triton.jit
 def fp4_gemm_scaled_kernel(
-    A_ptr, B_ptr, C_ptr,
-    As_ptr, Bs_ptr,
-    M, N, K,
-    stride_am, stride_ak,
-    stride_bn, stride_bk,
-    stride_cm, stride_cn,
-    stride_asm, stride_ask,
-    stride_bsn, stride_bsk,
+    A_ptr,
+    B_ptr,
+    C_ptr,
+    As_ptr,
+    Bs_ptr,
+    M,
+    N,
+    K,
+    stride_am,
+    stride_ak,
+    stride_bn,
+    stride_bk,
+    stride_cm,
+    stride_cn,
+    stride_asm,
+    stride_ask,
+    stride_bsn,
+    stride_bsk,
     BLOCK_M: tl.constexpr,
     BLOCK_N: tl.constexpr,
     BLOCK_K: tl.constexpr,
@@ -48,27 +58,30 @@ def fp4_gemm_scaled_kernel(
 
         # Load A tile [BLOCK_M, BLOCK_K/2] bytes
         a_ptrs = A_ptr + offs_m[:, None] * stride_am + offs_kb[None, :]
-        a = tl.load(a_ptrs, mask=(offs_m[:, None] < M) & (offs_kb[None, :] < K_BYTES),
-                    other=0)
+        a = tl.load(a_ptrs, mask=(offs_m[:, None] < M) & (offs_kb[None, :] < K_BYTES), other=0)
 
         # Load B tile [BLOCK_N, BLOCK_K/2] bytes (B is N×K/2)
         b_ptrs = B_ptr + offs_n[:, None] * stride_bn + offs_kb[None, :]
-        b = tl.load(b_ptrs, mask=(offs_n[:, None] < N) & (offs_kb[None, :] < K_BYTES),
-                    other=0)
+        b = tl.load(b_ptrs, mask=(offs_n[:, None] < N) & (offs_kb[None, :] < K_BYTES), other=0)
 
         # Load A scales [BLOCK_M, BLOCK_K/32]
         offs_sg = k * (BLOCK_K // 32) + tl.arange(0, max(1, BLOCK_K // 32))
-        a_scale = tl.load(As_ptr + offs_m[:, None] * stride_asm + offs_sg[None, :],
-                          mask=(offs_m[:, None] < M), other=127)
-        b_scale = tl.load(Bs_ptr + offs_n[:, None] * stride_bsn + offs_sg[None, :],
-                          mask=(offs_n[:, None] < N), other=127)
+        a_scale = tl.load(
+            As_ptr + offs_m[:, None] * stride_asm + offs_sg[None, :],
+            mask=(offs_m[:, None] < M),
+            other=127,
+        )
+        b_scale = tl.load(
+            Bs_ptr + offs_n[:, None] * stride_bsn + offs_sg[None, :],
+            mask=(offs_n[:, None] < N),
+            other=127,
+        )
 
         # tl.dot_scaled: native FP4 scaled dot product
         # lhs: [BLOCK_M, BLOCK_K/2] uint8, lhs_scale: [BLOCK_M, BLOCK_K/32]
         # rhs: [BLOCK_K/2, BLOCK_N] uint8 (K×N), rhs_scale: [BLOCK_N, BLOCK_K/32]
         # B is stored as [N, K/2] so b is [BLOCK_N, BLOCK_K/2] — need trans
-        acc = tl.dot_scaled(a, a_scale, "e2m1",
-                           tl.trans(b), b_scale, "e2m1", acc)
+        acc = tl.dot_scaled(a, a_scale, "e2m1", tl.trans(b), b_scale, "e2m1", acc)
 
     # Store as bf16
     c = acc.to(tl.bfloat16)
@@ -109,15 +122,27 @@ def custom_kernel(data: input_t) -> output_t:
         grid = (triton.cdiv(M, BLOCK_M), triton.cdiv(N, BLOCK_N))
 
         fp4_gemm_scaled_kernel[grid](
-            A_bytes, B_bytes, C,
-            As_bytes, Bs_bytes,
-            M, N, K,
-            A_bytes.stride(0), A_bytes.stride(1),
-            B_bytes.stride(0), B_bytes.stride(1),
-            C.stride(0), C.stride(1),
-            As_bytes.stride(0), As_bytes.stride(1),
-            Bs_bytes.stride(0), Bs_bytes.stride(1),
-            BLOCK_M=BLOCK_M, BLOCK_N=BLOCK_N, BLOCK_K=BLOCK_K,
+            A_bytes,
+            B_bytes,
+            C,
+            As_bytes,
+            Bs_bytes,
+            M,
+            N,
+            K,
+            A_bytes.stride(0),
+            A_bytes.stride(1),
+            B_bytes.stride(0),
+            B_bytes.stride(1),
+            C.stride(0),
+            C.stride(1),
+            As_bytes.stride(0),
+            As_bytes.stride(1),
+            Bs_bytes.stride(0),
+            Bs_bytes.stride(1),
+            BLOCK_M=BLOCK_M,
+            BLOCK_N=BLOCK_N,
+            BLOCK_K=BLOCK_K,
         )
         return C
     except Exception as e:
@@ -126,6 +151,10 @@ def custom_kernel(data: input_t) -> output_t:
         # Fallback to aiter
         Ash = e8m0_shuffle(Asc).view(dtypes.fp8_e8m0)
         return aiter.gemm_a4w4(
-            Aq.view(dtypes.fp4x2), B_shuffle, Ash, B_scale_sh,
-            dtype=dtypes.bf16, bpreshuffle=True,
+            Aq.view(dtypes.fp4x2),
+            B_shuffle,
+            Ash,
+            B_scale_sh,
+            dtype=dtypes.bf16,
+            bpreshuffle=True,
         )

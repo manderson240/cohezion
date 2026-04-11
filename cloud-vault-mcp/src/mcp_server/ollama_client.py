@@ -28,7 +28,9 @@ class OllamaClient:
             self._client = httpx.AsyncClient(timeout=self.timeout)
         return self._client
 
-    async def query(self, prompt: str, model: str = "mistral", temperature: float = 0.7) -> str:
+    async def query(
+        self, prompt: str, model: str = "mistral", temperature: float = 0.7
+    ) -> str:
         """Execute a query against an Ollama model.
 
         Args:

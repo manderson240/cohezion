@@ -1,4 +1,3 @@
-
 import torch
 import torch.nn.functional as F
 from aiter import ActivationType, QuantType
@@ -29,7 +28,7 @@ def custom_kernel(data: input_t) -> output_t:
     hidden_states = data.hidden_states  # [M, d_hidden]
     router_logits = data.router_logits  # [M, n_routed_experts]
     w13_list = data.w13_list  # list of [d_expert_pad, d_hidden_pad] experts
-    w2_list = data.w2_list     # list of [d_hidden_pad, d_expert_pad] experts
+    w2_list = data.w2_list  # list of [d_hidden_pad, d_expert_pad] experts
     n_routed_experts = len(w13_list)
     n_shared_experts = data.n_shared_experts
     n_experts_per_token = data.n_experts_per_token
@@ -46,14 +45,22 @@ def custom_kernel(data: input_t) -> output_t:
     M = hidden_states.size(0)
     if n_shared_experts > 0:
         # Create shared expert indices [M, n_shared_experts]
-        shared_ids = torch.arange(
-            n_routed_experts, n_routed_experts + n_shared_experts,
-            device=topk_ids.device, dtype=topk_ids.dtype
-        ).unsqueeze(0).expand(M, -1)
+        shared_ids = (
+            torch.arange(
+                n_routed_experts,
+                n_routed_experts + n_shared_experts,
+                device=topk_ids.device,
+                dtype=topk_ids.dtype,
+            )
+            .unsqueeze(0)
+            .expand(M, -1)
+        )
         # Concatenate
         topk_ids = torch.cat([topk_ids, shared_ids], dim=1)
         # Shared expert weights = 1.0
-        shared_weights = torch.ones(M, n_shared_experts, dtype=torch.float32, device=topk_ids.device)
+        shared_weights = torch.ones(
+            M, n_shared_experts, dtype=torch.float32, device=topk_ids.device
+        )
         topk_weights = torch.cat([topk_weights, shared_weights], dim=1)
 
     # ── Determine block GEMM and KSPLIT strategy ────────────────────────

@@ -9,8 +9,11 @@ import torch
 import aiter
 from task import input_t, output_t
 
+
 def custom_kernel(data: input_t) -> output_t:
     A, B, B_q, B_shuffle, B_scale_sh = data
     # The official reference path.
     # Many of our previous attempts used this and failed with S500.
-    return aiter.gemm_a4w4(B_q, B_shuffle, B_scale_sh, B_scale_sh, dtype=torch.bfloat16, bpreshuffle=True)
+    return aiter.gemm_a4w4(
+        B_q, B_shuffle, B_scale_sh, B_scale_sh, dtype=torch.bfloat16, bpreshuffle=True
+    )

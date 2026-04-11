@@ -1,0 +1,39 @@
+{
+  "taskVersion": {
+    "versionNumber": 1,
+    "name": "attention_quantity_tracking_11",
+    "description": "Track quantities amid changing context.",
+    "definition": "@kbench.task(name=\"attention_quantity_tracking_11\")\ndef attention_quantity_tracking_11(llm) -> bool:\n    \"\"\"Track quantities amid changing context.\"\"\"\n    prompt = \"\"\"You have 10 apples. You give 3 to friend A. You receive 5 from friend B. You eat 2. Friend A returns 1 apple. How many do you have?\n\nA) 11\nB) 10\nC) 9\nD) 8\"\"\"\n    response = llm.prompt(prompt)\n    return bool(kbench.assertions.assert_true(\"A\" in response, expectation=\"Correct answer is A\"))\n"
+  },
+  "modelVersion": {},
+  "state": "BENCHMARK_TASK_RUN_STATE_COMPLETED",
+  "startTime": "2026-04-11T04:56:12.795715Z",
+  "endTime": "2026-04-11T04:56:23.291466Z",
+  "conversations": [
+    {
+      "id": "attention_quantity_tracking_11-b2cacd32",
+      "metrics": {},
+      "modelVersionSlug": "model_version_slug for conversation is DEPRECATED"
+    }
+  ],
+  "results": [
+    {
+      "type": "AGGREGATED",
+      "booleanResult": true
+    }
+  ],
+  "assertions": [
+    {
+      "expectation": "Correct answer is A",
+      "status": "BENCHMARK_TASK_RUN_ASSERTION_STATUS_PASSED",
+      "lineNumber": 790,
+      "definition": "return bool(kbench.assertions.assert_true(\"A\" in response, expectation=\"Correct answer is A\"))",
+      "conversationRequestIds": [
+        {
+          "conversationId": "attention_quantity_tracking_11-b2cacd32"
+        }
+      ]
+    }
+  ],
+  "pyRunId": "attention_quantity_tracking_11-Run #1"
+}

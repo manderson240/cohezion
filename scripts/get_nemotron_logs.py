@@ -25,6 +25,7 @@ from cohezion.integrations.kaggle_api import KaggleAPI
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+
 async def get_logs():
     if not username or not api_token:
         logger.error("Missing KAGGLE_USERNAME or KAGGLE_API_TOKEN in .env")
@@ -32,16 +33,17 @@ async def get_logs():
 
     notebook_id = f"nemotron-lora-baseline-improved-{username.replace('_', '-')}"
     logger.info(f"Retrieving logs for: {notebook_id}")
-    
+
     api = KaggleAPI(username=username, key=api_token)
-    
+
     logs = await api.get_notebook_output(notebook_id)
-    
-    print("\n" + "="*50)
+
+    print("\n" + "=" * 50)
     print(f"KAGGLE LOGS: {notebook_id}")
-    print("="*50)
+    print("=" * 50)
     print(logs)
-    print("="*50)
+    print("=" * 50)
+
 
 if __name__ == "__main__":
     asyncio.run(get_logs())

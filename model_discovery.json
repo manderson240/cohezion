@@ -1,0 +1,32 @@
+[
+  {
+    "name": "qwen3:4b",
+    "backend": "NPU",
+    "size": "4b",
+    "status": "discovered"
+  },
+  {
+    "name": "qwen3.5:4b",
+    "backend": "NPU",
+    "size": "4b",
+    "status": "discovered"
+  },
+  {
+    "name": "gemma3:4b",
+    "backend": "NPU",
+    "size": "4b",
+    "status": "discovered"
+  },
+  {
+    "name": "Gemma-4-E2B-it",
+    "backend": "GPU_VULKAN",
+    "size": "2b",
+    "status": "discovered"
+  },
+  {
+    "name": "Jan-v1-4B",
+    "backend": "GPU_VULKAN",
+    "size": "4b",
+    "status": "discovered"
+  }
+]

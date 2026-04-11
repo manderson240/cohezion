@@ -12,7 +12,7 @@ def custom_kernel(data):
         for f in files:
             if "graph" in f.lower() or "capture" in f.lower():
                 target_files.append(os.path.join(root, f))
-                
+
     print(f"--- Graph-related files in {aiter_dir} ---", file=sys.stderr)
     for f in target_files:
         print(f, file=sys.stderr)
@@ -24,4 +24,5 @@ def custom_kernel(data):
             print(f"Error reading {f}: {e}", file=sys.stderr)
 
     from reference import ref_kernel
+
     return ref_kernel(data)

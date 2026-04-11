@@ -48,36 +48,41 @@ def warm_jit_cache():
     This avoids JIT compilation overhead during actual timing.
     """
     print("Pre-warming JIT cache for all shapes...", file=sys.stderr, flush=True)
-    
+
     for m, n, k in BENCHMARK_SHAPES + TEST_SHAPES:
         try:
             # Create small tensors for JIT warmup
             A = torch.randn(m, k, dtype=torch.bfloat16, device="cuda")
             B = torch.randn(n, k, dtype=torch.bfloat16, device="cuda")
-            
+
             # Quantize
             quant_func = aiter.get_triton_quant(aiter.QuantType.per_1x32)
             A_q, A_scale_sh = quant_func(A, shuffle=True)
-            
+
             B_q, B_scale_sh = quant_func(B, shuffle=True)
             from aiter.ops.shuffle import shuffle_weight
+
             B_shuffle = shuffle_weight(B_q, layout=(16, 16))
-            
+
             # Run GEMM to trigger JIT compilation
             result = aiter.gemm_a4w4(
-                A_q, B_shuffle, A_scale_sh, B_scale_sh,
-                dtype=dtypes.bf16, bpreshuffle=True,
+                A_q,
+                B_shuffle,
+                A_scale_sh,
+                B_scale_sh,
+                dtype=dtypes.bf16,
+                bpreshuffle=True,
             )
-            
+
             print(f"  JIT warmup M={m}, N={n}, K={k}: {result.shape}", file=sys.stderr, flush=True)
-            
+
             # Cleanup
             del A, B, A_q, B_q, A_scale_sh, B_scale_sh, B_shuffle, result
             torch.cuda.empty_cache()
-            
+
         except Exception as e:
             print(f"  JIT warmup M={m}, N={n}, K={k}: FAILED - {e}", file=sys.stderr, flush=True)
-    
+
     print("JIT cache pre-warming complete", file=sys.stderr, flush=True)
 
 
@@ -94,16 +99,20 @@ def _ensure_warmed():
 
 def custom_kernel(data: input_t) -> output_t:
     _ensure_warmed()
-    
+
     A, B, B_q, B_shuffle, B_scale_sh = data
-    
+
     # Quantize A with MXFP4
     x_fp4, bs_e8m0 = dynamic_mxfp4_quant(A)
     A_q = x_fp4.view(dtypes.fp4x2)
     A_scale_sh = e8m0_shuffle(bs_e8m0).view(dtypes.fp8_e8m0)
-    
+
     # Use unified gemm_a4w4 API
     return aiter.gemm_a4w4(
-        A_q, B_shuffle, A_scale_sh, B_scale_sh,
-        dtype=dtypes.bf16, bpreshuffle=True,
+        A_q,
+        B_shuffle,
+        A_scale_sh,
+        B_scale_sh,
+        dtype=dtypes.bf16,
+        bpreshuffle=True,
     )

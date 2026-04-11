@@ -7,7 +7,11 @@
             "description": "Persistent AI memory layer",
             "url": "local",
             "status": "pending",
-            "tools": ["add_memory", "search_memories", "get_user_context"]
+            "tools": [
+                "add_memory",
+                "search_memories",
+                "get_user_context"
+            ]
         },
         {
             "name": "context7",
@@ -15,7 +19,11 @@
             "description": "Up-to-date code documentation",
             "url": "https://mcp.context7.com/mcp",
             "status": "pending",
-            "tools": ["search_docs", "get_api_ref", "get_examples"]
+            "tools": [
+                "search_docs",
+                "get_api_ref",
+                "get_examples"
+            ]
         },
         {
             "name": "cloud-vault-mcp",
@@ -24,17 +32,51 @@
             "url": "http://localhost:8360",
             "status": "available",
             "tools": [
-                "vault_read", "vault_write", "vault_edit", "vault_delete", "vault_list", "vault_search",
-                "vault_backlinks", "vault_forward_links", "vault_tags", "vault_create_from_template",
-                "vault_log_decision", "vault_log_experiment", "vault_extract_pattern", "vault_find_relevant_context",
-                "sql_validate", "sql_parse", "sql_analyze", "sql_extract_tables", "sql_extract_columns", "sql_format",
-                "teleport_create_task", "teleport_list_tasks", "teleport_claim_task", "teleport_complete_task", "teleport_fail_task", "teleport_get_result",
-                "vault_push_memory", "vault_pull_session_context",
-                "sheets_read_range", "sheets_get_all_rows", "sheets_update_row", "sheets_batch_update", "sheets_update_vault_note",
-                "surrealdb_import_papers", "surrealdb_import_concepts", "surrealdb_start_watching", "surrealdb_stop_watching", "surrealdb_query",
-                "ollama_generate", "ollama_embed", "ollama_status",
+                "vault_read",
+                "vault_write",
+                "vault_edit",
+                "vault_delete",
+                "vault_list",
+                "vault_search",
+                "vault_backlinks",
+                "vault_forward_links",
+                "vault_tags",
+                "vault_create_from_template",
+                "vault_log_decision",
+                "vault_log_experiment",
+                "vault_extract_pattern",
+                "vault_find_relevant_context",
+                "sql_validate",
+                "sql_parse",
+                "sql_analyze",
+                "sql_extract_tables",
+                "sql_extract_columns",
+                "sql_format",
+                "teleport_create_task",
+                "teleport_list_tasks",
+                "teleport_claim_task",
+                "teleport_complete_task",
+                "teleport_fail_task",
+                "teleport_get_result",
+                "vault_push_memory",
+                "vault_pull_session_context",
+                "sheets_read_range",
+                "sheets_get_all_rows",
+                "sheets_update_row",
+                "sheets_batch_update",
+                "sheets_update_vault_note",
+                "surrealdb_import_papers",
+                "surrealdb_import_concepts",
+                "surrealdb_start_watching",
+                "surrealdb_stop_watching",
+                "surrealdb_query",
+                "ollama_generate",
+                "ollama_embed",
+                "ollama_status",
                 "vault_health_check",
-                "track_session", "record_decision", "record_outcome",
+                "track_session",
+                "record_decision",
+                "record_outcome",
                 "tts_speak"
             ]
         },
@@ -45,8 +87,18 @@
             "url": "http://localhost:8365",
             "status": "available",
             "tools": [
-                "hf_search_models", "hf_get_model_info", "hf_search_datasets", "hf_search_spaces", "hf_inference", "hf_get_readme",
-                "transformers_run", "vision_train", "llm_train", "dataset_view", "community_eval", "hf_hub_manage"
+                "hf_search_models",
+                "hf_get_model_info",
+                "hf_search_datasets",
+                "hf_search_spaces",
+                "hf_inference",
+                "hf_get_readme",
+                "transformers_run",
+                "vision_train",
+                "llm_train",
+                "dataset_view",
+                "community_eval",
+                "hf_hub_manage"
             ]
         }
     ],
@@ -57,11 +109,22 @@
             "description": "BMAD methodology workflows",
             "path": "mcp/bmad_server.py",
             "tools": [
-                "bmad_help", "bmad_bmm_create_prd", "bmad_bmm_create_story", "bmad_bmm_sprint_planning",
-                "bmad_bmm_dev_story", "bmad_bmm_code_review", "bmad_gds_create_game_brief",
-                "bmad_gds_game_architecture", "bmad_cis_brainstorming", "bmad_tea_test_design",
-                "bmad_bmb_create_agent", "bmad_party_mode", "bmad_list_workflows",
-                "bmad_list_agents", "bmad_index_docs", "bmad_status"
+                "bmad_help",
+                "bmad_bmm_create_prd",
+                "bmad_bmm_create_story",
+                "bmad_bmm_sprint_planning",
+                "bmad_bmm_dev_story",
+                "bmad_bmm_code_review",
+                "bmad_gds_create_game_brief",
+                "bmad_gds_game_architecture",
+                "bmad_cis_brainstorming",
+                "bmad_tea_test_design",
+                "bmad_bmb_create_agent",
+                "bmad_party_mode",
+                "bmad_list_workflows",
+                "bmad_list_agents",
+                "bmad_index_docs",
+                "bmad_status"
             ]
         },
         {
@@ -92,8 +155,12 @@
             "description": "Universe node tools",
             "path": "mcp/surreal_server.py",
             "tools": [
-                "query_nodes", "store_node", "search_similar",
-                "store_learning", "query_learnings", "sync_key_learnings"
+                "query_nodes",
+                "store_node",
+                "search_similar",
+                "store_learning",
+                "query_learnings",
+                "sync_key_learnings"
             ]
         },
         {
@@ -143,8 +210,8 @@
             "description": "Agent XP and achievements system",
             "path": "mcp/servers/rewards/server.py",
             "tools": [
-                "get_reward_status",
-                "get_leaderboard"
+                "get_leaderboard",
+                "get_reward_status"
             ]
         },
         {
@@ -175,11 +242,12 @@
             "description": "GitHub API integration",
             "path": "mcp/servers/github/server.py",
             "tools": [
-                "github_search_repos",
-                "github_get_repo",
                 "github_create_issue",
+                "github_create_issue_comment",
+                "github_get_repo",
+                "github_get_user",
                 "github_list_issues",
-                "github_get_user"
+                "github_search_repos"
             ]
         },
         {
@@ -188,12 +256,21 @@
             "description": "Hugging Face Hub access",
             "path": "mcp/servers/huggingface/server.py",
             "tools": [
-                "hf_search_models",
                 "hf_get_model_info",
-                "hf_search_datasets",
-                "hf_search_spaces",
+                "hf_get_readme",
                 "hf_inference",
-                "hf_get_readme"
+                "hf_search_datasets",
+                "hf_search_models",
+                "hf_search_spaces"
+            ]
+        },
+        {
+            "name": "cohezion-agentskills",
+            "type": "execution",
+            "description": "External AgentSkills framework integration",
+            "path": "mcp/agentskills_bridge.py",
+            "tools": [
+                "agentskills_execute"
             ]
         }
     ],

@@ -46,25 +46,25 @@ def analyze_patterns(data: list[dict]) -> dict[str, Any]:
         "improvements": [],
         "techniques": defaultdict(lambda: {"kept": 0, "discarded": 0, "total_ms": 0.0}),
     }
-    
+
     for entry in data:
         if entry.get("type") == "config":
             results["sessions"].add(entry.get("name", "unknown"))
             continue
-            
+
         results["total_experiments"] += 1
         status = entry.get("status", "unknown")
-        
+
         if status == "keep":
             results["kept"].append(entry)
         elif status == "discard":
             results["discarded"].append(entry)
         elif status == "crash":
             results["crashed"].append(entry)
-        
+
         # Extract technique from description
         desc = entry.get("description", "").lower()
-        
+
         # Categorize by technique
         if "parallel" in desc or "asyncio" in desc:
             results["techniques"]["parallel_execution"][status] += 1
@@ -76,12 +76,12 @@ def analyze_patterns(data: list[dict]) -> dict[str, Any]:
             results["techniques"]["object_optimization"][status] += 1
         if "defer" in desc or "lazy" in desc:
             results["techniques"]["deferred_execution"][status] += 1
-        
+
         # Track metrics
         metric = entry.get("metric", 0)
         if metric > 0:
             results["techniques"]["overall"]["total_ms"] += metric * 1000
-    
+
     return results
 
 
@@ -90,17 +90,19 @@ def generate_report(results: dict) -> str:
     report = "# Autoresearch Pattern Analysis\n\n"
     report += f"**Sessions**: {len(results['sessions'])}\n\n"
     report += f"**Total Experiments**: {results['total_experiments']}\n\n"
-    
+
     # Summary
     kept = len(results["kept"])
     discarded = len(results["discarded"])
     crashed = len(results["crashed"])
-    
+
     report += "## Outcomes\n\n"
-    report += f"- **Kept**: {kept} ({kept/results['total_experiments']*100:.1f}%)\n"
-    report += f"- **Discarded**: {discarded} ({discarded/results['total_experiments']*100:.1f}%)\n"
-    report += f"- **Crashed**: {crashed} ({crashed/results['total_experiments']*100:.1f}%)\n\n"
-    
+    report += f"- **Kept**: {kept} ({kept / results['total_experiments'] * 100:.1f}%)\n"
+    report += (
+        f"- **Discarded**: {discarded} ({discarded / results['total_experiments'] * 100:.1f}%)\n"
+    )
+    report += f"- **Crashed**: {crashed} ({crashed / results['total_experiments'] * 100:.1f}%)\n\n"
+
     # Technique analysis
     report += "## Technique Effectiveness\n\n"
     for technique, stats in sorted(results["techniques"].items()):
@@ -113,7 +115,7 @@ def generate_report(results: dict) -> str:
         report += f"### {technique.replace('_', ' ').title()}\n"
         report += f"- Success rate: {success_rate:.1f}% ({stats['kept']}/{total})\n"
         report += f"- Kept: {stats['kept']}, Discarded: {stats['discarded']}\n\n"
-    
+
     # Top winners
     report += "## Winning Optimizations\n\n"
     for entry in sorted(results["kept"], key=lambda x: x.get("metric", 0))[:5]:
@@ -122,7 +124,7 @@ def generate_report(results: dict) -> str:
         desc = entry.get("description", "No description")
         commit = entry.get("commit", "unknown")[:8]
         report += f"- **Run {run}** ({commit}): {metric:.4f}s - {desc}\n"
-    
+
     # Lessons from failures
     report += "\n## Failed Approaches (Avoid These)\n\n"
     for entry in results["discarded"][:5]:
@@ -132,7 +134,7 @@ def generate_report(results: dict) -> str:
         rollback = asi.get("rollback_reason", "No reason given")
         report += f"- **Run {run}**: {desc}\n"
         report += f"  - Why: {rollback}\n"
-    
+
     return report
 
 
@@ -142,16 +144,16 @@ def main():
     if not autoresearch_path.exists():
         print(f"No autoresearch.jsonl found at {autoresearch_path}")
         sys.exit(1)
-    
+
     data = load_autoresearch_data(autoresearch_path)
     results = analyze_patterns(data)
     report = generate_report(results)
-    
+
     # Save report
     output_path = Path("docs/analysis/autoresearch_patterns.md")
     output_path.parent.mkdir(parents=True, exist_ok=True)
     output_path.write_text(report)
-    
+
     print(f"Report saved to {output_path}")
     print(report)
 

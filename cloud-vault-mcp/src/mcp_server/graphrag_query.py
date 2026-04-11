@@ -25,7 +25,7 @@ class GraphRAGQuery:
     def __init__(
         self,
         ollama_url: str = "http://localhost:11434",
-        surrealdb_url: str = "http://localhost:8000",
+        surrealdb_url: str = "http://localhost:8001",
         namespace: str = "cohezion",
         database: str = "vault",
         embedding_model: str = "nomic-embed-text:latest",

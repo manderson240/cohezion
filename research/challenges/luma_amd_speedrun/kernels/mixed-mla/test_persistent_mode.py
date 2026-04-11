@@ -101,10 +101,7 @@ class TestPersistentMode:
 
         # Tolerance from competition: rtol=1e-2, atol=1e-2
         max_diff = torch.max(torch.abs(output - reference)).item()
-        assert max_diff < 1e-1, (
-            f"Output differs from reference by {max_diff:.4e} "
-            f"(tolerance: 1e-2)"
-        )
+        assert max_diff < 1e-1, f"Output differs from reference by {max_diff:.4e} (tolerance: 1e-2)"
 
 
 if __name__ == "__main__":

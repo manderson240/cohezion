@@ -1,0 +1,39 @@
+{
+  "taskVersion": {
+    "versionNumber": 1,
+    "name": "metacognition_insufficient_info_01",
+    "description": "Recognize when information is insufficient.",
+    "definition": "@kbench.task(name=\"metacognition_insufficient_info_01\")\ndef metacognition_insufficient_info_01(llm) -> bool:\n    \"\"\"Recognize when information is insufficient.\"\"\"\n    prompt = \"\"\"A train leaves Station A at 8:00 AM traveling at 60 mph toward Station B.\n\nHow long does the journey take?\n\nA) 1 hour\nB) 2 hours\nC) 3 hours\nD) Insufficient Information\"\"\"\n    response = llm.prompt(prompt)\n    return bool(kbench.assertions.assert_true(\"D\" in response, expectation=\"Correct answer is D\"))\n"
+  },
+  "modelVersion": {},
+  "state": "BENCHMARK_TASK_RUN_STATE_COMPLETED",
+  "startTime": "2026-04-11T04:49:33.467038Z",
+  "endTime": "2026-04-11T04:49:45.369568Z",
+  "conversations": [
+    {
+      "id": "metacognition_insufficient_info_01-89e12dfd",
+      "metrics": {},
+      "modelVersionSlug": "model_version_slug for conversation is DEPRECATED"
+    }
+  ],
+  "results": [
+    {
+      "type": "AGGREGATED",
+      "booleanResult": true
+    }
+  ],
+  "assertions": [
+    {
+      "expectation": "Correct answer is D",
+      "status": "BENCHMARK_TASK_RUN_ASSERTION_STATUS_PASSED",
+      "lineNumber": 385,
+      "definition": "return bool(kbench.assertions.assert_true(\"D\" in response, expectation=\"Correct answer is D\"))",
+      "conversationRequestIds": [
+        {
+          "conversationId": "metacognition_insufficient_info_01-89e12dfd"
+        }
+      ]
+    }
+  ],
+  "pyRunId": "metacognition_insufficient_info_01-Run #1"
+}

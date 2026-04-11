@@ -161,6 +161,14 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
         self._model_quality_classifier = model_quality_classifier
         self._retrospection_engine = retrospection_engine
         self._universe_bridge = universe_bridge
+        self._drr_generator = None
+        self._drr_session_id = ""
+        try:
+            from cohezion.compound.design_review_report import DRRGenerator
+
+            self._drr_generator = DRRGenerator()
+        except ImportError:
+            pass
         if skill_health_tracker:
             self._skill_health_tracker = skill_health_tracker
         else:
@@ -190,6 +198,12 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
         # Initialize context manager automatically
         self.__init_context__()
         self._context_loaded = False
+
+        # Context policy for adaptive breadth/depth
+        from cohezion.compound.context_policy import ContextPolicy
+
+        self._context_policy = ContextPolicy(vault_logger=self.logger)
+        self.set_context_policy(self._context_policy)
 
     @property
     def guardrail_pipeline(self) -> GuardrailPipeline | None:
@@ -483,6 +497,16 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
             except Exception as e:
                 logger.debug("Universe bridge start failed (non-blocking): %s", e)
 
+        # Step 0.5: Classify task and apply context policy (adaptive breadth/depth)
+        _task_profile = None
+        _context_budget = None
+        try:
+            _context_budget = self.apply_policy(task_description, operation_type)
+            if _context_budget is not None:
+                _task_profile = self._context_policy.classify_task(task_description, operation_type)
+        except Exception as e:
+            logger.debug("Context policy classification failed (non-blocking): %s", e)
+
         # Step 1: Get experience guidance (enhanced with trajectory search)
         guidance = self.get_experience_guidance(task_description, project, operation_type)
         logger.debug("Experience guidance: %s", guidance)
@@ -537,6 +561,19 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
                 logger.debug(
                     "Request alignment parsing failed (non-blocking): %s", e, exc_info=True
                 )
+
+        # Step 1.7: Reactive context adjustment (Tier 1 — critical signals only)
+        if _context_budget is not None and self._context_policy:
+            try:
+                from cohezion.compound.context_policy import ContextSignals
+
+                signals = ContextSignals(
+                    coherence_state=self._context_manager.coherence_state,
+                    token_usage=self._context_manager.token_usage,
+                )
+                _context_budget = self._context_policy.adjust_immediate(_context_budget, signals)
+            except Exception as e:
+                logger.debug("Context policy adjustment failed (non-blocking): %s", e)
 
         # Step 2: Log execution start
         experiment_path = self.logger.log_execution_start(ctx)
@@ -761,6 +798,25 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
             cohesion_components.append(alignment_data.get("intent_match", 0.5))
         metrics["coherence"] = sum(cohesion_components) / len(cohesion_components)
 
+        # Step 5.85: V-Model DRR gate (non-blocking)
+        if self._drr_generator:
+            try:
+                from cohezion.compound.design_review_report import GateLevel
+
+                drr = self._drr_generator.generate(
+                    gate=GateLevel.IMPLEMENTATION,
+                    session_id=self._drr_session_id or "unknown",
+                    left_artifact=skill_name or "unknown",
+                    right_artifact=task_description[:100] if task_description else "unknown",
+                )
+                metrics["drr_gate"] = drr.gate.value
+                metrics["drr_passed"] = drr.passed
+                metrics["drr_findings"] = len(drr.findings)
+                if not drr.passed:
+                    logger.warning("DRR-%s FAILED: %s", drr.gate.value, drr.summary)
+            except Exception:
+                logger.debug("DRR gate check failed (non-blocking)", exc_info=True)
+
         # Step 5.9: Natural capital valuation (non-blocking)
         # Maps HIHO proximity to habitat quality via InVEST-inspired model
         try:
@@ -860,7 +916,13 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
                 logger.debug("Retrospection failed (non-blocking): %s", e, exc_info=True)
 
         # Step 7: Refine skills based on execution results (non-blocking)
-        # Gated by retrospection: only refine when quadrature assessment warrants it
+        # Gated by retrospection AND DRR: only refine when both pass
+        drr_passed = metrics.get("drr_passed", True)  # Default True if DRR not run
+        if not drr_passed:
+            should_refine = False
+            logger.info(
+                "Skill refinement blocked: DRR gate failed (%s)", metrics.get("drr_gate", "?")
+            )
         if success and self.skill_refiner and should_refine:
             try:
                 # Create execution result dict for refiner
@@ -1250,6 +1312,18 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
                 asyncio.run(_artifact_coro)
         except Exception as e:
             logger.debug("Prompt artifact persistence failed (non-blocking): %s", e)
+
+        # Step 10.9: Record context policy outcome for cross-session learning
+        if _task_profile is not None and _context_budget is not None:
+            try:
+                self._context_policy.record_outcome(
+                    profile=_task_profile,
+                    budget=_context_budget,
+                    execution_success=success,
+                    coherence_final=metrics.get("coherence", 0.5),
+                )
+            except Exception as e:
+                logger.debug("Context policy outcome recording failed (non-blocking): %s", e)
 
         return ExecutionResult(
             success=success,

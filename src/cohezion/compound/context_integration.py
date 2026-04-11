@@ -9,7 +9,11 @@ from __future__ import annotations
 import json
 import logging
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
+
+
+if TYPE_CHECKING:
+    from cohezion.compound.context_policy import ContextBudget, ContextPolicy
 
 
 logger = logging.getLogger(__name__)
@@ -245,7 +249,8 @@ class CompoundContextMixin:
 
     Integrates unified context system with compound executor pipeline.
     Loads context at initialization and tracks coherence throughout
-    execution lifecycle.
+    execution lifecycle. Supports optional ContextPolicy for adaptive
+    breadth/depth control.
     """
 
     def __init_context__(self, project_root: Path | None = None):
@@ -256,6 +261,49 @@ class CompoundContextMixin:
         """
         self._context_manager = ContextManager(project_root)
         self._context_loaded = False
+        self._active_budget: ContextBudget | None = None
+        self._context_policy: ContextPolicy | None = None
+
+    def set_context_policy(self, policy: ContextPolicy) -> None:
+        """Attach a ContextPolicy for adaptive context control.
+
+        Args:
+            policy: ContextPolicy instance
+        """
+        self._context_policy = policy
+
+    def apply_policy(
+        self,
+        task_description: str,
+        operation_type: str,
+        template_similarity: float = 0.0,
+        drift_risk: float = 0.0,
+    ) -> ContextBudget | None:
+        """Classify task and set active context budget.
+
+        Args:
+            task_description: What the task does
+            operation_type: Operation type
+            template_similarity: Template match score (0-1)
+            drift_risk: Drift risk score (0-1)
+
+        Returns:
+            Active ContextBudget, or None if no policy attached
+        """
+        if self._context_policy is None:
+            return None
+
+        profile = self._context_policy.classify_task(
+            task_description, operation_type, template_similarity, drift_risk
+        )
+        self._active_budget = self._context_policy.get_budget(profile)
+        logger.info(
+            "Context policy applied: profile=%s, top_k=%d, tokens=%d",
+            profile.value,
+            self._active_budget.flux_top_k,
+            self._active_budget.token_budget,
+        )
+        return self._active_budget
 
     def load_execution_context(self) -> None:
         """Load core context before execution.
@@ -277,21 +325,34 @@ class CompoundContextMixin:
     def load_skill_overlay(self, skill_name: str) -> dict[str, Any] | None:
         """Load skill-specific context overlay.
 
+        Skipped if active budget has skill_overlay=False.
+
         Args:
             skill_name: Name of the skill
 
         Returns:
             Skill context configuration or None
         """
+        if self._active_budget is not None and not self._active_budget.skill_overlay:
+            logger.debug("Skill overlay skipped by context policy (budget.skill_overlay=False)")
+            return None
         return self._context_manager.load_skill_context(skill_name)
 
     def get_context_state(self) -> dict[str, Any]:
         """Get current context state for metrics/tracking.
 
         Returns:
-            Context state dictionary
+            Context state dictionary including active budget if set
         """
-        return self._context_manager.get_context_summary()
+        summary = self._context_manager.get_context_summary()
+        if self._active_budget is not None:
+            summary["active_budget"] = {
+                "flux_top_k": self._active_budget.flux_top_k,
+                "flux_min_relevance": self._active_budget.flux_min_relevance,
+                "token_budget": self._active_budget.token_budget,
+                "skill_overlay": self._active_budget.skill_overlay,
+            }
+        return summary
 
     def check_context_coherence(self, threshold: float = 0.5) -> bool:
         """Check context coherence (HIHO threshold).

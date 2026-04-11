@@ -20,7 +20,7 @@ NUM_HEADS = 16
 NUM_KV_HEADS = 1
 QK_HEAD_DIM = 576
 V_HEAD_DIM = 512
-SM_SCALE = 1.0 / (QK_HEAD_DIM ** 0.5)
+SM_SCALE = 1.0 / (QK_HEAD_DIM**0.5)
 PAGE_SIZE = 1
 FP8_DTYPE = aiter_dtypes.fp8
 
@@ -56,23 +56,48 @@ def _get_metadata(bs, qseqlen, q_dtype, kv_dtype, qo_indptr, kv_indptr, num_kv_s
     kv_indices = torch.arange(total_kv, dtype=torch.int32, device="cuda")
 
     info = get_mla_metadata_info_v1(
-        bs, qseqlen, NUM_HEADS, q_dtype, kv_dtype,
-        is_sparse=False, fast_mode=False,
-        num_kv_splits=num_kv_splits, intra_batch_mode=True,
+        bs,
+        qseqlen,
+        NUM_HEADS,
+        q_dtype,
+        kv_dtype,
+        is_sparse=False,
+        fast_mode=False,
+        num_kv_splits=num_kv_splits,
+        intra_batch_mode=True,
     )
     work = [torch.empty(s, dtype=t, device="cuda") for s, t in info]
-    (work_metadata, work_indptr, work_info_set,
-     reduce_indptr, reduce_final_map, reduce_partial_map) = work
+    (
+        work_metadata,
+        work_indptr,
+        work_info_set,
+        reduce_indptr,
+        reduce_final_map,
+        reduce_partial_map,
+    ) = work
 
     get_mla_metadata_v1(
-        qo_indptr, kv_indptr, kv_last_page_len,
-        NUM_HEADS // NUM_KV_HEADS, NUM_KV_HEADS, True,
-        work_metadata, work_info_set, work_indptr,
-        reduce_indptr, reduce_final_map, reduce_partial_map,
-        page_size=PAGE_SIZE, kv_granularity=max(PAGE_SIZE, 16),
-        max_seqlen_qo=qseqlen, uni_seqlen_qo=qseqlen,
-        fast_mode=False, max_split_per_batch=num_kv_splits,
-        intra_batch_mode=True, dtype_q=q_dtype, dtype_kv=kv_dtype,
+        qo_indptr,
+        kv_indptr,
+        kv_last_page_len,
+        NUM_HEADS // NUM_KV_HEADS,
+        NUM_KV_HEADS,
+        True,
+        work_metadata,
+        work_info_set,
+        work_indptr,
+        reduce_indptr,
+        reduce_final_map,
+        reduce_partial_map,
+        page_size=PAGE_SIZE,
+        kv_granularity=max(PAGE_SIZE, 16),
+        max_seqlen_qo=qseqlen,
+        uni_seqlen_qo=qseqlen,
+        fast_mode=False,
+        max_split_per_batch=num_kv_splits,
+        intra_batch_mode=True,
+        dtype_q=q_dtype,
+        dtype_kv=kv_dtype,
     )
 
     # Pre-allocate output
@@ -111,17 +136,25 @@ def custom_kernel(data: input_t) -> output_t:
     kv_4d = kv_fp8.view(kv_fp8.shape[0], PAGE_SIZE, NUM_KV_HEADS, QK_HEAD_DIM)
 
     meta = _get_metadata(
-        bs, qseqlen, q_fp8.dtype, kv_fp8.dtype,
-        qo_indptr, kv_indptr, num_kv_splits,
+        bs,
+        qseqlen,
+        q_fp8.dtype,
+        kv_fp8.dtype,
+        qo_indptr,
+        kv_indptr,
+        num_kv_splits,
     )
 
     o = meta["output"]
 
     mla_decode_fwd(
         q_fp8.view(-1, NUM_HEADS, QK_HEAD_DIM),
-        kv_4d, o,
-        qo_indptr, kv_indptr,
-        meta["kv_indices"], meta["kv_last_page_len"],
+        kv_4d,
+        o,
+        qo_indptr,
+        kv_indptr,
+        meta["kv_indices"],
+        meta["kv_last_page_len"],
         qseqlen,
         page_size=PAGE_SIZE,
         nhead_kv=NUM_KV_HEADS,
@@ -131,7 +164,6 @@ def custom_kernel(data: input_t) -> output_t:
         q_scale=q_scale,
         kv_scale=kv_scale,
         intra_batch_mode=True,
-        **{k: v for k, v in meta.items()
-           if k not in ("kv_indices", "kv_last_page_len", "output")},
+        **{k: v for k, v in meta.items() if k not in ("kv_indices", "kv_last_page_len", "output")},
     )
     return o

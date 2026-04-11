@@ -4,6 +4,7 @@
 """Probe: Read the E8M0 scale computation from aiter's Triton kernel."""
 
 import os
+
 os.environ["PYTORCH_ROCM_ARCH"] = "gfx950"
 os.environ["CXX"] = "clang++"
 
@@ -23,22 +24,41 @@ def custom_kernel(data: input_t) -> output_t:
         src = f.read()
 
     # Search for scale-related code
-    lines = src.split('\n')
+    lines = src.split("\n")
     for i, line in enumerate(lines):
         lo = line.lower()
-        if any(kw in lo for kw in ['e8m0', 'scale', 'shared_exp', 'amax', 'clamp', 'log2',
-                                      'biased', 'floor', 'ceil', 'ilogb', 'frexp',
-                                      'max_norm', 'fp4', 'clz', 'lzcnt']):
+        if any(
+            kw in lo
+            for kw in [
+                "e8m0",
+                "scale",
+                "shared_exp",
+                "amax",
+                "clamp",
+                "log2",
+                "biased",
+                "floor",
+                "ceil",
+                "ilogb",
+                "frexp",
+                "max_norm",
+                "fp4",
+                "clz",
+                "lzcnt",
+            ]
+        ):
             # Print context: 2 lines before, the line, 2 lines after
-            start = max(0, i-1)
-            end = min(len(lines), i+2)
+            start = max(0, i - 1)
+            end = min(len(lines), i + 2)
             for j in range(start, end):
-                print(f"L{j+1}: {lines[j]}")
+                print(f"L{j + 1}: {lines[j]}")
             print("---")
 
     # Do the actual GEMM
     import aiter
+
     Aq, Asc = dynamic_mxfp4_quant(A.contiguous())
     Ash = e8m0_shuffle(Asc).view(dtypes.fp8_e8m0)
-    return aiter.gemm_a4w4(Aq.view(dtypes.fp4x2), B_shuffle, Ash, B_scale_sh,
-                           dtype=dtypes.bf16, bpreshuffle=True)
+    return aiter.gemm_a4w4(
+        Aq.view(dtypes.fp4x2), B_shuffle, Ash, B_scale_sh, dtype=dtypes.bf16, bpreshuffle=True
+    )

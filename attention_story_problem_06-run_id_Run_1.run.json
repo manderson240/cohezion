@@ -1,0 +1,39 @@
+{
+  "taskVersion": {
+    "versionNumber": 1,
+    "name": "attention_story_problem_06",
+    "description": "Extract math from story problem.",
+    "definition": "@kbench.task(name=\"attention_story_problem_06\")\ndef attention_story_problem_06(llm) -> bool:\n    \"\"\"Extract math from story problem.\"\"\"\n    prompt = \"\"\"Sarah went to the store. She bought 3 apples for $2 each. On her way home, she met John who gave her $5. She then bought a book for $12. How much did Sarah spend on apples?\n\nA) $6\nB) $17\nC) $19\nD) $23\"\"\"\n    response = llm.prompt(prompt)\n    return bool(kbench.assertions.assert_true(\"A\" in response, expectation=\"Correct answer is A\"))\n"
+  },
+  "modelVersion": {},
+  "state": "BENCHMARK_TASK_RUN_STATE_COMPLETED",
+  "startTime": "2026-04-11T04:55:23.348169Z",
+  "endTime": "2026-04-11T04:55:32.200743Z",
+  "conversations": [
+    {
+      "id": "attention_story_problem_06-db736b06",
+      "metrics": {},
+      "modelVersionSlug": "model_version_slug for conversation is DEPRECATED"
+    }
+  ],
+  "results": [
+    {
+      "type": "AGGREGATED",
+      "booleanResult": true
+    }
+  ],
+  "assertions": [
+    {
+      "expectation": "Correct answer is A",
+      "status": "BENCHMARK_TASK_RUN_ASSERTION_STATUS_PASSED",
+      "lineNumber": 703,
+      "definition": "return bool(kbench.assertions.assert_true(\"A\" in response, expectation=\"Correct answer is A\"))",
+      "conversationRequestIds": [
+        {
+          "conversationId": "attention_story_problem_06-db736b06"
+        }
+      ]
+    }
+  ],
+  "pyRunId": "attention_story_problem_06-Run #1"
+}

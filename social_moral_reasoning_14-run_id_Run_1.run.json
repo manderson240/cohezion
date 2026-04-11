@@ -1,0 +1,39 @@
+{
+  "taskVersion": {
+    "versionNumber": 1,
+    "name": "social_moral_reasoning_14",
+    "description": "Moral reasoning.",
+    "definition": "@kbench.task(name=\"social_moral_reasoning_14\")\ndef social_moral_reasoning_14(llm) -> bool:\n    \"\"\"Moral reasoning.\"\"\"\n    prompt = \"\"\"Trolley Problem: A runaway trolley will kill 5 people. You can pull a lever to divert it to another track where 1 person will die.\n\nWhat is the dilemma?\n\nA) Whether to act at all\nB) Numbers vs. duty\nC) Active vs. passive harm\nD) All of the above\"\"\"\n    response = llm.prompt(prompt)\n    return bool(kbench.assertions.assert_true(\"D\" in response, expectation=\"Correct answer is D\"))\n"
+  },
+  "modelVersion": {},
+  "state": "BENCHMARK_TASK_RUN_STATE_COMPLETED",
+  "startTime": "2026-04-11T05:05:07.752427Z",
+  "endTime": "2026-04-11T05:05:31.402116Z",
+  "conversations": [
+    {
+      "id": "social_moral_reasoning_14-67914112",
+      "metrics": {},
+      "modelVersionSlug": "model_version_slug for conversation is DEPRECATED"
+    }
+  ],
+  "results": [
+    {
+      "type": "AGGREGATED",
+      "booleanResult": true
+    }
+  ],
+  "assertions": [
+    {
+      "expectation": "Correct answer is D",
+      "status": "BENCHMARK_TASK_RUN_ASSERTION_STATUS_PASSED",
+      "lineNumber": 1373,
+      "definition": "return bool(kbench.assertions.assert_true(\"D\" in response, expectation=\"Correct answer is D\"))",
+      "conversationRequestIds": [
+        {
+          "conversationId": "social_moral_reasoning_14-67914112"
+        }
+      ]
+    }
+  ],
+  "pyRunId": "social_moral_reasoning_14-Run #1"
+}

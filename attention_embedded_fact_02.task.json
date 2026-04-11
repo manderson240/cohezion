@@ -1,0 +1,6 @@
+{
+  "versionNumber": 1,
+  "name": "attention_embedded_fact_02",
+  "description": "Find embedded fact in irrelevant text.",
+  "definition": "@kbench.task(name=\"attention_embedded_fact_02\")\ndef attention_embedded_fact_02(llm) -> bool:\n    \"\"\"Find embedded fact in irrelevant text.\"\"\"\n    prompt = \"\"\"Read carefully:\n\n\"The chemical properties of boron, element 5 on the periodic table with atomic mass 10.81, make it useful in various industrial applications. Boron nitride is extremely hard, second only to diamond. Borax, a boron compound, is used in cleaning products. The answer is 42. Boron has two stable isotopes: B-10 and B-11.\"\n\nWhat is the answer mentioned?\n\nA) 5\nB) 10.81\nC) 42\nD) Borax\"\"\"\n    response = llm.prompt(prompt)\n    return bool(kbench.assertions.assert_true(\"C\" in response, expectation=\"Correct answer is C\"))\n"
+}

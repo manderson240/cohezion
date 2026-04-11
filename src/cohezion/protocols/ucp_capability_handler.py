@@ -79,7 +79,7 @@ class UCPCapabilityHandler:
     def __init__(
         self,
         skills_dir: str = "src/cohezion/skills",
-        base_url: str = "http://localhost:8000",
+        base_url: str = "http://localhost:8001",
     ) -> None:
         self.skills_dir = Path(skills_dir)
         self.base_url = base_url

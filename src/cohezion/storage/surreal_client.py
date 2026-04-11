@@ -25,7 +25,7 @@ class SurrealDBClient:
     endpoint: str
     connected: bool
 
-    def __init__(self, endpoint: str = "ws://localhost:8000/rpc") -> None:
+    def __init__(self, endpoint: str = "ws://localhost:8001/rpc") -> None:
         self.endpoint = endpoint
         self.connected = False
 

@@ -3,6 +3,7 @@
 Wraps popcorn-cli subprocess calls with structured output parsing.
 Handles test/benchmark/leaderboard modes, timeouts, and rate limiting.
 """
+
 from __future__ import annotations
 
 import logging
@@ -36,6 +37,7 @@ MODE_TIMEOUTS: dict[str, int] = {
 @dataclass
 class SubmitResult:
     """Structured result from a popcorn-cli submission."""
+
     passed: bool
     score: float  # geomean µs for benchmark, 0.0 for test-only
     mode: str
@@ -75,17 +77,26 @@ def submit(
     submission_path = Path(submission_path)
     if not submission_path.exists():
         return SubmitResult(
-            passed=False, score=0.0, mode=mode, kernel=kernel,
-            stderr="", stdout="", error=f"File not found: {submission_path}",
+            passed=False,
+            score=0.0,
+            mode=mode,
+            kernel=kernel,
+            stderr="",
+            stdout="",
+            error=f"File not found: {submission_path}",
             elapsed_s=0.0,
         )
 
     cmd = [
-        str(POPCORN_CLI), "submit",
+        str(POPCORN_CLI),
+        "submit",
         "--no-tui",
-        "--mode", mode,
-        "--gpu", "MI355X",
-        "--leaderboard", leaderboard,
+        "--mode",
+        mode,
+        "--gpu",
+        "MI355X",
+        "--leaderboard",
+        leaderboard,
         str(submission_path),
     ]
 
@@ -107,14 +118,23 @@ def submit(
     except subprocess.TimeoutExpired:
         elapsed = time.monotonic() - start
         return SubmitResult(
-            passed=False, score=0.0, mode=mode, kernel=kernel,
-            stderr="", stdout="", error=f"Timeout after {timeout}s",
+            passed=False,
+            score=0.0,
+            mode=mode,
+            kernel=kernel,
+            stderr="",
+            stdout="",
+            error=f"Timeout after {timeout}s",
             elapsed_s=elapsed,
         )
     except FileNotFoundError:
         return SubmitResult(
-            passed=False, score=0.0, mode=mode, kernel=kernel,
-            stderr="", stdout="",
+            passed=False,
+            score=0.0,
+            mode=mode,
+            kernel=kernel,
+            stderr="",
+            stdout="",
             error=f"popcorn-cli not found at {POPCORN_CLI}",
             elapsed_s=0.0,
         )
@@ -124,8 +144,13 @@ def submit(
     error = _parse_error(stdout, stderr, proc.returncode)
 
     return SubmitResult(
-        passed=passed, score=score, mode=mode, kernel=kernel,
-        stderr=stderr, stdout=stdout, error=error,
+        passed=passed,
+        score=score,
+        mode=mode,
+        kernel=kernel,
+        stderr=stderr,
+        stdout=stdout,
+        error=error,
         elapsed_s=elapsed,
     )
 

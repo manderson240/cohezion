@@ -14,6 +14,7 @@ from enum import Enum
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
+import aiofiles
 
 if TYPE_CHECKING:
     from cohezion.swarm.token_client import TokenEfficientClient
@@ -310,8 +311,8 @@ class DemocraticDebate:
 
         # Save session
         session_file = self.output_dir / f"{session_id}.json"
-        with open(session_file, "w") as f:
-            json.dump(session.to_dict(), f, indent=2, default=str)
+        async with aiofiles.open(session_file, "w") as f:
+            await f.write(json.dumps(session.to_dict(), indent=2, default=str))
 
         logger.info(f"Debate session saved to {session_file}")
         return session

@@ -17,8 +17,19 @@ class TestFromTeamPlan:
                 AgentSpec(name="writer", description="writes summary"),
             ],
             tasks=[
-                TaskSpec(id="t1", subject="Find papers", description="Search arxiv", assigned_to="researcher"),
-                TaskSpec(id="t2", subject="Write summary", description="Summarize", assigned_to="writer", blocked_by=["t1"]),
+                TaskSpec(
+                    id="t1",
+                    subject="Find papers",
+                    description="Search arxiv",
+                    assigned_to="researcher",
+                ),
+                TaskSpec(
+                    id="t2",
+                    subject="Write summary",
+                    description="Summarize",
+                    assigned_to="writer",
+                    blocked_by=["t1"],
+                ),
             ],
         )
         builder = WorkflowBuilder()

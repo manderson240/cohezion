@@ -6,7 +6,7 @@ paths:
 
 # Persistence & Database Rules
 
-- SurrealDB connection: `ws://localhost:8000/rpc`, namespace `cohezion`, database `core`
+- SurrealDB connection: `ws://localhost:8001/rpc`, namespace `cohezion`, database `genesis`
 - Use `cohezion.core.persistence.surreal_client` as the single entry point — do not create ad-hoc websocket connections
 - All DB operations must use `get_circuit()` circuit breaker from `cohezion.reliability`
 - Repository pattern: abstract repos in `repositories/` with Surreal-specific implementations prefixed `surreal_`

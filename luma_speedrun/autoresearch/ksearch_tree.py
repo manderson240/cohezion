@@ -84,7 +84,6 @@ class KNode:
 
 
 class KSearchTree:
-
     def __init__(self, kernel_type: str) -> None:
         if kernel_type not in KERNEL_BASE_K:
             raise ValueError(
@@ -137,6 +136,7 @@ class KSearchTree:
         if not open_nodes:
             raise ValueError("No OPEN nodes in tree")
         return max(open_nodes, key=lambda n: n.v_score)
+
     _STAGNATION_WINDOW = 5
     _STAGNATION_DELTA = 0.02
 
@@ -211,11 +211,7 @@ class KSearchTree:
 
     def get_cross_kernel_failures(self) -> list[str]:
         """Return strategies of DIVERGED nodes (share with other kernels)."""
-        return [
-            n.strategy
-            for n in self.nodes.values()
-            if n.status == NodeStatus.DIVERGED
-        ]
+        return [n.strategy for n in self.nodes.values() if n.status == NodeStatus.DIVERGED]
 
     def get_cross_kernel_successes(self) -> list[dict[str, Any]]:
         """Return strategies whose best score exceeds 0.8."""
@@ -267,6 +263,7 @@ class KSearchTree:
                 f"K={self.adaptive_k(n)}"
             )
         return "\n".join(lines)
+
 
 if __name__ == "__main__":
     tree = KSearchTree("moe")

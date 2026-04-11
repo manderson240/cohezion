@@ -9,12 +9,13 @@ sys.path.append(os.path.join(os.getcwd(), "src"))
 
 from cohezion.core.persistence.surreal_client import SurrealClient
 
+
 async def record():
     # Use port 8001
     db = SurrealClient(url="ws://localhost:8001/rpc", namespace="cohezion", database="universe")
     print("Connecting to SurrealDB...")
     await db.connect()
-    
+
     try:
         journey_id = f"journey_reboot_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
         data = {
@@ -28,21 +29,22 @@ async def record():
                 "session_breakthroughs": [
                     "PTXAS fix",
                     "Teacher distillation integrated",
-                    "AST model pre-loading"
-                ]
+                    "AST model pre-loading",
+                ],
             },
-            "summary": "Pre-reboot state preservation. Nemotron v26 is running. AGI and BirdCLEF baselines stabilized."
+            "summary": "Pre-reboot state preservation. Nemotron v26 is running. AGI and BirdCLEF baselines stabilized.",
         }
-        
+
         # Insert record into agent_journeys
         # Since I previously saw the table doesn't exist in some DBs, I'll ensure it's created
         res = await db.query(f"CREATE agent_journeys CONTENT {json.dumps(data)};")
         print(f"Recorded status in SurrealDB: {res}")
-        
+
     except Exception as e:
         print(f"Error recording status: {e}")
     finally:
         await db.close()
+
 
 if __name__ == "__main__":
     asyncio.run(record())

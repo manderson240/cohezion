@@ -29,21 +29,34 @@ if os.path.exists(_codegen_path):
     print(f"PROBE: codegen.py has {len(lines)} lines", file=sys.stderr)
     # Find hipModuleLaunchKernel or launch-related code
     for i, line in enumerate(lines):
-        if any(kw in line.lower() for kw in [
-            "hipmodulelaunchkernel", "launch", "gridsize", "blocksize",
-            "args", "kernel_args", "hip.launch", "hipModuleLaunch",
-            "launch_kernel", "grid_dim", "block_dim", "shared_mem",
-        ]):
+        if any(
+            kw in line.lower()
+            for kw in [
+                "hipmodulelaunchkernel",
+                "launch",
+                "gridsize",
+                "blocksize",
+                "args",
+                "kernel_args",
+                "hip.launch",
+                "hipModuleLaunch",
+                "launch_kernel",
+                "grid_dim",
+                "block_dim",
+                "shared_mem",
+            ]
+        ):
             start = max(0, i - 3)
             end = min(len(lines), i + 5)
-            print(f"PROBE codegen.py [{start+1}-{end}]:", file=sys.stderr)
+            print(f"PROBE codegen.py [{start + 1}-{end}]:", file=sys.stderr)
             for j in range(start, end):
-                print(f"  {j+1}: {lines[j]}", file=sys.stderr)
+                print(f"  {j + 1}: {lines[j]}", file=sys.stderr)
             print("", file=sys.stderr)
 
 # ── Probe: Read the mla_asm Python wrapper source ──
 try:
     from aiter import mla_decode_stage1_asm_fwd
+
     src = inspect.getsource(mla_decode_stage1_asm_fwd)
     print(f"\nPROBE: mla_decode_stage1_asm_fwd source ({len(src)} chars):", file=sys.stderr)
     print(src[:3000], file=sys.stderr)
@@ -68,16 +81,28 @@ for path in _asm_paths:
         print(f"\nPROBE: {path} has {len(lines)} lines", file=sys.stderr)
         # Print the launch-related sections
         for i, line in enumerate(lines):
-            if any(kw in line.lower() for kw in [
-                "launch", "hipmodule", "args_ptr", "kernel_arg",
-                "grid", "block", "stream", "shared_mem", "c_void_p",
-                "data_ptr", "numel", "stride",
-            ]):
+            if any(
+                kw in line.lower()
+                for kw in [
+                    "launch",
+                    "hipmodule",
+                    "args_ptr",
+                    "kernel_arg",
+                    "grid",
+                    "block",
+                    "stream",
+                    "shared_mem",
+                    "c_void_p",
+                    "data_ptr",
+                    "numel",
+                    "stride",
+                ]
+            ):
                 start = max(0, i - 2)
                 end = min(len(lines), i + 4)
-                print(f"PROBE {os.path.basename(path)} [{start+1}-{end}]:", file=sys.stderr)
+                print(f"PROBE {os.path.basename(path)} [{start + 1}-{end}]:", file=sys.stderr)
                 for j in range(start, end):
-                    print(f"  {j+1}: {lines[j]}", file=sys.stderr)
+                    print(f"  {j + 1}: {lines[j]}", file=sys.stderr)
                 print("", file=sys.stderr)
         break
 
@@ -94,11 +119,13 @@ for pyf in _aiter_py_files:
             print(f"\nPROBE: {pyf} contains launch references", file=sys.stderr)
             lines = content.split("\n")
             for i, line in enumerate(lines):
-                if "launch" in line.lower() and ("kernel" in line.lower() or "module" in line.lower()):
+                if "launch" in line.lower() and (
+                    "kernel" in line.lower() or "module" in line.lower()
+                ):
                     start = max(0, i - 2)
                     end = min(len(lines), i + 8)
                     for j in range(start, end):
-                        print(f"  {j+1}: {lines[j]}", file=sys.stderr)
+                        print(f"  {j + 1}: {lines[j]}", file=sys.stderr)
                     print("", file=sys.stderr)
     except Exception:
         pass
@@ -167,8 +194,14 @@ def _quantize_fp8(tensor: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
 
 
 def _get_cached_metadata(
-    bs, qseqlen, kvseqlen, q_dtype, kv_dtype,
-    qo_indptr, kv_indptr, num_kv_splits,
+    bs,
+    qseqlen,
+    kvseqlen,
+    q_dtype,
+    kv_dtype,
+    qo_indptr,
+    kv_indptr,
+    num_kv_splits,
 ):
     key = (bs, qseqlen, kvseqlen, q_dtype, kv_dtype, num_kv_splits)
     if key in _cache:
@@ -178,29 +211,57 @@ def _get_cached_metadata(
     kv_last_page_len = (kv_indptr[1:] - kv_indptr[:-1]).to(torch.int32)
 
     info = get_mla_metadata_info_v1(
-        bs, qseqlen, nq, q_dtype, kv_dtype,
-        is_sparse=False, fast_mode=False,
-        num_kv_splits=num_kv_splits, intra_batch_mode=True,
+        bs,
+        qseqlen,
+        nq,
+        q_dtype,
+        kv_dtype,
+        is_sparse=False,
+        fast_mode=False,
+        num_kv_splits=num_kv_splits,
+        intra_batch_mode=True,
     )
     work = [torch.empty(s, dtype=t, device="cuda") for s, t in info]
-    work_metadata, work_indptr, work_info_set, reduce_indptr, reduce_final_map, reduce_partial_map = work
+    (
+        work_metadata,
+        work_indptr,
+        work_info_set,
+        reduce_indptr,
+        reduce_final_map,
+        reduce_partial_map,
+    ) = work
 
     get_mla_metadata_v1(
-        qo_indptr, kv_indptr, kv_last_page_len,
-        nq // nkv, nkv, True,
-        work_metadata, work_info_set, work_indptr,
-        reduce_indptr, reduce_final_map, reduce_partial_map,
-        page_size=PAGE_SIZE, kv_granularity=max(PAGE_SIZE, 16),
-        max_seqlen_qo=qseqlen, uni_seqlen_qo=qseqlen,
-        fast_mode=False, max_split_per_batch=num_kv_splits,
-        intra_batch_mode=True, dtype_q=q_dtype, dtype_kv=kv_dtype,
+        qo_indptr,
+        kv_indptr,
+        kv_last_page_len,
+        nq // nkv,
+        nkv,
+        True,
+        work_metadata,
+        work_info_set,
+        work_indptr,
+        reduce_indptr,
+        reduce_final_map,
+        reduce_partial_map,
+        page_size=PAGE_SIZE,
+        kv_granularity=max(PAGE_SIZE, 16),
+        max_seqlen_qo=qseqlen,
+        uni_seqlen_qo=qseqlen,
+        fast_mode=False,
+        max_split_per_batch=num_kv_splits,
+        intra_batch_mode=True,
+        dtype_q=q_dtype,
+        dtype_kv=kv_dtype,
     )
 
     total_kv_len = int(kv_indptr[-1].item())
     kv_indices = torch.arange(total_kv_len, dtype=torch.int32, device="cuda")
 
     total_q = bs * qseqlen
-    logits = torch.empty((num_kv_splits, total_q, nq, V_HEAD_DIM), dtype=torch.float32, device="cuda")
+    logits = torch.empty(
+        (num_kv_splits, total_q, nq, V_HEAD_DIM), dtype=torch.float32, device="cuda"
+    )
     attn_lse = torch.empty((num_kv_splits, total_q, nq), dtype=torch.float32, device="cuda")
     output = torch.empty((total_q, nq, V_HEAD_DIM), dtype=torch.bfloat16, device="cuda")
 
@@ -247,9 +308,14 @@ def custom_kernel(data: input_t) -> output_t:
     kv_4d = kv_buffer_fp8.view(kv_buffer_fp8.shape[0], PAGE_SIZE, NUM_KV_HEADS, QK_HEAD_DIM)
 
     meta = _get_cached_metadata(
-        bs, qseqlen, kvseqlen,
-        q_fp8.dtype, kv_buffer_fp8.dtype,
-        qo_indptr, kv_indptr, num_kv_splits,
+        bs,
+        qseqlen,
+        kvseqlen,
+        q_fp8.dtype,
+        kv_buffer_fp8.dtype,
+        qo_indptr,
+        kv_indptr,
+        num_kv_splits,
     )
 
     output = meta["output"]
@@ -258,19 +324,35 @@ def custom_kernel(data: input_t) -> output_t:
 
     mla_decode_stage1_asm_fwd(
         q_fp8.view(-1, NUM_HEADS, QK_HEAD_DIM),
-        kv_4d, qo_indptr, kv_indptr,
-        meta["kv_indices"], meta["kv_last_page_len"],
+        kv_4d,
+        qo_indptr,
+        kv_indptr,
+        meta["kv_indices"],
+        meta["kv_last_page_len"],
         None,
-        meta["work_meta_data"], meta["work_indptr"], meta["work_info_set"],
-        qseqlen, PAGE_SIZE, NUM_KV_HEADS, SM_SCALE,
-        logits, attn_lse, output,
-        q_scale, kv_scale,
+        meta["work_meta_data"],
+        meta["work_indptr"],
+        meta["work_info_set"],
+        qseqlen,
+        PAGE_SIZE,
+        NUM_KV_HEADS,
+        SM_SCALE,
+        logits,
+        attn_lse,
+        output,
+        q_scale,
+        kv_scale,
     )
 
     mla_reduce_v1(
-        logits, attn_lse,
-        meta["reduce_indptr"], meta["reduce_final_map"], meta["reduce_partial_map"],
-        qseqlen, output, None,
+        logits,
+        attn_lse,
+        meta["reduce_indptr"],
+        meta["reduce_final_map"],
+        meta["reduce_partial_map"],
+        qseqlen,
+        output,
+        None,
     )
 
     return output

@@ -1,0 +1,6 @@
+{
+  "versionNumber": 1,
+  "name": "social_reciprocity_11",
+  "description": "Understand reciprocity norms.",
+  "definition": "@kbench.task(name=\"social_reciprocity_11\")\ndef social_reciprocity_11(llm) -> bool:\n    \"\"\"Understand reciprocity norms.\"\"\"\n    prompt = \"\"\"You give a coworker a ride home. Later, they buy you lunch.\n\nThis demonstrates:\n\nA) Bribery\nB) Reciprocity norm\nC) Random act\nD) Debt obligation\"\"\"\n    response = llm.prompt(prompt)\n    return bool(kbench.assertions.assert_true(\"B\" in response, expectation=\"Correct answer is B\"))\n"
+}

@@ -18,6 +18,7 @@ def custom_kernel(data: input_t) -> output_t:
     # Check for HipKittens
     try:
         import hipkittens
+
         print(f"[HK] hipkittens available! version={getattr(hipkittens, '__version__', '?')}")
         print(f"[HK] dir: {[x for x in dir(hipkittens) if not x.startswith('_')][:20]}")
     except ImportError:
@@ -37,7 +38,9 @@ def custom_kernel(data: input_t) -> output_t:
             print(f"[HK] Files: {files}")
 
     # Check if HK is in aiter's backend
-    hk_in_aiter = [x for x in dir(aiter) if 'hk' in x.lower() or 'kitten' in x.lower() or 'hipk' in x.lower()]
+    hk_in_aiter = [
+        x for x in dir(aiter) if "hk" in x.lower() or "kitten" in x.lower() or "hipk" in x.lower()
+    ]
     if hk_in_aiter:
         print(f"[HK] In aiter: {hk_in_aiter}")
     else:
@@ -46,5 +49,6 @@ def custom_kernel(data: input_t) -> output_t:
     # Standard GEMM
     Aq, Asc = dynamic_mxfp4_quant(A.contiguous())
     Ash = e8m0_shuffle(Asc).view(dtypes.fp8_e8m0)
-    return aiter.gemm_a4w4(Aq.view(dtypes.fp4x2), B_shuffle, Ash, B_scale_sh,
-                           dtype=dtypes.bf16, bpreshuffle=True)
+    return aiter.gemm_a4w4(
+        Aq.view(dtypes.fp4x2), B_shuffle, Ash, B_scale_sh, dtype=dtypes.bf16, bpreshuffle=True
+    )

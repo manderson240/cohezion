@@ -1,0 +1,6 @@
+{
+  "versionNumber": 1,
+  "name": "social_attribution_13",
+  "description": "Attribute causes to behavior.",
+  "definition": "@kbench.task(name=\"social_attribution_13\")\ndef social_attribution_13(llm) -> bool:\n    \"\"\"Attribute causes to behavior.\"\"\"\n    prompt = \"\"\"Someone cuts you off in traffic.\n\nBest attribution?\n\nA) They're a bad person (dispositional)\nB) They might be in a hurry (situational)\nC) They hate you specifically (personal)\nD) They did it intentionally (deliberate)\"\"\"\n    response = llm.prompt(prompt)\n    return bool(kbench.assertions.assert_true(\"B\" in response, expectation=\"Correct answer is B\"))\n"
+}

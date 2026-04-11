@@ -30,16 +30,16 @@ class GRPCDeadlineError(Exception):
 
 _SERVICE_CONFIG = {
     # Service config proto: https://github.com/grpc/grpc-proto/blob/ec886024c2f7b7f597ba89d5b7d60c3f94627b17/grpc/service_config/service_config.proto#L377
-    'methodConfig': [
+    "methodConfig": [
         {
-            'name': [{}],  # Applies to all methods
+            "name": [{}],  # Applies to all methods
             # See retry policy docs: https://grpc.io/docs/guides/retry/
-            'retryPolicy': {
-                'maxAttempts': 5,
-                'initialBackoff': '0.1s',
-                'maxBackoff': '1s',
-                'backoffMultiplier': 1,  # Ensure relatively rapid feedback in the event of a crash
-                'retryableStatusCodes': ['UNAVAILABLE'],
+            "retryPolicy": {
+                "maxAttempts": 5,
+                "initialBackoff": "0.1s",
+                "maxBackoff": "1s",
+                "backoffMultiplier": 1,  # Ensure relatively rapid feedback in the event of a crash
+                "retryableStatusCodes": ["UNAVAILABLE"],
             },
         }
     ]
@@ -51,15 +51,15 @@ GRPC_PORTS = [50051] + [i for i in range(60053, 60053 + 10)]
 _GRPC_CHANNEL_OPTIONS = [
     # -1 for unlimited message send/receive size
     # https://github.com/grpc/grpc/blob/v1.64.x/include/grpc/impl/channel_arg_names.h#L39
-    ('grpc.max_send_message_length', -1),
-    ('grpc.max_receive_message_length', -1),
+    ("grpc.max_send_message_length", -1),
+    ("grpc.max_receive_message_length", -1),
     # https://github.com/grpc/grpc/blob/master/doc/keepalive.md
-    ('grpc.keepalive_time_ms', 60_000),  # Time between heartbeat pings
-    ('grpc.keepalive_timeout_ms', 5_000),  # Time allowed to respond to pings
-    ('grpc.http2.max_pings_without_data', 0),  # Remove another cap on pings
-    ('grpc.keepalive_permit_without_calls', 1),  # Allow heartbeat pings at any time
-    ('grpc.http2.min_ping_interval_without_data_ms', 1_000),
-    ('grpc.service_config', json.dumps(_SERVICE_CONFIG)),
+    ("grpc.keepalive_time_ms", 60_000),  # Time between heartbeat pings
+    ("grpc.keepalive_timeout_ms", 5_000),  # Time allowed to respond to pings
+    ("grpc.http2.max_pings_without_data", 0),  # Remove another cap on pings
+    ("grpc.keepalive_permit_without_calls", 1),  # Allow heartbeat pings at any time
+    ("grpc.http2.min_ping_interval_without_data_ms", 1_000),
+    ("grpc.service_config", json.dumps(_SERVICE_CONFIG)),
 ]
 
 
@@ -83,12 +83,12 @@ def _get_available_port() -> int:
     for port in GRPC_PORTS:
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
             try:
-                s.bind(('localhost', port))
+                s.bind(("localhost", port))
             except Exception:
                 continue
         return port
 
-    raise ValueError(f'None of the expected ports {GRPC_PORTS} are available.')
+    raise ValueError(f"None of the expected ports {GRPC_PORTS} are available.")
 
 
 def _serialize(data: Any) -> kaggle_evaluation_proto.Payload:
@@ -111,8 +111,12 @@ def _serialize(data: Any) -> kaggle_evaluation_proto.Payload:
         # Check for numpy scalars first since most of them also inherit from python primitives.
         # For example, `np.float64(1.5)` is an instance of `float` among many other things.
         # https://numpy.org/doc/stable/reference/arrays.scalars.html
-        assert data.shape == ()  # Additional validation that the np.generic type remains solely for scalars
-        assert isinstance(data, np.number) or isinstance(data, np.bool_)  # No support for bytes, strings, objects, etc
+        assert (
+            data.shape == ()
+        )  # Additional validation that the np.generic type remains solely for scalars
+        assert isinstance(data, np.number) or isinstance(
+            data, np.bool_
+        )  # No support for bytes, strings, objects, etc
         buffer = io.BytesIO()
         np.save(buffer, data, allow_pickle=False)
         return kaggle_evaluation_proto.Payload(numpy_scalar_value=buffer.getvalue())
@@ -128,41 +132,51 @@ def _serialize(data: Any) -> kaggle_evaluation_proto.Payload:
         return kaggle_evaluation_proto.Payload(none_value=True)
     # Iterables for nested types
     if isinstance(data, list):
-        return kaggle_evaluation_proto.Payload(list_value=kaggle_evaluation_proto.PayloadList(payloads=map(_serialize, data)))
+        return kaggle_evaluation_proto.Payload(
+            list_value=kaggle_evaluation_proto.PayloadList(payloads=map(_serialize, data))
+        )
     elif isinstance(data, tuple):
-        return kaggle_evaluation_proto.Payload(tuple_value=kaggle_evaluation_proto.PayloadList(payloads=map(_serialize, data)))
+        return kaggle_evaluation_proto.Payload(
+            tuple_value=kaggle_evaluation_proto.PayloadList(payloads=map(_serialize, data))
+        )
     elif isinstance(data, dict):
         serialized_dict = {}
         for key, value in data.items():
             if not isinstance(key, str):
-                raise TypeError(f'KaggleEvaluation only supports dicts with keys of type str, found {type(key)}.')
+                raise TypeError(
+                    f"KaggleEvaluation only supports dicts with keys of type str, found {type(key)}."
+                )
             serialized_dict[key] = _serialize(value)
-        return kaggle_evaluation_proto.Payload(dict_value=kaggle_evaluation_proto.PayloadMap(payload_map=serialized_dict))
+        return kaggle_evaluation_proto.Payload(
+            dict_value=kaggle_evaluation_proto.PayloadMap(payload_map=serialized_dict)
+        )
     # Allowlisted special types
     if isinstance(data, pd.DataFrame):
         buffer = io.BytesIO()
-        data.to_parquet(buffer, index=False, compression='lz4')
+        data.to_parquet(buffer, index=False, compression="lz4")
         return kaggle_evaluation_proto.Payload(pandas_dataframe_value=buffer.getvalue())
     elif isinstance(data, pl.DataFrame):
         data_types = set(i.base_type() for i in data.dtypes)
         banned_types = _POLARS_TYPE_DENYLIST.intersection(data_types)
         if len(banned_types) > 0:
-            raise TypeError(f'Unsupported Polars data type(s): {banned_types}')
+            raise TypeError(f"Unsupported Polars data type(s): {banned_types}")
 
         table = data.to_arrow()
         buffer = io.BytesIO()
-        with pyarrow.ipc.new_stream(buffer, table.schema, options=pyarrow.ipc.IpcWriteOptions(compression='lz4')) as writer:
+        with pyarrow.ipc.new_stream(
+            buffer, table.schema, options=pyarrow.ipc.IpcWriteOptions(compression="lz4")
+        ) as writer:
             writer.write_table(table)
         return kaggle_evaluation_proto.Payload(polars_dataframe_value=buffer.getvalue())
     elif isinstance(data, pd.Series):
         buffer = io.BytesIO()
         # Can't serialize a pd.Series directly to parquet, must use intermediate DataFrame
-        pd.DataFrame(data).to_parquet(buffer, index=False, compression='lz4')
+        pd.DataFrame(data).to_parquet(buffer, index=False, compression="lz4")
         return kaggle_evaluation_proto.Payload(pandas_series_value=buffer.getvalue())
     elif isinstance(data, pl.Series):
         buffer = io.BytesIO()
         # Can't serialize a pl.Series directly to parquet, must use intermediate DataFrame
-        pl.DataFrame(data).write_parquet(buffer, compression='lz4', statistics=False)
+        pl.DataFrame(data).write_parquet(buffer, compression="lz4", statistics=False)
         return kaggle_evaluation_proto.Payload(polars_series_value=buffer.getvalue())
     elif isinstance(data, np.ndarray):
         buffer = io.BytesIO()
@@ -171,7 +185,7 @@ def _serialize(data: Any) -> kaggle_evaluation_proto.Payload:
     elif isinstance(data, io.BytesIO):
         return kaggle_evaluation_proto.Payload(bytes_io_value=data.getvalue())
 
-    raise TypeError(f'Type {type(data)} not supported for KaggleEvaluation.')
+    raise TypeError(f"Type {type(data)} not supported for KaggleEvaluation.")
 
 
 def _deserialize(payload: kaggle_evaluation_proto.Payload) -> Any:
@@ -187,49 +201,53 @@ def _deserialize(payload: kaggle_evaluation_proto.Payload) -> Any:
         TypeError if an unexpected value data type is found.
     """
     # Primitives
-    if payload.WhichOneof('value') == 'str_value':
+    if payload.WhichOneof("value") == "str_value":
         return payload.str_value
-    elif payload.WhichOneof('value') == 'bool_value':
+    elif payload.WhichOneof("value") == "bool_value":
         return payload.bool_value
-    elif payload.WhichOneof('value') == 'int_value':
+    elif payload.WhichOneof("value") == "int_value":
         return payload.int_value
-    elif payload.WhichOneof('value') == 'float_value':
+    elif payload.WhichOneof("value") == "float_value":
         return payload.float_value
-    elif payload.WhichOneof('value') == 'none_value':
+    elif payload.WhichOneof("value") == "none_value":
         return None
     # Iterables for nested types
-    elif payload.WhichOneof('value') == 'list_value':
+    elif payload.WhichOneof("value") == "list_value":
         return list(map(_deserialize, payload.list_value.payloads))
-    elif payload.WhichOneof('value') == 'tuple_value':
+    elif payload.WhichOneof("value") == "tuple_value":
         return tuple(map(_deserialize, payload.tuple_value.payloads))
-    elif payload.WhichOneof('value') == 'dict_value':
+    elif payload.WhichOneof("value") == "dict_value":
         return {key: _deserialize(value) for key, value in payload.dict_value.payload_map.items()}
     # Allowlisted special types
-    elif payload.WhichOneof('value') == 'pandas_dataframe_value':
+    elif payload.WhichOneof("value") == "pandas_dataframe_value":
         return pd.read_parquet(io.BytesIO(payload.pandas_dataframe_value))
-    elif payload.WhichOneof('value') == 'polars_dataframe_value':
+    elif payload.WhichOneof("value") == "polars_dataframe_value":
         with pyarrow.ipc.open_stream(payload.polars_dataframe_value) as reader:
             table = reader.read_all()
         return pl.from_arrow(table)
-    elif payload.WhichOneof('value') == 'pandas_series_value':
+    elif payload.WhichOneof("value") == "pandas_series_value":
         # Pandas will still read a single column csv as a DataFrame.
         df = pd.read_parquet(io.BytesIO(payload.pandas_series_value))
         return pd.Series(df[df.columns[0]])
-    elif payload.WhichOneof('value') == 'polars_series_value':
+    elif payload.WhichOneof("value") == "polars_series_value":
         return pl.Series(pl.read_parquet(io.BytesIO(payload.polars_series_value)))
-    elif payload.WhichOneof('value') == 'numpy_array_value':
+    elif payload.WhichOneof("value") == "numpy_array_value":
         return np.load(io.BytesIO(payload.numpy_array_value), allow_pickle=False)
-    elif payload.WhichOneof('value') == 'numpy_scalar_value':
+    elif payload.WhichOneof("value") == "numpy_scalar_value":
         data = np.load(io.BytesIO(payload.numpy_scalar_value), allow_pickle=False)
         # As of Numpy 2.0.2, np.load for a numpy scalar yields a dimensionless array instead of a scalar
         data = data.dtype.type(data)  # Restore the expected numpy scalar type.
-        assert data.shape == ()  # Additional validation that the np.generic type remains solely for scalars
-        assert isinstance(data, np.number) or isinstance(data, np.bool_)  # No support for bytes, strings, objects, etc
+        assert (
+            data.shape == ()
+        )  # Additional validation that the np.generic type remains solely for scalars
+        assert isinstance(data, np.number) or isinstance(
+            data, np.bool_
+        )  # No support for bytes, strings, objects, etc
         return data
-    elif payload.WhichOneof('value') == 'bytes_io_value':
+    elif payload.WhichOneof("value") == "bytes_io_value":
         return io.BytesIO(payload.bytes_io_value)
 
-    raise TypeError(f'Found unknown Payload case {payload.WhichOneof("value")}')
+    raise TypeError(f"Found unknown Payload case {payload.WhichOneof('value')}")
 
 
 ### Client code
@@ -240,7 +258,7 @@ class Client:
     Class which allows callers to make KaggleEvaluation requests.
     """
 
-    def __init__(self, channel_address: str = 'localhost') -> None:
+    def __init__(self, channel_address: str = "localhost") -> None:
         self.channel_address = channel_address
         self.channel: Optional[grpc.Channel] = None
         self._made_first_connection = False
@@ -254,9 +272,11 @@ class Client:
         """
         if self._made_first_connection:
             try:
-                return self.stub.Send(request, wait_for_ready=False, timeout=self.endpoint_deadline_seconds)
+                return self.stub.Send(
+                    request, wait_for_ready=False, timeout=self.endpoint_deadline_seconds
+                )
             except _InactiveRpcError as err:
-                if 'StatusCode.DEADLINE_EXCEEDED' in str(err):
+                if "StatusCode.DEADLINE_EXCEEDED" in str(err):
                     raise GRPCDeadlineError()
                 else:
                     raise err
@@ -267,14 +287,16 @@ class Client:
         # Allow time for the server to start as long as its container is running
         while time.time() - first_call_time < STARTUP_LIMIT_SECONDS:
             for port in GRPC_PORTS:
-                self.channel = grpc.insecure_channel(f'{self.channel_address}:{port}', options=_GRPC_CHANNEL_OPTIONS)
+                self.channel = grpc.insecure_channel(
+                    f"{self.channel_address}:{port}", options=_GRPC_CHANNEL_OPTIONS
+                )
                 self.stub = kaggle_evaluation_grpc.KaggleEvaluationServiceStub(self.channel)
                 try:
                     response = self.stub.Send(request, wait_for_ready=False)
                     self._made_first_connection = True
                     return response
                 except grpc._channel._InactiveRpcError as err:
-                    if 'StatusCode.UNAVAILABLE' not in str(err):
+                    if "StatusCode.UNAVAILABLE" not in str(err):
                         raise err
                 # Confirm the inference_server container is still alive & it's worth waiting on the server.
                 # If the inference_server container is no longer running this will throw a socket.gaierror.
@@ -282,17 +304,25 @@ class Client:
                 time.sleep(_RETRY_SLEEP_SECONDS)
 
         if not self._made_first_connection:
-            raise RuntimeError(f'Failed to connect to server after waiting {STARTUP_LIMIT_SECONDS} seconds')
+            raise RuntimeError(
+                f"Failed to connect to server after waiting {STARTUP_LIMIT_SECONDS} seconds"
+            )
 
-    def serialize_request(self, name: str, *args, **kwargs) -> kaggle_evaluation_proto.KaggleEvaluationRequest:
+    def serialize_request(
+        self, name: str, *args, **kwargs
+    ) -> kaggle_evaluation_proto.KaggleEvaluationRequest:
         """Serialize a single request. Exists as a separate function from `send`
         to enable gateway concurrency for some competitions.
         """
-        already_serialized = (len(args) == 1) and isinstance(args[0], kaggle_evaluation_proto.KaggleEvaluationRequest)
+        already_serialized = (len(args) == 1) and isinstance(
+            args[0], kaggle_evaluation_proto.KaggleEvaluationRequest
+        )
         if already_serialized:
             return args[0]  # args is a tuple of length 1 containing the request
         return kaggle_evaluation_proto.KaggleEvaluationRequest(
-            name=name, args=map(_serialize, args), kwargs={key: _serialize(value) for key, value in kwargs.items()}
+            name=name,
+            args=map(_serialize, args),
+            kwargs={key: _serialize(value) for key, value in kwargs.items()},
         )
 
     def send(self, name: str, *args, **kwargs) -> Any:
@@ -329,7 +359,9 @@ class KaggleEvaluationServiceServicer(kaggle_evaluation_grpc.KaggleEvaluationSer
 
     # pylint: disable=unused-argument
     def Send(
-        self, request: kaggle_evaluation_proto.KaggleEvaluationRequest, context: grpc.ServicerContext
+        self,
+        request: kaggle_evaluation_proto.KaggleEvaluationRequest,
+        context: grpc.ServicerContext,
     ) -> kaggle_evaluation_proto.KaggleEvaluationResponse:
         """Handler for gRPC requests that deserializes arguments, calls a user-registered function for handling the
         requested endpoint, then serializes and returns the response.
@@ -345,7 +377,7 @@ class KaggleEvaluationServiceServicer(kaggle_evaluation_grpc.KaggleEvaluationSer
             NotImplementedError if the caller has not registered a handler for the requested endpoint.
         """
         if request.name not in self.listeners_map:
-            raise NotImplementedError(f'No listener for {request.name} was registered.')
+            raise NotImplementedError(f"No listener for {request.name} was registered.")
 
         args = map(_deserialize, request.args)
         kwargs = {key: _deserialize(value) for key, value in request.kwargs.items()}
@@ -369,15 +401,19 @@ def define_server(*endpoint_listeners: FunctionType) -> grpc.server:
         ValueError if parameter values are invalid.
     """
     if not endpoint_listeners:
-        raise ValueError('Must pass at least one endpoint listener, e.g. `predict`')
+        raise ValueError("Must pass at least one endpoint listener, e.g. `predict`")
     for func in endpoint_listeners:
         if not isinstance(func, FunctionType):
-            raise ValueError(f'Endpoint listeners passed to `serve` must be functions, got {type(func)}')
-        if func.__name__ == '<lambda>':
-            raise ValueError('Functions passed as endpoint listeners must be named')
+            raise ValueError(
+                f"Endpoint listeners passed to `serve` must be functions, got {type(func)}"
+            )
+        if func.__name__ == "<lambda>":
+            raise ValueError("Functions passed as endpoint listeners must be named")
 
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=1), options=_GRPC_CHANNEL_OPTIONS)
-    kaggle_evaluation_grpc.add_KaggleEvaluationServiceServicer_to_server(KaggleEvaluationServiceServicer(endpoint_listeners), server)
+    kaggle_evaluation_grpc.add_KaggleEvaluationServiceServicer_to_server(
+        KaggleEvaluationServiceServicer(endpoint_listeners), server
+    )
     grpc_port = _get_available_port()
-    server.add_insecure_port(f'[::]:{grpc_port}')
+    server.add_insecure_port(f"[::]:{grpc_port}")
     return server

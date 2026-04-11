@@ -1,0 +1,6 @@
+{
+  "versionNumber": 1,
+  "name": "attention_visual_search_05",
+  "description": "Find target in visually noisy text representation.",
+  "definition": "@kbench.task(name=\"attention_visual_search_05\")\ndef attention_visual_search_05(llm) -> bool:\n    \"\"\"Find target in visually noisy text representation.\"\"\"\n    prompt = \"\"\"Find the number 7 in this grid:\n\n1 2 3 4 5\n2 3 4 5 6\n3 4 5 6 7\n4 5 6 7 1\n5 6 7 1 2\n\nWhere is 7 located?\n\nA) Row 3, Column 5\nB) Row 4, Column 4\nC) Both A and B\nD) Row 5, Column 3\"\"\"\n    response = llm.prompt(prompt)\n    return bool(kbench.assertions.assert_true(\"C\" in response, expectation=\"Correct answer is C\"))\n"
+}

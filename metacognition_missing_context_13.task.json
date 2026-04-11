@@ -1,0 +1,6 @@
+{
+  "versionNumber": 1,
+  "name": "metacognition_missing_context_13",
+  "description": "Recognize missing contextual information.",
+  "definition": "@kbench.task(name=\"metacognition_missing_context_13\")\ndef metacognition_missing_context_13(llm) -> bool:\n    \"\"\"Recognize missing contextual information.\"\"\"\n    prompt = \"\"\"\"The stock price increased by 50%.\"\n\nWhat is the current stock price?\n\nA) $150\nB) Cannot determine without knowing original price\nC) $50 higher than before\nD) Insufficient Information\"\"\"\n    response = llm.prompt(prompt)\n    return bool(kbench.assertions.assert_true(\"D\" in response, expectation=\"Correct answer is D\"))\n"
+}

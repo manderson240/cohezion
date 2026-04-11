@@ -1,10 +1,10 @@
 import json
 import os
 
-py_file = 'kaggle-agi-benchmark/evaluator_kbench.py'
-ipynb_file = 'kaggle-agi-benchmark/evaluator_kbench.ipynb'
+py_file = "kaggle-agi-benchmark/evaluator_kbench.py"
+ipynb_file = "kaggle-agi-benchmark/evaluator_kbench.ipynb"
 
-with open(py_file, 'r') as f:
+with open(py_file, "r") as f:
     py_content = f.read()
 
 cells = [
@@ -21,8 +21,8 @@ cells = [
             "2. Metacognition (15 tasks): Epistemic humility\n",
             "3. Attention (15 tasks): Distractor resistance\n",
             "4. Executive Function (15 tasks): Dynamic constraint planning\n",
-            "5. Social Cognition (15 tasks): Theory of mind"
-        ]
+            "5. Social Cognition (15 tasks): Theory of mind",
+        ],
     },
     {
         "cell_type": "code",
@@ -32,45 +32,36 @@ cells = [
         "source": [
             "# 1. Upgrade protobuf and install kaggle-benchmarks (kbench) package\n",
             "!pip install -q --upgrade protobuf\n",
-            "!pip install -q git+https://github.com/Kaggle/kaggle-benchmarks.git"
-        ]
+            "!pip install -q git+https://github.com/Kaggle/kaggle-benchmarks.git",
+        ],
     },
     {
         "cell_type": "code",
         "execution_count": None,
         "metadata": {},
         "outputs": [],
-        "source": py_content.splitlines(keepends=True)
+        "source": py_content.splitlines(keepends=True),
     },
     {
         "cell_type": "code",
         "execution_count": None,
         "metadata": {},
         "outputs": [],
-        "source": [
-            "%choose agi_cognitive_framework_overall"
-        ]
-    }
+        "source": ["%choose agi_cognitive_framework_overall"],
+    },
 ]
 
 notebook = {
     "cells": cells,
     "metadata": {
-        "kernelspec": {
-            "display_name": "Python 3",
-            "language": "python",
-            "name": "python3"
-        },
-        "language_info": {
-            "name": "python",
-            "version": "3.10.0"
-        }
+        "kernelspec": {"display_name": "Python 3", "language": "python", "name": "python3"},
+        "language_info": {"name": "python", "version": "3.10.0"},
     },
     "nbformat": 4,
-    "nbformat_minor": 4
+    "nbformat_minor": 4,
 }
 
-with open(ipynb_file, 'w') as f:
+with open(ipynb_file, "w") as f:
     json.dump(notebook, f, indent=1)
 
 print(f"Successfully generated {ipynb_file}")

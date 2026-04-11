@@ -39,13 +39,9 @@ class KernelBuilder:
 
         okb = optimizer.OptimizedKernelBuilder()
         # Modified to pass forest
-        self.instrs = okb.build_kernel(
-            forest_height, n_nodes, batch_size, rounds, HASH_STAGES, forest=forest
-        )
+        self.instrs = okb.build_kernel(forest_height, n_nodes, batch_size, rounds, HASH_STAGES, forest=forest)
         # Update scratch_debug for Machine's debug_info
-        self.scratch_debug = {
-            addr: (name, length) for addr, (name, length) in okb.scratch_names.items()
-        }
+        self.scratch_debug = {addr: (name, length) for addr, (name, length) in okb.scratch_names.items()}
         self.scratch_ptr = okb.scratch_ptr
 
 

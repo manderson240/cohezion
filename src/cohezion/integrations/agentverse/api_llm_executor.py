@@ -43,11 +43,11 @@ class APILLMExecutor:
 
     Supported providers:
     - openai: GPT-4, GPT-4o, GPT-3.5-turbo
-    - anthropic: Claude 3.5 Sonnet, Claude 3 Opus
+    - anthropic: Claude Sonnet 4.6, Claude Opus 4.6
 
     Args:
         provider: "openai" or "anthropic"
-        model: Model name (e.g., "gpt-4o-mini", "claude-3-5-sonnet-20241022")
+        model: Model name (e.g., "gpt-4o-mini", "claude-sonnet-4-6")
         timeout: Request timeout in seconds
     """
 
@@ -59,8 +59,8 @@ class APILLMExecutor:
             "gpt-3.5-turbo": {"input": 0.50, "output": 1.50},
         },
         "anthropic": {
-            "claude-3-5-sonnet-20241022": {"input": 3.00, "output": 15.00},
-            "claude-3-opus-20240229": {"input": 15.00, "output": 75.00},
+            "claude-sonnet-4-6": {"input": 3.00, "output": 15.00},
+            "claude-opus-4-6": {"input": 15.00, "output": 75.00},
         },
     }
 
@@ -78,7 +78,7 @@ class APILLMExecutor:
             if self.provider == "openai":
                 self.model = "gpt-4o-mini"  # Cost-effective
             elif self.provider == "anthropic":
-                self.model = "claude-3-5-sonnet-20241022"
+                self.model = "claude-sonnet-4-6"
             else:
                 raise ValueError(f"Unknown provider: {provider}")
         else:
@@ -95,7 +95,7 @@ class APILLMExecutor:
             raise ValueError(f"Unknown provider: {provider}")
 
         if not self.api_key:
-            logger.warning(f"No API key found for {provider}")
+            logger.warning("No API key configured for %s — calls will fail", provider)
 
     async def execute(
         self,
@@ -221,7 +221,9 @@ class APILLMExecutor:
         }
 
         if system:
-            payload["system"] = system
+            payload["system"] = [
+                {"type": "text", "text": system, "cache_control": {"type": "ephemeral"}}
+            ]
 
         async with httpx.AsyncClient(timeout=self.timeout) as client:
             response = await client.post(

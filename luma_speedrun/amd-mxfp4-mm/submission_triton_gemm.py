@@ -19,6 +19,7 @@ from task import input_t, output_t
 _triton_gemm = None
 try:
     from aiter.ops.triton.gemm.basic.gemm_afp4wfp4 import gemm_afp4wfp4_preshuffle
+
     _triton_gemm = gemm_afp4wfp4_preshuffle
 except ImportError:
     pass
@@ -55,6 +56,10 @@ def custom_kernel(data: input_t) -> output_t:
 
     # Fallback: CK ASM path
     return _gemm(
-        Aq.view(_fp4x2), B_shuffle, Ash, B_scale_sh,
-        dtype=_bf16, bpreshuffle=True,
+        Aq.view(_fp4x2),
+        B_shuffle,
+        Ash,
+        B_scale_sh,
+        dtype=_bf16,
+        bpreshuffle=True,
     )

@@ -23,7 +23,7 @@ from task import input_t, output_t
 
 # Probe for alternative MoE APIs
 _alt_moe = None
-for api_name in ['fmoe_fp8_blockscale_g1u1', 'fmoe_g1u1_a16', 'asm_moe']:
+for api_name in ["fmoe_fp8_blockscale_g1u1", "fmoe_g1u1_a16", "asm_moe"]:
     fn = getattr(aiter, api_name, None)
     if fn is not None:
         _alt_moe = (api_name, fn)
@@ -32,11 +32,18 @@ for api_name in ['fmoe_fp8_blockscale_g1u1', 'fmoe_g1u1_a16', 'asm_moe']:
 
 def custom_kernel(data: input_t) -> output_t:
     (
-        hidden_states, gate_up_weight, down_weight,
-        gate_up_weight_scale, down_weight_scale,
-        gate_up_weight_shuffled, down_weight_shuffled,
-        gate_up_weight_scale_shuffled, down_weight_scale_shuffled,
-        topk_weights, topk_ids, config,
+        hidden_states,
+        gate_up_weight,
+        down_weight,
+        gate_up_weight_scale,
+        down_weight_scale,
+        gate_up_weight_shuffled,
+        down_weight_shuffled,
+        gate_up_weight_scale_shuffled,
+        down_weight_scale_shuffled,
+        topk_weights,
+        topk_ids,
+        config,
     ) = data
 
     hidden_pad = config["d_hidden_pad"] - config["d_hidden"]
@@ -46,19 +53,23 @@ def custom_kernel(data: input_t) -> output_t:
     if _alt_moe is not None:
         api_name, fn = _alt_moe
         try:
-            if api_name == 'fmoe_fp8_blockscale_g1u1':
+            if api_name == "fmoe_fp8_blockscale_g1u1":
                 return fn(
                     hidden_states,
-                    gate_up_weight_shuffled, down_weight_shuffled,
-                    topk_weights, topk_ids,
+                    gate_up_weight_shuffled,
+                    down_weight_shuffled,
+                    topk_weights,
+                    topk_ids,
                     w1_scale=gate_up_weight_scale_shuffled,
                     w2_scale=down_weight_scale_shuffled,
                 )
-            elif api_name == 'fmoe_g1u1_a16':
+            elif api_name == "fmoe_g1u1_a16":
                 return fn(
                     hidden_states,
-                    gate_up_weight_shuffled, down_weight_shuffled,
-                    topk_weights, topk_ids,
+                    gate_up_weight_shuffled,
+                    down_weight_shuffled,
+                    topk_weights,
+                    topk_ids,
                     w1_scale=gate_up_weight_scale_shuffled,
                     w2_scale=down_weight_scale_shuffled,
                 )
@@ -67,14 +78,19 @@ def custom_kernel(data: input_t) -> output_t:
 
     # Fallback to standard fused_moe
     return fused_moe(
-        hidden_states, gate_up_weight_shuffled, down_weight_shuffled,
-        topk_weights, topk_ids,
+        hidden_states,
+        gate_up_weight_shuffled,
+        down_weight_shuffled,
+        topk_weights,
+        topk_ids,
         expert_mask=None,
         activation=ActivationType.Silu,
         quant_type=QuantType.per_1x32,
         doweight_stage1=False,
         w1_scale=gate_up_weight_scale_shuffled,
         w2_scale=down_weight_scale_shuffled,
-        a1_scale=None, a2_scale=None,
-        hidden_pad=hidden_pad, intermediate_pad=intermediate_pad,
+        a1_scale=None,
+        a2_scale=None,
+        hidden_pad=hidden_pad,
+        intermediate_pad=intermediate_pad,
     )

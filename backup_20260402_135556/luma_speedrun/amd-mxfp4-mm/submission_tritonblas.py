@@ -27,6 +27,7 @@ from task import input_t, output_t
 _HAS_TRITONBLAS = False
 try:
     import tritonblas
+
     _HAS_TRITONBLAS = True
     print("tritonblas available", file=sys.stderr)
 except ImportError:
@@ -36,6 +37,7 @@ except ImportError:
 _HAS_ASM = False
 try:
     from aiter import gemm_a4w4_asm
+
     _HAS_ASM = True
     print("gemm_a4w4_asm available", file=sys.stderr)
 except ImportError:
@@ -71,8 +73,12 @@ def custom_kernel(data: input_t) -> output_t:
     # Primary path: aiter.gemm_a4w4 with bpreshuffle=True
     # This is the known fastest from skill data (~24µs geomean)
     return aiter.gemm_a4w4(
-        A_q, B_shuffle, A_scale_sh, B_scale_sh,
-        dtype=dtypes.bf16, bpreshuffle=True,
+        A_q,
+        B_shuffle,
+        A_scale_sh,
+        B_scale_sh,
+        dtype=dtypes.bf16,
+        bpreshuffle=True,
     )
 
 
@@ -102,11 +108,11 @@ def custom_kernel_tritonblas(data: input_t) -> output_t:
     C = torch.empty(M, N, dtype=torch.bfloat16, device=A.device)
 
     tritonblas.matmul_fp4(
-        A_q.view(torch.uint8),        # [M, K//2] uint8
-        B_q.view(torch.uint8),        # [N, K//2] uint8 row-major
-        C,                            # [M, N] bf16 pre-allocated
+        A_q.view(torch.uint8),  # [M, K//2] uint8
+        B_q.view(torch.uint8),  # [N, K//2] uint8 row-major
+        C,  # [M, N] bf16 pre-allocated
         A_scale_e8m0.view(torch.uint8),  # [M, K//32] uint8
-        B_scale,                      # [N, K//32] uint8
+        B_scale,  # [N, K//32] uint8
     )
     return C
 
@@ -123,7 +129,11 @@ def custom_kernel_asm_ksplit(data: input_t, log2_k_split: int = 0) -> output_t:
     A_q = A_q.view(dtypes.fp4x2)
 
     return gemm_a4w4_asm(
-        A_q, B_shuffle, A_scale_sh, B_scale_sh,
-        dtype=dtypes.bf16, bpreshuffle=True,
+        A_q,
+        B_shuffle,
+        A_scale_sh,
+        B_scale_sh,
+        dtype=dtypes.bf16,
+        bpreshuffle=True,
         log2_k_split=log2_k_split,
     )

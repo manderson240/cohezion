@@ -25,7 +25,9 @@ def setup_dev_certificates(cert_dir: str = ".certs") -> bool:
     """Setup development certificates."""
     logger.info("Setting up development TLS certificates...")
 
-    cert_path, key_path = CertificateGenerator.ensure_dev_certificates(cert_dir=cert_dir, force=False)
+    cert_path, key_path = CertificateGenerator.ensure_dev_certificates(
+        cert_dir=cert_dir, force=False
+    )
 
     if cert_path and key_path:
         logger.info("✓ Development certificates ready")
@@ -44,7 +46,9 @@ def setup_dev_certificates(cert_dir: str = ".certs") -> bool:
         return False
 
 
-def setup_production_certificates(cert_path: str, key_path: str, validate_only: bool = False) -> bool:
+def setup_production_certificates(
+    cert_path: str, key_path: str, validate_only: bool = False
+) -> bool:
     """Setup or validate production certificates."""
     from cohezion.security.tls_config import TLSConfig
 

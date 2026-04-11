@@ -1,5 +1,6 @@
--- SurrealDB 3.0 Schema: Agentic Journey Tracking
+-- SurrealDB 3.0 Schema: Agentic Journey Tracking (Bi-Temporal)
 -- Tracks agent actions through the 12D coherence universe
+-- Bi-temporal: valid_from/valid_to (domain time) + VERSION clause (system time)
 
 -- agent_journey: Complete journey record for an agent session
 -- Captures the full trajectory through the 12D universe
@@ -52,11 +53,16 @@ DEFINE FIELD efficiency_trajectory[*] ON TABLE agent_journey TYPE float;
 -- Flexible metadata for extensible data
 DEFINE FIELD metadata ON TABLE agent_journey TYPE object;
 
+-- Bi-temporal: valid-time (when this journey state held in the simulation)
+DEFINE FIELD valid_from ON TABLE agent_journey TYPE datetime DEFAULT time::now();
+DEFINE FIELD valid_to   ON TABLE agent_journey TYPE option<datetime>;
+
 -- Indexes for common queries
 DEFINE INDEX idx_journey_journey_id ON TABLE agent_journey COLUMNS journey_id;
 DEFINE INDEX idx_journey_agent_id ON TABLE agent_journey COLUMNS agent_id;
 DEFINE INDEX idx_journey_status ON TABLE agent_journey COLUMNS status;
 DEFINE INDEX idx_journey_started_at ON TABLE agent_journey COLUMNS started_at;
+DEFINE INDEX idx_journey_temporal ON TABLE agent_journey COLUMNS valid_from, valid_to;
 
 -- journey_point: Individual point in an agent's journey
 -- Records each step/action in the 12D universe

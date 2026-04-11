@@ -68,6 +68,11 @@ DEFINE TABLE generated_artifact SCHEMALESS;
 DEFINE INDEX idx_artifact_type ON generated_artifact FIELDS artifact_type;
 DEFINE INDEX idx_artifact_template ON generated_artifact FIELDS template_id;
 
+-- Context policy outcomes (cross-session adaptive breadth/depth learning)
+DEFINE TABLE context_policy SCHEMALESS;
+DEFINE INDEX idx_context_policy_profile ON context_policy FIELDS profile;
+DEFINE INDEX idx_context_policy_time ON context_policy FIELDS recorded_at;
+
 -- Functions for HIHO coherence calculation
 DEFINE FUNCTION fn::calculate_coherence($internal INTENT, $external INTENT) {
     -- Calculate 0.5 coherence (Half-In-Half-Out stability)

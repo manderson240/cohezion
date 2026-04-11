@@ -8,9 +8,10 @@ import json
 import os
 import glob
 
+
 def generate_dataset():
     data = []
-    
+
     # 1. Extract from KEY_LEARNINGS.md
     learnings_path = "src/cohezion/knowledge_graph/KEY_LEARNINGS.md"
     if os.path.exists(learnings_path):
@@ -20,11 +21,13 @@ def generate_dataset():
             sections = content.split("### Learning")
             for section in sections[1:]:
                 title = section.split("\n")[0].strip()
-                data.append({
-                    "instruction": f"Explain the concept of {title} within the Cohezion ecosystem.",
-                    "input": "",
-                    "output": section.strip()
-                })
+                data.append(
+                    {
+                        "instruction": f"Explain the concept of {title} within the Cohezion ecosystem.",
+                        "input": "",
+                        "output": section.strip(),
+                    }
+                )
 
     # 2. Extract from Physics modules
     physics_files = glob.glob("src/cohezion/physics/*.py")
@@ -35,11 +38,13 @@ def generate_dataset():
             # Extract module docstring
             if '"""' in content:
                 docstring = content.split('"""')[1].strip()
-                data.append({
-                    "instruction": f"What is the purpose of the {module_name} physics module in Cohezion?",
-                    "input": "",
-                    "output": docstring
-                })
+                data.append(
+                    {
+                        "instruction": f"What is the purpose of the {module_name} physics module in Cohezion?",
+                        "input": "",
+                        "output": docstring,
+                    }
+                )
 
     # 3. Format for Training (Alpaca/Gemma Template)
     # text = f"### Instruction:\n{instruction}\n\n### Response:\n{output}"
@@ -54,8 +59,9 @@ def generate_dataset():
     with open(output_path, "w") as f:
         for item in formatted_data:
             f.write(json.dumps(item) + "\n")
-            
+
     print(f"Generated {len(formatted_data)} training examples at {output_path}")
+
 
 if __name__ == "__main__":
     generate_dataset()

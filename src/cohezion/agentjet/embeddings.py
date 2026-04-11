@@ -130,7 +130,7 @@ class GeminiEmbeddingModel:
         self,
         api_key: str | None = None,
         fallback: EmbeddingModel | None = None,
-        surreal_url: str = "ws://localhost:8000",
+        surreal_url: str = "ws://localhost:8001",
     ) -> None:
         self._api_key = api_key or os.environ.get("GEMINI_API_KEY", "")
         self._fallback = fallback or FlumeVAEEmbeddingModel()
@@ -227,7 +227,7 @@ class GeminiEmbeddingModel:
         try:
             import aiohttp
 
-            url = "http://localhost:8000/sql"
+            url = "http://localhost:8001/sql"
             query = f"SELECT vector FROM embedding_cache WHERE content_hash = '{key}' LIMIT 1;"
             async with (
                 aiohttp.ClientSession() as session,
@@ -261,7 +261,7 @@ class GeminiEmbeddingModel:
             query = (
                 f"CREATE embedding_cache CONTENT {{content_hash: '{key}', vector: {vector_list}}};"
             )
-            url = "http://localhost:8000/sql"
+            url = "http://localhost:8001/sql"
             async with (
                 aiohttp.ClientSession() as session,
                 session.post(

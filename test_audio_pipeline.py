@@ -5,9 +5,10 @@ import torchaudio
 import matplotlib.pyplot as plt
 from pathlib import Path
 
+
 def test_audio_pipeline(audio_path):
     print(f"Testing audio pipeline with: {audio_path}")
-    
+
     # 1. Load with librosa
     try:
         y, sr = librosa.load(audio_path, sr=32000)
@@ -31,6 +32,7 @@ def test_audio_pipeline(audio_path):
     except Exception as e:
         print(f"Torchaudio load failed: {e}")
 
+
 if __name__ == "__main__":
     # Use an existing audio file in the repo
     audio_file = "src/web/anima_dashboard/node_modules/gradio/media_assets/audio/sax.wav"
@@ -38,11 +40,12 @@ if __name__ == "__main__":
         # Fallback search
         print("Searching for any wav file...")
         import subprocess
+
         result = subprocess.run(["find", ".", "-name", "*.wav"], capture_output=True, text=True)
         if result.stdout:
             audio_file = result.stdout.splitlines()[0]
         else:
             print("No wav file found!")
             exit(1)
-            
+
     test_audio_pipeline(audio_file)

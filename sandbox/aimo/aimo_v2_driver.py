@@ -30,6 +30,7 @@ def reset_vram_state():
     gc.collect()
     try:
         import torch
+
         if torch.cuda.is_available():
             torch.cuda.empty_cache()
     except ImportError:
@@ -58,12 +59,14 @@ def predict(id_df: pl.DataFrame, problem_df: pl.DataFrame) -> pl.DataFrame:
     # 1. Pure Equal Division Time Budgeting (arXiv:2603.27844v1)
     elapsed = time.time() - _start_time
     remaining_time = _total_time_limit - elapsed
-    remaining_problems = 50 - (_problems_solved % 50) # 50 problems per test set
-    
+    remaining_problems = 50 - (_problems_solved % 50)  # 50 problems per test set
+
     # Per-problem budget calculation
     budget_per_problem = remaining_time / max(1, remaining_problems)
 
-    print(f"\n[Problem {_problems_solved + 1}] Remaining Time: {remaining_time:.1f}s | Budget: {budget_per_problem:.1f}s")
+    print(
+        f"\n[Problem {_problems_solved + 1}] Remaining Time: {remaining_time:.1f}s | Budget: {budget_per_problem:.1f}s"
+    )
 
     # 2. 30s Safety Trigger
     if budget_per_problem < _safety_threshold:
@@ -81,7 +84,11 @@ def predict(id_df: pl.DataFrame, problem_df: pl.DataFrame) -> pl.DataFrame:
     reasoning_chains = []
 
     # Target model for Kaggle (FP8 quantized)
-    model_choice = "deepseek-r1-distill-qwen-32b-fp8" if os.getenv("KAGGLE_IS_COMPETITION_RERUN") else "qwen3.5:cloud"
+    model_choice = (
+        "deepseek-r1-distill-qwen-32b-fp8"
+        if os.getenv("KAGGLE_IS_COMPETITION_RERUN")
+        else "qwen3.5:cloud"
+    )
 
     # Run 1: Primary specialist
     print(f"Executing Run 1 using {primary_strategy} strategy...")
@@ -101,11 +108,11 @@ def predict(id_df: pl.DataFrame, problem_df: pl.DataFrame) -> pl.DataFrame:
 
     # 4. Knower Audit & Weighted Voting
     audit = _auditor.audit_runs(run_results, reasoning_chains)
-    
+
     if audit.get("action") == "TIE_BREAKER":
         # Check if we have budget for Run 3
         # Assuming Run 3 takes roughly same as Run 1 (~budget/2)
-        if budget_per_problem > 165.0: 
+        if budget_per_problem > 165.0:
             print("Divergence detected. Triggering Weighted Tie-Breaker (Run 3)...")
             spec3_strategy = strategies[(_problems_solved + 2) % len(strategies)]
             tie_specialist = BaseSpecialist(spec3_strategy, model_name=model_choice)
@@ -115,7 +122,9 @@ def predict(id_df: pl.DataFrame, problem_df: pl.DataFrame) -> pl.DataFrame:
             reasoning_chains.append(res3_text)
             final_answer = _auditor.resolve_tie(answer1, answer2, ans3, reasoning_chains)
         else:
-            print("Divergence detected, but budget is too low for Tie-Breaker. Using highest-weight run.")
+            print(
+                "Divergence detected, but budget is too low for Tie-Breaker. Using highest-weight run."
+            )
             final_answer = answer1 if answer1 is not None else 0
     else:
         final_answer = audit["final_answer"]

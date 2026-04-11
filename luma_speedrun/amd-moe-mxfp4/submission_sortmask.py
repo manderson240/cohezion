@@ -100,6 +100,7 @@ def custom_kernel(data: input_t) -> output_t:
     except Exception as e:
         # Log error for debugging, then fallback to reference
         import sys
+
         print(f"fused_moe failed: {e}", file=sys.stderr)
         # Fallback to reference implementation on any error
         try:

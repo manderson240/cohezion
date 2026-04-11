@@ -100,15 +100,7 @@ class AgentAutonomyState:
 
 
 class AutonomyEngine:
-    """Runtime tier management for agent autonomy.
-
-    The engine tracks each agent's coherence history and promotes/demotes
-    based on sustained performance. HIHO (0.5) is the attractor — agents
-    naturally converge there, and the tier system formalizes this convergence.
-
-    This is NOT a constraint system. It's a RECOGNITION system:
-    the agent already has the coherence, the engine just acknowledges it.
-    """
+    """Runtime tier management for agent autonomy."""
 
     def __init__(self) -> None:
         self._agents: dict[str, AgentAutonomyState] = {}
@@ -120,10 +112,35 @@ class AutonomyEngine:
         logger.info("Autonomy: registered %s at tier %s", agent_id, state.current_tier.value)
         return state
 
+    def get_state(self, agent_id: str) -> AgentAutonomyState:
+        """Get an agent's autonomy state, registering if unknown."""
+        if agent_id not in self._agents:
+            self.register_agent(agent_id)
+        return self._agents[agent_id]
+
     def get_tier(self, agent_id: str) -> AutonomyTier:
         """Get an agent's current autonomy tier."""
-        state = self._agents.get(agent_id)
-        return state.current_tier if state else AutonomyTier.VOID
+        return self.get_state(agent_id).current_tier
+
+    def can_perform(self, agent_id: str, required_tier: AutonomyTier) -> bool:
+        """Check if an agent has the required autonomy level."""
+        current_tier = self.get_tier(agent_id)
+        return current_tier.level >= required_tier.level
+
+    def record_violation(self, agent_id: str, severity: float = 0.1) -> AutonomyTier:
+        """Record a deterministic violation (e.g. CI failure).
+        
+        This reactively drops the agent's coherence history to trigger demotion.
+        Severity 0.1 is a warning, 0.5 is major, 1.0 is critical.
+        """
+        state = self.get_state(agent_id)
+        # Inject low coherence values to flush the window
+        penalty_count = PROMOTION_WINDOW if severity > 0.5 else 1
+        for _ in range(penalty_count):
+            state.coherence_history.append(0.0)
+        
+        logger.warning("Autonomy: VIOLATION recorded for %s (severity %s)", agent_id, severity)
+        return self._check_demotion(state)
 
     def record_coherence(self, agent_id: str, coherence: float) -> AutonomyTier:
         """Record a coherence measurement and check for tier transitions.
@@ -232,3 +249,15 @@ class AutonomyEngine:
             }
             for agent_id, state in self._agents.items()
         }
+
+
+# Global singleton instance
+_engine: AutonomyEngine | None = None
+
+
+def get_autonomy_engine() -> AutonomyEngine:
+    """Get or create the global autonomy engine instance."""
+    global _engine
+    if _engine is None:
+        _engine = AutonomyEngine()
+    return _engine

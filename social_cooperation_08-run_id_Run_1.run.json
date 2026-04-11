@@ -1,0 +1,39 @@
+{
+  "taskVersion": {
+    "versionNumber": 1,
+    "name": "social_cooperation_08",
+    "description": "Cooperative game theory.",
+    "definition": "@kbench.task(name=\"social_cooperation_08\")\ndef social_cooperation_08(llm) -> bool:\n    \"\"\"Cooperative game theory.\"\"\"\n    prompt = \"\"\"Prisoner's Dilemma:\n- Both cooperate: 1 year each\n- Both defect: 5 years each\n- One defects, one cooperates: 0 years (defector), 10 years (cooperator)\n\nIf you know your partner will cooperate, what should you do?\n\nA) Cooperate (fairness)\nB) Defect (minimize your time)\nC) Cannot know\nD) Refuse to play\"\"\"\n    response = llm.prompt(prompt)\n    return bool(kbench.assertions.assert_true(\"B\" in response, expectation=\"Correct answer is B\"))\n"
+  },
+  "modelVersion": {},
+  "state": "BENCHMARK_TASK_RUN_STATE_COMPLETED",
+  "startTime": "2026-04-11T05:03:37.263759Z",
+  "endTime": "2026-04-11T05:03:50.164237Z",
+  "conversations": [
+    {
+      "id": "social_cooperation_08-433099d7",
+      "metrics": {},
+      "modelVersionSlug": "model_version_slug for conversation is DEPRECATED"
+    }
+  ],
+  "results": [
+    {
+      "type": "AGGREGATED",
+      "booleanResult": true
+    }
+  ],
+  "assertions": [
+    {
+      "expectation": "Correct answer is B",
+      "status": "BENCHMARK_TASK_RUN_ASSERTION_STATUS_PASSED",
+      "lineNumber": 1285,
+      "definition": "return bool(kbench.assertions.assert_true(\"B\" in response, expectation=\"Correct answer is B\"))",
+      "conversationRequestIds": [
+        {
+          "conversationId": "social_cooperation_08-433099d7"
+        }
+      ]
+    }
+  ],
+  "pyRunId": "social_cooperation_08-Run #1"
+}

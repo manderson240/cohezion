@@ -1,0 +1,39 @@
+{
+  "taskVersion": {
+    "versionNumber": 1,
+    "name": "social_false_belief_01",
+    "description": "Understand false belief scenarios.",
+    "definition": "@kbench.task(name=\"social_false_belief_01\")\ndef social_false_belief_01(llm) -> bool:\n    \"\"\"Understand false belief scenarios.\"\"\"\n    prompt = \"\"\"Sally puts her marble in Basket A.\nWhile Sally is away, Anne moves it to Basket B.\n\nWhere will Sally look for her marble?\n\nA) Basket A\nB) Basket B\nC) Neither\nD) She won't look\"\"\"\n    response = llm.prompt(prompt)\n    return bool(kbench.assertions.assert_true(\"A\" in response, expectation=\"Correct answer is A\"))\n"
+  },
+  "modelVersion": {},
+  "state": "BENCHMARK_TASK_RUN_STATE_COMPLETED",
+  "startTime": "2026-04-11T05:02:22.409433Z",
+  "endTime": "2026-04-11T05:02:29.589533Z",
+  "conversations": [
+    {
+      "id": "social_false_belief_01-5c8c5669",
+      "metrics": {},
+      "modelVersionSlug": "model_version_slug for conversation is DEPRECATED"
+    }
+  ],
+  "results": [
+    {
+      "type": "AGGREGATED",
+      "booleanResult": true
+    }
+  ],
+  "assertions": [
+    {
+      "expectation": "Correct answer is A",
+      "status": "BENCHMARK_TASK_RUN_ASSERTION_STATUS_PASSED",
+      "lineNumber": 1169,
+      "definition": "return bool(kbench.assertions.assert_true(\"A\" in response, expectation=\"Correct answer is A\"))",
+      "conversationRequestIds": [
+        {
+          "conversationId": "social_false_belief_01-5c8c5669"
+        }
+      ]
+    }
+  ],
+  "pyRunId": "social_false_belief_01-Run #1"
+}

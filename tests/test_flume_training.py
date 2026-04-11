@@ -73,7 +73,9 @@ class TestCheckpoints:
             "config",
             "epoch",
         }
-        assert expected_keys.issubset(ckpt.keys()), f"Missing keys: {expected_keys - set(ckpt.keys())}"
+        assert expected_keys.issubset(ckpt.keys()), (
+            f"Missing keys: {expected_keys - set(ckpt.keys())}"
+        )
 
 
 class TestLatentInterpolation:

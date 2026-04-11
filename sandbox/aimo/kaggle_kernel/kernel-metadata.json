@@ -1,7 +1,7 @@
 {
   "id": "manderson240/aimo-3-mrs-swarm-transformers-v39",
   "title": "AIMO 3 MRS Swarm Transformers v39",
-  "code_file": "submission_cohezion_v2.ipynb",
+  "code_file": "submission_fortress_v43.ipynb",
   "language": "python",
   "kernel_type": "notebook",
   "is_private": "true",
@@ -10,7 +10,9 @@
   "enable_internet": "false",
   "machine_shape": "NvidiaH100",
   "dataset_sources": [
-    "gmhost/qwen2-5-math-7b-instruct"
+    "gmhost/qwen2-5-math-7b-instruct",
+    "manderson240/rocm-training-wheels",
+    "kishanvavdara/nvidia-nemotron-3-nano-30b-a3b-bf16"
   ],
   "model_sources": [],
   "competition_sources": [

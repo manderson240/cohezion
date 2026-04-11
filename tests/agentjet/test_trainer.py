@@ -1,4 +1,5 @@
 """Tests for AgentJetTrainer."""
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -134,9 +135,7 @@ async def test_reload_inference_models_called_after_success(
     tasks = _make_tasks(2)
     with patch.object(trainer.reader, "read", return_value=tasks):
         with patch.object(trainer, "_run_training", new_callable=AsyncMock, return_value=None):
-            with patch.object(
-                trainer, "_safety_check", new_callable=AsyncMock
-            ):
+            with patch.object(trainer, "_safety_check", new_callable=AsyncMock):
                 await trainer.train(target_model="phi3:mini", dry_run=False)
 
     mock_context_manager.reload_inference_models.assert_called_once()

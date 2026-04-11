@@ -213,7 +213,9 @@ class TestFindRelevantContextDecay:
             {"path": "patterns/bar.md", "snippet": "z"},
         ]
 
-        with patch.object(compound_mocked, "_fetch_neuron_metadata_batch", return_value={}):
+        with patch.object(
+            compound_mocked, "_fetch_neuron_metadata_batch", return_value={}
+        ):
             with patch.object(compound_mocked, "_track_access"):
                 results = compound_mocked.find_relevant_context("test")
 
@@ -241,7 +243,9 @@ class TestFindRelevantContextDecay:
             },
         }
 
-        with patch.object(compound_mocked, "_fetch_neuron_metadata_batch", return_value=metadata):
+        with patch.object(
+            compound_mocked, "_fetch_neuron_metadata_batch", return_value=metadata
+        ):
             with patch.object(compound_mocked, "_track_access"):
                 results = compound_mocked.find_relevant_context("test")
 
@@ -252,7 +256,9 @@ class TestFindRelevantContextDecay:
             {"path": "patterns/foo.md", "snippet": "match"}
         ]
 
-        with patch.object(compound_mocked, "_fetch_neuron_metadata_batch", return_value={}):
+        with patch.object(
+            compound_mocked, "_fetch_neuron_metadata_batch", return_value={}
+        ):
             with patch.object(compound_mocked, "_track_access"):
                 results = compound_mocked.find_relevant_context("foo")
 
@@ -262,7 +268,9 @@ class TestFindRelevantContextDecay:
     def test_empty_vault_returns_empty_list(self, compound_mocked):
         compound_mocked.vault.search.return_value = []
 
-        with patch.object(compound_mocked, "_fetch_neuron_metadata_batch", return_value={}):
+        with patch.object(
+            compound_mocked, "_fetch_neuron_metadata_batch", return_value={}
+        ):
             with patch.object(compound_mocked, "_track_access"):
                 results = compound_mocked.find_relevant_context("nothing")
 
@@ -273,7 +281,9 @@ class TestFindRelevantContextDecay:
             {"path": "decisions/a.md", "snippet": "hit"}
         ]
 
-        with patch.object(compound_mocked, "_fetch_neuron_metadata_batch", return_value={}):
+        with patch.object(
+            compound_mocked, "_fetch_neuron_metadata_batch", return_value={}
+        ):
             with patch.object(compound_mocked, "_track_access") as mock_track:
                 compound_mocked.find_relevant_context("test")
 

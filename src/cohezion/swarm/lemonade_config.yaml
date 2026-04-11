@@ -4,19 +4,30 @@
 
 hardware_targets:
   npu:
+    provider: "lemonade"
     endpoint: "http://localhost:11435"
     architecture: "XDNA2"
     priority: 1
     supported_models: ["gemma4:2b", "gemma4:4b"]
     memory_limit_gb: 16
 
-  gpu:
-    endpoint: "http://localhost:11434"
+  gpu_amd:
+    provider: "lemonade"
+    endpoint: "http://localhost:13307"
     architecture: "RDNA3.5"
     priority: 2
     supported_models: ["gemma4:26b-moe"]
     memory_limit_gb: 96
     optimization: "MXFP4_BLOCK_SCALED"
+
+  gpu_nvidia:
+    provider: "nim"
+    endpoint: "http://localhost:8000" # Standard NIM/vLLM port
+    architecture: "Hopper/Blackwell"
+    priority: 2
+    supported_models: ["nemotron-3-nano-30b", "qwen2.5-math-7b"]
+    memory_limit_gb: 80
+    optimization: "AITUNE_TENSORRT_LLM"
 
   cloud:
     endpoint: "https://cloud.ollama.ai"

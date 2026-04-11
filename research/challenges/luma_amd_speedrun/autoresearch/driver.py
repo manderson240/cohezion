@@ -77,25 +77,29 @@ def _sync_to_graph(kernel: str, node, result_us: float | None) -> None:
         if result_us:
             content += f"\nLast: {result_us:.1f}µs (attempt #{node.attempts})"
 
-        asyncio.run(upsert_neuron(
-            neuron_id=node_id,
-            title=f"[{kernel.upper()}] {node.strategy[:60]}",
-            path=f"autoresearch/{kernel}/{node.id}",
-            cluster="autoresearch",
-            aspect="thinker",
-            tags=["autoresearch", kernel, "k-search"],
-            content=content,
-        ))
+        asyncio.run(
+            upsert_neuron(
+                neuron_id=node_id,
+                title=f"[{kernel.upper()}] {node.strategy[:60]}",
+                path=f"autoresearch/{kernel}/{node.id}",
+                cluster="autoresearch",
+                aspect="thinker",
+                tags=["autoresearch", kernel, "k-search"],
+                content=content,
+            )
+        )
 
         # Link to parent if exists
         if node.parent_id:
             parent_id = f"neuron:ksearch_{kernel}_{slugify(node.parent_id)}_md"
-            asyncio.run(create_synapse(
-                from_id=parent_id,
-                to_id=node_id,
-                link_type="k-search-child",
-                reason=f"Child strategy in {kernel} K-Search tree",
-            ))
+            asyncio.run(
+                create_synapse(
+                    from_id=parent_id,
+                    to_id=node_id,
+                    link_type="k-search-child",
+                    reason=f"Child strategy in {kernel} K-Search tree",
+                )
+            )
     except Exception as e:
         log.debug(f"Graph sync skipped (non-blocking): {e}")
 

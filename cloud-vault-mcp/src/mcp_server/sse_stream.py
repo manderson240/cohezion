@@ -28,7 +28,9 @@ class VaultEventStream:
             try:
                 while True:
                     try:
-                        event = await asyncio.wait_for(queue.get(), timeout=float(self._heartbeat_seconds))
+                        event = await asyncio.wait_for(
+                            queue.get(), timeout=float(self._heartbeat_seconds)
+                        )
                         data = json.dumps(event.to_dict())
                         yield f"event: {event.event_type}\ndata: {data}\n\n"
                     except TimeoutError:

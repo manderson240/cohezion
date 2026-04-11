@@ -25,45 +25,28 @@ You are a specialist in **Autonomous Experimentation Loops**. Your role is to op
    - Use an LLM to "evolve the world model" based on the results, identifying bottlenecks and proposing new branches.
    - Sync findings to the Research Wiki.
 
-## COHEZION INTEGRATION (v0.2 — andyluo7/autoresearch wiring)
+## COHEZION INTEGRATION (v0.3 — Kaggle & Ouroboros Synthesis)
 
 `AutoresearchDriver` at `src/cohezion/research/autoresearch_driver.py` implements
-the full loop. Research program at `src/cohezion/research/program.md`.
+the full closed-loop Kaggle offensive.
 
-### Supported targets
-
-| Target | Metric | Direction |
-|--------|--------|-----------|
-| `jepa` | `total_loss` | minimize |
-| `flume_vae` | `val_loss` | minimize |
-| `rl_ppo` | `episode_reward` | maximize |
+### The Autonomous Flywheel
+1. **Kaggle Bridge**: Use `run_kaggle_experiment` to push kernels and poll for competition scores.
+2. **Score-as-Reward**: Official leaderboard scores drive the `KSearchTree` UCB1 values.
+3. **Ouroboros Learning**: If `status == "error"`, trigger `OuroborosFailureAnalyzer` to extract "Hardening Mutations" from the kernel logs.
+4. **FLUME Guidance**: Select nodes by latent similarity to previous successes, navigating the thought-manifold toward stable proof patterns.
 
 ### Usage
-
 ```python
 from cohezion.research.autoresearch_driver import AutoresearchDriver
 
-driver = AutoresearchDriver(target="jepa", budget_seconds=300)
-results = await driver.run_loop(n_iterations=12)
+# Run 8-hour autonomous offensive
+driver = AutoresearchDriver(target="aimo", budget_seconds=1800)
+results = await driver.run_loop(n_iterations=5)
 ```
 
-### CompoundExecutor Step 5.91
-
-Research tasks dispatch automatically when task description contains:
-`train`, `optimize`, `research`, `experiment`, `improve loss`, `tune`
-
-### K-Search tree
-
-`~/.cohezion-research/ksearch/{target}.json` — UCB1 node selection (C=sqrt(2)).
-Reset with `rm ~/.cohezion-research/ksearch/{target}.json`.
-
-### SurrealDB persistence
-
-All results → `experiments` table in `cohezion:vault`.
-Query: `SELECT * FROM experiments WHERE type = 'autoresearch' LIMIT 20;`
-
 ## VERSION
-v0.2
+v0.3
 
 ## SEE ALSO
 - LLM_WIKI_PRIME.md

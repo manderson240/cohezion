@@ -33,7 +33,7 @@ from task import input_t, output_t
 os.environ["AITER_MLA_USE_PERSISTENT"] = "1"
 
 # DeepSeek R1 MLA constants
-SM_SCALE = 1.0 / (576 ** 0.5)
+SM_SCALE = 1.0 / (576**0.5)
 V_HEAD_DIM = 512
 NUM_KV_HEADS = 1
 QK_HEAD_DIM = 576
@@ -61,10 +61,12 @@ def _ensure_asm():
         return
     try:
         from aiter.mla import mla_decode_stage1_asm_fwd, mla_reduce_v1
+
         _asm_stage1 = mla_decode_stage1_asm_fwd
         _asm_reduce = mla_reduce_v1
     except ImportError:
         import aiter
+
         _asm_stage1 = getattr(aiter, "mla_decode_stage1_asm_fwd", None)
         _asm_reduce = getattr(aiter, "mla_reduce_v1", None)
 
@@ -111,27 +113,48 @@ def _build_metadata(
 
     # Get metadata info and allocate buffers
     info = get_mla_metadata_info_v1(
-        bs, qseqlen, nheads, q_dtype, kv_dtype,
-        is_sparse=False, fast_mode=False,
-        num_kv_splits=num_splits, intra_batch_mode=True,
+        bs,
+        qseqlen,
+        nheads,
+        q_dtype,
+        kv_dtype,
+        is_sparse=False,
+        fast_mode=False,
+        num_kv_splits=num_splits,
+        intra_batch_mode=True,
     )
-    (work_meta_data, work_indptr, work_info_set,
-     reduce_indptr, reduce_final_map, reduce_partial_map) = [
-        torch.empty(s, dtype=t, device="cuda") for s, t in info
-    ]
+    (
+        work_meta_data,
+        work_indptr,
+        work_info_set,
+        reduce_indptr,
+        reduce_final_map,
+        reduce_partial_map,
+    ) = [torch.empty(s, dtype=t, device="cuda") for s, t in info]
 
     # Populate metadata
     get_mla_metadata_v1(
-        qo_indptr, kv_indptr, kv_last_page_len,
-        nheads // NUM_KV_HEADS, NUM_KV_HEADS, True,  # is_causal=True
-        work_meta_data, work_info_set, work_indptr,
-        reduce_indptr, reduce_final_map, reduce_partial_map,
-        page_size=PAGE_SIZE, kv_granularity=16,
-        max_seqlen_qo=qseqlen, uni_seqlen_qo=qseqlen,
+        qo_indptr,
+        kv_indptr,
+        kv_last_page_len,
+        nheads // NUM_KV_HEADS,
+        NUM_KV_HEADS,
+        True,  # is_causal=True
+        work_meta_data,
+        work_info_set,
+        work_indptr,
+        reduce_indptr,
+        reduce_final_map,
+        reduce_partial_map,
+        page_size=PAGE_SIZE,
+        kv_granularity=16,
+        max_seqlen_qo=qseqlen,
+        uni_seqlen_qo=qseqlen,
         fast_mode=False,
         max_split_per_batch=num_splits,
         intra_batch_mode=True,
-        dtype_q=q_dtype, dtype_kv=kv_dtype,
+        dtype_q=q_dtype,
+        dtype_kv=kv_dtype,
     )
 
     # Allocate output buffers for logits and LSE
@@ -159,9 +182,10 @@ def _build_metadata(
 # Bypasses aiter Python dispatch overhead
 # ---------------------------------------------------------------------------
 
+
 def _einsum_attention(data: input_t) -> output_t:
     """Einsum-based attention for small batch sizes.
-    
+
     Uses torch.einsum with 3D tensors to bypass aiter dispatch overhead.
     Optimal for bs<=4 or total_kv<=32768.
     """
@@ -188,6 +212,7 @@ def _einsum_attention(data: input_t) -> output_t:
 # ---------------------------------------------------------------------------
 # Regime 2/3: Direct ASM dispatch with aiter kernel
 # ---------------------------------------------------------------------------
+
 
 def _asm_attention(data: input_t, use_a16w8: bool) -> output_t:
     """Direct ASM dispatch to aiter MLA kernel.
@@ -223,8 +248,15 @@ def _asm_attention(data: input_t, use_a16w8: bool) -> output_t:
     key = (bs, qseqlen, kvseqlen, nheads, use_a16w8, num_splits)
     if key not in _metadata_cache:
         _metadata_cache[key] = _build_metadata(
-            bs, qseqlen, nheads, q_dtype, FP8_DTYPE,
-            num_splits, qo_indptr, kv_indptr, kvseqlen,
+            bs,
+            qseqlen,
+            nheads,
+            q_dtype,
+            FP8_DTYPE,
+            num_splits,
+            qo_indptr,
+            kv_indptr,
+            kvseqlen,
         )
     c = _metadata_cache[key]
 
@@ -232,9 +264,7 @@ def _asm_attention(data: input_t, use_a16w8: bool) -> output_t:
     ok = (total_q, nheads)
     if ok not in _out_cache:
         _out_cache[ok] = torch.empty(
-            (total_q, nheads, V_HEAD_DIM),
-            dtype=torch.bfloat16,
-            device="cuda"
+            (total_q, nheads, V_HEAD_DIM), dtype=torch.bfloat16, device="cuda"
         )
     o = _out_cache[ok]
 
@@ -305,6 +335,7 @@ def _asm_attention(data: input_t, use_a16w8: bool) -> output_t:
 # ---------------------------------------------------------------------------
 # Main dispatcher: three-regime routing
 # ---------------------------------------------------------------------------
+
 
 def custom_kernel(data: input_t) -> output_t:
     """Three-regime MLA attention dispatch.

@@ -2,6 +2,7 @@
 Lean probe: pa_ps_fwd_asm + flash_attn_varlen_func source code only.
 No call attempts — just dump signatures and source to learn the API.
 """
+
 from __future__ import annotations
 
 import inspect
@@ -12,6 +13,7 @@ from task import input_t, output_t
 
 
 _probed = False
+
 
 def custom_kernel(data: input_t) -> output_t:
     global _probed

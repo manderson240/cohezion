@@ -27,7 +27,7 @@ from task import input_t, output_t
 
 
 # Check if _compile_kernel is available
-_HAS_COMPILE_KERNEL = hasattr(torch.cuda, '_compile_kernel')
+_HAS_COMPILE_KERNEL = hasattr(torch.cuda, "_compile_kernel")
 
 # Test kernel source - properly escaped
 test_source = """
@@ -75,6 +75,7 @@ def custom_kernel(data: input_t) -> output_t:
 
     try:
         from aiter import gemm_a4w4_asm
+
         gemm_a4w4_asm(
             A_q.view(dtypes.fp4x2),
             B_shuffle,

@@ -1,4 +1,4 @@
-.PHONY: help format lint lint-check type-check test all clean train evaluate benchmark demo validate compound-train training-history kernel-status kernel-cycle kernel-loop kernel-loop-dry kernel-report
+.PHONY: help format lint lint-check type-check test all clean train evaluate benchmark demo validate compound-train training-history kernel-status kernel-cycle kernel-loop kernel-loop-dry kernel-report async-guard routing-guard
 
 help:  ## Show this help message
 	@echo "Available targets:"
@@ -17,7 +17,12 @@ lint-check:  ## Check linting without fixing
 	ruff format --check .
 	@echo "✓ Lint check complete"
 
+coherence-check:  ## Enforce 12D manifold integrity in data artifacts
+	uv run python src/cohezion/scripts/coherence_inspector.py
+	@echo "✓ Manifold integrity verified"
+
 type-check:  ## Run type checking with mypy
+
 	mypy --ignore-missing-imports bmad/ || true
 	@echo "✓ Type check complete"
 
@@ -25,7 +30,49 @@ test:  ## Run test suite
 	pytest tests/
 	@echo "✓ Tests complete"
 
-all: format lint type-check test  ## Run all checks and tests
+all: format lint type-check test agent-guard mcp-guard kg-guard data-mesh-guard health-guard async-guard routing-guard a2a-guard  ## Run all checks, tests, and guards
+
+agent-guard: ## Synchronize specialist agent definitions across all platform directories
+	uv run python src/cohezion/swarm/scripts/agent_guard.py
+	@echo "✓ Agent Guard: Specialists synchronized"
+
+a2a-guard: ## Synchronize A2A protocol agent cards (.well-known/agent.json)
+	uv run python src/cohezion/swarm/scripts/a2a_guard.py
+	@echo "✓ A2A Guard: Agent cards synchronized"
+
+omega-distiller: ## Distill knowledge from KEY_LEARNINGS.md into executable skills
+	uv run python src/cohezion/knowledge_graph/scripts/omega_distiller.py
+	@echo "✓ OMEGA Distiller: Skills refined"
+
+data-mesh-guard: ## Monitor Data Mesh registry for SLA and quality violations
+	uv run python src/cohezion/data_mesh/scripts/data_mesh_guard.py
+	@echo "✓ Data Mesh Guard: SLAs verified"
+
+github-scout: ## Start the GitHub Issue polling daemon (Asynchronous Workforce)
+	uv run python src/cohezion/swarm/scripts/github_scout.py
+
+health-guard: ## Run autonomic health checks and trajectory drift detection
+	uv run python src/cohezion/healing/scripts/trajectory_guard.py &
+	@echo "✓ Health Guard: Background monitoring active"
+
+autoresearch-daemon: ## Start the Autonomous Overnight Literature Review
+	uv run python src/cohezion/research/scripts/autoresearch_daemon.py
+
+mcp-guard: ## Run MCP Registry Guard to sync configs and check for latency anti-patterns
+	uv run python src/cohezion/mcp/scripts/mcp_guard.py
+	@echo "✓ MCP Guard checks passed"
+
+kg-guard: ## Scan for high-coherence completed journeys and precipitate knowledge
+	uv run python src/cohezion/knowledge_graph/scripts/kg_guard.py
+	@echo "✓ Knowledge Graph Guard checks complete"
+
+async-guard: ## Scan for synchronous I/O anti-patterns in async subsystems
+	uv run python src/cohezion/scripts/async_guard.py
+	@echo "✓ Async Guard: No blocking I/O anti-patterns found"
+
+routing-guard: ## Synchronize model routing and provider configurations across all platforms
+	uv run python src/cohezion/swarm/scripts/routing_guard.py
+	@echo "✓ Routing Guard: Model configurations synchronized"
 
 clean:  ## Clean up cache files
 	find . -type d -name "__pycache__" -exec rm -rf {} + 2>/dev/null || true
@@ -41,14 +88,21 @@ dev-setup:  ## Install pre-commit hooks
 	pre-commit install
 	@echo "✓ Pre-commit hooks installed"
 
-ci:  ## Run CI checks locally
+ci: coherence-check async-guard routing-guard a2a-guard agent-guard mcp-guard kg-guard data-mesh-guard health-guard ## Run CI checks locally
 	@echo "Running CI checks..."
 	ruff format --check .
 	ruff check .
 	mypy --ignore-missing-imports bmad/ || true
 	pytest tests/
+	uv run python src/cohezion/swarm/scripts/agent_guard.py
+	uv run python src/cohezion/mcp/scripts/mcp_guard.py
+	uv run python src/cohezion/knowledge_graph/scripts/kg_guard.py
+	uv run python src/cohezion/scripts/async_guard.py
+	uv run python src/cohezion/swarm/scripts/routing_guard.py
+	uv run python src/cohezion/swarm/scripts/a2a_guard.py
+	uv run python src/cohezion/data_mesh/scripts/data_mesh_guard.py
+	uv run python src/cohezion/healing/scripts/trajectory_guard.py
 	@echo "✓ All CI checks passed"
-
 # Compound Loop Validation
 validate:  ## Validate compound engineering loop end-to-end (25 checks, ~18s)
 	.venv/bin/python scripts/validate_compound_loop.py

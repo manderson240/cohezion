@@ -20,6 +20,7 @@ from cohezion.physics.flier_routing import FLIERRouter
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+
 async def verify_all():
     logger.info("🚀 Starting Tip of the Spear 2026 Verification...")
 
@@ -27,9 +28,13 @@ async def verify_all():
     logger.info("\n--- Phase 1: Viscous Manifold Dynamics ---")
     controller = ViscoelasticController(relaxation_tau=10.0)
     # Simulate rising pressure
-    adj1 = controller.calculate_dilation_adjustment(cpu=50, ram=50, vram=50, active_calls=2, total_agents=10)
+    adj1 = controller.calculate_dilation_adjustment(
+        cpu=50, ram=50, vram=50, active_calls=2, total_agents=10
+    )
     logger.info(f"Base pressure adjustment: {adj1:.4f}")
-    adj2 = controller.calculate_dilation_adjustment(cpu=80, ram=80, vram=80, active_calls=8, total_agents=50)
+    adj2 = controller.calculate_dilation_adjustment(
+        cpu=80, ram=80, vram=80, active_calls=8, total_agents=50
+    )
     logger.info(f"Rising pressure adjustment (Proactive Dilation): {adj2:.4f}")
     assert adj2 > adj1, "Viscosity should increase with rising pressure"
     logger.info("✅ Phase 1 Verified")
@@ -45,10 +50,11 @@ async def verify_all():
 
     # Phase 3: Inference-Time Scaling
     logger.info("\n--- Phase 3: Inference-Time Scaling ---")
+
     class MockModel:
         async def generate(self, prompt, system_prompt=None):
             return f"Mock reasoning for: {prompt[:20]}..."
-    
+
     scaler = AIMOScaler(model=MockModel())
     logger.info("AIMO Scaler initialized with Diverse Prompt Mixing (DPM)")
     # BFS small run
@@ -68,6 +74,7 @@ async def verify_all():
     logger.info("✅ Phase 4 Verified")
 
     logger.info("\n🎉 All 4 Phases of Tip of the Spear 2026 integration are VERIFIED.")
+
 
 if __name__ == "__main__":
     asyncio.run(verify_all())

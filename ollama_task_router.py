@@ -12,46 +12,73 @@ import sys
 from pathlib import Path
 from typing import Optional
 
+
 # Task classification
 def classify_task(prompt: str) -> str:
     """Classify task complexity to determine model."""
-    
+
     # Simple tasks -> Gemma4
     simple_patterns = [
-        "format", "lint", "style", "syntax check",
-        "variable name", "comment", "docstring",
-        "refactor", "rename", "reorder",
-        "simple function", "utility", "helper",
-        "test case", "assert", "verify",
-        "count", "list", "enumerate"
+        "format",
+        "lint",
+        "style",
+        "syntax check",
+        "variable name",
+        "comment",
+        "docstring",
+        "refactor",
+        "rename",
+        "reorder",
+        "simple function",
+        "utility",
+        "helper",
+        "test case",
+        "assert",
+        "verify",
+        "count",
+        "list",
+        "enumerate",
     ]
-    
-    # Complex tasks -> kimi-k2.5:cloud  
+
+    # Complex tasks -> kimi-k2.5:cloud
     complex_patterns = [
-        "optimize kernel", "gpu", "hip", "mfma",
-        "performance", "benchmark", "profile",
-        "algorithm", "data structure", "complex",
-        "architecture", "design", "strategy",
-        "research", "analyze", "investigate",
-        "breakthrough", "novel", "innovation"
+        "optimize kernel",
+        "gpu",
+        "hip",
+        "mfma",
+        "performance",
+        "benchmark",
+        "profile",
+        "algorithm",
+        "data structure",
+        "complex",
+        "architecture",
+        "design",
+        "strategy",
+        "research",
+        "analyze",
+        "investigate",
+        "breakthrough",
+        "novel",
+        "innovation",
     ]
-    
+
     prompt_lower = prompt.lower()
-    
+
     # Check for complex patterns first
     for pattern in complex_patterns:
         if pattern in prompt_lower:
             return "kimik2.5-cloud"
-    
+
     # Check for simple patterns
     for pattern in simple_patterns:
         if pattern in prompt_lower:
             return "gemma4"
-    
+
     # Default based on length - short tasks to Gemma4
     if len(prompt) < 500:
         return "gemma4"
-    
+
     return "kimik2.5-cloud"
 
 
@@ -59,11 +86,7 @@ def query_ollama(prompt: str, model: str = "gemma4") -> str:
     """Query Ollama with Gemma4."""
     try:
         result = subprocess.run(
-            ["ollama", "run", model],
-            input=prompt,
-            capture_output=True,
-            text=True,
-            timeout=120
+            ["ollama", "run", model], input=prompt, capture_output=True, text=True, timeout=120
         )
         return result.stdout
     except subprocess.TimeoutExpired:
@@ -80,30 +103,25 @@ def query_kimik(prompt: str) -> str:
 
 def route_task(prompt: str, force_model: Optional[str] = None) -> dict:
     """Route task to appropriate model."""
-    
+
     model = force_model or classify_task(prompt)
-    
-    result = {
-        "model": model,
-        "prompt": prompt,
-        "response": "",
-        "cached": False
-    }
-    
+
+    result = {"model": model, "prompt": prompt, "response": "", "cached": False}
+
     if model == "gemma4":
         result["response"] = query_ollama(prompt, "gemma4")
     elif model == "gemma4-9b":
         result["response"] = query_ollama(prompt, "gemma4:9b")
     else:
         result["response"] = query_kimik(prompt)
-    
+
     return result
 
 
 # Task types for Luma speedrun
 TASK_TYPES = {
     "code_format": "gemma4",
-    "syntax_check": "gemma4", 
+    "syntax_check": "gemma4",
     "docstring_write": "gemma4",
     "simple_refactor": "gemma4",
     "test_generation": "gemma4",
@@ -111,37 +129,38 @@ TASK_TYPES = {
     "kernel_optimization": "kimik2.5-cloud",
     "performance_analysis": "kimik2.5-cloud",
     "breakthrough_research": "kimik2.5-cloud",
-    " architectural_design": "kimik2.5-cloud"
+    " architectural_design": "kimik2.5-cloud",
 }
 
 
 def offload_to_gemma(task_type: str, task_input: str, context: str = "") -> str:
     """
     Offload a task to Gemma4 when appropriate.
-    
+
     Args:
         task_type: Type of task (see TASK_TYPES)
         task_input: The actual task content
         context: Additional context
-    
+
     Returns:
         Result from appropriate model
     """
-    
+
     prompt = f"""Task: {task_type}
 Context: {context}
 
 {task_input}
 
 Provide concise, correct output."""
-    
+
     model = TASK_TYPES.get(task_type, "gemma4")
     result = route_task(prompt, model)
-    
+
     return result["response"]
 
 
 # Specific offloaders for Luma speedrun
+
 
 def offload_kernel_commentary(kernel_code: str) -> str:
     """Add comments to kernel code - Gemma4."""
@@ -167,7 +186,9 @@ def offload_variant_generation(base_code: str, parameter: str, values: list) -> 
 
 def offload_log_analysis(log_content: str) -> str:
     """Analyze submission logs - Gemma4."""
-    prompt = f"Analyze these submission logs. Summarize errors and suggest fixes:\n{log_content[:2000]}"
+    prompt = (
+        f"Analyze these submission logs. Summarize errors and suggest fixes:\n{log_content[:2000]}"
+    )
     return query_ollama(prompt, "gemma4")
 
 
@@ -193,14 +214,14 @@ if __name__ == "__main__":
         print("Usage: ollama_task_router.py <task_type> [<input_file>]")
         print(f"Task types: {', '.join(TASK_TYPES.keys())}")
         sys.exit(1)
-    
+
     task_type = sys.argv[1]
-    
+
     if len(sys.argv) > 2:
-        with open(sys.argv[2], 'r') as f:
+        with open(sys.argv[2], "r") as f:
             task_input = f.read()
     else:
         task_input = sys.stdin.read()
-    
+
     result = offload_to_gemma(task_type, task_input)
     print(result)

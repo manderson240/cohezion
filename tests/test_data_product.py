@@ -36,14 +36,25 @@ class TestDataProduct:
         assert dp.error_rate == pytest.approx(1 / 3)
 
     def test_bronze_always_meets_sla(self):
-        dp = DataProduct(product_id="t", name="T", description="T", owner_domain="t",
-                         quality_tier=DataQualityTier.BRONZE)
+        dp = DataProduct(
+            product_id="t",
+            name="T",
+            description="T",
+            owner_domain="t",
+            quality_tier=DataQualityTier.BRONZE,
+        )
         dp.record_access(False)  # 100% error rate
         assert dp.meets_sla is True  # Bronze has no SLA
 
     def test_gold_sla_failure(self):
-        dp = DataProduct(product_id="t", name="T", description="T", owner_domain="t",
-                         quality_tier=DataQualityTier.GOLD, availability_target=0.95)
+        dp = DataProduct(
+            product_id="t",
+            name="T",
+            description="T",
+            owner_domain="t",
+            quality_tier=DataQualityTier.GOLD,
+            availability_target=0.95,
+        )
         for _ in range(5):
             dp.record_access(True)
         for _ in range(5):
@@ -52,9 +63,14 @@ class TestDataProduct:
         assert dp.meets_sla is False
 
     def test_to_registry_entry(self):
-        dp = DataProduct(product_id="test", name="Test", description="D",
-                         owner_domain="skills", quality_tier=DataQualityTier.GOLD,
-                         status=DataProductStatus.ACTIVE)
+        dp = DataProduct(
+            product_id="test",
+            name="Test",
+            description="D",
+            owner_domain="skills",
+            quality_tier=DataQualityTier.GOLD,
+            status=DataProductStatus.ACTIVE,
+        )
         entry = dp.to_registry_entry()
         assert entry["product_id"] == "test"
         assert entry["quality_tier"] == "gold"

@@ -91,7 +91,7 @@ class HookifyMCPBridge:
             try:
                 from surrealdb import Surreal
 
-                db = Surreal("ws://localhost:8000")
+                db = Surreal("ws://localhost:8001")
                 # Signin and use database
                 # db.signin({"user": "root", "pass": "root"})
                 # db.use("cohezion", "vault")

@@ -14,6 +14,7 @@ Three-regime routing:
 1. Small (bs<=4 OR total_kv<=32768): torch.einsum bf16 (fastest for small)
 2. Medium/Large: flash_attn_varlen_func with padded V
 """
+
 from __future__ import annotations
 
 import sys
@@ -22,7 +23,7 @@ import torch
 from task import input_t, output_t
 
 
-SM_SCALE = 1.0 / (576 ** 0.5)
+SM_SCALE = 1.0 / (576**0.5)
 V_HEAD_DIM = 512
 QK_HEAD_DIM = 576
 NUM_KV_HEADS = 1
@@ -39,6 +40,7 @@ def _ensure_flash():
     if _flash_varlen_fn is not None:
         return
     import aiter
+
     _flash_fn = getattr(aiter, "flash_attn_func", None)
     _flash_varlen_fn = getattr(aiter, "flash_attn_varlen_func", None)
 
@@ -112,10 +114,10 @@ def custom_kernel(data: input_t) -> output_t:
             # Strategy B: Use head_dim=512, truncate K
             try:
                 K_trunc = kv_bf16[:, :, :v_head_dim].contiguous()  # (total_kv, 1, 512)
-                V_raw = kv_bf16[:, :, :v_head_dim].contiguous()   # (total_kv, 1, 512)
+                V_raw = kv_bf16[:, :, :v_head_dim].contiguous()  # (total_kv, 1, 512)
                 q_trunc = q[:, :, :v_head_dim].contiguous()  # (total_q, num_heads, 512)
 
-                sm_scale_512 = 1.0 / (512 ** 0.5)
+                sm_scale_512 = 1.0 / (512**0.5)
 
                 out_trunc = _flash_varlen_fn(
                     q_trunc,
@@ -142,11 +144,17 @@ def custom_kernel(data: input_t) -> output_t:
             # Reshape to (bs, seqlen, nheads, head_dim)
             q_4d = q.view(bs, qseqlen, num_heads, qk_head_dim)
             k_4d = kv_bf16.view(bs, kv_seq_len, 1, qk_head_dim)
-            V_padded_4d = torch.zeros(bs, kv_seq_len, 1, qk_head_dim, dtype=kv_bf16.dtype, device="cuda")
-            V_padded_4d[:, :, :, :v_head_dim] = kv_bf16.view(bs, kv_seq_len, 1, qk_head_dim)[:, :, :, :v_head_dim]
+            V_padded_4d = torch.zeros(
+                bs, kv_seq_len, 1, qk_head_dim, dtype=kv_bf16.dtype, device="cuda"
+            )
+            V_padded_4d[:, :, :, :v_head_dim] = kv_bf16.view(bs, kv_seq_len, 1, qk_head_dim)[
+                :, :, :, :v_head_dim
+            ]
 
             out = _flash_fn(
-                q_4d, k_4d, V_padded_4d,
+                q_4d,
+                k_4d,
+                V_padded_4d,
                 dropout_p=0.0,
                 softmax_scale=sm_scale,
                 causal=False,
@@ -161,4 +169,5 @@ def custom_kernel(data: input_t) -> output_t:
     # Fallback: reference kernel
     print("All flash strategies failed, using ref_kernel", file=sys.stderr)
     from reference import ref_kernel
+
     return ref_kernel(data)

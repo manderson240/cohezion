@@ -1,0 +1,39 @@
+{
+  "taskVersion": {
+    "versionNumber": 1,
+    "name": "exec_dynamic_constraints_03",
+    "description": "Adapt plan as constraints change.",
+    "definition": "@kbench.task(name=\"exec_dynamic_constraints_03\")\ndef exec_dynamic_constraints_03(llm) -> bool:\n    \"\"\"Adapt plan as constraints change.\"\"\"\n    prompt = \"\"\"Plan a route from A to C through B.\n\nInitially:\n- A to B: 10 min\n- B to C: 15 min\n\nHalfway through A\u2192B, you learn B\u2192C is now 25 min due to traffic, but there's a new route B\u2192D\u2192C taking 20 min total.\n\nBest total time?\n\nA) 35 min\nB) 40 min\nC) 30 min\nD) 45 min\"\"\"\n    response = llm.prompt(prompt)\n    return bool(kbench.assertions.assert_true(\"B\" in response, expectation=\"Correct answer is B\"))\n"
+  },
+  "modelVersion": {},
+  "state": "BENCHMARK_TASK_RUN_STATE_COMPLETED",
+  "startTime": "2026-04-11T04:58:07.873423Z",
+  "endTime": "2026-04-11T04:58:41.820931Z",
+  "conversations": [
+    {
+      "id": "exec_dynamic_constraints_03-5a102519",
+      "metrics": {},
+      "modelVersionSlug": "model_version_slug for conversation is DEPRECATED"
+    }
+  ],
+  "results": [
+    {
+      "type": "AGGREGATED",
+      "booleanResult": true
+    }
+  ],
+  "assertions": [
+    {
+      "expectation": "Correct answer is B",
+      "status": "BENCHMARK_TASK_RUN_ASSERTION_STATUS_PASSED",
+      "lineNumber": 916,
+      "definition": "return bool(kbench.assertions.assert_true(\"B\" in response, expectation=\"Correct answer is B\"))",
+      "conversationRequestIds": [
+        {
+          "conversationId": "exec_dynamic_constraints_03-5a102519"
+        }
+      ]
+    }
+  ],
+  "pyRunId": "exec_dynamic_constraints_03-Run #1"
+}

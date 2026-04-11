@@ -1,0 +1,39 @@
+{
+  "taskVersion": {
+    "versionNumber": 1,
+    "name": "social_norm_violation_09",
+    "description": "Detect social norm violations.",
+    "definition": "@kbench.task(name=\"social_norm_violation_09\")\ndef social_norm_violation_09(llm) -> bool:\n    \"\"\"Detect social norm violations.\"\"\"\n    prompt = \"\"\"At a formal dinner:\n\nA) Using the wrong fork\nB) Eating with hands (for salad)\nC) Talking with mouth full\nD) All are norm violations\"\"\"\n    response = llm.prompt(prompt)\n    return bool(kbench.assertions.assert_true(\"D\" in response, expectation=\"Correct answer is D\"))\n"
+  },
+  "modelVersion": {},
+  "state": "BENCHMARK_TASK_RUN_STATE_COMPLETED",
+  "startTime": "2026-04-11T05:03:50.165195Z",
+  "endTime": "2026-04-11T05:04:08.133058Z",
+  "conversations": [
+    {
+      "id": "social_norm_violation_09-2793242f",
+      "metrics": {},
+      "modelVersionSlug": "model_version_slug for conversation is DEPRECATED"
+    }
+  ],
+  "results": [
+    {
+      "type": "AGGREGATED",
+      "booleanResult": true
+    }
+  ],
+  "assertions": [
+    {
+      "expectation": "Correct answer is D",
+      "status": "BENCHMARK_TASK_RUN_ASSERTION_STATUS_PASSED",
+      "lineNumber": 1298,
+      "definition": "return bool(kbench.assertions.assert_true(\"D\" in response, expectation=\"Correct answer is D\"))",
+      "conversationRequestIds": [
+        {
+          "conversationId": "social_norm_violation_09-2793242f"
+        }
+      ]
+    }
+  ],
+  "pyRunId": "social_norm_violation_09-Run #1"
+}

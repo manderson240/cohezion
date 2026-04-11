@@ -31,7 +31,7 @@ from task import input_t, output_t
 
 # ─── HIP Kernel Source: MFMA-based MoE Stage 1 (Gate+Up) ────────────────────
 # Uses CDNA4 scaled MFMA intrinsic for MXFP4 computation
-HIP_SOURCE_STAGE1 = r'''
+HIP_SOURCE_STAGE1 = r"""
 #include <torch/extension.h>
 #include <hip/hip_runtime.h>
 #include <hip/hip_bf16.h>
@@ -302,10 +302,10 @@ torch::Tensor launch_moe_stage2(
 
     return output;
 }
-'''
+"""
 
 # C++ function declarations
-CPP_SOURCE = R'''
+CPP_SOURCE = R"""
 torch::Tensor launch_moe_stage1(
     torch::Tensor hidden, torch::Tensor w1, torch::Tensor w1_scale,
     torch::Tensor topk_ids, torch::Tensor topk_weights,
@@ -316,7 +316,7 @@ torch::Tensor launch_moe_stage2(
     torch::Tensor topk_ids, torch::Tensor topk_weights,
     int M, int D, int DI, int topk, int num_experts
 );
-'''
+"""
 
 # Module cache
 _module = None
@@ -394,7 +394,11 @@ def custom_kernel(data: input_t) -> output_t:
                 gate_up_weight_scale_shuffled,
                 topk_ids,
                 topk_weights,
-                M, D, DI, topk, num_experts
+                M,
+                D,
+                DI,
+                topk,
+                num_experts,
             )
 
             # Stage 2: Down projection with MFMA
@@ -404,7 +408,11 @@ def custom_kernel(data: input_t) -> output_t:
                 down_weight_scale_shuffled,
                 topk_ids,
                 topk_weights,
-                M, D, DI, topk, num_experts
+                M,
+                D,
+                DI,
+                topk,
+                num_experts,
             )
 
             return output

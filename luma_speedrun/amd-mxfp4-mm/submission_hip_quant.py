@@ -4,6 +4,7 @@
 """GEMM: Try per_1x32_f4_quant_hip for faster A quantization."""
 
 import os
+
 os.environ["PYTORCH_ROCM_ARCH"] = "gfx950"
 
 import torch
@@ -28,11 +29,16 @@ def custom_kernel(data: input_t) -> output_t:
     except Exception as e:
         print(f"[hip_quant] Failed: {e}, falling back to Triton")
         from aiter.ops.triton.quant import dynamic_mxfp4_quant
+
         A_fp4, A_scale = dynamic_mxfp4_quant(A.contiguous())
         A_scale_sh = e8m0_shuffle(A_scale).view(dtypes.fp8_e8m0)
         A_fp4_view = A_fp4.view(dtypes.fp4x2)
 
     return aiter.gemm_a4w4(
-        A_fp4_view, B_shuffle, A_scale_sh, B_scale_sh,
-        dtype=dtypes.bf16, bpreshuffle=True,
+        A_fp4_view,
+        B_shuffle,
+        A_scale_sh,
+        B_scale_sh,
+        dtype=dtypes.bf16,
+        bpreshuffle=True,
     )

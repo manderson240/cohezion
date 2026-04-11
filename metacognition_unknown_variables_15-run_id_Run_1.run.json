@@ -1,0 +1,39 @@
+{
+  "taskVersion": {
+    "versionNumber": 1,
+    "name": "metacognition_unknown_variables_15",
+    "description": "Identify when critical variables are unknown.",
+    "definition": "@kbench.task(name=\"metacognition_unknown_variables_15\")\ndef metacognition_unknown_variables_15(llm) -> bool:\n    \"\"\"Identify when critical variables are unknown.\"\"\"\n    prompt = \"\"\"Solve for X: X + Y = 10, Y + Z = 15, Z + X = ?\n\nWhat is Z + X?\n\nA) 15\nB) 25\nC) Cannot determine uniquely\nD) Insufficient Information\"\"\"\n    response = llm.prompt(prompt)\n    return bool(kbench.assertions.assert_true(\"C\" in response, expectation=\"Correct answer is C\"))\n"
+  },
+  "modelVersion": {},
+  "state": "BENCHMARK_TASK_RUN_STATE_COMPLETED",
+  "startTime": "2026-04-11T04:53:09.564534Z",
+  "endTime": "2026-04-11T04:54:21.531475Z",
+  "conversations": [
+    {
+      "id": "metacognition_unknown_variables_15-d69a04a1",
+      "metrics": {},
+      "modelVersionSlug": "model_version_slug for conversation is DEPRECATED"
+    }
+  ],
+  "results": [
+    {
+      "type": "AGGREGATED",
+      "booleanResult": true
+    }
+  ],
+  "assertions": [
+    {
+      "expectation": "Correct answer is C",
+      "status": "BENCHMARK_TASK_RUN_ASSERTION_STATUS_FAILED",
+      "lineNumber": 598,
+      "definition": "return bool(kbench.assertions.assert_true(\"C\" in response, expectation=\"Correct answer is C\"))",
+      "conversationRequestIds": [
+        {
+          "conversationId": "metacognition_unknown_variables_15-d69a04a1"
+        }
+      ]
+    }
+  ],
+  "pyRunId": "metacognition_unknown_variables_15-Run #1"
+}

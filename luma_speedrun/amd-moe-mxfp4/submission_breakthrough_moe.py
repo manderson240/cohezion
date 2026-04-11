@@ -11,7 +11,7 @@ from aiter import ActivationType, QuantType
 from task import input_t, output_t
 
 # ─── HIP Kernel Source ─────────────────────────────────────────────────────────
-HIP_SOURCE = r'''
+HIP_SOURCE = r"""
 #include <torch/extension.h>
 #include <hip/hip_runtime.h>
 #include <hip/hip_bf16.h>
@@ -68,11 +68,12 @@ torch::Tensor launch_moe_v3(
     );
     return output;
 }
-'''
+"""
 
 CPP_SOURCE = "torch::Tensor launch_moe_v3(torch::Tensor, torch::Tensor, torch::Tensor, torch::Tensor, torch::Tensor, torch::Tensor, torch::Tensor, int, int, int, int, int);"
 
 _module = None
+
 
 def get_module():
     global _module
@@ -89,6 +90,7 @@ def get_module():
         except Exception:
             pass
     return _module
+
 
 def custom_kernel(data: input_t) -> output_t:
     (
@@ -115,19 +117,34 @@ def custom_kernel(data: input_t) -> output_t:
     if mod:
         try:
             return mod.launch_moe_v3(
-                hidden_states, gate_up_weight_shuffled, down_weight_shuffled,
-                gate_up_weight_scale_shuffled, down_weight_scale_shuffled,
-                topk_ids, topk_weights,
-                M, E, D, DI, topk
+                hidden_states,
+                gate_up_weight_shuffled,
+                down_weight_shuffled,
+                gate_up_weight_scale_shuffled,
+                down_weight_scale_shuffled,
+                topk_ids,
+                topk_weights,
+                M,
+                E,
+                D,
+                DI,
+                topk,
             )
         except Exception:
             pass
 
     from aiter.fused_moe import fused_moe
+
     return fused_moe(
-        hidden_states, gate_up_weight_shuffled, down_weight_shuffled,
-        topk_weights, topk_ids, expert_mask=None,
-        activation=ActivationType.Silu, quant_type=QuantType.per_1x32,
-        doweight_stage1=False, w1_scale=gate_up_weight_scale_shuffled,
+        hidden_states,
+        gate_up_weight_shuffled,
+        down_weight_shuffled,
+        topk_weights,
+        topk_ids,
+        expert_mask=None,
+        activation=ActivationType.Silu,
+        quant_type=QuantType.per_1x32,
+        doweight_stage1=False,
+        w1_scale=gate_up_weight_scale_shuffled,
         w2_scale=down_weight_scale_shuffled,
     )

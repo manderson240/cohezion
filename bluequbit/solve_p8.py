@@ -21,12 +21,7 @@ circuit = loads(qasm)
 print(f"P8: {circuit.num_qubits} qubits, {len(circuit.data)} gates")
 
 print("Running mps.cpu with bond_dim=64...")
-result = bq.run(
-    circuit,
-    device="mps.cpu",
-    shots=100000,
-    options={"mps_bond_dimension": 64}
-)
+result = bq.run(circuit, device="mps.cpu", shots=100000, options={"mps_bond_dimension": 64})
 
 counts = result.get_counts()
 top = counts.most_common(5)

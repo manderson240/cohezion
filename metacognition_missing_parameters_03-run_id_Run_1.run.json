@@ -1,0 +1,39 @@
+{
+  "taskVersion": {
+    "versionNumber": 1,
+    "name": "metacognition_missing_parameters_03",
+    "description": "Detect missing critical parameters.",
+    "definition": "@kbench.task(name=\"metacognition_missing_parameters_03\")\ndef metacognition_missing_parameters_03(llm) -> bool:\n    \"\"\"Detect missing critical parameters.\"\"\"\n    prompt = \"\"\"Calculate the area of a rectangle with width 5 meters.\n\nA) 5 square meters\nB) 10 square meters\nC) 25 square meters\nD) Insufficient Information\"\"\"\n    response = llm.prompt(prompt)\n    return bool(kbench.assertions.assert_true(\"D\" in response, expectation=\"Correct answer is D\"))\n"
+  },
+  "modelVersion": {},
+  "state": "BENCHMARK_TASK_RUN_STATE_COMPLETED",
+  "startTime": "2026-04-11T04:50:11.271604Z",
+  "endTime": "2026-04-11T04:50:19.539722Z",
+  "conversations": [
+    {
+      "id": "metacognition_missing_parameters_03-af72358a",
+      "metrics": {},
+      "modelVersionSlug": "model_version_slug for conversation is DEPRECATED"
+    }
+  ],
+  "results": [
+    {
+      "type": "AGGREGATED",
+      "booleanResult": true
+    }
+  ],
+  "assertions": [
+    {
+      "expectation": "Correct answer is D",
+      "status": "BENCHMARK_TASK_RUN_ASSERTION_STATUS_PASSED",
+      "lineNumber": 414,
+      "definition": "return bool(kbench.assertions.assert_true(\"D\" in response, expectation=\"Correct answer is D\"))",
+      "conversationRequestIds": [
+        {
+          "conversationId": "metacognition_missing_parameters_03-af72358a"
+        }
+      ]
+    }
+  ],
+  "pyRunId": "metacognition_missing_parameters_03-Run #1"
+}

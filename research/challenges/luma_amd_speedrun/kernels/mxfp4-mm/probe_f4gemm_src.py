@@ -11,4 +11,5 @@ def custom_kernel(data):
         print(f"Error reading file: {e}", file=sys.stderr)
 
     from reference import ref_kernel
+
     return ref_kernel(data)

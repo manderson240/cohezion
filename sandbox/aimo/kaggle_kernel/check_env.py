@@ -7,12 +7,14 @@ print(f"Python version: {sys.version}")
 
 try:
     import vllm
+
     print(f"vLLM version: {vllm.__version__}")
 except ImportError:
     print("vLLM is NOT installed.")
 
 try:
     import torch
+
     print(f"PyTorch version: {torch.__version__}")
     print(f"CUDA available: {torch.cuda.is_available()}")
     if torch.cuda.is_available():

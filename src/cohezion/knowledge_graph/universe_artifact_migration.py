@@ -92,7 +92,7 @@ class UniverseArtifactMigration:
         output_dir: Path = Path("/tmp/cohezion_universe_artifacts_export"),
         surreal_ns: str = "cohezion",
         surreal_db: str = "core",
-        surreal_url: str = "ws://localhost:8000/rpc",
+        surreal_url: str = "ws://localhost:8001/rpc",
     ):
         """Initialize migration service."""
         if cohezion_root is None:

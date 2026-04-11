@@ -1,0 +1,6 @@
+{
+  "versionNumber": 1,
+  "name": "learning_alien_grammar_02",
+  "description": "Learn and apply alien language grammar rules.",
+  "definition": "@kbench.task(name=\"learning_alien_grammar_02\")\ndef learning_alien_grammar_02(llm) -> bool:\n    \"\"\"Learn and apply alien language grammar rules.\"\"\"\n    prompt = \"\"\"You are learning the Zorblaxian language with these grammar rules:\n\n- Word order: OSV (Object-Subject-Verb)\n- Articles follow nouns they modify\n- Verbs conjugate based on the number of vowels in the object\n- Questions invert to VSO order\n\nTranslate to English: \"klaatu barada nikto\" means \"the robot carried the book\"\n\nGiven: \"barada nikto klaatu verata\" with \"verata\" = \"power\"\n\nWhat is the translation?\n\nA) The robot gave the power\nB) The power gave the robot\nC) Did the power give the robot?\nD) The robot received the power\"\"\"\n    response = llm.prompt(prompt)\n    return bool(kbench.assertions.assert_true(\"D\" in response, expectation=\"Correct answer is D\"))\n"
+}

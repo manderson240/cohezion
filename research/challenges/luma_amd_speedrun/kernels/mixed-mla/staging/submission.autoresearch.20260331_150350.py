@@ -12,11 +12,12 @@ KV_LORA_RANK = 512
 QK_ROPE_HEAD_DIM = 64
 QK_HEAD_DIM = KV_LORA_RANK + QK_ROPE_HEAD_DIM  # 576
 V_HEAD_DIM = KV_LORA_RANK  # 512
-SM_SCALE = 1.0 / (QK_HEAD_DIM ** 0.5)
+SM_SCALE = 1.0 / (QK_HEAD_DIM**0.5)
 
 PAGE_SIZE = 1
 NUM_KV_SPLITS = 32
 FP8_DTYPE = aiter_dtypes.fp8
+
 
 def quantize_fp8(tensor: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
     """Dynamic per-tensor FP8 quantization (sglang style)."""
@@ -26,20 +27,21 @@ def quantize_fp8(tensor: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
     fp8_tensor = (tensor / scale).clamp(min=finfo.min, max=finfo.max).to(FP8_DTYPE)
     return fp8_tensor, scale.to(torch.float32).reshape(1)
 
+
 def custom_kernel(data: input_t) -> output_t:
     # Extract inputs
     q = data["q"]  # (total_q, num_heads, 576) bfloat16
     kv_data = data["kv_data"]
-    
+
     # Determine KV cache format and prepare data
     kv_dtype = kv_data["kv_dtype"]
     total_kv = kv_data["total_kv"]
     block_tables = kv_data["block_tables"]
     kv_cache = kv_data["kv_cache"]
-    
+
     # Prepare Q: quantize to fp8 for high performance
     q_fp8, q_scale = quantize_fp8(q)
-    
+
     # Prepare KV: depending on format
     if kv_dtype == "bf16":
         kv_cache_fp8, kv_scale = quantize_fp8(kv_cache)
@@ -62,7 +64,7 @@ def custom_kernel(data: input_t) -> output_t:
         use_mxfp4 = False
     else:
         raise ValueError(f"Unsupported KV dtype: {kv_dtype}")
-    
+
     # Prepare parameters for MLA decode
     num_q_heads = q.size(1)
     num_kv_heads = NUM_KV_HEADS
@@ -71,7 +73,7 @@ def custom_kernel(data: input_t) -> output_t:
     sm_scale = SM_SCALE
     q_dtype = FP8_DTYPE
     kv_dtype_kernel = FP8_DTYPE  # MLA kernel expects fp8 for best perf on MI355X
-    
+
     # Call aiter MLA decode kernel
     # Note: aiter MLA decode kernel expects fp8 inputs and handles quantization internally if needed
     out = mla_decode_fwd(
@@ -91,5 +93,5 @@ def custom_kernel(data: input_t) -> output_t:
         output_dtype=torch.bfloat16,
         max_seqlen_q=1,  # decode only
     )
-    
+
     return out

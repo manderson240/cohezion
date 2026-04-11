@@ -36,6 +36,7 @@ class AIMOCompetition:
             f"[{problem['id']}] Prediction: {predicted_answer} | Actual: {problem['answer']} | Correct: {correct}"
         )
 
+
 class MockEnv:
     def __init__(self, problems_path):
         self.competition = AIMOCompetition(problems_path)
@@ -45,6 +46,7 @@ class MockEnv:
 
     def predict(self, answer_df):
         self.competition.predict(answer_df)
+
 
 def make_env(problems_path=None):
     if problems_path is None:

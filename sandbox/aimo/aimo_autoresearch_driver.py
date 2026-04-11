@@ -29,6 +29,7 @@ class RalphLoopConfig:
     """Configuration for Ralph Loop coherence gating."""
 
     coherence_threshold: float = 0.5
+    hiho_threshold: float = 0.45 # Target 0.5, gate at 0.45
     max_iterations: int = 20
     auto_commit: bool = True
     ralph_mode: bool = True
@@ -113,7 +114,7 @@ class AIMOAutoresearchDriver:
         """
         Ralph Loop coherence gate.
 
-        Returns True if coherence >= threshold.
+        Returns True if coherence >= threshold and stability >= hiho_threshold.
         """
         # Coherence = weighted average of accuracy and stability
         coherence = accuracy * 0.6 + stability * 0.4
@@ -121,8 +122,14 @@ class AIMOAutoresearchDriver:
         logger.info(
             f"Ralph Loop coherence check: {coherence:.3f} (threshold: {self.ralph_config.coherence_threshold})"
         )
+        logger.info(
+            f"HIHO Stability check: {stability:.3f} (threshold: {self.ralph_config.hiho_threshold})"
+        )
 
-        return coherence >= self.ralph_config.coherence_threshold
+        passed_coherence = coherence >= self.ralph_config.coherence_threshold
+        passed_hiho = stability >= self.ralph_config.hiho_threshold
+
+        return passed_coherence and passed_hiho
 
     def propose_mutation(self, failures: List[Dict[str, Any]]) -> str:
         """
@@ -191,7 +198,7 @@ class AIMOAutoresearchDriver:
             logger.warning(f"  Unknown mutation: {hypothesis}")
             return False
 
-    def run_autoresearch_cycle(self, problem_ids: Optional[List[str]] = None) -> Dict[str, Any]:
+    async def run_autoresearch_cycle(self, problem_ids: Optional[List[str]] = None) -> Dict[str, Any]:
         """
         Run single autoresearch cycle:
         1. Benchmark
@@ -246,6 +253,25 @@ class AIMOAutoresearchDriver:
             summary = self.run_benchmark(problem_ids)
             accuracy = summary.get("accuracy", 0.0)
             stability = summary.get("stability_ratio", 0.0)
+            
+            # Ralph Loop Coherence Gate
+            is_coherent = self.check_ralph_coherence(accuracy, stability)
+            
+            # Step 7: Kaggle Submission Gate (Only if coherent)
+            if is_coherent and (accuracy > self.best_accuracy or (accuracy == self.best_accuracy and stability > self.best_stability)):
+                logger.info("🔥 Ralph Loop PASSED. Local improvement detected. Triggering Kaggle submission...")
+                # Use the new AutoresearchDriver bridge
+                from cohezion.research.autoresearch_driver import AutoresearchDriver
+                kaggle_driver = AutoresearchDriver(target="aimo", budget_seconds=3600) # 1hr budget for AIMO kernel
+                # We use a dummy hypothesis since the script itself is mutated
+                kaggle_score, status, _ = await kaggle_driver.run_kaggle_experiment("mutation_applied", "ar_aimo_trigger")
+                logger.info(f"Kaggle Leaderboard Score: {kaggle_score}")
+                
+                if kaggle_score > 0:
+                    self.best_accuracy = accuracy
+                    self.best_stability = stability
+            else:
+                logger.warning("⚠️ Ralph Loop FAILED or no improvement. Skipping Kaggle submission.")
 
         self.iterations_completed += 1
 
@@ -285,7 +311,7 @@ class AIMOAutoresearchDriver:
 
         return failures
 
-    def run_full_journey(
+    async def run_full_journey(
         self, problem_ids: Optional[List[str]] = None, max_cycles: Optional[int] = None
     ) -> List[Dict[str, Any]]:
         """
@@ -306,7 +332,7 @@ class AIMOAutoresearchDriver:
         results = []
 
         for cycle in range(max_cycles):
-            result = self.run_autoresearch_cycle(problem_ids)
+            result = await self.run_autoresearch_cycle(problem_ids)
             results.append(result)
 
             if result["coherence_passed"]:
@@ -323,14 +349,14 @@ class AIMOAutoresearchDriver:
         return results
 
 
-def run_aimo_autoresearch(
+async def run_aimo_autoresearch(
     problem_ids: Optional[List[str]] = None, max_cycles: int = 5, coherence_threshold: float = 0.5
 ) -> List[Dict[str, Any]]:
     """
     Run AIMO autoresearch journey with Ralph Loop.
 
     Usage:
-        results = run_aimo_autetresearch(
+        results = await run_aimo_autetresearch(
             problem_ids=["aimo3_ref_1", "aimo3_ref_2"],
             max_cycles=5,
             coherence_threshold=0.5
@@ -339,7 +365,7 @@ def run_aimo_autoresearch(
     config = RalphLoopConfig(coherence_threshold=coherence_threshold, max_iterations=max_cycles)
 
     driver = AIMOAutoresearchDriver(ralph_config=config)
-    results = driver.run_full_journey(problem_ids, max_cycles)
+    results = await driver.run_full_journey(problem_ids, max_cycles)
 
     return results
 

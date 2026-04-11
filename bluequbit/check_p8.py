@@ -20,7 +20,7 @@ print(f"  Status: {result.run_status}")
 if result.run_status == "COMPLETED":
     counts = result.get_counts()
     sorted_counts = sorted(counts.items(), key=lambda x: x[1], reverse=True)
-    
+
     print(f"\nTop 3 results:")
     for raw, cnt in sorted_counts[:3]:
         answer = raw[::-1]

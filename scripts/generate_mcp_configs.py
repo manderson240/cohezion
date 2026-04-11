@@ -27,6 +27,7 @@ PROJECT_ROOT = Path(__file__).parent.parent.absolute()
 PYTHON_PATH = str(PROJECT_ROOT / ".venv" / "bin" / "python")
 SRC_PATH = str(PROJECT_ROOT / "src")
 
+
 def generate_gemini_settings():
     settings = {"mcpServers": {}}
     for name, module in SERVER_MAP.items():
@@ -37,16 +38,17 @@ def generate_gemini_settings():
             "env": {
                 "PYTHONPATH": SRC_PATH,
                 "MCP_TRANSPORT": "stdio",
-                "BMAD_DATA_PATH": str(PROJECT_ROOT / "_bmad")
+                "BMAD_DATA_PATH": str(PROJECT_ROOT / "_bmad"),
             },
-            "description": DESCRIPTIONS.get(name, "")
+            "description": DESCRIPTIONS.get(name, ""),
         }
-    
+
     output_path = PROJECT_ROOT / ".gemini" / "settings.json"
     output_path.parent.mkdir(parents=True, exist_ok=True)
     with open(output_path, "w") as f:
         json.dump(settings, f, indent=2)
     print(f"Generated {output_path}")
+
 
 def generate_external_mcp():
     mcp_servers = {"mcpServers": {}}
@@ -58,14 +60,15 @@ def generate_external_mcp():
             "env": {
                 "PYTHONPATH": SRC_PATH,
                 "MCP_TRANSPORT": "stdio",
-                "BMAD_DATA_PATH": str(PROJECT_ROOT / "_bmad")
-            }
+                "BMAD_DATA_PATH": str(PROJECT_ROOT / "_bmad"),
+            },
         }
-    
+
     output_path = PROJECT_ROOT / "mcp_servers.json"
     with open(output_path, "w") as f:
         json.dump(mcp_servers, f, indent=2)
     print(f"Generated {output_path}")
+
 
 if __name__ == "__main__":
     generate_gemini_settings()

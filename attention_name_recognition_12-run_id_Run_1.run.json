@@ -1,0 +1,39 @@
+{
+  "taskVersion": {
+    "versionNumber": 1,
+    "name": "attention_name_recognition_12",
+    "description": "Recognize names amid noise.",
+    "definition": "@kbench.task(name=\"attention_name_recognition_12\")\ndef attention_name_recognition_12(llm) -> bool:\n    \"\"\"Recognize names amid noise.\"\"\"\n    prompt = \"\"\"The conference attendees were: Alice, Bob, zQx9#mK, Charlie, 42, Diana, @#$%, Eve.\n\nWhich of these is NOT a person's name?\n\nA) Alice\nB) zQx9#mK\nC) Diana\nD) Eve\"\"\"\n    response = llm.prompt(prompt)\n    return bool(kbench.assertions.assert_true(\"B\" in response, expectation=\"Correct answer is B\"))\n"
+  },
+  "modelVersion": {},
+  "state": "BENCHMARK_TASK_RUN_STATE_COMPLETED",
+  "startTime": "2026-04-11T04:56:23.292418Z",
+  "endTime": "2026-04-11T04:56:35.783329Z",
+  "conversations": [
+    {
+      "id": "attention_name_recognition_12-0a669891",
+      "metrics": {},
+      "modelVersionSlug": "model_version_slug for conversation is DEPRECATED"
+    }
+  ],
+  "results": [
+    {
+      "type": "AGGREGATED",
+      "booleanResult": true
+    }
+  ],
+  "assertions": [
+    {
+      "expectation": "Correct answer is B",
+      "status": "BENCHMARK_TASK_RUN_ASSERTION_STATUS_PASSED",
+      "lineNumber": 805,
+      "definition": "return bool(kbench.assertions.assert_true(\"B\" in response, expectation=\"Correct answer is B\"))",
+      "conversationRequestIds": [
+        {
+          "conversationId": "attention_name_recognition_12-0a669891"
+        }
+      ]
+    }
+  ],
+  "pyRunId": "attention_name_recognition_12-Run #1"
+}

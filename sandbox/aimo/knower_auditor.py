@@ -41,7 +41,7 @@ class KnowerAuditor:
         entropy = 0.0 if is_consistent else 0.5
         if r1 is None or r2 is None:
             entropy += 0.25
-        
+
         # Weighted Confidence per AIMO-3 paper: w = 1 + 1 / (entropy + 0.1)
         weight = 1.0 + 1.0 / (entropy + 0.1)
 

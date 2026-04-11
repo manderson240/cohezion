@@ -22,7 +22,9 @@ def bridge(vault):
 
 class TestPushSessionState:
     def test_push_session_state(self, bridge, vault):
-        path = bridge.push_session_state(branch="main", test_status="24/24", phase="Phase 6")
+        path = bridge.push_session_state(
+            branch="main", test_status="24/24", phase="Phase 6"
+        )
         assert path.startswith("daily/")
         assert path.endswith(".md")
         content = vault.read(path)
@@ -100,8 +102,12 @@ class TestPullSessionContext:
 
     def test_pull_session_context(self, bridge, vault):
         # Push two sessions
-        bridge.push_session_state(branch="old-branch", test_status="10/10", phase="Phase 1")
-        bridge.push_session_state(branch="new-branch", test_status="24/24", phase="Phase 6")
+        bridge.push_session_state(
+            branch="old-branch", test_status="10/10", phase="Phase 1"
+        )
+        bridge.push_session_state(
+            branch="new-branch", test_status="24/24", phase="Phase 6"
+        )
 
         context = bridge.pull_session_context()
         assert len(context["sessions"]) == 2

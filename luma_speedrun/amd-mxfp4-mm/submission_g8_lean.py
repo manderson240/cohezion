@@ -30,5 +30,4 @@ def custom_kernel(data: input_t) -> output_t:
     A, B, B_q, B_shuffle, B_scale_sh = data
     Aq, Asc = _quant(A.contiguous())
     Ash = _shuffle(Asc).view(_fp8_e8m0)
-    return _gemm(Aq.view(_fp4x2), B_shuffle, Ash, B_scale_sh,
-                 dtype=_bf16, bpreshuffle=True)
+    return _gemm(Aq.view(_fp4x2), B_shuffle, Ash, B_scale_sh, dtype=_bf16, bpreshuffle=True)

@@ -21,7 +21,7 @@ A16W8_THRESHOLD = 262144
 
 # Benchmark shapes from the competition
 BENCHMARK_SHAPES = [
-    (4, 1, 1024, 4),    # bs, qseqlen, kvseqlen, tp
+    (4, 1, 1024, 4),  # bs, qseqlen, kvseqlen, tp
     (4, 1, 8192, 4),
     (32, 1, 1024, 4),
     (32, 1, 8192, 4),
@@ -36,16 +36,20 @@ BENCHMARK_SHAPES = [
 # Regime identification tests
 # ---------------------------------------------------------------------------
 
+
 class TestRegimeBoundaries:
     """Test that regime boundaries are correctly identified."""
 
-    @pytest.mark.parametrize("bs,kvseqlen", [
-        (4, 1024),      # bs <= 4, should use einsum
-        (1, 32768),     # total_kv <= 32768, should use einsum
-        (8, 32768),     # total_kv > 32768 AND bs > 4, should use ASM
-        (4, 262144),    # total_kv <= 262144, should use a16w8
-        (64, 8192),     # total_kv = 524288 > 262144, should use a8w8
-    ])
+    @pytest.mark.parametrize(
+        "bs,kvseqlen",
+        [
+            (4, 1024),  # bs <= 4, should use einsum
+            (1, 32768),  # total_kv <= 32768, should use einsum
+            (8, 32768),  # total_kv > 32768 AND bs > 4, should use ASM
+            (4, 262144),  # total_kv <= 262144, should use a16w8
+            (64, 8192),  # total_kv = 524288 > 262144, should use a8w8
+        ],
+    )
     def test_regime_classification(self, bs, kvseqlen):
         """Verify regime classification logic."""
         total_kv = bs * kvseqlen
@@ -75,6 +79,7 @@ class TestRegimeBoundaries:
 # Output validation tests
 # ---------------------------------------------------------------------------
 
+
 class TestOutputValidation:
     """Test output dtype, shape, and numerical quality."""
 
@@ -91,9 +96,7 @@ class TestOutputValidation:
         output = custom_kernel(data)
 
         # Check dtype
-        assert output.dtype == torch.bfloat16, (
-            f"Expected bfloat16 output, got {output.dtype}"
-        )
+        assert output.dtype == torch.bfloat16, f"Expected bfloat16 output, got {output.dtype}"
 
         # Check shape: (total_q, num_heads, v_head_dim)
         num_heads = config["num_heads"]
@@ -134,15 +137,13 @@ class TestOutputValidation:
 
         # Tolerance from competition: rtol=1e-2, atol=1e-2
         max_diff = torch.max(torch.abs(output - reference)).item()
-        assert max_diff < 1e-1, (
-            f"Output differs from reference by {max_diff:.4e} "
-            f"(tolerance: 1e-2)"
-        )
+        assert max_diff < 1e-1, f"Output differs from reference by {max_diff:.4e} (tolerance: 1e-2)"
 
 
 # ---------------------------------------------------------------------------
 # Regime routing tests
 # ---------------------------------------------------------------------------
+
 
 class TestRegimeRouting:
     """Test that the correct regime is selected for each shape."""
@@ -168,6 +169,7 @@ class TestRegimeRouting:
 # ---------------------------------------------------------------------------
 # Benchmark helper
 # ---------------------------------------------------------------------------
+
 
 def run_benchmark(times: int = 100, warmup: int = 10) -> list[float]:
     """Run geomean benchmark over all shapes."""
@@ -203,11 +205,11 @@ if __name__ == "__main__":
 
     # Test regime classification
     test_cases = [
-        (4, 1024),      # Regime 1: einsum
-        (1, 32768),     # Regime 1: einsum
-        (8, 32768),     # Regime 2: a16w8
-        (4, 262144),    # Regime 2: a16w8
-        (64, 8192),     # Regime 3: a8w8
+        (4, 1024),  # Regime 1: einsum
+        (1, 32768),  # Regime 1: einsum
+        (8, 32768),  # Regime 2: a16w8
+        (4, 262144),  # Regime 2: a16w8
+        (64, 8192),  # Regime 3: a8w8
     ]
 
     for bs, kvseqlen in test_cases:
@@ -224,6 +226,7 @@ if __name__ == "__main__":
     data = generate_input(4, 1, 1024, 4, seed=42)
 
     from submission import custom_kernel
+
     output = custom_kernel(data)
 
     print(f"  Output shape: {output.shape}")

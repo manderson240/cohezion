@@ -19,9 +19,7 @@ from cohezion.core.persistence.surreal_client import (
 )
 
 # Configure logging
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(processName)s - %(message)s"
-)
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(processName)s - %(message)s")
 logger = logging.getLogger("SwarmSimulator")
 
 
@@ -215,9 +213,7 @@ class SwarmController:
                         cycles = res["cycles"]
                         load = res["config"]["load_slots"]
                         sld = res["config"]["smart_load_depth"]
-                        logger.info(
-                            f"Sim {res['simulation_id']}: {cycles} cycles (Load={load}, SmartLoad={sld})"
-                        )
+                        logger.info(f"Sim {res['simulation_id']}: {cycles} cycles (Load={load}, SmartLoad={sld})")
 
                         if cycles < 1487 and load == 2:
                             logger.info(">>> GRAIL FOUND! <<<")

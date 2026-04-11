@@ -1,0 +1,39 @@
+{
+  "taskVersion": {
+    "versionNumber": 1,
+    "name": "attention_logical_noise_07",
+    "description": "Follow logic through distractor premises.",
+    "definition": "@kbench.task(name=\"attention_logical_noise_07\")\ndef attention_logical_noise_07(llm) -> bool:\n    \"\"\"Follow logic through distractor premises.\"\"\"\n    prompt = \"\"\"Given premises:\n1. All cats are mammals\n2. The Earth orbits the Sun\n3. All mammals are animals\n4. Water boils at 100\u00b0C at sea level\n5. Therefore, all cats are animals\n\nWhich premises are necessary for the conclusion?\n\nA) All of them\nB) 1, 2, and 3\nC) 1 and 3\nD) 2, 4, and 5\"\"\"\n    response = llm.prompt(prompt)\n    return bool(kbench.assertions.assert_true(\"C\" in response, expectation=\"Correct answer is C\"))\n"
+  },
+  "modelVersion": {},
+  "state": "BENCHMARK_TASK_RUN_STATE_COMPLETED",
+  "startTime": "2026-04-11T04:55:32.201717Z",
+  "endTime": "2026-04-11T04:55:50.797377Z",
+  "conversations": [
+    {
+      "id": "attention_logical_noise_07-d9ca244b",
+      "metrics": {},
+      "modelVersionSlug": "model_version_slug for conversation is DEPRECATED"
+    }
+  ],
+  "results": [
+    {
+      "type": "AGGREGATED",
+      "booleanResult": true
+    }
+  ],
+  "assertions": [
+    {
+      "expectation": "Correct answer is C",
+      "status": "BENCHMARK_TASK_RUN_ASSERTION_STATUS_PASSED",
+      "lineNumber": 723,
+      "definition": "return bool(kbench.assertions.assert_true(\"C\" in response, expectation=\"Correct answer is C\"))",
+      "conversationRequestIds": [
+        {
+          "conversationId": "attention_logical_noise_07-d9ca244b"
+        }
+      ]
+    }
+  ],
+  "pyRunId": "attention_logical_noise_07-Run #1"
+}

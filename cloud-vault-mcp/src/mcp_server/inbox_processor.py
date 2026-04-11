@@ -146,8 +146,12 @@ class InboxProcessor:
         with contextlib.suppress(FileNotFoundError):
             self._vault.delete(path)
 
-        logger.info("Processed %s -> %s (%s)", path, target_path, classification.note_type)
-        return ProcessingResult(source=path, target=target_path, classification=classification)
+        logger.info(
+            "Processed %s -> %s (%s)", path, target_path, classification.note_type
+        )
+        return ProcessingResult(
+            source=path, target=target_path, classification=classification
+        )
 
     async def _classify(self, content: str) -> Classification:
         """Classify note content via Claude API."""
@@ -180,7 +184,9 @@ class InboxProcessor:
 
     async def _structure_via_claude(self, content: str, task: str) -> str:
         """Use Claude to structure/expand content."""
-        prompt = TASK_PROMPTS.get(task, "Structure this note clearly with appropriate headings and sections.")
+        prompt = TASK_PROMPTS.get(
+            task, "Structure this note clearly with appropriate headings and sections."
+        )
 
         response = await asyncio.to_thread(
             self._client.messages.create,
@@ -192,7 +198,9 @@ class InboxProcessor:
         )
         return response.content[0].text
 
-    def _write_processed(self, processed_content: str, classification: Classification) -> str:
+    def _write_processed(
+        self, processed_content: str, classification: Classification
+    ) -> str:
         """Write processed note to target directory."""
         date = datetime.now(UTC).strftime("%Y-%m-%d")
         slug = self._slugify(classification.title)
@@ -204,7 +212,9 @@ class InboxProcessor:
         self._vault.write(path, content)
         return path
 
-    def _add_frontmatter(self, content: str, classification: Classification, date: str) -> str:
+    def _add_frontmatter(
+        self, content: str, classification: Classification, date: str
+    ) -> str:
         """Add YAML frontmatter to processed content."""
         # Don't double-add frontmatter
         if content.startswith("---"):

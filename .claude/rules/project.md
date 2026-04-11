@@ -18,7 +18,7 @@ Compound Engineering Framework for Agentic AI with multi-agent coordination, 12D
 - **Language:** Python 3.13+
 - **Package Manager:** uv (never bare python/pip)
 - **Web Framework:** FastAPI + Uvicorn
-- **Database:** SurrealDB (ws://localhost:8000)
+- **Database:** SurrealDB (ws://localhost:8001)
 - **AI/ML:** Anthropic API, sentence-transformers, torch (optional)
 - **Testing:** pytest, pytest-asyncio (2,854 tests, 99.3% pass rate)
 - **Linting:** ruff (format + lint), mypy (type checking)

@@ -2,6 +2,7 @@
 
 Usage: python driver.py [--dry-run] [--max-cycles 50] [--kernel gemm|moe|mla|all]
 """
+
 from __future__ import annotations
 
 import argparse
@@ -28,17 +29,22 @@ KERNELS = ("gemm", "moe", "mla")
 
 @dataclass
 class TreeNode:
-    node_id: str; kernel: str; strategy: str
+    node_id: str
+    kernel: str
+    strategy: str
     status: str = "open"  # open | closed | stagnant
-    score: float = 0.0; attempts: int = 0
+    score: float = 0.0
+    attempts: int = 0
     children: list[str] = field(default_factory=list)
     metadata: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass
 class KSearchTree:
-    kernel: str; nodes: dict[str, TreeNode] = field(default_factory=dict)
-    best_score: float = 0.0; generation: int = 0
+    kernel: str
+    nodes: dict[str, TreeNode] = field(default_factory=dict)
+    best_score: float = 0.0
+    generation: int = 0
 
     def select_node(self) -> TreeNode | None:
         open_nodes = [n for n in self.nodes.values() if n.status == "open"]
@@ -53,7 +59,9 @@ class KSearchTree:
         self.best_score = max(self.best_score, score)
 
     def add_node(self, node_id: str, strategy: str, parent_id: str | None = None) -> TreeNode:
-        self.nodes[node_id] = (node := TreeNode(node_id=node_id, kernel=self.kernel, strategy=strategy))
+        self.nodes[node_id] = (
+            node := TreeNode(node_id=node_id, kernel=self.kernel, strategy=strategy)
+        )
         if parent_id and parent_id in self.nodes:
             self.nodes[parent_id].children.append(node_id)
         return node
@@ -65,15 +73,24 @@ class KSearchTree:
         return len(hit)
 
     def mark_stagnant(self, min_attempts: int = 3) -> list[str]:
-        hit = [n for n in self.nodes.values()
-               if n.status == "open" and n.attempts >= min_attempts and n.score < self.best_score * 0.95]
+        hit = [
+            n
+            for n in self.nodes.values()
+            if n.status == "open"
+            and n.attempts >= min_attempts
+            and n.score < self.best_score * 0.95
+        ]
         for n in hit:
             n.status = "stagnant"
         return [n.node_id for n in hit]
 
     def to_dict(self) -> dict[str, Any]:
-        return {"kernel": self.kernel, "best_score": self.best_score, "generation": self.generation,
-                "nodes": {k: vars(v) for k, v in self.nodes.items()}}
+        return {
+            "kernel": self.kernel,
+            "best_score": self.best_score,
+            "generation": self.generation,
+            "nodes": {k: vars(v) for k, v in self.nodes.items()},
+        }
 
     @classmethod
     def from_dict(cls, d: dict[str, Any]) -> KSearchTree:
@@ -102,7 +119,9 @@ class KernelDriver:
             return res
         res.update(node_id=node.node_id, strategy=node.strategy)
         if self.dry_run:
-            self.logger.info("[DRY-RUN][%s] strategy=%s node=%s", kernel, node.strategy, node.node_id)
+            self.logger.info(
+                "[DRY-RUN][%s] strategy=%s node=%s", kernel, node.strategy, node.node_id
+            )
             res["action"] = "dry_run_skip"
             return res
         self.logger.info("[%s] Synthesizing strategy=%s", kernel, node.strategy)
@@ -121,8 +140,13 @@ class KernelDriver:
 
         # Step 2: Correctness check
         test_result = submit(kernel, sub_path, mode="test")
-        self.logger.info("[%s] Test: passed=%s elapsed=%.1fs err=%s",
-                         kernel, test_result.passed, test_result.elapsed_s, test_result.error)
+        self.logger.info(
+            "[%s] Test: passed=%s elapsed=%.1fs err=%s",
+            kernel,
+            test_result.passed,
+            test_result.elapsed_s,
+            test_result.error,
+        )
         if test_result.discovered_kernels:
             self.logger.info("[%s] Discovered: %s", kernel, test_result.discovered_kernels)
             node.metadata["discovered"] = test_result.discovered_kernels
@@ -135,8 +159,9 @@ class KernelDriver:
         # Step 3: Benchmark for timing
         bench_result = submit(kernel, sub_path, mode="benchmark")
         timing_us = bench_result.score
-        self.logger.info("[%s] Benchmark: %.2f µs elapsed=%.1fs",
-                         kernel, timing_us, bench_result.elapsed_s)
+        self.logger.info(
+            "[%s] Benchmark: %.2f µs elapsed=%.1fs", kernel, timing_us, bench_result.elapsed_s
+        )
 
         # Convert timing to score (higher = better): 1000/µs
         score = (1000.0 / timing_us) if timing_us > 0 else 0.0
@@ -146,7 +171,9 @@ class KernelDriver:
         # Step 4: Leaderboard submit if improved (rate-limited)
         now = time.monotonic()
         if score > tree.best_score * 0.99 and (now - self.last_submit_time) >= self.submit_interval:
-            self.logger.info("[%s] Submitting to leaderboard: %.2f µs (score=%.4f)", kernel, timing_us, score)
+            self.logger.info(
+                "[%s] Submitting to leaderboard: %.2f µs (score=%.4f)", kernel, timing_us, score
+            )
             lb_result = submit(kernel, sub_path, mode="leaderboard")
             self.last_submit_time = now
             res["submitted"] = True
@@ -184,8 +211,13 @@ class KernelDriver:
         """R-Zero pattern: inject random mutations when all nodes stagnated."""
         tree = self.trees[kernel]
         tree.mark_stagnant()
-        muts = ["random_tile_size", "swap_memory_layout", "fuse_adjacent_ops",
-                "unroll_factor_sweep", "prefetch_distance_sweep"]
+        muts = [
+            "random_tile_size",
+            "swap_memory_layout",
+            "fuse_adjacent_ops",
+            "unroll_factor_sweep",
+            "prefetch_distance_sweep",
+        ]
         ids = [f"{kernel}-mut-g{tree.generation}-{i}" for i in range(len(muts))]
         for nid, m in zip(ids, muts):
             tree.add_node(nid, m)
@@ -194,7 +226,9 @@ class KernelDriver:
 
     def _save_state(self, kernel: str) -> None:
         STATE_DIR.mkdir(parents=True, exist_ok=True)
-        (STATE_DIR / f"{kernel}_tree.json").write_text(json.dumps(self.trees[kernel].to_dict(), indent=2))
+        (STATE_DIR / f"{kernel}_tree.json").write_text(
+            json.dumps(self.trees[kernel].to_dict(), indent=2)
+        )
 
     def save_all(self) -> None:
         for k in self.trees:
@@ -209,7 +243,9 @@ class KernelDriver:
     def run(self, kernels: list[str] | None = None) -> None:
         tgt = kernels or list(KERNELS)
         self.load_state()
-        self.logger.info("Starting (dry_run=%s, cycles=%d, kernels=%s)", self.dry_run, self.max_cycles, tgt)
+        self.logger.info(
+            "Starting (dry_run=%s, cycles=%d, kernels=%s)", self.dry_run, self.max_cycles, tgt
+        )
         for c in range(self.max_cycles):
             self.logger.info("=== Cycle %d/%d ===", c + 1, self.max_cycles)
             for k in tgt:
@@ -240,7 +276,9 @@ def main() -> None:
     ap.add_argument("--kernel", choices=[*KERNELS, "all"], default="all")
     a = ap.parse_args()
     KernelDriver(dry_run=a.dry_run, max_cycles=a.max_cycles).run(
-        list(KERNELS) if a.kernel == "all" else [a.kernel])
+        list(KERNELS) if a.kernel == "all" else [a.kernel]
+    )
+
 
 if __name__ == "__main__":
     main()

@@ -11,6 +11,8 @@ Hierarchical, traceable context architecture optimizing for token efficiency and
 │   ├── syntax-rules.md           # ~200 tokens - Python standards
 │   ├── testing-rules.md          # ~250 tokens - Test patterns
 │   └── compound-patterns.md        # ~300 tokens - Compound engineering
+├── policy/                        # Learned context policy (cross-platform)
+│   └── learned-budgets.json      # ~50 tokens - Adaptive breadth/depth
 ├── session/                       # Ephemeral context
 │   └── current-session.md        # Active state, coherence tracking
 ├── skills/                        # Skill-specific overlays
@@ -45,6 +47,19 @@ Every rule traces to:
 # To load skill-specific context:
 load_context skill compound-engineering
 ```
+
+## Context Policy (Cross-Platform Learning)
+
+The `policy/learned-budgets.json` file stores learned context budget preferences
+that persist across sessions and tools:
+
+| Tool | Read | Write |
+|------|------|-------|
+| Claude Code | Auto via `ContextPolicy.__init__()` | Auto via `record_outcome()` |
+| Gemini CLI | `get_context_policy` MCP tool or file read | `update_context_policy` MCP tool |
+| Zed / Antigravity | MCP tool or direct file read | MCP tool |
+| Pi / others | Read JSON file directly | Edit JSON file |
+| SurrealDB | `SELECT * FROM context_policy` | Automatic write-through |
 
 ## FUTURE HOOKS
 1. **Dynamic loading**: Auto-load skill context based on task detection

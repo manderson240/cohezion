@@ -1,0 +1,248 @@
+{
+    "search_knowledge": {
+        "fields": {
+            "return": "list[dict[str, Any]]"
+        },
+        "version": "1.0.0"
+    },
+    "get_skill": {
+        "fields": {
+            "return": "dict[str, Any]"
+        },
+        "version": "1.0.0"
+    },
+    "list_skills": {
+        "fields": {
+            "return": "list[dict[str, str]]"
+        },
+        "version": "1.0.0"
+    },
+    "get_context_chunk": {
+        "fields": {
+            "return": "dict[str, Any]"
+        },
+        "version": "1.0.0"
+    },
+    "run_debate": {
+        "fields": {
+            "return": "json(result)"
+        },
+        "version": "1.0.0"
+    },
+    "get_perspectives": {
+        "fields": {
+            "return": "list[dict[str, str]]"
+        },
+        "version": "1.0.0"
+    },
+    "search_arxiv": {
+        "fields": {
+            "return": "list[dict[str, Any]]"
+        },
+        "version": "1.0.0"
+    },
+    "get_hf_trending": {
+        "fields": {
+            "return": "list[dict[str, Any]]"
+        },
+        "version": "1.0.0"
+    },
+    "list_research_channels": {
+        "fields": {
+            "return": "list[str]"
+        },
+        "version": "1.0.0"
+    },
+    "compound_start_session": {
+        "fields": {
+            "return": "dict[str, Any] | Session summary with cache status"
+        },
+        "version": "1.0.0"
+    },
+    "compound_check_alignment": {
+        "fields": {
+            "return": "dict[str, Any] | Alignment result with coherence score"
+        },
+        "version": "1.0.0"
+    },
+    "compound_end_session": {
+        "fields": {
+            "return": "dict[str, Any] | Session end summary"
+        },
+        "version": "1.0.0"
+    },
+    "cache_get_metrics": {
+        "fields": {
+            "return": "dict[str, Any] | Cache metrics including hit rate"
+        },
+        "version": "1.0.0"
+    },
+    "cache_optimize": {
+        "fields": {
+            "return": "dict[str, Any] | Optimization recommendations"
+        },
+        "version": "1.0.0"
+    },
+    "ralph_lopps_review": {
+        "fields": {
+            "return": "dict[str, Any] | Adversarial findings"
+        },
+        "version": "1.0.0"
+    },
+    "multiperspective_review": {
+        "fields": {
+            "return": "dict[str, Any] | Multi-perspective review results"
+        },
+        "version": "1.0.0"
+    },
+    "autoresearch_analyze": {
+        "fields": {
+            "return": "dict[str, Any] | Improvement opportunities"
+        },
+        "version": "1.0.0"
+    },
+    "learning_capture": {
+        "fields": {
+            "return": "dict[str, Any] | Capture result"
+        },
+        "version": "1.0.0"
+    },
+    "learning_process_execution": {
+        "fields": {
+            "return": "dict[str, Any] | Learning loop results"
+        },
+        "version": "1.0.0"
+    },
+    "skill_refinement_apply": {
+        "fields": {
+            "return": "dict[str, Any] | Refinement result"
+        },
+        "version": "1.0.0"
+    },
+    "get_context_policy": {
+        "fields": {
+            "return": "dict[str, Any] | Policy data with profiles, task_overrides, and outcome_summary"
+        },
+        "version": "1.0.0"
+    },
+    "update_context_policy": {
+        "fields": {
+            "return": "dict[str, Any] | Updated budget values"
+        },
+        "version": "1.0.0"
+    },
+    "get_reward_status": {
+        "fields": {
+            "return": "dict[str, Any]"
+        },
+        "version": "1.0.0"
+    },
+    "get_leaderboard": {
+        "fields": {
+            "return": "list[dict[str, Any]]"
+        },
+        "version": "1.0.0"
+    },
+    "security_scan_file": {
+        "fields": {
+            "return": "json({'error': 'filePath is required'})"
+        },
+        "version": "1.0.0"
+    },
+    "security_scan_project": {
+        "fields": {
+            "return": "web.Response"
+        },
+        "version": "1.0.0"
+    },
+    "security_get_checklist": {
+        "fields": {
+            "return": "web.Response"
+        },
+        "version": "1.0.0"
+    },
+    "security_generate_report": {
+        "fields": {
+            "return": "json({'tool': 'security_generate_report', 'report': report})"
+        },
+        "version": "1.0.0"
+    },
+    "journey_start": {
+        "fields": {
+            "return": "json({'error': \"Missing 'intent' parameter\"})"
+        },
+        "version": "1.0.0"
+    },
+    "journey_list": {
+        "fields": {
+            "return": "json({'tool': 'journey_list', 'journeys': journeys})"
+        },
+        "version": "1.0.0"
+    },
+    "github_search_repos": {
+        "fields": {
+            "return": "dict[str, Any]"
+        },
+        "version": "1.0.0"
+    },
+    "github_get_repo": {
+        "fields": {
+            "return": "dict[str, Any]"
+        },
+        "version": "1.0.0"
+    },
+    "github_create_issue": {
+        "fields": {
+            "return": "dict[str, Any]"
+        },
+        "version": "1.0.0"
+    },
+    "github_list_issues": {
+        "fields": {
+            "return": "dict[str, Any]"
+        },
+        "version": "1.0.0"
+    },
+    "github_get_user": {
+        "fields": {
+            "return": "dict[str, Any]"
+        },
+        "version": "1.0.0"
+    },
+    "hf_search_models": {
+        "fields": {
+            "return": "dict[str, Any]"
+        },
+        "version": "1.0.0"
+    },
+    "hf_get_model_info": {
+        "fields": {
+            "return": "dict[str, Any]"
+        },
+        "version": "1.0.0"
+    },
+    "hf_search_datasets": {
+        "fields": {
+            "return": "dict[str, Any]"
+        },
+        "version": "1.0.0"
+    },
+    "hf_search_spaces": {
+        "fields": {
+            "return": "dict[str, Any]"
+        },
+        "version": "1.0.0"
+    },
+    "hf_inference": {
+        "fields": {
+            "return": "dict[str, Any]"
+        },
+        "version": "1.0.0"
+    },
+    "hf_get_readme": {
+        "fields": {
+            "return": "dict[str, Any]"
+        },
+        "version": "1.0.0"
+    }
+}

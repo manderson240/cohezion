@@ -15,24 +15,18 @@ class TemplateEvolver:
     Refines templates in /templates/ by injecting missing patterns or best practices.
     """
 
-    def __init__(
-        self, templates_dir: str = "/home/mike-anderson/dev/cohezion/templates/"
-    ):
+    def __init__(self, templates_dir: str = "/home/mike-anderson/dev/cohezion/templates/"):
         self.templates_dir = Path(templates_dir)
         self.evolution_log_path = Path(
             "/home/mike-anderson/dev/cohezion/src/cohezion/knowledge_graph/TEMPLATE_EVOLUTION.md"
         )
 
-    def analyze_retrospective(
-        self, retro_content: str, template_name: str = "skill.md"
-    ) -> bool:
+    def analyze_retrospective(self, retro_content: str, template_name: str = "skill.md") -> bool:
         """
         Scans a retrospective for "Missing Template Section" or "New Best Practice" and patches the template.
         """
         # Simple heuristic: Look for sections prefixed with [TEMPLATE IMPROVEMENT]
-        improvements = re.findall(
-            r"\[TEMPLATE IMPROVEMENT\]\s*(.*?)(?=\n\n|\n\[|$)", retro_content, re.DOTALL
-        )
+        improvements = re.findall(r"\[TEMPLATE IMPROVEMENT\]\s*(.*?)(?=\n\n|\n\[|$)", retro_content, re.DOTALL)
 
         if not improvements:
             logger.info("No template improvements found in retrospective.")
@@ -58,9 +52,7 @@ class TemplateEvolver:
 
         # Avoid duplicate patching
         if improvement[:50] in content:
-            logger.info(
-                f"Improvement already present in {template_path.name}. Skipping."
-            )
+            logger.info(f"Improvement already present in {template_path.name}. Skipping.")
             return False
 
         # Strategy: Append to the end of the ## INSTRUCTION section or before ## VERSION
@@ -88,9 +80,7 @@ class TemplateEvolver:
         import datetime
 
         timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        entry = (
-            f"### {timestamp} - {template_name}\n- **Improvement**: {improvement}\n\n"
-        )
+        entry = f"### {timestamp} - {template_name}\n- **Improvement**: {improvement}\n\n"
 
         if not self.evolution_log_path.exists():
             self.evolution_log_path.write_text("# Template Evolution Log\n\n" + entry)

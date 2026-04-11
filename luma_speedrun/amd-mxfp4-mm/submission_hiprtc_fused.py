@@ -31,10 +31,11 @@ from task import input_t, output_t
 
 # FP4 to float conversion table (E2M1 format)
 # Values: 0, 0.5, 1.0, 1.5, 2.0, 3.0, 4.0, 6.0 and negatives
-FP4_TO_F32_TABLE = torch.tensor([
-    0.0, 0.5, 1.0, 1.5, 2.0, 3.0, 4.0, 6.0,
-    -0.0, -0.5, -1.0, -1.5, -2.0, -3.0, -4.0, -6.0
-], dtype=torch.float32, device="cuda")
+FP4_TO_F32_TABLE = torch.tensor(
+    [0.0, 0.5, 1.0, 1.5, 2.0, 3.0, 4.0, 6.0, -0.0, -0.5, -1.0, -1.5, -2.0, -3.0, -4.0, -6.0],
+    dtype=torch.float32,
+    device="cuda",
+)
 
 
 def _fp4_to_f32(packed: torch.Tensor) -> torch.Tensor:

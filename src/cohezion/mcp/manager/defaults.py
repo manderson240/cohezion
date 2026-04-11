@@ -61,7 +61,7 @@ def init_default_servers() -> None:
         preferred_port=8364,
         auto_restart=True,
         env_vars={
-            "SURREAL_URL": "ws://localhost:8000/rpc",
+            "SURREAL_URL": "ws://localhost:8001/rpc",
             "LOG_LEVEL": "INFO",
         },
     )
@@ -86,7 +86,7 @@ def init_default_servers() -> None:
         preferred_port=8366,
         auto_restart=True,
         env_vars={
-            "SURREAL_URL": "ws://localhost:8000/rpc",
+            "SURREAL_URL": "ws://localhost:8001/rpc",
             "LOG_LEVEL": "INFO",
         },
     )

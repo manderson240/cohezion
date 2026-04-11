@@ -126,7 +126,9 @@ class VaultFileWatcher:
         # Skip template files
         return path.name == "_template.md"
 
-    def _on_event(self, event_type: str, src_path: str, dest_path: str | None = None) -> None:
+    def _on_event(
+        self, event_type: str, src_path: str, dest_path: str | None = None
+    ) -> None:
         """Handle a raw filesystem event with debouncing."""
         path = Path(src_path)
         if self._should_ignore(path):

@@ -1,0 +1,6 @@
+{
+  "versionNumber": 1,
+  "name": "metacognition_correlation_causation_07",
+  "description": "Distinguish correlation from causation.",
+  "definition": "@kbench.task(name=\"metacognition_correlation_causation_07\")\ndef metacognition_correlation_causation_07(llm) -> bool:\n    \"\"\"Distinguish correlation from causation.\"\"\"\n    prompt = \"\"\"Studies show that ice cream sales and drowning incidents are correlated.\n\nWhat causes what?\n\nA) Ice cream causes drowning\nB) Drowning causes ice cream sales\nC) Hot weather causes both\nD) Insufficient Information to determine causation\"\"\"\n    response = llm.prompt(prompt)\n    return bool(kbench.assertions.assert_true(\"D\" in response, expectation=\"Correct answer is D\"))\n"
+}

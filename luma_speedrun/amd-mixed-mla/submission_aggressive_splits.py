@@ -68,9 +68,13 @@ def _quantize_fp8(tensor: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
 
 
 def _get_cached_metadata(
-    bs: int, qseqlen: int, kvseqlen: int,
-    q_dtype: torch.dtype, kv_dtype: torch.dtype,
-    qo_indptr: torch.Tensor, kv_indptr: torch.Tensor,
+    bs: int,
+    qseqlen: int,
+    kvseqlen: int,
+    q_dtype: torch.dtype,
+    kv_dtype: torch.dtype,
+    qo_indptr: torch.Tensor,
+    kv_indptr: torch.Tensor,
     num_kv_splits: int,
 ) -> dict:
     key = (bs, qseqlen, kvseqlen, q_dtype, kv_dtype, num_kv_splits)
@@ -80,22 +84,48 @@ def _get_cached_metadata(
     kv_last_page_len = (kv_indptr[1:] - kv_indptr[:-1]).to(torch.int32)
 
     info = get_mla_metadata_info_v1(
-        bs, qseqlen, NUM_HEADS, q_dtype, kv_dtype,
-        is_sparse=False, fast_mode=False,
-        num_kv_splits=num_kv_splits, intra_batch_mode=True,
+        bs,
+        qseqlen,
+        NUM_HEADS,
+        q_dtype,
+        kv_dtype,
+        is_sparse=False,
+        fast_mode=False,
+        num_kv_splits=num_kv_splits,
+        intra_batch_mode=True,
     )
     work = [torch.empty(s, dtype=t, device="cuda") for s, t in info]
-    work_metadata, work_indptr, work_info_set, reduce_indptr, reduce_final_map, reduce_partial_map = work
+    (
+        work_metadata,
+        work_indptr,
+        work_info_set,
+        reduce_indptr,
+        reduce_final_map,
+        reduce_partial_map,
+    ) = work
 
     get_mla_metadata_v1(
-        qo_indptr, kv_indptr, kv_last_page_len,
-        NUM_HEADS // NUM_KV_HEADS, NUM_KV_HEADS, True,
-        work_metadata, work_info_set, work_indptr,
-        reduce_indptr, reduce_final_map, reduce_partial_map,
-        page_size=PAGE_SIZE, kv_granularity=max(PAGE_SIZE, 16),
-        max_seqlen_qo=qseqlen, uni_seqlen_qo=qseqlen,
-        fast_mode=False, max_split_per_batch=num_kv_splits,
-        intra_batch_mode=True, dtype_q=q_dtype, dtype_kv=kv_dtype,
+        qo_indptr,
+        kv_indptr,
+        kv_last_page_len,
+        NUM_HEADS // NUM_KV_HEADS,
+        NUM_KV_HEADS,
+        True,
+        work_metadata,
+        work_info_set,
+        work_indptr,
+        reduce_indptr,
+        reduce_final_map,
+        reduce_partial_map,
+        page_size=PAGE_SIZE,
+        kv_granularity=max(PAGE_SIZE, 16),
+        max_seqlen_qo=qseqlen,
+        uni_seqlen_qo=qseqlen,
+        fast_mode=False,
+        max_split_per_batch=num_kv_splits,
+        intra_batch_mode=True,
+        dtype_q=q_dtype,
+        dtype_kv=kv_dtype,
     )
 
     total_kv_len = int(kv_indptr[-1].item())
@@ -112,15 +142,18 @@ def _get_cached_metadata(
         "kv_last_page_len": kv_last_page_len,
         "logits": torch.empty(
             (num_kv_splits, total_q, NUM_HEADS, V_HEAD_DIM),
-            dtype=torch.float32, device="cuda",
+            dtype=torch.float32,
+            device="cuda",
         ),
         "attn_lse": torch.empty(
             (num_kv_splits, total_q, NUM_HEADS),
-            dtype=torch.float32, device="cuda",
+            dtype=torch.float32,
+            device="cuda",
         ),
         "output": torch.empty(
             (total_q, NUM_HEADS, V_HEAD_DIM),
-            dtype=torch.bfloat16, device="cuda",
+            dtype=torch.bfloat16,
+            device="cuda",
         ),
     }
     _cache[key] = meta
@@ -151,27 +184,47 @@ def custom_kernel(data: input_t) -> output_t:
     kv_4d = kv_buffer_fp8.view(kv_buffer_fp8.shape[0], PAGE_SIZE, NUM_KV_HEADS, QK_HEAD_DIM)
 
     meta = _get_cached_metadata(
-        bs, qseqlen, kvseqlen,
-        q_fp8.dtype, kv_buffer_fp8.dtype,
-        qo_indptr, kv_indptr, num_kv_splits,
+        bs,
+        qseqlen,
+        kvseqlen,
+        q_fp8.dtype,
+        kv_buffer_fp8.dtype,
+        qo_indptr,
+        kv_indptr,
+        num_kv_splits,
     )
 
     mla_decode_stage1_asm_fwd(
         q_fp8.view(-1, NUM_HEADS, QK_HEAD_DIM),
         kv_4d,
-        qo_indptr, kv_indptr,
-        meta["kv_indices"], meta["kv_last_page_len"],
+        qo_indptr,
+        kv_indptr,
+        meta["kv_indices"],
+        meta["kv_last_page_len"],
         None,  # num_kv_splits_indptr
-        meta["work_metadata"], meta["work_indptr"], meta["work_info_set"],
-        qseqlen, PAGE_SIZE, NUM_KV_HEADS, SM_SCALE,
-        meta["logits"], meta["attn_lse"], meta["output"],
-        q_scale, kv_scale,
+        meta["work_metadata"],
+        meta["work_indptr"],
+        meta["work_info_set"],
+        qseqlen,
+        PAGE_SIZE,
+        NUM_KV_HEADS,
+        SM_SCALE,
+        meta["logits"],
+        meta["attn_lse"],
+        meta["output"],
+        q_scale,
+        kv_scale,
     )
 
     mla_reduce_v1(
-        meta["logits"], meta["attn_lse"],
-        meta["reduce_indptr"], meta["reduce_final_map"], meta["reduce_partial_map"],
-        qseqlen, meta["output"], None,
+        meta["logits"],
+        meta["attn_lse"],
+        meta["reduce_indptr"],
+        meta["reduce_final_map"],
+        meta["reduce_partial_map"],
+        qseqlen,
+        meta["output"],
+        None,
     )
 
     return meta["output"]

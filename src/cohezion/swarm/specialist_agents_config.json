@@ -1,16 +1,18 @@
 {
   "meta": {
-    "version": "1.0.0",
-    "created": "2026-03-21",
-    "purpose": "Reusable specialist agent definitions for compound engineering swarm consensus",
-    "theory": "Expert Domain Lattice: 5 specialist perspectives create consensus space with HIHO stability at 3/5 agreement (0.6 coherence)"
+    "version": "1.2.0",
+    "created": "2026-04-11",
+    "purpose": "Reusable specialist agent definitions for Systems Engineering V-Model swarm consensus using Lemonade Elite models",
+    "theory": "Expert Domain Lattice: 5 specialist perspectives mapped to V-Model stages using hardware-optimized local inference."
   },
   "agents": [
     {
       "role": "architect",
       "name": "System Architect",
-      "model": "qwen3-coder:30b",
+      "model": "qwen3-coder-next:q8_0",
+      "provider": "lemonade",
       "weight": 1.0,
+      "v_model_stage": "System Architecture",
       "expertise": [
         "System design",
         "Architectural patterns",
@@ -27,13 +29,15 @@
         "Are there hidden coupling issues?"
       ],
       "decision_weight": "High for structural changes, medium for implementation details",
-      "prompt_template": "As the System Architect, evaluate this change from a structural perspective. Consider: architecture alignment, module boundaries, abstraction levels, scalability, and integration points. Focus on whether this is the RIGHT design, not just a working design."
+      "prompt_template": "As the System Architect (V-Model: System Architecture), evaluate this change from a structural perspective. Consider: architecture alignment, module boundaries, abstraction levels, scalability, and integration points. Focus on whether this is the RIGHT design, not just a working design."
     },
     {
       "role": "engineer",
       "name": "Physics Engineer",
-      "model": "qwen3-coder:30b",
+      "model": "qwen3-coder-next:latest",
+      "provider": "lemonade",
       "weight": 1.0,
+      "v_model_stage": "Requirements Analysis",
       "expertise": [
         "Smith's 12-parameter reality model",
         "SPIN physics (rotation + precession → charge)",
@@ -50,13 +54,15 @@
         "Does this maintain HIHO stability?"
       ],
       "decision_weight": "Critical for universe simulation code, low for non-physics modules",
-      "prompt_template": "As the Physics Engineer, validate this implementation against Smith's 12-parameter reality model and SPIN physics. Check: parameter completeness, HIHO stability maintenance, precipitation gate correctness, Tempic field calculations, and toroidal momentum coherence. Reject anything that contradicts the 400-year physics lineage."
+      "prompt_template": "As the Physics Engineer (V-Model: Requirements Analysis), validate this implementation against Smith's 12-parameter reality model and SPIN physics. Check: parameter completeness, HIHO stability maintenance, precipitation gate correctness, Tempic field calculations, and toroidal momentum coherence. Reject anything that contradicts the 400-year physics lineage."
     },
     {
       "role": "biologist",
       "name": "Emergence Biologist",
-      "model": "deepseek-r1:14b",
+      "model": "gpt-oss-256k",
+      "provider": "lemonade",
       "weight": 0.8,
+      "v_model_stage": "System Validation",
       "expertise": [
         "Self-organizing systems",
         "Agent emergence patterns",
@@ -73,13 +79,15 @@
         "Are feedback loops healthy?"
       ],
       "decision_weight": "High for agent systems and universe dynamics, low for infrastructure",
-      "prompt_template": "As the Emergence Biologist, assess this change from a life-systems perspective. Consider: emergent behavior potential, self-organization capacity, agent dynamics naturalness, evolutionary viability, and feedback loop health. Look for patterns that mirror biological systems or violate life principles."
+      "prompt_template": "As the Emergence Biologist (V-Model: System Validation), assess this change from a life-systems perspective. Consider: emergent behavior potential, self-organization capacity, agent dynamics naturalness, evolutionary viability, and feedback loop health. Look for patterns that mirror biological systems or violate life principles."
     },
     {
       "role": "qhw",
       "name": "Quantum Hardware Specialist",
-      "model": "phi3:mini",
+      "model": "glm-4.7-flash-256k",
+      "provider": "lemonade",
       "weight": 0.6,
+      "v_model_stage": "Hardware Integration",
       "expertise": [
         "Low-level optimization",
         "Memory access patterns",
@@ -96,13 +104,15 @@
         "Does this leverage AMD hardware efficiently?"
       ],
       "decision_weight": "Critical for performance-critical paths, advisory for business logic",
-      "prompt_template": "As the Quantum Hardware Specialist, analyze this code for performance and hardware efficiency. Consider: memory access patterns, vectorization opportunities, cache coherence, allocation overhead, and AMD-specific optimizations (AVX-512, unified memory). Focus on what runs efficiently on Strix Halo (Ryzen AI MAX+ 395)."
+      "prompt_template": "As the Quantum Hardware Specialist (V-Model: Hardware Integration), analyze this code for performance and hardware efficiency. Consider: memory access patterns, vectorization opportunities, cache coherence, allocation overhead, and AMD-specific optimizations (AVX-512, unified memory). Focus on what runs efficiently on Strix Halo (Ryzen AI MAX+ 395)."
     },
     {
       "role": "qalgo",
       "name": "Quantum Algorithm Specialist",
-      "model": "qwen3-coder:30b",
+      "model": "phi4-256k",
+      "provider": "lemonade",
       "weight": 1.0,
+      "v_model_stage": "Detailed Design",
       "expertise": [
         "Algorithmic correctness",
         "Computational complexity",
@@ -119,7 +129,7 @@
         "Are there off-by-one errors or boundary issues?"
       ],
       "decision_weight": "Critical for correctness, high for core algorithms",
-      "prompt_template": "As the Quantum Algorithm Specialist, verify the mathematical and algorithmic correctness of this implementation. Check: algorithm correctness, edge case coverage, numerical stability, complexity analysis, boundary conditions, and proof of correctness. Reject anything with logical flaws or unhandled edge cases."
+      "prompt_template": "As the Quantum Algorithm Specialist (V-Model: Detailed Design), verify the mathematical and algorithmic correctness of this implementation. Check: algorithm correctness, edge case coverage, numerical stability, complexity analysis, boundary conditions, and proof of correctness. Reject anything with logical flaws or unhandled edge cases."
     }
   ],
   "consensus_rules": {
@@ -145,28 +155,6 @@
         "qalgo": 1.0
       },
       "rationale": "Physics correctness (engineer) and mathematical rigor (qalgo) are critical. Architecture matters (method placement). Biology (emergence) and hardware (perf) are less critical for correctness."
-    },
-    {
-      "scenario": "Optimizing FLUME VAE training loop",
-      "expected_weights": {
-        "architect": 0.6,
-        "engineer": 0.5,
-        "biologist": 0.7,
-        "qhw": 1.0,
-        "qalgo": 0.8
-      },
-      "rationale": "Hardware optimization (qhw) is primary. Algorithm correctness (qalgo) matters for convergence. Biologist assesses learning dynamics. Physics and architecture are secondary."
-    },
-    {
-      "scenario": "Creating UniverseManager interface",
-      "expected_weights": {
-        "architect": 1.0,
-        "engineer": 0.7,
-        "biologist": 0.5,
-        "qhw": 0.3,
-        "qalgo": 0.6
-      },
-      "rationale": "Pure architectural design. Architect dominates. Engineer ensures physics compatibility. Other roles are advisory."
     }
   ],
   "integration_code": {

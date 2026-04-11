@@ -2,7 +2,7 @@
 
 **Auto-compiled from `~/vaults/cohezion-vault/` - Query vault for full context**
 
-**Last Updated**: 2026-04-08 (Session 92 retrospective)
+**Last Updated**: 2026-04-10 (Session 96 retrospective)
 
 ---
 
@@ -94,27 +94,24 @@
 
 ---
 
-## Active Context (Session 93, 2026-04-09)
+## Active Context (Session 96, 2026-04-10)
 
-**Branch**: `main`
-**Recent Sessions (89-93)**:
-- S89: Repository size repair — git-filter-repo for structural corruption, 13.47 GiB bloat purged
-- S90: MCP infrastructure — YAML frontmatter mandatory for AGENTS.md, lazy config for stdio servers, silent stdout rule
-- S91: Infrastructure hardening — schema drift fixed, L183 persistence wired (586 artifacts), segfault root cause found
-- S92: Retrospective — L276-L280 extracted, MEMORY/MISSION_JOURNAL updated
-- S93: Stale item sprint (JEPA test, ruff lint, A2A discovery, neurons/synapses schema) + autoresearch integration (AutoresearchDriver, UCB1 K-Search, Step 5.91)
-**Test Suite**: 6,100+ collected (full suite runs to completion)
-**Genesis Physics/Env Tests**: 358 passing, 0 failing (JEPA kl_loss→sigreg_loss fixed in S93)
-**SurrealDB**: 617 prompt_artifacts; neurons/synapses schema created (`scripts/dba/knowledge_graph_schema.surql`)
-**Ruff**: Auto-fixed 1,874 errors in S93 (873 files formatted); causal_interpreter.py syntax error fixed
-**Autoresearch**: `src/cohezion/research/autoresearch_driver.py` + Step 5.91 in executor.py (13 tests passing)
-**A2A Discovery**: `GET /agents` returns all 7 specialist agents (CapabilityRegistry._scan_claude_agents())
-**SurrealDB CLI**: `~/.surrealdb/surreal` (not in PATH by default)
+**Branch**: `feature/2026-tip-of-the-spear`
+**Recent Sessions (93-96)**:
+- S93: Stale item sprint (JEPA test, ruff lint, A2A discovery, neurons/synapses schema) + autoresearch integration
+- S94: Dynamic context optimization plan — three-tier loading architecture (23K→6K baseline tokens, 73% reduction)
+- S95: Retrospective — SurrealDB consolidated (port 8000→8001, L291), metrics reconciled across 6 files
+- S96: Dynamic ContextPolicy (ROUTINE/FOCUSED/EXPLORATORY profiles), cross-platform YAML frontmatter persistence, MCP tools, SurrealDB schema, coding standard update. L292-L294
+**Test Suite**: 6,184 collected (full suite runs to completion, +22 context policy tests)
+**Genesis Physics/Env Tests**: 348 passing, 0 failing
+**SurrealDB**: prompt_artifacts + universe_snapshots (port 8001). Graph HIHO = 0.746 (981 neurons, 8449 synapses)
+**Skills**: 206 definitions (151 PRIME)
+**A2A Discovery**: `GET /agents` returns all 7 specialist agents
 
 **Next Steps**:
-1. Populate vault neurons/synapses from Obsidian vault (vault-keeper cycle) to raise Graph HIHO above 0
-2. Register AUTORESEARCH_PRIME in `skill_registry.json` for CapabilityRegistry discovery
-3. Validate executor.py Step 5.91 in a real compound loop run
+1. Populate vault neurons/synapses from Obsidian vault (vault-keeper cycle) to raise Graph HIHO above 0.347
+2. Wire ContextPolicy into CompoundExecutor.execute_task() (proactive classify before Step 1, reactive adjust after Step 3)
+3. Complete COHEZION_CHARTER.md Section 8 (EDL) — currently truncated mid-paragraph
 ---
 
 ## Quick Reference Commands

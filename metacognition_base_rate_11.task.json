@@ -1,0 +1,6 @@
+{
+  "versionNumber": 1,
+  "name": "metacognition_base_rate_11",
+  "description": "Recognize need for base rate information.",
+  "definition": "@kbench.task(name=\"metacognition_base_rate_11\")\ndef metacognition_base_rate_11(llm) -> bool:\n    \"\"\"Recognize need for base rate information.\"\"\"\n    prompt = \"\"\"A test for Disease X is 99% accurate.\nYour test is positive.\n\nWhat is the probability you have Disease X?\n\nA) 99%\nB) Approximately 99%\nC) Cannot determine without knowing disease prevalence\nD) Insufficient Information\"\"\"\n    response = llm.prompt(prompt)\n    return bool(kbench.assertions.assert_true(\"D\" in response, expectation=\"Correct answer is D\"))\n"
+}

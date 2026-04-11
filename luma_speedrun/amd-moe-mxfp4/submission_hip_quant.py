@@ -17,11 +17,18 @@ from task import input_t, output_t
 
 def custom_kernel(data: input_t) -> output_t:
     (
-        hidden_states, gate_up_weight, down_weight,
-        gate_up_weight_scale, down_weight_scale,
-        gate_up_weight_shuffled, down_weight_shuffled,
-        gate_up_weight_scale_shuffled, down_weight_scale_shuffled,
-        topk_weights, topk_ids, config,
+        hidden_states,
+        gate_up_weight,
+        down_weight,
+        gate_up_weight_scale,
+        down_weight_scale,
+        gate_up_weight_shuffled,
+        down_weight_shuffled,
+        gate_up_weight_scale_shuffled,
+        down_weight_scale_shuffled,
+        topk_weights,
+        topk_ids,
+        config,
     ) = data
 
     hidden_pad = config["d_hidden_pad"] - config["d_hidden"]

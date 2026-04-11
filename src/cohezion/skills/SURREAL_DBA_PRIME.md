@@ -44,7 +44,7 @@ Expert in **SurrealDB graph database administration** for the Cohezion Genesis e
    ```
 
 5. **Monitor Connection Health**:
-   Test WebSocket endpoint `ws://localhost:8000` latency. Check namespace/database accessibility. Report connection pool status from `surreal_client.py`.
+   Test WebSocket endpoint `ws://localhost:8001` latency. Check namespace/database accessibility. Report connection pool status from `surreal_client.py`.
 
 6. **Recommend Schema Evolution**:
    - Identify FLEXIBLE fields with consistent structure (promote to SCHEMAFULL)

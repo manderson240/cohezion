@@ -46,10 +46,12 @@ def custom_kernel(data: input_t) -> output_t:
 
     # ── Prepare expert weights (padded) ──
     E_total = n_routed_experts + n_shared_experts
-    w1_padded = torch.zeros((E_total, d_expert_pad, d_hidden_pad), 
-                            dtype=dtypes.fp4, device=hidden_states.device)
-    w2_padded = torch.zeros((E_total, d_hidden_pad, d_expert_pad), 
-                            dtype=dtypes.fp4, device=hidden_states.device)
+    w1_padded = torch.zeros(
+        (E_total, d_expert_pad, d_hidden_pad), dtype=dtypes.fp4, device=hidden_states.device
+    )
+    w2_padded = torch.zeros(
+        (E_total, d_hidden_pad, d_expert_pad), dtype=dtypes.fp4, device=hidden_states.device
+    )
 
     # Copy actual weights to padded views (only first d_expert/d_hidden slices)
     w1_padded[:n_routed_experts, :d_expert, :d_hidden] = w1.to(dtypes.fp4)
@@ -61,10 +63,12 @@ def custom_kernel(data: input_t) -> output_t:
         for i in range(n_shared_experts):
             e_idx = shared_idx + i
             # Shared expert: linear pass-through (identity mapping)
-            w1_padded[e_idx, :d_hidden, :d_hidden] = torch.eye(d_hidden, 
-                dtype=torch.bfloat16, device=hidden_states.device).to(dtypes.fp4)
-            w2_padded[e_idx, :d_hidden, :d_hidden] = torch.eye(d_hidden, 
-                dtype=torch.bfloat16, device=hidden_states.device).to(dtypes.fp4)
+            w1_padded[e_idx, :d_hidden, :d_hidden] = torch.eye(
+                d_hidden, dtype=torch.bfloat16, device=hidden_states.device
+            ).to(dtypes.fp4)
+            w2_padded[e_idx, :d_hidden, :d_hidden] = torch.eye(
+                d_hidden, dtype=torch.bfloat16, device=hidden_states.device
+            ).to(dtypes.fp4)
 
     # ── Build expert dispatch order ──
     # Combine routed and shared experts
@@ -78,22 +82,24 @@ def custom_kernel(data: input_t) -> output_t:
 
     # Append shared experts: one per token, always active, weight=1.0
     if n_shared_experts > 0:
-        shared_ids = torch.full((M, n_shared_experts), 
-                                n_routed_experts, 
-                                dtype=routed_ids.dtype, 
-                                device=routed_ids.device)
+        shared_ids = torch.full(
+            (M, n_shared_experts),
+            n_routed_experts,
+            dtype=routed_ids.dtype,
+            device=routed_ids.device,
+        )
         # Increment for multiple shared experts if needed
         for i in range(1, n_shared_experts):
             shared_ids[:, i] += i
-        shared_weights = torch.ones((M, n_shared_experts), 
-                                    dtype=routed_weights.dtype, 
-                                    device=routed_weights.device)
+        shared_weights = torch.ones(
+            (M, n_shared_experts), dtype=routed_weights.dtype, device=routed_weights.device
+        )
         all_expert_ids = torch.cat([all_expert_ids, shared_ids], dim=1)  # [M, total_top_k]
-        all_weights = torch.cat([all_weights, shared_weights], dim=1)    # [M, total_top_k]
+        all_weights = torch.cat([all_weights, shared_weights], dim=1)  # [M, total_top_k]
 
     # Flatten for fused_moe: [M * total_top_k]
     flat_expert_ids = all_expert_ids.flatten()  # [M * total_top_k]
-    flat_weights = all_weights.flatten()        # [M * total_top_k]
+    flat_weights = all_weights.flatten()  # [M * total_top_k]
 
     # ── Run AITER fused MoE with custom KSPLIT ──
     # Use aiter.fused_moe with explicit tile size hints for gfx950
@@ -109,9 +115,9 @@ def custom_kernel(data: input_t) -> output_t:
         E=E_total,
         top_k=n_experts_per_token + n_shared_experts,
         use_fp4=True,
-        block_m=64,          # Conservative tile for gfx950
+        block_m=64,  # Conservative tile for gfx950
         KSPLIT=KSPLIT,
-        BLOCK_GEMM=1,        # Smaller GEMM blocks to reduce register pressure
+        BLOCK_GEMM=1,  # Smaller GEMM blocks to reduce register pressure
     )
 
     # ── Return output ──

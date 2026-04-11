@@ -56,6 +56,10 @@ def custom_kernel(data: input_t) -> output_t:
     except Exception:
         # Fallback to standard gemm_a4w4
         return aiter.gemm_a4w4(
-            Aq.view(dtypes.fp4x2), B_shuffle, Ash, B_scale_sh,
-            dtype=dtypes.bf16, bpreshuffle=True,
+            Aq.view(dtypes.fp4x2),
+            B_shuffle,
+            Ash,
+            B_scale_sh,
+            dtype=dtypes.bf16,
+            bpreshuffle=True,
         )

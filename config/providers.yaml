@@ -9,50 +9,35 @@
 # Model Providers (Inference)
 # =============================================================================
 
-active_model_provider: "ollama"  # Change to "vllm", "groq", "together", "huggingface"
+active_model_provider: "lemonade"  # Primary: Lemonade (gfx1151-optimized local inference)
 
 model_providers:
-  # Local Ollama (AMD ROCm optimized for Ryzen AI MAX+ 395)
-  ollama:
+  # Local Lemonade (AMD gfx1151-optimized, embeddable server)
+  # 105+ models: CPU/NPU-Hybrid/ROCm-GPU backends
+  # See: vendor/lemonade/resources/server_models.json
+  lemonade:
+    base_url: "http://localhost:13307"
+    timeout: 120
+    max_loaded_models: 1  # Raise to 2-3 when UMA budget allows
+    backend: "rocm"  # rocm | vulkan | cpu
+    lifecycle: "managed"  # LemonadeManager handles start/stop
+
+  # Cloud Ollama Pro ($20/mo subscription, 3 concurrent slots)
+  # 2 slots for Cohezion + 1 reserved for Pi agent
+  ollama_cloud:
+    base_url: "https://api.ollama.com"
+    api_key: "${OLLAMA_API_KEY}"
+    timeout: 60
+    max_concurrent: 2  # Cohezion's share (Pi gets 1)
+    suffix: ":cloud"  # Models with this suffix route to cloud
+
+  # Legacy: Local Ollama (NOT USED — unoptimized for AMD gfx1151)
+  # Kept for reference; Lemonade handles all local inference
+  ollama_local:
     base_url: "http://localhost:11434"
     timeout: 60
-    keep_alive: "5m"  # Keep models loaded for 5 minutes
-
-  # Local vLLM (alternative to Ollama, faster inference)
-  vllm:
-    base_url: "http://localhost:8000"
-    timeout: 30
-    api_key: "${VLLM_API_KEY}"  # Optional, if auth enabled
-
-  # Cloud Groq (ultra-fast inference, 500 tokens/sec)
-  groq:
-    base_url: "https://api.groq.com/openai/v1"
-    api_key: "${GROQ_API_KEY}"
-    timeout: 30
-    models:
-      hot: "llama-3.3-70b-versatile"  # Fast, general
-      warm: "deepseek-r1-distill-llama-70b"  # Reasoning
-      cold: "llama-3.1-70b-versatile"  # Fallback
-
-  # Cloud Together.ai (many open models)
-  together:
-    base_url: "https://api.together.xyz/v1"
-    api_key: "${TOGETHER_API_KEY}"
-    timeout: 60
-    models:
-      hot: "mistralai/Mistral-7B-Instruct-v0.3"
-      warm: "Qwen/Qwen2.5-72B-Instruct-Turbo"
-      cold: "meta-llama/Meta-Llama-3.1-70B-Instruct-Turbo"
-
-  # Cloud HuggingFace (HF Inference API)
-  huggingface:
-    base_url: "https://api-inference.huggingface.co"
-    api_key: "${HUGGINGFACE_API_KEY}"
-    timeout: 90
-    models:
-      hot: "microsoft/Phi-3-mini-4k-instruct"
-      warm: "Qwen/Qwen2.5-Math-7B-Instruct"
-      cold: "google/gemma-2-9b-it"
+    enabled: false
+    note: "Superseded by Lemonade. Ollama local is unoptimized for Strix Halo."
 
 # =============================================================================
 # Model Tier Mappings (Provider-Agnostic)
@@ -62,30 +47,33 @@ model_providers:
 # This allows TipOfTheSpearRouter to work with any provider
 
 tier_mappings:
-  # HOT tier: Always loaded, <100ms response
+  # HOT tier: Always loaded via Lemonade Hybrid NPU, <100ms response
   hot:
-    general: "phi3:mini"  # Ollama name
-    embedding: "nomic-embed-text:latest"
-    reasoning: "lfm2.5-thinking:latest"
+    general: "Phi-4-mini-instruct-Hybrid"
+    embedding: "nomic-embed-text-v2-moe-GGUF"
+    reasoning: "Qwen3-8B-Hybrid"
 
-  # WARM tier: Loaded at startup, ~200ms response
+  # WARM tier: Lemonade GPU (GGUF/ROCm), ~200ms response
   warm:
-    math: "qwen2-math:7b"
-    code: "qwen2.5-coder:7b"
-    vision: "moondream:latest"
-    multilingual: "ministral-3:3b"
+    code: "Qwen2.5-Coder-7B-Instruct-Hybrid"
+    reasoning: "Qwen3-14B-Hybrid"
+    vision: "Gemma-4-E4B-it-GGUF"
+    coding_advanced: "Devstral-Small-2507-GGUF"
 
-  # COLD tier: On-demand, 1-5s load
+  # COLD tier: Large Lemonade GPU models, 300-500ms load
   cold:
-    code_advanced: "deepcoder:14b"
-    reasoning_advanced: "phi4:latest"
-    general_advanced: "gpt-oss:20b"
+    code_advanced: "Qwen3-Coder-Next-GGUF"  # 43.7GB
+    reasoning_advanced: "Qwen3.5-122B-A10B-GGUF"  # 68.4GB (!)
+    general_advanced: "gpt-oss-120b-mxfp-GGUF"  # 63.3GB
+    vision_advanced: "Gemma-4-31B-it-GGUF"  # 18.3GB
 
-  # CLOUD tier: API calls, variable latency
+  # CLOUD tier: Ollama Pro, for models exceeding local capacity
   cloud:
     fallback: "qwen3.5:cloud"
-    max_performance: "qwen3.5:397b-cloud"
+    max_performance: "cogito-2.1:cloud"  # 671B
     long_context: "kimi-k2.5:cloud"
+    coding_frontier: "devstral-2:cloud"  # 123B
+    reasoning_frontier: "deepseek-v3.2:cloud"
 
 # =============================================================================
 # UI Generation Providers
@@ -125,9 +113,8 @@ dynamic_swapping:
 
   # Fallback chain: If active provider unhealthy, try these in order
   model_provider_fallback:
-    - "ollama"    # Try local first
-    - "groq"      # Fast cloud fallback
-    - "together"  # Slower but reliable
+    - "lemonade"       # Try local (gfx1151-optimized) first
+    - "ollama_cloud"   # Ollama Pro cloud fallback ($20/mo flat)
 
   ui_provider_fallback:
     - "stitch"    # Try Stitch first
@@ -144,16 +131,14 @@ dynamic_swapping:
 # =============================================================================
 
 cost_optimization:
-  # Prefer local providers when cloud budget low
-  local_preference_when_budget_below_usd: 10.0
+  # Quarter-on-a-String Protocol: maximize capability, minimize cost
+  # Lemonade = $0/request (local hardware), Ollama Pro = $20/mo flat (subscription)
+  strategy: "local_first"  # Always try Lemonade before cloud
 
   # Track cost per provider
   track_costs: true
 
-  # Maximum daily spend per provider (USD)
-  daily_limits:
-    groq: 5.0
-    together: 10.0
-    huggingface: 5.0
-    stitch: 2.0
-    v0: 3.0
+  # No per-provider daily limits needed — all subscription-based
+  # Monthly budget: $20 (Ollama Pro) + $0 (Lemonade) = $20 total inference cost
+  monthly_budget_usd: 20.0
+  cloud_provider: "ollama_cloud"  # Only cloud provider with cost

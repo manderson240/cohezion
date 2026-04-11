@@ -66,20 +66,20 @@ async def generate_batch(num_tasks: int = 5):
 
         for i in range(num_tasks):
             print(f"Generating task {i + 1}/{num_tasks}...")
-            
+
             # Make the prompt unique to prevent caching
             unique_prompt = GENERATION_PROMPT + f"\n\nTask ID: {i} - Generate a unique task."
-            
+
             async def real_execute(*args, i=i, unique_prompt=unique_prompt, **kwargs):
                 client = get_compound_client()
                 # Use qwen3-coder:30b for high-quality logic and JSON
                 response = await client.generate(
                     prompt=unique_prompt,
-                    model="qwen3-coder:30b", 
+                    model="qwen3-coder:30b",
                     temperature=0.7,
-                    system="You are a master of ARC-AGI. Output ONLY valid JSON. No markdown."
+                    system="You are a master of ARC-AGI. Output ONLY valid JSON. No markdown.",
                 )
-                
+
                 if isinstance(response, tuple):
                     response_text = response[0]
                 elif hasattr(response, "response"):
@@ -111,13 +111,13 @@ async def generate_batch(num_tasks: int = 5):
             if success and result:
                 # Unwrap the result if it was wrapped by execute_aligned
                 task_data = result.get("output", result) if isinstance(result, dict) else result
-                
+
                 # Basic validation
                 if isinstance(task_data, dict) and "train" in task_data and "test" in task_data:
                     tasks.append(task_data)
-                    print(f"SUCCESS: Generated task {i+1}")
+                    print(f"SUCCESS: Generated task {i + 1}")
                     print(json.dumps(task_data, indent=2))
-                    
+
                     # Save after each task
                     with open(BENCHMARK_FILE, "w") as f:
                         json.dump(tasks, f, indent=2)

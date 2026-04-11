@@ -25,8 +25,8 @@ OLLAMA_MODEL_PLAN = "qwen3-coder-next:cloud"  # pi_plan: cloud model (~2s per ca
 OLLAMA_MODEL_CODE = "qwen3-coder:30b"  # pi_code: code synthesis (quality, overnight)
 OLLAMA_MODEL = OLLAMA_MODEL_PLAN  # Default to fast model
 OLLAMA_TIMEOUT = 60  # seconds (cloud models respond in <5s; 60s generous safety margin)
-MAX_TOKENS = 4096        # pi_code: code synthesis needs full budget
-MAX_TOKENS_PLAN = 512   # pi_plan: cloud models generate verbose JSON, need more room
+MAX_TOKENS = 4096  # pi_code: code synthesis needs full budget
+MAX_TOKENS_PLAN = 512  # pi_plan: cloud models generate verbose JSON, need more room
 
 # JSON schema for world model evolution (Ollama structured output)
 EVOLUTION_SCHEMA = {

@@ -39,7 +39,9 @@ def _make_mock_anthropic(classify_response, execute_response=None):
         if call_count[0] == 1:
             mock_response.content = [MagicMock(text=json.dumps(classify_response))]
         else:
-            mock_response.content = [MagicMock(text=execute_response or "Processed content")]
+            mock_response.content = [
+                MagicMock(text=execute_response or "Processed content")
+            ]
         return mock_response
 
     client.messages.create = create_message
@@ -85,7 +87,9 @@ class TestClassify:
         )
         processor = _make_processor(vault, compound, resp)
 
-        vault.write("inbox/note.md", "Some notes about attention mechanisms in transformers")
+        vault.write(
+            "inbox/note.md", "Some notes about attention mechanisms in transformers"
+        )
         result = await processor._classify("Some notes about attention mechanisms")
 
         assert result.note_type == "research"
@@ -103,7 +107,9 @@ class TestClassify:
         )
         processor = _make_processor(vault, compound, resp)
 
-        result = await processor._classify("We decided to use PostgreSQL for persistence")
+        result = await processor._classify(
+            "We decided to use PostgreSQL for persistence"
+        )
         assert result.note_type == "decision"
         assert result.task == "structure_decision"
 
@@ -136,7 +142,9 @@ class TestClassify:
         assert result.task == "extract_pattern"
 
     async def test_classify_daily(self, vault, compound):
-        resp = _make_classification("daily", "Feb 7 Log", "daily/", "structure_daily", "Daily standup")
+        resp = _make_classification(
+            "daily", "Feb 7 Log", "daily/", "structure_daily", "Daily standup"
+        )
         processor = _make_processor(vault, compound, resp)
 
         result = await processor._classify("Today I worked on the inbox processor")
@@ -311,9 +319,13 @@ class TestShouldProcess:
 class TestFrontmatter:
     def test_adds_frontmatter(self, vault, compound):
         processor = _make_processor(vault, compound, _make_classification())
-        classification = Classification("research", "Test", "papers/", "expand_research", "A summary")
+        classification = Classification(
+            "research", "Test", "papers/", "expand_research", "A summary"
+        )
 
-        result = processor._add_frontmatter("# My Content\n\nBody text.", classification, "2026-02-07")
+        result = processor._add_frontmatter(
+            "# My Content\n\nBody text.", classification, "2026-02-07"
+        )
 
         assert result.startswith("---\n")
         assert "type: research" in result
@@ -324,10 +336,16 @@ class TestFrontmatter:
 
     def test_no_double_frontmatter(self, vault, compound):
         processor = _make_processor(vault, compound, _make_classification())
-        classification = Classification("research", "Test", "papers/", "expand_research", "A summary")
+        classification = Classification(
+            "research", "Test", "papers/", "expand_research", "A summary"
+        )
 
-        content_with_fm = "---\ndate: 2026-02-07\ntype: research\n---\n# Already has frontmatter"
-        result = processor._add_frontmatter(content_with_fm, classification, "2026-02-07")
+        content_with_fm = (
+            "---\ndate: 2026-02-07\ntype: research\n---\n# Already has frontmatter"
+        )
+        result = processor._add_frontmatter(
+            content_with_fm, classification, "2026-02-07"
+        )
 
         assert result == content_with_fm
         # Should not have double ---
@@ -344,7 +362,9 @@ class TestSlugify:
 
     def test_special_characters(self, vault, compound):
         processor = _make_processor(vault, compound, _make_classification())
-        assert processor._slugify("Use Redis!!! For $caching$") == "use-redis-for-caching"
+        assert (
+            processor._slugify("Use Redis!!! For $caching$") == "use-redis-for-caching"
+        )
 
     def test_truncation(self, vault, compound):
         processor = _make_processor(vault, compound, _make_classification())

@@ -17,6 +17,7 @@ This matches FlashDecoding: independent processing, late reduction.
 """
 
 import os
+
 os.environ["PYTORCH_ROCM_ARCH"] = "gfx950"
 os.environ["CXX"] = "clang++"
 
@@ -196,8 +197,11 @@ void launch_mla(torch::Tensor Q, torch::Tensor KV,
 
 try:
     _mod = load_inline(
-        name="custom_mla_v2", cpp_sources=[CPP_SOURCE], cuda_sources=[HIP_SOURCE],
-        functions=["launch_mla"], verbose=False,
+        name="custom_mla_v2",
+        cpp_sources=[CPP_SOURCE],
+        cuda_sources=[HIP_SOURCE],
+        functions=["launch_mla"],
+        verbose=False,
         extra_cuda_cflags=["--offload-arch=gfx950", "-std=c++20", "-O3"],
     )
     _OK = True
@@ -225,7 +229,11 @@ def _einsum_attention(data):
     scores = torch.einsum("bqnh,bsh->bnqs", qr, kv).mul_(SM_SCALE)
     weights = torch.softmax(scores, dim=-1)
     v = kv[:, :, :V_HEAD_DIM]
-    return torch.einsum("bnqs,bsd->bqnd", weights, v).reshape(-1, NUM_HEADS, V_HEAD_DIM).to(torch.bfloat16)
+    return (
+        torch.einsum("bnqs,bsd->bqnd", weights, v)
+        .reshape(-1, NUM_HEADS, V_HEAD_DIM)
+        .to(torch.bfloat16)
+    )
 
 
 def _quantize_fp8(t):
@@ -246,10 +254,14 @@ def _asm_attention(data):
     q_fp8, q_scale = _quantize_fp8(q)
 
     def choose_splits(tv):
-        if tv <= 2048: return 1
-        if tv <= 16384: return 4
-        if tv <= 131072: return 8
-        if tv <= 524288: return 16
+        if tv <= 2048:
+            return 1
+        if tv <= 16384:
+            return 4
+        if tv <= 131072:
+            return 8
+        if tv <= 524288:
+            return 16
         return 32
 
     num_kv_splits = choose_splits(total_kv)
@@ -257,37 +269,94 @@ def _asm_attention(data):
     key = (bs, qseqlen, kvseqlen, q_fp8.dtype, kv_buffer_fp8.dtype, num_kv_splits)
     if key not in _cache:
         kv_last_page_len = (kv_indptr[1:] - kv_indptr[:-1]).to(torch.int32)
-        info = get_mla_metadata_info_v1(bs, qseqlen, NUM_HEADS, q_fp8.dtype, kv_buffer_fp8.dtype,
-            is_sparse=False, fast_mode=False, num_kv_splits=num_kv_splits, intra_batch_mode=True)
+        info = get_mla_metadata_info_v1(
+            bs,
+            qseqlen,
+            NUM_HEADS,
+            q_fp8.dtype,
+            kv_buffer_fp8.dtype,
+            is_sparse=False,
+            fast_mode=False,
+            num_kv_splits=num_kv_splits,
+            intra_batch_mode=True,
+        )
         work = [torch.empty(s, dtype=t, device="cuda") for s, t in info]
         wm, wi, ws, ri, rf, rp = work
-        get_mla_metadata_v1(qo_indptr, kv_indptr, kv_last_page_len,
-            NUM_HEADS, 1, True, wm, ws, wi, ri, rf, rp,
-            page_size=1, kv_granularity=16, max_seqlen_qo=qseqlen, uni_seqlen_qo=qseqlen,
-            fast_mode=False, max_split_per_batch=num_kv_splits, intra_batch_mode=True,
-            dtype_q=q_fp8.dtype, dtype_kv=kv_buffer_fp8.dtype)
+        get_mla_metadata_v1(
+            qo_indptr,
+            kv_indptr,
+            kv_last_page_len,
+            NUM_HEADS,
+            1,
+            True,
+            wm,
+            ws,
+            wi,
+            ri,
+            rf,
+            rp,
+            page_size=1,
+            kv_granularity=16,
+            max_seqlen_qo=qseqlen,
+            uni_seqlen_qo=qseqlen,
+            fast_mode=False,
+            max_split_per_batch=num_kv_splits,
+            intra_batch_mode=True,
+            dtype_q=q_fp8.dtype,
+            dtype_kv=kv_buffer_fp8.dtype,
+        )
         total_kv_len = int(kv_indptr[-1].item())
         tq = bs * qseqlen
         _cache[key] = {
-            "work_metadata": wm, "work_indptr": wi, "work_info_set": ws,
-            "reduce_indptr": ri, "reduce_final_map": rf, "reduce_partial_map": rp,
+            "work_metadata": wm,
+            "work_indptr": wi,
+            "work_info_set": ws,
+            "reduce_indptr": ri,
+            "reduce_final_map": rf,
+            "reduce_partial_map": rp,
             "kv_indices": torch.arange(total_kv_len, dtype=torch.int32, device="cuda"),
             "kv_last_page_len": kv_last_page_len,
-            "logits": torch.empty((num_kv_splits, tq, NUM_HEADS, V_HEAD_DIM), dtype=torch.float32, device="cuda"),
-            "attn_lse": torch.empty((num_kv_splits, tq, NUM_HEADS), dtype=torch.float32, device="cuda"),
+            "logits": torch.empty(
+                (num_kv_splits, tq, NUM_HEADS, V_HEAD_DIM), dtype=torch.float32, device="cuda"
+            ),
+            "attn_lse": torch.empty(
+                (num_kv_splits, tq, NUM_HEADS), dtype=torch.float32, device="cuda"
+            ),
             "output": torch.empty((tq, NUM_HEADS, V_HEAD_DIM), dtype=torch.bfloat16, device="cuda"),
         }
     meta = _cache[key]
     output = meta["output"]
     aiter.mla_decode_stage1_asm_fwd(
-        q_fp8.view(-1, NUM_HEADS, QK_HEAD_DIM), kv_4d,
-        qo_indptr, kv_indptr, meta["kv_indices"], meta["kv_last_page_len"],
-        None, meta["work_metadata"], meta["work_indptr"], meta["work_info_set"],
-        qseqlen, 1, 1, SM_SCALE,
-        meta["logits"], meta["attn_lse"], output, q_scale, kv_scale)
-    mla_reduce_v1(meta["logits"], meta["attn_lse"],
-        meta["reduce_indptr"], meta["reduce_final_map"], meta["reduce_partial_map"],
-        qseqlen, output, None)
+        q_fp8.view(-1, NUM_HEADS, QK_HEAD_DIM),
+        kv_4d,
+        qo_indptr,
+        kv_indptr,
+        meta["kv_indices"],
+        meta["kv_last_page_len"],
+        None,
+        meta["work_metadata"],
+        meta["work_indptr"],
+        meta["work_info_set"],
+        qseqlen,
+        1,
+        1,
+        SM_SCALE,
+        meta["logits"],
+        meta["attn_lse"],
+        output,
+        q_scale,
+        kv_scale,
+    )
+    mla_reduce_v1(
+        meta["logits"],
+        meta["attn_lse"],
+        meta["reduce_indptr"],
+        meta["reduce_final_map"],
+        meta["reduce_partial_map"],
+        qseqlen,
+        output,
+        None,
+    )
     return output
 
 

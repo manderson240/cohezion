@@ -19,8 +19,8 @@ for job_id in job_ids:
         result = bq.get(job_id)
         print(f"\nJob {job_id}:")
         print(f"  Status: {result.run_status}")
-        
-        if hasattr(result, 'get_counts'):
+
+        if hasattr(result, "get_counts"):
             counts = result.get_counts()
             top = counts.most_common(3)
             print(f"  Top results:")

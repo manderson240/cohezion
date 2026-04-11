@@ -1,0 +1,6 @@
+{
+  "versionNumber": 1,
+  "name": "exec_maze_navigation_11",
+  "description": "Navigate maze with changing paths.",
+  "definition": "@kbench.task(name=\"exec_maze_navigation_11\")\ndef exec_maze_navigation_11(llm) -> bool:\n    \"\"\"Navigate maze with changing paths.\"\"\"\n    prompt = \"\"\"Maze paths (some open/close dynamically):\n\nStart \u2192 A \u2192 B \u2192 Goal (always open)\nStart \u2192 C \u2192 D \u2192 Goal (closes at t=5)\nStart \u2192 A \u2192 D \u2192 Goal (opens at t=3)\n\nAt t=2, which path is valid?\n\nA) Start\u2192A\u2192B\u2192Goal\nB) Start\u2192C\u2192D\u2192Goal\nC) Start\u2192A\u2192D\u2192Goal\nD) No valid path\"\"\"\n    response = llm.prompt(prompt)\n    return bool(kbench.assertions.assert_true(\"A\" in response, expectation=\"Correct answer is A\"))\n"
+}

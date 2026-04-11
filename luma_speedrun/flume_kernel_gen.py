@@ -7,15 +7,16 @@ into latent vectors, then decode novel kernel configurations.
 For now: uses Ollama cloud models to explore the kernel configuration
 space systematically, guided by our discovered constraints.
 """
+
 import subprocess
 import json
 import os
 
 OLLAMA_MODELS = [
-    "deepseek-v3.2:cloud",   # Strong reasoning
-    "kimi-k2.5:cloud",        # Large context  
-    "qwen3.5:397b-cloud",     # Code generation
-    "gemma4:31b-cloud",       # Fast iteration
+    "deepseek-v3.2:cloud",  # Strong reasoning
+    "kimi-k2.5:cloud",  # Large context
+    "qwen3.5:397b-cloud",  # Code generation
+    "gemma4:31b-cloud",  # Fast iteration
     "nemotron-3-super:cloud",  # GPU expertise
 ]
 
@@ -60,12 +61,13 @@ KERNELS = {
     },
 }
 
+
 def generate_novel_kernel(kernel_name, model):
     """Ask Ollama to generate a novel kernel approach respecting constraints."""
     k = KERNELS[kernel_name]
     constraints = "\n".join(f"  - {c}" for c in k["constraints"])
     prompt = f"""Generate a NOVEL GPU kernel optimization for {kernel_name} on AMD MI355X.
-Current best: {k['current_best']}µs. Target: top 20 in competition.
+Current best: {k["current_best"]}µs. Target: top 20 in competition.
 
 HARD CONSTRAINTS (violating these GUARANTEES failure):
 {constraints}
@@ -76,31 +78,33 @@ What if we used a different mathematical formulation?
 What if we exploited hardware features nobody else is using?
 
 Output ONLY the complete submission.py file. Must start with:
-#!POPCORN leaderboard {k['leaderboard']}
+#!POPCORN leaderboard {k["leaderboard"]}
 #!POPCORN gpu MI355X
 """
     try:
         result = subprocess.run(
-            ["ollama", "run", model],
-            input=prompt, capture_output=True, text=True, timeout=120
+            ["ollama", "run", model], input=prompt, capture_output=True, text=True, timeout=120
         )
         return result.stdout
     except Exception as e:
         print(f"Error with {model}: {e}")
         return None
 
+
 def main():
     import sys
+
     kernel = sys.argv[1] if len(sys.argv) > 1 else "gemm"
     model = sys.argv[2] if len(sys.argv) > 2 else "deepseek-v3.2:cloud"
-    
+
     print(f"FLUME kernel gen: {kernel} via {model}")
     code = generate_novel_kernel(kernel, model)
     if code:
-        outfile = f"/home/mike-anderson/dev/cohezion/luma_speedrun/{KERNELS[kernel]['dir']}/submission_flume_{kernel}_{model.split(':')[0].replace('-','_')}.py"
-        with open(outfile, 'w') as f:
+        outfile = f"/home/mike-anderson/dev/cohezion/luma_speedrun/{KERNELS[kernel]['dir']}/submission_flume_{kernel}_{model.split(':')[0].replace('-', '_')}.py"
+        with open(outfile, "w") as f:
             f.write(code)
         print(f"Written to {outfile} ({len(code)} chars)")
+
 
 if __name__ == "__main__":
     main()

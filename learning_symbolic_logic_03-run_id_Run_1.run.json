@@ -1,0 +1,39 @@
+{
+  "taskVersion": {
+    "versionNumber": 1,
+    "name": "learning_symbolic_logic_03",
+    "description": "Learn and apply novel symbolic logic rules.",
+    "definition": "@kbench.task(name=\"learning_symbolic_logic_03\")\ndef learning_symbolic_logic_03(llm) -> bool:\n    \"\"\"Learn and apply novel symbolic logic rules.\"\"\"\n    prompt = \"\"\"In the planet Xyloph-7, logic works differently:\n\n- [A \u2299 B] means \"if A then not B\"\n- [A \u2297 B] means \"A and B cannot both be true\"\n- [A \u2295 B] means \"exactly one of A or B is true\"\n\nGiven: [P \u2299 Q] is true, and [Q \u2297 R] is true, and [R \u2295 P] is true.\n\nWhich statement must be true?\n\nA) P and Q are both true\nB) P is true, Q is false, R is true\nC) P is false, Q is true, R is false\nD) P is true, Q is false, R is false\"\"\"\n    response = llm.prompt(prompt)\n    return bool(kbench.assertions.assert_true(\"D\" in response, expectation=\"Correct answer is D\"))\n"
+  },
+  "modelVersion": {},
+  "state": "BENCHMARK_TASK_RUN_STATE_COMPLETED",
+  "startTime": "2026-04-11T04:37:16.095354Z",
+  "endTime": "2026-04-11T04:38:27.358429Z",
+  "conversations": [
+    {
+      "id": "learning_symbolic_logic_03-871a6829",
+      "metrics": {},
+      "modelVersionSlug": "model_version_slug for conversation is DEPRECATED"
+    }
+  ],
+  "results": [
+    {
+      "type": "AGGREGATED",
+      "booleanResult": true
+    }
+  ],
+  "assertions": [
+    {
+      "expectation": "Correct answer is D",
+      "status": "BENCHMARK_TASK_RUN_ASSERTION_STATUS_PASSED",
+      "lineNumber": 87,
+      "definition": "return bool(kbench.assertions.assert_true(\"D\" in response, expectation=\"Correct answer is D\"))",
+      "conversationRequestIds": [
+        {
+          "conversationId": "learning_symbolic_logic_03-871a6829"
+        }
+      ]
+    }
+  ],
+  "pyRunId": "learning_symbolic_logic_03-Run #1"
+}

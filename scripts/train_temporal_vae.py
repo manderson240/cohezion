@@ -137,7 +137,9 @@ def train(
             z = encoder.reparameterize(mu, logvar)
             recon = decoder.decode(z, sequences)
 
-            losses = temporal_vae_loss(recon, sequences, mu, logvar, beta=beta, padding_mask=padding_mask)
+            losses = temporal_vae_loss(
+                recon, sequences, mu, logvar, beta=beta, padding_mask=padding_mask
+            )
 
             optimizer.zero_grad()
             losses["total"].backward()
@@ -166,7 +168,15 @@ def train(
             avg_kl,
             current_beta,
         )
-        history.append({"epoch": epoch, "total": avg_total, "recon": avg_recon, "kl": avg_kl, "beta": current_beta})
+        history.append(
+            {
+                "epoch": epoch,
+                "total": avg_total,
+                "recon": avg_recon,
+                "kl": avg_kl,
+                "beta": current_beta,
+            }
+        )
 
         # Save best checkpoint
         if avg_total < best_loss:
@@ -210,7 +220,12 @@ def main() -> None:
     parser.add_argument("--max-seq-len", type=int, default=64)
     parser.add_argument("--max-beta", type=float, default=0.1)
     parser.add_argument("--device", type=str, default="cpu")
-    parser.add_argument("--max-sessions", type=int, default=None, help="Limit number of sessions (for smoke testing)")
+    parser.add_argument(
+        "--max-sessions",
+        type=int,
+        default=None,
+        help="Limit number of sessions (for smoke testing)",
+    )
     args = parser.parse_args()
 
     train(

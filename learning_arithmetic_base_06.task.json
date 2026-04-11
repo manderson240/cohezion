@@ -1,0 +1,6 @@
+{
+  "versionNumber": 1,
+  "name": "learning_arithmetic_base_06",
+  "description": "Learn arithmetic in non-standard base system.",
+  "definition": "@kbench.task(name=\"learning_arithmetic_base_06\")\ndef learning_arithmetic_base_06(llm) -> bool:\n    \"\"\"Learn arithmetic in non-standard base system.\"\"\"\n    prompt = \"\"\"In base \u03c0 (pi), numbers work as follows:\n- Digits are coefficients of powers of \u03c0: d\u2082\u03c0\u00b2 + d\u2081\u03c0\u00b9 + d\u2080\u03c0\u2070 + d\u208b\u2081\u03c0\u207b\u00b9...\n- Addition follows standard polynomial rules\n\nWhat is \"21\" (base \u03c0) + \"12\" (base \u03c0) in base \u03c0?\n\nA) 33\nB) 30.14...\nC) 3\u03c0 + 3\nD) 40\"\"\"\n    response = llm.prompt(prompt)\n    return bool(kbench.assertions.assert_true(\"C\" in response, expectation=\"Correct answer is C\"))\n"
+}

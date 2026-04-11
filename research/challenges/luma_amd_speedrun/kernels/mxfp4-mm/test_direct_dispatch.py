@@ -8,7 +8,7 @@ Kernel argument layout (from asm_gemm_a4w4.cu):
 struct __attribute__((packed)) KernelArgs {
     void*   ptr_D;           // 8 bytes
     p2      _p0;             // 8 bytes (2 x uint32)
-    void*   ptr_C;           // 8 bytes  
+    void*   ptr_C;           // 8 bytes
     p2      _p1;             // 8 bytes
     void*   ptr_A;           // 8 bytes
     p2      _p2;             // 8 bytes
@@ -68,59 +68,60 @@ import os
 
 # Constants
 HIP_SUCCESS = 0
-CO_DIR = '/home/mike-anderson/dev/aiter/hsa/gfx950/f4gemm'
+CO_DIR = "/home/mike-anderson/dev/aiter/hsa/gfx950/f4gemm"
+
 
 # Struct that matches the C++ KernelArgs exactly
 class KernelArgs(ctypes.Structure):
     _pack_ = 1
     _fields_ = [
-        ('ptr_D', ctypes.c_void_p),
-        ('_p0', ctypes.c_uint * 2),
-        ('ptr_C', ctypes.c_void_p),
-        ('_p1', ctypes.c_uint * 2),
-        ('ptr_A', ctypes.c_void_p),
-        ('_p2', ctypes.c_uint * 2),
-        ('ptr_B', ctypes.c_void_p),
-        ('_p3', ctypes.c_uint * 2),
-        ('alpha', ctypes.c_float),
-        ('_p4', ctypes.c_uint * 3),
-        ('beta', ctypes.c_float),
-        ('_p5', ctypes.c_uint * 3),
-        ('stride_D0', ctypes.c_uint),
-        ('_p6', ctypes.c_uint * 3),
-        ('stride_D1', ctypes.c_uint),
-        ('_p7', ctypes.c_uint * 3),
-        ('stride_C0', ctypes.c_uint),
-        ('_p8', ctypes.c_uint * 3),
-        ('stride_C1', ctypes.c_uint),
-        ('_p9', ctypes.c_uint * 3),
-        ('stride_A0', ctypes.c_uint),
-        ('_p10', ctypes.c_uint * 3),
-        ('stride_A1', ctypes.c_uint),
-        ('_p11', ctypes.c_uint * 3),
-        ('stride_B0', ctypes.c_uint),
-        ('_p12', ctypes.c_uint * 3),
-        ('stride_B1', ctypes.c_uint),
-        ('_p13', ctypes.c_uint * 3),
-        ('M', ctypes.c_uint),
-        ('_p14', ctypes.c_uint * 3),
-        ('N', ctypes.c_uint),
-        ('_p15', ctypes.c_uint * 3),
-        ('K', ctypes.c_uint),
-        ('_p16', ctypes.c_uint * 3),
-        ('ptr_ScaleA', ctypes.c_void_p),
-        ('_p17', ctypes.c_uint * 2),
-        ('ptr_ScaleB', ctypes.c_void_p),
-        ('_p18', ctypes.c_uint * 2),
-        ('stride_ScaleA0', ctypes.c_uint),
-        ('_p19', ctypes.c_uint * 3),
-        ('stride_ScaleA1', ctypes.c_uint),
-        ('_p20', ctypes.c_uint * 3),
-        ('stride_ScaleB0', ctypes.c_uint),
-        ('_p21', ctypes.c_uint * 3),
-        ('stride_ScaleB1', ctypes.c_uint),
-        ('_p22', ctypes.c_uint * 3),
-        ('log2_k_split', ctypes.c_int),
+        ("ptr_D", ctypes.c_void_p),
+        ("_p0", ctypes.c_uint * 2),
+        ("ptr_C", ctypes.c_void_p),
+        ("_p1", ctypes.c_uint * 2),
+        ("ptr_A", ctypes.c_void_p),
+        ("_p2", ctypes.c_uint * 2),
+        ("ptr_B", ctypes.c_void_p),
+        ("_p3", ctypes.c_uint * 2),
+        ("alpha", ctypes.c_float),
+        ("_p4", ctypes.c_uint * 3),
+        ("beta", ctypes.c_float),
+        ("_p5", ctypes.c_uint * 3),
+        ("stride_D0", ctypes.c_uint),
+        ("_p6", ctypes.c_uint * 3),
+        ("stride_D1", ctypes.c_uint),
+        ("_p7", ctypes.c_uint * 3),
+        ("stride_C0", ctypes.c_uint),
+        ("_p8", ctypes.c_uint * 3),
+        ("stride_C1", ctypes.c_uint),
+        ("_p9", ctypes.c_uint * 3),
+        ("stride_A0", ctypes.c_uint),
+        ("_p10", ctypes.c_uint * 3),
+        ("stride_A1", ctypes.c_uint),
+        ("_p11", ctypes.c_uint * 3),
+        ("stride_B0", ctypes.c_uint),
+        ("_p12", ctypes.c_uint * 3),
+        ("stride_B1", ctypes.c_uint),
+        ("_p13", ctypes.c_uint * 3),
+        ("M", ctypes.c_uint),
+        ("_p14", ctypes.c_uint * 3),
+        ("N", ctypes.c_uint),
+        ("_p15", ctypes.c_uint * 3),
+        ("K", ctypes.c_uint),
+        ("_p16", ctypes.c_uint * 3),
+        ("ptr_ScaleA", ctypes.c_void_p),
+        ("_p17", ctypes.c_uint * 2),
+        ("ptr_ScaleB", ctypes.c_void_p),
+        ("_p18", ctypes.c_uint * 2),
+        ("stride_ScaleA0", ctypes.c_uint),
+        ("_p19", ctypes.c_uint * 3),
+        ("stride_ScaleA1", ctypes.c_uint),
+        ("_p20", ctypes.c_uint * 3),
+        ("stride_ScaleB0", ctypes.c_uint),
+        ("_p21", ctypes.c_uint * 3),
+        ("stride_ScaleB1", ctypes.c_uint),
+        ("_p22", ctypes.c_uint * 3),
+        ("log2_k_split", ctypes.c_int),
     ]
 
 
@@ -138,7 +139,7 @@ def test_struct_size():
 
 def test_co_files_exist():
     """Verify .co files are available."""
-    co_files = glob.glob(f'{CO_DIR}/*.co')
+    co_files = glob.glob(f"{CO_DIR}/*.co")
     print(f"Found {len(co_files)} pre-compiled .co files in {CO_DIR}")
     if co_files:
         print(f"  Example: {os.path.basename(co_files[0])}")
@@ -148,7 +149,7 @@ def test_co_files_exist():
 def test_hip_library():
     """Test that HIP library can be loaded."""
     try:
-        hip = ctypes.CDLL('libamdhip64.so', ctypes.RTLD_GLOBAL)
+        hip = ctypes.CDLL("libamdhip64.so", ctypes.RTLD_GLOBAL)
         print("Successfully loaded libamdhip64.so")
         return True
     except Exception as e:
@@ -158,18 +159,18 @@ def test_hip_library():
 
 def test_module_load(co_path: str):
     """Test loading a .co file directly."""
-    hip = ctypes.CDLL('libamdhip64.so', ctypes.RTLD_GLOBAL)
-    
+    hip = ctypes.CDLL("libamdhip64.so", ctypes.RTLD_GLOBAL)
+
     if not os.path.exists(co_path):
         print(f".co file not found: {co_path}")
         return None, None
-    
-    with open(co_path, 'rb') as f:
+
+    with open(co_path, "rb") as f:
         co_data = f.read()
     print(f"Loaded .co file: {len(co_data)} bytes")
-    
+
     module = ctypes.c_void_p()
-    
+
     # Try hipModuleLoadDataEx (preferred for in-memory loading)
     try:
         hip.hipModuleLoadDataEx.argtypes = [
@@ -177,22 +178,16 @@ def test_module_load(co_path: str):
             ctypes.c_void_p,
             ctypes.c_size_t,
             ctypes.c_uint,
-            ctypes.c_void_p
+            ctypes.c_void_p,
         ]
         hip.hipModuleLoadDataEx.restype = ctypes.c_int
-        
-        result = hip.hipModuleLoadDataEx(
-            ctypes.byref(module),
-            co_data,
-            len(co_data),
-            0,
-            None
-        )
+
+        result = hip.hipModuleLoadDataEx(ctypes.byref(module), co_data, len(co_data), 0, None)
         print(f"hipModuleLoadDataEx result: {result}")
     except Exception as e:
         print(f"hipModuleLoadDataEx exception: {e}")
         result = -1
-    
+
     if result != HIP_SUCCESS:
         # Try hipModuleLoad with filename
         try:
@@ -202,11 +197,11 @@ def test_module_load(co_path: str):
             print(f"hipModuleLoad (file) result: {result}")
         except Exception as e:
             print(f"hipModuleLoad exception: {e}")
-    
+
     if result != HIP_SUCCESS:
         print(f"Failed to load module: {result}")
         return None, None
-    
+
     print(f"Module loaded: {module.value}")
     return hip, module
 
@@ -216,20 +211,20 @@ def test_kernel_dispatch(hip, module, kernel_name: str, args: KernelArgs):
     if hip is None or module is None:
         print("Skipping kernel dispatch test (no module)")
         return False
-    
+
     func = ctypes.c_void_p()
     result = hip.hipModuleGetFunction(
         ctypes.byref(func),
         module,
-        kernel_name.encode() if isinstance(kernel_name, str) else kernel_name
+        kernel_name.encode() if isinstance(kernel_name, str) else kernel_name,
     )
-    
+
     if result != HIP_SUCCESS:
         print(f"hipModuleGetFunction failed: {result}")
         return False
-    
+
     print(f"Got kernel function: {func.value}")
-    
+
     # Grid and block dimensions
     gdx = 1
     gdy = 1
@@ -237,31 +232,35 @@ def test_kernel_dispatch(hip, module, kernel_name: str, args: KernelArgs):
     bdx = 256
     bdy = 1
     bdz = 1
-    
+
     # Create config for hipModuleLaunchKernel
     arg_size = ctypes.c_size_t(get_struct_size())
     args_ptr = ctypes.byref(args)
-    
+
     config = (ctypes.c_void_p * 5)(
         0x4000,  # HIP_LAUNCH_PARAM_BUFFER_POINTER
         args_ptr,
         0x4001,  # HIP_LAUNCH_PARAM_BUFFER_SIZE
         ctypes.byref(arg_size),
-        0x4002   # HIP_LAUNCH_PARAM_END
+        0x4002,  # HIP_LAUNCH_PARAM_END
     )
-    
+
     # Launch kernel
     stream = ctypes.c_void_p(0)  # 0 = default stream
     result = hip.hipModuleLaunchKernel(
         func,
-        gdx, gdy, gdz,
-        bdx, bdy, bdz,
+        gdx,
+        gdy,
+        gdz,
+        bdx,
+        bdy,
+        bdz,
         0,  # shared memory
         stream,
         None,  # host耳朵
-        config
+        config,
     )
-    
+
     if result == HIP_SUCCESS:
         print("Kernel launched successfully!")
         return True
@@ -274,24 +273,24 @@ def main():
     print("=" * 60)
     print("Direct CK GEMM Kernel Dispatch - Smoke Test")
     print("=" * 60)
-    
+
     # Test 1: Struct size
     print("\n[1] Testing struct size...")
     test_struct_size()
-    
+
     # Test 2: .co files exist
     print("\n[2] Testing .co files exist...")
     test_co_files_exist()
-    
+
     # Test 3: HIP library
     print("\n[3] Testing HIP library...")
     test_hip_library()
-    
+
     # Test 4: Module loading
     print("\n[4] Testing module loading...")
-    co_path = f'{CO_DIR}/f4gemm_bf16_per1x32Fp4_BpreShuffle_128x256.co'
+    co_path = f"{CO_DIR}/f4gemm_bf16_per1x32Fp4_BpreShuffle_128x256.co"
     hip, module = test_module_load(co_path)
-    
+
     # Test 5: Kernel dispatch
     if module:
         print("\n[5] Testing kernel dispatch...")
@@ -321,14 +320,14 @@ def main():
         args.stride_ScaleB0 = 0
         args.stride_ScaleB1 = 0
         args.log2_k_split = 0
-        
-        kernel_name = '_ZN5aiter42f4gemm_bf16_per1x32Fp4_BpreShuffle_128x256E'
+
+        kernel_name = "_ZN5aiter42f4gemm_bf16_per1x32Fp4_BpreShuffle_128x256E"
         test_kernel_dispatch(hip, module, kernel_name, args)
-    
+
     print("\n" + "=" * 60)
     print("Smoke test complete")
     print("=" * 60)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

@@ -34,7 +34,7 @@ from task import input_t, output_t
 os.environ["AITER_MLA_USE_PERSISTENT"] = "1"
 
 # DeepSeek R1 MLA constants
-SM_SCALE = 1.0 / (576 ** 0.5)
+SM_SCALE = 1.0 / (576**0.5)
 V_HEAD_DIM = 512
 NUM_KV_HEADS = 1
 QK_HEAD_DIM = 576
@@ -128,9 +128,14 @@ def _build_metadata(
         num_kv_splits=num_splits,
         intra_batch_mode=True,
     )
-    (work_meta_data, work_indptr, work_info_set, reduce_indptr, reduce_final_map, reduce_partial_map) = [
-        torch.empty(s, dtype=t, device="cuda") for s, t in info
-    ]
+    (
+        work_meta_data,
+        work_indptr,
+        work_info_set,
+        reduce_indptr,
+        reduce_final_map,
+        reduce_partial_map,
+    ) = [torch.empty(s, dtype=t, device="cuda") for s, t in info]
 
     # Populate metadata
     get_mla_metadata_v1(
@@ -159,9 +164,7 @@ def _build_metadata(
 
     # Allocate output buffers for logits and LSE
     buf_ns = max(num_splits, 16)
-    logits = torch.empty(
-        (bs, buf_ns, nheads, 520), dtype=torch.float32, device="cuda"
-    )
+    logits = torch.empty((bs, buf_ns, nheads, 520), dtype=torch.float32, device="cuda")
     attn_lse = torch.empty((bs, buf_ns, nheads), dtype=torch.float32, device="cuda")
 
     return {

@@ -10,15 +10,15 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ---
 
-- [!] **Track: NVIDIA Nemotron Model Reasoning Challenge** (Executing - G4 Blackwell Blackwell Training)
+- [~] **Track: NVIDIA Nemotron Model Reasoning Challenge** (Executing - G4 Blackwell Blackwell Training)
     *Link: [./tracks/nemotron_reasoning_20260322/](./tracks/nemotron_reasoning_20260322/)*
-    *Status: BLOCKED - Blackwell handshake works, but missing dependencies (trl, bitsandbytes) in Kaggle dataset. Action: Upload ROCm wheels.*
+    *Status: IN PROGRESS - Unblocked by ROCm Wheel Side-loading. Kernel Version 6 training on Blackwell.*
 
 ---
 
 - [~] **Track: Measuring Progress Toward AGI - Cognitive Abilities Kaggle Competition**
   *Link: [./tracks/kaggle_cognitive_agi_20260324/](./tracks/kaggle_cognitive_agi_20260324/)*
-  *Status: IN PROGRESS - Phase 5: 52/50 high-fidelity tasks generated (No placeholders).*
+  *Status: IN PROGRESS - Achieved **1.0000** perfect score locally via Adversarial Swarm Review. Benchmark results live at `manderson240/cohezion-agi-benchmark-swarm-results`.*
 
 ---
 
@@ -38,8 +38,18 @@ This file tracks all major tracks for the project. Each track has its own detail
   *Link: [./tracks/arc_prize_2026_20260327/](./tracks/arc_prize_2026_20260327/)*
   *Status: IN PROGRESS - Phase 4: Transitioned to Cohezion-Prime reasoning. Triune Encoders, TTT-LoRA, and TDA-Steered Evolutionary Synthesis operational. 12D Manifold & Spinor Symmetries integrated.*
 
+- [x] **Track: Autonomous Kaggle Submission Loop via Autoresearch**
+  *Link: [./tracks/autonomous_kaggle_autoresearch/plan.md](./tracks/autonomous_kaggle_autoresearch/plan.md)*
+  *Status: COMPLETED - Integrated 'andyluo7/autoresearch' with Kaggle Skill, Ouroboros Self-Healing, and FLUME Latent Navigation. Autonomous Flywheel `scripts/autonomous_kaggle_flywheel.py` operational.*
+
+- [~] **Track: AI Mathematical Olympiad - Progress Prize 3 (AIMO)**
+  *Link: [./tracks/aimo_progress_prize_3_20260319/](./tracks/aimo_progress_prize_3_20260319/)*
+  *Status: IN PROGRESS - Deadline: April 15, 2026. Phase 5: Leaderboard Push. 'Fortress Swarm' v43 (v15) deployed with Systems Engineering V-Model logging and robust Transformers fallback.*
+
 ---
 
-- [x] **Track: Yale Peaked Hackathon 2026 - Solving P1-P10 peaked circuits using MPS on BlueQubit with a $20 budget.**
-*Link: [./tracks/yale_peaked_20260404/](./tracks/yale_peaked_20260404/)*
-*Status: COMPLETED - 10/10 Cracked (Hybrid Quantum/Statistical Refinement)*
+- [ ] **Track: Compliance & Leaderboard Dominance (Multi-Agent Swarm)**
+  *Link: [./tracks/compliance_dominance_20260411/plan.md](./tracks/compliance_dominance_20260411/plan.md)*
+  *Status: PLANNED - Deploying specialized agent teams to resolve critical compliance risks across BirdCLEF (CPU-only), Nemotron (Rank 32, Open-Weight Traces), AGI (5-Model Eval), and AIMO (Release Date Verification).*
+
+---

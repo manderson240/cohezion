@@ -9,8 +9,18 @@ from cohezion.security.credentials import get_credentials
 
 logger = logging.getLogger(__name__)
 
-# Primary: Vault Warden, Fallback: Environment
-MCP_API_KEY = get_credentials().get_secret("COHEZION_MCP_API_KEY", env_var="MCP_API_KEY")
+# Lazy accessor for MCP_API_KEY to prevent startup latency
+_mcp_api_key: str | None = None
+
+
+def get_mcp_api_key() -> str | None:
+    """Get MCP API key with lazy initialization."""
+    global _mcp_api_key
+    if _mcp_api_key is None:
+        _mcp_api_key = get_credentials().get_secret(
+            "COHEZION_MCP_API_KEY", env_var="MCP_API_KEY"
+        )
+    return _mcp_api_key
 
 
 @web.middleware
@@ -20,7 +30,8 @@ async def api_key_middleware(request: web.Request, handler):
     if request.path in ["/health", "/"]:
         return await handler(request)
 
-    if not MCP_API_KEY:
+    mcp_api_key = get_mcp_api_key()
+    if not mcp_api_key:
         logger.warning(
             "MCP_API_KEY is not set in the environment. Denying access to secure endpoint."
         )
@@ -38,7 +49,7 @@ async def api_key_middleware(request: web.Request, handler):
     # Safe constant-time comparison could be used here in production
     import hmac
 
-    if not hmac.compare_digest(token.encode(), MCP_API_KEY.encode()):
+    if not hmac.compare_digest(token.encode(), mcp_api_key.encode()):
         return web.json_response({"error": "Invalid API key"}, status=403)
 
     return await handler(request)

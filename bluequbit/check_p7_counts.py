@@ -26,4 +26,4 @@ for raw, cnt in sorted_counts[:5]:
 # Check total shots
 total = sum(counts.values())
 print(f"\nTotal shots: {total}")
-print(f"Top probability: {sorted_counts[0][1]/total:.6f}")
+print(f"Top probability: {sorted_counts[0][1] / total:.6f}")

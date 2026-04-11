@@ -7,6 +7,7 @@ This script runs independently of Claude, using local Ollama models to:
 
 Usage: python3 luma_speedrun/ollama_research_task.py
 """
+
 import json, time, os
 from urllib.request import Request, urlopen
 from pathlib import Path
@@ -16,25 +17,31 @@ MODEL = "gemma4:31b"
 OUTPUT_DIR = Path("luma_speedrun/ollama_research")
 OUTPUT_DIR.mkdir(exist_ok=True)
 
+
 def ask_ollama(prompt, max_tokens=4096):
-    payload = json.dumps({
-        "model": MODEL,
-        "prompt": prompt,
-        "stream": True,
-        "options": {"num_predict": max_tokens, "temperature": 0.3},
-    }).encode()
+    payload = json.dumps(
+        {
+            "model": MODEL,
+            "prompt": prompt,
+            "stream": True,
+            "options": {"num_predict": max_tokens, "temperature": 0.3},
+        }
+    ).encode()
     req = Request(OLLAMA_URL, data=payload, headers={"Content-Type": "application/json"})
     chunks = []
     try:
         with urlopen(req, timeout=300) as resp:
             for line in resp:
-                if not line.strip(): continue
+                if not line.strip():
+                    continue
                 data = json.loads(line)
                 chunks.append(data.get("response", ""))
-                if data.get("done"): break
+                if data.get("done"):
+                    break
     except Exception as e:
         return f"ERROR: {e}"
     return "".join(chunks)
+
 
 # Task 1: Research FP4 MFMA 32x32 register layout
 print(f"[{time.strftime('%H:%M:%S')}] Task 1: Researching FP4 MFMA register layout...")
@@ -62,8 +69,12 @@ Please list the most likely register-to-output mappings, considering:
 For each pattern, show the exact C++ code for the epilogue (write-back from c_reg to output matrix C).
 """
 r1 = ask_ollama(q1)
-(OUTPUT_DIR / "task1_mfma_register_layout.md").write_text(f"# FP4 MFMA Register Layout Research\n\nModel: {MODEL}\nTimestamp: {time.strftime('%Y-%m-%d %H:%M:%S')}\n\n{r1}")
-print(f"[{time.strftime('%H:%M:%S')}] Task 1 done, saved to ollama_research/task1_mfma_register_layout.md")
+(OUTPUT_DIR / "task1_mfma_register_layout.md").write_text(
+    f"# FP4 MFMA Register Layout Research\n\nModel: {MODEL}\nTimestamp: {time.strftime('%Y-%m-%d %H:%M:%S')}\n\n{r1}"
+)
+print(
+    f"[{time.strftime('%H:%M:%S')}] Task 1 done, saved to ollama_research/task1_mfma_register_layout.md"
+)
 
 # Task 2: Research per_1x32_f4_quant_hip usage
 print(f"[{time.strftime('%H:%M:%S')}] Task 2: Researching per_1x32_f4_quant_hip...")
@@ -84,7 +95,9 @@ Also: aiter has gemm_a4w4_asm(A, B, A_scale, B_scale, out, kernelName, bias, alp
 What values of log2_k_split should I try for shapes like M=8 K=7168 N=2112?
 """
 r2 = ask_ollama(q2)
-(OUTPUT_DIR / "task2_hip_quant_and_ksplit.md").write_text(f"# HIP Quant + K-Split Research\n\nModel: {MODEL}\nTimestamp: {time.strftime('%Y-%m-%d %H:%M:%S')}\n\n{r2}")
+(OUTPUT_DIR / "task2_hip_quant_and_ksplit.md").write_text(
+    f"# HIP Quant + K-Split Research\n\nModel: {MODEL}\nTimestamp: {time.strftime('%Y-%m-%d %H:%M:%S')}\n\n{r2}"
+)
 print(f"[{time.strftime('%H:%M:%S')}] Task 2 done")
 
 # Task 3: Research ck_moe_stage1/stage2 direct dispatch
@@ -110,7 +123,11 @@ How does the sorting work with moe_sorting_fwd?
 The data format is MXFP4 (per_1x32 quantized, shuffled weights).
 """
 r3 = ask_ollama(q3)
-(OUTPUT_DIR / "task3_ck_moe_dispatch.md").write_text(f"# CK MoE Direct Dispatch Research\n\nModel: {MODEL}\nTimestamp: {time.strftime('%Y-%m-%d %H:%M:%S')}\n\n{r3}")
+(OUTPUT_DIR / "task3_ck_moe_dispatch.md").write_text(
+    f"# CK MoE Direct Dispatch Research\n\nModel: {MODEL}\nTimestamp: {time.strftime('%Y-%m-%d %H:%M:%S')}\n\n{r3}"
+)
 print(f"[{time.strftime('%H:%M:%S')}] Task 3 done")
 
-print(f"\n[{time.strftime('%H:%M:%S')}] All research tasks complete. Results in luma_speedrun/ollama_research/")
+print(
+    f"\n[{time.strftime('%H:%M:%S')}] All research tasks complete. Results in luma_speedrun/ollama_research/"
+)

@@ -94,7 +94,9 @@ async def ouroboros_loop():
             # 2. ACT
             reaction = await ganglion.reflex(state)
 
-            logger.info(f"💓 Heartbeat: Stability={state.stability:.2f} | Drifts={state.drift:.2f} | Reflex={reaction}")
+            logger.info(
+                f"💓 Heartbeat: Stability={state.stability:.2f} | Drifts={state.drift:.2f} | Reflex={reaction}"
+            )
 
             # 3. BROADCAST
             await broadcast_state(state)

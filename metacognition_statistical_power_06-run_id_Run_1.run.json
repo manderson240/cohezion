@@ -1,0 +1,39 @@
+{
+  "taskVersion": {
+    "versionNumber": 1,
+    "name": "metacognition_statistical_power_06",
+    "description": "Recognize statistical power issues.",
+    "definition": "@kbench.task(name=\"metacognition_statistical_power_06\")\ndef metacognition_statistical_power_06(llm) -> bool:\n    \"\"\"Recognize statistical power issues.\"\"\"\n    prompt = \"\"\"A study of 5 patients showed that Drug X cured all of them.\n\nWhat is the efficacy rate of Drug X?\n\nA) 100%\nB) Unknown, sample size too small for generalization\nC) Approximately 100%\nD) Insufficient Information\"\"\"\n    response = llm.prompt(prompt)\n    return bool(kbench.assertions.assert_true(\"D\" in response, expectation=\"Correct answer is D\"))\n"
+  },
+  "modelVersion": {},
+  "state": "BENCHMARK_TASK_RUN_STATE_COMPLETED",
+  "startTime": "2026-04-11T04:50:34.512845Z",
+  "endTime": "2026-04-11T04:50:45.811014Z",
+  "conversations": [
+    {
+      "id": "metacognition_statistical_power_06-622c1981",
+      "metrics": {},
+      "modelVersionSlug": "model_version_slug for conversation is DEPRECATED"
+    }
+  ],
+  "results": [
+    {
+      "type": "AGGREGATED",
+      "booleanResult": true
+    }
+  ],
+  "assertions": [
+    {
+      "expectation": "Correct answer is D",
+      "status": "BENCHMARK_TASK_RUN_ASSERTION_STATUS_PASSED",
+      "lineNumber": 461,
+      "definition": "return bool(kbench.assertions.assert_true(\"D\" in response, expectation=\"Correct answer is D\"))",
+      "conversationRequestIds": [
+        {
+          "conversationId": "metacognition_statistical_power_06-622c1981"
+        }
+      ]
+    }
+  ],
+  "pyRunId": "metacognition_statistical_power_06-Run #1"
+}

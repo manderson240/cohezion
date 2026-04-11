@@ -11,6 +11,7 @@ Combined with pre-resolved function references for minimal Python overhead.
 """
 
 import os
+
 os.environ["HIP_FORCE_DEV_KERNARG"] = "1"
 
 import torch
@@ -34,5 +35,4 @@ def custom_kernel(data: input_t) -> output_t:
 
     Aq, Asc = _quant(A.contiguous())
     Ash = _shuffle(Asc).view(_fp8_e8m0)
-    return _gemm(Aq.view(_fp4x2), B_shuffle, Ash, B_scale_sh,
-                 dtype=_bf16, bpreshuffle=True)
+    return _gemm(Aq.view(_fp4x2), B_shuffle, Ash, B_scale_sh, dtype=_bf16, bpreshuffle=True)

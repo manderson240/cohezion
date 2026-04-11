@@ -6,6 +6,7 @@ edge case with BLOCK_M=64. This forces M=64 into 2 tiles.
 
 Falls back to aiter gemm_a4w4 if Triton fails (retains 24.3us baseline).
 """
+
 import sys
 
 import torch
@@ -16,15 +17,24 @@ from task import input_t, output_t
 
 @triton.jit
 def _mxfp4_gemm_kernel(
-    A_ptr, A_scale_ptr,
-    B_ptr, B_scale_ptr,
+    A_ptr,
+    A_scale_ptr,
+    B_ptr,
+    B_scale_ptr,
     C_ptr,
-    M, N, K_HALF,
-    stride_a_m, stride_a_k,
-    stride_as_m, stride_as_k,
-    stride_b_k, stride_b_n,
-    stride_bs_n, stride_bs_k,
-    stride_c_m, stride_c_n,
+    M,
+    N,
+    K_HALF,
+    stride_a_m,
+    stride_a_k,
+    stride_as_m,
+    stride_as_k,
+    stride_b_k,
+    stride_b_n,
+    stride_bs_n,
+    stride_bs_k,
+    stride_c_m,
+    stride_c_n,
     BLOCK_M: tl.constexpr,
     BLOCK_N: tl.constexpr,
     BLOCK_K: tl.constexpr,
@@ -100,8 +110,12 @@ def _aiter_fallback(data: input_t) -> output_t:
     A_q = x_fp4.view(dtypes.fp4x2)
     A_scale_sh = e8m0_shuffle(bs_e8m0).view(dtypes.fp8_e8m0)
     return aiter.gemm_a4w4(
-        A_q, B_shuffle, A_scale_sh, B_scale_sh,
-        dtype=dtypes.bf16, bpreshuffle=True,
+        A_q,
+        B_shuffle,
+        A_scale_sh,
+        B_scale_sh,
+        dtype=dtypes.bf16,
+        bpreshuffle=True,
     )
 
 
@@ -135,15 +149,24 @@ def custom_kernel(data: input_t) -> output_t:
         grid = (triton.cdiv(m, BLOCK_M), triton.cdiv(n, BLOCK_N))
 
         _mxfp4_gemm_kernel[grid](
-            A_fp4, A_scale,
-            B_fp4_t, B_scale,
+            A_fp4,
+            A_scale,
+            B_fp4_t,
+            B_scale,
             C,
-            m, n, k_half,
-            A_fp4.stride(0), A_fp4.stride(1),
-            A_scale.stride(0), A_scale.stride(1),
-            B_fp4_t.stride(0), B_fp4_t.stride(1),
-            B_scale.stride(0), B_scale.stride(1),
-            C.stride(0), C.stride(1),
+            m,
+            n,
+            k_half,
+            A_fp4.stride(0),
+            A_fp4.stride(1),
+            A_scale.stride(0),
+            A_scale.stride(1),
+            B_fp4_t.stride(0),
+            B_fp4_t.stride(1),
+            B_scale.stride(0),
+            B_scale.stride(1),
+            C.stride(0),
+            C.stride(1),
             BLOCK_M=BLOCK_M,
             BLOCK_N=BLOCK_N,
             BLOCK_K=BLOCK_K,

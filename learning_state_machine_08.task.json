@@ -1,0 +1,6 @@
+{
+  "versionNumber": 1,
+  "name": "learning_state_machine_08",
+  "description": "Learn state machine transitions.",
+  "definition": "@kbench.task(name=\"learning_state_machine_08\")\ndef learning_state_machine_08(llm) -> bool:\n    \"\"\"Learn state machine transitions.\"\"\"\n    prompt = \"\"\"A system has states {A, B, C, D} with transitions:\n\n- A + input '1' \u2192 B, A + '0' \u2192 A\n- B + '1' \u2192 C, B + '0' \u2192 A\n- C + '1' \u2192 D, C + '0' \u2192 B\n- D + any \u2192 D (accepting state)\n\nStarting at A, what input sequence of length 3 reaches D?\n\nA) 000\nB) 010\nC) 111\nD) 101\"\"\"\n    response = llm.prompt(prompt)\n    return bool(kbench.assertions.assert_true(\"C\" in response, expectation=\"Correct answer is C\"))\n"
+}

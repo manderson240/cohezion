@@ -25,6 +25,7 @@ import httpx
 
 from cohezion.research.autoresearch import AutoResearcher
 from cohezion.swarm.dynamic_model_router import MemoryBandwidthAnalyzer
+from cohezion.swarm.lemonade_manager import LemonadeManager
 from cohezion.swarm.model_manager import OLLAMA_HOST
 from cohezion.swarm.model_pool_config import (
     ModelTierPolicy,
@@ -54,6 +55,7 @@ class ModelPoolManager:
         self,
         config: TierConfig | None = None,
         ollama_host: str = OLLAMA_HOST,
+        lemonade_port: int = 13307,
     ) -> None:
         self._config = config or TierConfig()
         self._ollama_host = ollama_host
@@ -61,6 +63,7 @@ class ModelPoolManager:
         self._pool: dict[str, PooledModel] = {}
         self._initialized = False
         self.researcher = AutoResearcher()
+        self.lemonade = LemonadeManager(port=lemonade_port)
 
         # Build pool entries from config
         for name in self._config.hot_models:
@@ -76,8 +79,19 @@ class ModelPoolManager:
         Marks models as loaded/healthy if Ollama reports them.
         Updates size_gb from Ollama metadata.
         """
+        # Initialize private Lemonade server
+        await self.lemonade.start()
+        if await self.lemonade.wait_until_ready():
+            logger.info("Private Lemonade server ready on port %d", self.lemonade.port)
+        else:
+            logger.warning("Private Lemonade server failed to respond within timeout")
+
         installed = await self._list_ollama_models()
         installed_map = {m["name"]: m for m in installed}
+
+        # Also get Lemonade models
+        lemonade_installed = await self._list_lemonade_models()
+        lemonade_map = {m["id"]: m for m in lemonade_installed}
 
         for name, model in self._pool.items():
             if name in installed_map:
@@ -87,7 +101,9 @@ class ModelPoolManager:
                     model.size_gb = 0.0
                 else:
                     model.size_gb = meta.get("size", 0) / (1024**3)
-                # Check if actually loaded (running) by querying /api/ps
+            elif name in lemonade_map:
+                # Lemonade models are considered local but potentially NPU/GPU accelerated
+                model.size_gb = 0.0 # TODO: Get actual size from Lemonade if possible
             else:
                 model.loaded = False
                 model.healthy = False
@@ -219,16 +235,28 @@ class ModelPoolManager:
 
         start = time.monotonic()
         try:
+            # Check if this model is routed to Lemonade
+            # (Simple heuristic: check lemonade_config.yaml or model name)
+            is_lemonade = "gemma4:26b-moe" in model_name # Default for now
+
+            if is_lemonade:
+                url = f"http://{self.lemonade.host}:{self.lemonade.port}/v1/chat/completions"
+                payload = {
+                    "model": model_name,
+                    "messages": [{"role": "user", "content": _HEALTH_PROMPT}],
+                    "max_tokens": 5
+                }
+            else:
+                url = f"{self._ollama_host}/api/generate"
+                payload = {
+                    "model": model_name,
+                    "prompt": _HEALTH_PROMPT,
+                    "stream": False,
+                    "options": {"num_predict": 5},
+                }
+
             async with httpx.AsyncClient(timeout=_HEALTH_TIMEOUT_S) as client:
-                resp = await client.post(
-                    f"{self._ollama_host}/api/generate",
-                    json={
-                        "model": model_name,
-                        "prompt": _HEALTH_PROMPT,
-                        "stream": False,
-                        "options": {"num_predict": 5},
-                    },
-                )
+                resp = await client.post(url, json=payload)
                 resp.raise_for_status()
                 latency_ms = (time.monotonic() - start) * 1000
                 model.record_health(healthy=True, latency_ms=latency_ms)
@@ -419,10 +447,39 @@ class ModelPoolManager:
             logger.error("Failed to list running models: %s", exc)
             return []
 
+    async def _list_lemonade_models(self) -> list[dict[str, Any]]:
+        """Query private Lemonade server for installed models."""
+        try:
+            async with httpx.AsyncClient(timeout=10.0) as client:
+                resp = await client.get(f"http://{self.lemonade.host}:{self.lemonade.port}/api/v1/models")
+                resp.raise_for_status()
+                # Lemonade API returns a list of models
+                return resp.json().get("data", [])
+        except Exception as exc:
+            logger.error("Failed to list Lemonade models: %s", exc)
+            return []
+
     async def _load_model(self, model_name: str, tier: ModelTierPolicy) -> bool:
         """Load a model by sending a minimal generation request with keep_alive.
         Implements a sequential loading lock to prevent memory spikes.
         """
+        # Check if this model is routed to Lemonade
+        is_lemonade = "gemma4:26b-moe" in model_name
+
+        if is_lemonade:
+            # Lemonade loads models on first request or via specific load API
+            url = f"http://{self.lemonade.host}:{self.lemonade.port}/api/v1/load"
+            payload = {"model_name": model_name, "llamacpp_backend": "rocm"}
+            try:
+                async with httpx.AsyncClient(timeout=_LOAD_TIMEOUT_S) as client:
+                    resp = await client.post(url, json=payload)
+                    resp.raise_for_status()
+                    logger.info("Loaded model %s via private Lemonade server", model_name)
+                    return True
+            except Exception as exc:
+                logger.error("Failed to load model %s on Lemonade: %s", model_name, exc)
+                return False
+
         # Sequential Loading Lock: Ensure only one local model loads at a time
         # Use a simple lock or synchronized block. For now, we rely on the await
         # call being sequential in the orchestrator, but we add a safeguard here.

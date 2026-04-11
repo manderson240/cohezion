@@ -1,0 +1,6 @@
+{
+  "versionNumber": 1,
+  "name": "social_irony_sarcasm_10",
+  "description": "Understand sarcasm and irony.",
+  "definition": "@kbench.task(name=\"social_irony_sarcasm_10\")\ndef social_irony_sarcasm_10(llm) -> bool:\n    \"\"\"Understand sarcasm and irony.\"\"\"\n    prompt = \"\"\"After a failed exam, someone says \"Great, just what I needed!\"\n\nWhat do they mean?\n\nA) They're happy about the exam\nB) They're upset about the exam\nC) They're neutral\nD) They're planning to retake it\"\"\"\n    response = llm.prompt(prompt)\n    return bool(kbench.assertions.assert_true(\"B\" in response, expectation=\"Correct answer is B\"))\n"
+}

@@ -10,37 +10,24 @@
 6. **Compound Engineering:** Every feature created must make every subsequent feature easier to obtain. Complexity is actively reduced in favor of composable, foundational primitives.
 7. **Token Efficiency:** Rigorously prioritize token efficiency, semantic caching, and precise model routing over brute-force compute consumption.
 
-## Task Workflow: The Triune Execution Model
+## Task Workflow: The Triune V-Model Execution
 
-All tasks follow a strict lifecycle, mapping to the Triune Manifold:
+All tasks follow a strict lifecycle, mapping to the Triune Manifold and the **Systems Engineering V-Model** (Descending Design vs. Ascending Verification):
 
-### 1. The Thinker (Planning & Alignment)
-1. **Select Task:** Choose the next available task from `plan.md` in sequential order.
-2. **Mark In Progress:** Edit `plan.md` and change the task from `[ ]` to `[~]`.
-3. **Context Sync:** Query the Obsidian Knowledge Vault and SurrealDB via MCP to ensure no existing solutions can be repurposed (Compound Engineering).
+### 1. The Thinker (Descending Path: Definition & Decomposition)
+1. **Select Task & Requirements:** Choose the next task from `plan.md`. Define the "System Requirements" for the feature.
+2. **Architecture & Swarm Design:** Orchestrate the specialist team needed for the task.
+3. **Module Design (AutoHarness):** Identify mathematical or logic invariants and synthesize a deterministic verifier (AutoHarness) to gate the implementation.
 
-### 2. The Doer (TDD Execution)
-4. **Write Failing Tests (Red Phase):**
-   - Create a new test file.
-   - Write unit tests defining expected behavior.
-   - **CRITICAL:** Run the tests and confirm they fail. Do not proceed until you have failing tests.
-5. **Implement to Pass Tests (Green Phase):**
-   - Write the minimum amount of application code necessary to make the failing tests pass.
-   - Run the test suite again.
-6. **Refactor & Synthesize:**
-   - With passing tests, refactor for clarity and token efficiency.
-   - *Mycelium Integration*: Allow the ShadowScripter layer to observe the journey and grow comprehensive regression tests around the newly generated code.
+### 2. The Doer (Apex: Implementation & Unit Verification)
+4. **Write Failing Tests (Red Phase):** Map to V-Model "Unit Verification." Ensure the AutoHarness rejects invalid initial states.
+5. **Implement to Pass Tests (Green Phase):** Minimum code to satisfy the harness and tests.
+6. **Refactor & Manifold Integration:** Verify the 12D state vector maintains HIHO stability (0.5 coherence) during integration.
 
-### 3. The Knower (Verification & Persistence)
-7. **Verify Coverage:** Run coverage reports.
-   - **Target: 100% coverage.**
-8. **Document Deviations:** If implementation differs from the planned architecture:
-   - **STOP** implementation.
-   - Update `tech-stack.md` or `plan.md` with the new design.
-   - Resume implementation.
-9. **Record Task Completion:**
-    - Update `plan.md`, change the task status from `[~]` to `[x]`.
-    - *Note: Commits are deferred until the entire Phase is complete.*
+### 3. The Knower (Ascending Path: Validation & Persistence)
+7. **System Validation (Adversarial Review):** Perform a multi-perspective swarm critique to identify logic holes or "workslop" before consensus.
+8. **Document & Persist:** Record completion, update `plan.md`, and extract "Key Learnings" to the knowledge graph.
+9. **Final Acceptance:** Journey Retrospective and checkpointing via SurrealDB.
 
 ## Phase Completion Verification and Checkpointing Protocol
 

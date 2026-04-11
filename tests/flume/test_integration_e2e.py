@@ -134,7 +134,9 @@ class TestSemanticCacheIntegration:
 class TestFullPipelineIntegration:
     """Full pipeline: log execution → embedding consistent → cache stores."""
 
-    def test_pipeline_components_interoperate(self, tmp_path: Path, flume_encoder: FlumeVAEEncoder) -> None:
+    def test_pipeline_components_interoperate(
+        self, tmp_path: Path, flume_encoder: FlumeVAEEncoder
+    ) -> None:
         """All three components work together without errors."""
         # Step 1: Log compound execution
         collector = ExperienceCollector(

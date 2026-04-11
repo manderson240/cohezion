@@ -4,6 +4,7 @@
 import torch
 from torch.utils.cpp_extension import load_inline
 
+
 def custom_kernel(data):
     # Define GEMM kernel with optimized parameters for AMD MI355X/GFX950
     code = """
@@ -96,15 +97,15 @@ def custom_kernel(data):
     }
     
     """
-    
+
     # Compile and return the kernel
     my_kernel = load_inline(
         name="gemm_mxfp4",
         sources=[code],
-        extra_include_paths=[torch.__path__[0] + '/include'],
-        build_directory='./',
+        extra_include_paths=[torch.__path__[0] + "/include"],
+        build_directory="./",
         verbose=True,
-        include_dirs=[torch.utils.cpp_extension.HIP_HOME]
+        include_dirs=[torch.utils.cpp_extension.HIP_HOME],
     )
-    
+
     return my_kernel(data)

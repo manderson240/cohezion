@@ -1,0 +1,39 @@
+{
+  "taskVersion": {
+    "versionNumber": 1,
+    "name": "learning_pattern_completion_07",
+    "description": "Complete pattern based on learned rules.",
+    "definition": "@kbench.task(name=\"learning_pattern_completion_07\")\ndef learning_pattern_completion_07(llm) -> bool:\n    \"\"\"Complete pattern based on learned rules.\"\"\"\n    prompt = \"\"\"Complete the pattern:\n\n[2, 4, 8] \u2192 16\n[3, 9, 27] \u2192 81\n[4, 16, 64] \u2192 256\n[5, 25, ?] \u2192 ?\n\nWhat is the missing number?\n\nA) 125\nB) 100\nC) 625\nD) 75\"\"\"\n    response = llm.prompt(prompt)\n    return bool(kbench.assertions.assert_true(\"A\" in response, expectation=\"Correct answer is A\"))\n"
+  },
+  "modelVersion": {},
+  "state": "BENCHMARK_TASK_RUN_STATE_COMPLETED",
+  "startTime": "2026-04-11T04:39:57.133191Z",
+  "endTime": "2026-04-11T04:40:28.284914Z",
+  "conversations": [
+    {
+      "id": "learning_pattern_completion_07-a6d6101a",
+      "metrics": {},
+      "modelVersionSlug": "model_version_slug for conversation is DEPRECATED"
+    }
+  ],
+  "results": [
+    {
+      "type": "AGGREGATED",
+      "booleanResult": true
+    }
+  ],
+  "assertions": [
+    {
+      "expectation": "Correct answer is A",
+      "status": "BENCHMARK_TASK_RUN_ASSERTION_STATUS_PASSED",
+      "lineNumber": 173,
+      "definition": "return bool(kbench.assertions.assert_true(\"A\" in response, expectation=\"Correct answer is A\"))",
+      "conversationRequestIds": [
+        {
+          "conversationId": "learning_pattern_completion_07-a6d6101a"
+        }
+      ]
+    }
+  ],
+  "pyRunId": "learning_pattern_completion_07-Run #1"
+}

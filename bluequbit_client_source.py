@@ -101,10 +101,7 @@ class BQClient:
             return
         if len(batch) > job_metadata_constants.MAXIMUM_NUMBER_OF_JOBS_FOR_RUN:
             raise BQJobsLimitExceededError(len(batch))
-        if (
-            "cpu" in device
-            and len(batch) > job_metadata_constants.QUEUED_CPU_JOBS_LIMIT
-        ):
+        if "cpu" in device and len(batch) > job_metadata_constants.QUEUED_CPU_JOBS_LIMIT:
             raise BQCPUJobsLimitExceededError(len(batch))
 
     @staticmethod
@@ -120,9 +117,7 @@ class BQClient:
         for circuit in circuits_list:
             if device.startswith("pennylane"):
                 if not is_a_pennylane_circuit(circuit):
-                    raise BQSDKUsageError(
-                        f"Only Pennylane circuit is supported for {device}"
-                    )
+                    raise BQSDKUsageError(f"Only Pennylane circuit is supported for {device}")
             elif not is_a_qiskit_circuit(circuit):
                 raise BQSDKUsageError(f"Only Qiskit circuit is supported for {device}")
 
@@ -189,10 +184,7 @@ class BQClient:
             raise BQSDKUsageError(
                 f"'pauli_path_truncation_threshold' must be a non-negative float; received {delta}"
             )
-        if (
-            delta is not None
-            and delta < job_metadata_constants.MIN_PAULI_PATH_TRUNCATION_THRESHOLD
-        ):
+        if delta is not None and delta < job_metadata_constants.MIN_PAULI_PATH_TRUNCATION_THRESHOLD:
             raise BQSDKUsageError(
                 "Truncation threshold too small: 'pauli_path_truncation_threshold' smaller than "
                 f"{job_metadata_constants.MIN_PAULI_PATH_TRUNCATION_THRESHOLD}"
@@ -242,14 +234,10 @@ class BQClient:
         :return: result or results estimate metadata
         """
         if self.execution_mode == "local":
-            raise BQSDKUsageError(
-                "BQClient.estimate() is not supported in local execution mode."
-            )
+            raise BQSDKUsageError("BQClient.estimate() is not supported in local execution mode.")
         device = self.validate_device(device)
         self.validate_batch(circuits)
-        response = jobs.submit_jobs(
-            self._backend_connection, circuits, device, estimate_only=True
-        )
+        response = jobs.submit_jobs(self._backend_connection, circuits, device, estimate_only=True)
         if isinstance(circuits, list):
             return [EstimateResult(data) for data in response]
         return EstimateResult(response)
@@ -343,9 +331,7 @@ class BQClient:
                 shots, device, job_metadata_constants.MAXIMUM_NUMBER_OF_SHOTS[device]
             )
         job_name = (
-            job_name
-            if self.job_name_prefix is None
-            else self.job_name_prefix + str(job_name)
+            job_name if self.job_name_prefix is None else self.job_name_prefix + str(job_name)
         )
         if self.execution_mode == "local" and device != "quantum":
             if asynchronous is True:
@@ -370,10 +356,7 @@ class BQClient:
                     )
             else:  # batch
                 zero_fill_count = len(str(len(circuits) - 1))
-                if (
-                    len(job_name)
-                    > job_metadata_constants.MAX_JOB_NAME_LENGTH - zero_fill_count
-                ):
+                if len(job_name) > job_metadata_constants.MAX_JOB_NAME_LENGTH - zero_fill_count:
                     logger.warning(
                         "Batch job name is too long, it will be truncated to %s characters.",
                         job_metadata_constants.MAX_JOB_NAME_LENGTH,
@@ -390,17 +373,13 @@ class BQClient:
             tags=tags,
         )
         if isinstance(circuits, list):
-            logger.info(
-                "Submitted %s jobs. Batch ID %s", len(response), response[0]["batch_id"]
-            )
+            logger.info("Submitted %s jobs. Batch ID %s", len(response), response[0]["batch_id"])
 
             def add_circuit_to_all(job_results, circuits):
                 for job_result, circuit in zip(job_results, circuits, strict=True):
                     job_result.circuit = circuit
 
-            job_results = [
-                JobResult(data, self._backend_connection) for data in response
-            ]
+            job_results = [JobResult(data, self._backend_connection) for data in response]
             if not asynchronous:
                 if self._check_all_in_terminal_states(job_results):
                     add_circuit_to_all(job_results, circuits)
@@ -415,10 +394,7 @@ class BQClient:
             add_circuit_to_all(job_results, circuits)
             return job_results
         submitted_job = JobResult(response, self._backend_connection)
-        if (
-            submitted_job.run_status
-            in job_metadata_constants.JOB_NO_RESULT_TERMINAL_STATES
-        ):
+        if submitted_job.run_status in job_metadata_constants.JOB_NO_RESULT_TERMINAL_STATES:
             raise BQJobNotCompleteError(
                 submitted_job.job_id,
                 submitted_job.run_status,
@@ -427,8 +403,7 @@ class BQClient:
         logger.info("Submitted: %s", submitted_job)
         if (
             not asynchronous
-            and submitted_job.run_status
-            not in job_metadata_constants.JOB_TERMINAL_STATES
+            and submitted_job.run_status not in job_metadata_constants.JOB_TERMINAL_STATES
         ):
             jr = self.wait(submitted_job.job_id, timeout=timeout)
             jr.circuit = circuits  # type: ignore[union-attr]
@@ -439,10 +414,7 @@ class BQClient:
     @staticmethod
     def _check_all_in_terminal_states(job_results):
         if not isinstance(job_results, list):
-            if (
-                job_results.run_status
-                in job_metadata_constants.JOB_NO_RESULT_TERMINAL_STATES
-            ):
+            if job_results.run_status in job_metadata_constants.JOB_NO_RESULT_TERMINAL_STATES:
                 raise BQJobNotCompleteError(
                     job_results.job_id,
                     job_results.run_status,
@@ -450,10 +422,7 @@ class BQClient:
                 )
             return job_results.run_status in job_metadata_constants.JOB_TERMINAL_STATES
         for job_result in job_results:
-            if (
-                job_result.run_status
-                in job_metadata_constants.JOB_NO_RESULT_TERMINAL_STATES
-            ):
+            if job_result.run_status in job_metadata_constants.JOB_NO_RESULT_TERMINAL_STATES:
                 raise BQJobNotCompleteError(
                     job_result.job_id,
                     job_result.run_status,
@@ -480,9 +449,7 @@ class BQClient:
         :return: job metadata
         """
         if self.execution_mode == "local":
-            raise BQSDKUsageError(
-                "BQClient.wait() is not supported in local execution mode."
-            )
+            raise BQSDKUsageError("BQClient.wait() is not supported in local execution mode.")
         self.validate_batch(job_ids)
         job_results_previous = None
         start_time = time.time()
@@ -530,9 +497,7 @@ class BQClient:
         :return: jobs metadata
         """
         if self.execution_mode == "local":
-            raise BQSDKUsageError(
-                "BQClient.get() is not supported in local execution mode."
-            )
+            raise BQSDKUsageError("BQClient.get() is not supported in local execution mode.")
         return self._get(job_ids)
 
     def _get(
@@ -549,9 +514,7 @@ class BQClient:
             job_ids=job_ids_list,
             need_qc_unprocessed=need_qc_unprocessed,
         )
-        job_results = [
-            JobResult(r, self._backend_connection) for r in job_results["data"]
-        ]
+        job_results = [JobResult(r, self._backend_connection) for r in job_results["data"]]
         if isinstance(job_ids, list):
             return job_results
         return job_results[0]
@@ -566,9 +529,7 @@ class BQClient:
         :return: job or jobs metadata
         """
         if self.execution_mode == "local":
-            raise BQSDKUsageError(
-                "BQClient.cancel() is not supported in local execution mode."
-            )
+            raise BQSDKUsageError("BQClient.cancel() is not supported in local execution mode.")
         self.validate_batch(job_ids)
         if isinstance(job_ids, JobResult):
             job_ids = job_ids.job_id
@@ -584,9 +545,7 @@ class BQClient:
             self.wait(job_ids, timeout=180.0)
         except BQJobNotCompleteError as e:
             if not e.run_status == "CANCELED":
-                raise BQJobCouldNotCancelError(
-                    e.job_id, e.run_status, e.error_message
-                ) from None
+                raise BQJobCouldNotCancelError(e.job_id, e.run_status, e.error_message) from None
         return self.get(job_ids)
 
     def search(
@@ -611,9 +570,7 @@ class BQClient:
         :return: metadata of jobs
         """
         if self.execution_mode == "local":
-            raise BQSDKUsageError(
-                "BQClient.search() is not supported in local execution mode."
-            )
+            raise BQSDKUsageError("BQClient.search() is not supported in local execution mode.")
         job_results = jobs.search_jobs(
             self._backend_connection, run_status, created_later_than, batch_id=batch_id
         )
@@ -630,15 +587,11 @@ class BQClient:
         """
         from .peaked_circuit import PeakedCircuit
 
-        if circuit_id is not None and (
-            not isinstance(circuit_id, int) or circuit_id < 0
-        ):
+        if circuit_id is not None and (not isinstance(circuit_id, int) or circuit_id < 0):
             raise BQSDKUsageError("circuit_id must be a non-negative integer")
         if difficulty is None or not isinstance(difficulty, int) or difficulty <= 0:
             raise BQSDKUsageError("difficulty must be a positive integer")
-        data = circuits.get_peaked_circuit(
-            self._backend_connection, difficulty, circuit_id
-        )
+        data = circuits.get_peaked_circuit(self._backend_connection, difficulty, circuit_id)
         return PeakedCircuit(data)
 
     def _set_api_min_request_interval(self, min_request_interval: float) -> None:
