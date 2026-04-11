@@ -3,7 +3,7 @@
   "checkpoint_id": "84573fd83bd5",
   "strategy": "manual-commit",
   "branch": "feature/2026-tip-of-the-spear",
-  "checkpoints_count": 1,
+  "checkpoints_count": 56,
   "files_touched": null,
   "sessions": [
     {
@@ -11,13 +11,19 @@
       "transcript": "/84/573fd83bd5/0/full.jsonl",
       "content_hash": "/84/573fd83bd5/0/content_hash.txt",
       "prompt": "/84/573fd83bd5/0/prompt.txt"
+    },
+    {
+      "metadata": "/84/573fd83bd5/1/metadata.json",
+      "transcript": "/84/573fd83bd5/1/full.jsonl",
+      "content_hash": "/84/573fd83bd5/1/content_hash.txt",
+      "prompt": "/84/573fd83bd5/1/prompt.txt"
     }
   ],
   "token_usage": {
-    "input_tokens": 124,
-    "cache_creation_tokens": 362581,
-    "cache_read_tokens": 15318504,
-    "output_tokens": 54485,
-    "api_call_count": 116
+    "input_tokens": 13065,
+    "cache_creation_tokens": 16393948,
+    "cache_read_tokens": 254611283,
+    "output_tokens": 406949,
+    "api_call_count": 876
   }
 }
