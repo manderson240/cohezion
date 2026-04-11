@@ -3,7 +3,7 @@
   "checkpoint_id": "fe86c6bd38f0",
   "strategy": "manual-commit",
   "branch": "feature/2026-tip-of-the-spear",
-  "checkpoints_count": 5,
+  "checkpoints_count": 6,
   "files_touched": [
     ".agent/AGENTS.md",
     ".agent/CAPABILITY_MAP_REDUX.md",
@@ -1361,13 +1361,19 @@
       "transcript": "/fe/86c6bd38f0/1/full.jsonl",
       "content_hash": "/fe/86c6bd38f0/1/content_hash.txt",
       "prompt": "/fe/86c6bd38f0/1/prompt.txt"
+    },
+    {
+      "metadata": "/fe/86c6bd38f0/2/metadata.json",
+      "transcript": "/fe/86c6bd38f0/2/full.jsonl",
+      "content_hash": "/fe/86c6bd38f0/2/content_hash.txt",
+      "prompt": "/fe/86c6bd38f0/2/prompt.txt"
     }
   ],
   "token_usage": {
-    "input_tokens": 25579,
-    "cache_creation_tokens": 3334954,
-    "cache_read_tokens": 67226976,
-    "output_tokens": 298495,
-    "api_call_count": 650
+    "input_tokens": 47382,
+    "cache_creation_tokens": 35214470,
+    "cache_read_tokens": 452976291,
+    "output_tokens": 913191,
+    "api_call_count": 1687
   }
 }
