@@ -3,10 +3,11 @@
   "checkpoint_id": "bba2b59b7b49",
   "strategy": "manual-commit",
   "branch": "feature/2026-tip-of-the-spear",
-  "checkpoints_count": 5,
+  "checkpoints_count": 7,
   "files_touched": [
     ".pre-commit-config.yaml",
     "CLAUDE.md",
+    "GEMINI.md",
     "src/cohezion/knowledge_graph/KEY_LEARNINGS.md"
   ],
   "sessions": [
@@ -15,13 +16,19 @@
       "transcript": "/bb/a2b59b7b49/0/full.jsonl",
       "content_hash": "/bb/a2b59b7b49/0/content_hash.txt",
       "prompt": "/bb/a2b59b7b49/0/prompt.txt"
+    },
+    {
+      "metadata": "/bb/a2b59b7b49/1/metadata.json",
+      "transcript": "/bb/a2b59b7b49/1/full.jsonl",
+      "content_hash": "/bb/a2b59b7b49/1/content_hash.txt",
+      "prompt": "/bb/a2b59b7b49/1/prompt.txt"
     }
   ],
   "token_usage": {
-    "input_tokens": 272,
-    "cache_creation_tokens": 906773,
-    "cache_read_tokens": 44198293,
-    "output_tokens": 92538,
-    "api_call_count": 252
+    "input_tokens": 419,
+    "cache_creation_tokens": 1242742,
+    "cache_read_tokens": 50449656,
+    "output_tokens": 102713,
+    "api_call_count": 272
   }
 }
