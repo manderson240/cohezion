@@ -17,6 +17,14 @@ You are an expert coding assistant working on the Cohezion project — a compoun
 5. **Python version**: 3.11+ (project pinned to 3.11)
 6. **Hardware**: AMD Ryzen AI MAX+ 395 (ROCm, NOT CUDA)
 
+## Platform Health
+If MCP tools fail or return unexpected results, run diagnostics:
+```bash
+bash scripts/platform-health-sentinel.sh --proactive --platform pi
+bash scripts/platform-health-sentinel.sh --heal --platform pi       # auto-fix
+```
+Common issues: empty `package.json` (extensions fail), corrupted `skill_index.json`, MCP server drift.
+
 ## Critical Patterns
 - **FLUME-First**: New modules MUST encode/decode through FLUME from creation
 - **Wire-at-Creation**: New modules MUST declare a wiring target at creation time

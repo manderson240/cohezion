@@ -31,6 +31,26 @@ uv venv && source .venv/bin/activate && uv pip install -e .  # New project setup
 # Do NOT attempt to parse .env for SUDO_PASSWORD - this is a security risk
 ```
 
+### ⚡ Git LFS & Repo Health (L333-L337, Session 101)
+```bash
+# Git LFS is active — .gitattributes tracks: *.so, *.whl, *.pt, *.pth, *.pkl, *.tar.gz, *.bundle, *.jsonl
+# LFS files are POINTERS in git (~130 bytes), actual content in .git/lfs/objects/
+# Bundle size: 182MB (was 14GB before LFS migration)
+# Remote: git@github.com:manderson240/cohezion.git
+
+# MANDATORY: Never commit large binaries without LFS
+# Pre-commit hook `lfs-pointer-check` enforces this automatically
+# If LFS breaks: git lfs install && git add --renormalize .
+
+# MANDATORY: Run monthly — entire/ shadow branches accumulate fast
+# entire clean --all --dry-run   # preview orphaned branches
+# entire clean --all --force     # delete them
+
+# SessionStart hooks enforce:
+# - settings.json schema validation (L333: invalid fields disable ALL settings silently)
+# - repo-health-check: .git/ size, entire/ branch count, remote configured, LFS active, fsck clean
+```
+
 ### ⚡ MCP stdio Server Rules (L273-L275, Sessions 89-90)
 ```python
 # MANDATORY: Agent MARKDOWN files (AGENTS.md) must start with valid YAML frontmatter
@@ -146,6 +166,8 @@ See skill: `cohezion-vault-workflow` for vault API examples (log decisions, expe
 - **CI**: `make lint-check && uv run pytest` before commit
 - **Entry point**: `cohezion = "cohezion.__main__:main"`
 - **Vault**: `~/vaults/cohezion-vault/` — Query via `vault_find_relevant_context(query)`
+- **Git LFS**: Active (46 files: vendor/*.so, *.whl, *.pth). Bundle: 182MB. Remote: `manderson240/cohezion`
+- **Repo Health**: SessionStart hooks validate settings.json schema + check .git/ size, branch count, LFS, remote, fsck
 
 ## The Compound Engineering Loop (Production-Ready)
 

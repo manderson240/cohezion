@@ -67,6 +67,13 @@ uv sync                # Sync dependencies
 make onboard           # Full environment setup and health check
 ```
 
+### Platform Health (L333-L337)
+```bash
+bash scripts/platform-health-sentinel.sh --proactive --platform gemini  # Check health
+bash scripts/platform-health-sentinel.sh --heal --platform gemini       # Auto-fix issues
+```
+Run the sentinel at session start if any MCP server fails or returns unexpected results.
+
 ### Quality & Testing
 ```bash
 make format            # Format code with ruff

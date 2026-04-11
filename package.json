@@ -1,0 +1,5 @@
+{
+  "private": true,
+  "type": "module",
+  "description": "Pi agent extension support — ESM module resolution for .pi/extensions/*.ts"
+}

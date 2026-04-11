@@ -327,3 +327,32 @@ Background Sonnet agents for code implementation, Haiku for validation, direct w
 
 ### Learning 329: LeWM Dual-Loss Already Implemented
 The JEPA world model already had `regularizer_lambda`, `_compute_regularizer_loss(mu, logvar)`, and the three-part loss in `train_step`. Sprint 6's value was adding 9 comprehensive tests proving the regularizer works (prevents collapse, reduces variance, matches KL formula). Always read before implementing.
+
+## Session 100: Kaggle Leaderboard Dominance & API Alignment (2026-04-11)
+
+### Learning 330: Kaggle Code Competition API Mismatch (AIMO)
+In AIMO and similar code competitions, the `InferenceServer` intercepts the output of the `predict()` function. Returning a scalar (e.g., `int`) requires instantiating the server with explicit `target_column_name` and `row_id_column_name` kwargs. If omitted, it throws a `GatewayRuntimeError`. The most robust pattern is to return a named Polars DataFrame (`pl.DataFrame({"id": [id], "answer": [ans]})`) from `predict()` to natively satisfy the gateway's `_convert_to_df` logic, avoiding manual parquet writes.
+
+### Learning 331: Iterative Dependency Side-Loading (Mamba-SSM)
+When offline environments (like Kaggle G4 Blackwell) lack internet, dependencies must be side-loaded via attached datasets. Passing multiple `--find-links` paths as a single space-separated string fails in `pip`. The correct pattern is Iterative Side-Loading: use `os.walk` to find all wheel directories, and loop through them sequentially (`for path in wheel_dirs: os.system(f"pip install --no-index --find-links='{path}' <pkg>")`). This successfully resolved the `mamba-ssm` and `causal-conv1d` compilation failures.
+
+### Learning 332: Proactive Course Correction (Ouroboros Wall of Red)
+"Flying blind" (pushing a kernel and assuming success) is a critical anti-pattern. Agents must proactively monitor background tasks (`kaggle kernels status`). If a status hits `ERROR`, the agent must immediately pull the logs (`kaggle kernels output -p error_dir`), parse the stderr trace, and apply a "Hardening Mutation." This recursive monitoring drastically reduces the cycle time for fixing environment or logic bugs during a leaderboard push.
+
+## Session 101: Git LFS Migration & Repo Health Hardening (2026-04-11)
+
+### Learning 333: settings.json Schema Errors Disable Everything Silently
+Claude Code validates `settings.json` at startup. If ANY field fails schema validation (e.g., `statusLine` missing required `type: "command"`), the ENTIRE file is skipped — all hooks, permissions, env vars, and plugins go dark. There is no warning in the CLI. Enforcement: SessionStart hook now validates the schema and warns explicitly.
+
+### Learning 334: Entire.io Carry-Forward Creates Illegal Git Trees
+Entire.io v0.5.3 "carry forward: uncommitted session files" uses absolute filesystem paths when tracking files outside the repo root (e.g., `~/.claude/plans/`). In git's tree format, `/home/user/` becomes an empty-name tree entry (`""` → `home` → `user`), which is an illegal object that breaks `git bundle create --all`, `git push --all`, and any tool traversing all refs. Fix: `entire clean --all --force` + `git filter-repo`. Prevention: monitor `git branch | grep entire/ | wc -l` (>200 = warning).
+
+### Learning 335: git repack -Ad Does Not Prune Unreachable Pack Objects
+After `git filter-repo` + `git lfs migrate import`, unreachable blobs (14GB) remained in the pack despite `git gc --prune=now --aggressive` and `git repack -Ad`. The `refs/replace/` refs created by LFS migrate (5,648 of them) kept old objects "reachable." Fix: delete replace refs first, then GC. When GC still doesn't shrink: create a clean bundle (`git bundle create --all`, which only includes reachable objects), clone from it, and swap `.git/objects/`.
+
+### Learning 336: LFS Objects Are Excluded from Git Bundles
+`git bundle` only packages git objects (commits, trees, blobs). LFS replaces blob content with ~130-byte pointer files; actual content lives in `.git/lfs/objects/`. This means vendor binaries (586MB of .so files) become 46 tiny pointers in the bundle. Bundle went from 14GB → 182MB. LFS objects must be pushed separately with `git lfs push`.
+
+### Learning 337: Pre-Commit Gates Don't Prevent Historical Accidents
+The `check-added-large-files` (1MB) and `large-artifact-gate` (50MB) hooks existed when a 9.3GB tarball was committed. These hooks only check staged changes in the CURRENT commit — they can't prevent files committed before pre-commit was installed, or committed via `git add -f`. Enforcement: added `lfs-pointer-check` hook that verifies files matching `.gitattributes` LFS patterns are actually LFS pointers, not raw blobs.
+
