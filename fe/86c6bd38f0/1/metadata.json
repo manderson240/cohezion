@@ -1,9 +1,11 @@
 {
   "cli_version": "0.5.3",
   "checkpoint_id": "fe86c6bd38f0",
+  "session_id": "4d5c7996-026f-4118-9da8-fab2e48797e9",
   "strategy": "manual-commit",
+  "created_at": "2026-04-11T19:52:13.607757308Z",
   "branch": "feature/2026-tip-of-the-spear",
-  "checkpoints_count": 5,
+  "checkpoints_count": 2,
   "files_touched": [
     ".agent/AGENTS.md",
     ".agent/CAPABILITY_MAP_REDUX.md",
@@ -1349,25 +1351,29 @@
     "vendor/lemonade/resources/defaults.json",
     "vendor/lemonade/resources/server_models.json"
   ],
-  "sessions": [
-    {
-      "metadata": "/fe/86c6bd38f0/0/metadata.json",
-      "transcript": "/fe/86c6bd38f0/0/full.jsonl",
-      "content_hash": "/fe/86c6bd38f0/0/content_hash.txt",
-      "prompt": "/fe/86c6bd38f0/0/prompt.txt"
-    },
-    {
-      "metadata": "/fe/86c6bd38f0/1/metadata.json",
-      "transcript": "/fe/86c6bd38f0/1/full.jsonl",
-      "content_hash": "/fe/86c6bd38f0/1/content_hash.txt",
-      "prompt": "/fe/86c6bd38f0/1/prompt.txt"
-    }
-  ],
+  "agent": "Claude Code",
+  "model": "claude-opus-4-6[1m]",
+  "turn_id": "378c3b251f7c",
   "token_usage": {
-    "input_tokens": 25579,
-    "cache_creation_tokens": 3334954,
-    "cache_read_tokens": 67226976,
-    "output_tokens": 298495,
-    "api_call_count": 650
+    "input_tokens": 109,
+    "cache_creation_tokens": 354969,
+    "cache_read_tokens": 12664169,
+    "output_tokens": 50535,
+    "api_call_count": 101
+  },
+  "session_metrics": {
+    "turn_count": 2
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-04-11T19:51:22.500762968Z",
+    "agent_lines": 81316,
+    "agent_removed": 10598,
+    "human_added": 10613,
+    "human_modified": 979,
+    "human_removed": 0,
+    "total_committed": 92908,
+    "total_lines_changed": 103506,
+    "agent_percentage": 88.80064923772535,
+    "metric_version": 2
   }
 }
