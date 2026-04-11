@@ -255,3 +255,4 @@ results/training/*.pt
 results/training/*.png
 
 # Misplaced root scripts (move to scripts/)
+flume_viz_env/
