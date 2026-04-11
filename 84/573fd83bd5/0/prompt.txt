@@ -4,3 +4,7 @@ error: pack-objects died). See --debug for details.
 ---
 
 Now can we fix the ulraplan failure?
+
+---
+
+Well let's reduce the bundle size.  We need to use LFS.
