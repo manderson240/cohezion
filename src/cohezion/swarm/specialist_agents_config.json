@@ -8,7 +8,7 @@
   "agents": [
     {
       "role": "architect",
-      "name": "System Architect",
+      "name": "System Architect REDUX",
       "model": "qwen3-coder-next:q8_0",
       "provider": "lemonade",
       "weight": 1.0,
