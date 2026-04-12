@@ -356,3 +356,6 @@ After `git filter-repo` + `git lfs migrate import`, unreachable blobs (14GB) rem
 ### Learning 337: Pre-Commit Gates Don't Prevent Historical Accidents
 The `check-added-large-files` (1MB) and `large-artifact-gate` (50MB) hooks existed when a 9.3GB tarball was committed. These hooks only check staged changes in the CURRENT commit — they can't prevent files committed before pre-commit was installed, or committed via `git add -f`. Enforcement: added `lfs-pointer-check` hook that verifies files matching `.gitattributes` LFS patterns are actually LFS pointers, not raw blobs.
 
+### Learning 338: Entire.io Shadow Branches Are Local-Only
+Entire.io docs state shadow branches (`entire/<hash>-<worktreeHash>`) are "temporary and local — never pushed to remote." Using `git push --all` violates this contract by pushing ephemeral shadow branches to GitHub, where they accumulate (1,048 in 5 weeks) and can contain `hasDotgit` or empty-name tree objects that GitHub's server-side fsck rejects. Correct push pattern: `git push origin <branch>` for specific branches, never `--all`. The `entire/checkpoints/v1` branch IS designed for remote push (metadata JSON only). Run `entire clean --all` monthly to prevent local accumulation.
+
