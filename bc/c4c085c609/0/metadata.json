@@ -1,0 +1,23 @@
+{
+  "cli_version": "0.5.3",
+  "checkpoint_id": "bcc4c085c609",
+  "session_id": "4d5c7996-026f-4118-9da8-fab2e48797e9",
+  "strategy": "manual-commit",
+  "created_at": "2026-04-12T03:10:29.664681249Z",
+  "branch": "feature/2026-tip-of-the-spear",
+  "checkpoints_count": 2,
+  "files_touched": [],
+  "agent": "Claude Code",
+  "model": "claude-opus-4-6[1m]",
+  "turn_id": "0fa6a79f4b5b",
+  "token_usage": {
+    "input_tokens": 667,
+    "cache_creation_tokens": 1213754,
+    "cache_read_tokens": 65974397,
+    "output_tokens": 115735,
+    "api_call_count": 330
+  },
+  "session_metrics": {
+    "turn_count": 11
+  }
+}
