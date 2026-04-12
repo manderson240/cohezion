@@ -1,0 +1,23 @@
+{
+  "cli_version": "0.5.3",
+  "checkpoint_id": "e2ac0c45cd90",
+  "strategy": "manual-commit",
+  "branch": "feature/2026-tip-of-the-spear",
+  "checkpoints_count": 4,
+  "files_touched": null,
+  "sessions": [
+    {
+      "metadata": "/e2/ac0c45cd90/0/metadata.json",
+      "transcript": "/e2/ac0c45cd90/0/full.jsonl",
+      "content_hash": "/e2/ac0c45cd90/0/content_hash.txt",
+      "prompt": "/e2/ac0c45cd90/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 634,
+    "cache_creation_tokens": 1197350,
+    "cache_read_tokens": 56770367,
+    "output_tokens": 107015,
+    "api_call_count": 299
+  }
+}
