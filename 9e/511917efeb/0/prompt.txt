@@ -64,3 +64,7 @@ ultraplan
 ---
 
 Let's remove the extra plugins then that are causing the proble,s
+
+---
+
+Can you give me the document I need to give to a pi agent that is outside your system that can tell them how to fix the bash issues?
