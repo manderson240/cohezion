@@ -9,8 +9,8 @@ Successfully established complete ONNX export pipeline for Gemma 4 family using 
 ## Working Infrastructure
 
 ### 1. HuggingFace Authentication ✅
-- **Token**: `REDACTED_HF_TOKEN`
-- **Status**: Valid and functional
+- **Token**: `$HF_API_TOKEN` (stored in environment, never hardcode — L333)
+- **Status**: Valid and functional (rotate if previously exposed)
 - **Models accessible**: google/gemma-4-E2B-it, gemma-4-31B-it, etc.
 
 ### 2. Python Environment ✅
