@@ -1,0 +1,39 @@
+Can you get on a different branch and fix Launching Pi...
+
+Error: Failed to load extension "/home/mike-anderson/dev/cohezion/.pi/extensions/cohezion-kg.ts": Tool "kg_search" conflicts with /home/mike-anderson/dev/cohezion/.pi/extensions/cohezion-kg-optimized.ts
+Error: Failed to load extension "/home/mike-anderson/dev/cohezion/.pi/extensions/cohezion-kg.ts": Tool "kg_history" conflicts with /home/mike-anderson/dev/cohezion/.pi/extensions/cohezion-kg-optimized.ts
+Error: Failed to load extension "/home/mike-anderson/dev/cohezion/.pi/extensions/cohezion-kg.ts": Tool "kg_stats" conflicts with /home/mike-anderson/dev/cohezion/.pi/extensions/cohezion-kg-optimized.ts
+Error: exit status 1
+
+---
+
+Can you fix it
+
+---
+
+Can you fix it?  I give you full permissions
+
+---
+
+Same issue persists: Launching Pi...
+
+Error: Failed to load extension "/home/mike-anderson/dev/cohezion/.pi/extensions/cohezion-kg.ts": Tool "kg_search" conflicts with /home/mike-anderson/dev/cohezion/.pi/extensions/cohezion-kg-optimized.ts
+Error: Failed to load extension "/home/mike-anderson/dev/cohezion/.pi/extensions/cohezion-kg.ts": Tool "kg_history" conflicts with /home/mike-anderson/dev/cohezion/.pi/extensions/cohezion-kg-optimized.ts
+Error: Failed to load extension "/home/mike-anderson/dev/cohezion/.pi/extensions/cohezion-kg.ts": Tool "kg_stats" conflicts with /home/mike-anderson/dev/cohezion/.pi/extensions/cohezion-kg-optimized.ts
+Error: exit status 1
+
+---
+
+Thank you that worked.  Let's save the solution in the vault and surrealdb
+
+---
+
+use python to fix bash
+
+---
+
+even new sessions fail
+
+---
+
+bash
