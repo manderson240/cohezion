@@ -51,7 +51,7 @@ dependencies = [
     "passlib[bcrypt]>=1.7.4",
     "redis>=7.2.1",
     "aiohttp>=3.13.3",
-    "fastmcp>=3.1.0",
+    "fastmcp>=3.2.3",
     "pyjwt>=2.11.0",
     "kagglehub>=1.0.0",
     "cloud-vault-mcp",
