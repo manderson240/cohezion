@@ -79,7 +79,7 @@ dev = [
     "pytest-cov>=4.1.0",
     "ruff>=0.8.0",
     "mypy>=1.5.0",
-    "black>=23.0",
+    "black>=26.3.1",
     "flake8>=6.0",
 ]
 ml = [
