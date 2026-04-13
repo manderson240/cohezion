@@ -83,7 +83,7 @@ dev = [
     "flake8>=6.0",
 ]
 ml = [
-    "torch>=2.0.0",
+    "torch>=2.11.0",
     "transformers>=4.30.0",
 ]
 agentjet = [
