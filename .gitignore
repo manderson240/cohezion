@@ -257,3 +257,6 @@ results/training/*.png
 # Misplaced root scripts (move to scripts/)
 flume_viz_env/
 shared_gemini.html
+anthropic-delivery/
+logs/archive/
+research/benchmarks/cognitive/

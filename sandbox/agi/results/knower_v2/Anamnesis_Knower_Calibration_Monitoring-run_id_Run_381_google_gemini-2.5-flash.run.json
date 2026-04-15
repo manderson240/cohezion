@@ -1,0 +1,82 @@
+{
+  "taskVersion": {
+    "versionNumber": 1,
+    "name": "Anamnesis Knower: Calibration Monitoring",
+    "description": "Tests metacognitive monitoring \u2014 does the model's stated confidence match actual accuracy? Brier-complement scoring. Loads from 823-item CSV dataset.",
+    "definition": "@kbench.task(\n    name=\"Anamnesis Knower: Calibration Monitoring\",\n    description=(\n        \"Tests metacognitive monitoring \u2014 does the model's stated confidence \"\n        \"match actual accuracy? Brier-complement scoring. Loads from 823-item CSV dataset.\"\n    ),\n)\ndef knower_probe(llm, question, ground_truth, difficulty, category) -> float:\n    prompt = CALIBRATION_PROMPT.format(question=question)\n    try:\n        response = llm.prompt(prompt, schema=CalibrationResponse)\n        confidence = response.confidence\n        model_answer = response.answer\n    except Exception:\n        # Fallback if structured output parsing fails\n        fallback_resp = llm.prompt(prompt)\n        confidence = 50\n        model_answer = fallback_resp\n        \n    correct = is_correct(model_answer, ground_truth)\n    conf_norm = max(0, min(100, confidence)) / 100.0\n    outcome = 0.0 if ground_truth.upper() == \"UNKNOWABLE\" else (1.0 if correct else 0.0)\n    cal_score = 1.0 - (conf_norm - outcome) ** 2\n    kbench.assertions.assert_true(\n        cal_score >= 0.5,\n        expectation=f\"[Knower/{difficulty}] Conf={confidence}, Correct={correct}, Cal={cal_score:.2f}\",\n    )\n    return cal_score\n"
+  },
+  "modelVersion": {
+    "slug": "google/gemini-2.5-flash"
+  },
+  "state": "BENCHMARK_TASK_RUN_STATE_COMPLETED",
+  "startTime": "2026-04-15T04:01:49.408348Z",
+  "endTime": "2026-04-15T04:02:06.020901Z",
+  "conversations": [
+    {
+      "id": "Anamnesis Knower: Calibration Monitoring-afed7fef",
+      "requests": [
+        {
+          "contents": [
+            {
+              "parts": [
+                {
+                  "text": "I will ask you a question. First, rate your confidence (0-100) in being able to answer it correctly. Then give your answer.\n- 0 means you are completely guessing\n- 100 means you are absolutely certain\n- If the question cannot be answered with certainty, say so and rate below 30\n\nQuestion: Compare the Shinto concept of 'Ame-tsuchi (Heaven and Earth)' (ground state/void) with the Andean concept of 'Pachamama'. In what specific ways do they differ in how they conceptualize nothingness or the origin state? Rate your confidence.\n\nCONFIDENCE: [number]\nANSWER: [your answer]\n\nReply in exactly this format:\nCONFIDENCE: [number]\nANSWER: [your answer]"
+                }
+              ],
+              "role": "CONTENT_ROLE_USER",
+              "senderName": "User"
+            },
+            {
+              "parts": [
+                {
+                  "text": "\"{\\\"confidence\\\": 85, \\\"answer\\\": \\\"The user's framing of 'Ame-tsuchi (Heaven and Earth)' as the Shinto 'ground state/void' is a common misinterpretation. In Shinto, 'Ame-tsuchi' refers to the distinct realms of Heaven and Earth, the cosmos as it exists. The true Shinto 'ground state' or 'origin state' that could be considered a form of 'void' is more accurately represented by the concept of a primordial, undifferentiated chaos or formless potential from which the first deities (Kotoamatsukami) spontaneously emerged, eventually leading to the separation of Heaven and Earth. Pachamama, in Andean cosmology, is the Earth Mother, a living, fertile, and nurturing deity, the source of life and sustenance. She is a presence, not a void or an origin state in the sense of 'nothingness.'  Differences in conceptualizing nothingness or the origin state:\\\\n\\\\n1.  **Shinto (regarding the actual origin state, not Ame-tsuchi):** The Shinto 'origin state' or 'void' is typically portrayed as an undifferentiated, chaotic, formless expanse or primordial soup (similar to a cosmic egg) from which spontaneous generation of deities occurs. It's a state of potentiality, lacking distinct form or order, but not an absolute absence of being. From this state, order is eventually brought, and the duality of 'Ame' (Heaven) and 'Tsuchi' (Earth) emerges.\\\\n\\\\n2.  **Andean (Pachamama):** Pachamama is fundamentally a vibrant, active, and tangible entity\\\\u2014the living Earth itself. She is the source of all life, fertility, and abundance in the manifest world. She is a creative and sustaining force, not a 'nothingness' or a primordial, undifferentiated 'origin state.' She *is* existence, or at least a core part of its living, nurturing aspect. The Andean 'origin state' would involve creator deities like Viracocha emerging from darkness or water to shape the world, of which Pachamama is a vital, living component, rather than being the primordial 'nothingness' herself.\\\\n\\\\nIn specific ways, they differ:\\\\n*   The Shinto origin state (primordial chaos) is characterized by an *absence of form and distinction*, a state of raw potential from which deities and the cosmos emerge through a process of spontaneous generation and separation. It's an undifferentiated 'before.'\\\\n*   Pachamama, conversely, represents the *fullness of active, manifested, and nurturing existence*. She is not the 'before' or the 'void,' but the vital 'now'\\\\u2014the bountiful, living Earth. She embodies fertility and sustenance, a presence that nurtures life, rather than the formless potential from which life springs.\\\"}\""
+                }
+              ],
+              "role": "CONTENT_ROLE_ASSISTANT",
+              "senderName": "google/gemini-2.5-flash"
+            }
+          ],
+          "metrics": {
+            "inputTokens": 177,
+            "outputTokens": 606,
+            "inputTokensCostNanodollars": "53100",
+            "outputTokensCostNanodollars": "7165000",
+            "totalBackendLatencyMs": "16441"
+          },
+          "id": "Anamnesis Knower: Calibration Monitoring-afed7fef-req-1"
+        }
+      ],
+      "metrics": {
+        "inputTokens": 177,
+        "outputTokens": 606,
+        "inputTokensCostNanodollars": "53100",
+        "outputTokensCostNanodollars": "7165000",
+        "totalBackendLatencyMs": "16441"
+      },
+      "modelVersionSlug": "model_version_slug for conversation is DEPRECATED"
+    }
+  ],
+  "results": [
+    {
+      "type": "AGGREGATED",
+      "numericResult": {
+        "value": 0.2775000000000001
+      }
+    }
+  ],
+  "assertions": [
+    {
+      "expectation": "[Knower/tek_comparative] Conf=85, Correct=False, Cal=0.28",
+      "status": "BENCHMARK_TASK_RUN_ASSERTION_STATUS_FAILED",
+      "lineNumber": 83,
+      "definition": "kbench.assertions.assert_true(",
+      "conversationRequestIds": [
+        {
+          "conversationId": "Anamnesis Knower: Calibration Monitoring-afed7fef",
+          "requestId": "Anamnesis Knower: Calibration Monitoring-afed7fef-req-1"
+        }
+      ]
+    }
+  ],
+  "pyRunId": "Anamnesis Knower: Calibration Monitoring-Run #381"
+}

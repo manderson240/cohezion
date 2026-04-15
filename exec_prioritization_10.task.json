@@ -1,6 +1,0 @@
-{
-  "versionNumber": 1,
-  "name": "exec_prioritization_10",
-  "description": "Prioritize tasks effectively.",
-  "definition": "@kbench.task(name=\"exec_prioritization_10\")\ndef exec_prioritization_10(llm) -> bool:\n    \"\"\"Prioritize tasks effectively.\"\"\"\n    prompt = \"\"\"Tasks with urgency and importance:\n- Urgent + Important: Do first\n- Urgent + Not Important: Delegate\n- Not Urgent + Important: Schedule\n- Not Urgent + Not Important: Eliminate\n\nTask A: Urgent, Not Important\nTask B: Not Urgent, Important\nTask C: Urgent, Important\nTask D: Not Urgent, Not Important\n\nPriority order?\n\nA) A, C, B, D\nB) C, A, B, D\nC) D, B, A, C\nD) C, B, A, D\"\"\"\n    response = llm.prompt(prompt)\n    return bool(kbench.assertions.assert_true(\"B\" in response, expectation=\"Correct answer is B\"))\n"
-}

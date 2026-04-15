@@ -1,6 +1,0 @@
-{
-  "versionNumber": 1,
-  "name": "learning_cross_modal_proxy_11",
-  "description": "Proxy for cross-modal binding using abstract shape-to-color-to-value mappings.",
-  "definition": "@kbench.task(name=\"learning_cross_modal_proxy_11\")\ndef learning_cross_modal_proxy_11(llm) -> bool:\n    \"\"\"Proxy for cross-modal binding using abstract shape-to-color-to-value mappings.\"\"\"\n    prompt = \"\"\"You are mapping abstract sensory inputs to a unified state:\n\nInput Stream:\n1. Shape: \u25b3 \u2192 Color: Blue \u2192 State: 0.5\n2. Shape: \u25a1 \u2192 Color: Red \u2192 State: 0.8\n3. Shape: \u25ef \u2192 Color: Green \u2192 State: 0.2\n\nBinding Rules:\n- If 'Sequential Pressure' is applied, State values decay by 0.1 per step.\n- 'Resonance' (Two same shapes in a row) doubles the State.\n\nGiven the sequence: \u25b3, \u25a1, \u25a1 (Sequential Pressure is ACTIVE)\n\nWhat is the final State of the last item in the sequence?\n\nA) 1.4\nB) 1.5\nC) 1.6\nD) 0.7\"\"\"\n    response = llm.prompt(prompt)\n    return bool(kbench.assertions.assert_true(\"A\" in response, expectation=\"Correct answer is A\"))\n"
-}

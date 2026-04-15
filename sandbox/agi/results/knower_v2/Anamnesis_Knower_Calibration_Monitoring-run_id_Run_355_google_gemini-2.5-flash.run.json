@@ -1,0 +1,82 @@
+{
+  "taskVersion": {
+    "versionNumber": 1,
+    "name": "Anamnesis Knower: Calibration Monitoring",
+    "description": "Tests metacognitive monitoring \u2014 does the model's stated confidence match actual accuracy? Brier-complement scoring. Loads from 823-item CSV dataset.",
+    "definition": "@kbench.task(\n    name=\"Anamnesis Knower: Calibration Monitoring\",\n    description=(\n        \"Tests metacognitive monitoring \u2014 does the model's stated confidence \"\n        \"match actual accuracy? Brier-complement scoring. Loads from 823-item CSV dataset.\"\n    ),\n)\ndef knower_probe(llm, question, ground_truth, difficulty, category) -> float:\n    prompt = CALIBRATION_PROMPT.format(question=question)\n    try:\n        response = llm.prompt(prompt, schema=CalibrationResponse)\n        confidence = response.confidence\n        model_answer = response.answer\n    except Exception:\n        # Fallback if structured output parsing fails\n        fallback_resp = llm.prompt(prompt)\n        confidence = 50\n        model_answer = fallback_resp\n        \n    correct = is_correct(model_answer, ground_truth)\n    conf_norm = max(0, min(100, confidence)) / 100.0\n    outcome = 0.0 if ground_truth.upper() == \"UNKNOWABLE\" else (1.0 if correct else 0.0)\n    cal_score = 1.0 - (conf_norm - outcome) ** 2\n    kbench.assertions.assert_true(\n        cal_score >= 0.5,\n        expectation=f\"[Knower/{difficulty}] Conf={confidence}, Correct={correct}, Cal={cal_score:.2f}\",\n    )\n    return cal_score\n"
+  },
+  "modelVersion": {
+    "slug": "google/gemini-2.5-flash"
+  },
+  "state": "BENCHMARK_TASK_RUN_STATE_COMPLETED",
+  "startTime": "2026-04-15T03:57:26.680946Z",
+  "endTime": "2026-04-15T03:57:38.994689Z",
+  "conversations": [
+    {
+      "id": "Anamnesis Knower: Calibration Monitoring-4c6c2d1f",
+      "requests": [
+        {
+          "contents": [
+            {
+              "parts": [
+                {
+                  "text": "I will ask you a question. First, rate your confidence (0-100) in being able to answer it correctly. Then give your answer.\n- 0 means you are completely guessing\n- 100 means you are absolutely certain\n- If the question cannot be answered with certainty, say so and rate below 30\n\nQuestion: Compare the Inuit concept of 'Sila' (ground state/void) with the Dogon concept of 'Amma's egg'. In what specific ways do they differ in how they conceptualize nothingness or the origin state? Rate your confidence.\n\nCONFIDENCE: [number]\nANSWER: [your answer]\n\nReply in exactly this format:\nCONFIDENCE: [number]\nANSWER: [your answer]"
+                }
+              ],
+              "role": "CONTENT_ROLE_USER",
+              "senderName": "User"
+            },
+            {
+              "parts": [
+                {
+                  "text": "\"{\\\"confidence\\\": 90, \\\"answer\\\": \\\"The Inuit concept of 'Sila' and the Dogon concept of 'Amma's egg' both relate to an origin state, but they differ significantly in their conceptualization of nothingness and the primordial condition.\\\\n\\\\n**Inuit 'Sila'**: Sila is a complex, multi-layered concept that can be translated as 'weather,' 'air,' 'breath,' 'spirit,' 'intelligence,' 'cosmic consciousness,' and 'ground state' or 'void.' In the context of origin, Sila is not necessarily a state of absolute nothingness that precedes existence. Instead, it often represents the fundamental, all-encompassing, and animating principle of the universe. It is a pervasive, intelligent, and dynamic cosmic force that *is* the ground of being, rather than something that emerges *from* nothingness. If 'void' is used, it's a void brimming with potential, consciousness, and the inherent laws of existence, rather than an empty vacuum. It embodies both the physical environment and the spiritual, ethical order, continuously shaping reality.\\\\n\\\\n**Dogon 'Amma's Egg'**: In Dogon cosmology, Amma is the supreme creator god. Before creation, Amma existed alone in a primordial void, a state of nothingness. From this void, Amma's will caused the manifestation of 'Amma's egg.' This egg is the initial, concrete (though cosmic) structure that contains the blueprint for the entire universe, including the seeds of life and the eight primordial ancestors (Nummo). It is not nothingness itself, but the *first thing* to emerge *from* nothingness through a divine act. The egg represents a contained, embryonic, and highly structured initial state of creation, a distinct vessel that holds the potential of the cosmos.\\\\n\\\\n**Key Differences**:\\\\n\\\\n1.  **Nature of the Pre-Existing State**: For Dogon, 'nothingness' or a void *precedes* Amma's creation of the egg. For Inuit, 'Sila' often *is* the eternal, fundamental reality, not something that emerges from a prior nothingness. Sila is the ground of being, while Amma's egg is a *product* of a creator emerging from nothingness.\\\\n2.  **Form vs. Principle**: 'Amma's egg' is a distinct, albeit cosmic, 'object' or vessel that contains potential. 'Sila' is more of an abstract, pervasive, and animating principle, consciousness, or force\\\\u2014it doesn't have a singular, contained form at the origin.\\\\n3.  **Active Creator**: Dogon cosmology clearly features an active creator god, Amma, who *initiates* creation from a void by forming the egg. While Sila is intelligent and dynamic, it is often seen more as an inherent cosmic order or consciousness that simply *is*, rather than a distinct entity performing a discrete act of creation from an external void.\\\\n4.  **Relationship to Potential**: Amma's egg *contains* the potential for the universe. Sila *is* the potential and the ongoing actualization of the universe simultaneously.\\\"}\""
+                }
+              ],
+              "role": "CONTENT_ROLE_ASSISTANT",
+              "senderName": "google/gemini-2.5-flash"
+            }
+          ],
+          "metrics": {
+            "inputTokens": 171,
+            "outputTokens": 674,
+            "inputTokensCostNanodollars": "51300",
+            "outputTokensCostNanodollars": "4627500",
+            "totalBackendLatencyMs": "12145"
+          },
+          "id": "Anamnesis Knower: Calibration Monitoring-4c6c2d1f-req-1"
+        }
+      ],
+      "metrics": {
+        "inputTokens": 171,
+        "outputTokens": 674,
+        "inputTokensCostNanodollars": "51300",
+        "outputTokensCostNanodollars": "4627500",
+        "totalBackendLatencyMs": "12145"
+      },
+      "modelVersionSlug": "model_version_slug for conversation is DEPRECATED"
+    }
+  ],
+  "results": [
+    {
+      "type": "AGGREGATED",
+      "numericResult": {
+        "value": 0.18999999999999995
+      }
+    }
+  ],
+  "assertions": [
+    {
+      "expectation": "[Knower/tek_comparative] Conf=90, Correct=False, Cal=0.19",
+      "status": "BENCHMARK_TASK_RUN_ASSERTION_STATUS_FAILED",
+      "lineNumber": 83,
+      "definition": "kbench.assertions.assert_true(",
+      "conversationRequestIds": [
+        {
+          "conversationId": "Anamnesis Knower: Calibration Monitoring-4c6c2d1f",
+          "requestId": "Anamnesis Knower: Calibration Monitoring-4c6c2d1f-req-1"
+        }
+      ]
+    }
+  ],
+  "pyRunId": "Anamnesis Knower: Calibration Monitoring-Run #355"
+}

@@ -1,0 +1,82 @@
+{
+  "taskVersion": {
+    "versionNumber": 1,
+    "name": "Anamnesis Knower: Calibration Monitoring",
+    "description": "Tests metacognitive monitoring \u2014 does the model's stated confidence match actual accuracy? Brier-complement scoring. Loads from 823-item CSV dataset.",
+    "definition": "@kbench.task(\n    name=\"Anamnesis Knower: Calibration Monitoring\",\n    description=(\n        \"Tests metacognitive monitoring \u2014 does the model's stated confidence \"\n        \"match actual accuracy? Brier-complement scoring. Loads from 823-item CSV dataset.\"\n    ),\n)\ndef knower_probe(llm, question, ground_truth, difficulty, category) -> float:\n    prompt = CALIBRATION_PROMPT.format(question=question)\n    try:\n        response = llm.prompt(prompt, schema=CalibrationResponse)\n        confidence = response.confidence\n        model_answer = response.answer\n    except Exception:\n        # Fallback if structured output parsing fails\n        fallback_resp = llm.prompt(prompt)\n        confidence = 50\n        model_answer = fallback_resp\n        \n    correct = is_correct(model_answer, ground_truth)\n    conf_norm = max(0, min(100, confidence)) / 100.0\n    outcome = 0.0 if ground_truth.upper() == \"UNKNOWABLE\" else (1.0 if correct else 0.0)\n    cal_score = 1.0 - (conf_norm - outcome) ** 2\n    kbench.assertions.assert_true(\n        cal_score >= 0.5,\n        expectation=f\"[Knower/{difficulty}] Conf={confidence}, Correct={correct}, Cal={cal_score:.2f}\",\n    )\n    return cal_score\n"
+  },
+  "modelVersion": {
+    "slug": "google/gemini-2.5-flash"
+  },
+  "state": "BENCHMARK_TASK_RUN_STATE_COMPLETED",
+  "startTime": "2026-04-15T03:32:37.505513Z",
+  "endTime": "2026-04-15T03:32:52.258277Z",
+  "conversations": [
+    {
+      "id": "Anamnesis Knower: Calibration Monitoring-a47b06e2",
+      "requests": [
+        {
+          "contents": [
+            {
+              "parts": [
+                {
+                  "text": "I will ask you a question. First, rate your confidence (0-100) in being able to answer it correctly. Then give your answer.\n- 0 means you are completely guessing\n- 100 means you are absolutely certain\n- If the question cannot be answered with certainty, say so and rate below 30\n\nQuestion: Compare the Vedic concept of 'Brahman' (ground state/void) with the Andean concept of 'Pachamama'. In what specific ways do they differ in how they conceptualize nothingness or the origin state? Rate your confidence.\n\nCONFIDENCE: [number]\nANSWER: [your answer]\n\nReply in exactly this format:\nCONFIDENCE: [number]\nANSWER: [your answer]"
+                }
+              ],
+              "role": "CONTENT_ROLE_USER",
+              "senderName": "User"
+            },
+            {
+              "parts": [
+                {
+                  "text": "\"{\\\"confidence\\\": 90, \\\"answer\\\": \\\"The Vedic concept of 'Brahman' and the Andean concept of 'Pachamama' differ fundamentally in their conceptualization of nothingness or the origin state.\\\\n\\\\n1.  **Nature of the Origin State:**\\\\n    *   **Brahman:** In Vedic philosophy, Brahman is the ultimate reality, the ground of all existence, often described as an eternal, infinite, unchanging, and impersonal (or supra-personal) principle. It is the unmanifest source from which the entire cosmos emanates and into which it dissolves. It is not 'nothingness' in the sense of non-existence, but rather a transcendental 'plenum' that is void of all limited attributes and forms. It is pure existence (Sat), pure consciousness (Chit), and pure bliss (Ananda). It *is* the origin itself, the ultimate substratum beyond all dualities.\\\\n    *   **Pachamama:** Pachamama, the Earth Mother, is a revered deity in Andean cosmology. She is a living, personified entity embodying fertility, sustenance, and the material world. She is the source of life, food, and well-being for all living things. While foundational and deeply sacred, Pachamama represents a vibrant, manifest, and active source *within* the cosmos, rather than the abstract, unmanifest ground of all being. She is the giver of life on Earth, intimately connected to the cycles of nature.\\\\n\\\\n2.  **Conceptualization of 'Nothingness' or 'Void':**\\\\n    *   **Brahman:** The 'void' aspect of Brahman refers to its transcendence of all conceptual categories and phenomenal distinctions. It is 'neti neti' (not this, not that) because it cannot be grasped by the intellect through attributes. This 'emptiness' or 'voidness' is paradoxically its ultimate fullness\\\\u2014a state of pure, undifferentiated being that underlies all manifestation. It is not an absence, but an all-encompassing presence beyond form.\\\\n    *   **Pachamama:** Pachamama is inherently *not* nothingness or void. She is the embodiment of life, fertility, and abundance. Her concept is diametrically opposed to a state of 'nothingness'; she represents the full, living, and tangible presence of the Earth and its generative power. Her role is to provide and sustain, making her a symbol of manifest plenitude rather than an unmanifest void or abstract ground.\\\"}\""
+                }
+              ],
+              "role": "CONTENT_ROLE_ASSISTANT",
+              "senderName": "google/gemini-2.5-flash"
+            }
+          ],
+          "metrics": {
+            "inputTokens": 169,
+            "outputTokens": 525,
+            "inputTokensCostNanodollars": "50700",
+            "outputTokensCostNanodollars": "5400000",
+            "totalBackendLatencyMs": "14399"
+          },
+          "id": "Anamnesis Knower: Calibration Monitoring-a47b06e2-req-1"
+        }
+      ],
+      "metrics": {
+        "inputTokens": 169,
+        "outputTokens": 525,
+        "inputTokensCostNanodollars": "50700",
+        "outputTokensCostNanodollars": "5400000",
+        "totalBackendLatencyMs": "14399"
+      },
+      "modelVersionSlug": "model_version_slug for conversation is DEPRECATED"
+    }
+  ],
+  "results": [
+    {
+      "type": "AGGREGATED",
+      "numericResult": {
+        "value": 0.18999999999999995
+      }
+    }
+  ],
+  "assertions": [
+    {
+      "expectation": "[Knower/tek_comparative] Conf=90, Correct=False, Cal=0.19",
+      "status": "BENCHMARK_TASK_RUN_ASSERTION_STATUS_FAILED",
+      "lineNumber": 83,
+      "definition": "kbench.assertions.assert_true(",
+      "conversationRequestIds": [
+        {
+          "conversationId": "Anamnesis Knower: Calibration Monitoring-a47b06e2",
+          "requestId": "Anamnesis Knower: Calibration Monitoring-a47b06e2-req-1"
+        }
+      ]
+    }
+  ],
+  "pyRunId": "Anamnesis Knower: Calibration Monitoring-Run #211"
+}

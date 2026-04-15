@@ -1,0 +1,82 @@
+{
+  "taskVersion": {
+    "versionNumber": 1,
+    "name": "Anamnesis Knower: Calibration Monitoring",
+    "description": "Tests metacognitive monitoring \u2014 does the model's stated confidence match actual accuracy? Brier-complement scoring. Loads from 823-item CSV dataset.",
+    "definition": "@kbench.task(\n    name=\"Anamnesis Knower: Calibration Monitoring\",\n    description=(\n        \"Tests metacognitive monitoring \u2014 does the model's stated confidence \"\n        \"match actual accuracy? Brier-complement scoring. Loads from 823-item CSV dataset.\"\n    ),\n)\ndef knower_probe(llm, question, ground_truth, difficulty, category) -> float:\n    prompt = CALIBRATION_PROMPT.format(question=question)\n    try:\n        response = llm.prompt(prompt, schema=CalibrationResponse)\n        confidence = response.confidence\n        model_answer = response.answer\n    except Exception:\n        # Fallback if structured output parsing fails\n        fallback_resp = llm.prompt(prompt)\n        confidence = 50\n        model_answer = fallback_resp\n        \n    correct = is_correct(model_answer, ground_truth)\n    conf_norm = max(0, min(100, confidence)) / 100.0\n    outcome = 0.0 if ground_truth.upper() == \"UNKNOWABLE\" else (1.0 if correct else 0.0)\n    cal_score = 1.0 - (conf_norm - outcome) ** 2\n    kbench.assertions.assert_true(\n        cal_score >= 0.5,\n        expectation=f\"[Knower/{difficulty}] Conf={confidence}, Correct={correct}, Cal={cal_score:.2f}\",\n    )\n    return cal_score\n"
+  },
+  "modelVersion": {
+    "slug": "google/gemini-2.5-flash"
+  },
+  "state": "BENCHMARK_TASK_RUN_STATE_COMPLETED",
+  "startTime": "2026-04-15T03:55:23.753006Z",
+  "endTime": "2026-04-15T03:55:35.718158Z",
+  "conversations": [
+    {
+      "id": "Anamnesis Knower: Calibration Monitoring-e3f41afe",
+      "requests": [
+        {
+          "contents": [
+            {
+              "parts": [
+                {
+                  "text": "I will ask you a question. First, rate your confidence (0-100) in being able to answer it correctly. Then give your answer.\n- 0 means you are completely guessing\n- 100 means you are absolutely certain\n- If the question cannot be answered with certainty, say so and rate below 30\n\nQuestion: Compare the Maori concept of 'Te Kore' (ground state/void) with the Aboriginal Australian concept of 'Dreaming / Tjukurpa'. In what specific ways do they differ in how they conceptualize nothingness or the origin state? Rate your confidence.\n\nCONFIDENCE: [number]\nANSWER: [your answer]\n\nReply in exactly this format:\nCONFIDENCE: [number]\nANSWER: [your answer]"
+                }
+              ],
+              "role": "CONTENT_ROLE_USER",
+              "senderName": "User"
+            },
+            {
+              "parts": [
+                {
+                  "text": "\"{\\\"confidence\\\": 92, \\\"answer\\\": \\\"The Maori concept of 'Te Kore' and the Aboriginal Australian 'Dreaming / Tjukurpa' both represent origin states, but they differ significantly in their conceptualization of nothingness and the creation process:\\\\n\\\\n1.  **Nature of the Primordial State:**\\\\n    *   **Te Kore:** Directly translates to 'the void', 'the nothing', or 'the unmanifest'. It is conceptualized as a state of absolute potentiality, a boundless, timeless, and formless space that *precedes* all existence, yet contains the blueprint for everything. It is not an empty void but a fertile one, from which all things emerge through a process of unfolding.\\\\n    *   **Dreaming / Tjukurpa:** Does not begin with a state of 'nothingness'. Instead, it posits a timeless, ongoing reality where ancestral beings (often animal-human shapeshifters) already exist. The 'origin state' is the period when these powerful beings emerged onto the unshaped earth, traveled, hunted, fought, and in doing so, created the landscape, flora, fauna, natural laws, and social structures.\\\\n\\\\n2.  **Agency in Creation:**\\\\n    *   **Te Kore:** Creation is often described as an *emergence* or *unfolding* from this potential, a gradual transition through various stages (like Te Po - the night) to Te Ao Marama (the world of light). While some Maori traditions acknowledge a supreme being (e.g., Io) initiating this, Te Kore itself is more about the state of potential from which things arise rather than the direct action of a creator *within* the nothingness.\\\\n    *   **Dreaming / Tjukurpa:** Creation is fundamentally driven by the *active, deliberate actions* of ancestral beings. These beings are the direct agents who physically shaped the world, named places, and laid down the law (Tjukurpa). The origin is defined by their movements and deeds, which imbued the land with spiritual power that continues to be present.\\\\n\\\\n3.  **Concept of 'Nothingness':**\\\\n    *   **Te Kore:** Explicitly engages with and defines a form of 'nothingness' (a fertile void) as the ultimate starting point for existence.\\\\n    *   **Dreaming / Tjukurpa:** Does not feature 'nothingness' as its origin. The ancestral beings and their timeless realm are foundational and always existing. The world is not created *from* nothing, but rather *shaped and imbued with meaning* by the actions of these pre-existent beings within an already existing, albeit formless, world.\\\"}\""
+                }
+              ],
+              "role": "CONTENT_ROLE_ASSISTANT",
+              "senderName": "google/gemini-2.5-flash"
+            }
+          ],
+          "metrics": {
+            "inputTokens": 173,
+            "outputTokens": 565,
+            "inputTokensCostNanodollars": "51900",
+            "outputTokensCostNanodollars": "5015000",
+            "totalBackendLatencyMs": "11789"
+          },
+          "id": "Anamnesis Knower: Calibration Monitoring-e3f41afe-req-1"
+        }
+      ],
+      "metrics": {
+        "inputTokens": 173,
+        "outputTokens": 565,
+        "inputTokensCostNanodollars": "51900",
+        "outputTokensCostNanodollars": "5015000",
+        "totalBackendLatencyMs": "11789"
+      },
+      "modelVersionSlug": "model_version_slug for conversation is DEPRECATED"
+    }
+  ],
+  "results": [
+    {
+      "type": "AGGREGATED",
+      "numericResult": {
+        "value": 0.15359999999999996
+      }
+    }
+  ],
+  "assertions": [
+    {
+      "expectation": "[Knower/tek_comparative] Conf=92, Correct=False, Cal=0.15",
+      "status": "BENCHMARK_TASK_RUN_ASSERTION_STATUS_FAILED",
+      "lineNumber": 83,
+      "definition": "kbench.assertions.assert_true(",
+      "conversationRequestIds": [
+        {
+          "conversationId": "Anamnesis Knower: Calibration Monitoring-e3f41afe",
+          "requestId": "Anamnesis Knower: Calibration Monitoring-e3f41afe-req-1"
+        }
+      ]
+    }
+  ],
+  "pyRunId": "Anamnesis Knower: Calibration Monitoring-Run #343"
+}

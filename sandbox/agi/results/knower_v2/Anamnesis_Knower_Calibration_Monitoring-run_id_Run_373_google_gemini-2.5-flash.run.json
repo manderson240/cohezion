@@ -1,0 +1,82 @@
+{
+  "taskVersion": {
+    "versionNumber": 1,
+    "name": "Anamnesis Knower: Calibration Monitoring",
+    "description": "Tests metacognitive monitoring \u2014 does the model's stated confidence match actual accuracy? Brier-complement scoring. Loads from 823-item CSV dataset.",
+    "definition": "@kbench.task(\n    name=\"Anamnesis Knower: Calibration Monitoring\",\n    description=(\n        \"Tests metacognitive monitoring \u2014 does the model's stated confidence \"\n        \"match actual accuracy? Brier-complement scoring. Loads from 823-item CSV dataset.\"\n    ),\n)\ndef knower_probe(llm, question, ground_truth, difficulty, category) -> float:\n    prompt = CALIBRATION_PROMPT.format(question=question)\n    try:\n        response = llm.prompt(prompt, schema=CalibrationResponse)\n        confidence = response.confidence\n        model_answer = response.answer\n    except Exception:\n        # Fallback if structured output parsing fails\n        fallback_resp = llm.prompt(prompt)\n        confidence = 50\n        model_answer = fallback_resp\n        \n    correct = is_correct(model_answer, ground_truth)\n    conf_norm = max(0, min(100, confidence)) / 100.0\n    outcome = 0.0 if ground_truth.upper() == \"UNKNOWABLE\" else (1.0 if correct else 0.0)\n    cal_score = 1.0 - (conf_norm - outcome) ** 2\n    kbench.assertions.assert_true(\n        cal_score >= 0.5,\n        expectation=f\"[Knower/{difficulty}] Conf={confidence}, Correct={correct}, Cal={cal_score:.2f}\",\n    )\n    return cal_score\n"
+  },
+  "modelVersion": {
+    "slug": "google/gemini-2.5-flash"
+  },
+  "state": "BENCHMARK_TASK_RUN_STATE_COMPLETED",
+  "startTime": "2026-04-15T04:00:12.711040Z",
+  "endTime": "2026-04-15T04:00:28.882923Z",
+  "conversations": [
+    {
+      "id": "Anamnesis Knower: Calibration Monitoring-73bffe22",
+      "requests": [
+        {
+          "contents": [
+            {
+              "parts": [
+                {
+                  "text": "I will ask you a question. First, rate your confidence (0-100) in being able to answer it correctly. Then give your answer.\n- 0 means you are completely guessing\n- 100 means you are absolutely certain\n- If the question cannot be answered with certainty, say so and rate below 30\n\nQuestion: Compare the Celtic concept of 'Three Worlds (Land, Sea, Sky)' (ground state/void) with the Andean concept of 'Pachamama'. In what specific ways do they differ in how they conceptualize nothingness or the origin state? Rate your confidence.\n\nCONFIDENCE: [number]\nANSWER: [your answer]\n\nReply in exactly this format:\nCONFIDENCE: [number]\nANSWER: [your answer]"
+                }
+              ],
+              "role": "CONTENT_ROLE_USER",
+              "senderName": "User"
+            },
+            {
+              "parts": [
+                {
+                  "text": "\"{\\\"confidence\\\": 88, \\\"answer\\\": \\\"The Celtic concept of 'Three Worlds' (Land, Sea, Sky) and the Andean concept of 'Pachamama' differ significantly in their conceptualization of 'nothingness' or the 'origin state'.\\\\n\\\\n**Celtic 'Three Worlds (Land, Sea, Sky)' (ground state/void):**\\\\nThis Celtic concept typically describes the *structure* of the manifested cosmos rather than a primordial void or origin state. The Land, Sea, and Sky represent distinct realms or layers of reality (e.g., the physical world, the subconscious/underworld, the spiritual/celestial realm). While they are fundamental to existence in Celtic thought (a 'ground state' in terms of foundational structure), they are not a 'nothingness' from which creation emerges. Any concept of a pre-creation void or chaos in broader Celtic cosmogony would usually *precede* the formation of these structured worlds, or exist as an 'Otherworld' dimension, but not as the 'Land, Sea, Sky' themselves being the void.\\\\n\\\\n**Andean 'Pachamama':**\\\\nPachamama (Mother Earth) is a central, living, divine entity. She is not a concept of 'nothingness' or a void; rather, she *is* the vibrant, fertile, and nurturing origin and sustainer of all life. She embodies the very substance of the earth, responsible for creation, growth, and the cycle of life and death. The 'origin state' in the Andean worldview is thus an active, maternal, and life-giving presence, not an empty space.\\\\n\\\\n**Specific Differences in Conceptualizing Nothingness/Origin State:**\\\\n1.  **Nature of Origin:** For the Celts, the 'Three Worlds' describe the *framework* or *result* of creation, a structured cosmos. Any true 'origin state' (if a void or chaos is considered) would typically exist *before* or *beyond* these realms. For the Andean people, Pachamama *is* the living, active, and maternal origin itself, a source of abundance and sustenance, not a prior empty state.\\\\n2.  **Concept of Nothingness:** The 'Three Worlds' are about distinct, existing realms, inherently full and ordered, not a void. Pachamama is the absolute antithesis of nothingness; she is the embodiment of life, fertility, and abundance, a constant generative force. Her essence is fullness, not emptiness.\\\\n3.  **Dynamic vs. Structural:** Pachamama represents a dynamic, constantly generating and sustaining force. The Celtic 'Three Worlds' are more of a structural categorization of reality, defining the different spheres of existence rather than being the generative source themselves.\\\"}\""
+                }
+              ],
+              "role": "CONTENT_ROLE_ASSISTANT",
+              "senderName": "google/gemini-2.5-flash"
+            }
+          ],
+          "metrics": {
+            "inputTokens": 175,
+            "outputTokens": 582,
+            "inputTokensCostNanodollars": "52500",
+            "outputTokensCostNanodollars": "6002500",
+            "totalBackendLatencyMs": "15990"
+          },
+          "id": "Anamnesis Knower: Calibration Monitoring-73bffe22-req-1"
+        }
+      ],
+      "metrics": {
+        "inputTokens": 175,
+        "outputTokens": 582,
+        "inputTokensCostNanodollars": "52500",
+        "outputTokensCostNanodollars": "6002500",
+        "totalBackendLatencyMs": "15990"
+      },
+      "modelVersionSlug": "model_version_slug for conversation is DEPRECATED"
+    }
+  ],
+  "results": [
+    {
+      "type": "AGGREGATED",
+      "numericResult": {
+        "value": 0.22560000000000002
+      }
+    }
+  ],
+  "assertions": [
+    {
+      "expectation": "[Knower/tek_comparative] Conf=88, Correct=False, Cal=0.23",
+      "status": "BENCHMARK_TASK_RUN_ASSERTION_STATUS_FAILED",
+      "lineNumber": 83,
+      "definition": "kbench.assertions.assert_true(",
+      "conversationRequestIds": [
+        {
+          "conversationId": "Anamnesis Knower: Calibration Monitoring-73bffe22",
+          "requestId": "Anamnesis Knower: Calibration Monitoring-73bffe22-req-1"
+        }
+      ]
+    }
+  ],
+  "pyRunId": "Anamnesis Knower: Calibration Monitoring-Run #373"
+}

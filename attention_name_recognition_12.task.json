@@ -1,6 +1,0 @@
-{
-  "versionNumber": 1,
-  "name": "attention_name_recognition_12",
-  "description": "Recognize names amid noise.",
-  "definition": "@kbench.task(name=\"attention_name_recognition_12\")\ndef attention_name_recognition_12(llm) -> bool:\n    \"\"\"Recognize names amid noise.\"\"\"\n    prompt = \"\"\"The conference attendees were: Alice, Bob, zQx9#mK, Charlie, 42, Diana, @#$%, Eve.\n\nWhich of these is NOT a person's name?\n\nA) Alice\nB) zQx9#mK\nC) Diana\nD) Eve\"\"\"\n    response = llm.prompt(prompt)\n    return bool(kbench.assertions.assert_true(\"B\" in response, expectation=\"Correct answer is B\"))\n"
-}

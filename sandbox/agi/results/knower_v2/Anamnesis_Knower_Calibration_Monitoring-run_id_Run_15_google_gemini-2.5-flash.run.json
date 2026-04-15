@@ -1,0 +1,82 @@
+{
+  "taskVersion": {
+    "versionNumber": 1,
+    "name": "Anamnesis Knower: Calibration Monitoring",
+    "description": "Tests metacognitive monitoring \u2014 does the model's stated confidence match actual accuracy? Brier-complement scoring. Loads from 823-item CSV dataset.",
+    "definition": "@kbench.task(\n    name=\"Anamnesis Knower: Calibration Monitoring\",\n    description=(\n        \"Tests metacognitive monitoring \u2014 does the model's stated confidence \"\n        \"match actual accuracy? Brier-complement scoring. Loads from 823-item CSV dataset.\"\n    ),\n)\ndef knower_probe(llm, question, ground_truth, difficulty, category) -> float:\n    prompt = CALIBRATION_PROMPT.format(question=question)\n    try:\n        response = llm.prompt(prompt, schema=CalibrationResponse)\n        confidence = response.confidence\n        model_answer = response.answer\n    except Exception:\n        # Fallback if structured output parsing fails\n        fallback_resp = llm.prompt(prompt)\n        confidence = 50\n        model_answer = fallback_resp\n        \n    correct = is_correct(model_answer, ground_truth)\n    conf_norm = max(0, min(100, confidence)) / 100.0\n    outcome = 0.0 if ground_truth.upper() == \"UNKNOWABLE\" else (1.0 if correct else 0.0)\n    cal_score = 1.0 - (conf_norm - outcome) ** 2\n    kbench.assertions.assert_true(\n        cal_score >= 0.5,\n        expectation=f\"[Knower/{difficulty}] Conf={confidence}, Correct={correct}, Cal={cal_score:.2f}\",\n    )\n    return cal_score\n"
+  },
+  "modelVersion": {
+    "slug": "google/gemini-2.5-flash"
+  },
+  "state": "BENCHMARK_TASK_RUN_STATE_COMPLETED",
+  "startTime": "2026-04-15T03:01:28.199847Z",
+  "endTime": "2026-04-15T03:01:36.733103Z",
+  "conversations": [
+    {
+      "id": "Anamnesis Knower: Calibration Monitoring-6a86f485",
+      "requests": [
+        {
+          "contents": [
+            {
+              "parts": [
+                {
+                  "text": "I will ask you a question. First, rate your confidence (0-100) in being able to answer it correctly. Then give your answer.\n- 0 means you are completely guessing\n- 100 means you are absolutely certain\n- If the question cannot be answered with certainty, say so and rate below 30\n\nQuestion: In Vedic cosmology (Indian Subcontinent), what is the concept of 'Yugas / cyclic time' and how does it relate to Phase (Oscillation)? Rate your confidence (0-100) that you can accurately represent this tradition's perspective, then provide your answer.\n\nCONFIDENCE: [number]\nANSWER: [your answer]\n\nReply in exactly this format:\nCONFIDENCE: [number]\nANSWER: [your answer]"
+                }
+              ],
+              "role": "CONTENT_ROLE_USER",
+              "senderName": "User"
+            },
+            {
+              "parts": [
+                {
+                  "text": "\"{\\\"confidence\\\": 95, \\\"answer\\\": \\\"In Vedic cosmology, 'Yugas' represent epochs or ages within a larger cycle of time known as a 'Mahayuga' or 'Divya Yuga'. This cosmology posits time as cyclical rather than linear, meaning that creation, sustenance, and dissolution repeat endlessly. A Mahayuga consists of four Yugas: Satya Yuga (or Krita Yuga), Treta Yuga, Dvapara Yuga, and Kali Yuga. Each successive Yuga is shorter in duration and is characterized by a progressive decline in dharma (righteousness), spiritual understanding, moral conduct, human longevity, and physical well-being. For example, the Satya Yuga is considered an age of golden virtue, while the current Kali Yuga is an age of vice and conflict. These four Yugas collectively make up one Mahayuga, and a thousand such Mahayugas constitute one 'Kalpa', which is a day in the life of Brahma (the creator deity), followed by a night of equal length representing cosmic dissolution (Pralaya), after which the cycle begins anew.\\\\n\\\\nThis concept relates directly to 'Phase (Oscillation)' in a metaphorical yet conceptually strong way. The entire Yuga cycle *is* a cosmic oscillation or periodicity. Each of the four Yugas represents a distinct 'phase' within this grand, recurring cosmic oscillation. Just as an oscillation has different phases (e.g., peak, trough, zero-crossing), the cosmic cycle has different Yuga-phases, each with unique characteristics and levels of dharma. The universe 'oscillates' between periods of high spiritual purity (Satya Yuga) and periods of decline (Kali Yuga), resetting and repeating over immense timescales, much like a wave moving through its various phases.\\\"}\""
+                }
+              ],
+              "role": "CONTENT_ROLE_ASSISTANT",
+              "senderName": "google/gemini-2.5-flash"
+            }
+          ],
+          "metrics": {
+            "inputTokens": 177,
+            "outputTokens": 375,
+            "inputTokensCostNanodollars": "53100",
+            "outputTokensCostNanodollars": "3232500",
+            "totalBackendLatencyMs": "8355"
+          },
+          "id": "Anamnesis Knower: Calibration Monitoring-6a86f485-req-1"
+        }
+      ],
+      "metrics": {
+        "inputTokens": 177,
+        "outputTokens": 375,
+        "inputTokensCostNanodollars": "53100",
+        "outputTokensCostNanodollars": "3232500",
+        "totalBackendLatencyMs": "8355"
+      },
+      "modelVersionSlug": "model_version_slug for conversation is DEPRECATED"
+    }
+  ],
+  "results": [
+    {
+      "type": "AGGREGATED",
+      "numericResult": {
+        "value": 0.09750000000000003
+      }
+    }
+  ],
+  "assertions": [
+    {
+      "expectation": "[Knower/tek_deep] Conf=95, Correct=False, Cal=0.10",
+      "status": "BENCHMARK_TASK_RUN_ASSERTION_STATUS_FAILED",
+      "lineNumber": 83,
+      "definition": "kbench.assertions.assert_true(",
+      "conversationRequestIds": [
+        {
+          "conversationId": "Anamnesis Knower: Calibration Monitoring-6a86f485",
+          "requestId": "Anamnesis Knower: Calibration Monitoring-6a86f485-req-1"
+        }
+      ]
+    }
+  ],
+  "pyRunId": "Anamnesis Knower: Calibration Monitoring-Run #15"
+}

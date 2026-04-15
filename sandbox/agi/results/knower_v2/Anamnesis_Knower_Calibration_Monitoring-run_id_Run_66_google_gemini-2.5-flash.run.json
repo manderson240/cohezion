@@ -1,0 +1,82 @@
+{
+  "taskVersion": {
+    "versionNumber": 1,
+    "name": "Anamnesis Knower: Calibration Monitoring",
+    "description": "Tests metacognitive monitoring \u2014 does the model's stated confidence match actual accuracy? Brier-complement scoring. Loads from 823-item CSV dataset.",
+    "definition": "@kbench.task(\n    name=\"Anamnesis Knower: Calibration Monitoring\",\n    description=(\n        \"Tests metacognitive monitoring \u2014 does the model's stated confidence \"\n        \"match actual accuracy? Brier-complement scoring. Loads from 823-item CSV dataset.\"\n    ),\n)\ndef knower_probe(llm, question, ground_truth, difficulty, category) -> float:\n    prompt = CALIBRATION_PROMPT.format(question=question)\n    try:\n        response = llm.prompt(prompt, schema=CalibrationResponse)\n        confidence = response.confidence\n        model_answer = response.answer\n    except Exception:\n        # Fallback if structured output parsing fails\n        fallback_resp = llm.prompt(prompt)\n        confidence = 50\n        model_answer = fallback_resp\n        \n    correct = is_correct(model_answer, ground_truth)\n    conf_norm = max(0, min(100, confidence)) / 100.0\n    outcome = 0.0 if ground_truth.upper() == \"UNKNOWABLE\" else (1.0 if correct else 0.0)\n    cal_score = 1.0 - (conf_norm - outcome) ** 2\n    kbench.assertions.assert_true(\n        cal_score >= 0.5,\n        expectation=f\"[Knower/{difficulty}] Conf={confidence}, Correct={correct}, Cal={cal_score:.2f}\",\n    )\n    return cal_score\n"
+  },
+  "modelVersion": {
+    "slug": "google/gemini-2.5-flash"
+  },
+  "state": "BENCHMARK_TASK_RUN_STATE_COMPLETED",
+  "startTime": "2026-04-15T03:09:39.901497Z",
+  "endTime": "2026-04-15T03:10:01.576933Z",
+  "conversations": [
+    {
+      "id": "Anamnesis Knower: Calibration Monitoring-af146952",
+      "requests": [
+        {
+          "contents": [
+            {
+              "parts": [
+                {
+                  "text": "I will ask you a question. First, rate your confidence (0-100) in being able to answer it correctly. Then give your answer.\n- 0 means you are completely guessing\n- 100 means you are absolutely certain\n- If the question cannot be answered with certainty, say so and rate below 30\n\nQuestion: In Dine (Navajo) cosmology (Southwest North America), what is the concept of 'Monster Slayer / Born for Water' and how does it relate to Symmetry Breaking (Differentiation)? Rate your confidence (0-100) that you can accurately represent this tradition's perspective, then provide your answer.\n\nCONFIDENCE: [number]\nANSWER: [your answer]\n\nReply in exactly this format:\nCONFIDENCE: [number]\nANSWER: [your answer]"
+                }
+              ],
+              "role": "CONTENT_ROLE_USER",
+              "senderName": "User"
+            },
+            {
+              "parts": [
+                {
+                  "text": "\"{\\\"confidence\\\": 80, \\\"answer\\\": \\\"In Dine (Navajo) cosmology, 'Monster Slayer' (Naay\\\\u00e9\\\\u00e9\\\\u02bc Neizgh\\\\u00e1n\\\\u00ed) and 'Born for Water' (T\\\\u00f3 b\\\\u00e1j\\\\u00edshch\\\\u00edn\\\\u00ed) are the Hero Twins, central figures in the Din\\\\u00e9 creation narrative. They are the sons of Changing Woman (Asdz\\\\u0105\\\\u0301\\\\u0105\\\\u0301 N\\\\u00e1dleeh\\\\u00e9), one of the most revered deities. Monster Slayer is often associated with the sun and Born for Water with water or rain. Their primary mission was to rid the early world of the Naay\\\\u00e9\\\\u00e9\\\\u02bc (monsters or alien gods) that threatened and preyed upon the early inhabitants, making the world safe for the Din\\\\u00e9 people to emerge and thrive. These monsters often personified chaos, fear, and destructive forces, such as hunger, cold, old age, and specific terrifying beings like the Giant Who Kicks People Off Cliffs.\\\\n\\\\nThe Twins undertook a perilous journey to find their father (often identified as the Sun Bearer) to gain the knowledge and weapons necessary to defeat these monsters. Through their bravery and divine assistance, they systematically confronted and vanquished most of the Naay\\\\u00e9\\\\u00e9\\\\u02bc, leaving only a few (like old age, poverty, and cold) as reminders for humanity. Their actions brought order and safety to the world, establishing the conditions for human life and the ceremonial practices that maintain harmony.\\\\n\\\\nRelating this to the concept of 'Symmetry Breaking (Differentiation)':\\\\n\\\\n'Symmetry breaking' in a cosmological or philosophical sense refers to a transition from an undifferentiated, homogeneous, or chaotic state to one with distinct forms, structures, and specialized functions. Before the Hero Twins' intervention, the world was largely undifferentiated in terms of safety and inhabitability; it was a chaotic realm dominated by pervasive, formless, or overwhelming threats that made meaningful human existence impossible.\\\\n\\\\nThe actions of Monster Slayer and Born for Water represent a profound act of differentiation:\\\\n\\\\n1.  **Delineation of Order from Chaos**: The Twins' victories broke the symmetry of universal danger. They differentiated between what was monstrous and chaotic (the Naay\\\\u00e9\\\\u00e9\\\\u02bc) and what was orderly and life-sustaining (the eventual Din\\\\u00e9 world). Their deeds created a clear distinction between a world where humans could not survive and one where they could.\\\\n2.  **Creation of Habitable Spaces**: By eliminating the monsters, they differentiated the landscape itself, turning areas of pervasive threat into spaces where people could settle, build homes, and establish communities. The defeat of monsters often resulted in their bodies transforming into mountains, rocks, and other natural features, thus giving differentiated form and meaning to the landscape.\\\\n3.  **Establishing Boundaries and Distinctions**: The Twins' work effectively drew boundaries between the forces of destruction and the potential for creation and order. They differentiated the early, dangerous epochs from the subsequent, more ordered periods of Din\\\\u00e9 existence, laying the groundwork for the moral and ceremonial order of the people. Their actions were crucial in differentiating humanity's potential from the constant threat of annihilation, thus allowing for the emergence of a distinct human social and cultural order.\\\"}\""
+                }
+              ],
+              "role": "CONTENT_ROLE_ASSISTANT",
+              "senderName": "google/gemini-2.5-flash"
+            }
+          ],
+          "metrics": {
+            "inputTokens": 184,
+            "outputTokens": 659,
+            "inputTokensCostNanodollars": "55200",
+            "outputTokensCostNanodollars": "4932500",
+            "totalBackendLatencyMs": "21507"
+          },
+          "id": "Anamnesis Knower: Calibration Monitoring-af146952-req-1"
+        }
+      ],
+      "metrics": {
+        "inputTokens": 184,
+        "outputTokens": 659,
+        "inputTokensCostNanodollars": "55200",
+        "outputTokensCostNanodollars": "4932500",
+        "totalBackendLatencyMs": "21507"
+      },
+      "modelVersionSlug": "model_version_slug for conversation is DEPRECATED"
+    }
+  ],
+  "results": [
+    {
+      "type": "AGGREGATED",
+      "numericResult": {
+        "value": 0.3599999999999999
+      }
+    }
+  ],
+  "assertions": [
+    {
+      "expectation": "[Knower/tek_deep] Conf=80, Correct=False, Cal=0.36",
+      "status": "BENCHMARK_TASK_RUN_ASSERTION_STATUS_FAILED",
+      "lineNumber": 83,
+      "definition": "kbench.assertions.assert_true(",
+      "conversationRequestIds": [
+        {
+          "conversationId": "Anamnesis Knower: Calibration Monitoring-af146952",
+          "requestId": "Anamnesis Knower: Calibration Monitoring-af146952-req-1"
+        }
+      ]
+    }
+  ],
+  "pyRunId": "Anamnesis Knower: Calibration Monitoring-Run #66"
+}

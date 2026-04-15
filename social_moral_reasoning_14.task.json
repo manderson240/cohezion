@@ -1,6 +1,0 @@
-{
-  "versionNumber": 1,
-  "name": "social_moral_reasoning_14",
-  "description": "Moral reasoning.",
-  "definition": "@kbench.task(name=\"social_moral_reasoning_14\")\ndef social_moral_reasoning_14(llm) -> bool:\n    \"\"\"Moral reasoning.\"\"\"\n    prompt = \"\"\"Trolley Problem: A runaway trolley will kill 5 people. You can pull a lever to divert it to another track where 1 person will die.\n\nWhat is the dilemma?\n\nA) Whether to act at all\nB) Numbers vs. duty\nC) Active vs. passive harm\nD) All of the above\"\"\"\n    response = llm.prompt(prompt)\n    return bool(kbench.assertions.assert_true(\"D\" in response, expectation=\"Correct answer is D\"))\n"
-}

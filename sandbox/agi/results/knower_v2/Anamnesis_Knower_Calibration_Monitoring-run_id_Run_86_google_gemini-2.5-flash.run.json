@@ -1,0 +1,82 @@
+{
+  "taskVersion": {
+    "versionNumber": 1,
+    "name": "Anamnesis Knower: Calibration Monitoring",
+    "description": "Tests metacognitive monitoring \u2014 does the model's stated confidence match actual accuracy? Brier-complement scoring. Loads from 823-item CSV dataset.",
+    "definition": "@kbench.task(\n    name=\"Anamnesis Knower: Calibration Monitoring\",\n    description=(\n        \"Tests metacognitive monitoring \u2014 does the model's stated confidence \"\n        \"match actual accuracy? Brier-complement scoring. Loads from 823-item CSV dataset.\"\n    ),\n)\ndef knower_probe(llm, question, ground_truth, difficulty, category) -> float:\n    prompt = CALIBRATION_PROMPT.format(question=question)\n    try:\n        response = llm.prompt(prompt, schema=CalibrationResponse)\n        confidence = response.confidence\n        model_answer = response.answer\n    except Exception:\n        # Fallback if structured output parsing fails\n        fallback_resp = llm.prompt(prompt)\n        confidence = 50\n        model_answer = fallback_resp\n        \n    correct = is_correct(model_answer, ground_truth)\n    conf_norm = max(0, min(100, confidence)) / 100.0\n    outcome = 0.0 if ground_truth.upper() == \"UNKNOWABLE\" else (1.0 if correct else 0.0)\n    cal_score = 1.0 - (conf_norm - outcome) ** 2\n    kbench.assertions.assert_true(\n        cal_score >= 0.5,\n        expectation=f\"[Knower/{difficulty}] Conf={confidence}, Correct={correct}, Cal={cal_score:.2f}\",\n    )\n    return cal_score\n"
+  },
+  "modelVersion": {
+    "slug": "google/gemini-2.5-flash"
+  },
+  "state": "BENCHMARK_TASK_RUN_STATE_COMPLETED",
+  "startTime": "2026-04-15T03:12:53.718844Z",
+  "endTime": "2026-04-15T03:13:05.832831Z",
+  "conversations": [
+    {
+      "id": "Anamnesis Knower: Calibration Monitoring-4bd9391d",
+      "requests": [
+        {
+          "contents": [
+            {
+              "parts": [
+                {
+                  "text": "I will ask you a question. First, rate your confidence (0-100) in being able to answer it correctly. Then give your answer.\n- 0 means you are completely guessing\n- 100 means you are absolutely certain\n- If the question cannot be answered with certainty, say so and rate below 30\n\nQuestion: In Inuit cosmology (Arctic (Circumpolar North)), what is the concept of 'Shamanic soul flight' and how does it relate to Symmetry Breaking (Differentiation)? Rate your confidence (0-100) that you can accurately represent this tradition's perspective, then provide your answer.\n\nCONFIDENCE: [number]\nANSWER: [your answer]\n\nReply in exactly this format:\nCONFIDENCE: [number]\nANSWER: [your answer]"
+                }
+              ],
+              "role": "CONTENT_ROLE_USER",
+              "senderName": "User"
+            },
+            {
+              "parts": [
+                {
+                  "text": "\"{\\\"confidence\\\": 85, \\\"answer\\\": \\\"In Inuit cosmology, 'shamanic soul flight' refers to the angakkuq (shaman) undertaking a journey where their soul or spirit leaves their physical body to travel to other realms of the cosmos, such as the sea bottom (to consult with Sedna/Nuliajuk), the sky, or the land of the dead. These journeys are undertaken for various purposes, including healing the sick by retrieving lost souls, ensuring successful hunts by appeasing animal spirits, divination, or mediating conflicts between humans and spirits. It is a fundamental practice for understanding and influencing the forces that govern the world.\\\\n\\\\nRegarding its relation to 'Symmetry Breaking (Differentiation)', it is important to note that 'Symmetry Breaking' and 'Differentiation' are analytical concepts primarily derived from physics, mathematics, and philosophy, not indigenous Inuit cosmological terms. However, one can interpret the shamanic soul flight through these lenses:\\\\n\\\\n1.  **Differentiation:** The act of soul flight inherently involves a *differentiation* of the shaman's soul from their physical body, allowing it to exist and operate independently. This also represents a *differentiation* of the shaman's role and capabilities from those of ordinary individuals, as they alone can consciously traverse the boundaries between the human and spirit realms. The various cosmic realms (human, spirit world, land of the dead) are distinct or *differentiated*, and the shaman's journey is specifically about navigating and bridging these differentiated spaces.\\\\n2.  **Symmetry Breaking:** One could view the normal state of the cosmos, from an ordinary human perspective, as having a certain 'symmetry' or separation between realms, where interaction is limited or indirect. The shaman's soul flight acts as a deliberate *breaking of this symmetry*. By intentionally crossing the boundaries and traversing different cosmic layers, the shaman introduces an asymmetry\\\\u2014a unique channel and agency\\\\u2014that allows for direct interaction, intervention, and the flow of information and power between otherwise distinct domains. This 'symmetry breaking' is often performed to address an imbalance or problem (e.g., illness, scarcity) that has arisen due to a disruption in the natural order, with the goal of restoring a deeper, underlying equilibrium by re-establishing communication and reciprocity between humans and the spirit world.\\\"}\""
+                }
+              ],
+              "role": "CONTENT_ROLE_ASSISTANT",
+              "senderName": "google/gemini-2.5-flash"
+            }
+          ],
+          "metrics": {
+            "inputTokens": 181,
+            "outputTokens": 481,
+            "inputTokensCostNanodollars": "54300",
+            "outputTokensCostNanodollars": "4477500",
+            "totalBackendLatencyMs": "11957"
+          },
+          "id": "Anamnesis Knower: Calibration Monitoring-4bd9391d-req-1"
+        }
+      ],
+      "metrics": {
+        "inputTokens": 181,
+        "outputTokens": 481,
+        "inputTokensCostNanodollars": "54300",
+        "outputTokensCostNanodollars": "4477500",
+        "totalBackendLatencyMs": "11957"
+      },
+      "modelVersionSlug": "model_version_slug for conversation is DEPRECATED"
+    }
+  ],
+  "results": [
+    {
+      "type": "AGGREGATED",
+      "numericResult": {
+        "value": 0.2775000000000001
+      }
+    }
+  ],
+  "assertions": [
+    {
+      "expectation": "[Knower/tek_deep] Conf=85, Correct=False, Cal=0.28",
+      "status": "BENCHMARK_TASK_RUN_ASSERTION_STATUS_FAILED",
+      "lineNumber": 83,
+      "definition": "kbench.assertions.assert_true(",
+      "conversationRequestIds": [
+        {
+          "conversationId": "Anamnesis Knower: Calibration Monitoring-4bd9391d",
+          "requestId": "Anamnesis Knower: Calibration Monitoring-4bd9391d-req-1"
+        }
+      ]
+    }
+  ],
+  "pyRunId": "Anamnesis Knower: Calibration Monitoring-Run #86"
+}

@@ -1,0 +1,82 @@
+{
+  "taskVersion": {
+    "versionNumber": 1,
+    "name": "Anamnesis Knower: Calibration Monitoring",
+    "description": "Tests metacognitive monitoring \u2014 does the model's stated confidence match actual accuracy? Brier-complement scoring. Loads from 823-item CSV dataset.",
+    "definition": "@kbench.task(\n    name=\"Anamnesis Knower: Calibration Monitoring\",\n    description=(\n        \"Tests metacognitive monitoring \u2014 does the model's stated confidence \"\n        \"match actual accuracy? Brier-complement scoring. Loads from 823-item CSV dataset.\"\n    ),\n)\ndef knower_probe(llm, question, ground_truth, difficulty, category) -> float:\n    prompt = CALIBRATION_PROMPT.format(question=question)\n    try:\n        response = llm.prompt(prompt, schema=CalibrationResponse)\n        confidence = response.confidence\n        model_answer = response.answer\n    except Exception:\n        # Fallback if structured output parsing fails\n        fallback_resp = llm.prompt(prompt)\n        confidence = 50\n        model_answer = fallback_resp\n        \n    correct = is_correct(model_answer, ground_truth)\n    conf_norm = max(0, min(100, confidence)) / 100.0\n    outcome = 0.0 if ground_truth.upper() == \"UNKNOWABLE\" else (1.0 if correct else 0.0)\n    cal_score = 1.0 - (conf_norm - outcome) ** 2\n    kbench.assertions.assert_true(\n        cal_score >= 0.5,\n        expectation=f\"[Knower/{difficulty}] Conf={confidence}, Correct={correct}, Cal={cal_score:.2f}\",\n    )\n    return cal_score\n"
+  },
+  "modelVersion": {
+    "slug": "google/gemini-2.5-flash"
+  },
+  "state": "BENCHMARK_TASK_RUN_STATE_COMPLETED",
+  "startTime": "2026-04-15T03:13:18.992807Z",
+  "endTime": "2026-04-15T03:13:33.748095Z",
+  "conversations": [
+    {
+      "id": "Anamnesis Knower: Calibration Monitoring-f5983c1e",
+      "requests": [
+        {
+          "contents": [
+            {
+              "parts": [
+                {
+                  "text": "I will ask you a question. First, rate your confidence (0-100) in being able to answer it correctly. Then give your answer.\n- 0 means you are completely guessing\n- 100 means you are absolutely certain\n- If the question cannot be answered with certainty, say so and rate below 30\n\nQuestion: In Inuit cosmology (Arctic (Circumpolar North)), what is the concept of 'Drum trance' and how does it relate to HIHO (Dynamic Equilibrium)? Rate your confidence (0-100) that you can accurately represent this tradition's perspective, then provide your answer.\n\nCONFIDENCE: [number]\nANSWER: [your answer]\n\nReply in exactly this format:\nCONFIDENCE: [number]\nANSWER: [your answer]"
+                }
+              ],
+              "role": "CONTENT_ROLE_USER",
+              "senderName": "User"
+            },
+            {
+              "parts": [
+                {
+                  "text": "\"{\\\"confidence\\\": 25, \\\"answer\\\": \\\"While the specific term 'HIHO' is not widely recognized in my knowledge of Inuit cosmology as a standard term for 'Dynamic Equilibrium,' the concept of dynamic equilibrium, or holistic balance, is indeed central to Inuit worldview. Drum trance, performed by an angakkuq (shaman), is a profound spiritual practice through which this equilibrium is maintained or restored. The angakkuq, using rhythmic drumming, chanting, and often dancing, enters an altered state of consciousness. This allows them to undertake spiritual journeys into various realms, such as the spirit world, the sea, or the sky, to interact with spirits (tuurngait) and supernatural beings. These journeys are undertaken for critical purposes: to diagnose and heal illness by retrieving lost souls, to ensure successful hunting by placating animal spirits or the sea goddess Sedna, to resolve community conflicts, or to understand and remedy environmental imbalances. The fundamental aim is to identify and correct disruptions in the intricate web of relationships between humans, animals, the environment, and the spirit world. By acting as intermediaries, angakkuit restore harmony and balance, thus re-establishing the dynamic equilibrium essential for the well-being and survival of the individual and the community. This ensures the continuous flow of life, resources, and spiritual energy, which is a core aspect of Inuit cosmology.\\\"}\""
+                }
+              ],
+              "role": "CONTENT_ROLE_ASSISTANT",
+              "senderName": "google/gemini-2.5-flash"
+            }
+          ],
+          "metrics": {
+            "inputTokens": 178,
+            "outputTokens": 284,
+            "inputTokensCostNanodollars": "53400",
+            "outputTokensCostNanodollars": "7100000",
+            "totalBackendLatencyMs": "14594"
+          },
+          "id": "Anamnesis Knower: Calibration Monitoring-f5983c1e-req-1"
+        }
+      ],
+      "metrics": {
+        "inputTokens": 178,
+        "outputTokens": 284,
+        "inputTokensCostNanodollars": "53400",
+        "outputTokensCostNanodollars": "7100000",
+        "totalBackendLatencyMs": "14594"
+      },
+      "modelVersionSlug": "model_version_slug for conversation is DEPRECATED"
+    }
+  ],
+  "results": [
+    {
+      "type": "AGGREGATED",
+      "numericResult": {
+        "value": 0.9375
+      }
+    }
+  ],
+  "assertions": [
+    {
+      "expectation": "[Knower/tek_deep] Conf=25, Correct=False, Cal=0.94",
+      "status": "BENCHMARK_TASK_RUN_ASSERTION_STATUS_PASSED",
+      "lineNumber": 83,
+      "definition": "kbench.assertions.assert_true(",
+      "conversationRequestIds": [
+        {
+          "conversationId": "Anamnesis Knower: Calibration Monitoring-f5983c1e",
+          "requestId": "Anamnesis Knower: Calibration Monitoring-f5983c1e-req-1"
+        }
+      ]
+    }
+  ],
+  "pyRunId": "Anamnesis Knower: Calibration Monitoring-Run #88"
+}

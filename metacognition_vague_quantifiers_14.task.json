@@ -1,6 +1,0 @@
-{
-  "versionNumber": 1,
-  "name": "metacognition_vague_quantifiers_14",
-  "description": "Recognize vagueness in quantifiers.",
-  "definition": "@kbench.task(name=\"metacognition_vague_quantifiers_14\")\ndef metacognition_vague_quantifiers_14(llm) -> bool:\n    \"\"\"Recognize vagueness in quantifiers.\"\"\"\n    prompt = \"\"\"\"Most students passed the exam.\"\n\nWhat percentage passed?\n\nA) More than 50%\nB) Approximately 70-80%\nC) Cannot determine (\"most\" is undefined)\nD) Insufficient Information\"\"\"\n    response = llm.prompt(prompt)\n    return bool(kbench.assertions.assert_true(\"D\" in response, expectation=\"Correct answer is D\"))\n"
-}

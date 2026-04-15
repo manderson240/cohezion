@@ -1,0 +1,82 @@
+{
+  "taskVersion": {
+    "versionNumber": 1,
+    "name": "Anamnesis Knower: Calibration Monitoring",
+    "description": "Tests metacognitive monitoring \u2014 does the model's stated confidence match actual accuracy? Brier-complement scoring. Loads from 823-item CSV dataset.",
+    "definition": "@kbench.task(\n    name=\"Anamnesis Knower: Calibration Monitoring\",\n    description=(\n        \"Tests metacognitive monitoring \u2014 does the model's stated confidence \"\n        \"match actual accuracy? Brier-complement scoring. Loads from 823-item CSV dataset.\"\n    ),\n)\ndef knower_probe(llm, question, ground_truth, difficulty, category) -> float:\n    prompt = CALIBRATION_PROMPT.format(question=question)\n    try:\n        response = llm.prompt(prompt, schema=CalibrationResponse)\n        confidence = response.confidence\n        model_answer = response.answer\n    except Exception:\n        # Fallback if structured output parsing fails\n        fallback_resp = llm.prompt(prompt)\n        confidence = 50\n        model_answer = fallback_resp\n        \n    correct = is_correct(model_answer, ground_truth)\n    conf_norm = max(0, min(100, confidence)) / 100.0\n    outcome = 0.0 if ground_truth.upper() == \"UNKNOWABLE\" else (1.0 if correct else 0.0)\n    cal_score = 1.0 - (conf_norm - outcome) ** 2\n    kbench.assertions.assert_true(\n        cal_score >= 0.5,\n        expectation=f\"[Knower/{difficulty}] Conf={confidence}, Correct={correct}, Cal={cal_score:.2f}\",\n    )\n    return cal_score\n"
+  },
+  "modelVersion": {
+    "slug": "google/gemini-2.5-flash"
+  },
+  "state": "BENCHMARK_TASK_RUN_STATE_COMPLETED",
+  "startTime": "2026-04-15T03:01:03.139249Z",
+  "endTime": "2026-04-15T03:01:16.225164Z",
+  "conversations": [
+    {
+      "id": "Anamnesis Knower: Calibration Monitoring-310a9fe5",
+      "requests": [
+        {
+          "contents": [
+            {
+              "parts": [
+                {
+                  "text": "I will ask you a question. First, rate your confidence (0-100) in being able to answer it correctly. Then give your answer.\n- 0 means you are completely guessing\n- 100 means you are absolutely certain\n- If the question cannot be answered with certainty, say so and rate below 30\n\nQuestion: In Vedic cosmology (Indian Subcontinent), what is the concept of '12 Adityas / zodiac houses' and how does it relate to 12 Parameters (Degrees of Freedom)? Rate your confidence (0-100) that you can accurately represent this tradition's perspective, then provide your answer.\n\nCONFIDENCE: [number]\nANSWER: [your answer]\n\nReply in exactly this format:\nCONFIDENCE: [number]\nANSWER: [your answer]"
+                }
+              ],
+              "role": "CONTENT_ROLE_USER",
+              "senderName": "User"
+            },
+            {
+              "parts": [
+                {
+                  "text": "\"{\\\"confidence\\\": 65, \\\"answer\\\": \\\"In Vedic cosmology, the '12 Adityas' and '12 Zodiac Houses' are distinct yet related 12-fold systems linked to the sun's annual journey. The 12 Adityas are a group of solar deities, aspects or manifestations of the sun (Surya). In later Puranic tradition, they are often enumerated as twelve, each presiding over a month, representing the sun's varying energies throughout the year. They embody divine principles like Vishnu, Varuna, Mitra, etc., and are associated with prosperity, well-being, and cosmic order. The '12 Zodiac Houses' (Rashis) are the twelve 30-degree divisions of the ecliptic, forming the basis of Vedic astrology (Jyotish). They are constellations or signs (e.g., Mesha/Aries, Vrishabha/Taurus) through which the sun, moon, and planets appear to traverse. Each Rashi has specific attributes, ruling planets, elements, and modalities that influence events and personalities. While both are 12-fold systems related to the sun's path, the Adityas are deities, and the Rashis are cosmic divisions. The concept of '12 Parameters (Degrees of Freedom)' is not an explicit, formally defined term within traditional Vedic cosmology. However, one can interpret the 12 Adityas or 12 Zodiac Houses as representing 'parameters' or 'degrees of freedom' in an analogous sense. Each of these 12 distinct entities (whether deities or cosmic divisions) can be seen as an independent variable or a fundamental aspect that defines, influences, and categorizes the different states, energies, and manifestations within the cosmic and terrestrial realms. They provide a framework through which the complex workings of the universe, particularly temporal and energetic influences, are understood and analyzed, acting as descriptive or influential 'parameters' that shape reality.\\\"}\""
+                }
+              ],
+              "role": "CONTENT_ROLE_ASSISTANT",
+              "senderName": "google/gemini-2.5-flash"
+            }
+          ],
+          "metrics": {
+            "inputTokens": 184,
+            "outputTokens": 407,
+            "inputTokensCostNanodollars": "55200",
+            "outputTokensCostNanodollars": "5367500",
+            "totalBackendLatencyMs": "12913"
+          },
+          "id": "Anamnesis Knower: Calibration Monitoring-310a9fe5-req-1"
+        }
+      ],
+      "metrics": {
+        "inputTokens": 184,
+        "outputTokens": 407,
+        "inputTokensCostNanodollars": "55200",
+        "outputTokensCostNanodollars": "5367500",
+        "totalBackendLatencyMs": "12913"
+      },
+      "modelVersionSlug": "model_version_slug for conversation is DEPRECATED"
+    }
+  ],
+  "results": [
+    {
+      "type": "AGGREGATED",
+      "numericResult": {
+        "value": 0.5774999999999999
+      }
+    }
+  ],
+  "assertions": [
+    {
+      "expectation": "[Knower/tek_deep] Conf=65, Correct=False, Cal=0.58",
+      "status": "BENCHMARK_TASK_RUN_ASSERTION_STATUS_PASSED",
+      "lineNumber": 83,
+      "definition": "kbench.assertions.assert_true(",
+      "conversationRequestIds": [
+        {
+          "conversationId": "Anamnesis Knower: Calibration Monitoring-310a9fe5",
+          "requestId": "Anamnesis Knower: Calibration Monitoring-310a9fe5-req-1"
+        }
+      ]
+    }
+  ],
+  "pyRunId": "Anamnesis Knower: Calibration Monitoring-Run #13"
+}

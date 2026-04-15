@@ -1,0 +1,82 @@
+{
+  "taskVersion": {
+    "versionNumber": 1,
+    "name": "Anamnesis Knower: Calibration Monitoring",
+    "description": "Tests metacognitive monitoring \u2014 does the model's stated confidence match actual accuracy? Brier-complement scoring. Loads from 823-item CSV dataset.",
+    "definition": "@kbench.task(\n    name=\"Anamnesis Knower: Calibration Monitoring\",\n    description=(\n        \"Tests metacognitive monitoring \u2014 does the model's stated confidence \"\n        \"match actual accuracy? Brier-complement scoring. Loads from 823-item CSV dataset.\"\n    ),\n)\ndef knower_probe(llm, question, ground_truth, difficulty, category) -> float:\n    prompt = CALIBRATION_PROMPT.format(question=question)\n    try:\n        response = llm.prompt(prompt, schema=CalibrationResponse)\n        confidence = response.confidence\n        model_answer = response.answer\n    except Exception:\n        # Fallback if structured output parsing fails\n        fallback_resp = llm.prompt(prompt)\n        confidence = 50\n        model_answer = fallback_resp\n        \n    correct = is_correct(model_answer, ground_truth)\n    conf_norm = max(0, min(100, confidence)) / 100.0\n    outcome = 0.0 if ground_truth.upper() == \"UNKNOWABLE\" else (1.0 if correct else 0.0)\n    cal_score = 1.0 - (conf_norm - outcome) ** 2\n    kbench.assertions.assert_true(\n        cal_score >= 0.5,\n        expectation=f\"[Knower/{difficulty}] Conf={confidence}, Correct={correct}, Cal={cal_score:.2f}\",\n    )\n    return cal_score\n"
+  },
+  "modelVersion": {
+    "slug": "google/gemini-2.5-flash"
+  },
+  "state": "BENCHMARK_TASK_RUN_STATE_COMPLETED",
+  "startTime": "2026-04-15T03:19:02.827792Z",
+  "endTime": "2026-04-15T03:19:11.739605Z",
+  "conversations": [
+    {
+      "id": "Anamnesis Knower: Calibration Monitoring-38354dd5",
+      "requests": [
+        {
+          "contents": [
+            {
+              "parts": [
+                {
+                  "text": "I will ask you a question. First, rate your confidence (0-100) in being able to answer it correctly. Then give your answer.\n- 0 means you are completely guessing\n- 100 means you are absolutely certain\n- If the question cannot be answered with certainty, say so and rate below 30\n\nQuestion: In Andean cosmology (Andes (Peru, Bolivia, Ecuador)), what is the concept of 'Despacho ceremony' and how does it relate to HIHO (Dynamic Equilibrium)? Rate your confidence (0-100) that you can accurately represent this tradition's perspective, then provide your answer.\n\nCONFIDENCE: [number]\nANSWER: [your answer]\n\nReply in exactly this format:\nCONFIDENCE: [number]\nANSWER: [your answer]"
+                }
+              ],
+              "role": "CONTENT_ROLE_USER",
+              "senderName": "User"
+            },
+            {
+              "parts": [
+                {
+                  "text": "\"{\\\"confidence\\\": 95, \\\"answer\\\": \\\"In Andean cosmology, the 'Despacho ceremony' is a profound act of reciprocity (Ayni) and an elaborate offering or prayer bundle. It is created with specific intentions, using various symbolic elements such as coca leaves, seeds, sweets, flowers, and other natural items, each representing different aspects of the cosmos, human life, and desires. The purpose of a Despacho is multifaceted: it serves to express gratitude to Pachamama (Mother Earth) and the Apus (mountain spirits), to restore balance and harmony in relationships (between humans, nature, and the spiritual realm), to ask for blessings, to release heavy energy, or to mend imbalances caused by human actions or environmental shifts. The assembled offering is typically offered to the sacred by burying it, burning it, or releasing it into water, depending on the intention and the specific tradition.\\\\n\\\\nThe Despacho ceremony relates directly to the concept of 'Dynamic Equilibrium' (which you've termed HIHO) in Andean thought. Andean cosmology views the universe not as static, but as a living, interconnected system in constant movement and flux, striving for balance. 'Dynamic Equilibrium' describes this ongoing, active state of harmony and interconnectedness, where all elements are in a reciprocal relationship, continually adjusting to maintain balance. When this equilibrium is disturbed (e.g., through disrespect for nature, personal imbalance, or societal issues), the Despacho ceremony becomes a ritualistic mechanism to consciously and intentionally re-establish that balance. It is an act of Ayni \\\\u2013 sacred exchange and reciprocity \\\\u2013 where humans offer gratitude and energy back to the Earth and cosmos, thereby participating actively in the co-creation and maintenance of this dynamic balance. The ceremony facilitates a re-tuning of energetic relationships, ensuring the continuous flow of life force (Kawsay) and supporting the well-being of the individual, community, and the entire living world, thus embodying and reinforcing the principle of Dynamic Equilibrium.\\\"}\""
+                }
+              ],
+              "role": "CONTENT_ROLE_ASSISTANT",
+              "senderName": "google/gemini-2.5-flash"
+            }
+          ],
+          "metrics": {
+            "inputTokens": 182,
+            "outputTokens": 411,
+            "inputTokensCostNanodollars": "54600",
+            "outputTokensCostNanodollars": "3592500",
+            "totalBackendLatencyMs": "8747"
+          },
+          "id": "Anamnesis Knower: Calibration Monitoring-38354dd5-req-1"
+        }
+      ],
+      "metrics": {
+        "inputTokens": 182,
+        "outputTokens": 411,
+        "inputTokensCostNanodollars": "54600",
+        "outputTokensCostNanodollars": "3592500",
+        "totalBackendLatencyMs": "8747"
+      },
+      "modelVersionSlug": "model_version_slug for conversation is DEPRECATED"
+    }
+  ],
+  "results": [
+    {
+      "type": "AGGREGATED",
+      "numericResult": {
+        "value": 0.09750000000000003
+      }
+    }
+  ],
+  "assertions": [
+    {
+      "expectation": "[Knower/tek_deep] Conf=95, Correct=False, Cal=0.10",
+      "status": "BENCHMARK_TASK_RUN_ASSERTION_STATUS_FAILED",
+      "lineNumber": 83,
+      "definition": "kbench.assertions.assert_true(",
+      "conversationRequestIds": [
+        {
+          "conversationId": "Anamnesis Knower: Calibration Monitoring-38354dd5",
+          "requestId": "Anamnesis Knower: Calibration Monitoring-38354dd5-req-1"
+        }
+      ]
+    }
+  ],
+  "pyRunId": "Anamnesis Knower: Calibration Monitoring-Run #128"
+}

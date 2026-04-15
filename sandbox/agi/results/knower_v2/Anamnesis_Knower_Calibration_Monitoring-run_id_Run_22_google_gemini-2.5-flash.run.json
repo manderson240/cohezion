@@ -1,0 +1,82 @@
+{
+  "taskVersion": {
+    "versionNumber": 1,
+    "name": "Anamnesis Knower: Calibration Monitoring",
+    "description": "Tests metacognitive monitoring \u2014 does the model's stated confidence match actual accuracy? Brier-complement scoring. Loads from 823-item CSV dataset.",
+    "definition": "@kbench.task(\n    name=\"Anamnesis Knower: Calibration Monitoring\",\n    description=(\n        \"Tests metacognitive monitoring \u2014 does the model's stated confidence \"\n        \"match actual accuracy? Brier-complement scoring. Loads from 823-item CSV dataset.\"\n    ),\n)\ndef knower_probe(llm, question, ground_truth, difficulty, category) -> float:\n    prompt = CALIBRATION_PROMPT.format(question=question)\n    try:\n        response = llm.prompt(prompt, schema=CalibrationResponse)\n        confidence = response.confidence\n        model_answer = response.answer\n    except Exception:\n        # Fallback if structured output parsing fails\n        fallback_resp = llm.prompt(prompt)\n        confidence = 50\n        model_answer = fallback_resp\n        \n    correct = is_correct(model_answer, ground_truth)\n    conf_norm = max(0, min(100, confidence)) / 100.0\n    outcome = 0.0 if ground_truth.upper() == \"UNKNOWABLE\" else (1.0 if correct else 0.0)\n    cal_score = 1.0 - (conf_norm - outcome) ** 2\n    kbench.assertions.assert_true(\n        cal_score >= 0.5,\n        expectation=f\"[Knower/{difficulty}] Conf={confidence}, Correct={correct}, Cal={cal_score:.2f}\",\n    )\n    return cal_score\n"
+  },
+  "modelVersion": {
+    "slug": "google/gemini-2.5-flash"
+  },
+  "state": "BENCHMARK_TASK_RUN_STATE_COMPLETED",
+  "startTime": "2026-04-15T03:02:23.775922Z",
+  "endTime": "2026-04-15T03:02:28.682389Z",
+  "conversations": [
+    {
+      "id": "Anamnesis Knower: Calibration Monitoring-c1d43dcb",
+      "requests": [
+        {
+          "contents": [
+            {
+              "parts": [
+                {
+                  "text": "I will ask you a question. First, rate your confidence (0-100) in being able to answer it correctly. Then give your answer.\n- 0 means you are completely guessing\n- 100 means you are absolutely certain\n- If the question cannot be answered with certainty, say so and rate below 30\n\nQuestion: In Daoist cosmology (China), what is the concept of 'Taiji (Supreme Ultimate)' and how does it relate to Quadrature (First Distinction)? Rate your confidence (0-100) that you can accurately represent this tradition's perspective, then provide your answer.\n\nCONFIDENCE: [number]\nANSWER: [your answer]\n\nReply in exactly this format:\nCONFIDENCE: [number]\nANSWER: [your answer]"
+                }
+              ],
+              "role": "CONTENT_ROLE_USER",
+              "senderName": "User"
+            },
+            {
+              "parts": [
+                {
+                  "text": "\"{\\\"confidence\\\": 90, \\\"answer\\\": \\\"In Daoist cosmology, 'Taiji (\\\\u592a\\\\u6975), often translated as the 'Supreme Ultimate' or 'Great Ultimate,' represents the primordial undifferentiated unity from which all existence originates. It is the state of dynamic balance and harmony, where the two fundamental opposing yet complementary forces, Yin and Yang, are held in perfect potential and nascent form. Taiji is typically depicted by the Taijitu (\\\\u592a\\\\u6975\\\\u5716), the familiar Yin-Yang symbol, which illustrates this interpenetration and interdependence.\\\\n\\\\nThe concept of 'Quadrature (First Distinction)' relates to Taiji by describing the very first differentiation or polarization within this unity. Daoist thought posits that from Wuji (\\\\u7121\\\\u6975), the 'Ultimate Void' or 'Non-polar,' Taiji arises. Taiji then gives birth to the 'Two Forms' (Liangyi \\\\u5169\\\\u5100), which are Yin and Yang. This emergence of Yin and Yang from the undifferentiated Taiji *is* the 'First Distinction' or the 'Quadrature.' It signifies the initial splitting of the unified whole into two dynamic, co-arising polarities, which then further differentiate to produce the 'Four Symbols' (Sixiang \\\\u56db\\\\u8c61), 'Eight Trigrams' (Bagua \\\\u516b\\\\u5366), and ultimately the 'Myriad Things' (Wanwu \\\\u842c\\\\u7269) of the universe. Therefore, Taiji is the unified state *containing the potential* for this first distinction, and the 'First Distinction' itself is the active unfolding of Yin and Yang from Taiji.\\\"}\""
+                }
+              ],
+              "role": "CONTENT_ROLE_ASSISTANT",
+              "senderName": "google/gemini-2.5-flash"
+            }
+          ],
+          "metrics": {
+            "inputTokens": 177,
+            "outputTokens": 329,
+            "inputTokensCostNanodollars": "53100",
+            "outputTokensCostNanodollars": "1745000",
+            "totalBackendLatencyMs": "4743"
+          },
+          "id": "Anamnesis Knower: Calibration Monitoring-c1d43dcb-req-1"
+        }
+      ],
+      "metrics": {
+        "inputTokens": 177,
+        "outputTokens": 329,
+        "inputTokensCostNanodollars": "53100",
+        "outputTokensCostNanodollars": "1745000",
+        "totalBackendLatencyMs": "4743"
+      },
+      "modelVersionSlug": "model_version_slug for conversation is DEPRECATED"
+    }
+  ],
+  "results": [
+    {
+      "type": "AGGREGATED",
+      "numericResult": {
+        "value": 0.18999999999999995
+      }
+    }
+  ],
+  "assertions": [
+    {
+      "expectation": "[Knower/tek_deep] Conf=90, Correct=False, Cal=0.19",
+      "status": "BENCHMARK_TASK_RUN_ASSERTION_STATUS_FAILED",
+      "lineNumber": 83,
+      "definition": "kbench.assertions.assert_true(",
+      "conversationRequestIds": [
+        {
+          "conversationId": "Anamnesis Knower: Calibration Monitoring-c1d43dcb",
+          "requestId": "Anamnesis Knower: Calibration Monitoring-c1d43dcb-req-1"
+        }
+      ]
+    }
+  ],
+  "pyRunId": "Anamnesis Knower: Calibration Monitoring-Run #22"
+}

@@ -1,0 +1,82 @@
+{
+  "taskVersion": {
+    "versionNumber": 1,
+    "name": "Anamnesis Knower: Calibration Monitoring",
+    "description": "Tests metacognitive monitoring \u2014 does the model's stated confidence match actual accuracy? Brier-complement scoring. Loads from 823-item CSV dataset.",
+    "definition": "@kbench.task(\n    name=\"Anamnesis Knower: Calibration Monitoring\",\n    description=(\n        \"Tests metacognitive monitoring \u2014 does the model's stated confidence \"\n        \"match actual accuracy? Brier-complement scoring. Loads from 823-item CSV dataset.\"\n    ),\n)\ndef knower_probe(llm, question, ground_truth, difficulty, category) -> float:\n    prompt = CALIBRATION_PROMPT.format(question=question)\n    try:\n        response = llm.prompt(prompt, schema=CalibrationResponse)\n        confidence = response.confidence\n        model_answer = response.answer\n    except Exception:\n        # Fallback if structured output parsing fails\n        fallback_resp = llm.prompt(prompt)\n        confidence = 50\n        model_answer = fallback_resp\n        \n    correct = is_correct(model_answer, ground_truth)\n    conf_norm = max(0, min(100, confidence)) / 100.0\n    outcome = 0.0 if ground_truth.upper() == \"UNKNOWABLE\" else (1.0 if correct else 0.0)\n    cal_score = 1.0 - (conf_norm - outcome) ** 2\n    kbench.assertions.assert_true(\n        cal_score >= 0.5,\n        expectation=f\"[Knower/{difficulty}] Conf={confidence}, Correct={correct}, Cal={cal_score:.2f}\",\n    )\n    return cal_score\n"
+  },
+  "modelVersion": {
+    "slug": "google/gemini-2.5-flash"
+  },
+  "state": "BENCHMARK_TASK_RUN_STATE_COMPLETED",
+  "startTime": "2026-04-15T03:50:34.321781Z",
+  "endTime": "2026-04-15T03:50:48.552063Z",
+  "conversations": [
+    {
+      "id": "Anamnesis Knower: Calibration Monitoring-9e621673",
+      "requests": [
+        {
+          "contents": [
+            {
+              "parts": [
+                {
+                  "text": "I will ask you a question. First, rate your confidence (0-100) in being able to answer it correctly. Then give your answer.\n- 0 means you are completely guessing\n- 100 means you are absolutely certain\n- If the question cannot be answered with certainty, say so and rate below 30\n\nQuestion: Compare the Dine (Navajo) concept of 'First Man / First Woman' (ground state/void) with the Inuit concept of 'Sila'. In what specific ways do they differ in how they conceptualize nothingness or the origin state? Rate your confidence.\n\nCONFIDENCE: [number]\nANSWER: [your answer]\n\nReply in exactly this format:\nCONFIDENCE: [number]\nANSWER: [your answer]"
+                }
+              ],
+              "role": "CONTENT_ROLE_USER",
+              "senderName": "User"
+            },
+            {
+              "parts": [
+                {
+                  "text": "\"{\\\"confidence\\\": 88, \\\"answer\\\": \\\"The Navajo (Dine) concept of 'First Man / First Woman' and the Inuit concept of 'Sila' differ significantly in their conceptualization of nothingness or the origin state.\\\\n\\\\n**Navajo (Dine) - First Man / First Woman (Origin State):**\\\\n*   **Nature of Origin:** In Dine cosmology, the origin is not typically a \\\\\\\"nothingness\\\\\\\" or absolute void. Instead, it involves a progression through multiple lower worlds, often characterized by darkness, mist, or elemental chaos. First Man and First Woman are primordial beings who emerge from these successive worlds.\\\\n*   **Role in Creation:** They are not creators *ex nihilo* (from nothing) but are intelligent, active agents who bring order, knowledge, and structure to an already existing, albeit unformed or chaotic, cosmos. They organize and shape the world as we know it, rather than creating matter itself from an empty void. The \\\\\\\"ground state\\\\\\\" or \\\\\\\"void\\\\\\\" aspect, if applied, refers more to the undifferentiated, elemental states of the lower worlds from which they emerge and which they then transform.\\\\n*   **Conceptualization of Nothingness:** The focus is less on a pure absence and more on states of unformed potential or chaos that precede the current, ordered world. First Man and First Woman *emerge from* and *act upon* these primordial conditions.\\\\n\\\\n**Inuit - Sila (Origin State):**\\\\n*   **Nature of Origin:** 'Sila' is a multifaceted concept that can mean weather, air, breath, life-force, intelligence, and the universe itself. In the context of origin, Sila often represents the primordial, all-encompassing principle or consciousness from which everything arises and which permeates all existence. It is not an empty void, but rather a fundamental, living presence or ground of being.\\\\n*   **Role in Creation:** Sila is often seen as the source or a pervasive animating force. It *is* the origin, an inherent reality that contains all potential. It doesn't act as a distinct creator in the same way First Man and First Woman do; rather, it *is* the pervasive essence that underlies and gives rise to all things. It's the \\\\\\\"stuff\\\\\\\" and the \\\\\\\"spirit\\\\\\\" of the cosmos.\\\\n*   **Conceptualization of Nothingness:** Sila is almost the antithesis of nothingness. It represents the *all*, the ever-present, undifferentiated reality that precedes and permeates everything. There is no concept of a \\\\\\\"void\\\\\\\" before Sila, as Sila itself *is* the fundamental reality.\\\\n\\\\n**Key Differences:**\\\\n1.  **Agents vs. Principle:** Dine cosmology features distinct, personified agents (First Man/Woman) who emerge from and actively shape a pre-existing, though chaotic, environment. Inuit cosmology features Sila as a pervasive, often non-personified, fundamental principle or consciousness that *is* the origin and animating force of the universe.\\\\n2.  **Creation from Nothing:** First Man/Woman do not create from absolute nothingness; they organize and structure existing primordial elements. Sila, on the other hand, *is* the origin, the potential from which everything manifests, making the concept of a \\\\\\\"nothingness\\\\\\\" before it largely irrelevant.\\\\n3.  **Nature of Primordial State:** For the Dine, the primordial state is a series of unformed, lower worlds that are then acted upon. For the Inuit, Sila *is* the primordial state\\\\u2014a living, all-encompassing intelligence or spirit that constitutes the fundamental reality.\\\"}\""
+                }
+              ],
+              "role": "CONTENT_ROLE_ASSISTANT",
+              "senderName": "google/gemini-2.5-flash"
+            }
+          ],
+          "metrics": {
+            "inputTokens": 174,
+            "outputTokens": 764,
+            "inputTokensCostNanodollars": "52200",
+            "outputTokensCostNanodollars": "6452500",
+            "totalBackendLatencyMs": "14060"
+          },
+          "id": "Anamnesis Knower: Calibration Monitoring-9e621673-req-1"
+        }
+      ],
+      "metrics": {
+        "inputTokens": 174,
+        "outputTokens": 764,
+        "inputTokensCostNanodollars": "52200",
+        "outputTokensCostNanodollars": "6452500",
+        "totalBackendLatencyMs": "14060"
+      },
+      "modelVersionSlug": "model_version_slug for conversation is DEPRECATED"
+    }
+  ],
+  "results": [
+    {
+      "type": "AGGREGATED",
+      "numericResult": {
+        "value": 0.22560000000000002
+      }
+    }
+  ],
+  "assertions": [
+    {
+      "expectation": "[Knower/tek_comparative] Conf=88, Correct=False, Cal=0.23",
+      "status": "BENCHMARK_TASK_RUN_ASSERTION_STATUS_FAILED",
+      "lineNumber": 83,
+      "definition": "kbench.assertions.assert_true(",
+      "conversationRequestIds": [
+        {
+          "conversationId": "Anamnesis Knower: Calibration Monitoring-9e621673",
+          "requestId": "Anamnesis Knower: Calibration Monitoring-9e621673-req-1"
+        }
+      ]
+    }
+  ],
+  "pyRunId": "Anamnesis Knower: Calibration Monitoring-Run #313"
+}

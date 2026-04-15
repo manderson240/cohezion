@@ -1,0 +1,82 @@
+{
+  "taskVersion": {
+    "versionNumber": 1,
+    "name": "Anamnesis Knower: Calibration Monitoring",
+    "description": "Tests metacognitive monitoring \u2014 does the model's stated confidence match actual accuracy? Brier-complement scoring. Loads from 823-item CSV dataset.",
+    "definition": "@kbench.task(\n    name=\"Anamnesis Knower: Calibration Monitoring\",\n    description=(\n        \"Tests metacognitive monitoring \u2014 does the model's stated confidence \"\n        \"match actual accuracy? Brier-complement scoring. Loads from 823-item CSV dataset.\"\n    ),\n)\ndef knower_probe(llm, question, ground_truth, difficulty, category) -> float:\n    prompt = CALIBRATION_PROMPT.format(question=question)\n    try:\n        response = llm.prompt(prompt, schema=CalibrationResponse)\n        confidence = response.confidence\n        model_answer = response.answer\n    except Exception:\n        # Fallback if structured output parsing fails\n        fallback_resp = llm.prompt(prompt)\n        confidence = 50\n        model_answer = fallback_resp\n        \n    correct = is_correct(model_answer, ground_truth)\n    conf_norm = max(0, min(100, confidence)) / 100.0\n    outcome = 0.0 if ground_truth.upper() == \"UNKNOWABLE\" else (1.0 if correct else 0.0)\n    cal_score = 1.0 - (conf_norm - outcome) ** 2\n    kbench.assertions.assert_true(\n        cal_score >= 0.5,\n        expectation=f\"[Knower/{difficulty}] Conf={confidence}, Correct={correct}, Cal={cal_score:.2f}\",\n    )\n    return cal_score\n"
+  },
+  "modelVersion": {
+    "slug": "google/gemini-2.5-flash"
+  },
+  "state": "BENCHMARK_TASK_RUN_STATE_COMPLETED",
+  "startTime": "2026-04-15T03:12:04.293901Z",
+  "endTime": "2026-04-15T03:12:18.172895Z",
+  "conversations": [
+    {
+      "id": "Anamnesis Knower: Calibration Monitoring-d2f0220b",
+      "requests": [
+        {
+          "contents": [
+            {
+              "parts": [
+                {
+                  "text": "I will ask you a question. First, rate your confidence (0-100) in being able to answer it correctly. Then give your answer.\n- 0 means you are completely guessing\n- 100 means you are absolutely certain\n- If the question cannot be answered with certainty, say so and rate below 30\n\nQuestion: In Maori cosmology (Aotearoa (New Zealand)), what is the concept of 'Ta moko' and how does it relate to Reality Precipitates (Witness Marks)? Rate your confidence (0-100) that you can accurately represent this tradition's perspective, then provide your answer.\n\nCONFIDENCE: [number]\nANSWER: [your answer]\n\nReply in exactly this format:\nCONFIDENCE: [number]\nANSWER: [your answer]"
+                }
+              ],
+              "role": "CONTENT_ROLE_USER",
+              "senderName": "User"
+            },
+            {
+              "parts": [
+                {
+                  "text": "\"{\\\"confidence\\\": 25, \\\"answer\\\": \\\"In Maori cosmology, 'Ta moko' refers to the traditional, permanent body and facial marking (tattooing) that holds profound spiritual, social, and cultural significance. It is much more than mere decoration; it is an embodiment of a person's identity, whakapapa (genealogy), status, achievements, and tribal affiliations. Each moko design is unique to the individual, telling the story of their life, their ancestors, and their connection to the land (whenua). The process of receiving moko is sacred, involving tohunga t\\\\u0101 moko (moko experts) and adherence to tikanga (customary practices). Regarding 'Reality Precipitates (Witness Marks),' this specific terminology is not a standard concept or direct translation within traditional Maori cosmology. However, if interpreted conceptually, Ta moko can be understood to function in a similar vein. Ta moko serves as a permanent 'witness mark' because it visibly and indelibly inscribes a person's spiritual and ancestral reality onto their physical body. It 'precipitates' their inherent identity, their past (whakapapa), and their lived experiences into a tangible, observable form. It is a living testament to who they are, where they come from, and their journey through life, making the invisible aspects of self and heritage manifest on the skin. Thus, while the term itself is not traditional, the *function* of Ta moko aligns with the idea of a permanent, identity-defining mark that makes aspects of one's spiritual and historical reality visible.\\\"}\""
+                }
+              ],
+              "role": "CONTENT_ROLE_ASSISTANT",
+              "senderName": "google/gemini-2.5-flash"
+            }
+          ],
+          "metrics": {
+            "inputTokens": 181,
+            "outputTokens": 326,
+            "inputTokensCostNanodollars": "54300",
+            "outputTokensCostNanodollars": "5605000",
+            "totalBackendLatencyMs": "13709"
+          },
+          "id": "Anamnesis Knower: Calibration Monitoring-d2f0220b-req-1"
+        }
+      ],
+      "metrics": {
+        "inputTokens": 181,
+        "outputTokens": 326,
+        "inputTokensCostNanodollars": "54300",
+        "outputTokensCostNanodollars": "5605000",
+        "totalBackendLatencyMs": "13709"
+      },
+      "modelVersionSlug": "model_version_slug for conversation is DEPRECATED"
+    }
+  ],
+  "results": [
+    {
+      "type": "AGGREGATED",
+      "numericResult": {
+        "value": 0.9375
+      }
+    }
+  ],
+  "assertions": [
+    {
+      "expectation": "[Knower/tek_deep] Conf=25, Correct=False, Cal=0.94",
+      "status": "BENCHMARK_TASK_RUN_ASSERTION_STATUS_PASSED",
+      "lineNumber": 83,
+      "definition": "kbench.assertions.assert_true(",
+      "conversationRequestIds": [
+        {
+          "conversationId": "Anamnesis Knower: Calibration Monitoring-d2f0220b",
+          "requestId": "Anamnesis Knower: Calibration Monitoring-d2f0220b-req-1"
+        }
+      ]
+    }
+  ],
+  "pyRunId": "Anamnesis Knower: Calibration Monitoring-Run #80"
+}

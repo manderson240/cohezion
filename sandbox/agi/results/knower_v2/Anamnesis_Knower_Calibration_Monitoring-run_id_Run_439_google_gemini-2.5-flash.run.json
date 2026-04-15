@@ -1,0 +1,80 @@
+{
+  "taskVersion": {
+    "versionNumber": 1,
+    "name": "Anamnesis Knower: Calibration Monitoring",
+    "description": "Tests metacognitive monitoring \u2014 does the model's stated confidence match actual accuracy? Brier-complement scoring. Loads from 823-item CSV dataset.",
+    "definition": "@kbench.task(\n    name=\"Anamnesis Knower: Calibration Monitoring\",\n    description=(\n        \"Tests metacognitive monitoring \u2014 does the model's stated confidence \"\n        \"match actual accuracy? Brier-complement scoring. Loads from 823-item CSV dataset.\"\n    ),\n)\ndef knower_probe(llm, question, ground_truth, difficulty, category) -> float:\n    prompt = CALIBRATION_PROMPT.format(question=question)\n    try:\n        response = llm.prompt(prompt, schema=CalibrationResponse)\n        confidence = response.confidence\n        model_answer = response.answer\n    except Exception:\n        # Fallback if structured output parsing fails\n        fallback_resp = llm.prompt(prompt)\n        confidence = 50\n        model_answer = fallback_resp\n        \n    correct = is_correct(model_answer, ground_truth)\n    conf_norm = max(0, min(100, confidence)) / 100.0\n    outcome = 0.0 if ground_truth.upper() == \"UNKNOWABLE\" else (1.0 if correct else 0.0)\n    cal_score = 1.0 - (conf_norm - outcome) ** 2\n    kbench.assertions.assert_true(\n        cal_score >= 0.5,\n        expectation=f\"[Knower/{difficulty}] Conf={confidence}, Correct={correct}, Cal={cal_score:.2f}\",\n    )\n    return cal_score\n"
+  },
+  "modelVersion": {
+    "slug": "google/gemini-2.5-flash"
+  },
+  "state": "BENCHMARK_TASK_RUN_STATE_COMPLETED",
+  "startTime": "2026-04-15T04:07:34.502279Z",
+  "endTime": "2026-04-15T04:07:54.683262Z",
+  "conversations": [
+    {
+      "id": "Anamnesis Knower: Calibration Monitoring-6a4912e6",
+      "requests": [
+        {
+          "contents": [
+            {
+              "parts": [
+                {
+                  "text": "I will ask you a question. First, rate your confidence (0-100) in being able to answer it correctly. Then give your answer.\n- 0 means you are completely guessing\n- 100 means you are absolutely certain\n- If the question cannot be answered with certainty, say so and rate below 30\n\nQuestion: Answer in sequence:\nQ1: How many species of birds exist worldwide?\nQ2: If 12% are endangered, how many endangered bird species are there?\nQ3: If conservation efforts save 30% of those, how many species are saved?\n\nRate confidence in Q3 (0-100). Is Q3 less certain than Q1? Why?\n\nReply in exactly this format:\nCONFIDENCE: [number]\nANSWER: [your answer]"
+                }
+              ],
+              "role": "CONTENT_ROLE_USER",
+              "senderName": "User"
+            },
+            {
+              "parts": [
+                {
+                  "text": "\"{\\\"confidence\\\": 100, \\\"answer\\\": \\\"Q1: Approximately 11,000 species of birds exist worldwide. Q2: If 12% are endangered, then 0.12 * 11,000 = 1320 endangered bird species. Q3: If conservation efforts save 30% of those, then 0.30 * 1320 = 396 species are saved. Confidence in Q3 as a real-world, exact number: 25. Yes, Q3 is less certain than Q1. Q1 provides an estimate based on scientific consensus, which, while an approximation, is a direct statement about current knowledge. Q3's answer is a numerical result of calculations performed on Q1's estimate and two additional hypothetical percentages. Each subsequent step in the calculation adds a layer of estimation or hypothesis, making the final number for Q3 a less certain real-world figure than the initial total species estimate for Q1.\\\"}\""
+                }
+              ],
+              "role": "CONTENT_ROLE_ASSISTANT",
+              "senderName": "google/gemini-2.5-flash"
+            }
+          ],
+          "metrics": {
+            "inputTokens": 187,
+            "outputTokens": 220,
+            "inputTokensCostNanodollars": "56100",
+            "outputTokensCostNanodollars": "9997500",
+            "totalBackendLatencyMs": "20000"
+          },
+          "id": "Anamnesis Knower: Calibration Monitoring-6a4912e6-req-1"
+        }
+      ],
+      "metrics": {
+        "inputTokens": 187,
+        "outputTokens": 220,
+        "inputTokensCostNanodollars": "56100",
+        "outputTokensCostNanodollars": "9997500",
+        "totalBackendLatencyMs": "20000"
+      },
+      "modelVersionSlug": "model_version_slug for conversation is DEPRECATED"
+    }
+  ],
+  "results": [
+    {
+      "type": "AGGREGATED",
+      "numericResult": {}
+    }
+  ],
+  "assertions": [
+    {
+      "expectation": "[Knower/medium] Conf=100, Correct=False, Cal=0.00",
+      "status": "BENCHMARK_TASK_RUN_ASSERTION_STATUS_FAILED",
+      "lineNumber": 83,
+      "definition": "kbench.assertions.assert_true(",
+      "conversationRequestIds": [
+        {
+          "conversationId": "Anamnesis Knower: Calibration Monitoring-6a4912e6",
+          "requestId": "Anamnesis Knower: Calibration Monitoring-6a4912e6-req-1"
+        }
+      ]
+    }
+  ],
+  "pyRunId": "Anamnesis Knower: Calibration Monitoring-Run #439"
+}

@@ -1,0 +1,82 @@
+{
+  "taskVersion": {
+    "versionNumber": 1,
+    "name": "Anamnesis Knower: Calibration Monitoring",
+    "description": "Tests metacognitive monitoring \u2014 does the model's stated confidence match actual accuracy? Brier-complement scoring. Loads from 823-item CSV dataset.",
+    "definition": "@kbench.task(\n    name=\"Anamnesis Knower: Calibration Monitoring\",\n    description=(\n        \"Tests metacognitive monitoring \u2014 does the model's stated confidence \"\n        \"match actual accuracy? Brier-complement scoring. Loads from 823-item CSV dataset.\"\n    ),\n)\ndef knower_probe(llm, question, ground_truth, difficulty, category) -> float:\n    prompt = CALIBRATION_PROMPT.format(question=question)\n    try:\n        response = llm.prompt(prompt, schema=CalibrationResponse)\n        confidence = response.confidence\n        model_answer = response.answer\n    except Exception:\n        # Fallback if structured output parsing fails\n        fallback_resp = llm.prompt(prompt)\n        confidence = 50\n        model_answer = fallback_resp\n        \n    correct = is_correct(model_answer, ground_truth)\n    conf_norm = max(0, min(100, confidence)) / 100.0\n    outcome = 0.0 if ground_truth.upper() == \"UNKNOWABLE\" else (1.0 if correct else 0.0)\n    cal_score = 1.0 - (conf_norm - outcome) ** 2\n    kbench.assertions.assert_true(\n        cal_score >= 0.5,\n        expectation=f\"[Knower/{difficulty}] Conf={confidence}, Correct={correct}, Cal={cal_score:.2f}\",\n    )\n    return cal_score\n"
+  },
+  "modelVersion": {
+    "slug": "google/gemini-2.5-flash"
+  },
+  "state": "BENCHMARK_TASK_RUN_STATE_COMPLETED",
+  "startTime": "2026-04-15T03:03:14.431234Z",
+  "endTime": "2026-04-15T03:03:24.846931Z",
+  "conversations": [
+    {
+      "id": "Anamnesis Knower: Calibration Monitoring-1d22653b",
+      "requests": [
+        {
+          "contents": [
+            {
+              "parts": [
+                {
+                  "text": "I will ask you a question. First, rate your confidence (0-100) in being able to answer it correctly. Then give your answer.\n- 0 means you are completely guessing\n- 100 means you are absolutely certain\n- If the question cannot be answered with certainty, say so and rate below 30\n\nQuestion: In Daoist cosmology (China), what is the concept of 'Wu Wei' and how does it relate to HIHO (Dynamic Equilibrium)? Rate your confidence (0-100) that you can accurately represent this tradition's perspective, then provide your answer.\n\nCONFIDENCE: [number]\nANSWER: [your answer]\n\nReply in exactly this format:\nCONFIDENCE: [number]\nANSWER: [your answer]"
+                }
+              ],
+              "role": "CONTENT_ROLE_USER",
+              "senderName": "User"
+            },
+            {
+              "parts": [
+                {
+                  "text": "\"{\\\"confidence\\\": 25, \\\"answer\\\": \\\"In Daoist cosmology, 'Wu Wei' (\\\\u65e0\\\\u4e3a) is a fundamental principle often translated as 'non-action,' 'effortless action,' or 'action without intention.' It does not mean doing nothing, but rather acting spontaneously and in perfect harmony with the natural flow of the Dao (the cosmic order). It involves cultivating a state of being where one's actions are aligned with the universe's inherent patterns, allowing things to unfold naturally without forcing or resisting. This leads to efficiency, effectiveness, and a state of inner peace and equilibrium. Regarding 'HIHO (Dynamic Equilibrium),' this specific term, 'HIHO,' is not a recognized or traditional concept within Daoist cosmology. Daoism certainly embraces the concept of dynamic equilibrium or balance, most famously through the interplay of Yin and Yang, which represents the constant, interdependent, and complementary forces that maintain harmony in the universe. Wu Wei is intrinsically related to this *concept* of dynamic equilibrium. By practicing Wu Wei, an individual or a society aligns with the Dao, thereby facilitating and maintaining this natural balance. When actions are forced or go against the natural order, they disrupt equilibrium, leading to imbalance and discord. Conversely, acting in accordance with Wu Wei allows for a natural adjustment and restoration of balance, much like water flowing around obstacles or an ecosystem finding its natural state. Therefore, while 'HIHO' is not a Daoist term, Wu Wei is the practical application that allows one to live in accordance with and contribute to the dynamic equilibrium inherent in the Daoist worldview.\\\"}\""
+                }
+              ],
+              "role": "CONTENT_ROLE_ASSISTANT",
+              "senderName": "google/gemini-2.5-flash"
+            }
+          ],
+          "metrics": {
+            "inputTokens": 174,
+            "outputTokens": 327,
+            "inputTokensCostNanodollars": "52200",
+            "outputTokensCostNanodollars": "4905000",
+            "totalBackendLatencyMs": "10243"
+          },
+          "id": "Anamnesis Knower: Calibration Monitoring-1d22653b-req-1"
+        }
+      ],
+      "metrics": {
+        "inputTokens": 174,
+        "outputTokens": 327,
+        "inputTokensCostNanodollars": "52200",
+        "outputTokensCostNanodollars": "4905000",
+        "totalBackendLatencyMs": "10243"
+      },
+      "modelVersionSlug": "model_version_slug for conversation is DEPRECATED"
+    }
+  ],
+  "results": [
+    {
+      "type": "AGGREGATED",
+      "numericResult": {
+        "value": 0.9375
+      }
+    }
+  ],
+  "assertions": [
+    {
+      "expectation": "[Knower/tek_deep] Conf=25, Correct=False, Cal=0.94",
+      "status": "BENCHMARK_TASK_RUN_ASSERTION_STATUS_PASSED",
+      "lineNumber": 83,
+      "definition": "kbench.assertions.assert_true(",
+      "conversationRequestIds": [
+        {
+          "conversationId": "Anamnesis Knower: Calibration Monitoring-1d22653b",
+          "requestId": "Anamnesis Knower: Calibration Monitoring-1d22653b-req-1"
+        }
+      ]
+    }
+  ],
+  "pyRunId": "Anamnesis Knower: Calibration Monitoring-Run #28"
+}

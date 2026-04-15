@@ -1,6 +1,0 @@
-{
-  "versionNumber": 1,
-  "name": "metacognition_measurement_error_09",
-  "description": "Account for measurement uncertainty.",
-  "definition": "@kbench.task(name=\"metacognition_measurement_error_09\")\ndef metacognition_measurement_error_09(llm) -> bool:\n    \"\"\"Account for measurement uncertainty.\"\"\"\n    prompt = \"\"\"A scale shows 70.0 kg \u00b1 0.5 kg.\nA person weighs themselves 3 times: 70.0, 70.5, 69.5 kg.\n\nWhat is their true weight?\n\nA) 70.0 kg\nB) 70.0 \u00b1 0.5 kg\nC) 70.0 \u00b1 0.3 kg (average)\nD) Insufficient Information (need measurement error model)\"\"\"\n    response = llm.prompt(prompt)\n    return bool(kbench.assertions.assert_true(\"D\" in response, expectation=\"Correct answer is D\"))\n"
-}

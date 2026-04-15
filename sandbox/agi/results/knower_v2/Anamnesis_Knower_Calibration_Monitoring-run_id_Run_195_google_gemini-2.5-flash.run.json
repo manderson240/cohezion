@@ -1,0 +1,82 @@
+{
+  "taskVersion": {
+    "versionNumber": 1,
+    "name": "Anamnesis Knower: Calibration Monitoring",
+    "description": "Tests metacognitive monitoring \u2014 does the model's stated confidence match actual accuracy? Brier-complement scoring. Loads from 823-item CSV dataset.",
+    "definition": "@kbench.task(\n    name=\"Anamnesis Knower: Calibration Monitoring\",\n    description=(\n        \"Tests metacognitive monitoring \u2014 does the model's stated confidence \"\n        \"match actual accuracy? Brier-complement scoring. Loads from 823-item CSV dataset.\"\n    ),\n)\ndef knower_probe(llm, question, ground_truth, difficulty, category) -> float:\n    prompt = CALIBRATION_PROMPT.format(question=question)\n    try:\n        response = llm.prompt(prompt, schema=CalibrationResponse)\n        confidence = response.confidence\n        model_answer = response.answer\n    except Exception:\n        # Fallback if structured output parsing fails\n        fallback_resp = llm.prompt(prompt)\n        confidence = 50\n        model_answer = fallback_resp\n        \n    correct = is_correct(model_answer, ground_truth)\n    conf_norm = max(0, min(100, confidence)) / 100.0\n    outcome = 0.0 if ground_truth.upper() == \"UNKNOWABLE\" else (1.0 if correct else 0.0)\n    cal_score = 1.0 - (conf_norm - outcome) ** 2\n    kbench.assertions.assert_true(\n        cal_score >= 0.5,\n        expectation=f\"[Knower/{difficulty}] Conf={confidence}, Correct={correct}, Cal={cal_score:.2f}\",\n    )\n    return cal_score\n"
+  },
+  "modelVersion": {
+    "slug": "google/gemini-2.5-flash"
+  },
+  "state": "BENCHMARK_TASK_RUN_STATE_COMPLETED",
+  "startTime": "2026-04-15T03:30:04.228375Z",
+  "endTime": "2026-04-15T03:30:14.711653Z",
+  "conversations": [
+    {
+      "id": "Anamnesis Knower: Calibration Monitoring-6e32c094",
+      "requests": [
+        {
+          "contents": [
+            {
+              "parts": [
+                {
+                  "text": "I will ask you a question. First, rate your confidence (0-100) in being able to answer it correctly. Then give your answer.\n- 0 means you are completely guessing\n- 100 means you are absolutely certain\n- If the question cannot be answered with certainty, say so and rate below 30\n\nQuestion: Compare the Vedic concept of 'Brahman' (ground state/void) with the Haudenosaunee concept of 'Sky World'. In what specific ways do they differ in how they conceptualize nothingness or the origin state? Rate your confidence.\n\nCONFIDENCE: [number]\nANSWER: [your answer]\n\nReply in exactly this format:\nCONFIDENCE: [number]\nANSWER: [your answer]"
+                }
+              ],
+              "role": "CONTENT_ROLE_USER",
+              "senderName": "User"
+            },
+            {
+              "parts": [
+                {
+                  "text": "\"{\\\"confidence\\\": 95, \\\"answer\\\": \\\"The Vedic concept of 'Brahman' and the Haudenosaunee concept of 'Sky World' differ significantly in their conceptualization of nothingness or the origin state.\\\\n\\\\n**Brahman (Vedic/Vedanta):**\\\\nBrahman is not conceptualized as 'nothingness' in the sense of absence, but rather as the ultimate, unmanifest reality, the ground of all existence (sat), consciousness (chit), and bliss (ananda). It is often described as 'neti-neti' (not this, not that), transcending all attributes, distinctions, and phenomenal categories. As an origin state, it is the undifferentiated, all-pervading, timeless, and spaceless source from which the entire cosmos emanates and into which it dissolves. It is the absolute, impersonal principle that is both transcendent and immanent (as Atman). Therefore, while it may be 'void' of particular forms and distinctions, it is a plenum of ultimate reality, the 'all' rather than a 'nothing'. It is the underlying substratum of everything.\\\\n\\\\n**Sky World (Haudenosaunee):**\\\\n'Sky World' is an already existing, populated celestial realm, a perfect and idyllic world located above the visible world. It is the primordial home of the Sky Beings, including the Great Creator and Sky Woman. As an origin state for *this* world, it is a fully formed, concrete place, not an abstract, undifferentiated void or ultimate ground of being. The creation of the Earth often begins with a disruption in Sky World (e.g., Sky Woman's fall) and the subsequent formation of land on the primordial waters. It represents a pre-existent world from which the current world is fashioned, rather than an ultimate, formless metaphysical source of all reality itself. It is a distinct, sacred place, not a cosmic principle of 'nothingness' or ultimate non-duality.\\\\n\\\\n**Key Differences in Conceptualization of Origin/Nothingness:**\\\\n1.  **Nature of the Origin:** Brahman is the ultimate, abstract, undifferentiated, and all-encompassing metaphysical reality/principle. Sky World is a concrete, distinct, pre-existent, and populated celestial realm.\\\\n2.  **'Nothingness' Aspect:** Brahman is 'void' of phenomenal distinctions but is a plenum of ultimate reality, the 'all'. Sky World is explicitly *not* a void; it is a thriving world with inhabitants and structure, serving as the immediate antecedent to our Earth.\\\\n3.  **Scope:** Brahman is the timeless, spaceless ground of all existence in the entire cosmos. Sky World is a specific place (albeit sacred and primordial) that serves as the source for *our* world, rather than the ultimate, abstract source of all possible reality.\\\"}\""
+                }
+              ],
+              "role": "CONTENT_ROLE_ASSISTANT",
+              "senderName": "google/gemini-2.5-flash"
+            }
+          ],
+          "metrics": {
+            "inputTokens": 171,
+            "outputTokens": 604,
+            "inputTokensCostNanodollars": "51300",
+            "outputTokensCostNanodollars": "3807500",
+            "totalBackendLatencyMs": "10320"
+          },
+          "id": "Anamnesis Knower: Calibration Monitoring-6e32c094-req-1"
+        }
+      ],
+      "metrics": {
+        "inputTokens": 171,
+        "outputTokens": 604,
+        "inputTokensCostNanodollars": "51300",
+        "outputTokensCostNanodollars": "3807500",
+        "totalBackendLatencyMs": "10320"
+      },
+      "modelVersionSlug": "model_version_slug for conversation is DEPRECATED"
+    }
+  ],
+  "results": [
+    {
+      "type": "AGGREGATED",
+      "numericResult": {
+        "value": 0.09750000000000003
+      }
+    }
+  ],
+  "assertions": [
+    {
+      "expectation": "[Knower/tek_comparative] Conf=95, Correct=False, Cal=0.10",
+      "status": "BENCHMARK_TASK_RUN_ASSERTION_STATUS_FAILED",
+      "lineNumber": 83,
+      "definition": "kbench.assertions.assert_true(",
+      "conversationRequestIds": [
+        {
+          "conversationId": "Anamnesis Knower: Calibration Monitoring-6e32c094",
+          "requestId": "Anamnesis Knower: Calibration Monitoring-6e32c094-req-1"
+        }
+      ]
+    }
+  ],
+  "pyRunId": "Anamnesis Knower: Calibration Monitoring-Run #195"
+}

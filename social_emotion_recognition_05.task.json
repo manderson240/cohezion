@@ -1,6 +1,0 @@
-{
-  "versionNumber": 1,
-  "name": "social_emotion_recognition_05",
-  "description": "Recognize emotional states.",
-  "definition": "@kbench.task(name=\"social_emotion_recognition_05\")\ndef social_emotion_recognition_05(llm) -> bool:\n    \"\"\"Recognize emotional states.\"\"\"\n    prompt = \"\"\"Sarah says \"I'm fine\" while crying and looking away.\n\nWhat is Sarah likely feeling?\n\nA) Fine/Happy\nB) Not fine, possibly sad or upset\nC) Angry\nD) Excited\"\"\"\n    response = llm.prompt(prompt)\n    return bool(kbench.assertions.assert_true(\"B\" in response, expectation=\"Correct answer is B\"))\n"
-}

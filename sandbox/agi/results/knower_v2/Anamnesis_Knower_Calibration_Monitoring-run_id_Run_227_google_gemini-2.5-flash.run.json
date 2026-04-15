@@ -1,0 +1,82 @@
+{
+  "taskVersion": {
+    "versionNumber": 1,
+    "name": "Anamnesis Knower: Calibration Monitoring",
+    "description": "Tests metacognitive monitoring \u2014 does the model's stated confidence match actual accuracy? Brier-complement scoring. Loads from 823-item CSV dataset.",
+    "definition": "@kbench.task(\n    name=\"Anamnesis Knower: Calibration Monitoring\",\n    description=(\n        \"Tests metacognitive monitoring \u2014 does the model's stated confidence \"\n        \"match actual accuracy? Brier-complement scoring. Loads from 823-item CSV dataset.\"\n    ),\n)\ndef knower_probe(llm, question, ground_truth, difficulty, category) -> float:\n    prompt = CALIBRATION_PROMPT.format(question=question)\n    try:\n        response = llm.prompt(prompt, schema=CalibrationResponse)\n        confidence = response.confidence\n        model_answer = response.answer\n    except Exception:\n        # Fallback if structured output parsing fails\n        fallback_resp = llm.prompt(prompt)\n        confidence = 50\n        model_answer = fallback_resp\n        \n    correct = is_correct(model_answer, ground_truth)\n    conf_norm = max(0, min(100, confidence)) / 100.0\n    outcome = 0.0 if ground_truth.upper() == \"UNKNOWABLE\" else (1.0 if correct else 0.0)\n    cal_score = 1.0 - (conf_norm - outcome) ** 2\n    kbench.assertions.assert_true(\n        cal_score >= 0.5,\n        expectation=f\"[Knower/{difficulty}] Conf={confidence}, Correct={correct}, Cal={cal_score:.2f}\",\n    )\n    return cal_score\n"
+  },
+  "modelVersion": {
+    "slug": "google/gemini-2.5-flash"
+  },
+  "state": "BENCHMARK_TASK_RUN_STATE_COMPLETED",
+  "startTime": "2026-04-15T03:35:13.181331Z",
+  "endTime": "2026-04-15T03:35:25.378241Z",
+  "conversations": [
+    {
+      "id": "Anamnesis Knower: Calibration Monitoring-1b7d6360",
+      "requests": [
+        {
+          "contents": [
+            {
+              "parts": [
+                {
+                  "text": "I will ask you a question. First, rate your confidence (0-100) in being able to answer it correctly. Then give your answer.\n- 0 means you are completely guessing\n- 100 means you are absolutely certain\n- If the question cannot be answered with certainty, say so and rate below 30\n\nQuestion: Compare the Daoist concept of 'Wu / Wuji' (ground state/void) with the Maori concept of 'Te Kore'. In what specific ways do they differ in how they conceptualize nothingness or the origin state? Rate your confidence.\n\nCONFIDENCE: [number]\nANSWER: [your answer]\n\nReply in exactly this format:\nCONFIDENCE: [number]\nANSWER: [your answer]"
+                }
+              ],
+              "role": "CONTENT_ROLE_USER",
+              "senderName": "User"
+            },
+            {
+              "parts": [
+                {
+                  "text": "\"{\\\"confidence\\\": 88, \\\"answer\\\": \\\"Both the Daoist concept of 'Wu/Wuji' and the Maori concept of 'Te Kore' refer to a primal state of nothingness or undifferentiated potential from which all existence arises. However, they differ significantly in their conceptualization of this origin:\\\\n\\\\n1.  **Nature of 'Nothingness':**\\\\n    *   **Daoist Wu/Wuji:** Often translated as 'non-being,' 'nothingness,' 'void,' or 'ultimate non-differentiation.' It is the absolute, boundless void that precedes the Taiji (Great Ultimate) and the emergence of yin and yang. It's not an empty void in the Western sense, but a 'pregnant nothingness'\\\\u2014a state of pure potentiality devoid of form, distinction, or definition. Its emphasis is on the absence of discernible qualities and the ultimate unity underlying all phenomena. It's a state to which all things ultimately return.\\\\n    *   **Maori Te Kore:** Translates as 'the void,' 'nothingness,' or 'the unmanifest realm.' It is the initial, foundational stage in Maori cosmology, a realm of absolute potential and darkness *before* light, form, or sound. Unlike Wu/Wuji's philosophical non-differentiation, Te Kore is often conceived as a dynamic, fertile, and active 'darkness' or 'realm' that progressively leads to further stages of creation (like Te P\\\\u014d - the night, the darkness of growth and becoming, and Te Ao M\\\\u0101rama - the world of light). It is a 'place' or 'state' pregnant with generative power.\\\\n\\\\n2.  **Role in Creation and Progression:**\\\\n    *   **Daoist Wu/Wuji:** Functions more as the ultimate, undifferentiated source from which the cosmos spontaneously emerges through natural processes (the Dao). The movement from Wu to Taiji to yin and yang is a natural unfolding, a cyclical process of manifestation and return. The emphasis is on the continuous flow and transformation, rather than a linear or staged creation.\\\\n    *   **Maori Te Kore:** Represents the first in a series of progressive, genealogical stages of creation. It is the beginning of a linear (though perhaps cyclically understood in a larger context) progression where entities and forces develop from within this void. Maori creation myths often detail a sequential unfolding from Te Kore to Te P\\\\u014d (various stages of night and deepening potential) and then to Te Ao M\\\\u0101rama (the world of light). It's a more narrativized, staged unfolding from nothingness into being, often involving personified forces or the 'breathing into being' of elements.\\\\n\\\\n3.  **Emphasis and Philosophical Implication:**\\\\n    *   **Daoist Wu/Wuji:** Emphasizes the fundamental unity, the interconnectedness of all things, the cyclical nature of existence, and the importance of aligning with the spontaneous flow of the Dao. It suggests that true understanding comes from transcending distinctions and returning to the undifferentiated whole.\\\\n    *   **Maori Te Kore:** Emphasizes the power of naming, genealogy, and the unfolding of creation through a series of stages. It highlights the inherent potential within the darkness and the journey from absolute potential to the manifest world, often serving as a foundation for understanding lineage, identity, and the sacredness of the natural world.\\\"}\""
+                }
+              ],
+              "role": "CONTENT_ROLE_ASSISTANT",
+              "senderName": "google/gemini-2.5-flash"
+            }
+          ],
+          "metrics": {
+            "inputTokens": 170,
+            "outputTokens": 708,
+            "inputTokensCostNanodollars": "51000",
+            "outputTokensCostNanodollars": "4092500",
+            "totalBackendLatencyMs": "12032"
+          },
+          "id": "Anamnesis Knower: Calibration Monitoring-1b7d6360-req-1"
+        }
+      ],
+      "metrics": {
+        "inputTokens": 170,
+        "outputTokens": 708,
+        "inputTokensCostNanodollars": "51000",
+        "outputTokensCostNanodollars": "4092500",
+        "totalBackendLatencyMs": "12032"
+      },
+      "modelVersionSlug": "model_version_slug for conversation is DEPRECATED"
+    }
+  ],
+  "results": [
+    {
+      "type": "AGGREGATED",
+      "numericResult": {
+        "value": 0.22560000000000002
+      }
+    }
+  ],
+  "assertions": [
+    {
+      "expectation": "[Knower/tek_comparative] Conf=88, Correct=False, Cal=0.23",
+      "status": "BENCHMARK_TASK_RUN_ASSERTION_STATUS_FAILED",
+      "lineNumber": 83,
+      "definition": "kbench.assertions.assert_true(",
+      "conversationRequestIds": [
+        {
+          "conversationId": "Anamnesis Knower: Calibration Monitoring-1b7d6360",
+          "requestId": "Anamnesis Knower: Calibration Monitoring-1b7d6360-req-1"
+        }
+      ]
+    }
+  ],
+  "pyRunId": "Anamnesis Knower: Calibration Monitoring-Run #227"
+}

@@ -1,6 +1,0 @@
-{
-  "versionNumber": 1,
-  "name": "attention_logical_noise_07",
-  "description": "Follow logic through distractor premises.",
-  "definition": "@kbench.task(name=\"attention_logical_noise_07\")\ndef attention_logical_noise_07(llm) -> bool:\n    \"\"\"Follow logic through distractor premises.\"\"\"\n    prompt = \"\"\"Given premises:\n1. All cats are mammals\n2. The Earth orbits the Sun\n3. All mammals are animals\n4. Water boils at 100\u00b0C at sea level\n5. Therefore, all cats are animals\n\nWhich premises are necessary for the conclusion?\n\nA) All of them\nB) 1, 2, and 3\nC) 1 and 3\nD) 2, 4, and 5\"\"\"\n    response = llm.prompt(prompt)\n    return bool(kbench.assertions.assert_true(\"C\" in response, expectation=\"Correct answer is C\"))\n"
-}

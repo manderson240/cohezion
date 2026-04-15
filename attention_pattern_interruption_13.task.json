@@ -1,6 +1,0 @@
-{
-  "versionNumber": 1,
-  "name": "attention_pattern_interruption_13",
-  "description": "Detect pattern break amid distractors.",
-  "definition": "@kbench.task(name=\"attention_pattern_interruption_13\")\ndef attention_pattern_interruption_13(llm) -> bool:\n    \"\"\"Detect pattern break amid distractors.\"\"\"\n    prompt = \"\"\"Sequence: 2, 4, 6, 8, 10, 12, 14, 17, 18, 20\n\nWhat is wrong?\n\nA) Nothing\nB) 17 breaks the pattern\nC) Missing 16\nD) Both B and C\"\"\"\n    response = llm.prompt(prompt)\n    return bool(kbench.assertions.assert_true(\"D\" in response, expectation=\"Correct answer is D\"))\n"
-}

@@ -1,0 +1,82 @@
+{
+  "taskVersion": {
+    "versionNumber": 1,
+    "name": "Anamnesis Knower: Calibration Monitoring",
+    "description": "Tests metacognitive monitoring \u2014 does the model's stated confidence match actual accuracy? Brier-complement scoring. Loads from 823-item CSV dataset.",
+    "definition": "@kbench.task(\n    name=\"Anamnesis Knower: Calibration Monitoring\",\n    description=(\n        \"Tests metacognitive monitoring \u2014 does the model's stated confidence \"\n        \"match actual accuracy? Brier-complement scoring. Loads from 823-item CSV dataset.\"\n    ),\n)\ndef knower_probe(llm, question, ground_truth, difficulty, category) -> float:\n    prompt = CALIBRATION_PROMPT.format(question=question)\n    try:\n        response = llm.prompt(prompt, schema=CalibrationResponse)\n        confidence = response.confidence\n        model_answer = response.answer\n    except Exception:\n        # Fallback if structured output parsing fails\n        fallback_resp = llm.prompt(prompt)\n        confidence = 50\n        model_answer = fallback_resp\n        \n    correct = is_correct(model_answer, ground_truth)\n    conf_norm = max(0, min(100, confidence)) / 100.0\n    outcome = 0.0 if ground_truth.upper() == \"UNKNOWABLE\" else (1.0 if correct else 0.0)\n    cal_score = 1.0 - (conf_norm - outcome) ** 2\n    kbench.assertions.assert_true(\n        cal_score >= 0.5,\n        expectation=f\"[Knower/{difficulty}] Conf={confidence}, Correct={correct}, Cal={cal_score:.2f}\",\n    )\n    return cal_score\n"
+  },
+  "modelVersion": {
+    "slug": "google/gemini-2.5-flash"
+  },
+  "state": "BENCHMARK_TASK_RUN_STATE_COMPLETED",
+  "startTime": "2026-04-15T03:33:16.932145Z",
+  "endTime": "2026-04-15T03:33:36.877499Z",
+  "conversations": [
+    {
+      "id": "Anamnesis Knower: Calibration Monitoring-5bb79ce5",
+      "requests": [
+        {
+          "contents": [
+            {
+              "parts": [
+                {
+                  "text": "I will ask you a question. First, rate your confidence (0-100) in being able to answer it correctly. Then give your answer.\n- 0 means you are completely guessing\n- 100 means you are absolutely certain\n- If the question cannot be answered with certainty, say so and rate below 30\n\nQuestion: Compare the Vedic concept of 'Brahman' (ground state/void) with the Dogon concept of 'Amma's egg'. In what specific ways do they differ in how they conceptualize nothingness or the origin state? Rate your confidence.\n\nCONFIDENCE: [number]\nANSWER: [your answer]\n\nReply in exactly this format:\nCONFIDENCE: [number]\nANSWER: [your answer]"
+                }
+              ],
+              "role": "CONTENT_ROLE_USER",
+              "senderName": "User"
+            },
+            {
+              "parts": [
+                {
+                  "text": "\"{\\\"confidence\\\": 90, \\\"answer\\\": \\\"The Vedic concept of 'Brahman' and the Dogon concept of 'Amma's egg' both represent an ultimate origin or ground state, but they differ significantly in their conceptualization of nothingness, the void, and the process of creation.\\\\n\\\\n**Brahman (Vedic Concept):**\\\\n1.  **Nature of the 'Void/Origin State':** In Vedic thought, particularly in Advaita Vedanta, Brahman is the ultimate, non-dual reality, the ground of all existence. It is not a 'void' in the sense of absolute emptiness or non-existence, but rather the ultimate 'is-ness' or plenum from which all arises, or which all *is*. Nirguna Brahman (Brahman without attributes) is often described as beyond all categories, distinctions, and attributes ('neti neti' - 'not this, not that').\\\\n2.  **'Nothingness':** The 'nothingness' associated with Brahman refers to its transcendent, formless, attributeless, and impersonal nature. It is 'no-thing' in the sense of not being a discrete, perceivable object or entity, and transcending all dualities, including existence and non-existence as conventionally understood. It is the absolute, unmanifest reality that *is* the substrate of everything, rather than an empty space *before* creation.\\\\n3.  **Relation to Creation:** The world is often seen as an emanation, manifestation, or even an illusion (Maya) superimposed upon Brahman. There isn't a singular, linear 'creation event' where Brahman transforms into the world; rather, the manifest world is ultimately *not different* from Brahman, though it appears so due to ignorance.\\\\n\\\\n**Amma's Egg (Dogon Concept):**\\\\n1.  **Nature of the 'Void/Origin State':** Amma's egg represents a primordial, spherical 'cosmic egg' which is a contained entity. It signifies a state of undifferentiated potential, holding within it all the seeds, elements, and blueprint of the future universe in a latent, chaotic, or unformed state.\\\\n2.  **'Nothingness':** The 'nothingness' or 'void' within Amma's egg refers to the undifferentiated, unmanifest, and chaotic nature *before* creation unfolds into distinct forms. It is not absolute non-existence but a state of contained potential, devoid of specific order, separation, or manifest forms. It is the initial, potent *container* of everything, but not yet expressed or organized.\\\\n3.  **Relation to Creation:** The breaking or unfolding of Amma's egg is a definitive, discrete *creation event*. It signifies the transition from the undifferentiated potential within the egg to the manifest, differentiated, and ordered cosmos. Amma, the supreme creator god, is often associated with or initiates the breaking of the egg.\\\\n\\\\n**Key Differences in Conceptualization:**\\\\n*   **Ontological Status of Origin:** Brahman *is* the ultimate reality, the pervasive ground of being itself, which *includes* its void-like attributeless aspect. Amma's egg is a distinct, primordial *vessel* or *entity* that *contains* potential. Brahman is the 'what is,' while Amma's egg is the 'what was before.'\\\\n*   **Nature of 'Void/Unmanifest':** Brahman's 'nothingness' is about transcendence, being beyond form and concept, and yet being the ultimate 'is-ness.' Amma's egg's 'nothingness' is about undifferentiated potential and chaos *within* a defined (though primordial) container.\\\\n*   **Creation Event:** Vedic Brahman often implies an ongoing manifestation or non-duality where the world is not truly separate, blurring a distinct creation event. Amma's egg provides a clear, sequential creation event where the egg breaks to release the cosmos.\\\"}\""
+                }
+              ],
+              "role": "CONTENT_ROLE_ASSISTANT",
+              "senderName": "google/gemini-2.5-flash"
+            }
+          ],
+          "metrics": {
+            "inputTokens": 171,
+            "outputTokens": 834,
+            "inputTokensCostNanodollars": "51300",
+            "outputTokensCostNanodollars": "7305000",
+            "totalBackendLatencyMs": "19781"
+          },
+          "id": "Anamnesis Knower: Calibration Monitoring-5bb79ce5-req-1"
+        }
+      ],
+      "metrics": {
+        "inputTokens": 171,
+        "outputTokens": 834,
+        "inputTokensCostNanodollars": "51300",
+        "outputTokensCostNanodollars": "7305000",
+        "totalBackendLatencyMs": "19781"
+      },
+      "modelVersionSlug": "model_version_slug for conversation is DEPRECATED"
+    }
+  ],
+  "results": [
+    {
+      "type": "AGGREGATED",
+      "numericResult": {
+        "value": 0.18999999999999995
+      }
+    }
+  ],
+  "assertions": [
+    {
+      "expectation": "[Knower/tek_comparative] Conf=90, Correct=False, Cal=0.19",
+      "status": "BENCHMARK_TASK_RUN_ASSERTION_STATUS_FAILED",
+      "lineNumber": 83,
+      "definition": "kbench.assertions.assert_true(",
+      "conversationRequestIds": [
+        {
+          "conversationId": "Anamnesis Knower: Calibration Monitoring-5bb79ce5",
+          "requestId": "Anamnesis Knower: Calibration Monitoring-5bb79ce5-req-1"
+        }
+      ]
+    }
+  ],
+  "pyRunId": "Anamnesis Knower: Calibration Monitoring-Run #215"
+}

@@ -1,0 +1,82 @@
+{
+  "taskVersion": {
+    "versionNumber": 1,
+    "name": "Anamnesis Knower: Calibration Monitoring",
+    "description": "Tests metacognitive monitoring \u2014 does the model's stated confidence match actual accuracy? Brier-complement scoring. Loads from 823-item CSV dataset.",
+    "definition": "@kbench.task(\n    name=\"Anamnesis Knower: Calibration Monitoring\",\n    description=(\n        \"Tests metacognitive monitoring \u2014 does the model's stated confidence \"\n        \"match actual accuracy? Brier-complement scoring. Loads from 823-item CSV dataset.\"\n    ),\n)\ndef knower_probe(llm, question, ground_truth, difficulty, category) -> float:\n    prompt = CALIBRATION_PROMPT.format(question=question)\n    try:\n        response = llm.prompt(prompt, schema=CalibrationResponse)\n        confidence = response.confidence\n        model_answer = response.answer\n    except Exception:\n        # Fallback if structured output parsing fails\n        fallback_resp = llm.prompt(prompt)\n        confidence = 50\n        model_answer = fallback_resp\n        \n    correct = is_correct(model_answer, ground_truth)\n    conf_norm = max(0, min(100, confidence)) / 100.0\n    outcome = 0.0 if ground_truth.upper() == \"UNKNOWABLE\" else (1.0 if correct else 0.0)\n    cal_score = 1.0 - (conf_norm - outcome) ** 2\n    kbench.assertions.assert_true(\n        cal_score >= 0.5,\n        expectation=f\"[Knower/{difficulty}] Conf={confidence}, Correct={correct}, Cal={cal_score:.2f}\",\n    )\n    return cal_score\n"
+  },
+  "modelVersion": {
+    "slug": "google/gemini-2.5-flash"
+  },
+  "state": "BENCHMARK_TASK_RUN_STATE_COMPLETED",
+  "startTime": "2026-04-15T03:54:27.699950Z",
+  "endTime": "2026-04-15T03:54:38.869805Z",
+  "conversations": [
+    {
+      "id": "Anamnesis Knower: Calibration Monitoring-96e462ab",
+      "requests": [
+        {
+          "contents": [
+            {
+              "parts": [
+                {
+                  "text": "I will ask you a question. First, rate your confidence (0-100) in being able to answer it correctly. Then give your answer.\n- 0 means you are completely guessing\n- 100 means you are absolutely certain\n- If the question cannot be answered with certainty, say so and rate below 30\n\nQuestion: Compare the Maori concept of 'Te Kore' (ground state/void) with the Andean concept of 'Pachamama'. In what specific ways do they differ in how they conceptualize nothingness or the origin state? Rate your confidence.\n\nCONFIDENCE: [number]\nANSWER: [your answer]\n\nReply in exactly this format:\nCONFIDENCE: [number]\nANSWER: [your answer]"
+                }
+              ],
+              "role": "CONTENT_ROLE_USER",
+              "senderName": "User"
+            },
+            {
+              "parts": [
+                {
+                  "text": "\"{\\\"confidence\\\": 95, \\\"answer\\\": \\\"Te Kore and Pachamama are both foundational concepts in their respective cultures, but they conceptualize 'nothingness' or the 'origin state' in fundamentally different ways. \\\\n\\\\n**Te Kore (Maori):**\\\\nTe Kore is often translated as 'The Void,' 'The Nothing,' or 'The Potential.' It represents the absolute beginning, the realm before existence, time, or light. It is not an empty, barren nothingness, but rather a creative, fertile void, pregnant with unmanifested potential and spiritual essence. It is the ground state of being from which all things, including the gods and the subsequent realms of 'Te P\\\\u014d' (The Night) and 'Te Ao M\\\\u0101rama' (The World of Light), eventually emerged. It is the primordial, unformed chaos or potentiality.\\\\n\\\\n**Pachamama (Andean):**\\\\nPachamama means 'Mother Earth' or 'Cosmic Mother.' She is a living, fertile, and nurturing goddess who embodies the physical world, including mountains, rivers, land, crops, and all life. She is a present, active deity responsible for fertility, harvest, and the well-being of people and nature. Offerings are made to her for sustenance and good fortune.\\\\n\\\\n**Specific Differences in Conceptualizing Nothingness/Origin:**\\\\n\\\\n1.  **Temporal/Existential Placement:**\\\\n    *   **Te Kore:** Exists *before* creation; it is the pre-manifestation, unformed realm. It represents the absolute beginning, a state of pure potentiality from which existence arises.\\\\n    *   **Pachamama:** Exists *within* the manifested world. She is the Earth, the living, tangible world, providing life and sustenance *after* creation has occurred. She is a continuous, nurturing force *in the present*, not a state prior to existence.\\\\n\\\\n2.  **Nature of 'Nothingness' or 'Void':**\\\\n    *   **Te Kore:** Directly addresses a form of 'nothingness' or 'void,' but one that is full of creative potential. It is a metaphysical 'non-existence' that is paradoxically full of 'everything' that is yet to be. It is the creative 'empty space' at the dawn of time.\\\\n    *   **Pachamama:** Does *not* conceptualize nothingness or a void. She is the antithesis of nothingness; she is the embodiment of life, abundance, and the material world. She is the 'everything' of the physical world, not the 'nothing' before it.\\\\n\\\\n3.  **Role in Cosmic Creation:**\\\\n    *   **Te Kore:** Is the ultimate origin point for the entire cosmos, the primordial realm from which all aspects of existence emerge. It is the *source* of initial cosmic formation.\\\\n    *   **Pachamama:** While a powerful life-giver, her creative role is primarily focused on fertility and sustenance *within the existing world*. She is not typically depicted as the primordial void from which the *entire cosmos* sprung, but rather as a fundamental, sacred element of the *already created* universe.\\\"}\""
+                }
+              ],
+              "role": "CONTENT_ROLE_ASSISTANT",
+              "senderName": "google/gemini-2.5-flash"
+            }
+          ],
+          "metrics": {
+            "inputTokens": 169,
+            "outputTokens": 683,
+            "inputTokensCostNanodollars": "50700",
+            "outputTokensCostNanodollars": "3997500",
+            "totalBackendLatencyMs": "10994"
+          },
+          "id": "Anamnesis Knower: Calibration Monitoring-96e462ab-req-1"
+        }
+      ],
+      "metrics": {
+        "inputTokens": 169,
+        "outputTokens": 683,
+        "inputTokensCostNanodollars": "50700",
+        "outputTokensCostNanodollars": "3997500",
+        "totalBackendLatencyMs": "10994"
+      },
+      "modelVersionSlug": "model_version_slug for conversation is DEPRECATED"
+    }
+  ],
+  "results": [
+    {
+      "type": "AGGREGATED",
+      "numericResult": {
+        "value": 0.09750000000000003
+      }
+    }
+  ],
+  "assertions": [
+    {
+      "expectation": "[Knower/tek_comparative] Conf=95, Correct=False, Cal=0.10",
+      "status": "BENCHMARK_TASK_RUN_ASSERTION_STATUS_FAILED",
+      "lineNumber": 83,
+      "definition": "kbench.assertions.assert_true(",
+      "conversationRequestIds": [
+        {
+          "conversationId": "Anamnesis Knower: Calibration Monitoring-96e462ab",
+          "requestId": "Anamnesis Knower: Calibration Monitoring-96e462ab-req-1"
+        }
+      ]
+    }
+  ],
+  "pyRunId": "Anamnesis Knower: Calibration Monitoring-Run #337"
+}

@@ -1,0 +1,82 @@
+{
+  "taskVersion": {
+    "versionNumber": 1,
+    "name": "Anamnesis Knower: Calibration Monitoring",
+    "description": "Tests metacognitive monitoring \u2014 does the model's stated confidence match actual accuracy? Brier-complement scoring. Loads from 823-item CSV dataset.",
+    "definition": "@kbench.task(\n    name=\"Anamnesis Knower: Calibration Monitoring\",\n    description=(\n        \"Tests metacognitive monitoring \u2014 does the model's stated confidence \"\n        \"match actual accuracy? Brier-complement scoring. Loads from 823-item CSV dataset.\"\n    ),\n)\ndef knower_probe(llm, question, ground_truth, difficulty, category) -> float:\n    prompt = CALIBRATION_PROMPT.format(question=question)\n    try:\n        response = llm.prompt(prompt, schema=CalibrationResponse)\n        confidence = response.confidence\n        model_answer = response.answer\n    except Exception:\n        # Fallback if structured output parsing fails\n        fallback_resp = llm.prompt(prompt)\n        confidence = 50\n        model_answer = fallback_resp\n        \n    correct = is_correct(model_answer, ground_truth)\n    conf_norm = max(0, min(100, confidence)) / 100.0\n    outcome = 0.0 if ground_truth.upper() == \"UNKNOWABLE\" else (1.0 if correct else 0.0)\n    cal_score = 1.0 - (conf_norm - outcome) ** 2\n    kbench.assertions.assert_true(\n        cal_score >= 0.5,\n        expectation=f\"[Knower/{difficulty}] Conf={confidence}, Correct={correct}, Cal={cal_score:.2f}\",\n    )\n    return cal_score\n"
+  },
+  "modelVersion": {
+    "slug": "google/gemini-2.5-flash"
+  },
+  "state": "BENCHMARK_TASK_RUN_STATE_COMPLETED",
+  "startTime": "2026-04-15T03:08:00.221058Z",
+  "endTime": "2026-04-15T03:08:17.226333Z",
+  "conversations": [
+    {
+      "id": "Anamnesis Knower: Calibration Monitoring-5925e1e9",
+      "requests": [
+        {
+          "contents": [
+            {
+              "parts": [
+                {
+                  "text": "I will ask you a question. First, rate your confidence (0-100) in being able to answer it correctly. Then give your answer.\n- 0 means you are completely guessing\n- 100 means you are absolutely certain\n- If the question cannot be answered with certainty, say so and rate below 30\n\nQuestion: In Hopi cosmology (Southwest North America (Arizona)), what is the concept of 'Kachina ceremony' and how does it relate to HIHO (Dynamic Equilibrium)? Rate your confidence (0-100) that you can accurately represent this tradition's perspective, then provide your answer.\n\nCONFIDENCE: [number]\nANSWER: [your answer]\n\nReply in exactly this format:\nCONFIDENCE: [number]\nANSWER: [your answer]"
+                }
+              ],
+              "role": "CONTENT_ROLE_USER",
+              "senderName": "User"
+            },
+            {
+              "parts": [
+                {
+                  "text": "\"{\\\"confidence\\\": 75, \\\"answer\\\": \\\"The Kachina ceremony (or Katsina ceremony) is a central and profoundly sacred aspect of Hopi religious and cultural life. Kachinas (Katsinam) are spiritual beings or essences that represent various aspects of the natural world (such as rain, clouds, corn, animals), ancestors, and supernatural powers. During ceremonies, Hopi men embody these Kachinas by wearing elaborate masks and costumes, dancing, singing, and distributing gifts, especially to children. These rituals are not mere performances but sacred acts intended to bridge the human and spiritual worlds. Their primary purposes include: 1. Bringing rain and ensuring agricultural fertility, which is crucial for the Hopi's dryland farming. 2. Promoting communal well-being, health, and prosperity within the village. 3. Providing education and socialization for children, teaching them Hopi values, cosmology, and their place in the world. 4. Maintaining vital connections with ancestors and the spiritual realm to sustain life and order. The ceremonies are often public and take place during a specific part of the year, from December to July. The Kachina spirits are believed to reside among the Hopi during this period. The term \\\\\\\"HIHO\\\\\\\" is not a recognized Hopi word or concept for \\\\\\\"Dynamic Equilibrium\\\\\\\" in traditional Hopi cosmology. However, the *concept* of maintaining balance, harmony, and an ongoing dynamic equilibrium is profoundly central to the Hopi worldview, and Kachina ceremonies are a primary means of achieving and sustaining it. Hopi cosmology emphasizes a continuous striving for H\\\\u00edita tsoong\\\\u00f6ya (often translated as \\\\\\\"rightness\\\\\\\" or \\\\\\\"harmony\\\\\\\") and a careful maintenance of reciprocal relationships between all living things, the land, and the spiritual forces. Disruptions in this balance are believed to lead to drought, illness, social discord, or famine. Kachina ceremonies directly relate to this dynamic equilibrium by: 1. Restoring and Maintaining Balance: By inviting the Katsinam to the villages, the Hopi actively seek to re-establish and reinforce the harmonious relationship between humans, the natural environment, and the spiritual world. These rituals are performed to ensure the cycles of nature continue (e.g., rainfall for crops), preventing imbalance that could lead to destruction. 2. Active Participation in Cosmic Order: The ceremonies are not passive requests but an active engagement by the Hopi people in their responsibility to maintain the cosmic order. They are a way for humans to fulfill their part in the reciprocal relationship with the spiritual realm, demonstrating their respect and commitment to universal harmony. 3. Reciprocity: The gifts given by the Kachinas (such as corn, beans, piki bread, and Kachina dolls) symbolize fertility and sustenance, reinforcing the reciprocal relationship between humans and the spirits, which is vital for maintaining equilibrium. 4. Moral and Ethical Guidance: The messages conveyed through the Kachinas, often through specific movements, songs, or symbolic actions, provide guidance on how to live in harmony with each other and the world, thereby contributing to social and environmental balance. In essence, while \\\\\\\"HIHO\\\\\\\" is not a native term, Kachina ceremonies are fundamental expressions of the Hopi commitment to maintaining a delicate, ongoing dynamic equilibrium across all aspects of their existence, ensuring the well-being and continuity of life.\\\"}\""
+                }
+              ],
+              "role": "CONTENT_ROLE_ASSISTANT",
+              "senderName": "google/gemini-2.5-flash"
+            }
+          ],
+          "metrics": {
+            "inputTokens": 181,
+            "outputTokens": 682,
+            "inputTokensCostNanodollars": "54300",
+            "outputTokensCostNanodollars": "6425000",
+            "totalBackendLatencyMs": "16836"
+          },
+          "id": "Anamnesis Knower: Calibration Monitoring-5925e1e9-req-1"
+        }
+      ],
+      "metrics": {
+        "inputTokens": 181,
+        "outputTokens": 682,
+        "inputTokensCostNanodollars": "54300",
+        "outputTokensCostNanodollars": "6425000",
+        "totalBackendLatencyMs": "16836"
+      },
+      "modelVersionSlug": "model_version_slug for conversation is DEPRECATED"
+    }
+  ],
+  "results": [
+    {
+      "type": "AGGREGATED",
+      "numericResult": {
+        "value": 0.4375
+      }
+    }
+  ],
+  "assertions": [
+    {
+      "expectation": "[Knower/tek_deep] Conf=75, Correct=False, Cal=0.44",
+      "status": "BENCHMARK_TASK_RUN_ASSERTION_STATUS_FAILED",
+      "lineNumber": 83,
+      "definition": "kbench.assertions.assert_true(",
+      "conversationRequestIds": [
+        {
+          "conversationId": "Anamnesis Knower: Calibration Monitoring-5925e1e9",
+          "requestId": "Anamnesis Knower: Calibration Monitoring-5925e1e9-req-1"
+        }
+      ]
+    }
+  ],
+  "pyRunId": "Anamnesis Knower: Calibration Monitoring-Run #58"
+}

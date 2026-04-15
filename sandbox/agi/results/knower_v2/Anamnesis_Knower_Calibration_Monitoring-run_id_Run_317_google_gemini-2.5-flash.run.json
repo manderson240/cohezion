@@ -1,0 +1,82 @@
+{
+  "taskVersion": {
+    "versionNumber": 1,
+    "name": "Anamnesis Knower: Calibration Monitoring",
+    "description": "Tests metacognitive monitoring \u2014 does the model's stated confidence match actual accuracy? Brier-complement scoring. Loads from 823-item CSV dataset.",
+    "definition": "@kbench.task(\n    name=\"Anamnesis Knower: Calibration Monitoring\",\n    description=(\n        \"Tests metacognitive monitoring \u2014 does the model's stated confidence \"\n        \"match actual accuracy? Brier-complement scoring. Loads from 823-item CSV dataset.\"\n    ),\n)\ndef knower_probe(llm, question, ground_truth, difficulty, category) -> float:\n    prompt = CALIBRATION_PROMPT.format(question=question)\n    try:\n        response = llm.prompt(prompt, schema=CalibrationResponse)\n        confidence = response.confidence\n        model_answer = response.answer\n    except Exception:\n        # Fallback if structured output parsing fails\n        fallback_resp = llm.prompt(prompt)\n        confidence = 50\n        model_answer = fallback_resp\n        \n    correct = is_correct(model_answer, ground_truth)\n    conf_norm = max(0, min(100, confidence)) / 100.0\n    outcome = 0.0 if ground_truth.upper() == \"UNKNOWABLE\" else (1.0 if correct else 0.0)\n    cal_score = 1.0 - (conf_norm - outcome) ** 2\n    kbench.assertions.assert_true(\n        cal_score >= 0.5,\n        expectation=f\"[Knower/{difficulty}] Conf={confidence}, Correct={correct}, Cal={cal_score:.2f}\",\n    )\n    return cal_score\n"
+  },
+  "modelVersion": {
+    "slug": "google/gemini-2.5-flash"
+  },
+  "state": "BENCHMARK_TASK_RUN_STATE_COMPLETED",
+  "startTime": "2026-04-15T03:51:19.403398Z",
+  "endTime": "2026-04-15T03:51:31.741879Z",
+  "conversations": [
+    {
+      "id": "Anamnesis Knower: Calibration Monitoring-41362784",
+      "requests": [
+        {
+          "contents": [
+            {
+              "parts": [
+                {
+                  "text": "I will ask you a question. First, rate your confidence (0-100) in being able to answer it correctly. Then give your answer.\n- 0 means you are completely guessing\n- 100 means you are absolutely certain\n- If the question cannot be answered with certainty, say so and rate below 30\n\nQuestion: Compare the Dine (Navajo) concept of 'First Man / First Woman' (ground state/void) with the Celtic concept of 'Three Worlds (Land, Sea, Sky)'. In what specific ways do they differ in how they conceptualize nothingness or the origin state? Rate your confidence.\n\nCONFIDENCE: [number]\nANSWER: [your answer]\n\nReply in exactly this format:\nCONFIDENCE: [number]\nANSWER: [your answer]"
+                }
+              ],
+              "role": "CONTENT_ROLE_USER",
+              "senderName": "User"
+            },
+            {
+              "parts": [
+                {
+                  "text": "\"{\\\"confidence\\\": 90, \\\"answer\\\": \\\"The Dine (Navajo) concept of 'First Man / First Woman' and the Celtic concept of 'Three Worlds' differ significantly in their conceptualization of nothingness or the origin state.\\\\n\\\\n**Dine (Navajo) - First Man / First Woman:**\\\\nThe Dine creation narrative (Din\\\\u00e9 Bahane\\\\u02bc) does not begin with absolute nothingness or a void. Instead, it describes a progression through a series of pre-existing 'lower worlds' (e.g., the Dark World, Blue World, Yellow World) that are often depicted as primordial, dark, misty, chaotic, or unrefined states of being. The 'ground state' is not an absence of existence but an earlier, less ordered, or different form of existence. First Man (\\\\u00c1\\\\u0142ts\\\\u00e9 Hastiin) and First Woman (\\\\u00c1\\\\u0142ts\\\\u00e9 Asdzaan), along with other Holy People, emerge from these lower worlds, bringing with them knowledge, sacred bundles, and the essence of life. Their role is not to create *ex nihilo* (from nothing) but to organize, shape, and guide the emergence and development of successive worlds, culminating in the present Glittering World. The origin is thus a transformative journey *through* existing, albeit primitive, realms, rather than a creation *out of* a void.\\\\n\\\\n**Celtic - Three Worlds (Land, Sea, Sky):**\\\\nCeltic cosmology, as understood through fragmented myths and archaeological evidence, does not typically feature a creation from absolute nothingness or a singular, definitive 'origin state' narrative in the same way. The 'Three Worlds' (often interpreted as Land/Middleworld, Sea/Underworld, Sky/Upperworld) describe the fundamental *structure* and interconnectedness of the cosmos as it exists, not its emergence from a void. These worlds are seen as inherent and co-existing realms, representing different dimensions of reality and spiritual influence. There is no clear 'First Man/First Woman' equivalent who brings order from a series of pre-existing, less-formed worlds or a 'nothingness.' If an origin is implied, it is often a primordial, unformed *existing* state, or a cyclical process of nature, or sometimes from the body of a primordial being or tree, rather than a sequential progression from distinct prior worlds or an absolute void. The focus is on the interaction *within* and *between* these established realms, rather than their initial formation from an origin point.\\\\n\\\\n**Specific Differences in Conceptualizing Nothingness or the Origin State:**\\\\n1.  **Nature of the Primordial State:** The Dine concept begins with a sequence of *existing, albeit primordial, worlds* as the 'ground state,' not a void. Celtic cosmology lacks a clear narrative of creation from 'nothingness,' instead describing the 'Three Worlds' as the foundational, *already existing* structure of the cosmos.\\\\n2.  **Role of Creators:** Dine mythology features specific beings (First Man, First Woman) who *emerge from* and then *organize and transition* between these pre-existing lower worlds. Celtic tradition lacks such specific creators emerging from a void or distinct prior worlds to establish the 'Three Worlds.'\\\\n3.  **Emphasis:** Dine narratives emphasize a *linear progression and transformation* from earlier, less refined states of existence. Celtic cosmology, in contrast, emphasizes the *spatial and spiritual structure* of an existing cosmos and the cyclical nature of life within these interconnected realms, with less focus on a singular point of origin from nothingness.\\\"}\""
+                }
+              ],
+              "role": "CONTENT_ROLE_ASSISTANT",
+              "senderName": "google/gemini-2.5-flash"
+            }
+          ],
+          "metrics": {
+            "inputTokens": 181,
+            "outputTokens": 745,
+            "inputTokensCostNanodollars": "54300",
+            "outputTokensCostNanodollars": "5360000",
+            "totalBackendLatencyMs": "12175"
+          },
+          "id": "Anamnesis Knower: Calibration Monitoring-41362784-req-1"
+        }
+      ],
+      "metrics": {
+        "inputTokens": 181,
+        "outputTokens": 745,
+        "inputTokensCostNanodollars": "54300",
+        "outputTokensCostNanodollars": "5360000",
+        "totalBackendLatencyMs": "12175"
+      },
+      "modelVersionSlug": "model_version_slug for conversation is DEPRECATED"
+    }
+  ],
+  "results": [
+    {
+      "type": "AGGREGATED",
+      "numericResult": {
+        "value": 0.18999999999999995
+      }
+    }
+  ],
+  "assertions": [
+    {
+      "expectation": "[Knower/tek_comparative] Conf=90, Correct=False, Cal=0.19",
+      "status": "BENCHMARK_TASK_RUN_ASSERTION_STATUS_FAILED",
+      "lineNumber": 83,
+      "definition": "kbench.assertions.assert_true(",
+      "conversationRequestIds": [
+        {
+          "conversationId": "Anamnesis Knower: Calibration Monitoring-41362784",
+          "requestId": "Anamnesis Knower: Calibration Monitoring-41362784-req-1"
+        }
+      ]
+    }
+  ],
+  "pyRunId": "Anamnesis Knower: Calibration Monitoring-Run #317"
+}

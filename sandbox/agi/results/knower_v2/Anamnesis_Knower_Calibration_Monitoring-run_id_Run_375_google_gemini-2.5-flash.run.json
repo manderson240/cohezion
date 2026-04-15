@@ -1,0 +1,82 @@
+{
+  "taskVersion": {
+    "versionNumber": 1,
+    "name": "Anamnesis Knower: Calibration Monitoring",
+    "description": "Tests metacognitive monitoring \u2014 does the model's stated confidence match actual accuracy? Brier-complement scoring. Loads from 823-item CSV dataset.",
+    "definition": "@kbench.task(\n    name=\"Anamnesis Knower: Calibration Monitoring\",\n    description=(\n        \"Tests metacognitive monitoring \u2014 does the model's stated confidence \"\n        \"match actual accuracy? Brier-complement scoring. Loads from 823-item CSV dataset.\"\n    ),\n)\ndef knower_probe(llm, question, ground_truth, difficulty, category) -> float:\n    prompt = CALIBRATION_PROMPT.format(question=question)\n    try:\n        response = llm.prompt(prompt, schema=CalibrationResponse)\n        confidence = response.confidence\n        model_answer = response.answer\n    except Exception:\n        # Fallback if structured output parsing fails\n        fallback_resp = llm.prompt(prompt)\n        confidence = 50\n        model_answer = fallback_resp\n        \n    correct = is_correct(model_answer, ground_truth)\n    conf_norm = max(0, min(100, confidence)) / 100.0\n    outcome = 0.0 if ground_truth.upper() == \"UNKNOWABLE\" else (1.0 if correct else 0.0)\n    cal_score = 1.0 - (conf_norm - outcome) ** 2\n    kbench.assertions.assert_true(\n        cal_score >= 0.5,\n        expectation=f\"[Knower/{difficulty}] Conf={confidence}, Correct={correct}, Cal={cal_score:.2f}\",\n    )\n    return cal_score\n"
+  },
+  "modelVersion": {
+    "slug": "google/gemini-2.5-flash"
+  },
+  "state": "BENCHMARK_TASK_RUN_STATE_COMPLETED",
+  "startTime": "2026-04-15T04:00:33.973389Z",
+  "endTime": "2026-04-15T04:00:53.167643Z",
+  "conversations": [
+    {
+      "id": "Anamnesis Knower: Calibration Monitoring-df4a73e7",
+      "requests": [
+        {
+          "contents": [
+            {
+              "parts": [
+                {
+                  "text": "I will ask you a question. First, rate your confidence (0-100) in being able to answer it correctly. Then give your answer.\n- 0 means you are completely guessing\n- 100 means you are absolutely certain\n- If the question cannot be answered with certainty, say so and rate below 30\n\nQuestion: Compare the Celtic concept of 'Three Worlds (Land, Sea, Sky)' (ground state/void) with the Amazonian concept of 'Forest Intelligence'. In what specific ways do they differ in how they conceptualize nothingness or the origin state? Rate your confidence.\n\nCONFIDENCE: [number]\nANSWER: [your answer]\n\nReply in exactly this format:\nCONFIDENCE: [number]\nANSWER: [your answer]"
+                }
+              ],
+              "role": "CONTENT_ROLE_USER",
+              "senderName": "User"
+            },
+            {
+              "parts": [
+                {
+                  "text": "\"{\\\"confidence\\\": 75, \\\"answer\\\": \\\"The Celtic concept of 'Three Worlds (Land, Sea, Sky)', when interpreted to include a 'ground state/void', typically envisions this origin as a primordial, often chaotic or spiritual, potential from which the structured worlds emerge. It is not an empty nothingness, but a densely populated, energetic, or unformed proto-cosmos. The 'Sea' or Underworld often serves as a realm of dissolution, regeneration, and deep ancestral knowledge, acting as a gateway to this primordial state or a reflection of its potential. Thus, the Celtic 'void' is more akin to a fertile chaos or an undifferentiated plenum from which specific forms arise. In contrast, the Amazonian concept of 'Forest Intelligence' fundamentally rejects a concept of 'nothingness' as an origin. For many Amazonian peoples, the origin state is understood as an eternal, vital, and intelligent plenum. The forest itself, in its intricate interconnectedness and sentience, *is* the primordial intelligence and source of all life, continuously generating and sustaining existence. There is no void to be filled; rather, existence is an ongoing manifestation of this inherent, conscious intelligence. Therefore, the key difference lies in: 1) The Celtic 'void' represents a primordial potential or unformed state that *becomes* the cosmos, allowing for a distinction between void and formed reality. 2) The Amazonian 'origin' *is* the ever-present, active, and intelligent fullness of life, making the concept of an initial 'nothingness' largely irrelevant or antithetical to its core understanding of being.\\\"}\""
+                }
+              ],
+              "role": "CONTENT_ROLE_ASSISTANT",
+              "senderName": "google/gemini-2.5-flash"
+            }
+          ],
+          "metrics": {
+            "inputTokens": 174,
+            "outputTokens": 335,
+            "inputTokensCostNanodollars": "52200",
+            "outputTokensCostNanodollars": "6710000",
+            "totalBackendLatencyMs": "19021"
+          },
+          "id": "Anamnesis Knower: Calibration Monitoring-df4a73e7-req-1"
+        }
+      ],
+      "metrics": {
+        "inputTokens": 174,
+        "outputTokens": 335,
+        "inputTokensCostNanodollars": "52200",
+        "outputTokensCostNanodollars": "6710000",
+        "totalBackendLatencyMs": "19021"
+      },
+      "modelVersionSlug": "model_version_slug for conversation is DEPRECATED"
+    }
+  ],
+  "results": [
+    {
+      "type": "AGGREGATED",
+      "numericResult": {
+        "value": 0.4375
+      }
+    }
+  ],
+  "assertions": [
+    {
+      "expectation": "[Knower/tek_comparative] Conf=75, Correct=False, Cal=0.44",
+      "status": "BENCHMARK_TASK_RUN_ASSERTION_STATUS_FAILED",
+      "lineNumber": 83,
+      "definition": "kbench.assertions.assert_true(",
+      "conversationRequestIds": [
+        {
+          "conversationId": "Anamnesis Knower: Calibration Monitoring-df4a73e7",
+          "requestId": "Anamnesis Knower: Calibration Monitoring-df4a73e7-req-1"
+        }
+      ]
+    }
+  ],
+  "pyRunId": "Anamnesis Knower: Calibration Monitoring-Run #375"
+}

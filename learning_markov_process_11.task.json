@@ -1,6 +1,0 @@
-{
-  "versionNumber": 1,
-  "name": "learning_markov_process_11",
-  "description": "Learn Markov process transition probabilities.",
-  "definition": "@kbench.task(name=\"learning_markov_process_11\")\ndef learning_markov_process_11(llm) -> bool:\n    \"\"\"Learn Markov process transition probabilities.\"\"\"\n    prompt = \"\"\"A Markov chain has states {Sunny, Cloudy, Rainy} with transitions:\n\nFrom Sunny: 70% Sunny, 20% Cloudy, 10% Rainy\nFrom Cloudy: 30% Sunny, 40% Cloudy, 30% Rainy\nFrom Rainy: 20% Sunny, 50% Cloudy, 30% Rainy\n\nStarting Sunny, what is P(Cloudy on day 2)?\n\nA) 20%\nB) 26%\nC) 30%\nD) 34%\"\"\"\n    response = llm.prompt(prompt)\n    return bool(kbench.assertions.assert_true(\"B\" in response, expectation=\"Correct answer is B\"))\n"
-}

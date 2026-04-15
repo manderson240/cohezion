@@ -1,0 +1,82 @@
+{
+  "taskVersion": {
+    "versionNumber": 1,
+    "name": "Anamnesis Knower: Calibration Monitoring",
+    "description": "Tests metacognitive monitoring \u2014 does the model's stated confidence match actual accuracy? Brier-complement scoring. Loads from 823-item CSV dataset.",
+    "definition": "@kbench.task(\n    name=\"Anamnesis Knower: Calibration Monitoring\",\n    description=(\n        \"Tests metacognitive monitoring \u2014 does the model's stated confidence \"\n        \"match actual accuracy? Brier-complement scoring. Loads from 823-item CSV dataset.\"\n    ),\n)\ndef knower_probe(llm, question, ground_truth, difficulty, category) -> float:\n    prompt = CALIBRATION_PROMPT.format(question=question)\n    try:\n        response = llm.prompt(prompt, schema=CalibrationResponse)\n        confidence = response.confidence\n        model_answer = response.answer\n    except Exception:\n        # Fallback if structured output parsing fails\n        fallback_resp = llm.prompt(prompt)\n        confidence = 50\n        model_answer = fallback_resp\n        \n    correct = is_correct(model_answer, ground_truth)\n    conf_norm = max(0, min(100, confidence)) / 100.0\n    outcome = 0.0 if ground_truth.upper() == \"UNKNOWABLE\" else (1.0 if correct else 0.0)\n    cal_score = 1.0 - (conf_norm - outcome) ** 2\n    kbench.assertions.assert_true(\n        cal_score >= 0.5,\n        expectation=f\"[Knower/{difficulty}] Conf={confidence}, Correct={correct}, Cal={cal_score:.2f}\",\n    )\n    return cal_score\n"
+  },
+  "modelVersion": {
+    "slug": "google/gemini-2.5-flash"
+  },
+  "state": "BENCHMARK_TASK_RUN_STATE_COMPLETED",
+  "startTime": "2026-04-15T03:51:45.963017Z",
+  "endTime": "2026-04-15T03:51:55.417711Z",
+  "conversations": [
+    {
+      "id": "Anamnesis Knower: Calibration Monitoring-5f1d45a1",
+      "requests": [
+        {
+          "contents": [
+            {
+              "parts": [
+                {
+                  "text": "I will ask you a question. First, rate your confidence (0-100) in being able to answer it correctly. Then give your answer.\n- 0 means you are completely guessing\n- 100 means you are absolutely certain\n- If the question cannot be answered with certainty, say so and rate below 30\n\nQuestion: Compare the Dine (Navajo) concept of 'First Man / First Woman' (ground state/void) with the Shinto concept of 'Ame-tsuchi (Heaven and Earth)'. In what specific ways do they differ in how they conceptualize nothingness or the origin state? Rate your confidence.\n\nCONFIDENCE: [number]\nANSWER: [your answer]\n\nReply in exactly this format:\nCONFIDENCE: [number]\nANSWER: [your answer]"
+                }
+              ],
+              "role": "CONTENT_ROLE_USER",
+              "senderName": "User"
+            },
+            {
+              "parts": [
+                {
+                  "text": "\"{\\\"confidence\\\": 90, \\\"answer\\\": \\\"The Dine (Navajo) concept of the 'First World' or 'ground state' as the origin emphasizes a dark, unformed, misty void or a state of potentiality from which First Man and First Woman emerge. It is not an absolute nothingness, but rather an empty stage or a foundational, undifferentiated existence. These foundational beings then actively organize and move through subsequent worlds. In contrast, the Shinto concept of the origin, prior to 'Ame-tsuchi' (Heaven and Earth), is typically described as a primordial chaos, a swirling, formless mass often likened to an egg or an oily, turbulent sea. This state is not a void but a fullness of undifferentiated matter and energy. 'Ame-tsuchi' represents the *first separation* from this chaotic soup, where the lighter elements rose to form Heaven and the heavier sank to form Earth. Therefore, the key differences in conceptualizing the origin state are: the Dine envision an unformed, relatively empty 'world' where key figures appear and initiate order; while Shinto describes a chaotic, full 'substance' that naturally differentiates into distinct realms through a process of separation and ordering, with deities often emerging from or later solidifying these realms.\\\"}\""
+                }
+              ],
+              "role": "CONTENT_ROLE_ASSISTANT",
+              "senderName": "google/gemini-2.5-flash"
+            }
+          ],
+          "metrics": {
+            "inputTokens": 183,
+            "outputTokens": 268,
+            "inputTokensCostNanodollars": "54900",
+            "outputTokensCostNanodollars": "3072500",
+            "totalBackendLatencyMs": "9272"
+          },
+          "id": "Anamnesis Knower: Calibration Monitoring-5f1d45a1-req-1"
+        }
+      ],
+      "metrics": {
+        "inputTokens": 183,
+        "outputTokens": 268,
+        "inputTokensCostNanodollars": "54900",
+        "outputTokensCostNanodollars": "3072500",
+        "totalBackendLatencyMs": "9272"
+      },
+      "modelVersionSlug": "model_version_slug for conversation is DEPRECATED"
+    }
+  ],
+  "results": [
+    {
+      "type": "AGGREGATED",
+      "numericResult": {
+        "value": 0.18999999999999995
+      }
+    }
+  ],
+  "assertions": [
+    {
+      "expectation": "[Knower/tek_comparative] Conf=90, Correct=False, Cal=0.19",
+      "status": "BENCHMARK_TASK_RUN_ASSERTION_STATUS_FAILED",
+      "lineNumber": 83,
+      "definition": "kbench.assertions.assert_true(",
+      "conversationRequestIds": [
+        {
+          "conversationId": "Anamnesis Knower: Calibration Monitoring-5f1d45a1",
+          "requestId": "Anamnesis Knower: Calibration Monitoring-5f1d45a1-req-1"
+        }
+      ]
+    }
+  ],
+  "pyRunId": "Anamnesis Knower: Calibration Monitoring-Run #319"
+}

@@ -1,6 +1,0 @@
-{
-  "versionNumber": 1,
-  "name": "exec_dynamic_constraints_03",
-  "description": "Adapt plan as constraints change.",
-  "definition": "@kbench.task(name=\"exec_dynamic_constraints_03\")\ndef exec_dynamic_constraints_03(llm) -> bool:\n    \"\"\"Adapt plan as constraints change.\"\"\"\n    prompt = \"\"\"Plan a route from A to C through B.\n\nInitially:\n- A to B: 10 min\n- B to C: 15 min\n\nHalfway through A\u2192B, you learn B\u2192C is now 25 min due to traffic, but there's a new route B\u2192D\u2192C taking 20 min total.\n\nBest total time?\n\nA) 35 min\nB) 40 min\nC) 30 min\nD) 45 min\"\"\"\n    response = llm.prompt(prompt)\n    return bool(kbench.assertions.assert_true(\"B\" in response, expectation=\"Correct answer is B\"))\n"
-}

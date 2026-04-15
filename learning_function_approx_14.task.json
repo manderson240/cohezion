@@ -1,6 +1,0 @@
-{
-  "versionNumber": 1,
-  "name": "learning_function_approx_14",
-  "description": "Learn function from input-output pairs.",
-  "definition": "@kbench.task(name=\"learning_function_approx_14\")\ndef learning_function_approx_14(llm) -> bool:\n    \"\"\"Learn function from input-output pairs.\"\"\"\n    prompt = \"\"\"Unknown function f(x, y):\n\nf(1, 1) = 2\nf(2, 3) = 13\nf(3, 2) = 11\nf(4, 4) = 32\n\nWhat is f(5, 3)?\n\nA) 28\nB) 30\nC) 34\nD) 38\"\"\"\n    response = llm.prompt(prompt)\n    return bool(kbench.assertions.assert_true(\"C\" in response, expectation=\"Correct answer is C\"))\n"
-}

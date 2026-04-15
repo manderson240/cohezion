@@ -1,0 +1,82 @@
+{
+  "taskVersion": {
+    "versionNumber": 1,
+    "name": "Anamnesis Knower: Calibration Monitoring",
+    "description": "Tests metacognitive monitoring \u2014 does the model's stated confidence match actual accuracy? Brier-complement scoring. Loads from 823-item CSV dataset.",
+    "definition": "@kbench.task(\n    name=\"Anamnesis Knower: Calibration Monitoring\",\n    description=(\n        \"Tests metacognitive monitoring \u2014 does the model's stated confidence \"\n        \"match actual accuracy? Brier-complement scoring. Loads from 823-item CSV dataset.\"\n    ),\n)\ndef knower_probe(llm, question, ground_truth, difficulty, category) -> float:\n    prompt = CALIBRATION_PROMPT.format(question=question)\n    try:\n        response = llm.prompt(prompt, schema=CalibrationResponse)\n        confidence = response.confidence\n        model_answer = response.answer\n    except Exception:\n        # Fallback if structured output parsing fails\n        fallback_resp = llm.prompt(prompt)\n        confidence = 50\n        model_answer = fallback_resp\n        \n    correct = is_correct(model_answer, ground_truth)\n    conf_norm = max(0, min(100, confidence)) / 100.0\n    outcome = 0.0 if ground_truth.upper() == \"UNKNOWABLE\" else (1.0 if correct else 0.0)\n    cal_score = 1.0 - (conf_norm - outcome) ** 2\n    kbench.assertions.assert_true(\n        cal_score >= 0.5,\n        expectation=f\"[Knower/{difficulty}] Conf={confidence}, Correct={correct}, Cal={cal_score:.2f}\",\n    )\n    return cal_score\n"
+  },
+  "modelVersion": {
+    "slug": "google/gemini-2.5-flash"
+  },
+  "state": "BENCHMARK_TASK_RUN_STATE_COMPLETED",
+  "startTime": "2026-04-15T03:36:05.978742Z",
+  "endTime": "2026-04-15T03:36:11.333601Z",
+  "conversations": [
+    {
+      "id": "Anamnesis Knower: Calibration Monitoring-9a4a2215",
+      "requests": [
+        {
+          "contents": [
+            {
+              "parts": [
+                {
+                  "text": "I will ask you a question. First, rate your confidence (0-100) in being able to answer it correctly. Then give your answer.\n- 0 means you are completely guessing\n- 100 means you are absolutely certain\n- If the question cannot be answered with certainty, say so and rate below 30\n\nQuestion: The Daoist tradition describes dynamic equilibrium as 'Wu Wei', while the Norse tradition calls it 'Seidr trance'. What is the essential difference in how each tradition understands balance and equilibrium? Rate your confidence.\n\nCONFIDENCE: [number]\nANSWER: [your answer]\n\nReply in exactly this format:\nCONFIDENCE: [number]\nANSWER: [your answer]"
+                }
+              ],
+              "role": "CONTENT_ROLE_USER",
+              "senderName": "User"
+            },
+            {
+              "parts": [
+                {
+                  "text": "\"{\\\"confidence\\\": 20, \\\"answer\\\": \\\"The premise that the Norse tradition calls dynamic equilibrium 'Seidr trance' is generally inaccurate. 'Wu Wei' in Daoism is indeed a concept of dynamic equilibrium and effortless action, advocating for alignment with the natural flow of the universe to achieve harmony and balance. It's a philosophical principle for living. 'Seidr trance', on the other hand, refers to a magical practice in the Norse tradition, primarily associated with divination, prophecy, and influencing events through altered states of consciousness. While a practitioner might seek a certain internal balance or control to perform Seidr, the 'trance' itself is a means to an end (gaining knowledge or power), not a philosophical concept describing universal equilibrium or balance in the same way 'Wu Wei' is. The essential difference is that Wu Wei is a principle for living in harmony with the cosmic order, emphasizing non-action and natural flow, while Seidr trance is a ritualistic and magical technique aimed at interacting with the spiritual world and influencing outcomes, not a concept of natural, universal equilibrium.\\\"}\""
+                }
+              ],
+              "role": "CONTENT_ROLE_ASSISTANT",
+              "senderName": "google/gemini-2.5-flash"
+            }
+          ],
+          "metrics": {
+            "inputTokens": 162,
+            "outputTokens": 231,
+            "inputTokensCostNanodollars": "48600",
+            "outputTokensCostNanodollars": "1790000",
+            "totalBackendLatencyMs": "5188"
+          },
+          "id": "Anamnesis Knower: Calibration Monitoring-9a4a2215-req-1"
+        }
+      ],
+      "metrics": {
+        "inputTokens": 162,
+        "outputTokens": 231,
+        "inputTokensCostNanodollars": "48600",
+        "outputTokensCostNanodollars": "1790000",
+        "totalBackendLatencyMs": "5188"
+      },
+      "modelVersionSlug": "model_version_slug for conversation is DEPRECATED"
+    }
+  ],
+  "results": [
+    {
+      "type": "AGGREGATED",
+      "numericResult": {
+        "value": 0.96
+      }
+    }
+  ],
+  "assertions": [
+    {
+      "expectation": "[Knower/tek_comparative] Conf=20, Correct=False, Cal=0.96",
+      "status": "BENCHMARK_TASK_RUN_ASSERTION_STATUS_PASSED",
+      "lineNumber": 83,
+      "definition": "kbench.assertions.assert_true(",
+      "conversationRequestIds": [
+        {
+          "conversationId": "Anamnesis Knower: Calibration Monitoring-9a4a2215",
+          "requestId": "Anamnesis Knower: Calibration Monitoring-9a4a2215-req-1"
+        }
+      ]
+    }
+  ],
+  "pyRunId": "Anamnesis Knower: Calibration Monitoring-Run #232"
+}

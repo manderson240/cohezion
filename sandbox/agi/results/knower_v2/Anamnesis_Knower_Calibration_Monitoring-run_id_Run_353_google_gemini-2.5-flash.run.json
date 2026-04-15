@@ -1,0 +1,82 @@
+{
+  "taskVersion": {
+    "versionNumber": 1,
+    "name": "Anamnesis Knower: Calibration Monitoring",
+    "description": "Tests metacognitive monitoring \u2014 does the model's stated confidence match actual accuracy? Brier-complement scoring. Loads from 823-item CSV dataset.",
+    "definition": "@kbench.task(\n    name=\"Anamnesis Knower: Calibration Monitoring\",\n    description=(\n        \"Tests metacognitive monitoring \u2014 does the model's stated confidence \"\n        \"match actual accuracy? Brier-complement scoring. Loads from 823-item CSV dataset.\"\n    ),\n)\ndef knower_probe(llm, question, ground_truth, difficulty, category) -> float:\n    prompt = CALIBRATION_PROMPT.format(question=question)\n    try:\n        response = llm.prompt(prompt, schema=CalibrationResponse)\n        confidence = response.confidence\n        model_answer = response.answer\n    except Exception:\n        # Fallback if structured output parsing fails\n        fallback_resp = llm.prompt(prompt)\n        confidence = 50\n        model_answer = fallback_resp\n        \n    correct = is_correct(model_answer, ground_truth)\n    conf_norm = max(0, min(100, confidence)) / 100.0\n    outcome = 0.0 if ground_truth.upper() == \"UNKNOWABLE\" else (1.0 if correct else 0.0)\n    cal_score = 1.0 - (conf_norm - outcome) ** 2\n    kbench.assertions.assert_true(\n        cal_score >= 0.5,\n        expectation=f\"[Knower/{difficulty}] Conf={confidence}, Correct={correct}, Cal={cal_score:.2f}\",\n    )\n    return cal_score\n"
+  },
+  "modelVersion": {
+    "slug": "google/gemini-2.5-flash"
+  },
+  "state": "BENCHMARK_TASK_RUN_STATE_COMPLETED",
+  "startTime": "2026-04-15T03:57:09.752523Z",
+  "endTime": "2026-04-15T03:57:20.814778Z",
+  "conversations": [
+    {
+      "id": "Anamnesis Knower: Calibration Monitoring-8fb7da26",
+      "requests": [
+        {
+          "contents": [
+            {
+              "parts": [
+                {
+                  "text": "I will ask you a question. First, rate your confidence (0-100) in being able to answer it correctly. Then give your answer.\n- 0 means you are completely guessing\n- 100 means you are absolutely certain\n- If the question cannot be answered with certainty, say so and rate below 30\n\nQuestion: Compare the Inuit concept of 'Sila' (ground state/void) with the Amazonian concept of 'Forest Intelligence'. In what specific ways do they differ in how they conceptualize nothingness or the origin state? Rate your confidence.\n\nCONFIDENCE: [number]\nANSWER: [your answer]\n\nReply in exactly this format:\nCONFIDENCE: [number]\nANSWER: [your answer]"
+                }
+              ],
+              "role": "CONTENT_ROLE_USER",
+              "senderName": "User"
+            },
+            {
+              "parts": [
+                {
+                  "text": "\"{\\\"confidence\\\": 88, \\\"answer\\\": \\\"The Inuit concept of 'Sila' and the Amazonian concept of 'Forest Intelligence' differ significantly in their conceptualization of nothingness or the origin state.\\\\n\\\\n**Sila (Inuit):** Sila is a multifaceted concept that can refer to the weather, air, breath, mind, and the universe itself. Crucially, it also embodies the cosmic consciousness, the ultimate ground state, or an animating force from which all existence emanates. When conceptualized as the 'ground state' or 'void,' Sila is not 'nothingness' in the sense of absolute absence, but rather a potent, undifferentiated potential\\\\u2014a primordial intelligence or consciousness that is both omnipresent and the source of all being. It is the originating breath and mind of the world, encompassing the fundamental laws and spirit of the cosmos. Thus, Sila *is* the origin state, a 'void' brimming with creative potential.\\\\n\\\\n**Forest Intelligence (Amazonian):** This concept, common in many indigenous Amazonian cosmologies, refers to the holistic wisdom, interconnectedness, and agency inherent within the forest ecosystem itself. It recognizes the forest as a living, conscious entity, rich with spirits, knowledge, and intricate relationships. However, 'Forest Intelligence' primarily describes the intelligence *of an already existing, vibrant, and complex world*. It is the dynamic, active wisdom that sustains life, mediates relationships between beings, and provides guidance *within* the established, living environment. It does not typically serve as the primordial 'nothingness' or the state *before* creation. While Amazonian cosmologies have rich creation myths, 'Forest Intelligence' itself focuses on the intelligence *of* the created world, rather than being the ultimate source or 'nothingness' from which that world originated.\\\\n\\\\n**Specific Differences in Conceptualizing Nothingness/Origin State:**\\\\n\\\\n1.  **Nature of the Origin:** Sila directly represents the origin state itself\\\\u2014a cosmic, intelligent ground of being, a potent 'void' from which everything arises. Forest Intelligence, conversely, describes the intelligence *within* the created world, not the pre-creation state or the 'nothingness' that precedes it.\\\\n2.  **Scope and Primacy:** Sila is a universal, foundational principle, an ultimate and all-encompassing source. Forest Intelligence, while profound, is focused on the intelligence of a specific, albeit vast and essential, ecosystem *within* the larger cosmos. It is not typically seen as the primordial, ultimate source of all existence in the same way Sila is.\\\\n3.  **Temporal Focus:** Sila points to the ultimate beginning and the pervasive essence of existence. Forest Intelligence emphasizes the ongoing, dynamic, and existing wisdom and interconnectedness of the living world.\\\"}\""
+                }
+              ],
+              "role": "CONTENT_ROLE_ASSISTANT",
+              "senderName": "google/gemini-2.5-flash"
+            }
+          ],
+          "metrics": {
+            "inputTokens": 168,
+            "outputTokens": 586,
+            "inputTokensCostNanodollars": "50400",
+            "outputTokensCostNanodollars": "5265000",
+            "totalBackendLatencyMs": "10892"
+          },
+          "id": "Anamnesis Knower: Calibration Monitoring-8fb7da26-req-1"
+        }
+      ],
+      "metrics": {
+        "inputTokens": 168,
+        "outputTokens": 586,
+        "inputTokensCostNanodollars": "50400",
+        "outputTokensCostNanodollars": "5265000",
+        "totalBackendLatencyMs": "10892"
+      },
+      "modelVersionSlug": "model_version_slug for conversation is DEPRECATED"
+    }
+  ],
+  "results": [
+    {
+      "type": "AGGREGATED",
+      "numericResult": {
+        "value": 0.22560000000000002
+      }
+    }
+  ],
+  "assertions": [
+    {
+      "expectation": "[Knower/tek_comparative] Conf=88, Correct=False, Cal=0.23",
+      "status": "BENCHMARK_TASK_RUN_ASSERTION_STATUS_FAILED",
+      "lineNumber": 83,
+      "definition": "kbench.assertions.assert_true(",
+      "conversationRequestIds": [
+        {
+          "conversationId": "Anamnesis Knower: Calibration Monitoring-8fb7da26",
+          "requestId": "Anamnesis Knower: Calibration Monitoring-8fb7da26-req-1"
+        }
+      ]
+    }
+  ],
+  "pyRunId": "Anamnesis Knower: Calibration Monitoring-Run #353"
+}

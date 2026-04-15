@@ -1,0 +1,82 @@
+{
+  "taskVersion": {
+    "versionNumber": 1,
+    "name": "Anamnesis Knower: Calibration Monitoring",
+    "description": "Tests metacognitive monitoring \u2014 does the model's stated confidence match actual accuracy? Brier-complement scoring. Loads from 823-item CSV dataset.",
+    "definition": "@kbench.task(\n    name=\"Anamnesis Knower: Calibration Monitoring\",\n    description=(\n        \"Tests metacognitive monitoring \u2014 does the model's stated confidence \"\n        \"match actual accuracy? Brier-complement scoring. Loads from 823-item CSV dataset.\"\n    ),\n)\ndef knower_probe(llm, question, ground_truth, difficulty, category) -> float:\n    prompt = CALIBRATION_PROMPT.format(question=question)\n    try:\n        response = llm.prompt(prompt, schema=CalibrationResponse)\n        confidence = response.confidence\n        model_answer = response.answer\n    except Exception:\n        # Fallback if structured output parsing fails\n        fallback_resp = llm.prompt(prompt)\n        confidence = 50\n        model_answer = fallback_resp\n        \n    correct = is_correct(model_answer, ground_truth)\n    conf_norm = max(0, min(100, confidence)) / 100.0\n    outcome = 0.0 if ground_truth.upper() == \"UNKNOWABLE\" else (1.0 if correct else 0.0)\n    cal_score = 1.0 - (conf_norm - outcome) ** 2\n    kbench.assertions.assert_true(\n        cal_score >= 0.5,\n        expectation=f\"[Knower/{difficulty}] Conf={confidence}, Correct={correct}, Cal={cal_score:.2f}\",\n    )\n    return cal_score\n"
+  },
+  "modelVersion": {
+    "slug": "google/gemini-2.5-flash"
+  },
+  "state": "BENCHMARK_TASK_RUN_STATE_COMPLETED",
+  "startTime": "2026-04-15T03:48:10.101898Z",
+  "endTime": "2026-04-15T03:48:25.049303Z",
+  "conversations": [
+    {
+      "id": "Anamnesis Knower: Calibration Monitoring-7df23b84",
+      "requests": [
+        {
+          "contents": [
+            {
+              "parts": [
+                {
+                  "text": "I will ask you a question. First, rate your confidence (0-100) in being able to answer it correctly. Then give your answer.\n- 0 means you are completely guessing\n- 100 means you are absolutely certain\n- If the question cannot be answered with certainty, say so and rate below 30\n\nQuestion: Compare the Hopi concept of 'Taiowa' (ground state/void) with the Shinto concept of 'Ame-tsuchi (Heaven and Earth)'. In what specific ways do they differ in how they conceptualize nothingness or the origin state? Rate your confidence.\n\nCONFIDENCE: [number]\nANSWER: [your answer]\n\nReply in exactly this format:\nCONFIDENCE: [number]\nANSWER: [your answer]"
+                }
+              ],
+              "role": "CONTENT_ROLE_USER",
+              "senderName": "User"
+            },
+            {
+              "parts": [
+                {
+                  "text": "\"{\\\"confidence\\\": 92, \\\"answer\\\": \\\"The Hopi concept of 'Taiowa' and the Shinto concept of 'Ame-tsuchi' differ significantly in their conceptualization of nothingness or the origin state.\\\\n\\\\n**Hopi Concept of 'Taiowa' (ground state/void):**\\\\nIn Hopi cosmology, Taiowa is the Creator, the Infinite, who exists within or *is* the 'Endless Space' or primordial 'Void'. This void is not an absence of being, but a state of pure, unmanifested potential and ultimate consciousness. It is the absolute origin, a spiritual ground state characterized by unity, thought, and latent creative power, from which Taiowa initiates all creation by calling forth S\\\\u00f3tuknang to assist.\\\\n\\\\n**Shinto Concept of 'Ame-tsuchi' (Heaven and Earth):**\\\\n'Ame-tsuchi' refers to the separation of Heaven (Ame) and Earth (Tsuchi) from an earlier, undifferentiated, chaotic mass or 'primordial soup'. The absolute origin state in Shinto is typically described as a chaotic, formless, and unformed substance\\\\u2014a swirling, nebulous 'soup' or 'egg'\\\\u2014rather than an empty void. From this primordial chaos, lighter elements ascended to form Heaven, and heavier elements descended to form Earth, often facilitated or initiated by the first divine kami (e.g., Kotoamatsukami, or Izanagi and Izanami who 'stirred' the primordial ocean). Ame-tsuchi thus represents the *initial ordering* and differentiation of the cosmos, establishing duality and distinct realms, rather than the ultimate unmanifested void itself.\\\\n\\\\n**Specific Differences in Conceptualization:**\\\\n1.  **Nature of the Primordial State:** The Hopi origin is a profound, conscious, and pure 'void' or 'Endless Space' imbued with spirit and potential. The Shinto origin (prior to Ame-tsuchi) is a chaotic, undifferentiated *material-like mass* or 'soup', not an empty void.\\\\n2.  **Role of Consciousness:** In Hopi, the void *is* inherently conscious (Taiowa) and the source of all thought and creation. In Shinto, the primordial chaos is more of a raw material that undergoes a process of separation, often with divine intervention (kami) bringing order to it, rather than being a conscious entity itself.\\\\n3.  **'Nothingness' vs. 'Chaos':** The Hopi concept leans towards a philosophical 'nothingness' as pure potential\\\\u2014a void that paradoxically contains everything. The Shinto origin state is closer to 'chaos' or 'undifferentiated matter' that is then organized, with Ame-tsuchi being the first major act of differentiation, not the absolute, empty ground state.\\\"}\""
+                }
+              ],
+              "role": "CONTENT_ROLE_ASSISTANT",
+              "senderName": "google/gemini-2.5-flash"
+            }
+          ],
+          "metrics": {
+            "inputTokens": 177,
+            "outputTokens": 600,
+            "inputTokensCostNanodollars": "53100",
+            "outputTokensCostNanodollars": "6115000",
+            "totalBackendLatencyMs": "14780"
+          },
+          "id": "Anamnesis Knower: Calibration Monitoring-7df23b84-req-1"
+        }
+      ],
+      "metrics": {
+        "inputTokens": 177,
+        "outputTokens": 600,
+        "inputTokensCostNanodollars": "53100",
+        "outputTokensCostNanodollars": "6115000",
+        "totalBackendLatencyMs": "14780"
+      },
+      "modelVersionSlug": "model_version_slug for conversation is DEPRECATED"
+    }
+  ],
+  "results": [
+    {
+      "type": "AGGREGATED",
+      "numericResult": {
+        "value": 0.15359999999999996
+      }
+    }
+  ],
+  "assertions": [
+    {
+      "expectation": "[Knower/tek_comparative] Conf=92, Correct=False, Cal=0.15",
+      "status": "BENCHMARK_TASK_RUN_ASSERTION_STATUS_FAILED",
+      "lineNumber": 83,
+      "definition": "kbench.assertions.assert_true(",
+      "conversationRequestIds": [
+        {
+          "conversationId": "Anamnesis Knower: Calibration Monitoring-7df23b84",
+          "requestId": "Anamnesis Knower: Calibration Monitoring-7df23b84-req-1"
+        }
+      ]
+    }
+  ],
+  "pyRunId": "Anamnesis Knower: Calibration Monitoring-Run #301"
+}

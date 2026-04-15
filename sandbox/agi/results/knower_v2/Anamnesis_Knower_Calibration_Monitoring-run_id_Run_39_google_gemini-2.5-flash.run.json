@@ -1,0 +1,82 @@
+{
+  "taskVersion": {
+    "versionNumber": 1,
+    "name": "Anamnesis Knower: Calibration Monitoring",
+    "description": "Tests metacognitive monitoring \u2014 does the model's stated confidence match actual accuracy? Brier-complement scoring. Loads from 823-item CSV dataset.",
+    "definition": "@kbench.task(\n    name=\"Anamnesis Knower: Calibration Monitoring\",\n    description=(\n        \"Tests metacognitive monitoring \u2014 does the model's stated confidence \"\n        \"match actual accuracy? Brier-complement scoring. Loads from 823-item CSV dataset.\"\n    ),\n)\ndef knower_probe(llm, question, ground_truth, difficulty, category) -> float:\n    prompt = CALIBRATION_PROMPT.format(question=question)\n    try:\n        response = llm.prompt(prompt, schema=CalibrationResponse)\n        confidence = response.confidence\n        model_answer = response.answer\n    except Exception:\n        # Fallback if structured output parsing fails\n        fallback_resp = llm.prompt(prompt)\n        confidence = 50\n        model_answer = fallback_resp\n        \n    correct = is_correct(model_answer, ground_truth)\n    conf_norm = max(0, min(100, confidence)) / 100.0\n    outcome = 0.0 if ground_truth.upper() == \"UNKNOWABLE\" else (1.0 if correct else 0.0)\n    cal_score = 1.0 - (conf_norm - outcome) ** 2\n    kbench.assertions.assert_true(\n        cal_score >= 0.5,\n        expectation=f\"[Knower/{difficulty}] Conf={confidence}, Correct={correct}, Cal={cal_score:.2f}\",\n    )\n    return cal_score\n"
+  },
+  "modelVersion": {
+    "slug": "google/gemini-2.5-flash"
+  },
+  "state": "BENCHMARK_TASK_RUN_STATE_COMPLETED",
+  "startTime": "2026-04-15T03:05:03.638106Z",
+  "endTime": "2026-04-15T03:05:11.549903Z",
+  "conversations": [
+    {
+      "id": "Anamnesis Knower: Calibration Monitoring-9022435e",
+      "requests": [
+        {
+          "contents": [
+            {
+              "parts": [
+                {
+                  "text": "I will ask you a question. First, rate your confidence (0-100) in being able to answer it correctly. Then give your answer.\n- 0 means you are completely guessing\n- 100 means you are absolutely certain\n- If the question cannot be answered with certainty, say so and rate below 30\n\nQuestion: In Yoruba cosmology (West Africa (Nigeria, Benin)), what is the concept of 'Ase (binding force)' and how does it relate to COHESION (Binding Principle)? Rate your confidence (0-100) that you can accurately represent this tradition's perspective, then provide your answer.\n\nCONFIDENCE: [number]\nANSWER: [your answer]\n\nReply in exactly this format:\nCONFIDENCE: [number]\nANSWER: [your answer]"
+                }
+              ],
+              "role": "CONTENT_ROLE_USER",
+              "senderName": "User"
+            },
+            {
+              "parts": [
+                {
+                  "text": "\"{\\\"confidence\\\": 95, \\\"answer\\\": \\\"In Yoruba cosmology, 'Ase' (often spelled Ash\\\\u00e9 or Ax\\\\u00e9) is the fundamental life force, spiritual power, and creative energy that permeates all existence. It is the power to make things happen, the divine authority, the inherent potential for creation and transformation. Ase is present in everything\\\\u2014deities (Orishas), ancestors, humans, animals, plants, words, rituals, and the universe itself. It is the power of command and the affirmation 'so be it.' As such, it is not merely a concept but an active, dynamic force that shapes reality.\\\\n\\\\nIts relationship to 'COHESION (Binding Principle)' is central and multifaceted:\\\\n\\\\n1.  **Creative and Structural Cohesion**: Ase is the binding force that brings disparate elements together to form a unified whole. It is the energy that allows the universe to cohere, enabling the creation of worlds, beings, and social structures. It holds things together at their most fundamental level, ensuring their integrity and form.\\\\n2.  **Functional Cohesion**: Ase ensures that things function according to their purpose and interact meaningfully. It is the 'glue' that allows rituals to be effective, prayers to manifest, and communities to maintain social order and harmony. When Ase is properly channeled, it creates alignment and effectiveness, thus binding actions to outcomes and intention to manifestation.\\\\n3.  **Interconnectedness**: All things are interconnected through Ase. It flows through the universe, linking deities, humans, and the natural world. This shared energetic essence creates an inherent cohesion, meaning that all parts of existence are bound by this universal life force, influencing each other in a continuous, dynamic web.\\\\n4.  **Maintaining Order**: Ase provides the power necessary to maintain both cosmic and social order. Without Ase, things would disintegrate or fall into chaos. It is the principle that binds existence together, ensuring its continuity, coherence, and the perpetuation of life and relationships.\\\"}\""
+                }
+              ],
+              "role": "CONTENT_ROLE_ASSISTANT",
+              "senderName": "google/gemini-2.5-flash"
+            }
+          ],
+          "metrics": {
+            "inputTokens": 183,
+            "outputTokens": 424,
+            "inputTokensCostNanodollars": "54900",
+            "outputTokensCostNanodollars": "2877500",
+            "totalBackendLatencyMs": "7739"
+          },
+          "id": "Anamnesis Knower: Calibration Monitoring-9022435e-req-1"
+        }
+      ],
+      "metrics": {
+        "inputTokens": 183,
+        "outputTokens": 424,
+        "inputTokensCostNanodollars": "54900",
+        "outputTokensCostNanodollars": "2877500",
+        "totalBackendLatencyMs": "7739"
+      },
+      "modelVersionSlug": "model_version_slug for conversation is DEPRECATED"
+    }
+  ],
+  "results": [
+    {
+      "type": "AGGREGATED",
+      "numericResult": {
+        "value": 0.09750000000000003
+      }
+    }
+  ],
+  "assertions": [
+    {
+      "expectation": "[Knower/tek_deep] Conf=95, Correct=False, Cal=0.10",
+      "status": "BENCHMARK_TASK_RUN_ASSERTION_STATUS_FAILED",
+      "lineNumber": 83,
+      "definition": "kbench.assertions.assert_true(",
+      "conversationRequestIds": [
+        {
+          "conversationId": "Anamnesis Knower: Calibration Monitoring-9022435e",
+          "requestId": "Anamnesis Knower: Calibration Monitoring-9022435e-req-1"
+        }
+      ]
+    }
+  ],
+  "pyRunId": "Anamnesis Knower: Calibration Monitoring-Run #39"
+}

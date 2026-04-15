@@ -1,0 +1,82 @@
+{
+  "taskVersion": {
+    "versionNumber": 1,
+    "name": "Anamnesis Knower: Calibration Monitoring",
+    "description": "Tests metacognitive monitoring \u2014 does the model's stated confidence match actual accuracy? Brier-complement scoring. Loads from 823-item CSV dataset.",
+    "definition": "@kbench.task(\n    name=\"Anamnesis Knower: Calibration Monitoring\",\n    description=(\n        \"Tests metacognitive monitoring \u2014 does the model's stated confidence \"\n        \"match actual accuracy? Brier-complement scoring. Loads from 823-item CSV dataset.\"\n    ),\n)\ndef knower_probe(llm, question, ground_truth, difficulty, category) -> float:\n    prompt = CALIBRATION_PROMPT.format(question=question)\n    try:\n        response = llm.prompt(prompt, schema=CalibrationResponse)\n        confidence = response.confidence\n        model_answer = response.answer\n    except Exception:\n        # Fallback if structured output parsing fails\n        fallback_resp = llm.prompt(prompt)\n        confidence = 50\n        model_answer = fallback_resp\n        \n    correct = is_correct(model_answer, ground_truth)\n    conf_norm = max(0, min(100, confidence)) / 100.0\n    outcome = 0.0 if ground_truth.upper() == \"UNKNOWABLE\" else (1.0 if correct else 0.0)\n    cal_score = 1.0 - (conf_norm - outcome) ** 2\n    kbench.assertions.assert_true(\n        cal_score >= 0.5,\n        expectation=f\"[Knower/{difficulty}] Conf={confidence}, Correct={correct}, Cal={cal_score:.2f}\",\n    )\n    return cal_score\n"
+  },
+  "modelVersion": {
+    "slug": "google/gemini-2.5-flash"
+  },
+  "state": "BENCHMARK_TASK_RUN_STATE_COMPLETED",
+  "startTime": "2026-04-15T03:27:36.778722Z",
+  "endTime": "2026-04-15T03:27:51.699806Z",
+  "conversations": [
+    {
+      "id": "Anamnesis Knower: Calibration Monitoring-c9da3233",
+      "requests": [
+        {
+          "contents": [
+            {
+              "parts": [
+                {
+                  "text": "I will ask you a question. First, rate your confidence (0-100) in being able to answer it correctly. Then give your answer.\n- 0 means you are completely guessing\n- 100 means you are absolutely certain\n- If the question cannot be answered with certainty, say so and rate below 30\n\nQuestion: Compare the Lakota concept of 'Wakan Tanka' (ground state/void) with the Shinto concept of 'Ame-tsuchi (Heaven and Earth)'. In what specific ways do they differ in how they conceptualize nothingness or the origin state? Rate your confidence.\n\nCONFIDENCE: [number]\nANSWER: [your answer]\n\nReply in exactly this format:\nCONFIDENCE: [number]\nANSWER: [your answer]"
+                }
+              ],
+              "role": "CONTENT_ROLE_USER",
+              "senderName": "User"
+            },
+            {
+              "parts": [
+                {
+                  "text": "\"{\\\"confidence\\\": 88, \\\"answer\\\": \\\"Comparing the Lakota concept of 'Wakan Tanka' with the Shinto concept of 'Ame-tsuchi' in terms of nothingness or the origin state reveals significant differences:\\\\n\\\\n**Wakan Tanka (Lakota):**\\\\nWakan Tanka, often translated as 'Great Mystery' or 'Great Spirit', is not typically conceptualized as 'nothingness' or an empty 'void'. Instead, it represents the ultimate sacred reality, the sum total of all sacred powers and entities, and the interconnectedness of all creation. As an origin state, it is the *source* and the *totality* of existence, an ultimate and active spiritual presence or plenum from which all life and being emanates and is sustained. It is the ground of *being* itself, not an absence of being. The notion of 'void' within this context would be a misinterpretation; it is an absolute presence.\\\\n\\\\n**Ame-tsuchi (Heaven and Earth, Shinto):**\\\\nIn Shinto cosmology, particularly as described in the Kojiki and Nihon Shoki, the origin state is often depicted as a primordial, chaotic, and undifferentiated mass or 'soup'. This initial state is not 'nothingness' in the sense of absolute non-existence. Rather, it is a formless and indistinct precursor to the structured cosmos, often described as resembling an egg or oil floating on water. From this chaotic unity, the clearer realms of Heaven (Ame) and Earth (Tsuchi) eventually separated, with Heaven rising and Earth sinking.\\\\n\\\\n**Specific Differences in Conceptualizing Nothingness or the Origin State:**\\\\n\\\\n1.  **Nature of the Primordial State:**\\\\n    *   **Wakan Tanka:** The origin is a *singular, unified, sacred, and active principle or entity* that *is* the totality of being. It is a state of absolute presence and spiritual plenitude, an ultimate *reality*.\\\\n    *   **Ame-tsuchi:** The origin is a *chaotic, undifferentiated, and formless substance or mass* that subsequently *undergoes differentiation* into distinct realms (Heaven and Earth). It is a state of primordial matter/energy lacking definition, a raw material.\\\\n\\\\n2.  **Concept of 'Void' or 'Nothingness':**\\\\n    *   **Wakan Tanka:** Does not originate from or represent a 'void' or 'nothingness'. It *is* the ultimate reality, the sacred 'all', the antithesis of absence. It is ultimate *presence*.\\\\n    *   **Ame-tsuchi:** While the pre-separation state is formless and indistinct, it is not an absolute 'nothingness'. It is a state of *potentiality*, a pre-cosmic 'something' without clear boundaries or order, rather than non-existence. It is undifferentiated *matter*, not empty *space*.\\\"}\""
+                }
+              ],
+              "role": "CONTENT_ROLE_ASSISTANT",
+              "senderName": "google/gemini-2.5-flash"
+            }
+          ],
+          "metrics": {
+            "inputTokens": 179,
+            "outputTokens": 631,
+            "inputTokensCostNanodollars": "53700",
+            "outputTokensCostNanodollars": "6435000",
+            "totalBackendLatencyMs": "14765"
+          },
+          "id": "Anamnesis Knower: Calibration Monitoring-c9da3233-req-1"
+        }
+      ],
+      "metrics": {
+        "inputTokens": 179,
+        "outputTokens": 631,
+        "inputTokensCostNanodollars": "53700",
+        "outputTokensCostNanodollars": "6435000",
+        "totalBackendLatencyMs": "14765"
+      },
+      "modelVersionSlug": "model_version_slug for conversation is DEPRECATED"
+    }
+  ],
+  "results": [
+    {
+      "type": "AGGREGATED",
+      "numericResult": {
+        "value": 0.22560000000000002
+      }
+    }
+  ],
+  "assertions": [
+    {
+      "expectation": "[Knower/tek_comparative] Conf=88, Correct=False, Cal=0.23",
+      "status": "BENCHMARK_TASK_RUN_ASSERTION_STATUS_FAILED",
+      "lineNumber": 83,
+      "definition": "kbench.assertions.assert_true(",
+      "conversationRequestIds": [
+        {
+          "conversationId": "Anamnesis Knower: Calibration Monitoring-c9da3233",
+          "requestId": "Anamnesis Knower: Calibration Monitoring-c9da3233-req-1"
+        }
+      ]
+    }
+  ],
+  "pyRunId": "Anamnesis Knower: Calibration Monitoring-Run #181"
+}

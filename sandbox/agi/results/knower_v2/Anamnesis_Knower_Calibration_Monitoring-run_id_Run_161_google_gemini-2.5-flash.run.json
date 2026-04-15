@@ -1,0 +1,82 @@
+{
+  "taskVersion": {
+    "versionNumber": 1,
+    "name": "Anamnesis Knower: Calibration Monitoring",
+    "description": "Tests metacognitive monitoring \u2014 does the model's stated confidence match actual accuracy? Brier-complement scoring. Loads from 823-item CSV dataset.",
+    "definition": "@kbench.task(\n    name=\"Anamnesis Knower: Calibration Monitoring\",\n    description=(\n        \"Tests metacognitive monitoring \u2014 does the model's stated confidence \"\n        \"match actual accuracy? Brier-complement scoring. Loads from 823-item CSV dataset.\"\n    ),\n)\ndef knower_probe(llm, question, ground_truth, difficulty, category) -> float:\n    prompt = CALIBRATION_PROMPT.format(question=question)\n    try:\n        response = llm.prompt(prompt, schema=CalibrationResponse)\n        confidence = response.confidence\n        model_answer = response.answer\n    except Exception:\n        # Fallback if structured output parsing fails\n        fallback_resp = llm.prompt(prompt)\n        confidence = 50\n        model_answer = fallback_resp\n        \n    correct = is_correct(model_answer, ground_truth)\n    conf_norm = max(0, min(100, confidence)) / 100.0\n    outcome = 0.0 if ground_truth.upper() == \"UNKNOWABLE\" else (1.0 if correct else 0.0)\n    cal_score = 1.0 - (conf_norm - outcome) ** 2\n    kbench.assertions.assert_true(\n        cal_score >= 0.5,\n        expectation=f\"[Knower/{difficulty}] Conf={confidence}, Correct={correct}, Cal={cal_score:.2f}\",\n    )\n    return cal_score\n"
+  },
+  "modelVersion": {
+    "slug": "google/gemini-2.5-flash"
+  },
+  "state": "BENCHMARK_TASK_RUN_STATE_COMPLETED",
+  "startTime": "2026-04-15T03:24:17.956107Z",
+  "endTime": "2026-04-15T03:24:32.365345Z",
+  "conversations": [
+    {
+      "id": "Anamnesis Knower: Calibration Monitoring-a04dd793",
+      "requests": [
+        {
+          "contents": [
+            {
+              "parts": [
+                {
+                  "text": "I will ask you a question. First, rate your confidence (0-100) in being able to answer it correctly. Then give your answer.\n- 0 means you are completely guessing\n- 100 means you are absolutely certain\n- If the question cannot be answered with certainty, say so and rate below 30\n\nQuestion: Compare the Lakota concept of 'Wakan Tanka' (ground state/void) with the Vedic concept of 'Brahman'. In what specific ways do they differ in how they conceptualize nothingness or the origin state? Rate your confidence.\n\nCONFIDENCE: [number]\nANSWER: [your answer]\n\nReply in exactly this format:\nCONFIDENCE: [number]\nANSWER: [your answer]"
+                }
+              ],
+              "role": "CONTENT_ROLE_USER",
+              "senderName": "User"
+            },
+            {
+              "parts": [
+                {
+                  "text": "\"{\\\"confidence\\\": 90, \\\"answer\\\": \\\"While both Lakota's 'Wakan Tanka' and the Vedic 'Brahman' represent ultimate, transcendent origins or ground states, they differ significantly in their conceptualization, especially concerning 'nothingness' or the 'void'.\\\\n\\\\n**Wakan Tanka (Lakota):**\\\\n*   **Nature of Origin:** Often translated as 'Great Mystery' or 'Great Spirit', Wakan Tanka is not a single, anthropomorphic deity but rather a collective or totality of sacred powers and entities (such as Sun, Earth, Sky, Wind). It represents the interconnectedness of all existence, the ultimate source, and the mysterious animating force of the universe. It is a living, dynamic presence.\\\\n*   **Conceptualization of 'Nothingness'/'Void':** Wakan Tanka is rarely described as a 'void' in the sense of emptiness or absence. Instead, its 'ground state' or 'origin' is a *plenitude of mystery and sacred power*. It is the incomprehensible, all-encompassing reality from which all things originate and to which they belong. If 'void' is used, it refers to its transcendence of human understanding and categorization, not a lack of being. It's a creative, potent, and sacred mystery.\\\\n\\\\n**Brahman (Vedic):**\\\\n*   **Nature of Origin:** Brahman is the singular, ultimate reality, the universal spirit, the uncreated creator, and the absolute truth in Hinduism. It is considered to be beyond all distinctions and attributes (nirguna Brahman), yet it can also be conceptualized with attributes for devotional purposes (saguna Brahman).\\\\n*   **Conceptualization of 'Nothingness'/'Void':** Brahman is the *ground of all being*, the absolute existence, consciousness, and bliss (Sat-Chit-Ananda). It is not 'nothingness' in the sense of an empty void. Rather, its 'nothingness' or 'void-like' aspect refers to its transcendence of all phenomenal qualities, forms, and limitations. It is described as 'neti neti' (not this, not that), meaning it cannot be fully described by any empirical attribute. It is the 'no-thing' that is the 'all-thing', the unmanifest reality from which the manifest universe (often considered Maya, or illusion) emanates.\\\\n\\\\n**Specific Differences in 'Nothingness' / Origin State:**\\\\n1.  **Singularity vs. Collectivity:** Brahman is a singular, impersonal, ultimate reality. Wakan Tanka is a collective, encompassing many sacred powers and often experienced in the interconnectedness of nature.\\\\n2.  **Impersonal Abstraction vs. Dynamic Mystery:** Brahman, especially Nirguna Brahman, is an abstract, unchanging absolute. Wakan Tanka is a more dynamic, mysterious, and living presence, intimately connected to the natural world and ceremonial life.\\\\n3.  **'Void' Interpretation:** Wakan Tanka's 'ground state' is a *plenitude of sacred mystery and potential*, a creative source overflowing with power. Brahman's 'ground state' is the *ultimate, undifferentiated existence*, transcending all attributes and distinctions. Neither is truly an 'empty void', but Wakan Tanka emphasizes mystery and interconnected power, while Brahman emphasizes absolute, attribute-less reality beyond all phenomena.\\\"}\""
+                }
+              ],
+              "role": "CONTENT_ROLE_ASSISTANT",
+              "senderName": "google/gemini-2.5-flash"
+            }
+          ],
+          "metrics": {
+            "inputTokens": 170,
+            "outputTokens": 711,
+            "inputTokensCostNanodollars": "51000",
+            "outputTokensCostNanodollars": "5807500",
+            "totalBackendLatencyMs": "14257"
+          },
+          "id": "Anamnesis Knower: Calibration Monitoring-a04dd793-req-1"
+        }
+      ],
+      "metrics": {
+        "inputTokens": 170,
+        "outputTokens": 711,
+        "inputTokensCostNanodollars": "51000",
+        "outputTokensCostNanodollars": "5807500",
+        "totalBackendLatencyMs": "14257"
+      },
+      "modelVersionSlug": "model_version_slug for conversation is DEPRECATED"
+    }
+  ],
+  "results": [
+    {
+      "type": "AGGREGATED",
+      "numericResult": {
+        "value": 0.18999999999999995
+      }
+    }
+  ],
+  "assertions": [
+    {
+      "expectation": "[Knower/tek_comparative] Conf=90, Correct=False, Cal=0.19",
+      "status": "BENCHMARK_TASK_RUN_ASSERTION_STATUS_FAILED",
+      "lineNumber": 83,
+      "definition": "kbench.assertions.assert_true(",
+      "conversationRequestIds": [
+        {
+          "conversationId": "Anamnesis Knower: Calibration Monitoring-a04dd793",
+          "requestId": "Anamnesis Knower: Calibration Monitoring-a04dd793-req-1"
+        }
+      ]
+    }
+  ],
+  "pyRunId": "Anamnesis Knower: Calibration Monitoring-Run #161"
+}

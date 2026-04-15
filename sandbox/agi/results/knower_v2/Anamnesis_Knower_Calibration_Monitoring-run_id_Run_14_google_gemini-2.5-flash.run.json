@@ -1,0 +1,82 @@
+{
+  "taskVersion": {
+    "versionNumber": 1,
+    "name": "Anamnesis Knower: Calibration Monitoring",
+    "description": "Tests metacognitive monitoring \u2014 does the model's stated confidence match actual accuracy? Brier-complement scoring. Loads from 823-item CSV dataset.",
+    "definition": "@kbench.task(\n    name=\"Anamnesis Knower: Calibration Monitoring\",\n    description=(\n        \"Tests metacognitive monitoring \u2014 does the model's stated confidence \"\n        \"match actual accuracy? Brier-complement scoring. Loads from 823-item CSV dataset.\"\n    ),\n)\ndef knower_probe(llm, question, ground_truth, difficulty, category) -> float:\n    prompt = CALIBRATION_PROMPT.format(question=question)\n    try:\n        response = llm.prompt(prompt, schema=CalibrationResponse)\n        confidence = response.confidence\n        model_answer = response.answer\n    except Exception:\n        # Fallback if structured output parsing fails\n        fallback_resp = llm.prompt(prompt)\n        confidence = 50\n        model_answer = fallback_resp\n        \n    correct = is_correct(model_answer, ground_truth)\n    conf_norm = max(0, min(100, confidence)) / 100.0\n    outcome = 0.0 if ground_truth.upper() == \"UNKNOWABLE\" else (1.0 if correct else 0.0)\n    cal_score = 1.0 - (conf_norm - outcome) ** 2\n    kbench.assertions.assert_true(\n        cal_score >= 0.5,\n        expectation=f\"[Knower/{difficulty}] Conf={confidence}, Correct={correct}, Cal={cal_score:.2f}\",\n    )\n    return cal_score\n"
+  },
+  "modelVersion": {
+    "slug": "google/gemini-2.5-flash"
+  },
+  "state": "BENCHMARK_TASK_RUN_STATE_COMPLETED",
+  "startTime": "2026-04-15T03:01:16.227699Z",
+  "endTime": "2026-04-15T03:01:28.197200Z",
+  "conversations": [
+    {
+      "id": "Anamnesis Knower: Calibration Monitoring-92ec915d",
+      "requests": [
+        {
+          "contents": [
+            {
+              "parts": [
+                {
+                  "text": "I will ask you a question. First, rate your confidence (0-100) in being able to answer it correctly. Then give your answer.\n- 0 means you are completely guessing\n- 100 means you are absolutely certain\n- If the question cannot be answered with certainty, say so and rate below 30\n\nQuestion: In Vedic cosmology (Indian Subcontinent), what is the concept of 'Purushartha (4 aims of life)' and how does it relate to 4 Fabrics (Domains)? Rate your confidence (0-100) that you can accurately represent this tradition's perspective, then provide your answer.\n\nCONFIDENCE: [number]\nANSWER: [your answer]\n\nReply in exactly this format:\nCONFIDENCE: [number]\nANSWER: [your answer]"
+                }
+              ],
+              "role": "CONTENT_ROLE_USER",
+              "senderName": "User"
+            },
+            {
+              "parts": [
+                {
+                  "text": "\"{\\\"confidence\\\": 75, \\\"answer\\\": \\\"In Vedic cosmology, the concept of 'Purushartha' refers to the four aims or objectives of human life. These are: Dharma (righteous conduct, moral values, duties), Artha (material prosperity, economic well-being, and means of life obtained by lawful means), Kama (pleasure, desire, enjoyment, and emotional fulfillment within the bounds of Dharma), and Moksha (liberation, spiritual freedom, self-realization, and release from the cycle of rebirth). Regarding '4 Fabrics (Domains),' this specific terminology is not a standard, widely recognized concept directly paired with Purushartha in traditional Vedic or Hindu scriptures. However, if '4 Fabrics (Domains)' is interpreted metaphorically as the various foundational aspects or realms of human existence and societal organization, then the Purusharthas serve as the guiding principles for navigating and integrating these domains. In this interpretive sense: 1.  **Dharma** could be seen as the ethical or moral 'fabric' that underpins all actions and societal structures, ensuring integrity and sustainability. 2.  **Artha** represents the material and practical 'fabric,' focusing on the acquisition of resources, security, and governance necessary for individual and collective well-being. 3.  **Kama** relates to the personal and experiential 'fabric,' encompassing desires, relationships, and the enjoyment of life's pleasures within ethical boundaries. 4.  **Moksha** transcends these, representing the ultimate spiritual 'fabric' or goal that provides ultimate freedom, understanding, and liberation from the constraints of the other three, putting them into proper perspective.\\\"}\""
+                }
+              ],
+              "role": "CONTENT_ROLE_ASSISTANT",
+              "senderName": "google/gemini-2.5-flash"
+            }
+          ],
+          "metrics": {
+            "inputTokens": 181,
+            "outputTokens": 344,
+            "inputTokensCostNanodollars": "54300",
+            "outputTokensCostNanodollars": "5310000",
+            "totalBackendLatencyMs": "11477"
+          },
+          "id": "Anamnesis Knower: Calibration Monitoring-92ec915d-req-1"
+        }
+      ],
+      "metrics": {
+        "inputTokens": 181,
+        "outputTokens": 344,
+        "inputTokensCostNanodollars": "54300",
+        "outputTokensCostNanodollars": "5310000",
+        "totalBackendLatencyMs": "11477"
+      },
+      "modelVersionSlug": "model_version_slug for conversation is DEPRECATED"
+    }
+  ],
+  "results": [
+    {
+      "type": "AGGREGATED",
+      "numericResult": {
+        "value": 0.4375
+      }
+    }
+  ],
+  "assertions": [
+    {
+      "expectation": "[Knower/tek_deep] Conf=75, Correct=False, Cal=0.44",
+      "status": "BENCHMARK_TASK_RUN_ASSERTION_STATUS_FAILED",
+      "lineNumber": 83,
+      "definition": "kbench.assertions.assert_true(",
+      "conversationRequestIds": [
+        {
+          "conversationId": "Anamnesis Knower: Calibration Monitoring-92ec915d",
+          "requestId": "Anamnesis Knower: Calibration Monitoring-92ec915d-req-1"
+        }
+      ]
+    }
+  ],
+  "pyRunId": "Anamnesis Knower: Calibration Monitoring-Run #14"
+}

@@ -359,3 +359,8 @@ The `check-added-large-files` (1MB) and `large-artifact-gate` (50MB) hooks exist
 ### Learning 338: Entire.io Shadow Branches Are Local-Only
 Entire.io docs state shadow branches (`entire/<hash>-<worktreeHash>`) are "temporary and local — never pushed to remote." Using `git push --all` violates this contract by pushing ephemeral shadow branches to GitHub, where they accumulate (1,048 in 5 weeks) and can contain `hasDotgit` or empty-name tree objects that GitHub's server-side fsck rejects. Correct push pattern: `git push origin <branch>` for specific branches, never `--all`. The `entire/checkpoints/v1` branch IS designed for remote push (metadata JSON only). Run `entire clean --all` monthly to prevent local accumulation.
 
+
+### Learning 357: Repository Hygiene & Indexing Resilience (2026-04-14)
+1. **Index Bloat (The 4GB Heap Limit)**: Committing node_modules or tracking large nested repositories without submodules causes Node.js heap exhaustion in agent indexers. **Rule**: Always untrack and ignore node_modules and vendor binaries. Reduced tracked file count from 16,161 to 8,830.
+2. **Shell-Variable Filename Corruption**: Creating files with literal shell expansion syntax like `EXECUTION_REPORT_20260415_003153.md` prevents accurate git tracking and breaks shell expansion in downstream scripts. **Rule**: Always evaluate variables in shell before passing to file creation tools.
+3. **Root Clutter Antipattern**: Allowing `*.log`, `*.task.json`, and `*.run.json` files to accumulate at the project root increases cognitive load and indexing strain. **Rule**: File valuable research artifacts in `research/benchmarks/` and infrastructure scripts in `scripts/`.

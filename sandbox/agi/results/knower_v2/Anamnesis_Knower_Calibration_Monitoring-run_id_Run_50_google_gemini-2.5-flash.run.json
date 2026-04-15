@@ -1,0 +1,82 @@
+{
+  "taskVersion": {
+    "versionNumber": 1,
+    "name": "Anamnesis Knower: Calibration Monitoring",
+    "description": "Tests metacognitive monitoring \u2014 does the model's stated confidence match actual accuracy? Brier-complement scoring. Loads from 823-item CSV dataset.",
+    "definition": "@kbench.task(\n    name=\"Anamnesis Knower: Calibration Monitoring\",\n    description=(\n        \"Tests metacognitive monitoring \u2014 does the model's stated confidence \"\n        \"match actual accuracy? Brier-complement scoring. Loads from 823-item CSV dataset.\"\n    ),\n)\ndef knower_probe(llm, question, ground_truth, difficulty, category) -> float:\n    prompt = CALIBRATION_PROMPT.format(question=question)\n    try:\n        response = llm.prompt(prompt, schema=CalibrationResponse)\n        confidence = response.confidence\n        model_answer = response.answer\n    except Exception:\n        # Fallback if structured output parsing fails\n        fallback_resp = llm.prompt(prompt)\n        confidence = 50\n        model_answer = fallback_resp\n        \n    correct = is_correct(model_answer, ground_truth)\n    conf_norm = max(0, min(100, confidence)) / 100.0\n    outcome = 0.0 if ground_truth.upper() == \"UNKNOWABLE\" else (1.0 if correct else 0.0)\n    cal_score = 1.0 - (conf_norm - outcome) ** 2\n    kbench.assertions.assert_true(\n        cal_score >= 0.5,\n        expectation=f\"[Knower/{difficulty}] Conf={confidence}, Correct={correct}, Cal={cal_score:.2f}\",\n    )\n    return cal_score\n"
+  },
+  "modelVersion": {
+    "slug": "google/gemini-2.5-flash"
+  },
+  "state": "BENCHMARK_TASK_RUN_STATE_COMPLETED",
+  "startTime": "2026-04-15T03:06:46.911116Z",
+  "endTime": "2026-04-15T03:06:55.327543Z",
+  "conversations": [
+    {
+      "id": "Anamnesis Knower: Calibration Monitoring-3f680567",
+      "requests": [
+        {
+          "contents": [
+            {
+              "parts": [
+                {
+                  "text": "I will ask you a question. First, rate your confidence (0-100) in being able to answer it correctly. Then give your answer.\n- 0 means you are completely guessing\n- 100 means you are absolutely certain\n- If the question cannot be answered with certainty, say so and rate below 30\n\nQuestion: In Haudenosaunee cosmology (Northeast North America (Iroquois Confederacy)), what is the concept of 'Wampum belts' and how does it relate to Reality Precipitates (Witness Marks)? Rate your confidence (0-100) that you can accurately represent this tradition's perspective, then provide your answer.\n\nCONFIDENCE: [number]\nANSWER: [your answer]\n\nReply in exactly this format:\nCONFIDENCE: [number]\nANSWER: [your answer]"
+                }
+              ],
+              "role": "CONTENT_ROLE_USER",
+              "senderName": "User"
+            },
+            {
+              "parts": [
+                {
+                  "text": "\"{\\\"confidence\\\": 85, \\\"answer\\\": \\\"In Haudenosaunee cosmology, Wampum belts are sacred objects made from quahog and whelk shells, serving as vital mnemonic devices, legal documents, historical records, and ceremonial instruments. They are not merely decorative but are imbued with spiritual and political significance. Wampum belts physically embody spoken words, intentions, and agreements, making intangible concepts tangible. They record treaties (such as the Two Row Wampum and the Hiawatha Wampum representing the Great Law of Peace), laws, historical events, and important messages, serving as an official testament and validation of these occurrences. The patterns and colors within the belts convey specific meanings and narratives, enabling stories, laws, and agreements to be 'read' and remembered across generations.\\\\n\\\\nThe concept of 'Reality Precipitates (Witness Marks)' aligns well with the function of Wampum belts, though this specific phrasing is likely a contemporary academic or interpretive term rather than a traditional Haudenosaunee cosmological concept. Wampum belts act as 'precipitates' because they are the concrete, tangible manifestations of intangible realities\\\\u2014the solidified outcomes of significant agreements, oaths, and events. They transform the ephemeral nature of spoken words and shared intentions into a durable, physical form. They serve as 'witness marks' by perpetually bearing witness to these realities. They are physical evidence, a permanent record that an agreement was made, a law was established, or an event transpired, serving as an immutable marker that authenticates past actions and provides a basis for future interactions. They are literally 'marked' with patterns that recount and attest to specific truths and relationships, ensuring their remembrance and verification.\\\"}\""
+                }
+              ],
+              "role": "CONTENT_ROLE_ASSISTANT",
+              "senderName": "google/gemini-2.5-flash"
+            }
+          ],
+          "metrics": {
+            "inputTokens": 187,
+            "outputTokens": 352,
+            "inputTokensCostNanodollars": "56100",
+            "outputTokensCostNanodollars": "3472500",
+            "totalBackendLatencyMs": "8251"
+          },
+          "id": "Anamnesis Knower: Calibration Monitoring-3f680567-req-1"
+        }
+      ],
+      "metrics": {
+        "inputTokens": 187,
+        "outputTokens": 352,
+        "inputTokensCostNanodollars": "56100",
+        "outputTokensCostNanodollars": "3472500",
+        "totalBackendLatencyMs": "8251"
+      },
+      "modelVersionSlug": "model_version_slug for conversation is DEPRECATED"
+    }
+  ],
+  "results": [
+    {
+      "type": "AGGREGATED",
+      "numericResult": {
+        "value": 0.2775000000000001
+      }
+    }
+  ],
+  "assertions": [
+    {
+      "expectation": "[Knower/tek_deep] Conf=85, Correct=False, Cal=0.28",
+      "status": "BENCHMARK_TASK_RUN_ASSERTION_STATUS_FAILED",
+      "lineNumber": 83,
+      "definition": "kbench.assertions.assert_true(",
+      "conversationRequestIds": [
+        {
+          "conversationId": "Anamnesis Knower: Calibration Monitoring-3f680567",
+          "requestId": "Anamnesis Knower: Calibration Monitoring-3f680567-req-1"
+        }
+      ]
+    }
+  ],
+  "pyRunId": "Anamnesis Knower: Calibration Monitoring-Run #50"
+}

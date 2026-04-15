@@ -1,6 +1,0 @@
-{
-  "versionNumber": 1,
-  "name": "exec_cognitive_flexibility_09",
-  "description": "Adapt strategy when rules change.",
-  "definition": "@kbench.task(name=\"exec_cognitive_flexibility_09\")\ndef exec_cognitive_flexibility_09(llm) -> bool:\n    \"\"\"Adapt strategy when rules change.\"\"\"\n    prompt = \"\"\"Game rules change:\n\nRounds 1-3: Score = sum of dice\nRounds 4-6: Score = product of dice\nRound 7+: Score = max die value\n\nYou rolled: 3, 4 (Round 5)\n\nScore?\n\nA) 7\nB) 12\nC) 4\nD) 3\"\"\"\n    response = llm.prompt(prompt)\n    return bool(kbench.assertions.assert_true(\"B\" in response, expectation=\"Correct answer is B\"))\n"
-}

@@ -1,6 +1,0 @@
-{
-  "versionNumber": 1,
-  "name": "social_empathy_15",
-  "description": "Empathy and emotional understanding.",
-  "definition": "@kbench.task(name=\"social_empathy_15\")\ndef social_empathy_15(llm) -> bool:\n    \"\"\"Empathy and emotional understanding.\"\"\"\n    prompt = '''Your friend loses their job. They say \"I am okay\" but their voice is shaky.\n\nBest response?\n\nA) \"You will find another job soon\"\nB) \"It is not that bad\"\nC) \"That sounds really hard. I am here for you\"\nD) \"At least you have savings\"'''\n    response = llm.prompt(prompt)\n    return bool(kbench.assertions.assert_true(\"C\" in response, expectation=\"Correct answer is C\"))\n"
-}

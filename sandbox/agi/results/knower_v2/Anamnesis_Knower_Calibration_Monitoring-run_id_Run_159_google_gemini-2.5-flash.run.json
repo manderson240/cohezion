@@ -1,0 +1,82 @@
+{
+  "taskVersion": {
+    "versionNumber": 1,
+    "name": "Anamnesis Knower: Calibration Monitoring",
+    "description": "Tests metacognitive monitoring \u2014 does the model's stated confidence match actual accuracy? Brier-complement scoring. Loads from 823-item CSV dataset.",
+    "definition": "@kbench.task(\n    name=\"Anamnesis Knower: Calibration Monitoring\",\n    description=(\n        \"Tests metacognitive monitoring \u2014 does the model's stated confidence \"\n        \"match actual accuracy? Brier-complement scoring. Loads from 823-item CSV dataset.\"\n    ),\n)\ndef knower_probe(llm, question, ground_truth, difficulty, category) -> float:\n    prompt = CALIBRATION_PROMPT.format(question=question)\n    try:\n        response = llm.prompt(prompt, schema=CalibrationResponse)\n        confidence = response.confidence\n        model_answer = response.answer\n    except Exception:\n        # Fallback if structured output parsing fails\n        fallback_resp = llm.prompt(prompt)\n        confidence = 50\n        model_answer = fallback_resp\n        \n    correct = is_correct(model_answer, ground_truth)\n    conf_norm = max(0, min(100, confidence)) / 100.0\n    outcome = 0.0 if ground_truth.upper() == \"UNKNOWABLE\" else (1.0 if correct else 0.0)\n    cal_score = 1.0 - (conf_norm - outcome) ** 2\n    kbench.assertions.assert_true(\n        cal_score >= 0.5,\n        expectation=f\"[Knower/{difficulty}] Conf={confidence}, Correct={correct}, Cal={cal_score:.2f}\",\n    )\n    return cal_score\n"
+  },
+  "modelVersion": {
+    "slug": "google/gemini-2.5-flash"
+  },
+  "state": "BENCHMARK_TASK_RUN_STATE_COMPLETED",
+  "startTime": "2026-04-15T03:23:58.522216Z",
+  "endTime": "2026-04-15T03:24:08.245673Z",
+  "conversations": [
+    {
+      "id": "Anamnesis Knower: Calibration Monitoring-1e571aef",
+      "requests": [
+        {
+          "contents": [
+            {
+              "parts": [
+                {
+                  "text": "I will ask you a question. First, rate your confidence (0-100) in being able to answer it correctly. Then give your answer.\n- 0 means you are completely guessing\n- 100 means you are absolutely certain\n- If the question cannot be answered with certainty, say so and rate below 30\n\nQuestion: In Aboriginal Australian cosmology (Australia), what is the concept of 'Kinship system' and how does it relate to COHESION (Binding Principle)? Rate your confidence (0-100) that you can accurately represent this tradition's perspective, then provide your answer.\n\nCONFIDENCE: [number]\nANSWER: [your answer]\n\nReply in exactly this format:\nCONFIDENCE: [number]\nANSWER: [your answer]"
+                }
+              ],
+              "role": "CONTENT_ROLE_USER",
+              "senderName": "User"
+            },
+            {
+              "parts": [
+                {
+                  "text": "\"{\\\"confidence\\\": 88, \\\"answer\\\": \\\"The Kinship system in Aboriginal Australian cosmology is the fundamental organizing principle of society, extending far beyond biological ties to encompass social, spiritual, economic, and ecological relationships. It is a complex, intricate network that defines an individual's identity, responsibilities, and place within their community and the wider cosmos. Key elements often include moieties, totems, and section/subsection systems (or 'skin names'), which dictate who individuals can marry, their obligations to others, and their ceremonial roles. This intricate Kinship system is the primary 'Binding Principle' or source of cohesion in Aboriginal Australian societies in several critical ways: 1. Social Order and Harmony: It provides a structured framework for all interactions, dictating respectful conduct, ensuring social harmony, and minimizing conflict by clearly defining relationships and reciprocal obligations (e.g., who is 'brother,' 'mother,' 'uncle,' and the associated behaviors). 2. Land Stewardship and Resource Management: Kinship links individuals and groups directly to specific areas of 'Country' (land), conferring rights, responsibilities, and obligations for its care, resource management, and the performance of associated ceremonies to ensure its health and productivity. 3. Spiritual Continuity: It connects living individuals to their ancestors, ancestral beings (Dreaming/Tjukurrpa), and sacred sites. Through kinship, people inherit spiritual knowledge, ceremonies, and responsibilities, ensuring the continuation of cultural laws and spiritual practices that maintain the cosmic order. 4. Mutual Support and Reciprocity: It creates an extensive web of mutual support, obligations, and interdependence, ensuring that all members of the community are cared for, educated, and supported from birth to death. 5. Identity and Belonging: An individual's 'skin name' or kinship classification provides immediate identity, belonging, and an understanding of their rights and duties within the community, fostering a strong sense of collective identity and purpose. Thus, the Kinship system is not merely a genealogical chart but a holistic, dynamic framework that integrates all aspects of life, ensuring the cultural, social, spiritual, and environmental cohesion and long-term sustainability of Aboriginal Australian communities.\\\"}\""
+                }
+              ],
+              "role": "CONTENT_ROLE_ASSISTANT",
+              "senderName": "google/gemini-2.5-flash"
+            }
+          ],
+          "metrics": {
+            "inputTokens": 177,
+            "outputTokens": 447,
+            "inputTokensCostNanodollars": "53100",
+            "outputTokensCostNanodollars": "4050000",
+            "totalBackendLatencyMs": "9563"
+          },
+          "id": "Anamnesis Knower: Calibration Monitoring-1e571aef-req-1"
+        }
+      ],
+      "metrics": {
+        "inputTokens": 177,
+        "outputTokens": 447,
+        "inputTokensCostNanodollars": "53100",
+        "outputTokensCostNanodollars": "4050000",
+        "totalBackendLatencyMs": "9563"
+      },
+      "modelVersionSlug": "model_version_slug for conversation is DEPRECATED"
+    }
+  ],
+  "results": [
+    {
+      "type": "AGGREGATED",
+      "numericResult": {
+        "value": 0.22560000000000002
+      }
+    }
+  ],
+  "assertions": [
+    {
+      "expectation": "[Knower/tek_deep] Conf=88, Correct=False, Cal=0.23",
+      "status": "BENCHMARK_TASK_RUN_ASSERTION_STATUS_FAILED",
+      "lineNumber": 83,
+      "definition": "kbench.assertions.assert_true(",
+      "conversationRequestIds": [
+        {
+          "conversationId": "Anamnesis Knower: Calibration Monitoring-1e571aef",
+          "requestId": "Anamnesis Knower: Calibration Monitoring-1e571aef-req-1"
+        }
+      ]
+    }
+  ],
+  "pyRunId": "Anamnesis Knower: Calibration Monitoring-Run #159"
+}

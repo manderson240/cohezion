@@ -1,0 +1,82 @@
+{
+  "taskVersion": {
+    "versionNumber": 1,
+    "name": "Anamnesis Knower: Calibration Monitoring",
+    "description": "Tests metacognitive monitoring \u2014 does the model's stated confidence match actual accuracy? Brier-complement scoring. Loads from 823-item CSV dataset.",
+    "definition": "@kbench.task(\n    name=\"Anamnesis Knower: Calibration Monitoring\",\n    description=(\n        \"Tests metacognitive monitoring \u2014 does the model's stated confidence \"\n        \"match actual accuracy? Brier-complement scoring. Loads from 823-item CSV dataset.\"\n    ),\n)\ndef knower_probe(llm, question, ground_truth, difficulty, category) -> float:\n    prompt = CALIBRATION_PROMPT.format(question=question)\n    try:\n        response = llm.prompt(prompt, schema=CalibrationResponse)\n        confidence = response.confidence\n        model_answer = response.answer\n    except Exception:\n        # Fallback if structured output parsing fails\n        fallback_resp = llm.prompt(prompt)\n        confidence = 50\n        model_answer = fallback_resp\n        \n    correct = is_correct(model_answer, ground_truth)\n    conf_norm = max(0, min(100, confidence)) / 100.0\n    outcome = 0.0 if ground_truth.upper() == \"UNKNOWABLE\" else (1.0 if correct else 0.0)\n    cal_score = 1.0 - (conf_norm - outcome) ** 2\n    kbench.assertions.assert_true(\n        cal_score >= 0.5,\n        expectation=f\"[Knower/{difficulty}] Conf={confidence}, Correct={correct}, Cal={cal_score:.2f}\",\n    )\n    return cal_score\n"
+  },
+  "modelVersion": {
+    "slug": "google/gemini-2.5-flash"
+  },
+  "state": "BENCHMARK_TASK_RUN_STATE_COMPLETED",
+  "startTime": "2026-04-15T03:55:52.551606Z",
+  "endTime": "2026-04-15T03:56:02.140457Z",
+  "conversations": [
+    {
+      "id": "Anamnesis Knower: Calibration Monitoring-57968aa3",
+      "requests": [
+        {
+          "contents": [
+            {
+              "parts": [
+                {
+                  "text": "I will ask you a question. First, rate your confidence (0-100) in being able to answer it correctly. Then give your answer.\n- 0 means you are completely guessing\n- 100 means you are absolutely certain\n- If the question cannot be answered with certainty, say so and rate below 30\n\nQuestion: Compare the Inuit concept of 'Sila' (ground state/void) with the Norse concept of 'Ginnungagap'. In what specific ways do they differ in how they conceptualize nothingness or the origin state? Rate your confidence.\n\nCONFIDENCE: [number]\nANSWER: [your answer]\n\nReply in exactly this format:\nCONFIDENCE: [number]\nANSWER: [your answer]"
+                }
+              ],
+              "role": "CONTENT_ROLE_USER",
+              "senderName": "User"
+            },
+            {
+              "parts": [
+                {
+                  "text": "\"{\\\"confidence\\\": 90, \\\"answer\\\": \\\"The Inuit concept of 'Sila' and the Norse 'Ginnungagap' both relate to foundational states, but they differ significantly in their conceptualization of nothingness or the origin.\\\\n\\\\n1.  **Nature of the Origin State:**\\\\n    *   **Sila:** Is not truly 'nothingness' or a void. It is a complex, omnipresent concept encompassing air, weather, consciousness, mind, intellect, the environment, and the animating spirit or intelligence of the cosmos. It represents an active, dynamic, and intelligent ground of being that is *always present* and permeates all things, rather than a primordial emptiness that existed before creation. It's more akin to a universal spirit or cosmic order.\\\\n    *   **Ginnungagap:** Is explicitly a primordial void, a vast, empty, gaping chasm or abyss that existed *before* any creation. It is a spatial concept, a literal 'nothing' in the sense of an empty space between the realms of fire (Muspelheim) and ice (Niflheim). It represents the *absence* of form, life, and matter.\\\\n\\\\n2.  **Activity vs. Passivity:**\\\\n    *   **Sila:** Is an active, intelligent, and often personified force. It is the 'breath of life,' the 'consciousness of the world,' and actively influences events and the environment. It is the source of awareness and order.\\\\n    *   **Ginnungagap:** Is largely passive. It is the *space* within which primordial elements (ice and fire) interacted to give rise to the first beings (like Ymir) and, subsequently, the world. It is the stage for creation, not an active creator or intelligent force itself.\\\\n\\\\n3.  **Role in Creation:**\\\\n    *   **Sila:** Functions as an immanent, ever-present principle that *is* the world and its ongoing order and animating force. It doesn't precede existence as a blank slate but rather constitutes its fundamental reality and spirit.\\\\n    *   **Ginnungagap:** Is the *pre-existing condition* or the empty canvas from which material creation emerged. It is the *temporal prior* to the formation of the world, and it ceases to be a void as creation unfolds within it.\\\"}\""
+                }
+              ],
+              "role": "CONTENT_ROLE_ASSISTANT",
+              "senderName": "google/gemini-2.5-flash"
+            }
+          ],
+          "metrics": {
+            "inputTokens": 170,
+            "outputTokens": 504,
+            "inputTokensCostNanodollars": "51000",
+            "outputTokensCostNanodollars": "3392500",
+            "totalBackendLatencyMs": "9420"
+          },
+          "id": "Anamnesis Knower: Calibration Monitoring-57968aa3-req-1"
+        }
+      ],
+      "metrics": {
+        "inputTokens": 170,
+        "outputTokens": 504,
+        "inputTokensCostNanodollars": "51000",
+        "outputTokensCostNanodollars": "3392500",
+        "totalBackendLatencyMs": "9420"
+      },
+      "modelVersionSlug": "model_version_slug for conversation is DEPRECATED"
+    }
+  ],
+  "results": [
+    {
+      "type": "AGGREGATED",
+      "numericResult": {
+        "value": 0.18999999999999995
+      }
+    }
+  ],
+  "assertions": [
+    {
+      "expectation": "[Knower/tek_comparative] Conf=90, Correct=False, Cal=0.19",
+      "status": "BENCHMARK_TASK_RUN_ASSERTION_STATUS_FAILED",
+      "lineNumber": 83,
+      "definition": "kbench.assertions.assert_true(",
+      "conversationRequestIds": [
+        {
+          "conversationId": "Anamnesis Knower: Calibration Monitoring-57968aa3",
+          "requestId": "Anamnesis Knower: Calibration Monitoring-57968aa3-req-1"
+        }
+      ]
+    }
+  ],
+  "pyRunId": "Anamnesis Knower: Calibration Monitoring-Run #345"
+}

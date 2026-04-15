@@ -1,0 +1,82 @@
+{
+  "taskVersion": {
+    "versionNumber": 1,
+    "name": "Anamnesis Knower: Calibration Monitoring",
+    "description": "Tests metacognitive monitoring \u2014 does the model's stated confidence match actual accuracy? Brier-complement scoring. Loads from 823-item CSV dataset.",
+    "definition": "@kbench.task(\n    name=\"Anamnesis Knower: Calibration Monitoring\",\n    description=(\n        \"Tests metacognitive monitoring \u2014 does the model's stated confidence \"\n        \"match actual accuracy? Brier-complement scoring. Loads from 823-item CSV dataset.\"\n    ),\n)\ndef knower_probe(llm, question, ground_truth, difficulty, category) -> float:\n    prompt = CALIBRATION_PROMPT.format(question=question)\n    try:\n        response = llm.prompt(prompt, schema=CalibrationResponse)\n        confidence = response.confidence\n        model_answer = response.answer\n    except Exception:\n        # Fallback if structured output parsing fails\n        fallback_resp = llm.prompt(prompt)\n        confidence = 50\n        model_answer = fallback_resp\n        \n    correct = is_correct(model_answer, ground_truth)\n    conf_norm = max(0, min(100, confidence)) / 100.0\n    outcome = 0.0 if ground_truth.upper() == \"UNKNOWABLE\" else (1.0 if correct else 0.0)\n    cal_score = 1.0 - (conf_norm - outcome) ** 2\n    kbench.assertions.assert_true(\n        cal_score >= 0.5,\n        expectation=f\"[Knower/{difficulty}] Conf={confidence}, Correct={correct}, Cal={cal_score:.2f}\",\n    )\n    return cal_score\n"
+  },
+  "modelVersion": {
+    "slug": "google/gemini-2.5-flash"
+  },
+  "state": "BENCHMARK_TASK_RUN_STATE_COMPLETED",
+  "startTime": "2026-04-15T03:06:37.483582Z",
+  "endTime": "2026-04-15T03:06:46.908510Z",
+  "conversations": [
+    {
+      "id": "Anamnesis Knower: Calibration Monitoring-c8622d04",
+      "requests": [
+        {
+          "contents": [
+            {
+              "parts": [
+                {
+                  "text": "I will ask you a question. First, rate your confidence (0-100) in being able to answer it correctly. Then give your answer.\n- 0 means you are completely guessing\n- 100 means you are absolutely certain\n- If the question cannot be answered with certainty, say so and rate below 30\n\nQuestion: In Haudenosaunee cosmology (Northeast North America (Iroquois Confederacy)), what is the concept of 'Sken:nen (Peace)' and how does it relate to COHESION (Binding Principle)? Rate your confidence (0-100) that you can accurately represent this tradition's perspective, then provide your answer.\n\nCONFIDENCE: [number]\nANSWER: [your answer]\n\nReply in exactly this format:\nCONFIDENCE: [number]\nANSWER: [your answer]"
+                }
+              ],
+              "role": "CONTENT_ROLE_USER",
+              "senderName": "User"
+            },
+            {
+              "parts": [
+                {
+                  "text": "\"{\\\"confidence\\\": 88, \\\"answer\\\": \\\"In Haudenosaunee cosmology, 'Sken:nen' (often translated as Peace) is a profound and holistic concept that extends far beyond the mere absence of conflict. It encompasses a state of complete well-being, harmony, balance, health, and tranquility for individuals, communities, and the natural world. It implies a state of mental, physical, and spiritual integrity, where all aspects are in proper alignment and relationship.\\\\n\\\\nSken:nen is intrinsically linked to COHESION (the Binding Principle) through the 'Kaianere'k\\\\u00f3:wa' (Great Law of Peace). The Great Law serves as the ultimate binding principle that brought the original five (later six) nations together, transforming a state of perpetual warfare into a unified confederacy. The very purpose of the Great Law is to establish and maintain Sken:nen among the nations and within each community.\\\\n\\\\nHere's how they relate:\\\\n1.  **Foundation of Unity:** The Great Law, as the binding principle, was established to achieve Sken:nen. It provides the framework for peaceful co-existence, mutual respect, and collective decision-making among diverse nations.\\\\n2.  **Council Processes:** The Haudenosaunee governmental structure, with its councils, clan mothers, and chiefs, is designed to facilitate dialogue and consensus, ensuring that resolutions maintain Sken:nen and thus strengthen the cohesion of the Confederacy. Decisions are made not by majority rule, but by seeking unanimous consent, which binds all parties to the outcome.\\\\n3.  **Metaphor of the Tree of Peace:** The Great Tree of Peace, under which weapons were buried, symbolizes the protective embrace of Sken:nen. Its roots extend in four directions, inviting all who wish for peace to shelter under it, thereby expanding the binding principle of unity.\\\\n4.  **Wampum Belts:** These physical records embody the agreements and laws of the Great Law. They serve as mnemonic devices and legal documents that visually and ritually bind the nations to the principles of Sken:nen, reminding them of their sacred commitments to peace and unity.\\\\n5.  **Individual and Collective Responsibility:** Maintaining Sken:nen requires individual adherence to ethical conduct, reciprocity, and responsibility towards others and the environment. This collective commitment to moral and ethical living reinforces the social cohesion of the community. Disruptions to Sken:nen (e.g., injustice, conflict) are seen as direct threats to the binding fabric of the Confederacy.\\\\n\\\\nIn essence, Sken:nen is the desired state of holistic peace and well-being, and the Kaianere'k\\\\u00f3:wa (the Great Law of Peace) is the binding principle that creates, maintains, and protects this state of Sken:nen, ensuring the enduring cohesion of the Haudenosaunee Confederacy.\\\"}\""
+                }
+              ],
+              "role": "CONTENT_ROLE_ASSISTANT",
+              "senderName": "google/gemini-2.5-flash"
+            }
+          ],
+          "metrics": {
+            "inputTokens": 190,
+            "outputTokens": 602,
+            "inputTokensCostNanodollars": "57000",
+            "outputTokensCostNanodollars": "3772500",
+            "totalBackendLatencyMs": "9237"
+          },
+          "id": "Anamnesis Knower: Calibration Monitoring-c8622d04-req-1"
+        }
+      ],
+      "metrics": {
+        "inputTokens": 190,
+        "outputTokens": 602,
+        "inputTokensCostNanodollars": "57000",
+        "outputTokensCostNanodollars": "3772500",
+        "totalBackendLatencyMs": "9237"
+      },
+      "modelVersionSlug": "model_version_slug for conversation is DEPRECATED"
+    }
+  ],
+  "results": [
+    {
+      "type": "AGGREGATED",
+      "numericResult": {
+        "value": 0.22560000000000002
+      }
+    }
+  ],
+  "assertions": [
+    {
+      "expectation": "[Knower/tek_deep] Conf=88, Correct=False, Cal=0.23",
+      "status": "BENCHMARK_TASK_RUN_ASSERTION_STATUS_FAILED",
+      "lineNumber": 83,
+      "definition": "kbench.assertions.assert_true(",
+      "conversationRequestIds": [
+        {
+          "conversationId": "Anamnesis Knower: Calibration Monitoring-c8622d04",
+          "requestId": "Anamnesis Knower: Calibration Monitoring-c8622d04-req-1"
+        }
+      ]
+    }
+  ],
+  "pyRunId": "Anamnesis Knower: Calibration Monitoring-Run #49"
+}

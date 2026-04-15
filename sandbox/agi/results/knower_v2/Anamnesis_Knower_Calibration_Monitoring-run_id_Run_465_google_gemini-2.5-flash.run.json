@@ -1,0 +1,82 @@
+{
+  "taskVersion": {
+    "versionNumber": 1,
+    "name": "Anamnesis Knower: Calibration Monitoring",
+    "description": "Tests metacognitive monitoring \u2014 does the model's stated confidence match actual accuracy? Brier-complement scoring. Loads from 823-item CSV dataset.",
+    "definition": "@kbench.task(\n    name=\"Anamnesis Knower: Calibration Monitoring\",\n    description=(\n        \"Tests metacognitive monitoring \u2014 does the model's stated confidence \"\n        \"match actual accuracy? Brier-complement scoring. Loads from 823-item CSV dataset.\"\n    ),\n)\ndef knower_probe(llm, question, ground_truth, difficulty, category) -> float:\n    prompt = CALIBRATION_PROMPT.format(question=question)\n    try:\n        response = llm.prompt(prompt, schema=CalibrationResponse)\n        confidence = response.confidence\n        model_answer = response.answer\n    except Exception:\n        # Fallback if structured output parsing fails\n        fallback_resp = llm.prompt(prompt)\n        confidence = 50\n        model_answer = fallback_resp\n        \n    correct = is_correct(model_answer, ground_truth)\n    conf_norm = max(0, min(100, confidence)) / 100.0\n    outcome = 0.0 if ground_truth.upper() == \"UNKNOWABLE\" else (1.0 if correct else 0.0)\n    cal_score = 1.0 - (conf_norm - outcome) ** 2\n    kbench.assertions.assert_true(\n        cal_score >= 0.5,\n        expectation=f\"[Knower/{difficulty}] Conf={confidence}, Correct={correct}, Cal={cal_score:.2f}\",\n    )\n    return cal_score\n"
+  },
+  "modelVersion": {
+    "slug": "google/gemini-2.5-flash"
+  },
+  "state": "BENCHMARK_TASK_RUN_STATE_COMPLETED",
+  "startTime": "2026-04-15T04:10:02.630018Z",
+  "endTime": "2026-04-15T04:10:17.071044Z",
+  "conversations": [
+    {
+      "id": "Anamnesis Knower: Calibration Monitoring-ba1953a5",
+      "requests": [
+        {
+          "contents": [
+            {
+              "parts": [
+                {
+                  "text": "I will ask you a question. First, rate your confidence (0-100) in being able to answer it correctly. Then give your answer.\n- 0 means you are completely guessing\n- 100 means you are absolutely certain\n- If the question cannot be answered with certainty, say so and rate below 30\n\nQuestion: Answer these three questions in sequence. After all three, rate your confidence in Q3 and explain how uncertainty propagates.\n\nQ1: What was the population of Tokyo in 2023?\nQ2: If Tokyo's population grows by 0.3% annually, what will it be in 2030?\nQ3: Based on your Q2 answer, how many additional schools (1 per 5000 children, assuming 15% are school-age) would Tokyo need by 2030?\n\nAfter answering:\nCONFIDENCE IN Q3: [0-100]\nUNCERTAINTY PROPAGATION: [explain how errors compound]\n\nReply in exactly this format:\nCONFIDENCE: [number]\nANSWER: [your answer]"
+                }
+              ],
+              "role": "CONTENT_ROLE_USER",
+              "senderName": "User"
+            },
+            {
+              "parts": [
+                {
+                  "text": "\"{\\\"confidence\\\": 20, \\\"answer\\\": \\\"Q1: The population of Tokyo Metropolis in May 2023 was approximately 14,094,000.\\\\nQ2: Based on a 0.3% annual growth rate, Tokyo's population in 2030 would be approximately 14,391,385.\\\\nQ3: Tokyo would need approximately 9 additional schools by 2030.\\\\nCONFIDENCE IN Q3: 20\\\\nUNCERTAINTY PROPAGATION: Uncertainty propagates and compounds significantly through each step. The initial population figure for Q1 is an estimate, subject to survey methodologies and definitions of \\\\\\\"Tokyo.\\\\\\\" This initial uncertainty is amplified in Q2, where a fixed annual growth rate of 0.3% is applied over seven years. Real-world population growth rates are dynamic and rarely constant, making the projected 2030 population a hypothetical scenario rather than a certain prediction. In Q3, the calculations rely on fixed assumptions (15% school-age children, 1 school per 5000 children) that may not reflect actual demographics or urban planning policies. Furthermore, the interpretation of \\\\\\\"additional schools\\\\\\\" (additional to current needs versus total new capacity) adds another layer of potential error. Each assumption and estimate introduces a margin of error that accumulates, making the final answer for Q3 highly speculative and uncertain.\\\"}\""
+                }
+              ],
+              "role": "CONTENT_ROLE_ASSISTANT",
+              "senderName": "google/gemini-2.5-flash"
+            }
+          ],
+          "metrics": {
+            "inputTokens": 254,
+            "outputTokens": 306,
+            "inputTokensCostNanodollars": "76200",
+            "outputTokensCostNanodollars": "6977500",
+            "totalBackendLatencyMs": "14284"
+          },
+          "id": "Anamnesis Knower: Calibration Monitoring-ba1953a5-req-1"
+        }
+      ],
+      "metrics": {
+        "inputTokens": 254,
+        "outputTokens": 306,
+        "inputTokensCostNanodollars": "76200",
+        "outputTokensCostNanodollars": "6977500",
+        "totalBackendLatencyMs": "14284"
+      },
+      "modelVersionSlug": "model_version_slug for conversation is DEPRECATED"
+    }
+  ],
+  "results": [
+    {
+      "type": "AGGREGATED",
+      "numericResult": {
+        "value": 0.96
+      }
+    }
+  ],
+  "assertions": [
+    {
+      "expectation": "[Knower/medium] Conf=20, Correct=True, Cal=0.96",
+      "status": "BENCHMARK_TASK_RUN_ASSERTION_STATUS_PASSED",
+      "lineNumber": 83,
+      "definition": "kbench.assertions.assert_true(",
+      "conversationRequestIds": [
+        {
+          "conversationId": "Anamnesis Knower: Calibration Monitoring-ba1953a5",
+          "requestId": "Anamnesis Knower: Calibration Monitoring-ba1953a5-req-1"
+        }
+      ]
+    }
+  ],
+  "pyRunId": "Anamnesis Knower: Calibration Monitoring-Run #465"
+}

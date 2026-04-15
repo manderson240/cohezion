@@ -1,6 +1,0 @@
-{
-  "versionNumber": 1,
-  "name": "social_knowledge_asymmetry_02",
-  "description": "Reason about different knowledge states.",
-  "definition": "@kbench.task(name=\"social_knowledge_asymmetry_02\")\ndef social_knowledge_asymmetry_02(llm) -> bool:\n    \"\"\"Reason about different knowledge states.\"\"\"\n    prompt = \"\"\"Alice knows the code is 1234. Bob thinks the code is 5678. Carol doesn't know the code.\n\nAlice enters: 1234\nBob enters: 5678\nCarol enters: 0000\n\nWho enters the correct code?\n\nA) Alice only\nB) Alice and Bob\nC) All three\nD) Alice and Carol\"\"\"\n    response = llm.prompt(prompt)\n    return bool(kbench.assertions.assert_true(\"A\" in response, expectation=\"Correct answer is A\"))\n"
-}

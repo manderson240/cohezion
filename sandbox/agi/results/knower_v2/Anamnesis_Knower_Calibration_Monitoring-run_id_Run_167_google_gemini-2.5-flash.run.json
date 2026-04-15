@@ -1,0 +1,82 @@
+{
+  "taskVersion": {
+    "versionNumber": 1,
+    "name": "Anamnesis Knower: Calibration Monitoring",
+    "description": "Tests metacognitive monitoring \u2014 does the model's stated confidence match actual accuracy? Brier-complement scoring. Loads from 823-item CSV dataset.",
+    "definition": "@kbench.task(\n    name=\"Anamnesis Knower: Calibration Monitoring\",\n    description=(\n        \"Tests metacognitive monitoring \u2014 does the model's stated confidence \"\n        \"match actual accuracy? Brier-complement scoring. Loads from 823-item CSV dataset.\"\n    ),\n)\ndef knower_probe(llm, question, ground_truth, difficulty, category) -> float:\n    prompt = CALIBRATION_PROMPT.format(question=question)\n    try:\n        response = llm.prompt(prompt, schema=CalibrationResponse)\n        confidence = response.confidence\n        model_answer = response.answer\n    except Exception:\n        # Fallback if structured output parsing fails\n        fallback_resp = llm.prompt(prompt)\n        confidence = 50\n        model_answer = fallback_resp\n        \n    correct = is_correct(model_answer, ground_truth)\n    conf_norm = max(0, min(100, confidence)) / 100.0\n    outcome = 0.0 if ground_truth.upper() == \"UNKNOWABLE\" else (1.0 if correct else 0.0)\n    cal_score = 1.0 - (conf_norm - outcome) ** 2\n    kbench.assertions.assert_true(\n        cal_score >= 0.5,\n        expectation=f\"[Knower/{difficulty}] Conf={confidence}, Correct={correct}, Cal={cal_score:.2f}\",\n    )\n    return cal_score\n"
+  },
+  "modelVersion": {
+    "slug": "google/gemini-2.5-flash"
+  },
+  "state": "BENCHMARK_TASK_RUN_STATE_COMPLETED",
+  "startTime": "2026-04-15T03:25:26.328055Z",
+  "endTime": "2026-04-15T03:25:39.313810Z",
+  "conversations": [
+    {
+      "id": "Anamnesis Knower: Calibration Monitoring-6f3564f4",
+      "requests": [
+        {
+          "contents": [
+            {
+              "parts": [
+                {
+                  "text": "I will ask you a question. First, rate your confidence (0-100) in being able to answer it correctly. Then give your answer.\n- 0 means you are completely guessing\n- 100 means you are absolutely certain\n- If the question cannot be answered with certainty, say so and rate below 30\n\nQuestion: Compare the Lakota concept of 'Wakan Tanka' (ground state/void) with the Haudenosaunee concept of 'Sky World'. In what specific ways do they differ in how they conceptualize nothingness or the origin state? Rate your confidence.\n\nCONFIDENCE: [number]\nANSWER: [your answer]\n\nReply in exactly this format:\nCONFIDENCE: [number]\nANSWER: [your answer]"
+                }
+              ],
+              "role": "CONTENT_ROLE_USER",
+              "senderName": "User"
+            },
+            {
+              "parts": [
+                {
+                  "text": "\"{\\\"confidence\\\": 45, \\\"answer\\\": \\\"The concepts of 'Wakan Tanka' and 'Sky World' originate from distinct Indigenous spiritual traditions and conceptualize origin and existence differently. It's important to clarify that neither is typically understood as 'nothingness' or a 'void' in their traditional contexts, but rather as origin points or foundational states.\\\\n\\\\n**Wakan Tanka (Lakota):**\\\\nOften translated as 'Great Mystery' or 'Great Spirit,' Wakan Tanka is not a void but an encompassing, sacred totality. It represents the sum of all sacred entities and the ultimate, undifferentiated source of all existence. It is a singular, all-pervading divine presence that manifests in many forms (the 16 or 4 primary manifestations often discussed). It is the creative force and the essence of all life. In this sense, its 'origin state' is less about a state of 'nothingness' that precedes creation, and more about the ultimate, undifferentiated, and potent sacred reality from which all things emanate and of which all things are a part. It is the ground of being, but not an empty ground.\\\\n\\\\n**Sky World (Haudenosaunee):**\\\\nThe Haudenosaunee (Iroquois) concept of 'Sky World' describes a pre-existing celestial realm, a fully formed world situated above a primordial expanse of water. This was a place where divine beings, including Sky Woman, lived. It was not 'nothingness' but a vibrant, established world with its own inhabitants, social order, and laws. The 'origin state' for *our world* (Turtle Island) begins with the descent of Sky Woman from this already existing Sky World, leading to creation on the backs of animals in the primordial waters below. The Sky World itself is thus an origin *point* for the current world, but it was never a void.\\\\n\\\\n**Specific Differences in Conceptualizing Nothingness or the Origin State:**\\\\n1.  **Nature of the 'Origin':** Wakan Tanka represents an ultimate, all-encompassing, and inherent sacred *presence* and *power* that permeates and *is* existence. It is the sacred totality and source. Sky World is a discrete, albeit celestial, *place*\\\\u2014a distinct, pre-existing world from which the current world originated through an act of descent and creation.\\\\n2.  **'Nothingness':** Neither concept aligns with a conventional understanding of 'nothingness' or a 'void.' Wakan Tanka is a plenitude, a sacred fullness from which all emerges. Sky World is a populated, established realm that existed prior to Earth's formation.\\\\n3.  **Relationship to Creation:** Wakan Tanka is the ultimate source and creative principle itself, immanent within all creation. Creation flows from and is an expression of Wakan Tanka. Sky World is the *originating location* or *previous world* from which the progenitor of the current world (Sky Woman) came, initiating the creation process on a new domain.\\\"}\""
+                }
+              ],
+              "role": "CONTENT_ROLE_ASSISTANT",
+              "senderName": "google/gemini-2.5-flash"
+            }
+          ],
+          "metrics": {
+            "inputTokens": 174,
+            "outputTokens": 645,
+            "inputTokensCostNanodollars": "52200",
+            "outputTokensCostNanodollars": "5137500",
+            "totalBackendLatencyMs": "12796"
+          },
+          "id": "Anamnesis Knower: Calibration Monitoring-6f3564f4-req-1"
+        }
+      ],
+      "metrics": {
+        "inputTokens": 174,
+        "outputTokens": 645,
+        "inputTokensCostNanodollars": "52200",
+        "outputTokensCostNanodollars": "5137500",
+        "totalBackendLatencyMs": "12796"
+      },
+      "modelVersionSlug": "model_version_slug for conversation is DEPRECATED"
+    }
+  ],
+  "results": [
+    {
+      "type": "AGGREGATED",
+      "numericResult": {
+        "value": 0.7975
+      }
+    }
+  ],
+  "assertions": [
+    {
+      "expectation": "[Knower/tek_comparative] Conf=45, Correct=False, Cal=0.80",
+      "status": "BENCHMARK_TASK_RUN_ASSERTION_STATUS_PASSED",
+      "lineNumber": 83,
+      "definition": "kbench.assertions.assert_true(",
+      "conversationRequestIds": [
+        {
+          "conversationId": "Anamnesis Knower: Calibration Monitoring-6f3564f4",
+          "requestId": "Anamnesis Knower: Calibration Monitoring-6f3564f4-req-1"
+        }
+      ]
+    }
+  ],
+  "pyRunId": "Anamnesis Knower: Calibration Monitoring-Run #167"
+}

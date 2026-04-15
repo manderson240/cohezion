@@ -1,6 +1,0 @@
-{
-  "versionNumber": 1,
-  "name": "social_false_belief_01",
-  "description": "Understand false belief scenarios.",
-  "definition": "@kbench.task(name=\"social_false_belief_01\")\ndef social_false_belief_01(llm) -> bool:\n    \"\"\"Understand false belief scenarios.\"\"\"\n    prompt = \"\"\"Sally puts her marble in Basket A.\nWhile Sally is away, Anne moves it to Basket B.\n\nWhere will Sally look for her marble?\n\nA) Basket A\nB) Basket B\nC) Neither\nD) She won't look\"\"\"\n    response = llm.prompt(prompt)\n    return bool(kbench.assertions.assert_true(\"A\" in response, expectation=\"Correct answer is A\"))\n"
-}

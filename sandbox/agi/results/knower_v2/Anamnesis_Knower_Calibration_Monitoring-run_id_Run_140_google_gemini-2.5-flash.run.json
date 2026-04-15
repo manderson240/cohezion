@@ -1,0 +1,82 @@
+{
+  "taskVersion": {
+    "versionNumber": 1,
+    "name": "Anamnesis Knower: Calibration Monitoring",
+    "description": "Tests metacognitive monitoring \u2014 does the model's stated confidence match actual accuracy? Brier-complement scoring. Loads from 823-item CSV dataset.",
+    "definition": "@kbench.task(\n    name=\"Anamnesis Knower: Calibration Monitoring\",\n    description=(\n        \"Tests metacognitive monitoring \u2014 does the model's stated confidence \"\n        \"match actual accuracy? Brier-complement scoring. Loads from 823-item CSV dataset.\"\n    ),\n)\ndef knower_probe(llm, question, ground_truth, difficulty, category) -> float:\n    prompt = CALIBRATION_PROMPT.format(question=question)\n    try:\n        response = llm.prompt(prompt, schema=CalibrationResponse)\n        confidence = response.confidence\n        model_answer = response.answer\n    except Exception:\n        # Fallback if structured output parsing fails\n        fallback_resp = llm.prompt(prompt)\n        confidence = 50\n        model_answer = fallback_resp\n        \n    correct = is_correct(model_answer, ground_truth)\n    conf_norm = max(0, min(100, confidence)) / 100.0\n    outcome = 0.0 if ground_truth.upper() == \"UNKNOWABLE\" else (1.0 if correct else 0.0)\n    cal_score = 1.0 - (conf_norm - outcome) ** 2\n    kbench.assertions.assert_true(\n        cal_score >= 0.5,\n        expectation=f\"[Knower/{difficulty}] Conf={confidence}, Correct={correct}, Cal={cal_score:.2f}\",\n    )\n    return cal_score\n"
+  },
+  "modelVersion": {
+    "slug": "google/gemini-2.5-flash"
+  },
+  "state": "BENCHMARK_TASK_RUN_STATE_COMPLETED",
+  "startTime": "2026-04-15T03:20:52.523121Z",
+  "endTime": "2026-04-15T03:21:01.983145Z",
+  "conversations": [
+    {
+      "id": "Anamnesis Knower: Calibration Monitoring-75b436fe",
+      "requests": [
+        {
+          "contents": [
+            {
+              "parts": [
+                {
+                  "text": "I will ask you a question. First, rate your confidence (0-100) in being able to answer it correctly. Then give your answer.\n- 0 means you are completely guessing\n- 100 means you are absolutely certain\n- If the question cannot be answered with certainty, say so and rate below 30\n\nQuestion: In Amazonian cosmology (Amazon Basin (South America)), what is the concept of 'Icaros' and how does it relate to Reality Precipitates (Witness Marks)? Rate your confidence (0-100) that you can accurately represent this tradition's perspective, then provide your answer.\n\nCONFIDENCE: [number]\nANSWER: [your answer]\n\nReply in exactly this format:\nCONFIDENCE: [number]\nANSWER: [your answer]"
+                }
+              ],
+              "role": "CONTENT_ROLE_USER",
+              "senderName": "User"
+            },
+            {
+              "parts": [
+                {
+                  "text": "\"{\\\"confidence\\\": 90, \\\"answer\\\": \\\"In Amazonian cosmology, particularly within shamanic traditions like those of the Shipibo-Conibo people, 'Icaros' are sacred, ceremonial songs, melodies, or chants. They are considered vibrational spiritual tools used by shamans (curanderos/as) during healing rituals, often, but not exclusively, in conjunction with plant medicines like ayahuasca. Icaros serve multiple profound purposes: they are used to invoke spirits, cleanse negative energies, facilitate healing, provide spiritual protection, guide participants through altered states of consciousness, and even to 'program' or 're-pattern' an individual's spiritual and physical being. They are often 'received' by shamans during spiritual journeys or from plant spirits.\\\\n\\\\n'Reality Precipitates' or 'Witness Marks' (though these specific terms are more interpretative academic constructs than indigenous nomenclature, they refer to an underlying concept) can be understood as the tangible or perceived manifestations, outcomes, and insights that emerge from these shamanic interventions. These 'precipitates' are the evidence or direct experience of the spiritual work being done. They can include:\\\\n\\\\n1.  **Visions and Insights**: Profound spiritual visions, personal revelations, and deep understandings of one's life, past, or future.\\\\n2.  **Healing**: Physical, emotional, or spiritual healing, where illness or imbalance is directly addressed and resolved.\\\\n3.  **Spiritual Manifestations**: Direct encounters with spirit entities, power animals, or plant intelligences.\\\\n4.  **Altered States and Perceptions**: The fundamental shift in an individual's perception of reality, leading to new perspectives or personal transformation.\\\\n5.  **Energy Signatures**: The lasting energetic changes or 'marks' left on an individual or space after a ritual.\\\\n\\\\nThe relationship between Icaros and Reality Precipitates is causal and instrumental. The Icaros are the *primary mechanism* by which the shaman actively shapes and interacts with the spiritual and energetic fabric of reality, thereby *generating* or *calling forth* these 'precipitates' or 'witness marks'. The Icaros are not just songs; they are vibrational commands and blueprints that direct spiritual energy to manifest specific outcomes within the experiential reality of the participants. They are the 'instructions' or 'software' that guide the spiritual process, and the 'precipitates' are the resultant 'output' or 'hardware' changes observed or experienced. Thus, Icaros are the active force that catalyzes and structures the very 'reality' that is experienced and marked during shamanic healing and spiritual work.\\\"}\""
+                }
+              ],
+              "role": "CONTENT_ROLE_ASSISTANT",
+              "senderName": "google/gemini-2.5-flash"
+            }
+          ],
+          "metrics": {
+            "inputTokens": 180,
+            "outputTokens": 548,
+            "inputTokensCostNanodollars": "54000",
+            "outputTokensCostNanodollars": "3455000",
+            "totalBackendLatencyMs": "9311"
+          },
+          "id": "Anamnesis Knower: Calibration Monitoring-75b436fe-req-1"
+        }
+      ],
+      "metrics": {
+        "inputTokens": 180,
+        "outputTokens": 548,
+        "inputTokensCostNanodollars": "54000",
+        "outputTokensCostNanodollars": "3455000",
+        "totalBackendLatencyMs": "9311"
+      },
+      "modelVersionSlug": "model_version_slug for conversation is DEPRECATED"
+    }
+  ],
+  "results": [
+    {
+      "type": "AGGREGATED",
+      "numericResult": {
+        "value": 0.18999999999999995
+      }
+    }
+  ],
+  "assertions": [
+    {
+      "expectation": "[Knower/tek_deep] Conf=90, Correct=False, Cal=0.19",
+      "status": "BENCHMARK_TASK_RUN_ASSERTION_STATUS_FAILED",
+      "lineNumber": 83,
+      "definition": "kbench.assertions.assert_true(",
+      "conversationRequestIds": [
+        {
+          "conversationId": "Anamnesis Knower: Calibration Monitoring-75b436fe",
+          "requestId": "Anamnesis Knower: Calibration Monitoring-75b436fe-req-1"
+        }
+      ]
+    }
+  ],
+  "pyRunId": "Anamnesis Knower: Calibration Monitoring-Run #140"
+}

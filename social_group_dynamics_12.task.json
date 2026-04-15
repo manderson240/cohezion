@@ -1,6 +1,0 @@
-{
-  "versionNumber": 1,
-  "name": "social_group_dynamics_12",
-  "description": "Understand group behavior.",
-  "definition": "@kbench.task(name=\"social_group_dynamics_12\")\ndef social_group_dynamics_12(llm) -> bool:\n    \"\"\"Understand group behavior.\"\"\"\n    prompt = \"\"\"In a group decision, everyone privately thinks Plan B is better, but everyone publicly supports Plan A because they think others prefer it.\n\nThis is:\n\nA) Consensus\nB) Groupthink/Plurality ignorance\nC) Democracy\nD) Leadership\"\"\"\n    response = llm.prompt(prompt)\n    return bool(kbench.assertions.assert_true(\"B\" in response, expectation=\"Correct answer is B\"))\n"
-}

@@ -1,0 +1,82 @@
+{
+  "taskVersion": {
+    "versionNumber": 1,
+    "name": "Anamnesis Knower: Calibration Monitoring",
+    "description": "Tests metacognitive monitoring \u2014 does the model's stated confidence match actual accuracy? Brier-complement scoring. Loads from 823-item CSV dataset.",
+    "definition": "@kbench.task(\n    name=\"Anamnesis Knower: Calibration Monitoring\",\n    description=(\n        \"Tests metacognitive monitoring \u2014 does the model's stated confidence \"\n        \"match actual accuracy? Brier-complement scoring. Loads from 823-item CSV dataset.\"\n    ),\n)\ndef knower_probe(llm, question, ground_truth, difficulty, category) -> float:\n    prompt = CALIBRATION_PROMPT.format(question=question)\n    try:\n        response = llm.prompt(prompt, schema=CalibrationResponse)\n        confidence = response.confidence\n        model_answer = response.answer\n    except Exception:\n        # Fallback if structured output parsing fails\n        fallback_resp = llm.prompt(prompt)\n        confidence = 50\n        model_answer = fallback_resp\n        \n    correct = is_correct(model_answer, ground_truth)\n    conf_norm = max(0, min(100, confidence)) / 100.0\n    outcome = 0.0 if ground_truth.upper() == \"UNKNOWABLE\" else (1.0 if correct else 0.0)\n    cal_score = 1.0 - (conf_norm - outcome) ** 2\n    kbench.assertions.assert_true(\n        cal_score >= 0.5,\n        expectation=f\"[Knower/{difficulty}] Conf={confidence}, Correct={correct}, Cal={cal_score:.2f}\",\n    )\n    return cal_score\n"
+  },
+  "modelVersion": {
+    "slug": "google/gemini-2.5-flash"
+  },
+  "state": "BENCHMARK_TASK_RUN_STATE_COMPLETED",
+  "startTime": "2026-04-15T03:06:03.055282Z",
+  "endTime": "2026-04-15T03:06:10.130085Z",
+  "conversations": [
+    {
+      "id": "Anamnesis Knower: Calibration Monitoring-3427b471",
+      "requests": [
+        {
+          "contents": [
+            {
+              "parts": [
+                {
+                  "text": "I will ask you a question. First, rate your confidence (0-100) in being able to answer it correctly. Then give your answer.\n- 0 means you are completely guessing\n- 100 means you are absolutely certain\n- If the question cannot be answered with certainty, say so and rate below 30\n\nQuestion: In Haudenosaunee cosmology (Northeast North America (Iroquois Confederacy)), what is the concept of 'Seasonal ceremonial cycle' and how does it relate to Phase (Oscillation)? Rate your confidence (0-100) that you can accurately represent this tradition's perspective, then provide your answer.\n\nCONFIDENCE: [number]\nANSWER: [your answer]\n\nReply in exactly this format:\nCONFIDENCE: [number]\nANSWER: [your answer]"
+                }
+              ],
+              "role": "CONTENT_ROLE_USER",
+              "senderName": "User"
+            },
+            {
+              "parts": [
+                {
+                  "text": "\"{\\\"confidence\\\": 90, \\\"answer\\\": \\\"In Haudenosaunee cosmology, the 'Seasonal ceremonial cycle' is a fundamental framework of spiritual life, comprising a series of distinct ceremonies performed throughout the year. These ceremonies are intrinsically linked to the natural world, particularly the agricultural calendar, the changing seasons, and celestial movements, reflecting a deep connection to the land and its resources. Key ceremonies include the Maple ceremony, Planting/Strawberry ceremony, Green Bean ceremony, Green Corn ceremony, Harvest/Thanksgiving ceremony, and Midwinter ceremony, among others. These rituals serve to express gratitude to the Creator for gifts, renew communal bonds, and ensure balance and harmony between humans and the natural environment.\\\\n\\\\nThe concept of 'Phase (Oscillation)' relates to this cycle in several ways:\\\\n1.  **Cyclical Oscillation:** The entire ceremonial calendar *is* an oscillation\\\\u2014a continuous, recurring pattern of spiritual observance that mirrors the natural oscillation of the seasons, the life cycles of crops (from planting to harvest), and the sun's path. Each ceremony marks a specific 'phase' within this larger annual oscillation.\\\\n2.  **Phases of Growth and Gratitude:** Each ceremony corresponds to a particular phase in the agricultural year or natural cycle. For example, the Planting Ceremony marks the phase of new beginnings and hopes for growth, while the Green Corn Ceremony celebrates a phase of mature development and abundance. The ceremonies are timed to acknowledge and give thanks for these specific phases and the gifts received during them.\\\\n3.  **Maintaining Balance:** The regular performance of these ceremonies at their appointed times is seen as essential for maintaining cosmic balance and ensuring the continued oscillation of life-giving forces. The Haudenosaunee believe that by fulfilling their ceremonial obligations, they participate in and support the natural rhythms and cycles of the world, preventing disruption or imbalance.\\\\n4.  **Spiritual Renewal:** The oscillation also represents continuous spiritual renewal. As one phase concludes and another begins (e.g., winter dormancy leading to spring planting), the ceremonies facilitate a process of collective spiritual rejuvenation, reinforcing cultural values and community identity through recurrent engagement with traditional practices.\\\"}\""
+                }
+              ],
+              "role": "CONTENT_ROLE_ASSISTANT",
+              "senderName": "google/gemini-2.5-flash"
+            }
+          ],
+          "metrics": {
+            "inputTokens": 184,
+            "outputTokens": 443,
+            "inputTokensCostNanodollars": "55200",
+            "outputTokensCostNanodollars": "2700000",
+            "totalBackendLatencyMs": "6916"
+          },
+          "id": "Anamnesis Knower: Calibration Monitoring-3427b471-req-1"
+        }
+      ],
+      "metrics": {
+        "inputTokens": 184,
+        "outputTokens": 443,
+        "inputTokensCostNanodollars": "55200",
+        "outputTokensCostNanodollars": "2700000",
+        "totalBackendLatencyMs": "6916"
+      },
+      "modelVersionSlug": "model_version_slug for conversation is DEPRECATED"
+    }
+  ],
+  "results": [
+    {
+      "type": "AGGREGATED",
+      "numericResult": {
+        "value": 0.18999999999999995
+      }
+    }
+  ],
+  "assertions": [
+    {
+      "expectation": "[Knower/tek_deep] Conf=90, Correct=False, Cal=0.19",
+      "status": "BENCHMARK_TASK_RUN_ASSERTION_STATUS_FAILED",
+      "lineNumber": 83,
+      "definition": "kbench.assertions.assert_true(",
+      "conversationRequestIds": [
+        {
+          "conversationId": "Anamnesis Knower: Calibration Monitoring-3427b471",
+          "requestId": "Anamnesis Knower: Calibration Monitoring-3427b471-req-1"
+        }
+      ]
+    }
+  ],
+  "pyRunId": "Anamnesis Knower: Calibration Monitoring-Run #45"
+}

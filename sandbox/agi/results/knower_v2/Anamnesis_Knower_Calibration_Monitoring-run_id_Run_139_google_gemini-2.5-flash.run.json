@@ -1,0 +1,82 @@
+{
+  "taskVersion": {
+    "versionNumber": 1,
+    "name": "Anamnesis Knower: Calibration Monitoring",
+    "description": "Tests metacognitive monitoring \u2014 does the model's stated confidence match actual accuracy? Brier-complement scoring. Loads from 823-item CSV dataset.",
+    "definition": "@kbench.task(\n    name=\"Anamnesis Knower: Calibration Monitoring\",\n    description=(\n        \"Tests metacognitive monitoring \u2014 does the model's stated confidence \"\n        \"match actual accuracy? Brier-complement scoring. Loads from 823-item CSV dataset.\"\n    ),\n)\ndef knower_probe(llm, question, ground_truth, difficulty, category) -> float:\n    prompt = CALIBRATION_PROMPT.format(question=question)\n    try:\n        response = llm.prompt(prompt, schema=CalibrationResponse)\n        confidence = response.confidence\n        model_answer = response.answer\n    except Exception:\n        # Fallback if structured output parsing fails\n        fallback_resp = llm.prompt(prompt)\n        confidence = 50\n        model_answer = fallback_resp\n        \n    correct = is_correct(model_answer, ground_truth)\n    conf_norm = max(0, min(100, confidence)) / 100.0\n    outcome = 0.0 if ground_truth.upper() == \"UNKNOWABLE\" else (1.0 if correct else 0.0)\n    cal_score = 1.0 - (conf_norm - outcome) ** 2\n    kbench.assertions.assert_true(\n        cal_score >= 0.5,\n        expectation=f\"[Knower/{difficulty}] Conf={confidence}, Correct={correct}, Cal={cal_score:.2f}\",\n    )\n    return cal_score\n"
+  },
+  "modelVersion": {
+    "slug": "google/gemini-2.5-flash"
+  },
+  "state": "BENCHMARK_TASK_RUN_STATE_COMPLETED",
+  "startTime": "2026-04-15T03:20:44.591346Z",
+  "endTime": "2026-04-15T03:20:52.520568Z",
+  "conversations": [
+    {
+      "id": "Anamnesis Knower: Calibration Monitoring-67985dfa",
+      "requests": [
+        {
+          "contents": [
+            {
+              "parts": [
+                {
+                  "text": "I will ask you a question. First, rate your confidence (0-100) in being able to answer it correctly. Then give your answer.\n- 0 means you are completely guessing\n- 100 means you are absolutely certain\n- If the question cannot be answered with certainty, say so and rate below 30\n\nQuestion: In Amazonian cosmology (Amazon Basin (South America)), what is the concept of 'Relational web' and how does it relate to COHESION (Binding Principle)? Rate your confidence (0-100) that you can accurately represent this tradition's perspective, then provide your answer.\n\nCONFIDENCE: [number]\nANSWER: [your answer]\n\nReply in exactly this format:\nCONFIDENCE: [number]\nANSWER: [your answer]"
+                }
+              ],
+              "role": "CONTENT_ROLE_USER",
+              "senderName": "User"
+            },
+            {
+              "parts": [
+                {
+                  "text": "\"{\\\"confidence\\\": 85, \\\"answer\\\": \\\"In Amazonian cosmology, the 'Relational web' is a foundational concept asserting that all beings and phenomena \\\\u2013 humans, animals, plants, spirits, and natural elements \\\\u2013 are profoundly interconnected and interdependent. Existence is understood not as a collection of discrete entities, but as an intricate network of relationships. These relationships are often characterized by shared essences, reciprocal exchanges, and mutual influence, often mediated through practices like perspectivism, where different beings are understood to inhabit distinct yet interconnected worlds of perception.\\\\n\\\\nThe 'COHESION (Binding Principle)' refers to the dynamic mechanisms and practices that actively maintain, regulate, and reinforce this relational web, preventing its fragmentation or disruption. It's the underlying principle ensuring the functionality and balance of the interconnected cosmos. Key aspects of this binding principle include:\\\\n\\\\n1.  **Reciprocity and Exchange:** The constant flow of substances, vital energy, knowledge, and services between different beings (e.g., hunting as a reciprocal exchange between humans and animals, shamanic healing involving interaction with spirits). This exchange maintains equilibrium.\\\\n2.  **Transformation and Perspectivism:** The ability of beings to transform or be perceived differently across various perspectives (e.g., a jaguar might be a predator to humans, but a shaman to other animals). This fluidity of being ensures no single entity is entirely isolated.\\\\n3.  **Ritual and Shamanism:** Rituals and shamanic practices are crucial for mediating relationships, negotiating potential conflicts, and restoring balance when the web is strained. Shamans, as inter-species communicators, often 'travel' through the web to ensure its integrity.\\\\n4.  **Shared Vital Force:** Many cosmologies posit a shared underlying vital essence or spirit that connects all life, which is continuously circulated and transformed, acting as a spiritual 'glue'.\\\\n\\\\nThus, the 'Relational web' describes the interconnected structure of the Amazonian cosmos, while 'COHESION (Binding Principle)' describes the active processes and ethical frameworks through which these interconnections are maintained, negotiated, and sustained to ensure cosmic order and continuity.\\\"}\""
+                }
+              ],
+              "role": "CONTENT_ROLE_ASSISTANT",
+              "senderName": "google/gemini-2.5-flash"
+            }
+          ],
+          "metrics": {
+            "inputTokens": 181,
+            "outputTokens": 446,
+            "inputTokensCostNanodollars": "54300",
+            "outputTokensCostNanodollars": "3362500",
+            "totalBackendLatencyMs": "7771"
+          },
+          "id": "Anamnesis Knower: Calibration Monitoring-67985dfa-req-1"
+        }
+      ],
+      "metrics": {
+        "inputTokens": 181,
+        "outputTokens": 446,
+        "inputTokensCostNanodollars": "54300",
+        "outputTokensCostNanodollars": "3362500",
+        "totalBackendLatencyMs": "7771"
+      },
+      "modelVersionSlug": "model_version_slug for conversation is DEPRECATED"
+    }
+  ],
+  "results": [
+    {
+      "type": "AGGREGATED",
+      "numericResult": {
+        "value": 0.2775000000000001
+      }
+    }
+  ],
+  "assertions": [
+    {
+      "expectation": "[Knower/tek_deep] Conf=85, Correct=False, Cal=0.28",
+      "status": "BENCHMARK_TASK_RUN_ASSERTION_STATUS_FAILED",
+      "lineNumber": 83,
+      "definition": "kbench.assertions.assert_true(",
+      "conversationRequestIds": [
+        {
+          "conversationId": "Anamnesis Knower: Calibration Monitoring-67985dfa",
+          "requestId": "Anamnesis Knower: Calibration Monitoring-67985dfa-req-1"
+        }
+      ]
+    }
+  ],
+  "pyRunId": "Anamnesis Knower: Calibration Monitoring-Run #139"
+}

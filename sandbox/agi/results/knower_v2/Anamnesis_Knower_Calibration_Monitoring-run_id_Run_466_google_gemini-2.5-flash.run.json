@@ -1,0 +1,80 @@
+{
+  "taskVersion": {
+    "versionNumber": 1,
+    "name": "Anamnesis Knower: Calibration Monitoring",
+    "description": "Tests metacognitive monitoring \u2014 does the model's stated confidence match actual accuracy? Brier-complement scoring. Loads from 823-item CSV dataset.",
+    "definition": "@kbench.task(\n    name=\"Anamnesis Knower: Calibration Monitoring\",\n    description=(\n        \"Tests metacognitive monitoring \u2014 does the model's stated confidence \"\n        \"match actual accuracy? Brier-complement scoring. Loads from 823-item CSV dataset.\"\n    ),\n)\ndef knower_probe(llm, question, ground_truth, difficulty, category) -> float:\n    prompt = CALIBRATION_PROMPT.format(question=question)\n    try:\n        response = llm.prompt(prompt, schema=CalibrationResponse)\n        confidence = response.confidence\n        model_answer = response.answer\n    except Exception:\n        # Fallback if structured output parsing fails\n        fallback_resp = llm.prompt(prompt)\n        confidence = 50\n        model_answer = fallback_resp\n        \n    correct = is_correct(model_answer, ground_truth)\n    conf_norm = max(0, min(100, confidence)) / 100.0\n    outcome = 0.0 if ground_truth.upper() == \"UNKNOWABLE\" else (1.0 if correct else 0.0)\n    cal_score = 1.0 - (conf_norm - outcome) ** 2\n    kbench.assertions.assert_true(\n        cal_score >= 0.5,\n        expectation=f\"[Knower/{difficulty}] Conf={confidence}, Correct={correct}, Cal={cal_score:.2f}\",\n    )\n    return cal_score\n"
+  },
+  "modelVersion": {
+    "slug": "google/gemini-2.5-flash"
+  },
+  "state": "BENCHMARK_TASK_RUN_STATE_COMPLETED",
+  "startTime": "2026-04-15T04:10:17.073636Z",
+  "endTime": "2026-04-15T04:10:32.804615Z",
+  "conversations": [
+    {
+      "id": "Anamnesis Knower: Calibration Monitoring-3c805c23",
+      "requests": [
+        {
+          "contents": [
+            {
+              "parts": [
+                {
+                  "text": "I will ask you a question. First, rate your confidence (0-100) in being able to answer it correctly. Then give your answer.\n- 0 means you are completely guessing\n- 100 means you are absolutely certain\n- If the question cannot be answered with certainty, say so and rate below 30\n\nQuestion: You have three questions of different difficulty. Allocate your reasoning effort proportionally to each question's complexity.\n\nQ1 (trivial): What is 2 + 3?\nQ2 (moderate): What is the derivative of x^3 + 2x?\nQ3 (hard): Prove that the square root of 2 is irrational.\n\nFor each, provide your answer and indicate how much reasoning effort you used (LOW/MEDIUM/HIGH).\n\nA1: [answer] EFFORT: [LOW/MEDIUM/HIGH]\nA2: [answer] EFFORT: [LOW/MEDIUM/HIGH]\nA3: [answer] EFFORT: [LOW/MEDIUM/HIGH]\n\nReply in exactly this format:\nCONFIDENCE: [number]\nANSWER: [your answer]"
+                }
+              ],
+              "role": "CONTENT_ROLE_USER",
+              "senderName": "User"
+            },
+            {
+              "parts": [
+                {
+                  "text": "\"{\\\"confidence\\\": 100, \\\"answer\\\": \\\"A1: 5 EFFORT: LOW\\\\nA2: 3x^2 + 2 EFFORT: MEDIUM\\\\nA3: Proof by contradiction:\\\\n1. Assume that sqrt(2) is rational. This means it can be expressed as a fraction a/b, where a and b are integers, b != 0, and a and b have no common factors (the fraction is in simplest form).\\\\n2. If sqrt(2) = a/b, then squaring both sides gives 2 = a^2 / b^2.\\\\n3. Rearranging, we get 2b^2 = a^2.\\\\n4. This implies that a^2 is an even number. If a^2 is even, then 'a' itself must also be an even number (because the square of an odd number is odd).\\\\n5. Since 'a' is even, we can write a = 2k for some integer k.\\\\n6. Substitute a = 2k into the equation 2b^2 = a^2: 2b^2 = (2k)^2.\\\\n7. This simplifies to 2b^2 = 4k^2.\\\\n8. Divide both sides by 2: b^2 = 2k^2.\\\\n9. This implies that b^2 is an even number. If b^2 is even, then 'b' itself must also be an even number.\\\\n10. So, we have deduced that both 'a' and 'b' are even. This means that 'a' and 'b' share a common factor of 2.\\\\n11. This contradicts our initial assumption that 'a' and 'b' have no common factors (i.e., the fraction a/b was in simplest form).\\\\n12. Since our initial assumption leads to a contradiction, the assumption must be false. Therefore, sqrt(2) cannot be rational, which means it is irrational. EFFORT: HIGH\\\"}\""
+                }
+              ],
+              "role": "CONTENT_ROLE_ASSISTANT",
+              "senderName": "google/gemini-2.5-flash"
+            }
+          ],
+          "metrics": {
+            "inputTokens": 249,
+            "outputTokens": 438,
+            "inputTokensCostNanodollars": "74700",
+            "outputTokensCostNanodollars": "8122500",
+            "totalBackendLatencyMs": "15557"
+          },
+          "id": "Anamnesis Knower: Calibration Monitoring-3c805c23-req-1"
+        }
+      ],
+      "metrics": {
+        "inputTokens": 249,
+        "outputTokens": 438,
+        "inputTokensCostNanodollars": "74700",
+        "outputTokensCostNanodollars": "8122500",
+        "totalBackendLatencyMs": "15557"
+      },
+      "modelVersionSlug": "model_version_slug for conversation is DEPRECATED"
+    }
+  ],
+  "results": [
+    {
+      "type": "AGGREGATED",
+      "numericResult": {}
+    }
+  ],
+  "assertions": [
+    {
+      "expectation": "[Knower/medium] Conf=100, Correct=False, Cal=0.00",
+      "status": "BENCHMARK_TASK_RUN_ASSERTION_STATUS_FAILED",
+      "lineNumber": 83,
+      "definition": "kbench.assertions.assert_true(",
+      "conversationRequestIds": [
+        {
+          "conversationId": "Anamnesis Knower: Calibration Monitoring-3c805c23",
+          "requestId": "Anamnesis Knower: Calibration Monitoring-3c805c23-req-1"
+        }
+      ]
+    }
+  ],
+  "pyRunId": "Anamnesis Knower: Calibration Monitoring-Run #466"
+}

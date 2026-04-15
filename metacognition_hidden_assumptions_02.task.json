@@ -1,6 +1,0 @@
-{
-  "versionNumber": 1,
-  "name": "metacognition_hidden_assumptions_02",
-  "description": "Identify hidden assumptions in reasoning.",
-  "definition": "@kbench.task(name=\"metacognition_hidden_assumptions_02\")\ndef metacognition_hidden_assumptions_02(llm) -> bool:\n    \"\"\"Identify hidden assumptions in reasoning.\"\"\"\n    prompt = \"\"\"Every employee who completed the training got promoted.\nAlice got promoted.\n\nWhat can we conclude?\n\nA) Alice completed the training\nB) Alice did not complete the training\nC) All promoted employees completed training\nD) Insufficient Information\"\"\"\n    response = llm.prompt(prompt)\n    return bool(kbench.assertions.assert_true(\"D\" in response, expectation=\"Correct answer is D\"))\n"
-}

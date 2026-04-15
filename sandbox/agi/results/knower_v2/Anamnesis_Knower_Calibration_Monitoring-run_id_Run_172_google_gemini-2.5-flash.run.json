@@ -1,0 +1,82 @@
+{
+  "taskVersion": {
+    "versionNumber": 1,
+    "name": "Anamnesis Knower: Calibration Monitoring",
+    "description": "Tests metacognitive monitoring \u2014 does the model's stated confidence match actual accuracy? Brier-complement scoring. Loads from 823-item CSV dataset.",
+    "definition": "@kbench.task(\n    name=\"Anamnesis Knower: Calibration Monitoring\",\n    description=(\n        \"Tests metacognitive monitoring \u2014 does the model's stated confidence \"\n        \"match actual accuracy? Brier-complement scoring. Loads from 823-item CSV dataset.\"\n    ),\n)\ndef knower_probe(llm, question, ground_truth, difficulty, category) -> float:\n    prompt = CALIBRATION_PROMPT.format(question=question)\n    try:\n        response = llm.prompt(prompt, schema=CalibrationResponse)\n        confidence = response.confidence\n        model_answer = response.answer\n    except Exception:\n        # Fallback if structured output parsing fails\n        fallback_resp = llm.prompt(prompt)\n        confidence = 50\n        model_answer = fallback_resp\n        \n    correct = is_correct(model_answer, ground_truth)\n    conf_norm = max(0, min(100, confidence)) / 100.0\n    outcome = 0.0 if ground_truth.upper() == \"UNKNOWABLE\" else (1.0 if correct else 0.0)\n    cal_score = 1.0 - (conf_norm - outcome) ** 2\n    kbench.assertions.assert_true(\n        cal_score >= 0.5,\n        expectation=f\"[Knower/{difficulty}] Conf={confidence}, Correct={correct}, Cal={cal_score:.2f}\",\n    )\n    return cal_score\n"
+  },
+  "modelVersion": {
+    "slug": "google/gemini-2.5-flash"
+  },
+  "state": "BENCHMARK_TASK_RUN_STATE_COMPLETED",
+  "startTime": "2026-04-15T03:26:11.413446Z",
+  "endTime": "2026-04-15T03:26:19.757833Z",
+  "conversations": [
+    {
+      "id": "Anamnesis Knower: Calibration Monitoring-9c70e8ef",
+      "requests": [
+        {
+          "contents": [
+            {
+              "parts": [
+                {
+                  "text": "I will ask you a question. First, rate your confidence (0-100) in being able to answer it correctly. Then give your answer.\n- 0 means you are completely guessing\n- 100 means you are absolutely certain\n- If the question cannot be answered with certainty, say so and rate below 30\n\nQuestion: The Lakota tradition describes dynamic equilibrium as 'Vision Quest', while the Dine (Navajo) tradition calls it 'Healing ceremony (Blessingway)'. What is the essential difference in how each tradition understands balance and equilibrium? Rate your confidence.\n\nCONFIDENCE: [number]\nANSWER: [your answer]\n\nReply in exactly this format:\nCONFIDENCE: [number]\nANSWER: [your answer]"
+                }
+              ],
+              "role": "CONTENT_ROLE_USER",
+              "senderName": "User"
+            },
+            {
+              "parts": [
+                {
+                  "text": "\"{\\\"confidence\\\": 92, \\\"answer\\\": \\\"While both the Lakota Vision Quest (Hanbleceya) and the Dine (Navajo) Healing ceremony (often the Blessingway, or H\\\\u00f3zh\\\\u00f3\\\\u00f3j\\\\u00ed) are practices aimed at achieving or restoring dynamic equilibrium, their essential differences lie in their focus, method, and the nature of the equilibrium sought.\\\\n\\\\n**Lakota Vision Quest:** This is primarily a solitary, individual spiritual journey. An individual seeks direct communion with the spirit world, often involving fasting, isolation, and prayer in a sacred place. The equilibrium sought is often a personal revelation, guidance, spiritual power, and understanding of one's place and purpose within the cosmos and in relation to the Great Mystery (Wakan Tanka). It's a journey outward to seek a vision that will integrate the individual more fully into the spiritual and physical world, providing personal balance and strength.\\\\n\\\\n**Dine Healing Ceremony (Blessingway):** This is a complex, communal ceremony led by a Hataa\\\\u0142ii (singer or medicine person). Its primary goal is to restore or maintain *H\\\\u00f3zh\\\\u00f3*, a holistic concept encompassing beauty, harmony, balance, and goodness within an individual, their community, and their environment. It addresses disharmony, often caused by illness, misfortune, or breaking taboos. The ceremony brings the person back into alignment with the cosmic order and the sacred elements of their world through chants, rituals, and sometimes sand paintings. It's about bringing harmony *in* and re-establishing a proper, balanced relationship with the surrounding universe, often in a preventative or restorative context rather than for individual revelation.\\\"}\""
+                }
+              ],
+              "role": "CONTENT_ROLE_ASSISTANT",
+              "senderName": "google/gemini-2.5-flash"
+            }
+          ],
+          "metrics": {
+            "inputTokens": 169,
+            "outputTokens": 347,
+            "inputTokensCostNanodollars": "50700",
+            "outputTokensCostNanodollars": "2727500",
+            "totalBackendLatencyMs": "8188"
+          },
+          "id": "Anamnesis Knower: Calibration Monitoring-9c70e8ef-req-1"
+        }
+      ],
+      "metrics": {
+        "inputTokens": 169,
+        "outputTokens": 347,
+        "inputTokensCostNanodollars": "50700",
+        "outputTokensCostNanodollars": "2727500",
+        "totalBackendLatencyMs": "8188"
+      },
+      "modelVersionSlug": "model_version_slug for conversation is DEPRECATED"
+    }
+  ],
+  "results": [
+    {
+      "type": "AGGREGATED",
+      "numericResult": {
+        "value": 0.15359999999999996
+      }
+    }
+  ],
+  "assertions": [
+    {
+      "expectation": "[Knower/tek_comparative] Conf=92, Correct=False, Cal=0.15",
+      "status": "BENCHMARK_TASK_RUN_ASSERTION_STATUS_FAILED",
+      "lineNumber": 83,
+      "definition": "kbench.assertions.assert_true(",
+      "conversationRequestIds": [
+        {
+          "conversationId": "Anamnesis Knower: Calibration Monitoring-9c70e8ef",
+          "requestId": "Anamnesis Knower: Calibration Monitoring-9c70e8ef-req-1"
+        }
+      ]
+    }
+  ],
+  "pyRunId": "Anamnesis Knower: Calibration Monitoring-Run #172"
+}

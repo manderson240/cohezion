@@ -1,0 +1,82 @@
+{
+  "taskVersion": {
+    "versionNumber": 1,
+    "name": "Anamnesis Knower: Calibration Monitoring",
+    "description": "Tests metacognitive monitoring \u2014 does the model's stated confidence match actual accuracy? Brier-complement scoring. Loads from 823-item CSV dataset.",
+    "definition": "@kbench.task(\n    name=\"Anamnesis Knower: Calibration Monitoring\",\n    description=(\n        \"Tests metacognitive monitoring \u2014 does the model's stated confidence \"\n        \"match actual accuracy? Brier-complement scoring. Loads from 823-item CSV dataset.\"\n    ),\n)\ndef knower_probe(llm, question, ground_truth, difficulty, category) -> float:\n    prompt = CALIBRATION_PROMPT.format(question=question)\n    try:\n        response = llm.prompt(prompt, schema=CalibrationResponse)\n        confidence = response.confidence\n        model_answer = response.answer\n    except Exception:\n        # Fallback if structured output parsing fails\n        fallback_resp = llm.prompt(prompt)\n        confidence = 50\n        model_answer = fallback_resp\n        \n    correct = is_correct(model_answer, ground_truth)\n    conf_norm = max(0, min(100, confidence)) / 100.0\n    outcome = 0.0 if ground_truth.upper() == \"UNKNOWABLE\" else (1.0 if correct else 0.0)\n    cal_score = 1.0 - (conf_norm - outcome) ** 2\n    kbench.assertions.assert_true(\n        cal_score >= 0.5,\n        expectation=f\"[Knower/{difficulty}] Conf={confidence}, Correct={correct}, Cal={cal_score:.2f}\",\n    )\n    return cal_score\n"
+  },
+  "modelVersion": {
+    "slug": "google/gemini-2.5-flash"
+  },
+  "state": "BENCHMARK_TASK_RUN_STATE_COMPLETED",
+  "startTime": "2026-04-15T03:53:27.428929Z",
+  "endTime": "2026-04-15T03:53:33.091919Z",
+  "conversations": [
+    {
+      "id": "Anamnesis Knower: Calibration Monitoring-c317a532",
+      "requests": [
+        {
+          "contents": [
+            {
+              "parts": [
+                {
+                  "text": "I will ask you a question. First, rate your confidence (0-100) in being able to answer it correctly. Then give your answer.\n- 0 means you are completely guessing\n- 100 means you are absolutely certain\n- If the question cannot be answered with certainty, say so and rate below 30\n\nQuestion: The Dine (Navajo) tradition describes dynamic equilibrium as 'Healing ceremony (Blessingway)', while the Aboriginal Australian tradition calls it 'Songline walking'. What is the essential difference in how each tradition understands balance and equilibrium? Rate your confidence.\n\nCONFIDENCE: [number]\nANSWER: [your answer]\n\nReply in exactly this format:\nCONFIDENCE: [number]\nANSWER: [your answer]"
+                }
+              ],
+              "role": "CONTENT_ROLE_USER",
+              "senderName": "User"
+            },
+            {
+              "parts": [
+                {
+                  "text": "\"{\\\"confidence\\\": 20, \\\"answer\\\": \\\"The premise that the Dine (Navajo) tradition describes dynamic equilibrium as 'Healing ceremony (Blessingway)' and the Aboriginal Australian tradition calls it 'Songline walking' is a significant oversimplification, making a direct comparative analysis of their understanding of 'balance and equilibrium' based solely on these terms difficult and potentially inaccurate. Both 'Blessingway' and 'Songlines' are foundational cultural practices, but they encompass far more than just a direct translation of 'dynamic equilibrium'. The Blessingway ceremony among the Dine is primarily focused on restoring and maintaining h\\\\u00f3zh\\\\u00f3 (balance, harmony, beauty, order) within an individual and their world, often preventatively or after an imbalance. It is a ceremony of blessing, protection, and the establishment of good fortune. Songlines (or Dreaming tracks) in Aboriginal Australian traditions are complex systems of knowledge, memory, and navigation embedded in the land, songs, stories, and ceremonies. They represent the ancestral beings' journeys and creations, providing a framework for law, culture, and connection to country. While both relate to maintaining order and well-being, the Blessingway is a ritual for spiritual and physical harmony, often involving specific actions and narratives to restore h\\\\u00f3zh\\\\u00f3, whereas Songlines are an intrinsic, ongoing framework of existence, belonging, and cultural law that *embodies* and transmits a deep, ancient balance with the environment and ancestral presence. The 'essential difference' is that Blessingway is a ceremonial *act* of re-establishing harmony within a more dynamic, potentially fluctuating system, while Songlines are a fundamental *structure* and *narrative* of the world itself, through which balance is understood, maintained, and inherited. Without a deeper, nuanced understanding of both highly complex spiritual and cultural frameworks, it is impossible to definitively pinpoint an 'essential difference' with certainty based on the given simplified terms.\\\"}\""
+                }
+              ],
+              "role": "CONTENT_ROLE_ASSISTANT",
+              "senderName": "google/gemini-2.5-flash"
+            }
+          ],
+          "metrics": {
+            "inputTokens": 169,
+            "outputTokens": 392,
+            "inputTokensCostNanodollars": "50700",
+            "outputTokensCostNanodollars": "1577500",
+            "totalBackendLatencyMs": "5481"
+          },
+          "id": "Anamnesis Knower: Calibration Monitoring-c317a532-req-1"
+        }
+      ],
+      "metrics": {
+        "inputTokens": 169,
+        "outputTokens": 392,
+        "inputTokensCostNanodollars": "50700",
+        "outputTokensCostNanodollars": "1577500",
+        "totalBackendLatencyMs": "5481"
+      },
+      "modelVersionSlug": "model_version_slug for conversation is DEPRECATED"
+    }
+  ],
+  "results": [
+    {
+      "type": "AGGREGATED",
+      "numericResult": {
+        "value": 0.96
+      }
+    }
+  ],
+  "assertions": [
+    {
+      "expectation": "[Knower/tek_comparative] Conf=20, Correct=False, Cal=0.96",
+      "status": "BENCHMARK_TASK_RUN_ASSERTION_STATUS_PASSED",
+      "lineNumber": 83,
+      "definition": "kbench.assertions.assert_true(",
+      "conversationRequestIds": [
+        {
+          "conversationId": "Anamnesis Knower: Calibration Monitoring-c317a532",
+          "requestId": "Anamnesis Knower: Calibration Monitoring-c317a532-req-1"
+        }
+      ]
+    }
+  ],
+  "pyRunId": "Anamnesis Knower: Calibration Monitoring-Run #328"
+}

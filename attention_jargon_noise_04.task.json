@@ -1,6 +1,0 @@
-{
-  "versionNumber": 1,
-  "name": "attention_jargon_noise_04",
-  "description": "Extract meaning from jargon-filled text.",
-  "definition": "@kbench.task(name=\"attention_jargon_noise_04\")\ndef attention_jargon_noise_04(llm) -> bool:\n    \"\"\"Extract meaning from jargon-filled text.\"\"\"\n    prompt = \"\"\"A physics paper states:\n\n\"The renormalization group flow in the 12D conformal field theory exhibits a bifurcation at the fixed point, resulting in spontaneous symmetry breaking of the SU(2) gauge group. Meanwhile, the Hubble parameter H\u2080 = 70 km/s/Mpc. The moduli space compactification yields Calabi-Yau manifolds.\"\n\nWhat is the value of H\u2080?\n\nA) 12D\nB) 70 km/s/Mpc\nC) SU(2)\nD) Cannot be determined\"\"\"\n    response = llm.prompt(prompt)\n    return bool(kbench.assertions.assert_true(\"B\" in response, expectation=\"Correct answer is B\"))\n"
-}

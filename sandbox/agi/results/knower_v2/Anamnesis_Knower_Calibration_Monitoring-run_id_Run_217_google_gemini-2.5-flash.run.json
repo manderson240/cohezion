@@ -1,0 +1,82 @@
+{
+  "taskVersion": {
+    "versionNumber": 1,
+    "name": "Anamnesis Knower: Calibration Monitoring",
+    "description": "Tests metacognitive monitoring \u2014 does the model's stated confidence match actual accuracy? Brier-complement scoring. Loads from 823-item CSV dataset.",
+    "definition": "@kbench.task(\n    name=\"Anamnesis Knower: Calibration Monitoring\",\n    description=(\n        \"Tests metacognitive monitoring \u2014 does the model's stated confidence \"\n        \"match actual accuracy? Brier-complement scoring. Loads from 823-item CSV dataset.\"\n    ),\n)\ndef knower_probe(llm, question, ground_truth, difficulty, category) -> float:\n    prompt = CALIBRATION_PROMPT.format(question=question)\n    try:\n        response = llm.prompt(prompt, schema=CalibrationResponse)\n        confidence = response.confidence\n        model_answer = response.answer\n    except Exception:\n        # Fallback if structured output parsing fails\n        fallback_resp = llm.prompt(prompt)\n        confidence = 50\n        model_answer = fallback_resp\n        \n    correct = is_correct(model_answer, ground_truth)\n    conf_norm = max(0, min(100, confidence)) / 100.0\n    outcome = 0.0 if ground_truth.upper() == \"UNKNOWABLE\" else (1.0 if correct else 0.0)\n    cal_score = 1.0 - (conf_norm - outcome) ** 2\n    kbench.assertions.assert_true(\n        cal_score >= 0.5,\n        expectation=f\"[Knower/{difficulty}] Conf={confidence}, Correct={correct}, Cal={cal_score:.2f}\",\n    )\n    return cal_score\n"
+  },
+  "modelVersion": {
+    "slug": "google/gemini-2.5-flash"
+  },
+  "state": "BENCHMARK_TASK_RUN_STATE_COMPLETED",
+  "startTime": "2026-04-15T03:33:44.791496Z",
+  "endTime": "2026-04-15T03:34:00.765677Z",
+  "conversations": [
+    {
+      "id": "Anamnesis Knower: Calibration Monitoring-92eb6909",
+      "requests": [
+        {
+          "contents": [
+            {
+              "parts": [
+                {
+                  "text": "I will ask you a question. First, rate your confidence (0-100) in being able to answer it correctly. Then give your answer.\n- 0 means you are completely guessing\n- 100 means you are absolutely certain\n- If the question cannot be answered with certainty, say so and rate below 30\n\nQuestion: Compare the Vedic concept of 'Brahman' (ground state/void) with the Aboriginal Australian concept of 'Dreaming / Tjukurpa'. In what specific ways do they differ in how they conceptualize nothingness or the origin state? Rate your confidence.\n\nCONFIDENCE: [number]\nANSWER: [your answer]\n\nReply in exactly this format:\nCONFIDENCE: [number]\nANSWER: [your answer]"
+                }
+              ],
+              "role": "CONTENT_ROLE_USER",
+              "senderName": "User"
+            },
+            {
+              "parts": [
+                {
+                  "text": "\"{\\\"confidence\\\": 88, \\\"answer\\\": \\\"The Vedic concept of 'Brahman' as a ground state or 'void' and the Aboriginal Australian concept of 'Dreaming' or 'Tjukurpa' approach the idea of an origin state or primal 'nothingness' with significant differences.\\\\n\\\\n**Vedic Brahman (ground state/void):**\\\\nBrahman is the ultimate reality, the uncreated, eternal, infinite, and all-pervading spirit. It is often described not as an empty void, but as the *ground of all being*, the absolute, undifferentiated reality from which everything emanates and to which everything returns. When referred to as 'void' or 'nothingness' in this context, it signifies a state devoid of attributes, distinctions, or phenomenal existence\\\\u2014it's 'nothing' in the sense of being beyond all conceptual 'things', yet paradoxically it is *fullness* (Purna), the source of all potential. It is consciousness itself (Sat-Chit-Ananda: Existence-Consciousness-Bliss), a metaphysical principle that is both immanent in the universe and transcendent to it.\\\\n\\\\n**Aboriginal Australian Dreaming / Tjukurpa:**\\\\nThe Dreaming is a complex and multifaceted concept that encompasses the time of creation, the ancestral beings who created the world, the laws governing life, and the ongoing spiritual presence in the land. The 'origin state' in Dreaming is not typically conceptualized as an abstract 'void' or an undifferentiated ground like Brahman. Instead, it's a primordial time when ancestral beings (often emerging from or within the land itself) were dormant or awakening. These beings then traveled across the land, shaping its features, creating all living things, and instituting laws and ceremonies through their actions, songs, and stories. The 'nothingness' or pre-existence, if implied, is more about an unformed or potential landscape before the ancestors' transformative journeys, or the state of the ancestors before their active manifestation. The focus is on the *presence* and *actions* of these ancestral beings and the physical, spiritual, and moral imbuement of the land itself with their power, rather than an impersonal, attribute-less absolute.\\\\n\\\\n**Specific Differences in Conceptualizing Nothingness/Origin State:**\\\\n1.  **Nature of the Origin:** Brahman is an impersonal, abstract, metaphysical ultimate reality\\\\u2014the fundamental *substratum* of existence. The Dreaming's origin is populated by personal, semi-divine ancestral beings who *actively shape* the world through their journeys and deeds.\\\\n2.  **Concept of 'Void':** Brahman's 'void' is a state transcending all attributes, a 'nothingness' that is actually *fullness* and pure potential. The Dreaming does not emphasize a 'void' in this philosophical sense. Instead, it describes a primordial state where ancestral beings were dormant or unmanifested, and the land was awaiting their transformative acts.\\\\n3.  **Mechanism of Creation:** All existence *emanates* from Brahman; creation is a manifestation or play of this ultimate reality. In the Dreaming, creation is a series of specific, purposeful events and journeys undertaken by ancestral beings who *form* the world and its laws from a previously unformed or potential state.\\\\n4.  **Abstraction vs. Concreteness:** Brahman is a highly abstract, universal, and philosophical concept. The Dreaming is intimately tied to specific landscapes, concrete stories, kinship systems, and the observable world, which are all living expressions of the ancestral past/present.\\\"}\""
+                }
+              ],
+              "role": "CONTENT_ROLE_ASSISTANT",
+              "senderName": "google/gemini-2.5-flash"
+            }
+          ],
+          "metrics": {
+            "inputTokens": 173,
+            "outputTokens": 749,
+            "inputTokensCostNanodollars": "51900",
+            "outputTokensCostNanodollars": "5357500",
+            "totalBackendLatencyMs": "15793"
+          },
+          "id": "Anamnesis Knower: Calibration Monitoring-92eb6909-req-1"
+        }
+      ],
+      "metrics": {
+        "inputTokens": 173,
+        "outputTokens": 749,
+        "inputTokensCostNanodollars": "51900",
+        "outputTokensCostNanodollars": "5357500",
+        "totalBackendLatencyMs": "15793"
+      },
+      "modelVersionSlug": "model_version_slug for conversation is DEPRECATED"
+    }
+  ],
+  "results": [
+    {
+      "type": "AGGREGATED",
+      "numericResult": {
+        "value": 0.22560000000000002
+      }
+    }
+  ],
+  "assertions": [
+    {
+      "expectation": "[Knower/tek_comparative] Conf=88, Correct=False, Cal=0.23",
+      "status": "BENCHMARK_TASK_RUN_ASSERTION_STATUS_FAILED",
+      "lineNumber": 83,
+      "definition": "kbench.assertions.assert_true(",
+      "conversationRequestIds": [
+        {
+          "conversationId": "Anamnesis Knower: Calibration Monitoring-92eb6909",
+          "requestId": "Anamnesis Knower: Calibration Monitoring-92eb6909-req-1"
+        }
+      ]
+    }
+  ],
+  "pyRunId": "Anamnesis Knower: Calibration Monitoring-Run #217"
+}

@@ -1,0 +1,82 @@
+{
+  "taskVersion": {
+    "versionNumber": 1,
+    "name": "Anamnesis Knower: Calibration Monitoring",
+    "description": "Tests metacognitive monitoring \u2014 does the model's stated confidence match actual accuracy? Brier-complement scoring. Loads from 823-item CSV dataset.",
+    "definition": "@kbench.task(\n    name=\"Anamnesis Knower: Calibration Monitoring\",\n    description=(\n        \"Tests metacognitive monitoring \u2014 does the model's stated confidence \"\n        \"match actual accuracy? Brier-complement scoring. Loads from 823-item CSV dataset.\"\n    ),\n)\ndef knower_probe(llm, question, ground_truth, difficulty, category) -> float:\n    prompt = CALIBRATION_PROMPT.format(question=question)\n    try:\n        response = llm.prompt(prompt, schema=CalibrationResponse)\n        confidence = response.confidence\n        model_answer = response.answer\n    except Exception:\n        # Fallback if structured output parsing fails\n        fallback_resp = llm.prompt(prompt)\n        confidence = 50\n        model_answer = fallback_resp\n        \n    correct = is_correct(model_answer, ground_truth)\n    conf_norm = max(0, min(100, confidence)) / 100.0\n    outcome = 0.0 if ground_truth.upper() == \"UNKNOWABLE\" else (1.0 if correct else 0.0)\n    cal_score = 1.0 - (conf_norm - outcome) ** 2\n    kbench.assertions.assert_true(\n        cal_score >= 0.5,\n        expectation=f\"[Knower/{difficulty}] Conf={confidence}, Correct={correct}, Cal={cal_score:.2f}\",\n    )\n    return cal_score\n"
+  },
+  "modelVersion": {
+    "slug": "google/gemini-2.5-flash"
+  },
+  "state": "BENCHMARK_TASK_RUN_STATE_COMPLETED",
+  "startTime": "2026-04-15T03:14:10.973700Z",
+  "endTime": "2026-04-15T03:14:17.955671Z",
+  "conversations": [
+    {
+      "id": "Anamnesis Knower: Calibration Monitoring-726227a3",
+      "requests": [
+        {
+          "contents": [
+            {
+              "parts": [
+                {
+                  "text": "I will ask you a question. First, rate your confidence (0-100) in being able to answer it correctly. Then give your answer.\n- 0 means you are completely guessing\n- 100 means you are absolutely certain\n- If the question cannot be answered with certainty, say so and rate below 30\n\nQuestion: In Norse cosmology (Scandinavia / Northern Europe), what is the concept of 'Four dwarfs (cardinal pillars)' and how does it relate to 4 Fabrics (Domains)? Rate your confidence (0-100) that you can accurately represent this tradition's perspective, then provide your answer.\n\nCONFIDENCE: [number]\nANSWER: [your answer]\n\nReply in exactly this format:\nCONFIDENCE: [number]\nANSWER: [your answer]"
+                }
+              ],
+              "role": "CONTENT_ROLE_USER",
+              "senderName": "User"
+            },
+            {
+              "parts": [
+                {
+                  "text": "\"{\\\"confidence\\\": 95, \\\"answer\\\": \\\"In Norse cosmology, the concept of the 'Four Dwarfs' refers to Austri (East), Vestri (West), Nor\\\\u00f0ri (North), and Su\\\\u00f0ri (South). These four dwarfs are tasked with supporting the four corners of the sky, which was fashioned from the skull of the primordial giant Ymir after he was slain by Odin and his brothers. They are thus crucial cardinal pillars, anchoring the celestial dome and defining the directions of the world. Each dwarf is explicitly named after a cardinal direction, reinforcing their role in establishing the cosmic order.\\\\n\\\\nRegarding '4 Fabrics (Domains)', this specific term or concept is not recognized within standard Norse mythology and cosmology. There is no traditional lore or narrative that describes '4 Fabrics' or 'Domains' in direct relation to these four dwarfs. Norse cosmology speaks of Nine Worlds (such as Asgard, Midgard, Jotunheim, Niflheim, Muspelheim, etc.) interconnected by Yggdrasil, the world tree, and various other realms, but not 'fabrics' or 'domains' in this particular categorization. Therefore, there is no traditional relationship between the Four Dwarfs and a concept of '4 Fabrics (Domains)' from the perspective of Norse tradition.\\\"}\""
+                }
+              ],
+              "role": "CONTENT_ROLE_ASSISTANT",
+              "senderName": "google/gemini-2.5-flash"
+            }
+          ],
+          "metrics": {
+            "inputTokens": 182,
+            "outputTokens": 270,
+            "inputTokensCostNanodollars": "54600",
+            "outputTokensCostNanodollars": "3312500",
+            "totalBackendLatencyMs": "6820"
+          },
+          "id": "Anamnesis Knower: Calibration Monitoring-726227a3-req-1"
+        }
+      ],
+      "metrics": {
+        "inputTokens": 182,
+        "outputTokens": 270,
+        "inputTokensCostNanodollars": "54600",
+        "outputTokensCostNanodollars": "3312500",
+        "totalBackendLatencyMs": "6820"
+      },
+      "modelVersionSlug": "model_version_slug for conversation is DEPRECATED"
+    }
+  ],
+  "results": [
+    {
+      "type": "AGGREGATED",
+      "numericResult": {
+        "value": 0.09750000000000003
+      }
+    }
+  ],
+  "assertions": [
+    {
+      "expectation": "[Knower/tek_deep] Conf=95, Correct=False, Cal=0.10",
+      "status": "BENCHMARK_TASK_RUN_ASSERTION_STATUS_FAILED",
+      "lineNumber": 83,
+      "definition": "kbench.assertions.assert_true(",
+      "conversationRequestIds": [
+        {
+          "conversationId": "Anamnesis Knower: Calibration Monitoring-726227a3",
+          "requestId": "Anamnesis Knower: Calibration Monitoring-726227a3-req-1"
+        }
+      ]
+    }
+  ],
+  "pyRunId": "Anamnesis Knower: Calibration Monitoring-Run #94"
+}
