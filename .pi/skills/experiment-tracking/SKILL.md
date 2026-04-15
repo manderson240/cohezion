@@ -1,6 +1,9 @@
-# Experiment Tracking During Parallel Execution
+---
+name: experiment-tracking
+description: Track experiments during 4-day parallel AGI development with daily sync and cross-experiment learning.
+---
 
-## Overview
+# Experiment Tracking During Parallel Execution
 
 Track ongoing experiments during 4-day parallel execution of AGI development and Lemonade model mapping.
 

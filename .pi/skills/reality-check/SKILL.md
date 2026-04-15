@@ -1,6 +1,9 @@
-# Skill: Reality Check Protocol
+---
+name: reality-check
+description: Prevent hallucination spirals with mandatory verification steps for syntax, imports, instantiation, and execution.
+---
 
-**Version:** 1.0  
+# Skill: Reality Check Protocol  
 **Created:** 2026-04-11  
 **Source:** Hallucination Recovery Session  
 **Priority:** Critical

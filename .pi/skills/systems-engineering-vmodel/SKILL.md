@@ -1,6 +1,9 @@
-# Systems Engineering V-Model Coding Standards
+---
+name: systems-engineering-vmodel
+description: Apply Systems Engineering V-Model lifecycle from requirements through validation for systematic, traceable system changes.
+---
 
-## Overview
+# Systems Engineering V-Model Coding Standards
 
 Every significant system change follows the **Systems Engineering V-Model** lifecycle from requirements through validation. This ensures traceability, quality, and systematic improvement.
 

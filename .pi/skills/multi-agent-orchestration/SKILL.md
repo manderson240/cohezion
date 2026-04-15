@@ -1,6 +1,9 @@
-# Multi-Agent Orchestration Pattern
+---
+name: multi-agent-orchestration
+description: Dynamic agent selection based on task characteristics with hardware-aware routing and self-improving feedback loops.
+---
 
-## When to Use This Skill
+# Multi-Agent Orchestration Pattern
 
 Use this pattern when you need:
 - **Dynamic agent selection** based on task characteristics

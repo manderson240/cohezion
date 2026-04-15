@@ -1,6 +1,9 @@
-# Dynamic Levers System
+---
+name: dynamic-levers
+description: Tunable parameters for system optimization with goals, ranges, and safe adjustment methods.
+---
 
-## Overview
+# Dynamic Levers System
 
 Tunable parameters for system optimization with clear goals, measurable metrics, and safe adjustment ranges.
 

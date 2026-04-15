@@ -1,6 +1,9 @@
-# Dynamic Compound System Pattern
+---
+name: dynamic-compound-system
+description: Build self-improving infrastructure with proactive/reactive layers, circuit breakers, and pattern learning.
+---
 
-## Overview
+# Dynamic Compound System Pattern
 
 Build self-improving infrastructure that is **proactive** (anticipates needs), **reactive** (responds to failures), **adaptive** (learns continuously), and **dynamic** (hot-reloads, self-heals).
 

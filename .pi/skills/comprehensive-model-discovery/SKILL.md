@@ -1,6 +1,9 @@
-# Comprehensive Model Discovery
+---
+name: comprehensive-model-discovery
+description: Discover AI models across NPU, GPU, and local sources with capability inference and resource-safe operations.
+---
 
-## When to Use This Skill
+# Comprehensive Model Discovery
 
 Use this pattern when:
 - Building orchestration systems that need complete model inventory

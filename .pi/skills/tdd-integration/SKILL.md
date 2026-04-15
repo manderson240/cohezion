@@ -1,6 +1,9 @@
-# Test-Driven Integration Pattern
+---
+name: tdd-integration
+description: Integrate new systems with existing infrastructure by writing tests first, then adapters, then implementations.
+---
 
-## Overview
+# Test-Driven Integration Pattern
 
 Integrate new systems with existing infrastructure using the **Test-Driven Integration** pattern:
 1. **First**: Write tests that define exactly how systems connect

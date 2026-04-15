@@ -1,6 +1,9 @@
-# Production Dogfooding Framework
+---
+name: production-dogfooding
+description: 4-phase framework for validating systems through real-world use with metrics-driven decisions and self-improvement loops.
+---
 
-## Overview
+# Production Dogfooding Framework
 
 Complete framework for validating systems through real-world use. Includes 4 phases: tool usage, metrics-driven decisions, self-improvement, and production hardening.
 
