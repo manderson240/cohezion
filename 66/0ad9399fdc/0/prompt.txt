@@ -1,0 +1,6 @@
+can you fix these errors: bash: set: -i: invalid option
+set: usage: set [-abefhkmnptuvxBCEHPT] [-o option-name] [--] [-] [arg ...]
+
+---
+
+/retrospect
