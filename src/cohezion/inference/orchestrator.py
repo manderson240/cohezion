@@ -1,0 +1,305 @@
+"""Tiered orchestrator — smarter models orchestrate less-smart models.
+
+Abstracts Claude Code's ``/advisor`` pattern (a secondary, smarter model
+silently advises a primary) and applies it across the whole Cohezion fleet:
+
+    Tier 0   — fast/cheap primary    (e.g. Gemma-4-E2B on NPU)
+    Tier 1   — midsize reasoner     (e.g. Gemma-4-26B-A4B on iGPU)
+    Tier 2   — first cloud fallback  (e.g. Haiku via headless CLI)
+    Tier 3+  — reviewer / arbiter    (Sonnet, Opus)
+
+A tier runs only if the tier below it fails its **QualityGate**. Every
+escalation is logged; total cost is bounded by ``max_cost_usd``. Each tier
+can itself be another ``TieredOrchestrator`` — so agents can have sub-agents
+which can have sub-sub-agents.
+
+See ``docs/vmodel/PHASE6_ORCHESTRATOR_PLAN.md`` for invariants (O1–O8).
+"""
+
+from __future__ import annotations
+
+import logging
+import time
+from dataclasses import dataclass, field
+from typing import Protocol, runtime_checkable
+
+from cohezion.inference.fleet import RouteResult, route
+from cohezion.inference.registry import Task
+
+
+logger = logging.getLogger(__name__)
+
+
+@dataclass
+class QualityGate:
+    """Deterministic pass/fail rule for a tier's output.
+
+    - ``min_chars`` — accept if ``len(result.text) >= min_chars``.
+    - ``require_nonempty`` — accept if ``result.text.strip() != ""``.
+    - ``TRUST`` — always pass (terminal tier).
+    """
+
+    min_chars: int | None = None
+    require_nonempty: bool = True
+
+    def check(self, result: RouteResult) -> tuple[bool, str]:
+        if result.error:
+            return False, f"error={result.error}"
+        if self.require_nonempty and not result.text.strip():
+            return False, "empty response"
+        if self.min_chars is not None and len(result.text) < self.min_chars:
+            return False, f"too short ({len(result.text)} < {self.min_chars})"
+        return True, "ok"
+
+
+# Sentinel — always passes. Use for the terminal tier.
+QualityGate.TRUST = QualityGate(min_chars=None, require_nonempty=False)  # type: ignore[attr-defined]
+
+
+@dataclass
+class TierAttempt:
+    """Log entry for one tier invocation."""
+
+    tier_index: int
+    model_or_sub: str
+    passed: bool
+    reason: str
+    cost_usd: float
+    latency_ms: float
+    ttft_ms: float | None
+
+
+@dataclass
+class OrchestrationResult:
+    """Outcome of ``TieredOrchestrator.run()``.
+
+    Always returned — even on exhausted failure, ``error`` is populated but
+    the caller gets a structured object to inspect, per invariant O7.
+    """
+
+    text: str
+    primary_model: str
+    final_model: str
+    escalation_count: int
+    tier_path: list[TierAttempt] = field(default_factory=list)
+    cost_usd: float = 0.0
+    latency_ms: float = 0.0
+    ttft_ms: float | None = None
+    error: str | None = None
+
+
+@runtime_checkable
+class Runnable(Protocol):
+    """A tier target — either a model_id string or a nested orchestrator."""
+
+    async def run(self, prompt: str, **kwargs) -> OrchestrationResult: ...
+
+
+TierEntry = tuple[str | Runnable, QualityGate]
+
+
+class TieredOrchestrator:
+    """Smarter models orchestrate less-smart models.
+
+    Tiers are ordered by priority: index 0 runs first, higher indices only
+    run if the previous tier fails its gate. Invariants O1–O8 enforced.
+    """
+
+    def __init__(
+        self,
+        tiers: list[TierEntry],
+        *,
+        max_cost_usd: float | None = None,
+        task: Task | str | None = None,
+        max_tokens: int = 512,
+        stream: bool = True,
+    ) -> None:
+        if not tiers:
+            raise ValueError("TieredOrchestrator requires at least one tier")
+        self.tiers = tiers
+        self.max_cost_usd = max_cost_usd
+        self.task = task
+        self.max_tokens = max_tokens
+        self.stream = stream
+
+    async def _invoke_tier(
+        self,
+        target: str | Runnable,
+        prompt: str,
+        remaining_budget: float | None,
+    ) -> tuple[RouteResult | OrchestrationResult, float, float | None]:
+        """Dispatch a single tier target; return (result, cost, ttft_ms)."""
+        if isinstance(target, str):
+            r = await route(
+                prompt,
+                task=self.task,
+                prefer=target,
+                budget_usd=remaining_budget,
+                stream=self.stream,
+                max_tokens=self.max_tokens,
+            )
+            return r, r.cost_usd, r.ttft_ms
+        # Nested orchestrator (O4: composable recursion). O3b: the parent's
+        # remaining budget overrides the nested orchestrator's own
+        # ``max_cost_usd`` ceiling so a sub-orchestrator cannot overspend
+        # its caller's envelope.
+        sub = await target.run(prompt, budget_usd=remaining_budget)
+        return sub, sub.cost_usd, sub.ttft_ms
+
+    async def run(
+        self, prompt: str, *, budget_usd: float | None = None
+    ) -> OrchestrationResult:
+        """Execute tier 0, escalate while gates fail, honor budget.
+
+        ``budget_usd`` is the caller's (usually the parent orchestrator's)
+        remaining budget. When set, it caps spending *in addition to*
+        ``self.max_cost_usd`` — the effective ceiling is the stricter of the
+        two. This is how nested orchestrators inherit the parent's envelope
+        without plumbing a shared mutable counter (O3b).
+        """
+        # Effective ceiling: min(self.max_cost_usd, budget_usd), ignoring Nones.
+        if self.max_cost_usd is None:
+            effective_max_cost: float | None = budget_usd
+        elif budget_usd is None:
+            effective_max_cost = self.max_cost_usd
+        else:
+            effective_max_cost = min(self.max_cost_usd, budget_usd)
+
+        start = time.perf_counter()
+        path: list[TierAttempt] = []
+        accumulated_cost = 0.0
+        last_text = ""
+        last_model = ""
+        last_ttft: float | None = None
+
+        for idx, (target, gate) in enumerate(self.tiers):
+            model_name = target if isinstance(target, str) else type(target).__name__
+
+            # O3: budget gate — short-circuit before invoking if cost already
+            # STRICTLY EXCEEDS the cap (with float epsilon per review edge-case
+            # #11). `max_cost_usd=0.0` means "local-only, no paid cloud" —
+            # local tiers at $0 still run; cloud tiers at >$0 are skipped.
+            _BUDGET_EPS = 1e-9
+            if (
+                effective_max_cost is not None
+                and accumulated_cost > effective_max_cost + _BUDGET_EPS
+                and idx > 0
+            ):
+                path.append(
+                    TierAttempt(
+                        tier_index=idx,
+                        model_or_sub=model_name,
+                        passed=False,
+                        reason="budget_exceeded",
+                        cost_usd=0.0,
+                        latency_ms=0.0,
+                        ttft_ms=None,
+                    )
+                )
+                break
+
+            remaining = (
+                (effective_max_cost - accumulated_cost)
+                if effective_max_cost is not None
+                else None
+            )
+            tier_start = time.perf_counter()
+            try:
+                result, tier_cost, tier_ttft = await self._invoke_tier(target, prompt, remaining)
+            except Exception as exc:  # noqa: BLE001
+                logger.warning("Tier %d (%s) raised: %s", idx, model_name, exc)
+                path.append(
+                    TierAttempt(
+                        tier_index=idx,
+                        model_or_sub=model_name,
+                        passed=False,
+                        reason=f"exception: {exc}",
+                        cost_usd=0.0,
+                        latency_ms=(time.perf_counter() - tier_start) * 1000,
+                        ttft_ms=None,
+                    )
+                )
+                continue
+
+            tier_latency = (time.perf_counter() - tier_start) * 1000
+            accumulated_cost += tier_cost
+
+            # Coerce OrchestrationResult to a RouteResult-shaped view for the gate.
+            if isinstance(result, OrchestrationResult):
+                view = RouteResult(
+                    text=result.text,
+                    model=result.final_model,
+                    lane="nested",
+                    latency_ms=result.latency_ms,
+                    ttft_ms=result.ttft_ms,
+                    cost_usd=result.cost_usd,
+                    error=result.error,
+                )
+            else:
+                view = result
+
+            passed, reason = gate.check(view)
+            path.append(
+                TierAttempt(
+                    tier_index=idx,
+                    model_or_sub=model_name,
+                    passed=passed,
+                    reason=reason,
+                    cost_usd=tier_cost,
+                    latency_ms=tier_latency,
+                    ttft_ms=tier_ttft,
+                )
+            )
+            last_text = view.text
+            last_model = view.model
+            last_ttft = view.ttft_ms
+
+            if passed:
+                # O1: higher tiers don't run once a lower tier passes.
+                return OrchestrationResult(
+                    text=view.text,
+                    primary_model=self.tiers[0][0]
+                    if isinstance(self.tiers[0][0], str)
+                    else type(self.tiers[0][0]).__name__,
+                    final_model=last_model or model_name,
+                    escalation_count=idx,
+                    tier_path=path,
+                    cost_usd=accumulated_cost,
+                    latency_ms=(time.perf_counter() - start) * 1000,
+                    ttft_ms=path[0].ttft_ms if path else None,
+                    error=None,
+                )
+
+        # O7: exhausted — every tier failed. Return structured error, don't raise.
+        return OrchestrationResult(
+            text=last_text,
+            primary_model=self.tiers[0][0]
+            if isinstance(self.tiers[0][0], str)
+            else type(self.tiers[0][0]).__name__,
+            final_model=last_model,
+            escalation_count=len([p for p in path if not p.passed]),
+            tier_path=path,
+            cost_usd=accumulated_cost,
+            latency_ms=(time.perf_counter() - start) * 1000,
+            ttft_ms=path[0].ttft_ms if path else None,
+            error="all tiers exhausted",
+        )
+
+
+# Convenience factory — the "smarter orchestrates less-smart" default hierarchy.
+def default_hierarchy(
+    *, include_claude: bool = True, max_cost_usd: float = 0.05
+) -> TieredOrchestrator:
+    """Pre-built 4-tier orchestrator matching the plan's reference stack."""
+    tiers: list[TierEntry] = [
+        ("Gemma-4-E2B-it-GGUF", QualityGate(min_chars=15)),
+        ("Gemma-4-26B-A4B-it-GGUF", QualityGate(min_chars=30)),
+    ]
+    if include_claude:
+        tiers.extend(
+            [
+                ("claude-haiku-4-5", QualityGate(min_chars=50)),
+                ("claude-sonnet-4-6", QualityGate.TRUST),  # type: ignore[attr-defined]
+            ]
+        )
+    return TieredOrchestrator(tiers=tiers, max_cost_usd=max_cost_usd)
