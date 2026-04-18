@@ -3,7 +3,7 @@
   "checkpoint_id": "660ad9399fdc",
   "strategy": "manual-commit",
   "branch": "isolated/session-oom-modularity",
-  "checkpoints_count": 7,
+  "checkpoints_count": 8,
   "files_touched": [
     ".agent/CAPABILITY_MAP_REDUX.md",
     "CLAUDE.md",
@@ -29,13 +29,19 @@
       "transcript": "/66/0ad9399fdc/2/full.jsonl",
       "content_hash": "/66/0ad9399fdc/2/content_hash.txt",
       "prompt": "/66/0ad9399fdc/2/prompt.txt"
+    },
+    {
+      "metadata": "/66/0ad9399fdc/3/metadata.json",
+      "transcript": "/66/0ad9399fdc/3/full.jsonl",
+      "content_hash": "/66/0ad9399fdc/3/content_hash.txt",
+      "prompt": "/66/0ad9399fdc/3/prompt.txt"
     }
   ],
   "token_usage": {
-    "input_tokens": 18120,
-    "cache_creation_tokens": 6507603,
-    "cache_read_tokens": 222083566,
-    "output_tokens": 345357,
-    "api_call_count": 860
+    "input_tokens": 21675,
+    "cache_creation_tokens": 7335861,
+    "cache_read_tokens": 227863102,
+    "output_tokens": 368538,
+    "api_call_count": 915
   }
 }
