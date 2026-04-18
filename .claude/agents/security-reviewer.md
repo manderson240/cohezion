@@ -1,7 +1,6 @@
 ---
 name: security-reviewer
 description: Reviews code for security vulnerabilities, OWASP Top 10, and Cohezion-specific security patterns. Read-only — reports findings without modifying files.
-effort: medium
 tools:
   - Read
   - Glob

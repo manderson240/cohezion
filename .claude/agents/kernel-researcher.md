@@ -7,7 +7,6 @@ description: |
   Use when: analyzing GPU kernel internals, tracing dispatch flows, comparing
   kernel implementations, or producing specs for custom kernel development.
 model: sonnet
-effort: high
 tools:
   - Read
   - Glob

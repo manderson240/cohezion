@@ -1,7 +1,6 @@
 ---
 name: skill-refiner
 description: Analyzes PRIME skill definitions for quality and applies learned refinements from retrospection analysis. Can read and modify skill .md files in src/cohezion/skills/.
-effort: medium
 tools:
   - Read
   - Glob

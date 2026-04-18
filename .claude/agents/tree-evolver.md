@@ -7,7 +7,6 @@ description: |
   Use when: evolving K-Search trees, running overnight optimization loops,
   or testing world model evolution with synthetic results.
 model: sonnet
-effort: high
 tools:
   - Read
   - Bash

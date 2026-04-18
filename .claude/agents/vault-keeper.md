@@ -1,7 +1,6 @@
 ---
 name: vault-keeper
 description: Proactive vault maintenance agent. Monitors health, detects orphans, enforces frontmatter, archives stale notes, and reindexes SurrealDB when vault structure changes.
-effort: low
 tools:
   - Read
   - Glob
