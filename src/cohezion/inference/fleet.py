@@ -26,6 +26,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import subprocess
 import time
 from dataclasses import dataclass, field
 from typing import Any
@@ -486,7 +487,12 @@ async def route(
                 symmetry_coherence=coherence,
                 attempts=attempts,
             )
-        except (TimeoutError, httpx.HTTPError, Exception) as exc:
+        except (httpx.HTTPError, subprocess.CalledProcessError, OSError, ValueError) as exc:
+            # httpx.HTTPError — HTTP transport failures
+            # CalledProcessError — CLI subprocess lane failures
+            # OSError — covers TimeoutError (3.11+ alias) plus filesystem/socket errors
+            # ValueError — malformed response body (e.g. JSON decode)
+            # Narrower than bare Exception so genuine bugs still surface.
             last_error = f"{candidate.model_id}: {exc}"
             logger.warning("Dispatch to %s failed: %s", candidate.model_id, exc)
             continue
