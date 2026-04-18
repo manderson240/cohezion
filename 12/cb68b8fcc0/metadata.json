@@ -1,0 +1,60 @@
+{
+  "cli_version": "0.5.5",
+  "checkpoint_id": "12cb68b8fcc0",
+  "strategy": "manual-commit",
+  "branch": "isolated/session-oom-modularity",
+  "checkpoints_count": 1,
+  "files_touched": [
+    ".claude/hooks/advisor-reminder.sh",
+    ".claude/hooks/stop-resilient.sh",
+    "HANDOFF_2026-04-18.md",
+    "MANIFEST_ALIGNMENT.md",
+    "SHOWCASE.md",
+    "demo/orchestrate_demo.py",
+    "demo/universes_demo.py",
+    "docs/INSIGHTS.md",
+    "docs/ROADMAP.md",
+    "docs/SPRINT_2026-04-18_RETROSPECTIVE.md",
+    "docs/STATUS_REPORT_2026-04-18.html",
+    "docs/application/COVER_LETTER_universes.md",
+    "docs/application/archive/ANTHROPIC_COVER_LETTER_v1.md",
+    "docs/vmodel/ADVERSARIAL_REVIEW_2026-04-18.md",
+    "docs/vmodel/PHASE1_INFERENCE_PLAN.md",
+    "docs/vmodel/PHASE2_BENCHMARK_PLAN.md",
+    "docs/vmodel/PHASE6_ORCHESTRATOR_PLAN.md",
+    "local_environment_quirks.md",
+    "scripts/benchmark_fleet.py",
+    "scripts/launch_fleet_safe.sh",
+    "scripts/validation/vmodel/phase1_inference_harness.py",
+    "scripts/validation/vmodel/phase2_benchmark_harness.py",
+    "scripts/validation/vmodel/phase6_orchestrator_harness.py",
+    "src/cohezion/inference/__init__.py",
+    "src/cohezion/inference/fleet.py",
+    "src/cohezion/inference/gaia_adapter.py",
+    "src/cohezion/inference/harnesses.py",
+    "src/cohezion/inference/health.py",
+    "src/cohezion/inference/orchestrator.py",
+    "src/cohezion/inference/registry.py",
+    "tests/inference/__init__.py",
+    "tests/inference/test_fleet.py",
+    "tests/inference/test_harnesses.py",
+    "tests/inference/test_health.py",
+    "tests/inference/test_orchestrator.py",
+    "tests/inference/test_registry.py"
+  ],
+  "sessions": [
+    {
+      "metadata": "/12/cb68b8fcc0/0/metadata.json",
+      "transcript": "/12/cb68b8fcc0/0/full.jsonl",
+      "content_hash": "/12/cb68b8fcc0/0/content_hash.txt",
+      "prompt": ""
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 0,
+    "cache_creation_tokens": 0,
+    "cache_read_tokens": 0,
+    "output_tokens": 0,
+    "api_call_count": 0
+  }
+}
