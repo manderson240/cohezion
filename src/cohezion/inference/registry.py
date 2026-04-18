@@ -1,4 +1,4 @@
-"""Fleet model registry — single source of truth for lane × model × task affinity.
+"""Fleet model registry - single source of truth for lane x model x task affinity.
 
 Maps the Strix Halo Symphony (4-lane Gemma 4 deployment) plus specialist task
 models and cloud fallbacks into a unified table that every other module in
@@ -288,7 +288,7 @@ def _build_default_registry() -> dict[str, ModelEntry]:
 
 @dataclass
 class FleetRegistry:
-    """Registry of all models × lanes × tasks. Instantiated as a module singleton."""
+    """Registry of all models x lanes x tasks. Instantiated as a module singleton."""
 
     models: dict[str, ModelEntry] = field(default_factory=_build_default_registry)
 

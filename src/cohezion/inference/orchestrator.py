@@ -13,7 +13,7 @@ escalation is logged; total cost is bounded by ``max_cost_usd``. Each tier
 can itself be another ``TieredOrchestrator`` — so agents can have sub-agents
 which can have sub-sub-agents.
 
-See ``docs/vmodel/PHASE6_ORCHESTRATOR_PLAN.md`` for invariants (O1–O8).
+See ``docs/vmodel/PHASE6_ORCHESTRATOR_PLAN.md`` for invariants (O1-O8).
 """
 
 from __future__ import annotations
@@ -21,10 +21,13 @@ from __future__ import annotations
 import logging
 import time
 from dataclasses import dataclass, field
-from typing import Protocol, runtime_checkable
+from typing import TYPE_CHECKING, Protocol, runtime_checkable
 
 from cohezion.inference.fleet import RouteResult, route
-from cohezion.inference.registry import Task
+
+
+if TYPE_CHECKING:
+    from cohezion.inference.registry import Task
 
 
 logger = logging.getLogger(__name__)
@@ -102,7 +105,7 @@ class TieredOrchestrator:
     """Smarter models orchestrate less-smart models.
 
     Tiers are ordered by priority: index 0 runs first, higher indices only
-    run if the previous tier fails its gate. Invariants O1–O8 enforced.
+    run if the previous tier fails its gate. Invariants O1-O8 enforced.
     """
 
     def __init__(
@@ -170,16 +173,15 @@ class TieredOrchestrator:
         accumulated_cost = 0.0
         last_text = ""
         last_model = ""
-        last_ttft: float | None = None
 
         for idx, (target, gate) in enumerate(self.tiers):
             model_name = target if isinstance(target, str) else type(target).__name__
 
-            # O3: budget gate — short-circuit before invoking if cost already
+            # O3: budget gate - short-circuit before invoking if cost already
             # STRICTLY EXCEEDS the cap (with float epsilon per review edge-case
-            # #11). `max_cost_usd=0.0` means "local-only, no paid cloud" —
+            # #11). `max_cost_usd=0.0` means "local-only, no paid cloud" -
             # local tiers at $0 still run; cloud tiers at >$0 are skipped.
-            _BUDGET_EPS = 1e-9
+            _BUDGET_EPS = 1e-9  # noqa: N806 — constant semantics, _ prefix signals "loop-local"
             if (
                 effective_max_cost is not None
                 and accumulated_cost > effective_max_cost + _BUDGET_EPS
@@ -206,7 +208,7 @@ class TieredOrchestrator:
             tier_start = time.perf_counter()
             try:
                 result, tier_cost, tier_ttft = await self._invoke_tier(target, prompt, remaining)
-            except Exception as exc:  # noqa: BLE001
+            except Exception as exc:
                 logger.warning("Tier %d (%s) raised: %s", idx, model_name, exc)
                 path.append(
                     TierAttempt(
@@ -252,7 +254,6 @@ class TieredOrchestrator:
             )
             last_text = view.text
             last_model = view.model
-            last_ttft = view.ttft_ms
 
             if passed:
                 # O1: higher tiers don't run once a lower tier passes.

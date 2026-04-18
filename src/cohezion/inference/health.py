@@ -33,7 +33,7 @@ logger = logging.getLogger(__name__)
 
 _CACHE_TTL_SECONDS = 30.0
 _LAST_CHECK_AT: float = 0.0
-_LAST_RESULT: "FleetHealth | None" = None
+_LAST_RESULT: FleetHealth | None = None
 
 
 class LaneStatus(StrEnum):
@@ -155,7 +155,7 @@ def _probe_cli(
     args = probe_args if probe_args is not None else ["--version"]
     try:
         start = time.perf_counter()
-        result = subprocess.run(
+        result = subprocess.run(  # noqa: S603 — resolved path + fixed probe args, not untrusted
             [resolved, *args], capture_output=True, timeout=timeout_s, text=True
         )
         latency_ms = (time.perf_counter() - start) * 1000
