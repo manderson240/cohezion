@@ -54,6 +54,12 @@
       "transcript": "/ea/f50f8a06ea/6/full.jsonl",
       "content_hash": "/ea/f50f8a06ea/6/content_hash.txt",
       "prompt": ""
+    },
+    {
+      "metadata": "/ea/f50f8a06ea/7/metadata.json",
+      "transcript": "/ea/f50f8a06ea/7/full.jsonl",
+      "content_hash": "/ea/f50f8a06ea/7/content_hash.txt",
+      "prompt": ""
     }
   ]
 }
