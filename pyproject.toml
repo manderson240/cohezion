@@ -54,7 +54,10 @@ dependencies = [
     "fastmcp>=3.1.0",
     "pyjwt>=2.11.0",
     "kagglehub>=1.0.0",
-    "cloud-vault-mcp",
+    # Imported by cohezion.compound.tdd_adversarial.* (4 files) but was
+    # previously relying on ambient install from a sibling project. Adding
+    # explicit so fresh venvs (and CI) find it on first sync.
+    "structlog>=24.0",
 ]
 
 [[tool.uv.index]]
@@ -66,7 +69,23 @@ explicit = true
 torch = { index = "pytorch-rocm" }
 torchvision = { index = "pytorch-rocm" }
 torchaudio = { index = "pytorch-rocm" }
-cloud-vault-mcp = { path = "cloud-vault-mcp", editable = true }
+# pytorch-triton-rocm 3.1.0 ships cp311 wheels only on the ROCm index;
+# main PyPI has no matching wheel. Without this source, resolution dead-ends.
+pytorch-triton-rocm = { index = "pytorch-rocm" }
+# cloud-vault-mcp is NOT in the default dep list because its transitive
+# pocket-tts -> torch>=2.5 -> pytorch-triton-rocm==3.1.0 has no cp311 wheel.
+# cohezion imports cloud_vault_mcp via try/except at call sites, so runtime
+# absence is tolerated. Users who want vault features install separately:
+#   uv pip install -e ./cloud-vault-mcp
+
+# Force the lockfile to resolve wheels for the production target (x86_64
+# Linux, cp311). Without this, uv's fork-marker algorithm splits resolution
+# across emscripten/win32/others and picks torch versions with no usable
+# x86_64 wheel. See .github/workflows/ci.yml — runners are ubuntu-latest.
+[tool.uv]
+required-environments = [
+    "sys_platform == 'linux' and platform_machine == 'x86_64'",
+]
 
 [project.urls]
 Repository = "https://github.com/manderson240/cohezion"
@@ -83,7 +102,13 @@ dev = [
     "flake8>=6.0",
 ]
 ml = [
-    "torch>=2.0.0",
+    # Pin to 2.5.1+rocm6.2 to avoid the 2.0.1 fork path that has no x86_64
+    # Linux wheel. 2.5.1 ships cp311 wheels via the pytorch-rocm index.
+    "torch>=2.5.1",
+    # pytorch-triton-rocm is a transitive dep of torch>=2.5; listing it
+    # explicitly lets tool.uv.sources map it to the pytorch-rocm index
+    # where the cp311 wheel actually exists.
+    "pytorch-triton-rocm>=3.1.0 ; sys_platform == 'linux' and platform_machine == 'x86_64'",
     "transformers>=4.30.0",
 ]
 agentjet = [
