@@ -24,17 +24,40 @@
 **Progress (2026-04-18):**
 - **Session 2** (3 P0 items): tests 41 → 44, V-model invariants 25 → 26 (+O3b).
 - **Session 3** (5 P1/P2 items): tests 44 → 45, V-model invariants 26 → 27 (+I2b). All 8 "Now" items now landed.
+- **Session 104** (6 PRs): ruff cleanup (#57), skill_registry sync + regen script (#58), root archaeology Cat A/C/D/E (#59+#60, 78 files relocated), governance linter + hook-health (#61), CI Python 3.11 pin (#62). Waves 1/2/3/5 + CI root-fix complete. L367-L375.
 
-## Carryover from Session 103 retrospective (housekeeping)
+## Carryover from Session 104
 
+### Closed
+- ✅ #57: Ruff cleanup on sprint baseline
+- ✅ #58: Update `skill_registry.json` (80 → 199) + regen script  — closes S102 carryover
+- ✅ #61: Custom ruff rule for except-tuple subclass bareness + 13 tests
+- ✅ #61: Session-start hook-health check
+- ✅ #62: CI root-cause fix (Python 3.11 pin)
+
+### Still open (user action needed)
 | Priority | Item | Effort | Source |
 |----------|------|--------|--------|
-| P1 | Push `isolated/session-oom-modularity` + cherry-pick `2cbc4d17f`+`00d1be0b8` onto fresh `feat/inference-fleet` off `main`, open PR (user-gated, shared-state) | 15 min | Landing |
-| P1 | Replace (or delete) `.git/hooks/pre-commit.disabled` — references missing `scripts/resource-leak-detector.py` (L364). Session-start hook-health check should flag dangling references | 10 min | L364 |
-| P2 | Ruff cleanup on sprint baseline: 40 pre-existing errors in `src/cohezion/inference/` (RUF002 docstring unicode ×/–, N806 `_BUDGET_EPS`, RUF100 unused noqa, F841 `last_ttft`, TC001 Task import). All pre-date S103 follow-ups — separate focused commit | 15 min | Inherited from sprint |
-| P2 | Custom ruff rule candidate: flag `except (A, B)` tuples where `issubclass(A, B)` (L359 stealth bare-except) | 25 min | L359 |
-| P2 | Update `skill_registry.json` from 133 → 235 entries (carry-over from S102) | 10 min | S102 carry-over |
-| P2 | SurrealDB service unit: add `ExecStartPre=/usr/bin/mkdir -p /tmp/surrealdb` to prevent crash-loop; `/sql` endpoint on :8001 currently returns 404 even though `/health` is OK (S103 discovery) | 15 min | L291 + S103 |
+| P1 | Replace (or delete) `.git/hooks/pre-commit.disabled` — sandbox policy blocks agent from doing this. References missing `scripts/resource-leak-detector.py`. L364 hook-health check (#61) now warns on this at SessionStart | 5 min (user terminal) | L364 + L369 |
+| P1 | Pop `git stash@{0}` on main worktree (`/home/mike-anderson/dev/cohezion`) and triage BMAD v6.0.4 → v6.3.0 upgrade as its own PR. Currently 1,293 files sit in that stash from S104 Wave 2 | 1-2 hrs | S104 Wave 2 |
+| P2 | Fix 39 remaining except-subclass violations in `src/cohezion-archive/` (caught by #61 linter but out of scope since it's archive code) | 30 min | #61 |
+| P2 | SurrealDB service unit: add `ExecStartPre=/usr/bin/mkdir -p /tmp/surrealdb` to prevent crash-loop; `/sql` endpoint on :8001 returns 404 even though `/health` is OK | 15 min | L291 + S103 |
+| P2 | Wire `scripts/lint/check_except_subclass.py` into pre-commit + `make lint` (warn or block — design decision) | 15 min | #61 follow-up |
+| P2 | Root `EXECUTION_REPORT_$(date +%Y%m%d_%H%M%S).md` — shell-variable-corrupted filename. Separate cleanup risk profile from other archaeology | 5 min | L357 + S104 Wave 3 |
+
+## Skills to extract (from S104 experience)
+
+Candidates emerged during S104 that warrant promotion from `KEY_LEARNINGS.md` L-numbers into reusable PRIME skills:
+
+| Skill candidate | Source L-number | What it codifies |
+|---|---|---|
+| `CI_ROOT_CAUSE_TRIAGE_PRIME` | L368 | "When the same CI check fails on every PR, the root cause is shared infrastructure, not the PR. Stop --admin override; fix the shared config." |
+| `WAVE_RETROSPECT_CADENCE_PRIME` | L367 | "Per-wave retrospect beats session-end retrospect. Extract learnings at each merge, not just at handoff." |
+| `FRESH_WORKTREE_PITFALLS_PRIME` | L370 | "`git pull` silent no-op if no upstream; use `git merge --ff-only origin/main`. Force-push via `--force-with-lease` not `--force`." |
+| `IDEMPOTENT_REGEN_PRIME` | L372 | "When a 'simple update' can be a script, make it a script. Preserves metadata, marks archived, supports --dry-run." |
+| `LINT_RULE_AT_INTRODUCTION_PRIME` | L373 | "Run new lint rules over the whole codebase in the PR that ships them. ROI is highest at introduction." |
+
+Skill-creation should happen after 2-3 more sessions confirm the patterns generalize. Premature skill creation is anti-compound.
 
 ## Near (2 weeks)
 
