@@ -1,0 +1,23 @@
+{
+  "cli_version": "0.5.5",
+  "checkpoint_id": "eaf50f8a06ea",
+  "strategy": "manual-commit",
+  "branch": "isolated/session-oom-modularity",
+  "checkpoints_count": 0,
+  "files_touched": [
+    "docs/ROADMAP.md",
+    "scripts/benchmark_fleet.py",
+    "scripts/launch_fleet_safe.sh",
+    "scripts/validation/vmodel/phase2_benchmark_harness.py",
+    "src/cohezion/inference/fleet.py",
+    "tests/inference/test_fleet.py"
+  ],
+  "sessions": [
+    {
+      "metadata": "/ea/f50f8a06ea/0/metadata.json",
+      "transcript": "/ea/f50f8a06ea/0/full.jsonl",
+      "content_hash": "/ea/f50f8a06ea/0/content_hash.txt",
+      "prompt": ""
+    }
+  ]
+}
