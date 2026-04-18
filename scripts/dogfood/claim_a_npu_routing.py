@@ -38,7 +38,7 @@ async def main() -> int:
             task=Task.ROUTING,
             budget_usd=0.0,  # force local-only
             stream=True,
-            max_tokens=256,  # reasoning-mode models need headroom (see local_environment_quirks.md)
+            max_tokens=1024,  # reasoning-mode models need headroom (see local_environment_quirks.md)
             timeout=15.0,
         )
     except Exception as exc:

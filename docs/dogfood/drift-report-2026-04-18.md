@@ -73,10 +73,11 @@ Neither is critical for S104 dogfood. Scheduled for post-Wave-2-triage retest.
 
 ## New items surfaced (→ ROADMAP carryover)
 
-1. **P2 — `route()` warn on small-max_tokens reasoning mode**: emit logger.warning when `task == Task.ROUTING`, `max_tokens < 128`, and the chosen model is reasoning-capable. Prevents silent empty-text responses. 20 min.
-2. **P2 — Phase 2 harness self-heals on missing report**: detect `benchmarks/fleet_report.md` absence; either skip with clear message or auto-invoke `make benchmark-fleet`. Today's cryptic FAIL misleads. 15 min.
-3. **P2 — Dogfood automation**: wire `scripts/dogfood/claim_*_*.py` into `make dogfood` so future sessions rerun them in <1 minute. 20 min.
-4. **P3 — Reasoning-mode detection in registry**: add `reasoning_mode: bool` field to `ModelEntry`; `route()` adjusts `max_tokens` floor when routing to reasoning-mode models. 30 min.
+1. ~~**P2 — `route()` warn on small-max_tokens reasoning mode**~~ ✅ Shipped in PR #65 (2026-04-18). Warning fires when `max_tokens < 128` and selected candidate has `reasoning_mode=True`.
+2. ~~**P2 — Phase 2 harness self-heals on missing report**~~ ✅ Shipped in PR #65. `--allow-missing` flag → exit code 2 (SKIP).
+3. ~~**P2 — Dogfood automation**~~ ✅ Shipped in PR #65. `make dogfood` / `make dogfood-deterministic` / `make dogfood-live`.
+4. ~~**P3 — Reasoning-mode detection in registry**~~ ✅ Shipped in PR #65 as part of #1 (field `ModelEntry.reasoning_mode`).
+5. **NEW P2 — Claim A max_tokens floor guidance**: scripts/dogfood/claim_a_npu_routing.py now uses max_tokens=1024 to reliably observe visible text from Gemma-4 reasoning mode. Even 256 occasionally returns empty when the <thinking> block is long. Consider making 1024 the default for reasoning-mode lanes via a registry-lookup utility. 20 min.
 
 ## What held up
 
