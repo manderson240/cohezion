@@ -1,0 +1,5 @@
+not just cost time to first token is a big deal.  Latency reduction.
+
+---
+
+We need to fix the stop hook and then continue

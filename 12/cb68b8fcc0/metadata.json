@@ -3,7 +3,7 @@
   "checkpoint_id": "12cb68b8fcc0",
   "strategy": "manual-commit",
   "branch": "isolated/session-oom-modularity",
-  "checkpoints_count": 1,
+  "checkpoints_count": 2,
   "files_touched": [
     ".claude/hooks/advisor-reminder.sh",
     ".claude/hooks/stop-resilient.sh",
@@ -48,13 +48,19 @@
       "transcript": "/12/cb68b8fcc0/0/full.jsonl",
       "content_hash": "/12/cb68b8fcc0/0/content_hash.txt",
       "prompt": ""
+    },
+    {
+      "metadata": "/12/cb68b8fcc0/1/metadata.json",
+      "transcript": "/12/cb68b8fcc0/1/full.jsonl",
+      "content_hash": "/12/cb68b8fcc0/1/content_hash.txt",
+      "prompt": "/12/cb68b8fcc0/1/prompt.txt"
     }
   ],
   "token_usage": {
-    "input_tokens": 0,
-    "cache_creation_tokens": 0,
-    "cache_read_tokens": 0,
-    "output_tokens": 0,
-    "api_call_count": 0
+    "input_tokens": 2981,
+    "cache_creation_tokens": 1867638,
+    "cache_read_tokens": 63990602,
+    "output_tokens": 234831,
+    "api_call_count": 191
   }
 }
