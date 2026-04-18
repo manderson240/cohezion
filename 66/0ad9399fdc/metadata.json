@@ -3,10 +3,13 @@
   "checkpoint_id": "660ad9399fdc",
   "strategy": "manual-commit",
   "branch": "isolated/session-oom-modularity",
-  "checkpoints_count": 2,
+  "checkpoints_count": 7,
   "files_touched": [
+    ".agent/CAPABILITY_MAP_REDUX.md",
     "CLAUDE.md",
-    "src/cohezion/knowledge_graph/KEY_LEARNINGS.md"
+    "memory/MEMORY.md",
+    "src/cohezion/knowledge_graph/KEY_LEARNINGS.md",
+    "src/cohezion/knowledge_graph/MISSION_JOURNAL.md"
   ],
   "sessions": [
     {
@@ -20,13 +23,19 @@
       "transcript": "/66/0ad9399fdc/1/full.jsonl",
       "content_hash": "/66/0ad9399fdc/1/content_hash.txt",
       "prompt": "/66/0ad9399fdc/1/prompt.txt"
+    },
+    {
+      "metadata": "/66/0ad9399fdc/2/metadata.json",
+      "transcript": "/66/0ad9399fdc/2/full.jsonl",
+      "content_hash": "/66/0ad9399fdc/2/content_hash.txt",
+      "prompt": "/66/0ad9399fdc/2/prompt.txt"
     }
   ],
   "token_usage": {
-    "input_tokens": 14927,
-    "cache_creation_tokens": 6142690,
-    "cache_read_tokens": 213151194,
-    "output_tokens": 302853,
-    "api_call_count": 785
+    "input_tokens": 18120,
+    "cache_creation_tokens": 6507603,
+    "cache_read_tokens": 222083566,
+    "output_tokens": 345357,
+    "api_call_count": 860
   }
 }
