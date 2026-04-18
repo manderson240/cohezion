@@ -13,15 +13,17 @@
 | ~~P0~~ | ~~Nested orchestrator budget pass-through (edge-case #10 — O3 completion)~~ | Adversarial review | 20 min | ✅ O3b invariant + 2 pytest cases; `run(budget_usd=…)` propagates |
 | ~~P0~~ | ~~CLI liveness probe: swap `--version` for live `-p` dispatch~~ (edge-case #14) | Adversarial review | 15 min | ✅ `_probe_anthropic` uses `-p ping --bare --model haiku-4-5 --max-budget-usd 0.01`. **Note**: original roadmap text said `--max-tokens 1` — that flag does not exist in Claude Code CLI; corrected to `--max-budget-usd` |
 | ~~P0~~ | ~~`httpx.Timeout(connect=5.0)` explicit on all `AsyncClient` instances~~ | Security MED | 10 min | ✅ 3 call sites in `fleet.py` now use `httpx.Timeout(connect=5.0, read=timeout, write=timeout, pool=timeout)` |
-| P1 | Validate `claude_model in registry.models` before `extend_claude` local loop | Edge-case #2 | 10 min | |
-| P1 | Config A stderr capture sidecar + Phase 2 harness I2b invariant | Scientific rigor #2 | 25 min | |
-| P1 | Benchmark output path boundary check (`output.resolve().is_relative_to(cwd)`) | Security MED | 10 min | |
-| P2 | `launch_fleet_safe.sh`: parse `/v1/models` to verify model identity on port | Edge-case #13 | 15 min | |
-| P2 | Narrow `except Exception` in `_get_symmetry_coherence` + `_inject_symmetry_axis` | Edge-case #4 | 5 min | |
+| ~~P1~~ | ~~Validate `claude_model in registry.models` before `extend_claude` local loop~~ | Edge-case #2 | 10 min | ✅ Validation moved to top of `extend_claude`; regression test asserts `route()` is never awaited when model is invalid |
+| ~~P1~~ | ~~Config A stderr capture sidecar + Phase 2 harness I2b invariant~~ | Scientific rigor #2 | 25 min | ✅ `benchmark_fleet.py` writes `<report>.config_A.stderr.log` with full stdout+stderr per failed prompt; Phase 2 harness I2b asserts sidecar exists and is non-empty when Config A has 0 successes |
+| ~~P1~~ | ~~Benchmark output path boundary check~~ | Security MED | 10 min | ✅ `_validate_output_path` rejects `--output` paths that `resolve().relative_to(cwd)` raises on |
+| ~~P2~~ | ~~`launch_fleet_safe.sh`: verify model identity on port~~ | Edge-case #13 | 15 min | ✅ `verify_model_on_port` + 4th arg to `wait_for_port` grep the `/v1/models` body for the expected model id; all 4 lanes now pass `expected_model` |
+| ~~P2~~ | ~~Narrow `except Exception` in `_inject_symmetry_axis`~~ | Edge-case #4 | 5 min | ✅ `except (ImportError, Exception)` (effectively bare-except) narrowed to `(ImportError, AttributeError, KeyError, TypeError, ValueError)`. `_get_symmetry_coherence` was already narrow (`except ImportError`) — no change needed |
 
 **Gate:** all 8 land + `make vmodel-all` green + 41/41 tests passing.
 
-**Progress (2026-04-18 session 2):** 3 P0 items landed on `isolated/session-oom-modularity`. Tests: 41 → 44 (3 new regression tests). V-model invariants: 25 → 26 (added O3b structural check in phase 6 harness). Five remaining items (3 P1 + 2 P2) for next session.
+**Progress (2026-04-18):**
+- **Session 2** (3 P0 items): tests 41 → 44, V-model invariants 25 → 26 (+O3b).
+- **Session 3** (5 P1/P2 items): tests 44 → 45, V-model invariants 26 → 27 (+I2b). All 8 "Now" items now landed.
 
 ## Near (2 weeks)
 

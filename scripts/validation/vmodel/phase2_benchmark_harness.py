@@ -55,6 +55,34 @@ def verify_invariants(report_path: Path = REPORT) -> bool:
         return False
     _pass("I2", f"{configs_with_success}/4 configs produced successes")
 
+    # I2b: Any config with 0 successes must have a stderr sidecar next to the
+    # report, or we have no diagnostic trail for the silent failure
+    # (adversarial review Scientific-rigor #2). Config A is the known silent-
+    # failure vector; the sidecar path is ``<stem>.config_A.stderr.log``.
+    a_row = next((r for r in rows if "A —" in r[0] or "A —" in r[0].replace(" ", "")), None)
+    if a_row is not None:
+        a_ok = int(a_row[1])
+        a_total = int(a_row[2])
+        if a_ok == 0 and a_total > 0:
+            sidecar = report_path.with_name(f"{report_path.stem}.config_A.stderr.log")
+            if not sidecar.exists():
+                _fail(
+                    "I2b",
+                    f"Config A had 0/{a_total} successes but no stderr sidecar at {sidecar}",
+                )
+                return False
+            if sidecar.stat().st_size == 0:
+                _fail("I2b", f"stderr sidecar {sidecar} is empty")
+                return False
+            _pass(
+                "I2b",
+                f"Config A 0/{a_total} failure has diagnostic sidecar ({sidecar.stat().st_size} bytes)",
+            )
+        else:
+            _pass("I2b", f"Config A had {a_ok}/{a_total} successes; sidecar not required")
+    else:
+        _pass("I2b", "Config A row absent; sidecar check skipped")
+
     # I3: Every row must show all 4 headline metrics (wall time, TTFT p50,
     # TTFT range, cost). We check each row has at least 6 pipes-between-cells,
     # meaning all columns present.

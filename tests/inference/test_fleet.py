@@ -150,3 +150,24 @@ def test_route_result_is_dataclass():
     assert r.cost_usd == 0.0
     assert r.escalated_to_cloud is False
     assert r.attempts == []
+
+
+@pytest.mark.asyncio
+async def test_extend_claude_rejects_unknown_model_before_local_loop():
+    """Regression: an invalid claude_model must short-circuit BEFORE dispatching
+    any local route() calls — otherwise a typo wastes `max_local_attempts`
+    worth of NPU cycles. See adversarial review Edge-case #2 (ROADMAP P1)."""
+    from cohezion.inference import extend_claude
+
+    route_mock = AsyncMock()
+    with patch("cohezion.inference.fleet.route", route_mock):
+        result = await extend_claude(
+            "test", claude_model="this-model-does-not-exist"
+        )
+
+    assert route_mock.await_count == 0, (
+        "route() must not be called when claude_model is invalid; "
+        f"was called {route_mock.await_count} times"
+    )
+    assert result.error is not None
+    assert "this-model-does-not-exist" in result.error

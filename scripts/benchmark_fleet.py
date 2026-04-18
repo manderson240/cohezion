@@ -124,8 +124,18 @@ class ConfigReport:
         return out
 
 
-async def _run_config_A_claude_only(prompts: tuple[str, ...]) -> ConfigReport:
-    """Config A: Claude-only baseline. I5: measure TTFT via `claude -p` subprocess."""
+async def _run_config_A_claude_only(
+    prompts: tuple[str, ...], *, stderr_sidecar: Path | None = None
+) -> ConfigReport:
+    """Config A: Claude-only baseline. I5: measure TTFT via `claude -p` subprocess.
+
+    When ``stderr_sidecar`` is set, every ``claude -p`` invocation's full
+    stderr is appended to that file (prefixed with prompt index). The
+    120-char truncation in ``CallResult.error`` is fine for the summary table
+    but insufficient to diagnose silent failures (adversarial review
+    Scientific-rigor #2 — a silent ``claude -p`` failure leaves no trail).
+    The sidecar preserves the full diagnostic.
+    """
     report = ConfigReport(
         name="A — Claude-only",
         description="Headless `claude -p --model haiku-4-5` × N",
@@ -145,7 +155,12 @@ async def _run_config_A_claude_only(prompts: tuple[str, ...]) -> ConfigReport:
                     error="claude CLI not installed",
                 )
             )
+        if stderr_sidecar is not None:
+            stderr_sidecar.parent.mkdir(parents=True, exist_ok=True)
+            stderr_sidecar.write_text("claude CLI not installed; zero invocations\n")
         return report
+
+    sidecar_entries: list[str] = []
 
     for i, prompt in enumerate(prompts):
         start = time.perf_counter()
@@ -165,6 +180,12 @@ async def _run_config_A_claude_only(prompts: tuple[str, ...]) -> ConfigReport:
             stdout_b, stderr_b = await asyncio.wait_for(proc.communicate(), timeout=30.0)
             elapsed_ms = (time.perf_counter() - start) * 1000
             if proc.returncode != 0:
+                stderr_text = stderr_b.decode(errors="replace")
+                sidecar_entries.append(
+                    f"--- prompt {i} (exit {proc.returncode}) ---\n"
+                    f"stdout: {stdout_b.decode(errors='replace')}\n"
+                    f"stderr: {stderr_text}\n"
+                )
                 report.calls.append(
                     CallResult(
                         i,
@@ -174,7 +195,7 @@ async def _run_config_A_claude_only(prompts: tuple[str, ...]) -> ConfigReport:
                         "claude",
                         "claude-haiku-4-5",
                         False,
-                        error=stderr_b.decode(errors="replace")[:100],
+                        error=stderr_text[:100] or f"exit {proc.returncode} (no stderr)",
                     )
                 )
                 continue
@@ -187,6 +208,10 @@ async def _run_config_A_claude_only(prompts: tuple[str, ...]) -> ConfigReport:
             )
         except (TimeoutError, OSError, json.JSONDecodeError) as exc:
             elapsed_ms = (time.perf_counter() - start) * 1000
+            sidecar_entries.append(
+                f"--- prompt {i} (python exception) ---\n"
+                f"{type(exc).__name__}: {exc}\n"
+            )
             report.calls.append(
                 CallResult(
                     i,
@@ -199,6 +224,15 @@ async def _run_config_A_claude_only(prompts: tuple[str, ...]) -> ConfigReport:
                     error=str(exc)[:100],
                 )
             )
+
+    if stderr_sidecar is not None and sidecar_entries:
+        stderr_sidecar.parent.mkdir(parents=True, exist_ok=True)
+        header = (
+            f"# Config A stderr sidecar — {time.strftime('%Y-%m-%d %H:%M:%S %Z')}\n"
+            f"# {len(sidecar_entries)} of {len(prompts)} invocations failed\n\n"
+        )
+        stderr_sidecar.write_text(header + "".join(sidecar_entries))
+
     return report
 
 
@@ -336,7 +370,27 @@ def _write_markdown(configs: list[ConfigReport], health_summary: str, path: Path
     path.write_text("\n".join(lines))
 
 
+def _validate_output_path(output: Path) -> Path:
+    """Reject output paths that escape the current working directory.
+
+    Prevents ``--output /etc/passwd`` or ``--output ../../../foo`` from writing
+    outside the repo when the benchmark is driven by untrusted Make targets or
+    automation (adversarial review Security MED #6).
+    """
+    cwd = Path.cwd().resolve()
+    resolved = output.resolve()
+    try:
+        resolved.relative_to(cwd)
+    except ValueError as exc:
+        raise ValueError(
+            f"--output {output!s} resolves outside cwd ({cwd!s}); "
+            f"only paths under cwd are allowed"
+        ) from exc
+    return resolved
+
+
 async def main(n_prompts: int, output: Path) -> int:
+    output = _validate_output_path(output)
     prompts = CORPUS[:n_prompts]
     print(f"=== Fleet benchmark — {len(prompts)} prompts × 4 configs ===")
 
@@ -351,9 +405,16 @@ async def main(n_prompts: int, output: Path) -> int:
 
     configs: list[ConfigReport] = []
 
+    # Sidecar lives next to the report so I2b can find it deterministically.
+    stderr_sidecar = output.parent / f"{output.stem}.config_A.stderr.log"
+
     print("--- Config A (Claude-only baseline) ---")
-    configs.append(await _run_config_A_claude_only(prompts))
+    configs.append(
+        await _run_config_A_claude_only(prompts, stderr_sidecar=stderr_sidecar)
+    )
     print(f"    {len(configs[-1].successes)}/{len(prompts)} ok, ${configs[-1].total_cost_usd:.5f}")
+    if stderr_sidecar.exists():
+        print(f"    stderr sidecar: {stderr_sidecar}")
 
     print("--- Config B (Local-only) ---")
     configs.append(
