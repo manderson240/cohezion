@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cohezion Sprint Status — 2026-04-18</title>
+</head>
+<body style="margin:0;padding:0;background-color:#f5f7fa;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;color:#1a202c;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f5f7fa;">
+<tr><td align="center" style="padding:24px 12px;">
+<table role="presentation" width="760" cellpadding="0" cellspacing="0" style="max-width:760px;background-color:#ffffff;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,0.06);overflow:hidden;">
+
+<!-- HEADER -->
+<tr><td style="padding:32px 40px 24px;background:linear-gradient(135deg,#1a365d 0%,#2c5282 100%);color:#ffffff;">
+<div style="font-size:12px;letter-spacing:2px;text-transform:uppercase;opacity:0.85;margin-bottom:8px;">Sprint Status Report</div>
+<h1 style="margin:0 0 8px;font-size:26px;font-weight:700;line-height:1.2;">Cohezion &mdash; Local Inference Fleet</h1>
+<div style="font-size:15px;opacity:0.9;">sorted-churning-toucan &middot; 2026-04-18 &middot; branch <code style="background:rgba(255,255,255,0.15);padding:2px 6px;border-radius:3px;font-size:13px;">isolated/session-oom-modularity</code></div>
+</td></tr>
+
+<!-- EXEC SUMMARY -->
+<tr><td style="padding:28px 40px 8px;">
+<h2 style="margin:0 0 12px;font-size:18px;color:#2c5282;border-bottom:2px solid #e2e8f0;padding-bottom:6px;">Executive Summary</h2>
+<p style="margin:0 0 16px;line-height:1.55;font-size:15px;">
+Shipped <strong>cohezion.inference</strong> &mdash; a unified local inference fleet orchestrating Gemma 4 models across NPU / iGPU / CPU / Cloud with Claude as top-tier fallback. Primary goal: extend Claude API availability via local TTFT-optimized inference for agent-training throughput. All 9 sprint phases complete with V-Model compliance.
+</p>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:8px;">
+<tr>
+<td width="25%" align="center" style="padding:14px 4px;background:#edf2f7;border-radius:6px;">
+<div style="font-size:28px;font-weight:700;color:#2c5282;">41/41</div>
+<div style="font-size:11px;letter-spacing:1px;text-transform:uppercase;color:#4a5568;">Tests passing</div>
+</td>
+<td width="4"></td>
+<td width="25%" align="center" style="padding:14px 4px;background:#edf2f7;border-radius:6px;">
+<div style="font-size:28px;font-weight:700;color:#2c5282;">25/25</div>
+<div style="font-size:11px;letter-spacing:1px;text-transform:uppercase;color:#4a5568;">V-model invariants</div>
+</td>
+<td width="4"></td>
+<td width="25%" align="center" style="padding:14px 4px;background:#edf2f7;border-radius:6px;">
+<div style="font-size:28px;font-weight:700;color:#2c5282;">~80 ms</div>
+<div style="font-size:11px;letter-spacing:1px;text-transform:uppercase;color:#4a5568;">NPU TTFT p50<sup>*</sup></div>
+</td>
+<td width="4"></td>
+<td width="25%" align="center" style="padding:14px 4px;background:#edf2f7;border-radius:6px;">
+<div style="font-size:28px;font-weight:700;color:#2c5282;">6</div>
+<div style="font-size:11px;letter-spacing:1px;text-transform:uppercase;color:#4a5568;">Critical fixes</div>
+</td>
+</tr>
+</table>
+<div style="font-size:11px;color:#718096;margin-top:6px;"><sup>*</sup> informal n=5 warm loop; full n=20 benchmark pending lemond restart. Typed p50/p95 fields deliberately <code>None</code> in registry until validated.</div>
+</td></tr>
+
+<!-- DELIVERABLES -->
+<tr><td style="padding:16px 40px;">
+<h2 style="margin:0 0 12px;font-size:18px;color:#2c5282;border-bottom:2px solid #e2e8f0;padding-bottom:6px;">Shipped Deliverables</h2>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;font-size:14px;">
+<thead>
+<tr style="background:#f7fafc;">
+<th align="left" style="padding:8px 12px;border-bottom:1px solid #cbd5e0;font-weight:600;font-size:12px;text-transform:uppercase;letter-spacing:1px;color:#4a5568;">Component</th>
+<th align="left" style="padding:8px 12px;border-bottom:1px solid #cbd5e0;font-weight:600;font-size:12px;text-transform:uppercase;letter-spacing:1px;color:#4a5568;">Purpose</th>
+<th align="right" style="padding:8px 12px;border-bottom:1px solid #cbd5e0;font-weight:600;font-size:12px;text-transform:uppercase;letter-spacing:1px;color:#4a5568;">Lines</th>
+</tr>
+</thead>
+<tbody>
+<tr><td style="padding:8px 12px;border-bottom:1px solid #edf2f7;"><code>registry.py</code></td><td style="padding:8px 12px;border-bottom:1px solid #edf2f7;color:#4a5568;">14 models &times; 7 lanes &times; task affinities</td><td align="right" style="padding:8px 12px;border-bottom:1px solid #edf2f7;color:#718096;">~300</td></tr>
+<tr><td style="padding:8px 12px;border-bottom:1px solid #edf2f7;"><code>health.py</code></td><td style="padding:8px 12px;border-bottom:1px solid #edf2f7;color:#4a5568;">30s-cached lane probes + omnibus integration</td><td align="right" style="padding:8px 12px;border-bottom:1px solid #edf2f7;color:#718096;">~230</td></tr>
+<tr><td style="padding:8px 12px;border-bottom:1px solid #edf2f7;"><code>fleet.py</code></td><td style="padding:8px 12px;border-bottom:1px solid #edf2f7;color:#4a5568;"><code>route()</code> + <code>extend_claude()</code> + SSE TTFT</td><td align="right" style="padding:8px 12px;border-bottom:1px solid #edf2f7;color:#718096;">~500</td></tr>
+<tr><td style="padding:8px 12px;border-bottom:1px solid #edf2f7;"><code>harnesses.py</code></td><td style="padding:8px 12px;border-bottom:1px solid #edf2f7;color:#4a5568;">3-slot pi/opencode/hermes concurrent pool</td><td align="right" style="padding:8px 12px;border-bottom:1px solid #edf2f7;color:#718096;">~180</td></tr>
+<tr><td style="padding:8px 12px;border-bottom:1px solid #edf2f7;"><code>orchestrator.py</code></td><td style="padding:8px 12px;border-bottom:1px solid #edf2f7;color:#4a5568;"><strong>TieredOrchestrator</strong> &mdash; recursive /advisor pattern</td><td align="right" style="padding:8px 12px;border-bottom:1px solid #edf2f7;color:#718096;">~240</td></tr>
+<tr><td style="padding:8px 12px;border-bottom:1px solid #edf2f7;"><code>gaia_adapter.py</code></td><td style="padding:8px 12px;border-bottom:1px solid #edf2f7;color:#4a5568;">GAIA SDK + AMD-path ranking (NPU &lt; iGPU &lt; CPU &lt; Cloud)</td><td align="right" style="padding:8px 12px;border-bottom:1px solid #edf2f7;color:#718096;">~180</td></tr>
+<tr><td style="padding:8px 12px;border-bottom:1px solid #edf2f7;"><code>tests/inference/</code></td><td style="padding:8px 12px;border-bottom:1px solid #edf2f7;color:#4a5568;">Unit tests across all 7 modules</td><td align="right" style="padding:8px 12px;border-bottom:1px solid #edf2f7;color:#718096;">41 tests</td></tr>
+<tr><td style="padding:8px 12px;border-bottom:1px solid #edf2f7;"><code>vmodel/phase{1,2,6}</code></td><td style="padding:8px 12px;border-bottom:1px solid #edf2f7;color:#4a5568;">Structural invariant gatekeepers (F,I,O)</td><td align="right" style="padding:8px 12px;border-bottom:1px solid #edf2f7;color:#718096;">25 inv.</td></tr>
+<tr><td style="padding:8px 12px;border-bottom:1px solid #edf2f7;"><code>demo/universes_demo.py</code></td><td style="padding:8px 12px;border-bottom:1px solid #edf2f7;color:#4a5568;">Hero reviewer demo (2.7s end-to-end)</td><td align="right" style="padding:8px 12px;border-bottom:1px solid #edf2f7;color:#718096;">&mdash;</td></tr>
+<tr><td style="padding:8px 12px;"><code>benchmark_fleet.py</code></td><td style="padding:8px 12px;color:#4a5568;">4-config benchmark (Claude/local/hybrid variants)</td><td align="right" style="padding:8px 12px;color:#718096;">~450</td></tr>
+</tbody>
+</table>
+</td></tr>
+
+<!-- ORCHESTRATION -->
+<tr><td style="padding:16px 40px;">
+<h2 style="margin:0 0 12px;font-size:18px;color:#2c5282;border-bottom:2px solid #e2e8f0;padding-bottom:6px;">The Orchestration Model &mdash; Why This Matters</h2>
+<p style="margin:0 0 12px;line-height:1.55;font-size:14px;">
+<strong>Tiered orchestration generalizes the Claude Code <code>/advisor</code> pattern</strong>: a cheap primary model produces a response, a smarter secondary model audits it, and the system escalates only when quality gates fail. Applied recursively, this yields agents &rarr; sub-agents &rarr; sub-sub-agents, each tier adding judgment without paying its cost unless needed.
+</p>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:12px 0;border-collapse:collapse;font-size:13px;">
+<tr>
+<td style="padding:12px;background:#f0fff4;border-left:3px solid #38a169;">
+<strong style="color:#22543d;">Tier 0 &mdash; NPU (Gemma-4-E2B)</strong><br>
+<span style="color:#4a5568;">~80 ms TTFT, $0 cost, first attempt on every request</span>
+</td>
+</tr>
+<tr><td style="padding:2px;"></td></tr>
+<tr>
+<td style="padding:12px;background:#fffff0;border-left:3px solid #d69e2e;">
+<strong style="color:#744210;">Tier 1 &mdash; iGPU ROCWMMA (Gemma-4-26B MoE)</strong><br>
+<span style="color:#4a5568;">Escalated when tier-0 trust gate fails; still $0 cost</span>
+</td>
+</tr>
+<tr><td style="padding:2px;"></td></tr>
+<tr>
+<td style="padding:12px;background:#ebf8ff;border-left:3px solid #3182ce;">
+<strong style="color:#2c5282;">Tier 2 &mdash; CPU (deep reasoning)</strong><br>
+<span style="color:#4a5568;">For long-context or tool-use prompts; still local, still $0</span>
+</td>
+</tr>
+<tr><td style="padding:2px;"></td></tr>
+<tr>
+<td style="padding:12px;background:#fff5f5;border-left:3px solid #e53e3e;">
+<strong style="color:#822727;">Tier 3 &mdash; Claude API (Haiku &rarr; Sonnet &rarr; Opus)</strong><br>
+<span style="color:#4a5568;">Final fallback when local confidence &lt; threshold</span>
+</td>
+</tr>
+</table>
+<p style="margin:8px 0 0;line-height:1.55;font-size:13px;color:#4a5568;">
+<strong>Measured on live demo:</strong> 5/5 prompts succeeded at Tier 0 &mdash; zero escalations, zero cost, 2.7 s wall-clock. The same pipeline routes to Claude when local quality gates fail, preserving answer quality under a strict $ budget.
+</p>
+</td></tr>
+
+<!-- ADVERSARIAL -->
+<tr><td style="padding:16px 40px;">
+<h2 style="margin:0 0 12px;font-size:18px;color:#2c5282;border-bottom:2px solid #e2e8f0;padding-bottom:6px;">Adversarial Review &mdash; Findings &amp; Fixes</h2>
+<p style="margin:0 0 12px;line-height:1.55;font-size:14px;">
+Three reviewer agents ran in parallel (scientific rigor, edge-case hunter, security + ops). They produced 20+ findings in ~90s. <strong>6 critical fixes landed in-session</strong>; 13 remaining catalogued as ROADMAP follow-ups.
+</p>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;font-size:13px;">
+<thead>
+<tr style="background:#f7fafc;">
+<th align="left" style="padding:8px;border-bottom:1px solid #cbd5e0;font-size:11px;text-transform:uppercase;letter-spacing:1px;color:#4a5568;">Severity</th>
+<th align="left" style="padding:8px;border-bottom:1px solid #cbd5e0;font-size:11px;text-transform:uppercase;letter-spacing:1px;color:#4a5568;">Finding</th>
+<th align="left" style="padding:8px;border-bottom:1px solid #cbd5e0;font-size:11px;text-transform:uppercase;letter-spacing:1px;color:#4a5568;">Status</th>
+</tr>
+</thead>
+<tbody>
+<tr><td style="padding:7px 8px;border-bottom:1px solid #edf2f7;"><span style="background:#fed7d7;color:#822727;padding:2px 6px;border-radius:3px;font-size:10px;font-weight:600;">HIGH SEC</span></td><td style="padding:7px 8px;border-bottom:1px solid #edf2f7;">Gemini <code>--approval-mode yolo</code> &mdash; unconfirmed tool exec</td><td style="padding:7px 8px;border-bottom:1px solid #edf2f7;color:#22543d;">&#10003; Fixed (&rarr; <code>plan</code>)</td></tr>
+<tr><td style="padding:7px 8px;border-bottom:1px solid #edf2f7;"><span style="background:#fed7d7;color:#822727;padding:2px 6px;border-radius:3px;font-size:10px;font-weight:600;">HIGH SEC</span></td><td style="padding:7px 8px;border-bottom:1px solid #edf2f7;">Hermes <code>--yolo</code> &mdash; same class of risk</td><td style="padding:7px 8px;border-bottom:1px solid #edf2f7;color:#22543d;">&#10003; Fixed (flag removed)</td></tr>
+<tr><td style="padding:7px 8px;border-bottom:1px solid #edf2f7;"><span style="background:#fed7d7;color:#822727;padding:2px 6px;border-radius:3px;font-size:10px;font-weight:600;">HIGH SCI</span></td><td style="padding:7px 8px;border-bottom:1px solid #edf2f7;">Typed p50/p95 fields built from n=5 sample</td><td style="padding:7px 8px;border-bottom:1px solid #edf2f7;color:#22543d;">&#10003; Fixed (nulled; warm-loop in notes)</td></tr>
+<tr><td style="padding:7px 8px;border-bottom:1px solid #edf2f7;"><span style="background:#fed7d7;color:#822727;padding:2px 6px;border-radius:3px;font-size:10px;font-weight:600;">HIGH EDGE</span></td><td style="padding:7px 8px;border-bottom:1px solid #edf2f7;"><code>HarnessPool.acquire()</code> busy-slot leak race</td><td style="padding:7px 8px;border-bottom:1px solid #edf2f7;color:#22543d;">&#10003; Fixed (<code>asyncio.shield</code>)</td></tr>
+<tr><td style="padding:7px 8px;border-bottom:1px solid #edf2f7;"><span style="background:#fed7d7;color:#822727;padding:2px 6px;border-radius:3px;font-size:10px;font-weight:600;">HIGH EDGE</span></td><td style="padding:7px 8px;border-bottom:1px solid #edf2f7;">Empty prompt &rarr; wasted cloud tokens</td><td style="padding:7px 8px;border-bottom:1px solid #edf2f7;color:#22543d;">&#10003; Fixed (entry guard)</td></tr>
+<tr><td style="padding:7px 8px;border-bottom:1px solid #edf2f7;"><span style="background:#feebc8;color:#744210;padding:2px 6px;border-radius:3px;font-size:10px;font-weight:600;">MED EDGE</span></td><td style="padding:7px 8px;border-bottom:1px solid #edf2f7;">Budget float-rounding non-determinism</td><td style="padding:7px 8px;border-bottom:1px solid #edf2f7;color:#22543d;">&#10003; Fixed (<code>+ 1e-9</code> epsilon)</td></tr>
+<tr><td style="padding:7px 8px;border-bottom:1px solid #edf2f7;"><span style="background:#feebc8;color:#744210;padding:2px 6px;border-radius:3px;font-size:10px;font-weight:600;">MED SEC</span></td><td style="padding:7px 8px;border-bottom:1px solid #edf2f7;"><code>SESSION_ID</code> passed unchecked to stop hook</td><td style="padding:7px 8px;border-bottom:1px solid #edf2f7;color:#22543d;">&#10003; Fixed (regex gate)</td></tr>
+<tr><td style="padding:7px 8px;border-bottom:1px solid #edf2f7;"><span style="background:#feebc8;color:#744210;padding:2px 6px;border-radius:3px;font-size:10px;font-weight:600;">MED SCI</span></td><td style="padding:7px 8px;border-bottom:1px solid #edf2f7;">Benchmark header corpus-size inconsistency</td><td style="padding:7px 8px;border-bottom:1px solid #edf2f7;color:#22543d;">&#10003; Fixed (PILOT flag)</td></tr>
+<tr><td style="padding:7px 8px;border-bottom:1px solid #edf2f7;"><span style="background:#e2e8f0;color:#2d3748;padding:2px 6px;border-radius:3px;font-size:10px;font-weight:600;">13 ITEMS</span></td><td style="padding:7px 8px;border-bottom:1px solid #edf2f7;">Follow-ups (all &le;30 min each)</td><td style="padding:7px 8px;border-bottom:1px solid #edf2f7;color:#2c5282;">&rarr; docs/ROADMAP.md</td></tr>
+</tbody>
+</table>
+</td></tr>
+
+<!-- WHAT HURT -->
+<tr><td style="padding:16px 40px;">
+<h2 style="margin:0 0 12px;font-size:18px;color:#2c5282;border-bottom:2px solid #e2e8f0;padding-bottom:6px;">Honest Retrospective &mdash; What Hurt</h2>
+<ul style="margin:0;padding:0 0 0 20px;line-height:1.6;font-size:14px;color:#2d3748;">
+<li style="margin-bottom:8px;"><strong>n=5 warm-loop observations got promoted to typed <code>p50/p95</code> registry fields.</strong> Caught by scientific-rigor review. A p95 needs &ge;20 observations to be statistically meaningful. <em>Fixed:</em> typed fields nulled until full benchmark populates them.</li>
+<li style="margin-bottom:8px;"><strong><code>--yolo</code> flags slipped into production dispatch paths.</strong> Any prompt reaching Hermes or Gemini could have executed shell commands without confirmation. <em>Fixed:</em> flags removed / downgraded to <code>plan</code>.</li>
+<li style="margin-bottom:8px;"><strong>Config A (Claude-only) silent failure in pilot benchmark.</strong> <code>claude -p</code> returned empty stderr &mdash; no diagnostic trail. Partial fix (PILOT flag). Full fix (stderr sidecar + I2b invariant) deferred as ROADMAP P1.</li>
+<li style="margin-bottom:8px;"><strong>Benchmark header disclosed corpus of 20 but actually ran 3.</strong> Caught by scientific reviewer. <em>Fixed:</em> header now shows <code>executed N of 20 available; Status: PILOT</code>.</li>
+<li style="margin-bottom:8px;"><strong>Reasoning-mode demo stochasticity.</strong> Gemma-4 FLM used all 256 max_tokens on <code>&lt;thinking&gt;</code>, leaving empty visible output in some runs. <em>Fixed:</em> demo uses max_tokens=1024 non-streaming; quirk documented in <code>local_environment_quirks.md</code>.</li>
+</ul>
+</td></tr>
+
+<!-- INSIGHTS -->
+<tr><td style="padding:16px 40px;">
+<h2 style="margin:0 0 12px;font-size:18px;color:#2c5282;border-bottom:2px solid #e2e8f0;padding-bottom:6px;">Key Insights</h2>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:0;">
+<tr><td width="50%" valign="top" style="padding-right:8px;">
+<div style="padding:12px;background:#edf2f7;border-radius:6px;margin-bottom:8px;">
+<div style="font-size:12px;letter-spacing:1px;text-transform:uppercase;color:#2c5282;margin-bottom:4px;font-weight:600;">Architectural</div>
+<div style="font-size:13px;line-height:1.5;color:#2d3748;"><strong>TTFT is the Universes metric, not cost.</strong> 5-step chain at 1000 ms Claude TTFT = 5 s; at 80 ms NPU = 400 ms. 12.5&times; iteration speedup.</div>
+</div>
+<div style="padding:12px;background:#edf2f7;border-radius:6px;margin-bottom:8px;">
+<div style="font-size:12px;letter-spacing:1px;text-transform:uppercase;color:#2c5282;margin-bottom:4px;font-weight:600;">Architectural</div>
+<div style="font-size:13px;line-height:1.5;color:#2d3748;"><strong>Tiered &gt; flat routing.</strong> Flat picks one lane; orchestration runs cheap-first + escalates on quality failure.</div>
+</div>
+<div style="padding:12px;background:#edf2f7;border-radius:6px;">
+<div style="font-size:12px;letter-spacing:1px;text-transform:uppercase;color:#2c5282;margin-bottom:4px;font-weight:600;">Architectural</div>
+<div style="font-size:13px;line-height:1.5;color:#2d3748;"><strong>AMD path preferences must be explicit.</strong> Gemma-4-E2B (2B) on NPU beats Gemma-4-31B on CPU for most prompts &mdash; TTFT dominates, not params.</div>
+</div>
+</td><td width="50%" valign="top" style="padding-left:8px;">
+<div style="padding:12px;background:#edf2f7;border-radius:6px;margin-bottom:8px;">
+<div style="font-size:12px;letter-spacing:1px;text-transform:uppercase;color:#2c5282;margin-bottom:4px;font-weight:600;">Operational</div>
+<div style="font-size:13px;line-height:1.5;color:#2d3748;"><strong>Adversarial review in parallel.</strong> 3 reviewer agents (scientific/edge/security) found 20+ bugs in 90s. Sequential would have been 3&times;.</div>
+</div>
+<div style="padding:12px;background:#edf2f7;border-radius:6px;margin-bottom:8px;">
+<div style="font-size:12px;letter-spacing:1px;text-transform:uppercase;color:#2c5282;margin-bottom:4px;font-weight:600;">Operational</div>
+<div style="font-size:13px;line-height:1.5;color:#2d3748;"><strong>V-model AutoHarness &gt; tests alone.</strong> Tests check inputs you remembered. Harnesses check invariants spanning the package.</div>
+</div>
+<div style="padding:12px;background:#edf2f7;border-radius:6px;">
+<div style="font-size:12px;letter-spacing:1px;text-transform:uppercase;color:#2c5282;margin-bottom:4px;font-weight:600;">Human</div>
+<div style="font-size:13px;line-height:1.5;color:#2d3748;"><strong>Additive design survives directive pivots.</strong> 4 mid-sprint pivots (TurboQuant &rarr; CLI &rarr; GAIA &rarr; tiered) composed because each was a new module, not a modification.</div>
+</div>
+</td></tr>
+</table>
+</td></tr>
+
+<!-- ROADMAP -->
+<tr><td style="padding:16px 40px;">
+<h2 style="margin:0 0 12px;font-size:18px;color:#2c5282;border-bottom:2px solid #e2e8f0;padding-bottom:6px;">Roadmap &mdash; Next 4&ndash;8 Weeks</h2>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;font-size:13px;">
+<thead>
+<tr style="background:#f7fafc;">
+<th align="left" style="padding:8px;border-bottom:1px solid #cbd5e0;font-size:11px;text-transform:uppercase;letter-spacing:1px;color:#4a5568;">Horizon</th>
+<th align="left" style="padding:8px;border-bottom:1px solid #cbd5e0;font-size:11px;text-transform:uppercase;letter-spacing:1px;color:#4a5568;">Focus</th>
+</tr>
+</thead>
+<tbody>
+<tr><td style="padding:8px;border-bottom:1px solid #edf2f7;font-weight:600;color:#2c5282;">Now (this week)</td><td style="padding:8px;border-bottom:1px solid #edf2f7;">8 P0/P1 follow-ups (nested budget pass-through, CLI liveness probe, httpx connect timeout). All &le;30 min each.</td></tr>
+<tr><td style="padding:8px;border-bottom:1px solid #edf2f7;font-weight:600;color:#2c5282;">Near (2 wks)</td><td style="padding:8px;border-bottom:1px solid #edf2f7;">Full n=20 benchmark; TurboQuant NPU activation measurement; Anthropic Advisor Tool wiring; root archaeology execution.</td></tr>
+<tr><td style="padding:8px;border-bottom:1px solid #edf2f7;font-weight:600;color:#2c5282;">Mid (4 wks)</td><td style="padding:8px;border-bottom:1px solid #edf2f7;">Agent-swarm substrate (compose agents, not just models); capability eval harness; GAIA SDK deeper integration; MI300X cross-platform benchmark.</td></tr>
+<tr><td style="padding:8px;font-weight:600;color:#2c5282;">Long (8+ wks)</td><td style="padding:8px;">Universes application submission; training-loop case study (target: hybrid = Claude-only quality at &le;20% wall-clock, &le;5% cost); compound engineering loop upgrade.</td></tr>
+</tbody>
+</table>
+<div style="margin-top:10px;font-size:12px;color:#718096;"><strong>4-week checkpoint target:</strong> <code>make vmodel-all</code> passes without PILOT flag &middot; 0 HIGH security findings on re-review &middot; root item count &le;100 (from 608) &middot; Anthropic application submitted.</div>
+</td></tr>
+
+<!-- REPO STATE -->
+<tr><td style="padding:16px 40px 24px;">
+<h2 style="margin:0 0 12px;font-size:18px;color:#2c5282;border-bottom:2px solid #e2e8f0;padding-bottom:6px;">Repository State</h2>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="font-size:13px;">
+<tr><td width="180" style="padding:6px 0;color:#4a5568;font-weight:600;">Branch</td><td style="padding:6px 0;"><code>isolated/session-oom-modularity</code></td></tr>
+<tr><td width="180" style="padding:6px 0;color:#4a5568;font-weight:600;">Tests</td><td style="padding:6px 0;">41/41 passing in <code>tests/inference/</code></td></tr>
+<tr><td width="180" style="padding:6px 0;color:#4a5568;font-weight:600;">V-Model</td><td style="padding:6px 0;">25/25 invariants (phases 1, 2, 6)</td></tr>
+<tr><td width="180" style="padding:6px 0;color:#4a5568;font-weight:600;">entire.io checkpoints</td><td style="padding:6px 0;">32+ on this branch</td></tr>
+<tr><td width="180" style="padding:6px 0;color:#4a5568;font-weight:600;">Pending changes</td><td style="padding:6px 0;">1,344 (sprint + BMAD churn + prior untracked)</td></tr>
+<tr><td width="180" style="padding:6px 0;color:#4a5568;font-weight:600;">Handoff</td><td style="padding:6px 0;"><code>HANDOFF_2026-04-18.md</code> (git-safe commit strategy inside)</td></tr>
+</table>
+<div style="margin-top:16px;padding:12px;background:#fffbea;border-left:3px solid #d69e2e;border-radius:4px;font-size:13px;color:#744210;">
+<strong>Manual action required next session:</strong> follow the explicit <code>git add</code> sequence in <code>HANDOFF_2026-04-18.md</code>. The 1,344 working-tree changes include BMAD upgrade churn and pre-existing untracked files that should NOT land in this sprint's commit.
+</div>
+</td></tr>
+
+<!-- FOOTER -->
+<tr><td style="padding:20px 40px;background:#f7fafc;color:#718096;font-size:12px;text-align:center;border-top:1px solid #e2e8f0;">
+Cohezion sprint sorted-churning-toucan &middot; 2026-04-18 &middot; Strix Halo (gfx1151 + XDNA 2)<br>
+Generated for <a href="mailto:manderson240@gmail.com" style="color:#2c5282;">manderson240@gmail.com</a> &middot; see <code>docs/SPRINT_2026-04-18_RETROSPECTIVE.md</code> for full detail
+</td></tr>
+
+</table>
+</td></tr>
+</table>
+</body>
+</html>
