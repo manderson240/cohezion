@@ -35,15 +35,33 @@
 - ✅ #61: Session-start hook-health check
 - ✅ #62: CI root-cause fix (Python 3.11 pin)
 
+### Dogfood-derived items (new in S104 Phase 4)
+
+| Priority | Item | Effort | Source |
+|----------|------|--------|--------|
+| P2 | `route()` warn on small `max_tokens` + reasoning-mode lane — prevents silent empty-text (dogfood Claim A caveat at `max_tokens=16`) | 20 min | Dogfood |
+| P2 | Phase 2 harness self-heals on missing `benchmarks/fleet_report.md` (current behavior: cryptic I0 FAIL); skip-with-warning or auto-invoke `make benchmark-fleet` | 15 min | Dogfood Claim E |
+| P2 | `make dogfood` Makefile target wiring `scripts/dogfood/claim_*_*.py` so future sessions rerun claims A-D+G-I in <1 min | 20 min | Dogfood |
+| P3 | Add `reasoning_mode: bool` field to `ModelEntry`; `route()` enforces `max_tokens` floor when routing to reasoning-capable models | 30 min | Dogfood Claim A |
+
 ### Still open (user action needed)
 | Priority | Item | Effort | Source |
 |----------|------|--------|--------|
 | P1 | Replace (or delete) `.git/hooks/pre-commit.disabled` — sandbox policy blocks agent from doing this. References missing `scripts/resource-leak-detector.py`. L364 hook-health check (#61) now warns on this at SessionStart | 5 min (user terminal) | L364 + L369 |
-| P1 | Pop `git stash@{0}` on main worktree (`/home/mike-anderson/dev/cohezion`) and triage BMAD v6.0.4 → v6.3.0 upgrade as its own PR. Currently 1,293 files sit in that stash from S104 Wave 2 | 1-2 hrs | S104 Wave 2 |
+| P1 | Pop `git stash@{0}` on main worktree (`/home/mike-anderson/dev/cohezion`) and triage BMAD v6.0.4 → v6.3.0 upgrade as its own PR. Currently 1,293 files sit in that stash from S104 Wave 2. Also releases `benchmarks/fleet_report.md` for Phase 2 harness. | 1-2 hrs | S104 Wave 2 |
 | P2 | Fix 39 remaining except-subclass violations in `src/cohezion-archive/` (caught by #61 linter but out of scope since it's archive code) | 30 min | #61 |
 | P2 | SurrealDB service unit: add `ExecStartPre=/usr/bin/mkdir -p /tmp/surrealdb` to prevent crash-loop; `/sql` endpoint on :8001 returns 404 even though `/health` is OK | 15 min | L291 + S103 |
 | P2 | Wire `scripts/lint/check_except_subclass.py` into pre-commit + `make lint` (warn or block — design decision) | 15 min | #61 follow-up |
 | P2 | Root `EXECUTION_REPORT_$(date +%Y%m%d_%H%M%S).md` — shell-variable-corrupted filename. Separate cleanup risk profile from other archaeology | 5 min | L357 + S104 Wave 3 |
+
+### Dogfood-verified claims (evidence log)
+- NPU TTFT 83.9 ms ≈ SHOWCASE 80 ms claim (within 5%)
+- Nested orchestrator budget `min(self, parent)` propagation works (L361/O3b)
+- `extend_claude()` unknown-model fast-fail works (L362 short-circuit)
+- CLI live-dispatch probe uses `-p --max-budget-usd` (L360 correction)
+- Hook-health warns on missing script refs (L364)
+- `scripts/sync_skill_registry.py` idempotent (L372)
+- `scripts/lint/check_except_subclass.py` finds zero violations in active inference module (L359 durable)
 
 ## Skills to extract (from S104 experience)
 
