@@ -463,6 +463,20 @@ async def route(
                 continue
 
         attempts.append(candidate.model_id)
+        # Warn if we're about to dispatch to a reasoning-mode model with a
+        # max_tokens budget too small for the model's <thinking> block. Per
+        # local_environment_quirks.md, Gemma-4 FLM on NPU will consume the
+        # entire budget on reasoning content and return empty visible output
+        # when max_tokens < ~128. Callers who deliberately set small budgets
+        # for TTFT-only probes can ignore this warning.
+        if candidate.reasoning_mode and max_tokens < 128:
+            logger.warning(
+                "route(): dispatching to reasoning-mode model %s with max_tokens=%d "
+                "(< 128); reasoning block may consume the full budget and return "
+                "empty visible text. Raise max_tokens or pick a non-reasoning lane.",
+                candidate.model_id,
+                max_tokens,
+            )
         start = time.perf_counter()
         try:
             text, cost, ttft_ms, tokens_per_sec = await _dispatch_one(

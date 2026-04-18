@@ -1,4 +1,4 @@
-.PHONY: help format lint lint-check type-check test all clean train evaluate benchmark demo validate compound-train training-history kernel-status kernel-cycle kernel-loop kernel-loop-dry kernel-report
+.PHONY: help format lint lint-check type-check test all clean train evaluate benchmark demo validate compound-train training-history kernel-status kernel-cycle kernel-loop kernel-loop-dry kernel-report dogfood dogfood-deterministic dogfood-live
 
 help:  ## Show this help message
 	@echo "Available targets:"
@@ -117,3 +117,25 @@ demo:  ## Quick demo: train 5K steps, evaluate, show compound loop
 	print('=== Compound loop: training → evaluation → knowledge persistence ===')"
 	@echo ""
 	@echo "✓ Demo complete"
+
+# -------------------------------------------------------------------------
+# Dogfood — reruns the dogfood scripts used to verify shipped claims A–D.
+# See docs/dogfood/drift-report-2026-04-18.md for the claim catalog.
+# Deterministic tier runs without the fleet. Live tier needs NPU :13306 up.
+# -------------------------------------------------------------------------
+
+dogfood-deterministic:  ## Rerun Claims B/C/D (no fleet required; ~10s)
+	@echo "▶ Claims B/C/D — deterministic regressions"
+	uv run python scripts/dogfood/claim_bcd_deterministic.py
+
+dogfood-live:  ## Rerun Claim A (requires NPU :13306 UP; ~5s)
+	@echo "▶ Claim A — live NPU routing"
+	uv run python scripts/dogfood/claim_a_npu_routing.py
+
+dogfood: dogfood-deterministic  ## Run all dogfood claims (live tier best-effort)
+	@echo ""
+	@echo "▶ Live tier (best-effort — skipped if NPU lane down)"
+	@uv run python scripts/dogfood/claim_a_npu_routing.py || \
+		echo "⚠ Live claim skipped: NPU lane unavailable (see local_environment_quirks.md)"
+	@echo ""
+	@echo "✓ Dogfood suite complete"
