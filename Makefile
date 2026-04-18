@@ -5,24 +5,24 @@ help:  ## Show this help message
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-20s\033[0m %s\n", $$1, $$2}'
 
 format:  ## Format code with ruff
-	ruff format .
+	uv run ruff format .
 	@echo "✓ Code formatted"
 
 lint:  ## Lint and auto-fix issues with ruff
-	ruff check --fix .
+	uv run ruff check --fix .
 	@echo "✓ Linting complete"
 
-lint-check:  ## Check linting without fixing
-	ruff check .
-	ruff format --check .
+lint-check:  ## Check linting without fixing (src/ + tests/)
+	uv run ruff check src/ tests/
+	uv run ruff format --check src/ tests/
 	@echo "✓ Lint check complete"
 
 type-check:  ## Run type checking with mypy
-	mypy --ignore-missing-imports bmad/ || true
+	uv run mypy --ignore-missing-imports bmad/ || true
 	@echo "✓ Type check complete"
 
 test:  ## Run test suite
-	pytest tests/
+	uv run pytest tests/
 	@echo "✓ Tests complete"
 
 all: format lint type-check test  ## Run all checks and tests
@@ -43,10 +43,10 @@ dev-setup:  ## Install pre-commit hooks
 
 ci:  ## Run CI checks locally
 	@echo "Running CI checks..."
-	ruff format --check .
-	ruff check .
-	mypy --ignore-missing-imports bmad/ || true
-	pytest tests/
+	uv run ruff format --check .
+	uv run ruff check .
+	uv run mypy --ignore-missing-imports bmad/ || true
+	uv run pytest tests/
 	@echo "✓ All CI checks passed"
 
 # Compound Loop Validation
