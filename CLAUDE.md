@@ -138,7 +138,7 @@ See skill: `cohezion-vault-workflow` for vault API examples (log decisions, expe
 ### ⚡ Agent Protocol Stack (6-Protocol Architecture)
 | Protocol | Purpose | Cohezion Status |
 |----------|---------|----------------|
-| **MCP** | Agent ↔ Tool connectivity | **Strong** (41+ tools via cloud-vault-mcp, compound-mcp, maintenance-mcp) |
+| **MCP** | Agent ↔ Tool connectivity | **Strong** (87+ tools via cloud-vault-mcp, compound-mcp, maintenance-mcp) |
 | **A2A** | Agent ↔ Agent discovery/coordination | **In Progress** (7 specialist agents with agent cards) |
 | **UCP** | Commerce lifecycle | N/A |
 | **AP2** | Payment authorization | N/A |
@@ -161,7 +161,7 @@ See skill: `cohezion-vault-workflow` for vault API examples (log decisions, expe
 ### ⚡ Quick Reference
 - **Language**: Python 3.13+ | **Package Manager**: `uv` (never bare python)
 - **DB**: SurrealDB (ws://localhost:8001) | **API**: FastAPI :8080
-- **Tests**: 6,356 collected, full suite completes without crash. Genesis: 348. Physics: 22 conservation + 15 invariant checker. LeWM JEPA: 9. GraphRAG: 12. DRR generator: 15. Constitutional enforcer: 13. Verifiable rewards: 4. | **Coverage**: html report in `htmlcov/`
+- **Tests**: 6,369 collected, full suite completes without crash. Genesis: 398 (physics 309 + world_model 34 + environments 55). Physics: 22 conservation + 15 invariant checker. LeWM JEPA: 34. GraphRAG: 12. DRR generator: 15. Constitutional enforcer: 13. Verifiable rewards: 4. | **Coverage**: html report in `htmlcov/`
 - **SurrealDB Persistence**: SurrealKV backend (migrated from RocksDB Session 96b) with `?versioned=true` for VERSION clause temporal queries. Port 8001, 127.0.0.1 only. Bi-temporal schemas (valid_from/valid_to) on neurons, agent_journey, universe_node. V-Model tables: vmodel_gate, traces, hash_chain, proof_obligation (Session 96b). Hash-chain audit trail in JourneyTracker (OLIF mitigation).
 - **CI**: `make lint-check && uv run pytest` before commit
 - **Entry point**: `cohezion = "cohezion.__main__:main"`
@@ -203,10 +203,10 @@ Updated Skill (loop again)
 | `src/cohezion/compound/` | Executor, SkillRefiner, RetrospectionEngine, JourneyTracker | `executor.py` (11-step) |
 | `src/cohezion/swarm/` | Team orchestration, cost routing, model quality | `team_executor.py`, `cost_aware_router.py` |
 | `src/cohezion/cache/` | L1/L2/L3 semantic cache (95%+ hit rate) | `semantic_cache.py` |
-| `src/cohezion/skills/` | 206 skill definitions (151 PRIME) (*.md + *.py) | `skill_registry.json` |
+| `src/cohezion/skills/` | 235 skill definitions (215 PRIME) (*.md + *.py) | `skill_registry.json` |
 | `src/cohezion/persistence/` | SurrealDB, checkpoints, session recovery | `surreal_client.py` |
 | `src/cohezion/environments/` | Gymnasium RL envs: ManifoldEnv (single), SwarmEnv (multi-agent) | `manifold_env.py`, `swarm_env.py` |
-| `src/cohezion/api/` | FastAPI backend (93 route handlers) | `__init__.py`, `services/genesis.py` |
+| `src/cohezion/api/` | FastAPI backend (92 route handlers) | `__init__.py`, `services/genesis.py` |
 | `src/cohezion/flume/` | FLUME VAE (256D latent space) | `flume_vae.py` |
 | `src/cohezion/physics/` | **Genesis Engine**: SU(2) spinors, Riemannian, Lagrangian, fiber bundles, gauge theory, Fisher metric, cosmogony | `spinor.py`, `cosmogony.py` |
 | `src/cohezion/world_model/` | JEPA world model (86K params, causal masking, CPU-trainable) | `jepa_world_model.py` |
@@ -224,7 +224,8 @@ Updated Skill (loop again)
 - **FLUME-First**: New modules MUST encode/decode through FLUME. Start with `encode()` → latent reasoning → `decode()`. Don't retrofit — wire from the start (Learning 215)
 - **Wire-at-Creation**: New modules MUST declare a wiring target (DegradationDetector, CapabilityMatrix, CompoundExecutor step, or Hookify rule) at creation time. Build-then-forget = 41 orphaned modules (Learning 227)
 - **Async**: All I/O must be `async/await` with timeouts. No blocking calls in executors
-- **Error handling**: Specific exceptions + circuit breakers (`cohezion.reliability.get_circuit()`)
+- **Error handling**: Specific exceptions + circuit breakers (`cohezion.reliability.get_circuit()`). **Anti-pattern (Learning 359)**: `except (SubclassError, Exception)` is a stealth bare-except — because `Exception` is a supertype, the tuple is semantically identical to `except Exception:`. Use only sibling-or-unrelated types in except tuples (e.g. `except (ImportError, AttributeError, KeyError, TypeError, ValueError)`). If you find yourself writing a wide tuple "just to be safe," name the 3-5 types you actually want to silence; let the rest propagate
+- **CLI flag verification (Learning 360)**: When adversarial review or any roadmap item prescribes a specific CLI command, run `<cmd> --help | grep <flag>` before implementing. Mental models of CLI APIs drift; `--help` is ground truth. Captured in roadmap entries with explicit correction notes when the prescribed flag is invalid
 - **Validation**: Pydantic at boundaries (input/output). Fail fast with assertions
 - **Every `src/` dir**: MUST have `__init__.py`. Enables vault skill discovery
 - **Observability**: Log state transitions (input → processing → output). Track coherence
@@ -252,6 +253,30 @@ See skills: `cohezion-debugging-scenarios` for test isolation, singleton resets,
 - **Report actual numbers**: 2,675/2,700 passing (98.1%) > 1,599 passing (inflated)
 - **Flag discrepancies**: If independent test shows different count, request re-verification immediately
 - **Verify claims**: "Complete" = files exist AND tests pass, not projected
+
+### ⚡ Surgical Commits Against High-Churn Trees (Learning 363)
+When the working tree has unrelated churn (BMAD upgrades, pre-existing untracked, other sprints) and you need a clean commit:
+- Enumerate paths explicitly in a handoff markdown before staging — no wildcards, no `git add .`
+- Verify the staged set with `git diff --cached --name-only | grep -iE "<churn-pattern>"` returning empty before committing
+- Prefer two focused commits (feature + follow-ups) over a single squash when the narratives are distinct — cherry-picking to a fresh branch off `main` preserves the separation without dragging unrelated history
+
+### ⚡ V-Model Structural-Before-Behavioral (Learning 366)
+Every behavioral invariant whose failure surface is a keyword/signature drift should have a paired *structural* invariant at the harness layer:
+- Behavioral test would fail with `TypeError: got unexpected keyword argument` deep in the call stack — hard to diagnose
+- Structural check (`inspect.signature(fn).parameters.get(name)`) fires at harness start with an explicit invariant name (e.g. "O3b: fn.run accepts budget_usd kwarg")
+- Structural check cost: ~1ms; pays for itself the first time a refactor drifts a signature
+
+### ⚡ Diagnostic Sidecars (Learning 362)
+When a summary table truncates diagnostic data AND the failing path is a subprocess that can fail silently, write full stdout+stderr to a sidecar file next to the report. V-Model invariant asserts the sidecar exists when the subprocess had 0 successes. Summary tables are for humans scanning; sidecars are for humans diagnosing.
+
+### ⚡ Adversarial Review in Parallel (INSIGHTS #7)
+Spawn 3 concurrent reviewer agents (scientific rigor / edge-case hunting / security) via `Agent` tool in a single message for non-trivial deliverables. Synthesize in main context. Sequential review costs 3× wall-clock and loses cross-pollination; parallel produces a combined review in ~90s + synthesis time. Applied to sprint `sorted-churning-toucan` → 20+ findings, 14 actionable (6 in-session fixes + 3 P0 + 5 P1/P2).
+
+### ⚡ Additive Composition Under Directive Changes (INSIGHTS #11)
+When the user redirects mid-sprint (e.g. "now do X instead of Y"), prefer adding a new module over modifying existing tested code. `cohezion.inference` absorbed 4 mid-sprint pivots (TurboQuant → CLI → GAIA → tiered) by growing from 3 to 7 modules without breaking the original 29 tests. Rule: if a new directive would force editing a passing-test surface, first ask "can this be a new module that composes with the existing one?" Compositional additions don't regress behavior; modifications risk it.
+
+### ⚡ Tiered > Flat Routing (INSIGHTS #2)
+`route()` is a dispatch primitive; `TieredOrchestrator` is the composition primitive. Flat routing picks one lane; tiered runs cheap-first, escalates only when quality gates fail. Same 4-lane fleet under orchestration delivers quality-bounded cost curves that flat routing can't express. For any "pick the best provider" problem, ask: is this really one-shot, or should cheaper options be tried first and escalated?
 
 ## Hardware & Constraints (Strix Halo)
 

@@ -1,3 +1,43 @@
+### [2026-04-18] SESSION 103: INFERENCE FLEET + 8 ADVERSARIAL-REVIEW FOLLOW-UPS
+- **Sprint**: `sorted-churning-toucan` shipped `cohezion.inference` (7 modules, ~1,700 LOC): `route()`, `extend_claude()`, `TieredOrchestrator`, `HarnessPool`, `gaia_adapter`, `registry` (14 models × 7 lanes), `health` (cached probes + Omnibus). 3 V-model AutoHarness phases (1/2/6), 2 reviewer demos.
+- **Adversarial review**: 3 parallel reviewer agents (scientific/edge-case/security) found 20+ findings in ~90s. **6 critical fixes landed in-session** (session 1); **3 P0 follow-ups** (session 2); **5 P1/P2 follow-ups** (session 3). All 8 "Now" items from `docs/ROADMAP.md` closed.
+- **P0 set**: `httpx.Timeout(connect=5.0)` on 3 AsyncClient sites; Claude CLI live-dispatch probe (`-p ping --bare --model haiku-4-5 --max-budget-usd 0.01`, roadmap `--max-tokens 1` was invalid — see L360); nested orchestrator budget pass-through + O3b structural invariant (L361).
+- **P1/P2 set**: `extend_claude` validates `claude_model` before local loop (saves ~300ms per typo); Config A stderr sidecar + I2b invariant (L362); benchmark output path boundary via `resolve().relative_to(cwd)`; `launch_fleet_safe.sh` `/v1/models` identity verification; narrow `except (ImportError, Exception)` → 5 specific exceptions (L359).
+- **Gates**: `pytest tests/inference/` 41 → 45 passing. `make vmodel-all` 25 → 27 invariants (+O3b, +I2b).
+- **Commits on `isolated/session-oom-modularity`**: `2cbc4d17f` (sprint + P0s, 36 files, 5,692 lines, clean commit out of 1,383-change tree — L363), `00d1be0b8` (P1/P2, 6 files, +181/-28 lines). Remote push + cherry-pick to main pending user gate.
+- **Stealth blocker**: broken pre-commit hook calling missing `scripts/resource-leak-detector.py` disabled (L364).
+- **Learnings**: L359-L366. Vault + SurrealDB persistence pending this retrospect.
+
+### [2026-04-16] SESSION 102: RETROSPECTIVE — METRICS RECONCILIATION + SURREALDB FIX
+- **SurrealDB fix**: Crash-looped due to missing `/tmp/surrealdb`; created dir + reset systemd failure counter. 17 tables active.
+- **Claude Code migration**: npm (deprecated) → native installer (`~/.local/bin/claude`). v2.1.105 → v2.1.112.
+- **Metrics reconciliation**: Tests 6,356→6,369, skills 206→235 (215 PRIME), MCP tools 41+→87, JEPA 9→34, genesis 348→398.
+- **KEY_LEARNINGS compressed**: 382→197 lines (-48%). MISSION_JOURNAL updated with Sessions 97-101.
+
+### [2026-04-14] SESSION 101b: REPOSITORY HYGIENE & PI MIGRATION
+- Index bloat 16K→8.8K tracked files. Shell-variable filename corruption fixed. Root clutter archived.
+- Pi v0.67.1: hooks/→extensions/, pi-sdk→@mariozechner/pi-coding-agent, class→function factory. L357-L358.
+
+### [2026-04-11] SESSION 101: GIT LFS MIGRATION & REPO HEALTH HARDENING
+- **Git LFS**: 46 files tracked (vendor/*.so, *.whl, *.pth). Bundle 14GB→182MB. Remote: manderson240/cohezion.
+- **settings.json schema validation**: SessionStart hook warns explicitly on schema errors (previously silent). L333.
+- **Entire.io cleanup**: Shadow branches local-only, carry-forward creates illegal trees, `entire clean --all` monthly. L334-L338.
+
+### [2026-04-11] SESSION 100: KAGGLE LEADERBOARD & API ALIGNMENT
+- AIMO InferenceServer gateway fix (return named DataFrame from predict()). Mamba-SSM iterative side-loading. L330-L332.
+
+### [2026-04-10] SESSION 99: V-MODEL & AUTORESEARCH
+- V-Model for AI swarms: specialist agents at strict stages, AutoHarness for nondeterministic actions. L310-L311.
+- Autoresearch overnight daemon: literature review → FLUME encoding → geometric correspondence → policy distillation.
+
+### [2026-04-10] SESSION 98: AGENTIC ASCENSION & ASYNC WORKFORCE
+- Autonomy Engine gates MCP tools on HIHO coherence. A2A async workforce via github_scout.py polling daemon. L317-L323.
+- OMEGA Distiller auto-propagates learnings → skills. Ouroboros "Hardening Mutations" from failure logs.
+
+### [2026-04-10] SESSION 97: HYBRID SWARM & PRIVATE ACCELERATION
+- Context tiering: Gemini Pro 2M + Flash 1M + Ollama local. Lemonade embeddable server in vendor/. L300-L303.
+- Topological PIVOT breaks latent attractors. Kaggle offline dependency side-loading via wheel datasets.
+
 ### [2026-04-11] SESSION 96b: BLEEDING-EDGE ARCHITECTURE UPGRADE — ALL 7 SPRINTS COMPLETE
 - **7/7 sprints complete** in single extended session (planned 15-20 sessions). 6,356 tests (+172 new). 10 new modules. 36 genesis modules. 398 genesis tests passing.
 - **Weaknesses W1-W7 eliminated**: SkillRefinementValidator, RetrospectionValidator, TapeLogger, hash-chain audit, adapter stubs + LemonadeAdapter, thread safety, KEY_LEARNINGS dedup.
@@ -119,17 +159,6 @@ Ingested Gemma 4 specs (256K ctx, Thinking Mode, Hybrid Attn, Native Audio E2B/E
 ### [2026-03-24] SESSION 72: NEMOTRON CHALLENGE & BLACKWELL G4
 - Blackwell G4 hardware locking (`NvidiaRtxPro6000`), Nemotron-3-Nano MoE dynamics, LoRA optimization (Mamba-specific modules). Ralph Loop & Autoresearch mandate formalized. v19/v20 trained on Blackwell. L170-L172.
 
-### [2026-02-10 to 2026-02-20] PHASES 15-19: HEALING, HARDENING, RECOVERY (Sessions 11-15, compressed)
-Safe Mode v3 (sequential LLM locking, ResourceGuard). Service decoupling (api→flume.py+rl.py+skills.py). Autonomic healing (/heal 6-stage). SurrealDB auth drift → InMemoryStore fallback. Dev environment recovery (Claude Code native install fix, Context7 MCP). Tests 3,214 passing / 4 failing. Linting 1,003→756 errors. L116-L127.
-
-### [2026-02-06] PHASES 8.5-14 (Sessions 9-10, summarized)
-- Compound engineering system built: CompoundExecutor, FeedbackLoop, SkillRefiner, TeamOrchestrator (8 files, 80+ tests).
-- Ollama specialist pipeline: 5-agent team, weight bridge, training CLI, CI pipeline.
-- Agent validation: Pydantic schema + pre-commit + PostToolUse hooks + `/new-agent` scaffolding.
-- Branch archaeology (L102-L109), FLUME VAE retrained (11K vectors), RL REINFORCE (0.991 coherence). Tests: 131→634.
-
-### [2026-03-08] PLASMA + RAH + SPATIAL PHONONS (Sessions 60-67, compressed)
-- Semantic Lagrange Points (L4/L5 stable memory parking), MAPE-K autonomic healing (ResourceMonitor→strategies), viscoelastic dilation (Maxwellian relaxation prevents lockups). RAH module: resilience/manager.py + strategies.py.
-
-### [2026-01-19 to 2026-02-20] FOUNDATION → PHASE 8 (Sessions 1-15, compressed)
-- HIHO verified at 25M cycles. VLIW 423x speedup. EDL 5-stream. Compound engineering built. Ollama-ops (14K lines deleted). Connection pooling + circuit breakers. Safe Mode v3. 3,214 tests passing.
+### [2026-01-19 to 2026-03-08] FOUNDATION → SESSION 67 (compressed)
+Sessions 1-15: HIHO 25M-cycle verification, VLIW 423x speedup, EDL 5-stream, compound engineering (CompoundExecutor, SkillRefiner, TeamOrchestrator), FLUME VAE retrained, RL 0.991 coherence, Safe Mode v3. Tests 131→3,214. L1-L127.
+Sessions 60-67: Semantic Lagrange Points, MAPE-K autonomic healing, viscoelastic dilation. RAH module. L148-L156.

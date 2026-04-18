@@ -2,7 +2,7 @@
 
 A central registry of the swarm's **6-Dimensional Service Architecture**. Only "Prime" skills are listed here.
 
-**Last updated**: 2026-04-10 (Session 96b retrospective). **6,184 tests collected (full suite runs to completion), 35 genesis physics+world_model+env modules, 11 frontend tsx components. 348 genesis tests passing (0 failing). 1,839 prompt_artifacts + 1,822 universe_snapshots in SurrealDB (port 8001, consolidated). 206 skill definitions (151 PRIME). Autoresearch (UCB1 K-Search + Step 5.91) wired. A2A GET /agents returns 7 specialist agents. Anthropic Intelligence Feed: 11-source monitoring + auto-integration.**
+**Last updated**: 2026-04-18 (Session 103 retrospective). **6,369+ tests collected. Inference subsuite 45/45 (`tests/inference/`, new in S103). 35 genesis physics+world_model+env modules, 11 frontend tsx components. 398 genesis tests passing. SurrealDB on port 8001 (SurrealKV, 17 tables). 235 skill definitions (215 PRIME). 87 MCP tools. 92 API route handlers. Autoresearch (UCB1 K-Search + Step 5.91) wired. V-Model: 27 invariants across phases 1 (10), 2 (8), 6 (9) in `cohezion.inference`. A2A GET /agents returns 7 specialist agents. Claude Code v2.1.112 (native installer).**
 
 ## 1. PROPRIOCEPTION (Ouroboros Service)
 *The Nervous System: Health, Hygiene, and Self-Correction.*
@@ -53,6 +53,23 @@ A central registry of the swarm's **6-Dimensional Service Architecture**. Only "
 - **Intern-S1-mini**: 8B scientific reasoning model (pulled to Ollama). Part of 47-model local inventory.
 - **GraphRAG**: Hybrid vector+graph+temporal queries in SurrealQL (`knowledge_graph/graphrag_engine.py`).
 - **Lemonade Router**: CostAwareRouter with 45 YAML profiles, Lemonade-first tier routing ($0 inference).
+
+## 5.4. LOCAL INFERENCE FLEET (Session 103, NEW)
+*Unified router across NPU / iGPU / CPU / Cloud lanes — TTFT-optimized.*
+- **Package**: `src/cohezion/inference/` — 7 modules, ~1,700 LOC
+- **Route**: `route(prompt, task=..., stream=True, budget_usd=..., prefer=...)` — single entry point with task classification, health filter, budget filter, symmetry-axis injection, streaming TTFT measurement (`fleet.py`)
+- **Registry**: 14 models × 7 lanes (NPU 13306 / iGPU ROCWMMA 13307 / iGPU Unified 13308 / CPU 13309 / Ollama 11434 / Claude CLI / Gemini CLI). AMD-optimal path ranking: NPU < iGPU < CPU < Cloud (`registry.py`)
+- **Health**: 30s-cached `/v1/models` probes + live Claude CLI dispatch (`-p ping --bare --model haiku-4-5 --max-budget-usd 0.01`) + Omnibus gateway dashboard (`health.py`)
+- **Orchestrator**: `TieredOrchestrator` — recursive `/advisor` pattern. Smarter tiers review less-smart tiers, escalate on QualityGate failure. Composable: a tier target can itself be a `TieredOrchestrator`. Nested budget pass-through via `run(budget_usd=...)` with `min(self_cap, parent_budget)` semantics (`orchestrator.py`)
+- **ExtendClaude**: `extend_claude(prompt, claude_model=...)` — local-first, Claude fallback. Validates `claude_model ∈ registry.models` before local loop (fast-fail on typos)
+- **HarnessPool**: 3-slot concurrent pi/opencode/hermes Ollama-cloud dispatch (`harnesses.py`)
+- **GAIA adapter**: `GaiaAgentTier` + `amd_optimized_hierarchy()` (`gaia_adapter.py`)
+- **V-Model gatekeepers**: Phase 1 (10 F-invariants, inference fleet structure), Phase 2 (8 I-invariants incl. I2b stderr sidecar), Phase 6 (9 O-invariants incl. O3b nested budget kwarg). `make vmodel-all` runs all three (`scripts/validation/vmodel/phase{1,2,6}_*_harness.py`)
+- **Benchmark**: `scripts/benchmark_fleet.py` — 4-config comparison (Claude-only / local-only / hybrid-budget / hybrid-quality via extend_claude). Output path validation guards against CWD escape. Config A stderr sidecar preserves diagnostic trail (`benchmark_fleet.py`)
+- **Launch**: `scripts/launch_fleet_safe.sh` — sequential staged lane launch; `/v1/models` body grep verifies expected model id per port (guards "wrong model on lane" misconfig)
+- **Demos**: `demo/universes_demo.py` (2.7s end-to-end), `demo/orchestrate_demo.py` (tiered escalation)
+- **Tests**: 45/45 in `tests/inference/` — regression tests lock in adversarial-review fixes (live-dispatch probe, nested budget, unknown-model rejection)
+- **Commits**: `2cbc4d17f` (sprint + 3 P0 follow-ups), `00d1be0b8` (5 P1/P2 follow-ups) — on `isolated/session-oom-modularity`, landing via cherry-pick → `feat/inference-fleet` → PR to `main`
 
 ## 5.5. VERIFICATION (V-Model Lifecycle)
 *The Immune System: Deterministic gates constraining nondeterministic work.*

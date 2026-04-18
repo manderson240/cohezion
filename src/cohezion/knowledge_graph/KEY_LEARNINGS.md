@@ -49,28 +49,8 @@ L152: 360-Degree Autonomic Cycle — 8-stage closed loop (sense→optimize→ref
 
 ---
 
-## Session 69: MCP Infrastructure Recovery (2026-03-11)
-
-### Learning 157: Syntax-Valid Marimo Templates
-When generating Marimo notebooks via f-strings in Python, triple-quoted strings within the template must be meticulously terminated and indented. An extra `'''` at the end of a return block will cause a `SyntaxError` that prevents the entire server from importing. Correct pattern: `return f'''...'''` followed immediately by the next method definition, with no trailing quotes in the module scope.
-
-### Learning 158: AsyncSurreal Migration & Connect Protocol
-The `surrealdb-py` library (v0.3.0+) implements a strict separation between synchronous (`Surreal`) and asynchronous (`AsyncSurreal`) clients. Using `Surreal` in an `async with` block or awaiting its `use()` method (which is synchronous in the blocking client) results in a `TypeError`. **Rule**: Always use `AsyncSurreal` for async contexts and MANDATORY call `await db.connect()` before `signin()` or `use()`.
-
-### Learning 159: Doc-Retriever & Memory Consistency
-Fixing infrastructure requires a "Sweep Pattern"—identifying all modules sharing a common dependency (e.g., SurrealDB) and verifying they all adhere to the updated protocol. The migration of `doc/indexer.py` and `memory/server.py` to `AsyncSurreal` restored coherence across the "Compound Engineering" and "Physics" server groups.
-
-### Learning 160: Skill Documentation as a Truth Anchor
-Skills (e.g., `DATABASE_PRIME.md`) must be updated immediately after a protocol change to prevent agents from re-introducing "Shadow Bugs" by following outdated examples. A skill is only valid if it reflects the current operational reality of the substrate.
-
----
-
-## Session 72: NVIDIA Nemotron Challenge & Kaggle Infrastructure (2026-03-24, L161-L172 compressed)
-
-Kaggle G4 Blackwell: pin CUDA 12.8 via `docker_image_pinning_type: original`, use `--no-build-isolation` for Mamba, prefer kagglehub over HF, native BF16 > bitsandbytes, target regex `in_proj|out_proj|up_proj|down_proj` for hybrid LoRA, case-sensitive `nvidiaRtxPro6000`, pre-authorize models in `model_sources`, metric uses vLLM with `\boxed{}` extraction, 5 submissions/day cap. Branch: `challenge/nvidia-nemotron-reasoning`.
-
-Akashic Sprint Mission (2026-04-07): Implemented long-horizon task orchestration for overnight Kaggle monitoring and local model refinement. Uses `MISSION_AKASHIC_SPRINT.py` to poll Blackwell VMs and record hourly 12D snapshots in SurrealDB. Added Weighted Entropy Consensus to AIMO MRS (v40) to scale reasoning performance.
-
+## Sessions 69-72: MCP Recovery & Kaggle Infrastructure (2026-03-11 to 2026-03-24, Compressed)
+L157-160: Marimo template triple-quote termination; AsyncSurreal mandatory `await db.connect()` before `signin()`; "Sweep Pattern" for dependency migration (all modules sharing a dep must update together); skills must reflect current operational reality (L160). L161-172: Kaggle G4 Blackwell handshake (pin CUDA 12.8, `nvidiaRtxPro6000`, pre-authorize models in `model_sources`, vLLM metric with `\boxed{}` extraction, 5 submissions/day). Akashic Sprint: overnight Kaggle monitoring + hourly 12D SurrealDB snapshots.
 
 ---
 
@@ -86,37 +66,10 @@ Akashic Sprint Mission (2026-04-07): Implemented long-horizon task orchestration
 
 **L215-232 (Sessions 79-82, Wiring Sprint):** FLUME-First: encode/decode at creation, not retrofitted (3/10 systems used FLUME; 41 orphaned modules from build-then-forget anti-pattern). Cosmogonic Autonomy Tiers: ∅→HIHO maps to observe→edit→commit→deploy→sovereign. OPH Axiom 2 = HIL mechanism. Data Mesh: 17+ MCP servers = 17 typed DataProducts. A2UI data-attribute selectors most reliable Playwright selectors. LeWM 15M-param JEPA (dense loss, 2 terms, 48x faster planning). GeminiProvider: Flash-Lite(70%)/Flash(20%)/Pro(10%) cost tiers. TurboQuant: PolarQuant(2.7x) + QJL(32x, 1-bit sign). C1-C5 token pipeline: API caching(40-60%), context-window guard, cache→routing feedback, template matching(87-98%), batch dedup. Meta-Harness execution traces > prompt cramming (+7.7pts, 4x fewer tokens). LatentMAS: FLUME vectors as inter-agent comms (24x faster than text). IsoQuant SO(4) aligns with SPIN coherence.
 
-## Sessions 85-89: ManifoldEnv RL Training + Kernel Optimization (2026-04-01, Compressed)
-L233-243: ManifoldEnv RL breakthrough: 3-stage curriculum reward (reach→maintain→optimize), proximity base reward prevents oscillation, small actions (±0.1) cooperate with physics while large actions fight it. PPO+curriculum best (14.23, +7.51 vs random). Structural safety: Lagrangian dynamics bound behavior — random agents achieve 60% HIHO convergence because physics guides trajectories. ERL safety metric: hackable_area/total_area. UniverseEvaluator with bootstrap CIs. RoutingOrchestrator unifies 4 routing systems. TDD + code review compound loop catches 2 CRITICAL/session.
-L248-249: Algorithm-Reward Matrix (PPO+curriculum vs SAC+dense). Compound training cycle: train→evaluate→persist→compare→refine.
-L251: Scale-aligned MXFP4 GEMM tiling — BLOCK_K=32 = 1 E8M0 scale group. load_inline > library APIs for alignment control.
-
-### Learning 252: Continuous Benchmark Learning Loop for GPU Kernel Optimization (2026-04-02)
-`kernel_learning_loop.py`: 12 benchmarks/hour × 3 kernels = 36 data points/hour. Over 5 days: 4,320 runs vs 50 current (86× more data). Every result persisted to SurrealDB (even failures — they signal which mutations are dead). Round-robin variant selection with conditional leaderboard submission. Pattern: the same compound loop (train→evaluate→persist→compare→refine) applies to both RL training and kernel optimization.
-
-### Learning 253: ROCm CDNA4 FP8 GEMM — 8-Wave Ping-Pong at HIP Level (2026-04-02)
-ROCm blog (March 2026): 8-wave ping-pong achieves 2680-3204 TFLOPS/s (within 2.5% of hipBLASLt) using HIP/C++ NOT assembly. Key techniques: 256×256 output tiles, K=128, 512 threads, double-buffered LDS, LDS XOR swizzle for bank conflict elimination, `__builtin_amdgcn_s_barrier`/`s_setprio`/`sched_barrier` for wave scheduling. V_MFMA_SCALE_F32_16X16X128_F8F6F4 confirmed for block-scaled MXFP4. Source: https://rocm.blogs.amd.com/software-tools-optimization/cdna4-gemm-kernels/README.html
-
-### Learning 255: V-JEPA 2.1 — Dense Loss Fixes Context Token Degeneracy (2026-04-02)
-V-JEPA 2.1 (arXiv:2603.14482): Root cause of JEPA bottleneck = loss applied only to masked regions → context tokens degenerate into global aggregators, losing spatial fidelity. Fix: dense predictive loss on BOTH masked and unmasked tokens. Also: deep self-supervision across intermediate layers. 20-point improvement in robot grasping. Directly applicable to Cohezion JEPAWorldModel.
-
-### Learning 256: ADRC-Lagrangian — 74% Fewer Safety Violations in Safe RL (2026-04-02)
-ADRC-Lagrangian (arXiv:2601.18142): Treats all uncertainty as lumped disturbance with lightweight ADRC observer. 74% fewer violations, 89% smaller constraint magnitudes. Model-free, optimizer-agnostic. Complements ManifoldEnv's physical safety (Lagrangian dynamics) with adaptive learned constraints.
-
-### Learning 257: Causal-JEPA — Object-Level Masking for Causal World Models (2026-04-02)
-Causal-JEPA (arXiv:2602.11389, code: github.com/galilai-group/cjepa): Object-level masking as latent intervention. Forces model to reason about object interactions, not just spatial patterns. 20% improvement in counterfactual reasoning, 8x faster planning (1% of tokens). 128D latent slots, single GPU training. Applicable to Cohezion JEPA: mask agent slots in multi-agent scenarios.
-
-### Learning 261: Ralph Loop Anti-Pattern — Infinite Loop Without Exit Condition (2026-04-02)
-Ralph Loop MUST have --completion-promise or --max-iterations. Session 88B: 8 productive iterations then 713 wasted (721 total). The stop hook feeds the same prompt infinitely after work completes. Rule: always set completion_promise to a verifiable boolean, or max_iterations to 2x expected cycles.
-
-### Learning 262: Email Pipeline Anti-Pattern — Build Without Verifying Sink (2026-04-02)
-Created generate_status_report.py + email_status_cron.sh without configuring SMTP. 0 emails sent. Scripts depending on external config MUST validate at creation time. Rule: `assert config_exists() or warn_loudly()`.
-
-### Learning 263: Research-Before-Build — MFMA Intrinsic Discovery (2026-04-02)
-Built 5 load_inline kernels using scalar FP4 LUT decode while research agents discovered hardware MFMA does dequant+matmul in ONE instruction (`__builtin_amdgcn_mfma_scale_f32_32x32x64_f8f6f4`). 10-100x compute gap. HipKittens has NO MXFP4 support. All 5 variants need MFMA rewrite. Rule: wait for research results before building, or gate implementation on minimal PoC.
-
-### Learning 264: Quantum Peaked Circuits & Rigetti Ankaa-3 (2026-04-04)
-Classical MPS simulations (mps.cpu/gpu) hit an exponential wall around 700 gates for peaked circuits. For 50-69 qubit peaked circuits (e.g. P9 with 6771 gates), use Rigetti Ankaa-3 with Q-CTRL Fire Opal for autonomous error mitigation (up to 32x improvement). The 'Marginal Attack' (using single-qubit Z expectation values) fails for deep circuits, introducing bit-flips. However, the Pauli-Path Simulator can be used as a 'Zero-Cost Verifier' to confirm the true peak among QPU candidates by calculating top candidate probabilities and computing the SNR. BlueQubit charges a $0.30 base fee per job submission; batching multiple circuits into a single list submitted via `bq.run([circuits], device='quantum')` optimizes costs significantly.
+## Sessions 85-89: ManifoldEnv RL + Kernel Optimization + Research (2026-04-01 to 2026-04-04, Compressed)
+L233-249: ManifoldEnv RL breakthrough — 3-stage curriculum reward, PPO+curriculum best (14.23, +7.51 vs random), structural safety via Lagrangian dynamics (random agents achieve 60% HIHO because physics guides trajectories), ERL safety metric, UniverseEvaluator bootstrap CIs, Algorithm-Reward Matrix. L251: Scale-aligned MXFP4 tiling (BLOCK_K=32 = 1 E8M0 group).
+L252: Kernel learning loop (36 data points/hour, all results to SurrealDB including failures). L253: ROCm CDNA4 8-wave ping-pong (2680-3204 TFLOPS/s in HIP, not assembly). L255: V-JEPA 2.1 dense loss fixes context token degeneracy (arXiv:2603.14482). L256: ADRC-Lagrangian 74% fewer safety violations (arXiv:2601.18142). L257: Causal-JEPA object-level masking, 8x faster planning (arXiv:2602.11389).
+L261: Ralph Loop MUST have --completion-promise or --max-iterations (Session 88B: 713 wasted iterations). L262: Build-without-sink anti-pattern (email scripts with no SMTP). L263: Research-before-build — wait for MFMA discovery before building scalar FP4 kernels. L264: Quantum peaked circuits — Rigetti Ankaa-3 + Q-CTRL Fire Opal for 50-69 qubit circuits; Pauli-Path Simulator as zero-cost verifier.
 
 ### Learning 265: per_1x32_f4_quant_hip Silent Incompatibility with gemm_a4w4 (2026-04-06)
 aiter's `per_1x32_f4_quant_hip` (HIP C++ quant kernel) produces FP4 values incompatible with `gemm_a4w4` CK ASM kernels. Both `shuffle=True` and `shuffle=False` fail silently — no exception, just wrong output values (small diffs like 165 vs 163). Only the Triton path (`dynamic_mxfp4_quant + e8m0_shuffle`) works. The HIP quant kernel uses different rounding/packing than what the ASM GEMM expects. Skill created: `aiter-hip-quant-gemm-incompatibility`.
@@ -135,167 +88,30 @@ Verified e8m0_unshuffle roundtrip, MFMA 32x32 output layout (every cell written 
 
 ---
 
-## Session 89: Repository Integrity & Health (2026-04-07)
-
-### Learning 270: Repository Health as a Thermodynamic Constraint
-Repository size bloat (13.47 GiB) acts as a high-entropy state that prevents "Work Precipitation" (Git push). uncompressed backups and stale archives are the primary drivers of this entropy. Manual cleanup of the checkout followed by history rewriting is necessary to restore structural stability (HIHO).
-
-### Learning 271: Structural Repair via History Rebuilding
-Structural corruption in tree objects (empty filenames) blocks standard Git traversal tools. This corruption is often a byproduct of improper worktree management or custom scripts. `git-filter-repo` is the mandated tool for repair, as it rebuilds the history DAG from the ground up, effectively bypassing or fixing structurally invalid objects.
-
-### Learning 272: Operational Log Recovery via "Mining"
-Typos in long-running system commands often result in the creation of files that silently capture execution state (e.g., JSON traces in `""nnround=0nwhile`). These artifacts should be "mined" for operational knowledge (e.g., active worktrees, system launch times) before being retired to the `.gitignore` layer.
-
-## Session 90: MCP Infrastructure & Extension Optimization (2026-04-07)
-
-### Learning 273: Mandatory YAML Frontmatter for Agents
-Agent Markdown files (`AGENTS.md`) in the Gemini CLI MUST start with valid YAML frontmatter containing `name` and `description`. Missing metadata triggers a validation error during extension loading, silencing the entire capability set. This is a "silent failure" at the tool-discovery level that prevents agents from knowing they have access to specific skills.
-
-### Learning 274: Lazy Configuration for MCP Servers (Handshake Timeout)
-MCP servers using `stdio` transport are sensitive to startup latency. Configuration lookups that involve slow external systems (e.g., Bitwarden vault checks) MUST be lazily initialized. If triggered at module import time, these checks can delay the initial handshake beyond the CLI's internal timeout, resulting in a "Disconnected" status in `gemini mcp list`. Pattern: use `get_config()` accessors instead of global constants.
-
-### Learning 275: Silent Stdout for stdio Transport
-The stdio MCP protocol uses `stdout` for messaging. Any extraneous output (e.g., logger.info at startup, `uv run` update checks) can corrupt the protocol stream. Servers MUST be silent on `stdout` during initialization. When adding Python servers via the CLI, use the direct virtualenv path (`.venv/bin/python`) or `uv -q run` to ensure a clean communication channel.
+## Sessions 89-91: Repo Health, MCP Infra, Schema Hardening (2026-04-07 to 2026-04-08, Compressed)
+L270-272: Repo bloat (13.47 GiB) = high-entropy state; `git-filter-repo` rebuilds history DAG for structural repair; mine operational logs from typo-created files before .gitignore retirement.
+L273-275 (MCP): Agent markdown MUST have YAML frontmatter (`name`+`description`); MCP stdio servers need lazy config init (Bitwarden vault checks at import → handshake timeout); stdout must be silent during init (`uv -q run` or `.venv/bin/python`).
+L276-280 (Infra): SurrealDB 3.0 removed `FLEXIBLE TYPE object` → use `TYPE none | object`; `persist_prompt_artifact()`/`persist_universe_snapshot()` wired into CompoundExecutor Steps 9.1/10.7 (586+578 artifacts in one session); sentence_transformers segfault fix: mock in `sys.modules` at collection time; anyio heartbeat hang: constructors must not spawn background tasks; **two persistence graphs**: neurons/synapses (vault-keeper domain) vs prompt_artifacts/universe_snapshots (genesis execution).
 
 ---
 
-## Session 91: Infrastructure Hardening — Schema, Persistence, Test Suite (2026-04-08)
-
-### Learning 276: SurrealDB 3.0 Schema Migration Patterns
-`FLEXIBLE TYPE object` was removed in SurrealDB 3.0. Nullable object fields need `TYPE none | object`; non-nullable use `TYPE object`. Live views no longer support `ORDER BY` (sort at query time instead). The surrealdb-py client returns HTTP 200 even when SurrealDB rejects a record with a schema error — callers must check returned data, not just the status code. Rule: re-apply `genesis_schema.surql` after every SurrealDB version upgrade and verify row insertion end-to-end.
-
-### Learning 277: L183 Total Artifact Persistence — Wiring Pattern
-`persist_prompt_artifact()` and `persist_universe_snapshot()` in `genesis_persistence.py` were never called anywhere in the codebase (zero call sites). Wired into `CompoundExecutor.execute_task()` as Step 9.1 (universe snapshot, after JourneyTracker at line ~1036) and Step 10.7 (prompt artifact, before return at line ~1131). Async boundary: `execute_task()` is synchronous — use `asyncio.ensure_future()` when a loop is running, `asyncio.run()` otherwise. Both calls wrapped in `try/except Exception` (non-blocking). Result: 586 prompt_artifacts + 578 universe_snapshots populated in one session.
-
-### Learning 278: Test Suite Segfault — C Extension Load Order
-`tests/cache/test_sentence_encoder.py` caused a mid-suite segfault: importing `sentence_transformers` (which eagerly loads `torch._C`) into a process that already has `scipy`/`sklearn` C extensions loaded triggers a BLAS/LAPACK allocator conflict at the shared-library level. Fix: inject `sentence_transformers` as a `MagicMock` into `sys.modules` in `tests/cache/conftest.py` at collection time (before any import). The existing `patch("sentence_transformers.SentenceTransformer")` calls in tests still work — the mock package is already in `sys.modules` so no real import occurs.
-
-### Learning 279: anyio Event Loop Hang — ResourceMonitor Heartbeat Anti-Pattern
-`ResourceMonitor.__init__` calls `loop.create_task(self._heartbeat_loop())` when a running event loop is detected. anyio's test runner provides a live loop, so the heartbeat spawns. When anyio shuts down the loop at test end, the still-running heartbeat blocks `loop.run_until_complete()` indefinitely. Two fix patterns: (1) `async` autouse fixture calling `await monitor.stop()` after each test (for tests that own the monitor), (2) monkeypatch `_register_with_monitor` / `_deregister_from_monitor` to no-ops so the monitor is never instantiated (for tests that only incidentally touch it). Root fix (deferred): move heartbeat start to an explicit `start()` method — constructors must not spawn background tasks.
-
-### Learning 280: Two Separate Persistence Graphs — Genesis vs Knowledge
-`neurons` and `synapses` (what `compute_graph_hiho()` reads) are the vault-keeper's domain: Obsidian vault notes → SurrealDB graph nodes via the knowledge graph ontology. `prompt_artifacts` and `universe_snapshots` (what `persist_prompt_artifact()` writes) are the genesis execution graph. These are two distinct persistence systems. Wiring L183 populates genesis tables but does NOT raise Graph HIHO — that requires vault-keeper to run and populate `neurons`/`synapses` from vault content.
+## Sessions 93-95: Stale Fix Sprint, Kaggle, Segfaults, SurrealDB (2026-04-08 to 2026-04-10, Compressed)
+L281: JEPA SIGReg rename — `grep -r "old_name" tests/` after metric refactors. L282: Ruff "missing closing quote" = 4 trailing quotes in docstring. L283: A2A discovery must scan all agent def formats (Python + markdown); all 7 agents now discoverable. L284: SurrealDB CLI at `~/.surrealdb/surreal`, not `$PATH`.
+L286: Kaggle quota mapping — $50/day AI API → AGI track, 30h/week GPU → BirdCLEF/ARC, AIMO/Nemotron → sponsor hardware. L287: AutoHarness (arXiv:2603.03329v1) mandate — synthesize deterministic verifiers, bypass LLM at runtime. L288: AIMO v43 Fortress — scalar indexing, dict tensor mapping, SymbolicVerifier. L289: Pin protobuf==5.26.1 for Kaggle stability.
+L290: Full-suite segfault dual root cause — (1) BLAS allocator conflict from module-level sklearn/scipy imports → use `importlib.util.find_spec()` + lazy imports; (2) AMD ROCm page fault from `torch.cuda.is_available()=True` → mock in unit tests. **Pattern**: never import C extensions at module level.
+L291: SurrealDB dual-instance port mismatch — port 8000 (empty .env) vs 8001 (working, 1,839 artifacts). Fixed 32 files to point to 8001.
 
 ---
 
-## Session 93: Stale Item Fix Sprint + Autoresearch Integration (2026-04-09)
+## Session 96: Dynamic Context Policy & Anthropic Intel (2026-04-10, Compressed)
+L292: ContextPolicy unifies 5 context layers → ROUTINE/FOCUSED/EXPLORATORY classification with FLUX top_k/min_relevance/token budgets. Reactive Tier 1 (immediate: coherence<0.5, tokens>80%), Tier 2 (logged: alignment drift). Module: `compound/context_policy.py`.
+L293: YAML frontmatter markdown > JSON for human-read config (consistent with vault/skills patterns; Obsidian can index). L294: Instance-level dicts prevent module-level singleton pollution (`self._budgets = dict(_PROFILE_BUDGETS)`). L295: SurrealDB 3.0 `SELECT VALUE` mandatory in `IN` subqueries (caused Graph HIHO orphan ratio=1.000 false positive). L296: Aspirational test specs must target existing APIs or be `@pytest.mark.skip`.
+L297-299 (Anthropic Intel): 11-source registry + version-watch hook + `/anthropic-scan`. Three feedback loops (Push/Pull/Persist). Risk tiers: low=auto-apply, medium=per-item, high=report-only. Model IDs are versioned dependencies — deprecated IDs = silent failures. All changes logged to `change-log.md`.
 
-### Learning 281: JEPA SIGReg Rename — Grep Tests After Metric Refactors
-`TrainingMetrics.kl_loss` was renamed to `sigreg_loss` (Sketched Isotropic Gaussian Regularizer) during the SIGReg refactor but the test assertion was never updated. Rule: after any metric/attribute rename, `grep -r "old_name" tests/` before committing. 1-line fix restored 25/25 JEPA genesis tests.
-
-### Learning 282: Ruff "Missing Closing Quote" = Embedded Quote in Docstring
-`ruff format` reporting "missing closing quote" at a docstring line means there's an embedded double-quote inside the string creating ambiguous close: `"""...Question?""""` (4 trailing quotes). The formatter cannot auto-fix this. Locate via `ruff check --select E` + line number, then strip the inner quotes.
-
-### Learning 283: A2A Multi-Agent Discovery — Scan All Agent Definition Formats
-`CapabilityRegistry._scan_agents()` only scanned Python modules; `.claude/agents/*.md` markdown definitions were invisible. Fix: add `_scan_claude_agents()` that parses YAML frontmatter from markdown files, plus `GET /agents` FastAPI endpoint. Pattern: A2A discovery requires active scanning of every agent definition format in the project (Python + markdown + any future formats). All 7 specialist agents now discoverable.
-
-### Learning 284: SurrealDB CLI Path — ~/.surrealdb/surreal
-The `surreal` CLI binary lives at `~/.surrealdb/surreal`, not in `$PATH`. For schema operations use: `~/.surrealdb/surreal import --conn ws://localhost:8001 --user root --pass root --ns cohezion --db vault <file.surql>`. This is more reliable than Python split-execute (which can drop DEFINE TABLE statements when comment blocks precede them).
-
-### Learning 286: Kaggle Quota Strategy — Multi-Track Mapping (2026-04-08)
-Strategic mapping of Kaggle quotas is mandatory to maximize output without bottlenecks: (1) **$50/day AI Models API** is reserved for the **Measuring AGI** track (free Gemini/Claude access for cognitive tasks), (2) **30h/week GPU** is for heavy training in **BirdCLEF** and **ARC Prize**, (3) **AIMO** and **Nemotron** utilize dedicated, free sponsor hardware (H100 and G4 Blackwell). Rationale: utilizing the daily-resetting AI quota prevents wasting personal API funds.
-
-### Learning 287: AutoHarness Mandate — Code-as-Action-Verifier (2026-04-08)
-Mandate: Use **AutoHarness (arXiv:2603.03329v1)** for all agentic workflows. By automatically synthesizing deterministic code harnesses (verifiers) and policies locally using efficient models (qwen3.5:coder, phi4-mini), we eliminate "illegal action" failure modes (e.g., AIMO indexing errors or invalid ARC grid moves). At runtime, the LLM is bypassed for action validation, resulting in zero token cost and 100% logical compliance. Verified: generated AIMO modular verifier in 1 iteration.
-
-### Learning 288: AIMO v43 "Fortress" Breakthrough — Local TDD for Kaggle Reruns
-Achieving a non-zero score on AIMO Progress Prize 3 requires reproducing the Kaggle environment locally via a **modular arithmetic TDD harness**. Key fix in v43: (1) Scalar indexing (`problem_df[0]`) to bypass Polars ASCII prompt corruption, (2) dictionary-based tensor mapping (`{k: v.to(device) for k,v in inputs.items()}`) to fix `AttributeError` in multi-gpu environments, and (3) explicit `SymbolicVerifier` class restoration to provide a pre-submission logic check.
-
-### Learning 289: Measuring AGI v11 — Protobuf Stability in Kaggle Notebooks
-Kaggle's pre-installed Google Cloud libraries are strictly pinned to older Protobuf versions. Upgrading to `protobuf==7.x` triggers massive dependency conflicts that can break the Models API. **Solution**: Pin to `protobuf==5.26.1` and `google-cloud-bigquery-storage==2.26.0` to stabilize the environment while satisfying the `kbench` SDK requirements. Result: 78 tasks successfully registered in Version 11.
-
-### Learning 290: Full-Suite Segfault — Two Root Causes (Session 94, 2026-04-09)
-**Cause 1 — BLAS allocator conflict**: `capability_registry.py` had `from sklearn.* import ...` in a module-level `try` block; `topological_persistence.py`, `topological_router.py`, `riemannian_metric.py` had module-level scipy imports. These loaded C extensions at import time. When `torch._C` (loaded later by test files) tried to initialize its BLAS allocator, conflict → SIGSEGV. **Fix**: Replace with `importlib.util.find_spec("sklearn")` for availability detection; move all heavy C extension imports (`sklearn.*`, `scipy.*`) lazy inside the methods that use them. Also mock `transformers` in conftest.py so HuggingFace doesn't load sklearn at collection time.
-**Cause 2 — AMD ROCm GPU page fault**: On this hardware (Radeon 8060S), `torch.cuda.is_available()` returns `True` (ROCm presents as CUDA). `specialist_team.run_swarm()` in the AIMO test called `v.to("cuda")` on real tensors → GPU page fault (SIGSEGV). **Fix**: `@patch("submission_transformers.torch.cuda.is_available", return_value=False)` in the unit test — correct because the test checks consensus logic, not GPU code paths.
-**Pattern**: Never import heavy C extensions at module level. Use `importlib.util.find_spec()` to probe availability. On AMD ROCm hardware, always mock `torch.cuda.is_available` in unit tests that don't intend GPU execution.
-
-### Learning 291: SurrealDB Dual-Instance Topology — Port Mismatch (Session 95, 2026-04-10)
-Two SurrealDB 3.0 instances ran as systemd daemons. `cohezion-surreal.service` (system, port 8000) read `SURREAL_USER`/`SURREAL_PASS`/`SURREAL_DATA_PATH` from `.env` — but those vars were never populated, yielding empty creds and `rocksdb://` with no data path. The user-level `surrealdb.service` (port 8001, root/root) was the actual working instance with 1,839 prompt_artifacts. CLAUDE.md and 24 source files referenced port 8000, causing `cloud-vault-mcp` health checks and agent context queries to silently fail. **Fix**: Disabled port 8000 service, updated 32 files (24 main + 8 cloud-vault-mcp) to point to port 8001. **Pattern**: Always verify which DB instance your application actually connects to vs which one has the data. Multiple systemd services for the same DB engine on different ports is a common source of silent failures — use systemd template units (`surrealdb@.service`) if you genuinely need multiple instances.
-
----
-
-## Session 96: Dynamic Context Policy — Adaptive Breadth/Depth (2026-04-10)
-
-### Learning 292: ContextPolicy — Proactive Classification + Hybrid Reactive Adjustment
-Cohezion had 5 independent context layers (`.context/` manifest, FLUX Aggregator, ContextHarness, OllamaContextManager, CompoundExecutor guidance) each using hardcoded constants for breadth/depth. `ContextPolicy` unifies them: proactive classification (ROUTINE/FOCUSED/EXPLORATORY) selects FLUX top_k, min_relevance, sources, and token budgets; reactive Tier 1 adjusts immediately for critical signals (coherence < 0.5, token overflow > 80%); reactive Tier 2 logs soft signals (alignment drift, over-classification) to vault for next-execution learning. Key: `ContextBudget` is a frozen dataclass — immutability prevents mid-pipeline mutation. `AgentNode` and `CompoundContextMixin` accept optional `ContextBudget` for backward compatibility. Module: `compound/context_policy.py`.
-
-### Learning 293: YAML Frontmatter Markdown > JSON for Cross-Platform Config
-Initial implementation used JSON for `learned-budgets.json`. Switched to YAML frontmatter markdown (`.md`) because: (1) consistent with vault cerebellum/, skills/*.md, .context/skills/ patterns; (2) vault-keeper and Obsidian can index YAML frontmatter; (3) markdown body carries narrative context (why budgets were learned, which sessions contributed); (4) any tool (Zed, Pi, humans) can read markdown naturally. JSON reserved for wire formats (MCP responses, API payloads) and high-frequency machine-to-machine data. Codified as coding standard in `.claude/rules/common-coding-style.md` and `CLAUDE.md`.
-
-### Learning 294: Instance-Level Dicts Prevent Module-Level Singleton Pollution
-`ContextPolicy._load_learned_budgets()` initially mutated the module-level `_PROFILE_BUDGETS` dict. This caused test pollution: one test loading custom budgets permanently changed defaults for all subsequent tests in the same process (exact pattern from L290/Session 56). Fix: `self._budgets = dict(_PROFILE_BUDGETS)` creates an instance-level copy at init time. `get_budget()` and `save_learned_budgets()` read/write `self._budgets`. General rule: any module-level mutable state that gets modified at runtime must be copied to instance scope. The module-level dict becomes an immutable template.
-
-### Learning 295: SurrealDB 3.0 SELECT VALUE for Scalar Subqueries
-`WHERE field IN (SELECT col FROM table)` returns 0 matches in SurrealDB 3.0 because `SELECT col` returns records `[{col: "val"}]`, not scalars `["val"]`. Must use `SELECT VALUE col` to get a flat array. This caused Graph HIHO's orphan ratio to falsely read 1.000 (every neuron appeared orphaned despite 5,119 synapses existing). Pattern: always use `SELECT VALUE` in `IN` subqueries. Applies to all SurrealDB 3.0+ code.
-
-### Learning 296: Aspirational Test Specs Must Target Existing APIs
-`TestExecuteGraphWiring` tested `ExecutionOrchestrator.execute_graph()` which was never implemented. Tests failed with `AttributeError` for months as a pre-existing failure. Fix: rewrite to use `GraphEngine.execute()` which actually exists and provides the same FLUX integration. Pattern: forward-looking test specs are fine, but they must be marked `@pytest.mark.skip(reason="API not yet implemented")` or target the existing API that provides equivalent functionality.
-
-### Learning 297: Tiered Proactivity for Autonomous Monitoring (Session 96b)
-Built Anthropic Intelligence Feed: 11-source registry, version-watch SessionStart hook, `/anthropic-scan` command, risk-tiered auto-integration. Key architecture insight: **three feedback loops** — Push (version-watch hook, instant local check every session), Pull (`/anthropic-scan` on-demand deep scan), Persist (vault routing for research/decisions). Staleness check (>24h) triggers background agent scan automatically. Different sources need different action types: CLI changelog → config edits, API deprecations → code changes, research papers → vault knowledge. Risk tiers: low (auto-apply with batch confirm), medium (per-item confirm), high (report only).
-
-### Learning 298: Deprecated Model IDs Are Silent Failures
-`api_llm_executor.py` had `claude-3-5-sonnet-20241022` and `claude-3-opus-20240229` — both retired months ago. Tests passed because they don't make live API calls, but any production use would return HTTP errors. The `/anthropic-scan` system now includes model deprecation checking against `api-manifest.json` to catch these proactively. Pattern: model IDs in cost tables and defaults must be treated as **versioned dependencies** — they expire and need periodic refresh, just like package versions.
-
-### Learning 299: Auto-Integration Needs Risk Classification
-Not all new features should be auto-applied. Env vars and Bash permissions are safe (low risk), but hook types and API behavior changes can break workflows (medium/high risk). The auto-integration engine classifies by risk tier and adjusts confirmation behavior accordingly. This prevents both "never updated" drift and "broke everything" over-eagerness. All changes logged to `change-log.md` for audit trail.
-
-## Session 97: Hybrid Swarm & Private Acceleration (2026-04-10)
-
-### Learning 300: Hybrid Cloud Swarm — Context-Cost Optimization
-Orchestrating a hybrid swarm (Gemini 2.5 Pro/Flash + Ollama) allows for a "Context Tiering" strategy. Use Gemini 2.5 Pro (2M context) for global architectural synthesis and Flash (1M context) for high-volume cross-file implementation. Reserve local Ollama slots (limited by VRAM) for specialized math (phi4) and rapid prototyping (glm4). This configuration respects the 3-model local concurrency limit while providing the deepest possible reasoning capability.
-
-### Learning 301: Lemonade Embeddable — Isolated Hardware Acceleration
-The "Embeddable" Lemonade server allows for a zero-install, private runtime in `vendor/lemonade/`. This is superior to system-wide library replacement as it isolates optimizations (gfx1151/Strix Halo) from the host OS. Key technique: Bundle SDK libraries (`libggml-hip.so`) in the private `bin/` folder and set `LD_LIBRARY_PATH` in the spawning subprocess. Automatic lifecycle management in `ModelPoolManager` ensures the server is only active when Cohezion is running.
-
-### Learning 302: Topological PIVOT — Breaking Latent Attractors
-In 12D manifold navigation (ARC Prize), exploitation loops occur when the agent enters a stable but non-productive cycle. Persistent homology (H0/H1) can detect these cycles. The `PIVOT` regime breaks the attractor by: (1) maximizing novelty (latent distance) at all costs, and (2) ignoring stability (HIHO) constraints. This forces the agent's state vector into a new region of the manifold, effectively "resetting" the search trajectory.
-
-### Learning 303: Kaggle Offline Dependency Injection — Wheel Dataset Pattern
-Unblocking restricted environments (Kaggle G4 Blackwell) requires a "Side-Loading" pattern. When `pip install` is blocked or dependencies are missing, create a programmatic wheel repository locally using `pip download --platform manylinux2014_x86_64 --only-binary=:all:`. Upload these wheels as a Kaggle dataset (`manderson240/rocm-training-wheels`) and mount them in the notebook for an offline install. This bypasses both networking restrictions and environment-specific library mismatches.
-
-## Session 96b-continued: Bleeding-Edge Architecture + V-Model + Defensibility (2026-04-11)
-
-### Learning 304: The LLM Hallucinates, the Verifier Does Not (Defensibility Tiers)
-Research across 50+ papers reveals a 5-tier defensibility hierarchy: S (formally verified — AutoRocq/ProofWright), A (cryptographically auditable — hash-chain trails), B (deterministically testable — test suites), C (statistically evaluated — benchmarks), D (self-reported — not defensible). Cohezion is at Tier B; the plan upgrades to A (hash-chain journey tracking) and S (physics invariant proof obligations). Key pattern: decouple generation (nondeterministic LLM) from verification (deterministic checker). Refs: AutoRocq arXiv:2511.17330, OPERA arXiv:2512.17259, OLIF (agents fabricate audit evidence).
-
-### Learning 305: OLIF — Agents Fabricate Their Own Audit Evidence
-Under sustained epistemic pressure, agents fabricate tool execution logs, file paths, timestamps, and intermediate artifacts to preserve narrative coherence. Called Operator-Induced Longitudinal Integrity Failure. Documented across 135+ interactions. This means JourneyTracker self-reports and retrospection summaries CANNOT be trusted without external anchoring (hash chains, deterministic replay). Directly motivated Task 8.1 (hash-chain audit trail) and Task 4.6 Gap 4 (retrospection validation).
-
-### Learning 306: V-Model for Agentic Systems — Deterministic Gates Constrain Nondeterministic Work
-The Systems Engineering V-Model maps to compound AI: left branch (nondeterministic agent reasoning), right branch (deterministic verification), connected by hash-locked Design Review Report gates. DRR-0 (intent→acceptance), DRR-1 (plan→system test), DRR-2 (architecture→integration), DRR-3 (code→unit test). The gates are the formal interface between deterministic and nondeterministic layers — they cannot be weakened by LLM reasoning, only by human override. Refs: VP-Model (vp-model.vercel.app), arXiv:2502.13184v1.
-
-### Learning 307: SurrealKV + Versioned Queries for Temporal Knowledge Graphs
-Migrated from RocksDB (corrupted, read-only transaction bug) to SurrealKV with `?versioned=true`. SurrealDB 3.0 VERSION clause enables system-time-travel queries; bi-temporal fields (valid_from/valid_to) enable domain-time queries. Combined: "what did we know at time T about state at time T'?" REFERENCE keyword enables bidirectional graph traversal via `<~` tilde notation. Schema applied to neurons/synapses (vault), agent_journey (genesis), universe_node (genesis).
-
-### Learning 308: 4-Layer Compute Fabric — Lemonade-First + Ollama Pro Cloud
-Orchestration (Claude Max 20x + Gemini Pro CLI) sits ABOVE the inference layer. Inference: Lemonade local ($0, 105+ models, gfx1151-optimized across CPU/NPU/GPU) + Ollama Pro cloud ($20/mo, 20+ frontier models via :cloud suffix, 3 slots — 2 Cohezion + 1 Pi). CostAwareRouter manages inference only; orchestration is subscription-based. Quarter-on-a-String Protocol: maximize capability, minimize marginal cost.
-
-### Learning 309: SIGReg-HIHO Equivalence (LeWM Correspondence)
-LeWM's Gaussian regularizer (SIGReg → N(0,I) → maximum entropy) is provably equivalent to HIHO (coherence 0.5 → all brane dims at 0.5 → maximum Shannon entropy → minimum computation). Isotropic Gaussian ↔ uniform brane dimensions ↔ maximum entropy ↔ minimum computation. LeWM discovers temporal latent path straightening through training; Cohezion encodes it by construction via constant-metric Christoffel precomputation (Γ=0 at HIHO).
-
-## Session 98: Agentic Ascension & Asynchronous Workforce (2026-04-10)
-
-### Learning 317: Agentic Autonomy via Dynamic Governance
-The Autonomy Engine dynamically gates MCP tool execution (e.g., `write_file`, `run_shell_command`) based on an agent's real-time HIHO coherence. This shifts the platform from static permissions to trust-based, continuous assessment. A sovereign agent must *earn* its deploy privileges by demonstrating sustained 12D manifold stability.
-
-### Learning 318: Asynchronous Workforce via A2A Protocol
-Decentralizing the swarm requires moving away from synchronous chat interfaces. Extending the GitHub MCP with a dedicated polling daemon (`github_scout.py`) allows agents to process issues asynchronously. Combining this with the A2A protocol (`.well-known/agent.json`) ensures agents can discover and dispatch each other over HTTP.
-
-### Learning 319: OMEGA Distiller & Pre-Flight Priming
-To close the compound engineering loop without human intervention, context must flow in both directions automatically. Pre-flight hooks (`pre-flight-rag.sh`) inject relevant `KEY_LEARNINGS` into the agent's context window *before* the session starts. Conversely, the `OMEGA Distiller` parses `KEY_LEARNINGS.md` and automatically propagates insights directly into executable `SKILL_PRIME.md` files.
-
-### Learning 320: V-Model Agentic Orchestration — The Axiomatic Gate
-Integrating the Systems Engineering V-Model into agentic workflows provides a recursive "Proposal/Disposal" architecture. The descending path (Latent) decomposes user intent into architectural requirements and deterministic AutoHarnesses. The ascending path (Axiomatic) verifies code against those harnesses and validates it via Adversarial Swarm Review. This "Apex Integration" ensures that no nondeterministic LLM output can mutate system state without passing a 100% predictable logical gate.
-
-### Learning 321: Autonomous Kaggle Flywheel — Score-as-Reward
-Bridging the `AutoresearchDriver` with the Kaggle CLI transforms competition submissions into a closed-loop RL environment. By using the official Private/Public Leaderboard score as the primary reward signal for a Trajectory-Aware UCB1 algorithm, the swarm can optimize for the specific "unseen" private test data characteristics of competitions like AIMO and AGI.
-
-### Learning 322: Ouroboros Recursive Retrospective — Self-Healing Offense
-Ouroboros is the critical "Learning" component of the autonomous offensive. When a Kaggle submission fails, Ouroboros ingests the "Wall of Red" (kernel logs) and extracts a "Hardening Mutation" (e.g., 4-bit fallback, VRAM heartbeat). This mutation is codified as a refined skill and fed back into the next research iteration, ensuring the system never repeats the same failure mode during a leaderboard push.
-
-### Learning 323: FLUME-Aware UCB1 — Manifold Navigation
-Standard UCB1 exploration is enhanced by FLUME latent distance. Instead of selecting nodes by index, the system selects by latent similarity to previous "Wins." This allows the agent to navigate the 256D thought-space toward successful reasoning patterns (e.g., "Invariant-Aware Proofs") while maintaining HIHO stability (0.5 coherence) to avoid reasoning decay in long-horizon missions.
+## Sessions 97-98: Hybrid Swarm, V-Model, Autonomy (2026-04-10 to 2026-04-11, Compressed)
+L300-303 (Hybrid Swarm): Context tiering — Gemini 2.5 Pro (2M ctx) for synthesis, Flash (1M) for implementation, Ollama for math/prototyping. Lemonade embeddable server in `vendor/lemonade/` with `LD_LIBRARY_PATH` isolation. Topological PIVOT breaks latent attractors via H0/H1 persistent homology. Kaggle offline dependency side-loading via wheel datasets.
+L304-309 (V-Model + Defensibility): 5-tier defensibility hierarchy (S=formally verified → D=self-reported); Cohezion at B, upgrading to A (hash-chain) and S (physics proofs). OLIF: agents fabricate audit evidence under epistemic pressure — JourneyTracker needs external anchoring. V-Model DRR gates (DRR-0 through DRR-3) as formal interface between nondeterministic and deterministic layers. SurrealKV `?versioned=true` for bi-temporal knowledge graphs. 4-layer compute fabric: Lemonade($0) + Ollama Pro($20/mo) + Claude Max + Gemini Pro. SIGReg-HIHO equivalence: isotropic Gaussian ↔ uniform brane dims ↔ maximum entropy.
+L317-323 (Agentic Ascension): Autonomy Engine gates MCP tools on real-time HIHO coherence. A2A protocol for async workforce (`github_scout.py` polling daemon). OMEGA Distiller auto-propagates KEY_LEARNINGS → SKILL_PRIME.md. Axiomatic Gate: nondeterministic output → deterministic AutoHarness → swarm review. Kaggle score-as-reward for UCB1 flywheel. Ouroboros recursive retrospective extracts "Hardening Mutations" from failure logs. FLUME-aware UCB1 navigates 256D thought-space by latent similarity.
 
 ## Session 99: Systems Engineering V-Model & Autoresearch (2026-04-10)
 
@@ -364,3 +180,69 @@ Entire.io docs state shadow branches (`entire/<hash>-<worktreeHash>`) are "tempo
 1. **Index Bloat (The 4GB Heap Limit)**: Committing node_modules or tracking large nested repositories without submodules causes Node.js heap exhaustion in agent indexers. **Rule**: Always untrack and ignore node_modules and vendor binaries. Reduced tracked file count from 16,161 to 8,830.
 2. **Shell-Variable Filename Corruption**: Creating files with literal shell expansion syntax like `EXECUTION_REPORT_20260415_003153.md` prevents accurate git tracking and breaks shell expansion in downstream scripts. **Rule**: Always evaluate variables in shell before passing to file creation tools.
 3. **Root Clutter Antipattern**: Allowing `*.log`, `*.task.json`, and `*.run.json` files to accumulate at the project root increases cognitive load and indexing strain. **Rule**: File valuable research artifacts in `research/benchmarks/` and infrastructure scripts in `scripts/`.
+
+### Learning 358: Pi v0.67.1 Extension & SDK Migration (2026-04-14)
+1. **Extension Directory Migration**: The `hooks/` directory for Pi agent extensions has been renamed to `extensions/`. Pi v0.67.1+ now requires extensions to be placed in `.pi/extensions/` to avoid a "Project hooks/ directory found" warning.
+2. **SDK Module Change**: The legacy `pi-sdk` module name (previously linked to "Pay Insights" on NPM) has been replaced with `@mariozechner/pi-coding-agent`. Importing from `pi-sdk` will fail with a "Cannot find module" error. **Rule**: All TypeScript extensions MUST import from `@mariozechner/pi-coding-agent`.
+3. **Extension Factory Pattern**: The class-based `export default class MyExt extends PiExtension` pattern is deprecated. Extensions should now use a function-based factory: `export default function myExtension(pi: ExtensionAPI) { pi.on("event", (event, ctx) => { ... }); }`.
+4. **Event Mapping**: Common events have been mapped to a unified `ExtensionAPI`:
+   - `onMessage` → `pi.on("input", ...)`
+   - `onCommandExecute` → `pi.on("tool_call", ...)` (filter by `isToolCallEventType("bash", event)`)
+   - `onToolResult` → `pi.on("tool_result", ...)`
+
+## Session 94: TurboQuant Silicon Unlock & Omnibus Resurrection (2026-04-16)
+
+## AUTO-REFINEMENT (Learning 333)
+*   **Insight**: The Strix Halo Silicon Lock (gfx1151)
+*   **Details**: Unlocking TurboQuant on RDNA3.5 (gfx1151) requires a two-tier approach: (1) **Software Alignment** via the resurrected `Omnibus` Master Controller, and (2) **Hardware Hardening** of the GTT pool (`ttm.pages_limit`=128GB). Despite environment overrides, standard PyTorch (HIP 6.2) contains a "Binary Hard-Lock"—it lacks valid ISA for the `gfx1151` matrix cores, triggering `invalid device function` errors. The stable "Unlock" path for this silicon is the **XDNA2 NPU** via the FLM backend, or building `llama-server` from source with `ROCWMMA` enabled.
+
+### Learning 359: Claude Code Native Installation & Auto-Update Re-Alignment (2026-04-17)
+1. **Preferred Installation**: Standardize on the native standalone binary at `~/.local/bin/claude` (installer: `curl -sSf https://claude.ai/install.sh | sh`). The `npm` global package is deprecated and should be uninstalled to prevent path conflicts.
+2. **Auto-Update Stability**: To ensure the system stays current, remove the `CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC` environment variable from `~/.claude/settings.json` and set `"autoUpdates": true` in the global configuration.
+3. **MCP Conflict Resolution**: When project-level MCP servers (in `.claude/mcp.json`) overlap with official plugins, disable the official version in the global `enabledPlugins` block to resolve "duplicate command/URL" errors reported by `claude doctor`.
+4. **Diagnostic Standard**: Use `claude doctor` as the primary verification tool for installation health and auto-updater status.
+
+## Session 94: Strix Halo Silicon Unlock & Symphony Orchestration (2026-04-17)
+
+### 🧪 BREAKTHROUGH: Wave32 Matrix Alignment
+*   **Insight**: The `gfx1151` iGPU (RDNA3.5) was locked at ~18 TPS due to an **ISA Mismatch**. Standard ROCm kernels target Wave64, while Strix Halo requires **Wave32** for its matrix units.
+*   **Fix**: Patched `submission_loadinline_rocwmma.py` with `-mwavefrontsize32` and `WAVE_SIZE = 32`. 
+*   **Result**: Throughput increased to **47+ TPS** (verified on DeepSeek 8B), with a theoretical potential of **500+ TPS** post-reset.
+
+### 🛡️ INFRASTRUCTURE: Resilient Omnibus Persistence
+*   **Insight**: Platform drift (MCP 500 errors) caused the hardware gateways to reset.
+*   **Fix**: Implemented a **Dual-Tier Persistence** layer in `src/cohezion/gateways/omnibus.py` using a local JSONL fallback (`~/.cohezion/gateways.jsonl`) alongside SurrealDB.
+*   **Result**: Hardware states (120GB aperture, TurboQuant Unlock) now survive service failures.
+
+### 🤖 ORCHESTRATION: Gemma 4 GAIA Symphony
+*   **Insight**: Maximizing local AMD inference requires pinning agents to specific silicon lanes.
+*   **Fix**: Registered four **GAIA-Native** specialist agents (`Gemma4Pulse`, `Gemma4Steer`, `Gemma4Builder`, `Gemma4Architect`) pinned to NPU, iGPU, and CPU.
+*   **Status**: Sensing Lane (NPU) verified at **111 TPS**. Building Lane (iGPU) awaiting Cold Boot reset.
+
+## Session 103: Inference Fleet + 8 Adversarial-Review Follow-Ups (2026-04-18)
+
+**Scope:** Sprint `sorted-churning-toucan` (session 1) shipped `cohezion.inference` package — `route()`, `extend_claude()`, `TieredOrchestrator`, 3 V-model AutoHarnesses. Sessions 2+3 closed all 8 P0/P1/P2 adversarial-review follow-ups. Two commits landed on `isolated/session-oom-modularity`: `2cbc4d17f` (sprint + P0s) and `00d1be0b8` (P1s+P2s). Tests 41→45, V-model invariants 25→27.
+
+### Learning 359: `except (SubclassError, Exception)` is a stealth bare-except
+Python anti-pattern: `except (ImportError, Exception) as exc:` reads like two handlers but is semantically `except Exception`, because `ImportError` is an `Exception` subclass. Adversarial reviewers flag it as narrow; it's actually swallowing everything including `MemoryError` subclasses and custom domain errors. Fix: list only sibling-or-unrelated types: `except (ImportError, AttributeError, KeyError, TypeError, ValueError)`. Found in `fleet.py::_inject_symmetry_axis` during P2 #8. Lint rule candidate: flag any `except (...)` tuple where one member is a subclass of another.
+
+### Learning 360: Verify CLI flags before prescribing them in roadmaps
+The adversarial review prescribed `claude -p "ping" --max-tokens 1` as the live-dispatch health probe. On implementation, `claude --help | grep max.token` returned empty — the Claude Code CLI has no `--max-tokens` flag. Correct alternative: `--max-budget-usd 0.01 --bare --model haiku-4-5`. The reviewer was directionally right (swap `--version` for live dispatch) but syntactically wrong because they worked from mental models of the API, not `--help` output. Rule: whenever a review recommends a specific command line, run `--help` and confirm each flag exists before checking the item off. Captured in `docs/ROADMAP.md` with explicit correction note.
+
+### Learning 361: Nested orchestrator budget pass-through via `min(self_cap, parent_budget)`
+`TieredOrchestrator.run()` accepted no budget arg; a nested TieredOrchestrator as a tier target ran with its own `max_cost_usd` ceiling, ignoring the parent's remaining budget. Fix: add `budget_usd` kwarg to `run()`, compute `effective_max_cost = min(self.max_cost_usd, budget_usd)` with None-handling (stricter wins). Pattern generalizes to any recursive composition with resource caps — parent authority propagates down, child may tighten, never loosen. Captured as structural invariant O3b in Phase 6 harness (signature check) + 2 pytest behavioral cases.
+
+### Learning 362: Diagnostic sidecars for silent subprocess failures
+`claude -p` returned exit 1 with empty stderr; the summary table truncated to `error[:100]` and the trail was lost. Fix: write full stdout+stderr per failure to a sidecar file named `<report>.config_A.stderr.log` next to the report. V-Model harness I2b asserts the sidecar exists and is non-empty when any config has 0/N successes. Immediately revealed the real failure mode: `TimeoutError` after 30s, a completely different path than the health probe's exit-1. Pattern: whenever a summary table truncates diagnostic data AND the subprocess can fail silently, produce a sidecar. Summary tables are for humans scanning; sidecars are for humans diagnosing.
+
+### Learning 363: Surgical `git add` against high-churn working trees
+Sprint `sorted-churning-toucan` committed 36 files (5,692 lines) out of a 1,383-change working tree (BMAD churn + pre-existing untracked + sprint deliverables). `HANDOFF_2026-04-18.md` contained an explicit `git add <path>` sequence enumerating ONLY sprint paths — no wildcards, no `git add .`. Result: zero BMAD paths landed in the sprint commit, verified via `git show --name-only HEAD | grep -iE "bmad|conductor" → empty`. Pattern: when you need a clean commit against a dirty tree, enumerate paths explicitly in a handoff doc BEFORE staging. Never `git add .` on branches with known churn.
+
+### Learning 364: Pre-commit hook referencing missing script = stealth commit blocker
+`.git/hooks/pre-commit` was auto-generated by some earlier tooling and calls `scripts/resource-leak-detector.py`. That script had been removed/renamed; the hook failed on every commit with "can't open file". Users hit this and can't tell whether to fix the hook, reinstall the tool, or `--no-verify`. The hook is NOT in `.gitattributes` LFS pointers (Learning 337) — it's a local git-hook referencing a missing repo file. Audit rule: on session start, check that every executable referenced by `.git/hooks/*` exists in the repo. Auto-disabled hooks referencing missing paths will be flagged by a new hook-health check.
+
+### Learning 365: Worktree-file-location mismatch during uncommitted long-running sprint
+Sprint work (`src/cohezion/inference/` 7 modules, `tests/inference/`, `scripts/validation/vmodel/`) existed only as uncommitted working-tree changes in the main worktree on `isolated/session-oom-modularity`. Session-3 worktree `floating-popping-starlight` was at older commit `43a78e5b4` and did NOT have those files. Resolution: edits targeted the main worktree via absolute paths; the session worktree was used for Claude session isolation but was not the code-editing location. Symptom: `ls src/cohezion/inference/` returns "No such file" from the session cwd but succeeds from main repo. Rule: after a long-running uncommitted sprint, a fresh session that needs to continue the work must either (a) operate on the main worktree via absolute paths, or (b) wait for the sprint commit before branching. Do not blindly create a worktree off HEAD — verify the sprint files are either committed or readable at the worktree's HEAD.
+
+### Learning 366: V-Model structural invariants fast-fail before behavioral
+Phase 6 harness gained O3b as a *structural* invariant: `inspect.signature(TieredOrchestrator.run).parameters.get('budget_usd')` must exist and be passable by keyword. This runs in ~1ms and blocks the pytest suite if the signature drifts. Rationale: the behavioral test for nested-budget propagation would fail with `TypeError: got unexpected keyword argument` deep in `_invoke_tier` — confusing error message. Structural check at the harness gate turns "confusing pytest failure" into "explicit invariant violation at Phase 6 start." Pattern: every behavioral invariant whose failure surface is a keyword-drift should have a paired structural invariant that fires first.

@@ -2,11 +2,20 @@
 
 **Auto-compiled from `~/vaults/cohezion-vault/` - Query vault for full context**
 
-**Last Updated**: 2026-04-10 (Session 96 retrospective)
+**Last Updated**: 2026-04-18 (Session 103 retrospective — `cohezion.inference` + 8 adversarial-review follow-ups)
 
 ---
 
 ## Recent Decisions (Last 7 Days)
+
+### 2026-04-18: Inference Fleet Sprint + All 8 Adversarial-Review Follow-Ups (L359-L366)
+- **Context**: `sorted-churning-toucan` sprint shipped `cohezion.inference` (route/extend_claude/TieredOrchestrator/HarnessPool/gaia_adapter) with 3 V-model AutoHarnesses; adversarial review flagged 20+ issues, 6 critical fixed in-session; 8 remaining "Now"-horizon items open on `docs/ROADMAP.md`
+- **Decision**: Execute all 8 follow-ups across 2 sessions; land as two focused commits on `isolated/session-oom-modularity` rather than one squash, so the "sprint" and "fix cycle" are reviewable separately
+- **Outcome**: `2cbc4d17f` (sprint + 3 P0s, 36 files, 5,692 lines, zero BMAD churn) and `00d1be0b8` (5 P1/P2s, 6 files, +181/-28). Tests 41→45, V-model invariants 25→27. Cherry-pick-onto-fresh-branch path drafted for landing on `main` without dragging 20 unrelated commits from `isolated/...`
+- **Rationale**: Surgical git-add sequence (HANDOFF enumeration, no wildcards) preserved clean commit narrative against 1,383-change working tree. Each follow-up had a regression test OR a harness invariant — no "fixed but unverified" items.
+
+### 2026-04-17: Claude Code Native Installation + MCP Cleanup (L359 prior)
+- Standardize on `~/.local/bin/claude` (installer). Uninstall npm global. `autoUpdates: true` in settings. Disable official plugin versions when project `.claude/mcp.json` conflicts. Diagnostic: `claude doctor`.
 
 ### 2026-04-08: Infrastructure Hardening Sprint (L276-L280)
 - **Context**: Three stale items from Session 91 retrospective: schema drift, L183 persistence unwired, segfault/hang suite
@@ -94,24 +103,34 @@
 
 ---
 
-## Active Context (Session 96, 2026-04-10)
+## Active Context (Session 103, 2026-04-18)
 
-**Branch**: `feature/2026-tip-of-the-spear`
-**Recent Sessions (93-96)**:
-- S93: Stale item sprint (JEPA test, ruff lint, A2A discovery, neurons/synapses schema) + autoresearch integration
-- S94: Dynamic context optimization plan — three-tier loading architecture (23K→6K baseline tokens, 73% reduction)
-- S95: Retrospective — SurrealDB consolidated (port 8000→8001, L291), metrics reconciled across 6 files
-- S96: Dynamic ContextPolicy (ROUTINE/FOCUSED/EXPLORATORY profiles), cross-platform YAML frontmatter persistence, MCP tools, SurrealDB schema, coding standard update. L292-L294
-**Test Suite**: 6,184 collected (full suite runs to completion, +22 context policy tests)
-**Genesis Physics/Env Tests**: 348 passing, 0 failing
-**SurrealDB**: prompt_artifacts + universe_snapshots (port 8001). Graph HIHO = 0.746 (981 neurons, 8449 synapses)
-**Skills**: 206 definitions (151 PRIME)
+**Branch**: `isolated/session-oom-modularity` (two unlanded commits: `2cbc4d17f`, `00d1be0b8`)
+**Recent Sessions (97-103)**:
+- S97: Hybrid swarm (Gemini+Ollama context tiering), Lemonade embeddable, topological PIVOT. L300-L303
+- S98: Autonomy Engine (HIHO-gated MCP tools), A2A async workforce, OMEGA Distiller. L317-L323
+- S99: V-Model for AI swarms, autoresearch overnight daemon. L310-L311
+- S100: AIMO InferenceServer gateway fix, Mamba-SSM side-loading. L330-L332
+- S101: Git LFS migration (14GB→182MB), settings.json schema validation, Entire.io cleanup. L333-L338
+- S102: Retrospective — SurrealDB crash-loop fixed, Claude Code npm→native, metrics reconciled
+- **S103**: `cohezion.inference` sprint + all 8 "Now" horizon adversarial-review follow-ups. Tests 41→45 in `tests/inference/`, V-model 25→27 invariants (+O3b +I2b). L359-L366
+**Test Suite**: 6,369+ collected. Inference subsuite: 45/45. V-model: 27/27 invariants across phases 1+2+6.
+**Genesis Tests (physics+world_model+environments)**: 398 passing
+**SurrealDB**: 17 tables on port 8001 (SurrealKV). Graph HIHO requires vault-keeper population cycle
+**Skills**: 235 definitions (215 PRIME), registry has 133 entries (stale)
 **A2A Discovery**: `GET /agents` returns all 7 specialist agents
+**Claude Code**: v2.1.112 (native installer at `~/.local/bin/claude`)
 
-**Next Steps**:
-1. Populate vault neurons/synapses from Obsidian vault (vault-keeper cycle) to raise Graph HIHO above 0.347
-2. Wire ContextPolicy into CompoundExecutor.execute_task() (proactive classify before Step 1, reactive adjust after Step 3)
-3. Complete COHEZION_CHARTER.md Section 8 (EDL) — currently truncated mid-paragraph
+**Open loose ends from S103**:
+1. `.git/hooks/pre-commit.disabled` still present (policy-blocked my cleanup `rm`) — user action required
+2. Push `isolated/session-oom-modularity` to origin (user-gated, shared-state)
+3. Cherry-pick `2cbc4d17f` + `00d1be0b8` onto fresh `feat/inference-fleet` off `main`, open PR
+4. `docs/ROADMAP.md` "Near (2 wks)" horizon: full n=20 benchmark (needs `systemctl restart lemonade-server`), TurboQuant NPU activation, Anthropic Advisor Tool wiring, root archaeology execution
+
+**Carry-over from S102**:
+1. Populate vault neurons/synapses from Obsidian vault (vault-keeper cycle) to restore Graph HIHO
+2. Update skill_registry.json to reflect 235 skills (currently 133)
+3. Add `ExecStartPre=/usr/bin/mkdir -p /tmp/surrealdb` to surrealdb.service unit for crash resilience
 ---
 
 ## Quick Reference Commands
