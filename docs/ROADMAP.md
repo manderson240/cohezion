@@ -25,6 +25,17 @@
 - **Session 2** (3 P0 items): tests 41 → 44, V-model invariants 25 → 26 (+O3b).
 - **Session 3** (5 P1/P2 items): tests 44 → 45, V-model invariants 26 → 27 (+I2b). All 8 "Now" items now landed.
 
+## Carryover from Session 103 retrospective (housekeeping)
+
+| Priority | Item | Effort | Source |
+|----------|------|--------|--------|
+| P1 | Push `isolated/session-oom-modularity` + cherry-pick `2cbc4d17f`+`00d1be0b8` onto fresh `feat/inference-fleet` off `main`, open PR (user-gated, shared-state) | 15 min | Landing |
+| P1 | Replace (or delete) `.git/hooks/pre-commit.disabled` — references missing `scripts/resource-leak-detector.py` (L364). Session-start hook-health check should flag dangling references | 10 min | L364 |
+| P2 | Ruff cleanup on sprint baseline: 40 pre-existing errors in `src/cohezion/inference/` (RUF002 docstring unicode ×/–, N806 `_BUDGET_EPS`, RUF100 unused noqa, F841 `last_ttft`, TC001 Task import). All pre-date S103 follow-ups — separate focused commit | 15 min | Inherited from sprint |
+| P2 | Custom ruff rule candidate: flag `except (A, B)` tuples where `issubclass(A, B)` (L359 stealth bare-except) | 25 min | L359 |
+| P2 | Update `skill_registry.json` from 133 → 235 entries (carry-over from S102) | 10 min | S102 carry-over |
+| P2 | SurrealDB service unit: add `ExecStartPre=/usr/bin/mkdir -p /tmp/surrealdb` to prevent crash-loop; `/sql` endpoint on :8001 currently returns 404 even though `/health` is OK (S103 discovery) | 15 min | L291 + S103 |
+
 ## Near (2 weeks)
 
 ### Full benchmark (n=20) and replace informal TTFT numbers

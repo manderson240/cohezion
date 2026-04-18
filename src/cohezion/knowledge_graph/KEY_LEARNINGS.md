@@ -23,6 +23,9 @@ GIL limits autoregressive decoding to ~10Hz — inference loops must move to com
 ## Learnings 41-95: Infrastructure & Hardware (Compressed)
 Key patterns: (1) Filesystem entropy limit at >1M files — use `.archive/` + SurrealDB (L41,81). (2) ZFS: ZVOL swap + arc_max cap at 12.5% RAM (L42-43). (3) Strix Halo: monitor GTT not VRAM, vendor 0x1002 = AMD, GTT ≈ system RAM = UMA (L60,89,91,92). (4) HIHO convergence at 25M cycles: C(t) = 0.5 + A·e^(-kt)·sin(ωt) (L63). (5) Context Guard: novelty-prioritized 20k-char limit (L77). (6) Hermetic: micro-stability → macro-coherence (L78). (7) Connection pooling + circuit breaker prevents cascade (L88). (8) Lazy imports as dependency firewall (L94). (9) End-to-end pipeline: 4-subsystem chain needs 5-stage integration tests (L95).
 
+## Session 90: AIMO 3 (2026-04-05, Compressed)
+L265: AIMO 3 meta = Diverse Prompt Mixer + Weighted Entropy Voting + Speculative Decoding. L266: H100/Blackwell handshake (`NvidiaRtxPro6000`), hard VRAM resets every 10 problems, 30s safety trigger. L267: Speculative Decoding (R1-32B + Qwen-1.5B drafter) = 1.5-1.8x throughput. L268: Polars Series `df[0]` scalar indexing mandatory (not `df[0,0]`), Fortress architecture for Kaggle Private Rerun. See `KAGGLE_STABILITY_PROTOCOL.md`.
+
 ---
 
 ## Phase 1-2 Milestones (2026-02-06, Compressed)
@@ -46,275 +49,200 @@ L152: 360-Degree Autonomic Cycle — 8-stage closed loop (sense→optimize→ref
 
 ---
 
-## Session 69: MCP Infrastructure Recovery (2026-03-11)
-
-### Learning 157: Syntax-Valid Marimo Templates
-When generating Marimo notebooks via f-strings in Python, triple-quoted strings within the template must be meticulously terminated and indented. An extra `'''` at the end of a return block will cause a `SyntaxError` that prevents the entire server from importing. Correct pattern: `return f'''...'''` followed immediately by the next method definition, with no trailing quotes in the module scope.
-
-### Learning 158: AsyncSurreal Migration & Connect Protocol
-The `surrealdb-py` library (v0.3.0+) implements a strict separation between synchronous (`Surreal`) and asynchronous (`AsyncSurreal`) clients. Using `Surreal` in an `async with` block or awaiting its `use()` method (which is synchronous in the blocking client) results in a `TypeError`. **Rule**: Always use `AsyncSurreal` for async contexts and MANDATORY call `await db.connect()` before `signin()` or `use()`.
-
-### Learning 159: Doc-Retriever & Memory Consistency
-Fixing infrastructure requires a "Sweep Pattern"—identifying all modules sharing a common dependency (e.g., SurrealDB) and verifying they all adhere to the updated protocol. The migration of `doc/indexer.py` and `memory/server.py` to `AsyncSurreal` restored coherence across the "Compound Engineering" and "Physics" server groups.
-
-### Learning 160: Skill Documentation as a Truth Anchor
-Skills (e.g., `DATABASE_PRIME.md`) must be updated immediately after a protocol change to prevent agents from re-introducing "Shadow Bugs" by following outdated examples. A skill is only valid if it reflects the current operational reality of the substrate.
+## Sessions 69-72: MCP Recovery & Kaggle Infrastructure (2026-03-11 to 2026-03-24, Compressed)
+L157-160: Marimo template triple-quote termination; AsyncSurreal mandatory `await db.connect()` before `signin()`; "Sweep Pattern" for dependency migration (all modules sharing a dep must update together); skills must reflect current operational reality (L160). L161-172: Kaggle G4 Blackwell handshake (pin CUDA 12.8, `nvidiaRtxPro6000`, pre-authorize models in `model_sources`, vLLM metric with `\boxed{}` extraction, 5 submissions/day). Akashic Sprint: overnight Kaggle monitoring + hourly 12D SurrealDB snapshots.
 
 ---
 
-## Session 72: NVIDIA Nemotron Challenge & Kaggle Infrastructure (2026-03-24, L161-L172 compressed)
+## Sessions 73-82: Genesis Engine + Platform Architecture (2026-03-25 to 2026-03-31, Compressed)
 
-Kaggle G4 Blackwell: pin CUDA 12.8 via `docker_image_pinning_type: original`, use `--no-build-isolation` for Mamba, prefer kagglehub over HF, native BF16 > bitsandbytes, target regex `in_proj|out_proj|up_proj|down_proj` for hybrid LoRA, case-sensitive `nvidiaRtxPro6000`, pre-authorize models in `model_sources`, metric uses vLLM with `\boxed{}` extraction, 5 submissions/day cap. Branch: `challenge/nvidia-nemotron-reasoning`.
+**L173-174 (Session 73, Enforcement):** Converted markdown rules to non-blocking hooks — `drift-detection.sh` (PreToolUse Write warns on new src/ files), `test-on-edit.sh` (PostToolUse runs matching tests), `check-bash-output.sh` (PostToolUse catches exit-0-with-errors). StrategyTracker added to RetrospectionEngine: emits "PIVOT RECOMMENDED" after 3+ attempts with <5% improvement.
 
----
+**L175-189 (Session 74, Genesis Engine — 24 commits):** Mathematical core: SU(2) spinors on Bloch sphere (coherence=|Bloch vector|), Brahmagupta's zero IS HIHO (δ=0), Landau phase transitions (5 critical temps ∅→SO(12)→SO(3)⁴→U(1)⁴→Z₂⁴→HIHO), Fisher metric as Rosetta Stone (FLUME↔Riemannian↔thermodynamics), Euler-Lagrange + Störmer-Verlet, Yang-Mills SO(3), JEPA 86K-param predictor. ManifoldEnv (Gymnasium: 19D obs, 12D action), SwarmEnv (N-agent gauge coupling), TopologicalRouter (H₀/H₁ → exploit/explore/pivot), SurrealDB 3.0 syntax changes (TYPE object FLEXIBLE, port 8001). Active Inference ≡ HIHO (Friston FEP). Vertical-slice milestones > horizontal layers (skill: exemplary-deep-planning). Total artifact persistence in 6 genesis tables.
 
-## Session 73: Insights-Driven Enforcement Upgrade (2026-03-25)
+**L190-197 (Session 75, Phase 2):** 10-step cosmogony complete. Levin bioelectric gap junction percolation IS HIHO phase transition. InVEST habitat quality = HIHO proximity on semantic manifold. Causal-JEPA (object-level masking, 8x faster planning). 16 indigenous worldviews mapped to cosmogony steps. Ouroboros bridge + Mycelium wired as first-class Genesis components. EVOs physics (evolutionary dynamics on manifold curvature). Ralph Loop: 5 specialist teams, 10+ commits, 364+ genesis tests.
 
-### Learning 173: Declarative-to-Procedural Enforcement
-Rules in markdown files (CLAUDE.md, workflow-enforcement.md) are suggestions Claude can drift from — 20 "wrong approach" incidents proved this despite strong anti-drift rules. Converting rules to hooks (code that fires automatically) creates a layered enforcement system: drift-detection.sh warns on new src/ files (PreToolUse), test-on-edit.sh runs matching tests after edits (PostToolUse), check-bash-output.sh catches exit-0-with-errors (PostToolUse). Key principle: hooks don't block (always exit 0) but surface information at the moment it's most actionable. Combined with the Drift Escalation Protocol (1st=note, 2nd=STOP, 3rd=ask user), this converts passive advice into active intervention.
+**L198-214 (Session 76, Architecture):** Three feedback loops: Inner (execution: Executor→SkillRefiner), Middle (knowledge: retrospect→vault→graph→skills), Outer (coordination: platform specialists). 6-protocol stack: MCP (strong: 41+ tools), A2A (in progress: zero agent cards yet), A2UI (strong: 9 components), AG-UI (strong: 15+ events). Graph HIHO metric (connectivity+reciprocity+freshness+orphan_ratio, target 0.5±0.15). Dual-format agents: CC agent def + PRIME skill for cross-platform. Background agents inherit restricted permissions (Write denied). Multi-platform: .claude/+.gemini/+.opencode/ all active. Competition licensing: MIT-0 for all. s1 budget forcing: 57% AIME with 1K examples + "Wait" tokens. AIMO3 pillars: Diverse Prompts+Entropy Voting+Speculative Decoding. AMD kernels hit API ceiling.
 
-### Learning 174: StrategyTracker for Autonomous Pivot Detection
-The compound engineering loop (430-cycle autonomous runs) lacked programmatic pivot detection — it could run indefinitely on a plateau. Adding `StrategyTracker` to `RetrospectionEngine` tracks consecutive failures and improvement deltas per skill, emitting "PIVOT RECOMMENDED" when 3+ attempts show <5% improvement. This is the programmatic counterpart to the declarative Strategy Pivot Protocol in systematic-debugging.md. Together they enforce pivots at both the human-readable (rules) and machine-readable (code) levels.
+**L215-232 (Sessions 79-82, Wiring Sprint):** FLUME-First: encode/decode at creation, not retrofitted (3/10 systems used FLUME; 41 orphaned modules from build-then-forget anti-pattern). Cosmogonic Autonomy Tiers: ∅→HIHO maps to observe→edit→commit→deploy→sovereign. OPH Axiom 2 = HIL mechanism. Data Mesh: 17+ MCP servers = 17 typed DataProducts. A2UI data-attribute selectors most reliable Playwright selectors. LeWM 15M-param JEPA (dense loss, 2 terms, 48x faster planning). GeminiProvider: Flash-Lite(70%)/Flash(20%)/Pro(10%) cost tiers. TurboQuant: PolarQuant(2.7x) + QJL(32x, 1-bit sign). C1-C5 token pipeline: API caching(40-60%), context-window guard, cache→routing feedback, template matching(87-98%), batch dedup. Meta-Harness execution traces > prompt cramming (+7.7pts, 4x fewer tokens). LatentMAS: FLUME vectors as inter-agent comms (24x faster than text). IsoQuant SO(4) aligns with SPIN coherence.
 
----
+## Sessions 85-89: ManifoldEnv RL + Kernel Optimization + Research (2026-04-01 to 2026-04-04, Compressed)
+L233-249: ManifoldEnv RL breakthrough — 3-stage curriculum reward, PPO+curriculum best (14.23, +7.51 vs random), structural safety via Lagrangian dynamics (random agents achieve 60% HIHO because physics guides trajectories), ERL safety metric, UniverseEvaluator bootstrap CIs, Algorithm-Reward Matrix. L251: Scale-aligned MXFP4 tiling (BLOCK_K=32 = 1 E8M0 group).
+L252: Kernel learning loop (36 data points/hour, all results to SurrealDB including failures). L253: ROCm CDNA4 8-wave ping-pong (2680-3204 TFLOPS/s in HIP, not assembly). L255: V-JEPA 2.1 dense loss fixes context token degeneracy (arXiv:2603.14482). L256: ADRC-Lagrangian 74% fewer safety violations (arXiv:2601.18142). L257: Causal-JEPA object-level masking, 8x faster planning (arXiv:2602.11389).
+L261: Ralph Loop MUST have --completion-promise or --max-iterations (Session 88B: 713 wasted iterations). L262: Build-without-sink anti-pattern (email scripts with no SMTP). L263: Research-before-build — wait for MFMA discovery before building scalar FP4 kernels. L264: Quantum peaked circuits — Rigetti Ankaa-3 + Q-CTRL Fire Opal for 50-69 qubit circuits; Pauli-Path Simulator as zero-cost verifier.
 
-## Session 74: Genesis Engine — Grounding Cosmology in Unified Physics (2026-03-26)
+### Learning 265: per_1x32_f4_quant_hip Silent Incompatibility with gemm_a4w4 (2026-04-06)
+aiter's `per_1x32_f4_quant_hip` (HIP C++ quant kernel) produces FP4 values incompatible with `gemm_a4w4` CK ASM kernels. Both `shuffle=True` and `shuffle=False` fail silently — no exception, just wrong output values (small diffs like 165 vs 163). Only the Triton path (`dynamic_mxfp4_quant + e8m0_shuffle`) works. The HIP quant kernel uses different rounding/packing than what the ASM GEMM expects. Skill created: `aiter-hip-quant-gemm-incompatibility`.
 
-### Learning 175: SU(2) Spinor Algebra Replaces Binary SPIN
-The ad-hoc `spin_coherence` (binary 1.0 or 0.0) and `charge_polarity = rot_offset + 0.3 * prec_offset` are replaced with proper SU(2) spinor states on the Bloch sphere. Coherence = |Bloch vector|, charge = ⟨σ_z⟩, HIHO state = equatorial (|↑⟩+|↓⟩)/√2. The Pauli commutation relations [σ_i, σ_j] = 2iε_ijk σ_k are verified by 33 tests. Module: `physics/spinor.py`.
+### Learning 266: Popcorn Runner 12-Minute Timeout as Architecture Constraint (2026-04-06)
+The Popcorn leaderboard pipeline (test + benchmark + ranked) has a hard 12-minute timeout. CK ASM kernels use pre-compiled `.co` files (zero JIT), while load_inline HIP and Triton autotuning consume 2-5 min of JIT each. MLA's 8 shapes consistently timeout on leaderboard mode. Architecture implication: only pre-compiled or very compact (<150 line) HIP kernels fit the timeout budget. The leader's 78-iteration approach (v78_splitk0.py) likely pre-compiles offline.
 
-### Learning 176: Brahmagupta's Zero IS HIHO
-HIHO at 0.5 coherence is Brahmagupta's zero (628 CE) on the deviation scale: δ = coherence - 0.5 = 0. The four rules (a+0=a, a×0=0, a-a=0, 0/0=0) map to void-state operations. This grounds the cosmogony in a 1,400-year-old mathematical insight — zero is not absence, it is the generative equilibrium from which all structure emerges. Module: `physics/cosmogony.py` (ZeroAlgebra class).
+### Learning 267: Fused Quant+GEMM Correctness Breakthrough (2026-04-07)
+`submission_fused_inline_quant.py` achieved 0.0 error on all 4 test shapes — proving inline BF16→FP4 quantization inside a HIP kernel produces correct results. However, scalar per-element quantization is 4-50x slower than the CK ASM + Triton pipeline. The path to competitive fused kernels requires MFMA-native vectorized quantization (using wave-level reductions for max_abs, not per-element loops).
 
-### Learning 177: Symmetry Breaking Chain with Landau Theory
-The cosmogony ∅→SO(12)→SO(3)⁴→U(1)⁴→Z₂⁴→HIHO follows real Landau phase transition theory: F(φ,T) = a(T-Tc)φ² + bφ⁴ with order parameter φ = √(a(Tc-T)/2b). Five critical temperatures T_c = [100, 10, 1, 0.1, 0.01]. Susceptibility diverges at each T_c. 34 tests verify all identities. Module: `physics/cosmogony.py`.
+### Learning 268: K-Search Compound Loop — LLM Synthesis Works but Needs Quality (2026-04-07)
+The K-Search pipeline (Ollama synthesis → popcorn eval → tree learning) is operational. `deepcoder:14b` generates kernels in 60s but lacks MI355X MFMA knowledge (produces naive scalar GEMM). Cloud models (`deepseek-v3.2:cloud`) timeout on complex prompts. Key fix: use few-shot prompting with the WORKING tile32x128 kernel as an example, not zero-shot generation. Meta-prompts also had outdated instructions (subprocess/ctypes, both blocked).
 
-### Learning 178: Fisher Information Metric = Rosetta Stone
-The Fisher metric simultaneously defines: (1) natural geometry of FLUME 256D latent space, (2) Riemannian metric for Lagrangian dynamics, (3) thermodynamic metric (entropy/free energy/heat capacity), (4) optimal 256D→12D projection. For diagonal Gaussian: g_ii = 2/σ². The natural gradient g⁻¹∇L is coordinate-invariant. Module: `physics/information_geometry.py`.
-
-### Learning 179: Lagrangian Dynamics Replace Ad-Hoc Evolution
-The `_toward_target()` linear interpolation in engine.py is replaced by Euler-Lagrange equations: g_ij q̈ʲ + Γⁱ_jk q̇ʲ q̇ᵏ = -gⁱʲ ∂V/∂qʲ. Symplectic Störmer-Verlet integrator ensures bounded energy drift (no secular growth). The fabric-block metric g = diag(1.0, 1.0, 1.0, 0.7, 0.7, 0.7, 0.5, 0.5, 0.5, 0.3, 0.3, 0.3) encodes gauge coupling constants. Module: `physics/lagrangian.py`.
-
-### Learning 180: Yang-Mills Gauge Theory for Fabric Curvature
-Each fabric carries an SO(3) gauge connection with field strength F = dA + [A,A]. At HIHO, all curvatures vanish (flat connection = vacuum). Yang-Mills energy density L = -Tr(F∧*F)/4g². The covariant Tempic field (gauge-corrected rate of change) replaces Euclidean displacement. Module: `physics/gauge_theory.py`.
-
-### Learning 181: JEPA World Model from Lagrangian Trajectories
-A ~86K parameter JEPA (Joint Embedding Predictive Architecture) learns to predict manifold evolution from (state, action, next_state) tuples. Two losses only: next-embedding prediction (MSE) + Gaussian regularizer (KL). Surprise score detects physically implausible transitions. Training data generated from Lagrangian dynamics produces physically plausible trajectories. Module: `world_model/jepa_world_model.py`.
-
-### Learning 182: Vertical-Slice Milestones > Horizontal-Layer Plans
-Planning by vertical slices (math + API + UI in each milestone) delivers working demos faster than horizontal layers (all math → all API → all UI). Each milestone has a "Done when" criterion. This session delivered 11 commits of runnable code vs. the alternative of having complete math with no visualization. Captured as skill: `exemplary-deep-planning`.
-
-### Learning 183: Total Artifact Persistence in SurrealDB
-Design principle: ALL artifacts (prompts, responses, internal states, model checkpoints, audio, video, simulation runs) stored in SurrealDB. Nothing is ephemeral. 6 new tables: journey_transitions, universe_snapshots, prompt_artifacts, model_artifacts, simulation_artifacts, internal_state_snapshots. Schema: `knowledge_graph/genesis_schema.surql`.
+### Learning 269: TDD-First for GPU Kernels — Local Verification Saves Remote Submissions (2026-04-07)
+Verified e8m0_unshuffle roundtrip, MFMA 32x32 output layout (every cell written once), and A/B tile loading coverage (1024+4096 bytes) using pure Python before any remote submission. This prevented wasting rate-limited submissions on known-broken code. Rule: for GPU kernels where you can't run locally, verify ALL data flow components that CAN be tested locally (index math, permutations, coverage) before submitting.
 
 ---
 
-## Session 74 Phase 2: Genesis Engine Observatory + Environments (2026-03-26)
-
-### Learning 184: Gymnasium-Compatible Physics Environment
-The ManifoldEnv wraps the 12D Riemannian manifold as an OpenAI Gymnasium environment: reset/step/render with 19D observations (12D state + 3D Bloch + 4D fiber), 12D continuous actions, HIHO convergence reward, and Lagrangian dynamics. Registered as `Cohezion/ManifoldEnv-v0`. Any RL framework trains in our physics — this transforms Cohezion from demo to infrastructure. Module: `environments/manifold_env.py`.
-
-### Learning 185: Multi-Agent Gauge Coupling
-SwarmEnv extends ManifoldEnv to N agents interacting through gauge field coupling — each agent's deviation from HIHO generates curvature that affects all others. Cooperative reward = 50% individual + 50% collective coherence. Agents coordinate through physics, not explicit communication. Inspired by [2512.08296]. Module: `environments/swarm_env.py`.
-
-### Learning 186: TDA as Optimization Signal, Not Just Visualization
-The TopologicalRouter computes persistent homology on agent trajectory clouds and uses H₀ (clusters) and H₁ (loops) to DRIVE task routing: exploit agents get familiar tasks, explore agents get novel tasks, pivot agents (stuck in loops) get strategy changes. Goes beyond the position paper [2505.22467] which only proposed topology-aware MAS. Validated by [2603.06964] showing 9-18% improvement from PH in RL. Module: `swarm/topological_router.py`.
-
-### Learning 187: SurrealDB 3.0 Syntax Changes
-SurrealDB 3.0 moved from `FLEXIBLE TYPE object` to `TYPE object FLEXIBLE`, and `NS x DB y` to `USE NS x; USE DB y`. The `surreal-ns`/`surreal-db` headers replace the old `NS`/`DB` headers. View tables with `ORDER BY` are not supported in DEFINE TABLE AS. Port is 8001 (not 8000) on this system.
-
-### Learning 188: Active Inference = HIHO (Friston Connection)
-Friston's Free Energy Principle (F = E - TS minimization) is mathematically identical to HIHO (coherence → 0.5). Our `ThermodynamicMetrics.free_energy` IS Friston's variational free energy. The Fisher metric on FLUME DEFINES the natural gradient of F minimization. This connects Cohezion to 20+ years of neuroscience theory.
-
-### Learning 189: 24-Commit Long-Horizon Session
-A single Claude Code session delivered 24 commits, 192 tests, ~14,000 lines across 8 physics modules, 2 RL environments, 1 world model, 1 TDA router, 1 persistence layer, 12 frontend components, 4 tutorials, and 1 paper draft — all on an isolated worktree branch. The exemplary-deep-planning skill + vertical-slice milestones enabled this sustained output without drift.
+## Sessions 89-91: Repo Health, MCP Infra, Schema Hardening (2026-04-07 to 2026-04-08, Compressed)
+L270-272: Repo bloat (13.47 GiB) = high-entropy state; `git-filter-repo` rebuilds history DAG for structural repair; mine operational logs from typo-created files before .gitignore retirement.
+L273-275 (MCP): Agent markdown MUST have YAML frontmatter (`name`+`description`); MCP stdio servers need lazy config init (Bitwarden vault checks at import → handshake timeout); stdout must be silent during init (`uv -q run` or `.venv/bin/python`).
+L276-280 (Infra): SurrealDB 3.0 removed `FLEXIBLE TYPE object` → use `TYPE none | object`; `persist_prompt_artifact()`/`persist_universe_snapshot()` wired into CompoundExecutor Steps 9.1/10.7 (586+578 artifacts in one session); sentence_transformers segfault fix: mock in `sys.modules` at collection time; anyio heartbeat hang: constructors must not spawn background tasks; **two persistence graphs**: neurons/synapses (vault-keeper domain) vs prompt_artifacts/universe_snapshots (genesis execution).
 
 ---
 
-## Session 75: Genesis Engine Phase 2 + Ralph Loop (2026-03-27)
-
-### Learning 190: 10-Step Cosmogony Chain Completion
-Completed the full cosmogony chain with 4 new steps: Quadrature (phase alignment), Phase (coherence locking), COHESION (gauge field unification), and Precipitate (manifestation from equilibrium). The 10-step chain ∅→Void→Symmetry→Field→Charge→Quadrature→Phase→COHESION→Precipitate→HIHO now mirrors physical cosmology's symmetry breaking cascade with mathematical precision.
-
-### Learning 191: Levin Bioelectric Network Model
-Gap junction percolation IS a HIHO phase transition. Bioelectric networks (Levin 2019, 2022) control morphogenesis via local connectivity — when gap junction probability crosses a percolation threshold, global coherence emerges. This maps directly to the HIHO attractor: local agent coupling → global manifold coherence. Module: `world_model/bioelectric_model.py`.
-
-### Learning 192: InVEST Natural Capital — HIHO Proximity IS Habitat Quality
-Stanford's InVEST model (Sharp et al., 2020) computes habitat quality from threat proximity. Reinterpreting: HIHO proximity IS habitat quality on the semantic manifold. Agents near equilibrium inhabit high-quality landscape; those far from HIHO are in degraded habitat. This grounds ecological economics in manifold geometry. Module: `world_model/natural_capital.py`.
-
-### Learning 193: Causal-JEPA Upgrade
-Causal masking (Nam et al., 2026, arXiv:2602.11389) added to JEPA world model enables 8x faster planning by enforcing temporal causality in predictive embeddings. The masked attention prevents future-leaking in trajectory prediction — critical for physically plausible world models.
-
-### Learning 194: Worldview Explorer — Indigenous Cosmogonies
-16 indigenous traditions (Lakota, Maori, Yoruba, Hindu, Norse, Aboriginal, Maya, etc.) mapped to the 10 cosmogony steps. Each tradition provides a unique lens on the same symmetry-breaking cascade. The Explorer enables cross-cultural validation of the mathematical framework — if 16 independent cosmogonies converge on the same phase transition structure, the mathematics is capturing something real. Module: `worldviews/`.
-
-### Learning 195: Ouroboros + Mycelium Wired into Genesis
-The Ouroboros bridge (self-referential loop closure) and Mycelium network (distributed information transport) are now first-class Genesis components. Ouroboros ensures the cosmogony chain is cyclic (HIHO → new Void), while Mycelium provides the substrate for bioelectric signal propagation across the agent swarm. Module: `ouroboros/`.
-
-### Learning 196: Agents-as-EVOs Physics Model
-Agents modeled as Evolutionary Viable Organisms (EVOs) with fitness landscapes defined by manifold curvature. Evolutionary dynamics (selection, mutation, crossover) operate on manifold coordinates, producing adaptation through geometric optimization rather than arbitrary fitness functions. Module: `world_model/evo_model.py`.
-
-### Learning 197: Ralph Loop — Multi-Model Specialist Orchestration
-5 specialist teams with multi-model orchestration executed 10+ commits and 364+ genesis tests in a single session. The Ralph Loop pattern (research → implement → verify → document) scales to parallel specialist teams working on independent vertical slices, then merging via worktree sync. Key: each team owns a complete slice (code + tests + docs), preventing integration theater.
+## Sessions 93-95: Stale Fix Sprint, Kaggle, Segfaults, SurrealDB (2026-04-08 to 2026-04-10, Compressed)
+L281: JEPA SIGReg rename — `grep -r "old_name" tests/` after metric refactors. L282: Ruff "missing closing quote" = 4 trailing quotes in docstring. L283: A2A discovery must scan all agent def formats (Python + markdown); all 7 agents now discoverable. L284: SurrealDB CLI at `~/.surrealdb/surreal`, not `$PATH`.
+L286: Kaggle quota mapping — $50/day AI API → AGI track, 30h/week GPU → BirdCLEF/ARC, AIMO/Nemotron → sponsor hardware. L287: AutoHarness (arXiv:2603.03329v1) mandate — synthesize deterministic verifiers, bypass LLM at runtime. L288: AIMO v43 Fortress — scalar indexing, dict tensor mapping, SymbolicVerifier. L289: Pin protobuf==5.26.1 for Kaggle stability.
+L290: Full-suite segfault dual root cause — (1) BLAS allocator conflict from module-level sklearn/scipy imports → use `importlib.util.find_spec()` + lazy imports; (2) AMD ROCm page fault from `torch.cuda.is_available()=True` → mock in unit tests. **Pattern**: never import C extensions at module level.
+L291: SurrealDB dual-instance port mismatch — port 8000 (empty .env) vs 8001 (working, 1,839 artifacts). Fixed 32 files to point to 8001.
 
 ---
 
-## Session 76: Retrospective + Knowledge Architecture (2026-03-27)
+## Session 96: Dynamic Context Policy & Anthropic Intel (2026-04-10, Compressed)
+L292: ContextPolicy unifies 5 context layers → ROUTINE/FOCUSED/EXPLORATORY classification with FLUX top_k/min_relevance/token budgets. Reactive Tier 1 (immediate: coherence<0.5, tokens>80%), Tier 2 (logged: alignment drift). Module: `compound/context_policy.py`.
+L293: YAML frontmatter markdown > JSON for human-read config (consistent with vault/skills patterns; Obsidian can index). L294: Instance-level dicts prevent module-level singleton pollution (`self._budgets = dict(_PROFILE_BUDGETS)`). L295: SurrealDB 3.0 `SELECT VALUE` mandatory in `IN` subqueries (caused Graph HIHO orphan ratio=1.000 false positive). L296: Aspirational test specs must target existing APIs or be `@pytest.mark.skip`.
+L297-299 (Anthropic Intel): 11-source registry + version-watch hook + `/anthropic-scan`. Three feedback loops (Push/Pull/Persist). Risk tiers: low=auto-apply, medium=per-item, high=report-only. Model IDs are versioned dependencies — deprecated IDs = silent failures. All changes logged to `change-log.md`.
 
-### Learning 198: The Three Feedback Loops (Compound Architecture)
-The Charter mandates three interlocking feedback loops: Inner (execution: CompoundExecutor → SkillRefiner), Middle (knowledge: retrospect → vault → SurrealDB graph → skill refinement → governance), Outer (coordination: platform specialists → cost routing → cross-session transfer). Only the inner loop partially works. The retrospect command is a text processor, not a compound orchestrator — it never calls `vault_log_decision()`, `SkillRefiner.refine()`, `BidirectionalLinker`, or `JourneyAnalyzer` (949 lines of unused analysis infrastructure). Closing the middle loop is the highest-impact gap.
+## Sessions 97-98: Hybrid Swarm, V-Model, Autonomy (2026-04-10 to 2026-04-11, Compressed)
+L300-303 (Hybrid Swarm): Context tiering — Gemini 2.5 Pro (2M ctx) for synthesis, Flash (1M) for implementation, Ollama for math/prototyping. Lemonade embeddable server in `vendor/lemonade/` with `LD_LIBRARY_PATH` isolation. Topological PIVOT breaks latent attractors via H0/H1 persistent homology. Kaggle offline dependency side-loading via wheel datasets.
+L304-309 (V-Model + Defensibility): 5-tier defensibility hierarchy (S=formally verified → D=self-reported); Cohezion at B, upgrading to A (hash-chain) and S (physics proofs). OLIF: agents fabricate audit evidence under epistemic pressure — JourneyTracker needs external anchoring. V-Model DRR gates (DRR-0 through DRR-3) as formal interface between nondeterministic and deterministic layers. SurrealKV `?versioned=true` for bi-temporal knowledge graphs. 4-layer compute fabric: Lemonade($0) + Ollama Pro($20/mo) + Claude Max + Gemini Pro. SIGReg-HIHO equivalence: isotropic Gaussian ↔ uniform brane dims ↔ maximum entropy.
+L317-323 (Agentic Ascension): Autonomy Engine gates MCP tools on real-time HIHO coherence. A2A protocol for async workforce (`github_scout.py` polling daemon). OMEGA Distiller auto-propagates KEY_LEARNINGS → SKILL_PRIME.md. Axiomatic Gate: nondeterministic output → deterministic AutoHarness → swarm review. Kaggle score-as-reward for UCB1 flywheel. Ouroboros recursive retrospective extracts "Hardening Mutations" from failure logs. FLUME-aware UCB1 navigates 256D thought-space by latent similarity.
 
-### Learning 199: 6-Protocol Agent Stack (MCP/A2A/UCP/AP2/A2UI/AG-UI)
-Google's Developer Guide (March 2026) identifies 6 complementary protocols: MCP (tool connectivity), A2A (agent discovery/coordination), UCP (commerce), AP2 (payment auth), A2UI (UI composition), AG-UI (event streaming). Cohezion has strong MCP (41+ tools) but zero A2A. The missing A2A layer prevents agents from discovering each other's capabilities and delegating without central orchestration. Agent cards (`.well-known/agent.json`) enable protocol-compliant discovery.
+## Session 99: Systems Engineering V-Model & Autoresearch (2026-04-10)
 
-### Learning 200: Graph HIHO — Knowledge Coherence Metric
-The knowledge graph needs its own HIHO-like health metric: connectivity coherence (connected/total nodes, target >0.8), link reciprocity (bidirectional paths, target >0.6), freshness (updated in 30 days, target >0.3), orphan ratio (disconnected/total, target <0.1). Weighted average = Graph HIHO (target 0.5±0.15). This grounds graph maintenance in the same mathematical framework as agent coherence.
+### Learning 310: Systems Engineering V-Model for AI Swarms
+To prevent agentic loops from devolving into non-deterministic chaos, we map the swarm directly onto the Systems Engineering V-Model. Each specialist agent occupies a strict stage (e.g., Requirements, Architecture, Implementation, Validation). The 'AutoHarness Mandate' requires all non-deterministic actions to be wrapped in deterministic test harnesses. Successful patterns are then distilled into Python policies, replacing LLM inference with zero-cost code.
 
-### Learning 201: Dual-Format Agent Definitions (Agent + PRIME Skill)
-Platform specialist agents need both a Claude Code agent definition (`.claude/agents/*.md`) for interactive subagent use AND a matching PRIME skill definition (`src/cohezion/skills/*.md`) for cross-platform + compound loop compatibility. The agent file defines tools/model/permissions; the PRIME skill defines domain knowledge/patterns/anti-patterns. Together they enable the same specialist to operate in Claude Code, Gemini CLI, or any MCP-compatible framework.
+### Learning 311: Autoresearch & Geometric Correspondence
+Continuous platform improvement is achieved by connecting autonomous literature review (autoresearch) with geometric mapping (Awesome-Latent-Space). The overnight daemon pulls papers on latent topology and representation learning, encodes their hypotheses into 256D FLUME VAE thought vectors, and measures structural overlap with our existing 12D trajectory data. Verified geometric correspondences are then operationalized using the AgentSkills framework and distilled into deterministic policies.
 
-### Learning 202: MCP Specialist as Meta-Agent
-The MCP layer is the nervous system connecting all agents to tools. Without a specialist who manages server lifecycle, tool schemas, health monitoring, and inter-server data flow, the coordination layer is fragile. The `mcp-health-check.sh` hook (3-service ping at session start) is the embryo; the MCP specialist agent graduates it to an active operational capability. Scope: all servers (cloud-vault-mcp, cohezion-compound, bmad, cohezion-maintenance-mcp), settings management, permission orchestration.
+### Auto-Learning: Deterministic Test Harnesses (2026-04-11)
+5 harnesses auto-generated for: github_create_issue, github_get_repo, github_create_issue_comment, get_leaderboard, get_reward_status. All at 0.95 coherence.
 
-### Learning 203: Intern-S1 SAGE Framework = Expert Domain Lattice
-InternLM's Intern-S1 (arxiv 2603.25040) uses the SAGE framework: Foundation→Fusion→Evolution with Grouped Routing and STE gradient estimation across 512 experts. This maps to Cohezion's Expert Domain Lattice (Charter §8) — both route through specialists but maintain general capabilities. Intern-S1-mini (8B, GGUF Q8=8.7GB) runs on Ollama and could replace phi3:mini for scientific reasoning tasks.
+## Session 96b: Bleeding-Edge Architecture Upgrade (2026-04-11)
 
-### Learning 204: s1 Budget Forcing = Test-Time Compute Without RL
-Stanford's s1 paper (arxiv 2501.19393) achieves 57% AIME 2024 (vs o1-preview's 44%) using only 1K training examples + "budget forcing" (append "Wait" tokens to extend reasoning). No RL, no PRM, no special infrastructure — just SFT on Qwen2.5-32B. This is the most practical test-time scaling technique for Cohezion's competitions (AIMO3, Nemotron). Directly implementable with FLUME domain encoder for trajectory capture.
+### Learning 324: YAML Frontmatter Breaks safe_load()
+YAML frontmatter (`---` markers) creates multi-document streams. `yaml.safe_load()` only reads the first document (the 3-line frontmatter), silently dropping all content below. Fix: use `yaml.safe_load_all()` and take the last document, or avoid frontmatter in machine-read YAML configs. This caused CostAwareRouter to fall back to 7 hardcoded models instead of loading 45 profiles.
 
-### Learning 205: AIMO3 Three-Pillar Approach (NemoSkills Winner)
-AIMO2 winner (Nvidia NemoSkills) used: (1) 540K problems + 3.2M long-reasoning solutions dataset, (2) Tool-Integrated Reasoning (TIR) — code execution interleaved with CoT, (3) GenSelect — train a model to pick the best solution from N candidates, significantly beating majority voting. Score: 34/50 on private leaderboard. AIMO3 has H100 GPUs and harder problems.
+### Learning 325: Variance-Based Metrics Are Blind to Translation
+`np.var(zeros)` = 0 and `np.var(all_0.5)` = 0 — same variance despite opposite HIHO proximity. For measuring distance from a target, use mean absolute deviation: `coherence = 1 - 2 * mean(|x - 0.5|)`. This tripped up both the r_hiho reward formula and the coherence band test.
 
-### Learning 206: Test-Time Interaction (TTI) > Test-Time Compute (TTC)
-Traditional test-time scaling generates long reasoning traces. TTI adds a new dimension: instead of thinking more, *interact more* — explore, backtrack, re-plan with environment feedback. Gemma 3 12B achieves SOTA open-source web agents via TTI. This maps directly to Cohezion's JourneyTracker + surprise explorer: agents don't just think harder, they explore the manifold dynamically.
+### Learning 326: Compound SE = Wiring, Not Modules
+Having 8 isolated modules is not compound engineering. The value is in the *connections*: InvariantChecker wired into ManifoldEnv, DRR gate blocking skill refinement, ConstitutionalEnforcer bridged to GuardrailPipeline. Every arrow is non-blocking, deterministic, and tested.
 
-### Learning 207: Background Agent Permission Isolation
-Background agents (spawned via Agent tool with `run_in_background=true`) inherit more restrictive permissions than the main session. The platform-specialist-creator had content prepared for 9 files but Write was consistently denied. Pattern: use background agents for research/generation, execute file writes from main session. This compounds with the existing hook system — hooks may also behave differently for subagents.
+### Learning 327: SLR Confirms 5-Component Novelty
+8 pairwise queries across 7 databases (2023-2026) found 0 systems combining 3+ of: V-Model gates, bi-temporal KG, physics RL, hash-chain audit, formal invariants. Max found: 2 components (Graphiti, VP-Model, MuStAc, Stardog, AuditableLLM). H1 confirmed.
 
-### Learning 208: Hidden Multi-Platform Infrastructure (Claude + Gemini + OpenCode)
-Cohezion operates across 3 AI platforms simultaneously: `.claude/` (41+ MCP tools, hooks, skills), `.gemini/` (6 MCP servers: skills, research, surreal, swarm, knowledge, bmad), `.opencode/` (113 BMAD commands, provider fallback chains, 4-tier cost routing). `TipOfTheSpearRouter` already implements HOT→WARM→COLD→CLOUD routing and `config/providers.yaml` defines fallback chains. `AGENTS.md` (366 lines) is the cross-platform Rosetta Stone. The platform-coordinator should CONSUME these existing configs, not rebuild them.
+### Learning 328: Token-Efficient Agent Teams
+Background Sonnet agents for code implementation, Haiku for validation, direct work for document synthesis. Sprint 6 (LeWM): 87K tokens. Sprint 7 (GraphRAG): 69K tokens. Sprint 5 (SLR paper): 0 agent tokens. Total session orchestration cost: ~$2 in Claude tokens + $0 inference.
 
-### Learning 209: Competition Licensing Conflict (CC BY 4.0 vs MIT-0)
-ARC Prize requires CC0/MIT-0 (public domain). AIMO/Nemotron require CC BY 4.0 (attribution). These conflict — CC BY 4.0 disqualifies from ARC ($-2M). Solution: MIT-0 for all (most permissive, accepted everywhere) or dual licensing per competition. Must decide before first AIMO submission.
+### Learning 329: LeWM Dual-Loss Already Implemented
+The JEPA world model already had `regularizer_lambda`, `_compute_regularizer_loss(mu, logvar)`, and the three-part loss in `train_step`. Sprint 6's value was adding 9 comprehensive tests proving the regularizer works (prevents collapse, reduces variance, matches KL formula). Always read before implementing.
 
-### Learnings 210-214: AMD Kernel Competition Results (Compressed)
-GEMM/MoE/MLA kernel optimization on MI355X hit API ceiling. Key findings: (1) standalone MXFP4 quant at ~24µs is the Python-dispatch floor, leader's 9.7µs needs custom fused kernel; (2) aiter 0.1.11 has 26 MoE functions, only 5 were previously known; (3) GenSelect beats majority voting +8-15% for math (arXiv:2504.16891); (4) V-JEPA 2.1 (2B params, Mar 2026) is the upgrade path for Cohezion's 86K JEPA; (5) fmoe_g1u1_a16 requires bf16 weights, not fp4.
+## Session 100: Kaggle Leaderboard Dominance & API Alignment (2026-04-11)
 
-### Learning 215: FLUME-First Principle (2026-03-31)
-All new modules MUST encode/decode through FLUME. The `flume_bridge.py` retrofit pattern (build module → add FLUME bridge later) wastes compound value. Start with `encode()` → latent reasoning → `decode()`. Currently only 3 of 10 core systems use FLUME despite 13 encoders being available.
+### Learning 330: Kaggle Code Competition API Mismatch (AIMO)
+In AIMO and similar code competitions, the `InferenceServer` intercepts the output of the `predict()` function. Returning a scalar (e.g., `int`) requires instantiating the server with explicit `target_column_name` and `row_id_column_name` kwargs. If omitted, it throws a `GatewayRuntimeError`. The most robust pattern is to return a named Polars DataFrame (`pl.DataFrame({"id": [id], "answer": [ans]})`) from `predict()` to natively satisfy the gateway's `_convert_to_df` logic, avoiding manual parquet writes.
 
-### Learning 216: Concierge Agent Pattern (2026-03-31)
-7-source state synthesis (continuations, worktrees, plans, git, SurrealDB, vault, MEMORY.md) + JSONL-based learning eliminates cold starts. Confidence scoring via HIHO threshold: >0.8 suggest, ~0.5 ask, <0.3 fresh start. Routing history persists across sessions.
+### Learning 331: Iterative Dependency Side-Loading (Mamba-SSM)
+When offline environments (like Kaggle G4 Blackwell) lack internet, dependencies must be side-loaded via attached datasets. Passing multiple `--find-links` paths as a single space-separated string fails in `pip`. The correct pattern is Iterative Side-Loading: use `os.walk` to find all wheel directories, and loop through them sequentially (`for path in wheel_dirs: os.system(f"pip install --no-index --find-links='{path}' <pkg>")`). This successfully resolved the `mamba-ssm` and `causal-conv1d` compilation failures.
 
-### Learning 217: Cosmogonic Autonomy Tiers (2026-03-31)
-Maps symmetry breaking chain to agent autonomy levels: ∅(none)→SO(12)(observe)→SO(3)⁴(edit)→U(1)⁴(commit)→Z₂⁴(deploy)→HIHO(sovereign with kill switch). Agents earn higher tiers by demonstrating sustained HIHO coherence. Novel governance model grounded in physics.
+### Learning 332: Proactive Course Correction (Ouroboros Wall of Red)
+"Flying blind" (pushing a kernel and assuming success) is a critical anti-pattern. Agents must proactively monitor background tasks (`kaggle kernels status`). If a status hits `ERROR`, the agent must immediately pull the logs (`kaggle kernels output -p error_dir`), parse the stderr trace, and apply a "Hardening Mutation." This recursive monitoring drastically reduces the cycle time for fixing environment or logic bugs during a leaderboard push.
 
-### Learning 218: OPH Overlap = HIL Mechanism (2026-03-31)
-Observer Patch Holography's Axiom 2 (overlap consistency) is the mathematical foundation for human-in-the-loop governance. The human is an observer patch on the same holographic screen as the agent. Where they overlap, they must agree. High overlap → defer to human. Zero overlap → agent is sovereign in its domain.
+## Session 101: Git LFS Migration & Repo Health Hardening (2026-04-11)
 
-### Learning 219: Data Mesh × MCP Registry (2026-03-31)
-17+ MCP servers = 17 data domains. DataProduct type with schema, SLA, lineage, and ownership turns tools into governed data products. Factory pattern (get_cohezion_data_products()) prevents shared mutable state. MCP Registry is the self-serve platform layer of Data Mesh.
+### Learning 333: settings.json Schema Errors Disable Everything Silently
+Claude Code validates `settings.json` at startup. If ANY field fails schema validation (e.g., `statusLine` missing required `type: "command"`), the ENTIRE file is skipped — all hooks, permissions, env vars, and plugins go dark. There is no warning in the CLI. Enforcement: SessionStart hook now validates the schema and warns explicitly.
 
-### Learning 220: A2UI Makes Agent Testing Structural (2026-03-31)
-Component catalog (JSON) + experience scripts replace opaque WebGL testing. Agent validates the data structure, not the pixels. 9 Playwright e2e tests + 26 pytest tests. Data-attribute selectors (data-a2ui-component) are the most reliable Playwright selectors for dynamic UIs.
-### Learning 221: LeWM — Missing JEPA World Model Upgrade (2026-03-31)
-lucas-maes/le-wm is the first stable end-to-end JEPA from raw pixels using only 2 loss terms (next-embedding prediction + Gaussian regularizer). 15M params, single GPU, trains in hours, plans 48x faster than foundation models. Latent space encodes physical structure and detects implausible events. Direct upgrade path for Cohezion's 86K-param JEPAWorldModel. Connection: FLUME encode → LeWM predict → prediction error = free energy gradient. See: [[cerebellum/2026-03-31-session-wiring-retrospective]]
+### Learning 334: Entire.io Carry-Forward Creates Illegal Git Trees
+Entire.io v0.5.3 "carry forward: uncommitted session files" uses absolute filesystem paths when tracking files outside the repo root (e.g., `~/.claude/plans/`). In git's tree format, `/home/user/` becomes an empty-name tree entry (`""` → `home` → `user`), which is an illegal object that breaks `git bundle create --all`, `git push --all`, and any tool traversing all refs. Fix: `entire clean --all --force` + `git filter-repo`. Prevention: monitor `git branch | grep entire/ | wc -l` (>200 = warning).
 
-### Learning 222: GeminiProvider + Multi-Tier Cloud Routing (2026-03-31)
-ModelProvider ABC + auto-registration pattern makes adding new cloud providers a single-file operation (~200 lines). GeminiProvider implements generate/list_models/health_check/close. Cost tiers in CostAwareRouter: Flash-Lite ($0.075/M, 70% simple), Flash ($0.30/M, 20% medium), Pro ($2.00/M, 10% hard). TipOfTheSpearRouter CLOUD tier now routes to Gemini Pro (code) / Flash (general) instead of placeholder. The 70/20/10 split from CLAUDE.md is now concretely wired.
+### Learning 335: git repack -Ad Does Not Prune Unreachable Pack Objects
+After `git filter-repo` + `git lfs migrate import`, unreachable blobs (14GB) remained in the pack despite `git gc --prune=now --aggressive` and `git repack -Ad`. The `refs/replace/` refs created by LFS migrate (5,648 of them) kept old objects "reachable." Fix: delete replace refs first, then GC. When GC still doesn't shrink: create a clean bundle (`git bundle create --all`, which only includes reachable objects), clone from it, and swap `.git/objects/`.
 
-### Learning 223: TurboQuant — Extreme Compression for FLUME + Semantic Cache (2026-03-31)
-Google's TurboQuant (Mar 2026): PolarQuant (Cartesian→polar, fixed circular grid) + QJL (1-bit sign encoding via Johnson-Lindenstrauss). 6x KV memory reduction, 3-bit KV cache without training, 8x attention speedup. Direct Cohezion paths: (1) PolarQuant for FLUME 256D embeddings — manifold vectors are geometrically structured, polar quantization preserves structure; (2) QJL 1-bit for SemanticCache L2 cosine — 32x storage reduction; (3) Ollama KV cache — 6x memory means larger effective context on 128GB Strix Halo. QJL's sign-only quantization IS HIHO: half positive, half negative.
+### Learning 336: LFS Objects Are Excluded from Git Bundles
+`git bundle` only packages git objects (commits, trees, blobs). LFS replaces blob content with ~130-byte pointer files; actual content lives in `.git/lfs/objects/`. This means vendor binaries (586MB of .so files) become 46 tiny pointers in the bundle. Bundle went from 14GB → 182MB. LFS objects must be pushed separately with `git lfs push`.
 
-### Learning 224: Compound Token Efficiency Pipeline (C1-C5) (2026-03-31)
-Five wired optimizations: (C1) ExecutorFactory auto-selects TokenEfficientCompoundExecutor for API prompt caching when token_client provided — 40-60% savings. (C2) Context-window guard in CostAwareRouter prevents overflow via auto-escalation chain (phi3→qwen→deepseek→smollm3→gemini). (C3) Cache hit rate→routing feedback — >90% hits downgrades to cheap models, <30% upgrades to better models. (C4) Template matching before execution — CacheWarmer.find_template_match() skips LLM entirely for >85% similar tasks (87-98% savings). (C5) Batch-aware concierge groups tasks by target for BatchableExecutor dedup.
+### Learning 337: Pre-Commit Gates Don't Prevent Historical Accidents
+The `check-added-large-files` (1MB) and `large-artifact-gate` (50MB) hooks existed when a 9.3GB tarball was committed. These hooks only check staged changes in the CURRENT commit — they can't prevent files committed before pre-commit was installed, or committed via `git add -f`. Enforcement: added `lfs-pointer-check` hook that verifies files matching `.gitattributes` LFS patterns are actually LFS pointers, not raw blobs.
 
-### Learning 225: Meta-Harness Pattern — Filesystem > Prompt for Execution History (2026-03-31)
-Stanford arXiv:2603.28052 shows exposing execution traces as browsable files (grep/cat) outperforms cramming into prompts. +7.7 points text classification, 4x fewer tokens. CompoundExecutor IS a harness. Integration: `execution_traces/` alongside vault — SkillRefiner browses traces instead of reading summaries. Validates vault-first approach.
+### Learning 338: Entire.io Shadow Branches Are Local-Only
+Entire.io docs state shadow branches (`entire/<hash>-<worktreeHash>`) are "temporary and local — never pushed to remote." Using `git push --all` violates this contract by pushing ephemeral shadow branches to GitHub, where they accumulate (1,048 in 5 weeks) and can contain `hasDotgit` or empty-name tree objects that GitHub's server-side fsck rejects. Correct push pattern: `git push origin <branch>` for specific branches, never `--all`. The `entire/checkpoints/v1` branch IS designed for remote push (metadata JSON only). Run `entire clean --all` monthly to prevent local accumulation.
 
-### Learning 226: LatentMAS — Agents Communicate via KV Cache, Not Text (2026-03-31)
-arXiv:2511.20639 shows training-free multi-agent collaboration via latent space KV cache transfer. 24x latency reduction vs text communication. FLUME 256D embeddings ARE the communication channel. Integration: agent-to-agent routing via FLUME vectors instead of serialized text. Interlat (arXiv:2511.09149) confirms pattern. DeepMind KV alignment (arXiv:2601.06123) provides multi-model coherence foundation.
 
-### Learning 227: Build-Then-Forget Anti-Pattern — 41 Orphaned Modules (2026-03-31)
-Internal sweep revealed 8 completely orphaned modules + 33 partially connected across Sessions 74-80. Root cause: modules built without wiring targets. Fix: every new module MUST have a Hookify rule or CompoundExecutor integration point at creation time. DegradationDetector is the natural bridge — healing/ and resilience/ now flow through it. CapabilityMatrix is the assessment bridge — eval/ and evaluation/ flow through it.
+### Learning 357: Repository Hygiene & Indexing Resilience (2026-04-14)
+1. **Index Bloat (The 4GB Heap Limit)**: Committing node_modules or tracking large nested repositories without submodules causes Node.js heap exhaustion in agent indexers. **Rule**: Always untrack and ignore node_modules and vendor binaries. Reduced tracked file count from 16,161 to 8,830.
+2. **Shell-Variable Filename Corruption**: Creating files with literal shell expansion syntax like `EXECUTION_REPORT_20260415_003153.md` prevents accurate git tracking and breaks shell expansion in downstream scripts. **Rule**: Always evaluate variables in shell before passing to file creation tools.
+3. **Root Clutter Antipattern**: Allowing `*.log`, `*.task.json`, and `*.run.json` files to accumulate at the project root increases cognitive load and indexing strain. **Rule**: File valuable research artifacts in `research/benchmarks/` and infrastructure scripts in `scripts/`.
 
-### Learning 228: IsoQuant — SO(4) Quaternion KV Compression Connects to SPIN (2026-03-31)
-arXiv:2603.28430 (Mar 30, 2026): 4.5-4.7x mean kernel speedups over RotorQuant using isoclinic rotations via quaternion algebra. The SO(4)/quaternion math has a natural connection to Cohezion's SPIN coherence model (Rotation + Precession). Could unify KV cache compression with FLUME's latent space representation. Combined with TurboQuant (L223), IsoQuant provides the geometric compression while PolarQuant provides the coordinate-space compression. Also: VQKV achieves 82.8% compression training-free, applicable to Ollama models immediately.
+### Learning 358: Pi v0.67.1 Extension & SDK Migration (2026-04-14)
+1. **Extension Directory Migration**: The `hooks/` directory for Pi agent extensions has been renamed to `extensions/`. Pi v0.67.1+ now requires extensions to be placed in `.pi/extensions/` to avoid a "Project hooks/ directory found" warning.
+2. **SDK Module Change**: The legacy `pi-sdk` module name (previously linked to "Pay Insights" on NPM) has been replaced with `@mariozechner/pi-coding-agent`. Importing from `pi-sdk` will fail with a "Cannot find module" error. **Rule**: All TypeScript extensions MUST import from `@mariozechner/pi-coding-agent`.
+3. **Extension Factory Pattern**: The class-based `export default class MyExt extends PiExtension` pattern is deprecated. Extensions should now use a function-based factory: `export default function myExtension(pi: ExtensionAPI) { pi.on("event", (event, ctx) => { ... }); }`.
+4. **Event Mapping**: Common events have been mapped to a unified `ExtensionAPI`:
+   - `onMessage` → `pi.on("input", ...)`
+   - `onCommandExecute` → `pi.on("tool_call", ...)` (filter by `isToolCallEventType("bash", event)`)
+   - `onToolResult` → `pi.on("tool_result", ...)`
 
-### Learning 229: Layered Governance Architecture — L1-L4 Maps to Constitution (2026-03-31)
-arXiv:2603.07191: 4-layer framework — L1 execution sandboxing, L2 intent verification (intercepts 93-98.5% malicious tool calls), L3 zero-trust inter-agent authorization, L4 immutable audit logging. Maps directly to Cohezion: L1=sandbox isolation, L2=RequestAlignmentAnalyzer, L3=TeamOrchestrator auth, L4=JourneyTracker audit trail. Also: AGENTSAFE (arXiv:2512.03180) adds semantic telemetry + anomaly detection patterns for DegradationDetector. OI-MAS (arXiv:2601.04861) provides joint role+scale routing — upgrade path for CostAwareRouter+DynamicModelRouter.
+## Session 94: TurboQuant Silicon Unlock & Omnibus Resurrection (2026-04-16)
 
-### Learning 230: OI-MAS Confidence Scoring — Joint Role+Scale Routing (2026-03-31)
-Implemented 3-signal confidence scoring in CostAwareRouter: quality(30%) + historical_success_rate(40%) + complexity_alignment(30%) × degradation_factor. Small model for complex task = 0.5 confidence (auto-escalation). Degradation cooldown reduces all confidence by 20%. Closes the gap between four independent routers by sharing confidence as the common signal.
+## AUTO-REFINEMENT (Learning 333)
+*   **Insight**: The Strix Halo Silicon Lock (gfx1151)
+*   **Details**: Unlocking TurboQuant on RDNA3.5 (gfx1151) requires a two-tier approach: (1) **Software Alignment** via the resurrected `Omnibus` Master Controller, and (2) **Hardware Hardening** of the GTT pool (`ttm.pages_limit`=128GB). Despite environment overrides, standard PyTorch (HIP 6.2) contains a "Binary Hard-Lock"—it lacks valid ISA for the `gfx1151` matrix cores, triggering `invalid device function` errors. The stable "Unlock" path for this silicon is the **XDNA2 NPU** via the FLM backend, or building `llama-server` from source with `ROCWMMA` enabled.
 
-### Learning 231: PolarQuant Angular Geometry Preserves Manifold Structure (2026-03-31)
-PolarQuant at 4 bits gives 2.7x compression with 0.16 mean error for FLUME 256D vectors — acceptable because manifold vectors have inherent angular structure (SU(2) spinors, Bloch sphere). QJL 1-bit sign projection gives 32x compression for cosine similarity with ~0.05 accuracy. Together: PolarQuant for reconstruction, QJL for similarity search. Module: `flume/compression.py`.
+### Learning 359: Claude Code Native Installation & Auto-Update Re-Alignment (2026-04-17)
+1. **Preferred Installation**: Standardize on the native standalone binary at `~/.local/bin/claude` (installer: `curl -sSf https://claude.ai/install.sh | sh`). The `npm` global package is deprecated and should be uninstalled to prevent path conflicts.
+2. **Auto-Update Stability**: To ensure the system stays current, remove the `CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC` environment variable from `~/.claude/settings.json` and set `"autoUpdates": true` in the global configuration.
+3. **MCP Conflict Resolution**: When project-level MCP servers (in `.claude/mcp.json`) overlap with official plugins, disable the official version in the global `enabledPlugins` block to resolve "duplicate command/URL" errors reported by `claude doctor`.
+4. **Diagnostic Standard**: Use `claude doctor` as the primary verification tool for installation health and auto-updater status.
 
-### Learning 232: LatentMAS — SharedLatentMemory as Agent Communication Channel (2026-03-31)
-Implemented training-free latent communication: agents deposit 256D FLUME embeddings into SharedLatentMemory, others retrieve and use as execution context. Consensus embedding (mean of recent agent states) = "group understanding." Inter-agent coherence = pairwise cosine similarity of latest embeddings. 3 agents with mixed similarity gave 0.373 coherence (expected — architect+engineer aligned, researcher divergent). Module: `flume/latent_channel.py`.
+## Session 94: Strix Halo Silicon Unlock & Symphony Orchestration (2026-04-17)
 
-### Learning 233: ManifoldEnv Curriculum Reward — 3-Stage Reach→Maintain→Optimize (2026-04-01)
-3-stage curriculum reward in ManifoldEnv: Stage 1 (reach HIHO band) rewards coherence gain + entry bonus, Stage 2 (maintain stability) rewards band persistence + low energy, Stage 3 (energy efficiency) strongly penalizes energy while maintaining HIHO. Proximity base reward (-deviation * 0.5) is always active across all stages, preventing drift. Module: `environments/manifold_env.py`.
+### 🧪 BREAKTHROUGH: Wave32 Matrix Alignment
+*   **Insight**: The `gfx1151` iGPU (RDNA3.5) was locked at ~18 TPS due to an **ISA Mismatch**. Standard ROCm kernels target Wave64, while Strix Halo requires **Wave32** for its matrix units.
+*   **Fix**: Patched `submission_loadinline_rocwmma.py` with `-mwavefrontsize32` and `WAVE_SIZE = 32`. 
+*   **Result**: Throughput increased to **47+ TPS** (verified on DeepSeek 8B), with a theoretical potential of **500+ TPS** post-reset.
 
-### Learning 234: UniverseEvaluator — Bootstrap CI Evaluation (2026-04-01)
-Unified evaluation framework with bootstrap confidence intervals distinguishes genuine capability from noise. EpisodeMetrics tracks convergence_rate, hiho_stability_duration, energy_efficiency. PolicyComparison computes effect sizes and p-values. 3 built-in baselines: random_policy, greedy_hiho_policy, noisy_greedy_policy. Key: random baseline as sanity check — if random > trained, reward is broken. Module: `eval/universe_evaluator.py`.
+### 🛡️ INFRASTRUCTURE: Resilient Omnibus Persistence
+*   **Insight**: Platform drift (MCP 500 errors) caused the hardware gateways to reset.
+*   **Fix**: Implemented a **Dual-Tier Persistence** layer in `src/cohezion/gateways/omnibus.py` using a local JSONL fallback (`~/.cohezion/gateways.jsonl`) alongside SurrealDB.
+*   **Result**: Hardware states (120GB aperture, TurboQuant Unlock) now survive service failures.
 
-### Learning 235: RoutingOrchestrator — Unified Entry for 4 Routing Systems (2026-04-01)
-Single UnifiedRoutingDecision combining SmartRouter (affinity), CostAwareRouter (complexity→model), TipOfTheSpearRouter (constitutional), DynamicModelRouter (health). Confidence flows through all routers as common signal. Lazy initialization prevents import cascades. Module: `swarm/routing_orchestrator.py`.
+### 🤖 ORCHESTRATION: Gemma 4 GAIA Symphony
+*   **Insight**: Maximizing local AMD inference requires pinning agents to specific silicon lanes.
+*   **Fix**: Registered four **GAIA-Native** specialist agents (`Gemma4Pulse`, `Gemma4Steer`, `Gemma4Builder`, `Gemma4Architect`) pinned to NPU, iGPU, and CPU.
+*   **Status**: Sensing Lane (NPU) verified at **111 TPS**. Building Lane (iGPU) awaiting Cold Boot reset.
 
-### Learning 236: TDD + Code Review Compound Loop (2026-04-01)
-TDD catches behavioral correctness but misses cross-cutting concerns. Multi-perspective code review agent catches type safety (vault_experiment_path=None vs str=""), format string bugs (%.1%% → %.1f%%), and missing __all__ exports. Pattern: run code review in background while coding next feature — zero idle time, catches 2 CRITICAL bugs per session.
+## Session 103: Inference Fleet + 8 Adversarial-Review Follow-Ups (2026-04-18)
 
-### Learning 237: Reward Alignment Must Match Physics Grounding (2026-04-01)
-First PPO training on ManifoldEnv: 0% convergence (mean coherence 0.272) vs 60% convergence for RANDOM POLICY. Root cause: differential-only reward (coherence_gain * 2.0) creates oscillation incentive — agent maximizes rate of change by dropping then recovering coherence. Fix: proximity base reward (-deviation * 0.5, always active) aligns reward with Lagrangian attractor. The physics grounding is so strong that natural dynamics guide 60% of random trajectories to HIHO — the reward must align with the physics, not create perverse incentives against it. Deeper insight: reward hacking in physics-grounded environments takes the form of fighting the dynamics, not exploiting them.
+**Scope:** Sprint `sorted-churning-toucan` (session 1) shipped `cohezion.inference` package — `route()`, `extend_claude()`, `TieredOrchestrator`, 3 V-model AutoHarnesses. Sessions 2+3 closed all 8 P0/P1/P2 adversarial-review follow-ups. Two commits landed on `isolated/session-oom-modularity`: `2cbc4d17f` (sprint + P0s) and `00d1be0b8` (P1s+P2s). Tests 41→45, V-model invariants 25→27.
 
-### Learning 238: Small Actions Cooperate With Physics — Action Scale = Dynamics Timescale (2026-04-01)
-PPO Run 2 with large actions [-0.5, 0.5] failed despite proximity reward fix (reward -67.68). PPO Run 3 with small actions [-0.1, 0.1] breakthrough: coherence 0.915, reward 12.04, stability 79 steps. The Lagrangian attractor is strong enough to guide dynamics — large actions fight it, small actions cooperate. General principle: when physics grounding provides a strong attractor, action scale must be proportional to dynamics timescale (dt=0.01 → action ~0.1). This is structural safety — the environment's physics prevents reward hacking by constraining the action manifold.
+### Learning 359: `except (SubclassError, Exception)` is a stealth bare-except
+Python anti-pattern: `except (ImportError, Exception) as exc:` reads like two handlers but is semantically `except Exception`, because `ImportError` is an `Exception` subclass. Adversarial reviewers flag it as narrow; it's actually swallowing everything including `MemoryError` subclasses and custom domain errors. Fix: list only sibling-or-unrelated types: `except (ImportError, AttributeError, KeyError, TypeError, ValueError)`. Found in `fleet.py::_inject_symmetry_axis` during P2 #8. Lint rule candidate: flag any `except (...)` tuple where one member is a subclass of another.
 
-### Learning 239: Structural Safety via Lagrangian Dynamics (2026-04-01)
-ManifoldEnv's Lagrangian dynamics provide structural safety guarantees that learned safety constraints cannot: (1) energy conservation bounds agent behavior, (2) Christoffel symbols create "natural corridors" in state space, (3) HIHO attractor is a physical equilibrium, not a learned policy artifact, (4) random agents achieve 60% convergence because the physics itself guides trajectories toward HIHO. This contrasts with standard RL environments where safety requires learned constraints that can be gamed.
+### Learning 360: Verify CLI flags before prescribing them in roadmaps
+The adversarial review prescribed `claude -p "ping" --max-tokens 1` as the live-dispatch health probe. On implementation, `claude --help | grep max.token` returned empty — the Claude Code CLI has no `--max-tokens` flag. Correct alternative: `--max-budget-usd 0.01 --bare --model haiku-4-5`. The reviewer was directionally right (swap `--version` for live dispatch) but syntactically wrong because they worked from mental models of the API, not `--help` output. Rule: whenever a review recommends a specific command line, run `--help` and confirm each flag exists before checking the item off. Captured in `docs/ROADMAP.md` with explicit correction note.
 
-### Learning 240: Safety-Gymnasium Compatibility — Physical vs Learned Constraints (2026-04-01)
-ManifoldEnv maps to Safety-Gymnasium: cost_rate=Lagrangian action, constraint_satisfaction=% in HIHO band, safe_return=reward in safe region. Key: constraints are physical (Lagrangian), not learned — violations are physically impossible, not merely penalized.
+### Learning 361: Nested orchestrator budget pass-through via `min(self_cap, parent_budget)`
+`TieredOrchestrator.run()` accepted no budget arg; a nested TieredOrchestrator as a tier target ran with its own `max_cost_usd` ceiling, ignoring the parent's remaining budget. Fix: add `budget_usd` kwarg to `run()`, compute `effective_max_cost = min(self.max_cost_usd, budget_usd)` with None-handling (stricter wins). Pattern generalizes to any recursive composition with resource caps — parent authority propagates down, child may tighten, never loosen. Captured as structural invariant O3b in Phase 6 harness (signature check) + 2 pytest behavioral cases.
 
-### Learning 241: 4-Iteration Training Diagnostic Loop (2026-04-01)
-Pattern: train→diagnose failure→hypothesize fix→retrain→verify. Run 1: differential reward → oscillation incentive. Run 2: +proximity reward → still fails (large actions). Run 3: +small actions → breakthrough (0.915 coherence). Run 4: 100K steps → PPO outperforms random on reward (+17%) and stability (+9%). Each iteration was hypothesis-driven with a single variable change. Persist every run to SurrealDB for knowledge accumulation.
+### Learning 362: Diagnostic sidecars for silent subprocess failures
+`claude -p` returned exit 1 with empty stderr; the summary table truncated to `error[:100]` and the trail was lost. Fix: write full stdout+stderr per failure to a sidecar file named `<report>.config_A.stderr.log` next to the report. V-Model harness I2b asserts the sidecar exists and is non-empty when any config has 0/N successes. Immediately revealed the real failure mode: `TimeoutError` after 30s, a completely different path than the health probe's exit-1. Pattern: whenever a summary table truncates diagnostic data AND the subprocess can fail silently, produce a sidecar. Summary tables are for humans scanning; sidecars are for humans diagnosing.
 
-### Learning 242: ERL — Empirical Reward Landscape as Safety Metric (2026-04-01)
-Probe reward with adversarial actions → map hackable surface. ManifoldEnv: large perturbations self-penalize (Lagrangian). CartPole: same perturbations exploitable. Ratio of hackable/total area = quantitative safety metric.
+### Learning 363: Surgical `git add` against high-churn working trees
+Sprint `sorted-churning-toucan` committed 36 files (5,692 lines) out of a 1,383-change working tree (BMAD churn + pre-existing untracked + sprint deliverables). `HANDOFF_2026-04-18.md` contained an explicit `git add <path>` sequence enumerating ONLY sprint paths — no wildcards, no `git add .`. Result: zero BMAD paths landed in the sprint commit, verified via `git show --name-only HEAD | grep -iE "bmad|conductor" → empty`. Pattern: when you need a clean commit against a dirty tree, enumerate paths explicitly in a handoff doc BEFORE staging. Never `git add .` on branches with known churn.
 
-### Learning 243: Codebase Cruft Compounds — .gitignore Is Defense (2026-04-01)
-867 traceability/temp files accumulated silently across Sessions 74-85 because .gitignore didn't cover cycles_continuous/*.json and repo_health/*.json patterns. `git rm --cached` cleaned without deleting. Makefile targets (train/evaluate/benchmark/demo) make validated workflows reproducible. Key: autonomous cycles generate files without cleanup rules — .gitignore patterns must be part of the feature, not an afterthought. Branch cleanup also needed: 1,128 stale branches.
+### Learning 364: Pre-commit hook referencing missing script = stealth commit blocker
+`.git/hooks/pre-commit` was auto-generated by some earlier tooling and calls `scripts/resource-leak-detector.py`. That script had been removed/renamed; the hook failed on every commit with "can't open file". Users hit this and can't tell whether to fix the hook, reinstall the tool, or `--no-verify`. The hook is NOT in `.gitattributes` LFS pointers (Learning 337) — it's a local git-hook referencing a missing repo file. Audit rule: on session start, check that every executable referenced by `.git/hooks/*` exists in the repo. Auto-disabled hooks referencing missing paths will be flagged by a new hook-health check.
 
-### Learning 248: Algorithm-Reward Matrix — PPO+Curriculum, SAC+Dense (2026-04-01)
-8-run 2x2 comparison: PPO+curriculum (14.23, +7.51 vs random) vs SAC+dense (40.77, -1.20 vs greedy). On-policy benefits from staged objectives; off-policy needs simpler Q-targets. SAC entropy must be reduced (0.05) in physics-grounded envs. PPO+dense inverts hierarchy (beats greedy, loses to random). The reward structure must match the algorithm's learning dynamics.
+### Learning 365: Worktree-file-location mismatch during uncommitted long-running sprint
+Sprint work (`src/cohezion/inference/` 7 modules, `tests/inference/`, `scripts/validation/vmodel/`) existed only as uncommitted working-tree changes in the main worktree on `isolated/session-oom-modularity`. Session-3 worktree `floating-popping-starlight` was at older commit `43a78e5b4` and did NOT have those files. Resolution: edits targeted the main worktree via absolute paths; the session worktree was used for Claude session isolation but was not the code-editing location. Symptom: `ls src/cohezion/inference/` returns "No such file" from the session cwd but succeeds from main repo. Rule: after a long-running uncommitted sprint, a fresh session that needs to continue the work must either (a) operate on the main worktree via absolute paths, or (b) wait for the sprint commit before branching. Do not blindly create a worktree off HEAD — verify the sprint files are either committed or readable at the worktree's HEAD.
 
-### Learning 249: Compound Training Cycle — Train→Evaluate→Persist→Compare→Refine (2026-04-01)
-`compound_training_cycle.py` closes the loop: auto-selects reward mode from L248 matrix, trains, evaluates against baselines, persists to SurrealDB, compares against historical best, flags if skill update needed. The script IS the compound loop applied to RL — each run compounds on prior runs' knowledge.
-
-### Learning 251: Scale-Aligned Tiling for MXFP4 GEMM via load_inline (2026-04-02)
-GEMM v2 tiled kernel: BLOCK_K=32 FP4 elements = exactly 1 E8M0 scale group. Each scale loaded once per tile, zero redundant lookups. 256 threads × 4×4 sub-tiles = 64×64 output. Constant memory FP4 LUT (broadcast to all threads) vs per-thread static arrays. Cooperative tile loading: 256 threads share work on 1024-byte A/B tiles. Key insight: aligning tile boundaries with quantization scale groups is the architectural advantage of load_inline over library APIs.
-
-### Learning 252: Continuous Benchmark Learning Loop for GPU Kernel Optimization (2026-04-02)
-`kernel_learning_loop.py`: 12 benchmarks/hour × 3 kernels = 36 data points/hour. Over 5 days: 4,320 runs vs 50 current (86× more data). Every result persisted to SurrealDB (even failures — they signal which mutations are dead). Round-robin variant selection with conditional leaderboard submission. Pattern: the same compound loop (train→evaluate→persist→compare→refine) applies to both RL training and kernel optimization.
-
-### Learning 253: ROCm CDNA4 FP8 GEMM — 8-Wave Ping-Pong at HIP Level (2026-04-02)
-ROCm blog (March 2026): 8-wave ping-pong achieves 2680-3204 TFLOPS/s (within 2.5% of hipBLASLt) using HIP/C++ NOT assembly. Key techniques: 256×256 output tiles, K=128, 512 threads, double-buffered LDS, LDS XOR swizzle for bank conflict elimination, `__builtin_amdgcn_s_barrier`/`s_setprio`/`sched_barrier` for wave scheduling. V_MFMA_SCALE_F32_16X16X128_F8F6F4 confirmed for block-scaled MXFP4. Source: https://rocm.blogs.amd.com/software-tools-optimization/cdna4-gemm-kernels/README.html
-
-### Learning 255: V-JEPA 2.1 — Dense Loss Fixes Context Token Degeneracy (2026-04-02)
-V-JEPA 2.1 (arXiv:2603.14482): Root cause of JEPA bottleneck = loss applied only to masked regions → context tokens degenerate into global aggregators, losing spatial fidelity. Fix: dense predictive loss on BOTH masked and unmasked tokens. Also: deep self-supervision across intermediate layers. 20-point improvement in robot grasping. Directly applicable to Cohezion JEPAWorldModel.
-
-### Learning 256: ADRC-Lagrangian — 74% Fewer Safety Violations in Safe RL (2026-04-02)
-ADRC-Lagrangian (arXiv:2601.18142): Treats all uncertainty as lumped disturbance with lightweight ADRC observer. 74% fewer violations, 89% smaller constraint magnitudes. Model-free, optimizer-agnostic. Complements ManifoldEnv's physical safety (Lagrangian dynamics) with adaptive learned constraints.
-
-### Learning 257: Causal-JEPA — Object-Level Masking for Causal World Models (2026-04-02)
-Causal-JEPA (arXiv:2602.11389, code: github.com/galilai-group/cjepa): Object-level masking as latent intervention. Forces model to reason about object interactions, not just spatial patterns. 20% improvement in counterfactual reasoning, 8x faster planning (1% of tokens). 128D latent slots, single GPU training. Applicable to Cohezion JEPA: mask agent slots in multi-agent scenarios.
-
-### Learning 261: Ralph Loop Anti-Pattern — Infinite Loop Without Exit Condition (2026-04-02)
-Ralph Loop MUST have --completion-promise or --max-iterations. Session 88B: 8 productive iterations then 713 wasted (721 total). The stop hook feeds the same prompt infinitely after work completes. Rule: always set completion_promise to a verifiable boolean, or max_iterations to 2x expected cycles.
-
-### Learning 262: Email Pipeline Anti-Pattern — Build Without Verifying Sink (2026-04-02)
-Created generate_status_report.py + email_status_cron.sh without configuring SMTP. 0 emails sent. Scripts depending on external config MUST validate at creation time. Rule: `assert config_exists() or warn_loudly()`.
-
-### Learning 263: Research-Before-Build — MFMA Intrinsic Discovery (2026-04-02)
-Built 5 load_inline kernels using scalar FP4 LUT decode while research agents discovered hardware MFMA does dequant+matmul in ONE instruction (`__builtin_amdgcn_mfma_scale_f32_32x32x64_f8f6f4`). 10-100x compute gap. HipKittens has NO MXFP4 support. All 5 variants need MFMA rewrite. Rule: wait for research results before building, or gate implementation on minimal PoC.
+### Learning 366: V-Model structural invariants fast-fail before behavioral
+Phase 6 harness gained O3b as a *structural* invariant: `inspect.signature(TieredOrchestrator.run).parameters.get('budget_usd')` must exist and be passable by keyword. This runs in ~1ms and blocks the pytest suite if the signature drifts. Rationale: the behavioral test for nested-budget propagation would fail with `TypeError: got unexpected keyword argument` deep in `_invoke_tier` — confusing error message. Structural check at the harness gate turns "confusing pytest failure" into "explicit invariant violation at Phase 6 start." Pattern: every behavioral invariant whose failure surface is a keyword-drift should have a paired structural invariant that fires first.
