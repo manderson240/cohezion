@@ -79,6 +79,13 @@ class ModelEntry:
     observed_ttft_ms_p95: float | None = None  # 95th percentile TTFT
     observed_total_ms_p50: float | None = None  # 50th percentile full-response latency
     observed_tokens_per_sec: float | None = None  # sustained generation throughput
+    # Reasoning-mode models (e.g. Gemma 4 FLM) emit <thinking> tokens first and
+    # only then produce visible output. With small `max_tokens` budgets the
+    # thinking block consumes the whole budget and the caller sees empty text.
+    # route() uses this flag to emit a warning when max_tokens is too small for
+    # a reasoning-mode lane (local_environment_quirks.md: "reasoning models
+    # need max_tokens >= 128 headroom").
+    reasoning_mode: bool = False
     notes: str = ""
 
 
@@ -104,6 +111,7 @@ def _build_default_registry() -> dict[str, ModelEntry]:
             observed_total_ms_p50=None,
             observed_tokens_per_sec=None,
             verified_working=True,
+            reasoning_mode=True,
             notes=(
                 "Fire by Friction (Doer) — manifest NPU lane. "
                 "Informal 5-call warm-loop 2026-04-18: TTFT ~80ms, total ~200ms. "
@@ -121,6 +129,7 @@ def _build_default_registry() -> dict[str, ModelEntry]:
             quantization="Q4_K_M+turboquant",
             context_window=16384,
             priority=20,
+            reasoning_mode=True,
             notes="Electric Fire (Knower) — Governance / Steering",
         ),
         ModelEntry(
@@ -132,6 +141,7 @@ def _build_default_registry() -> dict[str, ModelEntry]:
             quantization="MXFP4",
             context_window=32768,
             priority=15,
+            reasoning_mode=True,
             notes="Solar Fire (Thinker) — 26B MoE, 4B active params",
         ),
         ModelEntry(
@@ -143,6 +153,7 @@ def _build_default_registry() -> dict[str, ModelEntry]:
             quantization="Q4_K_M",
             context_window=32768,
             priority=40,
+            reasoning_mode=True,
             notes="Safety / System Architect — AVX-VNNI",
         ),
         # --- Task-specialist models via Ollama (:11434) ---
@@ -178,7 +189,8 @@ def _build_default_registry() -> dict[str, ModelEntry]:
             quantization="Q4_K_M",
             context_window=32768,
             priority=45,
-            notes="Long-horizon reasoning",
+            reasoning_mode=True,
+            notes="Long-horizon reasoning (deepseek-r1 emits <think> blocks)",
         ),
         # --- Cloud Ollama fallbacks (confirmed in registry) ---
         ModelEntry(
