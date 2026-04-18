@@ -20,7 +20,6 @@ import logging
 import time
 from dataclasses import dataclass
 
-from cohezion.inference.fleet import RouteResult
 from cohezion.inference.orchestrator import (
     OrchestrationResult,
     QualityGate,
@@ -89,7 +88,7 @@ class GaiaAgentTier:
                 loop = asyncio.get_running_loop()
                 out = await loop.run_in_executor(None, run_fn, prompt)
                 text = out if isinstance(out, str) else str(out)
-            except Exception as exc:  # noqa: BLE001
+            except Exception as exc:
                 error = f"{type(exc).__name__}: {exc}"
 
         latency_ms = (time.perf_counter() - start) * 1000
