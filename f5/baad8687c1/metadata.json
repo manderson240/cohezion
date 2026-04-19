@@ -1,0 +1,40 @@
+{
+  "cli_version": "0.5.5",
+  "checkpoint_id": "f5baad8687c1",
+  "strategy": "manual-commit",
+  "branch": "isolated/session-oom-modularity",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "kaggle-agi-benchmark/agi_autoresearch_driver.py",
+    "kaggle-agi-benchmark/evaluator_kbench.py",
+    "kaggle-agi-benchmark/evaluator_kbench_clean.py",
+    "sandbox/agi_benchmark_fortress.ipynb",
+    "sandbox/agi_submission_notebook.py",
+    "sandbox/aimo/aimo_autoresearch_driver.py",
+    "sandbox/aimo/kaggle_kernel/generate_aimo_notebook.py",
+    "sandbox/aimo/kaggle_kernel/kag_audit.py",
+    "sandbox/aimo/kaggle_kernel/nemotron_lora_training_v28.py",
+    "sandbox/aimo/kaggle_kernel/nemotron_lora_training_v29.py",
+    "sandbox/aimo/kaggle_kernel/nemotron_lora_v28.ipynb",
+    "sandbox/aimo/kaggle_kernel/nemotron_lora_v29.ipynb",
+    "sandbox/aimo/kaggle_kernel/submission_cohezion_v2.ipynb",
+    "sandbox/aimo/kaggle_kernel/submission_fortress_v43.ipynb",
+    "sandbox/aimo/kaggle_kernel/submission_v43_fortress.py",
+    "sandbox/nemotron/generate_traces.py"
+  ],
+  "sessions": [
+    {
+      "metadata": "/f5/baad8687c1/0/metadata.json",
+      "transcript": "/f5/baad8687c1/0/full.jsonl",
+      "content_hash": "/f5/baad8687c1/0/content_hash.txt",
+      "prompt": "/f5/baad8687c1/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 12069,
+    "cache_creation_tokens": 4875428,
+    "cache_read_tokens": 129672106,
+    "output_tokens": 168678,
+    "api_call_count": 403
+  }
+}
