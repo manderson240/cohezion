@@ -1,0 +1,17 @@
+Do we have the newest version of claude code installed?
+
+---
+
+Can you do it?
+
+---
+
+Can you fix to the recommended installation method and remove the extraneous ones?
+
+---
+
+/retrospect
+
+---
+
+SurrealDB should be running on port 8001

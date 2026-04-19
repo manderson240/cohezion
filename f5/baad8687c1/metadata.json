@@ -7,8 +7,11 @@
   "files_touched": [
     "kaggle-agi-benchmark/KAG_BENCHMARK_WRITEUP.md",
     "kaggle-agi-benchmark/agi_autoresearch_driver.py",
+    "kaggle-agi-benchmark/evaluator_kbench.ipynb",
     "kaggle-agi-benchmark/evaluator_kbench.py",
     "kaggle-agi-benchmark/evaluator_kbench_clean.py",
+    "kaggle-agi-benchmark/generate_kbench_notebook.py",
+    "kaggle-agi-benchmark/kaggle_benchmark.json",
     "sandbox/agi_benchmark_fortress.ipynb",
     "sandbox/agi_submission_notebook.py",
     "sandbox/aimo/aimo_autoresearch_driver.py",
@@ -41,6 +44,12 @@
       "transcript": "/f5/baad8687c1/2/full.jsonl",
       "content_hash": "/f5/baad8687c1/2/content_hash.txt",
       "prompt": "/f5/baad8687c1/2/prompt.txt"
+    },
+    {
+      "metadata": "/f5/baad8687c1/3/metadata.json",
+      "transcript": "/f5/baad8687c1/3/full.jsonl",
+      "content_hash": "/f5/baad8687c1/3/content_hash.txt",
+      "prompt": "/f5/baad8687c1/3/prompt.txt"
     }
   ],
   "token_usage": {
