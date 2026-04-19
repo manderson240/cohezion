@@ -1,0 +1,100 @@
+{
+  "cli_version": "0.5.5",
+  "checkpoint_id": "479f0e70cfd5",
+  "session_id": "3faa6e41-1022-409f-b13d-ff910507edf7",
+  "strategy": "manual-commit",
+  "created_at": "2026-04-19T21:10:50.104142905Z",
+  "branch": "isolated/session-oom-modularity",
+  "checkpoints_count": 1,
+  "files_touched": [],
+  "agent": "Claude Code",
+  "model": "claude-opus-4-7[1m]",
+  "turn_id": "1ab29a045e76",
+  "token_usage": {
+    "input_tokens": 133,
+    "cache_creation_tokens": 956955,
+    "cache_read_tokens": 28487585,
+    "output_tokens": 130891,
+    "api_call_count": 113
+  },
+  "session_metrics": {
+    "turn_count": 3
+  },
+  "summary": {
+    "intent": "Unlock TurboQuant KV cache compression on a Framework Desktop with Strix Halo iGPU (gfx1151), picking up from BIOS VRAM configuration and proceeding through kernel/firmware/ROCm upgrades to enable the TurboQuant dispatch path.",
+    "outcome": "VRAM increased from 0.5 GB to 64 GB via BIOS UMA change. Discovered that a complete TurboQuant implementation (0xSero/turboquant v0.2.0) is already installed and importable, with Triton kernels and vLLM backend integration present. No TurboQuant dispatch was actually tested; session ended with a proposed smoke test to determine if Triton JIT-compiles for gfx1151.",
+    "learnings": {
+      "repo": [
+        "0xSero/turboquant v0.2.0 is installed as an egg in cohezion/.venv and lives at research/turboquant/ in the main worktree — includes Triton kernels, vLLM attention backend plugin, benchmarks, and proof tests.",
+        "The TurboQuant integration uses VLLM_ATTENTION_BACKEND registration, not a --kv-cache-dtype CLI flag as the plan assumed.",
+        "Cache-gateway unlock requires TRITON_AMD_WMMA=1 + HSA_OVERRIDE_GFX_VERSION=11.5.1 (not 11.5.0 as in older Gemini PDFs).",
+        "session 94 (2026-04-16) established that PyTorch ROCm wheels lack valid ISA for gfx1151 — HSA_OVERRIDE does not fix this, it is an upstream wheel issue causing 'Invalid Device Function' / 'Memory access fault' on first Triton dispatch.",
+        "turboquant_axis dict is injected into every inference payload; Lemonade lane bindings map NPU:13306, iGPU:13307/:13308, CPU:13309.",
+        "src/cohezion/inference/turboquant_reference.py is the PyTorch correctness oracle (178 lines) for gating dispatch output against paper tolerances.",
+        "EmailNotifier class is imported by 5+ scripts but has no class definition in tracked code — orphaned import pattern.",
+        "vLLM 0.19.0 in cohezion/.venv is broken: torch 2.5.1+rocm6.2 lacks torch._inductor.custom_graph_pass that vLLM 0.19.0 requires.",
+        "llama.cpp auto-fit (-fit on, the default) hangs at 99% CPU for 2+ minutes on Gemma-4-31B Q4_K_M; -fit off resolves it.",
+        "On Strix Halo UMA, model buffers land in GTT (shared system memory), not VRAM — rocm-smi VRAM Used stays flat while GTT Used grows; this is normal for UMA APUs.",
+        "ROCm HSA exposes ~31 GB as per-process allocation ceiling while rocm-smi shows full 64 GB; the discrepancy is HSA queue reservation, not a VRAM bug.",
+        "llama.cpp PR #20969 cited in the plan is a discussion thread, not a PR. The real TurboQuant HIP/ROCm fork is TheTom/llama-cpp-turboquant; paudley's fork targets Vulkan RDNA 3.5.",
+        "Fleet is degraded: only :13306 (DeepSeek-R1-Qwen3-8B via Lemonade/FLM NPU) has a loaded model; other ports are placeholder daemons with 453 MB total VRAM used.",
+        "scripts/send_*.py has 11 near-identical email send scripts — proliferation from successive sprints rather than a consolidated utility.",
+        "amdgpu-install 30.30 and ROCm 7.2.1 apt source (repo.radeon.com/rocm/apt/7.2.1) are already configured; to upgrade to 7.2.2 use amdgpu-install --rocmrelease=7.2.2.",
+        "Kernel 6.18.4 does not exist on kernel.ubuntu.com (build failed); latest 6.18 longterm is 6.18.23, built 2026-04-18."
+      ],
+      "code": [
+        {
+          "path": "scripts/send_summary_email.py",
+          "finding": "Returns silently (return) when GMAIL_APP_PASSWORD is missing — silent-failure anti-pattern. The new send_handoff.py raises SystemExit(2) instead."
+        },
+        {
+          "path": "scripts/send_handoff.py",
+          "finding": "Newly created consolidated email utility (~90 lines): reads --subject and --body-file, markdown-\u003eHTML via optional markdown2, raises EmailNotConfigured on missing credential, uses smtplib.SMTP_SSL smtp.gmail.com:465."
+        },
+        {
+          "path": "scripts/launch_fleet_safe.sh",
+          "finding": "Known-good llama.cpp launcher using Lemonade orchestrator with tested flags: -fa 1 -ngl 99, HSA_OVERRIDE_GFX_VERSION=11.5.1. The authoritative reference for iGPU launch parameters."
+        },
+        {
+          "path": "local_environment_quirks.md",
+          "finding": "Contains distilled findings from session 94 TURBOQUANT_UNLOCK_REPORT including the PyTorch ROCm wheel ISA gap for gfx1151 and the recommended NPU/FLM workaround path."
+        }
+      ],
+      "workflow": [
+        "Gmail MCP create_draft is a safe email handoff path requiring no credential management — security design intentionally allows draft creation but not autonomous send.",
+        "BIOS 'UMA Frame Buffer = Auto' on Framework Desktop with older BIOS (pre-v3.05) may only expose fixed presets (e.g., 64 GB), not a true Auto option; 'AI Max Performance' and 'PCIe Gen5' toggles require BIOS firmware update.",
+        "Always audit what is already on disk before cloning external forks — multiple sessions of prior work can leave significant artifacts (full package installs, pre-built binaries, stashed research) that are not visible in the current worktree.",
+        "Bitwarden CLI self-hosted vault (mike-poweredge-t30.tail54eb71.ts.net:8222) is the credential store; vault was locked and host unreachable during this session — have a fallback path (MCP or !export) when Bitwarden is unavailable.",
+        "The kernel/ROCm upgrade path is orthogonal to TurboQuant — it improves driver stability and may unlock VRAM beyond 64 GB, but adds zero TurboQuant code. Verify a specific regression the upgrade would fix before spending 90 min + reboots on it.",
+        "Use a targeted smoke test (single kernel dispatch with correctness check) before architectural decisions — a 15-minute test answers which of four failure modes applies and determines the actual unblock path.",
+        "Session handoff markdown files (SESSION_HANDOFF_*.md, HANDOFF_*.md, CONTINUE.md, GEMINI.md) are critical context that must be read before any planning — skipping them caused significant replanning overhead in this session."
+      ]
+    },
+    "friction": [
+      "Plan referenced kernel 6.18.4 which does not exist (build failed on kernel.ubuntu.com); latest 6.18.x is 6.18.23 — aspirational version numbers in plans not verified against actual availability.",
+      "Plan referenced llama.cpp PR #20969 as a TurboQuant PR, but it is a discussion thread — critical plan artifact was wrong.",
+      "vLLM 0.19.0 in cohezion/.venv is broken due to torch 2.5.1+rocm6.2 vs vLLM's torch 2.6+ API requirement — blocking vLLM-based probe entirely.",
+      "llama.cpp default auto-fit hangs at 99% single-threaded CPU for 2+ minutes on 31B models, requiring -fit off workaround.",
+      "Bitwarden self-hosted vault unreachable (host not on network) during session, blocking preferred credential retrieval path.",
+      "GMAIL_APP_PASSWORD not set in current shell; email path required fallback to Gmail MCP drafts.",
+      "Adding cappelikan/ppa was flagged as an external-repo change requiring explicit consent separate from 'upgrade kernel' — added latency to kernel upgrade planning.",
+      "EmailNotifier class imported by 5+ scripts has no definition in tracked code — orphaned import causes silent failures in those scripts.",
+      "Multiple session handoff files (SESSION_HANDOFF_2026-04-18_TURBOQUANT.md, HANDOFF_2026-04-18.md, CONTINUE.md, GEMINI.md, local_environment_quirks.md) were not read at session start, causing significant replanning when discovered mid-session.",
+      "TURBOQUANT_UNLOCK_REPORT.md from session 94 referenced in local_environment_quirks.md no longer exists on disk — key prior-work artifact lost."
+    ],
+    "open_items": [
+      "Run Triton smoke test: import turboquant.triton_kernels.fused_rotate_quantize_kernel, dispatch 2048x128 FP16 K tensor on iGPU, check JIT compile for gfx1151, validate output via turboquant_reference.py oracle.",
+      "Kernel upgrade to 6.18.23 (from kernel.ubuntu.com/mainline/v6.18.23/amd64/) — deferred pending smoke test result; only needed if Triton ISA failure requires newer torch wheel.",
+      "ROCm 7.2.1 → 7.2.2 upgrade via amdgpu-install --rocmrelease=7.2.2 — deferred, orthogonal to TurboQuant dispatch.",
+      "AMDGPU strix_halo* firmware blob refresh — deferred.",
+      "BIOS firmware update to v3.05+ to unlock 'AI Max Performance' and 'PCIe Gen5' toggles and potentially 'UMA = Auto' for VRAM beyond 64 GB.",
+      "Consolidate 11 near-identical send_*.py email scripts into a single scripts/send_handoff.py utility (foundation written this session).",
+      "Fix vLLM 0.19.0 in cohezion/.venv — needs torch upgrade to 2.6+ with ROCm support, or reinstall vllm-rocm nightly against ROCm 7.2.x.",
+      "Implement EmailNotifier class (or delete all imports and replace with send_handoff.py pattern) — currently 5+ scripts import a class that doesn't exist.",
+      "Phase 0b empirical backend probe (vLLM-rocm + TBQ vs Vulkan RADV) — blocked on vLLM fix and/or TurboQuant dispatch confirmation.",
+      "Phases 3–5: production launchers on :13307/:13308, AMD Quark QuaRot NPU conversion of Gemma-4-E2B, n\u003e=20 benchmarks populating registry.py and SHOWCASE.md.",
+      "Determine whether dynamic UMA scaling beyond 64 GB BIOS cap is achievable on kernel 6.18.x without a BIOS firmware update.",
+      "Restore or reconstruct TURBOQUANT_UNLOCK_REPORT.md from session 94 findings (currently only distilled summary exists in local_environment_quirks.md)."
+    ]
+  }
+}
