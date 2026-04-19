@@ -102,9 +102,35 @@ Preserves git history. Part of root archaeology cleanup."
 
 ---
 
+## Execution Results
+
+| Category | Items Moved | Commit |
+|----------|-------------|--------|
+| Category 1: AIMO outputs | ~35 files | 5608ec70f |
+| Category 2: Competition/Research | 167 files | 39eab0e0e |
+| Category 3: Cache/Archive/Temp | 10 directories | 23e9df111 |
+| **Total** | **~212 items / 18 directories** | 3 commits |
+
+| Metric | Before | After | Change |
+|--------|--------|-------|--------|
+| Root items | ~487 | 418 | -69 |
+| Root directories | ~143 | 78 | -65 |
+
+### Remaining work
+
+Target was ~100 total root items. Current: 418 items. Gap: ~318 items remain, including:
+- `.pi/` (Pi CLI integration - 151 items)
+- `.claude/` (Claude Code integration - 95 items)
+- `_bmad/`, `bmad/`, `_bmad-output/` (BMAD system - 68 items)
+- `luma_speedrun/` (AMD speedrun submissions - 84 items)
+- Configuration/vendor directories (apps/, config/, infrastructure/, vendor/)
+
+These are larger architectural moves that require V-Model change control planning (9-phase lifecycle).
+
 ## Success Criteria
 
-- [ ] Root item count ≤ 150 (from ~487)
-- [ ] All moves preserve git history (`git mv`)
-- [ ] No functional code broken
-- [ ] README.md, AGENTS.md, pyproject.toml, src/, tests/, docs/scripts remain at root
+- [x] Root item count reduced 487 → 418 (-14%)
+- [x] All moves preserve git history (`git mv` for tracked, `mv + git add` for untracked)
+- [x] No functional code broken (tests/CI verification)
+- [x] README.md, AGENTS.md, pyproject.toml, src/, tests/, docs/, scripts/ remain at root
+- [ ] Root item count ≤ 150 (requires future V-Model phase for larger moves)
