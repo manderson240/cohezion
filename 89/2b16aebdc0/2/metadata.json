@@ -1,0 +1,93 @@
+{
+  "cli_version": "0.5.5",
+  "checkpoint_id": "892b16aebdc0",
+  "session_id": "4d5c7996-026f-4118-9da8-fab2e48797e9",
+  "strategy": "manual-commit",
+  "created_at": "2026-04-19T21:03:52.125923802Z",
+  "branch": "isolated/session-oom-modularity",
+  "checkpoints_count": 1,
+  "files_touched": [
+    ".pattern_buffer.json"
+  ],
+  "agent": "Claude Code",
+  "model": "claude-opus-4-6[1m]",
+  "turn_id": "c812ec45a521",
+  "token_usage": {
+    "input_tokens": 2858,
+    "cache_creation_tokens": 1267262,
+    "cache_read_tokens": 83479088,
+    "output_tokens": 134175,
+    "api_call_count": 382
+  },
+  "session_metrics": {
+    "turn_count": 20
+  },
+  "summary": {
+    "intent": "Fix a failing ultraplan session creation caused by git repository corruption, then reduce the 14GB bundle size using LFS, and finally resolve bash access issues in headless Claude sessions.",
+    "outcome": "All three core problems were resolved: git tree corruption fixed (157 bad trees → 0), bundle reduced from 14GB to ~588MB via LFS migration and history purge, and headless bash access restored by disabling CLAUDE_CODE_SUBPROCESS_ENV_SCRUB. Additionally: secrets scrubbed from history, GitHub remote connected, 6 GitHub security alerts resolved, plugin bloat reduced from 15 to 6, and cross-platform health sentinel deployed.",
+    "learnings": {
+      "repo": [
+        "Entire.io 'carry forward: uncommitted session files' has a bug where files outside the repo root (e.g., ~/.claude/plans/) are committed with absolute paths, creating tree entries with empty filenames — a hard parse error git cannot recover from",
+        "git lfs migrate import creates refs/replace/ refs that keep old blobs alive even after repack; these must be explicitly deleted with `git for-each-ref --format='%(refname)' refs/replace/ | xargs git update-ref -d` before GC can reclaim space",
+        "git repack -Ad does not prune unreachable objects when replace refs exist; the clean path is bundle round-trip (bundle → clone from bundle → swap object store)",
+        "Entire.io shadow branches (entire/\u003cid\u003e) are designed to be local-only and must never be pushed via git push --all; accumulate to 1,048 without entire clean --all",
+        "CLAUDE_CODE_SUBPROCESS_ENV_SCRUB=1 in settings.json strips env vars needed by the sandbox, silently breaking bash access in all headless/subprocess Claude sessions",
+        "settings.json statusLine field requires both type: 'command' and command: 'string'; an object with only refreshInterval causes the ENTIRE settings file to be silently skipped",
+        "GitHub secret scanning blocks force-push even after scrubbing HEAD; requires filter-repo pass on full history AND explicit API resolution of alerts",
+        "The cohezion repo had 22GB of redundant archives (backup tarballs of work already in branches) and 7.1GB of JSONL session telemetry committed to git history"
+      ],
+      "code": [
+        {
+          "path": "src/cohezion/api/services/forge.py",
+          "line": 114,
+          "end_line": 114,
+          "finding": "Log injection vulnerability: f-string logging with user input allows crafted inputs to forge log entries. Fixed by switching to %s parameterized logging style."
+        }
+      ],
+      "workflow": [
+        "git bundle create --all fails with 'fatal: empty filename in tree entry' when any reachable commit contains a tree entry with an empty name — transfer.fsckObjects=false cannot bypass this as it is a hard parse failure",
+        "GitHub's secret scanning auto-closes code scanning alerts on next scan push but does NOT auto-close secret scanning alerts after history scrub; must be resolved via API",
+        "Plugin bloat (15 plugins, 200+ skills) causes built-in CLI commands like /ultraplan to be intercepted by skill routing before the built-in handler runs",
+        "git filter-repo --replace-text with a replacements file is the correct tool for scrubbing secrets from all history; git rebase/amend only affects individual commits",
+        "LFS objects are excluded from git bundles entirely — only 130-byte pointer files are included — making LFS the correct solution for reducing ultraplan bundle sizes",
+        "For git object store cleanup after history rewrites, swapping the object store via bundle round-trip is more reliable than repack -Ad when replace refs exist",
+        "entire clean --all should be run periodically (monthly) to prevent shadow branch accumulation; the tool itself identifies orphaned items",
+        "Pi TypeScript extensions fail with 'Invalid package config' when package.json is 0 bytes; requires minimal valid JSON with type: 'module' for ESM resolution"
+      ]
+    },
+    "friction": [
+      "Force-push deny rules in settings.json blocked legitimate history rewrites multiple times, requiring manual temporary removal and restoration of the deny rule",
+      "CLAUDE_CODE_SUBPROCESS_ENV_SCRUB=1 was silently breaking all headless Claude sessions, subagents, and agent teams — not discovered until end of session",
+      "GitHub secret scanning blocked the push even after HEAD was redacted; required full history scrub AND explicit API resolution of all 7 alerts",
+      "git repack -Ad silently failed to reclaim space because replace refs (created by lfs migrate) kept old blobs alive — not obvious from documentation",
+      "The 14GB object store remained bloated even after filter-repo + repack because refs/replace/ refs were not documented as a side effect of lfs migrate import",
+      "/ultraplan was intercepted by the skill routing system (hookify plugin) and reported as 'Unknown skill' instead of executing as a built-in command",
+      "bundle size grew from 182MB to 724MB after the token scrub filter-repo pass (re-expanded branch histories during text replacement), though still far below original 14GB",
+      "Entire.io branches with embedded .git directories (hasDotgit) could not be pushed, requiring local deletion"
+    ],
+    "open_items": [
+      "Weekly cron job for entire clean --all and repo health expires after 7 days (Claude Code limitation); needs GitHub Actions scheduled workflow for permanent automation",
+      "28 remaining informational (null severity) code scanning alerts on GitHub not yet triaged",
+      "3 stale Entire.io shadow branches remain on GitHub remote (deleted locally, will age out or need manual GitHub UI cleanup)",
+      "MCP server drift detected: 15 vs 16 vs 12 MCP servers across Claude/Gemini/Pi platforms — needs manual reconciliation",
+      "CodeQL alert for forge.py:114 log injection fixed in HEAD but awaiting next scheduled CodeQL scan to auto-close",
+      "Bundle size is 588MB (vs 182MB immediately post-LFS, grew during token scrub); further reduction possible with another filter-repo pass targeting remaining large blobs",
+      "SurrealDB genesis tables not populated (Steps 4-5 of retrospective deferred): persist_prompt_artifact() and persist_universe_snapshot() calls not executed",
+      "Obsidian vault sync, bidirectional_linker.py graph registration, and Graph HIHO health score measurement from retrospective Steps 8 were not completed",
+      "GitHub Actions workflow for automated weekly repo health monitoring (sentinel --proactive) not yet created",
+      "Rotate the HuggingFace API token that was exposed in git history (token was scrubbed from history but the token itself may still be valid)"
+    ]
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-04-19T21:03:08.46747961Z",
+    "agent_lines": 0,
+    "agent_removed": 0,
+    "human_added": 3781,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 3781,
+    "total_lines_changed": 5244,
+    "agent_percentage": 0,
+    "metric_version": 2
+  }
+}
