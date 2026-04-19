@@ -1,0 +1,98 @@
+# Latent Space Intelligence Context Overlay
+
+traced_from:
+  - source: src/cohezion/skills/LATENT_SPACE_INTELLIGENCE_PRIME.md
+    commit: latest
+  - source: src/cohezion/skills/MANIFOLD_PHYSICS_OPTIMIZATION_PRIME.md
+    commit: 9134922de
+  - source: https://github.com/YU-deep/Awesome-Latent-Space
+    date: 2026-04-07
+  - source: https://arxiv.org/html/2603.19312v2
+    date: 2026-03-14
+  - source: https://github.com/lucas-maes/le-wm
+    date: 2026-03-27
+
+# Quick Reference
+
+## The Four Mechanisms → Cohezion Mapping
+
+| Mechanism | Latent Space Literature | Cohezion Implementation |
+|-----------|----------------------|----------------------|
+| Architecture | Backbone, Component, Auxiliary | RiemannianMetric, FourFabricGauge, SpinorState |
+| Representation | Internal, External, Learnable, Hybrid | Brane 12D (internal), Christoffel precompute (hybrid) |
+| Computation | Compressed, Expanded, Adaptive, Interleaved | Constant-metric fast path (compressed), Verlet integration (expanded), is_hiho() (adaptive), precipitation cycle (interleaved) |
+| Optimization | Pre-training, Post-training, Inference | PPO training (pre), reward shaping (post), step() at 219µs (inference) |
+
+## The Seven Abilities → Cohezion Mapping
+
+| Ability | Latent Space Literature | Cohezion Implementation |
+|---------|----------------------|----------------------|
+| Reasoning | Implicit inference, compact traces, branching paths | Christoffel computation (geodesic reasoning), gauge field strength |
+| Planning | Controllable exploration, adaptive budget | Verlet trajectory optimization, CEM-style episode rollout |
+| Modeling | Rich expression, self inspection, scalable depth | Riemannian geometry (metric tensor, curvature), SpinorState introspection |
+| Perception | Multimodal inference, visual grounding | _get_obs_and_info() → SpinorState, gauge field as perceptual signal |
+| Memory | Working retention, persistent mind | Precomputed Christoffel (working), cached yang_mills_action (persistent) |
+| Collaboration | Semantic fidelity, shared cognition | SwarmEnv latent communication via shared gauge potentials |
+| Embodiment | Unsupervised grounding, predictive foresight | ManifoldEnv action space on Riemannian manifold |
+
+## Key Theorems and Equivalences
+
+### SIGReg ⟷ HIHO Equivalence (LeWM ↔ Cohezion)
+
+LeWM's SIGReg enforces isotropic Gaussian N(0,I) on latent embeddings ⟹ maximum entropy
+Cohezion's coherence_score() = 1 - 4·var(brane_dims) peaks at 0.5 ⟹ maximum Shannon entropy
+
+Both prove: **maximum information density = minimum computational cost = computational ground state**
+
+SIGReg: SIGReg(Z) → 0 ⟺ P_Z → N(0,I) ⟹ differential entropy is maximized
+HIHO: all dims at 0.5 ⟹ H = -Σ p·log(p) maximized ⟹ computation is cheapest
+
+### Temporal Straightening ⟷ Geodesic Efficiency
+
+LeWM discovers: cosine similarity of consecutive velocity vectors → 1 during training
+Cohezion encodes: on flat manifold (Γ=0), geodesics are straight lines
+
+Both: **straight paths = flat geometry = minimum computational work**
+
+### Prediction Loss ⟷ Yang-Mills Action
+
+LeWM: ℒ_pred = ‖ẑ_{t+1} - z_{t+1}‖² (next-state prediction MSE)
+Cohezion: S_YM = ‖F‖² (gauge field strength energy)
+
+Both: **prediction error in latent space = energy = cost of being wrong about the future**
+
+## Critical Performance Numbers
+
+| Metric | Cohezion | LeWM | Latent Space Literature |
+|--------|----------|------|------------------------|
+| Step time | 219 µs | ~1s planning | 73 µs → 219 µs (62.9×) |
+| Planning speedup vs. foundation model | 62.9× | 48× | Compressed CoT: 2-5× |
+| Anti-collapse mechanism | coherence ≥ 0.5 | SIGReg λ=0.1 | Stop-gradient, EMA |
+| Tunable hyperparams | 1 (threshold) | 1 (λ) | PLDM: 6, VICReg: 3+ |
+| Latent dimension | 12 (brane) | 192 (embedding) | COCONUT: hidden dim |
+| Physical structure probed | ✓ (by design) | ✓ (learned) | Various probing methods |
+| Surprise detection | yang_mills_action | violation-of-expectation | Various OOD methods |
+
+## Priority Papers for Cohezion Integration
+
+### Tier 1: Direct Architecture Connections
+- COCONUT (hao2024training) — Continuous thought vectors, superposition of search paths
+- ∇-REASONER (wang2026nabla) — Gradient descent in latent space for reasoning
+- GeoSteer (kazama2025geosteer) — Manifold gradient steering = our geodesic_acceleration
+- LeWM (maes2026leworldmodel) — SIGReg ⟷ HIHO, JEPA ⟷ ManifoldEnv
+- LatentEvolve (zhang2025latentevolve) — Self-evolving test-time scaling ⟷ compound pipeline
+
+### Tier 2: Mechanism Connections
+- SoftCoT/SoftCoT++ (xu2025softcot) — Soft token reasoning ⟷ SpinorState continuous representation
+- CODI (shen2025codi) — Self-distillation ⟷ gauge theory caching
+- Huginn (jonas2025scaling) — Recurrent depth ⟷ Verlet integration depth
+- C2C (fu2025cache) — KV-cache communication ⟷ SwarmEnv gauge communication
+- MemGen (zhang2025memgen) — Latent memory ⟷ precomputed Christoffel
+- JEPA-Reasoner (liu2025jepareasoner) — JEPA for reasoning ⟷ field_strength prediction
+
+### Tier 3: Ability Connections
+- Reasoning by Superposition (zhu2025reasoning) — Formal proof that continuous thoughts encode multiple paths
+- LatentMAS (zou2025latent) — Multi-agent latent collaboration ⟷ SwarmEnv
+- ThinkAct (huang2025thinkact) — VLA latent planning ⟷ ManifoldEnv action space
+- MemGen (zhang2025memgen) — Self-evolving memory ⟷ agent trajectory memory
+- Agent Primitives (wang2026primitives) — Reusable latent building blocks ⟷ PRIME skills
