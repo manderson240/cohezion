@@ -3,8 +3,9 @@
   "checkpoint_id": "f5baad8687c1",
   "strategy": "manual-commit",
   "branch": "isolated/session-oom-modularity",
-  "checkpoints_count": 2,
+  "checkpoints_count": 3,
   "files_touched": [
+    "kaggle-agi-benchmark/KAG_BENCHMARK_WRITEUP.md",
     "kaggle-agi-benchmark/agi_autoresearch_driver.py",
     "kaggle-agi-benchmark/evaluator_kbench.py",
     "kaggle-agi-benchmark/evaluator_kbench_clean.py",
@@ -34,13 +35,19 @@
       "transcript": "/f5/baad8687c1/1/full.jsonl",
       "content_hash": "/f5/baad8687c1/1/content_hash.txt",
       "prompt": "/f5/baad8687c1/1/prompt.txt"
+    },
+    {
+      "metadata": "/f5/baad8687c1/2/metadata.json",
+      "transcript": "/f5/baad8687c1/2/full.jsonl",
+      "content_hash": "/f5/baad8687c1/2/content_hash.txt",
+      "prompt": "/f5/baad8687c1/2/prompt.txt"
     }
   ],
   "token_usage": {
-    "input_tokens": 12202,
-    "cache_creation_tokens": 5832383,
-    "cache_read_tokens": 158159691,
-    "output_tokens": 299569,
-    "api_call_count": 516
+    "input_tokens": 15060,
+    "cache_creation_tokens": 7099645,
+    "cache_read_tokens": 241638779,
+    "output_tokens": 433744,
+    "api_call_count": 898
   }
 }

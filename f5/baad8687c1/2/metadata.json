@@ -1,0 +1,30 @@
+{
+  "cli_version": "0.5.5",
+  "checkpoint_id": "f5baad8687c1",
+  "session_id": "4d5c7996-026f-4118-9da8-fab2e48797e9",
+  "strategy": "manual-commit",
+  "created_at": "2026-04-19T21:28:38.449875975Z",
+  "branch": "isolated/session-oom-modularity",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "kaggle-agi-benchmark/KAG_BENCHMARK_WRITEUP.md",
+    "kaggle-agi-benchmark/evaluator_kbench.py",
+    "sandbox/agi_benchmark_fortress.ipynb",
+    "sandbox/aimo/kaggle_kernel/nemotron_lora_training_v29.py",
+    "sandbox/aimo/kaggle_kernel/nemotron_lora_v29.ipynb",
+    "sandbox/aimo/kaggle_kernel/submission_v43_fortress.py"
+  ],
+  "agent": "Claude Code",
+  "model": "claude-opus-4-6[1m]",
+  "turn_id": "c812ec45a521",
+  "token_usage": {
+    "input_tokens": 2858,
+    "cache_creation_tokens": 1267262,
+    "cache_read_tokens": 83479088,
+    "output_tokens": 134175,
+    "api_call_count": 382
+  },
+  "session_metrics": {
+    "turn_count": 20
+  }
+}
