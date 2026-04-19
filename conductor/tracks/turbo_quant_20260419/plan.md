@@ -50,4 +50,5 @@
 - [x] Task: Final Acceptance
     - [x] Log the 12D trajectory of the phase into SurrealDB.
     - [x] Perform Journey Retrospective.
+    - [x] Generate TurboQuant Performance Audit HTML Report (turbo_quant_report.html).
 - [x] Task: Conductor - User Manual Verification 'The Knower (Validation & Persistence)' (Protocol in workflow.md)
