@@ -1,0 +1,93 @@
+I did what was asked of me in this message. I increased the ram available to iGPU.  I didn't see the other options: """TurboQuant / Strix Halo plan — Phase 0a action list
+Plan file: .claude/plans/dreamy-jingling-thacker.md
+Worktree: .claude/worktrees/dreamy-jingling-thacker
+Committed so far: 5bcae51a0 (Phases 0-2), 4f2f0b2bc (BIOS probe)
+
+================================================================
+CURRENT STATE (from scripts/check_bios_state.py, 2026-04-18)
+================================================================
+  [OK]  GPU target: gfx1151 detected
+  [OK]  CPU features: AVX-512 / VNNI / BF16 present (AMD Zen 5)
+  [OK]  User groups: render, video already present
+  [OK]  ROCm 7.2.1 installed (want 7.2.2)
+
+  [--]  Kernel: 6.17.0-1017-oem  (need 6.18.4+)
+  [--]  VRAM allocation: 0.5 GB  (BIOS UMA is not set to Auto; blocks
+everything)
+  [--]  PCIe link speed: unknown without sudo
+
+The 0.5 GB VRAM reading is the headline. No amount of kernel / ROCm / software
+work can exceed the BIOS UMA cap. BIOS visit MUST come first.
+
+================================================================
+STEP 1 — BIOS (physical, you only)
+================================================================
+1. Save any work, reboot.
+2. At POST, press F2 / F12 / Del (Framework Desktop defaults to F2) to
+enter setup.
+3. Locate and set:
+     - UMA Frame Buffer      -> Auto
+     - AI Max Performance    -> Enabled
+     - PCIe Speed            -> Gen5
+4. Save & Exit. Let the machine boot into Linux normally.
+5. Log in.
+
+================================================================
+STEP 2 — Confirm BIOS took effect (no sudo)
+================================================================
+  cd ~/dev/cohezion/.claude/worktrees/dreamy-jingling-thacker
+  .venv/bin/python scripts/check_bios_state.py
+
+Expected change: VRAM row should now report >= ~100 GB. If it still reads
+low, the BIOS change didn't stick — revisit BIOS before continuing.
+
+================================================================
+STEP 3 — Resume automated work with Claude
+================================================================
+Start a new Claude Code session in the worktree and send this prompt:
+
+  continue the turboquant plan from Phase 0a step 6 — BIOS is done,
+  paste the probe output below and proceed:
+
+  <paste the output of the scripts/check_bios_state.py run from Step 2>
+
+I will then:
+  - Verify VRAM is now large (confirms BIOS)
+  - Drive kernel 6.17 -> 6.18.4 upgrade (direct .deb from kernel.ubuntu.com,
+    no Mainline GUI needed; sudo password prompts as we go)
+  - Refresh AMDGPU strix_halo* firmware blobs
+  - Upgrade ROCm 7.2.1 -> 7.2.2
+  - Reboot between steps as required
+  - Re-probe after each reboot
+
+Each sudo command will prompt interactively for your password — I will not
+store or cache it, per the project security rule.
+
+================================================================
+STEP 4 — After Phase 0a greens, I proceed (no more sudo needed)
+================================================================
+  - Phase 0b: install vllm-rocm nightly in scratch venv, build stock
+    llama.cpp + Vulkan RADV, run backend bake-off probe.
+  - Phase 3: launchers for vLLM on :13308 and llama.cpp PR #20969 on
+    :13307 (the real TurboQuant unlock).
+  - Phase 4: AMD Quark QuaRot offline conversion of Gemma-4-E2B for NPU.
+  - Phase 5: n>=20 benchmarks populate registry.py and SHOWCASE.md.
+
+================================================================
+WHAT I CAN NOT DO
+================================================================
+  - Change BIOS settings (no OS-side API on Framework Desktop).
+  - Press the power button if a kernel hangs on boot (rare, but worth
+    being near the machine during Phase 0a reboots).
+  - Set a password for passwordless sudo (you chose interactive mode).
+
+That's it. Any command I would otherwise type myself is in the steps above.
+"""
+
+---
+
+ack
+
+---
+
+What do you suggest for next steps to actually unlock turboquant?
