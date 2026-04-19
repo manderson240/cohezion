@@ -298,3 +298,5 @@
 {"timestamp":1775934501633,"file":"surrealdb_export_retrospective_2026-04-11.json","tool":"write","oldText":null,"category":"general"}
 {"timestamp":1775934576960,"file":".pi/skills/reality-check/SKILL.md","tool":"write","oldText":null,"category":"general"}
 {"timestamp":1775934644508,"file":"REFINED_PLAN_POST_RETROSPECTIVE.md","tool":"write","oldText":null,"category":"general"}
+{"timestamp":1776632385535,"file":"/home/mike-anderson/dev/cohezion/src/cohezion/security/guardrail_factory.py","tool":"edit","oldText":null,"category":"general"}
+{"timestamp":1776632416480,"file":"/home/mike-anderson/dev/cohezion/src/cohezion/security/guardrail_factory.py","tool":"edit","oldText":null,"category":"general"}
