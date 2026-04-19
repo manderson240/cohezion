@@ -53,3 +53,6 @@ This file tracks all major tracks for the project. Each track has its own detail
   *Status: PLANNED - Deploying specialized agent teams to resolve critical compliance risks across BirdCLEF (CPU-only), Nemotron (Rank 32, Open-Weight Traces), AGI (5-Model Eval), and AIMO (Release Date Verification).*
 
 ---
+
+- [ ] **Track: Unlock Turbo Quant on local silicon**
+*Link: [./tracks/turbo_quant_20260419/](./tracks/turbo_quant_20260419/)*
