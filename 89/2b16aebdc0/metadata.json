@@ -1,0 +1,25 @@
+{
+  "cli_version": "0.5.5",
+  "checkpoint_id": "892b16aebdc0",
+  "strategy": "manual-commit",
+  "branch": "isolated/session-oom-modularity",
+  "checkpoints_count": 1,
+  "files_touched": [
+    ".pattern_buffer.json"
+  ],
+  "sessions": [
+    {
+      "metadata": "/89/2b16aebdc0/0/metadata.json",
+      "transcript": "/89/2b16aebdc0/0/full.jsonl",
+      "content_hash": "/89/2b16aebdc0/0/content_hash.txt",
+      "prompt": "/89/2b16aebdc0/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 12069,
+    "cache_creation_tokens": 4875428,
+    "cache_read_tokens": 129672106,
+    "output_tokens": 168678,
+    "api_call_count": 403
+  }
+}

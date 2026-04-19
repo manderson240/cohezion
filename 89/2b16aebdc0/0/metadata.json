@@ -1,0 +1,155 @@
+{
+  "cli_version": "0.5.5",
+  "checkpoint_id": "892b16aebdc0",
+  "session_id": "0098a369-6e99-4fdc-ae23-434df1cf6eb6",
+  "strategy": "manual-commit",
+  "created_at": "2026-04-19T21:02:16.633174847Z",
+  "branch": "isolated/session-oom-modularity",
+  "checkpoints_count": 1,
+  "files_touched": [
+    ".pattern_buffer.json"
+  ],
+  "agent": "Claude Code",
+  "model": "claude-opus-4-6[1m]",
+  "turn_id": "cc0400467a14",
+  "token_usage": {
+    "input_tokens": 12069,
+    "cache_creation_tokens": 4875428,
+    "cache_read_tokens": 129672106,
+    "output_tokens": 168678,
+    "api_call_count": 403
+  },
+  "session_metrics": {
+    "turn_count": 1
+  },
+  "summary": {
+    "intent": "Run a compound engineering retrospective, dogfood CAS cognitive routing through Lemonade local inference, build a multimodal journey rendering pipeline, fix the vault MCP, and close the knowledge compound loop so session learnings automatically persist to vault and SurrealDB.",
+    "outcome": "CAS classifier wired into CompoundExecutor with Qwen3-8B on Vulkan GPU (350ms/classify, 21 tests passing), Lemonade MCP server built with 13 tools and registered via .mcp.json, journey rendering pipeline working end-to-end (physics→LLM narration→TTS→sonification→viz in ~13s), vault MCP fixed (FastMCP v1.26 breaking change), KnowledgeOracle built for cross-store search across vault/SurrealDB/KEY_LEARNINGS, and Stop hook registered to auto-persist session learnings.",
+    "learnings": {
+      "repo": [
+        "Two Lemonade instances run simultaneously: port 13306 (system, /usr/bin/lemond) handles GPU Vulkan + CPU models; port 13307 (vendor embedded, vendor/lemonade/) handles NPU FLM models only",
+        "System Lemonade config defaults to ROCm backend which is broken on gfx1151 (Strix Halo) — must run `sudo -u lemonade lemonade config set llamacpp.backend=vulkan` once to prevent stuck 100% CPU processes",
+        "Qwen3-8B-GGUF requires `/no_think` prefix in every prompt; without it the model spends all tokens in internal reasoning and returns empty string",
+        "gemma3-4b-FLM returns `\u003cpad\u003e` tokens for chat prompts — FLM (Fast Language Model) NPU-compiled variants are not instruction-tuned for chat, only for embeddings/vision",
+        "SurrealDB synapse source/target fields are stored as strings ('neurons:abc') not record links (neurons:abc), causing all relational queries to silently return 0 matches; use string-cast matching as workaround",
+        "sd-cpp Vulkan backend unavailable for this Lemonade version; sd-cpp (cpu/rocm) has a RPATH bug where libstable-diffusion.so is not found unless LD_LIBRARY_PATH is manually set — Lemonade packaging bug",
+        "`lemonade pull` via API only registers model metadata, does not download weights; actual download happens at first load or via `lemonade` CLI binary directly",
+        "Vault MCP (cloud-vault-mcp) broken: FastMCP v1.26.0 changed ASGI interface — `FastMCP` object no longer callable directly; fix is `mcp_app = mcp.sse_app()` instead of `mcp_app = mcp`",
+        "KEY_LEARNINGS.md compression strategy: group individual L### entries into session blocks using one-line format preserving learning numbers for grep discoverability, achieving 64% size reduction while maintaining full recall",
+        "Graph HIHO formula: weighted avg of connectivity + reciprocity + freshness + (1-orphan_ratio); current score 0.542 (target 0.5±0.15), but appears 0.000 when using SurrealDB IN operator due to string-vs-record-link type mismatch"
+      ],
+      "code": [
+        {
+          "path": "src/cohezion/compound/cas_classifier.py",
+          "line": 1,
+          "end_line": 185,
+          "finding": "New file: sync adapter mapping CAS 10 cognitive faculties to ContextPolicy TaskProfiles via Lemonade. Uses sync httpx.Client (not asyncio) to avoid event loop conflicts with sync CompoundExecutor. Filters \u003cpad\u003e tokens from FLM models. Collects training data on every successful classification."
+        },
+        {
+          "path": "src/cohezion/compound/context_policy.py",
+          "line": 1,
+          "end_line": 14,
+          "finding": "Added CAS-first classification path: try CAS classifier, fall back to keyword logic if unavailable or returns None"
+        },
+        {
+          "path": "src/cohezion/compound/executor.py",
+          "line": 1,
+          "end_line": 8,
+          "finding": "Added lazy CAS init: CASClassifier.try_connect() at startup, passed to ContextPolicy; silent failure if Lemonade not available"
+        },
+        {
+          "path": "cloud-vault-mcp/src/mcp_server/main.py",
+          "line": 64,
+          "end_line": 64,
+          "finding": "FastMCP v1.26 breaking change fix: changed `mcp_app = mcp` to `mcp_app = mcp.sse_app()`. The /health endpoint still worked but all /mcp routes returned 500."
+        },
+        {
+          "path": "src/cohezion/swarm/journey_narrator.py",
+          "line": 1,
+          "end_line": 120,
+          "finding": "Replaced no-op stub with Lemonade-backed implementation: sync generate_narration() calls Qwen3-8B on port 13306 with /no_think prefix, async narrate() calls Kokoro TTS. Falls back gracefully if Lemonade unavailable."
+        },
+        {
+          "path": "src/cohezion/compound/knowledge_oracle.py",
+          "line": 1,
+          "finding": "New file: unified cross-store search fanning out to vault .md files (via vault MCP), SurrealDB neurons/experiments (via HTTP), and KEY_LEARNINGS.md (grep). Merges and ranks results. Query latency \u003c10s for all three stores."
+        },
+        {
+          "path": "scripts/session_persist.py",
+          "line": 1,
+          "finding": "New file: session Stop hook script. Auto-persists CAS training data, new KEY_LEARNINGS entries, modified skill files, and session summary to vault+SurrealDB at session end."
+        },
+        {
+          "path": "scripts/render_journey.py",
+          "line": 1,
+          "end_line": 300,
+          "finding": "New file: full multimodal pipeline. Takes JourneyTracker physics data, generates LLM narration via Qwen3-8B, TTS via Kokoro, additive sonification via numpy, matplotlib 4-panel dashboard. Total latency ~13s for 60-step journey."
+        },
+        {
+          "path": ".mcp.json",
+          "line": 1,
+          "finding": "Added lemonade-mcp stdio MCP server entry. Uses project venv Python. Server must be silent on stdout (no imports at module level, lazy _get_client())."
+        },
+        {
+          "path": ".claude/settings.json",
+          "line": 1,
+          "finding": "Added Stop hook pointing to scripts/session_persist.py — fires at every session end to auto-persist learnings to vault and SurrealDB"
+        },
+        {
+          "path": "lemonade-mcp/src/lemonade_mcp/client.py",
+          "line": 1,
+          "finding": "Default URL updated to port 13306 (system Lemonade with working Vulkan+CPU models). Port 13307 is vendor/embedded NPU-only instance."
+        },
+        {
+          "path": "config/model_profiles.yaml",
+          "line": 1,
+          "finding": "Added gemma3-4b-FLM profile under lemonade_hybrid section"
+        }
+      ],
+      "workflow": [
+        "Lemonade `pull` via API only registers metadata — use CLI (`lemonade pull \u003cmodel\u003e`) to actually download weights, or load immediately which triggers download",
+        "Context window exhaustion (API 500 errors) is architectural, not a bug — long sessions hit it predictably. Solution: short focused sessions + compound loop to carry state between them via vault/SurrealDB",
+        "When SurrealDB IN subqueries return 0 unexpectedly, check field types with `SELECT type::is::string(field)` — type mismatch between string and record link is silent and common",
+        "FastMCP v1.26+ requires `.sse_app()` or `.streamable_http_app()` to get the ASGI handler — direct object call no longer works",
+        "ROCm on AMD Strix Halo (gfx1151) is broken for LLMs — always use Vulkan backend via `sudo -u lemonade lemonade config set llamacpp.backend=vulkan`",
+        "Prior art research before claiming novelty revealed AMD GAIA framework already has SDAgent, Whisper, Kokoro, and MCP integration — the differentiator for Cohezion is physics-grounded data, not the rendering stack",
+        "Retrospective line count targets: KEY_LEARNINGS \u003c300 lines, MISSION_JOURNAL \u003c150 lines, MEMORY.md \u003c200 lines — compression by grouping individual L### entries into session blocks is the most effective technique"
+      ]
+    },
+    "friction": [
+      "Dual Lemonade instances (ports 13306/13307) were undocumented — took ~20 min to discover which port had working models",
+      "System Lemonade config defaulted to ROCm, causing 100% CPU stuck llama-server processes that had to be manually killed",
+      "API 500 errors from Anthropic at end of session due to massive context size from a long multi-hour session",
+      "`lemonade pull` API vs CLI behavior mismatch: API only registers metadata, CLI downloads weights — caused repeated 'model not found' debugging",
+      "Qwen3-8B returns empty string without `/no_think` prefix — no error, no warning, just silent empty output",
+      "sd-cpp blocked by RPATH bug (libstable-diffusion.so not found) — image generation was a planned deliverable that had to be deferred",
+      "SurrealDB string-vs-record-link type mismatch caused Graph HIHO to read 0.000 despite valid data — required manual type introspection to diagnose",
+      "Vault MCP silent failure: /health endpoint returned 200 but all /mcp routes returned 500 — FastMCP v1.26 breaking change with no migration warning",
+      "KEY_LEARNINGS.md had grown to 378 lines (26% over target) from 7 sessions of drift without a retrospective"
+    ],
+    "open_items": [
+      "sd-cpp image generation blocked by RPATH bug — needs upstream report to lemonade-sdk and workaround (LD_LIBRARY_PATH wrapper script)",
+      "SurrealDB vault synapse type mismatch: vault-keeper populates source/target as strings instead of record links — fix requires vault-keeper script update to use `type::thing()` syntax",
+      "CAS training data accumulating (5+ examples) but fine-tuning pipeline not yet triggered — needs ~200-500 examples then Unsloth fine-tune on Qwen3",
+      "OMEGA Distiller, SkillRefiner, and MyceliumRegistry exist as code but have no automatic trigger during interactive sessions — need either cron/systemd schedule or integration into Stop hook",
+      "Graph HIHO auto-update not wired — vault-keeper needs to run on schedule to sync new vault notes to SurrealDB neurons/synapses",
+      "COHEZION_CHARTER.md EDL streams still conceptual — need actual CAS faculty specialist backends to implement the 5 EDL streams (Architect/Engineer/Biologist/QHW/QAlgo)",
+      "JourneyAnalyzer archetypes never analyzed against real 368 universe_snapshots in SurrealDB genesis DB",
+      "KnowledgeOracle needs integration into session startup — not yet wired as a pre-session context warm-up",
+      "AMD Lemonade Developer Challenge submission not yet prepared — journey rendering pipeline is demo-ready but no blog post or video recorded",
+      "Ruff lint errors: 2,507 pre-existing (735 auto-fixable) — not a regression but needs scheduled cleanup"
+    ]
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-04-19T21:01:03.915770023Z",
+    "agent_lines": 0,
+    "agent_removed": 0,
+    "human_added": 3692,
+    "human_modified": 89,
+    "human_removed": 0,
+    "total_committed": 3781,
+    "total_lines_changed": 5244,
+    "agent_percentage": 0,
+    "metric_version": 2
+  }
+}
