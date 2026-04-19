@@ -1,0 +1,98 @@
+{
+  "cli_version": "0.5.5",
+  "checkpoint_id": "892b16aebdc0",
+  "session_id": "3faa6e41-1022-409f-b13d-ff910507edf7",
+  "strategy": "manual-commit",
+  "created_at": "2026-04-19T21:03:07.781546934Z",
+  "branch": "isolated/session-oom-modularity",
+  "checkpoints_count": 1,
+  "files_touched": [],
+  "agent": "Claude Code",
+  "model": "claude-opus-4-7[1m]",
+  "turn_id": "1ab29a045e76",
+  "token_usage": {
+    "input_tokens": 133,
+    "cache_creation_tokens": 956955,
+    "cache_read_tokens": 28487585,
+    "output_tokens": 130891,
+    "api_call_count": 113
+  },
+  "session_metrics": {
+    "turn_count": 3
+  },
+  "summary": {
+    "intent": "Unlock TurboQuant KV cache compression on a Framework Desktop with Strix Halo (gfx1151) iGPU, picking up from a prior session that had completed BIOS changes and schema/oracle code.",
+    "outcome": "Discovered that 0xSero/turboquant v0.2.0 with Triton kernels is already installed and integrated into the cohezion codebase, but not yet smoke-tested on gfx1151. The session ended with a clear next action: run a targeted Triton dispatch test to determine if the kernel-ISA gap from session 94 is still blocking.",
+    "learnings": {
+      "repo": [
+        "research/turboquant/ contains 0xSero/turboquant v0.2.0 with real Triton kernels + vLLM attention backend plugin, installed as an egg in cohezion/.venv",
+        "TurboQuant integration uses VLLM_ATTENTION_BACKEND plugin pattern, NOT a --kv-cache-dtype tbq4 CLI flag as the plan had assumed",
+        "Cache-gateway unlock sets TRITON_AMD_WMMA=1 + HSA_OVERRIDE_GFX_VERSION=11.5.1 (session 94 corrected the .0 version to .1)",
+        "src/cohezion/inference/turboquant_reference.py is a PyTorch correctness oracle for gating TurboQuant output quality, not the runtime kernel",
+        "local_environment_quirks.md is the canonical distilled record of session-94 findings about the gfx1151 ISA gap",
+        "Fleet lane bindings: NPU=:13306, iGPU=:13307/:13308, CPU=:13309; only :13306 (DeepSeek-R1-Qwen3-8B) was live during session",
+        "MISSION_JOURNAL.md references TurboQuant NPU promotion as deferred Wave 4 item; research/turboquant was stashed from main worktree",
+        "vLLM 0.19.0 in .venv is broken: torch 2.5.1+rocm6.2 lacks torch._inductor.custom_graph_pass required by vLLM 0.19.0",
+        "EmailNotifier class is imported by 5+ scripts but has no class definition in tracked code — orphaned import pattern",
+        "11+ near-identical send_*.py scripts exist as sprint-by-sprint accumulation rather than a consolidated utility"
+      ],
+      "code": [
+        {
+          "path": "research/turboquant/",
+          "finding": "0xSero/turboquant v0.2.0: Triton kernels + vLLM backend integration. CUDA-benchmarked (RTX 5090): 2x context, 30-77% KV savings, 3-bit cos_sim=1.000000. No AMD/gfx1151/HIP markers — untested on ROCm."
+        },
+        {
+          "path": "scripts/send_handoff.py",
+          "finding": "New consolidated email handoff script (90 lines) built this session. Raises EmailNotConfigured (SystemExit 2) on missing GMAIL_APP_PASSWORD rather than silent no-op. MIMEMultipart alternative with markdown2 optional dep."
+        },
+        {
+          "path": "scripts/launch_fleet_safe.sh",
+          "finding": "Known-good llama.cpp launcher using Lemonade orchestrator with -fa 1 -ngl 99 and HSA_OVERRIDE_GFX_VERSION=11.5.1. Should be used instead of raw llama-server invocations."
+        },
+        {
+          "path": "KERNEL_RESUME_INSTRUCTIONS.md",
+          "finding": "Staged handoff artifact (in worktree) for kernel 6.18.23 upgrade via direct .deb from kernel.ubuntu.com. Was updated from 6.18.4 (which had no .deb — build failed) to 6.18.23 (latest longterm, built 2026-04-18)."
+        },
+        {
+          "path": "benchmarks/backend_probe_2026-04-18.md",
+          "finding": "Skeleton benchmark file created this session; no actual results populated — probe was abandoned when session pivoted to auditing existing TurboQuant artifacts."
+        }
+      ],
+      "workflow": [
+        "Gmail MCP create_draft is a practical alternative to SMTP for reboot handoffs: no credential management, human reviews before sending, available even when GMAIL_APP_PASSWORD is unset",
+        "llama.cpp default -fit on hangs at 99% CPU for large models on this host; always use -fit off flag",
+        "llama.cpp model buffers land in GTT (shared system memory) not VRAM on UMA APUs — rocm-smi VRAM Used stays flat while GTT Used grows; this is normal behavior",
+        "kernel.ubuntu.com/mainline build failures are common for specific minor versions (6.18.4 had no .deb); always check the directory listing before citing a version in a plan",
+        "cappelikan/ppa (mainline kernel GUI) adds a persistent apt source; requires explicit user consent distinct from 'upgrade kernel' — direct .deb from kernel.ubuntu.com is the lower-trust-footprint alternative",
+        "The PyTorch ROCm wheel ISA gap for gfx1151 is orthogonal to kernel/driver upgrades — it requires PyTorch to ship updated wheels with gfx1151 ISA support",
+        "Bitwarden self-hosted at mike-poweredge-t30.tail54eb71.ts.net:8222 was unreachable during session; vault also locked locally",
+        "Prior Gemini sessions left planning artifacts (SESSION_HANDOFF, HANDOFF, GEMINI.md, CONTINUE.md) but executed zero sudo/kernel/ROCm work — only schema code and probe scripts were committed"
+      ]
+    },
+    "friction": [
+      "Session started without reading existing handoff artifacts (SESSION_HANDOFF_2026-04-18_TURBOQUANT.md, local_environment_quirks.md) — led to re-planning work already analyzed in session 94",
+      "Plan cited llama.cpp PR #20969 as the TurboQuant implementation; it's actually a discussion thread, not a PR — caused a navigation dead-end",
+      "Plan cited kernel 6.18.4 as target; that specific build failed on kernel.ubuntu.com with no .deb available",
+      "vLLM 0.19.0 in .venv is silently broken (import fails) and was installed against incompatible torch 2.5.1+rocm6.2",
+      "llama.cpp -fit on (default) caused a 2+ minute 99% CPU hang before being identified and killed",
+      "Bitwarden self-hosted instance was unreachable, blocking the originally-planned credential retrieval path",
+      "GMAIL_APP_PASSWORD was unset, requiring the entire email pathway to be redesigned around Gmail MCP drafts",
+      "rocm-smi and HSA report different usable VRAM figures (64 GB vs 31 GB) without clear documentation of why — required investigation to determine GTT vs VRAM semantics for UMA APUs",
+      "research/turboquant/ exists in main worktree, not in the dreamy-jingling-thacker worktree — split context across two tree locations"
+    ],
+    "open_items": [
+      "Run Triton dispatch smoke test: import turboquant.triton_kernels.fused_rotate_quantize_kernel, feed 2048x128 FP16 K tensor on iGPU, check for ISA compile success and correctness against turboquant_reference.py oracle",
+      "Kernel 6.17 → 6.18.23 upgrade (direct .deb path, KERNEL_RESUME_INSTRUCTIONS.md staged) — deferred pending smoke test result determining if it's actually needed",
+      "ROCm 7.2.1 → 7.2.2 upgrade via amdgpu-install --rocmrelease=7.2.2 — deferred for same reason",
+      "AMDGPU strix_halo* firmware blob refresh — deferred",
+      "Fix vLLM 0.19.0 in cohezion/.venv: needs torch 2.6+ with ROCm support or downgrade to vLLM compatible with torch 2.5.1",
+      "Consolidate 11+ sprint-specific send_*.py scripts into the new send_handoff.py (scripts/send_handoff.py built this session)",
+      "Phase 0b empirical backend probe: two-arm benchmark (vLLM-rocm TBQ vs llama.cpp Vulkan RADV) — blocked on resolving the Triton ISA question first",
+      "Phase 3: production lane wiring for vLLM on :13308 and llama.cpp TurboQuant on :13307",
+      "Phase 4: AMD Quark QuaRot offline conversion of Gemma-4-E2B for NPU",
+      "Phase 5: n\u003e=20 benchmarks to populate registry.py and SHOWCASE.md",
+      "BIOS: UMA set to 64 GB fixed preset instead of Auto; AI Max Performance and PCIe Gen5 options not visible (likely requires BIOS firmware v3.05+) — Framework Desktop BIOS update deferred",
+      "Consolidate orphaned EmailNotifier pattern — class imported by 5+ scripts but defined nowhere in tracked code"
+    ]
+  }
+}
