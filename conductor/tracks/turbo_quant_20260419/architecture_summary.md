@@ -35,6 +35,8 @@
 
 ## 4. Implementation Path
 - **Step 1**: Synthesize the `CoherenceGuard` harness.
-- **Step 2**: Implement Triton kernels for MXFP4 on `gfx1151`.
+- **Step 2**: Implement `TurboKVKernel` in `src/cohezion/flume/kernels/turbo_kv.py`.
+    - **Optimization**: Uses Wave32 alignment (`-mwavefrontsize32`) and `WAVE_SIZE = 32` specifically for Strix Halo `gfx1151`.
+    - **Logic**: Fused attention over PolarQuant + QJL compressed KV cache.
 - **Step 3**: Integrate kernels into `lemonade` backend.
 - **Step 4**: Update `HybridSwarmRouter` for explicit node allocation.
