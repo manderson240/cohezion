@@ -1,0 +1,80 @@
+{
+  "cli_version": "0.5.5",
+  "checkpoint_id": "892b16aebdc0",
+  "session_id": "c0a18508-4883-4245-9bc6-89cde6c4f766",
+  "strategy": "manual-commit",
+  "created_at": "2026-04-19T21:04:19.423266966Z",
+  "branch": "isolated/session-oom-modularity",
+  "checkpoints_count": 1,
+  "files_touched": [
+    ".pattern_buffer.json"
+  ],
+  "agent": "Claude Code",
+  "model": "claude-opus-4-6[1m]",
+  "turn_id": "148faa20438f",
+  "token_usage": {
+    "input_tokens": 3193,
+    "cache_creation_tokens": 364913,
+    "cache_read_tokens": 8932372,
+    "output_tokens": 42504,
+    "api_call_count": 75
+  },
+  "session_metrics": {
+    "turn_count": 5
+  },
+  "summary": {
+    "intent": "Update Claude Code to the latest version using the recommended installation method, then run a full development retrospective to prune knowledge graph files, propagate metrics to core documentation, and persist learnings to SurrealDB and the Obsidian vault.",
+    "outcome": "Claude Code was migrated from npm/Linuxbrew (v2.1.105) to native installer (v2.1.112). The retrospective completed: KEY_LEARNINGS compressed 48% (382→197 lines), MISSION_JOURNAL updated with sessions 97-101, CLAUDE.md and CAPABILITY_MAP_REDUX.md refreshed with accurate metrics, SurrealDB crash loop fixed and learnings persisted, and 3 vault entries created.",
+    "learnings": {
+      "repo": [
+        "Skills have grown from 206 to 235 .md files (+14%) with 215 PRIME-format skills, but the skill_registry.json only has 133 entries — the registry is significantly stale and needs regeneration.",
+        "JEPA tests are 34 total (25 + 9), not 9 as CLAUDE.md claimed — a 3.7x undercount.",
+        "Genesis tests are 398 (physics + world_model + environments), not 348 as documented.",
+        "MCP tools are 87, not '41+' as documented — nearly double the claimed count.",
+        "SurrealDB has two separate graph systems: neurons/synapses (vault-keeper domain for Graph HIHO) and prompt_artifacts/universe_snapshots (genesis execution) — they are different namespaces and persist independently.",
+        "The journey_transitions and prompt_artifacts SurrealDB tables do not exist in the current DB namespace and may need schema migration.",
+        "Vault currently has 4 decisions, 3 patterns, and 0 experiments populated.",
+        "Ruff reports 4,307 pre-existing errors (2,368 auto-fixable) — no regressions introduced this session."
+      ],
+      "code": [],
+      "workflow": [
+        "SurrealDB 3.0 requires --temporary-directory path to pre-exist; after /tmp cleanup or reboot the directory is gone, causing an exit-code-2 crash loop that triggers systemd rate limiting. Fix: mkdir -p /tmp/surrealdb + systemctl --user reset-failed surrealdb.service + start.",
+        "When systemd hits restart rate limits, systemctl start is blocked until reset-failed is called — standard restart alone is insufficient after a crash loop.",
+        "The ripgrep binary was bundled inside the npm Claude Code package; removing npm breaks the Grep tool for the current session. It self-heals after restarting with the native binary.",
+        "Claude Code native installer places the binary at ~/.local/bin/claude as a symlink to ~/.local/share/claude/versions/\u003cversion\u003e, enabling zero-downtime auto-updates by re-pointing the symlink.",
+        "Two Claude Code installations can silently conflict — whichever appears first in $PATH wins, and switching shells or PATH ordering can silently drop back to an older version.",
+        "Metrics drift at roughly 2-4% per session without retrospective passes; compound engineering loop (retrospect → propagate → verify) is required to keep self-model accurate.",
+        "KEY_LEARNINGS compression strategy: merge verbose multi-paragraph entries for old sessions into single-line summaries while keeping recent sessions (85+) at full detail — temporal decay applied to documentation."
+      ]
+    },
+    "friction": [
+      "Grep tool broken mid-session because ripgrep was bundled inside the npm Claude Code package that was just removed — had to fall back to bash grep for remainder of session.",
+      "SurrealDB was crash-looping due to missing /tmp/surrealdb directory, and systemd rate limiting blocked restart until reset-failed was called — required extra diagnostic steps.",
+      "npm uninstall appeared to fail but had actually succeeded, causing a redundant verification loop.",
+      "MISSION_JOURNAL ended at 154 lines, slightly over the 150-line soft target after adding 5 session entries.",
+      "Initial exploration agent incorrectly reported COHEZION_CHARTER.md as truncated, requiring manual verification before planning."
+    ],
+    "open_items": [
+      "skill_registry.json has 133 entries vs 235 actual .md skill files — registry needs regeneration to close the gap.",
+      "Graph HIHO score cannot be measured — requires vault-keeper to populate neurons/synapses tables first.",
+      "SurrealDB service unit needs ExecStartPre=/usr/bin/mkdir -p /tmp/surrealdb added to self-heal on boot/tmp cleanup.",
+      "journey_transitions and prompt_artifacts SurrealDB tables don't exist in current namespace — may need schema migration.",
+      "4,307 ruff errors (2,368 auto-fixable) are pre-existing and unaddressed.",
+      "Session restart required to pick up Claude Code v2.1.112 native binary and restore working Grep tool.",
+      "Vault experiment entries are empty (0 experiments) — experiment tracking has not been populated.",
+      "Dual Claude Code installations (npm-global and native) may still exist if the native binary at ~/.local/bin wasn't fully verified as PATH-primary."
+    ]
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-04-19T21:03:52.550228282Z",
+    "agent_lines": 0,
+    "agent_removed": 0,
+    "human_added": 3692,
+    "human_modified": 89,
+    "human_removed": 0,
+    "total_committed": 3781,
+    "total_lines_changed": 5244,
+    "agent_percentage": 0,
+    "metric_version": 2
+  }
+}
