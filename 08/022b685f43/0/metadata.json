@@ -1,0 +1,94 @@
+{
+  "cli_version": "0.5.5",
+  "checkpoint_id": "08022b685f43",
+  "session_id": "3faa6e41-1022-409f-b13d-ff910507edf7",
+  "strategy": "manual-commit",
+  "created_at": "2026-04-19T21:25:26.707378185Z",
+  "branch": "isolated/session-oom-modularity",
+  "checkpoints_count": 1,
+  "files_touched": [],
+  "agent": "Claude Code",
+  "model": "claude-opus-4-7[1m]",
+  "turn_id": "1ab29a045e76",
+  "token_usage": {
+    "input_tokens": 133,
+    "cache_creation_tokens": 956955,
+    "cache_read_tokens": 28487585,
+    "output_tokens": 130891,
+    "api_call_count": 113
+  },
+  "session_metrics": {
+    "turn_count": 3
+  },
+  "summary": {
+    "intent": "Unlock TurboQuant KV cache compression on a Framework Desktop with Strix Halo iGPU (gfx1151), picking up from a prior session that had done BIOS changes and schema/oracle code but not the runtime integration.",
+    "outcome": "No TurboQuant dispatch was achieved this session, but the actual state of all prior work was fully mapped: 0xSero/turboquant v0.2.0 is already installed as an egg, the cohezion schema + PyTorch oracle exist, and the real blocker is a PyTorch ROCm wheel ISA gap for gfx1151 (not kernel/firmware/ROCm version). A smoke test was proposed but not yet run.",
+    "learnings": {
+      "repo": [
+        "0xSero/turboquant v0.2.0 is installed at research/turboquant/ and importable from cohezion/.venv — CUDA-benchmarked (RTX 5090), not yet validated on AMD gfx1151",
+        "vLLM 0.19.0 in cohezion/.venv is broken: torch 2.5.1+rocm6.2 lacks torch._inductor.custom_graph_pass required by vLLM 0.19.0, and vLLM does not contain TurboQuant (no tbq/turbo flag exists in the package)",
+        "llama.cpp master is pre-built with HIP at ~/src/llama.cpp/build/bin/llama-server but is on master branch — no TurboQuant PR pulled",
+        "The fleet's only loaded model is DeepSeek-R1-Qwen3-8B on port 13306 (NPU/FLM); other fleet ports are placeholder daemons with no model loaded",
+        "session 94 (2026-04-16) established that PyTorch ROCm wheels have a known upstream ISA gap for gfx1151 — HSA_OVERRIDE_GFX_VERSION=11.5.1 is the correct override (not 11.5.0 as in some Gemini PDFs)",
+        "EmailNotifier class is imported by 5+ scripts but has no class definition in tracked code — orphaned import pattern",
+        "11+ near-duplicate send_*.py scripts exist; should be consolidated into one scripts/send_handoff.py",
+        "local_environment_quirks.md is the authoritative record of session-94 findings and distilled TURBOQUANT_UNLOCK_REPORT.md content"
+      ],
+      "code": [
+        {
+          "path": "research/turboquant/",
+          "finding": "Complete 0xSero/turboquant v0.2.0 package with Triton kernels, vLLM attention backend plugin, benchmarks, and proof tests. Installed as egg. Integration is via VLLM_ATTENTION_BACKEND registration, not a CLI flag like --kv-cache-dtype tbq4."
+        },
+        {
+          "path": "scripts/send_summary_email.py",
+          "finding": "Returns silently (return) when GMAIL_APP_PASSWORD is missing — silent-failure anti-pattern. Should raise SystemExit(2) instead."
+        },
+        {
+          "path": "scripts/launch_fleet_safe.sh",
+          "finding": "Contains known-good llama.cpp launch flags: -fa 1 -ngl 99 and HSA_OVERRIDE_GFX_VERSION=11.5.1. Should be consulted before launching llama-server manually."
+        },
+        {
+          "path": "src/cohezion/inference/turboquant_reference.py",
+          "finding": "PyTorch oracle (178 lines) for correctness gating. Separate from the 0xSero Triton kernels — used to validate dispatch output matches paper tolerances."
+        },
+        {
+          "path": "scripts/check_bios_state.py",
+          "finding": "Read-only probe using sysfs mem_info_vram_total and lspci -vv LnkSta proxies. Cannot detect AI Max Performance BIOS toggle (only visible via thermal/frequency telemetry under load)."
+        }
+      ],
+      "workflow": [
+        "Gmail MCP create_draft bypasses GMAIL_APP_PASSWORD entirely and is safer for human-in-the-loop handoffs — MCP intentionally exposes create_draft but not send, requiring human review before delivery",
+        "llama.cpp default -fit on hangs at 99% CPU for 2+ minutes on large models; use -fit off to bypass",
+        "On Strix Halo UMA APU, model buffers land in GTT (shared system memory), not VRAM — rocm-smi VRAM Used stays flat while GTT Used grows; this is expected behavior",
+        "rocm-smi reports full 64 GB while HSA per-process ceiling shows ~31 GB — the discrepancy is HSA user-segment allocation ceiling, not a VRAM loss; 64 GB is accessible",
+        "kernel.ubuntu.com mainline v6.18.4 build failed (directory exists, no .debs); use v6.18.23 (latest longterm, built 2026-04-18) instead",
+        "Adding a third-party PPA (cappelikan/ppa) is a persistent system change that deserves explicit consent separate from 'upgrade kernel' — direct .deb from kernel.ubuntu.com is safer and auditable",
+        "Bitwarden CLI pointed at self-hosted server (mike-poweredge-t30.tail54eb71.ts.net:8222) which may not be reachable from all network contexts",
+        "Before cloning external forks or installing new software, audit local disk for existing installs — in this case, turboquant was already installed and llama.cpp was already built"
+      ]
+    },
+    "friction": [
+      "Session started without reading prior handoff files (SESSION_HANDOFF_2026-04-18_TURBOQUANT.md, HANDOFF_2026-04-18.md, CONTINUE.md, GEMINI.md) — significant rework and wrong assumptions resulted",
+      "Plan referenced 'kernel 6.18.4' and 'llama.cpp PR #20969' as concrete targets; both turned out to be wrong (6.18.4 build failed, #20969 is a discussion not a PR)",
+      "Plan referenced '--kv-cache-dtype tbq4' as a vLLM flag; this flag does not exist — real integration is via vLLM attention backend plugin registration",
+      "llama.cpp auto-fit (-fit on default) hung at 99% CPU for 2+ minutes with no progress signal, wasting significant time before identifying the workaround",
+      "Bitwarden self-hosted server unreachable in this session, blocking credential retrieval path",
+      "Gemini-generated STRIX_HALO_UNLOCK_GUIDE.md contains an outdated HSA_OVERRIDE value (11.5.0 instead of 11.5.1 established by session 94)",
+      "Multiple near-duplicate email send scripts (11+) with no consolidated interface, one of which has an orphaned EmailNotifier import with no backing class"
+    ],
+    "open_items": [
+      "Run the 40-line Triton smoke test on fused_rotate_quantize_kernel to determine if 0xSero kernels JIT-compile and dispatch on gfx1151 without ISA failure",
+      "If Triton dispatch succeeds: wire 0xSero backend into vLLM (fix the torch 2.5.1+rocm6.2 vs vLLM 0.19.0 API mismatch first), run full benchmark, populate benchmarks/backend_probe_2026-04-18.md",
+      "If Triton dispatch fails with ISA error: evaluate direct llama.cpp HIP fork (TheTom's or paudley's Vulkan RDNA 3.5 fork) as alternative TurboQuant runtime",
+      "Kernel 6.17 → 6.18.23 upgrade (deferred — not confirmed necessary unless Triton ISA failure is linked to driver version)",
+      "ROCm 7.2.1 → 7.2.2 upgrade via amdgpu-install --rocmrelease=7.2.2 (deferred — same rationale)",
+      "AMDGPU strix_halo* firmware refresh (deferred)",
+      "Consolidate 11+ send_*.py scripts into single scripts/send_handoff.py (built this session but not yet replacing the others)",
+      "Fix silent-failure anti-pattern in scripts/send_summary_email.py (return on missing credential → SystemExit(2))",
+      "Resolve orphaned EmailNotifier import across 5+ scripts",
+      "BIOS: AI Max Performance and PCIe Gen5 options not visible — likely requires BIOS firmware update to v3.05+; UMA set to fixed 64 GB instead of Auto",
+      "Phase 0b empirical backend probe (vLLM vs llama.cpp Vulkan RADV bakeoff) not yet run",
+      "Phases 3–5 (launchers, AMD Quark QuaRot NPU conversion, n\u003e=20 benchmarks) not started"
+    ]
+  }
+}
