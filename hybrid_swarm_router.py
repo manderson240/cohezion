@@ -16,8 +16,8 @@ import aiohttp
 class HybridConfig:
     """Configuration for hybrid inference."""
 
-    npu_endpoint: str = "http://localhost:13305"  # FLM NPU
-    gpu_endpoint: str = "http://localhost:13305"  # ROCm (when fixed)
+    npu_endpoint: str = "http://localhost:13306"  # FLM NPU
+    gpu_endpoint: str = "http://localhost:13307"  # ROCm (when fixed)
     cloud_endpoint: str = "http://localhost:11434"  # Ollama cloud
     npu_models: set[str] = None
     gpu_models: set[str] = None
