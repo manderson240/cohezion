@@ -1,0 +1,92 @@
+{
+  "cli_version": "0.5.5",
+  "checkpoint_id": "3516374ac46f",
+  "session_id": "4d5c7996-026f-4118-9da8-fab2e48797e9",
+  "strategy": "manual-commit",
+  "created_at": "2026-04-19T20:30:47.018653467Z",
+  "branch": "isolated/session-oom-modularity",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "conductor/tracks.md"
+  ],
+  "agent": "Claude Code",
+  "model": "claude-opus-4-6[1m]",
+  "turn_id": "c812ec45a521",
+  "token_usage": {
+    "input_tokens": 2858,
+    "cache_creation_tokens": 1267262,
+    "cache_read_tokens": 83479088,
+    "output_tokens": 134175,
+    "api_call_count": 382
+  },
+  "session_metrics": {
+    "turn_count": 20
+  },
+  "summary": {
+    "intent": "Fix ultraplan session creation failures caused by git repository corruption, reduce 14GB bundle size via LFS migration, and harden the Claude/Gemini/Pi development environment against recurrence.",
+    "outcome": "All blockers resolved: git tree corruption fixed (157 → 0 bad trees), bundle reduced from 14GB to 588MB via LFS + filter-repo history rewrite, GitHub remote connected with clean history (secrets scrubbed), plugins trimmed from 15 to 6 to restore ultraplan built-in command routing, and CLAUDE_CODE_SUBPROCESS_ENV_SCRUB disabled to restore bash access in headless sessions.",
+    "learnings": {
+      "repo": [
+        "Entire.io 'carry forward: uncommitted session files' commits absolute paths (e.g. /home/mike-anderson/.claude/plans/) outside the repo root, creating empty-filename tree entries that corrupt git objects in a way git cannot recover from without deleting the branch",
+        "entire/ shadow branches are designed to be local-only — pushing them via 'git push --all' violates Entire.io's design; only entire/checkpoints/v1 should be remote",
+        "git lfs migrate import creates refs/replace/ entries that keep old blobs reachable, preventing GC; must delete these refs before repack will actually shrink the repo",
+        "The bundle round-trip method (clone from bundle into new dir, swap .git/objects/) is the reliable way to get a clean object store when repack -Ad fails to prune unreachable blobs",
+        "shared_gemini.html (saved Gemini UI page) contained embedded Google API keys — triggered GitHub secret scanning; session JSONL telemetry also logged API keys from Gemini responses",
+        "CLAUDE_CODE_SUBPROCESS_ENV_SCRUB=1 in settings.json strips sandbox initialization env vars from subprocess Claude sessions, silently breaking bash access in all headless/subagent/claude-p invocations",
+        "15+ plugins with hookify caused the skill routing table to intercept /ultraplan before the CLI built-in command handler, resulting in 'Unknown skill: ultraplan'",
+        "package.json was a 0-byte empty file, causing Pi v0.66.1 ESM extension loader to fail with 'Invalid package config'"
+      ],
+      "code": [
+        {
+          "path": "src/cohezion/api/services/forge.py",
+          "line": 114,
+          "end_line": 114,
+          "finding": "Log injection via f-string interpolation of user input; CodeQL flagged it; fixed by switching to %s-style parameterized logging"
+        }
+      ],
+      "workflow": [
+        "git filter-repo --replace-text with an expressions file is the correct tool for scrubbing secrets from all history; git rebase/filter-branch approaches are slower and less reliable",
+        "GitHub secret scanning alerts must be explicitly resolved via API even after secrets are scrubbed from history — they do not auto-close",
+        "transfer.fsckObjects=false cannot bypass empty-filename tree errors because they are hard parse failures in git's tree format reader, not fsck-level checks",
+        "git bundle create --all includes every ref including corrupted entire/ branches; partial bundle (excluding entire/) works as a diagnostic step",
+        "Running 'entire clean --all' periodically is essential — 1048 shadow branches accumulated in 5 weeks without cleanup",
+        "When git lfs migrate rewrites commits, the replace refs it creates must be deleted before repack can actually reclaim space",
+        "The platform-health-sentinel.sh pattern (proactive at session start, reactive after failure, self-healing mode) is a sound cross-platform monitoring architecture for shared services (SurrealDB, Ollama, Vault)"
+      ]
+    },
+    "friction": [
+      "Force-push deny rules in settings.json required repeated temporary removal to complete legitimate history rewrites — needed a cleaner escape hatch for authorized destructive operations",
+      "git repack -Ad did not prune unreachable blobs because refs/replace/ entries created by lfs migrate kept old objects reachable — required discovering and deleting 5648 replace refs manually",
+      "GitHub secret scanning blocked the push even after the secret was redacted in HEAD — required filter-repo history scrub AND manual alert resolution via API",
+      "CLAUDE_CODE_SUBPROCESS_ENV_SCRUB=1 was silently breaking all headless Claude sessions with no clear error message about the cause",
+      "Plugin routing (hookify + 14 others) intercepted /ultraplan with 'Unknown skill' — built-in CLI commands should take priority over plugin skill routes",
+      "CronCreate task auto-expires after 7 days — not suitable for truly persistent automation without GitHub Actions or systemd",
+      "Entire.io hasDotgit error when pushing certain shadow branches caused those branches to be un-pushable and required local deletion"
+    ],
+    "open_items": [
+      "GitHub Actions scheduled workflow for weekly repo health monitoring (sentinel cron auto-expires in 7 days)",
+      "Rotate the HuggingFace API token that was exposed in commit history (token was scrubbed from git but the token itself should be revoked on huggingface.co)",
+      "28 remaining informational-severity CodeQL alerts not yet triaged",
+      "Branch protection ruleset exists but has 0 rules — no required CI status checks or review requirements on main",
+      "Vulnerability alerts (Dependabot) still disabled on the GitHub repo",
+      "3 stale Entire.io shadow branches still on GitHub remote (deleted locally, need GitHub UI cleanup or they'll age out)",
+      "Bundle size grew from 182MB back to 588-724MB after the shared_gemini.html filter-repo pass — could be trimmed further",
+      "Ultraplan not yet confirmed working end-to-end — repo health blockers fixed but actual ultraplan session creation not verified in transcript",
+      "SurrealDB genesis tables (journey_transitions, neurons, etc.) population not verified — retrospective Step 4 was skipped",
+      "Graph HIHO health score not calculated — retrospective Step 8 graph health check not completed",
+      "Pi agent skill index health and extension loading not re-verified after package.json fix"
+    ]
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-04-19T20:30:05.987357307Z",
+    "agent_lines": 0,
+    "agent_removed": 0,
+    "human_added": 98,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 98,
+    "total_lines_changed": 98,
+    "agent_percentage": 0,
+    "metric_version": 2
+  }
+}

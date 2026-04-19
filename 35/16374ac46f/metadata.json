@@ -3,21 +3,29 @@
   "checkpoint_id": "3516374ac46f",
   "strategy": "manual-commit",
   "branch": "isolated/session-oom-modularity",
-  "checkpoints_count": 3,
-  "files_touched": null,
+  "checkpoints_count": 4,
+  "files_touched": [
+    "conductor/tracks.md"
+  ],
   "sessions": [
     {
       "metadata": "/35/16374ac46f/0/metadata.json",
       "transcript": "/35/16374ac46f/0/full.jsonl",
       "content_hash": "/35/16374ac46f/0/content_hash.txt",
       "prompt": "/35/16374ac46f/0/prompt.txt"
+    },
+    {
+      "metadata": "/35/16374ac46f/1/metadata.json",
+      "transcript": "/35/16374ac46f/1/full.jsonl",
+      "content_hash": "/35/16374ac46f/1/content_hash.txt",
+      "prompt": "/35/16374ac46f/1/prompt.txt"
     }
   ],
   "token_usage": {
-    "input_tokens": 133,
-    "cache_creation_tokens": 956955,
-    "cache_read_tokens": 28487585,
-    "output_tokens": 130891,
-    "api_call_count": 113
+    "input_tokens": 2991,
+    "cache_creation_tokens": 2224217,
+    "cache_read_tokens": 111966673,
+    "output_tokens": 265066,
+    "api_call_count": 495
   }
 }
