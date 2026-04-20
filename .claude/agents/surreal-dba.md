@@ -1,7 +1,6 @@
 ---
 name: surreal-dba
 description: Read-only SurrealDB graph database health and analysis agent. Validates schemas, reports index efficiency, detects orphan records, and recommends optimizations.
-effort: low
 tools:
   - Read
   - Glob

@@ -1,7 +1,6 @@
 ---
 name: skill-researcher
 description: Researches patterns in the codebase and generates PRIME skill definitions
-effort: medium
 tools:
   - Read
   - Glob

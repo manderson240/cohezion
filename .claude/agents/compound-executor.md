@@ -1,7 +1,6 @@
 ---
 name: compound-executor
 description: Executes compound engineering cycles, runs the compound driver, analyzes execution reports, and reports token efficiency and compound score metrics.
-effort: high
 tools:
   - Bash
   - Read

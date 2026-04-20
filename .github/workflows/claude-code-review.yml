@@ -19,6 +19,10 @@ jobs:
     #   github.event.pull_request.author_association == 'FIRST_TIME_CONTRIBUTOR'
 
     runs-on: ubuntu-latest
+    # Advisory job — Anthropic API auth/quota failures should not block PR
+    # merges since the review commentary is nice-to-have, not a correctness
+    # gate. The real correctness gates are test (3.11) and lint.
+    continue-on-error: true
     permissions:
       contents: read
       pull-requests: read

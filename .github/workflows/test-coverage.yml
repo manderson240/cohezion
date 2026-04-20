@@ -25,13 +25,12 @@ jobs:
         uses: astral-sh/setup-uv@v3
 
       - name: Install dependencies
-        run: uv sync
+        run: uv sync --extra dev
 
-      - name: Run lint
-        run: make lint-check
-
-      - name: Run type check
-        run: make type-check
+      # NOTE: lint + type-check are handled by the ci.yml `lint` job
+      # (scoped to src/ + tests/). Re-running them here on the whole tree
+      # is redundant and flakier than a focused lint pipeline. The tests
+      # job's purpose is tests + coverage gating only.
 
       - name: Run tests with coverage
         run: |

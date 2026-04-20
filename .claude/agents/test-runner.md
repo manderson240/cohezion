@@ -1,7 +1,6 @@
 ---
 name: test-runner
 description: Runs pytest suites, analyzes failures, and reports coverage. Use this agent after writing or modifying code to verify correctness.
-effort: low
 tools:
   - Bash
   - Read

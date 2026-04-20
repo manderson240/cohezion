@@ -1,7 +1,6 @@
 ---
 name: simulation-runner
 description: Runs Cohezion universe simulations in sandboxed environments, monitors for divergence, and reports results.
-effort: medium
 tools:
   - Bash
   - Read
