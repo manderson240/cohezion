@@ -28,7 +28,8 @@
     ".pi/agents/qhw.md",
     ".pi/extensions/cohezion-kg.ts",
     ".pi/settings.json",
-    "_bmad/_config/traceability/repo_health/health_report.md"
+    "_bmad/_config/traceability/repo_health/health_report.md",
+    "docker-compose.yml"
   ],
   "sessions": [
     {
@@ -36,6 +37,12 @@
       "transcript": "/d4/e5e560e9b7/0/full.jsonl",
       "content_hash": "/d4/e5e560e9b7/0/content_hash.txt",
       "prompt": "/d4/e5e560e9b7/0/prompt.txt"
+    },
+    {
+      "metadata": "/d4/e5e560e9b7/1/metadata.json",
+      "transcript": "/d4/e5e560e9b7/1/full.jsonl",
+      "content_hash": "/d4/e5e560e9b7/1/content_hash.txt",
+      "prompt": "/d4/e5e560e9b7/1/prompt.txt"
     }
   ],
   "token_usage": {
