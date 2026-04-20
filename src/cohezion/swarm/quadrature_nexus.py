@@ -135,14 +135,12 @@ class QuadratureNexus:
     CONSENSUS_THRESHOLD: float = 0.85
 
     # Voice weights (can be adjusted based on context)
-    DEFAULT_WEIGHTS: dict[VoiceType, float] = field(
-        default_factory=lambda: {
-            VoiceType.ARCHITECT: 0.25,
-            VoiceType.ENGINEER: 0.25,
-            VoiceType.ETHICIST: 0.25,
-            VoiceType.RESOURCE: 0.25,
-        }
-    )
+    DEFAULT_WEIGHTS: dict[VoiceType, float] = {
+        VoiceType.ARCHITECT: 0.25,
+        VoiceType.ENGINEER: 0.25,
+        VoiceType.ETHICIST: 0.25,
+        VoiceType.RESOURCE: 0.25,
+    }
 
     def __init__(self, weights: dict[VoiceType, float] | None = None):
         """Initialize Quadrature Nexus.
@@ -196,6 +194,38 @@ class QuadratureNexus:
         )
 
         self._deliberation_history.append(result)
+        
+        # --- JOURNEY TELEMETRY INSTRUMENTATION ---
+        try:
+            from cohezion.core.telemetry_bus import get_telemetry_bus
+            from cohezion.data_mesh.journey_telemetry import (
+                FlumeJourneyEvent, 
+                QuadratureFabrics, 
+                RZeroMetrics, 
+                SwarmExpert, 
+                HardwareTier
+            )
+            
+            # Map result to 12D telemetry
+            # Note: In a real run, these would be derived from the 256D latent state
+            bus = get_telemetry_bus()
+            event = FlumeJourneyEvent(
+                event_id=f"evt_{int(datetime.now().timestamp())}_{proposal.action[:10]}",
+                journey_id=proposal.action,
+                z_vector=[0.0] * 256, # To be instrumented in FLUME
+                state_12d=[0.0] * 12, # To be instrumented in grid_encoder
+                coherence=alignment_score,
+                fabrics=QuadratureFabrics(space=0.8, field=0.9, control=0.1, precipitation=0.5),
+                awareness_parameter=0.9,
+                expert_stream=SwarmExpert.ARCHITECT,
+                hardware_tier=HardwareTier.IGPU,
+                latency_ms=0.0, # Filled by actual execution
+                r_zero=RZeroMetrics(success_rate=0.9, iteration_count=1, difficulty_adjustment=1.0)
+            )
+            await bus.emit(event)
+        except Exception as te:
+            logger.error("Failed to emit journey telemetry: %s", te)
+
         logger.info(
             "Quadrature deliberation complete: approved=%s, consensus=%.3f",
             approved,
