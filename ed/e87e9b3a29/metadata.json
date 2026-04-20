@@ -1,0 +1,25 @@
+{
+  "cli_version": "0.5.5",
+  "checkpoint_id": "ede87e9b3a29",
+  "strategy": "manual-commit",
+  "branch": "isolated/session-oom-modularity",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "src/cohezion/mcp/scripts/mcp_guard.py"
+  ],
+  "sessions": [
+    {
+      "metadata": "/ed/e87e9b3a29/0/metadata.json",
+      "transcript": "/ed/e87e9b3a29/0/full.jsonl",
+      "content_hash": "/ed/e87e9b3a29/0/content_hash.txt",
+      "prompt": "/ed/e87e9b3a29/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 12069,
+    "cache_creation_tokens": 4875428,
+    "cache_read_tokens": 129672106,
+    "output_tokens": 168678,
+    "api_call_count": 403
+  }
+}
