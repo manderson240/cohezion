@@ -1,0 +1,100 @@
+{
+  "ADAPTIVE_TEMPLATE_PRIME": {
+    "version": "v1.0",
+    "concepts": [
+      "Structural Drift",
+      "Template Patching",
+      "Atomic Blueprints",
+      "Recursive Consistency"
+    ],
+    "see_also": [
+      "TEMPLATE_DRIVEN_DEVELOPMENT_PRIME",
+      "RETROSPECTIVE_SKILL",
+      "SKILL_GENERATOR_PRIME",
+      "COMPOUND_ENGINEERING_PRIME"
+    ],
+    "source": "src/cohezion/skills/ADAPTIVE_TEMPLATE_PRIME.md"
+  },
+  "ADVERSARIAL_TESTING_PRIME": {
+    "version": "v1.0 (2026-01-18)",
+    "concepts": [
+      "OWASP LLM Top 10 2025",
+      "Red Teaming",
+      "Prompt Injection",
+      "Adversarial Prompting",
+      "False Positive/Negative",
+      "Defense in Depth"
+    ],
+    "see_also": [],
+    "source": "src/cohezion/skills/ADVERSARIAL_TESTING_PRIME.md"
+  },
+  "AGENTIC_DESIGN_PRIME": {
+    "version": "v1.0 (Derived from Anthropic Alignment Sprint)",
+    "concepts": [
+      "Abstract-First",
+      "Quantified Trajectories",
+      "Philosophy as Anchor",
+      "Observable Intent"
+    ],
+    "see_also": [
+      "VLIW_COG_BRIDGE_PRIME",
+      "COMPOUND_ENGINEERING_PRIME"
+    ],
+    "source": "src/cohezion/skills/AGENTIC_DESIGN_PRIME.md"
+  },
+  "AMBIENT_SONIFICATION_PRIME": {
+    "version": "v1.0",
+    "concepts": [
+      "Coherence Chord",
+      "HIHO Attractor Frequency",
+      "Entanglement Oscillation",
+      "Milestone Fanfare"
+    ],
+    "see_also": [],
+    "source": "src/cohezion/skills/AMBIENT_SONIFICATION_PRIME.md"
+  },
+  "ASCENSION_SKILL_PRIME": {
+    "version": "v1.6",
+    "concepts": [
+      "12-Brane Model",
+      "Reward & Ratchet",
+      "Mycelium Reinforcement",
+      "High-Fidelity Context"
+    ],
+    "see_also": [
+      "REWARD_AND_RATCHET_PRIME",
+      "FLUME_DYNAMICS_PRIME"
+    ],
+    "source": "src/cohezion/skills/ASCENSION_SKILL_PRIME.md"
+  },
+  "AUTONOMOUS_RESILIENCE_PRIME": {
+    "version": "v1.0 (Born from the Overnight BBQ Mission, 2026-01-31)",
+    "concepts": [
+      "Passive Monitoring",
+      "Coma Mode",
+      "Dilation Pacing",
+      "Schema Coupling"
+    ],
+    "see_also": [],
+    "source": "src/cohezion/skills/AUTONOMOUS_RESILIENCE_PRIME.md"
+  },
+  "BATCHING_PROTOCOL_PRIME": {
+    "version": "v1.0",
+    "concepts": [
+      "Task Consolidation",
+      "Density-Optimized Prompt",
+      "Context Overhead",
+      "Throughput vs. Latency"
+    ],
+    "see_also": [
+      "LOCAL_OFFLOAD_PRIME",
+      "COMPOUND_ENGINEERING_PRIME",
+      "SEMANTIC_CACHING_PRIME"
+    ],
+    "source": "src/cohezion/skills/BATCHING_PROTOCOL_PRIME.md"
+  },
+  "CAPABILITY_REGISTRY_PRIME": {
+    "version": "1.0",
+    "concepts": [],
+    "see_also": [],
+    "source": "src/cohezion/skills/CAPABILITY_REGISTRY_PRIME.md"

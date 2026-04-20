@@ -36,20 +36,30 @@ class HybridConfig:
             "Gemma-4-E4B-it-GGUF",
             "Gemma-4-26B-A4B-it-GGUF",
             "Gemma-4-31B-it-GGUF",
-        }
+        from cohezion.core.silicon_guard import get_silicon_guard
 
+        @dataclass
+        class HybridConfig:
+        ...
+        class HybridSwarmRouter:
+            """Routes requests between NPU, GPU, and Cloud backends."""
 
-class HybridSwarmRouter:
-    """Routes requests between NPU, GPU, and Cloud backends."""
+            def __init__(self):
+                self.config = HybridConfig()
+                self.guard = get_silicon_guard()
+                self.metrics = {"npu_requests": 0, "gpu_requests": 0, "cloud_requests": 0}
 
-    def __init__(self):
-        self.config = HybridConfig()
-        self.metrics = {"npu_requests": 0, "gpu_requests": 0, "cloud_requests": 0}
+            async def route(self, prompt: str, model_hint: str | None = None) -> dict:
+                """Intelligently route to best backend with hardware guardrails."""
 
-    async def route(self, prompt: str, model_hint: str | None = None) -> dict:
-        """Intelligently route to best backend."""
+                # 0. Apply Silicon Guardrails
+                payload = {"prompt": prompt, "model_hint": model_hint}
+                payload = self.guard.apply_guardrails(payload)
+                prompt = payload["prompt"]
+                model_hint = payload["model_hint"]
 
-        # 1. Check if user specified model
+                # 1. Check if user specified model
+
         if model_hint:
             if "-FLM" in model_hint:
                 return await self._npu_infer(prompt, model_hint)

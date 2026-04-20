@@ -1,0 +1,112 @@
+{
+  "version": "2.0.0",
+  "kernel": "gemm",
+  "hardware": "MI355X",
+  "created": "2026-03-27",
+  "root": {
+    "id": "gemm_root_001",
+    "name": "gemm_baseline_aiter",
+    "description": "aiter.gemm_a4w4_asm - current best reference",
+    "status": "CLOSED",
+    "priority": 0.0,
+    "attempts": 12,
+    "stagnation_count": 12,
+    "best_score": 13.4,
+    "target_score": 4.3,
+    "gap": 3.1,
+    "config": {
+      "kernel": "gemm_a4w4_asm",
+      "quantization": "dynamic_mxfp4",
+      "block_size": 128
+    },
+    "children": [
+      {
+        "id": "gemm_hk_001",
+        "name": "hipkittens_gemm_mxfp4",
+        "description": "HipKittens tile-based MXFP4 GEMM with explicit register control",
+        "status": "OPEN",
+        "priority": 0.9,
+        "attempts": 0,
+        "stagnation_count": 0,
+        "parent_id": "gemm_root_001",
+        "config": {
+          "framework": "hipkittens",
+          "pattern": "8_wave_ping_pong",
+          "precision": "MXFP4",
+          "register_control": "explicit_AGPR",
+          "chiplet_aware": true
+        },
+        "expected_gain": "5-9us",
+        "risk": "medium",
+        "notes": "HipKittens matches hand-ASM on GEMM (~1610 TFLOP/s BF16). Explicit register bypasses HIPCC."
+      },
+      {
+        "id": "gemm_ck_001",
+        "name": "cktile_flatmm_mxfp4",
+        "description": "CK-Tile 18_flatmm example adapted for MXFP4 competition shapes",
+        "status": "OPEN",
+        "priority": 0.85,
+        "attempts": 0,
+        "stagnation_count": 0,
+        "parent_id": "gemm_root_001",
+        "config": {
+          "framework": "ck_tile",
+          "example": "18_flatmm",
+          "tile_configs": ["16x16x128", "32x32x64", "256x256x256"],
+          "mfma_instructions": [
+            "mfma_f32_16x16x128_f8f6f4",
+            "mfma_f32_32x32x64_f8f6f4"
+          ],
+          "pipeline": "v3"
+        },
+        "expected_gain": "6-9us",
+        "risk": "medium",
+        "notes": "PR #2297. 16x16x128 validated correct. gfx950 native MXFP4 MFMA."
+      },
+      {
+        "id": "gemm_fused_001",
+        "name": "fused_quant_gemm",
+        "description": "Fuse dynamic_mxfp4_quant with GEMM to eliminate dispatch overhead",
+        "status": "OPEN",
+        "priority": 0.7,
+        "attempts": 0,
+        "stagnation_count": 0,
+        "parent_id": "gemm_root_001",
+        "config": {
+          "fusion_target": "quant_gemm",
+          "quant_overhead": "~6us",
+          "approach": "single_kernel"
+        },
+        "expected_gain": "3-6us",
+        "risk": "high",
+        "notes": "Quant dispatch is 26us vs GEMM 7-10us. Fusion could eliminate most quant overhead."
+      },
+      {
+        "id": "gemm_ck_tile_001",
+        "name": "ck_tile_blockscale_wp",
+        "description": "CK-Tile blockscale with weight preshuffle for MXFP4",
+        "status": "OPEN",
+        "priority": 0.6,
+        "attempts": 0,
+        "stagnation_count": 0,
+        "parent_id": "gemm_root_001",
+        "config": {
+          "framework": "ck_tile",
+          "features": ["blockscale", "weight_preshuffle", "direct_asm"],
+          "pipeline": "align_v3_gufusion"
+        },
+        "expected_gain": "4-7us",
+        "risk": "high",
+        "notes": "PR #2297 adds .co direct asm support. Blockscale (block-wise scaling) pipelines."
+      }
+    ]
+  },
+  "metadata": {
+    "total_nodes": 5,
+    "open_nodes": 4,
+    "closed_nodes": 1,
+    "pruned_nodes": 0,
+    "stagnation_limit": 7,
+    "last_updated": "2026-03-27"
+  }
+}

@@ -1,0 +1,111 @@
+{
+  "version": "2.0.0",
+  "kernel": "moe",
+  "hardware": "MI355X",
+  "created": "2026-03-27",
+  "root": {
+    "id": "moe_root_001",
+    "name": "fused_moe_baseline",
+    "description": "aiter.fused_moe with adaptive KSPLIT - current best reference",
+    "status": "CLOSED",
+    "priority": 0.0,
+    "attempts": 18,
+    "stagnation_count": 18,
+    "best_score": 154.2,
+    "target_score": 109.8,
+    "gap": 1.4,
+    "config": {
+      "ksplit_strategy": "adaptive",
+      "doweight_stage1": false,
+      "fast_mode": false,
+      "block_size_M": "auto",
+      "expert_mask": null
+    },
+    "children": [
+      {
+        "id": "moe_hk_001",
+        "name": "hipkittens_2stage_fusion",
+        "description": "HipKittens tile-based 2-stage MoE (Gate+Up→SiLU→Down fused)",
+        "status": "OPEN",
+        "priority": 0.9,
+        "attempts": 0,
+        "stagnation_count": 0,
+        "parent_id": "moe_root_001",
+        "config": {
+          "framework": "hipkittens",
+          "pattern": "8_wave_ping_pong",
+          "tile_strategy": "register_resident",
+          "fusion_target": "stage1_stage2_intermediate"
+        },
+        "expected_gain": "20-30us",
+        "risk": "medium",
+        "notes": "HipKittens now AITER backend (March 2026). Outperforms hand-ASM. 14.3x potential from K-Search paper."
+      },
+      {
+        "id": "moe_fly_001",
+        "name": "flydsl_mixed_precision",
+        "description": "FlyDSL A4W4 mixed-precision MoE via AITER backend",
+        "status": "OPEN",
+        "priority": 0.8,
+        "attempts": 0,
+        "stagnation_count": 0,
+        "parent_id": "moe_root_001",
+        "config": {
+          "framework": "flydsl",
+          "precision": "A4W4",
+          "backend": "aiter",
+          "pattern": "tile_based_dispatch"
+        },
+        "expected_gain": "15-25us",
+        "risk": "medium",
+        "notes": "FlyDSL now official AITER backend. Kimi-K2.5: 65% lower TTFT, 69% lower TPOT."
+      },
+      {
+        "id": "moe_ck_001",
+        "name": "cktile_flatmm_extension",
+        "description": "CK-Tile flatmm extended for MoE with weight preshuffle",
+        "status": "OPEN",
+        "priority": 0.6,
+        "attempts": 0,
+        "stagnation_count": 0,
+        "parent_id": "moe_root_001",
+        "config": {
+          "framework": "ck_tile",
+          "example": "18_flatmm",
+          "tile_size": "16x16x128",
+          "mfma": "mfma_f32_16x16x128_f8f6f4",
+          "features": ["weight_preshuffle", "blockscale_pipeline"]
+        },
+        "expected_gain": "10-20us",
+        "risk": "high",
+        "notes": "PR #2297 merged. Tile 16x16x128 validated. 256x256x256 supported."
+      },
+      {
+        "id": "moe_qimeng_001",
+        "name": "qimeng_5tuple_decomposition",
+        "description": "QiMeng-style meta-prompt optimization across 5 primitives",
+        "status": "OPEN",
+        "priority": 0.5,
+        "attempts": 0,
+        "stagnation_count": 0,
+        "parent_id": "moe_root_001",
+        "config": {
+          "framework": "llm_meta_prompt",
+          "primitives": ["tiling", "reordering", "vectorization", "layout", "pipeline"],
+          "target": "gfx950_wave64"
+        },
+        "expected_gain": "unknown",
+        "risk": "high",
+        "notes": "AAAI 2025. 113x improvement on RISC-V via structured meta-prompts."
+      }
+    ]
+  },
+  "metadata": {
+    "total_nodes": 5,
+    "open_nodes": 4,
+    "closed_nodes": 1,
+    "pruned_nodes": 0,
+    "stagnation_limit": 7,
+    "last_updated": "2026-03-27"
+  }
+}

@@ -1,0 +1,105 @@
+# Pre-commit hooks for code quality enforcement
+# Install: pip install pre-commit && pre-commit install
+# Run manually: pre-commit run --all-files
+
+repos:
+  # ============================================================================
+  # FAST CHECKS (commit stage) - Quick syntax and formatting validation
+  # ============================================================================
+
+  # Ruff - Fast Python formatter and linter (full rule set from pyproject.toml)
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.15.0
+    hooks:
+      # Format: auto-fix on commit
+      - id: ruff-format
+        stages: [pre-commit]
+      # Lint: full rule set with auto-fix (rules configured in pyproject.toml)
+      - id: ruff
+        stages: [pre-commit]
+        args: [--fix]
+        name: ruff-lint (full rules)
+
+  # Type checking with mypy
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.13.0
+    hooks:
+      - id: mypy
+        additional_dependencies: []
+        args: [--ignore-missing-imports]
+
+  # General pre-commit hooks
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-added-large-files
+        args: [--maxkb=1000]
+      - id: check-merge-conflict
+      - id: detect-private-key
+        stages: [pre-commit]
+
+  # Catch hardcoded developer home paths in test files (environment-specific failures)
+  - repo: local
+    hooks:
+      - id: no-hardcoded-home-paths
+        name: no-hardcoded-home-paths
+        language: pygrep
+        entry: '"/home/[a-zA-Z0-9_-]+/(dev|projects|src|code)/'
+        types: [python]
+        files: ^tests/
+        stages: [pre-commit]
+
+      - id: playwright-tests
+        name: Run Playwright Tests
+        entry: bash -c 'cd src/web/anima_dashboard && npx playwright test'
+        language: system
+        pass_filenames: false
+        stages: [pre-commit]
+
+      # Large artifact gate: files >50MB must be registered in artifact system
+      - id: large-artifact-gate
+        name: large-artifact-gate (>50MB requires registration)
+        language: python
+        entry: python -c "import sys,os;bad=[f for f in sys.argv[1:] if os.path.getsize(f)>52428800];[print(f'ERROR {f} ({os.path.getsize(f)//1048576}MB) >50MB -- register as external artifact') for f in bad];sys.exit(1 if bad else 0)"
+        stages: [pre-commit]
+
+      # Version consistency: all version strings must match pyproject.toml
+      - id: version-consistency
+        name: version-consistency
+        language: python
+        entry: python scripts/hooks/check_version_consistency.py
+        pass_filenames: false
+        stages: [pre-commit]
+
+  # ============================================================================
+  # PUSH STAGE - Safety checks only (comprehensive linting deferred to CI)
+  # ============================================================================
+
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: check-added-large-files
+        args: [--maxkb=1000]
+        stages: [pre-push]
+      - id: detect-private-key
+        stages: [pre-push]
+
+  # Detect Secrets - Advanced credential detection
+  - repo: https://github.com/Yelp/detect-secrets
+    rev: v1.4.0
+    hooks:
+      - id: detect-secrets
+        stages: [pre-push]
+        args: ["--baseline", ".secrets.baseline"]
+
+  # Bandit - Security linting for Python code
+  - repo: https://github.com/PyCQA/bandit
+    rev: 1.7.8
+    hooks:
+      - id: bandit
+        stages: [pre-push]
+        args: [--severity-level=medium, --skip=B101]
+        language: python

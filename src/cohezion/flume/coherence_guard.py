@@ -8,6 +8,7 @@ from typing import Any
 
 import numpy as np
 import torch
+from cohezion.core.silicon_guard import get_silicon_guard
 
 
 logger = logging.getLogger(__name__)
@@ -54,24 +55,22 @@ class TurboQuantHarness:
         return 1.0 - abs(coherence - 0.5) * 2.0
 
     def verify_quantization(
-        self,
-        original: torch.Tensor,
+        self, 
+        original: torch.Tensor, 
         dequantized: torch.Tensor,
         context_name: str = "tensor",
         perfect_mean: bool = False
     ) -> dict[str, Any]:
         """
-        Verify the integrity of a quantization-dequantization cycle.
-        
-        Args:
-            original: The full-precision source tensor.
-            dequantized: The tensor after quantization and immediate de-quantization.
-            context_name: Optional name for logging/reporting.
-            perfect_mean: If True, stability delta check is relaxed (assumes mean correction).
-            
-        Returns:
-            Dictionary with 'success' (bool) and detailed 'metrics'.
+        Verify the integrity of a quantization-dequantization cycle with hardware safety.
         """
+        # 0. Hardware Guardrail (Apex Safety)
+        guard = get_silicon_guard()
+        pressure = guard.check_safety()
+        if pressure.is_throttled:
+            logger.error("🛑 VERIFICATION HALTED: Silicon Overload Detected [%s]", pressure.reason)
+            return {"success": False, "error": f"Silicon Overload: {pressure.reason}", "metrics": {}}
+
         # 1. Numerical Parity (Mean Absolute Error)
         mae = float(torch.mean(torch.abs(original - dequantized)))
 
