@@ -15,6 +15,7 @@
     ".claude/scheduled_tasks.lock",
     ".claude/settings.json",
     ".claude/skills/entire-io-shadow-branch-corruption/SKILL.md",
+    ".context/policy/learned-budgets.md",
     ".gemini/settings.json",
     ".omega_processed_learnings.json",
     ".opencode/agents/architect.md",
@@ -30,8 +31,11 @@
     ".pi/extensions/cohezion-bridge-v3.ts",
     ".pi/extensions/cohezion-kg.ts",
     ".pi/settings.json",
+    "AGENT_STATUS.md",
     "_bmad/_config/traceability/repo_health/health_report.md",
-    "docker-compose.yml"
+    "cloud-vault-mcp/src/mcp_server/main.py",
+    "docker-compose.yml",
+    "mcp_servers.json"
   ],
   "sessions": [
     {
@@ -51,6 +55,12 @@
       "transcript": "/d4/e5e560e9b7/2/full.jsonl",
       "content_hash": "/d4/e5e560e9b7/2/content_hash.txt",
       "prompt": "/d4/e5e560e9b7/2/prompt.txt"
+    },
+    {
+      "metadata": "/d4/e5e560e9b7/3/metadata.json",
+      "transcript": "/d4/e5e560e9b7/3/full.jsonl",
+      "content_hash": "/d4/e5e560e9b7/3/content_hash.txt",
+      "prompt": "/d4/e5e560e9b7/3/prompt.txt"
     }
   ],
   "token_usage": {
