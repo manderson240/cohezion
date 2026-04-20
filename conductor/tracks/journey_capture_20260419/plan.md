@@ -1,18 +1,18 @@
 # Implementation Plan: Agentic Journey Capture (FLUME & Quadrature Nexus)
 
 ## Phase 1: The Thinker (Look Outward, Look Inward & Architecture)
-- [ ] Task: Look Outward (External SOTA Research)
-    - [ ] Activate the `huggingface-papers` skill and use `mcp_huggingface_paper_search` to search arXiv and the Hugging Face Hub for recent breakthroughs in "JEPA-aligned World Models" and trajectory prediction.
-    - [ ] Use `google_web_search` to explore "awesome latent spaces" to map SOTA 256-dim embedding representations.
-    - [ ] Synthesize external findings to inform our internal trajectory schema.
-- [ ] Task: Look Inward (Audit Existing Infrastructure)
-    - [ ] Activate `JOURNEY_TRACKING_PRIME` and review `src/cohezion/knowledge_graph/` for existing 12D state vector schemas.
-    - [ ] Query the local SurrealDB instances (ports 8000/8001) to catalog existing tables related to agentic journeys and R-Zero metrics.
-- [ ] Task: Define Schema and Non-Blocking Interface (AutoHarness Mandate)
-    - [ ] Automatically synthesize a deterministic AutoHarness using `qwen3.5:coder` or `phi4-mini` to validate the telemetry pipeline per the `arXiv:2603.03329v1` mandate.
-    - [ ] Create a robust `FlumeJourneyEvent` schema supporting: 256-dim z-vectors, 12D State Vectors, 4 Fabrics & Awareness, 5 Expert Streams, and R-Zero Metrics.
-    - [ ] Design an asynchronous, non-blocking event bus to decouple trajectory logging from the core orchestration loop.
-- [ ] Task: Conductor - User Manual Verification 'The Thinker' (Protocol in workflow.md)
+- [x] Task: Look Outward (External SOTA Research)
+    - [x] Activate the `huggingface-papers` skill and use `mcp_huggingface_paper_search` to search arXiv and the Hugging Face Hub for recent breakthroughs in "JEPA-aligned World Models" and trajectory prediction.
+    - [x] Use `google_web_search` to explore "awesome latent spaces" to map SOTA 256-dim embedding representations.
+    - [x] Synthesize external findings to inform our internal trajectory schema.
+- [x] Task: Look Inward (Audit Existing Infrastructure)
+    - [x] Activate `JOURNEY_TRACKING_PRIME` and review `src/cohezion/knowledge_graph/` for existing 12D state vector schemas.
+    - [x] Query the local SurrealDB instances (ports 8000/8001) to catalog existing tables related to agentic journeys and R-Zero metrics.
+- [x] Task: Define Schema and Non-Blocking Interface (AutoHarness Mandate)
+    - [x] Automatically synthesize a deterministic AutoHarness using `qwen3.5:coder` or `phi4-mini` to validate the telemetry pipeline per the `arXiv:2603.03329v1` mandate.
+    - [x] Create a robust `FlumeJourneyEvent` schema supporting: 256-dim z-vectors, 12D State Vectors, 4 Fabrics & Awareness, 5 Expert Streams, and R-Zero Metrics.
+    - [x] Design an asynchronous, non-blocking event bus to decouple trajectory logging from the core orchestration loop.
+- [x] Task: Conductor - User Manual Verification 'The Thinker' (Protocol in workflow.md)
 
 ## Phase 2: The Doer (Implementation - Instrumentation & Healing)
 - [ ] Task: Write Failing Tests (Red Phase)

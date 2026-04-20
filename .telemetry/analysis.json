@@ -1,0 +1,23 @@
+{
+  "status": "success",
+  "total_executions": 22,
+  "skills_analyzed": 3,
+  "by_skill": {
+    "validator": {
+      "executions": 20,
+      "success_rate": 1.0,
+      "inflection_rate": 0.0,
+      "avg_latency_ms": 50.9,
+      "avg_tokens": 0.0,
+      "coherence_proxy": 1.0
+    }
+  },
+  "refinement_candidates": [
+    {
+      "skill": "validator",
+      "coherence": 1.0,
+      "executions": 20,
+      "recommendation": "Pattern stable - extract as canonical example"
+    }
+  ]
+}

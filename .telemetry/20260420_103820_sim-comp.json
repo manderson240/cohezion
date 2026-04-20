@@ -1,0 +1,23 @@
+{
+  "request_id": "sim-compound_engineering",
+  "skill_name": "compound_engineering",
+  "timestamp": "2026-04-20T10:38:20.284707",
+  "success": true,
+  "total_latency_ms": 0.03337860107421875,
+  "total_tokens_in": 500,
+  "total_tokens_out": 0,
+  "steps_count": 1,
+  "inflection_detected": false,
+  "vault_logged": false,
+  "steps": [
+    {
+      "step_name": "execute",
+      "latency_ms": 860,
+      "tokens_in": 500,
+      "tokens_out": 0,
+      "coherence": 0.6459420934445388,
+      "cache_hit": false,
+      "error": null
+    }
+  ]
+}

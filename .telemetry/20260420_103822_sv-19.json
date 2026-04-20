@@ -1,0 +1,23 @@
+{
+  "request_id": "sv-19",
+  "skill_name": "validator",
+  "timestamp": "2026-04-20T10:38:22.556710",
+  "success": true,
+  "total_latency_ms": 48.07162284851074,
+  "total_tokens_in": 0,
+  "total_tokens_out": 0,
+  "steps_count": 1,
+  "inflection_detected": false,
+  "vault_logged": false,
+  "steps": [
+    {
+      "step_name": "execute",
+      "latency_ms": 48.03824424743652,
+      "tokens_in": 0,
+      "tokens_out": 0,
+      "coherence": 0.95,
+      "cache_hit": false,
+      "error": null
+    }
+  ]
+}
