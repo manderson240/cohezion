@@ -14,6 +14,7 @@
     ".claude/hooks/pre-flight-rag.sh",
     ".claude/scheduled_tasks.lock",
     ".claude/settings.json",
+    ".claude/skills/entire-io-shadow-branch-corruption/SKILL.md",
     ".gemini/settings.json",
     ".omega_processed_learnings.json",
     ".opencode/agents/architect.md",
@@ -26,6 +27,7 @@
     ".pi/agents/engineer.md",
     ".pi/agents/qalgo.md",
     ".pi/agents/qhw.md",
+    ".pi/extensions/cohezion-bridge-v3.ts",
     ".pi/extensions/cohezion-kg.ts",
     ".pi/settings.json",
     "_bmad/_config/traceability/repo_health/health_report.md",
@@ -43,6 +45,12 @@
       "transcript": "/d4/e5e560e9b7/1/full.jsonl",
       "content_hash": "/d4/e5e560e9b7/1/content_hash.txt",
       "prompt": "/d4/e5e560e9b7/1/prompt.txt"
+    },
+    {
+      "metadata": "/d4/e5e560e9b7/2/metadata.json",
+      "transcript": "/d4/e5e560e9b7/2/full.jsonl",
+      "content_hash": "/d4/e5e560e9b7/2/content_hash.txt",
+      "prompt": "/d4/e5e560e9b7/2/prompt.txt"
     }
   ],
   "token_usage": {
