@@ -1,0 +1,39 @@
+{
+  "cli_version": "0.5.5",
+  "checkpoint_id": "56b0a5702fce",
+  "session_id": "0098a369-6e99-4fdc-ae23-434df1cf6eb6",
+  "strategy": "manual-commit",
+  "created_at": "2026-04-20T01:57:38.499926557Z",
+  "branch": "isolated/session-oom-modularity",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "examples/dynamic_compound_system_demo.py",
+    "examples/multi_agent_autoresearch_demo.py",
+    "examples/multi_agent_demo.py"
+  ],
+  "agent": "Claude Code",
+  "model": "claude-opus-4-6[1m]",
+  "turn_id": "cc0400467a14",
+  "token_usage": {
+    "input_tokens": 12069,
+    "cache_creation_tokens": 4875428,
+    "cache_read_tokens": 129672106,
+    "output_tokens": 168678,
+    "api_call_count": 403
+  },
+  "session_metrics": {
+    "turn_count": 1
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-04-20T01:56:39.590522452Z",
+    "agent_lines": 0,
+    "agent_removed": 0,
+    "human_added": 82511,
+    "human_modified": 844,
+    "human_removed": 0,
+    "total_committed": 82511,
+    "total_lines_changed": 165687,
+    "agent_percentage": 0,
+    "metric_version": 2
+  }
+}
