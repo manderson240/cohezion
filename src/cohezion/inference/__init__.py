@@ -35,13 +35,6 @@ from cohezion.inference.harnesses import (
     dispatch_through_harness,
     get_pool,
 )
-from cohezion.inference.orchestrator import (
-    OrchestrationResult,
-    QualityGate,
-    TierAttempt,
-    TieredOrchestrator,
-    default_hierarchy,
-)
 from cohezion.inference.health import (
     FleetHealth,
     LaneHealth,
@@ -49,6 +42,13 @@ from cohezion.inference.health import (
     check_fleet,
     format_fleet_summary,
     integrate_omnibus_gateways,
+)
+from cohezion.inference.orchestrator import (
+    OrchestrationResult,
+    QualityGate,
+    TierAttempt,
+    TieredOrchestrator,
+    default_hierarchy,
 )
 from cohezion.inference.registry import (
     FleetRegistry,
@@ -60,27 +60,27 @@ from cohezion.inference.registry import (
 
 
 __all__ = [
-    "route",
-    "extend_claude",
-    "RouteResult",
-    "check_fleet",
-    "format_fleet_summary",
-    "integrate_omnibus_gateways",
     "FleetHealth",
-    "LaneHealth",
-    "LaneStatus",
-    "get_registry",
     "FleetRegistry",
-    "ModelEntry",
-    "Lane",
-    "Task",
     "Harness",
     "HarnessPool",
-    "dispatch_through_harness",
-    "get_pool",
-    "TieredOrchestrator",
-    "QualityGate",
+    "Lane",
+    "LaneHealth",
+    "LaneStatus",
+    "ModelEntry",
     "OrchestrationResult",
+    "QualityGate",
+    "RouteResult",
+    "Task",
     "TierAttempt",
+    "TieredOrchestrator",
+    "check_fleet",
     "default_hierarchy",
+    "dispatch_through_harness",
+    "extend_claude",
+    "format_fleet_summary",
+    "get_pool",
+    "get_registry",
+    "integrate_omnibus_gateways",
+    "route",
 ]

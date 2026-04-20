@@ -33,7 +33,7 @@ logger = logging.getLogger(__name__)
 
 _CACHE_TTL_SECONDS = 30.0
 _LAST_CHECK_AT: float = 0.0
-_LAST_RESULT: "FleetHealth | None" = None
+_LAST_RESULT: FleetHealth | None = None
 
 
 class LaneStatus(StrEnum):

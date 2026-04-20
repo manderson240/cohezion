@@ -94,7 +94,7 @@ class HarnessPool:
 
         try:
             return await asyncio.wait_for(asyncio.shield(wait_and_grab()), timeout=timeout)
-        except asyncio.TimeoutError:
+        except TimeoutError:
             # If wait_and_grab already acquired a slot before we cancelled,
             # release it so it doesn't leak.
             async with self._cond:
@@ -180,7 +180,7 @@ async def dispatch_through_harness(
         )
         try:
             stdout_b, stderr_b = await asyncio.wait_for(proc.communicate(), timeout=timeout)
-        except asyncio.TimeoutError:
+        except TimeoutError:
             proc.kill()
             raise
 

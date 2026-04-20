@@ -206,7 +206,7 @@ class TieredOrchestrator:
             tier_start = time.perf_counter()
             try:
                 result, tier_cost, tier_ttft = await self._invoke_tier(target, prompt, remaining)
-            except Exception as exc:  # noqa: BLE001
+            except Exception as exc:
                 logger.warning("Tier %d (%s) raised: %s", idx, model_name, exc)
                 path.append(
                     TierAttempt(

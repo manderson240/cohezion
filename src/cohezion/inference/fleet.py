@@ -176,37 +176,36 @@ async def _dispatch_openai_compatible(
 
     async with httpx.AsyncClient(
         timeout=httpx.Timeout(connect=5.0, read=timeout, write=timeout, pool=timeout)
-    ) as client:
-        async with client.stream(
-            "POST", f"{model.endpoint}/v1/chat/completions", json=payload
-        ) as resp:
-            resp.raise_for_status()
-            async for line in resp.aiter_lines():
-                if not line or not line.startswith("data: "):
-                    continue
-                body = line[6:].strip()
-                if body == "[DONE]":
-                    break
-                try:
-                    chunk = _json.loads(body)
-                except _json.JSONDecodeError:
-                    continue
-                # Handle chat-completion, legacy completion, AND reasoning-mode
-                # schemas. Reasoning models (e.g. Gemma-4-E2B via FLM) emit
-                # `delta.reasoning_content` before any `delta.content` — counting
-                # that chunk as TTFT is correct (first tokens off the accelerator).
-                choice = chunk.get("choices", [{}])[0]
-                delta_dict = choice.get("delta", {}) or {}
-                visible = delta_dict.get("content") or choice.get("text") or ""
-                thinking = delta_dict.get("reasoning_content") or ""
-                if (visible or thinking) and first_chunk_at is None:
-                    first_chunk_at = _time.perf_counter()
-                if visible:
-                    chunks.append(visible)
-                usage = chunk.get("usage")
-                if usage:
-                    in_tok = usage.get("prompt_tokens", in_tok)
-                    out_tok = usage.get("completion_tokens", out_tok)
+    ) as client, client.stream(
+        "POST", f"{model.endpoint}/v1/chat/completions", json=payload
+    ) as resp:
+        resp.raise_for_status()
+        async for line in resp.aiter_lines():
+            if not line or not line.startswith("data: "):
+                continue
+            body = line[6:].strip()
+            if body == "[DONE]":
+                break
+            try:
+                chunk = _json.loads(body)
+            except _json.JSONDecodeError:
+                continue
+            # Handle chat-completion, legacy completion, AND reasoning-mode
+            # schemas. Reasoning models (e.g. Gemma-4-E2B via FLM) emit
+            # `delta.reasoning_content` before any `delta.content` — counting
+            # that chunk as TTFT is correct (first tokens off the accelerator).
+            choice = chunk.get("choices", [{}])[0]
+            delta_dict = choice.get("delta", {}) or {}
+            visible = delta_dict.get("content") or choice.get("text") or ""
+            thinking = delta_dict.get("reasoning_content") or ""
+            if (visible or thinking) and first_chunk_at is None:
+                first_chunk_at = _time.perf_counter()
+            if visible:
+                chunks.append(visible)
+            usage = chunk.get("usage")
+            if usage:
+                in_tok = usage.get("prompt_tokens", in_tok)
+                out_tok = usage.get("completion_tokens", out_tok)
 
     end = _time.perf_counter()
     text = "".join(chunks)
@@ -308,7 +307,7 @@ async def _dispatch_headless_cli(
     )
     try:
         stdout_b, stderr_b = await asyncio.wait_for(proc.communicate(), timeout=timeout)
-    except asyncio.TimeoutError:
+    except TimeoutError:
         proc.kill()
         raise
 
@@ -487,7 +486,7 @@ async def route(
                 symmetry_coherence=coherence,
                 attempts=attempts,
             )
-        except (httpx.HTTPError, asyncio.TimeoutError, Exception) as exc:
+        except (TimeoutError, httpx.HTTPError, Exception) as exc:
             last_error = f"{candidate.model_id}: {exc}"
             logger.warning("Dispatch to %s failed: %s", candidate.model_id, exc)
             continue
