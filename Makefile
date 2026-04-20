@@ -74,6 +74,14 @@ routing-guard: ## Synchronize model routing and provider configurations across a
 	uv run python src/cohezion/swarm/scripts/routing_guard.py
 	@echo "✓ Routing Guard: Model configurations synchronized"
 
+root-guard: ## Check repository root health (items < 50)
+	@python src/cohezion/governance/scripts/root_health_guard.py
+
+archaeology: ## Run root archaeology filing (review before committing)
+	@echo "📋 Root Archaeology"
+	@echo "Review: src/cohezion/skills/root-archaeology.md"
+	@echo "Then: make root-guard"
+
 clean:  ## Clean up cache files
 	find . -type d -name "__pycache__" -exec rm -rf {} + 2>/dev/null || true
 	find . -type d -name ".pytest_cache" -exec rm -rf {} + 2>/dev/null || true
