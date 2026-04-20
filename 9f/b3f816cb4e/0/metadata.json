@@ -1,0 +1,37 @@
+{
+  "cli_version": "0.5.5",
+  "checkpoint_id": "9fb3f816cb4e",
+  "session_id": "0098a369-6e99-4fdc-ae23-434df1cf6eb6",
+  "strategy": "manual-commit",
+  "created_at": "2026-04-20T02:01:27.625529123Z",
+  "branch": "isolated/session-oom-modularity",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "research/challenges/arc_prize_2026/environment_files/ls20/9607627b/ls20.py"
+  ],
+  "agent": "Claude Code",
+  "model": "claude-opus-4-6[1m]",
+  "turn_id": "cc0400467a14",
+  "token_usage": {
+    "input_tokens": 12069,
+    "cache_creation_tokens": 4875428,
+    "cache_read_tokens": 129672106,
+    "output_tokens": 168678,
+    "api_call_count": 403
+  },
+  "session_metrics": {
+    "turn_count": 1
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-04-20T02:00:29.841113489Z",
+    "agent_lines": 0,
+    "agent_removed": 0,
+    "human_added": 1582185,
+    "human_modified": 2060,
+    "human_removed": 0,
+    "total_committed": 1582185,
+    "total_lines_changed": 3166213,
+    "agent_percentage": 0,
+    "metric_version": 2
+  }
+}
