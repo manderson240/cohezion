@@ -104,7 +104,7 @@ class StreamingKVCompressor:
         
         # Apply TurboQuant compression
         # K cache: PolarQuant rotation
-        compressed_k = self.reference.encode(k_cache, seed=42)
+        compressed_k = self.reference.compress(k_cache, seed=42)
         
         # V cache: Symmetric quantization (less sensitive)
         compressed_v = v_cache  # V passed through in Phase 3

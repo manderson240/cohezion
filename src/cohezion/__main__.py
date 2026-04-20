@@ -785,7 +785,7 @@ Commands:
 
 
 async def main_async() -> int:
-    """Main async entry point."""
+    """Main async entry point with telemetry stack."""
     parser = create_parser()
     args = parser.parse_args()
 
@@ -793,61 +793,80 @@ async def main_async() -> int:
         parser.print_help()
         return 0
 
-    # Route to appropriate handler
-    if args.command == "journey":
-        if args.journey_cmd == "start":
-            return await cmd_journey_start(args)
-        elif args.journey_cmd == "list":
-            return await cmd_journey_list(args)
+    # --- TELEMETRY STACK START ---
+    from cohezion.core.telemetry_bus import get_telemetry_bus
+    from cohezion.core.journey_worker import get_journey_worker
+    
+    bus = get_telemetry_bus()
+    worker = get_journey_worker()
+    
+    await bus.start()
+    await worker.start()
+
+    try:
+        # Route to appropriate handler
+        if args.command == "journey":
+            if args.journey_cmd == "start":
+                res = await cmd_journey_start(args)
+            elif args.journey_cmd == "status":
+                res = await cmd_journey_status(args)
+            elif args.journey_cmd == "list":
+                res = await cmd_journey_list(args)
+            else:
+                print("Use: cohezion journey [start|list|status]")
+                res = 1
+        
+        elif args.command == "simulate":
+            res = await cmd_simulate(args)
+
+        elif args.command == "precipitate":
+            res = await cmd_precipitate(args)
+
+        elif args.command == "rewards":
+            if args.rewards_cmd == "status":
+                res = await cmd_rewards_status(args)
+            elif args.rewards_cmd == "leaderboard":
+                res = await cmd_rewards_leaderboard(args)
+            elif args.rewards_cmd == "achievements":
+                print("🎖️ Your achievements:")
+                print("   ✓ First Steps (common)")
+                print("   ✓ Quality Craftsman (rare)")
+                print("   ✓ Collaborator (common)")
+                res = 0
+            else:
+                print("Use: cohezion rewards [status|leaderboard|achievements]")
+                res = 1
+
+        elif args.command == "reflect":
+            res = await cmd_reflect(args)
+
+        elif args.command == "evolve":
+            res = await cmd_evolve(args)
+
+        elif args.command == "generate":
+            res = await cmd_generate(args)
+
+        elif args.command == "ouroboros":
+            res = await cmd_ouroboros(args)
+
+        elif args.command == "mycelium":
+            res = await cmd_mycelium(args)
+
+        elif args.command == "mass-sim":
+            res = await cmd_mass_sim(args)
+
+        elif args.command == "interactive":
+            res = await cmd_interactive()
+
         else:
-            print("Use: cohezion journey [start|list|status]")
-            return 1
+            print(f"Command not yet implemented: {args.command}")
+            res = 1
+            
+        return res
 
-    elif args.command == "simulate":
-        return await cmd_simulate(args)
-
-    elif args.command == "precipitate":
-        return await cmd_precipitate(args)
-
-    elif args.command == "rewards":
-        if args.rewards_cmd == "status":
-            return await cmd_rewards_status(args)
-        elif args.rewards_cmd == "leaderboard":
-            return await cmd_rewards_leaderboard(args)
-        elif args.rewards_cmd == "achievements":
-            print("🎖️ Your achievements:")
-            print("   ✓ First Steps (common)")
-            print("   ✓ Quality Craftsman (rare)")
-            print("   ✓ Collaborator (common)")
-            return 0
-        else:
-            print("Use: cohezion rewards [status|leaderboard|achievements]")
-            return 1
-
-    elif args.command == "reflect":
-        return await cmd_reflect(args)
-
-    elif args.command == "evolve":
-        return await cmd_evolve(args)
-
-    elif args.command == "generate":
-        return await cmd_generate(args)
-
-    elif args.command == "ouroboros":
-        return await cmd_ouroboros(args)
-
-    elif args.command == "mycelium":
-        return await cmd_mycelium(args)
-
-    elif args.command == "mass-sim":
-        return await cmd_mass_sim(args)
-
-    elif args.command == "interactive":
-        return await cmd_interactive()
-
-    else:
-        print(f"Command not yet implemented: {args.command}")
-        return 1
+    finally:
+        # --- TELEMETRY STACK CLEANUP ---
+        await bus.stop()
 
 
 def main() -> int:

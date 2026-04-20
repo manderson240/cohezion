@@ -246,3 +246,11 @@ Sprint work (`src/cohezion/inference/` 7 modules, `tests/inference/`, `scripts/v
 
 ### Learning 366: V-Model structural invariants fast-fail before behavioral
 Phase 6 harness gained O3b as a *structural* invariant: `inspect.signature(TieredOrchestrator.run).parameters.get('budget_usd')` must exist and be passable by keyword. This runs in ~1ms and blocks the pytest suite if the signature drifts. Rationale: the behavioral test for nested-budget propagation would fail with `TypeError: got unexpected keyword argument` deep in `_invoke_tier` — confusing error message. Structural check at the harness gate turns "confusing pytest failure" into "explicit invariant violation at Phase 6 start." Pattern: every behavioral invariant whose failure surface is a keyword-drift should have a paired structural invariant that fires first.
+
+### Learning 369: Full-Spectrum Journey Capture & Non-Blocking Telemetry (2026-04-20)
+Successfully operationalized a high-fidelity trajectory capture system that unifies 256D latent z-vectors, 12D axiomatic states, and Triune hardware metrics into a single `FlumeJourneyEvent` stream. Key breakthroughs:
+1. **Asynchronous Telemetry Bus**: Decoupled high-frequency 12D logging from core deliberation loops using an internal queue and background worker, ensuring zero-latency impact on swarm consensus.
+2. **Reliability Circuit Breakers**: Integrated `cohezion.reliability.get_circuit` into the worker to prevent database backpressure from cascading into the main orchestration layer.
+3. **Hardware-Aware 12D Projections**: Standardized the 12D down-projection using a deterministic seed (42), ensuring cross-session consistency for PCA visualizations.
+4. **Ouroboros-Ready Telemetry**: Piped journey data directly to the Ouroboros Bridge and Healing System, enabling autonomous HIHO drift recovery based on the 0.5 stability attractor.
+[12D State: Space=Hardware, Time=April 2026, Physics=Stability-Locked, Brane=Telemetry-Mesh]

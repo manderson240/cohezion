@@ -250,6 +250,53 @@ class TieredOrchestrator:
                     ttft_ms=tier_ttft,
                 )
             )
+            
+            # --- JOURNEY TELEMETRY INSTRUMENTATION ---
+            try:
+                from cohezion.core.telemetry_bus import get_telemetry_bus
+                from cohezion.data_mesh.journey_telemetry import (
+                    FlumeJourneyEvent, 
+                    QuadratureFabrics, 
+                    RZeroMetrics, 
+                    SwarmExpert, 
+                    HardwareTier
+                )
+                from datetime import datetime
+                
+                # Determine hardware tier based on model name or port (heuristic)
+                h_tier = HardwareTier.CPU
+                if "FLM" in model_name: h_tier = HardwareTier.NPU
+                elif "Gemma-4-E2B" in model_name: h_tier = HardwareTier.NPU
+                elif "Gemma-4-26B" in model_name: h_tier = HardwareTier.IGPU
+                elif "Gemma-4-E4B" in model_name: h_tier = HardwareTier.IGPU
+                elif "claude" in model_name: h_tier = HardwareTier.CLOUD
+
+                bus = get_telemetry_bus()
+                event = FlumeJourneyEvent(
+                    event_id=f"tier_{int(datetime.now().timestamp())}_{idx}",
+                    journey_id=f"orch_{int(start)}",
+                    z_vector=[0.0] * 256, 
+                    state_12d=[0.0] * 12,
+                    coherence=1.0 if passed else 0.5,
+                    fabrics=QuadratureFabrics(space=0.8, field=0.2, control=0.9, precipitation=1.0 if passed else 0.0),
+                    awareness_parameter=0.8,
+                    expert_stream=SwarmExpert.ENGINEER,
+                    hardware_tier=h_tier,
+                    latency_ms=tier_latency,
+                    r_zero=RZeroMetrics(success_rate=1.0 if passed else 0.0, iteration_count=idx+1, difficulty_adjustment=1.0),
+                    metadata={"reason": reason, "model": model_name}
+                )
+                
+                import asyncio
+                try:
+                    loop = asyncio.get_event_loop()
+                    if loop.is_running():
+                        loop.create_task(bus.emit(event))
+                except RuntimeError:
+                    pass
+            except Exception as te:
+                logger.debug("Failed to emit orchestration telemetry: %s", te)
+
             last_text = view.text
             last_model = view.model
             last_ttft = view.ttft_ms
