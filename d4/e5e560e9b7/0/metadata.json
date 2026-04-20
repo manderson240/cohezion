@@ -1,0 +1,60 @@
+{
+  "cli_version": "0.5.5",
+  "checkpoint_id": "d4e5e560e9b7",
+  "session_id": "0098a369-6e99-4fdc-ae23-434df1cf6eb6",
+  "strategy": "manual-commit",
+  "created_at": "2026-04-20T01:49:35.095180136Z",
+  "branch": "isolated/session-oom-modularity",
+  "checkpoints_count": 1,
+  "files_touched": [
+    ".agent/AGENTS.md",
+    ".claude/agents/architect.md",
+    ".claude/agents/biologist.md",
+    ".claude/agents/engineer.md",
+    ".claude/agents/qalgo.md",
+    ".claude/agents/qhw.md",
+    ".claude/hooks/pre-flight-rag.sh",
+    ".claude/scheduled_tasks.lock",
+    ".claude/settings.json",
+    ".gemini/settings.json",
+    ".omega_processed_learnings.json",
+    ".opencode/agents/architect.md",
+    ".opencode/agents/biologist.md",
+    ".opencode/agents/engineer.md",
+    ".opencode/agents/qalgo.md",
+    ".opencode/agents/qhw.md",
+    ".pi/agents/architect.md",
+    ".pi/agents/biologist.md",
+    ".pi/agents/engineer.md",
+    ".pi/agents/qalgo.md",
+    ".pi/agents/qhw.md",
+    ".pi/extensions/cohezion-kg.ts",
+    ".pi/settings.json",
+    "_bmad/_config/traceability/repo_health/health_report.md"
+  ],
+  "agent": "Claude Code",
+  "model": "claude-opus-4-6[1m]",
+  "turn_id": "cc0400467a14",
+  "token_usage": {
+    "input_tokens": 12069,
+    "cache_creation_tokens": 4875428,
+    "cache_read_tokens": 129672106,
+    "output_tokens": 168678,
+    "api_call_count": 403
+  },
+  "session_metrics": {
+    "turn_count": 1
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-04-20T01:48:39.45626466Z",
+    "agent_lines": 0,
+    "agent_removed": 0,
+    "human_added": 2060636,
+    "human_modified": 1085,
+    "human_removed": 0,
+    "total_committed": 2060636,
+    "total_lines_changed": 3253755,
+    "agent_percentage": 0,
+    "metric_version": 2
+  }
+}

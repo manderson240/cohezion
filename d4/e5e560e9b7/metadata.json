@@ -1,0 +1,48 @@
+{
+  "cli_version": "0.5.5",
+  "checkpoint_id": "d4e5e560e9b7",
+  "strategy": "manual-commit",
+  "branch": "isolated/session-oom-modularity",
+  "checkpoints_count": 1,
+  "files_touched": [
+    ".agent/AGENTS.md",
+    ".claude/agents/architect.md",
+    ".claude/agents/biologist.md",
+    ".claude/agents/engineer.md",
+    ".claude/agents/qalgo.md",
+    ".claude/agents/qhw.md",
+    ".claude/hooks/pre-flight-rag.sh",
+    ".claude/scheduled_tasks.lock",
+    ".claude/settings.json",
+    ".gemini/settings.json",
+    ".omega_processed_learnings.json",
+    ".opencode/agents/architect.md",
+    ".opencode/agents/biologist.md",
+    ".opencode/agents/engineer.md",
+    ".opencode/agents/qalgo.md",
+    ".opencode/agents/qhw.md",
+    ".pi/agents/architect.md",
+    ".pi/agents/biologist.md",
+    ".pi/agents/engineer.md",
+    ".pi/agents/qalgo.md",
+    ".pi/agents/qhw.md",
+    ".pi/extensions/cohezion-kg.ts",
+    ".pi/settings.json",
+    "_bmad/_config/traceability/repo_health/health_report.md"
+  ],
+  "sessions": [
+    {
+      "metadata": "/d4/e5e560e9b7/0/metadata.json",
+      "transcript": "/d4/e5e560e9b7/0/full.jsonl",
+      "content_hash": "/d4/e5e560e9b7/0/content_hash.txt",
+      "prompt": "/d4/e5e560e9b7/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 12069,
+    "cache_creation_tokens": 4875428,
+    "cache_read_tokens": 129672106,
+    "output_tokens": 168678,
+    "api_call_count": 403
+  }
+}
