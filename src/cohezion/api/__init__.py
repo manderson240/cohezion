@@ -18,6 +18,7 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, field_validator
 
 from cohezion.api.telemetry import router as telemetry_router
+from cohezion.api.routes.eigent import router as eigent_router
 from cohezion.mcp.knowledge_server import get_server as get_knowledge_server
 from cohezion.mcp.registry import get_registry
 from cohezion.mcp.swarm_server import get_server as get_swarm_server
@@ -1726,6 +1727,9 @@ except ImportError:
 
 # Register telemetry websocket
 app.include_router(telemetry_router)
+
+# Register Eigent workforce orchestration
+app.include_router(eigent_router, prefix="/api")
 
 # AG-UI protocol streaming endpoint
 try:

@@ -29,6 +29,7 @@ from cohezion.swarm.agents.base_scout import BaseScout, Finding
 from cohezion.universe.hiho_unified_engine import HIHOUnifiedEngine
 from cohezion.swarm.agents.code_review_swarm import CodeReviewSwarm
 from cohezion.core.persistence.repositories.pattern_repository import PatternRepository
+from cohezion.core.persistence.surreal_client import SurrealClient
 
 logger = logging.getLogger(__name__)
 
@@ -79,7 +80,8 @@ class EigentAgent(BaseScout):
         
         # Specialized engines for Tri-Orbit
         self.physics_engine = HIHOUnifiedEngine()
-        self.pattern_repo = PatternRepository() # Assuming default JSONL storage
+        self.surreal_client = SurrealClient() # Default config
+        self.pattern_repo = PatternRepository(client=self.surreal_client) 
         self.code_swarm = CodeReviewSwarm(repository=self.pattern_repo)
 
     async def chat(self, user_msg: str) -> str:
@@ -140,7 +142,13 @@ class EigentAgent(BaseScout):
             logger.info(f"Journey {journey_id} iteration {i+1}/{total_intervals}")
             
             # Execute logic based on role
-            log_entry = {"time": datetime.now().isoformat(), "iteration": i+1}
+            log_entry = {
+                "journey_id": journey_id,
+                "time": datetime.now().isoformat(), 
+                "iteration": i+1,
+                "task": task_description,
+                "role": self.role
+            }
             
             if self.role == "Manifold Analyst":
                 # Latent Space Evolution: Advance the 12D manifold
@@ -150,11 +158,47 @@ class EigentAgent(BaseScout):
                 log_entry["manifold_drift"] = float(drift)
                 
             elif self.role == "Code Surgeon":
-                # Codebase Self-Healing: Run a subset of the swarm scan
-                # For hourly intervals, we might scan a few files
-                report = await self.code_swarm.run_full_scan() # In real use, this might be throttled
-                log_entry["findings_count"] = len(report.findings)
-                log_entry["high_complexity_count"] = len(report.high_complexity_files)
+                # Codebase Self-Healing: Run throttled static scan
+                all_files = list(Path("src/cohezion").rglob("*.py"))
+                batch_size = 20
+                start_idx = i * batch_size
+                batch = all_files[start_idx : start_idx + batch_size]
+                
+                if not batch:
+                    log_entry["status"] = "scan_complete"
+                else:
+                    findings_in_batch = 0
+                    for file_path in batch:
+                        findings = await self.code_swarm.static_scout.scan_file(file_path)
+                        findings_in_batch += len(findings)
+                        # Check for high complexity to trigger semantic scan
+                        ast_sum = self.code_swarm.static_scout._parse_python_ast(file_path)
+                        if ast_sum and ast_sum.complexity_score >= self.code_swarm.complexity_threshold:
+                            for scout in self.code_swarm.llm_scouts:
+                                await scout.scan_file(file_path)
+                    
+                    log_entry["files_scanned"] = len(batch)
+                    log_entry["findings_in_batch"] = findings_in_batch
+                
+            elif self.role == "Sovereign Documenter":
+                # Value Precipitation: Generate documentation from findings
+                findings = self.pattern_repo.get_buffered_findings()
+                docs_dir = Path("docs/findings")
+                docs_dir.mkdir(parents=True, exist_ok=True)
+                
+                report_path = docs_dir / f"report_iteration_{i+1}.md"
+                with open(report_path, "w") as f:
+                    f.write(f"# Code Insight Report - Iteration {i+1}\n\n")
+                    f.write(f"Generated at: {datetime.now().isoformat()}\n\n")
+                    f.write(f"## New Patterns ({len(findings['patterns'])})\n")
+                    for p in findings["patterns"][-10:]: # Last 10
+                        f.write(f"- **{p['name']}**: {p['description']}\n")
+                    f.write(f"\n## New Anti-Patterns ({len(findings['anti_patterns'])})\n")
+                    for ap in findings["anti_patterns"][-10:]:
+                        f.write(f"- **{ap['name']}** (Severity: {ap['severity']}): {ap['description']}\n")
+                
+                log_entry["report_generated"] = str(report_path)
+                log_entry["patterns_count"] = len(findings["patterns"])
                 
             elif self.role == "HIHO Simulator":
                 # Physics Simulation: Stabilize 0.5 coherence
@@ -165,6 +209,14 @@ class EigentAgent(BaseScout):
                 avg_coherence = np.mean([e.coherence for e in evos])
                 log_entry["avg_coherence"] = float(avg_coherence)
             
+            # Persist to SurrealDB
+            try:
+                if not self.surreal_client._connected:
+                    await self.surreal_client.connect()
+                await self.surreal_client.create("journey_logs", log_entry)
+            except Exception as e:
+                logger.error(f"Failed to persist log to SurrealDB: {e}")
+
             state["logs"].append(log_entry)
             state["iterations"] = i + 1
             state["last_update"] = datetime.now().isoformat()

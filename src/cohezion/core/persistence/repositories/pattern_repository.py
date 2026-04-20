@@ -67,32 +67,39 @@ class PatternRepository:
         self._load_buffer()
 
     def _load_buffer(self) -> None:
-        """Load local buffer from disk."""
+        """Load local buffer from disk (JSONL format)."""
+        self.buffer = {"patterns": [], "anti_patterns": []}
         if self.buffer_path.exists():
             try:
                 with open(self.buffer_path) as f:
-                    self.buffer = json.load(f)
+                    for line in f:
+                        line = line.strip()
+                        if not line:
+                            continue
+                        entry = json.loads(line)
+                        if "type" in entry and entry["type"] == "pattern":
+                            self.buffer["patterns"].append(entry["data"])
+                        elif "type" in entry and entry["type"] == "anti_pattern":
+                            self.buffer["anti_patterns"].append(entry["data"])
             except Exception as e:
                 logger.error(f"Failed to load pattern buffer: {e}")
-                self.buffer = {"patterns": [], "anti_patterns": []}
-        else:
-            self.buffer = {"patterns": [], "anti_patterns": []}
 
-    def _save_buffer(self) -> None:
-        """Save local buffer to disk."""
+    def _save_buffer_entry(self, entry_type: str, data: dict) -> None:
+        """Append a single entry to the local JSONL buffer."""
         try:
-            with open(self.buffer_path, "w") as f:
-                json.dump(self.buffer, f, indent=2, default=str)
+            with open(self.buffer_path, "a") as f:
+                entry = {"type": entry_type, "data": data, "timestamp": datetime.now().isoformat()}
+                f.write(json.dumps(entry, default=str) + "\n")
         except Exception as e:
-            logger.error(f"Failed to save pattern buffer: {e}")
+            logger.error(f"Failed to append to pattern buffer: {e}")
 
     async def store_pattern(self, pattern: CodePattern) -> str:
         """Store a pattern in the buffer and attempt SurrealDB sync."""
         pattern_dict = asdict(pattern)
 
-        # Add to buffer
+        # Add to buffer (JSONL append)
+        self._save_buffer_entry("pattern", pattern_dict)
         self.buffer["patterns"].append(pattern_dict)
-        self._save_buffer()
 
         # Attempt SurrealDB sync
         try:
@@ -113,9 +120,9 @@ class PatternRepository:
         """Store an anti-pattern in the buffer and attempt SurrealDB sync."""
         anti_pattern_dict = asdict(anti_pattern)
 
-        # Add to buffer
+        # Add to buffer (JSONL append)
+        self._save_buffer_entry("anti_pattern", anti_pattern_dict)
         self.buffer["anti_patterns"].append(anti_pattern_dict)
-        self._save_buffer()
 
         # Attempt SurrealDB sync
         try:

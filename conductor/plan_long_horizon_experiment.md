@@ -1,35 +1,46 @@
-# Implementation Plan: Triune Orchestrator for Long Horizon Experiments
+# Implementation Plan: Tri-Orbit Long-Horizon Experiment
+
+## Background & Motivation
+This experiment demonstrates the power of the **Cohezion + Eigent** integration by orchestrating three concurrent, week-long autonomous journeys. We utilize the **AMD Ryzen AI MAX+** hardware (NPU/GPU/CPU) to simulate complex latent, code, and physics systems without cloud costs.
 
 ## Objective
-Implement a reusable `TriuneOrchestrator` module that leverages the `GaiaAgentTier` and the `TieredOrchestrator` to automatically route complex, long-horizon tasks across the AMD Strix Halo architecture (NPU on port 13306, iGPU on port 13307, and CPU on port 11434). This approach yields maximum compound engineering returns by formalizing the hardware-aware dispatch logic into a permanent fixture of `cohezion.inference`.
+To run three parallel 7-day journeys using specialized Eigent agents:
+1.  **Latent Space Evolution**: Mapping the 12D/2048D manifold for topological drift.
+2.  **Codebase Self-Healing**: Refactoring anti-patterns via adversarial swarm review.
+3.  **Physics Simulation**: Validating HIHO Stability in fractal toroidal geometries.
 
-## Phase 1: The Thinker (Module Design & Architecture)
-- [x] Task: Create `src/cohezion/inference/triune_orchestrator.py`
-  - [x] Implement `build_triune_orchestrator()` factory function.
-  - [x] Configure Tier 0 (NPU) using `qwen3.5-4b-FLM` via `GaiaAgentTier` with a fast-reject quality gate (e.g., min_chars=500).
-  - [x] Configure Tier 1 (iGPU) using `Gemma-4-E4B-it-GGUF` via `GaiaAgentTier` (port 13307) with an analytical quality gate (e.g., min_chars=1500).
-  - [x] Configure Tier 2 (CPU) using `Gemma-4-31B-it-GGUF` (port 11434) with `QualityGate.TRUST` for the final fallback reasoning.
-- [x] Task: Conductor - User Manual Verification 'The Thinker' (Protocol in workflow.md)
+## Key Files & Context
+-   **Agent**: `src/cohezion/swarm/agents/eigent_agent.py`
+-   **Router**: `src/cohezion/api/routes/eigent.py`
+-   **Provider**: `src/cohezion/swarm/providers/lemonade_provider.py` (Local Port 13307)
+-   **Persistence**: `data/eigent/checkpoints/` (JSON state)
 
-## Phase 2: The Doer (Unit Verification & Core Engine)
-- [x] Task: Write Failing Tests (Red Phase)
-  - [x] Create `tests/inference/test_triune_orchestrator.py` to test the factory construction and hardware routing fallback logic.
-- [x] Task: Implement Triune Orchestrator (Green Phase)
-  - [x] Ensure the orchestrator smoothly hands off the long-horizon context if a lower-tier node returns an error or fails a quality gate.
-- [x] Task: Conductor - User Manual Verification 'The Doer' (Protocol in workflow.md)
+## Proposed Solution
+We will trigger three distinct workforce requests via the `/api/eigent/workforce` endpoint, each with a specialized role and 7-day duration.
 
-## Phase 3: The Doer (Ecosystem Integration)
-- [x] Task: Create Executable Script `scripts/run_long_horizon_experiment.py`
-  - [x] Instantiate the `TriuneOrchestrator`.
-  - [x] Execute a complex task evaluating the thermodynamic and cognitive implications of 3.5-bit TurboQuant on the emergence of local AGI.
-  - [x] Log the `escalation_count` and final `resolving_tier` to output.
-- [x] Task: Conductor - User Manual Verification 'The Doer Ecosystem' (Protocol in workflow.md)
+### Workforce Configuration
+| Journey | Role | Task |
+| :--- | :--- | :--- |
+| **Latent** | `Manifold Analyst` | `Simulate and map 12D topological drift over 168 hours.` |
+| **Code** | `Code Surgeon` | `Audit src/ for anti-patterns and propose self-healing mutations.` |
+| **Physics** | `HIHO Simulator` | `Validate 0.5 coherence stability in a toroidal vortex manifold.` |
 
-## Phase 4: The Knower (Validation & Persistence)
-- [x] Task: System Validation
-  - [x] Execute `scripts/run_long_horizon_experiment.py`.
-  - [x] Verify that the NPU, iGPU, or CPU handles the context appropriately based on the required depth of analysis.
-- [x] Task: Document & Persist
-  - [x] Add insights from the orchestrator run to `KEY_LEARNINGS.md` (Learning 368 added).
-  - [x] Perform Journey Retrospective.
-- [x] Task: Conductor - User Manual Verification 'The Knower' (Protocol in workflow.md)
+## Implementation Steps
+1.  **Enhance EigentAgent (src/cohezion/swarm/agents/eigent_agent.py)**:
+    -   Add `SimulationEngine` and `CodeAnalysis` toolsets to the agent's context.
+    -   Ensure the `run_journey` loop properly logs detailed state transitions to the checkpoint.
+2.  **Trigger Journeys**:
+    -   Use a script (`scripts/launch_tri_orbit_experiment.py`) to hit the API endpoints.
+3.  **Hardware Allocation**:
+    -   Route **Physics** to NPU (Lemonade FLM).
+    -   Route **Code** to GPU (Lemonade ROCm).
+    -   Route **Latent** to CPU (Lemonade CPU).
+
+## Verification & Testing
+1.  **Initialization**: Confirm all 3 agents are active in the `_agents` cache.
+2.  **Persistence**: Verify hourly checkpoints are being written for each `journey_id`.
+3.  **Completion**: Validate that after 7 days, the `status` for all journeys is `completed`.
+
+## Migration & Rollback
+-   **Checkpoints**: If a process crashes, the `EigentAgent` will automatically resume from the last hourly JSON checkpoint.
+-   **Logs**: Audit `logs/eigent_journeys.log` for any "Reasoning Decay" or "Illegal Actions."

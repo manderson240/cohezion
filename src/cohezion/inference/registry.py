@@ -1,4 +1,4 @@
-"""Fleet model registry — single source of truth for lane × model × task affinity.
+"""Fleet model registry - single source of truth for lane x model x task affinity.
 
 Maps the Strix Halo Symphony (4-lane Gemma 4 deployment) plus specialist task
 models and cloud fallbacks into a unified table that every other module in
@@ -18,6 +18,14 @@ CPU AVX-VNNI  13309   Gemma-4-31B-it-GGUF               Architect (Safety)
 Task affinity informs ``fleet.route()`` when the caller doesn't pin a model.
 Cost in USD/1K tokens is zero for local lanes and used for ``extend_claude``
 budget accounting on the cloud fallbacks.
+
+Phase 1 of the TurboQuant plan split the old ``quantization: str`` field into
+two orthogonal axes:
+  * ``weight_quant: WeightQuant`` — how model weights are stored (INT4, MXFP4, API, ...).
+  * ``kv_quant: KVQuant`` — how the KV cache is compressed at inference time
+    (scheme=none / turboquant / quarot / kv8, bits, rotation size, etc.).
+Old readers get a legacy ``.quantization`` property that composes the two
+into the ``"{weight}+{scheme}"`` string they used to read.
 """
 
 from __future__ import annotations
@@ -25,6 +33,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import StrEnum
+from typing import Literal
 
 
 class Lane(StrEnum):
@@ -51,6 +60,41 @@ class Task(StrEnum):
     GENERAL = "general"
 
 
+class WeightQuant(StrEnum):
+    """How model weights are stored on disk / loaded into the runtime."""
+
+    INT4 = "int4"
+    INT8 = "int8"
+    Q4_K_M = "q4_k_m"
+    Q5_K_M = "q5_k_m"
+    MXFP4 = "mxfp4"
+    BF16 = "bf16"
+    FP16 = "fp16"
+    QUAROT_INT4 = "quarot_int4"  # INT4 with a QuaRot Hadamard rotation baked in (Phase 4)
+    API = "api"  # cloud-hosted; weight quant is whatever the provider uses
+
+
+@dataclass
+class KVQuant:
+    """How the attention KV cache is compressed at inference time.
+
+    Orthogonal to ``WeightQuant`` — TurboQuant (ICLR 2026, arXiv:2504.19874) is
+    a KV-cache-only algorithm, so weight and KV quant can be mixed independently.
+    """
+
+    scheme: Literal["none", "turboquant", "quarot", "kv8"] = "none"
+    bits: float = 16.0
+    hadamard_size: int = 128
+    qjl_correction: bool = False
+    asymmetric_kv: bool = False  # K rotated, V passed through (dense models)
+    runtime_flag: dict[str, str] = field(default_factory=dict)
+    """Map of runtime name → CLI flag value, e.g.
+    ``{"vllm": "tbq4", "llama.cpp": "turbo3", "sglang": "tbq4"}``.
+    Lets ``fleet.py`` emit the right token per backend without per-runtime
+    special cases at the call site.
+    """
+
+
 @dataclass
 class ModelEntry:
     """A single model available to the fleet.
@@ -63,10 +107,13 @@ class ModelEntry:
     model_id: str
     lane: Lane
     endpoint: str
-    llamacpp_backend: str  # "flm" | "rocm" | "cpu" | "" for cloud
+    runtime_backend: (
+        str  # "flm" | "vllm_rocm" | "llamacpp_hip" | "sglang_triton" | "cpu" | "" for cloud
+    )
     task_affinity: frozenset[Task]
-    quantization: str  # "INT4+turboquant" | "Q4_K_M" | "MXFP4" | "api"
+    weight_quant: WeightQuant
     context_window: int
+    kv_quant: KVQuant = field(default_factory=KVQuant)
     cost_per_1k_input_usd: float = 0.0
     cost_per_1k_output_usd: float = 0.0
     priority: int = 100  # lower = preferred
@@ -79,31 +126,68 @@ class ModelEntry:
     observed_ttft_ms_p95: float | None = None  # 95th percentile TTFT
     observed_total_ms_p50: float | None = None  # 50th percentile full-response latency
     observed_tokens_per_sec: float | None = None  # sustained generation throughput
+    # Reasoning-mode models (e.g. Gemma 4 FLM) emit <thinking> tokens first and
+    # only then produce visible output. With small `max_tokens` budgets the
+    # thinking block consumes the whole budget and the caller sees empty text.
+    # route() uses this flag to emit a warning when max_tokens is too small for
+    # a reasoning-mode lane (local_environment_quirks.md: "reasoning models
+    # need max_tokens >= 128 headroom").
+    reasoning_mode: bool = False
     notes: str = ""
+
+    @property
+    def quantization(self) -> str:
+        """Legacy accessor — composes ``weight_quant`` + ``kv_quant.scheme``.
+
+        Returned as ``"{weight}"`` when the KV scheme is ``"none"`` (no
+        compression), else ``"{weight}+{scheme}"`` — matching the pre-Phase-1
+        strings like ``"INT4+turboquant"`` so external readers keep working.
+        """
+        weight = self.weight_quant.value
+        if self.kv_quant.scheme == "none":
+            return weight
+        return f"{weight}+{self.kv_quant.scheme}"
 
 
 def _build_default_registry() -> dict[str, ModelEntry]:
     """The Strix Halo Symphony fleet plus specialists and cloud fallbacks."""
+    # TurboQuant KV preset for the iGPU lanes. 3.5-bit matches ICLR 2026
+    # paper's FP16-parity point; 4-bit adds safety margin for MoE / long context.
+    tbq_35 = KVQuant(
+        scheme="turboquant",
+        bits=3.5,
+        hadamard_size=128,
+        qjl_correction=True,
+        asymmetric_kv=True,
+        runtime_flag={"llama.cpp": "turbo3", "vllm": "tbq4", "sglang": "tbq4"},
+    )
+    tbq_40 = KVQuant(
+        scheme="turboquant",
+        bits=4.0,
+        hadamard_size=128,
+        qjl_correction=True,
+        asymmetric_kv=False,
+        runtime_flag={"vllm": "tbq4", "llama.cpp": "turbo3", "sglang": "tbq4"},
+    )
+
     entries: list[ModelEntry] = [
         # --- Strix Halo Symphony: 4-lane Gemma 4 ---
         ModelEntry(
             model_id="Gemma-4-E2B-it-GGUF",
             lane=Lane.NPU,
             endpoint="http://localhost:13306",
-            llamacpp_backend="flm",
+            runtime_backend="flm",
             task_affinity=frozenset({Task.SENSING, Task.ROUTING, Task.SUMMARIZATION}),
-            quantization="INT4+turboquant",
+            weight_quant=WeightQuant.INT4,
+            kv_quant=KVQuant(),  # AMD Ryzen AI compiler has no TBQ op as of 1.7.1
             context_window=8192,
             priority=10,
             # SCIENTIFIC RIGOR: typed p50/p95 fields require n>=20 per the
             # 2026-04-18 review. Earlier 5-call warm-loop observations moved
             # to notes as informal. Re-populate typed fields only from a full
             # 20-prompt benchmark run (make benchmark-fleet --prompts 20).
-            observed_ttft_ms_p50=None,
-            observed_ttft_ms_p95=None,
-            observed_total_ms_p50=None,
-            observed_tokens_per_sec=None,
             verified_working=True,
+            reasoning_mode=True,
             notes=(
                 "Fire by Friction (Doer) — manifest NPU lane. "
                 "Informal 5-call warm-loop 2026-04-18: TTFT ~80ms, total ~200ms. "
@@ -116,33 +200,39 @@ def _build_default_registry() -> dict[str, ModelEntry]:
             model_id="Gemma-4-E4B-it-GGUF",
             lane=Lane.IGPU_ROCWMMA,
             endpoint="http://localhost:13307",
-            llamacpp_backend="rocm",
+            runtime_backend="llamacpp_hip",  # upstream llama.cpp PR #20969
             task_affinity=frozenset({Task.STRUCTURED, Task.GOVERNANCE}),
-            quantization="Q4_K_M+turboquant",
+            weight_quant=WeightQuant.Q4_K_M,
+            kv_quant=tbq_35,
             context_window=16384,
             priority=20,
+            reasoning_mode=True,
             notes="Electric Fire (Knower) — Governance / Steering",
         ),
         ModelEntry(
             model_id="Gemma-4-26B-A4B-it-GGUF",
             lane=Lane.IGPU_UNIFIED,
             endpoint="http://localhost:13308",
-            llamacpp_backend="rocm",
+            runtime_backend="vllm_rocm",  # vLLM-rocm nightly with --kv-cache-dtype tbq4
             task_affinity=frozenset({Task.REASONING, Task.CODE_GEN, Task.GENERAL}),
-            quantization="MXFP4",
+            weight_quant=WeightQuant.MXFP4,
+            kv_quant=tbq_40,
             context_window=32768,
             priority=15,
+            reasoning_mode=True,
             notes="Solar Fire (Thinker) — 26B MoE, 4B active params",
         ),
         ModelEntry(
             model_id="Gemma-4-31B-it-GGUF",
             lane=Lane.CPU,
             endpoint="http://localhost:13309",
-            llamacpp_backend="cpu",
+            runtime_backend="cpu",
             task_affinity=frozenset({Task.ARCHITECT, Task.LONG_HORIZON}),
-            quantization="Q4_K_M",
+            weight_quant=WeightQuant.Q4_K_M,
+            kv_quant=KVQuant(),  # No public AVX-512 TBQ kernels exist (April 2026)
             context_window=32768,
             priority=40,
+            reasoning_mode=True,
             notes="Safety / System Architect — AVX-VNNI",
         ),
         # --- Task-specialist models via Ollama (:11434) ---
@@ -150,9 +240,9 @@ def _build_default_registry() -> dict[str, ModelEntry]:
             model_id="phi4:latest",
             lane=Lane.CPU,
             endpoint="http://localhost:11434",
-            llamacpp_backend="",
+            runtime_backend="",
             task_affinity=frozenset({Task.REASONING, Task.GENERAL}),
-            quantization="Q4_K_M",
+            weight_quant=WeightQuant.Q4_K_M,
             context_window=16384,
             priority=50,
             verified_working=True,
@@ -162,9 +252,9 @@ def _build_default_registry() -> dict[str, ModelEntry]:
             model_id="qwen3-coder:30b",
             lane=Lane.CPU,
             endpoint="http://localhost:11434",
-            llamacpp_backend="",
+            runtime_backend="",
             task_affinity=frozenset({Task.CODE_GEN}),
-            quantization="Q4_K_M",
+            weight_quant=WeightQuant.Q4_K_M,
             context_window=32768,
             priority=30,
             notes="Code generation specialist",
@@ -173,21 +263,22 @@ def _build_default_registry() -> dict[str, ModelEntry]:
             model_id="deepseek-r1:70b",
             lane=Lane.CPU,
             endpoint="http://localhost:11434",
-            llamacpp_backend="",
+            runtime_backend="",
             task_affinity=frozenset({Task.LONG_HORIZON, Task.REASONING}),
-            quantization="Q4_K_M",
+            weight_quant=WeightQuant.Q4_K_M,
             context_window=32768,
             priority=45,
-            notes="Long-horizon reasoning",
+            reasoning_mode=True,
+            notes="Long-horizon reasoning (deepseek-r1 emits <think> blocks)",
         ),
         # --- Cloud Ollama fallbacks (confirmed in registry) ---
         ModelEntry(
             model_id="deepseek-v3.2:cloud",
             lane=Lane.CLOUD_OLLAMA,
             endpoint="http://localhost:11434",
-            llamacpp_backend="",
+            runtime_backend="",
             task_affinity=frozenset({Task.REASONING, Task.CODE_GEN}),
-            quantization="api",
+            weight_quant=WeightQuant.API,
             context_window=131072,
             cost_per_1k_input_usd=0.0002,
             cost_per_1k_output_usd=0.0006,
@@ -199,9 +290,9 @@ def _build_default_registry() -> dict[str, ModelEntry]:
             model_id="gemini-3-flash-preview:cloud",
             lane=Lane.CLOUD_OLLAMA,
             endpoint="http://localhost:11434",
-            llamacpp_backend="",
+            runtime_backend="",
             task_affinity=frozenset({Task.GENERAL, Task.SUMMARIZATION}),
-            quantization="api",
+            weight_quant=WeightQuant.API,
             context_window=1000000,
             cost_per_1k_input_usd=0.0001,
             cost_per_1k_output_usd=0.0004,
@@ -209,16 +300,15 @@ def _build_default_registry() -> dict[str, ModelEntry]:
             verified_working=True,
             notes="Gemini 3 Flash via ollama cloud",
         ),
-        # --- Claude escalation tier ---
         # --- Headless `claude` CLI (Claude Code) ---
         # Endpoint "cli:claude" indicates subprocess invocation, not HTTP.
         ModelEntry(
             model_id="claude-haiku-4-5",
             lane=Lane.CLOUD_CLAUDE,
             endpoint="cli:claude",
-            llamacpp_backend="",
+            runtime_backend="",
             task_affinity=frozenset({Task.GENERAL, Task.SUMMARIZATION}),
-            quantization="api",
+            weight_quant=WeightQuant.API,
             context_window=200000,
             cost_per_1k_input_usd=0.001,
             cost_per_1k_output_usd=0.005,
@@ -233,9 +323,9 @@ def _build_default_registry() -> dict[str, ModelEntry]:
             model_id="claude-sonnet-4-6",
             lane=Lane.CLOUD_CLAUDE,
             endpoint="cli:claude",
-            llamacpp_backend="",
+            runtime_backend="",
             task_affinity=frozenset({Task.REASONING, Task.CODE_GEN, Task.ARCHITECT}),
-            quantization="api",
+            weight_quant=WeightQuant.API,
             context_window=200000,
             cost_per_1k_input_usd=0.003,
             cost_per_1k_output_usd=0.015,
@@ -246,9 +336,9 @@ def _build_default_registry() -> dict[str, ModelEntry]:
             model_id="claude-opus-4-7",
             lane=Lane.CLOUD_CLAUDE,
             endpoint="cli:claude",
-            llamacpp_backend="",
+            runtime_backend="",
             task_affinity=frozenset({Task.REASONING, Task.LONG_HORIZON, Task.ARCHITECT}),
-            quantization="api",
+            weight_quant=WeightQuant.API,
             context_window=200000,
             cost_per_1k_input_usd=0.015,
             cost_per_1k_output_usd=0.075,
@@ -260,9 +350,9 @@ def _build_default_registry() -> dict[str, ModelEntry]:
             model_id="gemini-3-flash",
             lane=Lane.CLOUD_GEMINI,
             endpoint="cli:gemini",
-            llamacpp_backend="",
+            runtime_backend="",
             task_affinity=frozenset({Task.GENERAL, Task.SUMMARIZATION, Task.ROUTING}),
-            quantization="api",
+            weight_quant=WeightQuant.API,
             context_window=1000000,
             cost_per_1k_input_usd=0.0001,
             cost_per_1k_output_usd=0.0004,
@@ -273,9 +363,9 @@ def _build_default_registry() -> dict[str, ModelEntry]:
             model_id="gemini-3-pro",
             lane=Lane.CLOUD_GEMINI,
             endpoint="cli:gemini",
-            llamacpp_backend="",
+            runtime_backend="",
             task_affinity=frozenset({Task.REASONING, Task.CODE_GEN, Task.LONG_HORIZON}),
-            quantization="api",
+            weight_quant=WeightQuant.API,
             context_window=2000000,
             cost_per_1k_input_usd=0.00125,
             cost_per_1k_output_usd=0.005,
@@ -288,7 +378,7 @@ def _build_default_registry() -> dict[str, ModelEntry]:
 
 @dataclass
 class FleetRegistry:
-    """Registry of all models × lanes × tasks. Instantiated as a module singleton."""
+    """Registry of all models x lanes x tasks. Instantiated as a module singleton."""
 
     models: dict[str, ModelEntry] = field(default_factory=_build_default_registry)
 
