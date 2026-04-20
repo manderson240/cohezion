@@ -278,7 +278,7 @@ class SurrealMCP:
         from cohezion.mcp.servers.safe_input import sanitize_path
 
         # Master Root for knowledge graph
-        base_dir = Path(__file__).parent.parent.parent / "knowledge_graph"
+        base_dir = Path(__file__).parent.parent.parent / "cohezion" / "knowledge_graph"
 
         try:
             if markdown_path is None:

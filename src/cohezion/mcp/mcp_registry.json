@@ -131,20 +131,21 @@
             "name": "cohezion-knowledge",
             "type": "rag",
             "description": "RAG over library and skills",
-            "path": "mcp/knowledge_server.py",
+            "path": "mcp/knowledge_server_mcp.py",
             "tools": [
-                "search_knowledge",
                 "get_skill",
-                "list_skills"
+                "list_skills",
+                "search_knowledge"
             ]
         },
         {
             "name": "cohezion-skills",
             "type": "skills",
             "description": "Direct skill invocation",
-            "path": "mcp/skills_server.py",
+            "path": "mcp/skills_server_mcp.py",
             "tools": [
                 "invoke_skill",
+                "list_all_skills",
                 "register_skill",
                 "search_skills"
             ]
@@ -153,13 +154,13 @@
             "name": "cohezion-surreal",
             "type": "database",
             "description": "Universe node tools",
-            "path": "mcp/surreal_server.py",
+            "path": "mcp/surreal_server_mcp.py",
             "tools": [
+                "query_learnings",
                 "query_nodes",
-                "store_node",
                 "search_similar",
                 "store_learning",
-                "query_learnings",
+                "store_node",
                 "sync_key_learnings"
             ]
         },
@@ -167,22 +168,22 @@
             "name": "cohezion-swarm",
             "type": "workflow",
             "description": "Debate workflow access",
-            "path": "mcp/swarm_server.py",
+            "path": "mcp/swarm_server_mcp.py",
             "tools": [
-                "run_debate",
                 "get_perspectives",
-                "get_swarm_metrics"
+                "get_swarm_metrics",
+                "run_debate"
             ]
         },
         {
             "name": "cohezion-research",
             "type": "mining",
             "description": "SOTA research discovery tools",
-            "path": "mcp/research_server.py",
+            "path": "mcp/research_server_mcp.py",
             "tools": [
-                "search_arxiv",
                 "get_hf_trending",
-                "list_research_channels"
+                "list_research_channels",
+                "search_arxiv"
             ]
         },
         {
@@ -201,7 +202,9 @@
                 "autoresearch_analyze",
                 "learning_capture",
                 "learning_process_execution",
-                "skill_refinement_apply"
+                "skill_refinement_apply",
+                "get_context_policy",
+                "update_context_policy"
             ]
         },
         {

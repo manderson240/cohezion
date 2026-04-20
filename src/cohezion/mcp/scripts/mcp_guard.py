@@ -155,29 +155,30 @@ def sync_platform_settings(settings_path: Path, platform_name: str):
         if platform_name == "Pi" and name in ["cohezion-research"]:
             continue
 
-        if target_name not in mcp_servers:
-            logger.info(f"Adding missing server to {platform_name} settings: {target_name}")
-            
-            config = {
-                "command": f"{PROJECT_ROOT}/.venv/bin/python",
-                "args": ["-m", f"cohezion.{entry['path'].replace('/', '.').replace('.py', '')}"],
-                "env": {
-                    "PYTHONPATH": str(SRC_PATH),
-                    "MCP_TRANSPORT": "stdio",
-                    "BMAD_DATA_PATH": f"{PROJECT_ROOT}/_bmad"
-                }
+        config = {
+            "command": f"{PROJECT_ROOT}/.venv/bin/python",
+            "args": ["-m", f"cohezion.{entry['path'].replace('/', '.').replace('.py', '')}"],
+            "env": {
+                "PYTHONPATH": str(SRC_PATH),
+                "MCP_TRANSPORT": "stdio",
+                "BMAD_DATA_PATH": f"{PROJECT_ROOT}/_bmad"
             }
-            
-            if "vault" in entry["path"]:
-                config["env"]["PYTHONPATH"] = f"{SRC_PATH}:{PROJECT_ROOT}/cloud-vault-mcp/src"
-                config["env"]["VAULT_PATH"] = f"{PROJECT_ROOT.parent}/vaults/cohezion-vault"
-            
-            if platform_name == "Gemini":
-                config["description"] = entry.get("description", "")
-            else:
-                config["name"] = name
-                config["description"] = entry.get("description", "")
+        }
+        
+        if "vault" in entry["path"]:
+            vault_mcp_path = PROJECT_ROOT / "cloud-vault-mcp"
+            if vault_mcp_path.exists():
+                config["env"]["PYTHONPATH"] = f"{SRC_PATH}:{vault_mcp_path}/src"
+            config["env"]["VAULT_PATH"] = f"{PROJECT_ROOT.parent}/vaults/cohezion-vault"
+        
+        if platform_name == "Gemini":
+            config["description"] = entry.get("description", "")
+        else:
+            config["name"] = name
+            config["description"] = entry.get("description", "")
 
+        if target_name not in mcp_servers or mcp_servers[target_name] != config:
+            logger.info(f"Updating server in {platform_name} settings: {target_name}")
             mcp_servers[target_name] = config
             changed = True
 

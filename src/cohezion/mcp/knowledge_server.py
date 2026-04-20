@@ -163,7 +163,7 @@ class KnowledgeMCP:
         """
         from cohezion.mcp.servers.safe_input import sanitize_path
 
-        project_root = Path(__file__).parent.parent
+        project_root = Path(__file__).parent.parent.parent.parent
         try:
             file_path = sanitize_path(path, base_dir=project_root)
         except ValueError:
