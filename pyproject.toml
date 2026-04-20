@@ -58,7 +58,6 @@ dependencies = [
     "bluequbit>=0.18.5b1",
     "qiskit>=1.0.0",
     "python-dotenv>=1.0.0",
-    "cloud-vault-mcp",
     "pocket-tts>=0.1.0",
     "torch==2.5.1+rocm6.2",
     "pytorch-triton-rocm==3.1.0",
@@ -83,7 +82,7 @@ torch = { index = "pytorch-rocm" }
 torchvision = { index = "pytorch-rocm" }
 torchaudio = { index = "pytorch-rocm" }
 pytorch-triton-rocm = { index = "pytorch-rocm" }
-cloud-vault-mcp = { path = "cloud-vault-mcp", editable = true }
+# cloud-vault-mcp = { path = "cloud-vault-mcp", editable = true }  # Optional: install manually with `uv pip install -e ./cloud-vault-mcp`
 
 [project.urls]
 Repository = "https://github.com/manderson240/cohezion"

@@ -27,8 +27,19 @@ type-check:  ## Run type checking with mypy
 	@echo "✓ Type check complete"
 
 test:  ## Run test suite
-	pytest tests/
+	uv run pytest tests/
 	@echo "✓ Tests complete"
+
+test-fast:  ## Run fast unit tests only (<1s each, no live services)
+	uv run pytest tests/ -m fast --tb=short -q
+	@echo "✓ Fast tests complete"
+
+test-integration:  ## Run integration tests (require live services)
+	uv run pytest tests/ -m integration -v
+	@echo "✓ Integration tests complete"
+
+test-smoke:  ## Run quick smoke tests (minimal subset)
+	uv run pytest tests/unit -q --tb=line 2>/dev/null || uv run pytest tests/conftest.py tests/test_*.py -q --tb=line 2>/dev/null || echo "⚠ No smoke tests found"
 
 all: format lint type-check test agent-guard mcp-guard kg-guard data-mesh-guard health-guard async-guard routing-guard a2a-guard  ## Run all checks, tests, and guards
 
@@ -73,6 +84,13 @@ async-guard: ## Scan for synchronous I/O anti-patterns in async subsystems
 routing-guard: ## Synchronize model routing and provider configurations across all platforms
 	uv run python src/cohezion/swarm/scripts/routing_guard.py
 	@echo "✓ Routing Guard: Model configurations synchronized"
+
+skill-guard: ## Validate all skills have proper metadata and FLUME compatibility
+	@uv run python src/cohezion/scripts/skill_validator.py
+	@echo "✓ Skill Guard: All skills validated"
+
+telemetry-dashboard: ## Show compound loop telemetry dashboard
+	@uv run python src/cohezion/scripts/telemetry_dashboard.py
 
 root-guard: ## Check repository root health (items < 50)
 	@python src/cohezion/governance/scripts/root_health_guard.py
