@@ -3,7 +3,7 @@
   "checkpoint_id": "27217ba4257f",
   "strategy": "manual-commit",
   "branch": "isolated/session-oom-modularity",
-  "checkpoints_count": 1,
+  "checkpoints_count": 2,
   "files_touched": [
     "Makefile"
   ],
@@ -13,13 +13,19 @@
       "transcript": "/27/217ba4257f/0/full.jsonl",
       "content_hash": "/27/217ba4257f/0/content_hash.txt",
       "prompt": "/27/217ba4257f/0/prompt.txt"
+    },
+    {
+      "metadata": "/27/217ba4257f/1/metadata.json",
+      "transcript": "/27/217ba4257f/1/full.jsonl",
+      "content_hash": "/27/217ba4257f/1/content_hash.txt",
+      "prompt": "/27/217ba4257f/1/prompt.txt"
     }
   ],
   "token_usage": {
-    "input_tokens": 12069,
-    "cache_creation_tokens": 4875428,
-    "cache_read_tokens": 129672106,
-    "output_tokens": 168678,
-    "api_call_count": 403
+    "input_tokens": 12202,
+    "cache_creation_tokens": 5832383,
+    "cache_read_tokens": 158159691,
+    "output_tokens": 299569,
+    "api_call_count": 516
   }
 }
