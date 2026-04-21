@@ -39,21 +39,41 @@ class JourneyWorker:
         self._bus.subscribe(self.process_event)
         logger.info("👷 Journey Worker active (Monitoring HIHO stability)")
 
-    async def process_event(self, event: FlumeJourneyEvent):
+    async def process_event(self, event: FlumeJourneyEvent | UniverseStateEvent):
         """
-        Main processing logic for each journey event.
+        Main processing logic for each journey or universe event.
         """
+        # Determine IDs and metrics based on event type
+        from cohezion.data_mesh.journey_telemetry import FlumeJourneyEvent
+        from cohezion.data_mesh.universe_telemetry import UniverseStateEvent
+        
+        if isinstance(event, FlumeJourneyEvent):
+            task_id = event.journey_id
+            dimension_state = event.state_12d
+        elif isinstance(event, UniverseStateEvent):
+            task_id = event.trigger_journey_id or event.universe_id
+            dimension_state = event.state_12d
+        else:
+            logger.warning("Unknown event type on bus: %s", type(event))
+            return
+
         # 1. Persist to SurrealDB (Wrapped in reliability circuit)
         circuit = get_circuit("surrealdb")
         if circuit.allow_request():
             try:
                 node = TrajectoryNode(
-                    evo_id=event.journey_id,
-                    dimension_state=event.state_12d,
+                    evo_id=task_id,
+                    dimension_state=dimension_state,
                     coherence=event.coherence,
                     timestamp=str(event.timestamp)
                 )
-                await self._db.insert_trajectory_node(node)
+                
+                # Check for specialized persistence method
+                if isinstance(event, UniverseStateEvent) and hasattr(self._db, "insert_universe_state"):
+                    await self._db.insert_universe_state(event)
+                else:
+                    await self._db.insert_trajectory_node(node)
+                    
                 circuit.record_success()
             except Exception as e:
                 logger.error("❌ Worker failed SurrealDB persistence: %s", e)
@@ -63,9 +83,14 @@ class JourneyWorker:
 
         # 2. Pipe to Ouroboros Bridge for failure analysis
         try:
-            # check_coherence expects a drop threshold, we provide (1.0 - current)
-            drop = abs(0.5 - event.coherence)
-            await self._bridge.check_coherence(drop, task_id=event.journey_id)
+            # check_coherence expects a drop threshold
+            # For universe events, we can use stability_shift directly if it's a drop
+            if isinstance(event, UniverseStateEvent):
+                drop = event.stability_shift
+            else:
+                drop = abs(0.5 - event.coherence)
+                
+            await self._bridge.check_coherence(drop, task_id=task_id)
         except Exception as e:
             logger.debug("Ouroboros bridge skip: %s", e)
 

@@ -3,8 +3,8 @@
 from __future__ import annotations
 
 import logging
-
 from pydantic import BaseModel
+from cohezion.data_mesh.universe_telemetry import UniverseStateEvent
 
 
 logger = logging.getLogger(__name__)
@@ -44,6 +44,32 @@ class SurrealDBClient:
         record_id = f"trajectory:{node.evo_id}_{node.timestamp.replace(' ', 'T')}"
         logger.debug(f"Inserted trajectory node {record_id} with coherence {node.coherence}")
         return record_id
+
+    async def insert_universe_state(self, event: UniverseStateEvent) -> str:
+        """Insert a universe state shift event."""
+        if not self.connected:
+            raise ConnectionError("Not connected to SurrealDB")
+
+        # Simulated insert
+        record_id = f"universe_state:{event.universe_id}_{event.event_id}"
+        logger.debug(f"Inserted universe state {record_id} with shift {event.stability_shift}")
+        return record_id
+
+    async def query_holographic_record(self, journey_id: str) -> dict:
+        """
+        Perform a 'Holographic' query correlating agent journeys and universe states.
+        
+        This mimics the SurrealDB 3.0 graph join logic between latent and axiomatic records.
+        """
+        if not self.connected:
+            raise ConnectionError("Not connected to SurrealDB")
+
+        # Simulated graph join
+        return {
+            "journey": [], # List of TrajectoryNode
+            "universe_shifts": [], # List of UniverseStateEvent
+            "correlations": [] # Linked mappings
+        }
 
     async def query_evo_trajectory(self, evo_id: str) -> list[TrajectoryNode]:
         """Query the full trajectory history for an EVO."""

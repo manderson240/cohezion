@@ -10,8 +10,8 @@
     "findings_count": 0
   },
   "QualityScout:src/cohezion/__main__.py": {
-    "hash": "391a31512732e467ff19807061da730813118f1ae4ffb745d754d83595430f18",
-    "last_scan": "2026-04-20T10:15:16.713792",
+    "hash": "a334c73bffbca49bc0980a0af6fbad7ba6b3a98609a0c3eb922370f91fb11b89",
+    "last_scan": "2026-04-21T10:34:09.674240",
     "findings_count": 9
   }
 }
