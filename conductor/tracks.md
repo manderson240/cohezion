@@ -47,3 +47,8 @@ This file tracks all major tracks for the project. Each track has its own detail
 - [ ] **Track: Agentic Journey Capture (FLUME & Quadrature Nexus)**
 *Link: [./tracks/journey_capture_20260419/](./tracks/journey_capture_20260419/)*
 
+---
+
+- [ ] **Track: Universe Telemetry Mesh (Physics/Intent Unification)**
+*Link: [./tracks/universe_telemetry_mesh_20260420/](./tracks/universe_telemetry_mesh_20260420/)*
+
