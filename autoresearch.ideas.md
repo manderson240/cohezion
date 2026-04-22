@@ -27,12 +27,16 @@
 - **Next action**: REGISTER on Kaggle → produce 60-second demo video → upload cover image → submit
 
 ### ARC Prize Paper Track ($450k, Nov 9 deadline, only 29 teams)
-- **Status**: Draft v2 structurally complete (99/100). **Prior Work section added** with 7 citations (ARChitects, DreamCoder, metacognition, meta-learning).
-- **Remaining gaps**: Experimental ablation studies, formal alignment gate theorem, diagrams
-- **Idea**: "The Compound Loop: A General Architecture for Autonomous Agent Adaptation"
-  - Tie to a scored submission on ARC-AGI-2 (even low scores qualify)
-  - Novel: metacognitive alignment gates + skill refinement for program synthesis
-- **Next action**: Run ablation studies on solver components + add theorem + generate diagrams
+- **Status**: Draft v2 is **complete with empirical data**.
+- **Completed**:
+  - ✅ 7 citations in Prior Work (ARChitects, DreamCoder, metacognition, meta-learning, MAML)
+  - ✅ Table 1: Ablation on 1000 tasks (all primitive subsets: 0.7–0.8%)
+  - ✅ Table 2: Strategy selection multiplier (0.8% → 3.4% = **4.2×**)
+  - ✅ Section 5.4: Honest alignment gate analysis (precision ~0%, value = interpretability)
+  - ✅ Figure 1: Compound Loop architecture diagram
+  - ✅ SUBMISSION_README.md for reproduction
+- **Remaining claim to validate**: Skill refinement convergence — does `_select_strategies` improve when trained on sequential task batches?
+- **Next action**: Test skill refinement convergence over task batches; evaluate Sei Accelathon MCP tooling track
 
 ### Sei AI Accelathon ($1M total, Aug 24 deadline)
 - **Status**: Not started.
