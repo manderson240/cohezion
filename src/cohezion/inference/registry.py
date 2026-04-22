@@ -30,10 +30,15 @@ into the ``"{weight}+{scheme}"`` string they used to read.
 
 from __future__ import annotations
 
+import time
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import StrEnum
-from typing import Literal
+from typing import TYPE_CHECKING, Literal
+
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
 
 
 class Lane(StrEnum):
@@ -117,6 +122,11 @@ class ModelEntry:
     cost_per_1k_input_usd: float = 0.0
     cost_per_1k_output_usd: float = 0.0
     priority: int = 100  # lower = preferred
+    # HISTORICAL marker — True means this model was successfully invoked at least
+    # once (see `FleetRegistry.mark_verified` / `last_verified_at`). It does NOT
+    # mean the endpoint is reachable right now. For LIVE status, use
+    # `cohezion.inference.health.check_fleet()` — `fleet.route()` already does.
+    # Use `FleetRegistry.audit_liveness()` to reconcile the two and surface drift.
     verified_working: bool = False
     last_verified_at: datetime | None = None
     # Empirical latency targets (milliseconds) — populated from benchmark runs.
@@ -398,6 +408,90 @@ class FleetRegistry:
         if model_id in self.models:
             self.models[model_id].verified_working = True
             self.models[model_id].last_verified_at = datetime.now()
+
+    def audit_liveness(self, check_fleet_fn: Callable[[], object] | None = None) -> LivenessAudit:
+        """Reconcile static registry declarations against live health probes.
+
+        Returns a structured report classifying every local-lane model into one
+        of four drift categories — useful as an operator CLI (`python -m
+        cohezion.inference.registry audit`) and as a CI integration guard.
+
+        `check_fleet_fn` is injectable for tests; defaults to the live prober
+        in `cohezion.inference.health`.
+        """
+        if check_fleet_fn is None:
+            from cohezion.inference.health import check_fleet as _check
+
+            check_fleet_fn = _check
+
+        health = check_fleet_fn()
+        local_lanes = {Lane.NPU, Lane.IGPU_ROCWMMA, Lane.IGPU_UNIFIED, Lane.CPU}
+        items: list[LivenessDrift] = []
+        for m in self.models.values():
+            if m.lane not in local_lanes:
+                continue  # cloud/CLI lanes are handled via try/except on dispatch
+            lane_key = m.lane.value
+            lane_health = getattr(health, "lanes", {}).get(lane_key)
+            live_status = lane_health.status.value if lane_health else "unknown"
+            if live_status == "up" and m.verified_working:
+                category = "healthy"
+            elif live_status != "up" and m.verified_working:
+                category = "critical_stale"
+            elif live_status == "up" and not m.verified_working:
+                category = "unverified_up"
+            else:
+                category = "lane_down"
+            items.append(
+                LivenessDrift(
+                    model_id=m.model_id,
+                    lane=lane_key,
+                    endpoint=m.endpoint,
+                    live_status=live_status,
+                    verified_working=m.verified_working,
+                    category=category,
+                )
+            )
+        return LivenessAudit(checked_at=time.time(), items=items)
+
+
+@dataclass
+class LivenessDrift:
+    """One row of the liveness audit — a model's static-vs-live reconciliation."""
+
+    model_id: str
+    lane: str
+    endpoint: str
+    live_status: str  # "up" | "down" | "degraded" | "unknown"
+    verified_working: bool
+    category: str  # "healthy" | "critical_stale" | "unverified_up" | "lane_down"
+
+
+@dataclass
+class LivenessAudit:
+    """Structured output of `FleetRegistry.audit_liveness()`."""
+
+    checked_at: float
+    items: list[LivenessDrift]
+
+    @property
+    def critical_stale(self) -> list[LivenessDrift]:
+        """`verified_working=True` but live lane is DOWN — the registry is lying."""
+        return [i for i in self.items if i.category == "critical_stale"]
+
+    @property
+    def healthy(self) -> list[LivenessDrift]:
+        """Live AND historically verified."""
+        return [i for i in self.items if i.category == "healthy"]
+
+    @property
+    def unverified_up(self) -> list[LivenessDrift]:
+        """Live but never flagged — may deserve a `mark_verified` call."""
+        return [i for i in self.items if i.category == "unverified_up"]
+
+    @property
+    def lane_down(self) -> list[LivenessDrift]:
+        """Not live, not claimed — declared topology we can't serve right now."""
+        return [i for i in self.items if i.category == "lane_down"]
 
 
 _registry: FleetRegistry | None = None

@@ -124,3 +124,71 @@ def test_kv_quant_llamacpp_runtime_flags_are_in_whitelist() -> None:
             f"is silently ignored at server startup — the KV cache falls back to fp16 "
             f"with no error. See ~/.claude/plans/do-we-have-turbo-distributed-torvalds.md."
         )
+
+
+def test_audit_liveness_classifies_all_four_drift_categories() -> None:
+    """audit_liveness must reconcile static `verified_working` flags against a
+    live probe and classify each local-lane model into exactly one category.
+
+    Uses an injected fake `check_fleet_fn` so this runs deterministically in CI
+    without depending on actual Lemonade/Ollama processes.
+    """
+    from types import SimpleNamespace
+
+    from cohezion.inference.registry import LivenessAudit
+
+    # Fake FleetHealth: npu DOWN, igpu_rocwmma UP, igpu_unified DOWN, cpu UP.
+    fake_lanes = {
+        "npu": SimpleNamespace(status=SimpleNamespace(value="down")),
+        "igpu_rocwmma": SimpleNamespace(status=SimpleNamespace(value="up")),
+        "igpu_unified": SimpleNamespace(status=SimpleNamespace(value="down")),
+        "cpu": SimpleNamespace(status=SimpleNamespace(value="up")),
+    }
+    fake_health = SimpleNamespace(lanes=fake_lanes)
+
+    registry = FleetRegistry()
+    # Force a known shape: toggle verified_working so all four categories appear.
+    registry.models["Gemma-4-E2B-it-GGUF"].verified_working = True  # NPU down → critical_stale
+    registry.models["Gemma-4-E4B-it-GGUF"].verified_working = False  # rocwmma up → unverified_up
+    registry.models["Gemma-4-26B-A4B-it-GGUF"].verified_working = False  # unified down → lane_down
+    registry.models["Gemma-4-31B-it-GGUF"].verified_working = True  # cpu up → healthy
+
+    audit = registry.audit_liveness(check_fleet_fn=lambda: fake_health)
+
+    assert isinstance(audit, LivenessAudit)
+    categories = {i.model_id: i.category for i in audit.items}
+    assert categories["Gemma-4-E2B-it-GGUF"] == "critical_stale"
+    assert categories["Gemma-4-E4B-it-GGUF"] == "unverified_up"
+    assert categories["Gemma-4-26B-A4B-it-GGUF"] == "lane_down"
+    assert categories["Gemma-4-31B-it-GGUF"] == "healthy"
+
+    # Convenience properties return filtered subsets.
+    assert {i.model_id for i in audit.critical_stale} >= {"Gemma-4-E2B-it-GGUF"}
+    assert {i.model_id for i in audit.healthy} >= {"Gemma-4-31B-it-GGUF"}
+    assert {i.model_id for i in audit.unverified_up} >= {"Gemma-4-E4B-it-GGUF"}
+    assert {i.model_id for i in audit.lane_down} >= {"Gemma-4-26B-A4B-it-GGUF"}
+
+
+def test_audit_liveness_skips_cloud_and_cli_lanes() -> None:
+    """Cloud/CLI lanes (Claude, Gemini, Ollama-cloud) have unreachability handled
+    via try/except on dispatch, not health probes. audit_liveness should include
+    only the four local silicon lanes (NPU/iGPU-ROCWMMA/iGPU-Unified/CPU).
+    """
+    from types import SimpleNamespace
+
+    fake_health = SimpleNamespace(
+        lanes={
+            "npu": SimpleNamespace(status=SimpleNamespace(value="up")),
+            "igpu_rocwmma": SimpleNamespace(status=SimpleNamespace(value="up")),
+            "igpu_unified": SimpleNamespace(status=SimpleNamespace(value="up")),
+            "cpu": SimpleNamespace(status=SimpleNamespace(value="up")),
+        }
+    )
+    registry = FleetRegistry()
+    audit = registry.audit_liveness(check_fleet_fn=lambda: fake_health)
+    local_lane_values = {"npu", "igpu_rocwmma", "igpu_unified", "cpu"}
+    for item in audit.items:
+        assert item.lane in local_lane_values, (
+            f"{item.model_id} got audited with non-local lane {item.lane!r}; "
+            "cloud/CLI models should be filtered out."
+        )
