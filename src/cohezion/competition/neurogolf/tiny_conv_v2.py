@@ -20,6 +20,7 @@ class TinyConvARCV2(nn.Module):
 
     def __init__(self, grid_size: int = 30, colors: int = 10, hidden: int = 32):
         super().__init__()
+        self.hidden = hidden
         self.colors = colors
         self.embed = nn.Embedding(colors, hidden)
 
@@ -70,7 +71,7 @@ def train_on_task(model, train_examples, steps=500, lr=0.05):
 
 
 def evaluate(model, task):
-    task_model = TinyConvARCV2(hidden=32)
+    task_model = TinyConvARCV2(hidden=model.hidden)
     task_model.load_state_dict(model.state_dict())
     train_on_task(task_model, task["train"], steps=100)
     for ex in task["train"]:
@@ -84,7 +85,7 @@ def evaluate(model, task):
 
 
 if __name__ == "__main__":
-    model = TinyConvARCV2(hidden=32)
+    model = TinyConvARCV2(hidden=48)
     print(f"Params: {model.count_params():,}")
 
     root = Path("/home/mike-anderson/dev/cohezion")
