@@ -51,14 +51,53 @@ class WebMCPBridge:
     async def handle_context(self, request: web.Request) -> web.Response:
         """Returns the model-context.json for MCP discovery."""
         servers = self.registry.list_servers()
+        
+        # Robust port mapping matching defaults.py and fleet.py
+        port_map = {
+            "vault": 8360,
+            "cloud-vault-mcp": 8360,
+            "bmad": 8361,
+            "cohezion-bmad": 8361,
+            "skills": 8362,
+            "cohezion-skills": 8362,
+            "doc-retriever": 8364,
+            "huggingface": 8365,
+            "cohezion-huggingface": 8365,
+            "huggingface-skills": 8365,
+            "memory": 8366,
+            "cohezion-memory": 8366,
+            "sequential-thinking": 8367,
+            "git-context": 8368,
+            "security": 8369,
+            "cohezion-security": 8369,
+            "knowledge": 8371,
+            "cohezion-knowledge": 8371,
+            "swarm": 8372,
+            "cohezion-swarm": 8372,
+            "research": 8373,
+            "cohezion-research": 8373,
+            "coherence": 8374,
+            "cohezion-coherence": 8374,
+            "surreal": 8375,
+            "cohezion-surreal": 8375,
+            "journey": 8376,
+            "cohezion-journey": 8376,
+            "github": 8377,
+            "cohezion-github": 8377,
+            "agentskills": 8378,
+            "cohezion-agentskills": 8378,
+            "compound": 8379,
+            "cohezion-compound": 8379,
+        }
+        
         context = {
             "mcpServers": {
                 s.name: {
-                    "url": s.url if s.url else f"http://localhost:{8360 + servers.index(s)}",
+                    "url": s.url if s.url and s.url != "local" else f"http://localhost:{port_map.get(s.name, 8360 + servers.index(s))}",
                     "description": s.description,
                 }
                 for s in servers
-                if s.status == "available" or s.url
+                if s.status == "available" or s.url or s.name in port_map
             }
         }
         return web.json_response(context)

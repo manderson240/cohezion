@@ -21,7 +21,7 @@ import os
 # Import tool modules to register @app.tool() decorators
 import cohezion.mcp.bmad_tools
 import cohezion.mcp.bmad_tools_ext  # noqa: F401
-from cohezion.mcp.bmad_app import app, get_engine, logger
+from cohezion.mcp.bmad_app import app, get_bmad_data_path, get_engine, get_redis_url, logger
 
 
 # ============================================================================

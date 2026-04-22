@@ -50,7 +50,7 @@ async def get_mcp() -> MCPClient:
     """Get or create MCP client."""
     global _mcp_client
     if _mcp_client is None:
-        _mcp_client = await get_mcp_client()
+        _mcp_client = get_mcp_client()
     return _mcp_client
 
 

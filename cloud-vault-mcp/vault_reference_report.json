@@ -1,0 +1,30 @@
+{
+  "total_documents": 12,
+  "total_references": 4,
+  "missing_references": {
+    "README.md": [
+      "note-name"
+    ],
+    "projects/_template.md": [
+      "patterns/...",
+      "experiments/...",
+      "decisions/..."
+    ]
+  },
+  "orphaned_documents": [
+    "README.md",
+    "daily/_template.md",
+    "projects/_template.md",
+    "projects/TASK-6-COMPLETION-REPORT.md",
+    "projects/SESSION-40-PHASE-5B-COMPLETION.md",
+    "papers/_template.md",
+    "decisions/2026-02-09-session-40-phase-5b-qa-verification-complete.md",
+    "decisions/_template.md",
+    "decisions/2026-02-09-phase-5b-multi-agent-coordination-complete.md",
+    "patterns/phase-5b-implementation-patterns.md",
+    "patterns/_template.md",
+    "experiments/_template.md"
+  ],
+  "high_connectivity": [],
+  "issues": []
+}

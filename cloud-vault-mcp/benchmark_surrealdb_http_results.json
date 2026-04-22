@@ -1,0 +1,36 @@
+{
+  "sequential": {
+    "operation": "surrealdb_http_sequential",
+    "samples": 1,
+    "mean_ms": 850.7914930014522,
+    "median_ms": 850.7914930014522,
+    "p95_ms": 850.7914930014522,
+    "p99_ms": 850.7914930014522,
+    "min_ms": 850.7914930014522,
+    "max_ms": 850.7914930014522,
+    "stddev_ms": 0.0,
+    "errors": 0,
+    "error_rate": 0.0
+  },
+  "parallel": {
+    "operation": "surrealdb_http_parallel",
+    "samples": 1,
+    "mean_ms": 94.20326800318435,
+    "median_ms": 94.20326800318435,
+    "p95_ms": 94.20326800318435,
+    "p99_ms": 94.20326800318435,
+    "min_ms": 94.20326800318435,
+    "max_ms": 94.20326800318435,
+    "stddev_ms": 0.0,
+    "errors": 0,
+    "error_rate": 0.0
+  },
+  "comparison": {
+    "sequential_ms": 850.79,
+    "parallel_ms": 94.2,
+    "improvement_ms": 756.59,
+    "improvement_percent": 88.9,
+    "speedup_factor": 9.0,
+    "status": "EXCELLENT"
+  }
+}
