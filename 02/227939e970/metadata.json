@@ -1,0 +1,18 @@
+{
+  "cli_version": "0.5.5",
+  "checkpoint_id": "02227939e970",
+  "strategy": "manual-commit",
+  "branch": "isolated/session-oom-modularity",
+  "checkpoints_count": 1,
+  "files_touched": [
+    ".pre-commit-config.yaml"
+  ],
+  "sessions": [
+    {
+      "metadata": "/02/227939e970/0/metadata.json",
+      "transcript": "/02/227939e970/0/full.jsonl",
+      "content_hash": "/02/227939e970/0/content_hash.txt",
+      "prompt": ""
+    }
+  ]
+}
