@@ -159,7 +159,7 @@ See skill: `cohezion-vault-workflow` for vault API examples (log decisions, expe
 **Cost routing tiers**: 70% simple (Ollama/Flash-Lite, free) → 20% medium (Sonnet, $3/M) → 10% hard (Opus, $15/M)
 
 ### ⚡ Quick Reference
-- **Language**: Python 3.13+ | **Package Manager**: `uv` (never bare python)
+- **Languages (polyglot)**: Python `==3.11.*` for `src/cohezion/**` (package manager: `uv`, never bare pip) | Rust for `src/cohezion-physics-core/` (Cargo) | TypeScript/React for `src/web/` (Next.js 16 + Three.js + Tone.js). Use the right language for the job; language-specific rules apply to their scope only.
 - **DB**: SurrealDB (ws://localhost:8001) | **API**: FastAPI :8080
 - **Tests**: 6,369 collected, full suite completes without crash. Genesis: 398 (physics 309 + world_model 34 + environments 55). Physics: 22 conservation + 15 invariant checker. LeWM JEPA: 34. GraphRAG: 12. DRR generator: 15. Constitutional enforcer: 13. Verifiable rewards: 4. | **Coverage**: html report in `htmlcov/`
 - **SurrealDB Persistence**: SurrealKV backend (migrated from RocksDB Session 96b) with `?versioned=true` for VERSION clause temporal queries. Port 8001, 127.0.0.1 only. Bi-temporal schemas (valid_from/valid_to) on neurons, agent_journey, universe_node. V-Model tables: vmodel_gate, traces, hash_chain, proof_obligation (Session 96b). Hash-chain audit trail in JourneyTracker (OLIF mitigation).

@@ -188,6 +188,7 @@ testpaths = ["tests"]
 python_files = ["test_*.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
+asyncio_mode = "auto"
 markers = [
     "fast: Fast unit tests (<1s each, no live services)",
     "integration: Integration tests (require live services like Ollama/SurrealDB)",

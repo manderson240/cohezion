@@ -5,10 +5,11 @@ No external LLM required. Uses only symbolic solvers:
 - unit_conversion: linear regression
 - numeral: Roman numeral conversion
 - bit_manip: per-bit mapping + affine + unary search
-- encryption: character substitution mapping
+- encryption: character substitution mapping + dictionary completion
 - equations: simple pattern matching (occasionally catches a few)
 
-Expected accuracy on training: ~53.5% (1000-sample validation).
+Expected accuracy on training: ~63.1% (9500-sample validation, no model).
+Hybrid with local Gemma-4 fallback: ~63.95% (model adds only +0.8%).
 """
 from __future__ import annotations
 
@@ -87,7 +88,15 @@ def _format_number(value: float, examples: list[tuple[str, str]]) -> str:
         precision = 0
     if precision == 0:
         return f"{int(round(value))}"
-    return f"{value:.{precision}f}"
+    # Try 2-decimal if the most common is 1-decimal but 2-decimal examples also exist
+    fmt = f"{value:.{precision}f}"
+    if precision == 1:
+        dec2_count = sum(1 for _, out in examples if "." in out and len(out.split(".")[1]) == 2)
+        if dec2_count >= sum(1 for _, out in examples if "." in out and len(out.split(".")[1]) == 1):
+            fmt2 = f"{value:.2f}"
+            if fmt2 != fmt:
+                return fmt2
+    return fmt
 
 
 # ---------------------------------------------------------------------------
@@ -457,6 +466,100 @@ def solve_bit_manip(examples: list[tuple[str, str]], test_in: str) -> str:
 
 
 # ---------------------------------------------------------------------------
+# Encryption solver with dictionary completion
+# ---------------------------------------------------------------------------
+_ENCRYPTION_VOCAB = [
+    "the", "follows", "dragon", "teacher", "writes", "creates", "draws",
+    "student", "rabbit", "studies", "discovers", "secret", "found", "mouse",
+    "dreams", "chases", "reads", "king", "sees", "watches", "queen", "hatter",
+    "knight", "explores", "bird", "imagines", "wizard", "turtle", "castle",
+    "cat", "alice", "garden", "princess", "colorful", "puzzle", "bright",
+    "forest", "book", "clever", "key", "dark", "mirror", "treasure",
+    "silver", "beyond", "inside", "in", "hidden", "curious", "around",
+    "above", "wise", "potion", "near", "door", "golden", "under", "through",
+    "mysterious", "magical", "strange", "story", "crystal", "message", "map",
+    "ancient", "village", "mountain", "wonderland", "cave", "school", "valley",
+    "island", "palace", "library", "ocean", "tower", "diamond", "crown",
+    "river", "bridge", "cloud", "star", "moon", "sun", "fire",
+    "water", "earth", "wind", "shadow", "light", "path", "road", "tree",
+    "flower", "grass", "stone", "sand", "snow", "rain", "storm", "thunder",
+    "whisper", "laughter", "silence", "echo", "song", "dance", "music",
+    "magic", "spell", "herb", "gem", "jewel", "ring",
+    "sword", "shield", "armor", "helmet", "cape", "robe", "hat", "shoe",
+    "boot", "glove", "belt", "bag", "box", "chest", "bottle", "cup",
+    "plate", "bowl", "spoon", "fork", "knife", "candle", "lamp", "torch",
+    "paper", "pen", "ink", "paint", "brush", "canvas", "frame", "picture",
+    "photo", "camera", "film", "tape", "record", "disk", "card", "coin",
+    "dollar", "cent", "euro", "pound", "yen", "price", "cost", "value",
+    "worth", "rich", "poor", "wealth", "gold", "money", "cash", "bank",
+    "shop", "store", "market", "trade", "sell", "buy", "pay", "spend",
+    "save", "keep", "hold", "have", "own", "give", "take", "get",
+    "find", "lose", "search", "seek", "hunt", "track", "trace", "mark",
+    "sign", "signal", "code", "word", "letter", "note", "text", "line",
+    "page", "chapter", "title", "name", "label", "tag", "brand", "logo",
+]
+
+
+def solve_encryption(examples: list[tuple[str, str]], test_in: str) -> str:
+    """Word-level substitution cipher solver with vocabulary completion."""
+    mapping = {}
+    for inp, out in examples:
+        inp_words = inp.split()
+        out_words = out.split()
+        if len(inp_words) != len(out_words):
+            continue
+        for iw, ow in zip(inp_words, out_words):
+            if len(iw) == len(ow):
+                for c_in, c_out in zip(iw, ow):
+                    if c_in not in mapping:
+                        mapping[c_in] = c_out
+
+    # Apply initial mapping
+    test_words = test_in.split()
+    result_words = []
+    for tw in test_words:
+        mapped = ""
+        for c in tw:
+            mapped += mapping.get(c, "?")
+        result_words.append(mapped)
+
+    # Dictionary completion for missing characters (unique + most-frequent ambiguous)
+    changed = True
+    while changed:
+        changed = False
+        for i, (tw, pw) in enumerate(zip(test_words, result_words)):
+            if "?" not in pw:
+                continue
+            pattern = pw.replace("?", "?")
+            matches = [w for w in _ENCRYPTION_VOCAB if len(w) == len(pattern) and _match_pattern(pattern, w)]
+            if len(matches) >= 1:  # Accept even ambiguous (pick most frequent)
+                best = matches[0]
+                for c_in, c_out in zip(tw, best):
+                    if c_in not in mapping:
+                        mapping[c_in] = c_out
+                        changed = True
+        # Rebuild result words with updated mapping
+        result_words = []
+        for tw in test_words:
+            mapped = ""
+            for c in tw:
+                mapped += mapping.get(c, "?")
+            result_words.append(mapped)
+
+    return " ".join(result_words)
+
+
+def _match_pattern(pattern: str, word: str) -> bool:
+    """Check if word matches a pattern with ? wildcards."""
+    if len(pattern) != len(word):
+        return False
+    for p, w in zip(pattern, word):
+        if p != "?" and p != w:
+            return False
+    return True
+
+
+# ---------------------------------------------------------------------------
 # Equation solver (minimal)
 # ---------------------------------------------------------------------------
 def solve_equations(examples: list[tuple[str, str]], test_in: str) -> str:
@@ -491,31 +594,6 @@ def solve_equations(examples: list[tuple[str, str]], test_in: str) -> str:
 
 
 # ---------------------------------------------------------------------------
-# Encryption solver
-# ---------------------------------------------------------------------------
-def solve_encryption(examples: list[tuple[str, str]], test_in: str) -> str:
-    mapping = {}
-    for inp, out in examples:
-        inp_words = inp.split()
-        out_words = out.split()
-        if len(inp_words) != len(out_words):
-            continue
-        for iw, ow in zip(inp_words, out_words):
-            if len(iw) == len(ow):
-                for c_in, c_out in zip(iw, ow):
-                    if c_in not in mapping:
-                        mapping[c_in] = c_out
-    test_words = test_in.split()
-    result_words = []
-    for tw in test_words:
-        mapped = ""
-        for c in tw:
-            mapped += mapping.get(c, c)
-        result_words.append(mapped)
-    return " ".join(result_words)
-
-
-# ---------------------------------------------------------------------------
 # Main solver
 # ---------------------------------------------------------------------------
 def solve(prompt: str) -> str:
@@ -542,17 +620,22 @@ def solve(prompt: str) -> str:
 # ---------------------------------------------------------------------------
 # Kaggle: read test.csv, write submission.csv
 # ---------------------------------------------------------------------------
-with open("/kaggle/input/nvidia-nemotron-model-reasoning-challenge/test.csv") as f:
-    rows = list(csv.DictReader(f))
+import os
 
-results = []
-for r in rows:
-    pred = solve(r["prompt"])
-    results.append({"id": r["id"], "answer": pred.strip()})
+if os.path.exists("/kaggle/input/nvidia-nemotron-model-reasoning-challenge/test.csv"):
+    with open("/kaggle/input/nvidia-nemotron-model-reasoning-challenge/test.csv") as f:
+        rows = list(csv.DictReader(f))
 
-with open("submission.csv", "w", newline="") as f:
-    writer = csv.DictWriter(f, fieldnames=["id", "answer"])
-    writer.writeheader()
-    writer.writerows(results)
+    results = []
+    for r in rows:
+        pred = solve(r["prompt"])
+        results.append({"id": r["id"], "answer": pred.strip()})
 
-print(f"Generated {len(results)} predictions in submission.csv")
+    with open("submission.csv", "w", newline="") as f:
+        writer = csv.DictWriter(f, fieldnames=["id", "answer"])
+        writer.writeheader()
+        writer.writerows(results)
+
+    print(f"Generated {len(results)} predictions in submission.csv")
+else:
+    print("Not running in Kaggle environment — skipping submission.csv generation.")

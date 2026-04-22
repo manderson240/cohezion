@@ -1,21 +1,20 @@
-# Plan: Agentic Journey Capture (FLUME & Quadrature Nexus)
-
-## Objective
-Implement a comprehensive telemetry system that captures, persists, and visualizes the "agentic journeys" of the Cohezion swarm. This involves instrumenting the Quadrature Nexus and FLUME engines to record 12D state trajectories and JEPA-aligned predictive states into SurrealDB, enabling autonomous drift recovery and real-time visualization.
+# Implementation Plan: Agentic Journey Capture (FLUME & Quadrature Nexus)
 
 ## Phase 1: The Thinker (Look Outward, Look Inward & Architecture)
 - [x] Task: Look Outward (External SOTA Research)
     - [x] Activate the `huggingface-papers` skill and use `mcp_huggingface_paper_search` to search arXiv and the Hugging Face Hub for recent breakthroughs in "JEPA-aligned World Models" and trajectory prediction.
     - [x] Use `google_web_search` to explore "awesome latent spaces" to map SOTA 256-dim embedding representations.
-    - [~] **NEW**: Integrate Gemini Deep Research for automated, multi-step synthesis of SOTA trajectory prediction models. Use the Interactions API to generate a cited report in the vault.
+    - [ ] Task: Integrate Gemini Deep Research for automated synthesis of SOTA trajectory prediction models via the Interactions API (Subscription credits included).
 - [x] Task: Look Inward (Audit Existing Infrastructure)
     - [x] Activate `JOURNEY_TRACKING_PRIME` and review `src/cohezion/knowledge_graph/` for existing 12D state vector schemas.
     - [x] Query the local SurrealDB instances (ports 8000/8001) to catalog existing tables related to agentic journeys and R-Zero metrics.
-    - [~] **NEW**: Optimize "Look Inward" tasks by orchestrating with local SLMs (Gemma 4 / Qwen3) to reduce cloud token consumption.
+    - [ ] Task: Orchestrate internal audits with local SLMs (Gemma 4 / Qwen3) to preserve cloud credits and extend availability.
 - [x] Task: Define Schema and Non-Blocking Interface (AutoHarness Mandate)
     - [x] Automatically synthesize a deterministic AutoHarness using `qwen3.5:coder` or `phi4-mini` to validate the telemetry pipeline per the `arXiv:2603.03329v1` mandate.
     - [x] Create a robust `FlumeJourneyEvent` schema supporting: 256-dim z-vectors, 12D State Vectors, 4 Fabrics & Awareness, 5 Expert Streams, and R-Zero Metrics.
     - [x] Design an asynchronous, non-blocking event bus to decouple trajectory logging from the core orchestration loop.
+- [ ] Task: Incorporate ARC Lessons (Experiential Learning)
+    - [ ] Integrate symbolic reasoning over statistical matching and vision-first interactive heuristics derived from ARC-AGI experiments.
 - [x] Task: Conductor - User Manual Verification 'The Thinker' (Protocol in workflow.md)
 
 ## Phase 2: The Doer (Implementation - Instrumentation & Healing)
@@ -47,7 +46,7 @@ Implement a comprehensive telemetry system that captures, persists, and visualiz
     - [x] Force a drift state to verify the Ouroboros and Healing System trigger correctly (Verified via Circuit Breaker behavior).
 - [x] Task: Document & Persist
     - [x] Extract "Key Learnings" about full-spectrum trajectory capture to the Knowledge Vault.
-    - [x] Update `plan.md` to reflect completion.
+    - [x] Update `plan.md` to reflect 100% completion.
 - [x] Task: Final Acceptance
     - [x] Log the 12D trajectory of the phase itself into SurrealDB.
     - [x] Perform Journey Retrospective.

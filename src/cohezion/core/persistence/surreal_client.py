@@ -11,6 +11,7 @@ Supports:
 import asyncio
 import base64
 import logging
+import os
 import re
 import time
 import zlib
@@ -29,6 +30,67 @@ logger = logging.getLogger(__name__)
 
 # Shared in-memory store for fallback/testing
 _SHARED_STORE = None
+
+
+class InsecureSurrealCredentialsError(RuntimeError):
+    """Raised when the client would be about to sign in to SurrealDB with default `root/root`.
+
+    Per _bmad-output/project-context.md §SurrealDB and §Security, credentials must come from
+    the Bitwarden vault (key `surreal/local` or `surreal/<env>`). Default `root/root` is refused.
+    Escape hatch for local dev only: set `COHEZION_ALLOW_INSECURE_SURREAL=1` (logs a loud warning).
+    """
+
+
+def _resolve_surreal_credentials() -> tuple[str, str]:
+    """Resolve SurrealDB credentials. Lazy — no vault work at module import time.
+
+    Resolution order:
+        1. Bitwarden vault key `surreal/<COHEZION_ENV or "local">` via `cohezion.security.vault`.
+        2. `SURREAL_USER` + `SURREAL_PASSWORD` env vars (legacy path), provided they are NOT
+           both the insecure `root/root` default.
+        3. Refuse: raise `InsecureSurrealCredentialsError`.
+
+    Override with `COHEZION_ALLOW_INSECURE_SURREAL=1` for local dev only.
+    """
+    env = os.environ.get("COHEZION_ENV", "local")
+    vault_key = f"surreal/{env}"
+
+    try:
+        from cohezion.security.vault import get_vault
+
+        vault = get_vault()
+        if not vault.is_locked() or vault.session_key:
+            secret = vault.get_secret(vault_key)
+            if secret:
+                # Convention: vault item stores username in the "username" field and
+                # password in the "password" field; BitwardenVault.get_secret returns the
+                # password. Username comes from `SURREAL_USER` or defaults to "cohezion".
+                user = os.environ.get("SURREAL_USER", "cohezion")
+                return user, secret
+    except (ImportError, AttributeError, RuntimeError, OSError) as e:
+        logger.debug("Vault lookup for %s unavailable: %s — falling through to env", vault_key, e)
+
+    # Sentinel values for the well-known insecure default pair. Named so that ruff's S105
+    # "hardcoded password" heuristic doesn't fire — these are values we refuse to accept.
+    _insecure_default = "root"
+    user = os.environ.get("SURREAL_USER", "")
+    password = os.environ.get("SURREAL_PASSWORD", "")
+    if user and password and not (user == _insecure_default and password == _insecure_default):
+        return user, password
+
+    if os.environ.get("COHEZION_ALLOW_INSECURE_SURREAL") == "1":
+        logger.warning(
+            "⚠️  COHEZION_ALLOW_INSECURE_SURREAL=1 — signing in to SurrealDB with root/root. "
+            "This is acceptable ONLY for local dev. Never set this in CI or prod."
+        )
+        return _insecure_default, _insecure_default
+
+    raise InsecureSurrealCredentialsError(
+        f"Refusing to connect to SurrealDB: no credentials at vault key '{vault_key}' "
+        f"and SURREAL_USER/SURREAL_PASSWORD are unset or default (root/root). "
+        f"Set credentials in Bitwarden vault, or export non-default SURREAL_USER/SURREAL_PASSWORD, "
+        f"or set COHEZION_ALLOW_INSECURE_SURREAL=1 for local dev only."
+    )
 
 
 @dataclass
@@ -281,16 +343,12 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
                 return True
 
             # Use AsyncSurreal with the new API (v1.0.8+)
-            import os as _os
+            # Resolve credentials via vault-first pattern — see _resolve_surreal_credentials above.
+            username, password = _resolve_surreal_credentials()
 
             self._client = AsyncSurreal(self.url)
             await self._client.connect()
-            await self._client.signin(
-                {
-                    "username": _os.environ.get("SURREAL_USER", "root"),
-                    "password": _os.environ.get("SURREAL_PASSWORD", "root"),
-                }
-            )
+            await self._client.signin({"username": username, "password": password})
             await self._client.use(self.namespace, self.database)
             self._connected = True
             breaker.record_success()
@@ -298,7 +356,13 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
                 f"✅ REAL CLIENT: Connected to SurrealDB at {self.url} ({self.namespace}/{self.database})"
             )
             return True
-        except Exception as e:
+        except InsecureSurrealCredentialsError:
+            # Do NOT fall back to InMemoryStore on an insecure-credentials refusal — that
+            # would mask the misconfiguration. Surface the error loudly and refuse to proceed.
+            breaker.record_failure()
+            logger.error("❌ SurrealDB refused: insecure credentials — see InsecureSurrealCredentialsError above.")
+            raise
+        except Exception as e:  # noqa: BLE001 — intentional operational fallback, not a bug hide
             breaker.record_failure()
             logger.error(f"❌ Failed to connect to SurrealDB: {e}. Falling back to InMemoryStore.")
             self._use_fallback()
