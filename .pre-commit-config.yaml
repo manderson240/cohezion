@@ -74,37 +74,13 @@ repos:
 
       # LFS enforcement: files matching .gitattributes LFS patterns must be LFS pointers
       # L330: 9.3GB tarball bypassed size gates because LFS wasn't initialized
+      # 2026-04-22: extracted inline Python to scripts/hooks/lfs_pointer_check.py
+      # (inline `python -c "..."` multi-line form had a YAML parse failure mode —
+      #  unindented Python lines looked like new YAML keys to strict parsers).
       - id: lfs-pointer-check
         name: lfs-pointer-check (LFS-tracked files must be pointers)
         language: python
-        entry: python -c "
-import sys, os, subprocess
-if not os.path.exists('.gitattributes'):
-    sys.exit(0)
-patterns = []
-with open('.gitattributes') as f:
-    for line in f:
-        if 'filter=lfs' in line:
-            pat = line.split()[0]
-            patterns.append(pat)
-if not patterns:
-    sys.exit(0)
-errors = []
-for f in sys.argv[1:]:
-    ext = '.' + f.rsplit('.', 1)[-1] if '.' in f else ''
-    matched = any(f.endswith(p.lstrip('*')) for p in patterns)
-    if matched and os.path.getsize(f) > 1024:
-        with open(f, 'rb') as fh:
-            head = fh.read(50)
-        if not head.startswith(b'version https://git-lfs'):
-            size_mb = os.path.getsize(f) / 1048576
-            errors.append(f'{f} ({size_mb:.0f}MB) matches LFS pattern but is NOT an LFS pointer')
-for e in errors:
-    print(f'ERROR: {e}')
-    print('  Run: git lfs install && git add --renormalize .')
-if errors:
-    sys.exit(1)
-"
+        entry: python scripts/hooks/lfs_pointer_check.py
         stages: [pre-commit]
 
       # Version consistency: all version strings must match pyproject.toml
