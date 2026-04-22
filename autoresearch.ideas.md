@@ -13,14 +13,18 @@
 ## Active: Kaggle — Prize Path to Self-Funding
 
 ### Gemma-4-Good Hackathon ($200k, May 18 deadline, ~109 teams)
-- **Status**: Kernel v4 published. Need formal competition entry + submission.
-- **Idea**: "Compound Loop for Crisis Response & Field Operations"
-  - Self-contained Kaggle notebook (no external API dependencies)
-  - Demonstrates: alignment gate, skill refinement, simulated Gemma reasoning
-  - Includes: visual dashboard, training loop metrics, social good narrative
-- **Blocker**: Kaggle hackathon submission mechanics unclear. NOTE.md says "no dataset."
-- **Next action**: Discover submission process (Kaggle UI? DoraHacks?)
-- **Why we win**: Unique angle (agentic adaptation), working infrastructure, 3 weeks remain
+- **Status**: Kernel v5 published + PROJECT_WRITEUP.md drafted. **NEED TO REGISTER AND SUBMIT.**
+- **Submission requirements discovered** (from research):
+  - Kaggle account + identity verification
+  - Public project write-up ← drafted
+  - Public code repository ← exists (cohezion repo)
+  - Public demo or demo files ← Kaggle kernel serves this
+  - Public video ← **NEEDS TO BE CREATED**
+  - Cover image / media gallery assets ← **NEEDS TO BE CREATED**
+- **Judging criteria**: Impact & Vision, Video Pitch & Storytelling, Technical Depth & Execution
+- **Category fit**: Global Resilience — strong match for crisis response + offline deployment
+- **Why Gemma 4 is right**: local inference, Apache 2.0, multilingual, edge deployment
+- **Next action**: REGISTER on Kaggle → produce 60-second demo video → upload cover image → submit
 
 ### ARC Prize Paper Track ($450k, Nov 9 deadline, only 29 teams)
 - **Status**: Not started. Highest probability-to-prize ratio.
