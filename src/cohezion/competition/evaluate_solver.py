@@ -23,31 +23,33 @@ def evaluate() -> None:
     solved_with_search = 0
     times = []
 
-    for task_id in sorted(challenges):
+    for idx, task_id in enumerate(sorted(challenges)):
         task = challenges[task_id]
         task["id"] = task_id
         task_sols = solutions[task_id]
 
         start = time.monotonic()
-        program = search_program(task["train"], max_depth=3)
+        program = search_program(task["train"], max_depth=3, budget=5000)
         elapsed = time.monotonic() - start
         times.append(elapsed)
 
         if program is not None:
             solved_with_search += 1
 
-        # Evaluate predictions
-        # For simplicity, compare first test output against first solution
         if task_sols and task.get("test"):
             expected = task_sols[0]
-            pred = task["test"][0]["input"]
+            pred_input = task["test"][0]["input"]
             if program:
                 from arc_solver import apply_program
-                pred_attempt1 = apply_program(pred, program)
+                pred_attempt1 = apply_program(pred_input, program)
             else:
-                pred_attempt1 = pred
+                pred_attempt1 = pred_input
             if pred_attempt1 and grids_equal(pred_attempt1, expected):
                 correct += 1
+
+        if idx % 100 == 99:
+            current_rate = correct / (idx + 1) * 100
+            print(f"  Progress {idx + 1}/{total}: {current_rate:.1f}%", flush=True)
 
     print(f"Tasks evaluated: {total}")
     print(f"Solved by search (depth <= 3): {solved_with_search} ({solved_with_search / total * 100:.1f}%)")

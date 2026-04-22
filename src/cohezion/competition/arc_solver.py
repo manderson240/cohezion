@@ -369,6 +369,119 @@ def order_objects_by_size(g: Grid) -> Grid | None:
 
 
 # ---------------------------------------------------------------------------
+# Gravity primitives
+# ---------------------------------------------------------------------------
+
+def gravity_down(g: Grid) -> Grid | None:
+    if not g:
+        return None
+    rows, cols = len(g), len(g[0])
+    bg = _most_common_color(g)
+    result = [[bg] * cols for _ in range(rows)]
+    changed = False
+    for c in range(cols):
+        write_row = rows - 1
+        for r in range(rows - 1, -1, -1):
+            if g[r][c] != bg:
+                result[write_row][c] = g[r][c]
+                if write_row != r:
+                    changed = True
+                write_row -= 1
+    return result if changed else None
+
+
+def gravity_up(g: Grid) -> Grid | None:
+    if not g:
+        return None
+    rows, cols = len(g), len(g[0])
+    bg = _most_common_color(g)
+    result = [[bg] * cols for _ in range(rows)]
+    changed = False
+    for c in range(cols):
+        write_row = 0
+        for r in range(rows):
+            if g[r][c] != bg:
+                result[write_row][c] = g[r][c]
+                if write_row != r:
+                    changed = True
+                write_row += 1
+    return result if changed else None
+
+
+def gravity_left(g: Grid) -> Grid | None:
+    if not g:
+        return None
+    rows, cols = len(g), len(g[0])
+    bg = _most_common_color(g)
+    result = [[bg] * cols for _ in range(rows)]
+    changed = False
+    for r in range(rows):
+        write_col = 0
+        for c in range(cols):
+            if g[r][c] != bg:
+                result[r][write_col] = g[r][c]
+                if write_col != c:
+                    changed = True
+                write_col += 1
+    return result if changed else None
+
+
+def gravity_right(g: Grid) -> Grid | None:
+    if not g:
+        return None
+    rows, cols = len(g), len(g[0])
+    bg = _most_common_color(g)
+    result = [[bg] * cols for _ in range(rows)]
+    changed = False
+    for r in range(rows):
+        write_col = cols - 1
+        for c in range(cols - 1, -1, -1):
+            if g[r][c] != bg:
+                result[r][write_col] = g[r][c]
+                if write_col != c:
+                    changed = True
+                write_col -= 1
+    return result if changed else None
+
+
+# ---------------------------------------------------------------------------
+# Color mapping from training examples
+# ---------------------------------------------------------------------------
+
+def infer_color_map(g: Grid, train: list[dict[str, Grid]]) -> Grid | None:
+    """Try to infer a consistent color mapping from training examples."""
+    mappings: list[dict[int, int]] = []
+    for ex in train:
+        inp_colors = Counter(c for row in ex["input"] for c in row)
+        out_colors = Counter(c for row in ex["output"] for c in row)
+        if set(inp_colors.keys()) != set(out_colors.keys()):
+            return None
+        if sorted(inp_colors.values()) != sorted(out_colors.values()):
+            return None
+        # Map by sorted order
+        inp_sorted = sorted(inp_colors, key=lambda c: (inp_colors[c], c))
+        out_sorted = sorted(out_colors, key=lambda c: (out_colors[c], c))
+        mapping = dict(zip(inp_sorted, out_sorted))
+        mappings.append(mapping)
+
+    # Check consistency
+    if not mappings:
+        return None
+    common = mappings[0]
+    for m in mappings[1:]:
+        if m != common:
+            return None
+
+    return [[common.get(c, c) for c in row] for row in g]
+
+
+def color_map_wrapper(train: list[dict[str, Grid]]) -> Program:
+    def fn(g: Grid) -> Grid | None:
+        return infer_color_map(g, train)
+    return fn
+
+
+# ---------------------------------------------------------------------------
 # Primitive registry for meta-search
 # ---------------------------------------------------------------------------
 
@@ -380,22 +493,28 @@ def _make_parametric() -> list[tuple[str, Program]]:
     return out
 
 
-ALL_OPS: list[tuple[str, Program]] = [
-    *BASE_OPS,
-    ("crop_obj", crop_to_object),
-    ("remove_bg", remove_background),
-    ("fill_holes", fill_holes),
-    ("border", border),
-    ("interior", interior),
-    ("pad_obj", pad_to_object),
-    ("mirror_h", mirror_horizontal),
-    ("mirror_v", mirror_vertical),
-    ("diag_sym", diagonal_symmetry),
-    ("invert", invert_colors),
-    ("move_up", move_objects_up),
-    ("order_objs", order_objects_by_size),
-    *_make_parametric(),
-]
+def get_all_ops(train: list[dict[str, Grid]]) -> list[tuple[str, Program]]:
+    return [
+        *BASE_OPS,
+        ("crop_obj", crop_to_object),
+        ("remove_bg", remove_background),
+        ("fill_holes", fill_holes),
+        ("border", border),
+        ("interior", interior),
+        ("pad_obj", pad_to_object),
+        ("mirror_h", mirror_horizontal),
+        ("mirror_v", mirror_vertical),
+        ("diag_sym", diagonal_symmetry),
+        ("invert", invert_colors),
+        ("move_up", move_objects_up),
+        ("order_objs", order_objects_by_size),
+        ("gravity_d", gravity_down),
+        ("gravity_u", gravity_up),
+        ("gravity_l", gravity_left),
+        ("gravity_r", gravity_right),
+        ("color_map", color_map_wrapper(train)),
+        *_make_parametric(),
+    ]
 
 
 def apply_program(g: Grid, program: list[Program]) -> Grid | None:
@@ -423,18 +542,15 @@ def search_program(
     train: list[dict[str, Grid]],
     max_depth: int = 3,
     ops: list[tuple[str, Program]] | None = None,
-    budget: int = 500,
+    budget: int = 2000,
 ) -> list[Program] | None:
     if ops is None:
-        ops = ALL_OPS
+        ops = get_all_ops(train)
     visited = set()
     for depth in range(1, max_depth + 1):
-        result = _search_depth_bfs(train, depth, ops, budget, visited)
+        result = _search_depth_bfs(train, depth, ops, budget, visited, None)
         if result is not None:
             return result
-    # Fallback to identity
-    if all(grids_equal(train[0].get("input"), ex.get("input")) for ex in train):
-        return None
     return None
 
 
@@ -444,16 +560,20 @@ def _search_depth_bfs(
     ops: list[tuple[str, Program]],
     budget: int,
     visited: set[str],
+    global_counter: list[int] | None = None,
 ) -> list[Program] | None:
-    checked = 0
+    if global_counter is None:
+        global_counter = [0]
+
     if depth == 1:
         for name, op in ops:
-            checked += 1
-            if checked > budget:
-                break
+            global_counter[0] += 1
+            if global_counter[0] > budget:
+                return None
             if all(grids_equal(op(deepcopy_grid(ex["input"])), ex["output"]) for ex in train):
                 return [op]
         return None
+
     for name, op in ops:
         transformed = []
         valid = True
@@ -465,7 +585,7 @@ def _search_depth_bfs(
             transformed.append({"input": t, "output": ex["output"]})
         if not valid:
             continue
-        sub = _search_depth_bfs(transformed, depth - 1, ops, budget // len(ops), visited)
+        sub = _search_depth_bfs(transformed, depth - 1, ops, budget, visited, global_counter)
         if sub is not None:
             return [op, *sub]
     return None
