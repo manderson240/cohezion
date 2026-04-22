@@ -31,6 +31,7 @@ Non-goals:
 
 from __future__ import annotations
 
+import ast
 import json
 import os
 import subprocess
@@ -166,6 +167,146 @@ def _basic_auth(user: str, pw: str) -> str:
     return f"Basic {token}"
 
 
+# ---------------------------------------------------------------------------
+# Structural import-drift gate (L367 / ARC Lesson 2)
+# ---------------------------------------------------------------------------
+# For each `from cohezion.X import Y` in a modified Python file, verify that
+# Y actually exists as a top-level name in src/cohezion/X.py (or its package
+# __init__.py). Catches the `KaggleAPI.submit_adapter`-style drift where a
+# symbol is imported/referenced but doesn't exist — the class of bug that
+# would silently pass linting + CI and only blow up at call-site.
+#
+# AST-only (no runtime imports) so the hook works in bare-python environments
+# without the cohezion package installed. Trade-off: misses symbols added via
+# `__all__` extensions or re-exports; we accept those false negatives since
+# the goal is catching obvious typos / deleted symbols, not full static check.
+
+
+def _resolve_cohezion_module(module: str, repo_root: Path) -> Path | None:
+    """Map 'cohezion.X.Y' → src/cohezion/X/Y.py or src/cohezion/X/Y/__init__.py."""
+    if not module.startswith("cohezion"):
+        return None
+    # Strip leading 'cohezion.' and split
+    parts = module.split(".")
+    base = repo_root / "src" / parts[0]
+    if not base.exists():
+        return None
+    candidate = base
+    for part in parts[1:]:
+        candidate = candidate / part
+    as_file = candidate.with_suffix(".py")
+    as_pkg = candidate / "__init__.py"
+    if as_file.exists():
+        return as_file
+    if as_pkg.exists():
+        return as_pkg
+    return None
+
+
+def _top_level_names(source_path: Path) -> set[str]:
+    """Extract top-level defs, classes, assignments, and __all__ entries via AST.
+    Returns empty set if the file can't be parsed (syntax error → likely caught
+    elsewhere; don't double-report)."""
+    try:
+        tree = ast.parse(source_path.read_text(encoding="utf-8", errors="ignore"))
+    except (SyntaxError, OSError):
+        return set()
+    names: set[str] = set()
+    for node in tree.body:
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
+            names.add(node.name)
+        elif isinstance(node, ast.Assign):
+            for target in node.targets:
+                if isinstance(target, ast.Name):
+                    names.add(target.id)
+                elif isinstance(target, ast.Tuple):
+                    for elt in target.elts:
+                        if isinstance(elt, ast.Name):
+                            names.add(elt.id)
+        elif isinstance(node, ast.AnnAssign) and isinstance(node.target, ast.Name):
+            names.add(node.target.id)
+        elif isinstance(node, ast.ImportFrom):
+            # Re-exports count as top-level names
+            for alias in node.names:
+                names.add(alias.asname or alias.name)
+        elif isinstance(node, ast.Import):
+            for alias in node.names:
+                names.add(alias.asname or alias.name.split(".")[0])
+    return names
+
+
+def _check_import_drift(py_file: Path, repo_root: Path) -> list[str]:
+    """Return a list of drift messages for `from cohezion.X import Y` statements
+    where Y is not a top-level name in cohezion.X. Empty list = clean."""
+    drifts: list[str] = []
+    try:
+        tree = ast.parse(py_file.read_text(encoding="utf-8", errors="ignore"))
+    except (SyntaxError, OSError):
+        return drifts
+    for node in ast.walk(tree):
+        if not isinstance(node, ast.ImportFrom):
+            continue
+        if node.module is None or not node.module.startswith("cohezion"):
+            continue
+        target = _resolve_cohezion_module(node.module, repo_root)
+        if target is None:
+            drifts.append(f"from {node.module} import ... — module not found under src/")
+            continue
+        available = _top_level_names(target)
+        # Skip the check if the target's AST yielded nothing (parse failure
+        # means we can't reliably verify; avoid noise).
+        if not available:
+            continue
+        for alias in node.names:
+            name = alias.name
+            if name == "*":
+                continue  # wildcard imports bypass the check
+            if name not in available:
+                drifts.append(
+                    f"from {node.module} import {name} — '{name}' not defined "
+                    f"in {target.relative_to(repo_root)}"
+                )
+    return drifts
+
+
+def _insert_import_drift(
+    gate_id: str,
+    session_id: str,
+    source_file: str,
+    drifts: list[str],
+    summary: str,
+) -> bool:
+    """Record an import_drift row to SurrealDB. Non-blocking; returns False on
+    any failure. One row per source file, drifts collapsed into a string array."""
+    drift_array = "[" + ", ".join(f"'{_escape_sql_string(d)}'" for d in drifts) + "]"
+    sql = (
+        f"CREATE import_drift SET "
+        f"drift_id = '{_escape_sql_string(gate_id)}', "
+        f"session_id = '{_escape_sql_string(session_id)}', "
+        f"source_file = '{_escape_sql_string(source_file)}', "
+        f"drift_count = {len(drifts)}, "
+        f"drifts = {drift_array}, "
+        f"summary = '{_escape_sql_string(summary)}';"
+    )
+    req = urllib.request.Request(  # noqa: S310
+        SURREAL_URL,
+        data=sql.encode("utf-8"),
+        headers={
+            "Accept": "application/json",
+            "surreal-ns": SURREAL_NS,
+            "surreal-db": SURREAL_DB,
+            "Authorization": _basic_auth(SURREAL_USER, SURREAL_PASS),
+        },
+        method="POST",
+    )
+    try:
+        with urllib.request.urlopen(req, timeout=3) as resp:  # noqa: S310
+            payload = json.load(resp)
+        return isinstance(payload, list) and bool(payload) and payload[0].get("status") == "OK"
+    except (urllib.error.URLError, TimeoutError, json.JSONDecodeError):
+        return False
+
+
 def main() -> int:
     if os.environ.get("VMODEL_GATE_DISABLE") == "1":
         return 0
@@ -179,6 +320,34 @@ def main() -> int:
 
     source_py = [f for f in files if f.endswith(".py") and not f.startswith("tests/")]
     doc_md = [f for f in files if f.startswith("src/cohezion/skills/") and f.endswith(".md")]
+
+    # Structural import-drift check — one row per .py file with drift.
+    repo_root = Path(__file__).resolve().parents[2]
+    drift_recorded = 0
+    drift_total = 0
+    for idx, source in enumerate(source_py):
+        src_path = repo_root / source
+        if not src_path.exists():
+            continue
+        drifts = _check_import_drift(src_path, repo_root)
+        if not drifts:
+            continue
+        drift_total += len(drifts)
+        drift_id = f"IMP-{short_sha}-{idx:02d}"
+        ok = _insert_import_drift(
+            gate_id=drift_id,
+            session_id=session_id,
+            source_file=source,
+            drifts=drifts,
+            summary=f"{subject}  [{short_sha}]",
+        )
+        if ok:
+            drift_recorded += 1
+        # Also print to stderr so the drift is visible in the commit output.
+        # This is non-blocking — the commit already landed. Operator sees it
+        # and can remediate; git can't "un-commit" at this point.
+        for d in drifts:
+            print(f"[vmodel-gate] import_drift in {source}: {d}", file=sys.stderr)
 
     recorded = 0
     for idx, source in enumerate(source_py + doc_md):
@@ -207,6 +376,11 @@ def main() -> int:
             recorded += 1
     if recorded:
         print(f"[vmodel-gate] recorded {recorded} gate(s) for {short_sha}")
+    if drift_recorded:
+        print(
+            f"[vmodel-gate] recorded {drift_recorded} import_drift row(s) "
+            f"({drift_total} total drifts) for {short_sha}"
+        )
     return 0
 
 
