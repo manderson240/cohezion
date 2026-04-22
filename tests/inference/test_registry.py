@@ -90,3 +90,37 @@ def test_model_entry_is_dataclass_with_expected_fields() -> None:
     )
     assert sample.cost_per_1k_input_usd == 0.0
     assert sample.verified_working is False
+
+
+# Supported values for llama.cpp's --cache-type-k / --cache-type-v flags.
+# This set is intentionally narrow — any kv_quant.runtime_flag["llama.cpp"]
+# value that isn't in here would be silently ignored at server startup and
+# the cache would silently fall back to fp16. Kept as a regression guard
+# against the TurboQuant lesson (`turbo3` was declared but the binary had no
+# such flag, so the entire declaration was a silent no-op).
+LLAMACPP_CACHE_TYPE_WHITELIST = {
+    "f32",
+    "f16",
+    "bf16",
+    "q8_0",
+    "q4_0",
+    "q4_1",
+    "q5_0",
+    "q5_1",
+    "iq4_nl",
+}
+
+
+def test_kv_quant_llamacpp_runtime_flags_are_in_whitelist() -> None:
+    registry = FleetRegistry()
+    for model in registry.models.values():
+        flag = model.kv_quant.runtime_flag.get("llama.cpp")
+        if flag is None:
+            continue
+        assert flag in LLAMACPP_CACHE_TYPE_WHITELIST, (
+            f"{model.model_id} declares kv_quant.runtime_flag['llama.cpp']={flag!r} "
+            f"but llama-server --cache-type-k/-v only accepts "
+            f"{sorted(LLAMACPP_CACHE_TYPE_WHITELIST)}. A value outside the whitelist "
+            f"is silently ignored at server startup — the KV cache falls back to fp16 "
+            f"with no error. See ~/.claude/plans/do-we-have-turbo-distributed-torvalds.md."
+        )

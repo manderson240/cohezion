@@ -151,23 +151,20 @@ class ModelEntry:
 
 def _build_default_registry() -> dict[str, ModelEntry]:
     """The Strix Halo Symphony fleet plus specialists and cloud fallbacks."""
-    # TurboQuant KV preset for the iGPU lanes. 3.5-bit matches ICLR 2026
-    # paper's FP16-parity point; 4-bit adds safety margin for MoE / long context.
-    tbq_35 = KVQuant(
-        scheme="turboquant",
-        bits=3.5,
-        hadamard_size=128,
-        qjl_correction=True,
-        asymmetric_kv=True,
-        runtime_flag={"llama.cpp": "turbo3", "vllm": "tbq4", "sglang": "tbq4"},
-    )
-    tbq_40 = KVQuant(
-        scheme="turboquant",
-        bits=4.0,
-        hadamard_size=128,
-        qjl_correction=True,
-        asymmetric_kv=False,
-        runtime_flag={"vllm": "tbq4", "llama.cpp": "turbo3", "sglang": "tbq4"},
+    # KV preset for the iGPU lanes.
+    #
+    # 2026-04-21: pivoted from TurboQuant (`tbq_35` / `tbq_40`) to `kv8_q80`
+    # after Phase 0 of `~/.claude/plans/do-we-have-turbo-distributed-torvalds.md`
+    # confirmed that neither the Lemonade-bundled llama.cpp (5dd1025) nor any
+    # other local llama-server binary on this machine ships TurboQuant kernels,
+    # and that upstream llama.cpp #20969 is still a Discussion (not a merged PR).
+    # `q8_0` is ~2x KV compression vs. bf16 and is a first-class cache-type-k/v
+    # value in llama.cpp today, so it delivers real compression instead of a
+    # silent no-op. Revisit TurboQuant when upstream or a maintained fork lands.
+    kv8_q80 = KVQuant(
+        scheme="kv8",
+        bits=8.0,
+        runtime_flag={"llama.cpp": "q8_0", "vllm": "fp8", "sglang": "fp8"},
     )
 
     entries: list[ModelEntry] = [
@@ -200,10 +197,10 @@ def _build_default_registry() -> dict[str, ModelEntry]:
             model_id="Gemma-4-E4B-it-GGUF",
             lane=Lane.IGPU_ROCWMMA,
             endpoint="http://localhost:13307",
-            runtime_backend="llamacpp_hip",  # upstream llama.cpp PR #20969
+            runtime_backend="llamacpp_hip",  # served by Lemonade (lemond :13307)
             task_affinity=frozenset({Task.STRUCTURED, Task.GOVERNANCE}),
             weight_quant=WeightQuant.Q4_K_M,
-            kv_quant=tbq_35,
+            kv_quant=kv8_q80,
             context_window=16384,
             priority=20,
             reasoning_mode=True,
@@ -213,10 +210,11 @@ def _build_default_registry() -> dict[str, ModelEntry]:
             model_id="Gemma-4-26B-A4B-it-GGUF",
             lane=Lane.IGPU_UNIFIED,
             endpoint="http://localhost:13308",
-            runtime_backend="vllm_rocm",  # vLLM-rocm nightly with --kv-cache-dtype tbq4
+            # DECLARED vllm_rocm; today served via Lemonade (llamacpp) when loaded.
+            runtime_backend="vllm_rocm",
             task_affinity=frozenset({Task.REASONING, Task.CODE_GEN, Task.GENERAL}),
             weight_quant=WeightQuant.MXFP4,
-            kv_quant=tbq_40,
+            kv_quant=kv8_q80,
             context_window=32768,
             priority=15,
             reasoning_mode=True,
