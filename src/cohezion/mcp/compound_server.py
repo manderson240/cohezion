@@ -10,6 +10,7 @@ This MCP server exposes tools for:
 
 import json
 import logging
+import os
 from typing import Any
 
 from fastmcp import FastMCP
@@ -293,18 +294,26 @@ async def autoresearch_analyze(metrics_json: str) -> dict[str, Any]:
 
 
 @mcp.tool()
-async def learning_capture(execution_result_json: str) -> dict[str, Any]:
+async def learning_capture(
+    execution_result_json: str, server_url: str | None = None
+) -> dict[str, Any]:
     """Capture execution learning to vault.
 
     Args:
         execution_result_json: JSON string of execution result
-
-    Returns:
-        Capture result
+        server_url: Optional override for vault MCP server URL
     """
     try:
         execution_result = json.loads(execution_result_json)
-        mcp_client = get_mcp_client()
+        
+        # Create a fresh client if server_url is provided
+        mcp_client = None
+        if server_url:
+            from cohezion.core.mcp_client import create_mcp_client
+            api_key = os.getenv("CLOUD_VAULT_API_KEY", "cohezion-dev-key")
+            mcp_client = create_mcp_client(server_url=server_url, api_key=api_key)
+        else:
+            mcp_client = get_mcp_client()
 
         path = await retrospection.capture_learning(execution_result, mcp_client)
 
@@ -320,18 +329,26 @@ async def learning_capture(execution_result_json: str) -> dict[str, Any]:
 
 
 @mcp.tool()
-async def learning_process_execution(execution_result_json: str) -> dict[str, Any]:
+async def learning_process_execution(
+    execution_result_json: str, server_url: str | None = None
+) -> dict[str, Any]:
     """Process execution through full learning loop.
 
     Args:
         execution_result_json: JSON string of execution result
-
-    Returns:
-        Learning loop results
+        server_url: Optional override for vault MCP server URL
     """
     try:
         execution_result = json.loads(execution_result_json)
-        mcp_client = get_mcp_client()
+        
+        # Create a fresh client if server_url is provided
+        mcp_client = None
+        if server_url:
+            from cohezion.core.mcp_client import create_mcp_client
+            api_key = os.getenv("CLOUD_VAULT_API_KEY", "cohezion-dev-key")
+            mcp_client = create_mcp_client(server_url=server_url, api_key=api_key)
+        else:
+            mcp_client = get_mcp_client()
 
         results = await learning_loop.process_execution(execution_result, mcp_client)
 
@@ -515,12 +532,19 @@ def main():
     """Run the MCP server."""
     # Run Redis health check on startup
     import asyncio
+    import os
 
     health = asyncio.run(check_redis_health())
     if health["status"] != "healthy":
         logger.warning("Redis unavailable - cache persistence disabled")
 
-    mcp.run(transport="stdio")
+    transport = os.environ.get("MCP_TRANSPORT", "stdio")
+    port = int(os.environ.get("MCP_PORT", "8379"))
+
+    if transport == "http":
+        mcp.run(transport="http", host="0.0.0.0", port=port)
+    else:
+        mcp.run(transport="stdio")
 
 
 if __name__ == "__main__":
