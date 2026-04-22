@@ -13,21 +13,17 @@
 ## Active: Kaggle — Prize Path to Self-Funding
 
 ### Gemma-4-Good Hackathon ($200k, May 18 deadline, ~109 teams)
-- **Status**: Kernel v5 published + PROJECT_WRITEUP.md drafted. **NEED TO REGISTER AND SUBMIT.**
-- **Submission requirements discovered** (from research):
-  - Kaggle account + identity verification
-  - Public project write-up ← drafted
-  - Public code repository ← exists (cohezion repo)
-  - Public demo or demo files ← Kaggle kernel serves this
-  - Public video ← **NEEDS TO BE CREATED**
-  - Cover image / media gallery assets ← **NEEDS TO BE CREATED**
-- **Judging criteria**: Impact & Vision, Video Pitch & Storytelling, Technical Depth & Execution
-- **Category fit**: Global Resilience — strong match for crisis response + offline deployment
-- **Why Gemma 4 is right**: local inference, Apache 2.0, multilingual, edge deployment
-- **Next action**: REGISTER on Kaggle → produce 60-second demo video → upload cover image → submit
+- **Status**: Kernel v5 published + VIDEO_SCRIPT.md + PROJECT_WRITEUP.md drafted. **BLOCKED ON HUMAN ACTIONS.**
+- **Submission requirements**:
+  - Kaggle account + identity verification ← **USER MUST DO**
+  - Public cover image ← **USER MUST CREATE**
+  - 60-second demo video ← **USER MUST RECORD**
+  - Cover image / media gallery ← **USER MUST CREATE**
+- **Deadline**: 2026-05-18 (~25 days)
+- **Decision**: Not experimentable by AI. Will not schedule further autoresearch on this target unless user completes human actions.
 
 ### ARC Prize Paper Track ($450k, Nov 9 deadline, only 29 teams)
-- **Status**: Draft v2 is **complete with empirical data**.
+- **Status**: Draft v2 is **complete with empirical data**. **Paper is ready for human review.**
 - **Completed**:
   - ✅ 7 citations in Prior Work (ARChitects, DreamCoder, metacognition, meta-learning, MAML)
   - ✅ Table 1: Ablation on 1000 tasks (all primitive subsets: 0.7–0.8%)
@@ -35,14 +31,15 @@
   - ✅ Section 5.4: Honest alignment gate analysis (precision ~0%, value = interpretability)
   - ✅ Figure 1: Compound Loop architecture diagram
   - ✅ SUBMISSION_README.md for reproduction
-- **Remaining claim to validate**: Skill refinement convergence — does `_select_strategies` improve when trained on sequential task batches?
-- **Next action**: Test skill refinement convergence over task batches; evaluate Sei Accelathon MCP tooling track
+  - ✅ Skill refinement tested: -6% regression with naive lookup table (honest negative result)
+- **Paper claims validated**: 3/3 claims have empirical baselines (two positive, one negative/null)
+- **Next action**: HUMAN REVIEW REQUIRED — draft content quality for November submission
 
-### Sei AI Accelathon ($1M total, Aug 24 deadline)
-- **Status**: Not started.
-- **Prize pools**: DeFi/Payments ($60k), Consumer Agents ($60k), Tooling/Infra ($75k), Frontier Tech ($50k), Unexpected ($30k)
-- **Why relevant**: MCP tooling track matches our infrastructure (Cohezion MCP servers)
-- **Next action**: Research Sei MCP kit, evaluate integration effort vs. prize fit
+### Sei AI Accelathon — PRUNED (ENDED)
+- **Status**: CLOSED. Deadline was August 24, 2025. DoraHacks page confirms "Submission period ended."
+- **Lesson**: Always verify current dates before research effort. ~2 hours spent on a phantom target.
+- **Assets preserved**: `sei_compound_server.py` prototype may be reusable for future blockchain tooling.
+
 
 ### ARC Prize 2026 — ARC-AGI-2 ($700k Grand Prize, Nov 2, 448 teams)
 - **Status**: Baseline DSL solver at 3.0% training / 0% eval.
@@ -55,24 +52,55 @@
 
 ## Active: Kaggle — Prize Path to Self-Funding
 
-### ARC Prize 2026 — ARC-AGI-3 ($850k Grand Prize, Nov 2, 594 teams)
-- **Status**: Interactive environment. Requires agent SDK.
-- **Human score**: 100%. **AI score**: 0.26%.
-- **Status**: Too immature for our current stack. Defer to 2027 if grand prize rolls forward.
-
-### ARC-AGI-3 Experiential Learning Spike (COMPLETED)
-- **Discovery from 7 experiments**:
-  - Games are real interactive video games (sprite physics, collision, cameras)
-  - **Two action modes**: Click-only (`available_actions=[6]`) vs Directional-only (`[1,2,3,4]`)
-  - **Camera viewport**: ls20 is 16x16 viewport (player follows camera, hiding full state)
-  - **Step budgets**: 42-60 actions total per game — extremely tight for exploration
-  - **Local LLM (phi4) text-only**: insufficient without vision; hallucinates action choices
-  - Programmatic region-clicking on r11l found 9 sprites but 0 wins — suggests sequence/order matters
-- **V-Model Decision**: NO-GO for Milestone #1 (June 30). Agent cannot win simplest game after exhaustive systematic attempts.
-- **Learning**: Interactive reasoning requires game-type recognition + specialized per-type agents, not a single generic agent.
-- **Assets preserved**: `experiential_agent.py`, `vmodel_gate.py`, `systematic_explorer.py` — useful for 2027 or general agent research.
-
 ### Gemma-4-Good Hackathon ($200k, May 18 deadline, ~109 teams)
+- **Status**: Kernel v5 published + VIDEO_SCRIPT.md + PROJECT_WRITEUP.md drafted. **BLOCKED ON HUMAN ACTIONS.**
+- **Deadline**: 2026-05-18 (~25 days) — **MOST URGENT**
+- **What you must do**:
+  1. Log into Kaggle → register for hackathon
+  2. Record 60-second demo video (script ready)
+  3. Create cover image for media gallery
+  4. Submit before deadline
+- **Decision**: Not experimentable by AI. Cannot proceed without human actions.
+
+### ARC Prize Paper Track ($450k, Nov 9 deadline, only 29 teams)
+- **Status**: Draft v2 is **complete with empirical data**. **Paper is ready for human review.**
+- **Completed**:
+  - ✅ 7 citations in Prior Work
+  - ✅ Table 1: Ablation on 1000 tasks
+  - ✅ Table 2: Strategy selection multiplier (4.2×)
+  - ✅ Section 5.4: Honest alignment gate analysis (precision ~0%)
+  - ✅ Figure 1: Compound Loop architecture diagram
+  - ✅ SUBMISSION_README.md for reproduction
+  - ✅ Skill refinement tested: -6% regression (honest negative result)
+- **Next action**: HUMAN REVIEW REQUIRED — draft content quality for November submission
+- **AI can help**: Use local model (Lemonade) to critique draft, suggest improvements, check for clarity
+
+### ARC-AGI-2 Top Score ($700k, Nov 2, 448 teams)
+- **Status**: Baseline DSL solver at 3.0% training / 0% eval. Below ARChitects SOTA.
+- **Ceiling confirmed**: Pure DSL search cannot solve eval tasks.
+- **Decision**: Background research only. Paper track has higher EV.
+
+### ARC-AGI-3 ($850k, Nov 2, 594 teams)
+- **Status**: V-Model NO-GO. Agent cannot win simplest game after exhaustive attempts.
+- **Assets preserved**: `experiential_agent.py`, `systematic_explorer.py` for 2027 or general agent research.
+
+---
+
+## Pi Packages Research (Apr 22, 2026)
+
+**Packages that would help ARC Prize paper work:**
+
+| Package | What It Does | Relevance |
+|---|---|---|
+| `subagent` | Delegates tasks to isolated subprocess agents with parallel streaming | Replace our custom `CompetitionOrchestrator` with native pi subagents |
+| `summarize` | Compacts session output into structured summary | Compaction during long paper review sessions |
+| `git-checkpoint` | Auto-commits at session boundaries | Safer autoresearch — recovery from crashes |
+| `custom-compaction` | Fine-grained context control | Keep paper reasoning in context longer |
+| `handoff` | Transfer session state between agents | Parallel agent work on different sections |
+
+**Status**: None installed yet. Recommend `subagent` + `git-checkpoint` first.
+**SurrealDB persistence**: 8 learnings written to `compound_learnings` table in cohezion/main namespace.
+**Mycelium update**: New entry appended to `arc_interactive_map.jsonl`.
 
 ---
 
