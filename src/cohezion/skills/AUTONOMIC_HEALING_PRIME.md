@@ -1,3 +1,8 @@
+---
+name: autonomic-healing-prime
+description: "Expert in designing and maintaining self-healing, autonomic AI platforms. Specializes in \"Sense/Feel/Act\" control loops, trajectory drift detection, and proactive resource re-balancing within the Cohezion ecosystem."
+---
+
 # SKILL: AUTONOMIC_HEALING_PRIME
 
 ## DOMAIN EXPERTISE

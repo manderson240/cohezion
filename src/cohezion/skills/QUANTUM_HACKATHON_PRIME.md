@@ -1,3 +1,8 @@
+---
+name: quantum-hackathon-prime
+description: "Expertise in quantum hackathon execution, specifically targeting 'Peaked Circuit' challenges on cloud providers like BlueQubit. Specialized in bypassing simulator limits via statistical refinement, managing real quantum hardware execution (Rigetti/IonQ), and navigating the nuanced resource constraints of cloud-quantum tiers."
+---
+
 # SKILL: QUANTUM_HACKATHON_PRIME
 
 ## DOMAIN EXPERTISE

@@ -1,3 +1,8 @@
+---
+name: research-squad-prime
+description: "The Research Squad is an autonomous team that optimizes the compound system itself through empirical research."
+---
+
 # SKILL: RESEARCH_SQUAD_PRIME
 
 **Domain Expertise:** Autonomous compound system optimization through empirical research and skill refinement

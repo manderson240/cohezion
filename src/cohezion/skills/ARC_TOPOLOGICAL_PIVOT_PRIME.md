@@ -1,3 +1,8 @@
+---
+name: arc-topological-pivot-prime
+description: "Expert in navigating complex 12D manifolds using persistent homology signals. Specializes in detecting and breaking non-productive exploitation loops (attractors) in ARC-AGI-3 style environments."
+---
+
 # SKILL: ARC_TOPOLOGICAL_PIVOT_PRIME
 
 ## DOMAIN EXPERTISE

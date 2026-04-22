@@ -1,3 +1,13 @@
+---
+name: hiho-stability-prime
+description: "Expertise in managing agentic manifolds through the Half-In-Half-Out (HIHO) stability principle. Focuses on maintaining a 0.5 coherence point to prevent both chaotic drift and overconfident hallucinations."
+metadata:
+  version: "v1.0"
+  concepts: ["Golden Mean (0.5)", "Manifold Damping", "12-Parameter Reality"]
+  see_also: ["SWARM_ORCHESTRATION_PRIME", "FLUME_NAVIGATOR_PRIME"]
+  source: "src/cohezion/skills/HIHO_STABILITY_PRIME.md"
+---
+
 # SKILL: HIHO_STABILITY_PRIME
 
 ## DOMAIN EXPERTISE

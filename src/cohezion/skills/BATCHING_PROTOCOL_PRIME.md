@@ -1,3 +1,13 @@
+---
+name: batching-protocol-prime
+description: "Expert methodology for consolidating multiple independent, menial tasks into high-density prompts for local SLM execution, significantly reducing context load and token waste."
+metadata:
+  version: "v1.0"
+  concepts: ["Task Consolidation", "Density-Optimized Prompt", "Context Overhead", "Throughput vs. Latency"]
+  see_also: ["LOCAL_OFFLOAD_PRIME", "COMPOUND_ENGINEERING_PRIME", "SEMANTIC_CACHING_PRIME"]
+  source: "src/cohezion/skills/BATCHING_PROTOCOL_PRIME.md"
+---
+
 # SKILL: BATCHING_PROTOCOL_PRIME
 
 ## DOMAIN EXPERTISE

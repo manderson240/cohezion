@@ -1,3 +1,8 @@
+---
+name: manifold-integrity-prime
+description: "Expert in enforcing high-dimensional physical constraints via static analysis of data artifacts. Specializes in ensuring 12D manifold integrity (x, y, z, time + 8 Branes) across all agent-generated data."
+---
+
 # SKILL: MANIFOLD_INTEGRITY_PRIME
 
 ## DOMAIN EXPERTISE

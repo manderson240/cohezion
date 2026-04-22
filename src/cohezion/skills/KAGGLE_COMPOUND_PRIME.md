@@ -1,3 +1,8 @@
+---
+name: kaggle-compound-prime
+description: "Systematic approach to entering and winning Kaggle competitions using the Cohezion Compound Loop, Ouroboros failure recovery, and Mycelium test coverage."
+---
+
 # SKILL: KAGGLE_COMPOUND_PRIME
 
 ## DOMAIN EXPERTISE

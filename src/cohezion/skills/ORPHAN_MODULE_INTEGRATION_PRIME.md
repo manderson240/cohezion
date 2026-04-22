@@ -1,3 +1,8 @@
+---
+name: orphan-module-integration-prime
+description: "You are a Systems Integration Engineer specializing in discovering and wiring disconnected modules into production compound loops via Hookify rules and non-blocking bridges."
+---
+
 # SKILL: ORPHAN_MODULE_INTEGRATION_PRIME
 
 ## DOMAIN EXPERTISE

@@ -1,3 +1,8 @@
+---
+name: data-mesh-architect-prime
+description: "Expert in unifying heterogeneous tool outputs into discoverable, typed data products. Specializes in \"Data-as-a-Product\" principles and automated schema generation for cross-platform AI swarms."
+---
+
 # SKILL: DATA_MESH_ARCHITECT_PRIME
 
 ## DOMAIN EXPERTISE

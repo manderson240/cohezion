@@ -1,3 +1,8 @@
+---
+name: adversarial-tdd-prime
+description: "This skill establishes a high-fidelity development and reasoning pattern where every output (code or proof) is subjected to a \"Red Team\" review before execution. It combines Test-Driven Development (TDD) principles with Adversarial Agentic Review to eliminate hallucinations and logical fallacies in complex systems."
+---
+
 # SKILL: ADVERSARIAL_TDD_PRIME
 
 ## DOMAIN EXPERTISE

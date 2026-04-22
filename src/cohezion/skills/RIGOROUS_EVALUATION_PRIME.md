@@ -1,3 +1,13 @@
+---
+name: rigorous-evaluation-prime
+description: "Auditing AI agents through objective, physics-grounded benchmarks and strict consensus-based grading."
+metadata:
+  version: "v0.1"
+  concepts: ["Manifold Drift", "Draconian Consensus", "Axiomatic Grounding"]
+  see_also: ["ADVERSARIAL_TESTING_PRIME", "SECURITY_GUARDRAILS_PRIME", "SYSTEM_HARDENING_PRIME"]
+  source: "src/cohezion/skills/RIGOROUS_EVALUATION_PRIME.md"
+---
+
 # SKILL: RIGOROUS_EVALUATION_PRIME
 
 ## DOMAIN EXPERTISE

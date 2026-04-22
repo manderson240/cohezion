@@ -1,3 +1,12 @@
+---
+name: autonomous-resilience-prime
+description: "Managing long-horizon autonomous processes (10M+ steps) on resource-constrained hardware (e.g., Framework 16 with 90%+ VRAM Load)."
+metadata:
+  version: "v1.0 (Born from the Overnight BBQ Mission, 2026-01-31)"
+  concepts: ["Passive Monitoring", "Coma Mode", "Dilation Pacing", "Schema Coupling"]
+  source: "src/cohezion/skills/AUTONOMOUS_RESILIENCE_PRIME.md"
+---
+
 # SKILL: AUTONOMOUS_RESILIENCE_PRIME
 
 ## DOMAIN EXPERTISE

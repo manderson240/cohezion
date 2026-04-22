@@ -1,3 +1,11 @@
+---
+name: experience-vae-training-prime
+description: "Train the FLUME VAE on real agentic execution experiences instead of synthetic gaussian noise, closing the feedback loop between compound execution and universe simulation."
+metadata:
+  version: "1.0"
+  source: "src/cohezion/skills/EXPERIENCE_VAE_TRAINING_PRIME.md"
+---
+
 # EXPERIENCE_VAE_TRAINING_PRIME
 
 ## Intent

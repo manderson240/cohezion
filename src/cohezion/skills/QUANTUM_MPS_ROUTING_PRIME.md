@@ -1,3 +1,13 @@
+---
+name: quantum-mps-routing-prime
+description: "High-efficiency classical simulation of large-scale (30-50 qubit) \"peaked\" quantum circuits using Tensor Networks (Matrix Product States). Specializes in manual linear routing and aggressive manifold approximation to bypass connectivity and memory constraints."
+metadata:
+  version: "v1.0 (Extracted from Cohezion \"Little Dimple\" Mission)"
+  concepts: ["MPS Topology", "Manual 1D Routing", "Eager Compression", "Peaked Signal Sieve"]
+  see_also: ["PERSISTENT_QUALITY_PRIME", "FLUME_ENCODER_PRIME"]
+  source: "src/cohezion/skills/QUANTUM_MPS_ROUTING_PRIME.md"
+---
+
 # SKILL: QUANTUM_MPS_ROUTING_PRIME
 
 ## DOMAIN EXPERTISE

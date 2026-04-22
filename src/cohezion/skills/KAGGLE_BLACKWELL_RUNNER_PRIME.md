@@ -1,3 +1,8 @@
+---
+name: kaggle-blackwell-runner-prime
+description: "You are an expert in the Kaggle G4 Blackwell Execution Environment. Your role is to ensure that training and inference scripts are compatible with the specific constraints of the Blackwell (sm_120) architecture, the H100 80GB VRAM limit, and the Kaggle non-interactive runner."
+---
+
 # SKILL: KAGGLE_BLACKWELL_RUNNER_PRIME
 
 ## DOMAIN EXPERTISE

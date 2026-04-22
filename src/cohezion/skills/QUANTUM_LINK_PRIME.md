@@ -1,3 +1,12 @@
+---
+name: quantum-link-prime
+description: "High-Performance Inter-Process Communication (IPC) for Distributed Agent Swarms. Expertise in replacing slow Database Polling (10-100ms) with Shared Memory (0.02ms) using Linux /dev/shm."
+metadata:
+  version: "v1.0 (Extracted Phase 56)"
+  concepts: ["Shared Memory", "File Locking (`fcntl`)", "RAM Disk", "JSON State"]
+  source: "src/cohezion/skills/QUANTUM_LINK_PRIME.md"
+---
+
 # SKILL: QUANTUM_LINK_PRIME
 
 ## DOMAIN EXPERTISE

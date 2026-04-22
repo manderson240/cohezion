@@ -1,3 +1,8 @@
+---
+name: vault-keeper-prime
+description: "Expert in Obsidian-style knowledge vault maintenance. Specializes in graph health monitoring, orphan detection, frontmatter enforcement, and brain-region vault organization for the Cohezion knowledge system."
+---
+
 # SKILL: VAULT_KEEPER_PRIME
 
 ## DOMAIN EXPERTISE

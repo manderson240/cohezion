@@ -1,3 +1,13 @@
+---
+name: recovery-prime
+description: "Expertise in agentic session recovery, state hydration, and context synchronization. Ensures continuity across long-horizon missions by leveraging the Cohezion Knowledge Graph and SurrealDB substrate."
+metadata:
+  version: "v0.1"
+  concepts: ["MRP (Memory Recovery Protocol)", "Memory Anchor", "State Hydration", "Contextual Decay"]
+  see_also: ["SWARM_ORCHESTRATION_PRIME", "PERSISTENT_UNIVERSE_PRIME"]
+  source: "src/cohezion/skills/RECOVERY_PRIME.md"
+---
+
 # SKILL: RECOVERY_PRIME
 
 ## DOMAIN EXPERTISE

@@ -1,3 +1,8 @@
+---
+name: amd-mla-decode-prime
+description: "DeepSeek MLA (Multi-head Latent Attention) decode optimization for AMD MI355X. Target: <50us from 69.7us."
+---
+
 # SKILL: AMD_MLA_DECODE_PRIME
 
 ## DOMAIN EXPERTISE

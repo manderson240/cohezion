@@ -1,3 +1,12 @@
+---
+name: symbiotic-file-prime
+description: "Autonomous Code Editing, Human-AI Collaboration, Documentation Maintenance"
+metadata:
+  version: "v1.0 (Sovereign Era)"
+  concepts: ["Sovereignty", "Symbiosis", "The Protocol"]
+  source: "src/cohezion/skills/SYMBIOTIC_FILE_PRIME.md"
+---
+
 # SKILL: SYMBIOTIC_FILE_PRIME
 
 ## DOMAIN EXPERTISE

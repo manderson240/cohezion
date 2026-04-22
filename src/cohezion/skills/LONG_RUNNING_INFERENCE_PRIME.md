@@ -1,3 +1,11 @@
+---
+name: long-running-inference-prime
+description: "Enable multi-hour inference tasks with automatic checkpointing, streaming progress, and graceful resumption."
+metadata:
+  version: "1.0"
+  source: "src/cohezion/skills/LONG_RUNNING_INFERENCE_PRIME.md"
+---
+
 # PRIME Skill: Long-Running Inference
 
 ## Purpose

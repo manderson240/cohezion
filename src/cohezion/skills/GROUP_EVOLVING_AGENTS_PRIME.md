@@ -1,3 +1,8 @@
+---
+name: group-evolving-agents-prime
+description: "Group-level agent evolution with cross-agent experience sharing. Implements concepts from GEA (Weng et al., 2025, arXiv:2602.04837) integrated with Cohezion's compound engineering loop."
+---
+
 # SKILL: GROUP_EVOLVING_AGENTS_PRIME
 
 ## DOMAIN EXPERTISE

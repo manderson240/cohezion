@@ -1,3 +1,13 @@
+---
+name: sandbox-isolation-prime
+description: "Providing hardware-enforced isolation for agentic code execution, ensuring system safety and resource predictability during autonomous research missions. Supports multiple isolation backends (Docker, systemd-run, subprocess), typed resource profiles, divergence detection, and ResourceMonitor integration."
+metadata:
+  version: "v1.0"
+  concepts: ["Containerized Universe", "Resource Hardening", "Stateless Precipitation", "Sandbox Profiles", "Multi-Backend Isolation", "Divergence Detection", "Backpressure Integration"]
+  see_also: ["SIMULATION_PROFILES_PRIME", "SECURITY_GUARDRAILS_PRIME", "ADVERSARIAL_TESTING_PRIME"]
+  source: "src/cohezion/skills/SANDBOX_ISOLATION_PRIME.md"
+---
+
 # SKILL: SANDBOX_ISOLATION_PRIME
 
 ## DOMAIN EXPERTISE

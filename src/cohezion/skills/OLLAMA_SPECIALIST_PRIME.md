@@ -1,3 +1,8 @@
+---
+name: ollama-specialist-prime
+description: "Expert in local model management via Ollama on AMD Strix Halo hardware. Handles VRAM/GTT monitoring, model concurrency, DynamicModelRouter tuning, and hardware-aware cost optimization."
+---
+
 # SKILL: OLLAMA_SPECIALIST_PRIME
 
 ## DOMAIN EXPERTISE

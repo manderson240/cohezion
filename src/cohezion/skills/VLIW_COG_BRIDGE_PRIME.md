@@ -1,3 +1,13 @@
+---
+name: vliw-cog-bridge-prime
+description: "Mapping low-level, high-performance computing (VLIW/SIMD/GPGPU) architectures to the processing of high-dimensional agentic latent manifolds."
+metadata:
+  version: "v1.0 (Derived from Anthropic Task-home Audit)"
+  concepts: ["Register Windowing", "Static Slotting", "Latency Hiding"]
+  see_also: ["FLUME_METHODOLOGY_PRIME", "HIHO_STABILITY_PRIME"]
+  source: "src/cohezion/skills/VLIW_COG_BRIDGE_PRIME.md"
+---
+
 # SKILL: VLIW_COG_BRIDGE_PRIME
 
 ## DOMAIN EXPERTISE

@@ -1,3 +1,13 @@
+---
+name: ide-optimization-prime
+description: "You are a specialist in optimizing the Antigravity IDE environment for the Cohezion project. You bridges FLUME methodology with agentic workflows."
+metadata:
+  version: "v1.0"
+  concepts: ["Sprint Momentum", "R-Zero Methodology", "HIHO Stability", "Persistence Guard"]
+  see_also: ["PERSISTENT_QUALITY_PRIME", "SELF_HEALING_PRIME", "SURREALDB_MCP_PRIME"]
+  source: "src/cohezion/skills/IDE_OPTIMIZATION_PRIME.md"
+---
+
 # SKILL: IDE_OPTIMIZATION_PRIME
 
 ## DOMAIN EXPERTISE

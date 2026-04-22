@@ -1,3 +1,12 @@
+---
+name: dream-logic-prime
+description: "Lateral Thinking & Subconscious Processing for AI Systems. Expertise in utilizing system \"downtime\" to generate insights by connecting seemingly unrelated concepts."
+metadata:
+  version: "v1.0 (Extracted Phase 51)"
+  concepts: ["Active Inference", "Lateral Thinking", "Semantic Consolidation", "Phi-3 / Mistral"]
+  source: "src/cohezion/skills/DREAM_LOGIC_PRIME.md"
+---
+
 # SKILL: DREAM_LOGIC_PRIME
 
 ## DOMAIN EXPERTISE

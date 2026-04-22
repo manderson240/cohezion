@@ -1,3 +1,12 @@
+---
+name: quarter-on-a-string-prime
+description: "Token efficiency and resource orchestration. Leveraging local Small Language Models (SLMs) as \"hands and feet\" for routine execution while reserving premium high-reasoning models for the \"cortex\" orchestration."
+metadata:
+  version: "v1.0"
+  concepts: ["The String", "The Quarter", "Local Fallback", "Context Injection"]
+  source: "src/cohezion/skills/QUARTER_ON_A_STRING_PRIME.md"
+---
+
 # SKILL: QUARTER_ON_A_STRING_PRIME
 
 ## DOMAIN EXPERTISE

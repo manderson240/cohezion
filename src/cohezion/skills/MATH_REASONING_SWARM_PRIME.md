@@ -1,3 +1,8 @@
+---
+name: math-reasoning-swarm-prime
+description: "This skill defines the architectural pattern for deploying sovereign reasoning swarms to solve complex, Olympiad-level mathematical problems (e.g., AIMO). It leverages a Triune Manifold approach, separating perception (Doer), latent reasoning (Thinker), and validation (Knower) to ensure high-fidelity, deterministic mathematical proofs without calculation drift."
+---
+
 # SKILL: MATH_REASONING_SWARM_PRIME
 
 ## DOMAIN EXPERTISE

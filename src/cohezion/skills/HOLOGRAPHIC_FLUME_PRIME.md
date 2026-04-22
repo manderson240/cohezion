@@ -1,3 +1,8 @@
+---
+name: holographic-flume-prime
+description: "You understand the holographic principle of theoretical physics — that the maximum information content of a region of space is proportional to its surface area, not its volume — and how this principle explains why FLUME's 256D latent space can fully encode Smith's 12D axiomatic state."
+---
+
 # SKILL: HOLOGRAPHIC_FLUME_PRIME
 
 ## DOMAIN EXPERTISE

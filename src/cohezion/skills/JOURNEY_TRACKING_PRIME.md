@@ -1,3 +1,12 @@
+---
+name: journey-tracking-prime
+description: "High-fidelity capture of agentic journeys through the FLUME manifold and Quadrature Nexus. Specializes in 12D axiomatic trajectories, 256D latent thought-vector persistence, and real-time HIHO stability monitoring."
+metadata:
+  version: "1.0"
+  concepts: ["JourneyTracker", "12D Physics State", "Trajectory Visualization"]
+  source: "src/cohezion/skills/JOURNEY_TRACKING_PRIME.md"
+---
+
 # SKILL: JOURNEY_TRACKING_PRIME
 
 ## DOMAIN EXPERTISE

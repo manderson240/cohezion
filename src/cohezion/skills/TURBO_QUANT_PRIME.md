@@ -1,3 +1,8 @@
+---
+name: turbo-quant-prime
+description: "Expertise in high-fidelity KV-cache compression and hardware-aware kernel optimization for AMD silicon (Strix Halo/gfx1151). Specializes in PolarQuant, Quantized Johnson-Lindenstrauss (QJL), and Wave32 matrix alignment."
+---
+
 # SKILL: TURBO_QUANT_PRIME
 
 ## DOMAIN EXPERTISE

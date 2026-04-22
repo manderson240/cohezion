@@ -1,3 +1,8 @@
+---
+name: small-model-specialist-prime
+description: "`` SIMPLE Task → phi3:mini (2.2GB, <100ms) ↓ (if low confidence) MEDIUM Task → qwen2-math:7b OR qwen2.5-coder:7b (4.4-4.7GB, ~200ms) ↓ (if low confidence) COMPLEX Task → Cloud fallback (qwen3.5:cloud, minimax-m2.7:cloud) ``"
+---
+
 # SMALL_MODEL_SPECIALIST_PRIME
 
 **Skill**: Local Model Specialization & Tip-of-Spear Routing

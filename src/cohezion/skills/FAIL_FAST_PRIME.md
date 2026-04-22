@@ -1,3 +1,12 @@
+---
+name: fail-fast-prime
+description: "Expertise in rapid iteration, early testing, and course correction. Prioritizes shipping minimal viable implementations to discover errors quickly rather than extended planning phases."
+metadata:
+  version: "v1.0"
+  concepts: ["Fail Fast", "Critical Path Testing", "Error Budget", "Course Correction", "Iteration Velocity"]
+  source: "src/cohezion/skills/FAIL_FAST_PRIME.md"
+---
+
 # SKILL: FAIL_FAST_PRIME
 
 ## DOMAIN EXPERTISE

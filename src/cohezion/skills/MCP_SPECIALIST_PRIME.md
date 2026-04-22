@@ -1,3 +1,8 @@
+---
+name: mcp-specialist-prime
+description: "Expert in MCP (Model Context Protocol) server design, tool schemas, FastMCP patterns, health monitoring, and inter-server coordination. Manages the tool layer that connects all Cohezion agents to their capabilities."
+---
+
 # SKILL: MCP_SPECIALIST_PRIME
 
 ## DOMAIN EXPERTISE

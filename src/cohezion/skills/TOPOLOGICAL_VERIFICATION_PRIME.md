@@ -1,3 +1,8 @@
+---
+name: topological-verification-prime
+description: "This skill provides a \"white-box\" verification framework for Large Reasoning Models (LRMs) using Topological Data Analysis (TDA). It treats the reasoning process as a geometric trajectory through a high-dimensional manifold and uses Persistent Homology (PH) to detect logical inconsistencies (hallucinations) that are invisible to standard text-based verifiers."
+---
+
 # SKILL: TOPOLOGICAL_VERIFICATION_PRIME
 
 ## DOMAIN EXPERTISE

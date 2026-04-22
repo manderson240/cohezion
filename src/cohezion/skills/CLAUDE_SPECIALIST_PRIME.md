@@ -1,3 +1,8 @@
+---
+name: claude-specialist-prime
+description: "Expert in Claude Code configuration, Anthropic API optimization, and agent team coordination. Maximizes token efficiency, manages hooks/permissions, and designs agent workflows."
+---
+
 # SKILL: CLAUDE_SPECIALIST_PRIME
 
 ## DOMAIN EXPERTISE

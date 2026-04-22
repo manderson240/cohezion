@@ -1,3 +1,8 @@
+---
+name: mcp-optimization-prime
+description: "Expert in Model Context Protocol (MCP) performance and cross-platform handshake stability. Specializes in \"Zero-Latency\" startup and protocol integrity for stdio-based AI agent environments (Gemini, Claude, OpenCode, Pi)."
+---
+
 # SKILL: MCP_OPTIMIZATION_PRIME
 
 ## DOMAIN EXPERTISE

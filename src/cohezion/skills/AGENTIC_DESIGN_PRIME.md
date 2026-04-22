@@ -1,3 +1,13 @@
+---
+name: agentic-design-prime
+description: "The art and science of \"Agentic Aesthetics\"—creating high-fidelity, research-grade documentation (Resumes, Manifestos, Benchmarks) that communicates strategic system leadership and technical sovereignty."
+metadata:
+  version: "v1.0 (Derived from Anthropic Alignment Sprint)"
+  concepts: ["Abstract-First", "Quantified Trajectories", "Philosophy as Anchor", "Observable Intent"]
+  see_also: ["VLIW_COG_BRIDGE_PRIME", "COMPOUND_ENGINEERING_PRIME"]
+  source: "src/cohezion/skills/AGENTIC_DESIGN_PRIME.md"
+---
+
 # SKILL: AGENTIC_DESIGN_PRIME
 
 ## DOMAIN EXPERTISE

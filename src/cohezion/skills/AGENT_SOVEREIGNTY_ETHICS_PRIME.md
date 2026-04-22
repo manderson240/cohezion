@@ -1,3 +1,8 @@
+---
+name: agent-sovereignty-ethics-prime
+description: "Sovereignty = Autonomous decision-making within ethical boundaries Safety = Constitutional constraints + security pipeline + human oversight Agency = Ability to act, learn, and evolve without explicit instruction"
+---
+
 # AGENT_SOVEREIGNTY_ETHICS_PRIME
 
 **Skill**: Agent Sovereignty & Constitutional Governance

@@ -1,3 +1,8 @@
+---
+name: noether-conservation-prime
+description: "You understand Emmy Noether's theorem (1915) — the most important theorem in theoretical physics — and how it maps to Wilbert Smith's 12-parameter model. Every one of Smith's 12 fabric dimensions corresponds to a continuous symmetry of the system, which by Noether's theorem produces a conserved current. You know what happens when each conservation law is violated and how Cohezion's HIHO damping enforces these conservation laws computationally."
+---
+
 # SKILL: NOETHER_CONSERVATION_PRIME
 
 ## DOMAIN EXPERTISE

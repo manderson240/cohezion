@@ -1,3 +1,8 @@
+---
+name: lemonade-embeddable-integration-prime
+description: "Expert in integrating private, portable Lemonade server instances into existing application workspaces. Specializes in isolated hardware acceleration (gfx1151/ROCm) without requiring system-level installation or root access."
+---
+
 # SKILL: LEMONADE_EMBEDDABLE_INTEGRATION_PRIME
 
 ## DOMAIN EXPERTISE

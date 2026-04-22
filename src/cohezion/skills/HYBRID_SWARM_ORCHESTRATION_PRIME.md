@@ -1,3 +1,8 @@
+---
+name: hybrid-swarm-orchestration-prime
+description: "Expert in orchestrating multi-provider AI swarms that combine massive-context cloud models (Gemini 2.5) with specialized local models (Ollama). Focuses on maximizing reasoning depth while respecting hardware concurrency constraints (e.g., VRAM limits)."
+---
+
 # SKILL: HYBRID_SWARM_ORCHESTRATION_PRIME
 
 ## DOMAIN EXPERTISE

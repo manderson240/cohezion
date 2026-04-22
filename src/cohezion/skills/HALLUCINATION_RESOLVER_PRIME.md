@@ -1,3 +1,13 @@
+---
+name: hallucination-resolver-prime
+description: "Expert system for detecting, analyzing, and mitigating AI hallucinations by grounding agentic discourse in \"Truth Anchors\" derived from live system diagnostics and historical failure modes (Hallucination Tracker)."
+metadata:
+  version: "v1.0"
+  concepts: ["Truth Anchors", "Spec-Attribution Bias", "Grounding", "Adversarial Review"]
+  see_also: ["REPO_HYGIENE_PRIME", "PERSISTENT_QUALITY_PRIME", "COHEZION_BRIDGE_PRIME"]
+  source: "src/cohezion/skills/HALLUCINATION_RESOLVER_PRIME.md"
+---
+
 # SKILL: HALLUCINATION_RESOLVER_PRIME
 
 ## DOMAIN EXPERTISE

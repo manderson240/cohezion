@@ -1,3 +1,12 @@
+---
+name: citations-prime
+description: "Managing sovereign attribution and technical citations for the Cohezion platform."
+metadata:
+  version: "v1.1 (Phase 0 Integrated)"
+  concepts: ["IAA Protocol", "Sovereign Innovation"]
+  source: "src/cohezion/skills/CITATIONS_PRIME.md"
+---
+
 # SKILL: CITATIONS_PRIME
 
 ## DOMAIN EXPERTISE

@@ -1,3 +1,8 @@
+---
+name: flume-wiki-ouroboros-prime
+description: "Integrated architecture combining three core Cohezion systems: - FLUME: 256D latent thought vectors (Thinker manifold) - Wiki (Karpathy): Persistent knowledge compilation - Ouroboros: Recursive self-improvement"
+---
+
 # SKILL: FLUME_WIKI_OUROBOROS_PRIME - Unified Persistent Intelligence
 
 ## OVERVIEW

@@ -1,3 +1,12 @@
+---
+name: showreel-generation-prime
+description: "Automated media synthesis and narrative visualization. Orchestrating images, audio, and metadata into a high-engagement video format."
+metadata:
+  version: "v1.0"
+  concepts: ["Milestone Detection", "Narration Sync", "Ambient Mix", "Style Consistency"]
+  source: "src/cohezion/skills/SHOWREEL_GENERATION_PRIME.md"
+---
+
 # SKILL: SHOWREEL_GENERATION_PRIME
 
 ## DOMAIN EXPERTISE

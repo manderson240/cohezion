@@ -1,3 +1,8 @@
+---
+name: fleet-synchronization-prime
+description: "Expertise in maintaining configuration parity across heterogeneous AI agent environments (Gemini, Claude, OpenCode, Pi, Cursor). Specializes in automated \"Single Source of Truth\" (SSOT) enforcement."
+---
+
 # SKILL: FLEET_SYNCHRONIZATION_PRIME
 
 ## DOMAIN EXPERTISE

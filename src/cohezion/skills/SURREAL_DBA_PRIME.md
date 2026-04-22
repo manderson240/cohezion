@@ -1,3 +1,8 @@
+---
+name: surreal-dba-prime
+description: "Expert in SurrealDB graph database administration for the Cohezion Genesis engine. Specializes in schema validation, index optimization, record lifecycle management, and connection health monitoring."
+---
+
 # SKILL: SURREAL_DBA_PRIME
 
 ## DOMAIN EXPERTISE

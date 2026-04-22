@@ -1,3 +1,12 @@
+---
+name: surrealdb-optimizer-prime
+description: "Expert in SurrealDB performance tuning and architecture. Specializes in optimizing high-fidelity agentic simulations with 12D/256D vector states, complex graph relationships, and real-time observability."
+metadata:
+  version: "v1.0"
+  concepts: ["FETCH Optimization", "HNSW Vector Indexing", "Live Queries", "Pre-computed Fields", "Graph Pruning"]
+  source: "src/cohezion/skills/SURREALDB_OPTIMIZER_PRIME.md"
+---
+
 # SKILL: SURREALDB_OPTIMIZER_PRIME
 
 ## DOMAIN EXPERTISE

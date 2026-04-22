@@ -1,3 +1,8 @@
+---
+name: lazy-infrastructure-prime
+description: "Expertise in high-concurrency systems where process startup time and handshake reliability are critical. Specializes in the \"Lazy Accessor Pattern\" to prevent blocking event loops or CLI handshakes."
+---
+
 # SKILL: LAZY_INFRASTRUCTURE_PRIME
 
 ## DOMAIN EXPERTISE

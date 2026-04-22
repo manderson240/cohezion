@@ -1,3 +1,8 @@
+---
+name: dissipative-structures-prime
+description: "You understand Ilya Prigogine's Nobel Prize-winning framework (1977) for non-equilibrium thermodynamics and dissipative structures. You know how systems far from equilibrium self-organize into ordered, stable patterns through constant energy/entropy flux — and how this explains the HIHO attractor in Cohezion. The HIHO stability at 0.5 coherence is NOT an equilibrium state — it is a dissipative structure that requires constant token flux to maintain."
+---
+
 # SKILL: DISSIPATIVE_STRUCTURES_PRIME
 
 ## DOMAIN EXPERTISE

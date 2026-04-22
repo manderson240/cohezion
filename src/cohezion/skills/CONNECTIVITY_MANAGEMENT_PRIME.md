@@ -1,3 +1,12 @@
+---
+name: connectivity-management-prime
+description: "Autonomous service discovery, multi-protocol handshake (HTTP/WS), and reliability orchestration within the Cohezion swarm."
+metadata:
+  version: "1.0.0"
+  concepts: ["Truth Anchors", "Failover Logic", "Circuit Breakers", "State Interpolation"]
+  source: "src/cohezion/skills/CONNECTIVITY_MANAGEMENT_PRIME.md"
+---
+
 # SKILL: CONNECTIVITY_MANAGEMENT_PRIME
 
 ## DOMAIN EXPERTISE

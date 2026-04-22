@@ -1,3 +1,12 @@
+---
+name: training-data-capture-prime
+description: "You are a specialist in training data collection and curation for AI systems. You understand how to capture, log, analyze, and rank agentic interactions to generate high-quality training datasets."
+metadata:
+  version: "v1.0"
+  concepts: ["Interaction Logging", "Journey Tracking", "Quality Metrics", "Performance Ranking", "Semantic Analysis"]
+  source: "src/cohezion/skills/TRAINING_DATA_CAPTURE_PRIME.md"
+---
+
 # SKILL: TRAINING_DATA_CAPTURE_PRIME
 
 ## DOMAIN EXPERTISE

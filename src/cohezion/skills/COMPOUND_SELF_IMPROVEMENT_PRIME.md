@@ -1,3 +1,8 @@
+---
+name: compound-self-improvement-prime
+description: "Use Cohezion's own compound engineering methodology (Execute → Retrospect → Refine) to improve Cohezion itself. This PRIME skill encodes the self-referential protocol for systematic codebase improvement using TDD, adversarial code review, Ouroboros self-healing, Mycelium test generation, and specialist agent swarms."
+---
+
 # COMPOUND_SELF_IMPROVEMENT_PRIME
 
 **Version**: 1.0.0

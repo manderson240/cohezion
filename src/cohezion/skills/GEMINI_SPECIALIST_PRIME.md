@@ -1,3 +1,8 @@
+---
+name: gemini-specialist-prime
+description: "Expert in Gemini CLI orchestration, Google Agent Development Kit (ADK), and the 6-protocol agent stack. Integrates Google ecosystem services and manages A2A protocol implementation."
+---
+
 # SKILL: GEMINI_SPECIALIST_PRIME
 
 ## DOMAIN EXPERTISE

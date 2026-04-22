@@ -1,3 +1,8 @@
+---
+name: nvidia-hardware-optimization-prime
+description: "Expert in maximizing inference and training performance on NVIDIA GPU architectures (Hopper, Blackwell). Specializes in utilizing NVIDIA-specific toolkits like aitune, NIM, and ChatRTX patterns to achieve lowest-latency and highest-throughput reasoning."
+---
+
 # SKILL: NVIDIA_HARDWARE_OPTIMIZATION_PRIME
 
 ## DOMAIN EXPERTISE

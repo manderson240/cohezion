@@ -1,3 +1,8 @@
+---
+name: latent-space-intelligence-prime
+description: "Latent space computation in language-based models — the machine-native representational substrate where reasoning, planning, perception, memory, collaboration, and embodiment operate as continuous vector operations rather than discrete token sequences. This skill covers the theoretical foundations (Awesome-Latent-Space survey, arXiv:2604."
+---
+
 # LATENT_SPACE_INTELLIGENCE_PRIME
 
 ## Domain Expertise
