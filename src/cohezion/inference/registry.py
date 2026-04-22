@@ -187,7 +187,9 @@ def _build_default_registry() -> dict[str, ModelEntry]:
             task_affinity=frozenset({Task.SENSING, Task.ROUTING, Task.SUMMARIZATION}),
             weight_quant=WeightQuant.INT4,
             kv_quant=KVQuant(),  # AMD Ryzen AI compiler has no TBQ op as of 1.7.1
-            context_window=8192,
+            # 2026-04-21: raised 8192 → 131072 per HF model card (128K native).
+            # Gemma 4 family supports 128K-256K; prior 8192 was an arbitrary default.
+            context_window=131072,
             priority=10,
             # SCIENTIFIC RIGOR: typed p50/p95 fields require n>=20 per the
             # 2026-04-18 review. Earlier 5-call warm-loop observations moved
@@ -211,10 +213,14 @@ def _build_default_registry() -> dict[str, ModelEntry]:
             task_affinity=frozenset({Task.STRUCTURED, Task.GOVERNANCE}),
             weight_quant=WeightQuant.Q4_K_M,
             kv_quant=kv8_q80,
-            context_window=16384,
+            # 2026-04-21: raised 16384 → 131072 per HF model card (128K native).
+            context_window=131072,
             priority=20,
             reasoning_mode=True,
-            notes="Electric Fire (Knower) — Governance / Steering",
+            notes=(
+                "Electric Fire (Knower) — Governance / Steering. "
+                "Gemma 4 has native system role support (unlike many reasoning models)."
+            ),
         ),
         ModelEntry(
             model_id="Gemma-4-26B-A4B-it-GGUF",
@@ -225,10 +231,14 @@ def _build_default_registry() -> dict[str, ModelEntry]:
             task_affinity=frozenset({Task.REASONING, Task.CODE_GEN, Task.GENERAL}),
             weight_quant=WeightQuant.MXFP4,
             kv_quant=kv8_q80,
-            context_window=32768,
+            # 2026-04-21: raised 32768 → 262144 per HF card (256K native).
+            context_window=262144,
             priority=15,
             reasoning_mode=True,
-            notes="Solar Fire (Thinker) — 26B MoE, 4B active params",
+            notes=(
+                "Solar Fire (Thinker) — 25.2B total / 3.8B active MoE "
+                "(8 active / 128 total experts + 1 shared expert)."
+            ),
         ),
         ModelEntry(
             model_id="Gemma-4-31B-it-GGUF",
@@ -238,10 +248,14 @@ def _build_default_registry() -> dict[str, ModelEntry]:
             task_affinity=frozenset({Task.ARCHITECT, Task.LONG_HORIZON}),
             weight_quant=WeightQuant.Q4_K_M,
             kv_quant=KVQuant(),  # No public AVX-512 TBQ kernels exist (April 2026)
-            context_window=32768,
+            # 2026-04-21: raised 32768 → 262144 per HF card (256K native, dense).
+            context_window=262144,
             priority=40,
             reasoning_mode=True,
-            notes="Safety / System Architect — AVX-VNNI",
+            notes=(
+                "Safety / System Architect — dense 30.7B on AVX-VNNI. "
+                "Uses 1024-token sliding window attention."
+            ),
         ),
         # --- Task-specialist models via Ollama (:11434) ---
         ModelEntry(
@@ -261,23 +275,42 @@ def _build_default_registry() -> dict[str, ModelEntry]:
             lane=Lane.CPU,
             endpoint="http://localhost:11434",
             runtime_backend="",
-            task_affinity=frozenset({Task.CODE_GEN}),
+            task_affinity=frozenset({Task.CODE_GEN, Task.LONG_HORIZON}),
             weight_quant=WeightQuant.Q4_K_M,
-            context_window=32768,
+            # 2026-04-21: raised 32768 → 262144 per HF card (256K native, up to 1M
+            # via YARN). Prior 32768 was the card's explicit OOM fallback value,
+            # not the native context. Added LONG_HORIZON to task_affinity because
+            # 256K is "repository-scale understanding" territory per the card.
+            context_window=262144,
             priority=30,
-            notes="Code generation specialist",
+            notes=(
+                "Code generation specialist. Native 256K context (repository-scale); "
+                "YARN extension to 1M. Reduce to ctx=32768 if OOM per model card guidance."
+            ),
         ),
         ModelEntry(
             model_id="deepseek-r1:70b",
             lane=Lane.CPU,
             endpoint="http://localhost:11434",
             runtime_backend="",
-            task_affinity=frozenset({Task.LONG_HORIZON, Task.REASONING}),
+            task_affinity=frozenset({Task.LONG_HORIZON, Task.REASONING, Task.MATH}),
             weight_quant=WeightQuant.Q4_K_M,
-            context_window=32768,
+            # 2026-04-21: raised 32768 → 131072 per HF card (128K from base
+            # Llama-3.3-70B-Instruct). Added MATH to task_affinity per R1's
+            # published strengths. Generation guidance from model card:
+            #   temperature=0.6 (0.5-0.7 range to avoid repetition/incoherence)
+            #   top_p=0.95, max_tokens=32768
+            #   NO system prompts — fold all instructions into the user prompt
+            #   enforce `<think>\\n` prefix on response for thorough reasoning
+            context_window=131072,
             priority=45,
             reasoning_mode=True,
-            notes="Long-horizon reasoning (deepseek-r1 emits <think> blocks)",
+            notes=(
+                "Long-horizon reasoning (R1 distill on Llama-70B, 128K ctx). "
+                "Emits <think> blocks. Card recommends: temp=0.6, top_p=0.95, "
+                "NO system prompt (fold instructions into user prompt), enforce "
+                "<think>\\n prefix on response."
+            ),
         ),
         # --- Cloud Ollama fallbacks (confirmed in registry) ---
         ModelEntry(
