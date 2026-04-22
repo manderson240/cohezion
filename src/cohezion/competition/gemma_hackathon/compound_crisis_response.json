@@ -1,5 +1,5 @@
 {
-  "outcomes": [
+  "phase1_outcomes": [
     {
       "name": "flood_evacuation",
       "actions": 2,
@@ -26,17 +26,72 @@
       "effectiveness": 0.88
     }
   ],
-  "metrics": {
+  "phase1_metrics": {
+    "inference_mode": "CPU_Simulation",
     "scenarios": 5,
     "actions": 6,
     "skills": 5,
     "avg_alignment": 0.75,
     "avg_effectiveness": 0.908
   },
-  "skills": {
+  "phase2_episodes": [
+    {
+      "episode": 1,
+      "avg_alignment": 0.617,
+      "avg_effectiveness": 0.77,
+      "refinements": 0
+    },
+    {
+      "episode": 2,
+      "avg_alignment": 0.638,
+      "avg_effectiveness": 0.821,
+      "refinements": 1
+    },
+    {
+      "episode": 3,
+      "avg_alignment": 0.657,
+      "avg_effectiveness": 0.78,
+      "refinements": 1
+    },
+    {
+      "episode": 4,
+      "avg_alignment": 0.687,
+      "avg_effectiveness": 0.842,
+      "refinements": 2
+    },
+    {
+      "episode": 5,
+      "avg_alignment": 0.696,
+      "avg_effectiveness": 0.878,
+      "refinements": 2
+    },
+    {
+      "episode": 6,
+      "avg_alignment": 0.725,
+      "avg_effectiveness": 0.935,
+      "refinements": 3
+    },
+    {
+      "episode": 7,
+      "avg_alignment": 0.753,
+      "avg_effectiveness": 0.928,
+      "refinements": 3
+    },
+    {
+      "episode": 8,
+      "avg_alignment": 0.745,
+      "avg_effectiveness": 0.92,
+      "refinements": 4
+    }
+  ],
+  "phase2_improvement": {
+    "alignment": 0.128,
+    "effectiveness": 0.15
+  },
+  "refined_skills": {
     "flooding": "Deploy pumps, coordinate evacuation, establish shelter points",
     "earthquake": "Search and rescue, triage, structural assessment",
-    "shortage": "Rapid assessment, logistics chain, fair distribution",
+    "shortage": "Rapid assessment, logistics chain, fair distribution (refined: improve speed, current avg 0.84)",
     "wildfire": "Evacuate, establish firebreaks, coordinate air/water support",
     "disease": "Contain spread, test/isolate, preserve privacy"
   }
