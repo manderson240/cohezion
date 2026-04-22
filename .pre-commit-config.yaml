@@ -83,6 +83,18 @@ repos:
         entry: python scripts/hooks/lfs_pointer_check.py
         stages: [pre-commit]
 
+      # Kaggle branch guard: block competition work on non-kaggle branches
+      # 2026-04-22: added after Sprint B discovered ~13 NeuroGolf/ARC/Nemotron
+      # commits had landed on isolated/session-oom-modularity instead of the
+      # designated .worktrees/agi-golf or .worktrees/nemotron-june per
+      # ~/.claude/rules/kaggle-portfolio.md. Skip: KAGGLE_GUARD_DISABLE=1.
+      - id: kaggle-branch-guard
+        name: kaggle-branch-guard (block Kaggle work on non-kaggle/* branches)
+        language: system
+        entry: bash scripts/hooks/kaggle_branch_guard.sh
+        pass_filenames: false
+        stages: [pre-commit]
+
       # Version consistency: all version strings must match pyproject.toml
       - id: version-consistency
         name: version-consistency
