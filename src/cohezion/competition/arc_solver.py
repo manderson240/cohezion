@@ -481,6 +481,158 @@ def color_map_wrapper(train: list[dict[str, Grid]]) -> Program:
     return fn
 
 
+def deduplicate_rows(g: Grid) -> Grid | None:
+    if not g:
+        return None
+    seen = []
+    changed = False
+    for row in g:
+        if row not in seen:
+            seen.append(row)
+        else:
+            changed = True
+    return seen if changed else None
+
+
+def deduplicate_cols(g: Grid) -> Grid | None:
+    if not g or not g[0]:
+        return None
+    cols = []
+    for c in range(len(g[0])):
+        col = [g[r][c] for r in range(len(g))]
+        if col not in cols:
+            cols.append(col)
+    if len(cols) == len(g[0]):
+        return None
+    result = []
+    for r in range(len(g)):
+        result.append([cols[c][r] for c in range(len(cols))])
+    return result
+
+
+def hconcat(g: Grid) -> Grid | None:
+    if not g or not g[0]:
+        return None
+    cols = len(g[0])
+    if cols % 2 != 0:
+        return None
+    half = cols // 2
+    left = [row[:half] for row in g]
+    right = [row[half:] for row in g]
+    if left == right:
+        return None
+    result = [left[r] + right[r] for r in range(len(g))]
+    return result
+
+
+def vconcat(g: Grid) -> Grid | None:
+    if not g:
+        return None
+    rows = len(g)
+    if rows % 2 != 0:
+        return None
+    half = rows // 2
+    top = g[:half]
+    bottom = g[half:]
+    if top == bottom:
+        return None
+    result = top + bottom
+    return result
+
+
+def extend_lines_h(g: Grid) -> Grid | None:
+    """Extend horizontal lines across the grid."""
+    if not g or not g[0]:
+        return None
+    rows, cols = len(g), len(g[0])
+    result = [r[:] for r in g]
+    changed = False
+    for r in range(rows):
+        # Find horizontal line segments (3+ same color in a row)
+        c = 0
+        while c < cols:
+            color = g[r][c]
+            if color == 0:
+                c += 1
+                continue
+            start = c
+            while c < cols and g[r][c] == color:
+                c += 1
+            length = c - start
+            if length >= 2:
+                # Extend to edges
+                for cc in range(cols):
+                    if result[r][cc] == 0:
+                        result[r][cc] = color
+                        changed = True
+    return result if changed else None
+
+
+def extend_lines_v(g: Grid) -> Grid | None:
+    """Extend vertical lines across the grid."""
+    if not g or not g[0]:
+        return None
+    rows, cols = len(g), len(g[0])
+    result = [r[:] for r in g]
+    changed = False
+    for c in range(cols):
+        r = 0
+        while r < rows:
+            color = g[r][c]
+            if color == 0:
+                r += 1
+                continue
+            start = r
+            while r < rows and g[r][c] == color:
+                r += 1
+            length = r - start
+            if length >= 2:
+                for rr in range(rows):
+                    if result[rr][c] == 0:
+                        result[rr][c] = color
+                        changed = True
+    return result if changed else None
+
+
+def compress_repeating(g: Grid) -> Grid | None:
+    """Compress grid by removing repeating tile rows/cols."""
+    if not g or not g[0]:
+        return None
+    rows, cols = len(g), len(g[0])
+    # Check if grid is composed of a repeating tile
+    for tile_h in range(1, rows // 2 + 1):
+        if rows % tile_h != 0:
+            continue
+        for tile_w in range(1, cols // 2 + 1):
+            if cols % tile_w != 0:
+                continue
+            valid = True
+            for r in range(rows):
+                for c in range(cols):
+                    if g[r][c] != g[r % tile_h][c % tile_w]:
+                        valid = False
+                        break
+                if not valid:
+                    break
+            if valid:
+                return [row[:tile_w] for row in g[:tile_h]]
+    return None
+
+
+def tile_grid(g: Grid) -> Grid | None:
+    """Tile the grid to fill a larger area."""
+    if not g or not g[0]:
+        return None
+    rows, cols = len(g), len(g[0])
+    # Simple tiling: repeat 2x2
+    if rows * 2 > 30 or cols * 2 > 30:
+        return None
+    result = []
+    for r in range(rows * 2):
+        result.append(g[r % rows] * 2)
+    return result if result != g else None
+
+
 # ---------------------------------------------------------------------------
 # Primitive registry for meta-search
 # ---------------------------------------------------------------------------
@@ -513,6 +665,14 @@ def get_all_ops(train: list[dict[str, Grid]]) -> list[tuple[str, Program]]:
         ("gravity_l", gravity_left),
         ("gravity_r", gravity_right),
         ("color_map", color_map_wrapper(train)),
+        ("dedup_rows", deduplicate_rows),
+        ("dedup_cols", deduplicate_cols),
+        ("hconcat", hconcat),
+        ("vconcat", vconcat),
+        ("extend_h", extend_lines_h),
+        ("extend_v", extend_lines_v),
+        ("compress_rep", compress_repeating),
+        ("tile", tile_grid),
         *_make_parametric(),
     ]
 
@@ -544,14 +704,84 @@ def search_program(
     ops: list[tuple[str, Program]] | None = None,
     budget: int = 2000,
 ) -> list[Program] | None:
-    if ops is None:
-        ops = get_all_ops(train)
+    if ops is not None:
+        visited = set()
+        for depth in range(1, max_depth + 1):
+            result = _search_depth_bfs(train, depth, ops, budget, visited, None)
+            if result is not None:
+                return result
+        return None
+
+    # Strategy-based search: try focused op sets separately
+    all_ops = get_all_ops(train)
+
+    # Determine most promising strategy based on task properties
+    strategies = _select_strategies(train)
+
+    for name, op_set in strategies:
+        visited = set()
+        # Smaller depth but focused ops per strategy
+        for depth in range(1, max_depth + 1):
+            result = _search_depth_bfs(train, depth, op_set, budget // len(strategies), visited, None)
+            if result is not None:
+                return result
+
+    # Fallback: search all ops
     visited = set()
     for depth in range(1, max_depth + 1):
-        result = _search_depth_bfs(train, depth, ops, budget, visited, None)
+        result = _search_depth_bfs(train, depth, all_ops, budget, visited, None)
         if result is not None:
             return result
     return None
+
+
+def _select_strategies(train: list[dict[str, Grid]]) -> list[tuple[str, list[tuple[str, Program]]]]:
+    """Select promising op strategies based on task properties."""
+    strategies = []
+
+    # Count distinct colors across train inputs vs outputs
+    inp_colors = set()
+    out_colors = set()
+    inp_shapes = []
+    out_shapes = []
+    for ex in train:
+        inp_colors |= set(c for row in ex["input"] for c in row)
+        out_colors |= set(c for row in ex["output"] for c in row)
+        inp_shapes.append((len(ex["input"]), len(ex["input"][0]) if ex["input"] else 0))
+        out_shapes.append((len(ex["output"]), len(ex["output"][0]) if ex["output"] else 0))
+
+    color_changed = inp_colors != out_colors
+    shape_changed = any(i != o for i, o in zip(inp_shapes, out_shapes))
+
+    geo_ops = [op for op in get_all_ops(train) if op[0] in {
+        "identity", "flip_h", "flip_v", "transpose", "rot90", "rot180", "rot270",
+        "mirror_h", "mirror_v", "diag_sym"
+    }]
+    color_ops = [op for op in get_all_ops(train) if op[0] in {
+        "identity", "invert", "remove_bg", "color_map"
+    }]
+    obj_ops = [op for op in get_all_ops(train) if op[0] in {
+        "identity", "crop_obj", "fill_holes", "border", "interior",
+        "gravity_d", "gravity_u", "gravity_l", "gravity_r",
+        "move_up", "order_objs", "pad_obj"
+    }]
+    scale_ops = [op for op in get_all_ops(train) if "upsample" in op[0] or "downsample" in op[0]]
+    scale_ops = [("identity", identity)] + scale_ops
+
+    if not shape_changed:
+        # Same shape: likely color or simple geometric
+        strategies.append(("color", color_ops))
+        strategies.append(("geo", geo_ops))
+    elif color_changed:
+        strategies.append(("color", color_ops))
+        strategies.append(("obj", obj_ops))
+        strategies.append(("scale", scale_ops))
+    else:
+        strategies.append(("obj", obj_ops))
+        strategies.append(("geo", geo_ops))
+        strategies.append(("scale", scale_ops))
+
+    return strategies
 
 
 def _search_depth_bfs(

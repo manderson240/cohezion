@@ -10,8 +10,10 @@ from arc_solver import grids_equal, search_program
 
 def evaluate() -> None:
     root = Path("/home/mike-anderson/dev/cohezion")
-    challenges_path = root / "data" / "arc-agi-2" / "arc-agi_training_challenges.json"
-    solutions_path = root / "data" / "arc-agi-2" / "arc-agi_training_solutions.json"
+
+    # Evaluate on eval set (120 tasks with known solutions) for validation
+    challenges_path = root / "data" / "arc-agi-2" / "arc-agi_evaluation_challenges.json"
+    solutions_path = root / "data" / "arc-agi-2" / "arc-agi_evaluation_solutions.json"
 
     with challenges_path.open() as f:
         challenges = json.load(f)
@@ -47,13 +49,13 @@ def evaluate() -> None:
             if pred_attempt1 and grids_equal(pred_attempt1, expected):
                 correct += 1
 
-        if idx % 100 == 99:
+        if idx % 30 == 29:
             current_rate = correct / (idx + 1) * 100
             print(f"  Progress {idx + 1}/{total}: {current_rate:.1f}%", flush=True)
 
-    print(f"Tasks evaluated: {total}")
+    print(f"Evaluation tasks: {total}")
     print(f"Solved by search (depth <= 3): {solved_with_search} ({solved_with_search / total * 100:.1f}%)")
-    print(f"Correct on training test: {correct} ({correct / total * 100:.1f}%)")
+    print(f"Correct on eval test: {correct} ({correct / total * 100:.1f}%)")
     print(f"Avg solve time: {sum(times) / len(times):.3f}s")
     print(f"90th percentile time: {sorted(times)[int(len(times) * 0.9)]:.3f}s")
 
