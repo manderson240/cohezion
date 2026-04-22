@@ -72,7 +72,11 @@ Subject: {subject}
 Files changed:
 {files}
 
+<<<<<<< Updated upstream
 Diff excerpt (first 400 chars):
+=======
+Diff (first 800 chars):
+>>>>>>> Stashed changes
 {diff}
 
 Your one-sentence summary:"""
@@ -107,7 +111,11 @@ def _head_subject() -> str:
     return _git(["log", "-1", "--format=%s"])
 
 
+<<<<<<< Updated upstream
 def _head_diff_and_files(char_budget: int = 400) -> tuple[str, list[str]]:
+=======
+def _head_diff_and_files(char_budget: int = 800) -> tuple[str, list[str]]:
+>>>>>>> Stashed changes
     parent = _git(["rev-parse", "HEAD~1"])
     if parent:
         diff = _git(["diff", "HEAD~1", "HEAD"])

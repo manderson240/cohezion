@@ -73,7 +73,7 @@ def train_on_task(model, train_examples, steps=500, lr=0.05):
 def evaluate(model, task):
     task_model = TinyConvARCV2(hidden=model.hidden)
     task_model.load_state_dict(model.state_dict())
-    train_on_task(task_model, task["train"], steps=100)
+    train_on_task(task_model, task["train"], steps=200)
     for ex in task["train"]:
         inp = pad_grid(ex["input"]).unsqueeze(0)
         target = pad_grid(ex["output"])
@@ -85,7 +85,7 @@ def evaluate(model, task):
 
 
 if __name__ == "__main__":
-    model = TinyConvARCV2(hidden=48)
+    model = TinyConvARCV2(hidden=56)
     print(f"Params: {model.count_params():,}")
 
     root = Path("/home/mike-anderson/dev/cohezion")
