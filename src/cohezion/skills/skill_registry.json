@@ -107,7 +107,7 @@
     "source": "src/cohezion/skills/AUTONOMOUS_RESILIENCE_PRIME.md"
   },
   "AUTORESEARCH_PRIME": {
-    "version": "v0.2 (Session 93, 2026-04-09 — andyluo7/autoresearch integration)",
+    "version": "v0.2 (Session 93, 2026-04-09 \u2014 andyluo7/autoresearch integration)",
     "concepts": [
       "Autonomous Experimentation Loops",
       "UCB1 K-Search Tree",
@@ -154,7 +154,7 @@
   "COMPOUND_ENGINEERING_PRIME": {
     "version": "v0.1",
     "concepts": [
-      "Meta‑Pattern Library",
+      "Meta\u2011Pattern Library",
       "Skill Tokens",
       "Automatic Skill Scaffold"
     ],
@@ -417,7 +417,7 @@
     "version": "v0.1",
     "concepts": [
       "Ollama Model Catalog",
-      "Memory‑aware Scheduling",
+      "Memory\u2011aware Scheduling",
       "Task Classification",
       "Parallel Execution",
       "Cache & Deduplication",
@@ -777,7 +777,7 @@
       "CPU Utilisation",
       "Memory Pressure",
       "I/O Saturation",
-      "Process‑level Metrics",
+      "Process\u2011level Metrics",
       "Adaptive Scaling",
       "Guardrails",
       "Visualization"
@@ -948,5 +948,21 @@
       "HIHO_STABILITY_PRIME"
     ],
     "source": "src/cohezion/skills/VLIW_COG_BRIDGE_PRIME.md"
+  },
+  "SURGICAL_COMMIT_UNDER_CHURN_PRIME": {
+    "version": "v1.0 (2026-04-22)",
+    "concepts": [
+      "Surgical commits",
+      "Pre-commit stash/restore",
+      "Learning 363",
+      "Learning 368",
+      "High-churn working tree",
+      "Git atomic commits"
+    ],
+    "see_also": [
+      "COHEZION_VAULT_WORKFLOW_PRIME",
+      "COMPOUND_ENGINEERING_PRIME"
+    ],
+    "source": "src/cohezion/skills/SURGICAL_COMMIT_UNDER_CHURN_PRIME.md"
   }
 }
