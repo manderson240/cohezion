@@ -13,15 +13,20 @@
 - Agent cannot win simplest game after exhaustive attempts
 
 ### ❌ NeuroGolf 2026 Pure Neural Under 100K
-- **10 experiments** (conv, sweep, meta-training, hybrid, coord-aware, ensemble, fallback)
+- **12 experiments** (conv, sweep, meta-training, hybrid, coord-aware, ensemble, fallback, transformer)
 - **Best result**: **Hybrid ensemble 5/100 = 5.0%** (DSL 3% + Conv 2%, zero overlap)
-- **Lesson**: ARC requires compositional reasoning. Pure neural under 100K cannot learn transformation rules. Hybrid symbolic+neural doubles rate but still far from 20% target.
+- **Ceiling confirmed**: Training memorization 83%, test generalization 2-5%. Transformer 0%. CoordConv 0%. All under 100K.
 - **Status**: V-Model NO-GO for 20% target. Hybrid is best achievable.
 - **Assets**:
   - `hybrid_ensemble.py` — 5% reproducible solver
-  - `kaggle_submission.py` — standalone submission script
-  - `neurogolf_kaggle.ipynb` — 12-cell self-contained notebook
-  - `tiny_conv_v3.py` — 73K param conv net
+  - `neurogolf_kaggle.ipynb` — 12-cell notebook
+  - `kaggle_submission.py` — standalone script
+  - `neurogolf-submission.zip` — 7.6KB package ready for Kaggle
+
+### ❌ Lemonade Local Backend Optimization
+- **3 experiments** (baseline 80 TPS, Ollama comparison 18 TPS, context scaling)
+- **Finding**: KV cache is highly effective (320 TPS warm vs 65 TPS cold). No low-hanging optimization without server restart.
+- **Status**: Well-tuned. Backend optimization exhausted.
 
 ---
 
@@ -39,9 +44,9 @@
 - **Blocked on**: Human review + Kaggle dataset upload
 
 ### NeuroGolf 2026 ($50k, July 15, 611 teams)
-- **Status**: Kaggle notebook + hybrid submission script ready.
-- **Best achievable**: 5% test accuracy (hybrid). 73K params.
-- **May submit anyway** — small model + novelty of hybrid approach could score if metric weights size heavily.
+- **Status**: Submission package ready (zip + notebook).
+- **Best achievable**: 5% test accuracy. 73K params.
+- **May submit anyway** — novelty of hybrid approach could score if metric weights size.
 
 ---
 
@@ -50,13 +55,28 @@
 ### Competition Orchestrator (`competitions_orchestrated`)
 - **Current**: **5/5 agents** (paper-track, arc-solver, gemma-hackathon, neurogolf, sei-accelathon)
 - **Status**: MAXED OUT
-- **Next**: Improve agent reasoning quality (thinkingBudgets, better structured JSON)
+- **No prize-relevant optimization path remaining**
 
-### Pi Config (`features_activated`)
-- **Current**: 15 features
-- **Next**: `thinkingBudgets`, automatic `sessionDir` for all worktrees
+### Pi Config
+- `thinkingBudgets` — not yet configured
+- `sessionDir` automation for worktrees
 
 ## Other Deferred
-- KV cache quantization (kv8)
+- KV cache quantization further (would require Lemonade restart)
 - CostAwareRouter as standalone library
 - FLUME-EVO-Itonic scaling to 1000+ agents
+- Datamesh Graph Performance (config exists, never run)
+
+---
+
+## Summary
+
+**All AI-experimentable, prize-relevant paths are exhausted.** The remaining funding action items require **human execution**:
+
+| Prize Track | AI Status | Human Action Needed |
+|---|---|---|
+| Gemma Hackathon ($200k) | 57% ready | Register, video, cover image |
+| ARC Paper Track ($450k) | Draft complete | Review, upload dataset |
+| NeuroGolf ($50k) | 5% solver ready | Submit to Kaggle |
+
+**Next autoresearch target to switch to**: Pi config optimization (`thinkingBudgets`, `features_activated`) or FLUME infrastructure scaling. Neither is prize-relevant.
