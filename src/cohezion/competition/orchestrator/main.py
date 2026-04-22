@@ -11,6 +11,7 @@ import logging
 from typing import Any
 
 from cohezion.competition.orchestrator.agents.arc_solver_agent import ARCSolverAgent
+from cohezion.competition.orchestrator.agents.gemma_hackathon_agent import GemmaHackathonAgent
 from cohezion.competition.orchestrator.agents.neurogolf_agent import NeuroGolfAgent
 from cohezion.competition.orchestrator.agents.paper_track_agent import PaperTrackAgent
 from cohezion.competition.orchestrator.agents.sei_accelathon_agent import SeiAccelathonAgent
@@ -27,22 +28,25 @@ class CompetitionOrchestrator:
     Active targets (Apr 2026):
     - arc-paper: highest EV ($450k), ready for model-assisted review
     - arc-solver: program analysis and strategy suggestions
+    - gemma-hackathon: social good hackathon ($200k, May 18 deadline)
     - neurogolf: tiny NN architecture analysis ($50k, July 15)
     - sei-accelathon: blockchain tooling (pruned: ended Aug 2025)
     """
 
-    AGENTS = ["arc-paper", "arc-solver", "neurogolf", "sei-accelathon"]
+    AGENTS = ["arc-paper", "arc-solver", "gemma-hackathon", "neurogolf", "sei-accelathon"]
 
     def __init__(self) -> None:
         self.dispatcher = ModelDispatcher()
         self.paper_agent = PaperTrackAgent(self.dispatcher)
         self.arc_agent = ARCSolverAgent(self.dispatcher)
+        self.gemma_agent = GemmaHackathonAgent(self.dispatcher)
         self.neuro_agent = NeuroGolfAgent(self.dispatcher)
         self.sei_agent = SeiAccelathonAgent(self.dispatcher)
         self.guard = ResourceGuard()
         self._agent_map = {
             "arc-paper": self.paper_agent,
             "arc-solver": self.arc_agent,
+            "gemma-hackathon": self.gemma_agent,
             "neurogolf": self.neuro_agent,
             "sei-accelathon": self.sei_agent,
         }
@@ -99,7 +103,7 @@ if __name__ == "__main__":
     if not health["oom_safe"]:
         print("WARNING: Low memory!")
 
-    # Test all 4 agents
+    # Test all 5 agents
     agents_tested = 0
 
     print("\n--- PAPER AGENT TEST ---")
@@ -120,6 +124,17 @@ if __name__ == "__main__":
         {
             "action": "analyze_task",
             "grid_data": [[0, 0, 0], [0, 1, 0], [0, 0, 0]],
+        },
+    )
+    if result.get("status") == "success":
+        agents_tested += 1
+
+    print("\n--- GEMMA HACKATHON AGENT TEST ---")
+    result = orch.dispatch(
+        "gemma-hackathon",
+        {
+            "action": "impact_assessment",
+            "description": "A compound crisis response system using Gemma-4 to coordinate disaster relief.",
         },
     )
     if result.get("status") == "success":
