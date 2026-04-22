@@ -13,7 +13,11 @@ async def test_capture():
     logging.basicConfig(level=logging.INFO)
     
     # Connect to the background compound server (running on 8379)
-    client = create_mcp_client(server_url="http://localhost:8379", api_key="cohezion-dev-key")
+    # The compound server itself needs the correct key to talk to the vault
+    client = create_mcp_client(
+        server_url="http://localhost:8379", 
+        api_key="a712027605bbd33068da5462bbcc18d90f844df23f948f124908fa726d678263"
+    )
     
     # Mock result for dogfooding
     result = {

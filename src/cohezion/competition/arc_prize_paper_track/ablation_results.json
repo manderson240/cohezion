@@ -1,0 +1,44 @@
+[
+  {
+    "name": "geo",
+    "ops": 7,
+    "correct": 0,
+    "total": 100,
+    "rate": 0.0
+  },
+  {
+    "name": "geo_color",
+    "ops": 15,
+    "correct": 1,
+    "total": 100,
+    "rate": 1.0
+  },
+  {
+    "name": "geo_color_obj",
+    "ops": 17,
+    "correct": 1,
+    "total": 100,
+    "rate": 1.0
+  },
+  {
+    "name": "geo_color_obj_gravity",
+    "ops": 21,
+    "correct": 1,
+    "total": 100,
+    "rate": 1.0
+  },
+  {
+    "name": "all_but_misc",
+    "ops": 26,
+    "correct": 1,
+    "total": 100,
+    "rate": 1.0
+  },
+  {
+    "name": "all",
+    "ops": 33,
+    "correct": 1,
+    "total": 100,
+    "rate": 1.0
+  }
+]

@@ -346,11 +346,14 @@ async def learning_process_execution(
         if server_url:
             from cohezion.core.mcp_client import create_mcp_client
             api_key = os.getenv("CLOUD_VAULT_API_KEY", "cohezion-dev-key")
+            logger.info(f"Using provided server_url: {server_url}")
             mcp_client = create_mcp_client(server_url=server_url, api_key=api_key)
         else:
             mcp_client = get_mcp_client()
+            logger.info(f"Using default mcp_client with URL: {mcp_client.config.server_url}")
 
         results = await learning_loop.process_execution(execution_result, mcp_client)
+        logger.info(f"Learning loop results: {results}")
 
         return {"status": "success", "results": results}
 

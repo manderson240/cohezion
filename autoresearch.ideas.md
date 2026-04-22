@@ -49,10 +49,26 @@
   - Neural program induction (requires training data)
 - **Status**: Background research only. Focus hackathon + paper track first.
 
+## Active: Kaggle — Prize Path to Self-Funding
+
 ### ARC Prize 2026 — ARC-AGI-3 ($850k Grand Prize, Nov 2, 594 teams)
 - **Status**: Interactive environment. Requires agent SDK.
 - **Human score**: 100%. **AI score**: 0.26%.
 - **Status**: Too immature for our current stack. Defer to 2027 if grand prize rolls forward.
+
+### ARC-AGI-3 Experiential Learning Spike (COMPLETED)
+- **Discovery from 7 experiments**:
+  - Games are real interactive video games (sprite physics, collision, cameras)
+  - **Two action modes**: Click-only (`available_actions=[6]`) vs Directional-only (`[1,2,3,4]`)
+  - **Camera viewport**: ls20 is 16x16 viewport (player follows camera, hiding full state)
+  - **Step budgets**: 42-60 actions total per game — extremely tight for exploration
+  - **Local LLM (phi4) text-only**: insufficient without vision; hallucinates action choices
+  - Programmatic region-clicking on r11l found 9 sprites but 0 wins — suggests sequence/order matters
+- **V-Model Decision**: NO-GO for Milestone #1 (June 30). Agent cannot win simplest game after exhaustive systematic attempts.
+- **Learning**: Interactive reasoning requires game-type recognition + specialized per-type agents, not a single generic agent.
+- **Assets preserved**: `experiential_agent.py`, `vmodel_gate.py`, `systematic_explorer.py` — useful for 2027 or general agent research.
+
+### Gemma-4-Good Hackathon ($200k, May 18 deadline, ~109 teams)
 
 ---
 

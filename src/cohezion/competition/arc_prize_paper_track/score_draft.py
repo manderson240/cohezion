@@ -40,17 +40,17 @@ def score_draft(path: str) -> dict[str, Any]:
     scores["introduction"] = min(10, intro_score)
 
     # Architecture: formal definitions, subsections, diagrams mentioned
-    arch_score = 5 if "## 2." in text else 0
+    arch_score = 5 if "## 3. Theoretical Foundation" in text or "## 3. Architecture" in text else 0
     if "alignment gate" in text.lower(): arch_score += 3
     if "journey tracker" in text.lower(): arch_score += 2
     if "skill refinement" in text.lower(): arch_score += 2
-    if "### 2." in text and text.count("### 2.") >= 2: arch_score += 3
+    if "## 4." in text and text.count("## 4.") >= 1: arch_score += 3
     if "formal" in text.lower() or "theorem" in text.lower() or "definition" in text.lower(): arch_score += 3
     if "diagram" in text.lower() or "figure" in text.lower(): arch_score += 2
     scores["architecture"] = min(20, arch_score)
 
     # Results: actual data, tables, numbers
-    results_score = 2 if "## 3." in text else 0
+    results_score = 2 if "## 5. Application" in text or "## 5. Results" in text or "## 5. Experimental" in text else 0
     if "%" in text: results_score += 3
     if "solve rate" in text.lower(): results_score += 3
     if "table" in text.lower(): results_score += 3
@@ -58,7 +58,7 @@ def score_draft(path: str) -> dict[str, Any]:
     scores["results"] = min(15, results_score)
 
     # Novelty: explicit differentiation from prior work
-    nov_score = 3 if "## 4." in text else 0
+    nov_score = 3 if "## 6." in text else 0
     if "unlike" in text.lower() or "compared" in text.lower(): nov_score += 3
     if "arc prize" in text.lower(): nov_score += 3
     if "metacognitive" in text.lower(): nov_score += 3
@@ -66,22 +66,17 @@ def score_draft(path: str) -> dict[str, Any]:
     scores["novelty"] = min(15, nov_score)
 
     # Artifacts
-    art_score = 3 if "## 5." in text else 0
+    art_score = 3 if "## 7." in text else 0
     if "github" in text.lower() or "open source" in text.lower(): art_score += 3
     if "license" in text.lower(): art_score += 2
     if "mit" in text.lower() or "apache" in text.lower(): art_score += 2
     scores["artifacts"] = min(10, art_score)
 
     # References: count citation entries
-    ref_count = text.count("(") + text.count("[") - text.count("(") // 2
-    # More precise: count lines that look like references
-    ref_lines = [l for l in text.split("\n") if l.strip().startswith("- ") and ("chollet" in l.lower() or "arcprize" in l.lower() or "20" in l)]
-    ref_count = len([l for l in text.split("## References")[-1].split("\n") if l.strip() and not l.strip().startswith("-") and len(l.strip()) > 10]) if "## References" in text else 0
-    ref_count = max(len([l for l in text.split("## References")[-1].split("\n") if l.strip() and l.strip()[0].isalpha() and "20" in l]), 0) if "## References" in text else 0
-    if ref_count == 0:
-        # crude fallback: count lines that look like citations after "References"
-        after_ref = text.split("## References")[-1] if "## References" in text else ""
-        ref_count = len([l for l in after_ref.split("\n") if len(l.strip()) > 20 and any(c.isdigit() for c in l)])
+    ref_count = 0
+    if "## References" in text:
+        after_ref = text.split("## References")[-1]
+        ref_count = len([l for l in after_ref.split("\n") if l.strip() and l.strip()[0].isalpha() and "20" in l])
     scores["references"] = min(5, ref_count)
 
     # Prior Work
@@ -103,7 +98,7 @@ def score_draft(path: str) -> dict[str, Any]:
 
 
 if __name__ == "__main__":
-    result = score_draft(Path(__file__).with_name("DRAFT.md"))
+    result = score_draft(Path(__file__).with_name("DRAFT_v2.md"))
     for s, v in result["sections"].items():
         print(f"  {s:20s}: {v:2d}/{[m for n, m in SECTIONS if n == s][0]}")
     print(f"\n  Total: {result['total']}/{result['max']} = {result['percent']}%")

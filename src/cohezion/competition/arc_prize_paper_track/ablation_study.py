@@ -6,7 +6,7 @@ import json
 from pathlib import Path
 
 import sys
-sys.path.insert(0, str(Path(__file__).resolve().parent))
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from arc_solver import (
     BASE_OPS,
@@ -17,8 +17,9 @@ from arc_solver import (
 
 # Import all defined primitive functions
 from arc_solver import (
+    apply_program,
     border,
-    color_map_wrapper,
+    compress_repeating,
     crop_to_object,
     deduplicate_cols,
     deduplicate_rows,
@@ -35,6 +36,7 @@ from arc_solver import (
     gravity_up,
     hconcat,
     identity,
+    infer_color_map,
     interior,
     invert_colors,
     mirror_horizontal,
@@ -42,8 +44,8 @@ from arc_solver import (
     move_objects_up,
     order_objects_by_size,
     pad_to_object,
-    recolor,
     remove_background,
+    replace_color,
     rotate_180,
     rotate_270,
     rotate_90,
@@ -74,7 +76,7 @@ def build_ops_subset() -> list:
         ("interior", interior),
         ("pad_obj", pad_to_object),
         ("invert", invert_colors),
-        ("recolor", recolor),
+        ("replace_color", replace_color),
     ]
     obj = [
         ("move_up", move_objects_up),
