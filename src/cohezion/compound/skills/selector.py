@@ -103,8 +103,15 @@ class SkillSelector:
         return self.skill_registry.get(name)
 
 
-class SkillRefiner:
-    """Simple skill refinement based on feedback."""
+class SelectorFeedbackRefiner:
+    """Skill refinement driven by selector-scoped feedback (success/failure ratios).
+
+    Renamed from SkillRefiner 2026-04-22 to disambiguate from
+    compound.skill_refiner.SkillRefiner (canonical PRIME-file refiner).
+    This class doesn't modify skill definitions — it scores SkillSelector
+    choices based on past outcomes. Re-exported as SkillRefiner at module
+    bottom for backward compat.
+    """
 
     def __init__(self, selector: SkillSelector):
         self.selector = selector
@@ -177,3 +184,9 @@ class SimpleSkills:
                 output=str(e),
                 error_type=type(e).__name__,
             )
+
+
+# Backward-compat alias — deprecated. Prefer SelectorFeedbackRefiner, which
+# expresses that this class scores selector choices rather than modifying
+# PRIME files (the canonical SkillRefiner is compound.skill_refiner.SkillRefiner).
+SkillRefiner = SelectorFeedbackRefiner

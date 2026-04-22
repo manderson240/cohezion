@@ -2,8 +2,14 @@
 
 This module provides:
 1. AutoresearchEngine - Identifies optimization opportunities from metrics
-2. RetrospectionEngine - Captures learnings to vault for compound growth
-3. SkillRefiner - Updates skill definitions based on execution feedback
+2. VaultLearningCapture - Captures learnings to vault for compound growth
+   (formerly RetrospectionEngine; renamed 2026-04-22 in Sprint A to disambiguate
+   from core.compound.retrospection.RetrospectionEngine which parses KG files,
+   and from compound.retrospection_summary.CycleRetrospectionEngine which
+   summarizes per-cycle metrics). The old name is re-exported at module bottom.
+3. AsyncMetricsSkillRefiner - Async metric-based skill refinement
+   (formerly SkillRefiner; renamed same reason — canonical SkillRefiner is
+   compound.skill_refiner.SkillRefiner).
 """
 
 import json
@@ -169,8 +175,15 @@ class AutoresearchEngine:
         }
 
 
-class RetrospectionEngine:
-    """Captures execution learnings to vault for compound growth."""
+class VaultLearningCapture:
+    """Captures execution learnings to vault for compound growth.
+
+    Renamed from RetrospectionEngine 2026-04-22 to disambiguate from
+    core.compound.retrospection.RetrospectionEngine (KG parser) and
+    compound.retrospection_summary.CycleRetrospectionEngine (per-cycle
+    summaries). See patterns/deferred-sprints-consolidation-and-skills-migration.md.
+    The old name is re-exported at the bottom of this module for backward compat.
+    """
 
     def __init__(self, vault_path: str = "cloud-vault-mcp/vault"):
         self.vault_path = Path(vault_path)
@@ -211,7 +224,7 @@ class RetrospectionEngine:
                 try:
                     # Convert lessons list to markdown string
                     lessons_str = "\n".join([f"- {L}" for L in learning["lessons"]])
-                    
+
                     logger.info(f"Logging to vault via {mcp_client.config.server_url}...")
                     path = await mcp_client.vault_log_experiment(
                         project="cohezion",
@@ -226,13 +239,13 @@ class RetrospectionEngine:
                 except Exception as vault_e:
                     logger.error(f"Vault capture failed: {vault_e}")
                     path = None
-                
+
                 # 2. Store in SurrealDB (Universe Nodes)
                 try:
                     # Generate a learning ID
                     import hashlib
                     l_id = f"L_{hashlib.sha256(learning['title'].encode()).hexdigest()[:8]}"
-                    
+
                     logger.info(f"Storing learning in SurrealDB: {l_id}...")
                     await mcp_client._call_tool(
                         "store_learning",
@@ -308,8 +321,14 @@ class RetrospectionEngine:
         return patterns
 
 
-class SkillRefiner:
-    """Updates skill definitions based on execution feedback."""
+class AsyncMetricsSkillRefiner:
+    """Updates skill definitions based on execution feedback (async, metric-driven).
+
+    Renamed from SkillRefiner 2026-04-22. Canonical synchronous implementation
+    is compound.skill_refiner.SkillRefiner. This async version is kept for
+    callers that need metric-based refinement inside an async pipeline.
+    Re-exported as SkillRefiner at module bottom for backward compat.
+    """
 
     def __init__(self, skills_dir: str = "src/cohezion/skills"):
         self.skills_dir = Path(skills_dir)
@@ -433,8 +452,8 @@ class ExperientialLearningLoop:
 
     def __init__(self):
         self.autoresearch = AutoresearchEngine()
-        self.retrospection = RetrospectionEngine()
-        self.refiner = SkillRefiner()
+        self.retrospection = VaultLearningCapture()
+        self.refiner = AsyncMetricsSkillRefiner()
         self.learning_buffer = []
 
     async def process_execution(
@@ -510,3 +529,11 @@ class ExperientialLearningLoop:
             self.learning_buffer = []
 
         return results
+
+
+# Backward-compat aliases. Deprecated — prefer the new names which disambiguate
+# from core.compound.retrospection.RetrospectionEngine (KG parser) and
+# compound.skill_refiner.SkillRefiner (canonical sync implementation).
+# These aliases will be removed in a future release once all callers migrate.
+RetrospectionEngine = VaultLearningCapture
+SkillRefiner = AsyncMetricsSkillRefiner

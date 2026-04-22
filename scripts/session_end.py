@@ -325,12 +325,12 @@ def main(argv: list[str] | None = None) -> int:
 
     # Run retrospection — this needs the cohezion package, so it's lazy-imported.
     try:
-        from cohezion.compound.retrospection_summary import RetrospectionEngine
+        from cohezion.compound.retrospection_summary import CycleRetrospectionEngine
     except ImportError as exc:
         print(f"[session-end] cohezion import failed ({exc}); skipping.", file=sys.stderr)
         return 0
 
-    engine = RetrospectionEngine()
+    engine = CycleRetrospectionEngine()
     cycle_id = f"session-{session_id}"
     cycle_metrics = build_cycle_metrics(signals, skill_name_for_summary)
     summary = engine.summarize(cycle_id, cycle_metrics)
