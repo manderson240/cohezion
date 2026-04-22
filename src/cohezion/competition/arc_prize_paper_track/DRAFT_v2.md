@@ -10,7 +10,7 @@ We introduce the Compound Loop, a metacognitive architecture for autonomous agen
 
 ## 1. Introduction
 
-The ARC-AGI-2 benchmark (Chollet, 2025) measures fluid intelligence by challenging systems to infer novel visual transformations from limited examples. Current leading approaches combine deep learning with brute-force search over domain-specific languages (DSLs). However, these systems lack transparency: when they fail, it is unclear whether the failure lies in perception, program induction, or search strategy.
+The ARC-AGI-2 benchmark (Chollet, 2019) measures fluid intelligence by challenging systems to infer novel visual transformations from limited examples. Current leading approaches combine deep learning with brute-force search over domain-specific languages (DSLs). However, these systems lack transparency: when they fail, it is unclear whether the failure lies in perception, program induction, or search strategy.
 
 We propose an alternative: augmenting DSL search with a metacognitive control loop — the Compound Loop — that explicitly manages alignment, execution, monitoring, and refinement. The loop is not itself a solver; it is an orchestration framework that decides when to trust a candidate solution, when to switch strategies, and how to learn from failures.
 
