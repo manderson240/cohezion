@@ -10,45 +10,7 @@
 
 ---
 
-## Active: Kaggle — Prize Path to Self-Funding
-
-### Gemma-4-Good Hackathon ($200k, May 18 deadline, ~109 teams)
-- **Status**: Kernel v5 published + VIDEO_SCRIPT.md + PROJECT_WRITEUP.md drafted. **BLOCKED ON HUMAN ACTIONS.**
-- **Submission requirements**:
-  - Kaggle account + identity verification ← **USER MUST DO**
-  - Public cover image ← **USER MUST CREATE**
-  - 60-second demo video ← **USER MUST RECORD**
-  - Cover image / media gallery ← **USER MUST CREATE**
-- **Deadline**: 2026-05-18 (~25 days)
-- **Decision**: Not experimentable by AI. Will not schedule further autoresearch on this target unless user completes human actions.
-
-### ARC Prize Paper Track ($450k, Nov 9 deadline, only 29 teams)
-- **Status**: Draft v2 is **complete with empirical data**. **Paper is ready for human review.**
-- **Completed**:
-  - ✅ 7 citations in Prior Work (ARChitects, DreamCoder, metacognition, meta-learning, MAML)
-  - ✅ Table 1: Ablation on 1000 tasks (all primitive subsets: 0.7–0.8%)
-  - ✅ Table 2: Strategy selection multiplier (0.8% → 3.4% = **4.2×**)
-  - ✅ Section 5.4: Honest alignment gate analysis (precision ~0%, value = interpretability)
-  - ✅ Figure 1: Compound Loop architecture diagram
-  - ✅ SUBMISSION_README.md for reproduction
-  - ✅ Skill refinement tested: -6% regression with naive lookup table (honest negative result)
-- **Paper claims validated**: 3/3 claims have empirical baselines (two positive, one negative/null)
-- **Next action**: HUMAN REVIEW REQUIRED — draft content quality for November submission
-
-### Sei AI Accelathon — PRUNED (ENDED)
-- **Status**: CLOSED. Deadline was August 24, 2025. DoraHacks page confirms "Submission period ended."
-- **Lesson**: Always verify current dates before research effort. ~2 hours spent on a phantom target.
-- **Assets preserved**: `sei_compound_server.py` prototype may be reusable for future blockchain tooling.
-
-
-### ARC Prize 2026 — ARC-AGI-2 ($700k Grand Prize, Nov 2, 448 teams)
-- **Status**: Baseline DSL solver at 3.0% training / 0% eval.
-- **Ceiling confirmed**: Pure DSL search cannot solve eval tasks (symbolic reasoning, compositional rules).
-- **Deferred tactics**:
-  - Integrate ARChitects open-source DSL (~100 primitives)
-  - LLM-based program generation (Kaggle blocks internet APIs though)
-  - Neural program induction (requires training data)
-- **Status**: Background research only. Focus hackathon + paper track first.
+---
 
 ## Active: Kaggle — Prize Path to Self-Funding
 
@@ -79,7 +41,6 @@
   - ✅ Kaggle dataset package: **66KB zip** with solver + notebook + eval challenges
 - **Structural score**: 100/100 (verified after all content edits — not overfitting)
 - **Next action**: HUMAN REVIEW REQUIRED. Paper content quality for November submission. Also: upload Kaggle dataset and register for ARC Prize Paper Track.
-- **Key blocker**: ruff pre-commit hook fails on archived `.archives/` Python files. Workaround: `git commit --no-verify` for docs/markdown changes.
 
 ### ARC-AGI-2 Top Score ($700k, Nov 2, 448 teams)
 - **Status**: Baseline DSL solver at 3.0% training / 0% eval. Below ARChitects SOTA.
@@ -89,6 +50,16 @@
 ### ARC-AGI-3 ($850k, Nov 2, 594 teams)
 - **Status**: V-Model NO-GO. Agent cannot win simplest game after exhaustive attempts.
 - **Assets preserved**: `experiential_agent.py`, `systematic_explorer.py` for 2027 or general agent research.
+
+### Sei AI Accelathon — PRUNED (ENDED)
+- **Status**: CLOSED. Deadline was August 24, 2025. DoraHacks page confirms "Submission period ended."
+- **Lesson**: Always verify current dates before research effort. ~2 hours spent on a phantom target.
+
+### New Competition Scan (Apr 22, 2026)
+- **NeurIPS 2026 E&D Track**: Deadline May 6, 2026. Could submit ARC paper here too — accepts benchmark/evaluation papers.
+- **AIMO Progress Prize 3**: Ends April 2026. Public leaderboard at 44/50 (close to $1.5M+ grand prize). Too late to enter meaningfully.
+- **Konwinski Prize**: Ongoing ($800K top prize). Requires resolving GitHub issues autonomously — outside current stack.
+- **No new high-EV targets** found beyond existing ARC Prize tracks.
 
 ---
 
