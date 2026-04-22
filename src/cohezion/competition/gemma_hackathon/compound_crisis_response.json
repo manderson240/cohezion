@@ -1,0 +1,43 @@
+{
+  "outcomes": [
+    {
+      "name": "flood_evacuation",
+      "actions": 2,
+      "effectiveness": 0.86
+    },
+    {
+      "name": "earthquake_rescue",
+      "actions": 1,
+      "effectiveness": 0.96
+    },
+    {
+      "name": "food_shortage",
+      "actions": 1,
+      "effectiveness": 0.84
+    },
+    {
+      "name": "wildfire_spread",
+      "actions": 1,
+      "effectiveness": 1.0
+    },
+    {
+      "name": "medical_outbreak",
+      "actions": 1,
+      "effectiveness": 0.88
+    }
+  ],
+  "metrics": {
+    "scenarios": 5,
+    "actions": 6,
+    "skills": 5,
+    "avg_alignment": 0.75,
+    "avg_effectiveness": 0.908
+  },
+  "skills": {
+    "flooding": "Deploy pumps, coordinate evacuation, establish shelter points",
+    "earthquake": "Search and rescue, triage, structural assessment",
+    "shortage": "Rapid assessment, logistics chain, fair distribution",
+    "wildfire": "Evacuate, establish firebreaks, coordinate air/water support",
+    "disease": "Contain spread, test/isolate, preserve privacy"
+  }
+}
