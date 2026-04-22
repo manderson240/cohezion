@@ -162,10 +162,10 @@ if __name__ == "__main__":
     import time
 
     start = time.monotonic()
-    results = run_ablation(sample=100)
+    results = run_ablation(sample=1000)
     elapsed = time.monotonic() - start
     print(f"\n{'=' * 50}")
-    print(f"ABLATION SUMMARY (100 tasks, {elapsed:.1f}s)")
+    print(f"ABLATION SUMMARY (1000 tasks, {elapsed:.1f}s)")
     print(f"{'=' * 50}")
     for r in results:
         print(f"  {r['name']:25s} | {r['ops']:2d} ops | {r['correct']:3d}/{r['total']} = {r['rate']:>5}%")

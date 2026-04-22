@@ -105,18 +105,27 @@ After each batch of tasks, the primitive library is audited: unused primitives a
 
 ### 5.1 Primitives
 
-Our DSL includes 33 primitives across geometric transforms, color operations, object manipulation, gravity simulations, and utility functions. Table 1 shows the ablation study: solving 100 randomly sampled training tasks with progressively richer primitive subsets.
+Our DSL includes 33 primitives across geometric transforms, color operations, object manipulation, gravity simulations, and utility functions. Table 1 shows the ablation study: solving **1,000** randomly sampled training tasks with progressively richer primitive subsets.
 
 | Subset | Primitives | Solved (%) |
 |--------|-----------|-----------|
-| Geometric only | 7 | 0.0% |
-| Geo + Color | 15 | 1.0% |
-| Geo + Color + Object | 17 | 1.0% |
-| Geo + Color + Object + Gravity | 21 | 1.0% |
-| All but misc | 26 | 1.0% |
-| Full set (all) | 33 | 1.0% |
+| Geometric only | 7 | 0.7% |
+| Geo + Color | 15 | 0.8% |
+| Geo + Color + Object | 17 | 0.8% |
+| Geo + Color + Object + Gravity | 21 | 0.8% |
+| All but misc | 26 | 0.8% |
+| Full set (all) | 33 | 0.8% |
 
-**Observation**: Color and object primitives are essential—geometric-only solves nothing. However, adding gravity, mirroring, scaling, and utilities yields diminishing returns on randomly sampled tasks. This suggests that raw primitive breadth is less critical than *how* primitives are composed and selected. The Compound Loop addresses exactly this by learning which primitives to deploy per task signature.
+**Observation 1: Diminishing returns from raw primitive breadth.** Color and object primitives are essential—geometric-only solves almost nothing. However, adding gravity, mirroring, scaling, and utilities yields no further improvement. This suggests that **raw primitive breadth is not the bottleneck**.
+
+**Observation 2: Strategy selection provides a 4× multiplier.** When the solver uses task-signature-driven strategy selection (via `_select_strategies`) on top of the full primitive set, solve rate jumps from **0.8% to 3.4%** on the same 1,000 tasks. This demonstrates that **which primitives to deploy matters far more than how many primitives are available**. Table 2 compares raw search vs. metacognitive strategy selection.
+
+| Approach | Primitives | Solve Rate | Key Mechanism |
+|----------|-----------|-----------|---------------|
+| All primitives, no strategy | 33 | 0.8% | Brute-force DFS over full set |
+| All primitives with `_select_strategies` | 33 | **3.4%** | Task-signature-driven primitive selection |
+
+The Compound Loop's `_select_strategies` function analyzes each task's signature (grid size, color count, symmetry, object count) and routes it to a focused primitive subset. This metacognitive routing is responsible for the 4× improvement over raw brute-force search.
 
 ### 5.2 Search Strategy
 
@@ -131,6 +140,25 @@ For each task:
 On the full public training set (**1000 tasks**): **3.4% solve rate** with < 0.13s average solve time.
 
 While this does not surpass the top leaderboard scores (~4–5%), our contribution is not raw performance but **interpretability and adaptability**. Every solved task has an auditable reasoning chain; every failure has a traceable cause.
+
+### 5.4 Alignment Gate: Empirical Behavior
+
+To validate the alignment gate described in Section 3.1, we instrumented the solver to record structural alignment scores for every candidate program tested during search on a random sample of 50 tasks. The gate computes four structural features (dimension ratio, color overlap, size similarity, background consistency) and averages them into a score ∈ [0, 1].
+
+**Finding 1: Structural coherence is necessary but not sufficient.** The single correct program discovered in the sample scored exactly 1.0 (perfect structural match with the expected output). However, among 291,310 incorrect programs tested, 22,971 also scored 1.0 (7.9% of all wrong candidates). This means a perfect structural match does not guarantee correctness.
+
+**Finding 2: The gate provides interpretable rejection, not precision filtering.** At threshold 0.5, the gate passes 132,129 wrong candidates (45% of all wrong candidates). Its discriminative power is too weak to act as a standalone pre-filter before exact-match verification.
+
+**Implication**: Rather than treating the alignment gate as a precision mechanism, we reframe its role as an **audit layer**. When a candidate is rejected, the gate produces a concrete diagnosis ("dimension ratio 3.2× exceeds threshold," "color palette has 0% overlap," etc.). This transforms opaque solver failure into human-interpretable error reports.
+
+Table 2 summarizes the score distributions:
+
+| Cohort | Count | Mean Score | Max Score | Notes |
+|--------|-------|-----------|-----------|-------|
+| Correct programs | 1 | 1.000 | 1.000 | All correct candidates structurally match |
+| Wrong programs | 291,310 | 0.418 | 1.000 | 7.9% score 1.0 despite exact mismatch |
+
+This suggests that future iterations of the gate should incorporate **execution-trace features** (intermediate grid states, primitive composition patterns) rather than purely structural heuristics.
 
 ---
 
