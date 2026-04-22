@@ -37,9 +37,9 @@ async def test_capture():
     
     print(f"Calling learning_process_execution on {client.config.server_url}...")
     try:
-        client.connect()
+        await client.connect()
         # Pass server_url to tool to point to vault
-        response = client._call_tool(
+        response = await client._call_tool(
             "learning_process_execution",
             {
                 "execution_result_json": json.dumps(result),

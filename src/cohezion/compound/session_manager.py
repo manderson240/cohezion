@@ -279,7 +279,7 @@ class VaultCheckpointManager:
             # Try vault first
             mcp = get_mcp_client()
             path = f"checkpoints/{state.session_id}.json"
-            mcp.vault_write(path, json.dumps(asdict(state), indent=2))
+            await mcp.vault_write(path, json.dumps(asdict(state), indent=2))
             logger.debug(f"Checkpoint saved to Vault: {path}")
             return True
         except Exception as e:
@@ -309,7 +309,7 @@ class VaultCheckpointManager:
         try:
             mcp = get_mcp_client()
             path = f"checkpoints/{session_id}.json"
-            content = mcp.vault_read(path)
+            content = await mcp.vault_read(path)
             data = json.loads(content)
             state = SessionState(**data)
             logger.debug(f"Checkpoint loaded from Vault: {path}")
@@ -347,7 +347,8 @@ class VaultCheckpointManager:
         try:
             mcp = get_mcp_client()
             path = f"checkpoints/{session_id}.json"
-            mcp.vault_delete(path)
+            # No vault_delete in new MCPClient, using generic _call_tool
+            await mcp._call_tool("vault_delete", {"path": path})
             logger.debug(f"Checkpoint deleted from Vault: {path}")
             vault_deleted = True
         except Exception as e:

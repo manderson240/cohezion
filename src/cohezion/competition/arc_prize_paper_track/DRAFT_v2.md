@@ -79,7 +79,7 @@ Output: solution grid g or failure signal
 
 ## 4. The Compound Loop Architecture
 
-Figure 1 illustrates the Compound Loop as a directed cycle of four phases: Alignment, Execution, Retrospection, and Refinement. Each phase is gated by transition conditions that ensure the system only proceeds when sufficient evidence exists.
+Figure 1 illustrates the Compound Loop as a directed cycle of four phases: Alignment, Execution, Retrospection, and Refinement (see `figure1_compound_loop.png`). Each phase is gated by transition conditions that ensure the system only proceeds when sufficient evidence exists.
 
 ### 4.1 Alignment Gate
 

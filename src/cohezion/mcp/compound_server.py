@@ -312,8 +312,13 @@ async def learning_capture(
             from cohezion.core.mcp_client import create_mcp_client
             api_key = os.getenv("CLOUD_VAULT_API_KEY", "cohezion-dev-key")
             mcp_client = create_mcp_client(server_url=server_url, api_key=api_key)
+            await mcp_client.connect()
         else:
             mcp_client = get_mcp_client()
+            try:
+                await mcp_client.connect()
+            except Exception:
+                pass
 
         path = await retrospection.capture_learning(execution_result, mcp_client)
 
@@ -348,9 +353,15 @@ async def learning_process_execution(
             api_key = os.getenv("CLOUD_VAULT_API_KEY", "cohezion-dev-key")
             logger.info(f"Using provided server_url: {server_url}")
             mcp_client = create_mcp_client(server_url=server_url, api_key=api_key)
+            await mcp_client.connect()
         else:
             mcp_client = get_mcp_client()
             logger.info(f"Using default mcp_client with URL: {mcp_client.config.server_url}")
+            # Ensure it is connected
+            try:
+                await mcp_client.connect()
+            except Exception as e:
+                logger.warning(f"Default mcp_client connect failed: {e}")
 
         results = await learning_loop.process_execution(execution_result, mcp_client)
         logger.info(f"Learning loop results: {results}")

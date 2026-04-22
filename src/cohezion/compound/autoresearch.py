@@ -203,18 +203,29 @@ class RetrospectionEngine:
                 "skill_used": execution_result.get("skill_used"),
             }
 
+            logger.info(f"Attempting to capture learning: {learning['title']}")
+
             # Persist via MCP if available
             if mcp_client:
                 # 1. Store in Obsidian Vault
-                path = await mcp_client.vault_log_experiment(
-                    project="cohezion",
-                    title=learning["title"],
-                    hypothesis="Session execution",
-                    method="Automated capture",
-                    result="success" if learning["success"] else "failure",
-                    learnings="\n".join([f"- {L}" for L in learning["lessons"]]),
-                    **learning["metrics"]
-                )
+                try:
+                    # Convert lessons list to markdown string
+                    lessons_str = "\n".join([f"- {L}" for L in learning["lessons"]])
+                    
+                    logger.info(f"Logging to vault via {mcp_client.config.server_url}...")
+                    path = await mcp_client.vault_log_experiment(
+                        project="cohezion",
+                        title=learning["title"],
+                        hypothesis="Session execution",
+                        method="Automated capture",
+                        result="success" if learning["success"] else "failure",
+                        learnings=lessons_str,
+                        **learning["metrics"]
+                    )
+                    logger.info(f"Vault capture success: {path}")
+                except Exception as vault_e:
+                    logger.error(f"Vault capture failed: {vault_e}")
+                    path = None
                 
                 # 2. Store in SurrealDB (Universe Nodes)
                 try:
@@ -222,6 +233,7 @@ class RetrospectionEngine:
                     import hashlib
                     l_id = f"L_{hashlib.sha256(learning['title'].encode()).hexdigest()[:8]}"
                     
+                    logger.info(f"Storing learning in SurrealDB: {l_id}...")
                     await mcp_client._call_tool(
                         "store_learning",
                         {
@@ -232,12 +244,15 @@ class RetrospectionEngine:
                             "score": float(learning["metrics"].get("coherence", 0.7))
                         }
                     )
+                    logger.info("SurrealDB storage success.")
                 except Exception as db_e:
                     logger.warning(f"Failed to store learning in SurrealDB: {db_e}")
 
-                logger.info(f"Learning captured to vault and database: {path}")
+                if path:
+                    logger.info(f"Learning captured to vault and database: {path}")
                 return path
             else:
+                logger.warning("No mcp_client provided to capture_learning, falling back to local file.")
                 # Fallback to local file
                 fallback_path = (
                     self.vault_path
@@ -250,7 +265,7 @@ class RetrospectionEngine:
                 return str(fallback_path)
 
         except Exception as e:
-            logger.error(f"Failed to capture learning: {e}")
+            logger.exception(f"Unexpected error in capture_learning: {e}")
             return None
 
     async def extract_patterns(self, learning_paths: list[str]) -> list[dict]:
@@ -435,6 +450,13 @@ class ExperientialLearningLoop:
             Processing results
         """
         results = {}
+
+        # Ensure client is connected if provided
+        if mcp_client and hasattr(mcp_client, "connect"):
+            try:
+                await mcp_client.connect()
+            except Exception as conn_e:
+                logger.warning(f"MCP Client connection failed: {conn_e}")
 
         # Step 1: Capture learning to vault
         learning_path = await self.retrospection.capture_learning(execution_result, mcp_client)
