@@ -55,16 +55,17 @@ def main() -> None:
     for idx, (task_id, task) in enumerate(sorted(challenges.items())):
         try:
             program = arc_solver.search_program(task["train"], max_depth=3, budget=5000)
-            if program is not None:
-                # Apply to each test input
-                preds = []
-                for test_ex in task.get("test", []):
+            preds = []
+            for test_ex in task.get("test", []):
+                if program is not None:
                     out = arc_solver.apply_program(
                         arc_solver.deepcopy_grid(test_ex["input"]), program
                     )
-                    preds.append(out)
-                if preds:
-                    submission[task_id] = preds
+                else:
+                    out = arc_solver.deepcopy_grid(test_ex["input"])
+                preds.append(out)
+            if preds:
+                submission[task_id] = preds
         except Exception:
             pass
 
