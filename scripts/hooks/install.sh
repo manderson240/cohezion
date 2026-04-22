@@ -5,6 +5,8 @@
 #
 # Current hooks installed:
 #   * vmodel_gate_post_commit.py — structural V-model gate recorder (fast path).
+#   * experiential_learning_hook.py — narrative learning (routes through
+#     scripts/delegate.py to the local fleet, 20s budget, non-blocking).
 #
 # Pattern: the .git/hooks/<name> file remains a thin shell wrapper that calls
 # into the repo-tracked scripts. Local .git/hooks files are NOT version-controlled,
@@ -13,8 +15,10 @@
 # Usage:
 #     bash scripts/hooks/install.sh
 #
-# Skip VMODEL hook at commit time:
-#     VMODEL_GATE_DISABLE=1 git commit ...
+# Skip either hook at commit time:
+#     VMODEL_GATE_DISABLE=1 git commit ...              # skip structural gate
+#     EXPERIENTIAL_LEARNING_DISABLE=1 git commit ...    # skip narrative
+#     VMODEL_GATE_DISABLE=1 EXPERIENTIAL_LEARNING_DISABLE=1 git commit ...
 
 set -euo pipefail
 
@@ -22,44 +26,61 @@ REPO_ROOT="$(git rev-parse --show-toplevel)"
 HOOKS_DIR="$REPO_ROOT/.git/hooks"
 POST_COMMIT="$HOOKS_DIR/post-commit"
 VMODEL_HOOK="$REPO_ROOT/scripts/hooks/vmodel_gate_post_commit.py"
+NARRATIVE_HOOK="$REPO_ROOT/scripts/hooks/experiential_learning_hook.py"
 
-if [ ! -x "$VMODEL_HOOK" ]; then
-    chmod +x "$VMODEL_HOOK"
-fi
+for h in "$VMODEL_HOOK" "$NARRATIVE_HOOK"; do
+    if [ ! -x "$h" ]; then
+        chmod +x "$h"
+    fi
+done
 
-# Create post-commit with our stanza if missing; otherwise idempotently add it.
-if [ ! -f "$POST_COMMIT" ]; then
-    cat > "$POST_COMMIT" <<'SHELL'
-#!/bin/sh
+ensure_stanza() {
+    # $1 = marker to grep for; $2 = stanza body to append if missing
+    local marker="$1"
+    local stanza="$2"
+    if ! grep -q "$marker" "$POST_COMMIT"; then
+        printf '\n%s\n' "$stanza" >> "$POST_COMMIT"
+        echo "Appended $marker stanza to $POST_COMMIT"
+    else
+        echo "$marker already installed"
+    fi
+}
+
+VMODEL_STANZA='# Cohezion V-model gate recorder (added by scripts/hooks/install.sh)
 _repo_root="$(git rev-parse --show-toplevel 2>/dev/null)"
 if [ -n "$_repo_root" ] && [ -x "$_repo_root/scripts/hooks/vmodel_gate_post_commit.py" ]; then
     python3 "$_repo_root/scripts/hooks/vmodel_gate_post_commit.py" 2>/dev/null || true
-fi
+fi'
+
+NARRATIVE_STANZA='# Cohezion experiential learning — narrative learnings via local fleet (20s budget)
+_repo_root="$(git rev-parse --show-toplevel 2>/dev/null)"
+if [ -n "$_repo_root" ] && [ -x "$_repo_root/scripts/hooks/experiential_learning_hook.py" ]; then
+    python3 "$_repo_root/scripts/hooks/experiential_learning_hook.py" 2>/dev/null || true
+fi'
+
+# Create post-commit with our stanzas if missing; otherwise idempotently add them.
+if [ ! -f "$POST_COMMIT" ]; then
+    cat > "$POST_COMMIT" <<SHELL
+#!/bin/sh
+$VMODEL_STANZA
+
+$NARRATIVE_STANZA
 SHELL
     chmod +x "$POST_COMMIT"
-    echo "Installed fresh .git/hooks/post-commit with vmodel_gate hook"
-elif ! grep -q "vmodel_gate_post_commit.py" "$POST_COMMIT"; then
-    # Existing post-commit present (e.g. from `entire enable`). Insert our stanza.
-    # Insert before the final closing line so chain/fall-through logic keeps working.
-    cat >> "$POST_COMMIT" <<'SHELL'
-
-# Cohezion V-model gate recorder (added by scripts/hooks/install.sh)
-_repo_root="$(git rev-parse --show-toplevel 2>/dev/null)"
-if [ -n "$_repo_root" ] && [ -x "$_repo_root/scripts/hooks/vmodel_gate_post_commit.py" ]; then
-    python3 "$_repo_root/scripts/hooks/vmodel_gate_post_commit.py" 2>/dev/null || true
-fi
-SHELL
-    echo "Appended vmodel_gate hook to existing .git/hooks/post-commit"
+    echo "Installed fresh .git/hooks/post-commit with vmodel_gate + experiential_learning hooks"
 else
-    echo "vmodel_gate hook already installed in .git/hooks/post-commit"
+    ensure_stanza "vmodel_gate_post_commit.py" "$VMODEL_STANZA"
+    ensure_stanza "experiential_learning_hook.py" "$NARRATIVE_STANZA"
 fi
 
-# Sanity-check: can the hook actually run?
-if python3 "$VMODEL_HOOK" --help 2>/dev/null >/dev/null || python3 -c "import sys; sys.path.insert(0, '$REPO_ROOT/scripts/hooks'); import vmodel_gate_post_commit" 2>/dev/null; then
-    echo "Hook script imports clean."
-else
-    echo "Warning: hook script failed import check (non-fatal)"
-fi
+# Sanity-check: can each hook script import cleanly?
+for hook_name in vmodel_gate_post_commit experiential_learning_hook; do
+    if python3 -c "import sys; sys.path.insert(0, '$REPO_ROOT/scripts/hooks'); import $hook_name" 2>/dev/null; then
+        echo "$hook_name imports clean."
+    else
+        echo "Warning: $hook_name failed import check (non-fatal)"
+    fi
+done
 
-echo "Done. Next commit in this repo will record a vmodel_gate in SurrealDB cohezion/main."
-echo "To skip: VMODEL_GATE_DISABLE=1 git commit ..."
+echo "Done. Next commit records vmodel_gate + narrative_learning in SurrealDB cohezion/main."
+echo "Skip: VMODEL_GATE_DISABLE=1 or EXPERIENTIAL_LEARNING_DISABLE=1"
