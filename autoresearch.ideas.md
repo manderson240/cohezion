@@ -1,15 +1,49 @@
 # Autoresearch Ideas & Deferred Optimizations
 
-**Status (Apr 22, 2026)**: ALL AI-experimentable, prize-relevant paths are **exhausted**.
-Last 10 runs: 105-114. No new configs to try. Loop needs a new target or human actions.
+**Status (Apr 22, 2026)**: New competition identified — NVIDIA Nemotron Reasoning Challenge.
+Deadline: June 15, 2026 (~54 days). Prize: $106,388. Teams: 2,334. User registered.
+
+---
+
+## Active: NVIDIA Nemotron Reasoning Challenge ($106k, June 15, 2,334 teams)
+
+**Status**: NEW TARGET. Baseline established: **49%** symbolic+model hybrid accuracy.
+**Leaderboard top**: **86%** — 37 point gap to close.
+**Dataset**: 9,500 training examples across 6 problem types.
+
+### Per-Type Accuracy (100-example sample)
+| Type | Accuracy | Solver | Status |
+|---|---|---|---|
+| numeral | **100%** | Symbolic (Roman numerals) | DONE |
+| unit_conversion | **80%** | Symbolic (linear regression) | Good |
+| gravity | **65%** | Symbolic (d=0.5gt^2) | Limited by data noise |
+| bit_manip | **10-18%** | Symbolic + model fallback | Needs work |
+| encryption | **20-32%** | Symbolic + model fallback | Needs work |
+| equations | **0%** | Symbolic + model fallback | CRITICAL BLOCKER |
+
+### Assets
+- `solve.py` — hybrid solver (symbolic + Gemma-4 via Lemonade)
+- `debug_model.py` — model response debugging tool
+- `test_model.py` — per-type model accuracy testing
+- Data: `/tmp/train.csv` (3MB), `/tmp/test.csv` (1.5KB, 3 public examples)
+
+### Next Experiments (Priority Order)
+1. **Equations sub-type analysis** — Number-based vs symbol-based equations need different solvers
+2. **Bit manip search expansion** — Add XOR, AND, OR with constants, multi-step ops
+3. **Gravity noise reduction** — Try median g instead of mean, or fit with tolerance
+4. **Model prompt optimization** — Shorter prompts, better instructions for hard types
+5. **Unit conversion non-linear** — Quadratic, reciprocal, or other function fits
 
 ---
 
 ## Pruned / Dead Ends
 
-### ❌ Experience-Driven ARC Solver v0
-- Tried: Task signature similarity + warm-start search
-- Result: 0% eval solve rate
+### ❌ NeuroGolf 2026 Pure Neural Under 100K
+- **12 experiments** — hybrid ensemble 5% is ceiling. Submission package ready.
+- **Status**: Submittable but not competitive for 20% target.
+
+### ❌ Lemonade Local Backend Optimization
+- **3 experiments** — 80.8 TPS baseline, well-tuned. No more optimization path.
 
 ### ❌ Sei AI Accelathon — PRUNED (ENDED)
 - Deadline was August 24, 2025
@@ -17,56 +51,21 @@ Last 10 runs: 105-114. No new configs to try. Loop needs a new target or human a
 ### ❌ ARC-AGI-3 — V-Model NO-GO
 - Agent cannot win simplest game after exhaustive attempts
 
-### ❌ NeuroGolf 2026 Pure Neural Under 100K
-- **12 experiments** (conv, sweep, meta-training, hybrid, coord-aware, ensemble, fallback, transformer)
-- **Best result**: **Hybrid ensemble 5/100 = 5.0%** (DSL 3% + Conv 2%, zero overlap)
-- **Ceiling confirmed**: Training memorization 83%, test generalization 2-5%. Transformer 0%. CoordConv 0%. All under 100K.
-- **Status**: V-Model NO-GO for 20% target. Hybrid is best achievable.
-- **Assets**: `hybrid_ensemble.py`, `neurogolf_kaggle.ipynb`, `kaggle_submission.py`, `neurogolf-submission.zip` (7.6KB)
-
-### ❌ Lemonade Local Backend Optimization
-- **3 experiments** (baseline 80 TPS, Ollama comparison 18 TPS, context scaling)
-- **Finding**: KV cache is highly effective (320 TPS warm vs 65 TPS cold). No low-hanging optimization.
-- **Status**: Well-tuned. Backend optimization exhausted.
-
 ---
 
 ## Active: Kaggle — Prize Path to Self-Funding (BLOCKED)
 
 | Prize Track | AI Status | Human Action Needed |
 |---|---|---|
+| Nemotron ($106k, Jun 15) | **49% baseline, 37pt gap** | None yet — AI-experimentable! |
 | Gemma Hackathon ($200k, May 18) | 57% ready | Register, video, cover image |
 | ARC Paper Track ($450k, Nov 9) | Draft complete | Review, upload dataset |
 | NeuroGolf ($50k, July 15) | 5% solver ready | Submit to Kaggle |
 
-All three are **blocked on human execution.** No further AI experiments can advance these.
-
 ---
 
-## What the Autoresearch Loop Could Do Next
-
-### Option A: Wait for Human (Recommended)
-- Loop paused until user acts on blocked competitions
-- Resume when new data/inputs arrive
-
-### Option B: Pi Config Optimization
-- `thinkingBudgets` — configure custom reasoning budgets
-- `sessionDir` automation for worktrees
-- **Metric**: `features_activated` (current: 15)
-- **Prize-relevant**: No
-
-### Option C: FLUME Infrastructure
-- Scale from 100 to 1000+ agents
-- **Metric**: `integration_score` or `agents_encoded`
-- **Prize-relevant**: No
-
-### Option D: Datamesh Graph Performance
-- Config exists but was never run (segment 0)
-- **Metric**: `query_latency_ms`
-- **Prize-relevant**: No
-
----
-
-## Honest Assessment
-
-The autoresearch loop has reached a **natural plateau** after 114 experiments across 7 different config targets. The most promising next step is **not more experiments** — it's **human action on the blocked prize tracks** or a **new high-value target** identified by the user.
+## Other Deferred
+- Pi Config (`thinkingBudgets`, `sessionDir`)
+- FLUME scaling
+- CostAwareRouter packaging
+- Datamesh Graph Performance

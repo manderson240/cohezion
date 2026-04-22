@@ -143,14 +143,58 @@ class BMADEngine:
                     self._modules[mod]["agents"].append(agent_name)
 
     def _load_catalog(self) -> None:
-        """Load bmad-help.csv catalog for structured help and routing."""
+        """Load bmad-help.csv catalog for structured help and routing.
+
+        v6.3.0 CSV column semantics (different from column names!):
+          phase        → skill identifier (e.g. 'bmad-create-prd')
+          required     → actual phase name  (e.g. 'anytime', '1-analysis', '2-planning')
+          description  → required flag      ('true' / 'false')
+          sequence     → description text
+        """
         catalog_path = self.data_path / "_config" / "bmad-help.csv"
         if not catalog_path.exists():
             logger.warning(f"BMAD help catalog not found: {catalog_path}")
             return
         try:
             with open(catalog_path, newline="", encoding="utf-8") as f:
-                for row in csv.DictReader(f):
+                for raw in csv.DictReader(f):
+                    # Normalise the row so downstream code can rely on
+                    # consistent field names regardless of CSV version.
+                    row: dict[str, Any] = {}
+
+                    # Detect v6.3.0 format: 'phase' column contains skill IDs
+                    raw_phase = raw.get("phase", "")
+                    raw_required = raw.get("required", "")
+
+                    if raw_phase and raw_phase.startswith("bmad-"):
+                        # v6.3.0 layout — remap the misnamed columns
+                        row["skill"] = raw_phase
+                        row["phase"] = raw_required          # actual phase
+                        row["name"] = raw.get("name", "")
+                        row["code"] = raw.get("code", "")
+                        row["description"] = raw.get("sequence", "")
+                        row["is_required"] = raw.get("description", "false").lower() == "true"
+                        row["command"] = raw.get("command", "")
+                        row["workflow_file"] = raw.get("workflow-file", "")
+                        row["output_location"] = raw.get("output-location", "")
+                        row["outputs"] = raw.get("outputs", "")
+                        row["module"] = raw.get("module", "")
+                        row["agent_name"] = raw.get("agent-name", "")
+                        row["agent_display_name"] = raw.get("agent-display-name", "")
+                        row["agent_title"] = raw.get("agent-title", "")
+                        row["options"] = raw.get("options", "")
+                    elif raw_phase == "_meta":
+                        row["skill"] = "_meta"
+                        row["phase"] = "_meta"
+                        row["name"] = "_meta"
+                        row["output_location"] = raw.get("output-location", "")
+                        row["module"] = raw.get("module", "")
+                    else:
+                        # Older format — use column names as-is
+                        row = dict(raw)
+                        row["skill"] = raw.get("skill", raw.get("name", ""))
+                        row["is_required"] = raw.get("required", "false").lower() == "true"
+
                     self._catalog.append(row)
         except Exception as exc:
             logger.warning(f"Failed to load help catalog: {exc}")
@@ -384,12 +428,12 @@ class BMADEngine:
 
         results = []
         for entry in self._catalog:
-            entry_module = entry.get("module", "")
+            entry_skill = entry.get("skill", "")
             entry_phase = entry.get("phase", "")
-            entry_skill = entry.get("skill", entry.get("name", ""))
+            entry_module = entry.get("module", "")
 
             # Skip meta rows
-            if entry_phase == "_meta" or entry_skill == "_meta":
+            if entry_skill == "_meta" or entry_phase == "_meta":
                 continue
 
             if module and entry_module.lower() != module.lower():
@@ -403,8 +447,9 @@ class BMADEngine:
                 "name": entry.get("name", entry_skill),
                 "phase": entry_phase,
                 "code": entry.get("code", ""),
-                "required": entry.get("required", "false").lower() == "true",
+                "required": entry.get("is_required", False),
                 "description": entry.get("description", ""),
+                "agent": entry.get("agent_display_name", ""),
             })
         return results
 
@@ -489,13 +534,13 @@ class BMADEngine:
 
         # Build recommendations from catalog
         for entry in self._catalog:
-            phase = entry.get("phase", "")
-            skill = entry.get("skill", entry.get("name", ""))
+            skill = entry.get("skill", "")
             name = entry.get("name", "")
-            is_required = entry.get("required", "false").lower() == "true"
+            phase = entry.get("phase", "")
+            is_required = entry.get("is_required", False)
             desc = entry.get("description", "")
 
-            if phase == "_meta" or skill == "_meta":
+            if skill == "_meta" or phase == "_meta":
                 continue
 
             # Match against query keywords
@@ -507,19 +552,21 @@ class BMADEngine:
                     "phase": phase,
                     "required": is_required,
                     "description": desc[:80],
+                    "code": entry.get("code", ""),
+                    "agent": entry.get("agent_display_name", ""),
                 })
 
         # General help pattern
         if any(kw in query_lower for kw in ["what should i do", "next", "help", "start", "begin"]):
-            # Return the first required skill from each phase
+            # Group catalog entries by phase
             for entry in self._catalog:
-                phase = entry.get("phase", "")
-                skill = entry.get("skill", entry.get("name", ""))
+                skill = entry.get("skill", "")
                 name = entry.get("name", "")
-                is_required = entry.get("required", "false").lower() == "true"
+                phase = entry.get("phase", "")
+                is_required = entry.get("is_required", False)
                 desc = entry.get("description", "")
 
-                if phase == "_meta" or skill == "_meta":
+                if skill == "_meta" or phase == "_meta":
                     continue
 
                 if phase not in recommendations["phases"]:
@@ -530,6 +577,7 @@ class BMADEngine:
                     "code": entry.get("code", ""),
                     "required": is_required,
                     "description": desc[:80],
+                    "agent": entry.get("agent_display_name", ""),
                 })
 
             recommendations["reasoning"] = (
@@ -544,7 +592,6 @@ class BMADEngine:
 
         # Fallback
         if not recommendations["suggested_skills"] and not recommendations["phases"]:
-            # Default first steps
             first_steps = [e for e in self._catalog
                           if e.get("phase", "").startswith("1-") or e.get("phase") == "anytime"]
             for entry in first_steps[:5]:
