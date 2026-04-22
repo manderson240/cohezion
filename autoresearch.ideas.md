@@ -27,12 +27,12 @@
 - **Next action**: REGISTER on Kaggle → produce 60-second demo video → upload cover image → submit
 
 ### ARC Prize Paper Track ($450k, Nov 9 deadline, only 29 teams)
-- **Status**: Not started. Highest probability-to-prize ratio.
+- **Status**: Draft v2 structurally complete (99/100). **Prior Work section added** with 7 citations (ARChitects, DreamCoder, metacognition, meta-learning).
+- **Remaining gaps**: Experimental ablation studies, formal alignment gate theorem, diagrams
 - **Idea**: "The Compound Loop: A General Architecture for Autonomous Agent Adaptation"
   - Tie to a scored submission on ARC-AGI-2 (even low scores qualify)
   - Novel: metacognitive alignment gates + skill refinement for program synthesis
-  - Open-source compound engineering framework as artifact
-- **Next action**: Outline paper sections, gather citations, produce first draft
+- **Next action**: Run ablation studies on solver components + add theorem + generate diagrams
 
 ### Sei AI Accelathon ($1M total, Aug 24 deadline)
 - **Status**: Not started.
