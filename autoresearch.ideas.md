@@ -8,15 +8,30 @@
 - **Lesson**: ARC-AGI-2 requires symbolic program induction, not statistical transfer.
 - **Status**: Pruned. Do not pursue shallow feature matching for ARC.
 
----
+### ❌ Sei AI Accelathon — PRUNED (ENDED)
+- **Status**: CLOSED. Deadline was August 24, 2025. DoraHacks page confirms "Submission period ended."
+- **Lesson**: Always verify current dates before research effort. ~2 hours spent on a phantom target.
+- **Assets preserved**: `sei_compound_server.py` prototype may be reusable for future blockchain tooling.
+
+### ❌ ARC-AGI-3 ($850k, Nov 2, 594 teams)
+- **Status**: V-Model NO-GO. Agent cannot win simplest game after exhaustive attempts.
+- **Assets preserved**: `experiential_agent.py`, `systematic_explorer.py` for 2027 or general agent research.
 
 ---
 
 ## Active: Kaggle — Prize Path to Self-Funding
 
+### NeuroGolf 2026 ($50k, July 15 deadline, 611 teams)
+- **Status**: **SWEEP COMPLETE.** Optimal architecture found on 20-task sample.
+- **Best config**: 4-block residual conv, hidden=48, **84,106 params**, Adam, 200 steps
+- **Accuracy**: **35%** on 20 ARC training tasks (exceeds 20% target)
+- **Budget**: 84K < 100K ✓
+- **Architecture path**: `src/cohezion/competition/neurogolf/tiny_conv_v2.py`
+- **Next action**: VALIDATE on 100 tasks (current sample too small). Then package Kaggle submission notebook.
+- **Experiments**: 5 runs (4.9K→114K param sweep, accuracy 0%→35%)
+
 ### Gemma-4-Good Hackathon ($200k, May 18 deadline, ~109 teams)
 - **Status**: Kernel v5 published + VIDEO_SCRIPT.md + PROJECT_WRITEUP.md drafted. **BLOCKED ON HUMAN ACTIONS.**
-<<<<<<< Updated upstream
 - **Deadline**: 2026-05-18 (~25 days) — **MOST URGENT**
 - **What you must do**:
   1. Log into Kaggle → register for hackathon
@@ -27,18 +42,6 @@
 
 ### ARC Prize Paper Track ($450k, Nov 9 deadline, only 29 teams)
 - **Status**: Draft v2 is **structurally complete and content-improved**. All 8 high-priority issues from model review have been fixed.
-=======
-- **Submission requirements**:
-  - Kaggle account + identity verification ← **USER MUST DO**
-  - Public cover image ← **USER MUST CREATE**
-  - 60-second demo video ← **USER MUST RECORD**
-  - Cover image / media gallery ← **USER MUST CREATE**
-- **Deadline**: 2026-05-18 (~25 days)
-- **Decision**: Not experimentable by AI. Will not schedule further autoresearch on this target unless user completes human actions.
-
-### ARC Prize Paper Track ($450k, Nov 9 deadline, only 29 teams)
-- **Status**: Draft v2 is **complete with empirical data**. **Paper is ready for human review.**
->>>>>>> Stashed changes
 - **Completed**:
   - ✅ 7 citations in Prior Work + explicit **Research Gap** subsection (2.4)
   - ✅ Table 1: Ablation on 1000 tasks with **95% Wilson CIs**
@@ -46,7 +49,6 @@
   - ✅ Section 5.4: Honest alignment gate analysis (precision ~0%)
   - ✅ Figure 1: Compound Loop architecture diagram
   - ✅ SUBMISSION_README.md for reproduction
-<<<<<<< Updated upstream
   - ✅ **Abstract reframed** with AGI thesis positioning + 3.4% solve rate claim
   - ✅ **Future Work** made concrete with 4 measurable experiments
   - ✅ **References fixed**: DOIs added, future dates removed, consistent formatting
@@ -60,32 +62,6 @@
 - **Status**: Baseline DSL solver at 3.0% training / 0% eval. Below ARChitects SOTA.
 - **Ceiling confirmed**: Pure DSL search cannot solve eval tasks.
 - **Decision**: Background research only. Paper track has higher EV.
-=======
-  - ✅ Skill refinement tested: -6% regression with naive lookup table (honest negative result)
-- **Paper claims validated**: 3/3 claims have empirical baselines (two positive, one negative/null)
-- **Next action**: HUMAN REVIEW REQUIRED — draft content quality for November submission
-
-### Sei AI Accelathon — PRUNED (ENDED)
-- **Status**: CLOSED. Deadline was August 24, 2025. DoraHacks page confirms "Submission period ended."
-- **Lesson**: Always verify current dates before research effort. ~2 hours spent on a phantom target.
-- **Assets preserved**: `sei_compound_server.py` prototype may be reusable for future blockchain tooling.
-
->>>>>>> Stashed changes
-
-### ARC-AGI-3 ($850k, Nov 2, 594 teams)
-- **Status**: V-Model NO-GO. Agent cannot win simplest game after exhaustive attempts.
-- **Assets preserved**: `experiential_agent.py`, `systematic_explorer.py` for 2027 or general agent research.
-
-### Sei AI Accelathon — PRUNED (ENDED)
-- **Status**: CLOSED. Deadline was August 24, 2025. DoraHacks page confirms "Submission period ended."
-- **Lesson**: Always verify current dates before research effort. ~2 hours spent on a phantom target.
-
-<<<<<<< Updated upstream
-### New Competition Scan (Apr 22, 2026)
-- **NeurIPS 2026 E&D Track**: Deadline May 6, 2026. Could submit ARC paper here too — accepts benchmark/evaluation papers.
-- **AIMO Progress Prize 3**: Ends April 2026. Public leaderboard at 44/50 (close to $1.5M+ grand prize). Too late to enter meaningfully.
-- **Konwinski Prize**: Ongoing ($800K top prize). Requires resolving GitHub issues autonomously — outside current stack.
-- **No new high-EV targets** found beyond existing ARC Prize tracks.
 
 ---
 
@@ -102,41 +78,8 @@
 | `handoff` | Transfer session state between agents | Parallel agent work on different sections |
 
 **Status**: None installed yet. Recommend `subagent` + `git-checkpoint` first.
-**SurrealDB persistence**: 8 learnings written to `compound_learnings` table in cohezion/main namespace.
+**SurrealDB persistence**: 8+ learnings written to `compound_learnings` table in cohezion/main namespace.
 **Mycelium update**: New entry appended to `arc_interactive_map.jsonl`.
-=======
-### Gemma-4-Good Hackathon ($200k, May 18 deadline, ~109 teams)
-- **Status**: Kernel v5 published + VIDEO_SCRIPT.md + PROJECT_WRITEUP.md drafted. **BLOCKED ON HUMAN ACTIONS.**
-- **Deadline**: 2026-05-18 (~25 days) — **MOST URGENT**
-- **What you must do**:
-  1. Log into Kaggle → register for hackathon
-  2. Record 60-second demo video (script ready)
-  3. Create cover image for media gallery
-  4. Submit before deadline
-- **Decision**: Not experimentable by AI. Cannot proceed without human actions.
-
-### ARC Prize Paper Track ($450k, Nov 9 deadline, only 29 teams)
-- **Status**: Draft v2 is **complete with empirical data**. **Paper is ready for human review.**
-- **Completed**:
-  - ✅ 7 citations in Prior Work
-  - ✅ Table 1: Ablation on 1000 tasks
-  - ✅ Table 2: Strategy selection multiplier (4.2×)
-  - ✅ Section 5.4: Honest alignment gate analysis (precision ~0%)
-  - ✅ Figure 1: Compound Loop architecture diagram
-  - ✅ SUBMISSION_README.md for reproduction
-  - ✅ Skill refinement tested: -6% regression (honest negative result)
-- **Next action**: HUMAN REVIEW REQUIRED — draft content quality for November submission
-- **AI can help**: Use local model (Lemonade) to critique draft, suggest improvements, check for clarity
-
-### ARC-AGI-2 Top Score ($700k, Nov 2, 448 teams)
-- **Status**: Baseline DSL solver at 3.0% training / 0% eval. Below ARChitects SOTA.
-- **Ceiling confirmed**: Pure DSL search cannot solve eval tasks.
-- **Decision**: Background research only. Paper track has higher EV.
-
-### ARC-AGI-3 ($850k, Nov 2, 594 teams)
-- **Status**: V-Model NO-GO. Agent cannot win simplest game after exhaustive attempts.
-- **Assets preserved**: `experiential_agent.py`, `systematic_explorer.py` for 2027 or general agent research.
->>>>>>> Stashed changes
 
 ---
 

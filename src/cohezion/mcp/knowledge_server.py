@@ -45,9 +45,15 @@ class KnowledgeMCP:
         if SKILLS_PATH.exists():
             for skill_file in SKILLS_PATH.glob("*.md"):
                 name = skill_file.stem
-                # Read first 200 chars for summary
-                content = skill_file.read_text()[:200]
-                self._skills_cache[name] = content
+                # Skip YAML frontmatter (added by scripts/migrate_skills_to_frontmatter.py
+                # per Agent Skills spec) before extracting the 200-char summary,
+                # so the cache surfaces the prose body not the metadata block.
+                full = skill_file.read_text()
+                if full.lstrip().startswith("---\n") or full.lstrip().startswith("---\r\n"):
+                    end = full.find("\n---\n", 4)
+                    if end != -1:
+                        full = full[end + len("\n---\n") :].lstrip()
+                self._skills_cache[name] = full[:200]
 
         # Index library
         if LIBRARY_PATH.exists():
