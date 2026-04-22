@@ -57,6 +57,11 @@ SURREAL_PASS = os.environ.get("SURREAL_PASS", "root")
 
 DELEGATE_TIMEOUT_SEC = 15  # wall-clock cap for the narrative call
 HOOK_TOTAL_BUDGET_SEC = 20  # hard overall hook budget
+# Default model pin. The registry declares a 4-lane topology but only the
+# iGPU ROCWMMA lane (Gemma-4-E4B-it-GGUF on Lemonade :13307) is reliably live
+# today — see patterns/registry-vs-live-reconciliation-audit.md and the
+# `audit_liveness()` drift notes. Override with EXPERIENTIAL_LEARNING_MODEL.
+DEFAULT_NARRATIVE_MODEL = os.environ.get("EXPERIENTIAL_LEARNING_MODEL", "Gemma-4-E4B-it-GGUF")
 
 PROMPT_TEMPLATE = """\
 You are the Cohezion Retrospection Engine. Read this commit and produce ONE
@@ -69,7 +74,7 @@ Commit: {subject}
 Files changed:
 {files}
 
-Diff (first 1500 chars):
+Diff (first 800 chars):
 {diff}
 
 Respond with ONLY the one-sentence narrative, no quotes, no preamble."""
@@ -97,7 +102,7 @@ def _head_subject() -> str:
     return _git(["log", "-1", "--format=%s"])
 
 
-def _head_diff_and_files(char_budget: int = 1500) -> tuple[str, list[str]]:
+def _head_diff_and_files(char_budget: int = 800) -> tuple[str, list[str]]:
     parent = _git(["rev-parse", "HEAD~1"])
     if parent:
         diff = _git(["diff", "HEAD~1", "HEAD"])
@@ -112,6 +117,15 @@ def _session_id(head_sha: str) -> str:
     return os.environ.get("COHEZION_SESSION_ID") or f"auto-{head_sha[:12]}"
 
 
+def _python_exec(repo_root: Path) -> str:
+    """Prefer the repo .venv's python so cohezion imports resolve without
+    requiring `uv run` on $PATH. Fall back to sys.executable."""
+    venv_py = repo_root / ".venv" / "bin" / "python3"
+    if venv_py.exists():
+        return str(venv_py)
+    return sys.executable
+
+
 def _delegate_narrative(prompt: str, repo_root: Path) -> dict | None:
     """Call scripts/delegate.py --local-only --json. Returns the envelope dict
     or None if the call fails / times out / returns non-zero."""
@@ -121,10 +135,12 @@ def _delegate_narrative(prompt: str, repo_root: Path) -> dict | None:
     try:
         proc = subprocess.run(  # noqa: S603
             [
-                sys.executable,
+                _python_exec(repo_root),
                 str(delegate),
                 "--json",
                 "--local-only",
+                "--model",
+                DEFAULT_NARRATIVE_MODEL,
                 "--timeout",
                 str(DELEGATE_TIMEOUT_SEC),
                 "--max-tokens",
@@ -139,7 +155,11 @@ def _delegate_narrative(prompt: str, repo_root: Path) -> dict | None:
         )
     except subprocess.TimeoutExpired:
         return None
-    if proc.returncode != 0:
+    # Accept any parseable envelope — delegate.py returns rc=1 when text is
+    # empty or there's a fleet error, but the envelope on stdout is still
+    # structurally valid JSON with error details. The caller (main()) handles
+    # the empty-text case separately; here we only bail on non-JSON stdout.
+    if not proc.stdout:
         return None
     try:
         return json.loads(proc.stdout)
