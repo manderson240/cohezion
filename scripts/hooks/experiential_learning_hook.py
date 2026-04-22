@@ -64,20 +64,25 @@ HOOK_TOTAL_BUDGET_SEC = 20  # hard overall hook budget
 DEFAULT_NARRATIVE_MODEL = os.environ.get("EXPERIENTIAL_LEARNING_MODEL", "Gemma-4-E4B-it-GGUF")
 
 PROMPT_TEMPLATE = """\
-You are the Cohezion Retrospection Engine. Read this commit and produce ONE
-compact prose sentence (max 30 words) describing what was LEARNED or PROVEN —
-not just what was DONE. Focus on the principle, invariant, or pattern this
-commit embodies.
+Summarize this git commit in one sentence (max 30 words). Start your answer
+with "This commit" and describe what was changed and why.
 
-Commit: {subject}
+Subject: {subject}
 
 Files changed:
 {files}
 
-Diff (first 800 chars):
+Diff excerpt (first 400 chars):
 {diff}
 
-Respond with ONLY the one-sentence narrative, no quotes, no preamble."""
+Your one-sentence summary:"""
+# Why this shape: Gemma-4-E4B-it-GGUF reliably completes direct completion
+# prompts ("Your summary:") but probabilistically returns empty on abstract
+# inference prompts ("What principle does this embody?"). See the probe in
+# the #5 commit — calibration signal, not a bug (~/.claude/rules/coding-standards.md
+# L369). Completion-shaped prompt trades philosophical depth for reliability;
+# the summary still captures "what + why," which is all session_end.py needs
+# to feed SkillRefiner.
 
 
 def _git(args: list[str]) -> str:
@@ -102,7 +107,7 @@ def _head_subject() -> str:
     return _git(["log", "-1", "--format=%s"])
 
 
-def _head_diff_and_files(char_budget: int = 800) -> tuple[str, list[str]]:
+def _head_diff_and_files(char_budget: int = 400) -> tuple[str, list[str]]:
     parent = _git(["rev-parse", "HEAD~1"])
     if parent:
         diff = _git(["diff", "HEAD~1", "HEAD"])
@@ -242,6 +247,12 @@ def main() -> int:
     # Model sometimes returns multiple sentences; keep it one line for storage.
     narrative = " ".join(narrative.split())[:500]
 
+    # Token count estimate — 4 chars/token heuristic, same as delegate.py's
+    # _estimate_tokens. Cheap approximation; real token counts would require
+    # tokenizer access. Good enough for per-session aggregation in session_end.py,
+    # which previously used latency_ms as a (worse) proxy.
+    tokens_used = max(1, len(envelope["text"]) // 4)
+
     record = {
         "learning_id": f"NARR-{sha[:12]}",
         "session_id": _session_id(sha),
@@ -252,6 +263,7 @@ def main() -> int:
         "model": envelope.get("model", ""),
         "lane": envelope.get("lane", ""),
         "latency_ms": float(envelope.get("latency_ms") or 0.0),
+        "tokens_used": tokens_used,
         "narrative": narrative,
         "ts": datetime.now(UTC).isoformat(),
     }
@@ -259,7 +271,10 @@ def main() -> int:
         model_tag = envelope.get("model", "?")
         lat = record["latency_ms"]
         lid = record["learning_id"]
-        print(f"[experiential-learning] recorded {lid} ({model_tag}, {lat:.0f}ms)")
+        print(
+            f"[experiential-learning] recorded {lid} "
+            f"({model_tag}, {lat:.0f}ms, ~{tokens_used}tok)"
+        )
     return 0
 
 

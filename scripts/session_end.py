@@ -122,6 +122,11 @@ def fetch_session_signals(session_id: str) -> dict:
     total_gates = len(gates)
     passed_gates = sum(1 for g in gates if g.get("passed") is True)
     narrative_latency_ms_total = sum(float(n.get("latency_ms") or 0.0) for n in narratives)
+    # Prefer the real tokens_used field (added 2026-04-22); fall back to the
+    # latency-as-proxy heuristic for older records that don't have it. A record
+    # without tokens_used contributes 0 to the token total rather than doubling
+    # itself as a latency proxy — under-counting is safer than over-counting.
+    narrative_tokens_total = sum(int(n.get("tokens_used") or 0) for n in narratives)
     drift_count = sum(int(d.get("drift_count") or 0) for d in drifts)
 
     # Anomaly score: drift is the clearest anomaly signal. Normalize by
@@ -135,6 +140,7 @@ def fetch_session_signals(session_id: str) -> dict:
         "pass_rate": passed_gates / total_gates if total_gates else 1.0,
         "narrative_count": len(narratives),
         "narrative_latency_ms_total": narrative_latency_ms_total,
+        "narrative_tokens_total": narrative_tokens_total,
         "drift_count": drift_count,
         "anomaly_score": anomaly_score,
         "_raw_narratives": narratives,
@@ -171,6 +177,12 @@ def session_commits_touching_skills(session_id: str, repo_root: Path) -> list[st
 
 def build_execution_result(signals: dict) -> dict:
     """Shape the aggregate into the dict SkillRefiner._extract_metrics expects."""
+    # Prefer the real token count field; fall back to latency_ms as tokens proxy
+    # only when narrative_tokens_total is 0 AND there are narratives (legacy
+    # records pre-2026-04-22). This lets old sessions still produce a signal.
+    tokens = int(signals.get("narrative_tokens_total") or 0)
+    if tokens == 0 and signals["narrative_count"] > 0:
+        tokens = int(signals["narrative_latency_ms_total"])
     return {
         "success": signals["pass_rate"] >= 0.8 and signals["drift_count"] == 0,
         "duration_seconds": signals["narrative_latency_ms_total"] / 1000.0,
@@ -178,9 +190,7 @@ def build_execution_result(signals: dict) -> dict:
             "anomaly_score": signals["anomaly_score"],
         },
         "token_metrics": {
-            # Narrative latency is not tokens, but it's the only signal we have
-            # from per-commit hooks. Treat it as a proxy.
-            "tokens_used": int(signals["narrative_latency_ms_total"]),
+            "tokens_used": tokens,
             "cache_hits": 0,
         },
     }
@@ -197,10 +207,13 @@ def build_cycle_metrics(signals: dict, skill_name: str):
         anomalies.append(f"{signals['drift_count']} import-drift rows recorded")
     if signals["pass_rate"] < 0.8:
         anomalies.append(f"pass_rate={signals['pass_rate']:.2f} (below 0.8 threshold)")
+    tokens = int(signals.get("narrative_tokens_total") or 0)
+    if tokens == 0 and signals["narrative_count"] > 0:
+        tokens = int(signals["narrative_latency_ms_total"])  # legacy fallback
     return CycleMetrics(
         coherence_start=0.5,
         coherence_end=max(0.0, min(1.0, coh_end)),
-        tokens_used=int(signals["narrative_latency_ms_total"]),
+        tokens_used=tokens,
         skill_name=skill_name,
         phase="reflecting",
         success=signals["pass_rate"] >= 0.8,

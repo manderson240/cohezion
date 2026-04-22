@@ -22,8 +22,8 @@ def test_fetch_session_signals_aggregates_gates_narratives_drifts() -> None:
     """Surreal calls are mocked; verify the aggregate math."""
     gates = [{"passed": True}, {"passed": True}, {"passed": False}]
     narratives = [
-        {"latency_ms": 500.0},
-        {"latency_ms": 750.0},
+        {"latency_ms": 500.0, "tokens_used": 30},
+        {"latency_ms": 750.0, "tokens_used": 45},
     ]
     drifts = [{"drift_count": 2}, {"drift_count": 1}]
 
@@ -40,6 +40,7 @@ def test_fetch_session_signals_aggregates_gates_narratives_drifts() -> None:
     assert signals["pass_rate"] == 2 / 3
     assert signals["narrative_count"] == 2
     assert signals["narrative_latency_ms_total"] == 1250.0
+    assert signals["narrative_tokens_total"] == 75  # 30 + 45 from tokens_used field
     assert signals["drift_count"] == 3
     # anomaly_score = min(1.0, 3 / max(1, 2*2)) = 0.75
     assert signals["anomaly_score"] == 0.75
@@ -59,6 +60,8 @@ def test_build_execution_result_shape_matches_skill_refiner_contract() -> None:
     signals = {
         "pass_rate": 0.9,
         "narrative_latency_ms_total": 2500.0,
+        "narrative_tokens_total": 150,
+        "narrative_count": 2,
         "anomaly_score": 0.1,
         "drift_count": 0,
     }
@@ -66,8 +69,41 @@ def test_build_execution_result_shape_matches_skill_refiner_contract() -> None:
     assert er["success"] is True  # pass_rate >= 0.8 AND drift_count == 0
     assert er["duration_seconds"] == 2.5
     assert er["metrics"]["anomaly_score"] == 0.1
-    assert er["token_metrics"]["tokens_used"] == 2500
+    # Real token count preferred over latency-as-proxy
+    assert er["token_metrics"]["tokens_used"] == 150
     assert er["token_metrics"]["cache_hits"] == 0
+
+
+def test_build_execution_result_falls_back_to_latency_for_legacy_records() -> None:
+    """Records written before tokens_used was added have narrative_tokens_total=0.
+    The builder falls back to latency_ms as a rough proxy so old sessions still
+    produce SOME signal for SkillRefiner."""
+    signals = {
+        "pass_rate": 0.9,
+        "narrative_latency_ms_total": 2500.0,
+        "narrative_tokens_total": 0,  # legacy — field didn't exist at write time
+        "narrative_count": 2,
+        "anomaly_score": 0.1,
+        "drift_count": 0,
+    }
+    er = session_end.build_execution_result(signals)
+    # Fallback: use latency as tokens proxy (the pre-2026-04-22 behavior)
+    assert er["token_metrics"]["tokens_used"] == 2500
+
+
+def test_build_execution_result_zero_tokens_when_no_narratives() -> None:
+    """If there are no narratives at all, tokens_used is 0 — we don't fabricate
+    a fake token count from latency when there's nothing to count."""
+    signals = {
+        "pass_rate": 1.0,
+        "narrative_latency_ms_total": 0.0,
+        "narrative_tokens_total": 0,
+        "narrative_count": 0,
+        "anomaly_score": 0.0,
+        "drift_count": 0,
+    }
+    er = session_end.build_execution_result(signals)
+    assert er["token_metrics"]["tokens_used"] == 0
 
 
 def test_build_execution_result_marks_failure_on_drift() -> None:
@@ -76,6 +112,8 @@ def test_build_execution_result_marks_failure_on_drift() -> None:
     signals = {
         "pass_rate": 0.95,
         "narrative_latency_ms_total": 100.0,
+        "narrative_tokens_total": 5,
+        "narrative_count": 1,
         "anomaly_score": 0.3,
         "drift_count": 1,  # one drift = failure
     }
@@ -87,6 +125,8 @@ def test_build_execution_result_marks_failure_on_low_pass_rate() -> None:
     signals = {
         "pass_rate": 0.5,
         "narrative_latency_ms_total": 100.0,
+        "narrative_tokens_total": 5,
+        "narrative_count": 1,
         "anomaly_score": 0.4,
         "drift_count": 0,
     }
@@ -115,6 +155,7 @@ def test_main_dry_run_exits_0_without_side_effects(capsys, monkeypatch, tmp_path
         "pass_rate": 1.0,
         "narrative_count": 2,
         "narrative_latency_ms_total": 1000.0,
+        "narrative_tokens_total": 100,
         "drift_count": 0,
         "anomaly_score": 0.0,
         "_raw_narratives": [],
@@ -139,6 +180,7 @@ def test_main_returns_1_when_no_session_data(capsys, monkeypatch) -> None:
         "pass_rate": 1.0,
         "narrative_count": 0,
         "narrative_latency_ms_total": 0.0,
+        "narrative_tokens_total": 0,
         "drift_count": 0,
         "anomaly_score": 0.0,
         "_raw_narratives": [],
@@ -157,6 +199,8 @@ def test_build_cycle_metrics_reflects_signals_in_coherence_and_anomalies() -> No
     signals = {
         "pass_rate": 1.0,  # clean session
         "narrative_latency_ms_total": 3000.0,
+        "narrative_tokens_total": 200,
+        "narrative_count": 3,
         "drift_count": 0,
         "anomaly_score": 0.0,
     }
@@ -166,12 +210,15 @@ def test_build_cycle_metrics_reflects_signals_in_coherence_and_anomalies() -> No
     assert metrics.success is True
     assert metrics.coherence_end > metrics.coherence_start  # moved up from 0.5
     assert metrics.anomalies == []
+    assert metrics.tokens_used == 200  # uses real tokens_used, not latency proxy
 
 
 def test_build_cycle_metrics_records_anomalies_on_bad_session() -> None:
     signals = {
         "pass_rate": 0.5,
         "narrative_latency_ms_total": 500.0,
+        "narrative_tokens_total": 20,
+        "narrative_count": 1,
         "drift_count": 3,
         "anomaly_score": 0.75,
     }
