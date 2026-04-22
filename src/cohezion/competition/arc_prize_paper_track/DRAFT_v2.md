@@ -79,6 +79,8 @@ Output: solution grid g or failure signal
 
 ## 4. The Compound Loop Architecture
 
+Figure 1 illustrates the Compound Loop as a directed cycle of four phases: Alignment, Execution, Retrospection, and Refinement. Each phase is gated by transition conditions that ensure the system only proceeds when sufficient evidence exists.
+
 ### 4.1 Alignment Gate
 
 Before any program is applied to a test input, the alignment gate evaluates whether the proposed transformation is coherent with the training examples. Unlike model confidence scores, alignment is computed from structural properties: grid size changes, color remappings, symmetry preservation. If alignment falls below a threshold, the gate blocks execution and triggers strategy switching.
@@ -174,6 +176,8 @@ Finn, C., Abbeel, P., & Levine, S. (2017). Model-agnostic meta-learning for fast
 Flavell, J. H. (1979). Metacognition and cognitive monitoring: A new area of cognitive-developmental inquiry. *American Psychologist*, 34(10), 906.
 
 Schmidhuber, J. (1987). Evolutionary principles in self-referential learning. *Diploma thesis, TU Munich*.
+
+ARC Prize Foundation. (2024). ARC Prize 2024: Results and analysis. arcprize.org.
 
 ---
 
