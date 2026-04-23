@@ -373,9 +373,7 @@ class TestTokenEfficientClient:
                 raise ValueError("Simulated error")
             return ("Result", 100)
 
-        with patch.object(
-            token_client.ollama, "generate", side_effect=failing_generate
-        ):
+        with patch.object(token_client.ollama, "generate", side_effect=failing_generate):
             result = await token_client.batch_generate(items)
 
             # First item should succeed, second should error

@@ -149,9 +149,7 @@ class TieredOrchestrator:
         sub = await target.run(prompt, budget_usd=remaining_budget)
         return sub, sub.cost_usd, sub.ttft_ms
 
-    async def run(
-        self, prompt: str, *, budget_usd: float | None = None
-    ) -> OrchestrationResult:
+    async def run(self, prompt: str, *, budget_usd: float | None = None) -> OrchestrationResult:
         """Execute tier 0, escalate while gates fail, honor budget.
 
         ``budget_usd`` is the caller's (usually the parent orchestrator's)
@@ -201,9 +199,7 @@ class TieredOrchestrator:
                 break
 
             remaining = (
-                (effective_max_cost - accumulated_cost)
-                if effective_max_cost is not None
-                else None
+                (effective_max_cost - accumulated_cost) if effective_max_cost is not None else None
             )
             tier_start = time.perf_counter()
             try:

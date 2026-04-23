@@ -85,8 +85,10 @@ class TestFluxContext:
 
     def test_empty_context(self):
         ctx = FluxContext(
-            blocks=[], total_tokens_estimated=0,
-            query="test", sources_queried=[],
+            blocks=[],
+            total_tokens_estimated=0,
+            query="test",
+            sources_queried=[],
         )
         assert len(ctx.blocks) == 0
 
@@ -102,7 +104,11 @@ class TestFluxProviderABC:
             source = FluxSource.HISTORY
 
             async def get_context(self, query, top_k=5, **kwargs):
-                return [FluxBlock(content=f"result for {query}", source=self.source, relevance_score=1.0)]
+                return [
+                    FluxBlock(
+                        content=f"result for {query}", source=self.source, relevance_score=1.0
+                    )
+                ]
 
         provider = MockProvider()
         results = await provider.get_context("test query")

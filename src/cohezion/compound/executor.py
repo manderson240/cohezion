@@ -255,7 +255,7 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
             import asyncio
 
             try:
-                loop = asyncio.get_running_loop()
+                asyncio.get_running_loop()
                 # Already in async context — can't block
                 return None
             except RuntimeError:

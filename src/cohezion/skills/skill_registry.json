@@ -233,8 +233,9 @@
     "version": "v1.0"
   },
   "COMPOUND_ENGINEERING_PRIME": {
+    "version": "v0.1",
     "concepts": [
-      "Meta\u2011Pattern Library",
+      "Meta‑Pattern Library",
       "Skill Tokens",
       "Automatic Skill Scaffold"
     ],
@@ -243,8 +244,7 @@
       "PHYSICS_PRIME",
       "RETROSPECTIVE_SKILL"
     ],
-    "source": "src/cohezion/skills/COMPOUND_ENGINEERING_PRIME.md",
-    "version": "v0.1"
+    "source": "src/cohezion/skills/compound_engineering.md"
   },
   "COMPOUND_SELF_IMPROVEMENT_PRIME": {
     "concepts": [],
@@ -623,7 +623,7 @@
   "MODEL_ROUTING_PRIME": {
     "concepts": [
       "Ollama Model Catalog",
-      "Memory\u2011aware Scheduling",
+      "Memory‑aware Scheduling",
       "Task Classification",
       "Parallel Execution",
       "Cache & Deduplication",
@@ -1002,18 +1002,16 @@
     "version": "v1.0"
   },
   "SKILL_0_PRIME": {
+    "version": "1.0",
     "concepts": [],
     "see_also": [],
-    "source": "/tmp/pytest-of-mike-anderson/pytest-100/test_factory_generate_top_skil0/skills/SKILL_0_PRIME.md",
-    "status": "archived",
-    "version": "1.0"
+    "source": "/tmp/pytest-of-mike-anderson/pytest-58/test_factory_generate_top_skil0/skills/SKILL_0_PRIME.md"
   },
   "SKILL_1_PRIME": {
+    "version": "1.0",
     "concepts": [],
     "see_also": [],
-    "source": "/tmp/pytest-of-mike-anderson/pytest-100/test_factory_generate_top_skil0/skills/SKILL_1_PRIME.md",
-    "status": "archived",
-    "version": "1.0"
+    "source": "/tmp/pytest-of-mike-anderson/pytest-58/test_factory_generate_top_skil0/skills/SKILL_1_PRIME.md"
   },
   "SMALL_MODEL_SPECIALIST_PRIME": {
     "concepts": [],
@@ -1105,7 +1103,7 @@
       "CPU Utilisation",
       "Memory Pressure",
       "I/O Saturation",
-      "Process\u2011level Metrics",
+      "Process‑level Metrics",
       "Adaptive Scaling",
       "Guardrails",
       "Visualization"

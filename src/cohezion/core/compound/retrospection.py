@@ -451,7 +451,6 @@ class RetrospectionEngine:
 
         # Persist retrospection decision to SurrealDB (non-blocking, closes middle loop)
         try:
-            import json
             import urllib.request
             from base64 import b64encode
 

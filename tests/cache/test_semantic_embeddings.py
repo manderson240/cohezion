@@ -58,7 +58,9 @@ class TestSemanticTextEncoder:
         similarity = encoder.similarity(emb1, emb2)
 
         print(f"Similar texts similarity: {similarity:.3f}")
-        assert similarity > 0.65, f"Similar texts should have similarity >0.65, got {similarity:.3f}"
+        assert similarity > 0.65, (
+            f"Similar texts should have similarity >0.65, got {similarity:.3f}"
+        )
 
     def test_related_texts_moderate_similarity(self):
         """Test that related (but different topic) texts have moderate similarity (0.20-0.60)."""
@@ -73,7 +75,9 @@ class TestSemanticTextEncoder:
 
         print(f"Related topics similarity: {similarity:.3f}")
         # These are related (both programming) but different enough that similarity is lower
-        assert 0.20 < similarity < 0.60, f"Related topics should have similarity 0.20-0.60, got {similarity:.3f}"
+        assert 0.20 < similarity < 0.60, (
+            f"Related topics should have similarity 0.20-0.60, got {similarity:.3f}"
+        )
 
     def test_unrelated_texts_low_similarity(self):
         """Test that unrelated texts have low similarity (<0.50)."""
@@ -87,7 +91,9 @@ class TestSemanticTextEncoder:
         similarity = encoder.similarity(emb1, emb2)
 
         print(f"Unrelated texts similarity: {similarity:.3f}")
-        assert similarity < 0.50, f"Unrelated texts should have similarity <0.50, got {similarity:.3f}"
+        assert similarity < 0.50, (
+            f"Unrelated texts should have similarity <0.50, got {similarity:.3f}"
+        )
 
     def test_identical_texts_maximum_similarity(self):
         """Test that identical texts have similarity ~1.0."""
@@ -99,7 +105,9 @@ class TestSemanticTextEncoder:
         similarity = encoder.similarity(emb1, emb2)
 
         print(f"Identical texts similarity: {similarity:.3f}")
-        assert similarity > 0.99, f"Identical texts should have similarity >0.99, got {similarity:.3f}"
+        assert similarity > 0.99, (
+            f"Identical texts should have similarity >0.99, got {similarity:.3f}"
+        )
 
     def test_paraphrase_matching(self):
         """Test that paraphrases have high similarity (semantic equivalence >0.70)."""
@@ -186,9 +194,7 @@ class TestSemanticTextEncoder:
         embedding = encoder.encode(text)
 
         assert embedding.shape == (256,), "Fallback should still return 256D"
-        assert not np.allclose(embedding, 0.0), (
-            "Fallback should return non-zero embedding"
-        )
+        assert not np.allclose(embedding, 0.0), "Fallback should return non-zero embedding"
 
         # Fallback should still provide some discrimination (n-gram similarity varies)
         text2 = "Completely different text about space travel"
@@ -224,9 +230,7 @@ class TestSemanticCacheDiscrimination:
 
         # Should find a match (L2 semantic hit or at least check)
         # If result is None, check the cache stats
-        print(
-            f"Cache hits L1: {cache.hits_l1}, L2: {cache.hits_l2}, L3: {cache.hits_l3}"
-        )
+        print(f"Cache hits L1: {cache.hits_l1}, L2: {cache.hits_l2}, L3: {cache.hits_l3}")
         print(f"Query result: {result}")
 
     def test_threshold_discrimination(self):

@@ -1,6 +1,5 @@
 """Tests for M24 disconnected modules API integration."""
 
-
 import numpy as np
 
 from cohezion.physics.hamiltonian import HamiltonianDynamics, PotentialType

@@ -22,22 +22,21 @@ def router():
         mock_mem.return_value.available = 100 * (1024**3)
         return DynamicModelRouter()
 
+
 def test_memory_pressure(router):
     """[P0] Should calculate memory pressure correctly."""
     # 100GB available of 128GB = ~22% pressure
     pressure = router.memory_analyzer.analyze_memory_pressure()
     assert 0.2 < pressure < 0.3
 
+
 @pytest.mark.asyncio
 async def test_select_optimal_model_coding(router):
     """[P0] Should prioritize coding models for coding tasks."""
-    request = {
-        "task_type": "coding",
-        "ide_priority": IDEPriority.ZED.value,
-        "urgency": "medium"
-    }
+    request = {"task_type": "coding", "ide_priority": IDEPriority.ZED.value, "urgency": "medium"}
     model = await router.select_optimal_model(request)
     assert "coder" in model.name or "phi" in model.name
+
 
 @pytest.mark.asyncio
 async def test_select_optimal_model_cloud_fallback(router):
@@ -50,11 +49,13 @@ async def test_select_optimal_model_cloud_fallback(router):
     assert model.is_cloud is True
     assert model.name == "gemini-3.0-pro"
 
+
 def test_quantization_factor(router):
     """[P0] Should apply quantization speed boosts."""
     analyzer = router.memory_analyzer
     assert analyzer.get_quantization_factor("Q4_K_M") == 1.35
     assert analyzer.get_quantization_factor("Q8_0") == 1.0
+
 
 def test_detect_model_template(router):
     """[P0] Should detect correct template formats."""

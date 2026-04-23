@@ -150,8 +150,8 @@ async def _dispatch_openai_compatible(
 
     if not stream:
         async with httpx.AsyncClient(
-        timeout=httpx.Timeout(connect=5.0, read=timeout, write=timeout, pool=timeout)
-    ) as client:
+            timeout=httpx.Timeout(connect=5.0, read=timeout, write=timeout, pool=timeout)
+        ) as client:
             resp = await client.post(f"{model.endpoint}/v1/chat/completions", json=payload)
             resp.raise_for_status()
             data = resp.json()
@@ -175,11 +175,12 @@ async def _dispatch_openai_compatible(
     in_tok = 0
     out_tok = 0
 
-    async with httpx.AsyncClient(
-        timeout=httpx.Timeout(connect=5.0, read=timeout, write=timeout, pool=timeout)
-    ) as client, client.stream(
-        "POST", f"{model.endpoint}/v1/chat/completions", json=payload
-    ) as resp:
+    async with (
+        httpx.AsyncClient(
+            timeout=httpx.Timeout(connect=5.0, read=timeout, write=timeout, pool=timeout)
+        ) as client,
+        client.stream("POST", f"{model.endpoint}/v1/chat/completions", json=payload) as resp,
+    ):
         resp.raise_for_status()
         async for line in resp.aiter_lines():
             if not line or not line.startswith("data: "):

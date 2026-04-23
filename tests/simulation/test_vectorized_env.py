@@ -109,7 +109,8 @@ class TestCurriculumScheduler:
 
     def test_warmup_phase_no_change(self):
         config = CurriculumConfig(
-            initial_difficulty=0.1, warmup_episodes=10,
+            initial_difficulty=0.1,
+            warmup_episodes=10,
             schedule_type=ScheduleType.ADAPTIVE,
         )
         scheduler = CurriculumScheduler(config)

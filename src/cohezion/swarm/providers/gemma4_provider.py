@@ -31,7 +31,7 @@ class Gemma4Provider(OllamaProvider):
         base_url: Ollama API URL (default: http://localhost:11434)
         thinking_mode: Enable Gemma 4 reasoning (default: True)
         context_window: Default context window size (default: 256000)
-        timeout: Request timeout in seconds (default: 120)
+        timeout: Request timeout in seconds (default: 300)
     """
 
     def __init__(self, config: dict[str, Any] | None = None):
@@ -48,7 +48,7 @@ class Gemma4Provider(OllamaProvider):
         }
         if config:
             gemma_config.update(config)
-            
+
         super().__init__(gemma_config)
 
         self.thinking_mode = self.config.get("thinking_mode", True)
@@ -72,9 +72,7 @@ class Gemma4Provider(OllamaProvider):
         # Prepare payload for Chat API
         payload = {
             "model": model,
-            "messages": [
-                {"role": "user", "content": prompt}
-            ],
+            "messages": [{"role": "user", "content": prompt}],
             "stream": False,
             "format": kwargs.get("format", ""),
             "options": {
@@ -105,7 +103,7 @@ class Gemma4Provider(OllamaProvider):
                 # Extract message content
                 message = data.get("message", {})
                 response_text = message.get("content", "")
-                
+
                 # Check for thinking field
                 thinking_text = message.get("thinking", "") or data.get("thinking", "")
                 if thinking_text:

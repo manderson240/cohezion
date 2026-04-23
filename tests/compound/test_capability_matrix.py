@@ -220,7 +220,9 @@ class TestWorkflowManager:
             threshold=0.5,
             suggested_action="finetune",
         )
-        with patch("cohezion.compound.workflow_manager.WorkflowManager._run_soft_finetune") as mock_soft:
+        with patch(
+            "cohezion.compound.workflow_manager.WorkflowManager._run_soft_finetune"
+        ) as mock_soft:
             mock_soft.return_value = FinetuneResult(
                 base_model="phi3:mini",
                 target_capability="coding",

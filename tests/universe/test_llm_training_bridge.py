@@ -1079,7 +1079,7 @@ class TestLLMTrainingIntegration:
             reward=0.0,
         )
 
-        default_reward = default_weights.compute_step_reward(step_high_spin)
+        default_weights.compute_step_reward(step_high_spin)
         hiho_reward = high_hiho.compute_step_reward(step_high_spin)
         spin_reward = high_spin.compute_step_reward(step_high_spin)
 
@@ -1097,7 +1097,7 @@ class TestLLMTrainingIntegration:
             reward=0.0,
         )
 
-        default_reward2 = default_weights.compute_step_reward(step_high_hiho)
+        default_weights.compute_step_reward(step_high_hiho)
         hiho_reward2 = high_hiho.compute_step_reward(step_high_hiho)
         spin_reward2 = high_spin.compute_step_reward(step_high_hiho)
 

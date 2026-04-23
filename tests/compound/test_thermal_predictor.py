@@ -177,18 +177,14 @@ class TestPredictThermalSafety:
 
     def test_predict_no_history_fallback(self, analyzer):
         """Test prediction falls back to heuristic when no history."""
-        temp = analyzer.predict_thermal_safety(
-            "analyze", batch_size=32, duration_sec=5.0
-        )
+        temp = analyzer.predict_thermal_safety("analyze", batch_size=32, duration_sec=5.0)
 
         assert isinstance(temp, float)
         assert 50.0 < temp < 100.0  # Reasonable range
 
     def test_predict_unknown_task_type(self, analyzer):
         """Test prediction for unknown task type."""
-        temp = analyzer.predict_thermal_safety(
-            "unknown", batch_size=32, duration_sec=5.0
-        )
+        temp = analyzer.predict_thermal_safety("unknown", batch_size=32, duration_sec=5.0)
 
         assert isinstance(temp, float)
         assert 50.0 < temp < 100.0
@@ -197,9 +193,7 @@ class TestPredictThermalSafety:
         """Test prediction with single historical execution."""
         analyzer.record_execution(sample_metrics)
 
-        temp = analyzer.predict_thermal_safety(
-            "analyze", batch_size=32, duration_sec=5.0
-        )
+        temp = analyzer.predict_thermal_safety("analyze", batch_size=32, duration_sec=5.0)
 
         assert isinstance(temp, float)
         assert 70.0 < temp < 85.0  # Should be close to recorded 75.0
@@ -224,9 +218,7 @@ class TestPredictThermalSafety:
             analyzer.record_execution(metrics)
 
         # Predict for batch size 32
-        temp = analyzer.predict_thermal_safety(
-            "analyze", batch_size=32, duration_sec=5.0
-        )
+        temp = analyzer.predict_thermal_safety("analyze", batch_size=32, duration_sec=5.0)
 
         assert isinstance(temp, float)
         assert 65.0 < temp < 75.0
@@ -366,9 +358,7 @@ class TestGetConfidence:
         analyzer.record_execution(sample_metrics)
         # Note: current implementation doesn't track confidence in predict_thermal_safety
         # This test documents expected behavior
-        temp = analyzer.predict_thermal_safety(
-            "analyze", batch_size=32, duration_sec=5.0
-        )
+        temp = analyzer.predict_thermal_safety("analyze", batch_size=32, duration_sec=5.0)
         assert isinstance(temp, float)
 
 
@@ -472,16 +462,12 @@ class TestEdgeCases:
 
     def test_predict_zero_batch_size(self, analyzer):
         """Test prediction with zero batch size."""
-        temp = analyzer.predict_thermal_safety(
-            "analyze", batch_size=0, duration_sec=1.0
-        )
+        temp = analyzer.predict_thermal_safety("analyze", batch_size=0, duration_sec=1.0)
         assert isinstance(temp, float)
 
     def test_predict_very_long_duration(self, analyzer):
         """Test prediction with very long duration."""
-        temp = analyzer.predict_thermal_safety(
-            "analyze", batch_size=32, duration_sec=3600.0
-        )
+        temp = analyzer.predict_thermal_safety("analyze", batch_size=32, duration_sec=3600.0)
         assert isinstance(temp, float)
         assert temp > 70.0  # Should be significantly hotter
 

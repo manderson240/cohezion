@@ -10,7 +10,7 @@ import pytest
 
 
 try:
-    import torch
+    import torch  # noqa: F401
 
     TORCH_AVAILABLE = True
 except ImportError:
@@ -112,8 +112,12 @@ class TestTemporalVAELoss:
         mask_pad = torch.zeros(B, T, dtype=torch.bool)
         mask_pad[:, 2:] = True  # positions 2-4 are padding
 
-        loss_none = temporal_vae_loss(recon, target, torch.zeros(B, 256), torch.zeros(B, 256), padding_mask=mask_none)
-        loss_pad = temporal_vae_loss(recon, target, torch.zeros(B, 256), torch.zeros(B, 256), padding_mask=mask_pad)
+        loss_none = temporal_vae_loss(
+            recon, target, torch.zeros(B, 256), torch.zeros(B, 256), padding_mask=mask_none
+        )
+        loss_pad = temporal_vae_loss(
+            recon, target, torch.zeros(B, 256), torch.zeros(B, 256), padding_mask=mask_pad
+        )
 
         # With padding masked, loss should be lower
         assert loss_pad["recon"].item() < loss_none["recon"].item()

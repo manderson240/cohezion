@@ -10,7 +10,7 @@ metadata:
   legacy-name: AGENTJET_PRIME
 ---
 
-# SKILL: AGENTJET_PRIME — Cohezion Autonomous Learning Loop (CALL)
+# SKILL: AGENTJET_PRIME - Cohezion Autonomous Learning Loop (CALL)
 
 ## DOMAIN EXPERTISE
 Specialist in closing the autonomous learning loop: Cohezion runtime experiences become training signal, training signal improves local Ollama models, improved models reduce cloud API costs. Covers reward shaping from phi_score, OOM-safe training orchestration on AMD Strix Halo (128 GiB unified memory), GGUF export, and SmartRouter integration.

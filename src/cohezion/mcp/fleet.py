@@ -7,11 +7,10 @@ Methodology: FLUME trajectory tracking & HIHO coherence alignment.
 from __future__ import annotations
 
 import argparse
-import asyncio
 import logging
 import os
 import sys
-from pathlib import Path
+
 
 # Hardware-specific optimizations
 os.environ["TORCH_ROCM_ARCH"] = "gfx1100"  # Radeon 8060S (approximate for RDNA3+)
@@ -47,15 +46,17 @@ def run_server_sync(name: str, transport: str = "stdio", port: int | None = None
 
     if port:
         os.environ["MCP_PORT"] = str(port)
-    
+
     os.environ["MCP_TRANSPORT"] = transport
 
     import importlib
+
     try:
         module = importlib.import_module(module_name)
         if hasattr(module, "main"):
             # If it's the old-style main that might be async, we need to handle it
             import asyncio
+
             if asyncio.iscoroutinefunction(module.main):
                 asyncio.run(module.main())
             else:
@@ -66,14 +67,16 @@ def run_server_sync(name: str, transport: str = "stdio", port: int | None = None
                 module.app.run(transport=transport, host="0.0.0.0", port=port)
             else:
                 module.app.run(transport=transport)
-    except Exception as e:
+    except Exception:
         logger.exception(f"Failed to start {name}")
 
 
 def main():
     parser = argparse.ArgumentParser(description="Cohezion MCP Fleet Manager")
     parser.add_argument("server", choices=list(SERVER_MAP.keys()) + ["all"], help="Server to start")
-    parser.add_argument("--transport", choices=["stdio", "http"], default="stdio", help="Transport protocol")
+    parser.add_argument(
+        "--transport", choices=["stdio", "http"], default="stdio", help="Transport protocol"
+    )
     parser.add_argument("--port", type=int, help="Port for HTTP transport")
 
     args = parser.parse_args()
@@ -81,7 +84,7 @@ def main():
     if args.server == "all":
         print("Error: 'all' mode not yet implemented. Use start-mcp-servers.sh")
         sys.exit(1)
-    
+
     run_server_sync(args.server, args.transport, args.port)
 
 

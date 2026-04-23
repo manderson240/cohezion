@@ -1,6 +1,6 @@
 """Tests for Gemma4Provider — Google Gemma 4 model provider implementation."""
 
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
@@ -34,7 +34,7 @@ class TestGemma4ProviderConfig:
         from cohezion.swarm.providers.gemma4_provider import Gemma4Provider
 
         provider = Gemma4Provider()
-        assert provider.timeout == 120  # Gemma 4 reasoning needs more time
+        assert provider.timeout == 300  # Gemma 4 reasoning needs more time
         assert "localhost:11434" in provider.base_url
         assert provider.thinking_mode is True
 
@@ -66,9 +66,11 @@ class TestGemma4ProviderGenerate:
 
         mock_response = AsyncMock()
         mock_response.status = 200
+        # gemma4_provider reads data["message"]["content"] (Ollama /api/chat
+        # format), not data["response"] (/api/generate format).
         mock_response.json = AsyncMock(
             return_value={
-                "response": "Final answer after thinking.",
+                "message": {"content": "Final answer after thinking."},
                 "eval_count": 50,
                 "prompt_eval_count": 20,
                 "total_duration": 1000000000,
@@ -92,7 +94,7 @@ class TestGemma4ProviderGenerate:
         assert result.response == "Final answer after thinking."
         assert result.provider == "gemma4"
         assert result.model == "gemma4:31b"
-        
+
         # Verify thinking mode was sent in payload
         args, kwargs = mock_session.post.call_args
         payload = kwargs["json"]
@@ -111,7 +113,7 @@ class TestGemma4ProviderGenerate:
         mock_response.status = 200
         mock_response.json = AsyncMock(
             return_value={
-                "response": '{"result": "success"}',
+                "message": {"content": '{"result": "success"}'},
                 "eval_count": 10,
                 "prompt_eval_count": 5,
             }
@@ -131,7 +133,7 @@ class TestGemma4ProviderGenerate:
         )
 
         assert result.response == '{"result": "success"}'
-        
+
         # Verify format was sent in payload
         args, kwargs = mock_session.post.call_args
         payload = kwargs["json"]

@@ -389,7 +389,6 @@ class SymmetryBreaking:
         - Z₂⁴: discrete ±1 values
         - HIHO: all values at 0.5
         """
-        T = self._state.temperature
         sym = self._state.current_symmetry
 
         if sym == SymmetryGroup.VOID:

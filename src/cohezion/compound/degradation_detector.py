@@ -399,7 +399,7 @@ class DegradationDetector:
             )
 
             diagnostician = Diagnostician()
-            corrector = Corrector()
+            Corrector()
             drift_detector = DriftDetector()
 
             for alert in alerts:
@@ -440,7 +440,7 @@ class DegradationDetector:
         try:
             from cohezion.resilience.manager import get_rah_manager
 
-            manager = get_rah_manager()
+            get_rah_manager()
             # If manager is running, it will pick up vitals on its next loop
             # Log alert summary so the manager can correlate
             for alert in alerts:

@@ -102,7 +102,7 @@ class TestLongRunningExecutionEdgeCases:
 
     def test_extended_continuous_execution(self):
         """Simulate extended continuous execution."""
-        router = CostAwareRouter()
+        CostAwareRouter()
         reset_anomaly_detector()
         detector = get_anomaly_detector()
 
@@ -119,7 +119,7 @@ class TestLongRunningExecutionEdgeCases:
         models = [f"model-{i}" for i in range(50)]
 
         for _ in range(1000):
-            scores = ranker.rank_models(available_models=models)
+            ranker.rank_models(available_models=models)
 
         assert True  # If we got here without OOM, we passed
 
