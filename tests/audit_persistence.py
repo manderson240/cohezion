@@ -9,7 +9,9 @@ async def audit():
 
     if hasattr(client._client, "query"):
         # Get count and node types
-        node_counts = await client._client.query("SELECT count(), node_type FROM universe_nodes GROUP BY node_type")
+        node_counts = await client._client.query(
+            "SELECT count(), node_type FROM universe_nodes GROUP BY node_type"
+        )
         print("📊 PERSISTENCE REPORT (SurrealDB)")
         print("====================================")
         for r in node_counts:

@@ -17,6 +17,7 @@ from cohezion.api.services.universe import (
 def universe_service():
     return UniverseStateService(num_evos=2)
 
+
 def test_universe_tick(universe_service):
     """[P0] Should advance universe tick."""
     initial_tick = universe_service.get_state().tick
@@ -25,6 +26,7 @@ def test_universe_tick(universe_service):
     assert state.time > 0
     assert len(state.evo_states) == 2
 
+
 def test_get_report(universe_service):
     """[P0] Should generate synthesis report."""
     report = universe_service.get_report()
@@ -32,12 +34,14 @@ def test_get_report(universe_service):
     assert report.hiho_status.stability in ["stable", "warning", "critical"]
     assert len(report.evo_health) == 2
 
+
 def test_perturb(universe_service):
     """[P0] Should apply perturbation."""
     initial_state = universe_service.get_state()
     # Spike coherence
     new_state = universe_service.perturb("coherence_spike", 0.5)
     assert new_state.coherence >= initial_state.coherence
+
 
 @pytest.mark.asyncio
 async def test_get_universe_service_singleton():

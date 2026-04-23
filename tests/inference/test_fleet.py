@@ -3,14 +3,14 @@
 from __future__ import annotations
 
 import subprocess
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, patch
 
 import httpx
 import pytest
 
 from cohezion.inference import RouteResult, route
 from cohezion.inference.fleet import _classify_task, _inject_symmetry_axis
-from cohezion.inference.registry import FleetRegistry, Lane, Task
+from cohezion.inference.registry import Task
 
 
 def test_classify_task_honors_explicit_hint():
@@ -173,9 +173,7 @@ async def test_extend_claude_rejects_unknown_model_before_local_loop():
 
     route_mock = AsyncMock()
     with patch("cohezion.inference.fleet.route", route_mock):
-        result = await extend_claude(
-            "test", claude_model="this-model-does-not-exist"
-        )
+        result = await extend_claude("test", claude_model="this-model-does-not-exist")
 
     assert route_mock.await_count == 0, (
         "route() must not be called when claude_model is invalid; "
@@ -205,12 +203,8 @@ async def test_route_warns_on_small_max_tokens_for_reasoning_mode(caplog):
         checked_at=time.time(),
         lanes={
             "npu": LaneHealth("npu", "http://localhost:13306", LaneStatus.UP, 10.0),
-            "igpu_rocwmma": LaneHealth(
-                "igpu_rocwmma", "http://localhost:13307", LaneStatus.DOWN
-            ),
-            "igpu_unified": LaneHealth(
-                "igpu_unified", "http://localhost:13308", LaneStatus.DOWN
-            ),
+            "igpu_rocwmma": LaneHealth("igpu_rocwmma", "http://localhost:13307", LaneStatus.DOWN),
+            "igpu_unified": LaneHealth("igpu_unified", "http://localhost:13308", LaneStatus.DOWN),
             "cpu": LaneHealth("cpu", "http://localhost:13309", LaneStatus.DOWN),
             "ollama": LaneHealth("ollama", "http://localhost:11434", LaneStatus.DOWN),
             "claude": LaneHealth("claude", "https://api.anthropic.com", LaneStatus.DOWN),
@@ -227,8 +221,7 @@ async def test_route_warns_on_small_max_tokens_for_reasoning_mode(caplog):
     assert result.error is None
     warnings = [r for r in caplog.records if r.levelno == logging.WARNING]
     assert any(
-        "reasoning-mode" in r.getMessage() and "max_tokens=16" in r.getMessage()
-        for r in warnings
+        "reasoning-mode" in r.getMessage() and "max_tokens=16" in r.getMessage() for r in warnings
     ), f"expected reasoning-mode warning; got {[r.getMessage() for r in warnings]}"
 
 
@@ -245,12 +238,8 @@ async def test_route_does_not_warn_on_ample_max_tokens(caplog):
         checked_at=time.time(),
         lanes={
             "npu": LaneHealth("npu", "http://localhost:13306", LaneStatus.UP, 10.0),
-            "igpu_rocwmma": LaneHealth(
-                "igpu_rocwmma", "http://localhost:13307", LaneStatus.DOWN
-            ),
-            "igpu_unified": LaneHealth(
-                "igpu_unified", "http://localhost:13308", LaneStatus.DOWN
-            ),
+            "igpu_rocwmma": LaneHealth("igpu_rocwmma", "http://localhost:13307", LaneStatus.DOWN),
+            "igpu_unified": LaneHealth("igpu_unified", "http://localhost:13308", LaneStatus.DOWN),
             "cpu": LaneHealth("cpu", "http://localhost:13309", LaneStatus.DOWN),
             "ollama": LaneHealth("ollama", "http://localhost:11434", LaneStatus.DOWN),
             "claude": LaneHealth("claude", "https://api.anthropic.com", LaneStatus.DOWN),
@@ -263,6 +252,6 @@ async def test_route_does_not_warn_on_ample_max_tokens(caplog):
     with patch("cohezion.inference.fleet._dispatch_openai_compatible", dispatch_mock):
         await route("ping", task=Task.ROUTING, max_tokens=256)
 
-    assert not any(
-        "reasoning-mode" in r.getMessage() for r in caplog.records
-    ), "no reasoning-mode warning expected when max_tokens >= 128"
+    assert not any("reasoning-mode" in r.getMessage() for r in caplog.records), (
+        "no reasoning-mode warning expected when max_tokens >= 128"
+    )

@@ -16,7 +16,11 @@ def test_get_anchors():
     anchors = get_residency_anchors()
     assert anchors["cpu"] == "AMD RYZEN AI MAX+ 395 (Strix Halo)"
     assert anchors["ram_gb"] == 128
-    assert "/home/mike-anderson/dev/cohezion" in anchors["project_root"]
+    # Check the anchor resolves to a cohezion checkout without hardcoding a
+    # developer's $HOME path (the pre-commit hook blocks /home/<user>/dev/
+    # patterns because they cause environment-specific CI failures).
+    assert "cohezion" in anchors["project_root"]
+
 
 def test_get_context_block():
     """[P0] Should generate formatted context block."""

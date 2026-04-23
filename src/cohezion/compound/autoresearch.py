@@ -9,7 +9,7 @@ This module provides:
 import json
 import logging
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
@@ -31,7 +31,7 @@ class ExecutionMetrics:
     coherence: float
     success: bool
     skill_used: str | None = None
-    timestamp: str = field(default_factory=lambda: datetime.now(datetime.timezone.utc).isoformat())
+    timestamp: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
     lessons: list[str] = field(default_factory=list)
 
 
@@ -162,7 +162,7 @@ class AutoresearchEngine:
             )
 
         return {
-            "title": f"MCP Optimization Research Plan ({datetime.now(datetime.timezone.utc).strftime('%Y-%m-%d')})",
+            "title": f"MCP Optimization Research Plan ({datetime.now(timezone.utc).strftime('%Y-%m-%d')})",
             "experiments": experiments,
             "estimated_effort": "medium",
             "expected_roi": "12x token efficiency improvement",
@@ -191,7 +191,7 @@ class RetrospectionEngine:
             # Build learning entry
             learning = {
                 "title": f"Session Learning: {execution_result.get('request', 'Unknown')[:50]}",
-                "timestamp": datetime.now(datetime.timezone.utc).isoformat(),
+                "timestamp": datetime.now(timezone.utc).isoformat(),
                 "metrics": {
                     "tokens_used": execution_result.get("tokens_used", 0),
                     "cache_hits": execution_result.get("cache_hits", 0),
@@ -220,7 +220,7 @@ class RetrospectionEngine:
                 fallback_path = (
                     self.vault_path
                     / "logs"
-                    / f"learning_{datetime.now(datetime.timezone.utc).strftime('%Y%m%d_%H%M%S')}.json"
+                    / f"learning_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}.json"
                 )
                 fallback_path.parent.mkdir(parents=True, exist_ok=True)
                 fallback_path.write_text(json.dumps(learning, indent=2))
@@ -326,7 +326,7 @@ class SkillRefiner:
         # Log refinement to vault
         if mcp_client and refinements:
             await mcp_client.vault_write(
-                f"cerebellum/skill-refinements/{skill_name}_{datetime.now(datetime.timezone.utc).strftime('%Y%m%d')}.md",
+                f"cerebellum/skill-refinements/{skill_name}_{datetime.now(timezone.utc).strftime('%Y%m%d')}.md",
                 json.dumps(
                     {
                         "skill": skill_name,

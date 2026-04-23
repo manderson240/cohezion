@@ -87,8 +87,10 @@ class TestToolRegistry:
 
     def test_execute_handler_error(self):
         registry = ToolRegistry()
+
         def bad_handler(a, s):
             raise ValueError("broken")
+
         registry.register(ToolSpec("bad", "bad", {}, bad_handler))
         call = ToolCall(tool_name="bad", arguments={})
         response = registry.execute(call, {})
@@ -265,10 +267,12 @@ class TestTrajectoryRecorder:
 
         env = AgenticEnvironment(simple_scenario)
         env.reset()
-        env.step(ToolCall(
-            tool_name="file_write",
-            arguments={"path": "output.txt", "content": "hello world"},
-        ))
+        env.step(
+            ToolCall(
+                tool_name="file_write",
+                arguments={"path": "output.txt", "content": "hello world"},
+            )
+        )
         recorder.record(env)
 
         assert recorder.trajectory_count == 1
@@ -285,10 +289,12 @@ class TestTrajectoryRecorder:
         # Record successful run
         env = AgenticEnvironment(simple_scenario)
         env.reset()
-        env.step(ToolCall(
-            tool_name="file_write",
-            arguments={"path": "output.txt", "content": "hello world"},
-        ))
+        env.step(
+            ToolCall(
+                tool_name="file_write",
+                arguments={"path": "output.txt", "content": "hello world"},
+            )
+        )
         recorder.record(env)
 
         stats = recorder.get_stats()
@@ -306,10 +312,12 @@ class TestTrajectoryRecorder:
         # Record successful run
         env1 = AgenticEnvironment(simple_scenario)
         env1.reset()
-        env1.step(ToolCall(
-            tool_name="file_write",
-            arguments={"path": "output.txt", "content": "hello world"},
-        ))
+        env1.step(
+            ToolCall(
+                tool_name="file_write",
+                arguments={"path": "output.txt", "content": "hello world"},
+            )
+        )
         recorder.record(env1)
 
         # Record failed run (doesn't write the correct file)

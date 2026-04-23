@@ -80,27 +80,13 @@ class TestAggressiveCostOptimization:
             aggressive_router.select_model(query)
 
         # Record mock executions with reasonable token counts
-        aggressive_router.record_execution(
-            "phi3:mini", actual_tokens=80, duration_ms=50.0
-        )
-        aggressive_router.record_execution(
-            "phi3:mini", actual_tokens=80, duration_ms=50.0
-        )
-        aggressive_router.record_execution(
-            "phi3:mini", actual_tokens=80, duration_ms=50.0
-        )
-        aggressive_router.record_execution(
-            "qwen3-coder:32b", actual_tokens=200, duration_ms=100.0
-        )
-        aggressive_router.record_execution(
-            "qwen3-coder:32b", actual_tokens=200, duration_ms=100.0
-        )
-        aggressive_router.record_execution(
-            "deepseek-r1:8b", actual_tokens=400, duration_ms=300.0
-        )
-        aggressive_router.record_execution(
-            "deepseek-r1:8b", actual_tokens=400, duration_ms=300.0
-        )
+        aggressive_router.record_execution("phi3:mini", actual_tokens=80, duration_ms=50.0)
+        aggressive_router.record_execution("phi3:mini", actual_tokens=80, duration_ms=50.0)
+        aggressive_router.record_execution("phi3:mini", actual_tokens=80, duration_ms=50.0)
+        aggressive_router.record_execution("qwen3-coder:32b", actual_tokens=200, duration_ms=100.0)
+        aggressive_router.record_execution("qwen3-coder:32b", actual_tokens=200, duration_ms=100.0)
+        aggressive_router.record_execution("deepseek-r1:8b", actual_tokens=400, duration_ms=300.0)
+        aggressive_router.record_execution("deepseek-r1:8b", actual_tokens=400, duration_ms=300.0)
 
         stats = aggressive_router.get_statistics()
 
@@ -113,9 +99,7 @@ class TestAggressiveCostOptimization:
         # Record successful phi3 executions
         for _ in range(10):
             aggressive_router.record_execution("phi3:mini", 100, 50.0, success=True)
-            aggressive_router.record_execution(
-                "qwen3-coder:32b", 200, 100.0, success=True
-            )
+            aggressive_router.record_execution("qwen3-coder:32b", 200, 100.0, success=True)
 
         initial_threshold = aggressive_router.cost_threshold
         initial_latency = aggressive_router.latency_threshold
@@ -227,9 +211,7 @@ class TestDynamicThresholdTuning:
 
         # Thresholds should be adjusted (increased due to high phi3 success)
         # With 85% phi3 success, should increase thresholds
-        assert final_cost_threshold >= 0.10, (
-            f"Expected ≥0.10, got {final_cost_threshold}"
-        )
+        assert final_cost_threshold >= 0.10, f"Expected ≥0.10, got {final_cost_threshold}"
         assert final_latency >= 150.0, f"Expected ≥150.0, got {final_latency}"
 
     def test_tuning_decreases_on_low_phi3_success(self):
@@ -243,12 +225,8 @@ class TestDynamicThresholdTuning:
 
         # Record low phi3 success rate (<60%)
         for _ in range(20):
-            router.record_execution(
-                "phi3:mini", 100, 50.0, success=False
-            )  # Low success
-            router.record_execution(
-                "qwen3-coder:32b", 200, 100.0, success=True
-            )  # High success
+            router.record_execution("phi3:mini", 100, 50.0, success=False)  # Low success
+            router.record_execution("qwen3-coder:32b", 200, 100.0, success=True)  # High success
 
         # After tuning, thresholds should tighten (decrease) to use phi3 less
         final_cost_threshold = router.cost_threshold

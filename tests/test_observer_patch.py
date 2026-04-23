@@ -73,7 +73,10 @@ class TestConsistencyResult:
 
     def test_no_overlap_has_zero_fidelity(self):
         result = evo_observer_consistency(
-            "a", SpinorState.up(), "b", SpinorState.down(),
+            "a",
+            SpinorState.up(),
+            "b",
+            SpinorState.down(),
             angular_radius=math.pi / 6,
         )
         assert result.fidelity == 0.0

@@ -88,7 +88,9 @@ class TestBatchPerformanceLogging:
 
     def test_log_batch_performance_mcp_tool_error(self, batch_executor, mock_mcp_client):
         """Test logging when vault is unavailable (MCPToolError)."""
-        mock_mcp_client.vault_log_experiment = Mock(side_effect=MCPToolError("Vault connection failed"))
+        mock_mcp_client.vault_log_experiment = Mock(
+            side_effect=MCPToolError("Vault connection failed")
+        )
 
         result = batch_executor._log_batch_performance(
             batch_size=8,

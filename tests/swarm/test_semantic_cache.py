@@ -149,9 +149,7 @@ class TestSemanticCache:
 
         # Query multiple times
         await semantic_cache.get("prompt", "sys")  # Hit
-        await semantic_cache.get(
-            "other", "sys"
-        )  # Miss (after error, but still increments)
+        await semantic_cache.get("other", "sys")  # Miss (after error, but still increments)
         await semantic_cache.get("prompt", "sys")  # Hit
 
         stats = semantic_cache.get_stats()

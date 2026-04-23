@@ -22,7 +22,7 @@ class TestGapDetection:
         assert isinstance(gaps, list)
 
     def test_gaps_have_suggested_actions(self):
-        from cohezion.compound.capability_matrix import CapabilityGap, CapabilityMatrix
+        from cohezion.compound.capability_matrix import CapabilityMatrix
 
         matrix = CapabilityMatrix()
         gaps = matrix.run_gap_analysis()

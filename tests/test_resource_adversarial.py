@@ -30,7 +30,9 @@ async def test_adversarial_flood():
     # For a pure adversarial logic test, we'll mock the response.
 
     with patch("httpx.AsyncClient.post") as mock_post:
-        mock_post.return_value = MagicMock(status_code=200, json=lambda: {"response": "Mocked stability response"})
+        mock_post.return_value = MagicMock(
+            status_code=200, json=lambda: {"response": "Mocked stability response"}
+        )
 
         time.perf_counter()
         tasks = [agent.process(f"query {i}") for i, agent in enumerate(agents)]

@@ -17,7 +17,9 @@ class TestConciergeRouting:
 
     def test_continue_routes_to_continuation(self):
         agent = ConciergeAgent()
-        briefing = SessionBriefing(continuation_task="Fix genesis bugs", continuation_path="/tmp/cont.md")
+        briefing = SessionBriefing(
+            continuation_task="Fix genesis bugs", continuation_path="/tmp/cont.md"
+        )
         suggestion = agent.route_prompt("continue", briefing)
         assert suggestion.action == "resume_continuation"
         assert suggestion.confidence >= 0.8
@@ -71,9 +73,16 @@ class TestConciergeConfidence:
         agent = ConciergeAgent()
         # Even with perfect history, confidence should cap below 1.0
         for _ in range(20):
-            agent._history.append(RoutingRecord(
-                timestamp=0, user_prompt="test", suggested_action="resume_continuation",
-                suggested_target="", confidence=0.9, accepted=True, session_duration_s=3600,
-            ))
+            agent._history.append(
+                RoutingRecord(
+                    timestamp=0,
+                    user_prompt="test",
+                    suggested_action="resume_continuation",
+                    suggested_target="",
+                    confidence=0.9,
+                    accepted=True,
+                    session_duration_s=3600,
+                )
+            )
         conf = agent._historical_confidence("resume_continuation")
         assert conf <= 0.95

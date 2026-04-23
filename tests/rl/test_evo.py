@@ -33,6 +33,7 @@ class TestEthericVariantOscillator:
         """Import the EVO class, skipping if not yet implemented."""
         try:
             from cohezion.rl.evo import EthericVariantOscillator
+
             return EthericVariantOscillator
         except ImportError:
             pytest.skip("EVO module not yet implemented")
@@ -116,12 +117,14 @@ class TestEthericVariantOscillator:
         """EVO exports as exotic vacuum biography dict."""
         evo = evo_cls(journey_id="bio-001")
         for i in range(5):
-            evo.record_step({
-                "step": i,
-                "doer_state": np.ones(12, dtype=np.float32) * i,
-                "coherence": 0.5,
-                "reward": 0.1 * i,
-            })
+            evo.record_step(
+                {
+                    "step": i,
+                    "doer_state": np.ones(12, dtype=np.float32) * i,
+                    "coherence": 0.5,
+                    "reward": 0.1 * i,
+                }
+            )
         bio = evo.to_exotic_vacuum_biography()
         assert isinstance(bio, dict)
         assert bio["journey_id"] == "bio-001"
@@ -137,12 +140,14 @@ class TestEthericVariantOscillator:
         """EVO biography can be JSON serialized for HuggingFace export."""
         evo = evo_cls(journey_id="json-001")
         for i in range(3):
-            evo.record_step({
-                "step": i,
-                "doer_state": np.ones(12, dtype=np.float32) * 0.5,
-                "coherence": 0.5,
-                "reward": 0.1,
-            })
+            evo.record_step(
+                {
+                    "step": i,
+                    "doer_state": np.ones(12, dtype=np.float32) * 0.5,
+                    "coherence": 0.5,
+                    "reward": 0.1,
+                }
+            )
         bio = evo.to_exotic_vacuum_biography()
         json_str = json.dumps(bio)
         restored = json.loads(json_str)
@@ -156,6 +161,7 @@ class TestEVOTracker:
     def tracker_cls(self):
         try:
             from cohezion.rl.evo import EVOTracker
+
             return EVOTracker
         except ImportError:
             pytest.skip("EVO module not yet implemented")
@@ -164,6 +170,7 @@ class TestEVOTracker:
     def evo_cls(self):
         try:
             from cohezion.rl.evo import EthericVariantOscillator
+
             return EthericVariantOscillator
         except ImportError:
             pytest.skip("EVO module not yet implemented")
@@ -222,12 +229,14 @@ class TestEVOTracker:
         tracker = tracker_cls(storage_dir=temp_dir)
         evo = tracker.create_evo()
         for i in range(10):
-            evo.record_step({
-                "step": i,
-                "doer_state": np.ones(12, dtype=np.float32) * i,
-                "coherence": 0.5 + i * 0.01,
-                "reward": 0.1 * i,
-            })
+            evo.record_step(
+                {
+                    "step": i,
+                    "doer_state": np.ones(12, dtype=np.float32) * i,
+                    "coherence": 0.5 + i * 0.01,
+                    "reward": 0.1 * i,
+                }
+            )
         path = tracker.save_evo(evo)
         assert path.exists()
         loaded = np.load(path, allow_pickle=False)
@@ -240,12 +249,14 @@ class TestEVOTracker:
         tracker = tracker_cls(storage_dir=temp_dir)
         evo = tracker.create_evo()
         for i in range(10):
-            evo.record_step({
-                "step": i,
-                "doer_state": np.ones(12, dtype=np.float32) * i,
-                "coherence": 0.5,
-                "reward": 0.1,
-            })
+            evo.record_step(
+                {
+                    "step": i,
+                    "doer_state": np.ones(12, dtype=np.float32) * i,
+                    "coherence": 0.5,
+                    "reward": 0.1,
+                }
+            )
         tracker.save_evo(evo)
         tracker.unregister(evo.journey_id)
         assert len(evo.trajectory) == 0
@@ -259,6 +270,7 @@ class TestMemoryManagement:
     def tracker_cls(self):
         try:
             from cohezion.rl.evo import EVOTracker
+
             return EVOTracker
         except ImportError:
             pytest.skip("EVO module not yet implemented")
@@ -267,6 +279,7 @@ class TestMemoryManagement:
     def evo_cls(self):
         try:
             from cohezion.rl.evo import EthericVariantOscillator
+
             return EthericVariantOscillator
         except ImportError:
             pytest.skip("EVO module not yet implemented")
@@ -285,12 +298,14 @@ class TestMemoryManagement:
         """
         evo = evo_cls(journey_id="long-001")
         for i in range(1000):
-            evo.record_step({
-                "step": i,
-                "doer_state": np.random.randn(12).astype(np.float32),
-                "coherence": 0.5,
-                "reward": 0.1,
-            })
+            evo.record_step(
+                {
+                    "step": i,
+                    "doer_state": np.random.randn(12).astype(np.float32),
+                    "coherence": 0.5,
+                    "reward": 0.1,
+                }
+            )
         assert len(evo.trajectory) == 1000
         assert evo._trajectory_path is None
 
@@ -300,12 +315,14 @@ class TestMemoryManagement:
         for _evo_i in range(20):
             evo = tracker.create_evo()
             for _step_i in range(100):
-                evo.record_step({
-                    "step": _step_i,
-                    "doer_state": np.random.randn(12).astype(np.float32),
-                    "coherence": 0.5,
-                    "reward": 0.1,
-                })
+                evo.record_step(
+                    {
+                        "step": _step_i,
+                        "doer_state": np.random.randn(12).astype(np.float32),
+                        "coherence": 0.5,
+                        "reward": 0.1,
+                    }
+                )
             tracker.register(evo)
         gc.collect()
         assert len(tracker.active_evos) <= 20
@@ -318,6 +335,7 @@ class TestTRIUNESelfStates:
     def evo_cls(self):
         try:
             from cohezion.rl.evo import EthericVariantOscillator
+
             return EthericVariantOscillator
         except ImportError:
             pytest.skip("EVO not yet implemented")

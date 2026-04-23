@@ -7,7 +7,6 @@ These tests validate production-readiness for the Anthropic Universes portfolio.
 from __future__ import annotations
 
 import numpy as np
-import pytest
 
 
 # --- Phase 1A: ManifoldEnv observation normalization ---

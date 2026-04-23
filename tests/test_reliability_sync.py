@@ -29,7 +29,10 @@ def test_file_lock_concurrency(tmp_path):
     manager = multiprocessing.Manager()
     shared_val = manager.Value("i", 0)
 
-    processes = [multiprocessing.Process(target=_worker_lock_task, args=(lock_file, shared_val)) for _ in range(5)]
+    processes = [
+        multiprocessing.Process(target=_worker_lock_task, args=(lock_file, shared_val))
+        for _ in range(5)
+    ]
 
     for p in processes:
         p.start()

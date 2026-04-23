@@ -247,7 +247,11 @@ class TestSkillScoreComputation:
         )
 
         # Manually compute with selector's weights
-        expected = selector.coherence_weight * 0.5 + selector.efficiency_weight * 0.5 + selector.success_weight * 0.5
+        expected = (
+            selector.coherence_weight * 0.5
+            + selector.efficiency_weight * 0.5
+            + selector.success_weight * 0.5
+        )
 
         # All equal means composite should be 0.5
         assert expected == 0.5
@@ -323,9 +327,7 @@ class TestSkillSelection:
 
     def test_select_skills_vault_error_graceful(self, mock_mcp_client, selector):
         """Test graceful handling of vault errors."""
-        mock_mcp_client.vault_find_relevant_context.side_effect = RuntimeError(
-            "Vault down"
-        )
+        mock_mcp_client.vault_find_relevant_context.side_effect = RuntimeError("Vault down")
 
         result = selector.select_skills(
             "Task",
@@ -360,9 +362,7 @@ class TestSkillRanking:
         assert ranked[2][0] == "skill3"
         assert ranked[2][1] < 0.4
 
-    def test_rank_skills_preserves_order_for_equal_scores(
-        self, mock_mcp_client, selector
-    ):
+    def test_rank_skills_preserves_order_for_equal_scores(self, mock_mcp_client, selector):
         """Test ranking preserves list order for unavailable skills."""
         mock_mcp_client.vault_find_relevant_context.return_value = []
 

@@ -114,7 +114,9 @@ class TestJourneyLogger:
     @pytest.mark.asyncio
     async def test_start_journey(self, journey_logger, mock_surreal_client, mock_vae_encoder):
         """Test starting a journey."""
-        journey_id = await journey_logger.start_journey(journey_type="implementation", context="Building new feature")
+        journey_id = await journey_logger.start_journey(
+            journey_type="implementation", context="Building new feature"
+        )
 
         assert isinstance(journey_id, str)
         assert len(journey_id) > 0
@@ -263,7 +265,9 @@ class TestJourneyLogger:
         assert call_args[0][1]["limit"] == 5
 
     @pytest.mark.asyncio
-    async def test_numpy_array_conversion(self, journey_logger, mock_surreal_client, mock_vae_encoder):
+    async def test_numpy_array_conversion(
+        self, journey_logger, mock_surreal_client, mock_vae_encoder
+    ):
         """Test that numpy arrays are converted to lists for JSON serialization."""
         # VAE returns numpy array
         mock_vae_encoder.encode.return_value = np.array([0.1] * 256)

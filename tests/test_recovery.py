@@ -24,7 +24,7 @@ async def test_mrp_synchronization():
             async def process(self, *args, **kwargs):
                 return "test"
 
-        agent = TestAgent(model_name="test-model", config=config)
+        TestAgent(model_name="test-model", config=config)
 
         # Wait a bit for the async task to trigger and complete step 1
         await asyncio.sleep(0.1)
@@ -49,7 +49,7 @@ async def test_mrp_pulse_loop():
             async def process(self, *args, **kwargs):
                 return "test"
 
-        agent = TestAgent(model_name="test-model", config=config)
+        TestAgent(model_name="test-model", config=config)
 
         # Wait for at least one pulse loop to run
         # sleeper is interval * 60, so 0.006s. 0.2s is plenty.

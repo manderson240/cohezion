@@ -288,9 +288,7 @@ class TestExecutorSkillHealthIntegration:
         assert record.total_invocations == 1
         assert record.successful_invocations == 1
 
-    def test_tracker_records_failure(
-        self, mock_mcp_client: MagicMock, storage_path: Path
-    ) -> None:
+    def test_tracker_records_failure(self, mock_mcp_client: MagicMock, storage_path: Path) -> None:
         """Tracker.record_usage is called even on failed execution."""
         tracker = SkillHealthTracker(storage_path=storage_path)
         executor = CompoundExecutor(mock_mcp_client, skill_health_tracker=tracker)

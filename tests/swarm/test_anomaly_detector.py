@@ -100,9 +100,7 @@ class TestCostSpikeDetection:
 
         # Should detect as negative spike
         assert alert is not None
-        assert (
-            abs(alert.cost_deviation_pct - (-25.0)) < 0.1
-        )  # Allow floating point error
+        assert abs(alert.cost_deviation_pct - (-25.0)) < 0.1  # Allow floating point error
 
     def test_spike_severity_calculation(self, detector):
         """Test severity increases with deviation."""
