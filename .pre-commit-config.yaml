@@ -63,6 +63,7 @@ repos:
         entry: bash -c 'cd src/web/anima_dashboard && npx playwright test'
         language: system
         pass_filenames: false
+        files: ^src/web/anima_dashboard/
         stages: [pre-commit]
 
       # Large artifact gate: files >50MB must be registered in artifact system

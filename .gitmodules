@@ -1,0 +1,43 @@
+# Submodule registrations for historical gitlinks already in the tree.
+#
+# These paths were committed as mode-160000 gitlinks (pointing at specific
+# upstream commits) without a corresponding .gitmodules file, causing
+# `git submodule foreach` to fatal with "No url found for submodule path ...".
+#
+# This file gives each path a URL mapping so submodule tooling stops erroring.
+# The placeholder `https://TODO.example.invalid/...` URLs are intentional:
+# `git submodule foreach` only needs *some* URL to iterate; it does not attempt
+# to clone unless the submodule is explicitly initialized with `git submodule
+# update --init <path>`. The placeholders make any accidental clone fail
+# loudly rather than silently pointing at the wrong repo.
+#
+# TODO(maintainer): replace each `url = https://TODO.example.invalid/...`
+# with the real upstream URL. Suggested starting points (verify before using):
+#   - bluequbit/sdk-examples → https://github.com/BlueQubitDev/sdk-examples.git
+#   - anthropic-delivery                                → private/internal?
+#   - ollama-mcp                                        → disambiguate among
+#       https://github.com/rawveg/ollama-mcp.git,
+#       https://github.com/etnlbck/ollama-mcp.git,
+#       https://github.com/Dxeo/ollama-mcp.git
+#   - research/challenges/anthropic_challenge_original  → likely private
+
+[submodule "anthropic-delivery"]
+	path = anthropic-delivery
+	url = https://TODO.example.invalid/anthropic-delivery.git
+	# Gitlink commit: d4bec0a6e53724513bf3151c4e555a76ab3c5ccf
+
+[submodule "bluequbit/sdk-examples"]
+	path = bluequbit/sdk-examples
+	url = https://TODO.example.invalid/bluequbit-sdk-examples.git
+	# Gitlink commit: 1285e68aeb25aba7e58dd8bcd5edd64dd0c4ac2a
+	# Candidate upstream: https://github.com/BlueQubitDev/sdk-examples.git
+
+[submodule "ollama-mcp"]
+	path = ollama-mcp
+	url = https://TODO.example.invalid/ollama-mcp.git
+	# Gitlink commit: 91030faf1f19c066d9503c5e1d3f10e7a336bb3c
+
+[submodule "research/challenges/anthropic_challenge_original"]
+	path = research/challenges/anthropic_challenge_original
+	url = https://TODO.example.invalid/anthropic-challenge-original.git
+	# Gitlink commit: 5452f74bd977807ac2e74f3d29432b9df6f25197

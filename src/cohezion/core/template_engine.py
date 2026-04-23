@@ -103,13 +103,27 @@ def _parse_see_also(text: str) -> list[str]:
 
 
 def _skill_name_to_class(skill_name: str) -> str:
-    """Convert ``COMPOUND_ENGINEERING_PRIME`` to ``CompoundEngineering``."""
+    """Convert ``COMPOUND_ENGINEERING_PRIME`` to ``CompoundEngineering``.
+
+    Produces a valid Python identifier even if the input contains spaces,
+    punctuation, or non-ASCII characters (e.g. a skill H1 like
+    ``AGENTJET_PRIME - Cohezion Autonomous Learning Loop (CALL)``).
+    Non-identifier characters are collapsed to underscores before word-splitting.
+    """
+    # Drop any trailing descriptive text after the first space (keeps the
+    # leading FOO_BAR_PRIME identifier even when the H1 adds a subtitle).
+    head = skill_name.split(None, 1)[0] if skill_name else ""
     # Remove trailing _PRIME
-    base = re.sub(r"_PRIME$", "", skill_name, flags=re.IGNORECASE)
+    base = re.sub(r"_PRIME$", "", head, flags=re.IGNORECASE)
+    # Normalize any remaining non-identifier characters to underscore
+    base = re.sub(r"[^A-Za-z0-9_]", "_", base)
     # Title-case each word, remove underscores
-    result = "".join(word.capitalize() for word in base.split("_"))
+    result = "".join(word.capitalize() for word in base.split("_") if word)
+    # Guarantee a usable identifier even for edge inputs (empty, all-symbol)
+    if not result:
+        result = "Skill"
     # Ensure the class name doesn't start with a digit
-    if result and result[0].isdigit():
+    if result[0].isdigit():
         result = f"Skill{result}"
     return result
 
