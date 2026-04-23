@@ -19,22 +19,21 @@ import asyncio
 import json
 import logging
 import sys
-from dataclasses import asdict
 from pathlib import Path
 from typing import Any
+
 
 # Add src to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-import numpy as np
 from mcp.server import Server
-from mcp.types import Tool, TextContent
+from mcp.types import TextContent, Tool
 
-from cohezion.compound.request_alignment_analyzer import RequestAlignmentAnalyzer
-from cohezion.compound.journey_tracker import JourneyTracker, TrajectoryPoint
 from cohezion.compound.degradation_detector import DegradationDetector
-from cohezion.swarm.hiho_vector_engine import HihoVectorEngine
+from cohezion.compound.journey_tracker import JourneyTracker
+from cohezion.compound.request_alignment_analyzer import RequestAlignmentAnalyzer
 from cohezion.core.mcp_client import MCPClient, get_mcp_client
+from cohezion.swarm.hiho_vector_engine import HihoVectorEngine
 
 
 logger = logging.getLogger(__name__)
@@ -68,8 +67,7 @@ def get_detector() -> DegradationDetector:
     global _degradation_detector
     if _degradation_detector is None:
         _degradation_detector = DegradationDetector(
-            coherence_threshold=0.50,
-            cache_hit_rate_threshold=0.50
+            coherence_threshold=0.50, cache_hit_rate_threshold=0.50
         )
     return _degradation_detector
 
@@ -89,7 +87,10 @@ async def list_tools() -> list[Tool]:
                 "type": "object",
                 "properties": {
                     "intent": {"type": "string", "description": "User intent description"},
-                    "tool": {"type": "string", "description": "Tool being used (edit, write, bash, etc)"},
+                    "tool": {
+                        "type": "string",
+                        "description": "Tool being used (edit, write, bash, etc)",
+                    },
                     "context": {"type": "string", "description": "Additional context (optional)"},
                 },
                 "required": ["intent", "tool"],
@@ -102,7 +103,10 @@ async def list_tools() -> list[Tool]:
                 "type": "object",
                 "properties": {
                     "task_description": {"type": "string"},
-                    "operation_type": {"type": "string", "enum": ["generate", "analyze", "search", "transform", "persist"]},
+                    "operation_type": {
+                        "type": "string",
+                        "enum": ["generate", "analyze", "search", "transform", "persist"],
+                    },
                     "coherence": {"type": "number", "description": "Coherence score 0.0-1.0"},
                     "efficiency": {"type": "number", "description": "Token efficiency 0.0-1.0"},
                     "success": {"type": "boolean"},
@@ -117,7 +121,11 @@ async def list_tools() -> list[Tool]:
             inputSchema={
                 "type": "object",
                 "properties": {
-                    "window": {"type": "integer", "default": 10, "description": "Number of recent points"},
+                    "window": {
+                        "type": "integer",
+                        "default": 10,
+                        "description": "Number of recent points",
+                    },
                 },
             },
         ),
@@ -237,18 +245,18 @@ async def _check_alignment(arguments: dict[str, Any]) -> list[TextContent]:
     intent = arguments.get("intent", "")
     tool = arguments.get("tool", "")
     context = arguments.get("context", "")
-    
+
     # Initialize analyzer with MCP client for vault queries
     mcp = await get_mcp()
     analyzer = RequestAlignmentAnalyzer(mcp_client=mcp)
-    
+
     # Parse request for structured analysis
     request = analyzer.parse_request(f"{intent} {context}".strip())
-    
+
     # Calculate composite coherence score
     # Weight: intent match (40%), tool appropriateness (30%), contextual continuity (30%)
     intent_score = request.intent_confidence if request.intent else 0.5
-    
+
     # Tool appropriateness scoring
     tool_scores = {
         "edit": ["transform", "generate", "analyze"],
@@ -258,25 +266,24 @@ async def _check_alignment(arguments: dict[str, Any]) -> list[TextContent]:
     }
     appropriate_intents = tool_scores.get(tool.lower(), [])
     tool_fit = 0.8 if request.intent.value.lower() in appropriate_intents else 0.4
-    
+
     # Query vault for similar task patterns (non-blocking)
     vault_score = 0.5
     try:
         vault_result = await asyncio.wait_for(
-            mcp.vault_find_relevant_context(f"{intent} using {tool}"),
-            timeout=2.0
+            mcp.vault_find_relevant_context(f"{intent} using {tool}"), timeout=2.0
         )
         if vault_result:
             vault_score = 0.7  # Prior success boosts confidence
     except Exception:
         pass  # Vault timeout is OK
-    
+
     # Composite coherence
     coherence = (intent_score * 0.4) + (tool_fit * 0.3) + (vault_score * 0.3)
-    
+
     # HIHO stability: optimal at 0.5, acceptable range 0.3-0.7
     hiho_score = _hiho_engine.calculate_hiho_score(coherence)
-    
+
     # Determine issues
     issues = []
     if coherence < 0.3:
@@ -285,7 +292,7 @@ async def _check_alignment(arguments: dict[str, Any]) -> list[TextContent]:
         issues.append("Too constrained - allow for creative exploration")
     if tool_fit < 0.5:
         issues.append(f"Tool '{tool}' may not be optimal for {request.intent.value}")
-    
+
     result = {
         "coherence": round(coherence, 3),
         "hiho_score": round(hiho_score, 3),
@@ -294,36 +301,36 @@ async def _check_alignment(arguments: dict[str, Any]) -> list[TextContent]:
         "intent_confidence": round(intent_score, 3),
         "issues": issues,
     }
-    
+
     return [TextContent(type="text", text=json.dumps(result, indent=2))]
 
 
 async def _track_journey_step(arguments: dict[str, Any]) -> list[TextContent]:
     """Record 12D FLUME trajectory point."""
     tracker = get_tracker()
-    
+
     # Create synthetic execution result for tracking
-    from cohezion.compound.executor import ExecutionResult, ExecutionMetrics
-    
+    from cohezion.compound.executor import ExecutionMetrics, ExecutionResult
+
     metrics = ExecutionMetrics(
         coherence=arguments.get("coherence", 0.5),
         efficiency=arguments.get("efficiency", 0.5),
         duration_seconds=arguments.get("metadata", {}).get("duration_seconds", 0.0),
     )
-    
+
     result = ExecutionResult(
         success=arguments.get("success", True),
         output="",
         metrics=metrics,
     )
-    
+
     # Track the execution
     point = tracker.track_execution(
         execution_result=result,
         task_description=arguments.get("task_description", ""),
         operation_type=arguments.get("operation_type", "transform"),
     )
-    
+
     # Store to vault asynchronously (non-blocking)
     try:
         mcp = await get_mcp()
@@ -336,13 +343,10 @@ async def _track_journey_step(arguments: dict[str, Any]) -> list[TextContent]:
             "task_description": point.task_description,
             "timestamp": point.timestamp,
         }
-        await asyncio.wait_for(
-            mcp.vault_create("journey", vault_entry),
-            timeout=3.0
-        )
+        await asyncio.wait_for(mcp.vault_create("journey", vault_entry), timeout=3.0)
     except Exception as e:
         logger.debug("Vault store failed (non-blocking): %s", e)
-    
+
     result = {
         "phi_score": point.phi_score,
         "dimensions": point.dimensions.tolist(),
@@ -350,7 +354,7 @@ async def _track_journey_step(arguments: dict[str, Any]) -> list[TextContent]:
         "efficiency": point.efficiency,
         "timestamp": point.timestamp,
     }
-    
+
     return [TextContent(type="text", text=json.dumps(result, indent=2))]
 
 
@@ -358,9 +362,9 @@ async def _get_trajectory(arguments: dict[str, Any]) -> list[TextContent]:
     """Retrieve recent trajectory."""
     tracker = get_tracker()
     window = arguments.get("window", 10)
-    
+
     points = tracker._recent_points[-window:] if tracker._recent_points else []
-    
+
     result = {
         "points": [
             {
@@ -373,7 +377,7 @@ async def _get_trajectory(arguments: dict[str, Any]) -> list[TextContent]:
         ],
         "count": len(points),
     }
-    
+
     return [TextContent(type="text", text=json.dumps(result, indent=2))]
 
 
@@ -381,9 +385,9 @@ async def _detect_degradation(arguments: dict[str, Any]) -> list[TextContent]:
     """Check for coherence degradation."""
     detector = get_detector()
     metrics = arguments.get("metrics", {})
-    
+
     alerts = detector.check_degradation(metrics)
-    
+
     result = {
         "alerts": [
             {
@@ -398,7 +402,7 @@ async def _detect_degradation(arguments: dict[str, Any]) -> list[TextContent]:
         "alert_count": len(alerts),
         "has_critical": any(a.severity.value == "CRITICAL" for a in alerts),
     }
-    
+
     return [TextContent(type="text", text=json.dumps(result, indent=2))]
 
 
@@ -406,14 +410,14 @@ async def _calculate_hiho(arguments: dict[str, Any]) -> list[TextContent]:
     """Calculate HIHO stability score."""
     coherence = arguments.get("coherence", 0.5)
     score = _hiho_engine.calculate_hiho_score(coherence)
-    
+
     result = {
         "input_coherence": coherence,
         "hiho_score": score,
         "is_optimal": abs(coherence - 0.5) < 0.1,
         "stability_band": "optimal" if 0.3 <= coherence <= 0.7 else "unstable",
     }
-    
+
     return [TextContent(type="text", text=json.dumps(result, indent=2))]
 
 
@@ -423,6 +427,7 @@ async def _extract_pattern(arguments: dict[str, Any]) -> list[TextContent]:
     embedding = None
     try:
         from cohezion.flume.autoencoder import FlumeEncoder
+
         encoder = FlumeEncoder()
         code = arguments.get("code", "")
         embedding = encoder.encode(code).tolist()
@@ -430,9 +435,10 @@ async def _extract_pattern(arguments: dict[str, Any]) -> list[TextContent]:
         logger.debug("FLUME encoding failed: %s", e)
         # Fallback: use deterministic hash-based encoding
         import hashlib
+
         code_hash = hashlib.sha256(arguments.get("code", "").encode()).hexdigest()
-        embedding = [int(code_hash[i:i+2], 16) / 255.0 for i in range(0, 64, 2)]
-    
+        embedding = [int(code_hash[i : i + 2], 16) / 255.0 for i in range(0, 64, 2)]
+
     result = {
         "name": arguments.get("name"),
         "category": arguments.get("category"),
@@ -441,7 +447,7 @@ async def _extract_pattern(arguments: dict[str, Any]) -> list[TextContent]:
         "has_flume_embedding": embedding is not None,
         "embedding_preview": embedding[:8] if embedding else None,
     }
-    
+
     return [TextContent(type="text", text=json.dumps(result, indent=2))]
 
 
@@ -449,21 +455,20 @@ async def _query_patterns(arguments: dict[str, Any]) -> list[TextContent]:
     """Query vault for patterns."""
     query = arguments.get("query", "")
     limit = arguments.get("limit", 5)
-    
+
     try:
         mcp = await get_mcp()
         patterns = await asyncio.wait_for(
-            mcp.vault_find_relevant_context(query, limit=limit),
-            timeout=3.0
+            mcp.vault_find_relevant_context(query, limit=limit), timeout=3.0
         )
-        
+
         result = {
             "patterns": patterns or [],
             "count": len(patterns) if patterns else 0,
         }
     except Exception as e:
         result = {"patterns": [], "error": str(e)}
-    
+
     return [TextContent(type="text", text=json.dumps(result, indent=2))]
 
 
@@ -471,39 +476,43 @@ async def _refine_skill(arguments: dict[str, Any]) -> list[TextContent]:
     """Append pattern to PRIME skill."""
     skill_name = arguments.get("skill_name", "")
     pattern = arguments.get("pattern", {})
-    
+
     # Find skill file
     skills_dir = Path("src/cohezion/skills")
     skill_file = None
-    
+
     for f in skills_dir.glob("*.md"):
         if skill_name.lower() in f.stem.lower():
             skill_file = f
             break
-    
+
     if not skill_file:
-        return [TextContent(type="text", text=json.dumps({
-            "success": False,
-            "error": f"Skill '{skill_name}' not found in {skills_dir}"
-        }))]
-    
+        return [
+            TextContent(
+                type="text",
+                text=json.dumps(
+                    {"success": False, "error": f"Skill '{skill_name}' not found in {skills_dir}"}
+                ),
+            )
+        ]
+
     # Append refinement
     refinement = f"""
 ## Refinement {asyncio.get_event_loop().time()}
-- Pattern: {pattern.get('name', 'unknown')}
-- Confidence: {pattern.get('confidence', 0.0):.2f}
-- Coherence: {pattern.get('coherence', 0.0):.2f}
+- Pattern: {pattern.get("name", "unknown")}
+- Confidence: {pattern.get("confidence", 0.0):.2f}
+- Coherence: {pattern.get("coherence", 0.0):.2f}
 
 ```
-{pattern.get('code_example', '')}
+{pattern.get("code_example", "")}
 ```
 
 """
-    
+
     try:
         with open(skill_file, "a") as f:
             f.write(refinement)
-        
+
         result = {
             "success": True,
             "skill_file": str(skill_file),
@@ -511,20 +520,16 @@ async def _refine_skill(arguments: dict[str, Any]) -> list[TextContent]:
         }
     except Exception as e:
         result = {"success": False, "error": str(e)}
-    
+
     return [TextContent(type="text", text=json.dumps(result, indent=2))]
 
 
 async def main():
     """Run coherence MCP server."""
     from mcp.server.stdio import stdio_server
-    
+
     async with stdio_server() as (read_stream, write_stream):
-        await app.run(
-            read_stream,
-            write_stream,
-            app.create_initialization_options()
-        )
+        await app.run(read_stream, write_stream, app.create_initialization_options())
 
 
 if __name__ == "__main__":

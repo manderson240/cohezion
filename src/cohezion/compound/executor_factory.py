@@ -12,6 +12,7 @@ from cohezion.compound.executor import CompoundExecutor
 from cohezion.core.mcp_client import MCPClient
 from cohezion.security.guardrail_pipeline import GuardrailPipeline
 
+
 logger = logging.getLogger(__name__)
 
 

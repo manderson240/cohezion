@@ -186,14 +186,13 @@ def create_embedding_provider(
 
     return provider
 
-import asyncio
 
 import httpx
 
 
 class AsyncOllamaEmbeddingProvider:
     """Async-enabled Ollama embedding provider using httpx.
-    
+
     Use this in async contexts to avoid blocking I/O.
     Sync code should continue using OllamaEmbeddingProvider.
     """

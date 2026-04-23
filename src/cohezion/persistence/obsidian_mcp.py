@@ -67,8 +67,9 @@ The manifold restoring force was {(0.5 - coherence):.4f}.
 
         # Parse stdio params from server_url for demonstration
         # stdio://path/to/script -> parameters
-        import sys
         import os
+        import sys
+
         server_params = StdioServerParameters(
             command=sys.executable,
             args=["-m", "cohezion.mcp.servers.vault.server"],  # Example

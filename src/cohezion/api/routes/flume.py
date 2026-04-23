@@ -17,6 +17,7 @@ import torch
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
+
 logger = logging.getLogger(__name__)
 
 flume_router = APIRouter(tags=["flume"])
