@@ -2,8 +2,9 @@
   "workflow_version": "1.2.0",
   "timestamps": {
     "started": "2026-04-22T15:13:31Z",
-    "last_updated": "2026-04-22T15:13:31Z",
-    "completed": "2026-04-22T15:13:31Z"
+    "last_updated": "2026-04-22T17:10:00Z",
+    "completed": "2026-04-22T15:13:31Z",
+    "last_deep_dive": "2026-04-22T17:10:00Z"
   },
   "mode": "initial_scan",
   "scan_level": "quick",
@@ -86,7 +87,24 @@
     "contribution-guide.md",
     "integration-architecture.md",
     "project-parts.json",
-    "index.md"
+    "index.md",
+    "deep-dive-world-model.md"
   ],
-  "resume_instructions": "Workflow complete. Re-run /bmad-document-project to rescan or deep-dive."
+  "deep_dive_targets": [
+    {
+      "target_name": "world_model",
+      "target_path": "src/cohezion/world_model",
+      "target_type": "folder",
+      "files_analyzed": 4,
+      "total_loc": 967,
+      "output_file": "deep-dive-world-model.md",
+      "timestamp": "2026-04-22T17:10:00Z",
+      "drift_flags": [
+        "CLAUDE.md references non-existent bioelectric_model.py, natural_capital.py, evo_model.py",
+        "CLAUDE.md claims 86K params; source says ~2M",
+        "docs/architecture-backend.md:93 repeats the same false claims"
+      ]
+    }
+  ],
+  "resume_instructions": "Workflow complete. Re-run /bmad-document-project to rescan or deep-dive further."
 }
