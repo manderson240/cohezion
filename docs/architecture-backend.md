@@ -90,7 +90,7 @@ CLI entry: `uv run python scripts/drivers/compound_cycle.py` · Or `/compound` A
 | **Cache** | `cache/` | `SemanticCache` (L1 hash + L2 cosine + L3 vault, 95%+ hit rate) |
 | **Persistence** | `persistence/`, `storage/`, `graph/`, `traceability/` | `SessionManager`, `SessionPersistence`, `MetricsCollector`, `DegradationDetector`, `ExecutionTraces`, `SurrealClient`, `PlanGraph` |
 | **Physics** | `physics/` | SU(2) `SpinorState`, Riemannian, Lagrangian, `FiberBundle`, `GaugeTheory`, Fisher metric, cosmogony, `observer_patch` (OPH bridge) |
-| **World model** | `world_model/` | `JEPAWorldModel` (86K), `BioelectricNetwork`, `NaturalCapitalModel`, `EvoModel`, `SymmetryBreaking` |
+| **World model** | `world_model/` | `JEPAWorldModel` (~2M params), `SurpriseExplorer`, `SIGReg`. See `docs/deep-dive-world-model.md`. (`BioelectricNetwork` lives in `physics/`; `SymmetryBreaking` in `physics/cosmogony.py`; `NaturalCapitalModel` and `EvoModel` do not exist in the tree.) |
 | **Environments** | `environments/`, `real_envs/` | `gym.make('Cohezion/ManifoldEnv-v0')`, `SwarmEnv` |
 | **Worldviews** | `worldviews/` | `WorldviewExplorer` (16 traditions × 10 cosmogony steps) |
 | **Ouroboros / Mycelium** | `ouroboros/`, `mycelium/` | `OuroborosBridge`, Mycelium network, Genesis-chain wiring |

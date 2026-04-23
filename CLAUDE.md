@@ -121,10 +121,9 @@ See skill: `cohezion-vault-workflow` for vault API examples (log decisions, expe
 | **Cost Opt** | CostAwareRouter (Lemonade-first, YAML profiles, 45 models), BudgetEnforcer, ModelQualityClassifier | `CostAwareRouter` |
 | **Persistence** | SessionPersistence (vault + JSONL), MetricsCollector, DegradationDetector, ExecutionTraces (Meta-Harness L225) | `SessionManager` |
 | **Physics** | SU(2) Spinors, Riemannian/Lagrangian, FiberBundle, GaugeTheory, Fisher metric | `SpinorState` |
-| **World Model** | JEPA predictor (86K params, causal masking), Cosmogony, SymmetryBreaking | `JEPAWorldModel` |
-| **Bioelectric** | Levin bioelectric network, gap junction percolation, HIHO phase transition | `BioelectricNetwork` |
-| **Natural Capital** | InVEST habitat quality model, HIHO proximity as habitat quality | `NaturalCapitalModel` |
-| **Evo Model** | Agents-as-EVOs physics, evolutionary dynamics on manifold | `EvoModel` |
+| **World Model** | JEPA predictor (~2M params, causal masking), `SurpriseExplorer`, `SIGReg` | `JEPAWorldModel` |
+| **Bioelectric** | Levin bioelectric network, gap junction percolation, HIHO phase transition (lives in `physics/`) | `BioelectricNetwork` |
+| **Cosmogony** | Cosmogonic chain + `SymmetryBreaking` | `physics/cosmogony.py` |
 | **Worldviews** | 16 indigenous traditions x 10 cosmogony steps, Worldview Explorer | `WorldviewExplorer` |
 | **Ouroboros** | Ouroboros bridge + Mycelium network wired into Genesis chain | `OuroborosBridge` |
 | **Environments** | ManifoldEnv (gymnasium, 19D obs, verifiable rewards), SwarmEnv (multi-agent gauge coupling) | `gym.make('Cohezion/ManifoldEnv-v0')` |
@@ -209,10 +208,8 @@ Updated Skill (loop again)
 | `src/cohezion/api/` | FastAPI backend (92 route handlers) | `__init__.py`, `services/genesis.py` |
 | `src/cohezion/flume/` | FLUME VAE (256D latent space) | `flume_vae.py` |
 | `src/cohezion/physics/` | **Genesis Engine**: SU(2) spinors, Riemannian, Lagrangian, fiber bundles, gauge theory, Fisher metric, cosmogony | `spinor.py`, `cosmogony.py` |
-| `src/cohezion/world_model/` | JEPA world model (86K params, causal masking, CPU-trainable) | `jepa_world_model.py` |
-| `src/cohezion/world_model/bioelectric_model.py` | Levin bioelectric network, gap junction percolation | `BioelectricNetwork` |
-| `src/cohezion/world_model/natural_capital.py` | InVEST habitat quality, HIHO proximity mapping | `NaturalCapitalModel` |
-| `src/cohezion/world_model/evo_model.py` | Agents-as-EVOs evolutionary physics | `EvoModel` |
+| `src/cohezion/world_model/` | JEPA world model (~2M params, causal masking, CPU-trainable) + `SurpriseExplorer` + `SIGReg`. See `docs/deep-dive-world-model.md`. | `jepa_world_model.py` |
+| `src/cohezion/physics/bioelectric_model.py` | Levin bioelectric network, gap junction percolation | `BioelectricNetwork` |
 | `src/cohezion/worldviews/` | 16 indigenous traditions x 10 cosmogony steps | `WorldviewExplorer` |
 | `src/cohezion/ouroboros/` | Ouroboros bridge + Mycelium network | `OuroborosBridge` |
 | `src/cohezion/audio/` | PocketTTS narrator, Kyutai Labs integration | `narrator.py` |
