@@ -429,6 +429,7 @@ dev = [
     { name = "pytest" },
     { name = "pytest-asyncio" },
     { name = "pytest-cov" },
+    { name = "pytest-timeout" },
     { name = "ruff" },
 ]
 ml = [
@@ -468,6 +469,7 @@ requires-dist = [
     { name = "pytest", marker = "extra == 'dev'", specifier = ">=8.0.0" },
     { name = "pytest-asyncio", marker = "extra == 'dev'", specifier = ">=0.23.0" },
     { name = "pytest-cov", marker = "extra == 'dev'", specifier = ">=4.1.0" },
+    { name = "pytest-timeout", marker = "extra == 'dev'", specifier = ">=2.3.0" },
     { name = "pytorch-triton-rocm", marker = "platform_machine == 'x86_64' and sys_platform == 'linux' and extra == 'ml'", specifier = ">=3.1.0", index = "https://download.pytorch.org/whl/rocm6.2" },
     { name = "redis", specifier = ">=7.2.1" },
     { name = "requests", specifier = ">=2.31.0" },
@@ -2037,6 +2039,18 @@ wheels = [
 ]
 
 [[package]]
+name = "pytest-timeout"
+version = "2.4.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "pytest" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/ac/82/4c9ecabab13363e72d880f2fb504c5f750433b2b6f16e99f4ec21ada284c/pytest_timeout-2.4.0.tar.gz", hash = "sha256:7e68e90b01f9eff71332b25001f85c75495fc4e3a836701876183c4bcfd0540a", size = 17973, upload-time = "2025-05-05T19:44:34.99Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/fa/b6/3127540ecdf1464a00e5a01ee60a1b09175f6913f0644ac748494d9c4b21/pytest_timeout-2.4.0-py3-none-any.whl", hash = "sha256:c42667e5cdadb151aeb5b26d114aff6bdf5a907f176a007a30b940d3d865b5c2", size = 14382, upload-time = "2025-05-05T19:44:33.502Z" },
+]
+
+[[package]]
 name = "python-dateutil"
 version = "2.9.0.post0"
 source = { registry = "https://pypi.org/simple" }
@@ -2088,7 +2102,7 @@ dependencies = [
     { name = "filelock", marker = "platform_machine == 'x86_64' and sys_platform == 'linux'" },
 ]
 wheels = [
-    { url = "https://download-r2.pytorch.org/whl/pytorch_triton_rocm-3.1.0-cp311-cp311-linux_x86_64.whl", hash = "sha256:4b0a563986aa591ecbbfd69d53f171447f64ba453cecaafd80d853b3f1047eca" },
+    { url = "https://download-r2.pytorch.org/whl/pytorch_triton_rocm-3.1.0-cp311-cp311-linux_x86_64.whl", hash = "sha256:4b0a563986aa591ecbbfd69d53f171447f64ba453cecaafd80d853b3f1047eca", upload-time = "2024-10-17T22:54:41Z" },
 ]
 
 [[package]]
@@ -2577,7 +2591,7 @@ dependencies = [
     { name = "typing-extensions" },
 ]
 wheels = [
-    { url = "https://download-r2.pytorch.org/whl/rocm6.2/torch-2.5.1%2Brocm6.2-cp311-cp311-linux_x86_64.whl", hash = "sha256:9c4c4d985923d0e31aab4108c56a1586ca599ab26abc919833b890f7f40dcc01" },
+    { url = "https://download-r2.pytorch.org/whl/rocm6.2/torch-2.5.1%2Brocm6.2-cp311-cp311-linux_x86_64.whl", hash = "sha256:9c4c4d985923d0e31aab4108c56a1586ca599ab26abc919833b890f7f40dcc01", upload-time = "2024-10-29T23:59:56Z" },
 ]
 
 [[package]]
@@ -2596,7 +2610,7 @@ dependencies = [
     { name = "torch" },
 ]
 wheels = [
-    { url = "https://download-r2.pytorch.org/whl/rocm6.2/torchaudio-2.5.1%2Brocm6.2-cp311-cp311-linux_x86_64.whl", hash = "sha256:334e2c8936533c656095022d89fcb74ac23278ac88e2210b63f49c1810c88e91" },
+    { url = "https://download-r2.pytorch.org/whl/rocm6.2/torchaudio-2.5.1%2Brocm6.2-cp311-cp311-linux_x86_64.whl", hash = "sha256:334e2c8936533c656095022d89fcb74ac23278ac88e2210b63f49c1810c88e91", upload-time = "2024-10-30T00:09:51Z" },
 ]
 
 [[package]]

@@ -33,11 +33,18 @@ jobs:
       # job's purpose is tests + coverage gating only.
 
       - name: Run tests with coverage
+        # --timeout=300 prevents a single hanging test from holding the
+        # runner for the full 6h job-level timeout. --timeout-method=thread
+        # is required because some tests spawn subprocesses (the default
+        # SIGALRM method can't interrupt those). A test exceeding 5 min
+        # triggers a clear pytest-timeout failure naming the offending test.
         run: |
           uv run pytest tests/ \
             --cov=cohezion \
             --cov-report=xml \
             --cov-report=html \
+            --timeout=300 \
+            --timeout-method=thread \
             -v
 
       - name: Upload coverage to Codecov
@@ -90,7 +97,7 @@ jobs:
               MISSING=$((MISSING + 1))
             fi
           done
-          
+
           if [ $MISSING -gt 0 ]; then
             echo "Found $MISSING modules without tests"
             # Don't fail yet, just warn
@@ -123,12 +130,12 @@ jobs:
           for file in $(find src/cohezion -name "*.py" -type f | grep -v __pycache__ | grep -v __init__); do
             module=$(echo $file | sed 's|src/cohezion/||; s|\.py$||')
             test_path=$(echo $file | sed 's|src/cohezion|tests|; s|\.py$|_test.py|')
-            
+
             # Skip if test already exists
             if [ -f "${test_path%.py}.py" ]; then
               continue
             fi
-            
+
             # Generate test scaffold
             echo "Generating tests for $module..."
             uv run python -m cohezion.tools.test_generator \
