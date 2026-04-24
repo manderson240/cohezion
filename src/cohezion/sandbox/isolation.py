@@ -20,6 +20,7 @@ import shutil
 import subprocess
 import time
 import uuid
+from typing import Any
 from collections.abc import Callable
 from dataclasses import dataclass, field
 from enum import StrEnum
@@ -270,7 +271,7 @@ class FilesystemIsolation:
         snapshot_dir = isolation_dir / "btrfs_snapshot"
         snapshot_dir.mkdir(parents=True, exist_ok=True)
 
-        mounts = []
+        mounts: list[Path] = []
 
         # Create BTRFS subvolume if possible
         try:
@@ -310,7 +311,7 @@ class FilesystemIsolation:
         copy_dir = isolation_dir / "copy"
         copy_dir.mkdir(parents=True, exist_ok=True)
 
-        mounts = []
+        mounts: list[Path] = []
 
         # Efficient rsync copy
         if os.path.exists(source_path):
@@ -347,7 +348,7 @@ class FilesystemIsolation:
         Returns:
             List of detected changes
         """
-        changes = []
+        changes: list[dict[str, Any]] = []
 
         if not os.path.exists(isolation_context.root_path):
             return changes
@@ -606,7 +607,7 @@ class CleanupRegistry:
         Returns:
             List of (handler_name, success) tuples
         """
-        results = []
+        results: list[tuple[str, bool]] = []
 
         if isolation_id not in self.handlers:
             return results
