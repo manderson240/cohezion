@@ -24,6 +24,7 @@ Tools:
 from __future__ import annotations
 
 import os
+import shutil
 import subprocess
 from datetime import datetime
 from pathlib import Path
@@ -36,6 +37,10 @@ from mcp import Server
 MCP_PORT = int(os.environ.get("MCP_PORT", "8362"))
 PROJECT_ROOT = Path(os.environ.get("PROJECT_ROOT", "/home/mike-anderson/dev/cohezion"))
 TRACEABILITY_DIR = PROJECT_ROOT / "_bmad" / "_config" / "traceability"
+
+# Resolve external executable paths at module load to avoid S607 partial-path warnings.
+_UV = shutil.which("uv") or "/usr/local/bin/uv"
+_GIT = shutil.which("git") or "/usr/bin/git"
 
 # Create server
 app = Server("traceability")
@@ -56,11 +61,13 @@ def traceability_run_engine(self_trace: bool = False) -> dict[str, Any]:
     Returns:
         Dict with returncode, stdout, stderr, and matrix counts
     """
-    args = ["uv", "run", "python", str(TRACEABILITY_DIR / "traceability_engine.py")]
+    args = [_UV, "run", "python", str(TRACEABILITY_DIR / "traceability_engine.py")]
     if self_trace:
         args.append("--self-trace")
 
-    result = subprocess.run(args, capture_output=True, text=True, cwd=PROJECT_ROOT, timeout=300)
+    result = subprocess.run(  # noqa: S603 - args static, paths internal
+        args, capture_output=True, text=True, cwd=PROJECT_ROOT, timeout=300
+    )
 
     # Parse matrix counts from output
     matrices = {}
@@ -92,8 +99,8 @@ def traceability_run_health() -> dict[str, Any]:
     Returns:
         Dict with health score, category breakdown, and findings
     """
-    result = subprocess.run(
-        ["uv", "run", "python", str(TRACEABILITY_DIR / "repo_health" / "repo_health_engine.py")],
+    result = subprocess.run(  # noqa: S603 - args static, paths internal
+        [_UV, "run", "python", str(TRACEABILITY_DIR / "repo_health" / "repo_health_engine.py")],
         capture_output=True,
         text=True,
         cwd=PROJECT_ROOT,
@@ -121,8 +128,8 @@ def traceability_trigger_party() -> dict[str, Any]:
     Returns:
         Dict with findings count and severity breakdown
     """
-    result = subprocess.run(
-        ["uv", "run", "python", str(TRACEABILITY_DIR / "workflows" / "run_party_review.py")],
+    result = subprocess.run(  # noqa: S603 - args static, paths internal
+        [_UV, "run", "python", str(TRACEABILITY_DIR / "workflows" / "run_party_review.py")],
         capture_output=True,
         text=True,
         cwd=PROJECT_ROOT,
@@ -231,18 +238,18 @@ def traceability_auto_commit(
         Dict with commit hash and status
     """
     # Stage changes
-    subprocess.run(
-        ["git", "add", "_bmad/_config/traceability/"], cwd=PROJECT_ROOT, capture_output=True
+    subprocess.run(  # noqa: S603 - git args static, path constant
+        [_GIT, "add", "_bmad/_config/traceability/"], cwd=PROJECT_ROOT, capture_output=True
     )
 
     # Commit
-    result = subprocess.run(
-        ["git", "commit", "-m", message], capture_output=True, text=True, cwd=PROJECT_ROOT
+    result = subprocess.run(  # noqa: S603 - git args static, message internal
+        [_GIT, "commit", "-m", message], capture_output=True, text=True, cwd=PROJECT_ROOT
     )
 
     # Get commit hash
-    hash_result = subprocess.run(
-        ["git", "rev-parse", "HEAD"], capture_output=True, text=True, cwd=PROJECT_ROOT
+    hash_result = subprocess.run(  # noqa: S603 - git args static
+        [_GIT, "rev-parse", "HEAD"], capture_output=True, text=True, cwd=PROJECT_ROOT
     )
 
     return {
