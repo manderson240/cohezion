@@ -1,3 +1,4 @@
+# ruff: noqa: E501  # long lines: SQL/URLs/docstrings — wrapping reduces readability
 """Vault experience-guidance enrichment helper for CompoundExecutor (Wave 2D extract).
 
 Fetches base guidance from the vault logger, then enriches it with

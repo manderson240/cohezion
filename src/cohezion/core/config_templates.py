@@ -1,3 +1,4 @@
+# ruff: noqa: E501  # long lines: SQL/URLs/docstrings — wrapping reduces readability
 """Config Template Manager for PRIME skill-driven code generation.
 
 Provides a high-level interface over :class:`TemplateEngine` to look up

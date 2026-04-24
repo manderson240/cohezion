@@ -1,3 +1,4 @@
+# ruff: noqa: E501  # long lines: SQL/URLs/docstrings — wrapping reduces readability
 """A2A Protocol Endpoints (Agent-to-Agent v1.0).
 
 Implements Google's A2A protocol for multi-agent collaboration.

@@ -1,3 +1,4 @@
+# ruff: noqa: E501  # long lines: SQL/URLs/docstrings — wrapping reduces readability
 """Compound cycle persistence -- SurrealDB with JSONL fallback."""
 
 from __future__ import annotations

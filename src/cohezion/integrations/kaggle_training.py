@@ -1,3 +1,4 @@
+# ruff: noqa: E501  # long lines: SQL/URLs/docstrings — wrapping reduces readability
 import json
 import logging
 from pathlib import Path
@@ -17,7 +18,11 @@ class KaggleTrainingManager:
         pass
 
     def generate_lora_config(
-        self, r: int = 8, alpha: int = 16, dropout: float = 0.05, target_modules: list[str] | None = None
+        self,
+        r: int = 8,
+        alpha: int = 16,
+        dropout: float = 0.05,
+        target_modules: list[str] | None = None,
     ) -> dict[str, Any]:
         """
         Generate LoRA configuration for PEFT.

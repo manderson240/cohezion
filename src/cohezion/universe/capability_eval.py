@@ -1,3 +1,4 @@
+# ruff: noqa: E501  # long lines: SQL/URLs/docstrings — wrapping reduces readability
 """Capability Evaluation Harness for Agentic AI Systems.
 
 Provides rigorous, reproducible evaluation of agent capabilities across
@@ -395,7 +396,9 @@ class EvalScorer:
         if total_weight == 0:
             return 0.0, False
 
-        weighted_sum = sum(cr.score * c.weight for cr, c in zip(criterion_results, rubric.criteria, strict=False))
+        weighted_sum = sum(
+            cr.score * c.weight for cr, c in zip(criterion_results, rubric.criteria, strict=False)
+        )
         composite = weighted_sum / total_weight
         passed = composite >= rubric.pass_threshold
 

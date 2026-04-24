@@ -1,3 +1,4 @@
+# ruff: noqa: E501  # long lines: SQL/URLs/docstrings — wrapping reduces readability
 """Model Quality Classifier for Phase 5A.7 - Proactive quality prediction.
 
 Predicts when a model will fail by analyzing execution patterns and forecasting

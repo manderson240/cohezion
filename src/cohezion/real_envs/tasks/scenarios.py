@@ -1,3 +1,4 @@
+# ruff: noqa: E501  # long lines: SQL/URLs/docstrings — wrapping reduces readability
 """Task scenario registry for real environment evaluations."""
 
 from __future__ import annotations

@@ -1,3 +1,4 @@
+# ruff: noqa: E501  # long lines: SQL/URLs/docstrings — wrapping reduces readability
 """Metrics analytics and trend tracking for observability dashboard.
 
 Provides:

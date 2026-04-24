@@ -1,4 +1,4 @@
-# ruff: noqa: RUF012  # class attrs treated as immutable config; never mutated per-instance
+# ruff: noqa: E501, RUF012  # class attrs treated as immutable config; never mutated per-instance
 """
 Cohezion Branding API - The Single Source of Truth for the Nexus Identity.
 Implements the "Organic Modularity" aesthetic.

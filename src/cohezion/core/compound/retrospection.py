@@ -1,4 +1,4 @@
-# ruff: noqa: S110  # best-effort: ignored exceptions are intentional in init/cleanup paths
+# ruff: noqa: E501, S110  # best-effort: ignored exceptions are intentional in init/cleanup paths
 """Retrospection engine for compound engineering pattern analysis."""
 
 from __future__ import annotations

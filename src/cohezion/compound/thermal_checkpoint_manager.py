@@ -1,3 +1,4 @@
+# ruff: noqa: E501  # long lines: SQL/URLs/docstrings — wrapping reduces readability
 """Thermal checkpoint manager for safe 8-hour continuous execution.
 
 Provides graceful thermal checkpoint/resume functionality to protect AMD Ryzen AI MAX+ 395

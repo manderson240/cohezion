@@ -1,3 +1,4 @@
+# ruff: noqa: E501  # long lines: SQL/URLs/docstrings — wrapping reduces readability
 """Overload protection coordinator with graduated response.
 
 Central coordination for all overload protection systems with tiered response

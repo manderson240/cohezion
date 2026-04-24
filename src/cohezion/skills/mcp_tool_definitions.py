@@ -1,3 +1,4 @@
+# ruff: noqa: E501  # long lines: SQL/URLs/docstrings — wrapping reduces readability
 """Static MCP tool descriptors exposed by the Cohezion bridge.
 
 ``BASE_TOOLS`` is the canonical JSON-schema list returned by ``tools/list``

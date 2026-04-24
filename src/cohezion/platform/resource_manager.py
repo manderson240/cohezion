@@ -137,7 +137,14 @@ class ResourceClient:
                 models = data.get("models", [])
                 state.loaded_models = [m.get("name", "") for m in models]
                 state.ollama_used_gb = sum(m.get("size", 0) / (1024**3) for m in models)
-        except (TimeoutError, aiohttp.ClientError, OSError, ConnectionError, ValueError, KeyError) as exc:
+        except (
+            TimeoutError,
+            aiohttp.ClientError,
+            OSError,
+            ConnectionError,
+            ValueError,
+            KeyError,
+        ) as exc:
             logger.debug("Could not reach Ollama: %s", exc)
         return state
 
@@ -275,7 +282,14 @@ class ResourceDaemon:
                     state.training_reserved_gb = sum(
                         lk.reserved_gb for lk in self._locks.values() if not lk.is_expired()
                     )
-        except (TimeoutError, aiohttp.ClientError, OSError, ConnectionError, ValueError, KeyError) as exc:
+        except (
+            TimeoutError,
+            aiohttp.ClientError,
+            OSError,
+            ConnectionError,
+            ValueError,
+            KeyError,
+        ) as exc:
             logger.debug("Ollama poll failed: %s", exc)
         return state
 

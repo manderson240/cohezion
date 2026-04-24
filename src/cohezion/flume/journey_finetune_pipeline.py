@@ -1,3 +1,4 @@
+# ruff: noqa: E501  # long lines: SQL/URLs/docstrings — wrapping reduces readability
 """Journey-to-Finetuning Pipeline: Convert agent experiences to Ollama training data.
 
 This pipeline:

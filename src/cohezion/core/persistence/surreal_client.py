@@ -1,3 +1,4 @@
+# ruff: noqa: E501  # long lines: SQL/URLs/docstrings — wrapping reduces readability
 """
 SurrealDB Client - Multi-model database for the Universe Simulation.
 
@@ -298,7 +299,15 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
                 f"✅ REAL CLIENT: Connected to SurrealDB at {self.url} ({self.namespace}/{self.database})"
             )
             return True
-        except (TimeoutError, ConnectionError, OSError, httpx.HTTPError, httpx.TimeoutException, RuntimeError, ValueError) as e:
+        except (
+            TimeoutError,
+            ConnectionError,
+            OSError,
+            httpx.HTTPError,
+            httpx.TimeoutException,
+            RuntimeError,
+            ValueError,
+        ) as e:
             breaker.record_failure()
             logger.error(
                 "Failed to connect to SurrealDB: %s. Falling back to InMemoryStore.",
@@ -333,7 +342,14 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
             await self._client.query(self.SCHEMA)
             logger.info("Schema created successfully")
             return True
-        except (TimeoutError, ConnectionError, OSError, httpx.HTTPError, RuntimeError, ValueError) as e:
+        except (
+            TimeoutError,
+            ConnectionError,
+            OSError,
+            httpx.HTTPError,
+            RuntimeError,
+            ValueError,
+        ) as e:
             logger.error("Failed to create schema: %s", e, exc_info=True)
             return False
 
@@ -358,7 +374,15 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
             logger.debug(f"Stored node {node.id}")
             return node.id
 
-        except (TimeoutError, ConnectionError, OSError, httpx.HTTPError, RuntimeError, ValueError, KeyError) as e:
+        except (
+            TimeoutError,
+            ConnectionError,
+            OSError,
+            httpx.HTTPError,
+            RuntimeError,
+            ValueError,
+            KeyError,
+        ) as e:
             logger.error("Failed to store node: %s", e, exc_info=True)
             raise
 
@@ -375,7 +399,15 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
                 return [{"id": f"{table}:{record_id}", "data": data}]  # Simulate SurrealDB response
             else:
                 return await self._client.create(table, data)
-        except (TimeoutError, ConnectionError, OSError, httpx.HTTPError, RuntimeError, ValueError, KeyError) as e:
+        except (
+            TimeoutError,
+            ConnectionError,
+            OSError,
+            httpx.HTTPError,
+            RuntimeError,
+            ValueError,
+            KeyError,
+        ) as e:
             logger.error("Create failed in %s: %s", table, e, exc_info=True)
             raise
 
@@ -501,7 +533,15 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
             breaker.record_success()
             logger.info(f"SurrealDB Response: {res}")
             return res
-        except (TimeoutError, ConnectionError, OSError, httpx.HTTPError, RuntimeError, ValueError, KeyError) as e:
+        except (
+            TimeoutError,
+            ConnectionError,
+            OSError,
+            httpx.HTTPError,
+            RuntimeError,
+            ValueError,
+            KeyError,
+        ) as e:
             breaker.record_failure()
             logger.error("Query failed: %s", e, exc_info=True)
             raise
@@ -523,7 +563,16 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
 
             return self._dict_to_node(data)
 
-        except (TimeoutError, ConnectionError, OSError, httpx.HTTPError, RuntimeError, ValueError, KeyError, TypeError) as e:
+        except (
+            TimeoutError,
+            ConnectionError,
+            OSError,
+            httpx.HTTPError,
+            RuntimeError,
+            ValueError,
+            KeyError,
+            TypeError,
+        ) as e:
             logger.error("Failed to get node: %s", e, exc_info=True)
             return None
 
@@ -560,7 +609,16 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
 
             return [self._dict_to_node(r) for r in results]
 
-        except (TimeoutError, ConnectionError, OSError, httpx.HTTPError, RuntimeError, ValueError, KeyError, TypeError) as e:
+        except (
+            TimeoutError,
+            ConnectionError,
+            OSError,
+            httpx.HTTPError,
+            RuntimeError,
+            ValueError,
+            KeyError,
+            TypeError,
+        ) as e:
             logger.error("Failed to query similar nodes: %s", e, exc_info=True)
             return []
 
@@ -582,7 +640,16 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
 
             return [self._dict_to_node(r) for r in results]
 
-        except (TimeoutError, ConnectionError, OSError, httpx.HTTPError, RuntimeError, ValueError, KeyError, TypeError) as e:
+        except (
+            TimeoutError,
+            ConnectionError,
+            OSError,
+            httpx.HTTPError,
+            RuntimeError,
+            ValueError,
+            KeyError,
+            TypeError,
+        ) as e:
             logger.error("Failed to get all nodes: %s", e, exc_info=True)
             return []
 
@@ -647,7 +714,16 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
                     return str(result[0]["result"][0].get("id", ""))
                 return None
 
-        except (TimeoutError, ConnectionError, OSError, httpx.HTTPError, RuntimeError, ValueError, KeyError, TypeError) as e:
+        except (
+            TimeoutError,
+            ConnectionError,
+            OSError,
+            httpx.HTTPError,
+            RuntimeError,
+            ValueError,
+            KeyError,
+            TypeError,
+        ) as e:
             logger.error("Failed to create relationship: %s", e, exc_info=True)
             return None
 
@@ -687,7 +763,16 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
                     return result[0]["result"]
                 return []
 
-        except (TimeoutError, ConnectionError, OSError, httpx.HTTPError, RuntimeError, ValueError, KeyError, TypeError) as e:
+        except (
+            TimeoutError,
+            ConnectionError,
+            OSError,
+            httpx.HTTPError,
+            RuntimeError,
+            ValueError,
+            KeyError,
+            TypeError,
+        ) as e:
             logger.error("Failed to get relationships: %s", e, exc_info=True)
             return []
 
@@ -738,7 +823,16 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
                     return result[0]["result"]
                 return []
 
-        except (TimeoutError, ConnectionError, OSError, httpx.HTTPError, RuntimeError, ValueError, KeyError, TypeError) as e:
+        except (
+            TimeoutError,
+            ConnectionError,
+            OSError,
+            httpx.HTTPError,
+            RuntimeError,
+            ValueError,
+            KeyError,
+            TypeError,
+        ) as e:
             logger.error("Failed to find bridges: %s", e, exc_info=True)
             return []
 

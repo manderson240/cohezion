@@ -1,4 +1,4 @@
-# ruff: noqa: S311  # random used for simulation/jitter, not cryptography
+# ruff: noqa: E501, S311  # random used for simulation/jitter, not cryptography
 """
 LabAgent - Orchestrator of the Autonomous AI Lab.
 

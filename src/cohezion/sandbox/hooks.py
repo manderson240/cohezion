@@ -1,3 +1,4 @@
+# ruff: noqa: E501  # long lines: SQL/URLs/docstrings — wrapping reduces readability
 """HookIntegration - Wire Phase 2.1 security hooks into sandbox execution pipeline.
 
 This module provides hook discovery, registration, and execution for sandbox

@@ -1,3 +1,4 @@
+# ruff: noqa: E501  # long lines: SQL/URLs/docstrings — wrapping reduces readability
 """Shared helpers for the api package — VAE / RL / coherence singletons.
 
 These were originally module-level in ``cohezion/api/__init__.py``. They are

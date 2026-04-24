@@ -1,4 +1,4 @@
-# ruff: noqa: RUF003  # math/physics symbols intentional
+# ruff: noqa: E501, RUF003  # math/physics symbols intentional
 """Per-model context profiles and OOM-safe Ollama lifecycle management."""
 
 from __future__ import annotations

@@ -1,3 +1,4 @@
+# ruff: noqa: E501  # long lines: SQL/URLs/docstrings — wrapping reduces readability
 """Simple REINFORCE trainer for FLUME navigation policy.
 
 Trains a small policy network to navigate the FLUME latent space
