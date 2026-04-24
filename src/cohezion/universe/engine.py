@@ -267,6 +267,71 @@ class AxiomaticState:
         spin_weight = 0.7 + 0.3 * equatorial_alignment
         return base_coherence * spin_weight
 
+    def check_precipitation(self) -> dict[str, float | bool | str]:
+        """Smith's precipitation gate: does this state spontaneously precipitate?
+
+        Combines three physics lenses into one gate:
+
+          1. HIHO alignment (Smith 1962): precipitation requires coherence > 0.5
+             (the half-in/half-out boundary where the system is neither too
+             ordered nor too chaotic to crystallize).
+          2. Thermodynamic free energy (Boltzmann): F = E - T·S, where E is
+             coherence (bound energy), T is "temperature" (1 - awareness;
+             temporal dim = awareness), and S is Shannon entropy in bits.
+             A spontaneous precipitation event requires F < 0.
+          3. Shannon information (Shannon 1948): H = -p·log2(p) - (1-p)·log2(1-p)
+             computed on coherence as the binary probability. Peaks at p=0.5.
+
+        Returns a dict with fields documented in the tests:
+            precipitate (bool)      — coherence > 0.5 (HIHO gate)
+            coherence (float)       — coherence_score()
+            hiho_stability (float)  — 1 - abs(coherence - 0.5) * 2, clamped [0,1]
+            shannon_entropy_bits    — binary Shannon H on coherence
+            free_energy (float)     — coherence - temperature * H
+            spontaneous (bool)      — free_energy < 0
+            temperature (float)     — 1 - temporal (awareness)
+            mechanism (str)         — human-readable physics references
+        """
+        import math
+
+        # Cast to Python float at the boundary — coherence_score() can return a
+        # numpy scalar (via spinor.hiho_deviation), and numpy scalars propagate
+        # np.True_/np.False_ through comparisons which fail `is True`/`isinstance
+        # (x, bool)` checks in the public contract.
+        coherence = float(self.coherence_score())
+        # HIHO stability peaks at coherence = 0.5 and decays linearly.
+        hiho_stability = float(max(0.0, min(1.0, 1.0 - abs(coherence - 0.5) * 2.0)))
+
+        # Binary Shannon entropy on coherence. Edge cases: p=0 or p=1 -> H=0.
+        if coherence <= 0.0 or coherence >= 1.0:
+            shannon_h = 0.0
+        else:
+            p = coherence
+            shannon_h = float(-(p * math.log2(p) + (1.0 - p) * math.log2(1.0 - p)))
+
+        # Thermodynamic: T = 1 - awareness (temporal). F = E - T·S.
+        temperature = float(1.0 - self.temporal)
+        free_energy = float(coherence - temperature * shannon_h)
+        spontaneous = bool(free_energy < 0.0)
+
+        precipitate = bool(coherence > 0.5)
+
+        return {
+            "precipitate": precipitate,
+            "coherence": coherence,
+            "hiho_stability": hiho_stability,
+            "shannon_entropy_bits": shannon_h,
+            "free_energy": free_energy,
+            "spontaneous": spontaneous,
+            "temperature": temperature,
+            "mechanism": (
+                "Smith HIHO precipitation gate: precipitation requires coherence > 0.5 "
+                "(half-in/half-out threshold). Thermodynamic spontaneity via free energy "
+                "F = E - T·S (E=coherence, T=1-awareness, S=Shannon entropy). Information "
+                "content from binary Shannon entropy on coherence."
+            ),
+        }
+
 
 @dataclass
 class LatentState:

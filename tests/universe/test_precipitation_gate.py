@@ -17,15 +17,6 @@ import pytest
 from cohezion.universe.engine import AxiomaticState
 
 
-@pytest.mark.skip(
-    reason=(
-        "All 12 tests in this class have been failing on main for 5+ days (unrelated "
-        "to PR #75 — no imports of this project's new PrecipitationEvent module). "
-        "Class represents an older, separate notion of 'precipitation gate' (Smith-style "
-        "thermodynamic activation) that appears not to match the current implementation. "
-        "Follow-up: triage whether to reconcile with src/cohezion/precipitation/ or delete."
-    )
-)
 class TestPrecipitationGate:
     """Test suite for Smith's precipitation gate mechanism."""
 

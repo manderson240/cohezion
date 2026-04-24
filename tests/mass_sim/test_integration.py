@@ -6,13 +6,6 @@ from cohezion.mass_sim.config import ScaleTier, SimulationConfig
 from cohezion.mass_sim.orchestrator import MassSimOrchestrator
 
 
-@pytest.mark.skip(
-    reason=(
-        "Flaky on CI since before PR #75 — passes locally but fails in GitHub Actions. "
-        "Follow-up: investigate timing or external-resource dependency. See tracking "
-        "comment in PR #75 body."
-    )
-)
 @pytest.mark.asyncio
 @pytest.mark.integration
 async def test_demo_scale_integration(tmp_path: Path):

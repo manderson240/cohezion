@@ -69,13 +69,26 @@ class TestSandboxManagerStats:
         assert manager.budget_remaining_mb == SYSTEM_MEMORY_BUDGET_MB
 
 
-@pytest.mark.skip(
-    reason=(
-        "Hangs locally (20s+) and in CI. Pre-existing before PR #75 — no imports of this "
-        "PR's new modules. Likely asyncio task leak in the sandbox backend mock. "
-        "Follow-up: diagnose alongside test_adversarial_flood task-leak pattern."
-    )
-)
+@pytest.fixture
+def monitor_no_heartbeat(monkeypatch):
+    """Prevent the ResourceMonitor heartbeat from being (re)started during sandbox tests.
+
+    Previously these tests hung for 20s+: SandboxManager._register_with_monitor()
+    calls get_resource_monitor() which starts a background heartbeat loop. Inside
+    the anyio test loop, the heartbeat's emergency_shutdown path and its real
+    psutil+curl calls never finished cleanly, so teardown waited forever cancelling
+    live tasks. Per MISSION_JOURNAL.md (L91), the fix is to neutralize register/
+    deregister so sandbox tests don't poke the monitor at all — which keeps the
+    scope of TestSandboxManagerExecution on the sandbox manager itself.
+    """
+    from cohezion.universe.sandbox_manager import SandboxManager
+
+    monkeypatch.setattr(SandboxManager, "_register_with_monitor", lambda self, instance: None)
+    monkeypatch.setattr(SandboxManager, "_deregister_from_monitor", lambda self, instance: None)
+    yield
+
+
+@pytest.mark.usefixtures("monitor_no_heartbeat")
 class TestSandboxManagerExecution:
     @pytest.mark.anyio
     async def test_run_simulation_success(self, mock_backend):
