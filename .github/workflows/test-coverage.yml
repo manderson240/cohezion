@@ -97,7 +97,7 @@ jobs:
           MISSING=0
           for file in $(find src/cohezion -name "*.py" -type f | grep -v __pycache__ | grep -v __init__); do
             module=$(echo $file | sed 's|src/||; s|/|.|g; s|\.py$||')
-            test_file=$(echo $file | sed 's|src/cohezion|tests|; s|\.py$|')
+            test_file=$(echo $file | sed 's|src/cohezion|tests|; s|\.py$||')
             if [ ! -f "$test_file.py" ]; then
               echo "Missing test: $module"
               MISSING=$((MISSING + 1))
