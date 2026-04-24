@@ -203,8 +203,9 @@ class TestMCPCompoundIntegrationFlow:
     """Integration tests for complete MCP workflows."""
 
     @pytest.mark.fast
-    @pytest.mark.skip(
-        reason="Session lifecycle integration returns 'error' under current test setup; needs investigation of the MCP client fixture."
+    @pytest.mark.xfail(
+        reason="bug: compound_start_session returns status='error' under current MCP client fixture - needs fixture investigation",
+        strict=False,
     )
     async def test_session_lifecycle(self):
         """[P0] Complete session start → check → end workflow."""
@@ -284,8 +285,9 @@ class TestMCPCompoundE2E:
     """End-to-end tests simulating user workflows."""
 
     @pytest.mark.slow
-    @pytest.mark.skip(
-        reason="learning_capture E2E returns 'error' under current test setup; needs investigation of MCP client fixture (sibling to test_session_lifecycle)."
+    @pytest.mark.xfail(
+        reason="bug: learning_capture returns status='error' under current MCP client fixture (sibling to test_session_lifecycle)",
+        strict=False,
     )
     async def test_token_optimization_workflow(self):
         """[P1] User optimizes token usage via MCP tools."""
