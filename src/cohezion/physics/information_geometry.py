@@ -1,4 +1,4 @@
-# ruff: noqa: RUF002, RUF003  # math/physics symbols intentional
+# ruff: noqa: N806, RUF002, RUF003  # math/physics symbols intentional
 """Information geometry — the Fisher metric bridge.
 
 The Fisher information metric is the Rosetta Stone connecting:

@@ -1,3 +1,4 @@
+# ruff: noqa: N806  # math/physics: T, F, B, P, S, G, R, A — single-letter conventions
 """Hamiltonian dynamics for FLUME latent space simulation.
 
 Replaces cosmetic jitter with real physics: potential energy gradients,

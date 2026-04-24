@@ -1,4 +1,4 @@
-# ruff: noqa: RUF002, RUF003  # math/physics symbols intentional
+# ruff: noqa: N806, RUF002, RUF003  # math/physics symbols intentional
 """Gauge theory for the four fabrics — SO(3) connections on the fiber bundle.
 
 Each of the four fabrics (Space, Field, Control, Precipitation) carries

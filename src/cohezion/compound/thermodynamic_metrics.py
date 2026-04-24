@@ -1,4 +1,4 @@
-# ruff: noqa: RUF002, RUF003  # math/physics symbols intentional
+# ruff: noqa: N806, RUF002, RUF003  # math/physics symbols intentional
 """Thermodynamic agent metrics — real statistical mechanics for agent populations.
 
 Treats agent trajectories as thermodynamic systems with measurable physical

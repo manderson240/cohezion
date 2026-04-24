@@ -1,3 +1,4 @@
+# ruff: noqa: N806  # math/physics: T, F, B, P, S, G, R, A — single-letter conventions
 """HIHO Unified Engine - advanced physics components.
 
 Contains: SacredGeometry, Twistor, QuantumEmergence, Bioelectrics, Esoteric,
