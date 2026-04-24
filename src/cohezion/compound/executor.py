@@ -7,7 +7,6 @@ Orchestrates execution lifecycle:
   4. Extract reusable patterns for future runs
 """
 
-import asyncio
 import json
 import logging
 import time
@@ -19,6 +18,9 @@ from typing import TYPE_CHECKING, Any
 from cohezion.compound.context_integration import (
     CompoundContextMixin,
     ContextCoherenceError,
+)
+from cohezion.compound.executor_helpers.guardrail_runner import (
+    run_async_guardrail as _run_async_guardrail,
 )
 from cohezion.compound.executor_integration import ExecutorIntegrationMixin
 from cohezion.compound.exp_persistence.vault import (
@@ -39,24 +41,6 @@ else:
 
 
 logger = logging.getLogger(__name__)
-
-
-def _run_async_guardrail(coro: Any) -> Any:
-    """Execute async guardrail check in sync context.
-
-    Non-blocking on failure - logs and returns None.
-
-    Args:
-        coro: Async coroutine to execute
-
-    Returns:
-        Result of coroutine or None on failure
-    """
-    try:
-        return asyncio.run(coro)
-    except (RuntimeError, asyncio.TimeoutError, asyncio.CancelledError) as e:
-        logger.debug("Guardrail check failed (non-blocking): %s", e, exc_info=True)
-        return None
 
 
 @dataclass
