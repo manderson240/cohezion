@@ -31,18 +31,20 @@
 **Highest ROI next step**: Get the kernel scored properly on the hidden test set. The 3-row output from our kernel is just the public sample — Kaggle should score it on the hidden set automatically. If that works, we're at ~50-65%. Then try Kag GPU for equations.
 
 ### Remaining Nemotron Ideas (Pruned by ROI)
-1. ✅ PUSH 67.5% TO KAGGLE — DONE (v29 pushed, v28 on leaderboard, but ERROR on CSV submission, need code competition approach)
-2. **Equations: Per-puzzle rule induction** — 1555 problems, ALL character-based rule induction, not math. Per-puzzle consistent rules solve 4.2% of numeric subset. The remaining 60%+ are multi-digit transformations (concat+transform, digit manipulation). The encryption solver could handle the character-only subset if extended.
-3. **Bit-manip: exhaustive nonlinear compositions** — potential +2-3% (currently 31.1%)
-4. ~~Unit_conversion: RANSAC/Theil-Sen~~ — PRUNED
-5. ~~Gravity: outlier rejection~~ — PRUNED
-6. ~~Encryption: context disambiguation~~ — PRUNED
-7. ~~Cloud model fallback~~ — PRUNED
+1. ✅ FIX `=` PARSER BUG — DONE (64.9%→75.2%). parse_examples() in kaggle_pure_symbolic.py now handles `=` format
+2. ✅ BUILD LoRA TRAINING PIPELINE — DONE. Data pipeline works (9500 examples, 75.2% symbolically verified). Kaggle notebook ready.
+3. **Train on Kaggle GPU** — Need to push notebook and run on Kaggle T4/P100. Notebook at train_lora_kaggle.py
+4. **Nemotron leaderboard submission** — Once adapter is trained, submit as submission.zip
+5. ~~Bit-manip: exhaustive nonlinear compositions~~ — PRUNED (0 additional solves)
+6. ~~Unit_conversion: RANSAC/Theil-Sen~~ — PRUNED
+7. ~~Gravity: outlier rejection~~ — PRUNED
+8. ~~Encryption: context disambiguation~~ — PRUNED
+9. ~~Cloud model fallback~~ — PRUNED
 
-### Key Issue: Kaggle Submission Format
-- Competition requires code submission via kernel, not CSV upload
-- Both v28 and our direct CSV submissions errored
-- Need to figure out the correct submission method (likely via Kaggle web UI)
+### Key Issue: Local GPU Compatibility
+- Strix Halo gfx1151 NOT supported by PyTorch rocm6.2/6.3
+- Need ROCm 7.x PyTorch or compile from source
+- Training must happen on Kaggle GPU
 
 ## Priority 3: ARC Prize Paper Track ($450K, Nov 9)
 
@@ -82,7 +84,7 @@
 | Prize Track | Deadline | EV | Current Status | Next Action |
 |---|---|---|---|---|
 | Gemma Hackathon | May 18 (25d) | $1,321 | 57% ready | Finish submission |
-| Nemotron | June 15 (53d) | ~$3K at 67.5% | Pure symbolic ready | Push to Kaggle, then iterate |
+| Nemotron | June 15 (53d) | ~$3K at 75.2% | LoRA pipeline ready, need Kaggle GPU | Push notebook, train adapter, submit zip |
 | ARC Paper Track | Nov 9 (190d) | $3,317 | 3.4% solve rate, draft v2 | Improve solve rate |
 | SEI Accelathon | TBD | $350 | Not started | Assess when deadline announced |
 
@@ -91,11 +93,13 @@
 ## Session Summary (Apr 23, 2026)
 
 ### Nemotron Findings
-- **Training accuracy**: 64.9% (not 67.5% as previously claimed — the 67.5% figure was from an older solver version)
-- **Equations (0%)**: ALL 1555 are per-puzzle rule induction, not math. Character-level mapping doesn't transfer (0.1%). Numeric rule induction gets 4.2%. Requires LLM inference.
-- **Bit_manip (31.1%)**: XOR2/XOR3/MAJ3 patterns add 0 additional solves. Remaining 68.9% need LLM-scale reasoning.
-- **Kaggle submission**: API returns 400 for code competitions. Need to submit via Kaggle web UI or fix submission format.
-- **Verdict**: Nemotron is at a local maximum for symbolic solving. Further progress requires LLM inference on GPU.
+- **Training accuracy**: 75.2% after `=` parser fix (was 64.9%). Categories: numeral 100%, gravity 100%, unit_conversion 100%, encryption 98.7%, bit_manip 47.2%, equations 4.2%
+- **Competition is LoRA fine-tuning** — must submit trained adapter (submission.zip), not CSV predictions
+- **Local GPU blocked**: PyTorch rocm6.2/6.3 lacks gfx1151 (Strix Halo) kernels. Need Kaggle GPU for training.
+- **Kaggle notebook**: train_lora_kaggle.py ready with full pipeline: SFT data from symbolic solvers, masked token training, LoRA rank 32
+- **Equations (4.2%)**: Fixing `=` parser unlocked 65/1555. Remaining 96% require LLM reasoning.
+- **Bit_manip (47.2%)**: Improved from 31.1% with `=` parser. Remaining 52.8% need LLM.
+- **Key insight**: The competition is about LoRA fine-tuning, not symbolic solving. Symbolic solver just provides verified training data.
 
 ### Gemma Findings
 - **Kernel v6**: Complete and running on Kaggle (90.8% effectiveness, +15% skill improvement)
