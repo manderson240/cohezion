@@ -81,7 +81,7 @@ class CohezionMCP:
                 lines = content.splitlines()
                 clean_lines = [ln for ln in lines if not ln.strip().startswith(("#", "//"))]
                 return json.loads("\n".join(clean_lines))
-        except Exception as e:
+        except (OSError, json.JSONDecodeError, ValueError, UnicodeDecodeError) as e:
             sys.stderr.write(f"Error loading {path}: {e}\n")
             return {}
 
@@ -721,7 +721,13 @@ class CohezionMCP:
 
             return {"content": [{"type": "text", "text": json.dumps(final_result, indent=2)}]}
 
-        except Exception as e:
+        except (
+            OSError,
+            json.JSONDecodeError,
+            ValueError,
+            KeyError,
+            UnicodeDecodeError,
+        ) as e:
             return {"content": [{"type": "text", "text": f"Elite OCR analysis failed: {e}"}]}
 
     def agentic_coding_workflow(self, args: dict[str, Any]) -> dict[str, Any]:
@@ -772,7 +778,7 @@ Complexity: {complexity_level}
                         with open(file_path) as f:
                             content = f.read()
                         base_prompt += f"\n--- {file_path} ---\n{content}\n"
-                    except Exception as e:
+                    except (OSError, UnicodeDecodeError) as e:
                         base_prompt += f"\n--- {file_path} ---\nError reading file: {e}\n"
 
             # Add system prompt for agentic behavior
@@ -846,7 +852,13 @@ Generate production-ready, maintainable code that follows industry standards.
 
             return {"content": [{"type": "text", "text": json.dumps(final_result, indent=2)}]}
 
-        except Exception as e:
+        except (
+            OSError,
+            json.JSONDecodeError,
+            ValueError,
+            KeyError,
+            UnicodeDecodeError,
+        ) as e:
             return {"content": [{"type": "text", "text": f"Agentic coding workflow failed: {e}"}]}
 
     def compound_engineering_orchestrator(self, args: dict[str, Any]) -> dict[str, Any]:
@@ -938,7 +950,14 @@ Generate production-ready, maintainable code that follows industry standards.
                 "content": [{"type": "text", "text": json.dumps(orchestration_result, indent=2)}]
             }
 
-        except Exception as e:
+        except (
+            OSError,
+            json.JSONDecodeError,
+            ValueError,
+            KeyError,
+            TypeError,
+            AttributeError,
+        ) as e:
             return {
                 "content": [
                     {
@@ -992,7 +1011,13 @@ Generate production-ready, maintainable code that follows industry standards.
 
             return {"content": [{"type": "text", "text": json.dumps(selection_result, indent=2)}]}
 
-        except Exception as e:
+        except (
+            ValueError,
+            KeyError,
+            TypeError,
+            AttributeError,
+            json.JSONDecodeError,
+        ) as e:
             return {"content": [{"type": "text", "text": f"Elite model selection failed: {e}"}]}
 
     def performance_benchmark(self, args: dict[str, Any]) -> dict[str, Any]:
@@ -1051,7 +1076,13 @@ Generate production-ready, maintainable code that follows industry standards.
 
             return {"content": [{"type": "text", "text": json.dumps(report, indent=2)}]}
 
-        except Exception as e:
+        except (
+            ValueError,
+            KeyError,
+            TypeError,
+            AttributeError,
+            json.JSONDecodeError,
+        ) as e:
             return {"content": [{"type": "text", "text": f"Performance benchmark failed: {e}"}]}
 
     def resolve_claims(self, text: str) -> dict[str, Any]:
@@ -1125,7 +1156,14 @@ Generate production-ready, maintainable code that follows industry standards.
                         }
                     ]
                 }
-        except Exception as e:
+        except (
+            OSError,
+            json.JSONDecodeError,
+            ValueError,
+            KeyError,
+            AttributeError,
+            ImportError,
+        ) as e:
             return {"content": [{"type": "text", "text": f"Offload execution failed: {e}"}]}
 
     def batch_offload(
@@ -1172,7 +1210,14 @@ Generate production-ready, maintainable code that follows industry standards.
 
             results = batch_mgr.parse_batch_response(res_text)
             return {"content": [{"type": "text", "text": json.dumps(results, indent=2)}]}
-        except Exception as e:
+        except (
+            OSError,
+            json.JSONDecodeError,
+            ValueError,
+            KeyError,
+            AttributeError,
+            ImportError,
+        ) as e:
             return {"content": [{"type": "text", "text": f"Batch offload failed: {e}"}]}
 
     def inspect_cache(self) -> dict[str, Any]:
@@ -1227,7 +1272,13 @@ Generate production-ready, maintainable code that follows industry standards.
                 ]
             }
 
-        except Exception as e:
+        except (
+            ImportError,
+            OSError,
+            ValueError,
+            RuntimeError,
+            AttributeError,
+        ) as e:
             return {"content": [{"type": "text", "text": f"Pocket TTS generation failed: {e}"}]}
 
     def execute_skill(self, skill_name: str, inputs: dict[str, Any]) -> dict[str, Any]:
@@ -1261,7 +1312,7 @@ Generate production-ready, maintainable code that follows industry standards.
         try:
             with open(skill_path) as f:
                 return {"content": [{"type": "text", "text": f.read()}]}
-        except Exception as e:
+        except (OSError, UnicodeDecodeError) as e:
             return {"content": [{"type": "text", "text": f"Error executing skill: {e}"}]}
 
     def get_compound_config(self) -> dict[str, Any]:
@@ -1294,7 +1345,7 @@ Generate production-ready, maintainable code that follows industry standards.
             for line in res.stdout.splitlines()[1:]:  # Skip header
                 if line.strip():
                     installed_models.add(line.split()[0].split(":")[0])  # Base name
-        except Exception as e:
+        except (OSError, FileNotFoundError, subprocess.SubprocessError) as e:
             sys.stderr.write(f"Failed to check installed models: {e}\n")
 
         # Flatten models for selection
@@ -1455,6 +1506,9 @@ Generate production-ready, maintainable code that follows industry standards.
                             )
                         )
                     except Exception as e:
+                        # MCP tool dispatch must report back any error as JSON-RPC error code,
+                        # otherwise the client sees a hung connection. SystemExit/KeyboardInterrupt
+                        # still propagate (they don't inherit Exception).
                         print(
                             json.dumps(
                                 {
@@ -1466,6 +1520,8 @@ Generate production-ready, maintainable code that follows industry standards.
                         )
                 sys.stdout.flush()
             except Exception as e:
+                # Top-level JSON-RPC loop must survive malformed input or downstream errors;
+                # log to stderr and keep reading the next request. SystemExit propagates.
                 sys.stderr.write(f"Error in JSON-RPC loop: {e}\n")
 
 
