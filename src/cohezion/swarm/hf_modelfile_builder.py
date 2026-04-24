@@ -3,6 +3,7 @@
 import argparse
 import asyncio
 import logging
+import shutil
 import subprocess
 from pathlib import Path
 
@@ -10,6 +11,9 @@ import httpx
 
 
 logger = logging.getLogger(__name__)
+
+# Resolve ollama executable at module load to avoid S607 partial-path warnings.
+_OLLAMA = shutil.which("ollama") or "/usr/local/bin/ollama"
 
 
 class HFModelfileBuilder:
@@ -55,8 +59,8 @@ class HFModelfileBuilder:
     def create_ollama_model(self, model_name: str, modelfile_path: Path) -> None:
         """Issue an `ollama create` command pointing to the newly built Modelfile."""
         logger.info(f"Creating Ollama model {model_name} from {modelfile_path}")
-        result = subprocess.run(
-            ["ollama", "create", model_name, "-f", str(modelfile_path)],
+        result = subprocess.run(  # noqa: S603 - model_name and modelfile_path are internally controlled
+            [_OLLAMA, "create", model_name, "-f", str(modelfile_path)],
             capture_output=True,
             text=True,
             check=False,
