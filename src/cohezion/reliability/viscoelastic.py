@@ -14,8 +14,8 @@ class ViscoelasticController:
     def __init__(self, relaxation_tau: float = 30.0):
         self.viscosity = 0.0
         self.relaxation_tau = relaxation_tau
-        self.last_pressure = None
-        self.last_time = None
+        self.last_pressure: float | None = None
+        self.last_time: float | None = None
 
     def calculate_dilation_adjustment(
         self, cpu: float, ram: float, vram: float, dt_override: float | None = None
@@ -53,7 +53,7 @@ class ViscoelasticController:
 
         return max(0.0, self.viscosity)
 
-    def reset(self):
+    def reset(self) -> None:
         """Reset controller state."""
         self.viscosity = 0.0
         self.last_pressure = None
