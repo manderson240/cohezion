@@ -28,9 +28,25 @@ logger = logging.getLogger(__name__)
 
 # Configuration
 MCP_PORT = int(os.getenv("MCP_PORT", "8363"))
-# Primary: Vault Warden, Fallback: Environment
-GITHUB_TOKEN = get_credentials().get_secret("COHEZION_GITHUB_TOKEN", env_var="GITHUB_TOKEN") or ""
 GITHUB_API_BASE = "https://api.github.com"
+
+
+# Primary: Vault Warden, Fallback: Environment
+# Lazy accessor — Bitwarden vault calls at module import exceed the stdio MCP
+# handshake budget (CLAUDE.md L54-72). (Ω12 P1 Patch 11)
+from functools import lru_cache as _lru_cache
+
+
+@_lru_cache(maxsize=1)
+def get_github_token() -> str:
+    return get_credentials().get_secret("COHEZION_GITHUB_TOKEN", env_var="GITHUB_TOKEN") or ""
+
+
+def __getattr__(name: str):
+    """Module-level lazy GITHUB_TOKEN — preserves existing call sites without import-time cost."""
+    if name == "GITHUB_TOKEN":
+        return get_github_token()
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 
 
 class GitHubService:
