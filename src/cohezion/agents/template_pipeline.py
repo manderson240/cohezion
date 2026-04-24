@@ -270,7 +270,8 @@ class TemplatePipeline:
         if not registry_path.exists():
             return {}
         try:
-            return json.loads(registry_path.read_text(encoding="utf-8"))
+            data = json.loads(registry_path.read_text(encoding="utf-8"))
+            return dict(data) if isinstance(data, dict) else {}
         except (json.JSONDecodeError, OSError):
             logger.warning("Could not read skill registry, starting fresh")
             return {}
