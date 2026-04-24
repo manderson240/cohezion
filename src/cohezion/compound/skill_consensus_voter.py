@@ -10,35 +10,13 @@ import logging
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
-from typing import Any, TypedDict
+from typing import Any
 
 from cohezion.compound.skill_selector import SkillScore
 from cohezion.core.mcp_client import MCPClient
 
 
 logger = logging.getLogger(__name__)
-
-
-# Σ2: TypedDicts for vote-aggregation maps. Mypy infers heterogeneous dict
-# literals as `dict[str, object]` and can't narrow on key access; these
-# annotations let the existing access patterns type-check without changing
-# runtime behavior.
-class _MajorityEntry(TypedDict):
-    count: int
-    skill: SkillScore
-    agents: list[str]
-
-
-class _WeightedEntry(TypedDict):
-    weight: float
-    skill: SkillScore
-    voters: list[tuple[str, float]]
-
-
-class _FallbackEntry(TypedDict):
-    skill: SkillScore
-    total_score: float
-    count: int
 
 
 class VotingStrategy(Enum):
@@ -213,7 +191,7 @@ class SkillConsensusVoter:
             ConsensusResult
         """
         # Count votes per skill (1st choice only)
-        skill_votes: dict[str, _MajorityEntry] = {}
+        skill_votes = {}
         for vote in votes:
             if vote.voted_skills:
                 top_skill = vote.voted_skills[0]
@@ -290,7 +268,7 @@ class SkillConsensusVoter:
             ConsensusResult
         """
         # Calculate skill weights
-        skill_weights: dict[str, _WeightedEntry] = {}
+        skill_weights = {}
         total_weight = 0.0
 
         for vote in votes:
