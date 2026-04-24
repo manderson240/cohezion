@@ -10,8 +10,6 @@ Tests cover:
 - Edge cases (all unavailable, single model, etc.)
 """
 
-import time
-
 import pytest
 
 from cohezion.swarm.fallback_strategy import (
@@ -122,8 +120,8 @@ class TestCircuitBreakerStateTransitions:
         breaker.record_error()
         assert breaker.state == CircuitBreakerState.OPEN
 
-        # Wait for timeout
-        time.sleep(0.15)
+        # Rewind the opened_at marker into the past instead of sleeping
+        breaker.opened_at -= 0.15
 
         # Should transition to HALF_OPEN on next request check
         can_request = breaker.allow_request()
@@ -144,8 +142,8 @@ class TestCircuitBreakerStateTransitions:
         breaker.record_error()
         assert breaker.state == CircuitBreakerState.OPEN
 
-        # Wait for recovery timeout
-        time.sleep(0.15)
+        # Rewind opened_at instead of sleeping
+        breaker.opened_at -= 0.15
         breaker.allow_request()  # Transition to HALF_OPEN
 
         # Record successes
@@ -423,8 +421,8 @@ class TestRecoveryMechanism:
         breaker.record_error()
         assert breaker.state == CircuitBreakerState.OPEN
 
-        # Wait for timeout
-        time.sleep(0.15)
+        # Rewind opened_at instead of sleeping
+        breaker.opened_at -= 0.15
 
         # Should allow test request
         can_request = breaker.allow_request()

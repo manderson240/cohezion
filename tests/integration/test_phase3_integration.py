@@ -111,31 +111,23 @@ class TestPhase3SessionIntegration:
         """Test graceful session cancellation."""
         session = InferenceSession("cancel-test")
 
-        # Mock execute function
+        # Mock execute function with cancel-after-N-calls behavior
         call_count = 0
 
         async def mock_execute(step: int, state: Any) -> tuple[str, dict]:
             nonlocal call_count
             call_count += 1
-            await asyncio.sleep(0.01)
+            # Cancel after the second step has started executing - this gives
+            # us deterministic ordering without relying on a sleep timer
+            if call_count == 2:
+                session.cancel()
             return f"output {step}", {"tokens": 10}
 
-        # Start execution in background
-        async def run_session():
-            events = []
-            async for event in session.execute_with_checkpoints(
-                "test-skill", "input", mock_execute, total_steps=10
-            ):
-                events.append(event)
-            return events
-
-        task = asyncio.create_task(run_session())
-        await asyncio.sleep(0.05)  # Let it run a bit
-
-        # Cancel
-        session.cancel()
-
-        events = await task
+        events = []
+        async for event in session.execute_with_checkpoints(
+            "test-skill", "input", mock_execute, total_steps=10
+        ):
+            events.append(event)
 
         # Should contain cancellation event
         event_types = [e.get("type") for e in events]
@@ -152,7 +144,9 @@ class TestPhase3SessionIntegration:
         async def slow_execute(step: int, state: Any) -> tuple[str, dict]:
             nonlocal call_count
             call_count += 1
-            await asyncio.sleep(0.05)  # Slow operation
+            # justify: timeout test - step duration must exceed per-step budget
+            # so wall-clock guard fires within total_steps=10
+            await asyncio.sleep(0.05)
             return f"output {step}", {"tokens": 10}
 
         events = []
