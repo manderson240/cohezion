@@ -102,6 +102,9 @@ class PrecipitationOrchestrator:
         self._universe_trajectories: dict[str, list[str]] = {}
         self.generations: list[GenerationRecord] = []
         self._fired_for_threshold = False
+        # Track in-flight generation tasks so tests can await them and asyncio
+        # teardown never orphans a coroutine that's still awaiting bus.aemit().
+        self._pending_tasks: list[asyncio.Task[GenerationRecord]] = []
 
     def subscribe(self) -> None:
         """Attach the orchestrator's tally handler to the bus."""
@@ -128,9 +131,19 @@ class PrecipitationOrchestrator:
             try:
                 # Try to schedule on a running loop; fall back to sync execution.
                 loop = asyncio.get_running_loop()
-                loop.create_task(self._run_generation())
+                task = loop.create_task(self._run_generation())
+                # Retain reference so GC can't collect mid-run; tests can await.
+                self._pending_tasks.append(task)
+                task.add_done_callback(self._pending_tasks.remove)
             except RuntimeError:
                 asyncio.run(self._run_generation())
+
+    async def wait_for_pending(self) -> None:
+        """Await any in-flight generation tasks. Safe to call from tests."""
+        # Copy to avoid mutation during iteration (done_callback removes items).
+        tasks = list(self._pending_tasks)
+        if tasks:
+            await asyncio.gather(*tasks, return_exceptions=True)
 
     async def _run_generation(self) -> GenerationRecord:
         """Export DPO data, invoke training, emit checkpoint event."""

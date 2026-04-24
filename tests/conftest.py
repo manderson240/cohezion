@@ -136,6 +136,17 @@ def reset_singletons():
     if hasattr(BudgetEnforcer, "reset_instance"):
         BudgetEnforcer.reset_instance()
 
+    # Reset the precipitation bus singleton. A bus left over from a previous
+    # test holds an asyncio.Queue bound to a loop that pytest-asyncio has
+    # already closed, so the next test's emit() would target a dead loop.
+    # See commit 4b149cf39 for the bus-level guard; this is the belt-and-suspenders.
+    try:
+        from cohezion.precipitation.bus import set_bus
+
+        set_bus(None)
+    except ImportError:
+        pass
+
     # Reset FLUME VAE singleton to prevent state pollution across tests
     api_module: ModuleType | None = None
     try:
