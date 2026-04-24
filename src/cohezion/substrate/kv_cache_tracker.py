@@ -1,3 +1,4 @@
+# ruff: noqa: RUF002  # math/physics symbols intentional
 """KV Cache tracking and management for memory-efficient inference.
 
 Tracks KV cache allocations across all active requests to prevent

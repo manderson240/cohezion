@@ -1,3 +1,4 @@
+# ruff: noqa: RUF002  # math/physics symbols intentional
 """MCP client for Cloud Vault operations.
 
 Connects to the Cloud Vault MCP Server using streamable-http protocol

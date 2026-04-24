@@ -1,3 +1,4 @@
+# ruff: noqa: RUF001, RUF002  # math/physics symbols intentional
 """Genesis Engine API Service.
 
 Exposes the grounded physics layer — SU(2) spinors, cosmogony,

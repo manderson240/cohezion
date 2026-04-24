@@ -1,3 +1,4 @@
+# ruff: noqa: RUF002, RUF003  # math/physics symbols intentional
 """Observer Patch Holography bridge for Cohezion.
 
 Maps FloatingPragma's Observer-Patch-Holography (OPH) axioms to Cohezion's

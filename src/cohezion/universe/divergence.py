@@ -1,3 +1,4 @@
+# ruff: noqa: RUF001  # math/physics symbols intentional
 """Divergence detection for sandboxed simulations.
 
 Monitors per-sandbox coherence, numerical stability, and statistical outliers.

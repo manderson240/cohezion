@@ -1,3 +1,4 @@
+# ruff: noqa: RUF003  # math/physics symbols intentional
 """Cost-quality optimized model ranking with historical coherence integration.
 
 Ranks models by weighted combination of:

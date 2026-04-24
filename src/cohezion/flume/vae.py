@@ -1,3 +1,4 @@
+# ruff: noqa: RUF002  # math/physics symbols intentional
 from typing import Any
 
 import torch

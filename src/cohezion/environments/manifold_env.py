@@ -1,3 +1,4 @@
+# ruff: noqa: RUF002  # math/physics symbols intentional
 """ManifoldEnv — OpenAI Gymnasium environment for the 12D axiomatic manifold.
 
 A physics-grounded agentic environment where agents navigate a 12D Riemannian

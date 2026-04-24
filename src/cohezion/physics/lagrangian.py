@@ -1,3 +1,4 @@
+# ruff: noqa: RUF002, RUF003  # math/physics symbols intentional
 """Lagrangian dynamics on the 12D axiomatic manifold.
 
 Replaces the ad-hoc `_toward_target()` linear interpolation in engine.py

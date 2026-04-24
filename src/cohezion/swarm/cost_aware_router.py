@@ -1,3 +1,4 @@
+# ruff: noqa: RUF001  # math/physics symbols intentional
 """Cost-aware smart routing across local models with budget enforcement.
 
 Features:

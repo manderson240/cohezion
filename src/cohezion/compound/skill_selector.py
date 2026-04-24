@@ -1,3 +1,4 @@
+# ruff: noqa: RUF002  # math/physics symbols intentional
 """Experience-guided skill selection using vault performance patterns.
 
 Analyzes vault patterns to find skills that performed best on similar tasks.

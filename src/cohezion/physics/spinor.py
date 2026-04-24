@@ -1,3 +1,4 @@
+# ruff: noqa: RUF002  # math/physics symbols intentional
 """SU(2) spinor algebra for SPIN coherence.
 
 Replaces the ad-hoc binary sign comparison in engine.py with proper
