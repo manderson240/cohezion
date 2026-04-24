@@ -86,6 +86,7 @@ def fetch_experience_guidance(
 
     # Step 3: Query SurrealDB for recent retrospection decisions (closes feedback loop)
     try:
+        import http.client as _http_client
         import json
         import urllib.request
         from base64 import b64encode
@@ -106,7 +107,8 @@ def fetch_experience_guidance(
         if data and data[0].get("status") == "OK" and data[0]["result"]:
             result["recent_retrospections"] = data[0]["result"]
             logger.debug("Guidance enriched with %d recent retrospections", len(data[0]["result"]))
-    except (OSError, ConnectionError, json.JSONDecodeError, ValueError, KeyError) as e:
+    except (OSError, ConnectionError, json.JSONDecodeError, ValueError, KeyError,
+            _http_client.HTTPException, TypeError) as e:
         logger.debug("SurrealDB retrospection query failed (non-blocking): %s", e)
 
     return result
