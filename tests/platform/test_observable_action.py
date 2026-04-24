@@ -306,9 +306,6 @@ class TestObservableActionProposer:
         assert approved is True
 
     @pytest.mark.asyncio
-    @pytest.mark.skip(
-        reason="'HIHO Stable' indicator removed from display_proposal output; test needs updating to the new format."
-    )
     async def test_display_proposal(self, observable_proposer, mock_coherence_tracker, capsys):
         """Test proposal display (Observable AI)."""
         coherence_metrics = await mock_coherence_tracker.measure_system_coherence()
@@ -333,7 +330,8 @@ class TestObservableActionProposer:
         assert "OBSERVABLE AI: ACTION PROPOSAL" in captured.out
         assert "Update database schema" in captured.out
         assert "Confidence: 85.00%" in captured.out
-        assert "HIHO Stable ✅" in captured.out
+        # HIHO Stable indicator (emoji removed in current format)
+        assert "HIHO Stable" in captured.out
         assert "Schema migration risk" in captured.out
         assert "New features enabled" in captured.out
 
