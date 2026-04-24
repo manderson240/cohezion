@@ -133,10 +133,12 @@ class CoherenceTracker:
         """Get code quality score (0-1)."""
         # Run ruff check and calculate score
         # Simplified: 1.0 - (errors / max_acceptable_errors)
+        import shutil
         import subprocess
 
-        result = subprocess.run(
-            ["uv", "run", "ruff", "check", "src/", "--statistics"],
+        uv_exec = shutil.which("uv") or "/usr/local/bin/uv"
+        result = subprocess.run(  # noqa: S603 - static ruff check, no user input
+            [uv_exec, "run", "ruff", "check", "src/", "--statistics"],
             capture_output=True,
             text=True,
         )
