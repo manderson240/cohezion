@@ -140,6 +140,7 @@ class ResourceClient:
         except (
             aiohttp.ClientError,
             asyncio.TimeoutError,
+            TypeError,
             OSError,
             ConnectionError,
             ValueError,
@@ -285,6 +286,7 @@ class ResourceDaemon:
         except (
             aiohttp.ClientError,
             asyncio.TimeoutError,
+            TypeError,
             OSError,
             ConnectionError,
             ValueError,

@@ -40,7 +40,7 @@ async def parse_template(request: TemplateParseRequest):
 
     try:
         spec = manager.engine.get_spec_by_name(request.skill_name)
-    except (KeyError, ValueError, OSError, AttributeError, RuntimeError) as e:
+    except (KeyError, ValueError, OSError, AttributeError, RuntimeError, UnicodeDecodeError, TypeError) as e:
         logger.error("Template parse failed for %s: %s", request.skill_name, e, exc_info=True)
         raise HTTPException(status_code=500, detail="Template parsing failed") from e
 
