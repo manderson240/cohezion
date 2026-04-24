@@ -138,7 +138,6 @@ class TestInferenceSession:
         session = InferenceSession("test")
 
         async def mock_execute_fn(step_index, state):
-            await asyncio.sleep(0.01)
             return f"output_{step_index}", {"tokens": 10}
 
         # Collect events
@@ -166,7 +165,6 @@ class TestInferenceSession:
         async def mock_execute_fn(step_index, state):
             nonlocal step_count
             step_count += 1
-            await asyncio.sleep(0.01)
             if step_index == 2:
                 session.cancel()
             return "output", {"tokens": 10}
@@ -191,6 +189,8 @@ class TestInferenceSession:
         session = InferenceSession("test", config)
 
         async def mock_execute_fn(step_index, state):
+            # justify: timeout test requires step duration to exceed max_session_duration_sec=0.1
+            # over multiple steps so the wall-clock guard fires
             await asyncio.sleep(0.05)
             return "output", {"tokens": 10}
 
