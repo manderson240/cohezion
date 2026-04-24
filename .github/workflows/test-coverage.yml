@@ -51,8 +51,14 @@ jobs:
         uses: codecov/codecov-action@v4
         with:
           files: ./coverage.xml
-          fail_ci_if_error: true
+          # fail_ci_if_error was true but Codecov token-less uploads have been
+          # returning "Token required - not valid tokenless upload", failing
+          # the whole job despite 5,925 tests passing. Coverage is also
+          # uploaded as a workflow artifact below, so we don't lose the data.
+          # Re-enable once CODECOV_TOKEN is configured as a repo secret.
+          fail_ci_if_error: false
           verbose: true
+          token: ${{ secrets.CODECOV_TOKEN }}
 
       - name: Check coverage threshold
         run: |
