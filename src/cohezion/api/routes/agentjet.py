@@ -5,8 +5,12 @@ Extracted from api/__init__.py (Wave 2B of synthetic-sniffing-panda).
 
 from __future__ import annotations
 
+import logging
+
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
+
+logger = logging.getLogger(__name__)
 
 
 agentjet_router = APIRouter(tags=["agentjet"])
@@ -59,13 +63,16 @@ async def agentjet_train(request: TrainRequest) -> TrainResponse:
             dry_run=result.dry_run,
             error=result.error,
         )
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001 - FastAPI boundary
         # AgentJet trainer can raise project-specific OOMRiskError/ResourceUnavailableError
         # without importing the symbols (avoids circular import) — re-raise OOM as 503,
         # otherwise return structured error response so the dashboard can surface details.
+        # (Ω12 Patch 6: do not leak internal exception messages over the wire.)
         _oom_names = ("OOMRiskError", "ResourceUnavailableError")
         if type(e).__name__ in _oom_names:
-            raise HTTPException(status_code=503, detail=str(e)) from e
+            logger.exception("agentjet train OOM/resource exhaustion")
+            raise HTTPException(status_code=503, detail="Service temporarily unavailable") from e
+        logger.exception("agentjet train failed")
         return TrainResponse(
             success=False,
             model_name="",
@@ -76,7 +83,7 @@ async def agentjet_train(request: TrainRequest) -> TrainResponse:
             avg_reward=0.0,
             training_duration_s=0.0,
             dry_run=request.dry_run,
-            error=str(e),
+            error=type(e).__name__,
         )
 
 
@@ -103,7 +110,8 @@ async def agentjet_status() -> dict:
         ValueError,
         AttributeError,
     ) as e:
-        return {"status": "error", "error": str(e)}
+        logger.warning("agentjet_status unavailable: %s", type(e).__name__, exc_info=True)
+        return {"status": "error", "error": type(e).__name__}
 
 
 @agentjet_router.get("/agentjet/models")
