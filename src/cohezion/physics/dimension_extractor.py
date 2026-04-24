@@ -131,7 +131,10 @@ class DimensionExtractor:
         novelty = self._extract_novelty(embedding)
         coherence = self._extract_coherence(text)
 
-        return PhysicsState(
+        # Σ2: PhysicsState in cohezion.core.persistence.surreal_client uses the
+        # 12D Spatial+Time+Brane schema. This extractor still emits the legacy
+        # semantic-physics schema. Schema reconciliation tracked separately.
+        return PhysicsState(  # type: ignore[call-arg]
             x=x,
             y=y,
             z=z,
@@ -235,7 +238,7 @@ class DimensionExtractor:
             boost = min(0.5, (citations + links) / 50)
             length_mass = min(1.0, length_mass + boost)
 
-        return length_mass
+        return float(length_mass)
 
     def _extract_sentiment(self, text: str) -> float:
         """
@@ -312,7 +315,7 @@ class DimensionExtractor:
 
         if len(sentences) > 1:
             lengths = [len(s.split()) for s in sentences]
-            variation = np.std(lengths) / (np.mean(lengths) + 1)
+            variation = float(np.std(lengths) / (np.mean(lengths) + 1))
             sentence_complexity = min(1.0, variation)
         else:
             sentence_complexity = 0.3
@@ -362,7 +365,7 @@ class DimensionExtractor:
         connections = outlinks + inlinks + mentions
 
         # Log scale, normalized
-        return min(1.0, np.log1p(connections) / 5)
+        return float(min(1.0, np.log1p(connections) / 5))
 
     def _extract_stability(
         self,
@@ -383,7 +386,7 @@ class DimensionExtractor:
         # More edits = less stable
         instability = min(1.0, edit_count / 20)
 
-        return 1.0 - instability
+        return float(1.0 - instability)
 
     def _extract_novelty(
         self,
@@ -401,7 +404,7 @@ class DimensionExtractor:
         magnitude = np.linalg.norm(embedding)
 
         # Normalize (embeddings are typically ~1.0 magnitude)
-        return min(1.0, abs(magnitude - 1.0) * 2)
+        return float(min(1.0, abs(magnitude - 1.0) * 2))
 
     def _extract_coherence(self, text: str) -> float:
         """
