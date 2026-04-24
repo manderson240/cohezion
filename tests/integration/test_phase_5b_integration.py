@@ -616,7 +616,9 @@ class TestPerformanceScaling:
             agents = agent_profiles[:num_agents]
 
             start = time.time()
-            tasks = [asyncio.create_task(asyncio.sleep(0.01)) for agent in agents]
+            # justify: synthetic latency-scaling smoke test; sleep is the
+            # "work" being measured, gather bounds total duration to one tick
+            tasks = [asyncio.create_task(asyncio.sleep(0.001)) for agent in agents]
             await asyncio.gather(*tasks)
             duration = time.time() - start
 
