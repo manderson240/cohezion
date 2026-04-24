@@ -1,0 +1,569 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=1440" />
+  <title>SWARM TOPOLOGY // OPS</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;500;600;700&family=Source+Serif+4:wght@300;400;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/prop-types@15/prop-types.min.js"></script>
+  <script src="https://unpkg.com/recharts@2.12.7/umd/Recharts.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone@7.24.7/babel.min.js"></script>
+
+  <style>
+    :root {
+      --bg-0: #f5f3ed;
+      --bg-1: #fbfaf5;
+      --bg-2: #f0ede4;
+      --bg-3: #e8e3d4;
+      --grid: #d8d2c0;
+      --rule: #c8c0a8;
+      --rule-soft: #dcd5be;
+      --ink: #1f2418;
+      --ink-2: #3e4536;
+      --ink-3: #6d7361;
+      --ink-4: #9a9a86;
+      --cyan: #4a7c59;
+      --cyan-dim: #365e42;
+      --amber: #f9a620;
+      --amber-dim: #b27514;
+      --magenta: #b7472a;
+      --magenta-dim: #7d3120;
+      --red: #a83232;
+      --green: #4a7c59;
+      --violet: #6b4f7a;
+    }
+    html, body {
+      background: var(--bg-0); color: var(--ink);
+      font-family: 'Source Serif 4', 'Lora', Georgia, serif;
+      font-feature-settings: "tnum","ss01","ss02","ss03","cv02","cv11";
+      -webkit-font-smoothing: antialiased; letter-spacing: 0.01em;
+    }
+    body::before {
+      content:""; position:fixed; inset:0; pointer-events:none;
+      background: repeating-linear-gradient(to bottom,
+        rgba(255,255,255,0.012) 0px, rgba(255,255,255,0.012) 1px,
+        transparent 1px, transparent 3px);
+      mix-blend-mode: overlay; z-index:60;
+    }
+    body::after {
+      content:""; position:fixed; inset:0; pointer-events:none;
+      background:
+        radial-gradient(ellipse 90% 60% at 50% 110%, rgba(0,0,0,0.55), transparent 60%),
+        radial-gradient(ellipse 80% 50% at 50% -10%, rgba(0,0,0,0.40), transparent 60%);
+      z-index:59;
+    }
+    .display { font-family:'Lora', 'Source Serif 4', Georgia, serif; letter-spacing:0.06em; }
+    .mono { font-family:'IBM Plex Mono', ui-monospace, monospace; }
+    .panel {
+      background: var(--bg-1); border: 1px solid var(--rule);
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.012), 0 0 0 1px rgba(0,0,0,0.4);
+    }
+    .panel-hd {
+      display:flex; align-items:center; justify-content:space-between;
+      padding:6px 10px;
+      background: linear-gradient(180deg,#0e131c 0%,#0a0e15 100%);
+      border-bottom:1px solid var(--rule);
+      font-size:10px; text-transform:uppercase; letter-spacing:0.18em; color:var(--ink-2);
+    }
+    .panel-hd .tag { color:var(--cyan); font-weight:700; }
+    .panel-bd { padding:10px; }
+    .row-stripe:nth-child(odd) { background: rgba(255,255,255,0.012); }
+    .row-stripe:hover { background: rgba(92,242,232,0.06); }
+    .dot { width:7px; height:7px; display:inline-block; }
+    .dot.green { background:var(--green); box-shadow:0 0 6px rgba(92,255,158,0.7); }
+    .dot.amber { background:var(--amber); box-shadow:0 0 6px rgba(245,181,60,0.7); }
+    .dot.red   { background:var(--red);   box-shadow:0 0 6px rgba(255,93,93,0.7); }
+    .blink { animation: blink 1.6s steps(2,end) infinite; }
+    @keyframes blink { 50% { opacity:0.25; } }
+    .pulse-dot {
+      width:6px; height:6px; background:var(--cyan);
+      box-shadow:0 0 0 0 rgba(92,242,232,0.6);
+      animation: pulse 1.6s ease-out infinite;
+    }
+    @keyframes pulse {
+      0%   { box-shadow:0 0 0 0 rgba(92,242,232,0.55); }
+      80%  { box-shadow:0 0 0 8px rgba(92,242,232,0); }
+      100% { box-shadow:0 0 0 0 rgba(92,242,232,0); }
+    }
+    .ticker { mask-image: linear-gradient(to right, transparent, #000 8%, #000 92%, transparent); }
+    *::-webkit-scrollbar { width:8px; height:8px; }
+    *::-webkit-scrollbar-thumb { background:#1d2533; border:1px solid var(--rule); }
+    *::-webkit-scrollbar-track { background:transparent; }
+    .glow-cyan    { text-shadow:0 0 10px rgba(92,242,232,0.45); }
+    .glow-amber   { text-shadow:0 0 10px rgba(245,181,60,0.40); }
+    .glow-magenta { text-shadow:0 0 10px rgba(255,79,191,0.40); }
+    .glow-red     { text-shadow:0 0 10px rgba(255,93,93,0.45); }
+    .glow-green   { text-shadow:0 0 10px rgba(92,255,158,0.40); }
+    .hairline { border-color: var(--rule); }
+    .hairline-soft { border-color: var(--rule-soft); }
+    .sep::before { content:"·"; color:var(--ink-4); margin:0 14px; }
+    .num { font-variant-numeric: tabular-nums; }
+    .marquee { display:inline-block; white-space:nowrap; animation: marquee 60s linear infinite; }
+    @keyframes marquee { from { transform:translateX(0); } to { transform:translateX(-50%); } }
+    .bar-track { height:4px; background:#0a0d12; border:1px solid var(--rule); position:relative; overflow:hidden; }
+    .bar-fill { height:100%; }
+
+    /* swarm-specific SVG styles */
+    .cluster-bg {
+      fill: rgba(92,242,232,0.025);
+      stroke: var(--rule);
+      stroke-dasharray: 3 3;
+    }
+    .cluster-bg.amber { fill: rgba(245,181,60,0.025); }
+    .cluster-bg.magenta { fill: rgba(255,79,191,0.030); }
+    .cluster-bg.violet { fill: rgba(159,123,255,0.030); }
+    .cluster-label {
+      fill: var(--ink-3);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+    }
+    .agent-node {
+      cursor: pointer;
+    }
+    .agent-node circle.shell {
+      fill: var(--bg-2);
+      stroke: var(--rule);
+      stroke-width: 1;
+    }
+    .agent-node.selected circle.shell {
+      stroke: var(--cyan);
+      stroke-width: 1.6;
+      filter: drop-shadow(0 0 4px var(--cyan));
+    }
+    .agent-label {
+      fill: var(--ink);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 9.5px;
+      text-anchor: middle;
+    }
+    .agent-role {
+      fill: var(--ink-3);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 8px;
+      text-anchor: middle;
+      letter-spacing: 0.1em;
+    }
+    .edge {
+      stroke: var(--rule);
+      stroke-width: 0.8;
+      fill: none;
+    }
+    .edge.active {
+      stroke: var(--cyan);
+      stroke-width: 1.2;
+      stroke-dasharray: 4 4;
+      animation: dashflow 1.2s linear infinite;
+      opacity: 0.85;
+    }
+    .edge.active.amber { stroke: var(--amber); }
+    .edge.active.magenta { stroke: var(--magenta); }
+    @keyframes dashflow {
+      from { stroke-dashoffset: 0; }
+      to   { stroke-dashoffset: -16; }
+    }
+
+/* Theme override: light mode — disable scanline + vignette + heavy glows */
+body::before, body::after { display: none !important; }
+.glow-cyan, .glow-amber, .glow-magenta, .glow-red, .glow-green { text-shadow: none !important; }
+.dot.green, .dot.amber, .dot.red { box-shadow: none !important; }
+.pulse-dot { box-shadow: none !important; animation: none !important; }
+
+  </style>
+</head>
+<body class="min-h-screen">
+
+<div id="root"></div>
+
+<script type="text/babel" data-presets="env,react">
+const { useState, useEffect, useMemo } = React;
+const { LineChart, Line, ResponsiveContainer, Tooltip, XAxis, YAxis } = Recharts;
+
+/* ---------------- MOCK DATA ---------------- */
+
+const ROLES = {
+  "vault-keeper":         { color:"var(--cyan)",    cluster:0, label:"VAULT" },
+  "claude-specialist":    { color:"var(--cyan)",    cluster:1, label:"PLATFORM" },
+  "gemini-specialist":    { color:"var(--cyan)",    cluster:1, label:"PLATFORM" },
+  "ollama-specialist":    { color:"var(--cyan)",    cluster:1, label:"PLATFORM" },
+  "mcp-specialist":       { color:"var(--amber)",   cluster:2, label:"MCP" },
+  "surreal-dba":          { color:"var(--magenta)", cluster:3, label:"DATA" },
+  "platform-coordinator": { color:"var(--violet)",  cluster:4, label:"COORD" },
+};
+
+const AGENTS = [
+  // VAULT cluster
+  { id:"vk-01", name:"vault-keeper-01",        role:"vault-keeper",         x:160, y:120, queue:3,  cost:0.42, success:0.984, lastTask:"orphan-sweep" },
+  { id:"vk-02", name:"vault-keeper-02",        role:"vault-keeper",         x:240, y:90,  queue:1,  cost:0.18, success:0.991, lastTask:"frontmatter-fix" },
+  { id:"vk-03", name:"vault-keeper-03",        role:"vault-keeper",         x:200, y:200, queue:0,  cost:0.06, success:1.000, lastTask:"idle" },
+
+  // PLATFORM cluster (claude/gemini/ollama)
+  { id:"cs-01", name:"claude-specialist-01",   role:"claude-specialist",    x:480, y:80,  queue:7,  cost:4.22, success:0.971, lastTask:"opus-route" },
+  { id:"cs-02", name:"claude-specialist-02",   role:"claude-specialist",    x:560, y:140, queue:4,  cost:2.11, success:0.989, lastTask:"sonnet-route" },
+  { id:"gs-01", name:"gemini-specialist-01",   role:"gemini-specialist",    x:430, y:200, queue:2,  cost:0.48, success:0.962, lastTask:"flash-route" },
+  { id:"gs-02", name:"gemini-specialist-02",   role:"gemini-specialist",    x:520, y:240, queue:5,  cost:1.04, success:0.954, lastTask:"pro-route" },
+  { id:"os-01", name:"ollama-specialist-01",   role:"ollama-specialist",    x:610, y:200, queue:8,  cost:0.00, success:0.928, lastTask:"deepseek-r1:70b" },
+  { id:"os-02", name:"ollama-specialist-02",   role:"ollama-specialist",    x:670, y:120, queue:3,  cost:0.00, success:0.945, lastTask:"qwen3-coder" },
+
+  // MCP cluster
+  { id:"mcp-01", name:"mcp-specialist-01",     role:"mcp-specialist",       x:840, y:90,  queue:2,  cost:0.31, success:0.978, lastTask:"tool-list" },
+  { id:"mcp-02", name:"mcp-specialist-02",     role:"mcp-specialist",       x:910, y:160, queue:6,  cost:0.84, success:0.962, lastTask:"vault-mcp" },
+  { id:"mcp-03", name:"mcp-specialist-03",     role:"mcp-specialist",       x:880, y:240, queue:1,  cost:0.12, success:0.991, lastTask:"compound-mcp" },
+
+  // DATA cluster
+  { id:"sd-01", name:"surreal-dba-01",         role:"surreal-dba",          x:1080, y:110, queue:4,  cost:0.62, success:0.983, lastTask:"schema-migrate" },
+  { id:"sd-02", name:"surreal-dba-02",         role:"surreal-dba",          x:1140, y:180, queue:2,  cost:0.28, success:0.997, lastTask:"index-rebuild" },
+  { id:"sd-03", name:"surreal-dba-03",         role:"surreal-dba",          x:1080, y:260, queue:0,  cost:0.04, success:1.000, lastTask:"idle" },
+
+  // COORD cluster
+  { id:"pc-01", name:"platform-coord-01",      role:"platform-coordinator", x:680,  y:400, queue:11, cost:6.18, success:0.946, lastTask:"tier-rebal" },
+  { id:"pc-02", name:"platform-coord-02",      role:"platform-coordinator", x:780,  y:440, queue:4,  cost:1.21, success:0.972, lastTask:"fallback-arm" },
+];
+
+const CLUSTERS = [
+  { id:0, label:"VAULT",    x:120, y:60,  w:200, h:200, color:"" },
+  { id:1, label:"PLATFORM", x:400, y:50,  w:340, h:240, color:"" },
+  { id:2, label:"MCP",      x:800, y:60,  w:170, h:230, color:"amber" },
+  { id:3, label:"DATA",     x:1040,y:80,  w:180, h:220, color:"magenta" },
+  { id:4, label:"COORD",    x:620, y:370, w:240, h:120, color:"violet" },
+];
+
+const EDGES = [
+  // intra/inter agent message edges (active subset shown animated)
+  { a:"vk-01", b:"sd-01", active:true },
+  { a:"vk-02", b:"sd-02", active:false },
+  { a:"vk-01", b:"mcp-01", active:false },
+  { a:"cs-01", b:"pc-01", active:true, color:"" },
+  { a:"cs-02", b:"pc-01", active:true, color:"" },
+  { a:"gs-01", b:"pc-01", active:false },
+  { a:"gs-02", b:"pc-01", active:true, color:"" },
+  { a:"os-01", b:"pc-01", active:true, color:"" },
+  { a:"os-02", b:"pc-02", active:false },
+  { a:"mcp-01", b:"pc-02", active:true, color:"amber" },
+  { a:"mcp-02", b:"pc-01", active:true, color:"amber" },
+  { a:"mcp-03", b:"sd-03", active:false },
+  { a:"sd-01", b:"pc-01", active:true, color:"magenta" },
+  { a:"sd-02", b:"pc-02", active:false },
+  { a:"sd-03", b:"vk-03", active:false },
+  { a:"pc-01", b:"pc-02", active:true, color:"" },
+  { a:"cs-01", b:"cs-02", active:false },
+  { a:"gs-01", b:"gs-02", active:true, color:"" },
+  { a:"os-01", b:"os-02", active:false },
+  { a:"mcp-01", b:"mcp-02", active:false },
+  { a:"sd-01", b:"sd-02", active:true, color:"magenta" },
+  { a:"vk-01", b:"vk-02", active:false },
+  { a:"vk-02", b:"vk-03", active:false },
+];
+
+const MESSAGES = {
+  "pc-01": [
+    { ts:"00:00:14.218", from:"cs-01",  body:"opus-4-7 route accepted, latency 3.2s, $0.084" },
+    { ts:"00:00:13.881", from:"sd-01",  body:"schema migration rolled back, hash-chain verified" },
+    { ts:"00:00:13.502", from:"gs-02",  body:"gemini-pro-2.5 escalation requested, conf 0.71" },
+    { ts:"00:00:12.933", from:"os-01",  body:"deepseek-r1:70b vram pre-flight green, 4-slot ok" },
+    { ts:"00:00:12.412", from:"mcp-02", body:"vault-mcp tool-call returned 47 entries, ttl=300s" },
+  ],
+  "vk-01": [
+    { ts:"00:00:11.804", from:"sd-03", body:"orphan candidates: 12 (filtered to 4 actionable)" },
+    { ts:"00:00:11.227", from:"vk-02", body:"frontmatter-fix batch complete, 8 files patched" },
+    { ts:"00:00:10.918", from:"mcp-01", body:"vault tool-list refreshed, 48 entries cached" },
+    { ts:"00:00:10.412", from:"pc-01", body:"sweep window approved, budget 60s, priority normal" },
+    { ts:"00:00:09.882", from:"sd-01", body:"vault.decisions count delta +3 since last sync" },
+  ],
+};
+
+/* ---------------- UI ---------------- */
+
+const Panel = ({ tag, title, right, children, className }) => (
+  <div className={`panel ${className||""}`}>
+    <div className="panel-hd">
+      <div className="flex items-center gap-3">
+        <span className="tag mono">{tag}</span>
+        <span className="text-[10px] tracking-[0.18em] text-[color:var(--ink-3)]">{title}</span>
+      </div>
+      <div className="text-[10px] tracking-[0.18em] text-[color:var(--ink-3)] flex items-center gap-3">
+        {right}
+      </div>
+    </div>
+    <div className="panel-bd">{children}</div>
+  </div>
+);
+
+const Dot = ({ s }) => <span className={`dot ${s}`} />;
+
+function App() {
+  const [now, setNow] = useState(new Date());
+  const [selectedId, setSelectedId] = useState("pc-01");
+  useEffect(() => {
+    const id = setInterval(()=>setNow(new Date()), 1000);
+    return ()=>clearInterval(id);
+  }, []);
+  const tsLabel = now.toISOString().replace("T"," ").slice(0,19) + "Z";
+
+  const idxAgent = (id) => AGENTS.find(a => a.id === id);
+  const sel = idxAgent(selectedId) || AGENTS[0];
+
+  const totalQueue = AGENTS.reduce((s,a)=>s+a.queue,0);
+  const totalCost  = AGENTS.reduce((s,a)=>s+a.cost,0);
+  const meanSucc   = AGENTS.reduce((s,a)=>s+a.success,0)/AGENTS.length;
+  const activeEdges = EDGES.filter(e=>e.active).length;
+  const msgPerMin = 312;
+  const avgLat = 184;
+
+  return (
+    <div className="min-h-screen pb-3">
+      {/* TOP BAR */}
+      <header className="border-b hairline" style={{background:"linear-gradient(180deg,#0c0f15,#070809)"}}>
+        <div className="px-4 py-2 flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <div className="display text-[18px] text-[color:var(--ink)] tracking-[0.18em]">
+              cohezion <span className="text-[color:var(--cyan)]">/</span> swarm
+            </div>
+            <div className="text-[10px] tracking-[0.22em] text-[color:var(--ink-3)] uppercase">
+              swarm-orchestrator · v2.6.4 · ws://swarm-ops:9091
+            </div>
+            <div className="flex items-center gap-2 ml-2">
+              <span className="pulse-dot" />
+              <span className="text-[10px] tracking-[0.22em] text-[color:var(--cyan)] uppercase">LIVE</span>
+            </div>
+          </div>
+          <div className="flex items-center text-[11px] num">
+            <span><span className="text-[color:var(--ink-3)] mr-2">ACTIVE</span><span className="text-[color:var(--ink)]">{AGENTS.length}/20</span></span>
+            <span className="sep" />
+            <span><span className="text-[color:var(--ink-3)] mr-2">MSG/MIN</span><span className="text-[color:var(--cyan)] glow-cyan">{msgPerMin}</span></span>
+            <span className="sep" />
+            <span><span className="text-[color:var(--ink-3)] mr-2">AVG LAT</span>{avgLat}ms</span>
+            <span className="sep" />
+            <span><span className="text-[color:var(--ink-3)] mr-2">UTC</span>{tsLabel}<span className="blink text-[color:var(--cyan)]">_</span></span>
+          </div>
+        </div>
+        <div className="border-t hairline-soft px-2 py-[3px] text-[10px] text-[color:var(--ink-3)] ticker overflow-hidden">
+          <div className="marquee">
+            <span className="mr-10"><span className="text-[color:var(--ink-4)]">PROTOCOLS</span> MCP ✓  A2A ✓  AG-UI ✓  A2UI ✓</span>
+            <span className="mr-10"><span className="text-[color:var(--ink-4)]">CLUSTERS</span> vault · platform · mcp · data · coord  →  5 cluster groupings</span>
+            <span className="mr-10"><span className="text-[color:var(--ink-4)]">FANOUT</span> max-degree pc-01 (8 edges) · isolation 0 nodes</span>
+            <span className="mr-10"><span className="text-[color:var(--ink-4)]">SLO</span>  msg p99 &lt; 400ms · queue depth &lt; 12 per agent</span>
+            <span className="mr-10"><span className="text-[color:var(--ink-4)]">PROTOCOLS</span> MCP ✓  A2A ✓  AG-UI ✓  A2UI ✓</span>
+            <span className="mr-10"><span className="text-[color:var(--ink-4)]">CLUSTERS</span> vault · platform · mcp · data · coord  →  5 cluster groupings</span>
+            <span className="mr-10"><span className="text-[color:var(--ink-4)]">FANOUT</span> max-degree pc-01 (8 edges) · isolation 0 nodes</span>
+            <span className="mr-10"><span className="text-[color:var(--ink-4)]">SLO</span>  msg p99 &lt; 400ms · queue depth &lt; 12 per agent</span>
+          </div>
+        </div>
+      </header>
+
+      <main className="px-3 pt-3 grid grid-cols-12 gap-3">
+
+        {/* S.01 — TOPOLOGY CANVAS */}
+        <Panel
+          tag="S.01"
+          title="TOPOLOGY · LIVE"
+          right={<><span>{activeEdges} ACTIVE EDGES</span><span className="text-[color:var(--ink-4)]">/</span><span>{EDGES.length} TOTAL</span></>}
+          className="col-span-9"
+        >
+          <div className="border hairline" style={{background:"radial-gradient(circle at 50% 50%, var(--bg-2), var(--bg-1))"}}>
+            <svg viewBox="0 0 1280 600" width="100%" height="600">
+              {/* clusters */}
+              {CLUSTERS.map(c => (
+                <g key={c.id}>
+                  <rect
+                    x={c.x} y={c.y} width={c.w} height={c.h}
+                    className={`cluster-bg ${c.color}`}
+                  />
+                  <text x={c.x+8} y={c.y+16} className="cluster-label">{c.label}</text>
+                  <text x={c.x+c.w-8} y={c.y+16} textAnchor="end" className="cluster-label">
+                    n={AGENTS.filter(a=>ROLES[a.role].cluster===c.id).length}
+                  </text>
+                </g>
+              ))}
+
+              {/* edges */}
+              {EDGES.map((e,i) => {
+                const A = idxAgent(e.a), B = idxAgent(e.b);
+                if (!A||!B) return null;
+                const cls = "edge" + (e.active ? " active" : "") + (e.color ? " "+e.color : "");
+                return <line key={i} x1={A.x} y1={A.y} x2={B.x} y2={B.y} className={cls}/>;
+              })}
+
+              {/* nodes */}
+              {AGENTS.map(a => {
+                const role = ROLES[a.role];
+                const isSel = a.id === selectedId;
+                return (
+                  <g key={a.id} className={"agent-node " + (isSel ? "selected" : "")} onClick={()=>setSelectedId(a.id)}>
+                    <circle className="shell" cx={a.x} cy={a.y} r="22"/>
+                    <circle cx={a.x} cy={a.y} r="14" fill="none" stroke={role.color} strokeWidth="1.4" opacity={a.queue > 6 ? 0.95 : a.queue > 3 ? 0.65 : 0.4} />
+                    <text className="agent-label" x={a.x} y={a.y-2}>{a.id}</text>
+                    <text className="agent-role"  x={a.x} y={a.y+9} fill={role.color}>{role.label}</text>
+                    {/* queue depth indicator */}
+                    {a.queue > 0 && (
+                      <g>
+                        <rect x={a.x+14} y={a.y-26} width="20" height="10" fill="var(--bg-1)" stroke={role.color} strokeWidth="0.6"/>
+                        <text x={a.x+24} y={a.y-18} textAnchor="middle" fontSize="8" fill={role.color} fontFamily="JetBrains Mono">{a.queue}</text>
+                      </g>
+                    )}
+                  </g>
+                );
+              })}
+            </svg>
+          </div>
+
+          {/* legend */}
+          <div className="mt-2 grid grid-cols-7 gap-2 text-[9px] uppercase tracking-widest text-[color:var(--ink-3)]">
+            {Object.entries(ROLES).map(([role, info]) => (
+              <div key={role} className="flex items-center gap-2">
+                <span className="w-2 h-2 inline-block rounded-full" style={{background:info.color}}/>
+                {role.replace("-specialist","").replace("-coordinator","-coord")}
+              </div>
+            ))}
+          </div>
+        </Panel>
+
+        {/* S.02 — INSPECTOR */}
+        <Panel
+          tag="S.02"
+          title="INSPECTOR · SELECTED AGENT"
+          right={<><Dot s="green"/><span>{sel.success >= 0.95 ? "HEALTHY" : "DEGRADED"}</span></>}
+          className="col-span-3"
+        >
+          <div className="border hairline p-2 mb-2" style={{background:"var(--bg-2)"}}>
+            <div className="text-[9px] uppercase tracking-widest text-[color:var(--ink-4)]">AGENT</div>
+            <div className="text-[color:var(--cyan)] glow-cyan text-[12px] num">{sel.id}</div>
+            <div className="text-[10px] text-[color:var(--ink-2)]">{sel.name}</div>
+            <div className="text-[9px] uppercase tracking-widest text-[color:var(--ink-3)] mt-1">
+              role <span className="text-[color:var(--ink)] ml-2">{sel.role}</span>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-3 gap-2 text-[10px] num">
+            <div className="border hairline p-2" style={{background:"var(--bg-2)"}}>
+              <div className="text-[9px] uppercase tracking-widest text-[color:var(--ink-4)]">QUEUE</div>
+              <div className={"text-[16px] " + (sel.queue > 6 ? "text-[color:var(--amber)] glow-amber" : "text-[color:var(--cyan)] glow-cyan")}>
+                {sel.queue}
+              </div>
+            </div>
+            <div className="border hairline p-2" style={{background:"var(--bg-2)"}}>
+              <div className="text-[9px] uppercase tracking-widest text-[color:var(--ink-4)]">COST $</div>
+              <div className="text-[16px] text-[color:var(--ink)]">{sel.cost.toFixed(2)}</div>
+            </div>
+            <div className="border hairline p-2" style={{background:"var(--bg-2)"}}>
+              <div className="text-[9px] uppercase tracking-widest text-[color:var(--ink-4)]">SUCC %</div>
+              <div className={"text-[16px] " + (sel.success >= 0.97 ? "text-[color:var(--green)] glow-green" : "text-[color:var(--amber)]")}>
+                {(sel.success*100).toFixed(1)}
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-3 text-[9px] uppercase tracking-widest text-[color:var(--ink-4)]">LAST TASK</div>
+          <div className="text-[10px] text-[color:var(--ink)]">{sel.lastTask}</div>
+
+          <div className="mt-3 text-[9px] uppercase tracking-widest text-[color:var(--ink-4)] mb-1">LAST 5 MESSAGES</div>
+          <div className="text-[10px] num space-y-[3px]">
+            {(MESSAGES[sel.id] || []).map((m,i) => (
+              <div key={i} className="row-stripe px-1 py-1 border-b hairline-soft">
+                <div className="flex justify-between text-[9px]">
+                  <span className="text-[color:var(--cyan)]">{m.ts}</span>
+                  <span className="text-[color:var(--ink-4)]">from {m.from}</span>
+                </div>
+                <div className="text-[color:var(--ink-2)]">{m.body}</div>
+              </div>
+            ))}
+            {!MESSAGES[sel.id] && (
+              <div className="text-[color:var(--ink-4)] italic">no recent messages for this agent</div>
+            )}
+          </div>
+        </Panel>
+
+        {/* S.03 — AGENT METRICS TABLE */}
+        <Panel
+          tag="S.03"
+          title="AGENT METRICS · ALL"
+          right={<><span>n={AGENTS.length}</span><span className="text-[color:var(--ink-4)]">/</span><span>Σ queue {totalQueue}</span><span className="text-[color:var(--ink-4)]">/</span><span>Σ ${totalCost.toFixed(2)}</span></>}
+          className="col-span-12"
+        >
+          <div className="text-[10px] num">
+            <div className="grid grid-cols-12 gap-2 px-2 pb-1 border-b hairline-soft text-[color:var(--ink-4)] uppercase tracking-widest text-[9px]">
+              <div className="col-span-1">ID</div>
+              <div className="col-span-3">NAME</div>
+              <div className="col-span-2">ROLE</div>
+              <div className="col-span-2">LAST TASK</div>
+              <div className="col-span-1 text-right">QUEUE</div>
+              <div className="col-span-1 text-right">COST $</div>
+              <div className="col-span-1 text-right">SUCC %</div>
+              <div className="col-span-1 text-right">UTIL</div>
+            </div>
+            {AGENTS.map(a => {
+              const role = ROLES[a.role];
+              const util = Math.min(1, a.queue/12);
+              return (
+                <div
+                  key={a.id}
+                  onClick={()=>setSelectedId(a.id)}
+                  className={"row-stripe grid grid-cols-12 gap-2 px-2 py-1 cursor-pointer " + (a.id === selectedId ? "outline outline-1 outline-[color:var(--cyan)]" : "")}
+                >
+                  <div className="col-span-1 text-[color:var(--cyan)]">{a.id}</div>
+                  <div className="col-span-3 text-[color:var(--ink-2)] truncate">{a.name}</div>
+                  <div className="col-span-2" style={{color: role.color}}>{a.role}</div>
+                  <div className="col-span-2 text-[color:var(--ink-3)] truncate">{a.lastTask}</div>
+                  <div className={"col-span-1 text-right " + (a.queue > 6 ? "text-[color:var(--amber)]" : "text-[color:var(--ink)]")}>
+                    {a.queue}
+                  </div>
+                  <div className="col-span-1 text-right text-[color:var(--ink)]">
+                    {a.cost === 0
+                      ? <span className="text-[color:var(--green)]">0.00</span>
+                      : a.cost.toFixed(2)}
+                  </div>
+                  <div className={"col-span-1 text-right " + (a.success >= 0.97 ? "text-[color:var(--green)]" : "text-[color:var(--amber)]")}>
+                    {(a.success*100).toFixed(1)}
+                  </div>
+                  <div className="col-span-1">
+                    <div className="bar-track mt-1">
+                      <div className="bar-fill" style={{width:`${util*100}%`, background: util > 0.6 ? "var(--amber)" : "var(--cyan)"}}/>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          <div className="mt-2 grid grid-cols-4 gap-2 text-[10px] num">
+            <div className="border hairline p-2" style={{background:"var(--bg-2)"}}>
+              <div className="text-[9px] uppercase tracking-widest text-[color:var(--ink-4)]">MEAN SUCC</div>
+              <div className="text-[color:var(--green)] glow-green">{(meanSucc*100).toFixed(2)}%</div>
+            </div>
+            <div className="border hairline p-2" style={{background:"var(--bg-2)"}}>
+              <div className="text-[9px] uppercase tracking-widest text-[color:var(--ink-4)]">TOTAL COST</div>
+              <div className="text-[color:var(--ink)]">${totalCost.toFixed(2)}</div>
+            </div>
+            <div className="border hairline p-2" style={{background:"var(--bg-2)"}}>
+              <div className="text-[9px] uppercase tracking-widest text-[color:var(--ink-4)]">QUEUE Σ</div>
+              <div className="text-[color:var(--ink)]">{totalQueue}</div>
+            </div>
+            <div className="border hairline p-2" style={{background:"var(--bg-2)"}}>
+              <div className="text-[9px] uppercase tracking-widest text-[color:var(--ink-4)]">EDGES ACTIVE</div>
+              <div className="text-[color:var(--cyan)] glow-cyan">{activeEdges} / {EDGES.length}</div>
+            </div>
+          </div>
+        </Panel>
+
+      </main>
+
+      <footer className="px-4 mt-3 pt-2 border-t hairline text-[9px] uppercase tracking-[0.22em] text-[color:var(--ink-4)] flex justify-between">
+        <div>cohezion.swarm · topology · build {now.toISOString().slice(0,10).replace(/-/g,"")}.0419</div>
+        <div>shift+? help · click node inspect · g+t goto topology · g+m goto metrics · esc clear</div>
+      </footer>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+</script>
+</body>
+</html>

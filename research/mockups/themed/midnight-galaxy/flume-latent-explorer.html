@@ -1,0 +1,599 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=1440" />
+  <title>FLUME LATENT // EXPLORER</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Audiowide&family=JetBrains+Mono:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/prop-types@15/prop-types.min.js"></script>
+  <script src="https://unpkg.com/recharts@2.12.7/umd/Recharts.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone@7.24.7/babel.min.js"></script>
+
+  <style>
+    :root {
+      --bg-0: #15082b;
+      --bg-1: #1c0f36;
+      --bg-2: #241340;
+      --bg-3: #2b1e3e;
+      --grid: #3a2a55;
+      --rule: #4a4e8f;
+      --rule-soft: #2e1d4d;
+      --ink: #e6e6fa;
+      --ink-2: #c0b8de;
+      --ink-3: #8a82ad;
+      --ink-4: #5d5675;
+      --cyan: #a490c2;
+      --cyan-dim: #7a6a99;
+      --amber: #ff79c6;
+      --amber-dim: #b04d8a;
+      --magenta: #4a4e8f;
+      --magenta-dim: #34376a;
+      --red: #ff5d8f;
+      --green: #79e0c4;
+      --violet: #a490c2;
+    }
+    html, body {
+      background: var(--bg-0); color: var(--ink);
+      font-family: 'Orbitron', 'JetBrains Mono', monospace;
+      font-feature-settings: "tnum","ss01","ss02","ss03","cv02","cv11";
+      -webkit-font-smoothing: antialiased; letter-spacing: 0.01em;
+    }
+    body::before {
+      content:""; position:fixed; inset:0; pointer-events:none;
+      background: repeating-linear-gradient(to bottom,
+        rgba(255,255,255,0.012) 0px, rgba(255,255,255,0.012) 1px,
+        transparent 1px, transparent 3px);
+      mix-blend-mode: overlay; z-index:60;
+    }
+    body::after {
+      content:""; position:fixed; inset:0; pointer-events:none;
+      background:
+        radial-gradient(ellipse 90% 60% at 50% 110%, rgba(0,0,0,0.55), transparent 60%),
+        radial-gradient(ellipse 80% 50% at 50% -10%, rgba(0,0,0,0.40), transparent 60%);
+      z-index:59;
+    }
+    .display { font-family:'Audiowide', 'Orbitron', monospace; letter-spacing:0.06em; }
+    .mono { font-family:'JetBrains Mono', ui-monospace, monospace; }
+    .panel {
+      background: var(--bg-1); border: 1px solid var(--rule);
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.012), 0 0 0 1px rgba(0,0,0,0.4);
+    }
+    .panel-hd {
+      display:flex; align-items:center; justify-content:space-between;
+      padding:6px 10px;
+      background: linear-gradient(180deg,#0e131c 0%,#0a0e15 100%);
+      border-bottom:1px solid var(--rule);
+      font-size:10px; text-transform:uppercase; letter-spacing:0.18em; color:var(--ink-2);
+    }
+    .panel-hd .tag { color:var(--cyan); font-weight:700; }
+    .panel-bd { padding:10px; }
+    .row-stripe:nth-child(odd) { background: rgba(255,255,255,0.012); }
+    .row-stripe:hover { background: rgba(92,242,232,0.06); }
+    .dot { width:7px; height:7px; display:inline-block; }
+    .dot.green { background:var(--green); box-shadow:0 0 6px rgba(92,255,158,0.7); }
+    .dot.amber { background:var(--amber); box-shadow:0 0 6px rgba(245,181,60,0.7); }
+    .dot.red   { background:var(--red);   box-shadow:0 0 6px rgba(255,93,93,0.7); }
+    .blink { animation: blink 1.6s steps(2,end) infinite; }
+    @keyframes blink { 50% { opacity:0.25; } }
+    .pulse-dot {
+      width:6px; height:6px; background:var(--cyan);
+      box-shadow:0 0 0 0 rgba(92,242,232,0.6);
+      animation: pulse 1.6s ease-out infinite;
+    }
+    @keyframes pulse {
+      0%   { box-shadow:0 0 0 0 rgba(92,242,232,0.55); }
+      80%  { box-shadow:0 0 0 8px rgba(92,242,232,0); }
+      100% { box-shadow:0 0 0 0 rgba(92,242,232,0); }
+    }
+    .ticker { mask-image: linear-gradient(to right, transparent, #000 8%, #000 92%, transparent); }
+    *::-webkit-scrollbar { width:8px; height:8px; }
+    *::-webkit-scrollbar-thumb { background:#1d2533; border:1px solid var(--rule); }
+    *::-webkit-scrollbar-track { background:transparent; }
+    .glow-cyan    { text-shadow:0 0 10px rgba(92,242,232,0.45); }
+    .glow-amber   { text-shadow:0 0 10px rgba(245,181,60,0.40); }
+    .glow-magenta { text-shadow:0 0 10px rgba(255,79,191,0.40); }
+    .glow-red     { text-shadow:0 0 10px rgba(255,93,93,0.45); }
+    .glow-green   { text-shadow:0 0 10px rgba(92,255,158,0.40); }
+    .hairline { border-color: var(--rule); }
+    .hairline-soft { border-color: var(--rule-soft); }
+    .sep::before { content:"·"; color:var(--ink-4); margin:0 14px; }
+    .num { font-variant-numeric: tabular-nums; }
+    .marquee { display:inline-block; white-space:nowrap; animation: marquee 60s linear infinite; }
+    @keyframes marquee { from { transform:translateX(0); } to { transform:translateX(-50%); } }
+    .bar-track { height:6px; background:#0a0d12; border:1px solid var(--rule); position:relative; overflow:hidden; }
+    .bar-fill { height:100%; }
+
+    /* mode radio */
+    .mode-radio {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 4px 8px; border: 1px solid var(--rule); cursor: pointer;
+      font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase;
+      color: var(--ink-3); background: var(--bg-2);
+    }
+    .mode-radio.on {
+      color: var(--cyan); border-color: var(--cyan);
+      box-shadow: inset 0 0 0 1px rgba(92,242,232,0.18), 0 0 6px rgba(92,242,232,0.18);
+    }
+    .mode-radio .pip {
+      width: 8px; height: 8px; border: 1px solid var(--ink-3); display:inline-block;
+    }
+    .mode-radio.on .pip { background: var(--cyan); border-color: var(--cyan); }
+
+    .latent-bar { background: var(--cyan); height: 100%; }
+    .latent-bar.neg { background: var(--magenta); }
+
+    /* scatter dots */
+    .scatter-dot { fill: var(--cyan); }
+
+/* Theme override: dark synth mode — keep glow but tinted */
+body::before { opacity: 0.6; }
+
+  </style>
+</head>
+<body class="min-h-screen">
+
+<div id="root"></div>
+
+<script type="text/babel" data-presets="env,react">
+const { useState, useEffect, useMemo } = React;
+const { BarChart, Bar, ResponsiveContainer, Tooltip, XAxis, YAxis, Cell, ReferenceLine } = Recharts;
+
+/* ---------------- MOCK DATA ---------------- */
+
+// 256-D latent codes are reduced to 2D via t-SNE-like projection.
+// Generate clustered points with varying reconstruction loss.
+function rng(seed){ let s = seed; return () => { s=(s*9301+49297)%233280; return s/233280; }; }
+const r = rng(7);
+
+const N_POINTS = 320;
+const CLUSTERS = [
+  { cx:-2.2, cy:-1.4, sx:0.7, sy:0.6, baseLoss:0.04, label:"plan" },
+  { cx: 0.5, cy:-2.1, sx:0.9, sy:0.7, baseLoss:0.07, label:"exec" },
+  { cx: 2.4, cy: 0.3, sx:0.8, sy:0.9, baseLoss:0.11, label:"reflect" },
+  { cx:-0.6, cy: 2.1, sx:1.0, sy:0.8, baseLoss:0.18, label:"refine" },
+  { cx: 1.6, cy: 2.4, sx:0.6, sy:0.5, baseLoss:0.31, label:"degrade" },
+];
+
+const SAMPLE_TEXTS = [
+  "summarize last 24h cost router activity",
+  "rebalance simple tier toward 70% target share",
+  "verify hash-chain head against checkpoint ledger",
+  "promote vault-keeper sweep to immediate window",
+  "schedule sonnet-4-7 escalation for ambiguous prompts",
+  "rollback ckpt-9f3c1a2 due to coherence dip below 0.45",
+  "extract reusable pattern from session 412",
+  "debug surreal connection latency spike",
+  "refine skill cohezion-debugging-scenarios",
+  "trigger compound retrospection on failed exec batch",
+  "validate JEPA surprise above 0.30 threshold",
+  "dispatch ollama deepseek-r1:70b to hard tier query",
+  "audit budget enforcer against month-to-date spend",
+  "snapshot manifold env state vector at tick 14217",
+  "regenerate MEMORY.md from vault decisions",
+  "publish AGI-Golf submission slug neurogolf-2026",
+];
+
+function loremFromText(seed) {
+  const t = SAMPLE_TEXTS[seed % SAMPLE_TEXTS.length];
+  return t;
+}
+
+const POINTS = Array.from({length:N_POINTS}, (_,i) => {
+  const c = CLUSTERS[Math.floor(r()*CLUSTERS.length)];
+  const x = c.cx + (r()*2-1)*c.sx;
+  const y = c.cy + (r()*2-1)*c.sy;
+  const noise = r()*0.20;
+  const loss = Math.max(0.005, c.baseLoss + (r()-0.4)*0.10 + noise*0.3);
+  return {
+    id: i,
+    x, y, loss,
+    cluster: c.label,
+    text: loremFromText(i),
+    latent: Array.from({length:16}, () => (r()*2-1)*0.85), // first 16 dims
+    reconstructed: loremFromText((i*3+1) % SAMPLE_TEXTS.length),
+  };
+});
+
+// loss histogram, 30 buckets [0,0.6]
+const HIST_BUCKETS = 30;
+const HIST_MAX = 0.6;
+const HIST = Array.from({length:HIST_BUCKETS}, (_,b) => {
+  const lo = (b/HIST_BUCKETS)*HIST_MAX;
+  const hi = ((b+1)/HIST_BUCKETS)*HIST_MAX;
+  const n = POINTS.filter(p => p.loss >= lo && p.loss < hi).length;
+  return { b, lo, hi, n, mid: (lo+hi)/2 };
+});
+
+const LOSS_MIN = Math.min(...POINTS.map(p=>p.loss));
+const LOSS_MAX = Math.max(...POINTS.map(p=>p.loss));
+const LOSS_MEAN = POINTS.reduce((s,p)=>s+p.loss,0)/POINTS.length;
+
+// color scale: cyan (low) → magenta (high)
+function lossColor(l) {
+  const t = Math.min(1, Math.max(0, (l - LOSS_MIN) / (LOSS_MAX - LOSS_MIN)));
+  // interp between cyan (0x5c,0xf2,0xe8) and magenta (0xff,0x4f,0xbf)
+  const r = Math.round(0x5c + (0xff - 0x5c) * t);
+  const g = Math.round(0xf2 + (0x4f - 0xf2) * t);
+  const b = Math.round(0xe8 + (0xbf - 0xe8) * t);
+  return `rgb(${r},${g},${b})`;
+}
+
+function neighbors(point, k=5) {
+  const all = POINTS.filter(p => p.id !== point.id).map(p => {
+    const dx = p.x - point.x, dy = p.y - point.y;
+    const dot = p.latent.reduce((s,v,i) => s + v*point.latent[i], 0);
+    const na = Math.sqrt(p.latent.reduce((s,v)=>s+v*v,0));
+    const nb = Math.sqrt(point.latent.reduce((s,v)=>s+v*v,0));
+    const cos = dot / (na*nb || 1);
+    const dist = Math.sqrt(dx*dx + dy*dy);
+    return { p, cos, dist };
+  });
+  all.sort((a,b) => b.cos - a.cos);
+  return all.slice(0,k);
+}
+
+/* ---------------- UI ---------------- */
+
+const Panel = ({ tag, title, right, children, className }) => (
+  <div className={`panel ${className||""}`}>
+    <div className="panel-hd">
+      <div className="flex items-center gap-3">
+        <span className="tag mono">{tag}</span>
+        <span className="text-[10px] tracking-[0.18em] text-[color:var(--ink-3)]">{title}</span>
+      </div>
+      <div className="text-[10px] tracking-[0.18em] text-[color:var(--ink-3)] flex items-center gap-3">
+        {right}
+      </div>
+    </div>
+    <div className="panel-bd">{children}</div>
+  </div>
+);
+
+const Dot = ({ s }) => <span className={`dot ${s}`} />;
+
+function Scatter({ points, selectedId, onSelect }) {
+  const W = 760, H = 480, PAD = 28;
+  const xs = points.map(p=>p.x), ys = points.map(p=>p.y);
+  const xMin = Math.min(...xs), xMax = Math.max(...xs);
+  const yMin = Math.min(...ys), yMax = Math.max(...ys);
+  const sx = (x) => PAD + (x - xMin)/(xMax-xMin) * (W - 2*PAD);
+  const sy = (y) => H - PAD - (y - yMin)/(yMax-yMin) * (H - 2*PAD);
+
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} width="100%" height="480" style={{background:"var(--bg-2)"}}>
+      {/* grid */}
+      {[0,0.25,0.5,0.75,1].map((g,i)=>(
+        <g key={i}>
+          <line x1={PAD + g*(W-2*PAD)} y1={PAD} x2={PAD + g*(W-2*PAD)} y2={H-PAD} stroke="var(--rule-soft)" strokeWidth="0.5"/>
+          <line x1={PAD} y1={PAD + g*(H-2*PAD)} x2={W-PAD} y2={PAD + g*(H-2*PAD)} stroke="var(--rule-soft)" strokeWidth="0.5"/>
+        </g>
+      ))}
+      <line x1={PAD} y1={H-PAD} x2={W-PAD} y2={H-PAD} stroke="var(--rule)" strokeWidth="0.8"/>
+      <line x1={PAD} y1={PAD}    x2={PAD} y2={H-PAD}  stroke="var(--rule)" strokeWidth="0.8"/>
+
+      {/* axis labels */}
+      <text x={W-PAD} y={H-PAD-6} textAnchor="end" fill="var(--ink-4)" fontSize="9" letterSpacing="0.18em">t-SNE x</text>
+      <text x={PAD+6} y={PAD+10} fill="var(--ink-4)" fontSize="9" letterSpacing="0.18em">t-SNE y</text>
+
+      {/* points */}
+      {points.map(p => {
+        const isSel = p.id === selectedId;
+        return (
+          <circle
+            key={p.id}
+            cx={sx(p.x)} cy={sy(p.y)}
+            r={isSel ? 5 : 2.2}
+            fill={lossColor(p.loss)}
+            stroke={isSel ? "var(--ink)" : "none"}
+            strokeWidth={isSel ? 1.4 : 0}
+            opacity={isSel ? 1 : 0.78}
+            style={{cursor:"pointer"}}
+            onClick={()=>onSelect(p.id)}
+          />
+        );
+      })}
+
+      {/* selected reticle */}
+      {selectedId !== null && (() => {
+        const p = points.find(p => p.id === selectedId);
+        if (!p) return null;
+        const cx = sx(p.x), cy = sy(p.y);
+        return (
+          <g>
+            <line x1={cx-12} y1={cy} x2={cx-6} y2={cy} stroke="var(--cyan)" strokeWidth="1"/>
+            <line x1={cx+12} y1={cy} x2={cx+6} y2={cy} stroke="var(--cyan)" strokeWidth="1"/>
+            <line x1={cx} y1={cy-12} x2={cx} y2={cy-6} stroke="var(--cyan)" strokeWidth="1"/>
+            <line x1={cx} y1={cy+12} x2={cx} y2={cy+6} stroke="var(--cyan)" strokeWidth="1"/>
+            <circle cx={cx} cy={cy} r="14" fill="none" stroke="var(--cyan)" strokeWidth="0.6" strokeDasharray="2 3"/>
+          </g>
+        );
+      })()}
+    </svg>
+  );
+}
+
+function App() {
+  const [now, setNow] = useState(new Date());
+  const [mode, setMode] = useState("encode"); // or "decode"
+  const [selectedId, setSelectedId] = useState(48);
+
+  useEffect(() => {
+    const id = setInterval(()=>setNow(new Date()), 1000);
+    return ()=>clearInterval(id);
+  }, []);
+  const tsLabel = now.toISOString().replace("T"," ").slice(0,19) + "Z";
+
+  const sel = POINTS.find(p => p.id === selectedId) || POINTS[0];
+  const nbs = useMemo(()=>neighbors(sel, 5), [selectedId]);
+
+  return (
+    <div className="min-h-screen pb-3">
+      {/* TOP BAR */}
+      <header className="border-b hairline" style={{background:"linear-gradient(180deg,#0c0f15,#070809)"}}>
+        <div className="px-4 py-2 flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <div className="display text-[18px] text-[color:var(--ink)] tracking-[0.18em]">
+              cohezion <span className="text-[color:var(--cyan)]">/</span> flume
+            </div>
+            <div className="text-[10px] tracking-[0.22em] text-[color:var(--ink-3)] uppercase">
+              flume-vae · 256d-latent · v1.8.0 · /api/flume/embed
+            </div>
+            <div className="flex items-center gap-2 ml-2">
+              <span className="pulse-dot" />
+              <span className="text-[10px] tracking-[0.22em] text-[color:var(--cyan)] uppercase">LIVE</span>
+            </div>
+          </div>
+          <div className="flex items-center text-[11px] num">
+            <span><span className="text-[color:var(--ink-3)] mr-2">DIM</span><span className="text-[color:var(--ink)]">256</span></span>
+            <span className="sep" />
+            <span><span className="text-[color:var(--ink-3)] mr-2">N</span><span className="text-[color:var(--ink)]">{POINTS.length}</span></span>
+            <span className="sep" />
+            <span><span className="text-[color:var(--ink-3)] mr-2">µLOSS</span><span className="text-[color:var(--cyan)] glow-cyan">{LOSS_MEAN.toFixed(4)}</span></span>
+            <span className="sep" />
+            <span><span className="text-[color:var(--ink-3)] mr-2">UTC</span>{tsLabel}<span className="blink text-[color:var(--cyan)]">_</span></span>
+          </div>
+        </div>
+        <div className="border-t hairline-soft px-2 py-[3px] text-[10px] text-[color:var(--ink-3)] ticker overflow-hidden">
+          <div className="marquee">
+            <span className="mr-10"><span className="text-[color:var(--ink-4)]">PROJECTION</span> t-SNE perplexity 30 · iter 1000 · cosine metric</span>
+            <span className="mr-10"><span className="text-[color:var(--ink-4)]">CLUSTERS</span> plan · exec · reflect · refine · degrade  →  5 manifolds</span>
+            <span className="mr-10"><span className="text-[color:var(--ink-4)]">RECON LOSS</span> min {LOSS_MIN.toFixed(4)} · max {LOSS_MAX.toFixed(4)} · σ 0.082</span>
+            <span className="mr-10"><span className="text-[color:var(--ink-4)]">ENCODER</span> 12-layer transformer · params 14.2M · trained 2026-04-12</span>
+            <span className="mr-10"><span className="text-[color:var(--ink-4)]">PROJECTION</span> t-SNE perplexity 30 · iter 1000 · cosine metric</span>
+            <span className="mr-10"><span className="text-[color:var(--ink-4)]">CLUSTERS</span> plan · exec · reflect · refine · degrade  →  5 manifolds</span>
+            <span className="mr-10"><span className="text-[color:var(--ink-4)]">RECON LOSS</span> min {LOSS_MIN.toFixed(4)} · max {LOSS_MAX.toFixed(4)} · σ 0.082</span>
+            <span className="mr-10"><span className="text-[color:var(--ink-4)]">ENCODER</span> 12-layer transformer · params 14.2M · trained 2026-04-12</span>
+          </div>
+        </div>
+      </header>
+
+      <main className="px-3 pt-3 grid grid-cols-12 gap-3">
+
+        {/* F.00 — MODE */}
+        <Panel
+          tag="F.00"
+          title="MODE · DIRECTION"
+          right={<><span>Σ {POINTS.length} EMBEDS</span></>}
+          className="col-span-12"
+        >
+          <div className="flex items-center gap-3 text-[10px]">
+            <div
+              onClick={()=>setMode("encode")}
+              className={"mode-radio " + (mode==="encode" ? "on" : "")}
+            >
+              <span className="pip"/>encode mode · text → latent
+            </div>
+            <div
+              onClick={()=>setMode("decode")}
+              className={"mode-radio " + (mode==="decode" ? "on" : "")}
+            >
+              <span className="pip"/>decode mode · latent → text
+            </div>
+            <span className="ml-auto text-[color:var(--ink-4)] uppercase tracking-widest text-[9px]">
+              {mode === "encode"
+                ? "click point to inspect encoded → latent → decoded round-trip"
+                : "click point to inspect latent → reconstructed text"}
+            </span>
+          </div>
+        </Panel>
+
+        {/* F.01 — SCATTER */}
+        <Panel
+          tag="F.01"
+          title="LATENT MANIFOLD · t-SNE 2D"
+          right={<><span>color = recon loss</span><span className="text-[color:var(--ink-4)]">/</span><span>CYAN low → MAGENTA high</span></>}
+          className="col-span-8"
+        >
+          <Scatter points={POINTS} selectedId={selectedId} onSelect={setSelectedId} />
+
+          {/* color legend */}
+          <div className="mt-2 flex items-center gap-3 text-[9px] uppercase tracking-widest text-[color:var(--ink-3)]">
+            <span>{LOSS_MIN.toFixed(3)}</span>
+            <div style={{
+              flex: 1, height: 8,
+              background: "linear-gradient(to right, var(--cyan), var(--violet), var(--magenta))",
+              border: "1px solid var(--rule)"
+            }}/>
+            <span>{LOSS_MAX.toFixed(3)}</span>
+            <span className="text-[color:var(--ink-4)]">recon loss</span>
+          </div>
+        </Panel>
+
+        {/* F.02 — INSPECTOR */}
+        <Panel
+          tag="F.02"
+          title="ROUND-TRIP · SELECTED POINT"
+          right={<>
+            <span style={{color: lossColor(sel.loss)}}>● loss {sel.loss.toFixed(4)}</span>
+          </>}
+          className="col-span-4"
+        >
+          <div className="text-[10px] num">
+            <div className="border hairline p-2 mb-2" style={{background:"var(--bg-2)"}}>
+              <div className="text-[9px] uppercase tracking-widest text-[color:var(--ink-4)]">POINT</div>
+              <div className="text-[color:var(--cyan)] glow-cyan">id={sel.id} · cluster {sel.cluster}</div>
+              <div className="text-[9px] text-[color:var(--ink-3)]">tsne ({sel.x.toFixed(2)}, {sel.y.toFixed(2)})</div>
+            </div>
+
+            <div className="text-[9px] uppercase tracking-widest text-[color:var(--ink-4)] mb-1">INPUT TEXT</div>
+            <div className="border hairline p-2 mb-2" style={{background:"var(--bg-2)"}}>
+              <span className="text-[color:var(--ink)]">{sel.text}</span>
+            </div>
+
+            <div className="text-[9px] uppercase tracking-widest text-[color:var(--ink-4)] mb-1">LATENT z[0:16] · 256-d truncated</div>
+            <div className="space-y-[2px] mb-2">
+              {sel.latent.map((v,i) => {
+                const w = Math.min(50, Math.abs(v)*60);
+                const neg = v < 0;
+                return (
+                  <div key={i} className="grid grid-cols-12 gap-1 items-center">
+                    <span className="col-span-1 text-[9px] text-[color:var(--ink-4)]">z{i.toString().padStart(2,"0")}</span>
+                    <div className="col-span-7 flex items-center" style={{height:6}}>
+                      <div className="h-full" style={{
+                        width: '50%',
+                        position: 'relative',
+                        borderRight: '1px solid var(--rule)',
+                        display: 'flex',
+                        justifyContent: 'flex-end'
+                      }}>
+                        {neg && <div style={{width:`${w}%`, height:'100%', background:'var(--magenta)'}}/>}
+                      </div>
+                      <div className="h-full" style={{ width:'50%' }}>
+                        {!neg && <div style={{width:`${w}%`, height:'100%', background:'var(--cyan)'}}/>}
+                      </div>
+                    </div>
+                    <span className={"col-span-4 text-[9px] text-right num " + (neg ? "text-[color:var(--magenta)]" : "text-[color:var(--cyan)]")}>
+                      {v >= 0 ? "+" : ""}{v.toFixed(3)}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+
+            <div className="text-[9px] uppercase tracking-widest text-[color:var(--ink-4)] mb-1">DECODED TEXT</div>
+            <div className="border hairline p-2 mb-2" style={{background:"var(--bg-2)"}}>
+              <span className="text-[color:var(--ink-2)]">{sel.reconstructed}</span>
+            </div>
+
+            <div className="grid grid-cols-3 gap-2 mt-2">
+              <div className="border hairline p-2" style={{background:"var(--bg-2)"}}>
+                <div className="text-[9px] uppercase tracking-widest text-[color:var(--ink-4)]">RECON LOSS</div>
+                <div className="text-[12px]" style={{color: lossColor(sel.loss)}}>{sel.loss.toFixed(4)}</div>
+              </div>
+              <div className="border hairline p-2" style={{background:"var(--bg-2)"}}>
+                <div className="text-[9px] uppercase tracking-widest text-[color:var(--ink-4)]">||z||</div>
+                <div className="text-[12px] text-[color:var(--ink)]">
+                  {Math.sqrt(sel.latent.reduce((s,v)=>s+v*v,0)).toFixed(3)}
+                </div>
+              </div>
+              <div className="border hairline p-2" style={{background:"var(--bg-2)"}}>
+                <div className="text-[9px] uppercase tracking-widest text-[color:var(--ink-4)]">PCT-RANK</div>
+                <div className="text-[12px] text-[color:var(--cyan)]">
+                  {(POINTS.filter(p => p.loss <= sel.loss).length / POINTS.length * 100).toFixed(0)}%
+                </div>
+              </div>
+            </div>
+          </div>
+        </Panel>
+
+        {/* F.03 — HISTOGRAM */}
+        <Panel
+          tag="F.03"
+          title="RECON LOSS HISTOGRAM · 30 BUCKETS"
+          right={<><span>µ {LOSS_MEAN.toFixed(4)}</span><span className="text-[color:var(--ink-4)]">/</span><span>n={POINTS.length}</span></>}
+          className="col-span-8"
+        >
+          <div style={{height:200}}>
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={HIST} margin={{top:6,right:8,left:0,bottom:0}}>
+                <XAxis dataKey="mid" tickFormatter={(v)=>v.toFixed(2)} tick={{fill:"#6e7787",fontSize:9}} axisLine={{stroke:"#20283a"}} tickLine={false} />
+                <YAxis tick={{fill:"#6e7787",fontSize:9}} axisLine={{stroke:"#20283a"}} tickLine={false} width={28}/>
+                <ReferenceLine x={LOSS_MEAN} stroke="var(--amber)" strokeDasharray="3 3" label={{value:`µ ${LOSS_MEAN.toFixed(3)}`,position:"top",fill:"var(--amber)",fontSize:9}}/>
+                <ReferenceLine x={sel.loss} stroke="var(--cyan)" label={{value:"sel",position:"top",fill:"var(--cyan)",fontSize:9}}/>
+                <Bar dataKey="n" isAnimationActive={false}>
+                  {HIST.map((h,i) => (
+                    <Cell key={i} fill={lossColor(h.mid)} />
+                  ))}
+                </Bar>
+                <Tooltip contentStyle={{background:"#0b0d10",border:"1px solid #20283a",fontSize:10}} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+          <div className="mt-2 grid grid-cols-5 gap-2 text-[10px] num">
+            {CLUSTERS.map(c => {
+              const subset = POINTS.filter(p=>p.cluster===c.label);
+              const m = subset.reduce((s,p)=>s+p.loss,0)/Math.max(1,subset.length);
+              return (
+                <div key={c.label} className="border hairline p-2" style={{background:"var(--bg-2)"}}>
+                  <div className="text-[9px] uppercase tracking-widest text-[color:var(--ink-4)]">{c.label}</div>
+                  <div className="text-[11px]" style={{color: lossColor(m)}}>{m.toFixed(4)}</div>
+                  <div className="text-[9px] text-[color:var(--ink-3)]">n={subset.length}</div>
+                </div>
+              );
+            })}
+          </div>
+        </Panel>
+
+        {/* F.04 — TOP-K NEIGHBORS */}
+        <Panel
+          tag="F.04"
+          title="TOP-K=5 NEIGHBORS · COSINE"
+          right={<><span>around id={sel.id}</span></>}
+          className="col-span-4"
+        >
+          <div className="text-[10px] num">
+            <div className="grid grid-cols-12 gap-2 px-1 pb-1 border-b hairline-soft text-[color:var(--ink-4)] uppercase tracking-widest text-[9px]">
+              <div className="col-span-1">#</div>
+              <div className="col-span-1">ID</div>
+              <div className="col-span-2 text-right">COS</div>
+              <div className="col-span-2 text-right">LOSS</div>
+              <div className="col-span-6">SNIPPET</div>
+            </div>
+            {nbs.map((nb,i) => (
+              <div
+                key={nb.p.id}
+                onClick={()=>setSelectedId(nb.p.id)}
+                className="row-stripe grid grid-cols-12 gap-2 px-1 py-1 cursor-pointer"
+              >
+                <div className="col-span-1 text-[color:var(--ink-3)]">{i+1}</div>
+                <div className="col-span-1 text-[color:var(--cyan)]">{nb.p.id}</div>
+                <div className="col-span-2 text-right text-[color:var(--green)] glow-green">
+                  {nb.cos.toFixed(3)}
+                </div>
+                <div className="col-span-2 text-right" style={{color: lossColor(nb.p.loss)}}>
+                  {nb.p.loss.toFixed(3)}
+                </div>
+                <div className="col-span-6 text-[color:var(--ink-2)] truncate">
+                  {nb.p.text}
+                </div>
+              </div>
+            ))}
+            <div className="mt-2 border hairline p-2 text-[9px] uppercase tracking-widest text-[color:var(--ink-3)]" style={{background:"var(--bg-2)"}}>
+              <span className="text-[color:var(--ink-4)]">METRIC</span> cosine on 256-d latent
+              <span className="sep"/>
+              <span className="text-[color:var(--ink-4)]">INDEX</span> hnsw  m=16  ef=64
+            </div>
+          </div>
+        </Panel>
+
+      </main>
+
+      <footer className="px-4 mt-3 pt-2 border-t hairline text-[9px] uppercase tracking-[0.22em] text-[color:var(--ink-4)] flex justify-between">
+        <div>cohezion.flume · latent-explorer · build {now.toISOString().slice(0,10).replace(/-/g,"")}.0521</div>
+        <div>shift+? help · click point inspect · g+s scatter · g+h histogram · g+n neighbors · esc clear</div>
+      </footer>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+</script>
+</body>
+</html>
