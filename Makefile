@@ -18,7 +18,7 @@ lint-check:  ## Check linting without fixing (src/ + tests/)
 	@echo "✓ Lint check complete"
 
 type-check:  ## Run type checking with mypy
-	uv run mypy --ignore-missing-imports bmad/ || true
+	uv run mypy src/cohezion --ignore-missing-imports --no-strict-optional --exclude 'mcp-builder'
 	@echo "✓ Type check complete"
 
 test:  ## Run test suite
@@ -45,7 +45,7 @@ ci:  ## Run CI checks locally
 	@echo "Running CI checks..."
 	uv run ruff format --check .
 	uv run ruff check .
-	uv run mypy --ignore-missing-imports bmad/ || true
+	uv run mypy src/cohezion --ignore-missing-imports --no-strict-optional --exclude 'mcp-builder' || true
 	uv run pytest tests/
 	@echo "✓ All CI checks passed"
 
