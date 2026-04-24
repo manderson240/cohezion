@@ -5,8 +5,6 @@ Covers failure thresholding and state transitions.
 
 from __future__ import annotations
 
-import time
-
 from cohezion.reliability import CircuitBreaker, CircuitState, get_circuit
 
 
@@ -27,8 +25,8 @@ def test_circuit_breaker_open_close():
     assert breaker.state == CircuitState.OPEN
     assert breaker.allow_request() is False
 
-    # Wait for recovery
-    time.sleep(0.15)
+    # Rewind last_failure_time to simulate recovery_timeout passing
+    breaker._stats.last_failure_time -= 0.15
     assert breaker.state == CircuitState.HALF_OPEN
     assert breaker.allow_request() is True  # First call in half-open
 
@@ -44,7 +42,7 @@ def test_circuit_breaker_half_open_failure():
     breaker.record_failure()
     assert breaker.state == CircuitState.OPEN
 
-    time.sleep(0.15)
+    breaker._stats.last_failure_time -= 0.15
     assert breaker.state == CircuitState.HALF_OPEN
 
     breaker.record_failure()

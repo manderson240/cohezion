@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import time
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
@@ -77,9 +76,9 @@ class TestPooledModel:
 
     def test_mark_used(self):
         m = PooledModel(name="test:latest", tier=ModelTierPolicy.HOT, size_gb=1.0)
-        old_time = m.last_used
-        time.sleep(0.01)
+        old_time = m.last_used  # default 0.0
         m.mark_used()
+        # mark_used sets last_used=time.time() which is always > 0
         assert m.last_used > old_time
 
     def test_record_health_success(self):
