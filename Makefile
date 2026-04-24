@@ -1,4 +1,4 @@
-.PHONY: help format lint lint-check type-check test all clean train evaluate benchmark demo validate compound-train training-history kernel-status kernel-cycle kernel-loop kernel-loop-dry kernel-report dogfood dogfood-deterministic dogfood-live
+.PHONY: help format lint lint-check type-check test all clean train evaluate benchmark demo validate compound-train training-history kernel-status kernel-cycle kernel-loop kernel-loop-dry kernel-report dogfood dogfood-deterministic dogfood-live vmodel-phase1 vmodel-phase2 vmodel-phase6 vmodel-phase7 vmodel-all
 
 help:  ## Show this help message
 	@echo "Available targets:"
@@ -139,3 +139,30 @@ dogfood: dogfood-deterministic  ## Run all dogfood claims (live tier best-effort
 		echo "⚠ Live claim skipped: NPU lane unavailable (see local_environment_quirks.md)"
 	@echo ""
 	@echo "✓ Dogfood suite complete"
+
+# -------------------------------------------------------------------------
+# V-Model phase harnesses — gate-keep architectural invariants per phase.
+# See docs/vmodel/PHASE{N}_*_PLAN.md for invariant catalogs.
+# -------------------------------------------------------------------------
+
+vmodel-phase1:  ## V-Model Phase 1 — verify inference-fleet invariants
+	uv run python scripts/validation/vmodel/phase1_inference_harness.py
+
+vmodel-phase2:  ## V-Model Phase 2 — verify benchmark invariants
+	uv run python scripts/validation/vmodel/phase2_benchmark_harness.py
+
+vmodel-phase6:  ## V-Model Phase 6 — verify orchestrator invariants
+	uv run python scripts/validation/vmodel/phase6_orchestrator_harness.py
+
+vmodel-phase7:  ## V-Model Phase 7 — verify polish-campaign invariants (~30s)
+	uv run python scripts/validation/vmodel/phase7_polish_campaign_harness.py
+
+vmodel-all:  ## Run all V-Model phase harnesses (1, 2, 6, 7)
+	@for phase in 1 2 6 7; do \
+	  harness=$$(ls scripts/validation/vmodel/phase$${phase}_*.py 2>/dev/null | head -1); \
+	  if [ -n "$$harness" ]; then \
+	    echo "=== Phase $$phase ==="; \
+	    uv run python "$$harness" || exit 1; \
+	  fi; \
+	done
+	@echo "✓ All V-Model phases passed"
