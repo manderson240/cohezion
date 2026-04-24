@@ -1,0 +1,531 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=1440" />
+  <title>COMPOUND LOOP // TRACES</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/prop-types@15/prop-types.min.js"></script>
+  <script src="https://unpkg.com/recharts@2.12.7/umd/Recharts.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone@7.24.7/babel.min.js"></script>
+
+  <style>
+    :root {
+      --bg-0: #ffffff;
+      --bg-1: #ffffff;
+      --bg-2: #f6f6f6;
+      --bg-3: #ececec;
+      --grid: #dcdcdc;
+      --rule: #1a1a1a;
+      --rule-soft: #cdcdcd;
+      --ink: #000000;
+      --ink-2: #36454f;
+      --ink-3: #708090;
+      --ink-4: #a8b0b8;
+      --cyan: #000000;
+      --cyan-dim: #36454f;
+      --amber: #36454f;
+      --amber-dim: #708090;
+      --magenta: #000000;
+      --magenta-dim: #36454f;
+      --red: #c00000;
+      --green: #1a1a1a;
+      --violet: #36454f;
+    }
+    html, body {
+      background: var(--bg-0); color: var(--ink);
+      font-family: 'Inter', -apple-system, system-ui, sans-serif;
+      font-feature-settings: "tnum","ss01","ss02","ss03","cv02","cv11";
+      -webkit-font-smoothing: antialiased; letter-spacing: 0.01em;
+    }
+    body::before {
+      content:""; position:fixed; inset:0; pointer-events:none;
+      background: repeating-linear-gradient(to bottom,
+        rgba(255,255,255,0.012) 0px, rgba(255,255,255,0.012) 1px,
+        transparent 1px, transparent 3px);
+      mix-blend-mode: overlay; z-index:60;
+    }
+    body::after {
+      content:""; position:fixed; inset:0; pointer-events:none;
+      background:
+        radial-gradient(ellipse 90% 60% at 50% 110%, rgba(0,0,0,0.55), transparent 60%),
+        radial-gradient(ellipse 80% 50% at 50% -10%, rgba(0,0,0,0.40), transparent 60%);
+      z-index:59;
+    }
+    .display { font-family:'Inter', sans-serif; letter-spacing:0.06em; }
+    .mono { font-family:'Space Mono', ui-monospace, monospace; }
+    .panel {
+      background: var(--bg-1); border: 1px solid var(--rule);
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.012), 0 0 0 1px rgba(0,0,0,0.4);
+    }
+    .panel-hd {
+      display:flex; align-items:center; justify-content:space-between;
+      padding:6px 10px;
+      background: linear-gradient(180deg,#0e131c 0%,#0a0e15 100%);
+      border-bottom:1px solid var(--rule);
+      font-size:10px; text-transform:uppercase; letter-spacing:0.18em; color:var(--ink-2);
+    }
+    .panel-hd .tag { color:var(--cyan); font-weight:700; }
+    .panel-bd { padding:10px; }
+    .row-stripe:nth-child(odd) { background: rgba(255,255,255,0.012); }
+    .row-stripe:hover { background: rgba(92,242,232,0.06); }
+    .dot { width:7px; height:7px; display:inline-block; }
+    .dot.green { background:var(--green); box-shadow:0 0 6px rgba(92,255,158,0.7); }
+    .dot.amber { background:var(--amber); box-shadow:0 0 6px rgba(245,181,60,0.7); }
+    .dot.red   { background:var(--red);   box-shadow:0 0 6px rgba(255,93,93,0.7); }
+    .blink { animation: blink 1.6s steps(2,end) infinite; }
+    @keyframes blink { 50% { opacity:0.25; } }
+    .pulse-dot {
+      width:6px; height:6px; background:var(--cyan);
+      box-shadow:0 0 0 0 rgba(92,242,232,0.6);
+      animation: pulse 1.6s ease-out infinite;
+    }
+    @keyframes pulse {
+      0%   { box-shadow:0 0 0 0 rgba(92,242,232,0.55); }
+      80%  { box-shadow:0 0 0 8px rgba(92,242,232,0); }
+      100% { box-shadow:0 0 0 0 rgba(92,242,232,0); }
+    }
+    .ticker { mask-image: linear-gradient(to right, transparent, #000 8%, #000 92%, transparent); }
+    *::-webkit-scrollbar { width:8px; height:8px; }
+    *::-webkit-scrollbar-thumb { background:#1d2533; border:1px solid var(--rule); }
+    *::-webkit-scrollbar-track { background:transparent; }
+    .glow-cyan    { text-shadow:0 0 10px rgba(92,242,232,0.45); }
+    .glow-amber   { text-shadow:0 0 10px rgba(245,181,60,0.40); }
+    .glow-magenta { text-shadow:0 0 10px rgba(255,79,191,0.40); }
+    .glow-red     { text-shadow:0 0 10px rgba(255,93,93,0.45); }
+    .glow-green   { text-shadow:0 0 10px rgba(92,255,158,0.40); }
+    .hairline { border-color: var(--rule); }
+    .hairline-soft { border-color: var(--rule-soft); }
+    .sep::before { content:"·"; color:var(--ink-4); margin:0 14px; }
+    .num { font-variant-numeric: tabular-nums; }
+    .marquee { display:inline-block; white-space:nowrap; animation: marquee 60s linear infinite; }
+    @keyframes marquee { from { transform:translateX(0); } to { transform:translateX(-50%); } }
+    .bar-track { height:6px; background:#0a0d12; border:1px solid var(--rule); position:relative; overflow:hidden; }
+    .bar-fill { height:100%; }
+
+    /* filter chip */
+    .chip {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 3px 8px; border: 1px solid var(--rule);
+      font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase;
+      color: var(--ink-3); cursor: pointer; background: var(--bg-2);
+    }
+    .chip.on {
+      color: var(--cyan); border-color: var(--cyan);
+      background: rgba(92,242,232,0.06);
+    }
+    .chip .x { color: var(--ink-4); }
+    .chip.on .x { color: var(--cyan); }
+
+    .t-simple { color: var(--cyan); }
+    .t-medium { color: var(--amber); }
+    .t-hard   { color: var(--magenta); }
+
+    /* waterfall */
+    .wf-row { display: grid; grid-template-columns: 24px 180px 1fr 70px 60px; gap: 6px; align-items: center; }
+    .wf-bar { height: 8px; border: 1px solid var(--rule); background:#0a0d12; position: relative; }
+    .wf-fill { position: absolute; top: 0; bottom: 0; }
+
+    .spark-row { display: flex; align-items: end; height: 18px; gap: 1px; }
+    .spark-row > div { flex: 1; background: var(--cyan); opacity: 0.7; min-width: 2px; }
+
+/* Theme override: light mode — disable scanline + vignette + heavy glows */
+body::before, body::after { display: none !important; }
+.glow-cyan, .glow-amber, .glow-magenta, .glow-red, .glow-green { text-shadow: none !important; }
+.dot.green, .dot.amber, .dot.red { box-shadow: none !important; }
+.pulse-dot { box-shadow: none !important; animation: none !important; }
+
+  </style>
+</head>
+<body class="min-h-screen">
+
+<div id="root"></div>
+
+<script type="text/babel" data-presets="env,react">
+const { useState, useEffect, useMemo } = React;
+const { LineChart, Line, AreaChart, Area, ResponsiveContainer, Tooltip, XAxis, YAxis } = Recharts;
+
+/* ---------------- 11 PIPELINE STEPS ---------------- */
+
+const STEPS = [
+  { k:"QV",  name:"Query Vault",         baseMs: 24,  color:"var(--cyan)" },
+  { k:"ET",  name:"Execute Task",        baseMs: 1820,color:"var(--cyan)" },
+  { k:"LT",  name:"Log Trajectory",      baseMs: 14,  color:"var(--cyan)" },
+  { k:"EP",  name:"Extract Patterns",    baseMs: 92,  color:"var(--amber)" },
+  { k:"SR",  name:"Skill Refinement",    baseMs: 412, color:"var(--amber)" },
+  { k:"QC",  name:"Quality Checks",      baseMs: 64,  color:"var(--cyan)" },
+  { k:"PS",  name:"Persistence",         baseMs: 38,  color:"var(--cyan)" },
+  { k:"AC",  name:"Alignment Check",     baseMs: 71,  color:"var(--amber)" },
+  { k:"MT",  name:"Metrics",             baseMs: 12,  color:"var(--cyan)" },
+  { k:"DD",  name:"Degradation Detect",  baseMs: 21,  color:"var(--amber)" },
+  { k:"JT",  name:"Journey Tracking",    baseMs: 31,  color:"var(--magenta)" },
+];
+
+/* ---------------- MOCK DATA ---------------- */
+
+function rng(seed){ let s = seed; return () => { s=(s*9301+49297)%233280; return s/233280; }; }
+const r = rng(11);
+
+const PROMPT_SNIPS = [
+  "summarize last 24h cost router activity",
+  "rebalance simple tier toward 70% target share",
+  "verify hash-chain head against checkpoint ledger",
+  "promote vault-keeper sweep to immediate window",
+  "schedule sonnet-4-7 escalation for ambiguous prompts",
+  "rollback ckpt-9f3c1a2 due to coherence dip",
+  "extract reusable pattern from session 412",
+  "debug surreal connection latency spike",
+  "refine skill cohezion-debugging-scenarios",
+  "trigger compound retrospection on failed batch",
+  "validate JEPA surprise above 0.30 threshold",
+  "dispatch ollama deepseek-r1:70b to hard tier",
+  "audit budget enforcer against month-to-date",
+  "snapshot manifold env state vector",
+  "regenerate MEMORY.md from vault decisions",
+  "publish AGI-Golf submission slug",
+  "compress chrome of cost-router mockup",
+  "evaluate sprint sorted-churning-toucan",
+  "verify ptxas-blackwell binary chmod",
+  "test fewer-permission-prompts skill output",
+];
+
+const MODELS = [
+  { id:"lemonade:gemma-4-e4b",   tier:"simple"  },
+  { id:"ollama:qwen3-coder:30b", tier:"simple"  },
+  { id:"gemini-flash-lite-2.5",  tier:"simple"  },
+  { id:"claude-haiku-4-5",       tier:"simple"  },
+  { id:"gemini-flash-2.5",       tier:"medium"  },
+  { id:"claude-sonnet-4-7",      tier:"medium"  },
+  { id:"gpt-4o",                 tier:"medium"  },
+  { id:"deepseek-v3",            tier:"medium"  },
+  { id:"claude-opus-4-7[1m]",    tier:"hard"    },
+  { id:"gpt-5-thinking",         tier:"hard"    },
+  { id:"o3-deep",                tier:"hard"    },
+];
+
+function makeTrace(idx) {
+  const m = MODELS[Math.floor(r()*MODELS.length)];
+  const tierMul = m.tier === "simple" ? 0.4 : m.tier === "medium" ? 1.0 : 2.6;
+  const stepLats = STEPS.map(s => Math.max(2, Math.round(s.baseMs * tierMul * (0.6 + r()*0.9))));
+  const total = stepLats.reduce((a,b)=>a+b,0);
+  const status = r() < 0.92 ? "ok" : (r() < 0.5 ? "warn" : "err");
+  const cost = (m.tier==="simple" ? 0.0001 : m.tier==="medium" ? 0.012 : 0.094) * (0.6 + r()*0.8);
+  const ts = new Date(Date.now() - idx*4317 - Math.floor(r()*900));
+  return {
+    id: `trc-${(idx+1).toString().padStart(4,"0")}`,
+    ts: ts.toISOString().slice(11,23),
+    prompt: PROMPT_SNIPS[idx % PROMPT_SNIPS.length],
+    model: m.id,
+    tier: m.tier,
+    stepLats,
+    total,
+    cost,
+    status,
+  };
+}
+
+const TRACES = Array.from({length: 30}, (_,i) => makeTrace(i));
+
+const HEALTH = STEPS.map((s,i) => {
+  const sparks = Array.from({length:24}, () => Math.max(2, Math.round(s.baseMs * (0.5 + Math.random()*1.2))));
+  const avg = Math.round(sparks.reduce((a,b)=>a+b,0)/sparks.length);
+  const p95 = Math.round(sparks.sort((a,b)=>a-b)[Math.floor(sparks.length*0.95)]);
+  return { ...s, idx:i, sparks, avg, p95 };
+});
+
+/* ---------------- UI ---------------- */
+
+const Panel = ({ tag, title, right, children, className }) => (
+  <div className={`panel ${className||""}`}>
+    <div className="panel-hd">
+      <div className="flex items-center gap-3">
+        <span className="tag mono">{tag}</span>
+        <span className="text-[10px] tracking-[0.18em] text-[color:var(--ink-3)]">{title}</span>
+      </div>
+      <div className="text-[10px] tracking-[0.18em] text-[color:var(--ink-3)] flex items-center gap-3">
+        {right}
+      </div>
+    </div>
+    <div className="panel-bd">{children}</div>
+  </div>
+);
+
+const Dot = ({ s }) => <span className={`dot ${s}`} />;
+
+const StatusGlyph = ({ s }) => {
+  if (s === "ok")   return <span className="text-[color:var(--green)] glow-green">✓</span>;
+  if (s === "warn") return <span className="text-[color:var(--amber)] glow-amber">△</span>;
+  return <span className="text-[color:var(--red)] glow-red">✗</span>;
+};
+
+function Sparkbar({ data }) {
+  const max = Math.max(...data);
+  return (
+    <div className="spark-row">
+      {data.map((v,i) => (
+        <div key={i} style={{height:`${(v/max)*100}%`, opacity: 0.4 + (v/max)*0.5}}/>
+      ))}
+    </div>
+  );
+}
+
+function Waterfall({ trace }) {
+  const total = trace.total;
+  let cursor = 0;
+  return (
+    <div className="space-y-[3px]">
+      {STEPS.map((s,i) => {
+        const w = trace.stepLats[i];
+        const left  = (cursor/total)*100;
+        const widP  = (w/total)*100;
+        cursor += w;
+        return (
+          <div key={s.k} className="wf-row text-[10px] num">
+            <span className="text-[color:var(--ink-4)] text-[9px]">{(i+1).toString().padStart(2,"0")}</span>
+            <span className="text-[color:var(--ink-2)]">{s.name}</span>
+            <div className="wf-bar">
+              <div className="wf-fill" style={{ left:`${left}%`, width:`${widP}%`, background: s.color, opacity:0.85 }}/>
+            </div>
+            <span className="text-right text-[color:var(--ink)]">{w.toLocaleString()}ms</span>
+            <span className="text-right text-[color:var(--ink-4)]">{((w/total)*100).toFixed(1)}%</span>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+function App() {
+  const [now, setNow] = useState(new Date());
+  const [filter, setFilter] = useState("all");
+  const [expanded, setExpanded] = useState(TRACES[0].id);
+
+  useEffect(() => {
+    const id = setInterval(()=>setNow(new Date()), 1000);
+    return ()=>clearInterval(id);
+  }, []);
+  const tsLabel = now.toISOString().replace("T"," ").slice(0,19) + "Z";
+
+  const filtered = TRACES.filter(t => {
+    if (filter === "all") return true;
+    if (filter === "ok") return t.status === "ok";
+    if (filter === "err") return t.status !== "ok";
+    if (["simple","medium","hard"].includes(filter)) return t.tier === filter;
+    return true;
+  });
+
+  // header KPIs (over all, not filtered)
+  const totalToday = 1247;
+  const avgLatency = (TRACES.reduce((s,t)=>s+t.total,0) / TRACES.length / 1000).toFixed(1);
+  const succRate   = (TRACES.filter(t=>t.status==="ok").length / TRACES.length * 100).toFixed(1);
+  const p95Latency = (() => {
+    const sorted = [...TRACES].map(t=>t.total).sort((a,b)=>a-b);
+    return (sorted[Math.floor(sorted.length*0.95)] / 1000).toFixed(1);
+  })();
+
+  return (
+    <div className="min-h-screen pb-3">
+      {/* TOP BAR */}
+      <header className="border-b hairline" style={{background:"linear-gradient(180deg,#0c0f15,#070809)"}}>
+        <div className="px-4 py-2 flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <div className="display text-[18px] text-[color:var(--ink)] tracking-[0.18em]">
+              cohezion <span className="text-[color:var(--cyan)]">/</span> compound
+            </div>
+            <div className="text-[10px] tracking-[0.22em] text-[color:var(--ink-3)] uppercase">
+              compound-executor · 11-step · v4.2.0 · ws://compound-ops:9092
+            </div>
+            <div className="flex items-center gap-2 ml-2">
+              <span className="pulse-dot" />
+              <span className="text-[10px] tracking-[0.22em] text-[color:var(--cyan)] uppercase">LIVE</span>
+            </div>
+          </div>
+          <div className="flex items-center text-[11px] num">
+            <span><span className="text-[color:var(--ink-3)] mr-2">EXEC TODAY</span><span className="text-[color:var(--ink)]">{totalToday.toLocaleString()}</span></span>
+            <span className="sep" />
+            <span><span className="text-[color:var(--ink-3)] mr-2">AVG LAT</span><span className="text-[color:var(--cyan)] glow-cyan">{avgLatency}s</span></span>
+            <span className="sep" />
+            <span><span className="text-[color:var(--ink-3)] mr-2">SUCC</span><span className="text-[color:var(--green)] glow-green">{succRate}%</span></span>
+            <span className="sep" />
+            <span><span className="text-[color:var(--ink-3)] mr-2">P95</span><span className="text-[color:var(--amber)] glow-amber">{p95Latency}s</span></span>
+            <span className="sep" />
+            <span><span className="text-[color:var(--ink-3)] mr-2">UTC</span>{tsLabel}<span className="blink text-[color:var(--cyan)]">_</span></span>
+          </div>
+        </div>
+        <div className="border-t hairline-soft px-2 py-[3px] text-[10px] text-[color:var(--ink-3)] ticker overflow-hidden">
+          <div className="marquee">
+            <span className="mr-10"><span className="text-[color:var(--ink-4)]">PIPELINE</span> 11-step compound loop · QV → ET → LT → EP → SR → QC → PS → AC → MT → DD → JT</span>
+            <span className="mr-10"><span className="text-[color:var(--ink-4)]">SLO</span>  total p99 &lt; 12s · per-step p99 &lt; 2.4s · success ≥ 95%</span>
+            <span className="mr-10"><span className="text-[color:var(--ink-4)]">CACHE</span> semantic 95.3% hit · L1 hash · L2 cosine · L3 vault</span>
+            <span className="mr-10"><span className="text-[color:var(--ink-4)]">STORAGE</span> traces in surreal · ttl=72h · cold-archive parquet</span>
+            <span className="mr-10"><span className="text-[color:var(--ink-4)]">PIPELINE</span> 11-step compound loop · QV → ET → LT → EP → SR → QC → PS → AC → MT → DD → JT</span>
+            <span className="mr-10"><span className="text-[color:var(--ink-4)]">SLO</span>  total p99 &lt; 12s · per-step p99 &lt; 2.4s · success ≥ 95%</span>
+            <span className="mr-10"><span className="text-[color:var(--ink-4)]">CACHE</span> semantic 95.3% hit · L1 hash · L2 cosine · L3 vault</span>
+            <span className="mr-10"><span className="text-[color:var(--ink-4)]">STORAGE</span> traces in surreal · ttl=72h · cold-archive parquet</span>
+          </div>
+        </div>
+      </header>
+
+      <main className="px-3 pt-3 grid grid-cols-12 gap-3">
+
+        {/* C.00 — FILTERS */}
+        <Panel
+          tag="C.00"
+          title="FILTERS · TRACE QUERY"
+          right={<><span>SHOWING {filtered.length}/{TRACES.length}</span></>}
+          className="col-span-12"
+        >
+          <div className="flex items-center gap-2 flex-wrap">
+            {[
+              { k:"all",    l:"all" },
+              { k:"ok",     l:"success only" },
+              { k:"err",    l:"errors only" },
+              { k:"simple", l:"tier S/01" },
+              { k:"medium", l:"tier M/02" },
+              { k:"hard",   l:"tier H/03" },
+            ].map(c => (
+              <span
+                key={c.k}
+                onClick={()=>setFilter(c.k)}
+                className={"chip " + (filter === c.k ? "on" : "")}
+              >
+                <span className="x">▸</span>{c.l}
+              </span>
+            ))}
+            <span className="ml-auto text-[9px] uppercase tracking-widest text-[color:var(--ink-4)]">
+              window · last 30 traces · auto-refresh 1s
+            </span>
+          </div>
+        </Panel>
+
+        {/* C.01 — TRACE TABLE */}
+        <Panel
+          tag="C.01"
+          title="TRACE LOG · CHRONOLOGICAL"
+          right={<><span>n={filtered.length}</span></>}
+          className="col-span-9"
+        >
+          <div className="text-[10px] num">
+            <div className="grid grid-cols-12 gap-2 px-2 pb-1 border-b hairline-soft text-[color:var(--ink-4)] uppercase tracking-widest text-[9px]">
+              <div className="col-span-2">TIME</div>
+              <div className="col-span-3">PROMPT</div>
+              <div className="col-span-3">MODEL</div>
+              <div className="col-span-1 text-right">LAT</div>
+              <div className="col-span-1 text-right">COST $</div>
+              <div className="col-span-1 text-center">ST</div>
+              <div className="col-span-1 text-right">EXP</div>
+            </div>
+            <div className="max-h-[460px] overflow-y-auto">
+              {filtered.map(t => {
+                const isExp = t.id === expanded;
+                const tierCls = t.tier==="simple" ? "t-simple" : t.tier==="medium" ? "t-medium" : "t-hard";
+                return (
+                  <div key={t.id}>
+                    <div
+                      onClick={()=>setExpanded(isExp ? null : t.id)}
+                      className={"row-stripe grid grid-cols-12 gap-2 px-2 py-1 cursor-pointer " + (isExp ? "outline outline-1 outline-[color:var(--cyan)]" : "")}
+                    >
+                      <div className="col-span-2 text-[color:var(--ink-3)]">{t.ts}</div>
+                      <div className="col-span-3 text-[color:var(--ink-2)] truncate">{t.prompt}</div>
+                      <div className={"col-span-3 truncate " + tierCls}>{t.model}</div>
+                      <div className={"col-span-1 text-right " + (t.total < 1000 ? "text-[color:var(--green)]" : t.total < 5000 ? "text-[color:var(--ink)]" : "text-[color:var(--amber)]")}>
+                        {(t.total/1000).toFixed(2)}s
+                      </div>
+                      <div className="col-span-1 text-right text-[color:var(--ink)]">
+                        {t.cost < 0.001 ? <span className="text-[color:var(--green)]">{t.cost.toFixed(5)}</span> : t.cost.toFixed(4)}
+                      </div>
+                      <div className="col-span-1 text-center"><StatusGlyph s={t.status}/></div>
+                      <div className="col-span-1 text-right text-[color:var(--cyan)]">
+                        {isExp ? "[−]" : "[+]"}
+                      </div>
+                    </div>
+                    {isExp && (
+                      <div className="border hairline mx-2 my-2 p-3" style={{background:"var(--bg-2)"}}>
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="text-[10px] uppercase tracking-widest text-[color:var(--ink-3)]">
+                            <span className="text-[color:var(--cyan)]">{t.id}</span>
+                            <span className="sep" />
+                            11-STEP WATERFALL
+                            <span className="sep" />
+                            total <span className="text-[color:var(--ink)]">{t.total.toLocaleString()}ms</span>
+                          </div>
+                          <div className="text-[9px] uppercase tracking-widest text-[color:var(--ink-4)]">
+                            tier <span className={tierCls}>{t.tier}</span>
+                            <span className="sep" />
+                            cost <span className="text-[color:var(--ink-2)]">${t.cost.toFixed(5)}</span>
+                          </div>
+                        </div>
+                        <Waterfall trace={t} />
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+          <div className="mt-2 grid grid-cols-3 gap-2 text-[9px] uppercase tracking-widest text-[color:var(--ink-3)]">
+            <div className="flex items-center gap-2"><span className="w-2 h-2 inline-block" style={{background:"var(--cyan)"}}/>simple</div>
+            <div className="flex items-center gap-2"><span className="w-2 h-2 inline-block" style={{background:"var(--amber)"}}/>medium</div>
+            <div className="flex items-center gap-2"><span className="w-2 h-2 inline-block" style={{background:"var(--magenta)"}}/>hard</div>
+          </div>
+        </Panel>
+
+        {/* C.02 — PIPELINE HEALTH */}
+        <Panel
+          tag="C.02"
+          title="PIPELINE HEALTH · PER-STEP"
+          right={<><span>WINDOW 1000 CALLS</span></>}
+          className="col-span-3"
+        >
+          <div className="space-y-[4px] text-[10px] num">
+            {HEALTH.map(s => (
+              <div key={s.k} className="border hairline p-2" style={{background:"var(--bg-2)"}}>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <span className="text-[9px] uppercase tracking-widest text-[color:var(--ink-4)]">
+                      step {(s.idx+1).toString().padStart(2,"0")}
+                    </span>
+                    <div className="text-[10px] text-[color:var(--ink)]">{s.name}</div>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-[11px]" style={{color: s.color}}>
+                      {s.avg < 1000 ? `${s.avg}ms` : `${(s.avg/1000).toFixed(2)}s`}
+                    </div>
+                    <div className="text-[9px] text-[color:var(--ink-4)]">p95 {s.p95 < 1000 ? `${s.p95}ms` : `${(s.p95/1000).toFixed(2)}s`}</div>
+                  </div>
+                </div>
+                <div className="mt-1" style={{ "--c": s.color }}>
+                  <div className="spark-row">
+                    {s.sparks.map((v,i) => (
+                      <div key={i}
+                        style={{height:`${(v/Math.max(...s.sparks))*100}%`, background: s.color, opacity: 0.4 + (v/Math.max(...s.sparks))*0.5}}
+                      />
+                    ))}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </Panel>
+
+      </main>
+
+      <footer className="px-4 mt-3 pt-2 border-t hairline text-[9px] uppercase tracking-[0.22em] text-[color:var(--ink-4)] flex justify-between">
+        <div>cohezion.compound · trace-viewer · build {now.toISOString().slice(0,10).replace(/-/g,"")}.0623</div>
+        <div>shift+? help · click row expand · g+t goto traces · g+h goto health · esc clear</div>
+      </footer>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+</script>
+</body>
+</html>

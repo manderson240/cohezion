@@ -1,0 +1,789 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=1440" />
+  <title>COST ROUTER // OPS</title>
+
+  <!-- Fonts: distinctive monospace + a sharp display -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@300;400;500;600;700&family=Roboto+Mono:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+  <!-- Tailwind -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- React 18 + Babel + Recharts UMD -->
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/prop-types@15/prop-types.min.js"></script>
+  <script src="https://unpkg.com/recharts@2.12.7/umd/Recharts.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone@7.24.7/babel.min.js"></script>
+
+  <style>
+    :root {
+      --bg-0: #ebe0c8;
+      --bg-1: #f3ead7;
+      --bg-2: #e3d6b8;
+      --bg-3: #d4c39d;
+      --grid: #bfae87;
+      --rule: #7a6a4a;
+      --rule-soft: #bfae87;
+      --ink: #4a403a;
+      --ink-2: #6b5a4a;
+      --ink-3: #8a7758;
+      --ink-4: #a8966f;
+      --cyan: #c1666b;
+      --cyan-dim: #8a4549;
+      --amber: #f4a900;
+      --amber-dim: #a87600;
+      --magenta: #6b4f7a;
+      --magenta-dim: #473353;
+      --red: #a83232;
+      --green: #5a7a3a;
+      --violet: #6b4f7a;
+    }
+
+    html, body {
+      background: var(--bg-0);
+      color: var(--ink);
+      font-family: 'Roboto Mono', 'Crimson Pro', ui-monospace, monospace;
+      font-feature-settings: "tnum","ss01","ss02","ss03","cv02","cv11";
+      -webkit-font-smoothing: antialiased;
+      letter-spacing: 0.01em;
+    }
+
+    /* faint scanline atmosphere */
+    body::before {
+      content: "";
+      position: fixed; inset: 0;
+      pointer-events: none;
+      background:
+        repeating-linear-gradient(
+          to bottom,
+          rgba(255,255,255,0.012) 0px,
+          rgba(255,255,255,0.012) 1px,
+          transparent 1px,
+          transparent 3px
+        );
+      mix-blend-mode: overlay;
+      z-index: 60;
+    }
+    /* corner vignette */
+    body::after {
+      content: "";
+      position: fixed; inset: 0;
+      pointer-events: none;
+      background:
+        radial-gradient(ellipse 90% 60% at 50% 110%, rgba(0,0,0,0.55), transparent 60%),
+        radial-gradient(ellipse 80% 50% at 50% -10%, rgba(0,0,0,0.40), transparent 60%);
+      z-index: 59;
+    }
+
+    .display { font-family: 'Crimson Pro', Georgia, serif; letter-spacing: 0.06em; }
+    .mono    { font-family: 'Roboto Mono', ui-monospace, monospace; }
+
+    /* hard panel */
+    .panel {
+      background: var(--bg-1);
+      border: 1px solid var(--rule);
+      box-shadow:
+        inset 0 0 0 1px rgba(255,255,255,0.012),
+        0 0 0 1px rgba(0,0,0,0.4);
+    }
+    .panel-hd {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 6px 10px;
+      background: linear-gradient(180deg, #0e131c 0%, #0a0e15 100%);
+      border-bottom: 1px solid var(--rule);
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.18em;
+      color: var(--ink-2);
+    }
+    .panel-hd .tag {
+      color: var(--cyan);
+      font-weight: 700;
+    }
+    .panel-bd { padding: 10px; }
+
+    /* grid lines for tables */
+    .ht-grid {
+      background-image:
+        linear-gradient(to right, var(--rule-soft) 1px, transparent 1px);
+      background-size: 100% 100%;
+    }
+
+    .row-stripe:nth-child(odd) { background: rgba(255,255,255,0.012); }
+    .row-stripe:hover { background: rgba(92,242,232,0.06); }
+
+    /* status dots */
+    .dot { width: 7px; height: 7px; display: inline-block; }
+    .dot.green   { background: var(--green); box-shadow: 0 0 6px rgba(92,255,158,0.7); }
+    .dot.amber   { background: var(--amber); box-shadow: 0 0 6px rgba(245,181,60,0.7); }
+    .dot.red     { background: var(--red);   box-shadow: 0 0 6px rgba(255,93,93,0.7); }
+
+    /* tier color */
+    .t-simple { color: var(--cyan); }
+    .t-medium { color: var(--amber); }
+    .t-hard   { color: var(--magenta); }
+
+    .bar-track {
+      height: 6px;
+      background: #0a0d12;
+      border: 1px solid var(--rule);
+      position: relative;
+      overflow: hidden;
+    }
+    .bar-fill {
+      height: 100%;
+      position: relative;
+    }
+    .bar-fill::after {
+      content: "";
+      position: absolute; inset: 0;
+      background-image: repeating-linear-gradient(
+        45deg, rgba(0,0,0,0.18) 0 2px, transparent 2px 4px
+      );
+    }
+
+    .blink { animation: blink 1.6s steps(2,end) infinite; }
+    @keyframes blink { 50% { opacity: 0.25; } }
+
+    .pulse-dot {
+      width: 6px; height: 6px; background: var(--cyan);
+      box-shadow: 0 0 0 0 rgba(92,242,232,0.6);
+      animation: pulse 1.6s ease-out infinite;
+    }
+    @keyframes pulse {
+      0%   { box-shadow: 0 0 0 0 rgba(92,242,232,0.55); }
+      80%  { box-shadow: 0 0 0 8px rgba(92,242,232,0); }
+      100% { box-shadow: 0 0 0 0 rgba(92,242,232,0); }
+    }
+
+    .ticker {
+      mask-image: linear-gradient(to right, transparent, #000 8%, #000 92%, transparent);
+    }
+
+    /* fine scrollbar */
+    *::-webkit-scrollbar { width: 8px; height: 8px; }
+    *::-webkit-scrollbar-thumb { background: #1d2533; border: 1px solid var(--rule); }
+    *::-webkit-scrollbar-track { background: transparent; }
+
+    .glow-cyan    { text-shadow: 0 0 10px rgba(92,242,232,0.45); }
+    .glow-amber   { text-shadow: 0 0 10px rgba(245,181,60,0.40); }
+    .glow-magenta { text-shadow: 0 0 10px rgba(255,79,191,0.40); }
+    .glow-red     { text-shadow: 0 0 10px rgba(255,93,93,0.45); }
+
+    .hairline { border-color: var(--rule); }
+    .hairline-soft { border-color: var(--rule-soft); }
+
+    /* subtle vertical separator dots between status-bar items */
+    .sep::before {
+      content: "·";
+      color: var(--ink-4);
+      margin: 0 14px;
+    }
+
+    .num { font-variant-numeric: tabular-nums; }
+
+    .marquee {
+      display: inline-block;
+      white-space: nowrap;
+      animation: marquee 60s linear infinite;
+    }
+    @keyframes marquee {
+      from { transform: translateX(0); }
+      to   { transform: translateX(-50%); }
+    }
+
+/* Theme override: light mode — disable scanline + vignette + heavy glows */
+body::before, body::after { display: none !important; }
+.glow-cyan, .glow-amber, .glow-magenta, .glow-red, .glow-green { text-shadow: none !important; }
+.dot.green, .dot.amber, .dot.red { box-shadow: none !important; }
+.pulse-dot { box-shadow: none !important; animation: none !important; }
+
+  </style>
+</head>
+<body class="min-h-screen">
+
+<div id="root"></div>
+
+<script type="text/babel" data-presets="env,react">
+const { useState, useEffect, useMemo, useRef } = React;
+const {
+  LineChart, Line, AreaChart, Area, BarChart, Bar,
+  ResponsiveContainer, Tooltip, XAxis, YAxis, ReferenceLine, Cell
+} = Recharts;
+
+/* ----------------------------------------------------------------- */
+/* MOCK DATA                                                         */
+/* ----------------------------------------------------------------- */
+
+const MODELS = [
+  // tier=simple (cheap / local)
+  { id:"lemonade:gemma-4-e4b",         provider:"LEMONADE", tier:"simple", inP:0.00, outP:0.00, calls:3214, status:"green",  npu:true  },
+  { id:"lemonade:phi-3.5-mini",        provider:"LEMONADE", tier:"simple", inP:0.00, outP:0.00, calls:1942, status:"green",  npu:true  },
+  { id:"lemonade:qwen2.5-1.5b",        provider:"LEMONADE", tier:"simple", inP:0.00, outP:0.00, calls: 988, status:"amber",  npu:true  },
+  { id:"ollama:qwen3-coder:30b",       provider:"OLLAMA",   tier:"simple", inP:0.00, outP:0.00, calls: 612, status:"green"             },
+  { id:"ollama:phi3:mini",             provider:"OLLAMA",   tier:"simple", inP:0.00, outP:0.00, calls: 540, status:"green"             },
+  { id:"ollama:llama3.2:3b",           provider:"OLLAMA",   tier:"simple", inP:0.00, outP:0.00, calls: 421, status:"green"             },
+  { id:"gemini-flash-lite-2.5",        provider:"GOOGLE",   tier:"simple", inP:0.10, outP:0.40, calls: 358, status:"green"             },
+  { id:"gpt-4o-mini",                  provider:"OPENAI",   tier:"simple", inP:0.15, outP:0.60, calls: 184, status:"green"             },
+  { id:"claude-haiku-4-5",             provider:"ANTHROPIC",tier:"simple", inP:0.25, outP:1.25, calls: 162, status:"green"             },
+
+  // tier=medium
+  { id:"gemini-flash-2.5",             provider:"GOOGLE",   tier:"medium", inP:0.30, outP:1.20, calls: 712, status:"green"             },
+  { id:"gemini-pro-2.5",               provider:"GOOGLE",   tier:"medium", inP:1.25, outP:5.00, calls: 484, status:"green"             },
+  { id:"claude-sonnet-4-6",            provider:"ANTHROPIC",tier:"medium", inP:3.00, outP:15.00,calls: 421, status:"green"             },
+  { id:"claude-sonnet-4-7",            provider:"ANTHROPIC",tier:"medium", inP:3.00, outP:15.00,calls: 318, status:"green"             },
+  { id:"gpt-4o",                       provider:"OPENAI",   tier:"medium", inP:2.50, outP:10.00,calls: 271, status:"amber"             },
+  { id:"deepseek-v3",                  provider:"DEEPSEEK", tier:"medium", inP:0.27, outP:1.10, calls: 201, status:"green"             },
+
+  // tier=hard
+  { id:"claude-opus-4-7[1m]",          provider:"ANTHROPIC",tier:"hard",   inP:15.00,outP:75.00,calls: 412, status:"green"             },
+  { id:"claude-opus-4-6",              provider:"ANTHROPIC",tier:"hard",   inP:15.00,outP:75.00,calls: 318, status:"green"             },
+  { id:"gpt-5-thinking",               provider:"OPENAI",   tier:"hard",   inP:12.00,outP:60.00,calls: 214, status:"amber"             },
+  { id:"o3-deep",                      provider:"OPENAI",   tier:"hard",   inP:20.00,outP:80.00,calls: 142, status:"green"             },
+  { id:"deepseek-r1:70b",              provider:"OLLAMA",   tier:"hard",   inP:0.00, outP:0.00, calls: 117, status:"green"             },
+];
+
+const dollars = (m, calls, costPerCall) => calls * costPerCall;
+// approximate "$ today" using avg 1.2k in / 800 out per call
+const computeSpend = (m) => {
+  const inK = 1.2;  // 1.2k input tokens avg
+  const outK = 0.8; // 800 output tokens avg
+  return (m.inP * inK + m.outP * outK) * m.calls / 1000;
+};
+
+MODELS.forEach(m => { m.spendToday = computeSpend(m); });
+
+const TOTAL_CALLS = MODELS.reduce((s,m)=>s+m.calls,0);
+const TOTAL_SPEND_TODAY = MODELS.reduce((s,m)=>s+m.spendToday,0);
+
+const TIER_AGG = ["simple","medium","hard"].map(t => {
+  const subset = MODELS.filter(m=>m.tier===t);
+  const calls  = subset.reduce((s,m)=>s+m.calls,0);
+  const spend  = subset.reduce((s,m)=>s+m.spendToday,0);
+  return { tier:t, calls, spend, share: calls/TOTAL_CALLS };
+});
+
+const HASHES = ["a3f1c8b2","7d4ee2a1","91ca0bbe","2f8e44d3","b1e7d09a","cc44ab19","04ea3b71","8b21cd5e","f0093a47","19ee78ce",
+                "7733dde8","ab9c2104","6e1f0d8b","31aa44ee","59cf21d7","8ef41b22","2ad5e0cf","cab9810f","42e801b9","9bd3a740"];
+
+function makeRoutes() {
+  const out = [];
+  let t = new Date();
+  for (let i=0;i<20;i++) {
+    const m = MODELS[Math.floor(Math.random()*MODELS.length)];
+    const ts = new Date(t.getTime() - i*1487 - Math.floor(Math.random()*900));
+    const cost = (m.inP*1.2 + m.outP*0.8) / 1000;
+    const lat  = m.tier === "simple"
+      ? 12 + Math.floor(Math.random()*60)
+      : m.tier === "medium"
+        ? 220 + Math.floor(Math.random()*420)
+        : 1100 + Math.floor(Math.random()*2200);
+    const cache = Math.random() < (m.tier==="simple" ? 0.45 : m.tier==="medium" ? 0.22 : 0.08);
+    out.push({
+      ts: ts.toISOString().slice(11,23),
+      hash: HASHES[i],
+      tier: m.tier,
+      model: m.id,
+      cost,
+      lat,
+      cache
+    });
+  }
+  return out;
+}
+const ROUTES = makeRoutes();
+
+const MONTH_BUDGET = 5000;
+const MONTH_SPEND  = 1247.82;
+const DAILY_BURN   = 86.34;
+
+const NPU_HIT_RATE = 0.673;
+const NPU_LATENCY  = 18;
+
+const NPU_TREND = Array.from({length:48}, (_,i) => ({
+  i,
+  v: 0.55 + 0.18*Math.sin(i/4) + 0.06*Math.cos(i/2.3) + (Math.random()*0.04-0.02)
+}));
+
+const SPEND_TREND = Array.from({length:30}, (_,i) => ({
+  d: i+1,
+  cum: Math.min(MONTH_BUDGET, 35 + i*42 + Math.random()*16)
+}));
+
+/* ----------------------------------------------------------------- */
+/* SMALL UI PIECES                                                    */
+/* ----------------------------------------------------------------- */
+
+const Panel = ({ tag, title, right, children, className }) => (
+  <div className={`panel ${className||""}`}>
+    <div className="panel-hd">
+      <div className="flex items-center gap-3">
+        <span className="tag mono">{tag}</span>
+        <span className="text-[10px] tracking-[0.18em] text-[color:var(--ink-3)]">{title}</span>
+      </div>
+      <div className="text-[10px] tracking-[0.18em] text-[color:var(--ink-3)] flex items-center gap-3">
+        {right}
+      </div>
+    </div>
+    <div className="panel-bd">{children}</div>
+  </div>
+);
+
+const TierTag = ({ t }) => {
+  const cls = t==="simple" ? "t-simple" : t==="medium" ? "t-medium" : "t-hard";
+  return (
+    <span className={`mono ${cls} text-[10px] tracking-widest uppercase`}>
+      {t==="simple" ? "S/01" : t==="medium" ? "M/02" : "H/03"}
+    </span>
+  );
+};
+
+const Dot = ({ s }) => <span className={`dot ${s}`} />;
+
+const Spark = ({ data, color }) => (
+  <ResponsiveContainer width="100%" height={28}>
+    <AreaChart data={data} margin={{top:2,right:0,left:0,bottom:0}}>
+      <defs>
+        <linearGradient id={`sp-${color}`} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%"  stopColor={color} stopOpacity={0.55}/>
+          <stop offset="100%" stopColor={color} stopOpacity={0}/>
+        </linearGradient>
+      </defs>
+      <Area dataKey="v" stroke={color} strokeWidth={1} fill={`url(#sp-${color})`} isAnimationActive={false} />
+    </AreaChart>
+  </ResponsiveContainer>
+);
+
+/* ----------------------------------------------------------------- */
+/* APP                                                                */
+/* ----------------------------------------------------------------- */
+
+function App() {
+  const [now, setNow] = useState(new Date());
+  useEffect(() => {
+    const id = setInterval(() => setNow(new Date()), 1000);
+    return () => clearInterval(id);
+  }, []);
+
+  const tsLabel = now.toISOString().replace("T"," ").slice(0,19) + "Z";
+
+  const tierShare = TIER_AGG;
+  const monthPct = MONTH_SPEND / MONTH_BUDGET;
+  const daysToCap = Math.max(0, Math.floor((MONTH_BUDGET - MONTH_SPEND) / DAILY_BURN));
+
+  return (
+    <div className="min-h-screen pb-3">
+      {/* ============================================================ */}
+      {/* TOP BAR                                                       */}
+      {/* ============================================================ */}
+      <header className="border-b hairline" style={{background:"linear-gradient(180deg,#0c0f15,#070809)"}}>
+        <div className="px-4 py-2 flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <div className="display text-[18px] text-[color:var(--ink)] tracking-[0.18em]">
+              cohezion <span className="text-[color:var(--cyan)]">/</span> router
+            </div>
+            <div className="text-[10px] tracking-[0.22em] text-[color:var(--ink-3)] uppercase">
+              cost-aware-router · v3.4.1 · ws://router-ops:9090
+            </div>
+            <div className="flex items-center gap-2 ml-2">
+              <span className="pulse-dot" />
+              <span className="text-[10px] tracking-[0.22em] text-[color:var(--cyan)] uppercase">LIVE</span>
+            </div>
+          </div>
+          <div className="flex items-center text-[11px] num">
+            <span><span className="text-[color:var(--ink-3)] mr-2">MODELS</span><span className="text-[color:var(--ink)]">45/45</span></span>
+            <span className="sep" />
+            <span><span className="text-[color:var(--ink-3)] mr-2">MTD</span><span className="text-[color:var(--cyan)] glow-cyan">${MONTH_SPEND.toFixed(2)}</span><span className="text-[color:var(--ink-4)]"> / ${MONTH_BUDGET.toFixed(2)}</span></span>
+            <span className="sep" />
+            <span><span className="text-[color:var(--ink-3)] mr-2">UPTIME</span>14d 03h 12m</span>
+            <span className="sep" />
+            <span><span className="text-[color:var(--ink-3)] mr-2">UTC</span>{tsLabel}<span className="blink text-[color:var(--cyan)]">_</span></span>
+          </div>
+        </div>
+
+        {/* sub-bar / marquee of headline routing facts */}
+        <div className="border-t hairline-soft px-2 py-[3px] text-[10px] text-[color:var(--ink-3)] ticker overflow-hidden">
+          <div className="marquee">
+            <span className="mr-10"><span className="text-[color:var(--ink-4)]">SLO</span>  Tier S p99 &lt; 250ms · Tier M p99 &lt; 1.8s · Tier H p99 &lt; 12s</span>
+            <span className="mr-10"><span className="text-[color:var(--ink-4)]">CACHE</span> L1=0.42 L2=0.31 L3=0.22 · semantic-cache hit 95.3%</span>
+            <span className="mr-10"><span className="text-[color:var(--ink-4)]">PROVIDERS</span> ANTHROPIC ✓  GOOGLE ✓  OPENAI △  DEEPSEEK ✓  OLLAMA ✓  LEMONADE ✓</span>
+            <span className="mr-10"><span className="text-[color:var(--ink-4)]">FALLBACK</span> 3 cascades active · 0 dead-letter routes in last 1h</span>
+            <span className="mr-10"><span className="text-[color:var(--ink-4)]">SLO</span>  Tier S p99 &lt; 250ms · Tier M p99 &lt; 1.8s · Tier H p99 &lt; 12s</span>
+            <span className="mr-10"><span className="text-[color:var(--ink-4)]">CACHE</span> L1=0.42 L2=0.31 L3=0.22 · semantic-cache hit 95.3%</span>
+            <span className="mr-10"><span className="text-[color:var(--ink-4)]">PROVIDERS</span> ANTHROPIC ✓  GOOGLE ✓  OPENAI △  DEEPSEEK ✓  OLLAMA ✓  LEMONADE ✓</span>
+            <span className="mr-10"><span className="text-[color:var(--ink-4)]">FALLBACK</span> 3 cascades active · 0 dead-letter routes in last 1h</span>
+          </div>
+        </div>
+      </header>
+
+      {/* ============================================================ */}
+      {/* GRID                                                          */}
+      {/* ============================================================ */}
+      <main className="px-3 pt-3 grid grid-cols-12 gap-3">
+
+        {/* Row 1 */}
+        <Panel
+          tag="A.01"
+          title="TIER  ·  ROUTING DISTRIBUTION"
+          right={<><span>WINDOW 24H</span><span className="text-[color:var(--ink-4)]">/</span><span>n={TOTAL_CALLS.toLocaleString()}</span></>}
+          className="col-span-5"
+        >
+          <div className="grid grid-cols-3 gap-3">
+            {tierShare.map((t, idx) => {
+              const accent = t.tier==="simple" ? "var(--cyan)" : t.tier==="medium" ? "var(--amber)" : "var(--magenta)";
+              const glow   = t.tier==="simple" ? "glow-cyan"  : t.tier==="medium" ? "glow-amber"  : "glow-magenta";
+              const targetPct = t.tier==="simple" ? 70 : t.tier==="medium" ? 20 : 10;
+              const actualPct = (t.share*100);
+              return (
+                <div key={t.tier} className="border hairline p-3" style={{background:"var(--bg-2)"}}>
+                  <div className="flex items-baseline justify-between">
+                    <div>
+                      <div className="text-[10px] tracking-[0.22em] text-[color:var(--ink-3)] uppercase">
+                        TIER · {t.tier==="simple" ? "S/01" : t.tier==="medium" ? "M/02" : "H/03"}
+                      </div>
+                      <div className="text-[11px] mt-0.5 text-[color:var(--ink-4)] uppercase tracking-widest">
+                        {t.tier === "simple" ? "free / local-first" : t.tier === "medium" ? "sonnet-class · flash" : "opus / o3 · deep"}
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <div className={`display text-[28px] leading-none num ${glow}`} style={{color:accent}}>
+                        {actualPct.toFixed(1)}<span className="text-[14px] text-[color:var(--ink-4)]">%</span>
+                      </div>
+                      <div className="text-[10px] text-[color:var(--ink-4)] mt-1 uppercase tracking-widest num">
+                        target {targetPct}%
+                        <span className={"ml-2 " + (Math.abs(actualPct-targetPct) < 2 ? "text-[color:var(--green)]" : "text-[color:var(--amber)]")}>
+                          Δ{(actualPct-targetPct).toFixed(1)}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="bar-track mt-3">
+                    <div className="bar-fill" style={{width:`${actualPct}%`, background:accent}} />
+                    {/* target tick */}
+                    <div className="absolute top-[-3px] bottom-[-3px] w-px" style={{ left:`${targetPct}%`, background:"var(--ink-2)" }} />
+                  </div>
+
+                  <div className="mt-3 grid grid-cols-2 text-[11px] num">
+                    <div>
+                      <div className="text-[9px] uppercase tracking-widest text-[color:var(--ink-4)]">CALLS</div>
+                      <div className="text-[color:var(--ink)]">{t.calls.toLocaleString()}</div>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-[9px] uppercase tracking-widest text-[color:var(--ink-4)]">SPEND TODAY</div>
+                      <div className="text-[color:var(--ink)]">${t.spend.toFixed(2)}</div>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* stacked bar showing target vs actual share */}
+          <div className="mt-4 border hairline p-3" style={{background:"var(--bg-2)"}}>
+            <div className="flex items-center justify-between text-[10px] uppercase tracking-widest text-[color:var(--ink-3)] mb-2">
+              <span>actual share · 24h</span>
+              <span className="text-[color:var(--ink-4)]">target  70 / 20 / 10</span>
+            </div>
+            <div className="flex h-3 border hairline">
+              {tierShare.map(t => {
+                const accent = t.tier==="simple" ? "var(--cyan)" : t.tier==="medium" ? "var(--amber)" : "var(--magenta)";
+                return <div key={t.tier} style={{ width:`${t.share*100}%`, background: accent }} title={`${t.tier} ${(t.share*100).toFixed(1)}%`} />;
+              })}
+            </div>
+          </div>
+        </Panel>
+
+        <Panel
+          tag="A.02"
+          title="BUDGET ENFORCER  ·  MONTH-TO-DATE"
+          right={<><span>CYCLE 2026-04</span></>}
+          className="col-span-4"
+        >
+          <div className="flex items-end justify-between">
+            <div>
+              <div className="text-[10px] uppercase tracking-widest text-[color:var(--ink-3)]">MONTHLY SPEND</div>
+              <div className="display text-[34px] leading-none mt-1 text-[color:var(--ink)] num">
+                $<span className="text-[color:var(--cyan)] glow-cyan">{MONTH_SPEND.toFixed(2)}</span>
+              </div>
+              <div className="text-[10px] uppercase tracking-widest text-[color:var(--ink-4)] mt-1 num">
+                of ${MONTH_BUDGET.toFixed(2)}  ·  {(monthPct*100).toFixed(2)}% used
+              </div>
+            </div>
+            <div className="text-right">
+              <div className="text-[10px] uppercase tracking-widest text-[color:var(--ink-3)]">DAYS TO CAP</div>
+              <div className="display text-[28px] leading-none num text-[color:var(--green)] glow-cyan">
+                {daysToCap}
+              </div>
+              <div className="text-[10px] uppercase tracking-widest text-[color:var(--ink-4)] mt-1 num">
+                burn ${DAILY_BURN.toFixed(2)}/d
+              </div>
+            </div>
+          </div>
+
+          {/* multi-threshold bar */}
+          <div className="mt-4">
+            <div className="bar-track" style={{height:14}}>
+              <div className="bar-fill" style={{ width:`${Math.min(monthPct*100,100)}%`, background:"var(--cyan)" }}/>
+              {/* threshold ticks */}
+              {[
+                {pct:50, c:"var(--green)",  label:"50% NORMAL"},
+                {pct:80, c:"var(--amber)",  label:"80% WARN"},
+                {pct:95, c:"var(--red)",    label:"95% HARD-STOP"},
+              ].map(t => (
+                <div key={t.pct} className="absolute top-[-4px] bottom-[-4px] w-px" style={{left:`${t.pct}%`, background:t.c}}/>
+              ))}
+            </div>
+            <div className="flex justify-between text-[9px] uppercase tracking-widest text-[color:var(--ink-4)] mt-1 num">
+              <span>$0</span>
+              <span className="text-[color:var(--green)]">50% · $2.5k</span>
+              <span className="text-[color:var(--amber)]">80% · $4.0k</span>
+              <span className="text-[color:var(--red)]">95% · $4.75k</span>
+              <span>$5.0k</span>
+            </div>
+          </div>
+
+          {/* small cumulative chart */}
+          <div className="mt-3 border hairline p-1" style={{background:"var(--bg-2)"}}>
+            <div className="flex items-center justify-between px-2 pt-1">
+              <span className="text-[9px] uppercase tracking-widest text-[color:var(--ink-3)]">CUMULATIVE BURN · 30D PROJECTION</span>
+              <span className="text-[9px] uppercase tracking-widest text-[color:var(--ink-4)] num">target  ${(MONTH_BUDGET).toFixed(0)}</span>
+            </div>
+            <div style={{height: 78}}>
+              <ResponsiveContainer>
+                <AreaChart data={SPEND_TREND} margin={{top:6,right:6,left:6,bottom:0}}>
+                  <defs>
+                    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%"  stopColor="#5cf2e8" stopOpacity={0.45}/>
+                      <stop offset="100%" stopColor="#5cf2e8" stopOpacity={0}/>
+                    </linearGradient>
+                  </defs>
+                  <ReferenceLine y={MONTH_BUDGET} stroke="#ff5d5d" strokeDasharray="2 2" />
+                  <ReferenceLine y={MONTH_BUDGET*0.8} stroke="#f5b53c" strokeDasharray="2 2" />
+                  <Area dataKey="cum" stroke="#5cf2e8" strokeWidth={1} fill="url(#bg)" isAnimationActive={false}/>
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-3 gap-2 mt-3 text-[10px] uppercase tracking-widest">
+            <div className="border hairline p-2" style={{background:"var(--bg-2)"}}>
+              <div className="text-[color:var(--ink-3)]">throttle</div>
+              <div className="text-[color:var(--green)] mt-1">DISARMED</div>
+            </div>
+            <div className="border hairline p-2" style={{background:"var(--bg-2)"}}>
+              <div className="text-[color:var(--ink-3)]">downgrade</div>
+              <div className="text-[color:var(--amber)] mt-1">M→S @ 80%</div>
+            </div>
+            <div className="border hairline p-2" style={{background:"var(--bg-2)"}}>
+              <div className="text-[color:var(--ink-3)]">hard stop</div>
+              <div className="text-[color:var(--ink-4)] mt-1">95% / arm</div>
+            </div>
+          </div>
+        </Panel>
+
+        <Panel
+          tag="A.03"
+          title="LEMONADE  ·  LOCAL-NPU PATH"
+          right={<><span>LAST 4H</span></>}
+          className="col-span-3"
+        >
+          <div className="flex items-baseline justify-between">
+            <div>
+              <div className="display text-[42px] leading-none num text-[color:var(--magenta)] glow-magenta">
+                {(NPU_HIT_RATE*100).toFixed(1)}<span className="text-[16px] text-[color:var(--ink-4)]">%</span>
+              </div>
+              <div className="text-[10px] uppercase tracking-widest text-[color:var(--ink-3)] mt-1">
+                simple-tier hit rate · local NPU
+              </div>
+            </div>
+            <div className="text-right">
+              <div className="text-[10px] uppercase tracking-widest text-[color:var(--ink-3)]">cost</div>
+              <div className="text-[color:var(--green)] mono num text-[18px] leading-none mt-1">$0.00</div>
+              <div className="text-[10px] uppercase tracking-widest text-[color:var(--ink-3)] mt-3">p50 latency</div>
+              <div className="text-[color:var(--cyan)] mono num text-[18px] leading-none mt-1">{NPU_LATENCY}ms</div>
+            </div>
+          </div>
+
+          <div className="mt-3" style={{height:60}}>
+            <Spark data={NPU_TREND} color="#ff4fbf" />
+          </div>
+
+          <div className="grid grid-cols-3 text-[10px] uppercase tracking-widest mt-2 num">
+            <div>
+              <div className="text-[color:var(--ink-4)]">slot 1</div>
+              <div className="text-[color:var(--ink)]">gemma-4 e4b</div>
+            </div>
+            <div>
+              <div className="text-[color:var(--ink-4)]">slot 2</div>
+              <div className="text-[color:var(--ink)]">phi-3.5 mini</div>
+            </div>
+            <div>
+              <div className="text-[color:var(--ink-4)]">slot 3</div>
+              <div className="text-[color:var(--ink)]">qwen2.5 1.5b</div>
+            </div>
+          </div>
+
+          <div className="mt-3 border-t hairline pt-2 text-[10px] uppercase tracking-widest text-[color:var(--ink-3)]">
+            <div className="flex justify-between"><span>VRAM</span><span className="text-[color:var(--ink)] num">11.2 / 16.0 GB</span></div>
+            <div className="flex justify-between"><span>NPU UTIL</span><span className="text-[color:var(--ink)] num">62%</span></div>
+            <div className="flex justify-between"><span>ROUTED · 24H</span><span className="text-[color:var(--ink)] num">6,144</span></div>
+            <div className="flex justify-between"><span>SAVED · 24H</span><span className="text-[color:var(--green)] num glow-cyan">≈ $312.40</span></div>
+          </div>
+        </Panel>
+
+        {/* Row 2 */}
+        <Panel
+          tag="B.01"
+          title="MODEL FLEET  ·  45 MODELS  ·  6 PROVIDERS"
+          right={<>
+            <span className="text-[color:var(--ink-4)]">FILTER</span>
+            <span className="text-[color:var(--cyan)]">all</span>
+            <span className="text-[color:var(--ink-4)]">|</span>
+            <span>tier</span>
+            <span className="text-[color:var(--ink-4)]">|</span>
+            <span>provider</span>
+            <span className="text-[color:var(--ink-4)]">|</span>
+            <span>status</span>
+          </>}
+          className="col-span-8"
+        >
+          <div className="border hairline" style={{background:"var(--bg-2)"}}>
+            {/* head */}
+            <div className="grid text-[10px] tracking-[0.18em] uppercase text-[color:var(--ink-3)] px-3 py-2 border-b hairline-soft num"
+                 style={{gridTemplateColumns:"22px 2fr 0.9fr 0.7fr 0.9fr 0.9fr 0.7fr 0.9fr 0.5fr"}}>
+              <div></div>
+              <div>model</div>
+              <div>provider</div>
+              <div>tier</div>
+              <div className="text-right">in / 1M</div>
+              <div className="text-right">out / 1M</div>
+              <div className="text-right">calls 24h</div>
+              <div className="text-right">$ today</div>
+              <div className="text-right">stat</div>
+            </div>
+
+            {/* body */}
+            <div style={{maxHeight:520, overflowY:"auto"}}>
+              {MODELS.map((m, i) => (
+                <div key={m.id}
+                  className="grid items-center px-3 py-[6px] border-b hairline-soft text-[11px] num row-stripe"
+                  style={{gridTemplateColumns:"22px 2fr 0.9fr 0.7fr 0.9fr 0.9fr 0.7fr 0.9fr 0.5fr"}}>
+                  <div className="text-[color:var(--ink-4)] num">{String(i+1).padStart(2,"0")}</div>
+                  <div className="text-[color:var(--ink)] truncate">
+                    {m.id}
+                    {m.npu && <span className="ml-2 text-[9px] tracking-widest uppercase text-[color:var(--magenta)] border border-[color:var(--magenta-dim)] px-1">NPU</span>}
+                  </div>
+                  <div className="text-[color:var(--ink-2)] text-[10px] tracking-widest">{m.provider}</div>
+                  <div><TierTag t={m.tier} /></div>
+                  <div className="text-right text-[color:var(--ink)]">
+                    {m.inP === 0 ? <span className="text-[color:var(--ink-4)]">—</span> : `$${m.inP.toFixed(2)}`}
+                  </div>
+                  <div className="text-right text-[color:var(--ink)]">
+                    {m.outP === 0 ? <span className="text-[color:var(--ink-4)]">—</span> : `$${m.outP.toFixed(2)}`}
+                  </div>
+                  <div className="text-right text-[color:var(--ink-2)]">{m.calls.toLocaleString()}</div>
+                  <div className="text-right">
+                    {m.spendToday === 0
+                      ? <span className="text-[color:var(--green)]">$0.00</span>
+                      : <span className="text-[color:var(--cyan)] glow-cyan">${m.spendToday.toFixed(2)}</span>}
+                  </div>
+                  <div className="text-right"><Dot s={m.status} /></div>
+                </div>
+              ))}
+            </div>
+
+            {/* footer totals */}
+            <div className="grid items-center px-3 py-2 border-t hairline-soft text-[11px] num"
+                 style={{
+                   gridTemplateColumns:"22px 2fr 0.9fr 0.7fr 0.9fr 0.9fr 0.7fr 0.9fr 0.5fr",
+                   background:"linear-gradient(180deg,#0d121b,#0a0d13)"
+                 }}>
+              <div></div>
+              <div className="text-[10px] uppercase tracking-widest text-[color:var(--ink-3)]">aggregate</div>
+              <div className="text-[10px] tracking-widest text-[color:var(--ink-4)]">{MODELS.length} models</div>
+              <div></div>
+              <div></div>
+              <div></div>
+              <div className="text-right text-[color:var(--ink)]">{TOTAL_CALLS.toLocaleString()}</div>
+              <div className="text-right text-[color:var(--cyan)] glow-cyan">${TOTAL_SPEND_TODAY.toFixed(2)}</div>
+              <div className="text-right"><Dot s="green" /></div>
+            </div>
+          </div>
+        </Panel>
+
+        <Panel
+          tag="B.02"
+          title="ROUTING DECISION LOG  ·  TAIL"
+          right={<><span className="pulse-dot inline-block align-middle mr-2"/><span>STREAM</span></>}
+          className="col-span-4"
+        >
+          <div className="border hairline" style={{background:"var(--bg-2)"}}>
+            <div className="grid text-[9px] uppercase tracking-widest text-[color:var(--ink-3)] px-2 py-2 border-b hairline-soft num"
+                 style={{gridTemplateColumns:"86px 60px 30px 1fr 56px 50px 24px"}}>
+              <div>ts</div>
+              <div>hash</div>
+              <div>t</div>
+              <div>model</div>
+              <div className="text-right">$</div>
+              <div className="text-right">ms</div>
+              <div className="text-right">∎</div>
+            </div>
+            <div style={{maxHeight:520, overflowY:"auto"}}>
+              {ROUTES.map((r, idx) => (
+                <div key={idx}
+                  className="grid items-center px-2 py-[5px] border-b hairline-soft text-[10.5px] num row-stripe"
+                  style={{gridTemplateColumns:"86px 60px 30px 1fr 56px 50px 24px"}}>
+                  <div className="text-[color:var(--ink-3)]">{r.ts}</div>
+                  <div className="text-[color:var(--violet)]">{r.hash}</div>
+                  <div className={r.tier==="simple" ? "t-simple" : r.tier==="medium" ? "t-medium" : "t-hard"}>
+                    {r.tier==="simple" ? "S" : r.tier==="medium" ? "M" : "H"}
+                  </div>
+                  <div className="text-[color:var(--ink)] truncate">{r.model}</div>
+                  <div className="text-right text-[color:var(--ink-2)]">
+                    {r.cost === 0 ? <span className="text-[color:var(--green)]">0.0000</span> : r.cost.toFixed(4)}
+                  </div>
+                  <div className={"text-right " + (r.lat < 100 ? "text-[color:var(--green)]" : r.lat < 1000 ? "text-[color:var(--ink)]" : "text-[color:var(--amber)]")}>
+                    {r.lat}
+                  </div>
+                  <div className="text-right">
+                    {r.cache
+                      ? <span className="text-[color:var(--cyan)] glow-cyan">●</span>
+                      : <span className="text-[color:var(--ink-4)]">○</span>}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* legend */}
+          <div className="mt-2 grid grid-cols-3 gap-2 text-[9px] uppercase tracking-widest text-[color:var(--ink-3)]">
+            <div className="flex items-center gap-2"><span className="w-2 h-2 inline-block" style={{background:"var(--cyan)"}}/>simple</div>
+            <div className="flex items-center gap-2"><span className="w-2 h-2 inline-block" style={{background:"var(--amber)"}}/>medium</div>
+            <div className="flex items-center gap-2"><span className="w-2 h-2 inline-block" style={{background:"var(--magenta)"}}/>hard</div>
+            <div className="flex items-center gap-2"><span className="text-[color:var(--cyan)]">●</span>cache hit</div>
+            <div className="flex items-center gap-2"><span className="text-[color:var(--ink-4)]">○</span>cache miss</div>
+            <div className="flex items-center gap-2"><span className="dot green"/>healthy</div>
+          </div>
+        </Panel>
+
+      </main>
+
+      {/* footer rule */}
+      <footer className="px-4 mt-3 pt-2 border-t hairline text-[9px] uppercase tracking-[0.22em] text-[color:var(--ink-4)] flex justify-between">
+        <div>cohezion.router · ops console · build {now.toISOString().slice(0,10).replace(/-/g,"")}.0142</div>
+        <div>shift+? help · g+t goto tier · g+f goto fleet · g+l goto log · esc clear</div>
+      </footer>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+</script>
+</body>
+</html>
