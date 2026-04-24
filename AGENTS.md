@@ -47,6 +47,50 @@ logging.getLogger().handlers.clear()
 
 ---
 
+## Pi Extensions Available
+
+### System Diagnostics & Quality
+- `/diag` - Full system diagnostic (model, security, context usage, tool status)
+- `/model-test` - Benchmark model capabilities (reasoning, tool usage, instructions)
+- `/security mode [basic|max]` - Toggle security level
+- `/usage` - Real-time token/cost dashboard
+
+### Development Workflow
+- `/cost` - Session spending analysis
+- `/oracle <question>` - Get second opinion from alternative model
+- `/plan` - Toggle plan mode (read-only exploration before changes)
+- `/mem <instruction>` - Save instruction to AGENTS.md
+- `/loop <condition>` - Conditional follow-up loops
+
+### Parallel Development (pi-side-agents)
+- `/agent [-model ...] <prompt>` - Spawn side agent in tmux + git worktree
+- `/agents` - List active side agents
+- **Agent Tools**: `agent-start`, `agent-check`, `agent-wait-any`, `agent-send`
+
+**Side Agent Workflow**:
+```
+# Spawn parallel experiments
+/agent test caching strategy A
+/agent -model kimi-k2.5 test strategy B
+
+# Monitor statusline (blue = waiting for review)
+# Switch to tmux window: Ctrl+B <num>
+# Review work, type "LGTM" → auto-merges
+# /quit to close agent
+```
+
+### Productivity
+- `/code` - Pick code blocks from messages to copy/insert/run
+- `/paste` - Paste editable text (not paste #1 +21 lines)
+
+### Setup
+```bash
+pi install -l npm:pi-side-agents  # Project-local install
+/skill:agent-setup                # Scaffold Cohezion lifecycle scripts
+```
+
+---
+
 ## Code Style Guidelines
 
 ### General
@@ -186,6 +230,17 @@ chore: maintenance
 - Commit secrets to `.env` or `credentials.json`
 - Skip pre-commit hooks
 
+### Extension: pi-side-agents
+Spawn parallel work in isolated worktrees:
+```bash
+# Main agent delegates tasks
+/agent implement feature X
+/agent -model minimax-m2.7 fix bug Y
+
+# Each runs in tmux window + git worktree
+# Review, type "LGTM", auto-merges to main
+```
+
 ---
 
 ## Key Learnings from Retrospective
@@ -214,11 +269,11 @@ async with CompoundSessionManager() as mgr:
 ### Alignment Gate (HIHO Stability)
 The alignment gate prevents wasted tokens on misaligned requests:
 ```python
-# High coherence (> 0.5) → proceeds
+# High coherence (> 0.5) -> proceeds
 result = mgr.check_alignment("Generate a simple function")
 assert result.should_proceed  # True
 
-# Low coherence (< threshold) → blocked
+# Low coherence (< threshold) -> blocked
 result = mgr.check_alignment("Ambiguous unclear request", threshold=0.5)
 if not result.should_proceed:
     # Decompose or escalate instead of executing
@@ -231,7 +286,7 @@ When `use_executor=True`, the full pipeline runs:
 - guardrails check - Safety validation
 - execute_fn(guidance) - Your task function
 - inflection detection - Anomaly detection
-- CRITICAL inflection → vault logging
+- CRITICAL inflection -> vault logging
 - metrics collection - Token, duration, coherence
 - skill refinement trigger - Update skill definitions
 
@@ -246,7 +301,7 @@ from cohezion.compound.cache_persistence import CachePersistence, WarmCacheLoade
 
 # On start: warm cache
 loader = WarmCacheLoader()
-entries_loaded = loader.warm_client(client, max_entries=256)
+entries_loaded = loader.warm_client(client, max_cache_entries=256)
 
 # On end: persist cache
 cp = CachePersistence()
