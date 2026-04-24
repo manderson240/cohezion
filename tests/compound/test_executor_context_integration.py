@@ -336,8 +336,14 @@ class TestContextErrorRecovery:
                 or "manifest" in str(exc_info.value).lower()
             )
 
-    def test_context_handles_missing_core_file(self, tmp_path):
-        """[P1] Should handle missing core file gracefully."""
+    def test_context_handles_missing_core_file(self, tmp_path, caplog):
+        """[P1] Should handle missing core file gracefully (warn, don't raise).
+
+        Manifest entries can drift from the filesystem. The executor's other
+        helpers (degradation, journey, bioelectric) all warn-and-continue;
+        load_core_context must follow the same contract so a stale manifest
+        doesn't crash every execution.
+        """
         ctx_dir = tmp_path / ".context"
         ctx_dir.mkdir()
         (ctx_dir / "core").mkdir()
@@ -362,10 +368,14 @@ class TestContextErrorRecovery:
         with patch.object(Path, "cwd", return_value=tmp_path):
             mgr = ContextManager()
 
-            with pytest.raises(Exception) as exc_info:
+            # Must not raise; must log a warning naming the missing file
+            with caplog.at_level("WARNING"):
                 mgr.load_core_context()
 
-            assert "not found" in str(exc_info.value).lower()
+            assert any(
+                "nonexistent.md" in record.message and "Skipping" in record.message
+                for record in caplog.records
+            ), f"Expected warning naming missing file; got: {[r.message for r in caplog.records]}"
 
 
 class TestContextWithCompoundWorkflow:
