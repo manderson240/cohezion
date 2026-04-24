@@ -1027,7 +1027,6 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
                         }
                         if point.metadata:
                             point_data["metadata"] = point.metadata
-                        import asyncio
 
                         exec_id = f"exec_{int(time.time())}"
                         try:
@@ -1095,8 +1094,6 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
             coherence_val = metrics.get("coherence", 0.5)
             coherence_drop = abs(coherence_val - 0.5)
             if coherence_drop > 0.3:
-                import asyncio
-
                 try:
                     loop = asyncio.get_event_loop()
                     if loop.is_running():
