@@ -20,6 +20,8 @@ def _worker_lock_task(lock_path, shared_val):
     lock = FileLock(lock_path)
     with lock.acquire():
         curr = shared_val.value
+        # justify: multiprocess FileLock contention test; sleep widens the
+        # critical section so concurrent processes must serialize
         time.sleep(0.1)
         shared_val.value = curr + 1
 

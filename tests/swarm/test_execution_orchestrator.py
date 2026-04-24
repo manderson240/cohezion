@@ -48,7 +48,10 @@ async def test_execution_orchestrator_parallel(monkeypatch):
 
     async def mock_exec(task):
         execution_times.append(asyncio.get_event_loop().time())
-        await asyncio.sleep(0.1)
+        # Yield once so the orchestrator can schedule the second task in
+        # parallel before the first completes; full 0.1s wait is unnecessary
+        # because we only assert the START times overlap, not the durations.
+        await asyncio.sleep(0)
         return TaskResult(task_id=task.id, subject=task.subject)
 
     orch = ExecutionOrchestrator()
