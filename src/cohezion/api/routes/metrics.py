@@ -111,7 +111,7 @@ async def metrics_training():
                 "checkpoint": str(flume_ckpt) if flume_ckpt.exists() else None,
                 "metrics": data if isinstance(data, dict) else {"epoch_data": data[-3:]},
             }
-        except (OSError, _json.JSONDecodeError, ValueError, KeyError, AttributeError):
+        except (OSError, _json.JSONDecodeError, ValueError, KeyError, AttributeError, TypeError):
             flume_info = {"status": "checkpoint_found", "path": str(flume_metrics)}
     elif flume_ckpt.exists():
         flume_info = {"status": "checkpoint_found", "path": str(flume_ckpt)}
@@ -128,7 +128,7 @@ async def metrics_training():
                 "checkpoint": str(rl_ckpt) if rl_ckpt.exists() else None,
                 "metrics": data if isinstance(data, dict) else {"episode_data": data[-3:]},
             }
-        except (OSError, _json.JSONDecodeError, ValueError, KeyError, AttributeError):
+        except (OSError, _json.JSONDecodeError, ValueError, KeyError, AttributeError, TypeError):
             rl_info = {"status": "checkpoint_found", "path": str(rl_metrics)}
     elif rl_ckpt.exists():
         rl_info = {"status": "checkpoint_found", "path": str(rl_ckpt)}
@@ -197,6 +197,7 @@ async def metrics_system():
     ollama_available = False
     ollama_models: list[str] = []
     try:
+        import asyncio
         import httpx as _httpx
 
         async with _httpx.AsyncClient(timeout=2.0) as client:
@@ -212,6 +213,8 @@ async def metrics_system():
         ConnectionError,
         ValueError,
         KeyError,
+        TypeError,
+        asyncio.TimeoutError,
     ) as e:
         logger.debug("Ollama status check unavailable: %s", e)
 
