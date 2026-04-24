@@ -1,0 +1,601 @@
+diff --git a/examples/knn/knn_wrapper.py b/examples/knn/knn_wrapper.py
+index 03c80023..61761dd6 100755
+--- a/examples/knn/knn_wrapper.py
++++ b/examples/knn/knn_wrapper.py
+@@ -1,8 +1,7 @@
+ # Copyright (c) OpenMMLab. All rights reserved.
+ import torch
+-from torch.autograd import Function
+-
+ from kernel_loader import knn_ext
++from torch.autograd import Function
+ 
+ 
+ class KNN(Function):
+diff --git a/examples/knn/scripts/task_runner.py b/examples/knn/scripts/task_runner.py
+index 2ebda436..3fb9dd9c 100644
+--- a/examples/knn/scripts/task_runner.py
++++ b/examples/knn/scripts/task_runner.py
+@@ -1,10 +1,10 @@
+ #!/usr/bin/env python3
+ # Copyright(C) [2026] Advanced Micro Devices, Inc. All rights reserved.
+ """Task runner for hip2hip/knn"""
+-import sys
+-import os
+-import json
+ import argparse
++import json
++import os
++import sys
+ 
+ TASK_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+ sys.path.insert(0, TASK_DIR)
+diff --git a/examples/knn/test_knn.py b/examples/knn/test_knn.py
+index 3fcfbf9d..06387563 100755
+--- a/examples/knn/test_knn.py
++++ b/examples/knn/test_knn.py
+@@ -1,17 +1,17 @@
+ # Copyright (c) OpenMMLab. All rights reserved.
+-import sys
+ import os
++import sys
+ from pathlib import Path
+ 
+ # Ensure the test can find the task module when run from the task directory
+ sys.path.insert(0, str(Path(__file__).parent))
+ 
+ 
+-import torch
++import os
+ 
++import torch
+ from knn_wrapper import knn
+-import time
+-import os
++
+ 
+ def test_knn(device):
+     new_xyz = torch.tensor([[[-0.0740, 1.3147, -1.3625],
+diff --git a/examples/mla_decode/kernel.py b/examples/mla_decode/kernel.py
+index 90567f7e..27db7dc2 100644
+--- a/examples/mla_decode/kernel.py
++++ b/examples/mla_decode/kernel.py
+@@ -23,15 +23,15 @@ It supports page size = 1.
+ # https://github.com/ModelTC/lightllm/blob/96353e868a840db4d103138caf15ed9dbea8c186/lightllm/models/deepseek2/triton_kernel/gqa_flash_decoding_stage1.py
+ # https://github.com/ModelTC/lightllm/blob/96353e868a840db4d103138caf15ed9dbea8c186/lightllm/models/deepseek2/triton_kernel/gqa_flash_decoding_stage2.py
+ 
+-from typing import Optional
+-import triton
++
+ import torch
+-from aiter.ops.triton.utils.logger import AiterTritonLogger
++import triton
+ from aiter.ops.triton._triton_kernels.mla_decode_rope import (
+     _fwd_grouped_kernel_stage1_rope,
+     _fwd_kernel_stage2,
+     _get_config,
+ )
++from aiter.ops.triton.utils.logger import AiterTritonLogger
+ 
+ _LOGGER = AiterTritonLogger()
+ 
+@@ -156,10 +156,10 @@ def decode_attention_fwd_grouped_rope(
+     attn_logits: torch.Tensor,
+     num_kv_splits: int,
+     sm_scale: float,
+-    logit_cap: Optional[float] = 0.0,
+-    use_rope: Optional[bool] = False,
+-    is_neox_style: Optional[bool] = False,
+-    config: Optional[dict[str, any]] = None,
++    logit_cap: float | None = 0.0,
++    use_rope: bool | None = False,
++    is_neox_style: bool | None = False,
++    config: dict[str, any] | None = None,
+ ):
+     """
+     Multi-head Latent Attention (MLA) decode with RoPE and low-rank compression.
+diff --git a/examples/mla_decode/test_kernel_harness.py b/examples/mla_decode/test_kernel_harness.py
+index ce64389f..c2a64735 100755
+--- a/examples/mla_decode/test_kernel_harness.py
++++ b/examples/mla_decode/test_kernel_harness.py
+@@ -4,9 +4,9 @@
+ # Shapes source: /home/upandey/AIG-Eval/external_repos/aiter/op_tests/test_mla.py
+ 
+ import argparse
++import math
+ import os
+ import sys
+-import math
+ 
+ import torch
+ 
+@@ -21,9 +21,7 @@ REPO_ROOT = os.environ.get(
+ if REPO_ROOT not in sys.path:
+     sys.path.insert(0, REPO_ROOT)
+ 
+-import aiter
+ import aiter.mla as mla_module
+-from aiter import dtypes
+ 
+ torch.set_default_device("cuda")
+ 
+@@ -270,11 +268,11 @@ def benchmark_kernel(inputs):
+ 
+ def config_str(cfg):
+     ctx_len, batch_size, nhead, decode_qlen = cfg
+-    return "ctx={} bs={} nhead={} dq={}".format(ctx_len, batch_size, nhead, decode_qlen)
++    return f"ctx={ctx_len} bs={batch_size} nhead={nhead} dq={decode_qlen}"
+ 
+ 
+ def mode_correctness(indices):
+-    print("Running correctness check on {} configs...".format(len(indices)))
++    print(f"Running correctness check on {len(indices)} configs...")
+     all_pass = True
+     for idx in indices:
+         cfg = ALL_CONFIGS[idx]
+@@ -286,19 +284,17 @@ def mode_correctness(indices):
+             out_ref = run_ref(inputs)
+             passed, err_ratio, cos_diff = check_correctness_val(out_ref, out_asm)
+             if passed:
+-                print("  [{}] {}  err_ratio={:.4f} cos_diff={:.2e}  PASS".format(
+-                    idx, label, err_ratio, cos_diff))
++                print(f"  [{idx}] {label}  err_ratio={err_ratio:.4f} cos_diff={cos_diff:.2e}  PASS")
+             else:
+-                print("  [{}] {}  err_ratio={:.4f} cos_diff={:.2e}  FAIL".format(
+-                    idx, label, err_ratio, cos_diff))
++                print(f"  [{idx}] {label}  err_ratio={err_ratio:.4f} cos_diff={cos_diff:.2e}  FAIL")
+                 all_pass = False
+         except Exception as e:
+-            print("  [{}] {}  ERROR: {}".format(idx, label, e))
++            print(f"  [{idx}] {label}  ERROR: {e}")
+             all_pass = False
+         finally:
+             torch.cuda.empty_cache()
+ 
+-    print("GEAK_SHAPES_USED={}".format(indices))
++    print(f"GEAK_SHAPES_USED={indices}")
+     if not all_pass:
+         print("CORRECTNESS FAILED")
+         sys.exit(1)
+@@ -306,7 +302,7 @@ def mode_correctness(indices):
+ 
+ 
+ def mode_benchmark(indices):
+-    print("Running benchmark on {} configs...".format(len(indices)))
++    print(f"Running benchmark on {len(indices)} configs...")
+     latencies = []
+     for idx in indices:
+         cfg = ALL_CONFIGS[idx]
+@@ -315,24 +311,24 @@ def mode_benchmark(indices):
+         try:
+             inputs = setup_inputs(ctx_len, batch_size, nhead, decode_qlen)
+             ms = benchmark_kernel(inputs)
+-            print("  {}  {:.4f}ms".format(label, ms))
++            print(f"  {label}  {ms:.4f}ms")
+             latencies.append(ms)
+         except Exception as e:
+-            print("  {}  ERROR: {}".format(label, e))
++            print(f"  {label}  ERROR: {e}")
+         finally:
+             torch.cuda.empty_cache()
+ 
+-    print("GEAK_SHAPES_USED={}".format(indices))
++    print(f"GEAK_SHAPES_USED={indices}")
+     if latencies:
+         geo_mean = math.exp(sum(math.log(x) for x in latencies) / len(latencies))
+-        print("GEAK_RESULT_LATENCY_MS={:.4f}".format(geo_mean))
++        print(f"GEAK_RESULT_LATENCY_MS={geo_mean:.4f}")
+     else:
+         print("No successful benchmarks")
+         sys.exit(1)
+ 
+ 
+ def mode_profile(indices):
+-    print("Running profile on {} configs...".format(len(indices)))
++    print(f"Running profile on {len(indices)} configs...")
+     for idx in indices:
+         cfg = ALL_CONFIGS[idx]
+         ctx_len, batch_size, nhead, decode_qlen = cfg
+@@ -340,13 +336,13 @@ def mode_profile(indices):
+         try:
+             inputs = setup_inputs(ctx_len, batch_size, nhead, decode_qlen)
+             out_asm = run_kernel(inputs)
+-            print("  {}  OK".format(label))
++            print(f"  {label}  OK")
+         except Exception as e:
+-            print("  {}  ERROR: {}".format(label, e))
++            print(f"  {label}  ERROR: {e}")
+         finally:
+             torch.cuda.empty_cache()
+ 
+-    print("GEAK_SHAPES_USED={}".format(indices))
++    print(f"GEAK_SHAPES_USED={indices}")
+ 
+ 
+ def main():
+@@ -359,7 +355,7 @@ def main():
+     args = parser.parse_args()
+ 
+     total = len(ALL_CONFIGS)
+-    print("Total configs: {}".format(total))
++    print(f"Total configs: {total}")
+ 
+     if args.correctness:
+         indices = _pick(ALL_CONFIGS, 25)
+diff --git a/examples/verify_config.py b/examples/verify_config.py
+index 4e1131dc..541cae27 100644
+--- a/examples/verify_config.py
++++ b/examples/verify_config.py
+@@ -6,7 +6,7 @@ from pathlib import Path
+ 
+ sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
+ 
+-from minisweagent.mcp_integration.mcp_environment import MCPEnvironmentConfig, MCPEnabledEnvironment
++from minisweagent.mcp_integration.mcp_environment import MCPEnabledEnvironment, MCPEnvironmentConfig
+ 
+ # Test 1: Config creation
+ print("Test 1: Creating MCPEnvironmentConfig...")
+@@ -27,7 +27,7 @@ try:
+         rag_subagent_model="claude-opus-4.6",
+         rag_subagent_api_key="test-key"
+     )
+-    print(f"✅ Environment created successfully!")
++    print("✅ Environment created successfully!")
+     print(f"   enable_rag_subagent={env.config.enable_rag_subagent}")
+     print(f"   rag_subagent_model={env.config.rag_subagent_model}")
+     print(f"   Has rag_subagent property: {hasattr(env, 'rag_subagent')}")
+diff --git a/mcp_tools/profiler-mcp/src/profiler_mcp/server.py b/mcp_tools/profiler-mcp/src/profiler_mcp/server.py
+index f3d1b9b8..42b54d1c 100644
+--- a/mcp_tools/profiler-mcp/src/profiler_mcp/server.py
++++ b/mcp_tools/profiler-mcp/src/profiler_mcp/server.py
+@@ -133,6 +133,7 @@ def _profile_with_rocprof(
+     """
+     try:
+         from minisweagent.kernel_profile import _build_rocprof_result
++
+         from minisweagent.tools.profiling_tools import ProfilingAnalyzer
+     except ImportError:
+         _agent_root = Path(__file__).resolve().parent.parent.parent.parent.parent
+@@ -140,6 +141,7 @@ def _profile_with_rocprof(
+         if str(_src) not in sys.path:
+             sys.path.insert(0, str(_src))
+         from minisweagent.kernel_profile import _build_rocprof_result
++
+         from minisweagent.tools.profiling_tools import ProfilingAnalyzer
+ 
+     # Empty HIP_VISIBLE_DEVICES hides all GPUs from ROCm.  We need to
+diff --git a/mcp_tools/profiler-mcp/tests/test_profiler_integration.py b/mcp_tools/profiler-mcp/tests/test_profiler_integration.py
+index b1b7d0f1..36c96647 100644
+--- a/mcp_tools/profiler-mcp/tests/test_profiler_integration.py
++++ b/mcp_tools/profiler-mcp/tests/test_profiler_integration.py
+@@ -9,7 +9,6 @@ Override the test kernel command with:
+ """
+ 
+ import pytest
+-
+ from conftest import requires_gpu
+ from profiler_mcp.server import profile_kernel
+ 
+diff --git a/scripts/build_index.py b/scripts/build_index.py
+index e0fda8bc..6f6c7900 100644
+--- a/scripts/build_index.py
++++ b/scripts/build_index.py
+@@ -20,10 +20,10 @@ Usage:
+ import argparse
+ import pickle
+ import re
++from collections.abc import Callable
+ from dataclasses import dataclass
+ from enum import Enum
+ from pathlib import Path
+-from typing import Callable
+ 
+ from langchain_community.vectorstores import FAISS
+ from langchain_core.documents import Document
+@@ -35,7 +35,6 @@ from langchain_text_splitters import (
+ )
+ from rank_bm25 import BM25Okapi
+ 
+-
+ # Default paths
+ DEFAULT_KB_PATH = Path(__file__).parent.parent / "knowledge-base"
+ DEFAULT_OUTPUT_PATH = Path.home() / ".cache" / "amd-ai-devtool" / "semantic-index"
+@@ -679,9 +678,9 @@ def build_index(
+             print(f"  ✓ BM25: '{query}' → Layer {layer}, {category} (score: {scores[top_idx]:.3f})")
+     
+     print("\n✓ Hybrid index (FAISS + BM25) built successfully!")
+-    print(f"\nIndex Statistics:")
++    print("\nIndex Statistics:")
+     print(f"  Total chunks: {len(chunks)}")
+-    print(f"  FAISS dimension: 1024 (BGE-large)")
++    print("  FAISS dimension: 1024 (BGE-large)")
+     print(f"  BM25 documents: {len(bm25_docs)}")
+     print(f"  Total index size: {total_size / 1024:.1f} KB")
+     print()
+diff --git a/scripts/test_chunking.py b/scripts/test_chunking.py
+index fa35c340..69cb0675 100644
+--- a/scripts/test_chunking.py
++++ b/scripts/test_chunking.py
+@@ -2,8 +2,9 @@
+ """Test chunking with header prefix optimization."""
+ 
+ from pathlib import Path
++
++from build_index import SplitterConfig, get_markdown_splitter
+ from langchain_core.documents import Document
+-from build_index import get_markdown_splitter, SplitterConfig
+ 
+ # Test document path (container path, using actual knowledge base file)
+ TEST_DOC = Path("/workspace/mini-swe-agent/knowledge-base/amd-knowledge-base/layer-6-extended/optimize-guides/Report_flash_attention.md")
+diff --git a/scripts/test_embedding_search.py b/scripts/test_embedding_search.py
+index a4cf6e57..42513e72 100644
+--- a/scripts/test_embedding_search.py
++++ b/scripts/test_embedding_search.py
+@@ -7,13 +7,11 @@ Usage:
+     python test_search.py --interactive
+ """
+ 
+-import argparse
+ from pathlib import Path
+ 
+ from langchain_community.vectorstores import FAISS
+ from langchain_huggingface import HuggingFaceEmbeddings
+ 
+-
+ DEFAULT_INDEX_PATH = Path.home() / ".cache" / "amd-ai-devtool" / "semantic-index"
+ DEFAULT_MODEL = "BAAI/bge-large-en-v1.5"
+ 
+diff --git a/scripts/test_hybrid_retrieval.py b/scripts/test_hybrid_retrieval.py
+index 77830002..2b13c5f8 100644
+--- a/scripts/test_hybrid_retrieval.py
++++ b/scripts/test_hybrid_retrieval.py
+@@ -11,7 +11,7 @@ This module provides a hybrid retrieval system that:
+ import logging
+ import pickle
+ from pathlib import Path
+-from typing import Any, Dict, List, Optional, Tuple
++from typing import Any
+ 
+ import numpy as np
+ from langchain_community.vectorstores import FAISS
+@@ -45,7 +45,7 @@ class EmbeddingRetriever:
+     def __init__(self, index_path: Path, embedding_model: str = DEFAULT_EMBEDDING_MODEL):
+         self.index_path = index_path
+         self.embeddings = get_embeddings(embedding_model)
+-        self.vectorstore: Optional[FAISS] = None
++        self.vectorstore: FAISS | None = None
+         self._load_index()
+     
+     def _load_index(self) -> None:
+@@ -67,7 +67,7 @@ class EmbeddingRetriever:
+         else:
+             logger.warning(f"FAISS index not found at {self.index_path}")
+     
+-    def search(self, query: str, k: int = 20) -> List[Tuple[Document, float]]:
++    def search(self, query: str, k: int = 20) -> list[tuple[Document, float]]:
+         """Search using embedding similarity."""
+         if self.vectorstore is None:
+             return []
+@@ -84,8 +84,8 @@ class BM25Retriever:
+     
+     def __init__(self, index_path: Path):
+         self.index_path = index_path
+-        self.bm25: Optional[BM25Okapi] = None
+-        self.documents: List[Document] = []
++        self.bm25: BM25Okapi | None = None
++        self.documents: list[Document] = []
+         self._load_index()
+     
+     def _load_index(self) -> None:
+@@ -107,14 +107,14 @@ class BM25Retriever:
+         else:
+             logger.warning(f"BM25 index not found at {self.index_path}")
+     
+-    def _tokenize(self, text: str) -> List[str]:
++    def _tokenize(self, text: str) -> list[str]:
+         """Simple tokenization for BM25."""
+         # Lowercase and split on whitespace/punctuation
+         import re
+         tokens = re.findall(r'\b\w+\b', text.lower())
+         return tokens
+     
+-    def search(self, query: str, k: int = 20) -> List[Tuple[Document, float]]:
++    def search(self, query: str, k: int = 20) -> list[tuple[Document, float]]:
+         """Search using BM25 scoring."""
+         if self.bm25 is None or not self.documents:
+             return []
+@@ -138,7 +138,7 @@ class BGEReranker:
+     
+     def __init__(self, model_name: str = DEFAULT_RERANKER_MODEL):
+         self.model_name = model_name
+-        self.model: Optional[CrossEncoder] = None
++        self.model: CrossEncoder | None = None
+         self._load_model()
+     
+     def _load_model(self) -> None:
+@@ -153,9 +153,9 @@ class BGEReranker:
+     def rerank(
+         self, 
+         query: str, 
+-        documents: List[Document], 
++        documents: list[Document], 
+         top_k: int = 10
+-    ) -> List[Tuple[Document, float]]:
++    ) -> list[tuple[Document, float]]:
+         """Rerank documents using cross-encoder."""
+         if self.model is None or not documents:
+             return [(doc, 0.0) for doc in documents[:top_k]]
+@@ -204,9 +204,9 @@ class HybridRetriever:
+     
+     def _merge_results(
+         self,
+-        embed_results: List[Tuple[Document, float]],
+-        bm25_results: List[Tuple[Document, float]],
+-    ) -> List[Document]:
++        embed_results: list[tuple[Document, float]],
++        bm25_results: list[tuple[Document, float]],
++    ) -> list[Document]:
+         """Merge and deduplicate results from multiple retrievers."""
+         seen_contents = set()
+         merged = []
+@@ -231,9 +231,9 @@ class HybridRetriever:
+         self,
+         query: str,
+         top_k: int = 10,
+-        filters: Optional[Dict[str, Any]] = None,
++        filters: dict[str, Any] | None = None,
+         min_content_length: int = 200,
+-    ) -> List[Tuple[Document, float]]:
++    ) -> list[tuple[Document, float]]:
+         """
+         Perform hybrid retrieval with reranking.
+         
+@@ -293,12 +293,12 @@ class HybridRetriever:
+         logger.info(f"  Final: {len(filtered)} results")
+         return filtered
+     
+-    def search(self, query: str, k: int = 10, **kwargs) -> List[Tuple[Document, float]]:
++    def search(self, query: str, k: int = 10, **kwargs) -> list[tuple[Document, float]]:
+         """Alias for retrieve() for compatibility."""
+         return self.retrieve(query, top_k=k, **kwargs)
+ 
+ 
+-def build_bm25_index(documents: List[Document], save_path: Path) -> BM25Okapi:
++def build_bm25_index(documents: list[Document], save_path: Path) -> BM25Okapi:
+     """
+     Build and save BM25 index from documents.
+     
+@@ -311,7 +311,7 @@ def build_bm25_index(documents: List[Document], save_path: Path) -> BM25Okapi:
+     """
+     import re
+     
+-    def tokenize(text: str) -> List[str]:
++    def tokenize(text: str) -> list[str]:
+         """Simple tokenization."""
+         return re.findall(r'\b\w+\b', text.lower())
+     
+diff --git a/scripts/test_rrf_fusion.py b/scripts/test_rrf_fusion.py
+index 45992ffd..33e6255e 100644
+--- a/scripts/test_rrf_fusion.py
++++ b/scripts/test_rrf_fusion.py
+@@ -30,7 +30,7 @@ def test_rrf_calculation():
+         bm25_weight=0.3,
+     )
+     
+-    print(f"\n✓ Retriever initialized with:")
++    print("\n✓ Retriever initialized with:")
+     print(f"  embed_top_k: {retriever.embed_top_k}")
+     print(f"  bm25_top_k: {retriever.bm25_top_k}")
+     print(f"  rrf_k: {retriever.rrf_k}")
+@@ -93,7 +93,7 @@ def test_hybrid_search():
+     print("TEST 2: Full Hybrid Search (with real index)")
+     print("="*60)
+     
+-    from minisweagent.mcp_integration.langchain_retrieval import HybridRetriever, DEFAULT_INDEX_PATH
++    from minisweagent.mcp_integration.langchain_retrieval import DEFAULT_INDEX_PATH, HybridRetriever
+     
+     # Check if index exists
+     if not DEFAULT_INDEX_PATH.exists():
+diff --git a/tests/agents/test_default.py b/tests/agents/test_default.py
+index af8254f9..85a117d0 100644
+--- a/tests/agents/test_default.py
++++ b/tests/agents/test_default.py
+@@ -8,7 +8,6 @@ from minisweagent.agents.default import AgentConfig, DefaultAgent
+ from minisweagent.environments.local import LocalEnvironment
+ from minisweagent.models.test_models import DeterministicModel
+ 
+-
+ # --- Helpers ---
+ 
+ 
+diff --git a/tests/conftest.py b/tests/conftest.py
+index a6c327a7..b9974ec5 100644
+--- a/tests/conftest.py
++++ b/tests/conftest.py
+@@ -1,7 +1,4 @@
+-import os
+-import sys
+ import threading
+-from pathlib import Path
+ 
+ import pytest
+ 
+diff --git a/tests/models/test_init.py b/tests/models/test_init.py
+index dcf84d87..42e7acc7 100644
+--- a/tests/models/test_init.py
++++ b/tests/models/test_init.py
+@@ -1,8 +1,6 @@
+ import os
+ from unittest.mock import patch
+ 
+-import pytest
+-
+ from minisweagent.models import GlobalModelStats, get_model, get_model_class, get_model_name
+ from minisweagent.models.test_models import DeterministicModel, make_output
+ 
+diff --git a/tests/run/test_preprocess_unit.py b/tests/run/test_preprocess_unit.py
+index 7c86085e..04afa742 100644
+--- a/tests/run/test_preprocess_unit.py
++++ b/tests/run/test_preprocess_unit.py
+@@ -12,7 +12,6 @@ from unittest.mock import patch
+ 
+ import pytest
+ 
+-
+ # ===================================================================
+ # Test 1: _pick() determinism and correctness
+ # ===================================================================
+@@ -434,9 +433,6 @@ class TestImports:
+     def test_pipeline_helpers_import(self):
+         from minisweagent.run.pipeline_helpers import (
+             extract_harness_path,
+-            validate_harness,
+-            execute_harness_validation,
+-            create_validated_harness,
+         )
+         assert callable(extract_harness_path)
+ 
+@@ -608,8 +604,8 @@ class TestPreprocessContractEnforcement:
+                 assert Path(pc.profiling_result_path).is_file()
+ 
+     def test_harness_passes_static_validation(self):
+-        from minisweagent.run.preprocess.context import PreprocessContext
+         from minisweagent.run.pipeline_helpers import validate_harness
++        from minisweagent.run.preprocess.context import PreprocessContext
+         with tempfile.TemporaryDirectory() as tmp:
+             ctx, out = self._make_mock_output(tmp)
+             pc = PreprocessContext.from_preprocessor_output(ctx, out)
+diff --git a/tests/run/test_task_parser.py b/tests/run/test_task_parser.py
+index c59d8a98..aae8af76 100644
+--- a/tests/run/test_task_parser.py
++++ b/tests/run/test_task_parser.py
+@@ -6,8 +6,6 @@ import json
+ from pathlib import Path
+ from unittest.mock import patch
+ 
+-import pytest
+-
+ from minisweagent.run.utils import task_parser as tp
+ 
+ 
+diff --git a/tests/test_working_memory.py b/tests/test_working_memory.py
+index 92167da1..1ba446d5 100644
+--- a/tests/test_working_memory.py
++++ b/tests/test_working_memory.py
+@@ -5,15 +5,14 @@ from __future__ import annotations
+ import pytest
+ 
+ from minisweagent.memory.working_memory import (
++    MAX_INSIGHTS,
+     Insight,
+     WorkingMemory,
+     classify_change,
+     extract_insight_from_tool_result,
+     summarize_change,
+-    MAX_INSIGHTS,
+ )
+ 
+-
+ # ---------------------------------------------------------------------------
+ # Insight dataclass
+ # ---------------------------------------------------------------------------

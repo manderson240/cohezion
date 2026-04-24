@@ -1,0 +1,923 @@
+diff --git a/agent_sdks/python/src/a2ui/adk/a2a_extension/send_a2ui_to_client_toolset.py b/agent_sdks/python/src/a2ui/adk/a2a_extension/send_a2ui_to_client_toolset.py
+index 50555ef..cb8e1a6 100644
+--- a/agent_sdks/python/src/a2ui/adk/a2a_extension/send_a2ui_to_client_toolset.py
++++ b/agent_sdks/python/src/a2ui/adk/a2a_extension/send_a2ui_to_client_toolset.py
+@@ -88,9 +88,7 @@ Usage Examples:
+ """
+ 
+ import inspect
+-import json
+ import logging
+-import re
+ from typing import (
+     TYPE_CHECKING,
+     Any,
+@@ -101,7 +99,6 @@ from typing import (
+     Union,
+ )
+ 
+-import jsonschema
+ 
+ from a2a import types as a2a_types
+ from a2ui.a2a import (
+diff --git a/agent_sdks/python/src/a2ui/core/parser/parser.py b/agent_sdks/python/src/a2ui/core/parser/parser.py
+index 364fb9a..04e6c56 100644
+--- a/agent_sdks/python/src/a2ui/core/parser/parser.py
++++ b/agent_sdks/python/src/a2ui/core/parser/parser.py
+@@ -13,7 +13,7 @@
+ # limitations under the License.
+ 
+ import re
+-from typing import List, Optional, Any
++from typing import List
+ from .response_part import ResponsePart
+ from ..schema.constants import A2UI_OPEN_TAG, A2UI_CLOSE_TAG
+ from .payload_fixer import parse_and_fix
+diff --git a/agent_sdks/python/src/a2ui/core/parser/streaming.py b/agent_sdks/python/src/a2ui/core/parser/streaming.py
+index 5a23ffe..fe3b293 100644
+--- a/agent_sdks/python/src/a2ui/core/parser/streaming.py
++++ b/agent_sdks/python/src/a2ui/core/parser/streaming.py
+@@ -21,7 +21,6 @@ from typing import Any, List, Dict, Optional, Set, TYPE_CHECKING
+ from .constants import *
+ from ..schema.constants import (
+     VERSION_0_9,
+-    VERSION_0_8,
+     A2UI_OPEN_TAG,
+     A2UI_CLOSE_TAG,
+     SURFACE_ID_KEY,
+diff --git a/agent_sdks/python/src/a2ui/core/parser/streaming_v08.py b/agent_sdks/python/src/a2ui/core/parser/streaming_v08.py
+index 6678b77..b724d01 100644
+--- a/agent_sdks/python/src/a2ui/core/parser/streaming_v08.py
++++ b/agent_sdks/python/src/a2ui/core/parser/streaming_v08.py
+@@ -13,13 +13,12 @@
+ # limitations under the License.
+ 
+ import re
+-import json
+ from typing import Any, List, Dict, Optional, Set
+ 
+ from .streaming import A2uiStreamParser
+ from .response_part import ResponsePart
+ from .constants import *
+-from ..schema.constants import VERSION_0_8, SURFACE_ID_KEY, CATALOG_COMPONENTS_KEY
++from ..schema.constants import SURFACE_ID_KEY, CATALOG_COMPONENTS_KEY
+ 
+ 
+ class A2uiStreamParserV08(A2uiStreamParser):
+diff --git a/agent_sdks/python/src/a2ui/core/parser/streaming_v09.py b/agent_sdks/python/src/a2ui/core/parser/streaming_v09.py
+index 5284c01..135bdb9 100644
+--- a/agent_sdks/python/src/a2ui/core/parser/streaming_v09.py
++++ b/agent_sdks/python/src/a2ui/core/parser/streaming_v09.py
+@@ -19,7 +19,7 @@ from typing import Any, List, Dict, Optional, Set
+ from .streaming import A2uiStreamParser
+ from .response_part import ResponsePart
+ from .constants import *
+-from ..schema.constants import VERSION_0_9, SURFACE_ID_KEY, CATALOG_COMPONENTS_KEY
++from ..schema.constants import SURFACE_ID_KEY, CATALOG_COMPONENTS_KEY
+ 
+ 
+ class A2uiStreamParserV09(A2uiStreamParser):
+diff --git a/agent_sdks/python/src/a2ui/core/schema/catalog.py b/agent_sdks/python/src/a2ui/core/schema/catalog.py
+index 15898a3..96826a2 100644
+--- a/agent_sdks/python/src/a2ui/core/schema/catalog.py
++++ b/agent_sdks/python/src/a2ui/core/schema/catalog.py
+@@ -17,8 +17,8 @@ import copy
+ import json
+ import logging
+ import os
+-from dataclasses import dataclass, field, replace
+-from typing import Any, Dict, List, Optional, TYPE_CHECKING
++from dataclasses import dataclass, replace
++from typing import Any, Dict, List, Optional
+ 
+ from .catalog_provider import A2uiCatalogProvider, FileSystemCatalogProvider
+ from .constants import (
+diff --git a/agent_sdks/python/src/a2ui/core/schema/manager.py b/agent_sdks/python/src/a2ui/core/schema/manager.py
+index 185df6a..c9e344b 100644
+--- a/agent_sdks/python/src/a2ui/core/schema/manager.py
++++ b/agent_sdks/python/src/a2ui/core/schema/manager.py
+@@ -13,12 +13,7 @@
+ # limitations under the License.
+ 
+ import copy
+-import json
+-import logging
+-import os
+-import importlib.resources
+ from typing import List, Dict, Any, Optional, Callable
+-from dataclasses import dataclass, field
+ from .utils import load_from_bundled_resource
+ from ..inference_strategy import InferenceStrategy
+ from .constants import *
+diff --git a/agent_sdks/python/src/a2ui/core/schema/validator.py b/agent_sdks/python/src/a2ui/core/schema/validator.py
+index 2ba5eec..51b5afa 100644
+--- a/agent_sdks/python/src/a2ui/core/schema/validator.py
++++ b/agent_sdks/python/src/a2ui/core/schema/validator.py
+@@ -27,10 +27,8 @@ if TYPE_CHECKING:
+ from .constants import (
+     BASE_SCHEMA_URL,
+     CATALOG_COMPONENTS_KEY,
+-    CATALOG_ID_KEY,
+     CATALOG_STYLES_KEY,
+     VERSION_0_8,
+-    VERSION_0_9,
+ )
+ 
+ # RFC 6901 compliant regex for JSON Pointer
+diff --git a/agent_sdks/python/src/a2ui/core/template/manager.py b/agent_sdks/python/src/a2ui/core/template/manager.py
+index 235eb18..a3b605f 100644
+--- a/agent_sdks/python/src/a2ui/core/template/manager.py
++++ b/agent_sdks/python/src/a2ui/core/template/manager.py
+@@ -13,7 +13,7 @@
+ # limitations under the License.
+ 
+ from ..inference_strategy import InferenceStrategy
+-from typing import List, Optional, Any
++from typing import List
+ 
+ 
+ class A2uiTemplateManager(InferenceStrategy):
+diff --git a/agent_sdks/python/tests/adk/a2a_extension/test_send_a2ui_to_client_toolset.py b/agent_sdks/python/tests/adk/a2a_extension/test_send_a2ui_to_client_toolset.py
+index acfc1f0..1608f94 100644
+--- a/agent_sdks/python/tests/adk/a2a_extension/test_send_a2ui_to_client_toolset.py
++++ b/agent_sdks/python/tests/adk/a2a_extension/test_send_a2ui_to_client_toolset.py
+@@ -13,14 +13,12 @@
+ # limitations under the License.
+ 
+ import json
+-from unittest.mock import AsyncMock, MagicMock, patch
++from unittest.mock import MagicMock, patch
+ 
+ import pytest
+ 
+ from a2a import types as a2a_types
+ from a2ui.a2a import create_a2ui_part
+-from google.adk.agents.invocation_context import InvocationContext
+-from google.adk.events.event import Event
+ 
+ from a2ui.adk.a2a_extension.send_a2ui_to_client_toolset import (
+     A2uiEventConverter,
+diff --git a/agent_sdks/python/tests/core/parser/test_parser.py b/agent_sdks/python/tests/core/parser/test_parser.py
+index 3ba6d07..f507d7f 100644
+--- a/agent_sdks/python/tests/core/parser/test_parser.py
++++ b/agent_sdks/python/tests/core/parser/test_parser.py
+@@ -13,7 +13,7 @@
+ # limitations under the License.
+ 
+ import pytest
+-from a2ui.core.parser.parser import parse_response, ResponsePart
++from a2ui.core.parser.parser import parse_response
+ from a2ui.core.schema.constants import A2UI_OPEN_TAG, A2UI_CLOSE_TAG
+ 
+ 
+diff --git a/agent_sdks/python/tests/core/parser/test_payload_fixer.py b/agent_sdks/python/tests/core/parser/test_payload_fixer.py
+index 2bd554d..0916b0e 100644
+--- a/agent_sdks/python/tests/core/parser/test_payload_fixer.py
++++ b/agent_sdks/python/tests/core/parser/test_payload_fixer.py
+@@ -12,8 +12,6 @@
+ # See the License for the specific language governing permissions and
+ # limitations under the License.
+ 
+-import json
+-import pytest
+ from a2ui.core.parser.payload_fixer import (
+     _remove_trailing_commas,
+     _parse,
+diff --git a/agent_sdks/python/tests/core/parser/test_streaming_v08.py b/agent_sdks/python/tests/core/parser/test_streaming_v08.py
+index 51cfed5..bab29aa 100644
+--- a/agent_sdks/python/tests/core/parser/test_streaming_v08.py
++++ b/agent_sdks/python/tests/core/parser/test_streaming_v08.py
+@@ -12,22 +12,17 @@
+ # See the License for the specific language governing permissions and
+ # limitations under the License.
+ 
+-import json
+ import copy
+-from unittest.mock import MagicMock
+ import pytest
+ from a2ui.core.schema.constants import (
+     A2UI_OPEN_TAG,
+     A2UI_CLOSE_TAG,
+     VERSION_0_8,
+-    SURFACE_ID_KEY,
+     CATALOG_COMPONENTS_KEY,
+ )
+ from a2ui.core.parser.constants import (
+     MSG_TYPE_SURFACE_UPDATE,
+     MSG_TYPE_BEGIN_RENDERING,
+-    MSG_TYPE_DELETE_SURFACE,
+-    MSG_TYPE_DATA_MODEL_UPDATE,
+ )
+ from a2ui.core.schema.catalog import A2uiCatalog
+ from a2ui.core.parser.streaming import A2uiStreamParser
+diff --git a/agent_sdks/python/tests/core/parser/test_streaming_v09.py b/agent_sdks/python/tests/core/parser/test_streaming_v09.py
+index 6255467..0e17e8e 100644
+--- a/agent_sdks/python/tests/core/parser/test_streaming_v09.py
++++ b/agent_sdks/python/tests/core/parser/test_streaming_v09.py
+@@ -12,22 +12,17 @@
+ # See the License for the specific language governing permissions and
+ # limitations under the License.
+ 
+-import json
+ import copy
+-from unittest.mock import MagicMock
+ import pytest
+ from a2ui.core.schema.constants import (
+     A2UI_OPEN_TAG,
+     A2UI_CLOSE_TAG,
+     VERSION_0_9,
+-    SURFACE_ID_KEY,
+     CATALOG_COMPONENTS_KEY,
+ )
+ from a2ui.core.parser.constants import (
+     MSG_TYPE_CREATE_SURFACE,
+     MSG_TYPE_UPDATE_COMPONENTS,
+-    MSG_TYPE_DELETE_SURFACE,
+-    MSG_TYPE_DATA_MODEL_UPDATE,
+ )
+ from a2ui.core.schema.catalog import A2uiCatalog
+ from a2ui.core.parser.streaming import A2uiStreamParser
+diff --git a/agent_sdks/python/tests/core/schema/test_catalog.py b/agent_sdks/python/tests/core/schema/test_catalog.py
+index 8c773ac..b120a79 100644
+--- a/agent_sdks/python/tests/core/schema/test_catalog.py
++++ b/agent_sdks/python/tests/core/schema/test_catalog.py
+@@ -12,10 +12,7 @@
+ # See the License for the specific language governing permissions and
+ # limitations under the License.
+ 
+-import json
+-import os
+ import pytest
+-from typing import Any, Dict, List
+ from a2ui.core.schema.catalog import A2uiCatalog
+ from a2ui.core.schema.constants import (
+     A2UI_SCHEMA_BLOCK_START,
+diff --git a/agent_sdks/python/tests/core/schema/test_modifiers.py b/agent_sdks/python/tests/core/schema/test_modifiers.py
+index bb927c6..393d87a 100644
+--- a/agent_sdks/python/tests/core/schema/test_modifiers.py
++++ b/agent_sdks/python/tests/core/schema/test_modifiers.py
+@@ -12,7 +12,6 @@
+ # See the License for the specific language governing permissions and
+ # limitations under the License.
+ 
+-import pytest
+ from unittest.mock import patch
+ from a2ui.core.schema.constants import VERSION_0_8
+ from a2ui.core.schema.manager import A2uiSchemaManager
+diff --git a/agent_sdks/python/tests/core/schema/test_schema_manager.py b/agent_sdks/python/tests/core/schema/test_schema_manager.py
+index 777832b..de4c7fb 100644
+--- a/agent_sdks/python/tests/core/schema/test_schema_manager.py
++++ b/agent_sdks/python/tests/core/schema/test_schema_manager.py
+@@ -11,9 +11,7 @@
+ # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ import io
+ import pytest
+-import json
+-import os
+-from unittest.mock import patch, MagicMock, PropertyMock
++from unittest.mock import patch, MagicMock
+ from a2ui.core.schema.manager import A2uiSchemaManager, A2uiCatalog, CatalogConfig
+ from a2ui.basic_catalog import BasicCatalog
+ from a2ui.basic_catalog.constants import BASIC_CATALOG_NAME
+diff --git a/agent_sdks/python/tests/core/schema/test_validator.py b/agent_sdks/python/tests/core/schema/test_validator.py
+index 9eb003b..dbae034 100644
+--- a/agent_sdks/python/tests/core/schema/test_validator.py
++++ b/agent_sdks/python/tests/core/schema/test_validator.py
+@@ -12,12 +12,10 @@
+ # See the License for the specific language governing permissions and
+ # limitations under the License.
+ 
+-import json
+ import copy
+ import pytest
+ from unittest.mock import MagicMock
+-from a2ui.core.schema.manager import A2uiSchemaManager, A2uiCatalog, CatalogConfig
+-from a2ui.core.schema.common_modifiers import remove_strict_validation
++from a2ui.core.schema.manager import A2uiCatalog
+ from a2ui.core.schema.constants import VERSION_0_8, VERSION_0_9
+ from a2ui.core.schema.validator import (
+     _find_root_id as find_root_id,
+diff --git a/samples/agent/adk/component_gallery/agent.py b/samples/agent/adk/component_gallery/agent.py
+index e73401f..d7f403b 100644
+--- a/samples/agent/adk/component_gallery/agent.py
++++ b/samples/agent/adk/component_gallery/agent.py
+@@ -17,9 +17,8 @@
+ import logging
+ from collections.abc import AsyncIterable
+ from typing import Any, Optional
+-import json
+ 
+-from a2a.types import DataPart, Part, TextPart
++from a2a.types import Part, TextPart
+ from a2ui.core.schema.constants import A2UI_OPEN_TAG, A2UI_CLOSE_TAG
+ from a2ui.a2a import create_a2ui_part, parse_response_to_parts
+ 
+diff --git a/samples/agent/adk/component_gallery/agent_executor.py b/samples/agent/adk/component_gallery/agent_executor.py
+index ef8afd8..f9394ab 100644
+--- a/samples/agent/adk/component_gallery/agent_executor.py
++++ b/samples/agent/adk/component_gallery/agent_executor.py
+@@ -15,11 +15,10 @@
+ """Agent executor for Component Gallery."""
+ 
+ import logging
+-import json
+ from a2a.server.agent_execution import AgentExecutor, RequestContext
+ from a2a.server.events import EventQueue
+ from a2a.server.tasks import TaskUpdater
+-from a2a.types import (DataPart, Part, TaskState, TextPart, AgentCard)
++from a2a.types import (DataPart, TaskState, TextPart, AgentCard)
+ from a2a.utils import new_agent_parts_message, new_task
+ from agent import ComponentGalleryAgent
+ from a2ui.a2a import try_activate_a2ui_extension
+diff --git a/samples/agent/adk/contact_lookup/agent.py b/samples/agent/adk/contact_lookup/agent.py
+index a34d3a9..2344504 100644
+--- a/samples/agent/adk/contact_lookup/agent.py
++++ b/samples/agent/adk/contact_lookup/agent.py
+@@ -16,7 +16,6 @@ import json
+ import logging
+ import os
+ from collections.abc import AsyncIterable
+-from dataclasses import dataclass
+ from typing import Any, Dict, Optional
+ 
+ import jsonschema
+@@ -31,7 +30,6 @@ from a2a.types import (
+     AgentCapabilities,
+     AgentCard,
+     AgentSkill,
+-    DataPart,
+     Part,
+     TextPart,
+ )
+@@ -41,9 +39,9 @@ from prompt_builder import get_text_prompt, ROLE_DESCRIPTION, WORKFLOW_DESCRIPTI
+ from tools import get_contact_info
+ from a2ui.core.schema.constants import VERSION_0_8, VERSION_0_9, A2UI_OPEN_TAG, A2UI_CLOSE_TAG
+ from a2ui.core.schema.manager import A2uiSchemaManager
+-from a2ui.core.parser.parser import parse_response, ResponsePart
++from a2ui.core.parser.parser import parse_response
+ from a2ui.basic_catalog.provider import BasicCatalog
+-from a2ui.a2a import create_a2ui_part, get_a2ui_agent_extension, parse_response_to_parts
++from a2ui.a2a import get_a2ui_agent_extension, parse_response_to_parts
+ 
+ logger = logging.getLogger(__name__)
+ 
+diff --git a/samples/agent/adk/contact_lookup/agent_executor.py b/samples/agent/adk/contact_lookup/agent_executor.py
+index f83df30..3183764 100644
+--- a/samples/agent/adk/contact_lookup/agent_executor.py
++++ b/samples/agent/adk/contact_lookup/agent_executor.py
+@@ -19,7 +19,6 @@ from a2a.server.events import EventQueue
+ from a2a.server.tasks import TaskUpdater
+ from a2a.types import (
+     DataPart,
+-    Part,
+     Task,
+     TaskState,
+     TextPart,
+diff --git a/samples/agent/adk/contact_lookup/prompt_builder.py b/samples/agent/adk/contact_lookup/prompt_builder.py
+index ab2070d..df36d71 100644
+--- a/samples/agent/adk/contact_lookup/prompt_builder.py
++++ b/samples/agent/adk/contact_lookup/prompt_builder.py
+@@ -12,7 +12,7 @@
+ # See the License for the specific language governing permissions and
+ # limitations under the License.
+ 
+-from a2ui.core.schema.constants import VERSION_0_8, VERSION_0_9, A2UI_OPEN_TAG, A2UI_CLOSE_TAG
++from a2ui.core.schema.constants import VERSION_0_9, A2UI_OPEN_TAG, A2UI_CLOSE_TAG
+ from a2ui.core.schema.manager import A2uiSchemaManager
+ from a2ui.basic_catalog.provider import BasicCatalog
+ 
+diff --git a/samples/agent/adk/custom-components-example/a2ui_examples.py b/samples/agent/adk/custom-components-example/a2ui_examples.py
+index b628c60..110d44b 100644
+--- a/samples/agent/adk/custom-components-example/a2ui_examples.py
++++ b/samples/agent/adk/custom-components-example/a2ui_examples.py
+@@ -12,14 +12,12 @@
+ # See the License for the specific language governing permissions and
+ # limitations under the License.
+ 
+-import json
+ import logging
+ import os
+ from pathlib import Path
+ from typing import Optional
+ from a2ui.core.schema.constants import VERSION_0_8, VERSION_0_9
+ 
+-import jsonschema
+ 
+ logger = logging.getLogger(__name__)
+ 
+@@ -162,7 +160,6 @@ def load_close_modal_example(version: Optional[str] = None) -> list[dict]:
+ 
+ def load_send_message_example(contact_name: str, version: Optional[str] = None) -> str:
+   """Constructs the JSON string for the send message confirmation."""
+-  from pathlib import Path
+ 
+   examples_dir = Path(os.path.dirname(__file__)) / "examples" / version
+   action_file = examples_dir / "action_confirmation.json"
+diff --git a/samples/agent/adk/custom-components-example/agent.py b/samples/agent/adk/custom-components-example/agent.py
+index 00428a5..04814da 100644
+--- a/samples/agent/adk/custom-components-example/agent.py
++++ b/samples/agent/adk/custom-components-example/agent.py
+@@ -16,7 +16,6 @@ import json
+ import logging
+ import os
+ from collections.abc import AsyncIterable
+-from dataclasses import dataclass
+ from typing import Any, Dict, Optional
+ 
+ import jsonschema
+@@ -32,7 +31,6 @@ from a2a.types import (
+     AgentCapabilities,
+     AgentCard,
+     AgentSkill,
+-    DataPart,
+     Part,
+     TextPart,
+ )
+@@ -43,9 +41,9 @@ from tools import get_contact_info
+ from a2ui.core.schema.constants import VERSION_0_8, VERSION_0_9, A2UI_OPEN_TAG, A2UI_CLOSE_TAG
+ from a2ui.core.schema.common_modifiers import remove_strict_validation
+ from a2ui.core.schema.manager import A2uiSchemaManager
+-from a2ui.core.parser.parser import parse_response, ResponsePart
++from a2ui.core.parser.parser import parse_response
+ from a2ui.basic_catalog.provider import BasicCatalog
+-from a2ui.a2a import create_a2ui_part, get_a2ui_agent_extension, parse_response_to_parts
++from a2ui.a2a import get_a2ui_agent_extension, parse_response_to_parts
+ 
+ logger = logging.getLogger(__name__)
+ 
+@@ -182,7 +180,6 @@ class ContactAgent:
+       return None
+ 
+     from a2ui_examples import (
+-        load_floor_plan_example,
+         load_close_modal_example,
+         load_send_message_example,
+     )
+@@ -237,7 +234,7 @@ class ContactAgent:
+         }
+ 
+       json_content = json.dumps(load_floor_plan_example(ui_version, html_content))
+-      logger.info(f"--- ContactAgent.stream: Sending Floor Plan ---")
++      logger.info("--- ContactAgent.stream: Sending Floor Plan ---")
+ 
+       final_response_content = (
+           f"Here is the floor plan.\n{A2UI_OPEN_TAG}\n{json_content}\n{A2UI_CLOSE_TAG}"
+diff --git a/samples/agent/adk/custom-components-example/agent_executor.py b/samples/agent/adk/custom-components-example/agent_executor.py
+index ad24923..b9def20 100644
+--- a/samples/agent/adk/custom-components-example/agent_executor.py
++++ b/samples/agent/adk/custom-components-example/agent_executor.py
+@@ -13,14 +13,12 @@
+ # limitations under the License.
+ 
+ import logging
+-import time
+ 
+ from a2a.server.agent_execution import AgentExecutor, RequestContext
+ from a2a.server.events import EventQueue
+ from a2a.server.tasks import TaskUpdater
+ from a2a.types import (
+     DataPart,
+-    Part,
+     Task,
+     TaskState,
+     TextPart,
+diff --git a/samples/agent/adk/custom-components-example/floor_plan_server.py b/samples/agent/adk/custom-components-example/floor_plan_server.py
+index 3b206a9..dc1bb6e 100644
+--- a/samples/agent/adk/custom-components-example/floor_plan_server.py
++++ b/samples/agent/adk/custom-components-example/floor_plan_server.py
+@@ -12,9 +12,8 @@
+ # See the License for the specific language governing permissions and
+ # limitations under the License.
+ 
+-import asyncio
+ from mcp.server import Server
+-from mcp.types import Resource, TextContent
++from mcp.types import Resource
+ 
+ app = Server("floor-plan-server")
+ 
+diff --git a/samples/agent/adk/custom-components-example/prompt_builder.py b/samples/agent/adk/custom-components-example/prompt_builder.py
+index 172e53b..d982457 100644
+--- a/samples/agent/adk/custom-components-example/prompt_builder.py
++++ b/samples/agent/adk/custom-components-example/prompt_builder.py
+@@ -14,12 +14,9 @@
+ 
+ import json
+ 
+-from a2ui.core.schema.constants import VERSION_0_8, VERSION_0_9, A2UI_OPEN_TAG, A2UI_CLOSE_TAG
++from a2ui.core.schema.constants import VERSION_0_9, A2UI_OPEN_TAG, A2UI_CLOSE_TAG
+ from a2ui.core.schema.manager import A2uiSchemaManager, CatalogConfig
+-from a2ui.basic_catalog.provider import BasicCatalog
+ from a2ui.core.schema.common_modifiers import remove_strict_validation
+-from a2ui.core.schema.catalog_provider import A2uiCatalogProvider, FileSystemCatalogProvider
+-from typing import Dict, Any
+ 
+ ROLE_DESCRIPTION = (
+     "You are a helpful contact lookup assistant. Your final output MUST be a a2ui UI"
+diff --git a/samples/agent/adk/mcp_app_proxy/__main__.py b/samples/agent/adk/mcp_app_proxy/__main__.py
+index d6def88..8844748 100644
+--- a/samples/agent/adk/mcp_app_proxy/__main__.py
++++ b/samples/agent/adk/mcp_app_proxy/__main__.py
+@@ -15,27 +15,15 @@
+ from a2a.server.apps import A2AStarletteApplication
+ from a2a.server.request_handlers import DefaultRequestHandler
+ from a2a.server.tasks import InMemoryTaskStore
+-from a2ui.core.schema.constants import VERSION_0_8
+-from a2ui.core.schema.manager import A2uiSchemaManager, CatalogConfig
+ from agent import McpAppProxyAgent
+-from agent_executor import McpAppProxyAgentExecutor, get_a2ui_enabled, get_a2ui_catalog, get_a2ui_examples
++from agent_executor import McpAppProxyAgentExecutor
+ from dotenv import load_dotenv
+-from google.adk.artifacts import InMemoryArtifactService
+-from google.adk.memory.in_memory_memory_service import InMemoryMemoryService
+ from google.adk.models.lite_llm import LiteLlm
+-from google.adk.runners import Runner
+-from google.adk.sessions.in_memory_session_service import InMemorySessionService
+-from google.adk.tools.tool_context import ToolContext
+-from mcp import ClientSession
+-from mcp.client.sse import sse_client
+ from starlette.middleware.cors import CORSMiddleware
+-import anyio
+ import click
+-import httpx
+ import logging
+ import os
+ import traceback
+-import urllib.parse
+ 
+ load_dotenv()
+ 
+diff --git a/samples/agent/adk/mcp_app_proxy/agent.py b/samples/agent/adk/mcp_app_proxy/agent.py
+index 0fa6032..c8d7941 100644
+--- a/samples/agent/adk/mcp_app_proxy/agent.py
++++ b/samples/agent/adk/mcp_app_proxy/agent.py
+@@ -12,13 +12,11 @@
+ # See the License for the specific language governing permissions and
+ # limitations under the License.
+ 
+-import json
+ import logging
+ from typing import Any, ClassVar, Optional, Dict
+ 
+ from a2a.types import AgentCapabilities, AgentCard, AgentSkill
+ from a2ui.a2a import get_a2ui_agent_extension
+-from a2ui.adk.a2a_extension.send_a2ui_to_client_toolset import A2uiEnabledProvider, A2uiCatalogProvider, A2uiExamplesProvider, SendA2uiToClientToolset
+ from a2ui.core.schema.manager import A2uiSchemaManager, VERSION_0_8, VERSION_0_9, CatalogConfig
+ from google.adk.agents.llm_agent import LlmAgent
+ from google.adk.artifacts import InMemoryArtifactService
+@@ -27,7 +25,6 @@ from google.adk.planners.built_in_planner import BuiltInPlanner
+ from google.adk.runners import Runner
+ from google.adk.sessions import InMemorySessionService
+ from google.genai import types
+-from pydantic import PrivateAttr
+ from tools import get_calculator_app, calculate_via_mcp, get_pong_app_a2ui_json, score_update
+ from agent_executor import get_a2ui_enabled, get_a2ui_catalog, get_a2ui_examples
+ 
+diff --git a/samples/agent/adk/mcp_app_proxy/agent_executor.py b/samples/agent/adk/mcp_app_proxy/agent_executor.py
+index 7a5e58b..76bdd61 100644
+--- a/samples/agent/adk/mcp_app_proxy/agent_executor.py
++++ b/samples/agent/adk/mcp_app_proxy/agent_executor.py
+@@ -16,11 +16,9 @@ import logging
+ from typing import override
+ 
+ from a2a.server.agent_execution import RequestContext
+-from a2a.types import AgentCapabilities, AgentCard, AgentExtension, AgentSkill
+ from a2ui.a2a import try_activate_a2ui_extension
+ from a2ui.adk.a2a_extension.send_a2ui_to_client_toolset import A2uiEventConverter
+ from a2ui.core.schema.constants import A2UI_CLIENT_CAPABILITIES_KEY
+-from a2ui.core.schema.manager import A2uiSchemaManager
+ from google.adk.a2a.converters.request_converter import AgentRunRequest
+ from google.adk.a2a.executor.a2a_agent_executor import A2aAgentExecutor
+ from google.adk.a2a.executor.a2a_agent_executor import A2aAgentExecutorConfig
+diff --git a/samples/agent/adk/orchestrator/agent.py b/samples/agent/adk/orchestrator/agent.py
+index b4c8049..f7ac217 100644
+--- a/samples/agent/adk/orchestrator/agent.py
++++ b/samples/agent/adk/orchestrator/agent.py
+@@ -37,7 +37,7 @@ from a2a.client.middleware import ClientCallContext, ClientCallInterceptor
+ from a2a.client.client import ClientConfig as A2AClientConfig
+ from a2a.client.client_factory import ClientFactory as A2AClientFactory
+ from a2ui.a2a import *
+-from a2a.types import AgentCapabilities, AgentCard, AgentExtension
++from a2a.types import AgentCapabilities, AgentCard
+ from a2ui.core.schema.constants import A2UI_CLIENT_CAPABILITIES_KEY
+ 
+ logger = logging.getLogger(__name__)
+diff --git a/samples/agent/adk/orchestrator/agent_executor.py b/samples/agent/adk/orchestrator/agent_executor.py
+index 8bb39b6..58a06fd 100644
+--- a/samples/agent/adk/orchestrator/agent_executor.py
++++ b/samples/agent/adk/orchestrator/agent_executor.py
+@@ -23,7 +23,6 @@ from google.adk.events.event_actions import EventActions
+ from a2a.server.agent_execution import RequestContext
+ from google.adk.agents.llm_agent import LlmAgent
+ from google.adk.artifacts import InMemoryArtifactService
+-from a2a.server.events.event_queue import EventQueue
+ from google.adk.memory.in_memory_memory_service import InMemoryMemoryService
+ from google.adk.runners import Runner
+ from google.adk.sessions import InMemorySessionService
+@@ -41,7 +40,6 @@ from google.adk.agents.invocation_context import InvocationContext
+ from google.adk.a2a.converters import part_converter
+ from subagent_route_manager import SubagentRouteManager
+ 
+-from agent import OrchestratorAgent
+ import part_converters
+ 
+ logger = logging.getLogger(__name__)
+diff --git a/samples/agent/adk/restaurant_finder/agent.py b/samples/agent/adk/restaurant_finder/agent.py
+index bbfe879..b5706e1 100644
+--- a/samples/agent/adk/restaurant_finder/agent.py
++++ b/samples/agent/adk/restaurant_finder/agent.py
+@@ -23,7 +23,6 @@ from a2a.types import (
+     AgentCapabilities,
+     AgentCard,
+     AgentSkill,
+-    DataPart,
+     Part,
+     TextPart,
+ )
+@@ -42,10 +41,10 @@ from prompt_builder import (
+ from tools import get_restaurants
+ from a2ui.core.schema.constants import VERSION_0_8, VERSION_0_9, A2UI_OPEN_TAG, A2UI_CLOSE_TAG
+ from a2ui.core.schema.manager import A2uiSchemaManager
+-from a2ui.core.parser.parser import parse_response, ResponsePart
++from a2ui.core.parser.parser import parse_response
+ from a2ui.basic_catalog.provider import BasicCatalog
+ from a2ui.core.schema.common_modifiers import remove_strict_validation
+-from a2ui.a2a import create_a2ui_part, get_a2ui_agent_extension, parse_response_to_parts
++from a2ui.a2a import get_a2ui_agent_extension, parse_response_to_parts
+ 
+ logger = logging.getLogger(__name__)
+ 
+diff --git a/samples/agent/adk/restaurant_finder/agent_executor.py b/samples/agent/adk/restaurant_finder/agent_executor.py
+index c6e34d1..f616be3 100644
+--- a/samples/agent/adk/restaurant_finder/agent_executor.py
++++ b/samples/agent/adk/restaurant_finder/agent_executor.py
+@@ -19,7 +19,6 @@ from a2a.server.events import EventQueue
+ from a2a.server.tasks import TaskUpdater
+ from a2a.types import (
+     DataPart,
+-    Part,
+     Task,
+     TaskState,
+     TextPart,
+diff --git a/samples/agent/adk/rizzcharts/__main__.py b/samples/agent/adk/rizzcharts/__main__.py
+index 6945df7..cd1b94d 100644
+--- a/samples/agent/adk/rizzcharts/__main__.py
++++ b/samples/agent/adk/rizzcharts/__main__.py
+@@ -14,7 +14,6 @@
+ 
+ import logging
+ import os
+-import pathlib
+ import traceback
+ 
+ import click
+diff --git a/samples/agent/adk/rizzcharts/agent.py b/samples/agent/adk/rizzcharts/agent.py
+index 313408e..1d46bfb 100644
+--- a/samples/agent/adk/rizzcharts/agent.py
++++ b/samples/agent/adk/rizzcharts/agent.py
+@@ -12,22 +12,17 @@
+ # See the License for the specific language governing permissions and
+ # limitations under the License.
+ 
+-import json
+ import logging
+-from pathlib import Path
+-import pkgutil
+ from typing import Any, ClassVar, Dict, Optional
+ from a2a.types import AgentCapabilities, AgentCard, AgentSkill
+ from a2ui.a2a import get_a2ui_agent_extension
+-from a2ui.adk.a2a_extension.send_a2ui_to_client_toolset import SendA2uiToClientToolset, A2uiEnabledProvider, A2uiCatalogProvider, A2uiExamplesProvider
++from a2ui.adk.a2a_extension.send_a2ui_to_client_toolset import SendA2uiToClientToolset
+ from a2ui.core.schema.manager import A2uiSchemaManager, CatalogConfig
+ from a2ui.basic_catalog.provider import BasicCatalog
+ from a2ui.core.schema.constants import VERSION_0_8, VERSION_0_9
+ from google.adk.agents.llm_agent import LlmAgent
+-from google.adk.agents.readonly_context import ReadonlyContext
+ from google.adk.planners.built_in_planner import BuiltInPlanner
+ from google.genai import types
+-from pydantic import PrivateAttr
+ from google.adk.sessions.in_memory_session_service import InMemorySessionService
+ from google.adk.artifacts import InMemoryArtifactService
+ from google.adk.memory.in_memory_memory_service import InMemoryMemoryService
+diff --git a/samples/agent/adk/rizzcharts/agent_executor.py b/samples/agent/adk/rizzcharts/agent_executor.py
+index eaf0998..73ec14a 100644
+--- a/samples/agent/adk/rizzcharts/agent_executor.py
++++ b/samples/agent/adk/rizzcharts/agent_executor.py
+@@ -13,20 +13,14 @@
+ # limitations under the License.
+ 
+ import logging
+-from pathlib import Path
+ from typing import override
+ 
+ from a2a.server.agent_execution import RequestContext
+-from a2a.types import AgentCapabilities, AgentCard, AgentExtension, AgentSkill
+-from a2ui.a2a import get_a2ui_agent_extension
+ from a2ui.a2a import try_activate_a2ui_extension
+ from a2ui.adk.a2a_extension.send_a2ui_to_client_toolset import (
+     A2uiEventConverter,
+-    A2uiPartConverter,
+-    SendA2uiToClientToolset,
+ )
+ from a2ui.core.schema.constants import A2UI_CLIENT_CAPABILITIES_KEY
+-from a2ui.core.schema.manager import A2uiSchemaManager
+ from google.adk.a2a.converters.request_converter import AgentRunRequest
+ from google.adk.a2a.executor.a2a_agent_executor import A2aAgentExecutor
+ from google.adk.a2a.executor.a2a_agent_executor import A2aAgentExecutorConfig
+diff --git a/samples/agent/adk/tests/test_examples_validation.py b/samples/agent/adk/tests/test_examples_validation.py
+index 0f179e6..83787c7 100644
+--- a/samples/agent/adk/tests/test_examples_validation.py
++++ b/samples/agent/adk/tests/test_examples_validation.py
+@@ -15,14 +15,12 @@
+ import os
+ import json
+ from pathlib import Path
+-from typing import Dict, Any
+ import pytest
+ 
+ from a2ui.core.schema.constants import VERSION_0_9
+ from a2ui.core.schema.manager import A2uiSchemaManager, CatalogConfig
+ from a2ui.basic_catalog.provider import BasicCatalog
+ from a2ui.core.schema.common_modifiers import remove_strict_validation
+-from a2ui.core.schema.catalog_provider import A2uiCatalogProvider
+ 
+ 
+ ROOT_DIR = Path(__file__).parent.parent.parent.parent.parent  # a2ui root
+diff --git a/samples/agent/mcp/a2ui-over-mcp-recipe/server.py b/samples/agent/mcp/a2ui-over-mcp-recipe/server.py
+index 27b7d26..f68c093 100644
+--- a/samples/agent/mcp/a2ui-over-mcp-recipe/server.py
++++ b/samples/agent/mcp/a2ui-over-mcp-recipe/server.py
+@@ -12,16 +12,17 @@
+ # See the License for the specific language governing permissions and
+ # limitations under the License.
+ 
++import json
++import pathlib
+ from typing import Any
++
+ import anyio
+ import click
+-import pathlib
+ import jsonschema
+-import json
+ import mcp.types as types
++from a2ui.core.schema.utils import wrap_as_json_array
+ from mcp.server.lowlevel import Server
+ from starlette.requests import Request
+-from a2ui.core.schema.utils import wrap_as_json_array
+ 
+ 
+ def load_a2ui_schema() -> dict[str, Any]:
+@@ -82,10 +83,10 @@ def main(port: int, transport: str) -> int:
+       return {"events": recipe_a2ui_json}
+ 
+     if name == "send_a2ui_user_action":
+-      return {"response": f"Received A2UI user action", "args": arguments}
++      return {"response": "Received A2UI user action", "args": arguments}
+ 
+     if name == "send_a2ui_error":
+-      return {"response": f"Received A2UI error", "args": arguments}
++      return {"response": "Received A2UI error", "args": arguments}
+ 
+     raise ValueError(f"Unknown tool: {name}")
+ 
+@@ -123,10 +124,10 @@ def main(port: int, transport: str) -> int:
+   if transport == "sse":
+     from mcp.server.sse import SseServerTransport
+     from starlette.applications import Starlette
+-    from starlette.responses import Response
+-    from starlette.routing import Mount, Route
+     from starlette.middleware import Middleware
+     from starlette.middleware.cors import CORSMiddleware
++    from starlette.responses import Response
++    from starlette.routing import Mount, Route
+ 
+     sse = SseServerTransport("/messages/")
+ 
+diff --git a/samples/agent/mcp/mcp-apps-calculator/server.py b/samples/agent/mcp/mcp-apps-calculator/server.py
+index 1b18a95..c4ee242 100644
+--- a/samples/agent/mcp/mcp-apps-calculator/server.py
++++ b/samples/agent/mcp/mcp-apps-calculator/server.py
+@@ -12,10 +12,11 @@
+ # See the License for the specific language governing permissions and
+ # limitations under the License.
+ 
++import pathlib
+ from typing import Any
++
+ import anyio
+ import click
+-import pathlib
+ import mcp.types as types
+ from mcp.server.lowlevel import Server
+ from starlette.requests import Request
+@@ -129,10 +130,10 @@ def main(port: int, transport: str) -> int:
+   if transport == "sse":
+     from mcp.server.sse import SseServerTransport
+     from starlette.applications import Starlette
+-    from starlette.responses import Response
+-    from starlette.routing import Mount, Route
+     from starlette.middleware import Middleware
+     from starlette.middleware.cors import CORSMiddleware
++    from starlette.responses import Response
++    from starlette.routing import Mount, Route
+ 
+     sse = SseServerTransport("/messages/")
+ 
+diff --git a/samples/personalized_learning/Quickstart.ipynb b/samples/personalized_learning/Quickstart.ipynb
+index 0996fee..d68a220 100644
+--- a/samples/personalized_learning/Quickstart.ipynb
++++ b/samples/personalized_learning/Quickstart.ipynb
+@@ -106,7 +106,6 @@
+    "outputs": [],
+    "source": [
+     "import subprocess\n",
+-    "import sys\n",
+     "\n",
+     "# Validate configuration\n",
+     "if PROJECT_ID == \"your-project-id\" or not PROJECT_ID:\n",
+diff --git a/samples/personalized_learning/agent/download_openstax.py b/samples/personalized_learning/agent/download_openstax.py
+index 33d354a..d3fe040 100644
+--- a/samples/personalized_learning/agent/download_openstax.py
++++ b/samples/personalized_learning/agent/download_openstax.py
+@@ -70,7 +70,7 @@ def clone_repo(target_dir: str) -> bool:
+     Returns:
+         True if successful, False otherwise
+     """
+-    print(f"Cloning repository (shallow clone)...")
++    print("Cloning repository (shallow clone)...")
+     print(f"  Source: {GITHUB_REPO}")
+     print(f"  Target: {target_dir}")
+ 
+@@ -285,7 +285,7 @@ def main():
+         needed_modules = all_modules_set & available_modules
+         missing_modules = all_modules_set - available_modules
+ 
+-        print(f"\nModule status:")
++        print("\nModule status:")
+         print(f"  Needed: {len(all_modules)}")
+         print(f"  Available in repo: {len(needed_modules)}")
+         if missing_modules:
+diff --git a/samples/personalized_learning/agent/openstax_modules.py b/samples/personalized_learning/agent/openstax_modules.py
+index 8a07145..7b5d6fb 100644
+--- a/samples/personalized_learning/agent/openstax_modules.py
++++ b/samples/personalized_learning/agent/openstax_modules.py
+@@ -30,7 +30,6 @@ https://openstax.org/books/biology-ap-courses/pages/{chapter-slug}
+ """
+ 
+ import re
+-from typing import Optional
+ 
+ # Base URL for OpenStax textbook
+ OPENSTAX_BASE_URL = "https://openstax.org/books/biology-ap-courses/pages"
+diff --git a/specification/scripts/validate.py b/specification/scripts/validate.py
+index 8890cd8..907ae8c 100755
+--- a/specification/scripts/validate.py
++++ b/specification/scripts/validate.py
+@@ -80,7 +80,7 @@ def validate_messages(root_schema, example_files, refs=None, temp_dir="temp_val"
+             print(output.strip())
+             success = False
+         else:
+-            print(f"    [PASS]")
++            print("    [PASS]")
+ 
+     return success
+ 
+diff --git a/specification/v0_10/test/run_tests.py b/specification/v0_10/test/run_tests.py
+index 6d70f6b..523833b 100755
+--- a/specification/v0_10/test/run_tests.py
++++ b/specification/v0_10/test/run_tests.py
+@@ -150,7 +150,7 @@ def validate_jsonl_example(jsonl_path):
+         return 0, 1
+ 
+     print(f"\nValidating JSONL example: {os.path.basename(jsonl_path)}")
+-    print(f"Target Schema: server_to_client.json")
++    print("Target Schema: server_to_client.json")
+ 
+     passed = 0
+     failed = 0
+diff --git a/specification/v0_9/test/run_tests.py b/specification/v0_9/test/run_tests.py
+index 2df7804..c1f75fd 100755
+--- a/specification/v0_9/test/run_tests.py
++++ b/specification/v0_9/test/run_tests.py
+@@ -137,7 +137,7 @@ def validate_jsonl_example(jsonl_path):
+         return 0, 1
+ 
+     print(f"\nValidating JSONL example: {os.path.basename(jsonl_path)}")
+-    print(f"Target Schema: server_to_client.json")
++    print("Target Schema: server_to_client.json")
+ 
+     passed = 0
+     failed = 0
+diff --git a/tools/build_catalog/tests/test_assemble_catalog.py b/tools/build_catalog/tests/test_assemble_catalog.py
+index de1e8ed..d7351db 100644
+--- a/tools/build_catalog/tests/test_assemble_catalog.py
++++ b/tools/build_catalog/tests/test_assemble_catalog.py
+@@ -15,7 +15,6 @@
+ import unittest
+ from unittest.mock import patch, MagicMock
+ import json
+-import os
+ from pathlib import Path
+ import sys
+ 
