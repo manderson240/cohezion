@@ -401,10 +401,10 @@ class DimensionExtractor:
             return 0.5
 
         # Use embedding magnitude as proxy for distinctiveness
-        magnitude = np.linalg.norm(embedding)
+        magnitude = float(np.linalg.norm(embedding))
 
         # Normalize (embeddings are typically ~1.0 magnitude)
-        return float(min(1.0, abs(magnitude - 1.0) * 2))
+        return min(1.0, abs(magnitude - 1.0) * 2)
 
     def _extract_coherence(self, text: str) -> float:
         """
