@@ -80,7 +80,7 @@ class VersionTracker:
         entry = self.get_version(skill_name)
         if entry is None:
             return True
-        return entry.get("version", "") != current_version
+        return bool(entry.get("version", "") != current_version)
 
     def get_all_versions(self) -> dict[str, Any]:
         """Return the full version map.
@@ -106,7 +106,8 @@ class VersionTracker:
             Version info dict if found, else ``None``.
         """
         data = self._read()
-        return data.get(skill_name)
+        result = data.get(skill_name)
+        return dict(result) if isinstance(result, dict) else None
 
     def _read(self) -> dict[str, Any]:
         """Read the versions file with optional file locking."""
@@ -115,7 +116,8 @@ class VersionTracker:
 
             with LockedFileOperation(self.versions_path) as locked:
                 try:
-                    return locked.read_json(default={})
+                    data = locked.read_json(default={})
+                    return dict(data) if isinstance(data, dict) else {}
                 except json.JSONDecodeError:
                     logger.warning("Corrupt versions file: %s", self.versions_path)
                     return {}
@@ -126,7 +128,8 @@ class VersionTracker:
                 text = self.versions_path.read_text(encoding="utf-8").strip()
                 if not text:
                     return {}
-                return json.loads(text)
+                data = json.loads(text)
+                return dict(data) if isinstance(data, dict) else {}
             except (json.JSONDecodeError, OSError):
                 logger.warning("Could not read versions file: %s", self.versions_path)
                 return {}
