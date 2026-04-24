@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import json
 import logging
+import shutil
 import subprocess
 from pathlib import Path
 
@@ -17,6 +18,9 @@ import numpy as np
 
 
 logger = logging.getLogger(__name__)
+
+# Resolve ollama executable at module load to avoid S607 partial-path warnings.
+_OLLAMA = shutil.which("ollama") or "/usr/local/bin/ollama"
 
 DATA_DIR = Path("data/training")
 MODELS_DIR = Path("data/models")
@@ -226,8 +230,8 @@ PARAMETER top_k 20
         """Deploy finetuned model to Ollama."""
         modelfile = self.create_ollama_modelfile()
 
-        result = subprocess.run(
-            ["ollama", "create", self.output_name, "-f", str(modelfile)],
+        result = subprocess.run(  # noqa: S603 - output_name internal config; modelfile internal path
+            [_OLLAMA, "create", self.output_name, "-f", str(modelfile)],
             capture_output=True,
             text=True,
         )
@@ -239,8 +243,8 @@ PARAMETER top_k 20
             logger.warning(f"Modelfile deploy failed: {result.stderr}")
             logger.info("Trying alternative method...")
 
-            result = subprocess.run(
-                ["ollama", "run", "--dry-run", self.base_model],
+            result = subprocess.run(  # noqa: S603 - base_model is internal config
+                [_OLLAMA, "run", "--dry-run", self.base_model],
                 capture_output=True,
                 text=True,
             )
