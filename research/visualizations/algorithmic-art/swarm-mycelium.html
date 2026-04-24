@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Swarm Mycelium — Ouroboros Bridge</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&family=Lora:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --anthropic-dark: #141413; --anthropic-light: #faf9f5;
+            --anthropic-mid-gray: #b0aea5; --anthropic-light-gray: #e8e6dc;
+            --anthropic-orange: #d97757; --anthropic-blue: #6a9bcc; --anthropic-green: #788c5d;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Poppins', sans-serif; background: linear-gradient(135deg, var(--anthropic-light) 0%, #f5f3ee 100%); min-height: 100vh; color: var(--anthropic-dark); }
+        .container { display: flex; min-height: 100vh; padding: 20px; gap: 20px; }
+        .sidebar { width: 320px; flex-shrink: 0; background: rgba(255,255,255,0.95); padding: 24px; border-radius: 12px; box-shadow: 0 10px 30px rgba(20,20,19,0.1); overflow-y: auto; }
+        .sidebar h1 { font-family: 'Lora', serif; font-size: 24px; font-weight: 500; margin-bottom: 8px; }
+        .sidebar .subtitle { color: var(--anthropic-mid-gray); font-size: 14px; margin-bottom: 32px; line-height: 1.4; }
+        .control-section { margin-bottom: 32px; }
+        .control-section h3 { font-size: 16px; font-weight: 600; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+        .control-section h3::before { content: '•'; color: var(--anthropic-orange); font-weight: bold; }
+        .seed-input { width: 100%; background: var(--anthropic-light); padding: 12px; border-radius: 8px; font-family: 'Courier New', monospace; font-size: 14px; margin-bottom: 12px; border: 1px solid var(--anthropic-light-gray); text-align: center; }
+        .seed-controls { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px; }
+        .control-group { margin-bottom: 20px; }
+        .control-group label { display: block; font-size: 14px; font-weight: 500; margin-bottom: 8px; }
+        .slider-container { display: flex; align-items: center; gap: 12px; }
+        .slider-container input[type="range"] { flex: 1; height: 4px; background: var(--anthropic-light-gray); border-radius: 2px; outline: none; -webkit-appearance: none; }
+        .slider-container input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 16px; height: 16px; background: var(--anthropic-orange); border-radius: 50%; cursor: pointer; }
+        .slider-container input[type="range"]::-moz-range-thumb { width: 16px; height: 16px; background: var(--anthropic-orange); border-radius: 50%; border: none; cursor: pointer; }
+        .value-display { font-family: 'Courier New', monospace; font-size: 12px; color: var(--anthropic-mid-gray); min-width: 60px; text-align: right; }
+        .button { background: var(--anthropic-orange); color: white; border: none; padding: 10px 16px; border-radius: 6px; font-size: 14px; font-weight: 500; cursor: pointer; width: 100%; transition: all 0.2s ease; }
+        .button:hover { background: #c86641; }
+        .button.secondary { background: var(--anthropic-blue); }
+        .button.tertiary { background: var(--anthropic-green); }
+        .button-row { display: flex; gap: 8px; }
+        .button-row .button { flex: 1; }
+        .canvas-area { flex: 1; display: flex; align-items: center; justify-content: center; min-width: 0; }
+        #canvas-container { width: 100%; max-width: 1000px; border-radius: 12px; overflow: hidden; box-shadow: 0 20px 40px rgba(20,20,19,0.1); background: #0a0e1a; }
+        #canvas-container canvas { display: block; width: 100% !important; height: auto !important; }
+        .loading { display: flex; align-items: center; justify-content: center; font-size: 18px; color: var(--anthropic-mid-gray); min-height: 400px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="sidebar">
+            <h1>Swarm Mycelium</h1>
+            <div class="subtitle">Mycelium network grows from seeds; coherent connections persist; an Ouroboros ring forms as the network discovers itself.</div>
+
+            <div class="control-section">
+                <h3>Seed</h3>
+                <input type="number" id="seed-input" class="seed-input" value="42" onchange="updateSeed()">
+                <div class="seed-controls">
+                    <button class="button secondary" onclick="previousSeed()">← Prev</button>
+                    <button class="button secondary" onclick="nextSeed()">Next →</button>
+                </div>
+                <button class="button tertiary" onclick="randomSeedAndUpdate()">↻ Random</button>
+            </div>
+
+            <div class="control-section">
+                <h3>Parameters</h3>
+
+                <div class="control-group">
+                    <label>Max Nodes</label>
+                    <div class="slider-container">
+                        <input type="range" id="maxNodes" min="80" max="600" step="20" value="280" oninput="updateParam('maxNodes', this.value)">
+                        <span class="value-display" id="maxNodes-value">280</span>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label>Growth Rate</label>
+                    <div class="slider-container">
+                        <input type="range" id="growthRate" min="0.2" max="4" step="0.1" value="1.4" oninput="updateParam('growthRate', this.value)">
+                        <span class="value-display" id="growthRate-value">1.4</span>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label>Coherence Threshold</label>
+                    <div class="slider-container">
+                        <input type="range" id="cohThresh" min="0" max="1" step="0.01" value="0.42" oninput="updateParam('cohThresh', this.value)">
+                        <span class="value-display" id="cohThresh-value">0.42</span>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label>Branch Spread (rad)</label>
+                    <div class="slider-container">
+                        <input type="range" id="branchSpread" min="0.2" max="2.5" step="0.05" value="1.2" oninput="updateParam('branchSpread', this.value)">
+                        <span class="value-display" id="branchSpread-value">1.20</span>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label>Field Rotation</label>
+                    <div class="slider-container">
+                        <input type="range" id="rotSpeed" min="0" max="0.01" step="0.0005" value="0.0015" oninput="updateParam('rotSpeed', this.value)">
+                        <span class="value-display" id="rotSpeed-value">0.0015</span>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label>Ouroboros Pull</label>
+                    <div class="slider-container">
+                        <input type="range" id="ouroborosPull" min="0" max="1" step="0.01" value="0.55" oninput="updateParam('ouroborosPull', this.value)">
+                        <span class="value-display" id="ouroborosPull-value">0.55</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="control-section">
+                <h3>Actions</h3>
+                <div class="button-row">
+                    <button class="button" onclick="resetParameters()">Reset</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="canvas-area">
+            <div id="canvas-container">
+                <div class="loading">Initializing mycelium…</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let params = {
+            seed: 42,
+            maxNodes: 280,
+            growthRate: 1.4,
+            cohThresh: 0.42,
+            branchSpread: 1.2,
+            rotSpeed: 0.0015,
+            ouroborosPull: 0.55
+        };
+        let defaultParams = JSON.parse(JSON.stringify(params));
+
+        let nodes = [];
+        let edges = [];
+        let growthAccum = 0;
+        let fieldRot = 0;
+        let ouroborosPhase = 0;
+
+        function setup() {
+            let c = createCanvas(1000, 1000);
+            c.parent('canvas-container');
+            initializeSystem();
+            const loader = document.querySelector('.loading');
+            if (loader) loader.style.display = 'none';
+        }
+
+        function initializeSystem() {
+            randomSeed(params.seed);
+            noiseSeed(params.seed);
+            nodes = [];
+            edges = [];
+            growthAccum = 0;
+            fieldRot = 0;
+            ouroborosPhase = 0;
+            // Seed: a few founding nodes near center
+            for (let i = 0; i < 3; i++) {
+                const a = (i / 3) * TWO_PI;
+                nodes.push({
+                    x: width/2 + cos(a) * 60,
+                    y: height/2 + sin(a) * 60,
+                    parent: -1,
+                    age: 0,
+                    coherence: random(0.5, 0.9),
+                    energy: 1.0,
+                    angle: a
+                });
+            }
+            background(10, 14, 26);
+        }
+
+        function draw() {
+            // Trail fade
+            noStroke();
+            fill(10, 14, 26, 26);
+            rect(0, 0, width, height);
+
+            fieldRot += params.rotSpeed;
+            ouroborosPhase += 0.004;
+
+            // Grow new nodes
+            growthAccum += params.growthRate;
+            while (growthAccum >= 1 && nodes.length < params.maxNodes) {
+                growthAccum -= 1;
+                tryGrow();
+            }
+
+            // Rotate the entire field around center (cosmetic)
+            push();
+            translate(width/2, height/2);
+            rotate(fieldRot);
+            translate(-width/2, -height/2);
+
+            // Edges
+            for (const e of edges) {
+                const a = nodes[e.a];
+                const b = nodes[e.b];
+                if (!a || !b) continue;
+                const c = e.coherence;
+                if (c < params.cohThresh) continue; // pruned by coherence threshold
+                // Color: weak = base blue, strong = cyan, ouroboros-edges = magenta
+                const baseC = color(30, 58, 138);
+                const glowC = color(34, 211, 238);
+                const ringC = color(232, 121, 249);
+                let cc;
+                if (e.ouroboros) {
+                    cc = lerpColor(glowC, ringC, 0.5 + 0.5 * sin(ouroborosPhase + e.phaseOffset));
+                } else {
+                    cc = lerpColor(baseC, glowC, c);
+                }
+                stroke(red(cc), green(cc), blue(cc), 70 + c * 160);
+                strokeWeight(0.6 + c * 1.5);
+                line(a.x, a.y, b.x, b.y);
+            }
+
+            // Nodes
+            for (const n of nodes) {
+                n.age++;
+                n.energy = max(0, n.energy - 0.0008);
+                const r = 2 + n.coherence * 4;
+                noStroke();
+                // glow
+                const cc = lerpColor(color(30, 58, 138), color(34, 211, 238), n.coherence);
+                for (let k = 4; k >= 1; k--) {
+                    fill(red(cc), green(cc), blue(cc), 22 / k);
+                    ellipse(n.x, n.y, r * (2 + k * 0.6));
+                }
+                fill(red(cc), green(cc), blue(cc), 230);
+                ellipse(n.x, n.y, r);
+            }
+
+            pop();
+
+            // Ouroboros ring overlay (drawn in non-rotated frame on top)
+            drawOuroboros();
+
+            drawHUD();
+        }
+
+        function tryGrow() {
+            // Pick a parent biased toward energetic nodes
+            let parent = null;
+            let attempts = 0;
+            while (attempts < 8 && !parent) {
+                const cand = nodes[floor(random(nodes.length))];
+                if (random() < cand.energy) parent = cand;
+                attempts++;
+            }
+            if (!parent) parent = nodes[floor(random(nodes.length))];
+
+            // Branch direction
+            const baseAngle = parent.angle + random(-params.branchSpread, params.branchSpread);
+            const dist = random(18, 42);
+            // Slight pull toward an outer ring (ouroboros affordance)
+            const targetR = 360;
+            const cx = width/2, cy = height/2;
+            const dxC = parent.x - cx;
+            const dyC = parent.y - cy;
+            const rNow = sqrt(dxC*dxC + dyC*dyC);
+            const radialPullStrength = params.ouroborosPull * 0.20;
+            // Steer toward the target radius
+            const radialDir = (targetR - rNow) / max(50, abs(targetR - rNow));
+            const adjustedAngle = baseAngle + radialPullStrength * (atan2(dyC, dxC) + (radialDir > 0 ? 0 : PI) - baseAngle) * 0.5;
+
+            const nx = parent.x + cos(adjustedAngle) * dist;
+            const ny = parent.y + sin(adjustedAngle) * dist;
+
+            // Reject if outside canvas
+            if (nx < 30 || nx > width - 30 || ny < 30 || ny > height - 30) return;
+
+            const coherence = constrain(parent.coherence + random(-0.18, 0.18), 0, 1);
+
+            const newNode = {
+                x: nx, y: ny,
+                parent: nodes.indexOf(parent),
+                age: 0,
+                coherence,
+                energy: 0.85,
+                angle: adjustedAngle
+            };
+            nodes.push(newNode);
+            const newIdx = nodes.length - 1;
+            edges.push({ a: nodes.indexOf(parent), b: newIdx, coherence, ouroboros: false, phaseOffset: random(TWO_PI) });
+
+            // Look for nearby nodes to bridge (mycelium fusion)
+            for (let i = 0; i < nodes.length - 1; i++) {
+                const o = nodes[i];
+                if (o === parent) continue;
+                const dx = o.x - nx;
+                const dy = o.y - ny;
+                const d = sqrt(dx*dx + dy*dy);
+                if (d < 36 && random() < 0.18) {
+                    const sharedC = (coherence + o.coherence) / 2;
+                    edges.push({ a: i, b: newIdx, coherence: sharedC, ouroboros: false, phaseOffset: random(TWO_PI) });
+                }
+            }
+
+            // Ouroboros formation: if newNode is near the target ring, connect to other ring-band nodes
+            const newR = sqrt((nx - cx)*(nx - cx) + (ny - cy)*(ny - cy));
+            if (abs(newR - targetR) < 60) {
+                for (let i = 0; i < nodes.length - 1; i++) {
+                    const o = nodes[i];
+                    const oR = sqrt((o.x - cx)*(o.x - cx) + (o.y - cy)*(o.y - cy));
+                    if (abs(oR - targetR) > 60) continue;
+                    const dx = o.x - nx;
+                    const dy = o.y - ny;
+                    const d = sqrt(dx*dx + dy*dy);
+                    if (d < 70 && random() < params.ouroborosPull * 0.12) {
+                        edges.push({ a: i, b: newIdx, coherence: 0.85, ouroboros: true, phaseOffset: random(TWO_PI) });
+                    }
+                }
+            }
+        }
+
+        function drawOuroboros() {
+            const cx = width/2, cy = height/2;
+            const targetR = 360;
+            // Faint ring guide
+            noFill();
+            stroke(232, 121, 249, 22);
+            strokeWeight(1);
+            ellipse(cx, cy, targetR * 2);
+
+            // Count ring-band nodes
+            let ringNodes = 0;
+            for (const n of nodes) {
+                const dx = n.x - cx, dy = n.y - cy;
+                const r = sqrt(dx*dx + dy*dy);
+                if (abs(r - targetR) < 60) ringNodes++;
+            }
+            const closure = constrain(ringNodes / 30, 0, 1);
+
+            // Ouroboros arc — grows as ring becomes populated
+            push();
+            translate(cx, cy);
+            const arcSpan = closure * TWO_PI;
+            const start = ouroborosPhase;
+            noFill();
+            for (let k = 6; k >= 1; k--) {
+                const alpha = (closure * 80) / k;
+                stroke(232, 121, 249, alpha);
+                strokeWeight(k * 0.8);
+                arc(0, 0, targetR * 2 + k * 4, targetR * 2 + k * 4, start, start + arcSpan);
+            }
+            // Snake head
+            if (closure > 0.05) {
+                const headA = start + arcSpan;
+                const hx = cos(headA) * targetR;
+                const hy = sin(headA) * targetR;
+                noStroke();
+                fill(232, 121, 249, 220);
+                ellipse(hx, hy, 8);
+                // tail merge dot
+                const tx = cos(start) * targetR;
+                const ty = sin(start) * targetR;
+                fill(34, 211, 238, 180);
+                ellipse(tx, ty, 6);
+            }
+            pop();
+        }
+
+        function drawHUD() {
+            push();
+            noStroke();
+            fill(15, 20, 36, 220);
+            rect(20, 20, 320, 100, 8);
+            fill(241, 245, 249);
+            textFont('Courier New');
+            textSize(12);
+            text('SWARM MYCELIUM · OUROBOROS BRIDGE', 36, 44);
+            const cx = width/2, cy = height/2;
+            const targetR = 360;
+            let ringNodes = 0;
+            for (const n of nodes) {
+                const dx = n.x - cx, dy = n.y - cy;
+                const r = sqrt(dx*dx + dy*dy);
+                if (abs(r - targetR) < 60) ringNodes++;
+            }
+            const closure = constrain(ringNodes / 30, 0, 1);
+            textSize(16);
+            const cyan = color(34, 211, 238);
+            const mag = color(232, 121, 249);
+            const cc = lerpColor(cyan, mag, closure);
+            fill(cc);
+            text('nodes ' + nodes.length + ' / ' + params.maxNodes, 36, 70);
+            textSize(10);
+            fill(176, 174, 165);
+            text('edges ' + edges.length + ' · ouroboros closure ' + (closure*100).toFixed(0) + '%', 36, 90);
+            textSize(9);
+            fill(120, 140, 93);
+            text('mycelium correlates execution patterns', 36, 108);
+            pop();
+        }
+
+        // UI
+        function updateParam(name, value) {
+            const v = parseFloat(value);
+            params[name] = v;
+            const el = document.getElementById(name + '-value');
+            if (el) {
+                if (name === 'maxNodes') el.textContent = v.toString();
+                else if (name === 'rotSpeed') el.textContent = v.toFixed(4);
+                else el.textContent = v.toFixed(2);
+            }
+            if (name === 'maxNodes' && nodes.length > v) {
+                // truncate
+                nodes = nodes.slice(0, v);
+                edges = edges.filter(e => e.a < v && e.b < v);
+            }
+        }
+        function updateSeedDisplay() { document.getElementById('seed-input').value = params.seed; }
+        function updateSeed() {
+            const v = parseInt(document.getElementById('seed-input').value);
+            if (!isNaN(v) && v > 0) { params.seed = v; initializeSystem(); } else updateSeedDisplay();
+        }
+        function previousSeed() { params.seed = Math.max(1, params.seed - 1); updateSeedDisplay(); initializeSystem(); }
+        function nextSeed() { params.seed += 1; updateSeedDisplay(); initializeSystem(); }
+        function randomSeedAndUpdate() { params.seed = Math.floor(Math.random()*999999)+1; updateSeedDisplay(); initializeSystem(); }
+        function resetParameters() {
+            params = JSON.parse(JSON.stringify(defaultParams));
+            ['maxNodes','growthRate','cohThresh','branchSpread','rotSpeed','ouroborosPull'].forEach(k => {
+                document.getElementById(k).value = params[k];
+                if (k === 'maxNodes') document.getElementById(k+'-value').textContent = params[k].toString();
+                else if (k === 'rotSpeed') document.getElementById(k+'-value').textContent = params[k].toFixed(4);
+                else document.getElementById(k+'-value').textContent = params[k].toFixed(2);
+            });
+            updateSeedDisplay(); initializeSystem();
+        }
+        window.addEventListener('load', updateSeedDisplay);
+    </script>
+</body>
+</html>
