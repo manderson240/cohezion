@@ -275,10 +275,12 @@ SYSTEM """ + system_prompt.replace('"', '\\"').replace("\n", "\\n")
         """Deploy the weighted model to Ollama."""
         modelfile_path = self.create_weighted_model(name)
 
+        import shutil
         import subprocess
 
-        result = subprocess.run(
-            ["ollama", "create", name, "-f", modelfile_path],
+        ollama_exec = shutil.which("ollama") or "/usr/local/bin/ollama"
+        result = subprocess.run(  # noqa: S603 - name and modelfile_path are internally controlled
+            [ollama_exec, "create", name, "-f", modelfile_path],
             capture_output=True,
             text=True,
         )
