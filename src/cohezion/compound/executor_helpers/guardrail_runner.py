@@ -28,6 +28,18 @@ def run_async_guardrail(coro: Any) -> Any:
     """
     try:
         return asyncio.run(coro)
-    except (RuntimeError, asyncio.TimeoutError, asyncio.CancelledError) as e:
+    except (
+        RuntimeError,
+        asyncio.TimeoutError,
+        asyncio.CancelledError,
+        OSError,
+        ValueError,
+        AttributeError,
+        KeyError,
+        TypeError,
+    ) as e:
+        # Guardrails are non-blocking by design — any infra failure becomes a no-op
+        # so the executor never wedges. SystemExit/KeyboardInterrupt still propagate.
+        # (Ω12 P2 Patch 13)
         logger.debug("Guardrail check failed (non-blocking): %s", e, exc_info=True)
         return None
