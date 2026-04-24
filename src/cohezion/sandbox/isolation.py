@@ -29,6 +29,17 @@ from pathlib import Path
 logger = logging.getLogger(__name__)
 
 
+# Resolve external executable paths at module load to avoid S607 partial-path warnings.
+# Falls back to the bare name if not on PATH; subprocess will surface a clear error.
+_SUDO = shutil.which("sudo") or "/usr/bin/sudo"
+_MOUNT = shutil.which("mount") or "/bin/mount"
+_BTRFS = shutil.which("btrfs") or "/usr/bin/btrfs"
+_LVS = shutil.which("lvs") or "/usr/sbin/lvs"
+_ID = shutil.which("id") or "/usr/bin/id"
+_IP = shutil.which("ip") or "/usr/sbin/ip"
+_FINDMNT = shutil.which("findmnt") or "/usr/bin/findmnt"
+
+
 class IsolationMode(StrEnum):
     """Filesystem isolation mode."""
 
@@ -213,10 +224,10 @@ class FilesystemIsolation:
         # Mount overlay
         try:
             mount_opts = f"lowerdir={lower},upperdir={upper},workdir={work}"
-            subprocess.run(
+            subprocess.run(  # noqa: S603 - args are static system tool args, not user input
                 [
-                    "sudo",
-                    "mount",
+                    _SUDO,
+                    _MOUNT,
                     "-t",
                     "overlay",
                     "overlay",
@@ -247,8 +258,8 @@ class FilesystemIsolation:
         """Setup BTRFS snapshot (copy-on-write filesystem)."""
         # BTRFS requires filesystem support - check availability
         try:
-            subprocess.run(
-                ["btrfs", "filesystem", "show"],
+            subprocess.run(  # noqa: S603 - static system probe, no user input
+                [_BTRFS, "filesystem", "show"],
                 check=True,
                 capture_output=True,
             )
@@ -263,8 +274,8 @@ class FilesystemIsolation:
 
         # Create BTRFS subvolume if possible
         try:
-            subprocess.run(
-                ["sudo", "btrfs", "subvolume", "create", str(snapshot_dir)],
+            subprocess.run(  # noqa: S603 - static system tool args, no user input
+                [_SUDO, _BTRFS, "subvolume", "create", str(snapshot_dir)],
                 check=True,
                 capture_output=True,
             )
@@ -282,8 +293,8 @@ class FilesystemIsolation:
     def _setup_lvm(self, isolation_dir: Path, source_path: str) -> tuple[str, list[MountPoint]]:
         """Setup LVM logical volume (copy-on-write)."""
         try:
-            subprocess.run(
-                ["lvs"],
+            subprocess.run(  # noqa: S603 - static system probe, no user input
+                [_LVS],
                 check=True,
                 capture_output=True,
             )
@@ -415,8 +426,8 @@ class ProcessIsolation:
 
         try:
             # Check if we can create namespaces (requires CAP_SYS_ADMIN)
-            result = subprocess.run(
-                ["id", "-u"],
+            result = subprocess.run(  # noqa: S603 - static system probe, no user input
+                [_ID, "-u"],
                 capture_output=True,
                 text=True,
             )
@@ -448,8 +459,8 @@ class ProcessIsolation:
         """
         try:
             # Check if namespace exists in /var/run/netns or /proc/*/ns/
-            _result = subprocess.run(
-                ["ip", "netns", "list"],
+            _result = subprocess.run(  # noqa: S603 - static system probe, no user input
+                [_IP, "netns", "list"],
                 capture_output=True,
                 text=True,
             )
@@ -494,16 +505,16 @@ class NetworkIsolation:
 
         try:
             # Create bridge (requires root)
-            subprocess.run(
-                ["sudo", "ip", "link", "add", bridge_name, "type", "bridge"],
+            subprocess.run(  # noqa: S603 - bridge_name is internally generated UUID slug
+                [_SUDO, _IP, "link", "add", bridge_name, "type", "bridge"],
                 capture_output=True,
             )
 
             # Create veth pair
-            subprocess.run(
+            subprocess.run(  # noqa: S603 - veth names are internally generated UUID slugs
                 [
-                    "sudo",
-                    "ip",
+                    _SUDO,
+                    _IP,
                     "link",
                     "add",
                     veth_host,
@@ -517,15 +528,15 @@ class NetworkIsolation:
             )
 
             # Attach veth to bridge
-            subprocess.run(
-                ["sudo", "ip", "link", "set", veth_host, "master", bridge_name],
+            subprocess.run(  # noqa: S603 - veth/bridge names are internally generated UUID slugs
+                [_SUDO, _IP, "link", "set", veth_host, "master", bridge_name],
                 capture_output=True,
             )
 
             # Bring up bridge and veth
             for iface in [bridge_name, veth_host]:
-                subprocess.run(
-                    ["sudo", "ip", "link", "set", iface, "up"],
+                subprocess.run(  # noqa: S603 - iface names are internally generated UUID slugs
+                    [_SUDO, _IP, "link", "set", iface, "up"],
                     capture_output=True,
                 )
 
@@ -547,10 +558,11 @@ class NetworkIsolation:
         """Setup iptables rules to block external traffic."""
         try:
             # Drop outgoing packets to external networks
-            subprocess.run(
+            iptables_exec = shutil.which("iptables") or "/usr/sbin/iptables"
+            subprocess.run(  # noqa: S603 - veth_interface is internally generated UUID slug
                 [
-                    "sudo",
-                    "iptables",
+                    _SUDO,
+                    iptables_exec,
                     "-A",
                     "FORWARD",
                     "-i",
@@ -630,8 +642,8 @@ class CleanupRegistry:
         # Check mounts
         for mount in isolation_context.mounts:
             try:
-                result = subprocess.run(
-                    ["findmnt", mount.target],
+                result = subprocess.run(  # noqa: S603 - mount.target comes from internal MountPoint records
+                    [_FINDMNT, mount.target],
                     capture_output=True,
                 )
                 if result.returncode == 0:
@@ -783,8 +795,9 @@ class IsolationManager:
         for mount in reversed(context.mounts):  # Reverse order for dependencies
             if mount.mounted:
                 try:
-                    subprocess.run(
-                        ["sudo", "umount", mount.target],
+                    umount_exec = shutil.which("umount") or "/bin/umount"
+                    subprocess.run(  # noqa: S603 - mount.target comes from internal MountPoint records
+                        [_SUDO, umount_exec, mount.target],
                         check=True,
                         capture_output=True,
                         timeout=5,
@@ -853,15 +866,15 @@ class IsolationManager:
         try:
             # Remove veth interfaces
             for iface in [ns.veth_host, ns.veth_container]:
-                subprocess.run(
-                    ["sudo", "ip", "link", "del", iface],
+                subprocess.run(  # noqa: S603 - iface name from internal NetworkNamespace
+                    [_SUDO, _IP, "link", "del", iface],
                     capture_output=True,
                     timeout=5,
                 )
 
             # Remove bridge
-            subprocess.run(
-                ["sudo", "ip", "link", "del", ns.bridge_name],
+            subprocess.run(  # noqa: S603 - bridge name from internal NetworkNamespace
+                [_SUDO, _IP, "link", "del", ns.bridge_name],
                 capture_output=True,
                 timeout=5,
             )
