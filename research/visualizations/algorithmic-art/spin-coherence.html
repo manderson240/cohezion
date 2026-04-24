@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Phase Lattice — SPIN Coherence</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&family=Lora:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --anthropic-dark: #141413;
+            --anthropic-light: #faf9f5;
+            --anthropic-mid-gray: #b0aea5;
+            --anthropic-light-gray: #e8e6dc;
+            --anthropic-orange: #d97757;
+            --anthropic-blue: #6a9bcc;
+            --anthropic-green: #788c5d;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, var(--anthropic-light) 0%, #f5f3ee 100%);
+            min-height: 100vh;
+            color: var(--anthropic-dark);
+        }
+        .container { display: flex; min-height: 100vh; padding: 20px; gap: 20px; }
+        .sidebar {
+            width: 320px; flex-shrink: 0;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 24px; border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(20, 20, 19, 0.1);
+            overflow-y: auto; overflow-x: hidden;
+        }
+        .sidebar h1 {
+            font-family: 'Lora', serif; font-size: 24px; font-weight: 500;
+            color: var(--anthropic-dark); margin-bottom: 8px;
+        }
+        .sidebar .subtitle {
+            color: var(--anthropic-mid-gray); font-size: 14px;
+            margin-bottom: 32px; line-height: 1.4;
+        }
+        .control-section { margin-bottom: 32px; }
+        .control-section h3 {
+            font-size: 16px; font-weight: 600;
+            color: var(--anthropic-dark); margin-bottom: 16px;
+            display: flex; align-items: center; gap: 8px;
+        }
+        .control-section h3::before { content: '•'; color: var(--anthropic-orange); font-weight: bold; }
+        .seed-input {
+            width: 100%; background: var(--anthropic-light); padding: 12px;
+            border-radius: 8px; font-family: 'Courier New', monospace;
+            font-size: 14px; margin-bottom: 12px;
+            border: 1px solid var(--anthropic-light-gray); text-align: center;
+        }
+        .seed-input:focus {
+            outline: none; border-color: var(--anthropic-orange);
+            box-shadow: 0 0 0 2px rgba(217, 119, 87, 0.1); background: white;
+        }
+        .seed-controls { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px; }
+        .regen-button { margin-bottom: 0; }
+        .control-group { margin-bottom: 20px; }
+        .control-group label {
+            display: block; font-size: 14px; font-weight: 500;
+            color: var(--anthropic-dark); margin-bottom: 8px;
+        }
+        .slider-container { display: flex; align-items: center; gap: 12px; }
+        .slider-container input[type="range"] {
+            flex: 1; height: 4px;
+            background: var(--anthropic-light-gray); border-radius: 2px;
+            outline: none; -webkit-appearance: none;
+        }
+        .slider-container input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none; width: 16px; height: 16px;
+            background: var(--anthropic-orange); border-radius: 50%;
+            cursor: pointer; transition: all 0.2s ease;
+        }
+        .slider-container input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.1); background: #c86641; }
+        .slider-container input[type="range"]::-moz-range-thumb {
+            width: 16px; height: 16px;
+            background: var(--anthropic-orange); border-radius: 50%;
+            border: none; cursor: pointer; transition: all 0.2s ease;
+        }
+        .value-display {
+            font-family: 'Courier New', monospace; font-size: 12px;
+            color: var(--anthropic-mid-gray); min-width: 60px; text-align: right;
+        }
+        .button {
+            background: var(--anthropic-orange); color: white;
+            border: none; padding: 10px 16px; border-radius: 6px;
+            font-size: 14px; font-weight: 500; cursor: pointer;
+            transition: all 0.2s ease; width: 100%;
+        }
+        .button:hover { background: #c86641; transform: translateY(-1px); }
+        .button:active { transform: translateY(0); }
+        .button.secondary { background: var(--anthropic-blue); }
+        .button.secondary:hover { background: #5a8bb8; }
+        .button.tertiary { background: var(--anthropic-green); }
+        .button.tertiary:hover { background: #6b7b52; }
+        .button-row { display: flex; gap: 8px; }
+        .button-row .button { flex: 1; }
+        .canvas-area { flex: 1; display: flex; align-items: center; justify-content: center; min-width: 0; }
+        #canvas-container {
+            width: 100%; max-width: 1000px;
+            border-radius: 12px; overflow: hidden;
+            box-shadow: 0 20px 40px rgba(20, 20, 19, 0.1);
+            background: #0a0e1a;
+        }
+        #canvas-container canvas { display: block; width: 100% !important; height: auto !important; }
+        .loading {
+            display: flex; align-items: center; justify-content: center;
+            font-size: 18px; color: var(--anthropic-mid-gray);
+            min-height: 400px;
+        }
+        @media (max-width: 600px) {
+            .container { flex-direction: column; }
+            .sidebar { width: 100%; }
+            .canvas-area { padding: 20px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="sidebar">
+            <h1>Phase Lattice</h1>
+            <div class="subtitle">SPIN coherence — rotation + precession + phase. Tokens listening to each other across an inky field.</div>
+
+            <div class="control-section">
+                <h3>Seed</h3>
+                <input type="number" id="seed-input" class="seed-input" value="42" onchange="updateSeed()">
+                <div class="seed-controls">
+                    <button class="button secondary" onclick="previousSeed()">← Prev</button>
+                    <button class="button secondary" onclick="nextSeed()">Next →</button>
+                </div>
+                <button class="button tertiary regen-button" onclick="randomSeedAndUpdate()">↻ Random</button>
+            </div>
+
+            <div class="control-section">
+                <h3>Parameters</h3>
+
+                <div class="control-group">
+                    <label>Token Count</label>
+                    <div class="slider-container">
+                        <input type="range" id="tokenCount" min="40" max="220" step="10" value="120" oninput="updateParam('tokenCount', this.value)">
+                        <span class="value-display" id="tokenCount-value">120</span>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label>Coherence Target (%)</label>
+                    <div class="slider-container">
+                        <input type="range" id="coherenceTarget" min="0" max="100" step="1" value="35" oninput="updateParam('coherenceTarget', this.value)">
+                        <span class="value-display" id="coherenceTarget-value">35</span>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label>Phase Tolerance (rad)</label>
+                    <div class="slider-container">
+                        <input type="range" id="phaseTolerance" min="0.1" max="1.2" step="0.05" value="0.45" oninput="updateParam('phaseTolerance', this.value)">
+                        <span class="value-display" id="phaseTolerance-value">0.45</span>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label>Coupling Strength</label>
+                    <div class="slider-container">
+                        <input type="range" id="coupling" min="0" max="0.05" step="0.002" value="0.012" oninput="updateParam('coupling', this.value)">
+                        <span class="value-display" id="coupling-value">0.012</span>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label>Spin Speed</label>
+                    <div class="slider-container">
+                        <input type="range" id="spinSpeed" min="0.01" max="0.25" step="0.005" value="0.10" oninput="updateParam('spinSpeed', this.value)">
+                        <span class="value-display" id="spinSpeed-value">0.10</span>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label>Precession Speed</label>
+                    <div class="slider-container">
+                        <input type="range" id="precessSpeed" min="0.005" max="0.08" step="0.002" value="0.025" oninput="updateParam('precessSpeed', this.value)">
+                        <span class="value-display" id="precessSpeed-value">0.025</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="control-section">
+                <h3>Actions</h3>
+                <div class="button-row">
+                    <button class="button" onclick="resetParameters()">Reset</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="canvas-area">
+            <div id="canvas-container">
+                <div class="loading">Initializing Phase Lattice…</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // PARAMETERS
+        let params = {
+            seed: 42,
+            tokenCount: 120,
+            coherenceTarget: 35,
+            phaseTolerance: 0.45,
+            coupling: 0.012,
+            spinSpeed: 0.10,
+            precessSpeed: 0.025,
+            // Color palette (cohezion dark theme)
+            bg: '#0a0e1a',
+            base: '#1e3a8a',
+            glow: '#22d3ee',
+            accent: '#e879f9',
+            ink: '#f1f5f9'
+        };
+        let defaultParams = JSON.parse(JSON.stringify(params));
+
+        let tokens = [];
+        let coherencePct = 0;
+        let neighborRadius = 110;
+        let driftField = 0;
+
+        function setup() {
+            let c = createCanvas(1000, 1000);
+            c.parent('canvas-container');
+            initializeSystem();
+            const loader = document.querySelector('.loading');
+            if (loader) loader.style.display = 'none';
+        }
+
+        function initializeSystem() {
+            randomSeed(params.seed);
+            noiseSeed(params.seed);
+            tokens = [];
+            for (let i = 0; i < params.tokenCount; i++) {
+                tokens.push(new SpinToken(
+                    random(80, width - 80),
+                    random(80, height - 80),
+                    i
+                ));
+            }
+            driftField = 0;
+        }
+
+        function draw() {
+            // Soft trail-fade background
+            noStroke();
+            fill(10, 14, 26, 38);
+            rect(0, 0, width, height);
+
+            driftField += 0.003;
+
+            // 1. Phase update with Kuramoto-like coupling and global bias
+            const targetPhase = (sin(driftField * 0.4) * PI + PI); // wandering attractor
+            const targetWeight = params.coherenceTarget / 100; // 0..1
+            const K = params.coupling;
+
+            // 2. Compute phase forces (O(n^2) but n is small)
+            for (let i = 0; i < tokens.length; i++) {
+                let dphi = 0;
+                let weight = 0;
+                let cluster = 0;
+                for (let j = 0; j < tokens.length; j++) {
+                    if (i === j) continue;
+                    const a = tokens[i];
+                    const b = tokens[j];
+                    const dx = b.x - a.x;
+                    const dy = b.y - a.y;
+                    const d2 = dx * dx + dy * dy;
+                    if (d2 < neighborRadius * neighborRadius) {
+                        const d = sqrt(d2);
+                        const w = 1 - d / neighborRadius;
+                        dphi += sin(b.phase - a.phase) * w;
+                        weight += w;
+                        // count cluster members within tolerance
+                        const dphase = phaseDelta(a.phase, b.phase);
+                        if (dphase < params.phaseTolerance) cluster += 1;
+                    }
+                }
+                tokens[i].pendingPhase = K * dphi
+                    + targetWeight * 0.02 * sin(targetPhase - tokens[i].phase)
+                    + (random() - 0.5) * 0.008; // jitter
+                tokens[i].clusterScore = cluster;
+                tokens[i].neighborWeight = weight;
+            }
+
+            // 3. Apply phase, drift, draw
+            let coherentCount = 0;
+            for (const t of tokens) {
+                t.update();
+                if (t.clusterScore >= 2) coherentCount++;
+                t.attractTowardClusters(tokens, targetWeight);
+            }
+            for (const t of tokens) t.draw();
+
+            coherencePct = (coherentCount / tokens.length) * 100;
+
+            drawHUD();
+        }
+
+        function phaseDelta(a, b) {
+            let d = abs(((a - b) % (TWO_PI) + TWO_PI + PI) % TWO_PI - PI);
+            return d;
+        }
+
+        function drawHUD() {
+            push();
+            noStroke();
+            // panel
+            fill(15, 20, 36, 200);
+            rect(20, 20, 250, 78, 8);
+            fill(241, 245, 249);
+            textFont('Courier New');
+            textSize(12);
+            text('SPIN COHERENCE', 36, 44);
+            textSize(22);
+            const c = color(params.glow);
+            const a = color(params.accent);
+            const lerped = lerpColor(c, a, constrain(coherencePct / 100, 0, 1));
+            fill(lerped);
+            text(coherencePct.toFixed(1) + '%', 36, 72);
+            textSize(10);
+            fill(176, 174, 165);
+            text('target ' + params.coherenceTarget + '% • τ ' + params.phaseTolerance.toFixed(2), 36, 90);
+            pop();
+        }
+
+        // Spinning token: rotates on axis, axis precesses around tilt
+        class SpinToken {
+            constructor(x, y, id) {
+                this.x = x;
+                this.y = y;
+                this.id = id;
+                this.tilt = random(0.15, 0.55);            // radians off-vertical
+                this.spin = random(TWO_PI);                // current rotation around axis
+                this.precess = random(TWO_PI);             // precession angle
+                this.phase = random(TWO_PI);               // inner phase
+                this.pendingPhase = 0;
+                this.clusterScore = 0;
+                this.neighborWeight = 0;
+                this.size = random(14, 22);
+                this.vx = 0;
+                this.vy = 0;
+                this.haloEase = 0;
+            }
+
+            update() {
+                this.spin += params.spinSpeed * (0.7 + 0.3 * sin(this.id * 0.13));
+                this.precess += params.precessSpeed * (0.6 + 0.4 * cos(this.id * 0.21));
+                this.phase = (this.phase + this.pendingPhase + 0.018) % TWO_PI;
+                if (this.phase < 0) this.phase += TWO_PI;
+
+                // smooth halo response
+                const targetHalo = constrain(this.clusterScore / 6, 0, 1);
+                this.haloEase += (targetHalo - this.haloEase) * 0.08;
+            }
+
+            attractTowardClusters(all, gain) {
+                // Gentle attraction toward phase-matched neighbors
+                let fx = 0, fy = 0;
+                for (const o of all) {
+                    if (o === this) continue;
+                    const dx = o.x - this.x;
+                    const dy = o.y - this.y;
+                    const d2 = dx * dx + dy * dy;
+                    if (d2 < 200 * 200 && d2 > 0.5) {
+                        const d = sqrt(d2);
+                        const dphase = phaseDelta(this.phase, o.phase);
+                        if (dphase < params.phaseTolerance) {
+                            // attract
+                            const f = (0.06 + 0.4 * gain) * (1 - dphase / params.phaseTolerance) / d;
+                            fx += dx * f;
+                            fy += dy * f;
+                        } else if (d < 28) {
+                            // mild repulsion to prevent stacking
+                            fx -= dx * 0.04 / d;
+                            fy -= dy * 0.04 / d;
+                        }
+                    }
+                }
+                // Brownian wander
+                fx += (noise(this.id * 0.31, frameCount * 0.005) - 0.5) * 0.25;
+                fy += (noise(this.id * 0.31 + 99, frameCount * 0.005) - 0.5) * 0.25;
+
+                this.vx = this.vx * 0.92 + fx * 0.5;
+                this.vy = this.vy * 0.92 + fy * 0.5;
+                this.x += this.vx;
+                this.y += this.vy;
+
+                // Soft boundary
+                const m = 60;
+                if (this.x < m) this.vx += (m - this.x) * 0.01;
+                if (this.x > width - m) this.vx -= (this.x - (width - m)) * 0.01;
+                if (this.y < m) this.vy += (m - this.y) * 0.01;
+                if (this.y > height - m) this.vy -= (this.y - (height - m)) * 0.01;
+            }
+
+            draw() {
+                push();
+                translate(this.x, this.y);
+
+                // Halo for coherent tokens
+                if (this.haloEase > 0.05) {
+                    const haloR = this.size * (2.4 + this.haloEase * 2.5);
+                    const cyan = color(params.glow);
+                    const mag = color(params.accent);
+                    const blended = lerpColor(cyan, mag, constrain((this.clusterScore - 3) / 5, 0, 1));
+                    for (let r = 6; r >= 1; r--) {
+                        const alpha = (this.haloEase * 70) / r;
+                        const cc = color(red(blended), green(blended), blue(blended), alpha);
+                        fill(cc);
+                        noStroke();
+                        ellipse(0, 0, haloR * (1 + r * 0.18));
+                    }
+                }
+
+                // Precession cone — axis sweeps a circle in 2D projection
+                const ax = cos(this.precess) * this.tilt * this.size * 1.2;
+                const ay = sin(this.precess) * this.tilt * this.size * 0.6; // foreshortened
+                // Faint precession ellipse (the cone trace)
+                noFill();
+                stroke(34, 211, 238, 35 + this.haloEase * 60);
+                strokeWeight(0.6);
+                ellipse(0, 0, this.size * 1.8 * this.tilt * 2, this.size * 1.0 * this.tilt * 2);
+
+                // Axis line (precessing axis)
+                stroke(30, 58, 138, 200);
+                strokeWeight(1.6);
+                line(0, 0, ax, ay);
+
+                // Body of the spinning top — disk perpendicular to axis
+                push();
+                translate(ax * 0.5, ay * 0.5);
+                rotate(atan2(ay, ax));
+                noStroke();
+                // body color gradient: base -> glow by haloEase
+                const baseC = color(params.base);
+                const glowC = color(params.glow);
+                const bodyColor = lerpColor(baseC, glowC, this.haloEase);
+                fill(red(bodyColor), green(bodyColor), blue(bodyColor), 220);
+                ellipse(0, 0, this.size * 0.5, this.size * 1.4);
+                pop();
+
+                // Spin indicator — a tick rotating around the axis
+                const tickLen = this.size * 0.55;
+                const tickX = cos(this.spin) * tickLen;
+                const tickY = sin(this.spin) * tickLen * 0.45;
+                stroke(241, 245, 249, 200);
+                strokeWeight(1.0);
+                line(0, 0, tickX, tickY);
+
+                // Phase dot
+                const phaseR = 2.4 + this.haloEase * 2.0;
+                noStroke();
+                const phaseColor = lerpColor(color(params.base), color(params.accent), this.haloEase);
+                fill(red(phaseColor), green(phaseColor), blue(phaseColor), 230);
+                ellipse(cos(this.phase) * (this.size * 0.7),
+                        sin(this.phase) * (this.size * 0.7),
+                        phaseR * 2);
+
+                pop();
+            }
+        }
+
+        // UI handlers
+        function updateParam(name, value) {
+            const v = parseFloat(value);
+            params[name] = v;
+            const el = document.getElementById(name + '-value');
+            if (el) el.textContent = (Number.isInteger(v) || name === 'tokenCount' || name === 'coherenceTarget')
+                ? v.toString()
+                : v.toFixed(name === 'phaseTolerance' ? 2 : 3);
+            if (name === 'tokenCount') initializeSystem();
+        }
+
+        function updateColor(id, value) {
+            params[id] = value;
+            const el = document.getElementById(id + '-value');
+            if (el) el.textContent = value;
+        }
+
+        function updateSeedDisplay() {
+            document.getElementById('seed-input').value = params.seed;
+        }
+        function updateSeed() {
+            const input = document.getElementById('seed-input');
+            const newSeed = parseInt(input.value);
+            if (!isNaN(newSeed) && newSeed > 0) { params.seed = newSeed; initializeSystem(); }
+            else updateSeedDisplay();
+        }
+        function previousSeed() { params.seed = Math.max(1, params.seed - 1); updateSeedDisplay(); initializeSystem(); }
+        function nextSeed() { params.seed = params.seed + 1; updateSeedDisplay(); initializeSystem(); }
+        function randomSeedAndUpdate() { params.seed = Math.floor(Math.random() * 999999) + 1; updateSeedDisplay(); initializeSystem(); }
+
+        function resetParameters() {
+            params = JSON.parse(JSON.stringify(defaultParams));
+            ['tokenCount','coherenceTarget','phaseTolerance','coupling','spinSpeed','precessSpeed'].forEach(k => {
+                document.getElementById(k).value = params[k];
+                document.getElementById(k+'-value').textContent = (k === 'tokenCount' || k === 'coherenceTarget')
+                    ? params[k].toString()
+                    : params[k].toFixed(k === 'phaseTolerance' ? 2 : 3);
+            });
+            updateSeedDisplay();
+            initializeSystem();
+        }
+
+        window.addEventListener('load', updateSeedDisplay);
+    </script>
+</body>
+</html>
