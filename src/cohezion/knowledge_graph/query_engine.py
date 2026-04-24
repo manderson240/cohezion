@@ -53,8 +53,8 @@ class KnowledgeGraphQueryEngine:
                 if rows and isinstance(rows, list):
                     # Handle flat list or wrapped formats
                     if rows and isinstance(rows[0], dict) and "result" in rows[0]:
-                        return rows[0]["result"][:limit]
-                    return rows[:limit]
+                        return list(rows[0]["result"][:limit])
+                    return list(rows[:limit])
             except Exception as e:
                 logger.debug("DB query failed, using file fallback: %s", e)
 

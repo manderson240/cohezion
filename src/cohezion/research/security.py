@@ -127,7 +127,7 @@ class ResearchSecurityGuardrails:
 
     def _check_ast_forbidden(self, code: str) -> list[str]:
         """Check AST for forbidden function calls and imports."""
-        issues = []
+        issues: list[str] = []
         try:
             tree = ast.parse(code)
         except SyntaxError:
