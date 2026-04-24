@@ -10,6 +10,8 @@ from __future__ import annotations
 
 import contextlib
 import logging
+import pickle
+import zipfile
 from pathlib import Path
 from typing import Any
 
@@ -142,7 +144,8 @@ async def get_rl_policy(agent_id: str):
             state_dim=state_dim,
             action_dim=action_dim,
         )
-    except (OSError, KeyError, ValueError, RuntimeError, AttributeError) as e:
+    except (OSError, KeyError, ValueError, RuntimeError, AttributeError,
+            pickle.UnpicklingError, EOFError, zipfile.BadZipFile) as e:
         logger.warning("Failed to inspect policy checkpoint: %s", e, exc_info=True)
         return RLPolicyResponse(exists=True, checkpoint_path=str(ckpt_path))
 
