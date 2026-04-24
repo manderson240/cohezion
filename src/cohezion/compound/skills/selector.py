@@ -8,10 +8,14 @@ Total: 1,361 lines → ~150 lines
 from __future__ import annotations
 
 import logging
-from collections.abc import Callable
 from dataclasses import dataclass
+from typing import TYPE_CHECKING
 
 from cohezion.compound.models import ExecutionResult, Task
+
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
 
 
 logger = logging.getLogger(__name__)
@@ -53,7 +57,7 @@ class SkillSelector:
             return []
 
         matches = []
-        for skill_name in self.skill_registry.keys():
+        for skill_name in self.skill_registry:
             confidence = self.scorer(task, skill_name)
             if confidence > 0.3:  # Minimum threshold
                 matches.append(

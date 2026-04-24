@@ -12,9 +12,11 @@ import asyncio
 import logging
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
-from cohezion.swarm.context_model_router import ModelContextProfile
+
+if TYPE_CHECKING:
+    from cohezion.swarm.context_model_router import ModelContextProfile
 
 
 logger = logging.getLogger(__name__)

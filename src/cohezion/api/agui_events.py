@@ -14,11 +14,11 @@ import json
 import time
 import uuid
 from dataclasses import dataclass, field
-from enum import Enum
+from enum import StrEnum
 from typing import Any
 
 
-class AGUIEventType(str, Enum):
+class AGUIEventType(StrEnum):
     """AG-UI protocol event types."""
 
     # Lifecycle

@@ -25,10 +25,13 @@ References:
 from __future__ import annotations
 
 import logging
+from typing import TYPE_CHECKING
 
 import numpy as np
 
-from cohezion.physics.riemannian_metric import RiemannianMetric
+
+if TYPE_CHECKING:
+    from cohezion.physics.riemannian_metric import RiemannianMetric
 
 
 logger = logging.getLogger(__name__)

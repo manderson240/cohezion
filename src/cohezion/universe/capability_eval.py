@@ -50,7 +50,7 @@ import statistics
 import time
 from dataclasses import dataclass, field
 from datetime import datetime
-from enum import Enum
+from enum import StrEnum
 from pathlib import Path
 from typing import Any, Protocol
 from uuid import uuid4
@@ -66,7 +66,7 @@ logger = logging.getLogger(__name__)
 # ---------------------------------------------------------------------------
 
 
-class TaskDomain(str, Enum):
+class TaskDomain(StrEnum):
     """Capability domains for evaluation tasks."""
 
     CODE_GENERATION = "code_generation"
@@ -80,7 +80,7 @@ class TaskDomain(str, Enum):
     LONG_CONTEXT = "long_context"
 
 
-class ScoringMethod(str, Enum):
+class ScoringMethod(StrEnum):
     """How a criterion should be scored."""
 
     EXACT_MATCH = "exact_match"
@@ -92,7 +92,7 @@ class ScoringMethod(str, Enum):
     CUSTOM = "custom"
 
 
-class Difficulty(str, Enum):
+class Difficulty(StrEnum):
     """Task difficulty level."""
 
     EASY = "easy"
@@ -395,7 +395,7 @@ class EvalScorer:
         if total_weight == 0:
             return 0.0, False
 
-        weighted_sum = sum(cr.score * c.weight for cr, c in zip(criterion_results, rubric.criteria))
+        weighted_sum = sum(cr.score * c.weight for cr, c in zip(criterion_results, rubric.criteria, strict=False))
         composite = weighted_sum / total_weight
         passed = composite >= rubric.pass_threshold
 

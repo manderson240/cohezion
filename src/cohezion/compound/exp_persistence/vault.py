@@ -1,3 +1,4 @@
+import contextlib
 import json
 import logging
 from dataclasses import dataclass
@@ -215,10 +216,8 @@ class VaultLogger:
                 sorted_traces = sorted(traces)
                 to_remove = sorted_traces[: len(sorted_traces) - max_traces]
                 for trace_path in to_remove:
-                    try:
+                    with contextlib.suppress(Exception):
                         self.mcp.vault_delete(trace_path)
-                    except Exception:
-                        pass
         except Exception:
             pass  # Non-blocking: pruning failure is not critical
 

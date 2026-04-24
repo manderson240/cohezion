@@ -25,10 +25,13 @@ from __future__ import annotations
 import logging
 import math
 from dataclasses import dataclass
+from typing import TYPE_CHECKING
 
 import numpy as np
 
-from cohezion.physics.spinor import SpinorState
+
+if TYPE_CHECKING:
+    from cohezion.physics.spinor import SpinorState
 
 
 logger = logging.getLogger(__name__)

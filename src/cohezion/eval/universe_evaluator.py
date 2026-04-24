@@ -23,11 +23,14 @@ from __future__ import annotations
 
 import logging
 import time
-from collections.abc import Callable
 from dataclasses import dataclass, field
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import numpy as np
+
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
 
 
 logger = logging.getLogger(__name__)
@@ -153,7 +156,7 @@ class UniverseEvaluator:
         start_time = time.time()
         evaluation = PolicyEvaluation(policy_name=policy_name, n_episodes=n_episodes)
 
-        for ep in range(n_episodes):
+        for _ep in range(n_episodes):
             metrics = self._run_episode(env, policy_fn)
             evaluation.episode_metrics.append(metrics)
 

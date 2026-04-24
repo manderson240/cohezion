@@ -13,8 +13,11 @@ from __future__ import annotations
 import logging
 import time
 from dataclasses import dataclass, field
+from typing import TYPE_CHECKING
 
-import numpy as np
+
+if TYPE_CHECKING:
+    import numpy as np
 
 
 logger = logging.getLogger(__name__)
@@ -37,9 +40,7 @@ class IntentPayload:
             return False
         if not self.intent or not self.intent.strip():
             return False
-        if len(self.latent_vector) != MANIFOLD_DIM:
-            return False
-        return True
+        return len(self.latent_vector) == MANIFOLD_DIM
 
     def to_dict(self) -> dict:
         """Serialize for audit logging."""

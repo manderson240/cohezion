@@ -248,15 +248,15 @@ except ImportError:
 
 
 __all__ = [
+    "_a2a_server",
+    "_compute_coherence",
+    "_get_rl_policy",
+    "_get_vae",
+    "_rl_policy",
+    "_vae_trainer",
     "app",
     "set_token_client",
-    "_get_vae",
-    "_get_rl_policy",
-    "_compute_coherence",
-    "_a2a_server",
     "verify_a2a_token",
-    "_vae_trainer",
-    "_rl_policy",
 ]
 
 
