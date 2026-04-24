@@ -166,7 +166,9 @@ async def run_debate(request: DebateRequest):
             processing_time_ms=result["processing_time_ms"],
         )
     except Exception as e:
-        logger.error(f"Debate failed: {e}", exc_info=True)
+        # Top-level FastAPI handler — catch broadly so we always return a clean 500
+        # rather than leaking a stack trace. SystemExit/KeyboardInterrupt still propagate.
+        logger.error("Debate failed: %s", e, exc_info=True)
         raise HTTPException(status_code=500, detail="Internal server error") from e
 
 
@@ -429,7 +431,8 @@ async def train_flume(request: FlumeTrainRequest):
     try:
         metrics = trainer.train(dataset=dataset)
     except Exception as e:
-        logger.error(f"FLUME training failed: {e}", exc_info=True)
+        # FastAPI endpoint — convert any training failure to clean 500 with logged detail.
+        logger.error("FLUME training failed: %s", e, exc_info=True)
         raise HTTPException(status_code=500, detail="Training failed") from e
 
     final = metrics[-1]
@@ -652,7 +655,7 @@ async def flume_latent_space(request: FlumeLatentSpaceRequest):
             detail="FLUME VAE checkpoint not found. Train the model first using /flume/train",
         )
     except Exception as e:
-        # Sanitize error message to prevent path leakage
+        # FastAPI endpoint — sanitize error type to avoid leaking paths/internals to client.
         error_type = type(e).__name__
         raise HTTPException(
             status_code=500,
@@ -726,8 +729,8 @@ async def parse_template(request: TemplateParseRequest):
 
     try:
         spec = manager.engine.get_spec_by_name(request.skill_name)
-    except Exception as e:
-        logger.error(f"Template parse failed for {request.skill_name}: {e}")
+    except (KeyError, ValueError, OSError, AttributeError, RuntimeError) as e:
+        logger.error("Template parse failed for %s: %s", request.skill_name, e, exc_info=True)
         raise HTTPException(status_code=500, detail="Template parsing failed") from e
 
     if spec is None:
@@ -763,7 +766,8 @@ async def train_rl(request: RLTrainRequest):
     try:
         results = train(config)
     except Exception as e:
-        logger.error(f"RL training failed: {e}", exc_info=True)
+        # FastAPI endpoint — convert any RL training failure to clean 500 with logged detail.
+        logger.error("RL training failed: %s", e, exc_info=True)
         raise HTTPException(status_code=500, detail="Training failed") from e
 
     final = results[-1]
@@ -816,8 +820,8 @@ async def get_rl_policy(agent_id: str):
             state_dim=state_dim,
             action_dim=action_dim,
         )
-    except Exception as e:
-        logger.warning(f"Failed to inspect policy checkpoint: {e}")
+    except (OSError, KeyError, ValueError, RuntimeError, AttributeError) as e:
+        logger.warning("Failed to inspect policy checkpoint: %s", e, exc_info=True)
         return RLPolicyResponse(exists=True, checkpoint_path=str(ckpt_path))
 
 
@@ -1075,6 +1079,8 @@ async def execute_skill(skill_name: str, request: SkillExecuteRequest):
             total_duration_ms=exec_result.total_duration_ms,
         )
     except Exception as exc:
+        # Skill execution can raise anything from user-supplied agent code;
+        # report as structured error response rather than letting the request 500.
         logger.exception("Skill execution failed: %s", skill_name)
         return SkillExecuteResponse(
             skill_name=skill_name,
@@ -1209,7 +1215,7 @@ async def metrics_training():
                 "checkpoint": str(flume_ckpt) if flume_ckpt.exists() else None,
                 "metrics": data if isinstance(data, dict) else {"epoch_data": data[-3:]},
             }
-        except Exception:
+        except (OSError, _json.JSONDecodeError, ValueError, KeyError, AttributeError):
             flume_info = {"status": "checkpoint_found", "path": str(flume_metrics)}
     elif flume_ckpt.exists():
         flume_info = {"status": "checkpoint_found", "path": str(flume_ckpt)}
@@ -1226,7 +1232,7 @@ async def metrics_training():
                 "checkpoint": str(rl_ckpt) if rl_ckpt.exists() else None,
                 "metrics": data if isinstance(data, dict) else {"episode_data": data[-3:]},
             }
-        except Exception:
+        except (OSError, _json.JSONDecodeError, ValueError, KeyError, AttributeError):
             rl_info = {"status": "checkpoint_found", "path": str(rl_metrics)}
     elif rl_ckpt.exists():
         rl_info = {"status": "checkpoint_found", "path": str(rl_ckpt)}
@@ -1304,7 +1310,14 @@ async def metrics_system():
                 ollama_available = True
                 models_data = resp.json().get("models", [])
                 ollama_models = [m["name"] for m in models_data]
-    except Exception as e:
+    except (
+        _httpx.HTTPError,
+        _httpx.TimeoutException,
+        OSError,
+        ConnectionError,
+        ValueError,
+        KeyError,
+    ) as e:
         logger.debug("Ollama status check unavailable: %s", e)
 
     return SystemMetricsResponse(
@@ -1497,6 +1510,7 @@ async def compound_execute(request: CompoundExecuteRequest):
             status_code=404, detail=f"Skill not found: {request.skill_name}"
         ) from exc
     except Exception as exc:
+        # FastAPI endpoint — convert any executor failure to clean 500 with logged detail.
         logger.exception("Compound execution failed: %s", request.skill_name)
         raise HTTPException(status_code=500, detail="Execution failed") from exc
 
@@ -1580,6 +1594,7 @@ async def compound_feedback(request: CompoundFeedbackRequest):
             status_code=404, detail=f"Skill not found: {request.skill_name}"
         ) from exc
     except Exception as exc:
+        # FastAPI endpoint — convert any feedback-loop failure to clean 500 with logged detail.
         logger.exception("Compound feedback failed: %s", request.skill_name)
         raise HTTPException(status_code=500, detail="Feedback cycle failed") from exc
 
@@ -1795,6 +1810,9 @@ async def agentjet_train(request: TrainRequest) -> TrainResponse:
             error=result.error,
         )
     except Exception as e:
+        # AgentJet trainer can raise project-specific OOMRiskError/ResourceUnavailableError
+        # without importing the symbols (avoids circular import) — re-raise OOM as 503,
+        # otherwise return structured error response so the dashboard can surface details.
         _oom_names = ("OOMRiskError", "ResourceUnavailableError")
         if type(e).__name__ in _oom_names:
             from fastapi import HTTPException
@@ -1829,7 +1847,14 @@ async def agentjet_status() -> dict:
             "loaded_models": loaded_models,
             "backend": "llamafactory",  # Phase 1 default
         }
-    except Exception as e:
+    except (
+        ImportError,
+        OSError,
+        ConnectionError,
+        RuntimeError,
+        ValueError,
+        AttributeError,
+    ) as e:
         return {"status": "error", "error": str(e)}
 
 
