@@ -298,8 +298,8 @@ class DegradationDetector:
                 )
                 if self._should_emit_alert(eq_alert):
                     alerts.append(eq_alert)
-        except (ImportError, Exception):
-            pass  # Non-blocking: validation module may not be available
+        except (ImportError, AttributeError, RuntimeError, ValueError, KeyError) as e:
+            logger.debug("Constitutional equilibrium check skipped (non-blocking): %s", e)
 
         # Ouroboros anomaly detection (non-blocking)
         # Cross-validates coherence via the Ouroboros AnomalyDetector
@@ -318,8 +318,8 @@ class DegradationDetector:
                 )
                 if self._should_emit_alert(ouro_alert):
                     alerts.append(ouro_alert)
-        except (ImportError, Exception):
-            pass  # Non-blocking: ouroboros module may not be available
+        except (ImportError, AttributeError, RuntimeError, ValueError, KeyError) as e:
+            logger.debug("Ouroboros anomaly detection skipped (non-blocking): %s", e)
 
         # OuroborosBridge physics coherence check (non-blocking)
         try:
@@ -328,8 +328,8 @@ class DegradationDetector:
             if not hasattr(self, "_ouroboros_bridge"):
                 self._ouroboros_bridge = OuroborosBridge()
             # Bridge records anomaly internally for Genesis UI
-        except (ImportError, Exception):
-            pass  # Non-blocking: bridge may not be available
+        except (ImportError, AttributeError, RuntimeError, ValueError) as e:
+            logger.debug("OuroborosBridge instantiation skipped (non-blocking): %s", e)
 
         # Mycelium coverage signal (non-blocking)
         # When degradation alerts fire, check if recent code changes may be the cause
@@ -346,8 +346,8 @@ class DegradationDetector:
                         len(recent_changes),
                         len(alerts),
                     )
-        except (ImportError, Exception):
-            pass  # Non-blocking: mycelium may not be available
+        except (ImportError, AttributeError, OSError, RuntimeError, ValueError) as e:
+            logger.debug("Mycelium coverage signal skipped (non-blocking): %s", e)
 
         # Run healing pipeline + resilience notification on alerts (non-blocking)
         if alerts and self._healing_enabled:
