@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# ruff: noqa: S311  # random used for simulation/jitter, not cryptography
 """
 Fractal Universe Simulator (Fractal Nexus)
 ==========================================

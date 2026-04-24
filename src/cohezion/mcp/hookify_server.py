@@ -1,3 +1,4 @@
+# ruff: noqa: S110  # best-effort: ignored exceptions are intentional in init/cleanup paths
 """
 Hookify MCP Bridge Server
 Cross-platform rule engine with Obsidian vault + SurrealDB graph integration

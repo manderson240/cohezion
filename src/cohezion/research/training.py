@@ -1,3 +1,4 @@
+# ruff: noqa: S110  # best-effort: ignored exceptions are intentional in init/cleanup paths
 """Training execution utilities for ResearchAgent.
 
 Handles actual LLM training with time budget constraints.
