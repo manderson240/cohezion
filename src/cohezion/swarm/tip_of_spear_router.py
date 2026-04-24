@@ -1,3 +1,4 @@
+# ruff: noqa: RUF012  # class attrs treated as immutable config; never mutated per-instance
 """Tip-of-Spear Routing with Confidence-Based Escalation and Agent Sovereignty.
 
 Architecture:

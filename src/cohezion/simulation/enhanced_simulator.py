@@ -1,4 +1,4 @@
-# ruff: noqa: S311  # random used for simulation/jitter, not cryptography
+# ruff: noqa: RUF012, S311  # random used for simulation/jitter, not cryptography
 """
 Enhanced Simulation Engine with FLUME + R-Zero Integration
 ===========================================================

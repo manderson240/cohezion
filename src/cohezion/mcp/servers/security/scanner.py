@@ -1,3 +1,4 @@
+# ruff: noqa: RUF012  # class attrs treated as immutable config; never mutated per-instance
 """Security MCP Server - data models and checklist (no scanner regex patterns)."""
 
 from __future__ import annotations

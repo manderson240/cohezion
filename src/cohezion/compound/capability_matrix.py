@@ -1,4 +1,4 @@
-# ruff: noqa: S110  # best-effort: ignored exceptions are intentional in init/cleanup paths
+# ruff: noqa: RUF012, S110  # best-effort: ignored exceptions are intentional in init/cleanup paths
 """Unified capability matrix for models, skills, and agents.
 
 Reads from existing tracking systems (ModelQualityClassifier, SkillHealthTracker,

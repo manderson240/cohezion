@@ -1,3 +1,4 @@
+# ruff: noqa: RUF012  # class attrs treated as immutable config; never mutated per-instance
 """Formal RL Framework for Cohezion Universe Simulations.
 
 Provides Gym-compatible environment wrappers and policy gradient agents
