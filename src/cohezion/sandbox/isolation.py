@@ -1,3 +1,4 @@
+# ruff: noqa: S108  # temp file paths in /tmp are intentional for ephemeral data
 """Filesystem and process isolation boundaries for sandboxed operations.
 
 Architecture:

@@ -1,4 +1,4 @@
-# ruff: noqa: E501  # long lines: SQL/URLs/docstrings — wrapping reduces readability
+# ruff: noqa: S310,S608, E501  # long lines: SQL/URLs/docstrings — wrapping reduces readability
 """Genesis Engine persistence — write journey transitions to SurrealDB.
 
 Stores (state, action, next_state, reward) tuples with enriched physics

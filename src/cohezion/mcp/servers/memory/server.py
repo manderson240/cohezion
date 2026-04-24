@@ -1,3 +1,4 @@
+# ruff: noqa: S104  # binds 0.0.0.0 in dev/internal services
 """Memory MCP Server - Knowledge graph with Entity-Relation-Observation model.
 
 Port: 8366

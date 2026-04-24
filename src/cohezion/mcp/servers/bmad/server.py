@@ -1,3 +1,4 @@
+# ruff: noqa: S104  # binds 0.0.0.0 in dev/internal services
 """BMAD MCP Server - Entrypoint.
 
 Port: 8361

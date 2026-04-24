@@ -1,4 +1,4 @@
-# ruff: noqa: E501  # long lines: SQL/URLs/docstrings — wrapping reduces readability
+# ruff: noqa: S108, E501  # long lines: SQL/URLs/docstrings — wrapping reduces readability
 """SafetyHarness for pre-execution safety checks and real-time monitoring.
 
 Provides:

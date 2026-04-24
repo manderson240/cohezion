@@ -1,3 +1,4 @@
+# ruff: noqa: S104  # binds 0.0.0.0 in dev/internal services
 """GitHub MCP Server - GitHub API integration.
 
 Port: Auto-allocated by MCP Manager

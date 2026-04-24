@@ -1,3 +1,4 @@
+# ruff: noqa: S104  # binds 0.0.0.0 in dev/internal services
 """Hugging Face MCP Server - Model discovery, inference, and dataset access.
 
 Port: 8365

@@ -1,4 +1,4 @@
-# ruff: noqa: S311  # random used for simulation/jitter, not cryptography
+# ruff: noqa: S104, S311  # random used for simulation/jitter, not cryptography
 import asyncio
 import logging
 import os

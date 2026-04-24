@@ -1,4 +1,4 @@
-# ruff: noqa: E501  # long lines: SQL/URLs/docstrings — wrapping reduces readability
+# ruff: noqa: S310, E501  # long lines: SQL/URLs/docstrings — wrapping reduces readability
 """Skill refiner for learning from execution results and improving PRIME skills.
 
 The SkillRefiner learns from successful executions and appends refinements

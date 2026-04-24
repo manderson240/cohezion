@@ -1,4 +1,4 @@
-# ruff: noqa: E501  # long lines: SQL/URLs/docstrings — wrapping reduces readability
+# ruff: noqa: S104, E501  # long lines: SQL/URLs/docstrings — wrapping reduces readability
 """
 Cohezion: Unified CLI Framework
 

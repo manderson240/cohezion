@@ -1,4 +1,4 @@
-# ruff: noqa: E501, S110  # best-effort: ignored exceptions are intentional in init/cleanup paths
+# ruff: noqa: S112, E501, S110  # best-effort: ignored exceptions are intentional in init/cleanup paths
 import contextlib
 import json
 import logging

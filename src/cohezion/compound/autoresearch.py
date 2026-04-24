@@ -1,4 +1,4 @@
-# ruff: noqa: E501  # long lines: SQL/URLs/docstrings — wrapping reduces readability
+# ruff: noqa: S112, E501  # long lines: SQL/URLs/docstrings — wrapping reduces readability
 """Autoresearch-driven refinement and experiential learning.
 
 This module provides:
