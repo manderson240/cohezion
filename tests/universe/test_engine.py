@@ -5,22 +5,48 @@ Covers 12D/2048D manifold states and simulation engine.
 
 from __future__ import annotations
 
-from unittest.mock import AsyncMock, MagicMock, patch, sys
+import sys
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
 
-# Mock cohezion_core and multimodal_bridge before they're imported
-mock_cc = MagicMock()
-sys.modules["cohezion_core"] = mock_cc
-sys.modules["cohezion_core.cohezion_core_rs"] = mock_cc
+# Scope the sys.modules mocks to this module via an autouse fixture that
+# saves and restores state. Previously these lines ran at module scope and
+# poisoned sys.modules for the ENTIRE test session — any later test that did
+# `from cohezion_core.cohezion_core_rs import FlumePhysics` (e.g.
+# mass_sim.universe_factory) would get a MagicMock, producing opaque
+# "<' not supported between instances of 'MagicMock' and 'float'" errors
+# whose locality depends on pytest-randomly ordering.
+@pytest.fixture(autouse=True)
+def _mock_cohezion_core_modules():
+    originals = {}
+    for key in (
+        "cohezion_core",
+        "cohezion_core.cohezion_core_rs",
+        "cohezion.core.multimodal_bridge",
+    ):
+        originals[key] = sys.modules.get(key)
 
-mock_mb = MagicMock()
-mock_mb.LOCAL_MULTIMODAL_BRIDGE = MagicMock()
-mock_mb.LOCAL_MULTIMODAL_BRIDGE.schedule_asset = AsyncMock()
-sys.modules["cohezion.core.multimodal_bridge"] = mock_mb
+    mock_cc = MagicMock()
+    sys.modules["cohezion_core"] = mock_cc
+    sys.modules["cohezion_core.cohezion_core_rs"] = mock_cc
 
-from cohezion.universe.engine import (
+    mock_mb = MagicMock()
+    mock_mb.LOCAL_MULTIMODAL_BRIDGE = MagicMock()
+    mock_mb.LOCAL_MULTIMODAL_BRIDGE.schedule_asset = AsyncMock()
+    sys.modules["cohezion.core.multimodal_bridge"] = mock_mb
+
+    yield
+
+    for key, original in originals.items():
+        if original is None:
+            sys.modules.pop(key, None)
+        else:
+            sys.modules[key] = original
+
+
+from cohezion.universe.engine import (  # noqa: E402
     AxiomaticState,
     LatentState,
     UniverseJourney,
