@@ -319,48 +319,5 @@ class TestRecordToFluxResilience:
             assert call_kwargs[1].get("exc_info") is True
 
 
-# ─── ExecutionOrchestrator.execute_graph() wiring ─────────────────
-
-
-class TestExecuteGraphWiring:
-    """execute_graph() should pass flux_aggregator to engine and AgentNodes."""
-
-    @pytest.mark.asyncio
-    @pytest.mark.skip(
-        reason="ExecutionOrchestrator.execute_graph removed in graph API refactor; test needs rewrite."
-    )
-    async def test_execute_graph_records_to_flux(self):
-        """execute_graph with flux_aggregator should record history entries."""
-        from cohezion.swarm.execution_orchestrator import ExecutionOrchestrator
-
-        history = HistoryFlux()
-        flux = FluxAggregator(providers=[history])
-
-        spec = _make_spec("n1", "analyst", node_type="agent")
-        workflow = _make_workflow([spec])
-
-        orchestrator = ExecutionOrchestrator()
-        report = await orchestrator.execute_graph(
-            workflow, initial_input={"data": "test"}, flux_aggregator=flux
-        )
-
-        assert report.status == "completed"
-        # Engine should have recorded the node completion to history
-        assert len(history._entries) >= 1
-        assert "analyst" in history._entries[0]["content"].lower()
-
-    @pytest.mark.asyncio
-    @pytest.mark.skip(
-        reason="ExecutionOrchestrator.execute_graph removed in graph API refactor; test needs rewrite."
-    )
-    async def test_execute_graph_without_flux_still_works(self):
-        """execute_graph without flux_aggregator should not error."""
-        from cohezion.swarm.execution_orchestrator import ExecutionOrchestrator
-
-        spec = _make_spec("n1", "worker", node_type="agent")
-        workflow = _make_workflow([spec])
-
-        orchestrator = ExecutionOrchestrator()
-        report = await orchestrator.execute_graph(workflow, initial_input={})
-
-        assert report.status == "completed"
+# NOTE: Removed TestExecuteGraphWiring (Wave 3E).
+# ExecutionOrchestrator.execute_graph was removed in the graph API refactor.
