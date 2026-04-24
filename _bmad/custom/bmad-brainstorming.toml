@@ -1,0 +1,30 @@
+# Project-level overrides for bmad-brainstorming
+# This file is loaded by the BMAD resolver after customize.toml defaults
+# and before user-level overrides ({skill-name}.user.toml)
+#
+# Merge rules: scalars override, tables deep-merge, arrays of tables
+# with `code`/`id` replace matching entries and append new ones.
+
+[brainstorming]
+# Project-specific brainstorming output directory
+# Override this to store brainstorming sessions in a project-specific location
+# output_dir = "_bmad-output/brainstorming"
+
+# Enable MCP tools for Cohezion-integrated brainstorming
+mcp_enabled = true
+
+# Persist completed sessions to the Cohezion vault
+vault_persistence = true
+
+# Cross-reference Pi session logs
+session_cross_reference = true
+
+[brainstorming.ideation_defaults]
+# Minimum ideas before suggesting organization (default: 100)
+min_ideas_before_organize = 100
+
+# Anti-bias domain pivot frequency (default: 10 ideas)
+anti_bias_pivot_interval = 10
+
+# Simulated creativity temperature (0.0 - 1.0, default: 0.85)
+creativity_temperature = 0.85

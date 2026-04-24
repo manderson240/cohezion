@@ -44,19 +44,20 @@ the full closed-loop Kaggle offensive.
 1. **Kaggle Bridge**: Use `run_kaggle_experiment` to push kernels and poll for competition scores.
 2. **Score-as-Reward**: Official leaderboard scores drive the `KSearchTree` UCB1 values.
 3. **Ouroboros Learning**: If `status == "error"`, trigger `OuroborosFailureAnalyzer` to extract "Hardening Mutations" from the kernel logs.
-4. **FLUME Guidance**: Select nodes by latent similarity to previous successes, navigating the thought-manifold toward stable proof patterns.
+4. **Deep Research Synthesis**: Use `DeepResearchProvider` for long-horizon autonomous discovery of SOTA breakthroughs to bootstrap `KSearchTree` initial hypotheses.
+5. **Local SLM Audits**: Orchestrate internal V-Model audits with local SLMs (e.g., `phi4`) to reduce cloud token consumption and verify design invariants.
 
 ### Usage
 ```python
-from cohezion.research.autoresearch_driver import AutoresearchDriver
+from cohezion.swarm.research_orchestrator import ResearchOrchestrator
 
-# Run 8-hour autonomous offensive
-driver = AutoresearchDriver(target="aimo", budget_seconds=1800)
-results = await driver.run_loop(n_iterations=5)
+orchestrator = ResearchOrchestrator()
+# Deep Research + Local Synthesis
+results = await orchestrator.research_compound(topics=["JEPA World Models"])
 ```
 
 ## VERSION
-v0.3
+v0.4 (Deep Research Update)
 
 ## SEE ALSO
 - LLM_WIKI_PRIME.md

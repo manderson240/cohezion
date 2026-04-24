@@ -55,7 +55,7 @@ def solve_with_model(examples: list[tuple[str, str]], test_in: str, ptype: str) 
     return _call_model(prompt, max_tokens=64)
 
 
-def parse_examples(prompt: str) -> list[tuple[str, str]]:
+def parse_examples(prompt: str, ptype: str = "") -> list[tuple[str, str]]:
     """Extract input->output pairs from prompt text.
 
     Handles multiple formats:
@@ -64,6 +64,7 @@ def parse_examples(prompt: str) -> list[tuple[str, str]]:
     - "For t = Xs, distance = Y m" (gravity)
     - "A -> B" with Roman numeral or number (numeral)
     - "text1 -> text2" (encryption)
+    - "X = Y" (equations with equals sign)
     """
     pairs = []
     for line in prompt.split("\n"):
@@ -76,6 +77,11 @@ def parse_examples(prompt: str) -> list[tuple[str, str]]:
         # "becomes" pattern
         elif " becomes " in line and not line.startswith("Now"):
             parts = line.split(" becomes ")
+            if len(parts) == 2:
+                pairs.append((parts[0].strip(), parts[1].strip()))
+        # Equations pattern: "X = Y" (only for equation problems)
+        elif ptype == "equations" and " = " in line and not line.startswith("Now") and not line.startswith("Here"):
+            parts = line.split(" = ")
             if len(parts) == 2:
                 pairs.append((parts[0].strip(), parts[1].strip()))
         # Gravity pattern: "For t = Xs, distance = Y m"
@@ -811,7 +817,7 @@ def solve(prompt: str) -> str:
     """Classify and solve a single problem."""
     ptype = classify_problem(prompt)
     test_input = extract_test_input(prompt)
-    examples = parse_examples(prompt)
+    examples = parse_examples(prompt, ptype)
 
     if ptype == "gravity":
         return solve_gravity(examples, test_input)

@@ -306,9 +306,9 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
 
     def __init__(
         self,
-        url: str = "ws://localhost:8001/rpc",
+        url: str = "ws://localhost:8000/rpc",
         namespace: str = "cohezion",
-        database: str = "universe",
+        database: str = "vault",
     ):
         self.url = url
         self.namespace = namespace

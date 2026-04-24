@@ -132,3 +132,11 @@ repos:
         stages: [pre-push]
         args: [--severity-level=medium, --skip=B101]
         language: python
+
+  # ── BMAD Phase Lock ──────────────────────────────────────────────
+  - id: bmad-phase-lock
+    name: BMAD phase lock enforcement
+    entry: python scripts/hooks/bmad_phase_lock.py enforce
+    language: python
+    stages: [pre-commit]
+    files: '_bmad-output/.*\.md$'

@@ -34,6 +34,15 @@ def parse_examples(prompt: str) -> list[tuple[str, str]]:
             n = re.search(r"distance\s*=\s*([0-9.]+)\s*m", line)
             if m and n:
                 pairs.append((m.group(1), n.group(1) + " m"))
+        # Fix: Handle equation format "input = output"
+        elif " = " in line and not line.startswith(("Here", "Now", "For", "The")):
+            parts = line.split(" = ", 1)
+            if len(parts) == 2:
+                left = parts[0].strip()
+                right = parts[1].strip()
+                # Only accept if both sides look like valid I/O
+                if left and right and left not in ("d", "distance", "t", "g"):
+                    pairs.append((left, right))
     return pairs
 
 

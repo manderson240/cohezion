@@ -154,6 +154,24 @@
       "name": "cohezion-huggingface",
       "description": "Hugging Face Hub access"
     },
+    "vault": {
+      "command": "/home/mike-anderson/dev/cohezion/.venv/bin/python",
+      "args": [
+        "-m",
+        "cohezion.mcp.servers.vault.server"
+      ],
+      "env": {
+        "PYTHONPATH": "/home/mike-anderson/dev/cohezion/src:/home/mike-anderson/dev/cohezion/cloud-vault-mcp/src",
+        "MCP_TRANSPORT": "stdio",
+        "BMAD_DATA_PATH": "/home/mike-anderson/dev/cohezion/_bmad",
+        "VAULT_PATH": "/home/mike-anderson/dev/cohezion/data/vault",
+        "SURREALDB_ENABLED": "false",
+        "SHEETS_ENABLED": "false",
+        "WATCHER_ENABLED": "false"
+      },
+      "name": "cohezion-vault",
+      "description": "Cloud vault (Obsidian + knowledge graph)"
+    },
     "agentskills": {
       "command": "/home/mike-anderson/dev/cohezion/.venv/bin/python",
       "args": [

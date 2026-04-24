@@ -1,3 +1,11 @@
 {
-  "sessionDir": ".pi/sessions"
+  "sessionDir": ".pi/sessions",
+  "brainstorming": {
+    "output_dir": "_bmad-output/brainstorming",
+    "default_approach": null,
+    "vault_persistence": true,
+    "mcp_enabled": true,
+    "default_techniques": [],
+    "session_cross_reference": true
+  }
 }

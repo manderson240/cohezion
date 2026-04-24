@@ -1,0 +1,13 @@
+{
+  "id": "manderson240/nemotron-pure-symbolic-solver-v28",
+  "title": "Nemotron Pure Symbolic Solver v28",
+  "code_file": "kaggle_notebook.py",
+  "language": "python",
+  "kernel_type": "script",
+  "is_private": false,
+  "enable_gpu": false,
+  "enable_internet": false,
+  "dataset_sources": [],
+  "competition_sources": ["nvidia-nemotron-model-reasoning-challenge"],
+  "kernel_sources": []
+}

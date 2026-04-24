@@ -41,7 +41,7 @@ test-integration:  ## Run integration tests (require live services)
 test-smoke:  ## Run quick smoke tests (minimal subset)
 	uv run pytest tests/unit -q --tb=line 2>/dev/null || uv run pytest tests/conftest.py tests/test_*.py -q --tb=line 2>/dev/null || echo "⚠ No smoke tests found"
 
-all: format lint type-check test agent-guard mcp-guard kg-guard data-mesh-guard health-guard async-guard routing-guard a2a-guard  ## Run all checks, tests, and guards
+all: format lint type-check test agent-guard mcp-guard kg-guard data-mesh-guard health-guard async-guard routing-guard a2a-guard bmad-guard  ## Run all checks, tests, and guards
 
 agent-guard: ## Synchronize specialist agent definitions across all platform directories
 	uv run python src/cohezion/swarm/scripts/agent_guard.py
@@ -89,6 +89,9 @@ skill-guard: ## Validate all skills have proper metadata and FLUME compatibility
 	@uv run python src/cohezion/scripts/skill_validator.py
 	@echo "✓ Skill Guard: All skills validated"
 
+bmad-guard: ## Enforce BMAD multi-session coordination and artifact integrity
+	uv run python src/cohezion/governance/scripts/bmad_guard.py
+	@echo "✓ BMAD Guard: Phase locks, symlinks, catalog integrity verified"
 telemetry-dashboard: ## Show compound loop telemetry dashboard
 	@uv run python src/cohezion/scripts/telemetry_dashboard.py
 

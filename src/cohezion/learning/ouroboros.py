@@ -7,7 +7,7 @@ to systematically rewrite internal execution PRDs and system prompts.
 from __future__ import annotations
 
 import logging
-from typing import Any
+from typing import Any, Optional
 
 from pydantic import BaseModel
 
@@ -72,3 +72,27 @@ class OuroborosEngine:
     def get_latest_system_rules(self) -> list[str]:
         """Fetch the accumulated, self-improved system rules."""
         return [entry["new_rule"] for entry in self.rewrite_history]
+
+    async def analyze_audio_telemetry(self, event_data: dict[str, Any]) -> bool:
+        """Monitor audio training metrics for divergence or instability."""
+        event_type = event_data.get("event_type")
+        if event_type != "training_step":
+            return False
+
+        predictions = event_data.get("predictions", {})
+        loss = predictions.get("loss", 0.0)
+        coherence = event_data.get("coherence", 1.0)
+
+        # Trigger self-correction if loss spikes or coherence drops
+        if loss > 5.0:
+            logger.warning(f"Audio training divergence detected (loss={loss:.2f})")
+            exhaust = ExecutionExhaust(
+                task_id="birdclef_training",
+                error_message="High training loss detected",
+                coherence_drop=1.0 - coherence,
+                token_usage=0,
+                diagnostics={"loss": loss, "event": event_data},
+            )
+            return await self._trigger_rewrite_cycle(exhaust)
+
+        return False
