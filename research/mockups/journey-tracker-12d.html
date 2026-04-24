@@ -1,0 +1,560 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=1440" />
+  <title>JOURNEY TRACKER // 12D</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700;800&family=Major+Mono+Display&display=swap" rel="stylesheet">
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/prop-types@15/prop-types.min.js"></script>
+  <script src="https://unpkg.com/recharts@2.12.7/umd/Recharts.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone@7.24.7/babel.min.js"></script>
+
+  <style>
+    :root {
+      --bg-0:#07080a; --bg-1:#0b0d10; --bg-2:#0f1216; --bg-3:#131822;
+      --grid:#1a1f2a; --rule:#20283a; --rule-soft:#141a25;
+      --ink:#e7ecf3; --ink-2:#aab3c2; --ink-3:#6e7787; --ink-4:#4a5260;
+      --cyan:#5cf2e8; --cyan-dim:#2db6ad;
+      --amber:#f5b53c; --amber-dim:#b07b14;
+      --magenta:#ff4fbf; --magenta-dim:#b62a85;
+      --red:#ff5d5d; --green:#5cff9e; --violet:#9f7bff;
+    }
+    html, body {
+      background: var(--bg-0); color: var(--ink);
+      font-family: 'JetBrains Mono', ui-monospace, 'Geist Mono', monospace;
+      font-feature-settings: "tnum","ss01","ss02","ss03","cv02","cv11";
+      -webkit-font-smoothing: antialiased; letter-spacing: 0.01em;
+    }
+    body::before {
+      content:""; position:fixed; inset:0; pointer-events:none;
+      background: repeating-linear-gradient(to bottom,
+        rgba(255,255,255,0.012) 0px, rgba(255,255,255,0.012) 1px,
+        transparent 1px, transparent 3px);
+      mix-blend-mode: overlay; z-index:60;
+    }
+    body::after {
+      content:""; position:fixed; inset:0; pointer-events:none;
+      background:
+        radial-gradient(ellipse 90% 60% at 50% 110%, rgba(0,0,0,0.55), transparent 60%),
+        radial-gradient(ellipse 80% 50% at 50% -10%, rgba(0,0,0,0.40), transparent 60%);
+      z-index:59;
+    }
+    .display { font-family:'Major Mono Display','JetBrains Mono',monospace; letter-spacing:0.06em; }
+    .mono { font-family:'JetBrains Mono',monospace; }
+    .panel {
+      background: var(--bg-1); border: 1px solid var(--rule);
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.012), 0 0 0 1px rgba(0,0,0,0.4);
+    }
+    .panel-hd {
+      display:flex; align-items:center; justify-content:space-between;
+      padding:6px 10px;
+      background: linear-gradient(180deg,#0e131c 0%,#0a0e15 100%);
+      border-bottom:1px solid var(--rule);
+      font-size:10px; text-transform:uppercase; letter-spacing:0.18em; color:var(--ink-2);
+    }
+    .panel-hd .tag { color:var(--cyan); font-weight:700; }
+    .panel-bd { padding:10px; }
+    .row-stripe:nth-child(odd) { background: rgba(255,255,255,0.012); }
+    .row-stripe:hover { background: rgba(92,242,232,0.06); }
+    .dot { width:7px; height:7px; display:inline-block; }
+    .dot.green { background:var(--green); box-shadow:0 0 6px rgba(92,255,158,0.7); }
+    .dot.amber { background:var(--amber); box-shadow:0 0 6px rgba(245,181,60,0.7); }
+    .dot.red   { background:var(--red);   box-shadow:0 0 6px rgba(255,93,93,0.7); }
+    .bar-track { height:6px; background:#0a0d12; border:1px solid var(--rule); position:relative; overflow:hidden; }
+    .bar-fill  { height:100%; position:relative; }
+    .bar-fill::after {
+      content:""; position:absolute; inset:0;
+      background-image: repeating-linear-gradient(45deg, rgba(0,0,0,0.18) 0 2px, transparent 2px 4px);
+    }
+    .blink { animation: blink 1.6s steps(2,end) infinite; }
+    @keyframes blink { 50% { opacity:0.25; } }
+    .pulse-dot {
+      width:6px; height:6px; background:var(--cyan);
+      box-shadow:0 0 0 0 rgba(92,242,232,0.6);
+      animation: pulse 1.6s ease-out infinite;
+    }
+    @keyframes pulse {
+      0%   { box-shadow:0 0 0 0 rgba(92,242,232,0.55); }
+      80%  { box-shadow:0 0 0 8px rgba(92,242,232,0); }
+      100% { box-shadow:0 0 0 0 rgba(92,242,232,0); }
+    }
+    .ticker { mask-image: linear-gradient(to right, transparent, #000 8%, #000 92%, transparent); }
+    *::-webkit-scrollbar { width:8px; height:8px; }
+    *::-webkit-scrollbar-thumb { background:#1d2533; border:1px solid var(--rule); }
+    *::-webkit-scrollbar-track { background:transparent; }
+    .glow-cyan    { text-shadow:0 0 10px rgba(92,242,232,0.45); }
+    .glow-amber   { text-shadow:0 0 10px rgba(245,181,60,0.40); }
+    .glow-magenta { text-shadow:0 0 10px rgba(255,79,191,0.40); }
+    .glow-red     { text-shadow:0 0 10px rgba(255,93,93,0.45); }
+    .glow-green   { text-shadow:0 0 10px rgba(92,255,158,0.40); }
+    .hairline { border-color: var(--rule); }
+    .hairline-soft { border-color: var(--rule-soft); }
+    .sep::before { content:"·"; color:var(--ink-4); margin:0 14px; }
+    .num { font-variant-numeric: tabular-nums; }
+    .marquee { display:inline-block; white-space:nowrap; animation: marquee 60s linear infinite; }
+    @keyframes marquee { from { transform:translateX(0); } to { transform:translateX(-50%); } }
+
+    /* radar chart bg */
+    .radar-bg { stroke: var(--grid); fill: none; }
+    .radar-axis { stroke: var(--rule); stroke-width:1; }
+    .radar-poly { fill: rgba(92,242,232,0.16); stroke: var(--cyan); stroke-width: 1.4; }
+    .radar-target { fill: none; stroke: var(--ink-3); stroke-width: 0.8; stroke-dasharray: 2 3; }
+    .radar-label { fill: var(--ink-3); font-size: 9px; letter-spacing: 0.18em; text-transform: uppercase; }
+    .radar-value { fill: var(--cyan); font-size: 9px; }
+  </style>
+</head>
+<body class="min-h-screen">
+
+<div id="root"></div>
+
+<script type="text/babel" data-presets="env,react">
+const { useState, useEffect, useMemo } = React;
+const {
+  LineChart, Line, AreaChart, Area, BarChart, Bar,
+  ResponsiveContainer, Tooltip, XAxis, YAxis, ReferenceLine, Cell
+} = Recharts;
+
+/* ---------------- MOCK DATA ---------------- */
+
+const DIMS = [
+  { k:"ROT",  name:"Rotation",          v:0.71, target:0.65 },
+  { k:"PRC",  name:"Precession",        v:0.62, target:0.60 },
+  { k:"COH",  name:"Coherence",         v:0.54, target:0.50 },
+  { k:"SUR",  name:"Surprise",          v:0.38, target:0.45 },
+  { k:"COS",  name:"Cost",              v:0.41, target:0.35 },
+  { k:"LAT",  name:"Latency",           v:0.49, target:0.55 },
+  { k:"REL",  name:"Reliability",       v:0.83, target:0.80 },
+  { k:"ALI",  name:"Alignment",         v:0.77, target:0.75 },
+  { k:"DRF",  name:"Drift-Risk",        v:0.22, target:0.30 },
+  { k:"CCH",  name:"Cache-Hit",         v:0.91, target:0.85 },
+  { k:"SKL",  name:"Skill-Refinement",  v:0.46, target:0.50 },
+  { k:"VLT",  name:"Vault-Sync",        v:0.88, target:0.90 },
+];
+
+const STATES = ["INGEST","PLAN","EXEC","REFLECT","REFINE","JOURNAL","CHECKPOINT","ROLLBACK","ALIGN","DEGRADE","HEAL","IDLE"];
+
+function makeTransitions(n=50) {
+  const out = []; let t = new Date();
+  let cur = STATES[0];
+  for (let i=0;i<n;i++) {
+    const nxt = STATES[Math.floor(Math.random()*STATES.length)];
+    const ts = new Date(t.getTime() - i*4711 - Math.floor(Math.random()*1500));
+    const dur = 14 + Math.floor(Math.random()*1240);
+    const dCoh = (Math.random()*0.18 - 0.09);
+    out.push({
+      ts: ts.toISOString().slice(11,23),
+      from: cur, to: nxt, dur, dCoh,
+      ok: Math.random() > 0.06
+    });
+    cur = nxt;
+  }
+  return out;
+}
+const TRANSITIONS = makeTransitions();
+
+const COHERENCE = Array.from({length:200},(_,i)=>{
+  const base = 0.5 + 0.18*Math.sin(i/12) + 0.10*Math.cos(i/4.2);
+  const noise = (Math.random()*0.06 - 0.03);
+  return { i, c: Math.max(0.05, Math.min(0.95, base + noise)) };
+});
+
+const CHECKPOINTS = [
+  { id:"ckpt-9f3c1a2",  agent:"vault-keeper",        ts:"14:42:11", coh:0.61, dim12:[0.7,0.6,0.5,0.4,0.4,0.5,0.8,0.7,0.2,0.9,0.5,0.9], reason:"pre-rollback safety", size:"812 KB" },
+  { id:"ckpt-7a18bbe",  agent:"claude-specialist",   ts:"14:38:02", coh:0.58, dim12:[0.6,0.5,0.5,0.5,0.4,0.5,0.7,0.7,0.3,0.8,0.5,0.9], reason:"pre-skill-refinement", size:"1.2 MB" },
+  { id:"ckpt-3c9efa0",  agent:"surreal-dba",         ts:"14:31:54", coh:0.53, dim12:[0.6,0.5,0.5,0.4,0.5,0.6,0.7,0.7,0.3,0.8,0.4,0.8], reason:"schema migration begin", size:"602 KB" },
+  { id:"ckpt-1e44078",  agent:"platform-coord",      ts:"14:18:27", coh:0.49, dim12:[0.5,0.6,0.5,0.4,0.4,0.5,0.7,0.7,0.3,0.7,0.5,0.8], reason:"degradation watch arm", size:"488 KB" },
+  { id:"ckpt-8d29ff1",  agent:"mcp-specialist",      ts:"14:02:01", coh:0.55, dim12:[0.6,0.5,0.5,0.4,0.4,0.5,0.7,0.7,0.3,0.8,0.4,0.9], reason:"pre-tool-mutation", size:"994 KB" },
+  { id:"ckpt-2bd0742",  agent:"ollama-specialist",   ts:"13:54:38", coh:0.62, dim12:[0.7,0.5,0.6,0.4,0.4,0.5,0.8,0.7,0.2,0.9,0.5,0.9], reason:"vram pre-flight", size:"384 KB" },
+  { id:"ckpt-4f93e22",  agent:"gemini-specialist",   ts:"13:41:09", coh:0.57, dim12:[0.6,0.6,0.5,0.5,0.5,0.5,0.7,0.7,0.3,0.8,0.5,0.9], reason:"adk handshake", size:"712 KB" },
+  { id:"ckpt-c019e3a",  agent:"vault-keeper",        ts:"13:22:51", coh:0.60, dim12:[0.7,0.6,0.5,0.4,0.4,0.5,0.8,0.7,0.2,0.9,0.4,0.9], reason:"orphan sweep window", size:"1.0 MB" },
+];
+
+const SURREAL = {
+  url: "ws://127.0.0.1:8001",
+  backend: "SurrealKV (versioned=true)",
+  ns: "cohezion", db: "ops",
+  uptime: "06d 22h 14m",
+  lastQueryMs: 7,
+  lastQueryAt: "00:00:00.412",
+  rps: 41.6,
+  pending: 0,
+  schema: "v18.4 (bi-temporal)",
+  hashChain: "8d29ff1...4711"
+};
+
+/* ---------------- UI PIECES ---------------- */
+
+const Panel = ({ tag, title, right, children, className }) => (
+  <div className={`panel ${className||""}`}>
+    <div className="panel-hd">
+      <div className="flex items-center gap-3">
+        <span className="tag mono">{tag}</span>
+        <span className="text-[10px] tracking-[0.18em] text-[color:var(--ink-3)]">{title}</span>
+      </div>
+      <div className="text-[10px] tracking-[0.18em] text-[color:var(--ink-3)] flex items-center gap-3">
+        {right}
+      </div>
+    </div>
+    <div className="panel-bd">{children}</div>
+  </div>
+);
+
+const Dot = ({ s }) => <span className={`dot ${s}`} />;
+
+/* 12-axis radar — pure SVG */
+function Radar({ dims }) {
+  const cx = 180, cy = 180, R = 140;
+  const N = dims.length;
+  const pt = (i, r) => {
+    const a = (Math.PI*2 * i)/N - Math.PI/2;
+    return [cx + Math.cos(a)*r, cy + Math.sin(a)*r];
+  };
+  const ringPaths = [0.25, 0.5, 0.75, 1.0].map((r, idx) => {
+    const d = dims.map((_,i) => {
+      const [x,y] = pt(i, R*r);
+      return (i===0?"M":"L") + x.toFixed(1) + "," + y.toFixed(1);
+    }).join(" ") + " Z";
+    return <path key={idx} d={d} className="radar-bg" strokeWidth={r===1?1.2:0.6} />;
+  });
+  const axes = dims.map((_,i) => {
+    const [x,y] = pt(i, R);
+    return <line key={i} x1={cx} y1={cy} x2={x} y2={y} className="radar-axis" />;
+  });
+  const valuePoly = dims.map((d,i) => {
+    const [x,y] = pt(i, R*d.v);
+    return (i===0?"M":"L") + x.toFixed(1) + "," + y.toFixed(1);
+  }).join(" ") + " Z";
+  const targetPoly = dims.map((d,i) => {
+    const [x,y] = pt(i, R*d.target);
+    return (i===0?"M":"L") + x.toFixed(1) + "," + y.toFixed(1);
+  }).join(" ") + " Z";
+  const labels = dims.map((d,i) => {
+    const [lx,ly] = pt(i, R+18);
+    const [vx,vy] = pt(i, R*d.v);
+    const ta = lx > cx+2 ? "start" : lx < cx-2 ? "end" : "middle";
+    return (
+      <g key={i}>
+        <text x={lx} y={ly} textAnchor={ta} dy="0.32em" className="radar-label">{d.k}</text>
+        <text x={lx} y={ly+10} textAnchor={ta} dy="0.32em" className="radar-value num">{d.v.toFixed(2)}</text>
+        <circle cx={vx} cy={vy} r="2.5" fill="var(--cyan)" />
+      </g>
+    );
+  });
+  return (
+    <svg viewBox="0 0 360 360" width="100%" height="360">
+      {ringPaths}
+      {axes}
+      <path d={targetPoly} className="radar-target" />
+      <path d={valuePoly} className="radar-poly" />
+      {labels}
+      <circle cx={cx} cy={cy} r="2" fill="var(--ink-3)" />
+      <text x={cx} y={cy+22} textAnchor="middle" className="radar-label">12D NOW</text>
+    </svg>
+  );
+}
+
+/* ---------------- APP ---------------- */
+
+function App() {
+  const [now, setNow] = useState(new Date());
+  const [selectedCkpt, setSelectedCkpt] = useState(CHECKPOINTS[0].id);
+  useEffect(() => {
+    const id = setInterval(() => setNow(new Date()), 1000);
+    return () => clearInterval(id);
+  }, []);
+  const tsLabel = now.toISOString().replace("T"," ").slice(0,19) + "Z";
+
+  const meanV = DIMS.reduce((s,d)=>s+d.v,0)/DIMS.length;
+  const meanCoh = COHERENCE.reduce((s,c)=>s+c.c,0)/COHERENCE.length;
+
+  return (
+    <div className="min-h-screen pb-3">
+      {/* TOP BAR */}
+      <header className="border-b hairline" style={{background:"linear-gradient(180deg,#0c0f15,#070809)"}}>
+        <div className="px-4 py-2 flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <div className="display text-[18px] text-[color:var(--ink)] tracking-[0.18em]">
+              cohezion <span className="text-[color:var(--cyan)]">/</span> journey
+            </div>
+            <div className="text-[10px] tracking-[0.22em] text-[color:var(--ink-3)] uppercase">
+              journey-tracker · 12d-state · {SURREAL.url}
+            </div>
+            <div className="flex items-center gap-2 ml-2">
+              <span className="pulse-dot" />
+              <span className="text-[10px] tracking-[0.22em] text-[color:var(--cyan)] uppercase">LIVE</span>
+            </div>
+          </div>
+          <div className="flex items-center text-[11px] num">
+            <span><span className="text-[color:var(--ink-3)] mr-2">AGENTS</span><span className="text-[color:var(--ink)]">7/7</span></span>
+            <span className="sep" />
+            <span><span className="text-[color:var(--ink-3)] mr-2">COH</span><span className="text-[color:var(--cyan)] glow-cyan">{meanCoh.toFixed(3)}</span></span>
+            <span className="sep" />
+            <span><span className="text-[color:var(--ink-3)] mr-2">CKPT</span>{CHECKPOINTS.length}/256</span>
+            <span className="sep" />
+            <span><span className="text-[color:var(--ink-3)] mr-2">UTC</span>{tsLabel}<span className="blink text-[color:var(--cyan)]">_</span></span>
+          </div>
+        </div>
+        <div className="border-t hairline-soft px-2 py-[3px] text-[10px] text-[color:var(--ink-3)] ticker overflow-hidden">
+          <div className="marquee">
+            <span className="mr-10"><span className="text-[color:var(--ink-4)]">HIHO</span> stability ridge 50% coherence · current Δ +{((meanCoh-0.5)*100).toFixed(1)}%</span>
+            <span className="mr-10"><span className="text-[color:var(--ink-4)]">SURREAL</span> {SURREAL.backend} · ns={SURREAL.ns}/db={SURREAL.db} · last-query {SURREAL.lastQueryMs}ms</span>
+            <span className="mr-10"><span className="text-[color:var(--ink-4)]">SCHEMA</span> {SURREAL.schema} · hash-chain head {SURREAL.hashChain}</span>
+            <span className="mr-10"><span className="text-[color:var(--ink-4)]">JOURNEYS</span> 12-dim state vectors · 50-step transition window · 200-tick coherence trace</span>
+            <span className="mr-10"><span className="text-[color:var(--ink-4)]">HIHO</span> stability ridge 50% coherence · current Δ +{((meanCoh-0.5)*100).toFixed(1)}%</span>
+            <span className="mr-10"><span className="text-[color:var(--ink-4)]">SURREAL</span> {SURREAL.backend} · ns={SURREAL.ns}/db={SURREAL.db} · last-query {SURREAL.lastQueryMs}ms</span>
+            <span className="mr-10"><span className="text-[color:var(--ink-4)]">SCHEMA</span> {SURREAL.schema} · hash-chain head {SURREAL.hashChain}</span>
+            <span className="mr-10"><span className="text-[color:var(--ink-4)]">JOURNEYS</span> 12-dim state vectors · 50-step transition window · 200-tick coherence trace</span>
+          </div>
+        </div>
+      </header>
+
+      <main className="px-3 pt-3 grid grid-cols-12 gap-3">
+
+        {/* J.01 — RADAR */}
+        <Panel
+          tag="J.01"
+          title="STATE VECTOR · 12D RADAR"
+          right={<><span>AGENT vault-keeper</span><span className="text-[color:var(--ink-4)]">/</span><span>tick {now.getSeconds().toString().padStart(2,"0")}1487</span></>}
+          className="col-span-5"
+        >
+          <Radar dims={DIMS} />
+          <div className="mt-2 text-[10px] uppercase tracking-widest text-[color:var(--ink-3)] flex justify-between">
+            <span><span className="inline-block w-2 h-2 mr-2" style={{background:"var(--cyan)"}}/>actual</span>
+            <span><span className="inline-block w-2 h-px mr-2 align-middle" style={{borderTop:"1px dashed var(--ink-3)"}}/>target</span>
+            <span><span className="text-[color:var(--ink-4)]">mean</span> <span className="text-[color:var(--cyan)] num">{meanV.toFixed(3)}</span></span>
+          </div>
+        </Panel>
+
+        {/* J.02 — DIM BARS */}
+        <Panel
+          tag="J.02"
+          title="DIMENSION RESIDUALS"
+          right={<><span>Δ vs TARGET</span></>}
+          className="col-span-3"
+        >
+          <div className="space-y-[6px]">
+            {DIMS.map(d => {
+              const delta = d.v - d.target;
+              const pos = delta >= 0;
+              const w = Math.min(100, Math.abs(delta)*240);
+              return (
+                <div key={d.k} className="text-[10px]">
+                  <div className="flex justify-between text-[color:var(--ink-3)] uppercase tracking-widest">
+                    <span>{d.k} · {d.name}</span>
+                    <span className={"num " + (pos ? "text-[color:var(--green)]" : "text-[color:var(--amber)]")}>
+                      {pos?"+":""}{delta.toFixed(2)}
+                    </span>
+                  </div>
+                  <div className="bar-track mt-[3px]">
+                    <div className="bar-fill" style={{width:`${d.v*100}%`, background:"var(--cyan)"}}/>
+                    <div className="absolute top-[-2px] bottom-[-2px] w-px" style={{left:`${d.target*100}%`, background:"var(--ink-2)"}}/>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </Panel>
+
+        {/* J.03 — SURREALDB */}
+        <Panel
+          tag="J.03"
+          title="SURREAL · CONNECTION"
+          right={<><Dot s="green"/> <span>HEALTHY</span></>}
+          className="col-span-4"
+        >
+          <div className="grid grid-cols-2 gap-2 text-[10px] num">
+            <div className="border hairline p-2" style={{background:"var(--bg-2)"}}>
+              <div className="text-[9px] uppercase tracking-widest text-[color:var(--ink-4)]">URL</div>
+              <div className="text-[color:var(--cyan)] glow-cyan">{SURREAL.url}</div>
+            </div>
+            <div className="border hairline p-2" style={{background:"var(--bg-2)"}}>
+              <div className="text-[9px] uppercase tracking-widest text-[color:var(--ink-4)]">BACKEND</div>
+              <div className="text-[color:var(--ink)]">{SURREAL.backend}</div>
+            </div>
+            <div className="border hairline p-2" style={{background:"var(--bg-2)"}}>
+              <div className="text-[9px] uppercase tracking-widest text-[color:var(--ink-4)]">NS / DB</div>
+              <div className="text-[color:var(--ink)]">{SURREAL.ns} / {SURREAL.db}</div>
+            </div>
+            <div className="border hairline p-2" style={{background:"var(--bg-2)"}}>
+              <div className="text-[9px] uppercase tracking-widest text-[color:var(--ink-4)]">UPTIME</div>
+              <div className="text-[color:var(--ink)]">{SURREAL.uptime}</div>
+            </div>
+            <div className="border hairline p-2" style={{background:"var(--bg-2)"}}>
+              <div className="text-[9px] uppercase tracking-widest text-[color:var(--ink-4)]">LAST QUERY</div>
+              <div className="text-[color:var(--green)] glow-green">{SURREAL.lastQueryMs} ms</div>
+              <div className="text-[color:var(--ink-4)] text-[9px]">at {SURREAL.lastQueryAt}</div>
+            </div>
+            <div className="border hairline p-2" style={{background:"var(--bg-2)"}}>
+              <div className="text-[9px] uppercase tracking-widest text-[color:var(--ink-4)]">RPS · PEND</div>
+              <div className="text-[color:var(--ink)]">{SURREAL.rps.toFixed(1)} · {SURREAL.pending}</div>
+            </div>
+            <div className="col-span-2 border hairline p-2" style={{background:"var(--bg-2)"}}>
+              <div className="text-[9px] uppercase tracking-widest text-[color:var(--ink-4)]">SCHEMA</div>
+              <div className="text-[color:var(--ink)]">{SURREAL.schema}</div>
+              <div className="text-[9px] mt-1">
+                <span className="text-[color:var(--ink-4)]">hash-chain head </span>
+                <span className="text-[color:var(--magenta)] glow-magenta">{SURREAL.hashChain}</span>
+              </div>
+            </div>
+          </div>
+        </Panel>
+
+        {/* J.04 — COHERENCE TREND */}
+        <Panel
+          tag="J.04"
+          title="COHERENCE TRACE · 200 TICKS"
+          right={<><span>HIHO RIDGE 0.50</span></>}
+          className="col-span-8"
+        >
+          <div style={{height:200}}>
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={COHERENCE} margin={{top:6,right:8,left:0,bottom:0}}>
+                <defs>
+                  <linearGradient id="cohgrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="var(--cyan)" stopOpacity={0.45}/>
+                    <stop offset="100%" stopColor="var(--cyan)" stopOpacity={0}/>
+                  </linearGradient>
+                </defs>
+                <XAxis dataKey="i" hide />
+                <YAxis domain={[0,1]} tick={{fill:"#6e7787", fontSize:9}} axisLine={{stroke:"#20283a"}} tickLine={false} width={28} />
+                <ReferenceLine y={0.5} stroke="var(--amber)" strokeDasharray="3 3" label={{ value:"HIHO 0.50", position:"insideTopRight", fill:"var(--amber)", fontSize:9 }}/>
+                <Area dataKey="c" stroke="var(--cyan)" strokeWidth={1.4} fill="url(#cohgrad)" isAnimationActive={false}/>
+                <Tooltip contentStyle={{background:"#0b0d10", border:"1px solid #20283a", fontSize:10}} />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
+          <div className="mt-2 grid grid-cols-4 gap-2 text-[10px] num">
+            <div className="border hairline p-2" style={{background:"var(--bg-2)"}}>
+              <div className="text-[9px] uppercase tracking-widest text-[color:var(--ink-4)]">MEAN</div>
+              <div className="text-[color:var(--ink)]">{meanCoh.toFixed(3)}</div>
+            </div>
+            <div className="border hairline p-2" style={{background:"var(--bg-2)"}}>
+              <div className="text-[9px] uppercase tracking-widest text-[color:var(--ink-4)]">MIN · MAX</div>
+              <div className="text-[color:var(--ink)]">
+                {Math.min(...COHERENCE.map(c=>c.c)).toFixed(3)} · {Math.max(...COHERENCE.map(c=>c.c)).toFixed(3)}
+              </div>
+            </div>
+            <div className="border hairline p-2" style={{background:"var(--bg-2)"}}>
+              <div className="text-[9px] uppercase tracking-widest text-[color:var(--ink-4)]">% ABOVE 0.50</div>
+              <div className="text-[color:var(--green)]">
+                {(COHERENCE.filter(c=>c.c>=0.5).length/COHERENCE.length*100).toFixed(1)}%
+              </div>
+            </div>
+            <div className="border hairline p-2" style={{background:"var(--bg-2)"}}>
+              <div className="text-[9px] uppercase tracking-widest text-[color:var(--ink-4)]">VOL σ</div>
+              <div className="text-[color:var(--amber)]">0.087</div>
+            </div>
+          </div>
+        </Panel>
+
+        {/* J.05 — CHECKPOINTS */}
+        <Panel
+          tag="J.05"
+          title="CHECKPOINTS · ROLLBACK READY"
+          right={<><span>n={CHECKPOINTS.length}</span></>}
+          className="col-span-4"
+        >
+          <div className="text-[10px]">
+            <div className="grid grid-cols-12 gap-1 px-1 pb-1 border-b hairline-soft text-[color:var(--ink-4)] uppercase tracking-widest text-[9px]">
+              <div className="col-span-3">CKPT</div>
+              <div className="col-span-3">AGENT</div>
+              <div className="col-span-2 text-right">COH</div>
+              <div className="col-span-2 text-right">SIZE</div>
+              <div className="col-span-2 text-right">ACT</div>
+            </div>
+            <div className="max-h-[290px] overflow-y-auto">
+              {CHECKPOINTS.map(c => {
+                const sel = c.id === selectedCkpt;
+                return (
+                  <div
+                    key={c.id}
+                    onClick={()=>setSelectedCkpt(c.id)}
+                    className={"row-stripe grid grid-cols-12 gap-1 px-1 py-1 num cursor-pointer " + (sel ? "outline outline-1 outline-[color:var(--cyan)]" : "")}
+                  >
+                    <div className="col-span-3 text-[color:var(--cyan)] truncate">{c.id}</div>
+                    <div className="col-span-3 text-[color:var(--ink-2)] truncate">{c.agent}</div>
+                    <div className={"col-span-2 text-right " + (c.coh >= 0.5 ? "text-[color:var(--green)]" : "text-[color:var(--amber)]")}>
+                      {c.coh.toFixed(2)}
+                    </div>
+                    <div className="col-span-2 text-right text-[color:var(--ink-3)]">{c.size}</div>
+                    <div className="col-span-2 text-right">
+                      <button className="text-[9px] px-1 py-[1px] border hairline text-[color:var(--magenta)] hover:bg-[color:var(--bg-3)] uppercase tracking-widest">
+                        rb
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+            <div className="mt-2 border hairline p-2 text-[10px]" style={{background:"var(--bg-2)"}}>
+              <div className="text-[9px] uppercase tracking-widest text-[color:var(--ink-4)]">SELECTED</div>
+              <div className="text-[color:var(--cyan)]">{selectedCkpt}</div>
+              <div className="text-[9px] text-[color:var(--ink-3)] mt-1">
+                {CHECKPOINTS.find(c=>c.id===selectedCkpt)?.reason}
+                <span className="text-[color:var(--ink-4)]"> · ts </span>
+                {CHECKPOINTS.find(c=>c.id===selectedCkpt)?.ts}
+              </div>
+            </div>
+          </div>
+        </Panel>
+
+        {/* J.06 — TRANSITIONS */}
+        <Panel
+          tag="J.06"
+          title="STATE TRANSITIONS · LAST 50"
+          right={<><span>WINDOW 4m12s</span></>}
+          className="col-span-12"
+        >
+          <div className="text-[10px] num">
+            <div className="grid grid-cols-12 gap-2 px-2 pb-1 border-b hairline-soft text-[color:var(--ink-4)] uppercase tracking-widest text-[9px]">
+              <div className="col-span-2">TIME</div>
+              <div className="col-span-2">FROM</div>
+              <div className="col-span-1 text-center">→</div>
+              <div className="col-span-2">TO</div>
+              <div className="col-span-2 text-right">DUR µs</div>
+              <div className="col-span-2 text-right">ΔCOH</div>
+              <div className="col-span-1 text-right">OK</div>
+            </div>
+            <div className="max-h-[260px] overflow-y-auto">
+              {TRANSITIONS.map((t,i) => (
+                <div key={i} className="row-stripe grid grid-cols-12 gap-2 px-2 py-[3px]">
+                  <div className="col-span-2 text-[color:var(--ink-3)]">{t.ts}</div>
+                  <div className="col-span-2 text-[color:var(--ink-2)]">{t.from}</div>
+                  <div className="col-span-1 text-center text-[color:var(--cyan)]">→</div>
+                  <div className="col-span-2 text-[color:var(--ink)]">{t.to}</div>
+                  <div className="col-span-2 text-right text-[color:var(--ink-2)]">{t.dur.toLocaleString()}</div>
+                  <div className={"col-span-2 text-right " + (t.dCoh >= 0 ? "text-[color:var(--green)]" : "text-[color:var(--amber)]")}>
+                    {t.dCoh >= 0 ? "+" : ""}{t.dCoh.toFixed(3)}
+                  </div>
+                  <div className="col-span-1 text-right">
+                    {t.ok
+                      ? <span className="text-[color:var(--green)] glow-green">●</span>
+                      : <span className="text-[color:var(--red)] glow-red">●</span>}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </Panel>
+
+      </main>
+
+      <footer className="px-4 mt-3 pt-2 border-t hairline text-[9px] uppercase tracking-[0.22em] text-[color:var(--ink-4)] flex justify-between">
+        <div>cohezion.journey · 12d-tracker · build {now.toISOString().slice(0,10).replace(/-/g,"")}.0307</div>
+        <div>shift+? help · g+r goto radar · g+t goto transitions · g+c goto checkpoints · esc clear</div>
+      </footer>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+</script>
+</body>
+</html>
