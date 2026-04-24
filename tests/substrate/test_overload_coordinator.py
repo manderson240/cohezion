@@ -5,7 +5,6 @@ Covers graduated overload protection and memory pressure handling.
 
 from __future__ import annotations
 
-import time
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -37,14 +36,16 @@ async def test_handle_memory_pressure_graduated(coordinator):
         action = await coordinator.handle_memory_pressure(0.5)
         assert action.level == ProtectionLevel.NORMAL
 
-        # 2. Warning (0.7)
-        time.sleep(0.15)  # Wait for cooldown
+        # 2. Warning (0.7) - rewind cooldown markers instead of sleeping
+        coordinator._last_action_time -= 0.15
+        coordinator._level_since -= 0.15
         action = await coordinator.handle_memory_pressure(0.7)
         assert action.level == ProtectionLevel.WARNING
         assert action.context_reduction_percent == 25
 
         # 3. Elevated (0.8)
-        time.sleep(0.15)
+        coordinator._last_action_time -= 0.15
+        coordinator._level_since -= 0.15
         action = await coordinator.handle_memory_pressure(0.8)
         assert action.level == ProtectionLevel.ELEVATED
         assert action.context_reduction_percent == 50

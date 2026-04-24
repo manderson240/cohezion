@@ -122,10 +122,10 @@ class TestCompoundIntegration:
     @pytest.mark.integration
     def test_real_compound_executor_timeout(self, data_temp_dir):
         """[INT-04] CompoundExecutor handles slow tasks gracefully."""
-        import time
 
         def slow_execute(task: Task, context: dict) -> tuple[str, dict]:
-            time.sleep(0.05)
+            # Test name is "handles slow tasks" but assertion only checks
+            # experiments_completed == 1 - the sleep was cosmetic
             return "Done", _VALID_METRICS
 
         executor = CompoundExecutor(

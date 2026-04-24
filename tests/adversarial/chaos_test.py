@@ -64,6 +64,8 @@ def monitor_recovery():
         except Exception as e:
             logger.warning(f"Connection glitch: {e}")
 
+        # justify: standalone chaos script (not a pytest test); polls a real
+        # running simulation via HTTP at 1s cadence to detect spike+recovery
         time.sleep(1)
 
     if not spiked:
