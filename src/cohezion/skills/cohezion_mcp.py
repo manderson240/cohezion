@@ -701,7 +701,7 @@ class CohezionMCP:
                 json.dumps(payload),
             ]
 
-            res = subprocess.run(cmd, capture_output=True, text=True)
+            res = subprocess.run(cmd, capture_output=True, text=True)  # noqa: S603 - cmd is a static curl invocation to localhost ollama API
             if res.returncode != 0:
                 return {"content": [{"type": "text", "text": f"OCR API call failed: {res.stderr}"}]}
 
@@ -823,7 +823,7 @@ Generate production-ready, maintainable code that follows industry standards.
                 json.dumps(payload),
             ]
 
-            res = subprocess.run(cmd, capture_output=True, text=True)
+            res = subprocess.run(cmd, capture_output=True, text=True)  # noqa: S603 - cmd is a static curl invocation to localhost ollama API
             if res.returncode != 0:
                 return {
                     "content": [
@@ -1139,7 +1139,7 @@ Generate production-ready, maintainable code that follows industry standards.
                 payload_json,
             ]
 
-            res = subprocess.run(cmd, capture_output=True, text=True)
+            res = subprocess.run(cmd, capture_output=True, text=True)  # noqa: S603 - cmd is a static curl invocation to localhost ollama API
             if res.returncode != 0:
                 return {"content": [{"type": "text", "text": f"Curl failed: {res.stderr}"}]}
 
@@ -1204,7 +1204,7 @@ Generate production-ready, maintainable code that follows industry standards.
                 "-d",
                 payload_json,
             ]
-            res = subprocess.run(cmd, capture_output=True, text=True)
+            res = subprocess.run(cmd, capture_output=True, text=True)  # noqa: S603 - cmd is a static curl invocation to localhost ollama API
             res_json = json.loads(res.stdout)
             res_text = res_json.get("response", "")
 
@@ -1341,7 +1341,7 @@ Generate production-ready, maintainable code that follows industry standards.
         try:
             import subprocess
 
-            res = subprocess.run(["ollama", "list"], capture_output=True, text=True)
+            res = subprocess.run(["ollama", "list"], capture_output=True, text=True)  # noqa: S607 - ollama by name; failures handled below
             for line in res.stdout.splitlines()[1:]:  # Skip header
                 if line.strip():
                     installed_models.add(line.split()[0].split(":")[0])  # Base name
