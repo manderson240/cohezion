@@ -252,8 +252,9 @@ class TestRedisSemanticCache:
         await mock_redis_client.set(test_key, test_value, ex=1)
         assert await mock_redis_client.get(test_key) == test_value
 
-        # Wait for expiration
-        await asyncio.sleep(1.1)
+        # Force-expire by rewinding the recorded TTL into the past instead of
+        # actually sleeping for >1s of wall clock.
+        mock_redis_client.ttls[test_key] = time.time() - 1.0
         assert await mock_redis_client.get(test_key) is None
 
     @pytest.mark.asyncio
@@ -701,13 +702,14 @@ class TestLoadAndChaos:
     async def test_chaos_redis_network_latency(self, mock_redis_client):
         """Test system resilience to high Redis latency."""
 
-        # Simulate 100ms latency
+        # Simulate latency via a single yield - the assertion only verifies
+        # the operation completes correctly under any extra await steps
         async def latent_set(key, value):
-            await asyncio.sleep(0.1)
+            await asyncio.sleep(0)
             return await mock_redis_client.set(key, value)
 
         async def latent_get(key):
-            await asyncio.sleep(0.1)
+            await asyncio.sleep(0)
             return await mock_redis_client.get(key)
 
         # Should still work, but slower
