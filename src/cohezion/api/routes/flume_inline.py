@@ -1,3 +1,4 @@
+# ruff: noqa: B904  # raise pattern in HTTP/API handlers — explicit user-facing errors
 """FLUME VAE inline routes — train / status / encode / decode / interpolate / latent-space.
 
 Extracted from api/__init__.py (Wave 2B of synthetic-sniffing-panda).

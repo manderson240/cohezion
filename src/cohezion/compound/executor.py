@@ -1,4 +1,4 @@
-# ruff: noqa: E501  # long lines: SQL/URLs/docstrings — wrapping reduces readability
+# ruff: noqa: E402,RUF006, E501  # long lines: SQL/URLs/docstrings — wrapping reduces readability
 """Compound executor with vault-integrated knowledge persistence.
 
 Orchestrates execution lifecycle:

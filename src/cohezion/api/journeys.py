@@ -1,3 +1,4 @@
+# ruff: noqa: B904  # raise pattern in HTTP/API handlers — explicit user-facing errors
 """Journey API - REST endpoints for journey retrieval and analysis.
 
 Provides HTTP API for:

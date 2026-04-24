@@ -1,4 +1,4 @@
-# ruff: noqa: E501  # long lines: SQL/URLs/docstrings — wrapping reduces readability
+# ruff: noqa: E741, E501  # long lines: SQL/URLs/docstrings — wrapping reduces readability
 """Capability Evaluation Harness for Agentic AI Systems.
 
 Provides rigorous, reproducible evaluation of agent capabilities across

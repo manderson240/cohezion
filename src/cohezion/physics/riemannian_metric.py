@@ -1,4 +1,4 @@
-# ruff: noqa: N806  # math/physics: T, F, B, P, S, G, R, A — single-letter conventions
+# ruff: noqa: E741, N806  # math/physics: T, F, B, P, S, G, R, A — single-letter conventions
 """Riemannian geometry for the 12D axiomatic manifold.
 
 Provides the metric tensor, Christoffel symbols, geodesic equation,

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# ruff: noqa: E501, S311  # random used for simulation/jitter, not cryptography
+# ruff: noqa: RUF006, E501, S311  # random used for simulation/jitter, not cryptography
 """
 COHEZION QUANTUM PERFORMANCE MONITORING SYSTEM v1.1.48
 

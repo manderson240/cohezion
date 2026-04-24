@@ -1,3 +1,4 @@
+# ruff: noqa: B904, E402  # raise pattern in HTTP/API handlers — explicit user-facing errors / deferred imports for circular-dep workarounds
 """Ollama model provider implementation (local inference, AMD ROCm optimized)."""
 
 from __future__ import annotations

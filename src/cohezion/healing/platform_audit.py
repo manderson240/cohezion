@@ -1,4 +1,4 @@
-# ruff: noqa: E501  # long lines: SQL/URLs/docstrings — wrapping reduces readability
+# ruff: noqa: E402, E501  # long lines: SQL/URLs/docstrings — wrapping reduces readability
 """
 Platform Audit - Comprehensive health check for Cohezion.
 

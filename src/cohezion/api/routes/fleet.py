@@ -1,3 +1,4 @@
+# ruff: noqa: B904  # raise pattern in HTTP/API handlers — explicit user-facing errors
 """
 Fleet API - Routes for monitoring and managing the service fleet.
 """

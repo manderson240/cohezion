@@ -1,3 +1,4 @@
+# ruff: noqa: E402  # deferred imports for circular-dep workarounds
 """FLUME Grid Encoder for ARC-AGI style grid patterns.
 
 Specialized encoder/decoder for 2D matrices (0-9) representing color grids.
