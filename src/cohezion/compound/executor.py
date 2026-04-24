@@ -14,6 +14,7 @@ import time
 from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import datetime
+from functools import cached_property
 from typing import TYPE_CHECKING, Any
 
 from cohezion.compound.context_integration import (
@@ -28,6 +29,7 @@ from cohezion.compound.exp_persistence.vault import (
     ExecutionContext,
     VaultLogger,
 )
+from cohezion.compound.inflection_detector import AnomalyDetection, Severity
 from cohezion.core.mcp_client import MCPClient
 from cohezion.security.guardrail_pipeline import GuardrailAction, GuardrailPipeline
 
@@ -222,6 +224,29 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
             logger.debug("Initialized default alignment analyzer")
 
         return self._alignment_analyzer
+
+    @cached_property
+    def _bioelectric_network(self) -> Any:
+        """Single BioelectricNetwork instance reused across executions.
+
+        Z6 perf: previously instantiated per execution (~1.2ms each). Cached
+        once on first use; .v_mem is overwritten per call so state is fresh.
+        """
+        from cohezion.physics.bioelectric_model import BioelectricNetwork
+
+        net = BioelectricNetwork(n_cells=8)
+        net.set_uniform_conductance(0.3)
+        return net
+
+    @cached_property
+    def _natural_capital_valuation(self) -> Any:
+        """Single NaturalCapitalValuation instance reused across executions.
+
+        Z6 perf: previously instantiated per execution. Stateless; safe to share.
+        """
+        from cohezion.physics.natural_capital import NaturalCapitalValuation
+
+        return NaturalCapitalValuation()
 
     def _try_template_match(self, task_description: str) -> dict[str, Any] | None:
         """Check cache for a template match before LLM execution.
@@ -545,8 +570,6 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
         # Step 5: Detect anomalies (non-blocking)
         decision_paths = []
         try:
-            from cohezion.compound.inflection_detector import Severity
-
             temp_result = ExecutionResult(
                 success=success,
                 output=output,
@@ -587,8 +610,6 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
         # Step 5.5: Analyze request-execution alignment (if enabled)
         if self._enable_alignment_analysis and self.alignment_analyzer and parsed_request:
             try:
-                from cohezion.compound.inflection_detector import Severity
-
                 temp_result = ExecutionResult(
                     success=success,
                     output=output,
@@ -600,9 +621,6 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
                 # Get anomaly analysis if available
                 anomaly_analysis = None
                 if "anomaly_severity" in metrics:
-                    # Create a minimal anomaly object for alignment analysis
-                    from cohezion.compound.inflection_detector import AnomalyDetection
-
                     severity_val = metrics.get("anomaly_severity", "info")
                     severity_enum = Severity(severity_val)
                     anomaly_analysis = AnomalyDetection(
@@ -663,9 +681,7 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
         try:
             import numpy as np
 
-            from cohezion.physics.natural_capital import NaturalCapitalValuation
-
-            ncv = NaturalCapitalValuation()
+            ncv = self._natural_capital_valuation
             coherence_val_nc = metrics.get("coherence", 0.5)
             state_12d = np.full(12, coherence_val_nc)
             nc_metrics = ncv.evaluate(
@@ -845,10 +861,7 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
         try:
             import numpy as np
 
-            from cohezion.physics.bioelectric_model import BioelectricNetwork
-
-            bio_net = BioelectricNetwork(n_cells=8)
-            bio_net.set_uniform_conductance(0.3)
+            bio_net = self._bioelectric_network
             # Map coherence [0,1] to membrane potentials [-1,1]
             bio_net.v_mem = np.full(8, coherence_val * 2 - 1)
             bio_net.simulate(n_steps=10, dt=0.01)

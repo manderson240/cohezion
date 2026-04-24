@@ -252,18 +252,15 @@ class JourneyTracker:
         hash_obj = hashlib.sha256(text.encode())
         hash_bytes = hash_obj.digest()
 
-        # Expand to 2048 dimensions using deterministic method
-        latent = np.zeros(self.HASH_DIMS)
-        for i in range(self.HASH_DIMS):
-            # Cycle through hash bytes
-            byte_idx = i % len(hash_bytes)
-            # Use sine wave modulation for smooth variation
-            phase = (2.0 * np.pi * i) / self.HASH_DIMS
-            latent[i] = (
-                (hash_bytes[byte_idx] / 255.0) * 0.5
-                + 0.25 * np.sin(phase)
-                + 0.25 * np.cos(phase * 2)
-            )
+        # Vectorized expansion to HASH_DIMS — replaces a 2048-iteration Python
+        # loop with three numpy ops. ~9× speedup on this function. Output is
+        # bit-identical to the loop version (verified). See Z6 perf report
+        # (research/perf/2026-04-24-executor-profile.md, Recommendation #3).
+        hash_arr = np.frombuffer(hash_bytes, dtype=np.uint8)
+        indices = np.arange(self.HASH_DIMS)
+        byte_lookup = hash_arr[indices % len(hash_bytes)]
+        phases = (2.0 * np.pi * indices) / self.HASH_DIMS
+        latent = (byte_lookup / 255.0) * 0.5 + 0.25 * np.sin(phases) + 0.25 * np.cos(phases * 2)
 
         # Normalize to [-1, 1]
         latent = 2.0 * (latent - np.min(latent)) / (np.max(latent) - np.min(latent) + 1e-8) - 1.0
