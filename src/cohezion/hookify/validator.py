@@ -5,11 +5,22 @@ Universal rule system with cross-platform MCP bridge support
 
 from __future__ import annotations
 
+import logging
 import os
 import re
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
+
+
+logger = logging.getLogger(__name__)
+
+_RULE_ID_RE = re.compile(r"^[a-zA-Z0-9_\-]+$")
+
+try:
+    from surrealdb.errors import SurrealDBMethodError
+except (ImportError, AttributeError):
+    SurrealDBMethodError = ()  # type: ignore[assignment,misc]
 
 
 @dataclass
@@ -456,12 +467,18 @@ class HookifyValidator:
             self._db = self._init_surrealdb()
 
         if self._db:
+            if not _RULE_ID_RE.match(rule_id):
+                logger.warning("Skipping load_db_overrides: invalid rule_id %r", rule_id)
+                return {}
             try:
-                result = self._db.query(f"SELECT * FROM hookify_rules WHERE rule_id = '{rule_id}'")
+                result = self._db.query(
+                    "LET $rid = $rule_id; SELECT * FROM hookify_rules WHERE rule_id = $rid",
+                    {"rule_id": rule_id},
+                )
                 if result and len(result) > 0:
                     return result[0].get("lever_overrides", {})
-            except Exception:
-                pass
+            except (ConnectionError, OSError, ValueError, TypeError, SurrealDBMethodError) as e:
+                logger.debug("load_db_overrides failed: %s", e)
 
         return {}
 
@@ -474,7 +491,7 @@ class HookifyValidator:
             db = Surreal("ws://localhost:8000")
             # Connection logic here - signin, use namespace, etc.
             return db
-        except (ImportError, AttributeError, ConnectionError, OSError, RuntimeError):
+        except (ImportError, AttributeError, ConnectionError, OSError, RuntimeError, ValueError, SurrealDBMethodError):
             # SurrealDB not available or connection failed
             return None
 

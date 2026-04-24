@@ -21,6 +21,19 @@ from typing import Any
 import httpx
 import numpy as np
 
+# Defensive imports — the surrealdb library's exception surface evolves
+# across versions. Older versions don't ship SurrealDBMethodError; CBOR
+# error types may live in different submodules. Fall back to () so the
+# except tuples below stay valid (Ω12 P1 Patch 7).
+try:
+    from surrealdb.errors import SurrealDBMethodError
+except (ImportError, AttributeError):
+    SurrealDBMethodError = ()  # type: ignore[assignment,misc]
+try:
+    from surrealdb.cbor._types import CBORError
+except (ImportError, AttributeError):
+    CBORError = ()  # type: ignore[assignment,misc]
+
 from cohezion.reliability import get_circuit
 
 
@@ -306,6 +319,10 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
             asyncio.TimeoutError,
             RuntimeError,
             ValueError,
+            TypeError,
+            EOFError,
+            SurrealDBMethodError,
+            CBORError,
         ) as e:
             breaker.record_failure()
             logger.error(
@@ -348,6 +365,10 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
             asyncio.TimeoutError,
             RuntimeError,
             ValueError,
+            TypeError,
+            EOFError,
+            SurrealDBMethodError,
+            CBORError,
         ) as e:
             logger.error("Failed to create schema: %s", e, exc_info=True)
             return False
@@ -381,6 +402,10 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
             RuntimeError,
             ValueError,
             KeyError,
+            TypeError,
+            EOFError,
+            SurrealDBMethodError,
+            CBORError,
         ) as e:
             logger.error("Failed to store node: %s", e, exc_info=True)
             raise
@@ -406,6 +431,10 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
             RuntimeError,
             ValueError,
             KeyError,
+            TypeError,
+            EOFError,
+            SurrealDBMethodError,
+            CBORError,
         ) as e:
             logger.error("Create failed in %s: %s", table, e, exc_info=True)
             raise
@@ -540,6 +569,10 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
             RuntimeError,
             ValueError,
             KeyError,
+            TypeError,
+            EOFError,
+            SurrealDBMethodError,
+            CBORError,
         ) as e:
             breaker.record_failure()
             logger.error("Query failed: %s", e, exc_info=True)
@@ -571,6 +604,9 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
             ValueError,
             KeyError,
             TypeError,
+            EOFError,
+            SurrealDBMethodError,
+            CBORError,
         ) as e:
             logger.error("Failed to get node: %s", e, exc_info=True)
             return None
@@ -617,6 +653,9 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
             ValueError,
             KeyError,
             TypeError,
+            EOFError,
+            SurrealDBMethodError,
+            CBORError,
         ) as e:
             logger.error("Failed to query similar nodes: %s", e, exc_info=True)
             return []
@@ -648,6 +687,9 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
             ValueError,
             KeyError,
             TypeError,
+            EOFError,
+            SurrealDBMethodError,
+            CBORError,
         ) as e:
             logger.error("Failed to get all nodes: %s", e, exc_info=True)
             return []
@@ -722,6 +764,9 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
             ValueError,
             KeyError,
             TypeError,
+            EOFError,
+            SurrealDBMethodError,
+            CBORError,
         ) as e:
             logger.error("Failed to create relationship: %s", e, exc_info=True)
             return None
@@ -771,6 +816,9 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
             ValueError,
             KeyError,
             TypeError,
+            EOFError,
+            SurrealDBMethodError,
+            CBORError,
         ) as e:
             logger.error("Failed to get relationships: %s", e, exc_info=True)
             return []
@@ -831,6 +879,9 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
             ValueError,
             KeyError,
             TypeError,
+            EOFError,
+            SurrealDBMethodError,
+            CBORError,
         ) as e:
             logger.error("Failed to find bridges: %s", e, exc_info=True)
             return []
