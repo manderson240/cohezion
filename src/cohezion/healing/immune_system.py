@@ -180,13 +180,15 @@ class ActuatorSystem:
 
         # 3. Verify via Pytest
         logger.info("Ouroboros: Verifying patch with pytest...")
+        import shutil
         import subprocess
 
+        uv_exec = shutil.which("uv") or "/usr/local/bin/uv"
         try:
             # Security: Add timeout to prevent indefinite hanging
             # Security: Use explicit working directory
-            res = subprocess.run(
-                ["uv", "run", "pytest", "-q", "--tb=no"],
+            res = subprocess.run(  # noqa: S603 - static pytest invocation
+                [uv_exec, "run", "pytest", "-q", "--tb=no"],
                 capture_output=True,
                 text=True,
                 timeout=300,  # 5 minute timeout
