@@ -167,16 +167,6 @@ class TestExecutorFactoryWithRefiner:
 class TestSkillRefinerNonBlocking:
     """Test that skill refiner failures don't crash execution."""
 
-    @pytest.mark.xfail(
-        reason=(
-            "bug: executor.py only catches narrow exception subtypes around "
-            "skill_refiner.refine() invocations; a bare Exception raised by "
-            "the refiner mock propagates and crashes execute_task. Test "
-            "expects non-blocking behavior for ANY exception type. "
-            "Surfaced by Sigma1 test triage; needs separate review/PR."
-        ),
-        strict=True,
-    )
     def test_refiner_exception_doesnt_crash_execution(self, mock_mcp_client):
         """Test that exceptions in refiner don't crash execution."""
         # Create executor with mock that raises exception
