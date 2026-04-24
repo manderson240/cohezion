@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+# .pi/agents/worktree-init - Cohezion worktree initialization script
+# Called when a new side agent worktree is created
+
+set -euo pipefail
+
+echo "Initializing Cohezion worktree..."
+
+# Ensure uv is available
+if ! command -v uv &> /dev/null; then
+    echo "Error: uv not found. Please install uv first."
+    exit 1
+fi
+
+# Install dependencies
+echo "Installing dependencies with uv..."
+uv sync
+
+# Run make all to ensure project is in good state
+echo "Running format + lint + type-check..."
+make format lint type-check || true
+
+echo "Worktree initialized successfully!"
+echo "Available commands:"
+echo "  make test-fast    # Quick unit tests"
+echo "  make test         # Full test suite"
+echo "  /agent <prompt>   # Spawn nested agent"

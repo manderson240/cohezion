@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+# .pi/agents/merge - Cohezion merge validation script
+# Called before merging a side agent's work back to main
+
+set -euo pipefail
+
+echo "Running Cohezion pre-merge checks..."
+
+# Run fast tests first
+echo "Running fast tests..."
+make test-fast
+
+# Check formatting
+echo "Checking formatting..."
+make lint-check
+
+# Type check
+echo "Running type checks..."
+make type-check
+
+echo "All checks passed! Ready to merge."
+echo ""
+echo "To complete merge:"
+echo "1. Review changes: git diff --stat"
+echo "2. If satisfied, type: LGTM"
+echo "3. Agent will auto-commit and merge"
