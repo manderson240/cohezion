@@ -93,9 +93,15 @@ class TestCapabilityScorecard:
 
     @pytest.mark.fast
     def test_generate_radar_chart_has_correct_axes_count(self, scorecard, sample_capability_vector):
-        """Test radar chart has 6 axes."""
+        """Test radar chart has 6 unique axes (plotly repeats the first to close the polygon)."""
         fig = scorecard.generate_radar_chart(sample_capability_vector)
-        assert len(fig.data[0].theta) == 6
+        theta = fig.data[0].theta
+        # Scatterpolar closes the polygon by repeating index 0 at the end, so
+        # theta has 7 entries for 6 unique capability axes. Assert on the
+        # unique-axis count, not on the raw tuple length.
+        assert len(theta) == 7
+        assert len(set(theta)) == 6
+        assert theta[0] == theta[-1], "First and last theta should match for closed polygon"
 
     @pytest.mark.fast
     def test_track_longitudinal_returns_dataframe(self, scorecard, sample_checkpoint):
