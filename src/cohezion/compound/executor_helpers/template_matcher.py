@@ -51,6 +51,6 @@ def try_template_match(task_description: str) -> dict[str, Any] | None:
             # No running loop — safe to run
             return asyncio.run(warmer.find_template_match(task_description))
 
-    except (ImportError, AttributeError, RuntimeError, OSError) as e:
+    except (ImportError, AttributeError, RuntimeError, OSError, ValueError, TypeError, KeyError) as e:
         logger.debug("Template matching failed (non-blocking): %s", e, exc_info=True)
         return None
