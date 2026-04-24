@@ -21,7 +21,7 @@ class BitwardenVault:
                 [self.bw_path, "status"], capture_output=True, text=True, check=True
             )
             status = json.loads(result.stdout)
-            return status.get("status") == "locked"
+            return bool(status.get("status") == "locked")
         except Exception:
             return True
 
@@ -46,7 +46,8 @@ class BitwardenVault:
             data = json.loads(result.stdout)
             # Find the password field
             login = data.get("login", {})
-            return login.get("password")
+            password = login.get("password")
+            return password if isinstance(password, str) else None
 
         except Exception as e:
             logger.error(f"Bitwarden retrieval error: {e}")
