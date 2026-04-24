@@ -1,12 +1,16 @@
 import logging
 import os
 import re
+import shutil
 import subprocess
 
 from cohezion.mycelium.scripter import ShadowScripter
 
 
 logger = logging.getLogger(__name__)
+
+# Resolve uv executable at module load to avoid S607 partial-path warnings.
+_UV = shutil.which("uv") or "/usr/local/bin/uv"
 
 
 class CoverageLoop:
@@ -28,8 +32,8 @@ class CoverageLoop:
         try:
             # We assume tests for src/cohezion/x.py are in tests/
             # For simplicity in the loop, we run all tests but report on the specific file
-            output = subprocess.check_output(
-                ["uv", "run", "pytest", "--cov=" + file_path],
+            output = subprocess.check_output(  # noqa: S603 - file_path comes from internal coverage loop config
+                [_UV, "run", "pytest", "--cov=" + file_path],
                 cwd=self.root_dir,
                 stderr=subprocess.STDOUT,
             ).decode("utf-8")
