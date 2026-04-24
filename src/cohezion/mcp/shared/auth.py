@@ -1,6 +1,7 @@
 """Authentication middleware for MCP servers."""
 
 import logging
+from functools import lru_cache
 
 from aiohttp import web
 
@@ -9,16 +10,16 @@ from cohezion.security.credentials import get_credentials
 
 logger = logging.getLogger(__name__)
 
-# Lazy accessor for MCP_API_KEY to prevent startup latency
-_mcp_api_key: str | None = None
 
+@lru_cache(maxsize=1)
+def get_api_key() -> str | None:
+    """Lazy accessor for MCP_API_KEY.
 
-def get_mcp_api_key() -> str | None:
-    """Get MCP API key with lazy initialization."""
-    global _mcp_api_key
-    if _mcp_api_key is None:
-        _mcp_api_key = get_credentials().get_secret("COHEZION_MCP_API_KEY", env_var="MCP_API_KEY")
-    return _mcp_api_key
+    Per CLAUDE.md L54-72, secret lookups must NOT run at module import time
+    (they trigger Bitwarden vault calls that exceed the stdio MCP handshake
+    budget). Cached after first successful lookup. (Ω12 P1 Patch 11)
+    """
+    return get_credentials().get_secret("COHEZION_MCP_API_KEY", env_var="MCP_API_KEY")
 
 
 @web.middleware
@@ -28,8 +29,8 @@ async def api_key_middleware(request: web.Request, handler):
     if request.path in ["/health", "/"]:
         return await handler(request)
 
-    mcp_api_key = get_mcp_api_key()
-    if not mcp_api_key:
+    api_key = get_api_key()
+    if not api_key:
         logger.warning(
             "MCP_API_KEY is not set in the environment. Denying access to secure endpoint."
         )
@@ -47,7 +48,7 @@ async def api_key_middleware(request: web.Request, handler):
     # Safe constant-time comparison could be used here in production
     import hmac
 
-    if not hmac.compare_digest(token.encode(), mcp_api_key.encode()):
+    if not hmac.compare_digest(token.encode(), api_key.encode()):
         return web.json_response({"error": "Invalid API key"}, status=403)
 
     return await handler(request)
