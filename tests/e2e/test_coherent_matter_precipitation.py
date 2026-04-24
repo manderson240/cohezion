@@ -39,6 +39,15 @@ async def test_two_generation_loop_closes(tmp_path: Path) -> None:
     - no sink failures
     """
     bus = PrecipitationBus()
+    try:
+        await _run_loop_test_body(bus, tmp_path)
+    finally:
+        # Critical: reset the global singleton so later tests don't inherit
+        # this test's (now-stopped) bus holding a dead asyncio queue.
+        set_bus(None)
+
+
+async def _run_loop_test_body(bus: PrecipitationBus, tmp_path: Path) -> None:
     await bus.start()
     set_bus(bus)
 

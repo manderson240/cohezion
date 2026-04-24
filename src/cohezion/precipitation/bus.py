@@ -43,6 +43,7 @@ class PrecipitationBus:
     def __init__(self, capacity: int = _DEFAULT_CAPACITY) -> None:
         self._capacity = capacity
         self._queue: asyncio.Queue[PrecipitationEvent] | None = None
+        self._queue_loop: asyncio.AbstractEventLoop | None = None
         self._subscribers: dict[PrecipitationKind | None, list[SubscriberFn]] = {}
         self._drainer_task: asyncio.Task[None] | None = None
         self._drainer_lock = threading.Lock()
@@ -72,10 +73,19 @@ class PrecipitationBus:
         synchronously to sync subscribers and async ones are skipped with a
         warning — a precipitation should never be lost just because no loop
         exists. (Tests frequently call sync code directly.)
+
+        If the running loop differs from the one the queue was bound to (e.g.
+        a stale singleton left over from a previous pytest-asyncio test), we
+        also fall back to sync dispatch so we don't touch a queue tied to a
+        closed loop.
         """
         self._emitted_count += 1
         loop = self._get_loop_if_any()
         if loop is None or self._queue is None:
+            self._dispatch_sync_best_effort(event)
+            return
+        if self._queue_loop is not None and self._queue_loop is not loop:
+            # Cross-loop emission — never try to share asyncio.Queue across loops.
             self._dispatch_sync_best_effort(event)
             return
         try:
@@ -95,17 +105,26 @@ class PrecipitationBus:
     async def aemit(self, event: PrecipitationEvent) -> None:
         """Await-friendly emit. Enqueues and returns immediately; dispatch is async."""
         self._emitted_count += 1
-        if self._queue is None:
+        loop = asyncio.get_running_loop()
+        if self._queue is None or self._queue_loop is not loop:
             self._queue = asyncio.Queue(maxsize=self._capacity)
+            self._queue_loop = loop
         await self._queue.put(event)
 
     async def start(self) -> None:
-        """Launch the background drainer. Idempotent."""
+        """Launch the background drainer. Idempotent.
+
+        If called under a different event loop than the previous start (e.g. a
+        reused bus singleton across tests), we re-create the queue on the
+        current loop so `put_nowait` doesn't silently target a dead loop.
+        """
         with self._drainer_lock:
+            loop = asyncio.get_running_loop()
             if self._drainer_task is not None and not self._drainer_task.done():
                 return
-            if self._queue is None:
+            if self._queue is None or self._queue_loop is not loop:
                 self._queue = asyncio.Queue(maxsize=self._capacity)
+                self._queue_loop = loop
             self._stopped = False
             self._drainer_task = asyncio.create_task(self._drain())
 
