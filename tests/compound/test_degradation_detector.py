@@ -1,7 +1,5 @@
 """Tests for degradation detection module - Phase 5A.6."""
 
-import time
-
 import pytest
 
 from cohezion.compound.degradation_detector import (
@@ -306,9 +304,16 @@ class TestAlertCooldown:
         alerts2 = detector.check_degradation(degraded_metrics)
         assert len(alerts2) == 0
 
-    def test_alert_resumes_after_cooldown(self, detector):
+    def test_alert_resumes_after_cooldown(self, detector, monkeypatch):
         """Test that alerts resume after cooldown period."""
         detector._alert_cooldown_seconds = 0.1  # 100ms for testing
+
+        # Use a controllable virtual clock instead of time.sleep
+        clock = {"t": 1000.0}
+        monkeypatch.setattr(
+            "cohezion.compound.degradation_detector.time.time",
+            lambda: clock["t"],
+        )
 
         # Establish baseline
         healthy_metrics = {
@@ -333,8 +338,8 @@ class TestAlertCooldown:
         alerts1 = detector.check_degradation(degraded_metrics)
         assert len(alerts1) > 0
 
-        # Wait for cooldown
-        time.sleep(0.15)
+        # Advance virtual clock past cooldown window
+        clock["t"] += 0.15
 
         # Should alert again after cooldown
         alerts2 = detector.check_degradation(degraded_metrics)
