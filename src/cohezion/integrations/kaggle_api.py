@@ -119,12 +119,15 @@ class KaggleAPI:
             logger.info(
                 f"Executing Kaggle CLI push for {notebook_id} with machine_shape=NvidiaRtxPro6000..."
             )
-            cmd = ["kaggle", "kernels", "push", "-p", str(temp_dir)]
+            import shutil
+
+            kaggle_exec = shutil.which("kaggle") or "/usr/local/bin/kaggle"
+            cmd = [kaggle_exec, "kernels", "push", "-p", str(temp_dir)]
             env = os.environ.copy()
             if self.username:
                 env["KAGGLE_USERNAME"] = self.username
 
-            result = subprocess.run(cmd, capture_output=True, text=True, env=env)
+            result = subprocess.run(cmd, capture_output=True, text=True, env=env)  # noqa: S603 - temp_dir is internally-managed tempfile
 
             if result.returncode != 0:
                 logger.error(f"Kaggle push failed: {result.stderr}")
