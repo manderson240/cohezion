@@ -59,7 +59,8 @@ class TestAxiomaticState:
         state = AxiomaticState(
             physics=0.5, biology=0.5, logic=0.5, quantum=0.5, field=0.5, control=0.5, novelty=0.5
         )
-        assert state.coherence_score() >= 1.0
+        # Use pytest.approx to avoid floating-point precision drift (0.9999...9 vs 1.0).
+        assert state.coherence_score() == pytest.approx(1.0)
 
 
 class TestLatentState:
