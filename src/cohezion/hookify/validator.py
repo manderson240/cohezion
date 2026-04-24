@@ -5,24 +5,11 @@ Universal rule system with cross-platform MCP bridge support
 
 from __future__ import annotations
 
-import logging
 import os
 import re
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
-
-
-logger = logging.getLogger(__name__)
-
-# Validates rule IDs from on-disk markdown before SQL interpolation
-# (Ω12 P1 Patch 7 — defense-in-depth against SurrealQL injection).
-_RULE_ID_RE = re.compile(r"^[a-zA-Z0-9_\-]+$")
-
-try:
-    from surrealdb.errors import SurrealDBMethodError
-except (ImportError, AttributeError):
-    SurrealDBMethodError = ()  # type: ignore[assignment,misc]
 
 
 @dataclass
@@ -469,30 +456,12 @@ class HookifyValidator:
             self._db = self._init_surrealdb()
 
         if self._db:
-            # rule_id can come from on-disk markdown — validate before SQL
-            # (Ω12 P1 Patch 7 — SurrealQL injection defense).
-            if not _RULE_ID_RE.match(rule_id):
-                logger.warning(
-                    "Skipping load_db_overrides: invalid rule_id %r", rule_id
-                )
-                return {}
             try:
-                # Parameterised query — LET preamble pattern matches
-                # traceability/plan_graph.py:99
-                result = self._db.query(
-                    "LET $rid = $rule_id; SELECT * FROM hookify_rules WHERE rule_id = $rid",
-                    {"rule_id": rule_id},
-                )
+                result = self._db.query(f"SELECT * FROM hookify_rules WHERE rule_id = '{rule_id}'")
                 if result and len(result) > 0:
                     return result[0].get("lever_overrides", {})
-            except (
-                ConnectionError,
-                OSError,
-                ValueError,
-                TypeError,
-                SurrealDBMethodError,
-            ) as e:
-                logger.debug("load_db_overrides failed: %s", e)
+            except Exception:
+                pass
 
         return {}
 
@@ -505,15 +474,7 @@ class HookifyValidator:
             db = Surreal("ws://localhost:8000")
             # Connection logic here - signin, use namespace, etc.
             return db
-        except (
-            ImportError,
-            AttributeError,
-            ConnectionError,
-            OSError,
-            RuntimeError,
-            ValueError,
-            SurrealDBMethodError,
-        ):
+        except (ImportError, AttributeError, ConnectionError, OSError, RuntimeError):
             # SurrealDB not available or connection failed
             return None
 
