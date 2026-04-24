@@ -19,6 +19,7 @@ from typing import TYPE_CHECKING, Any
 from cohezion.compound.context_integration import (
     CompoundContextMixin,
     ContextCoherenceError,
+    ContextLoadError,
 )
 from cohezion.compound.executor_helpers.guardrail_runner import (
     run_async_guardrail as _run_async_guardrail,
@@ -351,6 +352,7 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
                 logger.debug("Context loaded automatically for execution")
             except (
                 ContextCoherenceError,
+                ContextLoadError,
                 OSError,
                 RuntimeError,
                 AttributeError,
