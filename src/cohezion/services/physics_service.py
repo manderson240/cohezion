@@ -400,16 +400,17 @@ class PhysicsService:
         """Generate recommendations based on physics state."""
         recommendations = []
 
-        if state.stability < self._config.stability_threshold:
+        # Σ2: legacy semantic-physics schema; see PhysicsState constructor note.
+        if getattr(state, "stability", 0.0) < self._config.stability_threshold:
             recommendations.append("Consider stabilizing: Reduce volatility in outputs")
 
-        if state.coherence < self._config.coherence_threshold:
+        if getattr(state, "coherence", 0.0) < self._config.coherence_threshold:
             recommendations.append("Improve coherence: Ensure logical flow")
 
         if state.novelty < 0.3:
             recommendations.append("Increase novelty: Explore new perspectives")
 
-        if state.connectivity < 0.5:
+        if getattr(state, "connectivity", 0.0) < 0.5:
             recommendations.append("Enhance connectivity: Build more relationships")
 
         if not recommendations:
