@@ -8,7 +8,9 @@ from __future__ import annotations
 
 import json
 import logging
+import shutil
 import subprocess
+import sys
 import time
 from dataclasses import dataclass, field
 from datetime import datetime
@@ -22,6 +24,15 @@ from cohezion.research.config import ExperimentResult, ResearchConfig
 
 
 logger = logging.getLogger(__name__)
+
+
+def _python_exec() -> str:
+    """Resolve the venv python; fall back to sys.executable."""
+    repo_root = Path(__file__).resolve().parents[3]
+    venv_py = repo_root / ".venv" / "bin" / "python3"
+    if venv_py.exists():
+        return str(venv_py)
+    return shutil.which("python3") or sys.executable
 
 
 @dataclass
@@ -169,9 +180,9 @@ class ResearchAgent:
             if not validation.is_valid:
                 raise RuntimeError(f"Guardrail blocked execution: {validation.issues}")
 
-        result = subprocess.run(
+        result = subprocess.run(  # noqa: S603 - train_script validated by ResearchSecurityGuardrails above
             [
-                "python",
+                _python_exec(),
                 str(train_script),
                 "--time_budget",
                 str(time_budget),
