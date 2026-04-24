@@ -1,4 +1,4 @@
-# ruff: noqa: S110  # best-effort: ignored exceptions are intentional in init/cleanup paths
+# ruff: noqa: SIM105, S110  # best-effort: ignored exceptions are intentional in init/cleanup paths
 """
 Observable AI action proposer.
 Charter requirement: "Expose internal states and confidence levels *before* action"

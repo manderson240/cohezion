@@ -1,3 +1,4 @@
+# ruff: noqa: SIM117  # nested with for clarity
 """Automated HuggingFace GGUF downloading and custom Ollama instance creation."""
 
 import argparse

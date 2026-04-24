@@ -1,4 +1,4 @@
-# ruff: noqa: RUF012  # class attrs treated as immutable config; never mutated per-instance
+# ruff: noqa: SIM102, RUF012  # class attrs treated as immutable config; never mutated per-instance
 """Intelligent model fallback strategy with circuit breaker pattern.
 
 Features:

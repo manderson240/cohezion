@@ -1,4 +1,4 @@
-# ruff: noqa: E501, N806  # math/physics: T, F, B, P, S, G, R, A — single-letter conventions
+# ruff: noqa: S307, E501, N806  # math/physics: T, F, B, P, S, G, R, A — single-letter conventions
 """
 Peaked Circuit Solver - 36-qubit Quantum Advantage Challenge
 Engine: Quimb (Tensor Networks) + Cotengra (Contraction Optimization)

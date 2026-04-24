@@ -1,3 +1,4 @@
+# ruff: noqa: SIM102  # nested if for clarity over single combined condition
 """Elegant unified analytics engine.
 
 Replaces 4 separate analyzers (inflection_detector, degradation_detector,

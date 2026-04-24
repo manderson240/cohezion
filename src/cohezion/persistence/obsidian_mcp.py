@@ -1,3 +1,4 @@
+# ruff: noqa: SIM117  # nested with for clarity
 import logging
 
 from mcp import ClientSession, StdioServerParameters

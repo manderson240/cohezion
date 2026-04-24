@@ -1,4 +1,4 @@
-# ruff: noqa: S310, E501, S110  # best-effort: ignored exceptions are intentional in init/cleanup paths
+# ruff: noqa: SIM105, S310, E501, S110  # best-effort: ignored exceptions are intentional in init/cleanup paths
 """Journey tracking for compound executions with 12D FLUME trajectories.
 
 Maps compound execution quality metrics to 12D FLUME axiomatic trajectories
