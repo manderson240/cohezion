@@ -44,11 +44,14 @@ DEFINE FIELD fabric_breakdown.Field          ON precipitation_event TYPE float D
 DEFINE FIELD fabric_breakdown.Control        ON precipitation_event TYPE float DEFAULT 0.5;
 DEFINE FIELD fabric_breakdown.Precipitation  ON precipitation_event TYPE float DEFAULT 0.5;
 
--- SU(2) spinor state (|psi> = alpha|up> + beta|down>)
-DEFINE FIELD spinor_state      ON precipitation_event TYPE object;
+-- SU(2) spinor state (|psi> = alpha|up> + beta|down>) — FLEXIBLE so any
+-- spinor representation can be stored without schema changes.
+DEFINE FIELD spinor_state      ON precipitation_event TYPE object FLEXIBLE;
 
--- Opaque artifact-specific payload
-DEFINE FIELD payload           ON precipitation_event TYPE object;
+-- Opaque artifact-specific payload — FLEXIBLE so each PrecipitationKind can
+-- carry its own shape (witness_mark: mark_type/content; training_checkpoint:
+-- model path; cosmogony_phase: from/to symmetry; etc.)
+DEFINE FIELD payload           ON precipitation_event TYPE object FLEXIBLE;
 
 -- Bi-temporal timestamps
 DEFINE FIELD valid_from        ON precipitation_event TYPE datetime;

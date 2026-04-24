@@ -138,6 +138,20 @@ class SurrealSink:
                     event.event_id,
                     response.text[:200],
                 )
+                return
+            # SurrealDB returns 200 even when individual statements fail.
+            try:
+                body = response.json()
+            except ValueError:
+                return
+            if isinstance(body, list):
+                for statement in body:
+                    if isinstance(statement, dict) and statement.get("status") == "ERR":
+                        logger.warning(
+                            "SurrealSink statement ERR for event_id=%s: %s",
+                            event.event_id,
+                            str(statement.get("result"))[:300],
+                        )
         except Exception as exc:
             logger.warning(
                 "SurrealSink dropped event_id=%s: %s",
@@ -173,13 +187,30 @@ class GitLedgerSink:
 
 
 def _surreal_insert_stmt(table: str, event: PrecipitationEvent) -> str:
-    """Render a CREATE statement for SurrealDB from a precipitation event.
+    """Render a CREATE ... CONTENT statement for SurrealDB.
 
-    Uses CONTENT + JSON to avoid SQL injection concerns from payload strings.
+    SurrealDB quirks handled here:
+    1. It does not auto-coerce JSON strings into its datetime type — we inject
+       `type::datetime("...")` casts for valid_from / transaction_time.
+    2. Fields of type `option<T>` reject JSON `null` — it's a distinct value
+       from NONE. We drop any top-level None-valued keys before serialization.
+
+    The datetime field names are stable and controlled by us, so the string
+    replacement is safe.
     """
-    data = event.to_dict()
-    # SurrealDB accepts datetimes as ISO strings and casts to datetime on fields of that type.
-    return f"CREATE {table} CONTENT {json.dumps(data, separators=(',', ':'))};"
+    data = {k: v for k, v in event.to_dict().items() if v is not None}
+    body = json.dumps(data, separators=(",", ":"))
+    for field_name in ("valid_from", "transaction_time"):
+        placeholder_start = f'"{field_name}":"'
+        idx = body.find(placeholder_start)
+        if idx < 0:
+            continue
+        start_value = idx + len(placeholder_start)
+        end_value = body.find('"', start_value)
+        iso_value = body[start_value:end_value]
+        replacement = f'"{field_name}":type::datetime("{iso_value}")'
+        body = body[:idx] + replacement + body[end_value + 1 :]
+    return f"CREATE {table} CONTENT {body};"
 
 
 def register_default_sinks(bus: Any, *, enable_surreal: bool = True) -> dict[str, Any]:
