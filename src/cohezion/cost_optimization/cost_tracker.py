@@ -212,7 +212,7 @@ class SessionCostTracker:
                     )
                     # Success: remove flushed records
                     self.records[:] = remaining
-                except (TimeoutError, Exception) as e:
+                except Exception as e:
                     # Vault failure: keep records in-memory
                     logger.warning(
                         f"Cost tracking vault flush failed: {e}. Keeping {len(records_to_flush)} records in memory."
@@ -253,7 +253,7 @@ class SessionCostTracker:
                             timeout=5.0,
                         )
                         flushed_count += len(batch)
-                    except (TimeoutError, Exception) as e:
+                    except Exception as e:
                         logger.warning(f"Batch flush failed: {e}")
                         break
 

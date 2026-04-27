@@ -66,7 +66,7 @@ class ExecutorFactory:
                 logger.debug(
                     "ExecutorFactory: wired DegradationDetector → CostAwareRouter callback"
                 )
-            except (ImportError, Exception):
+            except Exception:
                 logger.debug("CostAwareRouter callback wiring failed (non-blocking)")
 
         executor_class = CompoundExecutor

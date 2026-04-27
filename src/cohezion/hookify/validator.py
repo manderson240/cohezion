@@ -474,7 +474,7 @@ class HookifyValidator:
             db = Surreal("ws://localhost:8000")
             # Connection logic here - signin, use namespace, etc.
             return db
-        except (ImportError, Exception):
+        except Exception:
             # SurrealDB not available or connection failed
             return None
 

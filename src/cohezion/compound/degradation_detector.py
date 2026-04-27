@@ -298,7 +298,7 @@ class DegradationDetector:
                 )
                 if self._should_emit_alert(eq_alert):
                     alerts.append(eq_alert)
-        except (ImportError, Exception):
+        except Exception:
             pass  # Non-blocking: validation module may not be available
 
         # Ouroboros anomaly detection (non-blocking)
@@ -318,7 +318,7 @@ class DegradationDetector:
                 )
                 if self._should_emit_alert(ouro_alert):
                     alerts.append(ouro_alert)
-        except (ImportError, Exception):
+        except Exception:
             pass  # Non-blocking: ouroboros module may not be available
 
         # OuroborosBridge physics coherence check (non-blocking)
@@ -328,7 +328,7 @@ class DegradationDetector:
             if not hasattr(self, "_ouroboros_bridge"):
                 self._ouroboros_bridge = OuroborosBridge()
             # Bridge records anomaly internally for Genesis UI
-        except (ImportError, Exception):
+        except Exception:
             pass  # Non-blocking: bridge may not be available
 
         # Mycelium coverage signal (non-blocking)
@@ -346,7 +346,7 @@ class DegradationDetector:
                         len(recent_changes),
                         len(alerts),
                     )
-        except (ImportError, Exception):
+        except Exception:
             pass  # Non-blocking: mycelium may not be available
 
         # Run healing pipeline + resilience notification on alerts (non-blocking)

@@ -453,7 +453,7 @@ class JourneyTracker:
                     action = axiomatic_12d - prev
                     surprise = jepa.surprise_score(prev, action, axiomatic_12d)
                     point.metadata["jepa_surprise"] = float(surprise)
-            except (ImportError, Exception):
+            except Exception:
                 pass
 
         # Enrich with bioelectric percolation (non-blocking)
@@ -465,7 +465,7 @@ class JourneyTracker:
             percolation = bio.percolation_analysis()
             point.metadata["bioelectric_percolated"] = percolation.is_percolated
             point.metadata["bioelectric_clusters"] = percolation.cluster_count
-        except (ImportError, Exception):
+        except Exception:
             pass
 
         # Maintain recent points buffer (capped at window size)

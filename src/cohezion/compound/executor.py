@@ -771,7 +771,7 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
             metrics["habitat_quality"] = nc_metrics.habitat_quality
             # Blend natural capital into coherence (10% weight)
             metrics["coherence"] = metrics["coherence"] * 0.9 + nc_metrics.habitat_quality * 0.1
-        except (ImportError, Exception):
+        except Exception:
             pass  # Non-blocking: natural_capital module may not be available
 
         # Step 6: If successful, extract patterns (skip in degradation mode)
@@ -948,7 +948,7 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
             metrics["bioelectric_coherence"] = float(bio_coherence)
             percolation = bio_net.percolation_analysis()
             metrics["bioelectric_percolated"] = percolation.is_percolated
-        except (ImportError, Exception):
+        except Exception:
             pass  # Non-blocking: bioelectric_model may not be available
 
         # Step 7.7: Record model quality (non-blocking)
@@ -1094,7 +1094,7 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
                         )
                 except RuntimeError:
                     logger.debug("Ouroboros: no event loop, skipping async check")
-        except (ImportError, Exception):
+        except Exception:
             pass  # Non-blocking: ouroboros bridge may not be available
 
         # Step 10.6: Mycelium learning capture (non-blocking)
@@ -1125,7 +1125,7 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
                     except Exception:
                         logger.debug("Mycelium audit failed (non-blocking)")
                 logger.debug("Mycelium: captured execution as pattern entry")
-        except (ImportError, Exception):
+        except Exception:
             pass  # Non-blocking: mycelium may not be available
 
         return ExecutionResult(

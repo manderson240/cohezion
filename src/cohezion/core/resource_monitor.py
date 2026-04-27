@@ -85,7 +85,6 @@ class ResourceMonitor:
                 except (
                     psutil.NoSuchProcess,
                     psutil.AccessDenied,
-                    psutil.ZombieProcess,
                 ):
                     pass
 
