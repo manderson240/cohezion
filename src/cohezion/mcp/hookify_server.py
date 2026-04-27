@@ -8,6 +8,7 @@ from __future__ import annotations
 import json
 import logging
 import os
+import re
 from pathlib import Path
 from typing import Any
 
@@ -17,6 +18,21 @@ from cohezion.hookify.validator import HookifyValidator, Rule
 
 
 logger = logging.getLogger(__name__)
+
+# SurrealDB identifier validation (record-id segments, table names, lever paths).
+# Mirrors the regex used in compound_server.skill_refinement_apply.
+_IDENT_RE = re.compile(r"^[a-zA-Z0-9_\-]+$")
+
+
+def _validate_identifier(value: str, field_name: str = "identifier") -> str:
+    """Reject anything that isn't [a-zA-Z0-9_-]+. Prevents SurrealQL injection.
+
+    Raise ValueError so callers can convert to a structured error response.
+    """
+    if not isinstance(value, str) or not _IDENT_RE.match(value):
+        raise ValueError(f"Invalid {field_name}: {value!r} (must match {_IDENT_RE.pattern})")
+    return value
+
 
 # Vault path from environment or default
 VAULT_PATH = Path(os.getenv("VAULT_PATH", "/home/mike-anderson/vaults/cohezion-vault"))
@@ -206,6 +222,8 @@ class HookifyMCPBridge:
             Success status with previous and new values
         """
         try:
+            rule_id = _validate_identifier(rule_id, "rule_id")
+            lever_name = _validate_identifier(lever_name, "lever_name")
             result = self.validator.set_lever_position(rule_id, lever_name, value)
 
             # Persist to SurrealDB for cross-session persistence
@@ -241,8 +259,8 @@ aspect: prefrontal
 
 # Lever Change Decision
 
-**Rule**: `{rule_id}`  
-**Lever**: `{lever_name}`  
+**Rule**: `{rule_id}`
+**Lever**: `{lever_name}`
 **Timestamp**: {timestamp}
 
 ## Change Details
@@ -281,6 +299,10 @@ Lever adjusted for:
         """Load runtime overrides from SurrealDB"""
         client = self._get_surrealdb_client()
         if not client:
+            return {}
+        try:
+            rule_id = _validate_identifier(rule_id, "rule_id")
+        except ValueError:
             return {}
 
         try:
@@ -329,8 +351,8 @@ Lever adjusted for:
         try:
             # Query graph for violations linked to this rule
             sql = f"""
-                SELECT * FROM synapse 
-                WHERE out = neuron:prefrontal_{rule_id} 
+                SELECT * FROM synapse
+                WHERE out = neuron:prefrontal_{rule_id}
                 AND link_type = 'latent';
             """
             result = client.query(sql)
@@ -477,6 +499,12 @@ def create_hookify_mcp_server(vault_path: Path | None = None) -> FastMCP:
             return "Error: SurrealDB not available"
 
         try:
+            try:
+                _validate_identifier(from_rule, "from_rule")
+                _validate_identifier(to_rule, "to_rule")
+            except ValueError as ve:
+                return f"Error: {ve}"
+
             from_id = f"neuron:prefrontal_{from_rule}"
             to_id = f"neuron:prefrontal_{to_rule}"
 
@@ -509,6 +537,11 @@ def create_hookify_mcp_server(vault_path: Path | None = None) -> FastMCP:
             return "Error: SurrealDB not available"
 
         try:
+            try:
+                _validate_identifier(rule_id, "rule_id")
+            except ValueError as ve:
+                return f"Error: {ve}"
+
             vec = json.loads(affinity_vector)
             if len(vec) != 12:
                 return f"Error: affinity_vector must have exactly 12 elements, got {len(vec)}"

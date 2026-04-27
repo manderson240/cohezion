@@ -75,7 +75,7 @@ class PhysicsState:
         if hasattr(np, "array"):  # Check if it's a real numpy
             try:
                 return np.array(data, dtype=np.float32)
-            except Exception:
+            except (ValueError, TypeError, AttributeError):
                 return data
         return data
 
@@ -122,7 +122,7 @@ class PhysicsState:
         if hasattr(arr, "tobytes"):
             try:
                 return base64.b64encode(arr.tobytes()).decode("ascii")
-            except Exception as e:
+            except (TypeError, ValueError, AttributeError) as e:
                 logger.debug("Binary pack failed, using JSON fallback: %s", e)
         # Fallback to JSON string as 'packed' if numpy is missing
         return base64.b64encode(str(arr).encode()).decode("ascii")
@@ -219,7 +219,7 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
             async with httpx.AsyncClient(timeout=1.0) as client:
                 response = await client.get(health_url)
                 return response.status_code == 200
-        except Exception:
+        except (httpx.HTTPError, httpx.TimeoutException, OSError, ConnectionError):
             return False
 
     async def ensure_active(self, timeout: int = 30) -> bool:
@@ -298,9 +298,21 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
                 f"✅ REAL CLIENT: Connected to SurrealDB at {self.url} ({self.namespace}/{self.database})"
             )
             return True
-        except Exception as e:
+        except (
+            ConnectionError,
+            OSError,
+            httpx.HTTPError,
+            httpx.TimeoutException,
+            asyncio.TimeoutError,
+            RuntimeError,
+            ValueError,
+        ) as e:
             breaker.record_failure()
-            logger.error(f"❌ Failed to connect to SurrealDB: {e}. Falling back to InMemoryStore.")
+            logger.error(
+                "Failed to connect to SurrealDB: %s. Falling back to InMemoryStore.",
+                e,
+                exc_info=True,
+            )
             self._use_fallback()
             return True
 
@@ -329,8 +341,15 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
             await self._client.query(self.SCHEMA)
             logger.info("Schema created successfully")
             return True
-        except Exception as e:
-            logger.error(f"Failed to create schema: {e}")
+        except (
+            ConnectionError,
+            OSError,
+            httpx.HTTPError,
+            asyncio.TimeoutError,
+            RuntimeError,
+            ValueError,
+        ) as e:
+            logger.error("Failed to create schema: %s", e, exc_info=True)
             return False
 
     async def store_node(self, node: UniverseNode, compress: bool = False) -> str:
@@ -354,8 +373,16 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
             logger.debug(f"Stored node {node.id}")
             return node.id
 
-        except Exception as e:
-            logger.error(f"Failed to store node: {e}")
+        except (
+            ConnectionError,
+            OSError,
+            httpx.HTTPError,
+            asyncio.TimeoutError,
+            RuntimeError,
+            ValueError,
+            KeyError,
+        ) as e:
+            logger.error("Failed to store node: %s", e, exc_info=True)
             raise
 
     async def create(self, table: str, data: dict[str, Any]) -> Any:
@@ -371,8 +398,16 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
                 return [{"id": f"{table}:{record_id}", "data": data}]  # Simulate SurrealDB response
             else:
                 return await self._client.create(table, data)
-        except Exception as e:
-            logger.error(f"Create failed in {table}: {e}")
+        except (
+            ConnectionError,
+            OSError,
+            httpx.HTTPError,
+            asyncio.TimeoutError,
+            RuntimeError,
+            ValueError,
+            KeyError,
+        ) as e:
+            logger.error("Create failed in %s: %s", table, e, exc_info=True)
             raise
 
     async def query(self, sql: str, vars: dict[str, Any] | None = None) -> Any:
@@ -497,9 +532,17 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
             breaker.record_success()
             logger.info(f"SurrealDB Response: {res}")
             return res
-        except Exception as e:
+        except (
+            ConnectionError,
+            OSError,
+            httpx.HTTPError,
+            asyncio.TimeoutError,
+            RuntimeError,
+            ValueError,
+            KeyError,
+        ) as e:
             breaker.record_failure()
-            logger.error(f"Query failed: {e}")
+            logger.error("Query failed: %s", e, exc_info=True)
             raise
 
     async def get_node(self, node_id: str) -> UniverseNode | None:
@@ -519,8 +562,17 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
 
             return self._dict_to_node(data)
 
-        except Exception as e:
-            logger.error(f"Failed to get node: {e}")
+        except (
+            ConnectionError,
+            OSError,
+            httpx.HTTPError,
+            asyncio.TimeoutError,
+            RuntimeError,
+            ValueError,
+            KeyError,
+            TypeError,
+        ) as e:
+            logger.error("Failed to get node: %s", e, exc_info=True)
             return None
 
     async def query_similar(
@@ -556,8 +608,17 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
 
             return [self._dict_to_node(r) for r in results]
 
-        except Exception as e:
-            logger.error(f"Failed to query similar nodes: {e}")
+        except (
+            ConnectionError,
+            OSError,
+            httpx.HTTPError,
+            asyncio.TimeoutError,
+            RuntimeError,
+            ValueError,
+            KeyError,
+            TypeError,
+        ) as e:
+            logger.error("Failed to query similar nodes: %s", e, exc_info=True)
             return []
 
     async def get_all_nodes(self, limit: int = 100) -> list[UniverseNode]:
@@ -578,8 +639,17 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
 
             return [self._dict_to_node(r) for r in results]
 
-        except Exception as e:
-            logger.error(f"Failed to get all nodes: {e}")
+        except (
+            ConnectionError,
+            OSError,
+            httpx.HTTPError,
+            asyncio.TimeoutError,
+            RuntimeError,
+            ValueError,
+            KeyError,
+            TypeError,
+        ) as e:
+            logger.error("Failed to get all nodes: %s", e, exc_info=True)
             return []
 
     async def create_relationship(
@@ -643,8 +713,17 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
                     return str(result[0]["result"][0].get("id", ""))
                 return None
 
-        except Exception as e:
-            logger.error(f"Failed to create relationship: {e}")
+        except (
+            ConnectionError,
+            OSError,
+            httpx.HTTPError,
+            asyncio.TimeoutError,
+            RuntimeError,
+            ValueError,
+            KeyError,
+            TypeError,
+        ) as e:
+            logger.error("Failed to create relationship: %s", e, exc_info=True)
             return None
 
     async def get_relationships(
@@ -683,8 +762,17 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
                     return result[0]["result"]
                 return []
 
-        except Exception as e:
-            logger.error(f"Failed to get relationships: {e}")
+        except (
+            ConnectionError,
+            OSError,
+            httpx.HTTPError,
+            asyncio.TimeoutError,
+            RuntimeError,
+            ValueError,
+            KeyError,
+            TypeError,
+        ) as e:
+            logger.error("Failed to get relationships: %s", e, exc_info=True)
             return []
 
     async def find_bridges(
@@ -734,8 +822,17 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
                     return result[0]["result"]
                 return []
 
-        except Exception as e:
-            logger.error(f"Failed to find bridges: {e}")
+        except (
+            ConnectionError,
+            OSError,
+            httpx.HTTPError,
+            asyncio.TimeoutError,
+            RuntimeError,
+            ValueError,
+            KeyError,
+            TypeError,
+        ) as e:
+            logger.error("Failed to find bridges: %s", e, exc_info=True)
             return []
 
     def _dict_to_node(self, data: dict[str, Any]) -> UniverseNode:
@@ -746,7 +843,7 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
         if "packed_physics" in data:
             try:
                 physics_state = PhysicsState.unpack(data["packed_physics"])
-            except Exception:
+            except (ValueError, TypeError, AttributeError, base64.binascii.Error):
                 physics_state = self._parse_physics_dict(physics_data)
         else:
             physics_state = self._parse_physics_dict(physics_data)
@@ -758,8 +855,14 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
             try:
                 decoded = base64.b64decode(content)
                 content = zlib.decompress(decoded).decode("utf-8")
-            except Exception as e:
-                logger.error(f"Failed to decompress node {data.get('id')}: {e}")
+            except (
+                zlib.error,
+                base64.binascii.Error,
+                UnicodeDecodeError,
+                ValueError,
+                TypeError,
+            ) as e:
+                logger.error("Failed to decompress node %s: %s", data.get("id"), e, exc_info=True)
 
         return UniverseNode(
             id=data.get("id", ""),

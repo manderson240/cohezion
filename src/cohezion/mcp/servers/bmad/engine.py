@@ -152,7 +152,7 @@ class BMADEngine:
         agent = self.load_agent(agent_id)
         if "error" in agent:
             return f"# Error loading agent\n{agent['error']}"
-        return agent.get("content", "")
+        return str(agent.get("content", ""))
 
     def list_modules(self) -> list[dict[str, Any]]:
         """List all available modules."""

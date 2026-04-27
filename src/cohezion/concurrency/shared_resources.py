@@ -78,7 +78,8 @@ class SkillRegistry:
             Skill metadata or None if not found
         """
         data = self.manager.read()
-        return data.get("skills", {}).get(skill_name)
+        result = data.get("skills", {}).get(skill_name)
+        return dict(result) if isinstance(result, dict) else None
 
     def get_all_skills(self) -> dict:
         """Get all registered skills.
@@ -87,7 +88,8 @@ class SkillRegistry:
             Dictionary of skill_name -> skill_data
         """
         data = self.manager.read()
-        return data.get("skills", {})
+        skills = data.get("skills", {})
+        return dict(skills) if isinstance(skills, dict) else {}
 
     def update_skill_version(self, skill_name: str, new_version: str) -> dict:
         """Atomically update skill version.

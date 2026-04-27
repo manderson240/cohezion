@@ -211,6 +211,32 @@ strict_equality = true
 module = "tests.*"
 disallow_untyped_defs = false
 
+# Strict carve-out: files that pass `mypy --strict` cleanly.
+# Wave 2E (synthetic-sniffing-panda): pin these so they don't regress.
+# To add a file: `uv run mypy --strict <file> --ignore-missing-imports` must report Success.
+# NOTE: Use individual flag names instead of `strict = true` here -
+# `strict = true` in overrides leaks settings to all modules in mypy < 1.10.
+[[tool.mypy.overrides]]
+module = [
+    "cohezion.security.vault",
+    "cohezion.integrations.agentverse.bridge",
+    "cohezion.compound.routing_feedback_loop",
+    "cohezion.compound.inflection_detector",
+    "cohezion.compound.persistence.vault",
+    "cohezion.agents.version_tracker",
+    "cohezion.observability.metrics_analytics",
+]
+disallow_untyped_defs = true
+disallow_any_generics = true
+disallow_subclassing_any = true
+disallow_untyped_calls = true
+disallow_incomplete_defs = true
+check_untyped_defs = true
+disallow_untyped_decorators = true
+warn_unused_ignores = true
+warn_return_any = true
+no_implicit_reexport = true
+
 # Pytest configuration
 [tool.pytest.ini_options]
 testpaths = ["tests"]

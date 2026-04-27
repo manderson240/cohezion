@@ -109,7 +109,7 @@ class MCPServerManager:
 
             log_file = sanitize_path(f"{name}.log", base_dir=VAULT_LOG_PATH)
 
-            process = subprocess.Popen(
+            process = subprocess.Popen(  # noqa: S603 - sys.executable + module_path from internal config
                 cmd,
                 env=env,
                 stdout=open(log_file, "a", encoding="utf-8"),

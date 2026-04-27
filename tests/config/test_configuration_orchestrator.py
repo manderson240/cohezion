@@ -354,8 +354,11 @@ async def test_monitoring_startup_stop(tmp_path: Path) -> None:
     # Start monitoring (with immediate stop to avoid hanging)
     monitor_task = asyncio.create_task(orch.start_monitoring())
 
-    # Give it a moment to start
-    await asyncio.sleep(0.1)
+    # Poll for _monitoring flag instead of fixed wait
+    for _ in range(50):
+        if orch._monitoring:
+            break
+        await asyncio.sleep(0.005)
 
     # Stop monitoring
     await orch.stop_monitoring()

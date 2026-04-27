@@ -333,8 +333,9 @@ class TestHookifyPersistence:
         assert len(validator.rules) == 1
         assert validator.rules[0].id == "test_rule"
 
-    @pytest.mark.skip(
-        reason="SurrealDB persistence path changed; mock no longer matches real interface."
+    @pytest.mark.xfail(
+        reason="bug: HookifyValidator._save_lever_override/_load_lever_override are placeholders (validator.py:527-535) - SurrealDB integration pending",
+        strict=False,
     )
     def test_save_levers_to_surrealdb(self):
         """Tier 2: Save runtime lever overrides to SurrealDB"""
@@ -351,8 +352,9 @@ class TestHookifyPersistence:
         )
         assert saved == 0.7
 
-    @pytest.mark.skip(
-        reason="Vault persistence path changed; mock no longer matches real interface."
+    @pytest.mark.xfail(
+        reason="bug: HookifyValidator._log_violation/_get_violation_logs are placeholders (validator.py:537-545) - vault integration pending",
+        strict=False,
     )
     def test_log_violation_to_vault(self):
         """Tier 3: Log violations to vault for recursive learning"""
@@ -476,7 +478,10 @@ class TestHookifyMCPBridge:
         assert result["rule_id"] == "cosmological_ralph_loop"
 
     @pytest.mark.asyncio
-    @pytest.mark.skip(reason="MCP tool handler signature changed; test needs rewrite.")
+    @pytest.mark.xfail(
+        reason="bug: HookifyMCPBridge.set_lever signature drift - test expects success/new_value keys not yet returned by current handler",
+        strict=False,
+    )
     async def test_mcp_set_lever_tool(self, mcp_bridge):
         """MCP tool: set_lever"""
         result = await mcp_bridge.set_lever(

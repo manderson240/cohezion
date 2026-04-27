@@ -342,7 +342,7 @@ class PreFlightChecker:
         self, request: dict[str, Any], policy: SafetyPolicy
     ) -> list[Violation]:
         """Check if modified paths are whitelisted."""
-        violations = []
+        violations: list[Violation] = []
         context = request.get("context", {})
         paths = context.get("paths", [])
 

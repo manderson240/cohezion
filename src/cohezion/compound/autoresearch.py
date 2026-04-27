@@ -214,7 +214,7 @@ class RetrospectionEngine:
                     tags=["compound-engineering", "experiential-learning", "mcp-integration"],
                 )
                 logger.info(f"Learning captured to vault: {path}")
-                return path
+                return str(path) if path is not None else None
             else:
                 # Fallback to local file
                 fallback_path = (
@@ -252,7 +252,7 @@ class RetrospectionEngine:
                 continue
 
         # Identify recurring patterns
-        lesson_counts = {}
+        lesson_counts: dict[str, int] = {}
         for lesson in all_lessons:
             lesson_counts[lesson] = lesson_counts.get(lesson, 0) + 1
 
