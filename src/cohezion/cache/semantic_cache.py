@@ -91,9 +91,10 @@ class SemanticCache:
         self.l2_cache: dict[str, CacheEntry] = {}
         self.l2_lfu_counts: dict[str, int] = {}
 
-        # Vectorized L2 scan: pre-stacked embedding matrix for BLAS dot
-        self._l2_keys: list[str] = []
-        self._l2_matrix: np.ndarray | None = None  # shape (n, 384)
+        # Pre-allocated ring-buffer matrix for O(1) L2 inserts (eliminates np.vstack)
+        self._l2_matrix = np.zeros((max_l2_size, 384), dtype=np.float32)
+        self._l2_keys: list[str] = [""] * max_l2_size  # slot → key, '' = unused
+        self._l2_write_idx = 0  # next ring-buffer slot to write
 
         # Stats
         self.hits_l1 = 0
@@ -245,12 +246,12 @@ class SemanticCache:
         best_similarity = 0.0
         current_threshold = self._get_adaptive_threshold()
 
-        if self._l2_matrix is not None and len(self._l2_keys) > 0:
+        if self.l2_cache:
             sims = np.dot(self._l2_matrix, query_embedding)
             best_idx = int(np.argmax(sims))
-            best_similarity = float(sims[best_idx])
             best_key = self._l2_keys[best_idx]
-            best_match = self.l2_cache.get(best_key)
+            best_similarity = float(sims[best_idx]) if best_key else 0.0
+            best_match = self.l2_cache.get(best_key) if best_key else None
 
         if best_match and best_similarity > current_threshold:
             self.hits_l2 += 1
@@ -331,31 +332,23 @@ class SemanticCache:
         self.l1_insertion_order.append(hash_key)
 
     def _put_l2(self, hash_key: str, entry: CacheEntry) -> None:
-        """Add entry to L2 cache, maintaining the vectorized embedding matrix."""
+        """Add entry to L2 cache using a pre-allocated ring buffer — O(1) insert."""
         if self.max_l2_size <= 0:
             return
 
-        if len(self.l2_cache) >= self.max_l2_size and self.l2_lfu_counts:
-            get_fn = self.l2_lfu_counts.get
-            lfu_key = min(self.l2_lfu_counts, key=get_fn)  # type: ignore
-            del self.l2_cache[lfu_key]
-            del self.l2_lfu_counts[lfu_key]
-            # Rebuild matrix after eviction (infrequent — only when L2 is full)
-            self._l2_keys = list(self.l2_cache.keys())
-            if self._l2_keys:
-                self._l2_matrix = np.stack([self.l2_cache[k].embedding for k in self._l2_keys])
-            else:
-                self._l2_matrix = None
+        slot = self._l2_write_idx
+        # Evict the entry at this slot (FIFO — oldest entry goes first)
+        old_key = self._l2_keys[slot]
+        if old_key and old_key in self.l2_cache:
+            del self.l2_cache[old_key]
+            self.l2_lfu_counts.pop(old_key, None)
 
+        # Write directly to pre-allocated slot — no allocation, no copy
+        self._l2_matrix[slot] = entry.embedding
+        self._l2_keys[slot] = hash_key
         self.l2_cache[hash_key] = entry
         self.l2_lfu_counts[hash_key] = 1
-
-        # Incremental append to matrix (cheap path — no eviction)
-        self._l2_keys.append(hash_key)
-        row = entry.embedding.reshape(1, -1)
-        self._l2_matrix = (
-            np.vstack([self._l2_matrix, row]) if self._l2_matrix is not None else row.copy()
-        )
+        self._l2_write_idx = (slot + 1) % self.max_l2_size
 
     def _promote_to_l1(self, hash_key: str, entry: CacheEntry) -> None:
         """Promote L2 hit to L1."""
@@ -495,8 +488,9 @@ class SemanticCache:
         self.l1_insertion_order.clear()
         self.l2_cache.clear()
         self.l2_lfu_counts.clear()
-        self._l2_keys.clear()
-        self._l2_matrix = None
+        self._l2_keys = [""] * self.max_l2_size
+        self._l2_matrix[:] = 0.0
+        self._l2_write_idx = 0
         self.hits_l1 = 0
         self.hits_l2 = 0
         self.hits_l3 = 0
