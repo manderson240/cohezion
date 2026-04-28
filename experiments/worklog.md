@@ -38,3 +38,10 @@
 - Result: put_p50=0.9 μs (first run), median over 3 runs = 1.2 μs, put_p99=1.6 μs, get_p50=0.2 μs. High variance at sub-μs scale.
 - Insight: SHA-256 was 0.327 μs/call — pure overhead for non-cryptographic in-memory dict key. float16 profiled as 3× SLOWER for writes + 40× slower for scan (no BLAS float16 path). floats16 definitively ruled out.
 - Next: At ~1 μs, remaining overhead is dict ops + ring buffer write + function call overhead. Inline _put_l1/_put_l2 into put() to eliminate function call overhead (~0.05 μs each).
+
+### Run 7: replace CacheEntry with plain str dicts — put_p50_us=0.7 (KEEP, -22%)
+- Timestamp: 2026-04-28
+- What changed: Removed `@dataclass(slots=True) class CacheEntry`. l1_cache/l2_cache now `dict[str, str]` (key→response). Embedding lives only in `_l2_matrix` ring buffer. `_put_l1(key, response)`, `_put_l2(key, response, embedding)`. L1/L2 hits return strings directly. No CacheEntry instantiation.
+- Result: put_p50=0.7 μs (consistent: 0.7/0.7/0.8), put_p99=1.7 μs, get_p50=0.2 μs
+- Insight: CacheEntry(slots=True) was 0.361 μs per construction. Removing it saves 37% of remaining put() time. Plain dicts are the right abstraction here — the data is already separated (embedding in matrix, response in dict).
+- Next: We are at ~0.7 μs. Remaining: f-string formatting, _put_l1 (deque+dict ~0.15 μs), _put_l2 (dict+matrix ~0.25 μs). Try inlining both into put() to remove function call overhead.
