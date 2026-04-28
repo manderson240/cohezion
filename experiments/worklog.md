@@ -24,3 +24,10 @@
 - Result: put_p50=1.3 μs, put_p99=2.0 μs, get_p50=0.2 μs
 - Insight: Dead code that survived a structural refactor. 2 dict ops saved per put. SHA-256 hardware-accelerated (SHA-NI) so MD5 was slower — don't try alternative hashes.
 - Next: CacheEntry @dataclass(slots=True) to reduce creation overhead; avoid timestamp=field(default_factory=time.time) if timestamp unused.
+
+### Run 5: slots=True + remove dead fields — put_p50_us=1.2 (KEEP, -8%)
+- Timestamp: 2026-04-28
+- What changed: `@dataclass` → `@dataclass(slots=True)`. Removed `timestamp: float = field(default_factory=time.time)` and `hit_count: int = 0` (both unused). Removed `time` and `field` imports.
+- Result: put_p50=1.2 μs (median of 3 runs: 1.5/1.2/1.2), put_p99=3.4 μs, get_p50=0.2 μs
+- Insight: At 1.2 μs scale, noise floor is ±0.15 μs — careful to use multi-run median. Removing time.time() call saves ~0.05 μs. slots=True reduces per-instance memory. Marginal but cumulative.
+- Next: float16 for _l2_matrix write; or investigate the remaining ~0.9 μs (SHA-256 + _put_l1 + ring-buffer ops).
