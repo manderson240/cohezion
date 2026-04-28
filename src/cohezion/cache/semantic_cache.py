@@ -237,8 +237,6 @@ class SemanticCache:
         l2_exact = self.l2_cache.get(hash_key)
         if l2_exact is not None:
             self.hits_l2 += 1
-            self.l2_lfu_counts[hash_key] = self.l2_lfu_counts.get(hash_key, 0) + 1
-            self._promote_to_l1(hash_key, l2_exact)
             return l2_exact.response
 
         # L2: Vectorized semantic similarity via pre-stacked BLAS dot
