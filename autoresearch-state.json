@@ -1,2 +1,3 @@
 {"type":"config","name":"semantic-cache-put-latency","metricName":"put_p50_us","metricUnit":"us","bestDirection":"lower"}
 {"run":1,"commit":"2be3933","metric":267.8,"metrics":{"put_p99_us":601.7,"get_p50_us":0.2},"status":"keep","description":"baseline — np.vstack on every _put_l2 when L2 full, copies 1024×384 float32 matrix per insert","timestamp":1777384595,"segment":0}
+{"run":2,"commit":"aaeb2d6","metric":2.4,"metrics":{"put_p99_us":20.0,"get_p50_us":0.2},"status":"keep","description":"pre-allocated ring buffer for L2 matrix — O(1) insert replaces np.vstack, FIFO eviction via write_idx pointer","timestamp":1777385491,"segment":0}
