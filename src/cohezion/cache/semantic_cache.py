@@ -13,9 +13,8 @@ import asyncio
 import hashlib
 import json
 import logging
-import time
 from collections import deque
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Any
 
 import numpy as np
@@ -27,7 +26,7 @@ from cohezion.flume.vae_encoder import get_encoder
 logger = logging.getLogger(__name__)
 
 
-@dataclass
+@dataclass(slots=True)
 class CacheEntry:
     """Single cache entry."""
 
@@ -35,8 +34,6 @@ class CacheEntry:
     prompt: str
     response: str
     embedding: np.ndarray
-    timestamp: float = field(default_factory=time.time)
-    hit_count: int = 0
 
 
 class SemanticCache:
