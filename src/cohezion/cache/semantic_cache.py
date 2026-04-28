@@ -14,6 +14,7 @@ import hashlib
 import json
 import logging
 import time
+from collections import deque
 from dataclasses import dataclass, field
 from typing import Any
 
@@ -84,17 +85,25 @@ class SemanticCache:
 
         # L1 cache: exact hash matches
         self.l1_cache: dict[str, CacheEntry] = {}
-        self.l1_insertion_order: list[str] = []
+        self.l1_insertion_order: deque[str] = deque()
 
         # L2 cache: semantic matches
         self.l2_cache: dict[str, CacheEntry] = {}
         self.l2_lfu_counts: dict[str, int] = {}
+
+        # Vectorized L2 scan: pre-stacked embedding matrix for BLAS dot
+        self._l2_keys: list[str] = []
+        self._l2_matrix: np.ndarray | None = None  # shape (n, 384)
 
         # Stats
         self.hits_l1 = 0
         self.hits_l2 = 0
         self.hits_l3 = 0
         self.misses = 0
+
+        # Memoized SHA-256 key cache: full_prompt -> hash_key
+        # Avoids recomputing SHA-256 for repeated prompts (hot path optimization)
+        self._hash_cache: dict[str, str] = {}
 
         # Adaptive threshold tracking
         self._threshold_adjustment_interval = 100  # Adjust every 100 ops
@@ -211,7 +220,9 @@ class SemanticCache:
             Cached response or None if miss
         """
         full_prompt = f"{system or ''}\n{prompt}\n{model or ''}"
-        hash_key = hashlib.sha256(full_prompt.encode()).hexdigest()[:16]
+        hash_key = self._hash_cache.get(full_prompt) or self._hash_cache.setdefault(
+            full_prompt, hashlib.sha256(full_prompt.encode()).hexdigest()[:16]
+        )
 
         # L1: Exact match
         if hash_key in self.l1_cache:
@@ -219,17 +230,29 @@ class SemanticCache:
             self.hits_l1 += 1
             return entry.response
 
-        # L2: Semantic similarity with adaptive threshold
+        # L2 fast path: exact hash hit (entry was evicted from L1 but still in L2)
+        # This avoids the O(n) similarity scan for repeat prompts. Identical prompt
+        # → identical hash → guaranteed cosine similarity = 1.0, so a hash match
+        # always passes any reasonable threshold.
+        l2_exact = self.l2_cache.get(hash_key)
+        if l2_exact is not None:
+            self.hits_l2 += 1
+            self.l2_lfu_counts[hash_key] = self.l2_lfu_counts.get(hash_key, 0) + 1
+            self._promote_to_l1(hash_key, l2_exact)
+            return l2_exact.response
+
+        # L2: Vectorized semantic similarity via pre-stacked BLAS dot
         query_embedding = self._text_to_embedding(prompt)
         best_match = None
         best_similarity = 0.0
         current_threshold = self._get_adaptive_threshold()
 
-        for _key, entry in self.l2_cache.items():
-            similarity = self._cosine_similarity(query_embedding, entry.embedding)
-            if similarity > best_similarity:
-                best_similarity = similarity
-                best_match = entry
+        if self._l2_matrix is not None and len(self._l2_keys) > 0:
+            sims = np.dot(self._l2_matrix, query_embedding)
+            best_idx = int(np.argmax(sims))
+            best_similarity = float(sims[best_idx])
+            best_key = self._l2_keys[best_idx]
+            best_match = self.l2_cache.get(best_key)
 
         if best_match and best_similarity > current_threshold:
             self.hits_l2 += 1
@@ -271,7 +294,9 @@ class SemanticCache:
             model: Model name
         """
         full_prompt = f"{system or ''}\n{prompt}\n{model or ''}"
-        hash_key = hashlib.sha256(full_prompt.encode()).hexdigest()[:16]
+        hash_key = self._hash_cache.get(full_prompt) or self._hash_cache.setdefault(
+            full_prompt, hashlib.sha256(full_prompt.encode()).hexdigest()[:16]
+        )
         embedding = self._text_to_embedding(prompt)
 
         entry = CacheEntry(
@@ -301,28 +326,38 @@ class SemanticCache:
         """Add entry to L1 cache."""
         if len(self.l1_cache) >= self.max_l1_size and self.l1_insertion_order:
             # Evict oldest (FIFO)
-            oldest_key = self.l1_insertion_order.pop(0)
+            oldest_key = self.l1_insertion_order.popleft()
             del self.l1_cache[oldest_key]
 
         self.l1_cache[hash_key] = entry
         self.l1_insertion_order.append(hash_key)
 
     def _put_l2(self, hash_key: str, entry: CacheEntry) -> None:
-        """Add entry to L2 cache."""
-        # Don't add to L2 if max_l2_size is 0 (disabled)
+        """Add entry to L2 cache, maintaining the vectorized embedding matrix."""
         if self.max_l2_size <= 0:
             return
 
         if len(self.l2_cache) >= self.max_l2_size and self.l2_lfu_counts:
-            # Evict least frequently used
-            # Get minimum based on usage count
             get_fn = self.l2_lfu_counts.get
             lfu_key = min(self.l2_lfu_counts, key=get_fn)  # type: ignore
             del self.l2_cache[lfu_key]
             del self.l2_lfu_counts[lfu_key]
+            # Rebuild matrix after eviction (infrequent — only when L2 is full)
+            self._l2_keys = list(self.l2_cache.keys())
+            if self._l2_keys:
+                self._l2_matrix = np.stack([self.l2_cache[k].embedding for k in self._l2_keys])
+            else:
+                self._l2_matrix = None
 
         self.l2_cache[hash_key] = entry
         self.l2_lfu_counts[hash_key] = 1
+
+        # Incremental append to matrix (cheap path — no eviction)
+        self._l2_keys.append(hash_key)
+        row = entry.embedding.reshape(1, -1)
+        self._l2_matrix = (
+            np.vstack([self._l2_matrix, row]) if self._l2_matrix is not None else row.copy()
+        )
 
     def _promote_to_l1(self, hash_key: str, entry: CacheEntry) -> None:
         """Promote L2 hit to L1."""
@@ -462,6 +497,8 @@ class SemanticCache:
         self.l1_insertion_order.clear()
         self.l2_cache.clear()
         self.l2_lfu_counts.clear()
+        self._l2_keys.clear()
+        self._l2_matrix = None
         self.hits_l1 = 0
         self.hits_l2 = 0
         self.hits_l3 = 0
