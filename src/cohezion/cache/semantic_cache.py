@@ -103,8 +103,6 @@ class SemanticCache:
 
         # Memoized SHA-256 key cache: full_prompt -> hash_key
         # Avoids recomputing SHA-256 for repeated prompts (hot path optimization)
-        self._hash_cache: dict[str, str] = {}
-
         # Adaptive threshold tracking
         self._threshold_adjustment_interval = 100  # Adjust every 100 ops
         self._background_tasks: set[asyncio.Task] = set()
@@ -220,9 +218,7 @@ class SemanticCache:
             Cached response or None if miss
         """
         full_prompt = f"{system or ''}\n{prompt}\n{model or ''}"
-        hash_key = self._hash_cache.get(full_prompt) or self._hash_cache.setdefault(
-            full_prompt, hashlib.sha256(full_prompt.encode()).hexdigest()[:16]
-        )
+        hash_key = full_prompt
 
         # L1: Exact match
         if hash_key in self.l1_cache:
@@ -292,9 +288,7 @@ class SemanticCache:
             model: Model name
         """
         full_prompt = f"{system or ''}\n{prompt}\n{model or ''}"
-        hash_key = self._hash_cache.get(full_prompt) or self._hash_cache.setdefault(
-            full_prompt, hashlib.sha256(full_prompt.encode()).hexdigest()[:16]
-        )
+        hash_key = full_prompt
         embedding = self._text_to_embedding(prompt)
 
         entry = CacheEntry(
