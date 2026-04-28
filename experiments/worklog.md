@@ -52,3 +52,12 @@
 - Result: Cold-start runs showed 2.5/2.2/1.7 μs (benchmark cache unwarmed), re-run after warm showed 0.8/0.6/0.6 μs — median 0.6 μs = no improvement over run 8
 - Insight: Cold-start artifact: first 3 benchmark invocations after import had cold embedding cache; once warmed, result matched run 8 exactly. L1 deque+dict ops are fully cache-resident and below the noise floor at this scale.
 - Next: Campaign complete. Best achieved: put_p50_us=0.6 μs (267.8 → 0.6, -99.8%). Remaining overhead is numpy row-write (~0.25 μs) + f-string format (~0.05 μs) + L2 dict ops (~0.2 μs) — no algorithmic wins left without changing the public API.
+
+## Put() p99 Campaign — Campaign 3 (target: put_p99_us)
+
+### Run 1: parallel list _l2_responses for L2 cosine path — put_p99_us=19.0 (DISCARD)
+- Timestamp: 2026-04-28
+- What changed: Added `self._l2_responses: list[str | None] = [None] * max_l2_size` to __init__. In put(), wrote to both `_l2_responses[slot]` AND `l2_cache[hash_key]` (kept dict for exact-hash fast path). In get(), L2 cosine path returns `_l2_responses[best_idx]` instead of `l2_cache.get(best_key)`.
+- Result: put_p99=19.0 μs, put_p50=2.2 μs, get_p50=0.45 μs
+- Insight: Implementation added a parallel list write on top of the existing dict write (double work). Adding `_l2_responses[slot] = response` while keeping `l2_cache[hash_key] = response` makes L2 writes MORE expensive. The optimization only eliminates one dict lookup on L2 reads, while adding cost to every write. To reduce p99 via this approach, must REMOVE the dict write entirely, not add a parallel write.
+- Next: PRIORITY 2 (deque maxlen auto-eviction) or try PRIORITY 1 correctly — remove l2_cache dict write entirely, use _l2_responses as sole L2 response store (drop exact-hash fast path or reimplement without the dict).

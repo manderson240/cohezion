@@ -1,0 +1,1 @@
+{"run": 1, "commit": "76bfe61", "metric": 19.0, "metrics": {"put_p50_us": 2.2, "get_p50_us": 0.45}, "status": "discard", "description": "parallel list _l2_responses for L2 cosine path — kept l2_cache dict write too (double work)", "timestamp": 1777404270, "segment": 0}
