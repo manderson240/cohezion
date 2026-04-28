@@ -267,32 +267,13 @@ class SemanticCache:
         hash_key = full_prompt
         embedding = self._text_to_embedding(prompt)
 
-        # Store response string directly — no CacheEntry needed
-        self._put_l1(hash_key, response)
-        self._put_l2(hash_key, response, embedding)
-
-        # Store in L3 only when vault client is configured (skip task creation overhead otherwise)
-        if self.mcp_client:
-            try:
-                _task = asyncio.create_task(self._vault_store(prompt, response))
-                self._background_tasks.add(_task)
-                _task.add_done_callback(self._background_tasks.discard)
-            except RuntimeError:
-                # No event loop running (e.g., sync context) - skip L3 storage
-                logger.debug("No event loop for L3 vault store (non-critical)")
-
-    def _put_l1(self, hash_key: str, response: str) -> None:
-        """Add response string to L1 cache (FIFO eviction)."""
+        # Inline _put_l1 (FIFO eviction)
         if len(self.l1_cache) >= self.max_l1_size and self.l1_insertion_order:
-            oldest_key = self.l1_insertion_order.popleft()
-            del self.l1_cache[oldest_key]
+            del self.l1_cache[self.l1_insertion_order.popleft()]
         self.l1_cache[hash_key] = response
         self.l1_insertion_order.append(hash_key)
 
-    def _put_l2(self, hash_key: str, response: str, embedding: np.ndarray) -> None:
-        """Add to L2 cache using pre-allocated ring buffer — O(1) insert."""
-        if self.max_l2_size <= 0:
-            return
+        # Inline _put_l2 (pre-allocated ring buffer, O(1) insert)
         slot = self._l2_write_idx
         old_key = self._l2_keys[slot]
         if old_key and old_key in self.l2_cache:
@@ -301,6 +282,21 @@ class SemanticCache:
         self._l2_keys[slot] = hash_key
         self.l2_cache[hash_key] = response
         self._l2_write_idx = (slot + 1) % self.max_l2_size
+
+        if self.mcp_client:
+            try:
+                _task = asyncio.create_task(self._vault_store(prompt, response))
+                self._background_tasks.add(_task)
+                _task.add_done_callback(self._background_tasks.discard)
+            except RuntimeError:
+                logger.debug("No event loop for L3 vault store (non-critical)")
+
+    def _put_l1(self, hash_key: str, response: str) -> None:
+        """Add response string to L1 cache (FIFO eviction). Used by _promote_to_l1."""
+        if len(self.l1_cache) >= self.max_l1_size and self.l1_insertion_order:
+            del self.l1_cache[self.l1_insertion_order.popleft()]
+        self.l1_cache[hash_key] = response
+        self.l1_insertion_order.append(hash_key)
 
     def _promote_to_l1(self, hash_key: str, response: str) -> None:
         """Promote L2 hit response string to L1."""
