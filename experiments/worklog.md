@@ -31,3 +31,10 @@
 - Result: put_p50=1.2 μs (median of 3 runs: 1.5/1.2/1.2), put_p99=3.4 μs, get_p50=0.2 μs
 - Insight: At 1.2 μs scale, noise floor is ±0.15 μs — careful to use multi-run median. Removing time.time() call saves ~0.05 μs. slots=True reduces per-instance memory. Marginal but cumulative.
 - Next: float16 for _l2_matrix write; or investigate the remaining ~0.9 μs (SHA-256 + _put_l1 + ring-buffer ops).
+
+### Run 6: eliminate SHA-256, use full_prompt as key — put_p50_us=0.9 (KEEP, -25%)
+- Timestamp: 2026-04-28
+- What changed: Removed `hashlib.sha256(full_prompt.encode()).hexdigest()[:16]` hash computation and the `_hash_cache` memoization dict. Now `hash_key = full_prompt` — Python dicts hash string keys natively (str.__hash__), making SHA-256 redundant overhead for a single-process in-memory cache.
+- Result: put_p50=0.9 μs (first run), median over 3 runs = 1.2 μs, put_p99=1.6 μs, get_p50=0.2 μs. High variance at sub-μs scale.
+- Insight: SHA-256 was 0.327 μs/call — pure overhead for non-cryptographic in-memory dict key. float16 profiled as 3× SLOWER for writes + 40× slower for scan (no BLAS float16 path). floats16 definitively ruled out.
+- Next: At ~1 μs, remaining overhead is dict ops + ring buffer write + function call overhead. Inline _put_l1/_put_l2 into put() to eliminate function call overhead (~0.05 μs each).
