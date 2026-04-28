@@ -89,7 +89,9 @@ class SemanticCache:
 
         # L2 cache: semantic matches
         self.l2_cache: dict[str, CacheEntry] = {}
-        self.l2_lfu_counts: dict[str, int] = {}
+        self.l2_lfu_counts: dict[
+            str, int
+        ] = {}  # unused since FIFO ring buffer (kept for API compat)
 
         # Pre-allocated ring-buffer matrix for O(1) L2 inserts (eliminates np.vstack)
         self._l2_matrix = np.zeros((max_l2_size, 384), dtype=np.float32)
@@ -341,22 +343,17 @@ class SemanticCache:
         old_key = self._l2_keys[slot]
         if old_key and old_key in self.l2_cache:
             del self.l2_cache[old_key]
-            self.l2_lfu_counts.pop(old_key, None)
 
         # Write directly to pre-allocated slot — no allocation, no copy
         self._l2_matrix[slot] = entry.embedding
         self._l2_keys[slot] = hash_key
         self.l2_cache[hash_key] = entry
-        self.l2_lfu_counts[hash_key] = 1
         self._l2_write_idx = (slot + 1) % self.max_l2_size
 
     def _promote_to_l1(self, hash_key: str, entry: CacheEntry) -> None:
         """Promote L2 hit to L1."""
         if hash_key not in self.l1_cache:
             self._put_l1(hash_key, entry)
-            # Update LFU count
-            if hash_key in self.l2_lfu_counts:
-                self.l2_lfu_counts[hash_key] += 1
 
     async def _vault_lookup(self, prompt: str) -> str | None:
         """Search vault for similar execution patterns.
