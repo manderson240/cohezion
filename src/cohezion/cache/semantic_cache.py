@@ -311,15 +311,15 @@ class SemanticCache:
         # Store in L2 (semantic)
         self._put_l2(hash_key, entry)
 
-        # Store in L3 (vault, async non-blocking fire-and-forget)
-        # Schedule vault storage without awaiting (non-blocking pattern)
-        try:
-            _task = asyncio.create_task(self._vault_store(prompt, response))
-            self._background_tasks.add(_task)
-            _task.add_done_callback(self._background_tasks.discard)
-        except RuntimeError:
-            # No event loop running (e.g., sync context) - skip L3 storage
-            logger.debug("No event loop for L3 vault store (non-critical)")
+        # Store in L3 only when vault client is configured (skip task creation overhead otherwise)
+        if self.mcp_client:
+            try:
+                _task = asyncio.create_task(self._vault_store(prompt, response))
+                self._background_tasks.add(_task)
+                _task.add_done_callback(self._background_tasks.discard)
+            except RuntimeError:
+                # No event loop running (e.g., sync context) - skip L3 storage
+                logger.debug("No event loop for L3 vault store (non-critical)")
 
     def _put_l1(self, hash_key: str, entry: CacheEntry) -> None:
         """Add entry to L1 cache."""
