@@ -12,7 +12,6 @@ from unittest.mock import MagicMock
 import pytest
 
 from cohezion.cache.redis_cache import RedisSemanticCache
-from cohezion.cache.semantic_cache import CacheEntry
 
 
 class TestMultiInstanceCacheCoherence:
@@ -174,16 +173,8 @@ class TestCachePromotionWorkflow:
         """Test L0 (Redis) hit promotes entry to L1."""
         cache = RedisSemanticCache(enable_redis=False)
 
-        # Simulate L0 hit by directly adding to L1
-        embedding = cache._text_to_embedding("test")
-        entry = CacheEntry(
-            key="test_key",
-            prompt="test prompt",
-            response="test response",
-            embedding=embedding,
-        )
-
-        cache._promote_to_l1("test_key", entry)
+        # Simulate L0 hit by directly promoting to L1
+        cache._promote_to_l1("test_key", "test response")
 
         # L1 should now have the entry
         assert "test_key" in cache.l1_cache

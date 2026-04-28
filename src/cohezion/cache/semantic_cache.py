@@ -13,6 +13,7 @@ import asyncio
 import hashlib
 import json
 import logging
+import time
 from collections import deque
 from typing import Any
 
@@ -79,8 +80,12 @@ class SemanticCache:
             str, int
         ] = {}  # unused since FIFO ring buffer (kept for API compat)
 
-        # Pre-allocated ring-buffer matrix for O(1) L2 inserts (eliminates np.vstack)
-        self._l2_matrix = np.zeros((max_l2_size, 384), dtype=np.float32)
+        # Pre-allocated ring-buffer matrix for O(1) L2 inserts (eliminates np.vstack).
+        # Dimension detected from the actual encoder at init time — avoids hardcoding 384
+        # and correctly handles the FLUME VAE fallback path (256D) in test environments.
+        _probe = self._text_to_embedding("")
+        self._embedding_dim: int = len(_probe)
+        self._l2_matrix = np.zeros((max_l2_size, self._embedding_dim), dtype=np.float32)
         self._l2_keys: list[str] = [""] * max_l2_size  # slot → key, '' = unused
         self._l2_write_idx = 0  # next ring-buffer slot to write
 
@@ -344,7 +349,7 @@ class SemanticCache:
                             )
                             # Parse as JSON cache entry
                             cache_data = json.loads(content)
-                            response = cache_data.get("response", "")
+                            response: str = cache_data.get("response", "")
                             if response and len(response) > 20:
                                 logger.debug(f"L3 vault hit for prompt from {path}")
                                 return response

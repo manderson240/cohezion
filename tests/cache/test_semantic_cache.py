@@ -12,42 +12,7 @@ from unittest.mock import patch
 import numpy as np
 import pytest
 
-from cohezion.cache.semantic_cache import CacheEntry, SemanticCache
-
-
-class TestCacheEntry:
-    """[P0] Unit tests for CacheEntry dataclass."""
-
-    def test_cache_entry_creation(self):
-        """[P0] Should create cache entry with all fields."""
-        embedding = np.array([1.0, 2.0, 3.0])
-        entry = CacheEntry(
-            key="test-key",
-            prompt="test prompt",
-            response="test response",
-            embedding=embedding,
-        )
-
-        assert entry.key == "test-key"
-        assert entry.prompt == "test prompt"
-        assert entry.response == "test response"
-        assert np.array_equal(entry.embedding, embedding)
-        assert entry.timestamp > 0
-        assert entry.hit_count == 0
-
-    def test_cache_entry_defaults(self):
-        """[P1] Should use default values for timestamp and hit_count."""
-        before = time.time()
-        entry = CacheEntry(
-            key="key",
-            prompt="prompt",
-            response="response",
-            embedding=np.array([1.0]),
-        )
-        after = time.time()
-
-        assert before <= entry.timestamp <= after
-        assert entry.hit_count == 0
+from cohezion.cache.semantic_cache import SemanticCache
 
 
 class TestSemanticCache:
@@ -187,26 +152,15 @@ class TestSemanticCacheL2:
         return SemanticCache(similarity_threshold=0.9)
 
     @pytest.mark.asyncio
-    async def test_l2_semantic_match(self, semantic_cache):
+    async def test_l2_semantic_match(self):
         """[P0] Should match similar prompts in L2."""
-        # Patch _text_to_embedding at class level (it's a static method)
+        # Cache must be created inside the patch so the probe call at __init__ uses
+        # the patched encoder — ensuring matrix dimension matches the embedding dimension.
         with patch.object(SemanticCache, "_text_to_embedding", return_value=np.array([0.5] * 384)):
-            await semantic_cache.put(
-                "What is artificial intelligence?",
-                "AI is...",
-                "",
-                "model",
-            )
-
-            # Similar prompt should match
-            await semantic_cache.get(
-                "What is AI?",
-                "",
-                "model",
-            )
-
-            # May or may not match depending on similarity
-            # Just verify it doesn't crash
+            cache = SemanticCache(similarity_threshold=0.9)
+            await cache.put("What is artificial intelligence?", "AI is...", "", "model")
+            # May or may not hit depending on similarity — just verify no crash
+            await cache.get("What is AI?", "", "model")
 
 
 class TestSemanticCacheStats:
@@ -269,3 +223,44 @@ class TestSemanticCacheIntegration:
         stats = cache.get_stats()
         assert stats["l1_hits"] == 0
         assert stats["l2_hits"] == 0
+
+
+class TestSemanticCacheRingBufferInvariant:
+    """[P0] Structural invariants for L2 ring buffer (Learning 366: structural-before-behavioral)."""
+
+    def _make_cache(self, max_l2: int = 8) -> SemanticCache:
+        return SemanticCache(max_l1_size=4, max_l2_size=max_l2)
+
+    @pytest.mark.fast
+    @pytest.mark.asyncio
+    async def test_l2_keys_and_cache_always_in_sync(self):
+        """_l2_keys occupied slots must exactly match l2_cache keys."""
+        with patch.object(SemanticCache, "_text_to_embedding", side_effect=lambda t: np.random.default_rng(abs(hash(t)) % 2**31).random(384).astype("float32")):
+            cache = self._make_cache(max_l2=8)
+            for i in range(12):
+                await cache.put(f"prompt-{i}", f"resp-{i}")
+
+        occupied = {k for k in cache._l2_keys if k}
+        assert occupied == set(cache.l2_cache.keys())
+
+    @pytest.mark.fast
+    @pytest.mark.asyncio
+    async def test_ring_buffer_write_idx_stays_in_bounds(self):
+        """_l2_write_idx must stay in [0, max_l2_size) after any number of puts."""
+        max_l2 = 8
+        with patch.object(SemanticCache, "_text_to_embedding", return_value=np.ones(384, dtype="float32")):
+            cache = self._make_cache(max_l2=max_l2)
+            for i in range(25):
+                await cache.put(f"p{i}", "r")
+                assert 0 <= cache._l2_write_idx < max_l2
+
+    @pytest.mark.fast
+    @pytest.mark.asyncio
+    async def test_l2_size_never_exceeds_max(self):
+        """l2_cache must never hold more than max_l2_size entries."""
+        max_l2 = 8
+        with patch.object(SemanticCache, "_text_to_embedding", return_value=np.ones(384, dtype="float32")):
+            cache = self._make_cache(max_l2=max_l2)
+            for i in range(30):
+                await cache.put(f"unique-prompt-{i}", f"resp-{i}")
+                assert len(cache.l2_cache) <= max_l2
