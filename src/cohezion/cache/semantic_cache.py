@@ -14,7 +14,6 @@ import hashlib
 import json
 import logging
 from collections import deque
-from dataclasses import dataclass
 from typing import Any
 
 import numpy as np
@@ -24,16 +23,6 @@ from cohezion.flume.vae_encoder import get_encoder
 
 
 logger = logging.getLogger(__name__)
-
-
-@dataclass(slots=True)
-class CacheEntry:
-    """Single cache entry."""
-
-    key: str
-    prompt: str
-    response: str
-    embedding: np.ndarray
 
 
 class SemanticCache:
@@ -80,12 +69,12 @@ class SemanticCache:
         self.mcp_client = mcp_client
         self.enable_adaptive_threshold = enable_adaptive_threshold
 
-        # L1 cache: exact hash matches
-        self.l1_cache: dict[str, CacheEntry] = {}
+        # L1 cache: key → response string (exact hash matches)
+        self.l1_cache: dict[str, str] = {}
         self.l1_insertion_order: deque[str] = deque()
 
-        # L2 cache: semantic matches
-        self.l2_cache: dict[str, CacheEntry] = {}
+        # L2 cache: key → response string (embedding in _l2_matrix ring buffer)
+        self.l2_cache: dict[str, str] = {}
         self.l2_lfu_counts: dict[
             str, int
         ] = {}  # unused since FIFO ring buffer (kept for API compat)
@@ -220,20 +209,16 @@ class SemanticCache:
         full_prompt = f"{system or ''}\n{prompt}\n{model or ''}"
         hash_key = full_prompt
 
-        # L1: Exact match
+        # L1: Exact match — l1_cache stores response strings directly
         if hash_key in self.l1_cache:
-            entry = self.l1_cache[hash_key]
             self.hits_l1 += 1
-            return entry.response
+            return self.l1_cache[hash_key]
 
-        # L2 fast path: exact hash hit (entry was evicted from L1 but still in L2)
-        # This avoids the O(n) similarity scan for repeat prompts. Identical prompt
-        # → identical hash → guaranteed cosine similarity = 1.0, so a hash match
-        # always passes any reasonable threshold.
-        l2_exact = self.l2_cache.get(hash_key)
-        if l2_exact is not None:
+        # L2 fast path: exact hash hit — l2_cache stores response strings directly
+        l2_response = self.l2_cache.get(hash_key)
+        if l2_response is not None:
             self.hits_l2 += 1
-            return l2_exact.response
+            return l2_response
 
         # L2: Vectorized semantic similarity via pre-stacked BLAS dot
         query_embedding = self._text_to_embedding(prompt)
@@ -248,25 +233,16 @@ class SemanticCache:
             best_similarity = float(sims[best_idx]) if best_key else 0.0
             best_match = self.l2_cache.get(best_key) if best_key else None
 
-        if best_match and best_similarity > current_threshold:
+        if best_match is not None and best_similarity > current_threshold:
             self.hits_l2 += 1
-            # Promote to L1
             self._promote_to_l1(hash_key, best_match)
-            return best_match.response
+            return best_match  # best_match is now a response string
 
         # L3: Vault lookup (async, non-blocking)
         vault_result = await self._vault_lookup(prompt)
         if vault_result:
             self.hits_l3 += 1
-            # Create entry and promote to L1
-            embedding = self._text_to_embedding(prompt)
-            entry = CacheEntry(
-                key=hash_key,
-                prompt=prompt,
-                response=vault_result,
-                embedding=embedding,
-            )
-            self._promote_to_l1(hash_key, entry)
+            self._promote_to_l1(hash_key, vault_result)
             return vault_result
 
         self.misses += 1
@@ -291,18 +267,9 @@ class SemanticCache:
         hash_key = full_prompt
         embedding = self._text_to_embedding(prompt)
 
-        entry = CacheEntry(
-            key=hash_key,
-            prompt=prompt,
-            response=response,
-            embedding=embedding,
-        )
-
-        # Store in L1 (exact match)
-        self._put_l1(hash_key, entry)
-
-        # Store in L2 (semantic)
-        self._put_l2(hash_key, entry)
+        # Store response string directly — no CacheEntry needed
+        self._put_l1(hash_key, response)
+        self._put_l2(hash_key, response, embedding)
 
         # Store in L3 only when vault client is configured (skip task creation overhead otherwise)
         if self.mcp_client:
@@ -314,37 +281,31 @@ class SemanticCache:
                 # No event loop running (e.g., sync context) - skip L3 storage
                 logger.debug("No event loop for L3 vault store (non-critical)")
 
-    def _put_l1(self, hash_key: str, entry: CacheEntry) -> None:
-        """Add entry to L1 cache."""
+    def _put_l1(self, hash_key: str, response: str) -> None:
+        """Add response string to L1 cache (FIFO eviction)."""
         if len(self.l1_cache) >= self.max_l1_size and self.l1_insertion_order:
-            # Evict oldest (FIFO)
             oldest_key = self.l1_insertion_order.popleft()
             del self.l1_cache[oldest_key]
-
-        self.l1_cache[hash_key] = entry
+        self.l1_cache[hash_key] = response
         self.l1_insertion_order.append(hash_key)
 
-    def _put_l2(self, hash_key: str, entry: CacheEntry) -> None:
-        """Add entry to L2 cache using a pre-allocated ring buffer — O(1) insert."""
+    def _put_l2(self, hash_key: str, response: str, embedding: np.ndarray) -> None:
+        """Add to L2 cache using pre-allocated ring buffer — O(1) insert."""
         if self.max_l2_size <= 0:
             return
-
         slot = self._l2_write_idx
-        # Evict the entry at this slot (FIFO — oldest entry goes first)
         old_key = self._l2_keys[slot]
         if old_key and old_key in self.l2_cache:
             del self.l2_cache[old_key]
-
-        # Write directly to pre-allocated slot — no allocation, no copy
-        self._l2_matrix[slot] = entry.embedding
+        self._l2_matrix[slot] = embedding
         self._l2_keys[slot] = hash_key
-        self.l2_cache[hash_key] = entry
+        self.l2_cache[hash_key] = response
         self._l2_write_idx = (slot + 1) % self.max_l2_size
 
-    def _promote_to_l1(self, hash_key: str, entry: CacheEntry) -> None:
-        """Promote L2 hit to L1."""
+    def _promote_to_l1(self, hash_key: str, response: str) -> None:
+        """Promote L2 hit response string to L1."""
         if hash_key not in self.l1_cache:
-            self._put_l1(hash_key, entry)
+            self._put_l1(hash_key, response)
 
     async def _vault_lookup(self, prompt: str) -> str | None:
         """Search vault for similar execution patterns.
