@@ -677,15 +677,14 @@ class CostAwareRouter:
                     return "phi3:mini"
 
         # For simple queries, strongly prefer phi3 for cost savings
-        if complexity == QueryComplexity.SIMPLE:
-            # Always prefer phi3 for simple queries unless latency is critical
-            if primary_model != "phi3:mini":
-                latency_diff = self.MODEL_LATENCY.get("phi3:mini", 50.0) - self.MODEL_LATENCY.get(
-                    primary_model, 50.0
-                )
-                if latency_diff <= 150.0:  # phi3 is still acceptable for simple queries
-                    self.token_optimization_swaps += 1
-                    return "phi3:mini"
+        # Always prefer phi3 for simple queries unless latency is critical
+        if complexity == QueryComplexity.SIMPLE and primary_model != "phi3:mini":
+            latency_diff = self.MODEL_LATENCY.get("phi3:mini", 50.0) - self.MODEL_LATENCY.get(
+                primary_model, 50.0
+            )
+            if latency_diff <= 150.0:  # phi3 is still acceptable for simple queries
+                self.token_optimization_swaps += 1
+                return "phi3:mini"
 
         return primary_model
 

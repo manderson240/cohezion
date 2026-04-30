@@ -196,11 +196,8 @@ class MetricsAnalytics:
 
         block_rate = (total_blocks / total_checks * 100) if total_checks > 0 else 0.0
 
-        # Determine guardrail health
-        if block_rate > self.thresholds["guardrail_block_rate_high"]:
-            health = "warning"  # High block rate could indicate false positives
-        else:
-            health = "good"
+        # Determine guardrail health (high block rate could indicate false positives)
+        health = "warning" if block_rate > self.thresholds["guardrail_block_rate_high"] else "good"
 
         return {
             "total_checks": total_checks,

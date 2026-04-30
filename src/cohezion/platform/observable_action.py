@@ -3,6 +3,7 @@ Observable AI action proposer.
 Charter requirement: "Expose internal states and confidence levels *before* action"
 """
 
+import contextlib
 import uuid
 from collections.abc import Callable
 
@@ -124,15 +125,13 @@ class ObservableActionProposer:
         if approved:
             # Log decision to current journey (if one exists)
             if self._current_journey_id:
-                try:
+                # Non-blocking if journey doesn't exist
+                with contextlib.suppress(Exception):
                     await self.journey_logger.log_decision(
                         journey_id=self._current_journey_id,
                         decision=description,
                         rationale=rationale,
                     )
-                except Exception:
-                    # Non-blocking if journey doesn't exist
-                    pass
 
             # Execute action
             await action_fn()

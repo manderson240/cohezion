@@ -425,8 +425,8 @@ class AdversarialReviewHarness:
 
             # Query violations (latent synapses pointing to this rule)
             violation_sql = f"""
-                SELECT count() as violation_count 
-                FROM synapse 
+                SELECT count() as violation_count
+                FROM synapse
                 WHERE out = {rule_neuron} AND link_type = 'latent';
             """
             violation_result = self.db.query(violation_sql)
@@ -438,8 +438,8 @@ class AdversarialReviewHarness:
 
             # Query cross-rule connections (dream synapses)
             dream_sql = f"""
-                SELECT in, out, resonance 
-                FROM synapse 
+                SELECT in, out, resonance
+                FROM synapse
                 WHERE (in = {rule_neuron} OR out = {rule_neuron}) AND link_type = 'dream';
             """
             dream_result = self.db.query(dream_sql)
@@ -447,7 +447,7 @@ class AdversarialReviewHarness:
 
             # Query affinity patterns
             affinity_sql = f"""
-                SELECT dim_agent_affinity 
+                SELECT dim_agent_affinity
                 FROM {rule_neuron};
             """
             affinity_result = self.db.query(affinity_sql)
@@ -521,9 +521,11 @@ class ConsensusVoter:
             (approved, reason)
         """
         # Critical changes need consensus
-        if change_type in ["delete", "action_change", "condition_change"]:
-            if not review.consensus_reached:
-                return False, "Critical change requires consensus across all perspectives"
+        if (
+            change_type in ["delete", "action_change", "condition_change"]
+            and not review.consensus_reached
+        ):
+            return False, "Critical change requires consensus across all perspectives"
 
         # All changes need minimum score
         if review.overall_score < self.threshold:

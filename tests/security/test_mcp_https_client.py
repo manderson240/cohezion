@@ -129,17 +129,19 @@ class TestMCPHTTPSClient:
         client = MCPHTTPSClient(use_https=True, verify_ssl=False)
 
         # Mock successful connection
-        with patch("socket.create_connection") as mock_socket:
-            with patch.object(ssl.SSLContext, "wrap_socket") as mock_wrap:
-                mock_sock = MagicMock()
-                mock_socket.return_value = mock_sock
-                mock_wrap.return_value = mock_sock
+        with (
+            patch("socket.create_connection") as mock_socket,
+            patch.object(ssl.SSLContext, "wrap_socket") as mock_wrap,
+        ):
+            mock_sock = MagicMock()
+            mock_socket.return_value = mock_sock
+            mock_wrap.return_value = mock_sock
 
-                result = client.validate_connection()
+            result = client.validate_connection()
 
-                assert result is True
-                mock_socket.assert_called_once()
-                mock_sock.close.assert_called_once()
+            assert result is True
+            mock_socket.assert_called_once()
+            mock_sock.close.assert_called_once()
 
     def test_validate_connection_http_success(self):
         """Test successful HTTP connection validation."""
@@ -168,15 +170,17 @@ class TestMCPHTTPSClient:
         """Test connection validation with SSL error."""
         client = MCPHTTPSClient(use_https=True)
 
-        with patch("socket.create_connection") as mock_socket:
-            with patch.object(ssl.SSLContext, "wrap_socket", side_effect=ssl.SSLError):
-                mock_sock = MagicMock()
-                mock_socket.return_value = mock_sock
+        with (
+            patch("socket.create_connection") as mock_socket,
+            patch.object(ssl.SSLContext, "wrap_socket", side_effect=ssl.SSLError),
+        ):
+            mock_sock = MagicMock()
+            mock_socket.return_value = mock_sock
 
-                result = client.validate_connection()
+            result = client.validate_connection()
 
-                # SSL error during wrap_socket should be caught
-                assert result is False
+            # SSL error during wrap_socket should be caught
+            assert result is False
 
     def test_configure_urllib_https(self):
         """Test urllib configuration with HTTPS."""

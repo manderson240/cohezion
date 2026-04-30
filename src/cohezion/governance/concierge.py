@@ -158,16 +158,18 @@ class ConciergeAgent:
         prompt_lower = user_prompt.lower()
 
         # Continuation keywords
-        if any(kw in prompt_lower for kw in ["continue", "resume", "pick up", "where were we"]):
-            if briefing.continuation_task:
-                confidence = self._historical_confidence("resume_continuation")
-                return RoutingSuggestion(
-                    action="resume_continuation",
-                    target=briefing.continuation_path or "",
-                    confidence=max(0.8, confidence),
-                    reason=f"Resuming: {briefing.continuation_task}",
-                    autonomy_tier="U(1)^4",
-                )
+        if (
+            any(kw in prompt_lower for kw in ["continue", "resume", "pick up", "where were we"])
+            and briefing.continuation_task
+        ):
+            confidence = self._historical_confidence("resume_continuation")
+            return RoutingSuggestion(
+                action="resume_continuation",
+                target=briefing.continuation_path or "",
+                confidence=max(0.8, confidence),
+                reason=f"Resuming: {briefing.continuation_task}",
+                autonomy_tier="U(1)^4",
+            )
 
         # Worktree routing: FLUME semantic matching with keyword fallback
         worktree_map = {
@@ -246,15 +248,14 @@ class ConciergeAgent:
                 )
 
         # Plan keywords
-        if any(kw in prompt_lower for kw in ["plan", "spec", "roadmap"]):
-            if briefing.active_plans:
-                return RoutingSuggestion(
-                    action="load_plan",
-                    target=briefing.active_plans[0],
-                    confidence=0.6,
-                    reason=f"Active plan: {briefing.active_plans[0]}",
-                    autonomy_tier="SO(3)^4",
-                )
+        if any(kw in prompt_lower for kw in ["plan", "spec", "roadmap"]) and briefing.active_plans:
+            return RoutingSuggestion(
+                action="load_plan",
+                target=briefing.active_plans[0],
+                confidence=0.6,
+                reason=f"Active plan: {briefing.active_plans[0]}",
+                autonomy_tier="SO(3)^4",
+            )
 
         # Default: fresh start
         return RoutingSuggestion(

@@ -42,22 +42,26 @@ class TestMCPHealth:
     @pytest.mark.asyncio
     async def test_manager_health(self):
         """Test the MCP Server Manager itself."""
-        async with aiohttp.ClientSession() as session:
-            async with session.get(f"http://localhost:{MANAGER_PORT}/health") as resp:
-                assert resp.status == 200
-                data = await resp.json()
-                assert data["status"] == "healthy"
+        async with (
+            aiohttp.ClientSession() as session,
+            session.get(f"http://localhost:{MANAGER_PORT}/health") as resp,
+        ):
+            assert resp.status == 200
+            data = await resp.json()
+            assert data["status"] == "healthy"
 
     @pytest.mark.asyncio
     async def test_server_registration(self):
         """Test if all expected servers are registered in the manager."""
-        async with aiohttp.ClientSession() as session:
-            async with session.get(f"http://localhost:{MANAGER_PORT}/") as resp:
-                assert resp.status == 200
-                data = await resp.json()
-                registered = data["servers"].keys()
-                for name in SERVER_PORTS:
-                    assert name in registered
+        async with (
+            aiohttp.ClientSession() as session,
+            session.get(f"http://localhost:{MANAGER_PORT}/") as resp,
+        ):
+            assert resp.status == 200
+            data = await resp.json()
+            registered = data["servers"].keys()
+            for name in SERVER_PORTS:
+                assert name in registered
 
 
 class TestMCPAdversarial:

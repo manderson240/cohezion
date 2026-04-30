@@ -23,30 +23,32 @@ def mock_config():
 @pytest.mark.asyncio
 async def test_evo_agent_full_cycle_integration(mock_config):
     """Test the complete flow from act() to reward and potential ratchet."""
-    with patch("cohezion.registry.capability_registry.CapabilityRegistry"):
-        with patch("cohezion.swarm.journey_narrator.JourneyNarrator"):
-            with patch("cohezion.swarm.redundancy_suppression.RedundancyManager"):
-                agent = EVOAgent(model_name="test-model", config=mock_config)
+    with (
+        patch("cohezion.registry.capability_registry.CapabilityRegistry"),
+        patch("cohezion.swarm.journey_narrator.JourneyNarrator"),
+        patch("cohezion.swarm.redundancy_suppression.RedundancyManager"),
+    ):
+        agent = EVOAgent(model_name="test-model", config=mock_config)
 
-                # Mock reward/ratchet to track calls
-                agent._reward_calculator = MagicMock()
-                agent._reward_calculator.calculate_score.return_value = 0.95
-                agent._ratchet = AsyncMock()
+        # Mock reward/ratchet to track calls
+        agent._reward_calculator = MagicMock()
+        agent._reward_calculator.calculate_score.return_value = 0.95
+        agent._ratchet = AsyncMock()
 
-                # Mock VAE and Engine
-                agent._flume_vae = MagicMock()
-                agent._flume_vae.encode.return_value = (torch.randn(1, 256), torch.randn(1, 256))
-                agent._flume_vae.reparameterize.return_value = torch.randn(256)
-                agent._triune_engine = AsyncMock()
+        # Mock VAE and Engine
+        agent._flume_vae = MagicMock()
+        agent._flume_vae.encode.return_value = (torch.randn(1, 256), torch.randn(1, 256))
+        agent._flume_vae.reparameterize.return_value = torch.randn(256)
+        agent._triune_engine = AsyncMock()
 
-                # Execute action
-                await agent.act(prompt="high performance mission", trajectory_id="cycle_1")
+        # Execute action
+        await agent.act(prompt="high performance mission", trajectory_id="cycle_1")
 
-                # Verify reward was calculated
-                agent._reward_calculator.calculate_score.assert_called_once()
+        # Verify reward was calculated
+        agent._reward_calculator.calculate_score.assert_called_once()
 
-                # Verify ratchet was evaluated
-                agent._ratchet.evaluate_and_ratchet.assert_called_once()
-                args, kwargs = agent._ratchet.evaluate_and_ratchet.call_args
-                assert kwargs["score"] == 0.95
-                assert kwargs["trajectory_id"] == "cycle_1"
+        # Verify ratchet was evaluated
+        agent._ratchet.evaluate_and_ratchet.assert_called_once()
+        args, kwargs = agent._ratchet.evaluate_and_ratchet.call_args
+        assert kwargs["score"] == 0.95
+        assert kwargs["trajectory_id"] == "cycle_1"

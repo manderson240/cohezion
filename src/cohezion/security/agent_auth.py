@@ -280,9 +280,12 @@ class AgentAuthManager:
             AgentCredential if found and active, None otherwise
         """
         for credential in self.token_cache.values():
-            if credential.agent_id == agent_id and credential.is_active:
-                if not credential.is_expired():
-                    return credential
+            if (
+                credential.agent_id == agent_id
+                and credential.is_active
+                and not credential.is_expired()
+            ):
+                return credential
 
         return None
 

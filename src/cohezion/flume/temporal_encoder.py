@@ -176,10 +176,7 @@ class TemporalEncoder(nn.Module):
         At inference/eval time uses mu directly (no sampling noise).
         """
         mu, logvar = self.encode(x, padding_mask=padding_mask)
-        if self.training:
-            z = self.reparameterize(mu, logvar)
-        else:
-            z = mu
+        z = self.reparameterize(mu, logvar) if self.training else mu
         return z, mu, logvar
 
 

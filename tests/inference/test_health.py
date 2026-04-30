@@ -92,12 +92,14 @@ def test_claude_and_gemini_probes_check_cli_presence():
         stdout = "2.1.114 (Claude Code)"
         stderr = ""
 
-    with patch("httpx.get", side_effect=httpx.ConnectError("refused")):
-        with patch("shutil.which", return_value="/usr/local/bin/claude"):
-            with patch("subprocess.run", return_value=FakeCompleted()):
-                health = check_fleet(force=True)
-        assert health.lanes["claude"].status == LaneStatus.UP
-        assert health.lanes["gemini"].status == LaneStatus.UP
+    with (
+        patch("httpx.get", side_effect=httpx.ConnectError("refused")),
+        patch("shutil.which", return_value="/usr/local/bin/claude"),
+        patch("subprocess.run", return_value=FakeCompleted()),
+    ):
+        health = check_fleet(force=True)
+    assert health.lanes["claude"].status == LaneStatus.UP
+    assert health.lanes["gemini"].status == LaneStatus.UP
 
 
 def test_claude_probe_uses_live_dispatch_not_version_flag():
@@ -110,10 +112,12 @@ def test_claude_probe_uses_live_dispatch_not_version_flag():
         stdout = "pong"
         stderr = ""
 
-    with patch("httpx.get", side_effect=httpx.ConnectError("refused")):
-        with patch("shutil.which", return_value="/usr/local/bin/claude"):
-            with patch("subprocess.run", return_value=FakeCompleted()) as mock_run:
-                check_fleet(force=True)
+    with (
+        patch("httpx.get", side_effect=httpx.ConnectError("refused")),
+        patch("shutil.which", return_value="/usr/local/bin/claude"),
+        patch("subprocess.run", return_value=FakeCompleted()) as mock_run,
+    ):
+        check_fleet(force=True)
 
     claude_calls = [
         call for call in mock_run.call_args_list if "/usr/local/bin/claude" in call.args[0]

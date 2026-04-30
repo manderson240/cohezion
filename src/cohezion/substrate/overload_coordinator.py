@@ -162,12 +162,14 @@ class OverloadCoordinator:
             new_level = self._determine_level(pressure)
 
             # If same level and within cooldown, no action
-            if new_level == self._current_level:
-                if time.time() - self._level_since < self.config.cooldown_period:
-                    return ProtectionAction(
-                        level=self._current_level,
-                        actions=["level_unchanged"],
-                    )
+            if (
+                new_level == self._current_level
+                and time.time() - self._level_since < self.config.cooldown_period
+            ):
+                return ProtectionAction(
+                    level=self._current_level,
+                    actions=["level_unchanged"],
+                )
 
             # Take action based on level
             action = await self._take_action(new_level, pressure)

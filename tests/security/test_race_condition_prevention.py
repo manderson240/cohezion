@@ -27,6 +27,7 @@ from cohezion.security.file_lock_context import (
     atomic_file_write,
     locked_file_operation,
 )
+import contextlib
 
 
 @pytest.fixture
@@ -39,10 +40,8 @@ def temp_file():
     yield temp_path
 
     # Cleanup
-    try:
+    with contextlib.suppress(FileNotFoundError):
         Path(temp_path).unlink()
-    except FileNotFoundError:
-        pass
 
 
 class TestFileLock:

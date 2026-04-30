@@ -32,25 +32,27 @@ async def test_store_state_summary_success(triune_state):
     mock_stdio.__aenter__ = AsyncMock(return_value=(AsyncMock(), AsyncMock()))
     mock_stdio.__aexit__ = AsyncMock(return_value=None)
 
-    with patch("cohezion.persistence.obsidian_mcp.stdio_client", return_value=mock_stdio):
-        with patch("cohezion.persistence.obsidian_mcp.ClientSession") as mock_session_class:
-            mock_session_class.return_value.__aenter__.return_value = mock_session
+    with (
+        patch("cohezion.persistence.obsidian_mcp.stdio_client", return_value=mock_stdio),
+        patch("cohezion.persistence.obsidian_mcp.ClientSession") as mock_session_class,
+    ):
+        mock_session_class.return_value.__aenter__.return_value = mock_session
 
-            client = ObsidianMemoryMCP()
-            await client.store_state_summary(
-                trajectory_id="test_traj_456", state=triune_state, coherence=0.5
-            )
+        client = ObsidianMemoryMCP()
+        await client.store_state_summary(
+            trajectory_id="test_traj_456", state=triune_state, coherence=0.5
+        )
 
-            # Verify call_tool was invoked with vault_write
-            mock_session.call_tool.assert_called_once()
-            args, _ = mock_session.call_tool.call_args
-            assert args[0] == "vault_write"
+        # Verify call_tool was invoked with vault_write
+        mock_session.call_tool.assert_called_once()
+        args, _ = mock_session.call_tool.call_args
+        assert args[0] == "vault_write"
 
-            tool_args = args[1]
-            assert "trajectories/test_traj_456.md" in tool_args["path"]
-            assert "# Trajectory Summary: test_traj_456" in tool_args["content"]
-            # Check for formatted coherence
-            assert "**Coherence**: 0.5000" in tool_args["content"]
+        tool_args = args[1]
+        assert "trajectories/test_traj_456.md" in tool_args["path"]
+        assert "# Trajectory Summary: test_traj_456" in tool_args["content"]
+        # Check for formatted coherence
+        assert "**Coherence**: 0.5000" in tool_args["content"]
 
 
 @pytest.mark.asyncio
@@ -64,15 +66,17 @@ async def test_store_state_summary_failure(triune_state):
     mock_stdio.__aenter__ = AsyncMock(return_value=(AsyncMock(), AsyncMock()))
     mock_stdio.__aexit__ = AsyncMock(return_value=None)
 
-    with patch("cohezion.persistence.obsidian_mcp.stdio_client", return_value=mock_stdio):
-        with patch("cohezion.persistence.obsidian_mcp.ClientSession") as mock_session_class:
-            mock_session_class.return_value.__aenter__.return_value = mock_session
+    with (
+        patch("cohezion.persistence.obsidian_mcp.stdio_client", return_value=mock_stdio),
+        patch("cohezion.persistence.obsidian_mcp.ClientSession") as mock_session_class,
+    ):
+        mock_session_class.return_value.__aenter__.return_value = mock_session
 
-            client = ObsidianMemoryMCP()
+        client = ObsidianMemoryMCP()
 
-            # In Python 3.11+, ExceptionGroup might be raised by anyio TaskGroups
-            # but here we're mocking the call_tool directly.
-            with pytest.raises(Exception, match="Tool Execution Error"):
-                await client.store_state_summary(
-                    trajectory_id="test_traj_err", state=triune_state, coherence=0.5
-                )
+        # In Python 3.11+, ExceptionGroup might be raised by anyio TaskGroups
+        # but here we're mocking the call_tool directly.
+        with pytest.raises(Exception, match="Tool Execution Error"):
+            await client.store_state_summary(
+                trajectory_id="test_traj_err", state=triune_state, coherence=0.5
+            )

@@ -69,9 +69,8 @@ class TestContextManager:
 
     def test_find_project_root_not_found(self, tmp_path: Path):
         """[P1] Should raise ContextLoadError when project root not found."""
-        with patch.object(Path, "cwd", return_value=tmp_path):
-            with pytest.raises(ContextLoadError):
-                ContextManager()
+        with patch.object(Path, "cwd", return_value=tmp_path), pytest.raises(ContextLoadError):
+            ContextManager()
 
     def test_load_manifest(self, temp_context_dir):
         """[P0] Should load and parse manifest.json."""

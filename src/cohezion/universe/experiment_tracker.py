@@ -641,9 +641,8 @@ class ExperimentTracker:
         for run in self._runs.values():
             if status and run.status != status:
                 continue
-            if tag_filter:
-                if not all(run.tags.get(k) == v for k, v in tag_filter.items()):
-                    continue
+            if tag_filter and not all(run.tags.get(k) == v for k, v in tag_filter.items()):
+                continue
             results.append(run.summary())
         return results
 

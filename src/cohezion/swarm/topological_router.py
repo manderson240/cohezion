@@ -341,9 +341,12 @@ class TopologicalRouter:
             return TopologicalRegime.PIVOT
 
         # EXPLOIT: single stable cluster with high connectivity
-        if summary["n_clusters"] <= 1 and summary["persistence_entropy_h0"] < 0.5:
-            if fiedler is None or fiedler >= self.fiedler_exploit_threshold:
-                return TopologicalRegime.EXPLOIT
+        if (
+            summary["n_clusters"] <= 1
+            and summary["persistence_entropy_h0"] < 0.5
+            and (fiedler is None or fiedler >= self.fiedler_exploit_threshold)
+        ):
+            return TopologicalRegime.EXPLOIT
 
         # EXPLORE: multiple clusters, high entropy, or low connectivity
         return TopologicalRegime.EXPLORE

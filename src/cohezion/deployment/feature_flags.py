@@ -286,10 +286,11 @@ class FeatureFlagManager:
         if context and context.region not in config.enabled_regions:
             return False
 
-        # Check tenant
-        if config.enabled_tenants:  # If list is not empty, must match
-            if not context or context.tenant_id not in config.enabled_tenants:
-                return False
+        # Check tenant: if list is not empty, must match
+        if config.enabled_tenants and (
+            not context or context.tenant_id not in config.enabled_tenants
+        ):
+            return False
 
         return True
 

@@ -171,11 +171,8 @@ class TemplateEngine:
 
         # Extract skill name from title or filename
         name_match = _SKILL_NAME_RE.search(text)
-        if name_match:
-            name = name_match.group(1).strip()
-        else:
-            # Derive from filename
-            name = path.stem.upper()
+        # Derive from filename if no title match
+        name = name_match.group(1).strip() if name_match else path.stem.upper()
 
         # Domain expertise
         domain = ""

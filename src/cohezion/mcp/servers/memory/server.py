@@ -143,12 +143,14 @@ class MemoryGraph:
         """Get related entities."""
         related = []
         for rel in self.relations:
-            if rel.from_entity == entity_name:
-                if relation_type is None or rel.relation_type == relation_type:
-                    related.append(rel.to_entity)
-            elif rel.to_entity == entity_name:
-                if relation_type is None or rel.relation_type == relation_type:
-                    related.append(rel.from_entity)
+            if rel.from_entity == entity_name and (
+                relation_type is None or rel.relation_type == relation_type
+            ):
+                related.append(rel.to_entity)
+            elif rel.to_entity == entity_name and (
+                relation_type is None or rel.relation_type == relation_type
+            ):
+                related.append(rel.from_entity)
         return list(set(related))  # Remove duplicates
 
     def search_entities(self, query: str) -> list[Entity]:

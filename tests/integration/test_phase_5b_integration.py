@@ -80,11 +80,10 @@ class MockRedisClient:
         """Get value from mock store."""
         if self.failure_mode:
             raise ConnectionError("Mock Redis unavailable")
-        if key in self.ttls:
-            if time.time() > self.ttls[key]:
-                del self.store[key]
-                del self.ttls[key]
-                return None
+        if key in self.ttls and time.time() > self.ttls[key]:
+            del self.store[key]
+            del self.ttls[key]
+            return None
         return self.store.get(key)
 
     async def set(self, key: str, value: bytes, ex: int = None) -> bool:

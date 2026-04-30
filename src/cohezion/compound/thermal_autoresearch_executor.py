@@ -16,6 +16,7 @@ Phase 4: 8-Hour Autoresearch Journey
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import logging
 import re
 import time
@@ -255,10 +256,8 @@ class ThermalAutoresearchExecutor:
             finally:
                 # Cancel background task
                 tdp_task.cancel()
-                try:
+                with contextlib.suppress(asyncio.CancelledError):
                     await tdp_task
-                except asyncio.CancelledError:
-                    pass
 
         return final_result
 

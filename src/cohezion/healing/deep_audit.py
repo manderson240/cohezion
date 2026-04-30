@@ -116,33 +116,29 @@ class DeepAuditor(ast.NodeVisitor):
     def _check_blocking_io(self, node):
         """Check for blocking calls in async functions."""
         for child in ast.walk(node):
-            if isinstance(child, ast.Call):
-                if isinstance(child.func, ast.Attribute):
-                    # Check for time.sleep
-                    if getattr(child.func.value, "id", "") == "time" and child.func.attr == "sleep":
-                        self.issues.append(
-                            CodeIssue(
-                                self.current_file,
-                                child.lineno,
-                                "Critical",
-                                "Performance",
-                                f"Blocking 'time.sleep' in async function '{node.name}'",
-                            )
+            if isinstance(child, ast.Call) and isinstance(child.func, ast.Attribute):
+                # Check for time.sleep
+                if getattr(child.func.value, "id", "") == "time" and child.func.attr == "sleep":
+                    self.issues.append(
+                        CodeIssue(
+                            self.current_file,
+                            child.lineno,
+                            "Critical",
+                            "Performance",
+                            f"Blocking 'time.sleep' in async function '{node.name}'",
                         )
-                    # Check for subprocess.run without loop.run_in_executor (heuristic)
-                    if (
-                        getattr(child.func.value, "id", "") == "subprocess"
-                        and child.func.attr == "run"
-                    ):
-                        self.issues.append(
-                            CodeIssue(
-                                self.current_file,
-                                child.lineno,
-                                "Warning",
-                                "Performance",
-                                f"Blocking 'subprocess.run' in async function '{node.name}'. Use 'asyncio.create_subprocess_exec' or run_in_executor.",
-                            )
+                    )
+                # Check for subprocess.run without loop.run_in_executor (heuristic)
+                if getattr(child.func.value, "id", "") == "subprocess" and child.func.attr == "run":
+                    self.issues.append(
+                        CodeIssue(
+                            self.current_file,
+                            child.lineno,
+                            "Warning",
+                            "Performance",
+                            f"Blocking 'subprocess.run' in async function '{node.name}'. Use 'asyncio.create_subprocess_exec' or run_in_executor.",
                         )
+                    )
 
     def generate_report(self):
         report = "# Deep Codebase Audit Report\n\n"

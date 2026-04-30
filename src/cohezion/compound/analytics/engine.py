@@ -79,9 +79,11 @@ class ExecutionAnalyzer:
         if metrics.coherence < self.config.min_coherence:
             return True
 
-        if metrics.quality_score is not None:
-            if metrics.quality_score < self.config.min_quality_score:
-                return True
+        if (
+            metrics.quality_score is not None
+            and metrics.quality_score < self.config.min_quality_score
+        ):
+            return True
 
         return False
 
