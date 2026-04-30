@@ -5,6 +5,7 @@ Tests that matter for Phase 1: state tracking, git integration, validation frame
 """
 
 import asyncio
+import shutil
 from pathlib import Path
 
 import pytest
@@ -17,6 +18,8 @@ from cohezion.config import (
     get_config_orchestrator,
     reset_config_orchestrator,
 )
+
+GIT = shutil.which("git") or "git"
 
 
 class TestFileMetadata:
@@ -89,21 +92,21 @@ class TestGitUtils:
         # Initialize a git repo
         import subprocess
 
-        subprocess.run(["git", "init"], cwd=tmp_path, capture_output=True, check=True)
+        subprocess.run([GIT, "init"], cwd=tmp_path, capture_output=True, check=True)
         subprocess.run(
-            ["git", "config", "user.email", "test@test.com"],
+            [GIT, "config", "user.email", "test@test.com"],
             cwd=tmp_path,
             capture_output=True,
             check=True,
         )
         subprocess.run(
-            ["git", "config", "user.name", "Test User"],
+            [GIT, "config", "user.name", "Test User"],
             cwd=tmp_path,
             capture_output=True,
             check=True,
         )
         subprocess.run(
-            ["git", "config", "commit.gpgsign", "false"],
+            [GIT, "config", "commit.gpgsign", "false"],
             cwd=tmp_path,
             capture_output=True,
             check=True,
@@ -112,9 +115,9 @@ class TestGitUtils:
         # Create and commit a file
         test_file = tmp_path / "test.txt"
         test_file.write_text("initial")
-        subprocess.run(["git", "add", "test.txt"], cwd=tmp_path, capture_output=True, check=True)
+        subprocess.run([GIT, "add", "test.txt"], cwd=tmp_path, capture_output=True, check=True)
         subprocess.run(
-            ["git", "commit", "-m", "initial"], cwd=tmp_path, capture_output=True, check=True
+            [GIT, "commit", "-m", "initial"], cwd=tmp_path, capture_output=True, check=True
         )
 
         # No changes yet
@@ -130,21 +133,21 @@ class TestGitUtils:
         import subprocess
 
         # Setup git repo
-        subprocess.run(["git", "init"], cwd=tmp_path, capture_output=True, check=True)
+        subprocess.run([GIT, "init"], cwd=tmp_path, capture_output=True, check=True)
         subprocess.run(
-            ["git", "config", "user.email", "test@test.com"],
+            [GIT, "config", "user.email", "test@test.com"],
             cwd=tmp_path,
             capture_output=True,
             check=True,
         )
         subprocess.run(
-            ["git", "config", "user.name", "Test User"],
+            [GIT, "config", "user.name", "Test User"],
             cwd=tmp_path,
             capture_output=True,
             check=True,
         )
         subprocess.run(
-            ["git", "config", "commit.gpgsign", "false"],
+            [GIT, "config", "commit.gpgsign", "false"],
             cwd=tmp_path,
             capture_output=True,
             check=True,
@@ -153,9 +156,9 @@ class TestGitUtils:
         # Create and commit a file
         test_file = tmp_path / "test.txt"
         test_file.write_text("line1\nline2")
-        subprocess.run(["git", "add", "test.txt"], cwd=tmp_path, capture_output=True, check=True)
+        subprocess.run([GIT, "add", "test.txt"], cwd=tmp_path, capture_output=True, check=True)
         subprocess.run(
-            ["git", "commit", "-m", "initial"], cwd=tmp_path, capture_output=True, check=True
+            [GIT, "commit", "-m", "initial"], cwd=tmp_path, capture_output=True, check=True
         )
 
         # Make changes
@@ -173,21 +176,21 @@ class TestGitUtils:
         import subprocess
 
         # Setup git repo
-        subprocess.run(["git", "init"], cwd=tmp_path, capture_output=True, check=True)
+        subprocess.run([GIT, "init"], cwd=tmp_path, capture_output=True, check=True)
         subprocess.run(
-            ["git", "config", "user.email", "test@test.com"],
+            [GIT, "config", "user.email", "test@test.com"],
             cwd=tmp_path,
             capture_output=True,
             check=True,
         )
         subprocess.run(
-            ["git", "config", "user.name", "Test User"],
+            [GIT, "config", "user.name", "Test User"],
             cwd=tmp_path,
             capture_output=True,
             check=True,
         )
         subprocess.run(
-            ["git", "config", "commit.gpgsign", "false"],
+            [GIT, "config", "commit.gpgsign", "false"],
             cwd=tmp_path,
             capture_output=True,
             check=True,
@@ -196,9 +199,9 @@ class TestGitUtils:
         # Create initial commit
         test_file = tmp_path / "test.txt"
         test_file.write_text("initial")
-        subprocess.run(["git", "add", "test.txt"], cwd=tmp_path, capture_output=True, check=True)
+        subprocess.run([GIT, "add", "test.txt"], cwd=tmp_path, capture_output=True, check=True)
         subprocess.run(
-            ["git", "commit", "-m", "initial"], cwd=tmp_path, capture_output=True, check=True
+            [GIT, "commit", "-m", "initial"], cwd=tmp_path, capture_output=True, check=True
         )
 
         # Make changes

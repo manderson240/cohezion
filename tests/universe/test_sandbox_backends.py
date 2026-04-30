@@ -8,13 +8,15 @@ import pytest
 
 def _systemd_user_available() -> bool:
     """Check if systemd-run --user can connect to the session bus."""
-    if not shutil.which("systemd-run"):
+    systemd_run = shutil.which("systemd-run")
+    if not systemd_run:
         return False
     try:
         result = subprocess.run(
-            ["systemd-run", "--user", "--scope", "--", "true"],
+            [systemd_run, "--user", "--scope", "--", "true"],
             capture_output=True,
             timeout=5,
+            shell=False,
         )
         return result.returncode == 0
     except Exception:

@@ -160,13 +160,16 @@ class TestValidateExistingAgentFiles:
 
     def test_validate_single_file(self):
         """Validate a single known agent file."""
+        import shutil
         import subprocess
 
+        git_cmd = shutil.which("git") or "git"
         root = subprocess.run(
-            ["git", "rev-parse", "--show-toplevel"],
+            [git_cmd, "rev-parse", "--show-toplevel"],
             capture_output=True,
             text=True,
             check=True,
+            shell=False,
         ).stdout.strip()
         path = Path(root) / ".claude" / "agents" / "test-runner.md"
         result = validate_agent_file(path)

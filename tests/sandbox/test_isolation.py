@@ -37,14 +37,17 @@ def _cleanup_dir(path: str) -> None:
     if not os.path.exists(path):
         return
     # Unmount any submounts (reverse order so children unmount before parents)
+    findmnt_cmd = shutil.which("findmnt") or "findmnt"
+    umount_cmd = shutil.which("umount") or "umount"
     result = subprocess.run(
-        ["findmnt", "--raw", "--noheadings", "-o", "TARGET", "--submounts", path],
+        [findmnt_cmd, "--raw", "--noheadings", "-o", "TARGET", "--submounts", path],
         capture_output=True,
         text=True,
+        shell=False,
     )
     for mount_point in reversed(result.stdout.strip().split("\n")):
         if mount_point.strip():
-            subprocess.run(["umount", mount_point.strip()], capture_output=True)
+            subprocess.run([umount_cmd, mount_point.strip()], capture_output=True, shell=False)
     shutil.rmtree(path, ignore_errors=True)
 
 

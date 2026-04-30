@@ -4,10 +4,13 @@ Tests vault monitoring, config file monitoring, and event emission.
 """
 
 import asyncio
+import shutil
 from pathlib import Path
 from unittest.mock import AsyncMock, patch
 
 import pytest
+
+GIT = shutil.which("git") or "git"
 
 from cohezion.config import ConfigMonitor, ConfigurationOrchestrator
 from cohezion.core.vault_subscription import VaultEvent
@@ -234,32 +237,41 @@ class TestEventEmission:
         # Setup git repo
         import subprocess
 
-        subprocess.run(["git", "init"], cwd=tmp_path, capture_output=True, check=True)
+        subprocess.run([GIT, "init"], cwd=tmp_path, capture_output=True, check=True, shell=False)
         subprocess.run(
-            ["git", "config", "user.email", "test@test.com"],
+            [GIT, "config", "user.email", "test@test.com"],
             cwd=tmp_path,
             capture_output=True,
             check=True,
+            shell=False,
         )
         subprocess.run(
-            ["git", "config", "user.name", "Test User"],
+            [GIT, "config", "user.name", "Test User"],
             cwd=tmp_path,
             capture_output=True,
             check=True,
+            shell=False,
         )
         subprocess.run(
-            ["git", "config", "commit.gpgsign", "false"],
+            [GIT, "config", "commit.gpgsign", "false"],
             cwd=tmp_path,
             capture_output=True,
             check=True,
+            shell=False,
         )
 
         # Create and commit initial file
         claude_md = tmp_path / "CLAUDE.md"
         claude_md.write_text("# Initial")
-        subprocess.run(["git", "add", "."], cwd=tmp_path, capture_output=True, check=True)
         subprocess.run(
-            ["git", "commit", "-m", "initial"], cwd=tmp_path, capture_output=True, check=True
+            [GIT, "add", "."], cwd=tmp_path, capture_output=True, check=True, shell=False
+        )
+        subprocess.run(
+            [GIT, "commit", "-m", "initial"],
+            cwd=tmp_path,
+            capture_output=True,
+            check=True,
+            shell=False,
         )
 
         monitor = ConfigMonitor(tmp_path)

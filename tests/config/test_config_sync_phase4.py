@@ -3,9 +3,12 @@
 Tests template rendering, sync operations, commit generation, and orchestrator integration.
 """
 
+import shutil
 from pathlib import Path
 
 import pytest
+
+GIT = shutil.which("git") or "git"
 
 from cohezion.config import ConfigSyncEngine, ConfigurationOrchestrator
 from cohezion.config.config_templates import (
@@ -176,28 +179,32 @@ class TestConfigSyncEngineIntegration:
         import subprocess
 
         subprocess.run(
-            ["git", "init"],
+            [GIT, "init"],
             cwd=tmp_path,
             capture_output=True,
             check=True,
+            shell=False,
         )
         subprocess.run(
-            ["git", "config", "user.email", "test@example.com"],
+            [GIT, "config", "user.email", "test@example.com"],
             cwd=tmp_path,
             capture_output=True,
             check=True,
+            shell=False,
         )
         subprocess.run(
-            ["git", "config", "user.name", "Test User"],
+            [GIT, "config", "user.name", "Test User"],
             cwd=tmp_path,
             capture_output=True,
             check=True,
+            shell=False,
         )
         subprocess.run(
-            ["git", "config", "commit.gpgSign", "false"],
+            [GIT, "config", "commit.gpgSign", "false"],
             cwd=tmp_path,
             capture_output=True,
             check=True,
+            shell=False,
         )
 
         vault_root = tmp_path / "vault"
@@ -219,28 +226,32 @@ class TestConfigSyncEngineIntegration:
         import subprocess
 
         subprocess.run(
-            ["git", "init"],
+            [GIT, "init"],
             cwd=tmp_path,
             capture_output=True,
             check=True,
+            shell=False,
         )
         subprocess.run(
-            ["git", "config", "user.email", "test@example.com"],
+            [GIT, "config", "user.email", "test@example.com"],
             cwd=tmp_path,
             capture_output=True,
             check=True,
+            shell=False,
         )
         subprocess.run(
-            ["git", "config", "user.name", "Test User"],
+            [GIT, "config", "user.name", "Test User"],
             cwd=tmp_path,
             capture_output=True,
             check=True,
+            shell=False,
         )
         subprocess.run(
-            ["git", "config", "commit.gpgSign", "false"],
+            [GIT, "config", "commit.gpgSign", "false"],
             cwd=tmp_path,
             capture_output=True,
             check=True,
+            shell=False,
         )
 
         vault_root = tmp_path / "vault"
@@ -274,28 +285,32 @@ class TestOrchestrationWithSync:
         import subprocess
 
         subprocess.run(
-            ["git", "init"],
+            [GIT, "init"],
             cwd=tmp_path,
             capture_output=True,
             check=True,
+            shell=False,
         )
         subprocess.run(
-            ["git", "config", "user.email", "test@example.com"],
+            [GIT, "config", "user.email", "test@example.com"],
             cwd=tmp_path,
             capture_output=True,
             check=True,
+            shell=False,
         )
         subprocess.run(
-            ["git", "config", "user.name", "Test User"],
+            [GIT, "config", "user.name", "Test User"],
             cwd=tmp_path,
             capture_output=True,
             check=True,
+            shell=False,
         )
         subprocess.run(
-            ["git", "config", "commit.gpgSign", "false"],
+            [GIT, "config", "commit.gpgSign", "false"],
             cwd=tmp_path,
             capture_output=True,
             check=True,
+            shell=False,
         )
 
         vault_root = tmp_path / "vault"
@@ -355,28 +370,32 @@ class TestConflictDetection:
 
         # Initialize git repo
         subprocess.run(
-            ["git", "init"],
+            [GIT, "init"],
             cwd=tmp_path,
             capture_output=True,
             check=True,
+            shell=False,
         )
         subprocess.run(
-            ["git", "config", "user.email", "test@example.com"],
+            [GIT, "config", "user.email", "test@example.com"],
             cwd=tmp_path,
             capture_output=True,
             check=True,
+            shell=False,
         )
         subprocess.run(
-            ["git", "config", "user.name", "Test User"],
+            [GIT, "config", "user.name", "Test User"],
             cwd=tmp_path,
             capture_output=True,
             check=True,
+            shell=False,
         )
         subprocess.run(
-            ["git", "config", "commit.gpgSign", "false"],
+            [GIT, "config", "commit.gpgSign", "false"],
             cwd=tmp_path,
             capture_output=True,
             check=True,
+            shell=False,
         )
 
         claude_md = tmp_path / "CLAUDE.md"
@@ -384,16 +403,18 @@ class TestConflictDetection:
 
         # Commit initial version
         subprocess.run(
-            ["git", "add", "CLAUDE.md"],
+            [GIT, "add", "CLAUDE.md"],
             cwd=tmp_path,
             capture_output=True,
             check=True,
+            shell=False,
         )
         subprocess.run(
-            ["git", "commit", "-m", "Initial commit"],
+            [GIT, "commit", "-m", "Initial commit"],
             cwd=tmp_path,
             capture_output=True,
             check=True,
+            shell=False,
         )
 
         # Manual edit

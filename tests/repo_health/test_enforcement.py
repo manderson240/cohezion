@@ -5,10 +5,14 @@ They should fail initially (documenting current state),
 then pass as fixes are applied.
 """
 
+import shutil
 import subprocess
 from pathlib import Path
 
 import pytest
+
+RUFF = shutil.which("ruff") or "ruff"
+GIT = shutil.which("git") or "git"
 
 
 # These tests are aspirational: the module docstring explicitly states they
@@ -34,10 +38,11 @@ class TestCriticalLintErrors:
     def test_no_bare_except_clauses(self):
         """E722: Bare except clauses are dangerous - catch specific exceptions."""
         result = subprocess.run(
-            ["ruff", "check", "--select", "E722", "."],
+            [RUFF, "check", "--select", "E722", "."],
             cwd=PROJECT_ROOT,
             capture_output=True,
             text=True,
+            shell=False,
         )
         assert result.returncode == 0, f"Bare except clauses found:\n{result.stdout}"
 
@@ -45,10 +50,11 @@ class TestCriticalLintErrors:
     def test_no_undefined_names(self):
         """F821: Undefined names will cause NameError at runtime."""
         result = subprocess.run(
-            ["ruff", "check", "--select", "F821", "."],
+            [RUFF, "check", "--select", "F821", "."],
             cwd=PROJECT_ROOT,
             capture_output=True,
             text=True,
+            shell=False,
         )
         assert result.returncode == 0, f"Undefined names found:\n{result.stdout}"
 
@@ -56,10 +62,11 @@ class TestCriticalLintErrors:
     def test_no_import_star_undefined(self):
         """F405: from X import * may hide undefined names."""
         result = subprocess.run(
-            ["ruff", "check", "--select", "F405", "."],
+            [RUFF, "check", "--select", "F405", "."],
             cwd=PROJECT_ROOT,
             capture_output=True,
             text=True,
+            shell=False,
         )
         assert result.returncode == 0, f"Import star issues found:\n{result.stdout}"
 
@@ -72,10 +79,11 @@ class TestHighPriorityStyle:
         """E501: Core modules must respect 100 character limit."""
         core_path = PROJECT_ROOT / "src" / "cohezion"
         result = subprocess.run(
-            ["ruff", "check", "--select", "E501", str(core_path)],
+            [RUFF, "check", "--select", "E501", str(core_path)],
             cwd=PROJECT_ROOT,
             capture_output=True,
             text=True,
+            shell=False,
         )
         assert result.returncode == 0, f"Line too long in core modules:\n{result.stdout}"
 
@@ -83,10 +91,11 @@ class TestHighPriorityStyle:
     def test_no_implicit_optional(self):
         """RUF013: PEP 484 requires explicit Optional[T] instead of implicit."""
         result = subprocess.run(
-            ["ruff", "check", "--select", "RUF013", "."],
+            [RUFF, "check", "--select", "RUF013", "."],
             cwd=PROJECT_ROOT,
             capture_output=True,
             text=True,
+            shell=False,
         )
         assert result.returncode == 0, f"Implicit Optional found:\n{result.stdout}"
 
@@ -99,10 +108,11 @@ class TestImportOrganization:
         """I001: Imports should be sorted in core modules."""
         core_path = PROJECT_ROOT / "src" / "cohezion"
         result = subprocess.run(
-            ["ruff", "check", "--select", "I001", str(core_path)],
+            [RUFF, "check", "--select", "I001", str(core_path)],
             cwd=PROJECT_ROOT,
             capture_output=True,
             text=True,
+            shell=False,
         )
         assert result.returncode == 0, f"Unsorted imports in core:\n{result.stdout}"
 
@@ -111,10 +121,11 @@ class TestImportOrganization:
         """F401: No unused imports in core modules."""
         core_path = PROJECT_ROOT / "src" / "cohezion"
         result = subprocess.run(
-            ["ruff", "check", "--select", "F401", str(core_path)],
+            [RUFF, "check", "--select", "F401", str(core_path)],
             cwd=PROJECT_ROOT,
             capture_output=True,
             text=True,
+            shell=False,
         )
         assert result.returncode == 0, f"Unused imports in core:\n{result.stdout}"
 
@@ -127,10 +138,11 @@ class TestSubmoduleHealth:
         """anthropic-delivery submodule should be clean."""
         submodule_path = PROJECT_ROOT / "anthropic-delivery"
         result = subprocess.run(
-            ["git", "status", "--porcelain"],
+            [GIT, "status", "--porcelain"],
             cwd=submodule_path,
             capture_output=True,
             text=True,
+            shell=False,
         )
         assert result.stdout.strip() == "", f"Submodule has uncommitted changes:\n{result.stdout}"
 
