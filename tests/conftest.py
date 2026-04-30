@@ -59,20 +59,22 @@ def git_repo(tmp_path: Path) -> Path:
 
     Returns the repo root path.
     """
+    git_cmd = shutil.which("git") or "git"
     _run = lambda cmd: subprocess.run(
         cmd,
         cwd=tmp_path,
         capture_output=True,
         check=True,
+        shell=False,
     )
-    _run(["git", "init"])
-    _run(["git", "config", "user.email", "test@cohezion.dev"])
-    _run(["git", "config", "user.name", "Test User"])
-    _run(["git", "config", "commit.gpgsign", "false"])
+    _run([git_cmd, "init"])
+    _run([git_cmd, "config", "user.email", "test@cohezion.dev"])
+    _run([git_cmd, "config", "user.name", "Test User"])
+    _run([git_cmd, "config", "commit.gpgsign", "false"])
     # Create initial commit so HEAD exists
     (tmp_path / ".gitkeep").write_text("")
-    _run(["git", "add", ".gitkeep"])
-    _run(["git", "commit", "-m", "initial"])
+    _run([git_cmd, "add", ".gitkeep"])
+    _run([git_cmd, "commit", "-m", "initial"])
     return tmp_path
 
 

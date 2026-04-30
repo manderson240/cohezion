@@ -48,6 +48,7 @@ def _run_script(*args: str) -> subprocess.CompletedProcess:
         capture_output=True,
         text=True,
         cwd=str(_PROJECT_ROOT),
+        shell=False,
     )
 
 

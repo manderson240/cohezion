@@ -19,6 +19,7 @@ def _run(target: Path) -> tuple[int, str]:
         capture_output=True,
         text=True,
         timeout=10,
+        shell=False,
     )
     return result.returncode, result.stderr
 
@@ -118,6 +119,7 @@ def test_usage_message(tmp_path):
         capture_output=True,
         text=True,
         timeout=10,
+        shell=False,
     )
     assert result.returncode == 2
 

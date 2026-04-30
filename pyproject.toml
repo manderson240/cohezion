@@ -176,6 +176,11 @@ ignore = [
     "S101",  # Allow assert in tests
     "S105",  # Allow hardcoded passwords in tests
     "S106",  # Allow hardcoded passwords in tests
+    # S603 fires on variable-argument subprocess calls — ruff cannot statically
+    # verify that shutil.which()-resolved paths or sys.executable are safe
+    # (astral-sh/ruff#4045). Tests use these patterns extensively for git/ruff
+    # invocations; the inputs are not user-controlled.
+    "S603",
 ]
 "src/cohezion/traceability/plan_graph.py" = [
     "S608",  # SurrealQL uses record ID interpolation (plan:{slug}), not user input
