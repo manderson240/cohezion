@@ -32,6 +32,7 @@ from cohezion.reliability.monitor import get_resource_monitor
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
 from cohezion.flume.mnm import SCENARIO_MANIFOLDS
+from cohezion.simulation.analysis_prime import SimulationAnalyzer
 from cohezion.simulation.simulation_logger import SimulationLogger
 
 
@@ -41,8 +42,6 @@ logging.basicConfig(
     handlers=[logging.FileHandler("fractal_universe.log"), logging.StreamHandler()],
 )
 logger = logging.getLogger("FractalNexus")
-
-from cohezion.simulation.analysis_prime import SimulationAnalyzer
 
 
 # Constants

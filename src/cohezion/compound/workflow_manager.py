@@ -13,9 +13,6 @@ import subprocess
 from dataclasses import dataclass, field
 from datetime import date
 
-
-_OLLAMA = shutil.which("ollama") or "/usr/local/bin/ollama"
-
 from cohezion.compound.capability_matrix import (
     CapabilityGap,
     CapabilityMatrix,
@@ -23,6 +20,7 @@ from cohezion.compound.capability_matrix import (
 )
 
 
+_OLLAMA = shutil.which("ollama") or "/usr/local/bin/ollama"
 logger = logging.getLogger(__name__)
 
 

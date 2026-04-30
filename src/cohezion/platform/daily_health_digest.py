@@ -15,12 +15,6 @@ from enum import StrEnum
 
 from pydantic import BaseModel
 
-
-# Resolve external executable paths at module load to avoid S607 partial-path warnings.
-_DU = shutil.which("du") or "/usr/bin/du"
-_BASH = shutil.which("bash") or "/bin/bash"
-_GIT = shutil.which("git") or "/usr/bin/git"
-
 from cohezion.core.persistence.surreal_client import get_surreal_client
 from cohezion.platform.coherence_tracker import (
     CoherenceMetrics,
@@ -29,6 +23,12 @@ from cohezion.platform.coherence_tracker import (
 from cohezion.platform.edl_router import get_edl_router
 from cohezion.platform.journey_logger import get_journey_logger
 from cohezion.platform.observable_action import get_observable_proposer
+
+
+# Resolve external executable paths at module load to avoid S607 partial-path warnings.
+_DU = shutil.which("du") or "/usr/bin/du"
+_BASH = shutil.which("bash") or "/bin/bash"
+_GIT = shutil.which("git") or "/usr/bin/git"
 
 
 class HealthStatus(StrEnum):

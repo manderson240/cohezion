@@ -180,6 +180,33 @@ ignore = [
 "src/cohezion/traceability/plan_graph.py" = [
     "S608",  # SurrealQL uses record ID interpolation (plan:{slug}), not user input
 ]
+
+# Intentional late imports — documented reasons:
+# executor.py: backward-compat re-export of ExecutorFactory (moved to executor_factory.py)
+"src/cohezion/compound/executor.py" = ["E402"]
+# embedding_provider.py, grid_encoder.py: optional heavy deps (httpx, json) loaded
+# after the provider factory function to avoid import cost when provider unused
+"src/cohezion/flume/embedding_provider.py" = ["E402"]
+"src/cohezion/flume/grid_encoder.py" = ["E402"]
+# Provider auto-registration: import must come after class definition
+"src/cohezion/swarm/providers/gemini_provider.py" = ["E402"]
+"src/cohezion/swarm/providers/ollama_provider.py" = ["E402"]
+# r_zero_evolver.py: conditional GENERATION_PROMPT loading before cohezion imports
+"src/cohezion/swarm/r_zero_evolver.py" = ["E402"]
+
+# Test files: pytestmark skip/xfail marker placed before cohezion imports.
+# This is a legitimate pytest pattern — the marker must be a module-level statement
+# before test collection; the imports below it are intentionally deferred.
+"tests/flume/test_cli_train.py" = ["E402"]
+"tests/flume/test_integration_e2e.py" = ["E402"]
+"tests/flume/test_integration_v2.py" = ["E402"]
+"tests/flume/test_train_vae_v2.py" = ["E402"]
+"tests/flume/test_vae_encoder.py" = ["E402"]
+"tests/flume/test_vae_v2.py" = ["E402"]
+"tests/sandbox/test_isolation.py" = ["E402"]
+"tests/universe/test_engine.py" = ["E402"]
+"tests/universe/test_sandbox_backends.py" = ["E402"]
+
 # Import sorting configuration
 [tool.ruff.lint.isort]
 known-first-party = ["cohezion"]
