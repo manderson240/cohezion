@@ -331,14 +331,14 @@ if __name__ == "__main__":
         except Exception as e:
             return {"error": str(e)}
 
-    def export_notebook(self, report_id: str, format: str) -> dict[str, Any]:
+    def export_notebook(self, report_id: str, export_format: str) -> dict[str, Any]:
         """Export notebook to different formats."""
         report = self.reports.get(report_id)
         if not report or not report.notebook_path:
             return {"error": "Report not found"}
 
         try:
-            if format == "html":
+            if export_format == "html":
                 output_path = self.output_dir / f"{report_id}.html"
                 # Would run: marimo export html report.py -o report.html
                 return {
@@ -346,7 +346,7 @@ if __name__ == "__main__":
                     "path": str(output_path),
                     "status": "exported",
                 }
-            elif format == "wasm":
+            elif export_format == "wasm":
                 output_path = self.output_dir / f"{report_id}-wasm"
                 # Would run: marimo export wasm report.py -o report-wasm/
                 return {
@@ -355,7 +355,7 @@ if __name__ == "__main__":
                     "status": "exported",
                 }
             else:
-                return {"error": f"Unsupported format: {format}"}
+                return {"error": f"Unsupported format: {export_format}"}
         except Exception as e:
             return {"error": str(e)}
 

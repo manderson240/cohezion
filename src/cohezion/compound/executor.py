@@ -43,6 +43,10 @@ else:
 
 logger = logging.getLogger(__name__)
 
+# Module-level set to retain references to background tasks (RUF006 compliance).
+# Without a strong reference, asyncio may garbage-collect the task before it completes.
+_BACKGROUND_TASKS: set[asyncio.Task] = set()
+
 
 @dataclass
 class ExecutionResult:
@@ -928,12 +932,14 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
                         exec_id = f"exec_{int(time.time())}"
                         try:
                             asyncio.get_running_loop()
-                            _task = asyncio.ensure_future(
+                            task = asyncio.ensure_future(
                                 self._journey_persistence.save_trajectory_point(
                                     exec_id,
                                     point_data,
                                 )
                             )
+                            _BACKGROUND_TASKS.add(task)
+                            task.add_done_callback(_BACKGROUND_TASKS.discard)
                         except RuntimeError:
                             asyncio.run(
                                 self._journey_persistence.save_trajectory_point(

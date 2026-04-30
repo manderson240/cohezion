@@ -20,7 +20,7 @@ from pathlib import Path
 
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
+from torch.nn import functional as nn_functional
 from transformers import PretrainedConfig, PreTrainedModel
 
 
@@ -235,7 +235,7 @@ class FlumeEncoder(PreTrainedModel):
             with torch.no_grad():
                 logits = self.decoder(z, tokens)
                 next_logits = logits[:, -1, :] / temperature
-                probs = F.softmax(next_logits, dim=-1)
+                probs = nn_functional.softmax(next_logits, dim=-1)
                 next_token = torch.multinomial(probs, 1)
                 tokens = torch.cat([tokens, next_token], dim=1)
 
@@ -277,7 +277,7 @@ class FlumeEncoder(PreTrainedModel):
         if not isinstance(pad_token_id, int):
             pad_token_id = -100
 
-        loss = F.cross_entropy(
+        loss = nn_functional.cross_entropy(
             shift_logits.view(-1, self.config.vocab_size),
             shift_labels.view(-1),
             ignore_index=pad_token_id,
@@ -381,8 +381,8 @@ class FlumeEncoder(PreTrainedModel):
         if text_b.dim() > 1:
             text_b = text_b.flatten()
 
-        a_norm = F.normalize(text_a, dim=0)
-        b_norm = F.normalize(text_b, dim=0)
+        a_norm = nn_functional.normalize(text_a, dim=0)
+        b_norm = nn_functional.normalize(text_b, dim=0)
         return torch.dot(a_norm, b_norm).item()
 
     def save(self, path: Path | str) -> None:

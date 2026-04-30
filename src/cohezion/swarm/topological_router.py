@@ -33,7 +33,7 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass
-from enum import Enum
+from enum import StrEnum
 
 import numpy as np
 from scipy.spatial.distance import pdist, squareform
@@ -81,7 +81,7 @@ class SpectralFeatures:
         }
 
 
-class TopologicalRegime(str, Enum):
+class TopologicalRegime(StrEnum):
     """Agent behavioral regime determined by trajectory topology."""
 
     EXPLOIT = "exploit"  # Stable cluster — send familiar tasks

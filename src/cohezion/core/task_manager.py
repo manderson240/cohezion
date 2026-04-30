@@ -21,6 +21,9 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger(__name__)
 
+# Module-level set to retain references to background cleanup tasks (RUF006).
+_BACKGROUND_TASKS: set[asyncio.Task] = set()
+
 
 class TaskStatus(Enum):
     """Task execution status."""
@@ -163,7 +166,9 @@ class TaskManager:
 
                     finally:
                         # Cleanup after a delay to allow status inspection
-                        asyncio.create_task(self._delayed_cleanup(task_id))
+                        cleanup_task = asyncio.create_task(self._delayed_cleanup(task_id))
+                        _BACKGROUND_TASKS.add(cleanup_task)
+                        cleanup_task.add_done_callback(_BACKGROUND_TASKS.discard)
 
             # Create and store task
             task = asyncio.create_task(wrapped(), name=task_id)

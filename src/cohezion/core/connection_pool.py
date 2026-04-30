@@ -16,13 +16,16 @@ from typing import Any, Protocol
 
 logger = logging.getLogger(__name__)
 
+# Module-level set to retain references to background tasks (RUF006).
+_BACKGROUND_TASKS: set[asyncio.Task] = set()
+
 
 class SurrealClientProtocol(Protocol):
     """Protocol for SurrealDB client interface."""
 
     async def connect(self) -> None: ...
     async def close(self) -> None: ...
-    async def query(self, sql: str, vars: dict[str, Any] | None = None) -> Any: ...
+    async def query(self, sql: str, variables: dict[str, Any] | None = None) -> Any: ...
     async def create(self, table: str, data: dict[str, Any]) -> Any: ...
     async def update(self, thing: str, data: dict[str, Any]) -> Any: ...
 
@@ -103,7 +106,9 @@ class ConnectionPool:
     def _initialize_pool(self) -> None:
         """Initialize connection pool with minimum size."""
         for _ in range(self.config.min_size):
-            asyncio.create_task(self._create_connection())
+            task = asyncio.create_task(self._create_connection())
+            _BACKGROUND_TASKS.add(task)
+            task.add_done_callback(_BACKGROUND_TASKS.discard)
 
     async def _create_connection(self) -> PooledConnection:
         """Create a new connection with health checking."""
@@ -274,7 +279,9 @@ class ConnectionPool:
 
             # Auto-scale if needed
             if self._metrics["acquired"] % 10 == 0:  # Scale every 10 acquisitions
-                asyncio.create_task(self._scale_pool())
+                task = asyncio.create_task(self._scale_pool())
+                _BACKGROUND_TASKS.add(task)
+                task.add_done_callback(_BACKGROUND_TASKS.discard)
 
             return connection
 

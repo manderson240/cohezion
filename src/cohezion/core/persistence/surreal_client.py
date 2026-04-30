@@ -410,7 +410,7 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
             logger.error("Create failed in %s: %s", table, e, exc_info=True)
             raise
 
-    async def query(self, sql: str, vars: dict[str, Any] | None = None) -> Any:
+    async def query(self, sql: str, variables: dict[str, Any] | None = None) -> Any:
         """Execute a raw SQL query against the database."""
         if not self._connected:
             await self.connect()
@@ -420,24 +420,24 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
             if isinstance(self._client, InMemoryStore):
                 # Basic mock for mission/thought queries
                 if "CREATE missions" in sql or "CREATE agent_journey" in sql:
-                    data = vars.get("data") if vars else vars
+                    data = variables.get("data") if variables else variables
                     if data:
                         # Extract the bare ID from table:id if present
                         bare_id = data["id"].split(":")[-1] if ":" in data["id"] else data["id"]
                         self._client.store(bare_id, data)
                     return [data]
                 if "CREATE agent_thought" in sql:
-                    data = vars.get("data") if vars else vars
+                    data = variables.get("data") if variables else variables
                     if data:
                         self._client.store(data["id"], data)
                     return [data]
                 if "CREATE velocity_events" in sql:
-                    data = vars.get("data") if vars else vars
+                    data = variables.get("data") if variables else variables
                     if data:
                         self._client.store(f"event_{int(time.time() * 1000)}", data)
                     return [data]
                 if "FROM missions" in sql or "FROM agent_journey" in sql:
-                    mission_id = vars.get("id") if vars else None
+                    mission_id = variables.get("id") if variables else None
                     if not mission_id:
                         # Try to extract from SQL table:id
                         match = re.search(r"FROM\s+[\w`]+:([\w-]+)", sql)
@@ -511,8 +511,8 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
                             field = match_where.group(1)
                             var_name = match_where.group(2)
 
-                            if var_name in vars:
-                                target_value = vars[var_name]
+                            if var_name in variables:
+                                target_value = variables[var_name]
                                 all_items = self._client.get_all(
                                     1000
                                 )  # Assuming all items are nodes for now
@@ -528,7 +528,7 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
                 logger.warning("Query not supported in InMemoryStore")
                 return []
 
-            res = await self._client.query(sql, vars)
+            res = await self._client.query(sql, variables)
             breaker.record_success()
             logger.info(f"SurrealDB Response: {res}")
             return res

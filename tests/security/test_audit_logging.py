@@ -292,7 +292,7 @@ class TestAuditLoggerExport:
         json_export = audit_logger.export_for_compliance(
             start_date=now - timedelta(days=1),
             end_date=now + timedelta(days=1),
-            format="json",
+            export_format="json",
         )
 
         data = json.loads(json_export)
@@ -316,7 +316,7 @@ class TestAuditLoggerExport:
         csv_export = audit_logger.export_for_compliance(
             start_date=now - timedelta(days=1),
             end_date=now + timedelta(days=1),
-            format="csv",
+            export_format="csv",
         )
 
         assert "agent-1" in csv_export
@@ -331,7 +331,7 @@ class TestAuditLoggerExport:
             audit_logger.export_for_compliance(
                 start_date=now,
                 end_date=now,
-                format="xml",
+                export_format="xml",
             )
 
 

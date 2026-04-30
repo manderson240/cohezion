@@ -325,7 +325,7 @@ class TestMultiStrategyComparison:
         )
 
         # Should be identical
-        for (m1, s1), (m2, s2) in zip(ranking1, ranking2):
+        for (m1, s1), (m2, s2) in zip(ranking1, ranking2, strict=True):
             assert m1 == m2
             assert s1.composite_score == s2.composite_score
 
@@ -721,7 +721,7 @@ class TestRankingConsistency:
 
         # All should be identical
         for ranking in rankings[1:]:
-            for (m1, s1), (m2, s2) in zip(rankings[0], ranking):
+            for (m1, s1), (m2, s2) in zip(rankings[0], ranking, strict=True):
                 assert m1 == m2
                 assert abs(s1.composite_score - s2.composite_score) < 1e-10
 

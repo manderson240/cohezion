@@ -69,7 +69,7 @@ class TestEndToEndGraphExecution:
             return {"summary": f"Report with {len(insights)} insights"}
 
         # Register nodes by task ID
-        for node_spec, fn in zip(wf.nodes, [find_papers, analyze, write_summary]):
+        for node_spec, fn in zip(wf.nodes, [find_papers, analyze, write_summary], strict=True):
             engine.register_node(CustomNode(node_spec, forward_fn=fn))
 
         # Execute the workflow
@@ -110,7 +110,7 @@ class TestEndToEndGraphExecution:
         async def merge_fn(inputs):
             return {"result": inputs.get("a_val", 0) + inputs.get("b_val", 0)}
 
-        for spec, fn in zip(wf.nodes, [init_fn, branch_a, branch_b, merge_fn]):
+        for spec, fn in zip(wf.nodes, [init_fn, branch_a, branch_b, merge_fn], strict=True):
             engine.register_node(CustomNode(spec, forward_fn=fn))
 
         result = await engine.execute(wf, {})

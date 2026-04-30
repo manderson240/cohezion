@@ -107,7 +107,7 @@ def is_cohezion_environment() -> bool:
     # Continue with other detection methods on failure
     with contextlib.suppress(Exception):
         cwd = Path.cwd()
-        for parent in [cwd] + list(cwd.parents):
+        for parent in [cwd, *cwd.parents]:
             if any(
                 (parent / marker).exists()
                 for marker in ["src/cohezion/__init__.py", "pyproject.toml"]
@@ -158,7 +158,7 @@ def initialize_cohezion_environment() -> bool:
             # Verify it looks like a Cohezion project
             if not (project_root / "src" / "cohezion").exists():
                 # Try to find Cohezion root by looking up the directory tree
-                for parent in [project_root] + list(project_root.parents):
+                for parent in [project_root, *project_root.parents]:
                     if (parent / "src" / "cohezion").exists():
                         project_root = parent
                         break

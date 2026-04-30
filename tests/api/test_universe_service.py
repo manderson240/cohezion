@@ -180,7 +180,8 @@ class TestPerturbations:
         after_evos = resp.json()["evo_states"]
         # At least one EVO should have higher charge
         assert any(
-            a["charge_density"] > b["charge_density"] for a, b in zip(after_evos, before_evos)
+            a["charge_density"] > b["charge_density"]
+            for a, b in zip(after_evos, before_evos, strict=True)
         )
 
     def test_ca_reset_clears_grid(self, client: TestClient) -> None:

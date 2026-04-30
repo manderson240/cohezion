@@ -113,8 +113,8 @@ class RiemannianMetric:
             for j in range(n):
                 for k in range(n):
                     s = 0.0
-                    for l in range(n):
-                        s += g_inv[i, l] * (dg[j, l, k] + dg[k, j, l] - dg[l, j, k])
+                    for ll in range(n):
+                        s += g_inv[i, ll] * (dg[j, ll, k] + dg[k, j, ll] - dg[ll, j, k])
                     gamma[i, j, k] = 0.5 * s
 
         return gamma
@@ -197,19 +197,19 @@ class RiemannianMetric:
         # Ricci tensor R_jl = R^i_jil
         ricci = np.zeros((n, n))
         for j in range(n):
-            for l in range(n):
+            for ll in range(n):
                 for i in range(n):
-                    ricci[j, l] += dgamma[i, i, j, l] - dgamma[l, i, j, i]
+                    ricci[j, ll] += dgamma[i, i, j, ll] - dgamma[ll, i, j, i]
                     for m in range(n):
-                        ricci[j, l] += (
-                            gamma[i, i, m] * gamma[m, j, l] - gamma[i, l, m] * gamma[m, j, i]
+                        ricci[j, ll] += (
+                            gamma[i, i, m] * gamma[m, j, ll] - gamma[i, ll, m] * gamma[m, j, i]
                         )
 
         # Ricci scalar R = g^jl R_jl
         R = 0.0
         for j in range(n):
-            for l in range(n):
-                R += g_inv[j, l] * ricci[j, l]
+            for ll in range(n):
+                R += g_inv[j, ll] * ricci[j, ll]
 
         return float(R)
 

@@ -1,5 +1,5 @@
 import torch
-import torch.nn.functional as F
+from torch.nn import functional as nn_functional
 
 
 def lerp(z1: torch.Tensor, z2: torch.Tensor, alpha: float) -> torch.Tensor:
@@ -67,5 +67,5 @@ def similarity_score(z1: torch.Tensor, z2: torch.Tensor) -> float:
         float: Similarity score.
     """
     # Use existing manifold utility if possible, but for primitives:
-    cos_sim = F.cosine_similarity(z1.flatten(), z2.flatten(), dim=0)
+    cos_sim = nn_functional.cosine_similarity(z1.flatten(), z2.flatten(), dim=0)
     return float((cos_sim + 1.0) / 2.0)

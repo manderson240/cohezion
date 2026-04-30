@@ -41,6 +41,9 @@ from typing import ClassVar, Optional
 
 logger = logging.getLogger(__name__)
 
+# Module-level set to retain references to background tasks (RUF006).
+_BACKGROUND_TASKS: set[asyncio.Task] = set()
+
 
 class BudgetPolicy(Enum):
     """Budget enforcement policy."""
@@ -294,7 +297,9 @@ class BudgetEnforcer:
         # Log alert if present (async, non-blocking)
         if alert:
             try:
-                asyncio.create_task(self._log_alert_async(alert))
+                task = asyncio.create_task(self._log_alert_async(alert))
+                _BACKGROUND_TASKS.add(task)
+                task.add_done_callback(_BACKGROUND_TASKS.discard)
             except RuntimeError:
                 # No event loop, log synchronously
                 logger.warning(alert)

@@ -36,7 +36,7 @@ import contextlib
 import logging
 import multiprocessing as mp
 from dataclasses import dataclass
-from enum import Enum
+from enum import StrEnum
 from typing import Any
 
 import numpy as np
@@ -330,7 +330,7 @@ class AsyncVectorizedHihoEnv:
 # ---------------------------------------------------------------------------
 
 
-class ScheduleType(str, Enum):
+class ScheduleType(StrEnum):
     """Curriculum difficulty schedule types."""
 
     LINEAR = "linear"
