@@ -18,6 +18,7 @@ import json
 import logging
 import shutil
 import subprocess
+import tempfile
 import time
 import uuid
 from collections import defaultdict
@@ -386,7 +387,7 @@ class JsonlSnapshotBackend(SnapshotBackend):
 
     def __init__(self, metadata_dir: Path | None = None):
         """Initialize with metadata directory."""
-        self.metadata_dir = metadata_dir or Path("/tmp/rollback_snapshots")
+        self.metadata_dir = metadata_dir or Path(tempfile.gettempdir()) / "rollback_snapshots"
         self.metadata_dir.mkdir(parents=True, exist_ok=True)
 
     def create_snapshot(self, snapshot_id: str, working_dir: Path) -> bool:
@@ -500,7 +501,8 @@ class Transaction:
 
         # Audit log
         self.audit_log = AuditLog(
-            config.audit_log_path or Path(f"/tmp/rollback_audit_{transaction_id}.jsonl")
+            config.audit_log_path
+            or Path(tempfile.gettempdir()) / f"rollback_audit_{transaction_id}.jsonl"
         )
 
         # Snapshots

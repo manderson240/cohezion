@@ -3,7 +3,9 @@
 import asyncio
 import json
 import logging
+import os
 import subprocess
+import tempfile
 import time
 from collections.abc import Callable
 from dataclasses import asdict, dataclass, field
@@ -113,7 +115,7 @@ class SandboxRequest:
     should_rollback_on_failure: bool = True
     cleanup_on_exit: bool = True
     environment: dict[str, str] = field(default_factory=dict)
-    working_dir: str = "/tmp/sandbox"
+    working_dir: str = field(default_factory=lambda: os.path.join(tempfile.gettempdir(), "sandbox"))
     file_whitelist: list[str] = field(default_factory=list)
 
     def __post_init__(self):

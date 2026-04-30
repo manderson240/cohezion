@@ -8,7 +8,9 @@ no I/O against the registries — those live in other ``mcp_*`` modules.
 from __future__ import annotations
 
 import json
+import os
 import subprocess
+import tempfile
 from typing import Any
 
 
@@ -351,7 +353,9 @@ def pocket_tts_generate(args: dict[str, Any]) -> dict[str, Any]:
     try:
         text = args.get("text")
         voice = args.get("voice", "alba")
-        output_path = args.get("output_path", "/tmp/pocket_tts_output.wav")
+        output_path = args.get(
+            "output_path", os.path.join(tempfile.gettempdir(), "pocket_tts_output.wav")
+        )
         _speed = args.get("speed", 1.0)
 
         if not text:

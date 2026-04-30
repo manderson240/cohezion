@@ -305,7 +305,7 @@ class TestHookRegistry:
             stage=HookStage.PRE_EXECUTE,
             action=HookAction.ALLOW,
         )
-        hook = Hook(path=Path("/tmp/test.sh"), metadata=metadata)
+        hook = Hook(path=Path(tempfile.gettempdir()) / "test.sh", metadata=metadata)
 
         registry.register_hook(hook)
 
@@ -318,7 +318,7 @@ class TestHookRegistry:
 
         # Register hooks for different stages
         hook1 = Hook(
-            path=Path("/tmp/hook1.sh"),
+            path=Path(tempfile.gettempdir()) / "hook1.sh",
             metadata=HookMetadata(
                 name="hook1",
                 stage=HookStage.PRE_EXECUTE,
@@ -326,7 +326,7 @@ class TestHookRegistry:
             ),
         )
         hook2 = Hook(
-            path=Path("/tmp/hook2.sh"),
+            path=Path(tempfile.gettempdir()) / "hook2.sh",
             metadata=HookMetadata(
                 name="hook2",
                 stage=HookStage.PRE_EXECUTE,
@@ -334,7 +334,7 @@ class TestHookRegistry:
             ),
         )
         hook3 = Hook(
-            path=Path("/tmp/hook3.sh"),
+            path=Path(tempfile.gettempdir()) / "hook3.sh",
             metadata=HookMetadata(
                 name="hook3",
                 stage=HookStage.POST_OPERATION,
@@ -356,7 +356,7 @@ class TestHookRegistry:
         """Test disabling a hook."""
         registry = HookRegistry()
         hook = Hook(
-            path=Path("/tmp/test.sh"),
+            path=Path(tempfile.gettempdir()) / "test.sh",
             metadata=HookMetadata(
                 name="test",
                 stage=HookStage.PRE_EXECUTE,
@@ -384,7 +384,7 @@ class TestHookRegistry:
         # Register multiple hooks
         for i in range(3):
             hook = Hook(
-                path=Path(f"/tmp/hook{i}.sh"),
+                path=Path(tempfile.gettempdir()) / f"hook{i}.sh",
                 metadata=HookMetadata(
                     name=f"hook{i}",
                     stage=HookStage.PRE_EXECUTE,
@@ -643,7 +643,7 @@ class TestHookIntegrationFast:
             stage=HookStage.PRE_EXECUTE,
             action=HookAction.ALLOW,
         )
-        hook = Hook(path=Path("/tmp/test.sh"), metadata=metadata)
+        hook = Hook(path=Path(tempfile.gettempdir()) / "test.sh", metadata=metadata)
 
         assert hook.metadata.name == "test"
         data = hook.to_dict()

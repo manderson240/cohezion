@@ -21,6 +21,7 @@ import json
 import logging
 import shutil
 import subprocess
+import tempfile
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -83,7 +84,7 @@ class UniverseGenealogySurvey:
     def __init__(
         self,
         cohezion_root: Path | None = None,
-        output_dir: Path = Path("/tmp/cohezion_universe_genealogy"),
+        output_dir: Path = Path(tempfile.gettempdir()) / "cohezion_universe_genealogy",
     ):
         """Initialize genealogy survey."""
         if cohezion_root is None:

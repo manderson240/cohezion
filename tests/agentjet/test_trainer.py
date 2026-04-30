@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import tempfile
 from pathlib import Path
 from unittest.mock import AsyncMock, MagicMock, patch
 
@@ -113,7 +114,7 @@ async def test_llamafactory_backend_calls_local_finetuner(
     tasks = _make_tasks(2)
     mock_finetuner = MagicMock()
     mock_finetuner.run_qlora_training = MagicMock(
-        return_value=Path("/tmp/cohezion_general_v9999/train.sh")
+        return_value=Path(tempfile.gettempdir()) / "cohezion_general_v9999" / "train.sh"
     )
 
     with patch.object(trainer.reader, "read", return_value=tasks):
@@ -172,7 +173,7 @@ def test_training_result_dataclass_fields() -> None:
         samples_used=50,
         avg_reward=0.75,
         training_duration_s=120.5,
-        output_path=Path("/tmp/output"),
+        output_path=Path(tempfile.gettempdir()) / "output",
     )
     assert result.success is True
     assert result.dry_run is False  # default

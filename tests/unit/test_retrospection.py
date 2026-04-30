@@ -1,5 +1,6 @@
 """Tests for the RetrospectionEngine."""
 
+import tempfile
 from pathlib import Path
 
 import pytest
@@ -21,7 +22,7 @@ def engine():
 @pytest.fixture
 def engine_missing():
     """Create engine pointing at nonexistent directory."""
-    return RetrospectionEngine(kg_dir=Path("/tmp/nonexistent_kg"))
+    return RetrospectionEngine(kg_dir=Path(tempfile.gettempdir()) / "nonexistent_kg")
 
 
 class TestAnalyzeLearnings:

@@ -3,6 +3,9 @@
 TDD: Validates routing logic, confidence scoring, and learning mechanism.
 """
 
+import os
+import tempfile
+
 import pytest
 
 from cohezion.governance.concierge import (
@@ -18,7 +21,8 @@ class TestConciergeRouting:
     def test_continue_routes_to_continuation(self):
         agent = ConciergeAgent()
         briefing = SessionBriefing(
-            continuation_task="Fix genesis bugs", continuation_path="/tmp/cont.md"
+            continuation_task="Fix genesis bugs",
+            continuation_path=os.path.join(tempfile.gettempdir(), "cont.md"),
         )
         suggestion = agent.route_prompt("continue", briefing)
         assert suggestion.action == "resume_continuation"
@@ -50,7 +54,10 @@ class TestConciergeAutonomyTiers:
 
     def test_continuation_gets_medium_autonomy(self):
         agent = ConciergeAgent()
-        briefing = SessionBriefing(continuation_task="Fix bugs", continuation_path="/tmp/c.md")
+        briefing = SessionBriefing(
+            continuation_task="Fix bugs",
+            continuation_path=os.path.join(tempfile.gettempdir(), "c.md"),
+        )
         suggestion = agent.route_prompt("resume", briefing)
         assert suggestion.autonomy_tier == "U(1)^4"
 

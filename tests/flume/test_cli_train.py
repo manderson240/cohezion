@@ -16,8 +16,10 @@ pytestmark = pytest.mark.skip(
 )
 
 import importlib.util
+import os
 import subprocess
 import sys
+import tempfile
 from pathlib import Path
 
 import numpy as np
@@ -96,7 +98,8 @@ class TestArgumentParsing:
         assert self._parse([]).evaluate is False
 
     def test_checkpoint_dir_flag(self):
-        assert self._parse(["--checkpoint-dir", "/tmp/ckpts"]).checkpoint_dir == "/tmp/ckpts"
+        ckpts = os.path.join(tempfile.gettempdir(), "ckpts")
+        assert self._parse(["--checkpoint-dir", ckpts]).checkpoint_dir == ckpts
 
     def test_require_ollama_flag(self):
         assert self._parse(["--require-ollama"]).require_ollama is True
@@ -105,24 +108,28 @@ class TestArgumentParsing:
         assert self._parse([]).require_ollama is False
 
     def test_save_data_flag(self):
-        assert self._parse(["--save-data", "/tmp/data.npz"]).save_data == "/tmp/data.npz"
+        data_path = os.path.join(tempfile.gettempdir(), "data.npz")
+        assert self._parse(["--save-data", data_path]).save_data == data_path
 
     def test_save_data_default_none(self):
         assert self._parse([]).save_data is None
 
     def test_load_data_flag(self):
-        assert self._parse(["--load-data", "/tmp/data.npz"]).load_data == "/tmp/data.npz"
+        data_path = os.path.join(tempfile.gettempdir(), "data.npz")
+        assert self._parse(["--load-data", data_path]).load_data == data_path
 
     def test_load_data_default_none(self):
         assert self._parse([]).load_data is None
 
     def test_load_checkpoint_flag(self):
-        assert self._parse(["--load-checkpoint", "/tmp/ckpt.pt"]).load_checkpoint == "/tmp/ckpt.pt"
+        ckpt_path = os.path.join(tempfile.gettempdir(), "ckpt.pt")
+        assert self._parse(["--load-checkpoint", ckpt_path]).load_checkpoint == ckpt_path
 
     def test_load_checkpoint_default_none(self):
         assert self._parse([]).load_checkpoint is None
 
     def test_combined_flags(self):
+        ck_path = os.path.join(tempfile.gettempdir(), "ck")
         args = self._parse(
             [
                 "--epochs",
@@ -135,7 +142,7 @@ class TestArgumentParsing:
                 "100",
                 "--evaluate",
                 "--checkpoint-dir",
-                "/tmp/ck",
+                ck_path,
             ]
         )
         assert args.epochs == 10
@@ -143,7 +150,7 @@ class TestArgumentParsing:
         assert abs(args.lr - 1e-4) < 1e-12
         assert args.n_samples == 100
         assert args.evaluate is True
-        assert args.checkpoint_dir == "/tmp/ck"
+        assert args.checkpoint_dir == ck_path
 
 
 # ---------------------------------------------------------------------------

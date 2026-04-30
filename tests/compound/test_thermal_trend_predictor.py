@@ -15,6 +15,7 @@ Tests cover:
 from __future__ import annotations
 
 import json
+import tempfile
 import time
 from pathlib import Path
 
@@ -358,7 +359,7 @@ class TestThermalTimeSeriesCollector:
 
     def test_load_jsonl_history_nonexistent(self):
         """Test loading from nonexistent file."""
-        samples = load_jsonl_history(Path("/tmp/nonexistent_thermal.jsonl"))
+        samples = load_jsonl_history(Path(tempfile.gettempdir()) / "nonexistent_thermal.jsonl")
         assert samples == []
 
     def test_load_jsonl_with_corrupted_lines(self, collector):

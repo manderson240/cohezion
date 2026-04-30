@@ -13,6 +13,8 @@ All external services (SurrealDB, vault filesystem, git subprocess) are mocked.
 
 from __future__ import annotations
 
+import os
+import tempfile
 from datetime import datetime
 from pathlib import Path
 from unittest.mock import AsyncMock
@@ -285,7 +287,7 @@ def test_search_knowledge_returns_top_k_ranked(tmp_path):
 
 def test_search_knowledge_empty_query_returns_empty():
     """Whitespace-only or short query should return []."""
-    engine = KnowledgeGraphQueryEngine(knowledge_dir=Path("/tmp"))
+    engine = KnowledgeGraphQueryEngine(knowledge_dir=Path(tempfile.gettempdir()))
     assert engine.search_knowledge("   ") == []
     # All terms < 3 chars are filtered out
     assert engine.search_knowledge("a b c") == []
@@ -301,7 +303,7 @@ def test_migration_dataclasses_construct_cleanly():
     artifact = ArtifactMetadata(
         artifact_id="a1",
         run_id="r1",
-        file_path="/tmp/x",
+        file_path=os.path.join(tempfile.gettempdir(), "x"),
         file_name="x.json",
         artifact_type="log",
         file_size_bytes=1024,
