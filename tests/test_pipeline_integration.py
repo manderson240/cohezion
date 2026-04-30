@@ -155,7 +155,7 @@ class TestCompositeRewardInEnv:
         from cohezion.rl.environment import FlumeNavEnv
 
         env = FlumeNavEnv(use_composite_reward=True)
-        obs, info = env.reset(seed=42)
+        _, info = env.reset(seed=42)
         assert "coherence" in info
 
         rewards = []
@@ -174,7 +174,7 @@ class TestCompositeRewardInEnv:
         from cohezion.rl.environment import FlumeNavEnv
 
         env = FlumeNavEnv(use_composite_reward=False)
-        obs, info = env.reset(seed=42)
+        env.reset(seed=42)
 
         action = env.action_space.sample()
         _obs, reward, _terminated, _truncated, _info = env.step(action)

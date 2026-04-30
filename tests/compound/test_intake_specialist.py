@@ -507,7 +507,7 @@ class TestIntakeSpecialistIntegration:
         intake = IntakeSpecialist(self.mcp_client)
 
         # Process several requests
-        for i in range(5):
+        for _i in range(5):
             request = "Generate ideas"
             task = await intake.process_request(request)
             intake.log_success(request, task)

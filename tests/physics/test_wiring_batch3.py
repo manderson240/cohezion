@@ -168,9 +168,9 @@ class TestManifoldEnvDynamicsToggle:
         from cohezion.environments.manifold_env import ManifoldEnv
 
         env = ManifoldEnv(dynamics_engine="lagrangian", seed=42)
-        obs, info = env.reset(seed=42)
+        _obs, _info = env.reset(seed=42)
         action = env.action_space.sample()
-        obs2, reward, terminated, truncated, info2 = env.step(action)
+        obs2, reward, _terminated, _truncated, _info2 = env.step(action)
         assert obs2.shape == (19,)
         assert isinstance(reward, float)
 
@@ -178,8 +178,8 @@ class TestManifoldEnvDynamicsToggle:
         from cohezion.environments.manifold_env import ManifoldEnv
 
         env = ManifoldEnv(dynamics_engine="hamiltonian", seed=42)
-        obs, info = env.reset(seed=42)
+        _obs, _info = env.reset(seed=42)
         action = env.action_space.sample()
-        obs2, reward, terminated, truncated, info2 = env.step(action)
+        obs2, reward, _terminated, _truncated, _info2 = env.step(action)
         assert obs2.shape == (19,)
         assert isinstance(reward, float)

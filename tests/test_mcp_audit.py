@@ -65,7 +65,7 @@ class TestMCPAdversarial:
     async def test_fuzz_health_endpoint(self):
         """Send junk to health endpoints."""
         async with aiohttp.ClientSession() as session:
-            for name, port in SERVER_PORTS.items():
+            for _name, port in SERVER_PORTS.items():
                 # Test with invalid methods
                 async with session.put(f"http://localhost:{port}/health", data="junk") as resp:
                     # Should either 405 or ignore

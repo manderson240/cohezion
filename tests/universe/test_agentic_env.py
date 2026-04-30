@@ -128,7 +128,7 @@ class TestAgenticEnvironment:
             tool_name="file_write",
             arguments={"path": "output.txt", "content": "hello world"},
         )
-        obs, reward, done, info = env.step(call)
+        obs, reward, _done, _info = env.step(call)
 
         assert obs.step_number == 1
         assert obs.tool_response is not None
@@ -137,26 +137,26 @@ class TestAgenticEnvironment:
 
     def test_step_with_text_action(self, env):
         env.reset()
-        obs, reward, done, info = env.step("I want to read the input file")
+        obs, _reward, _done, _info = env.step("I want to read the input file")
         assert obs.step_number == 1
         assert obs.tool_response is None
 
     def test_file_read_tool(self, env):
         env.reset()
         call = ToolCall(tool_name="file_read", arguments={"path": "input.txt"})
-        obs, reward, done, info = env.step(call)
+        obs, _reward, _done, _info = env.step(call)
         assert obs.tool_response.output == "some input data"
 
     def test_file_list_tool(self, env):
         env.reset()
         call = ToolCall(tool_name="file_list", arguments={})
-        obs, reward, done, info = env.step(call)
+        obs, _reward, _done, _info = env.step(call)
         assert "input.txt" in obs.tool_response.output
 
     def test_bash_echo_tool(self, env):
         env.reset()
         call = ToolCall(tool_name="bash", arguments={"command": "echo hello"})
-        obs, reward, done, info = env.step(call)
+        obs, _reward, _done, _info = env.step(call)
         assert obs.tool_response.result == ToolResult.SUCCESS
         assert "hello" in obs.tool_response.output
 
@@ -167,7 +167,7 @@ class TestAgenticEnvironment:
             tool_name="file_write",
             arguments={"path": "output.txt", "content": "hello world"},
         )
-        obs, reward, done, info = env.step(call)
+        _obs, reward, done, info = env.step(call)
 
         assert done  # Task should be complete
         assert info.get("terminal_reason") == "success"
@@ -178,8 +178,8 @@ class TestAgenticEnvironment:
         env = AgenticEnvironment(simple_scenario)
         env.reset()
 
-        for i in range(3):
-            obs, reward, done, info = env.step("noop action")
+        for _i in range(3):
+            _obs, _reward, done, info = env.step("noop action")
 
         assert done
         assert info.get("terminal_reason") == "max_steps"
@@ -198,7 +198,7 @@ class TestAgenticEnvironment:
         env.reset()
         # Try to read a nonexistent file
         call = ToolCall(tool_name="file_read", arguments={"path": "nonexistent.txt"})
-        obs, reward, done, info = env.step(call)
+        obs, reward, _done, _info = env.step(call)
 
         assert obs.tool_response.result == ToolResult.ERROR
         # Error should penalize reward

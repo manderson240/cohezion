@@ -169,6 +169,6 @@ class TestRegistration:
 
     def test_make_registered_env(self):
         env = gym.make("Cohezion/ManifoldEnv-v0")
-        obs, info = env.reset()
+        obs, _info = env.reset()
         assert obs.shape == (19,)
         env.close()

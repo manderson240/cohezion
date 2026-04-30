@@ -334,7 +334,7 @@ class TestSchemaIntegration:
     def test_schema_and_migrations_alignment(self):
         """[P1] Schema and migrations should align."""
         # Full schema should contain all migration table definitions
-        for name, migration in MIGRATIONS.items():
+        for _name, migration in MIGRATIONS.items():
             # Extract table name
             import re
 
@@ -364,7 +364,7 @@ class TestSchemaDocumentation:
 
     def test_migrations_have_comments(self):
         """[P1] Migrations should have comments."""
-        for name, migration in MIGRATIONS.items():
+        for name, _migration in MIGRATIONS.items():
             # Most migrations have a descriptive name
             parts = name.split("_")
             assert len(parts) >= 2  # e.g., "001_universe_journey"

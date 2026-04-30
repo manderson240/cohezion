@@ -182,7 +182,7 @@ class TestConcurrencyEdgeCases:
         router = CostAwareRouter()
         results = []
         for _ in range(100):
-            decision, can_proceed = router.select_model(query="concurrent")
+            decision, _can_proceed = router.select_model(query="concurrent")
             results.append(decision)
 
         assert len(results) == 100
@@ -247,7 +247,7 @@ class TestRoutingConsistencyEdgeCases:
         """Test routing with only one model (no fallback)."""
         fallback = ModelFallbackStrategy()
 
-        selected, is_fallback = fallback.select_model(
+        selected, _is_fallback = fallback.select_model(
             primary_model="only-model", available_models=["only-model"]
         )
 
@@ -261,7 +261,7 @@ class TestRoutingConsistencyEdgeCases:
             for _ in range(10):
                 fallback.record_execution(f"model-{i}", success=False)
 
-        selected, is_fallback = fallback.select_model(
+        selected, _is_fallback = fallback.select_model(
             primary_model="model-0",
             available_models=["model-0", "model-1", "model-2", "model-3", "model-4"],
         )

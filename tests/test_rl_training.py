@@ -157,7 +157,7 @@ class TestTrainingRuns:
         env = gym.make("cohezion/FlumeNav-v0", max_steps=100)
         random_coherences = []
         for ep in range(10):
-            obs, info = env.reset(seed=ep + 1000)
+            _, info = env.reset(seed=ep + 1000)
             ep_coherences = []
             for _ in range(100):
                 action = env.action_space.sample()
