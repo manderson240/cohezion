@@ -180,6 +180,83 @@ ignore = [
 "src/cohezion/traceability/plan_graph.py" = [
     "S608",  # SurrealQL uses record ID interpolation (plan:{slug}), not user input
 ]
+
+# Physics, simulation, and mathematics modules use domain-specific notation
+# intentionally: Greek letters (σ, γ, Σ, Ω) for standard math symbols,
+# uppercase variable names (T for temperature, E for energy, dE for delta-energy,
+# N for particle count, B for batch size, D for dimension) following discipline
+# conventions. These are not Python style violations — they are correct physics code.
+"src/cohezion/physics/**/*.py" = [
+    "RUF001", "RUF002", "RUF003",  # Greek/unicode characters are intentional notation
+    "N806", "N802", "N803",        # Uppercase vars/funcs/args follow physics convention
+]
+"src/cohezion/world_model/**/*.py" = [
+    "RUF001", "RUF002", "RUF003",
+    "N806", "N802", "N803",
+]
+"src/cohezion/worldviews/**/*.py" = [
+    "RUF001", "RUF002", "RUF003",  # Indigenous traditions use non-ASCII glyphs
+    "N806", "N802", "N803",
+]
+"src/cohezion/flume/**/*.py" = [
+    "RUF001", "RUF002", "RUF003",  # ρ (rho), × in VAE/encoder architecture docs
+    "N806", "N802", "N803",        # B (batch), N (seq_len), D (dim) are ML convention
+]
+"src/cohezion/simulation/**/*.py" = [
+    "N806", "N802", "N803",
+    "S311",  # random.random() in simulations is not for cryptographic use
+]
+"src/cohezion/environments/**/*.py" = [
+    "RUF001", "RUF002", "RUF003",  # × (cross-product), physics symbols in docstrings
+    "N806", "N802", "N803",
+    "S311",  # Gym envs use random for stochastic dynamics, not crypto
+]
+"src/cohezion/compound/thermodynamic_metrics.py" = [
+    "N806",    # T (temperature), dE (energy delta) follow thermodynamics notation
+    "RUF002",  # σ (sigma) is standard thermodynamics notation
+    "RUF003",  # σ in comments is intentional
+]
+# Compound layer: thermodynamics and multi-agent consensus use math notation
+"src/cohezion/compound/skill_selector.py" = ["RUF002", "RUF003"]  # × for multiplier in docstrings
+"src/cohezion/compound/skill_consensus_voter.py" = ["RUF002"]  # × symbol in scoring docs
+
+# API genesis service: σ (sigma) and γ (gamma) are physics parameters, not OCR artifacts
+"src/cohezion/api/services/genesis.py" = ["RUF001", "RUF002", "RUF003"]
+
+# ML/swarm layers use τ (tau), σ, or math symbols in algorithm docs
+"src/cohezion/swarm/cost_aware_router.py" = ["RUF001", "RUF002", "RUF003"]  # × in cost display strings
+"src/cohezion/swarm/model_ranker.py" = ["RUF002", "RUF003"]
+"src/cohezion/swarm/semantic_cache.py" = ["RUF002", "RUF003"]
+
+# Substrate, registry, platform layers use math notation in algorithm descriptions
+"src/cohezion/substrate/kv_cache_tracker.py" = ["RUF002", "RUF003"]
+"src/cohezion/registry/skill_registry.py" = ["RUF002", "RUF003"]
+"src/cohezion/platform/tier_optimizer.py" = ["RUF002", "RUF003"]
+"src/cohezion/agentjet/context_optimizer.py" = ["RUF003"]  # – (en-dash) in algorithm steps
+"src/cohezion/core/mcp_client.py" = ["RUF002", "RUF003"]
+"src/cohezion/core/zvol_swap.py" = ["RUF002", "RUF003"]
+"src/cohezion/deployment/feature_flags.py" = ["RUF002", "RUF003"]
+
+# Universe and mass simulation — physics objects
+"src/cohezion/universe/**/*.py" = ["RUF001", "RUF002", "RUF003", "N806", "N802", "N803"]
+"src/cohezion/mass_sim/**/*.py" = ["N806", "N802", "N803"]
+"src/cohezion/pipeline/weight_bridge.py" = ["N806"]
+
+# Tests for physics/math modules inherit the same notation conventions
+"tests/physics/**/*.py" = ["RUF001", "RUF002", "RUF003", "N806", "N802", "N803"]
+"tests/compound/test_thermodynamic_metrics.py" = ["N806", "RUF002", "RUF003"]
+"tests/flume/**/*.py" = ["RUF001", "RUF002", "RUF003", "N806", "N802", "N803"]
+"tests/universe/**/*.py" = ["RUF001", "RUF002", "RUF003", "N806"]
+"tests/swarm/test_model_pool_manager.py" = ["N806"]  # MockClient follows test-mock convention
+"tests/cache/test_sentence_encoder.py" = ["N806"]
+"tests/inference/test_orchestrator.py" = ["RUF002", "N806", "N802"]  # test_O1_..., test_O3b_... use invariant IDs (O1–O8) as test names
+"tests/research/benchmark_quality.py" = ["N806"]
+"tests/integrations/test_kaggle_submission.py" = ["N806"]
+"tests/test_mcp.py" = ["RUF003"]
+"tests/core/test_hierarchical_vault_search.py" = ["RUF002", "RUF003"]
+"tests/research/test_research_comprehensive.py" = ["RUF002", "RUF003"]
+"tests/security/test_race_condition_prevention.py" = ["RUF003"]
+
 # Import sorting configuration
 [tool.ruff.lint.isort]
 known-first-party = ["cohezion"]
