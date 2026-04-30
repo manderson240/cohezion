@@ -6,12 +6,15 @@ import asyncio
 import shutil
 import subprocess
 import uuid
-from collections.abc import Generator
 from pathlib import Path
-from types import ModuleType
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from types import ModuleType
+    from collections.abc import Generator
 
 
 @pytest.fixture

@@ -7,14 +7,16 @@ KordylewskiSwarm, and PlasmaMCPEngine.
 from __future__ import annotations
 
 import logging
-from typing import Any, cast
+from typing import Any, cast, TYPE_CHECKING
 
 import httpx
 import numpy as np
 
 from cohezion.reliability import get_circuit
 
-from .components import EvoState
+
+if TYPE_CHECKING:
+    from .components import EvoState
 
 
 logger = logging.getLogger(__name__)

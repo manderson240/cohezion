@@ -8,10 +8,13 @@ pytestmark = pytest.mark.skip(
     reason="FlumeVAE architecture changed from embedding-level (input_dim kwarg) to token-level (FlumeVAEConfig). These tests exercise the old API and need rewriting; tracked as tech debt.",
 )
 
-from pathlib import Path
 
 import numpy as np
 import torch
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 
 class TestKLAnnealing:

@@ -5,7 +5,6 @@
 
 from __future__ import annotations
 
-from pathlib import Path
 
 import numpy as np
 import torch
@@ -15,6 +14,10 @@ from cohezion.flume.experience_encoder import (
     TOTAL_DIM,
     ExperienceEncoder,
 )
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 
 def _make_experience(**overrides: object) -> dict:

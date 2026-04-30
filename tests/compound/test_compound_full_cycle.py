@@ -6,7 +6,6 @@ SkillRefiner → SkillConsensusVoter in sequence.
 
 from __future__ import annotations
 
-from pathlib import Path
 from unittest.mock import MagicMock
 
 import pytest
@@ -21,6 +20,10 @@ from cohezion.compound.skill_consensus_voter import (
 )
 from cohezion.compound.skill_refiner import SkillRefiner
 from cohezion.compound.skill_selector import SkillScore
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 
 _SKILL = "FULL_CYCLE_TEST"

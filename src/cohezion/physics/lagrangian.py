@@ -28,7 +28,10 @@ import logging
 
 import numpy as np
 
-from cohezion.physics.riemannian_metric import RiemannianMetric
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from cohezion.physics.riemannian_metric import RiemannianMetric
 
 
 logger = logging.getLogger(__name__)

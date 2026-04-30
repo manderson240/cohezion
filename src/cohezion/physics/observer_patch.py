@@ -28,7 +28,10 @@ from dataclasses import dataclass
 
 import numpy as np
 
-from cohezion.physics.spinor import SpinorState
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from cohezion.physics.spinor import SpinorState
 
 
 logger = logging.getLogger(__name__)

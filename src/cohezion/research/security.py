@@ -10,9 +10,12 @@ import ast
 import logging
 import re
 from dataclasses import dataclass
-from pathlib import Path
 
-from cohezion.security.pipeline import SecurityPipeline
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from cohezion.security.pipeline import SecurityPipeline
+    from pathlib import Path
 
 
 logger = logging.getLogger(__name__)

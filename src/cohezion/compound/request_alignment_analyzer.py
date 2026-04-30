@@ -29,10 +29,10 @@ from cohezion.compound.models import (
     IntentType,
     SuccessCriterion,
 )
-from cohezion.core.mcp_client import MCPClient
 
 
 if TYPE_CHECKING:
+    from cohezion.core.mcp_client import MCPClient
     from cohezion.compound.executor import ExecutionResult
     from cohezion.compound.inflection_detector import AnomalyDetection
 

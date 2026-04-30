@@ -14,7 +14,10 @@ import logging
 import time
 from dataclasses import dataclass, field
 
-import numpy as np
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    import numpy as np
 
 
 logger = logging.getLogger(__name__)

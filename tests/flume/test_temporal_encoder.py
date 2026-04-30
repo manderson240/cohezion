@@ -11,11 +11,13 @@ Architecture:
 from __future__ import annotations
 
 import pytest
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    import torch
 
 
 try:
-    import torch
-
     TORCH_AVAILABLE = True
 except ImportError:
     TORCH_AVAILABLE = False

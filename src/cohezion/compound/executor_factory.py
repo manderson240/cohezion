@@ -6,11 +6,13 @@ Extracted from executor.py (Session 87) to keep files under 500 lines.
 from __future__ import annotations
 
 import logging
-from typing import Any
+from typing import Any, TYPE_CHECKING
 
 from cohezion.compound.executor import CompoundExecutor
-from cohezion.core.mcp_client import MCPClient
-from cohezion.security.guardrail_pipeline import GuardrailPipeline
+
+if TYPE_CHECKING:
+    from cohezion.core.mcp_client import MCPClient
+    from cohezion.security.guardrail_pipeline import GuardrailPipeline
 
 
 logger = logging.getLogger(__name__)

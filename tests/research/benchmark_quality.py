@@ -9,14 +9,16 @@ import logging
 import math
 import random
 import statistics
-from collections.abc import Callable
-from typing import Any
+from typing import Any, TYPE_CHECKING
 from unittest.mock import Mock
 
 import pytest
 
 from cohezion.compound.models import ExecutionMetrics, ExecutionResult
 from cohezion.research import ResearchAgent, ResearchConfig
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
 
 
 logger = logging.getLogger(__name__)

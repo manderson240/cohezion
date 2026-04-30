@@ -5,9 +5,12 @@ from __future__ import annotations
 import asyncio
 import logging
 import os
-from collections.abc import Callable
 
 from aiohttp import web
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
 
 
 logger = logging.getLogger(__name__)

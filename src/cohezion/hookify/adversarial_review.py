@@ -8,10 +8,12 @@ from __future__ import annotations
 import logging
 import re
 from dataclasses import dataclass, field
-from pathlib import Path
-from typing import Any
+from typing import Any, TYPE_CHECKING
 
-from cohezion.hookify.validator import Rule
+
+if TYPE_CHECKING:
+    from cohezion.hookify.validator import Rule
+    from pathlib import Path
 
 
 logger = logging.getLogger(__name__)
@@ -425,8 +427,8 @@ class AdversarialReviewHarness:
 
             # Query violations (latent synapses pointing to this rule)
             violation_sql = f"""
-                SELECT count() as violation_count 
-                FROM synapse 
+                SELECT count() as violation_count
+                FROM synapse
                 WHERE out = {rule_neuron} AND link_type = 'latent';
             """
             violation_result = self.db.query(violation_sql)
@@ -438,8 +440,8 @@ class AdversarialReviewHarness:
 
             # Query cross-rule connections (dream synapses)
             dream_sql = f"""
-                SELECT in, out, resonance 
-                FROM synapse 
+                SELECT in, out, resonance
+                FROM synapse
                 WHERE (in = {rule_neuron} OR out = {rule_neuron}) AND link_type = 'dream';
             """
             dream_result = self.db.query(dream_sql)
@@ -447,7 +449,7 @@ class AdversarialReviewHarness:
 
             # Query affinity patterns
             affinity_sql = f"""
-                SELECT dim_agent_affinity 
+                SELECT dim_agent_affinity
                 FROM {rule_neuron};
             """
             affinity_result = self.db.query(affinity_sql)

@@ -10,9 +10,11 @@ import logging
 import time
 from collections import deque
 from dataclasses import dataclass, field
-from typing import Any
+from typing import Any, TYPE_CHECKING
 
-from cohezion.compound.models import ExecutionResult
+
+if TYPE_CHECKING:
+    from cohezion.compound.models import ExecutionResult
 
 
 logger = logging.getLogger(__name__)
