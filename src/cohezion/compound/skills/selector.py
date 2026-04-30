@@ -57,7 +57,7 @@ class SkillSelector:
             return []
 
         matches = []
-        for skill_name in self.skill_registry.keys():
+        for skill_name in self.skill_registry:
             confidence = self.scorer(task, skill_name)
             if confidence > 0.3:  # Minimum threshold
                 matches.append(

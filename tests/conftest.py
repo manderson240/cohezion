@@ -65,13 +65,16 @@ def git_repo(tmp_path: Path) -> Path:
     Returns the repo root path.
     """
     git_cmd = shutil.which("git") or "git"
-    _run = lambda cmd: subprocess.run(
-        cmd,
-        cwd=tmp_path,
-        capture_output=True,
-        check=True,
-        shell=False,
-    )
+
+    def _run(cmd):
+        return subprocess.run(
+            cmd,
+            cwd=tmp_path,
+            capture_output=True,
+            check=True,
+            shell=False,
+        )
+
     _run([git_cmd, "init"])
     _run([git_cmd, "config", "user.email", "test@cohezion.dev"])
     _run([git_cmd, "config", "user.name", "Test User"])

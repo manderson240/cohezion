@@ -265,7 +265,4 @@ class SimpleSecurity:
 
     def check(self, code: str) -> bool:
         """Quick security check."""
-        for pattern in self.forbidden:
-            if pattern in code:
-                return False
-        return True
+        return all(pattern not in code for pattern in self.forbidden)

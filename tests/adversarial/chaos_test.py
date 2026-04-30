@@ -40,7 +40,7 @@ def monitor_recovery():
 
     for step in range(30):  # Monitor for 30 ticks (approx 30s)
         try:
-            response = requests.get(f"{BASE_URL}/state")
+            response = requests.get(f"{BASE_URL}/state", timeout=30)
             data = response.json()
             entropy = data.get("avg_entropy", 0.0)
             corrections = data.get("corrections", 0)
@@ -79,7 +79,7 @@ def monitor_recovery():
 if __name__ == "__main__":
     # Ensure Sim is running
     try:
-        requests.get(f"{BASE_URL}/")
+        requests.get(f"{BASE_URL}/", timeout=30)
     except requests.exceptions.ConnectionError:
         logger.error("Target DOWN. Start Diplomat first.")
         sys.exit(1)

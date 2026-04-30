@@ -188,11 +188,7 @@ class SimpleSecurity:
             return False
 
         text_lower = text.lower()
-        for word in self.forbidden_words:
-            if word in text_lower:
-                return False
-
-        return True
+        return all(word not in text_lower for word in self.forbidden_words)
 
     def sanitize(self, text: str) -> str:
         """Sanitize sensitive content."""

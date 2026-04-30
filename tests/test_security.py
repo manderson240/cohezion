@@ -105,14 +105,14 @@ class TestOutputFilter:
 
     def test_clean_output(self):
         """Clean output passes."""
-        filter = OutputFilter()
-        result = filter.filter("This is a normal response.")
+        output_filter = OutputFilter()
+        result = output_filter.filter("This is a normal response.")
         assert result.result == FilterResult.CLEAN
 
     def test_pii_redacted(self):
         """PII is redacted."""
-        filter = OutputFilter(redact_pii=True)
-        result = filter.filter("Contact me at test@example.com")
+        output_filter = OutputFilter(redact_pii=True)
+        result = output_filter.filter("Contact me at test@example.com")
         assert result.result == FilterResult.PII_DETECTED
         assert "[REDACTED_EMAIL]" in result.content
 

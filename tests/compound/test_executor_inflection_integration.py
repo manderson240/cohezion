@@ -466,7 +466,7 @@ class TestExecutorIntegrationScenarios:
                 ),
             ):
 
-                def execute_fn(guidance):
+                def execute_fn(guidance, i=i):
                     if i == 2:
                         # One task has low coherence
                         return f"output_{i}", {"coherence": 0.2}

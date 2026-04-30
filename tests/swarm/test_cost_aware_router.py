@@ -418,10 +418,8 @@ class TestCostAwareRouterChaosTest:
             # All routed models should be allowed
             invalid_count = sum(1 for m in models if m not in allowed)
             if invalid_count > 0:
-                assert False, (
-                    f"Query '{query}' routed to unexpected models: "
-                    f"{set(m for m in models if m not in allowed)}"
-                )
+                unexpected = {m for m in models if m not in allowed}
+                raise AssertionError(f"Query '{query}' routed to unexpected models: {unexpected}")
 
             # At least 70% of routes should be to the same model (consistency check)
             model_counts = {}

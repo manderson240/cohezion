@@ -36,15 +36,15 @@ def test_triune_state_invalid_shapes():
 def test_triune_state_type_validation():
     """Test that TriuneState enforces tensor types."""
     # Invalid Doer type
-    with pytest.raises(ValidationError, match="doer must be a torch.Tensor"):
+    with pytest.raises(ValidationError, match=r"doer must be a torch\.Tensor"):
         TriuneState(doer="not a tensor", thinker=torch.randn(512), knower=torch.randn(2048))
 
     # Invalid Thinker type
-    with pytest.raises(ValidationError, match="thinker must be a torch.Tensor"):
+    with pytest.raises(ValidationError, match=r"thinker must be a torch\.Tensor"):
         TriuneState(doer=torch.randn(12), thinker=123, knower=torch.randn(2048))
 
     # Invalid Knower type
-    with pytest.raises(ValidationError, match="knower must be a torch.Tensor"):
+    with pytest.raises(ValidationError, match=r"knower must be a torch\.Tensor"):
         TriuneState(doer=torch.randn(12), thinker=torch.randn(512), knower=[])
 
 

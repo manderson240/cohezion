@@ -512,10 +512,7 @@ class SkillConsensusVoter:
                 "votes_for_consensus": result.votes_for_consensus,
                 "total_votes": result.total_votes,
                 "agent_ids": [vote.agent_id for vote in votes],
-                "vote_aggregation": {
-                    k: (v if not isinstance(v, (int, float, str, bool, list)) else v)
-                    for k, v in result.vote_aggregation.items()
-                },
+                "vote_aggregation": dict(result.vote_aggregation.items()),
             }
 
             # Persist to vault with vault_add_document

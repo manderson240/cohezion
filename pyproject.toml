@@ -211,6 +211,22 @@ ignore = [
     "N806", "N802", "N803",
     "S311",  # random.random() in simulations is not for cryptographic use
 ]
+# Additional modules that use random for non-cryptographic purposes:
+# lab_agent.py — random exploration policy, not key/token generation
+# api.py — random IDs for dev/simulation endpoints
+# deployment/feature_flags.py — random for gradual rollout percentile
+# flume/data_pipeline.py — random shuffling in ML data pipeline
+# mcp/research_server.py — random sampling in research workflows
+# reliability/quantum_performance_monitor.py — random for quantum simulation
+# security/attack_patterns.py — random for attack pattern simulation (not actual attack)
+"src/cohezion/agents/lab_agent.py" = ["S311"]
+"src/cohezion/api.py" = ["S311"]
+
+"src/cohezion/flume/data_pipeline.py" = ["S311"]
+"src/cohezion/mcp/research_server.py" = ["S311"]
+"src/cohezion/reliability/quantum_performance_monitor.py" = ["S311"]
+"src/cohezion/security/attack_patterns.py" = ["S311"]
+
 "src/cohezion/environments/**/*.py" = [
     "RUF001", "RUF002", "RUF003",  # × (cross-product), physics symbols in docstrings
     "N806", "N802", "N803",
@@ -240,7 +256,7 @@ ignore = [
 "src/cohezion/agentjet/context_optimizer.py" = ["RUF003"]  # – (en-dash) in algorithm steps
 "src/cohezion/core/mcp_client.py" = ["RUF002", "RUF003"]
 "src/cohezion/core/zvol_swap.py" = ["RUF002", "RUF003"]
-"src/cohezion/deployment/feature_flags.py" = ["RUF002", "RUF003"]
+"src/cohezion/deployment/feature_flags.py" = ["RUF002", "RUF003", "S311"]
 
 # Universe and mass simulation — physics objects
 "src/cohezion/universe/**/*.py" = ["RUF001", "RUF002", "RUF003", "N806", "N802", "N803"]
@@ -255,7 +271,7 @@ ignore = [
 "tests/swarm/test_model_pool_manager.py" = ["N806"]  # MockClient follows test-mock convention
 "tests/cache/test_sentence_encoder.py" = ["N806"]
 "tests/inference/test_orchestrator.py" = ["RUF002", "N806", "N802"]  # test_O1_..., test_O3b_... use invariant IDs (O1–O8) as test names
-"tests/research/benchmark_quality.py" = ["N806"]
+"tests/research/benchmark_quality.py" = ["N806", "S311"]
 "tests/integrations/test_kaggle_submission.py" = ["N806"]
 "tests/test_mcp.py" = ["RUF003"]
 "tests/core/test_hierarchical_vault_search.py" = ["RUF002", "RUF003"]
@@ -308,6 +324,98 @@ ignore = [
 "tests/sandbox/test_isolation.py" = ["E402"]
 "tests/universe/test_engine.py" = ["E402"]
 "tests/universe/test_sandbox_backends.py" = ["E402"]
+# Config test files import after sys.path manipulation / fixture setup
+"tests/config/test_config_monitoring.py" = ["E402"]
+"tests/config/test_config_sync_phase4.py" = ["E402"]
+
+# ---------------------------------------------------------------------------
+# Wave 2 cleanup: residual rule families surfaced after the 13-branch campaign
+# ---------------------------------------------------------------------------
+
+# S102 (use-of-exec): factory.py loads plugin code dynamically by design.
+# Inputs are constrained to allow-listed plugin paths under src/cohezion/skills/.
+"src/cohezion/agents/factory.py" = ["S102"]
+
+# S107 (hardcoded-password-default): token NAMES, not secret values.
+# These are sentinel strings ("bos_token", "eos_token", ...) following
+# HuggingFace tokenizer conventions; they are never used as credentials.
+"src/cohezion/flume/tokenizer.py" = ["S107"]
+
+# S310 (suspicious-URL-open): all urllib calls in these modules target
+# internal services (SurrealDB ws://localhost:8001, vault HTTP API,
+# hookify endpoints) with hard-coded hosts. No user-controlled URL input.
+"src/cohezion/api/routes/training.py" = ["S310"]
+"src/cohezion/compound/executor_helpers/vault_integration.py" = ["S310"]
+"src/cohezion/compound/journey_tracker.py" = ["S310"]
+"src/cohezion/compound/skill_refiner.py" = ["S310"]
+"src/cohezion/core/compound/retrospection.py" = ["S310"]
+"src/cohezion/governance/knowledge_bridge.py" = ["S310"]
+
+# S105/S310 in genesis_persistence: SURREAL_PASS is the env var NAME (a
+# string literal used for os.getenv lookup), not a password value.
+# urllib hits ws://localhost:8001 (SurrealDB), no user input.
+"src/cohezion/persistence/genesis_persistence.py" = ["S105", "S310"]
+
+# S112 (try-except-continue): graceful skip on known iterables where the
+# inner exception is observability data, not a programming bug. Logging
+# every iteration would be noise on the hot path.
+"src/cohezion/compound/autoresearch.py" = ["S112"]
+"src/cohezion/compound/exp_persistence/vault.py" = ["S112"]
+"src/cohezion/core/compound/skill_refiner.py" = ["S112"]
+"src/cohezion/hookify/validator.py" = ["S112", "SIM116"]  # SIM116: state-machine if-chain, not dict-replaceable
+"src/cohezion/knowledge_graph/query_engine.py" = ["S112"]
+"src/cohezion/mcp/servers/skills/client.py" = ["S112"]
+
+# SIM115 (context-manager-for-open): files held open intentionally for
+# the lifetime of long-running monitors / cross-process locks.
+"src/cohezion/mcp/manager/server_manager.py" = ["SIM115"]
+"src/cohezion/reliability/sync.py" = ["SIM115"]
+"src/cohezion/security/file_lock_context.py" = ["SIM115"]
+
+# SIM116 (consecutive-ifs): tip_of_spear_router uses a state-machine
+# if-chain that depends on early-return semantics; a dict can't replace it.
+"src/cohezion/swarm/tip_of_spear_router.py" = ["SIM116"]
+
+# B008 (function-call-default): Path.home() and tempfile.gettempdir()
+# in defaults is intentional — these are evaluated once at module load
+# and serve as cached singletons for the migration scripts.
+"src/cohezion/knowledge_graph/bidirectional_linker.py" = ["B008"]
+"src/cohezion/knowledge_graph/universe_artifact_migration.py" = ["B008"]
+"src/cohezion/knowledge_graph/universe_genealogy_migration.py" = ["B008"]
+
+# S606 (start-process-with-no-shell): amd_s2idle_report invokes a
+# specific s2idle reporting binary by absolute path; shell=False is
+# the secure choice (S602/S603 would fire if shell=True).
+"src/cohezion/healing/amd_s2idle_report.py" = ["S606"]
+
+# S307 (suspicious-eval-usage): peaked_solver evaluates user-supplied
+# physics expressions for the wave-equation peaked-solution solver.
+# This is a SymPy/SciPy-style scientific eval, not a code-injection vector;
+# inputs come from the physics test harness, not external requests.
+"src/cohezion/physics/quantum/peaked_solver.py" = ["S307"]
+
+# N814 (camelcase-imported-as-constant): TokenEfficientClient → _TC is
+# an intentional internal alias to avoid the long name in the hot path.
+"src/cohezion/swarm/democratic_debate.py" = ["N814"]
+
+# N815 (mixedCase-class-var): Claude Code's agent-config schema requires
+# camelCase keys (`disallowedTools`, etc.) for compatibility with the CLI.
+"src/cohezion/validation/agent_schema.py" = ["N815"]
+
+# A001 (builtin-shadowing): DeprecationWarning is intentionally re-bound
+# inside dependency_scanner so warnings issued by scanned packages route
+# through the scanner's logger instead of stderr.
+"src/cohezion/registry/dependency_scanner.py" = ["A001"]
+
+# S101 (assert-used): module-level invariant assertions that document
+# data-structure shape; these fire at import time, not inside test logic.
+"src/cohezion/simulation/rl_framework.py" = ["S101"]
+"src/cohezion/worldviews/tradition_data.py" = ["S101"]
+
+# B018 (useless-expression): test attribute-access expressions used to
+# trigger __getattr__ side effects in the unit under test.
+"tests/compound/test_context_metrics_integration.py" = ["B018"]
+"tests/swarm/test_fallback_strategy_comprehensive.py" = ["B018"]
 
 # Import sorting configuration
 [tool.ruff.lint.isort]

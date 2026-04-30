@@ -287,12 +287,10 @@ class FeatureFlagManager:
             return False
 
         # Check tenant: if list is not empty, must match
-        if config.enabled_tenants and (
-            not context or context.tenant_id not in config.enabled_tenants
-        ):
-            return False
-
-        return True
+        return not (
+            config.enabled_tenants
+            and (not context or context.tenant_id not in config.enabled_tenants)
+        )
 
     def set_flag(
         self,

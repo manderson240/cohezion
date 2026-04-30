@@ -31,7 +31,7 @@ class TestDistributedManifold:
         dim = shards[0].size
         new_data = [0.5] * dim
         manifold.atomic_flip(shard_id, new_data)
-        updated = [s for s in manifold.shards if s.shard_id == shard_id][0]
+        updated = next(s for s in manifold.shards if s.shard_id == shard_id)
         assert updated.data == new_data
 
     def test_atomic_flip_unknown_shard_raises(self):

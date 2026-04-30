@@ -79,13 +79,10 @@ class ExecutionAnalyzer:
         if metrics.coherence < self.config.min_coherence:
             return True
 
-        if (
+        return bool(
             metrics.quality_score is not None
             and metrics.quality_score < self.config.min_quality_score
-        ):
-            return True
-
-        return False
+        )
 
     def _check_degradation(self, result: ExecutionResult, task: Task) -> bool:
         """Check for performance degradation."""

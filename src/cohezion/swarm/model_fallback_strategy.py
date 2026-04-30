@@ -184,11 +184,8 @@ class ModelCircuitBreaker:
                     self._transition_to_half_open()
                     return True
             return False
-        elif self.state == CircuitBreakerState.HALF_OPEN:
-            # Allow one test request
-            return True
-        else:
-            return False
+        # HALF_OPEN allows one test request; any other state denies.
+        return self.state == CircuitBreakerState.HALF_OPEN
 
     def _transition_to_open(self) -> None:
         """Transition to OPEN state."""
