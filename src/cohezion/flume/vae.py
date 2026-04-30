@@ -2,7 +2,7 @@ from typing import Any
 
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
+from torch.nn import functional as nn_functional
 from pydantic import BaseModel, ConfigDict, field_validator
 from transformers import PretrainedConfig
 
@@ -169,7 +169,7 @@ class FlumeVAE(nn.Module):
         shift_logits = recon_logits[:, :-1, :].contiguous()
         shift_labels = input_ids[:, 1:].contiguous()
 
-        recon_loss = F.cross_entropy(
+        recon_loss = nn_functional.cross_entropy(
             shift_logits.view(-1, self.config.vocab_size),
             shift_labels.view(-1),
             ignore_index=self.config.pad_token_id if hasattr(self.config, "pad_token_id") else -100,
@@ -207,7 +207,7 @@ def info_nce_loss(
         return torch.tensor(0.0, device=z.device, requires_grad=True)
 
     # Normalize embeddings
-    z_norm = F.normalize(z, dim=1)
+    z_norm = nn_functional.normalize(z, dim=1)
     losses = []
 
     for anchor_idx, positive_idx in pairs:
@@ -240,8 +240,8 @@ def batch_similarity_matching_loss(
     Directly optimizes Spearman ρ between input and latent pairwise similarities.
     Computed over normalized vectors in both spaces.
     """
-    x_norm = F.normalize(x, dim=1)
-    mu_norm = F.normalize(mu, dim=1)
+    x_norm = nn_functional.normalize(x, dim=1)
+    mu_norm = nn_functional.normalize(mu, dim=1)
 
     # Batch pairwise cosine similarities
     input_sims = x_norm @ x_norm.T  # (B, B)
@@ -253,7 +253,7 @@ def batch_similarity_matching_loss(
     input_flat = input_sims[triu_mask]
     latent_flat = latent_sims[triu_mask]
 
-    return F.mse_loss(latent_flat, input_flat)
+    return nn_functional.mse_loss(latent_flat, input_flat)
 
 
 def flume_vae_loss(
@@ -277,8 +277,8 @@ def flume_vae_loss(
     # Reconstruction: cosine similarity loss (better for normalized embeddings)
     # MSE on normalized vectors can be weak; cosine similarity directly optimizes
     # what we measure at evaluation time
-    x_norm = F.normalize(x, dim=1)
-    recon_norm = F.normalize(recon, dim=1)
+    x_norm = nn_functional.normalize(x, dim=1)
+    recon_norm = nn_functional.normalize(recon, dim=1)
     cos_sim = (x_norm * recon_norm).sum(dim=1).mean()
     recon_loss = 1.0 - cos_sim  # 0 when perfect, 1 when orthogonal
 

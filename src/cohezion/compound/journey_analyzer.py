@@ -376,7 +376,7 @@ class JourneyAnalyzer:
         labels = dbscan.fit_predict(features)
 
         # Handle noise points (label = -1)
-        len([l for l in labels if l >= 0])
+        len([label for label in labels if label >= 0])
         unique_labels = set(labels) - {-1}
 
         centers = []

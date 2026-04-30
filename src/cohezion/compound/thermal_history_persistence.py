@@ -28,6 +28,9 @@ from cohezion.compound.thermal_trend_predictor import ThermalTimeSeries
 
 logger = logging.getLogger(__name__)
 
+# Module-level set to retain references to background tasks (RUF006).
+_BACKGROUND_TASKS: set[asyncio.Task] = set()
+
 
 class ThermalTimeSeriesCollector:
     """Collects thermal samples and persists to JSONL.
@@ -90,7 +93,9 @@ class ThermalTimeSeriesCollector:
 
                         # Log to vault every 12 samples (1 hour)
                         if self.enable_vault_logging and self._samples_since_vault_log >= 12:
-                            asyncio.create_task(self._log_to_vault_async())
+                            task = asyncio.create_task(self._log_to_vault_async())
+                            _BACKGROUND_TASKS.add(task)
+                            task.add_done_callback(_BACKGROUND_TASKS.discard)
                             self._samples_since_vault_log = 0
                 except Exception as e:
                     logger.debug(f"Error in collection loop: {e}")

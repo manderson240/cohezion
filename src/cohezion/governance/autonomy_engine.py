@@ -37,13 +37,13 @@ from __future__ import annotations
 import logging
 import time
 from dataclasses import dataclass, field
-from enum import Enum
+from enum import StrEnum
 
 
 logger = logging.getLogger(__name__)
 
 
-class AutonomyTier(str, Enum):
+class AutonomyTier(StrEnum):
     """Cosmogonic autonomy tiers — each symmetry breaking grants more freedom."""
 
     VOID = "void"  # ∅ — No autonomy

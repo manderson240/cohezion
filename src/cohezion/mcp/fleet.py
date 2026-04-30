@@ -73,7 +73,7 @@ def run_server_sync(name: str, transport: str = "stdio", port: int | None = None
 
 def main():
     parser = argparse.ArgumentParser(description="Cohezion MCP Fleet Manager")
-    parser.add_argument("server", choices=list(SERVER_MAP.keys()) + ["all"], help="Server to start")
+    parser.add_argument("server", choices=[*SERVER_MAP.keys(), "all"], help="Server to start")
     parser.add_argument(
         "--transport", choices=["stdio", "http"], default="stdio", help="Transport protocol"
     )

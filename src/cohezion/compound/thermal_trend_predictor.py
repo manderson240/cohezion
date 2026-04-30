@@ -29,6 +29,9 @@ from typing import Any
 
 logger = logging.getLogger(__name__)
 
+# Module-level set to retain references to background tasks (RUF006).
+_BACKGROUND_TASKS: set[asyncio.Task] = set()
+
 
 @dataclass
 class ThermalTimeSeries:
@@ -110,7 +113,9 @@ class ThermalTrendPredictor:
         # Trigger training after 50 new samples
         if len(self.history) % 50 == 0 and not self._model_training_in_progress:
             try:
-                asyncio.create_task(self.train_30min_model_async())
+                task = asyncio.create_task(self.train_30min_model_async())
+                _BACKGROUND_TASKS.add(task)
+                task.add_done_callback(_BACKGROUND_TASKS.discard)
             except RuntimeError:
                 # No event loop running, skip async training
                 pass

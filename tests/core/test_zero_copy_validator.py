@@ -20,7 +20,7 @@ class TestZeroCopyValidator:
         state = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.1, 0.2, 0.3]
         buf = validator.write(state)
         result = validator.validate_and_read(buf)
-        for a, b in zip(state, result):
+        for a, b in zip(state, result, strict=True):
             assert abs(a - b) < 1e-9
 
     def test_wrong_dtype_rejected(self):

@@ -36,6 +36,9 @@ from typing import ClassVar, Optional
 
 logger = logging.getLogger(__name__)
 
+# Module-level set to retain references to background tasks (RUF006).
+_BACKGROUND_TASKS: set[asyncio.Task] = set()
+
 
 @dataclass
 class CostRecord:
@@ -183,7 +186,9 @@ class SessionCostTracker:
             # Only schedule if event loop is running
             loop = asyncio.get_event_loop()
             if loop.is_running():
-                loop.create_task(self._flush_batch())
+                task = loop.create_task(self._flush_batch())
+                _BACKGROUND_TASKS.add(task)
+                task.add_done_callback(_BACKGROUND_TASKS.discard)
             else:
                 # Fallback: synchronous flush (shouldn't happen in async context)
                 self._flush_batch_sync()
@@ -214,7 +219,6 @@ class SessionCostTracker:
                     self.records[:] = remaining
                 except (
                     TimeoutError,
-                    asyncio.TimeoutError,
                     OSError,
                     ConnectionError,
                     RuntimeError,
@@ -265,7 +269,6 @@ class SessionCostTracker:
                         flushed_count += len(batch)
                     except (
                         TimeoutError,
-                        asyncio.TimeoutError,
                         OSError,
                         ConnectionError,
                         RuntimeError,

@@ -27,6 +27,9 @@ import psutil
 
 logger = logging.getLogger(__name__)
 
+# Module-level set to retain references to background tasks (RUF006).
+_BACKGROUND_TASKS: set[asyncio.Task] = set()
+
 
 # Resolve external executable paths at module load to avoid S607 partial-path warnings.
 _OLLAMA = shutil.which("ollama") or "/usr/local/bin/ollama"
@@ -267,7 +270,9 @@ class QuantumPerformanceMonitor:
         monitor_thread.start()
 
         # Start auto-swap monitoring
-        asyncio.create_task(self._auto_swap_monitor())
+        task = asyncio.create_task(self._auto_swap_monitor())
+        _BACKGROUND_TASKS.add(task)
+        task.add_done_callback(_BACKGROUND_TASKS.discard)
 
     def _monitoring_loop(self, interval_seconds: int):
         """Main monitoring loop"""
@@ -471,7 +476,9 @@ class QuantumPerformanceMonitor:
 
         # Execute automatic action if enabled
         if self.auto_swap_enabled and condition:
-            asyncio.create_task(self._execute_automatic_action(condition, metric))
+            action_task = asyncio.create_task(self._execute_automatic_action(condition, metric))
+            _BACKGROUND_TASKS.add(action_task)
+            action_task.add_done_callback(_BACKGROUND_TASKS.discard)
 
     async def _execute_automatic_action(
         self, condition: AlertCondition | None, metric: PerformanceMetric

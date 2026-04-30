@@ -9,7 +9,7 @@ of semantic change over time.
 import logging
 
 import torch
-import torch.nn.functional as F
+from torch.nn import functional as nn_functional
 
 from cohezion.flume.autoencoder import FlumeEncoder
 from cohezion.swarm.git_health import GitCommit
@@ -74,7 +74,7 @@ class GitEncoder:
         if velocities.shape[0] < 2:
             momentum = 1.0  # Only one delta, perfect consistency
         else:
-            v_norm = F.normalize(velocities, dim=-1)
+            v_norm = nn_functional.normalize(velocities, dim=-1)
             momentum = (v_norm[1:] * v_norm[:-1]).sum(dim=-1).mean().item()
 
         return mean_velocity, momentum
@@ -93,7 +93,9 @@ class GitEncoder:
         recent_mean = trajectory[pivot_index:].mean(dim=0)
 
         # Cosine similarity
-        sim = F.cosine_similarity(old_mean.unsqueeze(0), recent_mean.unsqueeze(0)).item()
+        sim = nn_functional.cosine_similarity(
+            old_mean.unsqueeze(0), recent_mean.unsqueeze(0)
+        ).item()
         return sim
 
 

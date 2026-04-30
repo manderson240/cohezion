@@ -167,7 +167,7 @@ class TestTemporalVAEForward:
     def test_reconstruction_loss_computable(self) -> None:
         """MSE reconstruction loss can be computed and backpropagated."""
         import torch
-        import torch.nn.functional as F
+        from torch.nn import functional as nn_functional
 
         from cohezion.flume.temporal_encoder import TemporalDecoder, TemporalEncoder
 
@@ -181,6 +181,6 @@ class TestTemporalVAEForward:
         z = enc.reparameterize(mu, logvar)
         recon = dec.decode(z, x)
 
-        loss = F.mse_loss(recon, x)
+        loss = nn_functional.mse_loss(recon, x)
         loss.backward()
         assert loss.item() >= 0

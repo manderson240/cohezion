@@ -335,7 +335,7 @@ class KnowledgeGraph:
                 neighbor = link.target if link.source == node else link.source
                 if neighbor not in visited:
                     visited.add(neighbor)
-                    queue.append(path + [neighbor])
+                    queue.append([*path, neighbor])
 
         return None  # No path found
 

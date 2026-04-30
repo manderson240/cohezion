@@ -30,6 +30,9 @@ from cohezion.flume.domain_encoder import EncodedTrajectoryPoint, get_encoder
 
 logger = logging.getLogger(__name__)
 
+# Module-level set to retain references to background tasks (RUF006).
+_BACKGROUND_TASKS: set[asyncio.Task] = set()
+
 
 class TrajectoryRecorder:
     """Accumulates trajectory points within a ``capture_trajectory`` block."""
@@ -87,7 +90,9 @@ def _persist_points(recorder: TrajectoryRecorder) -> None:
     """Best-effort persistence of trajectory points."""
     try:
         loop = asyncio.get_running_loop()
-        loop.create_task(_async_persist(recorder))
+        task = loop.create_task(_async_persist(recorder))
+        _BACKGROUND_TASKS.add(task)
+        task.add_done_callback(_BACKGROUND_TASKS.discard)
     except RuntimeError:
         # No event loop -- run synchronously in a fresh loop
         try:

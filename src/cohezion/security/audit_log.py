@@ -238,28 +238,28 @@ class AuditLogger:
         self,
         start_date: datetime,
         end_date: datetime,
-        format: str = "json",
+        export_format: str = "json",
     ) -> str:
         """Export audit trail for compliance review.
 
         Args:
             start_date: Export start date
             end_date: Export end date
-            format: Output format ("json" or "csv")
+            export_format: Output format ("json" or "csv")
 
         Returns:
             Exported audit trail as JSON or CSV string
         """
         entries = self.query(start_date=start_date, end_date=end_date)
 
-        if format == "json":
+        if export_format == "json":
             return json.dumps(
                 [asdict(e) for e in entries],
                 indent=2,
                 default=str,
             )
 
-        elif format == "csv":
+        elif export_format == "csv":
             import csv
             from io import StringIO
 
@@ -288,7 +288,7 @@ class AuditLogger:
             return output.getvalue()
 
         else:
-            raise ValueError(f"Unsupported format: {format}")
+            raise ValueError(f"Unsupported format: {export_format}")
 
     def cleanup_old_logs(self, retention_days: int | None = None) -> int:
         """Delete audit logs older than retention period.
