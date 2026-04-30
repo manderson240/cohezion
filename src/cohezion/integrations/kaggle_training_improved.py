@@ -173,7 +173,7 @@ try:
 
     df = pd.read_csv(train_file)
     print(f"  Columns: {list(df.columns)}")
-    
+
     # Map columns correctly (Competition uses 'prompt' and 'answer')
     PROMPT_COL = 'prompt' if 'prompt' in df.columns else ('question' if 'question' in df.columns else 'problem')
     ANSWER_COL = 'answer'
@@ -181,7 +181,7 @@ try:
     # 5. Teacher trace generation (knowledge distillation)
     print("\n[5/8] Generating teacher traces for distillation...")
     teacher_model_name = "deepseek-ai/deepseek-r1-distill-qwen-32b"
-    
+
     try:
         print(f"  Loading teacher: {teacher_model_name}")
         teacher_tokenizer = AutoTokenizer.from_pretrained(teacher_model_name, trust_remote_code=True)
@@ -225,11 +225,11 @@ try:
     model_path = kagglehub.model_download("metric/nemotron-3-nano-30b-a3b-bf16/transformers/default")
     tokenizer = AutoTokenizer.from_pretrained(model_path, trust_remote_code=True)
     if tokenizer.pad_token is None: tokenizer.pad_token = tokenizer.eos_token
-    
+
     model = AutoModelForCausalLM.from_pretrained(model_path, device_map="auto", trust_remote_code=True, torch_dtype=torch.bfloat16)
-    
+
     lora_config = LoraConfig(
-        r=32, lora_alpha=16, 
+        r=32, lora_alpha=16,
         target_modules=["in_proj", "out_proj", "up_proj", "down_proj"],
         lora_dropout=0.05, bias="none", task_type="CAUSAL_LM"
     )

@@ -75,9 +75,10 @@ async def test_route_returns_error_when_all_candidates_down():
 @pytest.mark.asyncio
 async def test_route_dispatches_to_first_healthy_candidate():
     """Simulate NPU up, iGPU down — route() should pick NPU."""
-    from cohezion.inference import health as health_mod
-    from cohezion.inference.health import LaneHealth, LaneStatus, FleetHealth
     import time
+
+    from cohezion.inference import health as health_mod
+    from cohezion.inference.health import FleetHealth, LaneHealth, LaneStatus
 
     # Fake health snapshot: only NPU up.
     health_mod._LAST_RESULT = FleetHealth(
@@ -106,9 +107,10 @@ async def test_route_dispatches_to_first_healthy_candidate():
 @pytest.mark.asyncio
 async def test_route_records_attempts_list():
     """When first candidate fails, subsequent attempts are logged."""
-    from cohezion.inference import health as health_mod
-    from cohezion.inference.health import LaneHealth, LaneStatus, FleetHealth
     import time
+
+    from cohezion.inference import health as health_mod
+    from cohezion.inference.health import FleetHealth, LaneHealth, LaneStatus
 
     health_mod._LAST_RESULT = FleetHealth(
         checked_at=time.time(),
@@ -193,10 +195,10 @@ async def test_route_warns_on_small_max_tokens_for_reasoning_mode(caplog):
     See docs/dogfood/drift-report-2026-04-18.md P2 #1.
     """
     import logging
+    import time
 
     from cohezion.inference import health as health_mod
     from cohezion.inference.health import FleetHealth, LaneHealth, LaneStatus
-    import time
 
     # Only NPU up; route should pick the Gemma-4-E2B (reasoning_mode=True).
     health_mod._LAST_RESULT = FleetHealth(
@@ -229,10 +231,10 @@ async def test_route_warns_on_small_max_tokens_for_reasoning_mode(caplog):
 async def test_route_does_not_warn_on_ample_max_tokens(caplog):
     """Inverse of the above: max_tokens >= 128 suppresses the reasoning-mode warning."""
     import logging
+    import time
 
     from cohezion.inference import health as health_mod
     from cohezion.inference.health import FleetHealth, LaneHealth, LaneStatus
-    import time
 
     health_mod._LAST_RESULT = FleetHealth(
         checked_at=time.time(),

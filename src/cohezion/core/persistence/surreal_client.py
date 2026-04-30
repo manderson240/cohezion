@@ -299,11 +299,11 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
             )
             return True
         except (
+            TimeoutError,
             ConnectionError,
             OSError,
             httpx.HTTPError,
             httpx.TimeoutException,
-            asyncio.TimeoutError,
             RuntimeError,
             ValueError,
         ) as e:
@@ -342,10 +342,10 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
             logger.info("Schema created successfully")
             return True
         except (
+            TimeoutError,
             ConnectionError,
             OSError,
             httpx.HTTPError,
-            asyncio.TimeoutError,
             RuntimeError,
             ValueError,
         ) as e:
@@ -374,10 +374,10 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
             return node.id
 
         except (
+            TimeoutError,
             ConnectionError,
             OSError,
             httpx.HTTPError,
-            asyncio.TimeoutError,
             RuntimeError,
             ValueError,
             KeyError,
@@ -399,10 +399,10 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
             else:
                 return await self._client.create(table, data)
         except (
+            TimeoutError,
             ConnectionError,
             OSError,
             httpx.HTTPError,
-            asyncio.TimeoutError,
             RuntimeError,
             ValueError,
             KeyError,
@@ -533,10 +533,10 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
             logger.info(f"SurrealDB Response: {res}")
             return res
         except (
+            TimeoutError,
             ConnectionError,
             OSError,
             httpx.HTTPError,
-            asyncio.TimeoutError,
             RuntimeError,
             ValueError,
             KeyError,
@@ -563,10 +563,10 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
             return self._dict_to_node(data)
 
         except (
+            TimeoutError,
             ConnectionError,
             OSError,
             httpx.HTTPError,
-            asyncio.TimeoutError,
             RuntimeError,
             ValueError,
             KeyError,
@@ -609,10 +609,10 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
             return [self._dict_to_node(r) for r in results]
 
         except (
+            TimeoutError,
             ConnectionError,
             OSError,
             httpx.HTTPError,
-            asyncio.TimeoutError,
             RuntimeError,
             ValueError,
             KeyError,
@@ -640,10 +640,10 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
             return [self._dict_to_node(r) for r in results]
 
         except (
+            TimeoutError,
             ConnectionError,
             OSError,
             httpx.HTTPError,
-            asyncio.TimeoutError,
             RuntimeError,
             ValueError,
             KeyError,
@@ -714,10 +714,10 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
                 return None
 
         except (
+            TimeoutError,
             ConnectionError,
             OSError,
             httpx.HTTPError,
-            asyncio.TimeoutError,
             RuntimeError,
             ValueError,
             KeyError,
@@ -763,10 +763,10 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
                 return []
 
         except (
+            TimeoutError,
             ConnectionError,
             OSError,
             httpx.HTTPError,
-            asyncio.TimeoutError,
             RuntimeError,
             ValueError,
             KeyError,
@@ -823,10 +823,10 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
                 return []
 
         except (
+            TimeoutError,
             ConnectionError,
             OSError,
             httpx.HTTPError,
-            asyncio.TimeoutError,
             RuntimeError,
             ValueError,
             KeyError,

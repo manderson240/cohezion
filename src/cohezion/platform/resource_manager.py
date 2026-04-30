@@ -138,8 +138,8 @@ class ResourceClient:
                 state.loaded_models = [m.get("name", "") for m in models]
                 state.ollama_used_gb = sum(m.get("size", 0) / (1024**3) for m in models)
         except (
+            TimeoutError,
             aiohttp.ClientError,
-            asyncio.TimeoutError,
             OSError,
             ConnectionError,
             ValueError,
@@ -283,8 +283,8 @@ class ResourceDaemon:
                         lk.reserved_gb for lk in self._locks.values() if not lk.is_expired()
                     )
         except (
+            TimeoutError,
             aiohttp.ClientError,
-            asyncio.TimeoutError,
             OSError,
             ConnectionError,
             ValueError,

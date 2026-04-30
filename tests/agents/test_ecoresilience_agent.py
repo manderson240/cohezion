@@ -1,7 +1,8 @@
 """Tests for the EcoResilience Agent."""
 
-import pytest
 from unittest.mock import AsyncMock, patch
+
+import pytest
 
 from cohezion.agents.ecoresilience_agent import EcoResilienceAgent
 
