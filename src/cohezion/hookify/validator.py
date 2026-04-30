@@ -11,6 +11,7 @@ import re
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any, ClassVar
 
+
 if TYPE_CHECKING:
     from pathlib import Path
 

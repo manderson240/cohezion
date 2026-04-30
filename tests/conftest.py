@@ -8,10 +8,11 @@ import shutil
 import subprocess
 import uuid
 from pathlib import Path
+from typing import TYPE_CHECKING
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-from typing import TYPE_CHECKING
+
 
 if TYPE_CHECKING:
     from collections.abc import Generator

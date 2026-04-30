@@ -406,10 +406,8 @@ class CapabilityMatrix:
             lines.append("|---|---|---|---|")
             for g in gaps:
                 lines.append(
-                    (
-                        f"| {g.task_type} | {g.best_available_score:.2f} | {g.threshold:.2f} | "
-                        f"{g.suggested_action} |"
-                    )
+                    f"| {g.task_type} | {g.best_available_score:.2f} | {g.threshold:.2f} | "
+                    f"{g.suggested_action} |"
                 )
             lines.append("")
 

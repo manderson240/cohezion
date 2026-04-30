@@ -5,6 +5,7 @@ Validates ExperienceDataset -> FlumeVAETrainer pipeline.
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
 
 import numpy as np
 import torch
@@ -12,7 +13,7 @@ import torch
 from cohezion.flume.experience_dataset import ExperienceDataset
 from cohezion.flume.experience_encoder import TOTAL_DIM, ExperienceEncoder
 from cohezion.flume.training import FlumeVAETrainer, TrainConfig
-from typing import TYPE_CHECKING
+
 
 if TYPE_CHECKING:
     from pathlib import Path

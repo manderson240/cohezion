@@ -64,7 +64,7 @@ async def agentjet_train(request: TrainRequest) -> TrainResponse:
             dry_run=result.dry_run,
             error=result.error,
         )
-    except Exception as e:  # noqa: BLE001 - FastAPI boundary
+    except Exception as e:
         # AgentJet trainer can raise project-specific OOMRiskError/ResourceUnavailableError
         # without importing the symbols (avoids circular import) — re-raise OOM as 503,
         # otherwise return structured error response so the dashboard can surface details.

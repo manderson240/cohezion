@@ -40,7 +40,7 @@ async def test_process_dataset(mock_dataset, tmp_path):
         await curator.process_dataset(mock_dataset, output_path)
 
         assert output_path.exists()
-        with open(output_path, "r") as f:
+        with open(output_path) as f:
             lines = f.readlines()
             assert len(lines) == 2
             first_item = json.loads(lines[0])
@@ -57,7 +57,7 @@ def test_prepare_finetuning_data(mock_dataset, tmp_path):
     curator.prepare_finetuning_data(mock_dataset, output_path)
 
     assert output_path.exists()
-    with open(output_path, "r") as f:
+    with open(output_path) as f:
         line = json.loads(f.readline())
         assert "instruction" in line
         assert "output" in line

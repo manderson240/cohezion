@@ -211,10 +211,8 @@ class SandboxManager:
             if dilation < 0.3:
                 wait_time = max(2.0, (1.0 - dilation) * 10)
                 logger.warning(
-                    (
-                        f"System under pressure (dilation={dilation:.2f}), delaying sandbox launch "
-                        f"by {wait_time:.1f}s"
-                    )
+                    f"System under pressure (dilation={dilation:.2f}), delaying sandbox launch "
+                    f"by {wait_time:.1f}s"
                 )
                 await asyncio.sleep(wait_time)
         except Exception as e:

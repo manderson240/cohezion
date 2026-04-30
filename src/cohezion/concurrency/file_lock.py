@@ -15,7 +15,8 @@ import logging
 import time
 from contextlib import contextmanager
 from pathlib import Path
-from typing import Any, TextIO, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, TextIO
+
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Generator

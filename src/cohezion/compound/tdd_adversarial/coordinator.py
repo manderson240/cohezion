@@ -257,10 +257,8 @@ class TDDAdversarialCoordinator:
             overall_score = latest_review.get("overall_score", 0.0)
             if overall_score < 0.6:
                 recommendations.append(
-                    (
-                        f"Address adversarial review concerns before engineering (score: "
-                        f"{overall_score:.2f})"
-                    )
+                    f"Address adversarial review concerns before engineering (score: "
+                    f"{overall_score:.2f})"
                 )
 
             findings = latest_review.get("findings", [])

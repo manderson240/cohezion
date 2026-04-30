@@ -425,10 +425,8 @@ class AdversarialReviewSystem:
 
         if critical_findings > 0:
             insights.append(
-                (
-                    f"Critical issues found requiring immediate attention ({critical_findings} "
-                    f"critical)"
-                )
+                f"Critical issues found requiring immediate attention ({critical_findings} "
+                f"critical)"
             )
         elif high_findings > 2:
             insights.append(f"Multiple high-severity issues identified ({high_findings} high)")

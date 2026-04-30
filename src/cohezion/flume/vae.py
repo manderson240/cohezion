@@ -2,8 +2,8 @@ from typing import Any
 
 import torch
 import torch.nn as nn
-from torch.nn import functional as nn_functional
 from pydantic import BaseModel, ConfigDict, field_validator
+from torch.nn import functional as nn_functional
 from transformers import PretrainedConfig
 
 

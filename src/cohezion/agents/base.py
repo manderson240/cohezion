@@ -15,8 +15,8 @@ from typing import TYPE_CHECKING, Any
 
 
 if TYPE_CHECKING:
-    from cohezion.swarm.swarm_types import SwarmConfig
     from cohezion.flume.autoencoder import FlumeEncoder
+    from cohezion.swarm.swarm_types import SwarmConfig
 
 import httpx
 
@@ -477,10 +477,8 @@ class BaseAgent(ABC):
                 # Prepare refinement or exit
                 if round_idx < self.config.max_refinement_rounds - 1:
                     logger.info(
-                        (
-                            f"🔄 Low coherence ({phi_score:.2f}). Triggering refinement round "
-                            f"{round_idx + 2}..."
-                        )
+                        f"🔄 Low coherence ({phi_score:.2f}). Triggering refinement round "
+                        f"{round_idx + 2}..."
                     )
                     current_prompt = (
                         f"{effective_prompt}\n\n"

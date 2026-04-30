@@ -10,11 +10,13 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 
+
 GIT = shutil.which("git") or "git"
+
+import contextlib
 
 from cohezion.config import ConfigMonitor, ConfigurationOrchestrator
 from cohezion.core.vault_subscription import VaultEvent
-import contextlib
 
 
 class TestConfigMonitor:

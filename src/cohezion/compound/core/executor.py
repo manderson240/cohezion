@@ -9,7 +9,7 @@ from __future__ import annotations
 import logging
 import time
 from dataclasses import dataclass
-from typing import Any, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from cohezion.compound.models import (
     AnalysisReport,
@@ -18,6 +18,7 @@ from cohezion.compound.models import (
     ExecutionResult,
     Task,
 )
+
 
 if TYPE_CHECKING:
     from collections.abc import Callable

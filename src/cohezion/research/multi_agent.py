@@ -8,12 +8,13 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass, field
-from typing import Any, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from cohezion.research.agent import ResearchAgent, ResearchConfig
 from cohezion.swarm.orchestrator import Agent as SwarmAgent
 from cohezion.swarm.orchestrator import Swarm
 from cohezion.swarm.orchestrator import Task as SwarmTask
+
 
 if TYPE_CHECKING:
     from cohezion.compound.models import Task

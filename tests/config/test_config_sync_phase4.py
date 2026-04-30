@@ -8,6 +8,7 @@ from pathlib import Path
 
 import pytest
 
+
 GIT = shutil.which("git") or "git"
 
 from cohezion.config import ConfigSyncEngine, ConfigurationOrchestrator

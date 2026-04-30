@@ -32,9 +32,9 @@ from cohezion.compound.models import (
 
 
 if TYPE_CHECKING:
-    from cohezion.core.mcp_client import MCPClient
     from cohezion.compound.executor import ExecutionResult
     from cohezion.compound.inflection_detector import AnomalyDetection
+    from cohezion.core.mcp_client import MCPClient
 
 
 logger = logging.getLogger(__name__)

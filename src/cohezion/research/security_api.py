@@ -14,12 +14,13 @@ import time
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
-from typing import Any, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from fastapi import HTTPException, Request, Security
 from fastapi.security import APIKeyHeader, HTTPBearer
 
 from cohezion.security.credentials import get_credentials
+
 
 if TYPE_CHECKING:
     from collections.abc import Callable

@@ -214,10 +214,8 @@ class LabAgent(BaseAgent):
         self.session_discoveries.append(node)
 
         logger.info(
-            (
-                f"Discovery {discovery_id} persisted to SurrealDB. Alignment: "
-                f"{alignment_score:.2f}, Verified: {success}"
-            )
+            f"Discovery {discovery_id} persisted to SurrealDB. Alignment: "
+            f"{alignment_score:.2f}, Verified: {success}"
         )
 
     def _determine_domain(self, text: str) -> str:

@@ -11,6 +11,7 @@ from pathlib import Path
 
 import pytest
 
+
 RUFF = shutil.which("ruff") or "ruff"
 GIT = shutil.which("git") or "git"
 

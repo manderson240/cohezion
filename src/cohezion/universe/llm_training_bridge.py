@@ -264,10 +264,8 @@ class PreferencePairGenerator:
         lines = [f"Task: {trajectory.task_description}"]
         for i, step in enumerate(trajectory.steps[:20]):  # Cap at 20 steps
             lines.append(
-                (
-                    f"Step {i}: action={step.action}, coherence={step.coherence:.3f}, "
-                    f"spin={step.spin_coherence:.2f}"
-                )
+                f"Step {i}: action={step.action}, coherence={step.coherence:.3f}, "
+                f"spin={step.spin_coherence:.2f}"
             )
         lines.append(f"Final coherence: {trajectory.final_coherence:.3f}")
         lines.append(f"Precipitated: {trajectory.precipitation_achieved}")

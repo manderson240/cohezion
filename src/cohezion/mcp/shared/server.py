@@ -5,9 +5,10 @@ from __future__ import annotations
 import asyncio
 import logging
 import os
+from typing import TYPE_CHECKING
 
 from aiohttp import web
-from typing import TYPE_CHECKING
+
 
 if TYPE_CHECKING:
     from collections.abc import Callable

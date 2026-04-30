@@ -10,10 +10,11 @@ Plan: synthetic-sniffing-panda Wave 3A.
 from __future__ import annotations
 
 import asyncio
+from typing import TYPE_CHECKING
 from unittest.mock import MagicMock, patch
 
 import pytest
-from typing import TYPE_CHECKING
+
 
 if TYPE_CHECKING:
     from pathlib import Path

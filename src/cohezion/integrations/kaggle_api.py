@@ -120,10 +120,8 @@ class KaggleAPI:
 
         try:
             logger.info(
-                (
-                    f"Executing Kaggle CLI push for {notebook_id} with "
-                    f"machine_shape=NvidiaRtxPro6000..."
-                )
+                f"Executing Kaggle CLI push for {notebook_id} with "
+                f"machine_shape=NvidiaRtxPro6000..."
             )
             import shutil
 

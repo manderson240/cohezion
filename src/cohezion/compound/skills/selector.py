@@ -9,9 +9,10 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass
+from typing import TYPE_CHECKING
 
 from cohezion.compound.models import ExecutionResult, Task
-from typing import TYPE_CHECKING
+
 
 if TYPE_CHECKING:
     from collections.abc import Callable

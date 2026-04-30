@@ -11,13 +11,14 @@ Features:
 from __future__ import annotations
 
 import logging
+from typing import TYPE_CHECKING
 
 import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader, TensorDataset
 
 from cohezion.flume.vae import FlumeVAE, flume_vae_loss
-from typing import TYPE_CHECKING
+
 
 if TYPE_CHECKING:
     from pathlib import Path

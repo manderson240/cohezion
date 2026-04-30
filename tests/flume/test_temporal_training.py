@@ -3,10 +3,11 @@
 from __future__ import annotations
 
 import json
+from typing import TYPE_CHECKING
 
 import numpy as np
 import pytest
-from typing import TYPE_CHECKING
+
 
 if TYPE_CHECKING:
     from pathlib import Path

@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Any, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 from unittest.mock import AsyncMock
 
 import pytest
@@ -11,6 +11,7 @@ from cohezion.compound.executor import CompoundExecutionResult, CompoundExecutor
 from cohezion.compound.feedback_loop import CompoundFeedbackLoop
 from cohezion.compound.models import CompoundCycleReport, CompoundCycleResult
 from cohezion.compound.persistence import CompoundPersistence
+
 
 if TYPE_CHECKING:
     from pathlib import Path

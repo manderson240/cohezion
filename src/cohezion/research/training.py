@@ -14,10 +14,11 @@ import subprocess
 import sys
 import time
 from pathlib import Path
-from typing import Any, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 import torch
 import torch.nn as nn
+
 
 if TYPE_CHECKING:
     from torch.utils.data import DataLoader

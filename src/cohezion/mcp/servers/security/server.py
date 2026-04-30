@@ -26,6 +26,7 @@ from aiohttp import web
 
 from .scanner import SecurityChecklist, Vulnerability, build_severity_report
 
+
 if TYPE_CHECKING:
     from pathlib import Path
 

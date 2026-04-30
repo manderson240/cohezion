@@ -326,10 +326,8 @@ class ThermalAutoresearchExecutor:
 
                 # Execute hypothesis with Ralph Loop coherence gate
                 logger.info(
-                    (
-                        f"[{domain.name}] Hypothesis {i + 1}/{len(domain.hypotheses)}: "
-                        f"{hypothesis[:60]}..."
-                    )
+                    f"[{domain.name}] Hypothesis {i + 1}/{len(domain.hypotheses)}: "
+                    f"{hypothesis[:60]}..."
                 )
 
                 try:

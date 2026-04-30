@@ -314,10 +314,8 @@ class PeakedCircuitSolver:
                         )
                 except Exception:
                     logger.error(
-                        (
-                            f"Gate application failed at step {i} (Gate {name}). Target sites: "
-                            f"{target_sites}"
-                        )
+                        f"Gate application failed at step {i} (Gate {name}). Target sites: "
+                        f"{target_sites}"
                     )
                     logger.error(f"Tensor Count: {len(psi_mps.tensors)}")
                     raise
@@ -329,10 +327,8 @@ class PeakedCircuitSolver:
                 # DEBUG: Check bond dimension
                 if i % 100 == 0:
                     logger.info(
-                        (
-                            f"Gate {i}: Max Bond Dim = {psi_mps.max_bond()}. Norm = "
-                            f"{psi_mps.norm():.2e}"
-                        )
+                        f"Gate {i}: Max Bond Dim = {psi_mps.max_bond()}. Norm = "
+                        f"{psi_mps.norm():.2e}"
                     )
 
             logger.info(

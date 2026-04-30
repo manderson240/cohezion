@@ -150,10 +150,8 @@ class TestCostAwareRouter:
         May be downgraded if cheaper & fast enough.
         """
         decision, can_proceed = router.select_model(
-            (
-                "Design and implement a distributed cache with consensus voting and production "
-                "optimization"
-            )
+            "Design and implement a distributed cache with consensus voting and production "
+            "optimization"
         )
 
         # Complex query is analyzed, but cost/token optimization may prefer faster/cheaper model

@@ -9,13 +9,14 @@ import logging
 import math
 import random
 import statistics
-from typing import Any, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 from unittest.mock import Mock
 
 import pytest
 
 from cohezion.compound.models import ExecutionMetrics, ExecutionResult
 from cohezion.research import ResearchAgent, ResearchConfig
+
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -278,10 +279,8 @@ class TestStatisticalValidation:
         assert t_stat > 1.0, f"Insufficient power: t={t_stat:.2f}"
 
         logger.info(
-            (
-                f"Power analysis: t={t_stat:.2f}, detected "
-                f"improvement={(mean_baseline - mean_improved):.3f}"
-            )
+            f"Power analysis: t={t_stat:.2f}, detected "
+            f"improvement={(mean_baseline - mean_improved):.3f}"
         )
 
 

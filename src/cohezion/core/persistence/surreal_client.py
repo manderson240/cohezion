@@ -295,10 +295,8 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
             self._connected = True
             breaker.record_success()
             logger.info(
-                (
-                    f"✅ REAL CLIENT: Connected to SurrealDB at {self.url} "
-                    f"({self.namespace}/{self.database})"
-                )
+                f"✅ REAL CLIENT: Connected to SurrealDB at {self.url} "
+                f"({self.namespace}/{self.database})"
             )
             return True
         except (

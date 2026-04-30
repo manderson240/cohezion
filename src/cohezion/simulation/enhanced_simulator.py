@@ -444,10 +444,8 @@ class RZeroEnhancedTriad:
                 self.difficulty += self.difficulty_step
                 self.epoch += 1
                 logger.info(
-                    (
-                        f"R-Zero: Plateau detected. Difficulty -> {self.difficulty:.2f}, Epoch -> "
-                        f"{self.epoch}"
-                    )
+                    f"R-Zero: Plateau detected. Difficulty -> {self.difficulty:.2f}, Epoch -> "
+                    f"{self.epoch}"
                 )
 
         # Course correction if struggling

@@ -12,6 +12,7 @@ Tests:
 - Backoff and retry logic
 """
 
+import contextlib
 import tempfile
 import threading
 import time
@@ -27,7 +28,6 @@ from cohezion.security.file_lock_context import (
     atomic_file_write,
     locked_file_operation,
 )
-import contextlib
 
 
 @pytest.fixture

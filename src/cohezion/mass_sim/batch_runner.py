@@ -93,10 +93,8 @@ class BatchSimulationRunner:
             # OOM check
             if self.guard.should_abort():
                 logger.error(
-                    (
-                        f"  Aborting universe {universe_spec.universe_id} at epoch "
-                        f"{epochs_completed} (memory)"
-                    )
+                    f"  Aborting universe {universe_spec.universe_id} at epoch "
+                    f"{epochs_completed} (memory)"
                 )
                 break
 

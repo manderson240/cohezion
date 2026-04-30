@@ -14,10 +14,11 @@ from __future__ import annotations
 import logging
 import time
 from dataclasses import asdict, dataclass, field
-from typing import Any, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from cohezion.cost_optimization.budget_enforcer import BudgetEnforcer
 from cohezion.cost_optimization.cost_tracker import SessionCostTracker
+
 
 if TYPE_CHECKING:
     from cohezion.compound.global_metrics_aggregator import GlobalMetricsAggregator

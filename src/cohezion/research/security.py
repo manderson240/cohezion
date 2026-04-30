@@ -12,6 +12,7 @@ import re
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, ClassVar
 
+
 if TYPE_CHECKING:
     from pathlib import Path
 

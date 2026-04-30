@@ -588,10 +588,8 @@ class CompoundFeedbackLoop:
 
         # Cache successful retry results for future batch executions
         logger.info(
-            (
-                f"Batch cache warming: Found {len(cache_warming_opportunities)} successful retry "
-                f"patterns to cache"
-            )
+            f"Batch cache warming: Found {len(cache_warming_opportunities)} successful retry "
+            f"patterns to cache"
         )
 
         # Extract and persist learning patterns

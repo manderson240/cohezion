@@ -8,12 +8,13 @@ from __future__ import annotations
 import logging
 import re
 from dataclasses import dataclass, field
-from typing import Any, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 
 if TYPE_CHECKING:
-    from cohezion.hookify.validator import Rule
     from pathlib import Path
+
+    from cohezion.hookify.validator import Rule
 
 
 logger = logging.getLogger(__name__)

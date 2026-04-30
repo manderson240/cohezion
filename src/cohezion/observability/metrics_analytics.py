@@ -353,10 +353,8 @@ class MetricsAnalytics:
         efficiency_gap = token_analytics["efficiency_gap"]
         if efficiency_gap > 20:
             recommendations.append(
-                (
-                    f"🟡 Token efficiency {efficiency_gap:.0f} tok/sec below target. Focus on "
-                    f"semantic cache optimization."
-                )
+                f"🟡 Token efficiency {efficiency_gap:.0f} tok/sec below target. Focus on "
+                f"semantic cache optimization."
             )
 
         # Guardrail recommendations

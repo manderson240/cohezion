@@ -8,7 +8,7 @@ like Sacred Geometry and Triune Self mapping.
 from __future__ import annotations
 
 import logging
-
+from typing import TYPE_CHECKING
 
 from .advanced_components import (
     BioelectricsEngine,
@@ -29,7 +29,7 @@ from .components import (
     HIHOStabilizationEngine,
     MagnetohydrodynamicsEngine,
 )
-from typing import TYPE_CHECKING
+
 
 if TYPE_CHECKING:
     import numpy as np

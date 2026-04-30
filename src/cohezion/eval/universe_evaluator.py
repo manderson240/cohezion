@@ -24,9 +24,10 @@ from __future__ import annotations
 import logging
 import time
 from dataclasses import dataclass, field
-from typing import Any, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 import numpy as np
+
 
 if TYPE_CHECKING:
     from collections.abc import Callable

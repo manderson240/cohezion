@@ -19,6 +19,7 @@ from cohezion.config import (
     reset_config_orchestrator,
 )
 
+
 GIT = shutil.which("git") or "git"
 
 

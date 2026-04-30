@@ -7,7 +7,7 @@ KordylewskiSwarm, and PlasmaMCPEngine.
 from __future__ import annotations
 
 import logging
-from typing import Any, cast, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, cast
 
 import httpx
 import numpy as np

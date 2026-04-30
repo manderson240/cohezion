@@ -23,10 +23,11 @@ import time
 from dataclasses import dataclass, field
 from enum import Enum, auto
 from pathlib import Path
-from typing import Any, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from cohezion.compound.hardware_monitor import HardwareMonitor, get_hardware_monitor
 from cohezion.compound.thermal_trend_predictor import ThermalTrendPredictor
+
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Coroutine
@@ -363,10 +364,8 @@ class ThermalCheckpointManager:
             # Log progress every minute
             if int(elapsed) % 60 == 0:
                 logger.info(
-                    (
-                        f"Cooling... GPU={gpu_temp}°C, CPU={cpu_temp}°C, paused for "
-                        f"{elapsed / 60:.1f} min"
-                    )
+                    f"Cooling... GPU={gpu_temp}°C, CPU={cpu_temp}°C, paused for "
+                    f"{elapsed / 60:.1f} min"
                 )
 
         duration = time.time() - start_pause
@@ -475,10 +474,8 @@ class ThermalCheckpointManager:
             )
 
             logger.info(
-                (
-                    f"Loaded checkpoint: {checkpoint.phase}, "
-                    f"{checkpoint.hypotheses_completed}/{checkpoint.total_hypotheses} completed"
-                )
+                f"Loaded checkpoint: {checkpoint.phase}, "
+                f"{checkpoint.hypotheses_completed}/{checkpoint.total_hypotheses} completed"
             )
             return checkpoint
 

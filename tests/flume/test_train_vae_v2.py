@@ -14,9 +14,11 @@ pytestmark = pytest.mark.skip(
 )
 
 
+from typing import TYPE_CHECKING
+
 import numpy as np
 import torch
-from typing import TYPE_CHECKING
+
 
 if TYPE_CHECKING:
     from pathlib import Path

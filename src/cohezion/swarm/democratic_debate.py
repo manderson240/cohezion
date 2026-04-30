@@ -16,8 +16,8 @@ from typing import TYPE_CHECKING, Any
 
 
 if TYPE_CHECKING:
-    from cohezion.swarm.token_client import TokenEfficientClient as _TC
     from cohezion.swarm.token_client import TokenEfficientClient
+    from cohezion.swarm.token_client import TokenEfficientClient as _TC
 
 import httpx
 
