@@ -123,7 +123,7 @@ class SurpriseExplorer:
 
         # Build top-k surprise regions
         regions = []
-        for probe, action, next_state, surprise in surprises[: self.top_k]:
+        for probe, action, _, surprise in surprises[: self.top_k]:
             # Compute physics context
             physics_ctx = self._compute_physics_context(probe)
 

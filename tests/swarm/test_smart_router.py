@@ -110,7 +110,7 @@ class TestLocalModels:
 
     def test_models_have_capabilities(self):
         """[P0] All models should have capabilities."""
-        for name, profile in LOCAL_MODELS.items():
+        for _name, profile in LOCAL_MODELS.items():
             assert len(profile.capabilities) > 0
             assert profile.context_length > 0
 

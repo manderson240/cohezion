@@ -128,7 +128,7 @@ class TestGradualRollout:
 
         # Verify metrics collected for all stages
         assert len(self.metrics_per_stage) == 4
-        for stage_name, metrics in self.metrics_per_stage.items():
+        for _, metrics in self.metrics_per_stage.items():
             assert "cost_reduction" in metrics
             assert "latency_change" in metrics
             assert "error_rate" in metrics
@@ -326,7 +326,7 @@ class TestProductionReadiness:
             "anomaly_detector": {"ready": True, "status": "OPERATIONAL"},
         }
 
-        for dep_name, dep_status in dependencies.items():
+        for _dep_name, dep_status in dependencies.items():
             assert dep_status["ready"] is True
             assert dep_status["status"] == "OPERATIONAL"
 
@@ -446,7 +446,7 @@ class TestIntegrationHealthChecks:
             "model_quality_classifier": "HEALTHY",
         }
 
-        for component, status in components_health.items():
+        for _component, status in components_health.items():
             assert status == "HEALTHY"
 
     def test_inter_component_communication(self):

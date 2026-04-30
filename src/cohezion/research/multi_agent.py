@@ -77,7 +77,7 @@ class ResearchSwarm:
         ]
 
         for i in range(self.config.num_agents):
-            strategy_name, strategy_desc = strategies[i % len(strategies)]
+            strategy_name, _strategy_desc = strategies[i % len(strategies)]
 
             agent_id = f"research-{strategy_name}-{i + 1}"
 

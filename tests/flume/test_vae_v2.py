@@ -229,6 +229,6 @@ class TestModelConfig:
         for latent_dim in [64, 128, 256]:
             model = FlumeVAE(input_dim=768, latent_dim=latent_dim)
             x = torch.randn(2, 768)
-            recon, mu, logvar, z = model(x)
+            recon, mu, _logvar, _z = model(x)
             assert mu.shape == (2, latent_dim)
             assert recon.shape == (2, 768)

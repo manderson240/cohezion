@@ -76,6 +76,6 @@ async def test_evo_agent_act_cycle(mock_config):
 
                 # Verify engine was stepped
                 agent._triune_engine.step.assert_called_once()
-                args, kwargs = agent._triune_engine.step.call_args
+                _args, kwargs = agent._triune_engine.step.call_args
                 assert kwargs["trajectory_id"] == "traj_1"
                 assert isinstance(kwargs["environment"], torch.Tensor)

@@ -153,7 +153,7 @@ class UniverseEvaluator:
         start_time = time.time()
         evaluation = PolicyEvaluation(policy_name=policy_name, n_episodes=n_episodes)
 
-        for ep in range(n_episodes):
+        for _ep in range(n_episodes):
             metrics = self._run_episode(env, policy_fn)
             evaluation.episode_metrics.append(metrics)
 

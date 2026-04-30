@@ -362,7 +362,7 @@ class CostAwareRouter:
             Selected model
         """
         # Check budget status
-        within_budget, status = self.cost_tracker.check_budget()
+        _within_budget, status = self.cost_tracker.check_budget()
         cost_percent = status.get("cost_percent", 0.0)
 
         # If under threshold, use preferred

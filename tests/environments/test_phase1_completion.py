@@ -100,18 +100,18 @@ class TestSwarmEnvPolish:
         from cohezion.environments.swarm_env import SwarmEnv
 
         env = SwarmEnv(n_agents=3)
-        obs, info = env.reset()
+        obs, _info = env.reset()
         assert len(obs) == 3
-        for agent_id, agent_obs in obs.items():
+        for _agent_id, agent_obs in obs.items():
             assert agent_obs.shape == (19,)
 
     def test_step_with_random_actions(self):
         from cohezion.environments.swarm_env import SwarmEnv
 
         env = SwarmEnv(n_agents=2)
-        obs, _ = env.reset()
+        _obs, _ = env.reset()
         actions = {a: np.random.uniform(-0.5, 0.5, 12).astype(np.float32) for a in env.agents}
-        obs2, rewards, terms, truncs, infos = env.step(actions)
+        obs2, rewards, _terms, _truncs, _infos = env.step(actions)
         assert len(obs2) == 2
         assert len(rewards) == 2
         for r in rewards.values():
