@@ -4,8 +4,11 @@ Fleet API - Routes for monitoring and managing the service fleet.
 
 import logging
 from typing import List
+
 from fastapi import APIRouter, HTTPException
-from cohezion.governance.fleet_monitor import get_fleet_monitor, ServiceStatus
+
+from cohezion.governance.fleet_monitor import ServiceStatus, get_fleet_monitor
+
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/fleet", tags=["fleet"])

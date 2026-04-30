@@ -328,14 +328,7 @@ class BudgetEnforcer:
                 self.vault_logger.log_alert(alert, severity="warning"),
                 timeout=2.0,
             )
-        except (
-            TimeoutError,
-            asyncio.TimeoutError,
-            OSError,
-            ConnectionError,
-            RuntimeError,
-            AttributeError,
-        ):
+        except (TimeoutError, OSError, ConnectionError, RuntimeError, AttributeError):
             # Vault failure: log locally
             logger.warning("%s (vault log failed)", alert)
 

@@ -214,7 +214,6 @@ class SessionCostTracker:
                     self.records[:] = remaining
                 except (
                     TimeoutError,
-                    asyncio.TimeoutError,
                     OSError,
                     ConnectionError,
                     RuntimeError,
@@ -265,7 +264,6 @@ class SessionCostTracker:
                         flushed_count += len(batch)
                     except (
                         TimeoutError,
-                        asyncio.TimeoutError,
                         OSError,
                         ConnectionError,
                         RuntimeError,

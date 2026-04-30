@@ -28,6 +28,6 @@ def run_async_guardrail(coro: Any) -> Any:
     """
     try:
         return asyncio.run(coro)
-    except (RuntimeError, asyncio.TimeoutError, asyncio.CancelledError) as e:
+    except (TimeoutError, RuntimeError, asyncio.CancelledError) as e:
         logger.debug("Guardrail check failed (non-blocking): %s", e, exc_info=True)
         return None
