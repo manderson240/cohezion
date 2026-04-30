@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import contextlib
 import logging
 import re
 from dataclasses import dataclass, field
@@ -450,7 +451,8 @@ class RetrospectionEngine:
         }
 
         # Persist retrospection decision to SurrealDB (non-blocking, closes middle loop)
-        try:
+        # Fire-and-forget: SurrealDB may be unavailable.
+        with contextlib.suppress(Exception):
             import urllib.request
             from base64 import b64encode
 
@@ -475,7 +477,5 @@ class RetrospectionEngine:
                 method="POST",
             )
             urllib.request.urlopen(req, timeout=2)
-        except Exception:
-            pass  # Fire-and-forget
 
         return analysis

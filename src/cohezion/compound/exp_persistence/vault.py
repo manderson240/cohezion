@@ -1,3 +1,4 @@
+import contextlib
 import json
 import logging
 from dataclasses import dataclass
@@ -215,12 +216,11 @@ class VaultLogger:
                 sorted_traces = sorted(traces)
                 to_remove = sorted_traces[: len(sorted_traces) - max_traces]
                 for trace_path in to_remove:
-                    try:
+                    with contextlib.suppress(Exception):
                         self.mcp.vault_delete(trace_path)
-                    except Exception:
-                        pass
         except Exception:
-            pass  # Non-blocking: pruning failure is not critical
+            # Non-blocking: pruning failure is not critical
+            logger.debug("Trace pruning failed", exc_info=True)
 
     def browse_recent_traces(self, skill_name: str, n: int = 5) -> list[dict[str, Any]]:
         """Browse recent execution traces for a skill.
@@ -251,7 +251,7 @@ class VaultLogger:
                 except Exception:
                     continue
         except Exception:
-            pass
+            logger.debug("browse_recent_traces failed", exc_info=True)
         return results
 
     # ── Obsidian Mission Retrospectives ────────────────────────────────

@@ -26,6 +26,7 @@ Usage:
     cost = tracker.track_usage_fast(model, tokens)
 """
 
+import contextlib
 import logging
 import re
 import time
@@ -812,12 +813,10 @@ class CostAwareRouter:
             self._tune_thresholds_based_on_success()
 
         # Feed R-Zero optimizer (non-blocking)
-        try:
+        with contextlib.suppress(Exception):
             r_zero = self._get_r_zero()
             if r_zero is not None:
                 r_zero.record_execution(model, success, 1)
-        except Exception:
-            pass
 
         # Decrement degradation cooldown
         if self._degradation_cooldown > 0:
@@ -923,7 +922,7 @@ class CostAwareRouter:
         When local model success rate drops below 80%, R-Zero returns 0.8
         multiplier, indicating we should escalate to a higher-quality model.
         """
-        try:
+        with contextlib.suppress(Exception):
             r_zero = self._get_r_zero()
             if r_zero is None:
                 return model
@@ -942,8 +941,6 @@ class CostAwareRouter:
                         multiplier,
                     )
                     return "deepseek-r1:8b"
-        except Exception:
-            pass
         return model
 
     def apply_degradation_feedback(self, alerts: list) -> None:

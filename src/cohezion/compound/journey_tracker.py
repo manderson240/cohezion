@@ -19,6 +19,7 @@ Features:
 - Experience guidance for future runs
 """
 
+import contextlib
 import hashlib
 import logging
 from dataclasses import dataclass
@@ -474,10 +475,9 @@ class JourneyTracker:
             self._recent_points = self._recent_points[-self.TRAJECTORY_WINDOW :]
 
         # Persist trajectory point to SurrealDB (non-blocking, fire-and-forget)
-        try:
+        # Non-blocking: SurrealDB may be unavailable
+        with contextlib.suppress(Exception):
             self._persist_to_surreal(point)
-        except Exception:
-            pass  # Non-blocking: SurrealDB may be unavailable
 
         logger.debug(
             "Tracked execution: %s (phi=%.2f, coherence=%.2f, "
@@ -532,10 +532,9 @@ class JourneyTracker:
             },
             method="POST",
         )
-        try:
+        # Fire-and-forget
+        with contextlib.suppress(Exception):
             urllib.request.urlopen(req, timeout=2)
-        except Exception:
-            pass  # Fire-and-forget
 
     def get_last_point(self) -> TrajectoryPoint | None:
         """Return the most recent trajectory point, or None if no points tracked."""

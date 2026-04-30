@@ -48,7 +48,7 @@ async def get_fleet_events(limit: int = 20):
         if events and events[0].get("result"):
             return events[0]["result"]
         return []
-    except Exception:  # noqa: BLE001 - FastAPI boundary, log + clean 500
+    except Exception as exc:  # noqa: BLE001 - FastAPI boundary, log + clean 500
         # Don't leak DB connection strings / paths to the network. (Ω12 Patch 6)
         logger.exception("get_fleet_events failed")
-        raise HTTPException(status_code=500, detail="Internal server error")
+        raise HTTPException(status_code=500, detail="Internal server error") from exc

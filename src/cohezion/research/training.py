@@ -6,6 +6,7 @@ Integrates with Cohezion's FLUME and training infrastructure.
 
 from __future__ import annotations
 
+import contextlib
 import json
 import logging
 import shutil
@@ -255,11 +256,9 @@ class SimpleTrainingRunner:
         # Look for JSON metrics in output
         for line in output.split("\n"):
             if "METRICS:" in line:
-                try:
+                with contextlib.suppress(Exception):
                     json_str = line.split("METRICS:")[1]
                     parsed = json.loads(json_str)
                     metrics.update(parsed)
-                except Exception:
-                    pass
 
         return metrics

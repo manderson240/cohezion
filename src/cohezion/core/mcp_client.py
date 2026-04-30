@@ -4,6 +4,7 @@ Connects to the Cloud Vault MCP Server using streamable-http protocol
 to enable compound engineering workflows with persistent knowledge storage.
 """
 
+import contextlib
 import json
 import logging
 import os
@@ -356,12 +357,11 @@ class MCPClient:
         """
         # Search in operation-specific folder
         folder = f"patterns/operations/{operation_type}"
-        try:
+        # Fall through to full-text search on failure
+        with contextlib.suppress(Exception):
             results = self.vault_search(query="", scope="folder", folder=folder)
             if results:
                 return results[:limit]
-        except Exception:
-            pass  # Fall through to full-text search
 
         # Fall back to full-text search if hierarchical structure doesn't exist
         try:
