@@ -521,9 +521,21 @@ class JourneyTracker:
         surql = "CREATE journey_transition CONTENT $data;"
         json.dumps({"surql": surql, "data": json.loads(data)}).encode("utf-8")
 
+        dims = (
+            point.dimensions.tolist()
+            if hasattr(point.dimensions, "tolist")
+            else list(point.dimensions)
+        )
+        task_str = point.task_description[:100].replace(chr(39), "")
+        surql_create = (
+            f"CREATE journey_transition SET dimensions = {dims}, "
+            f"coherence = {point.coherence}, efficiency = {point.efficiency}, "
+            f"operation_type = '{point.operation_type}', "
+            f"task = '{task_str}', created = time::now();"
+        )
         req = urllib.request.Request(
             "http://localhost:8001/sql",
-            data=f"CREATE journey_transition SET dimensions = {point.dimensions.tolist() if hasattr(point.dimensions, 'tolist') else list(point.dimensions)}, coherence = {point.coherence}, efficiency = {point.efficiency}, operation_type = '{point.operation_type}', task = '{point.task_description[:100].replace(chr(39), '')}', created = time::now();".encode(),
+            data=surql_create.encode(),
             headers={
                 "Accept": "application/json",
                 "surreal-ns": "cohezion",

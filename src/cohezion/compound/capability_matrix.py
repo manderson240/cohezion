@@ -408,7 +408,10 @@ class CapabilityMatrix:
             lines.append("|---|---|---|---|")
             for g in gaps:
                 lines.append(
-                    f"| {g.task_type} | {g.best_available_score:.2f} | {g.threshold:.2f} | {g.suggested_action} |"
+                    (
+                        f"| {g.task_type} | {g.best_available_score:.2f} | {g.threshold:.2f} | "
+                        f"{g.suggested_action} |"
+                    )
                 )
             lines.append("")
 
@@ -422,7 +425,8 @@ class CapabilityMatrix:
             for c in ft:
                 lines.append(
                     f"| {c.base_model} | {c.target_capability} | {c.training_data_count} | "
-                    f"{c.finetune_mode} | +{c.estimated_quality_gain:.1f} | {'Yes' if c.feasible else 'No'} |"
+                    f"{c.finetune_mode} | +{c.estimated_quality_gain:.1f} | "
+                    f"{'Yes' if c.feasible else 'No'} |"
                 )
             lines.append("")
 
@@ -567,15 +571,28 @@ class CapabilityMatrix:
         known_overlaps = [
             {
                 "modules": "healing/ + resilience/",
-                "recommendation": "Both handle self-healing. healing/ provides DriftDetector+Diagnostician+Corrector (component-level). resilience/ provides AutonomicManager MAPE-K (system-level). Keep both but document ownership: healing/=component health, resilience/=system health.",
+                "recommendation": (
+                    "Both handle self-healing. healing/ provides "
+                    "DriftDetector+Diagnostician+Corrector (component-level). resilience/ provides "
+                    "AutonomicManager MAPE-K (system-level). Keep both but document ownership: "
+                    "healing/=component health, resilience/=system health."
+                ),
             },
             {
                 "modules": "eval/ + evaluation/",
-                "recommendation": "eval/ has CapabilityScorecard (6-axis EVO) + pipeline. evaluation/ has SelfEvaluationEngine (pre-flight). Both wired to CapabilityMatrix. Consider merging evaluation/self_eval.py into eval/.",
+                "recommendation": (
+                    "eval/ has CapabilityScorecard (6-axis EVO) + pipeline. evaluation/ has "
+                    "SelfEvaluationEngine (pre-flight). Both wired to CapabilityMatrix. Consider "
+                    "merging evaluation/self_eval.py into eval/."
+                ),
             },
             {
                 "modules": "pipeline/ + pipelines/",
-                "recommendation": "pipeline/ has active modules (weight_bridge, hyperparameter_debate). pipelines/ has only traceability stub. Merge traceability.py into pipeline/ and remove pipelines/.",
+                "recommendation": (
+                    "pipeline/ has active modules (weight_bridge, hyperparameter_debate). "
+                    "pipelines/ has only traceability stub. Merge traceability.py into pipeline/ "
+                    "and remove pipelines/."
+                ),
             },
         ]
         return known_overlaps
@@ -595,7 +612,10 @@ class CapabilityMatrix:
             if gap.best_available_score < 0.3:
                 action = {
                     "gap": f"{gap.task_type}: best score {gap.best_available_score:.2f}",
-                    "action": f"Scout new model for {gap.task_type} capability (current best: {gap.best_available_score:.2f})",
+                    "action": (
+                        f"Scout new model for {gap.task_type} capability "
+                        f"(current best: {gap.best_available_score:.2f})"
+                    ),
                     "priority": "HIGH",
                 }
             elif gap.best_available_score < 0.5:

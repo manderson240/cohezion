@@ -385,7 +385,10 @@ class AdversarialTester:
 """
         for cat, stats in sorted(self.metrics.by_category.items()):
             acc = stats["correct"] / stats["total"] if stats["total"] > 0 else 0
-            report += f"| {cat} | {stats['total']:,} | {stats['correct']:,} | {stats['fp']} | {stats['fn']} | {acc:.2%} |\n"
+            report += (
+                f"| {cat} | {stats['total']:,} | {stats['correct']:,} | {stats['fp']} | "
+                f"{stats['fn']} | {acc:.2%} |\n"
+            )
 
         report += f"""
 ## Attack Pattern Coverage
@@ -399,10 +402,16 @@ class AdversarialTester:
 """
         # Add recommendations based on results
         if self.metrics.false_negatives > 0:
-            report += f"- ⚠️ **{self.metrics.false_negatives} attacks bypassed detection** - Review failed patterns and enhance rules\n"
+            report += (
+                f"- ⚠️ **{self.metrics.false_negatives} attacks bypassed detection** - Review "
+                f"failed patterns and enhance rules\n"
+            )
 
         if self.metrics.false_positives > 0:
-            report += f"- ⚠️ **{self.metrics.false_positives} false positives** - Adjust detection thresholds\n"
+            report += (
+                f"- ⚠️ **{self.metrics.false_positives} false positives** - Adjust detection "
+                f"thresholds\n"
+            )
 
         if self.metrics.detection_rate >= 0.999:
             report += "- ✅ **Detection rate ≥99.9%** - Security posture is strong\n"

@@ -16,7 +16,10 @@ from typing import Any
 BASE_TOOLS: list[dict[str, Any]] = [
     {
         "name": "elite_ocr_analysis",
-        "description": "State-of-the-art OCR with GLM-OCR (94.62% OmniDocBench accuracy) for complex document understanding",
+        "description": (
+            "State-of-the-art OCR with GLM-OCR (94.62% OmniDocBench accuracy) "
+            "for complex document understanding"
+        ),
         "inputSchema": {
             "type": "object",
             "properties": {
@@ -48,7 +51,10 @@ BASE_TOOLS: list[dict[str, Any]] = [
     },
     {
         "name": "agentic_coding_workflow",
-        "description": "Elite coding workflow with Qwen3-Coder-Next (70.6% SWE-Bench) for complex software engineering tasks",
+        "description": (
+            "Elite coding workflow with Qwen3-Coder-Next (70.6% SWE-Bench) "
+            "for complex software engineering tasks"
+        ),
         "inputSchema": {
             "type": "object",
             "properties": {
@@ -88,7 +94,10 @@ BASE_TOOLS: list[dict[str, Any]] = [
     },
     {
         "name": "compound_engineering_orchestrator",
-        "description": "Orchestrate compound engineering workflows using elite models with optimal resource allocation",
+        "description": (
+            "Orchestrate compound engineering workflows using elite models "
+            "with optimal resource allocation"
+        ),
         "inputSchema": {
             "type": "object",
             "properties": {
@@ -128,12 +137,16 @@ BASE_TOOLS: list[dict[str, Any]] = [
     },
     {
         "name": "get_compound_config",
-        "description": "Get unified compound engineering settings, model registry, and system vitals",
+        "description": (
+            "Get unified compound engineering settings, model registry, and system vitals"
+        ),
         "inputSchema": {"type": "object", "properties": {}},
     },
     {
         "name": "elite_model_selection",
-        "description": "Select optimal elite model with MoE awareness and memory optimization for v0.15.5-rc2",
+        "description": (
+            "Select optimal elite model with MoE awareness and memory optimization for v0.15.5-rc2"
+        ),
         "inputSchema": {
             "type": "object",
             "properties": {
@@ -317,7 +330,9 @@ BASE_TOOLS: list[dict[str, Any]] = [
     },
     {
         "name": "agentic_coding_workflow",
-        "description": "Elite coding workflow using Qwen3-Coder-Next with 70.6% SWE-Bench performance",
+        "description": (
+            "Elite coding workflow using Qwen3-Coder-Next with 70.6% SWE-Bench performance"
+        ),
         "inputSchema": {
             "type": "object",
             "properties": {
@@ -346,7 +361,10 @@ BASE_TOOLS: list[dict[str, Any]] = [
     },
     {
         "name": "compound_engineering_orchestrator",
-        "description": "Orchestrate multiple elite models for compound engineering workflows with 96% token efficiency",
+        "description": (
+            "Orchestrate multiple elite models for compound engineering workflows "
+            "with 96% token efficiency"
+        ),
         "inputSchema": {
             "type": "object",
             "properties": {
@@ -385,7 +403,9 @@ BASE_TOOLS: list[dict[str, Any]] = [
     },
     {
         "name": "elite_model_selection",
-        "description": "Intelligent model selection based on task requirements and available system resources",
+        "description": (
+            "Intelligent model selection based on task requirements and available system resources"
+        ),
         "inputSchema": {
             "type": "object",
             "properties": {
@@ -439,7 +459,9 @@ BASE_TOOLS: list[dict[str, Any]] = [
     },
     {
         "name": "pocket_tts_generate",
-        "description": "Generate speech from text using Kyutai Pocket TTS (100M parameters, CPU-only)",
+        "description": (
+            "Generate speech from text using Kyutai Pocket TTS (100M parameters, CPU-only)"
+        ),
         "inputSchema": {
             "type": "object",
             "properties": {
@@ -449,7 +471,10 @@ BASE_TOOLS: list[dict[str, Any]] = [
                 },
                 "voice": {
                     "type": "string",
-                    "description": "Voice model (alba, marius, javert, jean, fantine, cosette, eponine, azelma, or custom path)",
+                    "description": (
+                        "Voice model (alba, marius, javert, jean, fantine, "
+                        "cosette, eponine, azelma, or custom path)"
+                    ),
                 },
                 "output_path": {
                     "type": "string",
@@ -509,7 +534,9 @@ BASE_TOOLS: list[dict[str, Any]] = [
     },
     {
         "name": "daily_scout_research",
-        "description": "Trigger the Daily Scout agent to research SOTA SLMs and propose registry updates",
+        "description": (
+            "Trigger the Daily Scout agent to research SOTA SLMs and propose registry updates"
+        ),
         "inputSchema": {"type": "object", "properties": {}},
     },
 ]

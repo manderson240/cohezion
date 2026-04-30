@@ -306,7 +306,10 @@ class MetricsAnalytics:
         if total_rate < 0.70:
             return "Cache hit rate is low. Consider warming cache or adjusting thresholds."
         elif l2_rate < 20:
-            return "L2 semantic cache underutilized. Adjust similarity threshold or check query patterns."
+            return (
+                "L2 semantic cache underutilized. Adjust similarity threshold or check query "
+                "patterns."
+            )
         else:
             return "Cache performance is excellent. Continue current configuration."
 
@@ -353,7 +356,10 @@ class MetricsAnalytics:
         efficiency_gap = token_analytics["efficiency_gap"]
         if efficiency_gap > 20:
             recommendations.append(
-                f"🟡 Token efficiency {efficiency_gap:.0f} tok/sec below target. Focus on semantic cache optimization."
+                (
+                    f"🟡 Token efficiency {efficiency_gap:.0f} tok/sec below target. Focus on "
+                    f"semantic cache optimization."
+                )
             )
 
         # Guardrail recommendations

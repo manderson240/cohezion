@@ -24,7 +24,8 @@ DEFINE INDEX idx_axiomatic_time ON axiomatic_state FIELDS timestamp;
 -- 2048D Latent State (the "Soul" - semantic hypervolume)
 DEFINE TABLE latent_state SCHEMALESS;
 DEFINE INDEX idx_latent_journey ON latent_state FIELDS journey_id;
-DEFINE INDEX idx_latent_vector ON latent_state FIELDS embedding TYPE VECTOR DIMENSION 2048 DIST COSINE;
+DEFINE INDEX idx_latent_vector ON latent_state FIELDS embedding
+    TYPE VECTOR DIMENSION 2048 DIST COSINE;
 
 -- Trajectory points (FLUME evolution through manifold)
 DEFINE TABLE trajectory_point SCHEMALESS;
@@ -45,7 +46,8 @@ DEFINE INDEX idx_precipitation_type ON precipitation FIELDS type;
 DEFINE TABLE knowledge_extract SCHEMALESS;
 DEFINE INDEX idx_knowledge_journey ON knowledge_extract FIELDS journey_id;
 DEFINE INDEX idx_knowledge_pattern ON knowledge_extract FIELDS pattern_type;
-DEFINE INDEX idx_knowledge_vector ON knowledge_extract FIELDS embedding TYPE VECTOR DIMENSION 2048 DIST COSINE;
+DEFINE INDEX idx_knowledge_vector ON knowledge_extract FIELDS embedding
+    TYPE VECTOR DIMENSION 2048 DIST COSINE;
 
 -- Reward ledger (XP, badges, streaks)
 DEFINE TABLE reward_ledger SCHEMALESS;
@@ -98,7 +100,8 @@ MIGRATIONS = {
     "003_latent_state": """
         DEFINE TABLE latent_state SCHEMALESS;
         DEFINE INDEX idx_latent_journey ON latent_state FIELDS journey_id;
-        DEFINE INDEX idx_latent_vector ON latent_state FIELDS embedding TYPE VECTOR DIMENSION 2048 DIST COSINE;
+        DEFINE INDEX idx_latent_vector ON latent_state FIELDS embedding
+    TYPE VECTOR DIMENSION 2048 DIST COSINE;
     """,
     "004_trajectory": """
         DEFINE TABLE trajectory_point SCHEMALESS;
@@ -119,7 +122,8 @@ MIGRATIONS = {
         DEFINE TABLE knowledge_extract SCHEMALESS;
         DEFINE INDEX idx_knowledge_journey ON knowledge_extract FIELDS journey_id;
         DEFINE INDEX idx_knowledge_pattern ON knowledge_extract FIELDS pattern_type;
-        DEFINE INDEX idx_knowledge_vector ON knowledge_extract FIELDS embedding TYPE VECTOR DIMENSION 512 DIST COSINE;
+        DEFINE INDEX idx_knowledge_vector ON knowledge_extract FIELDS embedding
+            TYPE VECTOR DIMENSION 512 DIST COSINE;
     """,
     "008_rewards": """
         DEFINE TABLE reward_ledger SCHEMALESS;

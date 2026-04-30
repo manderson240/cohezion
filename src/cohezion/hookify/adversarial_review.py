@@ -259,7 +259,9 @@ class AdversarialReviewHarness:
                 {
                     "severity": "error",
                     "message": "No adversarial tests defined",
-                    "recommendation": "Add tests for boundary conditions, edge cases, failure modes",
+                    "recommendation": (
+                        "Add tests for boundary conditions, edge cases, failure modes"
+                    ),
                 }
             )
             score -= 0.3
@@ -425,8 +427,8 @@ class AdversarialReviewHarness:
 
             # Query violations (latent synapses pointing to this rule)
             violation_sql = f"""
-                SELECT count() as violation_count 
-                FROM synapse 
+                SELECT count() as violation_count
+                FROM synapse
                 WHERE out = {rule_neuron} AND link_type = 'latent';
             """
             violation_result = self.db.query(violation_sql)
@@ -438,8 +440,8 @@ class AdversarialReviewHarness:
 
             # Query cross-rule connections (dream synapses)
             dream_sql = f"""
-                SELECT in, out, resonance 
-                FROM synapse 
+                SELECT in, out, resonance
+                FROM synapse
                 WHERE (in = {rule_neuron} OR out = {rule_neuron}) AND link_type = 'dream';
             """
             dream_result = self.db.query(dream_sql)
@@ -447,7 +449,7 @@ class AdversarialReviewHarness:
 
             # Query affinity patterns
             affinity_sql = f"""
-                SELECT dim_agent_affinity 
+                SELECT dim_agent_affinity
                 FROM {rule_neuron};
             """
             affinity_result = self.db.query(affinity_sql)

@@ -223,7 +223,8 @@ class DailyHealthDigest:
                     _BASH,
                     "-c",
                     """git rev-list --objects --all | \
-                    git cat-file --batch-check='%(objecttype) %(objectname) %(objectsize) %(rest)' | \
+                    git cat-file \
+                        --batch-check='%(objecttype) %(objectname) %(objectsize) %(rest)' | \
                     awk '$1 == "blob" && $3 > 1048576' | wc -l""",
                 ],
                 capture_output=True,
@@ -405,7 +406,9 @@ class DailyHealthDigest:
                 value=repo.pack_efficiency,
                 threshold_warning=0.7,
                 threshold_critical=0.5,
-                message=f"{repo.pack_efficiency:.1%} efficiency, {repo.loose_objects} loose objects",
+                message=(
+                    f"{repo.pack_efficiency:.1%} efficiency, {repo.loose_objects} loose objects"
+                ),
             )
         )
 
@@ -417,7 +420,9 @@ class DailyHealthDigest:
                 value=test.pass_rate,
                 threshold_warning=0.95,
                 threshold_critical=0.90,
-                message=f"{test.passing_tests}/{test.total_tests} tests passing ({test.pass_rate:.1%})",
+                message=(
+                    f"{test.passing_tests}/{test.total_tests} tests passing ({test.pass_rate:.1%})"
+                ),
             )
         )
 
@@ -429,7 +434,10 @@ class DailyHealthDigest:
                 value=dep.health_score,
                 threshold_warning=0.7,
                 threshold_critical=0.5,
-                message=f"{dep.outdated_dependencies} outdated, {dep.vulnerable_dependencies} vulnerable",
+                message=(
+                    f"{dep.outdated_dependencies} outdated, {dep.vulnerable_dependencies} "
+                    f"vulnerable"
+                ),
             )
         )
 
@@ -443,7 +451,9 @@ class DailyHealthDigest:
                     value=cicd.failure_rate_7d,
                     threshold_warning=0.1,
                     threshold_critical=0.2,
-                    message=f"Last: {cicd.last_build_status}, failure rate: {cicd.failure_rate_7d:.1%}",
+                    message=(
+                        f"Last: {cicd.last_build_status}, failure rate: {cicd.failure_rate_7d:.1%}"
+                    ),
                 )
             )
 
@@ -791,6 +801,13 @@ Critical Issues:
             HealthStatus.CRITICAL: "❌",
         }
 
+        if digest.trend_7d > 0:
+            trend_label = "📈 Improving"
+        elif digest.trend_7d < 0:
+            trend_label = "📉 Declining"
+        else:
+            trend_label = "→ Stable"
+        coherence_label = "HIHO ✅" if digest.coherence_metrics.hiho_stable else "Outside HIHO ⚠️"
         output = f"""
 {"=" * 70}
 DAILY PLATFORM HEALTH DIGEST
@@ -799,11 +816,11 @@ Timestamp: {digest.timestamp.isoformat()}
 Overall Score: {digest.overall_health_score:.3f} / 1.0
 Status: {status_emoji[digest.overall_status]} {digest.overall_status.value.upper()}
 HIHO Stable: {"✅ Yes" if digest.hiho_stable else "⚠️  No"}
-Trend (7d): {digest.trend_7d:+.3f} ({"📈 Improving" if digest.trend_7d > 0 else "📉 Declining" if digest.trend_7d < 0 else "→ Stable"})
+Trend (7d): {digest.trend_7d:+.3f} ({trend_label})
 
 COHERENCE METRICS
 {"─" * 70}
-Coherence: {digest.coherence_metrics.coherence:.3f} ({"HIHO ✅" if digest.coherence_metrics.hiho_stable else "Outside HIHO ⚠️"})
+Coherence: {digest.coherence_metrics.coherence:.3f} ({coherence_label})
 Internal State: {digest.coherence_metrics.internal_state:.3f}
 External Alignment: {digest.coherence_metrics.external_alignment:.3f}
 Stability Score: {digest.coherence_metrics.stability_score:.3f}

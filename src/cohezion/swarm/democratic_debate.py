@@ -445,7 +445,10 @@ async def run_improvement_debate():
 
     try:
         session = await debate.run_debate(
-            topic="How should we improve the Cohezion platform to better support autonomous agentic development?",
+            topic=(
+                "How should we improve the Cohezion platform to better support autonomous agentic "
+                "development?"
+            ),
             max_rounds=10,
             min_rounds=3,
         )

@@ -1,6 +1,6 @@
 """
-Quality Scout - Performs zero-token static analysis to identify code smells and high-complexity files.
-Acts as the primary filter for selective LLM analysis.
+Quality Scout - Performs zero-token static analysis to identify code smells
+and high-complexity files. Acts as the primary filter for selective LLM analysis.
 """
 
 import ast
@@ -39,7 +39,10 @@ class QualityScout(BaseScout):
                     type="anti_pattern",
                     name="High Cyclomatic Complexity",
                     category="complexity",
-                    description=f"File has cyclomatic complexity of {ast_summary.complexity_score}, exceeding threshold of 15.",
+                    description=(
+                        f"File has cyclomatic complexity of {ast_summary.complexity_score}, "
+                        f"exceeding threshold of 15."
+                    ),
                     file_path=rel_path,
                     line_range=(1, ast_summary.loc),
                     confidence=1.0,
@@ -61,7 +64,10 @@ class QualityScout(BaseScout):
                                 type="anti_pattern",
                                 name="Long Function",
                                 category="readability",
-                                description=f"Function '{node.name}' is {fn_lines} lines long (threshold: 50).",
+                                description=(
+                                    f"Function '{node.name}' is {fn_lines} lines long (threshold: "
+                                    f"50)."
+                                ),
                                 file_path=rel_path,
                                 line_range=(node.lineno, node.end_lineno),
                                 confidence=1.0,
@@ -78,7 +84,10 @@ class QualityScout(BaseScout):
                                 type="anti_pattern",
                                 name="Deep Nesting",
                                 category="complexity",
-                                description=f"Function '{node.name}' reached nesting depth of {max_depth} (threshold: 4).",
+                                description=(
+                                    f"Function '{node.name}' reached nesting depth of {max_depth} "
+                                    f"(threshold: 4)."
+                                ),
                                 file_path=rel_path,
                                 line_range=(node.lineno, node.end_lineno),
                                 confidence=1.0,
@@ -95,7 +104,10 @@ class QualityScout(BaseScout):
                                     type="anti_pattern",
                                     name="Bare Except",
                                     category="reliability",
-                                    description=f"Bare except caught in '{node.name}'. Use specific exceptions.",
+                                    description=(
+                                        f"Bare except caught in '{node.name}'. Use specific "
+                                        f"exceptions."
+                                    ),
                                     file_path=rel_path,
                                     line_range=(body_node.lineno, body_node.end_lineno),
                                     confidence=1.0,

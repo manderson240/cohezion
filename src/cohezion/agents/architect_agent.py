@@ -40,7 +40,8 @@ For each task, provide:
 1. id: unique string ID
 2. title: short name for the task
 3. description: what needs to be done
-4. suggested_agent: which specialized agent should handle this (e.g. AnalystAgent, HealerAgent, VisionAgent)
+4. suggested_agent: which specialized agent should handle this
+   (e.g. AnalystAgent, HealerAgent, VisionAgent)
 5. depends_on: list of task IDs that must be completed first
 
 OUTPUT FORMAT (JSON list of objects):

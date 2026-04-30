@@ -29,7 +29,8 @@ class TestHamiltonianReward:
 
         # HIHO_WELL has minimum energy at 0.5, so reward (negative energy) is higher there
         assert reward_target > reward_zero, (
-            f"Reward at target ({reward_target:.4f}) should exceed reward at zero ({reward_zero:.4f})"
+            f"Reward at target ({reward_target:.4f}) should exceed reward at zero "
+            f"({reward_zero:.4f})"
         )
 
     def test_hamiltonian_reward_returns_float(self) -> None:

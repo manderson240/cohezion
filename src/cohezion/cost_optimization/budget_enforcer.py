@@ -121,7 +121,10 @@ class CostAlertManager:
             if current_time - self.last_warn_time > self.alert_cooldown_sec:
                 self.last_warn_time = current_time
                 self.alert_count += 1
-                msg = f"Cost WARNING: Budget utilization at {utilization_pct:.1f}% (threshold: {self.warn_threshold}%)"
+                msg = (
+                    f"Cost WARNING: Budget utilization at {utilization_pct:.1f}% (threshold: "
+                    f"{self.warn_threshold}%)"
+                )
                 return "WARNING", msg
             return "WARNING", None
 
@@ -137,7 +140,10 @@ class CostAlertManager:
             return "CRITICAL", None
 
         if utilization_pct < 100.0:
-            msg = f"Cost EXTREME: Budget utilization at {utilization_pct:.1f}% (threshold: {self.extreme_threshold}%)"
+            msg = (
+                f"Cost EXTREME: Budget utilization at {utilization_pct:.1f}% (threshold: "
+                f"{self.extreme_threshold}%)"
+            )
             return "EXTREME", msg
 
         return "BLOCKED", f"Budget limit reached ({utilization_pct:.1f}%)"

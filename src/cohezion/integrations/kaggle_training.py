@@ -92,7 +92,10 @@ import sys
 
 # 1. Install mandatory dependencies
 print("Installing mandatory dependencies...")
-subprocess.check_call([sys.executable, "-m", "pip", "install", "-q", "mamba_ssm", "causal-conv1d", "peft"])
+subprocess.check_call([
+    sys.executable, "-m", "pip", "install", "-q",
+    "mamba_ssm", "causal-conv1d", "peft",
+])
 
 import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer

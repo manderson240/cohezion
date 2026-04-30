@@ -402,7 +402,8 @@ def create_hookify_mcp_server(vault_path: Path | None = None) -> FastMCP:
         "Hookify Rule Engine",
         instructions=(
             "A universal rule engine for compound engineering with cross-platform support. "
-            "Define rules with configurable levers, validate execution against HIHO coherence gates, "
+            "Define rules with configurable levers, validate execution against HIHO coherence "
+            "gates, "
             "and persist violations to the vault graph for recursive learning."
         ),
     )

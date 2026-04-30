@@ -161,7 +161,9 @@ class Monitor:
                 violation = Violation(
                     severity=ViolationSeverity.ERROR,
                     check_name="cpu_limit",
-                    message=f"CPU usage {cpu_percent:.1f}% exceeds limit {self.policy.max_cpu_percent}%",
+                    message=(
+                        f"CPU usage {cpu_percent:.1f}% exceeds limit {self.policy.max_cpu_percent}%"
+                    ),
                     timestamp=datetime.now(),
                     resource="cpu",
                 )
@@ -179,7 +181,9 @@ class Monitor:
                 violation = Violation(
                     severity=ViolationSeverity.ERROR,
                     check_name="memory_limit",
-                    message=f"Memory usage {used_gb:.1f}GB exceeds limit {self.policy.max_memory_gb}GB",
+                    message=(
+                        f"Memory usage {used_gb:.1f}GB exceeds limit {self.policy.max_memory_gb}GB"
+                    ),
                     timestamp=datetime.now(),
                     resource="memory",
                 )
@@ -196,7 +200,10 @@ class Monitor:
                 violation = Violation(
                     severity=ViolationSeverity.WARNING,
                     check_name="process_count",
-                    message=f"Process count {process_count} exceeds limit {self.policy.max_process_count}",
+                    message=(
+                        f"Process count {process_count} exceeds limit "
+                        f"{self.policy.max_process_count}"
+                    ),
                     timestamp=datetime.now(),
                     resource="processes",
                 )
@@ -402,7 +409,10 @@ class PreFlightChecker:
                     Violation(
                         severity=ViolationSeverity.WARNING,
                         check_name="memory_availability",
-                        message=f"Only {available_gb:.1f}GB available, policy requires {policy.max_memory_gb}GB",
+                        message=(
+                            f"Only {available_gb:.1f}GB available, policy requires "
+                            f"{policy.max_memory_gb}GB"
+                        ),
                         timestamp=datetime.now(),
                         resource="memory",
                     )

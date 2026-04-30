@@ -24,7 +24,8 @@ async def audit():
 
         # Get the latest discovery summary
         disc = await client._client.query(
-            "SELECT content FROM universe_nodes WHERE node_type = 'lab_discovery' ORDER BY created_at DESC LIMIT 1"
+            "SELECT content FROM universe_nodes WHERE node_type = 'lab_discovery' ORDER BY "
+            "created_at DESC LIMIT 1"
         )
         if disc and disc[0].get("result"):
             print("\n✅ LATEST PERSISTENT FINDING:")

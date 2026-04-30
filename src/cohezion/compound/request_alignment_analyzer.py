@@ -907,9 +907,9 @@ class RequestAlignmentAnalyzer:
             hypothesis = (
                 f"Request alignment for {request.intent.name} task: {request.raw_text[:100]}"
             )
-            method = (
-                f"Analyzed request with intent={request.intent.name}, "
-                f"{len(request.constraints or [])} constraints, {len(request.criteria or [])} criteria"
+            method = f"Analyzed request with intent={request.intent.name}, "(
+                f"{len(request.constraints or [])} constraints, {len(request.criteria or [])} "
+                f"criteria"
             )
             result = (
                 f"Misalignment score: {alignment.misalignment_score:.2f} ({len(issues)} issues)"

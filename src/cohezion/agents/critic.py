@@ -70,7 +70,8 @@ class CriticAgent(BaseAgent):
         # Format analyst outputs for review
         formatted_outputs = self._format_outputs(analyst_outputs)
 
-        prompt = f"""Review the following analyst perspectives and identify any contradictions or logical issues.
+        prompt = f"""Review the following analyst perspectives and identify any contradictions
+or logical issues.
 
 {formatted_outputs}
 

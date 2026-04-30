@@ -411,7 +411,10 @@ class SkillRefiner:
 
             req = urllib.request.Request(
                 "http://localhost:8001/sql",
-                data=b"SELECT algorithm, reward_mode, reward, convergence_rate, diagnostic FROM training_run ORDER BY reward DESC LIMIT 1;",
+                data=(
+                    b"SELECT algorithm, reward_mode, reward, convergence_rate, diagnostic FROM "
+                    b"training_run ORDER BY reward DESC LIMIT 1;"
+                ),
                 headers={
                     "Accept": "application/json",
                     "surreal-ns": "cohezion",

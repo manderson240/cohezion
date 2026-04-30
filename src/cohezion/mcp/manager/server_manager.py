@@ -237,7 +237,8 @@ class MCPServerManager:
                                 await self.restart_server(name)
                             else:
                                 logger.error(
-                                    "Server '%s' failed health check, not restarting (max restarts: %d)",
+                                    "Server '%s' failed health check, not restarting (max "
+                                    "restarts: %d)",
                                     name,
                                     config.max_restarts,
                                 )

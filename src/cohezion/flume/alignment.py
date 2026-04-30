@@ -79,7 +79,10 @@ class LatentAligner:
         """
         if source_domain not in self.domain_centroids or target_domain not in self.domain_centroids:
             logger.warning(
-                f"⚠️ Centroids missing for {source_domain} or {target_domain}. Returning original vector."
+                (
+                    f"⚠️ Centroids missing for {source_domain} or {target_domain}. Returning "
+                    f"original vector."
+                )
             )
             return vector
 

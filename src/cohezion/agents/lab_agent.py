@@ -162,11 +162,19 @@ class LabAgent(BaseAgent):
             logger.warning(f"Could not fetch seed from DB: {e}. Using fallback.")
 
         fallbacks = [
-            "Designing a simulation for 10,000+ hierarchical agents to test alignment scaling laws.",
-            "Moving beyond token prediction: Agents communicating via direct latent vector transmission.",
-            "Constructing a high-fidelity 'Universe' simulation for safe capability testing (Sandboxed Reality).",
+            (
+                "Designing a simulation for 10,000+ hierarchical agents to test alignment scaling "
+                "laws."
+            ),
+            (
+                "Moving beyond token prediction: Agents communicating via direct latent vector "
+                "transmission."
+            ),
+            "Constructing a high-fidelity 'Universe' simulation for safe capability testing "
+            "(Sandboxed Reality).",
             "Constitutional AI applied to swarm consensus protocols: Can 100 agents self-police?",
-            "The 'Omega Point' of Agentic AI: When does the simulation become indistinguishable from reality?",
+            "The 'Omega Point' of Agentic AI: When does the simulation become indistinguishable "
+            "from reality?",
             "Recursive self-improvement in a closed-loop physics engine (The Cohezion Standard).",
         ]
         return random.choice(fallbacks)
@@ -194,8 +202,11 @@ class LabAgent(BaseAgent):
                 "seed": seed,
                 "verified": success,
                 "anthropic_alignment": alignment_score,
-                "narration": f"Autonomous discovery cycle completed at {datetime.now().isoformat()}. "
-                f"Hypothesis {'verified' if success else 'rejected'} in sandbox.",
+                "narration": (
+                    f"Autonomous discovery cycle completed at "
+                    f"{datetime.now().isoformat()}. "
+                    f"Hypothesis {'verified' if success else 'rejected'} in sandbox."
+                ),
             },
         )
 
@@ -203,7 +214,10 @@ class LabAgent(BaseAgent):
         self.session_discoveries.append(node)
 
         logger.info(
-            f"Discovery {discovery_id} persisted to SurrealDB. Alignment: {alignment_score:.2f}, Verified: {success}"
+            (
+                f"Discovery {discovery_id} persisted to SurrealDB. Alignment: "
+                f"{alignment_score:.2f}, Verified: {success}"
+            )
         )
 
     def _determine_domain(self, text: str) -> str:
@@ -295,7 +309,8 @@ class LabAgent(BaseAgent):
         logger.info(f"Autonomous Lab: {len(self.session_discoveries)} New Discoveries")
         for d in self.session_discoveries:
             logger.info(
-                f"  {d.id}: Alignment {d.metadata['anthropic_alignment']:.2f} | Verified: {d.metadata['verified']}"
+                f"  {d.id}: Alignment {d.metadata['anthropic_alignment']:.2f} | Verified: "
+                f"{d.metadata['verified']}"
             )
 
         self.session_discoveries = []

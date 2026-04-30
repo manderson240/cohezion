@@ -204,7 +204,10 @@ class TestMCPCompoundIntegrationFlow:
 
     @pytest.mark.fast
     @pytest.mark.xfail(
-        reason="bug: compound_start_session returns status='error' under current MCP client fixture - needs fixture investigation",
+        reason=(
+            "bug: compound_start_session returns status='error' under current MCP client fixture - "
+            "needs fixture investigation"
+        ),
         strict=False,
     )
     async def test_session_lifecycle(self):
@@ -286,7 +289,10 @@ class TestMCPCompoundE2E:
 
     @pytest.mark.slow
     @pytest.mark.xfail(
-        reason="bug: learning_capture returns status='error' under current MCP client fixture (sibling to test_session_lifecycle)",
+        reason=(
+            "bug: learning_capture returns status='error' under current MCP client "
+            "fixture (sibling to test_session_lifecycle)"
+        ),
         strict=False,
     )
     async def test_token_optimization_workflow(self):

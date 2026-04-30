@@ -131,7 +131,10 @@ class WeightBridge:
         beta = np.full(hidden_dim, 0.5, dtype=np.float32)
 
         logger.info(
-            "Extracted weights — w1: %s (norm=%.3f), w2: %s (norm=%.3f), b1 norm=%.3f, b2 norm=%.3f",
+            (
+                "Extracted weights — w1: %s (norm=%.3f), w2: %s (norm=%.3f), b1 norm=%.3f, b2 "
+                "norm=%.3f"
+            ),
             w1.shape,
             np.linalg.norm(w1),
             w2.shape,

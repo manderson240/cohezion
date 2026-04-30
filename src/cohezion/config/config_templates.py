@@ -22,7 +22,8 @@ autonomous research, and value precipitation via **UCP/MCP**.
 
 All actions are governed by two documents:
 - **Core Constitution**: `.agent/CONSTITUTION.md` - January 2026 Claude Edition
-- **Project Charter**: `.agent/COHEZION_CHARTER.md` - SPIN theory, FLUME evolution, HIHO, observable AI
+- **Project Charter**: `.agent/COHEZION_CHARTER.md` - SPIN theory, FLUME evolution, HIHO,
+  observable AI
 
 ## Quick Reference
 

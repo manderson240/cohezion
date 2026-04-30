@@ -124,7 +124,10 @@ try:
 
     # 2. Imports & Dependencies
     print("\n[2/8] Loading dependencies...")
-    MANDATORY_PACKAGES = ["trl", "peft", "bitsandbytes", "accelerate", "nvidia-cutlass", "mamba_ssm", "causal_conv1d"]
+    MANDATORY_PACKAGES = [
+        "trl", "peft", "bitsandbytes", "accelerate",
+        "nvidia-cutlass", "mamba_ssm", "causal_conv1d",
+    ]
     for pkg in MANDATORY_PACKAGES:
         try:
             __import__(pkg.replace("-", "_"))
@@ -136,11 +139,17 @@ try:
                 subprocess.check_call([sys.executable, "-m", "pip", "install", "-q", pkg])
             except:
                 print(f"  Standard install failed for {pkg}, trying with --no-build-isolation...")
-                subprocess.check_call([sys.executable, "-m", "pip", "install", "-q", "--no-build-isolation", pkg])
+                subprocess.check_call([
+                    sys.executable, "-m", "pip", "install",
+                    "-q", "--no-build-isolation", pkg,
+                ])
 
     import torch
     import pandas as pd
-    from transformers import AutoModelForCausalLM, AutoTokenizer, TrainingArguments, BitsAndBytesConfig
+    from transformers import (
+        AutoModelForCausalLM, AutoTokenizer,
+        TrainingArguments, BitsAndBytesConfig,
+    )
     from peft import LoraConfig, get_peft_model, prepare_model_for_kbit_training
     from datasets import Dataset
     from trl import SFTTrainer
@@ -173,18 +182,23 @@ try:
 
     df = pd.read_csv(train_file)
     print(f"  Columns: {list(df.columns)}")
-    
+
     # Map columns correctly (Competition uses 'prompt' and 'answer')
-    PROMPT_COL = 'prompt' if 'prompt' in df.columns else ('question' if 'question' in df.columns else 'problem')
+    PROMPT_COL = (
+        'prompt' if 'prompt' in df.columns
+        else ('question' if 'question' in df.columns else 'problem')
+    )
     ANSWER_COL = 'answer'
 
     # 5. Teacher trace generation (knowledge distillation)
     print("\n[5/8] Generating teacher traces for distillation...")
     teacher_model_name = "deepseek-ai/deepseek-r1-distill-qwen-32b"
-    
+
     try:
         print(f"  Loading teacher: {teacher_model_name}")
-        teacher_tokenizer = AutoTokenizer.from_pretrained(teacher_model_name, trust_remote_code=True)
+        teacher_tokenizer = AutoTokenizer.from_pretrained(
+            teacher_model_name, trust_remote_code=True,
+        )
         teacher_model = AutoModelForCausalLM.from_pretrained(
             teacher_model_name,
             torch_dtype=torch.bfloat16,
@@ -193,10 +207,16 @@ try:
         )
 
         def generate_teacher_trace(row):
-            prompt = f"Solve this step by step and put your final answer in \\boxed{{}}.\n\nProblem: {row[PROMPT_COL]}\n\nLet's think through this carefully:"
+            prompt = (
+                f"Solve this step by step and put your final answer in \\boxed{{}}."
+                f"\n\nProblem: {row[PROMPT_COL]}\n\nLet's think through this carefully:"
+            )
             inputs = teacher_tokenizer(prompt, return_tensors="pt").to(teacher_model.device)
             with torch.no_grad():
-                outputs = teacher_model.generate(**inputs, max_new_tokens=512, temperature=0.7, do_sample=True)
+                outputs = teacher_model.generate(
+                    **inputs, max_new_tokens=512,
+                    temperature=0.7, do_sample=True,
+                )
             response = teacher_tokenizer.decode(outputs[0], skip_special_tokens=True)
             return response[len(prompt):].strip()
 
@@ -218,18 +238,26 @@ try:
         torch.cuda.empty_cache()
     except Exception as e:
         print(f"  Teacher generation failed: {e}. Falling back to ground truth.")
-        filtered_data = [{'prompt': row[PROMPT_COL], 'answer': row[ANSWER_COL], 'teacher_trace': ''} for _, row in df.head(100).iterrows()]
+        filtered_data = [
+            {'prompt': row[PROMPT_COL], 'answer': row[ANSWER_COL], 'teacher_trace': ''}
+            for _, row in df.head(100).iterrows()
+        ]
 
     # 6. Load student model
     print("\n[6/8] Loading student model...")
-    model_path = kagglehub.model_download("metric/nemotron-3-nano-30b-a3b-bf16/transformers/default")
+    model_path = kagglehub.model_download(
+        "metric/nemotron-3-nano-30b-a3b-bf16/transformers/default"
+    )
     tokenizer = AutoTokenizer.from_pretrained(model_path, trust_remote_code=True)
     if tokenizer.pad_token is None: tokenizer.pad_token = tokenizer.eos_token
-    
-    model = AutoModelForCausalLM.from_pretrained(model_path, device_map="auto", trust_remote_code=True, torch_dtype=torch.bfloat16)
-    
+
+    model = AutoModelForCausalLM.from_pretrained(
+        model_path, device_map="auto",
+        trust_remote_code=True, torch_dtype=torch.bfloat16,
+    )
+
     lora_config = LoraConfig(
-        r=32, lora_alpha=16, 
+        r=32, lora_alpha=16,
         target_modules=["in_proj", "out_proj", "up_proj", "down_proj"],
         lora_dropout=0.05, bias="none", task_type="CAUSAL_LM"
     )
@@ -261,13 +289,20 @@ try:
         report_to="none"
     )
 
-    trainer = SFTTrainer(model=model, tokenizer=tokenizer, train_dataset=dataset['train'], eval_dataset=dataset['test'], args=training_args, max_seq_length=1024)
+    trainer = SFTTrainer(
+        model=model, tokenizer=tokenizer,
+        train_dataset=dataset['train'], eval_dataset=dataset['test'],
+        args=training_args, max_seq_length=1024,
+    )
     trainer.train()
 
     # Save
     trainer.save_model("./nemotron_lora_adapter")
     tokenizer.save_pretrained("./nemotron_lora_adapter")
-    subprocess.run("cd nemotron_lora_adapter && zip -r ../submission.zip ./*", shell=True, check=True)
+    subprocess.run(
+        "cd nemotron_lora_adapter && zip -r ../submission.zip ./*",
+        shell=True, check=True,
+    )
     print("\n" + "=" * 60 + "\nSUBMISSION READY: submission.zip\n" + "=" * 60)
 
 except Exception as e:

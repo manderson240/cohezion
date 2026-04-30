@@ -95,7 +95,10 @@ class VaultLogger:
 
             return {
                 "relevant_context": patterns,
-                "guidance": f"Retrieved {len(patterns)} historical patterns from the Cohezion Vault matching: {query}"
+                "guidance": (
+                    f"Retrieved {len(patterns)} historical patterns from the "
+                    f"Cohezion Vault matching: {query}"
+                )
                 if patterns
                 else "No prior patterns found for this specific intent.",
             }
@@ -284,14 +287,18 @@ class VaultLogger:
 
                 filename = f"missions/{mission_id}.md"
                 # Add links to relevant project and skill for Obsidian Graph connectivity
-                content += f"\n\n--- \nTags: #retrospective #{data.get('agent', 'agent').lower()} #{data.get('skill_name', 'skill').lower()}\n"
+                content += (
+                    f"\n\n--- \nTags: #retrospective #{data.get('agent', 'agent').lower()} "
+                    f"#{data.get('skill_name', 'skill').lower()}\n"
+                )
 
                 self.mcp.vault_write(filename, content)
                 logger.info(f"Architectural insight persisted to Vault: {filename}")
 
             except Exception as e:
                 logger.error(
-                    f"Vault human-readable persistence failed for mission {data.get('mission_id')}: {e}"
+                    f"Vault human-readable persistence failed for mission "
+                    f"{data.get('mission_id')}: {e}"
                 )
 
 

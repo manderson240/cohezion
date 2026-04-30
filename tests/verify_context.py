@@ -90,14 +90,16 @@ def verify_adversarial(path: str):
     for g in glitches:
         if g in content:
             print(
-                f"❌ Error: Malicious 'glitch' character detected (Unicode {hex(ord(g))}) in {os.path.basename(path)}."
+                f"❌ Error: Malicious 'glitch' character detected (Unicode {hex(ord(g))}) in "
+                f"{os.path.basename(path)}."
             )
             return False
 
     # 2. Protocol hijacking (javascript: or data: in links)
     if re.search(r"\[.*\]\((javascript:|data:).*\)", content):
         print(
-            f"❌ Error: Malicious protocol (javascript:/data:) detected in {os.path.basename(path)}."
+            f"❌ Error: Malicious protocol (javascript:/data:) detected in "
+            f"{os.path.basename(path)}."
         )
         return False
 

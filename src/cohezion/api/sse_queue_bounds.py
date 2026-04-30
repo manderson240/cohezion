@@ -45,7 +45,10 @@ class BoundedAsyncQueue:
             self._overflow_count += 1
             if self._overflow_count % 100 == 0:  # Log every 100 overflows
                 logger.warning(
-                    f"SSE queue overflow (maxsize={self.maxsize}, total overflows={self._overflow_count})"
+                    (
+                        f"SSE queue overflow (maxsize={self.maxsize}, total "
+                        f"overflows={self._overflow_count})"
+                    )
                 )
             return False
 
@@ -63,7 +66,10 @@ class BoundedAsyncQueue:
         except TimeoutError:
             self._overflow_count += 1
             logger.warning(
-                f"SSE queue put timeout (maxsize={self.maxsize}, total overflows={self._overflow_count})"
+                (
+                    f"SSE queue put timeout (maxsize={self.maxsize}, total "
+                    f"overflows={self._overflow_count})"
+                )
             )
             return False
 

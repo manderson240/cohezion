@@ -356,7 +356,10 @@ class TipOfTheSpearRouter:
                 success=False,
                 model="BLOCKED",
                 tier=ModelTier.HOT,
-                response=f"Request blocked due to constitutional violation: {constitutional_check.violation.value}",
+                response=(
+                    f"Request blocked due to constitutional violation: "
+                    f"{constitutional_check.violation.value}"
+                ),
                 confidence=0.0,
                 escalation_count=0,
                 constitutional_violation=constitutional_check.violation,

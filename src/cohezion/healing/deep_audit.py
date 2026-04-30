@@ -140,7 +140,8 @@ class DeepAuditor(ast.NodeVisitor):
                                 child.lineno,
                                 "Warning",
                                 "Performance",
-                                f"Blocking 'subprocess.run' in async function '{node.name}'. Use 'asyncio.create_subprocess_exec' or run_in_executor.",
+                                f"Blocking 'subprocess.run' in async function '{node.name}'. Use "
+                                f"'asyncio.create_subprocess_exec' or run_in_executor.",
                             )
                         )
 
@@ -177,14 +178,21 @@ class DeepAuditor(ast.NodeVisitor):
         report += "| Category | Count | Files |\n"
         report += "|----------|-------|-------|\n"
         report += f"| 🟢 Good | {len(good)} | Clean, simple components |\n"
-        report += f"| 🟡 Could Improve | {len(ok)} | {', '.join([Path(f.path).name for f in ok[:3]])}... |\n"
-        report += f"| 🔴 Needs Refactor | {len(bad)} | {', '.join([Path(f.path).name for f in bad])} |\n\n"
+        report += (
+            f"| 🟡 Could Improve | {len(ok)} | {', '.join([Path(f.path).name for f in ok[:3]])}... "
+            f"|\n"
+        )
+        bad_names = ", ".join([Path(f.path).name for f in bad])
+        report += f"| 🔴 Needs Refactor | {len(bad)} | {bad_names} |\n\n"
 
         # 3. High Complexity Analysis
         if bad:
             report += "### 🔴 Complex Modules (Refactor Candidates)\n"
             for stat in bad:
-                report += f"- **{Path(stat.path).name}** (LOC: {stat.loc}, Complexity: {stat.complexity})\n"
+                report += (
+                    f"- **{Path(stat.path).name}** (LOC: {stat.loc}, Complexity: "
+                    f"{stat.complexity})\n"
+                )
                 # Find specific issues for this file
                 file_issues = [i for i in self.issues if i.file_path == stat.path]
                 for issue in file_issues:

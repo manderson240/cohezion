@@ -37,7 +37,10 @@ async def tool_bmad_bmm_create_prd(request: web.Request) -> web.Response:
                 "tool": "bmad_bmm_create_prd",
                 "product_idea": data.get("product_idea"),
                 "workflow_loaded": workflow.get("id") if "id" in workflow else None,
-                "message": "Load the workflow at: _bmad/bmm/2-plan-workflows/create-prd/workflow-create-prd.md",
+                "message": (
+                    "Load the workflow at: "
+                    "_bmad/bmm/2-plan-workflows/create-prd/workflow-create-prd.md"
+                ),
                 "next_steps": [
                     "Follow the workflow instructions",
                     "Use bmad_bmm_validate_prd when complete",
@@ -91,7 +94,10 @@ async def tool_bmad_bmm_sprint_planning(request: web.Request) -> web.Response:
                 "total_points": total_points,
                 "capacity": capacity,
                 "utilization": f"{utilization:.1f}%",
-                "message": f"Sprint plan: {total_points}/{capacity} points ({utilization:.1f}% utilization)",
+                "message": (
+                    f"Sprint plan: {total_points}/{capacity} points "
+                    f"({utilization:.1f}% utilization)"
+                ),
             }
         )
     except Exception as e:

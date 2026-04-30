@@ -59,7 +59,9 @@ class RalphLoppsReviewer:
                     severity="critical",
                     category="coherence",
                     description="Execution proceeds without coherence validation",
-                    recommendation="Add RequestAlignmentAnalyzer.check_alignment() before execution",
+                    recommendation=(
+                        "Add RequestAlignmentAnalyzer.check_alignment() before execution"
+                    ),
                     line_number=self._find_line(code, r"execute"),
                 )
             )

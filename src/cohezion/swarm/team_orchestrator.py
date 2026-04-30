@@ -239,7 +239,9 @@ class TeamOrchestrator:
             TaskSpec(
                 id="t1",
                 subject=f"Research: {plan.intent[:60]}",
-                description=f"Explore the codebase to understand existing patterns for: {plan.intent}",
+                description=(
+                    f"Explore the codebase to understand existing patterns for: {plan.intent}"
+                ),
                 assigned_to=plan.agents[0].name if plan.agents else "",
                 tags=["research"],
             )
@@ -252,7 +254,10 @@ class TeamOrchestrator:
                 TaskSpec(
                     id=task_id,
                     subject=f"Implement: {agent.description[:50]}",
-                    description=f"Using {agent.name} skills, implement the component described as: {agent.description}",
+                    description=(
+                        f"Using {agent.name} skills, implement the component described as: "
+                        f"{agent.description}"
+                    ),
                     assigned_to=agent.name,
                     blocked_by=["t1"],
                     tags=["implementation"],

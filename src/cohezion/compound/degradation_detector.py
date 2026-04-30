@@ -224,7 +224,10 @@ class DegradationDetector:
             alert = DegradationAlert(
                 metric="coherence",
                 severity=AlertSeverity.CRITICAL,
-                message=f"Coherence dropped to {coherence:.2f} (threshold: {self.coherence_threshold:.2f})",
+                message=(
+                    f"Coherence dropped to {coherence:.2f} (threshold: "
+                    f"{self.coherence_threshold:.2f})"
+                ),
                 current_value=coherence,
                 baseline_value=self._baselines["coherence"].mean,
                 threshold=self.coherence_threshold,
@@ -257,7 +260,10 @@ class DegradationDetector:
                 alert = DegradationAlert(
                     metric="success_rate",
                     severity=AlertSeverity.CRITICAL,
-                    message=f"Success rate dropped to {success_rate:.1%} (baseline: {baseline_success:.1%})",
+                    message=(
+                        f"Success rate dropped to {success_rate:.1%} (baseline: "
+                        f"{baseline_success:.1%})"
+                    ),
                     current_value=success_rate,
                     baseline_value=baseline_success,
                     threshold=baseline_success * 0.8,

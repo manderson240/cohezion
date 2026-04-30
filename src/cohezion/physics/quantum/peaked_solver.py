@@ -314,7 +314,10 @@ class PeakedCircuitSolver:
                         )
                 except Exception:
                     logger.error(
-                        f"Gate application failed at step {i} (Gate {name}). Target sites: {target_sites}"
+                        (
+                            f"Gate application failed at step {i} (Gate {name}). Target sites: "
+                            f"{target_sites}"
+                        )
                     )
                     logger.error(f"Tensor Count: {len(psi_mps.tensors)}")
                     raise
@@ -326,7 +329,10 @@ class PeakedCircuitSolver:
                 # DEBUG: Check bond dimension
                 if i % 100 == 0:
                     logger.info(
-                        f"Gate {i}: Max Bond Dim = {psi_mps.max_bond()}. Norm = {psi_mps.norm():.2e}"
+                        (
+                            f"Gate {i}: Max Bond Dim = {psi_mps.max_bond()}. Norm = "
+                            f"{psi_mps.norm():.2e}"
+                        )
                     )
 
             logger.info(
@@ -354,7 +360,8 @@ class PeakedCircuitSolver:
             raw_samples = psi_mps.sample(samples)
 
             # Reorder bits
-            # raw_samples is iterator of bitstrings e.g. "01001..." corresponding to site 0, site 1...
+            # raw_samples is iterator of bitstrings e.g. "01001..." corresponding to site 0, site
+            # 1...
             # We need to map site i -> qubit site_to_qubit[i]
 
             candidates = []

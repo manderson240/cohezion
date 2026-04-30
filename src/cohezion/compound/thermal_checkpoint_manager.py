@@ -361,7 +361,10 @@ class ThermalCheckpointManager:
             # Log progress every minute
             if int(elapsed) % 60 == 0:
                 logger.info(
-                    f"Cooling... GPU={gpu_temp}°C, CPU={cpu_temp}°C, paused for {elapsed / 60:.1f} min"
+                    (
+                        f"Cooling... GPU={gpu_temp}°C, CPU={cpu_temp}°C, paused for "
+                        f"{elapsed / 60:.1f} min"
+                    )
                 )
 
         duration = time.time() - start_pause
@@ -470,7 +473,10 @@ class ThermalCheckpointManager:
             )
 
             logger.info(
-                f"Loaded checkpoint: {checkpoint.phase}, {checkpoint.hypotheses_completed}/{checkpoint.total_hypotheses} completed"
+                (
+                    f"Loaded checkpoint: {checkpoint.phase}, "
+                    f"{checkpoint.hypotheses_completed}/{checkpoint.total_hypotheses} completed"
+                )
             )
             return checkpoint
 

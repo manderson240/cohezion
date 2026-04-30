@@ -13,7 +13,10 @@ async def verify_integration():
     # 2. Run a One-Shot Cycle
     # We mock most of the heavy lifting to verify the data flow
     seed = "Fractal Toroidal vortex stability in exotic vacuum objects (EVOs)."
-    report = "✅ VERIFIED: HYPOTHESIS: Vortex stability is proportional to phi. CODE: print('verifying') OUTCOME: Success."
+    report = (
+        "✅ VERIFIED: HYPOTHESIS: Vortex stability is proportional to phi. "
+        "CODE: print('verifying') OUTCOME: Success."
+    )
 
     print("🛠️ Manually processing discovery findings...")
     await agent._process_findings(seed, report)
@@ -33,7 +36,8 @@ async def verify_integration():
 
     entry = dataset[0]
     print(
-        f"🔍 Inspecting first entry: Domain={entry['universe_domain']}, Phiscore={entry['phi_score']:.2f}"
+        f"🔍 Inspecting first entry: Domain={entry['universe_domain']}, "
+        f"Phiscore={entry['phi_score']:.2f}"
     )
     assert entry["universe_domain"] == "physics"
     assert "EVO" in entry["seed_thought"]

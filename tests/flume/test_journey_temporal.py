@@ -16,7 +16,10 @@ except ImportError:
 pytestmark = [
     pytest.mark.skipif(not TORCH_AVAILABLE, reason="PyTorch not installed"),
     pytest.mark.skip(
-        reason="JourneyTracker.encode_step_sequence was removed in the journey API refactor. Tests need rewriting against the current encoder interface.",
+        reason=(
+            "JourneyTracker.encode_step_sequence was removed in the journey API refactor. Tests "
+            "need rewriting against the current encoder interface."
+        ),
     ),
 ]
 

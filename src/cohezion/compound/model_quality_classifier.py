@@ -442,9 +442,12 @@ class ModelQualityClassifier:
                 alternatives = self._model_hierarchy.get(model, [])
                 return ActionRecommendation(
                     action=RecommendedAction.SWITCH_MODEL,
-                    message=f"Coherence predicted to drop to {predicted_coherence:.2f} "
-                    f"with {failure_probability:.0%} confidence. "
-                    f"Recommend switching to {alternatives[0] if alternatives else 'fallback model'}",
+                    message=(
+                        f"Coherence predicted to drop to {predicted_coherence:.2f} "
+                        f"with {failure_probability:.0%} confidence. "
+                        f"Recommend switching to "
+                        f"{alternatives[0] if alternatives else 'fallback model'}"
+                    ),
                     priority="HIGH",
                     confidence=failure_probability,
                     alternative_models=alternatives,
@@ -471,8 +474,10 @@ class ModelQualityClassifier:
                 alternatives = self._model_hierarchy.get(model, [])
                 return ActionRecommendation(
                     action=RecommendedAction.SWITCH_MODEL,
-                    message=f"Success rate predicted to drop with {failure_probability:.0%} confidence. "
-                    f"Recommend fallback.",
+                    message=(
+                        f"Success rate predicted to drop with "
+                        f"{failure_probability:.0%} confidence. Recommend fallback."
+                    ),
                     priority="HIGH",
                     confidence=failure_probability,
                     alternative_models=alternatives,
@@ -480,7 +485,10 @@ class ModelQualityClassifier:
             else:
                 return ActionRecommendation(
                     action=RecommendedAction.RESTART_SESSION,
-                    message=f"Success rate trend {coherence_trend}. Consider clearing session state and restarting.",
+                    message=(
+                        f"Success rate trend {coherence_trend}. "
+                        f"Consider clearing session state and restarting."
+                    ),
                     priority="MEDIUM",
                     confidence=failure_probability,
                 )

@@ -54,7 +54,10 @@ class CreditManager:
         if balance >= amount:
             self._balances[agent_id] = balance - amount
             logger.debug(
-                f"Agent {agent_id}: Deducted {amount} credits. New balance: {self._balances[agent_id]}"
+                (
+                    f"Agent {agent_id}: Deducted {amount} credits. New balance: "
+                    f"{self._balances[agent_id]}"
+                )
             )
             return True
 

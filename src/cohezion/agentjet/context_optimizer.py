@@ -137,7 +137,10 @@ class OllamaContextManager:
     # ------------------------------------------------------------------
 
     async def apply_profile(self, model: str, profile: ModelContextProfile) -> None:
-        """Log the intended context options for a model (advisory; Ollama applies these at generate time)."""
+        """Log the intended context options for a model.
+
+        Advisory; Ollama applies these at generate time.
+        """
         logger.info(
             "Context profile for %s: num_ctx=%d flash_attention=%s keep_alive=%s",
             model,

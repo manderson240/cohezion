@@ -307,7 +307,10 @@ class RZeroEnhancedTriad:
         trace += "Recursive self-correction loop 2: Stability at 0.52. Converged.\n"
         trace += "</thinking>\n"
 
-        response = f"Solution for {scenario}: Based on {laws[0]}, we stabilize the {challenge.edge_case['name']} "
+        response = (
+            f"Solution for {scenario}: Based on {laws[0]}, we stabilize the "
+            f"{challenge.edge_case['name']} "
+        )
         response += f"by routing flux through the {scenario} manifold. "
         response += f"Coherence: 0.92. Energy: {random.uniform(10, 50):.2f}."
 
@@ -440,7 +443,10 @@ class RZeroEnhancedTriad:
                 self.difficulty += self.difficulty_step
                 self.epoch += 1
                 logger.info(
-                    f"R-Zero: Plateau detected. Difficulty -> {self.difficulty:.2f}, Epoch -> {self.epoch}"
+                    (
+                        f"R-Zero: Plateau detected. Difficulty -> {self.difficulty:.2f}, Epoch -> "
+                        f"{self.epoch}"
+                    )
                 )
 
         # Course correction if struggling

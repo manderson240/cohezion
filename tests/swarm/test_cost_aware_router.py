@@ -44,7 +44,10 @@ class TestQueryComplexityAnalyzer:
         analyzer = QueryComplexityAnalyzer()
 
         complex_queries = [
-            "Design and implement a distributed cache architecture with consensus voting and performance optimization",
+            (
+                "Design and implement a distributed cache architecture with consensus voting and "
+                "performance optimization"
+            ),
             "Optimize this algorithm for production performance and debug the memory leak",
             "Implement a production-grade security system with scalability research",
             "Debug this memory leak and refactor the entire system for scalability",
@@ -99,7 +102,8 @@ class TestQueryComplexityAnalyzer:
         # Analyze mixed queries
         queries = [
             "What is AI?",  # simple (short, simple keywords)
-            "Design and build a production system with distributed architecture",  # complex (2+ keywords)
+            # complex (2+ keywords)
+            "Design and build a production system with distributed architecture",
             "Write a Python function",  # medium
             "Explain machine learning",  # simple (short, simple keywords)
         ]
@@ -141,9 +145,15 @@ class TestCostAwareRouter:
         assert decision.estimated_cost_usd == 0.0  # Local model
 
     def test_complex_query_routing(self, router):
-        """Test complex query routes to cost-optimized model (may be downgraded if cheaper & fast enough)."""
+        """Test complex query routes to cost-optimized model.
+
+        May be downgraded if cheaper & fast enough.
+        """
         decision, can_proceed = router.select_model(
-            "Design and implement a distributed cache with consensus voting and production optimization"
+            (
+                "Design and implement a distributed cache with consensus voting and production "
+                "optimization"
+            )
         )
 
         # Complex query is analyzed, but cost/token optimization may prefer faster/cheaper model
@@ -151,14 +161,16 @@ class TestCostAwareRouter:
         assert can_proceed is True
         assert decision.estimated_tokens == 400  # Refined estimate
         assert decision.estimated_cost_usd == 0.0  # Local model
-        # Model may be deepseek-r1:8b (best quality) or optimized to qwen/phi3 if cheaper/token & fast enough
+        # Model may be deepseek-r1:8b (best quality) or optimized to qwen/phi3 if cheaper/token &
+        # fast enough
         assert decision.model in ["deepseek-r1:8b", "qwen3-coder:32b", "phi3:mini"]
 
     def test_medium_query_routing(self, router):
         """Test medium query routes to cost-optimized model (may be phi3 if cheaper/fast enough)."""
         decision, can_proceed = router.select_model("Write a Python async function")
 
-        # Medium query is analyzed, but cost/token optimization may prefer cheaper model if TPS is acceptable
+        # Medium query is analyzed, but cost/token optimization may prefer cheaper model if TPS is
+        # acceptable
         assert decision.complexity == QueryComplexity.MEDIUM
         assert can_proceed is True
         assert decision.estimated_tokens == 200  # Refined estimate
@@ -293,8 +305,10 @@ class TestCostAwareRouter:
         """Test quality loss is minimal with cost/token optimization."""
         queries = [
             "What is Python?",  # simple (phi3 quality 0.6)
-            "Write a Python function to process data",  # medium (may optimize to phi3 0.6 or use qwen 0.85)
-            "Design and implement a distributed system with production-grade performance",  # complex (may optimize to qwen 0.85 or deepseek 0.95)
+            # medium (may optimize to phi3 0.6 or use qwen 0.85)
+            "Write a Python function to process data",
+            # complex (may optimize to qwen 0.85 or deepseek 0.95)
+            "Design and implement a distributed system with production-grade performance",
         ]
 
         for query in queries:
@@ -303,7 +317,8 @@ class TestCostAwareRouter:
             assert decision.quality_score >= 0.6
 
         # Average quality with cost optimization should still be acceptable
-        # With cost/token optimization preferring cheaper models: phi3(0.6) + phi3/qwen(0.6-0.85) + qwen/deepseek(0.85-0.95)
+        # With cost/token optimization preferring cheaper models: phi3(0.6) + phi3/qwen(0.6-0.85) +
+        # qwen/deepseek(0.85-0.95)
         # Worst case: all phi3 (0.6), best case: mixed (0.7-0.8)
         avg_quality = sum(d.quality_score for d in router.routing_decisions) / len(
             router.routing_decisions
@@ -386,7 +401,8 @@ class TestCostAwareRouterChaosTest:
                 query = "Write a Python function to process data"  # Medium → may optimize to phi3
                 allowed_models = ["qwen3-coder:32b", "phi3:mini"]
             else:
-                query = "Design and implement a distributed production system"  # Complex → may optimize to qwen
+                # Complex → may optimize to qwen
+                query = "Design and implement a distributed production system"
                 allowed_models = ["deepseek-r1:8b", "qwen3-coder:32b"]
 
             decision, _ = router.select_model(query)
@@ -405,7 +421,8 @@ class TestCostAwareRouterChaosTest:
             invalid_count = sum(1 for m in models if m not in allowed)
             if invalid_count > 0:
                 assert False, (
-                    f"Query '{query}' routed to unexpected models: {set(m for m in models if m not in allowed)}"
+                    f"Query '{query}' routed to unexpected models: "
+                    f"{set(m for m in models if m not in allowed)}"
                 )
 
             # At least 70% of routes should be to the same model (consistency check)

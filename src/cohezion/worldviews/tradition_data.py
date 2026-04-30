@@ -1083,8 +1083,11 @@ def get_step_across_traditions(step_index: int) -> list[dict]:
 _CONVERGENCES: tuple[Convergence, ...] = (
     Convergence(
         category="Universal Void",
-        description="Every tradition begins from a state of undifferentiated potential — void, darkness, "
-        "emptiness, or mystery. This maps directly to the quantum vacuum state.",
+        description=(
+            "Every tradition begins from a state of undifferentiated potential — void, "
+            "darkness, emptiness, or mystery. "
+            "This maps directly to the quantum vacuum state."
+        ),
         traditions_involved=(
             "Lakota",
             "Vedic",
@@ -1104,8 +1107,11 @@ _CONVERGENCES: tuple[Convergence, ...] = (
     ),
     Convergence(
         category="Fourfold Structure",
-        description="Nearly all traditions organize reality into four domains — directions, elements, "
-        "seasons, or cosmic quarters — paralleling the four fabric domains.",
+        description=(
+            "Nearly all traditions organize reality into four domains — "
+            "directions, elements, seasons, or cosmic quarters — "
+            "paralleling the four fabric domains."
+        ),
         traditions_involved=(
             "Lakota",
             "Vedic",
@@ -1122,8 +1128,11 @@ _CONVERGENCES: tuple[Convergence, ...] = (
     ),
     Convergence(
         category="Cyclic Phase Dynamics",
-        description="All traditions encode oscillatory time — seasons, ceremonial calendars, cosmic ages. "
-        "Reality breathes rather than progresses linearly.",
+        description=(
+            "All traditions encode oscillatory time — seasons, "
+            "ceremonial calendars, cosmic ages. "
+            "Reality breathes rather than progresses linearly."
+        ),
         traditions_involved=(
             "Vedic",
             "Daoist",
@@ -1138,8 +1147,11 @@ _CONVERGENCES: tuple[Convergence, ...] = (
     ),
     Convergence(
         category="Threshold/Trance Equilibrium",
-        description="HIHO is accessed through structured altered states — vision quest, trance, ceremony, "
-        "meditation — a universal technology for reaching dynamic equilibrium.",
+        description=(
+            "HIHO is accessed through structured altered states — vision quest, "
+            "trance, ceremony, meditation — "
+            "a universal technology for reaching dynamic equilibrium."
+        ),
         traditions_involved=(
             "Lakota",
             "Vedic",
@@ -1154,8 +1166,11 @@ _CONVERGENCES: tuple[Convergence, ...] = (
     ),
     Convergence(
         category="Relational Binding",
-        description="COHESION is always relational — interconnection, reciprocity, kinship, harmony. "
-        "No tradition treats the binding principle as mechanical or impersonal.",
+        description=(
+            "COHESION is always relational — interconnection, reciprocity, "
+            "kinship, harmony. "
+            "No tradition treats the binding principle as mechanical or impersonal."
+        ),
         traditions_involved=(
             "Lakota",
             "Maori",

@@ -88,7 +88,11 @@ class TestVoidState:
 
 
 class TestSymmetryBreakingChain:
-    """Verify the complete 10-step chain: ∅ → Quadrature → SO(12) → SO(3)⁴ → Phase → U(1)⁴ → Z₂⁴ → HIHO → COHESION → Precipitate."""
+    """Verify the complete 10-step chain.
+
+    ∅ → Quadrature → SO(12) → SO(3)⁴ → Phase → U(1)⁴ → Z₂⁴ → HIHO
+    → COHESION → Precipitate.
+    """
 
     def test_void_to_quadrature(self):
         """Cooling below T=150 breaks ∅ → Quadrature."""

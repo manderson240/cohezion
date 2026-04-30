@@ -276,7 +276,10 @@ class TestStatisticalValidation:
         assert t_stat > 1.0, f"Insufficient power: t={t_stat:.2f}"
 
         logger.info(
-            f"Power analysis: t={t_stat:.2f}, detected improvement={(mean_baseline - mean_improved):.3f}"
+            (
+                f"Power analysis: t={t_stat:.2f}, detected "
+                f"improvement={(mean_baseline - mean_improved):.3f}"
+            )
         )
 
 

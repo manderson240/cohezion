@@ -12,7 +12,8 @@ Key features:
 - Per-model embedding caching
 - 50×+ improved discrimination with FLUME VAE vs hash-based
 
-Target improvement: +25% throughput (40-50% hit rate → 70-80%) → +30% with FLUME VAE (70% → 80%+ hit rate)
+Target improvement: +25% throughput (40-50% hit rate → 70-80%)
+→ +30% with FLUME VAE (70% → 80%+ hit rate)
 
 Phase 5A.1: Production semantic embeddings with FLUME VAE integration (Session 36)
 """
@@ -215,7 +216,8 @@ class SemanticCache:
     threshold based on embedding model type.
 
     Attributes:
-        similarity_threshold: Minimum cosine similarity for hit (default: 0.88 for VAE, 0.25 for hash)
+        similarity_threshold: Minimum cosine similarity for hit
+            (default: 0.88 for VAE, 0.25 for hash)
         embedding_dim: Dimension of embedding vectors (256 for VAE, 384 for hash)
         max_entries: Maximum cached embeddings in memory
         embedding_model: Model for generating embeddings (FlumeVAEEmbeddingModel by default)

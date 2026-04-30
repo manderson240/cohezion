@@ -263,7 +263,9 @@ class AdversarialReviewSystem:
                     ReviewFinding(
                         perspective=ReviewPerspective.INNOVATION,
                         title="Opportunity for predictive skill refinement",
-                        description="Could use historical data to predict which skills need refinement",
+                        description=(
+                            "Could use historical data to predict which skills need refinement"
+                        ),
                         severity="low",
                         confidence=0.5,
                         evidence=["Analysis of skill refinement patterns"],
@@ -423,7 +425,10 @@ class AdversarialReviewSystem:
 
         if critical_findings > 0:
             insights.append(
-                f"Critical issues found requiring immediate attention ({critical_findings} critical)"
+                (
+                    f"Critical issues found requiring immediate attention ({critical_findings} "
+                    f"critical)"
+                )
             )
         elif high_findings > 2:
             insights.append(f"Multiple high-severity issues identified ({high_findings} high)")
@@ -523,7 +528,10 @@ class AdversarialReviewSystem:
                         SkillRefinementInput(
                             skill_name=skill_name,
                             performance_metric=0.0,  # Poor performance due to critical issues
-                            feedback=f"Critical {perspective.value} issues detected ({count} critical findings)",
+                            feedback=(
+                                f"Critical {perspective.value} issues detected ({count} critical "
+                                f"findings)"
+                            ),
                             context={
                                 "critical_findings": [f.title for f in critical_findings],
                                 "perspective": perspective.value,
@@ -554,7 +562,10 @@ class AdversarialReviewSystem:
                 SkillRefinementInput(
                     skill_name="systems_thinker",
                     performance_metric=max(0.0, 1.0 - len(latest_session.conflicts) * 0.1),
-                    feedback=f"High number of perspective conflicts detected ({len(latest_session.conflicts)} conflicts)",
+                    feedback=(
+                        f"High number of perspective conflicts detected "
+                        f"({len(latest_session.conflicts)} conflicts)"
+                    ),
                     context={
                         "conflicts_count": len(latest_session.conflicts),
                         "session_id": session_id,

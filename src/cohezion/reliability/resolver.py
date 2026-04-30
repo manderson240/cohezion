@@ -14,7 +14,9 @@ from cohezion.reliability.residency_awareness import ResidencyAnchorBase
 class HallucinationResolver:
     def __init__(
         self,
-        tracker_path: str = "/home/mike-anderson/dev/cohezion/src/cohezion/knowledge_graph/HALLUCINATION_TRACKER.md",
+        tracker_path: str = (
+            "/home/mike-anderson/dev/cohezion/src/cohezion/knowledge_graph/HALLUCINATION_TRACKER.md"
+        ),
     ):
         self.tracker_path = Path(tracker_path)
         self.ground_truth = ResidencyAnchorBase.get_anchors()

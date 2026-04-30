@@ -99,7 +99,10 @@ class CharterAlignedSkillTracker:
             try:
                 await self.journey_logger.extract_learning(
                     journey_id=journey_id,
-                    learning=f"Skill {event.skill_name} executed outside HIHO range: {event.coherence_score:.3f}",
+                    learning=(
+                        f"Skill {event.skill_name} executed outside HIHO range: "
+                        f"{event.coherence_score:.3f}"
+                    ),
                     pattern_type="hiho_violation",
                 )
             except Exception as e:

@@ -97,7 +97,10 @@ def get_vae():
                 logger.info("Loaded FLUME VAE checkpoint: %s", ckpt_path)
             except (RuntimeError, KeyError) as e:
                 logger.warning(
-                    "Failed to load FLUME VAE checkpoint %s (architecture mismatch?); using random weights: %s",
+                    (
+                        "Failed to load FLUME VAE checkpoint %s (architecture mismatch?); using "
+                        "random weights: %s"
+                    ),
                     ckpt_path,
                     str(e),
                 )

@@ -30,10 +30,20 @@ def elite_ocr_analysis(args: dict[str, Any]) -> dict[str, Any]:
         # Construct OCR prompt based on analysis type
         ocr_prompts = {
             "text-recognition": "Extract all text from this image with high accuracy.",
-            "table-recognition": "Extract and structure table data from this image, maintaining row/column relationships.",
-            "formula-recognition": "Recognize and transcribe mathematical formulas and equations from this image.",
-            "document-analysis": "Perform comprehensive document analysis: extract text, identify structure, and summarize content.",
-            "handwriting": "Extract handwritten text from this image with best effort interpretation.",
+            "table-recognition": (
+                "Extract and structure table data from this image, "
+                "maintaining row/column relationships."
+            ),
+            "formula-recognition": (
+                "Recognize and transcribe mathematical formulas and equations from this image."
+            ),
+            "document-analysis": (
+                "Perform comprehensive document analysis: extract text, "
+                "identify structure, and summarize content."
+            ),
+            "handwriting": (
+                "Extract handwritten text from this image with best effort interpretation."
+            ),
         }
 
         prompt = ocr_prompts.get(analysis_type, ocr_prompts["document-analysis"])
@@ -130,10 +140,18 @@ def agentic_coding_workflow(args: dict[str, Any]) -> dict[str, Any]:
 
         # Build comprehensive coding prompt
         coding_prompts = {
-            "code-only": "Generate only the code solution for the following task. No explanations.",
-            "with-explanation": "Generate the code solution with detailed explanations of the approach and key decisions.",
+            "code-only": (
+                "Generate only the code solution for the following task. No explanations."
+            ),
+            "with-explanation": (
+                "Generate the code solution with detailed explanations of the approach "
+                "and key decisions."
+            ),
             "with-tests": "Generate the code solution along with comprehensive unit tests.",
-            "full-solution": "Generate a complete solution including code, explanations, tests, and documentation.",
+            "full-solution": (
+                "Generate a complete solution including code, explanations, "
+                "tests, and documentation."
+            ),
         }
 
         base_prompt = f"""
@@ -158,7 +176,8 @@ Complexity: {complexity_level}
         # Add system prompt for agentic behavior
         system_prompt = f"""
 You are Qwen3-Coder-Next, an elite agentic coding assistant with 70.6% SWE-Bench performance.
-You are using the {selected_model} model with Mixture of Experts architecture (80B total, 3B active parameters).
+You are using the {selected_model} model with Mixture of Experts architecture
+(80B total, 3B active parameters).
 
 Key capabilities:
 - Advanced agentic reasoning and planning
@@ -301,7 +320,11 @@ def compound_engineering_orchestrator(args: dict[str, Any]) -> dict[str, Any]:
                 "content": [
                     {
                         "type": "text",
-                        "text": f"Insufficient memory for {workflow_type}. Required: {workflow['memory_required']}GB, Available: {max_memory}GB",
+                        "text": (
+                            f"Insufficient memory for {workflow_type}. "
+                            f"Required: {workflow['memory_required']}GB, "
+                            f"Available: {max_memory}GB"
+                        ),
                     }
                 ]
             }
@@ -366,7 +389,9 @@ def pocket_tts_generate(args: dict[str, Any]) -> dict[str, Any]:
                 "content": [
                     {
                         "type": "text",
-                        "text": "Error: pocket-tts not installed. Install with: pip install pocket-tts",
+                        "text": (
+                            "Error: pocket-tts not installed. Install with: pip install pocket-tts"
+                        ),
                     }
                 ]
             }
@@ -385,7 +410,13 @@ def pocket_tts_generate(args: dict[str, Any]) -> dict[str, Any]:
             "content": [
                 {
                     "type": "text",
-                    "text": f"Successfully generated speech using Pocket TTS\nVoice: {voice}\nOutput: {output_path}\nDuration: {len(audio) / tts_model.sample_rate:.2f}s\nSize: {len(audio) * 2 / 1024 / 1024:.2f}MB",
+                    "text": (
+                        f"Successfully generated speech using Pocket TTS\n"
+                        f"Voice: {voice}\n"
+                        f"Output: {output_path}\n"
+                        f"Duration: {len(audio) / tts_model.sample_rate:.2f}s\n"
+                        f"Size: {len(audio) * 2 / 1024 / 1024:.2f}MB"
+                    ),
                 }
             ]
         }

@@ -122,7 +122,10 @@ class LocalExpertRouter:
             original_ctx = final_ctx
             final_ctx = int(final_ctx * dilation)
             logger.warning(
-                f"📉 Memory Dilation Active ({dilation:.2f}): Scaling context {original_ctx} -> {final_ctx}"
+                (
+                    f"📉 Memory Dilation Active ({dilation:.2f}): "
+                    f"Scaling context {original_ctx} -> {final_ctx}"
+                )
             )
 
         # 5. Elite MoE Optimization for Qwen3-Coder-Next
@@ -141,7 +144,10 @@ class LocalExpertRouter:
         final_ctx = max(final_ctx, 4096)
 
         logger.info(
-            f"🚀 [ELITE COHEZION] Routing {task_type} → {model} (ctx: {final_ctx}, mem: {available_memory}GB)"
+            (
+                f"🚀 [ELITE COHEZION] Routing {task_type} → {model} (ctx: {final_ctx}, mem: "
+                f"{available_memory}GB)"
+            )
         )
 
         # 7. Build optimized options for v0.15.5-rc2
