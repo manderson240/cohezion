@@ -11,9 +11,11 @@ import logging
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
-from typing import Any
+from typing import Any, TYPE_CHECKING
 
-from cohezion.compound.models import ExecutionMetrics
+
+if TYPE_CHECKING:
+    from cohezion.compound.models import ExecutionMetrics
 
 
 logger = logging.getLogger(__name__)

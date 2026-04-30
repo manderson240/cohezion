@@ -5,7 +5,10 @@ from __future__ import annotations
 import os
 from dataclasses import dataclass
 
-import numpy as np
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    import numpy as np
 
 
 MCP_PORT = int(os.getenv("MCP_PORT", "8371"))

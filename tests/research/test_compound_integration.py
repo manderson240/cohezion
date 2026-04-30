@@ -12,8 +12,11 @@ from pathlib import Path
 import pytest
 
 from cohezion.compound.core.executor import CompoundExecutor, ExecutionConfig
-from cohezion.compound.models import Task
 from cohezion.research import ResearchAgent, ResearchConfig
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from cohezion.compound.models import Task
 
 
 # Valid keys for ExecutionMetrics (prompt_tokens, completion_tokens, total_tokens,

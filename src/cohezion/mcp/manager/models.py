@@ -3,11 +3,13 @@
 from __future__ import annotations
 
 import os
-import subprocess
 from dataclasses import dataclass, field
-from datetime import datetime
 from pathlib import Path
-from typing import Any
+from typing import Any, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from datetime import datetime
+    import subprocess
 
 
 # Port allocation range for all MCP servers

@@ -11,7 +11,6 @@ from __future__ import annotations
 
 import asyncio
 import math
-from collections.abc import AsyncIterator
 
 from fastapi import APIRouter
 from fastapi.responses import StreamingResponse
@@ -27,6 +26,10 @@ from cohezion.api.agui_events import (
     phase_transition_event,
     universe_tick_event,
 )
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from collections.abc import AsyncIterator
 
 
 agui_router = APIRouter(tags=["ag-ui"])

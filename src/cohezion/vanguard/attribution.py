@@ -12,7 +12,10 @@ import logging
 from dataclasses import dataclass
 from enum import Enum
 
-from cohezion.vanguard.source_connector import DiscoveryRecord
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from cohezion.vanguard.source_connector import DiscoveryRecord
 
 
 logger = logging.getLogger(__name__)

@@ -8,9 +8,8 @@ from __future__ import annotations
 
 import logging
 import time
-from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, TYPE_CHECKING
 
 from cohezion.compound.models import (
     AnalysisReport,
@@ -19,6 +18,9 @@ from cohezion.compound.models import (
     ExecutionResult,
     Task,
 )
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
 
 
 logger = logging.getLogger(__name__)

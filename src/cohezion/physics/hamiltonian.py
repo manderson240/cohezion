@@ -10,10 +10,13 @@ with barriers that prevent trivial collapse.
 from __future__ import annotations
 
 import logging
-from collections.abc import Callable
 from enum import Enum
 
 import numpy as np
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
 
 
 try:

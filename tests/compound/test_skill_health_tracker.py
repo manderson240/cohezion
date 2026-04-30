@@ -3,13 +3,16 @@
 from __future__ import annotations
 
 from datetime import UTC, datetime, timedelta
-from pathlib import Path
 from unittest.mock import MagicMock
 
 import pytest
 
 from cohezion.compound.executor import CompoundExecutor
 from cohezion.compound.skill_health_tracker import SkillHealthRecord, SkillHealthTracker
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 
 # ---------------------------------------------------------------------------

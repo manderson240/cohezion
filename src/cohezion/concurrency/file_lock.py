@@ -13,10 +13,12 @@ import fcntl
 import json
 import logging
 import time
-from collections.abc import Callable, Generator
 from contextlib import contextmanager
 from pathlib import Path
-from typing import Any, TextIO
+from typing import Any, TextIO, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from collections.abc import Callable, Generator
 
 
 logger = logging.getLogger(__name__)

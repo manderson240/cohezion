@@ -8,9 +8,12 @@ from __future__ import annotations
 
 import logging
 import re
-from collections.abc import Callable
 from dataclasses import dataclass
 from enum import Enum, auto
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
 
 
 logger = logging.getLogger(__name__)

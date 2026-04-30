@@ -3,12 +3,15 @@
 from __future__ import annotations
 
 import json
-from pathlib import Path
 from unittest.mock import patch
 
 import pytest
 
 from cohezion.agentjet.task_reader import JourneyTaskReader
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 
 def _make_jsonl_record(skill: str, phi: float, instruction: str = "do task") -> dict:

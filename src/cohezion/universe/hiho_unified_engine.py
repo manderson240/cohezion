@@ -9,7 +9,6 @@ from __future__ import annotations
 
 import logging
 
-import numpy as np
 
 from .advanced_components import (
     BioelectricsEngine,
@@ -30,6 +29,10 @@ from .components import (
     HIHOStabilizationEngine,
     MagnetohydrodynamicsEngine,
 )
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    import numpy as np
 
 
 logger = logging.getLogger(__name__)
