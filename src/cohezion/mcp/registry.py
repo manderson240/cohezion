@@ -18,7 +18,7 @@ import json
 import logging
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any
+from typing import Any, ClassVar
 
 
 logger = logging.getLogger(__name__)
@@ -160,7 +160,7 @@ class MCPRegistry:
     # --- Governance extensions (Wire 5 / Horizon 3) ---
 
     # Tool-level autonomy tier requirements
-    _tool_tiers: dict[str, str] = {
+    _tool_tiers: ClassVar[dict[str, str]] = {
         # Read-only tools: SO(12) (observe)
         "skill_get_definition": "SO(12)",
         "vault_find_relevant_context": "SO(12)",
@@ -175,7 +175,7 @@ class MCPRegistry:
         "skill_refine": "U(1)^4",
     }
 
-    _tier_levels = {
+    _tier_levels: ClassVar[dict[str, int]] = {
         "void": 0,
         "SO(12)": 1,
         "SO(3)^4": 2,
@@ -185,8 +185,8 @@ class MCPRegistry:
     }
 
     # Call tracking for observability
-    _call_counts: dict[str, int] = {}
-    _error_counts: dict[str, int] = {}
+    _call_counts: ClassVar[dict[str, int]] = {}
+    _error_counts: ClassVar[dict[str, int]] = {}
 
     def can_access(self, agent_tier: str, tool_name: str) -> bool:
         """Check if an agent at a given tier can access a tool.

@@ -19,7 +19,7 @@ from __future__ import annotations
 import logging
 import time
 from dataclasses import asdict
-from typing import Any
+from typing import Any, ClassVar
 
 import httpx
 
@@ -223,7 +223,11 @@ class ModelPoolManager:
             logger.error("Failed to evict %s: %s", model_name, exc)
             return False
 
-    _TIER_ORDER = {ModelTierPolicy.COLD: 0, ModelTierPolicy.WARM: 1, ModelTierPolicy.HOT: 2}
+    _TIER_ORDER: ClassVar[dict[ModelTierPolicy, int]] = {
+        ModelTierPolicy.COLD: 0,
+        ModelTierPolicy.WARM: 1,
+        ModelTierPolicy.HOT: 2,
+    }
 
     async def promote(self, model_name: str, new_tier: ModelTierPolicy) -> None:
         """Promote a model to a higher tier (e.g., cold -> warm, warm -> hot).

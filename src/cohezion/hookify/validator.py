@@ -9,7 +9,7 @@ import contextlib
 import os
 import re
 from dataclasses import dataclass, field
-from typing import Any, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, ClassVar
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -489,7 +489,7 @@ class HookifyValidator:
     # CROSS-PLATFORM TRIGGER NORMALIZATION
     # =========================================================================
 
-    TRIGGER_MAP = {
+    TRIGGER_MAP: ClassVar[dict[str, dict[str, str]]] = {
         "opencode": {
             "CompoundSessionManager.start_session": "session_start",
             "CompoundSessionManager.check_alignment": "pre_execute",

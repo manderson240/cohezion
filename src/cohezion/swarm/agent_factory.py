@@ -10,7 +10,7 @@ import logging
 from collections.abc import Callable
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any
+from typing import Any, ClassVar
 
 from cohezion.swarm.swarm_types import SwarmConfig
 
@@ -42,8 +42,8 @@ class AgentFactory:
     - Metadata-driven agent configuration
     """
 
-    _registry: dict[str, type[Any]] = {}
-    _metadata: dict[str, AgentConfig] = {}
+    _registry: ClassVar[dict[str, type[Any]]] = {}
+    _metadata: ClassVar[dict[str, AgentConfig]] = {}
 
     @classmethod
     def register(

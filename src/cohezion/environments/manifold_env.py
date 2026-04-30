@@ -48,7 +48,7 @@ References:
 from __future__ import annotations
 
 import logging
-from typing import Any
+from typing import Any, ClassVar
 
 import gymnasium as gym
 import numpy as np
@@ -92,7 +92,7 @@ class ManifoldEnv(gym.Env):
         Random seed for reproducibility.
     """
 
-    metadata = {"render_modes": ["human", "rgb_array"], "render_fps": 30}
+    metadata: ClassVar[dict[str, Any]] = {"render_modes": ["human", "rgb_array"], "render_fps": 30}
 
     def __init__(
         self,

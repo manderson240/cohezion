@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Any
+from typing import Any, ClassVar
 
 
 @dataclass
@@ -42,7 +42,7 @@ class Vulnerability:
 class SecurityChecklist:
     """Security checklist validation."""
 
-    CHECKLISTS = {
+    CHECKLISTS: ClassVar[dict[str, list[dict[str, str]]]] = {
         "general": [
             {"id": "SEC-001", "item": "No secrets in code", "severity": "critical"},
             {"id": "SEC-002", "item": "Input validation implemented", "severity": "critical"},

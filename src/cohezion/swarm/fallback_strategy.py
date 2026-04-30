@@ -47,6 +47,7 @@ import logging
 import time
 from dataclasses import dataclass, field
 from enum import Enum
+from typing import ClassVar
 
 
 logger = logging.getLogger(__name__)
@@ -305,7 +306,7 @@ class FallbackStrategy:
     """
 
     # Model fallback chains (primary → secondary → emergency)
-    DEFAULT_FALLBACK_CHAINS = {
+    DEFAULT_FALLBACK_CHAINS: ClassVar[dict[str, list[str]]] = {
         "phi3:mini": ["qwen3-coder:32b", "deepseek-r1:8b"],
         "qwen3-coder:32b": ["phi3:mini", "deepseek-r1:8b"],
         "deepseek-r1:8b": ["qwen3-coder:32b", "phi3:mini"],
@@ -315,7 +316,7 @@ class FallbackStrategy:
     }
 
     # Model quality scores (0.0-1.0)
-    MODEL_QUALITY = {
+    MODEL_QUALITY: ClassVar[dict[str, float]] = {
         "phi3:mini": 0.6,
         "qwen3-coder:32b": 0.82,
         "deepseek-r1:8b": 0.95,
@@ -325,7 +326,7 @@ class FallbackStrategy:
     }
 
     # Model costs (per 1K tokens) - local models are free
-    MODEL_COSTS = {
+    MODEL_COSTS: ClassVar[dict[str, float]] = {
         "phi3:mini": 0.0,
         "qwen3-coder:32b": 0.0,
         "deepseek-r1:8b": 0.0,

@@ -12,6 +12,7 @@ import logging
 import time
 from dataclasses import dataclass, field
 from enum import Enum
+from typing import ClassVar
 
 
 logger = logging.getLogger(__name__)
@@ -57,7 +58,7 @@ class ConstitutionalShield:
     """
 
     # Patterns that are always unsafe (simplified for demonstration)
-    UNSAFE_PATTERNS = [
+    UNSAFE_PATTERNS: ClassVar[list[str]] = [
         "rm -rf /",
         "DROP TABLE",
         "DELETE FROM",

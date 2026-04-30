@@ -44,7 +44,7 @@ import time
 from dataclasses import dataclass, field
 from enum import Enum
 from hashlib import sha256
-from typing import Any
+from typing import Any, ClassVar
 
 from cohezion.swarm.cost_aware_router import CostAwareRouter, QueryComplexityAnalyzer
 from cohezion.swarm.model_pool_config import TierConfig
@@ -106,7 +106,7 @@ class ConstitutionalChecker:
     """Check requests against constitutional hard lines."""
 
     # Keywords for hard line violations
-    WMD_KEYWORDS = {
+    WMD_KEYWORDS: ClassVar[set[str]] = {
         "biological weapon",
         "chemical weapon",
         "nuclear weapon",
@@ -118,7 +118,7 @@ class ConstitutionalChecker:
         "uranium enrichment",
     }
 
-    CRITICAL_INFRA_KEYWORDS = {
+    CRITICAL_INFRA_KEYWORDS: ClassVar[set[str]] = {
         "power grid attack",
         "water supply attack",
         "financial system attack",
@@ -126,7 +126,7 @@ class ConstitutionalChecker:
         "industrial control attack",
     }
 
-    MALICIOUS_CODE_KEYWORDS = {
+    MALICIOUS_CODE_KEYWORDS: ClassVar[set[str]] = {
         "cyberweapon",
         "ransomware",
         "trojan",
@@ -136,27 +136,27 @@ class ConstitutionalChecker:
         "sql injection exploit",
     }
 
-    CSAM_KEYWORDS = {
+    CSAM_KEYWORDS: ClassVar[set[str]] = {
         # (Content filter handles actual detection, this is keyword-based)
         "csam",
         "child exploitation",
     }
 
-    UNDERMINING_OVERSIGHT_KEYWORDS = {
+    UNDERMINING_OVERSIGHT_KEYWORDS: ClassVar[set[str]] = {
         "hide logs",
         "obfuscate traces",
         "delete audit trail",
         "bypass monitoring",
     }
 
-    SPECIES_THREAT_KEYWORDS = {
+    SPECIES_THREAT_KEYWORDS: ClassVar[set[str]] = {
         "agi weaponization",
         "human disempowerment",
         "extinction event",
         "takeover humanity",
     }
 
-    ILLEGITIMATE_POWER_KEYWORDS = {
+    ILLEGITIMATE_POWER_KEYWORDS: ClassVar[set[str]] = {
         "electoral manipulation",
         "coup d'état",
         "overthrow government",

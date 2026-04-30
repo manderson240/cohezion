@@ -3,7 +3,7 @@ Cohezion Branding API - The Single Source of Truth for the Nexus Identity.
 Implements the "Organic Modularity" aesthetic.
 """
 
-from typing import Any
+from typing import Any, ClassVar
 
 
 class Colors:
@@ -29,7 +29,7 @@ class Identity:
     PHILOSOPHY = "Organic Modularity"
     ORCHESTRATOR_NAME = "Quadrature Nexus Orchestration"
     LATTICE_NAME = "Expert Domain Lattice"
-    EXPERTS = [
+    EXPERTS: ClassVar[list[str]] = [
         "Architect (Design)",
         "Engineer (Physics)",
         "Biologist (Life)",
@@ -58,7 +58,7 @@ class Motifs:
  [bold #00FF00]\____/\____/_/ /_/\___/ /___/_/\____/_/ /_/       [/bold #00FF00]
     """
 
-    NEXUS_AVATAR_FRAMES = [
+    NEXUS_AVATAR_FRAMES: ClassVar[list[str]] = [
         r"""
        [bold #00f2fe]  .::.[/bold #00f2fe]
        [bold #00f2fe].::::::.[/bold #00f2fe]
@@ -84,7 +84,7 @@ class Motifs:
 
     LATTICE_BORDER = "heavy"  # Rich border style
 
-    IGNITION_SEQUENCE = [
+    IGNITION_SEQUENCE: ClassVar[list[str]] = [
         "Initializing Quantum Substrate...",
         "Loading 12D Manifold Vectors...",
         "Synchronizing with Expert Domain Lattice...",

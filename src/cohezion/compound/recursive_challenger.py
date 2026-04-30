@@ -9,7 +9,7 @@ from __future__ import annotations
 import logging
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any
+from typing import Any, ClassVar
 
 
 logger = logging.getLogger(__name__)
@@ -34,7 +34,11 @@ class RecursiveChallenger:
     """Analyzes modules and iteratively improves them using TDD."""
 
     # Security: Explicitly allowed paths for autonomous modification
-    SAFE_PERIMETER = ["src/cohezion/healing", "src/cohezion/simulation", "tests/"]
+    SAFE_PERIMETER: ClassVar[list[str]] = [
+        "src/cohezion/healing",
+        "src/cohezion/simulation",
+        "tests/",
+    ]
 
     def __init__(self, target_module: str, vault: Any = None, use_staging: bool = True):
         """Initialize the challenger.

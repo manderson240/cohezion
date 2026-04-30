@@ -14,6 +14,7 @@ Example:
 
 import logging
 import re
+from typing import ClassVar
 
 
 logger = logging.getLogger(__name__)
@@ -34,7 +35,7 @@ class PromptOptimizer:
     """
 
     # Filler words to remove
-    FILLER_WORDS = [
+    FILLER_WORDS: ClassVar[list[str]] = [
         "please",
         "kindly",
         "could you",
@@ -60,7 +61,7 @@ class PromptOptimizer:
     ]
 
     # Redundant phrase patterns
-    REDUNDANCY_PATTERNS = [
+    REDUNDANCY_PATTERNS: ClassVar[list[tuple[str, str]]] = [
         (r"\b(very|really|quite)\s+(very|really|quite)\b", r"$1"),  # Repeated intensifiers
         (r"\b(and\s+)+and\b", "and"),  # Repeated "and"
         (r"\s+", " "),  # Multiple spaces

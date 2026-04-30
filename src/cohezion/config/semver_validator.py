@@ -11,6 +11,7 @@ import logging
 import re
 from dataclasses import dataclass, field
 from enum import Enum
+from typing import ClassVar
 
 
 logger = logging.getLogger(__name__)
@@ -86,10 +87,10 @@ class SemverValidator:
     """Validates semantic versioning compliance."""
 
     # Conventional commit prefixes that indicate bump types
-    BREAKING_PREFIXES = ["feat!", "fix!", "refactor!"]
+    BREAKING_PREFIXES: ClassVar[list[str]] = ["feat!", "fix!", "refactor!"]
     BREAKING_FOOTER = "BREAKING CHANGE"
-    FEATURE_PREFIXES = ["feat"]
-    FIX_PREFIXES = ["fix"]
+    FEATURE_PREFIXES: ClassVar[list[str]] = ["feat"]
+    FIX_PREFIXES: ClassVar[list[str]] = ["fix"]
 
     def detect_bump_type(self, commit_messages: list[str]) -> BumpType:
         """Detect required bump type from commit messages."""
