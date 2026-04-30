@@ -272,8 +272,8 @@ class TestProcessIsolation(unittest.TestCase):
         config = IsolationConfig()
         context = IsolationContext(
             isolation_id="test-ns-001",
-            root_path="/tmp/test",
-            base_path="/tmp",
+            root_path=os.path.join(tempfile.gettempdir(), "test"),
+            base_path=tempfile.gettempdir(),
             config=config,
         )
 
@@ -305,8 +305,8 @@ class TestNetworkIsolation(unittest.TestCase):
         config = IsolationConfig(allow_network=True)
         context = IsolationContext(
             isolation_id="test-net-001",
-            root_path="/tmp/test",
-            base_path="/tmp",
+            root_path=os.path.join(tempfile.gettempdir(), "test"),
+            base_path=tempfile.gettempdir(),
             config=config,
         )
 
@@ -327,8 +327,8 @@ class TestNetworkIsolation(unittest.TestCase):
         config = IsolationConfig(allow_network=True)
         context = IsolationContext(
             isolation_id="test-net-002",
-            root_path="/tmp/test",
-            base_path="/tmp",
+            root_path=os.path.join(tempfile.gettempdir(), "test"),
+            base_path=tempfile.gettempdir(),
             config=config,
         )
 
@@ -411,8 +411,8 @@ class TestCleanupRegistry(unittest.TestCase):
         config = IsolationConfig()
         context = IsolationContext(
             isolation_id="test-verify-clean",
-            root_path="/tmp/test",
-            base_path="/tmp",
+            root_path=os.path.join(tempfile.gettempdir(), "test"),
+            base_path=tempfile.gettempdir(),
             config=config,
             temp_dirs=[],
         )

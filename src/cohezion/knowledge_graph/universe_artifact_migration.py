@@ -22,6 +22,7 @@ import logging
 import shutil
 import subprocess
 import tarfile
+import tempfile
 import time
 from dataclasses import dataclass
 from pathlib import Path
@@ -92,7 +93,7 @@ class UniverseArtifactMigration:
     def __init__(
         self,
         cohezion_root: Path | None = None,
-        output_dir: Path = Path("/tmp/cohezion_universe_artifacts_export"),
+        output_dir: Path = Path(tempfile.gettempdir()) / "cohezion_universe_artifacts_export",
         surreal_ns: str = "cohezion",
         surreal_db: str = "core",
         surreal_url: str = "ws://localhost:8000/rpc",

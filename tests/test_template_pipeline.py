@@ -7,6 +7,8 @@ version header, and factory auto-regeneration.
 
 from __future__ import annotations
 
+import os
+import tempfile
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
@@ -130,7 +132,7 @@ class TestGenerateAll:
     def test_generate_all_calls_manager(self, pipeline: TemplatePipeline) -> None:
         mock_manager = MagicMock()
         mock_manager.generate_executable_and_register.return_value = {
-            "agent": Path("/tmp/agent.py")
+            "agent": Path(tempfile.gettempdir()) / "agent.py"
         }
         pipeline._manager = mock_manager
 
@@ -147,7 +149,7 @@ class TestGenerateAll:
     def test_generate_all_top_n_limit(self, pipeline: TemplatePipeline) -> None:
         mock_manager = MagicMock()
         mock_manager.generate_executable_and_register.return_value = {
-            "agent": Path("/tmp/agent.py")
+            "agent": Path(tempfile.gettempdir()) / "agent.py"
         }
         pipeline._manager = mock_manager
         pipeline._tracker = MagicMock()
@@ -176,7 +178,7 @@ class TestRegenerateForSkill:
     def test_regenerate_success(self, pipeline: TemplatePipeline) -> None:
         mock_manager = MagicMock()
         mock_manager.generate_executable_and_register.return_value = {
-            "agent": Path("/tmp/agent.py")
+            "agent": Path(tempfile.gettempdir()) / "agent.py"
         }
         pipeline._manager = mock_manager
         pipeline._tracker = MagicMock()
@@ -273,7 +275,7 @@ class TestDetectStaleAgents:
         mock_tracker.get_all_versions.return_value = {
             "SKILL_0_PRIME": {
                 "version": "0.9",
-                "agent_path": "/tmp/old.py",
+                "agent_path": os.path.join(tempfile.gettempdir(), "old.py"),
             }
         }
         pipeline._tracker = mock_tracker
@@ -289,7 +291,7 @@ class TestDetectStaleAgents:
         mock_tracker.get_all_versions.return_value = {
             "SKILL_0_PRIME": {
                 "version": "1.0",
-                "agent_path": "/tmp/current.py",
+                "agent_path": os.path.join(tempfile.gettempdir(), "current.py"),
             }
         }
         pipeline._tracker = mock_tracker

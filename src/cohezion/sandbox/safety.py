@@ -12,6 +12,7 @@ and gracefully handles constraint violations.
 
 import logging
 import re
+import tempfile
 import threading
 import time
 from collections.abc import Callable
@@ -669,7 +670,7 @@ POLICIES = {
     ),
     "MEDIUM_RISK": SafetyPolicy(
         operation="model_training",
-        allowed_paths=["/home", "/tmp"],
+        allowed_paths=["/home", tempfile.gettempdir()],
         blocked_commands=["rm -rf", "git push --force"],
         max_cpu_percent=300.0,
         max_memory_gb=8,
@@ -681,7 +682,7 @@ POLICIES = {
     ),
     "HIGH_RISK": SafetyPolicy(
         operation="system_modification",
-        allowed_paths=["/home", "/tmp", "/var"],
+        allowed_paths=["/home", tempfile.gettempdir(), "/var"],
         blocked_commands=["rm -rf", "git reset --hard"],
         max_cpu_percent=400.0,
         max_memory_gb=16,

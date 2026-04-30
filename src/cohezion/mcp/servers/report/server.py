@@ -20,6 +20,7 @@ import logging
 import os
 import subprocess
 import sys
+import tempfile
 import uuid
 from dataclasses import dataclass, field
 from datetime import datetime
@@ -64,7 +65,9 @@ class Report:
 class MarimoReportGenerator:
     """Generate reactive Marimo reports."""
 
-    def __init__(self, output_dir: str = "/tmp/marimo-reports"):
+    def __init__(self, output_dir: str | None = None):
+        if output_dir is None:
+            output_dir = os.path.join(tempfile.gettempdir(), "marimo-reports")
         self.output_dir = Path(output_dir)
         self.output_dir.mkdir(exist_ok=True)
         self.reports: dict[str, Report] = {}

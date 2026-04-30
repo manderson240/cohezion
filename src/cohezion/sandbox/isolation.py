@@ -18,6 +18,7 @@ import logging
 import os
 import shutil
 import subprocess
+import tempfile
 import time
 import uuid
 from collections.abc import Callable
@@ -162,7 +163,9 @@ class CleanupResult:
 class FilesystemIsolation:
     """Manages copy-on-write filesystem isolation."""
 
-    def __init__(self, base_path: str = "/tmp"):
+    def __init__(self, base_path: str | None = None):
+        if base_path is None:
+            base_path = tempfile.gettempdir()
         self.base_path = Path(base_path)
         self.base_path.mkdir(parents=True, exist_ok=True)
 
@@ -658,7 +661,9 @@ class CleanupRegistry:
 class IsolationManager:
     """Main orchestrator for isolation lifecycle."""
 
-    def __init__(self, base_path: str = "/tmp"):
+    def __init__(self, base_path: str | None = None):
+        if base_path is None:
+            base_path = tempfile.gettempdir()
         self.filesystem = FilesystemIsolation(base_path)
         self.process = ProcessIsolation()
         self.network = NetworkIsolation()
@@ -701,7 +706,7 @@ class IsolationManager:
         )
 
         # Track temp directories for cleanup
-        isolation_root = Path("/tmp") / f"isolation-{isolation_id}"
+        isolation_root = Path(tempfile.gettempdir()) / f"isolation-{isolation_id}"
         if isolation_root.exists():
             context.temp_dirs.append(str(isolation_root))
 
@@ -889,7 +894,7 @@ class IsolationManager:
 _isolation_manager: IsolationManager | None = None
 
 
-def get_isolation_manager(base_path: str = "/tmp") -> IsolationManager:
+def get_isolation_manager(base_path: str | None = None) -> IsolationManager:
     """Get singleton IsolationManager instance.
 
     Args:

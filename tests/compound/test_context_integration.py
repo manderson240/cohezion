@@ -7,6 +7,7 @@ Step 3b: Backend Test Generation
 from __future__ import annotations
 
 import json
+import tempfile
 from pathlib import Path
 from unittest.mock import patch
 
@@ -126,7 +127,7 @@ class TestContextManager:
 
     def test_check_coherence(self):
         """[P1] Should check coherence against HIHO threshold."""
-        mgr = ContextManager(Path("/tmp"))
+        mgr = ContextManager(Path(tempfile.gettempdir()))
         mgr.coherence_state = 0.7
 
         assert mgr.check_coherence(0.5) is True

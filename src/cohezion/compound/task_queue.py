@@ -17,6 +17,7 @@ from __future__ import annotations
 
 import json
 import logging
+import tempfile
 import time
 from dataclasses import dataclass, field
 from enum import Enum
@@ -99,7 +100,7 @@ class TaskQueue:
     ) -> None:
         """Initialize task queue."""
         self.queue_size_limit = queue_size_limit
-        self.persistence_dir = persistence_dir or Path("/tmp/cohezion_queue")
+        self.persistence_dir = persistence_dir or Path(tempfile.gettempdir()) / "cohezion_queue"
         self.enable_persistence = enable_persistence
 
         # Create persistence directory if needed
