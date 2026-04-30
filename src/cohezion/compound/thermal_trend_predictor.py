@@ -21,6 +21,7 @@ Target: +25% sustained throughput improvement beyond reactive throttling.
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import logging
 import time
 from dataclasses import dataclass
@@ -109,11 +110,9 @@ class ThermalTrendPredictor:
 
         # Trigger training after 50 new samples
         if len(self.history) % 50 == 0 and not self._model_training_in_progress:
-            try:
+            # No event loop running, skip async training
+            with contextlib.suppress(RuntimeError):
                 asyncio.create_task(self.train_30min_model_async())
-            except RuntimeError:
-                # No event loop running, skip async training
-                pass
 
     def predict_temperature_ahead(self, lookahead_minutes: int = 30) -> tuple[float, float]:
         """Predict GPU temperature N minutes ahead.

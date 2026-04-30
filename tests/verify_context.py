@@ -151,13 +151,11 @@ def main():
 
         # 4. Mandatory Placeholder & Adversarial Checks
         for f in critical_files:
-            if "CAPABILITY_MAP" not in f:
-                if not verify_no_placeholders(f):
-                    all_passed = False
+            if "CAPABILITY_MAP" not in f and not verify_no_placeholders(f):
+                all_passed = False
 
-            if args.adversarial:
-                if not verify_adversarial(f):
-                    all_passed = False
+            if args.adversarial and not verify_adversarial(f):
+                all_passed = False
 
     if all_passed:
         print("\n✨ All context validations PASSED.")

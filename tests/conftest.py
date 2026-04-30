@@ -14,8 +14,8 @@ import pytest
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from types import ModuleType
     from collections.abc import Generator
+    from types import ModuleType
 
 
 @pytest.fixture

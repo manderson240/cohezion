@@ -107,9 +107,10 @@ class TestConstitutionalShield:
     @pytest.mark.asyncio
     async def test_audit_output_requires_revision_low_score(self, shield):
         """[P0] Should require revision when alignment score is low."""
-        with patch.object(shield, "_get_constitution_and_charter", return_value="Test rules"):
+        with (
+            patch.object(shield, "_get_constitution_and_charter", return_value="Test rules"),
             # Simulate low alignment
-            with patch.object(
+            patch.object(
                 shield,
                 "audit_output",
                 return_value={
@@ -119,10 +120,11 @@ class TestConstitutionalShield:
                     "critique": "Output needs work",
                     "requires_revision": True,
                 },
-            ):
-                result = await shield.audit_output("agent", "content")
-                assert result["requires_revision"] is True
-                assert result["alignment_score"] < 0.8
+            ),
+        ):
+            result = await shield.audit_output("agent", "content")
+            assert result["requires_revision"] is True
+            assert result["alignment_score"] < 0.8
 
     @pytest.mark.asyncio
     async def test_audit_output_clear_high_score(self, shield):

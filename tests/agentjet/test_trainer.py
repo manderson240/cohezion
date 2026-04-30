@@ -117,13 +117,15 @@ async def test_llamafactory_backend_calls_local_finetuner(
         return_value=Path(tempfile.gettempdir()) / "cohezion_general_v9999" / "train.sh"
     )
 
-    with patch.object(trainer.reader, "read", return_value=tasks):
-        with patch.object(trainer, "_safety_check", new_callable=AsyncMock):
-            with patch(
-                "cohezion.flume.local_finetune_pipeline.LocalFinetuner",
-                return_value=mock_finetuner,
-            ):
-                result = await trainer.train(target_model="qwen3.5:9b")
+    with (
+        patch.object(trainer.reader, "read", return_value=tasks),
+        patch.object(trainer, "_safety_check", new_callable=AsyncMock),
+        patch(
+            "cohezion.flume.local_finetune_pipeline.LocalFinetuner",
+            return_value=mock_finetuner,
+        ),
+    ):
+        result = await trainer.train(target_model="qwen3.5:9b")
 
     # Just verify the shape — backend dispatch happens internally
     assert isinstance(result, TrainingResult)
@@ -134,10 +136,12 @@ async def test_reload_inference_models_called_after_success(
     trainer: AgentJetTrainer, mock_context_manager: MagicMock
 ) -> None:
     tasks = _make_tasks(2)
-    with patch.object(trainer.reader, "read", return_value=tasks):
-        with patch.object(trainer, "_run_training", new_callable=AsyncMock, return_value=None):
-            with patch.object(trainer, "_safety_check", new_callable=AsyncMock):
-                await trainer.train(target_model="phi3:mini", dry_run=False)
+    with (
+        patch.object(trainer.reader, "read", return_value=tasks),
+        patch.object(trainer, "_run_training", new_callable=AsyncMock, return_value=None),
+        patch.object(trainer, "_safety_check", new_callable=AsyncMock),
+    ):
+        await trainer.train(target_model="phi3:mini", dry_run=False)
 
     mock_context_manager.reload_inference_models.assert_called_once()
 
@@ -147,15 +151,17 @@ async def test_reload_inference_models_called_even_on_error(
     trainer: AgentJetTrainer, mock_context_manager: MagicMock
 ) -> None:
     tasks = _make_tasks(2)
-    with patch.object(trainer.reader, "read", return_value=tasks):
-        with patch.object(
+    with (
+        patch.object(trainer.reader, "read", return_value=tasks),
+        patch.object(
             trainer,
             "_run_training",
             new_callable=AsyncMock,
             side_effect=ValueError("training exploded"),
-        ):
-            with patch.object(trainer, "_safety_check", new_callable=AsyncMock):
-                result = await trainer.train(dry_run=False)
+        ),
+        patch.object(trainer, "_safety_check", new_callable=AsyncMock),
+    ):
+        result = await trainer.train(dry_run=False)
 
     # finally block should have run reload
     mock_context_manager.reload_inference_models.assert_called_once()

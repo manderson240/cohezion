@@ -150,14 +150,16 @@ class OllamaContextManager:
         """Query /api/ps for currently loaded models. Returns empty list on error."""
         url = f"{self._base_url}/api/ps"
         try:
-            async with aiohttp.ClientSession() as session:
-                async with session.get(url, timeout=aiohttp.ClientTimeout(total=10.0)) as resp:
-                    if resp.status != 200:
-                        logger.warning("GET /api/ps returned HTTP %d", resp.status)
-                        return []
-                    data = await resp.json()
-                    models: list[str] = [m["name"] for m in data.get("models", [])]
-                    return models
+            async with (
+                aiohttp.ClientSession() as session,
+                session.get(url, timeout=aiohttp.ClientTimeout(total=10.0)) as resp,
+            ):
+                if resp.status != 200:
+                    logger.warning("GET /api/ps returned HTTP %d", resp.status)
+                    return []
+                data = await resp.json()
+                models: list[str] = [m["name"] for m in data.get("models", [])]
+                return models
         except TimeoutError:
             logger.warning("Timeout querying Ollama /api/ps")
             return []
@@ -252,13 +254,15 @@ class OllamaContextManager:
         url = f"{self._base_url}/api/ps"
         loaded_gb = 0.0
         try:
-            async with aiohttp.ClientSession() as session:
-                async with session.get(url, timeout=aiohttp.ClientTimeout(total=10.0)) as resp:
-                    if resp.status == 200:
-                        data = await resp.json()
-                        for m in data.get("models", []):
-                            size_bytes: int = m.get("size", 0)
-                            loaded_gb += size_bytes / (1024**3)
+            async with (
+                aiohttp.ClientSession() as session,
+                session.get(url, timeout=aiohttp.ClientTimeout(total=10.0)) as resp,
+            ):
+                if resp.status == 200:
+                    data = await resp.json()
+                    for m in data.get("models", []):
+                        size_bytes: int = m.get("size", 0)
+                        loaded_gb += size_bytes / (1024**3)
         except TimeoutError:
             logger.warning("Timeout querying Ollama /api/ps for memory estimate")
         except aiohttp.ClientError as exc:

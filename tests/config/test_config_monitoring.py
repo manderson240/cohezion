@@ -14,6 +14,7 @@ GIT = shutil.which("git") or "git"
 
 from cohezion.config import ConfigMonitor, ConfigurationOrchestrator
 from cohezion.core.vault_subscription import VaultEvent
+import contextlib
 
 
 class TestConfigMonitor:
@@ -189,25 +190,25 @@ class TestOrchestrationWithMonitoring:
         start_mock = AsyncMock()
         stop_mock = AsyncMock()
 
-        with patch.object(orch.monitor, "start", start_mock):
-            with patch.object(orch.monitor, "stop", stop_mock):
-                # Start orchestration
-                orchestration_task = asyncio.create_task(orch.start_monitoring())
+        with (
+            patch.object(orch.monitor, "start", start_mock),
+            patch.object(orch.monitor, "stop", stop_mock),
+        ):
+            # Start orchestration
+            orchestration_task = asyncio.create_task(orch.start_monitoring())
 
-                # Poll for _monitoring flag instead of fixed 0.1s wait
-                for _ in range(50):
-                    if orch._monitoring:
-                        break
-                    await asyncio.sleep(0.005)
+            # Poll for _monitoring flag instead of fixed 0.1s wait
+            for _ in range(50):
+                if orch._monitoring:
+                    break
+                await asyncio.sleep(0.005)
 
-                assert orch._monitoring
+            assert orch._monitoring
 
-                # Cancel the task
-                orchestration_task.cancel()
-                try:
-                    await orchestration_task
-                except asyncio.CancelledError:
-                    pass
+            # Cancel the task
+            orchestration_task.cancel()
+            with contextlib.suppress(asyncio.CancelledError):
+                await orchestration_task
 
                 # Verify stop was called within context
                 stop_mock.assert_called()

@@ -84,10 +84,13 @@ class PortAllocator:
                 return port
 
         # Try preferred port first
-        if preferred_port and preferred_port in self.port_range:
-            if preferred_port not in self.allocated:
-                self.allocated[preferred_port] = server_name
-                return preferred_port
+        if (
+            preferred_port
+            and preferred_port in self.port_range
+            and preferred_port not in self.allocated
+        ):
+            self.allocated[preferred_port] = server_name
+            return preferred_port
 
         # Find first available port
         for port in self.port_range:

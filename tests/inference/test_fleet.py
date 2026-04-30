@@ -53,20 +53,22 @@ async def test_route_returns_error_when_all_candidates_down():
     # Also patch the headless CLI dispatch so the gemini/claude fallback
     # tier doesn't shell out to real subprocesses.
     cli_err = subprocess.CalledProcessError(1, ["gemini"], stderr="down")
-    with patch("httpx.get", side_effect=httpx.ConnectError("refused")):
-        with patch(
+    with (
+        patch("httpx.get", side_effect=httpx.ConnectError("refused")),
+        patch(
             "cohezion.inference.fleet._dispatch_openai_compatible",
             AsyncMock(side_effect=httpx.ConnectError("connect refused")),
-        ):
-            with patch(
-                "cohezion.inference.fleet._dispatch_ollama",
-                AsyncMock(side_effect=httpx.ConnectError("connect refused")),
-            ):
-                with patch(
-                    "cohezion.inference.fleet._dispatch_headless_cli",
-                    AsyncMock(side_effect=cli_err),
-                ):
-                    result = await route("test prompt", task=Task.ROUTING)
+        ),
+        patch(
+            "cohezion.inference.fleet._dispatch_ollama",
+            AsyncMock(side_effect=httpx.ConnectError("connect refused")),
+        ),
+        patch(
+            "cohezion.inference.fleet._dispatch_headless_cli",
+            AsyncMock(side_effect=cli_err),
+        ),
+    ):
+        result = await route("test prompt", task=Task.ROUTING)
 
     assert result.error is not None
     assert result.text == ""
@@ -149,10 +151,12 @@ async def test_route_records_attempts_list():
             raise httpx.ConnectError("first lane flaked")
         return ("second lane response", 0.0)
 
-    with patch("cohezion.inference.fleet._dispatch_openai_compatible", side_effect=sometimes):
-        with patch("cohezion.inference.fleet._dispatch_ollama", side_effect=sometimes):
-            with patch("cohezion.inference.fleet._dispatch_headless_cli", side_effect=cli_mock):
-                result = await route("explain reasoning", task=Task.REASONING)
+    with (
+        patch("cohezion.inference.fleet._dispatch_openai_compatible", side_effect=sometimes),
+        patch("cohezion.inference.fleet._dispatch_ollama", side_effect=sometimes),
+        patch("cohezion.inference.fleet._dispatch_headless_cli", side_effect=cli_mock),
+    ):
+        result = await route("explain reasoning", task=Task.REASONING)
 
     assert result.error is None
     assert result.text == "second lane response"

@@ -33,12 +33,14 @@ class HFModelfileBuilder:
             return dest_path
 
         logger.info(f"Downloading {filename} from {url}")
-        async with httpx.AsyncClient(follow_redirects=True) as client:
-            async with client.stream("GET", url) as response:
-                response.raise_for_status()
-                with open(dest_path, "wb") as f:
-                    async for chunk in response.aiter_bytes():
-                        f.write(chunk)
+        async with (
+            httpx.AsyncClient(follow_redirects=True) as client,
+            client.stream("GET", url) as response,
+        ):
+            response.raise_for_status()
+            with open(dest_path, "wb") as f:
+                async for chunk in response.aiter_bytes():
+                    f.write(chunk)
 
         logger.info(f"Downloaded {filename} to {dest_path}")
         return dest_path

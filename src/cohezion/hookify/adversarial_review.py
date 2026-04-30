@@ -523,9 +523,11 @@ class ConsensusVoter:
             (approved, reason)
         """
         # Critical changes need consensus
-        if change_type in ["delete", "action_change", "condition_change"]:
-            if not review.consensus_reached:
-                return False, "Critical change requires consensus across all perspectives"
+        if (
+            change_type in ["delete", "action_change", "condition_change"]
+            and not review.consensus_reached
+        ):
+            return False, "Critical change requires consensus across all perspectives"
 
         # All changes need minimum score
         if review.overall_score < self.threshold:

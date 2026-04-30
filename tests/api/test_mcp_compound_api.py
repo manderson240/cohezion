@@ -152,10 +152,12 @@ async def execute(request):
             }
         )
 
-        with patch("cohezion.mcp.compound_server.get_mcp_client", return_value=mock_mcp_client):
-            with patch("cohezion.mcp.compound_server.retrospection") as mock_retro:
-                mock_retro.capture_learning = AsyncMock(return_value="logs/test.json")
-                result = await learning_capture(execution_result)
+        with (
+            patch("cohezion.mcp.compound_server.get_mcp_client", return_value=mock_mcp_client),
+            patch("cohezion.mcp.compound_server.retrospection") as mock_retro,
+        ):
+            mock_retro.capture_learning = AsyncMock(return_value="logs/test.json")
+            result = await learning_capture(execution_result)
 
         assert result["status"] == "success"
 

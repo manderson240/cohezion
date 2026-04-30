@@ -133,22 +133,24 @@ async def test_circuit_breaker_activates_after_3_failures() -> None:
     model = GeminiEmbeddingModel(api_key="test-key", fallback=mock_fallback)
 
     # Patch cache always misses
-    with patch.object(model, "_cache_lookup", new_callable=AsyncMock, return_value=None):
-        with patch.object(model, "_cache_store", new_callable=AsyncMock):
-            # Make API always fail
-            with patch.object(
-                model,
-                "_call_gemini_api",
-                new_callable=AsyncMock,
-                side_effect=RuntimeError("api down"),
-            ):
-                for _ in range(3):
-                    await model.encode(f"text {_}")
+    with (
+        patch.object(model, "_cache_lookup", new_callable=AsyncMock, return_value=None),
+        patch.object(model, "_cache_store", new_callable=AsyncMock),
+    ):
+        # Make API always fail
+        with patch.object(
+            model,
+            "_call_gemini_api",
+            new_callable=AsyncMock,
+            side_effect=RuntimeError("api down"),
+        ):
+            for _ in range(3):
+                await model.encode(f"text {_}")
 
-            # After 3 failures, circuit is open — API should NOT be called
-            with patch.object(model, "_call_gemini_api", new_callable=AsyncMock) as mock_api:
-                await model.encode("another text")
-                mock_api.assert_not_called()
+        # After 3 failures, circuit is open — API should NOT be called
+        with patch.object(model, "_call_gemini_api", new_callable=AsyncMock) as mock_api:
+            await model.encode("another text")
+            mock_api.assert_not_called()
 
 
 @pytest.mark.asyncio
@@ -163,12 +165,12 @@ async def test_circuit_breaker_resets_on_success() -> None:
     model._fail_count = 2  # 2 failures, not yet open
 
     good_vec = np.ones(768, dtype=np.float32)
-    with patch.object(model, "_cache_lookup", new_callable=AsyncMock, return_value=None):
-        with patch.object(model, "_cache_store", new_callable=AsyncMock):
-            with patch.object(
-                model, "_call_gemini_api", new_callable=AsyncMock, return_value=good_vec
-            ):
-                result = await model.encode("text")
+    with (
+        patch.object(model, "_cache_lookup", new_callable=AsyncMock, return_value=None),
+        patch.object(model, "_cache_store", new_callable=AsyncMock),
+        patch.object(model, "_call_gemini_api", new_callable=AsyncMock, return_value=good_vec),
+    ):
+        result = await model.encode("text")
 
     assert model._fail_count == 0  # Reset on success
     assert result.model == "gemini-embedding-2"

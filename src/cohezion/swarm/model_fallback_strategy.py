@@ -142,9 +142,11 @@ class ModelCircuitBreaker:
             self.metrics.avg_latency_ms = 0.7 * self.metrics.avg_latency_ms + 0.3 * latency_ms
 
         # If HALF_OPEN and succeeded, go back to CLOSED
-        if self.state == CircuitBreakerState.HALF_OPEN:
-            if self.metrics.success_count >= self.success_threshold:
-                self._transition_to_closed()
+        if (
+            self.state == CircuitBreakerState.HALF_OPEN
+            and self.metrics.success_count >= self.success_threshold
+        ):
+            self._transition_to_closed()
 
     def record_error(self) -> None:
         """Record failed execution."""

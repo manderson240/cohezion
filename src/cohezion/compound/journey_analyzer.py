@@ -421,10 +421,7 @@ class JourneyAnalyzer:
         centers = gmm.means_.tolist()
         inertia = float(gmm.lower_bound_)
 
-        if n_clusters >= 2:
-            sil_score = float(silhouette_score(features, labels))
-        else:
-            sil_score = 0.0
+        sil_score = float(silhouette_score(features, labels)) if n_clusters >= 2 else 0.0
 
         cluster_sizes = [int(np.sum(labels == i)) for i in range(n_clusters)]
 

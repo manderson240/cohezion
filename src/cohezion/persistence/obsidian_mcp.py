@@ -76,8 +76,10 @@ The manifold restoring force was {(0.5 - coherence):.4f}.
             env=os.environ.copy(),
         )
 
-        async with stdio_client(server_params) as (read, write):
-            async with ClientSession(read, write) as session:
-                await session.initialize()
-                result = await session.call_tool("vault_write", {"path": path, "content": content})
-                return str(result)
+        async with (
+            stdio_client(server_params) as (read, write),
+            ClientSession(read, write) as session,
+        ):
+            await session.initialize()
+            result = await session.call_tool("vault_write", {"path": path, "content": content})
+            return str(result)

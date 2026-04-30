@@ -25,10 +25,7 @@ async def run_server(
     port = int(os.getenv("MCP_PORT", str(default_port)))
     uds_path = os.getenv("MCP_UDS_PATH")
 
-    if callable(app_factory):
-        app = app_factory()
-    else:
-        app = app_factory
+    app = app_factory() if callable(app_factory) else app_factory
 
     runner = web.AppRunner(app)
     await runner.setup()

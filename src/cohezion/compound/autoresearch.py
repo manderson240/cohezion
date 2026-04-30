@@ -374,12 +374,11 @@ class SkillRefiner:
                     content += "\n\n## Token Efficiency\n\n"
                     content += "This skill is optimized for minimal token usage.\n"
 
-            elif refinement["type"] == "coherence_improvement":
+            elif refinement["type"] == "coherence_improvement" and "Examples" not in content:
                 # Add examples section
-                if "Examples" not in content:
-                    content += "\n\n## Examples\n\n"
-                    content += "### Example 1: Basic Usage\n"
-                    content += "```\n[example here]\n```\n"
+                content += "\n\n## Examples\n\n"
+                content += "### Example 1: Basic Usage\n"
+                content += "```\n[example here]\n```\n"
 
             # Write back
             skill_file.write_text(content)

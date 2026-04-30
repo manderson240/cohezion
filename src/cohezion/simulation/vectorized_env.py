@@ -32,6 +32,7 @@ References:
 
 from __future__ import annotations
 
+import contextlib
 import logging
 import multiprocessing as mp
 from dataclasses import dataclass
@@ -310,10 +311,8 @@ class AsyncVectorizedHihoEnv:
             return
 
         for pipe in self._parent_pipes:
-            try:
+            with contextlib.suppress(BrokenPipeError):
                 pipe.send(("close", None))
-            except BrokenPipeError:
-                pass
 
         for p in self._processes:
             p.join(timeout=5)

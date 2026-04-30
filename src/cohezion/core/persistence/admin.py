@@ -127,11 +127,8 @@ class DBAdmin:
             # Parse result
             if isinstance(created, list) and len(created) > 0:
                 # Surreal response format: [{'result': [...], 'status': 'OK'}]
-                if "result" in created[0]:
-                    created_len = len(created[0]["result"])
-                else:
-                    # Maybe it returned the records directly?
-                    created_len = len(created)
+                # Maybe it returned the records directly if no 'result' key.
+                created_len = len(created[0]["result"]) if "result" in created[0] else len(created)
             else:
                 created_len = 0  # No response?
 

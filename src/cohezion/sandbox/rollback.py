@@ -14,6 +14,7 @@ Transaction lifecycle:
   4. commit() or rollback()
 """
 
+import contextlib
 import json
 import logging
 import shutil
@@ -662,10 +663,9 @@ class Transaction:
             raise RuntimeError("Cannot commit rolled-back transaction")
 
         try:
-            if verify:
-                # Verify all changes are recorded
-                if not self.changes:
-                    logger.warning("No changes recorded in transaction")
+            # Verify all changes are recorded
+            if verify and not self.changes:
+                logger.warning("No changes recorded in transaction")
 
             # Cleanup old snapshots (keep only max_snapshots most recent)
             if len(self.snapshots) > self.config.max_snapshots:
@@ -704,10 +704,9 @@ class Transaction:
             logger.error(f"Transaction commit failed: {e}")
             if self.config.auto_rollback and not self.rolled_back:
                 logger.info("Auto-rolling back due to commit failure")
-                try:
+                # Already rolled back if RuntimeError raised
+                with contextlib.suppress(RuntimeError):
                     self.rollback(reason=f"Commit failed: {e}")
-                except RuntimeError:
-                    pass  # Already rolled back
             raise
 
     def rollback(

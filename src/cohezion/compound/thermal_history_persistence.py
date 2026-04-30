@@ -182,9 +182,8 @@ class ThermalTimeSeriesCollector:
                     f"thermal_history_{timestamp}"
                 ).with_suffix(".jsonl.gz")
 
-                with open(self.history_path, "rb") as f_in:
-                    with gzip.open(archive_path, "wb") as f_out:
-                        f_out.write(f_in.read())
+                with open(self.history_path, "rb") as f_in, gzip.open(archive_path, "wb") as f_out:
+                    f_out.write(f_in.read())
 
                 # Clear original file
                 self.history_path.write_text("")
