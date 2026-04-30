@@ -23,7 +23,7 @@ import hashlib
 import logging
 import time
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, ClassVar
 
 import requests  # type: ignore[import-untyped]
 
@@ -54,7 +54,7 @@ class DemoGateway:
     """Demo gateway using local Ollama models (no API keys needed)."""
 
     # Simulated pricing for demo (not real)
-    MODEL_COSTS = {
+    MODEL_COSTS: ClassVar[dict[str, dict[str, float]]] = {
         "qwen3-coder:30b": {"input": 0.001, "output": 0.002},
         "deepseek-r1:70b": {"input": 0.002, "output": 0.004},
         "phi3:mini": {"input": 0.0005, "output": 0.001},

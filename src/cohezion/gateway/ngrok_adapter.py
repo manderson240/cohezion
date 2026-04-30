@@ -40,7 +40,7 @@ import logging
 import os
 import time
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, ClassVar
 
 import requests  # type: ignore[import-untyped]
 
@@ -84,7 +84,7 @@ class NgrokAIGateway:
     """
 
     # Model cost mappings (tokens)
-    MODEL_COSTS = {
+    MODEL_COSTS: ClassVar[dict[str, dict[str, float]]] = {
         # OpenAI
         "gpt-4o": {"input": 5.0 / 1e6, "output": 15.0 / 1e6},
         "gpt-4-turbo": {"input": 10.0 / 1e6, "output": 30.0 / 1e6},

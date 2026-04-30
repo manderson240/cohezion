@@ -13,7 +13,7 @@ Lifecycle:
 from __future__ import annotations
 
 import logging
-from typing import Any
+from typing import Any, ClassVar
 from uuid import uuid4
 
 
@@ -39,7 +39,7 @@ class UniverseBridge:
     # Field fabric: indices 3-5
     # Control fabric: indices 6-8
     # Precipitation fabric: indices 9-11
-    _DIM_NAMES = [
+    _DIM_NAMES: ClassVar[list[str]] = [
         "spatial_x",
         "spatial_y",
         "spatial_z",  # Space

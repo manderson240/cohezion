@@ -17,7 +17,7 @@ import json
 import logging
 import re
 from dataclasses import dataclass, field
-from typing import Any
+from typing import Any, ClassVar
 
 
 logger = logging.getLogger(__name__)
@@ -70,7 +70,7 @@ class BatchSizePredictor:
     """
 
     # Heuristic batch sizes per task type (fallback when no history)
-    DEFAULT_BATCH_SIZES = {
+    DEFAULT_BATCH_SIZES: ClassVar[dict[str, int]] = {
         "generate": 16,  # Slow, token-heavy
         "analyze": 32,  # Medium speed
         "search": 64,  # Fast, low token cost
@@ -80,7 +80,7 @@ class BatchSizePredictor:
     }
 
     # Expected throughput (tokens/sec) per task type (baseline)
-    BASELINE_THROUGHPUT = {
+    BASELINE_THROUGHPUT: ClassVar[dict[str, float]] = {
         "generate": 85.0,  # tok/sec
         "analyze": 120.0,
         "search": 150.0,

@@ -12,7 +12,7 @@ Reward: +1 on level completion, -0.01 per step (efficiency penalty)
 from __future__ import annotations
 
 import logging
-from typing import Any
+from typing import Any, ClassVar
 
 import gymnasium as gym
 import numpy as np
@@ -90,7 +90,7 @@ class ARCEnvironment(gym.Env):
         Rendering mode. Only "rgb_array" is supported.
     """
 
-    metadata = {"render_modes": ["rgb_array"]}
+    metadata: ClassVar[dict[str, list[str]]] = {"render_modes": ["rgb_array"]}
 
     def __init__(
         self,

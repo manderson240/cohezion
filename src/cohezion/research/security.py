@@ -11,6 +11,7 @@ import logging
 import re
 from dataclasses import dataclass
 from pathlib import Path
+from typing import ClassVar
 
 from cohezion.security.pipeline import SecurityPipeline
 
@@ -45,7 +46,7 @@ class ResearchSecurityGuardrails:
     """
 
     # Forbidden patterns
-    FORBIDDEN_IMPORTS = [
+    FORBIDDEN_IMPORTS: ClassVar[list[str]] = [
         "os.system",
         "subprocess.call",
         "subprocess.run",
@@ -57,7 +58,7 @@ class ResearchSecurityGuardrails:
     ]
 
     # Allowed training-related imports
-    ALLOWED_IMPORTS = [
+    ALLOWED_IMPORTS: ClassVar[list[str]] = [
         "torch",
         "torch.nn",
         "torch.optim",
@@ -114,8 +115,16 @@ class ResearchSecurityGuardrails:
             risk_level=risk,
         )
 
-    FORBIDDEN_CALL_NAMES = {"exec", "eval", "__import__", "compile", "getattr"}
-    FORBIDDEN_MODULES = {"os", "subprocess", "shutil", "socket", "urllib", "requests", "http"}
+    FORBIDDEN_CALL_NAMES: ClassVar[set[str]] = {"exec", "eval", "__import__", "compile", "getattr"}
+    FORBIDDEN_MODULES: ClassVar[set[str]] = {
+        "os",
+        "subprocess",
+        "shutil",
+        "socket",
+        "urllib",
+        "requests",
+        "http",
+    }
 
     def _is_valid_ast(self, code: str) -> bool:
         """Check if code is valid Python AST."""

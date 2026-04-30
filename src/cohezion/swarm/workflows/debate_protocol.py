@@ -10,7 +10,7 @@ The core cognitive workflow of the Cohezion Swarm:
 import asyncio
 import logging
 import time
-from typing import Any
+from typing import Any, ClassVar
 
 from cohezion.agents.analyst import AnalystAgent
 from cohezion.agents.critic import CriticAgent
@@ -34,7 +34,7 @@ class DebateWorkflow:
     and synthesis into a unified response.
     """
 
-    DEFAULT_PERSPECTIVES = [
+    DEFAULT_PERSPECTIVES: ClassVar[list[Perspective]] = [
         Perspective.TECHNICAL,
         Perspective.ETHICAL,
         Perspective.HISTORICAL,

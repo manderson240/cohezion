@@ -19,7 +19,7 @@ from __future__ import annotations
 import logging
 import math
 from dataclasses import dataclass, field
-from typing import Any
+from typing import Any, ClassVar
 
 
 logger = logging.getLogger(__name__)
@@ -83,7 +83,7 @@ class ThermalTrendAnalyzer:
     NORMAL_OPERATING_RANGE = 50.0  # °C - idle baseline
 
     # Heuristic base temperatures per task type (starting point for learning)
-    BASE_TEMPS = {
+    BASE_TEMPS: ClassVar[dict[str, float]] = {
         "generate": 72.0,  # Slow, compute-heavy
         "analyze": 68.0,  # Medium compute
         "search": 65.0,  # Fast, less compute
@@ -93,7 +93,7 @@ class ThermalTrendAnalyzer:
     }
 
     # Temperature ramp rates (°C per second under load)
-    RAMP_RATES = {
+    RAMP_RATES: ClassVar[dict[str, float]] = {
         "generate": 0.8,  # Fast heating
         "analyze": 0.5,
         "search": 0.3,

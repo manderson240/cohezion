@@ -21,7 +21,7 @@ import os
 import re
 from datetime import datetime
 from pathlib import Path
-from typing import Any
+from typing import Any, ClassVar
 
 from aiohttp import web
 
@@ -41,7 +41,7 @@ class SecurityScanner:
     """Multi-purpose security scanner."""
 
     # OWASP Top 10 2021
-    OWASP_TOP_10 = {
+    OWASP_TOP_10: ClassVar[dict[str, str]] = {
         "A01": "Broken Access Control",
         "A02": "Cryptographic Failures",
         "A03": "Injection",
@@ -55,7 +55,7 @@ class SecurityScanner:
     }
 
     # Secret patterns
-    SECRET_PATTERNS = {
+    SECRET_PATTERNS: ClassVar[dict[str, str]] = {
         "aws_access_key": r"AKIA[0-9A-Z]{16}",
         "aws_secret_key": r"[0-9a-zA-Z/+]{40}",
         "github_token": r"ghp_[0-9a-zA-Z]{36}",

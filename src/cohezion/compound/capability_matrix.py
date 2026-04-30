@@ -11,6 +11,7 @@ import logging
 from dataclasses import dataclass, field
 from datetime import date
 from pathlib import Path
+from typing import ClassVar
 
 
 logger = logging.getLogger(__name__)
@@ -66,7 +67,7 @@ class CapabilityMatrix:
     """
 
     # Capability dimensions used for affinity scoring
-    TASK_TYPES = [
+    TASK_TYPES: ClassVar[list[str]] = [
         "coding",
         "reasoning",
         "analysis",
