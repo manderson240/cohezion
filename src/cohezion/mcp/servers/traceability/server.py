@@ -276,7 +276,10 @@ async def get_health_resource() -> str:
 async def get_findings_resource() -> str:
     """Get findings summary as resource."""
     result = traceability_get_findings()
-    return f"Findings: HIGH={result['high_count']}, MEDIUM={result['medium_count']}, LOW={result['low_count']}"
+    return (
+        f"Findings: HIGH={result['high_count']}, MEDIUM={result['medium_count']}, "
+        f"LOW={result['low_count']}"
+    )
 
 
 # ============================================================================

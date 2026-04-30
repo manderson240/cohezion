@@ -40,7 +40,10 @@ class TestExtractFrontmatter:
         assert result == {}
 
     def test_frontmatter_with_lists(self):
-        text = "---\nname: test\ndescription: A test agent for things\ntools:\n  - Read\n  - Glob\n---\n"
+        text = (
+            "---\nname: test\ndescription: A test agent for things\ntools:\n  - Read\n  - "
+            "Glob\n---\n"
+        )
         result = extract_frontmatter(text)
         assert result["tools"] == ["Read", "Glob"]
 

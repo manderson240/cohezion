@@ -92,7 +92,10 @@ def fetch_experience_guidance(
 
         req = urllib.request.Request(
             "http://localhost:8001/sql",
-            data=b"SELECT skill, should_refine, compound_score, recommendation FROM retrospection ORDER BY created DESC LIMIT 3;",
+            data=(
+                b"SELECT skill, should_refine, compound_score, recommendation FROM retrospection "
+                b"ORDER BY created DESC LIMIT 3;"
+            ),
             headers={
                 "Accept": "application/json",
                 "surreal-ns": "cohezion",

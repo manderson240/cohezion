@@ -4,7 +4,10 @@ import pytest
 
 
 pytestmark = pytest.mark.skip(
-    reason="vae_encoder integration refactored; tests patch a removed OllamaEmbeddingProvider reference. Need rewrite against the current vae_encoder API.",
+    reason=(
+        "vae_encoder integration refactored; tests patch a removed OllamaEmbeddingProvider "
+        "reference. Need rewrite against the current vae_encoder API."
+    ),
 )
 from pathlib import Path
 from unittest.mock import MagicMock, patch

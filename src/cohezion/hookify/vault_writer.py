@@ -291,6 +291,10 @@ This learning should inform:
             )
 
         iter_table = "\n".join(iter_rows)
+        breakthrough_iter = next(
+            (i + 1 for i, it in enumerate(iterations) if it.get("coherence", 0) >= 0.5),
+            "N/A",
+        )
 
         frontmatter = {
             "title": f"Cosmological Changelog: {session_id}",
@@ -336,7 +340,7 @@ Final accuracy: **{accuracy:.4f}%** (target: 0.1000%)
 
 *When coherence crossed HIHO threshold*
 
-- Iteration {next((i + 1 for i, it in enumerate(iterations) if it.get("coherence", 0) >= 0.5), "N/A")}:
+- Iteration {breakthrough_iter}:
   Coherence reached HIHO (0.5)
 
 ## Test Results

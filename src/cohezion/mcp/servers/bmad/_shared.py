@@ -70,7 +70,10 @@ class BMADEngine:
                         }
 
         logger.info(
-            f"BMAD: {len(self._modules)} modules, {len(self._workflows)} workflows, {len(self._agents)} agents"
+            (
+                f"BMAD: {len(self._modules)} modules, {len(self._workflows)} workflows, "
+                f"{len(self._agents)} agents"
+            )
         )
 
     def list_modules(self) -> list[dict]:

@@ -218,7 +218,10 @@ class UniverseGenealogySurvey:
                 {
                     "number": 7,
                     "name": "Fractal eras",
-                    "description": "Each era repeats: concept → architecture → implementation → verification → hardening",
+                    "description": (
+                        "Each era repeats: concept → architecture → implementation "
+                        "→ verification → hardening"
+                    ),
                     "evidence": "All 8 epochs follow same cycle structure",
                 },
             ]

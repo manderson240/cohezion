@@ -166,7 +166,8 @@ class QueryComplexityAnalyzer:
         is_long = token_count > 200
 
         # Determine complexity tier
-        # SIMPLE: very short (< 10 tokens) without complex keywords, or has simple keywords + no complex keywords + short
+        # SIMPLE: very short (< 10 tokens) without complex keywords, or has simple keywords + no
+        # complex keywords + short
         if (token_count < 10 and complex_matches == 0 and not has_code) or (
             simple_matches > 0 and complex_matches == 0 and not has_code and token_count < 50
         ):
@@ -362,11 +363,15 @@ class CostAwareRouter:
         Args:
             cost_tracker: Session cost tracker (optional, uses current if None)
             budget_enforcer: Budget enforcer (optional, uses current if None)
-            prefer_longer_models_if_cheaper_per_token: If True, prefer cheaper per-token cost (default: True)
-            cost_threshold: Cost difference threshold for model switching (0-1.0, default: 0.10 = 10%)
+            prefer_longer_models_if_cheaper_per_token: If True, prefer cheaper
+                per-token cost (default: True)
+            cost_threshold: Cost difference threshold for model switching
+                (0-1.0, default: 0.10 = 10%)
             latency_threshold: Latency threshold in ms for trade-off (default: 150.0ms)
-            aggressive_cost_reduction: If True, aggressively route simple/medium to phi3 (default: True)
-            dynamic_threshold_tuning: If True, auto-tune thresholds based on query patterns (default: True)
+            aggressive_cost_reduction: If True, aggressively route simple/medium
+                to phi3 (default: True)
+            dynamic_threshold_tuning: If True, auto-tune thresholds based on
+                query patterns (default: True)
             pool_manager: Optional ModelPoolManager for availability-aware routing
         """
         self.cost_tracker = cost_tracker or SessionCostTracker.get_current()
@@ -970,7 +975,10 @@ class CostAwareRouter:
                         self._degradation_cooldown = 3
                         self._degradation_upgrade_model = "qwen3-coder:32b"
                         logger.warning(
-                            "Degradation feedback: CRITICAL %s → upgrading to %s for next 3 queries",
+                            (
+                                "Degradation feedback: CRITICAL %s → upgrading to %s for next 3 "
+                                "queries"
+                            ),
                             metric,
                             self._degradation_upgrade_model,
                         )

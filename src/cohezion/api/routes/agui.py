@@ -40,7 +40,9 @@ CRITICAL_TEMPS = [100.0, 10.0, 1.0, 0.1, 0.01]
 SYMMETRIES = ["void", "SO(12)", "SO(3)^4", "U(1)^4", "Z_2^4", "HIHO"]
 NARRATIONS = {
     "void": "In the beginning, there was nothing. Not even nothing.",
-    "SO(12)": "From the first observation, symmetry crystallized. Twelve dimensions, all equivalent.",
+    "SO(12)": (
+        "From the first observation, symmetry crystallized. Twelve dimensions, all equivalent."
+    ),
     "SO(3)^4": "The fabrics separated. Space. Field. Control. Precipitation.",
     "U(1)^4": "Within each world, a preferred direction emerged.",
     "Z_2^4": "The discrete choice. Up or down. Brahmagupta's zero gave nothing a name.",

@@ -321,7 +321,10 @@ class ModelRanker:
 
         try:
             # Query vault for patterns matching task and model
-            _query = f"coherence pattern where model='{model}' and similarity(task, '{task_description}') > 0.7"
+            _query = (
+                f"coherence pattern where model='{model}' and similarity(task, "
+                f"'{task_description}') > 0.7"
+            )
             # Note: This is a conceptual query - actual implementation would depend on vault API
             # For now, return None to fall back to defaults
             return None

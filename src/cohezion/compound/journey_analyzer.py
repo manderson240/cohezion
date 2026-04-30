@@ -861,7 +861,8 @@ class JourneyAnalyzer:
             )
         if thermo_summary["n_attractors"] > len(journeys) // 2:
             findings.append(
-                f"HIHO attractor confirmed ({thermo_summary['n_attractors']}/{len(journeys)} journeys)"
+                f"HIHO attractor confirmed ({thermo_summary['n_attractors']}/{len(journeys)} "
+                f"journeys)"
             )
         if sum(1 for a in anomalies if a.is_anomaly) > 0:
             findings.append(

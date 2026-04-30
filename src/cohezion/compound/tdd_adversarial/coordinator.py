@@ -126,7 +126,8 @@ class TDDAdversarialCoordinator:
         """
         Run checks after compound engineering operations.
 
-        This implements the "green" and "refactor" phases of TDD and comprehensive adversarial review.
+        This implements the "green" and "refactor" phases of TDD
+        and comprehensive adversarial review.
         """
         self.logger.info("Running post-engineering checks", session_id=session_id)
 
@@ -256,7 +257,10 @@ class TDDAdversarialCoordinator:
             overall_score = latest_review.get("overall_score", 0.0)
             if overall_score < 0.6:
                 recommendations.append(
-                    f"Address adversarial review concerns before engineering (score: {overall_score:.2f})"
+                    (
+                        f"Address adversarial review concerns before engineering (score: "
+                        f"{overall_score:.2f})"
+                    )
                 )
 
             findings = latest_review.get("findings", [])
@@ -442,7 +446,9 @@ class TDDAdversarialCoordinator:
                                 tdd_feedback_entry.performance_metric,
                                 review_feedback_entry.performance_metric,
                             ),
-                            feedback=f"Both TDD and Adversarial Review suggest improving {skill_name}",
+                            feedback=(
+                                f"Both TDD and Adversarial Review suggest improving {skill_name}"
+                            ),
                             context={
                                 "tdd_feedback": tdd_feedback_entry.context,
                                 "review_feedback": review_feedback_entry.context,

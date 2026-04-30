@@ -34,7 +34,8 @@ class ArchitectureScout(BaseScout):
         Imports: {ast_summary.imports}
 
         Identify:
-        1. The primary architectural pattern/role (e.g., Persistence Client, Service, Controller, Agent, Skill).
+        1. The primary architectural pattern/role
+           (e.g., Persistence Client, Service, Controller, Agent, Skill).
         2. Any high-coupling issues (e.g., too many imports, class bloat).
         3. Integration with COHEZION core (SurrealDB, FLUME, ResourceGuard).
 

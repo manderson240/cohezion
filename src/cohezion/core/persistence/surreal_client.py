@@ -295,7 +295,10 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
             self._connected = True
             breaker.record_success()
             logger.info(
-                f"✅ REAL CLIENT: Connected to SurrealDB at {self.url} ({self.namespace}/{self.database})"
+                (
+                    f"✅ REAL CLIENT: Connected to SurrealDB at {self.url} "
+                    f"({self.namespace}/{self.database})"
+                )
             )
             return True
         except (
@@ -452,7 +455,8 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
 
                     return [{"result": [mission] if mission else [], "status": "OK"}]
                 if "FROM agent_thought" in sql:
-                    # Handle queries like: SELECT content, metadata.query_hash as qh, metadata.agent as agent FROM agent_thought ORDER BY timestamp DESC LIMIT 100
+                    # Handle queries like: SELECT content, metadata.query_hash as qh, metadata.agent
+                    # as agent FROM agent_thought ORDER BY timestamp DESC LIMIT 100
                     all_nodes = self._client.get_all(1000)
                     # Filter for agent_thought type
                     matches = [n for n in all_nodes if n.get("node_type") == "agent_thought"]
@@ -475,7 +479,8 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
 
                 # Table-based filtering mock (e.g., SELECT * FROM table WHERE field = $value)
                 if "SELECT * FROM" in sql and "WHERE" in sql:
-                    # Generic mock for "WHERE x > y AND a > b" type queries based on EvolutionaryDriver
+                    # Generic mock for "WHERE x > y AND a > b" type queries based on
+                    # EvolutionaryDriver
                     # SELECT * FROM universe_nodes WHERE node_type = 'energy_snapshot' AND ...
 
                     if "node_type = 'energy_snapshot'" in sql:
@@ -486,8 +491,10 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
                             if item.get("node_type") != "energy_snapshot":
                                 continue
 
-                            # Physics check (Mocking the SQL logic: physics_state.dim_12_coherence > 0.9)
-                            # We just return them if they are snapshots, assuming the caller filters or we mock the success
+                            # Physics check (Mocking the SQL logic: physics_state.dim_12_coherence >
+                            # 0.9)
+                            # We just return them if they are snapshots, assuming the caller filters
+                            # or we mock the success
                             # But let's try to be a bit specific if possible
                             ps = item.get("physics_state", {})
 
@@ -808,7 +815,10 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
                 safe_limit = min(int(limit), 10000)
                 query = """
                     SELECT *,
-                        (SELECT count() FROM ->bridges WHERE out.node_type = $domain_b)[0].count AS b_count
+                        (
+                            SELECT count() FROM ->bridges
+                            WHERE out.node_type = $domain_b
+                        )[0].count AS b_count
                     FROM universe_nodes
                     WHERE node_type = $domain_a
                     ORDER BY b_count DESC

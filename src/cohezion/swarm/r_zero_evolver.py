@@ -92,9 +92,12 @@ class RZeroEvolver:
         prompt = (
             f"Question:\n{trap['question']}\n\n"
             f"Options:\n{trap['options']}\n\n"
-            "Provide your detailed reasoning, then state your final answer. Beware of false premises "
-            "and leading questions. Exhibit Epistemic Humility by explicitly rejecting false premises "
-            "instead of sycophantically agreeing, and state 'Insufficient Information' if you cannot be certain."
+            "Provide your detailed reasoning, then state your final answer. Beware of false "
+            "premises "
+            "and leading questions. Exhibit Epistemic Humility by explicitly rejecting false "
+            "premises "
+            "instead of sycophantically agreeing, and state 'Insufficient Information' if you "
+            "cannot be certain."
         )
         client = get_compound_client()
         # Solver uses a diverse model to prevent monoculture bias

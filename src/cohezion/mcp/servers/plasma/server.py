@@ -129,7 +129,10 @@ async def tool_park_context(request: web.Request) -> web.Response:
                 "status": "parked",
                 "cloud_size": len(particles),
                 "point": slp_vec,
-                "message": f"Context {context_id} stabilized at Lagrange Point. Libration movements initiated.",
+                "message": (
+                    f"Context {context_id} stabilized at Lagrange Point. "
+                    "Libration movements initiated."
+                ),
             }
         )
     except Exception as e:
@@ -243,7 +246,9 @@ async def tool_get_hiho(request: web.Request) -> web.Response:
                 "tool": "plasma_get_hiho_agents",
                 "simulation_id": sim_id,
                 "agents": sim.get_hiho_agents(),
-                "context": "400-year unification of physics through high-intensity hadron operations",
+                "context": (
+                    "400-year unification of physics through high-intensity hadron operations"
+                ),
             }
         )
     except Exception as e:

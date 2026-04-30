@@ -289,7 +289,9 @@ class ShardWorker:
             if agent.energy > 150.0 and 0.48 < new_coherence < 0.52:
                 child_z = z + self.rng.normal(0, 0.01, STATE_DIM)
                 child = AgentState(
-                    agent_id=f"{agent.agent_id}_g{agent.generation + 1}_{self.rng.randint(100, 999)}",
+                    agent_id=(
+                        f"{agent.agent_id}_g{agent.generation + 1}_{self.rng.randint(100, 999)}"
+                    ),
                     x=agent.x,
                     y=agent.y,
                     energy=75.0,
@@ -607,7 +609,8 @@ class ShardedUniverse:
 
             if verbose and (i + 1) % 10 == 0:
                 logger.info(
-                    "Step %d/%d: agents=%d, coherence=%.3f, spin=%.3f, entropy=%.3f, births=%d, deaths=%d",
+                    "Step %d/%d: agents=%d, coherence=%.3f, spin=%.3f, entropy=%.3f, births=%d, "
+                    "deaths=%d",
                     i + 1,
                     num_steps,
                     metrics.total_agents,

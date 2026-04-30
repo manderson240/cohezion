@@ -229,7 +229,10 @@ Respond in JSON format:
         """Generate human-readable consensus reasoning."""
 
         reasoning = "EDL Consensus Analysis:\n"
-        reasoning += f"- Coherence: {coherence:.3f} ({'HIHO Stable ✅' if hiho_stable else 'Outside HIHO ⚠️'})\n"
+        reasoning += (
+            f"- Coherence: {coherence:.3f} "
+            f"({'HIHO Stable ✅' if hiho_stable else 'Outside HIHO ⚠️'})\n"
+        )
         reasoning += f"- Consensus Strength: {consensus_strength:.3f}\n"
         reasoning += f"- Expert Streams Consulted: {len(recommendations)}\n\n"
 

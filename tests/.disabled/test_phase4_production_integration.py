@@ -1,7 +1,8 @@
 """Phase 4: Production Integration Tests
 
 Verifies complete Cohezion system with all components integrated:
-- Phase 1: Skill Refiner, VAE Embeddings, Inflection Detector, File Locking, Skill Selector, Team Executor
+- Phase 1: Skill Refiner, VAE Embeddings, Inflection Detector, File Locking,
+  Skill Selector, Team Executor
 - Phase 2: Semantic Embeddings, Observability, Production Deployment, Batch Processing
 - Phase 3: Guardrails, Long-Running Sessions, Semantic Cache
 - Phase 4: Unified Metrics, PRIME Skills, Production-Ready Integration

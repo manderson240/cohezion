@@ -107,7 +107,10 @@ async def run_audit() -> None:
     for r in results:
         status = "PASSED" if r.healthy and r.security_score > 0.7 else "FAILED"
         print(
-            f"[{status}] {r.server_name:15} | Latency: {r.latency_ms:6.2f}ms | Score: {r.security_score:.2f}"
+            (
+                f"[{status}] {r.server_name:15} | Latency: {r.latency_ms:6.2f}ms | Score: "
+                f"{r.security_score:.2f}"
+            )
         )
         for issue in r.issues:
             print(f"  ! {issue}")

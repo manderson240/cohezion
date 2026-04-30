@@ -97,9 +97,15 @@ class ContextHarness:
         base = system_prompt or "You are a helpful co-developer assistant."
 
         if "phi4" in self.target_model:
-            wrapper = "Be extremadamente concise. Prioritize concrete facts and code over conversational filler."
+            wrapper = (
+                "Be extremadamente concise. Prioritize concrete facts and code over conversational "
+                "filler."
+            )
         elif "qwen" in self.target_model:
-            wrapper = "You are a coding specialist. Ensure all code blocks are complete and syntactically correct."
+            wrapper = (
+                "You are a coding specialist. "
+                "Ensure all code blocks are complete and syntactically correct."
+            )
         else:
             wrapper = "Focus on accuracy and structural coherence."
 

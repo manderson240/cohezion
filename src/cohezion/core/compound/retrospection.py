@@ -269,7 +269,8 @@ class RetrospectionEngine:
                     SkillRefinement(
                         skill_name=skill,
                         reason=(
-                            f"Referenced by {len(learning_titles)} learnings, may need integration of new insights"
+                            f"Referenced by {len(learning_titles)} learnings, may need "
+                            f"integration of new insights"
                         ),
                         suggested_additions=learning_titles[:5],
                     )

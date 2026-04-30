@@ -199,7 +199,10 @@ class ResourceMonitor:
         """
         self._sandbox_registry[sandbox_id] = memory_mb
         logger.info(
-            f"Sandbox registered: {sandbox_id} ({memory_mb}MB). Total sandbox memory: {self.total_sandbox_memory_mb}MB"
+            (
+                f"Sandbox registered: {sandbox_id} ({memory_mb}MB). Total sandbox memory: "
+                f"{self.total_sandbox_memory_mb}MB"
+            )
         )
 
     def deregister_sandbox(self, sandbox_id: str) -> None:
@@ -213,7 +216,10 @@ class ResourceMonitor:
         removed = self._sandbox_registry.pop(sandbox_id, None)
         if removed is not None:
             logger.info(
-                f"Sandbox deregistered: {sandbox_id}. Total sandbox memory: {self.total_sandbox_memory_mb}MB"
+                (
+                    f"Sandbox deregistered: {sandbox_id}. Total sandbox memory: "
+                    f"{self.total_sandbox_memory_mb}MB"
+                )
             )
 
     @property
@@ -430,7 +436,10 @@ class ResourceMonitor:
             sandbox_mem = self.total_sandbox_memory_mb
             if sandbox_mem > 80 * 1024:  # >80GB sandbox memory
                 logger.warning(
-                    f"Sandbox memory pressure: {sandbox_mem}MB allocated across {len(self._sandbox_registry)} sandboxes"
+                    (
+                        f"Sandbox memory pressure: {sandbox_mem}MB allocated across "
+                        f"{len(self._sandbox_registry)} sandboxes"
+                    )
                 )
 
             log_entry = (

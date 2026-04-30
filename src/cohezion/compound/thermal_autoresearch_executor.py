@@ -217,7 +217,8 @@ class ThermalAutoresearchExecutor:
         logger.info(f"Journey ID: {journey_id}")
         logger.info(f"Start time: {time.strftime('%Y-%m-%d %H:%M:%S')}")
         logger.info(
-            f"Expected end: {time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(self.start_time + 8 * 3600))}"
+            f"Expected end: "
+            f"{time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(self.start_time + 8 * 3600))}"
         )
         logger.info("=" * 80)
 
@@ -325,7 +326,10 @@ class ThermalAutoresearchExecutor:
 
                 # Execute hypothesis with Ralph Loop coherence gate
                 logger.info(
-                    f"[{domain.name}] Hypothesis {i + 1}/{len(domain.hypotheses)}: {hypothesis[:60]}..."
+                    (
+                        f"[{domain.name}] Hypothesis {i + 1}/{len(domain.hypotheses)}: "
+                        f"{hypothesis[:60]}..."
+                    )
                 )
 
                 try:

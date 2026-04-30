@@ -498,7 +498,10 @@ async def _refine_skill(arguments: dict[str, Any]) -> list[TextContent]:
                 text=json.dumps(
                     {
                         "success": False,
-                        "error": f"Invalid skill_name: {skill_name!r} (must match {_SKILL_NAME_RE.pattern})",
+                        "error": (
+                            f"Invalid skill_name: {skill_name!r} "
+                            f"(must match {_SKILL_NAME_RE.pattern})"
+                        ),
                     }
                 ),
             )

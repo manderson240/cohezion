@@ -364,7 +364,8 @@ class OverloadCoordinator:
         if should_disable != self._circuit_breakers_disabled:
             self._circuit_breakers_disabled = should_disable
             logger.info(
-                f"Circuit breakers {'disabled' if should_disable else 'enabled'} (pressure: {pressure:.2%})"
+                f"Circuit breakers {'disabled' if should_disable else 'enabled'} (pressure: "
+                f"{pressure:.2%})"
             )
 
     async def queue_request(self, request: dict[str, Any]) -> int:

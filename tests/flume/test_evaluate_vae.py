@@ -138,7 +138,12 @@ class TestVAEEvaluator:
     """Test the full evaluation suite."""
 
     @pytest.mark.skip(
-        reason="needs rewrite: VAEEvaluator test uses old FlumeVAE(input_dim, latent_dim) signature; current API requires FlumeVAEConfig and token-level inputs (see src/cohezion/flume/vae.py). TODO: re-enable when test is rewritten against FlumeVAEConfig + token sequences",
+        reason=(
+            "needs rewrite: VAEEvaluator test uses old FlumeVAE(input_dim, latent_dim) signature; "
+            "current API requires FlumeVAEConfig and token-level inputs (see "
+            "src/cohezion/flume/vae.py). TODO: re-enable when test is rewritten against "
+            "FlumeVAEConfig + token sequences"
+        ),
     )
     def test_evaluate_returns_all_metrics(self):
         """Evaluator should return all red-flag metrics."""

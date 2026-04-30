@@ -29,17 +29,19 @@ def test_detect_modified_files_mock(observer):
 def test_extract_diff_context(observer):
     """Test extracting diff context for a specific file."""
     with patch("subprocess.check_output") as mock_run:
-        mock_run.return_value = b"""diff --git a/src/cohezion/universe/engine.py b/src/cohezion/universe/engine.py
-index 12345..67890 100644
---- a/src/cohezion/universe/engine.py
-+++ b/src/cohezion/universe/engine.py
-@@ -10,3 +10,4 @@
- def existing_func():
-     pass
-
-+def new_func():
-++    return "hello"
-"""
+        engine_path = "a/src/cohezion/universe/engine.py b/src/cohezion/universe/engine.py"
+        mock_run.return_value = (
+            f"diff --git {engine_path}\n"
+            "index 12345..67890 100644\n"
+            "--- a/src/cohezion/universe/engine.py\n"
+            "+++ b/src/cohezion/universe/engine.py\n"
+            "@@ -10,3 +10,4 @@\n"
+            " def existing_func():\n"
+            "     pass\n"
+            "\n"
+            "+def new_func():\n"
+            '++    return "hello"\n'
+        ).encode()
         context = observer.extract_diff_context(
             "src/cohezion/universe/engine.py", since_commit="HEAD~1"
         )

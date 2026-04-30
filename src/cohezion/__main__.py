@@ -285,7 +285,8 @@ async def cmd_journey_list(args: argparse.Namespace) -> int:
     for journey in journeys:
         status_icon = "✅" if journey["status"] == "completed" else "🔄"
         print(
-            f"{status_icon} {journey['id']}: {journey['intent'][:40]}... (phi: {journey['phi']:.2f})"
+            f"{status_icon} {journey['id']}: {journey['intent'][:40]}... (phi: "
+            f"{journey['phi']:.2f})"
         )
 
     return 0
@@ -426,7 +427,8 @@ async def cmd_rewards_status(args: argparse.Namespace) -> int:
 
     if status["next_unlock"]:
         print(
-            f"\n⬆️  Next: {status['next_unlock']['name']} (need {status['next_unlock']['xp_needed']:,} more XP)"
+            f"\n⬆️  Next: {status['next_unlock']['name']} (need "
+            f"{status['next_unlock']['xp_needed']:,} more XP)"
         )
 
     return 0

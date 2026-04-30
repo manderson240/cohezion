@@ -435,7 +435,10 @@ class HookIntegration:
         log_level = logging.WARNING if result.action == HookAction.BLOCK else logging.DEBUG
         logger.log(
             log_level,
-            f"Hook {result.hook_name} completed: {result.action.value} (exit_code={result.exit_code})",
+            (
+                f"Hook {result.hook_name} completed: {result.action.value} "
+                f"(exit_code={result.exit_code})"
+            ),
         )
         if result.stdout:
             logger.debug(f"Hook stdout: {result.stdout}")

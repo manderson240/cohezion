@@ -299,7 +299,10 @@ class KVCacheTracker:
             if entry:
                 freed_mb = entry.kv_cache_mb
                 logger.debug(
-                    f"KV cache released: {request_id} = {freed_mb:.1f}MB (total: {self.get_total_kv_cache_gb():.1f}GB)"
+                    (
+                        f"KV cache released: {request_id} = {freed_mb:.1f}MB (total: "
+                        f"{self.get_total_kv_cache_gb():.1f}GB)"
+                    )
                 )
 
                 # Check if we can fulfill pending allocations

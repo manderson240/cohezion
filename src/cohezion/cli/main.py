@@ -238,9 +238,10 @@ def swarm_run(
 
         console.print(
             Panel(
-                f"[bold green]✓ Consensus Achieved[/bold green]\n\n"
-                f"{result.final_response}\n\n"
-                f"[dim]Confidence: {result.confidence:.2f} | Time: {result.processing_time_ms:.0f}ms[/dim]",
+                f"[bold green]✓ Consensus Achieved[/bold green]\n\n{result.final_response}\n\n"(
+                    f"[dim]Confidence: {result.confidence:.2f} | Time: "
+                    f"{result.processing_time_ms:.0f}ms[/dim]"
+                ),
                 title="Result",
                 border_style="green",
             )
@@ -779,7 +780,8 @@ def universe_seed(
         if success:
             console.print(
                 Panel(
-                    f"Universe '[bold]{name}[/bold]' seeded successfully at the HIHO stability point.",
+                    f"Universe '[bold]{name}[/bold]' seeded successfully at the HIHO stability "
+                    f"point.",
                     border_style="green",
                 )
             )

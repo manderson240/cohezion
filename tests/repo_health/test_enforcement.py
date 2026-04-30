@@ -24,7 +24,10 @@ GIT = shutil.which("git") or "git"
 # the tests that still genuinely document the backlog.
 pytestmark = pytest.mark.xfail(
     strict=False,
-    reason="aspirational repo-health gate; passes only when the full lint/style cleanup backlog is cleared.",
+    reason=(
+        "aspirational repo-health gate; passes only when the full lint/style cleanup backlog is "
+        "cleared."
+    ),
 )
 
 

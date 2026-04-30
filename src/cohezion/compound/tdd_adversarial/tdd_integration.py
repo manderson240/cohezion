@@ -214,7 +214,8 @@ class TDDIntegration:
             # Parse pytest output (simplified - in practice would use pytest-json or similar)
             if result.returncode == 0:
                 # All tests passed
-                # In a real implementation, we'd parse the JSON output to get individual test results
+                # In a real implementation, we'd parse the JSON output to get individual test
+                # results
                 results.append(
                     TestResult(
                         test_name=f"{test_type.value}_suite",
@@ -335,7 +336,11 @@ class TDDIntegration:
                 SkillRefinementInput(
                     skill_name="test_engineer",
                     performance_metric=len(tdd_state.failing_tests) / max(tdd_state.tests_run, 1),
-                    feedback=f"Failing tests detected: {', '.join(list(tdd_state.failing_tests)[:5])}{'...' if len(tdd_state.failing_tests) > 5 else ''}",
+                    feedback=(
+                        f"Failing tests detected: "
+                        f"{', '.join(list(tdd_state.failing_tests)[:5])}"
+                        f"{'...' if len(tdd_state.failing_tests) > 5 else ''}"
+                    ),
                     context={
                         "failing_tests": list(tdd_state.failing_tests),
                         "session_id": session_id,

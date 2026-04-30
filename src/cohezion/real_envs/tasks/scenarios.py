@@ -20,7 +20,10 @@ def create_flask_api_task() -> EvaluatedTask:
     return EvaluatedTask(
         task_id="flask_api_with_db",
         task_name="Flask API with Database",
-        description="Create a Flask REST API with SQLAlchemy database models, authentication, and CRUD endpoints.",
+        description=(
+            "Create a Flask REST API with SQLAlchemy database models, authentication, and CRUD "
+            "endpoints."
+        ),
         environment_type="shell",
         expected_steps=20,
         max_steps=40,
@@ -75,7 +78,9 @@ def etl_api_to_db_task() -> EvaluatedTask:
     return EvaluatedTask(
         task_id="etl_api_to_sqlite",
         task_name="ETL API to SQLite",
-        description="Create an ETL pipeline that fetches data from an API and stores it in SQLite database.",
+        description=(
+            "Create an ETL pipeline that fetches data from an API and stores it in SQLite database."
+        ),
         environment_type="shell",
         expected_steps=18,
         max_steps=35,
@@ -99,7 +104,9 @@ def git_workflow_automation_task() -> EvaluatedTask:
     return EvaluatedTask(
         task_id="git_workflow_automation",
         task_name="Git Workflow Automation",
-        description="Create Git hooks and scripts for automated testing, linting, and commit validation.",
+        description=(
+            "Create Git hooks and scripts for automated testing, linting, and commit validation."
+        ),
         environment_type="shell",
         expected_steps=12,
         max_steps=25,

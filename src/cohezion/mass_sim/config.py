@@ -115,7 +115,8 @@ class SimulationConfig:
     # Navigator delta scaling (multiplied into state update per epoch)
     delta_scale: float = 0.01
     # HIHO damping factor (attractor strength toward 0.5 equilibrium)
-    # 0.05 provides 5% pull toward 0.5 per step — balances convergence within HIHO bounds with diversity preservation
+    # 0.05 provides 5% pull toward 0.5 per step — balances convergence within HIHO bounds with
+    # diversity preservation
     hiho_damping: float = 0.05
     # Export final agent states as .npy files for training pipeline
     export_npy: bool = False

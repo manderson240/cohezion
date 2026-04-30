@@ -348,7 +348,8 @@ async def skill_refinement_apply(skill_name: str, refinement_type: str) -> dict[
 
     Args:
         skill_name: Name of skill to refine (alphanumeric, hyphens, underscores only)
-        refinement_type: Type of refinement (token_optimization, coherence_improvement, cache_optimization)
+        refinement_type: Type of refinement
+            (token_optimization, coherence_improvement, cache_optimization)
 
     Returns:
         Refinement result
@@ -360,7 +361,10 @@ async def skill_refinement_apply(skill_name: str, refinement_type: str) -> dict[
         if not re.match(r"^[\w\-]+$", skill_name):
             return {
                 "status": "error",
-                "error": "Invalid skill_name. Use only alphanumeric characters, hyphens, and underscores.",
+                "error": (
+                    "Invalid skill_name. Use only alphanumeric characters, hyphens, and "
+                    "underscores."
+                ),
             }
 
         # Validate refinement_type against whitelist

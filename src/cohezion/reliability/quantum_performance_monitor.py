@@ -185,7 +185,9 @@ class QuantumPerformanceMonitor:
                 alert_level=AlertLevel.WARNING,
                 action=ActionType.MODEL_SWAP,
                 cooldown_seconds=300,
-                message_template="High memory usage: {value:.1f}% - consider swapping to smaller model",
+                message_template=(
+                    "High memory usage: {value:.1f}% - consider swapping to smaller model"
+                ),
             ),
             AlertCondition(
                 metric_type=MetricType.MEMORY_USAGE,
@@ -223,7 +225,9 @@ class QuantumPerformanceMonitor:
                 alert_level=AlertLevel.WARNING,
                 action=ActionType.MODEL_SWAP,
                 cooldown_seconds=600,
-                message_template="Low cache performance: {value:.3f} - consider cache-optimized model",
+                message_template=(
+                    "Low cache performance: {value:.3f} - consider cache-optimized model"
+                ),
             ),
             # Queue depth alerts
             AlertCondition(
@@ -555,7 +559,10 @@ class QuantumPerformanceMonitor:
                     source="auto_swap_monitor",
                     metadata={"latency_trend": latency_trend},
                 ),
-                "reason": f"Consistent high memory ({memory_trend:.2f}) and latency ({latency_trend:.2f}) trends",
+                "reason": (
+                    f"Consistent high memory ({memory_trend:.2f}) "
+                    f"and latency ({latency_trend:.2f}) trends"
+                ),
             }
 
         return None
@@ -804,7 +811,10 @@ class QuantumPerformanceMonitor:
             [
                 _BASH,
                 "-c",
-                "sleep 5 && OLLAMA_NUM_THREADS=8 OLLAMA_NUM_PARALLEL=1 OLLAMA_MAX_LOADED_MODELS=1 ollama serve &",
+                (
+                    "sleep 5 && OLLAMA_NUM_THREADS=8 OLLAMA_NUM_PARALLEL=1 "
+                    "OLLAMA_MAX_LOADED_MODELS=1 ollama serve &"
+                ),
             ]
         )
 

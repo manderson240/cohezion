@@ -42,13 +42,23 @@ class Motifs:
     """ASCII Art and Text Motifs."""
 
     # The "C" Lattice Logo in ASCII
-    NEXUS_LOGO = r"""
-      [bold #00FF00]      .:[/bold #00FF00][bold #C0C0C0]X[/bold #C0C0C0][bold #00FF00]:.[/bold #00FF00]
-      [bold #00FF00]    .::[/bold #00FF00][bold #C0C0C0]XXX[/bold #C0C0C0][bold #00FF00]::.[/bold #00FF00]
-      [bold #00FF00]   :::[/bold #00FF00][bold #0077BE]( @ )[/bold #0077BE][bold #00FF00]:::[/bold #00FF00]
-      [bold #00FF00]   '::[/bold #00FF00][bold #C0C0C0]XXX[/bold #C0C0C0][bold #00FF00]::'[/bold #00FF00]
-      [bold #00FF00]     ':::'[/bold #00FF00]
-    """
+    NEXUS_LOGO = (
+        "\n"
+        "      [bold #00FF00]      .:[/bold #00FF00]"
+        "[bold #C0C0C0]X[/bold #C0C0C0]"
+        "[bold #00FF00]:.[/bold #00FF00]\n"
+        "      [bold #00FF00]    .::[/bold #00FF00]"
+        "[bold #C0C0C0]XXX[/bold #C0C0C0]"
+        "[bold #00FF00]::.[/bold #00FF00]\n"
+        "      [bold #00FF00]   :::[/bold #00FF00]"
+        "[bold #0077BE]( @ )[/bold #0077BE]"
+        "[bold #00FF00]:::[/bold #00FF00]\n"
+        "      [bold #00FF00]   '::[/bold #00FF00]"
+        "[bold #C0C0C0]XXX[/bold #C0C0C0]"
+        "[bold #00FF00]::'[/bold #00FF00]\n"
+        "      [bold #00FF00]     ':::'[/bold #00FF00]\n"
+        "    "
+    )
 
     WALL_OF_TEXT_LOGO = r"""
  [bold #00FF00]   ______      __  __           _                 [/bold #00FF00]

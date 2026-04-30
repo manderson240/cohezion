@@ -6,7 +6,11 @@ import pytest
 
 
 pytestmark = pytest.mark.skip(
-    reason="FlumeVAE architecture changed from embedding-level (input_dim kwarg) to token-level (FlumeVAEConfig). These tests exercise the old API and need rewriting; tracked as tech debt.",
+    reason=(
+        "FlumeVAE architecture changed from embedding-level (input_dim kwarg) to token-level "
+        "(FlumeVAEConfig). These tests exercise the old API and need rewriting; tracked as tech "
+        "debt."
+    ),
 )
 
 import torch

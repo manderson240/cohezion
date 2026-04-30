@@ -71,7 +71,10 @@ class TestFullPipelineDemoScale:
         assert metrics[-1]["mse"] < metrics[0]["mse"]  # Loss should decrease
 
     @pytest.mark.skip(
-        reason="gymnasium.make('cohezion/...') requires env registration that is not run here; see tests/environments/ for a working ManifoldEnv fixture."
+        reason=(
+            "gymnasium.make('cohezion/...') requires env registration that is not run here; see "
+            "tests/environments/ for a working ManifoldEnv fixture."
+        )
     )
     def test_step3_rl_trains_and_produces_checkpoint(self, pipeline_dir):
         """Step 3: RL training produces a checkpoint file."""
@@ -129,7 +132,10 @@ class TestFullPipelineDemoScale:
         assert np.abs(deltas).max() < 0.02
 
     @pytest.mark.skip(
-        reason="gymnasium.make('cohezion/...') requires env registration that is not run here; see tests/environments/ for a working ManifoldEnv fixture."
+        reason=(
+            "gymnasium.make('cohezion/...') requires env registration that is not run here; see "
+            "tests/environments/ for a working ManifoldEnv fixture."
+        )
     )
     def test_full_roundtrip(self, sim_data, pipeline_dir):
         """Full pipeline: sim data → VAE → RL → weight bridge → navigator."""

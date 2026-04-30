@@ -107,7 +107,10 @@ class PersistentCache:
 
                 self._stats["loaded"] = entries_loaded
                 logger.info(
-                    f"Session recovery: loaded {entries_loaded} cache entries from {self.cache_file}"
+                    (
+                        f"Session recovery: loaded {entries_loaded} cache entries from "
+                        f"{self.cache_file}"
+                    )
                 )
 
         except Exception as e:

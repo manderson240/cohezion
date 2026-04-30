@@ -261,7 +261,9 @@ class AdversarialReviewHarness:
                 {
                     "severity": "error",
                     "message": "No adversarial tests defined",
-                    "recommendation": "Add tests for boundary conditions, edge cases, failure modes",
+                    "recommendation": (
+                        "Add tests for boundary conditions, edge cases, failure modes"
+                    ),
                 }
             )
             score -= 0.3

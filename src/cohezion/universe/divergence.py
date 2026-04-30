@@ -116,7 +116,8 @@ class DivergenceDetector:
                 return DivergenceStatus(
                     diverged=True,
                     reason=(
-                        f"Statistical outlier: value={value:.6f} deviates from constant mean={mean:.6f} (stddev=0)"
+                        f"Statistical outlier: value={value:.6f} deviates from constant "
+                        f"mean={mean:.6f} (stddev=0)"
                     ),
                     coherence=coherence if coherence is not None else 0.0,
                     last_values=list(self._values),

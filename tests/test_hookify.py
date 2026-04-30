@@ -334,7 +334,10 @@ class TestHookifyPersistence:
         assert validator.rules[0].id == "test_rule"
 
     @pytest.mark.xfail(
-        reason="bug: HookifyValidator._save_lever_override/_load_lever_override are placeholders (validator.py:527-535) - SurrealDB integration pending",
+        reason=(
+            "bug: HookifyValidator._save_lever_override/_load_lever_override are placeholders "
+            "(validator.py:527-535) - SurrealDB integration pending"
+        ),
         strict=False,
     )
     def test_save_levers_to_surrealdb(self):
@@ -353,7 +356,10 @@ class TestHookifyPersistence:
         assert saved == 0.7
 
     @pytest.mark.xfail(
-        reason="bug: HookifyValidator._log_violation/_get_violation_logs are placeholders (validator.py:537-545) - vault integration pending",
+        reason=(
+            "bug: HookifyValidator._log_violation/_get_violation_logs are placeholders "
+            "(validator.py:537-545) - vault integration pending"
+        ),
         strict=False,
     )
     def test_log_violation_to_vault(self):
@@ -479,7 +485,10 @@ class TestHookifyMCPBridge:
 
     @pytest.mark.asyncio
     @pytest.mark.xfail(
-        reason="bug: HookifyMCPBridge.set_lever signature drift - test expects success/new_value keys not yet returned by current handler",
+        reason=(
+            "bug: HookifyMCPBridge.set_lever signature drift - test expects success/new_value keys "
+            "not yet returned by current handler"
+        ),
         strict=False,
     )
     async def test_mcp_set_lever_tool(self, mcp_bridge):

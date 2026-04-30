@@ -182,7 +182,8 @@ class TestSemanticTextEncoder:
         avg_cross_group = (sim_0_3 + sim_0_4) / 2
 
         assert avg_same_group > avg_cross_group, (
-            f"Same-group similarity ({avg_same_group:.3f}) should be higher than cross-group ({avg_cross_group:.3f})"
+            f"Same-group similarity ({avg_same_group:.3f}) should be higher than cross-group "
+            f"({avg_cross_group:.3f})"
         )
 
     def test_fallback_ngram_encoding(self):
@@ -274,7 +275,8 @@ class TestSemanticCacheDiscrimination:
         print(f"Average poor match similarity: {avg_poor:.3f}")
 
         assert avg_good > avg_poor, (
-            f"Good matches ({avg_good:.3f}) should be more similar than poor matches ({avg_poor:.3f})"
+            f"Good matches ({avg_good:.3f}) should be more similar than poor matches "
+            f"({avg_poor:.3f})"
         )
 
         # Ideally good matches should be >0.85 and poor should be <0.70

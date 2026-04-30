@@ -36,7 +36,10 @@ def tmp_skills(tmp_path: Path) -> Path:
     for i in range(3):
         md = skills_dir / f"SKILL_{i}_PRIME.md"
         md.write_text(
-            f"# SKILL: SKILL_{i}_PRIME\n\n## VERSION\n\n1.{i}\n\n## INSTRUCTION\n\n1. Do step one\n2. Do step two\n",
+            (
+                f"# SKILL: SKILL_{i}_PRIME\n\n## VERSION\n\n1.{i}\n\n## INSTRUCTION\n\n1. Do step "
+                f"one\n2. Do step two\n"
+            ),
             encoding="utf-8",
         )
     # One skill without instructions

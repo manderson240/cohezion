@@ -119,7 +119,10 @@ async def tool_run_simulation(request: web.Request) -> web.Response:
 
             run_id = f"sim_{uuid4().hex[:8]}"
             logger.info(
-                f"Executing simulation {run_id} (tier={tier_name}, backend={type(backend).__name__})"
+                (
+                    f"Executing simulation {run_id} (tier={tier_name}, "
+                    f"backend={type(backend).__name__})"
+                )
             )
 
             result = await backend.execute(script, profile)

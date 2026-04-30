@@ -477,7 +477,10 @@ class BaseAgent(ABC):
                 # Prepare refinement or exit
                 if round_idx < self.config.max_refinement_rounds - 1:
                     logger.info(
-                        f"🔄 Low coherence ({phi_score:.2f}). Triggering refinement round {round_idx + 2}..."
+                        (
+                            f"🔄 Low coherence ({phi_score:.2f}). Triggering refinement round "
+                            f"{round_idx + 2}..."
+                        )
                     )
                     current_prompt = (
                         f"{effective_prompt}\n\n"

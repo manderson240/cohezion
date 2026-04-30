@@ -41,7 +41,9 @@ class SurrealJourneyRepository(JourneyRepository):
                     "capability_delta": journey.aggregate_metrics.capability_delta,
                     "latency_per_token_ms": journey.aggregate_metrics.latency_per_token_ms,
                     "safety_alignment_score": journey.aggregate_metrics.safety_alignment_score,
-                    "computational_relativity_factor": journey.aggregate_metrics.computational_relativity_factor,
+                    "computational_relativity_factor": (
+                        journey.aggregate_metrics.computational_relativity_factor
+                    ),
                 },
                 "steps": journey.steps,
                 "metadata": journey.metadata,
@@ -78,7 +80,10 @@ class SurrealJourneyRepository(JourneyRepository):
         """Retrieve recent journeys."""
         try:
             cutoff = (datetime.now() - timedelta(hours=hours)).isoformat()
-            query = f"SELECT * FROM {self._table} WHERE created_at > $cutoff ORDER BY created_at DESC LIMIT {limit}"
+            query = (
+                f"SELECT * FROM {self._table} WHERE created_at > $cutoff ORDER BY created_at DESC "
+                f"LIMIT {limit}"
+            )
             result = await self._client.query(query, {"cutoff": cutoff})
 
             if not result or not result[0].get("result"):

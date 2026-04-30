@@ -887,7 +887,10 @@ def build_core_capability_suite() -> TaskSuite:
             task_id="code_gen_001",
             domain=TaskDomain.CODE_GENERATION,
             difficulty=Difficulty.EASY,
-            prompt="Write a Python function that checks if a string is a palindrome. The function should be named `is_palindrome` and return a boolean.",
+            prompt=(
+                "Write a Python function that checks if a string is a palindrome. The function "
+                "should be named `is_palindrome` and return a boolean."
+            ),
             rubric=ScoringRubric(
                 criteria=[
                     ScoringCriterion(
@@ -905,7 +908,10 @@ def build_core_capability_suite() -> TaskSuite:
             task_id="code_gen_002",
             domain=TaskDomain.CODE_GENERATION,
             difficulty=Difficulty.MEDIUM,
-            prompt="Write a Python function `merge_sorted_lists(a, b)` that merges two sorted lists into a single sorted list in O(n+m) time without using built-in sort.",
+            prompt=(
+                "Write a Python function `merge_sorted_lists(a, b)` that merges two sorted lists "
+                "into a single sorted list in O(n+m) time without using built-in sort."
+            ),
             rubric=ScoringRubric(
                 criteria=[
                     ScoringCriterion(
@@ -930,7 +936,10 @@ def build_core_capability_suite() -> TaskSuite:
             task_id="code_gen_003",
             domain=TaskDomain.CODE_GENERATION,
             difficulty=Difficulty.HARD,
-            prompt="Implement a thread-safe LRU cache in Python with O(1) get and put operations. Use `collections.OrderedDict` or a custom doubly-linked list. Class name: `LRUCache`.",
+            prompt=(
+                "Implement a thread-safe LRU cache in Python with O(1) get and put operations. Use "
+                "`collections.OrderedDict` or a custom doubly-linked list. Class name: `LRUCache`."
+            ),
             rubric=ScoringRubric(
                 criteria=[
                     ScoringCriterion(
@@ -952,7 +961,9 @@ def build_core_capability_suite() -> TaskSuite:
             task_id="reason_001",
             domain=TaskDomain.REASONING,
             difficulty=Difficulty.EASY,
-            prompt="A farmer has 17 sheep. All but 9 die. How many sheep does the farmer have left?",
+            prompt=(
+                "A farmer has 17 sheep. All but 9 die. How many sheep does the farmer have left?"
+            ),
             rubric=ScoringRubric(
                 criteria=[
                     ScoringCriterion("correct_answer", ScoringMethod.CONTAINS, expected="9"),
@@ -965,7 +976,10 @@ def build_core_capability_suite() -> TaskSuite:
             task_id="reason_002",
             domain=TaskDomain.REASONING,
             difficulty=Difficulty.MEDIUM,
-            prompt="If it takes 5 machines 5 minutes to make 5 widgets, how long would it take 100 machines to make 100 widgets? Explain your reasoning step by step.",
+            prompt=(
+                "If it takes 5 machines 5 minutes to make 5 widgets, how long would it take 100 "
+                "machines to make 100 widgets? Explain your reasoning step by step."
+            ),
             rubric=ScoringRubric(
                 criteria=[
                     ScoringCriterion(
@@ -986,7 +1000,9 @@ def build_core_capability_suite() -> TaskSuite:
             task_id="instruct_001",
             domain=TaskDomain.INSTRUCTION_FOLLOWING,
             difficulty=Difficulty.EASY,
-            prompt="List exactly 5 countries in Europe, one per line. Do not include any other text.",
+            prompt=(
+                "List exactly 5 countries in Europe, one per line. Do not include any other text."
+            ),
             rubric=ScoringRubric(
                 criteria=[
                     ScoringCriterion(
@@ -1065,7 +1081,9 @@ def build_core_capability_suite() -> TaskSuite:
             task_id="math_001",
             domain=TaskDomain.MATH,
             difficulty=Difficulty.MEDIUM,
-            prompt="What is the derivative of f(x) = x^3 + 2x^2 - 5x + 7? Give the symbolic result.",
+            prompt=(
+                "What is the derivative of f(x) = x^3 + 2x^2 - 5x + 7? Give the symbolic result."
+            ),
             rubric=ScoringRubric(
                 criteria=[
                     ScoringCriterion(

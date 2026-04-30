@@ -115,7 +115,8 @@ class DBAdmin:
             _validate_table_name(table_name)
             query = f"INSERT INTO {table_name} $batch"
 
-            # Client.query returns the result directly in some wrappers, or strict response in others.
+            # Client.query returns the result directly in some wrappers, or strict response in
+            # others.
             # Using our wrapper's query method which handles 'surrealdb' vs 'memory'.
             created = await self.client.query(query, {"batch": batch})
 

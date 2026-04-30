@@ -85,7 +85,10 @@ class AutoresearchEngine:
                     target_value=self.thresholds["min_cache_hit_rate"],
                     potential_impact="Reduce token costs by 60%",
                     implementation_effort="medium",
-                    recommendation="Increase semantic_cache_size to 4096 entries and enable cross_model_sharing",
+                    recommendation=(
+                        "Increase semantic_cache_size to 4096 entries and enable "
+                        "cross_model_sharing"
+                    ),
                 )
             )
 
@@ -115,7 +118,9 @@ class AutoresearchEngine:
                     target_value=self.thresholds["max_vault_latency_ms"],
                     potential_impact="Reduce session overhead by 40%",
                     implementation_effort="high",
-                    recommendation="Implement async batch writes to vault with write-behind caching",
+                    recommendation=(
+                        "Implement async batch writes to vault with write-behind caching"
+                    ),
                 )
             )
 
@@ -130,7 +135,9 @@ class AutoresearchEngine:
                     target_value=self.thresholds["min_coherence"],
                     potential_impact="Reduce rework by 50%",
                     implementation_effort="medium",
-                    recommendation="Enhance RequestAlignmentAnalyzer with skill-specific thresholds",
+                    recommendation=(
+                        "Enhance RequestAlignmentAnalyzer with skill-specific thresholds"
+                    ),
                 )
             )
 

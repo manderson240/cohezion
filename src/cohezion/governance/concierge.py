@@ -203,7 +203,10 @@ class ConciergeAgent:
                         action="switch_worktree",
                         target=best_record.suggested_target,
                         confidence=confidence,
-                        reason=f"FLUME semantic match (sim={best_sim:.2f}) to '{best_record.user_prompt[:40]}'",
+                        reason=(
+                            f"FLUME semantic match (sim={best_sim:.2f}) to "
+                            f"'{best_record.user_prompt[:40]}'"
+                        ),
                         autonomy_tier="SO(3)^4",
                     )
 
@@ -217,7 +220,9 @@ class ConciergeAgent:
                     "feat/genesis-physics": "observer patch holography spinor physics OPH",
                     "feat/genesis-rendering": "pretext WebGPU rendering three.js visualization",
                     "feat/genesis-data-mesh": "data mesh MCP registry governance products",
-                    "challenge/nvidia-nemotron-reasoning": "nvidia kernel optimization AMD GPU GEMM MoE",
+                    "challenge/nvidia-nemotron-reasoning": (
+                        "nvidia kernel optimization AMD GPU GEMM MoE"
+                    ),
                 }
                 best_sim = 0.0
                 best_branch = ""

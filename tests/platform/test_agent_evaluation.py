@@ -820,7 +820,10 @@ def authenticate_user(username: str, password: str) -> Optional[User]:
         context = AgentExecutionContext(
             agent_id="analyst-001",
             task_description="Predict market trends",
-            execution_output="I'm uncertain about this prediction, but based on limited data, the trend might be upward. This is a low-confidence estimate.",
+            execution_output=(
+                "I'm uncertain about this prediction, but based on limited data, "
+                "the trend might be upward. This is a low-confidence estimate."
+            ),
             model_used="deepseek-r1:70b",
             tokens_used=300,
             execution_time_ms=1200.0,

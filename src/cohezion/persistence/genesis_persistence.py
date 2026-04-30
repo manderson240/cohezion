@@ -184,7 +184,10 @@ async def persist_prompt_artifact(
 async def get_journey_transitions(journey_id: str | None = None, limit: int = 100) -> list[dict]:
     """Query stored journey transitions."""
     if journey_id:
-        query = f"SELECT * FROM journey_transitions WHERE journey_id = {_to_surql_value(journey_id)} LIMIT {limit};"
+        query = (
+            f"SELECT * FROM journey_transitions WHERE journey_id = {_to_surql_value(journey_id)} "
+            f"LIMIT {limit};"
+        )
     else:
         query = f"SELECT * FROM journey_transitions ORDER BY timestamp DESC LIMIT {limit};"
 

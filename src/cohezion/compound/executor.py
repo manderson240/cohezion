@@ -488,7 +488,8 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
             logger.info("Task completed successfully")
         except Exception as e:
             # User-supplied execute_fn can raise anything; record failure metric and continue.
-            # SystemExit/KeyboardInterrupt/MemoryError still propagate (they don't inherit Exception).
+            # SystemExit/KeyboardInterrupt/MemoryError still propagate (they don't inherit
+            # Exception).
             error_msg = str(e)
             output = f"Error: {error_msg}"
             metrics = {"error": error_msg, "error_type": type(e).__name__}
@@ -574,11 +575,16 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
                     len(anomaly.issues),
                 )
                 try:
+                    rationale_detail = (
+                        anomaly.recommendations[0]
+                        if anomaly.recommendations
+                        else "Investigate issues"
+                    )
                     decision_path = self.log_inflection_point(
                         title=f"Critical anomaly in {skill_name}",
                         context=f"Task: {task_description}\nIssues: {'; '.join(anomaly.issues)}",
                         decision="Re-execution recommended",
-                        rationale=f"Quality score {anomaly.score:.2f}, {anomaly.recommendations[0] if anomaly.recommendations else 'Investigate issues'}",
+                        rationale=f"Quality score {anomaly.score:.2f}, {rationale_detail}",
                         project=project,
                     )
                     if decision_path:

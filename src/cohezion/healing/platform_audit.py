@@ -266,7 +266,8 @@ def print_audit(audit: PlatformAudit):
 
     print(f"\n{'─' * 60}")
     print(
-        f"Summary: {audit.summary['pass']} pass, {audit.summary['warn']} warn, {audit.summary['fail']} fail"
+        f"Summary: {audit.summary['pass']} pass, {audit.summary['warn']} warn, "
+        f"{audit.summary['fail']} fail"
     )
     print(f"{'=' * 60}\n")
 

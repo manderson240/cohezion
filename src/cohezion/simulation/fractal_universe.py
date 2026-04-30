@@ -343,10 +343,12 @@ class UniverseGrid:
                 row_state.append(sector)
             new_grid_state.append(row_state)
 
-        # Update grid in place (simplification, strictly should be new grid object but refs complicate it)
+        # Update grid in place (simplification, strictly should be new grid object but refs
+        # complicate it)
         # Since we modified sector objects directly above, we don't strictly need to reassign,
         # but the diffusion step used current values.
-        # For a truthful CA we should use a buffer, but for this simulation direct update is 'chaotic' enough.
+        # For a truthful CA we should use a buffer, but for this simulation direct update is
+        # 'chaotic' enough.
         pass
 
     def render_ascii(self) -> str:
@@ -477,7 +479,10 @@ class FractalSimulator:
                     "spatial_pos": [float(sample_agent.x), float(sample_agent.y)],
                     "energy_level": sample_agent.energy,
                     "phi_score": sample_agent.coherence,
-                    "narration": f"Agent {sample_agent.id} moved to {sector.manifold_type} sector to stabilize entropy.",
+                    "narration": (
+                        f"Agent {sample_agent.id} moved to {sector.manifold_type} "
+                        f"sector to stabilize entropy."
+                    ),
                 }
             )
 
