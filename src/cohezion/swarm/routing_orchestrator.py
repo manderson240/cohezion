@@ -14,6 +14,7 @@ Wired to: CompoundExecutor (replaces direct CostAwareRouter usage)
 
 from __future__ import annotations
 
+import contextlib
 import logging
 from dataclasses import dataclass
 from typing import Any
@@ -113,11 +114,9 @@ class RoutingOrchestrator:
         """
         router = self._get_cost_router()
         if router is not None:
-            try:
+            with contextlib.suppress(Exception):
                 complexity = router.complexity_analyzer.analyze(task_description)
                 return router._compute_routing_confidence(model, complexity)
-            except Exception:
-                pass
 
         return 0.5  # Default moderate confidence
 

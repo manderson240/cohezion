@@ -3,6 +3,7 @@ Universal Cohezion Environment Initialization
 Activates in ANY environment that uses Cohezion (Claude Code, Gemini CLI, Zed IDE, Antigravity, Opencode, OpenClaw, Hermes Agent, terminals, APIs, etc.)
 """
 
+import contextlib
 import os
 import sys
 from pathlib import Path
@@ -16,17 +17,17 @@ def is_cohezion_environment() -> bool:
 
     # Signal 1: Check if we're importing Cohezion modules (most reliable)
     # This handles the case where __init__.py is being processed
-    try:
+    # Continue with other detection methods on failure
+    with contextlib.suppress(Exception):
         frame = sys._getframe(1)
         while frame:
             if "cohezion" in frame.f_code.co_filename:
                 return True
             frame = frame.f_back
-    except Exception:
-        pass  # Continue with other detection methods
 
     # Signal 2: Check working directory for Cohezion markers
-    try:
+    # Continue with other detection methods on failure
+    with contextlib.suppress(Exception):
         cwd = Path.cwd()
         cohezion_markers = [
             "src/cohezion/__init__.py",
@@ -40,8 +41,6 @@ def is_cohezion_environment() -> bool:
         marker_count = sum(1 for marker in cohezion_markers if (cwd / marker).exists())
         if marker_count >= 3:  # Require multiple markers to reduce false positives
             return True
-    except Exception:
-        pass  # Continue with other detection methods
 
     # Signal 3: Check for Cohezion-specific environment variables
     cohezion_env_vars = [
@@ -57,7 +56,8 @@ def is_cohezion_environment() -> bool:
 
     # Signal 4: Check if we're in a known Cohezion consumer process
     # This helps with IDE integrations, agents, terminals, etc.
-    try:
+    # ImportError (psutil missing) and other errors are expected; continue with other signals.
+    with contextlib.suppress(Exception):
         import psutil
 
         current_process = psutil.Process()
@@ -95,21 +95,17 @@ def is_cohezion_environment() -> bool:
             ]
             if any(consumer in parent_name for consumer in cohezion_consumers):
                 # Additional check: are we in Cohezion directory?
-                try:
+                # Continue with other signals on failure
+                with contextlib.suppress(Exception):
                     if any(
                         (cwd / marker).exists() for marker in ["src/cohezion", "pyproject.toml"]
                     ):
                         return True
-                except Exception:
-                    pass  # Continue with other signals
-    except ImportError:
-        pass  # psutil not available, continue with other signals
-    except Exception:
-        pass  # Other errors, continue with other signals
 
     # Signal 5: Check for Cohezion-specific files in parent directories
     # Helps when launched from subdirectories
-    try:
+    # Continue with other detection methods on failure
+    with contextlib.suppress(Exception):
         cwd = Path.cwd()
         for parent in [cwd] + list(cwd.parents):
             if any(
@@ -124,8 +120,6 @@ def is_cohezion_environment() -> bool:
                 )
                 if marker_count >= 2:
                     return True
-    except Exception:
-        pass  # Continue with other detection methods
 
     return False
 
@@ -200,41 +194,33 @@ def initialize_cohezion_environment() -> bool:
         initialization_details = {}
 
         # Try to create worktree if we're in a proper git repo and it makes sense
-        try:
+        # Fallback: continue without worktree (current directory work)
+        # This is fine for many environments (APIs, batch jobs, etc.)
+        with contextlib.suppress(Exception):
             init_result = initializer.initialize_session(
                 session_id=session_id, create_worktree=True, prepare_tdd=True, prepare_review=True
             )
             worktree_created = init_result.get("success", False)
             initialization_details.update(init_result)
-        except Exception:
-            # Fallback: continue without worktree (current directory work)
-            # This is fine for many environments (APIs, batch jobs, etc.)
-            pass
 
         # Initialize core systems (always try these - they should work in current directory)
-        try:
+        # TDD system failed to initialize - continue anyway
+        with contextlib.suppress(Exception):
             # Quick test that TDD system is working
             _ = tdd_system.get_tdd_metrics(f"init_test_{session_id}")
             tdd_ready = True
-        except Exception:
-            # TDD system failed to initialize - continue anyway
-            pass
 
-        try:
+        # Review system failed to initialize - continue anyway
+        with contextlib.suppress(Exception):
             # Quick test that review system is working
             _ = review_system.get_adversarial_metrics(f"init_test_{session_id}")
             review_ready = True
-        except Exception:
-            # Review system failed to initialize - continue anyway
-            pass
 
-        try:
+        # Coordinator system failed to initialize - continue anyway
+        with contextlib.suppress(Exception):
             # Quick test that coordinator is working
             _ = coordinator.get_integration_metrics(f"init_test_{session_id}")
             coordinator_ready = True
-        except Exception:
-            # Coordinator system failed to initialize - continue anyway
-            pass
 
         # Mark as initialized to prevent double initialization
         initialize_cohezion_environment._initialized = True
@@ -262,27 +248,23 @@ def initialize_cohezion_environment() -> bool:
         except Exception:
             # Final fallback to stdout (visible in most environments)
             # Only print if we're likely in an interactive environment
-            try:
+            # Even error reporting failed, continue silently
+            with contextlib.suppress(Exception):
                 if not os.environ.get("COHEZION_NON_INTERACTIVE"):
                     print(init_msg)
-            except Exception:
-                pass  # Even error reporting failed, continue silently
 
         return True
 
     except Exception as e:
         # Never let initialization failures break Cohezion
         # Fail silently to ensure Cohezion always works
-        try:
+        # Even error reporting failed, continue silently
+        with contextlib.suppress(Exception):
             error_msg = f"[COHEZION_INIT_ERROR] {str(e)[:100]}..."
             # Only print error if we're likely in an interactive environment
-            try:
+            with contextlib.suppress(Exception):
                 if not os.environ.get("COHEZION_NON_INTERACTIVE"):
                     print(error_msg)
-            except Exception:
-                pass  # Even error reporting failed, continue silently
-        except Exception:
-            pass  # Even error reporting failed, continue silently
         return False  # Indicate initialization was attempted but failed
 
 

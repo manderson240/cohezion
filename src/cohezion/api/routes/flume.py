@@ -303,8 +303,8 @@ async def flume_latent_space(request: FlumeLatentSpaceRequest):
             n_components = min(3, z_dim, request.n_samples)
             pca = PCA(n_components=n_components)
             samples_3d = await loop.run_in_executor(None, pca.fit_transform, z_samples_np)
-    except TimeoutError:
-        raise HTTPException(status_code=504, detail="PCA timed out. Reduce n_samples")
+    except TimeoutError as err:
+        raise HTTPException(status_code=504, detail="PCA timed out. Reduce n_samples") from err
 
     if np.isnan(samples_3d).any():
         raise HTTPException(status_code=500, detail="PCA produced NaN. VAE may not be trained")

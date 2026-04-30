@@ -5,6 +5,7 @@ Universal rule system with cross-platform MCP bridge support
 
 from __future__ import annotations
 
+import contextlib
 import os
 import re
 from dataclasses import dataclass, field
@@ -458,12 +459,10 @@ class HookifyValidator:
             self._db = self._init_surrealdb()
 
         if self._db:
-            try:
+            with contextlib.suppress(Exception):
                 result = self._db.query(f"SELECT * FROM hookify_rules WHERE rule_id = '{rule_id}'")
                 if result and len(result) > 0:
                     return result[0].get("lever_overrides", {})
-            except Exception:
-                pass
 
         return {}
 

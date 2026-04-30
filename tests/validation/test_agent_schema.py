@@ -6,6 +6,7 @@ Covers AgentFileSchema, extract_frontmatter, validate_agent_file.
 
 from __future__ import annotations
 
+import contextlib
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
@@ -193,14 +194,12 @@ name: test-agent
 
 Content.
 """
-        # Invalid YAML raises exception - handled by caller
-        try:
+        # Invalid YAML raises exception - handled by caller.
+        # Expected behavior for invalid YAML.
+        with contextlib.suppress(Exception):
             result = extract_frontmatter(text)
             # If it doesn't raise, should at least return a dict
             assert isinstance(result, dict)
-        except Exception:
-            # Expected behavior for invalid YAML
-            pass
 
     def test_handles_frontmatter_not_at_start(self):
         """[P1] Should require frontmatter at start of file."""

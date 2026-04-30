@@ -16,6 +16,7 @@ Tools:
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import datetime
 import json
 import logging
@@ -271,14 +272,13 @@ async def _check_alignment(arguments: dict[str, Any]) -> list[TextContent]:
 
     # Query vault for similar task patterns (non-blocking)
     vault_score = 0.5
-    try:
+    # Vault timeout is OK
+    with contextlib.suppress(Exception):
         vault_result = await asyncio.wait_for(
             mcp.vault_find_relevant_context(f"{intent} using {tool}"), timeout=2.0
         )
         if vault_result:
             vault_score = 0.7  # Prior success boosts confidence
-    except Exception:
-        pass  # Vault timeout is OK
 
     # Composite coherence
     coherence = (intent_score * 0.4) + (tool_fit * 0.3) + (vault_score * 0.3)

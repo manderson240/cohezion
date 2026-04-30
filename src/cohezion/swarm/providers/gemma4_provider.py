@@ -128,12 +128,12 @@ class Gemma4Provider(OllamaProvider):
                     },
                 )
 
-        except TimeoutError:
-            raise RuntimeError(f"Gemma 4 request timed out after {self.timeout}s")
+        except TimeoutError as err:
+            raise RuntimeError(f"Gemma 4 request timed out after {self.timeout}s") from err
 
         except Exception as e:
             logger.exception(f"Gemma 4 generation failed for model {model}")
-            raise RuntimeError(f"Gemma 4 generation error: {e}")
+            raise RuntimeError(f"Gemma 4 generation error: {e}") from e
 
 
 # Auto-register Gemma 4 provider

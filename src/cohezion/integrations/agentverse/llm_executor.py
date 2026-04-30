@@ -227,13 +227,13 @@ class LLMExecutor:
                 data = response.json()
                 return data.get("response", "")
 
-            except httpx.TimeoutException:
+            except httpx.TimeoutException as err:
                 last_error = f"Timeout calling {model}"
                 logger.warning("Ollama timeout on attempt %d/%d", attempt + 1, max_retries)
                 if attempt < max_retries - 1:
                     await asyncio.sleep(2**attempt)
                 else:
-                    raise RuntimeError(last_error)
+                    raise RuntimeError(last_error) from err
 
             except httpx.HTTPStatusError as e:
                 last_error = f"HTTP error calling {model}: {e}"
@@ -243,7 +243,7 @@ class LLMExecutor:
                 if attempt < max_retries - 1:
                     await asyncio.sleep(2**attempt)
                 else:
-                    raise RuntimeError(last_error)
+                    raise RuntimeError(last_error) from e
 
             except Exception as e:
                 last_error = f"Error calling {model}: {e}"
@@ -251,7 +251,7 @@ class LLMExecutor:
                 if attempt < max_retries - 1:
                     await asyncio.sleep(2**attempt)
                 else:
-                    raise RuntimeError(last_error)
+                    raise RuntimeError(last_error) from e
 
         raise RuntimeError(last_error or f"Failed after {max_retries} attempts")
 

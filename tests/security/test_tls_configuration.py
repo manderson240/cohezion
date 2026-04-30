@@ -8,6 +8,7 @@ This test suite validates Task #2 of Phase 2 Security Hardening:
 - Certificate chain and expiration
 """
 
+import contextlib
 import os
 import ssl
 from pathlib import Path
@@ -166,14 +167,12 @@ class TestUvicornSSLConfiguration:
 
     def test_mcp_server_main_imports_tls(self):
         """Verify MCP server imports TLS modules."""
-        # This test ensures main.py can import the TLS modules
-        try:
+        # This test ensures main.py can import the TLS modules.
+        # If direct import fails, that's okay - the conditional import handles it.
+        with contextlib.suppress(Exception):
             from cloud_vault_mcp.src.mcp_server import main
 
             assert hasattr(main, "TLSConfig")
-        except Exception:
-            # If direct import fails, that's okay - the conditional import handles it
-            pass
 
     def test_environment_variables_for_tls(self):
         """Test environment variables can be set for TLS."""

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import shutil
 import subprocess
 import uuid
@@ -169,10 +170,8 @@ def reset_singletons():
 
     # Reset FLUME VAE singleton to prevent state pollution across tests
     api_module: ModuleType | None = None
-    try:
+    with contextlib.suppress(Exception):
         import cohezion.api as api_module
-    except Exception:
-        pass
     if api_module is not None and hasattr(api_module, "_vae_trainer"):
         api_module._vae_trainer = None
 

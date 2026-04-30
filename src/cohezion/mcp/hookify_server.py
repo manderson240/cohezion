@@ -5,6 +5,7 @@ Cross-platform rule engine with Obsidian vault + SurrealDB graph integration
 
 from __future__ import annotations
 
+import contextlib
 import json
 import logging
 import os
@@ -305,13 +306,11 @@ Lever adjusted for:
         except ValueError:
             return {}
 
-        try:
+        with contextlib.suppress(Exception):
             sql = f"SELECT * FROM hookify_rules:{rule_id};"
             result = client.query(sql)
             if result and len(result) > 0:
                 return result[0].get("lever_overrides", {})
-        except Exception:
-            pass
 
         return {}
 
