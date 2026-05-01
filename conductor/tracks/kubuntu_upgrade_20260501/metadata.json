@@ -1,0 +1,8 @@
+{
+  "track_id": "kubuntu_upgrade_20260501",
+  "type": "chore",
+  "status": "new",
+  "created_at": "2026-05-01T01:10:11Z",
+  "updated_at": "2026-05-01T01:10:11Z",
+  "description": "Safely updgrading to Ubuntu 26.04 LTS (Resolute Raccoon) without losing any local data."
+}

@@ -68,5 +68,10 @@ This file tracks all major tracks for the project. Each track has its own detail
 - [x] **Track: Comprehensive Retrospective & Skill Refinement**
 *Link: [./conductor/plan_retrospective_20260422.md](./plan_retrospective_20260422.md)*
 
+---
+
+- [ ] **Track: Safely updgrading to Ubuntu 26.04 LTS (Resolute Raccoon) without losing any local data.**
+*Link: [./tracks/kubuntu_upgrade_20260501/](./tracks/kubuntu_upgrade_20260501/)*
+
 
 
