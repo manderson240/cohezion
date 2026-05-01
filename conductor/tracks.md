@@ -70,7 +70,7 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ---
 
-- [ ] **Track: Safely updgrading to Ubuntu 26.04 LTS (Resolute Raccoon) without losing any local data.**
+- [~] **Track: Safely updgrading to Ubuntu 26.04 LTS (Resolute Raccoon) without losing any local data.**
 *Link: [./tracks/kubuntu_upgrade_20260501/](./tracks/kubuntu_upgrade_20260501/)*
 
 

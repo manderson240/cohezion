@@ -1,6 +1,3 @@
-timestamp,20260322_222459
-agents,27
-workflows,74
-tasks,7
-invocations,7
-self_trace,True
+version https://git-lfs.github.com/spec/v1
+oid sha256:9dc426add36cc6ea87598d21b281c56ff086fb01d9275f168cfa184550757370
+size 87

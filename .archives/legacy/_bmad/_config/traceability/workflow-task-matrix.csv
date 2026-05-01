@@ -1,3 +1,3 @@
-workflow_name,task_invoked,invocation_type,source_file,line_ref
-4-implementation,validate-workflow,invoke-task,bmm/workflows/4-implementation/create-story/instructions.xml,Line 314
-4-production,validate-workflow,invoke-task,gds/workflows/4-production/create-story/instructions.xml,Line 313
+version https://git-lfs.github.com/spec/v1
+oid sha256:3410c7a07763e8e16baef5d003f7c8354766c484cb049eae1c90cd349fd35315
+size 293
