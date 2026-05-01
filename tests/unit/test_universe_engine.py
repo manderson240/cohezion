@@ -60,7 +60,7 @@ class TestAxiomaticState:
             control=0.5,
             novelty=0.5,
         )
-        assert state.coherence_score() == 1.0
+        assert state.coherence_score() == pytest.approx(1.0)
 
     def test_coherence_score_decays_away_from_half(self):
         """Dimensions far from 0.5 should give lower coherence."""

@@ -1,0 +1,15 @@
+{
+  "timestamp": null,
+  "config": {
+    "backend": "zen5_cpu",
+    "temperature": 0.7,
+    "max_tokens": 1024
+  },
+  "outcome": "negative",
+  "metrics": {
+    "tokens_per_sec": 40.0,
+    "quality_score": 0.75
+  },
+  "reason": "underperforms GPU",
+  "lessons": ""
+}

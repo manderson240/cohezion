@@ -1,0 +1,39 @@
+======================================================================
+GUARDED GPU SATURATION ANALYSIS
+======================================================================
+Testing: [4, 5, 6, 7, 8]
+Guardrails:
+  - Max temp: 85.0°C
+  - Max duration: 300.0s per test
+  - Rollback threshold: 80% of best
+  - Cooldown between tests: 10s
+======================================================================
+
+============================================================
+Testing concurrency=4
+============================================================
+  Pre-flight: Temp=0.0°C, System responsive ✓
+  Post-test: Temp=0.0°C
+
+  ✓ Complete: 120.2 TPS, 160 tokens, 2.02s
+  Cooling down (10s)...
+    10s remaining...    9s remaining...    8s remaining...    7s remaining...    6s remaining...    5s remaining...    4s remaining...    3s remaining...    2s remaining...    1s remaining...                              
+
+============================================================
+Testing concurrency=5
+============================================================
+  Pre-flight: Temp=0.0°C, System responsive ✓
+
+  ⚠️  ABORTED: Inference failures
+
+======================================================================
+RESULTS SUMMARY
+======================================================================
+  N        TPS       Time               Status
+----------------------------------------------------------------------
+  4      120.2      2.02s             COMPLETE
+  5        0.0      1.90s              ABORTED
+
+Optimal: concurrency=4 at 120.2 TPS
+Previously: concurrency=4 at 138.9 TPS
+======================================================================

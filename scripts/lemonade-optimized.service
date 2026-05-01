@@ -1,0 +1,59 @@
+[Unit]
+Description=Lemonade Inference Server (AMD Optimized)
+Documentation=https://github.com/onnx/turnkeyml
+After=network.target
+
+[Service]
+Type=simple
+User=lemonade
+Group=lemonade
+
+# Working directory
+WorkingDirectory=/var/lib/lemonade
+
+# Environment - AMD Optimizations
+Environment="RADV_PERFTEST=aco,gpl,rt,nggc"
+Environment="RADV_COOPERATIVE_MATRIX=1"
+Environment="MESA_SHADER_CACHE_DISABLE=0"
+Environment="MESA_SHADER_CACHE_MAX_SIZE=4GB"
+Environment="HSA_OVERRIDE_GFX_VERSION=11.0.0"
+Environment="HIP_VISIBLE_DEVICES=0"
+Environment="PATH=/opt/rocm/bin:/usr/local/bin:/usr/bin:/bin"
+
+# GPU Power Profile (requires sudo, handled separately)
+# Use: sudo systemctl start lemonade-gpu-profile
+
+# Lemonade configuration
+Environment="HIP_VISIBLE_DEVICES=0"
+
+# Server command with optimizations
+ExecStart=/usr/bin/lemonade serve DeepSeek-R1-0528-Qwen3-8B-Q4_1 \
+    --backend vulkan \
+    --port 8002 \
+    --ctx-size 4096 \
+    --cache-type-k q8_0 \
+    --cache-type-v q8_0 \
+    --flash-attn \
+    --no-mmap \
+    --context-shift \
+    --keep 16 \
+    --reasoning-format auto \
+    --no-webui \
+    -ngl 99
+
+# Restart policy
+Restart=always
+RestartSec=10
+
+# Resource limits
+LimitNOFILE=65536
+MemoryMax=24G
+
+# Security
+NoNewPrivileges=false
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/lemonade/.cache
+
+[Install]
+WantedBy=multi-user.target

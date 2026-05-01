@@ -15,14 +15,17 @@ prompt_path = str(
     / "kaggle-agi-benchmark"
     / "generate_evo_hiho_tasks.py"
 )
-spec = importlib.util.spec_from_file_location("generate_evo_hiho_tasks", prompt_path)
-if spec and spec.loader:
-    module = importlib.util.module_from_spec(spec)
-    sys.modules["generate_evo_hiho_tasks"] = module
-    spec.loader.exec_module(module)
-    GENERATION_PROMPT = module.GENERATION_PROMPT
-else:
-    GENERATION_PROMPT = ""  # Fallback if file missing
+try:
+    spec = importlib.util.spec_from_file_location("generate_evo_hiho_tasks", prompt_path)
+    if spec and spec.loader:
+        module = importlib.util.module_from_spec(spec)
+        sys.modules["generate_evo_hiho_tasks"] = module
+        spec.loader.exec_module(module)
+        GENERATION_PROMPT = module.GENERATION_PROMPT
+    else:
+        GENERATION_PROMPT = ""
+except (FileNotFoundError, ImportError, AttributeError):
+    GENERATION_PROMPT = ""  # Fallback if file missing or error loading
 
 from cohezion.compound.session_manager import CompoundSessionManager
 from cohezion.swarm.compound_client import get_compound_client

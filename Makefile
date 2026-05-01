@@ -31,7 +31,7 @@ test:  ## Run test suite
 	@echo "✓ Tests complete"
 
 test-fast:  ## Run fast unit tests only (<1s each, no live services)
-	uv run pytest tests/ -m fast --tb=short -q
+	uv run pytest tests/unit --import-mode=append --tb=short -q -p no:warnings
 	@echo "✓ Fast tests complete"
 
 test-integration:  ## Run integration tests (require live services)
@@ -39,7 +39,7 @@ test-integration:  ## Run integration tests (require live services)
 	@echo "✓ Integration tests complete"
 
 test-smoke:  ## Run quick smoke tests (minimal subset)
-	uv run pytest tests/unit -q --tb=line 2>/dev/null || uv run pytest tests/conftest.py tests/test_*.py -q --tb=line 2>/dev/null || echo "⚠ No smoke tests found"
+	uv run pytest tests/unit --import-mode=append -q --tb=line -p no:warnings 2>/dev/null || echo "⚠ Smoke tests failed"
 
 all: format lint type-check test agent-guard mcp-guard kg-guard data-mesh-guard health-guard async-guard routing-guard a2a-guard bmad-guard  ## Run all checks, tests, and guards
 

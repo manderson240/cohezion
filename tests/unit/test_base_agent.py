@@ -62,7 +62,7 @@ _MODULE_LEVEL_PATCHES = {
     "cohezion.agents.base.CompoundLogicEngine": MagicMock,
     "cohezion.agents.base.get_pool": MagicMock,
     "cohezion.agents.base.get_resource_monitor": MagicMock,
-    "cohezion.agents.base.FlumeEncoder": MagicMock,
+    "cohezion.flume.autoencoder.FlumeEncoder": MagicMock,  # Patched at source module
     "cohezion.agents.base.get_time_keeper": MagicMock,
 }
 

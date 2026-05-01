@@ -1,0 +1,14 @@
+{
+  "type": "model",
+  "name": "DeepSeek-R1-0528-Qwen3-8B-Q4_1",
+  "capabilities": {
+    "reasoning": 0.8,
+    "coding": 0.9,
+    "long_context": 0.7
+  },
+  "tags": [
+    "model",
+    "capability"
+  ],
+  "created": "2026-04-26T18:49:56.610419"
+}

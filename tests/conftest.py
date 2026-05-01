@@ -34,6 +34,15 @@ if "transformers" not in sys.modules:
     _mock_tr = MagicMock()
     _mock_tr.AutoModelForCausalLM = MagicMock
     _mock_tr.AutoTokenizer = MagicMock
+    # Import and expose PretrainedConfig/PreTrainedModel as real classes
+    try:
+        import transformers as _real_tr
+        _mock_tr.PretrainedConfig = _real_tr.PretrainedConfig
+        _mock_tr.PreTrainedModel = _real_tr.PreTrainedModel
+    except Exception:
+        # If transformers isn't installed, use MagicMock as fallback
+        _mock_tr.PretrainedConfig = MagicMock
+        _mock_tr.PreTrainedModel = MagicMock
     sys.modules["transformers"] = _mock_tr
 
 

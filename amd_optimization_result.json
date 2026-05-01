@@ -1,0 +1,19 @@
+{
+  "timestamp": "2026-04-26T19:30:09.939967",
+  "baseline": {
+    "count": 4,
+    "total_tokens": 1024,
+    "wall_time": 14.323153014000127,
+    "tps": 71.49263845740488,
+    "tps_per_req": 17.87315961435122
+  },
+  "optimized": {
+    "count": 4,
+    "total_tokens": 1024,
+    "wall_time": 9.69542031400124,
+    "tps": 105.6168754768922,
+    "tps_per_req": 26.40421886922305
+  },
+  "tps_change_pct": 47.73111995274654,
+  "note": "Environment variables must be set BEFORE server starts"
+}

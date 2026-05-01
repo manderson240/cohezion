@@ -48,8 +48,8 @@ class TestRoutingOrchestratorRoute:
 
         orch = RoutingOrchestrator()
         decision = orch.route("hello world")
-        # Simple task should route to cheapest model
-        assert decision.model in ("phi3:mini", "qwen3-coder:32b", "deepseek-r1:8b")
+        # Simple task should route to cheapest model (Phi-4-mini-instruct-Hybrid is the default tier_simple)
+        assert decision.model in ("phi3:mini", "qwen3-coder:32b", "deepseek-r1:8b", "Phi-4-mini-instruct-Hybrid")
 
     def test_route_includes_confidence_score(self):
         from cohezion.swarm.routing_orchestrator import RoutingOrchestrator
