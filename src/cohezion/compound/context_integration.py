@@ -137,7 +137,16 @@ class ContextManager:
                     f"{coherence_threshold} for {file_path}"
                 )
 
-            content = self._load_file(file_path)
+            try:
+                content = self._load_file(file_path)
+            except ContextLoadError as e:
+                # Missing context files are non-fatal — match the executor's
+                # "non-blocking helper" pattern (degradation, journey, bioelectric
+                # all warn-and-continue). Manifest entries can drift from the
+                # filesystem; force the user to fix them via warning, not crash.
+                logger.warning("Skipping missing context file: %s (%s)", file_path, e)
+                continue
+
             if content:
                 token_budget = file_config.get("token_budget", 0)
                 self.token_usage += token_budget

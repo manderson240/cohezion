@@ -52,6 +52,25 @@ These anti-patterns caused 44 test failures (Session 56). Enforcement mechanisms
 **GOOD:** `assert hook["stages"][0] in ("commit", "pre-commit")`
 **Enforcement:** Accept both naming conventions in assertions.
 
+### 8. Module-Level `sys.modules` Mock Assignments (L378)
+**BAD:** `sys.modules["heavy_package"] = MagicMock()` at module scope in a test file — poisons pytest's session for every subsequent test. Under `pytest-randomly` the collection order flips between local and CI, so failures appear random (local passes, CI fails, or vice versa). Symptoms: `TypeError: '<' not supported between instances of 'MagicMock' and 'float'`, `TypeError: unsupported format string passed to MagicMock.__format__`, `AttributeError: MagicMock has no attribute 'X'` in code that should never see a mock.
+**GOOD:** Use an autouse fixture that saves and restores `sys.modules` state, or `monkeypatch.setitem(sys.modules, "heavy_package", MagicMock())` per-test.
+```python
+@pytest.fixture(autouse=True)
+def _mock_heavy_modules():
+    originals = {k: sys.modules.get(k) for k in ("heavy_package",)}
+    sys.modules["heavy_package"] = MagicMock()
+    yield
+    for k, v in originals.items():
+        sys.modules[k] = v if v else sys.modules.pop(k, None)
+```
+**Enforcement:** `rg -n "^sys\.modules\[" tests/` must return zero module-scope hits. See skill `pytest-sysmodules-session-leak`.
+
+### 9. numpy Scalars Leak Through Public Bool/Float APIs (L379)
+**BAD:** Return a dict whose values are computed via numpy (`coherence > 0.5` → `np.True_`, not `True`). Tests using `assert result["flag"] is True` or `isinstance(x, bool)` fail opaquely.
+**GOOD:** Explicit `float()`/`bool()` casts at the public return site: `precipitate = bool(coherence > 0.5)`, `coherence = float(self.coherence_score())`.
+**Enforcement:** Type-check contract tests should use strict `isinstance(x, bool)` + `x is True/False`, not `==` or truthy checks. See skill `numpy-scalar-python-bool-boundary`.
+
 ## Verification Commands
 
 ```bash
