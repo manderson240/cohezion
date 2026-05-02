@@ -1,0 +1,23 @@
+{
+  "cli_version": "0.5.6",
+  "checkpoint_id": "92411f41ea6e",
+  "strategy": "manual-commit",
+  "branch": "fix/polish-clean-backport",
+  "checkpoints_count": 1,
+  "files_touched": null,
+  "sessions": [
+    {
+      "metadata": "/92/411f41ea6e/0/metadata.json",
+      "transcript": "/92/411f41ea6e/0/full.jsonl",
+      "content_hash": "/92/411f41ea6e/0/content_hash.txt",
+      "prompt": "/92/411f41ea6e/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 1099,
+    "cache_creation_tokens": 2615399,
+    "cache_read_tokens": 266861973,
+    "output_tokens": 648955,
+    "api_call_count": 1037
+  }
+}
