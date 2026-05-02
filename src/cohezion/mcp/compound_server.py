@@ -689,7 +689,7 @@ async def cohezion_skill_matrix() -> dict[str, Any]:
     local_skills: list[dict[str, Any]] = []
     if hermes_skills_dir.exists():
         for root in hermes_skills_dir.rglob("SKILL.md"):
-            content = root.read_text(encoding="utf-8", errors="ignore").splitlines()[:20]
+            content = root.read_text(encoding="utf-8", errors="ignore").splitlines()[:40]
             text = "\n".join(content)
             is_cohezion = any(
                 tag in text
@@ -701,23 +701,35 @@ async def cohezion_skill_matrix() -> dict[str, Any]:
             parts = rel.parts
             skill_name = parts[-2] if len(parts) >= 2 else root.parent.name
             category = parts[0] if parts else "unknown"
+
+            # Extract legacy-name from YAML frontmatter for cross-referencing with PRIME
+            legacy_match = re.search(r"legacy-name:\s*([A-Z_0-9]+_PRIME)", text)
+            legacy_name = legacy_match.group(1) if legacy_match else None
+
             local_skills.append(
                 {
                     "name": skill_name,
                     "category": category,
                     "full_path": str(root),
+                    "legacy_name": legacy_name,
                 }
             )
 
     # Build cross-reference matrix
     prime_names = {s["name"] for s in registry["skills"]}
+    # Local Hermes skills are keyed by folder name, but we also track legacy_name
+    # for PRIME cross-reference. A PRIME skill is "ported" if its stem appears as
+    # a local skill's legacy_name or if the names directly match.
     local_names = {s["name"] for s in local_skills}
+    local_legacy_names = {
+        s["legacy_name"] for s in local_skills if s.get("legacy_name")
+    }
     matrix = {
         "prime_total": len(prime_names),
         "hermes_local_total": len(local_names),
-        "ported": sorted(prime_names & local_names),
-        "not_ported": sorted(prime_names - local_names),
-        "hermes_only": sorted(local_names - prime_names),
+        "ported": sorted(prime_names & local_legacy_names),
+        "not_ported": sorted(prime_names - local_legacy_names),
+        "hermes_only": sorted(local_names),
     }
 
     return {

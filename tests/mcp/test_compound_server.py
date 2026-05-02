@@ -129,6 +129,13 @@ class TestSkillMatrix:
             assert "category" in skill
             assert "path" in skill
 
+    @pytest.mark.asyncio
+    async def test_local_skills_have_legacy_names(self) -> None:
+        result = await cohezion_skill_matrix()
+        local = result.get("local_hermes_skills", [])
+        with_legacy = [s for s in local if s.get("legacy_name")]
+        assert len(with_legacy) > 0, "No ported skills found with legacy_name"
+
 
 # ---------------------------------------------------------------------------
 # cohezion_batch_port_skills tests (mocked subprocess)
