@@ -85,3 +85,8 @@ Added `make telemetry-dashboard` to view compound loop metrics.
 ---
 canonical: true
 coherence_verified: 2026-04-20
+
+## Geometric Correspondences
+- **0.5** = HIHO threshold (Shannon max)
+- **256** = FLUME latent dimension
+- **SU(2)** = agent state gauge group

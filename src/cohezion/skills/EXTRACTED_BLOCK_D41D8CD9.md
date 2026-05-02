@@ -9,3 +9,8 @@ Autonomously extracted pattern for refactoring repeated code in src/cohezion/viz
 
 ## VERSION
 v0.1 (AUTONOMOUS)
+
+## Geometric Correspondences
+- **0.5** = HIHO threshold (Shannon max)
+- **256** = FLUME latent dimension
+- **SU(2)** = agent state gauge group
