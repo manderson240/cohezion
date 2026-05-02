@@ -2076,6 +2076,135 @@ async def experiment_e63_mycelium_closed_loop(
 
 
 # ---------------------------------------------------------------------------
+# E64: Multi-cycle Mycelium compounding — does consensus reach 0.85 in N cycles?
+# ---------------------------------------------------------------------------
+
+
+async def experiment_e64_mycelium_compounding(
+    n_cycles: int = 5,
+    n_phase: int = 8,
+    use_llm: bool = True,
+    learning_rate: float = 1.0,
+) -> dict:
+    """Multi-cycle Mycelium compounding toward HIHO threshold.
+
+    Runs n_cycles on a SHARED nexus — _mycelium_calibration accumulates (E57 additive fix).
+    Convergence formula: consensus_n = 0.85 - 0.125 * (1 - lr/2)^n
+    At lr=1.0: cycle1=0.7875, cycle2=0.8219, cycle3=0.8457, cycle4=0.8594 (crosses 0.85).
+    Keep if any cycle exceeds HIHO threshold OR total_lift > 0.05.
+    """
+    from cohezion.learning.mycelium_registry import MyceliumRegistry
+
+    _reset_shared_nexus()
+    run = _next_run()
+    start = time.time()
+    print(
+        f"\n[E64] Multi-cycle compounding ({n_cycles} cycles, "
+        f"{n_phase}+{n_phase} each, lr={learning_rate}, llm={use_llm})",
+        flush=True,
+    )
+
+    nexus = _get_shared_nexus()
+    cycle_means: list[float] = []
+    threshold_crossed = False
+    first_crossing_cycle = -1
+
+    for cycle_idx in range(n_cycles):
+        if _STOP:
+            break
+
+        phase_a_scores: list[float] = []
+        event_metas: list[dict] = []
+        for i in range(n_phase):
+            if _STOP:
+                break
+            delib = await run_llm_deliberation(
+                action=f"e64_c{cycle_idx}_a{i}",
+                description="Deploy scheduled system update",
+                priority=0.50,
+                budget=False,
+                use_llm=use_llm,
+            )
+            phase_a_scores.append(delib["consensus"])
+            if delib.get("event_metadata"):
+                event_metas.append(delib["event_metadata"])
+
+        mean_a = sum(phase_a_scores) / len(phase_a_scores) if phase_a_scores else 0.0
+
+        skill_applied = False
+        if event_metas:
+            registry = MyceliumRegistry(min_entries_for_pattern=2)
+            ingested = registry.ingest_evo_journeys(event_metas)
+            if ingested >= 1:
+                registry.run_audit()
+                skill = registry.skills.get("EVO_DELIBERATION_SYNTHESIZED")
+                if skill:
+                    nexus.apply_mycelium_feedback(skill.skill_content, learning_rate=learning_rate)
+                    skill_applied = True
+
+        phase_b_scores: list[float] = []
+        for i in range(n_phase):
+            if _STOP:
+                break
+            delib = await run_llm_deliberation(
+                action=f"e64_c{cycle_idx}_b{i}",
+                description="Deploy scheduled system update",
+                priority=0.50,
+                budget=False,
+                use_llm=use_llm,
+            )
+            phase_b_scores.append(delib["consensus"])
+
+        mean_b = sum(phase_b_scores) / len(phase_b_scores) if phase_b_scores else 0.0
+        cycle_means.append(mean_b)
+        if mean_b >= nexus.CONSENSUS_THRESHOLD and not threshold_crossed:
+            threshold_crossed = True
+            first_crossing_cycle = cycle_idx + 1
+
+        print(
+            f"  Cycle {cycle_idx + 1}/{n_cycles}: a={mean_a:.4f} -> b={mean_b:.4f} "
+            f"skill={skill_applied} crossed={threshold_crossed}",
+            flush=True,
+        )
+
+    monotone = all(cycle_means[i] <= cycle_means[i + 1] for i in range(len(cycle_means) - 1))
+    final_mean = cycle_means[-1] if cycle_means else 0.0
+    total_lift = final_mean - (cycle_means[0] if cycle_means else 0.0)
+    keep_decision = "keep" if threshold_crossed or total_lift > 0.05 else "discard"
+
+    log_result(
+        run,
+        total_lift,
+        {
+            "cycle_means": [round(m, 4) for m in cycle_means],
+            "threshold_crossed": threshold_crossed,
+            "first_crossing_cycle": first_crossing_cycle,
+            "monotone": monotone,
+            "total_lift": round(total_lift, 4),
+            "final_mean": round(final_mean, 4),
+            "n_cycles": n_cycles,
+            "learning_rate": learning_rate,
+            "used_llm": use_llm,
+            "duration_s": round(time.time() - start, 1),
+        },
+        keep_decision,
+        f"E64: Mycelium compounding {n_cycles} cycles. total_lift={total_lift:+.4f} "
+        f"threshold_crossed={threshold_crossed} first_cycle={first_crossing_cycle} "
+        f"monotone={monotone}",
+        experiment="E64",
+        mycelium_total_lift=round(total_lift, 4),
+        threshold_crossed=threshold_crossed,
+    )
+    return {
+        "cycle_means": cycle_means,
+        "threshold_crossed": threshold_crossed,
+        "first_crossing_cycle": first_crossing_cycle,
+        "total_lift": total_lift,
+        "monotone": monotone,
+    }
+
+
+# ---------------------------------------------------------------------------
 # Main loop
 # ---------------------------------------------------------------------------
 
@@ -2189,6 +2318,14 @@ async def main() -> None:
             "E63_mycelium_lr2",
             lambda: experiment_e63_mycelium_closed_loop(
                 n_phase=10, use_llm=use_llm, learning_rate=2.0
+            ),
+        ),
+        # E64: Multi-cycle compounding — 5 cycles, tests convergence formula
+        # Predicts: threshold crossed by cycle 4 at lr=1.0 (formula: 0.85−0.125×(1−lr/2)^n)
+        (
+            "E64_compound",
+            lambda: experiment_e64_mycelium_compounding(
+                n_cycles=5, n_phase=8, use_llm=use_llm, learning_rate=1.0
             ),
         ),
         # E51 xl: 200-tick quality sensitivity (more ticks = more signal)

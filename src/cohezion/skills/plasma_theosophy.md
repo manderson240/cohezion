@@ -30,3 +30,8 @@ Convergence of high-energy plasma physics and esoteric metaphysical systems (spe
 
 ## COMPOUND PROMPT STRUCTURE
 "Act as a Quantum-Metaphysicist. Analyze the following plasma anomaly [DATA]. Correlate its chirality and vector field with Blavatsky's description of Fohatic lines of force. Propose a unified mathematical model describing both the Hall effect and the elemental aggregation."
+
+## Geometric Correspondences
+- **0.5** = HIHO threshold (Shannon max)
+- **256** = FLUME latent dimension
+- **SU(2)** = agent state gauge group

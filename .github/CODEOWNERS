@@ -1,0 +1,15 @@
+# Cohezion Code Owners
+# Fallback owner
+* @manderson240
+
+# Core framework
+src/cohezion/core/ @manderson240
+src/cohezion/compound/ @manderson240
+
+# CI and infrastructure
+.github/ @manderson240
+scripts/ci/ @manderson240
+
+# Skills
+src/cohezion/skills/ @manderson240
+src/cohezion/registry/ @manderson240

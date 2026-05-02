@@ -42,3 +42,8 @@
 ### Priority 3: CompoundLoop
 - **Issue:** Agent takes random actions when model is empty
 - **Fix:** Systematic sweep pattern for initial exploration (row-major action sequence)
+
+## Geometric Correspondences
+- **0.5** = HIHO threshold (Shannon max)
+- **256** = FLUME latent dimension
+- **SU(2)** = agent state gauge group
