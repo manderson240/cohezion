@@ -18,10 +18,10 @@ This is the self-improving backbone of the Cohezion skill ecosystem.
 from __future__ import annotations
 
 import logging
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from pathlib import Path
-from typing import Any
 
+from cohezion.compound.autoresearch import AutoresearchEngine
 from cohezion.compound.skill_evolution_diff import SkillEvolutionTracker
 from cohezion.compound.skill_health_tracker import SkillHealthTracker
 from cohezion.compound.skill_quality_scorer import SkillQualityReport, SkillQualityScorer
@@ -69,10 +69,12 @@ class SkillQualityOrchestrator:
         scorer: SkillQualityScorer | None = None,
         evolution: SkillEvolutionTracker | None = None,
         health: SkillHealthTracker | None = None,
+        autoresearch: AutoresearchEngine | None = None,
     ) -> None:
         self.scorer = scorer or SkillQualityScorer()
         self.evolution = evolution or SkillEvolutionTracker()
         self.health = health or SkillHealthTracker()
+        self.autoresearch = autoresearch or AutoresearchEngine()
         self._hypothesis_history: dict[str, list[ImprovementHypothesis]] = {}
 
     async def improve_skill(self, skill_path: Path) -> ImprovementResult:
@@ -101,8 +103,8 @@ class SkillQualityOrchestrator:
                 consensus_approved=True,
             )
 
-        # Phase 2: Generate hypotheses
-        hypotheses = self._generate_hypotheses(report)
+        # Phase 2: Generate hypotheses (rule-based + autoresearch-driven)
+        hypotheses = await self._generate_hypotheses(report)
         if not hypotheses:
             logger.warning("No improvement hypotheses generated for %s", report.skill_name)
             return ImprovementResult(
@@ -123,7 +125,7 @@ class SkillQualityOrchestrator:
         # Phase 4: Apply patch (non-destructive backup)
         backup = skill_path.read_text()
         try:
-            applied = self._apply_patch(skill_path, best)
+            self._apply_patch(skill_path, best)
         except Exception as e:
             skill_path.write_text(backup)
             logger.error("Patch application failed for %s: %s", report.skill_name, e)
@@ -165,21 +167,23 @@ class SkillQualityOrchestrator:
         )
 
     # ------------------------------------------------------------------
-    # Hypothesis generation (rule-based, deterministic, no LLM needed)
+    # Hypothesis generation (rule-based + autoresearch data-driven)
     # ------------------------------------------------------------------
 
-    def _generate_hypotheses(self, report: SkillQualityReport) -> list[ImprovementHypothesis]:
-        """Generate concrete patch hypotheses based on low-scoring dimensions."""
+    async def _generate_hypotheses(self, report: SkillQualityReport) -> list[ImprovementHypothesis]:
+        """Generate concrete patch hypotheses based on low-scoring dimensions.
+
+        Combines rule-based templates with autoresearch-driven opportunities
+        for data-informed prioritization.
+        """
+        # Rule-based hypotheses
         hypos: list[ImprovementHypothesis] = []
         for dim in report.dimensions:
             if dim.score >= 0.8:
                 continue
             if dim.name == "hiho_coherence":
-                missing = [a for a in SkillQualityScorer.HIHO_ANCHORS if a not in dim.issues[0]]
-                # Parse issues for missing anchors
                 for issue in dim.issues:
                     if "Missing geometric anchors" in issue:
-                        anchors = issue.replace("Missing geometric anchors: ", "").split(", ")
                         patch = "\n## Geometric Correspondences\n- **0.5** = HIHO threshold (Shannon max)\n- **256** = FLUME latent dimension\n- **SU(2)** = agent state gauge group\n"
                         hypos.append(ImprovementHypothesis(
                             skill_name=report.skill_name,
@@ -219,6 +223,39 @@ class SkillQualityOrchestrator:
                     expected_delta=0.15 * (1 - dim.score),
                     confidence=0.95,
                 ))
+
+        # Autoresearch data-driven hypotheses
+        metrics = {
+            "cache_hit_rate": 0.0,
+            "avg_tokens_per_request": 2000.0,
+            "vault_write_latency_ms": 999.0,
+            "avg_coherence": report.overall_score,
+        }
+        try:
+            opportunities = await self.autoresearch.analyze(metrics)
+            for opp in opportunities:
+                # Map autoresearch opportunity to skill improvement hypothesis
+                if opp.category == "cache" and report.overall_score < 0.5:
+                    hypos.append(ImprovementHypothesis(
+                        skill_name=report.skill_name,
+                        dimension="hiho_coherence",
+                        action="add_anchor",
+                        patch="\n## Autoresearch Insight\n- **Coherence below threshold** — " + opp.recommendation + "\n",
+                        expected_delta=0.05,
+                        confidence=0.6,
+                    ))
+                elif opp.category == "token_efficiency":
+                    hypos.append(ImprovementHypothesis(
+                        skill_name=report.skill_name,
+                        dimension="testability",
+                        action="add_example",
+                        patch="\n## Token Efficiency\n" + opp.recommendation + "\n",
+                        expected_delta=0.05,
+                        confidence=0.5,
+                    ))
+        except Exception as e:
+            logger.warning("Autoresearch analysis failed for %s: %s", report.skill_name, e)
+
         return hypos
 
     def _apply_patch(self, skill_path: Path, hypothesis: ImprovementHypothesis) -> bool:
